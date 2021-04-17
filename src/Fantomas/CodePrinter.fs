@@ -2177,7 +2177,13 @@ and genExpr astContext synExpr ctx =
                                 | Some { Range = range } -> ctx.MkRange range.Start body.Range.End
                                 | _ -> fullIfThenElseExpr.Range
 
-                            condition, body, correctedRange)
+                            let elifKeywordRange =
+                                ctx.MkRange correctedRange.Start body.Range.Start
+
+                            let thenKeywordRange =
+                                ctx.MkRange condition.Range.End body.Range.Start
+
+                            condition, body, elifKeywordRange, thenKeywordRange)
 
                 let hasElfis = not (List.isEmpty elfis)
                 let hasElse = Option.isSome enOpt
@@ -2188,15 +2194,14 @@ and genExpr astContext synExpr ctx =
                 let genThen ifElseRange = tokN ifElseRange THEN (!- "then ")
                 let genElse ifElseRange = tokN ifElseRange ELSE (!- "else ")
 
-                let genElifOneliner (elf1: SynExpr, elf2: SynExpr, fullRange) =
-                    TriviaContext.``else if / elif`` fullRange
+                let genElifOneliner (elf1: SynExpr, elf2: SynExpr, elifKeywordRange, thenKeywordRange) =
+                    TriviaContext.``else if / elif`` elifKeywordRange
                     +> sepNlnWhenWriteBeforeNewlineNotEmpty sepSpace
                     +> genExpr astContext elf1
                     +> sepNlnWhenWriteBeforeNewlineNotEmpty sepSpace
-                    +> genThen fullRange
+                    +> genThen thenKeywordRange
                     +> sepNlnWhenWriteBeforeNewlineNotEmpty sepSpace
                     +> genExpr astContext elf2
-                    |> genTriviaFor SynExpr_IfThenElse fullRange
 
                 let genIfExpr e astContext =
                     let short =
@@ -2288,20 +2293,15 @@ and genExpr astContext synExpr ctx =
 
                     expressionFitsOnRestOfLine short long
 
-                let genElifMultiLine (elf1: SynExpr, elf2, fullRange) (ctx: Context) =
-                    let elifExpr =
-                        (TriviaContext.``else if / elif`` fullRange)
-                        +> autoIndentAndNlnWhenWriteBeforeNewlineNotEmpty (genIfExpr elf1 astContext)
-                        +> sepNlnWhenWriteBeforeNewlineNotEmpty sepSpace
-                        +> genThen fullRange
-                        +> indent
-                        +> sepNln
-                        +> genExpr astContext elf2
-                        +> unindent
-
-                    (elifExpr
-                     |> genTriviaFor SynExpr_IfThenElse fullRange)
-                        ctx
+                let genElifMultiLine (elf1: SynExpr, elf2, elifKeywordRange, thenKeywordRange) =
+                    (TriviaContext.``else if / elif`` elifKeywordRange)
+                    +> autoIndentAndNlnWhenWriteBeforeNewlineNotEmpty (genIfExpr elf1 astContext)
+                    +> sepNlnWhenWriteBeforeNewlineNotEmpty sepSpace
+                    +> genThen thenKeywordRange
+                    +> indent
+                    +> sepNln
+                    +> genExpr astContext elf2
+                    +> unindent
 
                 let genShortElse e elseRange =
                     optSingle
@@ -2346,7 +2346,7 @@ and genExpr astContext synExpr ctx =
                         (fun e4 ->
                             let correctedElseRange =
                                 match List.tryLast elfis with
-                                | Some (_, te, _) -> ctx.MkRange te.Range.End synExpr.Range.End
+                                | Some (_, te, _, _) -> ctx.MkRange te.Range.End synExpr.Range.End
                                 | None -> synExpr.Range
 
                             onlyIf (List.isNotEmpty elfis) sepNln
@@ -2363,7 +2363,7 @@ and genExpr astContext synExpr ctx =
                         let elseExpr =
                             let elseRange =
                                 List.last elfis
-                                |> fun (_, _, r) -> ctx.MkRange r.End synExpr.Range.End
+                                |> fun (_, b, _, _) -> ctx.MkRange b.Range.End synExpr.Range.End
 
                             enOpt
                             |> Option.map (fun _ -> genShortElse enOpt elseRange)
