@@ -23,7 +23,6 @@ SetupTesting.generateSetupScript __SOURCE_DIRECTORY__
 #if INTERACTIVE
 #load "../FSharpx.TypeProviders/SetupTesting.fsx"
 SetupTesting.generateSetupScript __SOURCE_DIRECTORY__
-
 #load "__setup__.fsx"
 #endif
 """
@@ -49,7 +48,6 @@ SetupTesting.generateSetupScript __SOURCE_DIRECTORY__
 #else
 #load "../FSharpx.TypeProviders/SetupTesting.fsx"
 SetupTesting.generateSetupScript __SOURCE_DIRECTORY__
-
 #load "__setup__.fsx"
 #endif
 """

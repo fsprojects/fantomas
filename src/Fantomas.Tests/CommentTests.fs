@@ -1297,26 +1297,6 @@ open Something
 """
 
 [<Test>]
-let ``comment after let binding makes it multiline`` () =
-    formatSourceString
-        false
-        """
-let a = 7
-let b = 8
-// foo
-"""
-        config
-    |> prepend newline
-    |> should
-        equal
-        """
-let a = 7
-
-let b = 8
-// foo
-"""
-
-[<Test>]
 let ``block comment above let binding`` () =
     formatSourceString
         false

@@ -206,8 +206,7 @@ and genModuleDeclList astContext e =
             let sepNln =
                 sepNlnConsideringTriviaContentBeforeForMainNode SynModuleDecl_Open r
 
-            ColMultilineItem(expr, sepNln, r)
-            :: collectItems ys
+            ColMultilineItem(expr, sepNln) :: collectItems ys
         | HashDirectiveL (xs, ys) ->
             let expr = col sepNln xs (genModuleDecl astContext)
 
@@ -216,8 +215,7 @@ and genModuleDeclList astContext e =
             let sepNln =
                 sepNlnConsideringTriviaContentBeforeForMainNode SynModuleDecl_HashDirective r
 
-            ColMultilineItem(expr, sepNln, r)
-            :: collectItems ys
+            ColMultilineItem(expr, sepNln) :: collectItems ys
         | AttributesL (xs, y :: rest) ->
             let attrs =
                 getRangesFromAttributesFromModuleDeclaration y
@@ -232,7 +230,7 @@ and genModuleDeclList astContext e =
             let sepNln =
                 sepNlnConsideringTriviaContentBeforeForMainNode SynModuleDecl_Attributes r
 
-            ColMultilineItem(expr, sepNln, r)
+            ColMultilineItem(expr, sepNln)
             :: collectItems rest
 
         | m :: rest ->
@@ -244,7 +242,7 @@ and genModuleDeclList astContext e =
 
             let expr = genModuleDecl astContext m
 
-            ColMultilineItem(expr, sepNln, m.Range)
+            ColMultilineItem(expr, sepNln)
             :: (collectItems rest)
 
     collectItems e |> colWithNlnWhenItemIsMultiline
@@ -262,8 +260,7 @@ and genSigModuleDeclList astContext (e: SynModuleSigDecl list) =
             let sepNln =
                 sepNlnConsideringTriviaContentBeforeForMainNode SynModuleSigDecl_Open r
 
-            ColMultilineItem(expr, sepNln, r)
-            :: collectItems ys
+            ColMultilineItem(expr, sepNln) :: collectItems ys
         | s :: rest ->
             let attrs =
                 getRangesFromAttributesFromSynModuleSigDeclaration s
@@ -273,7 +270,7 @@ and genSigModuleDeclList astContext (e: SynModuleSigDecl list) =
 
             let expr = genSigModuleDecl astContext s
 
-            ColMultilineItem(expr, sepNln, s.Range)
+            ColMultilineItem(expr, sepNln)
             :: (collectItems rest)
 
     collectItems e |> colWithNlnWhenItemIsMultiline
@@ -694,7 +691,7 @@ and genMemberBindingList astContext node =
             let sepNln =
                 sepNlnConsideringTriviaContentBeforeForMainNode (synBindingToFsAstType mb) r
 
-            ColMultilineItem(expr, sepNln, r)
+            ColMultilineItem(expr, sepNln)
             :: (collectItems rest)
 
     collectItems node |> colWithNlnWhenItemIsMultiline
@@ -1426,7 +1423,7 @@ and genExpr astContext synExpr ctx =
                     let expr = genCompExprStatement astContext ces
                     let r = getRangeOfCompExprStatement ces
                     let sepNln = getSepNln ces r
-                    ColMultilineItem(expr, sepNln, r))
+                    ColMultilineItem(expr, sepNln))
             |> colWithNlnWhenItemIsMultilineUsingConfig
 
         | ArrayOrListOfSeqExpr (isArray, e) as alNode ->
@@ -2038,7 +2035,7 @@ and genExpr astContext synExpr ctx =
                                 let sepNln =
                                     sepNlnConsideringTriviaContentBeforeForMainNode (synBindingToFsAstType x) range
 
-                                ColMultilineItem(expr, sepNln, range))
+                                ColMultilineItem(expr, sepNln))
 
                     let rec synExpr e =
                         match e with
@@ -2049,8 +2046,7 @@ and genExpr astContext synExpr ctx =
 
                             [ ColMultilineItem(
                                   genExpr astContext e,
-                                  sepNlnConsideringTriviaContentBeforeForMainNode t r,
-                                  r
+                                  sepNlnConsideringTriviaContentBeforeForMainNode t r
                               ) ]
 
                     let items = letBindings bs @ synExpr e
@@ -2132,7 +2128,7 @@ and genExpr astContext synExpr ctx =
                         let sepNln =
                             sepConsideringTriviaContentBeforeForMainNode sepSemiNln fsAstType r
 
-                        ColMultilineItem(expr, sepNln, r))
+                        ColMultilineItem(expr, sepNln))
 
             atCurrentColumn (colWithNlnWhenItemIsMultilineUsingConfig items)
 
@@ -4403,7 +4399,7 @@ and genMemberDefnList astContext nodes =
             let sepNln =
                 sepNlnConsideringTriviaContentBeforeWithAttributesFor SynMemberDefn_Member rangeOfFirstMember attrs
 
-            ColMultilineItem(expr, sepNln, rangeOfFirstMember)
+            ColMultilineItem(expr, sepNln)
             :: (collectItems rest)
 
         | m :: rest ->
@@ -4415,7 +4411,7 @@ and genMemberDefnList astContext nodes =
             let sepNln =
                 sepNlnConsideringTriviaContentBeforeWithAttributesFor (synMemberDefnToFsAstType m) m.Range attrs
 
-            ColMultilineItem(expr, sepNln, m.Range)
+            ColMultilineItem(expr, sepNln)
             :: (collectItems rest)
 
     collectItems nodes
@@ -5165,8 +5161,7 @@ and genExprKeepIndentInBranch (astContext: ASTContext) (e: SynExpr) : Context ->
         let genOtherExprItem (e: SynExpr) : ColMultilineItem =
             ColMultilineItem(
                 genExpr astContext e,
-                (let t, r = synExprToFsAstType e in sepNlnConsideringTriviaContentBeforeForMainNode t r),
-                e.Range
+                (let t, r = synExprToFsAstType e in sepNlnConsideringTriviaContentBeforeForMainNode t r)
             )
 
         let genBindingItems (bs: (string * SynBinding) list) : ColMultilineItem list =
@@ -5182,7 +5177,7 @@ and genExprKeepIndentInBranch (astContext: ASTContext) (e: SynExpr) : Context ->
                     let sepNln =
                         sepNlnConsideringTriviaContentBeforeForMainNode (synBindingToFsAstType synBinding) range
 
-                    ColMultilineItem(expr, sepNln, range))
+                    ColMultilineItem(expr, sepNln))
                 bs
 
         let genKeepIndentMatchItem
@@ -5190,8 +5185,7 @@ and genExprKeepIndentInBranch (astContext: ASTContext) (e: SynExpr) : Context ->
             : ColMultilineItem =
             ColMultilineItem(
                 genKeepIndentMatch astContext me clauses matchRange matchTriviaType,
-                sepNlnConsideringTriviaContentBeforeForMainNode matchTriviaType matchRange,
-                matchRange
+                sepNlnConsideringTriviaContentBeforeForMainNode matchTriviaType matchRange
             )
 
         let genKeepIndentIfThenElseItem
@@ -5199,8 +5193,7 @@ and genExprKeepIndentInBranch (astContext: ASTContext) (e: SynExpr) : Context ->
             : ColMultilineItem =
             ColMultilineItem(
                 genKeepIdentIf astContext branches elseBranch ifElseRange,
-                sepNlnConsideringTriviaContentBeforeForMainNode SynExpr_IfThenElse ifElseRange,
-                ifElseRange
+                sepNlnConsideringTriviaContentBeforeForMainNode SynExpr_IfThenElse ifElseRange
             )
 
         match e with

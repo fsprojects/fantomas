@@ -44,6 +44,11 @@ type Queue<'T>(data: list<'T []>, length: int) =
 
     member this.Length = length
 
+    member this.FragmentLength : int = data.Length
+
+    member this.TakeFromFragments(amount: int) : 'T list =
+        List.take amount data |> List.collect Array.toList
+
     member this.Rev() =
         data
         |> Seq.collect
