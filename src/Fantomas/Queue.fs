@@ -46,8 +46,17 @@ type Queue<'T>(data: list<'T []>, length: int) =
 
     member this.FragmentLength : int = data.Length
 
-    member this.TakeFromFragments(amount: int) : 'T list =
-        List.take amount data |> List.collect Array.toList
+    /// Verify if a range of recently added items matches a predicate
+    member this.RecentItemsContain
+        (skipInitialWhile: 'T [] -> bool)
+        (predicate: 'T [] list -> bool)
+        (fragmentCount: int)
+        : bool =
+        let selection =
+            List.take fragmentCount data
+            |> List.skipWhile skipInitialWhile
+
+        predicate selection
 
     member this.Rev() =
         data

@@ -137,8 +137,8 @@ module WriterModel =
 module WriterEvents =
     let normalize ev =
         match ev with
-        | Write s when String.normalizeThenSplitNewLine s |> Array.length > 1 ->
-            String.normalizeThenSplitNewLine s
+        | Write s when s.Contains("\n") ->
+            s.Split('\n')
             |> Seq.map (fun x -> [ Write x ])
             |> Seq.reduce (fun x y -> x @ [ WriteLineInsideStringConst ] @ y)
             |> Seq.toList
@@ -1420,19 +1420,44 @@ type internal ColMultilineItemsState =
     { LastBlockMultiline: bool
       Context: Context }
 
-let private (|AllCommentOrNewlineEvents|_|) (events: WriterEvent list) =
+let private (|MultilineStringEvents|_|) (events: WriterEvent []) =
+    let codeWritesOrWriteLineInsideStringConst =
+        events
+        |> Array.forall
+            (function
+            | CommentOrDefineEvent _ -> false
+            | Write _
+            | WriteLineInsideStringConst -> true
+            | _ -> false)
+
+    if codeWritesOrWriteLineInsideStringConst then
+        Some()
+    else
+        None
+
+let private (|AllCommentOrWriteLineEvents|_|) (events: WriterEvent []) =
+    let allEventsMatch =
+        events
+        |> Array.forall
+            (function
+            | CommentOrDefineEvent _
+            | Write ""
+            | WriteLine
+            | WriteLineInsideStringConst -> true
+            | _ -> false)
+
+    if allEventsMatch then Some() else None
+
+let private (|AllCommentOrNewlineEventsInList|_|) (events: WriterEvent [] list) =
     let allEventsAreCommentOrNewline =
         List.forall
             (function
-            | Write ""
-            | WriteLine
-            | WriteLineInsideStringConst
-            | CommentOrDefineEvent _ -> true
+            | AllCommentOrWriteLineEvents -> true
             | _ -> false)
             events
 
     if allEventsAreCommentOrNewline then
-        Some events
+        Some()
     else
         None
 
@@ -1443,32 +1468,29 @@ let private isMultilineItem (expr: Context -> Context) (ctx: Context) : bool * C
     let nextCtx = expr ctx
     let currentFragmentCount = nextCtx.WriterEvents.FragmentLength
 
-    let newEvents =
-        nextCtx.WriterEvents.TakeFromFragments(currentFragmentCount - previousFragmentCount)
-
-    // The events are placed in reverse order
-    // So first we need to check if there is any trailing trivia
-    // A comment or define at the end of the expression does not make the entire expression multiline
-    let newEventsWithoutAnyTrailingTrivia =
-        newEvents
-        |> List.skipWhile
-            (function
-            | Write ""
-            | WriteLine
-            | WriteLineInsideStringConst
-            | CommentOrDefineEvent _ -> true
-            | _ -> false)
-
-    let rec isMultiline (events: WriterEvent list) : bool =
+    let skipTrailingTrivia (events: WriterEvent array) =
         match events with
+        | AllCommentOrWriteLineEvents
+        | [| (WriteLine
+             | Write ""
+             | CommentOrDefineEvent _) |] -> true
+        | _ -> false
+
+    let rec isMultilineCheck (events: WriterEvent [] list) : bool =
+        match events with
+        | [| Write _ |] :: rest -> isMultilineCheck rest
+        | MultilineStringEvents :: _ -> true
         // leading comment, define or newline before expression
-        | AllCommentOrNewlineEvents _ -> false
-        | WriteLine :: _ -> true
-        | _ :: rest -> isMultiline rest
+        | AllCommentOrNewlineEventsInList -> false
+        | [| WriteLine |] :: _ -> true
+        | _ :: rest -> isMultilineCheck rest
         | [] -> false
 
     let isExpressionMultiline =
-        isMultiline newEventsWithoutAnyTrailingTrivia
+        nextCtx.WriterEvents.RecentItemsContain
+            skipTrailingTrivia
+            isMultilineCheck
+            (currentFragmentCount - previousFragmentCount)
 
     isExpressionMultiline, nextCtx
 

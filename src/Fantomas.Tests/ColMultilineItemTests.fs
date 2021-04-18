@@ -41,6 +41,24 @@ let b = 3
 let c = 4
 """
 
+[<Test>]
+let ``two short expressions inside let binding`` () =
+    formatSourceString
+        false
+        """
+let b () =
+    printfn "meh"
+    80.7
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let b () =
+    printfn "meh"
+    80.7
+"""
 
 [<Test>]
 let ``short let binding followed by long let binding`` () =
