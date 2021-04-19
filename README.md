@@ -49,6 +49,11 @@ Alternatively, you can install the [fantomas-fmt](https://marketplace.visualstud
 
 The [F# Formatting](https://marketplace.visualstudio.com/items?itemName=asti.fantomas-vs) extension sets up Fantomas as the default formatter for F# files, configurable from Visual Studio's options.
 
+### Visual Studio for Mac
+
+Install [fantomas-tool](https://www.nuget.org/packages/fantomas-tool) locally with `dotnet tool install fantomas-tool` and configure it as an [External tool]
+
+![VS Mac external tool window](./docs/vsmac-external-tool.png)
 ### Online
 
 Try the Fantomas [online](https://fsprojects.github.io/fantomas-tools/#/fantomas/preview).
