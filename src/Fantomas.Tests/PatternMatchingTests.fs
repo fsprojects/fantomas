@@ -1706,3 +1706,51 @@ let a =
 #endif
     | B -> ())
 """
+
+[<Test>]
+let ``don't add unnecessary parenthesis around SynPat.IsInst, 1660`` () =
+    formatSourceString
+        false
+        """
+        match other with
+        | :? Queue<'T> as y ->
+            if this.Length <> y.Length then
+                false
+            else if this.GetHashCode() <> y.GetHashCode() then
+                false
+            else
+                Seq.forall2 Unchecked.equals this y
+        | _ -> false
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+match other with
+| :? Queue<'T> as y ->
+    if this.Length <> y.Length then
+        false
+    else if this.GetHashCode() <> y.GetHashCode() then
+        false
+    else
+        Seq.forall2 Unchecked.equals this y
+| _ -> false
+"""
+
+[<Test>]
+let ``keep existing parenthesis around SynPat.IsInst`` () =
+    formatSourceString
+        false
+        """
+match x with
+| :? (int)   as  i -> ()
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+match x with
+| :? (int) as i -> ()
+"""
