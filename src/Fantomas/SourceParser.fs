@@ -995,6 +995,12 @@ let (|DotGetAppParen|_|) e =
     | DotGet (App (e, [ ConstExpr (SynConst.Unit, _) as px ]), lids) -> Some(e, px, lids)
     | _ -> None
 
+let (|DotGetAppDotGetAppParenLambda|_|) (e: SynExpr) =
+    match e with
+    | DotGet (App (DotGet (App (e, [ Paren (_, SynExpr.Lambda _, _, _) as px ]), appLids), es), lids) ->
+        Some(e, px, appLids, es, lids)
+    | _ -> None
+
 /// Gather series of application for line breaking
 let rec (|DotGetApp|_|) =
     function

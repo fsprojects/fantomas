@@ -1815,6 +1815,35 @@ and genExpr astContext synExpr ctx =
             +> !-(sprintf ".%s" s)
             +> sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth (col sepSpace es (genExpr astContext))
 
+        // Foo(fun x -> x).Bar().Meh
+        | DotGetAppDotGetAppParenLambda (e, px, appLids, es, lids) ->
+            let short =
+                genExpr astContext e
+                +> genExpr astContext px
+                +> genLidsWithDots appLids
+                +> col sepComma es (genExpr astContext)
+                +> genLidsWithDots lids
+
+            let long =
+                let functionName =
+                    match e with
+                    | LongIdentPieces lids when (List.moreThanOne lids) -> genFunctionNameWithMultilineLids id lids
+                    | TypeApp (LongIdentPieces lids, ts) when (List.moreThanOne lids) ->
+                        genFunctionNameWithMultilineLids (genGenericTypeParameters astContext ts) lids
+                    | _ -> genExpr astContext e
+
+                functionName
+                +> indent
+                +> genExpr astContext px
+                +> sepNln
+                +> genLidsWithDotsAndNewlines appLids
+                +> col sepComma es (genExpr astContext)
+                +> sepNln
+                +> genLidsWithDotsAndNewlines lids
+                +> unindent
+
+            fun ctx -> isShortExpression ctx.Config.MaxDotGetExpressionWidth short long ctx
+
         // Foo().Bar
         | DotGetAppParen (e, px, lids) ->
             let shortAppExpr =
