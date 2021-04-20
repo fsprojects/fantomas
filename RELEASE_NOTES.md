@@ -1,3 +1,13 @@
+### 4.5.0-alpha-011 - 04/2021
+
+* Fix Long .Setup line in Moq code results in broken indentation. [#1662](https://github.com/fsprojects/fantomas/issues/1662)
+* Fix Don't introduce parenthesis around SynPat.IsInst. [#1660](https://github.com/fsprojects/fantomas/issues/1660)
+* Fix Offside error splitting long line. [#1651](https://github.com/fsprojects/fantomas/issues/1651)
+* Fix Offside errors after formatting. [#1650](https://github.com/fsprojects/fantomas/issues/1650)
+* Fix Idempotency problem with with block. [#1647](https://github.com/fsprojects/fantomas/issues/1647)
+* Fix Formatting code makes Interpolated verbatim strings to non-verbatim strings, which breaks the code. [#1645](https://github.com/fsprojects/fantomas/issues/1645)
+* Fix Comment stripped in a record with semi-colons. [#1643](https://github.com/fsprojects/fantomas/issues/1643)
+
 ### 4.5.0-alpha-010 - 04/2021
 
 * Fix Another shape which isn't respecting KeepIndentInBranch. [#1638](https://github.com/fsprojects/fantomas/issues/1638)
