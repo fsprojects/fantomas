@@ -1125,3 +1125,85 @@ module Foo =
 
         ()
 """
+
+[<Test>]
+let ``single line dotget lambda, followed by application`` () =
+    formatSourceString
+        false
+        """
+Foo(fun x ->  x).Bar().Meh
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+Foo(fun x -> x).Bar().Meh
+"""
+
+[<Test>]
+let ``multiline dotget lambda, followed by application, 1662`` () =
+    formatSourceString
+        false
+        """
+type Class() =
+    member this.``kk``() =
+        async {
+            mock
+                .Setup(fun m ->
+                m.CreateBlah
+                    (It.IsAny<string>(), It.IsAny<string>(), It.IsAny<Id>(), It.IsAny<uint32>()))
+                .Returns(Some mock)
+                .End
+        }
+        |> Async.StartImmediate
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type Class() =
+    member this.kk() =
+        async {
+            mock
+                .Setup(fun m ->
+                    m.CreateBlah(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<Id>(), It.IsAny<uint32>()))
+                .Returns(Some mock)
+                .End
+        }
+        |> Async.StartImmediate
+"""
+
+[<Test>]
+let ``multiline dotget lambda, followed by multiple applications`` () =
+    formatSourceString
+        false
+        """
+mock
+                .Setup(fun m ->
+                // some comment
+                m.CreateBlah
+                    (It.IsAny<string>(), It.IsAny<string>(), It.IsAny<Id>(), It.IsAny<uint32>()))
+                .Returns(Some mock)
+                .OrNot()
+                .End
+"""
+        { config with MaxLineLength = 80 }
+    |> prepend newline
+    |> should
+        equal
+        """
+mock
+    .Setup(fun m ->
+        // some comment
+        m.CreateBlah(
+            It.IsAny<string>(),
+            It.IsAny<string>(),
+            It.IsAny<Id>(),
+            It.IsAny<uint32>()
+        ))
+    .Returns(Some mock)
+    .OrNot()
+    .End
+"""
