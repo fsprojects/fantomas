@@ -4842,16 +4842,7 @@ and genPat astContext pat =
             let size = getRecordSize ctx xs
             isSmallExpression size smallRecordExpr multilineExpressionIfAlignBrackets ctx
     | PatConst (c, r) -> genConst c r
-    | PatIsInst (TApp (_, [ _ ], _) as t)
-    | PatIsInst (TArray _ as t) ->
-        // special case for things like ":? (int seq) ->"
-        !- ":? "
-        +> sepOpenT
-        +> genType astContext false t
-        +> sepCloseT
-    | PatIsInst t ->
-        // Should have brackets around in the type test patterns
-        !- ":? " +> genType astContext true t
+    | PatIsInst t -> !- ":? " +> genType astContext false t
     // Quotes will be printed by inner expression
     | PatQuoteExpr e -> genExpr astContext e
     | p -> failwithf "Unexpected pattern: %O" p
