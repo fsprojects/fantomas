@@ -4566,6 +4566,9 @@ and genMemberDefn astContext node =
                 +> sepNln
                 +> genMemberDefnList
                     { astContext with
+                          // Reset this property to avoid problems with the generation of the attributes on the members
+                          // See 1668
+                          IsFirstChild = true
                           InterfaceRange = Some range }
                     mds
                 +> unindent)

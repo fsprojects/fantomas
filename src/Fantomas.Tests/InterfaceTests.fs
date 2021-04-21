@@ -502,3 +502,95 @@ let test () =
     { new IDisposable with
         override this.Dispose() = dispose somethingElse }
 """
+
+[<Test>]
+let ``attribute before interface member, 1668`` () =
+    formatSourceString
+        false
+        """
+type internal WorkingShard =
+    | Started of ReactoKinesixShardProcessor
+    | Stopped of StoppedReason
+
+and ReactoKinesixApp
+    private
+    (
+        kinesis: IAmazonKinesis,
+        dynamoDB: IAmazonDynamoDB,
+        appName: string,
+        streamName: string,
+        workerId: string,
+        processorFactory: IRecordProcessorFactory,
+        config: ReactoKinesixConfig
+    ) as this =
+
+
+    interface IReactoKinesixApp with
+        [<CLIEvent>] member this.OnInitialized = initializedEvent.Publish
+        [<CLIEvent>] member this.OnBatchProcessed = batchProcessedEvent.Publish
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type internal WorkingShard =
+    | Started of ReactoKinesixShardProcessor
+    | Stopped of StoppedReason
+
+and ReactoKinesixApp
+    private
+    (
+        kinesis: IAmazonKinesis,
+        dynamoDB: IAmazonDynamoDB,
+        appName: string,
+        streamName: string,
+        workerId: string,
+        processorFactory: IRecordProcessorFactory,
+        config: ReactoKinesixConfig
+    ) as this =
+
+
+    interface IReactoKinesixApp with
+        [<CLIEvent>]
+        member this.OnInitialized = initializedEvent.Publish
+
+        [<CLIEvent>]
+        member this.OnBatchProcessed = batchProcessedEvent.Publish
+"""
+
+[<Test>]
+let ``recursive type where second type has interface with attributes on the members`` () =
+    formatSourceString
+        false
+        """
+type Foo = | Foo of string
+
+and Bar =
+    interface IMeh with
+        [<SomeAttribute>] member this.Value = ()
+        [<SomeAttribute>] member this.ValueWithReturnType : unit = ()
+        [<SomeAttribute>] member this.SomeFunction (a: int) = 4 + a
+        [<SomeAttribute>] member this.SomeFunctionWithReturnType (a: int) : int = a + 5
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type Foo = Foo of string
+
+and Bar =
+    interface IMeh with
+        [<SomeAttribute>]
+        member this.Value = ()
+
+        [<SomeAttribute>]
+        member this.ValueWithReturnType : unit = ()
+
+        [<SomeAttribute>]
+        member this.SomeFunction(a: int) = 4 + a
+
+        [<SomeAttribute>]
+        member this.SomeFunctionWithReturnType(a: int) : int = a + 5
+"""
