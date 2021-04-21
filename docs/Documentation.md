@@ -926,17 +926,30 @@ let run
 
 ### fsharp_alternative_long_member_definitions
 
-Provides an alternative way of formatting long member and constructor definitions.
+Provides an alternative way of formatting long member and constructor definitions,
+where the difference is mainly in the equal sign and returned type placement.
 Default = false.
 
 `defaultConfig`
 
 ```fsharp
-type C(aVeryLongType: AVeryLongTypeThatYouNeedToUse,
-       aSecondVeryLongType: AVeryLongTypeThatYouNeedToUse,
-       aThirdVeryLongType: AVeryLongTypeThatYouNeedToUse) =
+type C
+    (
+        aVeryLongType: AVeryLongTypeThatYouNeedToUse,
+        aSecondVeryLongType: AVeryLongTypeThatYouNeedToUse,
+        aThirdVeryLongType: AVeryLongTypeThatYouNeedToUse
+    ) =
     class
     end
+
+type D() =
+    member _.LongMethodWithLotsOfParameters
+        (
+            aVeryLongParam: AVeryLongTypeThatYouNeedToUse,
+            aSecondVeryLongParam: AVeryLongTypeThatYouNeedToUse,
+            aThirdVeryLongParam: AVeryLongTypeThatYouNeedToUse
+        ) : ReturnType =
+        42
 ```
 
 `{ defaultConfig with AlternativeLongMemberDefinitions = true }`
@@ -951,6 +964,17 @@ type C
     =
     class
     end
+
+type D() =
+    member _.LongMethodWithLotsOfParameters
+        (
+            aVeryLongParam: AVeryLongTypeThatYouNeedToUse,
+            aSecondVeryLongParam: AVeryLongTypeThatYouNeedToUse,
+            aThirdVeryLongParam: AVeryLongTypeThatYouNeedToUse
+        )
+        : ReturnType
+        =
+        42
 ```
 
 ### fsharp_multi_line_lambda_closing_newline
