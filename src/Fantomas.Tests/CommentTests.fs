@@ -1311,3 +1311,175 @@ let a =  b
 (* meh *)
 let a = b
 """
+
+[<Test>]
+let ``comment right after first token`` () =
+    formatSourceString
+        false
+        """
+1//
+// next line
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+1 //
+// next line
+"""
+
+[<Test>]
+[<Ignore("line comment after block comment currently not supported")>]
+let ``block comment followed by line comment`` () =
+    formatSourceString
+        false
+        """
+(* foo *)// bar
+let a = 0
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+(* foo *) // bar
+let a = 0
+"""
+
+[<Test>]
+let ``line comment after source code`` () =
+    formatSourceString
+        false
+        """
+__SOURCE_DIRECTORY__ // comment
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+__SOURCE_DIRECTORY__ // comment
+"""
+
+[<Test>]
+let ``line comment after hash define`` () =
+    formatSourceString
+        false
+        """
+#if FOO // MEH
+#endif
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+#if FOO // MEH
+#endif
+"""
+
+[<Test>]
+let ``line comment after interpolated string`` () =
+    formatSourceString
+        false
+        """
+$"{meh}.." // foo
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+$"{meh}.." // foo
+"""
+
+[<Test>]
+let ``line comment after negative constant`` () =
+    formatSourceString
+        false
+        """
+-1.0 // foo
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+-1.0 // foo
+"""
+
+[<Test>]
+let ``line comment after trivia number`` () =
+    formatSourceString
+        false
+        """
+1. // bar
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+1. // bar
+"""
+
+[<Test>]
+let ``line comment after infix operator in full words`` () =
+    formatSourceString
+        false
+        """
+op_LessThan // meh
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+op_LessThan // meh
+"""
+
+[<Test>]
+let ``line comment after ident between ticks`` () =
+    formatSourceString
+        false
+        """
+``foo oo`` // bar
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+``foo oo`` // bar
+"""
+
+[<Test>]
+let ``line comment after special char`` () =
+    formatSourceString
+        false
+        """
+'\u0000' // foo
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+'\u0000' // foo
+"""
+
+[<Test>]
+let ``line comment after embedded il`` () =
+    formatSourceString
+        false
+        """
+(# "" x : 'U #) // bar
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+(# "" x : 'U #) // bar
+"""

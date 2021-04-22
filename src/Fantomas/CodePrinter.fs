@@ -1600,7 +1600,7 @@ and genExpr astContext synExpr ctx =
             +> sepSpace
             +> genExpr astContext e
 
-        | Paren (_, ILEmbedded r, _, _) ->
+        | Paren (_, ILEmbedded r, rpr, _) ->
             fun ctx ->
                 let expr =
                     Map.tryFindOrEmptyList SynExpr_LibraryOnlyILAssembly ctx.TriviaMainNodes
@@ -1616,7 +1616,9 @@ and genExpr astContext synExpr ctx =
                     |> Option.map (!-)
                     |> Option.defaultValue sepNone
 
-                expr ctx
+                (expr
+                 +> optSingle (fun r -> leaveNodeTokenByName r RPAREN) rpr)
+                    ctx
         | Paren (lpr, e, rpr, pr) ->
             match e with
             | LetOrUses _ ->

@@ -58,8 +58,7 @@ type FsTokenType =
 type Token =
     { TokenInfo: FSharpTokenInfo
       LineNumber: int
-      Content: string
-      Index: int }
+      Content: string }
 
 type Comment =
     | LineCommentAfterSourceCode of comment: string
