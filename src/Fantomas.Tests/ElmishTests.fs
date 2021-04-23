@@ -1440,3 +1440,22 @@ let private App () =
 
 exportDefault App
 """
+
+[<Test>]
+let ``comment inside empty elmish children, 1179`` () =
+    formatSourceString
+        false
+        """
+a [] [
+    // def
+]
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+a [] [
+// def
+]
+"""
