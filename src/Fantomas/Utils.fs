@@ -29,26 +29,39 @@ module String =
 
     let private hashRegex = @"^\s*#(if|elseif|else|endif).*"
 
-    let private splitWhenHash (source: string) =
-        source.Split([| Environment.NewLine; "\r\n"; "\n" |], options = StringSplitOptions.None)
-        |> Array.fold
-            (fun acc line ->
-                if Regex.IsMatch(line, hashRegex) then
-                    let trimmmedLine = line.TrimStart()
+    let private splitWhenHash (newline: string) (source: string) : string list =
+        let lines =
+            source.Split([| newline |], options = StringSplitOptions.None)
 
-                    match acc with
-                    | [ [] ] -> [ [ trimmmedLine ] ]
-                    | _ -> [ trimmmedLine ] :: acc
-                else
-                    acc
-                    |> List.mapi (fun idx l -> if idx = 0 then (line :: l) else l))
-            [ [] ]
-        |> List.map (List.rev >> String.concat Environment.NewLine)
-        |> List.rev
+        let hashLineIndexes =
+            lines
+            |> Array.mapi (fun idx line -> Regex.IsMatch(line, hashRegex), idx)
+            |> Array.choose (fun (isMatch, idx) -> if isMatch then Some idx else None)
+            |> Array.toList
 
-    let merge a b =
-        let aChunks = splitWhenHash a
-        let bChunks = splitWhenHash b
+        let hashLineIndexesWithStart =
+            match List.tryHead hashLineIndexes with
+            | Some 0 -> hashLineIndexes
+            | _ -> 0 :: hashLineIndexes
+
+        let rec loop (indexes: int list) (finalContinuation: string [] list -> string [] list) =
+            match indexes with
+            | [] -> finalContinuation []
+            | i1 :: i2 :: rest ->
+                let chunk = lines.[i1..(i2 - 1)]
+                chunk.[0] <- chunk.[0].TrimStart()
+                loop (i2 :: rest) (fun otherChunks -> chunk :: otherChunks |> finalContinuation)
+            | [ lastIndex ] ->
+                let chunk = lines.[lastIndex..]
+                chunk.[0] <- chunk.[0].TrimStart()
+                finalContinuation [ chunk ]
+
+        loop hashLineIndexesWithStart id
+        |> List.map (String.concat newline)
+
+    let merge (newline: string) (a: string) (b: string) : string =
+        let aChunks = splitWhenHash newline a
+        let bChunks = splitWhenHash newline b
 
         if List.length aChunks <> List.length bChunks then
             Dbg.print (aChunks, bChunks)
@@ -70,7 +83,7 @@ There is a problem with merging all the code back togheter. Please raise an issu
                 else
                     b')
 
-        |> String.concat Environment.NewLine
+        |> String.concat newline
 
     let empty = String.Empty
 

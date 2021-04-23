@@ -1,12 +1,14 @@
 module Fantomas.Tests.UtilsTests
 
+open System
 open NUnit.Framework
 open Fantomas
 open Fantomas.Tests.TestHelper
 
 let private mergeAndCompare a b expected =
     let result =
-        String.merge a b |> String.normalizeNewLine
+        String.merge Environment.NewLine a b
+        |> String.normalizeNewLine
 
     let normalizedExpected = String.normalizeNewLine expected
     normalizedExpected == result
