@@ -368,3 +368,41 @@ printFn ()
 open Foo
 open Bar
 """
+
+[<Test>]
+let ``items should be collected from nested let-or-use in sequentials`` () =
+    formatSourceString
+        false
+        """
+let blah<'a> config : Type =
+//#if DEBUG
+        failwith ""
+//#endif
+        DoThing.doIt ()
+        let result = Runner.Run<'a> config
+        ()
+"""
+        { config with
+              SpaceBeforeUppercaseInvocation = true
+              SpaceBeforeClassConstructor = true
+              SpaceBeforeMember = true
+              SpaceBeforeColon = true
+              SpaceBeforeSemicolon = true
+              MultilineBlockBracketsOnSameColumn = true
+              NewlineBetweenTypeDefinitionAndMembers = true
+              KeepIfThenInSameLine = true
+              AlignFunctionSignatureToIndentation = true
+              AlternativeLongMemberDefinitions = true
+              MultiLineLambdaClosingNewline = true }
+    |> prepend newline
+    |> should
+        equal
+        """
+let blah<'a> config : Type =
+    //#if DEBUG
+    failwith ""
+    //#endif
+    DoThing.doIt ()
+    let result = Runner.Run<'a> config
+    ()
+"""

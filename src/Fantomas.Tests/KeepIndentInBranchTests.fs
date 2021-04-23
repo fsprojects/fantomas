@@ -1176,3 +1176,141 @@ and [<CustomEquality ; NoComparison>] Bar<'context, 'a> =
                         }
             }
 """
+
+[<Test>]
+let ``ifdef trivia should not influence outcome, 1646`` () =
+    formatSourceString
+        false
+        """
+module Foo =
+    [<Foo>]
+    let blah<'a> config : Type =
+#if DEBUG
+        failwith ""
+#endif
+        DoThing.doIt ()
+        let result = Runner.Run<'a> config
+
+        if successful |> List.isEmpty then
+            result
+        else
+
+        let errors =
+            unsuccessful
+            |> List.filter (fun report ->
+                not report.BuildResult.IsBuildSuccess
+                || not report.BuildResult.IsGenerateSuccess
+            )
+            |> List.map (fun report -> report.BuildResult.ErrorMessage)
+
+        failwith ""
+"""
+        { config with
+              SpaceBeforeUppercaseInvocation = true
+              SpaceBeforeClassConstructor = true
+              SpaceBeforeMember = true
+              SpaceBeforeColon = true
+              SpaceBeforeSemicolon = true
+              MultilineBlockBracketsOnSameColumn = true
+              NewlineBetweenTypeDefinitionAndMembers = true
+              KeepIfThenInSameLine = true
+              AlignFunctionSignatureToIndentation = true
+              AlternativeLongMemberDefinitions = true
+              MultiLineLambdaClosingNewline = true
+              KeepIndentInBranch = true }
+    |> prepend newline
+    |> should
+        equal
+        """
+module Foo =
+    [<Foo>]
+    let blah<'a> config : Type =
+#if DEBUG
+        failwith ""
+#endif
+        DoThing.doIt ()
+        let result = Runner.Run<'a> config
+
+        if successful |> List.isEmpty then
+            result
+        else
+
+        let errors =
+            unsuccessful
+            |> List.filter (fun report ->
+                not report.BuildResult.IsBuildSuccess
+                || not report.BuildResult.IsGenerateSuccess
+            )
+            |> List.map (fun report -> report.BuildResult.ErrorMessage)
+
+        failwith ""
+"""
+
+[<Test>]
+let ``ifdef trivia should not influence outcome, idempotent`` () =
+    formatSourceString
+        false
+        """
+module Foo =
+    [<Foo>]
+    let blah<'a> config : Type =
+#if DEBUG
+        failwith ""
+#endif
+        DoThing.doIt ()
+        let result = Runner.Run<'a> config
+
+        if successful |> List.isEmpty then
+            result
+        else
+
+        let errors =
+            unsuccessful
+            |> List.filter (fun report ->
+                not report.BuildResult.IsBuildSuccess
+                || not report.BuildResult.IsGenerateSuccess
+            )
+            |> List.map (fun report -> report.BuildResult.ErrorMessage)
+
+        failwith ""
+"""
+        { config with
+              SpaceBeforeUppercaseInvocation = true
+              SpaceBeforeClassConstructor = true
+              SpaceBeforeMember = true
+              SpaceBeforeColon = true
+              SpaceBeforeSemicolon = true
+              MultilineBlockBracketsOnSameColumn = true
+              NewlineBetweenTypeDefinitionAndMembers = true
+              KeepIfThenInSameLine = true
+              AlignFunctionSignatureToIndentation = true
+              AlternativeLongMemberDefinitions = true
+              MultiLineLambdaClosingNewline = true
+              KeepIndentInBranch = true }
+    |> prepend newline
+    |> should
+        equal
+        """
+module Foo =
+    [<Foo>]
+    let blah<'a> config : Type =
+#if DEBUG
+        failwith ""
+#endif
+        DoThing.doIt ()
+        let result = Runner.Run<'a> config
+
+        if successful |> List.isEmpty then
+            result
+        else
+
+        let errors =
+            unsuccessful
+            |> List.filter (fun report ->
+                not report.BuildResult.IsBuildSuccess
+                || not report.BuildResult.IsGenerateSuccess
+            )
+            |> List.map (fun report -> report.BuildResult.ErrorMessage)
+
+        failwith ""
+"""
