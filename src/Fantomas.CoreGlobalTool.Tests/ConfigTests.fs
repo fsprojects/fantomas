@@ -90,3 +90,26 @@ end_of_line = %s
     let expected = sampleCode newline
 
     result |> should equal expected
+
+[<Test>]
+let ``end_of_line should be respected for ifdef`` () =
+    let source = "#if FOO\n()\n#else\n()\n#endif"
+    use fileFixture = new TemporaryFileCodeSample(source)
+
+    use configFixture =
+        new ConfigurationFile(
+            sprintf
+                """
+[*.fs]
+end_of_line = lf
+"""
+        )
+
+    let exitCode, _ = runFantomasTool fileFixture.Filename
+    exitCode |> should equal 0
+
+    let result =
+        System.IO.File.ReadAllText(fileFixture.Filename)
+
+    result
+    |> should equal "#if FOO\n()\n#else\n()\n#endif\n"
