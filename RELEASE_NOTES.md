@@ -1,3 +1,11 @@
+### 4.5.0-alpha-012 - 04/2021
+
+* Fix end_of_line not respecting when file has ifdef. [#1673](https://github.com/fsprojects/fantomas/issues/1673)
+* Fix Attributes in a recursive type get misplaced. [#1668](https://github.com/fsprojects/fantomas/issues/1668)
+* Fix alternative_long_member_definitions docs. [#1666](https://github.com/fsprojects/fantomas/issues/1666)
+* Fix Stack overflow on macOS for long pipelines. [#1453](https://github.com/fsprojects/fantomas/issues/1453)
+* Fix Comment inside empty Elmish children is lost. [#1179](https://github.com/fsprojects/fantomas/issues/1179)
+
 ### 4.5.0-alpha-011 - 04/2021
 
 * Fix Long .Setup line in Moq code results in broken indentation. [#1662](https://github.com/fsprojects/fantomas/issues/1662)
