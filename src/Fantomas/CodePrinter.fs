@@ -1098,11 +1098,9 @@ and genExpr astContext synExpr ctx =
                     (if isArray then BAR_RBRACK else RBRACK)
 
                 match children with
-                | [] when (not isArray) ->
-                    sepOpenLFixed
-                    +> sepCloseLFixed
-                    +> leaveNodeTokenByName childrenRange RBRACK
-                | [] when isArray -> sepOpenAFixed +> sepCloseAFixed
+                | [] ->
+                    tokN openingTokenRange openTokenType (ifElse isArray sepOpenAFixed sepOpenLFixed)
+                    +> tokN closingTokenRange closingTokenType (ifElse isArray sepCloseAFixed sepCloseLFixed)
                 | [ singleChild ] ->
                     if isShort then
                         tokN openingTokenRange openTokenType (ifElse isArray sepOpenA sepOpenL)
