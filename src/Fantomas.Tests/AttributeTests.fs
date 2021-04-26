@@ -266,9 +266,11 @@ let ``comments before attributes should be added correctly, issue 422`` () =
           Verified : bool }
 """
         config
+    |> prepend newline
     |> should
         equal
-        """module RecordTypes =
+        """
+module RecordTypes =
 
     /// Records can also be represented as structs via the 'Struct' attribute.
     /// This is helpful in situations where the performance of structs outweighs

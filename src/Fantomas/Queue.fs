@@ -44,6 +44,20 @@ type Queue<'T>(data: list<'T []>, length: int) =
 
     member this.Length = length
 
+    member this.FragmentLength : int = data.Length
+
+    /// Verify if a range of recently added items matches a predicate
+    member this.RecentItemsContain
+        (skipInitialWhile: 'T [] -> bool)
+        (predicate: 'T [] list -> bool)
+        (fragmentCount: int)
+        : bool =
+        let selection =
+            List.take fragmentCount data
+            |> List.skipWhile skipInitialWhile
+
+        predicate selection
+
     member this.Rev() =
         data
         |> Seq.collect
@@ -121,5 +135,5 @@ module Queue =
 
     let inline append (q: Queue<'T>) xs = q.Append xs
 
-    /// Equivalent of q |> Queue.toSeq |> Seq.skip n |> Seq.exists f
+    /// Equivalent of q |> Queue.toSeq |> Seq.skip n |> Seq.skipWhile p |> Seq.exists f
     let inline skipExists (n: int) (f: 'T -> bool) (p: 'T [] -> bool) (q: Queue<'T>) : bool = q.SkipExists n f p

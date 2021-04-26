@@ -137,8 +137,8 @@ module WriterModel =
 module WriterEvents =
     let normalize ev =
         match ev with
-        | Write s when String.normalizeThenSplitNewLine s |> Array.length > 1 ->
-            String.normalizeThenSplitNewLine s
+        | Write s when s.Contains("\n") ->
+            s.Split('\n')
             |> Seq.map (fun x -> [ Write x ])
             |> Seq.reduce (fun x y -> x @ [ WriteLineInsideStringConst ] @ y)
             |> Seq.toList
@@ -1126,7 +1126,7 @@ let internal ifAlignBrackets f g =
 let internal printTriviaContent (c: TriviaContent) (ctx: Context) =
     let currentLastLine = lastWriteEventOnLastLine ctx
 
-    // Some items like #if of Newline should be printed on a newline
+    // Some items like #if or Newline should be printed on a newline
     // It is hard to always get this right in CodePrinter, so we detect it based on the current code.
     let addNewline =
         currentLastLine
@@ -1160,7 +1160,8 @@ let internal printTriviaContent (c: TriviaContent) (ctx: Context) =
     | IdentOperatorAsWord _
     | IdentBetweenTicks _
     | CharContent _
-    | EmbeddedIL _ -> sepNone // don't print here but somewhere in CodePrinter
+    | EmbeddedIL _
+    | KeywordString _ -> sepNone // don't print here but somewhere in CodePrinter
     | Directive s
     | Comment (LineCommentOnSingleLine s) ->
         (ifElse addNewline sepNln sepNone)
@@ -1237,46 +1238,6 @@ let internal leaveLeftToken (tokenName: FsTokenType) (range: Range) (ctx: Contex
     <| ctx
 
 let internal leaveLeftBrace = leaveLeftToken LBRACE
-let internal leaveLeftBrack = leaveLeftToken LBRACK
-let internal leaveLeftBrackBar = leaveLeftToken LBRACK_BAR
-
-let internal enterRightToken (tokenName: FsTokenType) (range: Range) (ctx: Context) =
-    (Map.tryFindOrEmptyList tokenName ctx.TriviaTokenNodes)
-    |> List.tryFind
-        (fun tn ->
-            tn.Range.EndLine = range.EndLine
-            && (tn.Range.EndColumn = range.EndColumn
-                || tn.Range.EndColumn + 1 = range.EndColumn))
-    |> fun tn ->
-        match tn with
-        | Some { ContentBefore = [ TriviaContent.Comment (LineCommentOnSingleLine lineComment) ] } ->
-            let spacesBeforeComment =
-                let braceSize = if tokenName = RBRACK then 1 else 2
-
-                let spaceAround =
-                    if ctx.Config.SpaceAroundDelimiter then
-                        1
-                    else
-                        0
-
-                !- String.Empty.PadLeft(braceSize + spaceAround)
-
-            let spaceAfterNewline =
-                if ctx.Config.SpaceAroundDelimiter then
-                    sepSpace
-                else
-                    sepNone
-
-            sepNln
-            +> spacesBeforeComment
-            +> !-lineComment
-            +> sepNln
-            +> spaceAfterNewline
-        | _ -> id
-    <| ctx
-
-let internal enterRightBracket = enterRightToken RBRACK
-let internal enterRightBracketBar = enterRightToken BAR_RBRACK
 
 let internal hasPrintableContent (trivia: TriviaContent list) =
     trivia
@@ -1448,6 +1409,91 @@ let internal addExtraNewlineIfLeadingWasMultiline leading sepNlnConsideringTrivi
             +> onlyIf ml sepNlnConsideringTriviaContentBefore
             +> continuation)
 
+type internal ColMultilineItem =
+    ColMultilineItem of
+        // current expression
+        expr: (Context -> Context) *
+        // sepNln of current item
+        sepNln: (Context -> Context)
+
+type internal ColMultilineItemsState =
+    { LastBlockMultiline: bool
+      Context: Context }
+
+let private (|MultilineStringEvents|_|) (events: WriterEvent []) =
+    let codeWritesOrWriteLineInsideStringConst =
+        events
+        |> Array.forall
+            (function
+            | CommentOrDefineEvent _ -> false
+            | Write _
+            | WriteLineInsideStringConst -> true
+            | _ -> false)
+
+    if codeWritesOrWriteLineInsideStringConst then
+        Some()
+    else
+        None
+
+let private (|AllCommentOrWriteLineEvents|_|) (events: WriterEvent []) =
+    let allEventsMatch =
+        events
+        |> Array.forall
+            (function
+            | CommentOrDefineEvent _
+            | Write ""
+            | WriteLine
+            | WriteLineInsideStringConst -> true
+            | _ -> false)
+
+    if allEventsMatch then Some() else None
+
+let private (|AllCommentOrNewlineEventsInList|_|) (events: WriterEvent [] list) =
+    let allEventsAreCommentOrNewline =
+        List.forall
+            (function
+            | AllCommentOrWriteLineEvents -> true
+            | _ -> false)
+            events
+
+    if allEventsAreCommentOrNewline then
+        Some()
+    else
+        None
+
+/// Checks if the events of an expression produces multiple lines of by user code.
+/// Leading or trailing trivia will not be counted as such.
+let private isMultilineItem (expr: Context -> Context) (ctx: Context) : bool * Context =
+    let previousFragmentCount = ctx.WriterEvents.FragmentLength
+    let nextCtx = expr ctx
+    let currentFragmentCount = nextCtx.WriterEvents.FragmentLength
+
+    let skipTrailingTrivia (events: WriterEvent array) =
+        match events with
+        | AllCommentOrWriteLineEvents
+        | [| (WriteLine
+             | Write ""
+             | CommentOrDefineEvent _) |] -> true
+        | _ -> false
+
+    let rec isMultilineCheck (events: WriterEvent [] list) : bool =
+        match events with
+        | [| Write _ |] :: rest -> isMultilineCheck rest
+        | MultilineStringEvents :: _ -> true
+        // leading comment, define or newline before expression
+        | AllCommentOrNewlineEventsInList -> false
+        | [| WriteLine |] :: _ -> true
+        | _ :: rest -> isMultilineCheck rest
+        | [] -> false
+
+    let isExpressionMultiline =
+        nextCtx.WriterEvents.RecentItemsContain
+            skipTrailingTrivia
+            isMultilineCheck
+            (currentFragmentCount - previousFragmentCount)
+
+    isExpressionMultiline, nextCtx
+
 /// This helper function takes a list of expressions and ranges.
 /// If the expression is multiline it will add a newline before and after the expression.
 /// Unless it is the first expression in the list, that will never have a leading new line.
@@ -1466,50 +1512,60 @@ let internal addExtraNewlineIfLeadingWasMultiline leading sepNlnConsideringTrivi
 ///     BBBBB
 ///
 /// let c = CCCC
-///
-/// The range in the tuple is the range of expression
 
-type internal ColMultilineItem =
-    ColMultilineItem of expr: (Context -> Context) * sepNln: (Context -> Context) * range: range
+let internal colWithNlnWhenItemIsMultiline (items: ColMultilineItem list) (ctx: Context) : Context =
+    match items with
+    | [] -> ctx
+    | [ (ColMultilineItem (expr, _)) ] -> expr ctx
+    | ColMultilineItem (initialExpr, _) :: items ->
+        let result =
+            // The first item can be written as is.
+            let initialIsMultiline, initialCtx = isMultilineItem initialExpr ctx
 
-let internal colWithNlnWhenItemIsMultiline (items: ColMultilineItem list) =
-    let firstItemRange =
-        List.tryHead items
-        |> Option.map (fun (ColMultilineItem (_, _, r)) -> r)
+            let itemsState =
+                { Context = initialCtx
+                  LastBlockMultiline = initialIsMultiline }
 
-    let rec impl items =
-        match items with
-        | ColMultilineItem (f1, sepNln1, r1) :: ColMultilineItem (_, sepNln2, _) :: _ ->
-            let f1Expr =
-                match firstItemRange with
-                | Some fr1 when (fr1 = r1) ->
-                    // first expression should always be executed as is.
-                    f1
-                | _ ->
-                    // Maybe the previous statement already introduced a complete blank line.
-                    // If not add a new line but consider trivia.
-                    ifElseCtx
-                        newlineBetweenLastWriteEvent
-                        f1
-                        (autoNlnConsideringTriviaIfExpressionExceedsPageWidth sepNln1 f1)
+            let rec loop (acc: ColMultilineItemsState) (items: ColMultilineItem list) =
+                match items with
+                | [] -> acc.Context
+                | ColMultilineItem (expr, sepNlnItem) :: rest ->
+                    // Assume the current item will be multiline or the previous was.
+                    // If this is the case, we have already processed the correct stream of event (with additional newline)
+                    // It is cheaper to replay the current expression if it (and its predecessor) turned out to be single lines.
+                    let ctxAfterNln =
+                        (ifElseCtx
+                            newlineBetweenLastWriteEvent
+                            sepNone // don't add extra newline if there already is a full blank line at the end of the stream.
+                            sepNln
+                         +> sepNlnItem)
+                            acc.Context
 
-            addExtraNewlineIfLeadingWasMultiline f1Expr sepNln2 (impl (List.skip 1 items))
-        | [ (ColMultilineItem (f, sepNln, r)) ] ->
-            match firstItemRange with
-            | Some fr1 when (fr1 = r) ->
-                // this can only happen when there is only one item in items
-                f
-            | _ ->
-                ifElseCtx newlineBetweenLastWriteEvent f (autoNlnConsideringTriviaIfExpressionExceedsPageWidth sepNln f)
-        | [] -> sepNone
+                    let isMultiline, nextCtx = isMultilineItem expr ctxAfterNln
 
-    impl items
+                    let nextCtx =
+                        if not isMultiline && not acc.LastBlockMultiline then
+                            // both the previous and current items are single line expressions
+                            // replay the current item as a fallback
+                            (sepNlnItem +> expr) acc.Context
+                        else
+                            nextCtx
+
+                    loop
+                        { acc with
+                              Context = nextCtx
+                              LastBlockMultiline = isMultiline }
+                        rest
+
+            loop itemsState items
+
+        result
 
 let internal colWithNlnWhenItemIsMultilineUsingConfig (items: ColMultilineItem list) (ctx: Context) =
     if ctx.Config.BlankLinesAroundNestedMultilineExpressions then
         colWithNlnWhenItemIsMultiline items ctx
     else
-        col sepNln items (fun (ColMultilineItem (expr, _, _)) -> expr) ctx
+        col sepNln items (fun (ColMultilineItem (expr, _)) -> expr) ctx
 
 let internal genTriviaBeforeClausePipe (rangeOfClause: Range) ctx =
     (Map.tryFindOrEmptyList BAR ctx.TriviaTokenNodes)
@@ -1532,82 +1588,3 @@ let internal genTriviaBeforeClausePipe (rangeOfClause: Range) ctx =
             +> printContentBefore trivia
         | None -> id
     <| ctx
-
-let internal hasLineCommentAfterInfix (rangePlusInfix: Range) (ctx: Context) =
-    match Map.tryFind SynExpr_Ident ctx.TriviaMainNodes with
-    | Some triviaNodes ->
-        triviaNodes
-        |> List.tryFind
-            (fun { ContentAfter = ca; Range = r } ->
-                List.isNotEmpty ca
-                && RangeHelpers.rangeEq r rangePlusInfix)
-        |> Option.bind
-            (fun trivia ->
-                trivia.ContentAfter
-                |> List.map
-                    (fun ca ->
-                        match ca with
-                        | TriviaContent.Comment (Comment.LineCommentAfterSourceCode comment) -> Some comment
-                        | _ -> None)
-                |> List.choose id
-                |> List.tryHead)
-        |> Option.map (fun _ -> true)
-        |> Option.defaultValue false
-    | _ -> false
-
-let internal lastLineOnlyContains characters (ctx: Context) =
-    let lastLine =
-        (writeEventsOnLastLine ctx |> String.concat "")
-            .Trim(characters)
-
-    let length = String.length lastLine
-    length = 0 || length < ctx.Config.IndentSize
-
-// Add a newline when the previous code is only one line above the current location
-// For example
-// let a = meh
-//.
-// => The dot is the current point and you want to insert an extra newline in this case
-//
-// Other example
-// let a = foo
-//
-// .
-// => Already two newline character between the dot and the previous code, no need to add an extra newline.
-//
-// Don't add an extra newline if the previous code ends with `=` or `->`
-// For example
-// type Foo =
-//     .
-// => no need for a newline here
-let internal sepNlnBeforeMultilineConstruct (mainNode: FsAstType) range rangeOfAttributes ctx =
-    let existingNewlines =
-        ctx.WriterEvents
-        |> Queue.rev
-        |> Seq.takeWhile
-            (function
-            | Write ""
-            // for example:
-            // type Foo =
-            //     static member Bar () = ...
-            | IndentBy _
-            | WriteLine
-            | SetAtColumn _
-            | Write " -> "
-            | CommentOrDefineEvent _ -> true
-            | _ -> false)
-        |> Seq.filter
-            (function
-            | WriteLine
-            | IndentBy _
-            | Write " -> "
-            | CommentOrDefineEvent _ -> true
-            | _ -> false)
-        |> Seq.length
-
-    if existingNewlines >= 2 then
-        ctx // previous construct was multiline so no need to add any extra newlines
-    else
-        // previous construct was single line so add extra newline
-        // sepNlnConsideringTriviaContentBeforeWithAttributes range rangeOfAttributes ctx
-        sepNlnConsideringTriviaContentBeforeWithAttributesFor mainNode range rangeOfAttributes ctx

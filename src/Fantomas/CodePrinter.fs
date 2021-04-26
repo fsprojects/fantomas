@@ -102,14 +102,9 @@ and genParsedHashDirective (ParsedHashDirective (h, s, r)) =
         |> List.tryFind (fun t -> RangeHelpers.rangeEq t.Range r)
         |> Option.bind
             (fun t ->
-                t.ContentBefore
-                |> List.choose
-                    (fun tc ->
-                        match tc with
-                        | Keyword ({ TokenInfo = { TokenName = "KEYWORD_STRING" }
-                                     Content = c }) -> Some c
-                        | _ -> None)
-                |> List.tryHead)
+                match t.ContentItself with
+                | Some (KeywordString c) -> Some c
+                | _ -> None)
         |> function
             | Some kw -> !-kw
             | None -> col sepSpace s printArgument
@@ -118,17 +113,19 @@ and genParsedHashDirective (ParsedHashDirective (h, s, r)) =
     !- "#" -- h +> sepSpace +> printIdent
     |> genTriviaFor ParsedHashDirective_ r
 
-and genModuleOrNamespace astContext (ModuleOrNamespace (ats, px, ao, s, mds, isRecursive, moduleKind) as node) =
+and genModuleOrNamespaceKind (kind: SynModuleOrNamespaceKind) =
+    match kind with
+    | SynModuleOrNamespaceKind.DeclaredNamespace -> !- "namespace "
+    | SynModuleOrNamespaceKind.NamedModule -> !- "module "
+    | SynModuleOrNamespaceKind.GlobalNamespace -> !- "namespace global"
+    | SynModuleOrNamespaceKind.AnonModule -> sepNone
+
+and genModuleOrNamespace astContext (ModuleOrNamespace (ats, px, ao, lids, mds, isRecursive, moduleKind)) =
     let sepModuleAndFirstDecl =
         let firstDecl = List.tryHead mds
 
         match firstDecl with
-        | None ->
-            if moduleKind.IsModule then
-                sepNlnForEmptyModule SynModuleOrNamespace_NamedModule node.Range
-                +> sepNln
-            else
-                sepNlnForEmptyNamespace node.Range +> sepNln
+        | None -> sepNone
         | Some mdl ->
             let attrs =
                 getRangesFromAttributesFromModuleDeclaration mdl
@@ -136,65 +133,38 @@ and genModuleOrNamespace astContext (ModuleOrNamespace (ats, px, ao, s, mds, isR
             sepNln
             +> sepNlnConsideringTriviaContentBeforeWithAttributesFor (synModuleDeclToFsAstType mdl) mdl.Range attrs
 
-    let genTriviaForLongIdent (f: Context -> Context) =
-        match node with
-        | SynModuleOrNamespace.SynModuleOrNamespace (lid, _, SynModuleOrNamespaceKind.DeclaredNamespace, _, _, _, _, _) ->
-            lid
-            |> List.fold (fun (acc: Context -> Context) (ident: Ident) -> acc |> (genTriviaFor Ident_ ident.idRange)) f
-        | _ -> f
+    let lidsFullRange =
+        match lids with
+        | [] -> range.Zero
+        | (_, r) :: _ -> Range.unionRanges r (List.last lids |> snd)
 
     let moduleOrNamespace =
-        ifElse moduleKind.IsModule (!- "module ") (!- "namespace ")
+        genModuleOrNamespaceKind moduleKind
+        +> opt sepSpace ao genAccess
+        +> ifElse isRecursive (!- "rec ") sepNone
+        +> col (!- ".") lids (fun (lid, r) -> genTriviaFor Ident_ r (!-lid))
+        |> genTriviaFor LongIdent_ lidsFullRange
 
-    let recursive = ifElse isRecursive (!- "rec ") sepNone
-    let namespaceFn = ifElse (s = "") (!- "global") (!-s)
-    let namespaceIsGlobal = not moduleKind.IsModule && s = ""
+    // Anonymous module do have a single (fixed) ident in the LongIdent
+    // We don't print the ident but it could have trivia assigned to it.
+    let genTriviaForAnonModuleIdent =
+        match lids with
+        | [ (_, r) ] -> genTriviaFor Ident_ r sepNone
+        | _ -> sepNone
+        |> genTriviaFor LongIdent_ lidsFullRange
 
-    let sep =
-        if namespaceIsGlobal then
-            sepNone
-        else
-            sepModuleAndFirstDecl
+    genPreXmlDoc px
+    +> genAttributes astContext ats
+    +> ifElse (moduleKind = AnonModule) genTriviaForAnonModuleIdent moduleOrNamespace
+    +> sepModuleAndFirstDecl
+    +> genModuleDeclList astContext mds
 
-    let expr =
-        genPreXmlDoc px
-        +> genAttributes astContext ats
-        +> ifElse
-            (moduleKind = AnonModule)
-            sepNone
-            (genTriviaForLongIdent (
-                moduleOrNamespace
-                +> opt sepSpace ao genAccess
-                +> recursive
-                +> namespaceFn
-                +> sep
-            ))
-
-    if namespaceIsGlobal then
-        expr
-        +> genTriviaFor SynModuleOrNamespace_GlobalNamespace node.Range (genModuleDeclList astContext mds)
-    else
-        expr +> genModuleDeclList astContext mds
-        |> (match moduleKind with
-            | SynModuleOrNamespaceKind.AnonModule -> genTriviaFor SynModuleOrNamespace_AnonModule node.Range
-            | SynModuleOrNamespaceKind.NamedModule -> genTriviaFor SynModuleOrNamespace_NamedModule node.Range
-            | _ -> id)
-
-and genSigModuleOrNamespace astContext (SigModuleOrNamespace (ats, px, ao, s, mds, _, moduleKind) as node) =
-    let range =
-        match node with
-        | SynModuleOrNamespaceSig (_, _, _, _, _, _, _, range) -> range
-
+and genSigModuleOrNamespace astContext (SigModuleOrNamespace (ats, px, ao, lids, mds, isRecursive, moduleKind)) =
     let sepModuleAndFirstDecl =
         let firstDecl = List.tryHead mds
 
         match firstDecl with
-        | None ->
-            if moduleKind.IsModule then
-                sepNlnForEmptyModule SynModuleOrNamespaceSig_NamedModule range
-                +> rep 2 sepNln
-            else
-                sepNlnForEmptyNamespace range +> sepNln
+        | None -> sepNone
         | Some mdl ->
             match mdl with
             | SynModuleSigDecl.Types _ ->
@@ -206,31 +176,23 @@ and genSigModuleOrNamespace astContext (SigModuleOrNamespace (ats, px, ao, s, md
             | _ -> sepNone
             +> sepNln
 
-    let genTriviaForLongIdent (f: Context -> Context) =
-        match node with
-        | SynModuleOrNamespaceSig (lid, _, SynModuleOrNamespaceKind.DeclaredNamespace, _, _, _, _, _) ->
-            lid
-            |> List.fold (fun (acc: Context -> Context) (ident: Ident) -> acc |> (genTriviaFor Ident_ ident.idRange)) f
-        | _ -> f
+    let lidsFullRange =
+        match lids with
+        | [] -> range.Zero
+        | (_, r) :: _ -> Range.unionRanges r (List.last lids |> snd)
 
     let moduleOrNamespace =
-        ifElse moduleKind.IsModule (!- "module ") (!- "namespace ")
+        genModuleOrNamespaceKind moduleKind
+        +> opt sepSpace ao genAccess
+        +> ifElse isRecursive (!- "rec ") sepNone
+        +> col (!- ".") lids (fun (lid, r) -> genTriviaFor Ident_ r (!-lid))
+        |> genTriviaFor LongIdent_ lidsFullRange
 
-    // Don't generate trivia before in case the SynModuleOrNamespaceKind is a DeclaredNamespace
-    // The range of the namespace is not correct, see https://github.com/dotnet/fsharp/issues/7680
-    ifElse moduleKind.IsModule (enterNodeFor SynModuleOrNamespaceSig_NamedModule range) sepNone
-    +> genPreXmlDoc px
+    genPreXmlDoc px
     +> genAttributes astContext ats
-    +> ifElse
-        (moduleKind = AnonModule)
-        sepNone
-        (genTriviaForLongIdent (
-            moduleOrNamespace +> opt sepSpace ao genAccess
-            -- s
-            +> sepModuleAndFirstDecl
-        ))
+    +> ifElse (moduleKind = AnonModule) sepNone moduleOrNamespace
+    +> sepModuleAndFirstDecl
     +> genSigModuleDeclList astContext mds
-    +> leaveNodeFor SynModuleOrNamespaceSig_NamedModule range
 
 and genModuleDeclList astContext e =
     let rec collectItems e : ColMultilineItem list =
@@ -244,8 +206,7 @@ and genModuleDeclList astContext e =
             let sepNln =
                 sepNlnConsideringTriviaContentBeforeForMainNode SynModuleDecl_Open r
 
-            ColMultilineItem(expr, sepNln, r)
-            :: collectItems ys
+            ColMultilineItem(expr, sepNln) :: collectItems ys
         | HashDirectiveL (xs, ys) ->
             let expr = col sepNln xs (genModuleDecl astContext)
 
@@ -254,8 +215,7 @@ and genModuleDeclList astContext e =
             let sepNln =
                 sepNlnConsideringTriviaContentBeforeForMainNode SynModuleDecl_HashDirective r
 
-            ColMultilineItem(expr, sepNln, r)
-            :: collectItems ys
+            ColMultilineItem(expr, sepNln) :: collectItems ys
         | AttributesL (xs, y :: rest) ->
             let attrs =
                 getRangesFromAttributesFromModuleDeclaration y
@@ -270,7 +230,7 @@ and genModuleDeclList astContext e =
             let sepNln =
                 sepNlnConsideringTriviaContentBeforeForMainNode SynModuleDecl_Attributes r
 
-            ColMultilineItem(expr, sepNln, r)
+            ColMultilineItem(expr, sepNln)
             :: collectItems rest
 
         | m :: rest ->
@@ -282,7 +242,7 @@ and genModuleDeclList astContext e =
 
             let expr = genModuleDecl astContext m
 
-            ColMultilineItem(expr, sepNln, m.Range)
+            ColMultilineItem(expr, sepNln)
             :: (collectItems rest)
 
     collectItems e |> colWithNlnWhenItemIsMultiline
@@ -300,8 +260,7 @@ and genSigModuleDeclList astContext (e: SynModuleSigDecl list) =
             let sepNln =
                 sepNlnConsideringTriviaContentBeforeForMainNode SynModuleSigDecl_Open r
 
-            ColMultilineItem(expr, sepNln, r)
-            :: collectItems ys
+            ColMultilineItem(expr, sepNln) :: collectItems ys
         | s :: rest ->
             let attrs =
                 getRangesFromAttributesFromSynModuleSigDeclaration s
@@ -311,7 +270,7 @@ and genSigModuleDeclList astContext (e: SynModuleSigDecl list) =
 
             let expr = genSigModuleDecl astContext s
 
-            ColMultilineItem(expr, sepNln, s.Range)
+            ColMultilineItem(expr, sepNln)
             :: (collectItems rest)
 
     collectItems e |> colWithNlnWhenItemIsMultiline
@@ -732,7 +691,7 @@ and genMemberBindingList astContext node =
             let sepNln =
                 sepNlnConsideringTriviaContentBeforeForMainNode (synBindingToFsAstType mb) r
 
-            ColMultilineItem(expr, sepNln, r)
+            ColMultilineItem(expr, sepNln)
             :: (collectItems rest)
 
     collectItems node |> colWithNlnWhenItemIsMultiline
@@ -1464,7 +1423,7 @@ and genExpr astContext synExpr ctx =
                     let expr = genCompExprStatement astContext ces
                     let r = getRangeOfCompExprStatement ces
                     let sepNln = getSepNln ces r
-                    ColMultilineItem(expr, sepNln, r))
+                    ColMultilineItem(expr, sepNln))
             |> colWithNlnWhenItemIsMultilineUsingConfig
 
         | ArrayOrListOfSeqExpr (isArray, e) as alNode ->
@@ -1825,8 +1784,8 @@ and genExpr astContext synExpr ctx =
             let long =
                 let functionName =
                     match e with
-                    | LongIdentPieces lids when (List.moreThanOne lids) -> genFunctionNameWithMultilineLids id lids
-                    | TypeApp (LongIdentPieces lids, ts) when (List.moreThanOne lids) ->
+                    | LongIdentPiecesExpr lids when (List.moreThanOne lids) -> genFunctionNameWithMultilineLids id lids
+                    | TypeApp (LongIdentPiecesExpr lids, ts) when (List.moreThanOne lids) ->
                         genFunctionNameWithMultilineLids (genGenericTypeParameters astContext ts) lids
                     | _ -> genExpr astContext e
 
@@ -1850,8 +1809,9 @@ and genExpr astContext synExpr ctx =
             let longAppExpr =
                 let functionName argFn =
                     match e with
-                    | LongIdentPieces lids when (List.moreThanOne lids) -> genFunctionNameWithMultilineLids argFn lids
-                    | TypeApp (LongIdentPieces lids, ts) when (List.moreThanOne lids) ->
+                    | LongIdentPiecesExpr lids when (List.moreThanOne lids) ->
+                        genFunctionNameWithMultilineLids argFn lids
+                    | TypeApp (LongIdentPiecesExpr lids, ts) when (List.moreThanOne lids) ->
                         genFunctionNameWithMultilineLids (genGenericTypeParameters astContext ts +> argFn) lids
                     | _ -> genExpr astContext e +> argFn
 
@@ -1879,8 +1839,8 @@ and genExpr astContext synExpr ctx =
         | DotGetApp (App (e, [ Paren (_, Lambda _, _, _) as px ]), es) ->
             let genLongFunctionName f =
                 match e with
-                | LongIdentPieces lids when (List.moreThanOne lids) -> genFunctionNameWithMultilineLids f lids
-                | TypeApp (LongIdentPieces lids, ts) when (List.moreThanOne lids) ->
+                | LongIdentPiecesExpr lids when (List.moreThanOne lids) -> genFunctionNameWithMultilineLids f lids
+                | TypeApp (LongIdentPiecesExpr lids, ts) when (List.moreThanOne lids) ->
                     genFunctionNameWithMultilineLids (genGenericTypeParameters astContext ts +> f) lids
                 | _ -> genExpr astContext e +> f
 
@@ -1914,14 +1874,14 @@ and genExpr astContext synExpr ctx =
         | DotGetApp (e, es) ->
             let genLongFunctionName =
                 match e with
-                | AppOrTypeApp (LongIdentPieces lids, ts, [ Paren _ as px ]) when (List.moreThanOne lids) ->
+                | AppOrTypeApp (LongIdentPiecesExpr lids, ts, [ Paren _ as px ]) when (List.moreThanOne lids) ->
                     genFunctionNameWithMultilineLids
                         (optSingle (genGenericTypeParameters astContext) ts
                          +> expressionFitsOnRestOfLine
                              (genExpr astContext px)
                              (genMultilineFunctionApplicationArguments sepOpenTFor sepCloseTFor astContext px))
                         lids
-                | AppOrTypeApp (LongIdentPieces lids, ts, [ e2 ]) when (List.moreThanOne lids) ->
+                | AppOrTypeApp (LongIdentPiecesExpr lids, ts, [ e2 ]) when (List.moreThanOne lids) ->
                     genFunctionNameWithMultilineLids
                         (optSingle (genGenericTypeParameters astContext) ts
                          +> genExpr astContext e2)
@@ -2075,7 +2035,7 @@ and genExpr astContext synExpr ctx =
                                 let sepNln =
                                     sepNlnConsideringTriviaContentBeforeForMainNode (synBindingToFsAstType x) range
 
-                                ColMultilineItem(expr, sepNln, range))
+                                ColMultilineItem(expr, sepNln))
 
                     let rec synExpr e =
                         match e with
@@ -2086,8 +2046,7 @@ and genExpr astContext synExpr ctx =
 
                             [ ColMultilineItem(
                                   genExpr astContext e,
-                                  sepNlnConsideringTriviaContentBeforeForMainNode t r,
-                                  r
+                                  sepNlnConsideringTriviaContentBeforeForMainNode t r
                               ) ]
 
                     let items = letBindings bs @ synExpr e
@@ -2169,7 +2128,7 @@ and genExpr astContext synExpr ctx =
                         let sepNln =
                             sepConsideringTriviaContentBeforeForMainNode sepSemiNln fsAstType r
 
-                        ColMultilineItem(expr, sepNln, r))
+                        ColMultilineItem(expr, sepNln))
 
             atCurrentColumn (colWithNlnWhenItemIsMultilineUsingConfig items)
 
@@ -4440,7 +4399,7 @@ and genMemberDefnList astContext nodes =
             let sepNln =
                 sepNlnConsideringTriviaContentBeforeWithAttributesFor SynMemberDefn_Member rangeOfFirstMember attrs
 
-            ColMultilineItem(expr, sepNln, rangeOfFirstMember)
+            ColMultilineItem(expr, sepNln)
             :: (collectItems rest)
 
         | m :: rest ->
@@ -4452,7 +4411,7 @@ and genMemberDefnList astContext nodes =
             let sepNln =
                 sepNlnConsideringTriviaContentBeforeWithAttributesFor (synMemberDefnToFsAstType m) m.Range attrs
 
-            ColMultilineItem(expr, sepNln, m.Range)
+            ColMultilineItem(expr, sepNln)
             :: (collectItems rest)
 
     collectItems nodes
@@ -5202,8 +5161,7 @@ and genExprKeepIndentInBranch (astContext: ASTContext) (e: SynExpr) : Context ->
         let genOtherExprItem (e: SynExpr) : ColMultilineItem =
             ColMultilineItem(
                 genExpr astContext e,
-                (let t, r = synExprToFsAstType e in sepNlnConsideringTriviaContentBeforeForMainNode t r),
-                e.Range
+                (let t, r = synExprToFsAstType e in sepNlnConsideringTriviaContentBeforeForMainNode t r)
             )
 
         let genBindingItems (bs: (string * SynBinding) list) : ColMultilineItem list =
@@ -5219,7 +5177,7 @@ and genExprKeepIndentInBranch (astContext: ASTContext) (e: SynExpr) : Context ->
                     let sepNln =
                         sepNlnConsideringTriviaContentBeforeForMainNode (synBindingToFsAstType synBinding) range
 
-                    ColMultilineItem(expr, sepNln, range))
+                    ColMultilineItem(expr, sepNln))
                 bs
 
         let genKeepIndentMatchItem
@@ -5227,8 +5185,7 @@ and genExprKeepIndentInBranch (astContext: ASTContext) (e: SynExpr) : Context ->
             : ColMultilineItem =
             ColMultilineItem(
                 genKeepIndentMatch astContext me clauses matchRange matchTriviaType,
-                sepNlnConsideringTriviaContentBeforeForMainNode matchTriviaType matchRange,
-                matchRange
+                sepNlnConsideringTriviaContentBeforeForMainNode matchTriviaType matchRange
             )
 
         let genKeepIndentIfThenElseItem
@@ -5236,8 +5193,7 @@ and genExprKeepIndentInBranch (astContext: ASTContext) (e: SynExpr) : Context ->
             : ColMultilineItem =
             ColMultilineItem(
                 genKeepIdentIf astContext branches elseBranch ifElseRange,
-                sepNlnConsideringTriviaContentBeforeForMainNode SynExpr_IfThenElse ifElseRange,
-                ifElseRange
+                sepNlnConsideringTriviaContentBeforeForMainNode SynExpr_IfThenElse ifElseRange
             )
 
         match e with
@@ -5371,7 +5327,8 @@ and genConst (c: SynConst) (r: Range) =
                 |> List.tryFind (fun tv -> RangeHelpers.rangeEq tv.Range r)
 
             match trivia with
-            | Some ({ ContentItself = Some (StringContent sc) } as tn) ->
+            | Some ({ ContentItself = Some (StringContent sc) } as tn)
+            | Some ({ ContentItself = Some (KeywordString sc) } as tn) ->
                 printContentBefore tn
                 +> !-sc
                 +> printContentAfter tn

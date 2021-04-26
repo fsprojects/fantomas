@@ -68,9 +68,9 @@ let ``line comment on same line, is after last AST item`` () =
     let triviaNodes = toTrivia source |> List.head
 
     match triviaNodes with
-    | [ { Type = MainNode SynModuleOrNamespace_AnonModule
+    | [ { Type = MainNode SynConst_Int32
           ContentAfter = [ Comment (LineCommentAfterSourceCode lineComment) ] } ] -> lineComment == "// should be 8"
-    | _ -> fail ()
+    | _ -> Assert.Fail(sprintf "Unexpected trivia %A" triviaNodes)
 
 [<Test>]
 let ``newline pick up before let binding`` () =
@@ -316,16 +316,16 @@ doSomething()
     let withoutDefine = Map.find [] triviaNodes
 
     match withoutDefine with
-    | [ { Type = MainNode SynModuleOrNamespace_AnonModule
+    | [ { Type = MainNode SynModuleDecl_DoExpr
           ContentBefore = [ Directive "#if NOT_DEFINED\n#else" ]
           ContentAfter = [ Directive "#endif" ] } ] -> pass ()
-    | _ -> fail ()
+    | _ -> Assert.Fail(sprintf "Unexpected trivia %A" withoutDefine)
 
     match withDefine with
-    | [ { Type = MainNode SynModuleOrNamespace_AnonModule
+    | [ { Type = MainNode LongIdent_
           ContentBefore = [ Directive "#if NOT_DEFINED"; Directive "#else"; Directive "#endif" ]
           ContentAfter = [] } ] -> pass ()
-    | _ -> fail ()
+    | _ -> Assert.Fail(sprintf "Unexpected trivia %A" withDefine)
 
 [<Test>]
 let ``directive without else clause`` () =
@@ -341,19 +341,19 @@ let x = 1
     let withoutDefine = Map.find [] triviaNodes
 
     match withoutDefine with
-    | [ { Type = MainNode SynModuleOrNamespace_AnonModule
+    | [ { Type = MainNode LongIdent_
           ContentAfter = [ Directive "#if NOT_DEFINED\n\n#endif" ]
           ContentBefore = [] } ] -> pass ()
-    | _ -> fail ()
+    | _ -> Assert.Fail(sprintf "Unexpected trivia %A" withoutDefine)
 
     match withDefine with
-    | [ { Type = MainNode SynModuleOrNamespace_AnonModule
+    | [ { Type = MainNode LongIdent_
           ContentBefore = [ Directive "#if NOT_DEFINED" ]
           ContentAfter = [] };
         { Type = MainNode SynModuleDecl_Let
           ContentBefore = []
           ContentAfter = [ Directive "#endif" ] } ] -> pass ()
-    | _ -> fail ()
+    | _ -> Assert.Fail(sprintf "Unexpected trivia %A" withDefine)
 
 [<Test>]
 let ``unreachable directive should be present in trivia`` () =
@@ -370,7 +370,7 @@ type ExtensibleDumper = A | B
     let trivias = Map.find [ "DEBUG" ] triviaNodes
 
     match trivias with
-    | [ { Type = MainNode Ident_
+    | [ { Type = MainNode LongIdent_
           ContentAfter = [ Directive "#if EXTENSIBLE_DUMPER\n#if DEBUG\n\n#endif\n#endif" ] } ] -> pass ()
     | _ -> Assert.Fail(sprintf "Unexpected trivia %A" trivias)
 
@@ -400,7 +400,7 @@ let foo = 42
         toTriviaWithDefines source |> Map.find []
 
     match trivia with
-    | [ { Type = MainNode SynModuleOrNamespace_AnonModule
+    | [ { Type = MainNode LongIdent_
           ContentAfter = [ Directive "#if SOMETHING\n\n#endif" ] } ] -> pass ()
     | _ -> fail ()
 

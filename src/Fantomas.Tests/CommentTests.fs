@@ -1252,3 +1252,62 @@ let a = 8
 let a = 8
 // foobar
 """
+
+[<Test>]
+let ``file end with newline followed by comment, 1649`` () =
+    formatSourceString
+        false
+        """
+#load "Hi.fsx"
+open Something
+
+//// FOO
+[
+    1
+    2
+    3
+]
+
+//// The end
+"""
+        { config with
+              SpaceBeforeUppercaseInvocation = true
+              SpaceBeforeClassConstructor = true
+              SpaceBeforeMember = true
+              SpaceBeforeColon = true
+              SpaceBeforeSemicolon = true
+              MultilineBlockBracketsOnSameColumn = true
+              NewlineBetweenTypeDefinitionAndMembers = true
+              KeepIfThenInSameLine = true
+              AlignFunctionSignatureToIndentation = true
+              AlternativeLongMemberDefinitions = true
+              MultiLineLambdaClosingNewline = true
+              KeepIndentInBranch = true }
+    |> prepend newline
+    |> should
+        equal
+        """
+#load "Hi.fsx"
+open Something
+
+//// FOO
+[ 1 ; 2 ; 3 ]
+
+//// The end
+"""
+
+[<Test>]
+let ``block comment above let binding`` () =
+    formatSourceString
+        false
+        """(* meh *)
+let a =  b
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+(* meh *)
+let a = b
+"""
