@@ -10,8 +10,8 @@ let private collectTrivia =
         (fun (sl, sc) (el, ec) ->
             FSharp.Compiler.Text.Range.mkRange
                 "TriviaTests"
-                (FSharp.Compiler.Text.Pos.mkPos sl sc)
-                (FSharp.Compiler.Text.Pos.mkPos el ec))
+                (FSharp.Compiler.Text.Position.mkPos sl sc)
+                (FSharp.Compiler.Text.Position.mkPos el ec))
 
 let private toTrivia source =
     let astWithDefines = parse false source |> Array.toList

@@ -4,11 +4,13 @@ module Fantomas.CodeFormatterImpl
 open System
 open System.Diagnostics
 open System.Text.RegularExpressions
-open FSharp.Compiler.Text.Range
-open FSharp.Compiler.Text.Pos
-open FSharp.Compiler.SourceCodeServices
-open FSharp.Compiler.SyntaxTree
+open FSharp.Compiler.CodeAnalysis
+open FSharp.Compiler.Diagnostics
+open FSharp.Compiler.Syntax
 open FSharp.Compiler.Text
+open FSharp.Compiler.Text.Position
+open FSharp.Compiler.Text.Range
+open FSharp.Compiler.Tokenization
 open Fantomas
 open Fantomas.FormatConfig
 open Fantomas.SourceOrigin
@@ -36,7 +38,8 @@ let getSourceTextAndCode source =
 type FormatContext =
     { FileName: string
       Source: string
-      SourceText: ISourceText }
+      SourceText: ISourceText
+      CacheParsingResult: bool }
 
 // Some file names have a special meaning for the F# compiler and the AST cannot be parsed.
 let safeFileName (file: string) =
@@ -48,14 +51,21 @@ let safeFileName (file: string) =
     else
         file
 
-let createFormatContext fileName (source: SourceOrigin) =
+let createFormatContext fileName (source: SourceOrigin) cacheParsingResult =
     let sourceText, sourceCode = getSourceTextAndCode source
 
     { FileName = safeFileName fileName
       Source = sourceCode
-      SourceText = sourceText }
+      SourceText = sourceText
+      CacheParsingResult = cacheParsingResult }
 
-let parse (checker: FSharpChecker) (parsingOptions: FSharpParsingOptions) { FileName = fileName; Source = source } =
+let parse
+    (checker: FSharpChecker)
+    (parsingOptions: FSharpParsingOptions)
+    { FileName = fileName
+      Source = source
+      CacheParsingResult = cacheParsingResult }
+    =
     let allDefineOptions, defineHashTokens = TokenParser.getDefines source
 
     allDefineOptions
@@ -70,11 +80,12 @@ let parse (checker: FSharpChecker) (parsingOptions: FSharpParsingOptions) { File
                 let sourceText =
                     FSharp.Compiler.Text.SourceText.ofString source
 
-                let! untypedRes = checker.ParseFile(fileName, sourceText, parsingOptionsWithDefines)
+                let! untypedRes =
+                    checker.ParseFile(fileName, sourceText, parsingOptionsWithDefines, cacheParsingResult)
 
                 if untypedRes.ParseHadErrors then
                     let errors =
-                        untypedRes.Errors
+                        untypedRes.Diagnostics
                         |> Array.filter (fun e -> e.Severity = FSharpDiagnosticSeverity.Error)
 
                     if not <| Array.isEmpty errors then
@@ -83,14 +94,7 @@ let parse (checker: FSharpChecker) (parsingOptions: FSharpParsingOptions) { File
                             sprintf "Parsing failed with errors: %A\nAnd options: %A" errors parsingOptionsWithDefines
                         )
 
-                let tree =
-                    match untypedRes.ParseTree with
-                    | Some tree -> tree
-                    | None ->
-                        raise
-                        <| FormatException "Parsing failed. Please select a complete code fragment to format."
-
-                return (tree, conditionalCompilationDefines, defineHashTokens)
+                return (untypedRes.ParseTree, conditionalCompilationDefines, defineHashTokens)
             })
     |> Async.Parallel
 
@@ -123,7 +127,7 @@ let isValidAST ast =
         | SynModuleDecl.HashDirective _
         | SynModuleDecl.Open _ -> true
 
-    and validateTypeDefn (TypeDefn (_componentInfo, representation, members, _range)) =
+    and validateTypeDefn (SynTypeDefn (_componentInfo, representation, members, implicitCtor, _range)) =
         validateTypeDefnRepr representation
         && List.forall validateMemberDefn members
 
@@ -168,18 +172,18 @@ let isValidAST ast =
         | SynMemberDefn.ImplicitInherit (_, expr, _, _) -> validateExpr expr
 
     and validateBinding
-        (Binding (_access,
-                  _bindingKind,
-                  _isInline,
-                  _isMutable,
-                  _attrs,
-                  _xmldoc,
-                  _valData,
-                  headPat,
-                  _retTy,
-                  expr,
-                  _bindingRange,
-                  _seqPoint))
+        (SynBinding (_access,
+                     _bindingKind,
+                     _isInline,
+                     _isMutable,
+                     _attrs,
+                     _xmldoc,
+                     _valData,
+                     headPat,
+                     _retTy,
+                     expr,
+                     _bindingRange,
+                     _seqPoint))
         =
         validateExpr expr && validatePattern headPat
 
@@ -321,7 +325,7 @@ let isValidAST ast =
         | SynExpr.FromParseError (_synExpr, _range)
         | SynExpr.DiscardAfterMissingQualificationAfterDot (_synExpr, _range) -> false
         | SynExpr.Fixed _ -> true
-        | SynExpr.InterpolatedString (parts, _) ->
+        | SynExpr.InterpolatedString (parts, _, _) ->
             parts
             |> List.forall
                 (function

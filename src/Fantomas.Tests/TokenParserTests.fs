@@ -23,8 +23,8 @@ let private mkRange : MkRange =
     fun (sl, sc) (el, ec) ->
         FSharp.Compiler.Text.Range.mkRange
             "TokenParserTests"
-            (FSharp.Compiler.Text.Pos.mkPos sl sc)
-            (FSharp.Compiler.Text.Pos.mkPos el ec)
+            (FSharp.Compiler.Text.Position.mkPos sl sc)
+            (FSharp.Compiler.Text.Position.mkPos el ec)
 
 let private getTriviaFromTokens = getTriviaFromTokens mkRange
 let private getTriviaNodesFromTokens = getTriviaNodesFromTokens mkRange

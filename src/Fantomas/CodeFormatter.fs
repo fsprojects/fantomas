@@ -2,32 +2,40 @@ namespace Fantomas
 
 [<Sealed>]
 type CodeFormatter =
-    static member ParseAsync(fileName, source, parsingOptions, checker) =
+    static member ParseAsync(fileName, source, parsingOptions, checker, ?cache) =
         async {
+            let cache = defaultArg cache true
             let! asts =
-                CodeFormatterImpl.createFormatContext fileName source
+                CodeFormatterImpl.createFormatContext fileName source cache
                 |> CodeFormatterImpl.parse checker parsingOptions
 
             return (Array.map (fun (a, d, _) -> a, d) asts)
         }
 
-    static member FormatASTAsync(ast, fileName, defines, source, config) =
+    static member FormatASTAsync(ast, fileName, defines, source, config, ?cache) =
+        let cache = defaultArg cache true
         let formatContext =
-            CodeFormatterImpl.createFormatContext fileName (Option.defaultValue (SourceOrigin.SourceString "") source)
+            CodeFormatterImpl.createFormatContext
+                fileName
+                (Option.defaultValue (SourceOrigin.SourceString "") source)
+                cache
 
         CodeFormatterImpl.formatAST ast defines formatContext config
         |> async.Return
 
-    static member FormatDocumentAsync(fileName, source, config, parsingOptions, checker) =
-        CodeFormatterImpl.createFormatContext fileName source
+    static member FormatDocumentAsync(fileName, source, config, parsingOptions, checker, ?cache) =
+        let cache = defaultArg cache true
+        CodeFormatterImpl.createFormatContext fileName source cache
         |> CodeFormatterImpl.formatDocument checker parsingOptions config
 
-    static member FormatSelectionAsync(fileName, selection, source, config, parsingOptions, checker) =
-        CodeFormatterImpl.createFormatContext fileName source
+    static member FormatSelectionAsync(fileName, selection, source, config, parsingOptions, checker, ?cache) =
+        let cache = defaultArg cache true
+        CodeFormatterImpl.createFormatContext fileName source cache
         |> CodeFormatterImpl.formatSelection checker parsingOptions selection config
 
-    static member IsValidFSharpCodeAsync(fileName, source, parsingOptions, checker) =
-        CodeFormatterImpl.createFormatContext fileName source
+    static member IsValidFSharpCodeAsync(fileName, source, parsingOptions, checker, ?cache) =
+        let cache = defaultArg cache true
+        CodeFormatterImpl.createFormatContext fileName source cache
         |> CodeFormatterImpl.isValidFSharpCode checker parsingOptions
 
     static member IsValidASTAsync ast =

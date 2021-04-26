@@ -1,12 +1,12 @@
 module internal Fantomas.Trivia
 
-open FSharp.Compiler.SourceCodeServices
+open FSharp.Compiler.Syntax
+open FSharp.Compiler.Tokenization
 open Fantomas
 open Fantomas.SourceParser
 open Fantomas.AstTransformer
 open Fantomas.TriviaTypes
 open FSharp.Compiler.Text
-open FSharp.Compiler.SyntaxTree
 
 let isMainNode (node: TriviaNode) =
     match node.Type with
