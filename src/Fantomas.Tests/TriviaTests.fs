@@ -247,10 +247,9 @@ x
     let triviaNodes = toTrivia source |> List.head
 
     match triviaNodes with
-    | [ { ContentBefore = [ Comment (BlockComment (fooComment, _, true)); Comment (BlockComment (barComment, _, true)) ] } ] ->
-        fooComment == "(* foo *)"
-        barComment == "(* bar *)"
-    | _ -> fail ()
+    | [ { ContentBefore = [ Comment (BlockComment (combinedComment, _, true)) ] } ] ->
+        combinedComment == "(* foo *)\n(* bar *)"
+    | _ -> Assert.Fail(sprintf "Unexpected trivia %A" triviaNodes)
 
 [<Test>]
 let ``block comment inside line comment parsed correctly`` () =

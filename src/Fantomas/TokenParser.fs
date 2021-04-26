@@ -11,6 +11,7 @@ let private whiteSpaceTag = 4
 let private lineCommentTag = 8
 let private commentTag = 3
 let private greaterTag = 160
+let private identTag = 191
 
 // workaround for cases where tokenizer dont output "delayed" part of operator after ">."
 // See https://github.com/fsharp/FSharp.Compiler.Service/issues/874
@@ -41,14 +42,12 @@ let rec private tokenizeLine (tokenizer: FSharpLineTokenizer) sourceCodeLines st
         let extraToken =
             { TokenInfo = extraTokenInfo
               LineNumber = lineNumber
-              Content = getTokenText sourceCodeLines lineNumber extraTokenInfo
-              Index = 0 }
+              Content = getTokenText sourceCodeLines lineNumber extraTokenInfo }
 
         let token =
             { TokenInfo = tok
               LineNumber = lineNumber
-              Content = getTokenText sourceCodeLines lineNumber tok
-              Index = 0 }
+              Content = getTokenText sourceCodeLines lineNumber tok }
 
         tokenizeLine tokenizer sourceCodeLines state lineNumber (token :: extraToken :: tokens)
 
@@ -56,8 +55,7 @@ let rec private tokenizeLine (tokenizer: FSharpLineTokenizer) sourceCodeLines st
         let token : Token =
             { TokenInfo = tok
               LineNumber = lineNumber
-              Content = getTokenText sourceCodeLines lineNumber tok
-              Index = 0 }
+              Content = getTokenText sourceCodeLines lineNumber tok }
         // Tokenize the rest, in the new state
         tokenizeLine tokenizer sourceCodeLines state lineNumber (token :: tokens)
 
@@ -86,7 +84,6 @@ let private createHashToken lineNumber content offset =
 
     { LineNumber = lineNumber
       Content = content
-      Index = 0
       TokenInfo =
           { TokenName = "HASH_IF"
             LeftColumn = left
@@ -343,19 +340,15 @@ and tokenize defines (hashTokens: Token list) (content: string) : Token list =
         |> List.map (fun t -> t.LineNumber)
         |> List.distinct
 
-    let combined =
-        if List.isNotEmpty hashTokens then
-            let filteredHashes =
-                hashTokens
-                |> List.filter (fun t -> not (List.contains t.LineNumber existingLines))
-            // filter hashes that are present in source code parsed by the Tokenizer.
-            tokens @ filteredHashes
-            |> List.sortBy (fun t -> t.LineNumber, t.TokenInfo.LeftColumn)
-        else
-            tokens
-
-    combined
-    |> List.mapi (fun idx t -> { t with Index = idx })
+    if List.isNotEmpty hashTokens then
+        let filteredHashes =
+            hashTokens
+            |> List.filter (fun t -> not (List.contains t.LineNumber existingLines))
+        // filter hashes that are present in source code parsed by the Tokenizer.
+        tokens @ filteredHashes
+        |> List.sortBy (fun t -> t.LineNumber, t.TokenInfo.LeftColumn)
+    else
+        tokens
 
 let getDefinesWords (tokens: Token list) =
     tokens
@@ -492,6 +485,17 @@ let private isOperatorOrKeyword { TokenInfo = { CharClass = cc } } =
     cc = FSharpTokenCharKind.Keyword
     || cc = FSharpTokenCharKind.Operator
 
+let private (|KeywordOrOperatorToken|_|) (token: Token) =
+    let isOperatorOrKeyword = isOperatorOrKeyword token
+
+    let isKnownKeywordTrivia () =
+        List.exists (fun k -> token.TokenInfo.TokenName = k) keywordTrivia
+
+    if isOperatorOrKeyword && isKnownKeywordTrivia () then
+        Some token
+    else
+        None
+
 let private onlyNumberRegex =
     System.Text.RegularExpressions.Regex(@"^\d+$")
 
@@ -595,11 +599,27 @@ let private (|StringText|_|) tokens =
     | _ -> None
 
 let private identIsDecompiledOperator (token: Token) =
-    let decompiledName =
+    let decompiledName () =
         PrettyNaming.DecompileOpName token.Content
 
-    token.TokenInfo.TokenName = "IDENT"
-    && decompiledName <> token.Content
+    token.TokenInfo.Tag = identTag
+    && (decompiledName () <> token.Content)
+
+let private (|DecompiledOperatorToken|_|) (token: Token) =
+    if identIsDecompiledOperator token then
+        Some token
+    else
+        None
+
+let private (|IdentBetweenTicksToken|_|) (token: Token) =
+    if
+        token.TokenInfo.Tag = identTag
+        && token.Content.StartsWith("``")
+        && token.Content.EndsWith("``")
+    then
+        Some token
+    else
+        None
 
 let private extractContentPreservingNewLines (tokens: Token list) =
     let rec loop result =
@@ -629,7 +649,7 @@ let ``only whitespaces were found in the remainder of the line`` lineNumber toke
             && t.TokenInfo.Tag <> whiteSpaceTag)
     |> not
 
-let private (|LineComment|_|) (token: Token) =
+let private (|LineCommentToken|_|) (token: Token) =
     if token.TokenInfo.Tag = lineCommentTag then
         Some token
     else
@@ -642,8 +662,20 @@ let private (|NoCommentToken|_|) (token: Token) =
     else
         None
 
+let private (|CommentToken|_|) (token: Token) =
+    if token.TokenInfo.Tag = commentTag then
+        Some token
+    else
+        None
+
 let private (|WhiteSpaceToken|_|) (token: Token) =
     if token.TokenInfo.Tag = whiteSpaceTag then
+        Some token
+    else
+        None
+
+let private (|NonWhiteSpaceToken|_|) (token: Token) =
+    if token.TokenInfo.Tag <> whiteSpaceTag then
         Some token
     else
         None
@@ -655,16 +687,20 @@ let private (|SemicolonToken|_|) (token: Token) =
         None
 
 let private (|LineComments|_|) (tokens: Token list) =
-    let rec collect (tokens: Token list) (lastLineNumber: int) (commentTokens: Token list) =
+    let rec collect
+        (tokens: Token list)
+        (lastLineNumber: int)
+        (finalContinuation: Token list -> Token list)
+        : Token list * Token list =
         match tokens with
-        | LineComment lc :: rest when (lc.LineNumber <= lastLineNumber + 1) ->
-            collect rest lc.LineNumber (lc :: commentTokens)
-        | _ -> commentTokens
+        | LineCommentToken lc :: rest when (lc.LineNumber <= lastLineNumber + 1) ->
+            collect rest lc.LineNumber (fun commentTokens -> lc :: commentTokens |> finalContinuation)
+        | _ -> finalContinuation [], tokens
 
     match tokens with
-    | LineComment h :: _ ->
-        collect tokens h.LineNumber []
-        |> fun commentTokens -> Some(List.rev commentTokens, List.skip commentTokens.Length tokens)
+    | LineCommentToken h :: _ ->
+        let commentTokens, rest = collect tokens h.LineNumber id
+        Some(commentTokens, rest)
     | _ -> None
 
 let private collectComment (commentTokens: Token list) =
@@ -727,41 +763,58 @@ let private (|KeywordString|_|) (token: Token) =
     else
         None
 
+let private (|BlockCommentTokens|_|) (tokens: Token list) =
+    let rec collectTokens (rest: Token list) (finalContinuation: Token list -> Token list) : Token list * Token list =
+        match rest with
+        | CommentToken ct :: rest -> collectTokens rest (fun commentTokens -> ct :: commentTokens |> finalContinuation)
+        | _ -> finalContinuation [], rest
+
+    match tokens with
+    | CommentToken { Content = "(*" } :: _ ->
+        let comments, rest = collectTokens tokens id
+        Some(comments, rest)
+    | _ -> None
+
+let private (|MinusToken|_|) (token: Token) =
+    if token.TokenInfo.Tag = 62 then
+        Some token
+    else
+        None
+
+let private (|NumberToken|_|) (token: Token) =
+    if isNumber token then
+        Some token
+    else
+        None
+
+let rec private lastTwoItems
+    (project: 't -> 'ret)
+    (fallbackLastButOne: 'ret)
+    (fallbackLast: 'ret)
+    (items: 't list)
+    : 'ret * 'ret =
+    match items with
+    | [ f; s ] -> project f, project s
+    | [ s ] -> fallbackLast, project s
+    | [] -> fallbackLastButOne, fallbackLast
+    | _ :: tail -> lastTwoItems project fallbackLastButOne fallbackLast tail
+
 let rec private getTriviaFromTokensThemSelves
     (mkRange: MkRange)
-    (allTokens: Token list)
+    (lastButOneNonWhiteSpaceToken: Token option)
+    (lastNonWhiteSpaceToken: Token option)
     (tokens: Token list)
     foundTrivia
     =
     match tokens with
-    | LineComments (({ Index = headIndex
-                       LineNumber = headLineNumber } :: _ as commentTokens),
-                    nextTokens) ->
-        let prevToken = List.tryItem (headIndex - 1) allTokens
-        let prevButOneToken = List.tryItem (headIndex - 2) allTokens
-
+    | LineComments ({ LineNumber = headLineNumber } :: _ as commentTokens, rest) ->
         let isAfterSourceCode =
-            match prevButOneToken, prevToken with
-            | Some (SemicolonToken sc), Some (WhiteSpaceToken _) when sc.LineNumber = headLineNumber ->
-                let tokensOfSameLine =
-                    let rec collect (index: int) (acc: Token list) : Token list =
-                        match List.tryItem index allTokens with
-                        | Some t when (t.LineNumber = headLineNumber) -> collect (index - 1) (t :: acc)
-                        | _ -> acc
-
-                    collect (headIndex - 3) []
-
-                match tokensOfSameLine with
-                | []
-                // WHITESPACE SEMICOLON WHITESPACE LINE_COMMENT, see https://github.com/fsprojects/fantomas/issues/1643
-                | [ WhiteSpaceToken _ ] -> false
-                | _ -> true
-            | Some { LineNumber = ncln }, Some (WhiteSpaceToken _) ->
-                // IDENT WHITESPACE LINE_COMMENT
-                ncln = headLineNumber
-            | Some { LineNumber = l1 }, Some { LineNumber = l2 } ->
-                // IDENT LINE_COMMENT
-                headLineNumber = l1 && headLineNumber = l2
+            match lastButOneNonWhiteSpaceToken, lastNonWhiteSpaceToken with
+            | Some otherLineToken, Some (SemicolonToken sc) when otherLineToken.LineNumber <> sc.LineNumber ->
+                // IDENT SEMICOLON LINE_COMMENT
+                // See https://github.com/fsprojects/fantomas/issues/1643
+                false
+            | _, Some t -> headLineNumber = t.LineNumber
             | _ -> false
 
         let info =
@@ -829,29 +882,12 @@ let rec private getTriviaFromTokensThemSelves
 
                 (Trivia.Create triviaContent range :: foundTrivia)
 
-        getTriviaFromTokensThemSelves mkRange allTokens nextTokens info
+        getTriviaFromTokensThemSelves mkRange lastButOneNonWhiteSpaceToken lastNonWhiteSpaceToken rest info
 
-    | headToken :: rest when
-        (headToken.TokenInfo.TokenName = "COMMENT"
-         && headToken.Content = "(*")
-        ->
-        let blockCommentTokens =
-            rest
-            |> List.takeWhileState
-                (fun depth t ->
-                    let newDepth =
-                        match t.Content with
-                        | "(*" -> depth + 1
-                        | "*)" -> depth - 1
-                        | _ -> depth
-
-                    newDepth, t.TokenInfo.TokenName = "COMMENT" && depth > 0)
-                1
-
+    | BlockCommentTokens (headToken :: _ as blockCommentTokens, rest) ->
         let comment =
             let groupedByLineNumber =
-                headToken
-                |> List.prependItem blockCommentTokens
+                blockCommentTokens
                 |> List.groupBy (fun t -> t.LineNumber)
 
             let newLines =
@@ -870,19 +906,17 @@ let rec private getTriviaFromTokensThemSelves
             |> String.concat Environment.NewLine
             |> String.normalizeNewLine
 
-        let nextTokens =
-            List.length blockCommentTokens
-            |> fun length -> List.skip length rest
+        let lastButOne, lastToken =
+            lastTwoItems Some lastNonWhiteSpaceToken (Some headToken) blockCommentTokens
 
         let range =
-            let lastToken = List.last blockCommentTokens
-            getRangeBetween mkRange headToken lastToken
+            getRangeBetween mkRange headToken (Option.defaultValue headToken lastToken)
 
         let info =
             Trivia.Create(Comment(BlockComment(comment, false, false))) range
             |> List.prependItem foundTrivia
 
-        getTriviaFromTokensThemSelves mkRange allTokens nextTokens info
+        getTriviaFromTokensThemSelves mkRange lastButOne lastToken rest info
 
     | KeywordString ks :: rest ->
         let range = getRangeBetween mkRange ks ks
@@ -891,20 +925,16 @@ let rec private getTriviaFromTokensThemSelves
             Trivia.Create(KeywordString(ks.Content)) range
             |> List.prependItem foundTrivia
 
-        getTriviaFromTokensThemSelves mkRange allTokens rest info
+        getTriviaFromTokensThemSelves mkRange lastNonWhiteSpaceToken (Some ks) rest info
 
-    | headToken :: rest when
-        (isOperatorOrKeyword headToken
-         && List.exists (fun k -> headToken.TokenInfo.TokenName = k) keywordTrivia)
-        ->
-        let range =
-            getRangeBetween mkRange headToken headToken
+    | KeywordOrOperatorToken koo :: rest ->
+        let range = getRangeBetween mkRange koo koo
 
         let info =
-            Trivia.Create(Keyword(headToken)) range
+            Trivia.Create(Keyword(koo)) range
             |> List.prependItem foundTrivia
 
-        getTriviaFromTokensThemSelves mkRange allTokens rest info
+        getTriviaFromTokensThemSelves mkRange lastNonWhiteSpaceToken (Some koo) rest info
 
     | HashTokens (hashTokens, rest) ->
         let directiveContent =
@@ -933,7 +963,7 @@ let rec private getTriviaFromTokensThemSelves
             Trivia.Create(Directive(directiveContent)) range
             |> List.prependItem foundTrivia
 
-        getTriviaFromTokensThemSelves mkRange allTokens rest info
+        getTriviaFromTokensThemSelves mkRange lastButOneNonWhiteSpaceToken lastNonWhiteSpaceToken rest info
 
     | EndOfInterpolatedString (stringTokens, interpStringEnd, rest) ->
         let stringContent =
@@ -961,14 +991,17 @@ let rec private getTriviaFromTokensThemSelves
             Trivia.Create(StringContent(stringContent)) range
             |> List.prependItem foundTrivia
 
-        getTriviaFromTokensThemSelves mkRange allTokens rest info
+        let prevButOne, prev =
+            List.tryLast stringTokens, Some interpStringEnd
+
+        getTriviaFromTokensThemSelves mkRange prevButOne prev rest info
 
     | StringText (head, stringTokens, rest, stringContent) ->
-        let lastToken =
-            List.tryLast stringTokens
-            |> Option.defaultValue head
+        let lastButOne, lastToken =
+            lastTwoItems Some None (Some head) stringTokens
 
-        let range = getRangeBetween mkRange head lastToken
+        let range =
+            getRangeBetween mkRange head (Option.defaultValue head lastToken)
 
         let info =
             Trivia.Create(StringContent(stringContent)) range
@@ -979,50 +1012,43 @@ let rec private getTriviaFromTokensThemSelves
             | [] -> []
             | _ -> List.skip (List.length stringTokens - 1) rest
 
-        getTriviaFromTokensThemSelves mkRange allTokens nextRest info
+        getTriviaFromTokensThemSelves mkRange lastButOne lastToken nextRest info
 
-    | minus :: head :: rest when
-        (minus.TokenInfo.TokenName = "MINUS"
-         && isNumber head)
-        ->
-        let range = getRangeBetween mkRange minus head
+    | MinusToken minus :: NumberToken number :: rest ->
+        let range = getRangeBetween mkRange minus number
 
         let info =
-            Trivia.Create(Number(minus.Content + head.Content)) range
+            Trivia.Create(Number(minus.Content + number.Content)) range
             |> List.prependItem foundTrivia
 
-        getTriviaFromTokensThemSelves mkRange allTokens rest info
+        getTriviaFromTokensThemSelves mkRange (Some minus) (Some number) rest info
 
-    | head :: rest when (isNumber head) ->
-        let range = getRangeForSingleToken mkRange head
+    | NumberToken number :: rest ->
+        let range = getRangeForSingleToken mkRange number
 
         let info =
-            Trivia.Create(Number(head.Content)) range
+            Trivia.Create(Number(number.Content)) range
             |> List.prependItem foundTrivia
 
-        getTriviaFromTokensThemSelves mkRange allTokens rest info
+        getTriviaFromTokensThemSelves mkRange lastNonWhiteSpaceToken (Some number) rest info
 
-    | head :: rest when (identIsDecompiledOperator head) ->
-        let range = getRangeBetween mkRange head head
+    | DecompiledOperatorToken ident :: rest ->
+        let range = getRangeBetween mkRange ident ident
 
         let info =
-            Trivia.Create(IdentOperatorAsWord head.Content) range
+            Trivia.Create(IdentOperatorAsWord ident.Content) range
             |> List.prependItem foundTrivia
 
-        getTriviaFromTokensThemSelves mkRange allTokens rest info
+        getTriviaFromTokensThemSelves mkRange lastNonWhiteSpaceToken (Some ident) rest info
 
-    | head :: rest when
-        (head.TokenInfo.TokenName = "IDENT"
-         && head.Content.StartsWith("``")
-         && head.Content.EndsWith("``"))
-        ->
-        let range = getRangeBetween mkRange head head
+    | IdentBetweenTicksToken ident :: rest ->
+        let range = getRangeBetween mkRange ident ident
 
         let info =
-            Trivia.Create(IdentBetweenTicks(head.Content)) range
+            Trivia.Create(IdentBetweenTicks(ident.Content)) range
             |> List.prependItem foundTrivia
 
-        getTriviaFromTokensThemSelves mkRange allTokens rest info
+        getTriviaFromTokensThemSelves mkRange lastNonWhiteSpaceToken (Some ident) rest info
 
     | CharToken head :: rest ->
         let range = getRangeBetween mkRange head head
@@ -1031,7 +1057,7 @@ let rec private getTriviaFromTokensThemSelves
             Trivia.Create(CharContent(head.Content)) range
             |> List.prependItem foundTrivia
 
-        getTriviaFromTokensThemSelves mkRange allTokens rest info
+        getTriviaFromTokensThemSelves mkRange lastNonWhiteSpaceToken (Some head) rest info
 
     | EmbeddedILTokens (embeddedTokens, rest) ->
         let content =
@@ -1049,8 +1075,18 @@ let rec private getTriviaFromTokensThemSelves
             Trivia.Create(EmbeddedIL(content)) range
             |> List.prependItem foundTrivia
 
-        getTriviaFromTokensThemSelves mkRange allTokens rest info
-    | _ :: rest -> getTriviaFromTokensThemSelves mkRange allTokens rest foundTrivia
+        let prevButOne, prev =
+            lastTwoItems Some lastButOneNonWhiteSpaceToken lastNonWhiteSpaceToken embeddedTokens
+
+        getTriviaFromTokensThemSelves mkRange prevButOne prev rest info
+
+    | NonWhiteSpaceToken h :: rest ->
+        let prevButOne = lastNonWhiteSpaceToken
+        let prev = Some h
+        getTriviaFromTokensThemSelves mkRange prevButOne prev rest foundTrivia
+
+    | _ :: rest ->
+        getTriviaFromTokensThemSelves mkRange lastButOneNonWhiteSpaceToken lastNonWhiteSpaceToken rest foundTrivia
 
     | [] -> foundTrivia
 
@@ -1087,7 +1123,7 @@ let private findEmptyNewlinesInTokens
 
 let getTriviaFromTokens (mkRange: MkRange) (tokens: Token list) =
     let fromTokens =
-        getTriviaFromTokensThemSelves mkRange tokens tokens []
+        getTriviaFromTokensThemSelves mkRange None None tokens []
 
     let isMultilineString (s: string) = s.Contains("\n")
 
