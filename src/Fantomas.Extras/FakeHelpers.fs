@@ -2,7 +2,7 @@ module Fantomas.Extras.FakeHelpers
 
 open System
 open System.IO
-open FSharp.Compiler.SourceCodeServices
+open FSharp.Compiler.CodeAnalysis
 open Fantomas
 open Fantomas.FormatConfig
 open Fantomas.Extras

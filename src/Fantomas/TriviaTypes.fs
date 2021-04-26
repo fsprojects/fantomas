@@ -1,7 +1,7 @@
 module Fantomas.TriviaTypes
 
-open FSharp.Compiler.SourceCodeServices
 open FSharp.Compiler.Text
+open FSharp.Compiler.Tokenization
 
 type FsTokenType =
     | AMP

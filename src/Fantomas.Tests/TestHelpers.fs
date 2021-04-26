@@ -1,14 +1,13 @@
 module Fantomas.Tests.TestHelper
 
+open FSharp.Compiler.CodeAnalysis
+open FSharp.Compiler.Syntax
 open FsUnit
 open System
 open Fantomas.FormatConfig
 open Fantomas
 open Fantomas.Extras
 open FSharp.Compiler.Text
-open FSharp.Compiler.SourceCodeServices
-open FSharp.Compiler.SyntaxTree
-open FSharp.Compiler.XmlDoc
 open NUnit.Framework
 open FsCheck
 open System.IO
@@ -41,7 +40,7 @@ let private isValidAndHasNoWarnings fileName source parsingOptions =
                 let! untypedRes = sharedChecker.Value.ParseFile(fileName, sourceText, parsingOptionsWithDefines)
 
                 let errors =
-                    untypedRes.Errors
+                    untypedRes.Diagnostics
                     |> Array.filter (fun e -> not (List.contains e.Message safeToIgnoreWarnings))
                 // FSharpErrorInfo contains both Errors and Warnings
                 // https://fsharp.github.io/FSharp.Compiler.Service/reference/fsharp-compiler-sourcecodeservices-fsharperrorinfo.html
@@ -89,7 +88,7 @@ let formatSourceStringWithDefines defines (s: string) config =
     let fileName = "/src.fsx"
 
     let formatContext =
-        CodeFormatterImpl.createFormatContext fileName (SourceOrigin.SourceString s)
+        CodeFormatterImpl.createFormatContext fileName (SourceOrigin.SourceString s) true
 
     let parsingOptions =
         FakeHelpers.createParsingOptionsFromFile fileName
@@ -156,7 +155,7 @@ let parse isFsiFile s =
         else
             "/tmp.fsx"
 
-    CodeFormatterImpl.createFormatContext fileName (SourceOrigin.SourceString s)
+    CodeFormatterImpl.createFormatContext fileName (SourceOrigin.SourceString s) true
     |> CodeFormatterImpl.parse sharedChecker.Value (FakeHelpers.createParsingOptionsFromFile fileName)
     |> Async.RunSynchronously
 
@@ -205,7 +204,7 @@ let toSynExprs (Input s) =
                                                           [],
                                                           [ SynModuleOrNamespace (_,
                                                                                   false,
-                                                                                  AnonModule,
+                                                                                  SynModuleOrNamespaceKind.AnonModule,
                                                                                   exprs,
                                                                                   _,
                                                                                   _,
@@ -244,8 +243,8 @@ let fromSynExpr expr =
                 [ SynModuleOrNamespace(
                       [ ident ],
                       false,
-                      AnonModule,
-                      [ SynModuleDecl.DoExpr(NoDebugPointAtDoBinding, expr, zero) ],
+                      SynModuleOrNamespaceKind.AnonModule,
+                      [ SynModuleDecl.DoExpr(DebugPointAtBinding.NoneAtDo, expr, zero) ],
                       PreXmlDoc.Empty,
                       [],
                       None,

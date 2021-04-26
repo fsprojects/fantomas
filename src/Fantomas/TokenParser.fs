@@ -2,10 +2,11 @@ module internal Fantomas.TokenParser
 
 open System
 open System.Text
+open FSharp.Compiler.Syntax
+open FSharp.Compiler.Tokenization
 open Fantomas
 open Fantomas.TokenParserBoolExpr
 open Fantomas.TriviaTypes
-open FSharp.Compiler.SourceCodeServices
 
 let private whiteSpaceTag = 4
 let private lineCommentTag = 8

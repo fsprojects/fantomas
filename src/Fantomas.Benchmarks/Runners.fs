@@ -2,7 +2,7 @@ module Fantomas.Benchmarks.Runners
 
 open BenchmarkDotNet.Attributes
 open System.IO
-open FSharp.Compiler.SourceCodeServices
+open FSharp.Compiler.CodeAnalysis
 open Fantomas
 open Fantomas.Extras
 

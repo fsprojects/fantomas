@@ -19,7 +19,7 @@ type Queue<'T>(data: list<'T []>, length: int) =
 
     override this.Equals(other) =
         match other with
-        | :? (Queue<'T>) as y ->
+        | :? Queue<'T> as y ->
             if this.Length <> y.Length then
                 false
             else if this.GetHashCode() <> y.GetHashCode() then
