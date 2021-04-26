@@ -1784,8 +1784,8 @@ and genExpr astContext synExpr ctx =
             let long =
                 let functionName =
                     match e with
-                    | LongIdentPieces lids when (List.moreThanOne lids) -> genFunctionNameWithMultilineLids id lids
-                    | TypeApp (LongIdentPieces lids, ts) when (List.moreThanOne lids) ->
+                    | LongIdentPiecesExpr lids when (List.moreThanOne lids) -> genFunctionNameWithMultilineLids id lids
+                    | TypeApp (LongIdentPiecesExpr lids, ts) when (List.moreThanOne lids) ->
                         genFunctionNameWithMultilineLids (genGenericTypeParameters astContext ts) lids
                     | _ -> genExpr astContext e
 
