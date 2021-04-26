@@ -1993,65 +1993,26 @@ and genExpr astContext synExpr ctx =
                     && not (futureNlnCheck (genExpr astContext e) ctx)
                 | _ -> false
 
-            let genInKeyword (binding: SynBinding) (ctx: Context) =
-                match inKeyWordTrivia binding ctx with
-                | Some (_, tn) ->
-                    (printContentBefore tn
-                     +> !- " in "
-                     +> printContentAfter tn)
-                        ctx
-                | None -> sepNone ctx
-
             fun ctx ->
                 if isInSameLine ctx then
                     // short expression with in keyword
                     // f.ex. let a in ()
                     atCurrentColumn
                         (optSingle
-                            (fun (p, x) ->
+                            (fun (p, b) ->
                                 genLetBinding
                                     { astContext with
                                           IsFirstChild = p <> "and" }
                                     p
-                                    x
-                                +> genInKeyword x)
+                                    b
+                                +> genInKeyword b e)
                             (List.tryHead bs)
                          +> genExpr astContext e)
                         ctx
                 else
-                    let letBindings (bs: (string * SynBinding) list) =
-                        bs
-                        |> List.map
-                            (fun (p, x) ->
-                                let expr =
-                                    enterNodeFor (synBindingToFsAstType x) x.RangeOfBindingAndRhs
-                                    +> genLetBinding
-                                        { astContext with
-                                              IsFirstChild = p <> "and" }
-                                        p
-                                        x
-                                    +> genInKeyword x
-
-                                let range = x.RangeOfBindingAndRhs
-
-                                let sepNln =
-                                    sepNlnConsideringTriviaContentBeforeForMainNode (synBindingToFsAstType x) range
-
-                                ColMultilineItem(expr, sepNln))
-
-                    let rec synExpr e =
-                        match e with
-                        | LetOrUses (bs, e) -> letBindings bs @ synExpr e
-                        | Sequentials s -> s |> List.collect synExpr
-                        | _ ->
-                            let t, r = synExprToFsAstType e
-
-                            [ ColMultilineItem(
-                                  genExpr astContext e,
-                                  sepNlnConsideringTriviaContentBeforeForMainNode t r
-                              ) ]
-
-                    let items = letBindings bs @ synExpr e
+                    let items =
+                        collectMultilineItemForLetOrUses astContext bs e
+                        @ collectMultilineItemForSynExpr astContext e
 
                     atCurrentColumn (colWithNlnWhenItemIsMultilineUsingConfig items) ctx
 
@@ -2117,20 +2078,7 @@ and genExpr astContext synExpr ctx =
         | SequentialSimple es
         | Sequentials es ->
             let items =
-                es
-                |> List.map
-                    (fun e ->
-                        let expr = genExpr astContext e
-
-                        let fsAstType, r =
-                            match e with
-                            | LetOrUses ((_, fb) :: _, _) -> (synBindingToFsAstType fb), fb.RangeOfBindingAndRhs
-                            | _ -> synExprToFsAstType e
-
-                        let sepNln =
-                            sepConsideringTriviaContentBeforeForMainNode sepSemiNln fsAstType r
-
-                        ColMultilineItem(expr, sepNln))
+                List.collect (collectMultilineItemForSynExpr astContext) es
 
             atCurrentColumn (colWithNlnWhenItemIsMultilineUsingConfig items)
 
@@ -3282,6 +3230,60 @@ and genAlternativeAppWithParenthesis app astContext =
     match app with
     | Choice1Of2 t -> genAlternativeAppWithTupledArgument t astContext
     | Choice2Of2 s -> genAlternativeAppWithSingleParenthesisArgument s astContext
+
+and collectMultilineItemForSynExpr (astContext: ASTContext) (e: SynExpr) : ColMultilineItem list =
+    match e with
+    | LetOrUses (bs, e) ->
+        collectMultilineItemForLetOrUses astContext bs e
+        @ collectMultilineItemForSynExpr astContext e
+    | Sequentials s ->
+        s
+        |> List.collect (collectMultilineItemForSynExpr astContext)
+    | _ ->
+        let t, r = synExprToFsAstType e
+
+        [ ColMultilineItem(genExpr astContext e, sepNlnConsideringTriviaContentBeforeForMainNode t r) ]
+
+and collectMultilineItemForLetOrUses
+    (astContext: ASTContext)
+    (bs: (string * SynBinding) list)
+    (e: SynExpr)
+    : ColMultilineItem list =
+    bs
+    |> List.map
+        (fun (p, x) ->
+            let expr =
+                enterNodeFor (synBindingToFsAstType x) x.RangeOfBindingAndRhs
+                +> genLetBinding
+                    { astContext with
+                          IsFirstChild = p <> "and" }
+                    p
+                    x
+                +> genInKeyword x e
+
+            let range = x.RangeOfBindingAndRhs
+
+            let sepNln =
+                sepNlnConsideringTriviaContentBeforeForMainNode (synBindingToFsAstType x) range
+
+            ColMultilineItem(expr, sepNln))
+
+and genInKeyword (binding: SynBinding) (e: SynExpr) (ctx: Context) =
+    let inKeyWordTrivia (binding: SynBinding) =
+        let inRange =
+            ctx.MkRange binding.RangeOfBindingAndRhs.End e.Range.Start
+
+        Map.tryFindOrEmptyList IN ctx.TriviaTokenNodes
+        |> TriviaHelpers.``keyword token after start column and on same line`` inRange
+        |> List.tryHead
+
+    match inKeyWordTrivia binding with
+    | Some (_, tn) ->
+        (printContentBefore tn
+         +> !- " in "
+         +> printContentAfter tn)
+            ctx
+    | None -> sepNone ctx
 
 and sepNlnBetweenTypeAndMembers (tdr: SynTypeDefnRepr) (ms: SynMemberDefn list) =
     match List.tryHead ms with
