@@ -1815,6 +1815,14 @@ and genExpr astContext synExpr ctx =
                         genFunctionNameWithMultilineLids argFn lids
                     | TypeApp (LongIdentPiecesExpr lids, ts) when (List.moreThanOne lids) ->
                         genFunctionNameWithMultilineLids (genGenericTypeParameters astContext ts +> argFn) lids
+                    | DotGetAppDotGetAppParenLambda _ ->
+                        leadingExpressionIsMultiline
+                            (genExpr astContext e)
+                            (fun isMultiline ->
+                                if isMultiline then
+                                    indent +> argFn +> unindent
+                                else
+                                    argFn)
                     | _ -> genExpr astContext e +> argFn
 
                 let arguments =
@@ -1846,27 +1854,31 @@ and genExpr astContext synExpr ctx =
                     genFunctionNameWithMultilineLids (genGenericTypeParameters astContext ts +> f) lids
                 | _ -> genExpr astContext e +> f
 
+            let lastEsIndex = es.Length - 1
+
             let short =
                 genExpr astContext e
                 +> genExpr astContext px
-                +> col
+                +> coli
                     sepNone
                     es
-                    (fun (lids, e, ts) ->
+                    (fun idx (lids, e, ts) ->
                         genLidsWithDots lids
                         +> genGenericTypeParameters astContext ts
+                        +> genSpaceBeforeLids idx lastEsIndex lids e
                         +> genExpr astContext e)
 
             let long =
                 genLongFunctionName (genExpr astContext px)
                 +> indent
                 +> sepNln
-                +> col
+                +> coli
                     sepNln
                     es
-                    (fun (lids, e, ts) ->
+                    (fun idx (lids, e, ts) ->
                         genLidsWithDotsAndNewlines lids
                         +> genGenericTypeParameters astContext ts
+                        +> genSpaceBeforeLids idx lastEsIndex lids e
                         +> genExpr astContext e)
                 +> unindent
 
@@ -1909,28 +1921,16 @@ and genExpr astContext synExpr ctx =
             let lastEsIndex = es.Length - 1
 
             let genApp (idx: int) ((lids, e, ts): (string * range) list * SynExpr * SynType list) : Context -> Context =
-                let addSpace ctx =
-                    let config =
-                        let s = fst lids.[0]
-
-                        if Char.IsUpper(s.[0]) then
-                            ctx.Config.SpaceBeforeUppercaseInvocation
-                        else
-                            ctx.Config.SpaceBeforeLowercaseInvocation
-
-                    (lastEsIndex = idx)
-                    && (not (hasParenthesis e) || config)
-
                 let short =
                     genLidsWithDots lids
                     +> genGenericTypeParameters astContext ts
-                    +> ifElseCtx addSpace sepSpace sepNone
+                    +> genSpaceBeforeLids idx lastEsIndex lids e
                     +> genExpr astContext e
 
                 let long =
                     genLidsWithDotsAndNewlines lids
                     +> genGenericTypeParameters astContext ts
-                    +> ifElseCtx addSpace sepSpace sepNone
+                    +> genSpaceBeforeLids idx lastEsIndex lids e
                     +> genMultilineFunctionApplicationArguments sepOpenTFor sepCloseTFor astContext e
 
                 expressionFitsOnRestOfLine short long
@@ -2668,6 +2668,27 @@ and genLidsWithDotsAndNewlines (lids: (string * range) list) =
     optSingle (fun (_, r) -> enterNodeFor Ident_ r) (List.tryHead lids)
     +> !- "."
     +> col (sepNln +> !- ".") lids (fun (s, _) -> !-s)
+
+and genSpaceBeforeLids
+    (currentIndex: int)
+    (lastEsIndex: int)
+    (lids: (string * range) list)
+    (arg: SynExpr)
+    (ctx: Context)
+    : Context =
+    let config =
+        let s = fst lids.[0]
+
+        if Char.IsUpper(s.[0]) then
+            ctx.Config.SpaceBeforeUppercaseInvocation
+        else
+            ctx.Config.SpaceBeforeLowercaseInvocation
+
+    if (lastEsIndex = currentIndex)
+       && (not (hasParenthesis arg) || config) then
+        sepSpace ctx
+    else
+        ctx
 
 and genFunctionNameWithMultilineLids f lids =
     match lids with

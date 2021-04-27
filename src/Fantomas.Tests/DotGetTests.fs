@@ -1207,3 +1207,59 @@ mock
     .OrNot()
     .End
 """
+
+[<Test>]
+let ``dotget function application should add space before argument, short`` () =
+    formatSourceString
+        false
+        """
+m.Property(fun p -> p.Name).HasMaxLength 64
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+m.Property(fun p -> p.Name).HasMaxLength 64
+"""
+
+
+[<Test>]
+let ``dotget function application should add space before argument, long`` () =
+    formatSourceString
+        false
+        """
+m.Property(fun p -> p.Name).IsRequired().HasColumnName("ModelName").HasMaxLength 64
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+m
+    .Property(fun p -> p.Name)
+    .IsRequired()
+    .HasColumnName("ModelName")
+    .HasMaxLength 64
+"""
+
+[<Test>]
+let ``dotget lambda multiline application`` () =
+    formatSourceString
+        false
+        """
+m.Property(fun p -> p.Name).IsRequired().HasColumnName("ModelName").HasMaxLength
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+m
+    .Property(fun p -> p.Name)
+    .IsRequired()
+    .HasColumnName(
+        "ModelName"
+    )
+    .HasMaxLength
+"""
