@@ -1,3 +1,9 @@
+### 4.5.0-alpha-013 - 04/2021
+
+* Fix Idempotency problem when trying to format a type with method chaining in it. [#1681](https://github.com/fsprojects/fantomas/issues/1681)
+* Fix Comment after constant got moved to the next line. [#1671](https://github.com/fsprojects/fantomas/issues/1671)
+* Fix Idempotency problem when ending with a comment. [#1649](https://github.com/fsprojects/fantomas/issues/1649)
+
 ### 4.5.0-alpha-012 - 04/2021
 
 * Fix end_of_line not respecting when file has ifdef. [#1673](https://github.com/fsprojects/fantomas/issues/1673)
