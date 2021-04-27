@@ -3,7 +3,7 @@
   "isRoot": true,
   "tools": {
     "paket": {
-      "version": "6.0.0-beta8",
+      "version": "6.0.0-beta9",
       "commands": [
         "paket"
       ]
@@ -21,7 +21,7 @@
       ]
     },
     "fantomas-tool": {
-      "version": "4.5.0-alpha-011",
+      "version": "4.5.0-alpha-013",
       "commands": [
         "fantomas"
       ]
