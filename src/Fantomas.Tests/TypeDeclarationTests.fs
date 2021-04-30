@@ -2262,7 +2262,6 @@ and Variable<'model,'msg> =
         equal
         """
 type ViewBinding<'model, 'msg> = string * Variable<'model, 'msg>
-
 and ViewBindings<'model, 'msg> = ViewBinding<'model, 'msg> list
 
 and Variable<'model, 'msg> =
