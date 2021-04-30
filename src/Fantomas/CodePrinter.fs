@@ -4301,9 +4301,11 @@ and genPrefixTypes astContext node (range: Range) ctx =
             ctx
     | t :: _ ->
         (!- "<"
-         +> addSpaceIfSynTypeStaticConstantHasAtSignBeforeString t
-         +> col sepComma node (genType astContext false)
-         +> addSpaceIfSynTypeStaticConstantHasAtSignBeforeString t
+         +> atCurrentColumnIndent (
+             addSpaceIfSynTypeStaticConstantHasAtSignBeforeString t
+             +> col sepComma node (genType astContext false)
+             +> addSpaceIfSynTypeStaticConstantHasAtSignBeforeString t
+         )
          +> tokN range GREATER (!- ">"))
             ctx
 
