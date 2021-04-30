@@ -2600,6 +2600,8 @@ and genExpr astContext synExpr ctx =
             | SynExpr.Do _ -> genTriviaFor SynExpr_Do synExpr.Range
             | SynExpr.TypeApp _ -> genTriviaFor SynExpr_TypeApp synExpr.Range
             | SynExpr.Lazy _ -> genTriviaFor SynExpr_Lazy synExpr.Range
+            | SynExpr.InferredUpcast _ -> genTriviaFor SynExpr_InferredUpcast synExpr.Range
+            | SynExpr.InferredDowncast _ -> genTriviaFor SynExpr_InferredDowncast synExpr.Range
             | _ -> id)
 
     expr ctx

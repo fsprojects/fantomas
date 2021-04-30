@@ -136,3 +136,77 @@ let waitAndUpcast (x: Task<'t>) =
 
     x.Result :?> AmazonWebServiceResponse
 """
+
+[<Test>]
+let ``trivia newline before inferred upcast, 1685`` () =
+    formatSourceString
+        false
+        """
+namespace Blah
+
+module Foo =
+
+    let foo =
+        { new IDisposable with
+            member __.Dispose () =
+            do ()
+
+            upcast ()
+        }
+"""
+        { config with
+              SpaceBeforeColon = true
+              SpaceBeforeSemicolon = true
+              IndentOnTryWith = true }
+    |> prepend newline
+    |> should
+        equal
+        """
+namespace Blah
+
+module Foo =
+
+    let foo =
+        { new IDisposable with
+            member __.Dispose() =
+                do ()
+
+                upcast () }
+"""
+
+[<Test>]
+let ``trivia newline before inferred downcast`` () =
+    formatSourceString
+        false
+        """
+namespace Blah
+
+module Foo =
+
+    let foo =
+        { new IDisposable with
+            member __.Dispose () =
+            do ()
+
+            downcast ()
+        }
+"""
+        { config with
+              SpaceBeforeColon = true
+              SpaceBeforeSemicolon = true
+              IndentOnTryWith = true }
+    |> prepend newline
+    |> should
+        equal
+        """
+namespace Blah
+
+module Foo =
+
+    let foo =
+        { new IDisposable with
+            member __.Dispose() =
+                do ()
+
+                downcast () }
+"""
