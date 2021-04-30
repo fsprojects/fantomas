@@ -1,3 +1,12 @@
+### 4.5.0-alpha-014 - 04/2021
+
+* Feature Disable empty line between mutually recursive type. [#1658](https://github.com/fsprojects/fantomas/issues/1658)
+* Fix Splitting generic type parameters over multiple lines sometimes puts the break in an invalid place. [#1687](https://github.com/fsprojects/fantomas/issues/1687)
+* Fix Idempotency problem related to comments in with. [#1686](https://github.com/fsprojects/fantomas/issues/1686)
+* Fix Upcast requires a line break but is not given one. [#1685](https://github.com/fsprojects/fantomas/issues/1685)
+* Fix Idempotency problem when trying to format a type with method chaining in it. [#1681](https://github.com/fsprojects/fantomas/issues/1681)
+* Fix Line comments after null value used as argument in function call are removed. [#1676](https://github.com/fsprojects/fantomas/issues/1676)
+
 ### 4.5.0-alpha-013 - 04/2021
 
 * Fix Idempotency problem when trying to format a type with method chaining in it. [#1681](https://github.com/fsprojects/fantomas/issues/1681)
