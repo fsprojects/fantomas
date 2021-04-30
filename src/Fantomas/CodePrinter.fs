@@ -375,21 +375,17 @@ and genModuleDecl astContext (node: SynModuleDecl) =
     | OpenType s -> !-(sprintf "open type %s" s)
     // There is no nested types and they are recursive if there are more than one definition
     | Types (t :: ts) ->
-        let sepTs =
-            match List.tryHead ts with
-            | Some t ->
-                sepNln
-                +> sepNlnConsideringTriviaContentBeforeForMainNode TypeDefn_ t.Range
-            | None -> rep 2 sepNln
+        let items =
+            ColMultilineItem(genTypeDefn { astContext with IsFirstChild = true } t, sepNone)
+            :: (List.map
+                    (fun t ->
+                        ColMultilineItem(
+                            genTypeDefn { astContext with IsFirstChild = false } t,
+                            sepNlnConsideringTriviaContentBeforeForMainNode TypeDefn_ t.Range
+                        ))
+                    ts)
 
-        genTypeDefn { astContext with IsFirstChild = true } t
-        +> colPreEx
-            sepTs
-            (fun (ty: SynTypeDefn) ->
-                sepNln
-                +> sepNlnConsideringTriviaContentBeforeForMainNode TypeDefn_ ty.Range)
-            ts
-            (genTypeDefn { astContext with IsFirstChild = false })
+        colWithNlnWhenItemIsMultilineUsingConfig items
     | md -> failwithf "Unexpected module declaration: %O" md
     |> genTriviaFor (synModuleDeclToFsAstType node) node.Range
 
@@ -414,27 +410,23 @@ and genSigModuleDecl astContext node =
     | SigOpen s -> !-(sprintf "open %s" s)
     | SigOpenType s -> !-(sprintf "open type %s" s)
     | SigTypes (t :: ts) ->
-        let sepTs =
-            match List.tryHead ts with
-            | Some t ->
-                let attributeRanges =
-                    getRangesFromAttributesFromSynTypeDefnSig t
+        let items =
+            ColMultilineItem(genSigTypeDefn { astContext with IsFirstChild = true } t, sepNone)
+            :: (List.map
+                    (fun t ->
+                        let sepNln =
+                            let attributeRanges =
+                                getRangesFromAttributesFromSynTypeDefnSig t
 
-                sepNln
-                +> sepNlnConsideringTriviaContentBeforeWithAttributesFor TypeDefnSig_ t.FullRange attributeRanges
-            | None -> rep 2 sepNln
+                            sepNlnConsideringTriviaContentBeforeWithAttributesFor
+                                TypeDefnSig_
+                                t.FullRange
+                                attributeRanges
 
-        genSigTypeDefn { astContext with IsFirstChild = true } t
-        +> colPreEx
-            sepTs
-            (fun (ty: SynTypeDefnSig) ->
-                let attributeRanges =
-                    getRangesFromAttributesFromSynTypeDefnSig ty
+                        ColMultilineItem(genSigTypeDefn { astContext with IsFirstChild = false } t, sepNln))
+                    ts)
 
-                sepNln
-                +> sepNlnConsideringTriviaContentBeforeWithAttributesFor TypeDefnSig_ ty.FullRange attributeRanges)
-            ts
-            (genSigTypeDefn { astContext with IsFirstChild = false })
+        colWithNlnWhenItemIsMultilineUsingConfig items
     | md -> failwithf "Unexpected module signature declaration: %O" md
     |> (match node with
         | SynModuleSigDecl.Types _ -> genTriviaFor SynModuleSigDecl_Types node.Range
