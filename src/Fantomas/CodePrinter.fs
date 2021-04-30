@@ -2026,15 +2026,30 @@ and genExpr astContext synExpr ctx =
                 +> unindent
                 +> kw WITH !+~ "with"
 
-            let hasCommentBeforeClause (c: SynMatchClause) =
-                Map.tryFindOrEmptyList SynMatchClause_Clause ctx.TriviaMainNodes
-                |> List.exists
-                    (fun node ->
-                        RangeHelpers.rangeEq node.Range c.Range
-                        && TriviaHelpers.``has single line comment before`` node)
+            let hasCommentBeforeClause (c: SynMatchClause) (ctx: Context) : bool =
+                let barRange = ctx.MkRange e.Range.End c.Range.Start
+
+                let nodes =
+                    (Map.tryFindOrEmptyList SynMatchClause_Clause ctx.TriviaMainNodes
+                     |> List.choose
+                         (fun node ->
+                             if RangeHelpers.rangeEq node.Range c.Range then
+                                 Some node
+                             else
+                                 None))
+                    @ (Map.tryFindOrEmptyList BAR ctx.TriviaTokenNodes
+                       |> List.choose
+                           (fun node ->
+                               if RangeHelpers.``range contains`` barRange node.Range then
+                                   Some node
+                               else
+                                   None))
+
+                List.exists TriviaHelpers.``has single line comment before`` nodes
+
 
             let genClause (astContext: ASTContext) (b: bool) (c: SynMatchClause) =
-                ifElse
+                ifElseCtx
                     (hasCommentBeforeClause c)
                     (indentOnWith
                      +> genClause astContext b c
