@@ -2815,7 +2815,7 @@ and [<CustomEquality ; NoComparison>] Bar<'context, 'a> =
                                                     if inner then
                                                         let bv =
                                                             unbox<Foo<'innerContextLongLongLong, 'bb
-                                                                -> 'b>>
+                                                                          -> 'b>>
                                                                 bf
 
                                                         this.InnerEquals af bf cont

@@ -1539,3 +1539,36 @@ type Foo =
     /// Hi!
     | Bar of int
 """
+
+[<Test>]
+let ``long multiline prefix type name should be indented far enough, 1687`` () =
+    formatSourceString
+        true
+        """
+namespace Foo
+
+type Bar =
+    member Hello : thing : XLongLongLongLongLongLongLongLong<bool -> 'a, bool -> 'b, bool -> 'c, bool -> 'd, bool -> ('e -> 'f) -> 'g, ('h -> 'i) -> 'j> * item : int list -> LongLongLongLongLongLongLongLongLongLongLongLongLongLongLongLong
+"""
+        { config with
+              SpaceBeforeUppercaseInvocation = true
+              SpaceBeforeClassConstructor = true
+              SpaceBeforeMember = true
+              SpaceBeforeColon = true
+              SpaceBeforeSemicolon = true
+              AlignFunctionSignatureToIndentation = true
+              AlternativeLongMemberDefinitions = true }
+    |> prepend newline
+    |> should
+        equal
+        """
+namespace Foo
+
+type Bar =
+    member Hello :
+        thing : XLongLongLongLongLongLongLongLong<bool -> 'a, bool -> 'b, bool -> 'c, bool -> 'd, bool
+                                                      -> ('e -> 'f)
+                                                      -> 'g, ('h -> 'i) -> 'j>
+        * item : int list ->
+        LongLongLongLongLongLongLongLongLongLongLongLongLongLongLongLong
+"""
