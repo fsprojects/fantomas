@@ -2600,7 +2600,43 @@ and genExpr astContext synExpr ctx =
             | SynExpr.Do _ -> genTriviaFor SynExpr_Do synExpr.Range
             | SynExpr.TypeApp _ -> genTriviaFor SynExpr_TypeApp synExpr.Range
             | SynExpr.Lazy _ -> genTriviaFor SynExpr_Lazy synExpr.Range
-            | _ -> id)
+            | SynExpr.InferredUpcast _ -> genTriviaFor SynExpr_InferredUpcast synExpr.Range
+            | SynExpr.InferredDowncast _ -> genTriviaFor SynExpr_InferredDowncast synExpr.Range
+            | SynExpr.AddressOf _ -> genTriviaFor SynExpr_AddressOf synExpr.Range
+            | SynExpr.Null _ -> genTriviaFor SynExpr_Null synExpr.Range
+            | SynExpr.TraitCall _ -> genTriviaFor SynExpr_TraitCall synExpr.Range
+            | SynExpr.DotNamedIndexedPropertySet _ -> genTriviaFor SynExpr_DotNamedIndexedPropertySet synExpr.Range
+            | SynExpr.NamedIndexedPropertySet _ -> genTriviaFor SynExpr_NamedIndexedPropertySet synExpr.Range
+            | SynExpr.Set _ -> genTriviaFor SynExpr_Set synExpr.Range
+            | SynExpr.Quote _ -> genTriviaFor SynExpr_Quote synExpr.Range
+            | SynExpr.ArbitraryAfterError _ -> genTriviaFor SynExpr_ArbitraryAfterError synExpr.Range
+            | SynExpr.DiscardAfterMissingQualificationAfterDot _ ->
+                genTriviaFor SynExpr_DiscardAfterMissingQualificationAfterDot synExpr.Range
+            | SynExpr.DotSet _ -> genTriviaFor SynExpr_DotSet synExpr.Range
+            | SynExpr.Fixed _ -> genTriviaFor SynExpr_Fixed synExpr.Range
+            | SynExpr.FromParseError _ -> genTriviaFor SynExpr_FromParseError synExpr.Range
+            | SynExpr.ImplicitZero _ -> genTriviaFor SynExpr_ImplicitZero synExpr.Range
+            | SynExpr.LibraryOnlyStaticOptimization _ ->
+                genTriviaFor SynExpr_LibraryOnlyStaticOptimization synExpr.Range
+            | SynExpr.LibraryOnlyILAssembly _ -> genTriviaFor SynExpr_LibraryOnlyILAssembly synExpr.Range
+            | SynExpr.LibraryOnlyUnionCaseFieldGet _ -> genTriviaFor SynExpr_LibraryOnlyUnionCaseFieldGet synExpr.Range
+            | SynExpr.LibraryOnlyUnionCaseFieldSet _ -> genTriviaFor SynExpr_LibraryOnlyUnionCaseFieldSet synExpr.Range
+            | SynExpr.SequentialOrImplicitYield _ -> genTriviaFor SynExpr_SequentialOrImplicitYield synExpr.Range
+            | SynExpr.TypeTest _ -> genTriviaFor SynExpr_TypeTest synExpr.Range
+            | SynExpr.Const _ ->
+                // SynConst has trivia attached to it
+                id
+            | SynExpr.LetOrUse _
+            | SynExpr.Sequential _
+            | SynExpr.CompExpr _ ->
+                // first and last nested node has trivia attached to it
+                id
+            | SynExpr.LetOrUseBang _ ->
+                // printed as part of CompBody
+                id
+            | SynExpr.Typed _ ->
+                // child nodes contain trivia
+                id)
 
     expr ctx
 

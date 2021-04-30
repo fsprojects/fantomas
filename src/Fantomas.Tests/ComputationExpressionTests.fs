@@ -2403,3 +2403,28 @@ aggregateResult {
           More = more }
 }
 """
+
+[<Test>]
+let ``line comment above SynExpr.LetOrUseBang`` () =
+    formatSourceString
+        false
+        """
+let x =
+    async {
+        // bar
+        let! f =   foo()
+        ()
+    }
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let x =
+    async {
+        // bar
+        let! f = foo ()
+        ()
+    }
+"""

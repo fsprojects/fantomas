@@ -1483,3 +1483,43 @@ let ``line comment after embedded il`` () =
         """
 (# "" x : 'U #) // bar
 """
+
+[<Test>]
+let ``line comment before SynExpr.AddressOf`` () =
+    formatSourceString
+        false
+        """
+open FSharp.NativeInterop
+
+let Main() =
+  let mutable x = 3.1415
+  // meh?
+  &&x
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+open FSharp.NativeInterop
+
+let Main () =
+    let mutable x = 3.1415
+    // meh?
+    &&x
+"""
+
+[<Test>]
+let ``line comment after SynExpr.Null, 1676`` () =
+    formatSourceString
+        false
+        """
+let v = f null // comment
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let v = f null // comment
+"""
