@@ -959,6 +959,75 @@ with
 """
 
 [<Test>]
+let ``comment above pipe of try/with named clause, 1686`` () =
+    formatSourceString
+        false
+        """
+namespace Foo
+
+module Foo =
+    let a =
+        try
+            failwith ""
+        with
+        // hi!
+        | :? Exception as e ->
+            failwith ""
+"""
+        { config with
+              SpaceBeforeColon = true
+              SpaceBeforeSemicolon = true
+              IndentOnTryWith = true }
+    |> prepend newline
+    |> should
+        equal
+        """
+namespace Foo
+
+module Foo =
+    let a =
+        try
+            failwith ""
+        with
+            // hi!
+            :? Exception as e -> failwith ""
+"""
+
+[<Test>]
+let ``comment above pipe of try/with named clause, idempotent`` () =
+    formatSourceString
+        false
+        """
+namespace Foo
+
+module Foo =
+    let a =
+        try
+            failwith ""
+        with
+            // hi!
+            :? Exception as e -> failwith ""
+"""
+        { config with
+              SpaceBeforeColon = true
+              SpaceBeforeSemicolon = true
+              IndentOnTryWith = true }
+    |> prepend newline
+    |> should
+        equal
+        """
+namespace Foo
+
+module Foo =
+    let a =
+        try
+            failwith ""
+        with
+            // hi!
+            :? Exception as e -> failwith ""
+"""
+
+[<Test>]
 let ``respect IndentOnTryWith setting when there is trivia before SynMatchClause_Clause, 1647`` () =
     formatSourceString
         false
