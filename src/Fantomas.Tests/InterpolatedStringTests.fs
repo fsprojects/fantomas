@@ -101,16 +101,14 @@ let str =
         "
 let str =
     $\"\"\"
-    {
-        let square x = x * x
-        let isOdd x = x % 2 <> 0
-        let oddSquares = List.filter isOdd >> List.map square
-        oddSquares [ 1 .. 0 ]
-    }\"\"\"
+    {let square x = x * x
+     let isOdd x = x % 2 <> 0
+     let oddSquares = List.filter isOdd >> List.map square
+     oddSquares [ 1 .. 0 ]}\"\"\"
 "
 
 [<Test>]
-let ``indentation in interpolation`` () =
+let ``keep indentation in interpolation`` () =
     formatSourceString
         false
         """
@@ -123,13 +121,9 @@ let ``indentation in interpolation`` () =
     |> should
         equal
         """
-$"abc {
-           let x = 3
-           x + x
-} def {
-           let x = 4
-           x + x
-} xyz"
+$"abc {let x = 3
+       x + x} def {let x = 4
+                   x + x} xyz"
 """
 
 [<Test>]
@@ -259,3 +253,98 @@ let main _ =
     printfn $@\"Migrate notes of file \"\"{oldId}\"\" to new file \"\"{newId}\"\".\"
     0
 "
+
+[<Test>]
+let ``multiline expression should not receive any extra indentation, 1511`` () =
+    formatSourceString
+        false
+        """
+let storageConnection = $"DefaultEndpointsProtocol=https;AccountName=%s{storageAccount.Name};AccountKey=%s{storageAccountKey.Value}"
+
+let serviceStorageConnection = $"DefaultEndpointsProtocol=https;AccountName=%s{serviceStorageAccount.Name};AccountKey=%s{serviceStorageAccountKey.Value}"
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let storageConnection =
+    $"DefaultEndpointsProtocol=https;AccountName=%s{storageAccount.Name};AccountKey=%s{storageAccountKey.Value}"
+
+let serviceStorageConnection =
+    $"DefaultEndpointsProtocol=https;AccountName=%s{serviceStorageAccount.Name};AccountKey=%s{serviceStorageAccountKey.Value}"
+"""
+
+[<Test>]
+let ``indentation inside try with is correct`` () =
+    formatSourceString
+        false
+        """
+$"
+                    {
+                         try
+                             let a = 0
+                             let b = y
+                             let c = 9
+                             foo ()
+                         with ex -> interpolationFailed ()
+}
+"
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+$"
+                    {try
+                         let a = 0
+                         let b = y
+                         let c = 9
+                         foo ()
+                     with ex -> interpolationFailed ()}
+"
+"""
+
+[<Test>]
+let ``construct url with Fable`` () =
+    formatSourceString
+        false
+        """
+   let newUrl =
+            $"{window.location.protocol}//{window.location.host}{ window.location.pathname}{newHash}?{``params``.ToString()}"
+"""
+        { config with MaxLineLength = 80 }
+    |> prepend newline
+    |> should
+        equal
+        """
+let newUrl =
+    $"{window.location.protocol}//{window.location.host}{window.location.pathname}{newHash}?{``params``.ToString()}"
+"""
+
+[<Test>]
+let ``multiline function application inside interpolated expression is printed as multiline`` () =
+    formatSourceString
+        false
+        """
+let foo = $"
+longLeadingStringPaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaart{bar.ToString(window.location.protocol,window.location.host,window.location.pathname,newHash,``params``)}
+"
+"""
+        { config with MaxLineLength = 80 }
+    |> prepend newline
+    |> should
+        equal
+        """
+let foo =
+    $"
+longLeadingStringPaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaart{bar.ToString(
+                                                                                                                                    window.location.protocol,
+                                                                                                                                    window.location.host,
+                                                                                                                                    window.location.pathname,
+                                                                                                                                    newHash,
+                                                                                                                                    ``params``
+                                                                                                                                )}
+"
+"""
