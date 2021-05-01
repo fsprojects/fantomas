@@ -2533,9 +2533,19 @@ and genExpr astContext synExpr ctx =
                             |> Option.map (fun sc -> range, sc))
 
                 let genInterpolatedFillExpr expr =
-                    leadingExpressionIsMultiline
-                        (atCurrentColumn (autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext expr)))
-                        (fun isMultiline -> onlyIf isMultiline sepNln)
+                    fun ctx ->
+                        genExpr
+                            astContext
+                            expr
+                            { ctx with
+                                  Config =
+                                      { ctx.Config with
+                                            // override the max line length for the interpolated expression.
+                                            // this is to avoid scenarios where the long / multiline format of the expresion will be used
+                                            // where the construct is this short
+                                            // see unit test ``construct url with Fable``
+                                            MaxLineLength = ctx.WriterModel.Column + ctx.Config.MaxLineLength } }
+                    |> atCurrentColumnIndent
 
                 let expr =
                     if List.length stringRanges = List.length stringsFromTrivia then
