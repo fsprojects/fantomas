@@ -301,13 +301,11 @@ let ``hex escape in string literal should be preserved, 1508`` () =
     formatSourceString
         false
         """let hexEscape = "\x00"
-let controlEscapes = "\a \b \f \t \v"
 """
         config
     |> should
         equal
         """let hexEscape = "\x00"
-let controlEscapes = "\a \b \f \t \v"
 """
 
 [<Test>]
@@ -518,4 +516,28 @@ __SOURCE_DIRECTORY__
         equal
         """
 __SOURCE_DIRECTORY__
+"""
+
+[<Test>]
+let ``escape sequences in strings are preserved`` () =
+    formatSourceString
+        false
+        """let alert = "Hello\aWorld"
+let backspace = "Hello\bWorld"
+let formFeed = "Hello\fWorld"
+let newline = "Hello\nWorld"
+let carriageReturn = "Hello\rWorld"
+let tab = "Hello\tWorld"
+let verticalTab = "Hello\vWorld"
+"""
+        config
+    |> should
+        equal
+        """let alert = "Hello\aWorld"
+let backspace = "Hello\bWorld"
+let formFeed = "Hello\fWorld"
+let newline = "Hello\nWorld"
+let carriageReturn = "Hello\rWorld"
+let tab = "Hello\tWorld"
+let verticalTab = "Hello\vWorld"
 """
