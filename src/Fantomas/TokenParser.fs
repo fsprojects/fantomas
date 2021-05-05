@@ -530,7 +530,7 @@ let private (|InterpStringEndOrPartToken|_|) token =
         None
 
 let escapedCharacterRegex =
-    System.Text.RegularExpressions.Regex("(\\\\(a|b|f|n|r|u|v|x|'|\\\"|\\\\))+")
+    System.Text.RegularExpressions.Regex("(\\\\(a|b|f|n|r|t|u|v|x|'|\\\"|\\\\))+")
 
 let rec private (|EndOfInterpolatedString|_|) tokens =
     match tokens with
