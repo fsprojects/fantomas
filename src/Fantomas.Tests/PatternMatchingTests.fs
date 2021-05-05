@@ -1755,3 +1755,30 @@ match x with
 match x with
 | :? (int) as i -> ()
 """
+
+[<Test>]
+let ``don't add parenthesis if last clause is single line, 1698`` () =
+    formatSourceString
+        false
+        """
+  let select px =
+    match px with
+    | Shared.Foo _ -> "foo"
+    | Shared.LongerFoobarFoo -> "lf"
+    | Shared.Barry -> "barry"
+    |> List.singleton
+    |> instr "ziggy"
+"""
+        { config with IndentSize = 2 }
+    |> prepend newline
+    |> should
+        equal
+        """
+let select px =
+  match px with
+  | Shared.Foo _ -> "foo"
+  | Shared.LongerFoobarFoo -> "lf"
+  | Shared.Barry -> "barry"
+  |> List.singleton
+  |> instr "ziggy"
+"""

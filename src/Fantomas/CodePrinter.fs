@@ -1698,7 +1698,18 @@ and genExpr astContext synExpr ctx =
                 (match e with
                  | SynExpr.IfThenElse _
                  | SynExpr.Match _ when (ctx.Config.IndentSize <= operatorText.Length) ->
-                     autoParenthesisIfExpressionExceedsPageWidth (genExpr astContext e)
+                     (fun ctx ->
+                         let ctxAfterMatch = genExpr astContext e ctx
+
+                         let barOnLastLine =
+                             match List.tryHead ctxAfterMatch.WriterModel.Lines with
+                             | Some line -> line.TrimStart().StartsWith("| ")
+                             | None -> false
+
+                         if barOnLastLine then
+                             ctxAfterMatch
+                         else
+                             autoParenthesisIfExpressionExceedsPageWidth (genExpr astContext e) ctx)
                  | _ -> genExpr astContext e)
                 +> sepNln
                 +> col
