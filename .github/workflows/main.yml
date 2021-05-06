@@ -8,7 +8,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest, macOS-latest]
-        dotnet: [5.0.100]
+        dotnet: [5.0.202]
     runs-on: ${{ matrix.os }}
 
     steps:
