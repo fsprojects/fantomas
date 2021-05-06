@@ -532,7 +532,7 @@ let ``parenthesis around simple function expression`` () =
     formatSourceString
         false
         """
-(ignore) ("Tuuuuuuuuuuuuurn tooooooooooooooooooooooo stooooooooooooooooooooooooone", 42)
+(ignore) ("Tuuuuuuuuuuuuurn Tuuuuuuuuuuuuurn Tuuuuuuuuuuuuurn Tuuuuuuuuuuuuurn tooooooooooooooooooooooo stooooooooooooooooooooooooone", 42)
 """
         config
     |> prepend newline
@@ -541,7 +541,7 @@ let ``parenthesis around simple function expression`` () =
         """
 (ignore)
     (
-        "Tuuuuuuuuuuuuurn tooooooooooooooooooooooo stooooooooooooooooooooooooone",
+        "Tuuuuuuuuuuuuurn Tuuuuuuuuuuuuurn Tuuuuuuuuuuuuurn Tuuuuuuuuuuuuurn tooooooooooooooooooooooo stooooooooooooooooooooooooone",
         42
     )
 """
