@@ -243,7 +243,7 @@ In PowerShell:
 
 or in Bash:
 
-> VSTEST_HOST_DEBUG=1
+> export VSTEST_HOST_DEBUG=1
 
 Run a single unit test with `dotnet test --filter`.
 
