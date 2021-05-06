@@ -248,7 +248,7 @@ or in Bash:
 Run a single unit test with `dotnet test --filter`.
 
 > cd .\src\Fantomas.Tests\
-> dotnet test --filter "record declaration"
+> dotnet test --filter 1700
 
 The output looks like:
 
