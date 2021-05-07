@@ -155,6 +155,9 @@ let ``preserve compile directive between piped functions, 512`` () = ...
 - Not mandatory, but when fixing a bug consider using `fix-<issue-number>` as the git branch name.<br />
 For example, `git checkout -b fix-1404`.
 
+- Code should be formatted to our standard style, using either `dotnet fake run build.fsx -t Format` which works on all files, or
+  `dotnet fake run build.fsx -t FormatChanged` to just change the files in git.
+
 ### Small steps
 
 It is better to create a draft pull request with some initial small changes, and engage conversation, than to spend a lot of effort on a large pull request that was never discussed.
