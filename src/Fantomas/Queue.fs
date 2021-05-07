@@ -19,7 +19,7 @@ type Queue<'T>(data: list<'T []>, length: int) =
 
     override this.Equals(other) =
         match other with
-        | :? (Queue<'T>) as y ->
+        | :? Queue<'T> as y ->
             if this.Length <> y.Length then
                 false
             else if this.GetHashCode() <> y.GetHashCode() then
@@ -43,20 +43,6 @@ type Queue<'T>(data: list<'T []>, length: int) =
     member this.IsEmpty = length = 0
 
     member this.Length = length
-
-    member this.FragmentLength : int = data.Length
-
-    /// Verify if a range of recently added items matches a predicate
-    member this.RecentItemsContain
-        (skipInitialWhile: 'T [] -> bool)
-        (predicate: 'T [] list -> bool)
-        (fragmentCount: int)
-        : bool =
-        let selection =
-            List.take fragmentCount data
-            |> List.skipWhile skipInitialWhile
-
-        predicate selection
 
     member this.Rev() =
         data
