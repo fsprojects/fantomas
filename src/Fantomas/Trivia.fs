@@ -298,6 +298,12 @@ let private addTriviaToTriviaNode
             findNodeBeforeLineAndColumn triviaNodes range.StartLine range.StartColumn
 
         match nodeBefore, nodeAfter with
+        | Some nb, Some na when
+            (nb.Range.EndLine < range.StartLine
+             && na.Range.StartLine > range.EndLine)
+            ->
+            Some na
+            |> updateTriviaNode (fun tn -> tn.ContentBefore.Add(Comment(BlockComment(comment, true, true)))) triviaNodes
         | Some n, _ when n.Range.EndLine = range.StartLine ->
             Some n
             |> updateTriviaNode

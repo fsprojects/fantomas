@@ -14,12 +14,22 @@ type WriterEvent =
     | WriteLine
     | WriteLineInsideStringConst
     | WriteBeforeNewline of string
+    | WriteLineBecauseOfTrivia
     | IndentBy of int
     | UnIndentBy of int
     | SetIndent of int
     | RestoreIndent of int
     | SetAtColumn of int
     | RestoreAtColumn of int
+
+let private (|CommentOrDefineEvent|_|) we =
+    match we with
+    | Write w when (String.startsWithOrdinal "//" w) -> Some we
+    | Write w when (String.startsWithOrdinal "#if" w) -> Some we
+    | Write w when (String.startsWithOrdinal "#else" w) -> Some we
+    | Write w when (String.startsWithOrdinal "#endif" w) -> Some we
+    | Write w when (String.startsWithOrdinal "(*" w) -> Some we
+    | _ -> None
 
 type ShortExpressionInfo =
     { MaxWidth: int
@@ -82,7 +92,8 @@ module WriterModel =
 
         let updateCmd cmd =
             match cmd with
-            | WriteLine -> doNewline m
+            | WriteLine
+            | WriteLineBecauseOfTrivia -> doNewline m
             | WriteLineInsideStringConst ->
                 { m with
                       Lines = "" :: m.Lines
@@ -114,7 +125,8 @@ module WriterModel =
         | ShortExpression infos ->
             let nextCmdCausesMultiline =
                 match cmd with
-                | WriteLine -> true
+                | WriteLine
+                | WriteLineBecauseOfTrivia -> true
                 | WriteLineInsideStringConst -> true
                 | Write _ when (String.isNotNullOrEmpty m.WriteBeforeNewline) -> true
                 | _ -> false
@@ -149,7 +161,8 @@ module WriterEvents =
         |> Queue.toSeq
         |> Seq.exists
             (function
-            | WriteLine -> true
+            | WriteLine
+            | WriteLineBecauseOfTrivia -> true
             | _ -> false)
 
 type internal Context =
@@ -327,6 +340,7 @@ let internal writeEventsOnLastLine ctx =
     |> Seq.takeWhile
         (function
         | WriteLine
+        | WriteLineBecauseOfTrivia
         | WriteLineInsideStringConst -> false
         | _ -> true)
     |> Seq.choose
@@ -347,18 +361,10 @@ let internal lastWriteEventIsNewline ctx =
     |> Seq.tryHead
     |> Option.map
         (function
+        | WriteLineBecauseOfTrivia
         | WriteLine -> true
         | _ -> false)
     |> Option.defaultValue false
-
-let private (|CommentOrDefineEvent|_|) we =
-    match we with
-    | Write w when (String.startsWithOrdinal "//" w) -> Some we
-    | Write w when (String.startsWithOrdinal "#if" w) -> Some we
-    | Write w when (String.startsWithOrdinal "#else" w) -> Some we
-    | Write w when (String.startsWithOrdinal "#endif" w) -> Some we
-    | Write w when (String.startsWithOrdinal "(*" w) -> Some we
-    | _ -> None
 
 let private (|EmptyHashDefineBlock|_|) (events: WriterEvent array) =
     match Array.tryHead events, Array.tryLast events with
@@ -664,6 +670,10 @@ let internal sepSpace (ctx: Context) =
         | _ -> (!- " ") ctx
 
 let internal sepNln = !+ ""
+
+// Use a different WriteLine event to indicate that the newline was introduces due to trivia
+// This is later useful when checking if an expression was multiline when checking for ColMultilineItem
+let internal sepNlnForTrivia = writerEvent WriteLineBecauseOfTrivia
 
 let internal sepNlnUnlessLastEventIsNewline (ctx: Context) =
     if lastWriteEventIsNewline ctx then
@@ -1148,11 +1158,11 @@ let internal printTriviaContent (c: TriviaContent) (ctx: Context) =
 
         writerEvent (WriteBeforeNewline comment)
     | Comment (BlockComment (s, before, after)) ->
-        ifElse (before && addNewline) sepNln sepNone
+        ifElse (before && addNewline) sepNlnForTrivia sepNone
         +> sepSpace
         -- s
         +> sepSpace
-        +> ifElse after sepNln sepNone
+        +> ifElse after sepNlnForTrivia sepNone
     | Newline -> (ifElse addNewline (sepNln +> sepNln) sepNln)
     | Keyword _
     | Number _
@@ -1164,9 +1174,9 @@ let internal printTriviaContent (c: TriviaContent) (ctx: Context) =
     | KeywordString _ -> sepNone // don't print here but somewhere in CodePrinter
     | Directive s
     | Comment (LineCommentOnSingleLine s) ->
-        (ifElse addNewline sepNln sepNone)
+        (ifElse addNewline sepNlnForTrivia sepNone)
         +> !-s
-        +> sepNln
+        +> sepNlnForTrivia
     <| ctx
 
 let internal printContentBefore triviaNode =
@@ -1420,77 +1430,29 @@ type internal ColMultilineItemsState =
     { LastBlockMultiline: bool
       Context: Context }
 
-let private (|MultilineStringEvents|_|) (events: WriterEvent []) =
-    let codeWritesOrWriteLineInsideStringConst =
-        events
-        |> Array.forall
-            (function
-            | CommentOrDefineEvent _ -> false
-            | Write _
-            | WriteLineInsideStringConst -> true
-            | _ -> false)
-
-    if codeWritesOrWriteLineInsideStringConst then
-        Some()
-    else
-        None
-
-let private (|AllCommentOrWriteLineEvents|_|) (events: WriterEvent []) =
-    let allEventsMatch =
-        events
-        |> Array.forall
-            (function
-            | CommentOrDefineEvent _
-            | Write ""
-            | WriteLine
-            | WriteLineInsideStringConst -> true
-            | _ -> false)
-
-    if allEventsMatch then Some() else None
-
-let private (|AllCommentOrNewlineEventsInList|_|) (events: WriterEvent [] list) =
-    let allEventsAreCommentOrNewline =
-        List.forall
-            (function
-            | AllCommentOrWriteLineEvents -> true
-            | _ -> false)
-            events
-
-    if allEventsAreCommentOrNewline then
-        Some()
-    else
-        None
-
 /// Checks if the events of an expression produces multiple lines of by user code.
 /// Leading or trailing trivia will not be counted as such.
 let private isMultilineItem (expr: Context -> Context) (ctx: Context) : bool * Context =
-    let previousFragmentCount = ctx.WriterEvents.FragmentLength
+    let previousEventsLength = ctx.WriterEvents.Length
     let nextCtx = expr ctx
-    let currentFragmentCount = nextCtx.WriterEvents.FragmentLength
-
-    let skipTrailingTrivia (events: WriterEvent array) =
-        match events with
-        | AllCommentOrWriteLineEvents
-        | [| (WriteLine
-             | Write ""
-             | CommentOrDefineEvent _) |] -> true
-        | _ -> false
-
-    let rec isMultilineCheck (events: WriterEvent [] list) : bool =
-        match events with
-        | [| Write _ |] :: rest -> isMultilineCheck rest
-        | MultilineStringEvents :: _ -> true
-        // leading comment, define or newline before expression
-        | AllCommentOrNewlineEventsInList -> false
-        | [| WriteLine |] :: _ -> true
-        | _ :: rest -> isMultilineCheck rest
-        | [] -> false
 
     let isExpressionMultiline =
-        nextCtx.WriterEvents.RecentItemsContain
-            skipTrailingTrivia
-            isMultilineCheck
-            (currentFragmentCount - previousFragmentCount)
+        Queue.skipExists
+            previousEventsLength
+            (function
+            | WriteLine
+            | WriteLineInsideStringConst -> true
+            | _ -> false)
+            (fun events ->
+                if events.Length > 0 then
+                    // filter leading newlines and trivia
+                    match Array.head events with
+                    | CommentOrDefineEvent _
+                    | WriteLine -> true
+                    | _ -> false
+                else
+                    false)
+            nextCtx.WriterEvents
 
     isExpressionMultiline, nextCtx
 

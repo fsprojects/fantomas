@@ -792,11 +792,13 @@ let ``comment between opening parenthesis and lambda, 1190`` () =
     |> should
         equal
         """
-( (* comment before gets swallowed *)
+(
+(* comment before gets swallowed *)
 fun x -> x * 42)
 
 (fun x ->
-    x * 42 (* comment after is OK *)
+    x * 42
+    (* comment after is OK *)
     )
 
 ( (* comment on first line is OK too *) fun x -> x * 42)
