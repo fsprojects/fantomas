@@ -1944,7 +1944,14 @@ and genExpr astContext synExpr ctx =
             fun ctx -> isShortExpression ctx.Config.MaxDotGetExpressionWidth short long ctx
 
         | AppParenArg (Choice1Of2 (Paren _, _, _, _, _, _) as app)
-        | AppParenArg (Choice2Of2 (Paren _, _, _, _, _) as app) -> genAlternativeAppWithParenthesis app astContext
+        | AppParenArg (Choice2Of2 (Paren _, _, _, _, _) as app) ->
+            let short = genAppWithParenthesis app astContext
+
+            let long =
+                genAlternativeAppWithParenthesis app astContext
+
+            expressionFitsOnRestOfLine short long
+
         | AppSingleParenArg (e, px) ->
             let sepSpace (ctx: Context) =
                 match e with
@@ -3263,6 +3270,19 @@ and genApp astContext e es ctx =
     else
         expressionFitsOnRestOfLine shortExpression longExpression ctx
 
+and genAppWithTupledArgument (e, lpr, ts, tr, rpr, pr) astContext =
+    let genTupleTrivia =
+        match tr with
+        | Some tr -> genTriviaFor SynExpr_Tuple tr
+        | None -> id
+
+    genExpr astContext e
+    +> sepSpace
+    +> tokN lpr LPAREN sepOpenT
+    +> (col (sepComma) ts (genExpr astContext)
+        |> genTupleTrivia)
+    +> tokN (Option.defaultValue pr rpr) RPAREN sepCloseT
+
 and genAlternativeAppWithTupledArgument (e, lpr, ts, tr, rpr, pr) astContext =
     let genTupleTrivia =
         match tr with
@@ -3300,10 +3320,22 @@ and genAlternativeAppWithSingleParenthesisArgument (e, lpr, a, rpr, pr) astConte
               +> sepNln)
          +> tokN (Option.defaultValue pr rpr) RPAREN sepCloseT)
 
+and genAppWithSingleParenthesisArgument (e, lpr, a, rpr, pr) astContext =
+    genExpr astContext e
+    +> sepSpace
+    +> tokN lpr LPAREN sepOpenT
+    +> (genExpr astContext a)
+    +> tokN (Option.defaultValue pr rpr) RPAREN sepCloseT
+
 and genAlternativeAppWithParenthesis app astContext =
     match app with
     | Choice1Of2 t -> genAlternativeAppWithTupledArgument t astContext
     | Choice2Of2 s -> genAlternativeAppWithSingleParenthesisArgument s astContext
+
+and genAppWithParenthesis app astContext =
+    match app with
+    | Choice1Of2 t -> genAppWithTupledArgument t astContext
+    | Choice2Of2 s -> genAppWithSingleParenthesisArgument s astContext
 
 and collectMultilineItemForSynExpr (astContext: ASTContext) (e: SynExpr) : ColMultilineItem list =
     match e with
