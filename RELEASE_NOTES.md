@@ -1,3 +1,12 @@
+### 4.5.0-alpha-015 - 05/2021
+
+* Fix Currying a pair gets spread over multiple lines. [#1700](https://github.com/fsprojects/fantomas/issues/1700)
+* Fix Additional parentheses are introduced when match is piped. [#1698](https://github.com/fsprojects/fantomas/issues/1698)
+* Fix \t in string replaced by ASCII 9. [#1695](https://github.com/fsprojects/fantomas/issues/1695)
+* Fix Idempotency problem with nested else if. [#1648](https://github.com/fsprojects/fantomas/issues/1648)
+* Fix Idempotency problem with ifdef in a function. [#1646](https://github.com/fsprojects/fantomas/issues/1646)
+* Fix string interpolation part crossing max line length introduces new line and lots of whitespace. [#1511](https://github.com/fsprojects/fantomas/issues/1511)
+
 ### 4.5.0-alpha-014 - 04/2021
 
 * Feature Disable empty line between mutually recursive type. [#1658](https://github.com/fsprojects/fantomas/issues/1658)
