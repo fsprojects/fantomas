@@ -1693,21 +1693,18 @@ and genExpr astContext synExpr ctx =
                         +> genExpr astContext e)
 
             let multilineExpr =
-                let operatorText = List.head es |> fun (s, _, _) -> s
-
-                (match e with
-                 | SynExpr.IfThenElse _
-                 | SynExpr.Match _ when (ctx.Config.IndentSize <= operatorText.Length) ->
-                     autoParenthesisIfExpressionExceedsPageWidth (genExpr astContext e)
-                 | _ -> genExpr astContext e)
-                +> sepNln
-                +> col
-                    sepNln
-                    es
-                    (fun (s, oe, e) ->
-                        genInfixOperator s oe
-                        +> sepSpace
-                        +> genExprInMultilineInfixExpr astContext e)
+                match es with
+                | [] -> genExpr astContext e
+                | (s, oe, e2) :: es ->
+                    genMultilineInfixExpr astContext e s oe e2
+                    +> sepNln
+                    +> col
+                        sepNln
+                        es
+                        (fun (s, oe, e) ->
+                            genInfixOperator s oe
+                            +> sepSpace
+                            +> genExprInMultilineInfixExpr astContext e)
 
             fun ctx ->
                 atCurrentColumn (isShortExpression ctx.Config.MaxInfixOperatorExpression shortExpr multilineExpr) ctx
@@ -1743,7 +1740,10 @@ and genExpr astContext synExpr ctx =
                 isShortExpression
                     ctx.Config.MaxInfixOperatorExpression
                     (genOnelinerInfixExpr astContext e1 operatorText operatorExpr e2)
-                    (genMultilineInfixExpr astContext e1 operatorText operatorExpr e2)
+                    (ifElse
+                        (noBreakInfixOps.Contains(operatorText))
+                        (genOnelinerInfixExpr astContext e1 operatorText operatorExpr e2)
+                        (genMultilineInfixExpr astContext e1 operatorText operatorExpr e2))
                     ctx
 
         | TernaryApp (e1, e2, e3) ->
@@ -2677,23 +2677,40 @@ and genOnelinerInfixExpr astContext e1 operatorText operatorExpr e2 =
     +> genExpr astContext e2
 
 and genMultilineInfixExpr astContext e1 operatorText operatorExpr e2 =
-    if noBreakInfixOps.Contains(operatorText) then
-        genOnelinerInfixExpr astContext e1 operatorText operatorExpr e2
-    else
-        let genE1 (ctx: Context) =
-            match e1 with
-            | SynExpr.IfThenElse _
-            | SynExpr.Match _ when (ctx.Config.IndentSize <= operatorText.Length) ->
-                autoParenthesisIfExpressionExceedsPageWidth (genExpr astContext e1) ctx
-            | _ -> genExpr astContext e1 ctx
+    let genE1 (ctx: Context) =
+        match e1 with
+        | SynExpr.IfThenElse _
+        | SynExpr.Match _ when (ctx.Config.IndentSize <= operatorText.Length) ->
+            let ctxAfterMatch = genExpr astContext e1 ctx
 
-        atCurrentColumn (
-            genE1
-            +> sepNln
-            +> genInfixOperator operatorText operatorExpr
-            +> sepSpace
-            +> genExprInMultilineInfixExpr astContext e2
-        )
+            let lastClauseIsSingleLine =
+                Queue.rev ctxAfterMatch.WriterEvents
+                |> Seq.skipWhile
+                    (fun e ->
+                        match e with
+                        | RestoreIndent _
+                        | RestoreAtColumn _ -> true
+                        | _ -> false)
+                // In case the last clause was multiline an UnIndent event should follow
+                |> Seq.tryHead
+                |> fun e ->
+                    match e with
+                    | Some (Write _) -> true
+                    | _ -> false
+
+            if lastClauseIsSingleLine then
+                ctxAfterMatch
+            else
+                autoParenthesisIfExpressionExceedsPageWidth (genExpr astContext e1) ctx
+        | _ -> genExpr astContext e1 ctx
+
+    atCurrentColumn (
+        genE1
+        +> sepNln
+        +> genInfixOperator operatorText operatorExpr
+        +> sepSpace
+        +> genExprInMultilineInfixExpr astContext e2
+    )
 
 and genExprInMultilineInfixExpr astContext e =
     match e with
@@ -3279,7 +3296,7 @@ and genAppWithTupledArgument (e, lpr, ts, tr, rpr, pr) astContext =
     genExpr astContext e
     +> sepSpace
     +> tokN lpr LPAREN sepOpenT
-    +> (col (sepComma) ts (genExpr astContext)
+    +> (col sepComma ts (genExpr astContext)
         |> genTupleTrivia)
     +> tokN (Option.defaultValue pr rpr) RPAREN sepCloseT
 

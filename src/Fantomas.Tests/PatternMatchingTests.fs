@@ -1755,3 +1755,106 @@ match x with
 match x with
 | :? (int) as i -> ()
 """
+
+[<Test>]
+let ``don't add parenthesis if last clause is single line, 1698`` () =
+    formatSourceString
+        false
+        """
+  let select px =
+    match px with
+    | Shared.Foo _ -> "foo"
+    | Shared.LongerFoobarFoo -> "lf"
+    | Shared.Barry -> "barry"
+    |> List.singleton
+    |> instr "ziggy"
+"""
+        { config with IndentSize = 2 }
+    |> prepend newline
+    |> should
+        equal
+        """
+let select px =
+  match px with
+  | Shared.Foo _ -> "foo"
+  | Shared.LongerFoobarFoo -> "lf"
+  | Shared.Barry -> "barry"
+  |> List.singleton
+  |> instr "ziggy"
+"""
+
+[<Test>]
+let ``match in last clause followed by pipe`` () =
+    formatSourceString
+        false
+        """
+  let select px =
+    match px with
+    | Shared.Foo _ -> "foo"
+    | Shared.LongerFoobarFoo -> "lf"
+    | Shared.Barry ->
+        match () with
+        | _ -> "meh"
+    |> List.singleton
+    |> instr "ziggy"
+"""
+        { config with IndentSize = 2 }
+    |> prepend newline
+    |> should
+        equal
+        """
+let select px =
+  (match px with
+   | Shared.Foo _ -> "foo"
+   | Shared.LongerFoobarFoo -> "lf"
+   | Shared.Barry ->
+     match () with
+     | _ -> "meh")
+  |> List.singleton
+  |> instr "ziggy"
+"""
+
+[<Test>]
+let ``match with single line last clause followed by long custom operator`` () =
+    formatSourceString
+        false
+        """
+match x with
+| _ -> ()
+--*-- bar
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+match x with
+| _ -> ()
+--*-- bar
+"""
+
+[<Test>]
+let ``match with multiline line last clause followed by long custom operator`` () =
+    formatSourceString
+        false
+        """
+match x with
+| _ ->
+        try
+            somethingElse ()
+        with
+        | e -> printfn "failure %A" e
+--*-- bar
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+(match x with
+ | _ ->
+     try
+         somethingElse ()
+     with e -> printfn "failure %A" e)
+--*-- bar
+"""
