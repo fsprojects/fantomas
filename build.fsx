@@ -25,9 +25,7 @@ let projectUrl = sprintf "%s/%s" gitHome gitName
 // (used as description in AssemblyInfo and as a short summary for NuGet package)
 let summary = "Source code formatter for F#"
 
-let copyright = sprintf "Copyright \169 %d" (DateTime.UtcNow.Year)
-let iconUrl = "https://raw.githubusercontent.com/fsprojects/fantomas/master/fantomas_logo.png"
-let licenceUrl = "https://github.com/fsprojects/fantomas/blob/master/LICENSE.md"
+let copyright = sprintf "Copyright \169 %d" DateTime.UtcNow.Year
 let configuration = DotNet.BuildConfiguration.Release
 
 // Longer description of the project
@@ -40,7 +38,7 @@ Some common use cases include
 (3) Formatting auto-generated F# signatures."""
 
 // List of author names (for NuGet package)
-let authors = [ "Anh-Dung Phan"; "Gustavo Guerra" ]
+let authors = [ "Florian Verdonck"; "Jindřich Ivánek" ]
 let owner = "Anh-Dung Phan"
 // Tags for your project (for NuGet package)
 let tags = "F# fsharp formatting beautifier indentation indenter"
@@ -62,7 +60,7 @@ type ExternalProjectInfo =
       DirectoryName : string
       Tag : string
       SourceSubDirectory : string
-      BuildConfigurationFn : (string -> ProcessStartInfo) }
+      BuildConfigurationFn : string -> ProcessStartInfo }
 
 // Construct the commands/arguments for running an external project build script for both windows and linux
 // For linux we run this by invoking sh explicitly and passing the build.sh script as an argument as some
@@ -218,8 +216,6 @@ Target.create "Pack" (fun _ ->
                           "Copyright", copyright
                           "PackageTags", tags
                           "PackageProjectUrl", projectUrl
-                          "PackageIconUrl", iconUrl
-                          "PackageLicenseUrl", licenceUrl
                       ] }
 
         DotNet.pack (fun p ->
