@@ -1448,7 +1448,8 @@ let private isMultilineItem (expr: Context -> Context) (ctx: Context) : bool * C
                     // filter leading newlines and trivia
                     match Array.head events with
                     | CommentOrDefineEvent _
-                    | WriteLine -> true
+                    | WriteLine
+                    | WriteLineBecauseOfTrivia -> true
                     | _ -> false
                 else
                     false)
