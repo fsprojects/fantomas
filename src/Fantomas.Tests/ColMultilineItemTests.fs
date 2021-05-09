@@ -406,3 +406,38 @@ let blah<'a> config : Type =
     let result = Runner.Run<'a> config
     ()
 """
+
+[<Test>]
+let ``leading newline because of trivia does not item multiline, 1709`` () =
+    formatSourceString
+        false
+        """
+[<Fact>]
+let ``first lamba`` () =
+    // You can use the `fun` keyword to write lambda's.
+    // Mind the -> instead of C#'s =>
+    // TODO: complete the lambda so that the value is returned in uppercase.
+    let toUpperCase = fun a -> a
+    // ref: https://docs.microsoft.com/en-us/dotnet/fsharp/language-reference/functions/lambda-expressions-the-fun-keyword
+
+    let name = "Joey"
+    let uppercased = toUpperCase name
+    Assert.Equal("JOEY", uppercased)
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+[<Fact>]
+let ``first lamba`` () =
+    // You can use the `fun` keyword to write lambda's.
+    // Mind the -> instead of C#'s =>
+    // TODO: complete the lambda so that the value is returned in uppercase.
+    let toUpperCase = fun a -> a
+    // ref: https://docs.microsoft.com/en-us/dotnet/fsharp/language-reference/functions/lambda-expressions-the-fun-keyword
+
+    let name = "Joey"
+    let uppercased = toUpperCase name
+    Assert.Equal("JOEY", uppercased)
+"""
