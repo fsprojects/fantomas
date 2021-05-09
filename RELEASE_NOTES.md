@@ -1,3 +1,7 @@
+### 4.5.0-alpha-016 - 05/2021
+
+* Fix Unexpected newline after inner let binding. [#1709](https://github.com/fsprojects/fantomas/issues/1709)
+
 ### 4.5.0-alpha-015 - 05/2021
 
 * Fix Currying a pair gets spread over multiple lines. [#1700](https://github.com/fsprojects/fantomas/issues/1700)
