@@ -497,3 +497,32 @@ let b =  p
 let a = 0
 let b = p
 """
+
+[<Test>]
+let ``define surrounded by newlines should not make item multiline`` () =
+    formatSourceString
+        false
+        """
+let a = p
+
+#if MEH
+()
+#endif
+
+let i = 00
+let y = p
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let a = p
+
+#if MEH
+()
+#endif
+
+let i = 0
+let y = p
+"""
