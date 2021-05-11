@@ -1163,7 +1163,7 @@ let internal printTriviaContent (c: TriviaContent) (ctx: Context) =
         -- s
         +> sepSpace
         +> ifElse after sepNlnForTrivia sepNone
-    | Newline -> (ifElse addNewline (sepNln +> sepNln) sepNln)
+    | Newline -> (ifElse addNewline (sepNlnForTrivia +> sepNlnForTrivia) sepNlnForTrivia)
     | Keyword _
     | Number _
     | StringContent _

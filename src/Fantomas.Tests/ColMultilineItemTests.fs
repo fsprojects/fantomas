@@ -441,3 +441,88 @@ let ``first lamba`` () =
     let uppercased = toUpperCase name
     Assert.Equal("JOEY", uppercased)
 """
+
+[<Test>]
+let ``leading multiline block comment followed by newline should not make item multiline, 1718`` () =
+    formatSourceString
+        false
+        """
+(*
+    My personal favorite: Discriminated Unions!
+    This is a feature related to sum types in category theory and incredibly useful for code correctness.
+    ref: https://docs.microsoft.com/en-us/dotnet/fsharp/language-reference/discriminated-unions
+*)
+
+type Days = Days of int  // you can alias types in F# to get a DDD kind of vibe.
+type StoryPoints = StoryPoints of int
+type Money = Money of double
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+(*
+    My personal favorite: Discriminated Unions!
+    This is a feature related to sum types in category theory and incredibly useful for code correctness.
+    ref: https://docs.microsoft.com/en-us/dotnet/fsharp/language-reference/discriminated-unions
+*)
+
+type Days = Days of int // you can alias types in F# to get a DDD kind of vibe.
+type StoryPoints = StoryPoints of int
+type Money = Money of double
+"""
+
+[<Test>]
+let ``leading comment followed by newlines should not make item multiline`` () =
+    formatSourceString
+        false
+        """
+//
+
+
+
+let a = 0
+let b =  p
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+//
+
+
+
+let a = 0
+let b = p
+"""
+
+[<Test>]
+let ``define surrounded by newlines should not make item multiline`` () =
+    formatSourceString
+        false
+        """
+let a = p
+
+#if MEH
+()
+#endif
+
+let i = 00
+let y = p
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let a = p
+
+#if MEH
+()
+#endif
+
+let i = 0
+let y = p
+"""
