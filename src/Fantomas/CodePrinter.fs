@@ -2695,8 +2695,8 @@ and genMultilineInfixExpr astContext e1 operatorText operatorExpr e2 =
                 |> Seq.tryHead
                 |> fun e ->
                     match e with
-                    | Some (Write _) -> true
-                    | _ -> false
+                    | Some (UnIndentBy _) -> false
+                    | _ -> true
 
             if lastClauseIsSingleLine then
                 ctxAfterMatch
