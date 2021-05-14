@@ -1858,3 +1858,30 @@ match x with
      with e -> printfn "failure %A" e)
 --*-- bar
 """
+
+[<Test>]
+let ``match with single line last clause followed by line comment and infix operator, 1721 `` () =
+    formatSourceString
+        false
+        """
+  let select p =
+    match p with
+    | voo _ -> "v_"
+    | dd -> "dd_"
+    | q -> "q_" // comment
+    |> List.singleton
+    |> instruction "s"
+"""
+        { config with IndentSize = 2 }
+    |> prepend newline
+    |> should
+        equal
+        """
+let select p =
+  match p with
+  | voo _ -> "v_"
+  | dd -> "dd_"
+  | q -> "q_" // comment
+  |> List.singleton
+  |> instruction "s"
+"""
