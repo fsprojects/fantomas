@@ -1640,30 +1640,46 @@ let isFunctionBinding (p: SynPat) =
 
 let (|ElmishReactWithoutChildren|_|) e =
     match e with
-    | App (OptVar (ident, _, _), [ ArrayOrList (isArray, children, _) as aolEx ])
-    | App (OptVar (ident, _, _), [ ArrayOrListOfSeqExpr (isArray, CompExpr (_, Sequentials children)) as aolEx ]) ->
-        Some(ident, isArray, children, aolEx.Range)
-    | App (OptVar (ident, _, _), [ ArrayOrListOfSeqExpr (isArray, CompExpr (_, singleChild)) as aolEx ]) ->
-        Some(ident, isArray, [ singleChild ], aolEx.Range)
+    | SynExpr.App (_,
+                   false,
+                   OptVar (ident, _, _),
+                   (ArrayOrList (isArray, children, _)
+                   | ArrayOrListOfSeqExpr (isArray, CompExpr (_, Sequentials children)) as aolEx),
+                   _) -> Some(ident, isArray, children, aolEx.Range)
+    | SynExpr.App (_,
+                   false,
+                   OptVar (ident, _, _),
+                   (ArrayOrListOfSeqExpr (isArray, CompExpr (_, singleChild)) as aolEx),
+                   _) -> Some(ident, isArray, [ singleChild ], aolEx.Range)
     | _ -> None
 
-let (|ElmishReactWithChildren|_|) e =
+let (|ElmishReactWithChildren|_|) (e: SynExpr) =
     match e with
-    | App (OptVar ident, [ ArrayOrList _ as attributes; ArrayOrList (isArray, children, _) as childrenNode ]) ->
-        Some(ident, attributes, (isArray, children, childrenNode.Range))
-    | App (OptVar ident,
-           [ ArrayOrListOfSeqExpr _ as attributes;
-             ArrayOrListOfSeqExpr (isArray, CompExpr (_, Sequentials children)) as childrenNode ]) ->
-        Some(ident, attributes, (isArray, children, childrenNode.Range))
-    | App (OptVar ident,
-           [ ArrayOrListOfSeqExpr _ as attributes;
-             ArrayOrListOfSeqExpr (isArray, CompExpr (_, singleChild)) as childrenNode ])
-    | App (OptVar ident,
-           [ ArrayOrList _ as attributes; ArrayOrListOfSeqExpr (isArray, CompExpr (_, singleChild)) as childrenNode ]) ->
-        Some(ident, attributes, (isArray, [ singleChild ], childrenNode.Range))
-    | App (OptVar ident, [ ArrayOrListOfSeqExpr _ as attributes; ArrayOrList (isArray, [], _) as childrenNode ]) ->
-        Some(ident, attributes, (isArray, [], childrenNode.Range))
-
+    | SynExpr.App (_,
+                   false,
+                   SynExpr.App (_, false, OptVar ident, (ArrayOrList _ as attributes), _),
+                   (ArrayOrList (isArray, children, _) as childrenNode),
+                   _) -> Some(ident, attributes, (isArray, children, childrenNode.Range))
+    | SynExpr.App (_,
+                   false,
+                   SynExpr.App (_, false, OptVar ident, (ArrayOrListOfSeqExpr _ as attributes), _),
+                   (ArrayOrListOfSeqExpr (isArray, CompExpr (_, Sequentials children)) as childrenNode),
+                   _) -> Some(ident, attributes, (isArray, children, childrenNode.Range))
+    | SynExpr.App (_,
+                   false,
+                   SynExpr.App (_,
+                                false,
+                                OptVar ident,
+                                ((ArrayOrListOfSeqExpr _
+                                | ArrayOrList _) as attributes),
+                                _),
+                   (ArrayOrListOfSeqExpr (isArray, CompExpr (_, singleChild)) as childrenNode),
+                   _) -> Some(ident, attributes, (isArray, [ singleChild ], childrenNode.Range))
+    | SynExpr.App (_,
+                   false,
+                   SynExpr.App (_, false, OptVar ident, (ArrayOrListOfSeqExpr _ as attributes), _),
+                   (ArrayOrList (isArray, [], _) as childrenNode),
+                   _) -> Some(ident, attributes, (isArray, [], childrenNode.Range))
     | _ -> None
 
 let isIfThenElseWithYieldReturn e =
