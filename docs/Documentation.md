@@ -57,6 +57,25 @@ Multiple paths can be passed as last argument, these can be both files and folde
 This cannot be combined with the `--out` and `--stdout` flags.  
 When combined with the `--recurse` flag, all passed folders will be processed recursively.
 
+One interesting use-case of passing down multiple paths is that you can easily control the selection and filtering of paths from the current shell.
+
+Consider the following PowerShell scripts:
+```powershell
+# Create an array with paths
+$files =
+     Get-ChildItem src/*.fs -Recurse # Find all *.fs files in src,
+     | Where-Object { $_.FullName -notlike "*obj*" } # ignore files in the `obj` folder
+     | ForEach-Object { $_.FullName } #  and select the full path name.
+
+& "dotnet" "fantomas" $files
+```
+
+```powershell
+# Filter all modified files in git
+$files = git status --porcelain | Where-Object { $_.StartsWith(" M") } | ForEach-Object { $_.Trim(" M") }
+& "dotnet" "fantomas" $files
+```
+
 ## Configuration
 
 Fantomas ships with a series of format options.
