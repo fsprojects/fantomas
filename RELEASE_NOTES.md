@@ -1,3 +1,11 @@
+### 4.5.0-alpha-017 - 05/2021
+
+* Feature Support multiple files/dirs as command-line arguments. [#1696](https://github.com/fsprojects/fantomas/issues/1696)
+* Fix Line comment after short pattern match clause causes additional parenthesis. [#1721](https://github.com/fsprojects/fantomas/issues/1721)
+* Fix Appending two lists with @ fails. [#1719](https://github.com/fsprojects/fantomas/issues/1719)
+* Fix Leading block comment makes type multiline. [#1718](https://github.com/fsprojects/fantomas/issues/1718)
+* Fix List concat chain using operators fails to format. [#1188](https://github.com/fsprojects/fantomas/issues/1188)
+
 ### 4.5.0-alpha-016 - 05/2021
 
 * Fix Unexpected newline after inner let binding. [#1709](https://github.com/fsprojects/fantomas/issues/1709)
