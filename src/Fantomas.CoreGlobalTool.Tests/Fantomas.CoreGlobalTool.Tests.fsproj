@@ -19,6 +19,7 @@
     <Compile Include="ConfigTests.fs" />
     <Compile Include="IgnoreFilesTests.fs" />
     <Compile Include="ExitCodeTests.fs" />
+    <Compile Include="MultiplePathsTests.fs" />
   </ItemGroup>
   <Import Project="..\..\.paket\Paket.Restore.targets" />
 </Project>

@@ -26,13 +26,13 @@ let ``formatted files should report exit code 0`` () =
     use fileFixture =
         new TemporaryFileCodeSample(CorrectlyFormatted)
 
-    let exitCode, _ = checkCode fileFixture.Filename
+    let { ExitCode = exitCode } = checkCode [ fileFixture.Filename ]
     exitCode |> should equal 0
 
 [<Test>]
 let ``invalid files should report exit code 1`` () =
     use fileFixture = new TemporaryFileCodeSample(WithErrors)
-    let exitCode, _ = checkCode fileFixture.Filename
+    let { ExitCode = exitCode } = checkCode [ fileFixture.Filename ]
     exitCode |> should equal 1
 
 [<Test>]
@@ -40,7 +40,7 @@ let ``files that need formatting should report exit code 99`` () =
     use fileFixture =
         new TemporaryFileCodeSample(NeedsFormatting)
 
-    let exitCode, _ = checkCode fileFixture.Filename
+    let { ExitCode = exitCode } = checkCode [ fileFixture.Filename ]
     exitCode |> should equal 99
 
 [<Test>]
@@ -53,7 +53,7 @@ let main _ = 0
     use fileFixture =
         new TemporaryFileCodeSample(codeSnippet, fileName = "Program")
 
-    let exitCode, _ = checkCode fileFixture.Filename
+    let { ExitCode = exitCode } = checkCode [ fileFixture.Filename ]
     exitCode |> should equal 0
 
 [<Test>]
@@ -73,5 +73,44 @@ let ``check with different line endings`` () =
     use fileFixture =
         new TemporaryFileCodeSample(snippetWithOtherLineEndings)
 
-    let exitCode, _ = checkCode fileFixture.Filename
+    let { ExitCode = exitCode } = checkCode [ fileFixture.Filename ]
     exitCode |> should equal 0
+
+[<Test>]
+let ``check with multiple files`` () =
+    use fileFixtureOne =
+        new TemporaryFileCodeSample("let a =  0")
+
+    use fileFixtureTwo = new TemporaryFileCodeSample("let b = 1")
+
+    let { ExitCode = exitCode; Output = output } =
+        checkCode [ fileFixtureOne.Filename
+                    fileFixtureTwo.Filename ]
+
+    exitCode |> should equal 99
+
+    let needsFormatting =
+        sprintf "%s needs formatting" (System.IO.Path.GetFileName(fileFixtureOne.Filename))
+
+    output |> should contain needsFormatting
+
+[<Test>]
+let ``check with file and folder`` () =
+    use fileFixtureOne =
+        new TemporaryFileCodeSample("let a =  0", subFolder = "sub")
+
+    use fileFixtureTwo = new TemporaryFileCodeSample("let b = 1")
+
+    let { ExitCode = exitCode; Output = output } =
+        checkCode [ fileFixtureOne.Filename
+                    fileFixtureTwo.Filename ]
+
+    exitCode |> should equal 99
+
+    let needsFormatting =
+        sprintf
+            "sub%c%s needs formatting"
+            System.IO.Path.DirectorySeparatorChar
+            (System.IO.Path.GetFileName(fileFixtureOne.Filename))
+
+    output |> should contain needsFormatting

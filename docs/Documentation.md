@@ -18,11 +18,11 @@ For the overview how to use the tool, you can type the command
 	dotnet fantomas --help
 
 ```
-USAGE: dotnet fantomas [--help] [--recurse] [--force] [--profile] [--fsi <string>] [--stdin] [--stdout] [--out <string>] [--check] [--version] [<string>]
+USAGE: dotnet fantomas [--help] [--recurse] [--force] [--profile] [--fsi <string>] [--stdin] [--stdout] [--out <string>] [--check] [--version] [<string>...]
 
 INPUT:
 
-    <string>              Input path: can be a folder or file with *.fs,*.fsi,*.fsx,*.ml,*.mli extension.
+    <string>...           Input paths: can be multiple folders or files with *.fs,*.fsi,*.fsx,*.ml,*.mli extension.
 
 OPTIONS:
 
@@ -34,7 +34,6 @@ OPTIONS:
     --stdout               Write the formatted source code to standard output.
     --out <string>        Give a valid path for files/folders. Files should have .fs, .fsx, .fsi, .ml or .mli extension only.
     --check               Don't format files, just check if they have changed. Exits with 0 if it's formatted correctly, with 1 if some files need formatting and 99 if there was an internal error
-                          was an internal error
     --version, -v         Displays the version of Fantomas
     --help                display this list of options.
 
@@ -49,6 +48,33 @@ Both paths have to be files or folders at the same time.
 If they are folders, the structure of input folder will be reflected in the output one. 
 The tool will explore the input folder recursively if you set `--recurse` option.
 If you omit the output path, Fantomas will overwrite the input files.
+
+### Multiple paths
+
+*starting version 4.5*
+
+Multiple paths can be passed as last argument, these can be both files and folders.  
+This cannot be combined with the `--out` and `--stdout` flags.  
+When combined with the `--recurse` flag, all passed folders will be processed recursively.
+
+One interesting use-case of passing down multiple paths is that you can easily control the selection and filtering of paths from the current shell.
+
+Consider the following PowerShell scripts:
+```powershell
+# Create an array with paths
+$files =
+     Get-ChildItem src/*.fs -Recurse # Find all *.fs files in src,
+     | Where-Object { $_.FullName -notlike "*obj*" } # ignore files in the `obj` folder
+     | ForEach-Object { $_.FullName } #  and select the full path name.
+
+& "dotnet" "fantomas" $files
+```
+
+```powershell
+# Filter all modified files in git
+$files = git status --porcelain | Where-Object { $_.StartsWith(" M") } | ForEach-Object { $_.Trim(" M") }
+& "dotnet" "fantomas" $files
+```
 
 ## Configuration
 
