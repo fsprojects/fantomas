@@ -1145,3 +1145,49 @@ module Foo =
 
              ret)
 """
+
+[<Test>]
+let ``combining two empty list with at`` () =
+    formatSourceString
+        false
+        """
+[] @ []
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+[] @ []
+"""
+
+[<Test>]
+let ``Appending two lists with at, 1719`` () =
+    formatSourceString
+        false
+        """
+[ 2.; 4. ] @ [ 2.; 4. ]
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+[ 2.; 4. ] @ [ 2.; 4. ]
+"""
+
+[<Test>]
+let ``list concat chain using operators, 1188`` () =
+    formatSourceString
+        false
+        """
+[1 .. 86] @ [89 .. 699] @ [901 .. 912] @ [988]
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+[ 1 .. 86 ]
+@ [ 89 .. 699 ] @ [ 901 .. 912 ] @ [ 988 ]
+"""
