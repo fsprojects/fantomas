@@ -21,8 +21,7 @@ indent_size=2
 """
         )
 
-    let exitCode, output = runFantomasTool fileFixture.Filename
-
+    let { ExitCode = exitCode; Output = output } = runFantomasTool fileFixture.Filename
     exitCode |> should equal 0
 
     output
@@ -51,7 +50,7 @@ end_of_line=cr
 """
         )
 
-    let exitCode, output = runFantomasTool fileFixture.Filename
+    let { ExitCode = exitCode; Output = output } = runFantomasTool fileFixture.Filename
     exitCode |> should equal 1
     StringAssert.Contains("Carriage returns are not valid for F# code, please use one of 'lf' or 'crlf'", output)
 
@@ -80,8 +79,7 @@ end_of_line = %s
                 setting
         )
 
-    let exitCode, _ = runFantomasTool fileFixture.Filename
-
+    let { ExitCode = exitCode } = runFantomasTool fileFixture.Filename
     exitCode |> should equal 0
 
     let result =
@@ -105,7 +103,7 @@ end_of_line = lf
 """
         )
 
-    let exitCode, _ = runFantomasTool fileFixture.Filename
+    let { ExitCode = exitCode } = runFantomasTool fileFixture.Filename
     exitCode |> should equal 0
 
     let result =

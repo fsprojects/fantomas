@@ -23,7 +23,7 @@ type Arguments =
     | [<Unique>] Out of string
     | [<Unique>] Check
     | [<Unique; AltCommandLine("-v")>] Version
-    | [<MainCommand>] Input of string
+    | [<MainCommand>] Input of string list
     interface IArgParserTemplate with
         member s.Usage =
             match s with
@@ -40,7 +40,7 @@ type Arguments =
             | Version -> "Displays the version of Fantomas"
             | Input _ ->
                 sprintf
-                    "Input path: can be a folder or file with %s extension."
+                    "Input paths: can be multiple folders or files with %s extension."
                     (Seq.map (fun s -> "*" + s) extensions
                      |> String.concat ",")
 
@@ -56,6 +56,7 @@ type InputPath =
     | File of string
     | Folder of string
     | StdIn of string
+    | Multiple of files: string list * folder: string list
     | Unspecified
 
 [<RequireQualifiedAccess>]
@@ -217,6 +218,14 @@ let runCheckCommand (recurse: bool) (inputPath: InputPath) : int =
         |> allFiles recurse
         |> check
         |> processCheckResult
+    | InputPath.Multiple (files, folders) ->
+        let allFilesToCheck =
+            seq {
+                yield! files
+                yield! (Seq.collect (allFiles recurse) folders)
+            }
+
+        allFilesToCheck |> check |> processCheckResult
 
 [<EntryPoint>]
 let main argv =
@@ -248,13 +257,34 @@ let main argv =
             results.TryGetResult <@ Arguments.Input @>
 
         match maybeInput with
-        | Some input ->
+        | Some [ input ] ->
             if Directory.Exists(input) then
                 InputPath.Folder input
             elif File.Exists input && isFSharpFile input then
                 InputPath.File input
             else
                 InputPath.Unspecified
+        | Some inputs ->
+            let isFolder (path: string) = Path.GetExtension(path) = ""
+
+            let rec loop
+                (files: string list)
+                (finalContinuation: string list * string list -> string list * string list)
+                =
+                match files with
+                | [] -> finalContinuation ([], [])
+                | h :: rest ->
+                    loop
+                        rest
+                        (fun (files, folders) ->
+                            if isFolder h then
+                                files, (h :: folders)
+                            else
+                                (h :: files), folders
+                            |> finalContinuation)
+
+            let filesAndFolders = loop inputs id
+            InputPath.Multiple filesAndFolders
         | None ->
             let hasStdin = results.Contains <@ Arguments.Stdin @>
 
@@ -384,32 +414,49 @@ let main argv =
 
             reraise ()
 
+    let filesAndFolders (files: string list) (folders: string list) : unit =
+        files
+        |> List.iter
+            (fun file ->
+                if (IgnoreFile.isIgnoredFile file) then
+                    printfn "'%s' was ignored" file
+                else
+                    processFile file file)
+
+        folders
+        |> List.iter (fun folder -> processFolder folder folder)
+
+    let check = results.Contains <@ Arguments.Check @>
+
     if Option.isSome version then
         let version = CodeFormatter.GetVersion()
         printfn "Fantomas v%s" version
+    elif check then
+        inputPath |> runCheckCommand recurse |> exit
     else
-        let check = results.Contains <@ Arguments.Check @>
-
-        if check then
-            inputPath |> runCheckCommand recurse |> exit
-        else
-            try
-                match inputPath, outputPath with
-                | InputPath.Unspecified, _ ->
-                    eprintfn "Input path is missing..."
-                    exit 1
-                | InputPath.File f, _ when (IgnoreFile.isIgnoredFile f) -> printfn "'%s' was ignored" f
-                | InputPath.Folder p1, OutputPath.Notknown -> processFolder p1 p1
-                | InputPath.File p1, OutputPath.Notknown -> processFile p1 p1
-                | InputPath.File p1, OutputPath.IO p2 -> processFile p1 p2
-                | InputPath.Folder p1, OutputPath.IO p2 -> processFolder p1 p2
-                | InputPath.StdIn s, OutputPath.IO p -> stringToFile s p FormatConfig.Default
-                | InputPath.StdIn s, OutputPath.Notknown
-                | InputPath.StdIn s, OutputPath.StdOut -> stringToStdOut s FormatConfig.Default
-                | InputPath.File p, OutputPath.StdOut -> fileToStdOut p
-                | InputPath.Folder p, OutputPath.StdOut -> allFiles recurse p |> Seq.iter fileToStdOut
-            with exn ->
-                printfn "%s" exn.Message
+        try
+            match inputPath, outputPath with
+            | InputPath.Unspecified, _ ->
+                eprintfn "Input path is missing..."
                 exit 1
+            | InputPath.File f, _ when (IgnoreFile.isIgnoredFile f) -> printfn "'%s' was ignored" f
+            | InputPath.Folder p1, OutputPath.Notknown -> processFolder p1 p1
+            | InputPath.File p1, OutputPath.Notknown -> processFile p1 p1
+            | InputPath.File p1, OutputPath.IO p2 -> processFile p1 p2
+            | InputPath.Folder p1, OutputPath.IO p2 -> processFolder p1 p2
+            | InputPath.StdIn s, OutputPath.IO p -> stringToFile s p FormatConfig.Default
+            | InputPath.StdIn s, OutputPath.Notknown
+            | InputPath.StdIn s, OutputPath.StdOut -> stringToStdOut s FormatConfig.Default
+            | InputPath.File p, OutputPath.StdOut -> fileToStdOut p
+            | InputPath.Folder p, OutputPath.StdOut -> allFiles recurse p |> Seq.iter fileToStdOut
+            | InputPath.Multiple _,
+              (OutputPath.StdOut
+              | OutputPath.IO _) ->
+                eprintfn "--stdout and --out cannot be combined with multiple files."
+                exit 1
+            | InputPath.Multiple (files, folders), OutputPath.Notknown -> filesAndFolders files folders
+        with exn ->
+            printfn "%s" exn.Message
+            exit 1
 
     0

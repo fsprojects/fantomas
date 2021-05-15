@@ -389,7 +389,6 @@ let formatWith ast defines hashTokens formatContext config =
 
         context
         |> genParsedInput ASTContext.Default ast
-        |> Dbg.tee (fun ctx -> printfn "%A" ctx.WriterEvents)
         |> Context.dump
 
     formattedSourceCode
