@@ -1748,52 +1748,6 @@ module Foo =
 """
 
 [<Test>]
-let ``mhex xx 2`` () =
-    formatSourceString
-        false
-        """
-module Foo =
-    let bar () =
-
-        let f1 = ()
-
-        let runTest () =
-            let (Thing f) =
-                [ a ; b ] |> Blah.tryConcat |> Option.get in f () |> ignore
-
-        Assert.Throws<exn> runTest |> ignore
-"""
-        { config with
-              MaxLineLength = 100
-              SpaceBeforeUppercaseInvocation = true
-              SpaceBeforeClassConstructor = true
-              SpaceBeforeMember = true
-              SpaceBeforeColon = true
-              SpaceBeforeSemicolon = true
-              MultilineBlockBracketsOnSameColumn = true
-              NewlineBetweenTypeDefinitionAndMembers = true
-              KeepIfThenInSameLine = true
-              AlignFunctionSignatureToIndentation = true
-              AlternativeLongMemberDefinitions = true
-              MultiLineLambdaClosingNewline = true
-              KeepIndentInBranch = true }
-    |> prepend newline
-    |> should
-        equal
-        """
-module Foo =
-    let bar () =
-
-        let f1 = ()
-
-        let runTest () =
-            let (Thing f) =
-                [ a ; b ] |> Blah.tryConcat |> Option.get in f () |> ignore
-
-        Assert.Throws<exn> runTest |> ignore
-"""
-
-[<Test>]
 let ``multiline return type followed by type declaration, 1624`` () =
     formatSourceString
         false
@@ -1906,4 +1860,19 @@ module PoorlyIndented =
                 dependency
 
         cmd.AsyncExecute(id = thingId)
+"""
+
+[<Test>]
+let ``short let in`` () =
+    formatSourceString
+        false
+        """
+let a = x in foo x
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let a = x in foo x
 """
