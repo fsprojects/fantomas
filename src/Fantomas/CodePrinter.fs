@@ -5401,9 +5401,24 @@ and genKeepIdentIf
         sepNln
         branches
         (fun idx (ifExpr, thenExpr, _r, _fullRange, _node) ->
-            ifElse (idx = 0) (!- "if ") (!- "elif ")
-            +> genExpr astContext ifExpr
-            +> !- " then"
+            let genIf =
+                let short =
+                    ifElse (idx = 0) (!- "if ") (!- "elif ")
+                    +> genExpr astContext ifExpr
+                    +> !- " then"
+
+                let long =
+                    ifElse (idx = 0) (!- "if ") (!- "elif ")
+                    +> indent
+                    +> sepNln
+                    +> genExpr astContext ifExpr
+                    +> unindent
+                    +> sepNln
+                    +> !- "then"
+
+                expressionFitsOnRestOfLine short long
+
+            genIf
             +> indent
             +> sepNln
             +> genExpr astContext thenExpr

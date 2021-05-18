@@ -1493,3 +1493,50 @@ module Foo =
 
         0
 """
+
+[<Test>]
+let ``multiline if condition is indented, 1729`` () =
+    formatSourceString
+        false
+        """
+let x y =
+            if not (
+                result.HasResultsFor(
+                    [ "label"
+                      "ipv4"
+                      "macAddress"
+                      "medium"
+                      "manufacturer" ]
+                )
+            ) then
+                None
+            else
+
+            let label = string result.["label"]
+            let ipv4 = string result.["ipv4"]
+            None
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let x y =
+    if
+        not (
+            result.HasResultsFor(
+                [ "label"
+                  "ipv4"
+                  "macAddress"
+                  "medium"
+                  "manufacturer" ]
+            )
+        )
+    then
+        None
+    else
+
+    let label = string result.["label"]
+    let ipv4 = string result.["ipv4"]
+    None
+"""
