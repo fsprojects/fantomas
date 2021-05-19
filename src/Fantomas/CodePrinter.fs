@@ -2703,6 +2703,24 @@ and genExprInMultilineInfixExpr astContext e =
                  sepNlnConsideringTriviaContentBeforeForMainNode t r
                  +> genExpr astContext e)
         )
+    | Paren (lpr, (Match _ as mex), rpr, pr) ->
+        fun ctx ->
+            if ctx.Config.MultiLineLambdaClosingNewline then
+                (tokN lpr LPAREN sepOpenT
+                 +> indent
+                 +> sepNln
+                 +> genExpr astContext mex
+                 +> unindent
+                 +> sepNln
+                 +> optSingle (fun rpr -> tokN rpr RPAREN sepCloseT) rpr
+                 |> genTriviaFor SynExpr_Paren pr)
+                    ctx
+            else
+                (tokN lpr LPAREN sepOpenT
+                 +> atCurrentColumnIndent (genExpr astContext mex)
+                 +> optSingle (fun rpr -> tokN rpr RPAREN sepCloseT) rpr
+                 |> genTriviaFor SynExpr_Paren pr)
+                    ctx
     | Paren (_, InfixApp (_, _, DotGet _, _), _, _)
     | Paren (_, DotGetApp _, _, _) -> atCurrentColumnIndent (genExpr astContext e)
     | MatchLambda (cs, _) ->

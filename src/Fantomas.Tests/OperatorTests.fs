@@ -1191,3 +1191,35 @@ let ``list concat chain using operators, 1188`` () =
 [ 1 .. 86 ]
 @ [ 89 .. 699 ] @ [ 901 .. 912 ] @ [ 988 ]
 """
+
+[<Test>]
+let ``comment above piped match expression, 1711`` () =
+    formatSourceString
+        false
+        """
+module Foo =
+
+    let bar =
+        baz
+        |> (
+            // Hi!
+            match false with
+            | true -> id
+            | false -> id
+        )
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+module Foo =
+
+    let bar =
+        baz
+        |> (
+            // Hi!
+            match false with
+            | true -> id
+            | false -> id)
+"""
