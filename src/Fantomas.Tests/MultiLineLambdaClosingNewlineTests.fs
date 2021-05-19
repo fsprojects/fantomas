@@ -655,3 +655,36 @@ module Foo =
             x
             y
 """
+
+[<Test>]
+let ``multiline infix application with piped match expression`` () =
+    formatSourceString
+        false
+        """
+module Foo =
+
+    let bar =
+        baz
+        |> (
+            // Hi!
+            match false with
+            | true -> id
+            | false -> id
+        )
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+module Foo =
+
+    let bar =
+        baz
+        |> (
+            // Hi!
+            match false with
+            | true -> id
+            | false -> id
+        )
+"""
