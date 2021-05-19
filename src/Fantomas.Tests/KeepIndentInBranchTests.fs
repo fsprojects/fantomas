@@ -1540,3 +1540,50 @@ let x y =
     let ipv4 = string result.["ipv4"]
     None
 """
+
+[<Test>]
+let ``value binding, 1728`` () =
+    formatSourceString
+        false
+        """
+let x =
+            if not (
+                result.HasResultsFor(
+                    [ "label"
+                      "ipv4"
+                      "macAddress"
+                      "medium"
+                      "manufacturer" ]
+                )
+            ) then
+                None
+            else
+
+            let label = string result.["label"]
+            let ipv4 = string result.["ipv4"]
+            None
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let x =
+    if
+        not (
+            result.HasResultsFor(
+                [ "label"
+                  "ipv4"
+                  "macAddress"
+                  "medium"
+                  "manufacturer" ]
+            )
+        )
+    then
+        None
+    else
+
+    let label = string result.["label"]
+    let ipv4 = string result.["ipv4"]
+    None
+"""
