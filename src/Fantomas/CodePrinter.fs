@@ -3198,9 +3198,9 @@ and genApp astContext e es ctx =
 
                             let genExprAfterArrow (e: SynExpr) ctx =
                                 if Option.isSome (findTriviaTokenFromName RARROW e.Range ctx) then
-                                    genExpr astContext e ctx
+                                    genExprKeepIndentInBranch astContext e ctx
                                 else
-                                    autoNlnIfExpressionExceedsPageWidth (genExpr astContext e) ctx
+                                    autoNlnIfExpressionExceedsPageWidth (genExprKeepIndentInBranch astContext e) ctx
 
                             leadingExpressionIsMultiline
                                 (sepOpenTFor lpr -- "fun "
@@ -3234,8 +3234,9 @@ and genApp astContext e es ctx =
 
                             let genExprAfterArrow (e: SynExpr) ctx =
                                 match findTriviaTokenFromName RARROW e.Range ctx with
-                                | Some _ -> genExpr astContext e ctx
-                                | None -> autoNlnIfExpressionExceedsPageWidth (genExpr astContext e) ctx
+                                | Some _ -> genExprKeepIndentInBranch astContext e ctx
+                                | None ->
+                                    autoNlnIfExpressionExceedsPageWidth (genExprKeepIndentInBranch astContext e) ctx
 
                             sepOpenTFor lpr -- "fun "
                             +> pats

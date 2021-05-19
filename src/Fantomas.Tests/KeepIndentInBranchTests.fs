@@ -1587,3 +1587,103 @@ let x =
     let ipv4 = string result.["ipv4"]
     None
 """
+
+[<Test>]
+let ``combination with MultiLineLambdaClosingNewline, 1715`` () =
+    formatSourceString
+        false
+        """
+module Foo =
+    let bar () =
+        let baz =
+            []
+            |> List.filter (fun ref ->
+                if ref.Type <> "h" then false
+                else
+                let m = regex.Match ref.To
+                m.Success && things |> Set.contains (m.Groups.[1].ToString ())
+            )
+        0
+"""
+        { config with
+              SpaceBeforeUppercaseInvocation = true
+              SpaceBeforeClassConstructor = true
+              SpaceBeforeMember = true
+              SpaceBeforeColon = true
+              SpaceBeforeSemicolon = true
+              AlignFunctionSignatureToIndentation = true
+              AlternativeLongMemberDefinitions = true
+              MultiLineLambdaClosingNewline = true
+              KeepIndentInBranch = true }
+    |> prepend newline
+    |> should
+        equal
+        """
+module Foo =
+    let bar () =
+        let baz =
+            []
+            |> List.filter (fun ref ->
+                if ref.Type <> "h" then
+                    false
+                else
+
+                let m = regex.Match ref.To
+
+                m.Success
+                && things |> Set.contains (m.Groups.[1].ToString ())
+            )
+
+        0
+"""
+
+[<Test>]
+let ``combination with MultiLineLambdaClosingNewline, multiple params`` () =
+    formatSourceString
+        false
+        """
+module Foo =
+    let bar () =
+        let baz =
+            []
+            |> List.filterWith X (fun ref ->
+                if ref.Type <> "h" then false
+                else
+                let m = regex.Match ref.To
+                m.Success && things |> Set.contains (m.Groups.[1].ToString ())
+            )
+        0
+"""
+        { config with
+              SpaceBeforeUppercaseInvocation = true
+              SpaceBeforeClassConstructor = true
+              SpaceBeforeMember = true
+              SpaceBeforeColon = true
+              SpaceBeforeSemicolon = true
+              AlignFunctionSignatureToIndentation = true
+              AlternativeLongMemberDefinitions = true
+              MultiLineLambdaClosingNewline = true
+              KeepIndentInBranch = true }
+    |> prepend newline
+    |> should
+        equal
+        """
+module Foo =
+    let bar () =
+        let baz =
+            []
+            |> List.filterWith
+                X
+                (fun ref ->
+                    if ref.Type <> "h" then
+                        false
+                    else
+
+                    let m = regex.Match ref.To
+
+                    m.Success
+                    && things |> Set.contains (m.Groups.[1].ToString ())
+                )
+
+        0
+"""
