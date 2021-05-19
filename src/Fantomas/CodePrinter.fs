@@ -5305,12 +5305,12 @@ and genSynBindingValue
          +> genReturnType
          +> (fun ctx -> genEqualsInBinding (equalsRange ctx) ctx))
         (fun isMultiline ctx ->
-            let short = genExpr astContext e
+            let short = genExprKeepIndentInBranch astContext e
 
             let long =
                 indent
                 +> sepNln
-                +> genExpr astContext e
+                +> genExprKeepIndentInBranch astContext e
                 +> unindent
 
             if isMultiline then
