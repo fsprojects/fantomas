@@ -1,3 +1,13 @@
+### 4.5.0-alpha-018 - 05/2021
+
+* Fix Multiline if condition in KeepIndentInBranch leads to warnings. [#1729](https://github.com/fsprojects/fantomas/issues/1729)
+* Fix KeepIndentInBranch not respected for values. [#1728](https://github.com/fsprojects/fantomas/issues/1728)
+* Fix KeepIndentInBranch not respected. [#1717](https://github.com/fsprojects/fantomas/issues/1717)
+* Fix Bad interaction between KeepIndentInBranch and MultiLambdaClosingNewLine. [#1715](https://github.com/fsprojects/fantomas/issues/1715)
+* Fix KeepIndentInBranch not being respected. [#1714](https://github.com/fsprojects/fantomas/issues/1714)
+* Fix Breaking method chain in the middle of an if statement causes offside error. [#1712](https://github.com/fsprojects/fantomas/issues/1712)
+* Fix Offside error when a comment appears before a match statement in pipeline. [#1711](https://github.com/fsprojects/fantomas/issues/1711)
+
 ### 4.5.0-alpha-017 - 05/2021
 
 * Feature Support multiple files/dirs as command-line arguments. [#1696](https://github.com/fsprojects/fantomas/issues/1696)
