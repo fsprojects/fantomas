@@ -2417,3 +2417,31 @@ if List.exists
 else
     expressionFitsOnRestOfLine shortExpression longExpression ctx
 """
+
+[<Test>]
+let ``multiline dotget chain in if expression, 1712`` () =
+    formatSourceString
+        false
+        """
+module Foo =
+    let bar =
+        if Regex("long long long long long long long long long").Match(s).Success then
+            None
+        else Some "hi"
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+module Foo =
+    let bar =
+        if
+            Regex("long long long long long long long long long")
+                .Match(s)
+                .Success
+        then
+            None
+        else
+            Some "hi"
+"""
