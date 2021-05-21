@@ -6,7 +6,7 @@
     <Description>Utility package for Fantomas</Description>
     <WarningsAsErrors>FS0025</WarningsAsErrors>
     <PackageLicenseFile>LICENSE.md</PackageLicenseFile>
-    <PackageIconUrl>fantomas_logo.png</PackageIconUrl>
+    <PackageIcon>fantomas_logo.png</PackageIcon>
   </PropertyGroup>
   <ItemGroup>
     <None Include="paket.references" />

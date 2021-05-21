@@ -12,7 +12,7 @@
     <AssemblyName>fantomas-tool</AssemblyName>
     <WarningsAsErrors>FS0025</WarningsAsErrors>
     <PackageLicenseFile>LICENSE.md</PackageLicenseFile>
-    <PackageIconUrl>fantomas_logo.png</PackageIconUrl>
+    <PackageIcon>fantomas_logo.png</PackageIcon>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\Fantomas.Extras\Fantomas.Extras.fsproj" />
