@@ -76,6 +76,10 @@ $files = git status --porcelain | Where-Object { $_.StartsWith(" M") } | ForEach
 & "dotnet" "fantomas" $files
 ```
 
+Or usage with `find` on unix:
+
+`find my-project/ -type f -name "*.fs" -not -path "*obj*" | xargs dotnet fantomas --check`
+
 ## Configuration
 
 Fantomas ships with a series of format options.
