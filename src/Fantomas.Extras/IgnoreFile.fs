@@ -25,6 +25,7 @@ module IgnoreFile =
             try
                 let fullPath = Path.GetFullPath(file)
                 ignores.Value.IsIgnored(fullPath, false)
-            with ex ->
+            with
+            | ex ->
                 printfn "%A" ex
                 false

@@ -195,7 +195,8 @@ let toSynExprs (Input s) =
             parse false s
             |> Array.map (fun (ast, _, _) -> ast)
             |> Some
-        with _ -> None
+        with
+        | _ -> None
 
     match ast with
     | Some [| (ParsedInput.ImplFile (ParsedImplFileInput ("/tmp.fsx",
@@ -222,7 +223,8 @@ let toSynExprs (Input s) =
 let tryFormatAST ast sourceCode config =
     try
         formatAST ast sourceCode config
-    with _ -> ""
+    with
+    | _ -> ""
 
 let formatConfig =
     { FormatConfig.Default with
