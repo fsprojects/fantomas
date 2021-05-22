@@ -1,3 +1,8 @@
+### 4.5.0-alpha-019 - 05/2021
+
+* Fix Offside error after formatting with MultiLineLambdaClosingNewline. [#1741](https://github.com/fsprojects/fantomas/issues/1741)
+* Fix Pipe character missing in single-case try/with. [#1571](https://github.com/fsprojects/fantomas/issues/1571)
+
 ### 4.5.0-alpha-018 - 05/2021
 
 * Fix Multiline if condition in KeepIndentInBranch leads to warnings. [#1729](https://github.com/fsprojects/fantomas/issues/1729)
