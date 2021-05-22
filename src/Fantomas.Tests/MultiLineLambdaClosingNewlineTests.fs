@@ -688,3 +688,127 @@ module Foo =
             | false -> id
         )
 """
+
+[<Test>]
+let ``inner let binding inside lambda, 1741`` () =
+    formatSourceString
+        false
+        """
+module Foo =
+
+    let bar () =
+        []
+        |> Seq.iter(fun (a, b) ->
+            let blah =
+                fieldInfos
+                |> Seq.groupBy (fun fi -> fi.Name)
+                |> Seq.filter (fst >> foo >> not)
+                |> Seq.choose (fun (name, fieldInfos) ->
+                    let fieldTypes = fieldInfos |> Seq.map (fun fi -> TypeId fi.TypeInfo.Id) |> Seq.distinct |> Seq.toList
+                    match fieldTypes with
+                    | [ fieldType ] -> // hi!
+                        let parents = fieldInfos |> Seq.cache
+                        Some (name, fieldType, parents)
+                    | _ -> // differing
+                        None
+                )
+            ()
+        )
+"""
+        { config with
+              MultiLineLambdaClosingNewline = true
+              KeepIndentInBranch = true }
+    |> prepend newline
+    |> should
+        equal
+        """
+module Foo =
+
+    let bar () =
+        []
+        |> Seq.iter (fun (a, b) ->
+            let blah =
+                fieldInfos
+                |> Seq.groupBy (fun fi -> fi.Name)
+                |> Seq.filter (fst >> foo >> not)
+                |> Seq.choose (fun (name, fieldInfos) ->
+                    let fieldTypes =
+                        fieldInfos
+                        |> Seq.map (fun fi -> TypeId fi.TypeInfo.Id)
+                        |> Seq.distinct
+                        |> Seq.toList
+
+                    match fieldTypes with
+                    | [ fieldType ] -> // hi!
+                        let parents = fieldInfos |> Seq.cache
+                        Some(name, fieldType, parents)
+                    | _ -> // differing
+                        None
+                )
+
+            ()
+        )
+"""
+
+[<Test>]
+let ``inner let binding inside lambda, multiple arguments`` () =
+    formatSourceString
+        false
+        """
+module Foo =
+
+    let bar () =
+        []
+        |> Seq.fold (fun (a, b) ->
+            let blah =
+                fieldInfos
+                |> Seq.groupBy (fun fi -> fi.Name)
+                |> Seq.filter (fst >> foo >> not)
+                |> Seq.choose (fun (name, fieldInfos) ->
+                    let fieldTypes = fieldInfos |> Seq.map (fun fi -> TypeId fi.TypeInfo.Id) |> Seq.distinct |> Seq.toList
+                    match fieldTypes with
+                    | [ fieldType ] -> // hi!
+                        let parents = fieldInfos |> Seq.cache
+                        Some (name, fieldType, parents)
+                    | _ -> // differing
+                        None
+                )
+            ()
+        ) meh
+"""
+        { config with
+              MultiLineLambdaClosingNewline = true
+              KeepIndentInBranch = true }
+    |> prepend newline
+    |> should
+        equal
+        """
+module Foo =
+
+    let bar () =
+        []
+        |> Seq.fold
+            (fun (a, b) ->
+                let blah =
+                    fieldInfos
+                    |> Seq.groupBy (fun fi -> fi.Name)
+                    |> Seq.filter (fst >> foo >> not)
+                    |> Seq.choose (fun (name, fieldInfos) ->
+                        let fieldTypes =
+                            fieldInfos
+                            |> Seq.map (fun fi -> TypeId fi.TypeInfo.Id)
+                            |> Seq.distinct
+                            |> Seq.toList
+
+                        match fieldTypes with
+                        | [ fieldType ] -> // hi!
+                            let parents = fieldInfos |> Seq.cache
+                            Some(name, fieldType, parents)
+                        | _ -> // differing
+                            None
+                    )
+
+                ()
+            )
+            meh
+"""
