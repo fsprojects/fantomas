@@ -3190,18 +3190,12 @@ and genApp astContext e es ctx =
                             let sepCloseTFor r =
                                 tokN (Option.defaultValue e.Range r) RPAREN sepCloseT
 
-                            let genExprAfterArrow (e: SynExpr) ctx =
-                                if Option.isSome (findTriviaTokenFromName RARROW e.Range ctx) then
-                                    genExprKeepIndentInBranch astContext e ctx
-                                else
-                                    autoNlnIfExpressionExceedsPageWidth (genExprKeepIndentInBranch astContext e) ctx
-
                             leadingExpressionIsMultiline
                                 (sepOpenTFor lpr -- "fun "
                                  +> pats
                                  +> indent
                                  +> triviaAfterArrow arrowRange
-                                 +> genExprAfterArrow bodyExpr
+                                 +> autoNlnIfExpressionExceedsPageWidth (genExprKeepIndentInBranch astContext bodyExpr)
                                  +> unindent)
                                 (fun isMultiline -> onlyIf isMultiline sepNln +> sepCloseTFor rpr)
                             |> genTriviaFor SynExpr_Paren pr
@@ -3226,17 +3220,11 @@ and genApp astContext e es ctx =
                             let sepCloseTFor r =
                                 tokN (Option.defaultValue e.Range r) RPAREN sepCloseT
 
-                            let genExprAfterArrow (e: SynExpr) ctx =
-                                match findTriviaTokenFromName RARROW e.Range ctx with
-                                | Some _ -> genExprKeepIndentInBranch astContext e ctx
-                                | None ->
-                                    autoNlnIfExpressionExceedsPageWidth (genExprKeepIndentInBranch astContext e) ctx
-
                             sepOpenTFor lpr -- "fun "
                             +> pats
                             +> indent
                             +> triviaAfterArrow arrowRange
-                            +> genExprAfterArrow bodyExpr
+                            +> autoNlnIfExpressionExceedsPageWidth (genExprKeepIndentInBranch astContext bodyExpr)
                             +> unindent
                             +> sepNln
                             +> sepCloseTFor rpr
