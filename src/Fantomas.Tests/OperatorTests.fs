@@ -226,13 +226,16 @@ let ``should understand ? as an infix operator`` () =
     |> fun (t : Task) -> t.Wait()
 with _ -> ()"""
         config
+    |> prepend newline
     |> should
         equal
-        """try
+        """
+try
     item.MethodInfo.Method.Invoke(null, ipa)
     |> (fun x -> x?Invoke (true))
     |> fun (t: Task) -> t.Wait()
-with _ -> ()
+with
+| _ -> ()
 """
 
 [<Test>]

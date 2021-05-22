@@ -1992,63 +1992,16 @@ and genExpr astContext synExpr ctx =
                 atCurrentColumn (colWithNlnWhenItemIsMultilineUsingConfig items) ctx
         // Could customize a bit if e is single line
         | TryWith (e, cs) ->
-            let prefix =
-                kw TRY !- "try "
-                +> indent
-                +> sepNln
-                +> genExpr astContext e
-                +> unindent
-                +> kw WITH !+~ "with"
-
-            let hasCommentBeforeClause (c: SynMatchClause) (ctx: Context) : bool =
-                let barRange = ctx.MkRange e.Range.End c.Range.Start
-
-                let nodes =
-                    (Map.tryFindOrEmptyList SynMatchClause_Clause ctx.TriviaMainNodes
-                     |> List.choose
-                         (fun node ->
-                             if RangeHelpers.rangeEq node.Range c.Range then
-                                 Some node
-                             else
-                                 None))
-                    @ (Map.tryFindOrEmptyList BAR ctx.TriviaTokenNodes
-                       |> List.choose
-                           (fun node ->
-                               if RangeHelpers.``range contains`` barRange node.Range then
-                                   Some node
-                               else
-                                   None))
-
-                List.exists TriviaHelpers.``has single line comment before`` nodes
-
-
-            let genClause (astContext: ASTContext) (b: bool) (c: SynMatchClause) =
-                ifElseCtx
-                    (hasCommentBeforeClause c)
-                    (indentOnWith
-                     +> genClause astContext b c
-                     +> unindentOnWith)
-                    (genClause astContext b c)
-
-            match cs with
-            | [ SynMatchClause.Clause (PatOr _, _, _, _, _) ]
-            | [ SynMatchClause.Clause (PatNamed (_, PatOr _, _), _, _, _, _) ] ->
-                atCurrentColumn (
-                    prefix
-                    +> indentOnWith
-                    +> sepNln
-                    +> col sepNln cs (genClause astContext true)
-                    +> unindentOnWith
-                )
-            | [ c ] -> atCurrentColumn (prefix +> sepSpace +> genClause astContext false c)
-            | _ ->
-                atCurrentColumn (
-                    prefix
-                    +> indentOnWith
-                    +> sepNln
-                    +> col sepNln cs (genClause astContext true)
-                    +> unindentOnWith
-                )
+            kw TRY !- "try "
+            +> indent
+            +> sepNln
+            +> genExpr astContext e
+            +> unindent
+            +> kw WITH !+~ "with"
+            +> indentOnWith
+            +> sepNln
+            +> col sepNln cs (genClause astContext true)
+            +> unindentOnWith
 
         | TryFinally (e1, e2) ->
             atCurrentColumn (
