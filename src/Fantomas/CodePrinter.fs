@@ -1992,16 +1992,18 @@ and genExpr astContext synExpr ctx =
                 atCurrentColumn (colWithNlnWhenItemIsMultilineUsingConfig items) ctx
         // Could customize a bit if e is single line
         | TryWith (e, cs) ->
-            kw TRY !- "try "
-            +> indent
-            +> sepNln
-            +> genExpr astContext e
-            +> unindent
-            +> kw WITH !+~ "with"
-            +> indentOnWith
-            +> sepNln
-            +> col sepNln cs (genClause astContext true)
-            +> unindentOnWith
+            atCurrentColumn (
+                kw TRY !- "try "
+                +> indent
+                +> sepNln
+                +> genExpr astContext e
+                +> unindent
+                +> kw WITH !+~ "with"
+                +> indentOnWith
+                +> sepNln
+                +> col sepNln cs (genClause astContext true)
+                +> unindentOnWith
+            )
 
         | TryFinally (e1, e2) ->
             atCurrentColumn (
