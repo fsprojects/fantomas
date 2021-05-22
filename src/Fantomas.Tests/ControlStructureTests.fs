@@ -1146,3 +1146,34 @@ try
 with
     | exc -> ()
 """
+
+[<Test>]
+let ``try/with in infix expression should be indented, 1746`` () =
+    formatSourceString
+        false
+        """
+    let isAbstractNonVirtualMember (m: FSharpMemberOrFunctionOrValue) =
+      // is an abstract member
+      m.IsDispatchSlot
+      // this member doesn't implement anything
+      && (try m.ImplementedAbstractSignatures <> null &&  m.ImplementedAbstractSignatures.Count = 0 with _ -> true) // exceptions here trying to acces the member means we're safe
+      // this member is not an override
+      && not m.IsOverrideOrExplicitInterfaceImplementation
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let isAbstractNonVirtualMember (m: FSharpMemberOrFunctionOrValue) =
+    // is an abstract member
+    m.IsDispatchSlot
+    // this member doesn't implement anything
+    && (try
+            m.ImplementedAbstractSignatures <> null
+            && m.ImplementedAbstractSignatures.Count = 0
+        with
+        | _ -> true) // exceptions here trying to acces the member means we're safe
+    // this member is not an override
+    && not m.IsOverrideOrExplicitInterfaceImplementation
+"""
