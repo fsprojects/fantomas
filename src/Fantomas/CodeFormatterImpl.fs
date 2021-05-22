@@ -373,7 +373,8 @@ let isValidFSharpCode (checker: FSharpChecker) (parsingOptions: FSharpParsingOpt
                 |> Array.forall (fun (a, _, _) -> isValidAST a)
 
             return isValid
-        with _ -> return false
+        with
+        | _ -> return false
     }
 
 let formatWith ast defines hashTokens formatContext config =
