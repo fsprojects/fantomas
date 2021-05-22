@@ -461,7 +461,8 @@ let start (args: IArgs) =
                 .Run()
 
             0
-        with ex ->
+        with
+        | ex ->
             Log.Fatal(ex, "Host terminated unexpectedly")
             1
     finally
@@ -1311,7 +1312,8 @@ try
 #if DEF
     ()
 #endif
-with _ -> ()
+with
+| _ -> ()
 """
 
 [<Test>]
@@ -2350,7 +2352,8 @@ module ReactHookExtensions =
 
                         let! output = operation
                         do setDeferred (Deferred<'T>.Resolved output)
-                    with error ->
+                    with
+                    | error ->
 #if DEBUG
                         Browser.Dom.console.log (error)
 #endif

@@ -1502,7 +1502,8 @@ let main argv =
                     new StreamWriter(outFile)
 
             buffer.Flush()
-        with exn -> eprintfn "The following exception occurred while formatting %s: %O" inFile exn
+        with
+        | exn -> eprintfn "The following exception occurred while formatting %s: %O" inFile exn
 
     0
 """
