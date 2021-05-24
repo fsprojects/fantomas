@@ -87,6 +87,7 @@
     <Compile Include="KeepIndentInBranchTests.fs" />
     <Compile Include="BlankLinesAroundNestedMultilineExpressions.fs" />
     <Compile Include="ColMultilineItemTests.fs" />
+    <Compile Include="KeepBarBeforeDiscriminatedUnionDeclarationTests.fs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Fantomas.Extras\Fantomas.Extras.fsproj" />

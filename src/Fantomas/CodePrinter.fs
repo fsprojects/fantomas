@@ -24,8 +24,6 @@ type ASTContext =
       IsCStylePattern: bool
       /// Range operators are naked in 'for..in..do' constructs
       IsNakedRange: bool
-      /// The optional `|` in pattern matching and union type definitions
-      HasVerticalBar: bool
       /// A field is rendered as union field or not
       IsUnionField: bool
       /// First type param might need extra spaces to avoid parsing errors on `<^`, `<'`, etc.
@@ -37,7 +35,6 @@ type ASTContext =
           InterfaceRange = None
           IsCStylePattern = false
           IsNakedRange = false
-          HasVerticalBar = false
           IsUnionField = false
           IsFirstTypeParam = false
           IsInsideMatchClausePattern = false }
@@ -3427,12 +3424,7 @@ and genTypeDefn astContext (TypeDef (ats, px, ao, tds, tcs, tdr, ms, s, preferPo
         +> genTriviaFor
             SynTypeDefnSimpleRepr_Enum
             tdr.Range
-            (col
-                sepNln
-                ecs
-                (genEnumCase
-                    { astContext with
-                          HasVerticalBar = true })
+            (col sepNln ecs (genEnumCase astContext)
              +> onlyIf (List.isNotEmpty ms) sepNln
              +> sepNlnBetweenTypeAndMembers tdr ms
              +> genMemberDefnList
@@ -3442,34 +3434,31 @@ and genTypeDefn astContext (TypeDef (ats, px, ao, tds, tcs, tdr, ms, s, preferPo
              // Add newline after un-indent to be spacing-correct
              +> unindent)
 
-    | Simple (TDSRUnion (ao', xs) as unionNode) ->
-        let hasLeadingTrivia (t: TriviaNode) =
-            RangeHelpers.rangeEq t.Range unionNode.Range
-            && not (List.isEmpty t.ContentBefore)
-
-        let unionCases ctx =
+    | Simple (TDSRUnion (ao', xs)) ->
+        let unionCases (ctx: Context) =
             match xs with
             | [] -> ctx
             | [ UnionCase (attrs, _, _, _, UnionCaseType fields) as x ] when List.isEmpty ms ->
-
                 let hasVerticalBar =
-                    (Option.isSome ao' && List.length fields <> 1)
-                    || (Map.tryFindOrEmptyList SynTypeDefnSimpleRepr_Union ctx.TriviaMainNodes)
-                       |> List.exists hasLeadingTrivia
-                    || not (List.isEmpty attrs)
+                    ctx.Config.KeepBarBeforeDiscriminatedUnionDeclaration
+                    || List.isNotEmpty attrs
                     || List.isEmpty fields
 
-                let expr =
+                let short =
                     genTriviaFor
                         SynTypeDefnSimpleRepr_Union
                         tdr.Range
                         (opt sepSpace ao' genAccess
-                         +> genUnionCase
-                             { astContext with
-                                   HasVerticalBar = hasVerticalBar }
-                             x)
+                         +> genUnionCase astContext hasVerticalBar x)
 
-                expressionFitsOnRestOfLine (indent +> sepSpace +> expr) (indent +> sepNln +> expr) ctx
+                let long =
+                    genTriviaFor
+                        SynTypeDefnSimpleRepr_Union
+                        tdr.Range
+                        (opt sepSpace ao' genAccess
+                         +> genUnionCase astContext true x)
+
+                expressionFitsOnRestOfLine (indent +> sepSpace +> short) (indent +> sepNln +> long) ctx
             | xs ->
                 indent
                 +> sepNln
@@ -3477,12 +3466,7 @@ and genTypeDefn astContext (TypeDef (ats, px, ao, tds, tcs, tdr, ms, s, preferPo
                     SynTypeDefnSimpleRepr_Union
                     tdr.Range
                     (opt sepNln ao' genAccess
-                     +> col
-                         sepNln
-                         xs
-                         (genUnionCase
-                             { astContext with
-                                   HasVerticalBar = true }))
+                     +> col sepNln xs (genUnionCase astContext true))
                 <| ctx
 
         typeName
@@ -3774,57 +3758,44 @@ and genSigTypeDefn astContext (SigTypeDef (ats, px, ao, tds, tcs, tdr, ms, s, pr
         +> sepEq
         +> indent
         +> sepNln
-        +> col
-            sepNln
-            ecs
-            (genEnumCase
-                { astContext with
-                      HasVerticalBar = true })
+        +> col sepNln ecs (genEnumCase astContext)
         +> sepNlnBetweenSigTypeAndMembers tdr ms
         +> colPre sepNln sepNln ms (genMemberSig astContext)
         // Add newline after un-indent to be spacing-correct
         +> unindent
 
-    | SigSimple (TDSRUnion (ao', xs) as unionNode) ->
-        let hasLeadingTrivia (t: TriviaNode) =
-            RangeHelpers.rangeEq t.Range unionNode.Range
-            && not (List.isEmpty t.ContentBefore)
-
-        let unionCases =
+    | SigSimple (TDSRUnion (ao', xs)) ->
+        let unionCases (ctx: Context) =
             match xs with
-            | [] -> id
+            | [] -> ctx
             | [ UnionCase (attrs, _, _, _, UnionCaseType fields) as x ] when List.isEmpty ms ->
-                let hasVerticalBar (ctx: Context) =
-                    (Option.isSome ao' && List.length fields <> 1)
-                    || (Map.tryFindOrEmptyList SynTypeDefnSimpleRepr_Union ctx.TriviaMainNodes)
-                       |> List.exists hasLeadingTrivia
-                    || not (List.isEmpty attrs)
+                let hasVerticalBar =
+                    ctx.Config.KeepBarBeforeDiscriminatedUnionDeclaration
+                    || List.isNotEmpty attrs
                     || List.isEmpty fields
 
-                let expr =
+                let short =
                     genTriviaFor
                         SynTypeDefnSimpleRepr_Union
                         tdr.Range
                         (opt sepSpace ao' genAccess
-                         +> (fun ctx ->
-                             genUnionCase
-                                 { astContext with
-                                       HasVerticalBar = hasVerticalBar ctx }
-                                 x
-                                 ctx))
+                         +> genUnionCase astContext hasVerticalBar x)
 
-                expressionFitsOnRestOfLine (indent +> sepSpace +> expr) (indent +> sepNln +> expr)
+                let long =
+                    genTriviaFor
+                        SynTypeDefnSimpleRepr_Union
+                        tdr.Range
+                        (opt sepSpace ao' genAccess
+                         +> genUnionCase astContext true x)
+
+                expressionFitsOnRestOfLine (indent +> sepSpace +> short) (indent +> sepNln +> long) ctx
             | xs ->
-                indent
-                +> sepNln
-                +> (opt sepNln ao' genAccess
-                    +> col
-                        sepNln
-                        xs
-                        (genUnionCase
-                            { astContext with
-                                  HasVerticalBar = true })
-                    |> genTriviaFor SynTypeDefnSimpleRepr_Union tdr.Range)
+                (indent
+                 +> sepNln
+                 +> (opt sepNln ao' genAccess
+                     +> col sepNln xs (genUnionCase astContext true)
+                     |> genTriviaFor SynTypeDefnSimpleRepr_Union tdr.Range))
+                    ctx
 
         typeName
         +> sepEq
@@ -4075,10 +4046,7 @@ and genExceptionBody astContext ats px ao uc =
     genPreXmlDoc px +> genAttributes astContext ats
     -- "exception "
     +> opt sepSpace ao genAccess
-    +> genUnionCase
-        { astContext with
-              HasVerticalBar = false }
-        uc
+    +> genUnionCase astContext false uc
 
 and genException astContext (ExceptionDef (ats, px, ao, uc, ms) as node) =
     genExceptionBody astContext ats px ao uc
@@ -4099,7 +4067,7 @@ and genSigException astContext (SigExceptionDef (ats, px, ao, uc, ms)) =
     genExceptionBody astContext ats px ao uc
     +> colPre sepNln sepNln ms (genMemberSig astContext)
 
-and genUnionCase astContext (UnionCase (ats, px, _, s, UnionCaseType fs) as node) =
+and genUnionCase astContext (hasVerticalBar: bool) (UnionCase (ats, px, _, s, UnionCaseType fs) as node) =
     let shortExpr =
         colPre wordOf sepStar fs (genField { astContext with IsUnionField = true } "")
 
@@ -4112,7 +4080,7 @@ and genUnionCase astContext (UnionCase (ats, px, _, s, UnionCaseType fs) as node
 
     genPreXmlDoc px
     +> genTriviaBeforeClausePipe node.Range
-    +> ifElse astContext.HasVerticalBar sepBar sepNone
+    +> ifElse hasVerticalBar sepBar sepNone
     +> genOnelinerAttributes astContext ats
     -- s
     +> expressionFitsOnRestOfLine shortExpr longExpr
@@ -4146,7 +4114,7 @@ and genEnumCase astContext (EnumCase (ats, px, _, (_, _)) as node) =
 
     genPreXmlDoc px
     +> genTriviaBeforeClausePipe node.Range
-    +> ifElse astContext.HasVerticalBar sepBar sepNone
+    +> sepBar
     +> genOnelinerAttributes astContext ats
     +> genCase
 

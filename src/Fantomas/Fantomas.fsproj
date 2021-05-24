@@ -35,7 +35,6 @@
     <Compile Include="CodeFormatterImpl.fs" />
     <Compile Include="CodeFormatter.fsi" />
     <Compile Include="CodeFormatter.fs" />
-    <None Include="CodeFormatter.fsx" />
   </ItemGroup>
   <Import Project="..\..\.paket\Paket.Restore.targets" />
 </Project>
