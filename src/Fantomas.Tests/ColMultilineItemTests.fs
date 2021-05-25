@@ -527,3 +527,28 @@ let a = p
 let i = 0
 let y = p
 """
+
+[<Test>]
+let ``two short application followed by trailing block comment, 1538`` () =
+    formatSourceString
+        false
+        """
+printfn "%s" @"c:\def\ghi\jkl"
+printfn "%s" "c:\\def\\ghi\\jkl"
+
+(*
+xyz
+*)
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+printfn "%s" @"c:\def\ghi\jkl"
+printfn "%s" "c:\\def\\ghi\\jkl"
+
+(*
+xyz
+*)
+"""
