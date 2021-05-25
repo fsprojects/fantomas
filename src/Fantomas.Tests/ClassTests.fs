@@ -834,3 +834,65 @@ type ISingleExpressionValue<'p, 'o, 'v when 'p :> IProperty and 'o :> IOperator 
     abstract Operator : 'o
     abstract Value : 'v
 """
+
+[<Test>]
+let ``comment before multiline class member`` () =
+    formatSourceString
+        false
+        """
+type MaybeBuilder () =
+    member inline __.Bind
+// meh
+        (value, binder : 'T -> 'U option) : 'U option =
+        Option.bind binder value
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type MaybeBuilder() =
+    member inline __.Bind
+        // meh
+        (
+            value,
+            binder: 'T -> 'U option
+        ) : 'U option =
+        Option.bind binder value
+"""
+
+[<Test>]
+let ``define hashes around member binding, 1753`` () =
+    formatSourceString
+        false
+        """
+[<Sealed>]
+type MaybeBuilder () =
+    // M<'T> * ('T -> M<'U>) -> M<'U>
+#if DEBUG
+    member __.Bind
+#else
+    member inline __.Bind
+#endif
+        (value, binder : 'T -> 'U option) : 'U option =
+        Option.bind binder value
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+[<Sealed>]
+type MaybeBuilder() =
+    // M<'T> * ('T -> M<'U>) -> M<'U>
+#if DEBUG
+    member __.Bind
+#else
+    member inline __.Bind
+#endif
+        (
+            value,
+            binder: 'T -> 'U option
+        ) : 'U option =
+        Option.bind binder value
+"""

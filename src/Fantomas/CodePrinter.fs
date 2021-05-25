@@ -4991,7 +4991,8 @@ and genSynBindingFunction
         let long (ctx: Context) =
             let genParameters, hasSingleTupledArg =
                 match parameters with
-                | [ _, PatParen (PatTuple ps) ] -> genParenTupleWithIndentAndNewlines ps astContext, true
+                | [ _, (PatParen (PatTuple ps) as pp) ] ->
+                    genParenTupleWithIndentAndNewlines astContext ps pp.Range, true
                 | _ -> col sepNln parameters (genPatWithIdent astContext), false
 
             (genPref
@@ -5100,7 +5101,8 @@ and genSynBindingFunctionWithReturnType
         let long (ctx: Context) =
             let genParameters, hasSingleTupledArg =
                 match parameters with
-                | [ _, PatParen (PatTuple ps) ] -> genParenTupleWithIndentAndNewlines ps astContext, true
+                | [ _, (PatParen (PatTuple ps) as pp) ] ->
+                    genParenTupleWithIndentAndNewlines astContext ps pp.Range, true
                 | _ -> col sepNln parameters (genPatWithIdent astContext), false
 
             (genPref
@@ -5256,7 +5258,7 @@ and genSynBindingValue
             else
                 isShortExpression ctx.Config.MaxValueBindingWidth short long ctx)
 
-and genParenTupleWithIndentAndNewlines ps astContext =
+and genParenTupleWithIndentAndNewlines (astContext: ASTContext) (ps: SynPat list) (pr: range) : Context -> Context =
     sepOpenT
     +> indent
     +> sepNln
@@ -5264,6 +5266,7 @@ and genParenTupleWithIndentAndNewlines ps astContext =
     +> unindent
     +> sepNln
     +> sepCloseT
+    |> genTriviaFor SynPat_Paren pr
 
 and collectMultilineItemForSynExprKeepIndent
     (astContext: ASTContext)
