@@ -15,6 +15,7 @@ type WriterEvent =
     | WriteLineInsideStringConst
     | WriteBeforeNewline of string
     | WriteLineBecauseOfTrivia
+    | WriteLineInsideTrivia
     | IndentBy of int
     | UnIndentBy of int
     | SetIndent of int
@@ -94,7 +95,8 @@ module WriterModel =
             match cmd with
             | WriteLine
             | WriteLineBecauseOfTrivia -> doNewline m
-            | WriteLineInsideStringConst ->
+            | WriteLineInsideStringConst
+            | WriteLineInsideTrivia ->
                 { m with
                       Lines = "" :: m.Lines
                       Column = 0 }
@@ -150,9 +152,14 @@ module WriterEvents =
     let normalize ev =
         match ev with
         | Write s when s.Contains("\n") ->
+            let writeLine =
+                match ev with
+                | CommentOrDefineEvent _ -> WriteLineInsideTrivia
+                | _ -> WriteLineInsideStringConst
+
             s.Split('\n')
             |> Seq.map (fun x -> [ Write x ])
-            |> Seq.reduce (fun x y -> x @ [ WriteLineInsideStringConst ] @ y)
+            |> Seq.reduce (fun x y -> x @ [ writeLine ] @ y)
             |> Seq.toList
         | _ -> [ ev ]
 
