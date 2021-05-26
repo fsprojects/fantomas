@@ -1,3 +1,9 @@
+### 4.5.0-alpha-020 - 05/2021
+
+* Feature Always place bar in front of discriminated union. [#1750](https://github.com/fsprojects/fantomas/issues/1750)
+* Fix Trivia before SynPat.Paren. [#1753](https://github.com/fsprojects/fantomas/issues/1753)
+* Fix Idempotency problem when trailing comment is present. [#1538](https://github.com/fsprojects/fantomas/issues/1538)
+
 ### 4.5.0-alpha-019 - 05/2021
 
 * Fix Offside error after formatting with MultiLineLambdaClosingNewline. [#1741](https://github.com/fsprojects/fantomas/issues/1741)
