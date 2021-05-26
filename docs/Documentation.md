@@ -124,6 +124,7 @@ fsharp_multi_line_lambda_closing_newline=false
 fsharp_disable_elmish_syntax=false
 fsharp_keep_indent_in_branch=false
 fsharp_blank_lines_around_nested_multiline_expressions=true
+fsharp_bar_before_discriminated_union_declaration=false
 fsharp_strict_mode=false
 ```
 
@@ -1155,6 +1156,21 @@ let topLevelFunction () =
 let secondTopLevelFunction () =
     // ...
     ()
+```
+
+### fsharp_bar_before_discriminated_union_declaration
+
+Always use a `|` before every case in the declaration of a discriminated union. If `false`, a `|` character is used only in multiple-case discriminated unions, and is omitted in short single-case DUs.
+Default = false.
+
+```fsharp
+type MyDU = Short of int
+```
+
+`{ defaultConfig with BarBeforeDiscriminatedUnionDeclaration = true }`
+
+```fsharp
+type MyDU = | Short of int
 ```
 
 ### fsharp_strict_mode

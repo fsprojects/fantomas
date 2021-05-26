@@ -618,7 +618,7 @@ namespace X
 type UnresolvedAssemblyReference = UnresolvedAssemblyReference of string * AssemblyReference list
 
 type ResolvedExtensionReference =
-    ResolvedExtensionReference of string * AssemblyReference list * Tainted<ITypeProvider> list
+    | ResolvedExtensionReference of string * AssemblyReference list * Tainted<ITypeProvider> list
 """
 
 [<Test>]
@@ -641,7 +641,7 @@ namespace X
 type UnresolvedAssemblyReference = UnresolvedAssemblyReference of string * AssemblyReference list
 
 type ResolvedExtensionReference =
-    ResolvedExtensionReference of string * AssemblyReference list * Tainted<ITypeProvider> list
+    | ResolvedExtensionReference of string * AssemblyReference list * Tainted<ITypeProvider> list
 """
 
 [<Test>]
@@ -751,4 +751,47 @@ type A =
 #if DEBUG
     | C
 #endif
+"""
+
+[<Test>]
+let ``multiline DU case`` () =
+    formatSourceString
+        false
+        """
+[<NoEquality; NoComparison>]
+type SynBinding =
+    SynBinding of
+                        accessibility: SynAccess option *
+                        kind: SynBindingKind *
+                        mustInline: bool *
+                        isMutable: bool *
+                        attributes: SynAttributes *
+                        xmlDoc: PreXmlDoc *
+                        valData: SynValData *
+                        headPat: SynPat *
+                        returnInfo: SynBindingReturnInfo option *
+                        expr: SynExpr *
+                        range: range *
+                        seqPoint: DebugPointAtBinding
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+[<NoEquality; NoComparison>]
+type SynBinding =
+    | SynBinding of
+        accessibility: SynAccess option *
+        kind: SynBindingKind *
+        mustInline: bool *
+        isMutable: bool *
+        attributes: SynAttributes *
+        xmlDoc: PreXmlDoc *
+        valData: SynValData *
+        headPat: SynPat *
+        returnInfo: SynBindingReturnInfo option *
+        expr: SynExpr *
+        range: range *
+        seqPoint: DebugPointAtBinding
 """

@@ -460,3 +460,23 @@ fsharp_keep_indent_in_branch = true
         EditorConfig.readConfiguration fsharpFile.FSharpFile
 
     Assert.IsTrue config.KeepIndentInBranch
+
+[<Test>]
+let fsharp_bar_before_discriminated_union_declaration () =
+    let rootDir = tempName ()
+
+    let editorConfig =
+        """
+[*.fs]
+fsharp_bar_before_discriminated_union_declaration = true
+"""
+
+    use configFixture =
+        new ConfigurationFile(defaultConfig, rootDir, content = editorConfig)
+
+    use fsharpFile = new FSharpFile(rootDir)
+
+    let config =
+        EditorConfig.readConfiguration fsharpFile.FSharpFile
+
+    Assert.IsTrue config.BarBeforeDiscriminatedUnionDeclaration
