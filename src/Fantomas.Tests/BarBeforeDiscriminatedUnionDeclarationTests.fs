@@ -1,4 +1,4 @@
-﻿module Fantomas.Tests.KeepBarBeforeDiscriminatedUnionDeclarationTests
+﻿module Fantomas.Tests.BarBeforeDiscriminatedUnionDeclarationTests
 
 open NUnit.Framework
 open FsUnit
@@ -8,7 +8,7 @@ let defaultConfig = config
 
 let config =
     { config with
-          KeepBarBeforeDiscriminatedUnionDeclaration = true }
+          BarBeforeDiscriminatedUnionDeclaration = true }
 
 [<Test>]
 let ``single DU without fields`` () =
@@ -127,4 +127,19 @@ exception LoadedSourceNotFoundIgnoring of string * range (*filename*)
         equal
         """
 exception LoadedSourceNotFoundIgnoring of string * range (*filename*)
+"""
+
+[<Test>]
+let ``attribute before single case`` () =
+    formatSourceString
+        false
+        """
+type Foo =   | [<SomeAttributeHere>] Foo of int
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type Foo = | [<SomeAttributeHere>] Foo of int
 """

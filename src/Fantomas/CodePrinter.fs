@@ -3440,7 +3440,7 @@ and genTypeDefn astContext (TypeDef (ats, px, ao, tds, tcs, tdr, ms, s, preferPo
             | [] -> ctx
             | [ UnionCase (attrs, _, _, _, UnionCaseType fields) as x ] when List.isEmpty ms ->
                 let hasVerticalBar =
-                    ctx.Config.KeepBarBeforeDiscriminatedUnionDeclaration
+                    ctx.Config.BarBeforeDiscriminatedUnionDeclaration
                     || List.isNotEmpty attrs
                     || List.isEmpty fields
 
@@ -3770,7 +3770,7 @@ and genSigTypeDefn astContext (SigTypeDef (ats, px, ao, tds, tcs, tdr, ms, s, pr
             | [] -> ctx
             | [ UnionCase (attrs, _, _, _, UnionCaseType fields) as x ] when List.isEmpty ms ->
                 let hasVerticalBar =
-                    ctx.Config.KeepBarBeforeDiscriminatedUnionDeclaration
+                    ctx.Config.BarBeforeDiscriminatedUnionDeclaration
                     || List.isNotEmpty attrs
                     || List.isEmpty fields
 

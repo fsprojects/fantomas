@@ -95,7 +95,7 @@ type FormatConfig =
       EndOfLine: EndOfLineStyle
       KeepIndentInBranch: bool
       BlankLinesAroundNestedMultilineExpressions: bool
-      KeepBarBeforeDiscriminatedUnionDeclaration: bool
+      BarBeforeDiscriminatedUnionDeclaration: bool
       /// Pretty printing based on ASTs only
       StrictMode: bool }
 
@@ -137,5 +137,5 @@ type FormatConfig =
           EndOfLine = EndOfLineStyle.FromEnvironment
           KeepIndentInBranch = false
           BlankLinesAroundNestedMultilineExpressions = true
-          KeepBarBeforeDiscriminatedUnionDeclaration = false
+          BarBeforeDiscriminatedUnionDeclaration = false
           StrictMode = false }
