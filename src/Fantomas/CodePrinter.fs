@@ -2603,7 +2603,8 @@ and genOnelinerInfixExpr astContext e1 operatorText operatorExpr e2 =
 and genMultilineInfixExpr astContext e1 operatorText operatorExpr e2 =
     let genE1 (ctx: Context) =
         match e1 with
-        | SynExpr.IfThenElse _
+        | SynExpr.IfThenElse _ when (ctx.Config.IndentSize - 1 <= operatorText.Length) ->
+            autoParenthesisIfExpressionExceedsPageWidth (genExpr astContext e1) ctx
         | SynExpr.Match _ when (ctx.Config.IndentSize <= operatorText.Length) ->
             let ctxAfterMatch = genExpr astContext e1 ctx
 

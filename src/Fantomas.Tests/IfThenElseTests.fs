@@ -2446,3 +2446,46 @@ module Foo =
         else
             Some "hi"
 """
+
+[<Test>]
+let ``multiline if/then/else followed by infix, 1757`` () =
+    formatSourceString
+        false
+        """
+           let name =
+                if typ.GenericParameter.IsSolveAtCompileTime then "^" else "'"
+                + typ.GenericParameter.Name
+"""
+        { config with IndentSize = 2 }
+    |> prepend newline
+    |> should
+        equal
+        """
+let name =
+  (if typ.GenericParameter.IsSolveAtCompileTime then
+     "^"
+   else
+     "'")
+  + typ.GenericParameter.Name
+"""
+
+[<Test>]
+let ``multiline if/then/else followed by infix, no parenthesis needed`` () =
+    formatSourceString
+        false
+        """
+           let name =
+                if typ.GenericParameter.IsSolveAtCompileTime then "^" else "'"
+                + typ.GenericParameter.Name
+"""
+        { config with
+              IndentSize = 2
+              MaxIfThenElseShortWidth = 9000 }
+    |> prepend newline
+    |> should
+        equal
+        """
+let name =
+  if typ.GenericParameter.IsSolveAtCompileTime then "^" else "'"
+  + typ.GenericParameter.Name
+"""
