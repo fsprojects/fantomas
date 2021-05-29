@@ -5314,7 +5314,11 @@ and genLastClauseKeepIdent (astContext: ASTContext) (Clause (pat, expr, whenExpr
     +> genPat astContext pat
     +> sepSpace
     +> optSingle (genExpr astContext) whenExpr
-    +> sepArrowFixed
+    +> (fun ctx ->
+        let arrowRange =
+            ctx.MkRange pat.Range.End expr.Range.Start
+
+        tokN arrowRange FsTokenType.RARROW sepArrowFixed ctx)
     +> sepNln
     +> (let t, r = synExprToFsAstType expr in sepNlnConsideringTriviaContentBeforeForMainNode t r)
     +> genExprKeepIndentInBranch astContext expr

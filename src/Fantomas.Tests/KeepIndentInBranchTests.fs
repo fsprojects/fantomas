@@ -1689,3 +1689,42 @@ module Foo =
 
         0
 """
+
+[<Test>]
+let ``comment after arrow, 1759`` () =
+    formatSourceString
+        false
+        """
+let mapOperationToWebPart (operation: OpenApiOperationDescription) : SynExpr =
+    let verb = mkIdentExpr (operation.Method.ToUpper())
+    let route =
+        match operation with
+        | _ -> // no route parameters
+            let route = mkAppNonAtomicExpr (mkIdentExpr "route") (mkStringExprConst operation.Path)
+            let responseHttpFunc =
+                mkLambdaExpr [ ] unitExpr
+                |> mkParenExpr
+            infixFish route responseHttpFunc
+
+    infixFish verb route
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let mapOperationToWebPart (operation: OpenApiOperationDescription) : SynExpr =
+    let verb = mkIdentExpr (operation.Method.ToUpper())
+
+    let route =
+        match operation with
+        | _ -> // no route parameters
+
+        let route =
+            mkAppNonAtomicExpr (mkIdentExpr "route") (mkStringExprConst operation.Path)
+
+        let responseHttpFunc = mkLambdaExpr [] unitExpr |> mkParenExpr
+        infixFish route responseHttpFunc
+
+    infixFish verb route
+"""
