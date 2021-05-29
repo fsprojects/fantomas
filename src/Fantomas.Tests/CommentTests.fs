@@ -1523,3 +1523,38 @@ let v = f null // comment
         """
 let v = f null // comment
 """
+
+[<Test>]
+let ``newline followed by line comment at end of file, 1468`` () =
+    formatSourceString
+        false
+        """
+Host
+    .CreateDefaultBuilder()
+    .ConfigureWebHostDefaults(fun webHostBuilder ->
+        webHostBuilder
+            .Configure(configureApp)
+            .ConfigureServices(configureServices)
+        |> ignore)
+    .Build()
+    .Run()
+
+//
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+Host
+    .CreateDefaultBuilder()
+    .ConfigureWebHostDefaults(fun webHostBuilder ->
+        webHostBuilder
+            .Configure(configureApp)
+            .ConfigureServices(configureServices)
+        |> ignore)
+    .Build()
+    .Run()
+
+//
+"""
