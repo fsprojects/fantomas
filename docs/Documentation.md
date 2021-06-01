@@ -71,8 +71,8 @@ $files =
 ```
 
 ```powershell
-# Filter all modified files in git
-$files = git status --porcelain | Where-Object { $_.StartsWith(" M") } | ForEach-Object { $_.Trim(" M") }
+# Filter all added and modified files in git
+$files = git status --porcelain | Where-Object { $_ -match "^\s?A?M(.*)\.fs(x|i)?$" } | ForEach-Object { $_.TrimStart("AM").TrimStart(" ", "M") }
 & "dotnet" "fantomas" $files
 ```
 
