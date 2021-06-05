@@ -1,3 +1,12 @@
+### 4.5.0-beta-001 - 06/2021
+
+* Fix Comment after arrow lost with KeepIndentInBranch. [#1759](https://github.com/fsprojects/fantomas/issues/1759)
+* Fix Multiline if/then/else in infix expression. [#1757](https://github.com/fsprojects/fantomas/issues/1757)
+* Fix Newline and comment trivia are mixed up. [#1468](https://github.com/fsprojects/fantomas/issues/1468)
+* Fix Inline lambda in argument list causes problems for argument chopping and lambda alignment. [#1028](https://github.com/fsprojects/fantomas/issues/1028)
+* Fix Difference in behavior between signature and implementation files for single case DU. [#973](https://github.com/fsprojects/fantomas/issues/973)
+* Fix Concatenation of multi-line """ strings mis-indented. [#639](https://github.com/fsprojects/fantomas/issues/639)
+
 ### 4.5.0-alpha-020 - 05/2021
 
 * Feature Always place bar in front of discriminated union. [#1750](https://github.com/fsprojects/fantomas/issues/1750)
