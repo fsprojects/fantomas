@@ -795,3 +795,30 @@ type SynBinding =
         range: range *
         seqPoint: DebugPointAtBinding
 """
+
+[<Test>]
+let ``comment above union case in signature file, 973`` () =
+    formatSourceString
+        true
+        """
+namespace foo
+
+type SynTypeConstraint =
+
+    /// F# syntax: is 'typar: struct
+    | WhereTyparIsValueType of
+        typar: SynTypar *
+        range: range
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+namespace foo
+
+type SynTypeConstraint =
+
+    /// F# syntax: is 'typar: struct
+    | WhereTyparIsValueType of typar: SynTypar * range: range
+"""
