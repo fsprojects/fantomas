@@ -834,3 +834,49 @@ fun _ _ -> ()
         """
 fun _ _ -> ()
 """
+
+[<Test>]
+let ``lambda argument in multiline function application, 1028`` () =
+    formatSourceString
+        false
+        """
+module Lifecycle =
+
+
+  let init config =
+    async {
+      cfg <- config
+      do!
+        MassTransit.init
+          cfg.LoggerFactory cfg.AzureServiceBusConnStr cfg.QueueName cfg.LoggerFactory
+          (fun reg ->
+            reg.Consume User.handleUserInitiatedRegistration
+            reg.Consume User.handleUserUpdated
+            reg.Consume User.handleGetSessionUserIdRequest
+          )
+    }
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+module Lifecycle =
+
+
+    let init config =
+        async {
+            cfg <- config
+
+            do!
+                MassTransit.init
+                    cfg.LoggerFactory
+                    cfg.AzureServiceBusConnStr
+                    cfg.QueueName
+                    cfg.LoggerFactory
+                    (fun reg ->
+                        reg.Consume User.handleUserInitiatedRegistration
+                        reg.Consume User.handleUserUpdated
+                        reg.Consume User.handleGetSessionUserIdRequest)
+        }
+"""
