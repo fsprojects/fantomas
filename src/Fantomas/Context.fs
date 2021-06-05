@@ -1427,7 +1427,7 @@ let internal addExtraNewlineIfLeadingWasMultiline leading sepNlnConsideringTrivi
             +> continuation)
 
 type internal ColMultilineItem =
-    ColMultilineItem of
+    | ColMultilineItem of
         // current expression
         expr: (Context -> Context) *
         // sepNln of current item
