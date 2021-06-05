@@ -30,3 +30,4 @@ group build
     nuget Fake.Tools.Git
     nuget Fake.Core.Process
     nuget Fake.Core.Target
+    nuget MSBuild.StructuredLogger 2.1.500
