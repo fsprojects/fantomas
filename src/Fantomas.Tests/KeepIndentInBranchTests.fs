@@ -1728,3 +1728,45 @@ let mapOperationToWebPart (operation: OpenApiOperationDescription) : SynExpr =
 
     infixFish verb route
 """
+
+[<Test>]
+let ``multiline infix application, 1768`` () =
+    formatSourceString
+        false
+        """
+let updateModuleInImpl (ast: ParsedInput) (mdl: SynModuleOrNamespace) : ParsedInput =
+    match ast with
+    | ParsedInput.SigFile _ -> ast
+    | ParsedInput.ImplFile _ ->
+        ParsedImplFileInput(
+            fileName,
+            isScript,
+            qualifiedNameOfFile,
+            scopedPragmas,
+            hashDirectives,
+            [ mdl ],
+            isLastAndCompiled
+        )
+        |> ParsedInput.ImplFile
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let updateModuleInImpl (ast: ParsedInput) (mdl: SynModuleOrNamespace) : ParsedInput =
+    match ast with
+    | ParsedInput.SigFile _ -> ast
+    | ParsedInput.ImplFile _ ->
+
+    ParsedImplFileInput(
+        fileName,
+        isScript,
+        qualifiedNameOfFile,
+        scopedPragmas,
+        hashDirectives,
+        [ mdl ],
+        isLastAndCompiled
+    )
+    |> ParsedInput.ImplFile
+"""
