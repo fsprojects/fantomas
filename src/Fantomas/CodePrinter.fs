@@ -2465,17 +2465,19 @@ and genExpr astContext synExpr ctx =
 
                 let genInterpolatedFillExpr expr =
                     fun ctx ->
-                        genExpr
-                            astContext
-                            expr
-                            { ctx with
-                                  Config =
-                                      { ctx.Config with
-                                            // override the max line length for the interpolated expression.
-                                            // this is to avoid scenarios where the long / multiline format of the expresion will be used
-                                            // where the construct is this short
-                                            // see unit test ``construct url with Fable``
-                                            MaxLineLength = ctx.WriterModel.Column + ctx.Config.MaxLineLength } }
+                        let currentConfig = ctx.Config
+
+                        let interpolatedConfig =
+                            { currentConfig with
+                                  // override the max line length for the interpolated expression.
+                                  // this is to avoid scenarios where the long / multiline format of the expresion will be used
+                                  // where the construct is this short
+                                  // see unit test ``construct url with Fable``
+                                  MaxLineLength = ctx.WriterModel.Column + ctx.Config.MaxLineLength }
+
+                        genExpr astContext expr { ctx with Config = interpolatedConfig }
+                        // Restore the existing configuration after printing the interpolated expression
+                        |> fun ctx -> { ctx with Config = currentConfig }
                     |> atCurrentColumnIndent
 
                 let expr =
