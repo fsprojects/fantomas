@@ -2551,3 +2551,41 @@ let Environment =
         member _.SetEnvironmentVariable(varName, value) =
             System.Environment.SetEnvironmentVariable(varName, value) }
 """
+
+[<Test>]
+let ``hash directive above recursive let binding inside type definition, 1776`` () =
+    formatSourceString
+        false
+        """
+    type ObjectGraphFormatter(opts: FormatOptions, bindingFlags) =
+        let rec nestedObjL depthLim prec (x:obj, ty:Type) =
+            objL ShowAll depthLim prec (x, ty)
+        and stringValueL (s: string) =
+            countNodes 1
+#if COMPILER
+            ()
+#else
+            wordL (tagStringLiteral (formatString s))
+#endif
+
+        and arrayValueL depthLim (arr: Array) =
+            ()
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type ObjectGraphFormatter(opts: FormatOptions, bindingFlags) =
+    let rec nestedObjL depthLim prec (x: obj, ty: Type) = objL ShowAll depthLim prec (x, ty)
+
+    and stringValueL (s: string) =
+        countNodes 1
+#if COMPILER
+        ()
+#else
+        wordL (tagStringLiteral (formatString s))
+#endif
+
+    and arrayValueL depthLim (arr: Array) = ()
+"""

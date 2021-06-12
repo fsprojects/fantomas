@@ -4588,8 +4588,26 @@ and genMemberDefn astContext node =
             else
                 "let "
 
-        genLetBinding { astContext with IsFirstChild = true } prefix b
-        +> colPre sepNln sepNln bs (genLetBinding { astContext with IsFirstChild = false } "and ")
+        let items =
+            let bsItems =
+                bs
+                |> List.map
+                    (fun andBinding ->
+                        let expr =
+                            enterNodeFor (synBindingToFsAstType b) andBinding.RangeOfBindingAndRhs
+                            +> genLetBinding { astContext with IsFirstChild = false } "and " andBinding
+
+                        ColMultilineItem(
+                            expr,
+                            sepNlnConsideringTriviaContentBeforeForMainNode
+                                NormalBinding_
+                                andBinding.RangeOfBindingAndRhs
+                        ))
+
+            ColMultilineItem(genLetBinding { astContext with IsFirstChild = true } prefix b, sepNone)
+            :: bsItems
+
+        colWithNlnWhenItemIsMultilineUsingConfig items
 
     | MDInterface (t, mdo, range) ->
         !- "interface "
