@@ -2181,7 +2181,7 @@ type Box() =
         equal
         """
 type Box() =
-    let mutable color : string = null
+    let mutable color: string = null
 
     // A Box has a color property with get and set.
     member x.Color

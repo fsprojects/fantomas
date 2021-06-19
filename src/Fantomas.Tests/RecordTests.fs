@@ -357,8 +357,8 @@ let ``anon record`` () =
     |> should
         equal
         """
-let r : {| Foo: int
-           Bar: string |} =
+let r: {| Foo: int
+          Bar: string |} =
     {| Foo = 123
        Bar = "" |}
 """
@@ -376,8 +376,8 @@ let ``anon record - struct`` () =
     |> should
         equal
         """
-let r : struct {| Foo: int
-                  Bar: string |} =
+let r: struct {| Foo: int
+                 Bar: string |} =
     struct {| Foo = 123
               Bar = "" |}
 """
@@ -1205,7 +1205,7 @@ type XX =
 type XX =
     { a: int
       b: int }
-    static member foo : int = 30
+    static member foo: int = 30
 """
 
 [<Test>]
@@ -1228,7 +1228,7 @@ type XX =
     { a: int
       b: int }
 
-    static member private foo : int = 30
+    static member private foo: int = 30
 """
 
 [<Test>]

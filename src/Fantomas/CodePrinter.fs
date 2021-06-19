@@ -5201,7 +5201,12 @@ and genSynBindingValue
     let genReturnType =
         match returnType with
         | Some rt ->
-            sepColonWithSpacesFixed
+            let hasGenerics =
+                match valueName with
+                | SynPat.LongIdent (_, _, Some _, _, _, _) -> true
+                | _ -> false
+
+            ifElse hasGenerics sepColonWithSpacesFixed sepColon
             +> genType astContext false rt
         | None -> sepNone
 
