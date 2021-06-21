@@ -880,3 +880,20 @@ module Lifecycle =
                         reg.Consume User.handleGetSessionUserIdRequest)
         }
 """
+
+[<Test>]
+let ``return lambda from lambda, 1782`` () =
+    formatSourceString
+        false
+        """
+let x =
+    fun _ ->
+        fun _ -> "hello"
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let x = fun _ -> fun _ -> "hello"
+"""

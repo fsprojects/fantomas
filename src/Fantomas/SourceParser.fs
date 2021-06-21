@@ -1246,14 +1246,19 @@ let (|Clause|) (SynMatchClause.Clause (p, eo, e, _, _)) = (p, e, eo)
 let (|Lambda|_|) =
     function
     | SynExpr.Lambda (_, _, _, _, Some (pats, body), range) ->
+        let maxDepth = List.length pats
         // find the body expression from the last lambda
-        let rec visit (e: SynExpr) : SynExpr =
-            match e with
-            | SynExpr.Match (matchSeqPoint = NoDebugPointAtInvisibleBinding; clauses = [ Clause (_, expr, _) ])
-            | SynExpr.Lambda (_, _, _, SynExpr.Match(clauses = [ Clause (_, expr, _) ]), _, _) -> visit expr
-            | _ -> e
+        let rec visit (currentDepth: int) (e: SynExpr) : SynExpr =
+            if currentDepth < maxDepth then
+                match e with
+                | SynExpr.Match (matchSeqPoint = NoDebugPointAtInvisibleBinding; clauses = [ Clause (_, expr, _) ])
+                | SynExpr.Lambda (_, _, _, SynExpr.Match(clauses = [ Clause (_, expr, _) ]), _, _) ->
+                    visit (currentDepth + 1) expr
+                | _ -> e
+            else
+                e
 
-        Some(pats, visit body, range)
+        Some(pats, visit 0 body, range)
     | _ -> None
 
 // Type definitions
