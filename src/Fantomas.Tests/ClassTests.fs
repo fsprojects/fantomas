@@ -265,7 +265,7 @@ and File(filename: string, containingFolder: Folder) =
         """
 type Folder(pathIn: string) =
     let path = pathIn
-    let filenameArray : string array = System.IO.Directory.GetFiles(path)
+    let filenameArray: string array = System.IO.Directory.GetFiles(path)
     member this.FileArray = Array.map (fun elem -> new File(elem, this)) filenameArray
 
 and File(filename: string, containingFolder: Folder) =

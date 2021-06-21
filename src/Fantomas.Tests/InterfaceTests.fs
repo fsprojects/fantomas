@@ -586,7 +586,7 @@ and Bar =
         member this.Value = ()
 
         [<SomeAttribute>]
-        member this.ValueWithReturnType : unit = ()
+        member this.ValueWithReturnType: unit = ()
 
         [<SomeAttribute>]
         member this.SomeFunction(a: int) = 4 + a

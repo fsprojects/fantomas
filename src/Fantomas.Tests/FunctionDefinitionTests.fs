@@ -154,7 +154,7 @@ let ``=foo hoo`` () = ()
 let ``-foo hoo`` () = ()
 let ``!foo hoo`` () : unit = ()
 let ``@foo hoo`` = ()
-let ``$foo hoo`` : unit = ()
+let ``$foo hoo``: unit = ()
 """
 
 [<Test>]
@@ -178,8 +178,8 @@ let ``let bindings with return types`` () =
         equal
         """
 let divide x y =
-    let stream : System.IO.FileStream = System.IO.File.Create("test.txt")
-    let writer : System.IO.StreamWriter = new System.IO.StreamWriter(stream)
+    let stream: System.IO.FileStream = System.IO.File.Create("test.txt")
+    let writer: System.IO.StreamWriter = new System.IO.StreamWriter(stream)
 
     try
         writer.WriteLine("test1")
@@ -1027,12 +1027,12 @@ let e<'t> : int = 8
     |> should
         equal
         """
-let a : int = 7
-let private b : string = ""
-let internal c : int = 8
+let a: int = 7
+let private b: string = ""
+let internal c: int = 8
 
 [<Foo>]
-let d : int = 9
+let d: int = 9
 
 let e<'t> : int = 8
 """
@@ -1111,20 +1111,20 @@ let e<'t> : int =
     |> should
         equal
         """
-let a : int =
+let a: int =
     // a comment makes things multiline
     7
 
-let private b : string =
+let private b: string =
     // a comment makes things multiline
     ""
 
-let internal c : int =
+let internal c: int =
     // a comment makes things multiline
     8
 
 [<Foo>]
-let d : int =
+let d: int =
     // a comment makes things multiline
     9
 

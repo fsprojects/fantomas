@@ -936,11 +936,11 @@ let ``module with nested directives`` () =
 #else
     [<Import("*", "react-dom")>]
 #endif
-    let ReactDom : IReactDom = jsNative
+    let ReactDom: IReactDom = jsNative
 
 #if !FABLE_REPL_LIB
     [<Import("default", "react-dom/server")>]
-    let ReactDomServer : IReactDomServer = jsNative
+    let ReactDomServer: IReactDomServer = jsNative
 #endif
 """
 
@@ -969,11 +969,11 @@ let ``module with nested directives, no defines`` () =
 #else
     [<Import("*", "react-dom")>]
 #endif
-    let ReactDom : IReactDom = jsNative
+    let ReactDom: IReactDom = jsNative
 
 #if !FABLE_REPL_LIB
     [<Import("default", "react-dom/server")>]
-    let ReactDomServer : IReactDomServer = jsNative
+    let ReactDomServer: IReactDomServer = jsNative
 #endif
 """
 
@@ -1002,7 +1002,7 @@ let ``module with nested directives, FABLE_REPL_LIB`` () =
 #else
 
 #endif
-    let ReactDom : IReactDom = jsNative
+    let ReactDom: IReactDom = jsNative
 
 #if !FABLE_REPL_LIB
 

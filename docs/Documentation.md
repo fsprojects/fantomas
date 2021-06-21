@@ -329,22 +329,22 @@ type Person() =
 
 ### fsharp_space_before_colon
 
-Add a space before `:`.
+Add a space before `:`. Please note that not every `:` is controlled by this setting.
 Default = false.
 
 `defaultConfig`
 
 ```fsharp
 type Point = { x: int; y: int }
-
-let update (msg: Msg) (model: Model): Model = model
+let myValue: int = 42 // See https://docs.microsoft.com/en-us/dotnet/fsharp/style-guide/formatting#right-pad-value-and-function-argument-type-annotations
+let update (msg: Msg) (model: Model) : Model = model // See https://docs.microsoft.com/en-us/dotnet/fsharp/style-guide/formatting#surround-return-type-annotations-with-white-space
 ```
 
 `{ defaultConfig with SpaceBeforeColon = true }`
 
 ```fsharp
 type Point = { x : int; y : int }
-
+let myValue : int = 42
 let update (msg : Msg) (model : Model) : Model = model
 ```
 

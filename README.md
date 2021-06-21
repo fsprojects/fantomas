@@ -72,7 +72,7 @@ We use [BenchmarkDotNet](https://github.com/dotnet/BenchmarkDotNet) to collect d
 This project aims at formatting F# source files based on a given configuration.
 Fantomas will ensure correct indentation and consistent spacing between elements in the source files.
 We assume that the source files are *parsable by F# compiler* before feeding into the tool.
-Fantomas follows the formatting guideline being described in [A comprehensive guide to F# Formatting Conventions](docs/FormattingConventions.md).
+Fantomas follows two F# style guides: the [F# code formatting guidelines](https://docs.microsoft.com/en-us/dotnet/fsharp/style-guide/formatting) from Microsoft by default and the [G-Research F# code formatting guidelines](https://github.com/G-Research/fsharp-formatting-conventions) via various [settings](https://github.com/G-Research/fsharp-formatting-conventions/blob/master/.editorconfig).
 
 ## Use cases
 The project is developed with the following use cases in mind:

@@ -452,7 +452,7 @@ triple quotes string thing
     |> should
         equal
         "
-let foo : string =
+let foo: string =
     \"\"\"moo,
 long
 triple quotes string thing

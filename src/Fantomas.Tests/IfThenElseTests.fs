@@ -2203,7 +2203,7 @@ type internal Foo2 private () =
         equal
         """
 type internal Foo private () =
-    static member Bar : int option =
+    static member Bar: int option =
         if thing = 1 then
             printfn "hi"
         else if veryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryLong
@@ -2214,7 +2214,7 @@ type internal Foo private () =
             failwith ""
 
 type internal Foo2 private () =
-    static member Bar : int option =
+    static member Bar: int option =
         if thing = 1 then
             printfn "hi"
         else if veryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryLong

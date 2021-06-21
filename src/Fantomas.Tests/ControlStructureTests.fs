@@ -734,7 +734,7 @@ let foldi (folder: 'State -> int -> 'T -> 'State) (state: 'State) (array: 'T [])
         let folder =
             OptimizedClosures.FSharpFunc<_, _, _, _>.Adapt folder
 
-        let mutable state : 'State = state
+        let mutable state: 'State = state
         let len = array.Length
 
         for i = 0 to len - 1 do

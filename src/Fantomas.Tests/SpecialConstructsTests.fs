@@ -39,7 +39,7 @@ x.G[].TryFind 3
 type F =
     abstract G : int list -> Map<int,int>
 
-let x : F =
+let x: F =
     {new F with
         member __.G _ = Map.empty}
 

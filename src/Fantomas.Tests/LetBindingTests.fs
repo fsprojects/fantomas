@@ -350,8 +350,8 @@ let someFun someReallyLoooooooooooooooongValue =
 
 [<Test>]
 let ``should keep space before :`` () =
-    formatSourceString false "let refl<'a> : Teq<'a, 'a> = Teq(id,   id)" config
-    |> fun formatted -> formatSourceString false formatted config
+    formatSourceString false "let refl<'a> : Teq<'a, 'a> = Teq(id,   id)" { config with SpaceBeforeColon = true }
+    |> fun formatted -> formatSourceString false formatted { config with SpaceBeforeColon = true }
     |> should
         equal
         "let refl<'a> : Teq<'a, 'a> = Teq(id, id)
@@ -1620,7 +1620,7 @@ let myFun (a: decimal) b c : decimal = a + b + c
     |> should
         equal
         """
-let expensiveToCompute : int = 0
+let expensiveToCompute: int = 0
 let myFun (a: decimal) b c : decimal = a + b + c
 """
 
@@ -1772,7 +1772,7 @@ type Viewport =
     |> should
         equal
         """
-let useGeolocation : unit
+let useGeolocation: unit
     -> {| latitude: float
           longitude: float
           loading: bool

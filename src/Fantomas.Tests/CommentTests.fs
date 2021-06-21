@@ -51,7 +51,7 @@ let print_30_permut() =
 let print_30_permut () =
 
     /// declare and initialize
-    let permutation : int array =
+    let permutation: int array =
         Array.init
             n
             (fun i ->
@@ -80,7 +80,7 @@ let print_30_permut() =
 let print_30_permut () =
 
     /// declare and initialize
-    let permutation : int array =
+    let permutation: int array =
         Array.init
             n
             (fun (i, j) ->
