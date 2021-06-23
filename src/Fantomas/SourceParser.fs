@@ -1721,7 +1721,7 @@ let private shouldNotIndentBranch e es =
         match e with
         | SimpleExpr _
         | Sequential (_, _, true)
-        | App (SimpleExpr _, [ SimpleExpr _ ]) -> true
+        | App _ -> true
         | _ -> false
 
     let isLongElseBranch e =
