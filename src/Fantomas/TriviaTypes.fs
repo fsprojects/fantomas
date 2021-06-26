@@ -1,7 +1,7 @@
 module Fantomas.TriviaTypes
 
-open FSharp.Compiler.SourceCodeServices
 open FSharp.Compiler.Text
+open FSharp.Compiler.Tokenization
 
 type FsTokenType =
     | AMP
@@ -193,11 +193,11 @@ type FsAstType =
     | SynMemberSig_NestedType
     | SynIndexerArg_One
     | SynIndexerArg_Two
-    | SynMatchClause_Clause
+    | SynMatchClause_
     | ArgOptions_
-    | InterfaceImpl_
-    | TypeDefn_
-    | TypeDefnSig_
+    | SynInterfaceImpl_
+    | SynTypeDefn_
+    | SynTypeDefnSig_
     // | SynTypeDefnSigRepr_ObjectModel use first nested node
     | SynTypeDefnSigRepr_Exception
     | SynMemberDefn_Open
@@ -217,14 +217,14 @@ type FsAstType =
     | SynSimplePat_Attrib
     | SynSimplePats_SimplePats
     | SynSimplePats_Typed
-    | StandaloneExpression_
-    | NormalBinding_
-    | DoBinding_
+    | SynBindingKind_StandaloneExpression
+    | SynBindingKind_Normal
+    | SynBindingKind_Do
     | SynBindingReturnInfo_
     | SynValTyparDecls_
-    | TyparDecl_
-    | Typar_
-    | ValSpfn_
+    | SynTyparDecl_
+    // | Typar_ , unused
+    | SynValSig_
     // | SynPat_Const, use SynConst instead
     | SynPat_Wild
     | SynPat_Named
@@ -265,23 +265,24 @@ type FsAstType =
     | SynConst_Bytes
     | SynConst_UInt16s
     | SynConst_Measure
-    | Pats_
-    | NamePatPairs_
-    | ComponentInfo_
+    | SynConst_SourceIdentifier
+    | SynArgPats_Pats
+    | SynArgPats_NamePatPairs
+    | SynComponentInfo_
     // | SynTypeDefnRepr_ObjectModel use first nested node
     // | SynTypeDefnRepr_Simple use first nested node
     | SynTypeDefnRepr_Exception
-    | SynTypeDefnKind_TyconUnspecified
-    | SynTypeDefnKind_TyconClass
-    | SynTypeDefnKind_TyconInterface
-    | SynTypeDefnKind_TyconStruct
-    | SynTypeDefnKind_TyconRecord
-    | SynTypeDefnKind_TyconUnion
-    | SynTypeDefnKind_TyconAbbrev
-    | SynTypeDefnKind_TyconHiddenRepr
-    | SynTypeDefnKind_TyconAugmentation
-    | SynTypeDefnKind_TyconILAssemblyCode
-    | SynTypeDefnKind_TyconDelegate
+    | SynTypeDefnKind_Unspecified
+    | SynTypeDefnKind_Class
+    | SynTypeDefnKind_Interface
+    | SynTypeDefnKind_Struct
+    | SynTypeDefnKind_Record
+    | SynTypeDefnKind_Union
+    | SynTypeDefnKind_Abbrev
+    | SynTypeDefnKind_Opaque
+    | SynTypeDefnKind_Augmentation
+    | SynTypeDefnKind_IL
+    | SynTypeDefnKind_Delegate
     | SynTypeDefnSimpleRepr_None
     | SynTypeDefnSimpleRepr_Union
     | SynTypeDefnSimpleRepr_Enum
@@ -294,9 +295,9 @@ type FsAstType =
     | SynExceptionDefnRepr_
     | SynAttribute_
     | SynAttributeList_
-    | UnionCase_
-    | UnionCaseFields_
-    | UnionCaseFullType_
+    | SynUnionCase_
+    | SynUnionCaseKind_Fields
+    | SynUnionCaseKind_FullType
     | EnumCase_
     | Field_
     | SynType_LongIdent

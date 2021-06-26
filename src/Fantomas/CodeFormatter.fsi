@@ -3,8 +3,8 @@ namespace Fantomas
 open Fantomas.FormatConfig
 open Fantomas.SourceOrigin
 open FSharp.Compiler.Text
-open FSharp.Compiler.SourceCodeServices
-open FSharp.Compiler.SyntaxTree
+open FSharp.Compiler.CodeAnalysis
+open FSharp.Compiler.Syntax
 
 [<Sealed>]
 type CodeFormatter =
