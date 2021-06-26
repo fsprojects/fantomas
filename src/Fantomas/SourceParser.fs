@@ -1,11 +1,11 @@
 module internal Fantomas.SourceParser
 
 open System
-open FSharp.Compiler.SourceCodeServices.PrettyNaming
-open FSharp.Compiler.SourceCodeServices.FSharpKeywords
+open FSharp.Compiler.Syntax
+open FSharp.Compiler.Syntax.PrettyNaming
+open FSharp.Compiler.Tokenization.FSharpKeywords
 open FSharp.Compiler.Text
-open FSharp.Compiler.SyntaxTree
-open FSharp.Compiler.XmlDoc
+open FSharp.Compiler.Xml
 open Fantomas
 open Fantomas.AstExtensions
 open Fantomas.TriviaTypes
@@ -176,10 +176,10 @@ let (|OpNameFull|) (x: Identifier) =
 
 // Type params
 
-let inline (|Typar|) (SynTypar.Typar (Ident s, req, _)) =
+let inline (|Typar|) (SynTypar.SynTypar (Ident s, req, _)) =
     match req with
-    | NoStaticReq -> (s, false)
-    | HeadTypeStaticReq -> (s, true)
+    | TyparStaticReq.None -> (s, false)
+    | TyparStaticReq.HeadType -> (s, true)
 
 let inline (|ValTyparDecls|) (SynValTyparDecls (tds, b, tcs)) = (tds, b, tcs)
 
@@ -215,7 +215,7 @@ let (|Measure|) x =
 
 let (|String|_|) e =
     match e with
-    | SynExpr.Const (SynConst.String (s, _), _) -> Some s
+    | SynExpr.Const (SynConst.String (s, _, _), _) -> Some s
     | _ -> None
 
 let (|Unit|_|) =
@@ -321,11 +321,8 @@ let (|Types|_|) =
 
 let (|NestedModule|_|) =
     function
-    | SynModuleDecl.NestedModule (SynComponentInfo.ComponentInfo (ats, _, _, LongIdent s, px, _, ao, _),
-                                  isRecursive,
-                                  xs,
-                                  _,
-                                  _) -> Some(ats, px, ao, s, isRecursive, xs)
+    | SynModuleDecl.NestedModule (SynComponentInfo (ats, _, _, LongIdent s, px, _, ao, _), isRecursive, xs, _, _) ->
+        Some(ats, px, ao, s, isRecursive, xs)
     | _ -> None
 
 let (|Exception|_|) =
@@ -372,7 +369,7 @@ let (|SigTypes|_|) =
 
 let (|SigNestedModule|_|) =
     function
-    | SynModuleSigDecl.NestedModule (SynComponentInfo.ComponentInfo (ats, _, _, LongIdent s, px, _, ao, _), _, xs, _) ->
+    | SynModuleSigDecl.NestedModule (SynComponentInfo (ats, _, _, LongIdent s, px, _, ao, _), _, xs, _) ->
         Some(ats, px, ao, s, xs)
     | _ -> None
 
@@ -397,17 +394,18 @@ let (|SigExceptionDef|)
     =
     (ats, px, ao, uc, ms)
 
-let (|UnionCase|) (SynUnionCase.UnionCase (ats, Ident s, uct, px, ao, _)) = (ats, px, ao, s, uct)
+let (|UnionCase|) (SynUnionCase (ats, Ident s, uct, px, ao, _)) = (ats, px, ao, s, uct)
 
 let (|UnionCaseType|) =
     function
-    | SynUnionCaseType.UnionCaseFields fs -> fs
-    | SynUnionCaseType.UnionCaseFullType _ -> failwith "UnionCaseFullType should be used internally only."
+    | SynUnionCaseKind.Fields fs -> fs
+    | SynUnionCaseKind.FullType _ -> failwith "UnionCaseFullType should be used internally only."
 
-let (|Field|) (SynField.Field (ats, isStatic, ido, t, isMutable, px, ao, _)) =
+let (|Field|) (SynField (ats, isStatic, ido, t, isMutable, px, ao, _)) =
     (ats, px, ao, isStatic, isMutable, t, Option.map (|Ident|) ido)
 
-let (|EnumCase|) (SynEnumCase.EnumCase (ats, Ident s, c, px, r)) = (ats, px, s, (c, r))
+// TODO: use added range in CodePrinter
+let (|EnumCase|) (SynEnumCase (ats, Ident s, c, _, px, r)) = (ats, px, s, (c, r))
 
 // Member definitions (11 cases)
 
@@ -458,7 +456,7 @@ let (|MDLetBindings|_|) =
 
 let (|MDAbstractSlot|_|) =
     function
-    | SynMemberDefn.AbstractSlot (ValSpfn (ats, Ident s, tds, t, vi, _, _, px, ao, _, _), mf, _) ->
+    | SynMemberDefn.AbstractSlot (SynValSig (ats, Ident s, tds, t, vi, _, _, px, ao, _, _), mf, _) ->
         Some(ats, px, ao, s, t, vi, tds, mf)
     | _ -> None
 
@@ -475,43 +473,43 @@ let (|MDAutoProperty|_|) =
 
 // Interface impl
 
-let (|InterfaceImpl|) (SynInterfaceImpl.InterfaceImpl (t, bs, range)) = (t, bs, range)
+let (|InterfaceImpl|) (SynInterfaceImpl (t, bs, range)) = (t, bs, range)
 
 // Bindings
 
 let (|PropertyGet|_|) =
     function
-    | MemberKind.PropertyGet -> Some()
+    | SynMemberKind.PropertyGet -> Some()
     | _ -> None
 
 let (|PropertySet|_|) =
     function
-    | MemberKind.PropertySet -> Some()
+    | SynMemberKind.PropertySet -> Some()
     | _ -> None
 
 let (|PropertyGetSet|_|) =
     function
-    | MemberKind.PropertyGetSet -> Some()
+    | SynMemberKind.PropertyGetSet -> Some()
     | _ -> None
 
-let (|MFProperty|_|) (mf: MemberFlags) =
+let (|MFProperty|_|) (mf: SynMemberFlags) =
     match mf.MemberKind with
-    | MemberKind.PropertyGet
-    | MemberKind.PropertySet
-    | MemberKind.PropertyGetSet as mk -> Some mk
+    | SynMemberKind.PropertyGet
+    | SynMemberKind.PropertySet
+    | SynMemberKind.PropertyGetSet as mk -> Some mk
     | _ -> None
 
-let (|MFMemberFlags|) (mf: MemberFlags) = mf.MemberKind
+let (|MFMemberFlags|) (mf: SynMemberFlags) = mf.MemberKind
 
 /// This pattern finds out which keyword to use
-let (|MFMember|MFStaticMember|MFConstructor|MFOverride|) (mf: MemberFlags) =
+let (|MFMember|MFStaticMember|MFConstructor|MFOverride|) (mf: SynMemberFlags) =
     match mf.MemberKind with
-    | MemberKind.ClassConstructor
-    | MemberKind.Constructor -> MFConstructor()
-    | MemberKind.Member
-    | MemberKind.PropertyGet
-    | MemberKind.PropertySet
-    | MemberKind.PropertyGetSet as mk ->
+    | SynMemberKind.ClassConstructor
+    | SynMemberKind.Constructor -> MFConstructor()
+    | SynMemberKind.Member
+    | SynMemberKind.PropertyGet
+    | SynMemberKind.PropertySet
+    | SynMemberKind.PropertyGetSet as mk ->
         if mf.IsInstance && mf.IsOverrideOrExplicitImpl then
             MFOverride mk
         elif mf.IsInstance then
@@ -521,14 +519,14 @@ let (|MFMember|MFStaticMember|MFConstructor|MFOverride|) (mf: MemberFlags) =
 
 let (|DoBinding|LetBinding|MemberBinding|PropertyBinding|ExplicitCtor|) =
     function
-    | SynBinding.Binding (ao, _, _, _, ats, px, SynValData (Some MFConstructor, _, ido), pat, _, expr, _, _) ->
+    | SynBinding (ao, _, _, _, ats, px, SynValData (Some MFConstructor, _, ido), pat, _, expr, _, _) ->
         ExplicitCtor(ats, px, ao, pat, expr, Option.map (|Ident|) ido)
-    | SynBinding.Binding (ao, _, isInline, _, ats, px, SynValData (Some (MFProperty _ as mf), _, _), pat, _, expr, _, _) ->
+    | SynBinding (ao, _, isInline, _, ats, px, SynValData (Some (MFProperty _ as mf), _, _), pat, _, expr, _, _) ->
         PropertyBinding(ats, px, ao, isInline, mf, pat, expr)
-    | SynBinding.Binding (ao, _, isInline, _, ats, px, SynValData (Some mf, synValInfo, _), pat, _, expr, _, _) ->
+    | SynBinding (ao, _, isInline, _, ats, px, SynValData (Some mf, synValInfo, _), pat, _, expr, _, _) ->
         MemberBinding(ats, px, ao, isInline, mf, pat, expr, synValInfo)
-    | SynBinding.Binding (_, DoBinding, _, _, ats, px, _, _, _, expr, _, _) -> DoBinding(ats, px, expr)
-    | SynBinding.Binding (ao, _, isInline, isMutable, attrs, px, SynValData (_, valInfo, _), pat, _, expr, _, _) ->
+    | SynBinding (_, SynBindingKind.Do, _, _, ats, px, _, _, _, expr, _, _) -> DoBinding(ats, px, expr)
+    | SynBinding (ao, _, isInline, isMutable, attrs, px, SynValData (_, valInfo, _), pat, _, expr, _, _) ->
         LetBinding(attrs, px, ao, isInline, isMutable, pat, expr, valInfo)
 
 // Expressions (55 cases, lacking to handle 11 cases)
@@ -1234,9 +1232,9 @@ let (|SimplePats|SPSTyped|) =
 
 let (|RecordField|) =
     function
-    | SynField.Field (ats, _, ido, _, _, px, ao, _) -> (ats, px, ao, Option.map (|Ident|) ido)
+    | SynField (ats, _, ido, _, _, px, ao, _) -> (ats, px, ao, Option.map (|Ident|) ido)
 
-let (|Clause|) (SynMatchClause.Clause (p, eo, e, _, _)) = (p, e, eo)
+let (|Clause|) (SynMatchClause (p, eo, e, _, _)) = (p, e, eo)
 
 /// Process compiler-generated matches in an appropriate way
 let rec private skipGeneratedLambdas expr =
@@ -1246,7 +1244,7 @@ let rec private skipGeneratedLambdas expr =
 
 and skipGeneratedMatch expr =
     match expr with
-    | SynExpr.Match (_, _, [ SynMatchClause.Clause (_, _, innerExpr, _, _) as clause ], matchRange) when
+    | SynExpr.Match (_, _, [ SynMatchClause.SynMatchClause (_, _, innerExpr, _, _) as clause ], matchRange) when
         matchRange.Start = clause.Range.Start
         ->
         skipGeneratedMatch innerExpr
@@ -1313,41 +1311,33 @@ type TypeDefnKindSingle =
     | TCRecord
     | TCUnion
     | TCAbbrev
-    | TCHiddenRepr
+    | TCOpaque
     | TCAugmentation
-    | TCILAssemblyCode
+    | TCIL
 
 let (|TCSimple|TCDelegate|) =
     function
-    | TyconUnspecified -> TCSimple TCUnspecified
-    | TyconClass -> TCSimple TCClass
-    | TyconInterface -> TCSimple TCInterface
-    | TyconStruct -> TCSimple TCStruct
-    | TyconRecord -> TCSimple TCRecord
-    | TyconUnion -> TCSimple TCUnion
-    | TyconAbbrev -> TCSimple TCAbbrev
-    | TyconHiddenRepr -> TCSimple TCHiddenRepr
-    | TyconAugmentation -> TCSimple TCAugmentation
-    | TyconILAssemblyCode -> TCSimple TCILAssemblyCode
-    | TyconDelegate (t, vi) -> TCDelegate(t, vi)
+    | SynTypeDefnKind.Unspecified -> TCSimple TCUnspecified
+    | SynTypeDefnKind.Class -> TCSimple TCClass
+    | SynTypeDefnKind.Interface -> TCSimple TCInterface
+    | SynTypeDefnKind.Struct -> TCSimple TCStruct
+    | SynTypeDefnKind.Record -> TCSimple TCRecord
+    | SynTypeDefnKind.Union -> TCSimple TCUnion
+    | SynTypeDefnKind.Abbrev -> TCSimple TCAbbrev
+    | SynTypeDefnKind.Opaque -> TCSimple TCOpaque
+    | SynTypeDefnKind.Augmentation -> TCSimple TCAugmentation
+    | SynTypeDefnKind.IL -> TCSimple TCIL
+    | SynTypeDefnKind.Delegate (t, vi) -> TCDelegate(t, vi)
 
-let (|TypeDef|)
-    (SynTypeDefn.TypeDefn (SynComponentInfo.ComponentInfo (ats, tds, tcs, LongIdent s, px, preferPostfix, ao, _),
-                           tdr,
-                           ms,
-                           _))
-    =
+let (|TypeDef|) (SynTypeDefn (SynComponentInfo (ats, tds, tcs, LongIdent s, px, preferPostfix, ao, _), tdr, ms, _, _)) =
     (ats, px, ao, tds, tcs, tdr, ms, s, preferPostfix)
 
 let (|SigTypeDef|)
-    (SynTypeDefnSig.TypeDefnSig (SynComponentInfo.ComponentInfo (ats, tds, tcs, LongIdent s, px, preferPostfix, ao, _),
-                                 tdr,
-                                 ms,
-                                 _) as node)
+    (SynTypeDefnSig (SynComponentInfo (ats, tds, tcs, LongIdent s, px, preferPostfix, ao, _), tdr, ms, _) as node)
     =
     (ats, px, ao, tds, tcs, tdr, ms, s, preferPostfix, node.FullRange)
 
-let (|TyparDecl|) (SynTyparDecl.TyparDecl (ats, tp)) = (ats, tp)
+let (|TyparDecl|) (SynTyparDecl (ats, tp)) = (ats, tp)
 
 // Types (15 cases)
 
@@ -1467,15 +1457,15 @@ type SingleTyparConstraintKind =
 
 let (|TyparSingle|TyparDefaultsToType|TyparSubtypeOfType|TyparSupportsMember|TyparIsEnum|TyparIsDelegate|) =
     function
-    | WhereTyparIsValueType (tp, _) -> TyparSingle(TyparIsValueType, tp)
-    | WhereTyparIsReferenceType (tp, _) -> TyparSingle(TyparIsReferenceType, tp)
-    | WhereTyparIsUnmanaged (tp, _) -> TyparSingle(TyparIsUnmanaged, tp)
-    | WhereTyparSupportsNull (tp, _) -> TyparSingle(TyparSupportsNull, tp)
-    | WhereTyparIsComparable (tp, _) -> TyparSingle(TyparIsComparable, tp)
-    | WhereTyparIsEquatable (tp, _) -> TyparSingle(TyparIsEquatable, tp)
-    | WhereTyparDefaultsToType (tp, t, _) -> TyparDefaultsToType(tp, t)
-    | WhereTyparSubtypeOfType (tp, t, _) -> TyparSubtypeOfType(tp, t)
-    | WhereTyparSupportsMember (tps, msg, _) ->
+    | SynTypeConstraint.WhereTyparIsValueType (tp, _) -> TyparSingle(TyparIsValueType, tp)
+    | SynTypeConstraint.WhereTyparIsReferenceType (tp, _) -> TyparSingle(TyparIsReferenceType, tp)
+    | SynTypeConstraint.WhereTyparIsUnmanaged (tp, _) -> TyparSingle(TyparIsUnmanaged, tp)
+    | SynTypeConstraint.WhereTyparSupportsNull (tp, _) -> TyparSingle(TyparSupportsNull, tp)
+    | SynTypeConstraint.WhereTyparIsComparable (tp, _) -> TyparSingle(TyparIsComparable, tp)
+    | SynTypeConstraint.WhereTyparIsEquatable (tp, _) -> TyparSingle(TyparIsEquatable, tp)
+    | SynTypeConstraint.WhereTyparDefaultsToType (tp, t, _) -> TyparDefaultsToType(tp, t)
+    | SynTypeConstraint.WhereTyparSubtypeOfType (tp, t, _) -> TyparSubtypeOfType(tp, t)
+    | SynTypeConstraint.WhereTyparSupportsMember (tps, msg, _) ->
         TyparSupportsMember(
             List.choose
                 (function
@@ -1484,8 +1474,8 @@ let (|TyparSingle|TyparDefaultsToType|TyparSubtypeOfType|TyparSupportsMember|Typ
                 tps,
             msg
         )
-    | WhereTyparIsEnum (tp, ts, _) -> TyparIsEnum(tp, ts)
-    | WhereTyparIsDelegate (tp, ts, _) -> TyparIsDelegate(tp, ts)
+    | SynTypeConstraint.WhereTyparIsEnum (tp, ts, _) -> TyparIsEnum(tp, ts)
+    | SynTypeConstraint.WhereTyparIsDelegate (tp, ts, _) -> TyparIsDelegate(tp, ts)
 
 let (|MSMember|MSInterface|MSInherit|MSValField|MSNestedType|) =
     function
@@ -1496,7 +1486,7 @@ let (|MSMember|MSInterface|MSInherit|MSValField|MSNestedType|) =
     | SynMemberSig.NestedType (tds, _) -> MSNestedType tds
 
 let (|Val|)
-    (ValSpfn (ats, (IdentOrKeyword (OpNameFullInPattern (s, _)) as ident), tds, t, vi, isInline, _, px, ao, _, _))
+    (SynValSig (ats, (IdentOrKeyword (OpNameFullInPattern (s, _)) as ident), tds, t, vi, isInline, _, px, ao, _, _))
     =
     (ats, px, ao, s, ident.idRange, t, vi, isInline, tds)
 
@@ -1546,45 +1536,42 @@ let (|Extern|_|) =
 
 let private collectAttributesRanges (a: SynAttributes) =
     [ yield! (List.map (fun (al: SynAttributeList) -> al.Range) a)
-      yield! (List.collect (fun a -> a.Attributes |> List.map (fun a -> a.Range)) a) ]
+      yield! (List.collect (fun (a: SynAttributeList) -> a.Attributes |> List.map (fun a -> a.Range)) a) ]
 
 let getRangesFromAttributesFromModuleDeclaration (mdl: SynModuleDecl) : Range list =
     match mdl with
     | SynModuleDecl.Let (_, bindings, _) ->
         bindings
-        |> List.collect (fun (Binding (_, _, _, _, attrs, _, _, _, _, _, _, _)) -> collectAttributesRanges attrs)
+        |> List.collect (fun (SynBinding (_, _, _, _, attrs, _, _, _, _, _, _, _)) -> collectAttributesRanges attrs)
     | SynModuleDecl.Types (types, _) ->
         types
         |> List.collect
             (fun t ->
                 match t with
-                | SynTypeDefn.TypeDefn (SynComponentInfo.ComponentInfo (attrs, _, _, _, _, _, _, _), _, _, _) ->
+                | SynTypeDefn (SynComponentInfo (attrs, _, _, _, _, _, _, _), _, _, _, _) ->
                     collectAttributesRanges attrs)
-    | SynModuleDecl.NestedModule (SynComponentInfo.ComponentInfo (attrs, _, _, _, _, _, _, _), _, _, _, _) ->
+    | SynModuleDecl.NestedModule (SynComponentInfo (attrs, _, _, _, _, _, _, _), _, _, _, _) ->
         collectAttributesRanges attrs
     | _ -> List.empty
 
 let getRangesFromAttributesFromSynModuleSigDeclaration (sdl: SynModuleSigDecl) =
     match sdl with
-    | SynModuleSigDecl.NestedModule (SynComponentInfo.ComponentInfo (attrs, _, _, _, _, _, _, _), _, _, _)
-    | SynModuleSigDecl.Types (SynTypeDefnSig.TypeDefnSig (SynComponentInfo.ComponentInfo (attrs, _, _, _, _, _, _, _),
-                                                          _,
-                                                          _,
-                                                          _) :: _,
-                              _) -> collectAttributesRanges attrs
+    | SynModuleSigDecl.NestedModule (SynComponentInfo (attrs, _, _, _, _, _, _, _), _, _, _)
+    | SynModuleSigDecl.Types (SynTypeDefnSig (SynComponentInfo (attrs, _, _, _, _, _, _, _), _, _, _) :: _, _) ->
+        collectAttributesRanges attrs
     | _ -> List.empty
 
-let getRangesFromAttributesFromSynTypeDefnSig (TypeDefnSig (comp, _, _, _)) =
+let getRangesFromAttributesFromSynTypeDefnSig (SynTypeDefnSig (comp, _, _, _)) =
     match comp with
-    | SynComponentInfo.ComponentInfo (attrs, _, _, _, _, _, _, _) -> collectAttributesRanges attrs
+    | SynComponentInfo (attrs, _, _, _, _, _, _, _) -> collectAttributesRanges attrs
 
 let getRangesFromAttributesFromSynBinding (sb: SynBinding) =
     match sb with
-    | SynBinding.Binding (_, _, _, _, attrs, _, _, _, _, _, _, _) -> attrs |> List.map (fun a -> a.Range)
+    | SynBinding (_, _, _, _, attrs, _, _, _, _, _, _, _) -> attrs |> List.map (fun a -> a.Range)
 
 let getRangesFromAttributesFromSynValSig (valSig: SynValSig) =
     match valSig with
-    | SynValSig.ValSpfn (attrs, _, _, _, _, _, _, _, _, _, _) -> attrs |> List.map (fun a -> a.Range)
+    | SynValSig.SynValSig (attrs, _, _, _, _, _, _, _, _, _, _) -> attrs |> List.map (fun a -> a.Range)
 
 let getRangesFromAttributesFromSynMemberDefinition (mdn: SynMemberDefn) =
     match mdn with

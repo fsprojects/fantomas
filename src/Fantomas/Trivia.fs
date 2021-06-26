@@ -1,12 +1,12 @@
 module internal Fantomas.Trivia
 
-open FSharp.Compiler.SourceCodeServices
+open FSharp.Compiler.Text
+open FSharp.Compiler.Syntax
+open FSharp.Compiler.Tokenization
 open Fantomas
 open Fantomas.SourceParser
 open Fantomas.AstTransformer
 open Fantomas.TriviaTypes
-open FSharp.Compiler.Text
-open FSharp.Compiler.SyntaxTree
 
 let isMainNode (node: TriviaNode) =
     match node.Type with
@@ -346,10 +346,6 @@ let private addTriviaToTriviaNode
                 findNodeBeforeLineFromStart triviaNodes range.StartLine
                 |> updateTriviaNode (fun tn -> tn.ContentAfter.Add(Newline)) triviaNodes
 
-    | { Item = KeywordString _
-        Range = range } ->
-        findNodeForKeywordString triviaNodes range
-        |> updateTriviaNode (fun tn -> tn.ContentItself <- Some trivia.Item) triviaNodes
     | { Item = Keyword ({ Content = keyword } as kw)
         Range = range } when
         (keyword = "override"
