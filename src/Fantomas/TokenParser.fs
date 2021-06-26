@@ -12,7 +12,7 @@ let private whiteSpaceTag = 4
 let private lineCommentTag = 8
 let private commentTag = 3
 let private greaterTag = 160
-let private identTag = 191
+let private identTag = 192
 
 // workaround for cases where tokenizer dont output "delayed" part of operator after ">."
 // See https://github.com/fsharp/FSharp.Compiler.Service/issues/874
@@ -789,7 +789,7 @@ let rec private (|HashTokens|_|) (tokens: Token list) =
     | _ -> None
 
 let private (|KeywordString|_|) (token: Token) =
-    if token.TokenInfo.Tag = 192 then
+    if token.TokenInfo.Tag = 193 then
         Some token
     else
         None

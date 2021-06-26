@@ -764,8 +764,16 @@ module private Ast =
                 | SynBindingKind.Normal -> SynBindingKind_Normal
                 | SynBindingKind.Do -> SynBindingKind_Do
 
+            let afterAttributesBeforeHeadPattern =
+                match binding.AfterAttributesBeforeHeadPattern with
+                | Some r ->
+                    mkNode SynBinding_AfterAttributes_BeforeHeadPattern r
+                    |> List.singleton
+                | None -> []
+
             [ yield mkNode t binding.RangeOfBindingWithRhs
               yield! visitSynAttributeLists range attrs
+              yield! afterAttributesBeforeHeadPattern
               yield! visitSynValData valData
               yield! visitSynPat headPat
               yield!
