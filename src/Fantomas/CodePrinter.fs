@@ -124,11 +124,8 @@ and genModuleOrNamespace astContext (ModuleOrNamespace (ats, px, ao, lids, mds, 
         match firstDecl with
         | None -> sepNone
         | Some mdl ->
-            let attrs =
-                getRangesFromAttributesFromModuleDeclaration mdl
-
             sepNln
-            +> sepNlnConsideringTriviaContentBeforeWithAttributesFor (synModuleDeclToFsAstType mdl) mdl.Range attrs
+            +> sepNlnConsideringTriviaContentBeforeForMainNode (synModuleDeclToFsAstType mdl) mdl.Range
 
     let lidsFullRange =
         match lids with
@@ -165,10 +162,7 @@ and genSigModuleOrNamespace astContext (SigModuleOrNamespace (ats, px, ao, lids,
         | Some mdl ->
             match mdl with
             | SynModuleSigDecl.Types _ ->
-                let attrs =
-                    getRangesFromAttributesFromSynModuleSigDeclaration mdl
-
-                sepNlnConsideringTriviaContentBeforeWithAttributesFor SynModuleSigDecl_Types mdl.Range attrs
+                sepNlnConsideringTriviaContentBeforeForMainNode SynModuleSigDecl_Types mdl.Range
             | SynModuleSigDecl.Val _ -> sepNlnConsideringTriviaContentBeforeForMainNode SynValSig_ mdl.Range
             | _ -> sepNone
             +> sepNln
@@ -227,12 +221,9 @@ and genModuleDeclList astContext e =
                     |> finalContinuation)
 
         | AttributesL (xs, y :: rest) ->
-            let attrs =
-                getRangesFromAttributesFromModuleDeclaration y
-
             let expr =
                 col sepNln xs (genModuleDecl astContext)
-                +> sepNlnConsideringTriviaContentBeforeWithAttributesFor (synModuleDeclToFsAstType y) y.Range attrs
+                +> sepNlnConsideringTriviaContentBeforeForMainNode (synModuleDeclToFsAstType y) y.Range
                 +> genModuleDecl astContext y
 
             let r = List.head xs |> fun mdl -> mdl.Range
@@ -247,11 +238,8 @@ and genModuleDeclList astContext e =
                     |> finalContinuation)
 
         | m :: rest ->
-            let attrs =
-                getRangesFromAttributesFromModuleDeclaration m
-
             let sepNln =
-                sepNlnConsideringTriviaContentBeforeWithAttributesFor (synModuleDeclToFsAstType m) m.Range attrs
+                sepNlnConsideringTriviaContentBeforeForMainNode (synModuleDeclToFsAstType m) m.Range
 
             let expr = genModuleDecl astContext m
 
@@ -285,11 +273,8 @@ and genSigModuleDeclList astContext (e: SynModuleSigDecl list) =
                     ColMultilineItem(expr, sepNln) :: ysItems
                     |> finalContinuation)
         | s :: rest ->
-            let attrs =
-                getRangesFromAttributesFromSynModuleSigDeclaration s
-
             let sepNln =
-                sepNlnConsideringTriviaContentBeforeWithAttributesFor (synModuleSigDeclToFsAstType s) s.Range attrs
+                sepNlnConsideringTriviaContentBeforeForMainNode (synModuleSigDeclToFsAstType s) s.Range
 
             let expr = genSigModuleDecl astContext s
 
@@ -439,15 +424,9 @@ and genSigModuleDecl astContext node =
         let items =
             ColMultilineItem(genSigTypeDefn { astContext with IsFirstChild = true } t, sepNone)
             :: (List.map
-                    (fun t ->
+                    (fun (t: SynTypeDefnSig) ->
                         let sepNln =
-                            let attributeRanges =
-                                getRangesFromAttributesFromSynTypeDefnSig t
-
-                            sepNlnConsideringTriviaContentBeforeWithAttributesFor
-                                SynTypeDefnSig_
-                                t.FullRange
-                                attributeRanges
+                            sepNlnConsideringTriviaContentBeforeForMainNode SynTypeDefnSig_ t.Range
 
                         ColMultilineItem(genSigTypeDefn { astContext with IsFirstChild = false } t, sepNln))
                     ts)
@@ -3514,7 +3493,11 @@ and genTypeDefn astContext (TypeDef (ats, px, ao, tds, tcs, tdr, ms, s, preferPo
         genPreXmlDoc px
         +> ifElse
             astContext.IsFirstChild
-            (genAttributes astContext ats -- "type ")
+            (genAttributes astContext ats
+             +> genAfterAttributesBefore
+                 SynTypeDefn_AfterAttributesBeforeComponentInfo
+                 node.AfterAttributesBeforeComponentInfo
+             -- "type ")
             (!- "and " +> genOnelinerAttributes astContext ats)
         +> opt sepSpace ao genAccess
         +> genTypeAndParam astContext s tds tcs preferPostfix
@@ -4196,7 +4179,7 @@ and genEnumCase astContext (EnumCase (ats, px, _, (_, _)) as node) =
             match node with
             | EnumCase (_, _, identInAST, (c, r)) ->
                 let triviaNode =
-                    Map.tryFindOrEmptyList EnumCase_ ctx.TriviaMainNodes
+                    Map.tryFindOrEmptyList SynEnumCase_ ctx.TriviaMainNodes
                     |> List.tryFind (fun tn -> RangeHelpers.rangeEq tn.Range r)
 
                 match triviaNode with
@@ -4232,13 +4215,14 @@ and genField astContext prefix (Field (ats, px, ao, isStatic, isMutable, t, so) 
 
     genPreXmlDoc px
     +> genAttributes astContext ats
+    +> genAfterAttributesBefore SynField_AfterAttributesBeforeIdentifier node.AfterAttributesBeforeIdentifier
     +> ifElse isStatic (!- "static ") sepNone
     -- prefix
     +> ifElse isMutable (!- "mutable ") sepNone
     +> opt sepSpace ao genAccess
     +> opt sepColon so (!-)
     +> t
-    |> genTriviaFor Field_ range
+    |> genTriviaFor SynField_ range
 
 and genType astContext outerBracket t =
     let rec loop current =
@@ -4571,9 +4555,6 @@ and genMemberDefnList astContext nodes =
         match nodes with
         | [] -> finalContinuation []
         | PropertyWithGetSetMemberDefn (gs, rest) ->
-            let attrs =
-                getRangesFromAttributesFromSynBinding (fst gs)
-
             let rangeOfFirstMember = List.head nodes |> fun m -> m.Range
 
             let expr =
@@ -4581,7 +4562,7 @@ and genMemberDefnList astContext nodes =
                 +> genPropertyWithGetSet astContext gs (Some rangeOfFirstMember)
 
             let sepNln =
-                sepNlnConsideringTriviaContentBeforeWithAttributesFor SynMemberDefn_Member rangeOfFirstMember attrs
+                sepNlnConsideringTriviaContentBeforeForMainNode SynMemberDefn_Member rangeOfFirstMember
 
             collectItems
                 rest
@@ -4589,13 +4570,10 @@ and genMemberDefnList astContext nodes =
                     ColMultilineItem(expr, sepNln) :: restItems
                     |> finalContinuation)
         | m :: rest ->
-            let attrs =
-                getRangesFromAttributesFromSynMemberDefinition m
-
             let expr = genMemberDefn astContext m
 
             let sepNln =
-                sepNlnConsideringTriviaContentBeforeWithAttributesFor (synMemberDefnToFsAstType m) m.Range attrs
+                sepNlnConsideringTriviaContentBeforeForMainNode (synMemberDefnToFsAstType m) m.Range
 
             collectItems
                 rest
@@ -5110,7 +5088,7 @@ and genSynBindingFunction
              +> unindent)
                 ctx
 
-        genAfterAttributesBeforeHeadPattern afterAttributesBeforeHeadPattern
+        genAfterAttributesBefore SynBinding_AfterAttributes_BeforeHeadPattern afterAttributesBeforeHeadPattern
         +> expressionFitsOnRestOfLine short long
 
     let body (ctx: Context) =
@@ -5223,7 +5201,7 @@ and genSynBindingFunctionWithReturnType
              +> unindent)
                 ctx
 
-        genAfterAttributesBeforeHeadPattern afterAttributesBeforeHeadPattern
+        genAfterAttributesBefore SynBinding_AfterAttributes_BeforeHeadPattern afterAttributesBeforeHeadPattern
         +> expressionFitsOnRestOfLine short long
 
     let body = genExprKeepIndentInBranch astContext e
@@ -5350,7 +5328,7 @@ and genSynBindingValue
     genPreXmlDoc px
     +> genAttrIsFirstChild
     +> leadingExpressionIsMultiline
-        (genAfterAttributesBeforeHeadPattern afterAttributesBeforeHeadPattern
+        (genAfterAttributesBefore SynBinding_AfterAttributes_BeforeHeadPattern afterAttributesBeforeHeadPattern
          +> genPref
          +> afterLetKeyword
          +> sepSpace
@@ -5381,8 +5359,8 @@ and genParenTupleWithIndentAndNewlines (astContext: ASTContext) (ps: SynPat list
     +> sepCloseT
     |> genTriviaFor SynPat_Paren pr
 
-and genAfterAttributesBeforeHeadPattern (r: Range option) : Context -> Context =
-    optSingle (fun r -> genTriviaFor SynBinding_AfterAttributes_BeforeHeadPattern r id) r
+and genAfterAttributesBefore (astType: FsAstType) (r: Range option) : Context -> Context =
+    optSingle (fun r -> genTriviaFor astType r id) r
 
 and collectMultilineItemForSynExprKeepIndent
     (astContext: ASTContext)

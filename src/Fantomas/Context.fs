@@ -1308,37 +1308,6 @@ let internal sepNlnConsideringTriviaContentBeforeForToken (fsTokenKey: FsTokenTy
 let internal sepNlnConsideringTriviaContentBeforeForMainNode (mainNode: FsAstType) (range: Range) =
     sepConsideringTriviaContentBeforeForMainNode sepNln mainNode range
 
-let internal sepNlnConsideringTriviaContentBeforeWithAttributesFor
-    (mainNode: FsAstType)
-    (ownRange: Range)
-    (attributeRanges: Range seq)
-    (ctx: Context)
-    =
-    let triviaNodeBeforeMain =
-        match Map.tryFind mainNode ctx.TriviaMainNodes with
-        | Some triviaNodes ->
-            List.exists
-                (fun { Range = r; ContentBefore = cb } ->
-                    hasPrintableContent cb
-                    && RangeHelpers.rangeEq r ownRange)
-                triviaNodes
-        | None -> false
-
-    let triviaNodeBeforeAttribute =
-        match Map.tryFind SynAttributeList_ ctx.TriviaMainNodes with
-        | Some attributeNodes ->
-            List.exists
-                (fun { Range = r; ContentBefore = cb } ->
-                    hasPrintableContent cb
-                    && Seq.exists (RangeHelpers.rangeEq r) attributeRanges)
-                attributeNodes
-        | None -> false
-
-    if triviaNodeBeforeMain || triviaNodeBeforeAttribute then
-        ctx
-    else
-        sepNln ctx
-
 let internal sepNlnForEmptyModule (mainNode: FsAstType) (moduleRange: Range) (ctx: Context) =
     match Map.tryFind mainNode ctx.TriviaMainNodes with
     | Some nodes ->

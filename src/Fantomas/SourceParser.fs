@@ -7,7 +7,6 @@ open FSharp.Compiler.Tokenization.FSharpKeywords
 open FSharp.Compiler.Text
 open FSharp.Compiler.Xml
 open Fantomas
-open Fantomas.AstExtensions
 open Fantomas.TriviaTypes
 
 /// Don't put space before and after these operators
@@ -1333,9 +1332,9 @@ let (|TypeDef|) (SynTypeDefn (SynComponentInfo (ats, tds, tcs, LongIdent s, px, 
     (ats, px, ao, tds, tcs, tdr, ms, s, preferPostfix)
 
 let (|SigTypeDef|)
-    (SynTypeDefnSig (SynComponentInfo (ats, tds, tcs, LongIdent s, px, preferPostfix, ao, _), tdr, ms, _) as node)
+    (SynTypeDefnSig (SynComponentInfo (ats, tds, tcs, LongIdent s, px, preferPostfix, ao, _), tdr, ms, range))
     =
-    (ats, px, ao, tds, tcs, tdr, ms, s, preferPostfix, node.FullRange)
+    (ats, px, ao, tds, tcs, tdr, ms, s, preferPostfix, range)
 
 let (|TyparDecl|) (SynTyparDecl (ats, tp)) = (ats, tp)
 
@@ -1533,52 +1532,6 @@ let (|Extern|_|) =
         else
             None
     | _ -> None
-
-let private collectAttributesRanges (a: SynAttributes) =
-    [ yield! (List.map (fun (al: SynAttributeList) -> al.Range) a)
-      yield! (List.collect (fun (a: SynAttributeList) -> a.Attributes |> List.map (fun a -> a.Range)) a) ]
-
-let getRangesFromAttributesFromModuleDeclaration (mdl: SynModuleDecl) : Range list =
-    match mdl with
-    | SynModuleDecl.Let (_, bindings, _) ->
-        bindings
-        |> List.collect (fun (SynBinding (_, _, _, _, attrs, _, _, _, _, _, _, _)) -> collectAttributesRanges attrs)
-    | SynModuleDecl.Types (types, _) ->
-        types
-        |> List.collect
-            (fun t ->
-                match t with
-                | SynTypeDefn (SynComponentInfo (attrs, _, _, _, _, _, _, _), _, _, _, _) ->
-                    collectAttributesRanges attrs)
-    | SynModuleDecl.NestedModule (SynComponentInfo (attrs, _, _, _, _, _, _, _), _, _, _, _) ->
-        collectAttributesRanges attrs
-    | _ -> List.empty
-
-let getRangesFromAttributesFromSynModuleSigDeclaration (sdl: SynModuleSigDecl) =
-    match sdl with
-    | SynModuleSigDecl.NestedModule (SynComponentInfo (attrs, _, _, _, _, _, _, _), _, _, _)
-    | SynModuleSigDecl.Types (SynTypeDefnSig (SynComponentInfo (attrs, _, _, _, _, _, _, _), _, _, _) :: _, _) ->
-        collectAttributesRanges attrs
-    | _ -> List.empty
-
-let getRangesFromAttributesFromSynTypeDefnSig (SynTypeDefnSig (comp, _, _, _)) =
-    match comp with
-    | SynComponentInfo (attrs, _, _, _, _, _, _, _) -> collectAttributesRanges attrs
-
-let getRangesFromAttributesFromSynBinding (sb: SynBinding) =
-    match sb with
-    | SynBinding (_, _, _, _, attrs, _, _, _, _, _, _, _) -> attrs |> List.map (fun a -> a.Range)
-
-let getRangesFromAttributesFromSynValSig (valSig: SynValSig) =
-    match valSig with
-    | SynValSig.SynValSig (attrs, _, _, _, _, _, _, _, _, _, _) -> attrs |> List.map (fun a -> a.Range)
-
-let getRangesFromAttributesFromSynMemberDefinition (mdn: SynMemberDefn) =
-    match mdn with
-    | SynMemberDefn.Member (mb, _) -> getRangesFromAttributesFromSynBinding mb
-    | SynMemberDefn.AbstractSlot (valSig, _, _) -> getRangesFromAttributesFromSynValSig valSig
-    | SynMemberDefn.LetBindings (lb :: _, _, _, _) -> getRangesFromAttributesFromSynBinding lb
-    | _ -> []
 
 let rec (|UppercaseSynExpr|LowercaseSynExpr|) (synExpr: SynExpr) =
     let upperOrLower (v: string) =

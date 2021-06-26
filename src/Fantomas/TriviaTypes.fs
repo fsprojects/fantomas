@@ -197,6 +197,7 @@ type FsAstType =
     | ArgOptions_
     | SynInterfaceImpl_
     | SynTypeDefn_
+    | SynTypeDefn_AfterAttributesBeforeComponentInfo
     | SynTypeDefnSig_
     // | SynTypeDefnSigRepr_ObjectModel use first nested node
     | SynTypeDefnSigRepr_Exception
@@ -299,8 +300,9 @@ type FsAstType =
     | SynUnionCase_
     | SynUnionCaseKind_Fields
     | SynUnionCaseKind_FullType
-    | EnumCase_
-    | Field_
+    | SynEnumCase_
+    | SynField_
+    | SynField_AfterAttributesBeforeIdentifier
     | SynType_LongIdent
     | SynType_App
     | SynType_LongIdentApp
@@ -354,10 +356,9 @@ type TriviaNode =
       ContentAfter: TriviaContent list
       Range: Range }
 
-type TriviaNodeAssigner(nodeType: TriviaNodeType, range: Range, ?linesBetweenParent: int) =
+type TriviaNodeAssigner(nodeType: TriviaNodeType, range: Range) =
     member this.Type = nodeType
     member this.Range = range
-    member this.AttributeLinesBetweenParent = linesBetweenParent
     member val ContentBefore = ResizeArray<TriviaContent>() with get, set
     member val ContentItself = Option<TriviaContent>.None with get, set
     member val ContentAfter = ResizeArray<TriviaContent>() with get, set
