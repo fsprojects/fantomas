@@ -8,6 +8,7 @@ open Fantomas.Tests.TestHelper
 open System.IO
 
 [<Test>]
+[<Ignore("See https://github.com/dotnet/fsharp/issues/11732")>]
 let ``source _directory keyword should not be replace with actual path`` () =
     formatSourceString
         false
@@ -23,6 +24,7 @@ let ``source _directory keyword should not be replace with actual path`` () =
 """
 
 [<Test>]
+[<Ignore("See https://github.com/dotnet/fsharp/issues/11732")>]
 let ``e2e script test with keyword __source__directory__`` () =
     async {
         let source =

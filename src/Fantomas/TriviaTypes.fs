@@ -220,6 +220,7 @@ type FsAstType =
     | SynBindingKind_StandaloneExpression
     | SynBindingKind_Normal
     | SynBindingKind_Do
+    | SynBinding_AfterAttributes_BeforeHeadPattern
     | SynBindingReturnInfo_
     | SynValTyparDecls_
     | SynTyparDecl_

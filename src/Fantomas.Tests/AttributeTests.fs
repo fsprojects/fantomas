@@ -783,3 +783,45 @@ module Foo =
         [<DllImport("Kernel32.dll", SetLastError = true)>]
         extern bool GetFileInformationByHandleEx(IntPtr hFile, FILE_INFO_BY_HANDLE_CLASS infoClass, [<Out>] FILE_NAME_INFO& info, uint32 dwBufferSize)
 """
+
+[<Test>]
+let ``comment after attribute before let binding with return type`` () =
+    formatSourceString
+        false
+        """
+[<Foo>]
+// bar
+let add (a:  int) (  b : int) : int = a + b
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+[<Foo>]
+// bar
+let add (a: int) (b: int) : int = a + b
+"""
+
+[<Test>]
+let ``comment after attribute before value binding with return type`` () =
+    formatSourceString
+        false
+        """
+[<Foo>]
+// bar
+
+// bar again, cuz why not
+let x: int = 99
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+[<Foo>]
+// bar
+
+// bar again, cuz why not
+let x: int = 99
+"""
