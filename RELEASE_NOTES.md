@@ -1,3 +1,17 @@
+### 4.5.0-beta-002 - 06/2021
+
+* Fix Wild cards in lambda. [#1789](https://github.com/fsprojects/fantomas/issues/1789)
+* Fix Soundness regression in 4.5.0-beta-001. Nested lambdas are stripped. [#1782](https://github.com/fsprojects/fantomas/issues/1782)
+* Fix KeepIndentInBranch not respected when returning short function application. [#1779](https://github.com/fsprojects/fantomas/issues/1779)
+* Fix Hash directive not printed above recursive binding. [#1776](https://github.com/fsprojects/fantomas/issues/1776)
+* Fix Fantomas adds space before colon when SpaceBeforeColon is false. [#1773](https://github.com/fsprojects/fantomas/issues/1773)
+* Fix Long return expression not formatted multiline. [#1771](https://github.com/fsprojects/fantomas/issues/1771)
+* Fix Add support for LibraryOnlyStaticOptimization. [#1769](https://github.com/fsprojects/fantomas/issues/1769)
+* Fix fsharp_keep_indent_in_branch not respected for multiline infix expression. [#1768](https://github.com/fsprojects/fantomas/issues/1768)
+* Fix Inline lambda in argument list causes problems for argument chopping and lambda alignment. [#1028](https://github.com/fsprojects/fantomas/issues/1028)
+* Fix Difference in behavior between signature and implementation files for single case DU. [#973](https://github.com/fsprojects/fantomas/issues/973)
+* Fix Concatenation of multi-line """ strings mis-indented. [#639](https://github.com/fsprojects/fantomas/issues/639)
+
 ### 4.5.0-beta-001 - 06/2021
 
 * Fix Comment after arrow lost with KeepIndentInBranch. [#1759](https://github.com/fsprojects/fantomas/issues/1759)
