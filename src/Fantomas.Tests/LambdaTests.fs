@@ -897,3 +897,37 @@ let x =
         """
 let x = fun _ -> fun _ -> "hello"
 """
+
+[<Test>]
+let ``wild card parameters in lambda, 1789`` () =
+    formatSourceString
+        false
+        """
+let elifs =
+    es
+    |> List.collect (fun (e1, e2, _, _, _) -> [ visit e1; visit e2 ])
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let elifs =
+    es
+    |> List.collect (fun (e1, e2, _, _, _) -> [ visit e1; visit e2 ])
+"""
+
+[<Test>]
+let ``leading and trailing wild card parameters in lambda`` () =
+    formatSourceString
+        false
+        """
+List.map (fun (_, _, _, _, body, _) -> visit body) andBangs
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+List.map (fun (_, _, _, _, body, _) -> visit body) andBangs
+"""
