@@ -1092,10 +1092,14 @@ let (|ILEmbedded|_|) =
     | SynExpr.LibraryOnlyILAssembly (_, _, _, _, r) -> Some(r)
     | _ -> None
 
+let (|LibraryOnlyStaticOptimization|_|) (e: SynExpr) =
+    match e with
+    | SynExpr.LibraryOnlyStaticOptimization (constraints, e, optExpr, _) -> Some(optExpr, constraints, e)
+    | _ -> None
+
 let (|UnsupportedExpr|_|) =
     function
-    // Temprorarily ignore these cases not often used outside FSharp.Core
-    | SynExpr.LibraryOnlyStaticOptimization (_, _, _, r)
+    // Temporarily ignore these cases not often used outside FSharp.Core
     | SynExpr.LibraryOnlyUnionCaseFieldGet (_, _, _, r)
     | SynExpr.LibraryOnlyUnionCaseFieldSet (_, _, _, _, r) -> Some r
     | _ -> None

@@ -2426,6 +2426,13 @@ and genExpr astContext synExpr ctx =
                     r.EndLine
                     (r.EndColumn + 1)
             )
+
+        | LibraryOnlyStaticOptimization (optExpr, constraints, e) ->
+            genExpr astContext optExpr
+            +> genSynStaticOptimizationConstraint astContext constraints
+            +> sepEq
+            +> sepSpaceOrNlnIfExpressionExceedsPageWidth (genExpr astContext e)
+
         | UnsupportedExpr r ->
             raise
             <| FormatException(
@@ -5539,6 +5546,22 @@ and genConstBytes (bytes: byte []) (r: Range) =
         | Some t -> !-t
         | None -> !-(sprintf "%A" bytes)
         <| ctx
+
+and genSynStaticOptimizationConstraint
+    (astContext: ASTContext)
+    (constraints: SynStaticOptimizationConstraint list)
+    : Context -> Context =
+    let genConstraint astContext con =
+        match con with
+        | SynStaticOptimizationConstraint.WhenTyparTyconEqualsTycon (t1, t2, _) ->
+            genTypar astContext t1
+            +> sepColon
+            +> sepSpace
+            +> genType astContext false t2
+        | SynStaticOptimizationConstraint.WhenTyparIsStruct (t, _) -> genTypar astContext t
+
+    !- " when "
+    +> col sepSpace constraints (genConstraint astContext)
 
 and genTriviaFor (mainNodeName: FsAstType) (range: Range) f ctx =
     (enterNodeFor mainNodeName range
