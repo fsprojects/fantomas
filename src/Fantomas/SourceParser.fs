@@ -1250,7 +1250,10 @@ let (|Clause|) (SynMatchClause.Clause (p, eo, e, _, _)) = (p, e, eo)
 let (|Lambda|_|) =
     function
     | SynExpr.Lambda (_, _, _, _, Some (pats, body), range) ->
-        let maxDepth = List.length pats
+        let maxDepth =
+            match pats with
+            | [ PatParen (PatTuple ts) ] -> List.length ts
+            | _ -> List.length pats
         // find the body expression from the last lambda
         let rec visit (currentDepth: int) (e: SynExpr) : SynExpr =
             if currentDepth < maxDepth then
