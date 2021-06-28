@@ -88,7 +88,7 @@ let configToEditorConfig (config: FormatConfig) : string =
 let private editorConfigParser = EditorConfig.Core.EditorConfigParser()
 
 let tryReadConfiguration (fsharpFile: string) : FormatConfig option =
-    let editorConfigSettings : EditorConfig.Core.FileConfiguration =
+    let editorConfigSettings: EditorConfig.Core.FileConfiguration =
         editorConfigParser.Parse(fileName = fsharpFile)
 
     if editorConfigSettings.Properties.Count = 0 then

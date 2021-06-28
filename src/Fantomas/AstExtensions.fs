@@ -6,7 +6,7 @@ open FSharp.Compiler.Text.Range
 
 type SynTypeDefnSig with
     /// Combines the range of type name and the body.
-    member this.FullRange : Range =
+    member this.FullRange: Range =
         match this with
         | SynTypeDefnSig.TypeDefnSig (comp, _, _, r) -> mkRange r.FileName comp.Range.Start r.End
 

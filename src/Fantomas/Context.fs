@@ -1031,7 +1031,7 @@ let internal futureNlnCheckMem (f, ctx) =
         (false, false)
     else
         // Create a dummy context to evaluate length of current operation
-        let dummyCtx : Context =
+        let dummyCtx: Context =
             ctx.WithDummy(Queue.empty, keepPageWidth = true)
             |> f
 
@@ -1044,11 +1044,11 @@ let internal futureNlnCheck f (ctx: Context) =
 /// similar to futureNlnCheck but validates whether the expression is going over the max page width
 /// This functions is does not use any caching
 let internal exceedsWidth maxWidth f (ctx: Context) =
-    let dummyCtx : Context =
+    let dummyCtx: Context =
         ctx.WithDummy(Queue.empty, keepPageWidth = true)
 
     let currentColumn = dummyCtx.Column
-    let ctxAfter : Context = f dummyCtx
+    let ctxAfter: Context = f dummyCtx
     (ctxAfter.Column - currentColumn) > maxWidth
 
 /// Similar to col, skip auto newline for index 0
@@ -1371,7 +1371,7 @@ let internal sepNlnTypeAndMembers
     (mainNodeType: FsAstType)
     (ctx: Context)
     : Context =
-    let triviaNodeOfWithKeyword : TriviaNode option =
+    let triviaNodeOfWithKeyword: TriviaNode option =
         let r =
             ctx.MkRange lastPositionBeforeMembers firstMemberRange.Start
 

@@ -19,7 +19,7 @@ let private getDefines v =
 
 let private tokenize v = tokenize [] [] v
 
-let private mkRange : MkRange =
+let private mkRange: MkRange =
     fun (sl, sc) (el, ec) ->
         FSharp.Compiler.Text.Range.mkRange
             "TokenParserTests"
