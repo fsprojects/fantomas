@@ -27,7 +27,7 @@ type Composite<'a, 'b> =
 let MaxLength = 512
 
 [<Literal>]
-let private MangledGlobalName : string = "`global`"
+let private MangledGlobalName: string = "`global`"
 
 let (|Ident|) (s: Ident) =
     let ident = s.idText

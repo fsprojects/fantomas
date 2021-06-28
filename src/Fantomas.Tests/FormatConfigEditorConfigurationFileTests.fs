@@ -86,7 +86,7 @@ type FSharpFile internal (rootFolderName: string, ?fsharpFileExtension: string, 
 
     do File.WriteAllText(fsharpFilePath, String.empty)
 
-    member __.FSharpFile : string = fsharpFilePath
+    member __.FSharpFile: string = fsharpFilePath
 
     interface IDisposable with
         member this.Dispose() : unit =

@@ -52,7 +52,7 @@ let rec private tokenizeLine (tokenizer: FSharpLineTokenizer) sourceCodeLines st
         tokenizeLine tokenizer sourceCodeLines state lineNumber (token :: extraToken :: tokens)
 
     | (Some tok, state), _ ->
-        let token : Token =
+        let token: Token =
             { TokenInfo = tok
               LineNumber = lineNumber
               Content = getTokenText sourceCodeLines lineNumber tok }

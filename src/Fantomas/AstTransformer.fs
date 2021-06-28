@@ -36,7 +36,7 @@ module private Ast =
                 [ mkNode SynModuleDecl_ModuleAbbrev range ]
                 |> finalContinuation
             | SynModuleDecl.NestedModule (sci, _, decls, _, range) ->
-                let continuations : ((TriviaNodeAssigner list -> TriviaNodeAssigner list) -> TriviaNodeAssigner list) list =
+                let continuations: ((TriviaNodeAssigner list -> TriviaNodeAssigner list) -> TriviaNodeAssigner list) list =
                     decls |> List.map visit
 
                 let finalContinuation (nodes: TriviaNodeAssigner list list) : TriviaNodeAssigner list =
@@ -100,7 +100,7 @@ module private Ast =
                         mkNode SynExpr_Paren range :: nodes
                         |> finalContinuation)
             | SynExpr.Quote (operator, _, quotedSynExpr, _, range) ->
-                let continuations : ((TriviaNodeAssigner list -> TriviaNodeAssigner list) -> TriviaNodeAssigner list) list =
+                let continuations: ((TriviaNodeAssigner list -> TriviaNodeAssigner list) -> TriviaNodeAssigner list) list =
                     [ visit operator; visit quotedSynExpr ]
 
                 let finalContinuation (nodes: TriviaNodeAssigner list list) : TriviaNodeAssigner list =
@@ -116,7 +116,7 @@ module private Ast =
             | SynExpr.Typed (expr, typeName, _) ->
                 visit expr (fun nodes -> nodes @ visitSynType typeName |> finalContinuation)
             | SynExpr.Tuple (_, exprs, _, range) ->
-                let continuations : ((TriviaNodeAssigner list -> TriviaNodeAssigner list) -> TriviaNodeAssigner list) list =
+                let continuations: ((TriviaNodeAssigner list -> TriviaNodeAssigner list) -> TriviaNodeAssigner list) list =
                     exprs |> List.map visit
 
                 let finalContinuation (nodes: TriviaNodeAssigner list list) : TriviaNodeAssigner list =
@@ -126,7 +126,7 @@ module private Ast =
 
                 Continuation.sequence continuations finalContinuation
             | SynExpr.ArrayOrList (_, exprs, range) ->
-                let continuations : ((TriviaNodeAssigner list -> TriviaNodeAssigner list) -> TriviaNodeAssigner list) list =
+                let continuations: ((TriviaNodeAssigner list -> TriviaNodeAssigner list) -> TriviaNodeAssigner list) list =
                     exprs |> List.map visit
 
                 let finalContinuation (nodes: TriviaNodeAssigner list list) : TriviaNodeAssigner list =
@@ -160,7 +160,7 @@ module private Ast =
                   yield! bindings |> List.collect visitSynBinding ]
                 |> finalContinuation
             | SynExpr.While (_, whileExpr, doExpr, range) ->
-                let continuations : ((TriviaNodeAssigner list -> TriviaNodeAssigner list) -> TriviaNodeAssigner list) list =
+                let continuations: ((TriviaNodeAssigner list -> TriviaNodeAssigner list) -> TriviaNodeAssigner list) list =
                     [ visit whileExpr; visit doExpr ]
 
                 let finalContinuation (nodes: TriviaNodeAssigner list list) : TriviaNodeAssigner list =
@@ -170,7 +170,7 @@ module private Ast =
 
                 Continuation.sequence continuations finalContinuation
             | SynExpr.For (_, _, identBody, _, toBody, doBody, range) ->
-                let continuations : ((TriviaNodeAssigner list -> TriviaNodeAssigner list) -> TriviaNodeAssigner list) list =
+                let continuations: ((TriviaNodeAssigner list -> TriviaNodeAssigner list) -> TriviaNodeAssigner list) list =
                     [ visit identBody
                       visit toBody
                       visit doBody ]
@@ -182,7 +182,7 @@ module private Ast =
 
                 Continuation.sequence continuations finalContinuation
             | SynExpr.ForEach (_, SeqExprOnly _, _, pat, enumExpr, bodyExpr, range) ->
-                let continuations : ((TriviaNodeAssigner list -> TriviaNodeAssigner list) -> TriviaNodeAssigner list) list =
+                let continuations: ((TriviaNodeAssigner list -> TriviaNodeAssigner list) -> TriviaNodeAssigner list) list =
                     [ visit enumExpr; visit bodyExpr ]
 
                 let finalContinuation (nodes: TriviaNodeAssigner list list) : TriviaNodeAssigner list =
@@ -232,7 +232,7 @@ module private Ast =
                         mkNode SynExpr_Assert range :: nodes
                         |> finalContinuation)
             | SynExpr.App (_, _, funcExpr, argExpr, range) ->
-                let continuations : ((TriviaNodeAssigner list -> TriviaNodeAssigner list) -> TriviaNodeAssigner list) list =
+                let continuations: ((TriviaNodeAssigner list -> TriviaNodeAssigner list) -> TriviaNodeAssigner list) list =
                     [ visit funcExpr; visit argExpr ]
 
                 let finalContinuation (nodes: TriviaNodeAssigner list list) : TriviaNodeAssigner list =
@@ -265,7 +265,7 @@ module private Ast =
                           yield! withCases |> List.collect visitSynMatchClause ]
                         |> finalContinuation)
             | SynExpr.TryFinally (tryExpr, finallyExpr, range, _, _) ->
-                let continuations : ((TriviaNodeAssigner list -> TriviaNodeAssigner list) -> TriviaNodeAssigner list) list =
+                let continuations: ((TriviaNodeAssigner list -> TriviaNodeAssigner list) -> TriviaNodeAssigner list) list =
                     [ visit tryExpr; visit finallyExpr ]
 
                 let finalContinuation (nodes: TriviaNodeAssigner list list) : TriviaNodeAssigner list =
@@ -283,7 +283,7 @@ module private Ast =
             | SynExpr.Sequential (_, _, expr1, expr2, _) ->
                 visit expr2 (fun nodes1 -> visit expr1 (fun nodes2 -> nodes1 @ nodes2 |> finalContinuation))
             | SynExpr.SequentialOrImplicitYield (_, expr1, expr2, ifNotStmt, range) ->
-                let continuations : ((TriviaNodeAssigner list -> TriviaNodeAssigner list) -> TriviaNodeAssigner list) list =
+                let continuations: ((TriviaNodeAssigner list -> TriviaNodeAssigner list) -> TriviaNodeAssigner list) list =
                     [ visit expr1
                       visit expr2
                       visit ifNotStmt ]
@@ -301,7 +301,7 @@ module private Ast =
                     es
                     |> List.collect (fun (e1, e2, _, _, _) -> [ visit e1; visit e2 ])
 
-                let continuations : ((TriviaNodeAssigner list -> TriviaNodeAssigner list) -> TriviaNodeAssigner list) list =
+                let continuations: ((TriviaNodeAssigner list -> TriviaNodeAssigner list) -> TriviaNodeAssigner list) list =
                     [ yield visit ifExpr
                       yield visit thenExpr
                       yield! elifs
@@ -315,7 +315,7 @@ module private Ast =
                 Continuation.sequence continuations finalContinuation
 
             | SynExpr.IfThenElse (ifExpr, thenExpr, elseExpr, _, _, _, range) ->
-                let continuations : ((TriviaNodeAssigner list -> TriviaNodeAssigner list) -> TriviaNodeAssigner list) list =
+                let continuations: ((TriviaNodeAssigner list -> TriviaNodeAssigner list) -> TriviaNodeAssigner list) list =
                     [ yield visit ifExpr
                       yield visit thenExpr
                       yield! (Option.toList elseExpr |> List.map visit) ]
@@ -350,7 +350,7 @@ module private Ast =
                           yield! (visitLongIdentWithDots longDotId) ]
                         |> finalContinuation)
             | SynExpr.DotSet (expr, _, e2, range) ->
-                let continuations : ((TriviaNodeAssigner list -> TriviaNodeAssigner list) -> TriviaNodeAssigner list) list =
+                let continuations: ((TriviaNodeAssigner list -> TriviaNodeAssigner list) -> TriviaNodeAssigner list) list =
                     [ visit expr; visit e2 ]
 
                 let finalContinuation (nodes: TriviaNodeAssigner list list) : TriviaNodeAssigner list =
@@ -360,7 +360,7 @@ module private Ast =
 
                 Continuation.sequence continuations finalContinuation
             | SynExpr.Set (e1, e2, range) ->
-                let continuations : ((TriviaNodeAssigner list -> TriviaNodeAssigner list) -> TriviaNodeAssigner list) list =
+                let continuations: ((TriviaNodeAssigner list -> TriviaNodeAssigner list) -> TriviaNodeAssigner list) list =
                     [ visit e1; visit e2 ]
 
                 let finalContinuation (nodes: TriviaNodeAssigner list list) : TriviaNodeAssigner list =
@@ -378,7 +378,7 @@ module private Ast =
                           yield! indexExprs |> List.collect visitSynIndexerArg ]
                         |> finalContinuation)
             | SynExpr.DotIndexedSet (objectExpr, indexExprs, valueExpr, _, _, range) ->
-                let continuations : ((TriviaNodeAssigner list -> TriviaNodeAssigner list) -> TriviaNodeAssigner list) list =
+                let continuations: ((TriviaNodeAssigner list -> TriviaNodeAssigner list) -> TriviaNodeAssigner list) list =
                     [ visit objectExpr; visit valueExpr ]
 
                 let finalContinuation (nodes: TriviaNodeAssigner list list) : TriviaNodeAssigner list =
@@ -389,7 +389,7 @@ module private Ast =
 
                 Continuation.sequence continuations finalContinuation
             | SynExpr.NamedIndexedPropertySet (_, e1, e2, range) ->
-                let continuations : ((TriviaNodeAssigner list -> TriviaNodeAssigner list) -> TriviaNodeAssigner list) list =
+                let continuations: ((TriviaNodeAssigner list -> TriviaNodeAssigner list) -> TriviaNodeAssigner list) list =
                     [ visit e1; visit e2 ]
 
                 let finalContinuation (nodes: TriviaNodeAssigner list list) : TriviaNodeAssigner list =
@@ -399,7 +399,7 @@ module private Ast =
 
                 Continuation.sequence continuations finalContinuation
             | SynExpr.DotNamedIndexedPropertySet (expr, _, e1, e2, range) ->
-                let continuations : ((TriviaNodeAssigner list -> TriviaNodeAssigner list) -> TriviaNodeAssigner list) list =
+                let continuations: ((TriviaNodeAssigner list -> TriviaNodeAssigner list) -> TriviaNodeAssigner list) list =
                     [ visit expr; visit e1; visit e2 ]
 
                 let finalContinuation (nodes: TriviaNodeAssigner list list) : TriviaNodeAssigner list =
@@ -464,7 +464,7 @@ module private Ast =
                           yield! nodes ]
                         |> finalContinuation)
             | SynExpr.JoinIn (expr, _, expr2, range) ->
-                let continuations : ((TriviaNodeAssigner list -> TriviaNodeAssigner list) -> TriviaNodeAssigner list) list =
+                let continuations: ((TriviaNodeAssigner list -> TriviaNodeAssigner list) -> TriviaNodeAssigner list) list =
                     [ visit expr; visit expr2 ]
 
                 let finalContinuation (nodes: TriviaNodeAssigner list list) : TriviaNodeAssigner list =
@@ -490,7 +490,7 @@ module private Ast =
                         mkNode SynExpr_YieldOrReturnFrom range :: nodes
                         |> finalContinuation)
             | SynExpr.LetOrUseBang (_, _, _, pat, rhsExpr, andBangs, body, range) ->
-                let continuations : ((TriviaNodeAssigner list -> TriviaNodeAssigner list) -> TriviaNodeAssigner list) list =
+                let continuations: ((TriviaNodeAssigner list -> TriviaNodeAssigner list) -> TriviaNodeAssigner list) list =
                     [ yield visit rhsExpr
                       yield visit body
                       yield! (List.map (fun (_, _, _, _, body, _) -> visit body) andBangs) ]
@@ -535,7 +535,7 @@ module private Ast =
                         :: nodes
                         |> finalContinuation)
             | SynExpr.LibraryOnlyUnionCaseFieldSet (e1, _, _, e2, range) ->
-                let continuations : ((TriviaNodeAssigner list -> TriviaNodeAssigner list) -> TriviaNodeAssigner list) list =
+                let continuations: ((TriviaNodeAssigner list -> TriviaNodeAssigner list) -> TriviaNodeAssigner list) list =
                     [ visit e1; visit e2 ]
 
                 let finalContinuation (nodes: TriviaNodeAssigner list list) : TriviaNodeAssigner list =
@@ -850,7 +850,7 @@ module private Ast =
                           yield! (visitSynAttributeLists range attrs) ]
                         |> finalContinuation)
             | SynPat.Or (synPat, synPat2, range) ->
-                let continuations : ((TriviaNodeAssigner list -> TriviaNodeAssigner list) -> TriviaNodeAssigner list) list =
+                let continuations: ((TriviaNodeAssigner list -> TriviaNodeAssigner list) -> TriviaNodeAssigner list) list =
                     [ visit synPat; visit synPat2 ]
 
                 let finalContinuation (nodes: TriviaNodeAssigner list list) : TriviaNodeAssigner list =
@@ -859,7 +859,7 @@ module private Ast =
 
                 Continuation.sequence continuations finalContinuation
             | SynPat.Ands (pats, range) ->
-                let continuations : ((TriviaNodeAssigner list -> TriviaNodeAssigner list) -> TriviaNodeAssigner list) list =
+                let continuations: ((TriviaNodeAssigner list -> TriviaNodeAssigner list) -> TriviaNodeAssigner list) list =
                     pats |> List.map visit
 
                 let finalContinuation (nodes: TriviaNodeAssigner list list) : TriviaNodeAssigner list =
@@ -875,7 +875,7 @@ module private Ast =
                   yield! visitSynConstructorArgs ctorArgs ]
                 |> finalContinuation
             | SynPat.Tuple (_, pats, range) ->
-                let continuations : ((TriviaNodeAssigner list -> TriviaNodeAssigner list) -> TriviaNodeAssigner list) list =
+                let continuations: ((TriviaNodeAssigner list -> TriviaNodeAssigner list) -> TriviaNodeAssigner list) list =
                     pats |> List.map visit
 
                 let finalContinuation (nodes: TriviaNodeAssigner list list) : TriviaNodeAssigner list =
@@ -891,7 +891,7 @@ module private Ast =
                         mkNode SynPat_Paren range :: nodes
                         |> finalContinuation)
             | SynPat.ArrayOrList (_, pats, range) ->
-                let continuations : ((TriviaNodeAssigner list -> TriviaNodeAssigner list) -> TriviaNodeAssigner list) list =
+                let continuations: ((TriviaNodeAssigner list -> TriviaNodeAssigner list) -> TriviaNodeAssigner list) list =
                     pats |> List.map visit
 
                 let finalContinuation (nodes: TriviaNodeAssigner list list) : TriviaNodeAssigner list =
@@ -901,7 +901,7 @@ module private Ast =
 
                 Continuation.sequence continuations finalContinuation
             | SynPat.Record (pats, range) ->
-                let continuations : ((TriviaNodeAssigner list -> TriviaNodeAssigner list) -> TriviaNodeAssigner list) list =
+                let continuations: ((TriviaNodeAssigner list -> TriviaNodeAssigner list) -> TriviaNodeAssigner list) list =
                     pats |> List.map (snd >> visit)
 
                 let finalContinuation (nodes: TriviaNodeAssigner list list) : TriviaNodeAssigner list =
@@ -1076,7 +1076,7 @@ module private Ast =
             match st with
             | SynType.LongIdent li -> visitLongIdentWithDots li |> finalContinuation
             | SynType.App (typeName, _, typeArgs, _, _, _, range) ->
-                let continuations : ((TriviaNodeAssigner list -> TriviaNodeAssigner list) -> TriviaNodeAssigner list) list =
+                let continuations: ((TriviaNodeAssigner list -> TriviaNodeAssigner list) -> TriviaNodeAssigner list) list =
                     [ yield! (List.map visit typeArgs)
                       yield visit typeName ]
 
@@ -1087,7 +1087,7 @@ module private Ast =
 
                 Continuation.sequence continuations finalContinuation
             | SynType.LongIdentApp (typeName, _, _, typeArgs, _, _, range) ->
-                let continuations : ((TriviaNodeAssigner list -> TriviaNodeAssigner list) -> TriviaNodeAssigner list) list =
+                let continuations: ((TriviaNodeAssigner list -> TriviaNodeAssigner list) -> TriviaNodeAssigner list) list =
                     [ yield! (List.map visit typeArgs)
                       yield visit typeName ]
 
@@ -1098,7 +1098,7 @@ module private Ast =
 
                 Continuation.sequence continuations finalContinuation
             | SynType.Tuple (_, typeNames, range) ->
-                let continuations : ((TriviaNodeAssigner list -> TriviaNodeAssigner list) -> TriviaNodeAssigner list) list =
+                let continuations: ((TriviaNodeAssigner list -> TriviaNodeAssigner list) -> TriviaNodeAssigner list) list =
                     List.map (snd >> visit) typeNames
 
                 let finalContinuation (nodes: TriviaNodeAssigner list list) : TriviaNodeAssigner list =
@@ -1114,7 +1114,7 @@ module private Ast =
                         mkNode SynType_Array range :: nodes
                         |> finalContinuation)
             | SynType.Fun (argType, returnType, range) ->
-                let continuations : ((TriviaNodeAssigner list -> TriviaNodeAssigner list) -> TriviaNodeAssigner list) list =
+                let continuations: ((TriviaNodeAssigner list -> TriviaNodeAssigner list) -> TriviaNodeAssigner list) list =
                     [ visit argType; visit returnType ]
 
                 let finalContinuation (nodes: TriviaNodeAssigner list list) : TriviaNodeAssigner list =
@@ -1145,7 +1145,7 @@ module private Ast =
                         mkNode SynType_HashConstraint range :: nodes
                         |> finalContinuation)
             | SynType.MeasureDivide (dividendType, divisorType, range) ->
-                let continuations : ((TriviaNodeAssigner list -> TriviaNodeAssigner list) -> TriviaNodeAssigner list) list =
+                let continuations: ((TriviaNodeAssigner list -> TriviaNodeAssigner list) -> TriviaNodeAssigner list) list =
                     [ visit dividendType
                       visit divisorType ]
 
@@ -1170,7 +1170,7 @@ module private Ast =
                 :: (visitSynExpr expr)
                 |> finalContinuation
             | SynType.StaticConstantNamed (expr, typ, range) ->
-                let continuations : ((TriviaNodeAssigner list -> TriviaNodeAssigner list) -> TriviaNodeAssigner list) list =
+                let continuations: ((TriviaNodeAssigner list -> TriviaNodeAssigner list) -> TriviaNodeAssigner list) list =
                     [ visit expr; visit typ ]
 
                 let finalContinuation (nodes: TriviaNodeAssigner list list) : TriviaNodeAssigner list =
@@ -1268,7 +1268,7 @@ module private Ast =
                 |> List.singleton
                 |> finalContinuation
             | SynModuleSigDecl.NestedModule (sci, _, decls, range) ->
-                let continuations : ((TriviaNodeAssigner list -> TriviaNodeAssigner list) -> TriviaNodeAssigner list) list =
+                let continuations: ((TriviaNodeAssigner list -> TriviaNodeAssigner list) -> TriviaNodeAssigner list) list =
                     List.map visit decls
 
                 let finalContinuation (nodes: TriviaNodeAssigner list list) : TriviaNodeAssigner list =
