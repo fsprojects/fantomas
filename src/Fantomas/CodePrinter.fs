@@ -4093,7 +4093,7 @@ and genUnionCase astContext (hasVerticalBar: bool) (UnionCase (ats, px, _, s, Un
     +> ifElse hasVerticalBar sepBar sepNone
     +> genOnelinerAttributes astContext ats
     -- s
-    +> expressionFitsOnRestOfLine shortExpr longExpr
+    +> onlyIf (List.isNotEmpty fs) (expressionFitsOnRestOfLine shortExpr longExpr)
     |> genTriviaFor UnionCase_ node.Range
 
 and genEnumCase astContext (EnumCase (ats, px, _, (_, _)) as node) =

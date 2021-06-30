@@ -822,3 +822,45 @@ type SynTypeConstraint =
     /// F# syntax: is 'typar: struct
     | WhereTyparIsValueType of typar: SynTypar * range: range
 """
+
+[<Test>]
+let ``long union case with attributes without fields, 1796`` () =
+    formatSourceString
+        false
+        """
+type TransactionType =
+    | [<CompiledName "External Credit Balance Refund">] ExternalCreditBalanceRefund
+    | [<CompiledName "Credit Balance Adjustment (Applied from Credit Balance)">] CreditBalanceAdjustmentAppliedFromCreditBalance
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type TransactionType =
+    | [<CompiledName "External Credit Balance Refund">] ExternalCreditBalanceRefund
+    | [<CompiledName "Credit Balance Adjustment (Applied from Credit Balance)">] CreditBalanceAdjustmentAppliedFromCreditBalance
+"""
+
+[<Test>]
+let ``long union case with attributes without fields, signature file`` () =
+    formatSourceString
+        true
+        """
+namespace X
+
+type TransactionType =
+    | [<CompiledName "External Credit Balance Refund">] ExternalCreditBalanceRefund
+    | [<CompiledName "Credit Balance Adjustment (Applied from Credit Balance)">] CreditBalanceAdjustmentAppliedFromCreditBalance
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+namespace X
+
+type TransactionType =
+    | [<CompiledName "External Credit Balance Refund">] ExternalCreditBalanceRefund
+    | [<CompiledName "Credit Balance Adjustment (Applied from Credit Balance)">] CreditBalanceAdjustmentAppliedFromCreditBalance
+"""
