@@ -4863,20 +4863,24 @@ and genPat astContext pat =
 
         expressionFitsOnRestOfLine short long
     | PatSeq (PatList, ps) ->
-        ifElse
-            ps.IsEmpty
-            (sepOpenLFixed +> sepCloseLFixed)
-            (sepOpenL
-             +> atCurrentColumn (colAutoNlnSkip0 sepSemi ps (genPat astContext))
-             +> sepCloseL)
+        let genPats =
+            let short =
+                colAutoNlnSkip0 sepSemi ps (genPat astContext)
+
+            let long = col sepSemiNln ps (genPat astContext)
+            expressionFitsOnRestOfLine short long
+
+        ifElse ps.IsEmpty (sepOpenLFixed +> sepCloseLFixed) (sepOpenL +> atCurrentColumn genPats +> sepCloseL)
 
     | PatSeq (PatArray, ps) ->
-        ifElse
-            ps.IsEmpty
-            (sepOpenAFixed +> sepCloseAFixed)
-            (sepOpenA
-             +> atCurrentColumn (colAutoNlnSkip0 sepSemi ps (genPat astContext))
-             +> sepCloseA)
+        let genPats =
+            let short =
+                colAutoNlnSkip0 sepSemi ps (genPat astContext)
+
+            let long = col sepSemiNln ps (genPat astContext)
+            expressionFitsOnRestOfLine short long
+
+        ifElse ps.IsEmpty (sepOpenAFixed +> sepCloseAFixed) (sepOpenA +> atCurrentColumn genPats +> sepCloseA)
 
     | PatRecord xs ->
         let smallRecordExpr =

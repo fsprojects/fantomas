@@ -1444,3 +1444,91 @@ let x = { actual = 6 y = x }
 
 let y = { actual = 6; y = x }
 """
+
+[<Test>]
+let ``multiline records in pattern list should not have semicolon by default, 1793`` () =
+    formatSourceString
+        false
+        """
+match entities with
+| [ { Key = "0031ff53-e59b-49e3-8e0f-53f72a3890d1"
+      Type = Elephant }
+    { Key = "0031ff53-e59b-49e3-8e0f-53f72a3890d2"
+      Type = Elephant }
+    { Key = "0031ff53-e59b-49e3-8e0f-53f72a3890d3"
+      Type = Elephant } ] -> ()
+| _ -> ()
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+match entities with
+| [ { Key = "0031ff53-e59b-49e3-8e0f-53f72a3890d1"
+      Type = Elephant }
+    { Key = "0031ff53-e59b-49e3-8e0f-53f72a3890d2"
+      Type = Elephant }
+    { Key = "0031ff53-e59b-49e3-8e0f-53f72a3890d3"
+      Type = Elephant } ] -> ()
+| _ -> ()
+"""
+
+[<Test>]
+let ``multiline records in pattern list should have semicolon`` () =
+    formatSourceString
+        false
+        """
+match entities with
+| [ { Key = "0031ff53-e59b-49e3-8e0f-53f72a3890d1"
+      Type = Elephant }
+    { Key = "0031ff53-e59b-49e3-8e0f-53f72a3890d2"
+      Type = Elephant }
+    { Key = "0031ff53-e59b-49e3-8e0f-53f72a3890d3"
+      Type = Elephant } ] -> ()
+| _ -> ()
+"""
+        { config with
+              SemicolonAtEndOfLine = true }
+    |> prepend newline
+    |> should
+        equal
+        """
+match entities with
+| [ { Key = "0031ff53-e59b-49e3-8e0f-53f72a3890d1";
+      Type = Elephant };
+    { Key = "0031ff53-e59b-49e3-8e0f-53f72a3890d2";
+      Type = Elephant };
+    { Key = "0031ff53-e59b-49e3-8e0f-53f72a3890d3";
+      Type = Elephant } ] -> ()
+| _ -> ()
+"""
+
+[<Test>]
+let ``multiline records in pattern array should not have semicolon by default`` () =
+    formatSourceString
+        false
+        """
+match entities with
+| [| { Key = "0031ff53-e59b-49e3-8e0f-53f72a3890d1"
+       Type = Elephant }
+     { Key = "0031ff53-e59b-49e3-8e0f-53f72a3890d2"
+       Type = Elephant }
+     { Key = "0031ff53-e59b-49e3-8e0f-53f72a3890d3"
+       Type = Elephant } |] -> ()
+| _ -> ()
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+match entities with
+| [| { Key = "0031ff53-e59b-49e3-8e0f-53f72a3890d1"
+       Type = Elephant }
+     { Key = "0031ff53-e59b-49e3-8e0f-53f72a3890d2"
+       Type = Elephant }
+     { Key = "0031ff53-e59b-49e3-8e0f-53f72a3890d3"
+       Type = Elephant } |] -> ()
+| _ -> ()
+"""
