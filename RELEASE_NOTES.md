@@ -1,4 +1,4 @@
-### 4.5.0-beta-002 - 06/2021
+#### 4.5.0-beta-002 - 06/2021
 
 * Fix Wild cards in lambda. [#1789](https://github.com/fsprojects/fantomas/issues/1789)
 * Fix Soundness regression in 4.5.0-beta-001. Nested lambdas are stripped. [#1782](https://github.com/fsprojects/fantomas/issues/1782)
@@ -12,7 +12,7 @@
 * Fix Difference in behavior between signature and implementation files for single case DU. [#973](https://github.com/fsprojects/fantomas/issues/973)
 * Fix Concatenation of multi-line """ strings mis-indented. [#639](https://github.com/fsprojects/fantomas/issues/639)
 
-### 4.5.0-beta-001 - 06/2021
+#### 4.5.0-beta-001 - 06/2021
 
 * Fix Comment after arrow lost with KeepIndentInBranch. [#1759](https://github.com/fsprojects/fantomas/issues/1759)
 * Fix Multiline if/then/else in infix expression. [#1757](https://github.com/fsprojects/fantomas/issues/1757)
@@ -21,18 +21,18 @@
 * Fix Difference in behavior between signature and implementation files for single case DU. [#973](https://github.com/fsprojects/fantomas/issues/973)
 * Fix Concatenation of multi-line """ strings mis-indented. [#639](https://github.com/fsprojects/fantomas/issues/639)
 
-### 4.5.0-alpha-020 - 05/2021
+#### 4.5.0-alpha-020 - 05/2021
 
 * Feature Always place bar in front of discriminated union. [#1750](https://github.com/fsprojects/fantomas/issues/1750)
 * Fix Trivia before SynPat.Paren. [#1753](https://github.com/fsprojects/fantomas/issues/1753)
 * Fix Idempotency problem when trailing comment is present. [#1538](https://github.com/fsprojects/fantomas/issues/1538)
 
-### 4.5.0-alpha-019 - 05/2021
+#### 4.5.0-alpha-019 - 05/2021
 
 * Fix Offside error after formatting with MultiLineLambdaClosingNewline. [#1741](https://github.com/fsprojects/fantomas/issues/1741)
 * Fix Pipe character missing in single-case try/with. [#1571](https://github.com/fsprojects/fantomas/issues/1571)
 
-### 4.5.0-alpha-018 - 05/2021
+#### 4.5.0-alpha-018 - 05/2021
 
 * Fix Multiline if condition in KeepIndentInBranch leads to warnings. [#1729](https://github.com/fsprojects/fantomas/issues/1729)
 * Fix KeepIndentInBranch not respected for values. [#1728](https://github.com/fsprojects/fantomas/issues/1728)
@@ -42,7 +42,7 @@
 * Fix Breaking method chain in the middle of an if statement causes offside error. [#1712](https://github.com/fsprojects/fantomas/issues/1712)
 * Fix Offside error when a comment appears before a match statement in pipeline. [#1711](https://github.com/fsprojects/fantomas/issues/1711)
 
-### 4.5.0-alpha-017 - 05/2021
+#### 4.5.0-alpha-017 - 05/2021
 
 * Feature Support multiple files/dirs as command-line arguments. [#1696](https://github.com/fsprojects/fantomas/issues/1696)
 * Fix Line comment after short pattern match clause causes additional parenthesis. [#1721](https://github.com/fsprojects/fantomas/issues/1721)
@@ -50,11 +50,11 @@
 * Fix Leading block comment makes type multiline. [#1718](https://github.com/fsprojects/fantomas/issues/1718)
 * Fix List concat chain using operators fails to format. [#1188](https://github.com/fsprojects/fantomas/issues/1188)
 
-### 4.5.0-alpha-016 - 05/2021
+#### 4.5.0-alpha-016 - 05/2021
 
 * Fix Unexpected newline after inner let binding. [#1709](https://github.com/fsprojects/fantomas/issues/1709)
 
-### 4.5.0-alpha-015 - 05/2021
+#### 4.5.0-alpha-015 - 05/2021
 
 * Fix Currying a pair gets spread over multiple lines. [#1700](https://github.com/fsprojects/fantomas/issues/1700)
 * Fix Additional parentheses are introduced when match is piped. [#1698](https://github.com/fsprojects/fantomas/issues/1698)
@@ -63,7 +63,7 @@
 * Fix Idempotency problem with ifdef in a function. [#1646](https://github.com/fsprojects/fantomas/issues/1646)
 * Fix string interpolation part crossing max line length introduces new line and lots of whitespace. [#1511](https://github.com/fsprojects/fantomas/issues/1511)
 
-### 4.5.0-alpha-014 - 04/2021
+#### 4.5.0-alpha-014 - 04/2021
 
 * Feature Disable empty line between mutually recursive type. [#1658](https://github.com/fsprojects/fantomas/issues/1658)
 * Fix Splitting generic type parameters over multiple lines sometimes puts the break in an invalid place. [#1687](https://github.com/fsprojects/fantomas/issues/1687)
@@ -72,13 +72,13 @@
 * Fix Idempotency problem when trying to format a type with method chaining in it. [#1681](https://github.com/fsprojects/fantomas/issues/1681)
 * Fix Line comments after null value used as argument in function call are removed. [#1676](https://github.com/fsprojects/fantomas/issues/1676)
 
-### 4.5.0-alpha-013 - 04/2021
+#### 4.5.0-alpha-013 - 04/2021
 
 * Fix Idempotency problem when trying to format a type with method chaining in it. [#1681](https://github.com/fsprojects/fantomas/issues/1681)
 * Fix Comment after constant got moved to the next line. [#1671](https://github.com/fsprojects/fantomas/issues/1671)
 * Fix Idempotency problem when ending with a comment. [#1649](https://github.com/fsprojects/fantomas/issues/1649)
 
-### 4.5.0-alpha-012 - 04/2021
+#### 4.5.0-alpha-012 - 04/2021
 
 * Fix end_of_line not respecting when file has ifdef. [#1673](https://github.com/fsprojects/fantomas/issues/1673)
 * Fix Attributes in a recursive type get misplaced. [#1668](https://github.com/fsprojects/fantomas/issues/1668)
@@ -86,7 +86,7 @@
 * Fix Stack overflow on macOS for long pipelines. [#1453](https://github.com/fsprojects/fantomas/issues/1453)
 * Fix Comment inside empty Elmish children is lost. [#1179](https://github.com/fsprojects/fantomas/issues/1179)
 
-### 4.5.0-alpha-011 - 04/2021
+#### 4.5.0-alpha-011 - 04/2021
 
 * Fix Long .Setup line in Moq code results in broken indentation. [#1662](https://github.com/fsprojects/fantomas/issues/1662)
 * Fix Don't introduce parenthesis around SynPat.IsInst. [#1660](https://github.com/fsprojects/fantomas/issues/1660)
@@ -96,23 +96,23 @@
 * Fix Formatting code makes Interpolated verbatim strings to non-verbatim strings, which breaks the code. [#1645](https://github.com/fsprojects/fantomas/issues/1645)
 * Fix Comment stripped in a record with semi-colons. [#1643](https://github.com/fsprojects/fantomas/issues/1643)
 
-### 4.5.0-alpha-010 - 04/2021
+#### 4.5.0-alpha-010 - 04/2021
 
 * Fix Another shape which isn't respecting KeepIndentInBranch. [#1638](https://github.com/fsprojects/fantomas/issues/1638)
 * Fix Incorrect code when function type parameter would break over line. [#1637](https://github.com/fsprojects/fantomas/issues/1637)
 * Fix Multiline type parameter arguments inside indentation. [#1611](https://github.com/fsprojects/fantomas/issues/1611)
 
-### 4.5.0-alpha-009 - 04/2021
+#### 4.5.0-alpha-009 - 04/2021
 
 * Fix Fantomas add extra parenthesis in desugared lambda. [#1631](https://github.com/fsprojects/fantomas/issues/1631)
 * Fix Mutually recursive functions break with function invocation above definition. [#1628](https://github.com/fsprojects/fantomas/issues/1628)
 * Fix Removal of bar in one-case DU. [#1563](https://github.com/fsprojects/fantomas/issues/1563)
 
-### 4.5.0-alpha-008 - 04/2021
+#### 4.5.0-alpha-008 - 04/2021
 
 * Fix Multiline type signature is not unindent. [#1624](https://github.com/fsprojects/fantomas/issues/1624)
 
-### 4.5.0-alpha-007 - 04/2021
+#### 4.5.0-alpha-007 - 04/2021
 
 * Fix Failure to unindent with KeepIndentInBranch. [#1621](https://github.com/fsprojects/fantomas/issues/1621)
 * Fix Some of newlines in string interpolation is deleted. [#1613](https://github.com/fsprojects/fantomas/issues/1613)
@@ -124,7 +124,7 @@
 * Fix Idempotency problem with recursive types in FSI. [#1605](https://github.com/fsprojects/fantomas/issues/1605)
 * Fix Idempotency problem with comments at the end of code. [#1604](https://github.com/fsprojects/fantomas/issues/1604)
 
-### 4.5.0-alpha-006 - 04/2021
+#### 4.5.0-alpha-006 - 04/2021
 
 * Feature BlankLinesAroundNestedMultilineExpressions. [#1587](https://github.com/fsprojects/fantomas/pull/1587)
 * Fix Block comment in Elmish expression removed. [#1601](https://github.com/fsprojects/fantomas/issues/1601)
@@ -140,7 +140,7 @@
 * Fix Comments are sometimes removed unexpectedly during formatting. [#1276](https://github.com/fsprojects/fantomas/issues/1276)
 * Fix max_line_length not respected in mutliline infix expression in if. [#1584](https://github.com/fsprojects/fantomas/issues/1584)
 
-### 4.5.0-alpha-005 - 04/2021
+#### 4.5.0-alpha-005 - 04/2021
 
 * Fix Const() stripped from string literals break. [#1574](https://github.com/fsprojects/fantomas/issues/1574)
 * Fix Conversion of & to byref is invalid in extern function declaration. [#1567](https://github.com/fsprojects/fantomas/issues/1567)
@@ -148,7 +148,7 @@
 * Fix Documentation comment for primary class constructor is removed. [#1286](https://github.com/fsprojects/fantomas/issues/1286)
 * Fix A comment before an anonymous function gets swallowed up. [#1190](https://github.com/fsprojects/fantomas/issues/1190)
 
-### 4.5.0-alpha-004 - 04/2021
+#### 4.5.0-alpha-004 - 04/2021
 
 * Fix KeepIndentInBranch not being respected?. [#1569](https://github.com/fsprojects/fantomas/issues/1569)
 * Fix Split of very long function call in if body. [#1564](https://github.com/fsprojects/fantomas/issues/1564)
@@ -159,7 +159,7 @@
 * Fix All SynExpr should start on next line and indent. [#1556](https://github.com/fsprojects/fantomas/issues/1556)
 * Fix Missing indentation when using pattern matching via anonymous functions in a pipeline. [#614](https://github.com/fsprojects/fantomas/issues/614)
 
-### 4.5.0-alpha-003 - 03/2021
+#### 4.5.0-alpha-003 - 03/2021
 
 * Fix Required type arguments are removed with DotGet lambda. [#1550](https://github.com/fsprojects/fantomas/issues/1550)
 * Fix Fantomas removes the format string from string interpolation. [#1549](https://github.com/fsprojects/fantomas/issues/1549)
@@ -171,7 +171,7 @@
 * Fix Idempotency problem when exceptions in signature file. [#1531](https://github.com/fsprojects/fantomas/issues/1531)
 * Fix Exception - detect of multiple defines when define surrounds a DU member. [#1503](https://github.com/fsprojects/fantomas/issues/1503)
 
-### 4.5.0-alpha-002 - 03/2021
+#### 4.5.0-alpha-002 - 03/2021
 
 * Initial support of KeepIndentInBranch. [#1361](https://github.com/fsprojects/fantomas/issues/1361)
 * Improve: Collect empty define block as single trivia. [#1528](https://github.com/fsprojects/fantomas/pull/1528)
@@ -188,13 +188,13 @@
 * Fix Class parameters expands unit for long lines. [#1494](https://github.com/fsprojects/fantomas/issues/1494)
 * Fix Comments inside Elmish gets repeated. [#1347](https://github.com/fsprojects/fantomas/issues/1347)
 
-### 4.5.0-alpha-001 - 02/2021
+#### 4.5.0-alpha-001 - 02/2021
 
 * Update to FCS 39 [#1479](https://github.com/fsprojects/fantomas/pull/1479)
 * Fix Extra space throws exception. [#1476](https://github.com/fsprojects/fantomas/issues/1476)
 * Fix comment deleted on reformat. [#1343](https://github.com/fsprojects/fantomas/issues/1343)
 
-### 4.4.0 - 02/2021
+#### 4.4.0 - 02/2021
 
 * Revisit SynExpr.IfThenElse. [#1258](https://github.com/fsprojects/fantomas/issues/1258)
 * Target netcoreapp3.1 for fantomas-tool.
@@ -269,7 +269,7 @@
 * Fix Don't indent too far. [#659](https://github.com/fsprojects/fantomas/issues/659)
 * Fix spaces removed from string. [#1290](https://github.com/fsprojects/fantomas/issues/1290)
 
-### 4.3.0 - 12/2020
+#### 4.3.0 - 12/2020
 
 * Feature Clarify constructors. [#1217](https://github.com/fsprojects/fantomas/issues/1217)
 * Feature MultiLineLambdaClosingNewline. [#1221](https://github.com/fsprojects/fantomas/issues/1221)
@@ -318,13 +318,13 @@
 * Fix Formatting typeof generic static constraint fails to compile. [#803](https://github.com/fsprojects/fantomas/issues/803)
 * Fix Indenting of record definition when internal. [#658](https://github.com/fsprojects/fantomas/issues/658)
 
-### 4.2.0 - 09/2020
+#### 4.2.0 - 09/2020
 
 * Feature MaxDotGetExpressionWidth. [#501](https://github.com/fsprojects/fantomas/issues/501)
 * Fix Confusing symmetry between infix operators. [#988](https://github.com/fsprojects/fantomas/issues/988)
 * Fix Comment before closing parenthesis is lost. [#1146](https://github.com/fsprojects/fantomas/issues/1146)
 
-### 4.1.1 - 09/2020
+#### 4.1.1 - 09/2020
 
 * Fix No newline between module and first declaration. [#1139](https://github.com/fsprojects/fantomas/issues/1139)     
 * Fix additional new lines added after each call to format. [#1137](https://github.com/fsprojects/fantomas/issues/1137)
@@ -332,7 +332,7 @@
 * Fix Comments on DUs parameterized by functions are dropped. [#1128](https://github.com/fsprojects/fantomas/issues/1128)
 * Fix Preserve underscore in number. [#1120](https://github.com/fsprojects/fantomas/issues/1120)
 
-### 4.1.0 - 09/2020
+#### 4.1.0 - 09/2020
 
 * Ignore files by `.fantomasignore` file. [#420](https://github.com/fsprojects/fantomas/issues/420)
 * Limit trivia by AST MainNode name. [#992](https://github.com/fsprojects/fantomas/pull/992)
@@ -366,7 +366,7 @@
 * Fix Invalid unit test ``should break lines on multiline if conditions``. [#863](https://github.com/fsprojects/fantomas/issues/863)
 * Fix Abstract member declarations don't follow page width. [#435](https://github.com/fsprojects/fantomas/issues/435)
 
-### 4.0.0 - 08/2020
+#### 4.0.0 - 08/2020
 
 * Add initial support of String Interpolation. [#998](https://github.com/fsprojects/fantomas/issues/998)
 * Extract FakeHelpers and EditorConfig to Fantomas.Extras project [#986](https://github.com/fsprojects/fantomas/issues/986)
@@ -509,7 +509,7 @@
 * Fix Long function signature broken into two lines. [#492](https://github.com/fsprojects/fantomas/issues/492)
 * Fix "Better" support for nesting complex expressions in async { } blocks. [#386](https://github.com/fsprojects/fantomas/issues/386)
 
-### 3.3.0 - 02/2020
+#### 3.3.0 - 02/2020
 
 * Support for `and!`. [#690](https://github.com/fsprojects/fantomas/issues/690)
 * Support for new slice syntax. [#691](https://github.com/fsprojects/fantomas/issues/691)
@@ -527,7 +527,7 @@
 * Fix Page width is not respected when formatting a function signature. [#495](https://github.com/fsprojects/fantomas/issues/495)
 * Update README with link to YouTube videos series. [#672](https://github.com/fsprojects/fantomas/pull/672)
 
-### 3.2.0 - 02/2020
+#### 3.2.0 - 02/2020
 
 * Added support for settings configuration file. [#354](https://github.com/fsprojects/fantomas/issues/354)
 * Use Argu for commandline argument parsing. [#607](https://github.com/fsprojects/fantomas/pull/607)
@@ -568,7 +568,7 @@
 * Fix Intrinsic type extension member signatures are erased. [#413](https://github.com/fsprojects/fantomas/issues/413)
 * Fix Inconsistencies in if formatting. [#135](https://github.com/fsprojects/fantomas/issues/135)
 
-### 3.1.0 - 11/2019
+#### 3.1.0 - 11/2019
 * Fix invalid code generated after multiline string when other expressions exist on same line. [#545](https://github.com/fsprojects/fantomas/issues/545)
 * Fix Trivia before elif generates invalid code due to missing indentation. [#527](https://github.com/fsprojects/fantomas/issues/527)
 * Fix Don't add additional newline between two and blocks. [#520](https://github.com/fsprojects/fantomas/issues/520)
@@ -585,7 +585,7 @@
 * Use dotnet tools [pull/558](https://github.com/fsprojects/fantomas/pull/558)
 * Add `--maxIfThenElseShortWidth` option, see [documentation](https://github.com/fsprojects/fantomas/blob/master/docs/Documentation.md)
   
-### 3.0.0 - 10/2019
+#### 3.0.0 - 10/2019
 * Use FCS 32.0.0. [490b121af427ec4f6eba94f6d6d08cf3f91e04c8](https://github.com/fsprojects/fantomas/pull/434/commits/490b121af427ec4f6eba94f6d6d08cf3f91e04c8)
 * Deprecate PreserveEndOfLine feature. [#390](https://github.com/fsprojects/fantomas/issues/390)
 * Upgrade to .NET Core 3.0 and deprecate dotnet-fantomas. [b13aa00a57541be5f6182dc65ee27dc81174ab15](https://github.com/fsprojects/fantomas/pull/434/commits/b13aa00a57541be5f6182dc65ee27dc81174ab15)
