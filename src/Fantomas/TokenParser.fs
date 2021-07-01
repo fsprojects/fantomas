@@ -98,6 +98,7 @@ type SourceCodeState =
     | Normal
     | InsideString
     | InsideTripleQuoteString of startIndex: int
+    | InsideVerbatimString of startIndex: int
     | InsideMultilineComment
     | InsideLineComment
 
@@ -131,6 +132,7 @@ let rec private getTokenizedHashes (sourceCode: string) : Token list =
         let (|NoBackSlashChar|_|) = differsFromChar '\\'
         let (|CloseParenChar|_|) = equalsChar ')'
         let (|ForwardSlashChar|_|) = equalsChar '/'
+        let (|AtChar|_|) = equalsChar '@'
 
         let (|LineCommentStart|_|) v =
             match v with
@@ -253,6 +255,9 @@ let rec private getTokenizedHashes (sourceCode: string) : Token list =
                     | Normal, TripleQuoteChars ->
                         { acc with
                               State = InsideTripleQuoteString(idx) }
+                    | Normal, (AtChar, DoubleQuoteChar, _) ->
+                        { acc with
+                              State = InsideVerbatimString idx }
                     | Normal, (DoubleQuoteChar, _, _) -> { acc with State = InsideString }
                     | Normal, (OpenParenChar, AsteriskChar, NoCloseParenChar) when (sourceLength > 3) ->
                         { acc with
@@ -272,6 +277,9 @@ let rec private getTokenizedHashes (sourceCode: string) : Token list =
                     | Normal, TripleQuoteChars ->
                         { acc with
                               State = InsideTripleQuoteString idx }
+                    | Normal, (AtChar, DoubleQuoteChar, _) ->
+                        { acc with
+                              State = InsideVerbatimString idx }
                     | Normal, (DoubleQuoteChar, _, _) -> { acc with State = InsideString }
                     | Normal, (OpenParenChar, AsteriskChar, NoCloseParenChar) ->
                         { acc with
@@ -305,6 +313,13 @@ let rec private getTokenizedHashes (sourceCode: string) : Token list =
                             | NoBackSlashChar -> { acc with State = Normal }
                             | _ -> acc
                         | _ -> acc
+                    | InsideVerbatimString _, (DoubleQuoteChar, DoubleQuoteChar, _) -> acc
+                    | InsideVerbatimString startIndex, (DoubleQuoteChar, _, _) ->
+                        if idx = startIndex + 1 then
+                            // Still at the start of the verbatim string @"
+                            acc
+                        else
+                            { acc with State = Normal }
                     | InsideMultilineComment, (NewlineChar, _, _) ->
                         { acc with
                               NewlineIndexes = idx :: acc.NewlineIndexes }

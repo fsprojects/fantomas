@@ -638,3 +638,21 @@ prinfn \"Debug shizzle\"
     "
 
     getDefines source == [ "DEBUG" ]
+
+[<Test>]
+let ``backslash in verbatim string`` () =
+    let source =
+        "
+let ProgramFilesX86 =
+    if detected = null then @\"C:\Program Files (x86)\\\" else detected
+
+let isUnix =
+#if NETSTANDARD1_6 || NETSTANDARD2_0
+    meh
+#else
+    foo
+#endif
+        "
+
+    getDefines source
+    == [ "NETSTANDARD1_6"; "NETSTANDARD2_0" ]
