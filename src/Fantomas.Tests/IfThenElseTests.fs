@@ -2489,3 +2489,55 @@ let name =
   if typ.GenericParameter.IsSolveAtCompileTime then "^" else "'"
   + typ.GenericParameter.Name
 """
+
+[<Test>]
+let ``short function application in infix expression, 1795`` () =
+    formatSourceString
+        false
+        """
+if
+        FOOQueryUserToken (uint32 activeSessionId, &token) <> 0u
+      then
+        Some x
+      else
+        None
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+if
+    FOOQueryUserToken(uint32 activeSessionId, &token)
+    <> 0u
+then
+    Some x
+else
+    None
+"""
+
+[<Test>]
+let ``short function application in infix expression, reversed`` () =
+    formatSourceString
+        false
+        """
+if
+      0u   <> FOOQueryUserToken (uint32 activeSessionId, &token)
+      then
+        Some x
+      else
+        None
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+if
+    0u
+    <> FOOQueryUserToken(uint32 activeSessionId, &token)
+then
+    Some x
+else
+    None
+"""

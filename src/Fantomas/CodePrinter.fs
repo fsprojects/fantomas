@@ -2109,19 +2109,23 @@ and genExpr astContext synExpr ctx =
                         | AppParenArg app ->
                             genAlternativeAppWithParenthesis app astContext
                             |> indentNlnUnindentNln
-                        | InfixApp (s, e, AppParenArg app, e2) ->
-                            (genAlternativeAppWithParenthesis app astContext
+                        | InfixApp (s, e, (AppParenArg app as e1), e2) ->
+                            (expressionFitsOnRestOfLine
+                                (genExpr astContext e1)
+                                (genAlternativeAppWithParenthesis app astContext)
                              +> ifElse (noBreakInfixOps.Contains(s)) sepSpace sepNln
                              +> genInfixOperator s e
                              +> sepSpace
                              +> genExpr astContext e2)
                             |> indentNlnUnindentNln
-                        | InfixApp (s, e, e1, AppParenArg app) ->
+                        | InfixApp (s, e, e1, (AppParenArg app as e2)) ->
                             (genExpr astContext e1
                              +> sepNln
                              +> genInfixOperator s e
                              +> sepSpace
-                             +> genAlternativeAppWithParenthesis app astContext)
+                             +> expressionFitsOnRestOfLine
+                                 (genExpr astContext e2)
+                                 (genAlternativeAppWithParenthesis app astContext))
                             |> indentNlnUnindentNln
                         // very specific fix for 1380
                         | SameInfixApps (Paren (lpr, AppParenArg e, rpr, pr), es) ->
