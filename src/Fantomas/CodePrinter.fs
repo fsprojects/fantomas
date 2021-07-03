@@ -1846,6 +1846,21 @@ and genExpr astContext synExpr ctx =
 
             let lastEsIndex = es.Length - 1
 
+            let genApp (idx: int) ((lids, e, ts): (string * range) list * SynExpr * SynType list) : Context -> Context =
+                let short =
+                    genLidsWithDots lids
+                    +> genGenericTypeParameters astContext ts
+                    +> genSpaceBeforeLids idx lastEsIndex lids e
+                    +> genExpr astContext e
+
+                let long =
+                    genLidsWithDotsAndNewlines lids
+                    +> genGenericTypeParameters astContext ts
+                    +> genSpaceBeforeLids idx lastEsIndex lids e
+                    +> genMultilineFunctionApplicationArguments sepOpenTFor sepCloseTFor astContext e
+
+                expressionFitsOnRestOfLine short long
+
             let short =
                 genExpr astContext e
                 +> genExpr astContext px
@@ -1862,14 +1877,7 @@ and genExpr astContext synExpr ctx =
                 genLongFunctionName (genExpr astContext px)
                 +> indent
                 +> sepNln
-                +> coli
-                    sepNln
-                    es
-                    (fun idx (lids, e, ts) ->
-                        genLidsWithDotsAndNewlines lids
-                        +> genGenericTypeParameters astContext ts
-                        +> genSpaceBeforeLids idx lastEsIndex lids e
-                        +> genExpr astContext e)
+                +> coli sepNln es genApp
                 +> unindent
 
             fun ctx -> isShortExpression ctx.Config.MaxDotGetExpressionWidth short long ctx
