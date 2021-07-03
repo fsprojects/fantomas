@@ -931,3 +931,28 @@ List.map (fun (_, _, _, _, body, _) -> visit body) andBangs
         """
 List.map (fun (_, _, _, _, body, _) -> visit body) andBangs
 """
+
+[<Test>]
+let ``multiple parameters with wild cards, 1806`` () =
+    formatSourceString
+        false
+        """
+module Foo =
+    let bar () =
+        {
+            Foo =
+                blah
+                |> Struct.map (fun _ (a, _, _) -> filterBackings a)
+        }
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+module Foo =
+    let bar () =
+        { Foo =
+              blah
+              |> Struct.map (fun _ (a, _, _) -> filterBackings a) }
+"""

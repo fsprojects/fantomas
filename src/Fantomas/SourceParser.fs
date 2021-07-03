@@ -1247,25 +1247,27 @@ let (|RecordField|) =
 let (|Clause|) (SynMatchClause.Clause (p, eo, e, _, _)) = (p, e, eo)
 
 /// Process compiler-generated matches in an appropriate way
+let rec private skipGeneratedLambdas expr =
+    match expr with
+    | SynExpr.Lambda (_, true, _, bodyExpr, _, _) -> skipGeneratedLambdas bodyExpr
+    | _ -> expr
+
+and skipGeneratedMatch expr =
+    match expr with
+    | SynExpr.Match (_, _, [ SynMatchClause.Clause (_, _, innerExpr, _, _) as clause ], matchRange) when
+        matchRange.Start = clause.Range.Start
+        ->
+        skipGeneratedMatch innerExpr
+    | _ -> expr
+
 let (|Lambda|_|) =
     function
     | SynExpr.Lambda (_, _, _, _, Some (pats, body), range) ->
-        let maxDepth =
-            match pats with
-            | [ PatParen (PatTuple ts) ] -> List.length ts
-            | _ -> List.length pats
-        // find the body expression from the last lambda
-        let rec visit (currentDepth: int) (e: SynExpr) : SynExpr =
-            if currentDepth < maxDepth then
-                match e with
-                | SynExpr.Match (matchSeqPoint = NoDebugPointAtInvisibleBinding; clauses = [ Clause (_, expr, _) ])
-                | SynExpr.Lambda (_, _, _, SynExpr.Match(clauses = [ Clause (_, expr, _) ]), _, _) ->
-                    visit (currentDepth + 1) expr
-                | _ -> e
-            else
-                e
+        let inline getLambdaBodyExpr expr =
+            let skippedLambdas = skipGeneratedLambdas expr
+            skipGeneratedMatch skippedLambdas
 
-        Some(pats, visit 0 body, range)
+        Some(pats, getLambdaBodyExpr body, range)
     | _ -> None
 
 // Type definitions
