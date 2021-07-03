@@ -1264,3 +1264,43 @@ m
     )
     .HasMaxLength
 """
+
+[<Test>]
+let ``dotget chain with a lambda and ending in multiline function application, 1804`` () =
+    formatSourceString
+        false
+        """
+db.Schema.Users.Query
+    .Where(fun x -> x.Role)
+    .Matches(function Role.User companyId -> companyId |_->__)
+    .In(
+        db.Schema.Companies.Query
+            .Where(fun x -> x.LicenceId).Equals(licenceId)
+            .Select(fun x -> x.Id)
+    )
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+db
+    .Schema
+    .Users
+    .Query
+    .Where(fun x -> x.Role)
+    .Matches(
+        function
+        | Role.User companyId -> companyId
+        | _ -> __
+    )
+    .In(
+        db
+            .Schema
+            .Companies
+            .Query
+            .Where(fun x -> x.LicenceId)
+            .Equals(licenceId)
+            .Select(fun x -> x.Id)
+    )
+"""
