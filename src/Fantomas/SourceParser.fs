@@ -1730,7 +1730,9 @@ let private shouldNotIndentBranch e es =
         match e with
         | SimpleExpr _
         | Sequential (_, _, true)
-        | App _ -> true
+        | App _
+        | Tuple _
+        | Paren (_, Tuple _, _, _) -> true
         | _ -> false
 
     let isLongElseBranch e =

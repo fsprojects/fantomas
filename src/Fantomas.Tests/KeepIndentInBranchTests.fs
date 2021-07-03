@@ -1830,3 +1830,93 @@ let private parseModel (modelSrc: string) : Result<MyReturnType, string list> =
     else
         Error validationErrors
 """
+
+[<Test>]
+let ``tuple is consider as short branch, 1800`` () =
+    formatSourceString
+        false
+        """
+  let nextModel, objectsRemoved =
+    List.fold
+      (fun acc item ->
+        match entityInCurrentModel with
+        | None ->
+          // look it's a tuple
+          nextModel, objectsRemoved
+        | Some subjectToRemove ->
+          let a = 5
+          let b = 6
+          someFunctionApp a b |> ignore
+          acc)
+      state
+      []
+"""
+        { config with
+              MultiLineLambdaClosingNewline = true
+              KeepIndentInBranch = true }
+    |> prepend newline
+    |> should
+        equal
+        """
+let nextModel, objectsRemoved =
+    List.fold
+        (fun acc item ->
+            match entityInCurrentModel with
+            | None ->
+                // look it's a tuple
+                nextModel, objectsRemoved
+            | Some subjectToRemove ->
+
+            let a = 5
+            let b = 6
+            someFunctionApp a b |> ignore
+            acc
+        )
+        state
+        []
+"""
+
+[<Test>]
+let ``parenthesis tuple is consider as short branch`` () =
+    formatSourceString
+        false
+        """
+  let nextModel, objectsRemoved =
+    List.fold
+      (fun acc item ->
+        match entityInCurrentModel with
+        | None ->
+          // look it's a tuple but wrapped in parenthesis
+          (nextModel, objectsRemoved)
+        | Some subjectToRemove ->
+          let a = 5
+          let b = 6
+          someFunctionApp a b |> ignore
+          acc)
+      state
+      []
+"""
+        { config with
+              MultiLineLambdaClosingNewline = true
+              KeepIndentInBranch = true }
+    |> prepend newline
+    |> should
+        equal
+        """
+let nextModel, objectsRemoved =
+    List.fold
+        (fun acc item ->
+            match entityInCurrentModel with
+            | None ->
+                // look it's a tuple but wrapped in parenthesis
+                (nextModel, objectsRemoved)
+            | Some subjectToRemove ->
+
+            let a = 5
+            let b = 6
+            someFunctionApp a b |> ignore
+            acc
+        )
+        state
+        []
+"""
