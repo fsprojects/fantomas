@@ -1,3 +1,15 @@
+#### 4.5.0-beta-003 - 07/2021
+
+* Fix Fantomas introduces meaningless match block. [#1806](https://github.com/fsprojects/fantomas/issues/1806)
+* Fix Lazy causes indentation to produce invalid F#. [#1805](https://github.com/fsprojects/fantomas/issues/1805)
+* Fix Nested Fluent API produces wrong code: misses indentation. [#1804](https://github.com/fsprojects/fantomas/issues/1804)
+* Fix Tuple should be consider short branch in KeepIndentInBranch setting. [#1800](https://github.com/fsprojects/fantomas/issues/1800)
+* Fix Fantomas adds "of" to a union case when it is seemingly _too long_. [#1796](https://github.com/fsprojects/fantomas/issues/1796)
+* Fix Function application in if expression should remain on single line. [#1795](https://github.com/fsprojects/fantomas/issues/1795)
+* Fix Conditional code is not printed. [#1794](https://github.com/fsprojects/fantomas/issues/1794)
+* Fix Records in list in a pattern match always have a semicolon. [#1793](https://github.com/fsprojects/fantomas/issues/1793)
+* Fix parenthesis expression in then should further indent inner expression. [#1777](https://github.com/fsprojects/fantomas/issues/1777)
+
 #### 4.5.0-beta-002 - 06/2021
 
 * Fix Wild cards in lambda. [#1789](https://github.com/fsprojects/fantomas/issues/1789)
