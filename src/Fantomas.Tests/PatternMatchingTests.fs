@@ -1913,3 +1913,28 @@ match
     with
 | _ -> ()
 """
+
+[<Test>]
+let ``multiline infix expression in match bang`` () =
+    formatSourceString
+        false
+        """
+match! structuralTypes |> List.tryFind (fst >> checkIfFieldTypeSupportsComparison tycon >> not) with
+| _ -> ()
+"""
+        { config with IndentSize = 2 }
+    |> prepend newline
+    |> should
+        equal
+        """
+match!
+  structuralTypes
+  |> List.tryFind
+    (
+      fst
+      >> checkIfFieldTypeSupportsComparison tycon
+      >> not
+    )
+  with
+| _ -> ()
+"""

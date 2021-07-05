@@ -1525,15 +1525,16 @@ let x y =
         """
 let x y =
     if
-        not (
-            result.HasResultsFor(
-                [ "label"
-                  "ipv4"
-                  "macAddress"
-                  "medium"
-                  "manufacturer" ]
+        not
+            (
+                result.HasResultsFor(
+                    [ "label"
+                      "ipv4"
+                      "macAddress"
+                      "medium"
+                      "manufacturer" ]
+                )
             )
-        )
     then
         None
     else
@@ -1572,15 +1573,16 @@ let x =
         """
 let x =
     if
-        not (
-            result.HasResultsFor(
-                [ "label"
-                  "ipv4"
-                  "macAddress"
-                  "medium"
-                  "manufacturer" ]
+        not
+            (
+                result.HasResultsFor(
+                    [ "label"
+                      "ipv4"
+                      "macAddress"
+                      "medium"
+                      "manufacturer" ]
+                )
             )
-        )
     then
         None
     else
@@ -1919,4 +1921,127 @@ let nextModel, objectsRemoved =
         )
         state
         []
+"""
+
+[<Test>]
+let ``long multiline if expression, 1812`` () =
+    formatSourceString
+        false
+        """
+module Foo =
+    let bar =
+
+        if output.Exists && not (output.EnumerateFiles() |> Seq.isEmpty && onlyContainsFoobar output) then
+            Error (FooBarBazError.ErrorCase output)
+        else
+
+        let blah =
+            let x = y
+            None
+
+        {
+            Hi = blah
+        }
+        |> Ok
+"""
+        { config with
+              MaxLineLength = 100
+              SpaceBeforeUppercaseInvocation = true
+              SpaceBeforeClassConstructor = true
+              SpaceBeforeMember = true
+              SpaceBeforeColon = true
+              SpaceBeforeSemicolon = true
+              IndentOnTryWith = true
+              MultilineBlockBracketsOnSameColumn = true
+              NewlineBetweenTypeDefinitionAndMembers = true
+              AlignFunctionSignatureToIndentation = true
+              AlternativeLongMemberDefinitions = true
+              MultiLineLambdaClosingNewline = true
+              DisableElmishSyntax = true
+              KeepIndentInBranch = true }
+    |> prepend newline
+    |> should
+        equal
+        """
+module Foo =
+    let bar =
+
+        if
+            output.Exists
+            && not
+                (
+                    output.EnumerateFiles () |> Seq.isEmpty
+                    && onlyContainsFoobar output
+                )
+        then
+            Error (FooBarBazError.ErrorCase output)
+        else
+
+        let blah =
+            let x = y
+            None
+
+        { Hi = blah } |> Ok
+"""
+
+[<Test>]
+let ``long multiline match expression`` () =
+    formatSourceString
+        false
+        """
+module Foo =
+    let bar =
+
+        match output.Exists && not (output.EnumerateFiles() |> Seq.isEmpty && onlyContainsFoobar output) with
+        | true ->
+            Error (FooBarBazError.ErrorCase output)
+        | false ->
+
+        let blah =
+            let x = y
+            None
+
+        {
+            Hi = blah
+        }
+        |> Ok
+"""
+        { config with
+              MaxLineLength = 100
+              SpaceBeforeUppercaseInvocation = true
+              SpaceBeforeClassConstructor = true
+              SpaceBeforeMember = true
+              SpaceBeforeColon = true
+              SpaceBeforeSemicolon = true
+              IndentOnTryWith = true
+              MultilineBlockBracketsOnSameColumn = true
+              NewlineBetweenTypeDefinitionAndMembers = true
+              AlignFunctionSignatureToIndentation = true
+              AlternativeLongMemberDefinitions = true
+              MultiLineLambdaClosingNewline = true
+              DisableElmishSyntax = true
+              KeepIndentInBranch = true }
+    |> prepend newline
+    |> should
+        equal
+        """
+module Foo =
+    let bar =
+
+        match
+            output.Exists
+            && not
+                (
+                    output.EnumerateFiles () |> Seq.isEmpty
+                    && onlyContainsFoobar output
+                )
+            with
+        | true -> Error (FooBarBazError.ErrorCase output)
+        | false ->
+
+        let blah =
+            let x = y
+            None
+
+        { Hi = blah } |> Ok
 """

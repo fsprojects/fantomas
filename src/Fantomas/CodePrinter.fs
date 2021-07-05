@@ -1513,23 +1513,9 @@ and genExpr astContext synExpr ctx =
                 !- "match "
                 +> expressionFitsOnRestOfLine
                     (genExpr astContext e
-                     +> tokN withRange WITH (!- " with"))
+                     +> genWithAfterMatch withRange)
                     (genExprInIfOrMatch astContext e
-                     +> tokN
-                         withRange
-                         WITH
-                         (fun ctx ->
-                             let hasContentOnLastLine =
-                                 List.tryHead ctx.WriterModel.Lines
-                                 |> Option.map String.isNotNullOrWhitespace
-                                 |> Option.defaultValue false
-
-                             if hasContentOnLastLine then
-                                 // add a space if there is no newline right after the expression
-                                 (!- " with") ctx
-                             else
-                                 // add the indentation in spaces if there is no content on the current line
-                                 (rep ctx.Config.IndentSize (!- " ") +> !- "with") ctx))
+                     +> genWithAfterMatch withRange)
 
             atCurrentColumn (genMatchExpr +> sepNln +> genClauses astContext cs)
         | MatchBang (e, cs) ->
@@ -1540,31 +1526,9 @@ and genExpr astContext synExpr ctx =
                 !- "match! "
                 +> expressionFitsOnRestOfLine
                     (genExpr astContext e
-                     +> tokN withRange WITH (!- " with"))
-                    (fun ctx ->
-                        match e with
-                        | AppParenArg app ->
-                            (indent
-                             +> sepNln
-                             +> genAlternativeAppWithParenthesis app astContext
-                             +> sepNln
-                             +> tokN withRange WITH (!- "with")
-                             +> unindent)
-                                ctx
-                        | Match _
-                        | MatchBang _ ->
-                            (indent
-                             +> sepNln
-                             +> genExpr astContext e
-                             +> sepNln
-                             +> tokN withRange WITH (!- "with")
-                             +> unindent)
-                                ctx
-                        | _ ->
-                            atCurrentColumnIndent
-                                (genExpr astContext e
-                                 +> tokN withRange WITH (!- " with"))
-                                ctx)
+                     +> genWithAfterMatch withRange)
+                    (genExprInIfOrMatch astContext e
+                     +> genWithAfterMatch withRange)
 
             atCurrentColumn (genMatchExpr +> sepNln +> genClauses astContext cs)
         | TraitCall (tps, msg, e) ->
@@ -3272,6 +3236,23 @@ and genExprInIfOrMatch astContext (e: SynExpr) (ctx: Context) : Context =
                 +> genExpr astContext e
 
     expressionFitsOnRestOfLine short long ctx
+
+and genWithAfterMatch (withRange: Range) =
+    tokN
+        withRange
+        WITH
+        (fun ctx ->
+            let hasContentOnLastLine =
+                List.tryHead ctx.WriterModel.Lines
+                |> Option.map String.isNotNullOrWhitespace
+                |> Option.defaultValue false
+
+            if hasContentOnLastLine then
+                // add a space if there is no newline right after the expression
+                (!- " with") ctx
+            else
+                // add the indentation in spaces if there is no content on the current line
+                (rep ctx.Config.IndentSize (!- " ") +> !- "with") ctx)
 
 and genAlternativeAppWithParenthesis app astContext =
     match app with
@@ -5317,11 +5298,14 @@ and genKeepIndentMatch
     (matchRange: Range)
     (triviaType: FsAstType)
     : Context -> Context =
+    let withRange (ctx: Context) =
+        ctx.MkRange e.Range.Start (List.head clauses).Range.Start
+
     let lastClauseIndex = clauses.Length - 1
 
     ifElse (triviaType = SynExpr_MatchBang) !- "match! " !- "match "
-    +> genExpr astContext e
-    -- " with"
+    +> genExprInIfOrMatch astContext e
+    +> (fun ctx -> genWithAfterMatch (withRange ctx) ctx)
     +> sepNln
     +> coli
         sepNln
@@ -5365,11 +5349,7 @@ and genKeepIdentIf
 
                 let long =
                     ifElse (idx = 0) (!- "if ") (!- "elif ")
-                    +> indent
-                    +> sepNln
-                    +> genExpr astContext ifExpr
-                    +> unindent
-                    +> sepNln
+                    +> genExprInIfOrMatch astContext ifExpr
                     +> !- "then"
 
                 expressionFitsOnRestOfLine short long
