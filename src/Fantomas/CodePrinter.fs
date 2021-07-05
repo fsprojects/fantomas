@@ -935,11 +935,6 @@ and genNamedArgumentExpr (astContext: ASTContext) operatorExpr e1 e2 =
 and genExpr astContext synExpr ctx =
     let kw tokenName f = tokN synExpr.Range tokenName f
 
-    let sepOpenTFor r = tokN r LPAREN sepOpenT
-
-    let sepCloseTFor rpr pr =
-        tokN (Option.defaultValue pr rpr) RPAREN sepCloseT
-
     let expr =
         match synExpr with
         | ElmishReactWithoutChildren (identifier, isArray, children, childrenRange) when
@@ -1193,7 +1188,7 @@ and genExpr astContext synExpr ctx =
                 !- "new "
                 +> genType astContext false t
                 +> sepSpace
-                +> genMultilineFunctionApplicationArguments sepOpenTFor sepCloseTFor astContext px
+                +> genMultilineFunctionApplicationArguments astContext px
 
             expressionFitsOnRestOfLine short long
         | SynExpr.New (_, t, e, _) ->
@@ -1518,31 +1513,9 @@ and genExpr astContext synExpr ctx =
                 !- "match "
                 +> expressionFitsOnRestOfLine
                     (genExpr astContext e
-                     +> tokN withRange WITH (!- " with"))
-                    (fun ctx ->
-                        match e with
-                        | AppParenArg app ->
-                            (indent
-                             +> sepNln
-                             +> genAlternativeAppWithParenthesis app astContext
-                             +> sepNln
-                             +> tokN withRange WITH (!- "with")
-                             +> unindent)
-                                ctx
-                        | Match _
-                        | MatchBang _ ->
-                            (indent
-                             +> sepNln
-                             +> genExpr astContext e
-                             +> sepNln
-                             +> tokN withRange WITH (!- "with")
-                             +> unindent)
-                                ctx
-                        | _ ->
-                            atCurrentColumnIndent
-                                (genExpr astContext e
-                                 +> tokN withRange WITH (!- " with"))
-                                ctx)
+                     +> genWithAfterMatch withRange)
+                    (genExprInIfOrMatch astContext e
+                     +> genWithAfterMatch withRange)
 
             atCurrentColumn (genMatchExpr +> sepNln +> genClauses astContext cs)
         | MatchBang (e, cs) ->
@@ -1553,31 +1526,9 @@ and genExpr astContext synExpr ctx =
                 !- "match! "
                 +> expressionFitsOnRestOfLine
                     (genExpr astContext e
-                     +> tokN withRange WITH (!- " with"))
-                    (fun ctx ->
-                        match e with
-                        | AppParenArg app ->
-                            (indent
-                             +> sepNln
-                             +> genAlternativeAppWithParenthesis app astContext
-                             +> sepNln
-                             +> tokN withRange WITH (!- "with")
-                             +> unindent)
-                                ctx
-                        | Match _
-                        | MatchBang _ ->
-                            (indent
-                             +> sepNln
-                             +> genExpr astContext e
-                             +> sepNln
-                             +> tokN withRange WITH (!- "with")
-                             +> unindent)
-                                ctx
-                        | _ ->
-                            atCurrentColumnIndent
-                                (genExpr astContext e
-                                 +> tokN withRange WITH (!- " with"))
-                                ctx)
+                     +> genWithAfterMatch withRange)
+                    (genExprInIfOrMatch astContext e
+                     +> genWithAfterMatch withRange)
 
             atCurrentColumn (genMatchExpr +> sepNln +> genClauses astContext cs)
         | TraitCall (tps, msg, e) ->
@@ -1816,7 +1767,7 @@ and genExpr astContext synExpr ctx =
                     | _ -> genExpr astContext e +> argFn
 
                 let arguments =
-                    genMultilineFunctionApplicationArguments sepOpenTFor sepCloseTFor astContext px
+                    genMultilineFunctionApplicationArguments astContext px
 
                 functionName arguments
 
@@ -1857,7 +1808,7 @@ and genExpr astContext synExpr ctx =
                     genLidsWithDotsAndNewlines lids
                     +> genGenericTypeParameters astContext ts
                     +> genSpaceBeforeLids idx lastEsIndex lids e
-                    +> genMultilineFunctionApplicationArguments sepOpenTFor sepCloseTFor astContext e
+                    +> genMultilineFunctionApplicationArguments astContext e
 
                 expressionFitsOnRestOfLine short long
 
@@ -1891,7 +1842,7 @@ and genExpr astContext synExpr ctx =
                         (optSingle (genGenericTypeParameters astContext) ts
                          +> expressionFitsOnRestOfLine
                              (genExpr astContext px)
-                             (genMultilineFunctionApplicationArguments sepOpenTFor sepCloseTFor astContext px))
+                             (genMultilineFunctionApplicationArguments astContext px))
                         lids
                 | AppOrTypeApp (LongIdentPiecesExpr lids, ts, [ e2 ]) when (List.moreThanOne lids) ->
                     genFunctionNameWithMultilineLids
@@ -1911,7 +1862,7 @@ and genExpr astContext synExpr ctx =
                     let long =
                         genExpr astContext e
                         +> optSingle (genGenericTypeParameters astContext) ts
-                        +> genMultilineFunctionApplicationArguments sepOpenTFor sepCloseTFor astContext px
+                        +> genMultilineFunctionApplicationArguments astContext px
 
                     expressionFitsOnRestOfLine short long
                 | _ -> genExpr astContext e
@@ -1929,7 +1880,7 @@ and genExpr astContext synExpr ctx =
                     genLidsWithDotsAndNewlines lids
                     +> genGenericTypeParameters astContext ts
                     +> genSpaceBeforeLids idx lastEsIndex lids e
-                    +> genMultilineFunctionApplicationArguments sepOpenTFor sepCloseTFor astContext e
+                    +> genMultilineFunctionApplicationArguments astContext e
 
                 expressionFitsOnRestOfLine short long
 
@@ -1973,7 +1924,7 @@ and genExpr astContext synExpr ctx =
             let long =
                 genExpr astContext e
                 +> sepSpace
-                +> genMultilineFunctionApplicationArguments sepOpenTFor sepCloseTFor astContext px
+                +> genMultilineFunctionApplicationArguments astContext px
 
             expressionFitsOnRestOfLine short long
 
@@ -2092,97 +2043,9 @@ and genExpr astContext synExpr ctx =
                     +> sepNlnWhenWriteBeforeNewlineNotEmpty sepSpace
                     +> genExpr astContext elf2
 
-                let genIfExpr e astContext =
-                    let short =
-                        sepNlnWhenWriteBeforeNewlineNotEmpty sepSpace
-                        +> genExpr astContext e
-
-                    let long =
-                        let hasCommentBeforeExpr () =
-                            TriviaHelpers.``has content before that matches``
-                                (fun tn -> RangeHelpers.rangeEq tn.Range e.Range)
-                                (function
-                                | Comment (LineCommentOnSingleLine _) -> true
-                                | _ -> false)
-                                (Map.tryFindOrEmptyList (synExprToFsAstType e |> fst) ctx.TriviaMainNodes)
-
-                        let indentNlnUnindentNln f =
-                            indent +> sepNln +> f +> unindent +> sepNln
-
-                        match e with
-                        | App (SynExpr.DotGet _, [ (Paren _) ]) -> atCurrentColumn (genExpr astContext e)
-                        | Paren (lpr, (AppSingleParenArg _ as ate), rpr, pr) ->
-                            sepOpenTFor lpr
-                            +> atCurrentColumnIndent (genExpr astContext ate)
-                            +> sepCloseTFor rpr pr
-                        | AppParenArg app ->
-                            genAlternativeAppWithParenthesis app astContext
-                            |> indentNlnUnindentNln
-                        | InfixApp (s, e, (AppParenArg app as e1), e2) ->
-                            (expressionFitsOnRestOfLine
-                                (genExpr astContext e1)
-                                (genAlternativeAppWithParenthesis app astContext)
-                             +> ifElse (noBreakInfixOps.Contains(s)) sepSpace sepNln
-                             +> genInfixOperator s e
-                             +> sepSpace
-                             +> genExpr astContext e2)
-                            |> indentNlnUnindentNln
-                        | InfixApp (s, e, e1, (AppParenArg app as e2)) ->
-                            (genExpr astContext e1
-                             +> sepNln
-                             +> genInfixOperator s e
-                             +> sepSpace
-                             +> expressionFitsOnRestOfLine
-                                 (genExpr astContext e2)
-                                 (genAlternativeAppWithParenthesis app astContext))
-                            |> indentNlnUnindentNln
-                        // very specific fix for 1380
-                        | SameInfixApps (Paren (lpr, AppParenArg e, rpr, pr), es) ->
-                            (sepOpenTFor lpr
-                             +> genAlternativeAppWithParenthesis e astContext
-                             +> sepCloseTFor rpr pr
-                             +> sepNln
-                             +> col
-                                 sepNln
-                                 es
-                                 (fun (opText, opExpr, e) ->
-                                     genInfixOperator opText opExpr
-                                     +> sepSpace
-                                     +> (match e with
-                                         | Paren (lpr, AppParenArg app, rpr, pr) ->
-                                             sepOpenTFor lpr
-                                             +> genAlternativeAppWithParenthesis app astContext
-                                             +> sepCloseTFor rpr pr
-                                         | _ -> genExpr astContext e)))
-                            |> indentNlnUnindentNln
-                        | SynExpr.Match _
-                        | SynExpr.MatchBang _
-                        | SynExpr.TryWith _
-                        | SynExpr.TryFinally _ -> genExpr astContext e |> indentNlnUnindentNln
-                        | DotGetAppParen (DotGetAppParen (e1, px1, lids1), px2, lids2) ->
-                            genExpr astContext e1
-                            +> genExpr astContext px1
-                            +> indent
-                            +> sepNln
-                            +> genLidsWithDotsAndNewlines lids1
-                            +> genExpr astContext px2
-                            +> sepNln
-                            +> genLidsWithDotsAndNewlines lids2
-                            +> unindent
-                            |> genTriviaFor SynExpr_DotGet e.Range
-                            |> indentNlnUnindentNln
-                        | _ ->
-                            if hasCommentBeforeExpr () then
-                                genExpr astContext e |> indentNlnUnindentNln
-                            else
-                                sepNlnWhenWriteBeforeNewlineNotEmpty sepNone
-                                +> genExpr astContext e
-
-                    expressionFitsOnRestOfLine short long
-
                 let genElifMultiLine (elf1: SynExpr, elf2, elifKeywordRange, thenKeywordRange) =
                     (TriviaContext.``else if / elif`` elifKeywordRange)
-                    +> autoIndentAndNlnWhenWriteBeforeNewlineNotEmpty (genIfExpr elf1 astContext)
+                    +> autoIndentAndNlnWhenWriteBeforeNewlineNotEmpty (genExprInIfOrMatch astContext elf1)
                     +> sepNlnWhenWriteBeforeNewlineNotEmpty sepSpace
                     +> genThen thenKeywordRange
                     +> indent
@@ -2217,7 +2080,7 @@ and genExpr astContext synExpr ctx =
                     //           x
                     // bool expr x should be indented
                     +> autoIndentAndNlnWhenWriteBeforeNewlineNotEmpty (
-                        genIfExpr e1 astContext
+                        genExprInIfOrMatch astContext e1
                         +> sepNlnWhenWriteBeforeNewlineNotEmpty sepSpace
                     )
                     +> genThen synExpr.Range
@@ -2336,7 +2199,7 @@ and genExpr astContext synExpr ctx =
 
             let long =
                 genExpr astContext e
-                +> genMultilineFunctionApplicationArguments sepOpenTFor sepCloseTFor astContext px
+                +> genMultilineFunctionApplicationArguments astContext px
 
             let idx =
                 !- "."
@@ -2375,7 +2238,7 @@ and genExpr astContext synExpr ctx =
 
             let long =
                 genExpr astContext a
-                +> genMultilineFunctionApplicationArguments sepOpenTFor sepCloseTFor astContext px
+                +> genMultilineFunctionApplicationArguments astContext px
 
             let idx =
                 !- "."
@@ -2744,7 +2607,7 @@ and genFunctionNameWithMultilineLids f lids =
         +> unindent
     | _ -> sepNone
 
-and genMultilineFunctionApplicationArguments sepOpenTFor sepCloseTFor astContext argExpr =
+and genMultilineFunctionApplicationArguments astContext argExpr =
     let argsInsideParenthesis lpr rpr pr f =
         sepOpenTFor lpr
         +> indent
@@ -3160,11 +3023,6 @@ and genApp astContext e es ctx =
                             (arrowRange: Range)
                             (pr: Range)
                             : Context -> Context =
-                            let sepOpenTFor r = tokN r LPAREN sepOpenT
-
-                            let sepCloseTFor r =
-                                tokN (Option.defaultValue e.Range r) RPAREN sepCloseT
-
                             leadingExpressionIsMultiline
                                 (sepOpenTFor lpr -- "fun "
                                  +> pats
@@ -3172,7 +3030,9 @@ and genApp astContext e es ctx =
                                  +> triviaAfterArrow arrowRange
                                  +> autoNlnIfExpressionExceedsPageWidth (genExprKeepIndentInBranch astContext bodyExpr)
                                  +> unindent)
-                                (fun isMultiline -> onlyIf isMultiline sepNln +> sepCloseTFor rpr)
+                                (fun isMultiline ->
+                                    onlyIf isMultiline sepNln
+                                    +> sepCloseTFor rpr e.Range)
                             |> genTriviaFor SynExpr_Paren pr
 
                         match e with
@@ -3190,11 +3050,6 @@ and genApp astContext e es ctx =
                     es
                     (fun e ->
                         let genLambda pats (bodyExpr: SynExpr) lpr rpr arrowRange =
-                            let sepOpenTFor r = tokN r LPAREN sepOpenT
-
-                            let sepCloseTFor r =
-                                tokN (Option.defaultValue e.Range r) RPAREN sepCloseT
-
                             sepOpenTFor lpr -- "fun "
                             +> pats
                             +> indent
@@ -3202,7 +3057,7 @@ and genApp astContext e es ctx =
                             +> autoNlnIfExpressionExceedsPageWidth (genExprKeepIndentInBranch astContext bodyExpr)
                             +> unindent
                             +> sepNln
-                            +> sepCloseTFor rpr
+                            +> sepCloseTFor rpr e.Range
 
                         match e with
                         | Paren (lpr, Lambda (pats, expr, _range), rpr, _) ->
@@ -3297,6 +3152,107 @@ and genAppWithSingleParenthesisArgument (e, lpr, a, rpr, pr) astContext =
     +> tokN lpr LPAREN sepOpenT
     +> (genExpr astContext a)
     +> tokN (Option.defaultValue pr rpr) RPAREN sepCloseT
+
+and genExprInIfOrMatch astContext (e: SynExpr) (ctx: Context) : Context =
+    let short =
+        sepNlnWhenWriteBeforeNewlineNotEmpty sepSpace
+        +> genExpr astContext e
+
+    let long =
+        let hasCommentBeforeExpr (e: SynExpr) =
+            TriviaHelpers.``has content before that matches``
+                (fun tn -> RangeHelpers.rangeEq tn.Range e.Range)
+                (function
+                | Comment (LineCommentOnSingleLine _) -> true
+                | _ -> false)
+                (Map.tryFindOrEmptyList (synExprToFsAstType e |> fst) ctx.TriviaMainNodes)
+
+        let indentNlnUnindentNln f =
+            indent +> sepNln +> f +> unindent +> sepNln
+
+        match e with
+        | App (SynExpr.DotGet _, [ (Paren _) ]) -> atCurrentColumn (genExpr astContext e)
+        | Paren (lpr, (AppSingleParenArg _ as ate), rpr, pr) ->
+            sepOpenTFor lpr
+            +> atCurrentColumnIndent (genExpr astContext ate)
+            +> sepCloseTFor rpr pr
+        | AppParenArg app ->
+            genAlternativeAppWithParenthesis app astContext
+            |> indentNlnUnindentNln
+        | InfixApp (s, e, (AppParenArg app as e1), e2) ->
+            (expressionFitsOnRestOfLine (genExpr astContext e1) (genAlternativeAppWithParenthesis app astContext)
+             +> ifElse (noBreakInfixOps.Contains(s)) sepSpace sepNln
+             +> genInfixOperator s e
+             +> sepSpace
+             +> genExpr astContext e2)
+            |> indentNlnUnindentNln
+        | InfixApp (s, e, e1, (AppParenArg app as e2)) ->
+            (genExpr astContext e1
+             +> sepNln
+             +> genInfixOperator s e
+             +> sepSpace
+             +> expressionFitsOnRestOfLine (genExpr astContext e2) (genAlternativeAppWithParenthesis app astContext))
+            |> indentNlnUnindentNln
+        // very specific fix for 1380
+        | SameInfixApps (Paren (lpr, AppParenArg e, rpr, pr), es) ->
+            (sepOpenTFor lpr
+             +> genAlternativeAppWithParenthesis e astContext
+             +> sepCloseTFor rpr pr
+             +> sepNln
+             +> col
+                 sepNln
+                 es
+                 (fun (opText, opExpr, e) ->
+                     genInfixOperator opText opExpr
+                     +> sepSpace
+                     +> (match e with
+                         | Paren (lpr, AppParenArg app, rpr, pr) ->
+                             sepOpenTFor lpr
+                             +> genAlternativeAppWithParenthesis app astContext
+                             +> sepCloseTFor rpr pr
+                         | _ -> genExpr astContext e)))
+            |> indentNlnUnindentNln
+        | SynExpr.Match _
+        | SynExpr.MatchBang _
+        | SynExpr.TryWith _
+        | SynExpr.TryFinally _ -> genExpr astContext e |> indentNlnUnindentNln
+        | DotGetAppParen (DotGetAppParen (e1, px1, lids1), px2, lids2) ->
+            genExpr astContext e1
+            +> genExpr astContext px1
+            +> indent
+            +> sepNln
+            +> genLidsWithDotsAndNewlines lids1
+            +> genExpr astContext px2
+            +> sepNln
+            +> genLidsWithDotsAndNewlines lids2
+            +> unindent
+            |> genTriviaFor SynExpr_DotGet e.Range
+            |> indentNlnUnindentNln
+        | _ ->
+            if hasCommentBeforeExpr e then
+                genExpr astContext e |> indentNlnUnindentNln
+            else
+                sepNlnWhenWriteBeforeNewlineNotEmpty sepNone
+                +> genExpr astContext e
+
+    expressionFitsOnRestOfLine short long ctx
+
+and genWithAfterMatch (withRange: Range) =
+    tokN
+        withRange
+        WITH
+        (fun ctx ->
+            let hasContentOnLastLine =
+                List.tryHead ctx.WriterModel.Lines
+                |> Option.map String.isNotNullOrWhitespace
+                |> Option.defaultValue false
+
+            if hasContentOnLastLine then
+                // add a space if there is no newline right after the expression
+                (!- " with") ctx
+            else
+                // add the indentation in spaces if there is no content on the current line
+                (rep ctx.Config.IndentSize (!- " ") +> !- "with") ctx)
 
 and genAlternativeAppWithParenthesis app astContext =
     match app with
@@ -5342,11 +5298,14 @@ and genKeepIndentMatch
     (matchRange: Range)
     (triviaType: FsAstType)
     : Context -> Context =
+    let withRange (ctx: Context) =
+        ctx.MkRange e.Range.Start (List.head clauses).Range.Start
+
     let lastClauseIndex = clauses.Length - 1
 
     ifElse (triviaType = SynExpr_MatchBang) !- "match! " !- "match "
-    +> genExpr astContext e
-    -- " with"
+    +> genExprInIfOrMatch astContext e
+    +> (fun ctx -> genWithAfterMatch (withRange ctx) ctx)
     +> sepNln
     +> coli
         sepNln
@@ -5390,11 +5349,7 @@ and genKeepIdentIf
 
                 let long =
                     ifElse (idx = 0) (!- "if ") (!- "elif ")
-                    +> indent
-                    +> sepNln
-                    +> genExpr astContext ifExpr
-                    +> unindent
-                    +> sepNln
+                    +> genExprInIfOrMatch astContext ifExpr
                     +> !- "then"
 
                 expressionFitsOnRestOfLine short long

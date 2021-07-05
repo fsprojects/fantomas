@@ -10,6 +10,11 @@ let tokN (range: Range) (tokenName: FsTokenType) f =
     +> f
     +> leaveNodeTokenByName range tokenName
 
+let sepOpenTFor r = tokN r LPAREN sepOpenT
+
+let sepCloseTFor rpr pr =
+    tokN (Option.defaultValue pr rpr) RPAREN sepCloseT
+
 let triviaAfterArrow (range: Range) (ctx: Context) =
     let hasCommentAfterArrow =
         findTriviaTokenFromName RARROW range ctx

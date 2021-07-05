@@ -701,7 +701,7 @@ let MethInfoIsUnseen g m ty minfo =
 #else
                   (fun _provAttribs -> None)
 #endif
-               with
+            with
         | Some res -> res
         | None -> false
 
@@ -1887,4 +1887,54 @@ let select p =
   | q -> "q_" // comment
   |> List.singleton
   |> instruction "s"
+"""
+
+[<Test>]
+let ``multiline infix expression in match, 1774`` () =
+    formatSourceString
+        false
+        """
+match structuralTypes |> List.tryFind (fst >> checkIfFieldTypeSupportsComparison tycon >> not) with
+| _ -> ()
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+match
+    structuralTypes
+    |> List.tryFind
+        (
+            fst
+            >> checkIfFieldTypeSupportsComparison tycon
+            >> not
+        )
+    with
+| _ -> ()
+"""
+
+[<Test>]
+let ``multiline infix expression in match bang`` () =
+    formatSourceString
+        false
+        """
+match! structuralTypes |> List.tryFind (fst >> checkIfFieldTypeSupportsComparison tycon >> not) with
+| _ -> ()
+"""
+        { config with IndentSize = 2 }
+    |> prepend newline
+    |> should
+        equal
+        """
+match!
+  structuralTypes
+  |> List.tryFind
+    (
+      fst
+      >> checkIfFieldTypeSupportsComparison tycon
+      >> not
+    )
+  with
+| _ -> ()
 """

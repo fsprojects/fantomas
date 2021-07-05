@@ -88,6 +88,7 @@ There is a problem with merging all the code back togheter. Please raise an issu
     let empty = String.Empty
 
     let isNotNullOrEmpty = String.IsNullOrEmpty >> not
+    let isNotNullOrWhitespace = String.IsNullOrWhiteSpace >> not
 
     let isMultiline s =
         normalizeNewLine s |> String.exists ((=) '\n')
