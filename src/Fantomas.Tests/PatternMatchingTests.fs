@@ -1938,3 +1938,30 @@ match!
   with
 | _ -> ()
 """
+
+[<Test>]
+let ``match-case should indent from match, 1234`` () =
+    formatSourceString
+        false
+        """
+let foo x =
+    match x with
+    | Some x -> x
+    | None ->
+        let x = 123
+        let y = x * x * (x + 1)
+        x
+"""
+        { config with IndentSize = 2 }
+    |> prepend newline
+    |> should
+        equal
+        """
+let foo x =
+  match x with
+  | Some x -> x
+  | None ->
+    let x = 123
+    let y = x * x * (x + 1)
+    x
+"""
