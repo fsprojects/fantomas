@@ -1,3 +1,9 @@
+#### 4.5.0-beta-004 - 07/2021
+
+* Fix KeepIndentInBranch causing offside error in if condition. [#1812](https://github.com/fsprojects/fantomas/issues/1812)
+* Fix Indentation warnings for multiline match expression. [#1774](https://github.com/fsprojects/fantomas/issues/1774)
+* Fix Extra indentation on match-case block. [#1234](https://github.com/fsprojects/fantomas/issues/1234)
+
 #### 4.5.0-beta-003 - 07/2021
 
 * Fix Fantomas introduces meaningless match block. [#1806](https://github.com/fsprojects/fantomas/issues/1806)
