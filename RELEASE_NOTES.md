@@ -1,3 +1,7 @@
+#### 4.5.0-beta-005 - 07/2021
+
+* Fix Space between identifier and then is lost. [#1816](https://github.com/fsprojects/fantomas/issues/1816)
+
 #### 4.5.0-beta-004 - 07/2021
 
 * Fix KeepIndentInBranch causing offside error in if condition. [#1812](https://github.com/fsprojects/fantomas/issues/1812)
