@@ -5350,6 +5350,7 @@ and genKeepIdentIf
                 let long =
                     ifElse (idx = 0) (!- "if ") (!- "elif ")
                     +> genExprInIfOrMatch astContext ifExpr
+                    +> sepSpace
                     +> !- "then"
 
                 expressionFitsOnRestOfLine short long

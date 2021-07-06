@@ -2045,3 +2045,43 @@ module Foo =
 
         { Hi = blah } |> Ok
 """
+
+[<Test>]
+let ``add space after long identifier in if expression, 1816`` () =
+    formatSourceString
+        false
+        """
+module Foo =
+    let assertConsistent () : unit =
+        if veryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryLong then
+            ()
+        else
+            if foo = bar then
+                ()
+            else
+                let leftSet = HashSet (FooBarBaz.keys leftThings)
+                leftSet.SymmetricExceptWith (FooBarBaz.keys rightThings)
+                |> ignore
+"""
+        { config with
+              MaxLineLength = 100
+              MultilineBlockBracketsOnSameColumn = true
+              MultiLineLambdaClosingNewline = true
+              KeepIndentInBranch = true }
+    |> prepend newline
+    |> should
+        equal
+        """
+module Foo =
+    let assertConsistent () : unit =
+        if veryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryLong then
+            ()
+        elif foo = bar then
+            ()
+        else
+
+        let leftSet = HashSet(FooBarBaz.keys leftThings)
+
+        leftSet.SymmetricExceptWith(FooBarBaz.keys rightThings)
+        |> ignore
+"""
