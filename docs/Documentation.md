@@ -1080,6 +1080,8 @@ let encodeUrlModel code model: JsonValue =
 Breaks the normal indentation flow for the last branch of a pattern match of if/then/else expression.
 Only when the pattern match or if/then/else is the return value of a function or member.
 
+*This feature is consider experimental and is subject to change*
+
 `defaultConfig`
 
 ```fsharp
@@ -1119,7 +1121,7 @@ let main argv =
 ### fsharp_blank_lines_around_nested_multiline_expressions
 
 Surround **nested** multi-line expressions with blank lines.
-Existing blank lines are always preserved (via trivia).
+Existing blank lines are always preserved (via trivia).  
 Top level expressions will always follow the [2020 blank lines revision](https://github.com/fsprojects/fantomas/blob/master/docs/FormattingConventions.md#2020-revision) principle.
 Default = true.
 
