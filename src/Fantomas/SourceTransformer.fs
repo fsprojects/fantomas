@@ -18,7 +18,7 @@ module List =
 let hasParenthesis =
     function
     | Paren _
-    | ConstExpr (Const "()", _)
+    | ConstUnitExpr _
     | Tuple _ -> true
     | _ -> false
 

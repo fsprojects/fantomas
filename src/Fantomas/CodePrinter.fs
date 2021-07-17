@@ -44,8 +44,8 @@ let rec addSpaceBeforeParensInFunCall functionOrMethod arg (ctx: Context) =
     | SynExpr.TypeApp (e, _, _, _, _, _, _), _ -> addSpaceBeforeParensInFunCall e arg ctx
     | SynExpr.Paren _, _ -> true
     | SynExpr.Const _, _ -> true
-    | UppercaseSynExpr, ConstExpr (Const "()", _) -> ctx.Config.SpaceBeforeUppercaseInvocation
-    | LowercaseSynExpr, ConstExpr (Const "()", _) -> ctx.Config.SpaceBeforeLowercaseInvocation
+    | UppercaseSynExpr, ConstUnitExpr -> ctx.Config.SpaceBeforeUppercaseInvocation
+    | LowercaseSynExpr, ConstUnitExpr -> ctx.Config.SpaceBeforeLowercaseInvocation
     | SynExpr.Ident _, SynExpr.Ident _ -> true
     | UppercaseSynExpr, Paren _ -> ctx.Config.SpaceBeforeUppercaseInvocation
     | LowercaseSynExpr, Paren _ -> ctx.Config.SpaceBeforeLowercaseInvocation
@@ -439,7 +439,7 @@ and genAccess (Access s) = !-s
 and genAttribute astContext (Attribute (s, e, target)) =
     match e with
     // Special treatment for function application on attributes
-    | ConstExpr (Const "()", _) -> !- "[<" +> opt sepColon target (!-) -- s -- ">]"
+    | ConstUnitExpr -> !- "[<" +> opt sepColon target (!-) -- s -- ">]"
     | e ->
         let argSpacing =
             if hasParenthesis e then
@@ -455,7 +455,7 @@ and genAttribute astContext (Attribute (s, e, target)) =
 and genAttributesCore astContext (ats: SynAttribute seq) =
     let genAttributeExpr astContext (Attribute (s, e, target) as attr) =
         match e with
-        | ConstExpr (Const "()", _) -> opt sepColon target (!-) -- s
+        | ConstUnitExpr -> opt sepColon target (!-) -- s
         | e ->
             let argSpacing =
                 if hasParenthesis e then
@@ -706,7 +706,7 @@ and genMemberBinding astContext b =
             assert (ps |> Seq.map fst |> Seq.forall Option.isNone)
 
             match ao, propertyKind, ps with
-            | None, "get ", [ _, PatParen (PatConst (Const "()", _)) ] ->
+            | None, "get ", [ _, PatParen PatUnitConst ] ->
                 // Provide short-hand notation `x.Member = ...` for `x.Member with get()` getters
                 prefix -- s
                 +> genExprSepEqPrependType astContext e
@@ -4790,7 +4790,7 @@ and genPat astContext pat =
             +> genParameters
             +> ifElse hasBracket sepCloseT sepNone
 
-    | PatParen (PatConst (Const "()", _)) -> !- "()"
+    | PatParen PatUnitConst -> !- "()"
     | PatParen p ->
         sepOpenT
         +> genPat astContext p
