@@ -180,7 +180,7 @@ let inline (|Typar|) (SynTypar.SynTypar (Ident s, req, _)) =
     | TyparStaticReq.None -> (s, false)
     | TyparStaticReq.HeadType -> (s, true)
 
-let inline (|ValTyparDecls|) (SynValTyparDecls (tds, b, tcs)) = (tds, b, tcs)
+let inline (|ValTyparDecls|) (SynValTyparDecls (tds, b)) = (tds, b)
 
 // Literals
 
@@ -1151,9 +1151,14 @@ let (|PatTyped|_|) =
     | SynPat.Typed (p, t, _) -> Some(p, t)
     | _ -> None
 
-let (|PatNamed|_|) =
+let (|PatNamed|_|) pat =
+    match pat with
+    | SynPat.Named (IdentOrKeyword (OpNameFullInPattern (s, _)), _, ao, _) -> Some(ao, s)
+    | _ -> None
+
+let (|PatAs|_|) =
     function
-    | SynPat.Named (p, IdentOrKeyword (OpNameFullInPattern (s, _)), _, ao, _) -> Some(ao, p, s)
+    | SynPat.As (p1, p2, r) -> Some(p1, p2, r)
     | _ -> None
 
 let (|PatLongIdent|_|) =
@@ -1485,9 +1490,19 @@ let (|MSMember|MSInterface|MSInherit|MSValField|MSNestedType|) =
     | SynMemberSig.NestedType (tds, _) -> MSNestedType tds
 
 let (|Val|)
-    (SynValSig (ats, (IdentOrKeyword (OpNameFullInPattern (s, _)) as ident), tds, t, vi, isInline, _, px, ao, _, _))
+    (SynValSig (ats,
+                (IdentOrKeyword (OpNameFullInPattern (s, _)) as ident),
+                SynValTyparDecls (typars, _),
+                t,
+                vi,
+                isInline,
+                _,
+                px,
+                ao,
+                _,
+                range))
     =
-    (ats, px, ao, s, ident.idRange, t, vi, isInline, tds)
+    (ats, px, ao, s, ident.idRange, t, vi, isInline, typars, range)
 
 // Misc
 

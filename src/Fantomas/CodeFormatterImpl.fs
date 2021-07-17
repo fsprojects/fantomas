@@ -328,7 +328,8 @@ let isValidAST ast =
         | SynPat.Const (_const, _range) -> true
         | SynPat.Wild _
         | SynPat.Null _ -> true
-        | SynPat.Named (pat, _ident, _isThis, _accessOpt, _range) -> validatePattern pat
+        | SynPat.Named (_ident, _isThis, _accessOpt, _range) -> true
+        | SynPat.As (pat1, pat2, _) -> validatePattern pat1 && validatePattern pat2
         | SynPat.Typed (pat, _typ, _range) -> validatePattern pat
         | SynPat.Attrib (pat, _attrib, _range) -> validatePattern pat
         | SynPat.Or (pat1, pat2, _range) -> validatePattern pat1 && validatePattern pat2

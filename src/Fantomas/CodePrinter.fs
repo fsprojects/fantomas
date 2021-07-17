@@ -85,29 +85,25 @@ and genSigFile astContext (ParsedSigFileInput (hs, mns)) =
     +> (if hs.IsEmpty then sepNone else sepNln)
     +> col sepNln mns (genSigModuleOrNamespace astContext)
 
-and genParsedHashDirective (ParsedHashDirective (h, s, r)) =
-    let printArgument arg =
+and genParsedHashDirective (ParsedHashDirective (h, args, r)) =
+    let genArg (arg: ParsedHashDirectiveArgument) =
         match arg with
-        | "" -> sepNone
-        // Use verbatim string to escape '\' correctly
-        | _ when arg.Contains("\\") -> !-(sprintf "@\"%O\"" arg)
-        | _ -> !-(sprintf "\"%O\"" arg)
+        | ParsedHashDirectiveArgument.String (value, stringKind, range) ->
+            let stringStart, stringEnd =
+                match stringKind with
+                | SynStringKind.Regular -> "\"", "\""
+                | SynStringKind.Verbatim -> "@\"", "\""
+                | SynStringKind.TripleQuote -> "\"\"\"", "\"\"\""
 
-    let printIdent (ctx: Context) =
-        Map.tryFind ParsedHashDirective_ ctx.TriviaMainNodes
-        |> Option.defaultValue []
-        |> List.tryFind (fun t -> RangeHelpers.rangeEq t.Range r)
-        |> Option.bind
-            (fun t ->
-                match t.ContentItself with
-                | Some (KeywordString c) -> Some c
-                | _ -> None)
-        |> function
-            | Some kw -> !-kw
-            | None -> col sepSpace s printArgument
-        <| ctx
+            !-(sprintf "%s%s%s" stringStart value stringEnd)
+            |> genTriviaFor ParsedHashDirectiveArgument_String range
+        | ParsedHashDirectiveArgument.SourceIdentifier (identifier, _, range) ->
+            !-identifier
+            |> genTriviaFor ParsedHashDirectiveArgument_String range
 
-    !- "#" -- h +> sepSpace +> printIdent
+    !- "#" -- h
+    +> sepSpace
+    +> col sepSpace args genArg
     |> genTriviaFor ParsedHashDirective_ r
 
 and genModuleOrNamespaceKind (kind: SynModuleOrNamespaceKind) =
@@ -545,8 +541,8 @@ and genTyparList astContext tps =
          +> col wordOr tps (genTypar astContext)
          +> sepCloseT)
 
-and genTypeAndParam astContext typeName tds tcs preferPostfix =
-    let types openSep closeSep =
+and genTypeAndParam astContext typeName (tds: SynTyparDecls option) tcs =
+    let types openSep tds tcs closeSep =
         (!-openSep
          +> coli
              sepComma
@@ -558,23 +554,33 @@ and genTypeAndParam astContext typeName tds tcs preferPostfix =
          +> colPre (!- " when ") wordAnd tcs (genTypeConstraint astContext)
          -- closeSep)
 
-    if List.isEmpty tds then
-        !-typeName
-    elif preferPostfix then
-        !-typeName +> types "<" ">"
-    elif List.atMostOne tds then
+    match tds with
+    | None -> !-typeName
+    | Some (SynTyparDecls.PostfixList (tds, tcs, _range)) -> !-typeName +> types "<" tds tcs ">"
+    | Some (SynTyparDecls.PrefixList (tds, _range)) -> types "(" tds [] ")" -- " " -- typeName
+    | Some (SynTyparDecls.SinglePrefix (td, _range)) ->
         genTyparDecl
             { astContext with
                   IsFirstTypeParam = true }
-            (List.head tds)
+            td
         +> sepSpace
         -- typeName
         +> colPre (!- " when ") wordAnd tcs (genTypeConstraint astContext)
-    else
-        types "(" ")" -- " " -- typeName
 
-and genTypeParamPostfix astContext tds tcs =
-    genTypeAndParam astContext "" tds tcs true
+and genTypeParamPostfix astContext tds =
+    match tds with
+    | Some (SynTyparDecls.PostfixList (tds, tcs, _range)) ->
+        (!- "<"
+         +> coli
+             sepComma
+             tds
+             (fun i ->
+                 genTyparDecl
+                     { astContext with
+                           IsFirstTypeParam = i = 0 })
+         +> colPre (!- " when ") wordAnd tcs (genTypeConstraint astContext)
+         -- ">")
+    | _ -> sepNone
 
 and genLetBinding astContext pref b =
     let genPref = !-pref
@@ -913,15 +919,8 @@ and genMemberFlagsForMemberBinding astContext (mf: SynMemberFlags) (rangeOfBindi
             |> Option.defaultValue (!- "override ")
         <| ctx
 
-and genVal astContext (Val (ats, px, ao, s, identRange, t, vi, isInline, _) as node) =
-    let range, synValTyparDecls =
-        match node with
-        | SynValSig (_, _, synValTyparDecls, _, _, _, _, _, _, _, range) -> range, synValTyparDecls
-
-    let genericParams =
-        match synValTyparDecls with
-        | SynValTyparDecls ([], _, _) -> sepNone
-        | SynValTyparDecls (tpd, _, cst) -> genTypeParamPostfix astContext tpd cst
+and genVal astContext (Val (ats, px, ao, s, identRange, t, vi, isInline, tds, range)) =
+    let typeName = genTypeAndParam astContext s tds []
 
     let (FunType namedArgs) = (t, vi)
 
@@ -930,8 +929,7 @@ and genVal astContext (Val (ats, px, ao, s, identRange, t, vi, isInline, _) as n
     +> (!- "val "
         +> onlyIf isInline (!- "inline ")
         +> opt sepSpace ao genAccess
-        -- s
-        +> genericParams
+        +> typeName
         |> genTriviaFor Ident_ identRange)
     +> sepColonWithSpacesFixed
     +> ifElse
@@ -2410,7 +2408,7 @@ and genExpr astContext synExpr ctx =
                     r.EndLine
                     (r.EndColumn + 1)
             )
-        | SynExpr.InterpolatedString (parts, stringKind, _) ->
+        | SynExpr.InterpolatedString (parts, _stringKind, _) ->
             // TODO: string kind
             fun (ctx: Context) ->
                 let stringRanges =
@@ -3488,7 +3486,7 @@ and sepNlnBetweenTypeAndMembers (tdr: SynTypeDefnRepr) (ms: SynMemberDefn list) 
         sepNlnTypeAndMembers tdr.Range.End range mainNodeType
     | None -> sepNone
 
-and genTypeDefn astContext (TypeDef (ats, px, ao, tds, tcs, tdr, ms, s, preferPostfix) as node) =
+and genTypeDefn astContext (TypeDef (ats, px, ao, tds, tcs, tdr, ms, s, _) as node) =
     let typeName =
         genPreXmlDoc px
         +> ifElse
@@ -3500,7 +3498,7 @@ and genTypeDefn astContext (TypeDef (ats, px, ao, tds, tcs, tdr, ms, s, preferPo
              -- "type ")
             (!- "and " +> genOnelinerAttributes astContext ats)
         +> opt sepSpace ao genAccess
-        +> genTypeAndParam astContext s tds tcs preferPostfix
+        +> genTypeAndParam astContext s tds tcs
 
     match tdr with
     | Simple (TDSREnum ecs) ->
@@ -3816,7 +3814,7 @@ and sepNlnBetweenSigTypeAndMembers (synTypeDefnRepr: SynTypeDefnSigRepr) (ms: Sy
         sepNlnTypeAndMembers synTypeDefnRepr.Range.End range mainNodeType
     | None -> sepNone
 
-and genSigTypeDefn astContext (SigTypeDef (ats, px, ao, tds, tcs, tdr, ms, s, preferPostfix, fullRange)) =
+and genSigTypeDefn astContext (SigTypeDef (ats, px, ao, tds, tcs, tdr, ms, s, _, fullRange)) =
     let genTriviaForOnelinerAttributes f (ctx: Context) =
         match ats with
         | [] -> f ctx
@@ -3837,7 +3835,7 @@ and genSigTypeDefn astContext (SigTypeDef (ats, px, ao, tds, tcs, tdr, ms, s, pr
 
     let typeName =
         genXmlTypeKeywordAttrsAccess
-        +> genTypeAndParam astContext s tds tcs preferPostfix
+        +> genTypeAndParam astContext s tds tcs
 
     match tdr with
     | SigSimple (TDSREnum ecs) ->
@@ -3951,13 +3949,13 @@ and genSigTypeDefn astContext (SigTypeDef (ats, px, ao, tds, tcs, tdr, ms, s, pr
             +> ifElse needsParenthesis sepCloseT sepNone
 
         let short =
-            genTypeAndParam astContext s tds tcs preferPostfix
+            genTypeAndParam astContext s tds tcs
             +> sepEq
             +> sepSpace
             +> genTypeAbbrev
 
         let long =
-            genTypeAndParam astContext s tds tcs preferPostfix
+            genTypeAndParam astContext s tds tcs
             +> sepSpace
             +> sepEqFixed
             +> indent
@@ -4048,7 +4046,7 @@ and genMemberSig astContext node =
         | SynMemberSig.NestedType (_, r) -> r, SynMemberSig_NestedType
 
     match node with
-    | MSMember (Val (ats, px, ao, s, _, t, vi, isInline, ValTyparDecls (tds, _, tcs)), mf) ->
+    | MSMember (Val (ats, px, ao, s, _, t, vi, isInline, tds, _), mf) ->
         let (FunType namedArgs) = (t, vi)
 
         let isFunctionProperty =
@@ -4065,8 +4063,7 @@ and genMemberSig astContext node =
             range
         +> ifElse isInline (!- "inline ") sepNone
         +> opt sepSpace ao genAccess
-        +> ifElse (s = "``new``") (!- "new") (!-s)
-        +> genTypeParamPostfix astContext tds tcs
+        +> genTypeAndParam astContext (if s = "``new``" then "new" else s) tds []
         +> sepColonWithSpacesFixed
         +> ifElse
             (List.isNotEmpty namedArgs)
@@ -4734,7 +4731,7 @@ and genMemberDefn astContext node =
             -- genPropertyKind (not isFunctionProperty) mk
         )
 
-    | MDAbstractSlot (ats, px, ao, s, t, vi, ValTyparDecls (tds, _, tcs), MFMemberFlags mk) ->
+    | MDAbstractSlot (ats, px, ao, s, t, vi, ValTyparDecls (tds, _), MFMemberFlags mk) ->
         let (FunType namedArgs) = (t, vi)
 
         let isFunctionProperty =
@@ -4763,7 +4760,7 @@ and genMemberDefn astContext node =
         +> genAttributes astContext ats
         +> opt sepSpace ao genAccess
         +> genAbstractMemberKeyword
-        +> genTypeParamPostfix astContext tds tcs
+        +> genTypeParamPostfix astContext tds
         +> sepColonWithSpacesFixed
         +> autoIndentAndNlnIfExpressionExceedsPageWidth (genTypeList astContext namedArgs)
         -- genPropertyKind (not isFunctionProperty) mk
@@ -4848,17 +4845,18 @@ and genPat astContext pat =
              +> sepColon
              +> atCurrentColumnIndent (genType astContext false t))
 
-    | PatNamed (ao, PatNullary PatWild, s) ->
+    | PatNamed (ao, s) ->
         opt sepSpace ao genAccess
         +> infixOperatorFromTrivia pat.Range s
-    | PatNamed (ao, p, s) ->
-        opt sepSpace ao genAccess +> genPat astContext p
-        -- sprintf " as %s" s
+    | PatAs (p1, p2, r) ->
+        genPat astContext p1 -- " as "
+        +> genPat astContext p2
+        |> genTriviaFor SynPat_As r
     | PatLongIdent (ao, s, ps, tpso) ->
         let aoc = opt sepSpace ao genAccess
 
         let tpsoc =
-            opt sepNone tpso (fun (ValTyparDecls (tds, _, tcs)) -> genTypeParamPostfix astContext tds tcs)
+            opt sepNone tpso (fun (ValTyparDecls (tds, _)) -> genTypeParamPostfix astContext tds)
         // Override escaped new keyword
         let s = if s = "``new``" then "new" else s
 
@@ -5041,10 +5039,7 @@ and genSynBindingFunction
 
     let genFunctionName =
         getIndentBetweenTicksFromSynPat patRange functionName
-        +> opt
-            sepNone
-            genericTypeParameters
-            (fun (ValTyparDecls (tds, _, tcs)) -> genTypeParamPostfix astContext tds tcs)
+        +> opt sepNone genericTypeParameters (fun (ValTyparDecls (tds, _)) -> genTypeParamPostfix astContext tds)
 
     let genSignature =
         let rangeBetweenBindingPatternAndExpression =
@@ -5146,10 +5141,7 @@ and genSynBindingFunctionWithReturnType
 
     let genFunctionName =
         getIndentBetweenTicksFromSynPat patRange functionName
-        +> opt
-            sepNone
-            genericTypeParameters
-            (fun (ValTyparDecls (tds, _, tcs)) -> genTypeParamPostfix astContext tds tcs)
+        +> opt sepNone genericTypeParameters (fun (ValTyparDecls (tds, _)) -> genTypeParamPostfix astContext tds)
 
     let genReturnType isFixed =
         let genMetadataAttributes =

@@ -788,12 +788,6 @@ let rec private (|HashTokens|_|) (tokens: Token list) =
         | _ -> Some(head :: tokensFromSameLine, rest)
     | _ -> None
 
-let private (|KeywordString|_|) (token: Token) =
-    if token.TokenInfo.Tag = 193 then
-        Some token
-    else
-        None
-
 let private (|BlockCommentTokens|_|) (tokens: Token list) =
     let rec collectTokens (rest: Token list) (finalContinuation: Token list -> Token list) : Token list * Token list =
         match rest with
@@ -948,15 +942,6 @@ let rec private getTriviaFromTokensThemSelves
             |> List.prependItem foundTrivia
 
         getTriviaFromTokensThemSelves mkRange lastButOne lastToken rest info
-
-    | KeywordString ks :: rest ->
-        let range = getRangeBetween mkRange ks ks
-
-        let info =
-            Trivia.Create(KeywordString(ks.Content)) range
-            |> List.prependItem foundTrivia
-
-        getTriviaFromTokensThemSelves mkRange lastNonWhiteSpaceToken (Some ks) rest info
 
     | KeywordOrOperatorToken koo :: rest ->
         let range = getRangeBetween mkRange koo koo

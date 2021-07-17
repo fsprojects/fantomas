@@ -808,7 +808,8 @@ module private Ast =
 
     and visitSynValTyparDecls (valTypeDecl: SynValTyparDecls) : TriviaNodeAssigner list =
         match valTypeDecl with
-        | SynValTyparDecls (typardecls, _, _) -> List.collect visitSynTyparDecl typardecls
+        | SynValTyparDecls (Some typardecl, _) -> visitSynTyparDecls typardecl
+        | _ -> []
 
     and visitSynTyparDecl (std: SynTyparDecl) : TriviaNodeAssigner list =
         match std with
@@ -834,12 +835,19 @@ module private Ast =
                 mkNode SynPat_Wild range
                 |> List.singleton
                 |> finalContinuation
-            | SynPat.Named (synPat, _, _, _, range) ->
-                visit
-                    synPat
-                    (fun nodes ->
-                        mkNode SynPat_Named range :: nodes
-                        |> finalContinuation)
+            | SynPat.Named (ident, _, _, range) ->
+                [ mkNode SynPat_Named range
+                  visitIdent ident ]
+                |> finalContinuation
+            | SynPat.As (synPat, synPat2, range) ->
+                let continuations: ((TriviaNodeAssigner list -> TriviaNodeAssigner list) -> TriviaNodeAssigner list) list =
+                    [ visit synPat; visit synPat2 ]
+
+                let finalContinuation (nodes: TriviaNodeAssigner list list) : TriviaNodeAssigner list =
+                    mkNode SynPat_As range :: (List.collect id nodes)
+                    |> finalContinuation
+
+                Continuation.sequence continuations finalContinuation
             | SynPat.Typed (synPat, synType, range) ->
                 visit
                     synPat
@@ -959,7 +967,21 @@ module private Ast =
         | SynComponentInfo (attribs, typeParams, _, _, _, _, _, range) ->
             [ yield mkNode SynComponentInfo_ range
               yield! (visitSynAttributeLists attribs)
-              yield! (typeParams |> List.collect visitSynTyparDecl) ]
+              yield!
+                  (Option.map visitSynTyparDecls typeParams
+                   |> Option.defaultValue []) ]
+
+    and visitSynTyparDecls (decls: SynTyparDecls) : TriviaNodeAssigner list =
+        match decls with
+        | SynTyparDecls.PostfixList (decls, _constraints, range) ->
+            [ yield mkNode SynTyparDecls_PostfixList range
+              yield! (List.collect visitSynTyparDecl decls) ]
+        | SynTyparDecls.PrefixList (decls, range) ->
+            [ yield mkNode SynTyparDecls_PrefixList range
+              yield! (List.collect visitSynTyparDecl decls) ]
+        | SynTyparDecls.SinglePrefix (decl, range) ->
+            [ yield mkNode SynTyparDecls_SinglePrefix range
+              yield! (visitSynTyparDecl decl) ]
 
     and visitSynTypeDefnRepr (stdr: SynTypeDefnRepr) : TriviaNodeAssigner list =
         match stdr with

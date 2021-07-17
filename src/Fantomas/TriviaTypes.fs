@@ -78,7 +78,6 @@ let a = 7
 
 type TriviaContent =
     | Keyword of Token
-    | KeywordString of string
     | Number of string
     | StringContent of string
     | IdentOperatorAsWord of string
@@ -223,13 +222,16 @@ type FsAstType =
     | SynBindingKind_Do
     | SynBinding_AfterAttributes_BeforeHeadPattern
     | SynBindingReturnInfo_
-    | SynValTyparDecls_
+    | SynTyparDecls_PostfixList
+    | SynTyparDecls_SinglePrefix
+    | SynTyparDecls_PrefixList
     | SynTyparDecl_
     // | Typar_ , unused
     | SynValSig_
     // | SynPat_Const, use SynConst instead
     | SynPat_Wild
     | SynPat_Named
+    | SynPat_As
     | SynPat_Typed
     | SynPat_Attrib
     | SynPat_Or
@@ -324,6 +326,8 @@ type FsAstType =
     | SynValInfo_
     | SynArgInfo_
     | ParsedHashDirective_
+    | ParsedHashDirectiveArgument_String
+    | ParsedHashDirectiveArgument_SourceIdentifier
     // Modules and namespaces cannot really be trusted
     // Their range can be influenced by non code constructs (like comments)
 //    | SynModuleOrNamespaceSig_AnonModule
