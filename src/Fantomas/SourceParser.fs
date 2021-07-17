@@ -213,45 +213,15 @@ let (|Measure|) x =
 
     sprintf "<%s>" <| loop x
 
-/// Lose information about kinds of literals
-let rec (|Const|) c =
-    match c with
-    | SynConst.Measure (Const c, Measure m) -> c + m
-    | SynConst.UserNum (num, ty) -> num + ty
-    | SynConst.Unit -> "()"
-    | SynConst.Bool b -> sprintf "%A" b
-    | SynConst.SByte s -> sprintf "%A" s
-    | SynConst.Byte b -> sprintf "%A" b
-    | SynConst.Int16 i -> sprintf "%A" i
-    | SynConst.UInt16 u -> sprintf "%A" u
-    | SynConst.Int32 i -> sprintf "%A" i
-    | SynConst.UInt32 u -> sprintf "%A" u
-    | SynConst.Int64 i -> sprintf "%A" i
-    | SynConst.UInt64 u -> sprintf "%A" u
-    | SynConst.IntPtr i -> sprintf "%in" i
-    | SynConst.UIntPtr u -> sprintf "%iun" u
-    | SynConst.Single s -> sprintf "%A" s
-    | SynConst.Double d -> sprintf "%A" d
-    | SynConst.Char c -> sprintf "%A" c
-    | SynConst.Decimal d -> sprintf "%A" d
-    | SynConst.String (s, _) ->
-        // Naive check for verbatim strings
-        if not <| String.IsNullOrEmpty(s)
-           && s.Contains("\\")
-           && not <| s.Contains(@"\\") then
-            sprintf "@%A" s
-        else
-            sprintf "%A" s
-    | SynConst.Bytes (bs, _) -> sprintf "%A" bs
-    // Auto print may cut off the array
-    | SynConst.UInt16s us -> sprintf "%A" us
-
 let (|String|_|) e =
     match e with
     | SynExpr.Const (SynConst.String (s, _), _) -> Some s
     | _ -> None
 
-let (|Unresolved|) (Const s as c, r) = (c, r, s)
+let (|Unit|_|) =
+    function
+    | SynConst.Unit _ -> Some()
+    | _ -> None
 
 // File level patterns
 
@@ -657,6 +627,11 @@ let (|ConstExpr|_|) =
     | SynExpr.Const (x, r) -> Some(x, r)
     | _ -> None
 
+let (|ConstUnitExpr|_|) =
+    function
+    | ConstExpr (Unit, _) -> Some()
+    | _ -> None
+
 let (|TypeApp|_|) =
     function
     | SynExpr.TypeApp (e, _, ts, _, _, _, _) -> Some(e, ts)
@@ -688,7 +663,7 @@ let (|SimpleExpr|_|) =
     | SynExpr.Null _
     | SynExpr.Ident _
     | SynExpr.LongIdent _
-    | SynExpr.Const (Const _, _) as e -> Some e
+    | SynExpr.Const _ as e -> Some e
     | _ -> None
 
 /// Only recognize numbers; strings are ignored
@@ -1198,6 +1173,11 @@ let (|PatRecord|_|) =
 let (|PatConst|_|) =
     function
     | SynPat.Const (c, r) -> Some(c, r)
+    | _ -> None
+
+let (|PatUnitConst|_|) =
+    function
+    | SynPat.Const (Unit, _) -> Some()
     | _ -> None
 
 let (|PatIsInst|_|) =
