@@ -370,7 +370,6 @@ extern int GetWindowLong(System.IntPtr hwnd, int index)
 """
 
 [<Test>]
-[<Ignore("See https://github.com/dotnet/fsharp/issues/11734")>]
 let ``should handle external functions with special types`` () =
     formatSourceString
         false
