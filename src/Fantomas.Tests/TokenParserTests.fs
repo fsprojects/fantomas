@@ -303,8 +303,10 @@ elif true then ()"""
     let triviaNodes = tokenize source |> getTriviaFromTokens
 
     match triviaNodes with
-    | [ { Item = Keyword { Content = "if" } }; { Item = Keyword { Content = "then" } };
-        { Item = Keyword { Content = "elif" } }; { Item = Keyword { Content = "then" } } ] -> pass ()
+    | [ { Item = Keyword { Content = "if" } }
+        { Item = Keyword { Content = "then" } }
+        { Item = Keyword { Content = "elif" } }
+        { Item = Keyword { Content = "then" } } ] -> pass ()
     | _ -> fail ()
 
 [<Test>]

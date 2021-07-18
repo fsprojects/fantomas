@@ -291,11 +291,11 @@ elif true then ()"""
 
     match triviaNodes with
     | [ { Type = Token (IF, _)
-          ContentItself = Some (Keyword { Content = "if" }) };
+          ContentItself = Some (Keyword { Content = "if" }) }
         { Type = Token (THEN, _)
-          ContentItself = Some (Keyword { Content = "then" }) };
+          ContentItself = Some (Keyword { Content = "then" }) }
         { Type = Token (ELIF, _)
-          ContentItself = Some (Keyword { Content = "elif" }) };
+          ContentItself = Some (Keyword { Content = "elif" }) }
         { Type = Token (THEN, _)
           ContentItself = Some (Keyword { Content = "then" }) } ] -> pass ()
     | _ -> fail ()
@@ -348,7 +348,7 @@ let x = 1
     match withDefine with
     | [ { Type = MainNode LongIdent_
           ContentBefore = [ Directive "#if NOT_DEFINED" ]
-          ContentAfter = [] };
+          ContentAfter = [] }
         { Type = MainNode SynModuleDecl_Let
           ContentBefore = []
           ContentAfter = [ Directive "#endif" ] } ] -> pass ()
@@ -411,7 +411,7 @@ let ``if keyword should be keyword itself`` () =
 
     match trivia with
     | [ { ContentItself = Some (Keyword { TokenInfo = { TokenName = "IF" } })
-          Type = TriviaNodeType.Token (IF, _) };
+          Type = TriviaNodeType.Token (IF, _) }
         { ContentItself = Some (Keyword { TokenInfo = { TokenName = "THEN" } })
           Type = TriviaNodeType.Token (THEN, _) } ] -> pass ()
     | _ -> fail ()
