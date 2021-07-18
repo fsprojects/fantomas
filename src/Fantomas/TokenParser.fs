@@ -744,7 +744,7 @@ let private (|EmbeddedILTokens|_|) (tokens: Token list) =
 
         match lastTokens with
         | [ { TokenInfo = { TokenName = "WHITESPACE"
-                            CharClass = FSharpTokenCharKind.WhiteSpace } };
+                            CharClass = FSharpTokenCharKind.WhiteSpace } }
             { TokenInfo = { TokenName = "HASH"
                             CharClass = FSharpTokenCharKind.Delimiter } } ] ->
             Some(List.take (embeddedTokens.Length + 1) tokens, rest)
