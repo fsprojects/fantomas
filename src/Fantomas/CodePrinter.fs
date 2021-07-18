@@ -3928,9 +3928,9 @@ and genSigSimpleRecord tdr ms ao' fs astContext =
         +> col sepSemiNln fs (genField astContext "")
     )
     +> sepCloseS
+    +> optSingle (fun _ -> unindent) ao'
     +> sepNlnBetweenSigTypeAndMembers tdr ms
     +> colPre sepNln sepNln ms (genMemberSig astContext)
-    +> optSingle (fun _ -> unindent) ao'
 
 and genSigSimpleRecordAlignBrackets tdr ms ao' fs astContext =
     // the typeName is already printed
@@ -3946,9 +3946,9 @@ and genSigSimpleRecordAlignBrackets tdr ms ao' fs astContext =
     +> unindent
     +> sepNln
     +> sepCloseSFixed
+    +> optSingle (fun _ -> unindent) ao'
     +> sepNlnBetweenSigTypeAndMembers tdr ms
     +> colPre sepNln sepNln ms (genMemberSig astContext)
-    +> onlyIf (Option.isSome ao') unindent
 
 and genMemberSig astContext node =
     let range, mainNodeName =

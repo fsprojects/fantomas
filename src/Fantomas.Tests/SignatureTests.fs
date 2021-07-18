@@ -1513,8 +1513,8 @@ and [<CustomEquality>] Bang =
         {
             LongNameBarBarBarBarBarBarBar: int
         }
-        ///
-        override GetHashCode : unit -> int
+    ///
+    override GetHashCode : unit -> int
 """
 
 [<Test>]
@@ -1571,4 +1571,33 @@ type Bar =
                                                       -> 'g, ('h -> 'i) -> 'j>
         * item : int list ->
         LongLongLongLongLongLongLongLongLongLongLongLongLongLongLongLong
+"""
+
+[<Test>]
+let ``a record type with accessibility modifier and members`` () =
+    formatSourceString
+        true
+        """
+namespace Thing
+
+type Foo =
+    private
+        {
+            Bar : int
+            Qux : string
+        }
+    static member Baz : int
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+namespace Thing
+
+type Foo =
+    private
+        { Bar: int
+          Qux: string }
+    static member Baz : int
 """
