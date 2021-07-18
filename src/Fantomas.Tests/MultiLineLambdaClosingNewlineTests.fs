@@ -812,3 +812,30 @@ module Foo =
             )
             meh
 """
+
+[<Test>]
+let ``SynExpr.MatchLambda inside parenthesis as argument, 1823`` () =
+    formatSourceString
+        false
+        """
+module Foo =
+    let bar =
+        []
+        |> List.choose (
+            function
+            | _ -> ""
+        )
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+module Foo =
+    let bar =
+        []
+        |> List.choose (
+            function
+            | _ -> ""
+        )
+"""
