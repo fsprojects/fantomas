@@ -1135,3 +1135,35 @@ module WatcherTests =
 
         ()
 """
+
+[<Test>]
+let ``a record type with accessibility modifier and members, 1824`` () =
+    formatSourceString
+        true
+        """
+namespace Thing
+
+type Foo =
+    private
+        {
+            Bar : int
+            Qux : string
+        }
+    static member Baz : int
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+namespace Thing
+
+type Foo =
+    private
+        {
+            Bar : int
+            Qux : string
+        }
+
+    static member Baz : int
+"""
