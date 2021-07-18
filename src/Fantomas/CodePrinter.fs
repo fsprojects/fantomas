@@ -2992,7 +2992,8 @@ and genApp astContext e es ctx =
 
     let isParenLambda =
         (function
-        | Paren (_, Lambda _, _, _) -> true
+        | Paren (_, Lambda _, _, _)
+        | Paren (_, MatchLambda _, _, _) -> true
         | _ -> false)
 
     let shouldHaveAlternativeLambdaStyle =
@@ -3066,6 +3067,15 @@ and genApp astContext e es ctx =
                                 |> fun lastPat -> ctx.MkRange lastPat.Range.End expr.Range.Start
 
                             genLambda (col sepSpace pats (genPat astContext)) expr lpr rpr arrowRange
+                        | Paren (lpr, (MatchLambda _ as me), rpr, pr) ->
+                            sepOpenTFor lpr
+                            +> indent
+                            +> sepNln
+                            +> genExpr astContext me
+                            +> unindent
+                            +> sepNln
+                            +> sepCloseTFor rpr e.Range
+                            |> genTriviaFor SynExpr_Paren pr
                         | _ -> genExpr astContext e)
 
             let argExpr =
