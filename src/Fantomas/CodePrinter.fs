@@ -1486,8 +1486,16 @@ and genExpr astContext synExpr ctx =
                     +> triviaAfterArrow arrowRange
                     +> ifElse
                         hasLineCommentAfterArrow
-                        (body +> sepCloseTFor rpr pr)
-                        (autoNlnIfExpressionExceedsPageWidth (body +> sepCloseTFor rpr pr))
+                        (body
+                         +> triviaOfLambda printContentAfter
+                         +> sepNlnWhenWriteBeforeNewlineNotEmpty id
+                         +> sepCloseTFor rpr pr)
+                        (autoNlnIfExpressionExceedsPageWidth (
+                            body
+                            +> triviaOfLambda printContentAfter
+                            +> sepNlnWhenWriteBeforeNewlineNotEmpty id
+                            +> sepCloseTFor rpr pr
+                        ))
                     +> unindent
 
                 expr ctx
@@ -3050,23 +3058,25 @@ and genApp astContext e es ctx =
                     sepSpace
                     es
                     (fun e ->
-                        let genLambda pats (bodyExpr: SynExpr) lpr rpr arrowRange =
-                            sepOpenTFor lpr -- "fun "
-                            +> pats
-                            +> indent
-                            +> triviaAfterArrow arrowRange
-                            +> autoNlnIfExpressionExceedsPageWidth (genExprKeepIndentInBranch astContext bodyExpr)
+                        let genLambda pats (bodyExpr: SynExpr) lpr rpr arrowRange lambdaRange =
+                            sepOpenTFor lpr
+                            +> (!- "fun "
+                                +> pats
+                                +> indent
+                                +> triviaAfterArrow arrowRange
+                                +> autoNlnIfExpressionExceedsPageWidth (genExprKeepIndentInBranch astContext bodyExpr)
+                                |> genTriviaFor SynExpr_Lambda lambdaRange)
                             +> unindent
                             +> sepNln
                             +> sepCloseTFor rpr e.Range
 
                         match e with
-                        | Paren (lpr, Lambda (pats, expr, _range), rpr, _) ->
+                        | Paren (lpr, Lambda (pats, expr, range), rpr, _) ->
                             let arrowRange =
                                 List.last pats
                                 |> fun lastPat -> ctx.MkRange lastPat.Range.End expr.Range.Start
 
-                            genLambda (col sepSpace pats (genPat astContext)) expr lpr rpr arrowRange
+                            genLambda (col sepSpace pats (genPat astContext)) expr lpr rpr arrowRange range
                         | Paren (lpr, (MatchLambda _ as me), rpr, pr) ->
                             sepOpenTFor lpr
                             +> indent

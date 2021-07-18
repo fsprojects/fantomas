@@ -110,7 +110,7 @@ stylecop.*
 *.dbmdl
 lib/*.xml
 Generated_Code #added for RIA/Silverlight projects
-.ionide
+.ionide/
 
 # Backup & report files from converting an old project file to a newer
 # Visual Studio version. Backup files are not needed, because we have git ;-)
@@ -168,8 +168,6 @@ pip-log.txt
 *.ncrunch*
 TestResults.xml
 *.xml
-.fake/build.fsx_*.dll
-.paket/paket.exe
 paket-files/
 .fake/
 .vs/
@@ -181,10 +179,7 @@ paket-files/
 
 # external projects directory for extensive regression tests
 external-project-tests/
-.paket/.store/
-.paket/paket.exe
-.fake/
+.paket/
 .vscode/
-.ionide
 BenchmarkDotNet.Artifacts/
 FormatChanged.ps1
