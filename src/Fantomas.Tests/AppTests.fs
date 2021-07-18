@@ -708,3 +708,43 @@ let tryDataOperation =
     [ parameters ]
     (objectStateExpr body)
 """
+
+[<Test>]
+let ``comment after lambda inside parenthesis argument, 1822`` () =
+    formatSourceString
+        false
+        """
+module Foo =
+
+    let blah =
+        it
+        |> List.iter (fun (_, output) ->
+            thing
+            |> Map.iter (fun key value ->
+                match value with
+                | Ok (TestResult.Failure f) -> failwith ""
+                | Error e -> failwith ""
+                | _ -> () // hi!
+            )
+        )
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+module Foo =
+
+    let blah =
+        it
+        |> List.iter
+            (fun (_, output) ->
+                thing
+                |> Map.iter
+                    (fun key value ->
+                        match value with
+                        | Ok (TestResult.Failure f) -> failwith ""
+                        | Error e -> failwith ""
+                        | _ -> () // hi!
+                        ))
+"""
