@@ -111,3 +111,18 @@ let ``ignore file in folder while checking`` () =
 
     File.ReadAllText inputFixture.Filename
     |> should equal Source
+
+[<Test>]
+let ``honor ignore file when processing a folder`` () =
+    let fileName = "A"
+    let subFolder = System.Guid.NewGuid().ToString("N")
+
+    use ignoreFixture =
+        new TemporaryFileCodeSample(Source, fileName = fileName, subFolder = subFolder)
+
+    use inputFixture = new FantomasIgnoreFile("*.fsx")
+
+    let { Output = output } =
+        runFantomasTool (sprintf ".%c%s" Path.DirectorySeparatorChar subFolder)
+
+    output |> should not' (contain "ignored")

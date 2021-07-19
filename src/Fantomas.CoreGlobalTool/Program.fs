@@ -108,10 +108,11 @@ let private hasByteOrderMark file =
 /// Format a source string using given config and write to a text writer
 let processSourceString isFsiFile s (tw: Choice<TextWriter, string>) config =
     let fileName =
-        if isFsiFile then
-            "/tmp.fsi"
-        else
-            "/tmp.fsx"
+        match tw, isFsiFile with
+        | Choice1Of2 _, isFsi ->
+            let extension = if isFsi then "fsi" else "fs"
+            sprintf "/tmp.%s" extension
+        | Choice2Of2 f, _ -> f
 
     let writeResult (formatted: string) =
         match tw with
