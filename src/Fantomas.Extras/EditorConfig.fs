@@ -18,7 +18,7 @@ let supportedProperties =
       "indent_size"
       "end_of_line" ]
 
-let private toEditorConfigName value =
+let toEditorConfigName value =
     value
     |> Seq.map
         (fun c ->

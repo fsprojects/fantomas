@@ -17,6 +17,14 @@ open Fantomas.SourceOrigin
 open Fantomas.SourceParser
 open Fantomas.CodePrinter
 
+// Share an F# checker instance across formatting calls
+let sharedChecker = lazy (FSharpChecker.Create())
+
+let createParsingOptionsFromFile fileName =
+    { FSharpParsingOptions.Default with
+          SourceFiles = [| fileName |] }
+
+
 let private getSourceString (source: SourceOrigin) =
     match source with
     | SourceString s -> String.normalizeNewLine s
