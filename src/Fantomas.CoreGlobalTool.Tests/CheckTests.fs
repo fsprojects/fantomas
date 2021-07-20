@@ -1,5 +1,6 @@
 module Fantomas.CoreGlobalTool.Tests.CheckTests
 
+open System.IO
 open NUnit.Framework
 open FsUnit
 open Fantomas.CoreGlobalTool.Tests.TestHelpers
@@ -114,3 +115,18 @@ let ``check with file and folder`` () =
             (System.IO.Path.GetFileName(fileFixtureOne.Filename))
 
     output |> should contain needsFormatting
+
+[<Test>]
+let ``honor ignore file when processing a folder`` () =
+    let fileName = "A"
+    let subFolder = System.Guid.NewGuid().ToString("N")
+
+    use ignoreFixture =
+        new TemporaryFileCodeSample("let a =  0", fileName = fileName, subFolder = subFolder)
+
+    use inputFixture = new FantomasIgnoreFile("*.fsx")
+
+    let { Output = output } =
+        runFantomasTool (sprintf "--check .%c%s" Path.DirectorySeparatorChar subFolder)
+
+    output |> should not' (contain "ignored")
