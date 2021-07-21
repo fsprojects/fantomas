@@ -349,3 +349,17 @@ longLeadingStringPaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
                                                                                                                                 )}
 "
 """
+
+[<Test>]
+let ``very long triple-quoted strings do not cause the interpolated string active pattern to stack overflow, 1837`` () =
+    let loremIpsum = String.replicate 1000 "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.\n\n"
+
+    formatSourceString
+        false
+        $"let value = \"\"\"{loremIpsum}\"\"\""
+        config
+    |> should
+        equal
+        $"let value =
+    \"\"\"{loremIpsum}\"\"\"
+"
