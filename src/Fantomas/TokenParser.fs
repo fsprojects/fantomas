@@ -552,18 +552,24 @@ let private (|EndOfInterpolatedString|_|) tokens =
     | StringTextToken stToken :: rest ->
         let maybeLastTokenIndex =
             rest
-            |> Seq.takeWhile (function StringTextToken _ | InterpStringEndOrPartToken _ -> true | _ -> false)
-            |> Seq.tryFindIndex (function InterpStringEndOrPartToken _ -> true | _ -> false)
+            |> Seq.takeWhile
+                (function
+                | StringTextToken _
+                | InterpStringEndOrPartToken _ -> true
+                | _ -> false)
+            |> Seq.tryFindIndex
+                (function
+                | InterpStringEndOrPartToken _ -> true
+                | _ -> false)
 
         match maybeLastTokenIndex with
-            | None -> None
-            | Some lastTokenIndex ->
-                let tokens = stToken :: rest.[..lastTokenIndex - 1]
-                let endToken = rest.[lastTokenIndex]
-                let rest = rest.[lastTokenIndex + 1..]
-                Some(tokens, endToken, rest)
-    | _ ->
-        None
+        | None -> None
+        | Some lastTokenIndex ->
+            let tokens = stToken :: rest.[..lastTokenIndex - 1]
+            let endToken = rest.[lastTokenIndex]
+            let rest = rest.[lastTokenIndex + 1..]
+            Some(tokens, endToken, rest)
+    | _ -> None
 
 let private (|StringText|_|) tokens =
     match tokens with
