@@ -120,8 +120,7 @@ let ``when input is empty`` () =
         let before, after = List.partitionWhile (fun _ _ -> p) []
         before = [] && after = []
 
-    Check.QuickThrowOnFailure(property true)
-    Check.QuickThrowOnFailure(property false)
+    Check.QuickThrowOnFailure property
 
 [<Test>]
 let ``when predicate always returns false`` () =
@@ -158,16 +157,9 @@ let ``when predicate returns true until certain index`` () =
 
     let gen =
         gen {
-            let! xs =
-                Arb.generate<int>
-                |> Gen.listOf
-                |> Gen.filter (fun l -> l.Length > 0)
-
+            let! xs = Arb.generate<int> |> Gen.nonEmptyListOf
             let len = List.length xs
-
-            let! n =
-                Arb.generate<int>
-                |> Gen.filter (fun n -> n >= 0 && n < len)
+            let! n = Gen.choose (0, len - 1)
 
             return (xs, n)
         }
