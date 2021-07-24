@@ -6,103 +6,81 @@ open Fantomas
 open Fantomas.Tests.TestHelper
 open FsCheck
 
-module String =
-    let private mergeAndCompare a b expected =
-        let result =
-            String.merge Environment.NewLine a b
-            |> String.normalizeNewLine
+let private mergeAndCompare a b expected =
+    let result =
+        String.merge Environment.NewLine a b
+        |> String.normalizeNewLine
 
-        let normalizedExpected = String.normalizeNewLine expected
-        normalizedExpected == result
+    let normalizedExpected = String.normalizeNewLine expected
+    normalizedExpected == result
 
-    [<Test>]
-    let ``Merging of source code that starts with a hash`` () =
-        let a =
-            """#if NOT_DEFINED
-    printfn \"meh\"
-#else
-
-#endif
-"""
-
-        let b =
-            """#if NOT_DEFINED
-
-#else
-    printfn \"foo\"
-#endif
-"""
-
+[<Test>]
+let ``Merging of source code that starts with a hash`` () =
+    let a =
         """#if NOT_DEFINED
-    printfn \"meh\"
+printfn \"meh\"
 #else
-    printfn \"foo\"
+
 #endif
 """
-        |> mergeAndCompare a b
 
-    [<Test>]
-    let ``Merging of defines content work when source code starts with a newline`` () =
-        let a =
-            """
-[<Literal>]
-let private assemblyConfig() =
-    #if TRACE
+    let b =
+        """#if NOT_DEFINED
 
-    #else
-    let x = "x"
-    #endif
-    x
+#else
+printfn \"foo\"
+#endif
 """
 
-        let b =
-            """
-[<Literal>]
-let private assemblyConfig() =
-    #if TRACE
-    let x = ""
-    #else
-
-    #endif
-    x
+    """#if NOT_DEFINED
+printfn \"meh\"
+#else
+printfn \"foo\"
+#endif
 """
+    |> mergeAndCompare a b
 
+[<Test>]
+let ``Merging of defines content work when source code starts with a newline`` () =
+    let a =
         """
 [<Literal>]
 let private assemblyConfig() =
 #if TRACE
-    let x = ""
+
 #else
-    let x = "x"
+let x = "x"
 #endif
-    x
-"""
-        |> mergeAndCompare a b
-
-    [<Test>]
-    let ``Only split on control structure keyword`` () =
-        let a =
-            """
-#if INTERACTIVE
-#else
-#load "../FSharpx.TypeProviders/SetupTesting.fsx"
-
-SetupTesting.generateSetupScript __SOURCE_DIRECTORY__
-
-#load "__setup__.fsx"
-#endif
+x
 """
 
-        let b =
-            """
-#if INTERACTIVE
+    let b =
+        """
+[<Literal>]
+let private assemblyConfig() =
+#if TRACE
+let x = ""
 #else
 
-
-
 #endif
+x
+"""
+
     """
+[<Literal>]
+let private assemblyConfig() =
+#if TRACE
+let x = ""
+#else
+let x = "x"
+#endif
+x
+"""
+    |> mergeAndCompare a b
 
+[<Test>]
+let ``Only split on control structure keyword`` () =
+    let a =
         """
 #if INTERACTIVE
 #else
@@ -113,67 +91,87 @@ SetupTesting.generateSetupScript __SOURCE_DIRECTORY__
 #load "__setup__.fsx"
 #endif
 """
-        |> mergeAndCompare a b
 
-module List =
-    [<Test>]
-    let ``when input is empty`` () =
-        let property (p: bool) : bool =
-            let before, after = List.partitionWhile (fun _ _ -> p) []
-            before = [] && after = []
+    let b =
+        """
+#if INTERACTIVE
+#else
 
-        Check.QuickThrowOnFailure(property true)
-        Check.QuickThrowOnFailure(property false)
 
-    [<Test>]
-    let ``when predicate always returns false`` () =
-        let property (xs: int list) : bool =
-            let before, after =
-                List.partitionWhile (fun _ _ -> false) xs
 
-            before = [] && after = xs
+#endif
+"""
 
-        Check.QuickThrowOnFailure property
+    """
+#if INTERACTIVE
+#else
+#load "../FSharpx.TypeProviders/SetupTesting.fsx"
 
-    [<Test>]
-    let ``when predicate always returns true`` () =
-        let property (xs: int list) : bool =
-            let before, after =
-                List.partitionWhile (fun _ _ -> true) xs
+SetupTesting.generateSetupScript __SOURCE_DIRECTORY__
 
-            before = xs && after = []
+#load "__setup__.fsx"
+#endif
+"""
+    |> mergeAndCompare a b
 
-        Check.QuickThrowOnFailure property
+[<Test>]
+let ``when input is empty`` () =
+    let property (p: bool) : bool =
+        let before, after = List.partitionWhile (fun _ _ -> p) []
+        before = [] && after = []
 
-    [<Test>]
-    let ``when predicate returns true until certain index`` () =
-        let property (xs: int list, i: int) : bool =
-            let before, after =
-                List.partitionWhile (fun index _ -> i <> index) xs
+    Check.QuickThrowOnFailure(property true)
+    Check.QuickThrowOnFailure(property false)
 
-            let beforeLength = List.length before
-            let afterLength = List.length after
+[<Test>]
+let ``when predicate always returns false`` () =
+    let property (xs: int list) : bool =
+        let before, after =
+            List.partitionWhile (fun _ _ -> false) xs
 
-            beforeLength = i
-            && afterLength = List.length xs - i
-            && before @ after = xs
+        before = [] && after = xs
 
-        let gen =
-            gen {
-                let! xs =
-                    Arb.generate<int>
-                    |> Gen.listOf
-                    |> Gen.filter (fun l -> l.Length > 0)
+    Check.QuickThrowOnFailure property
 
-                let len = List.length xs
+[<Test>]
+let ``when predicate always returns true`` () =
+    let property (xs: int list) : bool =
+        let before, after =
+            List.partitionWhile (fun _ _ -> true) xs
 
-                let! n =
-                    Arb.generate<int>
-                    |> Gen.filter (fun n -> n >= 0 && n < len)
+        before = xs && after = []
 
-                return (xs, n)
-            }
+    Check.QuickThrowOnFailure property
 
-        property
-        |> Prop.forAll (Arb.fromGen gen)
-        |> Check.QuickThrowOnFailure
+[<Test>]
+let ``when predicate returns true until certain index`` () =
+    let property (xs: int list, i: int) : bool =
+        let before, after =
+            List.partitionWhile (fun index _ -> i <> index) xs
+
+        let beforeLength = List.length before
+        let afterLength = List.length after
+
+        beforeLength = i
+        && afterLength = List.length xs - i
+        && before @ after = xs
+
+    let gen =
+        gen {
+            let! xs =
+                Arb.generate<int>
+                |> Gen.listOf
+                |> Gen.filter (fun l -> l.Length > 0)
+
+            let len = List.length xs
+
+            let! n =
+                Arb.generate<int>
+                |> Gen.filter (fun n -> n >= 0 && n < len)
+
+            return (xs, n)
+        }
+
+    property
+    |> Prop.forAll (Arb.fromGen gen)
+    |> Check.QuickThrowOnFailure
