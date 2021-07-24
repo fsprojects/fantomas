@@ -1,3 +1,11 @@
+#### 4.5.1 - 07/2021
+
+* Fix StackOverflow exceptions when collecting ColMultilineItem list. [#1839](https://github.com/fsprojects/fantomas/issues/1839)
+* Honor .fantomasignore file when processing a folder. [#1834](https://github.com/fsprojects/fantomas/pull/1834)
+* Fix Overly indented members on a record type with accessibility modifier. [#1824](https://github.com/fsprojects/fantomas/issues/1824)
+* Fix MultiLineLambdaClosingNewline not respected with function keyword. [#1823](https://github.com/fsprojects/fantomas/issues/1823)
+* Fix Comment is lost at the end of a match. [#1822](https://github.com/fsprojects/fantomas/issues/1822)
+
 #### 4.5.0 - 07/2021
 
 * Feature Always place bar in front of discriminated union. [#1750](https://github.com/fsprojects/fantomas/issues/1750)
