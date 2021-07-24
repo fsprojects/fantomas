@@ -1,45 +1,23 @@
 ﻿module Fantomas.CoreGlobalTool.Daemon
 
 open System
-open System.Collections.Generic
 open System.Diagnostics
 open System.IO
+open System.Threading.Tasks
 open Fantomas
 open Fantomas.SourceOrigin
-open LspTypes
 open StreamJsonRpc
 open System.Threading
 open Fantomas.FormatConfig
 open Fantomas.Extras.EditorConfig
+open Fantomas.Client.Contracts
 
-type FormatDocumentOptions =
-    { SourceCode: string
-      /// File path will be used to identify the .editorconfig options
-      /// Unless the configuration is passed
-      FilePath: string
-      /// Overrides the found .editorconfig.
-      Config: string option }
-
-type FormatSourceRange =
-    class
-    end
-
-type FantomasOption = { Type: string; DefaultValue: string }
-
-type ConfigurationResult =
-    { Options: IReadOnlyDictionary<string, FantomasOption>
-      EnumOptions: IReadOnlyDictionary<string, string array> }
-
-type VersionResult = { Version: string }
-
-type FormatResponse = { Formatted: string }
-
-type FantomasLSPServer(sender: Stream, reader: Stream) as this =
+type FantomasDaemon(sender: Stream, reader: Stream) as this =
     let rpc: JsonRpc = JsonRpc.Attach(sender, reader, this)
 
     do
         // hook up request/response logging for debugging
-        rpc.TraceSource <- TraceSource(typeof<FantomasLSPServer>.Name, SourceLevels.Verbose)
+        rpc.TraceSource <- TraceSource(typeof<FantomasDaemon>.Name, SourceLevels.Verbose)
 
     //        rpc.TraceSource.Listeners.Add(new SerilogTraceListener.SerilogTraceListener(typeof<FantomasLSPServer>.Name))
 //        |> ignore<int>
@@ -56,44 +34,28 @@ type FantomasLSPServer(sender: Stream, reader: Stream) as this =
     /// returns a hot task that resolves when the stream has terminated
     member this.WaitForClose = rpc.Completion
 
-    /// Fantomas uses the LSP protocol but does initially not aim to function as fully fledged LSP server.
-    /// Custom RPC methods are introduced to take no dependency on the file system and not required the constant communication of file events.
-    [<JsonRpcMethod("fantomas/formatDocument", UseSingleObjectParameterDeserialization = true)>]
-    member this.FormatSource(options: FormatDocumentOptions) : Async<FormatResponse> = // TODO: later Task
-        //        let filePath =
-//            Path.FileUriToLocalPath options.TextDocument.Uri
-//
-//        let response : TextEdit = TextEdit()
-//        let range = Range()
-//        range.Start <- (Position(0u, 0u))
-//        range.End <- (Position(countLines options.SourceCode - 1u, 0u))
-//        response.Range <- range
+    [<JsonRpcMethod(Methods.Version)>]
+    member _.Version() : VersionResponse =
+        { Version = CodeFormatter.GetVersion() }
 
-        let config = FormatConfig.Default
-        //            match Option.ofObj options.Config with
-//            | Some options -> parseOptionsFromEditorConfig options
-//            | None -> readConfiguration filePath
-
-
+    [<JsonRpcMethod(Methods.FormatDocument, UseSingleObjectParameterDeserialization = true)>]
+    member _.FormatDocumentAsync(options: FormatDocumentOptions) : Task<FormatDocumentResponse> =
         async {
             let! formatted =
                 CodeFormatter.FormatDocumentAsync(
                     options.FilePath,
                     SourceString options.SourceCode,
-                    config,
+                    FormatConfig.FormatConfig.Default,
                     CodeFormatterImpl.createParsingOptionsFromFile options.FilePath,
                     CodeFormatterImpl.sharedChecker.Value
                 )
 
             return { Formatted = formatted }
         }
+        |> Async.StartAsTask
 
-
-    [<JsonRpcMethod("fantomas/formatSelection")>]
-    member this.FormatSourceRange(options: FormatDocumentOptions) : TextEdit = failwith "not yet implemented"
-
-    [<JsonRpcMethod("fantomas/configuration")>]
-    member this.Configuration() : ConfigurationResult =
+    [<JsonRpcMethod(Methods.Configuration)>]
+    member _.Configuration() : ConfigurationResult =
         let options =
             Reflection.getRecordFields FormatConfig.FormatConfig.Default
             |> Array.choose
@@ -133,7 +95,3 @@ type FantomasLSPServer(sender: Stream, reader: Stream) as this =
 
         { Options = options
           EnumOptions = enumOptions }
-
-    [<JsonRpcMethod("fantomas/version")>]
-    member this.Version() : VersionResult =
-        { Version = CodeFormatter.GetVersion() }

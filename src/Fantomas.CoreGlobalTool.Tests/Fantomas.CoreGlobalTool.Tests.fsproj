@@ -9,6 +9,7 @@
     <WarningsAsErrors>FS0025</WarningsAsErrors>
   </PropertyGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Fantomas.Client\Fantomas.Client.fsproj" />
     <ProjectReference Include="..\Fantomas.CoreGlobalTool\Fantomas.CoreGlobalTool.fsproj" />
   </ItemGroup>
   <ItemGroup>
@@ -20,6 +21,7 @@
     <Compile Include="IgnoreFilesTests.fs" />
     <Compile Include="ExitCodeTests.fs" />
     <Compile Include="MultiplePathsTests.fs" />
+    <Compile Include="DaemonTests.fs" />
   </ItemGroup>
   <Import Project="..\..\.paket\Paket.Restore.targets" />
 </Project>

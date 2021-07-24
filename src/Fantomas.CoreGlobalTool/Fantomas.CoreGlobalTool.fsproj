@@ -15,6 +15,7 @@
     <PackageIcon>fantomas_logo.png</PackageIcon>
   </PropertyGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Fantomas.Client\Fantomas.Client.fsproj" />
     <ProjectReference Include="..\Fantomas.Extras\Fantomas.Extras.fsproj" />
     <ProjectReference Include="..\Fantomas\Fantomas.fsproj" />
   </ItemGroup>

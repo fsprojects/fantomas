@@ -90,7 +90,7 @@ type FantomasToolResult =
       Output: string
       Error: string }
 
-let runFantomasTool arguments : FantomasToolResult =
+let getFantomasToolStartInfo arguments : ProcessStartInfo =
     let pwd =
         Path.GetDirectoryName(typeof<TemporaryFileCodeSample>.Assembly.Location)
 
@@ -115,14 +115,17 @@ let runFantomasTool arguments : FantomasToolResult =
             "fantomas-tool.dll"
         )
 
+    let startInfo = ProcessStartInfo("dotnet")
+    startInfo.UseShellExecute <- false
+    startInfo.Arguments <- sprintf "%s %s" fantomasDll arguments
+    startInfo.WorkingDirectory <- Path.GetTempPath()
+    startInfo.RedirectStandardOutput <- true
+    startInfo.RedirectStandardError <- true
+    startInfo
+
+let runFantomasTool arguments : FantomasToolResult =
     use p = new Process()
-    p.StartInfo.UseShellExecute <- false
-    p.StartInfo.FileName <- @"dotnet"
-    p.StartInfo.Arguments <- sprintf "%s %s" fantomasDll arguments
-    p.StartInfo.WorkingDirectory <- Path.GetTempPath()
-    p.StartInfo.RedirectStandardOutput <- true
-    p.StartInfo.RedirectStandardError <- true
-    p.Start() |> ignore
+    p.StartInfo <- getFantomasToolStartInfo arguments
     let output = p.StandardOutput.ReadToEnd()
     let error = p.StandardError.ReadToEnd()
     p.WaitForExit()
