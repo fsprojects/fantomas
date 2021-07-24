@@ -548,19 +548,18 @@ let escapedCharacterRegex =
     System.Text.RegularExpressions.Regex("(\\\\(a|b|f|n|r|t|u|v|x|'|\\\"|\\\\))+")
 
 let private (|MultipleStringTextTokens|_|) tokens =
-    let f =
+    let f _ =
         function
         | StringTextToken _ -> true
         | _ -> false
 
     tokens
-    |> List.takeWhile f
-    |> fun xs ->
-        if List.isEmpty xs then
+    |> List.partitionWhile f
+    |> fun (before, after) ->
+        if List.isEmpty before then
             None
         else
-            Some(xs, List.skipWhile f tokens)
-
+            Some(before, after)
 
 let private (|EndOfInterpolatedString|_|) tokens =
     match tokens with
