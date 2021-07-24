@@ -18,7 +18,7 @@ let private mergeAndCompare a b expected =
 let ``Merging of source code that starts with a hash`` () =
     let a =
         """#if NOT_DEFINED
-printfn \"meh\"
+    printfn \"meh\"
 #else
 
 #endif
@@ -28,14 +28,14 @@ printfn \"meh\"
         """#if NOT_DEFINED
 
 #else
-printfn \"foo\"
+    printfn \"foo\"
 #endif
 """
 
     """#if NOT_DEFINED
-printfn \"meh\"
+    printfn \"meh\"
 #else
-printfn \"foo\"
+    printfn \"foo\"
 #endif
 """
     |> mergeAndCompare a b
@@ -46,35 +46,35 @@ let ``Merging of defines content work when source code starts with a newline`` (
         """
 [<Literal>]
 let private assemblyConfig() =
-#if TRACE
+    #if TRACE
 
-#else
-let x = "x"
-#endif
-x
+    #else
+    let x = "x"
+    #endif
+    x
 """
 
     let b =
         """
 [<Literal>]
 let private assemblyConfig() =
-#if TRACE
-let x = ""
-#else
+    #if TRACE
+    let x = ""
+    #else
 
-#endif
-x
+    #endif
+    x
 """
 
     """
 [<Literal>]
 let private assemblyConfig() =
 #if TRACE
-let x = ""
+    let x = ""
 #else
-let x = "x"
+    let x = "x"
 #endif
-x
+    x
 """
     |> mergeAndCompare a b
 
@@ -100,7 +100,7 @@ SetupTesting.generateSetupScript __SOURCE_DIRECTORY__
 
 
 #endif
-"""
+    """
 
     """
 #if INTERACTIVE
