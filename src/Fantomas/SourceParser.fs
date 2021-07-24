@@ -904,15 +904,20 @@ type ComputationExpressionStatement =
     | AndBangStatement of SynPat * SynExpr * range
     | OtherStatement of SynExpr
 
-let rec collectComputationExpressionStatements e : ComputationExpressionStatement list =
+let rec collectComputationExpressionStatements
+    (e: SynExpr)
+    (finalContinuation: ComputationExpressionStatement list -> ComputationExpressionStatement list)
+    : ComputationExpressionStatement list =
     match e with
     | LetOrUses (bindings, body) ->
         let letBindings = bindings |> List.map LetOrUseStatement
 
-        let returnExpr =
-            collectComputationExpressionStatements body
-
-        letBindings @ returnExpr
+        collectComputationExpressionStatements
+            body
+            (fun bodyStatements ->
+                [ yield! letBindings
+                  yield! bodyStatements ]
+                |> finalContinuation)
     | SynExpr.LetOrUseBang (_, isUse, _, pat, expr, andBangs, body, r) ->
         let letOrUseBang =
             LetOrUseBangStatement(isUse, pat, expr, r)
@@ -921,26 +926,33 @@ let rec collectComputationExpressionStatements e : ComputationExpressionStatemen
             andBangs
             |> List.map (fun (_, _, _, ap, ae, andRange) -> AndBangStatement(ap, ae, andRange))
 
-        let bodyStatements =
-            collectComputationExpressionStatements body
-
-        [ letOrUseBang
-          yield! andBangs
-          yield! bodyStatements ]
+        collectComputationExpressionStatements
+            body
+            (fun bodyStatements ->
+                [ letOrUseBang
+                  yield! andBangs
+                  yield! bodyStatements ]
+                |> finalContinuation)
     | SynExpr.Sequential (_, _, e1, e2, _) ->
-        [ yield! collectComputationExpressionStatements e1
-          yield! collectComputationExpressionStatements e2 ]
-    | expr -> [ OtherStatement expr ]
+        let continuations: ((ComputationExpressionStatement list -> ComputationExpressionStatement list) -> ComputationExpressionStatement list) list =
+            [ collectComputationExpressionStatements e1
+              collectComputationExpressionStatements e2 ]
+
+        let finalContinuation (nodes: ComputationExpressionStatement list list) : ComputationExpressionStatement list =
+            List.collect id nodes |> finalContinuation
+
+        Continuation.sequence continuations finalContinuation
+    | expr -> finalContinuation [ OtherStatement expr ]
 
 /// Matches if the SynExpr has some or of computation expression member call inside.
 let rec (|CompExprBody|_|) expr =
     match expr with
-    | SynExpr.LetOrUse (_, _, _, CompExprBody _, _) -> Some(collectComputationExpressionStatements expr)
-    | SynExpr.LetOrUseBang _ -> Some(collectComputationExpressionStatements expr)
-    | SynExpr.Sequential (_, _, _, SynExpr.YieldOrReturn _, _) -> Some(collectComputationExpressionStatements expr)
-    | SynExpr.Sequential (_, _, _, SynExpr.LetOrUse _, _) -> Some(collectComputationExpressionStatements expr)
+    | SynExpr.LetOrUse (_, _, _, CompExprBody _, _) -> Some(collectComputationExpressionStatements expr id)
+    | SynExpr.LetOrUseBang _ -> Some(collectComputationExpressionStatements expr id)
+    | SynExpr.Sequential (_, _, _, SynExpr.YieldOrReturn _, _) -> Some(collectComputationExpressionStatements expr id)
+    | SynExpr.Sequential (_, _, _, SynExpr.LetOrUse _, _) -> Some(collectComputationExpressionStatements expr id)
     | SynExpr.Sequential (_, _, SynExpr.DoBang _, SynExpr.LetOrUseBang _, _) ->
-        Some(collectComputationExpressionStatements expr)
+        Some(collectComputationExpressionStatements expr id)
     | _ -> None
 
 let (|ForEach|_|) =
