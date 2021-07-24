@@ -117,23 +117,59 @@ SetupTesting.generateSetupScript __SOURCE_DIRECTORY__
 
 module List =
     [<Test>]
-    let ``When n greater than or equal to list length`` () =
-        let property (xs: int list, n: int) : bool =
-            let actual = List.splitAround n xs
+    let ``When input is empty`` () =
+        let property (p: bool) : bool =
+            let before, after = List.partitionWhile (fun _ _ -> p) []
+            before = [] && after = []
 
-            match actual with
-            | None -> n >= List.length xs
-            | Some (before, None) -> before = xs
-            | _ -> false
+        Check.QuickThrowOnFailure(property true)
+        Check.QuickThrowOnFailure(property false)
+
+    [<Test>]
+    let ``When predicate always returns false`` () =
+        let property (xs: int list) : bool =
+            let before, after =
+                List.partitionWhile (fun _ _ -> false) xs
+
+            before = [] && after = xs
+
+        Check.QuickThrowOnFailure property
+
+    [<Test>]
+    let ``When predicate always returns true`` () =
+        let property (xs: int list) : bool =
+            let before, after =
+                List.partitionWhile (fun _ _ -> true) xs
+
+            before = xs && after = []
+
+        Check.QuickThrowOnFailure property
+
+    [<Test>]
+    let ``When predicate returns true until certain index`` () =
+        let property (xs: int list, i: int) : bool =
+            let before, after =
+                List.partitionWhile (fun index _ -> i <> index) xs
+
+            let beforeLength = List.length before
+            let afterLength = List.length after
+
+            beforeLength = i
+            && afterLength = List.length xs - i
+            && before @ after = xs
 
         let gen =
             gen {
-                let! xs = Arb.generate<int> |> Gen.listOf
+                let! xs =
+                    Arb.generate<int>
+                    |> Gen.listOf
+                    |> Gen.filter (fun l -> l.Length > 0)
+
                 let len = List.length xs
 
                 let! n =
                     Arb.generate<int>
-                    |> Gen.filter (fun n -> n >= len)
+                    |> Gen.filter (fun n -> n >= 0 && n < len)
 
                 return (xs, n)
             }
@@ -141,45 +177,3 @@ module List =
         property
         |> Prop.forAll (Arb.fromGen gen)
         |> Check.QuickThrowOnFailure
-
-    [<Test>]
-    let ``When n less than list length`` () =
-        let property (xs: int list, n: int) : bool =
-            let actual = List.splitAround n xs
-
-            match actual with
-            | None -> n < 0
-            | Some (_, None) -> List.isEmpty xs
-            | Some (before, Some (at, after)) ->
-                let xsLength = List.length xs
-                let beforeLength = List.length before
-                let afterLength = List.length after
-
-                beforeLength = max 0 n
-                && afterLength = xsLength - beforeLength - 1
-                && before @ (at :: after) = xs
-
-        let gen =
-            gen {
-                let! xs = Arb.generate<int> |> Gen.listOf
-                let len = List.length xs
-                let! n = Arb.generate<int> |> Gen.filter (fun n -> n < len)
-                return (xs, n)
-            }
-
-        property
-        |> Prop.forAll (Arb.fromGen gen)
-        |> Check.QuickThrowOnFailure
-
-
-    [<Test>]
-    let ``When n equals list length`` () =
-        let property (xs: int list) : bool =
-            let actual = List.splitAround (List.length xs) xs
-
-            match actual with
-            | None -> false
-            | Some (before, None) -> before = xs
-            | Some (_, Some _) -> false
-
-        Check.QuickThrowOnFailure property

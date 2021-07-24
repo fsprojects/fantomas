@@ -547,24 +547,27 @@ let private (|InterpStringEndOrPartToken|_|) token =
 let escapedCharacterRegex =
     System.Text.RegularExpressions.Regex("(\\\\(a|b|f|n|r|t|u|v|x|'|\\\"|\\\\))+")
 
+let private (|MultipleStringTextTokens|_|) tokens =
+    let f =
+        function
+        | StringTextToken _ -> true
+        | _ -> false
+
+    tokens
+    |> List.takeWhile f
+    |> fun xs ->
+        if List.isEmpty xs then
+            None
+        else
+            Some(xs, List.skipWhile f tokens)
+
+
 let private (|EndOfInterpolatedString|_|) tokens =
     match tokens with
-    | StringTextToken _ :: rest ->
-        rest
-        |> Seq.takeWhile
-            (function
-            | StringTextToken _
-            | InterpStringEndOrPartToken _ -> true
-            | _ -> false)
-        |> Seq.tryFindIndex
-            (function
-            | InterpStringEndOrPartToken _ -> true
-            | _ -> false)
-        |> Option.bind
-            (fun lastTokenIndex ->
-                match tokens |> List.splitAround (lastTokenIndex + 1) with
-                | Some ((_ :: _) as tokens, Some (endToken, rest)) -> Some(tokens, endToken, rest)
-                | _ -> None)
+    | MultipleStringTextTokens (stringTokens, rest) ->
+        match rest with
+        | InterpStringEndOrPartToken endToken :: rest2 -> Some(stringTokens, endToken, rest2)
+        | _ -> None
     | _ -> None
 
 let private (|StringText|_|) tokens =
