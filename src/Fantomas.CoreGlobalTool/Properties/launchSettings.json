@@ -1,9 +1,0 @@
-{
-  "profiles": {
-    "Fantomas.CoreGlobalTool": {
-      "commandName": "Project",
-      "commandLineArgs": "--recurse .",
-      "workingDirectory": "C:\\Users\\Kent\\Repository\\Chaldal\\Egg.Shell"
-    }
-  }
-}
