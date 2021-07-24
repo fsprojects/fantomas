@@ -547,43 +547,24 @@ let private (|InterpStringEndOrPartToken|_|) token =
 let escapedCharacterRegex =
     System.Text.RegularExpressions.Regex("(\\\\(a|b|f|n|r|t|u|v|x|'|\\\"|\\\\))+")
 
-let private splitAround<'a> (n: int) (xs: 'a list) : ('a list * ('a * 'a list) option) option =
-    let rec go (n: int) (heads: 'a list) (rest: 'a list) =
-        if n = 0 then
-            match rest with
-            | [] -> Some(List.rev heads, None)
-            | x :: rest -> Some(List.rev heads, Some(x, rest))
-        else
-            match rest with
-            | [] -> None
-            | x :: rest -> go (n - 1) (x :: heads) rest
-
-    go n [] xs
-
 let private (|EndOfInterpolatedString|_|) tokens =
     match tokens with
     | StringTextToken _ :: rest ->
-        let maybeLastTokenIndex =
-            rest
-            |> Seq.takeWhile
-                (function
-                | StringTextToken _
-                | InterpStringEndOrPartToken _ -> true
-                | _ -> false)
-            |> Seq.tryFindIndex
-                (function
-                | InterpStringEndOrPartToken _ -> true
-                | _ -> false)
-
-        match maybeLastTokenIndex with
-        | None -> None
-        | Some lastTokenIndex ->
-            match tokens |> splitAround (lastTokenIndex + 1) with
-            | Some (tokens, Some (endToken, rest)) ->
-                match tokens with
-                | [] -> None
-                | _ -> Some(tokens, endToken, rest)
-            | _ -> None
+        rest
+        |> Seq.takeWhile
+            (function
+            | StringTextToken _
+            | InterpStringEndOrPartToken _ -> true
+            | _ -> false)
+        |> Seq.tryFindIndex
+            (function
+            | InterpStringEndOrPartToken _ -> true
+            | _ -> false)
+        |> Option.bind
+            (fun lastTokenIndex ->
+                match tokens |> List.splitAround (lastTokenIndex + 1) with
+                | Some ((_ :: _) as tokens, Some (endToken, rest)) -> Some(tokens, endToken, rest)
+                | _ -> None)
     | _ -> None
 
 let private (|StringText|_|) tokens =

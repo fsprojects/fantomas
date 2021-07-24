@@ -152,6 +152,20 @@ module List =
         | [ _ ] -> false
         | _ -> true
 
+    let splitAround<'a> (n: int) (xs: 'a list) : ('a list * ('a * 'a list) option) option =
+        let rec go n heads rest =
+            if n = 0 then
+                match rest with
+                | [] -> Some(List.rev heads, None)
+                | x :: rest -> Some(List.rev heads, Some(x, rest))
+            else
+                match rest with
+                | [] -> None
+                | x :: rest -> go (n - 1) (x :: heads) rest
+
+        if n < 0 then None else go n [] xs
+
+
 module Map =
     let tryFindOrDefault (defaultValue: 'g) (key: 't) (map: Map<'t, 'g>) =
         match Map.tryFind key map with
