@@ -15,13 +15,13 @@ module Methods =
     [<Literal>]
     let Configuration = "fantomas/configuration"
 
-type FormatDocumentOptions =
+type FormatDocumentRequest =
     { SourceCode: string
       /// File path will be used to identify the .editorconfig options
       /// Unless the configuration is passed
       FilePath: string
       /// Overrides the found .editorconfig.
-      Config: string option }
+      Config: IReadOnlyDictionary<string, string> option }
 
 type FormatSourceRange =
     class
@@ -29,7 +29,7 @@ type FormatSourceRange =
 
 type FantomasOption = { Type: string; DefaultValue: string }
 
-type ConfigurationResult =
+type ConfigurationResponse =
     { Options: IReadOnlyDictionary<string, FantomasOption>
       EnumOptions: IReadOnlyDictionary<string, string array> }
 
@@ -43,7 +43,7 @@ type FantomasService =
         abstract member Version : CancellationToken option -> Async<VersionResponse>
 
         abstract member FormatDocumentAsync :
-            FormatDocumentOptions * CancellationToken option -> Async<FormatDocumentResponse>
+            FormatDocumentRequest * CancellationToken option -> Async<FormatDocumentResponse>
 
-        abstract member Configuration : CancellationToken option -> Async<ConfigurationResult>
+        abstract member Configuration : CancellationToken option -> Async<ConfigurationResponse>
     end

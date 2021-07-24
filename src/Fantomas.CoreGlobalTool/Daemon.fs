@@ -39,13 +39,18 @@ type FantomasDaemon(sender: Stream, reader: Stream) as this =
         { Version = CodeFormatter.GetVersion() }
 
     [<JsonRpcMethod(Methods.FormatDocument, UseSingleObjectParameterDeserialization = true)>]
-    member _.FormatDocumentAsync(options: FormatDocumentOptions) : Task<FormatDocumentResponse> =
+    member _.FormatDocumentAsync(options: FormatDocumentRequest) : Task<FormatDocumentResponse> =
         async {
+            let config =
+                match options.Config with
+                | Some configProperties -> parseOptionsFromEditorConfig configProperties
+                | None -> readConfiguration options.FilePath
+
             let! formatted =
                 CodeFormatter.FormatDocumentAsync(
                     options.FilePath,
                     SourceString options.SourceCode,
-                    FormatConfig.FormatConfig.Default,
+                    config,
                     CodeFormatterImpl.createParsingOptionsFromFile options.FilePath,
                     CodeFormatterImpl.sharedChecker.Value
                 )
@@ -55,7 +60,7 @@ type FantomasDaemon(sender: Stream, reader: Stream) as this =
         |> Async.StartAsTask
 
     [<JsonRpcMethod(Methods.Configuration)>]
-    member _.Configuration() : ConfigurationResult =
+    member _.Configuration() : ConfigurationResponse =
         let options =
             Reflection.getRecordFields FormatConfig.FormatConfig.Default
             |> Array.choose

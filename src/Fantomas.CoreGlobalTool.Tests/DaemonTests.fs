@@ -7,9 +7,12 @@ open Fantomas
 open Fantomas.Client.Contracts
 open Fantomas.Client.Service
 
+let private assertFormatted (response: FormatDocumentResponse) (expected: string) : unit =
+    String.normalizeNewLine response.Formatted
+    |> should equal (String.normalizeNewLine expected)
 
 [<Test>]
-let ``spin up daemon and compare the version with the public api`` () =
+let ``compare the version with the public api`` () =
     async {
         let processStart = getFantomasToolStartInfo "--daemon"
         use client = new LSPFantomasService(processStart)
@@ -20,7 +23,7 @@ let ``spin up daemon and compare the version with the public api`` () =
     }
 
 [<Test>]
-let ``spin up daemon and format`` () =
+let ``format document`` () =
     async {
         let processStart = getFantomasToolStartInfo "--daemon"
         use client = new LSPFantomasService(processStart)
@@ -36,13 +39,68 @@ let ``spin up daemon and format`` () =
             (client :> FantomasService)
                 .FormatDocumentAsync(request, None)
 
-        response.Formatted
-        |> String.normalizeNewLine
-        |> should
-            equal
-            (String.normalizeNewLine
-                "module Foobar
-")
+        assertFormatted
+            response
+            "module Foobar
+"
+    }
+
+[<Test>]
+let ``format document respecting .editorconfig file`` () =
+    async {
+        let processStart = getFantomasToolStartInfo "--daemon"
+        use client = new LSPFantomasService(processStart)
+        let sourceCode = "module Foo\n\nlet a = //\n    4"
+        use codeFile = new TemporaryFileCodeSample(sourceCode)
+
+        use _config =
+            new ConfigurationFile("[*.fs]\nindent_size=2")
+
+        let request =
+            { SourceCode = sourceCode
+              FilePath = codeFile.Filename
+              Config = None }
+
+        let! response =
+            (client :> FantomasService)
+                .FormatDocumentAsync(request, None)
+
+        assertFormatted
+            response
+            "module Foo
+
+let a = //
+  4
+"
+    }
+
+[<Test>]
+let ``custom configuration has precedence over .editorconfig file`` () =
+    async {
+        let processStart = getFantomasToolStartInfo "--daemon"
+        use client = new LSPFantomasService(processStart)
+        let sourceCode = "module Foo\n\nlet a = //\n    4"
+        use codeFile = new TemporaryFileCodeSample(sourceCode)
+
+        use _config =
+            new ConfigurationFile("[*.fs]\nindent_size=2")
+
+        let request =
+            { SourceCode = sourceCode
+              FilePath = codeFile.Filename
+              Config = Some(readOnlyDict [ "indent_size", "4" ]) }
+
+        let! response =
+            (client :> FantomasService)
+                .FormatDocumentAsync(request, None)
+
+        assertFormatted
+            response
+            "module Foo
+
+let a = //
+    4
+"
     }
 
 [<Test>]

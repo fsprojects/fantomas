@@ -49,7 +49,7 @@ type LSPFantomasService(daemonStartInfo: ProcessStartInfo) =
 
         member _.FormatDocumentAsync
             (
-                formatDocumentOptions: FormatDocumentOptions,
+                formatDocumentOptions: FormatDocumentRequest,
                 ?cancellationToken: CancellationToken
             ) : Async<FormatDocumentResponse> =
             async {
@@ -67,13 +67,13 @@ type LSPFantomasService(daemonStartInfo: ProcessStartInfo) =
                 return formatDocumentResponse
             }
 
-        member _.Configuration(?cancellationToken: CancellationToken) : Async<ConfigurationResult> =
+        member _.Configuration(?cancellationToken: CancellationToken) : Async<ConfigurationResponse> =
             async {
                 let ct =
                     orDefaultCancellationToken cancellationToken
 
                 let! configurationResponse =
-                    client.InvokeWithCancellationAsync<ConfigurationResult>(
+                    client.InvokeWithCancellationAsync<ConfigurationResponse>(
                         Methods.Configuration,
                         cancellationToken = ct
                     )
