@@ -2826,3 +2826,73 @@ and [<CustomEquality ; NoComparison>] Bar<'context, 'a> =
                                 }
                     }
 """
+
+[<Test>]
+let ``a huge amount of type declarations`` () =
+    let sourceCode =
+        List.init 1000 (sprintf "type FooBar%i = class end")
+        |> String.concat "\n"
+        |> sprintf
+            """module A.Whole.Lot.Of.Types
+
+%s
+        """
+
+    let formatted =
+        formatSourceString false sourceCode config
+
+    // the result is less important here,
+    // the point of this unit test is to verify if a stackoverflow problem at genModuleDeclList has been resolved.
+    formatted |> should not' (equal EmptyString)
+
+[<Test>]
+let ``a huge amount of type declarations, signature file`` () =
+    let sourceCode =
+        List.init 1000 (sprintf "type FooBar%i = class end")
+        |> String.concat "\n"
+        |> sprintf
+            """module A.Whole.Lot.Of.Types
+
+%s
+        """
+
+    let formatted =
+        formatSourceString true sourceCode config
+
+    formatted |> should not' (equal EmptyString)
+
+[<Test>]
+let ``a huge amount of member bindings`` () =
+    let sourceCode =
+        List.init 1000 (sprintf "        member this.Bar%i () = ()")
+        |> String.concat "\n"
+        |> sprintf
+            """module A.Whole.Lot.Of.MemberBindings
+
+type FooBarry =
+    interface Lorem with
+%s
+"""
+
+    let formatted =
+        formatSourceString false sourceCode config
+
+    formatted |> should not' (equal EmptyString)
+
+[<Test>]
+let ``a huge amount of member bindings, object expression`` () =
+    let sourceCode =
+        List.init 1000 (sprintf "        member this.Bar%i () = ()")
+        |> String.concat "\n"
+        |> sprintf
+            """module A.Whole.Lot.Of.MemberBindings
+
+let leBarry =
+    { new SomeLargeInterface with
+%s }
+"""
+
+    let formatted =
+        formatSourceString false sourceCode config
+
+    formatted |> should not' (equal EmptyString)

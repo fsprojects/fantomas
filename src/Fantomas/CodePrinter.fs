@@ -192,9 +192,12 @@ and genSigModuleOrNamespace astContext (SigModuleOrNamespace (ats, px, ao, lids,
     +> genSigModuleDeclList astContext mds
 
 and genModuleDeclList astContext e =
-    let rec collectItems e : ColMultilineItem list =
+    let rec collectItems
+        (e: SynModuleDecl list)
+        (finalContinuation: ColMultilineItem list -> ColMultilineItem list)
+        : ColMultilineItem list =
         match e with
-        | [] -> []
+        | [] -> finalContinuation []
         | OpenL (xs, ys) ->
             let expr = col sepNln xs (genModuleDecl astContext)
 
@@ -203,7 +206,12 @@ and genModuleDeclList astContext e =
             let sepNln =
                 sepNlnConsideringTriviaContentBeforeForMainNode SynModuleDecl_Open r
 
-            ColMultilineItem(expr, sepNln) :: collectItems ys
+            collectItems
+                ys
+                (fun ysItems ->
+                    ColMultilineItem(expr, sepNln) :: ysItems
+                    |> finalContinuation)
+
         | HashDirectiveL (xs, ys) ->
             let expr = col sepNln xs (genModuleDecl astContext)
 
@@ -212,7 +220,12 @@ and genModuleDeclList astContext e =
             let sepNln =
                 sepNlnConsideringTriviaContentBeforeForMainNode SynModuleDecl_HashDirective r
 
-            ColMultilineItem(expr, sepNln) :: collectItems ys
+            collectItems
+                ys
+                (fun ysItems ->
+                    ColMultilineItem(expr, sepNln) :: ysItems
+                    |> finalContinuation)
+
         | AttributesL (xs, y :: rest) ->
             let attrs =
                 getRangesFromAttributesFromModuleDeclaration y
@@ -227,8 +240,11 @@ and genModuleDeclList astContext e =
             let sepNln =
                 sepNlnConsideringTriviaContentBeforeForMainNode SynModuleDecl_Attributes r
 
-            ColMultilineItem(expr, sepNln)
-            :: collectItems rest
+            collectItems
+                rest
+                (fun restItems ->
+                    ColMultilineItem(expr, sepNln) :: restItems
+                    |> finalContinuation)
 
         | m :: rest ->
             let attrs =
@@ -239,15 +255,21 @@ and genModuleDeclList astContext e =
 
             let expr = genModuleDecl astContext m
 
-            ColMultilineItem(expr, sepNln)
-            :: (collectItems rest)
+            collectItems
+                rest
+                (fun restItems ->
+                    ColMultilineItem(expr, sepNln) :: restItems
+                    |> finalContinuation)
 
-    collectItems e |> colWithNlnWhenItemIsMultiline
+    collectItems e id |> colWithNlnWhenItemIsMultiline
 
 and genSigModuleDeclList astContext (e: SynModuleSigDecl list) =
-    let rec collectItems (e: SynModuleSigDecl list) : ColMultilineItem list =
+    let rec collectItems
+        (e: SynModuleSigDecl list)
+        (finalContinuation: ColMultilineItem list -> ColMultilineItem list)
+        : ColMultilineItem list =
         match e with
-        | [] -> []
+        | [] -> finalContinuation []
         | SigOpenL (xs, ys) ->
             let expr =
                 col sepNln xs (genSigModuleDecl astContext)
@@ -257,7 +279,11 @@ and genSigModuleDeclList astContext (e: SynModuleSigDecl list) =
             let sepNln =
                 sepNlnConsideringTriviaContentBeforeForMainNode SynModuleSigDecl_Open r
 
-            ColMultilineItem(expr, sepNln) :: collectItems ys
+            collectItems
+                ys
+                (fun ysItems ->
+                    ColMultilineItem(expr, sepNln) :: ysItems
+                    |> finalContinuation)
         | s :: rest ->
             let attrs =
                 getRangesFromAttributesFromSynModuleSigDeclaration s
@@ -267,10 +293,13 @@ and genSigModuleDeclList astContext (e: SynModuleSigDecl list) =
 
             let expr = genSigModuleDecl astContext s
 
-            ColMultilineItem(expr, sepNln)
-            :: (collectItems rest)
+            collectItems
+                rest
+                (fun restItems ->
+                    ColMultilineItem(expr, sepNln) :: restItems
+                    |> finalContinuation)
 
-    collectItems e |> colWithNlnWhenItemIsMultiline
+    collectItems e id |> colWithNlnWhenItemIsMultiline
 
 and genModuleDecl astContext (node: SynModuleDecl) =
     match node with
@@ -670,9 +699,12 @@ and genPropertyWithGetSet astContext (b1, b2) rangeOfMember =
     | _ -> sepNone
 
 and genMemberBindingList astContext node =
-    let rec collectItems (node: SynBinding list) =
+    let rec collectItems
+        (node: SynBinding list)
+        (finalContinuation: ColMultilineItem list -> ColMultilineItem list)
+        : ColMultilineItem list =
         match node with
-        | [] -> []
+        | [] -> finalContinuation []
         | mb :: rest ->
             let expr = genMemberBinding astContext mb
             let r = mb.RangeOfBindingAndRhs
@@ -680,10 +712,14 @@ and genMemberBindingList astContext node =
             let sepNln =
                 sepNlnConsideringTriviaContentBeforeForMainNode (synBindingToFsAstType mb) r
 
-            ColMultilineItem(expr, sepNln)
-            :: (collectItems rest)
+            collectItems
+                rest
+                (fun restItems ->
+                    ColMultilineItem(expr, sepNln) :: restItems
+                    |> finalContinuation)
 
-    collectItems node |> colWithNlnWhenItemIsMultiline
+    collectItems node id
+    |> colWithNlnWhenItemIsMultiline
 
 and genMemberBinding astContext b =
     match b with
@@ -4459,9 +4495,12 @@ and genClauses astContext cs =
 
 /// Each multiline member definition has a pre and post new line.
 and genMemberDefnList astContext nodes =
-    let rec collectItems nodes =
+    let rec collectItems
+        (nodes: SynMemberDefn list)
+        (finalContinuation: ColMultilineItem list -> ColMultilineItem list)
+        : ColMultilineItem list =
         match nodes with
-        | [] -> []
+        | [] -> finalContinuation []
         | PropertyWithGetSetMemberDefn (gs, rest) ->
             let attrs =
                 getRangesFromAttributesFromSynBinding (fst gs)
@@ -4475,9 +4514,11 @@ and genMemberDefnList astContext nodes =
             let sepNln =
                 sepNlnConsideringTriviaContentBeforeWithAttributesFor SynMemberDefn_Member rangeOfFirstMember attrs
 
-            ColMultilineItem(expr, sepNln)
-            :: (collectItems rest)
-
+            collectItems
+                rest
+                (fun restItems ->
+                    ColMultilineItem(expr, sepNln) :: restItems
+                    |> finalContinuation)
         | m :: rest ->
             let attrs =
                 getRangesFromAttributesFromSynMemberDefinition m
@@ -4487,10 +4528,13 @@ and genMemberDefnList astContext nodes =
             let sepNln =
                 sepNlnConsideringTriviaContentBeforeWithAttributesFor (synMemberDefnToFsAstType m) m.Range attrs
 
-            ColMultilineItem(expr, sepNln)
-            :: (collectItems rest)
+            collectItems
+                rest
+                (fun restItems ->
+                    ColMultilineItem(expr, sepNln) :: restItems
+                    |> finalContinuation)
 
-    collectItems nodes
+    collectItems nodes id
     |> colWithNlnWhenItemIsMultilineUsingConfig
 
 and genMemberDefn astContext node =

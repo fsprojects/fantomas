@@ -1972,3 +1972,20 @@ if kind = shiftFlag then
 
     )
 """
+
+[<Test>]
+let ``a huge amount of inner let bindings`` () =
+    let sourceCode =
+        List.init 1000 (fun i -> sprintf "    let x%i = %i\n    printfn \"%i\" x%i" i i i i)
+        |> String.concat "\n"
+        |> sprintf
+            """module A.Whole.Lot.Of.InnerLetBindings
+
+let v =
+%s
+"""
+
+    let formatted =
+        formatSourceString false sourceCode config
+
+    formatted |> should not' (equal EmptyString)
