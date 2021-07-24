@@ -117,7 +117,7 @@ SetupTesting.generateSetupScript __SOURCE_DIRECTORY__
 
 module List =
     [<Test>]
-    let ``When input is empty`` () =
+    let ``when input is empty`` () =
         let property (p: bool) : bool =
             let before, after = List.partitionWhile (fun _ _ -> p) []
             before = [] && after = []
@@ -126,7 +126,7 @@ module List =
         Check.QuickThrowOnFailure(property false)
 
     [<Test>]
-    let ``When predicate always returns false`` () =
+    let ``when predicate always returns false`` () =
         let property (xs: int list) : bool =
             let before, after =
                 List.partitionWhile (fun _ _ -> false) xs
@@ -136,7 +136,7 @@ module List =
         Check.QuickThrowOnFailure property
 
     [<Test>]
-    let ``When predicate always returns true`` () =
+    let ``when predicate always returns true`` () =
         let property (xs: int list) : bool =
             let before, after =
                 List.partitionWhile (fun _ _ -> true) xs
@@ -146,7 +146,7 @@ module List =
         Check.QuickThrowOnFailure property
 
     [<Test>]
-    let ``When predicate returns true until certain index`` () =
+    let ``when predicate returns true until certain index`` () =
         let property (xs: int list, i: int) : bool =
             let before, after =
                 List.partitionWhile (fun index _ -> i <> index) xs
