@@ -2292,187 +2292,154 @@ and genExpr astContext synExpr ctx =
 
                 atCurrentColumn (colWithNlnWhenItemIsMultilineUsingConfig items) ctx
         // A generalization of IfThenElse
-        | ElIf ((e1, e2, _, _, _) :: es, enOpt) ->
+        | ElIf ((_, ifKw, isElif, e1, thenKw, e2) :: es, (elseKw, elseOpt), _) ->
             // https://docs.microsoft.com/en-us/dotnet/fsharp/style-guide/formatting#formatting-if-expressions
-            fun ctx ->
-                let elfis =
-                    es
-                    |> List.mapi
-                        (fun idx (condition, body, _, _, fullIfThenElseExpr) ->
-                            let endOfPreviousBranch =
-                                if idx = 0 then
-                                    e2.Range.End
-                                else
-                                    let _, e2, _, _, _ = es.[idx - 1]
-                                    e2.Range.End
+            let hasElfis = not (List.isEmpty es)
+            let hasElse = Option.isSome elseOpt
 
-                            let maxRangeBetween =
-                                ctx.MkRange endOfPreviousBranch body.Range.End
+            let genIf ifKeywordRange isElif =
+                (ifElse isElif (!- "elif ") (!- "if ")
+                 |> genTriviaFor
+                     (if isElif then
+                          SynExpr_IfThenElse_Elif
+                      else
+                          SynExpr_IfThenElse_If)
+                     ifKeywordRange)
+                +> sepSpace
 
-                            let elifKeyword =
-                                [ yield! Map.tryFindOrEmptyList ELSE ctx.TriviaTokenNodes
-                                  yield! Map.tryFindOrEmptyList ELIF ctx.TriviaTokenNodes ]
-                                |> List.filter (fun tn -> RangeHelpers.``range contains`` maxRangeBetween tn.Range)
-                                |> List.sortBy (fun tn -> tn.Range.StartLine, tn.Range.EndLine)
-                                |> List.tryHead
+            let genThen thenRange =
+                !- "then "
+                |> genTriviaFor SynExpr_IfThenElse_Then thenRange
 
-                            // This range spans from the elif keyword to the end of the body expression
-                            let correctedRange =
-                                match elifKeyword with
-                                | Some { Range = range } -> ctx.MkRange range.Start body.Range.End
-                                | _ -> fullIfThenElseExpr.Range
+            let genElse elseRange =
+                !- "else "
+                |> genTriviaFor SynExpr_IfThenElse_Else elseRange
 
-                            let elifKeywordRange =
-                                ctx.MkRange correctedRange.Start body.Range.Start
+            let genElifOneliner (elseKw, ifKw, isElif, e1, thenKw, e2) =
+                optSingle genElse elseKw
+                +> sepNlnWhenWriteBeforeNewlineNotEmpty sepSpace
+                +> genIf ifKw isElif
+                +> sepNlnWhenWriteBeforeNewlineNotEmpty sepSpace
+                +> genExpr astContext e1
+                +> sepNlnWhenWriteBeforeNewlineNotEmpty sepSpace
+                +> genThen thenKw
+                +> sepNlnWhenWriteBeforeNewlineNotEmpty sepSpace
+                +> genExpr astContext e2
 
-                            let thenKeywordRange =
-                                ctx.MkRange condition.Range.End body.Range.Start
+            let genElifMultiLine (elseKw, ifKw, isElif, e1, thenKw, e2) =
+                optSingle genElse elseKw
+                +> sepNlnWhenWriteBeforeNewlineNotEmpty sepSpace
+                +> genIf ifKw isElif
+                +> autoIndentAndNlnWhenWriteBeforeNewlineNotEmpty (genExprInIfOrMatch astContext e1)
+                +> sepNlnWhenWriteBeforeNewlineNotEmpty sepSpace
+                +> genThen thenKw
+                +> indent
+                +> sepNln
+                +> genExpr astContext e2
+                +> unindent
 
-                            condition, body, elifKeywordRange, thenKeywordRange)
+            let genShortElse e elseRange =
+                optSingle
+                    (fun e ->
+                        sepSpace
+                        +> optSingle genElse elseRange
+                        +> genExpr astContext e)
+                    e
 
-                let hasElfis = not (List.isEmpty elfis)
-                let hasElse = Option.isSome enOpt
+            let genOneliner elseOpt =
+                genIf ifKw isElif
+                +> genExpr astContext e1
+                +> sepNlnWhenWriteBeforeNewlineNotEmpty sepSpace
+                +> genThen thenKw
+                +> genExpr astContext e2
+                +> genShortElse elseOpt elseKw
 
-                let genIf ifElseRange =
-                    tokN ifElseRange IF (!- "if ") +> sepSpace
+            let isIfThenElse =
+                function
+                | SynExpr.IfThenElse _ -> true
+                | _ -> false
 
-                let genThen ifElseRange = tokN ifElseRange THEN (!- "then ")
-                let genElse ifElseRange = tokN ifElseRange ELSE (!- "else ")
-
-                let genElifOneliner (elf1: SynExpr, elf2: SynExpr, elifKeywordRange, thenKeywordRange) =
-                    TriviaContext.``else if / elif`` elifKeywordRange
+            let longIfThenElse =
+                genIf ifKw isElif
+                // f.ex. if // meh
+                //           x
+                // bool expr x should be indented
+                +> autoIndentAndNlnWhenWriteBeforeNewlineNotEmpty (
+                    genExprInIfOrMatch astContext e1
                     +> sepNlnWhenWriteBeforeNewlineNotEmpty sepSpace
-                    +> genExpr astContext elf1
-                    +> sepNlnWhenWriteBeforeNewlineNotEmpty sepSpace
-                    +> genThen thenKeywordRange
-                    +> sepNlnWhenWriteBeforeNewlineNotEmpty sepSpace
-                    +> genExpr astContext elf2
+                )
+                +> genThen thenKw
+                +> indent
+                +> sepNln
+                +> genExpr astContext e2
+                +> unindent
+                +> onlyIf (hasElfis || hasElse) sepNln
+                +> col sepNln es genElifMultiLine
+                +> opt
+                    id
+                    elseOpt
+                    (fun e4 ->
+                        onlyIf (List.isNotEmpty es) sepNln
+                        +> optSingle genElse elseKw
+                        +> indent
+                        +> sepNln
+                        +> genExpr astContext e4
+                        +> unindent)
 
-                let genElifMultiLine (elf1: SynExpr, elf2, elifKeywordRange, thenKeywordRange) =
-                    (TriviaContext.``else if / elif`` elifKeywordRange)
-                    +> autoIndentAndNlnWhenWriteBeforeNewlineNotEmpty (genExprInIfOrMatch astContext elf1)
-                    +> sepNlnWhenWriteBeforeNewlineNotEmpty sepSpace
-                    +> genThen thenKeywordRange
-                    +> indent
-                    +> sepNln
-                    +> genExpr astContext elf2
-                    +> unindent
+            let shortIfThenElif (ctx: Context) =
+                // Try and format if each conditional follow the one-liner rules
+                // Abort if something is too long
+                let shortCtx, isShort =
+                    let exprs =
+                        [ yield genOneliner None
+                          yield! (List.map genElifOneliner es)
+                          yield!
+                              (Option.map (fun _ -> genShortElse elseOpt elseKw) elseOpt
+                               |> Option.toList) ]
 
-                let genShortElse e elseRange =
-                    optSingle
-                        (fun e ->
-                            sepSpace
-                            +> genElse elseRange
-                            +> genExpr astContext e)
-                        e
+                    let lastIndex = List.length exprs - 1
 
-                let genOneliner enOpt =
-                    genIf synExpr.Range
-                    +> genExpr astContext e1
-                    +> sepNlnWhenWriteBeforeNewlineNotEmpty sepSpace
-                    +> genThen synExpr.Range
-                    +> genExpr astContext e2
-                    +> genShortElse enOpt synExpr.Range
+                    exprs
+                    |> List.indexed
+                    |> List.fold
+                        (fun (acc, allLinesShort) (idx, expr) ->
+                            if allLinesShort then
+                                let lastLine, lastColumn =
+                                    acc.WriterModel.Lines.Length, acc.Column
 
-                let isIfThenElse =
-                    function
-                    | SynExpr.IfThenElse _ -> true
-                    | _ -> false
+                                let nextCtx = expr acc
 
-                let longIfThenElse =
-                    genIf synExpr.Range
-                    // f.ex. if // meh
-                    //           x
-                    // bool expr x should be indented
-                    +> autoIndentAndNlnWhenWriteBeforeNewlineNotEmpty (
-                        genExprInIfOrMatch astContext e1
-                        +> sepNlnWhenWriteBeforeNewlineNotEmpty sepSpace
-                    )
-                    +> genThen synExpr.Range
-                    +> indent
-                    +> sepNln
-                    +> genExpr astContext e2
-                    +> unindent
-                    +> onlyIf (hasElfis || hasElse) sepNln
-                    +> col sepNln elfis genElifMultiLine
-                    +> opt
-                        id
-                        enOpt
-                        (fun e4 ->
-                            let correctedElseRange =
-                                match List.tryLast elfis with
-                                | Some (_, te, _, _) -> ctx.MkRange te.Range.End synExpr.Range.End
-                                | None -> synExpr.Range
+                                let currentLine, currentColumn =
+                                    nextCtx.WriterModel.Lines.Length, nextCtx.Column
 
-                            onlyIf (List.isNotEmpty elfis) sepNln
-                            +> genElse correctedElseRange
-                            +> indent
-                            +> sepNln
-                            +> genExpr astContext e4
-                            +> unindent)
+                                let isStillShort =
+                                    lastLine = currentLine
+                                    && (currentColumn - lastColumn
+                                        <= acc.Config.MaxIfThenElseShortWidth)
 
-                let shortIfThenElif (ctx: Context) =
-                    // Try and format if each conditional follow the one-liner rules
-                    // Abort if something is too long
-                    let shortCtx, isShort =
-                        let elseExpr =
-                            let elseRange =
-                                List.last elfis
-                                |> fun (_, b, _, _) -> ctx.MkRange b.Range.End synExpr.Range.End
+                                (ifElse (lastIndex > idx) sepNln sepNone nextCtx, isStillShort)
+                            else
+                                ctx, false)
+                        (ctx, true)
 
-                            enOpt
-                            |> Option.map (fun _ -> genShortElse enOpt elseRange)
-                            |> Option.toList
+                if isShort then
+                    shortCtx
+                else
+                    longIfThenElse ctx
 
-                        let exprs =
-                            [ genOneliner None
-                              yield! (List.map genElifOneliner elfis)
-                              yield! elseExpr ]
+            let expr =
+                if hasElfis && not (isIfThenElse e2) then
+                    shortIfThenElif
+                elif isIfThenElse e2 then
+                    // If branch expression is an if/then/else expressions.
+                    // Always go with long version in this case
+                    longIfThenElse
+                else
+                    let shortExpression = genOneliner elseOpt
+                    let longExpression = longIfThenElse
+                    (fun ctx -> isShortExpression ctx.Config.MaxIfThenElseShortWidth shortExpression longExpression ctx)
 
-                        let lastIndex = List.length exprs - 1
-
-                        exprs
-                        |> List.indexed
-                        |> List.fold
-                            (fun (acc, allLinesShort) (idx, expr) ->
-                                if allLinesShort then
-                                    let lastLine, lastColumn =
-                                        acc.WriterModel.Lines.Length, acc.Column
-
-                                    let nextCtx = expr acc
-
-                                    let currentLine, currentColumn =
-                                        nextCtx.WriterModel.Lines.Length, nextCtx.Column
-
-                                    let isStillShort =
-                                        lastLine = currentLine
-                                        && (currentColumn - lastColumn
-                                            <= acc.Config.MaxIfThenElseShortWidth)
-
-                                    (ifElse (lastIndex > idx) sepNln sepNone nextCtx, isStillShort)
-                                else
-                                    ctx, false)
-                            (ctx, true)
-
-                    if isShort then
-                        shortCtx
-                    else
-                        longIfThenElse ctx
-
-                let expr =
-                    if hasElfis && not (isIfThenElse e2) then
-                        shortIfThenElif
-                    elif isIfThenElse e2 then
-                        // If branch expression is an if/then/else expressions.
-                        // Always go with long version in this case
-                        longIfThenElse
-                    else
-                        let shortExpression = genOneliner enOpt
-                        let longExpression = longIfThenElse
-
-                        isShortExpression ctx.Config.MaxIfThenElseShortWidth shortExpression longExpression
-
-                atCurrentColumnIndent expr ctx
+            atCurrentColumnIndent expr
 
         // At this stage, all symbolic operators have been handled.
         | OptVar (s, isOpt, ranges) ->
@@ -5725,22 +5692,37 @@ and genLastClauseKeepIdent (astContext: ASTContext) (Clause (pat, expr, whenExpr
 
 and genKeepIdentIf
     (astContext: ASTContext)
-    (branches: (SynExpr * SynExpr * Range * Range * SynExpr) list)
+    (branches: (range option * range * bool * SynExpr * range * SynExpr) list)
     (elseExpr: SynExpr)
     (ifElseRange: Range)
     =
-    coli
+    col
         sepNln
         branches
-        (fun idx (ifExpr, thenExpr, _r, _fullRange, _node) ->
+        (fun (elseKw, ifKw, isElif, ifExpr, thenKw, thenExpr) ->
             let genIf =
+                let genKeywordStart =
+                    optSingle
+                        (fun r ->
+                            !- "else "
+                            |> genTriviaFor SynExpr_IfThenElse_Else r)
+                        elseKw
+                    +> (ifElse isElif (!- "elif ") (!- "if ")
+                        |> genTriviaFor
+                            (if isElif then
+                                 SynExpr_IfThenElse_Elif
+                             else
+                                 SynExpr_IfThenElse_If)
+                            ifKw)
+
                 let short =
-                    ifElse (idx = 0) (!- "if ") (!- "elif ")
+                    genKeywordStart
                     +> genExpr astContext ifExpr
-                    +> !- " then"
+                    +> (!- " then"
+                        |> genTriviaFor SynExpr_IfThenElse_Then thenKw)
 
                 let long =
-                    ifElse (idx = 0) (!- "if ") (!- "elif ")
+                    genKeywordStart
                     +> genExprInIfOrMatch astContext ifExpr
                     +> sepSpace
                     +> !- "then"

@@ -250,7 +250,17 @@ let isValidAST ast =
         | SynExpr.SequentialOrImplicitYield (_sequencePointInfoForSeq, synExpr1, synExpr2, _, _range) ->
             List.forall validateExpr [ synExpr1; synExpr2 ]
 
-        | SynExpr.IfThenElse (synExpr1, synExpr2, synExprOpt, _sequencePointInfoForBinding, _isRecovery, _range, _range2) ->
+        | SynExpr.IfThenElse (_,
+                              _,
+                              synExpr1,
+                              _,
+                              synExpr2,
+                              _,
+                              synExprOpt,
+                              _sequencePointInfoForBinding,
+                              _isRecovery,
+                              _range,
+                              _range2) ->
             match synExprOpt with
             | Some synExpr3 -> List.forall validateExpr [ synExpr1; synExpr2; synExpr3 ]
             | None -> List.forall validateExpr [ synExpr1; synExpr2 ]

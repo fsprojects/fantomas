@@ -23,40 +23,6 @@ let genArrowWithTrivia (bodyExpr: Context -> Context) (range: Range) =
         else
             (autoIndentAndNlnIfExpressionExceedsPageWidth bodyExpr) ctx)
 
-let ``else if / elif`` (rangeOfIfThenElse: Range) (ctx: Context) =
-    let keywords =
-        [ yield! (Map.tryFindOrEmptyList ELSE ctx.TriviaTokenNodes)
-          yield! (Map.tryFindOrEmptyList IF ctx.TriviaTokenNodes)
-          yield! (Map.tryFindOrEmptyList ELIF ctx.TriviaTokenNodes) ]
-        |> List.sortBy (fun tn -> tn.Range.StartLine, tn.Range.StartColumn)
-        |> TriviaHelpers.``keyword token inside range`` rangeOfIfThenElse
-        |> List.map (fun (tok, t) -> (TokenParser.getFsToken tok.TokenInfo.TokenName, t))
-
-    let resultExpr =
-        match keywords with
-        | (ELSE, elseTrivia) :: (IF, ifTrivia) :: _ ->
-            printContentBefore elseTrivia
-            +> (!- "else")
-            +> printContentAfter elseTrivia
-            +> sepNlnWhenWriteBeforeNewlineNotEmpty sepSpace
-            +> printContentBefore ifTrivia
-            +> (!- "if ")
-            +> printContentAfter ifTrivia
-        | (ELIF, elifTok) :: _
-        | [ (ELIF, elifTok) ] ->
-            printContentBefore elifTok
-            +> (!- "elif ")
-            +> printContentAfter elifTok
-        | [] ->
-            // formatting from AST
-            !- "else if "
-        | _ ->
-            failwithf
-                "Unexpected scenario when formatting else if / elif (near %A), please open an issue via https://fsprojects.github.io/fantomas-tools/#/fantomas/preview"
-                rangeOfIfThenElse
-
-    resultExpr ctx
-
 let getIndentBetweenTicksFromSynPat patRange fallback ctx =
     TriviaHelpers.getNodesForTypes [ SynPat_LongIdent; SynPat_Named ] ctx.TriviaMainNodes
     |> List.choose

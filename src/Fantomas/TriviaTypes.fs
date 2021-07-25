@@ -146,6 +146,10 @@ type FsAstType =
     // | SynExpr_Sequential use first nested SynExpr
     | SynExpr_SequentialOrImplicitYield
     | SynExpr_IfThenElse
+    | SynExpr_IfThenElse_If
+    | SynExpr_IfThenElse_Elif
+    | SynExpr_IfThenElse_Then
+    | SynExpr_IfThenElse_Else
     | SynExpr_Ident
     | SynExpr_LongIdent
     | SynExpr_LongIdentSet

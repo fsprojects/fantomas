@@ -297,10 +297,12 @@ module private Ast =
                 Continuation.sequence continuations finalContinuation
             // don't collect nested elif expression as nodes.
             // the ranges are often incorrect and using the else if or elif token is more reliable.
-            | SourceParser.ElIf ((ifExpr, thenExpr, _, range, _) :: es, elseExpr) ->
+            | SourceParser.ElIf ((_leadingElseKw, ifKw, isElif, ifExpr, thenKw, thenExpr) :: es,
+                                 (elseKw, elseExpr),
+                                 range) ->
                 let elifs =
                     es
-                    |> List.collect (fun (e1, e2, _, _, _) -> [ visit e1; visit e2 ])
+                    |> List.collect (fun (_, _, _, e1, _, e2) -> [ visit e1; visit e2 ])
 
                 let continuations: ((TriviaNodeAssigner list -> TriviaNodeAssigner list) -> TriviaNodeAssigner list) list =
                     [ yield visit ifExpr
@@ -309,21 +311,60 @@ module private Ast =
                       yield! (Option.toList elseExpr |> List.map visit) ]
 
                 let finalContinuation (nodes: TriviaNodeAssigner list list) : TriviaNodeAssigner list =
-                    mkNode SynExpr_IfThenElse range
-                    :: (List.collect id nodes)
+                    let elseNode elseKw =
+                        Option.map (mkNode SynExpr_IfThenElse_Else) elseKw
+                        |> Option.toList
+
+                    let elifKeywords =
+                        es
+                        |> List.collect
+                            (fun (elseKw, ifKw, isElif, _, thenKw, _) ->
+                                [ yield! elseNode elseKw
+                                  yield
+                                      mkNode
+                                          (if isElif then
+                                               SynExpr_IfThenElse_Elif
+                                           else
+                                               SynExpr_IfThenElse_If)
+                                          ifKw
+                                  yield mkNode SynExpr_IfThenElse_Then thenKw ])
+
+                    [ yield mkNode SynExpr_IfThenElse range
+                      yield
+                          mkNode
+                              (if isElif then
+                                   SynExpr_IfThenElse_Elif
+                               else
+                                   SynExpr_IfThenElse_If)
+                              ifKw
+                      yield mkNode SynExpr_IfThenElse_Then thenKw
+                      yield! elifKeywords
+                      yield! elseNode elseKw
+                      yield! (List.collect id nodes) ]
                     |> finalContinuation
 
                 Continuation.sequence continuations finalContinuation
 
-            | SynExpr.IfThenElse (ifExpr, thenExpr, elseExpr, _, _, _, range) ->
+            | SynExpr.IfThenElse (ifKw, isElif, ifExpr, thenKw, thenExpr, elseKw, elseExpr, _, _, _, range) ->
                 let continuations: ((TriviaNodeAssigner list -> TriviaNodeAssigner list) -> TriviaNodeAssigner list) list =
                     [ yield visit ifExpr
                       yield visit thenExpr
                       yield! (Option.toList elseExpr |> List.map visit) ]
 
                 let finalContinuation (nodes: TriviaNodeAssigner list list) : TriviaNodeAssigner list =
-                    mkNode SynExpr_IfThenElse range
-                    :: (List.collect id nodes)
+                    [ yield mkNode SynExpr_IfThenElse range
+                      yield
+                          mkNode
+                              (if isElif then
+                                   SynExpr_IfThenElse_Elif
+                               else
+                                   SynExpr_IfThenElse_If)
+                              ifKw
+                      yield mkNode SynExpr_IfThenElse_Then thenKw
+                      yield!
+                          (Option.map (mkNode SynExpr_IfThenElse_Else) elseKw
+                           |> Option.toList)
+                      yield! (List.collect id nodes) ]
                     |> finalContinuation
 
                 Continuation.sequence continuations finalContinuation

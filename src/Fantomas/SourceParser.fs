@@ -1029,14 +1029,32 @@ let (|DotSet|_|) =
 
 let (|IfThenElse|_|) =
     function
-    | SynExpr.IfThenElse (e1, e2, e3, _, _, mIfToThen, _) -> Some(e1, e2, e3, mIfToThen)
+    | SynExpr.IfThenElse _ as e -> Some e
     | _ -> None
 
 let rec (|ElIf|_|) =
     function
-    | SynExpr.IfThenElse (e1, e2, Some (ElIf (es, e3)), _, _, r, fullRange) as node ->
-        Some((e1, e2, r, fullRange, node) :: es, e3)
-    | SynExpr.IfThenElse (e1, e2, e3, _, _, r, fullRange) as node -> Some([ (e1, e2, r, fullRange, node) ], e3)
+    | SynExpr.IfThenElse (ifKw,
+                          isElif,
+                          e1,
+                          thenKw,
+                          e2,
+                          elseKw,
+                          Some (ElIf ((_, eshIfKw, eshIsElif, eshE1, eshThenKw, eshE2) :: es, elseInfo, _)),
+                          _,
+                          _,
+                          _,
+                          range) ->
+        Some(
+            ((None, ifKw, isElif, e1, thenKw, e2)
+             :: (elseKw, eshIfKw, eshIsElif, eshE1, eshThenKw, eshE2)
+                :: es),
+            elseInfo,
+            range
+        )
+
+    | SynExpr.IfThenElse (ifKw, isElif, e1, thenKw, e2, elseKw, e3, _, _, _, range) ->
+        Some([ (None, ifKw, isElif, e1, thenKw, e2) ], (elseKw, e3), range)
     | _ -> None
 
 let (|Record|_|) =
@@ -1674,10 +1692,10 @@ let (|ElmishReactWithChildren|_|) (e: SynExpr) =
 
 let isIfThenElseWithYieldReturn e =
     match e with
-    | SynExpr.IfThenElse (_, SynExpr.YieldOrReturn _, None, _, _, _, _)
-    | SynExpr.IfThenElse (_, SynExpr.YieldOrReturn _, Some (SynExpr.YieldOrReturn _), _, _, _, _)
-    | SynExpr.IfThenElse (_, SynExpr.YieldOrReturnFrom _, None, _, _, _, _)
-    | SynExpr.IfThenElse (_, SynExpr.YieldOrReturn _, Some (SynExpr.YieldOrReturnFrom _), _, _, _, _) -> true
+    | SynExpr.IfThenElse (thenExpr = SynExpr.YieldOrReturn _; elseExpr = None)
+    | SynExpr.IfThenElse (thenExpr = SynExpr.YieldOrReturn _; elseExpr = Some (SynExpr.YieldOrReturn _))
+    | SynExpr.IfThenElse (thenExpr = SynExpr.YieldOrReturnFrom _; elseExpr = None)
+    | SynExpr.IfThenElse (thenExpr = SynExpr.YieldOrReturn _; elseExpr = Some (SynExpr.YieldOrReturnFrom _)) -> true
     | _ -> false
 
 let isSynExprLambda =
@@ -1753,9 +1771,9 @@ let (|KeepIndentMatch|_|) (e: SynExpr) =
 
 let (|KeepIndentIfThenElse|_|) (e: SynExpr) =
     match e with
-    | ElIf (branches, Some elseExpr) ->
+    | ElIf (branches, (_, Some elseExpr), _) ->
         let branchBodies =
-            branches |> List.map (fun (_, e, _, _, _) -> e)
+            branches |> List.map (fun (_, _, _, e, _, _) -> e)
 
         if shouldNotIndentBranch elseExpr branchBodies then
             Some(branches, elseExpr, e.Range)
