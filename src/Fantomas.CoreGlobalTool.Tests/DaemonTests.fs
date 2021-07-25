@@ -5,7 +5,7 @@ open FsUnit
 open Fantomas.CoreGlobalTool.Tests.TestHelpers
 open Fantomas
 open Fantomas.Client.Contracts
-open Fantomas.Client.Service
+open Fantomas.Client.LSPFantomasService
 
 let private assertFormatted (response: FormatDocumentResponse) (expected: string) : unit =
     String.normalizeNewLine response.Formatted
@@ -111,8 +111,15 @@ let ``find fantomas tool from working directory`` () =
 
         let originalCode = System.IO.File.ReadAllText(filePath)
 
+        let workingDir =
+            @"C:\Users\nojaf\Projects\fantomas-tools"
+
         use client =
-            new LSPFantomasService(@"C:\Users\nojaf\Projects\fantomas-tools")
+            let x = createForWorkingDirectory workingDir
+
+            match x with
+            | Ok service -> service
+            | Error error -> failwithf "butter: %s" error
 
         let! formattedResponse =
             (client :> FantomasService)

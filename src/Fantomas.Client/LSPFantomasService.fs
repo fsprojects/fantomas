@@ -1,9 +1,10 @@
-module Fantomas.Client.Service
+module Fantomas.Client.LSPFantomasService
 
 open System.Diagnostics
 open System.Threading
 open StreamJsonRpc
 open Fantomas.Client.Contracts
+open Fantomas.Client.FantomasToolLocator
 
 let private orDefaultCancellationToken =
     Option.defaultValue CancellationToken.None
@@ -18,19 +19,6 @@ type LSPFantomasService(daemonStartInfo: ProcessStartInfo) =
         new JsonRpc(daemonProcess.StandardInput.BaseStream, daemonProcess.StandardOutput.BaseStream)
 
     do client.StartListening()
-
-    new(workingDirectory: string) =
-        let fantomasToolDll =
-            @"C:\Users\nojaf\Projects\fantomas\src\Fantomas.CoreGlobalTool\bin\Release\netcoreapp3.1\fantomas-tool.dll"
-
-        let processStart = ProcessStartInfo("dotnet")
-        processStart.UseShellExecute <- false
-        processStart.Arguments <- sprintf "%s --daemon" fantomasToolDll
-        processStart.WorkingDirectory <- workingDirectory
-        processStart.RedirectStandardOutput <- true
-        processStart.RedirectStandardError <- true
-        processStart.Arguments <- (sprintf "%s --daemon" fantomasToolDll)
-        new LSPFantomasService(processStart)
 
     interface FantomasService with
         member this.Dispose() =
@@ -81,3 +69,25 @@ type LSPFantomasService(daemonStartInfo: ProcessStartInfo) =
 
                 return configurationResponse
             }
+
+let createForWorkingDirectory (workingDirectory: string) : Result<LSPFantomasService, string> =
+    match findFantomasTool workingDirectory with
+    | FoundLocalTool ->
+        let processStart = ProcessStartInfo("dotnet")
+        processStart.UseShellExecute <- false
+        processStart.Arguments <- sprintf "fantomas --daemon"
+        processStart.WorkingDirectory <- workingDirectory
+        processStart.RedirectStandardOutput <- true
+        processStart.RedirectStandardError <- true
+        Ok(new LSPFantomasService(processStart))
+    | FoundGlobalTool ->
+        let processStart = ProcessStartInfo("fantomas")
+        processStart.UseShellExecute <- false
+        processStart.Arguments <- "--daemon"
+        processStart.WorkingDirectory <- workingDirectory
+        processStart.RedirectStandardOutput <- true
+        processStart.RedirectStandardError <- true
+        Ok(new LSPFantomasService(processStart))
+    | NoCompatibleVersionFound ->
+        // TODO: consider api choice here
+        Error(sprintf "No compatible Fantomas version found in \"%s\"." workingDirectory)
