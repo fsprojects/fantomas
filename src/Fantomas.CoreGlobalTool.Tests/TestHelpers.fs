@@ -124,8 +124,10 @@ let getFantomasToolStartInfo arguments : ProcessStartInfo =
     startInfo
 
 let runFantomasTool arguments : FantomasToolResult =
-    use p = new Process()
-    p.StartInfo <- getFantomasToolStartInfo arguments
+    use p =
+        getFantomasToolStartInfo arguments
+        |> Process.Start
+
     let output = p.StandardOutput.ReadToEnd()
     let error = p.StandardError.ReadToEnd()
     p.WaitForExit()
