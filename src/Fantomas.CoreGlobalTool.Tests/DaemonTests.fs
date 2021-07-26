@@ -107,12 +107,11 @@ let a = //
 let ``find fantomas tool from working directory`` () =
     async {
         let filePath =
-            @"C:\Users\nojaf\Projects\fantomas-tools\src\server\TriviaViewer\Encoders.fs"
+            @"C:\Users\nojaf\Projects\fantomas\src\Fantomas.Client\LSPFantomasService.fs"
 
         let originalCode = System.IO.File.ReadAllText(filePath)
 
-        let workingDir =
-            @"C:\Users\nojaf\Projects\fantomas-tools"
+        let workingDir = @"C:\Users\nojaf\Projects\fantomas"
 
         use client =
             let x = createForWorkingDirectory workingDir

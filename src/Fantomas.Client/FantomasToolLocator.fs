@@ -36,7 +36,7 @@ let private readOutputStreamAsLines (outputStream: StreamReader) : string list =
 
     readLines outputStream id
 
-let private runTooListCmd (workingDir: string) (globalFlag: bool) =
+let private runToolListCmd (workingDir: string) (globalFlag: bool) =
     let ps = ProcessStartInfo("dotnet")
     ps.WorkingDirectory <- workingDir
 
@@ -62,7 +62,7 @@ let private runTooListCmd (workingDir: string) (globalFlag: bool) =
 
 let private (|CompatibleTool|_|) lines =
     let (|HeaderLine|_|) line =
-        if Regex.IsMatch(line, "^Package\\sId\\s+Version\\s+Commands\\s+Manifest\\s*$") then
+        if Regex.IsMatch(line, @"^Package\sId\s+Version.+$") then
             Some()
         else
             None
@@ -110,12 +110,12 @@ let private tryFindGlobalVersion () : FantomasToolResult =
 
 let findFantomasTool (workingDir: string) : FantomasToolResult =
     // check if there is a dotnet-tools.json manifest
-    let localTools = runTooListCmd workingDir false
+    let localTools = runToolListCmd workingDir false
 
     match localTools with
     | Ok CompatibleTool -> FoundLocalTool
     | _ ->
-        let globalTools = runTooListCmd workingDir true
+        let globalTools = runToolListCmd workingDir true
 
         match globalTools with
         | Ok CompatibleTool -> FoundGlobalTool
