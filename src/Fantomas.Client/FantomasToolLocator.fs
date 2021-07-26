@@ -104,10 +104,6 @@ let private (|CompatibleTool|_|) lines =
         if hasTool then Some() else None
     | _ -> None
 
-let private tryFindGlobalVersion () : FantomasToolResult =
-    // check if fantomas is available on the Path environment variable
-    failwith "todo!"
-
 let findFantomasTool (workingDir: string) : FantomasToolResult =
     // check if there is a dotnet-tools.json manifest
     let localTools = runToolListCmd workingDir false
