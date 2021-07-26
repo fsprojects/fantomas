@@ -4,6 +4,7 @@ open System
 open NUnit.Framework
 open Fantomas
 open Fantomas.Tests.TestHelper
+open FsCheck
 
 let private mergeAndCompare a b expected =
     let result =
@@ -112,3 +113,57 @@ SetupTesting.generateSetupScript __SOURCE_DIRECTORY__
 #endif
 """
     |> mergeAndCompare a b
+
+[<Test>]
+let ``when input is empty`` () =
+    let property (p: bool) : bool =
+        let before, after = List.partitionWhile (fun _ _ -> p) []
+        before = [] && after = []
+
+    Check.QuickThrowOnFailure property
+
+[<Test>]
+let ``when predicate always returns false`` () =
+    let property (xs: int list) : bool =
+        let before, after =
+            List.partitionWhile (fun _ _ -> false) xs
+
+        before = [] && after = xs
+
+    Check.QuickThrowOnFailure property
+
+[<Test>]
+let ``when predicate always returns true`` () =
+    let property (xs: int list) : bool =
+        let before, after =
+            List.partitionWhile (fun _ _ -> true) xs
+
+        before = xs && after = []
+
+    Check.QuickThrowOnFailure property
+
+[<Test>]
+let ``when predicate returns true until certain index`` () =
+    let property (xs: int list, i: int) : bool =
+        let before, after =
+            List.partitionWhile (fun index _ -> i <> index) xs
+
+        let beforeLength = List.length before
+        let afterLength = List.length after
+
+        beforeLength = i
+        && afterLength = List.length xs - i
+        && before @ after = xs
+
+    let gen =
+        gen {
+            let! xs = Arb.generate<int> |> Gen.nonEmptyListOf
+            let len = List.length xs
+            let! n = Gen.choose (0, len - 1)
+
+            return (xs, n)
+        }
+
+    property
+    |> Prop.forAll (Arb.fromGen gen)
+    |> Check.QuickThrowOnFailure
