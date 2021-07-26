@@ -1165,7 +1165,7 @@ let ``combining two empty list with at`` () =
 """
 
 [<Test>]
-let ``Appending two lists with at, 1719`` () =
+let ``appending two lists with at, 1719`` () =
     formatSourceString
         false
         """

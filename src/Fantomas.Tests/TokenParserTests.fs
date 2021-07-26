@@ -30,7 +30,7 @@ let private getTriviaFromTokens = getTriviaFromTokens mkRange
 let private getTriviaNodesFromTokens = getTriviaNodesFromTokens mkRange
 
 [<Test>]
-let ``Simple compiler directive should be found`` () =
+let ``simple compiler directive should be found`` () =
     let source =
         """
 #if DEBUG
@@ -43,7 +43,7 @@ setupServer true
     getDefines source |> List.length |> should equal 1
 
 [<Test>]
-let ``Simple compiler directive should be DEBUG`` () =
+let ``simple compiler directive should be DEBUG`` () =
     let source =
         """
 #if DEBUG
@@ -58,7 +58,7 @@ setupServer true
     |> should equal "DEBUG"
 
 [<Test>]
-let ``Get defines from complex statements`` () =
+let ``get defines from complex statements`` () =
     let source =
         """
 #if INTERACTIVE || (FOO && BAR) || BUZZ
@@ -70,7 +70,7 @@ let x = 1
     == [ "INTERACTIVE"; "FOO"; "BAR"; "BUZZ" ]
 
 [<Test>]
-let ``Tokens from directive inside a directive are being added`` () =
+let ``tokens from directive inside a directive are being added`` () =
     let source =
         """#if FOO
   #if BAR
@@ -169,7 +169,7 @@ let ``simple line comment should be found in tokens`` () =
     | _ -> failwith "expected comment"
 
 [<Test>]
-let ``Single line block comment should be found in tokens`` () =
+let ``single line block comment should be found in tokens`` () =
     let source = "let foo (* not fonz *) = bar"
     let tokens = tokenize source
     let triviaNodes = getTriviaFromTokens tokens
@@ -239,7 +239,7 @@ printfn bar"""
     | _ -> failwith "expected newline"
 
 [<Test>]
-let ``Only empty spaces in line are also consider as Newline`` () =
+let ``only empty spaces in line are also consider as Newline`` () =
     let source =
         """printfn foo
 
@@ -254,7 +254,7 @@ printfn bar""" // difference is the 4 spaces on line 188
     | _ -> failwith "expected newline"
 
 [<Test>]
-let ``Comment after left brace of record`` () =
+let ``comment after left brace of record`` () =
     let source =
         """let a =
     { // foo

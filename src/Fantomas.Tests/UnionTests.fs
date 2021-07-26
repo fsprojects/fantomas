@@ -213,7 +213,7 @@ let col3 =
 """
 
 [<Test>]
-let ``Single case DUs on same line`` () =
+let ``single case DUs on same line`` () =
     formatSourceString
         false
         """
@@ -229,7 +229,7 @@ type CustomerId = CustomerId of int
 """
 
 [<Test>]
-let ``Single case DU with private access modifier`` () =
+let ``single case DU with private access modifier`` () =
     formatSourceString
         false
         """
@@ -267,7 +267,7 @@ type CustomerId =
 """
 
 [<Test>]
-let ``Generic type style should be respected`` () =
+let ``generic type style should be respected`` () =
     formatSourceString
         false
         """
@@ -282,7 +282,7 @@ type 'a Foo = Foo of 'a
 """
 
 [<Test>]
-let ``Generic multiple param type style should be respected`` () =
+let ``generic multiple param type style should be respected`` () =
     formatSourceString
         false
         """

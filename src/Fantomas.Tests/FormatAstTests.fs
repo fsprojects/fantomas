@@ -38,7 +38,7 @@ let formatAst code =
     parseAndFormat source None
 
 [<Test>]
-let ``Format the ast works correctly with no source code`` () = formatAst "()" |> should equal "()"
+let ``format the ast works correctly with no source code`` () = formatAst "()" |> should equal "()"
 
 [<Test>]
 let ``let in should not be used`` () =
