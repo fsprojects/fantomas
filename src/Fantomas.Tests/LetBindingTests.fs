@@ -169,7 +169,7 @@ let b = "meh"
 """
 
 [<Test>]
-let ``Raw method names with `/` `` () =
+let ``raw method names with `/` `` () =
     formatSourceString false "let ``/ operator combines paths`` = x" config
     |> should
         equal

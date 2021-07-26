@@ -15,7 +15,7 @@ let private mergeAndCompare a b expected =
     normalizedExpected == result
 
 [<Test>]
-let ``Merging of source code that starts with a hash`` () =
+let ``merging of source code that starts with a hash`` () =
     let a =
         """#if NOT_DEFINED
     printfn \"meh\"
@@ -41,7 +41,7 @@ let ``Merging of source code that starts with a hash`` () =
     |> mergeAndCompare a b
 
 [<Test>]
-let ``Merging of defines content work when source code starts with a newline`` () =
+let ``merging of defines content work when source code starts with a newline`` () =
     let a =
         """
 [<Literal>]
@@ -79,7 +79,7 @@ let private assemblyConfig() =
     |> mergeAndCompare a b
 
 [<Test>]
-let ``Only split on control structure keyword`` () =
+let ``only split on control structure keyword`` () =
     let a =
         """
 #if INTERACTIVE
