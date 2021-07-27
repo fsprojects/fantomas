@@ -3,11 +3,13 @@
 open System
 open System.Diagnostics
 open System.IO
+open System.Threading
 open System.Threading.Tasks
+open FSharp.Compiler.Text.Range
+open FSharp.Compiler.Text.Pos
+open StreamJsonRpc
 open Fantomas
 open Fantomas.SourceOrigin
-open StreamJsonRpc
-open System.Threading
 open Fantomas.FormatConfig
 open Fantomas.Extras.EditorConfig
 open Fantomas.Client.Contracts
@@ -52,6 +54,32 @@ type FantomasDaemon(sender: Stream, reader: Stream) as this =
                     SourceString options.SourceCode,
                     config,
                     CodeFormatterImpl.createParsingOptionsFromFile options.FilePath,
+                    CodeFormatterImpl.sharedChecker.Value
+                )
+
+            return ({ Formatted = formatted }: FormatDocumentResponse)
+        }
+        |> Async.StartAsTask
+
+    [<JsonRpcMethod(Methods.FormatSelection, UseSingleObjectParameterDeserialization = true)>]
+    member _.FormatSelectionAsync(request: FormatSelectionRequest) : Task<FormatSelectionResponse> =
+        async {
+            let config =
+                match request.Config with
+                | Some configProperties -> parseOptionsFromEditorConfig configProperties
+                | None -> readConfiguration request.FilePath
+
+            let range =
+                let r = request.Range
+                mkRange request.FilePath (mkPos r.StartLine r.StartColumn) (mkPos r.EndLine r.EndColumn)
+
+            let! formatted =
+                CodeFormatter.FormatSelectionAsync(
+                    request.FilePath,
+                    range,
+                    SourceString request.SourceCode,
+                    config,
+                    CodeFormatterImpl.createParsingOptionsFromFile request.FilePath,
                     CodeFormatterImpl.sharedChecker.Value
                 )
 

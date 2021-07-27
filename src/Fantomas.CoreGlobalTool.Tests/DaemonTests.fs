@@ -7,8 +7,8 @@ open Fantomas
 open Fantomas.Client.Contracts
 open Fantomas.Client.LSPFantomasService
 
-let private assertFormatted (response: FormatDocumentResponse) (expected: string) : unit =
-    String.normalizeNewLine response.Formatted
+let private assertFormatted (actual: string) (expected: string) : unit =
+    String.normalizeNewLine actual
     |> should equal (String.normalizeNewLine expected)
 
 [<Test>]
@@ -16,7 +16,7 @@ let ``compare the version with the public api`` () =
     async {
         let processStart = getFantomasToolStartInfo "--daemon"
         use client = new LSPFantomasService(processStart)
-        let! { Version = version } = (client :> FantomasService).Version None
+        let! { Version = version } = (client :> FantomasService).VersionAsync()
 
         version
         |> should equal (CodeFormatter.GetVersion())
@@ -37,10 +37,10 @@ let ``format document`` () =
 
         let! response =
             (client :> FantomasService)
-                .FormatDocumentAsync(request, None)
+                .FormatDocumentAsync(request)
 
         assertFormatted
-            response
+            response.Formatted
             "module Foobar
 "
     }
@@ -63,10 +63,10 @@ let ``format document respecting .editorconfig file`` () =
 
         let! response =
             (client :> FantomasService)
-                .FormatDocumentAsync(request, None)
+                .FormatDocumentAsync(request)
 
         assertFormatted
-            response
+            response.Formatted
             "module Foo
 
 let a = //
@@ -92,16 +92,46 @@ let ``custom configuration has precedence over .editorconfig file`` () =
 
         let! response =
             (client :> FantomasService)
-                .FormatDocumentAsync(request, None)
+                .FormatDocumentAsync(request)
 
         assertFormatted
-            response
+            response.Formatted
             "module Foo
 
 let a = //
     4
 "
     }
+
+[<Test>]
+let ``format selection`` () =
+    async {
+        let sourceCode =
+            """module Foo
+
+let    x     = 4
+let    y     = 5
+"""
+
+        let processStart = getFantomasToolStartInfo "--daemon"
+        use client = new LSPFantomasService(processStart)
+        use _codeFile = new TemporaryFileCodeSample(sourceCode)
+
+        let request: FormatSelectionRequest =
+            let range = FormatSelectionRange(3, 0, 3, 16)
+
+            { SourceCode = sourceCode
+              FilePath = "tmp.fsx" // codeFile.Filename
+              Config = None
+              Range = range }
+
+        let! response =
+            (client :> FantomasService)
+                .FormatSelectionAsync(request)
+
+        assertFormatted response.Formatted "let x = 4\n"
+    }
+
 
 [<Test>]
 let ``find fantomas tool from working directory`` () =
@@ -125,8 +155,7 @@ let ``find fantomas tool from working directory`` () =
                 .FormatDocumentAsync(
                     { SourceCode = originalCode
                       FilePath = filePath
-                      Config = None },
-                    None
+                      Config = None }
                 )
 
         let formattedCode = formattedResponse

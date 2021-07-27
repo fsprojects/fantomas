@@ -13,6 +13,9 @@ module Methods =
     let FormatDocument = "fantomas/formatDocument"
 
     [<Literal>]
+    let FormatSelection = "fantomas/formatSelection"
+
+    [<Literal>]
     let Configuration = "fantomas/configuration"
 
 type FormatDocumentRequest =
@@ -23,9 +26,33 @@ type FormatDocumentRequest =
       /// Overrides the found .editorconfig.
       Config: IReadOnlyDictionary<string, string> option }
 
-type FormatSourceRange =
-    class
+type FormatDocumentResponse = { Formatted: string }
+
+type FormatSelectionRequest =
+    { SourceCode: string
+      /// File path will be used to identify the .editorconfig options
+      /// Unless the configuration is passed
+      FilePath: string
+      /// Overrides the found .editorconfig.
+      Config: IReadOnlyDictionary<string, string> option
+      /// Range follows the same semantics of the FSharp Compiler Range type.
+      Range: FormatSelectionRange }
+
+and FormatSelectionRange =
+    struct
+        val StartLine: int
+        val StartColumn: int
+        val EndLine: int
+        val EndColumn: int
+
+        new(startLine: int, startColumn: int, endLine: int, endColumn: int) =
+            { StartLine = startLine
+              StartColumn = startColumn
+              EndLine = endLine
+              EndColumn = endColumn }
     end
+
+type FormatSelectionResponse = { Formatted: string }
 
 type FantomasOption = { Type: string; DefaultValue: string }
 
@@ -35,15 +62,16 @@ type ConfigurationResponse =
 
 type VersionResponse = { Version: string }
 
-type FormatDocumentResponse = { Formatted: string }
-
 type FantomasService =
     interface
         inherit IDisposable
-        abstract member Version : CancellationToken option -> Async<VersionResponse>
+        abstract member VersionAsync : ?cancellationToken: CancellationToken -> Async<VersionResponse>
 
         abstract member FormatDocumentAsync :
-            FormatDocumentRequest * CancellationToken option -> Async<FormatDocumentResponse>
+            FormatDocumentRequest * ?cancellationToken: CancellationToken -> Async<FormatDocumentResponse>
 
-        abstract member Configuration : CancellationToken option -> Async<ConfigurationResponse>
+        abstract member FormatSelectionAsync :
+            FormatSelectionRequest * ?cancellationToken: CancellationToken -> Async<FormatSelectionResponse>
+
+        abstract member ConfigurationAsync : ?cancellationToken: CancellationToken -> Async<ConfigurationResponse>
     end

@@ -26,50 +26,43 @@ type LSPFantomasService(daemonStartInfo: ProcessStartInfo) =
             client.Dispose()
             daemonProcess.Dispose()
 
-        member _.Version(?cancellationToken: CancellationToken) : Async<VersionResponse> =
-            async {
-                let ct =
-                    orDefaultCancellationToken cancellationToken
-
-                return!
-                    client.InvokeWithCancellationAsync<VersionResponse>(Methods.Version, cancellationToken = ct)
-                    |> Async.AwaitTask
-            }
+        member _.VersionAsync(?cancellationToken: CancellationToken) : Async<VersionResponse> =
+            client.InvokeWithCancellationAsync<VersionResponse>(
+                Methods.Version,
+                cancellationToken = orDefaultCancellationToken cancellationToken
+            )
+            |> Async.AwaitTask
 
         member _.FormatDocumentAsync
             (
                 formatDocumentOptions: FormatDocumentRequest,
                 ?cancellationToken: CancellationToken
             ) : Async<FormatDocumentResponse> =
-            async {
-                let ct =
-                    orDefaultCancellationToken cancellationToken
+            client.InvokeWithParameterObjectAsync<FormatDocumentResponse>(
+                Methods.FormatDocument,
+                argument = formatDocumentOptions,
+                cancellationToken = orDefaultCancellationToken cancellationToken
+            )
+            |> Async.AwaitTask
 
-                let! formatDocumentResponse =
-                    client.InvokeWithParameterObjectAsync<FormatDocumentResponse>(
-                        Methods.FormatDocument,
-                        argument = formatDocumentOptions,
-                        cancellationToken = ct
-                    )
-                    |> Async.AwaitTask
+        member _.FormatSelectionAsync
+            (
+                formatSelectionRequest: FormatSelectionRequest,
+                ?cancellationToken: CancellationToken
+            ) =
+            client.InvokeWithParameterObjectAsync<FormatSelectionResponse>(
+                Methods.FormatSelection,
+                argument = formatSelectionRequest,
+                cancellationToken = orDefaultCancellationToken cancellationToken
+            )
+            |> Async.AwaitTask
 
-                return formatDocumentResponse
-            }
-
-        member _.Configuration(?cancellationToken: CancellationToken) : Async<ConfigurationResponse> =
-            async {
-                let ct =
-                    orDefaultCancellationToken cancellationToken
-
-                let! configurationResponse =
-                    client.InvokeWithCancellationAsync<ConfigurationResponse>(
-                        Methods.Configuration,
-                        cancellationToken = ct
-                    )
-                    |> Async.AwaitTask
-
-                return configurationResponse
-            }
+        member _.ConfigurationAsync(?cancellationToken: CancellationToken) : Async<ConfigurationResponse> =
+            client.InvokeWithCancellationAsync<ConfigurationResponse>(
+                Methods.Configuration,
+                cancellationToken = orDefaultCancellationToken cancellationToken
+            )
+            |> Async.AwaitTask
 
 let createForWorkingDirectory (workingDirectory: string) : Result<LSPFantomasService, string> =
     if not (Directory.Exists workingDirectory) then
