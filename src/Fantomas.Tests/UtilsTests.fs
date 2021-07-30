@@ -118,7 +118,7 @@ SetupTesting.generateSetupScript __SOURCE_DIRECTORY__
 let ``when input is empty`` () =
     let property (p: bool) : bool =
         let before, after = List.partitionWhile (fun _ _ -> p) []
-        before = [] && after = []
+        List.isEmpty before && List.isEmpty after
 
     Check.QuickThrowOnFailure property
 
@@ -128,7 +128,7 @@ let ``when predicate always returns false`` () =
         let before, after =
             List.partitionWhile (fun _ _ -> false) xs
 
-        before = [] && after = xs
+        List.isEmpty before && after = xs
 
     Check.QuickThrowOnFailure property
 
@@ -138,7 +138,7 @@ let ``when predicate always returns true`` () =
         let before, after =
             List.partitionWhile (fun _ _ -> true) xs
 
-        before = xs && after = []
+        before = xs && List.isEmpty after
 
     Check.QuickThrowOnFailure property
 

@@ -77,6 +77,6 @@ module TopLevelOperators =
     let not' x = NotConstraint(x)
 
     /// Deprecated operators. These will be removed in a future version of FsUnit.
-    module FsUnitDepricated =
+    module FsUnitDeprecated =
         [<System.Obsolete>]
         let not x = not' x
