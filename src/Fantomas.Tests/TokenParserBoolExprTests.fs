@@ -10,7 +10,7 @@ open FsCheck
 
 let getDefineExprs source =
     String.normalizeNewLine source
-    |> TokenParser.getDefines
+    |> getDefines
     |> snd
     |> getDefineExprs
 

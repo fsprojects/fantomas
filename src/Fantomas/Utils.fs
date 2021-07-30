@@ -68,7 +68,7 @@ module String =
 
             failwithf
                 """Fantomas is trying to format the input multiple times due to the detect of multiple defines.
-There is a problem with merging all the code back togheter. Please raise an issue at https://github.com/fsprojects/fantomas/issues."""
+There is a problem with merging all the code back together. Please raise an issue at https://github.com/fsprojects/fantomas/issues."""
 
         List.zip aChunks bChunks
         |> List.map
@@ -152,7 +152,7 @@ module List =
         | [ _ ] -> false
         | _ -> true
 
-    let partitionWhile (f: int -> 'a -> bool) (xs: 'a list) : ('a list * 'a list) =
+    let partitionWhile (f: int -> 'a -> bool) (xs: 'a list) : 'a list * 'a list =
         let rec go i before after =
             match after with
             | head :: tail ->

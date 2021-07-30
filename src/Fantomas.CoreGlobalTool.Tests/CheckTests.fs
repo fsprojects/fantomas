@@ -91,7 +91,7 @@ let ``check with multiple files`` () =
     exitCode |> should equal 99
 
     let needsFormatting =
-        sprintf "%s needs formatting" (System.IO.Path.GetFileName(fileFixtureOne.Filename))
+        sprintf "%s needs formatting" (Path.GetFileName(fileFixtureOne.Filename))
 
     output |> should contain needsFormatting
 
@@ -109,10 +109,7 @@ let ``check with file and folder`` () =
     exitCode |> should equal 99
 
     let needsFormatting =
-        sprintf
-            "sub%c%s needs formatting"
-            System.IO.Path.DirectorySeparatorChar
-            (System.IO.Path.GetFileName(fileFixtureOne.Filename))
+        sprintf "sub%c%s needs formatting" Path.DirectorySeparatorChar (Path.GetFileName(fileFixtureOne.Filename))
 
     output |> should contain needsFormatting
 
