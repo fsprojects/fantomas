@@ -689,7 +689,8 @@ type IWebHostBuilderExtensions() =
                             "application",
                             context.HostingEnvironment.ApplicationName
                         )
-                    |> ignore)
+                    |> ignore
+                )
             |> ignore
         )
 """
@@ -778,7 +779,8 @@ let blah =
             {
                 dasdasdsadsadsadsa = ""
                 Sdadsadasdasdas = "sdsadsadasdsa"
-            })
+            }
+        )
 """
 
 [<Test>]
@@ -817,7 +819,8 @@ let blah =
             {
                 dasdasdsadsadsadsa = ""
                 Sdadsadasdasdas = "sdsadsadasdsa"
-            })
+            }
+        )
 """
 
 [<Test>]

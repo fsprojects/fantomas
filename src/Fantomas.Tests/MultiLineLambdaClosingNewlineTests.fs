@@ -878,3 +878,136 @@ module Foo =
             )
         )
 """
+
+[<Test>]
+let ``lambda inside parenthesis without application, 1835`` () =
+    formatSourceString
+        false
+        """
+module Foo =
+    let blah =
+        printfn ""
+        (fun bar ->
+            printfn ""
+            bar + "11111111111111111111111111111111"
+        )
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+module Foo =
+    let blah =
+        printfn ""
+
+        (fun bar ->
+            printfn ""
+            bar + "11111111111111111111111111111111"
+        )
+"""
+
+[<Test>]
+let ``lambda inside parenthesis without application, trivia`` () =
+    formatSourceString
+        false
+        """
+module Foo =
+    let blah =
+        printfn ""
+        // meh
+        (fun bar ->  // foo
+            printfn ""
+            bar + "11111111111111111111111111111111"
+            // bar
+        ) // ziggy
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+module Foo =
+    let blah =
+        printfn ""
+        // meh
+        (fun bar -> // foo
+            printfn ""
+            bar + "11111111111111111111111111111111"
+        // bar
+        ) // ziggy
+"""
+
+[<Test>]
+let ``short lambda inside parenthesis`` () =
+    formatSourceString
+        false
+        """
+(fun x -> x)
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+(fun x -> x)
+"""
+
+[<Test>]
+let ``lambda at end of dot get`` () =
+    formatSourceString
+        false
+        """
+configuration
+    .MinimumLevel
+    .Debug()
+    .WriteTo
+    .Logger(fun loggerConfiguration ->
+        loggerConfiguration
+            .Enrich
+            .WithProperty("host", Environment.MachineName)
+            .Enrich.WithProperty("user", Environment.UserName)
+            .Enrich.WithProperty("application", context.HostingEnvironment.ApplicationName)
+        |> ignore
+    )
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+configuration
+    .MinimumLevel
+    .Debug()
+    .WriteTo
+    .Logger(fun loggerConfiguration ->
+        loggerConfiguration
+            .Enrich
+            .WithProperty("host", Environment.MachineName)
+            .Enrich.WithProperty("user", Environment.UserName)
+            .Enrich.WithProperty("application", context.HostingEnvironment.ApplicationName)
+        |> ignore
+    )
+"""
+
+[<Test>]
+let ``lambda at end of dot get, short lambda`` () =
+    formatSourceString
+        false
+        """
+configuration
+    .MinimumLevel
+    .Debug()
+    .WriteTo
+    .Logger(fun x -> x * x)
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+configuration
+    .MinimumLevel
+    .Debug()
+    .WriteTo.Logger(fun x -> x * x)
+"""
