@@ -1,11 +1,12 @@
 module Fantomas.Tests.FSharpScriptTests
 
-open Fantomas
-open Fantomas.Extras
+open System.IO
 open NUnit.Framework
 open FsUnit
+open Fantomas
+open Fantomas.Extras
 open Fantomas.Tests.TestHelper
-open System.IO
+open Fantomas.Tests.FormatConfigEditorConfigurationFileTests
 
 [<Test>]
 let ``source _directory keyword should not be replace with actual path`` () =
@@ -31,16 +32,17 @@ let ``e2e script test with keyword __source__directory__`` () =
 #load    ".paket/load/net471/main.group.fsx"
 """
 
-        let file =
-            Path.Combine(Path.GetTempPath(), System.Guid.NewGuid().ToString("N") + ".fsx")
+        let rootFolderName = tempName ()
 
-        File.WriteAllText(file, source)
+        use fsharpScript =
+            new FSharpFile(rootFolderName, fsharpFileExtension = ".fsx", content = source)
 
-        let! formattedFiles = FakeHelpers.formatCode [ file ]
+        let! formattedFiles = FakeHelpers.formatCode [ fsharpScript.FSharpFile ]
 
-        let formattedSource = File.ReadAllText(file)
+        let formattedSource =
+            File.ReadAllText(fsharpScript.FSharpFile)
+
         Array.length formattedFiles == 1
-        File.Delete(file)
 
         formattedSource
         |> String.normalizeNewLine
@@ -61,29 +63,24 @@ let ``fantomas removes module and namespace if it is only 1 word`` () =
     type Counter = int
     """
 
-        let file =
-            Path.Combine(Path.GetTempPath(), System.Guid.NewGuid().ToString("N") + ".fsx")
+        let rootFolderName = tempName ()
 
-        File.WriteAllText(file, source)
+        use fsharpScript =
+            new FSharpFile(rootFolderName, fsharpFileExtension = ".fsx", content = source)
 
         let fantomasConfig =
             { FormatConfig.FormatConfig.Default with
                   StrictMode = true
                   IndentSize = 2
                   SpaceBeforeColon = false }
-            |> EditorConfig.configToEditorConfig
 
-        let editorConfigPath =
-            Path.Combine(Path.GetTempPath(), ".editorconfig")
+        use _editorConfig =
+            new ConfigurationFile(fantomasConfig, rootFolderName)
 
-        File.WriteAllText(editorConfigPath, fantomasConfig)
+        let! formattedFiles = FakeHelpers.formatCode [ fsharpScript.FSharpFile ]
 
-        let! formattedFiles = FakeHelpers.formatCode [ file ]
-
-        let formattedSource = File.ReadAllText(file)
+        let formattedSource = File.ReadAllText fsharpScript.FSharpFile
         Array.length formattedFiles == 1
-        File.Delete(file)
-        File.Delete(editorConfigPath)
 
         formattedSource
         |> String.normalizeNewLine
@@ -107,16 +104,15 @@ let ``number in the filename should not end up in the module name`` () =
     | _ -> printfn "x is %s"   x
 """
 
-    let file =
-        Path.Combine(Path.GetTempPath(), "60Seconds.fsx")
+    let rootFolderName = tempName ()
 
-    File.WriteAllText(file, source)
+    use fsharpScript =
+        new FSharpFile(rootFolderName, fileName = "60Seconds.fsx", content = source)
 
     async {
-        let! formattedFiles = FakeHelpers.formatCode [| file |]
-        let formattedSource = File.ReadAllText(file)
+        let! formattedFiles = FakeHelpers.formatCode [| fsharpScript.FSharpFile |]
+        let formattedSource = File.ReadAllText fsharpScript.FSharpFile
         Array.length formattedFiles == 1
-        File.Delete(file)
 
         formattedSource
         |> String.normalizeNewLine
