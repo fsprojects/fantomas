@@ -9,7 +9,7 @@ open NUnit.Framework
 open System.IO
 
 let private defaultConfig = FormatConfig.Default
-let private tempName () = Guid.NewGuid().ToString("N")
+let tempName () = Guid.NewGuid().ToString("N")
 
 type ConfigurationFile
     internal
@@ -60,7 +60,15 @@ type ConfigurationFile
             if Directory.Exists(rootDir) then
                 Directory.Delete(rootDir, true)
 
-type FSharpFile internal (rootFolderName: string, ?fsharpFileExtension: string, ?subFolder: string) =
+type FSharpFile
+    internal
+    (
+        rootFolderName: string,
+        ?fsharpFileExtension: string,
+        ?subFolder: string,
+        ?content: string,
+        ?fileName: string
+    ) =
     let rootDir =
         Path.Join(Path.GetTempPath(), rootFolderName)
 
@@ -71,7 +79,8 @@ type FSharpFile internal (rootFolderName: string, ?fsharpFileExtension: string, 
     let extension =
         Option.defaultValue ".fs" fsharpFileExtension
 
-    let fsharpFile = sprintf "%s%s" (tempName ()) extension
+    let fsharpFile =
+        Option.defaultValue (sprintf "%s%s" (tempName ()) extension) fileName
 
     let fsharpFilePath =
         match subFolder with
@@ -84,7 +93,8 @@ type FSharpFile internal (rootFolderName: string, ?fsharpFileExtension: string, 
             Path.Join(rootDir, sf, fsharpFile)
         | None -> Path.Join(rootDir, fsharpFile)
 
-    do File.WriteAllText(fsharpFilePath, String.empty)
+    let content = Option.defaultValue String.empty content
+    do File.WriteAllText(fsharpFilePath, content)
 
     member __.FSharpFile: string = fsharpFilePath
 
@@ -95,10 +105,13 @@ type FSharpFile internal (rootFolderName: string, ?fsharpFileExtension: string, 
 
 [<Test>]
 let ``single configuration file`` () =
-    use configFixture =
-        new ConfigurationFile(defaultConfig, tempName ())
+    let rootFolderName = tempName ()
 
-    use fsharpFile = new FSharpFile(".fs")
+    use configFixture =
+        new ConfigurationFile(defaultConfig, rootFolderName)
+
+    use fsharpFile =
+        new FSharpFile(rootFolderName, fsharpFileExtension = ".fs")
 
     let config =
         EditorConfig.readConfiguration fsharpFile.FSharpFile
@@ -152,14 +165,17 @@ let ``parent config should not be taking into account when child is root`` () =
 
 [<Test>]
 let ``configuration file should not affect file extension`` () =
+    let rootFolder = tempName ()
+
     use configFixture =
         new ConfigurationFile(
             { defaultConfig with
                   MaxLineLength = 90 },
-            tempName ()
+            rootFolder
         )
 
-    use fsharpFile = new FSharpFile(".fsx")
+    use fsharpFile =
+        new FSharpFile(rootFolder, fsharpFileExtension = ".fsx")
 
     let config =
         EditorConfig.readConfiguration fsharpFile.FSharpFile
@@ -193,8 +209,10 @@ fsharp_max_function_binding_width=40
 
 [<Test>]
 let ``non existing file should return defaults for readConfiguration`` () =
+    let rootDir = tempName ()
+
     use configFixture =
-        new ConfigurationFile(defaultConfig, tempName ())
+        new ConfigurationFile(defaultConfig, rootDir)
 
     let config =
         EditorConfig.readConfiguration "bogus.fs"
@@ -207,8 +225,10 @@ let ``non existing file should return defaults for readConfiguration`` () =
 
 [<Test>]
 let ``non existing file should return None for tryReadConfiguration`` () =
+    let rootDir = tempName ()
+
     use configFixture =
-        new ConfigurationFile(defaultConfig, tempName ())
+        new ConfigurationFile(defaultConfig, rootDir)
 
     let config =
         EditorConfig.tryReadConfiguration "bogus.fs"

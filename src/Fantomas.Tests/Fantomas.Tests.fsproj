@@ -50,12 +50,12 @@
     <Compile Include="DynamicOperatorTests.fs" />
     <Compile Include="SynExprSetTests.fs" />
     <Compile Include="SynConstTests.fs" />
-    <Compile Include="FSharpScriptTests.fs" />
     <Compile Include="TupleTests.fs" />
     <Compile Include="ElmishTests.fs" />
     <Compile Include="LambdaTests.fs" />
     <Compile Include="IfThenElseTests.fs" />
     <Compile Include="FormatConfigEditorConfigurationFileTests.fs" />
+    <Compile Include="FSharpScriptTests.fs" />
     <Compile Include="CheckTests.fs" />
     <Compile Include="ContextTests.fs" />
     <Compile Include="SpaceBeforeSemicolonTests.fs" />
