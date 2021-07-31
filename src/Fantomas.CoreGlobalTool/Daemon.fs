@@ -5,14 +5,26 @@ open System.Diagnostics
 open System.IO
 open System.Threading
 open System.Threading.Tasks
+open FSharp.Compiler.SourceCodeServices
 open FSharp.Compiler.Text.Range
 open FSharp.Compiler.Text.Pos
+open Fantomas.Client.Contracts
 open StreamJsonRpc
 open Fantomas
 open Fantomas.SourceOrigin
 open Fantomas.FormatConfig
 open Fantomas.Extras.EditorConfig
-open Fantomas.Client.Contracts
+
+let private createParsingOptionsFromFile (isLastFile: bool) (fileName: string) : FSharpParsingOptions =
+    let additionFile =
+        if not isLastFile then
+            let name = Guid.NewGuid().ToString("N")
+            [ $"{name}.fs" ]
+        else
+            List.empty
+
+    { FSharpParsingOptions.Default with
+          SourceFiles = [| fileName; yield! additionFile |] }
 
 type FantomasDaemon(sender: Stream, reader: Stream) as this =
     let rpc: JsonRpc = JsonRpc.Attach(sender, reader, this)
@@ -41,23 +53,32 @@ type FantomasDaemon(sender: Stream, reader: Stream) as this =
         { Version = CodeFormatter.GetVersion() }
 
     [<JsonRpcMethod(Methods.FormatDocument, UseSingleObjectParameterDeserialization = true)>]
-    member _.FormatDocumentAsync(options: FormatDocumentRequest) : Task<FormatDocumentResponse> =
+    member _.FormatDocumentAsync(request: FormatDocumentRequest) : Task<FormatDocumentResponse> =
         async {
-            let config =
-                match options.Config with
-                | Some configProperties -> parseOptionsFromEditorConfig configProperties
-                | None -> readConfiguration options.FilePath
+            if Fantomas.Extras.IgnoreFile.isIgnoredFile request.FilePath then
+                return FormatDocumentResponse.IgnoredFile request.FilePath
+            else
+                let config =
+                    match request.Config with
+                    | Some configProperties -> parseOptionsFromEditorConfig configProperties
+                    | None -> readConfiguration request.FilePath
 
-            let! formatted =
-                CodeFormatter.FormatDocumentAsync(
-                    options.FilePath,
-                    SourceString options.SourceCode,
-                    config,
-                    CodeFormatterImpl.createParsingOptionsFromFile options.FilePath,
-                    CodeFormatterImpl.sharedChecker.Value
-                )
+                try
+                    let! formatted =
+                        CodeFormatter.FormatDocumentAsync(
+                            request.FilePath,
+                            SourceString request.SourceCode,
+                            config,
+                            createParsingOptionsFromFile request.IsLastFile request.FilePath,
+                            CodeFormatterImpl.sharedChecker.Value
+                        )
 
-            return ({ Formatted = formatted }: FormatDocumentResponse)
+                    if formatted = request.SourceCode then
+                        return FormatDocumentResponse.Unchanged request.FilePath
+                    else
+                        return FormatDocumentResponse.Formatted(request.FilePath, formatted)
+                with
+                | ex -> return FormatDocumentResponse.Error(request.FilePath, ex)
         }
         |> Async.StartAsTask
 
@@ -75,15 +96,15 @@ type FantomasDaemon(sender: Stream, reader: Stream) as this =
 
             let! formatted =
                 CodeFormatter.FormatSelectionAsync(
-                    request.FilePath,
+                    request.FilePath, // TODO: does this really work with FSI??
                     range,
                     SourceString request.SourceCode,
                     config,
-                    CodeFormatterImpl.createParsingOptionsFromFile request.FilePath,
+                    CodeFormatterImpl.createParsingOptionsFromFile request.FilePath, // Use safe name ??
                     CodeFormatterImpl.sharedChecker.Value
                 )
 
-            return { Formatted = formatted }
+            return FormatSelectionResponse.Formatted(request.FilePath, formatted)
         }
         |> Async.StartAsTask
 

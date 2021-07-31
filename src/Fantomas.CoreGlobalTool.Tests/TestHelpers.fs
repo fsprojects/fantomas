@@ -12,7 +12,8 @@ type TemporaryFileCodeSample
         codeSnippet: string,
         ?hasByteOrderMark: bool,
         ?fileName: string,
-        ?subFolder: string
+        ?subFolder: string,
+        ?extension: string
     ) =
     let hasByteOrderMark = defaultArg hasByteOrderMark false
 
@@ -22,6 +23,8 @@ type TemporaryFileCodeSample
             | Some fn -> fn
             | None -> Guid.NewGuid().ToString()
 
+        let extension = Option.defaultValue "fs" extension
+
         match subFolder with
         | Some sf ->
             let tempFolder = Path.Join(Path.GetTempPath(), sf)
@@ -29,8 +32,8 @@ type TemporaryFileCodeSample
             if not (Directory.Exists(tempFolder)) then
                 Directory.CreateDirectory(tempFolder) |> ignore
 
-            Path.Join(tempFolder, sprintf "%s.fs" name)
-        | None -> Path.Join(Path.GetTempPath(), sprintf "%s.fs" name)
+            Path.Join(tempFolder, sprintf "%s.%s" name extension)
+        | None -> Path.Join(Path.GetTempPath(), sprintf "%s.%s" name extension)
 
     do
         (if hasByteOrderMark then

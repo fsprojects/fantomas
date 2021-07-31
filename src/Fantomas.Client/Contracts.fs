@@ -23,10 +23,17 @@ type FormatDocumentRequest =
       /// File path will be used to identify the .editorconfig options
       /// Unless the configuration is passed
       FilePath: string
+      /// Determines the underlying F# ParsingOptions
+      IsLastFile: bool
       /// Overrides the found .editorconfig.
       Config: IReadOnlyDictionary<string, string> option }
 
-type FormatDocumentResponse = { Formatted: string }
+[<RequireQualifiedAccess>]
+type FormatDocumentResponse =
+    | Formatted of filename: string * formattedContent: string
+    | Unchanged of filename: string
+    | Error of filename: string * formattingError: Exception
+    | IgnoredFile of filename: string
 
 type FormatSelectionRequest =
     { SourceCode: string
@@ -52,7 +59,10 @@ and FormatSelectionRange =
               EndColumn = endColumn }
     end
 
-type FormatSelectionResponse = { Formatted: string }
+[<RequireQualifiedAccess>]
+type FormatSelectionResponse =
+    | Formatted of filename: string * formattedContent: string
+    | Error of filename: string * formattingError: Exception
 
 type FantomasOption = { Type: string; DefaultValue: string }
 
