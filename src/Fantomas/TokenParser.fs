@@ -1194,7 +1194,6 @@ let private tokenNames =
       "WITH"
       "MEMBER"
       "AND_BANG"
-      "FUNCTION"
       "IN" ]
 
 let private tokenKinds = [ FSharpTokenCharKind.Operator ]
@@ -1221,7 +1220,6 @@ let internal getFsToken tokenName =
     | "ELSE" -> ELSE
     | "EQUALS" -> EQUALS
     | "FINALLY" -> FINALLY
-    | "FUNCTION" -> FUNCTION
     | "GREATER" -> GREATER
     | "IF" -> IF
     | "IN" -> IN
