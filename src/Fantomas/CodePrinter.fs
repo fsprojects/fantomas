@@ -1544,9 +1544,9 @@ and genExpr astContext synExpr ctx =
                 +> sepArrow
                 +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext expr)
             )
-        | MatchLambda (cs, _) ->
-            !- "function "
-            +> leaveNodeTokenByName synExpr.Range FUNCTION
+        | MatchLambda (keywordRange, cs) ->
+            (!- "function "
+             |> genTriviaFor SynExpr_MatchLambda_Function keywordRange)
             +> sepNln
             +> genClauses astContext cs
         | Match (e, cs) ->
@@ -2599,9 +2599,9 @@ and genExprInMultilineInfixExpr astContext e =
                     ctx
     | Paren (_, InfixApp (_, _, DotGet _, _), _, _)
     | Paren (_, DotGetApp _, _, _) -> atCurrentColumnIndent (genExpr astContext e)
-    | MatchLambda (cs, _) ->
-        !- "function "
-        +> leaveNodeTokenByName e.Range FUNCTION
+    | MatchLambda (keywordRange, cs) ->
+        (!- "function "
+         |> genTriviaFor SynExpr_MatchLambda_Function keywordRange)
         +> indent
         +> sepNln
         +> genClauses astContext cs
