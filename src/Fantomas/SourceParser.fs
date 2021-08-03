@@ -847,7 +847,7 @@ let (|TernaryApp|_|) =
 
 let (|MatchLambda|_|) =
     function
-    | SynExpr.MatchLambda (isMember, _, pats, _, _) -> Some(pats, isMember)
+    | SynExpr.MatchLambda (_, keywordRange, pats, _, _) -> Some(keywordRange, pats)
     | _ -> None
 
 let (|JoinIn|_|) =
