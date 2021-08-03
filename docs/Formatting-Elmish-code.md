@@ -1,6 +1,6 @@
 # Formatting Elmish style guide
 
-This guide explains the main reasoning of how Fantomas formats Elmish-style code.
+This guide explains the main reasoning of how Fantomas formats "Elmish" inspired code.
 
 ## Scope
 
@@ -14,9 +14,9 @@ To keep things focused, the scope is currently limited to the Fable.React and Fe
 
 ## Key concepts
 
-There are two active patterns for [`SynExpr`](https://fsharp.github.io/FSharp.Compiler.Service/reference/fsharp-compiler-syntaxtree-synexpr.html) that capture the shapes in the Elmish DSL.
+There are two active patterns for [SynExpr](https://fsharp.github.io/FSharp.Compiler.Service/reference/fsharp-compiler-syntaxtree-synexpr.html) that capture the shapes in the Elmish DSL.
 
-See the [source parser](../src/Fantomas/SourceParser.fs#:~:text=elmishreactwithoutchildren):
+See [SourceParser](../src/Fantomas/SourceParser.fs#:~:text=elmishreactwithoutchildren):
  
 ```fsharp
 let (|ElmishReactWithoutChildren|_|) e = ...
@@ -24,7 +24,7 @@ let (|ElmishReactWithoutChildren|_|) e = ...
 let (|ElmishReactWithChildren|_|) e = ...
 ````
 
-## `ElmishReactWithoutChildren`
+### ElmishReactWithoutChildren
 
 Captures unary tags like `<input />` or `<br />`.
 Translated in the F# DSL, they match a function that takes a single list as arguments.
@@ -47,11 +47,11 @@ myTag [ a1
 
 The tag and attributes will always align.
 
-### `felizExpression`
+#### Feliz
 
 Translated in the [Feliz DSL](https://zaid-ajaj.github.io/Feliz/#/Feliz/Syntax), tags with children also take a single list as arguments.
 
-When [`SingleArgumentWebMode`](./Documentation.md#fsharp_single_argument_web_mode) is `true`, props and children have one extra indent starting from the parent tag column.
+When [fsharp_single_argument_web_mode](./Documentation.md#fsharp_single_argument_web_mode) is `true`, props and children have one extra indent starting from the parent tag column.
 The opening bracket starts right after the tag, and the closing bracket matches the start column of the tag.
 
 ```fsharp
@@ -64,7 +64,7 @@ let myContainer =
     ]
 ```
 
-## `ElmishReactWithChildren`
+### ElmishReactWithChildren
 
 Captures the non-unary tags like `<p>...</p>` or `<div>...</div>`.
 Translated in the F# DSL, they match a function that takes two lists as arguments.
@@ -73,7 +73,7 @@ The first argument matches the same rules as the unary tag.
 The second argument starts its opening bracket right after the closing of the attributes.
 The closing bracket of the children matches the start column of the tag unless the entire expression is short.
 
-Like with `felizExpression`, children have one extra indent starting from the parent tag column.
+Like with `fsharp_single_argument_web_mode`, children have one extra indent starting from the parent tag column.
 
 
 ```fsharp
