@@ -536,7 +536,7 @@ let myInstance =
 ### fsharp_max_record_number_of_items
 
 Control the maximum number of fields for which records should be in one line.
-Default = 1. Requires `fsharp_array_or_list_multiline_formatter` to be
+Default = 1. Requires `fsharp_record_multiline_formatter` to be
 `number_of_items` to take effect.
 
 `defaultConfig`
