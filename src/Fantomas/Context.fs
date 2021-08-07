@@ -3,8 +3,8 @@ module Fantomas.Context
 open System
 open FSharp.Compiler.Text
 open FSharp.Compiler.Text.Range
-open FSharp.Compiler.Text.Pos
-open FSharp.Compiler.SyntaxTree
+open FSharp.Compiler.Text.Position
+open FSharp.Compiler.Syntax
 open Fantomas
 open Fantomas.FormatConfig
 open Fantomas.TriviaTypes
@@ -1177,8 +1177,7 @@ let internal printTriviaContent (c: TriviaContent) (ctx: Context) =
     | IdentOperatorAsWord _
     | IdentBetweenTicks _
     | CharContent _
-    | EmbeddedIL _
-    | KeywordString _ -> sepNone // don't print here but somewhere in CodePrinter
+    | EmbeddedIL _ -> sepNone // don't print here but somewhere in CodePrinter
     | Directive s
     | Comment (LineCommentOnSingleLine s) ->
         (ifElse addNewline sepNlnForTrivia sepNone)
@@ -1308,37 +1307,6 @@ let internal sepNlnConsideringTriviaContentBeforeForToken (fsTokenKey: FsTokenTy
 let internal sepNlnConsideringTriviaContentBeforeForMainNode (mainNode: FsAstType) (range: Range) =
     sepConsideringTriviaContentBeforeForMainNode sepNln mainNode range
 
-let internal sepNlnConsideringTriviaContentBeforeWithAttributesFor
-    (mainNode: FsAstType)
-    (ownRange: Range)
-    (attributeRanges: Range seq)
-    (ctx: Context)
-    =
-    let triviaNodeBeforeMain =
-        match Map.tryFind mainNode ctx.TriviaMainNodes with
-        | Some triviaNodes ->
-            List.exists
-                (fun { Range = r; ContentBefore = cb } ->
-                    hasPrintableContent cb
-                    && RangeHelpers.rangeEq r ownRange)
-                triviaNodes
-        | None -> false
-
-    let triviaNodeBeforeAttribute =
-        match Map.tryFind SynAttributeList_ ctx.TriviaMainNodes with
-        | Some attributeNodes ->
-            List.exists
-                (fun { Range = r; ContentBefore = cb } ->
-                    hasPrintableContent cb
-                    && Seq.exists (RangeHelpers.rangeEq r) attributeRanges)
-                attributeNodes
-        | None -> false
-
-    if triviaNodeBeforeMain || triviaNodeBeforeAttribute then
-        ctx
-    else
-        sepNln ctx
-
 let internal sepNlnForEmptyModule (mainNode: FsAstType) (moduleRange: Range) (ctx: Context) =
     match Map.tryFind mainNode ctx.TriviaMainNodes with
     | Some nodes ->
@@ -1366,7 +1334,7 @@ let internal sepNlnForEmptyNamespace (namespaceRange: Range) ctx =
     | _ -> sepNln ctx
 
 let internal sepNlnTypeAndMembers
-    (lastPositionBeforeMembers: Pos)
+    (lastPositionBeforeMembers: Position)
     (firstMemberRange: Range)
     (mainNodeType: FsAstType)
     (ctx: Context)
