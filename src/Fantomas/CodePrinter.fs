@@ -2042,9 +2042,9 @@ and genExpr astContext synExpr ctx =
                             +> tokN (arrowRange pats body) RARROW sepArrow
                             +> genExprKeepIndentInBranch astContext body
                             |> genTriviaFor SynExpr_Lambda lambdaRange
-                        | Choice2Of2 (cs, range) ->
-                            !- "function "
-                            +> leaveNodeTokenByName e.Range FUNCTION
+                        | Choice2Of2 (keywordRange, cs, range) ->
+                            (!- "function "
+                             |> genTriviaFor SynExpr_MatchLambda_Function keywordRange)
                             +> indent
                             +> sepNln
                             +> genClauses astContext cs
@@ -2071,12 +2071,12 @@ and genExpr astContext synExpr ctx =
                                 +> sepNln
                                 +> sepCloseTFor rpr pr
                                 |> genTriviaFor SynExpr_Paren pr
-                            | Choice2Of2 (cs, matchLambdaRange) ->
+                            | Choice2Of2 (keywordRange, cs, matchLambdaRange) ->
                                 sepOpenTFor lpr
                                 +> indent
                                 +> sepNln
-                                +> (!- "function "
-                                    +> leaveNodeTokenByName e.Range FUNCTION
+                                +> ((!- "function "
+                                     |> genTriviaFor SynExpr_MatchLambda_Function keywordRange)
                                     +> sepNln
                                     +> genClauses astContext cs
                                     |> genTriviaFor SynExpr_MatchLambda matchLambdaRange)
@@ -2091,10 +2091,10 @@ and genExpr astContext synExpr ctx =
                             +> (match lambda with
                                 | Choice1Of2 (pats, bodyExpr, range) ->
                                     genLambdaMultiLineClosingNewline astContext lpr pats bodyExpr range rpr pr
-                                | Choice2Of2 (cs, matchLambdaRange) ->
+                                | Choice2Of2 (keywordRange, cs, matchLambdaRange) ->
                                     (sepOpenTFor lpr
-                                     +> (!- "function "
-                                         +> leaveNodeTokenByName e.Range FUNCTION
+                                     +> ((!- "function "
+                                          |> genTriviaFor SynExpr_MatchLambda_Function keywordRange)
                                          +> sepNln
                                          +> genClauses astContext cs
                                          |> genTriviaFor SynExpr_MatchLambda matchLambdaRange)
@@ -2158,14 +2158,14 @@ and genExpr astContext synExpr ctx =
                         else
                             singleLine ctx
 
-                    | Choice2Of2 (cs, matchLambdaRange) ->
+                    | Choice2Of2 (keywordRange, cs, matchLambdaRange) ->
                         (genExpr astContext e
                          +> sepSpaceAfterFunctionName
                          +> col sepSpace es (genExpr astContext)
                          +> sepSpace
                          +> (sepOpenTFor lpr
-                             +> (!- "function "
-                                 +> leaveNodeTokenByName e.Range FUNCTION
+                             +> ((!- "function "
+                                  |> genTriviaFor SynExpr_MatchLambda_Function keywordRange)
                                  +> indent
                                  +> sepNln
                                  +> genClauses astContext cs
