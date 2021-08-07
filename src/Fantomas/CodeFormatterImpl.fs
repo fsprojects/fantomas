@@ -4,11 +4,13 @@ module Fantomas.CodeFormatterImpl
 open System
 open System.Diagnostics
 open System.Text.RegularExpressions
-open FSharp.Compiler.Text.Range
-open FSharp.Compiler.Text.Pos
-open FSharp.Compiler.SourceCodeServices
-open FSharp.Compiler.SyntaxTree
+open FSharp.Compiler.CodeAnalysis
+open FSharp.Compiler.Diagnostics
+open FSharp.Compiler.Syntax
 open FSharp.Compiler.Text
+open FSharp.Compiler.Text.Position
+open FSharp.Compiler.Text.Range
+open FSharp.Compiler.Tokenization
 open Fantomas
 open Fantomas.FormatConfig
 open Fantomas.SourceOrigin
@@ -74,7 +76,7 @@ let parse (checker: FSharpChecker) (parsingOptions: FSharpParsingOptions) { File
 
                 if untypedRes.ParseHadErrors then
                     let errors =
-                        untypedRes.Errors
+                        untypedRes.Diagnostics
                         |> Array.filter (fun e -> e.Severity = FSharpDiagnosticSeverity.Error)
 
                     if not <| Array.isEmpty errors then
@@ -83,14 +85,7 @@ let parse (checker: FSharpChecker) (parsingOptions: FSharpParsingOptions) { File
                             sprintf "Parsing failed with errors: %A\nAnd options: %A" errors parsingOptionsWithDefines
                         )
 
-                let tree =
-                    match untypedRes.ParseTree with
-                    | Some tree -> tree
-                    | None ->
-                        raise
-                        <| FormatException "Parsing failed. Please select a complete code fragment to format."
-
-                return (tree, conditionalCompilationDefines, defineHashTokens)
+                return (untypedRes.ParseTree, conditionalCompilationDefines, defineHashTokens)
             })
     |> Async.Parallel
 
@@ -103,7 +98,7 @@ let isValidAST ast =
 
     let (|IndexerArgList|) xs = List.collect (|IndexerArg|) xs
 
-    let rec validateImplFileInput (ParsedImplFileInput (_, moduleOrNamespaceList)) =
+    let rec validateImplFileInput (SourceParser.ParsedImplFileInput (_, moduleOrNamespaceList)) =
         List.forall validateModuleOrNamespace moduleOrNamespaceList
 
     and validateModuleOrNamespace (SynModuleOrNamespace (decls = decls)) = List.forall validateModuleDecl decls
@@ -123,7 +118,7 @@ let isValidAST ast =
         | SynModuleDecl.HashDirective _
         | SynModuleDecl.Open _ -> true
 
-    and validateTypeDefn (TypeDefn (_componentInfo, representation, members, _range)) =
+    and validateTypeDefn (SynTypeDefn (_componentInfo, representation, members, _implicitConstructor, _range)) =
         validateTypeDefnRepr representation
         && List.forall validateMemberDefn members
 
@@ -168,18 +163,18 @@ let isValidAST ast =
         | SynMemberDefn.ImplicitInherit (_, expr, _, _) -> validateExpr expr
 
     and validateBinding
-        (Binding (_access,
-                  _bindingKind,
-                  _isInline,
-                  _isMutable,
-                  _attrs,
-                  _xmldoc,
-                  _valData,
-                  headPat,
-                  _retTy,
-                  expr,
-                  _bindingRange,
-                  _seqPoint))
+        (SynBinding (_access,
+                     _bindingKind,
+                     _isInline,
+                     _isMutable,
+                     _attrs,
+                     _xmldoc,
+                     _valData,
+                     headPat,
+                     _retTy,
+                     expr,
+                     _bindingRange,
+                     _seqPoint))
         =
         validateExpr expr && validatePattern headPat
 
@@ -321,7 +316,7 @@ let isValidAST ast =
         | SynExpr.FromParseError (_synExpr, _range)
         | SynExpr.DiscardAfterMissingQualificationAfterDot (_synExpr, _range) -> false
         | SynExpr.Fixed _ -> true
-        | SynExpr.InterpolatedString (parts, _) ->
+        | SynExpr.InterpolatedString (parts, _, _) ->
             parts
             |> List.forall
                 (function
@@ -333,7 +328,8 @@ let isValidAST ast =
         | SynPat.Const (_const, _range) -> true
         | SynPat.Wild _
         | SynPat.Null _ -> true
-        | SynPat.Named (pat, _ident, _isThis, _accessOpt, _range) -> validatePattern pat
+        | SynPat.Named (_ident, _isThis, _accessOpt, _range) -> true
+        | SynPat.As (pat1, pat2, _) -> validatePattern pat1 && validatePattern pat2
         | SynPat.Typed (pat, _typ, _range) -> validatePattern pat
         | SynPat.Attrib (pat, _attrib, _range) -> validatePattern pat
         | SynPat.Or (pat1, pat2, _range) -> validatePattern pat1 && validatePattern pat2
@@ -598,7 +594,7 @@ let private formatRange
         let sel = sourceCode.[start..finish].TrimEnd('\r')
 
         if startWithMember sel then
-            (String.Join(String.Empty, "type T = ", Environment.NewLine, String(' ', startCol), sel), TypeMember)
+            (String.Join(String.Empty, "type T = ", Environment.NewLine, System.String(' ', startCol), sel), TypeMember)
         elif String.startsWithOrdinal "and" (sel.TrimStart()) then
             let p =
                 getPatch startCol lines.[..startLine - 1]
@@ -614,13 +610,13 @@ let private formatRange
             if startLine = endLine then
                 (pattern.Replace(sel, replacement, 1), p)
             else
-                (String(' ', startCol)
+                (System.String(' ', startCol)
                  + pattern.Replace(sel, replacement, 1),
                  p)
         elif startLine = endLine then
             (sel, Nothing)
         else
-            (String(' ', startCol) + sel, Nothing)
+            (System.String(' ', startCol) + sel, Nothing)
 
     let post =
         if finish < sourceCode.Length then
