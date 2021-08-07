@@ -1774,14 +1774,7 @@ let sendPushNotifications =
                 with
                 | :? WebPushException as wpex ->
                     log.LogError(sprintf "Couldn't send notification to %s, %A" user.UserId wpex)
-
-                    do!
-                        filterSubscriptionsAndPersist
-                            managementToken
-                            user.UserId
-                            subscriptions
-                            s.Origin
-                            s.Endpoint
+                    do! filterSubscriptionsAndPersist managementToken user.UserId subscriptions s.Origin s.Endpoint
             }
             :> Task)
         |> Task.WhenAll)

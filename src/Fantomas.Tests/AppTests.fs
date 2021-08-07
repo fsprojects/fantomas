@@ -735,7 +735,7 @@ module Foo =
                 | Ok (TestResult.Failure f) -> failwith ""
                 | Error e -> failwith ""
                 | _ -> () // hi!
-                ))
+            ))
 """
 
 [<Test>]
