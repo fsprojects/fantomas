@@ -2153,7 +2153,7 @@ and genExpr astContext synExpr ctx =
                                 |> genTriviaFor SynExpr_Paren pr)
                             +> unindent
 
-                        if exceedsWidth (ctx.Config.MaxLineLength - ctx.Column) singleLineTestExpr ctx then
+                        if futureNlnCheck singleLineTestExpr ctx then
                             multiLine ctx
                         else
                             singleLine ctx
