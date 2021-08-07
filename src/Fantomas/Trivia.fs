@@ -1,12 +1,12 @@
 module internal Fantomas.Trivia
 
-open FSharp.Compiler.SourceCodeServices
+open FSharp.Compiler.Text
+open FSharp.Compiler.Syntax
+open FSharp.Compiler.Tokenization
 open Fantomas
 open Fantomas.SourceParser
 open Fantomas.AstTransformer
 open Fantomas.TriviaTypes
-open FSharp.Compiler.Text
-open FSharp.Compiler.SyntaxTree
 
 let isMainNode (node: TriviaNode) =
     match node.Type with
@@ -152,7 +152,7 @@ let private findConstNumberNodeOnLineAndColumn (nodes: TriviaNodeAssigner list) 
             | MainNode SynConst_UserNum ->
                 constantRange.StartLine = tn.Range.StartLine
                 && constantRange.StartColumn = tn.Range.StartColumn
-            | MainNode EnumCase_ ->
+            | MainNode SynEnumCase_ ->
                 tn.Range.EndLine = constantRange.EndLine
                 && tn.Range.EndColumn = constantRange.EndColumn
             | _ -> false)
@@ -224,25 +224,6 @@ let private findParsedHashOnLineAndEndswith (triviaNodes: TriviaNodeAssigner lis
                 && t.Range.EndColumn >= endColumn
             | _ -> false)
 
-// Only return the attributeList when the trivia is under it and above the AST node of which the attribute is a child node.
-// f.ex.
-// [<Foo()>]
-// #if BAR
-// let meh = ()
-// The trivia '#if BAR' should be linked to the [<Foo()>] attribute
-//
-// The reason for this is that the range of the attribute is not part of the range of the parent binding.
-// This can lead to weird results when used in CodePrinter.
-let private triviaBetweenAttributeAndParentBinding (triviaNodes: TriviaNodeAssigner list) line =
-    triviaNodes
-    |> List.tryFind
-        (fun tn ->
-            match tn.AttributeLinesBetweenParent with
-            | Some linesBetween ->
-                linesBetween + tn.Range.EndLine >= line
-                && line > tn.Range.EndLine
-            | _ -> false)
-
 let private findASTNodeOfTypeThatContains (nodes: TriviaNodeAssigner list) typeName range =
     nodes
     |> List.filter
@@ -265,29 +246,21 @@ let private addAllTriviaAsContentAfter (trivia: Trivia list) (singleNode: Trivia
       ContentAfter = contentAfter }
     |> List.singleton
 
-let private addTriviaToTriviaNode
-    triviaBetweenAttributeAndParentBinding
-    (startOfSourceCode: int)
-    (triviaNodes: TriviaNodeAssigner list)
-    trivia
-    =
+let private addTriviaToTriviaNode (startOfSourceCode: int) (triviaNodes: TriviaNodeAssigner list) trivia =
     match trivia with
     | { Item = Comment (LineCommentOnSingleLine _ as comment)
         Range = range } ->
-        match triviaBetweenAttributeAndParentBinding triviaNodes range.StartLine with
-        | Some _ as node -> updateTriviaNode (fun tn -> tn.ContentAfter.Add(Comment(comment))) triviaNodes node
-        | None ->
-            let nodeAfterLine =
-                findFirstNodeAfterLine triviaNodes range.StartLine
+        let nodeAfterLine =
+            findFirstNodeAfterLine triviaNodes range.StartLine
 
-            match nodeAfterLine with
-            | Some _ ->
-                nodeAfterLine
-                |> updateTriviaNode (fun tn -> tn.ContentBefore.Add(Comment(comment))) triviaNodes
-            | None ->
-                // try and find a node above
-                findNodeBeforeLineFromStart triviaNodes range.StartLine
-                |> updateTriviaNode (fun tn -> tn.ContentAfter.Add(Comment(comment))) triviaNodes
+        match nodeAfterLine with
+        | Some _ ->
+            nodeAfterLine
+            |> updateTriviaNode (fun tn -> tn.ContentBefore.Add(Comment(comment))) triviaNodes
+        | None ->
+            // try and find a node above
+            findNodeBeforeLineFromStart triviaNodes range.StartLine
+            |> updateTriviaNode (fun tn -> tn.ContentAfter.Add(Comment(comment))) triviaNodes
 
     | { Item = Comment (BlockComment (comment, _, _))
         Range = range } ->
@@ -331,25 +304,18 @@ let private addTriviaToTriviaNode
 
     // Newlines are only relevant if they occur after the first line of source code
     | { Item = Newline; Range = range } when (range.StartLine > startOfSourceCode) ->
-        match triviaBetweenAttributeAndParentBinding triviaNodes range.StartLine with
-        | Some _ as node -> updateTriviaNode (fun tn -> tn.ContentAfter.Add(Newline)) triviaNodes node
-        | _ ->
-            let nodeAfterLine =
-                findFirstNodeAfterLine triviaNodes range.StartLine
+        let nodeAfterLine =
+            findFirstNodeAfterLine triviaNodes range.StartLine
 
-            match nodeAfterLine with
-            | Some _ ->
-                nodeAfterLine
-                |> updateTriviaNode (fun tn -> tn.ContentBefore.Add(Newline)) triviaNodes
-            | None ->
-                // try and find a node above
-                findNodeBeforeLineFromStart triviaNodes range.StartLine
-                |> updateTriviaNode (fun tn -> tn.ContentAfter.Add(Newline)) triviaNodes
+        match nodeAfterLine with
+        | Some _ ->
+            nodeAfterLine
+            |> updateTriviaNode (fun tn -> tn.ContentBefore.Add(Newline)) triviaNodes
+        | None ->
+            // try and find a node above
+            findNodeBeforeLineFromStart triviaNodes range.StartLine
+            |> updateTriviaNode (fun tn -> tn.ContentAfter.Add(Newline)) triviaNodes
 
-    | { Item = KeywordString _
-        Range = range } ->
-        findNodeForKeywordString triviaNodes range
-        |> updateTriviaNode (fun tn -> tn.ContentItself <- Some trivia.Item) triviaNodes
     | { Item = Keyword ({ Content = keyword } as kw)
         Range = range } when
         (keyword = "override"
@@ -421,21 +387,21 @@ let private addTriviaToTriviaNode
 
     | { Item = Directive dc as directive
         Range = range } ->
-        match triviaBetweenAttributeAndParentBinding triviaNodes range.StartLine with
-        | Some _ as node -> updateTriviaNode (fun tn -> tn.ContentAfter.Add(directive)) triviaNodes node
-        | _ ->
-            match findFirstNodeAfterLine triviaNodes range.StartLine with
-            | Some _ as node -> updateTriviaNode (fun tn -> tn.ContentBefore.Add(directive)) triviaNodes node
-            | None ->
-                let findNode nodes =
-                    findNodeBeforeLineFromStart nodes range.StartLine
+        let nodeAfterLine =
+            findFirstNodeAfterLine triviaNodes range.StartLine
 
-                findNode triviaNodes
-                |> updateTriviaNode
-                    (fun tn ->
-                        let directive = Directive dc
-                        tn.ContentAfter.Add(directive))
-                    triviaNodes
+        match nodeAfterLine with
+        | Some _ as node -> updateTriviaNode (fun tn -> tn.ContentBefore.Add(directive)) triviaNodes node
+        | None ->
+            let findNode nodes =
+                findNodeBeforeLineFromStart nodes range.StartLine
+
+            findNode triviaNodes
+            |> updateTriviaNode
+                (fun tn ->
+                    let directive = Directive dc
+                    tn.ContentAfter.Add(directive))
+                triviaNodes
 
     | { Item = StringContent _ as siNode
         Range = range } ->
@@ -506,15 +472,6 @@ let collectTrivia (mkRange: MkRange) tokens (ast: ParsedInput) =
 
         | ParsedInput.SigFile (ParsedSigFileInput.ParsedSigFileInput (_, _, _, _, mns)) -> sigAstToNode mns
 
-    let hasAnyAttributesWithLinesBetweenParent =
-        List.exists (fun (tn: TriviaNodeAssigner) -> Option.isSome tn.AttributeLinesBetweenParent) triviaNodesFromAST
-
-    let triviaBetweenAttributeAndParentBinding =
-        if hasAnyAttributesWithLinesBetweenParent then
-            triviaBetweenAttributeAndParentBinding
-        else
-            (fun _ _ -> None)
-
     let triviaNodesFromTokens =
         TokenParser.getTriviaNodesFromTokens mkRange tokens
 
@@ -536,10 +493,7 @@ let collectTrivia (mkRange: MkRange) tokens (ast: ParsedInput) =
         match ast, triviaNodes with
         | EmptyFile _, h :: _ -> addAllTriviaAsContentAfter trivias h
         | _ ->
-            List.fold
-                (addTriviaToTriviaNode triviaBetweenAttributeAndParentBinding startOfSourceCode)
-                triviaNodes
-                trivias
+            List.fold (addTriviaToTriviaNode startOfSourceCode) triviaNodes trivias
             |> List.choose
                 (fun tn ->
                     if triviaNodeIsNotEmpty tn then

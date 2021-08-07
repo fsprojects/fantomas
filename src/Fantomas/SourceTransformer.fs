@@ -1,6 +1,6 @@
 module internal Fantomas.SourceTransformer
 
-open FSharp.Compiler.SyntaxTree
+open FSharp.Compiler.Syntax
 open FSharp.Compiler.Text
 open Fantomas.Context
 open Fantomas.SourceParser
@@ -185,6 +185,7 @@ let synConstToFsAstType =
     | SynConst.Bytes _ -> SynConst_Bytes
     | SynConst.UInt16s _ -> SynConst_UInt16s
     | SynConst.Measure _ -> SynConst_Measure
+    | SynConst.SourceIdentifier _ -> SynConst_SourceIdentifier
 
 let rec synExprToFsAstType (expr: SynExpr) : FsAstType * Range =
     match expr with
@@ -209,11 +210,11 @@ let rec synExprToFsAstType (expr: SynExpr) : FsAstType * Range =
     | SynExpr.LetOrUse (_, _, bs, e, _) ->
         match bs with
         | [] -> synExprToFsAstType e
-        | SynBinding.Binding (kind = kind) as b :: _ ->
+        | SynBinding (kind = kind) as b :: _ ->
             match kind with
-            | SynBindingKind.StandaloneExpression -> StandaloneExpression_, b.RangeOfBindingAndRhs
-            | SynBindingKind.NormalBinding -> NormalBinding_, b.RangeOfBindingAndRhs
-            | SynBindingKind.DoBinding -> DoBinding_, b.RangeOfBindingAndRhs
+            | SynBindingKind.StandaloneExpression -> SynBindingKind_StandaloneExpression, b.RangeOfBindingWithRhs
+            | SynBindingKind.Normal -> SynBindingKind_Normal, b.RangeOfBindingWithRhs
+            | SynBindingKind.Do -> SynBindingKind_Do, b.RangeOfBindingWithRhs
     | SynExpr.TryWith _ -> SynExpr_TryWith, expr.Range
     | SynExpr.YieldOrReturnFrom _ -> SynExpr_YieldOrReturnFrom, expr.Range
     | SynExpr.While _ -> SynExpr_While, expr.Range
@@ -261,7 +262,7 @@ let rec synExprToFsAstType (expr: SynExpr) : FsAstType * Range =
 
 let synModuleSigDeclToFsAstType =
     function
-    | SynModuleSigDecl.Val _ -> ValSpfn_
+    | SynModuleSigDecl.Val _ -> SynValSig_
     | SynModuleSigDecl.Exception _ -> SynModuleSigDecl_Exception
     | SynModuleSigDecl.NestedModule _ -> SynModuleSigDecl_NestedModule
     | SynModuleSigDecl.Types _ -> SynModuleSigDecl_Types
@@ -270,8 +271,8 @@ let synModuleSigDeclToFsAstType =
     | SynModuleSigDecl.NamespaceFragment _ -> SynModuleSigDecl_NamespaceFragment
     | SynModuleSigDecl.ModuleAbbrev _ -> SynModuleSigDecl_ModuleAbbrev
 
-let synBindingToFsAstType (Binding (_, kind, _, _, _, _, _, _, _, _, _, _)) =
+let synBindingToFsAstType (SynBinding (_, kind, _, _, _, _, _, _, _, _, _, _)) =
     match kind with
-    | SynBindingKind.StandaloneExpression -> StandaloneExpression_
-    | SynBindingKind.NormalBinding -> NormalBinding_
-    | SynBindingKind.DoBinding -> DoBinding_
+    | SynBindingKind.StandaloneExpression -> SynBindingKind_StandaloneExpression
+    | SynBindingKind.Normal -> SynBindingKind_Normal
+    | SynBindingKind.Do -> SynBindingKind_Do

@@ -2,16 +2,17 @@ module internal Fantomas.TokenParser
 
 open System
 open System.Text
+open FSharp.Compiler.Syntax
+open FSharp.Compiler.Tokenization
 open Fantomas
 open Fantomas.TokenParserBoolExpr
 open Fantomas.TriviaTypes
-open FSharp.Compiler.SourceCodeServices
 
 let private whiteSpaceTag = 4
 let private lineCommentTag = 8
 let private commentTag = 3
 let private greaterTag = 160
-let private identTag = 191
+let private identTag = 192
 
 // workaround for cases where tokenizer dont output "delayed" part of operator after ">."
 // See https://github.com/fsharp/FSharp.Compiler.Service/issues/874
@@ -793,12 +794,6 @@ let rec private (|HashTokens|_|) (tokens: Token list) =
         | _ -> Some(head :: tokensFromSameLine, rest)
     | _ -> None
 
-let private (|KeywordString|_|) (token: Token) =
-    if token.TokenInfo.Tag = 192 then
-        Some token
-    else
-        None
-
 let private (|BlockCommentTokens|_|) (tokens: Token list) =
     let rec collectTokens (rest: Token list) (finalContinuation: Token list -> Token list) : Token list * Token list =
         match rest with
@@ -953,15 +948,6 @@ let rec private getTriviaFromTokensThemSelves
             |> List.prependItem foundTrivia
 
         getTriviaFromTokensThemSelves mkRange lastButOne lastToken rest info
-
-    | KeywordString ks :: rest ->
-        let range = getRangeBetween mkRange ks ks
-
-        let info =
-            Trivia.Create(KeywordString(ks.Content)) range
-            |> List.prependItem foundTrivia
-
-        getTriviaFromTokensThemSelves mkRange lastNonWhiteSpaceToken (Some ks) rest info
 
     | KeywordOrOperatorToken koo :: rest ->
         let range = getRangeBetween mkRange koo koo
