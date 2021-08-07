@@ -946,3 +946,45 @@ module Foo =
         [<RequiresExplicitTypeArguments>]
         static member doThing person = ()
 """
+
+[<Test>]
+let ``comment after attribute before let binding with return type`` () =
+    formatSourceString
+        false
+        """
+[<Foo>]
+// bar
+let add (a:  int) (  b : int) : int = a + b
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+[<Foo>]
+// bar
+let add (a: int) (b: int) : int = a + b
+"""
+
+[<Test>]
+let ``comment after attribute before value binding with return type`` () =
+    formatSourceString
+        false
+        """
+[<Foo>]
+// bar
+
+// bar again, cuz why not
+let x: int = 99
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+[<Foo>]
+// bar
+
+// bar again, cuz why not
+let x: int = 99
+"""

@@ -1,17 +1,17 @@
 module Fantomas.Tests.TestHelper
 
-open FsUnit
 open System
+open System.IO
+open NUnit.Framework
+open FsCheck
+open FsUnit
+open FSharp.Compiler.Text
+open FSharp.Compiler.CodeAnalysis
+open FSharp.Compiler.Syntax
+open FSharp.Compiler.Xml
 open Fantomas.FormatConfig
 open Fantomas
 open Fantomas.Extras
-open FSharp.Compiler.Text
-open FSharp.Compiler.SourceCodeServices
-open FSharp.Compiler.SyntaxTree
-open FSharp.Compiler.XmlDoc
-open NUnit.Framework
-open FsCheck
-open System.IO
 
 [<assembly: Parallelizable(ParallelScope.All)>]
 do ()
@@ -41,7 +41,7 @@ let private isValidAndHasNoWarnings fileName source parsingOptions =
                 let! untypedRes = sharedChecker.Value.ParseFile(fileName, sourceText, parsingOptionsWithDefines)
 
                 let errors =
-                    untypedRes.Errors
+                    untypedRes.Diagnostics
                     |> Array.filter (fun e -> not (List.contains e.Message safeToIgnoreWarnings))
                 // FSharpErrorInfo contains both Errors and Warnings
                 // https://fsharp.github.io/FSharp.Compiler.Service/reference/fsharp-compiler-sourcecodeservices-fsharperrorinfo.html
@@ -211,7 +211,7 @@ let toSynExprs (Input s) =
                                                           [],
                                                           [ SynModuleOrNamespace (_,
                                                                                   false,
-                                                                                  AnonModule,
+                                                                                  SynModuleOrNamespaceKind.AnonModule,
                                                                                   exprs,
                                                                                   _,
                                                                                   _,
@@ -251,8 +251,8 @@ let fromSynExpr expr =
                 [ SynModuleOrNamespace(
                       [ ident ],
                       false,
-                      AnonModule,
-                      [ SynModuleDecl.DoExpr(NoDebugPointAtDoBinding, expr, zero) ],
+                      SynModuleOrNamespaceKind.AnonModule,
+                      [ SynModuleDecl.DoExpr(DebugPointAtBinding.NoneAtDo, expr, zero) ],
                       PreXmlDoc.Empty,
                       [],
                       None,
