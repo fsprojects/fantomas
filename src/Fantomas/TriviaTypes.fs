@@ -1,7 +1,7 @@
 module Fantomas.TriviaTypes
 
-open FSharp.Compiler.SourceCodeServices
 open FSharp.Compiler.Text
+open FSharp.Compiler.Tokenization
 
 type FsTokenType =
     | AMP
@@ -78,7 +78,6 @@ let a = 7
 
 type TriviaContent =
     | Keyword of Token
-    | KeywordString of string
     | Number of string
     | StringContent of string
     | IdentOperatorAsWord of string
@@ -193,11 +192,12 @@ type FsAstType =
     | SynMemberSig_NestedType
     | SynIndexerArg_One
     | SynIndexerArg_Two
-    | SynMatchClause_Clause
+    | SynMatchClause_
     | ArgOptions_
-    | InterfaceImpl_
-    | TypeDefn_
-    | TypeDefnSig_
+    | SynInterfaceImpl_
+    | SynTypeDefn_
+    | SynTypeDefn_AfterAttributesBeforeComponentInfo
+    | SynTypeDefnSig_
     // | SynTypeDefnSigRepr_ObjectModel use first nested node
     | SynTypeDefnSigRepr_Exception
     | SynMemberDefn_Open
@@ -217,17 +217,21 @@ type FsAstType =
     | SynSimplePat_Attrib
     | SynSimplePats_SimplePats
     | SynSimplePats_Typed
-    | StandaloneExpression_
-    | NormalBinding_
-    | DoBinding_
+    | SynBindingKind_StandaloneExpression
+    | SynBindingKind_Normal
+    | SynBindingKind_Do
+    | SynBinding_AfterAttributes_BeforeHeadPattern
     | SynBindingReturnInfo_
-    | SynValTyparDecls_
-    | TyparDecl_
-    | Typar_
-    | ValSpfn_
+    | SynTyparDecls_PostfixList
+    | SynTyparDecls_SinglePrefix
+    | SynTyparDecls_PrefixList
+    | SynTyparDecl_
+    // | Typar_ , unused
+    | SynValSig_
     // | SynPat_Const, use SynConst instead
     | SynPat_Wild
     | SynPat_Named
+    | SynPat_As
     | SynPat_Typed
     | SynPat_Attrib
     // | SynPat_Or, use the inner patterns instead
@@ -265,23 +269,24 @@ type FsAstType =
     | SynConst_Bytes
     | SynConst_UInt16s
     | SynConst_Measure
-    | Pats_
-    | NamePatPairs_
-    | ComponentInfo_
+    | SynConst_SourceIdentifier
+    | SynArgPats_Pats
+    | SynArgPats_NamePatPairs
+    | SynComponentInfo_
     // | SynTypeDefnRepr_ObjectModel use first nested node
     // | SynTypeDefnRepr_Simple use first nested node
     | SynTypeDefnRepr_Exception
-    | SynTypeDefnKind_TyconUnspecified
-    | SynTypeDefnKind_TyconClass
-    | SynTypeDefnKind_TyconInterface
-    | SynTypeDefnKind_TyconStruct
-    | SynTypeDefnKind_TyconRecord
-    | SynTypeDefnKind_TyconUnion
-    | SynTypeDefnKind_TyconAbbrev
-    | SynTypeDefnKind_TyconHiddenRepr
-    | SynTypeDefnKind_TyconAugmentation
-    | SynTypeDefnKind_TyconILAssemblyCode
-    | SynTypeDefnKind_TyconDelegate
+    | SynTypeDefnKind_Unspecified
+    | SynTypeDefnKind_Class
+    | SynTypeDefnKind_Interface
+    | SynTypeDefnKind_Struct
+    | SynTypeDefnKind_Record
+    | SynTypeDefnKind_Union
+    | SynTypeDefnKind_Abbrev
+    | SynTypeDefnKind_Opaque
+    | SynTypeDefnKind_Augmentation
+    | SynTypeDefnKind_IL
+    | SynTypeDefnKind_Delegate
     | SynTypeDefnSimpleRepr_None
     | SynTypeDefnSimpleRepr_Union
     | SynTypeDefnSimpleRepr_Enum
@@ -294,11 +299,12 @@ type FsAstType =
     | SynExceptionDefnRepr_
     | SynAttribute_
     | SynAttributeList_
-    | UnionCase_
-    | UnionCaseFields_
-    | UnionCaseFullType_
-    | EnumCase_
-    | Field_
+    | SynUnionCase_
+    | SynUnionCaseKind_Fields
+    | SynUnionCaseKind_FullType
+    | SynEnumCase_
+    | SynField_
+    | SynField_AfterAttributesBeforeIdentifier
     | SynType_LongIdent
     | SynType_App
     | SynType_LongIdentApp
@@ -320,6 +326,8 @@ type FsAstType =
     | SynValInfo_
     | SynArgInfo_
     | ParsedHashDirective_
+    | ParsedHashDirectiveArgument_String
+    | ParsedHashDirectiveArgument_SourceIdentifier
     // Modules and namespaces cannot really be trusted
     // Their range can be influenced by non code constructs (like comments)
 //    | SynModuleOrNamespaceSig_AnonModule
@@ -352,10 +360,9 @@ type TriviaNode =
       ContentAfter: TriviaContent list
       Range: Range }
 
-type TriviaNodeAssigner(nodeType: TriviaNodeType, range: Range, ?linesBetweenParent: int) =
+type TriviaNodeAssigner(nodeType: TriviaNodeType, range: Range) =
     member this.Type = nodeType
     member this.Range = range
-    member this.AttributeLinesBetweenParent = linesBetweenParent
     member val ContentBefore = ResizeArray<TriviaContent>() with get, set
     member val ContentItself = Option<TriviaContent>.None with get, set
     member val ContentAfter = ResizeArray<TriviaContent>() with get, set
