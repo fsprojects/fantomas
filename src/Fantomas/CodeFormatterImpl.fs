@@ -559,7 +559,7 @@ let private formatRange
         let sel = sourceCode.[start..finish].TrimEnd('\r')
 
         if startWithMember sel then
-            (String.Join(String.Empty, "type T = ", Environment.NewLine, String(' ', startCol), sel), TypeMember)
+            (String.Join(String.Empty, "type T = ", Environment.NewLine, System.String(' ', startCol), sel), TypeMember)
         elif String.startsWithOrdinal "and" (sel.TrimStart()) then
             let p =
                 getPatch startCol lines.[..startLine - 1]
@@ -575,13 +575,13 @@ let private formatRange
             if startLine = endLine then
                 (pattern.Replace(sel, replacement, 1), p)
             else
-                (String(' ', startCol)
+                (System.String(' ', startCol)
                  + pattern.Replace(sel, replacement, 1),
                  p)
         elif startLine = endLine then
             (sel, Nothing)
         else
-            (String(' ', startCol) + sel, Nothing)
+            (System.String(' ', startCol) + sel, Nothing)
 
     let post =
         if finish < sourceCode.Length then
