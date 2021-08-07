@@ -1998,6 +1998,8 @@ and genExpr astContext synExpr ctx =
 
             fun ctx -> isShortExpression ctx.Config.MaxDotGetExpressionWidth short long ctx
 
+        // (*) (60. * 1.1515 * 1.609344)
+        // function is wrapped in parenthesis
         | AppParenArg (Choice1Of2 (Paren _, _, _, _, _, _) as app)
         | AppParenArg (Choice2Of2 (Paren _, _, _, _, _) as app) ->
             let short = genAppWithParenthesis app astContext
@@ -2023,6 +2025,122 @@ and genExpr astContext synExpr ctx =
                 genExpr astContext e
                 +> sepSpace
                 +> genMultilineFunctionApplicationArguments astContext px
+
+            expressionFitsOnRestOfLine short long
+
+        // functionName arg1 arg2 (fun x y z -> ...)
+        | AppWithLambda (e, es, lpr, lambda, rpr, pr) ->
+            let sepSpaceAfterFunctionName ctx =
+                match e with
+                | UppercaseSynExpr -> onlyIf ctx.Config.SpaceBeforeUppercaseInvocation sepSpace ctx
+                | LowercaseSynExpr -> onlyIf ctx.Config.SpaceBeforeLowercaseInvocation sepSpace ctx
+
+            let arrow (pats: SynPat list) (bodyExpr: SynExpr) (ctx: Context) =
+                let arrowRange =
+                    List.last pats
+                    |> fun lastPat -> ctx.MkRange lastPat.Range.End bodyExpr.Range.Start
+
+                triviaAfterArrow arrowRange ctx
+
+            let short =
+                genExpr astContext e
+                +> sepSpaceAfterFunctionName
+                +> col sepSpace es (genExpr astContext)
+                +> onlyIf (List.isNotEmpty es) sepSpace
+                +> (sepOpenTFor lpr
+                    +> (match lambda with
+                        | Choice1Of2 (pats, body, lambdaRange) ->
+                            !- "fun "
+                            +> col sepSpace pats (genPat astContext)
+                            +> arrow pats body
+                            +> (genExprKeepIndentInBranch astContext body
+                                |> genTriviaFor SynExpr_Lambda lambdaRange)
+                        | Choice2Of2 (cs, range) ->
+                            !- "function "
+                            +> leaveNodeTokenByName e.Range FUNCTION
+                            +> indent
+                            +> sepNln
+                            +> genClauses astContext cs
+                            +> unindent
+                            |> genTriviaFor SynExpr_MatchLambda range)
+                    +> sepCloseTFor rpr pr
+                    |> genTriviaFor SynExpr_Paren pr)
+
+            let long (ctx: Context) : Context =
+                if ctx.Config.MultiLineLambdaClosingNewline then
+                    let genArguments =
+                        match es with
+                        | [] ->
+                            match lambda with
+                            | Choice1Of2 (pats, bodyExpr, range) ->
+                                sepOpenTFor lpr
+                                +> (!- "fun "
+                                    +> col sepSpace pats (genPat astContext)
+                                    +> indent
+                                    +> arrow pats bodyExpr
+                                    +> autoNlnIfExpressionExceedsPageWidth (
+                                        genExprKeepIndentInBranch astContext bodyExpr
+                                    )
+                                    |> genTriviaFor SynExpr_Lambda range)
+                                +> unindent
+                                +> sepNln
+                                +> sepCloseTFor rpr pr
+                                |> genTriviaFor SynExpr_Paren pr
+                            | Choice2Of2 (cs, matchLambdaRange) ->
+                                sepOpenTFor lpr
+                                +> indent
+                                +> sepNln
+                                +> (!- "function "
+                                 +> leaveNodeTokenByName e.Range FUNCTION
+                                 +> sepNln
+                                 +> genClauses astContext cs
+                                 |> genTriviaFor SynExpr_MatchLambda matchLambdaRange)
+                                +> unindent
+                                +> sepNln
+                                +> sepCloseTFor rpr pr
+                                |> genTriviaFor SynExpr_Paren pr
+                                
+                        | es ->
+                            col sepNln es (genExpr astContext)
+                            +> sepNln
+                            +> (match lambda with
+                                | Choice1Of2 (pats, bodyExpr, range) ->
+                                    genLambdaMultiLineClosingNewline astContext lpr pats bodyExpr range rpr pr
+                                | Choice2Of2 (pats, range) -> sepNone)
+                            +> unindent
+
+                    (genExpr astContext e
+                     +> ifElse (List.isEmpty es) sepSpaceAfterFunctionName (indent +> sepNln)
+                     +> genArguments)
+                        ctx
+                else
+                    (genExpr astContext e
+                     +> sepSpaceAfterFunctionName
+                     +> col sepSpace es (genExpr astContext)
+                     +> sepSpace
+                     +> (sepOpenTFor lpr
+                         +> (match lambda with
+                             | Choice1Of2 (pats, body, lambdaRange) ->
+                                 (!- "fun "
+                                  +> col sepSpace pats (genPat astContext)
+                                  +> arrow pats body
+                                  +> indent
+                                  +> sepNln
+                                  +> genExprKeepIndentInBranch astContext body
+                                  |> genTriviaFor SynExpr_Lambda lambdaRange)
+                             | Choice2Of2 (cs, matchLambdaRange) ->
+                                 !- "function "
+                                 +> leaveNodeTokenByName e.Range FUNCTION
+                                 +> indent
+                                 +> sepNln
+                                 +> genClauses astContext cs
+                                 +> unindent
+                                 |> genTriviaFor SynExpr_MatchLambda matchLambdaRange)
+                         +> sepNlnWhenWriteBeforeNewlineNotEmpty id
+                         +> unindent
+                         +> sepCloseTFor rpr pr)
+                     |> genTriviaFor SynExpr_Paren pr)
+                        ctx
 
             expressionFitsOnRestOfLine short long
 
@@ -3180,6 +3298,7 @@ and genApp astContext e es ctx =
                         | _ -> genExpr astContext e)
 
             let argExpr =
+            // TODO: has single lambda should not be possible anymore
                 if hasMultipleArguments then
                     multipleArguments
                 else
@@ -3206,6 +3325,30 @@ and genApp astContext e es ctx =
         shortExpression ctx
     else
         expressionFitsOnRestOfLine shortExpression longExpression ctx
+
+and genLambdaMultiLineClosingNewline
+    (astContext: ASTContext)
+    (lpr: Range)
+    (pats: SynPat list)
+    (bodyExpr: SynExpr)
+    (lambdaRange: Range)
+    (rpr: Range option)
+    (pr: Range)
+    : Context -> Context =
+    let arrowRange (ctx: Context) =
+        List.last pats
+        |> fun lastPat -> ctx.MkRange lastPat.Range.End bodyExpr.Range.Start
+
+    leadingExpressionIsMultiline
+        (sepOpenTFor lpr -- "fun "
+         +> col sepSpace pats (genPat astContext)
+         +> indent
+         +> (fun ctx -> triviaAfterArrow (arrowRange ctx) ctx)
+         +> autoNlnIfExpressionExceedsPageWidth (genExprKeepIndentInBranch astContext bodyExpr)
+         +> unindent
+         |> genTriviaFor SynExpr_Lambda lambdaRange)
+        (fun isMultiline -> onlyIf isMultiline sepNln +> sepCloseTFor rpr pr)
+    |> genTriviaFor SynExpr_Paren pr
 
 and genAppWithTupledArgument (e, lpr, ts, tr, rpr, pr) astContext =
     let genTupleTrivia =

@@ -1275,6 +1275,21 @@ let (|Lambda|_|) =
         Some(pats, getLambdaBodyExpr body, range)
     | _ -> None
 
+let (|AppWithLambda|_|) (e: SynExpr) =
+    match e with
+    | App (e, es) ->
+        let rec visit (es: SynExpr list) (finalContinuation: SynExpr list -> SynExpr list) =
+            match es with
+            | [] -> None
+            | [ Paren (lpr, Lambda (pats, body, range), rpr, pr) ] ->
+                Some(e, finalContinuation [], lpr, (Choice1Of2(pats, body, range)), rpr, pr)
+            | [ Paren (lpr, (MatchLambda (pats) as me), rpr, pr) ] ->
+                Some(e, finalContinuation [], lpr, (Choice2Of2(pats, me.Range)), rpr, pr)
+            | h :: tail -> visit tail (fun leadingArguments -> h :: leadingArguments |> finalContinuation)
+
+        visit es id
+    | _ -> None
+
 // Type definitions
 
 let (|TDSREnum|TDSRUnion|TDSRRecord|TDSRNone|TDSRTypeAbbrev|TDSRException|) =
