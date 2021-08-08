@@ -1044,3 +1044,28 @@ let argExpr =
 
         ())
 """
+
+[<Test>]
+let ``multiline non lambda argument, match lambda`` () =
+    formatSourceString
+        false
+        """
+leadingExpressionIsMultiline (sepOpenTFor lpr -- "fun "
+                                +> pats
+                                +> genArrowWithTrivia
+                                    (genExprKeepIndentInBranch astContext bodyExpr)
+                                    arrowRange) (function | Ok _ -> true | Error _ -> false)
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+leadingExpressionIsMultiline
+    (sepOpenTFor lpr -- "fun "
+     +> pats
+     +> genArrowWithTrivia (genExprKeepIndentInBranch astContext bodyExpr) arrowRange)
+    (function
+     | Ok _ -> true
+     | Error _ -> false)
+"""

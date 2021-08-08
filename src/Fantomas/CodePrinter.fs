@@ -2159,23 +2159,56 @@ and genExpr astContext synExpr ctx =
                             singleLine ctx
 
                     | Choice2Of2 (keywordRange, cs, matchLambdaRange) ->
-                        (genExpr astContext e
-                         +> sepSpaceAfterFunctionName
-                         +> col sepSpace es (genExpr astContext)
-                         +> sepSpace
-                         +> (sepOpenTFor lpr
-                             +> ((!- "function "
-                                  |> genTriviaFor SynExpr_MatchLambda_Function keywordRange)
-                                 +> indent
-                                 +> sepNln
-                                 +> genClauses astContext cs
-                                 +> unindent
-                                 |> genTriviaFor SynExpr_MatchLambda matchLambdaRange)
-                             +> sepNlnWhenWriteBeforeNewlineNotEmpty id
-                             +> unindent
-                             +> sepCloseTFor rpr pr)
-                         |> genTriviaFor SynExpr_Paren pr)
-                            ctx
+                        let singleLineTestExpr =
+                            genExpr astContext e
+                            +> sepSpaceAfterFunctionName
+                            +> col sepSpace es (genExpr astContext)
+                            +> enterNodeFor SynExpr_Paren pr
+                            +> sepOpenTFor lpr
+                            +> enterNodeFor SynExpr_MatchLambda matchLambdaRange
+                            +> enterNodeFor SynExpr_MatchLambda_Function keywordRange
+                            +> !- "function "
+
+                        let singleLine =
+                            genExpr astContext e
+                            +> sepSpaceAfterFunctionName
+                            +> col sepSpace es (genExpr astContext)
+                            +> sepSpace
+                            +> (sepOpenTFor lpr
+                                +> ((!- "function "
+                                     |> genTriviaFor SynExpr_MatchLambda_Function keywordRange)
+                                    +> indent
+                                    +> sepNln
+                                    +> genClauses astContext cs
+                                    +> unindent
+                                    |> genTriviaFor SynExpr_MatchLambda matchLambdaRange)
+                                +> sepNlnWhenWriteBeforeNewlineNotEmpty id
+                                +> unindent
+                                +> sepCloseTFor rpr pr)
+                            |> genTriviaFor SynExpr_Paren pr
+
+                        let multiLine =
+                            genExpr astContext e
+                            +> indent
+                            +> sepNln
+                            +> col sepNln es (genExpr astContext)
+                            +> sepNln
+                            +> (sepOpenTFor lpr
+                                +> atCurrentColumn (
+                                    (!- "function "
+                                     |> genTriviaFor SynExpr_MatchLambda_Function keywordRange)
+                                    +> sepNln
+                                    +> genClauses astContext cs
+                                    |> genTriviaFor SynExpr_MatchLambda matchLambdaRange
+                                )
+                                +> sepCloseTFor rpr pr
+                                |> genTriviaFor SynExpr_Paren pr)
+                            +> unindent
+
+                        if futureNlnCheck singleLineTestExpr ctx then
+                            multiLine ctx
+                        else
+                            singleLine ctx
 
             expressionFitsOnRestOfLine short long
 
