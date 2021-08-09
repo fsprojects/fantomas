@@ -34,7 +34,7 @@ type Arguments =
             | Profile -> "Print performance profiling information."
             | Fsi _ -> "Read F# source from stdin as F# signatures."
             | Stdin -> "Read F# source from standard input."
-            | Stdout -> " Write the formatted source code to standard output."
+            | Stdout -> "Write the formatted source code to standard output."
             | Check ->
                 "Don't format files, just check if they have changed. Exits with 0 if it's formatted correctly, with 1 if some files need formatting and 99 if there was an internal error"
             | Version -> "Displays the version of Fantomas"
