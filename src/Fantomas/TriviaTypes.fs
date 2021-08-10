@@ -230,7 +230,7 @@ type FsAstType =
     | SynPat_Named
     | SynPat_Typed
     | SynPat_Attrib
-    | SynPat_Or
+    // | SynPat_Or, use the inner patterns instead
     | SynPat_Ands
     | SynPat_LongIdent
     | SynPat_Tuple
