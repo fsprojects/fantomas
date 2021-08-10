@@ -850,13 +850,12 @@ module private Ast =
                           yield! nodes
                           yield! (visitSynAttributeLists range attrs) ]
                         |> finalContinuation)
-            | SynPat.Or (synPat, synPat2, range) ->
+            | SynPat.Or (synPat, synPat2, _range) ->
                 let continuations: ((TriviaNodeAssigner list -> TriviaNodeAssigner list) -> TriviaNodeAssigner list) list =
                     [ visit synPat; visit synPat2 ]
 
                 let finalContinuation (nodes: TriviaNodeAssigner list list) : TriviaNodeAssigner list =
-                    mkNode SynPat_Or range :: (List.collect id nodes)
-                    |> finalContinuation
+                    List.collect id nodes |> finalContinuation
 
                 Continuation.sequence continuations finalContinuation
             | SynPat.Ands (pats, range) ->
