@@ -1,3 +1,7 @@
+#### 4.6.0-alpha-001
+
+* Update to FCS 40.0.1-preview.21352.5
+
 #### 4.5.9 - 11/2021
 
 * Fix Operator application to some literals doesn't preserve spacing. [#1979](https://github.com/fsprojects/fantomas/issues/1979)
