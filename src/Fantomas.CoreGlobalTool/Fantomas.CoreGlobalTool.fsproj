@@ -8,7 +8,7 @@
     <RollForward>Major</RollForward>
     <ToolCommandName>fantomas</ToolCommandName>
     <PackAsTool>True</PackAsTool>
-    <Version>4.5.7</Version>
+    <Version>4.6.0-alpha-001</Version>
     <AssemblyName>fantomas-tool</AssemblyName>
     <WarningsAsErrors>FS0025</WarningsAsErrors>
     <PackageLicenseFile>LICENSE.md</PackageLicenseFile>
