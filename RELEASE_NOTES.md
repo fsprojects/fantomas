@@ -1,3 +1,7 @@
+#### 4.6.0-alpha-001
+
+* Update to FCS 40.0.1-preview.21352.5
+
 #### 4.5.3 - 09/2021
 
 * Fix indented #if directive inside another non-indented #if directive drops significant whitespace. [#1866](https://github.com/fsprojects/fantomas/issues/1866)
