@@ -1,3 +1,7 @@
+#### 4.6.0-alpha-001
+
+* Update to FCS 40.0.1-preview.21352.5
+
 #### 4.5.5 - 10/2021
 
 * Improve: Provide more information when string merge failed. [#1904](https://github.com/fsprojects/fantomas/issues/1904)
