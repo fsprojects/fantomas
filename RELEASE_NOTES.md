@@ -1,3 +1,7 @@
+#### 4.6.0-alpha-001
+
+* Update to FCS 40.0.1-preview.21352.5
+
 #### 4.5.11 - 12/2021
 
 * Fix KeepIndentInBranch not being respected. [#2003](https://github.com/fsprojects/fantomas/issues/2003)
