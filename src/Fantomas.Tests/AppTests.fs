@@ -748,3 +748,18 @@ module Foo =
                         | _ -> () // hi!
                         ))
 """
+
+[<Test>]
+let ``comment after typeApp greater sign, 1861`` () =
+    formatSourceString
+        false
+        """
+x |> f<y> // some comment
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+x |> f<y> // some comment
+"""
