@@ -1,3 +1,10 @@
+#### 4.5.2 - 08/2021
+
+* Fix Dropped comment with function with type parameter. [#1861](https://github.com/fsprojects/fantomas/issues/1861)
+* Fix Comment dropped in a multi-option match. [#1855](https://github.com/fsprojects/fantomas/issues/1855)
+* Fix StackoverflowException when formatted long triple-quoted strings. [#1837](https://github.com/fsprojects/fantomas/issues/1837)
+* Fix Comment removed in match. [#1677](https://github.com/fsprojects/fantomas/issues/1677)
+
 #### 4.5.1 - 07/2021
 
 * Fix StackOverflow exceptions when collecting ColMultilineItem list. [#1839](https://github.com/fsprojects/fantomas/issues/1839)
