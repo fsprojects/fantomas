@@ -1,3 +1,7 @@
+#### 4.6.0-alpha-001
+
+* Update to FCS 40.0.1-preview.21352.5
+
 #### 4.5.4 - 10/2021
 
 * Fix Documentation contains reference to infix multiline formatter even though it's removed. [#1884](https://github.com/fsprojects/fantomas/issues/1884)
