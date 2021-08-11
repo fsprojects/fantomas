@@ -2352,7 +2352,7 @@ nameof (+) // gives '+'
 nameof op_Addition // gives 'op_Addition'
 
 type C<'TType> =
-    member _.TypeName = nameof<'TType>
+    member _.TypeName = nameof<'TType> // Nameof with a generic type parameter via 'nameof<>'
 
 /// Simplified version of EventStore's API
 [<Struct; IsByRefLike>]
