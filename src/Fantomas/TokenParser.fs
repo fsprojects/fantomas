@@ -157,8 +157,14 @@ let rec private getTokenizedHashes (sourceCode: string) : Token list =
                 (fun t ->
                     let info =
                         { t.TokenInfo with
-                              LeftColumn = t.TokenInfo.LeftColumn + hashContentLength
-                              RightColumn = t.TokenInfo.RightColumn + hashContentLength }
+                              LeftColumn =
+                                  t.TokenInfo.LeftColumn
+                                  + hashContentLength
+                                  + offset
+                              RightColumn =
+                                  t.TokenInfo.RightColumn
+                                  + hashContentLength
+                                  + offset }
 
                     { t with
                           LineNumber = lineNumber
