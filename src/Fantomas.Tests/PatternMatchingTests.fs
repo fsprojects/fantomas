@@ -1965,3 +1965,47 @@ let foo x =
     let y = x * x * (x + 1)
     x
 """
+
+[<Test>]
+let ``comment after multi-option match, 1855`` () =
+    formatSourceString
+        false
+        """
+match x with
+| "a" // still here
+| "b" // VANISHES
+| "c" -> "c"
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+match x with
+| "a" // still here
+| "b" // VANISHES
+| "c" -> "c"
+"""
+
+[<Test>]
+let ``comment after SynPat.Or in pattern match, 1677`` () =
+    formatSourceString
+        false
+        """
+match v with
+| x
+| y   // comment
+| z -> 42
+| _ -> 0
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+match v with
+| x
+| y // comment
+| z -> 42
+| _ -> 0
+"""

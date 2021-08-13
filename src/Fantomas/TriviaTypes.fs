@@ -24,7 +24,6 @@ type FsTokenType =
     | ELSE
     | EQUALS
     | FINALLY
-    | FUNCTION
     | GREATER
     | IF
     | IN
@@ -135,6 +134,7 @@ type FsAstType =
     // | SynExpr_CompExpr use first nested SynExpr
     | SynExpr_Lambda
     | SynExpr_MatchLambda
+    | SynExpr_MatchLambda_Function
     | SynExpr_Match
     | SynExpr_Do
     | SynExpr_Assert
@@ -230,7 +230,7 @@ type FsAstType =
     | SynPat_Named
     | SynPat_Typed
     | SynPat_Attrib
-    | SynPat_Or
+    // | SynPat_Or, use the inner patterns instead
     | SynPat_Ands
     | SynPat_LongIdent
     | SynPat_Tuple

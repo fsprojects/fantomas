@@ -383,7 +383,7 @@ module private rec Test =
 """
 
 [<Test>]
-let ``Implicit module should not be added to code`` () =
+let ``implicit module should not be added to code`` () =
     let fileName = "60Seconds.fsx"
 
     let sourceCode =

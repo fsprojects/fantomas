@@ -34,7 +34,7 @@ type Arguments =
             | Profile -> "Print performance profiling information."
             | Fsi _ -> "Read F# source from stdin as F# signatures."
             | Stdin -> "Read F# source from standard input."
-            | Stdout -> " Write the formatted source code to standard output."
+            | Stdout -> "Write the formatted source code to standard output."
             | Check ->
                 "Don't format files, just check if they have changed. Exits with 0 if it's formatted correctly, with 1 if some files need formatting and 99 if there was an internal error"
             | Version -> "Displays the version of Fantomas"
@@ -63,7 +63,7 @@ type InputPath =
 type OutputPath =
     | IO of string
     | StdOut
-    | Notknown
+    | NotKnown
 
 let isInExcludedDir (fullPath: string) =
     set [| "obj"
@@ -251,7 +251,7 @@ let main argv =
         else
             match results.TryGetResult <@ Arguments.Out @> with
             | Some output -> OutputPath.IO output
-            | None -> OutputPath.Notknown
+            | None -> OutputPath.NotKnown
 
     let inputPath =
         let maybeInput =
@@ -445,12 +445,12 @@ let main argv =
                 eprintfn "Input path is missing..."
                 exit 1
             | InputPath.File f, _ when (IgnoreFile.isIgnoredFile f) -> printfn "'%s' was ignored" f
-            | InputPath.Folder p1, OutputPath.Notknown -> processFolder p1 p1
-            | InputPath.File p1, OutputPath.Notknown -> processFile p1 p1
+            | InputPath.Folder p1, OutputPath.NotKnown -> processFolder p1 p1
+            | InputPath.File p1, OutputPath.NotKnown -> processFile p1 p1
             | InputPath.File p1, OutputPath.IO p2 -> processFile p1 p2
             | InputPath.Folder p1, OutputPath.IO p2 -> processFolder p1 p2
             | InputPath.StdIn s, OutputPath.IO p -> stringToFile s p FormatConfig.Default
-            | InputPath.StdIn s, OutputPath.Notknown
+            | InputPath.StdIn s, OutputPath.NotKnown
             | InputPath.StdIn s, OutputPath.StdOut -> stringToStdOut s FormatConfig.Default
             | InputPath.File p, OutputPath.StdOut -> fileToStdOut p
             | InputPath.Folder p, OutputPath.StdOut -> allFiles recurse p |> Seq.iter fileToStdOut
@@ -459,7 +459,7 @@ let main argv =
               | OutputPath.IO _) ->
                 eprintfn "--stdout and --out cannot be combined with multiple files."
                 exit 1
-            | InputPath.Multiple (files, folders), OutputPath.Notknown -> filesAndFolders files folders
+            | InputPath.Multiple (files, folders), OutputPath.NotKnown -> filesAndFolders files folders
         with
         | exn ->
             printfn "%s" exn.Message

@@ -10,12 +10,12 @@ open FsCheck
 
 let getDefineExprs source =
     String.normalizeNewLine source
-    |> TokenParser.getDefines
+    |> getDefines
     |> snd
     |> getDefineExprs
 
 [<Test>]
-let ``Get define exprs from complex statements`` () =
+let ``get define exprs from complex statements`` () =
     let source =
         """
 #if !(INTERACTIVE || !(FOO && BAR) || BUZZ)
@@ -39,7 +39,7 @@ let x = 1
         ))
 
 [<Test>]
-let ``Simple compiler directive - else expr`` () =
+let ``simple compiler directive - else expr`` () =
     let source =
         """
 #if A
@@ -218,7 +218,7 @@ type BoolExprGenerator =
             member x.Shrinker t = Seq.empty }
 
 [<Test>]
-let ``Hash if expression parsing property`` () =
+let ``hash if expression parsing property`` () =
     Check.One(
         { verboseConf with
               Arbitrary = [ typeof<BoolExprGenerator> ] },
@@ -231,7 +231,7 @@ let ``Hash if expression parsing property`` () =
     )
 
 [<Test>]
-let ``Hash if expression normalize property`` () =
+let ``hash if expression normalize property`` () =
     Check.One(
         { verboseConf with
               Arbitrary = [ typeof<BoolExprGenerator> ] },
@@ -259,7 +259,7 @@ let isSatisfiable e =
     | _ -> false
 
 [<Test>]
-let ``Hash ifs optimize defines property`` () =
+let ``hash ifs optimize defines property`` () =
     Check.One(
         { verboseConf with
               Arbitrary = [ typeof<BoolExprGenerator> ] },
@@ -293,7 +293,7 @@ let ``Hash ifs optimize defines property`` () =
     )
 
 [<Test>]
-let ``Hash ifs source format property`` () =
+let ``hash ifs source format property`` () =
     Check.One(
         { verboseConf with
               MaxTest = 100

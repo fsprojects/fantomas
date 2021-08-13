@@ -219,7 +219,7 @@ type MyLogInteface() =
 """
 
 [<Test>]
-let ``Interface with comment after equal`` () =
+let ``interface with comment after equal`` () =
     formatSourceString
         false
         """

@@ -634,7 +634,14 @@ let (|ConstUnitExpr|_|) =
 
 let (|TypeApp|_|) =
     function
-    | SynExpr.TypeApp (e, _, ts, _, _, _, _) -> Some(e, ts)
+    | SynExpr.TypeApp (e, _, ts, _, _, _, range) ->
+        let lessThanRange =
+            Range.mkRange range.FileName e.Range.End ts.Head.Range.Start
+
+        let greaterThanRange =
+            Range.mkRange range.FileName (Pos.mkPos range.EndLine (range.EndColumn - 1)) range.End
+
+        Some(e, lessThanRange, ts, greaterThanRange)
     | _ -> None
 
 let (|Match|_|) =
@@ -774,7 +781,7 @@ let (|AppSingleParenArg|_|) =
 
 let (|AppOrTypeApp|_|) e =
     match e with
-    | App (TypeApp (e, ts), es) -> Some(e, Some ts, es)
+    | App (TypeApp (e, lt, ts, gt), es) -> Some(e, Some(lt, ts, gt), es)
     | App (e, es) -> Some(e, None, es)
     | _ -> None
 
@@ -847,7 +854,7 @@ let (|TernaryApp|_|) =
 
 let (|MatchLambda|_|) =
     function
-    | SynExpr.MatchLambda (isMember, _, pats, _, _) -> Some(pats, isMember)
+    | SynExpr.MatchLambda (_, keywordRange, pats, _, _) -> Some(keywordRange, pats)
     | _ -> None
 
 let (|JoinIn|_|) =
@@ -1008,11 +1015,15 @@ let (|DotGetAppDotGetAppParenLambda|_|) (e: SynExpr) =
 /// Gather series of application for line breaking
 let rec (|DotGetApp|_|) =
     function
-    | SynExpr.App (_, _, DotGet (DotGetApp (e, es), s), e', _) -> Some(e, [ yield! es; yield (s, e', []) ])
-    | SynExpr.App (_, _, DotGet (e, s), e', _) -> Some(e, [ (s, e', []) ])
-    | SynExpr.App (_, _, SynExpr.TypeApp (DotGet (DotGetApp (e, es), s), _, ts, _, _, _, _), e', _) ->
-        Some(e, [ yield! es; yield (s, e', ts) ])
-    | SynExpr.App (_, _, SynExpr.TypeApp (DotGet (e, s), _, ts, _, _, _, _), e', _) -> Some(e, [ (s, e', ts) ])
+    | SynExpr.App (_, _, DotGet (DotGetApp (e, es), s), e', _) -> Some(e, [ yield! es; yield (s, e', None) ])
+    | SynExpr.App (_, _, DotGet (e, s), e', _) -> Some(e, [ (s, e', None) ])
+    | SynExpr.App (_, _, TypeApp (DotGet (DotGetApp (e, es), s), lt, ts, gt), e', _) ->
+        Some(
+            e,
+            [ yield! es
+              yield (s, e', Some(lt, ts, gt)) ]
+        )
+    | SynExpr.App (_, _, TypeApp (DotGet (e, s), lt, ts, gt), e', _) -> Some(e, [ (s, e', Some(lt, ts, gt)) ])
     | _ -> None
 
 let (|DotSet|_|) =

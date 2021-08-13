@@ -1,3 +1,18 @@
+#### 4.5.2 - 08/2021
+
+* Fix Dropped comment with function with type parameter. [#1861](https://github.com/fsprojects/fantomas/issues/1861)
+* Fix Comment dropped in a multi-option match. [#1855](https://github.com/fsprojects/fantomas/issues/1855)
+* Fix StackoverflowException when formatted long triple-quoted strings. [#1837](https://github.com/fsprojects/fantomas/issues/1837)
+* Fix Comment removed in match. [#1677](https://github.com/fsprojects/fantomas/issues/1677)
+
+#### 4.5.1 - 07/2021
+
+* Fix StackOverflow exceptions when collecting ColMultilineItem list. [#1839](https://github.com/fsprojects/fantomas/issues/1839)
+* Honor .fantomasignore file when processing a folder. [#1834](https://github.com/fsprojects/fantomas/pull/1834)
+* Fix Overly indented members on a record type with accessibility modifier. [#1824](https://github.com/fsprojects/fantomas/issues/1824)
+* Fix MultiLineLambdaClosingNewline not respected with function keyword. [#1823](https://github.com/fsprojects/fantomas/issues/1823)
+* Fix Comment is lost at the end of a match. [#1822](https://github.com/fsprojects/fantomas/issues/1822)
+
 #### 4.5.0 - 07/2021
 
 * Feature Always place bar in front of discriminated union. [#1750](https://github.com/fsprojects/fantomas/issues/1750)

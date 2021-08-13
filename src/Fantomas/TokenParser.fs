@@ -553,11 +553,26 @@ let private (|InterpStringEndOrPartToken|_|) token =
 let escapedCharacterRegex =
     System.Text.RegularExpressions.Regex("(\\\\(a|b|f|n|r|t|u|v|x|'|\\\"|\\\\))+")
 
-let rec private (|EndOfInterpolatedString|_|) tokens =
+let private (|MultipleStringTextTokens|_|) tokens =
+    let f _ =
+        function
+        | StringTextToken _ -> true
+        | _ -> false
+
+    tokens
+    |> List.partitionWhile f
+    |> fun (before, after) ->
+        if List.isEmpty before then
+            None
+        else
+            Some(before, after)
+
+let private (|EndOfInterpolatedString|_|) tokens =
     match tokens with
-    | StringTextToken stToken :: InterpStringEndOrPartToken endToken :: rest -> Some([ stToken ], endToken, rest)
-    | StringTextToken stToken :: EndOfInterpolatedString (stringTokens, endToken, rest) ->
-        Some(stToken :: stringTokens, endToken, rest)
+    | MultipleStringTextTokens (stringTokens, rest) ->
+        match rest with
+        | InterpStringEndOrPartToken endToken :: rest2 -> Some(stringTokens, endToken, rest2)
+        | _ -> None
     | _ -> None
 
 let private (|StringText|_|) tokens =
@@ -1185,7 +1200,6 @@ let private tokenNames =
       "WITH"
       "MEMBER"
       "AND_BANG"
-      "FUNCTION"
       "IN" ]
 
 let private tokenKinds = [ FSharpTokenCharKind.Operator ]
@@ -1212,7 +1226,6 @@ let internal getFsToken tokenName =
     | "ELSE" -> ELSE
     | "EQUALS" -> EQUALS
     | "FINALLY" -> FINALLY
-    | "FUNCTION" -> FUNCTION
     | "GREATER" -> GREATER
     | "IF" -> IF
     | "IN" -> IN

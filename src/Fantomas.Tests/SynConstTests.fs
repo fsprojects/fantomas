@@ -6,7 +6,7 @@ open Fantomas.Tests.TestHelper
 
 // https://fsharp.github.io/FSharp.Compiler.Service/reference/fsharp-compiler-ast-synconst.html
 [<Test>]
-let ``All known SynConst with trivia`` () =
+let ``all known SynConst with trivia`` () =
     formatSourceString
         false
         """

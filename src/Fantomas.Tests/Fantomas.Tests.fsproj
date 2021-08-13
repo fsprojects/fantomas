@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <Version>4.5.0</Version>
+    <Version>4.5.2</Version>
     <NoWarn>FS0988</NoWarn>
     <TargetFramework>net5.0</TargetFramework>
     <WarningsAsErrors>FS0025</WarningsAsErrors>
@@ -50,12 +50,12 @@
     <Compile Include="DynamicOperatorTests.fs" />
     <Compile Include="SynExprSetTests.fs" />
     <Compile Include="SynConstTests.fs" />
-    <Compile Include="FSharpScriptTests.fs" />
     <Compile Include="TupleTests.fs" />
     <Compile Include="ElmishTests.fs" />
     <Compile Include="LambdaTests.fs" />
     <Compile Include="IfThenElseTests.fs" />
     <Compile Include="FormatConfigEditorConfigurationFileTests.fs" />
+    <Compile Include="FSharpScriptTests.fs" />
     <Compile Include="CheckTests.fs" />
     <Compile Include="ContextTests.fs" />
     <Compile Include="SpaceBeforeSemicolonTests.fs" />

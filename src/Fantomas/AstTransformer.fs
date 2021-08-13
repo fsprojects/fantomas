@@ -207,9 +207,10 @@ module private Ast =
                           yield! visitSynSimplePats args
                           yield! nodes ]
                         |> finalContinuation)
-            | SynExpr.MatchLambda (_, _, matchClauses, _, range) ->
+            | SynExpr.MatchLambda (_, keywordRange, matchClauses, _, range) ->
                 mkNode SynExpr_MatchLambda range
-                :: (List.collect visitSynMatchClause matchClauses)
+                :: mkNode SynExpr_MatchLambda_Function keywordRange
+                   :: (List.collect visitSynMatchClause matchClauses)
                 |> finalContinuation
             | SynExpr.Match (_, expr, clauses, range) ->
                 visit
@@ -849,13 +850,12 @@ module private Ast =
                           yield! nodes
                           yield! (visitSynAttributeLists range attrs) ]
                         |> finalContinuation)
-            | SynPat.Or (synPat, synPat2, range) ->
+            | SynPat.Or (synPat, synPat2, _range) ->
                 let continuations: ((TriviaNodeAssigner list -> TriviaNodeAssigner list) -> TriviaNodeAssigner list) list =
                     [ visit synPat; visit synPat2 ]
 
                 let finalContinuation (nodes: TriviaNodeAssigner list list) : TriviaNodeAssigner list =
-                    mkNode SynPat_Or range :: (List.collect id nodes)
-                    |> finalContinuation
+                    List.collect id nodes |> finalContinuation
 
                 Continuation.sequence continuations finalContinuation
             | SynPat.Ands (pats, range) ->
