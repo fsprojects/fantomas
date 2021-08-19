@@ -2639,3 +2639,24 @@ let isUnix =
     |> fun p -> (p = 4) || (p = 6) || (p = 128)
 #endif
 """
+
+[<Test>]
+let ``indented #if directive inside another non-indented #if directive should format correctly, 1866`` () =
+    formatSourceString
+        false
+        """
+#if FOO
+    #if BAR
+    #endif
+#endif
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+#if FOO
+#if BAR
+#endif
+#endif
+"""
