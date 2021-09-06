@@ -29,7 +29,9 @@ type ASTContext =
       /// First type param might need extra spaces to avoid parsing errors on `<^`, `<'`, etc.
       IsFirstTypeParam: bool
       /// Inside a SynPat of MatchClause
-      IsInsideMatchClausePattern: bool }
+      IsInsideMatchClausePattern: bool
+      /// Is a call to base class constructor
+      IsBaseCtorCall: bool }
     static member Default =
         { IsFirstChild = false
           InterfaceRange = None
@@ -37,7 +39,8 @@ type ASTContext =
           IsNakedRange = false
           IsUnionField = false
           IsFirstTypeParam = false
-          IsInsideMatchClausePattern = false }
+          IsInsideMatchClausePattern = false
+          IsBaseCtorCall = false }
 
 let rec addSpaceBeforeParensInFunCall functionOrMethod arg (ctx: Context) =
     match functionOrMethod, arg with
@@ -917,8 +920,13 @@ and genTuple astContext es =
     let genShortExpr astContext e =
         addParenForTupleWhen (genExpr astContext) e
 
-    let shortExpression =
-        col sepComma es (genShortExpr astContext)
+    let sep =
+        if astContext.IsBaseCtorCall then
+            (sepComma +> sepNln)
+        else
+            sepComma
+
+    let shortExpression = col sep es (genShortExpr astContext)
 
     let longExpression =
         let containsLambdaOrMatchExpr =
@@ -1232,7 +1240,8 @@ and genExpr astContext synExpr ctx =
             +> genType astContext false t
             +> sepSpace
             +> genExpr astContext e
-        | Tuple (es, _) -> genTuple astContext es
+        | Tuple (es, _) ->          
+            genTuple astContext es
         | StructTuple es ->
             !- "struct "
             +> sepOpenT
@@ -1609,6 +1618,17 @@ and genExpr astContext synExpr ctx =
             | Sequential (_, LetOrUses _, _) ->
                 sepOpenTFor lpr
                 +> atCurrentColumn (genExpr astContext e)
+                +> sepCloseTFor rpr pr
+            | Tuple _ when astContext.IsBaseCtorCall ->
+                indent
+                +> sepNln
+                +> indent
+                +> sepOpenTFor lpr
+                +> sepNln
+                +> genExpr astContext e
+                +> unindent
+                +> sepNln
+                +> unindent
                 +> sepCloseTFor rpr pr
             | _ ->
                 sepOpenTFor lpr
@@ -2525,6 +2545,8 @@ and genExpr astContext synExpr ctx =
                 id)
 
     expr ctx
+
+and genExprInherit astContext synExpr ctx node = genExpr astContext synExpr ctx
 
 and genInfixOperator operatorText (operatorExpr: SynExpr) =
     (!-operatorText
@@ -4555,7 +4577,10 @@ and genMemberDefn astContext node =
         !- "inherit "
         +> genType astContext false t
         +> addSpaceBeforeClassConstructor e
-        +> genExpr astContext e
+        +> genExpr
+            { astContext with
+                  IsBaseCtorCall = true }
+            e
     | MDInherit (t, _) -> !- "inherit " +> genType astContext false t
     | MDValField f -> genField astContext "val " f
     | MDImplicitCtor (ats, ao, ps, so) ->
@@ -4566,7 +4591,7 @@ and genMemberDefn astContext node =
 
         let genCtor =
             let shortExpr =
-                optPre sepSpace sepSpace ao genAccess
+                optPre sepSpace sepSpace ao genAccess                
                 +> ((sepOpenT
                      +> col sepComma (simplePats ps) (genSimplePat astContext)
                      +> sepCloseT)
