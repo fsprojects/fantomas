@@ -15,21 +15,13 @@ let sepOpenTFor r = tokN r LPAREN sepOpenT
 let sepCloseTFor rpr pr =
     tokN (Option.defaultValue pr rpr) RPAREN sepCloseT
 
-let triviaAfterArrow (range: Range) (ctx: Context) =
-    let hasCommentAfterArrow =
-        findTriviaTokenFromName RARROW range ctx
-        |> Option.bind
-            (fun t ->
-                t.ContentAfter
-                |> List.tryFind
-                    (function
-                    | Comment (LineCommentAfterSourceCode _) -> true
-                    | _ -> false))
-        |> Option.isSome
-
-    ((tokN range RARROW sepArrow)
-     +> ifElse hasCommentAfterArrow sepNln sepNone)
-        ctx
+let genArrowWithTrivia (bodyExpr: Context -> Context) (range: Range) =
+    (tokN range RARROW sepArrow)
+    +> (fun ctx ->
+        if String.isNotNullOrEmpty ctx.WriterModel.WriteBeforeNewline then
+            (indent +> sepNln +> bodyExpr +> unindent) ctx
+        else
+            (autoIndentAndNlnIfExpressionExceedsPageWidth bodyExpr) ctx)
 
 let ``else if / elif`` (rangeOfIfThenElse: Range) (ctx: Context) =
     let keywords =
