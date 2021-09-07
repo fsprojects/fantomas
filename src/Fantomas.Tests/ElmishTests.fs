@@ -495,10 +495,9 @@ let viewEntry todo dispatch =
                 valueOrDefault todo.description
                 Name "title"
                 Id("todo-" + (string todo.id))
-                OnInput
-                    (fun ev ->
-                        UpdateEntry(todo.id, !!ev.target?value)
-                        |> dispatch)
+                OnInput (fun ev ->
+                    UpdateEntry(todo.id, !!ev.target?value)
+                    |> dispatch)
                 OnBlur(fun _ -> EditingEntry(todo.id, false) |> dispatch)
                 onEnter (EditingEntry(todo.id, false)) dispatch ]
     ]
@@ -829,25 +828,24 @@ module App
 open Feliz
 
 let counter =
-    React.functionComponent
-        (fun () ->
-            let (count, setCount) = React.useState (0)
+    React.functionComponent (fun () ->
+        let (count, setCount) = React.useState (0)
 
-            Html.div [
-                Html.button [
-                    prop.style [ style.marginRight 5 ]
-                    prop.onClick (fun _ -> setCount (count + 1))
-                    prop.text "Increment"
-                ]
+        Html.div [
+            Html.button [
+                prop.style [ style.marginRight 5 ]
+                prop.onClick (fun _ -> setCount (count + 1))
+                prop.text "Increment"
+            ]
 
-                Html.button [
-                    prop.style [ style.marginLeft 5 ]
-                    prop.onClick (fun _ -> setCount (count - 1))
-                    prop.text "Decrement"
-                ]
+            Html.button [
+                prop.style [ style.marginLeft 5 ]
+                prop.onClick (fun _ -> setCount (count - 1))
+                prop.text "Decrement"
+            ]
 
-                Html.h1 count
-            ])
+            Html.h1 count
+        ])
 
 open Browser.Dom
 
@@ -935,16 +933,15 @@ let drawer =
                 prop.className classes.toolbar
             ]
             props.Items
-            |> List.map
-                (fun s ->
-                    Mui.listItem [
-                        listItem.button true
-                        match state with
-                        | Some t when t = s -> listItem.selected true
-                        | _ -> listItem.selected false
-                        prop.text s
-                        prop.onClick (fun _ -> s |> MenuItemClick |> dispatch)
-                    ])
+            |> List.map (fun s ->
+                Mui.listItem [
+                    listItem.button true
+                    match state with
+                    | Some t when t = s -> listItem.selected true
+                    | _ -> listItem.selected false
+                    prop.text s
+                    prop.onClick (fun _ -> s |> MenuItemClick |> dispatch)
+                ])
             |> Mui.list
         ]
     ]
@@ -1009,24 +1006,22 @@ let private useLocationDetail (auth0 : Auth0Hook) (roles : RolesHook) id =
                 && not (String.IsNullOrWhiteSpace(location.Creator))
             then
                 auth0.getAccessTokenSilently ()
-                |> Promise.bind
-                    (fun authToken ->
-                        let url =
-                            sprintf "%s/users/%s" Common.backendUrl (location.Creator)
+                |> Promise.bind (fun authToken ->
+                    let url =
+                        sprintf "%s/users/%s" Common.backendUrl (location.Creator)
 
-                        fetch
-                            url
-                            [ requestHeaders [ HttpRequestHeaders.ContentType "application/json"
-                                               Common.authHeader authToken
-                                               Common.subscriptionHeader ] ])
+                    fetch
+                        url
+                        [ requestHeaders [ HttpRequestHeaders.ContentType "application/json"
+                                           Common.authHeader authToken
+                                           Common.subscriptionHeader ] ])
                 |> Promise.bind (fun res -> res.text ())
-                |> Promise.iter
-                    (fun json ->
-                        let usersResult = Decode.fromString nameDecoder json
+                |> Promise.iter (fun json ->
+                    let usersResult = Decode.fromString nameDecoder json
 
-                        match usersResult with
-                        | Ok name -> setCreatorName (Some name)
-                        | Error err -> JS.console.log err)),
+                    match usersResult with
+                    | Ok name -> setCreatorName (Some name)
+                    | Error err -> JS.console.log err)),
         [| box roles.Roles
            box location.Creator |]
     )
