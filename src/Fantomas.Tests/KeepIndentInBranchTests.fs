@@ -602,14 +602,13 @@ let foo =
         """
 let foo =
     bar
-    |> List.filter
-        (fun i ->
-            if false then
-                false
-            else
+    |> List.filter (fun i ->
+        if false then
+            false
+        else
 
-            let m = quux
-            quux.Success && somethingElse)
+        let m = quux
+        quux.Success && somethingElse)
 """
 
 [<Test>]
@@ -635,14 +634,13 @@ let foo =
         """
 let foo =
     bar
-    |> List.filter
-        (fun { Index = i } ->
-            if false then
-                false
-            else
+    |> List.filter (fun { Index = i } ->
+        if false then
+            false
+        else
 
-            let m = quux
-            quux.Success && somethingElse)
+        let m = quux
+        quux.Success && somethingElse)
 """
 
 [<Test>]
@@ -679,29 +677,27 @@ lock lockingObj (fun () ->
     |> should
         equal
         """
-lock
-    lockingObj
-    (fun () ->
-        if not thing then printfn ""
+lock lockingObj (fun () ->
+    if not thing then printfn ""
 
-        match error with
-        | Some error ->
-            if foo then ()
-            thing ()
-            false
-        | None ->
+    match error with
+    | Some error ->
+        if foo then ()
+        thing ()
+        false
+    | None ->
 
-        match list1, list2, list3 with
-        | [], [], [] ->
-            stuff ()
-            true
-        | [], [], _ ->
-            moreStuff ()
-            true
-        | _ ->
+    match list1, list2, list3 with
+    | [], [], [] ->
+        stuff ()
+        true
+    | [], [], _ ->
+        moreStuff ()
+        true
+    | _ ->
 
-        doMoreThings ()
-        false)
+    doMoreThings ()
+    false)
 """
 
 [<Test>]
