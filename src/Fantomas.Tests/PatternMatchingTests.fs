@@ -902,17 +902,16 @@ List.tryFind(fun { Type = t; Range = r }  ->
     |> should
         equal
         """
-List.tryFind
-    (fun { Type = t; Range = r } ->
-        match t with
-        | MainNode SynMemberDefn_Member
-        | MainNode SynMemberSig_Member -> // trying to get AST trivia
-            RangeHelpers.``range contains`` r rangeOfBindingAndRhs
+List.tryFind (fun { Type = t; Range = r } ->
+    match t with
+    | MainNode SynMemberDefn_Member
+    | MainNode SynMemberSig_Member -> // trying to get AST trivia
+        RangeHelpers.``range contains`` r rangeOfBindingAndRhs
 
-        | Token (MEMBER, _) -> // trying to get token trivia
-            r.StartLine = rangeOfBindingAndRhs.StartLine
+    | Token (MEMBER, _) -> // trying to get token trivia
+        r.StartLine = rangeOfBindingAndRhs.StartLine
 
-        | _ -> false)
+    | _ -> false)
 """
 
 [<Test>]
@@ -938,8 +937,7 @@ Seq.takeWhile
     |> should
         equal
         """
-Seq.takeWhile
-    (function
+Seq.takeWhile (function
     | Write ""
     // for example:
     // type Foo =

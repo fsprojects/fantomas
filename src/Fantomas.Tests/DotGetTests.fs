@@ -443,17 +443,15 @@ let getColl2 =
         .ToString()
 
 let getColl3 =
-    GetCollection
-        (fun _ parser ->
-            let x = 3
-            x)
+    GetCollection (fun _ parser ->
+        let x = 3
+        x)
         .Foo
 
 let getColl4 =
-    GetCollection
-        (fun parser ->
-            let x = 4
-            x)
+    GetCollection (fun parser ->
+        let x = 4
+        x)
         .Foo
 """
 

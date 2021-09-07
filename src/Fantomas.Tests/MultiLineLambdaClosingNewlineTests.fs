@@ -1011,3 +1011,29 @@ configuration
     .Debug()
     .WriteTo.Logger(fun x -> x * x)
 """
+
+[<Test>]
+let ``match lambda with other arguments`` () =
+    formatSourceString
+        false
+        """
+let a =
+    Something.foo
+        bar
+        meh
+        (function | Ok x -> true | Error err -> false)
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let a =
+    Something.foo
+        bar
+        meh
+        (function
+        | Ok x -> true
+        | Error err -> false
+        )
+"""

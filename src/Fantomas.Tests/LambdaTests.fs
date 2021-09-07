@@ -18,10 +18,8 @@ let ``keep comment after arrow`` () =
     |> should
         equal
         """
-_Target
-  "FSharpTypesDotNet"
-  (fun _ -> // obsolete
-    ())
+_Target "FSharpTypesDotNet" (fun _ -> // obsolete
+  ())
 """
 
 let ``indent multiline lambda in parenthesis, 523`` () =
@@ -118,10 +116,9 @@ let a =
         """
 let a =
     b
-    |> List.exists
-        (fun p ->
-            x
-            && someVeryLongIdentifierrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrzzzz___________)
+    |> List.exists (fun p ->
+        x
+        && someVeryLongIdentifierrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrzzzz___________)
 """
 
 [<Test>]
@@ -143,15 +140,13 @@ Target.create "Clean" (fun _ ->
     |> should
         equal
         """
-Target.create
-    "Clean"
-    (fun _ ->
-        [ "bin"
-          "src/Fantomas/bin"
-          "src/Fantomas/obj"
-          "src/Fantomas.CoreGlobalTool/bin"
-          "src/Fantomas.CoreGlobalTool/obj" ]
-        |> List.iter Shell.cleanDir)
+Target.create "Clean" (fun _ ->
+    [ "bin"
+      "src/Fantomas/bin"
+      "src/Fantomas/obj"
+      "src/Fantomas.CoreGlobalTool/bin"
+      "src/Fantomas.CoreGlobalTool/obj" ]
+    |> List.iter Shell.cleanDir)
 """
 
 [<Test>]
@@ -170,12 +165,11 @@ List.filter (fun ({ ContentBefore = contentBefore }) ->
     |> should
         equal
         """
-List.filter
-    (fun ({ ContentBefore = contentBefore }) ->
-        // some comment
-        let a = 8
-        let b = List.length contentBefore
-        a + b)
+List.filter (fun ({ ContentBefore = contentBefore }) ->
+    // some comment
+    let a = 8
+    let b = List.length contentBefore
+    a + b)
 """
 
 [<Test>]
@@ -218,10 +212,9 @@ foo (fun a ->
     |> should
         equal
         """
-foo
-    (fun a ->
-        let b = 8
-        b)
+foo (fun a ->
+    let b = 8
+    b)
 """
 
 [<Test>]
@@ -239,10 +232,9 @@ let ``short ident in nested let binding`` () =
         equal
         """
 let a =
-  foo
-    (fun a ->
-      let b = 8
-      b)
+  foo (fun a ->
+    let b = 8
+    b)
 """
 
 [<Test>]
@@ -260,10 +252,9 @@ let ``longer ident in nested let binding`` () =
         equal
         """
 let a =
-    foobar
-        (fun a ->
-            let b = 8
-            b)
+    foobar (fun a ->
+        let b = 8
+        b)
 """
 
 [<Test>]
@@ -326,17 +317,16 @@ CloudStorageAccount.SetConfigurationSettingPublisher(fun configName configSettin
     |> should
         equal
         """
-CloudStorageAccount.SetConfigurationSettingPublisher
-    (fun configName configSettingPublisher ->
-        let connectionString =
-            if hostedService then
-                RoleEnvironment.GetConfigurationSettingValue(configName)
-            else
-                ConfigurationManager.ConnectionStrings.[configName]
-                    .ConnectionString
+CloudStorageAccount.SetConfigurationSettingPublisher (fun configName configSettingPublisher ->
+    let connectionString =
+        if hostedService then
+            RoleEnvironment.GetConfigurationSettingValue(configName)
+        else
+            ConfigurationManager.ConnectionStrings.[configName]
+                .ConnectionString
 
-        configSettingPublisher.Invoke(connectionString)
-        |> ignore)
+    configSettingPublisher.Invoke(connectionString)
+    |> ignore)
 """
 
 [<Test>]
@@ -374,15 +364,14 @@ let genMemberFlagsForMemberBinding astContext (mf: MemberFlags) (rangeOfBindingA
             (fun (ctx: Context) -> // trying to get AST trivia
 
                 ctx.Trivia
-                |> List.tryFind
-                    (fun { Type = t; Range = r } -> // trying to get token trivia
+                |> List.tryFind (fun { Type = t; Range = r } -> // trying to get token trivia
 
-                        match t with
-                        | MainNode "SynMemberDefn.Member" -> RangeHelpers.``range contains`` r rangeOfBindingAndRhs
+                    match t with
+                    | MainNode "SynMemberDefn.Member" -> RangeHelpers.``range contains`` r rangeOfBindingAndRhs
 
-                        | Token { TokenInfo = { TokenName = "MEMBER" } } -> r.StartLine = rangeOfBindingAndRhs.StartLine
+                    | Token { TokenInfo = { TokenName = "MEMBER" } } -> r.StartLine = rangeOfBindingAndRhs.StartLine
 
-                        | _ -> false)
+                    | _ -> false)
                 |> Option.defaultValue (!- "override ")
                 <| ctx)
         <| ctx
@@ -402,10 +391,9 @@ List.tryFind (fun { Type = t; Range = r } -> // foo
     |> should
         equal
         """
-List.tryFind
-    (fun { Type = t; Range = r } -> // foo
-        let a = 8
-        a + 9)
+List.tryFind (fun { Type = t; Range = r } -> // foo
+    let a = 8
+    a + 9)
 """
 
 [<Test>]
@@ -493,15 +481,14 @@ let ``don't duplicate new line before LongIdentSet`` () =
         equal
         """
 let options =
-    jsOptions<Vis.Options>
-        (fun o ->
-            let layout =
-                match opts.Layout with
-                | Graph.Free -> createObj []
-                | Graph.HierarchicalLeftRight -> createObj [ "hierarchical" ==> hierOpts "LR" ]
-                | Graph.HierarchicalUpDown -> createObj [ "hierarchical" ==> hierOpts "UD" ]
+    jsOptions<Vis.Options> (fun o ->
+        let layout =
+            match opts.Layout with
+            | Graph.Free -> createObj []
+            | Graph.HierarchicalLeftRight -> createObj [ "hierarchical" ==> hierOpts "LR" ]
+            | Graph.HierarchicalUpDown -> createObj [ "hierarchical" ==> hierOpts "UD" ]
 
-            o.layout <- Some layout)
+        o.layout <- Some layout)
 """
 
 [<Test>]
@@ -561,12 +548,9 @@ Target.create "Install" (fun _ ->
     |> should
         equal
         """
-Target.create
-    "Install"
-    (fun _ ->
-        Yarn.install (fun o -> { o with WorkingDirectory = clientDir })
-        // Paket restore will already happen when the build.fsx dependencies are restored
-        )
+Target.create "Install" (fun _ -> Yarn.install (fun o -> { o with WorkingDirectory = clientDir })
+// Paket restore will already happen when the build.fsx dependencies are restored
+)
 """
 
 [<Test>]
@@ -584,12 +568,9 @@ Target.create "Install" (fun x ->
     |> should
         equal
         """
-Target.create
-    "Install"
-    (fun x ->
-        Yarn.install (fun o -> { o with WorkingDirectory = clientDir })
-        // Paket restore will already happen when the build.fsx dependencies are restored
-        )
+Target.create "Install" (fun x -> Yarn.install (fun o -> { o with WorkingDirectory = clientDir })
+// Paket restore will already happen when the build.fsx dependencies are restored
+)
 """
 
 [<Test>]
@@ -760,10 +741,9 @@ services.AddHttpsRedirection(Action<HttpsRedirectionOptions>(fun options ->
         equal
         """
 services.AddHttpsRedirection(
-    Action<HttpsRedirectionOptions>
-        (fun options ->
-            // meh
-            options.HttpsPort <- Nullable(7002))
+    Action<HttpsRedirectionOptions> (fun options ->
+        // meh
+        options.HttpsPort <- Nullable(7002))
 )
 |> ignore
 """
@@ -955,4 +935,137 @@ module Foo =
         { Foo =
               blah
               |> Struct.map (fun _ (a, _, _) -> filterBackings a) }
+"""
+
+[<Test>]
+let ``multiline SynExpr.MatchLambda`` () =
+    formatSourceString
+        false
+        """
+module Foo =
+    let bar =
+        []
+        |> List.choose
+            (function
+             | _ -> "")
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+module Foo =
+    let bar =
+        []
+        |> List.choose (function
+            | _ -> "")
+"""
+
+[<Test>]
+let ``long function application ending in with lambda argument`` () =
+    formatSourceString
+        false
+        """
+let foobar =
+    someFunctionName aFirstLongArgument aSecondLongArgument aThirdLongArgument aFourthLongArgument (fun finallyThatLambdaArgument ->
+        aFirstLongArgument +  aSecondLongArgument -  aThirdLongArgument -  aFourthLongArgument + finallyThatLambdaArgument)
+
+let somethingElse = ()
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let foobar =
+    someFunctionName
+        aFirstLongArgument
+        aSecondLongArgument
+        aThirdLongArgument
+        aFourthLongArgument
+        (fun finallyThatLambdaArgument ->
+            aFirstLongArgument + aSecondLongArgument
+            - aThirdLongArgument
+            - aFourthLongArgument
+            + finallyThatLambdaArgument)
+
+let somethingElse = ()
+"""
+
+[<Test>]
+let ``multiline non lambda argument`` () =
+    formatSourceString
+        false
+        """
+let argExpr =
+    col sepNln es (fun e ->
+        let genLambda
+            (pats: Context -> Context)
+            (bodyExpr: SynExpr)
+            (lpr: Range)
+            (rpr: Range option)
+            (arrowRange: Range)
+            (pr: Range)
+            : Context -> Context =
+            leadingExpressionIsMultiline (sepOpenTFor lpr -- "fun "
+                                            +> pats
+                                            +> genArrowWithTrivia
+                                                (genExprKeepIndentInBranch astContext bodyExpr)
+                                                arrowRange) (fun isMultiline ->
+                onlyIf isMultiline sepNln
+                +> sepCloseTFor rpr e.Range)
+            |> genTriviaFor SynExpr_Paren pr
+        ()
+    )
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let argExpr =
+    col sepNln es (fun e ->
+        let genLambda
+            (pats: Context -> Context)
+            (bodyExpr: SynExpr)
+            (lpr: Range)
+            (rpr: Range option)
+            (arrowRange: Range)
+            (pr: Range)
+            : Context -> Context =
+            leadingExpressionIsMultiline
+                (sepOpenTFor lpr -- "fun "
+                 +> pats
+                 +> genArrowWithTrivia (genExprKeepIndentInBranch astContext bodyExpr) arrowRange)
+                (fun isMultiline ->
+                    onlyIf isMultiline sepNln
+                    +> sepCloseTFor rpr e.Range)
+            |> genTriviaFor SynExpr_Paren pr
+
+        ())
+"""
+
+[<Test>]
+let ``multiline non lambda argument, match lambda`` () =
+    formatSourceString
+        false
+        """
+leadingExpressionIsMultiline (sepOpenTFor lpr -- "fun "
+                                +> pats
+                                +> genArrowWithTrivia
+                                    (genExprKeepIndentInBranch astContext bodyExpr)
+                                    arrowRange) (function | Ok _ -> true | Error _ -> false)
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+leadingExpressionIsMultiline
+    (sepOpenTFor lpr -- "fun "
+     +> pats
+     +> genArrowWithTrivia (genExprKeepIndentInBranch astContext bodyExpr) arrowRange)
+    (function
+     | Ok _ -> true
+     | Error _ -> false)
 """
