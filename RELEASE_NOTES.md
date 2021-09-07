@@ -1,3 +1,7 @@
+#### 4.6.0-alpha-002
+
+* Fix Update style of lambda argument. [#1871](https://github.com/fsprojects/fantomas/issues/1871)
+
 #### 4.6.0-alpha-001
 
 * Update to FCS 40.0.1-preview.21352.5
