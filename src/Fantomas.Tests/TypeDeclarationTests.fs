@@ -748,17 +748,16 @@ type BlobHelper(Account : CloudStorageAccount) =
         """
 type BlobHelper(Account: CloudStorageAccount) =
     new(configurationSettingName, hostedService) =
-        CloudStorageAccount.SetConfigurationSettingPublisher
-            (fun configName configSettingPublisher ->
-                let connectionString =
-                    if hostedService then
-                        RoleEnvironment.GetConfigurationSettingValue(configName)
-                    else
-                        ConfigurationManager.ConnectionStrings.[configName]
-                            .ConnectionString
+        CloudStorageAccount.SetConfigurationSettingPublisher (fun configName configSettingPublisher ->
+            let connectionString =
+                if hostedService then
+                    RoleEnvironment.GetConfigurationSettingValue(configName)
+                else
+                    ConfigurationManager.ConnectionStrings.[configName]
+                        .ConnectionString
 
-                configSettingPublisher.Invoke(connectionString)
-                |> ignore)
+            configSettingPublisher.Invoke(connectionString)
+            |> ignore)
 
         BlobHelper(CloudStorageAccount.FromConfigurationSetting(configurationSettingName))
 """
@@ -2228,17 +2227,16 @@ type Auth0User =
       AppMetaData : AppMetaData }
 
     static member Decoder : Decoder<Auth0User> =
-        Decode.object
-            (fun get ->
-                let userId =
-                    get.Required.Field "user_id" Decode.string
+        Decode.object (fun get ->
+            let userId =
+                get.Required.Field "user_id" Decode.string
 
-                let metaData =
-                    get.Optional.Field "app_metadata" AppMetaData.Decoder
-                    |> Option.defaultValue ({ PushNotificationSubscriptions = [] })
+            let metaData =
+                get.Optional.Field "app_metadata" AppMetaData.Decoder
+                |> Option.defaultValue ({ PushNotificationSubscriptions = [] })
 
-                { UserId = userId
-                  AppMetaData = metaData })
+            { UserId = userId
+              AppMetaData = metaData })
 """
 
 [<Test>]

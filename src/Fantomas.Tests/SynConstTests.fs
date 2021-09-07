@@ -648,25 +648,23 @@ a:hover {color: #ecc;}
 
     let kill =
         body.Elements()
-        |> Seq.map
-            (fun x ->
-                match x.Name.LocalName with
-                | \"h2\" ->
-                    keep
-                    := (List.tryFind (fun e -> e = String.Concat(x.Nodes())) eliminate)
-                       |> Option.isNone
-                | \"footer\" -> keep := true
-                | _ -> ()
+        |> Seq.map (fun x ->
+            match x.Name.LocalName with
+            | \"h2\" ->
+                keep
+                := (List.tryFind (fun e -> e = String.Concat(x.Nodes())) eliminate)
+                   |> Option.isNone
+            | \"footer\" -> keep := true
+            | _ -> ()
 
-                if !keep then None else Some x)
+            if !keep then None else Some x)
         |> Seq.toList
 
     kill
-    |> Seq.iter
-        (fun q ->
-            match q with
-            | Some x -> x.Remove()
-            | _ -> ())
+    |> Seq.iter (fun q ->
+        match q with
+        | Some x -> x.Remove()
+        | _ -> ())
 
     let packable =
         Path.getFullName \"./_Binaries/README.html\"
