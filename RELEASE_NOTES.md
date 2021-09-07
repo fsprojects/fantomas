@@ -1,3 +1,7 @@
+#### 4.5.3 - 09/2021
+
+* Fix indented #if directive inside another non-indented #if directive drops significant whitespace. [#1866](https://github.com/fsprojects/fantomas/issues/1866)
+
 #### 4.5.2 - 08/2021
 
 * Fix Dropped comment with function with type parameter. [#1861](https://github.com/fsprojects/fantomas/issues/1861)
