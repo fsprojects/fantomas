@@ -1437,29 +1437,28 @@ let ``nested if/then/else in short mode, 1243`` () =
         """
 let funcs =
     fse.MembersFunctionsAndValues
-    |> Seq.sortWith
-        (fun n1 n2 ->
-            let modifierScore (f: FSharpMemberOrFunctionOrValue) =
-                if f.IsProperty then
-                    if f.IsInstanceMember then
-                        if f.IsDispatchSlot then 9 else 1
-                    else
-                        8
-                elif f.IsMember then
-                    if f.IsInstanceMember then
-                        if f.IsDispatchSlot then 11 else 2
-                    else
-                        10
+    |> Seq.sortWith (fun n1 n2 ->
+        let modifierScore (f: FSharpMemberOrFunctionOrValue) =
+            if f.IsProperty then
+                if f.IsInstanceMember then
+                    if f.IsDispatchSlot then 9 else 1
                 else
-                    3
-
-            let n1Score = modifierScore n1
-            let n2Score = modifierScore n2
-
-            if n1Score = n2Score then
-                n1.DisplayName.CompareTo n2.DisplayName
+                    8
+            elif f.IsMember then
+                if f.IsInstanceMember then
+                    if f.IsDispatchSlot then 11 else 2
+                else
+                    10
             else
-                n1Score.CompareTo n2Score)
+                3
+
+        let n1Score = modifierScore n1
+        let n2Score = modifierScore n2
+
+        if n1Score = n2Score then
+            n1.DisplayName.CompareTo n2.DisplayName
+        else
+            n1Score.CompareTo n2Score)
 """
 
 [<Test>]
@@ -2054,8 +2053,8 @@ let lessonsForm (f: ValidatedForm<Request.CreateLessons>) dispatch =
                                                                              yield!
                                                                                  [ button.isLoading
                                                                                    prop.disabled true ]
-                                                                         prop.onClick
-                                                                             (fun _ -> CreateLessons |> dispatch) ] ] ] ]
+                                                                         prop.onClick (fun _ ->
+                                                                             CreateLessons |> dispatch) ] ] ] ]
 """
 
 [<Test>]
@@ -2265,8 +2264,7 @@ if result.LaunchSuccess && result.ExitCode = 0 then
 else if result.ExitCode = 1 then
     let stdout, stderr =
         output
-        |> List.map
-            (function
+        |> List.map (function
             | StdErr e -> Error e
             | StdOut l -> Ok l)
         |> Result.partition
@@ -2326,8 +2324,7 @@ if result.LaunchSuccess && result.ExitCode = 0 then
 elif result.ExitCode = 1 then
     let stdout, stderr =
         output
-        |> List.map
-            (function
+        |> List.map (function
             | StdErr e -> Error e
             | StdOut l -> Ok l)
         |> Result.partition
