@@ -6,7 +6,7 @@ open Fantomas.Tests.TestHelper
 
 // the current behavior results in a compile error since the |> is merged to the last line
 [<Test>]
-let ``no nln before lambda #503`` () =
+let ``no nln before lambda, #503`` () =
     formatSourceString
         false
         """
@@ -22,11 +22,10 @@ let a =
         """
 let a =
     b
-    |> List.exists
-        (fun p ->
-            p.a
-            && p.b
-               |> List.exists (fun o -> o.a = "lorem ipsum dolor sit amet"))
+    |> List.exists (fun p ->
+        p.a
+        && p.b
+           |> List.exists (fun o -> o.a = "lorem ipsum dolor sit amet"))
 """
 
 // compile error due to expression starting before the beginning of the function expression
@@ -127,21 +126,19 @@ module Caching =
             (address: PublicAddress)
             (currency: Currency)
             : NotFresh<decimal> =
-            lock
-                cacheFiles.CachedNetworkData
-                (fun _ ->
-                    match balance with
-                    | NotAvailable -> NotAvailable
-                    | Cached (balance, time) ->
-                        if compoundBalance < 0.0m then
-                            ReportProblem
-                                compoundBalance
-                                None
-                                currency
-                                address
-                                sessionCachedNetworkData
+            lock cacheFiles.CachedNetworkData (fun _ ->
+                match balance with
+                | NotAvailable -> NotAvailable
+                | Cached (balance, time) ->
+                    if compoundBalance < 0.0m then
+                        ReportProblem
+                            compoundBalance
+                            None
+                            currency
+                            address
+                            sessionCachedNetworkData
 
-                        ())
+                    ())
 
             ()
 """
@@ -174,17 +171,15 @@ module Caching =
             (address: PublicAddress)
             (currency: Currency)
             : NotFresh<decimal> =
-            lock
-                cacheFiles.CachedNetworkData
-                (fun _ ->
-                    match balance with
-                    | NotAvailable -> NotAvailable
-                    | Cached (balance, time) ->
-                        if compoundBalance < 0.0m then
-                            ReportProblem
-                                looooooooooooooooooooooooooooooooooooooooooooooooooooooooooooong
+            lock cacheFiles.CachedNetworkData (fun _ ->
+                match balance with
+                | NotAvailable -> NotAvailable
+                | Cached (balance, time) ->
+                    if compoundBalance < 0.0m then
+                        ReportProblem
+                            looooooooooooooooooooooooooooooooooooooooooooooooooooooooooooong
 
-                        ())
+                    ())
 
             ()
 """
@@ -214,16 +209,14 @@ let ``should not split parameters over multiple lines when they do not exceed pa
 module Caching =
     type MainCache() =
         member __.RetrieveLastCompoundBalance (address: PublicAddress) (currency: Currency) : NotFresh<decimal> =
-            lock
-                cacheFiles.CachedNetworkData
-                (fun _ ->
-                    match balance with
-                    | NotAvailable -> NotAvailable
-                    | Cached (balance, time) ->
-                        if compoundBalance < 0.0m then
-                            ReportProblem compoundBalance None currency address sessionCachedNetworkData
+            lock cacheFiles.CachedNetworkData (fun _ ->
+                match balance with
+                | NotAvailable -> NotAvailable
+                | Cached (balance, time) ->
+                    if compoundBalance < 0.0m then
+                        ReportProblem compoundBalance None currency address sessionCachedNetworkData
 
-                        ())
+                    ())
 
             ()
 """
@@ -253,16 +246,14 @@ let ``should not split single parameter over multiple lines when it does not exc
 module Caching =
     type MainCache() =
         member __.RetrieveLastCompoundBalance (address: PublicAddress) (currency: Currency) : NotFresh<decimal> =
-            lock
-                cacheFiles.CachedNetworkData
-                (fun _ ->
-                    match balance with
-                    | NotAvailable -> NotAvailable
-                    | Cached (balance, time) ->
-                        if compoundBalance < 0.0m then
-                            ReportProblem compoundBalance
+            lock cacheFiles.CachedNetworkData (fun _ ->
+                match balance with
+                | NotAvailable -> NotAvailable
+                | Cached (balance, time) ->
+                    if compoundBalance < 0.0m then
+                        ReportProblem compoundBalance
 
-                        ())
+                    ())
 
             ()
 """
@@ -737,16 +728,14 @@ module Foo =
 
     let blah =
         it
-        |> List.iter
-            (fun (_, output) ->
-                thing
-                |> Map.iter
-                    (fun key value ->
-                        match value with
-                        | Ok (TestResult.Failure f) -> failwith ""
-                        | Error e -> failwith ""
-                        | _ -> () // hi!
-                        ))
+        |> List.iter (fun (_, output) ->
+            thing
+            |> Map.iter (fun key value ->
+                match value with
+                | Ok (TestResult.Failure f) -> failwith ""
+                | Error e -> failwith ""
+                | _ -> () // hi!
+            ))
 """
 
 [<Test>]
