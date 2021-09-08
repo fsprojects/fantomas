@@ -487,8 +487,7 @@ else
 ### fsharp_max_infix_operator_expression
 
 Control the maximum length for which infix expression can be on one line.
-Default = 50. Requires `fsharp_infix_operator_expression_multiline_formatter` to
-be `character_width` to take effect.
+Default = 50.
 
 `defaultConfig`
 
