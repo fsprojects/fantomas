@@ -5,9 +5,9 @@ open System.Diagnostics
 open System.IO
 open System.Threading
 open System.Threading.Tasks
-open FSharp.Compiler.SourceCodeServices
+open FSharp.Compiler.CodeAnalysis
 open FSharp.Compiler.Text.Range
-open FSharp.Compiler.Text.Pos
+open FSharp.Compiler.Text.Position
 open Fantomas.Client.Contracts
 open StreamJsonRpc
 open Fantomas
