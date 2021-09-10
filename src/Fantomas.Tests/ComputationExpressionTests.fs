@@ -2429,3 +2429,27 @@ let x =
         ()
     }
 """
+
+[<Test>]
+let ``let bang + sequential, 1882`` () =
+    formatSourceString
+        false
+        """
+               async {
+                 logger.Debug "some message"
+                 let! token = Async.CancellationToken
+                 let! model = sendRequest logger credentials token
+                 return model.Prop }
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+async {
+    logger.Debug "some message"
+    let! token = Async.CancellationToken
+    let! model = sendRequest logger credentials token
+    return model.Prop
+}
+"""

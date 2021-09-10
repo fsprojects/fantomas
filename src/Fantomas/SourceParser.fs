@@ -954,12 +954,11 @@ let rec collectComputationExpressionStatements
 /// Matches if the SynExpr has some or of computation expression member call inside.
 let rec (|CompExprBody|_|) expr =
     match expr with
-    | SynExpr.LetOrUse (_, _, _, CompExprBody _, _) -> Some(collectComputationExpressionStatements expr id)
-    | SynExpr.LetOrUseBang _ -> Some(collectComputationExpressionStatements expr id)
-    | SynExpr.Sequential (_, _, _, SynExpr.YieldOrReturn _, _) -> Some(collectComputationExpressionStatements expr id)
-    | SynExpr.Sequential (_, _, _, SynExpr.LetOrUse _, _) -> Some(collectComputationExpressionStatements expr id)
-    | SynExpr.Sequential (_, _, SynExpr.DoBang _, SynExpr.LetOrUseBang _, _) ->
-        Some(collectComputationExpressionStatements expr id)
+    | SynExpr.LetOrUse (_, _, _, CompExprBody _, _)
+    | SynExpr.LetOrUseBang _
+    | SynExpr.Sequential (_, _, _, SynExpr.YieldOrReturn _, _)
+    | SynExpr.Sequential (_, _, _, SynExpr.LetOrUse _, _)
+    | SynExpr.Sequential (_, _, _, SynExpr.LetOrUseBang _, _) -> Some(collectComputationExpressionStatements expr id)
     | _ -> None
 
 let (|ForEach|_|) =

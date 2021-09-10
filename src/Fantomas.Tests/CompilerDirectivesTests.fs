@@ -2349,7 +2349,6 @@ module ReactHookExtensions =
                 async {
                     try
                         do setDeferred (Deferred<'T>.InProgress)
-
                         let! output = operation
                         do setDeferred (Deferred<'T>.Resolved output)
                     with
