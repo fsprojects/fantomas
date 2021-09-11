@@ -15,6 +15,7 @@ open Fantomas.TriviaContext
 open Fantomas.AstExtensions
 
 /// This type consists of contextual information which is important for formatting
+/// Please avoid using this record as it can be the cause of unexpected behavior when used incorrectly
 type ASTContext =
     { /// Current node is the first child of its parent
       IsFirstChild: bool
