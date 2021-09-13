@@ -896,3 +896,38 @@ type MaybeBuilder() =
         ) : 'U option =
         Option.bind binder value
 """
+
+[<Test>]
+let ``avoid vanity alignment when calling base constructor, 1442`` () =
+
+    let actual =
+        formatSourceString
+            false
+            """
+type public DerivedExceptionWithLongNaaaaaaaaameException (message: string,
+                                                           code: int,
+                                                           originalRequest: string,
+                                                           originalResponse: string) =
+    inherit BaseExceptionWithLongNaaaameException(message, code, originalRequest, originalResponse)"""
+            { config with MaxLineLength = 80 }
+
+    actual
+    |> prepend newline
+    |> should
+        equal
+        """
+type public DerivedExceptionWithLongNaaaaaaaaameException
+    (
+        message: string,
+        code: int,
+        originalRequest: string,
+        originalResponse: string
+    ) =
+    inherit BaseExceptionWithLongNaaaameException
+        (
+            message,
+            code,
+            originalRequest,
+            originalResponse
+        )
+"""
