@@ -899,19 +899,15 @@ type MaybeBuilder() =
 
 [<Test>]
 let ``avoid vanity alignment when calling base constructor, 1442`` () =
-
-    let actual =
-        formatSourceString
-            false
-            """
+    formatSourceString
+        false
+        """
 type public DerivedExceptionWithLongNaaaaaaaaameException (message: string,
                                                            code: int,
                                                            originalRequest: string,
                                                            originalResponse: string) =
     inherit BaseExceptionWithLongNaaaameException(message, code, originalRequest, originalResponse)"""
-            { config with MaxLineLength = 80 }
-
-    actual
+        { config with MaxLineLength = 80 }
     |> prepend newline
     |> should
         equal
