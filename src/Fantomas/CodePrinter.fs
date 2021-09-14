@@ -4552,10 +4552,34 @@ and genMemberDefn astContext node =
     | MDOpen s -> !-(sprintf "open %s" s)
     // What is the role of so
     | MDImplicitInherit (t, e, _) ->
+        let genBasecall =
+            let shortExpr = genExpr astContext e
+
+            let longExpr =
+                match e with
+                | Paren (lpr, (Tuple (es, tr)), rpr, pr) ->
+                    indent
+                    +> sepNln
+                    +> indent
+                    +> sepOpenTFor lpr
+                    +> sepNln
+                    +> (col (sepComma +> sepNln) es (genExpr astContext)
+                        |> genTriviaFor SynExpr_Tuple pr)
+                    +> unindent
+                    +> sepNln
+                    +> unindent
+                    +> sepCloseTFor rpr pr
+                    +> unindent
+                    |> genTriviaFor SynExpr_Paren pr
+                | _ -> genExpr astContext e
+
+            expressionFitsOnRestOfLine shortExpr longExpr
+
         !- "inherit "
         +> genType astContext false t
         +> addSpaceBeforeClassConstructor e
-        +> genExpr astContext e
+        +> genBasecall
+
     | MDInherit (t, _) -> !- "inherit " +> genType astContext false t
     | MDValField f -> genField astContext "val " f
     | MDImplicitCtor (ats, ao, ps, so) ->
