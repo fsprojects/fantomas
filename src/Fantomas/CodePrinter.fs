@@ -2944,56 +2944,59 @@ and genMultilineRecordInstance
     astContext
     (ctx: Context)
     =
-    let recordExpr =
-        let fieldsExpr =
-            col sepSemiNln xs (genRecordFieldName astContext)
+    let ifIndentLesserThan size lesser greater ctx =
+        if ctx.Config.IndentSize < size then
+            lesser ctx
+        else
+            greater ctx
 
-        match eo with
-        | Some e ->
-            genExpr astContext e
-            +> !- " with"
-            +> indent
-            +> sepNln
-            +> fieldsExpr
-            +> unindent
-        | None -> fieldsExpr
+    let expressionStartColumn = ctx.Column
+
+    let fieldsExpr =
+        col sepSemiNln xs (genRecordFieldName astContext)
 
     let expr =
-        sepOpenS
-        +> (fun (ctx: Context) ->
-            { ctx with
-                  RecordBraceStart = ctx.Column :: ctx.RecordBraceStart })
-        +> atCurrentColumnIndent (
-            leaveLeftBrace synExpr.Range
-            +> opt
-                (if xs.IsEmpty then sepNone else sepNln)
-                inheritOpt
-                (fun (typ, expr) ->
-                    !- "inherit "
-                    +> genType astContext false typ
-                    +> addSpaceBeforeClassConstructor expr
-                    +> genExpr astContext expr)
-            +> recordExpr
-        )
-        +> (fun ctx ->
-            match ctx.RecordBraceStart with
-            | rbs :: rest ->
-                if ctx.Column < rbs then
-                    let offset =
-                        (if ctx.Config.SpaceAroundDelimiter then
-                             2
-                         else
-                             1)
-                        + 1
+        match inheritOpt with
+        | Some (t, e) ->
+            tokN synExpr.Range LBRACE sepOpenS
+            +> atCurrentColumn (
+                !- "inherit "
+                +> genType astContext false t
+                +> addSpaceBeforeClassConstructor e
+                +> genExpr astContext e
+                +> onlyIf (List.isNotEmpty xs) sepNln
+                +> fieldsExpr
+                +> tokN synExpr.Range RBRACE sepCloseS
+            )
+        | None ->
+            match eo with
+            | None ->
+                tokN synExpr.Range LBRACE sepOpenS
+                +> atCurrentColumn (
+                    sepNlnWhenWriteBeforeNewlineNotEmpty sepNone // comment after curly brace
+                    +> fieldsExpr
+                )
+                +> tokN
+                    synExpr.Range
+                    RBRACE
+                    (sepNlnWhenWriteBeforeNewlineNotEmpty sepNone // comment after last record field
+                     +> (fun ctx ->
+                         // Edge case scenario to make sure that the closing brace is not before the opening one
+                         // See unit test "multiline string before closing brace"
+                         let delta = expressionStartColumn - ctx.Column
 
-                    let delta = Math.Max((rbs - ctx.Column) - offset, 0)
-                    (!- System.String.Empty.PadRight(delta)) { ctx with RecordBraceStart = rest }
-                else
-                    sepNone { ctx with RecordBraceStart = rest }
-            | [] -> sepNone ctx)
-        +> sepNlnWhenWriteBeforeNewlineNotEmpty sepNone
-        +> enterNodeTokenByName synExpr.Range RBRACE
-        +> ifElseCtx lastWriteEventIsNewline sepCloseSFixed sepCloseS
+                         if delta > 0 then
+                             ((rep delta (!- " ")) +> sepCloseSFixed) ctx
+                         else
+                             ifElseCtx lastWriteEventIsNewline sepCloseSFixed sepCloseS ctx))
+            | Some e ->
+                tokN synExpr.Range LBRACE sepOpenS
+                +> genExpr astContext e
+                +> !- " with"
+                +> ifIndentLesserThan 3 (indent +> indent) indent
+                +> sepSpaceOrNlnIfExpressionExceedsPageWidth fieldsExpr
+                +> tokN synExpr.Range RBRACE sepCloseS
+                +> ifIndentLesserThan 3 (unindent +> unindent) unindent
 
     expr ctx
 

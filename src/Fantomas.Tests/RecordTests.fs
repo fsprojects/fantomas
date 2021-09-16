@@ -429,8 +429,8 @@ let ``meaningful space should be preserved, 353`` () =
         """
 to'.WithCommon (fun o' ->
     { dotnetOptions o' with
-          WorkingDirectory = Path.getFullName "RegressionTesting/issue29"
-          Verbosity = Some DotNet.Verbosity.Minimal })
+        WorkingDirectory = Path.getFullName "RegressionTesting/issue29"
+        Verbosity = Some DotNet.Verbosity.Minimal })
     .WithParameters
 """
 
@@ -607,6 +607,41 @@ I wanted to know why you created Fable. Did you always plan to use F#? Or were y
 "
 
 [<Test>]
+let ``multiline string before closing brace`` () =
+    formatSourceString
+        false
+        "
+let person =
+    let y =
+        let x =
+            { Story = \"\"\"
+            foo
+            bar
+\"\"\"
+            }
+        ()
+    ()
+"
+        config
+    |> prepend newline
+    |> should
+        equal
+        "
+let person =
+    let y =
+        let x =
+            { Story =
+                \"\"\"
+            foo
+            bar
+\"\"\"         }
+
+        ()
+
+    ()
+"
+
+[<Test>]
 let ``issue 457`` () =
     formatSourceString
         false
@@ -627,8 +662,8 @@ let x = Foo("").Goo()
 
 let r =
     { s with
-          xxxxxxxxxxxxxxxxxxxxx = 1
-          yyyyyyyyyyyyyyyyyyyyy = 2 }
+        xxxxxxxxxxxxxxxxxxxxx = 1
+        yyyyyyyyyyyyyyyyyyyyy = 2 }
 """
 
 [<Test>]
@@ -682,18 +717,18 @@ let expect =
 let expect =
     Result<Schema, SetError>.Ok
         { opts =
-              [ Opts.anyOf (
-                  [ (Optional, Opt.flagTrue [ "first"; "f" ])
-                    (Optional, Opt.value [ "second"; "s" ]) ]
-                )
-                Opts.oneOf (
-                    Optional,
-                    [ Opt.flag [ "third"; "f" ]
-                      Opt.valueWith
-                          "new value"
-                          [ "fourth"
-                            "ssssssssssssssssssssssssssssssssssssssssssssssssssss" ] ]
-                ) ]
+            [ Opts.anyOf (
+                [ (Optional, Opt.flagTrue [ "first"; "f" ])
+                  (Optional, Opt.value [ "second"; "s" ]) ]
+              )
+              Opts.oneOf (
+                  Optional,
+                  [ Opt.flag [ "third"; "f" ]
+                    Opt.valueWith
+                        "new value"
+                        [ "fourth"
+                          "ssssssssssssssssssssssssssssssssssssssssssssssssssss" ] ]
+              ) ]
           args = []
           commands = [] }
 """
@@ -761,11 +796,11 @@ open WebSharper.UI
 module Maintoc =
     let Page =
         { MyPage.Create() with
-              body =
-                  [ Doc.Verbatim
-                        \"\"\"
+            body =
+                [ Doc.Verbatim
+                      \"\"\"
 This is a very long line in a multi-line string, so long in fact that it is longer than that page width to which I am trying to constrain everything, and so it goes bang.
-\"\"\" ]   }
+\"\"\" ] }
 "
 
 [<Test>]
@@ -1530,4 +1565,61 @@ match entities with
      { Key = "0031ff53-e59b-49e3-8e0f-53f72a3890d3"
        Type = Elephant } |] -> ()
 | _ -> ()
+"""
+
+[<Test>]
+let ``update record should indent from curly brace, 1876`` () =
+    formatSourceString
+        false
+        """
+let rainbow2 =
+    { rainbow with Boss = "Jeffrey" ; Lackeys = [ "Zippy"; "George"; "Bungle" ] }
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let rainbow2 =
+    { rainbow with
+        Boss = "Jeffrey"
+        Lackeys = [ "Zippy"; "George"; "Bungle" ] }
+"""
+
+[<Test>]
+let ``update record should indent from curly brace, indent size 2`` () =
+    formatSourceString
+        false
+        """
+let rainbow2 =
+  { rainbow with Boss = "Jeffrey" ; Lackeys = [ "Zippy"; "George"; "Bungle" ] }
+"""
+        { config with IndentSize = 2 }
+    |> prepend newline
+    |> should
+        equal
+        """
+let rainbow2 =
+  { rainbow with
+      Boss = "Jeffrey"
+      Lackeys = [ "Zippy"; "George"; "Bungle" ] }
+"""
+
+[<Test>]
+let ``update record should indent from curly brace, indent size 3`` () =
+    formatSourceString
+        false
+        """
+let rainbow2 =
+   { rainbow with Boss = "Jeffrey" ; Lackeys = [ "Zippy"; "George"; "Bungle" ] }
+"""
+        { config with IndentSize = 3 }
+    |> prepend newline
+    |> should
+        equal
+        """
+let rainbow2 =
+   { rainbow with
+      Boss = "Jeffrey"
+      Lackeys = [ "Zippy"; "George"; "Bungle" ] }
 """

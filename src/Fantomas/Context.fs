@@ -182,7 +182,6 @@ type internal Context =
       Content: string
       TriviaMainNodes: Map<FsAstType, TriviaNode list>
       TriviaTokenNodes: Map<FsTokenType, TriviaNode list>
-      RecordBraceStart: int list
       FileName: string }
 
     /// Initialize with a string writer and use space as delimiter
@@ -195,7 +194,6 @@ type internal Context =
           Content = ""
           TriviaMainNodes = Map.empty
           TriviaTokenNodes = Map.empty
-          RecordBraceStart = []
           FileName = String.Empty }
 
     static member Create

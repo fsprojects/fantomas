@@ -92,9 +92,9 @@ let ``update record`` () =
         """
 let myRecord =
     { myOldRecord with
-          Level = 2
-          Bar = "barry"
-          Progress = "fooey" }
+        Level = 2
+        Bar = "barry"
+        Progress = "fooey" }
 """
 
 [<Test>]
@@ -708,8 +708,8 @@ let ``update record with standard indent`` () =
         """
 let expected =
     { ThisIsAThing.Empty with
-          TheNewValue = 1
-          ThatValue = 2 }
+        TheNewValue = 1
+        ThatValue = 2 }
 """
 
 [<Test>]
@@ -911,9 +911,9 @@ let s =
 
 let r' =
     { r with
-          a = x
-          b = y
-          z = c }
+        a = x
+        b = y
+        z = c }
 
 let s' =
     { s with AReallyLongExpressionThatIsMuchLongerThan50Characters = 1 }
@@ -929,9 +929,9 @@ g s { AReallyLongExpressionThatIsMuchLongerThan50Characters = 1 }
 f
     r'
     { r with
-          a = x
-          b = y
-          z = c }
+        a = x
+        b = y
+        z = c }
 
 g s' { s with AReallyLongExpressionThatIsMuchLongerThan50Characters = 1 }
 """
