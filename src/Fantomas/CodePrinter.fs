@@ -3070,7 +3070,7 @@ and genMultilineAnonRecord (isStruct: bool) fields copyInfo astContext =
 
     onlyIf isStruct !- "struct "
     +> sepOpenAnonRecd
-    +> atCurrentColumnIndent recordExpr
+    +> atCurrentColumn recordExpr
     +> sepCloseAnonRecd
 
 and genMultilineAnonRecordAlignBrackets (isStruct: bool) fields copyInfo astContext =

@@ -405,9 +405,9 @@ Fooey
         "
 let r =
     {| Foo =
-           a
-           && // && b
-           c
+        a
+        && // && b
+        c
        Bar =
            \"\"\"
 Fooey
@@ -1062,7 +1062,7 @@ let ``longer anonymous record with copy expression`` () =
         """
 let foo =
     {| bar with
-           AMemberWithALongName = aValueWithAlsoALongName |}
+        AMemberWithALongName = aValueWithAlsoALongName |}
 """
 
 [<Test>]
@@ -1622,4 +1622,118 @@ let rainbow2 =
    { rainbow with
       Boss = "Jeffrey"
       Lackeys = [ "Zippy"; "George"; "Bungle" ] }
+"""
+
+[<Test>]
+let ``record with comments above field`` () =
+    formatSourceString
+        false
+        """
+{ Foo =
+    // bar
+    someValue}
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+{ Foo =
+    // bar
+    someValue }
+"""
+
+[<Test>]
+let ``record with comments above field, indent 2`` () =
+    formatSourceString
+        false
+        """
+{ Foo =
+    // bar
+    someValue}
+"""
+        { config with IndentSize = 2 }
+    |> prepend newline
+    |> should
+        equal
+        """
+{ Foo =
+    // bar
+    someValue }
+"""
+
+[<Test>]
+let ``record with comments above field, indent 3`` () =
+    formatSourceString
+        false
+        """
+{ Foo =
+    // bar
+    someValue}
+"""
+        { config with IndentSize = 3 }
+    |> prepend newline
+    |> should
+        equal
+        """
+{ Foo =
+   // bar
+   someValue }
+"""
+
+[<Test>]
+let ``anonymous record with multiline field`` () =
+    formatSourceString
+        false
+        """
+{| Foo =
+              //  meh
+              someValue |}
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+{| Foo =
+    //  meh
+    someValue |}
+"""
+
+[<Test>]
+let ``anonymous record with multiline field, indent 2`` () =
+    formatSourceString
+        false
+        """
+{| Foo =
+              //  meh
+              someValue |}
+"""
+        { config with IndentSize = 2 }
+    |> prepend newline
+    |> should
+        equal
+        """
+{| Foo =
+     //  meh
+     someValue |}
+"""
+
+[<Test>]
+let ``anonymous record with multiline field, indent 3`` () =
+    formatSourceString
+        false
+        """
+{| Foo =
+              //  meh
+              someValue |}
+"""
+        { config with IndentSize = 2 }
+    |> prepend newline
+    |> should
+        equal
+        """
+{| Foo =
+   //  meh
+   someValue |}
 """
