@@ -705,7 +705,7 @@ let (|ArrayOrList|_|) =
 
 let (|Tuple|_|) =
     function
-    | SynExpr.Tuple (false, exprs, _, tupleRange) -> Some(exprs, Some tupleRange)
+    | SynExpr.Tuple (false, exprs, _, tupleRange) -> Some(exprs, tupleRange)
     | _ -> None
 
 let (|StructTuple|_|) =

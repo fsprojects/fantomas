@@ -2681,7 +2681,7 @@ and genMultilineFunctionApplicationArguments astContext argExpr =
     | Paren (_, Lambda _, _, _) -> genExpr astContext argExpr
     | Paren (lpr, Tuple (args, tupleRange), rpr, pr) ->
         (col (sepCommaFixed +> sepNln) args (genExpr astContext))
-        |> optSingle (genTriviaFor SynExpr_Tuple) tupleRange
+        |> genTriviaFor SynExpr_Tuple tupleRange
         |> argsInsideParenthesis lpr rpr pr
     | Paren (lpr, singleExpr, rpr, pr) ->
         genExpr astContext singleExpr
@@ -3162,24 +3162,14 @@ and genApp astContext e es ctx =
         expressionFitsOnRestOfLine shortExpression longExpression ctx
 
 and genAppWithTupledArgument (e, lpr, ts, tr, rpr, pr) astContext =
-    let genTupleTrivia =
-        match tr with
-        | Some tr -> genTriviaFor SynExpr_Tuple tr
-        | None -> id
-
     genExpr astContext e
     +> sepSpace
     +> tokN lpr LPAREN sepOpenT
     +> (col sepComma ts (genExpr astContext)
-        |> genTupleTrivia)
+        |> genTriviaFor SynExpr_Tuple tr)
     +> tokN (Option.defaultValue pr rpr) RPAREN sepCloseT
 
 and genAlternativeAppWithTupledArgument (e, lpr, ts, tr, rpr, pr) astContext =
-    let genTupleTrivia =
-        match tr with
-        | Some tr -> genTriviaFor SynExpr_Tuple tr
-        | None -> id
-
     genExpr astContext e
     +> indent
     +> sepNln
@@ -3187,7 +3177,7 @@ and genAlternativeAppWithTupledArgument (e, lpr, ts, tr, rpr, pr) astContext =
     +> indent
     +> sepNln
     +> (col (sepComma +> sepNln) ts (genExpr astContext)
-        |> genTupleTrivia)
+        |> genTriviaFor SynExpr_Tuple tr)
     +> unindent
     +> sepNln
     +> tokN (Option.defaultValue pr rpr) RPAREN sepCloseT
@@ -4557,14 +4547,14 @@ and genMemberDefn astContext node =
 
             let longExpr =
                 match e with
-                | Paren (lpr, (Tuple (es, tr)), rpr, pr) ->
+                | Paren (lpr, Tuple (es, tr), rpr, pr) ->
                     indent
                     +> sepNln
                     +> indent
                     +> sepOpenTFor lpr
                     +> sepNln
                     +> (col (sepComma +> sepNln) es (genExpr astContext)
-                        |> genTriviaFor SynExpr_Tuple pr)
+                        |> genTriviaFor SynExpr_Tuple tr)
                     +> unindent
                     +> sepNln
                     +> unindent
