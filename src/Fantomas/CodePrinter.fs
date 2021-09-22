@@ -1371,7 +1371,7 @@ and genExpr astContext synExpr ctx =
             let longExpression =
                 ifAlignBrackets
                     (genMultilineAnonRecordAlignBrackets isStruct fields copyInfo astContext)
-                    (genMultilineAnonRecord isStruct fields copyInfo astContext)
+                    (genMultilineAnonRecord isStruct fields copyInfo synExpr.Range astContext)
 
             fun (ctx: Context) ->
                 let size = getRecordSize ctx fields
@@ -2971,24 +2971,40 @@ and genMultilineRecordInstance
         | None ->
             match eo with
             | None ->
-                tokN synExpr.Range LBRACE sepOpenS
-                +> atCurrentColumn (
-                    sepNlnWhenWriteBeforeNewlineNotEmpty sepNone // comment after curly brace
-                    +> fieldsExpr
-                )
-                +> tokN
-                    synExpr.Range
-                    RBRACE
-                    (sepNlnWhenWriteBeforeNewlineNotEmpty sepNone // comment after last record field
-                     +> (fun ctx ->
-                         // Edge case scenario to make sure that the closing brace is not before the opening one
-                         // See unit test "multiline string before closing brace"
-                         let delta = expressionStartColumn - ctx.Column
+                fun (ctx: Context) ->
+                    // position after `{ ` or `{`
+                    let targetColumn =
+                        ctx.Column
+                        + (if ctx.Config.SpaceAroundDelimiter then
+                               2
+                           else
+                               1)
 
-                         if delta > 0 then
-                             ((rep delta (!- " ")) +> sepCloseSFixed) ctx
-                         else
-                             ifElseCtx lastWriteEventIsNewline sepCloseSFixed sepCloseS ctx))
+                    atCurrentColumn
+                        (tokN synExpr.Range LBRACE sepOpenS
+                         +> sepNlnWhenWriteBeforeNewlineNotEmpty sepNone // comment after curly brace
+                         +> col
+                             sepSemiNln
+                             xs
+                             (fun e ->
+                                 // Add spaces to ensure the record field (incl trivia) starts at the right column.
+                                 addFixedSpaces targetColumn
+                                 // Lock the start of the record field, however keep potential indentations in relation to the opening curly brace
+                                 +> atCurrentColumn (genRecordFieldName astContext e))
+                         +> tokN
+                             synExpr.Range
+                             RBRACE
+                             (sepNlnWhenWriteBeforeNewlineNotEmpty sepNone // comment after last record field
+                              +> (fun ctx ->
+                                  // Edge case scenario to make sure that the closing brace is not before the opening one
+                                  // See unit test "multiline string before closing brace"
+                                  let delta = expressionStartColumn - ctx.Column
+
+                                  if delta > 0 then
+                                      ((rep delta (!- " ")) +> sepCloseSFixed) ctx
+                                  else
+                                      ifElseCtx lastWriteEventIsNewline sepCloseSFixed sepCloseS ctx)))
+                        ctx
             | Some e ->
                 tokN synExpr.Range LBRACE sepOpenS
                 +> genExpr astContext e
@@ -3053,25 +3069,52 @@ and genMultilineRecordInstanceAlignBrackets
          +> sepCloseSFixed)
     |> atCurrentColumnIndent
 
-and genMultilineAnonRecord (isStruct: bool) fields copyInfo astContext =
+and genMultilineAnonRecord (isStruct: bool) fields copyInfo (range: Range) (astContext: ASTContext) =
     let recordExpr =
-        let fieldsExpr =
-            col sepSemiNln fields (genAnonRecordFieldName astContext)
-
         match copyInfo with
         | Some e ->
-            genExpr astContext e
-            +> (!- " with"
-                +> indent
-                +> sepNln
-                +> fieldsExpr
-                +> unindent)
-        | None -> fieldsExpr
+            (tokN range LBRACK_BAR sepOpenAnonRecd)
+            +> atCurrentColumn (
+                genExpr astContext e
+                +> (!- " with"
+                    +> indent
+                    +> sepNln
+                    +> col sepSemiNln fields (genAnonRecordFieldName astContext)
+                    +> unindent)
+            )
+            +> (tokN range BAR_RBRACK sepCloseAnonRecd)
+        | None ->
+            fun ctx ->
+                // position after `{| ` or `{|`
+                let targetColumn =
+                    ctx.Column
+                    + (if ctx.Config.SpaceAroundDelimiter then
+                           3
+                       else
+                           2)
 
-    onlyIf isStruct !- "struct "
-    +> sepOpenAnonRecd
-    +> atCurrentColumn recordExpr
-    +> sepCloseAnonRecd
+                atCurrentColumn
+                    ((tokN range LBRACK_BAR sepOpenAnonRecd)
+                     +> col
+                         sepSemiNln
+                         fields
+                         (fun (AnonRecordFieldName (s, e)) ->
+                             let expr =
+                                 if ctx.Config.IndentSize < 3 then
+                                     sepSpaceOrDoubleIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e)
+                                 else
+                                     sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e)
+
+                             // Add enough spaces to start at the right column but indent from the opening curly brace.
+                             // Use a double indent when using a small indent size to avoid offset warnings.
+                             addFixedSpaces targetColumn
+                             +> !-s
+                             +> sepEq
+                             +> expr)
+                     +> (tokN range BAR_RBRACK sepCloseAnonRecd))
+                    ctx
+
+    onlyIf isStruct !- "struct " +> recordExpr
 
 and genMultilineAnonRecordAlignBrackets (isStruct: bool) fields copyInfo astContext =
     let fieldsExpr =

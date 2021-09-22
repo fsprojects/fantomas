@@ -409,7 +409,7 @@ let r =
         && // && b
         c
        Bar =
-           \"\"\"
+        \"\"\"
 Fooey
 \"\"\" |}
 "
@@ -533,22 +533,22 @@ type Database =
             .defaults(
                 { Version = CurrentVersion
                   Questions =
-                      [| { Id = 0
-                           AuthorId = 1
-                           Title = \"What is the average wing speed of an unladen swallow?\"
-                           Description =
-                               \"\"\"
+                    [| { Id = 0
+                         AuthorId = 1
+                         Title = \"What is the average wing speed of an unladen swallow?\"
+                         Description =
+                           \"\"\"
 Hello, yesterday I saw a flight of swallows and was wondering what their **average wing speed** is?
 
 If you know the answer please share it.
                              \"\"\"
-                           Answers =
-                               [| { Id = 0
-                                    CreatedAt = DateTime.Parse \"2017-09-14T19:57:33.103Z\"
-                                    AuthorId = 0
-                                    Score = 2
-                                    Content =
-                                        \"\"\"
+                         Answers =
+                           [| { Id = 0
+                                CreatedAt = DateTime.Parse \"2017-09-14T19:57:33.103Z\"
+                                AuthorId = 0
+                                Score = 2
+                                Content =
+                                  \"\"\"
 > What do you mean, an African or European Swallow?
 >
 > Monty Python’s: The Holy Grail
@@ -557,12 +557,12 @@ Ok I must admit, I use google to search the question and found a post explaining
 
 I thought you were asking it seriously, well done.
                                     x\"\"\" }
-                                  { Id = 1
-                                    CreatedAt = DateTime.Parse \"2017-09-14T20:07:27.103Z\"
-                                    AuthorId = 2
-                                    Score = 1
-                                    Content =
-                                        \"\"\"
+                              { Id = 1
+                                CreatedAt = DateTime.Parse \"2017-09-14T20:07:27.103Z\"
+                                AuthorId = 2
+                                Score = 1
+                                Content =
+                                  \"\"\"
 Maxime,
 
 I believe you found [this blog post](http://www.saratoga.com/how-should-i-know/2013/07/what-is-the-average-air-speed-velocity-of-a-laden-swallow/).
@@ -571,35 +571,35 @@ And so Robin, the conclusion of the post is:
 
 > In the end, it’s concluded that the airspeed velocity of a (European) unladen swallow is about 24 miles per hour or 11 meters per second.
                                     \"\"\" } |]
-                           CreatedAt = DateTime.Parse \"2017-09-14T17:44:28.103Z\" }
-                         { Id = 1
-                           AuthorId = 0
-                           Title = \"Why did you create Fable?\"
-                           Description =
-                               \"\"\"
+                         CreatedAt = DateTime.Parse \"2017-09-14T17:44:28.103Z\" }
+                       { Id = 1
+                         AuthorId = 0
+                         Title = \"Why did you create Fable?\"
+                         Description =
+                           \"\"\"
 Hello Alfonso,
 
 I wanted to know why you created Fable. Did you always plan to use F#? Or were you thinking in others languages?
                              \"\"\"
-                           Answers = [||]
-                           CreatedAt = DateTime.Parse \"2017-09-12T09:27:28.103Z\" } |]
+                         Answers = [||]
+                         CreatedAt = DateTime.Parse \"2017-09-12T09:27:28.103Z\" } |]
                   Users =
-                      [| { Id = 0
-                           Firstname = \"Maxime\"
-                           Surname = \"Mangel\"
-                           Avatar = \"maxime_mangel.png\" }
-                         { Id = 1
-                           Firstname = \"Robin\"
-                           Surname = \"Munn\"
-                           Avatar = \"robin_munn.png\" }
-                         { Id = 2
-                           Firstname = \"Alfonso\"
-                           Surname = \"Garciacaro\"
-                           Avatar = \"alfonso_garciacaro.png\" }
-                         { Id = 3
-                           Firstname = \"Guest\"
-                           Surname = \"\"
-                           Avatar = \"guest.png\" } |] }
+                    [| { Id = 0
+                         Firstname = \"Maxime\"
+                         Surname = \"Mangel\"
+                         Avatar = \"maxime_mangel.png\" }
+                       { Id = 1
+                         Firstname = \"Robin\"
+                         Surname = \"Munn\"
+                         Avatar = \"robin_munn.png\" }
+                       { Id = 2
+                         Firstname = \"Alfonso\"
+                         Surname = \"Garciacaro\"
+                         Avatar = \"alfonso_garciacaro.png\" }
+                       { Id = 3
+                         Firstname = \"Guest\"
+                         Surname = \"\"
+                         Avatar = \"guest.png\" } |] }
             )
             .write ()
 
@@ -1715,8 +1715,8 @@ let ``anonymous record with multiline field, indent 2`` () =
         equal
         """
 {| Foo =
-     //  meh
-     someValue |}
+    //  meh
+    someValue |}
 """
 
 [<Test>]
@@ -1728,7 +1728,7 @@ let ``anonymous record with multiline field, indent 3`` () =
               //  meh
               someValue |}
 """
-        { config with IndentSize = 2 }
+        { config with IndentSize = 3 }
     |> prepend newline
     |> should
         equal
@@ -1736,4 +1736,93 @@ let ``anonymous record with multiline field, indent 3`` () =
 {| Foo =
    //  meh
    someValue |}
+"""
+
+[<Test>]
+let ``anonymous record with multiline field, indent 5`` () =
+    formatSourceString
+        false
+        """
+{| Foo =
+              //  meh
+              someValue |}
+"""
+        { config with IndentSize = 5 }
+    |> prepend newline
+    |> should
+        equal
+        """
+{| Foo =
+     //  meh
+     someValue |}
+"""
+
+[<Test>]
+let ``a foo`` () =
+    formatSourceString
+        false
+        """
+{| Foo =
+              someValue
+                //
+                a |}
+"""
+        { config with IndentSize = 3 }
+    |> prepend newline
+    |> should
+        equal
+        """
+{| Foo =
+   someValue
+      //
+      a |}
+"""
+
+[<Test>]
+let ``long record field assigment`` () =
+    formatSourceString
+        false
+        """
+{ A =
+    // one indent starting from {
+    someFunctionCall
+        arg1
+        arg2
+  B =
+      // one indent starting from label B
+      someFunctionCall
+          arg1
+          arg2 }
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+{ A =
+    // one indent starting from {
+    someFunctionCall arg1 arg2
+  B =
+    // one indent starting from label B
+    someFunctionCall arg1 arg2 }
+"""
+
+[<Test>]
+let ``anonymous update record, indent_size 3`` () =
+    formatSourceString
+        false
+        """
+{| f with Foo =
+                        //  meh
+                          someValue |}
+"""
+        { config with IndentSize = 3 }
+    |> prepend newline
+    |> should
+        equal
+        """
+{| f with
+      Foo =
+         //  meh
+         someValue |}
 """

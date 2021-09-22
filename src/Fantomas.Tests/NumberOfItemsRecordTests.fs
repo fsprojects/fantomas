@@ -70,8 +70,8 @@ let myRecord =
       Progress = "foo"
       Bar = { Zeta = "bar" }
       Address =
-          { Street = "Bakerstreet"
-            ZipCode = "9000" }
+        { Street = "Bakerstreet"
+          ZipCode = "9000" }
       Number = 42 }
 """
 
@@ -220,8 +220,8 @@ let ``anonymous record with multiple field update`` () =
         """
 let a =
     {| foo with
-           Level = 7
-           Square = 9 |}
+        Level = 7
+        Square = 9 |}
 """
 
 [<Test>]
@@ -272,12 +272,12 @@ let anonRecord =
         """
 let anonRecord =
     {| A =
-           {| A1 = "string"
-              A2LongerIdentifier = "foo" |}
+        {| A1 = "string"
+           A2LongerIdentifier = "foo" |}
        B = {| B1 = 7 |}
        C =
-           { C1 = "foo"
-             C2LongerIdentifier = "bar" }
+        { C1 = "foo"
+          C2LongerIdentifier = "bar" }
        D = { D1 = "bar" } |}
 """
 
@@ -797,9 +797,9 @@ let config =
       theme_variant = Some "red"
       root_url =
 #if WATCH
-          "http://localhost:8080/"
+        "http://localhost:8080/"
 #else
-          "https://fsprojects.github.io/fantomas/"
+        "https://fsprojects.github.io/fantomas/"
 #endif
     }
 """
@@ -1036,9 +1036,9 @@ let s =
 
 let r' =
     {| r with
-           a = x
-           b = y
-           z = c |}
+        a = x
+        b = y
+        z = c |}
 
 let s' =
     {| s with AReallyLongExpressionThatIsMuchLongerThan50Characters = 1 |}
@@ -1054,9 +1054,9 @@ g s {| AReallyLongExpressionThatIsMuchLongerThan50Characters = 1 |}
 f
     r'
     {| r with
-           a = x
-           b = y
-           z = c |}
+        a = x
+        b = y
+        z = c |}
 
 g s' {| s with AReallyLongExpressionThatIsMuchLongerThan50Characters = 1 |}
 """
