@@ -1018,15 +1018,6 @@ let internal sepSpaceWhenOrIndentAndNlnIfExpressionExceedsPageWidth (addSpace: C
         expr
         ctx
 
-let internal sepSpaceOrNlnIfExpressionExceedsPageWidth expr (ctx: Context) =
-    expressionExceedsPageWidth
-        sepSpace
-        sepNone // before and after for short expressions
-        sepNln
-        unindent // before and after for long expressions
-        expr
-        ctx
-
 let internal autoNlnIfExpressionExceedsPageWidth expr (ctx: Context) =
     expressionExceedsPageWidth
         sepNone

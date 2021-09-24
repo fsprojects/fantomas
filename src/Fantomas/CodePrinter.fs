@@ -2591,7 +2591,7 @@ and genExpr astContext synExpr ctx =
             genExpr astContext optExpr
             +> genSynStaticOptimizationConstraint astContext constraints
             +> sepEq
-            +> sepSpaceOrNlnIfExpressionExceedsPageWidth (genExpr astContext e)
+            +> sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e)
 
         | UnsupportedExpr r ->
             raise
@@ -3009,10 +3009,11 @@ and genMultilineRecordInstance
                 tokN synExpr.Range LBRACE sepOpenS
                 +> genExpr astContext e
                 +> !- " with"
-                +> ifIndentLesserThan 3 (indent +> indent) indent
-                +> sepSpaceOrNlnIfExpressionExceedsPageWidth fieldsExpr
+                +> ifIndentLesserThan
+                    3
+                    (sepSpaceOrDoubleIndentAndNlnIfExpressionExceedsPageWidth fieldsExpr)
+                    (sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth fieldsExpr)
                 +> tokN synExpr.Range RBRACE sepCloseS
-                +> ifIndentLesserThan 3 (unindent +> unindent) unindent
 
     expr ctx
 
