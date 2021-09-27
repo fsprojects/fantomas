@@ -515,8 +515,7 @@ let update msg model =
     let res =
         match msg with
         | AMessage ->
-            { model with
-                  AFieldWithAVeryVeryVeryLooooooongName = 10 }
+            { model with AFieldWithAVeryVeryVeryLooooooongName = 10 }
                 .RecalculateTotal()
         | AnotherMessage -> model
 
@@ -833,8 +832,8 @@ let private update onSubmit msg model =
     | UpdateCurrency c -> { model with Currency = c }, Cmd.none
     | UpdateLocation (lat, lng) ->
         { model with
-              Latitude = lat
-              Longitude = lng },
+            Latitude = lat
+            Longitude = lng },
         Cmd.none
     | UpdateIsDraft d -> { model with IsDraft = d }, Cmd.none
     | UpdateRemark r -> { model with Remark = r }, Cmd.none
@@ -982,8 +981,8 @@ let draftToken =
         DraftToken.Create
             kind
             { token with
-                  LeftColumn = token.LeftColumn - 1
-                  FullMatchedLength = token.FullMatchedLength + 1 }
+                LeftColumn = token.LeftColumn - 1
+                FullMatchedLength = token.FullMatchedLength + 1 }
     | Some ({ Kind = SymbolKind.ActivePattern } as ap) when token.Tag = FSharpTokenTag.RPAREN ->
         DraftToken.Create SymbolKind.Ident ap.Token
     | _ ->
