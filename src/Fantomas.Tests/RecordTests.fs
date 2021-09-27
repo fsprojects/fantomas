@@ -405,11 +405,11 @@ Fooey
         "
 let r =
     {| Foo =
-           a
-           && // && b
-           c
+        a
+        && // && b
+        c
        Bar =
-           \"\"\"
+        \"\"\"
 Fooey
 \"\"\" |}
 "
@@ -429,8 +429,8 @@ let ``meaningful space should be preserved, 353`` () =
         """
 to'.WithCommon (fun o' ->
     { dotnetOptions o' with
-          WorkingDirectory = Path.getFullName "RegressionTesting/issue29"
-          Verbosity = Some DotNet.Verbosity.Minimal })
+        WorkingDirectory = Path.getFullName "RegressionTesting/issue29"
+        Verbosity = Some DotNet.Verbosity.Minimal })
     .WithParameters
 """
 
@@ -533,22 +533,22 @@ type Database =
             .defaults(
                 { Version = CurrentVersion
                   Questions =
-                      [| { Id = 0
-                           AuthorId = 1
-                           Title = \"What is the average wing speed of an unladen swallow?\"
-                           Description =
-                               \"\"\"
+                    [| { Id = 0
+                         AuthorId = 1
+                         Title = \"What is the average wing speed of an unladen swallow?\"
+                         Description =
+                           \"\"\"
 Hello, yesterday I saw a flight of swallows and was wondering what their **average wing speed** is?
 
 If you know the answer please share it.
                              \"\"\"
-                           Answers =
-                               [| { Id = 0
-                                    CreatedAt = DateTime.Parse \"2017-09-14T19:57:33.103Z\"
-                                    AuthorId = 0
-                                    Score = 2
-                                    Content =
-                                        \"\"\"
+                         Answers =
+                           [| { Id = 0
+                                CreatedAt = DateTime.Parse \"2017-09-14T19:57:33.103Z\"
+                                AuthorId = 0
+                                Score = 2
+                                Content =
+                                  \"\"\"
 > What do you mean, an African or European Swallow?
 >
 > Monty Python’s: The Holy Grail
@@ -557,12 +557,12 @@ Ok I must admit, I use google to search the question and found a post explaining
 
 I thought you were asking it seriously, well done.
                                     x\"\"\" }
-                                  { Id = 1
-                                    CreatedAt = DateTime.Parse \"2017-09-14T20:07:27.103Z\"
-                                    AuthorId = 2
-                                    Score = 1
-                                    Content =
-                                        \"\"\"
+                              { Id = 1
+                                CreatedAt = DateTime.Parse \"2017-09-14T20:07:27.103Z\"
+                                AuthorId = 2
+                                Score = 1
+                                Content =
+                                  \"\"\"
 Maxime,
 
 I believe you found [this blog post](http://www.saratoga.com/how-should-i-know/2013/07/what-is-the-average-air-speed-velocity-of-a-laden-swallow/).
@@ -571,39 +571,74 @@ And so Robin, the conclusion of the post is:
 
 > In the end, it’s concluded that the airspeed velocity of a (European) unladen swallow is about 24 miles per hour or 11 meters per second.
                                     \"\"\" } |]
-                           CreatedAt = DateTime.Parse \"2017-09-14T17:44:28.103Z\" }
-                         { Id = 1
-                           AuthorId = 0
-                           Title = \"Why did you create Fable?\"
-                           Description =
-                               \"\"\"
+                         CreatedAt = DateTime.Parse \"2017-09-14T17:44:28.103Z\" }
+                       { Id = 1
+                         AuthorId = 0
+                         Title = \"Why did you create Fable?\"
+                         Description =
+                           \"\"\"
 Hello Alfonso,
 
 I wanted to know why you created Fable. Did you always plan to use F#? Or were you thinking in others languages?
                              \"\"\"
-                           Answers = [||]
-                           CreatedAt = DateTime.Parse \"2017-09-12T09:27:28.103Z\" } |]
+                         Answers = [||]
+                         CreatedAt = DateTime.Parse \"2017-09-12T09:27:28.103Z\" } |]
                   Users =
-                      [| { Id = 0
-                           Firstname = \"Maxime\"
-                           Surname = \"Mangel\"
-                           Avatar = \"maxime_mangel.png\" }
-                         { Id = 1
-                           Firstname = \"Robin\"
-                           Surname = \"Munn\"
-                           Avatar = \"robin_munn.png\" }
-                         { Id = 2
-                           Firstname = \"Alfonso\"
-                           Surname = \"Garciacaro\"
-                           Avatar = \"alfonso_garciacaro.png\" }
-                         { Id = 3
-                           Firstname = \"Guest\"
-                           Surname = \"\"
-                           Avatar = \"guest.png\" } |] }
+                    [| { Id = 0
+                         Firstname = \"Maxime\"
+                         Surname = \"Mangel\"
+                         Avatar = \"maxime_mangel.png\" }
+                       { Id = 1
+                         Firstname = \"Robin\"
+                         Surname = \"Munn\"
+                         Avatar = \"robin_munn.png\" }
+                       { Id = 2
+                         Firstname = \"Alfonso\"
+                         Surname = \"Garciacaro\"
+                         Avatar = \"alfonso_garciacaro.png\" }
+                       { Id = 3
+                         Firstname = \"Guest\"
+                         Surname = \"\"
+                         Avatar = \"guest.png\" } |] }
             )
             .write ()
 
         Logger.debug \"Database restored\"
+"
+
+[<Test>]
+let ``multiline string before closing brace`` () =
+    formatSourceString
+        false
+        "
+let person =
+    let y =
+        let x =
+            { Story = \"\"\"
+            foo
+            bar
+\"\"\"
+            }
+        ()
+    ()
+"
+        config
+    |> prepend newline
+    |> should
+        equal
+        "
+let person =
+    let y =
+        let x =
+            { Story =
+                \"\"\"
+            foo
+            bar
+\"\"\"         }
+
+        ()
+
+    ()
 "
 
 [<Test>]
@@ -627,8 +662,8 @@ let x = Foo("").Goo()
 
 let r =
     { s with
-          xxxxxxxxxxxxxxxxxxxxx = 1
-          yyyyyyyyyyyyyyyyyyyyy = 2 }
+        xxxxxxxxxxxxxxxxxxxxx = 1
+        yyyyyyyyyyyyyyyyyyyyy = 2 }
 """
 
 [<Test>]
@@ -682,18 +717,18 @@ let expect =
 let expect =
     Result<Schema, SetError>.Ok
         { opts =
-              [ Opts.anyOf (
-                  [ (Optional, Opt.flagTrue [ "first"; "f" ])
-                    (Optional, Opt.value [ "second"; "s" ]) ]
-                )
-                Opts.oneOf (
-                    Optional,
-                    [ Opt.flag [ "third"; "f" ]
-                      Opt.valueWith
-                          "new value"
-                          [ "fourth"
-                            "ssssssssssssssssssssssssssssssssssssssssssssssssssss" ] ]
-                ) ]
+            [ Opts.anyOf (
+                [ (Optional, Opt.flagTrue [ "first"; "f" ])
+                  (Optional, Opt.value [ "second"; "s" ]) ]
+              )
+              Opts.oneOf (
+                  Optional,
+                  [ Opt.flag [ "third"; "f" ]
+                    Opt.valueWith
+                        "new value"
+                        [ "fourth"
+                          "ssssssssssssssssssssssssssssssssssssssssssssssssssss" ] ]
+              ) ]
           args = []
           commands = [] }
 """
@@ -761,11 +796,11 @@ open WebSharper.UI
 module Maintoc =
     let Page =
         { MyPage.Create() with
-              body =
-                  [ Doc.Verbatim
-                        \"\"\"
+            body =
+                [ Doc.Verbatim
+                      \"\"\"
 This is a very long line in a multi-line string, so long in fact that it is longer than that page width to which I am trying to constrain everything, and so it goes bang.
-\"\"\" ]   }
+\"\"\" ] }
 "
 
 [<Test>]
@@ -1027,7 +1062,7 @@ let ``longer anonymous record with copy expression`` () =
         """
 let foo =
     {| bar with
-           AMemberWithALongName = aValueWithAlsoALongName |}
+        AMemberWithALongName = aValueWithAlsoALongName |}
 """
 
 [<Test>]
@@ -1530,4 +1565,337 @@ match entities with
      { Key = "0031ff53-e59b-49e3-8e0f-53f72a3890d3"
        Type = Elephant } |] -> ()
 | _ -> ()
+"""
+
+[<Test>]
+let ``update record should indent from curly brace, 1876`` () =
+    formatSourceString
+        false
+        """
+let rainbow2 =
+    { rainbow with Boss = "Jeffrey" ; Lackeys = [ "Zippy"; "George"; "Bungle" ] }
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let rainbow2 =
+    { rainbow with
+        Boss = "Jeffrey"
+        Lackeys = [ "Zippy"; "George"; "Bungle" ] }
+"""
+
+[<Test>]
+let ``update record should indent from curly brace, indent size 2`` () =
+    formatSourceString
+        false
+        """
+let rainbow2 =
+  { rainbow with Boss = "Jeffrey" ; Lackeys = [ "Zippy"; "George"; "Bungle" ] }
+"""
+        { config with IndentSize = 2 }
+    |> prepend newline
+    |> should
+        equal
+        """
+let rainbow2 =
+  { rainbow with
+      Boss = "Jeffrey"
+      Lackeys = [ "Zippy"; "George"; "Bungle" ] }
+"""
+
+[<Test>]
+let ``update record should indent from curly brace, indent size 3`` () =
+    formatSourceString
+        false
+        """
+let rainbow2 =
+   { rainbow with Boss = "Jeffrey" ; Lackeys = [ "Zippy"; "George"; "Bungle" ] }
+"""
+        { config with IndentSize = 3 }
+    |> prepend newline
+    |> should
+        equal
+        """
+let rainbow2 =
+   { rainbow with
+      Boss = "Jeffrey"
+      Lackeys = [ "Zippy"; "George"; "Bungle" ] }
+"""
+
+[<Test>]
+let ``record with comments above field`` () =
+    formatSourceString
+        false
+        """
+{ Foo =
+    // bar
+    someValue}
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+{ Foo =
+    // bar
+    someValue }
+"""
+
+[<Test>]
+let ``record with comments above field, indent 2`` () =
+    formatSourceString
+        false
+        """
+{ Foo =
+    // bar
+    someValue}
+"""
+        { config with IndentSize = 2 }
+    |> prepend newline
+    |> should
+        equal
+        """
+{ Foo =
+    // bar
+    someValue }
+"""
+
+[<Test>]
+let ``record with comments above field, indent 3`` () =
+    formatSourceString
+        false
+        """
+{ Foo =
+    // bar
+    someValue}
+"""
+        { config with IndentSize = 3 }
+    |> prepend newline
+    |> should
+        equal
+        """
+{ Foo =
+   // bar
+   someValue }
+"""
+
+[<Test>]
+let ``anonymous record with multiline field`` () =
+    formatSourceString
+        false
+        """
+{| Foo =
+              //  meh
+              someValue |}
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+{| Foo =
+    //  meh
+    someValue |}
+"""
+
+[<Test>]
+let ``anonymous record with multiline field, indent 2`` () =
+    formatSourceString
+        false
+        """
+{| Foo =
+              //  meh
+              someValue |}
+"""
+        { config with IndentSize = 2 }
+    |> prepend newline
+    |> should
+        equal
+        """
+{| Foo =
+    //  meh
+    someValue |}
+"""
+
+[<Test>]
+let ``anonymous record with multiline field, indent 3`` () =
+    formatSourceString
+        false
+        """
+{| Foo =
+              //  meh
+              someValue |}
+"""
+        { config with IndentSize = 3 }
+    |> prepend newline
+    |> should
+        equal
+        """
+{| Foo =
+   //  meh
+   someValue |}
+"""
+
+[<Test>]
+let ``anonymous record with multiline field, indent 5`` () =
+    formatSourceString
+        false
+        """
+{| Foo =
+              //  meh
+              someValue |}
+"""
+        { config with IndentSize = 5 }
+    |> prepend newline
+    |> should
+        equal
+        """
+{| Foo =
+     //  meh
+     someValue |}
+"""
+
+[<Test>]
+let ``a foo`` () =
+    formatSourceString
+        false
+        """
+{| Foo =
+              someValue
+                //
+                a |}
+"""
+        { config with IndentSize = 3 }
+    |> prepend newline
+    |> should
+        equal
+        """
+{| Foo =
+   someValue
+      //
+      a |}
+"""
+
+[<Test>]
+let ``long record field assigment`` () =
+    formatSourceString
+        false
+        """
+{ A =
+    // one indent starting from {
+    someFunctionCall
+        arg1
+        arg2
+  B =
+      // one indent starting from label B
+      someFunctionCall
+          arg1
+          arg2 }
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+{ A =
+    // one indent starting from {
+    someFunctionCall arg1 arg2
+  B =
+    // one indent starting from label B
+    someFunctionCall arg1 arg2 }
+"""
+
+[<Test>]
+let ``anonymous update record, indent_size 3`` () =
+    formatSourceString
+        false
+        """
+{| f with Foo =
+                        //  meh
+                          someValue |}
+"""
+        { config with IndentSize = 3 }
+    |> prepend newline
+    |> should
+        equal
+        """
+{| f with
+      Foo =
+         //  meh
+         someValue |}
+"""
+
+[<Test>]
+let ``restore correct indent after update record expression`` () =
+    formatSourceString
+        false
+        """
+let parse (checker: FSharpChecker) (parsingOptions: FSharpParsingOptions) { FileName = fileName; Source = source } =
+    let allDefineOptions, defineHashTokens = TokenParser.getDefines source
+
+    allDefineOptions
+    |> List.map (fun conditionalCompilationDefines ->
+        async {
+            let parsingOptionsWithDefines =
+                { parsingOptions with
+                      ConditionalCompilationDefines = conditionalCompilationDefines
+                      SourceFiles = Array.map safeFileName parsingOptions.SourceFiles }
+            // Run the first phase (untyped parsing) of the compiler
+            let sourceText =
+                FSharp.Compiler.Text.SourceText.ofString source
+
+            let! untypedRes = checker.ParseFile(fileName, sourceText, parsingOptionsWithDefines)
+
+            if untypedRes.ParseHadErrors then
+                let errors =
+                    untypedRes.Diagnostics
+                    |> Array.filter (fun e -> e.Severity = FSharpDiagnosticSeverity.Error)
+
+                if not <| Array.isEmpty errors then
+                    raise
+                    <| FormatException(
+                        sprintf "Parsing failed with errors: %A\nAnd options: %A" errors parsingOptionsWithDefines
+                    )
+
+            return (untypedRes.ParseTree, conditionalCompilationDefines, defineHashTokens)
+        })
+    |> Async.Parallel
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let parse (checker: FSharpChecker) (parsingOptions: FSharpParsingOptions) { FileName = fileName; Source = source } =
+    let allDefineOptions, defineHashTokens = TokenParser.getDefines source
+
+    allDefineOptions
+    |> List.map (fun conditionalCompilationDefines ->
+        async {
+            let parsingOptionsWithDefines =
+                { parsingOptions with
+                    ConditionalCompilationDefines = conditionalCompilationDefines
+                    SourceFiles = Array.map safeFileName parsingOptions.SourceFiles }
+            // Run the first phase (untyped parsing) of the compiler
+            let sourceText =
+                FSharp.Compiler.Text.SourceText.ofString source
+
+            let! untypedRes = checker.ParseFile(fileName, sourceText, parsingOptionsWithDefines)
+
+            if untypedRes.ParseHadErrors then
+                let errors =
+                    untypedRes.Diagnostics
+                    |> Array.filter (fun e -> e.Severity = FSharpDiagnosticSeverity.Error)
+
+                if not <| Array.isEmpty errors then
+                    raise
+                    <| FormatException(
+                        sprintf "Parsing failed with errors: %A\nAnd options: %A" errors parsingOptionsWithDefines
+                    )
+
+            return (untypedRes.ParseTree, conditionalCompilationDefines, defineHashTokens)
+        })
+    |> Async.Parallel
 """
