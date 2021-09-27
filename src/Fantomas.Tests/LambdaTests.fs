@@ -933,8 +933,8 @@ module Foo =
 module Foo =
     let bar () =
         { Foo =
-              blah
-              |> Struct.map (fun _ (a, _, _) -> filterBackings a) }
+            blah
+            |> Struct.map (fun _ (a, _, _) -> filterBackings a) }
 """
 
 [<Test>]

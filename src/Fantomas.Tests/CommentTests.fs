@@ -290,6 +290,53 @@ let a =
 """
 
 [<Test>]
+let ``comment alignment above record field`` () =
+    formatSourceString
+        false
+        """
+let a =
+    { c = 4
+      // foo
+      // bar
+      B = 7 }
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let a =
+    { c = 4
+      // foo
+      // bar
+      B = 7 }
+"""
+
+[<Test>]
+let ``comment alignment above record field, fsharp_space_around_delimiter = false`` () =
+    formatSourceString
+        false
+        """
+let a =
+    { c = 4
+      // foo
+      // bar
+      B = 7 }
+"""
+        { config with
+              SpaceAroundDelimiter = false }
+    |> prepend newline
+    |> should
+        equal
+        """
+let a =
+    {c = 4
+     // foo
+     // bar
+     B = 7}
+"""
+
+[<Test>]
 let ``shouldn't break on one-line comment`` () =
     formatSourceString
         false
