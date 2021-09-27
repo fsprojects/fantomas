@@ -1911,7 +1911,7 @@ let config =
 #if WATCH
 
 #else
-          "https://fsprojects.github.io/fantomas/"
+        "https://fsprojects.github.io/fantomas/"
 #endif
     }
 """
@@ -1944,7 +1944,7 @@ let config =
       theme_variant = Some "red"
       root_url =
 #if WATCH
-          "http://localhost:8080/"
+        "http://localhost:8080/"
 #else
 
 #endif
@@ -1979,9 +1979,9 @@ let config =
       theme_variant = Some "red"
       root_url =
 #if WATCH
-          "http://localhost:8080/"
+        "http://localhost:8080/"
 #else
-          "https://fsprojects.github.io/fantomas/"
+        "https://fsprojects.github.io/fantomas/"
 #endif
     }
 """
