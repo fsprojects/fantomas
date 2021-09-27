@@ -1396,7 +1396,7 @@ and genExpr astContext synExpr ctx =
             let longExpression =
                 ifAlignBrackets
                     (genMultilineAnonRecordAlignBrackets isStruct fields copyInfo astContext)
-                    (genMultilineAnonRecord isStruct fields copyInfo astContext)
+                    (genMultilineAnonRecord isStruct fields copyInfo synExpr.Range astContext)
 
             fun (ctx: Context) ->
                 let size = getRecordSize ctx fields
@@ -2642,7 +2642,7 @@ and genExpr astContext synExpr ctx =
             genExpr astContext optExpr
             +> genSynStaticOptimizationConstraint astContext constraints
             +> sepEq
-            +> sepSpaceOrNlnIfExpressionExceedsPageWidth (genExpr astContext e)
+            +> sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e)
 
         | UnsupportedExpr r ->
             raise
@@ -3011,56 +3011,76 @@ and genMultilineRecordInstance
     astContext
     (ctx: Context)
     =
-    let recordExpr =
-        let fieldsExpr =
-            col sepSemiNln xs (genRecordFieldName astContext)
+    let ifIndentLesserThan size lesser greater ctx =
+        if ctx.Config.IndentSize < size then
+            lesser ctx
+        else
+            greater ctx
 
-        match eo with
-        | Some e ->
-            genExpr astContext e
-            +> !- " with"
-            +> indent
-            +> sepNln
-            +> fieldsExpr
-            +> unindent
-        | None -> fieldsExpr
+    let expressionStartColumn = ctx.Column
+
+    let fieldsExpr =
+        col sepSemiNln xs (genRecordFieldName astContext)
 
     let expr =
-        sepOpenS
-        +> (fun (ctx: Context) ->
-            { ctx with
-                  RecordBraceStart = ctx.Column :: ctx.RecordBraceStart })
-        +> atCurrentColumnIndent (
-            leaveLeftBrace synExpr.Range
-            +> opt
-                (if xs.IsEmpty then sepNone else sepNln)
-                inheritOpt
-                (fun (typ, expr) ->
-                    !- "inherit "
-                    +> genType astContext false typ
-                    +> addSpaceBeforeClassConstructor expr
-                    +> genExpr astContext expr)
-            +> recordExpr
-        )
-        +> (fun ctx ->
-            match ctx.RecordBraceStart with
-            | rbs :: rest ->
-                if ctx.Column < rbs then
-                    let offset =
-                        (if ctx.Config.SpaceAroundDelimiter then
-                             2
-                         else
-                             1)
-                        + 1
+        match inheritOpt with
+        | Some (t, e) ->
+            tokN synExpr.Range LBRACE sepOpenS
+            +> atCurrentColumn (
+                !- "inherit "
+                +> genType astContext false t
+                +> addSpaceBeforeClassConstructor e
+                +> genExpr astContext e
+                +> onlyIf (List.isNotEmpty xs) sepNln
+                +> fieldsExpr
+                +> tokN synExpr.Range RBRACE sepCloseS
+            )
+        | None ->
+            match eo with
+            | None ->
+                fun (ctx: Context) ->
+                    // position after `{ ` or `{`
+                    let targetColumn =
+                        ctx.Column
+                        + (if ctx.Config.SpaceAroundDelimiter then
+                               2
+                           else
+                               1)
 
-                    let delta = Math.Max((rbs - ctx.Column) - offset, 0)
-                    (!- System.String.Empty.PadRight(delta)) { ctx with RecordBraceStart = rest }
-                else
-                    sepNone { ctx with RecordBraceStart = rest }
-            | [] -> sepNone ctx)
-        +> sepNlnWhenWriteBeforeNewlineNotEmpty sepNone
-        +> enterNodeTokenByName synExpr.Range RBRACE
-        +> ifElseCtx lastWriteEventIsNewline sepCloseSFixed sepCloseS
+                    atCurrentColumn
+                        (tokN synExpr.Range LBRACE sepOpenS
+                         +> sepNlnWhenWriteBeforeNewlineNotEmpty sepNone // comment after curly brace
+                         +> col
+                             sepSemiNln
+                             xs
+                             (fun e ->
+                                 // Add spaces to ensure the record field (incl trivia) starts at the right column.
+                                 addFixedSpaces targetColumn
+                                 // Lock the start of the record field, however keep potential indentations in relation to the opening curly brace
+                                 +> atCurrentColumn (genRecordFieldName astContext e))
+                         +> tokN
+                             synExpr.Range
+                             RBRACE
+                             (sepNlnWhenWriteBeforeNewlineNotEmpty sepNone // comment after last record field
+                              +> (fun ctx ->
+                                  // Edge case scenario to make sure that the closing brace is not before the opening one
+                                  // See unit test "multiline string before closing brace"
+                                  let delta = expressionStartColumn - ctx.Column
+
+                                  if delta > 0 then
+                                      ((rep delta (!- " ")) +> sepCloseSFixed) ctx
+                                  else
+                                      ifElseCtx lastWriteEventIsNewline sepCloseSFixed sepCloseS ctx)))
+                        ctx
+            | Some e ->
+                tokN synExpr.Range LBRACE sepOpenS
+                +> genExpr astContext e
+                +> !- " with"
+                +> ifIndentLesserThan
+                    3
+                    (sepSpaceOrDoubleIndentAndNlnIfExpressionExceedsPageWidth fieldsExpr)
+                    (sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth fieldsExpr)
+                +> tokN synExpr.Range RBRACE sepCloseS
 
     expr ctx
 
@@ -3117,25 +3137,52 @@ and genMultilineRecordInstanceAlignBrackets
          +> sepCloseSFixed)
     |> atCurrentColumnIndent
 
-and genMultilineAnonRecord (isStruct: bool) fields copyInfo astContext =
+and genMultilineAnonRecord (isStruct: bool) fields copyInfo (range: Range) (astContext: ASTContext) =
     let recordExpr =
-        let fieldsExpr =
-            col sepSemiNln fields (genAnonRecordFieldName astContext)
-
         match copyInfo with
         | Some e ->
-            genExpr astContext e
-            +> (!- " with"
-                +> indent
-                +> sepNln
-                +> fieldsExpr
-                +> unindent)
-        | None -> fieldsExpr
+            (tokN range LBRACK_BAR sepOpenAnonRecd)
+            +> atCurrentColumn (
+                genExpr astContext e
+                +> (!- " with"
+                    +> indent
+                    +> sepNln
+                    +> col sepSemiNln fields (genAnonRecordFieldName astContext)
+                    +> unindent)
+            )
+            +> (tokN range BAR_RBRACK sepCloseAnonRecd)
+        | None ->
+            fun ctx ->
+                // position after `{| ` or `{|`
+                let targetColumn =
+                    ctx.Column
+                    + (if ctx.Config.SpaceAroundDelimiter then
+                           3
+                       else
+                           2)
 
-    onlyIf isStruct !- "struct "
-    +> sepOpenAnonRecd
-    +> atCurrentColumnIndent recordExpr
-    +> sepCloseAnonRecd
+                atCurrentColumn
+                    ((tokN range LBRACK_BAR sepOpenAnonRecd)
+                     +> col
+                         sepSemiNln
+                         fields
+                         (fun (AnonRecordFieldName (s, e)) ->
+                             let expr =
+                                 if ctx.Config.IndentSize < 3 then
+                                     sepSpaceOrDoubleIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e)
+                                 else
+                                     sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e)
+
+                             // Add enough spaces to start at the right column but indent from the opening curly brace.
+                             // Use a double indent when using a small indent size to avoid offset warnings.
+                             addFixedSpaces targetColumn
+                             +> !-s
+                             +> sepEq
+                             +> expr)
+                     +> (tokN range BAR_RBRACK sepCloseAnonRecd))
+                    ctx
+
+    onlyIf isStruct !- "struct " +> recordExpr
 
 and genMultilineAnonRecordAlignBrackets (isStruct: bool) fields copyInfo astContext =
     let fieldsExpr =
