@@ -182,7 +182,6 @@ type internal Context =
       Content: string
       TriviaMainNodes: Map<FsAstType, TriviaNode list>
       TriviaTokenNodes: Map<FsTokenType, TriviaNode list>
-      RecordBraceStart: int list
       FileName: string }
 
     /// Initialize with a string writer and use space as delimiter
@@ -195,7 +194,6 @@ type internal Context =
           Content = ""
           TriviaMainNodes = Map.empty
           TriviaTokenNodes = Map.empty
-          RecordBraceStart = []
           FileName = String.Empty }
 
     static member Create
@@ -676,6 +674,12 @@ let internal sepSpace (ctx: Context) =
         | None -> ctx
         | _ -> (!- " ") ctx
 
+// add actual spaces until the target column is reached, regardless of previous content
+// use with care
+let internal addFixedSpaces (targetColumn: int) (ctx: Context) : Context =
+    let delta = targetColumn - ctx.Column
+    onlyIf (delta > 0) (rep delta (!- " ")) ctx
+
 let internal sepNln = !+ ""
 
 // Use a different WriteLine event to indicate that the newline was introduces due to trivia
@@ -996,20 +1000,20 @@ let internal sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth expr (ctx: Conte
         expr
         ctx
 
+let internal sepSpaceOrDoubleIndentAndNlnIfExpressionExceedsPageWidth expr (ctx: Context) =
+    expressionExceedsPageWidth
+        sepSpace
+        sepNone // before and after for short expressions
+        (indent +> indent +> sepNln)
+        (unindent +> unindent) // before and after for long expressions
+        expr
+        ctx
+
 let internal sepSpaceWhenOrIndentAndNlnIfExpressionExceedsPageWidth (addSpace: Context -> bool) expr (ctx: Context) =
     expressionExceedsPageWidth
         (ifElseCtx addSpace sepSpace sepNone)
         sepNone // before and after for short expressions
         (indent +> sepNln)
-        unindent // before and after for long expressions
-        expr
-        ctx
-
-let internal sepSpaceOrNlnIfExpressionExceedsPageWidth expr (ctx: Context) =
-    expressionExceedsPageWidth
-        sepSpace
-        sepNone // before and after for short expressions
-        sepNln
         unindent // before and after for long expressions
         expr
         ctx
@@ -1141,13 +1145,13 @@ let internal ifAlignBrackets f g =
     ifElseCtx (fun ctx -> ctx.Config.MultilineBlockBracketsOnSameColumn) f g
 
 let internal printTriviaContent (c: TriviaContent) (ctx: Context) =
-    let currentLastLine = lastWriteEventOnLastLine ctx
+    let currentLastLine = ctx.WriterModel.Lines |> List.tryHead
 
     // Some items like #if or Newline should be printed on a newline
     // It is hard to always get this right in CodePrinter, so we detect it based on the current code.
     let addNewline =
         currentLastLine
-        |> Option.map (fun line -> line.Length > 0)
+        |> Option.map (fun line -> line.Trim().Length > 0)
         |> Option.defaultValue false
 
     let addSpace =
