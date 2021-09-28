@@ -650,13 +650,15 @@ let MethInfoIsUnseen g m ty minfo =
         """
 let MethInfoIsUnseen g m ty minfo =
     let isUnseenByObsoleteAttrib () =
-        match BindMethInfoAttributes
-                  m
-                  minfo
-                  (fun ilAttribs -> Some foo)
-                  (fun fsAttribs -> Some bar)
-                  (fun provAttribs -> Some(CheckProvidedAttributesForUnseen provAttribs m))
-                  (fun _provAttribs -> None) with
+        match
+            BindMethInfoAttributes
+                m
+                minfo
+                (fun ilAttribs -> Some foo)
+                (fun fsAttribs -> Some bar)
+                (fun provAttribs -> Some(CheckProvidedAttributesForUnseen provAttribs m))
+                (fun _provAttribs -> None)
+            with
         | Some res -> res
         | None -> false
 
@@ -691,15 +693,16 @@ let MethInfoIsUnseen g m ty minfo =
         """
 let MethInfoIsUnseen g m ty minfo =
     let isUnseenByObsoleteAttrib () =
-        match BindMethInfoAttributes
-                  m
-                  minfo
-                  (fun ilAttribs -> Some foo)
-                  (fun fsAttribs -> Some bar)
+        match
+            BindMethInfoAttributes
+                m
+                minfo
+                (fun ilAttribs -> Some foo)
+                (fun fsAttribs -> Some bar)
 #if !NO_EXTENSIONTYPING
-                  (fun provAttribs -> Some(CheckProvidedAttributesForUnseen provAttribs m))
+                (fun provAttribs -> Some(CheckProvidedAttributesForUnseen provAttribs m))
 #else
-                  (fun _provAttribs -> None)
+                (fun _provAttribs -> None)
 #endif
             with
         | Some res -> res
@@ -2008,4 +2011,48 @@ match v with
 | y // comment
 | z -> 42
 | _ -> 0
+"""
+
+[<Test>]
+let ``vanity alignment used when splitting line in match block, 1901`` () =
+    formatSourceString
+        false
+        """
+match Caching.Instance.TryRetrieveLastCompoundBalanceLoooooooooooooooooooooooooooooooooooooooooooongFuncName address currency with
+| None -> false
+| Some balance -> someRetrievedBalance = balance"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+match
+    Caching.Instance.TryRetrieveLastCompoundBalanceLoooooooooooooooooooooooooooooooooooooooooooongFuncName
+        address
+        currency
+    with
+| None -> false
+| Some balance -> someRetrievedBalance = balance
+"""
+
+[<Test>]
+let ``vanity alignment used when splitting line in match block, match bang, 1901`` () =
+    formatSourceString
+        false
+        """
+match! Caching.Instance.TryRetrieveLastCompoundBalanceLoooooooooooooooooooooooooooooooooooooooooooongFuncName address currency with
+| None -> false
+| Some balance -> someRetrievedBalance = balance"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+match!
+    Caching.Instance.TryRetrieveLastCompoundBalanceLoooooooooooooooooooooooooooooooooooooooooooongFuncName
+        address
+        currency
+    with
+| None -> false
+| Some balance -> someRetrievedBalance = balance
 """
