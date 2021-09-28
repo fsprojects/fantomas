@@ -234,6 +234,16 @@ Often this kind of bug is because Fantomas has added a newline due to some forma
 
 Use a helper function like `sepNlnConsideringTriviaContentBeforeForMainNode` instead of `sepNln` in `CodePrinter.fs` to solve this.
 
+### ASTContext
+
+In [CodePrinter.fs](https://github.com/fsprojects/fantomas/blob/master/src/Fantomas/CodePrinter.fs) the ASTContext record is used to indicate context aware information. This usually is an escape hatch and should be avoided at all times.
+The key issue is that flags of the ASTContext are usually not cleaned up after they served their purpose.
+Leading to very strange situations and unexpected behavior.
+
+## Rider
+
+The core contributors of this project are using JetBrains Rider. Running and debugging unit tests works out of the box and no additional plugins are needed.
+
 ## Ionide
 
 When you want to contribute to this project in VSCode with Ionide, there is a trick you need to know to debug Unit tests.
