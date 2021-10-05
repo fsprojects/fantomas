@@ -1,3 +1,7 @@
+#### 4.6.0-alpha-003
+
+* Fix Update record should indent from the curly brace instead of the identifier. [#1876](https://github.com/fsprojects/fantomas/issues/1876)
+
 #### 4.6.0-alpha-002
 
 * Fix Update style of lambda argument. [#1871](https://github.com/fsprojects/fantomas/issues/1871)
