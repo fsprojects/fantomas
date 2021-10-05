@@ -2,6 +2,7 @@
   <PropertyGroup>
     <Version>4.6.0-alpha-001</Version>
     <Version>4.6.0-alpha-002</Version>
+    <Version>4.6.0-alpha-003</Version>
     <NoWarn>FS0988</NoWarn>
     <TargetFramework>net5.0</TargetFramework>
     <WarningsAsErrors>FS0025</WarningsAsErrors>
