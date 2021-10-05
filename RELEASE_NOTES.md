@@ -1,3 +1,9 @@
+#### 4.5.4 - 10/2021
+
+* Fix Documentation contains reference to infix multiline formatter even though it's removed. [#1884](https://github.com/fsprojects/fantomas/issues/1884)
+* Fix Newline was introduced in Sequential with LetBang. [#1882](https://github.com/fsprojects/fantomas/issues/1882)
+* Fix Vanity alignment used when calling base constructor. [#1442](https://github.com/fsprojects/fantomas/issues/1442)
+
 #### 4.5.3 - 09/2021
 
 * Fix indented #if directive inside another non-indented #if directive drops significant whitespace. [#1866](https://github.com/fsprojects/fantomas/issues/1866)
