@@ -403,16 +403,51 @@ let format
     async {
         let! asts = parse checker parsingOptions formatContext
 
-        let results =
+        let! results =
             asts
-            |> Array.map (fun (ast', defines, hashTokens) -> formatWith ast' defines hashTokens formatContext config)
-            |> List.ofArray
+            |> Array.map
+                (fun (ast', defines, hashTokens) ->
+                    async {
+                        let formattedCode =
+                            formatWith ast' defines hashTokens formatContext config
+
+                        return (defines, formattedCode)
+                    })
+            |> Async.Parallel
+            |> Async.map Array.toList
 
         let merged =
             match results with
             | [] -> failwith "not possible"
-            | [ x ] -> x
-            | all -> List.reduce (String.merge config.EndOfLine.NewLineString) all
+            | [ (_, x) ] -> x
+            | all ->
+                let allInFragments =
+                    String.splitInFragments config.EndOfLine.NewLineString all
+
+                let allHaveSameFragmentCount =
+                    let allWithCount =
+                        List.map (fun (_, f: string list) -> f.Length) allInFragments
+
+                    (Set allWithCount).Count = 1
+
+                if not allHaveSameFragmentCount then
+                    let chunkReport =
+                        allInFragments
+                        |> List.map
+                            (fun (defines, fragments) ->
+                                sprintf "[%s] has %i fragments" (String.concat ", " defines) fragments.Length)
+                        |> String.concat config.EndOfLine.NewLineString
+
+                    failwithf
+                        """Fantomas is trying to format the input multiple times due to the detect of multiple defines.
+There is a problem with merging all the code back together.
+%s
+Please raise an issue at https://fsprojects.github.io/fantomas-tools/#/fantomas/preview."""
+                        chunkReport
+
+                List.map snd allInFragments
+                |> List.reduce String.merge
+                |> String.concat config.EndOfLine.NewLineString
 
         return merged
     }

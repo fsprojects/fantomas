@@ -111,7 +111,12 @@ let formatSourceStringWithDefines defines (s: string) config =
         |> Async.RunSynchronously
 
     // merge with itself to make #if go on beginning of line
-    String.merge config.EndOfLine.NewLineString result result
+    let _, fragments =
+        String.splitInFragments config.EndOfLine.NewLineString [ (defines, result) ]
+        |> List.head
+
+    String.merge fragments fragments
+    |> String.concat config.EndOfLine.NewLineString
     |> String.normalizeNewLine
 
 let formatSelectionOnly isFsiFile r (s: string) config =
