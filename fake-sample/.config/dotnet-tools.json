@@ -3,9 +3,15 @@
   "isRoot": true,
   "tools": {
     "fake-cli": {
-      "version": "5.20.3",
+      "version": "5.20.4",
       "commands": [
         "fake"
+      ]
+    },
+    "fantomas-tool": {
+      "version": "4.5.4",
+      "commands": [
+        "fantomas"
       ]
     }
   }
