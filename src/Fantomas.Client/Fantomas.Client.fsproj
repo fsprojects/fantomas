@@ -1,8 +1,7 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
-
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <Version>0.1.0</Version>
+    <Version>4.6.0-alpha-004</Version>
     <Description>Companion library to format using fantomas tool.</Description>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <WarnOn>3390;$(WarnOn)</WarnOn>
@@ -10,12 +9,14 @@
     <PackageLicenseFile>LICENSE.md</PackageLicenseFile>
     <PackageIcon>fantomas_logo.png</PackageIcon>
   </PropertyGroup>
-
   <ItemGroup>
     <None Include="paket.references" />
+    <None Include="..\..\LICENSE.md" Visible="false" Pack="true" PackagePath="" />
+    <None Include="..\..\fantomas_logo.png" Visible="false" Pack="true" PackagePath="" />
     <Compile Include="Contracts.fs" />
-    <Compile Include="FantomasToolLocator.fs" />
+    <Compile Include="LSPFantomasServiceTypes.fs" />
     <Compile Include="LSPFantomasService.fs" />
+    <Compile Include="FantomasToolLocator.fs" />
   </ItemGroup>
   <Import Project="..\..\.paket\Paket.Restore.targets" />
 </Project>

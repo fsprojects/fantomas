@@ -168,7 +168,9 @@ Target.create
           "src/Fantomas/bin"
           "src/Fantomas/obj"
           "src/Fantomas.CoreGlobalTool/bin"
-          "src/Fantomas.CoreGlobalTool/obj" ]
+          "src/Fantomas.CoreGlobalTool/obj"
+          "src/Fantomas.Client/bin"
+          "src/Fantomas.Client/obj" ]
         |> List.iter Shell.cleanDir)
 
 Target.create
@@ -186,7 +188,8 @@ Target.create
         setProjectVersion "Fantomas.CoreGlobalTool"
         setProjectVersion "Fantomas.CoreGlobalTool.Tests"
         setProjectVersion "Fantomas.Tests"
-        setProjectVersion "Fantomas.Extras")
+        setProjectVersion "Fantomas.Extras"
+        setProjectVersion "Fantomas.Client")
 
 // --------------------------------------------------------------------------------------
 // Build library & test project
@@ -263,7 +266,8 @@ Target.create
 
         pack "Fantomas"
         pack "Fantomas.Extras"
-        pack "Fantomas.CoreGlobalTool")
+        pack "Fantomas.CoreGlobalTool"
+        pack "Fantomas.Client")
 
 // This takes the list of external projects defined above, does a git checkout of the specified repo and tag,
 // tries to build the project, then reformats with fantomas and tries to build the project again. If this fails

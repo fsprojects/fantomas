@@ -3,6 +3,7 @@ module Fantomas.Client.Contracts
 open System
 open System.Collections.Generic
 open System.Threading
+open System.Threading.Tasks
 
 [<RequireQualifiedAccess>]
 module Methods =
@@ -28,12 +29,10 @@ type FormatDocumentRequest =
       /// Overrides the found .editorconfig.
       Config: IReadOnlyDictionary<string, string> option }
 
-[<RequireQualifiedAccess>]
-type FormatDocumentResponse =
-    | Formatted of filename: string * formattedContent: string
-    | Unchanged of filename: string
-    | Error of filename: string * formattingError: Exception
-    | IgnoredFile of filename: string
+type FormatResponse =
+    { Code: int
+      FileName: string
+      Content: string option }
 
 type FormatSelectionRequest =
     { SourceCode: string
@@ -59,11 +58,6 @@ and FormatSelectionRange =
               EndColumn = endColumn }
     end
 
-[<RequireQualifiedAccess>]
-type FormatSelectionResponse =
-    | Formatted of filename: string * formattedContent: string
-    | Error of filename: string * formattingError: Exception
-
 type FantomasOption = { Type: string; DefaultValue: string }
 
 type ConfigurationResponse =
@@ -75,13 +69,13 @@ type VersionResponse = { Version: string }
 type FantomasService =
     interface
         inherit IDisposable
-        abstract member VersionAsync : ?cancellationToken: CancellationToken -> Async<VersionResponse>
+        abstract member VersionAsync : ?cancellationToken: CancellationToken -> Task<VersionResponse>
 
         abstract member FormatDocumentAsync :
-            FormatDocumentRequest * ?cancellationToken: CancellationToken -> Async<FormatDocumentResponse>
+            FormatDocumentRequest * ?cancellationToken: CancellationToken -> Task<FormatResponse>
 
         abstract member FormatSelectionAsync :
-            FormatSelectionRequest * ?cancellationToken: CancellationToken -> Async<FormatSelectionResponse>
+            FormatSelectionRequest * ?cancellationToken: CancellationToken -> Task<FormatResponse>
 
-        abstract member ConfigurationAsync : ?cancellationToken: CancellationToken -> Async<ConfigurationResponse>
+        abstract member ConfigurationAsync : ?cancellationToken: CancellationToken -> Task<ConfigurationResponse>
     end

@@ -1,9 +1,11 @@
-module internal Fantomas.Client.FantomasToolLocator
+module Fantomas.Client.FantomasToolLocator
 
 open System
 open System.Diagnostics
 open System.IO
 open System.Text.RegularExpressions
+open Fantomas.Client.Contracts
+open Fantomas.Client.LSPFantomasService
 
 type FantomasToolResult =
     | FoundLocalTool
@@ -104,8 +106,7 @@ let private (|CompatibleTool|_|) lines =
         if hasTool then Some() else None
     | _ -> None
 
-let findFantomasTool (workingDir: string) : FantomasToolResult =
-    // check if there is a dotnet-tools.json manifest
+let private findFantomasTool (workingDir: string) : FantomasToolResult =
     let localTools = runToolListCmd workingDir false
 
     match localTools with
@@ -116,3 +117,28 @@ let findFantomasTool (workingDir: string) : FantomasToolResult =
         match globalTools with
         | Ok CompatibleTool -> FoundGlobalTool
         | _ -> NoCompatibleVersionFound
+
+let createForWorkingDirectory (workingDirectory: string) : Result<FantomasService, string> =
+    if not (Directory.Exists workingDirectory) then
+        raise (DirectoryNotFoundException(workingDirectory))
+    else
+        match findFantomasTool workingDirectory with
+        | FoundLocalTool ->
+            let processStart = ProcessStartInfo("dotnet")
+            processStart.UseShellExecute <- false
+            processStart.Arguments <- sprintf "fantomas --daemon"
+            processStart.WorkingDirectory <- workingDirectory
+            processStart.RedirectStandardOutput <- true
+            processStart.RedirectStandardError <- true
+            Ok(new LSPFantomasService(processStart) :> FantomasService)
+        | FoundGlobalTool ->
+            let processStart = ProcessStartInfo("fantomas")
+            processStart.UseShellExecute <- false
+            processStart.Arguments <- "--daemon"
+            processStart.WorkingDirectory <- workingDirectory
+            processStart.RedirectStandardOutput <- true
+            processStart.RedirectStandardError <- true
+            Ok(new LSPFantomasService(processStart) :> FantomasService)
+        | NoCompatibleVersionFound ->
+            // TODO: consider api choice here
+            Error(sprintf "No compatible Fantomas version found in \"%s\"." workingDirectory)

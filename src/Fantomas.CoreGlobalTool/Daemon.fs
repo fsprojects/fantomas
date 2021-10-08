@@ -9,6 +9,7 @@ open FSharp.Compiler.CodeAnalysis
 open FSharp.Compiler.Text.Range
 open FSharp.Compiler.Text.Position
 open Fantomas.Client.Contracts
+open Fantomas.Client.LSPFantomasServiceTypes
 open StreamJsonRpc
 open Fantomas
 open Fantomas.SourceOrigin

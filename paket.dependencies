@@ -32,3 +32,10 @@ group build
     nuget Fake.Core.Process
     nuget Fake.Core.Target
     nuget MSBuild.StructuredLogger 2.1.500
+
+group client
+    storage: none
+    source https://api.nuget.org/v3/index.json
+    
+    nuget FSharp.Core 5.0.1
+    nuget StreamJsonRpc
