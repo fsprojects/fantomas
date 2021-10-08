@@ -1,35 +1,43 @@
 #r "paket:
-nuget Fantomas.Extras 4.3.0
-nuget Fake.Core.Target //"
+nuget Fake.Core.Target
+nuget Fake.DotNet.Cli
+nuget FSharp.Core 5.0.2 //"
 #load "./.fake/script.fsx/intellisense.fsx"
 
 open Fake.Core
 open Fake.IO
 open Fake.IO.Globbing.Operators
-open Fantomas
-open Fantomas.Extras
-open Fantomas.FormatConfig
+open Fake.DotNet
 
-Target.create "CheckCodeFormat" (fun _ ->
-    let result =
-        !!"*.fs"
-        |> FakeHelpers.checkCode
-        |> Async.RunSynchronously
+let sourceFiles = !! "*.fs"
 
-    if result.IsValid then
-        Trace.log "No files need formatting"
-    elif result.NeedsFormatting then
-        Trace.log "The following files need formatting:"
-        List.iter Trace.log result.Formatted
-        failwith "Some files need formatting, check output for more info"
-    else
-        Trace.logf "Errors while formatting: %A" result.Errors)
+Target.create
+    "CheckFormat"
+    (fun _ ->
+        let result =
+            sourceFiles
+            |> Seq.map (sprintf "\"%s\"")
+            |> String.concat " "
+            |> sprintf "%s --check"
+            |> DotNet.exec id "fantomas"
 
-Target.create "Format" (fun _ ->
-    !!"*.fs"
-    |> FakeHelpers.formatCode
-    |> Async.RunSynchronously
-    |> printfn "Formatted files: %A")
+        if result.ExitCode = 0 then
+            Trace.log "No files need formatting"
+        elif result.ExitCode = 99 then
+            failwith "Some files need formatting, check output for more info"
+        else
+            Trace.logf "Errors while formatting: %A" result.Errors)
 
-Target.runOrList()
+Target.create
+    "Format"
+    (fun _ ->
+        let result =
+            sourceFiles
+            |> Seq.map (sprintf "\"%s\"")
+            |> String.concat " "
+            |> DotNet.exec id "fantomas"
 
+        if not result.OK then
+            printfn "Errors while formatting all files: %A" result.Messages)
+
+Target.runOrList ()
