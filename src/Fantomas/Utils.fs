@@ -59,17 +59,14 @@ module String =
         loop hashLineIndexesWithStart id
         |> List.map (String.concat newline)
 
-    let merge (newline: string) (a: string) (b: string) : string =
-        let aChunks = splitWhenHash newline a
-        let bChunks = splitWhenHash newline b
+    let splitInFragments (newline: string) (items: (string list * string) list) : (string list * string list) list =
+        List.map
+            (fun (defines, code) ->
+                let fragments = splitWhenHash newline code
+                defines, fragments)
+            items
 
-        if List.length aChunks <> List.length bChunks then
-            Dbg.print (aChunks, bChunks)
-
-            failwithf
-                """Fantomas is trying to format the input multiple times due to the detect of multiple defines.
-There is a problem with merging all the code back together. Please raise an issue at https://github.com/fsprojects/fantomas/issues."""
-
+    let merge (aChunks: string list) (bChunks: string list) : string list =
         List.zip aChunks bChunks
         |> List.map
             (fun (a', b') ->
@@ -83,7 +80,7 @@ There is a problem with merging all the code back together. Please raise an issu
                 else
                     b')
 
-        |> String.concat newline
+
 
     let empty = String.Empty
 

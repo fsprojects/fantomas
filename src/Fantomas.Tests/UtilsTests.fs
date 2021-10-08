@@ -8,7 +8,13 @@ open FsCheck
 
 let private mergeAndCompare a b expected =
     let result =
-        String.merge Environment.NewLine a b
+        let getFragments code =
+            String.splitInFragments config.EndOfLine.NewLineString [ code ]
+            |> List.head
+            |> snd
+
+        String.merge (getFragments a) (getFragments b)
+        |> String.concat Environment.NewLine
         |> String.normalizeNewLine
 
     let normalizedExpected = String.normalizeNewLine expected
@@ -38,7 +44,7 @@ let ``merging of source code that starts with a hash`` () =
     printfn \"foo\"
 #endif
 """
-    |> mergeAndCompare a b
+    |> mergeAndCompare ([], a) ([ "NOT_DEFINED" ], b)
 
 [<Test>]
 let ``merging of defines content work when source code starts with a newline`` () =
@@ -76,7 +82,7 @@ let private assemblyConfig() =
 #endif
     x
 """
-    |> mergeAndCompare a b
+    |> mergeAndCompare ([], a) ([ "TRACE" ], b)
 
 [<Test>]
 let ``only split on control structure keyword`` () =
@@ -112,7 +118,7 @@ SetupTesting.generateSetupScript __SOURCE_DIRECTORY__
 #load "__setup__.fsx"
 #endif
 """
-    |> mergeAndCompare a b
+    |> mergeAndCompare ([], a) ([ "INTERACTIVE" ], b)
 
 [<Test>]
 let ``when input is empty`` () =
