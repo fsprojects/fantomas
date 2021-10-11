@@ -1558,3 +1558,44 @@ Host
 
 //
 """
+
+[<Test>]
+let ``comment after bracket in record should not be duplicated in computation expression, 1912`` () =
+    formatSourceString
+        false
+        """
+type TorDirectory =
+    private
+        {
+            NetworkStatus: NetworkStatusDocument
+        }
+
+    static member Bootstrap (nodeEndPoint: IPEndPoint) =
+        async {
+            return
+                {
+                    TorDirectory.NetworkStatus =
+                        NetworkStatusDocument.Parse consensusStr
+                    ServerDescriptors = Map.empty
+                    // comment
+                }
+        }
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type TorDirectory =
+    private
+        { NetworkStatus: NetworkStatusDocument }
+
+    static member Bootstrap(nodeEndPoint: IPEndPoint) =
+        async {
+            return
+                { TorDirectory.NetworkStatus = NetworkStatusDocument.Parse consensusStr
+                  ServerDescriptors = Map.empty
+                // comment
+                }
+        }
+"""

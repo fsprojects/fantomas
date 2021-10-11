@@ -1397,7 +1397,13 @@ and genExpr astContext synExpr ctx =
                     (genExpr astContext e +> sepCloseS)
                     (genExpr astContext e
                      +> unindent
-                     +> enterNodeTokenByName synExpr.Range RBRACE
+                     +> (fun ctx ->
+                         let closingBraceRange =
+                             ctx.MkRangeWith
+                                 (synExpr.Range.EndLine, synExpr.Range.EndColumn - 1)
+                                 (synExpr.Range.EndLine, synExpr.Range.EndColumn)
+
+                         enterNodeTokenByName closingBraceRange RBRACE ctx)
                      +> sepNlnUnlessLastEventIsNewline
                      +> sepCloseSFixed))
 
