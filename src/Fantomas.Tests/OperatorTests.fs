@@ -952,7 +952,7 @@ let ``add in keyword when let binding is part of single infix expression`` () =
     |> should
         equal
         """
-// Check for the [<ProjectionParameter>] attribute on an argument position
+    // Check for the [<ProjectionParameter>] attribute on an argument position
 let isCustomOperationProjectionParameter i (nm: Ident) =
     match tryGetArgInfosForCustomOperator nm with
     | None -> false

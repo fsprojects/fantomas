@@ -724,7 +724,7 @@ let ``keep new line before for loop, 1317`` () =
     |> should
         equal
         """
-/// Fold over the array passing the index and element at that index to a folding function
+  /// Fold over the array passing the index and element at that index to a folding function
 let foldi (folder: 'State -> int -> 'T -> 'State) (state: 'State) (array: 'T []) =
     checkNonNull "array" array
 

@@ -61,7 +61,7 @@ type Token =
 
 type Comment =
     | LineCommentAfterSourceCode of comment: string
-    | LineCommentOnSingleLine of comment: string
+    | LineCommentOnSingleLine of comment: string * range
     | BlockComment of string * newlineBefore: bool * newlineAfter: bool
 
 (* LineComment Examples

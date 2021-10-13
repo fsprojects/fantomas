@@ -2309,7 +2309,7 @@ let ``keep new line before match bang, 1313`` () =
     |> should
         equal
         """
-/// a codefix that generates union cases for an incomplete match expression
+  /// a codefix that generates union cases for an incomplete match expression
 let generateUnionCases =
     ifDiagnosticByMessage
         (fun diagnostic codeActionParams ->

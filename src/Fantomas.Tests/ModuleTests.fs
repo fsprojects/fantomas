@@ -39,9 +39,9 @@ let ``open modules`` () =
     |> should
         equal
         """
-// comment1
+    // comment1
 open System.IO
-// comment2
+    // comment2
 open System
 """
 

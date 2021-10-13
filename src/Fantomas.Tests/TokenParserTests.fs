@@ -220,7 +220,7 @@ let a = 9
 // foo"""
 
     match triviaNodes with
-    | { Item = Comment (LineCommentOnSingleLine l1) } :: _ -> String.normalizeNewLine l1 == expectedComment
+    | { Item = Comment (LineCommentOnSingleLine (l1, _)) } :: _ -> String.normalizeNewLine l1 == expectedComment
     | _ -> failwith "Expected two line comments"
 
 [<Test>]
