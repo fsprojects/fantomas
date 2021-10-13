@@ -79,7 +79,7 @@ type FantomasDaemon(sender: Stream, reader: Stream) as this =
                     else
                         return FormatDocumentResponse.Formatted(request.FilePath, formatted)
                 with
-                | ex -> return FormatDocumentResponse.Error(request.FilePath, ex)
+                | ex -> return FormatDocumentResponse.Error(request.FilePath, ex.Message)
         }
         |> Async.StartAsTask
 

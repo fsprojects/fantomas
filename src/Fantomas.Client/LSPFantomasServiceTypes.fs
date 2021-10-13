@@ -29,7 +29,7 @@ type FormatSelectionResponse =
 type FormatDocumentResponse =
     | Formatted of filename: string * formattedContent: string
     | Unchanged of filename: string
-    | Error of filename: string * formattingError: Exception
+    | Error of filename: string * formattingError: string
     | IgnoredFile of filename: string
 
     member this.AsFormatResponse() =
@@ -42,10 +42,10 @@ type FormatDocumentResponse =
             { Code = int FormatResponseCode.UnChanged
               FileName = name
               Content = None }
-        | FormatDocumentResponse.Error (name, ex) ->
+        | FormatDocumentResponse.Error (name, err) ->
             { Code = int FormatResponseCode.Error
               FileName = name
-              Content = Some(ex.Message) }
+              Content = Some(err) }
         | FormatDocumentResponse.IgnoredFile name ->
             { Code = int FormatResponseCode.Ignored
               FileName = name
