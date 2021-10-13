@@ -24,6 +24,7 @@ group build
     source https://api.nuget.org/v3/index.json
 
     nuget Microsoft.Azure.Cosmos.Table
+    nuget FSharp.Core ~> 5
     nuget Fake.Core.ReleaseNotes
     nuget Fake.Core.Xml
     nuget Fake.DotNet.Cli
@@ -37,5 +38,5 @@ group client
     storage: none
     source https://api.nuget.org/v3/index.json
     
-    nuget FSharp.Core 5.0.1
+    nuget FSharp.Core 5
     nuget StreamJsonRpc

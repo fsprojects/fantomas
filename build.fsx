@@ -51,6 +51,8 @@ let owner = "Anh-Dung Phan"
 let tags =
     "F# fsharp formatting beautifier indentation indenter"
 
+let fantomasClientVersion = "0.1.0"
+
 // (<solutionFile>.sln is built during the building process)
 let solutionFile = "fantomas"
 //// Environment.CurrentDirectory <- __SOURCE_DIRECTORY__
@@ -182,7 +184,13 @@ Target.create
             let file =
                 sprintf "src/%s/%s.fsproj" project project
 
-            Xml.poke file "Project/PropertyGroup/Version/text()" version
+            Xml.poke
+                file
+                "Project/PropertyGroup/Version/text()"
+                (if project = "Fantomas.Client" then
+                     fantomasClientVersion
+                 else
+                     version)
 
         setProjectVersion "Fantomas"
         setProjectVersion "Fantomas.CoreGlobalTool"
@@ -244,7 +252,11 @@ Target.create
                 { defaultArgs with
                       Properties =
                           [ "Title", project
-                            "PackageVersion", nugetVersion
+                            "PackageVersion",
+                            (if project = "Fantomas.Client" then
+                                 fantomasClientVersion
+                             else
+                                 nugetVersion)
                             "Authors", (String.Join(" ", authors))
                             "Owners", owner
                             "PackageRequireLicenseAcceptance", "false"
