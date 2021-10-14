@@ -22,8 +22,8 @@ let sharedChecker = lazy (FSharpChecker.Create())
 
 let createParsingOptionsFromFile fileName =
     { FSharpParsingOptions.Default with
-          SourceFiles = [| fileName |] }
-
+          SourceFiles = [| fileName |]
+          IsExe = true }
 
 let private getSourceString (source: SourceOrigin) =
     match source with
@@ -49,14 +49,14 @@ type FormatContext =
       SourceText: ISourceText }
 
 // Some file names have a special meaning for the F# compiler and the AST cannot be parsed.
-let safeFileName (file: string) =
-    let fileName =
-        file.Split([| '\\'; '/' |]) |> Array.last
-
-    if fileName = "Program.fs" then
-        "tmp.fsx"
-    else
-        file
+let safeFileName (file: string) = file // TODO: clean up
+//    let fileName =
+//        file.Split([| '\\'; '/' |]) |> Array.last
+//
+//    if fileName = "Program.fs" then
+//        "tmp.fsx"
+//    else
+//        file
 
 let createFormatContext fileName (source: SourceOrigin) =
     let sourceText, sourceCode = getSourceTextAndCode source

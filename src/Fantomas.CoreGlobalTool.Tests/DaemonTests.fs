@@ -11,22 +11,39 @@ let private assertFormatted (actual: string) (expected: string) : unit =
     String.normalizeNewLine actual
     |> should equal (String.normalizeNewLine expected)
 
-let mutable client: FantomasService = Unchecked.defaultof<FantomasService>
+let mutable service: FantomasService = Unchecked.defaultof<FantomasService>
 
 [<SetUp>]
-let ``create client`` () =
-    let processStart = getFantomasToolStartInfo "--daemon"
-    client <- new LSPFantomasService(processStart)
+let ``create service`` () = service <- new LSPFantomasService()
 
 [<TearDown>]
-let ``dispose client`` () = client.Dispose()
+let ``dispose service`` () = service.Dispose()
 
 [<Test>]
 let ``compare the version with the public api`` () =
     async {
-        let! { Version = version } = client.VersionAsync() |> Async.AwaitTask
+        let! { Content = version } =
+            service.VersionAsync(@"C:\Users\fverdonck\Temp\meh\SomeFile.fs")
+            |> Async.AwaitTask
 
         version
+        |> Option.defaultValue "???"
+        |> should equal (CodeFormatter.GetVersion())
+    }
+
+[<Test>]
+let ``cached version`` () =
+    async {
+        let! _ =
+            service.VersionAsync(@"C:\Users\fverdonck\Temp\meh\SomeFile.fs")
+            |> Async.AwaitTask
+
+        let! { Content = version } =
+            service.VersionAsync(@"C:\Users\fverdonck\Temp\meh\SomeFile.fs")
+            |> Async.AwaitTask
+
+        version
+        |> Option.defaultValue "???"
         |> should equal (CodeFormatter.GetVersion())
     }
 
@@ -43,7 +60,7 @@ let ``format implementation file`` () =
               Config = None }
 
         let! response =
-            client.FormatDocumentAsync(request)
+            service.FormatDocumentAsync(request)
             |> Async.AwaitTask
 
         match response with
@@ -70,7 +87,7 @@ let ``format signature file`` () =
               Config = None }
 
         let! response =
-            client.FormatDocumentAsync(request)
+            service.FormatDocumentAsync(request)
             |> Async.AwaitTask
 
         match response with
@@ -100,7 +117,7 @@ let ``format document respecting .editorconfig file`` () =
               Config = None }
 
         let! response =
-            client.FormatDocumentAsync(request)
+            service.FormatDocumentAsync(request)
             |> Async.AwaitTask
 
         match response with
@@ -131,7 +148,7 @@ let ``custom configuration has precedence over .editorconfig file`` () =
               Config = Some(readOnlyDict [ "indent_size", "4" ]) }
 
         let! response =
-            client.FormatDocumentAsync(request)
+            service.FormatDocumentAsync(request)
             |> Async.AwaitTask
 
         match response with
@@ -161,11 +178,11 @@ let ``already formatted file returns unchanged`` () =
               Config = Some(readOnlyDict [ "end_of_line", "lf" ]) }
 
         let! response =
-            client.FormatDocumentAsync(request)
+            service.FormatDocumentAsync(request)
             |> Async.AwaitTask
 
         match response with
-        | { Code = 2; FileName = fileName } -> fileName |> should equal codeFile.Filename
+        | { Code = 2; FilePath = fileName } -> fileName |> should equal codeFile.Filename
         | otherResponse -> Assert.Fail $"Unexpected response %A{otherResponse}"
     }
 
@@ -186,11 +203,11 @@ let ``ignored file returns ignored`` () =
               Config = None }
 
         let! response =
-            client.FormatDocumentAsync(request)
+            service.FormatDocumentAsync(request)
             |> Async.AwaitTask
 
         match response with
-        | { Code = 4; FileName = fileName } -> fileName |> should equal codeFile.Filename
+        | { Code = 4; FilePath = fileName } -> fileName |> should equal codeFile.Filename
         | otherResponse -> Assert.Fail $"Unexpected response %A{otherResponse}"
     }
 
@@ -207,13 +224,13 @@ let ``format invalid code`` () =
               Config = None }
 
         let! response =
-            client.FormatDocumentAsync(request)
+            service.FormatDocumentAsync(request)
             |> Async.AwaitTask
 
         match response with
         | { Code = 3
             Content = Some error
-            FileName = fileName } ->
+            FilePath = fileName } ->
             fileName |> should equal codeFile.Filename
             StringAssert.StartsWith("Parsing failed with errors:", error)
         | otherResponse -> Assert.Fail $"Unexpected response %A{otherResponse}"
@@ -240,13 +257,13 @@ let    y     = 5
               Range = range }
 
         let! response =
-            client.FormatSelectionAsync(request)
+            service.FormatSelectionAsync(request)
             |> Async.AwaitTask
 
         match response with
         | { Code = 1
             Content = Some formatted
-            FileName = fileName } ->
+            FilePath = fileName } ->
             fileName |> should equal "tmp.fsx"
             assertFormatted formatted "let x = 4\n"
         | otherResponse -> Assert.Fail $"Unexpected response %A{otherResponse}"

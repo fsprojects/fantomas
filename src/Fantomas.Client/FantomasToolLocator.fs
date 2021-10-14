@@ -4,13 +4,8 @@ open System
 open System.Diagnostics
 open System.IO
 open System.Text.RegularExpressions
-open Fantomas.Client.Contracts
-open Fantomas.Client.LSPFantomasService
-
-type FantomasToolResult =
-    | FoundLocalTool
-    | FoundGlobalTool
-    | NoCompatibleVersionFound
+open Fantomas.Client.LSPFantomasServiceTypes
+open StreamJsonRpc
 
 let private (|CompatibleVersion|_|) (version: string) =
     let stripAlphaBeta = version.Split('-').[0]
@@ -38,7 +33,7 @@ let private readOutputStreamAsLines (outputStream: StreamReader) : string list =
 
     readLines outputStream id
 
-let private runToolListCmd (workingDir: string) (globalFlag: bool) =
+let private runToolListCmd (Folder (workingDir)) (globalFlag: bool) =
     let ps = ProcessStartInfo("dotnet")
     ps.WorkingDirectory <- workingDir
 
@@ -95,50 +90,46 @@ let private (|CompatibleTool|_|) lines =
 
     match lines with
     | HeaderLine :: Dashes :: Tools tools ->
-        let hasTool =
-            List.exists
+        let tool =
+            List.tryFind
                 (fun (packageId, version) ->
                     match packageId, version with
                     | CompatibleToolName _, CompatibleVersion _ -> true
                     | _ -> false)
                 tools
 
-        if hasTool then Some() else None
+        Option.map (snd >> FantomasVersion) tool
     | _ -> None
 
-let private findFantomasTool (workingDir: string) : FantomasToolResult =
+let findFantomasTool (workingDir: Folder) : FantomasToolResult =
     let localTools = runToolListCmd workingDir false
 
     match localTools with
-    | Ok CompatibleTool -> FoundLocalTool
+    | Ok (CompatibleTool version) -> FoundLocalTool(workingDir, version)
     | _ ->
         let globalTools = runToolListCmd workingDir true
 
         match globalTools with
-        | Ok CompatibleTool -> FoundGlobalTool
+        | Ok (CompatibleTool version) -> FoundGlobalTool(workingDir, version)
         | _ -> NoCompatibleVersionFound
 
-let createForWorkingDirectory (workingDirectory: string) : Result<FantomasService, string> =
-    if not (Directory.Exists workingDirectory) then
-        raise (DirectoryNotFoundException(workingDirectory))
-    else
-        match findFantomasTool workingDirectory with
-        | FoundLocalTool ->
-            let processStart = ProcessStartInfo("dotnet")
-            processStart.UseShellExecute <- false
-            processStart.Arguments <- sprintf "fantomas --daemon"
-            processStart.WorkingDirectory <- workingDirectory
-            processStart.RedirectStandardOutput <- true
-            processStart.RedirectStandardError <- true
-            Ok(new LSPFantomasService(processStart) :> FantomasService)
-        | FoundGlobalTool ->
-            let processStart = ProcessStartInfo("fantomas")
-            processStart.UseShellExecute <- false
-            processStart.Arguments <- "--daemon"
-            processStart.WorkingDirectory <- workingDirectory
-            processStart.RedirectStandardOutput <- true
-            processStart.RedirectStandardError <- true
-            Ok(new LSPFantomasService(processStart) :> FantomasService)
-        | NoCompatibleVersionFound ->
-            // TODO: consider api choice here
-            Error(sprintf "No compatible Fantomas version found in \"%s\"." workingDirectory)
+let createForWorkingDirectory (Folder (workingDirectory)) (isGlobal: bool) : JsonRpc =
+    let processStart =
+        if isGlobal then
+            ProcessStartInfo("fantomas")
+        else
+            ProcessStartInfo("dotnet")
+
+    processStart.UseShellExecute <- false
+    processStart.Arguments <- sprintf "fantomas --daemon"
+    processStart.WorkingDirectory <- workingDirectory
+    processStart.RedirectStandardInput <- true
+    processStart.RedirectStandardOutput <- true
+    processStart.RedirectStandardError <- true
+    let daemonProcess = Process.Start processStart
+
+    let client =
+        new JsonRpc(daemonProcess.StandardInput.BaseStream, daemonProcess.StandardOutput.BaseStream)
+
+    do client.StartListening()
+    client

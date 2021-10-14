@@ -29,9 +29,9 @@ type FormatDocumentRequest =
       /// Overrides the found .editorconfig.
       Config: IReadOnlyDictionary<string, string> option }
 
-type FormatResponse =
+type FantomasResponse =
     { Code: int
-      FileName: string
+      FilePath: string
       Content: string option }
 
 type FormatSelectionRequest =
@@ -58,24 +58,19 @@ and FormatSelectionRange =
               EndColumn = endColumn }
     end
 
-type FantomasOption = { Type: string; DefaultValue: string }
-
-type ConfigurationResponse =
-    { Options: IReadOnlyDictionary<string, FantomasOption>
-      EnumOptions: IReadOnlyDictionary<string, string array> }
-
-type VersionResponse = { Version: string }
-
 type FantomasService =
     interface
         inherit IDisposable
-        abstract member VersionAsync : ?cancellationToken: CancellationToken -> Task<VersionResponse>
+
+        abstract member VersionAsync :
+            filePath: string * ?cancellationToken: CancellationToken -> Task<FantomasResponse>
 
         abstract member FormatDocumentAsync :
-            FormatDocumentRequest * ?cancellationToken: CancellationToken -> Task<FormatResponse>
+            FormatDocumentRequest * ?cancellationToken: CancellationToken -> Task<FantomasResponse>
 
         abstract member FormatSelectionAsync :
-            FormatSelectionRequest * ?cancellationToken: CancellationToken -> Task<FormatResponse>
+            FormatSelectionRequest * ?cancellationToken: CancellationToken -> Task<FantomasResponse>
 
-        abstract member ConfigurationAsync : ?cancellationToken: CancellationToken -> Task<ConfigurationResponse>
+        abstract member ConfigurationAsync :
+            filePath: string * ?cancellationToken: CancellationToken -> Task<FantomasResponse>
     end

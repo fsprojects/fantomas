@@ -15,8 +15,8 @@
     <None Include="..\..\fantomas_logo.png" Visible="false" Pack="true" PackagePath="" />
     <Compile Include="Contracts.fs" />
     <Compile Include="LSPFantomasServiceTypes.fs" />
-    <Compile Include="LSPFantomasService.fs" />
     <Compile Include="FantomasToolLocator.fs" />
+    <Compile Include="LSPFantomasService.fs" />
   </ItemGroup>
   <Import Project="..\..\.paket\Paket.Restore.targets" />
 </Project>
