@@ -1,4 +1,5 @@
+group tool
 FSharp.Core
-FSharp.Compiler.Service
 Argu
 StreamJsonRpc
+Thoth.Json.Net

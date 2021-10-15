@@ -15,7 +15,6 @@ nuget Argu
 nuget BenchmarkDotNet
 nuget editorconfig
 nuget MAB.DotIgnore 3.0.2
-nuget StreamJsonRpc
 
 github: fsprojects/fantomas:829faa6ba834f99afed9b4434b3a1680536474b2 src/Fantomas/CodePrinter.fs
 
@@ -33,6 +32,15 @@ group build
     nuget Fake.Core.Process
     nuget Fake.Core.Target
     nuget MSBuild.StructuredLogger 2.1.500
+
+group tool
+    storage: none
+    source https://api.nuget.org/v3/index.json
+
+    nuget FSharp.Core 5.0.3-beta.21352.5
+    nuget Argu
+    nuget StreamJsonRpc
+    nuget Thoth.Json.Net
 
 group client
     storage: none

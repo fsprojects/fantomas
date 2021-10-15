@@ -48,6 +48,18 @@ let ``cached version`` () =
     }
 
 [<Test>]
+let ``config as json`` () =
+    async {
+        let! { Content = json } =
+            service.ConfigurationAsync @"C:\Users\fverdonck\Temp\meh\SomeFile.fs"
+            |> Async.AwaitTask
+
+        match json with
+        | Some json -> json.StartsWith("{") |> should equal true
+        | None -> Assert.Fail "expected json config"
+    }
+
+[<Test>]
 let ``format implementation file`` () =
     async {
         let sourceCode = "module Foobar"

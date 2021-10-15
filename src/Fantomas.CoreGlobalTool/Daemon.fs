@@ -8,12 +8,13 @@ open System.Threading.Tasks
 open FSharp.Compiler.CodeAnalysis
 open FSharp.Compiler.Text.Range
 open FSharp.Compiler.Text.Position
+open StreamJsonRpc
+open Thoth.Json.Net
 open Fantomas.Client.Contracts
 open Fantomas.Client.LSPFantomasServiceTypes
-open StreamJsonRpc
 open Fantomas
 open Fantomas.SourceOrigin
-// open Fantomas.FormatConfig
+open Fantomas.FormatConfig
 open Fantomas.Extras.EditorConfig
 
 let private createParsingOptionsFromFile (fileName: string) : FSharpParsingOptions =
@@ -103,43 +104,52 @@ type FantomasDaemon(sender: Stream, reader: Stream) as this =
         |> Async.StartAsTask
 
     [<JsonRpcMethod(Methods.Configuration)>]
-    member _.Configuration() : string = "todo: this might be json some day"
-//        let options =
-//            Reflection.getRecordFields FormatConfig.FormatConfig.Default
-//            |> Array.choose
-//                (fun (name, defaultValue) ->
-//                    let type' =
-//                        match defaultValue with
-//                        | :? bool as b ->
-//                            Some
-//                                { Type = "boolean"
-//                                  DefaultValue = if b then "true" else "false" }
-//                        | :? int as i ->
-//                            Some
-//                                { Type = "number"
-//                                  DefaultValue = string i }
-//                        | :? MultilineFormatterType as m ->
-//                            Some
-//                                { Type = "multilineFormatterType"
-//                                  DefaultValue = MultilineFormatterType.ToConfigString m }
-//                        | :? EndOfLineStyle as e ->
-//                            Some
-//                                { Type = "endOfLineStyle"
-//                                  DefaultValue = EndOfLineStyle.ToConfigString e }
-//                        | _ -> None
-//
-//                    type'
-//                    |> Option.map (fun t -> toEditorConfigName name, t))
-//            |> readOnlyDict
-//
-//        let enumOptions =
-//            [ "multilineFormatterType",
-//              [| MultilineFormatterType.ToConfigString MultilineFormatterType.CharacterWidth
-//                 MultilineFormatterType.ToConfigString MultilineFormatterType.NumberOfItems |]
-//              "endOfLineStyle",
-//              [| EndOfLineStyle.ToConfigString EndOfLineStyle.LF
-//                 EndOfLineStyle.ToConfigString EndOfLineStyle.CRLF |] ]
-//            |> readOnlyDict
-//
-//        { Options = options
-//          EnumOptions = enumOptions }
+    member _.Configuration() : string =
+        let settings =
+            Reflection.getRecordFields FormatConfig.FormatConfig.Default
+            |> Array.toList
+            |> List.choose
+                (fun (name, defaultValue) ->
+                    let type' =
+                        match defaultValue with
+                        | :? bool as b ->
+                            Some(
+                                Encode.object [ "type", Encode.string "boolean"
+                                                "defaultValue", Encode.string (if b then "true" else "false") ]
+                            )
+                        | :? int as i ->
+                            Some(
+                                Encode.object [ "type", Encode.string "number"
+                                                "defaultValue", Encode.string (string i) ]
+                            )
+                        | :? MultilineFormatterType as m ->
+                            Some(
+                                Encode.object [ "type", Encode.string "multilineFormatterType"
+                                                "defaultValue", Encode.string (MultilineFormatterType.ToConfigString m) ]
+                            )
+                        | :? EndOfLineStyle as e ->
+                            Some(
+                                Encode.object [ "type", Encode.string "endOfLineStyle"
+                                                "defaultValue", Encode.string (EndOfLineStyle.ToConfigString e) ]
+                            )
+                        | _ -> None
+
+                    type'
+                    |> Option.map (fun t -> toEditorConfigName name, t))
+            |> Encode.object
+
+        let enumOptions =
+            Encode.object [ "multilineFormatterType",
+                            Encode.list [ (MultilineFormatterType.ToConfigString MultilineFormatterType.CharacterWidth
+                                           |> Encode.string)
+                                          (MultilineFormatterType.ToConfigString MultilineFormatterType.NumberOfItems
+                                           |> Encode.string) ]
+                            "endOfLineStyle",
+                            Encode.list [ (EndOfLineStyle.ToConfigString EndOfLineStyle.LF
+                                           |> Encode.string)
+                                          (EndOfLineStyle.ToConfigString EndOfLineStyle.CRLF
+                                           |> Encode.string) ] ]
+
+        Encode.object [ "settings", settings
+                        "enumOptions", enumOptions ]
+        |> Encode.toString 4
