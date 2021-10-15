@@ -11,6 +11,8 @@ type FantomasResponseCode =
     | Ignored = 4
     | Version = 5
     | ToolNotFound = 6
+    | FileNotFound = 7
+    | Configuration = 8
 
 [<RequireQualifiedAccess>]
 type FormatSelectionResponse =

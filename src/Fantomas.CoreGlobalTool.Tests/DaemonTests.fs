@@ -56,7 +56,6 @@ let ``format implementation file`` () =
         let request =
             { SourceCode = sourceCode
               FilePath = codeFile.Filename
-              IsLastFile = false
               Config = None }
 
         let! response =
@@ -83,7 +82,6 @@ let ``format signature file`` () =
         let request =
             { SourceCode = sourceCode
               FilePath = codeFile.Filename
-              IsLastFile = false
               Config = None }
 
         let! response =
@@ -113,7 +111,6 @@ let ``format document respecting .editorconfig file`` () =
         let request =
             { SourceCode = sourceCode
               FilePath = codeFile.Filename
-              IsLastFile = false
               Config = None }
 
         let! response =
@@ -144,7 +141,6 @@ let ``custom configuration has precedence over .editorconfig file`` () =
         let request =
             { SourceCode = sourceCode
               FilePath = codeFile.Filename
-              IsLastFile = false
               Config = Some(readOnlyDict [ "indent_size", "4" ]) }
 
         let! response =
@@ -174,7 +170,6 @@ let ``already formatted file returns unchanged`` () =
         let request =
             { SourceCode = sourceCode
               FilePath = codeFile.Filename
-              IsLastFile = true
               Config = Some(readOnlyDict [ "end_of_line", "lf" ]) }
 
         let! response =
@@ -199,7 +194,6 @@ let ``ignored file returns ignored`` () =
         let request =
             { SourceCode = sourceCode
               FilePath = codeFile.Filename
-              IsLastFile = true
               Config = None }
 
         let! response =
@@ -220,7 +214,6 @@ let ``format invalid code`` () =
         let request =
             { SourceCode = sourceCode
               FilePath = codeFile.Filename
-              IsLastFile = false
               Config = None }
 
         let! response =

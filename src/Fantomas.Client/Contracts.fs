@@ -24,8 +24,6 @@ type FormatDocumentRequest =
       /// File path will be used to identify the .editorconfig options
       /// Unless the configuration is passed
       FilePath: string
-      /// Determines the underlying F# ParsingOptions
-      IsLastFile: bool
       /// Overrides the found .editorconfig.
       Config: IReadOnlyDictionary<string, string> option }
 
@@ -73,4 +71,6 @@ type FantomasService =
 
         abstract member ConfigurationAsync :
             filePath: string * ?cancellationToken: CancellationToken -> Task<FantomasResponse>
+            
+        abstract member ClearCache : unit -> unit
     end

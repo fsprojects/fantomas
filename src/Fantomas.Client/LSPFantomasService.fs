@@ -13,10 +13,10 @@ let private orDefaultCancellationToken =
 
 type Msg =
     | GetDaemon of Folder * AsyncReplyChannel<JsonRpc option>
-    | Shutdown
+    | Reset
 
-let private agent =
-    MailboxProcessor.Start
+let private createAgent (ct: CancellationToken) =
+    MailboxProcessor.Start(
         (fun inbox ->
             let rec messageLoop (state: ServiceState) =
                 async {
@@ -80,7 +80,7 @@ let private agent =
                                               FolderToVersion = Map.add folder version state.FolderToVersion }
 
 
-                        | Shutdown ->
+                        | Reset ->
                             Map.toList state.Daemons
                             |> List.iter (fun (_, daemon) -> daemon.Dispose())
 
@@ -89,10 +89,33 @@ let private agent =
                     return! messageLoop nextState
                 }
 
-            messageLoop ServiceState.Empty)
+            messageLoop ServiceState.Empty),
+        cancellationToken = ct
+    )
 
-let private getDaemon (folder: Folder) : JsonRpc option =
-    agent.PostAndReply(fun replyChannel -> GetDaemon(folder, replyChannel))
+type FantomasServiceError =
+    | DaemonNotFound
+    | FileDoesNotExist
+
+let private fileDoesExists (filePath: string) : Result<Folder, FantomasServiceError> =
+    if File.Exists filePath then
+        Path.GetDirectoryName filePath |> Folder |> Ok
+    else
+        Error FantomasServiceError.FileDoesNotExist
+
+let private getDaemon (agent: MailboxProcessor<Msg>) (folder: Folder) : Result<JsonRpc, FantomasServiceError> =
+    let daemon =
+        agent.PostAndReply(fun replyChannel -> GetDaemon(folder, replyChannel))
+
+    match daemon with
+    | Some daemon -> Ok daemon
+    | None -> Error FantomasServiceError.DaemonNotFound
+
+let private fileNotFoundResponse filePath : Task<FantomasResponse> =
+    { Code = int FantomasResponseCode.FileNotFound
+      FilePath = filePath
+      Content = Some(sprintf "File \"%s\" does not exist" filePath) }
+    |> Task.FromResult
 
 let private daemonNotFoundResponse filePath : Task<FantomasResponse> =
     { Code = int FantomasResponseCode.ToolNotFound
@@ -100,58 +123,89 @@ let private daemonNotFoundResponse filePath : Task<FantomasResponse> =
       Content = Some(sprintf "No fantomas tool was found for \"%s\"" filePath) }
     |> Task.FromResult
 
+let mapResultToResponse (filePath: string) (result: Result<Task<FantomasResponse>, FantomasServiceError>) =
+    match result with
+    | Ok t -> t
+    | Error FantomasServiceError.FileDoesNotExist -> fileNotFoundResponse filePath
+    | Error FantomasServiceError.DaemonNotFound -> daemonNotFoundResponse filePath
+
 type LSPFantomasService() =
+    let cts = new CancellationTokenSource()
+    let agent = createAgent cts.Token
 
     interface FantomasService with
-        member this.Dispose() = agent.Post Shutdown
+        member this.Dispose() =
+            agent.Post Reset
+            cts.Cancel()
 
         member _.VersionAsync(filePath, ?cancellationToken: CancellationToken) : Task<FantomasResponse> =
-            let folder = Path.GetDirectoryName filePath |> Folder
-
-            match getDaemon folder with
-            | None -> daemonNotFoundResponse filePath
-            | Some client ->
-                client
-                    .InvokeWithCancellationAsync<string>(
-                        Methods.Version,
-                        cancellationToken = orDefaultCancellationToken cancellationToken
-                    )
-                    .ContinueWith(fun (t: Task<string>) ->
-                        { Code = int FantomasResponseCode.Version
-                          Content = Some t.Result
-                          FilePath = filePath })
+            fileDoesExists filePath
+            |> Result.bind (getDaemon agent)
+            |> Result.map
+                (fun client ->
+                    client
+                        .InvokeWithCancellationAsync<string>(
+                            Methods.Version,
+                            cancellationToken = orDefaultCancellationToken cancellationToken
+                        )
+                        .ContinueWith(fun (t: Task<string>) ->
+                            { Code = int FantomasResponseCode.Version
+                              Content = Some t.Result
+                              FilePath = filePath }))
+            |> mapResultToResponse filePath
 
         member _.FormatDocumentAsync
             (
                 formatDocumentOptions: FormatDocumentRequest,
                 ?cancellationToken: CancellationToken
             ) : Task<FantomasResponse> =
-            failwith "todo"
-        //            client
-//                .InvokeWithParameterObjectAsync<FormatDocumentResponse>(
-//                    Methods.FormatDocument,
-//                    argument = formatDocumentOptions,
-//                    cancellationToken = orDefaultCancellationToken cancellationToken
-//                )
-//                .ContinueWith(fun (t: Task<FormatDocumentResponse>) -> t.Result.AsFormatResponse())
+            fileDoesExists formatDocumentOptions.FilePath
+            |> Result.bind (getDaemon agent)
+            |> Result.map
+                (fun client ->
+                    client
+                        .InvokeWithParameterObjectAsync<FormatDocumentResponse>(
+                            Methods.FormatDocument,
+                            argument = formatDocumentOptions,
+                            cancellationToken = orDefaultCancellationToken cancellationToken
+                        )
+                        .ContinueWith(fun (t: Task<FormatDocumentResponse>) -> t.Result.AsFormatResponse()))
+            |> mapResultToResponse formatDocumentOptions.FilePath
 
         member _.FormatSelectionAsync
             (
                 formatSelectionRequest: FormatSelectionRequest,
                 ?cancellationToken: CancellationToken
             ) =
-            failwith "todo"
-        //            client
-//                .InvokeWithParameterObjectAsync<FormatSelectionResponse>(
-//                    Methods.FormatSelection,
-//                    argument = formatSelectionRequest,
-//                    cancellationToken = orDefaultCancellationToken cancellationToken
-//                )
-//                .ContinueWith(fun (t: Task<FormatSelectionResponse>) -> t.Result.AsFormatResponse())
+            fileDoesExists formatSelectionRequest.FilePath
+            |> Result.bind (getDaemon agent)
+            |> Result.map
+                (fun client ->
+                    client
+                        .InvokeWithParameterObjectAsync<FormatSelectionResponse>(
+                            Methods.FormatSelection,
+                            argument = formatSelectionRequest,
+                            cancellationToken = orDefaultCancellationToken cancellationToken
+                        )
+                        .ContinueWith(fun (t: Task<FormatSelectionResponse>) -> t.Result.AsFormatResponse()))
+            |> mapResultToResponse formatSelectionRequest.FilePath
 
         member _.ConfigurationAsync(filePath, ?cancellationToken: CancellationToken) : Task<FantomasResponse> =
-            failwith "todo"
-//            client.InvokeWithCancellationAsync<ConfigurationResponse>(
-//                Methods.Configuration,
-//                cancellationToken = orDefaultCancellationToken cancellationToken
-//            )
+            fileDoesExists filePath
+            |> Result.bind (getDaemon agent)
+            |> Result.map
+                (fun client ->
+                    client
+                        .InvokeWithCancellationAsync<string>(
+                            Methods.Configuration,
+                            cancellationToken = orDefaultCancellationToken cancellationToken
+                        )
+                        .ContinueWith(fun (t: Task<string>) ->
+
+                            { Code = int FantomasResponseCode.Configuration
+                              FilePath = filePath
+                              Content = Some t.Result })
+                    )
+            |> mapResultToResponse filePath
+
+        member _.ClearCache() = agent.Post Reset
