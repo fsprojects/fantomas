@@ -1,5 +1,6 @@
 module Fantomas.CoreGlobalTool.Tests.DaemonTests
 
+open Fantomas.Client.LSPFantomasServiceTypes
 open NUnit.Framework
 open FsUnit
 open Fantomas.CoreGlobalTool.Tests.TestHelpers
@@ -45,6 +46,17 @@ let ``cached version`` () =
         version
         |> Option.defaultValue "???"
         |> should equal (CodeFormatter.GetVersion())
+    }
+
+[<Test>]
+let ``relative path should not be accepted`` () =
+    async {
+        let! { Code = code } =
+            service.ConfigurationAsync @"..\src\Fantomas\CodePrinter.fs"
+            |> Async.AwaitTask
+
+        code
+        |> should equal (int FantomasResponseCode.FilePathIsNotAbsolute)
     }
 
 [<Test>]

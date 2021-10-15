@@ -1,5 +1,6 @@
 module Fantomas.Client.LSPFantomasService
 
+open System
 open System.IO
 open System.Threading
 open System.Threading.Tasks
@@ -96,12 +97,32 @@ let private createAgent (ct: CancellationToken) =
 type FantomasServiceError =
     | DaemonNotFound
     | FileDoesNotExist
+    | FilePathIsNotAbsolute
 
-let private fileDoesExists (filePath: string) : Result<Folder, FantomasServiceError> =
-    if File.Exists filePath then
-        Path.GetDirectoryName filePath |> Folder |> Ok
+let isPathAbsolute (path: string) : bool =
+    if
+        String.IsNullOrWhiteSpace path
+        || path.IndexOfAny(Path.GetInvalidPathChars()) <> -1
+        || not (Path.IsPathRooted path)
+    then
+        false
     else
+        let pathRoot = Path.GetPathRoot path
+        // Accepts X:\ and \\UNC\PATH, rejects empty string, \ and X:, but accepts / to support Linux
+        if pathRoot.Length <= 2 && pathRoot <> "/" then
+            false
+        else if pathRoot.[0] <> '\\' || pathRoot.[1] <> '\\' then
+            true
+        else
+            pathRoot.Trim('\\').IndexOf('\\') <> -1 // A UNC server name without a share name (e.g "\\NAME" or "\\NAME\") is invalid
+
+let private getFolderFor (filePath: string) : Result<Folder, FantomasServiceError> =
+    if not (isPathAbsolute filePath) then
+        Error FantomasServiceError.FilePathIsNotAbsolute
+    elif not (File.Exists filePath) then
         Error FantomasServiceError.FileDoesNotExist
+    else
+        Path.GetDirectoryName filePath |> Folder |> Ok
 
 let private getDaemon (agent: MailboxProcessor<Msg>) (folder: Folder) : Result<JsonRpc, FantomasServiceError> =
     let daemon =
@@ -117,6 +138,12 @@ let private fileNotFoundResponse filePath : Task<FantomasResponse> =
       Content = Some(sprintf "File \"%s\" does not exist" filePath) }
     |> Task.FromResult
 
+let private fileNotAbsoluteResponse filePath : Task<FantomasResponse> =
+    { Code = int FantomasResponseCode.FilePathIsNotAbsolute
+      FilePath = filePath
+      Content = Some(sprintf "\"%s\" is not an absolute file path. Relative paths are not supported" filePath) }
+    |> Task.FromResult
+
 let private daemonNotFoundResponse filePath : Task<FantomasResponse> =
     { Code = int FantomasResponseCode.ToolNotFound
       FilePath = filePath
@@ -127,6 +154,7 @@ let mapResultToResponse (filePath: string) (result: Result<Task<FantomasResponse
     match result with
     | Ok t -> t
     | Error FantomasServiceError.FileDoesNotExist -> fileNotFoundResponse filePath
+    | Error FantomasServiceError.FilePathIsNotAbsolute -> fileNotAbsoluteResponse filePath
     | Error FantomasServiceError.DaemonNotFound -> daemonNotFoundResponse filePath
 
 type LSPFantomasService() =
@@ -139,7 +167,7 @@ type LSPFantomasService() =
             cts.Cancel()
 
         member _.VersionAsync(filePath, ?cancellationToken: CancellationToken) : Task<FantomasResponse> =
-            fileDoesExists filePath
+            getFolderFor filePath
             |> Result.bind (getDaemon agent)
             |> Result.map
                 (fun client ->
@@ -159,7 +187,7 @@ type LSPFantomasService() =
                 formatDocumentOptions: FormatDocumentRequest,
                 ?cancellationToken: CancellationToken
             ) : Task<FantomasResponse> =
-            fileDoesExists formatDocumentOptions.FilePath
+            getFolderFor formatDocumentOptions.FilePath
             |> Result.bind (getDaemon agent)
             |> Result.map
                 (fun client ->
@@ -177,7 +205,7 @@ type LSPFantomasService() =
                 formatSelectionRequest: FormatSelectionRequest,
                 ?cancellationToken: CancellationToken
             ) =
-            fileDoesExists formatSelectionRequest.FilePath
+            getFolderFor formatSelectionRequest.FilePath
             |> Result.bind (getDaemon agent)
             |> Result.map
                 (fun client ->
@@ -191,7 +219,7 @@ type LSPFantomasService() =
             |> mapResultToResponse formatSelectionRequest.FilePath
 
         member _.ConfigurationAsync(filePath, ?cancellationToken: CancellationToken) : Task<FantomasResponse> =
-            fileDoesExists filePath
+            getFolderFor filePath
             |> Result.bind (getDaemon agent)
             |> Result.map
                 (fun client ->
@@ -204,8 +232,7 @@ type LSPFantomasService() =
 
                             { Code = int FantomasResponseCode.Configuration
                               FilePath = filePath
-                              Content = Some t.Result })
-                    )
+                              Content = Some t.Result }))
             |> mapResultToResponse filePath
 
         member _.ClearCache() = agent.Post Reset

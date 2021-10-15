@@ -13,6 +13,7 @@ type FantomasResponseCode =
     | ToolNotFound = 6
     | FileNotFound = 7
     | Configuration = 8
+    | FilePathIsNotAbsolute = 9
 
 [<RequireQualifiedAccess>]
 type FormatSelectionResponse =
