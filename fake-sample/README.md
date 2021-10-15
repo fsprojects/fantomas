@@ -7,7 +7,9 @@
 This was installed by:
 
 > dotnet new tool-manifest
+
 > dotnet tool install fake-cli
+
 > dotnet tool install fantomas-tool
 
 2. Execute script:
