@@ -41,6 +41,7 @@ group tool
     nuget Argu
     nuget StreamJsonRpc
     nuget Thoth.Json.Net
+    nuget SerilogTraceListener
 
 group client
     storage: none

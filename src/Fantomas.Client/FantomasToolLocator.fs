@@ -7,11 +7,26 @@ open System.Text.RegularExpressions
 open Fantomas.Client.LSPFantomasServiceTypes
 open StreamJsonRpc
 
+let private alphaLowerThanFour version =
+    version = "4.6.0-alpha-001"
+    || version = "4.6.0-alpha-002"
+    || version = "4.6.0-alpha-003"
+
 let private (|CompatibleVersion|_|) (version: string) =
     let stripAlphaBeta = version.Split('-').[0]
 
     match Version.TryParse stripAlphaBeta with
-    | true, version when version.Major >= 4 && version.Minor >= 6 -> Some version
+    | true, parsedVersion ->
+        if parsedVersion.Major = 4
+           && parsedVersion.Minor = 6
+           && alphaLowerThanFour version then
+            // Only 4.6.0-alpha-004 has daemon capabilities
+            None
+        elif parsedVersion.Major >= 4
+             && parsedVersion.Minor >= 6 then
+            Some version
+        else
+            None
     | _ -> None
 
 // In the future, fantomas-tool will be renamed to fantomas.
@@ -33,7 +48,7 @@ let private readOutputStreamAsLines (outputStream: StreamReader) : string list =
 
     readLines outputStream id
 
-let private runToolListCmd (Folder (workingDir)) (globalFlag: bool) =
+let private runToolListCmd (Folder workingDir) (globalFlag: bool) =
     let ps = ProcessStartInfo("dotnet")
     ps.WorkingDirectory <- workingDir
 
@@ -113,7 +128,7 @@ let findFantomasTool (workingDir: Folder) : FantomasToolResult =
         | Ok (CompatibleTool version) -> FoundGlobalTool(workingDir, version)
         | _ -> NoCompatibleVersionFound
 
-let createForWorkingDirectory (Folder (workingDirectory)) (isGlobal: bool) : JsonRpc =
+let createForWorkingDirectory (Folder workingDirectory) (isGlobal: bool) : JsonRpc =
     let processStart =
         if isGlobal then
             ProcessStartInfo("fantomas")

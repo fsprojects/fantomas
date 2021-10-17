@@ -71,6 +71,6 @@ type FantomasService =
 
         abstract member ConfigurationAsync :
             filePath: string * ?cancellationToken: CancellationToken -> Task<FantomasResponse>
-            
+
         abstract member ClearCache : unit -> unit
     end

@@ -29,8 +29,8 @@ type FantomasDaemon(sender: Stream, reader: Stream) as this =
         // hook up request/response logging for debugging
         rpc.TraceSource <- TraceSource(typeof<FantomasDaemon>.Name, SourceLevels.Verbose)
 
-    //        rpc.TraceSource.Listeners.Add(new SerilogTraceListener.SerilogTraceListener(typeof<FantomasLSPServer>.Name))
-//        |> ignore<int>
+        rpc.TraceSource.Listeners.Add(new SerilogTraceListener.SerilogTraceListener(typeof<FantomasDaemon>.Name))
+        |> ignore<int>
 
     let disconnectEvent = new ManualResetEvent(false)
 

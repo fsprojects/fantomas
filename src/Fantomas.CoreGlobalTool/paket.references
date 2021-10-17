@@ -3,3 +3,4 @@ FSharp.Core
 Argu
 StreamJsonRpc
 Thoth.Json.Net
+SerilogTraceListener

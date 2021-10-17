@@ -1,12 +1,16 @@
 module Fantomas.CoreGlobalTool.Tests.DaemonTests
 
+open System
 open Fantomas.Client.LSPFantomasServiceTypes
+open Fantomas.CoreGlobalTool.Daemon
 open NUnit.Framework
 open FsUnit
 open Fantomas.CoreGlobalTool.Tests.TestHelpers
 open Fantomas
 open Fantomas.Client.Contracts
 open Fantomas.Client.LSPFantomasService
+open Nerdbank.Streams
+open StreamJsonRpc
 
 let private assertFormatted (actual: string) (expected: string) : unit =
     String.normalizeNewLine actual
@@ -60,6 +64,25 @@ let ``relative path should not be accepted`` () =
     }
 
 [<Test>]
+let ``fantomas tool file`` () =
+    async {
+        let path =
+            @"c:\Users\fverdonck\Projects\fantomas-tools\src\server\ASTViewer\Decoders.fs"
+
+        let source = System.IO.File.ReadAllText path
+
+        let! { Code = code } =
+            service.FormatDocumentAsync
+                { FilePath = path
+                  SourceCode = source
+                  Config = None }
+            |> Async.AwaitTask
+
+        code
+        |> should equal (int FantomasResponseCode.ToolNotFound)
+    }
+
+[<Test>]
 let ``config as json`` () =
     async {
         let! { Content = json } =
@@ -69,6 +92,56 @@ let ``config as json`` () =
         match json with
         | Some json -> json.StartsWith("{") |> should equal true
         | None -> Assert.Fail "expected json config"
+    }
+
+[<Test>]
+let ``version request`` () =
+    async {
+        let struct (serverStream, clientStream) = FullDuplexStream.CreatePair()
+
+        let daemon =
+            new FantomasDaemon(serverStream, serverStream)
+
+        let client = new JsonRpc(clientStream, clientStream)
+        client.StartListening()
+
+        let! version =
+            client.InvokeAsync<string>(Methods.Version)
+            |> Async.AwaitTask
+
+        version
+        |> should equal (CodeFormatter.GetVersion())
+
+        client.Dispose()
+        (daemon :> IDisposable).Dispose()
+    }
+
+[<Test>]
+let ``should respect editorconfig`` () =
+    async {
+        let struct (serverStream, clientStream) = FullDuplexStream.CreatePair()
+
+        let _daemon =
+            new FantomasDaemon(serverStream, serverStream)
+
+        let client = new JsonRpc(clientStream, clientStream)
+        client.StartListening()
+
+        let path =
+            @"c:\Users\fverdonck\Projects\fantomas-tools\src\server\ASTViewer\Decoders.fs"
+
+        let source = System.IO.File.ReadAllText path
+
+        let req =
+            { FilePath = path
+              SourceCode = source
+              Config = None }
+
+        let! res =
+            client.InvokeAsync<FantomasResponse>(Methods.FormatDocument, req)
+            |> Async.AwaitTask
+
+        res.Code |> should equal 1
     }
 
 [<Test>]
