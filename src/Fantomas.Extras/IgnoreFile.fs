@@ -9,22 +9,30 @@ module IgnoreFile =
     [<Literal>]
     let IgnoreFileName = ".fantomasignore"
 
-    let private getIgnoreFilePath () =
-        Path.Combine(Directory.GetCurrentDirectory(), IgnoreFileName)
+    let rec private findIgnoreFile (filePath: string) : string option =
+        let allParents =
+            let rec addParent (di: DirectoryInfo) (finalContinuation: string list -> string list) =
+                if isNull di.Parent then
+                    finalContinuation [ di.FullName ]
+                else
+                    addParent di.Parent (fun parents -> di.FullName :: parents |> finalContinuation)
 
-    let ignores = lazy (IgnoreList(getIgnoreFilePath ()))
+            addParent (Directory.GetParent filePath) id
 
-    let private hasNoIgnoreFile () =
-        let path = getIgnoreFilePath ()
-        File.Exists path |> not
+        allParents
+        |> List.tryFind (fun p -> Path.Combine(p, IgnoreFileName) |> File.Exists)
+        |> Option.map (fun p -> Path.Combine(p, IgnoreFileName))
 
     let isIgnoredFile (file: string) =
-        if hasNoIgnoreFile () then
-            false
-        else
+        let fullPath = Path.GetFullPath(file)
+
+        match findIgnoreFile fullPath with
+        | None -> false
+        | Some ignoreFile ->
+            let ignores = IgnoreList(ignoreFile)
+
             try
-                let fullPath = Path.GetFullPath(file)
-                ignores.Value.IsIgnored(fullPath, false)
+                ignores.IsIgnored(fullPath, false)
             with
             | ex ->
                 printfn "%A" ex
