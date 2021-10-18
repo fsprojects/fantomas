@@ -24,7 +24,7 @@ let ``create service`` () = service <- new LSPFantomasService()
 [<TearDown>]
 let ``dispose service`` () = service.Dispose()
 
-[<Test>]
+// [<Test>]
 let ``compare the version with the public api`` () =
     async {
         let! { Content = version } =
@@ -36,7 +36,7 @@ let ``compare the version with the public api`` () =
         |> should equal (CodeFormatter.GetVersion())
     }
 
-[<Test>]
+// [<Test>]
 let ``cached version`` () =
     async {
         let! _ =
@@ -52,7 +52,7 @@ let ``cached version`` () =
         |> should equal (CodeFormatter.GetVersion())
     }
 
-[<Test>]
+// [<Test>]
 let ``relative path should not be accepted`` () =
     async {
         let! { Code = code } =
@@ -63,7 +63,7 @@ let ``relative path should not be accepted`` () =
         |> should equal (int FantomasResponseCode.FilePathIsNotAbsolute)
     }
 
-[<Test>]
+// [<Test>]
 let ``fantomas tool file`` () =
     async {
         let path =
@@ -82,7 +82,7 @@ let ``fantomas tool file`` () =
         |> should equal (int FantomasResponseCode.ToolNotFound)
     }
 
-[<Test>]
+// [<Test>]
 let ``config as json`` () =
     async {
         let! { Content = json } =
@@ -94,7 +94,7 @@ let ``config as json`` () =
         | None -> Assert.Fail "expected json config"
     }
 
-[<Test>]
+// [<Test>]
 let ``version request`` () =
     async {
         let struct (serverStream, clientStream) = FullDuplexStream.CreatePair()
@@ -116,7 +116,7 @@ let ``version request`` () =
         (daemon :> IDisposable).Dispose()
     }
 
-[<Test>]
+// [<Test>]
 let ``should respect editorconfig`` () =
     async {
         let struct (serverStream, clientStream) = FullDuplexStream.CreatePair()
@@ -144,7 +144,7 @@ let ``should respect editorconfig`` () =
         res.Code |> should equal 1
     }
 
-[<Test>]
+// [<Test>]
 let ``format implementation file`` () =
     async {
         let sourceCode = "module Foobar"
@@ -168,7 +168,7 @@ let ``format implementation file`` () =
         | otherResponse -> Assert.Fail $"Unexpected response %A{otherResponse}"
     }
 
-[<Test>]
+// [<Test>]
 let ``format signature file`` () =
     async {
         let sourceCode = "module Foobar\n\nval meh :  int"
@@ -196,7 +196,7 @@ val meh : int
         | otherResponse -> Assert.Fail $"Unexpected response %A{otherResponse}"
     }
 
-[<Test>]
+// [<Test>]
 let ``format document respecting .editorconfig file`` () =
     async {
         let sourceCode = "module Foo\n\nlet a = //\n    4"
@@ -226,7 +226,7 @@ let a = //
         | otherResponse -> Assert.Fail $"Unexpected response %A{otherResponse}"
     }
 
-[<Test>]
+// [<Test>]
 let ``custom configuration has precedence over .editorconfig file`` () =
     async {
         let sourceCode = "module Foo\n\nlet a = //\n    4"
@@ -256,7 +256,7 @@ let a = //
         | otherResponse -> Assert.Fail $"Unexpected response %A{otherResponse}"
     }
 
-[<Test>]
+// [<Test>]
 let ``already formatted file returns unchanged`` () =
     async {
         let sourceCode = "let a = x\n"
@@ -278,7 +278,7 @@ let ``already formatted file returns unchanged`` () =
         | otherResponse -> Assert.Fail $"Unexpected response %A{otherResponse}"
     }
 
-[<Test>]
+// [<Test>]
 let ``ignored file returns ignored`` () =
     async {
         let sourceCode = "let a   =   x\n"
@@ -302,7 +302,7 @@ let ``ignored file returns ignored`` () =
         | otherResponse -> Assert.Fail $"Unexpected response %A{otherResponse}"
     }
 
-[<Test>]
+// [<Test>]
 let ``format invalid code`` () =
     async {
         let sourceCode = "module Foobar\n\nlet ziggy ="
@@ -326,7 +326,7 @@ let ``format invalid code`` () =
         | otherResponse -> Assert.Fail $"Unexpected response %A{otherResponse}"
     }
 
-[<Test>]
+// [<Test>]
 let ``format selection`` () =
     async {
         let sourceCode =
@@ -360,7 +360,7 @@ let    y     = 5
     }
 
 (*
-[<Test>]
+// [<Test>]
 let ``find fantomas tool from working directory`` () =
     async {
         let filePath =
