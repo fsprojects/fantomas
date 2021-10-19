@@ -1,6 +1,5 @@
 ﻿module Fantomas.Client.LSPFantomasServiceTypes
 
-open System
 open StreamJsonRpc
 open Fantomas.Client.Contracts
 
@@ -18,7 +17,7 @@ type FantomasResponseCode =
 [<RequireQualifiedAccess>]
 type FormatSelectionResponse =
     | Formatted of filename: string * formattedContent: string
-    | Error of filename: string * formattingError: Exception
+    | Error of filename: string * formattingError: string
 
     member this.AsFormatResponse() =
         match this with
@@ -29,7 +28,7 @@ type FormatSelectionResponse =
         | FormatSelectionResponse.Error (name, ex) ->
             { Code = int FantomasResponseCode.Error
               FilePath = name
-              Content = Some(ex.Message) }
+              Content = Some ex }
 
 [<RequireQualifiedAccess>]
 type FormatDocumentResponse =

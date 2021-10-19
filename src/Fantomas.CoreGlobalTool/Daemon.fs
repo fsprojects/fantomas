@@ -89,17 +89,20 @@ type FantomasDaemon(sender: Stream, reader: Stream) as this =
                 let r = request.Range
                 mkRange request.FilePath (mkPos r.StartLine r.StartColumn) (mkPos r.EndLine r.EndColumn)
 
-            let! formatted =
-                CodeFormatter.FormatSelectionAsync(
-                    request.FilePath, // TODO: does this really work with FSI??
-                    range,
-                    SourceString request.SourceCode,
-                    config,
-                    CodeFormatterImpl.createParsingOptionsFromFile request.FilePath, // Use safe name ??
-                    CodeFormatterImpl.sharedChecker.Value
-                )
+            try
+                let! formatted =
+                    CodeFormatter.FormatSelectionAsync(
+                        request.FilePath,
+                        range,
+                        SourceString request.SourceCode,
+                        config,
+                        CodeFormatterImpl.createParsingOptionsFromFile request.FilePath,
+                        CodeFormatterImpl.sharedChecker.Value
+                    )
 
-            return FormatSelectionResponse.Formatted(request.FilePath, formatted)
+                return FormatSelectionResponse.Formatted(request.FilePath, formatted)
+            with
+            | ex -> return FormatSelectionResponse.Error(request.FilePath, ex.Message)
         }
         |> Async.StartAsTask
 
