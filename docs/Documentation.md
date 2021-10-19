@@ -230,7 +230,7 @@ Default = true.
 `defaultConfig`
 
 ```fsharp
-let value (a:int) = x
+let value (a: int) = x
 let DumpTrace () = ()
 ```
 
@@ -660,11 +660,8 @@ let myList = [ one; two ]
 let myArray = [| one; two; three |]
 ```
 
-```fsharp
-{ defaultConfig with 
-    MaxArrayOrListNumberOfItems = 2
-    ArrayOrListMultilineFormatter = MultilineFormatterType.NumberOfItems }
-```
+`{ defaultConfig with MaxArrayOrListNumberOfItems = 2; ArrayOrListMultilineFormatter =
+MultilineFormatterType.NumberOfItems }`
 
 ```fsharp
 let myList = [ one; two ]
@@ -1076,10 +1073,10 @@ let encodeUrlModel code model: JsonValue =
 
 ### fsharp_keep_indent_in_branch
 
-Breaks the normal indentation flow for the last branch of a pattern match of if/then/else expression.
+Breaks the normal indentation flow for the last branch of a pattern match or if/then/else expression.
 Only when the pattern match or if/then/else is the return value of a function or member.
 
-*This feature is consider experimental and is subject to change*
+*This feature is considered experimental and is subject to change*
 
 `defaultConfig`
 
@@ -1177,7 +1174,7 @@ type MyDU = | Short of int
 ### fsharp_strict_mode
 
 If being set, pretty printing is only done via ASTs. Compiler directives, inline comments and block comments will be ignored.
-There are numerous situations when the information in the AST alone cannot restored the original code.
+There are numerous situations when the information in the AST alone cannot restore the original code.
 **Please do not use this setting for formatting hand written code!**
 Valid use-case of this settings is code generation in projects like [FsAst](https://github.com/ionide/FsAst) and [Myriad](https://github.com/MoiraeSoftware/myriad).
 Default = false.
@@ -1206,7 +1203,7 @@ let add a b = a + b
 
 To exclude files from formatting, create a `.fantomasignore` file in the root of your project.
 `.fantomasignore` uses gitignore syntax (via [MAB.DotIgnore](https://github.com/markashleybell/MAB.DotIgnore)).
-Ignored files will be picked up when the [Fantomas cli tool](https://www.nuget.org/packages/fantomas-tool/) or the FAKE helpers (in [Fantomas.Extras](https://www.nuget.org/packages/Fantomas.Extras/)).
+Ignored files will be picked up when the [Fantomas cli tool](https://www.nuget.org/packages/fantomas-tool/) or the FAKE helpers (in [Fantomas.Extras](https://www.nuget.org/packages/Fantomas.Extras/)) are used.
 Exclusion applies both to formatting and the format checking.
 
 ```
@@ -1239,4 +1236,4 @@ git diff --cached --name-only --diff-filter=ACM -z | xargs -0 git add
 
 Fantomas also exposes some less official helper functions when formatting code in FAKE scripts.
 Checkout the [FAKE sample](../fake-sample/README.md) for more details.
-These functions are not consider to be part of the public API, so they could be improved without the need to bump the major version.
+These functions are not considered to be part of the public API, so they could be improved without the need to bump the major version.
