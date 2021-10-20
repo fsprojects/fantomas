@@ -2,13 +2,14 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <Version>4.6.0-alpha-001</Version>
-    <Version>4.6.0-alpha-002</Version>
-    <Version>4.6.0-alpha-003</Version>
+    <Version>4.6.0-alpha-004</Version>
     <Description>Source code formatter for F#</Description>
     <WarningsAsErrors>FS0025</WarningsAsErrors>
     <PackageLicenseFile>LICENSE.md</PackageLicenseFile>
     <PackageIcon>fantomas_logo.png</PackageIcon>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <DebugType>embedded</DebugType>
   </PropertyGroup>
   <ItemGroup>
     <None Include="paket.references" />

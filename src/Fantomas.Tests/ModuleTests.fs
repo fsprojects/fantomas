@@ -4,7 +4,6 @@ open Fantomas
 open NUnit.Framework
 open FsUnit
 open Fantomas.Tests.TestHelper
-open Fantomas.Extras
 
 [<Test>]
 let ``module abbreviation`` () =
@@ -397,7 +396,7 @@ type T() =
         fileName,
         SourceOrigin.SourceString sourceCode,
         config,
-        FakeHelpers.createParsingOptionsFromFile fileName,
+        CodeFormatterImpl.createParsingOptionsFromFile fileName,
         sharedChecker.Value
     )
     |> Async.RunSynchronously
