@@ -78,6 +78,7 @@ NUGET
       System.Security.Cryptography.Xml (>= 4.7)
       System.Security.Permissions (>= 4.7)
       System.Threading.Tasks.Dataflow (>= 4.9)
+    Microsoft.Build.Tasks.Git (1.0) - copy_local: true
     Microsoft.Build.Utilities.Core (16.11)
       Microsoft.Build.Framework (>= 16.11)
       Microsoft.NET.StringTools (>= 1.0)
@@ -138,6 +139,10 @@ NUGET
       Microsoft.TestPlatform.TestHost (>= 16.9.1) - restriction: || (== net5.0) (== netcoreapp3.1) (&& (== netstandard2.0) (>= netcoreapp1.0))
     Microsoft.NETCore.Platforms (5.0.4)
     Microsoft.NETCore.Targets (5.0)
+    Microsoft.SourceLink.Common (1.0) - copy_local: true
+    Microsoft.SourceLink.GitHub (1.0) - copy_local: true
+      Microsoft.Build.Tasks.Git (>= 1.0)
+      Microsoft.SourceLink.Common (>= 1.0)
     Microsoft.TestPlatform.ObjectModel (16.11) - restriction: || (== net5.0) (== netcoreapp3.1) (&& (== netstandard2.0) (>= netcoreapp1.0))
       NuGet.Frameworks (>= 5.0)
       System.Reflection.Metadata (>= 1.6)
@@ -1435,8 +1440,13 @@ NUGET
     MessagePack.Annotations (2.3.85) - restriction: >= netstandard2.0
     Microsoft.Bcl.AsyncInterfaces (5.0) - restriction: || (&& (>= netcoreapp2.1) (< netcoreapp3.1)) (>= netstandard2.0)
       System.Threading.Tasks.Extensions (>= 4.5.4) - restriction: || (>= net461) (&& (< netcoreapp2.1) (>= netstandard2.0) (< netstandard2.1))
+    Microsoft.Build.Tasks.Git (1.0) - copy_local: true
     Microsoft.NETCore.Platforms (5.0.4) - restriction: || (&& (>= monoandroid) (>= netcoreapp2.0) (< netstandard1.3)) (&& (< monoandroid) (< net45) (< netstandard1.2) (>= netstandard2.0) (< win8)) (&& (< monoandroid) (< net45) (< netstandard1.3) (>= netstandard2.0) (< win8) (< wpa81)) (&& (< monoandroid) (< net45) (< netstandard1.5) (>= netstandard2.0) (< win8) (< wpa81)) (&& (< monoandroid) (< net45) (< netstandard1.6) (>= netstandard2.0) (< win8) (< wpa81)) (&& (< monoandroid) (>= netcoreapp2.0)) (&& (< monoandroid) (< netstandard1.1) (>= netstandard2.0) (< win8)) (&& (>= monotouch) (>= netcoreapp2.0)) (&& (< net45) (>= netstandard2.0) (< xamarinios) (< xamarinmac) (< xamarintvos) (< xamarinwatchos)) (&& (>= net461) (>= netcoreapp2.0)) (&& (>= netcoreapp2.0) (>= uap10.1)) (&& (>= netcoreapp2.0) (>= xamarinios)) (&& (>= netcoreapp2.0) (< xamarinios) (< xamarinmac) (< xamarintvos) (< xamarinwatchos)) (&& (>= netcoreapp2.0) (>= xamarinmac)) (&& (>= netcoreapp2.0) (>= xamarintvos)) (&& (>= netcoreapp2.0) (>= xamarinwatchos)) (>= netcoreapp2.1)
     Microsoft.NETCore.Targets (5.0) - restriction: || (&& (< monoandroid) (< net45) (< netstandard1.2) (>= netstandard2.0) (< win8)) (&& (< monoandroid) (< net45) (< netstandard1.3) (>= netstandard2.0) (< win8) (< wpa81)) (&& (< monoandroid) (< net45) (< netstandard1.5) (>= netstandard2.0) (< win8) (< wpa81)) (&& (< monoandroid) (< net45) (< netstandard1.6) (>= netstandard2.0) (< win8) (< wpa81)) (&& (< monoandroid) (< netstandard1.1) (>= netstandard2.0) (< win8)) (&& (< net45) (>= netstandard2.0) (< xamarinios) (< xamarinmac) (< xamarintvos) (< xamarinwatchos))
+    Microsoft.SourceLink.Common (1.0) - copy_local: true
+    Microsoft.SourceLink.GitHub (1.0) - copy_local: true
+      Microsoft.Build.Tasks.Git (>= 1.0)
+      Microsoft.SourceLink.Common (>= 1.0)
     Microsoft.VisualStudio.Threading (17.0.63) - restriction: >= netstandard2.0
       Microsoft.Bcl.AsyncInterfaces (>= 5.0) - restriction: >= netstandard2.0
       Microsoft.VisualStudio.Threading.Analyzers (>= 17.0.63) - restriction: >= netstandard2.0
