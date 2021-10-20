@@ -1,5 +1,6 @@
 module Fantomas.Extras.EditorConfig
 
+open System.Collections.Generic
 open Fantomas.FormatConfig
 
 module Reflection =
@@ -18,7 +19,7 @@ let supportedProperties =
       "indent_size"
       "end_of_line" ]
 
-let private toEditorConfigName value =
+let toEditorConfigName value =
     value
     |> Seq.map
         (fun c ->
@@ -56,11 +57,11 @@ let private (|Boolean|_|) b =
     elif b = "false" then Some(box false)
     else None
 
-let private parseOptionsFromEditorConfig (editorConfig: EditorConfig.Core.FileConfiguration) =
+let parseOptionsFromEditorConfig (editorConfigProperties: IReadOnlyDictionary<string, string>) : FormatConfig =
     fantomasFields
     |> Array.map
         (fun (ecn, dv) ->
-            match editorConfig.Properties.TryGetValue(ecn) with
+            match editorConfigProperties.TryGetValue(ecn) with
             | true, Number n -> n
             | true, Boolean b -> b
             | true, MultilineFormatterType mft -> mft
@@ -94,8 +95,7 @@ let tryReadConfiguration (fsharpFile: string) : FormatConfig option =
     if editorConfigSettings.Properties.Count = 0 then
         None
     else
-        Some
-        <| parseOptionsFromEditorConfig editorConfigSettings
+        Some(parseOptionsFromEditorConfig editorConfigSettings.Properties)
 
 let readConfiguration (fsharpFile: string) : FormatConfig =
     tryReadConfiguration fsharpFile
