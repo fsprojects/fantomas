@@ -21,7 +21,7 @@ type CodePrinterTest() =
         let fileName = Path.GetFileName(path)
 
         let parsingOptions =
-            FakeHelpers.createParsingOptionsFromFile fileName
+            CodeFormatterImpl.createParsingOptionsFromFile fileName
 
         let content =
             File.ReadAllText(path)
