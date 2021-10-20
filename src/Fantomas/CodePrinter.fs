@@ -1527,19 +1527,30 @@ and genExpr astContext synExpr ctx =
                     +> col sepSpace pats (genPat astContext)
                     +> indent
                     +> triviaAfterArrow arrowRange
-                    +> ifElse
-                        hasLineCommentAfterArrow
-                        (body
-                         +> triviaOfLambda printContentAfter
-                         +> sepNlnWhenWriteBeforeNewlineNotEmpty id
-                         +> sepCloseTFor rpr pr)
-                        (autoNlnIfExpressionExceedsPageWidth (
-                            body
-                            +> triviaOfLambda printContentAfter
-                            +> sepNlnWhenWriteBeforeNewlineNotEmpty id
-                            +> sepCloseTFor rpr pr
-                        ))
-                    +> unindent
+                    +> (fun ctx ->
+                        if ctx.Config.MultiLineLambdaClosingNewline then
+                            (leadingExpressionIsMultiline
+                                (ifElse hasLineCommentAfterArrow body (sepSpaceOrNlnIfExpressionExceedsPageWidth body)
+                                 +> triviaOfLambda printContentAfter
+                                 +> unindent)
+                                (fun isMultiline -> onlyIf isMultiline sepNln)
+                             +> sepCloseTFor rpr pr)
+                                ctx
+                        else
+                            (ifElse
+                                hasLineCommentAfterArrow
+                                (body
+                                 +> triviaOfLambda printContentAfter
+                                 +> sepNlnWhenWriteBeforeNewlineNotEmpty id
+                                 +> sepCloseTFor rpr pr)
+                                (autoNlnIfExpressionExceedsPageWidth (
+                                    body
+                                    +> triviaOfLambda printContentAfter
+                                    +> sepNlnWhenWriteBeforeNewlineNotEmpty id
+                                    +> sepCloseTFor rpr pr
+                                ))
+                             +> unindent)
+                                ctx)
 
                 expr ctx
 
@@ -2687,7 +2698,27 @@ and genMultilineFunctionApplicationArguments astContext argExpr =
         | _ -> genExpr astContext e
 
     match argExpr with
-    | Paren (_, Lambda _, _, _) -> genExpr astContext argExpr
+    | Paren (lpr, Lambda (pats, body, range), rpr, pr) ->
+        fun ctx ->
+            if ctx.Config.MultiLineLambdaClosingNewline then
+                let arrowRange =
+                    List.last pats
+                    |> fun lastPat -> ctx.MkRange lastPat.Range.End body.Range.Start
+
+                (sepOpenTFor lpr
+                 +> (!- "fun "
+                     +> col sepSpace pats (genPat astContext)
+                     +> triviaAfterArrow arrowRange
+                     +> indent
+                     +> sepNln
+                     +> genExprKeepIndentInBranch astContext body
+                     +> unindent
+                     |> genTriviaFor SynExpr_Lambda range)
+                 +> sepNln
+                 +> sepCloseTFor rpr pr)
+                    ctx
+            else
+                genExpr astContext argExpr ctx
     | Paren (lpr, Tuple (args, tupleRange), rpr, pr) ->
         (col (sepCommaFixed +> sepNln) args (genExpr astContext))
         |> genTriviaFor SynExpr_Tuple tupleRange
