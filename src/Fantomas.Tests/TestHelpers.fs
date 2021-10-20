@@ -61,7 +61,7 @@ let formatSourceString isFsiFile (s: string) config =
             "/src.fsx"
 
     let parsingOptions =
-        FakeHelpers.createParsingOptionsFromFile fileName
+        CodeFormatterImpl.createParsingOptionsFromFile fileName
 
     async {
         let! formatted =
@@ -92,7 +92,7 @@ let formatSourceStringWithDefines defines (s: string) config =
         CodeFormatterImpl.createFormatContext fileName (SourceOrigin.SourceString s)
 
     let parsingOptions =
-        FakeHelpers.createParsingOptionsFromFile fileName
+        CodeFormatterImpl.createParsingOptionsFromFile fileName
         |> fun p ->
             { p with
                   ConditionalCompilationDefines = defines }
@@ -133,7 +133,7 @@ let formatSelectionOnly isFsiFile r (s: string) config =
         r,
         SourceOrigin.SourceString s,
         config,
-        FakeHelpers.createParsingOptionsFromFile fileName,
+        CodeFormatterImpl.createParsingOptionsFromFile fileName,
         sharedChecker.Value
     )
     |> Async.RunSynchronously
@@ -149,7 +149,7 @@ let isValidFSharpCode isFsiFile s =
     CodeFormatter.IsValidFSharpCodeAsync(
         fileName,
         SourceOrigin.SourceString s,
-        FakeHelpers.createParsingOptionsFromFile fileName,
+        CodeFormatterImpl.createParsingOptionsFromFile fileName,
         sharedChecker.Value
     )
     |> Async.RunSynchronously
@@ -162,7 +162,7 @@ let parse isFsiFile s =
             "/tmp.fsx"
 
     CodeFormatterImpl.createFormatContext fileName (SourceOrigin.SourceString s)
-    |> CodeFormatterImpl.parse sharedChecker.Value (FakeHelpers.createParsingOptionsFromFile fileName)
+    |> CodeFormatterImpl.parse sharedChecker.Value (CodeFormatterImpl.createParsingOptionsFromFile fileName)
     |> Async.RunSynchronously
 
 let formatAST a s c =
