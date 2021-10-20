@@ -39,7 +39,7 @@ type Arguments =
             | Stdout -> "Write the formatted source code to standard output."
             | Check ->
                 "Don't format files, just check if they have changed. Exits with 0 if it's formatted correctly, with 1 if some files need formatting and 99 if there was an internal error"
-            | Daemon -> "TODO: daemon mode"
+            | Daemon -> "Daemon mode, launches an LSP-like server to can be used by editor tooling."
             | Version -> "Displays the version of Fantomas"
             | Input _ ->
                 sprintf
