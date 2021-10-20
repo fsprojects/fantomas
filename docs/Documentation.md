@@ -18,7 +18,7 @@ For the overview how to use the tool, you can type the command
 	dotnet fantomas --help
 
 ```
-USAGE: dotnet fantomas [--help] [--recurse] [--force] [--profile] [--fsi <string>] [--stdin] [--stdout] [--out <string>] [--check] [--version] [<string>...]
+USAGE: dotnet fantomas [--help] [--recurse] [--force] [--profile] [--fsi <string>] [--stdin] [--stdout] [--out <string>] [--check] [--daemon] [--version] [<string>...]
 
 INPUT:
 
@@ -31,9 +31,10 @@ OPTIONS:
     --profile             Print performance profiling information.
     --fsi <string>        Read F# source from stdin as F# signatures.
     --stdin               Read F# source from standard input.
-    --stdout               Write the formatted source code to standard output.
+    --stdout              Write the formatted source code to standard output.
     --out <string>        Give a valid path for files/folders. Files should have .fs, .fsx, .fsi, .ml or .mli extension only.
     --check               Don't format files, just check if they have changed. Exits with 0 if it's formatted correctly, with 1 if some files need formatting and 99 if there was an internal error
+    --daemon              Daemon mode, launches an LSP-like server to can be used by editor tooling.
     --version, -v         Displays the version of Fantomas
     --help                display this list of options.
 
@@ -79,6 +80,10 @@ $files = git status --porcelain | Where-Object { $_ -match "^\s?A?M(.*)\.fs(x|i)
 Or usage with `find` on unix:
 
 `find my-project/ -type f -name "*.fs" -not -path "*obj*" | xargs dotnet fantomas --check`
+
+### Daemon mode
+
+`--daemon` should not be used directly by end-users. Learn more about this feature in the [Daemon mode documentation](./Daemon%20mode.md)
 
 ## Configuration
 

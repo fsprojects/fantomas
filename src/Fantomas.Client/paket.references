@@ -1,4 +1,4 @@
+group client
 FSharp.Core
-editorconfig
-MAB.DotIgnore
+StreamJsonRpc
 Microsoft.SourceLink.GitHub
