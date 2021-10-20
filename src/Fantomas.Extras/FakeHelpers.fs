@@ -7,9 +7,6 @@ open Fantomas
 open Fantomas.FormatConfig
 open Fantomas.Extras
 
-// Share an F# checker instance across formatting calls
-let sharedChecker = lazy (FSharpChecker.Create())
-
 exception CodeFormatException of (string * Option<Exception>) array with
     override x.ToString() =
         let errors =
@@ -43,9 +40,6 @@ type FormatResult =
     | Error of filename: string * formattingError: Exception
     | IgnoredFile of filename: string
 
-let createParsingOptionsFromFile fileName =
-    { FSharpParsingOptions.Default with
-          SourceFiles = [| fileName |] }
 
 let private formatContentInternalAsync
     (compareWithoutLineEndings: bool)
@@ -69,8 +63,8 @@ let private formatContentInternalAsync
                         fileName,
                         SourceOrigin.SourceString originalContent,
                         config,
-                        createParsingOptionsFromFile fileName,
-                        sharedChecker.Value
+                        CodeFormatterImpl.createParsingOptionsFromFile fileName,
+                        CodeFormatterImpl.sharedChecker.Value
                     )
 
                 let contentChanged =
@@ -88,8 +82,8 @@ let private formatContentInternalAsync
                         CodeFormatter.IsValidFSharpCodeAsync(
                             fileName,
                             (SourceOrigin.SourceString(formattedContent)),
-                            createParsingOptionsFromFile fileName,
-                            sharedChecker.Value
+                            CodeFormatterImpl.createParsingOptionsFromFile fileName,
+                            CodeFormatterImpl.sharedChecker.Value
                         )
 
                     if not isValid then
