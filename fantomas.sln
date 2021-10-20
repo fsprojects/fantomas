@@ -20,6 +20,8 @@ Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Fantomas.Benchmarks", "src\
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Fantomas.Extras", "src\Fantomas.Extras\Fantomas.Extras.fsproj", "{4088FF76-1DB7-4E68-80FE-E851CE6701AC}"
 EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Fantomas.Client", "src\Fantomas.Client\Fantomas.Client.fsproj", "{AA895F94-CCF2-4FCF-A9BB-E16987B57535}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -105,6 +107,18 @@ Global
 		{4088FF76-1DB7-4E68-80FE-E851CE6701AC}.Release|x64.Build.0 = Release|Any CPU
 		{4088FF76-1DB7-4E68-80FE-E851CE6701AC}.Release|x86.ActiveCfg = Release|Any CPU
 		{4088FF76-1DB7-4E68-80FE-E851CE6701AC}.Release|x86.Build.0 = Release|Any CPU
+		{AA895F94-CCF2-4FCF-A9BB-E16987B57535}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AA895F94-CCF2-4FCF-A9BB-E16987B57535}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AA895F94-CCF2-4FCF-A9BB-E16987B57535}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{AA895F94-CCF2-4FCF-A9BB-E16987B57535}.Debug|x64.Build.0 = Debug|Any CPU
+		{AA895F94-CCF2-4FCF-A9BB-E16987B57535}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{AA895F94-CCF2-4FCF-A9BB-E16987B57535}.Debug|x86.Build.0 = Debug|Any CPU
+		{AA895F94-CCF2-4FCF-A9BB-E16987B57535}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AA895F94-CCF2-4FCF-A9BB-E16987B57535}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AA895F94-CCF2-4FCF-A9BB-E16987B57535}.Release|x64.ActiveCfg = Release|Any CPU
+		{AA895F94-CCF2-4FCF-A9BB-E16987B57535}.Release|x64.Build.0 = Release|Any CPU
+		{AA895F94-CCF2-4FCF-A9BB-E16987B57535}.Release|x86.ActiveCfg = Release|Any CPU
+		{AA895F94-CCF2-4FCF-A9BB-E16987B57535}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 	EndGlobalSection

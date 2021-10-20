@@ -51,6 +51,8 @@ let owner = "Anh-Dung Phan"
 let tags =
     "F# fsharp formatting beautifier indentation indenter"
 
+let fantomasClientVersion = "0.3.0"
+
 // (<solutionFile>.sln is built during the building process)
 let solutionFile = "fantomas"
 //// Environment.CurrentDirectory <- __SOURCE_DIRECTORY__
@@ -168,7 +170,9 @@ Target.create
           "src/Fantomas/bin"
           "src/Fantomas/obj"
           "src/Fantomas.CoreGlobalTool/bin"
-          "src/Fantomas.CoreGlobalTool/obj" ]
+          "src/Fantomas.CoreGlobalTool/obj"
+          "src/Fantomas.Client/bin"
+          "src/Fantomas.Client/obj" ]
         |> List.iter Shell.cleanDir)
 
 Target.create
@@ -180,13 +184,20 @@ Target.create
             let file =
                 sprintf "src/%s/%s.fsproj" project project
 
-            Xml.poke file "Project/PropertyGroup/Version/text()" version
+            Xml.poke
+                file
+                "Project/PropertyGroup/Version/text()"
+                (if project = "Fantomas.Client" then
+                     fantomasClientVersion
+                 else
+                     version)
 
         setProjectVersion "Fantomas"
         setProjectVersion "Fantomas.CoreGlobalTool"
         setProjectVersion "Fantomas.CoreGlobalTool.Tests"
         setProjectVersion "Fantomas.Tests"
-        setProjectVersion "Fantomas.Extras")
+        setProjectVersion "Fantomas.Extras"
+        setProjectVersion "Fantomas.Client")
 
 // --------------------------------------------------------------------------------------
 // Build library & test project
@@ -241,7 +252,11 @@ Target.create
                 { defaultArgs with
                       Properties =
                           [ "Title", project
-                            "PackageVersion", nugetVersion
+                            "PackageVersion",
+                            (if project = "Fantomas.Client" then
+                                 fantomasClientVersion
+                             else
+                                 nugetVersion)
                             "Authors", (String.Join(" ", authors))
                             "Owners", owner
                             "PackageRequireLicenseAcceptance", "false"
@@ -263,7 +278,8 @@ Target.create
 
         pack "Fantomas"
         pack "Fantomas.Extras"
-        pack "Fantomas.CoreGlobalTool")
+        pack "Fantomas.CoreGlobalTool"
+        pack "Fantomas.Client")
 
 // This takes the list of external projects defined above, does a git checkout of the specified repo and tag,
 // tries to build the project, then reformats with fantomas and tries to build the project again. If this fails
