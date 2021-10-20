@@ -1,6 +1,7 @@
 open System
 open System.IO
 open Fantomas
+open Fantomas.CoreGlobalTool.Daemon
 open Fantomas.FormatConfig
 open Fantomas.Extras
 open Argu
@@ -22,6 +23,7 @@ type Arguments =
     | [<Unique>] Stdout
     | [<Unique>] Out of string
     | [<Unique>] Check
+    | [<Unique>] Daemon
     | [<Unique; AltCommandLine("-v")>] Version
     | [<MainCommand>] Input of string list
     interface IArgParserTemplate with
@@ -37,6 +39,7 @@ type Arguments =
             | Stdout -> "Write the formatted source code to standard output."
             | Check ->
                 "Don't format files, just check if they have changed. Exits with 0 if it's formatted correctly, with 1 if some files need formatting and 99 if there was an internal error"
+            | Daemon -> "Daemon mode, launches an LSP-like server to can be used by editor tooling."
             | Version -> "Displays the version of Fantomas"
             | Input _ ->
                 sprintf
@@ -432,10 +435,19 @@ let main argv =
         |> List.iter (fun folder -> processFolder folder folder)
 
     let check = results.Contains <@ Arguments.Check @>
+    let isDaemon = results.Contains <@ Arguments.Daemon @>
 
     if Option.isSome version then
         let version = CodeFormatter.GetVersion()
         printfn "Fantomas v%s" version
+    elif isDaemon then
+        let daemon =
+            new FantomasDaemon((Console.OpenStandardOutput()), (Console.OpenStandardInput()))
+
+        AppDomain.CurrentDomain.ProcessExit.Add(fun _ -> (daemon :> IDisposable).Dispose())
+
+        daemon.WaitForClose.GetAwaiter().GetResult()
+        exit 0
     elif check then
         inputPath |> runCheckCommand recurse |> exit
     else
