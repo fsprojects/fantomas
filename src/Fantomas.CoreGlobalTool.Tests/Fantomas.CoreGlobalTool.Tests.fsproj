@@ -4,13 +4,12 @@
     <TargetFramework>net5.0</TargetFramework>
     <IsPackable>false</IsPackable>
     <GenerateProgramFile>false</GenerateProgramFile>
-    <Version>4.6.0-alpha-001</Version>
-    <Version>4.6.0-alpha-002</Version>
-    <Version>4.6.0-alpha-003</Version>
+    <Version>4.6.0-alpha-004</Version>
     <NoWarn>FS0988</NoWarn>
     <WarningsAsErrors>FS0025</WarningsAsErrors>
   </PropertyGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Fantomas.Client\Fantomas.Client.fsproj" />
     <ProjectReference Include="..\Fantomas.CoreGlobalTool\Fantomas.CoreGlobalTool.fsproj" />
   </ItemGroup>
   <ItemGroup>
@@ -22,6 +21,7 @@
     <Compile Include="IgnoreFilesTests.fs" />
     <Compile Include="ExitCodeTests.fs" />
     <Compile Include="MultiplePathsTests.fs" />
+    <Compile Include="DaemonTests.fs" />
   </ItemGroup>
   <Import Project="..\..\.paket\Paket.Restore.targets" />
 </Project>
