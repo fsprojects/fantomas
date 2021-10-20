@@ -13,7 +13,8 @@ type TemporaryFileCodeSample
         ?hasByteOrderMark: bool,
         ?fileName: string,
         ?subFolder: string,
-        ?subFolders: string array
+        ?subFolders: string array,
+        ?extension: string
     ) =
     let hasByteOrderMark = defaultArg hasByteOrderMark false
 
@@ -31,6 +32,8 @@ type TemporaryFileCodeSample
             | Some fn -> fn
             | None -> Guid.NewGuid().ToString()
 
+        let extension = Option.defaultValue "fs" extension
+
         match internalSubFolders with
         | Some sf ->
             let tempFolder =
@@ -39,8 +42,8 @@ type TemporaryFileCodeSample
             if not (Directory.Exists(tempFolder)) then
                 Directory.CreateDirectory(tempFolder) |> ignore
 
-            Path.Join(tempFolder, sprintf "%s.fs" name)
-        | None -> Path.Join(Path.GetTempPath(), sprintf "%s.fs" name)
+            Path.Join(tempFolder, sprintf "%s.%s" name extension)
+        | None -> Path.Join(Path.GetTempPath(), sprintf "%s.%s" name extension)
 
     do
         (if hasByteOrderMark then
@@ -100,7 +103,7 @@ type FantomasToolResult =
       Output: string
       Error: string }
 
-let runFantomasTool arguments : FantomasToolResult =
+let getFantomasToolStartInfo arguments : ProcessStartInfo =
     let pwd =
         Path.GetDirectoryName(typeof<TemporaryFileCodeSample>.Assembly.Location)
 
@@ -125,14 +128,19 @@ let runFantomasTool arguments : FantomasToolResult =
             "fantomas-tool.dll"
         )
 
-    use p = new Process()
-    p.StartInfo.UseShellExecute <- false
-    p.StartInfo.FileName <- @"dotnet"
-    p.StartInfo.Arguments <- sprintf "%s %s" fantomasDll arguments
-    p.StartInfo.WorkingDirectory <- Path.GetTempPath()
-    p.StartInfo.RedirectStandardOutput <- true
-    p.StartInfo.RedirectStandardError <- true
-    p.Start() |> ignore
+    let startInfo = ProcessStartInfo("dotnet")
+    startInfo.UseShellExecute <- false
+    startInfo.Arguments <- sprintf "%s %s" fantomasDll arguments
+    startInfo.WorkingDirectory <- Path.GetTempPath()
+    startInfo.RedirectStandardOutput <- true
+    startInfo.RedirectStandardError <- true
+    startInfo
+
+let runFantomasTool arguments : FantomasToolResult =
+    use p =
+        getFantomasToolStartInfo arguments
+        |> Process.Start
+
     let output = p.StandardOutput.ReadToEnd()
     let error = p.StandardError.ReadToEnd()
     p.WaitForExit()
