@@ -3,7 +3,6 @@ module Fantomas.Tests.FormatAstTests
 open Fantomas
 open NUnit.Framework
 open FsUnit
-open Fantomas.Extras
 open Fantomas.Tests.TestHelper
 
 let parseAndFormat sourceCode originSource =
@@ -14,7 +13,7 @@ let parseAndFormat sourceCode originSource =
         CodeFormatter.ParseAsync(
             fileName,
             sourceCode,
-            FakeHelpers.createParsingOptionsFromFile fileName,
+            CodeFormatterImpl.createParsingOptionsFromFile fileName,
             sharedChecker.Value
         )
         |> Async.RunSynchronously
