@@ -18,13 +18,22 @@ module IgnoreFile =
         let path = getIgnoreFilePath ()
         File.Exists path |> not
 
+    let private relativePathPrefix =
+        sprintf ".%c" Path.DirectorySeparatorChar
+
+    let private removeRelativePathPrefix (path: string) =
+        if path.StartsWith(relativePathPrefix) then
+            path.Substring(2)
+        else
+            path
+
     let isIgnoredFile (file: string) =
         if hasNoIgnoreFile () then
             false
         else
             try
-                let fullPath = Path.GetFullPath(file)
-                ignores.Value.IsIgnored(fullPath, false)
+                let path = removeRelativePathPrefix file
+                ignores.Value.IsIgnored(path, false)
             with
             | ex ->
                 printfn "%A" ex
