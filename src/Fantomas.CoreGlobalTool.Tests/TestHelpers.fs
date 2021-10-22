@@ -12,7 +12,7 @@ type TemporaryFileCodeSample
         codeSnippet: string,
         ?hasByteOrderMark: bool,
         ?fileName: string,
-        ?subFolder: string
+        ?subFolders: string array
     ) =
     let hasByteOrderMark = defaultArg hasByteOrderMark false
 
@@ -22,9 +22,10 @@ type TemporaryFileCodeSample
             | Some fn -> fn
             | None -> Guid.NewGuid().ToString()
 
-        match subFolder with
+        match subFolders with
         | Some sf ->
-            let tempFolder = Path.Join(Path.GetTempPath(), sf)
+            let tempFolder =
+                Path.Join(Path.GetTempPath(), Path.Join(sf))
 
             if not (Directory.Exists(tempFolder)) then
                 Directory.CreateDirectory(tempFolder) |> ignore
@@ -44,10 +45,10 @@ type TemporaryFileCodeSample
         member this.Dispose() : unit =
             File.Delete(filename)
 
-            subFolder
+            subFolders
             |> Option.iter
                 (fun sf ->
-                    Path.Join(Path.GetTempPath(), sf)
+                    Path.Join(Path.GetTempPath(), Path.Join(sf))
                     |> Directory.Delete)
 
 type OutputFile internal () =

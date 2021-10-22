@@ -44,6 +44,24 @@ let ``ignore specific file`` () =
     output |> should contain "was ignored"
 
 [<Test>]
+let ``ignore specific file in subfolder`` () =
+    let fileName = "A"
+    let sub1 = System.Guid.NewGuid().ToString("N")
+    let sub2 = System.Guid.NewGuid().ToString("N")
+    let subFolders = [| sub1; sub2 |]
+
+    use inputFixture =
+        new TemporaryFileCodeSample(Source, fileName = fileName, subFolders = subFolders)
+
+    use ignoreFixture =
+        new FantomasIgnoreFile(sprintf "%s/%s/A.fs" sub1 sub2)
+
+    let { ExitCode = exitCode; Output = output } =
+        runFantomasTool (sprintf "--recurse --check .%c%s" Path.DirectorySeparatorChar sub1)
+
+    exitCode |> should equal 0
+
+[<Test>]
 let ``don't ignore other files`` () =
     let fileName = "B"
 
@@ -62,15 +80,18 @@ let ``don't ignore other files`` () =
 [<Test>]
 let ``ignore file in folder`` () =
     let fileName = "A"
-    let subFolder = System.Guid.NewGuid().ToString("N")
+
+    let subFolders =
+        System.Guid.NewGuid().ToString("N")
+        |> Array.singleton
 
     use inputFixture =
-        new TemporaryFileCodeSample(Source, fileName = fileName, subFolder = subFolder)
+        new TemporaryFileCodeSample(Source, fileName = fileName, subFolders = subFolders)
 
     use ignoreFixture = new FantomasIgnoreFile("A.fs")
 
     let { ExitCode = exitCode } =
-        runFantomasTool (sprintf ".%c%s" Path.DirectorySeparatorChar subFolder)
+        runFantomasTool (sprintf ".%c%s" Path.DirectorySeparatorChar subFolders.[0])
 
     exitCode |> should equal 0
 
@@ -97,15 +118,18 @@ let ``ignore file while checking`` () =
 [<Test>]
 let ``ignore file in folder while checking`` () =
     let fileName = "A"
-    let subFolder = System.Guid.NewGuid().ToString("N")
+
+    let subFolders =
+        System.Guid.NewGuid().ToString("N")
+        |> Array.singleton
 
     use inputFixture =
-        new TemporaryFileCodeSample(Source, fileName = fileName, subFolder = subFolder)
+        new TemporaryFileCodeSample(Source, fileName = fileName, subFolders = subFolders)
 
     use ignoreFixture = new FantomasIgnoreFile("A.fs")
 
     let { ExitCode = exitCode } =
-        runFantomasTool (sprintf ".%c%s --check" Path.DirectorySeparatorChar subFolder)
+        runFantomasTool (sprintf ".%c%s --check" Path.DirectorySeparatorChar subFolders.[0])
 
     exitCode |> should equal 0
 
@@ -115,14 +139,17 @@ let ``ignore file in folder while checking`` () =
 [<Test>]
 let ``honor ignore file when processing a folder`` () =
     let fileName = "A"
-    let subFolder = System.Guid.NewGuid().ToString("N")
+
+    let subFolders =
+        System.Guid.NewGuid().ToString("N")
+        |> Array.singleton
 
     use ignoreFixture =
-        new TemporaryFileCodeSample(Source, fileName = fileName, subFolder = subFolder)
+        new TemporaryFileCodeSample(Source, fileName = fileName, subFolders = subFolders)
 
     use inputFixture = new FantomasIgnoreFile("*.fsx")
 
     let { Output = output } =
-        runFantomasTool (sprintf ".%c%s" Path.DirectorySeparatorChar subFolder)
+        runFantomasTool (sprintf ".%c%s" Path.DirectorySeparatorChar subFolders.[0])
 
     output |> should not' (contain "ignored")
