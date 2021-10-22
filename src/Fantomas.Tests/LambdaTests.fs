@@ -1069,3 +1069,26 @@ leadingExpressionIsMultiline
      | Ok _ -> true
      | Error _ -> false)
 """
+
+[<Test>]
+let ``multiline lambda argument, 1922`` () =
+    formatSourceString
+        false
+        """
+let g =
+    Array.groupBy
+        (fun { partNumber = p
+               revisionNumber = r
+               processName = pn } -> p, r, pn)
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let g =
+    Array.groupBy
+        (fun { partNumber = p
+               revisionNumber = r
+               processName = pn } -> p, r, pn)
+"""
