@@ -2165,7 +2165,7 @@ and genExpr astContext synExpr ctx =
                             +> indent
                             +> sepNln
                             +> col sepNln es (genExpr astContext)
-                            +> sepNln
+                            +> onlyIfNot (List.isEmpty es) sepNln
                             +> (sepOpenTFor lpr
                                 +> (!- "fun "
                                     +> col sepSpace pats (genPat astContext)
