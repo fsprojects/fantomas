@@ -46,7 +46,6 @@ type FsTokenType =
     | PREFIX_OP
     | QMARK
     | QMARK_QMARK
-    | RARROW
     | RBRACE
     | RBRACK
     | RPAREN
@@ -132,6 +131,7 @@ type FsAstType =
     | SynExpr_ArrayOrList
     // | SynExpr_CompExpr use first nested SynExpr
     | SynExpr_Lambda
+    | SynExpr_Lambda_Arrow
     | SynExpr_MatchLambda
     | SynExpr_MatchLambda_Function
     | SynExpr_Match
@@ -197,6 +197,7 @@ type FsAstType =
     | SynIndexerArg_One
     | SynIndexerArg_Two
     | SynMatchClause_
+    | SynMatchClause_Arrow
     | ArgOptions_
     | SynInterfaceImpl_
     | SynTypeDefn_

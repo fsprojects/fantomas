@@ -15,14 +15,6 @@ let sepOpenTFor r = tokN r LPAREN sepOpenT
 let sepCloseTFor rpr pr =
     tokN (Option.defaultValue pr rpr) RPAREN sepCloseT
 
-let genArrowWithTrivia (bodyExpr: Context -> Context) (range: Range) =
-    (tokN range RARROW sepArrow)
-    +> (fun ctx ->
-        if String.isNotNullOrEmpty ctx.WriterModel.WriteBeforeNewline then
-            (indent +> sepNln +> bodyExpr +> unindent) ctx
-        else
-            (autoIndentAndNlnIfExpressionExceedsPageWidth bodyExpr) ctx)
-
 let getIndentBetweenTicksFromSynPat patRange fallback ctx =
     TriviaHelpers.getNodesForTypes [ SynPat_LongIdent; SynPat_Named ] ctx.TriviaMainNodes
     |> List.choose

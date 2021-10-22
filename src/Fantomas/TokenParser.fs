@@ -1172,7 +1172,6 @@ let private tokenNames =
       "BAR_RBRACK"
       "EQUALS"
       "BAR"
-      "RARROW"
       "TRY"
       "FINALLY"
       "WITH"
@@ -1226,7 +1225,6 @@ let internal getFsToken tokenName =
     | "PREFIX_OP" -> PREFIX_OP
     | "QMARK" -> QMARK
     | "QMARK_QMARK" -> QMARK_QMARK
-    | "RARROW" -> RARROW
     | "RBRACE" -> RBRACE
     | "RBRACK" -> RBRACK
     | "RPAREN" -> RPAREN

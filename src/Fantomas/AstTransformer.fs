@@ -199,12 +199,15 @@ module private Ast =
                         mkNode SynExpr_ArrayOrListOfSeqExpr range :: nodes
                         |> finalContinuation)
             | SynExpr.CompExpr (_, _, expr, _) -> visit expr finalContinuation
-            | SynExpr.Lambda (_, _, args, body, _parsedData, range) ->
+            | SynExpr.Lambda (_, _, args, arrowRange, body, _parsedData, range) ->
                 visit
                     body
                     (fun nodes ->
                         [ yield mkNode SynExpr_Lambda range
                           yield! visitSynSimplePats args
+                          yield!
+                              (Option.toList arrowRange
+                               |> List.map (mkNode SynExpr_Lambda_Arrow))
                           yield! nodes ]
                         |> finalContinuation)
             | SynExpr.MatchLambda (_, keywordRange, matchClauses, _, range) ->
@@ -659,11 +662,14 @@ module private Ast =
 
     and visitSynMatchClause (mc: SynMatchClause) : TriviaNodeAssigner list =
         match mc with
-        | SynMatchClause (pat, e1, e2, _range, _) ->
+        | SynMatchClause (pat, e1, arrowRange, e2, _range, _) ->
             mkNode SynMatchClause_ mc.Range // _range is the same range as pat, see https://github.com/dotnet/fsharp/issues/10877
             :: [ yield! visitSynPat pat
                  if e1.IsSome then
                      yield! visitSynExpr e1.Value
+                 yield!
+                     (Option.toList arrowRange
+                      |> List.map (mkNode SynMatchClause_Arrow))
                  yield! visitSynExpr e2 ]
 
     and visitArgsOption (expr: SynExpr, _: Ident option) = visitSynExpr expr

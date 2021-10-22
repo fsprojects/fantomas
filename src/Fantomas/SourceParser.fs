@@ -1266,17 +1266,17 @@ let (|RecordField|) =
     function
     | SynField (ats, _, ido, _, _, px, ao, _) -> (ats, px, ao, Option.map (|Ident|) ido)
 
-let (|Clause|) (SynMatchClause (p, eo, e, _, _)) = (p, e, eo)
+let (|Clause|) (SynMatchClause (p, eo, arrowRange, e, _, _)) = (p, eo, arrowRange, e)
 
 /// Process compiler-generated matches in an appropriate way
 let rec private skipGeneratedLambdas expr =
     match expr with
-    | SynExpr.Lambda (_, true, _, bodyExpr, _, _) -> skipGeneratedLambdas bodyExpr
+    | SynExpr.Lambda (_, true, _, _, bodyExpr, _, _) -> skipGeneratedLambdas bodyExpr
     | _ -> expr
 
 and skipGeneratedMatch expr =
     match expr with
-    | SynExpr.Match (_, _, [ SynMatchClause.SynMatchClause (_, _, innerExpr, _, _) as clause ], matchRange) when
+    | SynExpr.Match (_, _, [ SynMatchClause.SynMatchClause (_, _, _, innerExpr, _, _) as clause ], matchRange) when
         matchRange.Start = clause.Range.Start
         ->
         skipGeneratedMatch innerExpr
@@ -1284,12 +1284,12 @@ and skipGeneratedMatch expr =
 
 let (|Lambda|_|) =
     function
-    | SynExpr.Lambda (_, _, _, _, Some (pats, body), range) ->
+    | SynExpr.Lambda (_, _, _, arrowRange, _, Some (pats, body), range) ->
         let inline getLambdaBodyExpr expr =
             let skippedLambdas = skipGeneratedLambdas expr
             skipGeneratedMatch skippedLambdas
 
-        Some(pats, getLambdaBodyExpr body, range)
+        Some(pats, arrowRange, getLambdaBodyExpr body, range)
     | _ -> None
 
 let (|AppWithLambda|_|) (e: SynExpr) =
@@ -1298,8 +1298,8 @@ let (|AppWithLambda|_|) (e: SynExpr) =
         let rec visit (es: SynExpr list) (finalContinuation: SynExpr list -> SynExpr list) =
             match es with
             | [] -> None
-            | [ Paren (lpr, Lambda (pats, body, range), rpr, pr) ] ->
-                Some(e, finalContinuation [], lpr, (Choice1Of2(pats, body, range)), rpr, pr)
+            | [ Paren (lpr, Lambda (pats, arrowRange, body, range), rpr, pr) ] ->
+                Some(e, finalContinuation [], lpr, (Choice1Of2(pats, arrowRange, body, range)), rpr, pr)
             | [ Paren (lpr, (MatchLambda (keywordRange, pats) as me), rpr, pr) ] ->
                 Some(e, finalContinuation [], lpr, (Choice2Of2(keywordRange, pats, me.Range)), rpr, pr)
             | h :: tail ->
@@ -1746,7 +1746,7 @@ let (|KeepIndentMatch|_|) (e: SynExpr) =
     let mapClauses matchExpr clauses range t =
         match clauses with
         | [] -> None
-        | [ (Clause (_, lastClause, _)) ] ->
+        | [ (Clause (_, _, _, lastClause)) ] ->
             if shouldNotIndentBranch lastClause [] then
                 Some(matchExpr, clauses, range, t)
             else
@@ -1755,9 +1755,9 @@ let (|KeepIndentMatch|_|) (e: SynExpr) =
             let firstClauses =
                 clauses
                 |> List.take (clauses.Length - 1)
-                |> List.map (fun (Clause (_, expr, _)) -> expr)
+                |> List.map (fun (Clause (_, _, _, expr)) -> expr)
 
-            let (Clause (_, lastClause, _)) = List.last clauses
+            let (Clause (_, _, _, lastClause)) = List.last clauses
 
             if shouldNotIndentBranch lastClause firstClauses then
                 Some(matchExpr, clauses, range, t)

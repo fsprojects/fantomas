@@ -431,7 +431,7 @@ let ``char content`` () =
     match trivia with
     | [ { ContentItself = Some (CharContent "\'\\u0000\'")
           Type = TriviaNodeType.MainNode SynConst_Char } ] -> pass ()
-    | _ -> fail ()
+    | _ -> Assert.Fail(sprintf "Unexpected trivia: %A" trivia)
 
 [<Test>]
 let ``leading newlines should not be captured as trivia`` () =
