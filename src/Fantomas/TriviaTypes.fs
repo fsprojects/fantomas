@@ -127,9 +127,9 @@ type FsAstType =
     | SynExpr_While
     | SynExpr_For
     | SynExpr_ForEach
-    | SynExpr_ArrayOrListOfSeqExpr
+    | SynExpr_ArrayOrListComputed
     | SynExpr_ArrayOrList
-    // | SynExpr_CompExpr use first nested SynExpr
+    // | SynExpr_ComputationExpr use first nested SynExpr
     | SynExpr_Lambda
     | SynExpr_Lambda_Arrow
     | SynExpr_MatchLambda
@@ -184,6 +184,8 @@ type FsAstType =
     | SynExpr_DiscardAfterMissingQualificationAfterDot
     | SynExpr_Fixed
     | SynExpr_InterpolatedString
+    | SynExpr_IndexRange
+    | SynExpr_IndexFromEnd
     | SynInterpolatedStringPart_String
     | SynInterpolatedStringPart_FillExpr
     | RecordField_

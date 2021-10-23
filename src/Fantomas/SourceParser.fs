@@ -670,34 +670,33 @@ let (|SimpleExpr|_|) =
     | SynExpr.Const _ as e -> Some e
     | _ -> None
 
-/// Only recognize numbers; strings are ignored
-let rec (|SequentialSimple|_|) =
+let (|ComputationExpr|_|) =
     function
-    | Sequential (SimpleExpr e, SequentialSimple es, true) -> Some(e :: es)
-    | Sequential (SimpleExpr e1, SimpleExpr e2, true) -> Some [ e1; e2 ]
+    | SynExpr.ComputationExpr (_, expr, range) -> Some(expr, range)
     | _ -> None
 
-let (|CompExpr|_|) =
+// seq { expr }
+let (|NamedComputationExpr|_|) =
     function
-    | SynExpr.CompExpr (isArray, _, expr, _) -> Some(isArray, expr)
+    | SynExpr.App (ExprAtomicFlag.NonAtomic,
+                   false,
+                   (SynExpr.App _ as nameExpr
+                   | SimpleExpr nameExpr),
+                   ComputationExpr (compExpr, bodyRange),
+                   _) -> Some(nameExpr, compExpr, bodyRange)
     | _ -> None
 
-let isCompExpr =
+let (|ArrayOrListComputedExpr|_|) =
     function
-    | CompExpr _ -> true
-    | _ -> false
-
-let (|ArrayOrListOfSeqExpr|_|) =
-    function
-    | SynExpr.ArrayOrListOfSeqExpr (isArray, expr, _) -> Some(isArray, expr)
+    | SynExpr.ArrayOrListComputed (isArray, expr, _) -> Some(isArray, expr)
     | _ -> None
 
 /// This pattern only includes arrays and lists in computation expressions
 let (|ArrayOrList|_|) =
     function
-    | ArrayOrListOfSeqExpr (isArray, CompExpr (_, SequentialSimple xs)) -> Some(isArray, xs, true)
-    | SynExpr.ArrayOrList (isArray, xs, _)
-    | ArrayOrListOfSeqExpr (isArray, CompExpr (_, Sequentials xs)) -> Some(isArray, xs, false)
+    | ArrayOrListComputedExpr (isArray, Sequentials xs) -> Some(isArray, xs)
+    | ArrayOrListComputedExpr (isArray, singleExpr) -> Some(isArray, [ singleExpr ])
+    | SynExpr.ArrayOrList (isArray, xs, _) -> Some(isArray, xs)
     | _ -> None
 
 let (|Tuple|_|) =
@@ -718,10 +717,20 @@ let (|IndexedVar|_|) =
     | SynExpr.LongIdent (_, LongIdentWithDots "Microsoft.FSharp.Core.None", _, _) -> Some None
     | _ -> None
 
-let (|Indexer|) =
+let (|InterpolatedStringExpr|_|) =
     function
-    | SynIndexerArg.Two (e1, e1FromEnd, e2, e2FromEnd, _, _) -> Pair((e1, e1FromEnd), (e2, e2FromEnd))
-    | SynIndexerArg.One (e, fromEnd, _) -> Single(e, fromEnd)
+    | SynExpr.InterpolatedString (parts, stringKind, _) -> Some(parts, stringKind)
+    | _ -> None
+
+let (|IndexRangeExpr|_|) =
+    function
+    | SynExpr.IndexRange (expr1, _, expr2, _, _, _) -> Some(expr1, expr2)
+    | _ -> None
+
+let (|IndexFromEndExpr|_|) =
+    function
+    | SynExpr.IndexFromEnd (e, _r) -> Some e
+    | _ -> None
 
 let (|OptVar|_|) =
     function
@@ -966,7 +975,7 @@ let (|ForEach|_|) =
 
 let (|DotIndexedSet|_|) =
     function
-    | SynExpr.DotIndexedSet (e1, es, e2, _, _, _) -> Some(e1, es, e2)
+    | SynExpr.DotIndexedSet (objectExpr, indexArgs, valueExpr, _, _, _) -> Some(objectExpr, indexArgs, valueExpr)
     | _ -> None
 
 let (|NamedIndexedPropertySet|_|) =
@@ -981,7 +990,7 @@ let (|DotNamedIndexedPropertySet|_|) =
 
 let (|DotIndexedGet|_|) =
     function
-    | SynExpr.DotIndexedGet (e1, es, _, _) -> Some(e1, es)
+    | SynExpr.DotIndexedGet (objectExpr, indexArgs, _, _) -> Some(objectExpr, indexArgs)
     | _ -> None
 
 let (|DotGet|_|) =
@@ -1648,17 +1657,8 @@ let isFunctionBinding (p: SynPat) =
 
 let (|ElmishReactWithoutChildren|_|) e =
     match e with
-    | SynExpr.App (_,
-                   false,
-                   OptVar (ident, _, _),
-                   (ArrayOrList (isArray, children, _)
-                   | ArrayOrListOfSeqExpr (isArray, CompExpr (_, Sequentials children)) as aolEx),
-                   _) -> Some(ident, isArray, children, aolEx.Range)
-    | SynExpr.App (_,
-                   false,
-                   OptVar (ident, _, _),
-                   (ArrayOrListOfSeqExpr (isArray, CompExpr (_, singleChild)) as aolEx),
-                   _) -> Some(ident, isArray, [ singleChild ], aolEx.Range)
+    | SynExpr.App (_, false, OptVar (ident, _, _), (ArrayOrList (isArray, children) as aolEx), _) ->
+        Some(ident, isArray, children, aolEx.Range)
     | _ -> None
 
 let (|ElmishReactWithChildren|_|) (e: SynExpr) =
@@ -1666,28 +1666,8 @@ let (|ElmishReactWithChildren|_|) (e: SynExpr) =
     | SynExpr.App (_,
                    false,
                    SynExpr.App (_, false, OptVar ident, (ArrayOrList _ as attributes), _),
-                   (ArrayOrList (isArray, children, _) as childrenNode),
+                   (ArrayOrList (isArray, children) as childrenNode),
                    _) -> Some(ident, attributes, (isArray, children, childrenNode.Range))
-    | SynExpr.App (_,
-                   false,
-                   SynExpr.App (_, false, OptVar ident, (ArrayOrListOfSeqExpr _ as attributes), _),
-                   (ArrayOrListOfSeqExpr (isArray, CompExpr (_, Sequentials children)) as childrenNode),
-                   _) -> Some(ident, attributes, (isArray, children, childrenNode.Range))
-    | SynExpr.App (_,
-                   false,
-                   SynExpr.App (_,
-                                false,
-                                OptVar ident,
-                                ((ArrayOrListOfSeqExpr _
-                                | ArrayOrList _) as attributes),
-                                _),
-                   (ArrayOrListOfSeqExpr (isArray, CompExpr (_, singleChild)) as childrenNode),
-                   _) -> Some(ident, attributes, (isArray, [ singleChild ], childrenNode.Range))
-    | SynExpr.App (_,
-                   false,
-                   SynExpr.App (_, false, OptVar ident, (ArrayOrListOfSeqExpr _ as attributes), _),
-                   (ArrayOrList (isArray, [], _) as childrenNode),
-                   _) -> Some(ident, attributes, (isArray, [], childrenNode.Range))
     | _ -> None
 
 let isIfThenElseWithYieldReturn e =

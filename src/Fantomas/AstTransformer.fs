@@ -192,13 +192,13 @@ module private Ast =
                     |> finalContinuation
 
                 Continuation.sequence continuations finalContinuation
-            | SynExpr.ArrayOrListOfSeqExpr (_, expr, range) ->
+            | SynExpr.ArrayOrListComputed (_, expr, range) ->
                 visit
                     expr
                     (fun nodes ->
-                        mkNode SynExpr_ArrayOrListOfSeqExpr range :: nodes
+                        mkNode SynExpr_ArrayOrListComputed range :: nodes
                         |> finalContinuation)
-            | SynExpr.CompExpr (_, _, expr, _) -> visit expr finalContinuation
+            | SynExpr.ComputationExpr (_, expr, _) -> visit expr finalContinuation
             | SynExpr.Lambda (_, _, args, arrowRange, body, _parsedData, range) ->
                 visit
                     body
@@ -414,22 +414,22 @@ module private Ast =
                     |> finalContinuation
 
                 Continuation.sequence continuations finalContinuation
-            | SynExpr.DotIndexedGet (objectExpr, indexExprs, _, range) ->
+            | SynExpr.DotIndexedGet (objectExpr, indexArgs, _, range) ->
                 visit
                     objectExpr
                     (fun nodes ->
                         [ yield mkNode SynExpr_DotIndexedGet range
                           yield! nodes
-                          yield! indexExprs |> List.collect visitSynIndexerArg ]
+                          yield! visitSynExpr indexArgs ]
                         |> finalContinuation)
-            | SynExpr.DotIndexedSet (objectExpr, indexExprs, valueExpr, _, _, range) ->
+            | SynExpr.DotIndexedSet (objectExpr, indexArgs, valueExpr, _, _, range) ->
                 let continuations: ((TriviaNodeAssigner list -> TriviaNodeAssigner list) -> TriviaNodeAssigner list) list =
                     [ visit objectExpr; visit valueExpr ]
 
                 let finalContinuation (nodes: TriviaNodeAssigner list list) : TriviaNodeAssigner list =
                     [ yield mkNode SynExpr_DotIndexedSet range
                       yield! (List.collect id nodes)
-                      yield! indexExprs |> List.collect visitSynIndexerArg ]
+                      yield! visitSynExpr indexArgs ]
                     |> finalContinuation
 
                 Continuation.sequence continuations finalContinuation
@@ -615,6 +615,14 @@ module private Ast =
                 mkNode SynExpr_InterpolatedString range
                 :: (List.collect visitSynInterpolatedStringPart parts)
                 |> finalContinuation
+            | SynExpr.IndexRange (e1, _, e2, _, _, range) ->
+                [ yield mkNode SynExpr_IndexRange range
+                  yield! (e1 |> Option.toList |> List.collect visitSynExpr)
+                  yield! (e2 |> Option.toList |> List.collect visitSynExpr) ]
+                |> finalContinuation
+            | SynExpr.IndexFromEnd (e, range) ->
+                [ yield mkNode SynExpr_IndexFromEnd range
+                  yield! visitSynExpr e ]
 
         visit synExpr id
 
@@ -654,11 +662,6 @@ module private Ast =
         | SynMemberSig.NestedType (typedef, range) ->
             mkNode SynMemberSig_NestedType range
             :: (visitSynTypeDefnSig typedef)
-
-    and visitSynIndexerArg (ia: SynIndexerArg) : TriviaNodeAssigner list =
-        match ia with
-        | SynIndexerArg.One (e, _fromEnd, _) -> visitSynExpr e
-        | SynIndexerArg.Two (e1, _fromEnd1, e2, _fromEnd2, _, _) -> visitSynExpr e1 @ visitSynExpr e2
 
     and visitSynMatchClause (mc: SynMatchClause) : TriviaNodeAssigner list =
         match mc with

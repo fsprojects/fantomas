@@ -88,13 +88,6 @@ let parse (checker: FSharpChecker) (parsingOptions: FSharpParsingOptions) { File
 
 /// Check whether an AST consists of parsing errors
 let isValidAST ast =
-    let (|IndexerArg|) =
-        function
-        | SynIndexerArg.Two (e1, _, e2, _, _, _) -> [ e1; e2 ]
-        | SynIndexerArg.One (e, _, _) -> [ e ]
-
-    let (|IndexerArgList|) xs = List.collect (|IndexerArg|) xs
-
     let rec validateImplFileInput (SourceParser.ParsedImplFileInput (_, moduleOrNamespaceList)) =
         List.forall validateModuleOrNamespace moduleOrNamespaceList
 
@@ -209,8 +202,8 @@ let isValidAST ast =
         | SynExpr.For (_sequencePointInfoForForLoop, _ident, synExpr1, _, synExpr2, synExpr3, _range) ->
             List.forall validateExpr [ synExpr1; synExpr2; synExpr3 ]
 
-        | SynExpr.ArrayOrListOfSeqExpr (_, synExpr, _range) -> validateExpr synExpr
-        | SynExpr.CompExpr (_, _, synExpr, _range) -> validateExpr synExpr
+        | SynExpr.ArrayOrListComputed (_, synExpr, _range) -> validateExpr synExpr
+        | SynExpr.ComputationExpr (_, synExpr, _range) -> validateExpr synExpr
         | SynExpr.Lambda (_, _, _synSimplePats, _arrow, synExpr, _parsedData, _range) -> validateExpr synExpr
 
         | SynExpr.MatchLambda (_isExnMatch, _argm, synMatchClauseList, _spBind, _wholem) ->
@@ -274,14 +267,10 @@ let isValidAST ast =
         | SynExpr.DotSet (synExpr1, _, synExpr2, _)
         | SynExpr.Set (synExpr1, synExpr2, _) -> List.forall validateExpr [ synExpr1; synExpr2 ]
 
-        | SynExpr.DotIndexedGet (synExpr, IndexerArgList synExprList, _range, _range2) ->
-            validateExpr synExpr
-            && List.forall validateExpr synExprList
+        | SynExpr.DotIndexedGet (synExpr, indexArgs, _range, _range2) -> validateExpr synExpr && validateExpr indexArgs
 
-        | SynExpr.DotIndexedSet (synExpr1, IndexerArgList synExprList, synExpr2, _, _range, _range2) ->
-            [ yield synExpr1
-              yield! synExprList
-              yield synExpr2 ]
+        | SynExpr.DotIndexedSet (synExpr1, indexArgs, synExpr2, _, _range, _range2) ->
+            [ synExpr1; indexArgs; synExpr2 ]
             |> List.forall validateExpr
 
         | SynExpr.JoinIn (synExpr1, _range, synExpr2, _range2) -> List.forall validateExpr [ synExpr1; synExpr2 ]
@@ -329,6 +318,10 @@ let isValidAST ast =
                 (function
                 | SynInterpolatedStringPart.String _ -> true
                 | SynInterpolatedStringPart.FillExpr (e, _) -> validateExpr e)
+        | SynExpr.IndexRange (e1, _, e2, _, _, _) ->
+            defaultArg (Option.map validateExpr e1) true
+            && defaultArg (Option.map validateExpr e2) true
+        | SynExpr.IndexFromEnd (e, _) -> validateExpr e
 
     and validatePattern =
         function

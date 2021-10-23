@@ -702,7 +702,7 @@ type CardValue =
     | King
     static member allWithKnight =
         [
-            for n in 1 .. 10 do
+            for n in 1..10 do
                 yield Basic n
             yield Jack
             yield Knight
