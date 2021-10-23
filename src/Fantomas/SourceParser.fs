@@ -858,6 +858,14 @@ let (|TernaryApp|_|) =
     | SynExpr.App (_, _, SynExpr.App (_, _, SynExpr.App (_, true, Var "?<-", e1, _), e2, _), e3, _) -> Some(e1, e2, e3)
     | _ -> None
 
+// expr1[expr2]
+// ref: https://github.com/fsharp/fslang-design/blob/main/FSharp-6.0/FS-1110-index-syntax.md
+let (|IndexWithoutDotExpr|_|) =
+    function
+    | SynExpr.App (ExprAtomicFlag.Atomic, false, identifierExpr, SynExpr.ArrayOrListComputed (false, indexExpr, _), _) ->
+        Some(identifierExpr, indexExpr)
+    | _ -> None
+
 let (|MatchLambda|_|) =
     function
     | SynExpr.MatchLambda (_, keywordRange, pats, _, _) -> Some(keywordRange, pats)
@@ -1657,6 +1665,7 @@ let isFunctionBinding (p: SynPat) =
 
 let (|ElmishReactWithoutChildren|_|) e =
     match e with
+    | IndexWithoutDotExpr _ -> None
     | SynExpr.App (_, false, OptVar (ident, _, _), (ArrayOrList (isArray, children) as aolEx), _) ->
         Some(ident, isArray, children, aolEx.Range)
     | _ -> None

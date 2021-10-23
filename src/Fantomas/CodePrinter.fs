@@ -2228,6 +2228,12 @@ and genExpr astContext synExpr ctx =
 
             expressionFitsOnRestOfLine short long
 
+        | IndexWithoutDotExpr (identifierExpr, indexExpr) ->
+            genExpr astContext identifierExpr
+            +> sepOpenLFixed
+            +> genExpr astContext indexExpr
+            +> sepCloseLFixed
+
         // Always spacing in multiple arguments
         | App (e, es) -> genApp astContext e es
         | TypeApp (e, lt, ts, gt) ->
