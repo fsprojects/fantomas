@@ -98,7 +98,7 @@ let ``check with multiple files`` () =
 [<Test>]
 let ``check with file and folder`` () =
     use fileFixtureOne =
-        new TemporaryFileCodeSample("let a =  0", subFolders = Array.singleton "sub")
+        new TemporaryFileCodeSample("let a =  0", subFolder = "sub")
 
     use fileFixtureTwo = new TemporaryFileCodeSample("let b = 1")
 
@@ -117,16 +117,14 @@ let ``check with file and folder`` () =
 let ``honor ignore file when processing a folder`` () =
     let fileName = "A"
 
-    let subFolders =
-        System.Guid.NewGuid().ToString("N")
-        |> Array.singleton
+    let subFolder = System.Guid.NewGuid().ToString("N")
 
     use ignoreFixture =
-        new TemporaryFileCodeSample("let a =  0", fileName = fileName, subFolders = subFolders)
+        new TemporaryFileCodeSample("let a =  0", fileName = fileName, subFolder = subFolder)
 
     use inputFixture = new FantomasIgnoreFile("*.fsx")
 
     let { Output = output } =
-        runFantomasTool (sprintf "--check .%c%s" Path.DirectorySeparatorChar subFolders.[0])
+        runFantomasTool (sprintf "--check .%c%s" Path.DirectorySeparatorChar subFolder)
 
     output |> should not' (contain "ignored")

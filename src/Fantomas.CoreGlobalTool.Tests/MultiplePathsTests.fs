@@ -84,7 +84,7 @@ let ``format multiple paths with recursive flag`` () =
     use fileFixtureTwo = new TemporaryFileCodeSample(UserCode)
 
     use fileFixtureThree =
-        new TemporaryFileCodeSample(UserCode, subFolders = Array.singleton "sub")
+        new TemporaryFileCodeSample(UserCode, subFolder = "sub")
 
     let arguments =
         sprintf "\"%s\" \"%s\" \"sub\" -r" fileFixtureOne.Filename fileFixtureTwo.Filename
