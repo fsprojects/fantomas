@@ -13,6 +13,7 @@
     <WarningsAsErrors>FS0025</WarningsAsErrors>
     <PackageLicenseFile>LICENSE.md</PackageLicenseFile>
     <PackageIcon>fantomas_logo.png</PackageIcon>
+    <RepositoryUrl>https://github.com/fsprojects/fantomas</RepositoryUrl>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\Fantomas.Client\Fantomas.Client.fsproj" />
