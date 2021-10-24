@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <Version>0.3.0</Version>
+    <Version>0.3.1</Version>
     <Description>Companion library to format using fantomas tool.</Description>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <WarnOn>3390;$(WarnOn)</WarnOn>
@@ -11,6 +11,7 @@
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
     <DebugType>embedded</DebugType>
+    <RepositoryUrl>https://github.com/fsprojects/fantomas</RepositoryUrl>
   </PropertyGroup>
   <ItemGroup>
     <None Include="paket.references" />
