@@ -10,6 +10,7 @@
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
     <DebugType>embedded</DebugType>
+    <RepositoryUrl>https://github.com/fsprojects/fantomas</RepositoryUrl>
   </PropertyGroup>
   <ItemGroup>
     <None Include="paket.references" />

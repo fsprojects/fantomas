@@ -51,6 +51,7 @@ let private readOutputStreamAsLines (outputStream: StreamReader) : string list =
 let private runToolListCmd (Folder workingDir) (globalFlag: bool) =
     let ps = ProcessStartInfo("dotnet")
     ps.WorkingDirectory <- workingDir
+    ps.EnvironmentVariables.Add("DOTNET_CLI_UI_LANGUAGE", "en-us")
 
     ps.Arguments <-
         if globalFlag then
