@@ -51,7 +51,7 @@ let owner = "Anh-Dung Phan"
 let tags =
     "F# fsharp formatting beautifier indentation indenter"
 
-let fantomasClientVersion = "0.3.0"
+let fantomasClientVersion = "0.3.1"
 
 // (<solutionFile>.sln is built during the building process)
 let solutionFile = "fantomas"
