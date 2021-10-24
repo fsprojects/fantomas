@@ -116,7 +116,6 @@ let ``check with file and folder`` () =
 [<Test>]
 let ``honor ignore file when processing a folder`` () =
     let fileName = "A"
-
     let subFolder = System.Guid.NewGuid().ToString("N")
 
     use ignoreFixture =

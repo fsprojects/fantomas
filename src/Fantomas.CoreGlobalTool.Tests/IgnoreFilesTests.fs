@@ -80,7 +80,6 @@ let ``don't ignore other files`` () =
 [<Test>]
 let ``ignore file in folder`` () =
     let fileName = "A"
-
     let subFolder = System.Guid.NewGuid().ToString("N")
 
     use inputFixture =
@@ -116,7 +115,6 @@ let ``ignore file while checking`` () =
 [<Test>]
 let ``ignore file in folder while checking`` () =
     let fileName = "A"
-
     let subFolder = System.Guid.NewGuid().ToString("N")
 
     use inputFixture =
@@ -135,7 +133,6 @@ let ``ignore file in folder while checking`` () =
 [<Test>]
 let ``honor ignore file when processing a folder`` () =
     let fileName = "A"
-
     let subFolder = System.Guid.NewGuid().ToString("N")
 
     use ignoreFixture =
