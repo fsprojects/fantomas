@@ -44,6 +44,24 @@ let ``ignore specific file`` () =
     output |> should contain "was ignored"
 
 [<Test>]
+let ``ignore specific file in subfolder`` () =
+    let fileName = "A"
+    let sub1 = System.Guid.NewGuid().ToString("N")
+    let sub2 = System.Guid.NewGuid().ToString("N")
+    let subFolders = [| sub1; sub2 |]
+
+    use inputFixture =
+        new TemporaryFileCodeSample(Source, fileName = fileName, subFolders = subFolders)
+
+    use ignoreFixture =
+        new FantomasIgnoreFile(sprintf "%s/%s/A.fs" sub1 sub2)
+
+    let { ExitCode = exitCode; Output = output } =
+        runFantomasTool (sprintf "--recurse --check .%c%s" Path.DirectorySeparatorChar sub1)
+
+    exitCode |> should equal 0
+
+[<Test>]
 let ``don't ignore other files`` () =
     let fileName = "B"
 
