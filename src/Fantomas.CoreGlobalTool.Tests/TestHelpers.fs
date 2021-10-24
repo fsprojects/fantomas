@@ -57,8 +57,8 @@ type TemporaryFileCodeSample
             internalSubFolders
             |> Option.iter
                 (fun sf ->
-                    Path.Join(Path.GetTempPath(), Path.Join(sf))
-                    |> Directory.Delete)
+                    let path = Path.Join(Path.GetTempPath(), sf.[0])
+                    Directory.Delete(path, true))
 
 type OutputFile internal () =
     let filename =
