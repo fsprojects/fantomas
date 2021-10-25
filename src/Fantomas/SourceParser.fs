@@ -686,16 +686,11 @@ let (|NamedComputationExpr|_|) =
                    _) -> Some(nameExpr, compExpr, bodyRange)
     | _ -> None
 
-let (|ArrayOrListComputedExpr|_|) =
-    function
-    | SynExpr.ArrayOrListComputed (isArray, expr, _) -> Some(isArray, expr)
-    | _ -> None
-
-/// This pattern only includes arrays and lists in computation expressions
+/// Combines all ArrayOrList patterns
 let (|ArrayOrList|_|) =
     function
-    | ArrayOrListComputedExpr (isArray, Sequentials xs) -> Some(isArray, xs)
-    | ArrayOrListComputedExpr (isArray, singleExpr) -> Some(isArray, [ singleExpr ])
+    | SynExpr.ArrayOrListComputed (isArray, Sequentials xs, _) -> Some(isArray, xs)
+    | SynExpr.ArrayOrListComputed (isArray, singleExpr, _) -> Some(isArray, [ singleExpr ])
     | SynExpr.ArrayOrList (isArray, xs, _) -> Some(isArray, xs)
     | _ -> None
 
