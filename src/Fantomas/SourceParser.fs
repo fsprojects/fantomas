@@ -33,8 +33,10 @@ let (|Ident|) (s: Ident) =
 
     match ident with
     | "`global`" -> "global"
-    | "_" -> "_" // workaround for https://github.com/dotnet/fsharp/issues/7681
-    | _ -> QuoteIdentifierIfNeeded ident
+    | "not" -> "not"
+    | "params" -> "``params``"
+    | "parallel" -> "``parallel``"
+    | _ -> PrettyNaming.AddBackticksToIdentifierIfNeeded ident
 
 let (|LongIdent|) (li: LongIdent) =
     li

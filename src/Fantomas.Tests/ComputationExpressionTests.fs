@@ -185,7 +185,7 @@ let ``multiple and! is supported`` () =
         false
         """
 // Reads the values of x, y and z concurrently, then applies f to them
-parallel {
+``parallel`` {
     let! x = slowRequestX()
     and! y = slowRequestY()
     and! z = slowRequestZ()
