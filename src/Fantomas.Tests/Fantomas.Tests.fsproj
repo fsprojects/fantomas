@@ -38,7 +38,6 @@
     <Compile Include="CompilerDirectivesTests.fs" />
     <Compile Include="ComputationExpressionTests.fs" />
     <Compile Include="TypeProviderTests.fs" />
-    <Compile Include="VerboseSyntaxConversionTests.fs" />
     <Compile Include="FormattingSelectionOnlyTests.fs" />
     <Compile Include="ValidationTests.fs" />
     <Compile Include="SpecialConstructsTests.fs" />
