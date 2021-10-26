@@ -90,7 +90,7 @@
     <Compile Include="BarBeforeDiscriminatedUnionDeclarationTests.fs" />
     <Compile Include="SpaceBeforeColonTests.fs" />
     <Compile Include="LibraryOnlySynExprTests.fs" />
-    <Compile Include="IndexSliceSyntaxTests.fs" />
+    <Compile Include="IndexSyntaxTests.fs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Fantomas.Extras\Fantomas.Extras.fsproj" />

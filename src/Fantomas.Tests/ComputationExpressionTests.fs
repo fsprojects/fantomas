@@ -113,7 +113,7 @@ let factors number =
     |> should
         equal
         """
-let factors number = { 2L..number / 2L } |> Seq.filter (fun x -> number % x = 0L)
+let factors number = { 2L .. number / 2L } |> Seq.filter (fun x -> number % x = 0L)
 """
 
 [<Test>]
@@ -1935,7 +1935,7 @@ let create: Highlighter =
                     if ms.Count = 0 then yield (TextSpan.normal s)
                     elif ms.[0].Index > 0 then yield TextSpan.normal (s.Substring(0, ms.[0].Index))
 
-                    for i in 0..ms.Count - 1 do
+                    for i in 0 .. ms.Count - 1 do
                         yield TextSpan.highlight ms.[i].Value
                         let regStart = ms.[i].Index + ms.[i].Length
 

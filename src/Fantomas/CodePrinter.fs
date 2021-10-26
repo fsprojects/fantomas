@@ -2672,9 +2672,24 @@ and genExpr astContext synExpr ctx =
                 expr ctx
         | IndexRangeExpr (None, None) -> !- "*"
         | IndexRangeExpr (e1, e2) ->
-            optSingle (genExpr astContext) e1
+            let hasSpaces =
+                let rec (|AtomicExpr|_|) e =
+                    match e with
+                    | SynExpr.Ident _
+                    | SynExpr.Const (SynConst.Int32 _, _)
+                    | IndexRangeExpr (Some (AtomicExpr _), Some (AtomicExpr _))
+                    | IndexFromEndExpr (AtomicExpr _) -> Some e
+                    | _ -> None
+
+                match e1, e2 with
+                | Some (AtomicExpr _), None
+                | None, Some (AtomicExpr _)
+                | Some (AtomicExpr _), Some (AtomicExpr _) -> false
+                | _ -> true
+
+            optSingle (fun e -> genExpr astContext e +> onlyIf hasSpaces sepSpace) e1
             +> !- ".."
-            +> optSingle (genExpr astContext) e2
+            +> optSingle (fun e -> onlyIf hasSpaces sepSpace +> genExpr astContext e) e2
         | IndexFromEndExpr e -> !- "^" +> genExpr astContext e
         | e -> failwithf "Unexpected expression: %O" e
         |> (match synExpr with
