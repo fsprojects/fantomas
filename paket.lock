@@ -26,8 +26,8 @@ NUGET
     editorconfig (0.12.2)
     FsCheck (2.16.3)
       FSharp.Core (>= 4.2.3)
-    FSharp.Compiler.Service (40.0.1-preview.21352.5)
-      FSharp.Core (5.0.3-beta.21352.5)
+    FSharp.Compiler.Service (41.0.0-preview.21472.3)
+      FSharp.Core (6.0.0-beta.21472.3)
       Microsoft.Build.Framework (>= 16.9)
       Microsoft.Build.Tasks.Core (>= 16.9)
       Microsoft.Build.Utilities.Core (>= 16.9)
@@ -39,7 +39,7 @@ NUGET
       System.Linq.Queryable (>= 4.3)
       System.Memory (>= 4.5.4)
       System.Net.Requests (>= 4.3)
-      System.Net.Security (>= 4.3)
+      System.Net.Security (>= 4.3.1)
       System.Reflection.Emit (>= 4.3)
       System.Reflection.Metadata (>= 5.0)
       System.Reflection.TypeExtensions (>= 4.3)
@@ -53,7 +53,7 @@ NUGET
       System.Threading.Tasks.Parallel (>= 4.3)
       System.Threading.Thread (>= 4.3)
       System.Threading.ThreadPool (>= 4.3)
-    FSharp.Core (5.0.3-beta.21352.5)
+    FSharp.Core (6.0.0-beta.21472.3)
     FsUnit (4.0.4)
       FSharp.Core (>= 4.3.4)
       NETStandard.Library (>= 2.0.3)
@@ -1799,7 +1799,7 @@ NUGET
       System.Configuration.ConfigurationManager (>= 4.4) - restriction: >= netstandard2.0
     Fable.Core (3.4) - restriction: && (< net46) (>= netstandard2.0)
       FSharp.Core (>= 4.7.2) - restriction: >= netstandard2.0
-    FSharp.Core (5.0.3-beta.21352.5)
+    FSharp.Core (6.0.0-beta.21472.3)
     MessagePack (2.3.85) - restriction: >= netstandard2.0
       MessagePack.Annotations (>= 2.3.85) - restriction: >= netstandard2.0
       Microsoft.Bcl.AsyncInterfaces (>= 1.0) - restriction: || (&& (>= netcoreapp2.1) (< netcoreapp3.1)) (&& (< netcoreapp2.1) (>= netstandard2.0))
