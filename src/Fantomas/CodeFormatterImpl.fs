@@ -23,7 +23,8 @@ let sharedChecker = lazy (FSharpChecker.Create())
 let createParsingOptionsFromFile fileName =
     { FSharpParsingOptions.Default with
           SourceFiles = [| fileName |]
-          IsExe = true }
+          IsExe = true
+          LangVersionText = "preview" }
 
 let private getSourceString (source: SourceOrigin) =
     match source with
