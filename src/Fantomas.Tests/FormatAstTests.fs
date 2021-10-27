@@ -48,7 +48,7 @@ let ``let in should not be used`` () =
 ()"""
 
 [<Test>]
-let ``elif keyword is not present in raw AST`` () =
+let ``elif keyword is present in raw AST`` () =
     let source =
         """
     if a then ()
@@ -59,7 +59,7 @@ let ``elif keyword is not present in raw AST`` () =
     |> should
         equal
         """if a then ()
-else if b then ()
+elif b then ()
 else ()"""
 
 /// There is no dead code in this test

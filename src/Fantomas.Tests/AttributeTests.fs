@@ -724,7 +724,7 @@ type RoleAdminImportController(akkaService: AkkaService) =
 
             importer.ApiMaster <! StartImportCmd job
             return Ok job
-           }
+        }
 """
 
 [<Test>]

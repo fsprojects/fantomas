@@ -477,11 +477,7 @@ let private getContentFromTokens tokens =
     |> String.concat String.Empty
 
 let private keywordTrivia =
-    [ "IF"
-      "ELIF"
-      "ELSE"
-      "THEN"
-      "OVERRIDE"
+    [ "OVERRIDE"
       "MEMBER"
       "DEFAULT"
       "ABSTRACT"
@@ -1177,12 +1173,7 @@ let private tokenNames =
       "LBRACK_BAR"
       "BAR_RBRACK"
       "EQUALS"
-      "IF"
-      "THEN"
-      "ELSE"
-      "ELIF"
       "BAR"
-      "RARROW"
       "TRY"
       "FINALLY"
       "WITH"
@@ -1236,7 +1227,6 @@ let internal getFsToken tokenName =
     | "PREFIX_OP" -> PREFIX_OP
     | "QMARK" -> QMARK
     | "QMARK_QMARK" -> QMARK_QMARK
-    | "RARROW" -> RARROW
     | "RBRACE" -> RBRACE
     | "RBRACK" -> RBRACK
     | "RPAREN" -> RPAREN
