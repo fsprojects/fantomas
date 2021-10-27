@@ -46,7 +46,6 @@ type FsTokenType =
     | PREFIX_OP
     | QMARK
     | QMARK_QMARK
-    | RARROW
     | RBRACE
     | RBRACK
     | RPAREN
@@ -128,10 +127,11 @@ type FsAstType =
     | SynExpr_While
     | SynExpr_For
     | SynExpr_ForEach
-    | SynExpr_ArrayOrListOfSeqExpr
+    | SynExpr_ArrayOrListComputed
     | SynExpr_ArrayOrList
-    // | SynExpr_CompExpr use first nested SynExpr
+    // | SynExpr_ComputationExpr use first nested SynExpr
     | SynExpr_Lambda
+    | SynExpr_Lambda_Arrow
     | SynExpr_MatchLambda
     | SynExpr_MatchLambda_Function
     | SynExpr_Match
@@ -146,6 +146,10 @@ type FsAstType =
     // | SynExpr_Sequential use first nested SynExpr
     | SynExpr_SequentialOrImplicitYield
     | SynExpr_IfThenElse
+    | SynExpr_IfThenElse_If
+    | SynExpr_IfThenElse_Elif
+    | SynExpr_IfThenElse_Then
+    | SynExpr_IfThenElse_Else
     | SynExpr_Ident
     | SynExpr_LongIdent
     | SynExpr_LongIdentSet
@@ -180,6 +184,8 @@ type FsAstType =
     | SynExpr_DiscardAfterMissingQualificationAfterDot
     | SynExpr_Fixed
     | SynExpr_InterpolatedString
+    | SynExpr_IndexRange
+    | SynExpr_IndexFromEnd
     | SynInterpolatedStringPart_String
     | SynInterpolatedStringPart_FillExpr
     | RecordField_
@@ -193,6 +199,7 @@ type FsAstType =
     | SynIndexerArg_One
     | SynIndexerArg_Two
     | SynMatchClause_
+    | SynMatchClause_Arrow
     | ArgOptions_
     | SynInterfaceImpl_
     | SynTypeDefn_

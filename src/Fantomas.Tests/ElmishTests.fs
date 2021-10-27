@@ -115,10 +115,10 @@ let loginPage =
                                       View.StackLayout(
                                           children =
                                               [ View.Entry(
-                                                  placeholder = "User name",
-                                                  isEnabled = (not model.IsSigningIn),
-                                                  textChanged =
-                                                      (fun args -> (dispatch (UserNameChanged args.NewTextValue)))
+                                                    placeholder = "User name",
+                                                    isEnabled = (not model.IsSigningIn),
+                                                    textChanged =
+                                                        (fun args -> (dispatch (UserNameChanged args.NewTextValue)))
                                                 )
                                                 View.Entry(
                                                     placeholder = "Password",
