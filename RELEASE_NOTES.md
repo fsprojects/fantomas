@@ -1,3 +1,8 @@
+#### 4.6.0-alpha-005
+
+* Fix Idempotency problem when destructing a record inside a lambda argument. [#1922](https://github.com/fsprojects/fantomas/issues/1922)
+* Update FCS to 41.0.0-preview.21472.3 [#1927](https://github.com/fsprojects/fantomas/pull/1927)
+
 #### 4.6.0-alpha-004
 
 * Initial Fantomas.Client release.
