@@ -28,6 +28,21 @@ array1.[1] <- 3
 """
 
 [<Test>]
+let ``index range`` () =
+    formatSourceString
+        false
+        """
+let v = 1 .. 2
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let v = 1..2
+"""
+
+[<Test>]
 let ``array values`` () =
     formatSourceString
         false
@@ -147,8 +162,8 @@ let list0to3 = [0 .. 3]"""
     |> should
         equal
         """
-let listOfSquares = [ for i in 1 .. 10 -> i * i ]
-let list0to3 = [ 0 .. 3 ]
+let listOfSquares = [ for i in 1..10 -> i * i ]
+let list0to3 = [ 0..3 ]
 """
 
 [<Test>]
@@ -164,11 +179,11 @@ let a3 = [| for n in 1 .. 100 do if isPrime n then yield n |]"""
     |> should
         equal
         """
-let a1 = [| for i in 1 .. 10 -> i * i |]
-let a2 = [| 0 .. 99 |]
+let a1 = [| for i in 1..10 -> i * i |]
+let a2 = [| 0..99 |]
 
 let a3 =
-    [| for n in 1 .. 100 do
+    [| for n in 1..100 do
            if isPrime n then yield n |]
 """
 
@@ -385,8 +400,8 @@ let ``line comment inside list`` () =
         equal
         """
 [7
-// foo
-]
+ // foo
+ ]
 """
 
 [<Test>]
@@ -403,8 +418,8 @@ let ``line comment inside array`` () =
         equal
         """
 [| 7
-// foo
- |]
+   // foo
+   |]
 """
 
 #if RELEASE
@@ -1778,21 +1793,21 @@ let emptyString = s.[-2..(-1)]
     |> should
         equal
         """
-let l = [ 1 .. 10 ]
-let a = [| 1 .. 10 |]
+let l = [ 1..10 ]
+let a = [| 1..10 |]
 let s = "hello!"
 
 // Before: would return empty list
 // F# 5: same
-let emptyList = l.[-2..(-1)]
+let emptyList = l.[-2 .. (-1)]
 
 // Before: would throw exception
 // F# 5: returns empty array
-let emptyArray = a.[-2..(-1)]
+let emptyArray = a.[-2 .. (-1)]
 
 // Before: would throw exception
 // F# 5: returns empty string
-let emptyString = s.[-2..(-1)]
+let emptyString = s.[-2 .. (-1)]
 """
 
 [<Test>]
@@ -2246,8 +2261,8 @@ let fns =
 let fns =
     [ { x = "long enough to not go to one line"
         y = 5 }
-    //      { name = fn "String" "endsWith" 0
-    //        deprecated = NotDeprecated }
-    // I think the space at the start of the lines above matter
-     ]
+      //      { name = fn "String" "endsWith" 0
+      //        deprecated = NotDeprecated }
+      // I think the space at the start of the lines above matter
+      ]
 """

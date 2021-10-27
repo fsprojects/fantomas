@@ -2072,7 +2072,7 @@ module Foo =
     let assertConsistent () : unit =
         if veryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryLong then
             ()
-        elif foo = bar then
+        else if foo = bar then
             ()
         else
 
