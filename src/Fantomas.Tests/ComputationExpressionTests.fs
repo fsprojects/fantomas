@@ -55,7 +55,7 @@ let comp =
         """
 let comp =
     eventually {
-        for x in 1 .. 2 do
+        for x in 1..2 do
             printfn " x = %d" x
 
         return 3 + 4
@@ -84,8 +84,8 @@ let rec inorder tree =
     |> should
         equal
         """
-let s1 = seq { for i in 1 .. 10 -> i * i }
-let s2 = seq { 0 .. 10 .. 100 }
+let s1 = seq { for i in 1..10 -> i * i }
+let s2 = seq { 0..10..100 }
 
 let rec inorder tree =
     seq {
@@ -152,8 +152,8 @@ let y = async {
     |> should
         equal
         """
-let x = { 3 .. 7 }
-let y = async { return { 0 .. 1 } }
+let x = { 3..7 }
+let y = async { return { 0..1 } }
 """
 
 [<Test>]
@@ -185,7 +185,7 @@ let ``multiple and! is supported`` () =
         false
         """
 // Reads the values of x, y and z concurrently, then applies f to them
-parallel {
+``parallel`` {
     let! x = slowRequestX()
     and! y = slowRequestY()
     and! z = slowRequestZ()
@@ -1109,9 +1109,9 @@ let squaresAndCubes =
     |> should
         equal
         """
-let squares = seq { for i in 1 .. 3 -> i * i }
+let squares = seq { for i in 1..3 -> i * i }
 
-let cubes = seq { for i in 1 .. 3 -> i * i * i }
+let cubes = seq { for i in 1..3 -> i * i * i }
 
 let squaresAndCubes =
     seq {
@@ -1623,7 +1623,7 @@ let rec loop () =
         newEvents
         |> function
           | Ok events -> eventStore.Append events
-          | Error err -> async { return Error err}
+          | Error err -> async {return Error err}
 
       do reply.Reply result
 

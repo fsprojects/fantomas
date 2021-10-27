@@ -5,13 +5,13 @@ open FsUnit
 open Fantomas.Tests.TestHelper
 
 [<Test>]
-let ``naked ranges are invalid outside for..in.do`` () =
+let ``naked ranges are valid outside for..in.do`` () =
     isValidFSharpCode
         false
         """
 let factors number = 2L..number / 2L
                      |> Seq.filter (fun x -> number % x = 0L)"""
-    |> should equal false
+    |> should equal true
 
 [<Test>]
 let ``misplaced comments should give parser errors`` () =
