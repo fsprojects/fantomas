@@ -365,25 +365,31 @@ Target.create "TestExternalProjects" (fun _ -> testExternalProjects externalProj
 Target.create "TestExternalProjectsFailing" (fun _ -> testExternalProjects externalProjectsToTestFailing)
 
 // Workaround for https://github.com/fsharp/FAKE/issues/2242
-let pushPackage additionalArguments =
-    Directory.EnumerateFiles("bin", "*.nupkg", SearchOption.TopDirectoryOnly)
-    |> Seq.iter
-        (fun nupkg ->
-            let args =
-                [ yield "push"
-                  yield! additionalArguments
-                  yield nupkg ]
+let pushPackage nupkg =
+    let args = [ yield "push"; yield nupkg ]
 
-            CreateProcess.fromRawCommand "dotnet" ("paket" :: args)
-            |> CreateProcess.disableTraceCommand
-            |> CreateProcess.redirectOutput
-            |> CreateProcess.withOutputEventsNotNull Trace.trace Trace.traceError
-            |> CreateProcess.ensureExitCode
-            |> Proc.run
-            |> ignore)
+    CreateProcess.fromRawCommand "dotnet" ("paket" :: args)
+    |> CreateProcess.disableTraceCommand
+    |> CreateProcess.redirectOutput
+    |> CreateProcess.withOutputEventsNotNull Trace.trace Trace.traceError
+    |> CreateProcess.ensureExitCode
+    |> Proc.run
+    |> ignore
 
 
-Target.create "Push" (fun _ -> pushPackage [])
+Target.create
+    "Push"
+    (fun _ ->
+        Directory.EnumerateFiles("bin", "*.nupkg", SearchOption.TopDirectoryOnly)
+        |> Seq.filter (fun nupkg -> not (nupkg.Contains("Fantomas.Client")))
+        |> Seq.iter pushPackage)
+
+Target.create
+    "PushClient"
+    (fun _ ->
+        Directory.EnumerateFiles("bin", "Fantomas.Client.*.nupkg", SearchOption.TopDirectoryOnly)
+        |> Seq.tryExactlyOne
+        |> Option.iter pushPackage)
 
 let git command =
     CreateProcess.fromRawCommandLine "git" command
