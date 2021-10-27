@@ -33,8 +33,10 @@ let (|Ident|) (s: Ident) =
 
     match ident with
     | "`global`" -> "global"
-    | "_" -> "_" // workaround for https://github.com/dotnet/fsharp/issues/7681
-    | _ -> QuoteIdentifierIfNeeded ident
+    | "not" -> "not"
+    | "params" -> "``params``"
+    | "parallel" -> "``parallel``"
+    | _ -> PrettyNaming.AddBackticksToIdentifierIfNeeded ident
 
 let (|LongIdent|) (li: LongIdent) =
     li
@@ -674,34 +676,28 @@ let (|SimpleExpr|_|) =
     | SynExpr.Const _ as e -> Some e
     | _ -> None
 
-/// Only recognize numbers; strings are ignored
-let rec (|SequentialSimple|_|) =
+let (|ComputationExpr|_|) =
     function
-    | Sequential (SimpleExpr e, SequentialSimple es, true) -> Some(e :: es)
-    | Sequential (SimpleExpr e1, SimpleExpr e2, true) -> Some [ e1; e2 ]
+    | SynExpr.ComputationExpr (_, expr, range) -> Some(expr, range)
     | _ -> None
 
-let (|CompExpr|_|) =
+// seq { expr }
+let (|NamedComputationExpr|_|) =
     function
-    | SynExpr.CompExpr (isArray, _, expr, _) -> Some(isArray, expr)
+    | SynExpr.App (ExprAtomicFlag.NonAtomic,
+                   false,
+                   (SynExpr.App _ as nameExpr
+                   | SimpleExpr nameExpr),
+                   ComputationExpr (compExpr, bodyRange),
+                   _) -> Some(nameExpr, compExpr, bodyRange)
     | _ -> None
 
-let isCompExpr =
-    function
-    | CompExpr _ -> true
-    | _ -> false
-
-let (|ArrayOrListOfSeqExpr|_|) =
-    function
-    | SynExpr.ArrayOrListOfSeqExpr (isArray, expr, _) -> Some(isArray, expr)
-    | _ -> None
-
-/// This pattern only includes arrays and lists in computation expressions
+/// Combines all ArrayOrList patterns
 let (|ArrayOrList|_|) =
     function
-    | ArrayOrListOfSeqExpr (isArray, CompExpr (_, SequentialSimple xs)) -> Some(isArray, xs, true)
-    | SynExpr.ArrayOrList (isArray, xs, _)
-    | ArrayOrListOfSeqExpr (isArray, CompExpr (_, Sequentials xs)) -> Some(isArray, xs, false)
+    | SynExpr.ArrayOrListComputed (isArray, Sequentials xs, _) -> Some(isArray, xs)
+    | SynExpr.ArrayOrListComputed (isArray, singleExpr, _) -> Some(isArray, [ singleExpr ])
+    | SynExpr.ArrayOrList (isArray, xs, _) -> Some(isArray, xs)
     | _ -> None
 
 let (|Tuple|_|) =
@@ -722,10 +718,20 @@ let (|IndexedVar|_|) =
     | SynExpr.LongIdent (_, LongIdentWithDots "Microsoft.FSharp.Core.None", _, _) -> Some None
     | _ -> None
 
-let (|Indexer|) =
+let (|InterpolatedStringExpr|_|) =
     function
-    | SynIndexerArg.Two (e1, e1FromEnd, e2, e2FromEnd, _, _) -> Pair((e1, e1FromEnd), (e2, e2FromEnd))
-    | SynIndexerArg.One (e, fromEnd, _) -> Single(e, fromEnd)
+    | SynExpr.InterpolatedString (parts, stringKind, _) -> Some(parts, stringKind)
+    | _ -> None
+
+let (|IndexRangeExpr|_|) =
+    function
+    | SynExpr.IndexRange (expr1, _, expr2, _, _, _) -> Some(expr1, expr2)
+    | _ -> None
+
+let (|IndexFromEndExpr|_|) =
+    function
+    | SynExpr.IndexFromEnd (e, _r) -> Some e
+    | _ -> None
 
 let (|OptVar|_|) =
     function
@@ -853,6 +859,14 @@ let (|TernaryApp|_|) =
     | SynExpr.App (_, _, SynExpr.App (_, _, SynExpr.App (_, true, Var "?<-", e1, _), e2, _), e3, _) -> Some(e1, e2, e3)
     | _ -> None
 
+// expr1[expr2]
+// ref: https://github.com/fsharp/fslang-design/blob/main/FSharp-6.0/FS-1110-index-syntax.md
+let (|IndexWithoutDotExpr|_|) =
+    function
+    | SynExpr.App (ExprAtomicFlag.Atomic, false, identifierExpr, SynExpr.ArrayOrListComputed (false, indexExpr, _), _) ->
+        Some(identifierExpr, indexExpr)
+    | _ -> None
+
 let (|MatchLambda|_|) =
     function
     | SynExpr.MatchLambda (_, keywordRange, pats, _, _) -> Some(keywordRange, pats)
@@ -970,7 +984,7 @@ let (|ForEach|_|) =
 
 let (|DotIndexedSet|_|) =
     function
-    | SynExpr.DotIndexedSet (e1, es, e2, _, _, _) -> Some(e1, es, e2)
+    | SynExpr.DotIndexedSet (objectExpr, indexArgs, valueExpr, _, _, _) -> Some(objectExpr, indexArgs, valueExpr)
     | _ -> None
 
 let (|NamedIndexedPropertySet|_|) =
@@ -985,7 +999,7 @@ let (|DotNamedIndexedPropertySet|_|) =
 
 let (|DotIndexedGet|_|) =
     function
-    | SynExpr.DotIndexedGet (e1, es, _, _) -> Some(e1, es)
+    | SynExpr.DotIndexedGet (objectExpr, indexArgs, _, _) -> Some(objectExpr, indexArgs)
     | _ -> None
 
 let (|DotGet|_|) =
@@ -1033,14 +1047,32 @@ let (|DotSet|_|) =
 
 let (|IfThenElse|_|) =
     function
-    | SynExpr.IfThenElse (e1, e2, e3, _, _, mIfToThen, _) -> Some(e1, e2, e3, mIfToThen)
+    | SynExpr.IfThenElse _ as e -> Some e
     | _ -> None
 
 let rec (|ElIf|_|) =
     function
-    | SynExpr.IfThenElse (e1, e2, Some (ElIf (es, e3)), _, _, r, fullRange) as node ->
-        Some((e1, e2, r, fullRange, node) :: es, e3)
-    | SynExpr.IfThenElse (e1, e2, e3, _, _, r, fullRange) as node -> Some([ (e1, e2, r, fullRange, node) ], e3)
+    | SynExpr.IfThenElse (ifKw,
+                          isElif,
+                          e1,
+                          thenKw,
+                          e2,
+                          elseKw,
+                          Some (ElIf ((_, eshIfKw, eshIsElif, eshE1, eshThenKw, eshE2) :: es, elseInfo, _)),
+                          _,
+                          _,
+                          _,
+                          range) ->
+        Some(
+            ((None, ifKw, isElif, e1, thenKw, e2)
+             :: (elseKw, eshIfKw, eshIsElif, eshE1, eshThenKw, eshE2)
+                :: es),
+            elseInfo,
+            range
+        )
+
+    | SynExpr.IfThenElse (ifKw, isElif, e1, thenKw, e2, elseKw, e3, _, _, _, range) ->
+        Some([ (None, ifKw, isElif, e1, thenKw, e2) ], (elseKw, e3), range)
     | _ -> None
 
 let (|Record|_|) =
@@ -1252,17 +1284,17 @@ let (|RecordField|) =
     function
     | SynField (ats, _, ido, _, _, px, ao, _) -> (ats, px, ao, Option.map (|Ident|) ido)
 
-let (|Clause|) (SynMatchClause (p, eo, e, _, _)) = (p, e, eo)
+let (|Clause|) (SynMatchClause (p, eo, arrowRange, e, _, _)) = (p, eo, arrowRange, e)
 
 /// Process compiler-generated matches in an appropriate way
 let rec private skipGeneratedLambdas expr =
     match expr with
-    | SynExpr.Lambda (_, true, _, bodyExpr, _, _) -> skipGeneratedLambdas bodyExpr
+    | SynExpr.Lambda (_, true, _, _, bodyExpr, _, _) -> skipGeneratedLambdas bodyExpr
     | _ -> expr
 
 and skipGeneratedMatch expr =
     match expr with
-    | SynExpr.Match (_, _, [ SynMatchClause.SynMatchClause (_, _, innerExpr, _, _) as clause ], matchRange) when
+    | SynExpr.Match (_, _, [ SynMatchClause.SynMatchClause (_, _, _, innerExpr, _, _) as clause ], matchRange) when
         matchRange.Start = clause.Range.Start
         ->
         skipGeneratedMatch innerExpr
@@ -1270,12 +1302,12 @@ and skipGeneratedMatch expr =
 
 let (|Lambda|_|) =
     function
-    | SynExpr.Lambda (_, _, _, _, Some (pats, body), range) ->
+    | SynExpr.Lambda (_, _, _, arrowRange, _, Some (pats, body), range) ->
         let inline getLambdaBodyExpr expr =
             let skippedLambdas = skipGeneratedLambdas expr
             skipGeneratedMatch skippedLambdas
 
-        Some(pats, getLambdaBodyExpr body, range)
+        Some(pats, arrowRange, getLambdaBodyExpr body, range)
     | _ -> None
 
 let (|AppWithLambda|_|) (e: SynExpr) =
@@ -1284,8 +1316,8 @@ let (|AppWithLambda|_|) (e: SynExpr) =
         let rec visit (es: SynExpr list) (finalContinuation: SynExpr list -> SynExpr list) =
             match es with
             | [] -> None
-            | [ Paren (lpr, Lambda (pats, body, range), rpr, pr) ] ->
-                Some(e, finalContinuation [], lpr, (Choice1Of2(pats, body, range)), rpr, pr)
+            | [ Paren (lpr, Lambda (pats, arrowRange, body, range), rpr, pr) ] ->
+                Some(e, finalContinuation [], lpr, (Choice1Of2(pats, arrowRange, body, range)), rpr, pr)
             | [ Paren (lpr, (MatchLambda (keywordRange, pats) as me), rpr, pr) ] ->
                 Some(e, finalContinuation [], lpr, (Choice2Of2(keywordRange, pats, me.Range)), rpr, pr)
             | h :: tail ->
@@ -1634,17 +1666,9 @@ let isFunctionBinding (p: SynPat) =
 
 let (|ElmishReactWithoutChildren|_|) e =
     match e with
-    | SynExpr.App (_,
-                   false,
-                   OptVar (ident, _, _),
-                   (ArrayOrList (isArray, children, _)
-                   | ArrayOrListOfSeqExpr (isArray, CompExpr (_, Sequentials children)) as aolEx),
-                   _) -> Some(ident, isArray, children, aolEx.Range)
-    | SynExpr.App (_,
-                   false,
-                   OptVar (ident, _, _),
-                   (ArrayOrListOfSeqExpr (isArray, CompExpr (_, singleChild)) as aolEx),
-                   _) -> Some(ident, isArray, [ singleChild ], aolEx.Range)
+    | IndexWithoutDotExpr _ -> None
+    | SynExpr.App (_, false, OptVar (ident, _, _), (ArrayOrList (isArray, children) as aolEx), _) ->
+        Some(ident, isArray, children, aolEx.Range)
     | _ -> None
 
 let (|ElmishReactWithChildren|_|) (e: SynExpr) =
@@ -1652,36 +1676,16 @@ let (|ElmishReactWithChildren|_|) (e: SynExpr) =
     | SynExpr.App (_,
                    false,
                    SynExpr.App (_, false, OptVar ident, (ArrayOrList _ as attributes), _),
-                   (ArrayOrList (isArray, children, _) as childrenNode),
+                   (ArrayOrList (isArray, children) as childrenNode),
                    _) -> Some(ident, attributes, (isArray, children, childrenNode.Range))
-    | SynExpr.App (_,
-                   false,
-                   SynExpr.App (_, false, OptVar ident, (ArrayOrListOfSeqExpr _ as attributes), _),
-                   (ArrayOrListOfSeqExpr (isArray, CompExpr (_, Sequentials children)) as childrenNode),
-                   _) -> Some(ident, attributes, (isArray, children, childrenNode.Range))
-    | SynExpr.App (_,
-                   false,
-                   SynExpr.App (_,
-                                false,
-                                OptVar ident,
-                                ((ArrayOrListOfSeqExpr _
-                                | ArrayOrList _) as attributes),
-                                _),
-                   (ArrayOrListOfSeqExpr (isArray, CompExpr (_, singleChild)) as childrenNode),
-                   _) -> Some(ident, attributes, (isArray, [ singleChild ], childrenNode.Range))
-    | SynExpr.App (_,
-                   false,
-                   SynExpr.App (_, false, OptVar ident, (ArrayOrListOfSeqExpr _ as attributes), _),
-                   (ArrayOrList (isArray, [], _) as childrenNode),
-                   _) -> Some(ident, attributes, (isArray, [], childrenNode.Range))
     | _ -> None
 
 let isIfThenElseWithYieldReturn e =
     match e with
-    | SynExpr.IfThenElse (_, SynExpr.YieldOrReturn _, None, _, _, _, _)
-    | SynExpr.IfThenElse (_, SynExpr.YieldOrReturn _, Some (SynExpr.YieldOrReturn _), _, _, _, _)
-    | SynExpr.IfThenElse (_, SynExpr.YieldOrReturnFrom _, None, _, _, _, _)
-    | SynExpr.IfThenElse (_, SynExpr.YieldOrReturn _, Some (SynExpr.YieldOrReturnFrom _), _, _, _, _) -> true
+    | SynExpr.IfThenElse (thenExpr = SynExpr.YieldOrReturn _; elseExpr = None)
+    | SynExpr.IfThenElse (thenExpr = SynExpr.YieldOrReturn _; elseExpr = Some (SynExpr.YieldOrReturn _))
+    | SynExpr.IfThenElse (thenExpr = SynExpr.YieldOrReturnFrom _; elseExpr = None)
+    | SynExpr.IfThenElse (thenExpr = SynExpr.YieldOrReturn _; elseExpr = Some (SynExpr.YieldOrReturnFrom _)) -> true
     | _ -> false
 
 let isSynExprLambda =
@@ -1732,7 +1736,7 @@ let (|KeepIndentMatch|_|) (e: SynExpr) =
     let mapClauses matchExpr clauses range t =
         match clauses with
         | [] -> None
-        | [ (Clause (_, lastClause, _)) ] ->
+        | [ (Clause (_, _, _, lastClause)) ] ->
             if shouldNotIndentBranch lastClause [] then
                 Some(matchExpr, clauses, range, t)
             else
@@ -1741,9 +1745,9 @@ let (|KeepIndentMatch|_|) (e: SynExpr) =
             let firstClauses =
                 clauses
                 |> List.take (clauses.Length - 1)
-                |> List.map (fun (Clause (_, expr, _)) -> expr)
+                |> List.map (fun (Clause (_, _, _, expr)) -> expr)
 
-            let (Clause (_, lastClause, _)) = List.last clauses
+            let (Clause (_, _, _, lastClause)) = List.last clauses
 
             if shouldNotIndentBranch lastClause firstClauses then
                 Some(matchExpr, clauses, range, t)
@@ -1757,9 +1761,9 @@ let (|KeepIndentMatch|_|) (e: SynExpr) =
 
 let (|KeepIndentIfThenElse|_|) (e: SynExpr) =
     match e with
-    | ElIf (branches, Some elseExpr) ->
+    | ElIf (branches, (_, Some elseExpr), _) ->
         let branchBodies =
-            branches |> List.map (fun (_, e, _, _, _) -> e)
+            branches |> List.map (fun (_, _, _, e, _, _) -> e)
 
         if shouldNotIndentBranch elseExpr branchBodies then
             Some(branches, elseExpr, e.Range)

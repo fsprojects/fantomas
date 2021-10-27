@@ -110,11 +110,11 @@ let a2 = [| for n in 1 .. 100 do if isPrime n then yield n |]"""
     |> should
         equal
         """
-let a1 = [| 0 .. 99 |]
+let a1 = [| 0..99 |]
 
 let a2 =
     [|
-        for n in 1 .. 100 do
+        for n in 1..100 do
             if isPrime n then yield n
     |]
 """
