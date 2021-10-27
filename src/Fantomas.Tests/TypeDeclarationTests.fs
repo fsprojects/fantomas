@@ -500,7 +500,7 @@ type SparseMatrix() =
 
 let matrix1 = new SparseMatrix()
 
-for i in 1 .. 1000 do
+for i in 1..1000 do
     matrix1.[i, i] <- float i * float i
 """
 
