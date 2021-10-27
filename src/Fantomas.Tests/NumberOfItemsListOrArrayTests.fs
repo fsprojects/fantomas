@@ -135,9 +135,7 @@ let xs =
     ]
 
 let ys =
-    [
-        AReallyLongExpressionThatIsMuchLongerThan50Characters
-    ]
+    [ AReallyLongExpressionThatIsMuchLongerThan50Characters ]
 
 f
     xs
@@ -180,9 +178,7 @@ let xs =
     |]
 
 let ys =
-    [|
-        AReallyLongExpressionThatIsMuchLongerThan50Characters
-    |]
+    [| AReallyLongExpressionThatIsMuchLongerThan50Characters |]
 
 f
     xs
@@ -226,9 +222,7 @@ f [
     z
 ]
 
-g [
-    longValueThatIsALotOfCharactersSoooooLong
-  ] [
+g [ longValueThatIsALotOfCharactersSoooooLong ] [
     longValueThatIsALotOfCharactersSoooooLong
 ]
 
