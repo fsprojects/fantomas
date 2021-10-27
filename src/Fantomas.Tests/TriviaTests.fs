@@ -282,25 +282,6 @@ MEH
     | _ -> failwith "Expected block comment"
 
 [<Test>]
-let ``if keyword before SynExpr.IfThenElse`` () =
-    let source =
-        """if true then ()
-elif true then ()"""
-
-    let triviaNodes = toTrivia source |> List.head
-
-    match triviaNodes with
-    | [ { Type = Token (IF, _)
-          ContentItself = Some (Keyword { Content = "if" }) }
-        { Type = Token (THEN, _)
-          ContentItself = Some (Keyword { Content = "then" }) }
-        { Type = Token (ELIF, _)
-          ContentItself = Some (Keyword { Content = "elif" }) }
-        { Type = Token (THEN, _)
-          ContentItself = Some (Keyword { Content = "then" }) } ] -> pass ()
-    | _ -> fail ()
-
-[<Test>]
 let ``directives before and after are linked to let binding`` () =
     let source =
         """#if NOT_DEFINED
@@ -403,19 +384,6 @@ let foo = 42
           ContentAfter = [ Directive "#if SOMETHING\n\n#endif" ] } ] -> pass ()
     | _ -> fail ()
 
-
-[<Test>]
-let ``if keyword should be keyword itself`` () =
-    let source = "if meh then ()"
-    let trivia = toTrivia source |> List.head
-
-    match trivia with
-    | [ { ContentItself = Some (Keyword { TokenInfo = { TokenName = "IF" } })
-          Type = TriviaNodeType.Token (IF, _) }
-        { ContentItself = Some (Keyword { TokenInfo = { TokenName = "THEN" } })
-          Type = TriviaNodeType.Token (THEN, _) } ] -> pass ()
-    | _ -> fail ()
-
 [<Test>]
 let ``string constant with blank lines`` () =
     let multilineString =
@@ -463,7 +431,7 @@ let ``char content`` () =
     match trivia with
     | [ { ContentItself = Some (CharContent "\'\\u0000\'")
           Type = TriviaNodeType.MainNode SynConst_Char } ] -> pass ()
-    | _ -> fail ()
+    | _ -> Assert.Fail(sprintf "Unexpected trivia: %A" trivia)
 
 [<Test>]
 let ``leading newlines should not be captured as trivia`` () =

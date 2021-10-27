@@ -202,7 +202,7 @@ let rec synExprToFsAstType (expr: SynExpr) : FsAstType * Range =
     | SynExpr.DoBang _ -> SynExpr_DoBang, expr.Range
     | SynExpr.Paren _ -> SynExpr_Paren, expr.Range
     | SynExpr.AnonRecd _ -> SynExpr_AnonRecd, expr.Range
-    | SynExpr.ArrayOrListOfSeqExpr _ -> SynExpr_ArrayOrListOfSeqExpr, expr.Range
+    | SynExpr.ArrayOrListComputed _ -> SynExpr_ArrayOrListComputed, expr.Range
     | SynExpr.LongIdentSet _ -> SynExpr_LongIdentSet, expr.Range
     | SynExpr.New _ -> SynExpr_New, expr.Range
     | SynExpr.Quote _ -> SynExpr_Quote, expr.Range
@@ -226,7 +226,7 @@ let rec synExprToFsAstType (expr: SynExpr) : FsAstType * Range =
     | SynExpr.ObjExpr _ -> SynExpr_ObjExpr, expr.Range
     | SynExpr.For _ -> SynExpr_For, expr.Range
     | SynExpr.ForEach _ -> SynExpr_ForEach, expr.Range
-    | SynExpr.CompExpr (_, _, e, _) -> synExprToFsAstType e
+    | SynExpr.ComputationExpr (_, e, _) -> synExprToFsAstType e
     | SynExpr.MatchLambda _ -> SynExpr_MatchLambda, expr.Range
     | SynExpr.Assert _ -> SynExpr_Assert, expr.Range
     | SynExpr.TypeApp _ -> SynExpr_TypeApp, expr.Range
@@ -259,6 +259,8 @@ let rec synExprToFsAstType (expr: SynExpr) : FsAstType * Range =
     | SynExpr.Fixed _ -> SynExpr_Fixed, expr.Range
     | SynExpr.InterpolatedString _ -> SynExpr_InterpolatedString, expr.Range
     | SynExpr.Sequential (_, _, e, _, _) -> synExprToFsAstType e
+    | SynExpr.IndexRange _ -> SynExpr_IndexRange, expr.Range
+    | SynExpr.IndexFromEnd _ -> SynExpr_IndexFromEnd, expr.Range
 
 let synModuleSigDeclToFsAstType =
     function
