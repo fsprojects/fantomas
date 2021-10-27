@@ -1,3 +1,11 @@
+#### 4.5.5 - 10/2021
+
+* Improve: Provide more information when string merge failed. [#1904](https://github.com/fsprojects/fantomas/issues/1904)
+* Fix Comment gets duplicated. [#1912](https://github.com/fsprojects/fantomas/issues/1912)
+* Fix Vanity alignment used when splitting line in match block. [#1901](https://github.com/fsprojects/fantomas/issues/1901)
+* Fix Unexpected loss of newline in closing bracket. [#1835](https://github.com/fsprojects/fantomas/issues/1835)
+* Fix Relative patterns in .fantomasignore don't match any files. [#1713](https://github.com/fsprojects/fantomas/issues/1713)
+
 #### 4.5.4 - 10/2021
 
 * Fix Documentation contains reference to infix multiline formatter even though it's removed. [#1884](https://github.com/fsprojects/fantomas/issues/1884)
