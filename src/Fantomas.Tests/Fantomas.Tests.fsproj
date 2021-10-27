@@ -38,7 +38,6 @@
     <Compile Include="CompilerDirectivesTests.fs" />
     <Compile Include="ComputationExpressionTests.fs" />
     <Compile Include="TypeProviderTests.fs" />
-    <Compile Include="VerboseSyntaxConversionTests.fs" />
     <Compile Include="FormattingSelectionOnlyTests.fs" />
     <Compile Include="ValidationTests.fs" />
     <Compile Include="SpecialConstructsTests.fs" />
@@ -90,6 +89,7 @@
     <Compile Include="BarBeforeDiscriminatedUnionDeclarationTests.fs" />
     <Compile Include="SpaceBeforeColonTests.fs" />
     <Compile Include="LibraryOnlySynExprTests.fs" />
+    <Compile Include="IndexSyntaxTests.fs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Fantomas.Extras\Fantomas.Extras.fsproj" />

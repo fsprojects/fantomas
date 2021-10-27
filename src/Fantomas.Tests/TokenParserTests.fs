@@ -295,21 +295,6 @@ type T() =
     | _ -> fail ()
 
 [<Test>]
-let ``if keyword should be found in tokens`` () =
-    let source =
-        """if true then ()
-elif true then ()"""
-
-    let triviaNodes = tokenize source |> getTriviaFromTokens
-
-    match triviaNodes with
-    | [ { Item = Keyword { Content = "if" } }
-        { Item = Keyword { Content = "then" } }
-        { Item = Keyword { Content = "elif" } }
-        { Item = Keyword { Content = "then" } } ] -> pass ()
-    | _ -> fail ()
-
-[<Test>]
 let ``directives are found in tokens`` () =
     let source =
         """

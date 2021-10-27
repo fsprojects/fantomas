@@ -298,20 +298,20 @@ let ``should not add newline before = operator after |>`` () =
 """
 
 [<Test>]
-let ``should add space around .. operator`` () =
+let ``should not add space around .. operator`` () =
     formatSourceString false """[1..10]""" config
     |> should
         equal
-        """[ 1 .. 10 ]
+        """[ 1..10 ]
 """
 
 
 [<Test>]
-let ``should add space around .. .. operators`` () =
+let ``should not add space around .. .. operators`` () =
     formatSourceString false """[10 .. -1 .. 1]""" config
     |> should
         equal
-        """[ 10 .. -1 .. 1 ]
+        """[ 10..-1..1 ]
 """
 
 [<Test>]
@@ -1185,8 +1185,7 @@ let ``list concat chain using operators, 1188`` () =
     |> should
         equal
         """
-[ 1 .. 86 ]
-@ [ 89 .. 699 ] @ [ 901 .. 912 ] @ [ 988 ]
+[ 1..86 ] @ [ 89..699 ] @ [ 901..912 ] @ [ 988 ]
 """
 
 [<Test>]
