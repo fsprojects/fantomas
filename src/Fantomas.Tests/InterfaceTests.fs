@@ -26,7 +26,7 @@ type Interface3 =
         equal
         """
 type IPrintable =
-    abstract member Print : unit -> unit
+    abstract member Print: unit -> unit
 
 type SomeClass1(x: int, y: float) =
     interface IPrintable with
@@ -35,7 +35,7 @@ type SomeClass1(x: int, y: float) =
 type Interface3 =
     inherit Interface1
     inherit Interface2
-    abstract member Method3 : int -> int
+    abstract member Method3: int -> int
 """
 
 [<Test>]
@@ -135,7 +135,7 @@ let ``should keep named arguments on abstract members`` () =
     |> should
         equal
         """type IThing =
-    abstract Foo : name: string * age: int -> bool
+    abstract Foo: name: string * age: int -> bool
 """
 
 [<Test>]
@@ -149,7 +149,7 @@ let ``should not skip 'with get()' in indexers`` () =
     |> should
         equal
         """type Interface =
-    abstract Item : int -> char with get
+    abstract Item: int -> char with get
 """
 
 [<Test>]
@@ -202,10 +202,10 @@ type MyLogInteface() =
         equal
         """
 type LogInterface =
-    abstract member Print : string -> unit
-    abstract member GetLogFile : string -> string
-    abstract member Info : unit -> unit
-    abstract member Version : unit -> unit
+    abstract member Print: string -> unit
+    abstract member GetLogFile: string -> string
+    abstract member Info: unit -> unit
+    abstract member Version: unit -> unit
 
 type MyLogInteface() =
     interface LogInterface with
@@ -234,7 +234,7 @@ type IArgParserTemplate =
         """/// Interface that must be implemented by all Argu template types
 type IArgParserTemplate =
     /// returns a usage string for every union case
-    abstract Usage : string
+    abstract Usage: string
 """
 
 [<Test>]
@@ -273,7 +273,7 @@ type Test =
         equal
         """
 type Test =
-    abstract RunJobs :
+    abstract RunJobs:
         folder: string
         * ?jobs: string
         * ?ctm: string
@@ -319,8 +319,8 @@ type IMyInterface =
         equal
         """
 type IMyInterface =
-    abstract MyProp : bool with get, set
-    abstract MyMethod : unit -> unit
+    abstract MyProp: bool with get, set
+    abstract MyMethod: unit -> unit
 """
 
 [<Test>]

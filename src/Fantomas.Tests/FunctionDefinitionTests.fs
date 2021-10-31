@@ -219,9 +219,9 @@ let inline heterogenousAdd(value1 : ^T when (^T or ^U) : (static member (+) : ^T
     |> should
         equal
         """
-let inline add (value1: ^T when ^T: (static member (+) : ^T * ^T -> ^T), value2: ^T) = value1 + value2
+let inline add (value1: ^T when ^T: (static member (+): ^T * ^T -> ^T), value2: ^T) = value1 + value2
 
-let inline heterogenousAdd (value1: ^T when (^T or ^U): (static member (+) : ^T * ^U -> ^T), value2: ^U) =
+let inline heterogenousAdd (value1: ^T when (^T or ^U): (static member (+): ^T * ^U -> ^T), value2: ^U) =
     value1 + value2
 """
 
@@ -448,8 +448,8 @@ let inline implicit< ^a,^b when ^a : (static member op_Implicit : ^b -> ^a)> arg
     |> should
         equal
         """
-let inline implicit< ^a, ^b when ^a: (static member op_Implicit : ^b -> ^a)> arg =
-    (^a: (static member op_Implicit : ^b -> ^a) arg)
+let inline implicit< ^a, ^b when ^a: (static member op_Implicit: ^b -> ^a)> arg =
+    (^a: (static member op_Implicit: ^b -> ^a) arg)
 """
 
 [<Test>]
@@ -491,7 +491,7 @@ let ``don't create redundant parentheses outside trait calls`` () =
     |> should
         equal
         """
-let f (arg: 'T) = (^T: (member Value : string) arg)
+let f (arg: 'T) = (^T: (member Value: string) arg)
 """
 
 [<Test>]
@@ -934,7 +934,7 @@ let inline deserialize< ^a when ( ^a or FromJsonDefaults) : (static member FromJ
     |> should
         equal
         """
-let inline deserialize< ^a when ^a: (static member FromJson : ^a -> Json< ^a >)> json =
+let inline deserialize< ^a when ^a: (static member FromJson: ^a -> Json< ^a >)> json =
     json |> Json.parse |> Json.deserialize< ^a>
 """
 

@@ -185,7 +185,7 @@ type Range =
       To: float
       Name: string }
 
-    member Length : unit -> int
+    member Length: unit -> int
 """
 
 [<Test>]
@@ -211,7 +211,7 @@ type Color =
     | Green
     | Blue
 
-    member ToInt : unit -> int
+    member ToInt: unit -> int
 """
 
 [<Test>]
@@ -237,7 +237,7 @@ type Color =
     | Green = 1
     | Blue = 2
 
-    member ToInt : unit -> int
+    member ToInt: unit -> int
 """
 
 [<Test>]
@@ -257,7 +257,7 @@ namespace Signature
 
 type HttpContext with
 
-    member QueryString : unit -> string
+    member QueryString: unit -> string
 """
 
 [<Test>]
@@ -306,7 +306,7 @@ type MyRecord =
       Street: string
       Number: int }
 
-    member Score : unit -> int
+    member Score: unit -> int
 
 type MyRecord =
     { SomeField: int }
@@ -318,7 +318,7 @@ type Color =
     | Green = 1
     | Blue = 2
 
-    member ToInt : unit -> int
+    member ToInt: unit -> int
 """
 
 [<Test>]
