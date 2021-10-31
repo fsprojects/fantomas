@@ -64,7 +64,7 @@ let ``should apply to typed member value definition`` () =
 """
 
 [<Test>]
-let ``should not apply to short member value definition`` () =
+let ``should not apply to short member property definition`` () =
     formatSourceString
         false
         """type T =
@@ -72,7 +72,23 @@ let ``should not apply to short member value definition`` () =
     member this.c = d + 2
     """
         { config with
-              MaxFunctionBindingWidth = 30 }
+              MaxFunctionBindingWidth = 10 }
+    |> should
+        equal
+        """type T =
+    let a = b + 1
+    member this.c = d + 2
+"""
+
+[<Test>]
+let ``let with short member property definition`` () =
+    formatSourceString
+        false
+        """type T =
+    let a = b + 1
+    member this.c = d + 2
+    """
+        config
     |> should
         equal
         """type T =

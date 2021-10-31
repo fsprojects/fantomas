@@ -906,8 +906,7 @@ let r =
       b = y
       z = c }
 
-let s =
-    { AReallyLongExpressionThatIsMuchLongerThan50Characters = 1 }
+let s = { AReallyLongExpressionThatIsMuchLongerThan50Characters = 1 }
 
 let r' =
     { r with
@@ -915,8 +914,7 @@ let r' =
         b = y
         z = c }
 
-let s' =
-    { s with AReallyLongExpressionThatIsMuchLongerThan50Characters = 1 }
+let s' = { s with AReallyLongExpressionThatIsMuchLongerThan50Characters = 1 }
 
 f
     r
@@ -969,8 +967,7 @@ let r =
         z = c
     }
 
-let s =
-    { AReallyLongExpressionThatIsMuchLongerThan50Characters = 1 }
+let s = { AReallyLongExpressionThatIsMuchLongerThan50Characters = 1 }
 
 let r' =
     { r with
@@ -979,8 +976,7 @@ let r' =
         z = c
     }
 
-let s' =
-    { s with AReallyLongExpressionThatIsMuchLongerThan50Characters = 1 }
+let s' = { s with AReallyLongExpressionThatIsMuchLongerThan50Characters = 1 }
 
 f
     r
@@ -1031,8 +1027,7 @@ let r =
        b = y
        z = c |}
 
-let s =
-    {| AReallyLongExpressionThatIsMuchLongerThan50Characters = 1 |}
+let s = {| AReallyLongExpressionThatIsMuchLongerThan50Characters = 1 |}
 
 let r' =
     {| r with
@@ -1040,8 +1035,7 @@ let r' =
         b = y
         z = c |}
 
-let s' =
-    {| s with AReallyLongExpressionThatIsMuchLongerThan50Characters = 1 |}
+let s' = {| s with AReallyLongExpressionThatIsMuchLongerThan50Characters = 1 |}
 
 f
     r
@@ -1094,8 +1088,7 @@ let r =
         z = c
     |}
 
-let s =
-    {| AReallyLongExpressionThatIsMuchLongerThan50Characters = 1 |}
+let s = {| AReallyLongExpressionThatIsMuchLongerThan50Characters = 1 |}
 
 let r' =
     {| r with
@@ -1104,8 +1097,7 @@ let r' =
         z = c
     |}
 
-let s' =
-    {| s with AReallyLongExpressionThatIsMuchLongerThan50Characters = 1 |}
+let s' = {| s with AReallyLongExpressionThatIsMuchLongerThan50Characters = 1 |}
 
 f
     r
