@@ -1219,6 +1219,7 @@ module Foo =
             | true -> id
             | false -> id)
 """
+
 [<Test>]
 
 let ``qualified name to active pattern, 1937`` () =
@@ -1233,4 +1234,3 @@ StringPosition.(|A|B|)
 
 let f (|A|B|) = (|A|B|)
 """
-
