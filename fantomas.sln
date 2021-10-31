@@ -1,24 +1,32 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.26124.0
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31825.309
 MinimumVisualStudioVersion = 15.0.26124.0
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".paket", ".paket", "{B570C54C-2FEA-4A94-A8C5-FD4157A94DE7}"
 	ProjectSection(SolutionItems) = preProject
 		paket.dependencies = paket.dependencies
 	EndProjectSection
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Fantomas", "src\Fantomas\Fantomas.fsproj", "{7EA16279-A5F1-4781-A343-4375A04BCE6F}"
+Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "Fantomas", "src\Fantomas\Fantomas.fsproj", "{7EA16279-A5F1-4781-A343-4375A04BCE6F}"
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Fantomas.Tests", "src\Fantomas.Tests\Fantomas.Tests.fsproj", "{DED76E41-B89F-47BA-84C5-3AB0BECFA767}"
+Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "Fantomas.Tests", "src\Fantomas.Tests\Fantomas.Tests.fsproj", "{DED76E41-B89F-47BA-84C5-3AB0BECFA767}"
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Fantomas.CoreGlobalTool", "src\Fantomas.CoreGlobalTool\Fantomas.CoreGlobalTool.fsproj", "{DC08805B-C6E2-43F3-B381-E60EE88A079D}"
+Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "Fantomas.CoreGlobalTool", "src\Fantomas.CoreGlobalTool\Fantomas.CoreGlobalTool.fsproj", "{DC08805B-C6E2-43F3-B381-E60EE88A079D}"
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Fantomas.CoreGlobalTool.Tests", "src\Fantomas.CoreGlobalTool.Tests\Fantomas.CoreGlobalTool.Tests.fsproj", "{DEDE6968-0BE8-4415-9262-8355B82AF2C0}"
+Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "Fantomas.CoreGlobalTool.Tests", "src\Fantomas.CoreGlobalTool.Tests\Fantomas.CoreGlobalTool.Tests.fsproj", "{DEDE6968-0BE8-4415-9262-8355B82AF2C0}"
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Fantomas.Benchmarks", "src\Fantomas.Benchmarks\Fantomas.Benchmarks.fsproj", "{B6BC63D5-410D-4DBB-9D45-5638F20BD09B}"
+Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "Fantomas.Benchmarks", "src\Fantomas.Benchmarks\Fantomas.Benchmarks.fsproj", "{B6BC63D5-410D-4DBB-9D45-5638F20BD09B}"
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Fantomas.Extras", "src\Fantomas.Extras\Fantomas.Extras.fsproj", "{4088FF76-1DB7-4E68-80FE-E851CE6701AC}"
+Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "Fantomas.Extras", "src\Fantomas.Extras\Fantomas.Extras.fsproj", "{4088FF76-1DB7-4E68-80FE-E851CE6701AC}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{29F22904-C9E0-40AA-B971-9AE377C17F59}"
+	ProjectSection(SolutionItems) = preProject
+		docs\Documentation.md = docs\Documentation.md
+		docs\Formatting-Elmish-code.md = docs\Formatting-Elmish-code.md
+		docs\FormattingConventions.md = docs\FormattingConventions.md
+		docs\index.html = docs\index.html
+	EndProjectSection
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Fantomas.Client", "src\Fantomas.Client\Fantomas.Client.fsproj", "{AA895F94-CCF2-4FCF-A9BB-E16987B57535}"
 EndProject
@@ -30,9 +38,6 @@ Global
 		Release|Any CPU = Release|Any CPU
 		Release|x64 = Release|x64
 		Release|x86 = Release|x86
-	EndGlobalSection
-	GlobalSection(SolutionProperties) = preSolution
-		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{7EA16279-A5F1-4781-A343-4375A04BCE6F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
@@ -120,6 +125,10 @@ Global
 		{AA895F94-CCF2-4FCF-A9BB-E16987B57535}.Release|x86.ActiveCfg = Release|Any CPU
 		{AA895F94-CCF2-4FCF-A9BB-E16987B57535}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
-	GlobalSection(NestedProjects) = preSolution
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {DEBFC920-A647-4859-890D-B59793D27594}
 	EndGlobalSection
 EndGlobal

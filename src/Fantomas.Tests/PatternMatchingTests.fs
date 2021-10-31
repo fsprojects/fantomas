@@ -782,11 +782,9 @@ let private userNameDecoder (get : Decode.IGetters) =
         equal
         """
 let private userNameDecoder (get : Decode.IGetters) =
-    let givenName =
-        get.Optional.Field "given_name" Decode.string
+    let givenName = get.Optional.Field "given_name" Decode.string
 
-    let familyName =
-        get.Optional.Field "family_name" Decode.string
+    let familyName = get.Optional.Field "family_name" Decode.string
 
     match givenName, familyName with
     | Some g, Some f -> sprintf "%s %c" g f.[0]
@@ -1123,8 +1121,7 @@ match foo with
     (isOperatorOrKeyword headToken
      && List.exists (fun k -> headToken.TokenInfo.TokenName = k) keywordTrivia)
     ->
-    let range =
-        getRangeBetween "keyword" headToken headToken
+    let range = getRangeBetween "keyword" headToken headToken
 
     let info =
         Trivia.Create(Keyword(headToken)) range
@@ -1677,9 +1674,7 @@ let GenApp (cenv: cenv) cgbuf eenv (f, fty, tyargs, curriedArgs, m) sequel =
               | _ -> false))
         | None -> false
         ->
-        let (kind, mark) =
-            ListAssoc.find g.valRefEq v eenv.innerVals // already checked above in when guard
-
+        let (kind, mark) = ListAssoc.find g.valRefEq v eenv.innerVals // already checked above in when guard
         ()
 """
 

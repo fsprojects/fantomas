@@ -10,7 +10,7 @@ let ``triple-quoted strings`` () =
         false
         "let xmlFragment2 = \"\"\"<book author=\"Milton, John\" title=\"Paradise Lost\">\"\"\""
         { config with
-              MaxValueBindingWidth = 60 }
+              MaxValueBindingWidth = 80 }
     |> should
         equal
         "let xmlFragment2 = \"\"\"<book author=\"Milton, John\" title=\"Paradise Lost\">\"\"\"
@@ -30,7 +30,9 @@ let str1 = "abc"
     |> should
         equal
         """
-let xmlFragment1 = @"<book author=""Milton, John"" title=""Paradise Lost"">"
+let xmlFragment1 =
+    @"<book author=""Milton, John"" title=""Paradise Lost"">"
+
 let str1 = "abc"
 """
 

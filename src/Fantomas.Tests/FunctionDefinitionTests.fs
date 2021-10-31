@@ -627,12 +627,8 @@ module FormatCode =
 module FormatCode =
 
     let private format filename code config =
-        let checker =
-            Fantomas.FakeHelpers.sharedChecker.Force()
-
-        let options =
-            Fantomas.FakeHelpers.createParsingOptionsFromFile filename
-
+        let checker = Fantomas.FakeHelpers.sharedChecker.Force()
+        let options = Fantomas.FakeHelpers.createParsingOptionsFromFile filename
         let source = SourceOrigin.SourceString code
         CodeFormatter.FormatDocumentAsync("tmp.fsx", source, config, options, checker)
 
@@ -668,12 +664,8 @@ module FormatCode =
 module FormatCode =
 
     let private format filename code config =
-        let checker =
-            Fantomas.FakeHelpers.sharedChecker.Force()
-
-        let options =
-            Fantomas.FakeHelpers.createParsingOptionsFromFile filename
-
+        let checker = Fantomas.FakeHelpers.sharedChecker.Force()
+        let options = Fantomas.FakeHelpers.createParsingOptionsFromFile filename
         let source = SourceOrigin.SourceString code
         CodeFormatter.FormatDocumentAsync("tmp.fsx", source, config, options, checker)
 
@@ -978,9 +970,7 @@ module Infrastructure =
 #if DEBUG
         failwith message
 #else
-        let sentryEvent =
-            SentryEvent(SentryMessage message, Level = errorLevel)
-
+        let sentryEvent = SentryEvent(SentryMessage message, Level = errorLevel)
         ()
 #endif
 """
