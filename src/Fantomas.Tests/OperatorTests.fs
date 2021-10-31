@@ -1219,3 +1219,18 @@ module Foo =
             | true -> id
             | false -> id)
 """
+[<Test>]
+
+let ``qualified name to active pattern, 1937`` () =
+    shouldNotChangeAfterFormat
+        """
+StringPosition.(|TrimStart|)
+(|TrimStart|)
+StringPosition.(|TrimStart|_|)
+(|TrimStart|_|)
+StringPosition.(|A|B|)
+(|A|B|)
+
+let f (|A|B|) = (|A|B|)
+"""
+
