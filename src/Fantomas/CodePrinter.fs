@@ -872,10 +872,10 @@ and genVal astContext (Val (ats, px, ao, s, identRange, t, vi, isInline, _) as n
         match node with
         | ValSpfn (_, _, synValTyparDecls, _, _, _, _, _, _, _, range) -> range, synValTyparDecls
 
-    let genericParams =
+    let genericParams, hasGenerics =
         match synValTyparDecls with
-        | SynValTyparDecls ([], _, _) -> sepNone
-        | SynValTyparDecls (tpd, _, cst) -> genTypeParamPostfix astContext tpd cst
+        | SynValTyparDecls ([], _, _) -> sepNone, false
+        | SynValTyparDecls (tpd, _, cst) -> genTypeParamPostfix astContext tpd cst, true
 
     let (FunType namedArgs) = (t, vi)
 
@@ -887,7 +887,7 @@ and genVal astContext (Val (ats, px, ao, s, identRange, t, vi, isInline, _) as n
         -- s
         +> genericParams
         |> genTriviaFor Ident_ identRange)
-    +> sepColonWithSpacesFixed
+    +> ifElse hasGenerics sepColonWithSpacesFixed sepColon
     +> ifElse
         (List.isNotEmpty namedArgs)
         (autoIndentAndNlnIfExpressionExceedsPageWidth (genTypeList astContext namedArgs))
@@ -4052,6 +4052,8 @@ and genMemberSig astContext node =
             | TFun _ -> true
             | _ -> false
 
+        let hasGenerics = not tds.IsEmpty
+
         genPreXmlDoc px
         +> genAttributes astContext ats
         +> genMemberFlagsForMemberBinding
@@ -4063,7 +4065,7 @@ and genMemberSig astContext node =
         +> opt sepSpace ao genAccess
         +> ifElse (s = "``new``") (!- "new") (!-s)
         +> genTypeParamPostfix astContext tds tcs
-        +> sepColonWithSpacesFixed
+        +> ifElse hasGenerics sepColonWithSpacesFixed sepColon
         +> ifElse
             (List.isNotEmpty namedArgs)
             (autoIndentAndNlnIfExpressionExceedsPageWidth (genTypeList astContext namedArgs))
@@ -4784,12 +4786,13 @@ and genMemberDefn astContext node =
                 | None -> sprintf "abstract %s" s
             |> fun s -> !- s ctx
 
+        let hasGenerics = not tds.IsEmpty
         genPreXmlDoc px
         +> genAttributes astContext ats
         +> opt sepSpace ao genAccess
         +> genAbstractMemberKeyword
         +> genTypeParamPostfix astContext tds tcs
-        +> sepColonWithSpacesFixed
+        +> ifElse hasGenerics sepColonWithSpacesFixed sepColon
         +> autoIndentAndNlnIfExpressionExceedsPageWidth (genTypeList astContext namedArgs)
         -- genPropertyKind (not isFunctionProperty) mk
         +> autoIndentAndNlnIfExpressionExceedsPageWidth (genConstraints astContext t vi)

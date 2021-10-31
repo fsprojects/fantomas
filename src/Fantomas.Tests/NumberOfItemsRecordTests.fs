@@ -595,7 +595,7 @@ type MyRecord =
       Bar: string
       Street: string
       Number: int }
-    member Score : unit -> int
+    member Score: unit -> int
 """
 
 

@@ -87,25 +87,25 @@ type Element =
     interface INode
 
     /// Constructs an new empty Element.
-    static member Create : name: string * ?uri: string -> Element
+    static member Create: name: string * ?uri: string -> Element
 
     /// Replaces the children.
-    static member WithChildren : children: #seq<#INode> -> self: Element -> Element
+    static member WithChildren: children: #seq<#INode> -> self: Element -> Element
 
     /// Replaces the children.
-    static member (-) : self: Element * children: #seq<#INode> -> Element
+    static member (-): self: Element * children: #seq<#INode> -> Element
 
     /// Replaces the attributes.
-    static member WithAttributes : attrs: #seq<string * string> -> self: Element -> Element
+    static member WithAttributes: attrs: #seq<string * string> -> self: Element -> Element
 
     /// Replaces the attributes.
-    static member (+) : self: Element * attrs: #seq<string * string> -> Element
+    static member (+): self: Element * attrs: #seq<string * string> -> Element
 
     /// Replaces the children with a single text node.
-    static member WithText : text: string -> self: Element -> Element
+    static member WithText: text: string -> self: Element -> Element
 
     /// Replaces the children with a single text node.
-    static member (--) : self: Element * text: string -> Element
+    static member (--): self: Element * text: string -> Element
 """
 
 [<Test>]
@@ -840,7 +840,7 @@ open System
 module Test =
     type ISomething =
         inherit IDisposable
-        abstract DoTheThing : string -> unit
+        abstract DoTheThing: string -> unit
 
     let test (something: IDisposable) (somethingElse: IDisposable) =
         { new ISomething with
@@ -1419,7 +1419,7 @@ module Foo =
             { ModeratelyLongName: int }
 
     type private Bang =
-        abstract Baz : int
+        abstract Baz: int
 """
 
 [<Test>]

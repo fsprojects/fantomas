@@ -37,7 +37,7 @@ x.G[].TryFind 3
         equal
         """
 type F =
-    abstract G : int list -> Map<int,int>
+    abstract G: int list -> Map<int,int>
 
 let x: F =
     {new F with
