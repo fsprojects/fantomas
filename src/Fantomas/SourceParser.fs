@@ -36,7 +36,11 @@ let (|Ident|) (s: Ident) =
     | "not" -> "not"
     | "params" -> "``params``"
     | "parallel" -> "``parallel``"
-    | _ -> PrettyNaming.AddBackticksToIdentifierIfNeeded ident
+    | _ ->
+        if IsActivePatternName ident then
+            sprintf "(%s)" (DecompileOpName ident)
+        else
+            PrettyNaming.AddBackticksToIdentifierIfNeeded ident
 
 let (|LongIdent|) (li: LongIdent) =
     li
