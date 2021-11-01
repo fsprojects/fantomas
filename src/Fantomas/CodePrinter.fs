@@ -4610,7 +4610,6 @@ and genMemberDefn astContext node =
                     +> sepNln
                     +> unindent
                     +> sepCloseTFor rpr pr
-                    +> unindent
                     |> genTriviaFor SynExpr_Paren pr
                 | _ -> genExpr astContext e
 

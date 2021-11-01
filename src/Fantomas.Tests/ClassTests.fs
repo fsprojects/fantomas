@@ -927,3 +927,44 @@ type public DerivedExceptionWithLongNaaaaaaaaameException
             originalResponse
         )
 """
+
+[<Test>]
+let ``correct indentation when calling base constructor, 1942`` () =
+    formatSourceString
+        false
+        """
+type public DerivedExceptionWithLongNaaaaaaaaameException (message: string,
+                                                           code: int,
+                                                           originalRequest: string,
+                                                           originalResponse: string) =
+    inherit BaseExceptionWithLongNaaaameException(message, code, originalRequest, originalResponse)
+
+    let myMethod () =
+        ()
+
+    override this.SomeMethod () =
+        ()"""
+        { config with MaxLineLength = 80 }
+    |> prepend newline
+    |> should
+        equal
+        """
+type public DerivedExceptionWithLongNaaaaaaaaameException
+    (
+        message: string,
+        code: int,
+        originalRequest: string,
+        originalResponse: string
+    ) =
+    inherit BaseExceptionWithLongNaaaameException
+        (
+            message,
+            code,
+            originalRequest,
+            originalResponse
+        )
+
+    let myMethod () = ()
+
+    override this.SomeMethod() = ()
+"""
