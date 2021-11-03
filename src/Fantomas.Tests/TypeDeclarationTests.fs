@@ -701,8 +701,11 @@ let the_interface = ref([] : (string * (string * hol_type)) list)
     |> should
         equal
         """
-let user_printers = ref ([]: (string * (term -> unit)) list)
-let the_interface = ref ([]: (string * (string * hol_type)) list)
+let user_printers =
+    ref ([]: (string * (term -> unit)) list)
+
+let the_interface =
+    ref ([]: (string * (string * hol_type)) list)
 """
 
 [<Test>]
@@ -2228,8 +2231,7 @@ type Auth0User =
 
     static member Decoder : Decoder<Auth0User> =
         Decode.object (fun get ->
-            let userId =
-                get.Required.Field "user_id" Decode.string
+            let userId = get.Required.Field "user_id" Decode.string
 
             let metaData =
                 get.Optional.Field "app_metadata" AppMetaData.Decoder
@@ -2802,8 +2804,7 @@ and [<CustomEquality ; NoComparison>] Bar<'context, 'a> =
                                         let (bf, bv) = b
 
                                         if typeof<'bb> = typeof<'cb> then
-                                            let bv =
-                                                unbox<Foo<'innerContextLongLongLong, 'bb>> bv
+                                            let bv = unbox<Foo<'innerContextLongLongLong, 'bb>> bv
 
                                             this.InnerEquals
                                                 av
