@@ -19,7 +19,8 @@ let private carouselSample =
               MaxValueBindingWidth = 75 }
     |> should
         equal
-        """let private carouselSample = FunctionComponent.Of<obj>((fun _ -> fragment [] []), "CarouselSample")
+        """let private carouselSample =
+    FunctionComponent.Of<obj>((fun _ -> fragment [] []), "CarouselSample")
 """
 
 [<Test>]

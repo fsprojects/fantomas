@@ -731,8 +731,7 @@ let foldi (folder: 'State -> int -> 'T -> 'State) (state: 'State) (array: 'T [])
     if array.Length = 0 then
         state
     else
-        let folder =
-            OptimizedClosures.FSharpFunc<_, _, _, _>.Adapt folder
+        let folder = OptimizedClosures.FSharpFunc<_, _, _, _>.Adapt folder
 
         let mutable state: 'State = state
         let len = array.Length
@@ -921,9 +920,7 @@ with
         equal
         """
 try
-    let defaultTime =
-        (DateTime.FromFileTimeUtc 0L).ToLocalTime()
-
+    let defaultTime = (DateTime.FromFileTimeUtc 0L).ToLocalTime()
     foo.CreationTime <> defaultTime
 with
 // hmm
@@ -950,8 +947,7 @@ with
         equal
         """
 try
-    let defaultTime =
-        (DateTime.FromFileTimeUtc 0L).ToLocalTime()
+    let defaultTime = (DateTime.FromFileTimeUtc 0L).ToLocalTime()
 
     foo.CreationTime <> defaultTime
 with
@@ -1087,8 +1083,7 @@ module Foo =
                         // blah
                         let exists =
                             try
-                                let defaultTime =
-                                    (DateTime.FromFileTimeUtc 0L).ToLocalTime ()
+                                let defaultTime = (DateTime.FromFileTimeUtc 0L).ToLocalTime ()
 
                                 foo.CreationTime <> defaultTime
                             with

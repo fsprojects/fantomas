@@ -115,7 +115,7 @@ fsharp_record_multiline_formatter=character_width
 fsharp_max_array_or_list_width=40
 fsharp_max_array_or_list_number_of_items=1
 fsharp_array_or_list_multiline_formatter=character_width
-fsharp_max_value_binding_width=40
+fsharp_max_value_binding_width=80
 fsharp_max_function_binding_width=40
 fsharp_max_dot_get_expression_width=50
 fsharp_multiline_block_brackets_on_same_column=false
@@ -704,8 +704,9 @@ let myArray =
 
 ### fsharp_max_value_binding_width
 
-Control the maximum width for which let and member value bindings should be in one line.
-Default = 40.
+Control the maximum expression width for which let and member value/property bindings should be in one line.
+The width is that of the pattern for the binding plus the implementating expression but not the keywords (e.g. "let").
+Default = 80.
 
 `defaultConfig`
 
@@ -729,7 +730,7 @@ type MyType() =
 
 ### fsharp_max_function_binding_width
 
-Control the maximum width for which let and member function bindings should be in one line.
+Control the maximum width for which function and member bindings should be in one line.
 Default = 40.
 
 `defaultConfig`
