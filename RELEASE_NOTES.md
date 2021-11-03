@@ -1,3 +1,8 @@
+#### 4.5.6 - 11/2021
+
+* Fix Offside code created when base constructor wraps across lines. [#1942](https://github.com/fsprojects/fantomas/issues/1942)
+* Fix Extra space in val and member bindings in signature files. [#1934](https://github.com/fsprojects/fantomas/issues/1934)
+
 #### 4.5.5 - 10/2021
 
 * Improve: Provide more information when string merge failed. [#1904](https://github.com/fsprojects/fantomas/issues/1904)
