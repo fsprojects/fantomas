@@ -11,7 +11,7 @@ let ``number of items sized lists are formatted properly`` () =
         false
         """
 let xs = [ a; b; c ]
-let ys = [ AReallyLongExpressionThatIsMuchLongerThan50Characters ]
+let ys = [ AReallyLongExpressionThatIsMuchLongerMuchLongerMuchLongerMuchLongerMuchLongerMuchLongerThan100Characters ]
 f xs [ x; y; z ]
 List.map (fun x -> x * x) [1;2;]
     """
@@ -27,7 +27,7 @@ let xs =
       c ]
 
 let ys =
-    [ AReallyLongExpressionThatIsMuchLongerThan50Characters ]
+    [ AReallyLongExpressionThatIsMuchLongerMuchLongerMuchLongerMuchLongerMuchLongerMuchLongerThan100Characters ]
 
 f
     xs
@@ -47,7 +47,7 @@ let ``number of items sized arrays are formatted properly`` () =
         false
         """
 let xs = [| a; b; c |]
-let ys = [| AReallyLongExpressionThatIsMuchLongerThan50Characters |]
+let ys = [| AReallyLongExpressionThatIsMuchLongerMuchLongerMuchLongerMuchLongerMuchLongerMuchLongerThan100Characters |]
 f xs [| x; y; z |]
 List.map (fun x -> x * x) [|1;2;|]
     """
@@ -63,7 +63,7 @@ let xs =
        c |]
 
 let ys =
-    [| AReallyLongExpressionThatIsMuchLongerThan50Characters |]
+    [| AReallyLongExpressionThatIsMuchLongerMuchLongerMuchLongerMuchLongerMuchLongerMuchLongerThan100Characters |]
 
 f
     xs
@@ -134,8 +134,7 @@ let xs =
         c
     ]
 
-let ys =
-    [ AReallyLongExpressionThatIsMuchLongerThan50Characters ]
+let ys = [ AReallyLongExpressionThatIsMuchLongerThan50Characters ]
 
 f
     xs
@@ -177,8 +176,7 @@ let xs =
         c
     |]
 
-let ys =
-    [| AReallyLongExpressionThatIsMuchLongerThan50Characters |]
+let ys = [| AReallyLongExpressionThatIsMuchLongerThan50Characters |]
 
 f
     xs
@@ -339,6 +337,5 @@ let y =
     [ longValueThatIsALotOfCharactersSoooooLong
       longValueThatIsALotOfCharactersSoooooLong ]
 
-let z =
-    [ longValueThatIsALotOfCharactersSoooooLong; 100; 123 ]
+let z = [ longValueThatIsALotOfCharactersSoooooLong; 100; 123 ]
 """
