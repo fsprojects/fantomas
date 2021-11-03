@@ -176,7 +176,7 @@ let ``format signature file`` () =
                         formatted
                         "module Foobar
 
-val meh : int
+val meh: int
 "
                 | otherResponse -> Assert.Fail $"Unexpected response %A{otherResponse}"
             })
