@@ -22,8 +22,7 @@ let v =
     |> should
         equal
         """
-let v =
-    someFunctionHere [ parameters ] [ yetMoreParameters ] :?> _
+let v = someFunctionHere [ parameters ] [ yetMoreParameters ] :?> _
 """
 
 [<Test>]
