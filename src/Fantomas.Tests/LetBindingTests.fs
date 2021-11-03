@@ -248,9 +248,7 @@ module Card =
                 | prop -> Some prop)
             |> keyValueList CaseRules.LowerFirst
 
-        let props =
-            JS.Object.assign (createEmpty, customProps, typeProps)
-
+        let props = JS.Object.assign (createEmpty, customProps, typeProps)
         ofImport "Card" "reactstrap" props elems
 """
 
@@ -599,8 +597,7 @@ let genSigModuleDeclList astContext node =
         let sepXsAndYs =
             match List.tryHead ys with
             | Some hs ->
-                let attrs =
-                    getRangesFromAttributesFromSynModuleSigDeclaration hs
+                let attrs = getRangesFromAttributesFromSynModuleSigDeclaration hs
 
                 sepNln
                 +> sepNlnConsideringTriviaContentBeforeWithAttributes hs.Range attrs
@@ -793,8 +790,7 @@ let useEntries month year =
 let useEntries month year =
     let { Events = events } = useModel ()
 
-    let isNotCancelled =
-        Projections.isNotCancelledEventChecker events
+    let isNotCancelled = Projections.isNotCancelledEventChecker events
 
     let filter = Projections.isInMonth month year
 
@@ -852,8 +848,7 @@ let private authenticateRequest (logger: ILogger) header =
             let! config = manager.GetConfigurationAsync().ConfigureAwait(false)
             parameters.IssuerSigningKeys <- config.SigningKeys
 
-            let user, _ =
-                handler.ValidateToken((token: string), parameters)
+            let user, _ = handler.ValidateToken((token: string), parameters)
 
             if user.HasPermission("use:application") then
                 return Some user.Identity.Name
@@ -899,8 +894,7 @@ let private authenticateRequest (logger: ILogger) header =
 
             parameters.IssuerSigningKeys <- config.SigningKeys
 
-            let user, _ =
-                handler.ValidateToken((token: string), parameters)
+            let user, _ = handler.ValidateToken((token: string), parameters)
 
             if user.HasPermission("use:application") then
                 return Some user.Identity.Name
@@ -978,8 +972,7 @@ let useOverviewPerMonth () =
                        balance = Projections.calculateBalance m y events |})
                 |> List.toArray
 
-            let balance =
-                rows |> Array.sumBy (fun mth -> mth.balance)
+            let balance = rows |> Array.sumBy (fun mth -> mth.balance)
 
             {| name = year
                months = rows
@@ -1039,7 +1032,8 @@ let ``preserve new line new instance of class, 1034`` () =
         equal
         """
 let notFound () =
-    let json = Encode.string "Not found" |> Encode.toString 4
+    let json =
+        Encode.string "Not found" |> Encode.toString 4
 
     new HttpResponseMessage(
         HttpStatusCode.NotFound,
@@ -1189,8 +1183,7 @@ let x = List.singleton <|
     |> should
         equal
         """
-let x =
-    List.singleton <| let item = "text" in item
+let x = List.singleton <| let item = "text" in item
 """
 
 [<Test>]
@@ -1662,14 +1655,12 @@ stepLog.LogInformation (
         """
 stepLog.LogInformation (
     "Thing thing thing {Foo} thing",
-    (let (DuCase a) =
-        ThingThingThing.go options |> BlahBlah foo in a)
+    (let (DuCase a) = ThingThingThing.go options |> BlahBlah foo in a)
 )
 
 stepLog.LogInformation (
     "Thing thing thing {Foo} thing",
-    (let (DuCase a) =
-        ThingThingThing.go options |> BlahBlah foo in a)
+    (let (DuCase a) = ThingThingThing.go options |> BlahBlah foo in a)
 )
 """
 
@@ -1720,8 +1711,7 @@ module Foo =
         let f1 = ()
 
         let runTest () =
-            let (Thing f) =
-                [ a ; b ] |> Blah.tryConcat |> Option.get in f () |> ignore
+            let (Thing f) = [ a ; b ] |> Blah.tryConcat |> Option.get in f () |> ignore
 
         Assert.Throws<exn> runTest |> ignore
 
@@ -1730,8 +1720,7 @@ module Foo =
         let f1 = ()
 
         let runTest () =
-            let (Thing f) =
-                [ a ; b ] |> Blah.tryConcat |> Option.get in f () |> ignore
+            let (Thing f) = [ a ; b ] |> Blah.tryConcat |> Option.get in f () |> ignore
 
         Assert.Throws<exn> runTest |> ignore
 """

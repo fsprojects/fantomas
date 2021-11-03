@@ -166,11 +166,9 @@ type MNIST
         ?targetTransform: Tensor -> Tensor
     ) =
     inherit Dataset()
-    let path =
-        Path.Combine(path, "mnist") |> Path.GetFullPath
+    let path = Path.Combine(path, "mnist") |> Path.GetFullPath
     let train = defaultArg train true
-    let transform =
-        defaultArg transform (fun t -> (t - 0.1307) / 0.3081)
+    let transform = defaultArg transform (fun t -> (t - 0.1307) / 0.3081)
     let targetTransform = defaultArg targetTransform id
     let urls =
         List.ofSeq

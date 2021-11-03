@@ -1879,8 +1879,7 @@ let parse (checker: FSharpChecker) (parsingOptions: FSharpParsingOptions) { File
                     ConditionalCompilationDefines = conditionalCompilationDefines
                     SourceFiles = Array.map safeFileName parsingOptions.SourceFiles }
             // Run the first phase (untyped parsing) of the compiler
-            let sourceText =
-                FSharp.Compiler.Text.SourceText.ofString source
+            let sourceText = FSharp.Compiler.Text.SourceText.ofString source
 
             let! untypedRes = checker.ParseFile(fileName, sourceText, parsingOptionsWithDefines)
 
