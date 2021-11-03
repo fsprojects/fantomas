@@ -2336,9 +2336,7 @@ module ReactHookExtensions =
     type React with
         [<Hook>]
         static member useDeferred(operation: Async<'T>, dependencies: obj array) =
-            let (deferred, setDeferred) =
-                React.useState (Deferred.HasNotStartedYet)
-
+            let (deferred, setDeferred) = React.useState (Deferred.HasNotStartedYet)
             let token = React.useCancellationToken ()
 
             let executeOperation =
