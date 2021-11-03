@@ -244,8 +244,7 @@ module Web3ServerSeedList =
         """
 module Web3ServerSeedList =
     let MaybeRethrow (ex: Exception) : unit =
-        let rpcResponseExOpt =
-            FSharpUtil.FindException<RpcResponseException> ex
+        let rpcResponseExOpt = FSharpUtil.FindException<RpcResponseException> ex
 
         match rpcResponseExOpt with
         | Some rpcResponseEx ->

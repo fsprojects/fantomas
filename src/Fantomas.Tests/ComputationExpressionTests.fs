@@ -338,8 +338,7 @@ let tests =
         equal
         """
 [<Tests>]
-let tests =
-    testList "tests" [ test "test" { Expect.equal true true "unexpected" } ]
+let tests = testList "tests" [ test "test" { Expect.equal true true "unexpected" } ]
 """
 
 [<Test>]
@@ -1020,10 +1019,7 @@ let ``let bang + let + return in ce`` () =
 let getEvents () =
     task {
         let! cosmoEvents = eventStore.GetEvents EventStream AllEvents
-
-        let events =
-            List.map (fun (ce: EventRead<JsonValue, _>) -> ce.Data) cosmoEvents
-
+        let events = List.map (fun (ce: EventRead<JsonValue, _>) -> ce.Data) cosmoEvents
         return events
     }
 """
@@ -1052,10 +1048,7 @@ task {
             .ConfigureAwait(false)
 
     parameters.IssuerSigningKeys <- config.SigningKeys
-
-    let user, _ =
-        handler.ValidateToken((token: string), parameters)
-
+    let user, _ = handler.ValidateToken((token: string), parameters)
     return Ok(user.Identity.Name, collectClaims user)
 }
 """
@@ -1271,8 +1264,7 @@ let helloMachine =
         handleOk sayHello }
 
 let root =
-    freyaRouter {
-        resource "/hello{/name}" helloMachine }
+    freyaRouter { resource "/hello{/name}" helloMachine }
 """
         config
     |> prepend newline
@@ -1310,8 +1302,7 @@ let helloMachine =
         handleOk sayHello
     }
 
-let root =
-    freyaRouter { resource "/hello{/name}" helloMachine }
+let root = freyaRouter { resource "/hello{/name}" helloMachine }
 """
 
 [<Test>]
@@ -1332,8 +1323,7 @@ promise {
     |> should
         equal
         """
-let resource =
-    promise { return new DisposableAction(fun () -> isDisposed := true) }
+let resource = promise { return new DisposableAction(fun () -> isDisposed := true) }
 
 promise {
     use! r = resource
@@ -1745,7 +1735,7 @@ let ``don't add extra newline before do bang`` () =
                                     do! webPushClient.SendNotificationAsync(ps, payload, vapidDetails)
                                 with :? WebPushException as wpex ->
                                     log.LogError(sprintf "Couldn't send notification to %s, %A" user.UserId wpex)
-                                    do! filterSubscriptionsAndPersist
+                                    do! filterSubscriptionsAndPersistLongLongLongLongLongLongLongLongLong
                                             managementToken
                                             user.UserId
                                             subscriptions
@@ -1767,14 +1757,20 @@ let sendPushNotifications =
         |> List.map (fun s ->
             task {
                 try
-                    let ps =
-                        PushSubscription(s.Endpoint, s.P256DH, s.Auth)
+                    let ps = PushSubscription(s.Endpoint, s.P256DH, s.Auth)
 
                     do! webPushClient.SendNotificationAsync(ps, payload, vapidDetails)
                 with
                 | :? WebPushException as wpex ->
                     log.LogError(sprintf "Couldn't send notification to %s, %A" user.UserId wpex)
-                    do! filterSubscriptionsAndPersist managementToken user.UserId subscriptions s.Origin s.Endpoint
+
+                    do!
+                        filterSubscriptionsAndPersistLongLongLongLongLongLongLongLongLong
+                            managementToken
+                            user.UserId
+                            subscriptions
+                            s.Origin
+                            s.Endpoint
             }
             :> Task)
         |> Task.WhenAll)

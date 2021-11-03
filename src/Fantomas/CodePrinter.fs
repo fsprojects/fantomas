@@ -5443,25 +5443,25 @@ and genLetBindingDestructedTuple
     let equalsRange (ctx: Context) = ctx.MkRange pat.Range.End e.Range.Start
 
     genPreXmlDoc px
-    +> leadingExpressionIsMultiline
-        (genAttrAndPref
-         +> afterLetKeyword
-         +> sepSpace
-         +> genDestructedTuples
-         +> (fun ctx -> tokN (equalsRange ctx) EQUALS sepEq ctx))
-        (fun isMultiline ctx ->
-            let short = sepSpace +> genExpr astContext e
+    +> genAttrAndPref
+    +> (fun ctx ->
+        let prefix =
+            afterLetKeyword
+            +> sepSpace
+            +> genDestructedTuples
+            +> (fun ctx -> tokN (equalsRange ctx) EQUALS sepEq ctx)
 
-            let long =
-                indent
-                +> sepNln
-                +> genExpr astContext e
-                +> unindent
+        let long =
+            prefix
+            +> indent
+            +> sepNln
+            +> genExpr astContext e
+            +> unindent
 
-            if isMultiline then
-                long ctx
-            else
-                isShortExpression ctx.Config.MaxValueBindingWidth short long ctx)
+        let short =
+            prefix +> sepSpace +> genExpr astContext e
+
+        isShortExpression ctx.Config.MaxValueBindingWidth short long ctx)
 
 and genSynBindingValue
     (astContext: ASTContext)
@@ -5525,27 +5525,27 @@ and genSynBindingValue
 
     genPreXmlDoc px
     +> genAttrIsFirstChild
-    +> leadingExpressionIsMultiline
-        (genAfterAttributesBefore SynBinding_AfterAttributes_BeforeHeadPattern afterAttributesBeforeHeadPattern
-         +> genPref
-         +> afterLetKeyword
-         +> sepSpace
-         +> genValueName
-         +> genReturnType
-         +> (fun ctx -> genEqualsInBinding (equalsRange ctx) ctx))
-        (fun isMultiline ctx ->
-            let short = genExprKeepIndentInBranch astContext e
+    +> genAfterAttributesBefore SynBinding_AfterAttributes_BeforeHeadPattern afterAttributesBeforeHeadPattern
+    +> genPref
+    +> (fun ctx ->
+        let prefix =
+            afterLetKeyword
+            +> sepSpace
+            +> genValueName
+            +> genReturnType
+            +> (fun ctx -> genEqualsInBinding (equalsRange ctx) ctx)
 
-            let long =
-                indent
-                +> sepNln
-                +> genExprKeepIndentInBranch astContext e
-                +> unindent
+        let short =
+            prefix +> genExprKeepIndentInBranch astContext e
 
-            if isMultiline then
-                long ctx
-            else
-                isShortExpression ctx.Config.MaxValueBindingWidth short long ctx)
+        let long =
+            prefix
+            +> indent
+            +> sepNln
+            +> genExprKeepIndentInBranch astContext e
+            +> unindent
+
+        isShortExpression ctx.Config.MaxValueBindingWidth short long ctx)
 
 and genParenTupleWithIndentAndNewlines (astContext: ASTContext) (ps: SynPat list) (pr: range) : Context -> Context =
     sepOpenT

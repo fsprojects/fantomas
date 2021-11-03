@@ -365,8 +365,7 @@ let ``div with long children but a long setting`` () =
     |> should
         equal
         """
-let d =
-    div [] [ p [] [ str "fooooooooo" ]; p [] [ str "baaaaaaaar" ] ]
+let d = div [] [ p [] [ str "fooooooooo" ]; p [] [ str "baaaaaaaar" ] ]
 """
 
 // here the p is 38 characters
@@ -1007,8 +1006,7 @@ let private useLocationDetail (auth0 : Auth0Hook) (roles : RolesHook) id =
             then
                 auth0.getAccessTokenSilently ()
                 |> Promise.bind (fun authToken ->
-                    let url =
-                        sprintf "%s/users/%s" Common.backendUrl (location.Creator)
+                    let url = sprintf "%s/users/%s" Common.backendUrl (location.Creator)
 
                     fetch
                         url
