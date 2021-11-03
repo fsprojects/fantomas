@@ -666,8 +666,6 @@ a:hover {color: #ecc;}
         | Some x -> x.Remove()
         | _ -> ())
 
-    let packable =
-        Path.getFullName \"./_Binaries/README.html\"
-
+    let packable = Path.getFullName \"./_Binaries/README.html\"
     xmlform.Save packable
 "
