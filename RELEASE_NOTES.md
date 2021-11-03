@@ -1,3 +1,9 @@
+#### 4.6.0-alpha-006
+
+* Wider default fsharp_max_value_binding_width. [#1947](https://github.com/fsprojects/fantomas/pull/1947)
+* Fix Create parsingOption via CodeFormatterImpl helper. [#1946](https://github.com/fsprojects/fantomas/pull/1946)
+* Fix Explicit call of active pattern fails. [#1937](https://github.com/fsprojects/fantomas/issues/1937)
+
 #### 4.6.0-alpha-005
 
 * Fix Idempotency problem when destructing a record inside a lambda argument. [#1922](https://github.com/fsprojects/fantomas/issues/1922)
