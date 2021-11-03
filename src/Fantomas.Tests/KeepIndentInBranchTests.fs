@@ -35,9 +35,7 @@ let foo () =
         0
     else
 
-    let config =
-        Configuration.Read "/myfolder/myfile.xml"
-
+    let config = Configuration.Read "/myfolder/myfile.xml"
     let result = Process.main config otherArg
     if result.IsOk then 0 else -1
 """
@@ -1153,8 +1151,7 @@ and [<CustomEquality ; NoComparison>] Bar<'context, 'a> =
                                 let (bf, bv) = b
 
                                 if typeof<'bb> = typeof<'cb> then
-                                    let bv =
-                                        unbox<Foo<'innerContextLongLongLong, 'bb>> bv
+                                    let bv = unbox<Foo<'innerContextLongLongLong, 'bb>> bv
 
                                     this.InnerEquals
                                         av
@@ -1443,9 +1440,7 @@ module Foo =
 module Foo =
     let main (args: _) =
         let fs = FileSystem()
-
-        let ab =
-            ThingOne.make fs (ThingFour.defaultFoo args.Args.ThingOne)
+        let ab = ThingOne.make fs (ThingFour.defaultFoo args.Args.ThingOne)
 
         let thingFive = ThingFive.thingFive fs ab
 
@@ -1456,8 +1451,7 @@ module Foo =
         log.LogDebug("Command line options used: {CommandLine}", args)
         log.LogInformation("Thing One: {ThingOne}", ThingOne.getFoo ab)
 
-        let thing, cd =
-            args.Thing |> Args.render loggerFactory thingFive
+        let thing, cd = args.Thing |> Args.render loggerFactory thingFive
 
         let skipBehaviour =
             if defaultArg args.Skip then
@@ -1811,11 +1805,9 @@ let private parseModel (modelSrc: string) : Result<MyReturnType, string list> =
     let graph = new QueryableGraph()
     graph.LoadFromFile(modelSrc, TurtleParser())
 
-    let xsdPath =
-        Path.Combine(Directory.GetCurrentDirectory(), "Some.xsd")
+    let xsdPath = Path.Combine(Directory.GetCurrentDirectory(), "Some.xsd")
 
-    let ontologyPath =
-        Path.Combine(Directory.GetCurrentDirectory(), "Some.ttl")
+    let ontologyPath = Path.Combine(Directory.GetCurrentDirectory(), "Some.ttl")
 
     let ontoGraph = new OntologyGraph()
     FileLoader.Load(ontoGraph, ontologyPath)
