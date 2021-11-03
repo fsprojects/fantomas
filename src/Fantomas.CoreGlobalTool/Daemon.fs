@@ -5,7 +5,6 @@ open System.Diagnostics
 open System.IO
 open System.Threading
 open System.Threading.Tasks
-open FSharp.Compiler.CodeAnalysis
 open FSharp.Compiler.Text.Range
 open FSharp.Compiler.Text.Position
 open StreamJsonRpc
@@ -16,11 +15,6 @@ open Fantomas
 open Fantomas.SourceOrigin
 open Fantomas.FormatConfig
 open Fantomas.Extras.EditorConfig
-
-let private createParsingOptionsFromFile (fileName: string) : FSharpParsingOptions =
-    { FSharpParsingOptions.Default with
-          SourceFiles = [| fileName |]
-          IsExe = true }
 
 type FantomasDaemon(sender: Stream, reader: Stream) as this =
     let rpc: JsonRpc = JsonRpc.Attach(sender, reader, this)
@@ -64,7 +58,7 @@ type FantomasDaemon(sender: Stream, reader: Stream) as this =
                             request.FilePath,
                             SourceString request.SourceCode,
                             config,
-                            createParsingOptionsFromFile request.FilePath,
+                            CodeFormatterImpl.createParsingOptionsFromFile request.FilePath,
                             CodeFormatterImpl.sharedChecker.Value
                         )
 
