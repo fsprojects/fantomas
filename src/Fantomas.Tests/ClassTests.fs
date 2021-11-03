@@ -339,8 +339,7 @@ let ``should keep parens in class inheritance in the right place`` () =
     class
         inherit DGMLClass()
 
-        let functions =
-            System.Collections.Generic.Dictionary<string, IState>()
+        let functions = System.Collections.Generic.Dictionary<string, IState>()
     end
 """
 
@@ -461,7 +460,9 @@ type T() =
     member __.Property = "hello"
 
 let longNamedFunlongNamedFunlongNamedFunlongNamedFunlongNamedFun (x: T) = x
-let longNamedClasslongNamedClasslongNamedClasslongNamedClasslongNamedClasslongNamedClass = T()
+
+let longNamedClasslongNamedClasslongNamedClasslongNamedClasslongNamedClasslongNamedClass =
+    T()
 
 System.String.Concat(
     "a",
@@ -751,8 +752,7 @@ indent_size=2
     output
     |> should startWith (sprintf \"Processing %s\" fileFixture.Filename)
 
-    let result =
-        System.IO.File.ReadAllText(fileFixture.Filename)
+    let result = System.IO.File.ReadAllText(fileFixture.Filename)
 
     result
     |> should

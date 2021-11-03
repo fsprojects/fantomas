@@ -167,8 +167,7 @@ module Services =
                     )
                     .Resolve
             | Storage.EventStore (gateway, cache) ->
-                let accessStrategy =
-                    Equinox.EventStore.AccessStrategy.RollingSnapshots snapshot
+                let accessStrategy = Equinox.EventStore.AccessStrategy.RollingSnapshots snapshot
 
                 let cacheStrategy =
                     Equinox.EventStore.CachingStrategy.SlidingWindow(cache, TimeSpan.FromMinutes 20.)
