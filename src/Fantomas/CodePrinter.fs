@@ -1657,12 +1657,7 @@ and genExpr astContext synExpr ctx =
                 sepOpenTFor lpr
                 +> genExpr astContext e
                 +> sepCloseTFor rpr pr
-        | CompApp (s, e) ->
-            !-s
-            +> sepSpace
-            +> sepOpenS
-            +> genExpr { astContext with IsNakedRange = true } e
-            +> sepCloseS
+
         // This supposes to be an infix function, but for some reason it isn't picked up by InfixApps
         | App (Var "?", e :: es) ->
             match es with
@@ -1675,24 +1670,6 @@ and genExpr astContext synExpr ctx =
                 +> col sepSpace es (genExpr astContext)
                 +> sepCloseT
 
-        | App (Var "..", [ e1; e2 ]) ->
-            let expr =
-                genExpr astContext e1 +> sepSpace -- ".."
-                +> sepSpace
-                +> genExpr astContext e2
-
-            ifElse astContext.IsNakedRange expr (sepOpenS +> expr +> sepCloseS)
-        | App (Var ".. ..", [ e1; e2; e3 ]) ->
-            let expr =
-                genExpr astContext e1 +> sepSpace -- ".."
-                +> sepSpace
-                +> genExpr astContext e2
-                +> sepSpace
-                -- ".."
-                +> sepSpace
-                +> genExpr astContext e3
-
-            ifElse astContext.IsNakedRange expr (sepOpenS +> expr +> sepCloseS)
         // Separate two prefix ops by spaces
         | PrefixApp (s1, PrefixApp (s2, e)) -> !-(sprintf "%s %s" s1 s2) +> genExpr astContext e
         | PrefixApp (s, App (e, [ Paren _ as p ]))
