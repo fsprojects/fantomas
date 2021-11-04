@@ -3,7 +3,6 @@ module internal Fantomas.SourceParser
 open System
 open FSharp.Compiler.Syntax
 open FSharp.Compiler.Syntax.PrettyNaming
-open FSharp.Compiler.Tokenization.FSharpKeywords
 open FSharp.Compiler.Text
 open FSharp.Compiler.Xml
 open Fantomas
@@ -40,7 +39,7 @@ let (|Ident|) (s: Ident) =
         if IsActivePatternName ident then
             sprintf "(%s)" (DecompileOpName ident)
         else
-            PrettyNaming.AddBackticksToIdentifierIfNeeded ident
+            AddBackticksToIdentifierIfNeeded ident
 
 let (|LongIdent|) (li: LongIdent) =
     li
@@ -802,11 +801,6 @@ let (|NewTuple|_|) =
     | SynExpr.New (_, t, (ConstExpr (SynConst.Unit, _) as px), _) -> Some(t, px)
     | _ -> None
 
-let (|CompApp|_|) =
-    function
-    | SynExpr.App (_, _, Var "seq", (SynExpr.App _ as e), _) -> Some("seq", e)
-    | _ -> None
-
 /// Only process prefix operators here
 let (|PrefixApp|_|) =
     function
@@ -822,8 +816,7 @@ let (|PrefixApp|_|) =
 let (|InfixApp|_|) synExpr =
     match synExpr with
     | SynExpr.App (_, true, (Var "::" as e), Tuple ([ e1; e2 ], _), _) -> Some("::", e, e1, e2)
-    // Range operators need special treatments, so we exclude them here
-    | SynExpr.App (_, _, SynExpr.App (_, true, (Var s as e), e1, _), e2, _) when s <> ".." -> Some(s, e, e1, e2)
+    | SynExpr.App (_, _, SynExpr.App (_, true, (Var s as e), e1, _), e2, _) -> Some(s, e, e1, e2)
     | _ -> None
 
 let (|NewlineInfixApp|_|) =

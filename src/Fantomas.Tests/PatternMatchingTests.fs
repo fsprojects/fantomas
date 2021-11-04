@@ -1270,7 +1270,6 @@ let private formatResponse<'options> () =
     }
 """
 
-[<Ignore("Fixed in https://github.com/dotnet/fsharp/pull/12225")>]
 [<Test>]
 let ``match inside match expression, 1400`` () =
     formatSourceString
@@ -1301,7 +1300,6 @@ match
 | _ -> failwith ""
 """
 
-[<Ignore("Fixed in https://github.com/dotnet/fsharp/pull/12225")>]
 [<Test>]
 let ``match bang inside match expression`` () =
     formatSourceString
@@ -1332,7 +1330,6 @@ match
 | _ -> failwith ""
 """
 
-[<Ignore("Fixed in https://github.com/dotnet/fsharp/pull/12225")>]
 [<Test>]
 let ``match inside match bang expression`` () =
     formatSourceString
@@ -1363,7 +1360,6 @@ match!
 | _ -> failwith ""
 """
 
-[<Ignore("Fixed in https://github.com/dotnet/fsharp/pull/12225")>]
 [<Test>]
 let ``match bang inside match bang expression`` () =
     formatSourceString
