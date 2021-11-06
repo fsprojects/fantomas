@@ -167,7 +167,11 @@ let (|OpNameFull|) (x: Identifier) =
           || IsPrefixOperator s
           || IsTernaryOperator s
           || s = "op_Dynamic" then
-         s'
+         /// Use two spaces for symmetry
+         if String.startsWithOrdinal "*" s' && s' <> "*" then
+             sprintf " %s " s'
+         else
+             s'
      else
          match x with
          | Id (Ident s)

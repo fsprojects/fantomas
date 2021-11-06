@@ -84,3 +84,19 @@ let (|ParseRegex|_|) regex str =
     else
         None
 """
+
+[<Test>]
+let ``ensure spacing around power operator, 1945`` () =
+    formatSourceString
+        false
+        """
+match expr with
+| SpecificCall <@@ ( ** ) @@> (_, _, [ s1; s2 ]) -> ()"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+match expr with
+| SpecificCall <@@ ( ** ) @@> (_, _, [ s1; s2 ]) -> ()
+"""
