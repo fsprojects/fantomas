@@ -170,13 +170,14 @@ type FormatConfig =
 
       [<Category("Convention")>]
       [<DisplayName("Keep If-Then in same line")>]
+      [<Description("Obsolete setting, this no longer has any effect and will be removed in the next major version.")>]
       KeepIfThenInSameLine: bool
 
       [<Category("Elmish")>]
       [<DisplayName("Maximum width for elmish syntax")>]
       MaxElmishWidth: Num
 
-      [<Category("Convention")>]
+      [<Category("Elmish")>]
       [<DisplayName("Single-argument web mode")>]
       SingleArgumentWebMode: bool
 
@@ -202,6 +203,7 @@ type FormatConfig =
 
       [<Category("Indentation")>]
       [<DisplayName("Keep indent in branch")>]
+      [<Description("Experimental feature, use at your own risk.")>]
       KeepIndentInBranch: bool
 
       [<Category("Convention")>]
@@ -209,12 +211,12 @@ type FormatConfig =
       BlankLinesAroundNestedMultilineExpressions: bool
 
       [<Category("Convention")>]
-      [<DisplayName("Add a bar before DU declarations")>]
+      [<DisplayName("Add a bar before Discriminated Union declarations")>]
       BarBeforeDiscriminatedUnionDeclaration: bool
 
       [<Category("Convention")>]
       [<DisplayName("Strict mode")>]
-      [<Description("Pretty printing based on ASTs only")>]
+      [<Description("Pretty printing based on ASTs only.\nPlease do not use this setting for formatting hand written code!")>]
       StrictMode: bool }
 
     static member Default =
