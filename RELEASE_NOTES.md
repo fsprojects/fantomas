@@ -1,3 +1,8 @@
+#### 4.6.0-alpha-007
+
+* Expose configuration documentation in Fantomas.Daemon [#1956](https://github.com/fsprojects/fantomas/pull/1956)
+* Update FCS to 41.0.1 [#1949](https://github.com/fsprojects/fantomas/pull/1949)
+
 #### 4.6.0-alpha-006
 
 * Wider default fsharp_max_value_binding_width. [#1947](https://github.com/fsprojects/fantomas/pull/1947)
