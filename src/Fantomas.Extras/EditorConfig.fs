@@ -1,15 +1,37 @@
 module Fantomas.Extras.EditorConfig
 
 open System.Collections.Generic
+open System.ComponentModel
 open Fantomas.FormatConfig
 
 module Reflection =
+    open System
+    open System.Reflection
     open FSharp.Reflection
+
+    type FSharpRecordField =
+        { PropertyName: string
+          Category: string option
+          DisplayName: string option
+          Description: string option }
+
+    let inline private getCustomAttribute<'t, 'v when 't :> Attribute and 't: null>
+        (projection: 't -> 'v)
+        (property: PropertyInfo)
+        : 'v option =
+        property.GetCustomAttribute<'t>()
+        |> Option.ofObj
+        |> Option.map projection
 
     let inline getRecordFields x =
         let names =
             FSharpType.GetRecordFields(x.GetType())
-            |> Seq.map (fun x -> x.Name)
+            |> Seq.map
+                (fun x ->
+                    { PropertyName = x.Name
+                      Category = getCustomAttribute<CategoryAttribute, string> (fun a -> a.Category) x
+                      DisplayName = getCustomAttribute<DisplayNameAttribute, string> (fun a -> a.DisplayName) x
+                      Description = getCustomAttribute<DescriptionAttribute, string> (fun a -> a.Description) x })
 
         let values = FSharpValue.GetRecordFields x
         Seq.zip names values |> Seq.toArray
@@ -38,8 +60,10 @@ let toEditorConfigName value =
 let private fantomasFields =
     Reflection.getRecordFields FormatConfig.Default
     |> Array.map
-        (fun (propertyName, defaultValue) ->
-            let editorConfigName = toEditorConfigName propertyName
+        (fun (recordField, defaultValue) ->
+            let editorConfigName =
+                toEditorConfigName recordField.PropertyName
+
             (editorConfigName, defaultValue))
 
 let private (|Number|_|) d =
@@ -74,14 +98,19 @@ let parseOptionsFromEditorConfig (editorConfigProperties: IReadOnlyDictionary<st
 let configToEditorConfig (config: FormatConfig) : string =
     Reflection.getRecordFields config
     |> Array.choose
-        (fun (k, v) ->
+        (fun (recordField, v) ->
             match v with
             | :? System.Boolean as b ->
-                sprintf "%s=%s" (toEditorConfigName k) (if b then "true " else "false")
+                sprintf "%s=%s" (toEditorConfigName recordField.PropertyName) (if b then "true " else "false")
                 |> Some
-            | :? System.Int32 as i -> sprintf "%s=%d" (toEditorConfigName k) i |> Some
+            | :? System.Int32 as i ->
+                sprintf "%s=%d" (toEditorConfigName recordField.PropertyName) i
+                |> Some
             | :? MultilineFormatterType as mft ->
-                sprintf "%s=%s" (toEditorConfigName k) (MultilineFormatterType.ToConfigString mft)
+                sprintf
+                    "%s=%s"
+                    (toEditorConfigName recordField.PropertyName)
+                    (MultilineFormatterType.ToConfigString mft)
                 |> Some
             | _ -> None)
     |> String.concat "\n"
