@@ -1,6 +1,7 @@
 module Fantomas.FormatConfig
 
 open System
+open System.ComponentModel
 
 let satSolveMaxStepsMaxSteps = 100
 
@@ -56,47 +57,166 @@ type EndOfLineStyle =
 
 // NOTE: try to keep this list below in sync with the docs (e.g. Documentation.md)
 type FormatConfig =
-    { /// Number of spaces for each indentation
+    { [<Category("Indentation")>]
+      [<DisplayName("Indent spaces")>]
+      [<Description("Number of spaces to use for indentation")>]
       IndentSize: Num
-      /// The column where we break to new lines
+
+      [<Category("Boundaries")>]
+      [<DisplayName("Maximum line length")>]
+      [<Description("The column where we break to new lines")>]
       MaxLineLength: Num
+
+      [<Category("Convention")>]
+      [<DisplayName("Semicolon at end-of-line")>]
+      [<Description("Forces a semicolon to be added to the end of a line")>]
       SemicolonAtEndOfLine: bool
+
+      [<Category("Spacing")>]
+      [<DisplayName("Before parameter")>]
       SpaceBeforeParameter: bool
+
+      [<Category("Spacing")>]
+      [<DisplayName("Before lowercase invocation")>]
       SpaceBeforeLowercaseInvocation: bool
+
+      [<Category("Spacing")>]
+      [<DisplayName("Before uppercase invocation")>]
       SpaceBeforeUppercaseInvocation: bool
+
+      [<Category("Spacing")>]
+      [<DisplayName("Before class constructor")>]
       SpaceBeforeClassConstructor: bool
+
+      [<Category("Spacing")>]
+      [<DisplayName("Before member")>]
       SpaceBeforeMember: bool
+
+      [<Category("Spacing")>]
+      [<DisplayName("Before colon")>]
       SpaceBeforeColon: bool
+
+      [<Category("Spacing")>]
+      [<DisplayName("After comma")>]
       SpaceAfterComma: bool
+
+      [<Category("Spacing")>]
+      [<DisplayName("Before semicolon")>]
       SpaceBeforeSemicolon: bool
+
+      [<Category("Spacing")>]
+      [<DisplayName("After semicolon")>]
       SpaceAfterSemicolon: bool
+
+      [<Category("Indentation")>]
+      [<DisplayName("Indent try-with")>]
       IndentOnTryWith: bool
+
+      [<Category("Spacing")>]
+      [<DisplayName("Around delimiter")>]
       SpaceAroundDelimiter: bool
+
+      [<Category("Boundaries")>]
+      [<DisplayName("Maximum if-then-else width")>]
       MaxIfThenElseShortWidth: Num
+
+      [<Category("Boundaries")>]
+      [<DisplayName("Maximum infix-operator expression")>]
       MaxInfixOperatorExpression: Num
+
+      [<Category("Boundaries")>]
+      [<DisplayName("Maximum record width")>]
       MaxRecordWidth: Num
+
+      [<Category("Boundaries")>]
+      [<DisplayName("Maximum items in a record")>]
       MaxRecordNumberOfItems: Num
+
+      [<Category("Boundaries")>]
+      [<DisplayName("Multi-line formatter for records")>]
       RecordMultilineFormatter: MultilineFormatterType
+
+      [<Category("Boundaries")>]
+      [<DisplayName("Maximum array or list width")>]
       MaxArrayOrListWidth: Num
+
+      [<Category("Boundaries")>]
+      [<DisplayName("Maximum number of items in array/list")>]
       MaxArrayOrListNumberOfItems: Num
+
+      [<Category("Boundaries")>]
+      [<DisplayName("Multi-line formatter for array/list")>]
       ArrayOrListMultilineFormatter: MultilineFormatterType
+
+      [<Category("Boundaries")>]
+      [<DisplayName("Maximum value-binding width")>]
       MaxValueBindingWidth: Num
+
+      [<Category("Boundaries")>]
+      [<DisplayName("Maximum function-binding width")>]
       MaxFunctionBindingWidth: Num
+
+      [<Category("Boundaries")>]
+      [<DisplayName("Maximum dot get expression width")>]
       MaxDotGetExpressionWidth: Num
+
+      [<Category("Boundaries")>]
+      [<DisplayName("Multiline-block brackets on same column")>]
       MultilineBlockBracketsOnSameColumn: bool
+
+      [<Category("Convention")>]
+      [<DisplayName("Newline between type definition and members")>]
       NewlineBetweenTypeDefinitionAndMembers: bool
+
+      [<Category("Convention")>]
+      [<DisplayName("Keep If-Then in same line")>]
+      [<Description("Obsolete setting, this no longer has any effect and will be removed in the next major version.")>]
       KeepIfThenInSameLine: bool
+
+      [<Category("Elmish")>]
+      [<DisplayName("Maximum width for elmish syntax")>]
       MaxElmishWidth: Num
+
+      [<Category("Elmish")>]
+      [<DisplayName("Single-argument web mode")>]
       SingleArgumentWebMode: bool
+
+      [<Category("Convention")>]
+      [<DisplayName("Align function signature to indentation")>]
       AlignFunctionSignatureToIndentation: bool
+
+      [<Category("Convention")>]
+      [<DisplayName("Alternative long member definitions")>]
       AlternativeLongMemberDefinitions: bool
+
+      [<Category("Boundaries")>]
+      [<DisplayName("MultiLine-lambda has closing newline")>]
       MultiLineLambdaClosingNewline: bool
+
+      [<Category("Elmish")>]
+      [<DisplayName("Disable support for elmish syntax")>]
       DisableElmishSyntax: bool
+
+      [<Category("Boundaries")>]
+      [<DisplayName("Line-ending style")>]
       EndOfLine: EndOfLineStyle
+
+      [<Category("Indentation")>]
+      [<DisplayName("Keep indent in branch")>]
+      [<Description("Experimental feature, use at your own risk.")>]
       KeepIndentInBranch: bool
+
+      [<Category("Convention")>]
+      [<DisplayName("Keep empty lines around nested multi-line expressions")>]
       BlankLinesAroundNestedMultilineExpressions: bool
+
+      [<Category("Convention")>]
+      [<DisplayName("Add a bar before Discriminated Union declarations")>]
       BarBeforeDiscriminatedUnionDeclaration: bool
-      /// Pretty printing based on ASTs only
+
+      [<Category("Convention")>]
+      [<DisplayName("Strict mode")>]
+      [<Description("Pretty printing based on ASTs only.\nPlease do not use this setting for formatting hand written code!")>]
       StrictMode: bool }
 
     static member Default =
