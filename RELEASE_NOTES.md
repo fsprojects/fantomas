@@ -1,3 +1,7 @@
+#### 4.5.7 - 11/2021
+
+* Fix Formatting power operator in code quotation pattern match fails. [#1945](https://github.com/fsprojects/fantomas/issues/1945)
+
 #### 4.5.6 - 11/2021
 
 * Fix Offside code created when base constructor wraps across lines. [#1942](https://github.com/fsprojects/fantomas/issues/1942)
