@@ -1621,6 +1621,25 @@ type Foo =
 """
 
 [<Test>]
+let ``mod name in val, 1960`` () =
+    formatSourceString
+        true
+        """
+module X
+
+val ``mod``: t -> t -> t
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+module X
+
+val ``mod``: t -> t -> t
+"""
+
+[<Test>]
 let ``literals in signatures, 1953`` () =
     formatSourceString
         true

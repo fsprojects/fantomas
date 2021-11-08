@@ -35,6 +35,7 @@ let (|Ident|) (s: Ident) =
     | "not" -> "not"
     | "params" -> "``params``"
     | "parallel" -> "``parallel``"
+    | "mod" -> "``mod``"
     | _ ->
         if IsActivePatternName ident then
             sprintf "(%s)" (DecompileOpName ident)
