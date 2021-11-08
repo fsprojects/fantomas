@@ -863,6 +863,12 @@ let (|IndexWithoutDotExpr|_|) =
     function
     | SynExpr.App (ExprAtomicFlag.Atomic, false, identifierExpr, SynExpr.ArrayOrListComputed (false, indexExpr, _), _) ->
         Some(identifierExpr, indexExpr)
+    | SynExpr.App (ExprAtomicFlag.NonAtomic,
+                   false,
+                   identifierExpr,
+                   (SynExpr.ArrayOrListComputed (isArray = false; expr = indexExpr) as argExpr),
+                   _) when (RangeHelpers.isAdjacentTo identifierExpr.Range argExpr.Range) ->
+        Some(identifierExpr, indexExpr)
     | _ -> None
 
 let (|MatchLambda|_|) =
