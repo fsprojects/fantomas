@@ -25,3 +25,8 @@ module RangeHelpers =
         && r1.EndColumn = r2.EndColumn
 
     let rangeEq = Range.equals
+
+    let isAdjacentTo (r1: Range) (r2: Range) : bool =
+        r1.FileName = r2.FileName
+        && r1.End.Line = r2.Start.Line
+        && r1.EndColumn = r2.StartColumn
