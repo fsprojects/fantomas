@@ -99,3 +99,18 @@ for x in 1..2 do
 
 let s = seq { 0..10..100 }
 """
+
+[<Test>]
+let ``index syntax on raw list, 1929`` () =
+    formatSourceString
+        false
+        """
+let y = [ 0; 2; 4 ][ 1 ]
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let y = [ 0; 2; 4 ][1]
+"""
