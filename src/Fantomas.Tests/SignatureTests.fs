@@ -1601,3 +1601,47 @@ type Foo =
           Qux: string }
     static member Baz: int
 """
+
+[<Test>]
+let ``literals in signatures, 1953`` () =
+    formatSourceString
+        true
+        """
+namespace Foo
+
+[<Literal>]
+val parenGet: string = ".()"
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+namespace Foo
+
+[<Literal>]
+val parenGet: string = ".()"
+"""
+
+[<Test>]
+let ``literals in signatures, sig member`` () =
+    formatSourceString
+        true
+        """
+namespace Meh
+
+type FooBar =
+    [<Literal>]
+    abstract member parenGet : string = ".()"
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+namespace Meh
+
+type FooBar =
+    [<Literal>]
+    abstract member parenGet: string = ".()"
+"""

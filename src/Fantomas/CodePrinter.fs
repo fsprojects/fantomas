@@ -867,7 +867,7 @@ and genMemberFlagsForMemberBinding astContext (mf: MemberFlags) (rangeOfBindingA
             |> Option.defaultValue (!- "override ")
         <| ctx
 
-and genVal astContext (Val (ats, px, ao, s, identRange, t, vi, isInline, _) as node) =
+and genVal astContext (Val (ats, px, ao, s, identRange, t, vi, isInline, _, eo) as node) =
     let range, synValTyparDecls =
         match node with
         | ValSpfn (_, _, synValTyparDecls, _, _, _, _, _, _, _, range) -> range, synValTyparDecls
@@ -892,6 +892,7 @@ and genVal astContext (Val (ats, px, ao, s, identRange, t, vi, isInline, _) as n
         (List.isNotEmpty namedArgs)
         (autoIndentAndNlnIfExpressionExceedsPageWidth (genTypeList astContext namedArgs))
         (genConstraints astContext t vi)
+    +> optSingle (fun e -> sepEq +> sepSpace +> genExpr astContext e) eo
     |> genTriviaFor ValSpfn_ range
 
 and genRecordFieldName astContext (RecordFieldName (s, eo) as node) =
@@ -4044,7 +4045,7 @@ and genMemberSig astContext node =
         | SynMemberSig.NestedType (_, r) -> r, SynMemberSig_NestedType
 
     match node with
-    | MSMember (Val (ats, px, ao, s, _, t, vi, isInline, ValTyparDecls (tds, _, tcs)), mf) ->
+    | MSMember (Val (ats, px, ao, s, _, t, vi, isInline, ValTyparDecls (tds, _, tcs), eo), mf) ->
         let (FunType namedArgs) = (t, vi)
 
         let isFunctionProperty =
@@ -4071,6 +4072,7 @@ and genMemberSig astContext node =
             (autoIndentAndNlnIfExpressionExceedsPageWidth (genTypeList astContext namedArgs))
             (genConstraints astContext t vi)
         -- (genPropertyKind (not isFunctionProperty) mf.MemberKind)
+        +> optSingle (fun e -> sepEq +> sepSpace +> genExpr astContext e) eo
 
 
     | MSInterface t -> !- "interface " +> genType astContext false t
@@ -4786,6 +4788,7 @@ and genMemberDefn astContext node =
             |> fun s -> !- s ctx
 
         let hasGenerics = not tds.IsEmpty
+
         genPreXmlDoc px
         +> genAttributes astContext ats
         +> opt sepSpace ao genAccess
