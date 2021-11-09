@@ -172,7 +172,7 @@ val GetHashCodeTainted: (Tainted<'T> -> int) when 'T: equality
 """
 
 [<Test>]
-let ``should keep mutable in type signature`` () =
+let ``should keep mutable in type signature, 1954`` () =
     formatSourceString
         true
         """
