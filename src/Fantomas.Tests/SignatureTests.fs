@@ -172,6 +172,24 @@ val GetHashCodeTainted: (Tainted<'T> -> int) when 'T: equality
 """
 
 [<Test>]
+let ``should keep mutable in type signature`` () =
+    formatSourceString
+        true
+        """
+module Tainted
+val mutable showParserStackOnParseError: bool
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+module Tainted
+
+val mutable showParserStackOnParseError: bool
+"""
+
+[<Test>]
 let ``should keep access modifiers in signatures seperated`` () =
     formatSourceString
         true

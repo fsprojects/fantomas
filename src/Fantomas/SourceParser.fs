@@ -1565,13 +1565,13 @@ let (|Val|)
                 t,
                 vi,
                 isInline,
-                _,
+                isMutable,
                 px,
                 ao,
                 eo,
                 range))
     =
-    (ats, px, ao, s, ident.idRange, t, vi, isInline, typars, eo, range)
+    (ats, px, ao, s, ident.idRange, t, vi, isInline, isMutable, typars, eo, range)
 
 // Misc
 

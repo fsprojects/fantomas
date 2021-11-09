@@ -923,7 +923,7 @@ and genMemberFlagsForMemberBinding astContext (mf: SynMemberFlags) (rangeOfBindi
             |> Option.defaultValue (!- "override ")
         <| ctx
 
-and genVal astContext (Val (ats, px, ao, s, identRange, t, vi, isInline, tds, eo, range)) =
+and genVal astContext (Val (ats, px, ao, s, identRange, t, vi, isInline, isMutable, tds, eo, range)) =
     let typeName = genTypeAndParam astContext s tds []
 
     let (FunType namedArgs) = (t, vi)
@@ -933,6 +933,7 @@ and genVal astContext (Val (ats, px, ao, s, identRange, t, vi, isInline, tds, eo
     +> genAttributes astContext ats
     +> (!- "val "
         +> onlyIf isInline (!- "inline ")
+        +> onlyIf isMutable (!- "mutable ")
         +> opt sepSpace ao genAccess
         +> typeName
         |> genTriviaFor Ident_ identRange)
@@ -4195,7 +4196,7 @@ and genMemberSig astContext node =
         | SynMemberSig.NestedType (_, r) -> r, SynMemberSig_NestedType
 
     match node with
-    | MSMember (Val (ats, px, ao, s, _, t, vi, isInline, tds, eo, _), mf) ->
+    | MSMember (Val (ats, px, ao, s, _, t, vi, isInline, _, tds, eo, _), mf) ->
         let (FunType namedArgs) = (t, vi)
 
         let isFunctionProperty =
