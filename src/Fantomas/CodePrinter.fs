@@ -867,7 +867,7 @@ and genMemberFlagsForMemberBinding astContext (mf: MemberFlags) (rangeOfBindingA
             |> Option.defaultValue (!- "override ")
         <| ctx
 
-and genVal astContext (Val (ats, px, ao, s, identRange, t, vi, isInline, _, eo) as node) =
+and genVal astContext (Val (ats, px, ao, s, identRange, t, vi, isInline, isMutable, _, eo) as node) =
     let range, synValTyparDecls =
         match node with
         | ValSpfn (_, _, synValTyparDecls, _, _, _, _, _, _, _, range) -> range, synValTyparDecls
@@ -883,6 +883,7 @@ and genVal astContext (Val (ats, px, ao, s, identRange, t, vi, isInline, _, eo) 
     +> genAttributes astContext ats
     +> (!- "val "
         +> onlyIf isInline (!- "inline ")
+        +> onlyIf isMutable (!- "mutable ")
         +> opt sepSpace ao genAccess
         -- s
         +> genericParams
@@ -4045,7 +4046,7 @@ and genMemberSig astContext node =
         | SynMemberSig.NestedType (_, r) -> r, SynMemberSig_NestedType
 
     match node with
-    | MSMember (Val (ats, px, ao, s, _, t, vi, isInline, ValTyparDecls (tds, _, tcs), eo), mf) ->
+    | MSMember (Val (ats, px, ao, s, _, t, vi, isInline, _, ValTyparDecls (tds, _, tcs), eo), mf) ->
         let (FunType namedArgs) = (t, vi)
 
         let isFunctionProperty =
