@@ -2686,7 +2686,7 @@ with
         correctlyFormatedSrc
 
 [<Test>]
-let ``(copy) double try-with, inner #if directive should not throw error, 1969`` () =
+let ``double try-with, comment before inner 'with' not duplicated, 1969`` () =
     // copied from TriviaTests.fs - here it works... No reason why...
     formatSourceString
         false
