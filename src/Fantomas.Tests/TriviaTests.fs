@@ -4,6 +4,7 @@ open NUnit.Framework
 open Fantomas
 open Fantomas.Tests.TestHelper
 open Fantomas.TriviaTypes
+open FsUnit
 
 let private collectTrivia =
     Trivia.collectTrivia
@@ -541,3 +542,33 @@ let x =
     | [ { Type = TriviaNodeType.MainNode SynConst_Unit
           ContentBefore = [ Directive "#if DEBUG\n\n#endif" ] } ] -> pass ()
     | _ -> Assert.Fail(sprintf "Unexpected trivia: %A" trivia)
+
+[<Test>]
+let ``double try-with, comment before inner 'with' not duplicated, 1969`` () =
+    // This test fails because of [Expected: "\r\ntr" But was:  "\ntry\n"] at start position of the string
+    formatSourceString
+        false
+        """
+try
+    try
+        ()
+        // xxx
+    with
+    | _ -> ()
+with
+| _ -> ()
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+try
+    try
+        ()
+    // xxx
+    with
+    | _ -> ()
+with
+| _ -> ()
+"""

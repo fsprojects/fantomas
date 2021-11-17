@@ -2659,3 +2659,58 @@ let ``indented #if directive inside another non-indented #if directive should fo
 #endif
 #endif
 """
+
+[<Test>]
+let ``double try-with, inner #if directive should not throw error, 1969`` () =
+    let correctlyFormatedSrc = 
+        """
+try
+    try
+        ()
+#if FOO
+        ()
+#endif
+    with
+    | _ -> ()
+with
+| _ -> ()
+"""
+
+    formatSourceString
+        false
+        correctlyFormatedSrc
+        config
+    |> prepend newline
+    |> should
+        equal
+        correctlyFormatedSrc
+
+[<Test>]
+let ``(copy) double try-with, inner #if directive should not throw error, 1969`` () =
+    // copied from TriviaTests.fs - here it works... No reason why...
+    formatSourceString
+        false
+        """
+try
+    try
+        ()
+        // xxx
+    with
+    | _ -> ()
+with
+| _ -> ()
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+try
+    try
+        ()
+    // xxx
+    with
+    | _ -> ()
+with
+| _ -> ()
+"""
