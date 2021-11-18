@@ -2662,7 +2662,8 @@ let ``indented #if directive inside another non-indented #if directive should fo
 
 [<Test>]
 let ``double try-with, inner #if directive should not throw error, 1969`` () =
-    let correctlyFormatedSrc =
+    formatSourceString
+        false
         """
 try
     try
@@ -2675,7 +2676,19 @@ try
 with
 | _ -> ()
 """
-
-    formatSourceString false correctlyFormatedSrc config
+        config
     |> prepend newline
-    |> should equal correctlyFormatedSrc
+    |> should
+        equal
+        """
+try
+    try
+        ()
+#if FOO
+        ()
+#endif
+    with
+    | _ -> ()
+with
+| _ -> ()
+"""
