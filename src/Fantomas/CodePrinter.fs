@@ -2023,20 +2023,14 @@ and genExpr astContext synExpr ctx =
 
                 atCurrentColumn (colWithNlnWhenItemIsMultilineUsingConfig items) ctx
         // Could customize a bit if e is single line
-        | TryWith (e, cs) ->
+        | TryWith (e, mWithToLast, cs) ->
             atCurrentColumn (
                 kw TRY !- "try "
                 +> indent
                 +> sepNln
                 +> genExpr astContext e
                 +> unindent
-                +> (fun ctx ->
-                    let lookupRange =
-                        ctx.MkRangeWith
-                            (synExpr.Range.EndLine - 1, 0)
-                            (synExpr.Range.EndLine, synExpr.Range.EndColumn)
-
-                    tokN lookupRange WITH (!+~ "with") ctx)
+                +> tokN mWithToLast WITH (!+~ "with")
                 +> indentOnWith
                 +> sepNln
                 +> col sepNln cs (genClause astContext true)

@@ -2685,32 +2685,3 @@ with
         equal
         correctlyFormatedSrc
 
-[<Test>]
-let ``double try-with, comment before inner 'with' not duplicated, 1969`` () =
-    // copied from TriviaTests.fs - here it works... No reason why...
-    formatSourceString
-        false
-        """
-try
-    try
-        ()
-        // xxx
-    with
-    | _ -> ()
-with
-| _ -> ()
-"""
-        config
-    |> prepend newline
-    |> should
-        equal
-        """
-try
-    try
-        ()
-    // xxx
-    with
-    | _ -> ()
-with
-| _ -> ()
-"""
