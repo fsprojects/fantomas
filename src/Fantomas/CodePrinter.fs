@@ -2030,7 +2030,7 @@ and genExpr astContext synExpr ctx =
                 +> sepNln
                 +> genExpr astContext e
                 +> unindent
-                +> tokN mWithToLast WITH (!+~ "with")
+                +> tokN mWithToLast WITH !+~ "with"
                 +> indentOnWith
                 +> sepNln
                 +> col sepNln cs (genClause astContext true)
