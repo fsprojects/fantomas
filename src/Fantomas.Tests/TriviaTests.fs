@@ -4,7 +4,6 @@ open NUnit.Framework
 open Fantomas
 open Fantomas.Tests.TestHelper
 open Fantomas.TriviaTypes
-open FsUnit
 
 let private collectTrivia =
     Trivia.collectTrivia
