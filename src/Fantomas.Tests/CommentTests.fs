@@ -1655,3 +1655,33 @@ with
 
 | b -> c
 """
+
+[<Test>]
+let ``nested try/with with comment on with`` () =
+    formatSourceString
+        false
+        """
+try
+    a
+with
+| b ->
+    try c
+    // inner comment
+    with
+    | d -> ()
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+try
+    a
+with
+| b ->
+    try
+        c
+    // inner comment
+    with
+    | d -> ()
+"""

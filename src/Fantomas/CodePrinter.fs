@@ -2030,7 +2030,13 @@ and genExpr astContext synExpr ctx =
                 +> sepNln
                 +> genExpr astContext e
                 +> unindent
-                +> tokN mWithToLast WITH !+~ "with"
+                +> (fun ctx ->
+                    let lookupRange =
+                        ctx.MkRangeWith
+                            (mWithToLast.StartLine, mWithToLast.StartColumn)
+                            (mWithToLast.StartLine, mWithToLast.StartColumn + 3)
+
+                    tokN lookupRange WITH !+~ "with" ctx)
                 +> indentOnWith
                 +> sepNln
                 +> col sepNln cs (genClause astContext true)
