@@ -1599,3 +1599,89 @@ type TorDirectory =
                 }
         }
 """
+
+[<Test>]
+let ``double try-with, comment before inner 'with' not duplicated, 1969`` () =
+    formatSourceString
+        false
+        """
+try
+    try
+        ()
+        // xxx
+    with
+    | _ -> ()
+with
+| _ -> ()
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+try
+    try
+        ()
+    // xxx
+    with
+    | _ -> ()
+with
+| _ -> ()
+"""
+
+[<Test>]
+let ``comment shold not be lost`` () =
+    formatSourceString
+        false
+        """
+try
+    a
+// comment
+with
+
+
+| b -> c
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+try
+    a
+// comment
+with
+
+
+| b -> c
+"""
+
+[<Test>]
+let ``nested try/with with comment on with`` () =
+    formatSourceString
+        false
+        """
+try
+    a
+with
+| b ->
+    try c
+    // inner comment
+    with
+    | d -> ()
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+try
+    a
+with
+| b ->
+    try
+        c
+    // inner comment
+    with
+    | d -> ()
+"""

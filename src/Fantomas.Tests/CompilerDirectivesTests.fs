@@ -2659,3 +2659,36 @@ let ``indented #if directive inside another non-indented #if directive should fo
 #endif
 #endif
 """
+
+[<Test>]
+let ``double try-with, inner #if directive should not throw error, 1969`` () =
+    formatSourceString
+        false
+        """
+try
+    try
+        ()
+#if FOO
+        ()
+#endif
+    with
+    | _ -> ()
+with
+| _ -> ()
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+try
+    try
+        ()
+#if FOO
+        ()
+#endif
+    with
+    | _ -> ()
+with
+| _ -> ()
+"""

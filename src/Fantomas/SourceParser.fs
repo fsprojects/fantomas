@@ -1073,7 +1073,7 @@ let (|LongIdentSet|_|) =
 
 let (|TryWith|_|) =
     function
-    | SynExpr.TryWith (e, _, cs, _, _, _, _) -> Some(e, cs)
+    | SynExpr.TryWith (e, _, cs, mWithToLast, _, _, _) -> Some(e, mWithToLast, cs)
     | _ -> None
 
 let (|TryFinally|_|) =
