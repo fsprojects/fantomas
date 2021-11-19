@@ -1,3 +1,13 @@
+#### 4.5.8 - 11/2021
+
+* Fix Fantomas is unable to format valid F# (.net 6.0) program. [#1969](https://github.com/fsprojects/fantomas/issues/1969)
+* Fix Attributes on static members of recursive types formats incorrectly. [#1962](https://github.com/fsprojects/fantomas/issues/1962)
+* Fix val mutable in signature loses 'mutable'. [#1954](https://github.com/fsprojects/fantomas/issues/1954)
+* Fix Literals in signatures lose values. [#1953](https://github.com/fsprojects/fantomas/issues/1953)
+* Fix Attribute on member of mutually dependent types fails to validate. [#1918](https://github.com/fsprojects/fantomas/issues/1918)
+* Fix Wrong code is generated for member attribute in recursive type. [#1898](https://github.com/fsprojects/fantomas/issues/1898)
+* Fix Attribute on type function incorrectly placed for 'and' types. [#1874](https://github.com/fsprojects/fantomas/issues/1874)
+
 #### 4.5.7 - 11/2021
 
 * Fix Formatting power operator in code quotation pattern match fails. [#1945](https://github.com/fsprojects/fantomas/issues/1945)
