@@ -17,9 +17,7 @@ open Fantomas.AstExtensions
 /// This type consists of contextual information which is important for formatting
 /// Please avoid using this record as it can be the cause of unexpected behavior when used incorrectly
 type ASTContext =
-    { /// Current node is the first child of its parent
-      IsFirstChild: bool
-      /// Current node is a subnode deep down in an interface
+    { /// Current node is a subnode deep down in an interface
       InterfaceRange: Range option
       /// This pattern matters for formatting extern declarations
       IsCStylePattern: bool
@@ -32,8 +30,7 @@ type ASTContext =
       /// Inside a SynPat of MatchClause
       IsInsideMatchClausePattern: bool }
     static member Default =
-        { IsFirstChild = false
-          InterfaceRange = None
+        { InterfaceRange = None
           IsCStylePattern = false
           IsNakedRange = false
           IsUnionField = false
@@ -359,7 +356,7 @@ and genModuleDecl astContext (node: SynModuleDecl) =
                       IsCStylePattern = true })
         +> sepCloseT
     // Add a new line after module-level let bindings
-    | Let b -> genLetBinding { astContext with IsFirstChild = true } "let " b
+    | Let b -> genLetBinding astContext "let " b
     | LetRec (b :: bs) ->
         let sepBAndBs =
             match List.tryHead bs with
@@ -370,7 +367,7 @@ and genModuleDecl astContext (node: SynModuleDecl) =
                 +> sepNlnConsideringTriviaContentBeforeForMainNode (synBindingToFsAstType b) r
             | None -> id
 
-        genLetBinding { astContext with IsFirstChild = true } "let rec " b
+        genLetBinding astContext "let rec " b
         +> sepBAndBs
         +> colEx
             (fun (b': SynBinding) ->
@@ -381,7 +378,7 @@ and genModuleDecl astContext (node: SynModuleDecl) =
             bs
             (fun andBinding ->
                 enterNodeFor (synBindingToFsAstType b) andBinding.RangeOfBindingAndRhs
-                +> genLetBinding { astContext with IsFirstChild = false } "and " andBinding)
+                +> genLetBinding astContext "and " andBinding)
 
     | ModuleAbbrev (s1, s2) -> !- "module " -- s1 +> sepEq +> sepSpace -- s2
     | NamespaceFragment m -> failwithf "NamespaceFragment hasn't been implemented yet: %O" m
@@ -403,11 +400,11 @@ and genModuleDecl astContext (node: SynModuleDecl) =
     // There is no nested types and they are recursive if there are more than one definition
     | Types (t :: ts) ->
         let items =
-            ColMultilineItem(genTypeDefn { astContext with IsFirstChild = true } t, sepNone)
+            ColMultilineItem(genTypeDefn astContext true t, sepNone)
             :: (List.map
                     (fun t ->
                         ColMultilineItem(
-                            genTypeDefn { astContext with IsFirstChild = false } t,
+                            genTypeDefn astContext false t,
                             sepNlnConsideringTriviaContentBeforeForMainNode TypeDefn_ t.Range
                         ))
                     ts)
@@ -438,7 +435,7 @@ and genSigModuleDecl astContext node =
     | SigOpenType s -> !-(sprintf "open type %s" s)
     | SigTypes (t :: ts) ->
         let items =
-            ColMultilineItem(genSigTypeDefn { astContext with IsFirstChild = true } t, sepNone)
+            ColMultilineItem(genSigTypeDefn astContext true t, sepNone)
             :: (List.map
                     (fun t ->
                         let sepNln =
@@ -450,7 +447,7 @@ and genSigModuleDecl astContext node =
                                 t.FullRange
                                 attributeRanges
 
-                        ColMultilineItem(genSigTypeDefn { astContext with IsFirstChild = false } t, sepNln))
+                        ColMultilineItem(genSigTypeDefn astContext false t, sepNln))
                     ts)
 
         colWithNlnWhenItemIsMultilineUsingConfig items
@@ -598,6 +595,7 @@ and genTypeParamPostfix astContext tds tcs =
 
 and genLetBinding astContext pref b =
     let genPref = !-pref
+    let isRecursiveLetOrUseFunction = (pref = "and ")
 
     match b with
     | LetBinding (ats, px, ao, isInline, isMutable, p, e, valInfo) ->
@@ -606,6 +604,7 @@ and genLetBinding astContext pref b =
             genSynBindingFunctionWithReturnType
                 astContext
                 false
+                isRecursiveLetOrUseFunction
                 px
                 ats
                 genPref
@@ -620,11 +619,38 @@ and genLetBinding astContext pref b =
                 valInfo
                 e
         | e, PatLongIdent (ao, s, ps, tpso) when (List.isNotEmpty ps) ->
-            genSynBindingFunction astContext false px ats genPref ao isInline isMutable s p.Range ps tpso e
+            genSynBindingFunction
+                astContext
+                false
+                isRecursiveLetOrUseFunction
+                px
+                ats
+                genPref
+                ao
+                isInline
+                isMutable
+                s
+                p.Range
+                ps
+                tpso
+                e
         | TypedExpr (Typed, e, t), pat ->
-            genSynBindingValue astContext px ats genPref ao isInline isMutable pat (Some t) e
-        | _, PatTuple _ -> genLetBindingDestructedTuple astContext px ats pref ao isInline isMutable p e
-        | _, pat -> genSynBindingValue astContext px ats genPref ao isInline isMutable pat None e
+            genSynBindingValue
+                astContext
+                isRecursiveLetOrUseFunction
+                px
+                ats
+                genPref
+                ao
+                isInline
+                isMutable
+                pat
+                (Some t)
+                e
+        | _, PatTuple _ ->
+            genLetBindingDestructedTuple astContext isRecursiveLetOrUseFunction px ats pref ao isInline isMutable p e
+        | _, pat ->
+            genSynBindingValue astContext isRecursiveLetOrUseFunction px ats genPref ao isInline isMutable pat None e
         | _ -> sepNone
     | DoBinding (ats, px, e) ->
         let prefix =
@@ -766,6 +792,7 @@ and genMemberBinding astContext b =
             genSynBindingFunctionWithReturnType
                 astContext
                 true
+                false
                 px
                 ats
                 prefix
@@ -780,9 +807,10 @@ and genMemberBinding astContext b =
                 synValInfo
                 e
         | e, PatLongIdent (ao, s, ps, tpso) when (List.isNotEmpty ps) ->
-            genSynBindingFunction astContext true px ats prefix ao isInline false s p.Range ps tpso e
-        | TypedExpr (Typed, e, t), pat -> genSynBindingValue astContext px ats prefix ao isInline false pat (Some t) e
-        | _, pat -> genSynBindingValue astContext px ats prefix ao isInline false pat None e
+            genSynBindingFunction astContext true false px ats prefix ao isInline false s p.Range ps tpso e
+        | TypedExpr (Typed, e, t), pat ->
+            genSynBindingValue astContext false px ats prefix ao isInline false pat (Some t) e
+        | _, pat -> genSynBindingValue astContext false px ats prefix ao isInline false pat None e
 
     | ExplicitCtor (ats, px, ao, p, e, so) ->
         let prefix =
@@ -3416,11 +3444,7 @@ and collectMultilineItemForLetOrUses
     let multilineBinding p x =
         let expr =
             enterNodeFor (synBindingToFsAstType x) x.RangeOfBindingAndRhs
-            +> genLetBinding
-                { astContext with
-                      IsFirstChild = p <> "and" }
-                p
-                x
+            +> genLetBinding astContext p x
             +> genInKeyword x e
 
         let range = x.RangeOfBindingAndRhs
@@ -3496,11 +3520,15 @@ and sepNlnBetweenTypeAndMembers (tdr: SynTypeDefnRepr) (ms: SynMemberDefn list) 
         sepNlnTypeAndMembers tdr.Range.End range mainNodeType
     | None -> sepNone
 
-and genTypeDefn astContext (TypeDef (ats, px, ao, tds, tcs, tdr, ms, s, preferPostfix) as node) =
+and genTypeDefn
+    astContext
+    (isFirstTypeDefn: bool)
+    (TypeDef (ats, px, ao, tds, tcs, tdr, ms, s, preferPostfix) as node)
+    =
     let typeName =
         genPreXmlDoc px
         +> ifElse
-            astContext.IsFirstChild
+            isFirstTypeDefn
             (genAttributes astContext ats -- "type ")
             (!- "and " +> genOnelinerAttributes astContext ats)
         +> opt sepSpace ao genAccess
@@ -3820,7 +3848,11 @@ and sepNlnBetweenSigTypeAndMembers (synTypeDefnRepr: SynTypeDefnSigRepr) (ms: Sy
         sepNlnTypeAndMembers synTypeDefnRepr.Range.End range mainNodeType
     | None -> sepNone
 
-and genSigTypeDefn astContext (SigTypeDef (ats, px, ao, tds, tcs, tdr, ms, s, preferPostfix, fullRange)) =
+and genSigTypeDefn
+    astContext
+    (isFirstSigTypeDefn: bool)
+    (SigTypeDef (ats, px, ao, tds, tcs, tdr, ms, s, preferPostfix, fullRange))
+    =
     let genTriviaForOnelinerAttributes f (ctx: Context) =
         match ats with
         | [] -> f ctx
@@ -3833,7 +3865,7 @@ and genSigTypeDefn astContext (SigTypeDef (ats, px, ao, tds, tcs, tdr, ms, s, pr
     let genXmlTypeKeywordAttrsAccess =
         genPreXmlDoc px
         +> ifElse
-            astContext.IsFirstChild
+            isFirstSigTypeDefn
             (genAttributes astContext ats -- "type ")
             ((!- "and " +> genOnelinerAttributes astContext ats)
              |> genTriviaForOnelinerAttributes)
@@ -4717,7 +4749,7 @@ and genMemberDefn astContext node =
                     (fun andBinding ->
                         let expr =
                             enterNodeFor (synBindingToFsAstType b) andBinding.RangeOfBindingAndRhs
-                            +> genLetBinding { astContext with IsFirstChild = false } "and " andBinding
+                            +> genLetBinding astContext "and " andBinding
 
                         ColMultilineItem(
                             expr,
@@ -4726,7 +4758,7 @@ and genMemberDefn astContext node =
                                 andBinding.RangeOfBindingAndRhs
                         ))
 
-            ColMultilineItem(genLetBinding { astContext with IsFirstChild = true } prefix b, sepNone)
+            ColMultilineItem(genLetBinding astContext prefix b, sepNone)
             :: bsItems
 
         colWithNlnWhenItemIsMultilineUsingConfig items
@@ -4743,9 +4775,6 @@ and genMemberDefn astContext node =
                 +> sepNln
                 +> genMemberDefnList
                     { astContext with
-                          // Reset this property to avoid problems with the generation of the attributes on the members
-                          // See 1668
-                          IsFirstChild = true
                           InterfaceRange = Some range }
                     mds
                 +> unindent)
@@ -5042,6 +5071,7 @@ and genPat astContext pat =
 and genSynBindingFunction
     (astContext: ASTContext)
     (isMemberDefinition: bool)
+    (isRecursiveLetOrUseFunction: bool)
     (px: FSharp.Compiler.XmlDoc.PreXmlDoc)
     (ats: SynAttributes)
     (pref: Context -> Context)
@@ -5062,10 +5092,10 @@ and genSynBindingFunction
             ctx.Config.SpaceBeforeParameter, ctx.Config.AlignFunctionSignatureToIndentation
 
     let genAttrIsFirstChild =
-        onlyIf astContext.IsFirstChild (genAttributes astContext ats)
+        onlyIf (not isRecursiveLetOrUseFunction) (genAttributes astContext ats)
 
     let genPref =
-        if astContext.IsFirstChild then
+        if not isRecursiveLetOrUseFunction then
             pref
         else
             (pref +> genOnelinerAttributes astContext ats)
@@ -5143,6 +5173,7 @@ and genSynBindingFunction
 and genSynBindingFunctionWithReturnType
     (astContext: ASTContext)
     (isMemberDefinition: bool)
+    (isRecursiveLetOrUseFunction: bool)
     (px: FSharp.Compiler.XmlDoc.PreXmlDoc)
     (ats: SynAttributes)
     (pref: Context -> Context)
@@ -5165,10 +5196,10 @@ and genSynBindingFunctionWithReturnType
             ctx.Config.SpaceBeforeParameter, ctx.Config.AlignFunctionSignatureToIndentation
 
     let genAttrIsFirstChild =
-        onlyIf astContext.IsFirstChild (genAttributes astContext ats)
+        onlyIf (not isRecursiveLetOrUseFunction) (genAttributes astContext ats)
 
     let genPref =
-        if astContext.IsFirstChild then
+        if not isRecursiveLetOrUseFunction then
             pref
         else
             pref +> genOnelinerAttributes astContext ats
@@ -5252,6 +5283,7 @@ and genSynBindingFunctionWithReturnType
 
 and genLetBindingDestructedTuple
     (astContext: ASTContext)
+    (isRecursiveLetOrUseFunction: bool)
     (px: FSharp.Compiler.XmlDoc.PreXmlDoc)
     (ats: SynAttributes)
     (pref: string)
@@ -5262,7 +5294,7 @@ and genLetBindingDestructedTuple
     (e: SynExpr)
     =
     let genAttrAndPref =
-        if astContext.IsFirstChild then
+        if not isRecursiveLetOrUseFunction then
             (genAttributes astContext ats -- pref)
         else
             (!-pref +> genOnelinerAttributes astContext ats)
@@ -5300,6 +5332,7 @@ and genLetBindingDestructedTuple
 
 and genSynBindingValue
     (astContext: ASTContext)
+    (isRecursiveLetOrUseFunction: bool)
     (px: FSharp.Compiler.XmlDoc.PreXmlDoc)
     (ats: SynAttributes)
     (pref: Context -> Context)
@@ -5311,10 +5344,10 @@ and genSynBindingValue
     (e: SynExpr)
     =
     let genAttrIsFirstChild =
-        onlyIf astContext.IsFirstChild (genAttributes astContext ats)
+        onlyIf (not isRecursiveLetOrUseFunction) (genAttributes astContext ats)
 
     let genPref =
-        if astContext.IsFirstChild then
+        if not isRecursiveLetOrUseFunction then
             pref
         else
             (pref +> genOnelinerAttributes astContext ats)

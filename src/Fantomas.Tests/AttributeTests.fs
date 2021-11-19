@@ -783,3 +783,166 @@ module Foo =
         [<DllImport("Kernel32.dll", SetLastError = true)>]
         extern bool GetFileInformationByHandleEx(IntPtr hFile, FILE_INFO_BY_HANDLE_CLASS infoClass, [<Out>] FILE_NAME_INFO& info, uint32 dwBufferSize)
 """
+
+[<Test>]
+let ``attribute on member of recursive type, 1918`` () =
+    formatSourceString
+        false
+        """
+type X = A
+and Y = B
+    with
+        [<ExcludeFromCodeCoverage>]
+        member  this.M() = true
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type X = A
+
+and Y = B
+    with
+        [<ExcludeFromCodeCoverage>]
+        member this.M() = true
+"""
+
+[<Test>]
+let ``attribute on second member defn, 1898`` () =
+    formatSourceString
+        false
+        """
+type Test1() =
+  member x.Test() = ()
+
+and Test2() =
+
+  let someEvent = Event<EventHandler<int>, int>()
+
+  [<CLIEvent>]
+  member x.SomeEvent = someEvent.Publish
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type Test1() =
+    member x.Test() = ()
+
+and Test2() =
+
+    let someEvent = Event<EventHandler<int>, int>()
+
+    [<CLIEvent>]
+    member x.SomeEvent = someEvent.Publish
+"""
+
+[<Test>]
+let ``attributes on recursive discriminated union types, 1874`` () =
+    formatSourceString
+        false
+        """
+module test
+open System.Diagnostics
+
+type Correct =
+    | A of unit
+
+    [<DebuggerStepThrough>]
+    override this.ToString () = ""
+
+    [<DebuggerStepThrough>]
+    member this.f = ()
+
+    [<DebuggerStepThrough>]
+    static member this.f = ()
+
+and Wrong =
+    | B of unit
+
+    [<DebuggerStepThrough>]
+    override this.ToString () = ""
+
+    [<DebuggerStepThrough>]
+    member this.f = ()
+
+    [<DebuggerStepThrough>]
+    static member this.f = ()
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+module test
+
+open System.Diagnostics
+
+type Correct =
+    | A of unit
+
+    [<DebuggerStepThrough>]
+    override this.ToString() = ""
+
+    [<DebuggerStepThrough>]
+    member this.f = ()
+
+    [<DebuggerStepThrough>]
+    static member this.f = ()
+
+and Wrong =
+    | B of unit
+
+    [<DebuggerStepThrough>]
+    override this.ToString() = ""
+
+    [<DebuggerStepThrough>]
+    member this.f = ()
+
+    [<DebuggerStepThrough>]
+    static member this.f = ()
+"""
+
+[<Test>]
+let ``attribute on member of recursive record type, 1962`` () =
+    formatSourceString
+        false
+        """
+module Foo =
+
+    type Person = {
+        Name : string
+        FavoriteDog : Dog
+    } with
+        [<RequiresExplicitTypeArguments>]
+        static member doThing person =
+            ()
+    and Dog = {
+        Name : string
+        FavoriteChewToy : string
+    } with
+        [<RequiresExplicitTypeArguments>]
+        static member doThing person =
+            ()
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+module Foo =
+
+    type Person =
+        { Name: string
+          FavoriteDog: Dog }
+        [<RequiresExplicitTypeArguments>]
+        static member doThing person = ()
+
+    and Dog =
+        { Name: string
+          FavoriteChewToy: string }
+        [<RequiresExplicitTypeArguments>]
+        static member doThing person = ()
+"""
