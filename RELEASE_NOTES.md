@@ -1,3 +1,7 @@
+#### 4.6.0-alpha-008
+
+* All the fixes of 4.5.8
+
 #### 4.6.0-alpha-007
 
 * Expose configuration documentation in Fantomas.Daemon [#1956](https://github.com/fsprojects/fantomas/pull/1956)
