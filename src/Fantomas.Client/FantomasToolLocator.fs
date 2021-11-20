@@ -142,7 +142,7 @@ let createForWorkingDirectory (Folder workingDirectory) (isGlobal: bool) : JsonR
     processStart.RedirectStandardInput <- true
     processStart.RedirectStandardOutput <- true
     processStart.RedirectStandardError <- true
-    processStart.CreateNoWindow <- false
+    processStart.CreateNoWindow <- true
     let daemonProcess = Process.Start processStart
 
     let client =
