@@ -9,9 +9,6 @@ open Fantomas.Client.Contracts
 open Fantomas.Client.LSPFantomasServiceTypes
 open Fantomas.Client.FantomasToolLocator
 
-let private orDefaultCancellationToken =
-    Option.defaultValue CancellationToken.None
-
 type Msg =
     | GetDaemon of Folder * AsyncReplyChannel<JsonRpc option>
     | Reset of AsyncReplyChannel<unit>
@@ -207,7 +204,7 @@ type LSPFantomasService() =
                     client
                         .InvokeWithCancellationAsync<string>(
                             Methods.Version,
-                            cancellationToken = orDefaultCancellationToken cancellationToken
+                            cancellationToken = Option.defaultValue cts.Token cancellationToken
                         )
                         .ContinueWith(fun (t: Task<string>) ->
                             { Code = int FantomasResponseCode.Version
@@ -229,7 +226,7 @@ type LSPFantomasService() =
                         .InvokeWithParameterObjectAsync<FormatDocumentResponse>(
                             Methods.FormatDocument,
                             argument = formatDocumentOptions,
-                            cancellationToken = orDefaultCancellationToken cancellationToken
+                            cancellationToken = Option.defaultValue cts.Token cancellationToken
                         )
                         .ContinueWith(fun (t: Task<FormatDocumentResponse>) -> t.Result.AsFormatResponse()))
             |> mapResultToResponse formatDocumentOptions.FilePath
@@ -248,7 +245,7 @@ type LSPFantomasService() =
                         .InvokeWithParameterObjectAsync<FormatSelectionResponse>(
                             Methods.FormatSelection,
                             argument = formatSelectionRequest,
-                            cancellationToken = orDefaultCancellationToken cancellationToken
+                            cancellationToken = Option.defaultValue cts.Token cancellationToken
                         )
                         .ContinueWith(fun (t: Task<FormatSelectionResponse>) -> t.Result.AsFormatResponse()))
             |> mapResultToResponse formatSelectionRequest.FilePath
@@ -262,7 +259,7 @@ type LSPFantomasService() =
                     client
                         .InvokeWithCancellationAsync<string>(
                             Methods.Configuration,
-                            cancellationToken = orDefaultCancellationToken cancellationToken
+                            cancellationToken = Option.defaultValue cts.Token cancellationToken
                         )
                         .ContinueWith(fun (t: Task<string>) ->
 
