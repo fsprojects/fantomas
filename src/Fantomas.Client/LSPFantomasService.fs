@@ -9,12 +9,9 @@ open Fantomas.Client.Contracts
 open Fantomas.Client.LSPFantomasServiceTypes
 open Fantomas.Client.FantomasToolLocator
 
-let private orDefaultCancellationToken =
-    Option.defaultValue CancellationToken.None
-
 type Msg =
     | GetDaemon of Folder * AsyncReplyChannel<JsonRpc option>
-    | Reset
+    | Reset of AsyncReplyChannel<unit>
 
 let private createAgent (ct: CancellationToken) =
     MailboxProcessor.Start(
@@ -35,11 +32,27 @@ let private createAgent (ct: CancellationToken) =
                                 let daemon = Map.tryFind version state.Daemons
 
                                 match daemon with
-                                | Some _ ->
-                                    replyChannel.Reply daemon
+                                | Some daemon ->
+                                    if daemon.Process.HasExited then
+                                        // weird situation where the process has crashed.
+                                        // Trying to reboot
+                                        (daemon :> IDisposable).Dispose()
 
-                                    { state with
-                                          FolderToVersion = Map.add folder version state.FolderToVersion }
+                                        let newDaemon =
+                                            createForWorkingDirectory folder daemon.IsGlobal
+
+                                        replyChannel.Reply(Some newDaemon.RpcClient)
+
+                                        { state with
+                                              FolderToVersion = Map.add folder version state.FolderToVersion
+                                              Daemons = Map.add version newDaemon state.Daemons }
+
+                                    else
+                                        // return running client
+                                        replyChannel.Reply(Some daemon.RpcClient)
+
+                                        { state with
+                                              FolderToVersion = Map.add folder version state.FolderToVersion }
                                 | None ->
                                     // This is a strange situation, we know what version is linked to that folder but there is no daemon
                                     // The moment a version is added, is also the moment a daemon is re-used or created
@@ -57,11 +70,11 @@ let private createAgent (ct: CancellationToken) =
                                 | FantomasToolResult.FoundLocalTool (_, version) ->
                                     match Map.tryFind version state.Daemons with
                                     | Some daemon ->
-                                        replyChannel.Reply(Some daemon)
+                                        replyChannel.Reply(Some daemon.RpcClient)
                                         state
                                     | None ->
                                         let daemon = createForWorkingDirectory folder false
-                                        replyChannel.Reply(Some daemon)
+                                        replyChannel.Reply(Some daemon.RpcClient)
 
                                         { state with
                                               Daemons = Map.add version daemon state.Daemons
@@ -70,21 +83,22 @@ let private createAgent (ct: CancellationToken) =
                                 | FantomasToolResult.FoundGlobalTool (_, version) ->
                                     match Map.tryFind version state.Daemons with
                                     | Some daemon ->
-                                        replyChannel.Reply(Some daemon)
+                                        replyChannel.Reply(Some daemon.RpcClient)
                                         state
                                     | None ->
                                         let daemon = createForWorkingDirectory folder true
-                                        replyChannel.Reply(Some daemon)
+                                        replyChannel.Reply(Some daemon.RpcClient)
 
                                         { state with
                                               Daemons = Map.add version daemon state.Daemons
                                               FolderToVersion = Map.add folder version state.FolderToVersion }
 
 
-                        | Reset ->
+                        | Reset replyChannel ->
                             Map.toList state.Daemons
-                            |> List.iter (fun (_, daemon) -> daemon.Dispose())
+                            |> List.iter (fun (_, daemon) -> (daemon :> IDisposable).Dispose())
 
+                            replyChannel.Reply()
                             ServiceState.Empty
 
                     return! messageLoop nextState
@@ -98,6 +112,7 @@ type FantomasServiceError =
     | DaemonNotFound
     | FileDoesNotExist
     | FilePathIsNotAbsolute
+    | CancellationWasRequested
 
 let isPathAbsolute (path: string) : bool =
     if
@@ -116,7 +131,13 @@ let isPathAbsolute (path: string) : bool =
         else
             pathRoot.Trim('\\').IndexOf('\\') <> -1 // A UNC server name without a share name (e.g "\\NAME" or "\\NAME\") is invalid
 
-let private getFolderFor (filePath: string) : Result<Folder, FantomasServiceError> =
+let private isCancellationRequested (requested: bool) : Result<unit, FantomasServiceError> =
+    if requested then
+        Error FantomasServiceError.CancellationWasRequested
+    else
+        Ok()
+
+let private getFolderFor (filePath: string) () : Result<Folder, FantomasServiceError> =
     if not (isPathAbsolute filePath) then
         Error FantomasServiceError.FilePathIsNotAbsolute
     elif not (File.Exists filePath) then
@@ -150,12 +171,19 @@ let private daemonNotFoundResponse filePath : Task<FantomasResponse> =
       Content = Some(sprintf "No fantomas tool was found for \"%s\"" filePath) }
     |> Task.FromResult
 
+let private cancellationWasRequestedResponse filePath : Task<FantomasResponse> =
+    { Code = int FantomasResponseCode.CancellationWasRequested
+      FilePath = filePath
+      Content = Some "FantomasService is being or has been disposed." }
+    |> Task.FromResult
+
 let mapResultToResponse (filePath: string) (result: Result<Task<FantomasResponse>, FantomasServiceError>) =
     match result with
     | Ok t -> t
     | Error FantomasServiceError.FileDoesNotExist -> fileNotFoundResponse filePath
     | Error FantomasServiceError.FilePathIsNotAbsolute -> fileNotAbsoluteResponse filePath
     | Error FantomasServiceError.DaemonNotFound -> daemonNotFoundResponse filePath
+    | Error FantomasServiceError.CancellationWasRequested -> cancellationWasRequestedResponse filePath
 
 type LSPFantomasService() =
     let cts = new CancellationTokenSource()
@@ -163,18 +191,20 @@ type LSPFantomasService() =
 
     interface FantomasService with
         member this.Dispose() =
-            agent.Post Reset
-            cts.Cancel()
+            if not cts.IsCancellationRequested then
+                agent.PostAndReply Reset
+                cts.Cancel()
 
         member _.VersionAsync(filePath, ?cancellationToken: CancellationToken) : Task<FantomasResponse> =
-            getFolderFor filePath
+            isCancellationRequested cts.IsCancellationRequested
+            |> Result.bind (getFolderFor filePath)
             |> Result.bind (getDaemon agent)
             |> Result.map
                 (fun client ->
                     client
                         .InvokeWithCancellationAsync<string>(
                             Methods.Version,
-                            cancellationToken = orDefaultCancellationToken cancellationToken
+                            cancellationToken = Option.defaultValue cts.Token cancellationToken
                         )
                         .ContinueWith(fun (t: Task<string>) ->
                             { Code = int FantomasResponseCode.Version
@@ -187,7 +217,8 @@ type LSPFantomasService() =
                 formatDocumentOptions: FormatDocumentRequest,
                 ?cancellationToken: CancellationToken
             ) : Task<FantomasResponse> =
-            getFolderFor formatDocumentOptions.FilePath
+            isCancellationRequested cts.IsCancellationRequested
+            |> Result.bind (getFolderFor formatDocumentOptions.FilePath)
             |> Result.bind (getDaemon agent)
             |> Result.map
                 (fun client ->
@@ -195,7 +226,7 @@ type LSPFantomasService() =
                         .InvokeWithParameterObjectAsync<FormatDocumentResponse>(
                             Methods.FormatDocument,
                             argument = formatDocumentOptions,
-                            cancellationToken = orDefaultCancellationToken cancellationToken
+                            cancellationToken = Option.defaultValue cts.Token cancellationToken
                         )
                         .ContinueWith(fun (t: Task<FormatDocumentResponse>) -> t.Result.AsFormatResponse()))
             |> mapResultToResponse formatDocumentOptions.FilePath
@@ -205,7 +236,8 @@ type LSPFantomasService() =
                 formatSelectionRequest: FormatSelectionRequest,
                 ?cancellationToken: CancellationToken
             ) =
-            getFolderFor formatSelectionRequest.FilePath
+            isCancellationRequested cts.IsCancellationRequested
+            |> Result.bind (getFolderFor formatSelectionRequest.FilePath)
             |> Result.bind (getDaemon agent)
             |> Result.map
                 (fun client ->
@@ -213,20 +245,21 @@ type LSPFantomasService() =
                         .InvokeWithParameterObjectAsync<FormatSelectionResponse>(
                             Methods.FormatSelection,
                             argument = formatSelectionRequest,
-                            cancellationToken = orDefaultCancellationToken cancellationToken
+                            cancellationToken = Option.defaultValue cts.Token cancellationToken
                         )
                         .ContinueWith(fun (t: Task<FormatSelectionResponse>) -> t.Result.AsFormatResponse()))
             |> mapResultToResponse formatSelectionRequest.FilePath
 
         member _.ConfigurationAsync(filePath, ?cancellationToken: CancellationToken) : Task<FantomasResponse> =
-            getFolderFor filePath
+            isCancellationRequested cts.IsCancellationRequested
+            |> Result.bind (getFolderFor filePath)
             |> Result.bind (getDaemon agent)
             |> Result.map
                 (fun client ->
                     client
                         .InvokeWithCancellationAsync<string>(
                             Methods.Configuration,
-                            cancellationToken = orDefaultCancellationToken cancellationToken
+                            cancellationToken = Option.defaultValue cts.Token cancellationToken
                         )
                         .ContinueWith(fun (t: Task<string>) ->
 
@@ -235,4 +268,4 @@ type LSPFantomasService() =
                               Content = Some t.Result }))
             |> mapResultToResponse filePath
 
-        member _.ClearCache() = agent.Post Reset
+        member _.ClearCache() = agent.PostAndReply Reset
