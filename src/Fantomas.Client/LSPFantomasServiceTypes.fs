@@ -1,5 +1,7 @@
 ﻿module Fantomas.Client.LSPFantomasServiceTypes
 
+open System
+open System.Diagnostics
 open StreamJsonRpc
 open Fantomas.Client.Contracts
 
@@ -13,6 +15,7 @@ type FantomasResponseCode =
     | FileNotFound = 7
     | Configuration = 8
     | FilePathIsNotAbsolute = 9
+    | CancellationWasRequested = 10
 
 [<RequireQualifiedAccess>]
 type FormatSelectionResponse =
@@ -60,8 +63,21 @@ type FantomasVersion = FantomasVersion of string
 
 type Folder = Folder of path: string
 
+type RunningFantomasTool =
+    { Process: Process
+      RpcClient: JsonRpc
+      IsGlobal: bool }
+
+    interface IDisposable with
+        member this.Dispose() : unit =
+            if not this.Process.HasExited then
+                this.Process.Kill()
+
+            this.Process.Dispose()
+            this.RpcClient.Dispose()
+
 type ServiceState =
-    { Daemons: Map<FantomasVersion, JsonRpc>
+    { Daemons: Map<FantomasVersion, RunningFantomasTool>
       FolderToVersion: Map<Folder, FantomasVersion> }
 
     static member Empty: ServiceState =
