@@ -130,7 +130,7 @@ let findFantomasTool (workingDir: Folder) : FantomasToolResult =
         | Ok (CompatibleTool version) -> FoundGlobalTool(workingDir, version)
         | _ -> NoCompatibleVersionFound
 
-let createForWorkingDirectory (Folder workingDirectory) (isGlobal: bool) : JsonRpc =
+let createForWorkingDirectory (Folder workingDirectory) (isGlobal: bool) : RunningFantomasTool =
     let processStart =
         if isGlobal then
             ProcessStartInfo("fantomas")
@@ -150,4 +150,7 @@ let createForWorkingDirectory (Folder workingDirectory) (isGlobal: bool) : JsonR
         new JsonRpc(daemonProcess.StandardInput.BaseStream, daemonProcess.StandardOutput.BaseStream)
 
     do client.StartListening()
-    client
+
+    { RpcClient = client
+      Process = daemonProcess
+      IsGlobal = isGlobal }
