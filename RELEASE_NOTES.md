@@ -1,3 +1,7 @@
+#### 4.5.9 - 11/2021
+
+* Fix Operator application to some literals doesn't preserve spacing. [#1979](https://github.com/fsprojects/fantomas/issues/1979)
+
 #### 4.5.8 - 11/2021
 
 * Fix Fantomas is unable to format valid F# (.net 6.0) program. [#1969](https://github.com/fsprojects/fantomas/issues/1969)
