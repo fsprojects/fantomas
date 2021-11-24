@@ -268,7 +268,7 @@ and genSigModuleDeclList astContext (e: SynModuleSigDecl list) =
                     |> finalContinuation)
         | s :: rest ->
             let sepNln =
-                sepNlnConsideringTriviaContentBeforeForMainNode (synModuleSigDeclToFsAstType s) s.Range
+                sepNlnConsideringTriviaContentBeforeForMainNode (synModuleSigDeclToFsAstType s) s.FullRange
 
             let expr = genSigModuleDecl astContext s
 
@@ -433,7 +433,7 @@ and genSigModuleDecl astContext node =
         | SynModuleSigDecl.Open (SynOpenDeclTarget.ModuleOrNamespace _, _) ->
             genTriviaFor SynModuleSigDecl_Open node.Range
         | SynModuleSigDecl.Open (SynOpenDeclTarget.Type _, _) -> genTriviaFor SynModuleSigDecl_OpenType node.Range
-        | SynModuleSigDecl.Exception _ -> genTriviaFor SynModuleSigDecl_Exception node.Range
+        | SynModuleSigDecl.Exception _ -> genTriviaFor SynModuleSigDecl_Exception node.FullRange
         | _ -> id)
 
 and genAccess (Access s) = !-s
