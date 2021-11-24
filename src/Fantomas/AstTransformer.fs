@@ -1088,8 +1088,10 @@ module private Ast =
 
     and visitSynExceptionDefnRepr (sedr: SynExceptionDefnRepr) : TriviaNodeAssigner list =
         match sedr with
-        | SynExceptionDefnRepr (attrs, unionCase, _, _, _, range) ->
-            [ yield mkNode SynExceptionDefnRepr_ range
+        | SynExceptionDefnRepr (attrs, unionCase, _, _, _, _range) ->
+            let fullRange = sedr.FullRange
+
+            [ yield mkNode SynExceptionDefnRepr_ fullRange
               yield! (visitSynAttributeLists attrs)
               yield! visitSynUnionCase unionCase ]
 
@@ -1376,8 +1378,10 @@ module private Ast =
             | SynModuleSigDecl.NamespaceFragment moduleOrNamespace ->
                 visitSynModuleOrNamespaceSig moduleOrNamespace
                 |> finalContinuation
-            | SynModuleSigDecl.Exception (synExceptionSig, range) ->
-                mkNode SynModuleSigDecl_Exception range
+            | SynModuleSigDecl.Exception (synExceptionSig, _range) ->
+                let fullRange = ast.FullRange
+
+                mkNode SynModuleSigDecl_Exception fullRange
                 :: (visitSynExceptionSig synExceptionSig)
                 |> finalContinuation
 
@@ -1385,8 +1389,10 @@ module private Ast =
 
     and visitSynExceptionSig (exceptionDef: SynExceptionSig) : TriviaNodeAssigner list =
         match exceptionDef with
-        | SynExceptionSig (sedr, members, range) ->
-            [ yield mkNode SynExceptionSig_ range
+        | SynExceptionSig (sedr, members, _range) ->
+            let fullRange = exceptionDef.FullRange
+
+            [ yield mkNode SynExceptionSig_ fullRange
               yield! visitSynExceptionDefnRepr sedr
               yield! (members |> List.collect visitSynMemberSig) ]
 
