@@ -1711,7 +1711,7 @@ and genExpr astContext synExpr ctx =
         | PrefixApp (s, e) ->
             let extraSpaceBeforeString =
                 match e with
-                | String _
+                | SynExpr.Const _
                 | SynExpr.InterpolatedString _ -> sepSpace
                 | _ -> sepNone
 
