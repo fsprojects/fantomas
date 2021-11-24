@@ -1226,3 +1226,40 @@ module Foo =
             | true -> id
             | false -> id)
 """
+
+let operator_application_literal_values =
+    [ "-86y"
+      "86uy"
+      "-86s"
+      "86us"
+      "-86"
+      "-86l"
+      "86u"
+      "86ul"
+      "-123n"
+      "0x00002D3Fun"
+      "-86L"
+      "86UL"
+      "-4.41F"
+      "-4.14"
+      "-12456I"
+      "-0.7833M"
+      "'a'"
+      "\"text\""
+      "'a'B"
+      "\"text\"B" ]
+
+[<TestCaseSource("operator_application_literal_values")>]
+let ``operators maintain spacing from literal values`` (literalValue: string) =
+    formatSourceString
+        false
+        $"""
+let subtractTwo = + {literalValue}
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        $"""
+let subtractTwo = + {literalValue}
+"""

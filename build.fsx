@@ -489,7 +489,7 @@ Target.create
         if result.ExitCode = 0 then
             Trace.log "No files need formatting"
         elif result.ExitCode = 99 then
-            failwith "Some files need formatting, check output for more info"
+            failwith "Some files need formatting, run `dotnet fake build -t Format` to format them"
         else
             Trace.logf "Errors while formatting: %A" result.Errors)
 
