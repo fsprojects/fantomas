@@ -16,6 +16,7 @@ type FantomasResponseCode =
     | Configuration = 8
     | FilePathIsNotAbsolute = 9
     | CancellationWasRequested = 10
+    | DaemonCreationFailed = 11
 
 [<RequireQualifiedAccess>]
 type FormatSelectionResponse =
@@ -84,7 +85,30 @@ type ServiceState =
         { Daemons = Map.empty
           FolderToVersion = Map.empty }
 
+[<RequireQualifiedAccess>]
+type ProcessStartError =
+    | ExecutableFileNotFound of
+        executableFile: string *
+        arguments: string *
+        workingDirectory: string *
+        pathEnvironmentVariable: string *
+        error: string
+    | UnExpectedException of executableFile: string * arguments: string * error: string
+
+[<RequireQualifiedAccess>]
+type DotNetToolListError =
+    | ProcessStartError of ProcessStartError
+    | ExitCodeNonZero of executableFile: string * arguments: string * exitCode: int * error: string
+
 type FantomasToolResult =
     | FoundLocalTool of (Folder * FantomasVersion)
     | FoundGlobalTool of (Folder * FantomasVersion)
     | NoCompatibleVersionFound
+    | DotNetListError of DotNetToolListError
+
+[<RequireQualifiedAccess>]
+type GetDaemonError =
+    | DotNetToolListError of error: DotNetToolListError
+    | FantomasProcessStart of error: ProcessStartError
+    | InCompatibleVersionFound
+    | CompatibleVersionIsKnownButNoDaemonIsRunning of version: FantomasVersion
