@@ -10,7 +10,7 @@ open Fantomas.Client.LSPFantomasServiceTypes
 open Fantomas.Client.FantomasToolLocator
 
 type Msg =
-    | GetDaemon of Folder * AsyncReplyChannel<JsonRpc option>
+    | GetDaemon of Folder * AsyncReplyChannel<Result<JsonRpc, GetDaemonError>>
     | Reset of AsyncReplyChannel<unit>
 
 let private createAgent (ct: CancellationToken) =
@@ -38,61 +38,81 @@ let private createAgent (ct: CancellationToken) =
                                         // Trying to reboot
                                         (daemon :> IDisposable).Dispose()
 
-                                        let newDaemon =
+                                        let newDaemonResult =
                                             createForWorkingDirectory folder daemon.IsGlobal
 
-                                        replyChannel.Reply(Some newDaemon.RpcClient)
+                                        match newDaemonResult with
+                                        | Ok newDaemon ->
+                                            replyChannel.Reply(Ok newDaemon.RpcClient)
 
-                                        { state with
-                                              FolderToVersion = Map.add folder version state.FolderToVersion
-                                              Daemons = Map.add version newDaemon state.Daemons }
-
+                                            { state with
+                                                  FolderToVersion = Map.add folder version state.FolderToVersion
+                                                  Daemons = Map.add version newDaemon state.Daemons }
+                                        | Error pse ->
+                                            replyChannel.Reply(Error(GetDaemonError.FantomasProcessStart pse))
+                                            state
                                     else
                                         // return running client
-                                        replyChannel.Reply(Some daemon.RpcClient)
+                                        replyChannel.Reply(Ok daemon.RpcClient)
 
                                         { state with
                                               FolderToVersion = Map.add folder version state.FolderToVersion }
                                 | None ->
                                     // This is a strange situation, we know what version is linked to that folder but there is no daemon
                                     // The moment a version is added, is also the moment a daemon is re-used or created
-                                    replyChannel.Reply None
+                                    replyChannel.Reply(
+                                        Error(GetDaemonError.CompatibleVersionIsKnownButNoDaemonIsRunning version)
+                                    )
+
                                     state
                             | None ->
                                 let version = findFantomasTool folder
 
                                 match version with
+                                | FantomasToolResult.DotNetListError dntl ->
+                                    replyChannel.Reply(Error(GetDaemonError.DotNetToolListError dntl))
+                                    state
                                 | FantomasToolResult.NoCompatibleVersionFound ->
                                     // No compatible version was found
-                                    replyChannel.Reply None
+                                    replyChannel.Reply(Error GetDaemonError.InCompatibleVersionFound)
                                     state
-
                                 | FantomasToolResult.FoundLocalTool (_, version) ->
                                     match Map.tryFind version state.Daemons with
                                     | Some daemon ->
-                                        replyChannel.Reply(Some daemon.RpcClient)
+                                        replyChannel.Reply(Ok daemon.RpcClient)
                                         state
                                     | None ->
-                                        let daemon = createForWorkingDirectory folder false
-                                        replyChannel.Reply(Some daemon.RpcClient)
+                                        let createDaemonResult = createForWorkingDirectory folder false
 
-                                        { state with
-                                              Daemons = Map.add version daemon state.Daemons
-                                              FolderToVersion = Map.add folder version state.FolderToVersion }
+                                        match createDaemonResult with
+                                        | Ok daemon ->
+                                            replyChannel.Reply(Ok daemon.RpcClient)
+
+                                            { state with
+                                                  Daemons = Map.add version daemon state.Daemons
+                                                  FolderToVersion = Map.add folder version state.FolderToVersion }
+                                        | Error pse ->
+                                            replyChannel.Reply(Error(GetDaemonError.FantomasProcessStart pse))
+                                            state
 
                                 | FantomasToolResult.FoundGlobalTool (_, version) ->
                                     match Map.tryFind version state.Daemons with
                                     | Some daemon ->
-                                        replyChannel.Reply(Some daemon.RpcClient)
+                                        replyChannel.Reply(Ok daemon.RpcClient)
                                         state
                                     | None ->
-                                        let daemon = createForWorkingDirectory folder true
-                                        replyChannel.Reply(Some daemon.RpcClient)
+                                        let startDaemonResult = createForWorkingDirectory folder true
 
-                                        { state with
-                                              Daemons = Map.add version daemon state.Daemons
-                                              FolderToVersion = Map.add folder version state.FolderToVersion }
+                                        match startDaemonResult with
+                                        | Ok daemon ->
+                                            replyChannel.Reply(Ok daemon.RpcClient)
 
+                                            { state with
+                                                  Daemons = Map.add version daemon state.Daemons
+                                                  FolderToVersion = Map.add folder version state.FolderToVersion }
+                                        | Error pse ->
+                                            replyChannel.Reply(Error(GetDaemonError.FantomasProcessStart pse))
+                                            state
 
                         | Reset replyChannel ->
                             Map.toList state.Daemons
@@ -109,7 +129,7 @@ let private createAgent (ct: CancellationToken) =
     )
 
 type FantomasServiceError =
-    | DaemonNotFound
+    | DaemonNotFound of GetDaemonError
     | FileDoesNotExist
     | FilePathIsNotAbsolute
     | CancellationWasRequested
@@ -150,8 +170,8 @@ let private getDaemon (agent: MailboxProcessor<Msg>) (folder: Folder) : Result<J
         agent.PostAndReply(fun replyChannel -> GetDaemon(folder, replyChannel))
 
     match daemon with
-    | Some daemon -> Ok daemon
-    | None -> Error FantomasServiceError.DaemonNotFound
+    | Ok daemon -> Ok daemon
+    | Error gde -> Error(FantomasServiceError.DaemonNotFound gde)
 
 let private fileNotFoundResponse filePath : Task<FantomasResponse> =
     { Code = int FantomasResponseCode.FileNotFound
@@ -165,10 +185,43 @@ let private fileNotAbsoluteResponse filePath : Task<FantomasResponse> =
       Content = Some(sprintf "\"%s\" is not an absolute file path. Relative paths are not supported" filePath) }
     |> Task.FromResult
 
-let private daemonNotFoundResponse filePath : Task<FantomasResponse> =
-    { Code = int FantomasResponseCode.ToolNotFound
+let private daemonNotFoundResponse filePath (error: GetDaemonError) : Task<FantomasResponse> =
+    let content, code =
+        match error with
+        | GetDaemonError.DotNetToolListError (DotNetToolListError.ProcessStartError (ProcessStartError.ExecutableFileNotFound (executableFile,
+                                                                                                                               arguments,
+                                                                                                                               workingDirectory,
+                                                                                                                               pathEnvironmentVariable,
+                                                                                                                               error)))
+        | GetDaemonError.FantomasProcessStart (ProcessStartError.ExecutableFileNotFound (executableFile,
+                                                                                         arguments,
+                                                                                         workingDirectory,
+                                                                                         pathEnvironmentVariable,
+                                                                                         error)) ->
+            $"Fantomas.Client tried to run `%s{executableFile} %s{arguments}` inside working directory \"{workingDirectory}\" but could not find \"%s{executableFile}\" on the PATH (%s{pathEnvironmentVariable}). Error: %s{error}",
+            FantomasResponseCode.DaemonCreationFailed
+        | GetDaemonError.DotNetToolListError (DotNetToolListError.ProcessStartError (ProcessStartError.UnExpectedException (executableFile,
+                                                                                                                            arguments,
+                                                                                                                            error)))
+        | GetDaemonError.FantomasProcessStart (ProcessStartError.UnExpectedException (executableFile, arguments, error)) ->
+            $"Fantomas.Client tried to run `%s{executableFile} %s{arguments}` but failed with \"%s{error}\"",
+            FantomasResponseCode.DaemonCreationFailed
+        | GetDaemonError.DotNetToolListError (DotNetToolListError.ExitCodeNonZero (executableFile,
+                                                                                   arguments,
+                                                                                   exitCode,
+                                                                                   error)) ->
+            $"Fantomas.Client tried to run `%s{executableFile} %s{arguments}` but exited with code {exitCode} {error}",
+            FantomasResponseCode.DaemonCreationFailed
+        | GetDaemonError.InCompatibleVersionFound ->
+            "Fantomas.Client did not found a compatible dotnet tool version to launch as daemon process",
+            FantomasResponseCode.ToolNotFound
+        | GetDaemonError.CompatibleVersionIsKnownButNoDaemonIsRunning (FantomasVersion version) ->
+            $"Fantomas.Client found a compatible version `%s{version}` but no daemon could be launched.",
+            FantomasResponseCode.DaemonCreationFailed
+
+    { Code = int code
       FilePath = filePath
-      Content = Some(sprintf "No fantomas tool was found for \"%s\"" filePath) }
+      Content = Some content }
     |> Task.FromResult
 
 let private cancellationWasRequestedResponse filePath : Task<FantomasResponse> =
@@ -182,7 +235,7 @@ let mapResultToResponse (filePath: string) (result: Result<Task<FantomasResponse
     | Ok t -> t
     | Error FantomasServiceError.FileDoesNotExist -> fileNotFoundResponse filePath
     | Error FantomasServiceError.FilePathIsNotAbsolute -> fileNotAbsoluteResponse filePath
-    | Error FantomasServiceError.DaemonNotFound -> daemonNotFoundResponse filePath
+    | Error (FantomasServiceError.DaemonNotFound e) -> daemonNotFoundResponse filePath e
     | Error FantomasServiceError.CancellationWasRequested -> cancellationWasRequestedResponse filePath
 
 type LSPFantomasService() =
