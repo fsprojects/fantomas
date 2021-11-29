@@ -190,13 +190,15 @@ let private daemonNotFoundResponse filePath (error: GetDaemonError) : Task<Fanto
         match error with
         | GetDaemonError.DotNetToolListError (DotNetToolListError.ProcessStartError (ProcessStartError.ExecutableFileNotFound (executableFile,
                                                                                                                                arguments,
+                                                                                                                               workingDirectory,
                                                                                                                                pathEnvironmentVariable,
                                                                                                                                error)))
         | GetDaemonError.FantomasProcessStart (ProcessStartError.ExecutableFileNotFound (executableFile,
                                                                                          arguments,
+                                                                                         workingDirectory,
                                                                                          pathEnvironmentVariable,
                                                                                          error)) ->
-            $"Fantomas.Client tried to run `%s{executableFile} %s{arguments}` but could not find \"%s{executableFile}\" on the PATH (%s{pathEnvironmentVariable}). Error: %s{error}",
+            $"Fantomas.Client tried to run `%s{executableFile} %s{arguments}` inside working directory \"{workingDirectory}\" but could not find \"%s{executableFile}\" on the PATH (%s{pathEnvironmentVariable}). Error: %s{error}",
             FantomasResponseCode.DaemonCreationFailed
         | GetDaemonError.DotNetToolListError (DotNetToolListError.ProcessStartError (ProcessStartError.UnExpectedException (executableFile,
                                                                                                                             arguments,

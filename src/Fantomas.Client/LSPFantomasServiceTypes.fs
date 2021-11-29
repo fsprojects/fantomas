@@ -90,6 +90,7 @@ type ProcessStartError =
     | ExecutableFileNotFound of
         executableFile: string *
         arguments: string *
+        workingDirectory: string *
         pathEnvironmentVariable: string *
         error: string
     | UnExpectedException of executableFile: string * arguments: string * error: string

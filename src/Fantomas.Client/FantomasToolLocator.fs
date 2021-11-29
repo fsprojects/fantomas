@@ -57,7 +57,15 @@ let private startProcess (ps: ProcessStartInfo) : Result<Process, ProcessStartEr
         let pathEnv =
             Environment.GetEnvironmentVariable "PATH"
 
-        Error(ProcessStartError.ExecutableFileNotFound(ps.FileName, ps.Arguments, pathEnv, win32ex.Message))
+        Error(
+            ProcessStartError.ExecutableFileNotFound(
+                ps.FileName,
+                ps.Arguments,
+                ps.WorkingDirectory,
+                pathEnv,
+                win32ex.Message
+            )
+        )
     | ex -> Error(ProcessStartError.UnExpectedException(ps.FileName, ps.Arguments, ex.Message))
 
 let private runToolListCmd (Folder workingDir: Folder) (globalFlag: bool) : Result<string list, DotNetToolListError> =
