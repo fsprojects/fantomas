@@ -1,6 +1,7 @@
 module Fantomas.Client.FantomasToolLocator
 
 open System
+open System.ComponentModel
 open System.Diagnostics
 open System.IO
 open System.Text.RegularExpressions
@@ -48,7 +49,26 @@ let private readOutputStreamAsLines (outputStream: StreamReader) : string list =
 
     readLines outputStream id
 
-let private runToolListCmd (Folder workingDir) (globalFlag: bool) =
+let private startProcess (ps: ProcessStartInfo) : Result<Process, ProcessStartError> =
+    try
+        Ok(Process.Start ps)
+    with
+    | :? Win32Exception as win32ex ->
+        let pathEnv =
+            Environment.GetEnvironmentVariable "PATH"
+
+        Error(
+            ProcessStartError.ExecutableFileNotFound(
+                ps.FileName,
+                ps.Arguments,
+                ps.WorkingDirectory,
+                pathEnv,
+                win32ex.Message
+            )
+        )
+    | ex -> Error(ProcessStartError.UnExpectedException(ps.FileName, ps.Arguments, ex.Message))
+
+let private runToolListCmd (Folder workingDir: Folder) (globalFlag: bool) : Result<string list, DotNetToolListError> =
     let ps = ProcessStartInfo("dotnet")
     ps.WorkingDirectory <- workingDir
     ps.EnvironmentVariables.Add("DOTNET_CLI_UI_LANGUAGE", "en-us")
@@ -63,16 +83,19 @@ let private runToolListCmd (Folder workingDir) (globalFlag: bool) =
     ps.RedirectStandardOutput <- true
     ps.RedirectStandardError <- true
     ps.UseShellExecute <- false
-    use p = Process.Start ps
-    p.WaitForExit()
-    let exitCode = p.ExitCode
 
-    if exitCode = 0 then
-        let output = readOutputStreamAsLines p.StandardOutput
-        Ok output
-    else
-        let error = p.StandardError.ReadToEnd()
-        Error(exitCode, error)
+    match startProcess ps with
+    | Ok p ->
+        p.WaitForExit()
+        let exitCode = p.ExitCode
+
+        if exitCode = 0 then
+            let output = readOutputStreamAsLines p.StandardOutput
+            Ok output
+        else
+            let error = p.StandardError.ReadToEnd()
+            Error(DotNetToolListError.ExitCodeNonZero(ps.FileName, ps.Arguments, exitCode, error))
+    | Error err -> Error(DotNetToolListError.ProcessStartError err)
 
 let private (|CompatibleTool|_|) lines =
     let (|HeaderLine|_|) line =
@@ -123,14 +146,19 @@ let findFantomasTool (workingDir: Folder) : FantomasToolResult =
 
     match localTools with
     | Ok (CompatibleTool version) -> FoundLocalTool(workingDir, version)
-    | _ ->
+    | Error err -> DotNetListError err
+    | Ok _nonCompatibleLocalVersion ->
         let globalTools = runToolListCmd workingDir true
 
         match globalTools with
         | Ok (CompatibleTool version) -> FoundGlobalTool(workingDir, version)
-        | _ -> NoCompatibleVersionFound
+        | Error err -> DotNetListError err
+        | Ok _nonCompatibleGlobalVersion -> NoCompatibleVersionFound
 
-let createForWorkingDirectory (Folder workingDirectory) (isGlobal: bool) : RunningFantomasTool =
+let createForWorkingDirectory
+    (Folder workingDirectory)
+    (isGlobal: bool)
+    : Result<RunningFantomasTool, ProcessStartError> =
     let processStart =
         if isGlobal then
             ProcessStartInfo("fantomas")
@@ -144,13 +172,33 @@ let createForWorkingDirectory (Folder workingDirectory) (isGlobal: bool) : Runni
     processStart.RedirectStandardOutput <- true
     processStart.RedirectStandardError <- true
     processStart.CreateNoWindow <- true
-    let daemonProcess = Process.Start processStart
 
-    let client =
-        new JsonRpc(daemonProcess.StandardInput.BaseStream, daemonProcess.StandardOutput.BaseStream)
+    match startProcess processStart with
+    | Ok daemonProcess ->
+        let client =
+            new JsonRpc(daemonProcess.StandardInput.BaseStream, daemonProcess.StandardOutput.BaseStream)
 
-    do client.StartListening()
+        do client.StartListening()
 
-    { RpcClient = client
-      Process = daemonProcess
-      IsGlobal = isGlobal }
+        try
+            // Get the version first as a sanity check that connection is possible
+            let _version =
+                client.InvokeAsync<string>(Fantomas.Client.Contracts.Methods.Version)
+                |> Async.AwaitTask
+                |> Async.RunSynchronously
+
+            Ok
+                { RpcClient = client
+                  Process = daemonProcess
+                  IsGlobal = isGlobal }
+        with
+        | ex ->
+            let error =
+                if daemonProcess.HasExited then
+                    let stdErr = daemonProcess.StandardError.ReadToEnd()
+                    $"Daemon std error: {stdErr}.\nJsonRpc exception:{ex.Message}"
+                else
+                    ex.Message
+
+            Error(ProcessStartError.UnExpectedException(processStart.FileName, processStart.Arguments, error))
+    | Error err -> Error err
