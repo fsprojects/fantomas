@@ -5,6 +5,7 @@ open System.ComponentModel
 open System.Diagnostics
 open System.IO
 open System.Text.RegularExpressions
+open System.Runtime.InteropServices
 open Fantomas.Client.LSPFantomasServiceTypes
 open StreamJsonRpc
 
@@ -161,7 +162,19 @@ let createForWorkingDirectory
     : Result<RunningFantomasTool, ProcessStartError> =
     let processStart =
         if isGlobal then
-            ProcessStartInfo("fantomas")
+            let userProfile =
+                Environment.GetFolderPath(Environment.SpecialFolder.UserProfile)
+
+            let fantomasExecutable =
+                let fileName =
+                    if RuntimeInformation.IsOSPlatform(OSPlatform.Windows) then
+                        "fantomas.exe"
+                    else
+                        "fantomas"
+
+                Path.Combine(userProfile, ".dotnet", "tools", fileName)
+
+            ProcessStartInfo(fantomasExecutable)
         else
             ProcessStartInfo("dotnet")
 
