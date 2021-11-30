@@ -2,3 +2,4 @@ group client
 FSharp.Core
 StreamJsonRpc
 Microsoft.SourceLink.GitHub
+SemanticVersioning

@@ -9,23 +9,14 @@ open System.Runtime.InteropServices
 open Fantomas.Client.LSPFantomasServiceTypes
 open StreamJsonRpc
 
-let private alphaLowerThanFour version =
-    version = "4.6.0-alpha-001"
-    || version = "4.6.0-alpha-002"
-    || version = "4.6.0-alpha-003"
+// Only 4.6.0-alpha-004 has daemon capabilities
+let private supportedRange =
+    SemanticVersioning.Range(">=v4.6.0-alpha-004")
 
 let private (|CompatibleVersion|_|) (version: string) =
-    let stripAlphaBeta = version.Split('-').[0]
-
-    match Version.TryParse stripAlphaBeta with
+    match SemanticVersioning.Version.TryParse version with
     | true, parsedVersion ->
-        if parsedVersion.Major = 4
-           && parsedVersion.Minor = 6
-           && alphaLowerThanFour version then
-            // Only 4.6.0-alpha-004 has daemon capabilities
-            None
-        elif parsedVersion.Major >= 4
-             && parsedVersion.Minor >= 6 then
+        if supportedRange.IsSatisfied parsedVersion then
             Some version
         else
             None
