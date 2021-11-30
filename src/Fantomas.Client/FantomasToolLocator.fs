@@ -166,7 +166,13 @@ let createForWorkingDirectory
             ProcessStartInfo("dotnet")
 
     processStart.UseShellExecute <- false
-    processStart.Arguments <- sprintf "fantomas --daemon"
+
+    processStart.Arguments <-
+        if isGlobal then
+            "--daemon"
+        else
+            "fantomas --daemon"
+
     processStart.WorkingDirectory <- workingDirectory
     processStart.RedirectStandardInput <- true
     processStart.RedirectStandardOutput <- true
