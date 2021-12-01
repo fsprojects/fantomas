@@ -51,3 +51,4 @@ group client
     nuget FSharp.Core 5
     nuget StreamJsonRpc
     nuget Microsoft.SourceLink.GitHub copy_local: true
+    nuget SemanticVersioning
