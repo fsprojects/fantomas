@@ -61,13 +61,19 @@ type FormatDocumentResponse =
               Content = None }
 
 type FantomasVersion = FantomasVersion of string
-
+type FantomasExecutableFile = FantomasExecutableFile of string
 type Folder = Folder of path: string
+
+[<RequireQualifiedAccess>]
+type FantomasToolStartInfo =
+    | LocalTool of workingDirectory: Folder
+    | GlobalTool
+    | ToolOnPath of executableFile: FantomasExecutableFile
 
 type RunningFantomasTool =
     { Process: Process
       RpcClient: JsonRpc
-      IsGlobal: bool }
+      StartInfo: FantomasToolStartInfo }
 
     interface IDisposable with
         member this.Dispose() : unit =
@@ -100,9 +106,10 @@ type DotNetToolListError =
     | ProcessStartError of ProcessStartError
     | ExitCodeNonZero of executableFile: string * arguments: string * exitCode: int * error: string
 
-type FantomasToolResult =
-    | FoundLocalTool of (Folder * FantomasVersion)
-    | FoundGlobalTool of (Folder * FantomasVersion)
+type FantomasToolFound = FantomasToolFound of version: FantomasVersion * startInfo: FantomasToolStartInfo
+
+[<RequireQualifiedAccess>]
+type FantomasToolError =
     | NoCompatibleVersionFound
     | DotNetListError of DotNetToolListError
 
