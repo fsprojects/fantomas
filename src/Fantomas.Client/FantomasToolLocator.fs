@@ -5,26 +5,18 @@ open System.ComponentModel
 open System.Diagnostics
 open System.IO
 open System.Text.RegularExpressions
-open Fantomas.Client.LSPFantomasServiceTypes
+open System.Runtime.InteropServices
 open StreamJsonRpc
+open Fantomas.Client.LSPFantomasServiceTypes
 
-let private alphaLowerThanFour version =
-    version = "4.6.0-alpha-001"
-    || version = "4.6.0-alpha-002"
-    || version = "4.6.0-alpha-003"
+// Only 4.6.0-alpha-004 has daemon capabilities
+let private supportedRange =
+    SemanticVersioning.Range(">=v4.6.0-alpha-004")
 
 let private (|CompatibleVersion|_|) (version: string) =
-    let stripAlphaBeta = version.Split('-').[0]
-
-    match Version.TryParse stripAlphaBeta with
+    match SemanticVersioning.Version.TryParse version with
     | true, parsedVersion ->
-        if parsedVersion.Major = 4
-           && parsedVersion.Minor = 6
-           && alphaLowerThanFour version then
-            // Only 4.6.0-alpha-004 has daemon capabilities
-            None
-        elif parsedVersion.Major >= 4
-             && parsedVersion.Minor >= 6 then
+        if supportedRange.IsSatisfied parsedVersion then
             Some version
         else
             None
@@ -141,33 +133,124 @@ let private (|CompatibleTool|_|) lines =
         Option.map (snd >> FantomasVersion) tool
     | _ -> None
 
-let findFantomasTool (workingDir: Folder) : FantomasToolResult =
-    let localTools = runToolListCmd workingDir false
+let private isWindows =
+    RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
 
-    match localTools with
-    | Ok (CompatibleTool version) -> FoundLocalTool(workingDir, version)
-    | Error err -> DotNetListError err
-    | Ok _nonCompatibleLocalVersion ->
-        let globalTools = runToolListCmd workingDir true
+// Find an executable fantomas-tool file on the PATH
+let private fantomasVersionOnPath () : (FantomasExecutableFile * FantomasVersion) option =
+    let fantomasExecutableOnPathOpt =
+        match Option.ofObj (Environment.GetEnvironmentVariable("PATH")) with
+        | Some s -> s.Split([| if isWindows then ';' else ':' |], StringSplitOptions.RemoveEmptyEntries)
+        | None -> Array.empty
+        |> Seq.choose
+            (fun folder ->
+                if isWindows then
+                    let fantomasExe = Path.Combine(folder, "fantomas.exe")
 
-        match globalTools with
-        | Ok (CompatibleTool version) -> FoundGlobalTool(workingDir, version)
-        | Error err -> DotNetListError err
-        | Ok _nonCompatibleGlobalVersion -> NoCompatibleVersionFound
+                    let fantomasToolExe =
+                        Path.Combine(folder, "fantomas-tool.exe")
 
-let createForWorkingDirectory
-    (Folder workingDirectory)
-    (isGlobal: bool)
-    : Result<RunningFantomasTool, ProcessStartError> =
+                    if File.Exists fantomasExe then
+                        Some fantomasExe
+                    elif File.Exists fantomasToolExe then
+                        Some fantomasToolExe
+                    else
+                        None
+                else
+                    let fantomas = Path.Combine(folder, "fantomas")
+                    let fantomasTool = Path.Combine(folder, "fantomas-tool")
+
+                    if File.Exists fantomas then
+                        Some fantomas
+                    elif File.Exists fantomasTool then
+                        Some fantomasTool
+                    else
+                        None)
+        |> Seq.tryHead
+
+    fantomasExecutableOnPathOpt
+    |> Option.bind
+        (fun fantomasExecutablePath ->
+            let processStart = ProcessStartInfo(fantomasExecutablePath)
+            processStart.Arguments <- "--version"
+            processStart.RedirectStandardOutput <- true
+            processStart.CreateNoWindow <- true
+            processStart.RedirectStandardOutput <- true
+            processStart.RedirectStandardError <- true
+            processStart.UseShellExecute <- false
+
+            match startProcess processStart with
+            | Ok p ->
+                p.WaitForExit()
+                let stdOut = p.StandardOutput.ReadToEnd()
+
+                stdOut
+                |> Option.ofObj
+                |> Option.map
+                    (fun s ->
+                        let version =
+                            s
+                                .ToLowerInvariant()
+                                .Replace("fantomas", String.Empty)
+                                .Trim()
+
+                        FantomasExecutableFile(fantomasExecutablePath), FantomasVersion(version))
+            | Error (ProcessStartError.ExecutableFileNotFound _)
+            | Error (ProcessStartError.UnExpectedException _) -> None)
+
+let findFantomasTool (workingDir: Folder) : Result<FantomasToolFound, FantomasToolError> =
+    // First try and find a local tool for the folder.
+    // Next see if there is a global tool.
+    // Lastly check if an executable `fantomas` is present on the PATH.
+    let localToolsListResult = runToolListCmd workingDir false
+
+    match localToolsListResult with
+    | Ok (CompatibleTool version) -> Ok(FantomasToolFound(version, FantomasToolStartInfo.LocalTool workingDir))
+    | Error err -> Error(FantomasToolError.DotNetListError err)
+    | Ok _localToolListResult ->
+        let globalToolsListResult = runToolListCmd workingDir true
+
+        match globalToolsListResult with
+        | Ok (CompatibleTool version) -> Ok(FantomasToolFound(version, FantomasToolStartInfo.GlobalTool))
+        | Error err -> Error(FantomasToolError.DotNetListError err)
+        | Ok _nonCompatibleGlobalVersion ->
+            let fantomasOnPathVersion = fantomasVersionOnPath ()
+
+            match fantomasOnPathVersion with
+            | Some (executableFile, FantomasVersion (CompatibleVersion version)) ->
+                Ok(FantomasToolFound((FantomasVersion(version)), FantomasToolStartInfo.ToolOnPath executableFile))
+            | _ -> Error FantomasToolError.NoCompatibleVersionFound
+
+let createFor (startInfo: FantomasToolStartInfo) : Result<RunningFantomasTool, ProcessStartError> =
     let processStart =
-        if isGlobal then
-            ProcessStartInfo("fantomas")
-        else
-            ProcessStartInfo("dotnet")
+        match startInfo with
+        | FantomasToolStartInfo.LocalTool (Folder workingDirectory) ->
+            let ps = ProcessStartInfo("dotnet")
+            ps.WorkingDirectory <- workingDirectory
+            ps.Arguments <- "fantomas --daemon"
+            ps
+        | FantomasToolStartInfo.GlobalTool ->
+            let userProfile =
+                Environment.GetFolderPath(Environment.SpecialFolder.UserProfile)
+
+            let fantomasExecutable =
+                let fileName =
+                    if isWindows then
+                        "fantomas.exe"
+                    else
+                        "fantomas"
+
+                Path.Combine(userProfile, ".dotnet", "tools", fileName)
+
+            let ps = ProcessStartInfo(fantomasExecutable)
+            ps.Arguments <- "--daemon"
+            ps
+        | FantomasToolStartInfo.ToolOnPath (FantomasExecutableFile executableFile) ->
+            let ps = ProcessStartInfo(executableFile)
+            ps.Arguments <- "--daemon"
+            ps
 
     processStart.UseShellExecute <- false
-    processStart.Arguments <- sprintf "fantomas --daemon"
-    processStart.WorkingDirectory <- workingDirectory
     processStart.RedirectStandardInput <- true
     processStart.RedirectStandardOutput <- true
     processStart.RedirectStandardError <- true
@@ -190,7 +273,7 @@ let createForWorkingDirectory
             Ok
                 { RpcClient = client
                   Process = daemonProcess
-                  IsGlobal = isGlobal }
+                  StartInfo = startInfo }
         with
         | ex ->
             let error =

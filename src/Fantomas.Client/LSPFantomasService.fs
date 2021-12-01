@@ -23,7 +23,7 @@ let private createAgent (ct: CancellationToken) =
                     let nextState =
                         match msg with
                         | GetDaemon (folder, replyChannel) ->
-                            // get the version of that folder
+                            // get the version for that folder
                             // look in the cache first
                             let versionFromCache = Map.tryFind folder state.FolderToVersion
 
@@ -33,13 +33,13 @@ let private createAgent (ct: CancellationToken) =
 
                                 match daemon with
                                 | Some daemon ->
+                                    // We have a daemon for the required version in the cache, check if we can still use it.
                                     if daemon.Process.HasExited then
                                         // weird situation where the process has crashed.
                                         // Trying to reboot
                                         (daemon :> IDisposable).Dispose()
 
-                                        let newDaemonResult =
-                                            createForWorkingDirectory folder daemon.IsGlobal
+                                        let newDaemonResult = createFor daemon.StartInfo
 
                                         match newDaemonResult with
                                         | Ok newDaemon ->
@@ -66,54 +66,30 @@ let private createAgent (ct: CancellationToken) =
 
                                     state
                             | None ->
-                                let version = findFantomasTool folder
+                                // Try and find a version of fantomas daemon for our current folder
+                                let fantomasToolResult: Result<FantomasToolFound, FantomasToolError> =
+                                    findFantomasTool folder
 
-                                match version with
-                                | FantomasToolResult.DotNetListError dntl ->
-                                    replyChannel.Reply(Error(GetDaemonError.DotNetToolListError dntl))
-                                    state
-                                | FantomasToolResult.NoCompatibleVersionFound ->
-                                    // No compatible version was found
+                                match fantomasToolResult with
+                                | Ok (FantomasToolFound (version, startInfo)) ->
+                                    let createDaemonResult = createFor startInfo
+
+                                    match createDaemonResult with
+                                    | Ok daemon ->
+                                        replyChannel.Reply(Ok daemon.RpcClient)
+
+                                        { state with
+                                              Daemons = Map.add version daemon state.Daemons
+                                              FolderToVersion = Map.add folder version state.FolderToVersion }
+                                    | Error pse ->
+                                        replyChannel.Reply(Error(GetDaemonError.FantomasProcessStart pse))
+                                        state
+                                | Error FantomasToolError.NoCompatibleVersionFound ->
                                     replyChannel.Reply(Error GetDaemonError.InCompatibleVersionFound)
                                     state
-                                | FantomasToolResult.FoundLocalTool (_, version) ->
-                                    match Map.tryFind version state.Daemons with
-                                    | Some daemon ->
-                                        replyChannel.Reply(Ok daemon.RpcClient)
-                                        state
-                                    | None ->
-                                        let createDaemonResult = createForWorkingDirectory folder false
-
-                                        match createDaemonResult with
-                                        | Ok daemon ->
-                                            replyChannel.Reply(Ok daemon.RpcClient)
-
-                                            { state with
-                                                  Daemons = Map.add version daemon state.Daemons
-                                                  FolderToVersion = Map.add folder version state.FolderToVersion }
-                                        | Error pse ->
-                                            replyChannel.Reply(Error(GetDaemonError.FantomasProcessStart pse))
-                                            state
-
-                                | FantomasToolResult.FoundGlobalTool (_, version) ->
-                                    match Map.tryFind version state.Daemons with
-                                    | Some daemon ->
-                                        replyChannel.Reply(Ok daemon.RpcClient)
-                                        state
-                                    | None ->
-                                        let startDaemonResult = createForWorkingDirectory folder true
-
-                                        match startDaemonResult with
-                                        | Ok daemon ->
-                                            replyChannel.Reply(Ok daemon.RpcClient)
-
-                                            { state with
-                                                  Daemons = Map.add version daemon state.Daemons
-                                                  FolderToVersion = Map.add folder version state.FolderToVersion }
-                                        | Error pse ->
-                                            replyChannel.Reply(Error(GetDaemonError.FantomasProcessStart pse))
-                                            state
-
+                                | Error (FantomasToolError.DotNetListError dotNetToolListError) ->
+                                    replyChannel.Reply(Error(GetDaemonError.DotNetToolListError dotNetToolListError))
+                                    state
                         | Reset replyChannel ->
                             Map.toList state.Daemons
                             |> List.iter (fun (_, daemon) -> (daemon :> IDisposable).Dispose())
