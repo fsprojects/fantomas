@@ -123,6 +123,8 @@ let processSourceString isFsiFile s (tw: Choice<TextWriter, string>) config =
             else
                 File.WriteAllText(path, formatted)
 
+            printfn "%s has been written." path
+
     async {
         let! formatted =
             s
@@ -130,7 +132,7 @@ let processSourceString isFsiFile s (tw: Choice<TextWriter, string>) config =
 
         match formatted with
         | FakeHelpers.FormatResult.Formatted (_, formattedContent) -> formattedContent |> writeResult
-        | FakeHelpers.FormatResult.Unchanged _ -> s |> writeResult
+        | FakeHelpers.FormatResult.Unchanged file -> printfn "'%s' was unchanged" file
         | FakeHelpers.IgnoredFile file -> printfn "'%s' was ignored" file
         | FakeHelpers.FormatResult.Error (_, ex) -> raise <| ex
     }
@@ -354,8 +356,6 @@ let main argv =
                 time (fun () -> processSourceString fsi s (Choice2Of2 outFile) config)
             else
                 processSourceString fsi s (Choice2Of2 outFile) config
-
-            printfn "%s has been written." outFile
         with
         | exn ->
             eprintfn "The following exception occurs while formatting stdin: %O" exn
