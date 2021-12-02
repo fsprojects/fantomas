@@ -5,10 +5,12 @@ open FsUnit
 open Fantomas.CoreGlobalTool.Tests.TestHelpers
 
 [<Literal>]
-let FormattedCode = "let a = 9\r\n"
+let FormattedCode =
+    """let a = 9
+"""
 
 [<Literal>]
-let UnformattedCode = "let a =   9\r\n"
+let UnformattedCode = "let a =   9"
 
 [<Test>]
 let ``correctly formatted file should not be written, 1984`` () =
