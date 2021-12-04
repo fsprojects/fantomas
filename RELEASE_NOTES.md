@@ -1,3 +1,7 @@
+#### 4.5.10 - 12/2021
+
+* Fix Fantomas writes even when not necessary. [#1984](https://github.com/fsprojects/fantomas/issues/1984)
+
 #### 4.5.9 - 11/2021
 
 * Fix Operator application to some literals doesn't preserve spacing. [#1979](https://github.com/fsprojects/fantomas/issues/1979)
