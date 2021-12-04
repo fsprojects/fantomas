@@ -1,3 +1,7 @@
+#### 4.6.0-alpha-010
+
+* All the fixes of 4.5.10
+
 #### 4.6.0-alpha-009
 
 * Fix Idempotency problem when exception definition used in signature file. [#1974](https://github.com/fsprojects/fantomas/issues/1974)
