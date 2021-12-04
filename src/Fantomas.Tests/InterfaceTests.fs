@@ -274,18 +274,18 @@ type Test =
         """
 type Test =
     abstract RunJobs:
-        folder: string
-        * ?jobs: string
-        * ?ctm: string
-        * ?createDuplicate: bool
-        * ?hold: bool
-        * ?ignoreCriteria: bool
-        * ?independentFlow: bool
-        * ?orderDate: string
-        * ?orderIntoFolder: string
-        * ?variables: Dictionary<string, string> []
-        * ?waitForOrderDate: bool ->
-        string
+        folder: string *
+        ?jobs: string *
+        ?ctm: string *
+        ?createDuplicate: bool *
+        ?hold: bool *
+        ?ignoreCriteria: bool *
+        ?independentFlow: bool *
+        ?orderDate: string *
+        ?orderIntoFolder: string *
+        ?variables: Dictionary<string, string> [] *
+        ?waitForOrderDate: bool ->
+            string
 
     override this.RunJobs
         (
@@ -384,7 +384,7 @@ type IFoo =
         foo : string ->
         bar : string ->
         baz : string ->
-        int
+            int
 """
 
 [<Test>]
@@ -409,7 +409,7 @@ type IFoo =
         string ->
         int ->
         string ->
-        string
+            string
 """
 
 [<Test>]
@@ -429,9 +429,9 @@ type IFoo =
         """
 type IFoo =
     abstract Bar :
-        [<Path "bar">] bar : string
-        * [<Path "baz">] baz : string ->
-        Task<Foo>
+        [<Path "bar">] bar : string *
+        [<Path "baz">] baz : string ->
+            Task<Foo>
 """
 
 [<Test>]
@@ -453,7 +453,7 @@ type IFoo =
     abstract Bar :
         i : int ->
         a : string * foo : int ->
-        string
+            string
 """
 
 [<Test>]
@@ -474,10 +474,10 @@ type IFoo =
 type IFoo =
     abstract Bar :
         i : int ->
-        a : string
-        * foo : int
-        * someReallyLongNameThatMakesTheTupleMultiLine : string ->
-        string
+        a : string *
+        foo : int *
+        someReallyLongNameThatMakesTheTupleMultiLine : string ->
+            string
 """
 
 [<Test>]
