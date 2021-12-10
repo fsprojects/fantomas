@@ -114,3 +114,18 @@ let y = [ 0; 2; 4 ][ 1 ]
         """
 let y = [ 0; 2; 4 ][1]
 """
+
+[<Test>]
+let ``index syntax on dotget, 1985`` () =
+    formatSourceString
+        false
+        """
+let segment = System.Uri(ctx.Request.Path.Value).Segments[1]
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let segment = System.Uri(ctx.Request.Path.Value).Segments[1]
+"""

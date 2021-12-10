@@ -1812,6 +1812,12 @@ and genExpr astContext synExpr ctx =
                 +> genExpr astContext e3
             )
 
+        | IndexWithoutDotExpr (identifierExpr, indexExpr) ->
+            genExpr astContext identifierExpr
+            +> sepOpenLFixed
+            +> genExpr astContext indexExpr
+            +> sepCloseLFixed
+
         // Result<int, string>.Ok 42
         | App (DotGet (TypeApp (e, lt, ts, gt), lids), es) ->
             let s = List.map fst lids |> String.concat "."
@@ -2251,12 +2257,6 @@ and genExpr astContext synExpr ctx =
                             singleLine ctx
 
             expressionFitsOnRestOfLine short long
-
-        | IndexWithoutDotExpr (identifierExpr, indexExpr) ->
-            genExpr astContext identifierExpr
-            +> sepOpenLFixed
-            +> genExpr astContext indexExpr
-            +> sepCloseLFixed
 
         // Always spacing in multiple arguments
         | App (e, es) -> genApp astContext e es
