@@ -3025,7 +3025,7 @@ and genMultilineRecordInstanceAlignBrackets
          +> unindent
          +> ifElseCtx lastWriteEventIsNewline sepNone sepNln
          +> genTriviaFor SynExpr_Record_ClosingBrace closingBrace sepCloseSFixed)
-    |> atCurrentColumnIndent
+    //|> atCurrentColumnIndent
 
 and genMultilineAnonRecord (isStruct: bool) fields copyInfo (astContext: ASTContext) =
     let recordExpr =
@@ -5337,11 +5337,19 @@ and genSynBindingValue
         let short = prefix +> genExprKeepIndentInBranch astContext e
 
         let long =
+            let isRecord =
+                match e with
+                | SynExpr.Record _ -> true
+                | _ -> false
+            
             prefix
-            +> indent
-            +> sepNln
-            +> genExprKeepIndentInBranch astContext e
-            +> unindent
+            +> ifElse
+                   isRecord
+                   (genExprKeepIndentInBranch astContext e)
+                   (indent
+                   +> sepNln
+                   +> genExprKeepIndentInBranch astContext e
+                   +> unindent)
 
         isShortExpression ctx.Config.MaxValueBindingWidth short long ctx)
 
