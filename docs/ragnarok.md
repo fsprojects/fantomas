@@ -106,7 +106,7 @@ Point is that, the combination of two syntax nodes would lead to a different sty
 
 ## The subjectivity
 
-As a long term Fantomas user, over time you stop caring about how the code looks like. You accept what is does and letting go of past habits leads to a world of freedom.
+As a long term Fantomas user, over time you stop caring about how the code looks like. You accept what is does and letting go of your past habits leads to a world of freedom.
 People that do not use Fantomas, cannot cope with the fact that the formatted code does differ from their original source.
 That is the idea thought, you follow a style guide and your code looks like how the rest of the world does it.
 
@@ -138,6 +138,17 @@ And I also wonder about tuples, [SynExpr.Tuple](https://fsharp.github.io/fsharp-
 
 Note that depending on the information stored in these nodes, they are formatted somewhat differently.
 
+### SynPat
+
+The `SynPat` cases might be:
+- [SynPat.Record](https://fsharp.github.io/fsharp-compiler-docs/reference/fsharp-compiler-syntax-synpat.html#Record)
+- [SynPat.ArrayOrList](https://fsharp.github.io/fsharp-compiler-docs/reference/fsharp-compiler-syntax-synpat.html#ArrayOrList)
+
+### SynType
+
+The `SynType` cases might be:
+- [SynType.AnonRecd](https://fsharp.github.io/fsharp-compiler-docs/reference/fsharp-compiler-syntax-syntype.html#AnonRecd)
+
 ### SynBinding
 
 SynBinding is used for let bindings and members:
@@ -150,10 +161,10 @@ let x a b = async {
 type Foo() =
     member this.Bar = {|
         bar with X = x 
-    |}
+    |} // this is quite interesting how the closing brace is indented.
 ```
 
-### LetOrUseBang / YieldOrReturn
+### LetOrUseBang
 
 Note that not every time the `let` keyword is used, it leads to a `SynBinding`.
 [LetBang](https://fsharp.github.io/fsharp-compiler-docs/reference/fsharp-compiler-syntax-synexpr.html#LetOrUseBang) for example has a different way of storing information.
@@ -165,7 +176,9 @@ async {
     }
 ```
 
-Perhaps [YieldOrReturn](https://fsharp.github.io/fsharp-compiler-docs/reference/fsharp-compiler-syntax-synexpr.html#YieldOrReturn) should also be considered to apply this style:
+### YieldOrReturn
+
+[YieldOrReturn](https://fsharp.github.io/fsharp-compiler-docs/reference/fsharp-compiler-syntax-synexpr.html#YieldOrReturn)
 
 ```fsharp
 myComp {
@@ -178,7 +191,9 @@ myComp {
 }
 ```
 
-and did you know that [YieldReturnFrom](https://fsharp.github.io/fsharp-compiler-docs/reference/fsharp-compiler-syntax-synexpr.html#YieldOrReturnFrom) is also a thing.
+### YieldReturnFrom
+
+[YieldReturnFrom](https://fsharp.github.io/fsharp-compiler-docs/reference/fsharp-compiler-syntax-synexpr.html#YieldOrReturnFrom)
 
 ```fsharp
 myComp {
@@ -188,6 +203,20 @@ myComp {
     return! {
         Y = y
     }
+}
+```
+
+### SynExprAndBang
+
+[SynExprAndBang](https://fsharp.github.io/fsharp-compiler-docs/reference/fsharp-compiler-syntax-synexprandbang.html)
+
+```fsharp
+async {
+    let! x = y
+    and! z = async {
+        return! meh
+    }
+    ()
 }
 ```
 
@@ -250,7 +279,7 @@ There is the raw lambda as you see it above but it is often capture in more elab
 myTasks
 |> List.map (fun p -> task {
     return p
-}
+})
 |> Task.WhenAll
 ```
 
@@ -263,6 +292,15 @@ Used as part of [SynExpr.Match](https://fsharp.github.io/fsharp-compiler-docs/re
 match v with
 | () -> async {
     return FooBar()
+}
+```
+
+Keep in mind that [SynExpr.TryWith](https://fsharp.github.io/fsharp-compiler-docs/reference/fsharp-compiler-syntax-synexpr.html#TryWith) has this as well:
+
+```fsharp
+try x with
+| ex -> async {
+    ()
 }
 ```
 
@@ -305,15 +343,160 @@ let v =
 
 ?
 
-### Record type
+#### Named arguments
 
-- Types
-- Anon
-- Signature files
+Another interesting edge case is named arguments inside applications:
 
-### Patterns
+```fsharp
+let v =
+    SomeConstructor(v = [
+        A
+        B
+        C
+    ])
+```
+
+Note that the AST for `v = [ ... ]` is something like
+
+```fsharp
+App
+  (NonAtomic, false,
+   App
+     (NonAtomic, true, Ident op_Equality, Ident v,
+      tmp.fsx (2,20--2,23)),
+   ArrayOrListComputed
+     (false,
+      Sequential
+        (SuppressNeither, true, Ident A,
+         Sequential
+           (SuppressNeither, true, Ident B, Ident C,
+            tmp.fsx (4,8--5,9)), tmp.fsx (3,8--5,9)),
+      tmp.fsx (2,24--6,5)), tmp.fsx (2,20--6,5)),
+tmp.fsx (2,19--2,20), Some tmp.fsx (6,5--6,6),
+tmp.fsx (2,19--6,6)
+```
+
+so this is hard to detect in the first place.
+
+### SynExprRecordField
+
+[SynExprRecordField](https://fsharp.github.io/fsharp-compiler-docs/reference/fsharp-compiler-syntax-synexprrecordfield.html)
+
+```fsharp
+let v = {
+    X = {
+        Y = y
+    }
+}
+```
+
+### Fields in AnonRecords
+
+[recordFields in AnonRecd](https://fsharp.github.io/fsharp-compiler-docs/reference/fsharp-compiler-syntax-synexpr.html#AnonRecd)
+
+```fsharp
+let v = {|
+    X = {|
+        Y = y
+    |}
+|}
+```
+
+### SynTypeDefnSimpleRepr.Record
+
+[SynTypeDefnSimpleRepr.Record](https://fsharp.github.io/fsharp-compiler-docs/reference/fsharp-compiler-syntax-syntypedefnsimplerepr.html#Record)
+
+```fsharp
+type V = {
+    X :int
+    Y: int
+}
+```
+
+Note, access modifiers:
+
+```fsharp
+type V = internal {
+    X :int
+    Y: int
+}
+```
+
+Members need the `with` keyword:
+
+```fsharp
+type V = {
+    X :int
+    Y: int
+} with
+    member this.XY = X + Y
+```
+
+The current style does not use the `with` keyword, here is would be a requirement.
+
+This is also being used in [SynTypeDefnSigRepr.Simple](https://fsharp.github.io/fsharp-compiler-docs/reference/fsharp-compiler-syntax-syntypedefnsigrepr.html).
+
+```fsharp
+namespace Meh
+
+type V = {
+    X :int
+    Y: int
+} with
+    member XY : int
+```
+
+### TypeAbbrev
+
+[SynType.AnonRecd](https://fsharp.github.io/fsharp-compiler-docs/reference/fsharp-compiler-syntax-syntype.html#AnonRecd) in [SynTypeDefnSimpleRepr.TypeAbbrev](https://fsharp.github.io/fsharp-compiler-docs/reference/fsharp-compiler-syntax-syntypedefnsimplerepr.html#TypeAbbrev).
+
+```fsharp
+type V = {|
+    x :int
+|}
+```
+
+### SynArgPats.NamePatPairs
+
+[SynArgPats.NamePatPairs](https://fsharp.github.io/fsharp-compiler-docs/reference/fsharp-compiler-syntax-synargpats.html#NamePatPairs)
+
+```fsharp
+match x with
+| Foo(x = {
+    Y = y
+  }) ->
+     ()
+```
+
+### SynPat.Record
+
+[fieldPats in SynPat.Record](https://fsharp.github.io/fsharp-compiler-docs/reference/fsharp-compiler-syntax-synpat.html#Record)
+
+```fsharp
+match x with
+| { Y = {
+       X = y
+    }} ->
+     ()
+     
+// no idea if this looks ok but you get the idea, after the `Y =` you have the scenario.
+```
+
+### Even more nodes
+
+I'm quite certain that the list above is not complete.
 
 ## Implementation
+
+The impact will be huge in CodePrinter, there are numerous locations where some clever helper function will need to be called in order not to newline.
+I do believe that not placing the newline will not be the only thing that is required to make all these examples work.
+Having an entirely new implementation for all the impacted nodes is also not recommended.
+
+Some re-use might be possible on the record side by turning on [fsharp_multiline_block_brackets_on_same_column](https://github.com/fsprojects/fantomas/blob/master/docs/Documentation.md#fsharp_multiline_block_brackets_on_same_column).
+However, by doing this, a new precedent will be introduced. Two settings need to be combined in order for a valid code to be outputted.
+This is unseen for the tool.
+
+And no battle plan survives first contact. Even if everything above is implemented and it produces no warnings whatsoever, the will more definitely be a case that pops up once this is released in the wild.
 
 ## The twist
 
@@ -322,19 +505,7 @@ There are two things I still wish to achieve in the Fantomas project:
 - A better Syntax tree: improvements on the compiler side to simplify Fantomas
 - Parallel formatting: formatting certain syntax tree nodes in parallel to speed up things for large files.
 
-After that, I'm willing to open to what the community wants out of this project.
-I might even agreed to the ragnarok feature under very strict conditions.
-These obviously would be that the feature is not breaking any existing tests and is not impacting anything else whatsoever.
-
-I'm also pretty much not going to do this implementation myself unless I'm properly paid for it.
-Again, I don't care and this is a bad idea.## The twist
-
-Even though this whole thing is a bad idea, like a really bad one, I might be open to it in the future.
-There are two things I still wish to achieve in the Fantomas project:
-- A better Syntax tree: improvements on the compiler side to simplify Fantomas
-- Parallel formatting: formatting certain syntax tree nodes in parallel to speed up things for large files.
-
-After that, I'm willing to open to what the community wants out of this project.
+After that, I'm willing to open a bit to what the community wants out of this project.
 I might even agreed to the ragnarok feature under very strict conditions.
 These obviously would be that the feature is not breaking any existing tests and is not impacting anything else whatsoever.
 
