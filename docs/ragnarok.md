@@ -136,6 +136,16 @@ I'm not sure that this list is completed.
 Some people might also include [SynExpr.MatchLambda](https://fsharp.github.io/fsharp-compiler-docs/reference/fsharp-compiler-syntax-synexpr.html#MatchLambda).
 And I also wonder about tuples, [SynExpr.Tuple](https://fsharp.github.io/fsharp-compiler-docs/reference/fsharp-compiler-syntax-synexpr.html#Tuple).
 
+Maybe multiline strings ([SynConst.String](https://fsharp.github.io/fsharp-compiler-docs/reference/fsharp-compiler-syntax-synconst.html#String) in [SynExpr.Const](https://fsharp.github.io/fsharp-compiler-docs/reference/fsharp-compiler-syntax-synexpr.html#Const)) should also be included:
+
+```fsharp
+let json = """
+{
+    "foo":"bar"
+}
+"""
+```
+
 Note that depending on the information stored in these nodes, they are formatted somewhat differently.
 
 ### SynPat
