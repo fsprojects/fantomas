@@ -174,6 +174,24 @@ type Foo() =
     |} // this is quite interesting how the closing brace is indented.
 ```
 
+Fantomas has different rules depending on the details of the SynBinding.
+
+```fsharp
+let a = {
+    X = x
+}
+
+// different code path in CodePrinter
+let b c = {
+    X = x
+}
+
+// also a different code path in CodePrinter
+let d e : MyRecord = {
+    X = x
+}
+```
+
 ### LetOrUseBang
 
 Note that not every time the `let` keyword is used, it leads to a `SynBinding`.
