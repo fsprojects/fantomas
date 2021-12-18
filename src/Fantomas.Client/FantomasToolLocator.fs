@@ -63,7 +63,12 @@ let private startProcess (ps: ProcessStartInfo) : Result<Process, ProcessStartEr
 let private runToolListCmd (Folder workingDir: Folder) (globalFlag: bool) : Result<string list, DotNetToolListError> =
     let ps = ProcessStartInfo("dotnet")
     ps.WorkingDirectory <- workingDir
-    ps.EnvironmentVariables.Add("DOTNET_CLI_UI_LANGUAGE", "en-us")
+
+    if ps.EnvironmentVariables.ContainsKey "DOTNET_CLI_UI_LANGUAGE" then
+        ps.EnvironmentVariables.["DOTNET_CLI_UI_LANGUAGE"] <- "en-us"
+    else
+        ps.EnvironmentVariables.Add("DOTNET_CLI_UI_LANGUAGE", "en-us")
+
     ps.CreateNoWindow <- true
 
     ps.Arguments <-
