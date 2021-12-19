@@ -1311,6 +1311,11 @@ let internal addExtraNewlineIfLeadingWasMultiline leading sepNlnConsideringTrivi
         +> onlyIf ml sepNlnConsideringTriviaContentBefore
         +> continuation)
 
+let internal autoIndentAndNlnExpressUnlessRagnarok (f: SynExpr -> Context -> Context) (e: SynExpr) (ctx: Context) =
+    match e with
+    | SourceParser.RagnarokExpr e when ctx.Config.Ragnarok -> f e ctx
+    | _ -> (indent +> sepNln +> f e +> unindent) ctx
+
 type internal ColMultilineItem =
     | ColMultilineItem of
         // current expression

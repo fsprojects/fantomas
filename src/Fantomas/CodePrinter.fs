@@ -3025,7 +3025,6 @@ and genMultilineRecordInstanceAlignBrackets
          +> unindent
          +> ifElseCtx lastWriteEventIsNewline sepNone sepNln
          +> genTriviaFor SynExpr_Record_ClosingBrace closingBrace sepCloseSFixed)
-    //|> atCurrentColumnIndent
 
 and genMultilineAnonRecord (isStruct: bool) fields copyInfo (astContext: ASTContext) =
     let recordExpr =
@@ -3101,7 +3100,7 @@ and genMultilineAnonRecordAlignBrackets (isStruct: bool) fields copyInfo astCont
             +> sepCloseAnonRecdFixed
 
     ifElse isStruct !- "struct " sepNone
-    +> atCurrentColumnIndent genAnonRecord
+    +> genAnonRecord
 
 and genObjExpr t eio withKeyword bd members ims range (astContext: ASTContext) =
     // Check the role of the second part of eio
@@ -5337,19 +5336,8 @@ and genSynBindingValue
         let short = prefix +> genExprKeepIndentInBranch astContext e
 
         let long =
-            let isRecord =
-                match e with
-                | SynExpr.Record _ -> true
-                | _ -> false
-            
             prefix
-            +> ifElse
-                   isRecord
-                   (genExprKeepIndentInBranch astContext e)
-                   (indent
-                   +> sepNln
-                   +> genExprKeepIndentInBranch astContext e
-                   +> unindent)
+            +> autoIndentAndNlnExpressUnlessRagnarok (genExprKeepIndentInBranch astContext) e
 
         isShortExpression ctx.Config.MaxValueBindingWidth short long ctx)
 

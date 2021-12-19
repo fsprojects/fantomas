@@ -1857,3 +1857,9 @@ let (|KeepIndentIfThenElse|_|) (e: SynExpr) =
         else
             None
     | _ -> None
+
+let (|RagnarokExpr|_|) (e: SynExpr) =
+    match e with
+    | SynExpr.Record _
+    | SynExpr.AnonRecd _ -> Some e
+    | _ -> None
