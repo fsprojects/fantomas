@@ -93,6 +93,8 @@
     <Compile Include="InsertFinalNewlineTests.fs" />
     <Compile Include="SingleExprTests.fs" />
     <Compile Include="RagnarokTests.fs" />
+    <Compile Include="Ragnarok\SynBindingValueExpressionTests.fs" />
+    <Compile Include="Ragnarok\SynBindingFunctionExpressionTests.fs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Fantomas.Extras\Fantomas.Extras.fsproj" />

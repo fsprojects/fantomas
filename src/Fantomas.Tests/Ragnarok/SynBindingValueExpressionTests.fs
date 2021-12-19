@@ -1,4 +1,4 @@
-﻿module Fantomas.Tests.RagnarokTests
+﻿module Fantomas.Tests.Ragnarok.SynBindingValueExpressionTests
 
 open NUnit.Framework
 open FsUnit
@@ -25,28 +25,6 @@ let x =
         equal
         """
 let x = {
-    A = longTypeName
-    B = someOtherVariable
-    C = ziggyBarX
-}
-"""
-
-[<Test>]
-let ``synbinding function with record instance `` () =
-    formatSourceString
-        false
-        """
-let x y =
-    { A = longTypeName
-      B = someOtherVariable
-      C = ziggyBarX }
-"""
-        config
-    |> prepend newline
-    |> should
-        equal
-        """
-let x y = {
     A = longTypeName
     B = someOtherVariable
     C = ziggyBarX

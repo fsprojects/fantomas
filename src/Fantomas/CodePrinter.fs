@@ -5108,7 +5108,12 @@ and genSynBindingFunction
         if isMultiline then
             (indent +> sepNln +> body +> unindent)
         else
-            sepSpaceIfShortExpressionOrAddIndentAndNewline ctx.Config.MaxFunctionBindingWidth body
+            let short = sepSpace +> body
+
+            let long =
+                autoIndentAndNlnExpressUnlessRagnarok (fun e -> sepSpace +> genExprKeepIndentInBranch astContext e) e
+
+            isShortExpression ctx.Config.MaxFunctionBindingWidth short long
 
     (genPreXmlDoc px
      +> genAttrIsFirstChild
