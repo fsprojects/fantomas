@@ -76,7 +76,7 @@ let x y = task {
 """
 
 [<Test>]
-let ``synbinding value with list`` () =
+let ``synbinding function with list`` () =
     formatSourceString
         false
         """
@@ -102,7 +102,7 @@ let x y = [
 """
 
 [<Test>]
-let ``synbinding value with array`` () =
+let ``synbinding function with array`` () =
     formatSourceString
         false
         """
@@ -125,4 +125,23 @@ let x y = [|
     itemFour
     itemFive
 |]
+"""
+
+[<Test>]
+let ``synbinding function with update record`` () =
+    formatSourceString
+        false
+        """
+let x y =
+    { astContext with IsInsideMatchClausePattern = true }
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let x y =
+    { astContext with
+        IsInsideMatchClausePattern = true
+    }
 """

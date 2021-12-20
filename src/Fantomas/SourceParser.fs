@@ -1860,6 +1860,8 @@ let (|KeepIndentIfThenElse|_|) (e: SynExpr) =
 
 let (|RagnarokExpr|_|) (e: SynExpr) =
     match e with
+    // { foo with Bar = bar }
+    | SynExpr.Record(copyInfo = Some _) -> None
     | SynExpr.Record _
     | SynExpr.AnonRecd _
     // task { ... }

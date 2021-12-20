@@ -176,3 +176,22 @@ let outer =
 
     ()
 """
+
+[<Test>]
+let ``synbinding value with update record`` () =
+    formatSourceString
+        false
+        """
+let astCtx =
+    { astContext with IsInsideMatchClausePattern = true }
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let astCtx =
+    { astContext with
+        IsInsideMatchClausePattern = true
+    }
+"""

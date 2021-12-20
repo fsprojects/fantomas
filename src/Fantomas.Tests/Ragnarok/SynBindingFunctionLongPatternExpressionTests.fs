@@ -124,7 +124,7 @@ let private addTaskToScheduler
 """
 
 [<Test>]
-let ``synbinding value with list`` () =
+let ``synbinding function with list`` () =
     formatSourceString
         false
         """
@@ -155,15 +155,17 @@ let private addTaskToScheduler
     (task: unit -> unit)
     groupName
     =
-    [ itemOne
-      itemTwo
-      itemThree
-      itemFour
-      itemFive ]
+    [
+        itemOne
+        itemTwo
+        itemThree
+        itemFour
+        itemFive
+    ]
 """
 
 [<Test>]
-let ``synbinding value with array`` () =
+let ``synbinding function with array`` () =
     formatSourceString
         false
         """
@@ -194,9 +196,44 @@ let private addTaskToScheduler
     (task: unit -> unit)
     groupName
     =
-    [| itemOne
-       itemTwo
-       itemThree
-       itemFour
-       itemFive |]
+    [|
+        itemOne
+        itemTwo
+        itemThree
+        itemFour
+        itemFive
+    |]
+"""
+
+[<Test>]
+let ``synbinding function with update record`` () =
+    formatSourceString
+        false
+        """
+let private addTaskToScheduler
+    (scheduler: IScheduler)
+    taskName
+    taskCron
+    prio
+    (task: unit -> unit)
+    groupName
+    =
+    { astContext with IsInsideMatchClausePattern = true }
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let private addTaskToScheduler
+    (scheduler: IScheduler)
+    taskName
+    taskCron
+    prio
+    (task: unit -> unit)
+    groupName
+    =
+    { astContext with
+        IsInsideMatchClausePattern = true
+    }
 """
