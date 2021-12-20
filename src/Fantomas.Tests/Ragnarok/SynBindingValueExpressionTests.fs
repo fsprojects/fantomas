@@ -75,3 +75,25 @@ let x = struct {|
     C = ziggyBarX
 |}
 """
+
+[<Test>]
+let ``synbinding value with computation expression`` () =
+    formatSourceString
+        false
+        """
+let t =
+    task {
+        // some computation here
+        ()
+    }
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let t = task {
+    // some computation here
+    ()
+}
+"""

@@ -1861,5 +1861,7 @@ let (|KeepIndentIfThenElse|_|) (e: SynExpr) =
 let (|RagnarokExpr|_|) (e: SynExpr) =
     match e with
     | SynExpr.Record _
-    | SynExpr.AnonRecd _ -> Some e
+    | SynExpr.AnonRecd _
+    // task { ... }
+    | SynExpr.App (ExprAtomicFlag.NonAtomic, false, SynExpr.Ident _, SynExpr.ComputationExpr _, _) -> Some e
     | _ -> None

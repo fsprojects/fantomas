@@ -31,42 +31,24 @@ let x y = {
 }
 """
 
-// TODO: conclude on what should happen here
-// This one feels very weird to have `= {` because the pattern is already multiline
-
 [<Test>]
-let ``multiline pattern in synbinding, record as expression`` () =
+let ``synbinding function with computation expression`` () =
     formatSourceString
         false
         """
-let private addTaskToScheduler
-    (scheduler: IScheduler)
-    taskName
-    taskCron
-    prio
-    (task: unit -> unit)
-    groupName
-    =
-    { A = longTypeName
-      B = someOtherVariable
-      C = ziggyBarX }
+let x y =
+    task {
+        // some computation here
+        ()
+    }
 """
-        { config with MaxLineLength = 80 }
+        config
     |> prepend newline
     |> should
         equal
         """
-let private addTaskToScheduler
-    (scheduler: IScheduler)
-    taskName
-    taskCron
-    prio
-    (task: unit -> unit)
-    groupName
-    =
-    {
-        A = longTypeName
-        B = someOtherVariable
-        C = ziggyBarX
-    }
+let x y = task {
+    // some computation here
+    ()
+}
 """
