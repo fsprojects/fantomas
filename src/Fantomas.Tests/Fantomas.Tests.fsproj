@@ -96,6 +96,7 @@
     <Compile Include="Ragnarok\SynBindingValueExpressionTests.fs" />
     <Compile Include="Ragnarok\SynBindingFunctionExpressionTests.fs" />
     <Compile Include="Ragnarok\SynBindingFunctionLongPatternExpressionTests.fs" />
+    <Compile Include="Ragnarok\SynBindingFunctionWithReturnTypeExpressionTests.fs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Fantomas.Extras\Fantomas.Extras.fsproj" />
