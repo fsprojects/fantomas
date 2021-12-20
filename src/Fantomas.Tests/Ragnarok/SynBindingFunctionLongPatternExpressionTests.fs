@@ -6,12 +6,12 @@ open Fantomas.Tests.TestHelper
 
 let config =
     { config with
+          MaxLineLength = 80
           MultilineBlockBracketsOnSameColumn = true
           Ragnarok = true }
 
 // TODO: conclude on what should happen here
 // This one feels very weird to have `= {` because the pattern is already multiline
-
 [<Test>]
 let ``synbinding function with record`` () =
     formatSourceString
@@ -29,7 +29,7 @@ let private addTaskToScheduler
       B = someOtherVariable
       C = ziggyBarX }
 """
-        { config with MaxLineLength = 80 }
+        config
     |> prepend newline
     |> should
         equal
@@ -66,7 +66,7 @@ let private addTaskToScheduler
        B = someOtherVariable
        C = ziggyBarX |}
 """
-        { config with MaxLineLength = 80 }
+        config
     |> prepend newline
     |> should
         equal
@@ -104,7 +104,7 @@ let private addTaskToScheduler
         ()
     }
 """
-        { config with MaxLineLength = 80 }
+        config
     |> prepend newline
     |> should
         equal
@@ -121,4 +121,82 @@ let private addTaskToScheduler
         // some computation here
         ()
     }
+"""
+
+[<Test>]
+let ``synbinding value with list`` () =
+    formatSourceString
+        false
+        """
+let private addTaskToScheduler
+    (scheduler: IScheduler)
+    taskName
+    taskCron
+    prio
+    (task: unit -> unit)
+    groupName
+    =
+    [ itemOne
+      itemTwo
+      itemThree
+      itemFour
+      itemFive ]
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let private addTaskToScheduler
+    (scheduler: IScheduler)
+    taskName
+    taskCron
+    prio
+    (task: unit -> unit)
+    groupName
+    =
+    [ itemOne
+      itemTwo
+      itemThree
+      itemFour
+      itemFive ]
+"""
+
+[<Test>]
+let ``synbinding value with array`` () =
+    formatSourceString
+        false
+        """
+let private addTaskToScheduler
+    (scheduler: IScheduler)
+    taskName
+    taskCron
+    prio
+    (task: unit -> unit)
+    groupName
+    =
+    [| itemOne
+       itemTwo
+       itemThree
+       itemFour
+       itemFive |]
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let private addTaskToScheduler
+    (scheduler: IScheduler)
+    taskName
+    taskCron
+    prio
+    (task: unit -> unit)
+    groupName
+    =
+    [| itemOne
+       itemTwo
+       itemThree
+       itemFour
+       itemFive |]
 """

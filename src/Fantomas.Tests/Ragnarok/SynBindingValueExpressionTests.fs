@@ -97,3 +97,82 @@ let t = task {
     ()
 }
 """
+
+[<Test>]
+let ``synbinding value with list`` () =
+    formatSourceString
+        false
+        """
+let t =
+    [ itemOne
+      itemTwo
+      itemThree
+      itemFour
+      itemFive ]
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let t = [
+    itemOne
+    itemTwo
+    itemThree
+    itemFour
+    itemFive
+]
+"""
+
+[<Test>]
+let ``synbinding value with array`` () =
+    formatSourceString
+        false
+        """
+let t =
+    [| itemOne
+       itemTwo
+       itemThree
+       itemFour
+       itemFive |]
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let t = [|
+    itemOne
+    itemTwo
+    itemThree
+    itemFour
+    itemFive
+|]
+"""
+
+[<Test>]
+let ``nested synbinding value with record`` () =
+    formatSourceString
+        false
+        """
+let outer =
+    let inner =
+        {
+            X = someGreatXValue
+            Y = someRatherSmallYValue
+        }
+    ()
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let outer =
+    let inner = {
+        X = someGreatXValue
+        Y = someRatherSmallYValue
+    }
+
+    ()
+"""

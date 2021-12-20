@@ -1863,5 +1863,6 @@ let (|RagnarokExpr|_|) (e: SynExpr) =
     | SynExpr.Record _
     | SynExpr.AnonRecd _
     // task { ... }
-    | SynExpr.App (ExprAtomicFlag.NonAtomic, false, SynExpr.Ident _, SynExpr.ComputationExpr _, _) -> Some e
+    | SynExpr.App (ExprAtomicFlag.NonAtomic, false, SynExpr.Ident _, SynExpr.ComputationExpr _, _)
+    | ArrayOrList _ -> Some e
     | _ -> None
