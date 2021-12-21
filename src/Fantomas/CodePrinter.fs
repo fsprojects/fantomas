@@ -1220,6 +1220,15 @@ and genExpr astContext synExpr ctx =
             +> ifElse isInfixExpr genInfixExpr genNonInfixExpr
 
         | SingleExpr (kind, e) ->
+            let mapping = 
+                (match kind with
+                | YieldFrom _
+                | Yield  _
+                | Return _
+                | ReturnFrom _
+                | Do _
+                | DoBang _ -> autoIndentAndNlnIfExpressionExceedsPageWidthUnlessRagnarok (genExpr astContext) e
+                | _ -> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e))
             match kind with
             | InferredDowncast downcastKeyword ->
                 genTriviaFor SynExpr_InferredDowncast_Downcast downcastKeyword !- "downcast "
@@ -1236,7 +1245,8 @@ and genExpr astContext synExpr ctx =
             | Do doKeyword -> genTriviaFor SynExpr_Do_Do doKeyword !- "do "
             | DoBang doBangKeyword -> genTriviaFor SynExpr_DoBang_DoBang doBangKeyword !- "do! "
             | Fixed fixedKeyword -> genTriviaFor SynExpr_Fixed_Fixed fixedKeyword !- "fixed "
-            +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e)
+            +> mapping 
+
         | ConstExpr (c, r) -> genConst c r
         | NullExpr -> !- "null"
         // Not sure about the role of e1
