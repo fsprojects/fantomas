@@ -1316,6 +1316,15 @@ let internal autoIndentAndNlnExpressUnlessRagnarok (f: SynExpr -> Context -> Con
     | SourceParser.RagnarokExpr e when ctx.Config.Ragnarok -> f e ctx
     | _ -> (indent +> sepNln +> f e +> unindent) ctx
 
+let internal autoIndentAndNlnIfExpressionExceedsPageWidthUnlessRagnarok
+    (f: SynExpr -> Context -> Context)
+    (e: SynExpr)
+    (ctx: Context)
+    =
+    match e with
+    | SourceParser.RagnarokExpr e when ctx.Config.Ragnarok -> f e ctx
+    | _ -> autoIndentAndNlnIfExpressionExceedsPageWidth (f e) ctx
+
 type internal ColMultilineItem =
     | ColMultilineItem of
         // current expression

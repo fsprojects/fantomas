@@ -1477,7 +1477,7 @@ and genExpr astContext synExpr ctx =
                     +> genPat astContext pat
                     +> genEq SynExpr_LetOrUseBang_Equals equalsRange
                     +> sepSpace
-                    +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext expr)
+                    +> autoIndentAndNlnIfExpressionExceedsPageWidthUnlessRagnarok (genExpr astContext) expr
                 | AndBangStatement (pat, equalsRange, expr, range) ->
                     !- "and! "
                     +> genPat astContext pat

@@ -51,7 +51,7 @@ let astCtx =
 """
 
 [<Test>]
-let ``synbinding value with anonymous record instance `` () =
+let ``synbinding value with anonymous record instance`` () =
     formatSourceString
         false
         """

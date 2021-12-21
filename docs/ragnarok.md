@@ -1,12 +1,13 @@
 # The Ragnarok Feature
 
-I'm not sure who this document is for right now. These some thoughts and some research about a certain feature that people want in Fantomas.
+I'm not sure who this document is for right now. These are some thoughts and some research about a certain feature that people want in Fantomas.
 The feature is about how the code is printed back to source and is a variation on what the style guide advices today.
 
 I will go in great lengths why this is feature does not bring much value to the overall mission of Fantomas.
 Why I consider it inconsistent and why the implementation is far from trivial.
 Throughout this document there will be a negative tone toward this and for the initial draft I'm ok with this.
 Again, there are no plans to publish this as is.
+Oh and typos all over the place.
 
 ## Introduction
 
@@ -202,6 +203,8 @@ async {
     let! a = {
         X = x
     }
+    ()
+}
 ```
 
 ### YieldOrReturn
