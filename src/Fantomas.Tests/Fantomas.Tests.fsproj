@@ -102,6 +102,7 @@
     <Compile Include="Ragnarok\SynExprAndBangExpressionTests.fs" />
     <Compile Include="Ragnarok\LongIdentSetExpressionTests.fs" />
     <Compile Include="Ragnarok\DotIndexedSetExpressionTests.fs" />
+    <Compile Include="Ragnarok\SetExpressionTests.fs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Fantomas.Extras\Fantomas.Extras.fsproj" />

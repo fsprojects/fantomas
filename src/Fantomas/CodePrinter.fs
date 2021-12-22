@@ -2509,7 +2509,7 @@ and genExpr astContext synExpr ctx =
         | SynExpr.Set (e1, e2, _) ->
             addParenIfAutoNln e1 (genExpr astContext)
             -- sprintf " <- "
-            +> genExpr astContext e2
+            +> autoIndentAndNlnExpressUnlessRagnarok (genExpr astContext) e2
 
         | ParsingError r ->
             raise
