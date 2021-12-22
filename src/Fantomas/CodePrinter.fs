@@ -2509,12 +2509,12 @@ and genExpr astContext synExpr ctx =
         | DotSet (e1, s, e2) ->
             addParenIfAutoNln e1 (genExpr astContext)
             -- sprintf ".%s <- " s
-            +> autoIndentAndNlnExpressUnlessRagnarok (genExpr astContext) e2
+            +> autoIndentAndNlnIfExpressionExceedsPageWidthUnlessRagnarok (genExpr astContext) e2
 
         | SynExpr.Set (e1, e2, _) ->
             addParenIfAutoNln e1 (genExpr astContext)
             -- sprintf " <- "
-            +> autoIndentAndNlnExpressUnlessRagnarok (genExpr astContext) e2
+            +> autoIndentAndNlnIfExpressionExceedsPageWidthUnlessRagnarok (genExpr astContext) e2
 
         | ParsingError r ->
             raise
