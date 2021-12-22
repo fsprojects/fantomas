@@ -109,6 +109,7 @@
     <Compile Include="Ragnarok\SynMatchClauseExpressionTests.fs" />
     <Compile Include="Ragnarok\KeepIndentInBranchExpressionTests.fs" />
     <Compile Include="Ragnarok\SynTypeDefnSimpleReprRecordTests.fs" />
+    <Compile Include="Ragnarok\SynTypeDefnSigReprSimpleTests.fs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Fantomas.Extras\Fantomas.Extras.fsproj" />
