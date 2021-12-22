@@ -4575,7 +4575,7 @@ and genClause astContext hasBar (Clause (p, eo, arrowRange, e) as ce) =
                             sepArrow
                             |> genTriviaFor SynMatchClause_Arrow arrowRange)
                         arrowRange
-                     +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e))
+                     +> autoIndentAndNlnIfExpressionExceedsPageWidthUnlessRagnarok (genExpr astContext) e)
                         ctx)
 
     (onlyIf hasBar sepBar +> patAndBody
