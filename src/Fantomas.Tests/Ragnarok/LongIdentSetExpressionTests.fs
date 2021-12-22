@@ -9,7 +9,6 @@ let config =
           MultilineBlockBracketsOnSameColumn = true
           Ragnarok = true }
 
-
 [<Test>]
 let ``longIdentSet with record instance `` () =
     formatSourceString

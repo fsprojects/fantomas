@@ -1525,9 +1525,9 @@ and genExpr astContext synExpr ctx =
         | JoinIn (e1, e2) ->
             genExpr astContext e1 -- " in "
             +> genExpr astContext e2
-        | Paren (lpr, Lambda (pats, arrowRange, expr, lambdaRange), rpr, _pr) ->
+        | Paren (lpr, Lambda (pats, arrowRange, expr, lambdaRange), rpr, pr) ->
             fun (ctx: Context) ->
-                let body = genExprKeepIndentInBranch astContext expr
+                let body = genExprKeepIndentInBranch astContext
 
                 let expr =
                     let triviaOfLambda f (ctx: Context) =
@@ -1543,18 +1543,22 @@ and genExpr astContext synExpr ctx =
                     +> (fun ctx ->
                         if not ctx.Config.MultiLineLambdaClosingNewline then
                             genLambdaArrowWithTrivia
-                                (body
-                                 +> triviaOfLambda printContentAfter
-                                 +> sepNlnWhenWriteBeforeNewlineNotEmpty id
-                                 +> sepCloseTFor rpr)
+                                (fun e ->
+                                    body e
+                                    +> triviaOfLambda printContentAfter
+                                    +> sepNlnWhenWriteBeforeNewlineNotEmpty id
+                                    +> sepCloseTFor rpr)
+                                expr
                                 arrowRange
                                 ctx
                         else
                             leadingExpressionIsMultiline
                                 (genLambdaArrowWithTrivia
-                                    (body
-                                     +> triviaOfLambda printContentAfter
-                                     +> sepNlnWhenWriteBeforeNewlineNotEmpty id)
+                                    (fun e ->
+                                        body e
+                                        +> triviaOfLambda printContentAfter
+                                        +> sepNlnWhenWriteBeforeNewlineNotEmpty id)
+                                    expr
                                     arrowRange)
                                 (fun isMultiline -> onlyIf isMultiline sepNln +> sepCloseTFor rpr)
                                 ctx)
@@ -1571,7 +1575,7 @@ and genExpr astContext synExpr ctx =
                         sepArrow
                         |> genTriviaFor SynExpr_Lambda_Arrow arrowRange)
                     arrowRange
-                +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext expr)
+                +> autoIndentAndNlnIfExpressionExceedsPageWidthUnlessRagnarok (genExpr astContext) expr
             )
         | MatchLambda (keywordRange, cs) ->
             (!- "function "
@@ -2050,7 +2054,8 @@ and genExpr astContext synExpr ctx =
                                 +> (!- "fun "
                                     +> col sepSpace pats (genPat astContext)
                                     +> genLambdaArrowWithTrivia
-                                        (genExprKeepIndentInBranch astContext bodyExpr)
+                                        (genExprKeepIndentInBranch astContext)
+                                        bodyExpr
                                         arrowRange
                                     |> genTriviaFor SynExpr_Lambda range)
                                 +> sepNln
@@ -2127,7 +2132,7 @@ and genExpr astContext synExpr ctx =
                             +> (sepOpenTFor lpr
                                 +> (!- "fun "
                                     +> col sepSpace pats (genPat astContext)
-                                    +> genLambdaArrowWithTrivia (genExprKeepIndentInBranch astContext body) arrowRange
+                                    +> genLambdaArrowWithTrivia (genExprKeepIndentInBranch astContext) body arrowRange
                                     |> genTriviaFor SynExpr_Lambda lambdaRange)
                                 +> sepNlnWhenWriteBeforeNewlineNotEmpty sepNone
                                 +> sepCloseTFor rpr
@@ -2142,7 +2147,7 @@ and genExpr astContext synExpr ctx =
                             +> (sepOpenTFor lpr
                                 +> (!- "fun "
                                     +> col sepSpace pats (genPat astContext)
-                                    +> genLambdaArrowWithTrivia (genExprKeepIndentInBranch astContext body) arrowRange
+                                    +> genLambdaArrowWithTrivia (genExprKeepIndentInBranch astContext) body arrowRange
                                     |> genTriviaFor SynExpr_Lambda lambdaRange)
                                 +> sepCloseTFor rpr
                                 |> genTriviaFor SynExpr_Paren pr)
@@ -2881,7 +2886,7 @@ and genMultilineFunctionApplicationArguments astContext argExpr =
                 (sepOpenTFor lpr
                  +> (!- "fun "
                      +> col sepSpace pats (genPat astContext)
-                     +> genLambdaArrowWithTrivia (genExprKeepIndentInBranch astContext body) arrowRange
+                     +> genLambdaArrowWithTrivia (genExprKeepIndentInBranch astContext) body arrowRange
                      |> genTriviaFor SynExpr_Lambda range)
                  +> sepNln
                  +> sepCloseTFor rpr)
@@ -3252,7 +3257,7 @@ and genApp astContext e es ctx =
                         leadingExpressionIsMultiline
                             (sepOpenTFor lpr -- "fun "
                              +> pats
-                             +> genLambdaArrowWithTrivia (genExprKeepIndentInBranch astContext bodyExpr) arrowRange)
+                             +> genLambdaArrowWithTrivia (genExprKeepIndentInBranch astContext) bodyExpr arrowRange)
                             (fun isMultiline -> onlyIf isMultiline sepNln +> sepCloseTFor rpr)
                         |> genTriviaFor SynExpr_Paren pr
 
@@ -3298,7 +3303,7 @@ and genLambdaMultiLineClosingNewline
     leadingExpressionIsMultiline
         (sepOpenTFor lpr -- "fun "
          +> col sepSpace pats (genPat astContext)
-         +> genLambdaArrowWithTrivia (genExprKeepIndentInBranch astContext bodyExpr) arrowRange
+         +> genLambdaArrowWithTrivia (genExprKeepIndentInBranch astContext) bodyExpr arrowRange
          |> genTriviaFor SynExpr_Lambda lambdaRange)
         (fun isMultiline -> onlyIf isMultiline sepNln +> sepCloseTFor rpr)
     |> genTriviaFor SynExpr_Paren pr
@@ -5690,7 +5695,11 @@ and genTriviaForOption (mainNodeName: FsAstType) (range: range option) f ctx =
     | None -> ctx
     | Some range -> genTriviaFor mainNodeName range f ctx
 
-and genLambdaArrowWithTrivia (bodyExpr: Context -> Context) (arrowRange: Range option) =
+and genLambdaArrowWithTrivia
+    (bodyExpr: SynExpr -> Context -> Context)
+    (body: SynExpr)
+    (arrowRange: Range option)
+    : Context -> Context =
     optSingle
         (fun arrowRange ->
             sepArrow
@@ -5698,9 +5707,9 @@ and genLambdaArrowWithTrivia (bodyExpr: Context -> Context) (arrowRange: Range o
         arrowRange
     +> (fun ctx ->
         if String.isNotNullOrEmpty ctx.WriterModel.WriteBeforeNewline then
-            (indent +> sepNln +> bodyExpr +> unindent) ctx
+            (indent +> sepNln +> (bodyExpr body) +> unindent) ctx
         else
-            (autoIndentAndNlnIfExpressionExceedsPageWidth bodyExpr) ctx)
+            autoIndentAndNlnIfExpressionExceedsPageWidthUnlessRagnarok bodyExpr body ctx)
 
 and infixOperatorFromTrivia range fallback (ctx: Context) =
     // by specs, section 3.4 https://fsharp.org/specs/language-spec/4.1/FSharpSpec-4.1-latest.pdf#page=24&zoom=auto,-137,312

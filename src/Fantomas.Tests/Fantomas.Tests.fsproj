@@ -104,6 +104,8 @@
     <Compile Include="Ragnarok\DotIndexedSetExpressionTests.fs" />
     <Compile Include="Ragnarok\SetExpressionTests.fs" />
     <Compile Include="Ragnarok\DotSetExpressionTests.fs" />
+    <Compile Include="Ragnarok\LambdaExpressionTests.fs" />
+    <Compile Include="Ragnarok\MultiLineLambdaClosingNewlineExpressionTests.fs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Fantomas.Extras\Fantomas.Extras.fsproj" />
