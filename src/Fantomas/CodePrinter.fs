@@ -3626,7 +3626,6 @@ and genTypeDefn
                     fs
                     closingBrace)
                 (genMultilineSimpleRecordTypeDefn astContext openingBrace withKeyword ms ao' fs closingBrace)
-
         let bodyExpr ctx =
             let size = getRecordSize ctx fs
 
@@ -3644,6 +3643,31 @@ and genTypeDefn
         +> indent
         +> genTriviaFor SynTypeDefnSimpleRepr_Record tdr.Range bodyExpr
         +> unindent
+        // TODO:
+//        let bodyExpr size ctx =
+//            if (List.isEmpty ms) then
+//                (isSmallExpression size smallExpression multilineExpression
+//                 +> leaveNodeFor SynTypeDefnSimpleRepr_Record tdr.Range // this will only print something when there is trivia after } in the short expression
+//                // Yet it cannot be part of the short expression otherwise the multiline expression would be triggered unwillingly.
+//                )
+//                    ctx
+//            else
+//                multilineExpression ctx
+        
+//        let genTypeDefinition (ctx: Context) =
+//            let size = getRecordSize ctx fs
+//
+//            let short =
+//                enterNodeFor SynTypeDefnSimpleRepr_Record tdr.Range
+//                +> bodyExpr size
+//                +> leaveNodeFor SynTypeDefnSimpleRepr_Record tdr.Range
+//
+//            if ctx.Config.Ragnarok && ms.IsEmpty then
+//                (sepSpace +> short) ctx
+//            else
+//                isSmallExpression size short (indent +> sepNln +> short +> unindent) ctx
+//
+//        typeName +> sepEq +> genTypeDefinition
 
     | Simple TDSRNone -> typeName
     | Simple (TDSRTypeAbbrev t) ->

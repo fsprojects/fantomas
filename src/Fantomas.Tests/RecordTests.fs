@@ -2020,25 +2020,3 @@ let a =
     {| Foo = //
         2 |}
 """
-
-[<Test>]
-let ``foobar `` () =
-    formatSourceString
-        false
-        """
-let x =
-    { A = longTypeName
-      B = someOtherVariable
-      C = ziggyBarX }
-"""
-        { config with MultilineBlockBracketsOnSameColumn = true }
-    |> prepend newline
-    |> should
-        equal
-        """
-let x = {
-    A = longTypeName
-    B = someOtherVariable
-    C = ziggyBarX
-}
-"""
