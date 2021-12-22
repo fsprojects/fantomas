@@ -100,6 +100,7 @@
     <Compile Include="Ragnarok\YieldOrReturnExpressionTests.fs" />
     <Compile Include="Ragnarok\YieldOrReturnBangExpressionTests.fs" />
     <Compile Include="Ragnarok\SynExprAndBangExpressionTests.fs" />
+    <Compile Include="Ragnarok\LongIdentSetExpressionTests.fs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Fantomas.Extras\Fantomas.Extras.fsproj" />

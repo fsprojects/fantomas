@@ -2410,7 +2410,7 @@ and genExpr astContext synExpr ctx =
             +> opt id lastRange (leaveNodeFor Ident_)
         | LongIdentSet (s, e, _) ->
             !-(sprintf "%s <- " s)
-            +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e)
+            +> autoIndentAndNlnIfExpressionExceedsPageWidthUnlessRagnarok (genExpr astContext) e
         | DotIndexedGet (App (e, [ ConstExpr (SynConst.Unit, _) as ux ]), indexArgs) ->
             genExpr astContext e
             +> genExpr astContext ux
