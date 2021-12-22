@@ -1868,3 +1868,13 @@ let (|RagnarokExpr|_|) (e: SynExpr) =
     | SynExpr.App (ExprAtomicFlag.NonAtomic, false, SynExpr.Ident _, SynExpr.ComputationExpr _, _)
     | ArrayOrList _ -> Some e
     | _ -> None
+
+let hasMultipleClausesWhereOneHasRagnarok (ragnarokEnabled) (cs: SynMatchClause list) : bool =
+    ragnarokEnabled
+    && List.moreThanOne cs
+    && List.exists
+        (fun (SynMatchClause (resultExpr = e)) ->
+            match e with
+            | RagnarokExpr _ -> true
+            | _ -> false)
+        cs

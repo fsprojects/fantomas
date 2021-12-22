@@ -2234,7 +2234,11 @@ and genExpr astContext synExpr ctx =
                 +> genTriviaFor SynExpr_TryWith_With withKeyword (!- "with")
                 +> indentOnWith
                 +> sepNln
-                +> col sepNln cs (genClause astContext true)
+                +> (fun ctx ->
+                    let hasMultipleClausesWhereOneHasRagnarok =
+                        hasMultipleClausesWhereOneHasRagnarok ctx.Config.Ragnarok cs
+
+                    col sepNln cs (genClause astContext true hasMultipleClausesWhereOneHasRagnarok) ctx)
                 +> unindentOnWith
             )
 
@@ -4540,8 +4544,15 @@ and genInterfaceImpl astContext (InterfaceImpl (t, withKeywordRange, bs, members
         +> genMemberDefnList astContext members
         +> unindent
 
-and genClause astContext hasBar (Clause (p, eo, arrowRange, e) as ce) =
-    let astCtx = { astContext with IsInsideMatchClausePattern = true }
+and genClause
+    (astContext: ASTContext)
+    (hasBar: bool)
+    (hasMultipleClausesWhereOneHasRagnarok: bool)
+    (Clause (p, eo, arrowRange, e) as ce)
+    =
+    let astCtx =
+        { astContext with
+              IsInsideMatchClausePattern = true }
 
     let patAndBody =
         genPat astCtx p
@@ -4585,11 +4596,31 @@ and genClause astContext hasBar (Clause (p, eo, arrowRange, e) as ce) =
                      +> autoIndentAndNlnIfExpressionExceedsPageWidthUnlessRagnarok (genExpr astContext) e)
                         ctx)
 
-    (onlyIf hasBar sepBar +> patAndBody
-     |> genTriviaFor SynMatchClause_ ce.Range)
+    (onlyIf hasBar sepBar
+    +> (fun ctx ->
+        if hasMultipleClausesWhereOneHasRagnarok then
+            // avoid edge case
+            (*
+                match x with
+                | y -> [
+                    1
+                    2
+                    3
+                ]
+                | z -> [
+                    4
+                    5
+                    6
+                ]
+            *)
+            // ] and | cannot align, otherwise you get a parser error
+            atCurrentColumn patAndBody ctx
+        else
+            patAndBody ctx)
+    |> genTriviaFor SynMatchClause_ ce.Range)
 
-and genClauses astContext cs =
-    col sepNln cs (genClause astContext true)
+and genClauses astContext cs (ctx: Context) =
+    col sepNln cs (genClause astContext true (hasMultipleClausesWhereOneHasRagnarok ctx.Config.Ragnarok cs)) ctx
 
 /// Each multiline member definition has a pre and post new line.
 and genMemberDefnList astContext nodes =
@@ -5453,11 +5484,19 @@ and genKeepIndentMatch
             withRange
     )
     +> sepNln
-    +> coli sepNln clauses (fun idx ->
-        if idx < lastClauseIndex then
-            genClause astContext true
-        else
-            genLastClauseKeepIdent astContext)
+    +> (fun ctx ->
+        let hasMultipleClausesWhereOneHasRagnarok =
+            hasMultipleClausesWhereOneHasRagnarok ctx.Config.Ragnarok clauses
+
+        coli
+            sepNln
+            clauses
+            (fun idx ->
+                if idx < lastClauseIndex then
+                    genClause astContext true hasMultipleClausesWhereOneHasRagnarok
+                else
+                    genLastClauseKeepIdent astContext)
+            ctx)
     |> genTriviaFor triviaType range
 
 and genLastClauseKeepIdent (astContext: ASTContext) (Clause (pat, whenExpr, arrowRange, expr)) =
