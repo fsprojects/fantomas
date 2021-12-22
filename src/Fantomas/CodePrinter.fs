@@ -2452,7 +2452,7 @@ and genExpr astContext synExpr ctx =
                 (appExpr +> idx +> genExpr astContext valueExpr)
                 (appExpr
                  +> idx
-                 +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext valueExpr))
+                 +> autoIndentAndNlnIfExpressionExceedsPageWidthUnlessRagnarok (genExpr astContext) valueExpr)
         | DotIndexedSet (AppSingleParenArg (a, px), indexArgs, valueExpr) ->
             let short = genExpr astContext a +> genExpr astContext px
 
@@ -2471,14 +2471,14 @@ and genExpr astContext synExpr ctx =
                 (short +> idx +> genExpr astContext valueExpr)
                 (long
                  +> idx
-                 +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext valueExpr))
+                 +> autoIndentAndNlnIfExpressionExceedsPageWidthUnlessRagnarok (genExpr astContext) valueExpr)
 
         | DotIndexedSet (objectExpr, indexArgs, valueExpr) ->
             addParenIfAutoNln objectExpr (genExpr astContext)
             -- ".["
             +> genExpr astContext indexArgs
             -- "] <- "
-            +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext valueExpr)
+            +> autoIndentAndNlnIfExpressionExceedsPageWidthUnlessRagnarok (genExpr astContext) valueExpr
         | NamedIndexedPropertySet (ident, e1, e2) ->
             !-ident +> genExpr astContext e1 -- " <- "
             +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e2)
