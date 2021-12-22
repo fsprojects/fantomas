@@ -1493,7 +1493,7 @@ and genExpr astContext synExpr ctx =
                     +> genPat astContext pat
                     +> genEq SynExprAndBang_Equals (Some equalsRange)
                     +> sepSpace
-                    +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext expr)
+                    +> autoIndentAndNlnIfExpressionExceedsPageWidthUnlessRagnarok (genExpr astContext) expr
                     |> genTriviaFor SynExprAndBang_ range
                 | OtherStatement expr -> genExpr astContext expr
 

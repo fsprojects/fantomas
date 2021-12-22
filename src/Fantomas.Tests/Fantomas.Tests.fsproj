@@ -99,6 +99,7 @@
     <Compile Include="Ragnarok\LetOrUseBangExpression.fs" />
     <Compile Include="Ragnarok\YieldOrReturnExpression.fs" />
     <Compile Include="Ragnarok\YieldOrReturnBangExpression.fs" />
+    <Compile Include="Ragnarok\SynExprAndBangExpression.fs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Fantomas.Extras\Fantomas.Extras.fsproj" />
