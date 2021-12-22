@@ -1,4 +1,4 @@
-﻿module Fantomas.Tests.Ragnarok.YieldOrReturnExpression
+﻿module Fantomas.Tests.Ragnarok.YieldOrReturnBangExpressionTests
 
 open NUnit.Framework
 open FsUnit
@@ -10,16 +10,16 @@ let config =
           Ragnarok = true }
 
 [<Test>]
-let ``yieldOrReturn with record instance`` () =
+let ``yieldOrReturnBang with record instance`` () =
     formatSourceString
         false
         """
 myComp {
-    yield
+    yield!
         { X = xFieldValueOne
           Y = yFieldValueTwo
           Z = zFieldValueThree }
-    return
+    return!
         { X = xFieldValueOne
           Y = yFieldValueTwo
           Z = zFieldValueThree }
@@ -31,13 +31,13 @@ myComp {
         equal
         """
 myComp {
-    yield {
+    yield! {
         X = xFieldValueOne
         Y = yFieldValueTwo
         Z = zFieldValueThree
     }
 
-    return {
+    return! {
         X = xFieldValueOne
         Y = yFieldValueTwo
         Z = zFieldValueThree
@@ -46,16 +46,16 @@ myComp {
 """
 
 [<Test>]
-let ``yieldOrReturn with update record`` () =
+let ``yieldOrReturnBang with update record`` () =
     formatSourceString
         false
         """
 myComp {
-    yield
+    yield!
         { bar with X = xFieldValueOne
                    Y = yFieldValueTwo
                    Z = zFieldValueThree }
-    return
+    return!
         { bar with X = xFieldValueOne
                    Y = yFieldValueTwo
                    Z = zFieldValueThree }
@@ -67,14 +67,14 @@ myComp {
         equal
         """
 myComp {
-    yield
+    yield!
         { bar with
             X = xFieldValueOne
             Y = yFieldValueTwo
             Z = zFieldValueThree
         }
 
-    return
+    return!
         { bar with
             X = xFieldValueOne
             Y = yFieldValueTwo
@@ -84,16 +84,16 @@ myComp {
 """
 
 [<Test>]
-let ``yieldOrReturn with anonymous record instance`` () =
+let ``yieldOrReturnBang with anonymous record instance`` () =
     formatSourceString
         false
         """
 myComp {
-    yield
+    yield!
        {| A = longTypeName
           B = someOtherVariable
           C = ziggyBarX |}
-    return
+    return!
        {| A = longTypeName
           B = someOtherVariable
           C = ziggyBarX |}
@@ -105,13 +105,13 @@ myComp {
         equal
         """
 myComp {
-    yield {|
+    yield! {|
         A = longTypeName
         B = someOtherVariable
         C = ziggyBarX
     |}
 
-    return {|
+    return! {|
         A = longTypeName
         B = someOtherVariable
         C = ziggyBarX
@@ -120,16 +120,16 @@ myComp {
 """
 
 [<Test>]
-let ``yieldOrReturn with anonymous record instance struct`` () =
+let ``yieldOrReturnBang with anonymous record instance struct`` () =
     formatSourceString
         false
         """
 myComp {
-    yield
+    yield!
        struct {| A = longTypeName
                  B =   someOtherVariable
                  C = ziggyBarX |}
-    return
+    return!
         struct
                 {| A = longTypeName
                    B = someOtherVariable
@@ -142,13 +142,13 @@ myComp {
         equal
         """
 myComp {
-    yield struct {|
+    yield! struct {|
         A = longTypeName
         B = someOtherVariable
         C = ziggyBarX
     |}
 
-    return struct {|
+    return! struct {|
         A = longTypeName
         B = someOtherVariable
         C = ziggyBarX
@@ -157,17 +157,17 @@ myComp {
 """
 
 [<Test>]
-let ``yieldOrReturn with computation expression`` () =
+let ``yieldOrReturnBang with computation expression`` () =
     formatSourceString
         false
         """
 myComp {
-    yield
+    yield!
        seq {
             // meh
             return 0 .. 2
        }
-    return
+    return!
        seq {
             // meh
             return 0 .. 2
@@ -180,12 +180,12 @@ myComp {
         equal
         """
 myComp {
-    yield seq {
+    yield! seq {
         // meh
         return 0..2
     }
 
-    return seq {
+    return! seq {
         // meh
         return 0..2
     }
@@ -193,18 +193,18 @@ myComp {
 """
 
 [<Test>]
-let ``yieldOrReturn with list`` () =
+let ``yieldOrReturnBang with list`` () =
     formatSourceString
         false
         """
 myComp {
-    yield
+    yield!
         [ itemOne
           itemTwo
           itemThree
           itemFour
           itemFive ]
-    return
+    return!
         [ itemOne
           itemTwo
           itemThree
@@ -218,7 +218,7 @@ myComp {
         equal
         """
 myComp {
-    yield [
+    yield! [
         itemOne
         itemTwo
         itemThree
@@ -226,7 +226,7 @@ myComp {
         itemFive
     ]
 
-    return [
+    return! [
         itemOne
         itemTwo
         itemThree
@@ -237,18 +237,18 @@ myComp {
 """
 
 [<Test>]
-let ``yieldOrReturn with array`` () =
+let ``yieldOrReturnBang with array`` () =
     formatSourceString
         false
         """
 myComp {
-    yield
+    yield!
         [| itemOne
            itemTwo
            itemThree
            itemFour
            itemFive |]
-    return
+    return!
         [| itemOne
            itemTwo
            itemThree
@@ -262,7 +262,7 @@ myComp {
         equal
         """
 myComp {
-    yield [|
+    yield! [|
         itemOne
         itemTwo
         itemThree
@@ -270,7 +270,7 @@ myComp {
         itemFive
     |]
 
-    return [|
+    return! [|
         itemOne
         itemTwo
         itemThree

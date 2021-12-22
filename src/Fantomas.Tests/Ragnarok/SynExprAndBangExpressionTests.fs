@@ -1,4 +1,4 @@
-﻿module Fantomas.Tests.Ragnarok.SynExprAndBangExpression
+﻿module Fantomas.Tests.Ragnarok.SynExprAndBangExpressionTests
 
 open NUnit.Framework
 open FsUnit
