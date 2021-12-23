@@ -1003,10 +1003,7 @@ and genNamedArgumentExpr (astContext: ASTContext) operatorExpr e1 e2 appRange =
         genExpr astContext e1
         +> sepSpace
         +> genInfixOperator "=" operatorExpr
-        +> indent
-        +> sepNln
-        +> genExpr astContext e2
-        +> unindent
+        +> autoIndentAndNlnExpressUnlessRagnarok (fun e -> sepSpace +> genExpr astContext e) e2
 
     expressionFitsOnRestOfLine short long
     |> genTriviaFor SynExpr_App appRange
