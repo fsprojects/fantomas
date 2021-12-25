@@ -40,6 +40,11 @@ type Queue<'T>(data: list<'T []>, length: int) =
         else
             None
 
+    member this.Tail =
+        match data with
+        | [] -> this
+        | head :: tail -> Queue(tail, length - head.Length)
+
     member this.IsEmpty = length = 0
 
     member this.Length = length

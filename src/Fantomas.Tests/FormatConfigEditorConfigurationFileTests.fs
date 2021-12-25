@@ -500,3 +500,23 @@ fsharp_bar_before_discriminated_union_declaration = true
         EditorConfig.readConfiguration fsharpFile.FSharpFile
 
     Assert.IsTrue config.BarBeforeDiscriminatedUnionDeclaration
+
+[<Test>]
+let insert_final_newline () =
+    let rootDir = tempName ()
+
+    let editorConfig =
+        """
+[*.fs]
+insert_final_newline = false
+"""
+
+    use configFixture =
+        new ConfigurationFile(defaultConfig, rootDir, content = editorConfig)
+
+    use fsharpFile = new FSharpFile(rootDir)
+
+    let config =
+        EditorConfig.readConfiguration fsharpFile.FSharpFile
+
+    Assert.IsFalse config.InsertFinalNewline

@@ -90,6 +90,7 @@
     <Compile Include="SpaceBeforeColonTests.fs" />
     <Compile Include="LibraryOnlySynExprTests.fs" />
     <Compile Include="IndexSyntaxTests.fs" />
+    <Compile Include="InsertFinalNewlineTests.fs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Fantomas.Extras\Fantomas.Extras.fsproj" />
