@@ -1758,7 +1758,8 @@ let private shouldNotIndentBranch e es =
         | Match _
         | TryWith _
         | App (_, [ ObjExpr _ ])
-        | NewlineInfixApp (_, _, AppParenTupleArg _, _) -> true
+        | NewlineInfixApp (_, _, AppParenTupleArg _, _)
+        | NewlineInfixApp (_, _, _, App (_, [ Paren (_, Lambda _, _, _) ])) -> true
         | _ -> false
 
     List.forall isShortIfBranch es
