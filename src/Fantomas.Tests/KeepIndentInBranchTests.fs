@@ -2085,3 +2085,39 @@ module Foo =
         leftSet.SymmetricExceptWith(FooBarBaz.keys rightThings)
         |> ignore
 """
+
+[<Test>]
+let ``pipe operator application with lambda is considered long, 2003`` () =
+    formatSourceString
+        false
+        """
+namespace FicroKanSharp.Test
+
+module TestThing =
+
+    let ``Recursive example`` () =
+
+        match Stream.peel rest with
+        | None -> failwith "oh no"
+        | Some longName ->
+            longName
+            |> Map.map (fun _ -> TypedTerm.force<int>)
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+namespace FicroKanSharp.Test
+
+module TestThing =
+
+    let ``Recursive example`` () =
+
+        match Stream.peel rest with
+        | None -> failwith "oh no"
+        | Some longName ->
+
+        longName
+        |> Map.map (fun _ -> TypedTerm.force<int>)
+"""
