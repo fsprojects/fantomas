@@ -57,8 +57,8 @@ let toEditorConfigName value =
         else
             sprintf "fsharp_%s" name
 
-let private fantomasFields =
-    Reflection.getRecordFields FormatConfig.Default
+let private getFantomasFields (fallbackConfig: FormatConfig) =
+    Reflection.getRecordFields fallbackConfig
     |> Array.map
         (fun (recordField, defaultValue) ->
             let editorConfigName =
@@ -81,8 +81,11 @@ let private (|Boolean|_|) b =
     elif b = "false" then Some(box false)
     else None
 
-let parseOptionsFromEditorConfig (editorConfigProperties: IReadOnlyDictionary<string, string>) : FormatConfig =
-    fantomasFields
+let parseOptionsFromEditorConfig
+    (fallbackConfig: FormatConfig)
+    (editorConfigProperties: IReadOnlyDictionary<string, string>)
+    : FormatConfig =
+    getFantomasFields fallbackConfig
     |> Array.map
         (fun (ecn, dv) ->
             match editorConfigProperties.TryGetValue(ecn) with
@@ -124,7 +127,7 @@ let tryReadConfiguration (fsharpFile: string) : FormatConfig option =
     if editorConfigSettings.Properties.Count = 0 then
         None
     else
-        Some(parseOptionsFromEditorConfig editorConfigSettings.Properties)
+        Some(parseOptionsFromEditorConfig FormatConfig.Default editorConfigSettings.Properties)
 
 let readConfiguration (fsharpFile: string) : FormatConfig =
     tryReadConfiguration fsharpFile
