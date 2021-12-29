@@ -1,3 +1,8 @@
+#### 4.6.0-alpha-011
+
+* Read editorconfig settings before overwriting settings with request configuration. [#2006](https://github.com/fsprojects/fantomas/pull/2006)
+* Fix Incorrect new array indexing formatting. [#1985](https://github.com/fsprojects/fantomas/issues/1985)
+
 #### 4.6.0-alpha-010
 
 * All the fixes of 4.5.10
