@@ -311,3 +311,37 @@ val    y     : string
                 | FormatSelectionResponse.Error _ -> Assert.Pass()
                 | otherResponse -> Assert.Fail $"Unexpected response %A{otherResponse}"
             })
+
+[<Test>]
+let ``format document with both .editorconfig file and custom config`` () =
+    runWithDaemon
+        (fun client ->
+            async {
+                let sourceCode =
+                    "module Foo\n\nlet add (a:int) (b:int) = //\n    a + b"
+
+                use codeFile = new TemporaryFileCodeSample(sourceCode)
+
+                use _config =
+                    new ConfigurationFile("[*.fs]\nindent_size=2")
+
+                let request =
+                    { SourceCode = sourceCode
+                      FilePath = codeFile.Filename
+                      Config = Some(readOnlyDict [ "fsharp_space_before_colon", "true" ]) }
+
+                let! response =
+                    client.InvokeAsync<FormatDocumentResponse>(Methods.FormatDocument, request)
+                    |> Async.AwaitTask
+
+                match response with
+                | FormatDocumentResponse.Formatted (_, formatted) ->
+                    assertFormatted
+                        formatted
+                        "module Foo
+
+let add (a : int) (b : int) = //
+  a + b
+"
+                | otherResponse -> Assert.Fail $"Unexpected response %A{otherResponse}"
+            })

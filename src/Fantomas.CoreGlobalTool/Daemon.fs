@@ -49,7 +49,9 @@ type FantomasDaemon(sender: Stream, reader: Stream) as this =
             else
                 let config =
                     match request.Config with
-                    | Some configProperties -> parseOptionsFromEditorConfig configProperties
+                    | Some configProperties ->
+                        let config = readConfiguration request.FilePath
+                        parseOptionsFromEditorConfig config configProperties
                     | None -> readConfiguration request.FilePath
 
                 try
@@ -76,7 +78,9 @@ type FantomasDaemon(sender: Stream, reader: Stream) as this =
         async {
             let config =
                 match request.Config with
-                | Some configProperties -> parseOptionsFromEditorConfig configProperties
+                | Some configProperties ->
+                    let config = readConfiguration request.FilePath
+                    parseOptionsFromEditorConfig config configProperties
                 | None -> readConfiguration request.FilePath
 
             let range =
