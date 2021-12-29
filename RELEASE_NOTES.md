@@ -1,3 +1,7 @@
+#### 4.5.11 - 12/2021
+
+* Fix KeepIndentInBranch not being respected. [#2003](https://github.com/fsprojects/fantomas/issues/2003)
+
 #### 4.5.10 - 12/2021
 
 * Fix Fantomas writes even when not necessary. [#1984](https://github.com/fsprojects/fantomas/issues/1984)
