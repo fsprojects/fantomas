@@ -572,6 +572,24 @@ let internal coli f' (c: seq<'T>) f (ctx: Context) =
 
     st
 
+/// Similar to coli, and supply index as well to f'
+let internal colii f' (c: seq<'T>) f (ctx: Context) =
+    let mutable tryPick = true
+    let mutable st = ctx
+    let mutable i = 0
+    let e = c.GetEnumerator()
+
+    while (e.MoveNext()) do
+        if tryPick then
+            tryPick <- false
+        else
+            st <- f' i st
+
+        st <- f i e.Current st
+        i <- i + 1
+
+    st
+
 /// Process collection - keeps context through the whole processing
 /// calls f for every element in sequence and f' between every two elements
 /// as a separator. This is a variant that works on typed collections.

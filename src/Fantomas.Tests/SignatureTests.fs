@@ -604,7 +604,7 @@ type CodeFormatter =
     /// Parse a source string using given config
     static member ParseAsync:
         fileName: string * source: SourceOrigin * parsingOptions: FSharpParsingOptions * checker: FSharpChecker ->
-        Async<(ParsedInput * string list) array>
+            Async<(ParsedInput * string list) array>
 """
 
 [<Test>]
@@ -1256,7 +1256,7 @@ val create:
   something_really_long: unit ->
   another_really_long_thing: unit ->
   and_another_to_make_the_line_long_enough: unit ->
-  unit
+    unit
 """
 
 [<Test>]
@@ -1586,9 +1586,9 @@ type Bar =
     member Hello :
         thing : XLongLongLongLongLongLongLongLong<bool -> 'a, bool -> 'b, bool -> 'c, bool -> 'd, bool
                                                       -> ('e -> 'f)
-                                                      -> 'g, ('h -> 'i) -> 'j>
-        * item : int list ->
-        LongLongLongLongLongLongLongLongLongLongLongLongLongLongLongLong
+                                                      -> 'g, ('h -> 'i) -> 'j> *
+        item : int list ->
+            LongLongLongLongLongLongLongLongLongLongLongLongLongLongLongLong
 """
 
 [<Test>]
@@ -1710,4 +1710,180 @@ open FSharp.Compiler.AbstractIL.IL
 /// The error raised by the parse_error_rich function, which is called by the parser engine
 [<NoEquality; NoComparison>]
 exception SyntaxError of obj * range: range
+"""
+
+[<Test>]
+let ``multiline tupled signature`` () =
+    formatSourceString
+        true
+        """
+    namespace Oslo
+    type Meh =
+        member ResolveDependencies:
+            scriptDirectory: string
+            * scriptName: string
+            * scriptExt: string
+            * timeout: int ->
+            obj
+"""
+        { config with MaxLineLength = 60 }
+    |> prepend newline
+    |> should
+        equal
+        """
+namespace Oslo
+
+type Meh =
+    member ResolveDependencies:
+        scriptDirectory: string *
+        scriptName: string *
+        scriptExt: string *
+        timeout: int ->
+            obj
+"""
+
+[<Test>]
+let ``add extra indent when the next parameter is a tuple`` () =
+    formatSourceString
+        true
+        """
+namespace Oslo
+
+type Meh =
+    member ResolveDependencies:
+        scriptDirectory: string * scriptName: string ->
+        scriptName: string
+        * scriptExt: string
+        * timeout: int ->
+        obj
+"""
+        { config with MaxLineLength = 5 }
+    |> prepend newline
+    |> should
+        equal
+        """
+namespace Oslo
+
+type Meh =
+    member ResolveDependencies:
+        scriptDirectory: string *
+        scriptName: string ->
+            scriptName: string *
+            scriptExt: string *
+            timeout: int ->
+                obj
+"""
+
+[<Test>]
+let ``mixed curried and tupled arguments`` () =
+    formatSourceString
+        true
+        """
+namespace Oslo
+
+type Meh =
+    member ResolveDependencies:
+        scriptDirectory: string * scriptName: string ->
+        scriptName: string ->
+        obj
+"""
+        { config with MaxLineLength = 30 }
+    |> prepend newline
+    |> should
+        equal
+        """
+namespace Oslo
+
+type Meh =
+    member ResolveDependencies:
+        scriptDirectory: string *
+        scriptName: string ->
+            scriptName: string ->
+                obj
+"""
+
+[<Test>]
+let ``unindent correctly after type signature`` () =
+    formatSourceString
+        true
+        """
+namespace Oslo
+
+type Meh =
+    member ResolveDependencies:
+        scriptDirectory: string * scriptName: string ->
+        scriptName: string ->
+        obj
+
+val x : int
+"""
+        { config with MaxLineLength = 30 }
+    |> prepend newline
+    |> should
+        equal
+        """
+namespace Oslo
+
+type Meh =
+    member ResolveDependencies:
+        scriptDirectory: string *
+        scriptName: string ->
+            scriptName: string ->
+                obj
+
+val x: int
+"""
+
+[<Test>]
+let ``only indent after tuple in non last position`` () =
+    formatSourceString
+        true
+        """
+namespace Oslo
+
+type Meh =
+    member ResolveDependencies:
+        criptName: string -> foo: string -> scriptDirectory: string * scriptName: string -> // after a tuple, mixed needs an indent
+                                                                                            scriptName: string -> obj
+"""
+        { config with MaxLineLength = 30 }
+    |> prepend newline
+    |> should
+        equal
+        """
+namespace Oslo
+
+type Meh =
+    member ResolveDependencies:
+        criptName: string ->
+        foo: string ->
+        scriptDirectory: string *
+        scriptName: string -> // after a tuple, mixed needs an indent
+            scriptName: string ->
+                obj
+"""
+
+[<Test>]
+let ``tupled function signature`` () =
+    formatSourceString
+        true
+        """
+namespace StyleGuide
+
+val SampleTupledFunction:
+    arg1: string * arg2: string * arg3: int * arg4: int -> int list
+"""
+        { config with MaxLineLength = 15 }
+    |> prepend newline
+    |> should
+        equal
+        """
+namespace StyleGuide
+
+val SampleTupledFunction:
+    arg1: string *
+    arg2: string *
+    arg3: int *
+    arg4: int ->
+        int list
 """
