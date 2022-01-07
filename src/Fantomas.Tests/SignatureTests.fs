@@ -1713,7 +1713,7 @@ exception SyntaxError of obj * range: range
 """
 
 [<Test>]
-let ``stars in the back`` () =
+let ``multiline tupled signature`` () =
     formatSourceString
         true
         """
@@ -1775,7 +1775,7 @@ type Meh =
 """
 
 [<Test>]
-let ``mixed tuple non tuple`` () =
+let ``mixed curried and tupled arguments`` () =
     formatSourceString
         true
         """
@@ -1861,4 +1861,29 @@ type Meh =
         scriptName: string -> // after a tuple, mixed needs an indent
             scriptName: string ->
                 obj
+"""
+
+[<Test>]
+let ``tupled function signature`` () =
+    formatSourceString
+        true
+        """
+namespace StyleGuide
+
+val SampleTupledFunction:
+    arg1: string * arg2: string * arg3: int * arg4: int -> int list
+"""
+        { config with MaxLineLength = 15 }
+    |> prepend newline
+    |> should
+        equal
+        """
+namespace StyleGuide
+
+val SampleTupledFunction:
+    arg1: string *
+    arg2: string *
+    arg3: int *
+    arg4: int ->
+        int list
 """
