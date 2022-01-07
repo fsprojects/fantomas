@@ -4630,7 +4630,7 @@ and genTypeList astContext node =
                     col sepBefore ts' (snd >> genType astContext hasBracket)
 
             let shortExpr = gt sepStar
-            let longExpr = gt (sepNln +> sepStarFixed)
+            let longExpr = gt (sepSpace +> sepStarFixed +> sepNln)
             expressionFitsOnRestOfLine shortExpr longExpr
 
         | _, [ ArgInfo (ats, so, isOpt) ] ->
@@ -4652,7 +4652,37 @@ and genTypeList astContext node =
 
     let shortExpr = col sepArrow node gt
 
-    let longExpr = col (sepArrow +> sepNln) node gt
+    let longExpr =
+        let lastIndex = node.Length - 1
+
+        let isTupleOrLastIndex index =
+            index = lastIndex
+            || match List.tryItem (index - 1) node with
+               | Some (TTuple _, _) -> true
+               | _ -> false
+
+        let resetIndent =
+            if lastIndex < 0 then
+                id
+            else
+                [ 0 .. lastIndex ]
+                |> List.choose
+                    (fun idx ->
+                        if isTupleOrLastIndex idx then
+                            Some unindent
+                        else
+                            None)
+                |> List.reduce (+>)
+
+        colii
+            (fun idx ->
+                sepSpace
+                +> sepArrowFixed
+                +> onlyIf (isTupleOrLastIndex idx) indent
+                +> sepNln)
+            node
+            (fun _ -> gt)
+        +> resetIndent
 
     expressionFitsOnRestOfLine shortExpr longExpr
 
