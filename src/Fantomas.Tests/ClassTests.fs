@@ -968,3 +968,53 @@ type public DerivedExceptionWithLongNaaaaaaaaameException
 
     override this.SomeMethod() = ()
 """
+
+[<Test>]
+let ``explicit class/end/with, 1940`` () =
+    formatSourceString
+        false
+        """
+type C() =
+  class
+   member x.P = 1
+  end
+  with
+    member _.Run() = 1
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type C() =
+    class
+        member x.P = 1
+    end
+
+    member _.Run() = 1
+"""
+
+[<Test>]
+let ``explicit class/end with members, idempotent`` () =
+    formatSourceString
+        false
+        """
+type C() =
+    class
+        member x.P = 1
+    end
+
+    member _.Run() = 1
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type C() =
+    class
+        member x.P = 1
+    end
+
+    member _.Run() = 1
+"""

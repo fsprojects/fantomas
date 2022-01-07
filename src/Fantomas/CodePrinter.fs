@@ -3701,6 +3701,20 @@ and genTypeDefn
         +> genMemberDefnList astContext others
         +> unindent
         ++ "end"
+        +> (fun ctx ->
+            match ms with
+            | [] -> ctx
+            | h :: _ ->
+                let attrs =
+                    getRangesFromAttributesFromSynMemberDefinition h
+
+                let sepNlnBeforeMember =
+                    sepNlnConsideringTriviaContentBeforeWithAttributesFor (synMemberDefnToFsAstType h) h.Range attrs
+
+                (sepNln
+                 +> sepNlnBeforeMember
+                 +> genMemberDefnList astContext ms)
+                    ctx)
         +> unindent
 
     | ObjectModel (TCSimple TCStruct as tdk, MemberDefnList (impCtor, others), _) ->
