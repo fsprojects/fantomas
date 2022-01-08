@@ -1,3 +1,9 @@
+#### 4.5.12 - 01/2022
+
+* Fix Strings containing spaces at end of line change meaning. [#1941](https://github.com/fsprojects/fantomas/issues/1941)
+* Fix Explicit class/end/with loses members. [#1940](https://github.com/fsprojects/fantomas/issues/1940)
+* Fix Idempotency problem when static member with get. [#1913](https://github.com/fsprojects/fantomas/issues/1913)
+
 #### 4.5.11 - 12/2021
 
 * Fix KeepIndentInBranch not being respected. [#2003](https://github.com/fsprojects/fantomas/issues/2003)
