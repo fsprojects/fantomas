@@ -700,8 +700,8 @@ and genProperty astContext prefix ao propertyKind ps e =
 
 and genPropertyWithGetSet astContext (b1, b2) rangeOfMember =
     match b1, b2 with
-    | PropertyBinding (ats, px, ao, isInline, mf1, PatLongIdent (ao1, s1, ps1, _), e1),
-      PropertyBinding (_, _, _, _, _, PatLongIdent (ao2, _, ps2, _), e2) ->
+    | PropertyBinding (ats, px, ao, isInline, mf1, PatLongIdent (ao1, s1, ps1, _), e1, _),
+      PropertyBinding (_, _, _, _, _, PatLongIdent (ao2, _, ps2, _), e2, _) ->
         let prefix =
             genPreXmlDoc px
             +> genAttributes astContext ats
@@ -750,7 +750,7 @@ and genMemberBindingList astContext node =
 
 and genMemberBinding astContext b =
     match b with
-    | PropertyBinding (ats, px, ao, isInline, mf, p, e) ->
+    | PropertyBinding (ats, px, ao, isInline, mf, p, e, synValInfo) ->
         let prefix =
             genPreXmlDoc px
             +> genAttributes astContext ats
@@ -771,8 +771,17 @@ and genMemberBinding astContext b =
             match ao, propertyKind, ps with
             | None, "get ", [ _, PatParen PatUnitConst ] ->
                 // Provide short-hand notation `x.Member = ...` for `x.Member with get()` getters
-                prefix -- s
-                +> genExprSepEqPrependType astContext e
+                let pat =
+                    match p with
+                    | SynPat.LongIdent (lid, extraId, typarDecls, _, accessibility, range) ->
+                        SynPat.LongIdent(lid, extraId, typarDecls, SynArgPats.Pats([]), accessibility, range)
+                    | _ -> p
+
+                let prefix =
+                    (onlyIfNot mf.IsInstance (!- "static ")
+                     +> !- "member ")
+
+                genMemberBindingImpl astContext prefix ats px ao isInline pat e synValInfo
             | _ ->
                 let ps = List.map snd ps
 
@@ -787,30 +796,7 @@ and genMemberBinding astContext b =
         let prefix =
             genMemberFlagsForMemberBinding astContext mf b.RangeOfBindingAndRhs
 
-        match e, p with
-        | TypedExpr (Typed, e, t), PatLongIdent (ao, s, ps, tpso) when (List.isNotEmpty ps) ->
-            genSynBindingFunctionWithReturnType
-                astContext
-                true
-                false
-                px
-                ats
-                prefix
-                ao
-                isInline
-                false
-                s
-                p.Range
-                ps
-                tpso
-                t
-                synValInfo
-                e
-        | e, PatLongIdent (ao, s, ps, tpso) when (List.isNotEmpty ps) ->
-            genSynBindingFunction astContext true false px ats prefix ao isInline false s p.Range ps tpso e
-        | TypedExpr (Typed, e, t), pat ->
-            genSynBindingValue astContext false px ats prefix ao isInline false pat (Some t) e
-        | _, pat -> genSynBindingValue astContext false px ats prefix ao isInline false pat None e
+        genMemberBindingImpl astContext prefix ats px ao isInline p e synValInfo
 
     | ExplicitCtor (ats, px, ao, p, e, so) ->
         let prefix =
@@ -849,6 +835,41 @@ and genMemberBinding astContext b =
 
     | b -> failwithf "%O isn't a member binding" b
     |> genTriviaFor (synBindingToFsAstType b) b.RangeOfBindingAndRhs
+
+and genMemberBindingImpl
+    (astContext: ASTContext)
+    (prefix: Context -> Context)
+    (ats: SynAttributes)
+    (px: FSharp.Compiler.XmlDoc.PreXmlDoc)
+    (ao: SynAccess option)
+    (isInline: bool)
+    (p: SynPat)
+    (e: SynExpr)
+    (synValInfo: SynValInfo)
+    =
+    match e, p with
+    | TypedExpr (Typed, e, t), PatLongIdent (ao, s, ps, tpso) when (List.isNotEmpty ps) ->
+        genSynBindingFunctionWithReturnType
+            astContext
+            true
+            false
+            px
+            ats
+            prefix
+            ao
+            isInline
+            false
+            s
+            p.Range
+            ps
+            tpso
+            t
+            synValInfo
+            e
+    | e, PatLongIdent (ao, s, ps, tpso) when (List.isNotEmpty ps) ->
+        genSynBindingFunction astContext true false px ats prefix ao isInline false s p.Range ps tpso e
+    | TypedExpr (Typed, e, t), pat -> genSynBindingValue astContext false px ats prefix ao isInline false pat (Some t) e
+    | _, pat -> genSynBindingValue astContext false px ats prefix ao isInline false pat None e
 
 and genMemberFlags astContext (mf: MemberFlags) =
     match mf with

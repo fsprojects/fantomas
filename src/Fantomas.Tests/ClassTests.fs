@@ -1018,3 +1018,42 @@ type C() =
 
     member _.Run() = 1
 """
+
+[<Test>]
+let ``static member with get unit should be formatted the same as without, 1913`` () =
+    formatSourceString
+        false
+        """
+type Subject<'a> private () =
+
+        /// Represents and object that is both an observable sequence as well as an observer.
+        /// Each notification is broadcasted to all subscribed observers.
+        static member broadcast
+            with get () = new System.Reactive.Subjects.Subject<'a> ()
+
+type Subject<'a> private () =
+
+    /// Represents and object that is both an observable sequence as well as an observer.
+    /// Each notification is broadcasted to all subscribed observers.
+    static member broadcast = new System.Reactive.Subjects.Subject<'a>()
+
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type Subject<'a> private () =
+
+    /// Represents and object that is both an observable sequence as well as an observer.
+    /// Each notification is broadcasted to all subscribed observers.
+    static member broadcast =
+        new System.Reactive.Subjects.Subject<'a>()
+
+type Subject<'a> private () =
+
+    /// Represents and object that is both an observable sequence as well as an observer.
+    /// Each notification is broadcasted to all subscribed observers.
+    static member broadcast =
+        new System.Reactive.Subjects.Subject<'a>()
+"""
