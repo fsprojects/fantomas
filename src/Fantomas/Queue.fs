@@ -40,6 +40,20 @@ type Queue<'T>(data: list<'T []>, length: int) =
         else
             None
 
+    member this.Tail =
+        match data with
+        | [] -> this
+        | head :: tail ->
+            if Array.isEmpty head then
+                this
+            else
+                let newHead = Array.skip 1 head
+
+                if Array.isEmpty newHead then
+                    Queue(tail, length - 1)
+                else
+                    Queue(newHead :: tail, length - 1)
+
     member this.IsEmpty = length = 0
 
     member this.Length = length

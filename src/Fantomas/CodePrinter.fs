@@ -66,7 +66,24 @@ let rec genParsedInput astContext ast =
     match ast with
     | ImplFile im -> genImpFile astContext im
     | SigFile si -> genSigFile astContext si
-    +> ifElseCtx lastWriteEventIsNewline sepNone sepNln
+    +> addFinalNewline
+
+/// Respect insert_final_newline setting
+and addFinalNewline ctx =
+    let lastEvent = ctx.WriterEvents.TryHead
+
+    match lastEvent with
+    | Some WriteLineBecauseOfTrivia ->
+        if ctx.Config.InsertFinalNewline then
+            ctx
+        else
+            // Due to trivia the last event is a newline, if insert_final_newline is false, we need to remove it.
+            { ctx with
+                  WriterEvents = ctx.WriterEvents.Tail
+                  WriterModel =
+                      { ctx.WriterModel with
+                            Lines = List.tail ctx.WriterModel.Lines } }
+    | _ -> onlyIf ctx.Config.InsertFinalNewline sepNln ctx
 
 (*
     See https://github.com/fsharp/FSharp.Compiler.Service/blob/master/src/fsharp/ast.fs#L1518

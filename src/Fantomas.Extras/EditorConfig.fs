@@ -39,7 +39,8 @@ module Reflection =
 let supportedProperties =
     [ "max_line_length"
       "indent_size"
-      "end_of_line" ]
+      "end_of_line"
+      "insert_final_newline" ]
 
 let toEditorConfigName value =
     value
@@ -114,6 +115,9 @@ let configToEditorConfig (config: FormatConfig) : string =
                     "%s=%s"
                     (toEditorConfigName recordField.PropertyName)
                     (MultilineFormatterType.ToConfigString mft)
+                |> Some
+            | :? EndOfLineStyle as eols ->
+                sprintf "%s=%s" (toEditorConfigName recordField.PropertyName) (EndOfLineStyle.ToConfigString eols)
                 |> Some
             | _ -> None)
     |> String.concat "\n"

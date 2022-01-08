@@ -67,6 +67,14 @@ type FormatConfig =
       [<Description("The column where we break to new lines")>]
       MaxLineLength: Num
 
+      [<Category("Boundaries")>]
+      [<DisplayName("Line-ending style")>]
+      EndOfLine: EndOfLineStyle
+
+      [<Category("Boundaries")>]
+      [<DisplayName("Insert final newline")>]
+      InsertFinalNewline: bool
+
       [<Category("Convention")>]
       [<DisplayName("Semicolon at end-of-line")>]
       [<Description("Forces a semicolon to be added to the end of a line")>]
@@ -197,10 +205,6 @@ type FormatConfig =
       [<DisplayName("Disable support for elmish syntax")>]
       DisableElmishSyntax: bool
 
-      [<Category("Boundaries")>]
-      [<DisplayName("Line-ending style")>]
-      EndOfLine: EndOfLineStyle
-
       [<Category("Indentation")>]
       [<DisplayName("Keep indent in branch")>]
       [<Description("Experimental feature, use at your own risk.")>]
@@ -222,6 +226,8 @@ type FormatConfig =
     static member Default =
         { IndentSize = 4
           MaxLineLength = 120
+          EndOfLine = EndOfLineStyle.FromEnvironment
+          InsertFinalNewline = true
           SemicolonAtEndOfLine = false
           SpaceBeforeParameter = true
           SpaceBeforeLowercaseInvocation = true
@@ -254,7 +260,6 @@ type FormatConfig =
           AlternativeLongMemberDefinitions = false
           MultiLineLambdaClosingNewline = false
           DisableElmishSyntax = false
-          EndOfLine = EndOfLineStyle.FromEnvironment
           KeepIndentInBranch = false
           BlankLinesAroundNestedMultilineExpressions = true
           BarBeforeDiscriminatedUnionDeclaration = false
