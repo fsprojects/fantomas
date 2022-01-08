@@ -323,3 +323,21 @@ let ``single string with compiler define`` () =
         """
 "#if FOO"
 """
+
+[<Test>]
+let ``trailing spaces in string should be preserved, 1941`` () =
+    formatSourceString
+        false
+        "
+let s = \"\"\"aaaa   
+bbb\"\"\"
+"
+        config
+    |> prepend newline
+    |> should
+        equal
+        "
+let s =
+    \"\"\"aaaa   
+bbb\"\"\"
+"

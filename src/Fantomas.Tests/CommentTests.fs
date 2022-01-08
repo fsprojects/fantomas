@@ -1685,3 +1685,22 @@ with
     with
     | d -> ()
 """
+
+[<Test>]
+let ``trailing spaces in comments should be removed`` () =
+    formatSourceString
+        false
+        """
+// foo       
+// bar          
+let a = 9
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+// foo
+// bar
+let a = 9
+"""

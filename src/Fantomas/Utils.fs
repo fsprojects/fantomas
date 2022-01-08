@@ -80,8 +80,6 @@ module String =
                 else
                     b')
 
-
-
     let empty = String.Empty
 
     let isNotNullOrEmpty = String.IsNullOrEmpty >> not

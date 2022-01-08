@@ -66,6 +66,7 @@ let ``don't add space before block comment`` () =
 Long comment
 
 *)"""
+        |> String.normalizeNewLine
 
     let expr =
         sepNone +> sepSpace -- comment
