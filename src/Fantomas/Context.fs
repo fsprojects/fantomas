@@ -83,11 +83,17 @@ module WriterModel =
                 { m with
                       Indent = max m.Indent m.AtColumn }
 
+            let nextLine = String.replicate m.Indent " "
+
+            let currentLine =
+                String
+                    .Concat(List.head m.Lines, m.WriteBeforeNewline)
+                    .TrimEnd()
+
+            let otherLines = List.tail m.Lines
+
             { m with
-                  Lines =
-                      String.replicate m.Indent " "
-                      :: (List.head m.Lines + m.WriteBeforeNewline)
-                         :: (List.tail m.Lines)
+                  Lines = nextLine :: currentLine :: otherLines
                   WriteBeforeNewline = ""
                   Column = m.Indent }
 
@@ -95,11 +101,17 @@ module WriterModel =
             match cmd with
             | WriteLine
             | WriteLineBecauseOfTrivia -> doNewline m
-            | WriteLineInsideStringConst
-            | WriteLineInsideTrivia ->
+            | WriteLineInsideStringConst ->
                 { m with
-                      Lines = "" :: m.Lines
+                      Lines = String.empty :: m.Lines
                       Column = 0 }
+            | WriteLineInsideTrivia ->
+                let lines =
+                    match m.Lines with
+                    | [] -> [ String.empty ]
+                    | h :: tail -> String.empty :: (h.TrimEnd()) :: tail
+
+                { m with Lines = lines; Column = 0 }
             | Write s ->
                 { m with
                       Lines = (List.head m.Lines + s) :: (List.tail m.Lines)
@@ -319,10 +331,13 @@ let internal finalizeWriterModel (ctx: Context) =
 let internal dump (ctx: Context) =
     let ctx = finalizeWriterModel ctx
 
-    ctx.WriterModel.Lines
+    match ctx.WriterModel.Lines with
+    | [] -> []
+    | h :: tail ->
+        // Always trim the last line
+        h.TrimEnd() :: tail
     |> List.rev
     |> List.skipWhile ((=) "")
-    |> List.map (fun line -> line.TrimEnd())
     |> String.concat ctx.Config.EndOfLine.NewLineString
 
 let internal dumpAndContinue (ctx: Context) =
