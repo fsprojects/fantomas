@@ -95,6 +95,8 @@ A default .editorconfig file would look like
 [*.fs]
 indent_size=4
 max_line_length=120
+end_of_line=crlf
+insert_final_newline=true
 fsharp_semicolon_at_end_of_line=false
 fsharp_space_before_parameter=true
 fsharp_space_before_lowercase_invocation=true
@@ -193,6 +195,30 @@ match myValue with
 | Some foo ->
     someLongFunctionNameThatWillTakeFooAndReturnsUnit foo
 | None -> printfn "nothing"
+```
+
+### end_of_line
+
+`end_of_line` determines the newline character, `lf` will add `\n` where `crlf` will add `\r\n`.
+`cr` is not supported by the F# language spec.
+If not set by the user, the default value is determined by `System.Environment.NewLine`.
+
+### insert_final_newline
+
+Adds a final newline character at the end of the file.
+Default = true
+
+`defaultConfig`
+
+```fsharp
+let a = 42
+
+```
+
+`{ default with InsertFinalNewline = false }`
+
+```fsharp
+let a = 42
 ```
 
 ### fsharp_semicolon_at_end_of_line
