@@ -1,3 +1,8 @@
+#### 4.6.0-beta-001
+
+* Update formatting types in signatures (See [fslang-design](https://github.com/fsharp/fslang-design/issues/644)). [#1994](https://github.com/fsprojects/fantomas/pull/1994)
+* Feature Editor.config: insert_final_newline. [#2002](https://github.com/fsprojects/fantomas/issues/2002)
+
 #### 4.6.0-alpha-011
 
 * Read editorconfig settings before overwriting settings with request configuration. [#2006](https://github.com/fsprojects/fantomas/pull/2006)
