@@ -32,6 +32,7 @@ type FsTokenType =
     | INFIX_COMPARE_OP
     | INFIX_STAR_DIV_MOD_OP
     | INFIX_STAR_STAR_OP
+    | INLINE
     | INT32_DOT_DOT
     | LBRACE
     | LBRACK

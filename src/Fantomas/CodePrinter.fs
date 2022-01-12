@@ -5136,8 +5136,17 @@ and genSynBindingFunction
             (pref +> genOnelinerAttributes astContext ats)
 
     let afterLetKeyword =
+        let estimateRange = 
+            
+            let foo = ctx.TriviaTokenNodes |> Seq.tryHead
+            foo
+            |> Option.map(fun x -> x.Value)
+            |> Option.bind Seq.tryHead
+            |> Option.map(fun x -> x.Range)
+            |> Option.defaultValue Range.Zero
+        let xyz = tokN estimateRange INLINE (!- "inline ")
         ifElse isMutable (!- "mutable ") sepNone
-        +> ifElse isInline (!- "inline ") sepNone
+        +> ifElse isInline xyz sepNone
         +> opt sepSpace ao genAccess
 
     let genFunctionName =

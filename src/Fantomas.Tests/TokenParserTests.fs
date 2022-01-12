@@ -658,3 +658,29 @@ let isUnix =
 
     getDefines source
     == [ "NETSTANDARD1_6"; "NETSTANDARD2_0" ]
+
+
+
+[<Test>]
+[<Category("Oracle")>]
+let ``ifdef for inline keyword`` () =
+
+    formatSourceString
+        false
+        """
+    let 
+#if !DEBUG
+        inline
+#endif
+        map f ar = Async.map (Result.map f) ar
+"""
+        config
+    |> should
+        equal
+        """
+    let 
+#if !DEBUG
+        inline
+#endif
+        map f ar = Async.map (Result.map f) ar
+"""

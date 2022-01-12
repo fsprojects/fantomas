@@ -1200,7 +1200,8 @@ let private tokenNames =
       "WITH"
       "MEMBER"
       "AND_BANG"
-      "IN" ]
+      "IN"
+      "INLINE" ]
 
 let private tokenKinds = [ FSharpTokenCharKind.Operator ]
 
@@ -1234,6 +1235,7 @@ let internal getFsToken tokenName =
     | "INFIX_COMPARE_OP" -> INFIX_COMPARE_OP
     | "INFIX_STAR_DIV_MOD_OP" -> INFIX_STAR_DIV_MOD_OP
     | "INFIX_STAR_STAR_OP" -> INFIX_STAR_STAR_OP
+    | "INLINE" -> INLINE
     | "INT32_DOT_DOT" -> INT32_DOT_DOT
     | "LBRACE" -> LBRACE
     | "LBRACK" -> LBRACK
