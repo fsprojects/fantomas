@@ -2694,16 +2694,21 @@ with
 """
 
 [<Test>]
-let ``should handle #if with boolean constant``() =
-    formatSourceString false """
+let ``should handle #if with boolean constant`` () =
+    formatSourceString
+        false
+        """
 #if false
 let x = 1
 #endif
 #if true
 let x = 1
 #endif
-"""  config
-    |> should equal """#if false
+"""
+        config
+    |> should
+        equal
+        """#if false
 let x = 1
 #endif
 #if true
