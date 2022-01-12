@@ -234,10 +234,15 @@ type BoolExprGenerator =
     static member SimpleIdent() =
         { new Arbitrary<string>() with
             member x.Generator =
-               let idents = Gen.choose (int 'A', int 'Z')
-                |> Gen.map (char >> string)
-let constants = Gen.elements ["true"; "false"]
-                Gen.frequency [ 10, idents 1, constants ]
+                let idents =
+                    Gen.choose (int 'A', int 'Z')
+                    |> Gen.map (char >> string)
+
+                let constants = Gen.elements [ "true"; "false" ]
+
+                Gen.frequency [ 10, idents
+                                1, constants ]
+
             member x.Shrinker t = Seq.empty }
 
 [<Test>]
