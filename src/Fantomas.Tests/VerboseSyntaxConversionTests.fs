@@ -1,28 +1,32 @@
-﻿module Fantomas.Tests.VerboseSyntaxConversionTests
+module Fantomas.Tests.VerboseSyntaxConversionTests
 
 open NUnit.Framework
 open FsUnit
 open Fantomas.Tests.TestHelper
 
 [<Test>]
-let ``verbose syntax``() =
-    formatSourceString false """
+let ``verbose syntax`` () =
+    formatSourceString
+        false
+        """
     #light "off"
 
     let div2 = 2;;
 
-    let f x = 
+    let f x =
         let r = x % div2 in
-          if r = 1 then 
-            begin "Odd"  end 
-          else 
+          if r = 1 then
+            begin "Odd"  end
+          else
             begin "Even" end
-    """ config
+    """
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let div2 = 2
 
 let f x =
-    let r = x % div2
-    if r = 1 then ("Odd") else ("Even")
+    let r = x % div2 in if r = 1 then ("Odd") else ("Even")
 """

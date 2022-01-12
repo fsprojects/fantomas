@@ -2,19 +2,23 @@ name: Build master
 
 on: [push, pull_request]
 
+env:
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+
 jobs:
   build:
 
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest, macOS-latest]
-        dotnet: [3.1.100]
+        dotnet: [5.0.401]
     runs-on: ${{ matrix.os }}
 
     steps:
     - uses: actions/checkout@v2
     - name: Setup .NET Core
-      uses: actions/setup-dotnet@v1.4.0
+      uses: actions/setup-dotnet@v1
       with:
         dotnet-version: ${{ matrix.dotnet }}
     - name: Install local tools
@@ -26,12 +30,6 @@ jobs:
       env:
         CI: true
         TABLE_STORAGE_CONNECTION_STRING: ${{ secrets.TABLE_STORAGE_CONNECTION_STRING }}
-    - name: "trigger fantomas-ui pipeline"
-      if: matrix.os == 'ubuntu-latest' && github.ref == 'refs/heads/master'
-      run: curl -X POST -F token=${{secrets.FANTOMAS_UI_TOKEN}} -F ref=preview -F "variables[TRIGGER]=true" https://gitlab.com/api/v4/projects/8920076/trigger/pipeline
-    - name: "trigger fantomas-ui preview-ng pipeline"
-      if: matrix.os == 'ubuntu-latest' && github.ref == 'refs/heads/trivia'
-      run: curl -X POST -F token=${{secrets.FANTOMAS_UI_TOKEN}} -F ref=preview-ng -F "variables[TRIGGER]=true" https://gitlab.com/api/v4/projects/8920076/trigger/pipeline
     - name: "trigger fantomas-tools action"
       if: matrix.os == 'ubuntu-latest' && github.ref == 'refs/heads/master'
       run: "curl -H 'Accept: application/vnd.github.everest-preview+json' -H 'Authorization: token ${{secrets.FANTOMAS_TOOLS_TOKEN}}' --request POST --data '{\"event_type\": \"fantomas-commit-on-master\"}' https://api.github.com/repos/fsprojects/fantomas-tools/dispatches"

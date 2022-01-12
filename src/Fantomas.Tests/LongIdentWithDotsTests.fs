@@ -5,41 +5,57 @@ open FsUnit
 open Fantomas.Tests.TestHelper
 
 [<Test>]
-let ``Fluent api should not remain on the same lines``() =
-    formatSourceString false """
-Log.Logger <- 
+let ``fluent api should not remain on the same lines`` () =
+    formatSourceString
+        false
+        """
+Log.Logger <-
   LoggerConfiguration()
     .Destructure.FSharpTypes()
     .WriteTo.Console()
-    .CreateLogger()""" config
+    .CreateLogger()"""
+        config
     |> prepend newline
-    |> should equal """
-Log.Logger <- LoggerConfiguration().Destructure.FSharpTypes().WriteTo.Console().CreateLogger()
+    |> should
+        equal
+        """
+Log.Logger <-
+    LoggerConfiguration()
+        .Destructure.FSharpTypes()
+        .WriteTo.Console()
+        .CreateLogger()
 """
 
 [<Test>]
 let ``fluent api with comments should remain on same lines`` () =
-    formatSourceString false """
-Log.Logger <- 
-  LoggerConfiguration() 
+    formatSourceString
+        false
+        """
+Log.Logger <-
+  LoggerConfiguration()
    // Suave.SerilogExtensions has native destructuring mechanism
    // this helps Serilog deserialize the fsharp types like unions/records
    .Destructure.FSharpTypes()
-   // use package Serilog.Sinks.Console  
+   // use package Serilog.Sinks.Console
    // https://github.com/serilog/serilog-sinks-console
-   .WriteTo.Console() 
+   .WriteTo.Console()
    // add more sinks etc.
-   .CreateLogger()""" config
+   .CreateLogger()"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 Log.Logger <-
     LoggerConfiguration()
         // Suave.SerilogExtensions has native destructuring mechanism
         // this helps Serilog deserialize the fsharp types like unions/records
-        .Destructure.FSharpTypes()
+        .Destructure
+        .FSharpTypes()
         // use package Serilog.Sinks.Console
         // https://github.com/serilog/serilog-sinks-console
-        .WriteTo.Console()
+        .WriteTo
+        .Console()
         // add more sinks etc.
         .CreateLogger()
 """
@@ -47,13 +63,18 @@ Log.Logger <-
 
 [<Test>]
 let ``force newline by adding comments`` () =
-    formatSourceString false """let config = //
+    formatSourceString
+        false
+        """let config = //
     Builder()//
         .UseCaching()//
         .UseSql()//
         .UseMeh()
-"""  config
-    |> should equal """let config = //
+"""
+        config
+    |> should
+        equal
+        """let config = //
     Builder() //
         .UseCaching() //
         .UseSql() //
@@ -62,7 +83,9 @@ let ``force newline by adding comments`` () =
 
 [<Test>]
 let ``method call on multiple lines`` () =
-    formatSourceString false """module Program
+    formatSourceString
+        false
+        """module Program
 
 [<EntryPoint>]
 let main _ =
@@ -94,9 +117,12 @@ let main _ =
             1
     finally
         Log.CloseAndFlush()
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 module Program
 
 [<EntryPoint>]
@@ -106,17 +132,26 @@ let main _ =
             Config.Logger.configure ()
 
             let config =
-                ConfigurationBuilder().SetBasePath(Directory.GetCurrentDirectory()).Build()
+                ConfigurationBuilder()
+                    .SetBasePath(Directory.GetCurrentDirectory())
+                    .Build()
 
-            WebHostBuilder().UseConfiguration(config).UseKestrel().UseSerilog()
-                .ConfigureAppConfiguration
-                    (Action<WebHostBuilderContext, IConfigurationBuilder> configureAppConfiguration)
+            WebHostBuilder()
+                .UseConfiguration(config)
+                .UseKestrel()
+                .UseSerilog()
+                .ConfigureAppConfiguration(
+                    Action<WebHostBuilderContext, IConfigurationBuilder> configureAppConfiguration
+                )
                 .ConfigureServices(Action<WebHostBuilderContext, IServiceCollection> configureServices)
-                .Configure(Action<IApplicationBuilder> configureApp).Build().Run()
+                .Configure(Action<IApplicationBuilder> configureApp)
+                .Build()
+                .Run()
             |> ignore
 
             0
-        with ex ->
+        with
+        | ex ->
             Log.Fatal(ex, "Service terminated unexpectedly")
 
             1
@@ -126,7 +161,9 @@ let main _ =
 
 [<Test>]
 let ``chained lambda should start on same line as dot, 871`` () =
-    formatSourceString false """namespace LoginWithBulmaTutorial
+    formatSourceString
+        false
+        """namespace LoginWithBulmaTutorial
 
 open System
 open WebSharper
@@ -162,9 +199,12 @@ module Client =
                     e.Event.PreventDefault()
             )
             .Bind()
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 namespace LoginWithBulmaTutorial
 
 open System
@@ -187,15 +227,79 @@ module Client =
         let passwordValid = Var.Create true
         let emailValid = Var.Create true
 
-        MySPA().AttrPassword(Attr.ClassPred "is-danger" (not passwordValid.V))
+        MySPA()
+            .AttrPassword(Attr.ClassPred "is-danger" (not passwordValid.V))
             .AttrEmail(Attr.ClassPred "is-danger" (not emailValid.V))
             .Login(fun e ->
-                  passwordValid
-                  := not (String.IsNullOrWhiteSpace e.Vars.Password.Value)
-                  emailValid
-                  := not (String.IsNullOrWhiteSpace e.Vars.Email.Value)
+                passwordValid
+                := not (String.IsNullOrWhiteSpace e.Vars.Password.Value)
 
-                  if passwordValid.Value && emailValid.Value
-                  then JS.Alert(sprintf "Your email is %s" e.Vars.Email.Value)
-                  e.Event.PreventDefault()).Bind()
+                emailValid
+                := not (String.IsNullOrWhiteSpace e.Vars.Email.Value)
+
+                if passwordValid.Value && emailValid.Value then
+                    JS.Alert(sprintf "Your email is %s" e.Vars.Email.Value)
+
+                e.Event.PreventDefault())
+            .Bind()
+"""
+
+[<Test>]
+let ``don't repeat parenthesis for DotGet Paren, 989`` () =
+    formatSourceString
+        false
+        """(something_really_long
+  + another_thing_thats_really_long).A
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+(something_really_long
+ + another_thing_thats_really_long)
+    .A
+"""
+
+[<Test>]
+let ``infix expression inside DotGet, 921`` () =
+    formatSourceString
+        false
+        """let variable =
+                (DataAccess.getById moduleName.readData
+                         { Id = createObject.Id }
+                     |> Result.okValue).Value
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let variable =
+    (DataAccess.getById moduleName.readData { Id = createObject.Id }
+     |> Result.okValue)
+        .Value
+"""
+
+[<Test>]
+let ``preserve comment before SynExpr.LongIdent, 1080`` () =
+    formatSourceString
+        false
+        """
+let shrinkInput input =
+    match toSynExprs input with
+    | [] ->
+        //stdout.WriteLine("Can't shrink {0} further.", sprintf "%A" input)
+        Seq.empty
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let shrinkInput input =
+    match toSynExprs input with
+    | [] ->
+        //stdout.WriteLine("Can't shrink {0} further.", sprintf "%A" input)
+        Seq.empty
 """

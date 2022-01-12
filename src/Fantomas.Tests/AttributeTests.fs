@@ -1,4 +1,4 @@
-﻿module Fantomas.Tests.AttributeTests
+module Fantomas.Tests.AttributeTests
 
 open NUnit.Framework
 open FsUnit
@@ -6,73 +6,104 @@ open FsUnit
 open Fantomas.Tests.TestHelper
 
 [<Test>]
-let ``should keep the attribute on top of the function``() =
-    formatSourceString false """[<Extension>]
-type Funcs = 
+let ``should keep the attribute on top of the function`` () =
+    formatSourceString
+        false
+        """[<Extension>]
+type Funcs =
     [<Extension>]
     static member ToFunc (f: Action<_,_,_>) =
         Func<_,_,_,_>(fun a b c -> f.Invoke(a,b,c))
-    """ config
-    |> should equal """[<Extension>]
+    """
+        { config with
+              MaxFunctionBindingWidth = 120 }
+    |> should
+        equal
+        """[<Extension>]
 type Funcs =
     [<Extension>]
     static member ToFunc(f: Action<_, _, _>) = Func<_, _, _, _>(fun a b c -> f.Invoke(a, b, c))
 """
 
 [<Test>]
-let ``attributes on expressions``() =
-    formatSourceString false """
+let ``attributes on expressions`` () =
+    formatSourceString
+        false
+        """
     [<Dependency("FSharp.Compiler", LoadHint.Always)>]
-    do ()""" config
+    do ()"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 [<Dependency("FSharp.Compiler", LoadHint.Always)>]
 do ()
 """
 
 [<Test>]
-let ``attributes with multiple spaces between args on expressions``() =
-    formatSourceString false """
+let ``attributes with multiple spaces between args on expressions`` () =
+    formatSourceString
+        false
+        """
     [<Dependency         ("FSharp.Compiler", LoadHint.Always)>]
-    do ()""" config
+    do ()"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 [<Dependency("FSharp.Compiler", LoadHint.Always)>]
 do ()
 """
 
 [<Test>]
-let ``attributes without parentheses on expressions``() =
-    formatSourceString false """
+let ``attributes without parentheses on expressions`` () =
+    formatSourceString
+        false
+        """
     [<MyValue 55>]
-    do ()""" config
+    do ()"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 [<MyValue 55>]
 do ()
 """
 
 [<Test>]
-let ``attributes without parentheses and multiples spaces between args on expressions``() =
-    formatSourceString false """
+let ``attributes without parentheses and multiples spaces between args on expressions`` () =
+    formatSourceString
+        false
+        """
     [<MyValue       55>]
-    do ()""" config
+    do ()"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 [<MyValue 55>]
 do ()
 """
 
 [<Test>]
-let ``units of measures declaration``() =
-    formatSourceString false """
+let ``units of measures declaration`` () =
+    formatSourceString
+        false
+        """
     [<Measure>] type m
     [<Measure>] type kg
     [<Measure>] type s
     [<Measure>] type N = kg m / s^2
-    [<Measure>] type Pa = N * m^2""" config
+    [<Measure>] type Pa = N * m^2"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 [<Measure>]
 type m
 
@@ -90,12 +121,17 @@ type Pa = N * m^2
 """
 
 [<Test>]
-let ``type params``() =
-    formatSourceString false """
+let ``type params`` () =
+    formatSourceString
+        false
+        """
 let genericSumUnits ( x : float<'u>) (y: float<'u>) = x + y
-type vector3D<[<Measure>] 'u> = { x : float<'u>; y : float<'u>; z : float<'u>}""" config
+type vector3D<[<Measure>] 'u> = { x : float<'u>; y : float<'u>; z : float<'u>}"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let genericSumUnits (x: float<'u>) (y: float<'u>) = x + y
 
 type vector3D<[<Measure>] 'u> =
@@ -105,12 +141,17 @@ type vector3D<[<Measure>] 'u> =
 """
 
 [<Test>]
-let ``attributes on recursive functions``() =
-    formatSourceString false """
+let ``attributes on recursive functions`` () =
+    formatSourceString
+        false
+        """
 let rec [<Test>] a () = 10
-and [<Test>] b () = 10""" config
+and [<Test>] b () = 10"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 [<Test>]
 let rec a () = 10
 
@@ -118,14 +159,19 @@ and [<Test>] b () = 10
 """
 
 [<Test>]
-let ``attributes on implicit constructors``() =
-    formatSourceString false """
+let ``attributes on implicit constructors`` () =
+    formatSourceString
+        false
+        """
 [<Export>]
 type Sample [<ImportingConstructor>] (dependency: IDependency) = class end
 [<Export>]
-type Sample [<ImportingConstructor>] internal () = class end""" config
+type Sample [<ImportingConstructor>] internal () = class end"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 [<Export>]
 type Sample [<ImportingConstructor>] (dependency: IDependency) =
     class
@@ -138,24 +184,30 @@ type Sample [<ImportingConstructor>] internal () =
 """
 
 [<Test>]
-let ``should handle targets on attributes``() =
-    formatSourceString false """
-[<DataContract>]
-type Foo = 
-    { [<field:DataMember>]
-      Bar:string }
-"""  config
-  |> prepend newline
-  |> should equal """
+let ``should handle targets on attributes`` () =
+    formatSourceString
+        false
+        """
 [<DataContract>]
 type Foo =
     { [<field:DataMember>]
+      Bar:string }
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+[<DataContract>]
+type Foo =
+    { [<field: DataMember>]
       Bar: string }
 """
 
 [<Test>]
 let ``print trivia linked to SynAttribute`` () =
-    let source = """
+    let source =
+        """
 module MyApp
 
 #if DEBUG
@@ -177,20 +229,22 @@ let e2e value =
 """
 
     formatSourceString false source config
-    |> should equal """module MyApp
+    |> should
+        equal
+        """module MyApp
 
 #if DEBUG
 [<Emit("console.log('%c' +  $1, 'color: ' + $0)")>]
-let printInColor (color: string) (msg: string): unit = jsNative
+let printInColor (color: string) (msg: string) : unit = jsNative
 
 [<Emit("console.log('%c' +  $1, $0)")>]
-let printInStyle (style: string) (msg): unit = jsNative
+let printInStyle (style: string) (msg) : unit = jsNative
 
 [<Emit("console.info($0)")>]
-let printModel model: unit = jsNative
+let printModel model : unit = jsNative
 
 [<Emit("console.trace()")>]
-let printStackTrace (): unit = jsNative
+let printStackTrace () : unit = jsNative
 #endif
 
 let e2e value = Props.Data("e2e", value)
@@ -198,18 +252,25 @@ let e2e value = Props.Data("e2e", value)
 
 [<Test>]
 let ``comments before attributes should be added correctly, issue 422`` () =
-    formatSourceString false """module RecordTypes = 
+    formatSourceString
+        false
+        """module RecordTypes =
 
     /// Records can also be represented as structs via the 'Struct' attribute.
     /// This is helpful in situations where the performance of structs outweighs
     /// the flexibility of reference types.
     [<Struct>]
-    type ContactCardStruct = 
+    type ContactCardStruct =
         { Name     : string
           Phone    : string
           Verified : bool }
-"""  config
-    |> should equal """module RecordTypes =
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+module RecordTypes =
 
     /// Records can also be represented as structs via the 'Struct' attribute.
     /// This is helpful in situations where the performance of structs outweighs
@@ -223,54 +284,72 @@ let ``comments before attributes should be added correctly, issue 422`` () =
 
 [<Test>]
 let ``different attributes according to defines`` () =
-    formatSourceString false """    [<
+    formatSourceString
+        false
+        """    [<
 #if NETCOREAPP2_1
       Builder.Object;
 #else
       Widget;
 #endif
       DefaultValue(true)>]
-    let foo = ()"""  config
-    |> should equal """[<
+    let foo = ()"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+[<
 #if NETCOREAPP2_1
-Builder.Object;
+  Builder.Object;
 #else
-Widget;
+  Widget;
 #endif
-DefaultValue(true)>]
+  DefaultValue(true)>]
 let foo = ()
 """
 
-
 [<Test>]
 let ``different attributes according to defines, no defines`` () =
-    formatSourceStringWithDefines [] """    [<
+    formatSourceStringWithDefines
+        []
+        """    [<
 #if NETCOREAPP2_1
       Builder.Object;
 #else
       Widget;
 #endif
       DefaultValue(true)>]
-    let foo = ()"""  config
-    |> should equal """[<
+    let foo = ()"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+[<
 #if NETCOREAPP2_1
 
 #else
-Widget;
+  Widget;
 #endif
-DefaultValue(true)>]
+  DefaultValue(true)>]
 let foo = ()
 """
 
 [<Test>]
 let ``attribute above extern keyword, 562`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 module C =
   [<DllImport("")>]
   extern IntPtr f()
-"""  ({ config with StrictMode = true })
+"""
+        { config with StrictMode = true }
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 module C =
     [<DllImport("")>]
     extern IntPtr f()
@@ -278,7 +357,9 @@ module C =
 
 [<Test>]
 let ``keep single newline between attribute and let binding, 611`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 open System
 open Library
 
@@ -288,13 +369,16 @@ let main argv =
     printfn "Nice command-line arguments! Here's what JSON.NET has to say about them:" argv
     |> Array.map getJsonNetJson |> Array.iter (printfn "%s")
     0 // return an integer exit code
-"""  ({ config with
-            SpaceAfterComma = false
-            SpaceAfterSemicolon = false
-            SpaceAroundDelimiter = false
-            SpaceBeforeLowercaseInvocation = false })
+"""
+        { config with
+              SpaceAfterComma = false
+              SpaceAfterSemicolon = false
+              SpaceAroundDelimiter = false
+              SpaceBeforeLowercaseInvocation = false }
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 open System
 open Library
 
@@ -304,12 +388,15 @@ let main argv =
     printfn "Nice command-line arguments! Here's what JSON.NET has to say about them:" argv
     |> Array.map getJsonNetJson
     |> Array.iter(printfn "%s")
+
     0 // return an integer exit code
 """
 
 [<Test>]
 let ``multiple assembly attributes, 796`` () =
-    formatSourceString false """namespace Foo.AssemblyInfo
+    formatSourceString
+        false
+        """namespace Foo.AssemblyInfo
 
 open System.Reflection
 open System.Runtime.CompilerServices
@@ -320,17 +407,20 @@ open System.Runtime.InteropServices
 
 do
   ()
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 namespace Foo.AssemblyInfo
 
 open System.Reflection
 open System.Runtime.CompilerServices
 open System.Runtime.InteropServices
 
-[<assembly:AssemblyTitle("Foo")>]
-[<assembly:AssemblyDescription("")>]
+[<assembly: AssemblyTitle("Foo")>]
+[<assembly: AssemblyDescription("")>]
 
 do ()
 """
@@ -338,11 +428,521 @@ do ()
 [<Test>]
 let ``should preserve single return type attribute`` () =
     formatSourceString false """let f x : [<return: Attribute>] int = x""" config
-    |> should equal """let f x: [<return:Attribute>] int = x
+    |> should
+        equal
+        """let f x : [<return: Attribute>] int = x
 """
 
 [<Test>]
 let ``should preserve multiple return type attributes`` () =
     formatSourceString false """let f x : [<return: AttributeOne;AttributeTwo;AttributeThree("foo")>] int = x""" config
-    |> should equal """let f x: [<return:AttributeOne; AttributeTwo; AttributeThree("foo")>] int = x
+    |> should
+        equal
+        """let f x : [<return: AttributeOne; AttributeTwo; AttributeThree("foo")>] int = x
+"""
+
+[<Test>]
+let ``attribute, new line, let binding`` () =
+    formatSourceString
+        false
+        """
+    [<Foo>]
+
+let bar = 7
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+[<Foo>]
+
+let bar = 7
+"""
+
+[<Test>]
+let ``attribute, new line, type declaration`` () =
+    formatSourceString
+        false
+        """
+[<Foo>]
+
+type Bar = Bar of string
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+[<Foo>]
+
+type Bar = Bar of string
+"""
+
+[<Test>]
+let ``attribute, new line, attribute, newline, let binding`` () =
+    formatSourceString
+        false
+        """
+[<Foo>]
+
+[<Meh>]
+
+let bar = 7
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+[<Foo>]
+
+[<Meh>]
+
+let bar = 7
+"""
+
+[<Test>]
+let ``attribute, new line, attribute, line comment, type declaration`` () =
+    formatSourceString
+        false
+        """
+[<Foo>]
+
+[<Meh>]
+// foo
+type Text = string
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+[<Foo>]
+
+[<Meh>]
+// foo
+type Text = string
+"""
+
+[<Test>]
+let ``attribute, hash directive, attribute, hash directive, type declaration`` () =
+    formatSourceString
+        false
+        """
+[<Foo>]
+#if FOO
+[<Meh>]
+#endif
+type Text = string
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+[<Foo>]
+#if FOO
+[<Meh>]
+#endif
+type Text = string
+"""
+
+[<Test>]
+let ``attribute, line comment, attribute, new line, record definition field`` () =
+    formatSourceString
+        false
+        """
+type Commenter =
+    { [<JsonProperty("display_name")>]
+      // foo
+      [<Bar>]
+
+      DisplayName: string }
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type Commenter =
+    { [<JsonProperty("display_name")>]
+      // foo
+      [<Bar>]
+
+      DisplayName: string }
+"""
+
+[<Test>]
+let ``assembly attributes remain on own line, 629`` () =
+    formatSourceString
+        false
+        """
+namespace AltCover.Visualizer
+
+open System
+open System.Reflection
+open System.Runtime.InteropServices
+
+[<assembly:CLSCompliant(true)>]
+[<assembly:ComVisible(false)>]
+[<assembly:AssemblyTitle("AltCover.Visualizer")>]
+[<assembly:AssemblyDescription("Coverage and static analysis visualizer for NCover (possibly extended) and OpenCover")>]
+[<assembly:System.Resources.NeutralResourcesLanguageAttribute("en-GB")>]
+()
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+namespace AltCover.Visualizer
+
+open System
+open System.Reflection
+open System.Runtime.InteropServices
+
+[<assembly: CLSCompliant(true)>]
+[<assembly: ComVisible(false)>]
+[<assembly: AssemblyTitle("AltCover.Visualizer")>]
+[<assembly: AssemblyDescription("Coverage and static analysis visualizer for NCover (possibly extended) and OpenCover")>]
+[<assembly: System.Resources.NeutralResourcesLanguageAttribute("en-GB")>]
+()
+"""
+
+[<Test>]
+let ``line comment between attributes and do expression`` () =
+    formatSourceString
+        false
+        """
+[<Foo>]
+[<Bar>]
+// barry
+printfn "meh"
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+[<Foo>]
+[<Bar>]
+// barry
+printfn "meh"
+"""
+
+[<Test>]
+let ``multiple attributes inside SynAttributes that exceeds max line length, 629`` () =
+    formatSourceString
+        false
+        """
+//[<ApiExplorerSettings(IgnoreApi = true)>]
+[<Route("api/v1/admin/import")>]
+type RoleAdminImportController(akkaService: AkkaService) =
+  inherit Controller()
+
+  [<HttpGet("jobs/all");
+    ProducesResponseType(typeof<bool>, 200);
+    ProducesResponseType(404);
+    Authorize(AuthorizationScopePolicies.Read)>]
+  member _.ListJobs(): Task<UserCmdResponseMsg> =
+    task {
+      return!
+        akkaService.ImporterSystem.ApiMaster <? ApiMasterMsg.GetAllJobsCmd
+    }
+
+  [<HttpPost("jobs/create");
+    DisableRequestSizeLimit;
+    RequestFormLimits(MultipartBodyLengthLimit = 509715200L);
+    ProducesResponseType(typeof<RoleChangeSummaryDto list>, 200);
+    ProducesResponseType(404);
+    Authorize(AuthorizationScopePolicies.Write)>]
+  member _.StartJob(file: IFormFile, [<FromQuery>] args: ImporterJobArgs) =
+    let importer = akkaService.ImporterSystem
+
+    ActionResult.ofAsyncResult <| asyncResult {
+      let! state =
+        (LowerCaseString.create args.State, file)
+        |> pipeObjectThroughValidation [ (fst, [stateIsValid]); (snd, [(fun s -> Ok s)]) ]
+
+      let! filePath = FormFile.downloadAsTemp file
+
+      let job =
+        { JobType = EsriBoundaryImport
+          FileToImport = filePath
+          State = state
+          DryRun = args.DryRun }
+
+      importer.ApiMaster <! StartImportCmd job
+      return Ok job
+    }
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+//[<ApiExplorerSettings(IgnoreApi = true)>]
+[<Route("api/v1/admin/import")>]
+type RoleAdminImportController(akkaService: AkkaService) =
+    inherit Controller()
+
+    [<HttpGet("jobs/all");
+      ProducesResponseType(typeof<bool>, 200);
+      ProducesResponseType(404);
+      Authorize(AuthorizationScopePolicies.Read)>]
+    member _.ListJobs() : Task<UserCmdResponseMsg> =
+        task {
+            return!
+                akkaService.ImporterSystem.ApiMaster
+                <? ApiMasterMsg.GetAllJobsCmd
+        }
+
+    [<HttpPost("jobs/create");
+      DisableRequestSizeLimit;
+      RequestFormLimits(MultipartBodyLengthLimit = 509715200L);
+      ProducesResponseType(typeof<RoleChangeSummaryDto list>, 200);
+      ProducesResponseType(404);
+      Authorize(AuthorizationScopePolicies.Write)>]
+    member _.StartJob(file: IFormFile, [<FromQuery>] args: ImporterJobArgs) =
+        let importer = akkaService.ImporterSystem
+
+        ActionResult.ofAsyncResult
+        <| asyncResult {
+            let! state =
+                (LowerCaseString.create args.State, file)
+                |> pipeObjectThroughValidation [ (fst, [ stateIsValid ])
+                                                 (snd, [ (fun s -> Ok s) ]) ]
+
+            let! filePath = FormFile.downloadAsTemp file
+
+            let job =
+                { JobType = EsriBoundaryImport
+                  FileToImport = filePath
+                  State = state
+                  DryRun = args.DryRun }
+
+            importer.ApiMaster <! StartImportCmd job
+            return Ok job
+           }
+"""
+
+[<Test>]
+let ``compiler defines around SynAttribute nodes, 631`` () =
+    formatSourceString
+        false
+        """
+type internal Handler() =
+  class
+    [<
+#if NETCOREAPP2_1
+      Builder.Object;
+#else
+      Widget;
+#endif
+    DefaultValue(true)>]
+    val mutable mainWindow: Window
+end
+
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type internal Handler() =
+    class
+        [<
+#if NETCOREAPP2_1
+          Builder.Object;
+#else
+          Widget;
+#endif
+          DefaultValue(true)>]
+        val mutable mainWindow: Window
+    end
+"""
+
+[<Test>]
+let ``& in extern function declaration, 1567`` () =
+    formatSourceString
+        false
+        """
+module Foo =
+    module Bar =
+        [<DllImport("Kernel32.dll", SetLastError = true)>]
+        extern bool GetFileInformationByHandleEx(IntPtr hFile, FILE_INFO_BY_HANDLE_CLASS infoClass, [<Out>] FILE_NAME_INFO& info, uint32 dwBufferSize)
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+module Foo =
+    module Bar =
+        [<DllImport("Kernel32.dll", SetLastError = true)>]
+        extern bool GetFileInformationByHandleEx(IntPtr hFile, FILE_INFO_BY_HANDLE_CLASS infoClass, [<Out>] FILE_NAME_INFO& info, uint32 dwBufferSize)
+"""
+
+[<Test>]
+let ``attribute on member of recursive type, 1918`` () =
+    formatSourceString
+        false
+        """
+type X = A
+and Y = B
+    with
+        [<ExcludeFromCodeCoverage>]
+        member  this.M() = true
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type X = A
+
+and Y = B
+    with
+        [<ExcludeFromCodeCoverage>]
+        member this.M() = true
+"""
+
+[<Test>]
+let ``attribute on second member defn, 1898`` () =
+    formatSourceString
+        false
+        """
+type Test1() =
+  member x.Test() = ()
+
+and Test2() =
+
+  let someEvent = Event<EventHandler<int>, int>()
+
+  [<CLIEvent>]
+  member x.SomeEvent = someEvent.Publish
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type Test1() =
+    member x.Test() = ()
+
+and Test2() =
+
+    let someEvent = Event<EventHandler<int>, int>()
+
+    [<CLIEvent>]
+    member x.SomeEvent = someEvent.Publish
+"""
+
+[<Test>]
+let ``attributes on recursive discriminated union types, 1874`` () =
+    formatSourceString
+        false
+        """
+module test
+open System.Diagnostics
+
+type Correct =
+    | A of unit
+
+    [<DebuggerStepThrough>]
+    override this.ToString () = ""
+
+    [<DebuggerStepThrough>]
+    member this.f = ()
+
+    [<DebuggerStepThrough>]
+    static member this.f = ()
+
+and Wrong =
+    | B of unit
+
+    [<DebuggerStepThrough>]
+    override this.ToString () = ""
+
+    [<DebuggerStepThrough>]
+    member this.f = ()
+
+    [<DebuggerStepThrough>]
+    static member this.f = ()
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+module test
+
+open System.Diagnostics
+
+type Correct =
+    | A of unit
+
+    [<DebuggerStepThrough>]
+    override this.ToString() = ""
+
+    [<DebuggerStepThrough>]
+    member this.f = ()
+
+    [<DebuggerStepThrough>]
+    static member this.f = ()
+
+and Wrong =
+    | B of unit
+
+    [<DebuggerStepThrough>]
+    override this.ToString() = ""
+
+    [<DebuggerStepThrough>]
+    member this.f = ()
+
+    [<DebuggerStepThrough>]
+    static member this.f = ()
+"""
+
+[<Test>]
+let ``attribute on member of recursive record type, 1962`` () =
+    formatSourceString
+        false
+        """
+module Foo =
+
+    type Person = {
+        Name : string
+        FavoriteDog : Dog
+    } with
+        [<RequiresExplicitTypeArguments>]
+        static member doThing person =
+            ()
+    and Dog = {
+        Name : string
+        FavoriteChewToy : string
+    } with
+        [<RequiresExplicitTypeArguments>]
+        static member doThing person =
+            ()
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+module Foo =
+
+    type Person =
+        { Name: string
+          FavoriteDog: Dog }
+        [<RequiresExplicitTypeArguments>]
+        static member doThing person = ()
+
+    and Dog =
+        { Name: string
+          FavoriteChewToy: string }
+        [<RequiresExplicitTypeArguments>]
+        static member doThing person = ()
 """

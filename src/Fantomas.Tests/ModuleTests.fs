@@ -1,34 +1,44 @@
-﻿module Fantomas.Tests.ModuleTests
+module Fantomas.Tests.ModuleTests
 
 open Fantomas
 open NUnit.Framework
 open FsUnit
 open Fantomas.Tests.TestHelper
+open Fantomas.Extras
 
 [<Test>]
-let ``module abbreviation``() =
+let ``module abbreviation`` () =
     formatSourceString false "module ES = Microsoft.FSharp.Quotations.ExprShape" config
-    |> should equal """module ES = Microsoft.FSharp.Quotations.ExprShape
+    |> should
+        equal
+        """module ES = Microsoft.FSharp.Quotations.ExprShape
 """
 
 [<Test>]
-let ``module with functions``() =
+let ``module with functions`` () =
     formatSourceString false "module internal MyModule = let x = 42" config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 module internal MyModule =
     let x = 42
 """
 
 [<Test>]
-let ``open modules``() =
-    formatSourceString false """
+let ``open modules`` () =
+    formatSourceString
+        false
+        """
     // comment1
     open System.IO
     // comment2
-    open System""" config
+    open System"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 // comment1
 open System.IO
 // comment2
@@ -36,8 +46,10 @@ open System
 """
 
 [<Test>]
-let ``sort open modules doesn't mess comments up``() =
-    formatSourceString false """
+let ``sort open modules doesn't mess comments up`` () =
+    formatSourceString
+        false
+        """
 module internal Fantomas.CodePrinter
 
 // comment0
@@ -53,9 +65,12 @@ open Fantomas.SourceTransformer
 // comment1
 let sortAndDedup by l =
     // comment2
-    l |> Seq.distinctBy by |> Seq.sortBy by |> List.ofSeq""" config
+    l |> Seq.distinctBy by |> Seq.sortBy by |> List.ofSeq"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 module internal Fantomas.CodePrinter
 
 // comment0
@@ -78,15 +93,20 @@ let sortAndDedup by l =
 """
 
 [<Test>]
-let ``nested modules``() =
-    formatSourceString false """
+let ``nested modules`` () =
+    formatSourceString
+        false
+        """
 module Y =
-    let x = 1 
+    let x = 1
 
     module Z =
-        let z = 5""" config
+        let z = 5"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 module Y =
     let x = 1
 
@@ -95,8 +115,10 @@ module Y =
 """
 
 [<Test>]
-let ``sibling modules``() =
-    formatSourceString false """
+let ``sibling modules`` () =
+    formatSourceString
+        false
+        """
 module TopLevel
 
 let topLevelX = 5
@@ -104,9 +126,12 @@ let topLevelX = 5
 module Inner1 =
     let inner1X = 1
 module Inner2 =
-    let inner2X = 5""" config
+    let inner2X = 5"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 module TopLevel
 
 let topLevelX = 5
@@ -119,8 +144,10 @@ module Inner2 =
 """
 
 [<Test>]
-let ``module signatures``() =
-    formatSourceString true """
+let ``module signatures`` () =
+    formatSourceString
+        true
+        """
 module Utils
 
 val turnTracingOn : unit -> unit
@@ -132,9 +159,12 @@ module Random = begin
     val nextInt : max:int -> int
     val nextInt64 : max:int64 -> int64
     val next : max:float -> float
-end""" config
+end"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 module Utils
 
 val turnTracingOn: unit -> unit
@@ -142,25 +172,30 @@ val turnTracingOff: unit -> unit
 val isTraced: unit -> bool
 
 module Random =
-    val exponential: mean:float -> float
-    val nextInt: max:int -> int
-    val nextInt64: max:int64 -> int64
-    val next: max:float -> float
+    val exponential: mean: float -> float
+    val nextInt: max: int -> int
+    val nextInt64: max: int64 -> int64
+    val next: max: float -> float
 """
 
 [<Test>]
-let ``namespace declaration``() =
-    formatSourceString false """
+let ``namespace declaration`` () =
+    formatSourceString
+        false
+        """
 namespace Widgets
 
 type MyWidget1 =
-    member this.WidgetName = "Widget1" 
+    member this.WidgetName = "Widget1"
 
 module WidgetsModule =
     let widgetName = "Widget2"
-    """ config
+    """
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 namespace Widgets
 
 type MyWidget1 =
@@ -171,8 +206,10 @@ module WidgetsModule =
 """
 
 [<Test>]
-let ``should retain rec in namespace``() =
-    formatSourceString false """
+let ``should retain rec in namespace`` () =
+    formatSourceString
+        false
+        """
 namespace rec Test
 
 type Add = Expr * Expr
@@ -180,9 +217,12 @@ type Add = Expr * Expr
 type Expr =
     | Add of Add
     | Value of int
-    """ config
+    """
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 namespace rec Test
 
 type Add = Expr * Expr
@@ -193,8 +233,10 @@ type Expr =
 """
 
 [<Test>]
-let ``should retain rec in nested module``() =
-    formatSourceString false """
+let ``should retain rec in nested module`` () =
+    formatSourceString
+        false
+        """
 namespace Test
 
 module rec Expression =
@@ -203,9 +245,12 @@ module rec Expression =
     type Expr =
         | Add of Add
         | Value of int
-    """ config
+    """
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 namespace Test
 
 module rec Expression =
@@ -217,16 +262,22 @@ module rec Expression =
 """
 
 [<Test>]
-let ``should preserve global keyword``() =
-    formatSourceString false """
+let ``should preserve global keyword`` () =
+    formatSourceString
+        false
+        """
 namespace global
 
 type SomeType() =
-    member this.Print() = 
+    member this.Print() =
         global.System.Console.WriteLine("Hello World!")
-    """ config
+    """
+        { config with
+              MaxFunctionBindingWidth = 120 }
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 namespace global
 
 type SomeType() =
@@ -234,18 +285,24 @@ type SomeType() =
 """
 
 [<Test>]
-let ``should escape keywords correctly``() =
-    formatSourceString false """
+let ``should escape keywords correctly`` () =
+    formatSourceString
+        false
+        """
 module ``member``
 
 let ``abstract`` = "abstract"
 
 type SomeType() =
-    member this.``new``() = 
+    member this.``new``() =
         System.Console.WriteLine("Hello World!")
-    """ config
+    """
+        { config with
+              MaxFunctionBindingWidth = 120 }
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 module ``member``
 
 let ``abstract`` = "abstract"
@@ -255,8 +312,10 @@ type SomeType() =
 """
 
 [<Test>]
-let ``should escape base keyword correctly``() =
-    formatSourceString false """
+let ``should escape base keyword correctly`` () =
+    formatSourceString
+        false
+        """
 open System
 open RDotNet
 open RDotNet.NativeLibrary
@@ -266,12 +325,15 @@ open RProvider.``base``
 open RProvider.stats
 
 [<EntryPoint>]
-let main argv = 
+let main argv =
     let a = R.rnorm(1000)
     0
-    """ config
+    """
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 open System
 open RDotNet
 open RDotNet.NativeLibrary
@@ -287,43 +349,62 @@ let main argv =
 """
 
 [<Test>]
-let ``should retain rec in modules``() =
-    formatSourceString false """
+let ``should retain rec in modules`` () =
+    formatSourceString
+        false
+        """
 module rec Test =
     let test = 42
-    """ config
+    """
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 module rec Test =
     let test = 42
 """
 
 [<Test>]
-let ``should retain order when access and rec present in module declaration``() =
-    formatSourceString false """
+let ``should retain order when access and rec present in module declaration`` () =
+    formatSourceString
+        false
+        """
 module private rec Test =
     let test = 42
-    """ config
+    """
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 module private rec Test =
     let test = 42
 """
 
 [<Test>]
-let ``Implicit module should not be added to code`` () =
+let ``implicit module should not be added to code`` () =
     let fileName = "60Seconds.fsx"
-    let sourceCode = """open System
+
+    let sourceCode =
+        """open System
 
 type T() =
     interface IDisposable with
         override x.Dispose() = ()"""
-    
-    Fantomas.CodeFormatter.FormatDocumentAsync(fileName, SourceOrigin.SourceString sourceCode, config,
-                                               FakeHelpers.createParsingOptionsFromFile fileName, sharedChecker.Value)
+
+    CodeFormatter.FormatDocumentAsync(
+        fileName,
+        SourceOrigin.SourceString sourceCode,
+        config,
+        FakeHelpers.createParsingOptionsFromFile fileName,
+        sharedChecker.Value
+    )
     |> Async.RunSynchronously
     |> fun s -> s.Replace("\r\n", "\n")
-    |> should equal """open System
+    |> should
+        equal
+        """open System
 
 type T() =
     interface IDisposable with
@@ -332,14 +413,19 @@ type T() =
 
 [<Test>]
 let ``attribute on module after namespace`` () =
-    formatSourceString false """namespace SomeNamespace
+    formatSourceString
+        false
+        """namespace SomeNamespace
 
 [<AutoOpen>]
 module Types =
     let a = 5
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 namespace SomeNamespace
 
 [<AutoOpen>]
@@ -349,7 +435,9 @@ module Types =
 
 [<Test>]
 let ``single line and multiline module decls`` () =
-    formatSourceString false """let a =  5
+    formatSourceString
+        false
+        """let a =  5
 let b =  8
 type Model =
     { ActiveTab : ActiveTab
@@ -367,9 +455,12 @@ type UrlModel =
     { IsFsi: bool
       KeepNewlineAfter: bool
       Defines: string }
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let a = 5
 let b = 8
 
@@ -394,7 +485,9 @@ type UrlModel =
 
 [<Test>]
 let ``single line and multiline module decls with newline trivia`` () =
-    formatSourceString false """let a =  5
+    formatSourceString
+        false
+        """let a =  5
 let b =  8
 
 type Model =
@@ -414,9 +507,12 @@ type UrlModel =
     { IsFsi: bool
       KeepNewlineAfter: bool
       Defines: string }
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let a = 5
 let b = 8
 
@@ -441,14 +537,19 @@ type UrlModel =
 
 [<Test>]
 let ``comment is first trivia in module should not add newline, 784`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 module foo
 
 // bar
 // baz
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 module foo
 
 // bar
@@ -457,14 +558,19 @@ module foo
 
 [<Test>]
 let ``comment is first trivia in module in signature file should not add newline, 784`` () =
-    formatSourceString true """
+    formatSourceString
+        true
+        """
 module foo
 
 // bar
 // baz
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 module foo
 
 // bar
@@ -473,14 +579,19 @@ module foo
 
 [<Test>]
 let ``comment is first trivia in namespace should not add newline, 784`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 namespace foo.quz
 
 // bar
 // baz
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 namespace foo.quz
 
 // bar
@@ -489,16 +600,147 @@ namespace foo.quz
 
 [<Test>]
 let ``comment is first trivia in namespace in signature file should not add newline, 784`` () =
-    formatSourceString true """
+    formatSourceString
+        true
+        """
 namespace foo.quz
 
 // bar
 // baz
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 namespace foo.quz
 
 // bar
 // baz
+"""
+
+[<Test>]
+let ``don't add extra new lines between comments and attributes, 1108`` () =
+    formatSourceString
+        false
+        """
+namespace Foo
+
+// First
+[<someAnnotation>]
+
+// Second
+[<someAnnotation>]
+
+// Third
+[<someAnnotation>]
+
+do ()
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+namespace Foo
+
+// First
+[<someAnnotation>]
+
+// Second
+[<someAnnotation>]
+
+// Third
+[<someAnnotation>]
+
+do ()
+"""
+
+[<Test>]
+let ``keep correct indentation for let binding inside nested module, 1122`` () =
+    formatSourceString
+        false
+        """
+namespace Test
+
+module App =
+    type Msg = B of C
+
+    let a = "test"
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+namespace Test
+
+module App =
+    type Msg = B of C
+
+    let a = "test"
+"""
+
+[<Test>]
+let ``keep correct indentation for let binding inside nested module, signature file`` () =
+    formatSourceString
+        true
+        """
+namespace Test
+
+module App =
+    type Msg = B of C
+
+    val a : string
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+namespace Test
+
+module App =
+    type Msg = B of C
+
+    val a: string
+"""
+
+[<Test>]
+let ``nested nested module with single union DU, 1123`` () =
+    formatSourceString
+        false
+        """
+module Test =
+  module Foo =
+    type t = T of bool
+    let foo = true
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+module Test =
+    module Foo =
+        type t = T of bool
+        let foo = true
+"""
+
+[<Test>]
+let ``always add new line between named module and first declaration, 1139`` () =
+    formatSourceString
+        false
+        """
+module Input
+    let modules = [109024;137172;80445;80044]
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+module Input
+
+let modules = [ 109024; 137172; 80445; 80044 ]
 """

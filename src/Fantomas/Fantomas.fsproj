@@ -1,41 +1,40 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Microsoft.NET.Sdk">
-  <Import Project="..\netfx.props" />
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <Version>4.0.0-alpha-008</Version>
+    <Version>4.5.12</Version>
     <Description>Source code formatter for F#</Description>
+    <WarningsAsErrors>FS0025</WarningsAsErrors>
+    <PackageLicenseFile>LICENSE.md</PackageLicenseFile>
+    <PackageIcon>fantomas_logo.png</PackageIcon>
   </PropertyGroup>
   <ItemGroup>
     <None Include="paket.references" />
+    <None Include="..\..\LICENSE.md" Visible="false" Pack="true" PackagePath="" />
+    <None Include="..\..\fantomas_logo.png" Visible="false" Pack="true" PackagePath="" />
     <Compile Include="AssemblyInfo.fs" />
     <Compile Include="RangeHelpers.fs" />
+    <Compile Include="TriviaTypes.fs" />
+    <Compile Include="Dbg.fs" />
+    <Compile Include="Utils.fs" />
+    <Compile Include="AstExtensions.fs" />
+    <Compile Include="SourceParser.fs" />
     <Compile Include="AstTransformer.fs" />
     <Compile Include="SourceOrigin.fs" />
     <Compile Include="Version.fs" />
-    <Compile Include="Dbg.fs" />
-    <Compile Include="Utils.fs" />
     <Compile Include="Queue.fs" />
     <Compile Include="FormatConfig.fs" />
-    <Compile Include="ConfigFile.fs" />
-    <Compile Include="JsonConfig.fs" />
-    <Compile Include="EditorConfig.fs" />
-    <Compile Include="TriviaTypes.fs" />
     <Compile Include="TokenParserBoolExpr.fs" />
     <Compile Include="TriviaHelpers.fs" />
     <Compile Include="TokenParser.fs" />
     <Compile Include="Trivia.fs" />
     <Compile Include="Context.fs" />
-    <Compile Include="SourceParser.fs" />
     <Compile Include="SourceTransformer.fs" />
     <Compile Include="TriviaContext.fs" />
     <Compile Include="CodePrinter.fs" />
     <Compile Include="CodeFormatterImpl.fs" />
     <Compile Include="CodeFormatter.fsi" />
     <Compile Include="CodeFormatter.fs" />
-    <Compile Include="FakeHelpers.fs" />
-    <None Include="CodeFormatter.fsx" />
-    <Content Include="schema.json" />
   </ItemGroup>
   <Import Project="..\..\.paket\Paket.Restore.targets" />
 </Project>

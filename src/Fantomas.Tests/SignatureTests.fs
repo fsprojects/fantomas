@@ -1,4 +1,4 @@
-﻿module Fantomas.Tests.SignatureTests
+module Fantomas.Tests.SignatureTests
 
 open NUnit.Framework
 open FsUnit
@@ -6,8 +6,10 @@ open Fantomas.Tests.TestHelper
 
 // the current behavior results in a compile error since "(string * string) list" is converted to "string * string list"
 [<Test>]
-let ``should keep the (string * string) list type signature in records``() =
-    formatSourceString false """type MSBuildParams = 
+let ``should keep the (string * string) list type signature in records`` () =
+    formatSourceString
+        false
+        """type MSBuildParams =
     { Targets : string list
       Properties : (string * string) list
       MaxCpuCount : int option option
@@ -15,8 +17,11 @@ let ``should keep the (string * string) list type signature in records``() =
       Verbosity : MSBuildVerbosity option
       FileLoggers : MSBuildFileLoggerConfig list option }
 
-    """ config
-    |> should equal """type MSBuildParams =
+    """
+        config
+    |> should
+        equal
+        """type MSBuildParams =
     { Targets: string list
       Properties: (string * string) list
       MaxCpuCount: int option option
@@ -26,31 +31,39 @@ let ``should keep the (string * string) list type signature in records``() =
 """
 
 [<Test>]
-let ``should keep the (string * string) list type signature in functions``() =
-    shouldNotChangeAfterFormat """
+let ``should keep the (string * string) list type signature in functions`` () =
+    shouldNotChangeAfterFormat
+        """
 let MSBuildWithProjectProperties outputPath (targets: string) (properties: string -> (string * string) list) projects =
     doingsomstuff
 """
 
 
 [<Test>]
-let ``should keep the string * string list type signature in functions``() =
-    shouldNotChangeAfterFormat """
+let ``should keep the string * string list type signature in functions`` () =
+    shouldNotChangeAfterFormat
+        """
 let MSBuildWithProjectProperties outputPath (targets: string) (properties: (string -> string) * string list) projects =
     doingsomstuff
 """
 
 
 [<Test>]
-let ``should not add parens in signature``() =
-    formatSourceString false """type Route = 
+let ``should not add parens in signature`` () =
+    formatSourceString
+        false
+        """type Route =
     { Verb : string
       Path : string
       Handler : Map<string, string> -> HttpListenerContext -> string }
     override x.ToString() = sprintf "%s %s" x.Verb x.Path
 
-    """ config
-    |> should equal """type Route =
+    """
+        { config with
+              MaxFunctionBindingWidth = 120 }
+    |> should
+        equal
+        """type Route =
     { Verb: string
       Path: string
       Handler: Map<string, string> -> HttpListenerContext -> string }
@@ -58,39 +71,57 @@ let ``should not add parens in signature``() =
 """
 
 [<Test>]
-let ``should keep the string * string * string option type signature``() =
-    formatSourceString false """type DGML = 
+let ``should keep the string * string * string option type signature`` () =
+    formatSourceString
+        false
+        """type DGML =
     | Node of string
     | Link of string * string * (string option)
 
-    """ config
-    |> should equal """type DGML =
+    """
+        config
+    |> should
+        equal
+        """type DGML =
     | Node of string
-    | Link of string * string * string option
+    | Link of string * string * (string option)
 """
 
 [<Test>]
-let ``should keep the (string option * Node) list type signature``() =
-    formatSourceString false """type Node = 
+let ``should keep the (string option * Node) list type signature`` () =
+    formatSourceString
+        false
+        """type Node =
     { Name : string;
       NextNodes : (string option * Node) list }
 
-    """ { config with SemicolonAtEndOfLine = true }
-    |> should equal """type Node =
+    """
+        { config with
+              SemicolonAtEndOfLine = true }
+    |> should
+        equal
+        """type Node =
     { Name: string;
       NextNodes: (string option * Node) list }
 """
 
 [<Test>]
-let ``should keep parentheses on the left of type signatures``() =
-    formatSourceString false """type IA =
+let ``should keep parentheses on the left of type signatures`` () =
+    formatSourceString
+        false
+        """type IA =
     abstract F: (unit -> Option<'T>) -> Option<'T>
 
 type A () =
     interface IA with
         member x.F (f: unit -> _) = f ()
-    """ config
-    |> should equal """type IA =
+    """
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type IA =
     abstract F: (unit -> Option<'T>) -> Option<'T>
 
 type A() =
@@ -99,16 +130,21 @@ type A() =
 """
 
 [<Test>]
-let ``should not add parentheses around bare tuples``() =
-    formatSourceString true """
+let ``should not add parentheses around bare tuples`` () =
+    formatSourceString
+        true
+        """
 namespace TupleType
 type C =
     member P1 : int * string
     /// def
     member P2 : int
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 namespace TupleType
 
 type C =
@@ -118,42 +154,75 @@ type C =
 """
 
 [<Test>]
-let ``should keep global constraints in type signature``() =
-    formatSourceString true """
+let ``should keep global constraints in type signature`` () =
+    formatSourceString
+        true
+        """
 module Tainted
 val GetHashCodeTainted : (Tainted<'T> -> int) when 'T : equality
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 module Tainted
 
-val GetHashCodeTainted: Tainted<'T> -> int when 'T: equality
+val GetHashCodeTainted: (Tainted<'T> -> int) when 'T: equality
 """
 
 [<Test>]
-let ``should keep access modifiers in signatures seperated``() =
-    formatSourceString true """
+let ``should keep mutable in type signature, 1954`` () =
+    formatSourceString
+        true
+        """
+module Tainted
+val mutable showParserStackOnParseError: bool
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+module Tainted
+
+val mutable showParserStackOnParseError: bool
+"""
+
+[<Test>]
+let ``should keep access modifiers in signatures seperated`` () =
+    formatSourceString
+        true
+        """
 module Test
 type Test =
     static member internal FormatAroundCursorAsync : fileName:string -> unit
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 module Test
 
 type Test =
-    static member internal FormatAroundCursorAsync: fileName:string -> unit
+    static member internal FormatAroundCursorAsync: fileName: string -> unit
 """
 
 [<Test>]
 let ``comment should stay above type`` () =
-    formatSourceString true """namespace TypeEquality
+    formatSourceString
+        true
+        """namespace TypeEquality
 
 /// A type for witnessing type equality between 'a and 'b
 type Teq<'a, 'b>
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 namespace TypeEquality
 
 /// A type for witnessing type equality between 'a and 'b
@@ -162,14 +231,19 @@ type Teq<'a, 'b>
 
 [<Test>]
 let ``comment before namespace should be preserved`` () =
-    formatSourceString true """
+    formatSourceString
+        true
+        """
 // some comment
 namespace TypeEquality
 
 type Teq<'a, 'b>
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 // some comment
 namespace TypeEquality
 
@@ -178,7 +252,9 @@ type Teq<'a, 'b>
 
 [<Test>]
 let ``generic val in nested module should keep generic type parameters`` () =
-    formatSourceString true """namespace TypeEquality
+    formatSourceString
+        true
+        """namespace TypeEquality
 
 /// A type for witnessing type equality between 'a and 'b
 type Teq<'a, 'b>
@@ -194,9 +270,12 @@ module Teq =
     /// values, but Refl is the only provably correct constructor we can create
     /// in F#, so we choose soundness over completeness here).
     val refl<'a> : Teq<'a, 'a>
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 namespace TypeEquality
 
 /// A type for witnessing type equality between 'a and 'b
@@ -217,7 +296,9 @@ module Teq =
 
 [<Test>]
 let ``don't duplicate newline between type and module`` () =
-    formatSourceString true """namespace TypeEquality
+    formatSourceString
+        true
+        """namespace TypeEquality
 
 /// A type for witnessing type equality between 'a and 'b
 type Teq<'a, 'b>
@@ -241,25 +322,25 @@ module Teq =
     /// Order isn't important
     /// a = b => b = a
     /// If you always do this followed by a cast, you may as well just use castFrom
-    val symmetry : Teq<'a, 'b> -> Teq<'b, 'a>
+    val symmetry: Teq<'a, 'b> -> Teq<'b, 'a>
 
     /// Let's compose two type-equalities: a = b && b = c => a = c
-    val transitivity : Teq<'a, 'b> -> Teq<'b, 'c> -> Teq<'a, 'c>
+    val transitivity: Teq<'a, 'b> -> Teq<'b, 'c> -> Teq<'a, 'c>
 
     /// Converts an 'a to a 'b
-    val cast : Teq<'a, 'b> -> ('a -> 'b)
+    val cast: Teq<'a, 'b> -> ('a -> 'b)
 
     /// Converts an 'a to a 'b
     /// Alias for cast
-    val castTo : Teq<'a, 'b> -> ('a -> 'b)
+    val castTo: Teq<'a, 'b> -> ('a -> 'b)
 
     /// Converts a 'b to an 'a
     /// Equivalent to symmetry >> cast, but more efficient
-    val castFrom : Teq<'a, 'b> -> ('b -> 'a)
+    val castFrom: Teq<'a, 'b> -> ('b -> 'a)
 
     /// Utility function to map an object of one type using a mapping function
     /// for a different type when we have a type equality between the two types
-    val mapAs : Teq<'a, 'b> -> ('b -> 'b) -> 'a -> 'a
+    val mapAs: Teq<'a, 'b> -> ('b -> 'b) -> 'a -> 'a
 
     /// The Cong module (short for congruence) contains functions that
     /// allow you safely transform Teqs into other Teqs that logically follow.
@@ -333,9 +414,12 @@ module Teq =
         /// Given a pair of type equalities, one for the first element of a pair and one for the second element of a pair,
         /// returns the type equality for the corresponding pair types.
         val pair<'fst1, 'snd1, 'fst2, 'snd2> : Teq<'fst1, 'fst2> -> Teq<'snd1, 'snd2> -> Teq<'fst1 * 'snd1, 'fst2 * 'snd2>
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 namespace TypeEquality
 
 /// A type for witnessing type equality between 'a and 'b
@@ -429,20 +513,20 @@ module Teq =
         val domain<'domain1, 'domain2, 'range> : Teq<'domain1, 'domain2> -> Teq<'domain1 -> 'range, 'domain2 -> 'range>
 
         /// Given a type equality between two function types, returns the type equality on their corresponding domains.
-        val domainOf<'domain1, 'domain2, 'range1, 'range2> : Teq<'domain1 -> 'range1, 'domain2 -> 'range2>
-             -> Teq<'domain1, 'domain2>
+        val domainOf<'domain1, 'domain2, 'range1, 'range2> :
+            Teq<'domain1 -> 'range1, 'domain2 -> 'range2> -> Teq<'domain1, 'domain2>
 
         /// Given a type equality between two types 'range1 and 'range2, returns the type equality
         /// on the function types ('domain -> 'range1) and ('domain -> 'range2), for any arbitrary 'domain.
         val range<'domain, 'range1, 'range2> : Teq<'range1, 'range2> -> Teq<'domain -> 'range1, 'domain -> 'range2>
 
         /// Given a type equality between two function types, returns the type equality on their corresponding ranges.
-        val rangeOf<'domain1, 'domain2, 'range1, 'range2> : Teq<'domain1 -> 'range1, 'domain2 -> 'range2>
-             -> Teq<'range1, 'range2>
+        val rangeOf<'domain1, 'domain2, 'range1, 'range2> :
+            Teq<'domain1 -> 'range1, 'domain2 -> 'range2> -> Teq<'range1, 'range2>
 
         /// Given a pair of type equalities, one for domains and one for ranges, returns the type equality for the corresponding function types.
-        val func<'domain1, 'range1, 'domain2, 'range2> : Teq<'domain1, 'domain2>
-             -> Teq<'range1, 'range2> -> Teq<'domain1 -> 'range1, 'domain2 -> 'range2>
+        val func<'domain1, 'range1, 'domain2, 'range2> :
+            Teq<'domain1, 'domain2> -> Teq<'range1, 'range2> -> Teq<'domain1 -> 'range1, 'domain2 -> 'range2>
 
         /// Given a type equality between two types 'fst1 and 'fst2, returns the type equality
         /// on the pair types ('fst1 * 'snd) and ('fst2 * 'snd), for any arbitrary 'snd.
@@ -454,22 +538,27 @@ module Teq =
 
         /// Given a pair of type equalities, one for the first element of a pair and one for the second element of a pair,
         /// returns the type equality for the corresponding pair types.
-        val pair<'fst1, 'snd1, 'fst2, 'snd2> : Teq<'fst1, 'fst2>
-             -> Teq<'snd1, 'snd2> -> Teq<'fst1 * 'snd1, 'fst2 * 'snd2>
+        val pair<'fst1, 'snd1, 'fst2, 'snd2> :
+            Teq<'fst1, 'fst2> -> Teq<'snd1, 'snd2> -> Teq<'fst1 * 'snd1, 'fst2 * 'snd2>
 """
 
 [<Test>]
 let ``intrinsic type extension member signature, 413`` () =
-    formatSourceString true """namespace ExtensionParts
+    formatSourceString
+        true
+        """namespace ExtensionParts
 
 type T =
     new: unit -> T
 
 type T with
     member Foo: int
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 namespace ExtensionParts
 
 type T =
@@ -481,7 +570,9 @@ type T with
 
 [<Test>]
 let ``comment above static member, 680`` () =
-    formatSourceString true """
+    formatSourceString
+        true
+        """
 namespace Fantomas
 
 open Fantomas.FormatConfig
@@ -494,9 +585,12 @@ open FSharp.Compiler.SourceCodeServices
 type CodeFormatter =
     /// Parse a source string using given config
     static member ParseAsync : fileName:string * source:SourceOrigin * parsingOptions: FSharpParsingOptions * checker:FSharpChecker -> Async<(ParsedInput * string list) array>
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 namespace Fantomas
 
 open Fantomas.FormatConfig
@@ -508,46 +602,79 @@ open FSharp.Compiler.SourceCodeServices
 [<Sealed>]
 type CodeFormatter =
     /// Parse a source string using given config
-    static member ParseAsync: fileName:string * source:SourceOrigin * parsingOptions:FSharpParsingOptions * checker:FSharpChecker
-         -> Async<(ParsedInput * string list) array>
+    static member ParseAsync:
+        fileName: string * source: SourceOrigin * parsingOptions: FSharpParsingOptions * checker: FSharpChecker ->
+        Async<(ParsedInput * string list) array>
 """
 
 [<Test>]
 let ``type restrictions, 797`` () =
-    formatSourceString true """namespace Foo
+    formatSourceString
+        true
+        """namespace Foo
 
 type internal Foo2 =
   abstract member Bar<'k> : unit -> unit when 'k : comparison
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 namespace Foo
 
 type internal Foo2 =
-    member Bar<'k> : unit -> unit when 'k: comparison
+    abstract member Bar<'k> : unit -> unit when 'k: comparison
 """
 
 [<Test>]
 let ``operator with constraint`` () =
-    formatSourceString true """namespace Bar
+    formatSourceString
+        true
+        """namespace Bar
     val inline (.+.) : x : ^a Foo -> y : ^b Foo -> ^c Foo when (^a or ^b) : (static member (+) : ^a * ^b -> ^c)
-"""  config
+"""
+        { config with SpaceBeforeColon = true }
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 namespace Bar
 
-val inline (.+.): x : ^a Foo -> y : ^b Foo -> ^c Foo when (^a or ^b): (static member (+): ^a * ^b -> ^c)
+val inline (.+.) : x : ^a Foo -> y : ^b Foo -> ^c Foo when (^a or ^b) : (static member (+) : ^a * ^b -> ^c)
+"""
+
+[<Test>]
+let ``operator with named constraint`` () =
+    formatSourceString
+        true
+        """namespace Bar
+    val inline (.+.) : x : ^a Foo -> y : ^b Foo -> z: ^c Foo when (^a or ^b) : (static member (+) : ^a * ^b -> ^c)
+"""
+        { config with SpaceBeforeColon = true }
+    |> prepend newline
+    |> should
+        equal
+        """
+namespace Bar
+
+val inline (.+.) : x : ^a Foo -> y : ^b Foo -> z : ^c Foo when (^a or ^b) : (static member (+) : ^a * ^b -> ^c)
 """
 
 [<Test>]
 let ``preserve abstract keyword`` () =
-    formatSourceString true """namespace Foo
+    formatSourceString
+        true
+        """namespace Foo
 
 type internal Blah =
   abstract Baz : unit
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 namespace Foo
 
 type internal Blah =
@@ -556,14 +683,19 @@ type internal Blah =
 
 [<Test>]
 let ``internal keyword before short record type, 830`` () =
-    formatSourceString true """namespace Bar
+    formatSourceString
+        true
+        """namespace Bar
 type 'a Baz =
     internal {
         Value : 'a
     }
-"""  config
+"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 namespace Bar
 
 type 'a Baz = internal { Value: 'a }
@@ -571,14 +703,963 @@ type 'a Baz = internal { Value: 'a }
 
 [<Test>]
 let ``internal keyword before long record type`` () =
-    formatSourceString true """namespace Bar
+    formatSourceString
+        true
+        """namespace Bar
 
-    type A = internal { ALongIdentifier: string; YetAnotherLongIdentifier: bool }""" config
+    type A = internal { ALongIdentifier: string; YetAnotherLongIdentifier: bool }"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 namespace Bar
 
 type A =
-    internal { ALongIdentifier: string
-               YetAnotherLongIdentifier: bool }
+    internal
+        { ALongIdentifier: string
+          YetAnotherLongIdentifier: bool }
+"""
+
+[<Test>]
+let ``multiple constraints on function declaration, 886`` () =
+    formatSourceString
+        true
+        """namespace Blah
+
+module Foo =
+    val inline sum : ('a -> ^value) -> 'a Foo -> ^value
+        when ^value : (static member (+) : ^value * ^value -> ^value) and ^value : (static member Zero : ^value)
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+namespace Blah
+
+module Foo =
+    val inline sum: ('a -> ^value) -> 'a Foo -> ^value
+        when ^value: (static member (+): ^value * ^value -> ^value) and ^value: (static member Zero: ^value)
+"""
+
+[<Test>]
+let ``preserve with get property, 945`` () =
+    formatSourceString
+        true
+        """
+namespace B
+type Foo =
+    | Bar of int
+    member Item : unit -> int with get
+"""
+        { config with SpaceBeforeColon = true }
+    |> prepend newline
+    |> should
+        equal
+        """
+namespace B
+
+type Foo =
+    | Bar of int
+    member Item : unit -> int with get
+"""
+
+[<Test>]
+let ``preserve with set property`` () =
+    formatSourceString
+        true
+        """
+namespace B
+type Foo =
+    member Item : int -> unit with set
+"""
+        { config with SpaceBeforeColon = true }
+    |> prepend newline
+    |> should
+        equal
+        """
+namespace B
+
+type Foo =
+    member Item : int -> unit with set
+"""
+
+[<Test>]
+let ``preserve with get,set`` () =
+    formatSourceString
+        true
+        """
+namespace B
+
+type Foo =
+    member Item : int with get,  set
+"""
+        { config with SpaceBeforeColon = true }
+    |> prepend newline
+    |> should
+        equal
+        """
+namespace B
+
+type Foo =
+    member Item : int with get, set
+"""
+
+[<Test>]
+let ``with set after constraint`` () =
+    formatSourceString
+        true
+        """
+namespace B
+
+type Foo =
+    member Item : 't -> unit when 't   :   comparison   with set
+"""
+        { config with SpaceBeforeColon = true }
+    |> prepend newline
+    |> should
+        equal
+        """
+namespace B
+
+type Foo =
+    member Item : 't -> unit when 't : comparison with set
+"""
+
+[<Test>]
+let ``preserve abstract member in type, 944`` () =
+    formatSourceString
+        true
+        """
+namespace Baz
+
+type Foo =
+    abstract member Bar : Type
+    abstract Bar2 : Type
+    member Bar3 : Type
+"""
+        { config with SpaceBeforeColon = true }
+    |> prepend newline
+    |> should
+        equal
+        """
+namespace Baz
+
+type Foo =
+    abstract member Bar : Type
+    abstract Bar2 : Type
+    member Bar3 : Type
+"""
+
+[<Test>]
+let ``comment before union case, 965`` () =
+    formatSourceString
+        true
+        """namespace Blah
+
+/// Comment
+type Foo =
+/// Another
+    | Foo of int
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+namespace Blah
+
+/// Comment
+type Foo =
+    /// Another
+    | Foo of int
+"""
+
+[<Test>]
+let ``don't add additional newline before subsequent val, 1029`` () =
+    formatSourceString
+        true
+        """
+module Some_module
+
+type foo = bool
+
+val bar : bool
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+module Some_module
+
+type foo = bool
+
+val bar: bool
+"""
+
+[<Test>]
+let ``don't add duplicate parentheses for TypeAbbrev, 1057`` () =
+    formatSourceString
+        false
+        """
+type AB = A -> B list * C -> D
+type AB = A -> (B list * C -> D)
+type AB = A -> ((B list * C -> D))
+
+type AB = A -> (C -> D)
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type AB = A -> B list * C -> D
+type AB = A -> (B list * C -> D)
+type AB = A -> ((B list * C -> D))
+
+type AB = A -> (C -> D)
+"""
+
+[<Test>]
+let ``don't add duplicate parentheses for TypeAbbrev in signature file`` () =
+    formatSourceString
+        true
+        """
+namespace Foo
+
+type AB = A -> (B list * C -> D)
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+namespace Foo
+
+type AB = A -> (B list * C -> D)
+"""
+
+[<Test>]
+let ``don't add extra new line between attribute and namespace, 1097`` () =
+    formatSourceString
+        true
+        """
+namespace Meh
+
+[<StringEnum>]
+[<RequireQualifiedAccess>]
+type PayableFilters = | [<CompiledName "statusSelector">] Status
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+namespace Meh
+
+[<StringEnum>]
+[<RequireQualifiedAccess>]
+type PayableFilters = | [<CompiledName "statusSelector">] Status
+"""
+
+[<Test>]
+let ``don't add extra new line between nested modules, 1105`` () =
+    formatSourceString
+        true
+        """
+module Example
+
+module Foo =
+    module Bar =
+        type t = bool
+        val lol: unit -> bool
+
+    type t = int
+    val lmao: unit -> bool
+
+module Foo2 =
+    module Bar =
+        type t = bool
+
+        val lol: unit -> bool
+
+    type t = int
+
+    val lmao: unit -> bool
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+module Example
+
+module Foo =
+    module Bar =
+        type t = bool
+        val lol: unit -> bool
+
+    type t = int
+    val lmao: unit -> bool
+
+module Foo2 =
+    module Bar =
+        type t = bool
+
+        val lol: unit -> bool
+
+    type t = int
+
+    val lmao: unit -> bool
+"""
+
+[<Test>]
+let ``don't add extra new line before attribute of type, 1116`` () =
+    formatSourceString
+        true
+        """
+module Test
+
+type t1 = bool
+
+[<SomeAttribute>]
+type t2 = bool
+
+val foo : bool
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+module Test
+
+type t1 = bool
+
+[<SomeAttribute>]
+type t2 = bool
+
+val foo: bool
+"""
+
+[<Test>]
+let ``don't add extra new line before attribute of type, only types`` () =
+    formatSourceString
+        true
+        """
+module Test
+
+type t1 = bool
+
+[<SomeAttribute>]
+type t2 = bool
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+module Test
+
+type t1 = bool
+
+[<SomeAttribute>]
+type t2 = bool
+"""
+
+[<Test>]
+let ``line comments before access modifier of multiline record type`` () =
+    formatSourceString
+        true
+        """
+namespace Foo
+
+type TestType =
+    // Here is some comment about the type
+    // Some more comments
+    private
+        {
+            Foo : int
+            Barry: string
+        }
+"""
+        { config with MaxRecordWidth = 10 }
+    |> prepend newline
+    |> should
+        equal
+        """
+namespace Foo
+
+type TestType =
+    // Here is some comment about the type
+    // Some more comments
+    private
+        { Foo: int
+          Barry: string }
+"""
+
+[<Test>]
+let ``line comments before access modifier of single line record type`` () =
+    formatSourceString
+        true
+        """
+namespace Foo
+
+type TestType =
+    // Here is some comment about the type
+    // Some more comments
+    private
+        {
+            Meh : TimeSpan
+        }
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+namespace Foo
+
+type TestType =
+    // Here is some comment about the type
+    // Some more comments
+    private { Meh: TimeSpan }
+"""
+
+[<Test>]
+let ``format long val return type multiline, 1181`` () =
+    formatSourceString
+        true
+        """
+namespace TypeEquality
+
+[<RequireQualifiedAccess>]
+module Teq =
+
+    [<RequireQualifiedAccess>]
+    module Cong =
+
+        val domainOf<'domain1, 'domain2, 'range1, 'range2> : Teq<'domain1 -> 'range1, 'domain2 -> 'range2>
+             -> Teq<'domain1, 'domain2>
+"""
+        { config with SpaceBeforeColon = true }
+    |> prepend newline
+    |> should
+        equal
+        """
+namespace TypeEquality
+
+[<RequireQualifiedAccess>]
+module Teq =
+
+    [<RequireQualifiedAccess>]
+    module Cong =
+
+        val domainOf<'domain1, 'domain2, 'range1, 'range2> :
+            Teq<'domain1 -> 'range1, 'domain2 -> 'range2> -> Teq<'domain1, 'domain2>
+"""
+
+[<Test>]
+let ``inline type definition member, 1399`` () =
+    formatSourceString
+        true
+        """
+namespace Baz
+
+[<Sealed>]
+type Foo =
+    member inline Return : 'a -> Baz<'a>
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+namespace Baz
+
+[<Sealed>]
+type Foo =
+    member inline Return: 'a -> Baz<'a>
+"""
+
+[<Test>]
+let ``inline private type definition member`` () =
+    formatSourceString
+        true
+        """
+namespace Baz
+
+[<Sealed>]
+type Foo =
+    member inline private Return : 'a -> Baz<'a>
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+namespace Baz
+
+[<Sealed>]
+type Foo =
+    member inline private Return: 'a -> Baz<'a>
+"""
+
+[<Test>]
+let ``surround return type annotations with white space`` () =
+    formatSourceString
+        true
+        """
+namespace Foo
+
+val blah:int
+
+type C =
+    member P1 : int * string
+    /// def
+    member P2 : int
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+namespace Foo
+
+val blah: int
+
+type C =
+    member P1: int * string
+    /// def
+    member P2: int
+"""
+
+[<Test>]
+let ``long val signature, 1515`` () =
+    formatSourceString
+        true
+        """
+namespace Bug
+
+val create : something_really_long : unit -> another_really_long_thing : unit -> and_another_to_make_the_line_long_enough : unit -> unit
+"""
+        { config with IndentSize = 2 }
+    |> prepend newline
+    |> should
+        equal
+        """
+namespace Bug
+
+val create:
+  something_really_long: unit ->
+  another_really_long_thing: unit ->
+  and_another_to_make_the_line_long_enough: unit ->
+  unit
+"""
+
+[<Test>]
+let ``print trivia before exception`` () =
+    formatSourceString
+        true
+        """
+// Copyright (c) Microsoft Corporation.  All Rights Reserved.  See License.txt in the project root for license information.
+
+/// The configuration of the compiler (TcConfig and TcConfigBuilder)
+module internal FSharp.Compiler.CompilerConfig
+
+open System
+open Internal.Utilities
+open Internal.Utilities.Library
+open FSharp.Compiler
+open FSharp.Compiler.AbstractIL
+open FSharp.Compiler.AbstractIL.IL
+open FSharp.Compiler.AbstractIL.ILBinaryReader
+open FSharp.Compiler.AbstractIL.ILPdbWriter
+open FSharp.Compiler.DependencyManager
+open FSharp.Compiler.Diagnostics
+open FSharp.Compiler.ErrorLogger
+open FSharp.Compiler.Features
+open FSharp.Compiler.CodeAnalysis
+open FSharp.Compiler.Text
+exception FileNameNotResolved of string (*description of searched locations*)  * string * range (*filename*)
+
+exception LoadedSourceNotFoundIgnoring of string * range (*filename*)
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+// Copyright (c) Microsoft Corporation.  All Rights Reserved.  See License.txt in the project root for license information.
+
+/// The configuration of the compiler (TcConfig and TcConfigBuilder)
+module internal FSharp.Compiler.CompilerConfig
+
+open System
+open Internal.Utilities
+open Internal.Utilities.Library
+open FSharp.Compiler
+open FSharp.Compiler.AbstractIL
+open FSharp.Compiler.AbstractIL.IL
+open FSharp.Compiler.AbstractIL.ILBinaryReader
+open FSharp.Compiler.AbstractIL.ILPdbWriter
+open FSharp.Compiler.DependencyManager
+open FSharp.Compiler.Diagnostics
+open FSharp.Compiler.ErrorLogger
+open FSharp.Compiler.Features
+open FSharp.Compiler.CodeAnalysis
+open FSharp.Compiler.Text
+
+exception FileNameNotResolved of string (*description of searched locations*)  * string * range (*filename*)
+
+exception LoadedSourceNotFoundIgnoring of string * range (*filename*)
+"""
+
+[<Test>]
+let ``comment above first DU case`` () =
+    formatSourceString
+        true
+        """
+namespace Baz
+
+type 'a Bar =
+    ///
+    | Foo
+    ///
+    | Quux
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+namespace Baz
+
+type 'a Bar =
+    ///
+    | Foo
+    ///
+    | Quux
+"""
+
+[<Test>]
+let ``comment between attribute and val, 1561`` () =
+    formatSourceString
+        true
+        """
+namespace Baz
+
+module Bar =
+
+    [<Obsolete "">]
+    ///
+    val f : unit -> unit
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+namespace Baz
+
+module Bar =
+
+    [<Obsolete "">]
+    ///
+    val f: unit -> unit
+"""
+
+[<Test>]
+let ``comment between recursive type, 1562`` () =
+    formatSourceString
+        true
+        """
+namespace Baz
+
+type Foo = | Foo of int
+
+///
+and [<RequireQualifiedAccess>] Bar<'a> =
+    | Bar of int
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+namespace Baz
+
+type Foo = Foo of int
+
+///
+and [<RequireQualifiedAccess>] Bar<'a> = Bar of int
+"""
+
+[<Test>]
+let ``comments between multiple recursive types`` () =
+    formatSourceString
+        true
+        """
+namespace Baz
+
+type Foo = | Foo of int
+
+/// barry
+and Bar = | Bar of string
+
+/// mehhy
+and Meh = | Meh of DateTime
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+namespace Baz
+
+type Foo = Foo of int
+
+/// barry
+and Bar = Bar of string
+
+/// mehhy
+and Meh = Meh of DateTime
+"""
+
+[<Test>]
+let ``val inline internal, 1590`` () =
+    formatSourceString
+        true
+        """
+module internal FSharp.Compiler.TypedTreePickle
+
+/// Deserialize a tuple
+val inline  internal u_tup4 : unpickler<'T2> -> unpickler<'T3> -> unpickler<'T4> -> unpickler<'T5> -> unpickler<'T2 * 'T3 * 'T4 * 'T5>
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+module internal FSharp.Compiler.TypedTreePickle
+
+/// Deserialize a tuple
+val inline internal u_tup4:
+    unpickler<'T2> -> unpickler<'T3> -> unpickler<'T4> -> unpickler<'T5> -> unpickler<'T2 * 'T3 * 'T4 * 'T5>
+"""
+
+[<Test>]
+let ``comments after indents in multiline type function signature, 1287`` () =
+    formatSourceString
+        true
+        """
+namespace Test
+
+module OrderProcessing =
+  type ValidateOrder =
+    CheckProductCodeExists    // dependency
+      -> CheckAddressExists   // dependency
+      -> UnvalidatedOrder     // input
+      -> Result<ValidatedOrder,ValidationError>  // output (Result b/c one of deps returns a Result)
+"""
+        { config with MaxLineLength = 80 }
+    |> prepend newline
+    |> should
+        equal
+        """
+namespace Test
+
+module OrderProcessing =
+    type ValidateOrder =
+        CheckProductCodeExists // dependency
+            -> CheckAddressExists // dependency
+            -> UnvalidatedOrder // input
+            -> Result<ValidatedOrder, ValidationError> // output (Result b/c one of deps returns a Result)
+"""
+
+[<Test>]
+let ``take newline trivia between recursive types into account, 1605`` () =
+    formatSourceString
+        true
+        """
+namespace Test
+
+///
+type Foo =
+    ///
+    | Bar
+
+///
+and internal Hi<'a> =
+    ///
+    abstract Apply<'b> : Foo -> 'b
+
+
+///
+and [<CustomEquality>] Bang =
+    internal
+        {
+            LongNameBarBarBarBarBarBarBar: int
+        }
+        ///
+        override GetHashCode : unit -> int
+"""
+        { config with
+              MultilineBlockBracketsOnSameColumn = true }
+    |> prepend newline
+    |> should
+        equal
+        """
+namespace Test
+
+///
+type Foo =
+    ///
+    | Bar
+
+///
+and internal Hi<'a> =
+    ///
+    abstract Apply<'b> : Foo -> 'b
+
+
+///
+and [<CustomEquality>] Bang =
+    internal
+        {
+            LongNameBarBarBarBarBarBarBar: int
+        }
+    ///
+    override GetHashCode: unit -> int
+"""
+
+[<Test>]
+let ``xml comment before SynTypeDefnSimpleRepr.Union should keep bar, 1563`` () =
+    formatSourceString
+        true
+        """
+namespace Baz
+
+type Foo =
+    /// Hi!
+    | Bar of int
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+namespace Baz
+
+type Foo =
+    /// Hi!
+    | Bar of int
+"""
+
+[<Test>]
+let ``long multiline prefix type name should be indented far enough, 1687`` () =
+    formatSourceString
+        true
+        """
+namespace Foo
+
+type Bar =
+    member Hello : thing : XLongLongLongLongLongLongLongLong<bool -> 'a, bool -> 'b, bool -> 'c, bool -> 'd, bool -> ('e -> 'f) -> 'g, ('h -> 'i) -> 'j> * item : int list -> LongLongLongLongLongLongLongLongLongLongLongLongLongLongLongLong
+"""
+        { config with
+              SpaceBeforeUppercaseInvocation = true
+              SpaceBeforeClassConstructor = true
+              SpaceBeforeMember = true
+              SpaceBeforeColon = true
+              SpaceBeforeSemicolon = true
+              AlignFunctionSignatureToIndentation = true
+              AlternativeLongMemberDefinitions = true }
+    |> prepend newline
+    |> should
+        equal
+        """
+namespace Foo
+
+type Bar =
+    member Hello :
+        thing : XLongLongLongLongLongLongLongLong<bool -> 'a, bool -> 'b, bool -> 'c, bool -> 'd, bool
+                                                      -> ('e -> 'f)
+                                                      -> 'g, ('h -> 'i) -> 'j>
+        * item : int list ->
+        LongLongLongLongLongLongLongLongLongLongLongLongLongLongLongLong
+"""
+
+[<Test>]
+let ``a record type with accessibility modifier and members`` () =
+    formatSourceString
+        true
+        """
+namespace Thing
+
+type Foo =
+    private
+        {
+            Bar : int
+            Qux : string
+        }
+    static member Baz : int
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+namespace Thing
+
+type Foo =
+    private
+        { Bar: int
+          Qux: string }
+    static member Baz: int
+"""
+
+[<Test>]
+let ``literals in signatures, 1953`` () =
+    formatSourceString
+        true
+        """
+namespace Foo
+
+[<Literal>]
+val parenGet: string = ".()"
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+namespace Foo
+
+[<Literal>]
+val parenGet: string = ".()"
+"""
+
+[<Test>]
+let ``literals in signatures, sig member`` () =
+    formatSourceString
+        true
+        """
+namespace Meh
+
+type FooBar =
+    [<Literal>]
+    abstract member parenGet : string = ".()"
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+namespace Meh
+
+type FooBar =
+    [<Literal>]
+    abstract member parenGet: string = ".()"
 """

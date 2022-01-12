@@ -4,10 +4,26 @@ open System
 open System.Diagnostics
 open System.IO
 open System.Text
-open Fantomas
+open Fantomas.Extras
 
-type TemporaryFileCodeSample internal (codeSnippet: string, ?hasByteOrderMark: bool, ?fileName: string) =
+type TemporaryFileCodeSample
+    internal
+    (
+        codeSnippet: string,
+        ?hasByteOrderMark: bool,
+        ?fileName: string,
+        ?subFolder: string,
+        ?subFolders: string array
+    ) =
     let hasByteOrderMark = defaultArg hasByteOrderMark false
+
+    let internalSubFolders =
+        match subFolders with
+        | Some sf -> Some sf
+        | None ->
+            match subFolder with
+            | Some sf -> Array.singleton sf |> Some
+            | None -> None
 
     let filename =
         let name =
@@ -15,47 +31,99 @@ type TemporaryFileCodeSample internal (codeSnippet: string, ?hasByteOrderMark: b
             | Some fn -> fn
             | None -> Guid.NewGuid().ToString()
 
-        Path.Join(Path.GetTempPath(), sprintf "%s.fs" name)
+        match internalSubFolders with
+        | Some sf ->
+            let tempFolder =
+                Path.Join(Path.GetTempPath(), Path.Join(sf))
 
-    do (if hasByteOrderMark
-        then File.WriteAllText(filename, codeSnippet, Encoding.UTF8)
-        else File.WriteAllText(filename, codeSnippet))
+            if not (Directory.Exists(tempFolder)) then
+                Directory.CreateDirectory(tempFolder) |> ignore
+
+            Path.Join(tempFolder, sprintf "%s.fs" name)
+        | None -> Path.Join(Path.GetTempPath(), sprintf "%s.fs" name)
+
+    do
+        (if hasByteOrderMark then
+             File.WriteAllText(filename, codeSnippet, Encoding.UTF8)
+         else
+             File.WriteAllText(filename, codeSnippet))
 
     member _.Filename: string = filename
+
     interface IDisposable with
-        member this.Dispose(): unit = File.Delete(filename)
+        member this.Dispose() : unit =
+            File.Delete(filename)
+
+            internalSubFolders
+            |> Option.iter
+                (fun sf ->
+                    let path = Path.Join(Path.GetTempPath(), sf.[0])
+                    Directory.Delete(path, true))
 
 type OutputFile internal () =
-    let filename = Path.Join(Path.GetTempPath(), Guid.NewGuid().ToString() + ".fs")
+    let filename =
+        Path.Join(Path.GetTempPath(), Guid.NewGuid().ToString() + ".fs")
+
     member _.Filename: string = filename
+
     interface IDisposable with
-        member this.Dispose(): unit =
+        member this.Dispose() : unit =
             if File.Exists(filename) then
                 File.Delete(filename)
 
-type ConfigurationFile internal (config: Fantomas.FormatConfig.FormatConfig) =
-    let filename = Path.Join(Path.GetTempPath(), "fantomas-config.json")
-    let content = Config.configToJson config
+type ConfigurationFile internal (content: string) =
+    let filename =
+        Path.Join(Path.GetTempPath(), ".editorconfig")
+
     do File.WriteAllText(filename, content)
     member _.Filename: string = filename
+
     interface IDisposable with
-        member this.Dispose(): unit =
+        member this.Dispose() : unit =
             if File.Exists(filename) then
                 File.Delete(filename)
 
-let runFantomasTool arguments =
-    let pwd = Path.GetDirectoryName(typeof<TemporaryFileCodeSample>.Assembly.Location)
+type FantomasIgnoreFile internal (content: string) =
+    let filename =
+        Path.Join(Path.GetTempPath(), IgnoreFile.IgnoreFileName)
+
+    do File.WriteAllText(filename, content)
+    member _.Filename: string = filename
+
+    interface IDisposable with
+        member this.Dispose() : unit =
+            if File.Exists(filename) then
+                File.Delete(filename)
+
+type FantomasToolResult =
+    { ExitCode: int
+      Output: string
+      Error: string }
+
+let runFantomasTool arguments : FantomasToolResult =
+    let pwd =
+        Path.GetDirectoryName(typeof<TemporaryFileCodeSample>.Assembly.Location)
+
     let configuration =
-        #if DEBUG
+#if DEBUG
         "Debug"
-        #else
+#else
         "Release"
-        #endif
+#endif
 
     let fantomasDll =
-        Path.Combine
-            (pwd, "..", "..", "..", "..", "Fantomas.CoreGlobalTool", "bin", configuration, "netcoreapp3.1",
-             "fantomas-tool.dll")
+        Path.Combine(
+            pwd,
+            "..",
+            "..",
+            "..",
+            "..",
+            "Fantomas.CoreGlobalTool",
+            "bin",
+            configuration,
+            "netcoreapp3.1",
+            "fantomas-tool.dll"
+        )
 
     use p = new Process()
     p.StartInfo.UseShellExecute <- false
@@ -63,11 +131,29 @@ let runFantomasTool arguments =
     p.StartInfo.Arguments <- sprintf "%s %s" fantomasDll arguments
     p.StartInfo.WorkingDirectory <- Path.GetTempPath()
     p.StartInfo.RedirectStandardOutput <- true
+    p.StartInfo.RedirectStandardError <- true
     p.Start() |> ignore
     let output = p.StandardOutput.ReadToEnd()
+    let error = p.StandardError.ReadToEnd()
     p.WaitForExit()
-    (p.ExitCode, output)
 
-let checkCode file =
-    let arguments = sprintf "--check \"%s\"" file
+    { ExitCode = p.ExitCode
+      Output = output
+      Error = error }
+
+let checkCode (files: string list) : FantomasToolResult =
+    let files =
+        files
+        |> List.map (fun file -> sprintf "\"%s\"" file)
+        |> String.concat " "
+
+    let arguments = sprintf "--check %s" files
+    runFantomasTool arguments
+
+let formatCode (files: string list) : FantomasToolResult =
+    let arguments =
+        files
+        |> List.map (fun file -> sprintf "\"%s\"" file)
+        |> String.concat " "
+
     runFantomasTool arguments

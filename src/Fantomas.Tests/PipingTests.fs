@@ -1,21 +1,26 @@
-﻿module Fantomas.Tests.PipingTests
+module Fantomas.Tests.PipingTests
 
 open NUnit.Framework
 open FsUnit
 open Fantomas.Tests.TestHelper
 
-// the current behavior results in a compile error since the |> is merged to the last line 
+// the current behavior results in a compile error since the |> is merged to the last line
 [<Test>]
-let ``should keep the pipe after infix operator``() =
-    formatSourceString false """
+let ``should keep the pipe after infix operator`` () =
+    formatSourceString
+        false
+        """
 let f x =
     someveryveryveryverylongexpression
     <|> if someveryveryveryverylongexpression then someveryveryveryverylongexpression else someveryveryveryverylongexpression
     <|> if someveryveryveryverylongexpression then someveryveryveryverylongexpression else someveryveryveryverylongexpression
     |> f
-    """ { config with PageWidth = 80 }
+    """
+        { config with MaxLineLength = 80 }
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let f x =
     someveryveryveryverylongexpression
     <|> if someveryveryveryverylongexpression then
@@ -29,17 +34,22 @@ let f x =
     |> f
 """
 
-// the current behavior results in a compile error since the |> is merged to the last line 
+// the current behavior results in a compile error since the |> is merged to the last line
 [<Test>]
-let ``should keep the pipe after pattern matching``() =
-    formatSourceString false """let m = 
+let ``should keep the pipe after pattern matching`` () =
+    formatSourceString
+        false
+        """let m =
     match x with
     | y -> ErrorMessage msg
-    | _ -> LogMessage(msg, true) 
+    | _ -> LogMessage(msg, true)
     |> console.Write
-    """ config
+    """
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let m =
     match x with
     | y -> ErrorMessage msg
@@ -48,14 +58,19 @@ let m =
 """
 
 [<Test>]
-let ``should break new lines on piping``() =
-    formatSourceString false """
+let ``should break new lines on piping`` () =
+    formatSourceString
+        false
+        """
 let runAll() =
     urlList
-    |> Seq.map fetchAsync |> Async.Parallel 
-    |> Async.RunSynchronously |> ignore""" config
+    |> Seq.map fetchAsync |> Async.Parallel
+    |> Async.RunSynchronously |> ignore"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let runAll () =
     urlList
     |> Seq.map fetchAsync
@@ -66,13 +81,18 @@ let runAll () =
 
 [<Test>]
 let ``pipe and multiline should put pipe on newline`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 let prefetchImages =
     [ playerOImage; playerXImage ]
-    |> List.map (fun img -> link [ Rel "prefetch"; Href img ])""" config
+    |> List.map (fun img -> link [ Rel "prefetch"; Href img ])"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let prefetchImages =
     [ playerOImage; playerXImage ]
     |> List.map (fun img -> link [ Rel "prefetch"; Href img ])
-"""    
+"""

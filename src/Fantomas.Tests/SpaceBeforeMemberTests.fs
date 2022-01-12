@@ -8,15 +8,21 @@ let spaceBeforeConfig = { config with SpaceBeforeMember = true }
 
 [<Test>]
 let ``default config should not add a space before a type member`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 type Person() =
     member this.Walk (distance:int) = ()
     member this.Sleep() = ignore
     member __.singAlong () = ()
     member __.swim (duration:TimeSpan) = ()
-"""  config
+"""
+        { config with
+              MaxFunctionBindingWidth = 120 }
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 type Person() =
     member this.Walk(distance: int) = ()
     member this.Sleep() = ignore
@@ -26,15 +32,21 @@ type Person() =
 
 [<Test>]
 let ``spaceBeforeMember should add a space before a type member`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 type Person() =
     member this.Walk (distance:int) = ()
     member this.Sleep() = ignore
     member __.singAlong () = ()
     member __.swim (duration:TimeSpan) = ()
-"""  spaceBeforeConfig
+"""
+        { spaceBeforeConfig with
+              MaxFunctionBindingWidth = 120 }
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 type Person() =
     member this.Walk (distance: int) = ()
     member this.Sleep () = ignore

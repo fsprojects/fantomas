@@ -1,302 +1,1239 @@
-## Fantomas: How to use
+# Fantomas: How to use
 
-### Using the command line tool
+## Using the command line tool
 
 ---
 
+Create a [.NET tool manifest](https://docs.microsoft.com/en-us/dotnet/core/tools/local-tools-how-to-use) to install tools locally
+> dotnet new tool-manifest
+
+Install the command line tool with:
+> dotnet tool install fantomas-tool
+
+or install the tool globally with
+> dotnet tool install -g fantomas-tool
+
 For the overview how to use the tool, you can type the command
 
-	Fantomas --help
+	dotnet fantomas --help
+
+```
+USAGE: dotnet fantomas [--help] [--recurse] [--force] [--profile] [--fsi <string>] [--stdin] [--stdout] [--out <string>] [--check] [--version] [<string>...]
+
+INPUT:
+
+    <string>...           Input paths: can be multiple folders or files with *.fs,*.fsi,*.fsx,*.ml,*.mli extension.
+
+OPTIONS:
+
+    --recurse, -r         Process the input folder recursively.
+    --force               Print the source unchanged if it cannot be parsed correctly.
+    --profile             Print performance profiling information.
+    --fsi <string>        Read F# source from stdin as F# signatures.
+    --stdin               Read F# source from standard input.
+    --stdout               Write the formatted source code to standard output.
+    --out <string>        Give a valid path for files/folders. Files should have .fs, .fsx, .fsi, .ml or .mli extension only.
+    --check               Don't format files, just check if they have changed. Exits with 0 if it's formatted correctly, with 1 if some files need formatting and 99 if there was an internal error
+    --version, -v         Displays the version of Fantomas
+    --help                display this list of options.
+
+```
 
 You have to specify an input path and optionally an output path. 
 The output path is prompted by `--out` e.g.
 
-	Fantomas ../../../../tests/stackexchange/array.fs --out ../../../../tests/stackexchange_output/array.fs 
+	dotnet fantomas ../../../../tests/stackexchange/array.fs --out ../../../../tests/stackexchange_output/array.fs 
 
 Both paths have to be files or folders at the same time. 
 If they are folders, the structure of input folder will be reflected in the output one. 
-The tool will explore the input folder recursively if you set `--recurse` option (see [Options section](#options)).
+The tool will explore the input folder recursively if you set `--recurse` option.
 If you omit the output path, Fantomas will overwrite the input files.
 
-#### Options
+### Multiple paths
 
-##### `--recurse`
+*starting version 4.5*
 
-traverse the input folder recursively (if it is really a folder) to get all F# source files.
+Multiple paths can be passed as last argument, these can be both files and folders.  
+This cannot be combined with the `--out` and `--stdout` flags.  
+When combined with the `--recurse` flag, all passed folders will be processed recursively.
 
-##### `--force`
+One interesting use-case of passing down multiple paths is that you can easily control the selection and filtering of paths from the current shell.
 
-force writing original contents to output files. 
-This is helpful if the tool fails on some unknown F# constructs.
+Consider the following PowerShell scripts:
+```powershell
+# Create an array with paths
+$files =
+     Get-ChildItem src/*.fs -Recurse # Find all *.fs files in src,
+     | Where-Object { $_.FullName -notlike "*obj*" } # ignore files in the `obj` folder
+     | ForEach-Object { $_.FullName } #  and select the full path name.
 
-##### `--stdin`
+& "dotnet" "fantomas" $files
+```
 
-read input from standard input. This option is convenient to use with piping
+```powershell
+# Filter all added and modified files in git
+$files = git status --porcelain | Where-Object { $_ -match "^\s?A?M(.*)\.fs(x|i)?$" } | ForEach-Object { $_.TrimStart("AM").TrimStart(" ", "M") }
+& "dotnet" "fantomas" $files
+```
 
-    echo 'open System;; let () = printfn "Hello World"' | Fantomas --stdin --out output.fs
+Or usage with `find` on unix:
 
-or
+`find my-project/ -type f -name "*.fs" -not -path "*obj*" | xargs dotnet fantomas --check`
 
-    cat input.fs | Fantomas --stdin --out output.fs
+## Configuration
 
-##### `--stdout`
+Fantomas ships with a series of format options.
+These can be stored in an [.editorconfig](https://editorconfig.org/) file and will be picked up automatically by the commandline tool.
 
-write formatted source code to standard output e.g.
- 
-    Fantomas input.fs --stdout
+A default .editorconfig file would look like
+```ini
+[*.fs]
+indent_size=4
+max_line_length=120
+fsharp_semicolon_at_end_of_line=false
+fsharp_space_before_parameter=true
+fsharp_space_before_lowercase_invocation=true
+fsharp_space_before_uppercase_invocation=false
+fsharp_space_before_class_constructor=false
+fsharp_space_before_member=false
+fsharp_space_before_colon=false
+fsharp_space_after_comma=true
+fsharp_space_before_semicolon=false
+fsharp_space_after_semicolon=true
+fsharp_indent_on_try_with=false
+fsharp_space_around_delimiter=true
+fsharp_max_if_then_else_short_width=40
+fsharp_max_infix_operator_expression=50
+fsharp_max_record_width=40
+fsharp_max_record_number_of_items=1
+fsharp_record_multiline_formatter=character_width
+fsharp_max_array_or_list_width=40
+fsharp_max_array_or_list_number_of_items=1
+fsharp_array_or_list_multiline_formatter=character_width
+fsharp_max_value_binding_width=40
+fsharp_max_function_binding_width=40
+fsharp_max_dot_get_expression_width=50
+fsharp_multiline_block_brackets_on_same_column=false
+fsharp_newline_between_type_definition_and_members=false
+fsharp_keep_if_then_in_same_line=false
+fsharp_max_elmish_width=40
+fsharp_single_argument_web_mode=false
+fsharp_align_function_signature_to_indentation=false
+fsharp_alternative_long_member_definitions=false
+fsharp_multi_line_lambda_closing_newline=false
+fsharp_disable_elmish_syntax=false
+fsharp_keep_indent_in_branch=false
+fsharp_blank_lines_around_nested_multiline_expressions=true
+fsharp_bar_before_discriminated_union_declaration=false
+fsharp_strict_mode=false
+```
 
-##### `--fsi`
+### indent_size
 
-this option to be used with `--stdin` to specify that we are formatting F# signatures e.g.
+` indent_size` has to be between 1 and 10.
 
-    type input.fsi | Fantomas --fsi --stdin --stdout
-
-##### `--check`
-
-Checks if the files provided require formatting and:
-
-* Exits with `0` if no files require formatting
-* Exits with `1` if some files require formatting. It also outputs the path of the files that require formatting.
-* Exits with `99` if some files contain errors (e.g. parsing errors, etc.)
-
-For example:
-
-	# given an example project
-	ls src/MyProject
-	File1.fs # correctly formatted
-	File2.fs # needs formatting
-	File3.fs # has compilation errors
-
-	# running a check
-	Fantomas --check src/MyProject
-	src/MyProject/File2.fs requires formatting
-	error: Failed to format src/MyProject/File3.fs: <description of the error>
-
-	# if you check the exit code
-	echo $?
-	99
-
-#### Preferences
-
-##### `--indent <number>`
-
-`number` has to be between 1 and 10.
-
-This preference sets the indentation (default = 4). 
+This preference sets the indentation
 The common values are 2 and 4. 
-The same indentation is ensured to be consistent in a source file. 
-To illustrate, here is a code fragment with `--indent 2`:
+The same indentation is ensured to be consistent in a source file.
+Default = 4.
 
-	```fsharp
-	let inline selectRandom(f : _[]) = 
-	  let r = random 1.0
-	  let rec find = 
-	    function 
-	    | 0 -> fst f.[0]
-	    | n when r < snd f.[n] -> fst f.[n]
-	    | n -> find(n - 1)
-	  find <| f.Length - 1
-	```
-
-##### `--pageWidth <number>`
-
-`number` has to be an integer greater or equal to 60.
-This preference sets the column where we break F# constructs into new lines.
-The default value is 120. To see its effects, please take a look at some [output files](tests/stackexchange_output) with `--pageWidth 90` preference.
-
-##### `--semicolonEOL`
-
-add semicolons at the end of lines e.g.
-
-	```fsharp
-	let saturn = 
-	  { X = 8.343366718;
-	    Y = 4.124798564;
-	    Z = -0.4035234171;
-	    VX = -0.002767425107 * daysPerYear;
-	    VY = 0.004998528012 * daysPerYear;
-	    VZ = 2.304172976e-05 * daysPerYear;
-	    Mass = 0.0002858859807 * solarMass }
-	```
-	
-	vs.
-	
-	```fsharp
-	let saturn = 
-	  { X = 8.343366718
-	    Y = 4.124798564
-	    Z = -0.4035234171
-	    VX = -0.002767425107 * daysPerYear
-	    VY = 0.004998528012 * daysPerYear
-	    VZ = 2.304172976e-05 * daysPerYear
-	    Mass = 0.0002858859807 * solarMass }
-	```
-
-##### `--spaceBeforeColon`
-
-if being set, there is a space before `:` e.g.
-
-	```fsharp
-	type Planet = 
-	  { mutable X: float
-	    mutable Y: float
-	    mutable Z: float
-	    mutable VX: float
-	    mutable VY: float
-	    mutable VZ: float
-	    Mass: float }
-	```
-	
-	vs.
-	
-	```fsharp
-	type Planet = 
-	  { mutable X : float
-	    mutable Y : float
-	    mutable Z : float
-	    mutable VX : float
-	    mutable VY : float
-	    mutable VZ : float
-	    Mass : float }
-	```
-
-##### `--noSpaceAfterComma`
-
-is useful if you would like to save spaces in tuples, arguments, etc. 
-To illustrate, `(1, 2, 3)` is rewritten to `(1,2,3)`.
-
-##### `--noSpaceAfterSemiColon`
-
-saves spaces on records, arrays, lists, etc. Now 
-
-	```fsharp
-	let planets = [|sun; jupiter; saturn; uranus; neptune|]
-	```
-
-	becomes
-
-	```fsharp
-	let planets = [|sun;jupiter;saturn;uranus;neptune|]
-	```
-
-Note: there is also the possibility to add a space before the semicolon.<br />
-This can be set by adding `"SpaceBeforeSemicolon": true` in a Fantomas configuration file (see below).
-
- ##### `--indentOnTryWith`
-
-if being set, `with` blocks will be indented like in the following example:
-
-	```fsharp
-	try
-	    if System.DateTime.Now.Second % 3 = 0 
-		then raise(new System.Exception())
-	    else raise(new System.ApplicationException())
-	with
-	    | :? System.ApplicationException -> 
-	        printfn "A second that was not a multiple of 3"    
-	    | _ -> 
-	        printfn "A second that was a multiple of 3"
-	```
-
-##### `--noSpaceAroundDelimiter`
-
-saves spaces around delimiters of records, arrays, lists e.g.
-
-    ```fsharp
-	let planets = [| sun; jupiter; saturn; uranus; neptune |]
-	```
-
-	becomes
-
-	```fsharp
-	let planets = [|sun; jupiter; saturn; uranus; neptune|]
-	```
-
-##### `--strictMode`
-
-if being set, pretty printing is only done via ASTs. Compiler directives, inline comments and block comments will be ignored. 
-
-##### `--maxIfThenElseShortWidth  <number>`
-
-`number` if being set, controls when if/then/else expressions will be formatted as single line or as multiple lines.
-
-Fantomas tries to follow [the F# style guide](https://docs.microsoft.com/en-us/dotnet/fsharp/style-guide/formatting#formatting-if-expressions) as close as possible when formatting if expressions.
-
-The style guide says:
-
-> If either cond, e1 or e2 are longer, but not multi-line:
+`defaultConfig`
 
 ```fsharp
-if cond
-then e1
-else e2
+let inline selectRandom (f: _ []) =
+    let r = random 1.0
+
+    let rec find =
+        function
+        | 0 -> fst f.[0]
+        | n when r < snd f.[n] -> fst f.[n]
+        | n -> find (n - 1)
+
+    find <| f.Length - 1
 ```
 
-But what exactly is longer right? By default Fantomas will use 40 width to determine if the expression needs to be formatted to the example above or remain as a oneliner (`if cond then e1 else e2`).
+`{ defaultConfig with IdentSize = 2 }`
 
+```fsharp
+let inline selectRandom (f: _ []) =
+  let r = random 1.0
 
-So if either `cond`, `e1` or `e2` is longer than `maxIfThenElseShortWidth` but not multiline, it will format on three lines.
-See [unit tests](https://github.com/fsprojects/fantomas/blob/9d4b499c09a1f06f5485835817844657cc51215b/src/Fantomas.Tests/IfThenElseTests.fs#L734) for more examples.
+  let rec find =
+    function
+    | 0 -> fst f.[0]
+    | n when r < snd f.[n] -> fst f.[n]
+    | n -> find (n - 1)
 
-That said, most of the preferences are very simple. 
-But they demonstrate the flexibility of Fantomas on a set of configurations. 
-More preferences will be added depending on use cases.
-
-##### `--config <Path to file or folder>`
-
-Use a JSON configuration file based on a [schema](../src/Fantomas/schema.json) to set the formatting options.
-
-A default configuration file would look like
-```json
-{  
-  "IndentSpaceNum":4,
-  "PageWidth":120,
-  "SemicolonAtEndOfLine":false,
-  "SpaceBeforeParameter":true,
-  "SpaceBeforeLowercaseInvocation":true,
-  "SpaceBeforeUppercaseInvocation":false,
-  "SpaceBeforeClassConstructor":false,
-  "SpaceBeforeMember":false,
-  "SpaceBeforeColon":false,
-  "SpaceAfterComma":true ,
-  "SpaceBeforeSemicolon": false,
-  "SpaceAfterSemicolon":true ,
-  "IndentOnTryWith":false,
-  "SpaceAroundDelimiter":true ,
-  "MaxIfThenElseShortWidth":40,
-  "KeepIfThenInSameLine":false,
-  "MaxInfixOperatorExpression":50,
-  "MaxRecordWidth":40,
-  "MaxArrayOrListWidth":40,
-  "MaxLetBindingWidth":40,
-  "MultilineBlockBracketsOnSameColumn":false,
-  "NewlineBetweenTypeDefinitionAndMembers":false,
-  "StrictMode":false 
-}
+  find <| f.Length - 1
 ```
 
-However, **a configuration file overwrites options** from [the default configuration](../src/Fantomas/FormatConfig.fs).
+### max_line_length
 
-The argument passed after `--config ` can be a file named `fantomas-config.json` or a folder.
-In both cases a Fantomas will try and locate `fantomas-config.json` in all the parent folders.
-The found configuration files are then being applied to to the default configuration from top to bottom.
+`max_line_length` has to be an integer greater or equal to 60.
+This preference sets the column where we break F# constructs into new lines.
+Default = 120.
 
-F.ex.
+`defaultConfig`
 
-```
-C:\
-    Temp\
-        fantomas-config.json
-        MyProject\
-            fantomas-config.json
+```fsharp
+match myValue with
+| Some foo -> someLongFunctionNameThatWillTakeFooAndReturnsUnit foo
+| None -> printfn "nothing"
 ```
 
-Formatting with `dotnet fantomas MyFile.fs --config "C:\Temp\MyProject"` will first apply the settings in `C:\Temp\fantomas-config.json` and then those of `C:\Temp\MyProject\fantomas-config.json`.
+`{ defaultConfig with MaxLineLength = 60 }`
 
-If the `--config` is used in combination with other settings, the configuration is applied first and then the other arguments.
+```fsharp
+match myValue with
+| Some foo ->
+    someLongFunctionNameThatWillTakeFooAndReturnsUnit foo
+| None -> printfn "nothing"
+```
 
-Warnings will be given if settings in the configuration no longer apply for the current version of Fantomas.
+### fsharp_semicolon_at_end_of_line
 
-### Using the API
+Add semicolons at the end of lines.
+Default = false.
 
-See [CodeFormatter.fsi](../src/Fantomas/CodeFormatter.fsi) to view the API of Fantomas.
+`defaultConfig`
+
+```fsharp
+let saturn =
+    { X = 8.343366718
+      Y = 4.124798564
+      Z = -0.4035234171
+      VX = -0.002767425107 * daysPerYear
+      VY = 0.004998528012 * daysPerYear
+      VZ = 2.304172976e-05 * daysPerYear
+      Mass = 0.0002858859807 * solarMass }
+```
+
+`{ defaultConfig with SemicolonAtEndOfLine = true }`
+
+```fsharp
+let saturn =
+    { X = 8.343366718;
+      Y = 4.124798564;
+      Z = -0.4035234171;
+      VX = -0.002767425107 * daysPerYear;
+      VY = 0.004998528012 * daysPerYear;
+      VZ = 2.304172976e-05 * daysPerYear;
+      Mass = 0.0002858859807 * solarMass }
+```
+
+### fsharp_space_before_parameter
+
+Add a space after the name of a function and before the opening parenthesis of the first parameter.
+This setting influences function definitions.
+Default = true.
+
+`defaultConfig`
+
+```fsharp
+let value (a: int) = x
+let DumpTrace () = ()
+```
+
+`{ defaultConfig with SpaceBeforeParameter = false }`
+
+```fsharp
+let value(a: int) = x
+let DumpTrace() = ()
+```
+
+### fsharp_space_before_lowercase_invocation
+
+Add a space after the name of a lowercased function and before the opening parenthesis of the first argument.
+This setting influences function invocation.
+Default = true.
+
+`defaultConfig`
+
+```fsharp
+value (a, b)
+startTimer ()
+```
+
+`{ defaultConfig with SpaceBeforeLowercaseInvocation = false }`
+
+```fsharp
+value(a, b)
+startTimer()
+```
+
+### fsharp_space_before_uppercase_invocation
+
+Add a space after the name of a uppercased function and before the opening parenthesis of the first argument.
+This setting influences function invocation.
+Default = false.
+
+`defaultConfig`
+
+```fsharp
+Value(a, b)
+person.ToString()
+```
+
+`{ defaultConfig with SpaceBeforeUppercaseInvocation = true }`
+
+```fsharp
+Value (a, b)
+person.ToString ()
+```
+
+### fsharp_space_before_class_constructor
+
+Add a space after a type name and before the class constructor.
+Default = false.
+
+`defaultConfig`
+
+```fsharp
+type Person() =
+    class
+    end
+```
+
+`{ defaultConfig with SpaceBeforeClassConstructor = true }`
+
+```fsharp
+type Person () =
+    class
+    end
+```
+
+### fsharp_space_before_member
+
+Add a space after a member name and before the opening parenthesis of the first parameter.
+Default = false.
+
+`defaultConfig`
+
+```fsharp
+type Person() =
+    member this.Walk(distance: int) = ()
+    member this.Sleep() = ignore
+    member __.singAlong() = ()
+    member __.swim(duration: TimeSpan) = ()
+```
+
+`{ defaultConfig with SpaceBeforeMember = true }`
+
+```fsharp
+type Person() =
+    member this.Walk (distance: int) = ()
+    member this.Sleep () = ignore
+    member __.singAlong () = ()
+    member __.swim (duration: TimeSpan) = ()
+```
+
+### fsharp_space_before_colon
+
+Add a space before `:`. Please note that not every `:` is controlled by this setting.
+Default = false.
+
+`defaultConfig`
+
+```fsharp
+type Point = { x: int; y: int }
+let myValue: int = 42 // See https://docs.microsoft.com/en-us/dotnet/fsharp/style-guide/formatting#right-pad-value-and-function-argument-type-annotations
+let update (msg: Msg) (model: Model) : Model = model // See https://docs.microsoft.com/en-us/dotnet/fsharp/style-guide/formatting#surround-return-type-annotations-with-white-space
+```
+
+`{ defaultConfig with SpaceBeforeColon = true }`
+
+```fsharp
+type Point = { x : int; y : int }
+let myValue : int = 42
+let update (msg : Msg) (model : Model) : Model = model
+```
+
+### fsharp_space_after_comma
+
+Adds a space after `,` in tuples.
+Default = true.
+
+`defaultConfig`
+
+```fsharp
+myValue.SomeFunction(foo, bar, somethingElse)
+(a, b, c)
+```
+
+`{ defaultConfig with SpaceAfterComma = false }`
+
+```fsharp
+myValue.SomeFunction(foo,bar,somethingElse)
+(a,b,c)
+```
+
+### fsharp_space_before_semicolon
+
+Adds a space before `;` in records, arrays, lists, etc.
+Default = false.
+
+`defaultConfig`
+
+```fsharp
+let a = [ 1; 2; 3 ]
+let b = [| foo; bar |]
+type C = { X: int; Y: int }
+```
+
+`{ defaultConfig with SpaceBeforeSemicolon = true }`
+
+```fsharp
+let a = [ 1 ; 2 ; 3 ]
+let b = [| foo ; bar |]
+type C = { X: int ; Y: int }
+```
+
+### fsharp_space_after_semicolon
+
+Adds a space after `;` in records, arrays, lists, etc.
+Default = true.
+
+`defaultConfig`
+
+```fsharp
+let a = [ 1; 2; 3 ]
+let b = [| foo; bar |]
+type C = { X: int; Y: int }
+```
+
+`{ defaultConfig with SpaceAfterSemicolon = false }`
+
+```fsharp
+let a = [ 1;2;3 ]
+let b = [| foo;bar |]
+type C = { X: int;Y: int }
+```
+
+### fsharp_indent_on_try_with
+
+Adds an extra indent to the `with` block of a try/with expression.
+Default = false.
+
+`defaultConfig`
+
+```fsharp
+try
+    if System.DateTime.Now.Second % 3 = 0
+    then raise (new System.Exception())
+    else raise (new System.ApplicationException())
+with
+| :? System.ApplicationException -> printfn "A second that was not a multiple of 3"
+| _ -> printfn "A second that was a multiple of 3"
+```
+
+`{ defaultConfig with IndentOnTryWith = true }`
+
+```fsharp
+try
+    if System.DateTime.Now.Second % 3 = 0
+    then raise (new System.Exception())
+    else raise (new System.ApplicationException())
+with
+    | :? System.ApplicationException -> printfn "A second that was not a multiple of 3"
+    | _ -> printfn "A second that was a multiple of 3"
+```
+
+### fsharp_space_around_delimiter
+
+Adds a space around delimiters like `[`,`[|`,`{`.
+Default = true.
+
+`defaultConfig`
+
+```fsharp
+let a = [ 1;2;3 ]
+let b = [| 4;5;6 |]
+```
+
+`{ defaultConfig with SpaceAroundDelimiter = false }`
+
+```fsharp
+let a = [1;2;3]
+let b = [|4;5;6|]
+```
+
+### fsharp_max_if_then_else_short_width
+
+Fantomas by default follows the if/then/else conventions listed in the [Microsoft F# style guide](https://docs.microsoft.com/en-us/dotnet/fsharp/style-guide/formatting#formatting-if-expressions).
+There is stated:
+
+> Indentation of conditionals depends on the size and complexity of the expressions that make them up. Write them on one line when:
+> cond, e1, and e2 are short
+> e1 and e2 are not if/then/else expressions themselves.
+
+This setting facilitates this by determining the maximum character width where the if/then/else expression stays in one line.
+Default = 40.
+
+`defaultConfig`
+
+```fsharp
+if myCheck then truth else bogus
+```
+
+`{ defaultConfig with MaxIfThenElseShortWidth = 10 }`
+
+```fsharp
+if myCheck then 
+    truth 
+else 
+    bogus
+```
+
+### fsharp_max_infix_operator_expression
+
+Control the maximum length for which infix expression can be on one line.
+Default = 50.
+
+`defaultConfig`
+
+```fsharp
+let WebApp =
+    route "/ping" >=> authorized >=> text "pong"
+```
+
+`{ defaultConfig with MaxInfixOperatorExpression = 20 }`
+
+```fsharp
+let WebApp =
+    route "/ping"
+    >=> authorized
+    >=> text "pong"
+```
+
+### fsharp_max_record_width
+
+Control the maximum width for which records should be in one line. Default = 40.
+Requires `fsharp_record_multiline_formatter` to be `character_width` to take
+effect.
+
+`defaultConfig`
+
+```fsharp
+type MyRecord = { X: int; Y: int; Length: int }
+let myInstance = { X = 10; Y = 20; Length = 90 }
+```
+
+`{ defaultConfig with MaxRecordWidth = 20 }`
+
+```fsharp
+type MyRecord =
+    { X: int
+      Y: int
+      Length: int }
+
+let myInstance =
+    { X = 10
+      Y = 20
+      Length = 90 }
+```
+
+### fsharp_max_record_number_of_items
+
+Control the maximum number of fields for which records should be in one line.
+Default = 1. Requires `fsharp_record_multiline_formatter` to be
+`number_of_items` to take effect.
+
+`defaultConfig`
+
+```fsharp
+type R = { x: int }
+
+type S = { x: int; y: string }
+
+type T = { x: int; y: string; z: float }
+
+let myRecord = { r = 3 }
+
+let myRecord' = { r with x = 3 }
+
+let myRecord'' = { r with x = 3; y = "hello" }
+
+let myRecord''' = { r with x = 3; y = "hello"; z = 0.0 }
+```
+
+`{ defaultConfig with MaxRecordSize = 2; RecordMultilineFormatter =
+MultilineFormatterType.NumberOfItems }`
+
+```fsharp
+type R = { x: int }
+
+type S = { x: int; y: string }
+
+type T =
+    { x: int
+      y: string
+      z: float }
+
+let myRecord = { r = 3 }
+
+let myRecord' = { r with x = 3 }
+
+let myRecord'' = { r with x = 3; y = "hello" }
+
+let myRecord''' =
+    { r with
+          x = 3
+          y = "hello"
+          z = 0.0 }
+```
+
+### fsharp_record_multiline_formatter
+
+Split records expressions/statements into multiple lines based on the given
+condition. `character_width` uses character count of the expression, controlled
+by `fsharp_max_record_width`. `number_of_items` uses the number of fields in the
+record, controlled by `fsharp_max_record_number_of_items`. Default =
+`character_width`. Note that in either case, record expressions/statements are
+still governed by `max_line_length`.
+
+`defaultConfig`
+
+```fsharp
+type R = { x: int }
+
+type S = { x: int; y: string }
+
+let myRecord = { r = 3 }
+
+let myRecord' = { r with x = 3 }
+
+let myRecord'' = { r with x = 3; y = "hello" }
+```
+
+`{ defaultConfig with RecordMultilineFormatter =
+MultilineFormatterType.NumberOfItems }`
+
+```fsharp
+type R = { x: int }
+
+type S =
+    { x: int
+      y: string }
+
+let myRecord = { x = 3 }
+
+let myRecord' = { r with x = 3 }
+
+let myRecord'' =
+    { r with
+          x = 3
+          y = "hello" }
+```
+
+### fsharp_max_array_or_list_width
+
+Control the maximum width for which lists and arrays can be in one line. Default
+= 40. Requires `fsharp_array_or_list_multiline_formatter` to be
+`character_width` to take effect.
+
+`defaultConfig`
+
+```fsharp
+let myArray = [| one; two; three |]
+```
+
+`{ defaultConfig with MaxArrayOrListWidth = 20 }`
+
+```fsharp
+let myArray =
+    [| one
+       two
+       three |]
+```
+
+### fsharp_max_array_or_list_number_of_items
+
+Control the maximum number of elements for which lists and arrays can be in
+one line. Default = 1. Requires `fsharp_array_or_list_multiline_formatter` to be
+`number_of_items` to take effect.
+
+`defaultConfig`
+
+```fsharp
+let myList = [ one; two ]
+
+let myArray = [| one; two; three |]
+```
+
+`{ defaultConfig with MaxArrayOrListNumberOfItems = 2; ArrayOrListMultilineFormatter =
+MultilineFormatterType.NumberOfItems }`
+
+```fsharp
+let myList = [ one; two ]
+
+let myArray =
+    [| one
+       two
+       three |]
+```
+
+### fsharp_array_or_list_multiline_formatter
+
+Split arrays and lists into multiple lines based on the given condition.
+`character_width` uses character count of the expression, controlled by
+`fsharp_max_array_or_list_width`. `number_of_items` uses the number of elements
+in the array or list, controlled by `fsharp_max_array_or_list_number_of_items`.
+Default = `character_width`. Note that in either case, list expressions are
+still governed by `max_line_length`.
+
+`defaultConfig`
+
+```fsharp
+let myArray = [| one; two; three |]
+```
+
+`{ defaultConfig with ArrayOrListMultilineFormatter =
+MultilineFormatterType.NumberOfItems }`
+
+```fsharp
+let myArray =
+    [| one
+       two
+       three |]
+```
+
+### fsharp_max_value_binding_width
+
+Control the maximum width for which let and member value bindings should be in one line.
+Default = 40.
+
+`defaultConfig`
+
+```fsharp
+let title = "Great title of project"
+
+type MyType() =
+    member this.HelpText = "Some help text"
+```
+
+`{ defaultConfig with MaxValueBindingWidth = 10 }`
+
+```fsharp
+let title =
+    "Great title of project"
+
+type MyType() =
+    member this.HelpText =
+        "Some help text"
+```
+
+### fsharp_max_function_binding_width
+
+Control the maximum width for which let and member function bindings should be in one line.
+Default = 40.
+
+`defaultConfig`
+
+```fsharp
+let printScore score total = printfn "%i / %i" score total
+
+type Triangle() =
+    member this.CalculateSurface(width: int, height: int) = width * height / 2
+```
+
+`{ defaultConfig with MaxFunctionBindingWidth = 10 }`
+
+```fsharp
+let printScore score total =
+    printfn "%i / %i" score total
+
+type Triangle() =
+    member this.CalculateSurface(width: int, height: int) =
+        width * height / 2
+```
+
+### fsharp_max_dot_get_expression_width
+
+Control the maximum width for which (nested) [SynExpr.DotGet](https://fsharp.github.io/FSharp.Compiler.Service/reference/fsharp-compiler-syntaxtree-synexpr.html) expressions should be in one line.
+Default = 50.
+
+`defaultConfig`
+
+```fsharp
+let job =
+    JobBuilder
+        .UsingJobData(jobDataMap)
+        .Create<WrapperJob>()
+        .Build()
+```
+
+`{ defaultConfig with MaxDotGetExpressionWidth = 100 }`
+
+```fsharp
+let job =
+    JobBuilder.UsingJobData(jobDataMap).Create<WrapperJob>().Build()
+```
+
+### fsharp_multiline_block_brackets_on_same_column
+
+Alternative way of formatting records, arrays and lists. This will align the braces at the same column level.
+Default = false.
+
+`defaultConfig`
+
+```fsharp
+let myRecord =
+    { Level = 1
+      Progress = "foo"
+      Bar = "bar"
+      Street = "Bakerstreet"
+      Number = 42 }
+
+type Range =
+    { From: float
+      To: float }
+
+let a =
+    [| (1, 2, 3)
+       (4, 5, 6)
+       (7, 8, 9) |]
+```
+
+`{ defaultConfig with MultilineBlockBracketsOnSameColumn = true }`
+
+```fsharp
+let myRecord =
+    {
+        Level = 1
+        Progress = "foo"
+        Bar = "bar"
+        Street = "Bakerstreet"
+        Number = 42
+    }
+
+type Range =
+    {
+        From: float
+        To: float
+    }
+
+let a =
+    [|
+        (1, 2, 3)
+        (4, 5, 6)
+        (7, 8, 9)
+    |]
+```
+
+### fsharp_newline_between_type_definition_and_members
+
+Adds a new line between a type definition and its first member.
+Default = false.
+
+`defaultConfig`
+
+```fsharp
+type Range =
+    { From: float
+      To: float }
+    member this.Length = this.To - this.From
+```
+
+`{ defaultConfig with NewlineBetweenTypeDefinitionAndMembers = true }`
+
+```fsharp
+type Range =
+    { From: float
+      To: float }
+
+    member this.Length = this.To - this.From
+```
+
+### fsharp_keep_if_then_in_same_line
+
+**Deprecated setting!**
+
+This setting will be removed in the next major version of Fantomas.
+As of 4.4, it has no effect anymore due to a change in the MS F# style guide.
+
+#### Original description:
+
+Bypasses the situation where `if`,`then` and `else` are placed underneath each other.
+This will ensure `if` and `then` are kept in the same line.
+Default = false.
+
+`defaultConfig`
+
+```fsharp
+if System.Char.IsUpper(c)
+then sprintf "________%s" (c.ToString().ToLower())
+else c.ToString()
+```
+
+`{ defaultConfig with KeepIfThenInSameLine = true }`
+
+```fsharp
+if System.Char.IsUpper(c) then
+    sprintf "________%s" (c.ToString().ToLower())
+else
+    c.ToString()
+```
+
+### fsharp_max_elmish_width
+
+Control the maximum width for which an elmish expression should be in one line.
+See [Formatting Elmish style guide](./Formatting-Elmish-code.md) for more information.
+Default = 40.
+
+`defaultConfig`
+
+```fsharp
+let d = div [] [ p [] [ str "meh" ] ]
+```
+
+`{ defaultConfig with MaxElmishWidth = 10 }`
+
+```fsharp
+let d =
+    div [] [
+        p [] [
+            str "meh"
+        ]
+    ]
+```
+
+### fsharp_single_argument_web_mode
+
+Applies similar behavior when the elmish expression only contains a single argument.
+Default = false.
+
+`defaultConfig`
+
+```fsharp
+let a =
+    Html.button [ prop.style [ style.marginLeft 5 ]
+                  prop.onClick (fun _ -> setCount (count - 1))
+                  prop.text "Decrement" ]
+```
+
+`{ defaultConfig with SingleArgumentWebMode = true} `
+
+```fsharp
+let a =
+    Html.button [
+        prop.style [ style.marginLeft 5 ]
+        prop.onClick (fun _ -> setCount (count - 1))
+        prop.text "Decrement"
+    ]
+```
+
+### fsharp_align_function_signature_to_indentation
+
+When a function signature exceeds the `max_line_length`, Fantomas will put all parameters on separate lines.
+This setting also places the equals sign and return type on a new line.
+Default = false.
+
+`defaultConfig`
+
+```fsharp
+[<FunctionName("FormatCode")>]
+let run 
+    ([<HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = "{*any}")>] req: HttpRequest)
+    (log: ILogger)
+    : HttpResponse =
+    Http.main CodeFormatter.GetVersion format FormatConfig.FormatConfig.Default log req
+```
+
+`{ defaultConfig with AlignFunctionSignatureToIndentation = true }`
+
+```fsharp
+[<FunctionName("FormatCode")>]
+let run
+    ([<HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = "{*any}")>] req: HttpRequest)
+    (log: ILogger)
+    : HttpResponse
+    =
+    Http.main CodeFormatter.GetVersion format FormatConfig.FormatConfig.Default log req
+```
+
+### fsharp_alternative_long_member_definitions
+
+Provides an alternative way of formatting long member and constructor definitions,
+where the difference is mainly in the equal sign and returned type placement.
+Default = false.
+
+`defaultConfig`
+
+```fsharp
+type C
+    (
+        aVeryLongType: AVeryLongTypeThatYouNeedToUse,
+        aSecondVeryLongType: AVeryLongTypeThatYouNeedToUse,
+        aThirdVeryLongType: AVeryLongTypeThatYouNeedToUse
+    ) =
+    class
+    end
+
+type D() =
+    member _.LongMethodWithLotsOfParameters
+        (
+            aVeryLongParam: AVeryLongTypeThatYouNeedToUse,
+            aSecondVeryLongParam: AVeryLongTypeThatYouNeedToUse,
+            aThirdVeryLongParam: AVeryLongTypeThatYouNeedToUse
+        ) : ReturnType =
+        42
+```
+
+`{ defaultConfig with AlternativeLongMemberDefinitions = true }`
+
+```fsharp
+type C
+    (
+        aVeryLongType: AVeryLongTypeThatYouNeedToUse,
+        aSecondVeryLongType: AVeryLongTypeThatYouNeedToUse,
+        aThirdVeryLongType: AVeryLongTypeThatYouNeedToUse
+    )
+    =
+    class
+    end
+
+type D() =
+    member _.LongMethodWithLotsOfParameters
+        (
+            aVeryLongParam: AVeryLongTypeThatYouNeedToUse,
+            aSecondVeryLongParam: AVeryLongTypeThatYouNeedToUse,
+            aThirdVeryLongParam: AVeryLongTypeThatYouNeedToUse
+        )
+        : ReturnType
+        =
+        42
+```
+
+### fsharp_multi_line_lambda_closing_newline
+
+Places the closing parenthesis of a multiline lambda argument on the next line.
+Default = false.
+
+`defaultConfig`
+
+```fsharp
+let printListWithOffset a list1 =
+    List.iter
+        (fun { ItemOne = a } ->
+            // print
+            printfn "%s" a)
+        list1
+
+let printListWithOffset a list1 =
+    list1
+    |> List.iter
+        (fun elem ->
+            // print stuff
+            printfn "%d" (a + elem))
+```
+
+`{ defaultConfig with MultiLineLambdaClosingNewline = true }`
+
+```fsharp
+let printListWithOffset a list1 =
+    List.iter
+        (fun { ItemOne = a } ->
+            // print
+            printfn "%s" a
+        )
+        list1
+
+let printListWithOffset a list1 =
+    list1
+    |> List.iter (fun elem ->
+        // print stuff
+        printfn "%d" (a + elem)
+    )
+```
+
+### fsharp_disable_elmish_syntax
+
+Disable the default [Elmish formatting style](./Formatting-Elmish-code.md). When `fsharp_disable_elmish_syntax` is enabled `fsharp_max_elmish_width` and `fsharp_single_argument_web_mode` will have no effect anymore.
+
+`defaultConfig`
+
+```fsharp
+let encodeInput (input: Input) =
+    Encode.object [ "sourceCode", Encode.string input.SourceCode
+                    "defines",
+                    (Array.map Encode.string input.Defines
+                     |> Encode.array)
+                    "isFsi", Encode.bool input.IsFsi ]
+```
+
+`{ defaultConfig with DisableElmishSyntax = true }`
+
+```fsharp
+let encodeUrlModel code model: JsonValue =
+    Encode.object
+        [ "defines", Encode.string model.Defines
+          "isFsi", Encode.bool model.IsFsi
+          "code", Encode.string code ]
+```
+
+### fsharp_keep_indent_in_branch
+
+Breaks the normal indentation flow for the last branch of a pattern match or if/then/else expression.
+Only when the pattern match or if/then/else is the return value of a function or member.
+
+*This feature is considered experimental and is subject to change*
+
+`defaultConfig`
+
+```fsharp
+let main argv =
+    let args = parse argv
+
+    let instructions = Library.foo args
+
+    if args.DryRun = RunMode.Dry then
+        printfn "Would execute actions, but --dry-run was supplied: %+A" instructions
+        0
+    else
+        // proceed with main method
+        let output = Library.execute instructions
+        // do more stuff
+        0
+```
+
+`{ defaultConfig with KeepIndentInBranch = true }`
+
+```fsharp
+let main argv =
+    let args = parse argv
+
+    let instructions = Library.foo args
+
+    if args.DryRun = RunMode.Dry then
+        printfn "Would execute actions, but --dry-run was supplied: %+A" instructions
+        0
+    else
+    // proceed with main method
+    let output = Library.execute instructions
+    // do more stuff
+    0
+```
+
+### fsharp_blank_lines_around_nested_multiline_expressions
+
+Surround **nested** multi-line expressions with blank lines.
+Existing blank lines are always preserved (via trivia).  
+Top level expressions will always follow the [2020 blank lines revision](https://github.com/fsprojects/fantomas/blob/master/docs/FormattingConventions.md#2020-revision) principle.
+Default = true.
+
+`defaultConfig`
+
+```fsharp
+let topLevelFunction () =
+    printfn "Something to print"
+
+    try
+            nothing ()
+    with
+    | ex ->
+        splash ()
+    ()
+
+let secondTopLevelFunction () =
+    // ...
+    ()
+```
+
+`{ defaultConfig with BlankLinesAroundNestedMultilineExpressions = false }`
+
+```fsharp
+let topLevelFunction () =
+    printfn "Something to print"
+    try
+            nothing ()
+    with
+    | ex ->
+        splash ()
+    ()
+
+let secondTopLevelFunction () =
+    // ...
+    ()
+```
+
+### fsharp_bar_before_discriminated_union_declaration
+
+Always use a `|` before every case in the declaration of a discriminated union. If `false`, a `|` character is used only in multiple-case discriminated unions, and is omitted in short single-case DUs.
+Default = false.
+
+```fsharp
+type MyDU = Short of int
+```
+
+`{ defaultConfig with BarBeforeDiscriminatedUnionDeclaration = true }`
+
+```fsharp
+type MyDU = | Short of int
+```
+
+### fsharp_strict_mode
+
+If being set, pretty printing is only done via ASTs. Compiler directives, inline comments and block comments will be ignored.
+There are numerous situations when the information in the AST alone cannot restore the original code.
+**Please do not use this setting for formatting hand written code!**
+Valid use-case of this settings is code generation in projects like [FsAst](https://github.com/ionide/FsAst) and [Myriad](https://github.com/MoiraeSoftware/myriad).
+Default = false.
+
+`hand written code`
+
+```fsharp
+// some great comment
+let add a b =
+#if INTERACTIVE
+    42
+#else
+    a + b
+#endif
+```
+
+`{ defaultConfig with StrictMode = true }`
+
+```fsharp
+let add a b = a + b
+```
+
+## Ignore Files: .fantomasignore
+
+*starting version 4.1*
+
+To exclude files from formatting, create a `.fantomasignore` file in the root of your project.
+`.fantomasignore` uses gitignore syntax (via [MAB.DotIgnore](https://github.com/markashleybell/MAB.DotIgnore)).
+Ignored files will be picked up when the [Fantomas cli tool](https://www.nuget.org/packages/fantomas-tool/) or the FAKE helpers (in [Fantomas.Extras](https://www.nuget.org/packages/Fantomas.Extras/)) are used.
+Exclusion applies both to formatting and the format checking.
+
+```
+# Ignore Fable files
+.fable/
+
+# Ignore script files
+*.fsx
+```
+
+## Using the API
+
+See [CodeFormatter.fsi](../src/Fantomas/CodeFormatter.fsi) to view the public API of Fantomas.
+
+## A git pre-commit hook sample
+
+A very elegant and transparent way to use Fantomas is including it in a pre-commit git hook, by creating a `.git/hooks/pre-commit` file with:
+
+```
+#!/bin/sh
+git diff --cached --name-only --diff-filter=ACM -z | xargs -0 $HOME/.dotnet/tools/fantomas
+git diff --cached --name-only --diff-filter=ACM -z | xargs -0 git add
+```
+
+<small>This script assumes you have installed Fantomas globally as a [dotnet tool](https://www.nuget.org/packages/fantomas-tool/)</small>
+
+**Please use with caution** as [Fantomas is not without bugs](https://github.com/fsprojects/fantomas/issues?q=is%3Aissue+is%3Aopen+label%3A%22bug+%28soundness%29%22).
+
+## FAKE Helpers
+
+Fantomas also exposes some less official helper functions when formatting code in FAKE scripts.
+Checkout the [FAKE sample](../fake-sample/README.md) for more details.
+These functions are not considered to be part of the public API, so they could be improved without the need to bump the major version.

@@ -1,42 +1,43 @@
 #r "paket:
-nuget Fantomas 3.3.0
-nuget FSharp.Compiler.Service 34.1.0
-nuget Fake.Core.Target //"
+nuget Fake.Core.Target
+nuget Fake.DotNet.Cli
+nuget FSharp.Core 5.0.2 //"
 #load "./.fake/script.fsx/intellisense.fsx"
 
 open Fake.Core
 open Fake.IO
 open Fake.IO.Globbing.Operators
-open Fantomas
-open Fantomas.FormatConfig
+open Fake.DotNet
 
-let fantomasConfig =
-    // look for fantomas-config.json in the current directory
-    match CodeFormatter.ReadConfiguration(Shell.pwd()) with
-    | Success c -> c
-    | _ ->
-        printfn "Cannot parse fantomas-config.json, using default"
-        FormatConfig.Default
+let sourceFiles = !! "*.fs"
 
-Target.create "CheckCodeFormat" (fun _ ->
-    let result =
-        !!"*.fs"
-        |> FakeHelpers.checkCode fantomasConfig
-        |> Async.RunSynchronously
+Target.create
+    "CheckFormat"
+    (fun _ ->
+        let result =
+            sourceFiles
+            |> Seq.map (sprintf "\"%s\"")
+            |> String.concat " "
+            |> sprintf "%s --check"
+            |> DotNet.exec id "fantomas"
 
-    if result.IsValid then
-        Trace.log "No files need formatting"
-    elif result.NeedsFormatting then
-        Trace.log "The following files need formatting:"
-        List.iter Trace.log result.Formatted
-        failwith "Some files need formatting, check output for more info"
-    else
-        Trace.logf "Errors while formatting: %A" result.Errors)
+        if result.ExitCode = 0 then
+            Trace.log "No files need formatting"
+        elif result.ExitCode = 99 then
+            failwith "Some files need formatting, check output for more info"
+        else
+            Trace.logf "Errors while formatting: %A" result.Errors)
 
-Target.create "Format" (fun _ ->
-    !!"*.fs"
-    |> FakeHelpers.formatCode fantomasConfig
-    |> Async.RunSynchronously
-    |> printfn "Formatted files: %A")
+Target.create
+    "Format"
+    (fun _ ->
+        let result =
+            sourceFiles
+            |> Seq.map (sprintf "\"%s\"")
+            |> String.concat " "
+            |> DotNet.exec id "fantomas"
 
-Target.runOrList()
+        if not result.OK then
+            printfn "Errors while formatting all files: %A" result.Messages)
+
+Target.runOrList ()

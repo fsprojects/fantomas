@@ -5,27 +5,37 @@ open FsUnit
 open Fantomas.Tests.TestHelper
 
 [<Test>]
-let ``lazy should wrap with ()``() =
-    formatSourceString false """
+let ``lazy should wrap with ()`` () =
+    formatSourceString
+        false
+        """
 let v = // <- Lazy "1"
     lazy
-        1 |> string""" config
+        1 |> string"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let v = // <- Lazy "1"
     lazy (1 |> string)
 """
 
 [<Test>]
-let ``lazy should not wrap with () for multiline``() =
-    formatSourceString false """
+let ``lazy should not wrap with () for multiline`` () =
+    formatSourceString
+        false
+        """
 let v = // <- Lazy "1"
     lazy
         "123456798123456798123456798"
         |> idLongFunctionThing
-        |> string""" config
+        |> string"""
+        config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let v = // <- Lazy "1"
     lazy
         "123456798123456798123456798"
@@ -35,8 +45,34 @@ let v = // <- Lazy "1"
 
 [<Test>]
 let ``short lazy with parens and infix should keep parens`` () =
-    formatSourceString false """let result = lazy (x + 10)"""  config
+    formatSourceString false """let result = lazy (x + 10)""" config
     |> prepend newline
-    |> should equal """
+    |> should
+        equal
+        """
 let result = lazy (x + 10)
+"""
+
+[<Test>]
+let ``multiline lazy with parenthesis and letOrUse expression, 1271`` () =
+    formatSourceString
+        false
+        """
+let setup =
+  lazy
+   (let thing = Thing()
+    thing.DoSomething()
+    let value = 1
+    value)"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let setup =
+    lazy
+        (let thing = Thing()
+         thing.DoSomething()
+         let value = 1
+         value)
 """

@@ -1,0 +1,23 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <Version>4.5.12</Version>
+    <Description>Utility package for Fantomas</Description>
+    <WarningsAsErrors>FS0025</WarningsAsErrors>
+    <PackageLicenseFile>LICENSE.md</PackageLicenseFile>
+    <PackageIcon>fantomas_logo.png</PackageIcon>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Include="paket.references" />
+    <None Include="..\..\LICENSE.md" Visible="false" Pack="true" PackagePath="" />
+    <None Include="..\..\fantomas_logo.png" Visible="false" Pack="true" PackagePath="" />
+    <Compile Include="EditorConfig.fs" />
+    <Compile Include="IgnoreFile.fs" />
+    <Compile Include="FakeHelpers.fs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Fantomas\Fantomas.fsproj" />
+  </ItemGroup>
+  <Import Project="..\..\.paket\Paket.Restore.targets" />
+</Project>

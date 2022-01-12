@@ -1,16 +1,33 @@
 source https://api.nuget.org/v3/index.json
-framework: netstandard2.0, netcoreapp3.1
+
+framework: netstandard2.0, net5.0, netcoreapp3.1
 storage: none
 
 nuget FSharp.Core
-nuget FSharp.Compiler.Service 35.0.0
+nuget FSharp.Compiler.Service ~> 39.0
 nuget FsUnit
 nuget FsCheck
-nuget Microsoft.NET.Test.Sdk 16.4.0
-nuget nunit 3.12.0
-nuget NUnit3TestAdapter 3.15.1
+nuget Microsoft.NET.Test.Sdk 16.9.1
+nuget nunit 3.13.1
+nuget NUnit3TestAdapter 4.0.0-beta.1
 nuget NunitXml.TestLogger
 nuget Argu
 nuget BenchmarkDotNet
+nuget editorconfig
+nuget MAB.DotIgnore 3.0.2
 
 github: fsprojects/fantomas:829faa6ba834f99afed9b4434b3a1680536474b2 src/Fantomas/CodePrinter.fs
+
+group build
+    storage: none
+    source https://api.nuget.org/v3/index.json
+
+    nuget Microsoft.Azure.Cosmos.Table
+    nuget Fake.Core.ReleaseNotes
+    nuget Fake.Core.Xml
+    nuget Fake.DotNet.Cli
+    nuget Fake.DotNet.Paket
+    nuget Fake.Tools.Git
+    nuget Fake.Core.Process
+    nuget Fake.Core.Target
+    nuget MSBuild.StructuredLogger 2.1.500

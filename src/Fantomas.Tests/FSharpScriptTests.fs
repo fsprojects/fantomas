@@ -1,78 +1,102 @@
 module Fantomas.Tests.FSharpScriptTests
 
-open Fantomas
+open System.IO
 open NUnit.Framework
 open FsUnit
+open Fantomas
+open Fantomas.Extras
 open Fantomas.Tests.TestHelper
-open System.IO
+open Fantomas.Tests.FormatConfigEditorConfigurationFileTests
 
 [<Test>]
 let ``source _directory keyword should not be replace with actual path`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 #I __SOURCE_DIRECTORY__
 #load ".paket/load/net471/main.group.fsx"
-"""  config
-    |> should equal """#I __SOURCE_DIRECTORY__
+"""
+        config
+    |> should
+        equal
+        """#I __SOURCE_DIRECTORY__
 #load ".paket/load/net471/main.group.fsx"
 """
 
 [<Test>]
 let ``e2e script test with keyword __source__directory__`` () =
     async {
-        let source = """
+        let source =
+            """
 #I       __SOURCE_DIRECTORY__
 #load    ".paket/load/net471/main.group.fsx"
 """
 
-        let file = Path.Combine(Path.GetTempPath(), System.Guid.NewGuid().ToString("N") + ".fsx")
-        File.WriteAllText(file, source)
-        
-        let! formattedFiles = FakeHelpers.formatCode config [file]
-        
-        let formattedSource = File.ReadAllText(file)
+        let rootFolderName = tempName ()
+
+        use fsharpScript =
+            new FSharpFile(rootFolderName, fsharpFileExtension = ".fsx", content = source)
+
+        let! formattedFiles = FakeHelpers.formatCode [ fsharpScript.FSharpFile ]
+
+        let formattedSource =
+            File.ReadAllText(fsharpScript.FSharpFile)
+
         Array.length formattedFiles == 1
-        File.Delete(file)
-    
+
         formattedSource
         |> String.normalizeNewLine
-        |> should equal """#I __SOURCE_DIRECTORY__
+        |> should
+            equal
+            """#I __SOURCE_DIRECTORY__
 #load ".paket/load/net471/main.group.fsx"
 """
-    } |> Async.RunSynchronously
+    }
+    |> Async.RunSynchronously
 
 [<Test>]
 let ``fantomas removes module and namespace if it is only 1 word`` () =
     async {
-        let source = """namespace Shared   
+        let source =
+            """namespace Shared
 
     type Counter = int
     """
 
-        let file = Path.Combine(Path.GetTempPath(), System.Guid.NewGuid().ToString("N") + ".fsx")
-        File.WriteAllText(file, source)
-        
+        let rootFolderName = tempName ()
+
+        use fsharpScript =
+            new FSharpFile(rootFolderName, fsharpFileExtension = ".fsx", content = source)
+
         let fantomasConfig =
             { FormatConfig.FormatConfig.Default with
-                StrictMode = true
-                IndentSpaceNum = 2
-                SpaceBeforeColon = false }
-        let! formattedFiles = FakeHelpers.formatCode fantomasConfig [file]
-        
-        let formattedSource = File.ReadAllText(file)
+                  StrictMode = true
+                  IndentSize = 2
+                  SpaceBeforeColon = false }
+
+        use _editorConfig =
+            new ConfigurationFile(fantomasConfig, rootFolderName)
+
+        let! formattedFiles = FakeHelpers.formatCode [ fsharpScript.FSharpFile ]
+
+        let formattedSource = File.ReadAllText fsharpScript.FSharpFile
         Array.length formattedFiles == 1
-        File.Delete(file)
-        
+
         formattedSource
         |> String.normalizeNewLine
-        |> should equal """namespace Shared
+        |> should
+            equal
+            """namespace Shared
 
 type Counter = int
 """
-    } |> Async.RunSynchronously
+    }
+    |> Async.RunSynchronously
 
 [<Test>]
 let ``number in the filename should not end up in the module name`` () =
-    let source = """let simplePatternMatch   =  
+    let source =
+        """let simplePatternMatch   =
     let x = "a"
     match x with
     | "a" -> printfn "x is a"
@@ -80,22 +104,27 @@ let ``number in the filename should not end up in the module name`` () =
     | _ -> printfn "x is %s"   x
 """
 
-    let file = Path.Combine(Path.GetTempPath(), "60Seconds.fsx")
-    File.WriteAllText(file, source)
-    
+    let rootFolderName = tempName ()
+
+    use fsharpScript =
+        new FSharpFile(rootFolderName, fileName = "60Seconds.fsx", content = source)
+
     async {
-        let! formattedFiles = FakeHelpers.formatCode config [|file|]
-        let formattedSource = File.ReadAllText(file)
+        let! formattedFiles = FakeHelpers.formatCode [| fsharpScript.FSharpFile |]
+        let formattedSource = File.ReadAllText fsharpScript.FSharpFile
         Array.length formattedFiles == 1
-        File.Delete(file)
-        
+
         formattedSource
         |> String.normalizeNewLine
-        |> should equal """let simplePatternMatch =
+        |> should
+            equal
+            """let simplePatternMatch =
     let x = "a"
+
     match x with
     | "a" -> printfn "x is a"
     | "b" -> printfn "x is b"
     | _ -> printfn "x is %s" x
 """
-    } |> Async.RunSynchronously
+    }
+    |> Async.RunSynchronously

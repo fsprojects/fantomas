@@ -2,18 +2,27 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp3.1</TargetFramework>
+    <!-- Don't create localization (en-US, etc) folders with resources -->
+    <!-- https://github.com/dotnet/fsharp/issues/6007#issuecomment-547041463 -->
+    <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
+    <RollForward>Major</RollForward>
     <ToolCommandName>fantomas</ToolCommandName>
     <PackAsTool>True</PackAsTool>
-    <Version>4.0.0-alpha-008</Version>
+    <Version>4.5.12</Version>
     <AssemblyName>fantomas-tool</AssemblyName>
+    <WarningsAsErrors>FS0025</WarningsAsErrors>
+    <PackageLicenseFile>LICENSE.md</PackageLicenseFile>
+    <PackageIcon>fantomas_logo.png</PackageIcon>
   </PropertyGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Fantomas.Extras\Fantomas.Extras.fsproj" />
     <ProjectReference Include="..\Fantomas\Fantomas.fsproj" />
   </ItemGroup>
   <ItemGroup>
     <None Include="paket.references" />
+    <None Include="..\..\LICENSE.md" Visible="false" Pack="true" PackagePath="" />
+    <None Include="..\..\fantomas_logo.png" Visible="false" Pack="true" PackagePath="" />
     <Compile Include="Program.fs" />
   </ItemGroup>
-  <Import Project="..\netfx.props" />
   <Import Project="..\..\.paket\Paket.Restore.targets" />
 </Project>

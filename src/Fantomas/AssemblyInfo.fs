@@ -2,7 +2,7 @@ namespace System
 
 open System.Runtime.CompilerServices
 
-[<assembly:InternalsVisibleTo("Fantomas.Tests")>]
+[<assembly: InternalsVisibleTo("Fantomas.Tests")>]
 
 do ()
 
