@@ -373,7 +373,7 @@ and tokenize defines (hashTokens: Token list) (content: string) : Token list =
 
 let getDefinesWords (tokens: Token list) =
     tokens
-    |> List.filter (fun { TokenInfo = { TokenName = tn } } -> tn = "IDENT")
+    |> List.filter (fun { TokenInfo = { TokenName = tn } } -> tn = "IDENT" || tn = "FALSE" || tn = "TRUE")
     |> List.map (fun t -> t.Content)
     |> List.distinct
 
@@ -385,6 +385,8 @@ let getDefineExprs (hashTokens: Token list) =
         |> Seq.filter
             (fun t ->
                 t.TokenInfo.TokenName = "IDENT"
+                || t.TokenInfo.TokenName = "TRUE"
+                || t.TokenInfo.TokenName = "FALSE"
                 || Set.contains t.Content allowedContent)
         |> Seq.map (fun t -> t.Content)
         |> Seq.toList

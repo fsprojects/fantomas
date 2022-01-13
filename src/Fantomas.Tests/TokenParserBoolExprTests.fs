@@ -38,6 +38,28 @@ let x = 1
             )
         ))
 
+let ``Get define exprs from boolean constant`` booleanConstString =
+    let source =
+        (sprintf
+            """
+#if %s
+let x = 1
+#endif
+"""
+            booleanConstString)
+
+    getDefineExprs source
+    |> List.head
+    |> should equal (BoolExpr.Ident booleanConstString)
+
+[<Test>]
+let ``Get define exprs from boolean constant (true)`` () =
+    ``Get define exprs from boolean constant`` "true"
+
+[<Test>]
+let ``Get define exprs from boolean constant (false)`` () =
+    ``Get define exprs from boolean constant`` "false"
+
 [<Test>]
 let ``simple compiler directive - else expr`` () =
     let source =
@@ -212,8 +234,14 @@ type BoolExprGenerator =
     static member SimpleIdent() =
         { new Arbitrary<string>() with
             member x.Generator =
-                Gen.choose (int 'A', int 'Z')
-                |> Gen.map (char >> string)
+                let idents =
+                    Gen.choose (int 'A', int 'Z')
+                    |> Gen.map (char >> string)
+
+                let constants = Gen.elements [ "true"; "false" ]
+
+                Gen.frequency [ 10, idents
+                                1, constants ]
 
             member x.Shrinker t = Seq.empty }
 
