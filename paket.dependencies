@@ -1,14 +1,14 @@
 source https://api.nuget.org/v3/index.json
 
-framework: netstandard2.0, net5.0, netcoreapp3.1
+framework: netstandard2.0, net6.0
 storage: none
 
-nuget FSharp.Core 6.0.1
+nuget FSharp.Core 6.0.1 content: none
 nuget FSharp.Compiler.Service 41.0.1
 nuget FsUnit
 nuget FsCheck
-nuget Microsoft.NET.Test.Sdk 16.9.1
-nuget nunit 3.13.1
+nuget Microsoft.NET.Test.Sdk
+nuget nunit 3.13.2
 nuget NUnit3TestAdapter 4.0.0-beta.1
 nuget NunitXml.TestLogger
 nuget Argu

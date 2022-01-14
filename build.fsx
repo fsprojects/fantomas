@@ -105,7 +105,7 @@ let fantomasExecutableForExternalTests projectdir =
         | DotNet.BuildConfiguration.Custom s -> s
 
     { ProcessName = "dotnet"
-      Arguments = [ sprintf "%s/src/Fantomas.CoreGlobalTool/bin/%s/net5.0/fantomas-tool.dll" projectdir configuration ] }
+      Arguments = [ sprintf "%s/src/Fantomas.CoreGlobalTool/bin/%s/net6.0/fantomas-tool.dll" projectdir configuration ] }
 
 let externalProjectsToTest =
     [
@@ -382,7 +382,7 @@ Target.create "Benchmark" (fun _ ->
          </> "Fantomas.Benchmarks"
          </> "bin"
          </> "Release"
-         </> "net5.0"
+         </> "net6.0"
          </> "Fantomas.Benchmarks.dll")
         ""
     |> ignore
