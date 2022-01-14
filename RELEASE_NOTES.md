@@ -1,56 +1,23 @@
-#### 4.6.0-beta-001
+#### 4.6.0 - 01/2022
 
+* Unify Fantomas versions across editors. [#1844](https://github.com/fsprojects/fantomas/issues/1844)
 * Update formatting types in signatures (See [fslang-design](https://github.com/fsharp/fslang-design/issues/644)). [#1994](https://github.com/fsprojects/fantomas/pull/1994)
 * Feature Editor.config: insert_final_newline. [#2002](https://github.com/fsprojects/fantomas/issues/2002)
-
-#### 4.6.0-alpha-011
-
 * Read editorconfig settings before overwriting settings with request configuration. [#2006](https://github.com/fsprojects/fantomas/pull/2006)
-* Fix Incorrect new array indexing formatting. [#1985](https://github.com/fsprojects/fantomas/issues/1985)
-
-#### 4.6.0-alpha-010
-
-* All the fixes of 4.5.10
-
-#### 4.6.0-alpha-009
-
-* Fix Idempotency problem when exception definition used in signature file. [#1974](https://github.com/fsprojects/fantomas/issues/1974)
-
-#### 4.6.0-alpha-008
-
-* All the fixes of 4.5.8
-
-#### 4.6.0-alpha-007
-
 * Expose configuration documentation in Fantomas.Daemon [#1956](https://github.com/fsprojects/fantomas/pull/1956)
 * Update FCS to 41.0.1 [#1949](https://github.com/fsprojects/fantomas/pull/1949)
-
-#### 4.6.0-alpha-006
-
 * Wider default fsharp_max_value_binding_width. [#1947](https://github.com/fsprojects/fantomas/pull/1947)
+* Update FCS to 41.0.0-preview.21472.3 [#1927](https://github.com/fsprojects/fantomas/pull/1927)
+* Update record should indent from the curly brace instead of the identifier. [#1876](https://github.com/fsprojects/fantomas/issues/1876)
+* Update style of lambda argument. [#1871](https://github.com/fsprojects/fantomas/issues/1871)
+* Update to FCS 40.0.1-preview.21352.5
+* Fix Comment lost between attribute and nested module [#2016](https://github.com/fsprojects/fantomas/issues/2016)
+* Fix Incorrect new array indexing formatting. [#1985](https://github.com/fsprojects/fantomas/issues/1985)
+* Fix Idempotency problem when exception definition used in signature file. [#1974](https://github.com/fsprojects/fantomas/issues/1974)
 * Fix Create parsingOption via CodeFormatterImpl helper. [#1946](https://github.com/fsprojects/fantomas/pull/1946)
 * Fix Explicit call of active pattern fails. [#1937](https://github.com/fsprojects/fantomas/issues/1937)
-
-#### 4.6.0-alpha-005
-
 * Fix Idempotency problem when destructing a record inside a lambda argument. [#1922](https://github.com/fsprojects/fantomas/issues/1922)
-* Update FCS to 41.0.0-preview.21472.3 [#1927](https://github.com/fsprojects/fantomas/pull/1927)
-
-#### 4.6.0-alpha-004
-
-* Initial Fantomas.Client release.
-
-#### 4.6.0-alpha-003
-
-* Fix Update record should indent from the curly brace instead of the identifier. [#1876](https://github.com/fsprojects/fantomas/issues/1876)
-
-#### 4.6.0-alpha-002
-
-* Fix Update style of lambda argument. [#1871](https://github.com/fsprojects/fantomas/issues/1871)
-
-#### 4.6.0-alpha-001
-
-* Update to FCS 40.0.1-preview.21352.5
+* Fix Exception with boolean constant in #if. [#2013](https://github.com/fsprojects/fantomas/issues/2013)
 
 #### 4.5.12 - 01/2022
 
