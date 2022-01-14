@@ -102,13 +102,7 @@ and genParsedHashDirective (ParsedHashDirective (h, args, r)) =
     let genArg (arg: ParsedHashDirectiveArgument) =
         match arg with
         | ParsedHashDirectiveArgument.String (value, stringKind, range) ->
-            let stringStart, stringEnd =
-                match stringKind with
-                | SynStringKind.Regular -> "\"", "\""
-                | SynStringKind.Verbatim -> "@\"", "\""
-                | SynStringKind.TripleQuote -> "\"\"\"", "\"\"\""
-
-            !-(sprintf "%s%s%s" stringStart value stringEnd)
+            genConstString stringKind value
             |> genTriviaFor ParsedHashDirectiveArgument_String range
         | ParsedHashDirectiveArgument.SourceIdentifier (identifier, _, range) ->
             !-identifier
@@ -5589,7 +5583,7 @@ and genConst (c: SynConst) (r: Range) =
     | SynConst.UInt64 _
     | SynConst.UIntPtr _
     | SynConst.UserNum _ -> genConstNumber c r
-    | SynConst.String (s, _, r) ->
+    | SynConst.String (s, kind, r) ->
         // TODO: take string kind into account
         fun (ctx: Context) ->
             let trivia =
@@ -5612,9 +5606,8 @@ and genConst (c: SynConst) (r: Range) =
                 printContentBefore tn
                 +> !-(sprintf "\"%s\"" escaped)
                 +> printContentAfter tn
-            | None ->
-                let escaped = Regex.Replace(s, "\"{1}", "\\\"")
-                !-(sprintf "\"%s\"" escaped)
+            | None -> genConstString kind s
+
             <| ctx
     | SynConst.Char c ->
         fun (ctx: Context) ->
@@ -5706,6 +5699,17 @@ and genConstBytes (bytes: byte []) (r: Range) =
         | Some t -> !-t
         | None -> !-(sprintf "%A" bytes)
         <| ctx
+
+and genConstString (stringKind: SynStringKind) (value: string) =
+    let escaped = Regex.Replace(value, "\"{1}", "\\\"")
+
+    let stringStart, stringEnd =
+        match stringKind with
+        | SynStringKind.Regular -> "\"", "\""
+        | SynStringKind.Verbatim -> "@\"", "\""
+        | SynStringKind.TripleQuote -> "\"\"\"", "\"\"\""
+
+    !-(sprintf "%s%s%s" stringStart escaped stringEnd)
 
 and genSynStaticOptimizationConstraint
     (astContext: ASTContext)

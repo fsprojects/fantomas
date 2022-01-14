@@ -669,3 +669,18 @@ a:hover {color: #ecc;}
     let packable = Path.getFullName \"./_Binaries/README.html\"
     xmlform.Save packable
 "
+
+[<Test>]
+let ``verbatim string in AST is preserved, 560`` () =
+    formatSourceString
+        false
+        """
+let s = @"\"
+"""
+        { config with StrictMode = true }
+    |> prepend newline
+    |> should
+        equal
+        """
+let s = @"\"
+"""
