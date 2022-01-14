@@ -2106,3 +2106,44 @@ module TestThing =
         longName
         |> Map.map (fun _ -> TypedTerm.force<int>)
 """
+
+[<Test>]
+let ``else if should be preserved, 1818`` () =
+    formatSourceString
+        false
+        """
+module Foo =
+    let assertConsistent () : unit =
+        if veryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryLong then
+            ()
+        else
+            if foo = bar then
+                ()
+            else
+                let leftSet = HashSet (FooBarBaz.keys leftThings)
+                leftSet.SymmetricExceptWith (FooBarBaz.keys rightThings)
+                |> ignore
+"""
+        { config with
+            MaxLineLength = 100
+            MultilineBlockBracketsOnSameColumn = true
+            KeepIfThenInSameLine = true
+            MultiLineLambdaClosingNewline = true
+            KeepIndentInBranch = true }
+    |> prepend newline
+    |> should
+        equal
+        """
+module Foo =
+    let assertConsistent () : unit =
+        if veryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryLong then
+            ()
+        else if foo = bar then
+            ()
+        else
+
+        let leftSet = HashSet(FooBarBaz.keys leftThings)
+
+        leftSet.SymmetricExceptWith(FooBarBaz.keys rightThings)
+        |> ignore
+"""
