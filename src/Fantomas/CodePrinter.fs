@@ -383,6 +383,9 @@ and genModuleDecl astContext (node: SynModuleDecl) =
     | NestedModule (ats, px, ao, s, isRecursive, mds) ->
         genPreXmlDoc px
         +> genAttributes astContext ats
+        +> genAfterAttributesBefore
+            SynModuleDecl_NestedModule_AfterAttributesBeforeModuleName
+            node.AfterAttributesBeforeNestedModuleName
         +> (!- "module ")
         +> opt sepSpace ao genAccess
         +> ifElse isRecursive (!- "rec ") sepNone
@@ -419,7 +422,11 @@ and genSigModuleDecl astContext node =
     | SigModuleAbbrev (s1, s2) -> !- "module " -- s1 +> sepEq +> sepSpace -- s2
     | SigNamespaceFragment m -> failwithf "NamespaceFragment is not supported yet: %O" m
     | SigNestedModule (ats, px, ao, s, mds) ->
-        genPreXmlDoc px +> genAttributes astContext ats
+        genPreXmlDoc px
+        +> genAttributes astContext ats
+        +> genAfterAttributesBefore
+            SynModuleSigDecl_NestedModule_AfterAttributesBeforeModuleName
+            node.AfterAttributesBeforeNestedModuleName
         -- "module "
         +> opt sepSpace ao genAccess
         -- s

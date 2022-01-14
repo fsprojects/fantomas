@@ -46,6 +46,22 @@ type SynField with
         | SynField (attributes = _ :: _; idOpt = None) -> None
         | SynField (attributes = attrs; idOpt = Some ident) -> hasLinesBetweenAttributesAndFirstNode attrs ident.idRange
 
+type SynModuleDecl with
+    member this.AfterAttributesBeforeNestedModuleName: Range option =
+        match this with
+        | SynModuleDecl.NestedModule(moduleInfo = SynComponentInfo(attributes = [])) -> None
+        | SynModuleDecl.NestedModule(moduleInfo = SynComponentInfo (attributes = attrs; longId = lid :: _)) ->
+            hasLinesBetweenAttributesAndFirstNode attrs lid.idRange
+        | _ -> None
+
+type SynModuleSigDecl with
+    member this.AfterAttributesBeforeNestedModuleName: Range option =
+        match this with
+        | SynModuleSigDecl.NestedModule(moduleInfo = SynComponentInfo(attributes = [])) -> None
+        | SynModuleSigDecl.NestedModule(moduleInfo = SynComponentInfo (attributes = attrs; longId = lid :: _)) ->
+            hasLinesBetweenAttributesAndFirstNode attrs lid.idRange
+        | _ -> None
+
 // TODO: Remove when https://github.com/dotnet/fsharp/pull/12441 is part of FCS
 type SynExceptionDefnRepr with
     member this.FullRange: range =
