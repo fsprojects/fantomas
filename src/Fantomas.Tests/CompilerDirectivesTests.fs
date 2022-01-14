@@ -2704,3 +2704,31 @@ let x = 1
 let x = 1
 #endif
 """
+
+[<Test>]
+let ``type definition in signature file wrapped with hash directives, 1115`` () =
+    formatSourceString
+        true
+        """
+namespace X
+
+type UnresolvedAssemblyReference = UnresolvedAssemblyReference of string * AssemblyReference list
+
+#if !NO_EXTENSIONTYPING
+type ResolvedExtensionReference = ResolvedExtensionReference of string * AssemblyReference list * Tainted<ITypeProvider> list
+#endif
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+namespace X
+
+type UnresolvedAssemblyReference = UnresolvedAssemblyReference of string * AssemblyReference list
+
+#if !NO_EXTENSIONTYPING
+type ResolvedExtensionReference =
+    | ResolvedExtensionReference of string * AssemblyReference list * Tainted<ITypeProvider> list
+#endif
+"""
