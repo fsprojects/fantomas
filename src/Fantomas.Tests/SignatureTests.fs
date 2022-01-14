@@ -59,8 +59,7 @@ let ``should not add parens in signature`` () =
     override x.ToString() = sprintf "%s %s" x.Verb x.Path
 
     """
-        { config with
-              MaxFunctionBindingWidth = 120 }
+        { config with MaxFunctionBindingWidth = 120 }
     |> should
         equal
         """type Route =
@@ -96,8 +95,7 @@ let ``should keep the (string option * Node) list type signature`` () =
       NextNodes : (string option * Node) list }
 
     """
-        { config with
-              SemicolonAtEndOfLine = true }
+        { config with SemicolonAtEndOfLine = true }
     |> should
         equal
         """type Node =
@@ -1506,8 +1504,7 @@ and [<CustomEquality>] Bang =
         ///
         override GetHashCode : unit -> int
 """
-        { config with
-              MultilineBlockBracketsOnSameColumn = true }
+        { config with MultilineBlockBracketsOnSameColumn = true }
     |> prepend newline
     |> should
         equal
@@ -1569,13 +1566,13 @@ type Bar =
     member Hello : thing : XLongLongLongLongLongLongLongLong<bool -> 'a, bool -> 'b, bool -> 'c, bool -> 'd, bool -> ('e -> 'f) -> 'g, ('h -> 'i) -> 'j> * item : int list -> LongLongLongLongLongLongLongLongLongLongLongLongLongLongLongLong
 """
         { config with
-              SpaceBeforeUppercaseInvocation = true
-              SpaceBeforeClassConstructor = true
-              SpaceBeforeMember = true
-              SpaceBeforeColon = true
-              SpaceBeforeSemicolon = true
-              AlignFunctionSignatureToIndentation = true
-              AlternativeLongMemberDefinitions = true }
+            SpaceBeforeUppercaseInvocation = true
+            SpaceBeforeClassConstructor = true
+            SpaceBeforeMember = true
+            SpaceBeforeColon = true
+            SpaceBeforeSemicolon = true
+            AlignFunctionSignatureToIndentation = true
+            AlternativeLongMemberDefinitions = true }
     |> prepend newline
     |> should
         equal

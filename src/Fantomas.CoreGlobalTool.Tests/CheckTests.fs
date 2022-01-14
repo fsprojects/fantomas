@@ -24,8 +24,7 @@ let CorrectlyFormatted =
 
 [<Test>]
 let ``formatted files should report exit code 0`` () =
-    use fileFixture =
-        new TemporaryFileCodeSample(CorrectlyFormatted)
+    use fileFixture = new TemporaryFileCodeSample(CorrectlyFormatted)
 
     let { ExitCode = exitCode } = checkCode [ fileFixture.Filename ]
     exitCode |> should equal 0
@@ -38,8 +37,7 @@ let ``invalid files should report exit code 1`` () =
 
 [<Test>]
 let ``files that need formatting should report exit code 99`` () =
-    use fileFixture =
-        new TemporaryFileCodeSample(NeedsFormatting)
+    use fileFixture = new TemporaryFileCodeSample(NeedsFormatting)
 
     let { ExitCode = exitCode } = checkCode [ fileFixture.Filename ]
     exitCode |> should equal 99
@@ -51,8 +49,7 @@ let ``check with Program.fs file`` () =
 let main _ = 0
 """
 
-    use fileFixture =
-        new TemporaryFileCodeSample(codeSnippet, fileName = "Program")
+    use fileFixture = new TemporaryFileCodeSample(codeSnippet, fileName = "Program")
 
     let { ExitCode = exitCode } = checkCode [ fileFixture.Filename ]
     exitCode |> should equal 0
@@ -71,16 +68,14 @@ let ``check with different line endings`` () =
         else
             codeSnippet.Replace("\n", "\r\n")
 
-    use fileFixture =
-        new TemporaryFileCodeSample(snippetWithOtherLineEndings)
+    use fileFixture = new TemporaryFileCodeSample(snippetWithOtherLineEndings)
 
     let { ExitCode = exitCode } = checkCode [ fileFixture.Filename ]
     exitCode |> should equal 0
 
 [<Test>]
 let ``check with multiple files`` () =
-    use fileFixtureOne =
-        new TemporaryFileCodeSample("let a =  0")
+    use fileFixtureOne = new TemporaryFileCodeSample("let a =  0")
 
     use fileFixtureTwo = new TemporaryFileCodeSample("let b = 1")
 
@@ -97,8 +92,7 @@ let ``check with multiple files`` () =
 
 [<Test>]
 let ``check with file and folder`` () =
-    use fileFixtureOne =
-        new TemporaryFileCodeSample("let a =  0", subFolder = "sub")
+    use fileFixtureOne = new TemporaryFileCodeSample("let a =  0", subFolder = "sub")
 
     use fileFixtureTwo = new TemporaryFileCodeSample("let b = 1")
 

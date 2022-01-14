@@ -107,8 +107,8 @@ let factors number =
     {2L .. number / 2L}
     |> Seq.filter (fun x -> number % x = 0L)"""
         { config with
-              MaxInfixOperatorExpression = 65
-              MaxFunctionBindingWidth = 65 }
+            MaxInfixOperatorExpression = 65
+            MaxFunctionBindingWidth = 65 }
     |> prepend newline
     |> should
         equal
@@ -958,8 +958,7 @@ let ``let + let + let bang + if/then/else in ce`` () =
             return ()
     }
 """
-        { config with
-              MaxIfThenElseShortWidth = 75 }
+        { config with MaxIfThenElseShortWidth = 75 }
     |> prepend newline
     |> should
         equal
@@ -1585,10 +1584,10 @@ let ``new line between let and let bang, 879`` () =
         }
 """
         { config with
-              SpaceBeforeUppercaseInvocation = true
-              IndentSize = 2
-              SpaceAroundDelimiter = false
-              MultilineBlockBracketsOnSameColumn = true }
+            SpaceBeforeUppercaseInvocation = true
+            IndentSize = 2
+            SpaceAroundDelimiter = false
+            MultilineBlockBracketsOnSameColumn = true }
     |> prepend newline
     |> should
         equal
@@ -1911,8 +1910,7 @@ let create: Highlighter =
                 |> List.ofSeq
                 |> FormattedText.fromList
 """
-        { config with
-              MaxIfThenElseShortWidth = 80 }
+        { config with MaxIfThenElseShortWidth = 80 }
     |> prepend newline
     |> should
         equal

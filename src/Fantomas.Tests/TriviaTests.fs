@@ -6,34 +6,29 @@ open Fantomas.Tests.TestHelper
 open Fantomas.TriviaTypes
 
 let private collectTrivia =
-    Trivia.collectTrivia
-        (fun (sl, sc) (el, ec) ->
-            FSharp.Compiler.Text.Range.mkRange
-                "TriviaTests"
-                (FSharp.Compiler.Text.Position.mkPos sl sc)
-                (FSharp.Compiler.Text.Position.mkPos el ec))
+    Trivia.collectTrivia (fun (sl, sc) (el, ec) ->
+        FSharp.Compiler.Text.Range.mkRange
+            "TriviaTests"
+            (FSharp.Compiler.Text.Position.mkPos sl sc)
+            (FSharp.Compiler.Text.Position.mkPos el ec))
 
 let private toTrivia source =
     let astWithDefines = parse false source |> Array.toList
 
     astWithDefines
-    |> List.map
-        (fun (ast, defines, hashTokens) ->
-            let tokens =
-                TokenParser.tokenize defines hashTokens source
+    |> List.map (fun (ast, defines, hashTokens) ->
+        let tokens = TokenParser.tokenize defines hashTokens source
 
-            collectTrivia tokens ast)
+        collectTrivia tokens ast)
 
 let private toTriviaWithDefines source =
     let astWithDefines = parse false source |> Array.toList
 
     astWithDefines
-    |> List.map
-        (fun (ast, defines, hashTokens) ->
-            let tokens =
-                TokenParser.tokenize defines hashTokens source
+    |> List.map (fun (ast, defines, hashTokens) ->
+        let tokens = TokenParser.tokenize defines hashTokens source
 
-            defines, collectTrivia tokens ast)
+        defines, collectTrivia tokens ast)
     |> Map.ofList
 
 [<Test>]
@@ -376,8 +371,7 @@ let ``code in non-active defines should be returned in trivia`` () =
 let foo = 42
 #endif"""
 
-    let trivia =
-        toTriviaWithDefines source |> Map.find []
+    let trivia = toTriviaWithDefines source |> Map.find []
 
     match trivia with
     | [ { Type = MainNode LongIdent_
@@ -413,8 +407,7 @@ content
 with empty lines"
         |> String.normalizeNewLine
 
-    let source =
-        sprintf "let x = \"\"\"%s\"\"\"" multilineString
+    let source = sprintf "let x = \"\"\"%s\"\"\"" multilineString
 
     let trivia = toTrivia source |> List.head
 
@@ -500,8 +493,7 @@ let x =
     ()
 """
 
-    let trivia =
-        toTriviaWithDefines source |> Map.find []
+    let trivia = toTriviaWithDefines source |> Map.find []
 
     printfn "%A" trivia
 

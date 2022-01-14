@@ -323,8 +323,7 @@ let a =
       // bar
       B = 7 }
 """
-        { config with
-              SpaceAroundDelimiter = false }
+        { config with SpaceAroundDelimiter = false }
     |> prepend newline
     |> should
         equal
@@ -404,8 +403,7 @@ type IlxGenOptions =
       alwaysCallVirt: bool}
 
 """
-        { config with
-              SemicolonAtEndOfLine = true }
+        { config with SemicolonAtEndOfLine = true }
     |> prepend newline
     |> should
         equal
@@ -804,8 +802,7 @@ type substring =
                 min strA.Length strB.Length)
 #endif
 """
-        { config with
-              MaxInfixOperatorExpression = 60 }
+        { config with MaxInfixOperatorExpression = 60 }
     |> should
         equal
         """(*
@@ -1314,18 +1311,18 @@ open Something
 //// The end
 """
         { config with
-              SpaceBeforeUppercaseInvocation = true
-              SpaceBeforeClassConstructor = true
-              SpaceBeforeMember = true
-              SpaceBeforeColon = true
-              SpaceBeforeSemicolon = true
-              MultilineBlockBracketsOnSameColumn = true
-              NewlineBetweenTypeDefinitionAndMembers = true
-              KeepIfThenInSameLine = true
-              AlignFunctionSignatureToIndentation = true
-              AlternativeLongMemberDefinitions = true
-              MultiLineLambdaClosingNewline = true
-              KeepIndentInBranch = true }
+            SpaceBeforeUppercaseInvocation = true
+            SpaceBeforeClassConstructor = true
+            SpaceBeforeMember = true
+            SpaceBeforeColon = true
+            SpaceBeforeSemicolon = true
+            MultilineBlockBracketsOnSameColumn = true
+            NewlineBetweenTypeDefinitionAndMembers = true
+            KeepIfThenInSameLine = true
+            AlignFunctionSignatureToIndentation = true
+            AlternativeLongMemberDefinitions = true
+            MultiLineLambdaClosingNewline = true
+            KeepIndentInBranch = true }
     |> prepend newline
     |> should
         equal

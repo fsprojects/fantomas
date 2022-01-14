@@ -615,8 +615,7 @@ SomeFunction(name = SearchForName(
     "baaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaar"
 )).ChainedFunctionCall()
 """
-        { config with
-              SpaceBeforeUppercaseInvocation = true }
+        { config with SpaceBeforeUppercaseInvocation = true }
     |> prepend newline
     |> should
         equal
@@ -657,9 +656,9 @@ type IWebHostBuilderExtensions() =
         )
 """
         { config with
-              MaxLineLength = 100
-              SpaceBeforeUppercaseInvocation = true
-              MultiLineLambdaClosingNewline = true }
+            MaxLineLength = 100
+            SpaceBeforeUppercaseInvocation = true
+            MultiLineLambdaClosingNewline = true }
     |> prepend newline
     |> should
         equal
@@ -703,8 +702,7 @@ Log.Logger <-
         .WriteTo.Console()
         .CreateLogger()
 """
-        { config with
-              SpaceBeforeUppercaseInvocation = true }
+        { config with SpaceBeforeUppercaseInvocation = true }
     |> prepend newline
     |> should
         equal
@@ -727,8 +725,7 @@ Log.Logger <-
         .WriteTo.Console()
         .CreateLogger()
 """
-        { config with
-              SpaceBeforeUppercaseInvocation = true }
+        { config with SpaceBeforeUppercaseInvocation = true }
     |> prepend newline
     |> should
         equal
@@ -753,19 +750,19 @@ let blah =
                 })
 """
         { config with
-              MaxLineLength = 100
-              SpaceBeforeUppercaseInvocation = true
-              SpaceBeforeClassConstructor = true
-              SpaceBeforeMember = true
-              SpaceBeforeColon = true
-              SpaceBeforeSemicolon = true
-              IndentOnTryWith = true
-              MultilineBlockBracketsOnSameColumn = true
-              NewlineBetweenTypeDefinitionAndMembers = true
-              AlignFunctionSignatureToIndentation = true
-              AlternativeLongMemberDefinitions = true
-              MultiLineLambdaClosingNewline = true
-              DisableElmishSyntax = true }
+            MaxLineLength = 100
+            SpaceBeforeUppercaseInvocation = true
+            SpaceBeforeClassConstructor = true
+            SpaceBeforeMember = true
+            SpaceBeforeColon = true
+            SpaceBeforeSemicolon = true
+            IndentOnTryWith = true
+            MultilineBlockBracketsOnSameColumn = true
+            NewlineBetweenTypeDefinitionAndMembers = true
+            AlignFunctionSignatureToIndentation = true
+            AlternativeLongMemberDefinitions = true
+            MultiLineLambdaClosingNewline = true
+            DisableElmishSyntax = true }
     |> prepend newline
     |> should
         equal
@@ -793,19 +790,19 @@ let blah =
                 })
 """
         { config with
-              MaxLineLength = 100
-              SpaceBeforeUppercaseInvocation = true
-              SpaceBeforeClassConstructor = true
-              SpaceBeforeMember = true
-              SpaceBeforeColon = true
-              SpaceBeforeSemicolon = true
-              IndentOnTryWith = true
-              MultilineBlockBracketsOnSameColumn = true
-              NewlineBetweenTypeDefinitionAndMembers = true
-              AlignFunctionSignatureToIndentation = true
-              AlternativeLongMemberDefinitions = true
-              MultiLineLambdaClosingNewline = true
-              DisableElmishSyntax = true }
+            MaxLineLength = 100
+            SpaceBeforeUppercaseInvocation = true
+            SpaceBeforeClassConstructor = true
+            SpaceBeforeMember = true
+            SpaceBeforeColon = true
+            SpaceBeforeSemicolon = true
+            IndentOnTryWith = true
+            MultilineBlockBracketsOnSameColumn = true
+            NewlineBetweenTypeDefinitionAndMembers = true
+            AlignFunctionSignatureToIndentation = true
+            AlternativeLongMemberDefinitions = true
+            MultiLineLambdaClosingNewline = true
+            DisableElmishSyntax = true }
     |> prepend newline
     |> should
         equal
@@ -831,8 +828,8 @@ let x =
                             .Enrich.WithProperty ("application", context.HostingEnvironment.ApplicationName)
 """
         { config with
-              SpaceBeforeUppercaseInvocation = true
-              SpaceBeforeMember = true }
+            SpaceBeforeUppercaseInvocation = true
+            SpaceBeforeMember = true }
     |> prepend newline
     |> should
         equal
@@ -854,8 +851,8 @@ let x =
                             .Enrich.WithProperty ("application", context.HostingEnvironment.ApplicationName)
 """
         { config with
-              SpaceBeforeUppercaseInvocation = true
-              SpaceBeforeMember = true }
+            SpaceBeforeUppercaseInvocation = true
+            SpaceBeforeMember = true }
     |> prepend newline
     |> should
         equal
@@ -878,8 +875,8 @@ let blah =
               Sdadsadasdasdas = "sdsadsadasdsa" })
 """
         { config with
-              SpaceBeforeUppercaseInvocation = true
-              SpaceBeforeMember = true }
+            SpaceBeforeUppercaseInvocation = true
+            SpaceBeforeMember = true }
     |> prepend newline
     |> should
         equal
@@ -1035,8 +1032,7 @@ services
     .AddIdentityCore(fun options -> ())
     .AddUserManager<UserManager<web.ApplicationUser>>()
 """
-        { config with
-              MaxDotGetExpressionWidth = 200 }
+        { config with MaxDotGetExpressionWidth = 200 }
     |> prepend newline
     |> should
         equal
@@ -1057,15 +1053,15 @@ module Foo =
         ()
 """
         { config with
-              MaxLineLength = 100
-              SpaceBeforeUppercaseInvocation = true
-              SpaceBeforeClassConstructor = true
-              SpaceBeforeMember = true
-              SpaceBeforeColon = true
-              SpaceBeforeSemicolon = true
-              MultilineBlockBracketsOnSameColumn = true
-              AlignFunctionSignatureToIndentation = true
-              MultiLineLambdaClosingNewline = true }
+            MaxLineLength = 100
+            SpaceBeforeUppercaseInvocation = true
+            SpaceBeforeClassConstructor = true
+            SpaceBeforeMember = true
+            SpaceBeforeColon = true
+            SpaceBeforeSemicolon = true
+            MultilineBlockBracketsOnSameColumn = true
+            AlignFunctionSignatureToIndentation = true
+            MultiLineLambdaClosingNewline = true }
     |> prepend newline
     |> should
         equal
@@ -1097,15 +1093,15 @@ module Foo =
         ()
 """
         { config with
-              MaxLineLength = 80
-              SpaceBeforeUppercaseInvocation = true
-              SpaceBeforeClassConstructor = true
-              SpaceBeforeMember = true
-              SpaceBeforeColon = true
-              SpaceBeforeSemicolon = true
-              MultilineBlockBracketsOnSameColumn = true
-              AlignFunctionSignatureToIndentation = true
-              MultiLineLambdaClosingNewline = true }
+            MaxLineLength = 80
+            SpaceBeforeUppercaseInvocation = true
+            SpaceBeforeClassConstructor = true
+            SpaceBeforeMember = true
+            SpaceBeforeColon = true
+            SpaceBeforeSemicolon = true
+            MultilineBlockBracketsOnSameColumn = true
+            AlignFunctionSignatureToIndentation = true
+            MultiLineLambdaClosingNewline = true }
     |> prepend newline
     |> should
         equal

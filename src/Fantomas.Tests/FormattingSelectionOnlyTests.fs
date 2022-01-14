@@ -96,8 +96,8 @@ let source = "
     Multiple9x9 ();;"
 """
         { config with
-              MaxValueBindingWidth = 120
-              MaxRecordWidth = 50 }
+            MaxValueBindingWidth = 120
+            MaxRecordWidth = 50 }
     |> should equal """let config = { FormatConfig.Default with IndentSpaceNum = 2 }"""
 
 [<Test>]
@@ -140,8 +140,7 @@ type T () =
   let items = []
   override x.Reorder () =
         items |> List.iter ignore"""
-        { config with
-              MaxFunctionBindingWidth = 120 }
+        { config with MaxFunctionBindingWidth = 120 }
     |> should equal """  override x.Reorder() = items |> List.iter ignore"""
 
 [<Test>]
@@ -175,8 +174,7 @@ type Folder(pathIn : string) =
 and File(filename: string, containingFolder: Folder) =
    member __.Name = filename
    member __.ContainingFolder = containingFolder"""
-        { config with
-              MaxValueBindingWidth = 120 }
+        { config with MaxValueBindingWidth = 120 }
     |> prepend newline
     |> should
         equal

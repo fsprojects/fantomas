@@ -12,8 +12,7 @@ let Source = "let  foo =   47"
 let ``ignore all fs files`` () =
     let fileName = "ToBeIgnored"
 
-    use inputFixture =
-        new TemporaryFileCodeSample(Source, fileName = fileName)
+    use inputFixture = new TemporaryFileCodeSample(Source, fileName = fileName)
 
     use ignoreFixture = new FantomasIgnoreFile("*.fs")
     use outputFixture = new OutputFile()
@@ -31,8 +30,7 @@ let ``ignore all fs files`` () =
 let ``ignore specific file`` () =
     let fileName = "A"
 
-    use inputFixture =
-        new TemporaryFileCodeSample(Source, fileName = fileName)
+    use inputFixture = new TemporaryFileCodeSample(Source, fileName = fileName)
 
     use ignoreFixture = new FantomasIgnoreFile("A.fs")
 
@@ -53,8 +51,7 @@ let ``ignore specific file in subfolder`` () =
     use inputFixture =
         new TemporaryFileCodeSample(Source, fileName = fileName, subFolders = subFolders)
 
-    use ignoreFixture =
-        new FantomasIgnoreFile(sprintf "%s/%s/A.fs" sub1 sub2)
+    use ignoreFixture = new FantomasIgnoreFile(sprintf "%s/%s/A.fs" sub1 sub2)
 
     let { ExitCode = exitCode; Output = output } =
         runFantomasTool (sprintf "--recurse --check .%c%s" Path.DirectorySeparatorChar sub1)
@@ -65,8 +62,7 @@ let ``ignore specific file in subfolder`` () =
 let ``don't ignore other files`` () =
     let fileName = "B"
 
-    use inputFixture =
-        new TemporaryFileCodeSample(Source, fileName = fileName)
+    use inputFixture = new TemporaryFileCodeSample(Source, fileName = fileName)
 
     use ignoreFixture = new FantomasIgnoreFile("A.fs")
 
@@ -99,8 +95,7 @@ let ``ignore file in folder`` () =
 let ``ignore file while checking`` () =
     let fileName = "A"
 
-    use inputFixture =
-        new TemporaryFileCodeSample(Source, fileName = fileName)
+    use inputFixture = new TemporaryFileCodeSample(Source, fileName = fileName)
 
     use ignoreFixture = new FantomasIgnoreFile("A.fs")
 

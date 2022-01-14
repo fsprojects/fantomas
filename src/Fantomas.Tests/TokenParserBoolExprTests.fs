@@ -148,11 +148,10 @@ let ``BoolExpr SAT solve`` () =
 let ``BoolExpr merge`` () =
     let getSource es =
         es
-        |> Seq.map
-            (fun e ->
-                (sprintf "#if %s" e)
-                + System.Environment.NewLine
-                + "#endif")
+        |> Seq.map (fun e ->
+            (sprintf "#if %s" e)
+            + System.Environment.NewLine
+            + "#endif")
         |> String.concat System.Environment.NewLine
 
     let test e x =
@@ -190,9 +189,9 @@ let ``BoolExpr merge`` () =
 
 let private verboseConf =
     { Config.Verbose with
-          MaxTest = 500
-          EndSize = 20
-          Runner = NUnitRunner() }
+        MaxTest = 500
+        EndSize = 20
+        Runner = NUnitRunner() }
 
 let rec internal boolExprToString =
     function
@@ -214,19 +213,18 @@ let rec internal boolExprToString =
 
 let internal boolExprsToSource es =
     es
-    |> Seq.mapi
-        (fun i e ->
-            sprintf
-                """#if %s
+    |> Seq.mapi (fun i e ->
+        sprintf
+            """#if %s
 let x%i = %i
 #else
 let x%i_else = %i
 #endif"""
-                (boolExprToString e)
-                i
-                i
-                i
-                i)
+            (boolExprToString e)
+            i
+            i
+            i
+            i)
     |> String.concat System.Environment.NewLine
     |> fun x -> x + System.Environment.NewLine
 
@@ -248,8 +246,7 @@ type BoolExprGenerator =
 [<Test>]
 let ``hash if expression parsing property`` () =
     Check.One(
-        { verboseConf with
-              Arbitrary = [ typeof<BoolExprGenerator> ] },
+        { verboseConf with Arbitrary = [ typeof<BoolExprGenerator> ] },
         (fun e ->
             let source = boolExprsToSource [ e ]
 
@@ -261,8 +258,7 @@ let ``hash if expression parsing property`` () =
 [<Test>]
 let ``hash if expression normalize property`` () =
     Check.One(
-        { verboseConf with
-              Arbitrary = [ typeof<BoolExprGenerator> ] },
+        { verboseConf with Arbitrary = [ typeof<BoolExprGenerator> ] },
         (fun e ->
             let checkNormalize =
                 function
@@ -289,8 +285,7 @@ let isSatisfiable e =
 [<Test>]
 let ``hash ifs optimize defines property`` () =
     Check.One(
-        { verboseConf with
-              Arbitrary = [ typeof<BoolExprGenerator> ] },
+        { verboseConf with Arbitrary = [ typeof<BoolExprGenerator> ] },
         (fun es ->
             let source = boolExprsToSource es
             let _, hashTokens = getDefines source
@@ -301,31 +296,28 @@ let ``hash ifs optimize defines property`` () =
                 let s = set ds
 
                 allDefines
-                |> List.map
-                    (fun x ->
-                        if Set.contains x s then
-                            BoolExpr.Positive x
-                        else
-                            BoolExpr.Negative x)
+                |> List.map (fun x ->
+                    if Set.contains x s then
+                        BoolExpr.Positive x
+                    else
+                        BoolExpr.Negative x)
 
             es
             |> List.collect (fun e -> [ e; BoolExpr.Not e ])
             |> List.filter isSatisfiable
-            |> List.forall
-                (fun e ->
-                    defines
-                    |> List.exists
-                        (fun ds ->
-                            BoolExpr.toFlatCNF e
-                            |> fun cnf -> BoolExpr.eval cnf (definesToLiterals ds))))
+            |> List.forall (fun e ->
+                defines
+                |> List.exists (fun ds ->
+                    BoolExpr.toFlatCNF e
+                    |> fun cnf -> BoolExpr.eval cnf (definesToLiterals ds))))
     )
 
 [<Test>]
 let ``hash ifs source format property`` () =
     Check.One(
         { verboseConf with
-              MaxTest = 100
-              Arbitrary = [ typeof<BoolExprGenerator> ] },
+            MaxTest = 100
+            Arbitrary = [ typeof<BoolExprGenerator> ] },
         (fun (es: list<_>) ->
             (es
              |> List.forall (fun e -> isSatisfiable e && isSatisfiable (BoolExpr.Not e)))

@@ -4,9 +4,7 @@ open NUnit.Framework
 open FsUnit
 open Fantomas.Tests.TestHelper
 
-let config =
-    { config with
-          DisableElmishSyntax = true }
+let config = { config with DisableElmishSyntax = true }
 
 [<Test>]
 let ``function call with two list argument`` () =
@@ -137,8 +135,8 @@ type Event =
                                 (Identifier.Read >> Encode.guid) id |]
 """
         { config with
-              SpaceBeforeColon = true
-              MultilineBlockBracketsOnSameColumn = true }
+            SpaceBeforeColon = true
+            MultilineBlockBracketsOnSameColumn = true }
     |> prepend newline
     |> should
         equal
@@ -193,8 +191,8 @@ let counter = React.functionComponent(fun () ->
     ])
 """
         { config with
-              MaxElmishWidth = 30
-              SingleArgumentWebMode = true }
+            MaxElmishWidth = 30
+            SingleArgumentWebMode = true }
     |> prepend newline
     |> should
         equal

@@ -21,8 +21,8 @@ exception BuildException of string*list<string>
   with
     override x.ToString() = x.Data0.ToString() + "\r\n" + (separated "\r\n" x.Data1)"""
         { config with
-              MaxInfixOperatorExpression = 60
-              MaxFunctionBindingWidth = 120 }
+            MaxInfixOperatorExpression = 60
+            MaxFunctionBindingWidth = 120 }
     |> should
         equal
         """/// An exception type to signal build errors.
@@ -115,8 +115,7 @@ type Test() =
     abstract AbstractMethod<'a, 'b> : 'a * 'b -> unit
     override this.AbstractMethod<'a, 'b>(x:'a, y:'b) =
          printfn "%A, %A" x y"""
-        { config with
-              MaxFunctionBindingWidth = 120 }
+        { config with MaxFunctionBindingWidth = 120 }
     |> prepend newline
     |> should
         equal
@@ -166,8 +165,7 @@ type public MyClass<'a> public (x, y) as this =
     member self.Prop2 with get() = z
                       and set(a) = z <- a
     member self.Method(a,b) = x + y + z + a + b"""
-        { config with
-              MaxFunctionBindingWidth = 120 }
+        { config with MaxFunctionBindingWidth = 120 }
     |> prepend newline
     |> should
         equal
@@ -279,8 +277,7 @@ let ``optional type extensions`` () =
 type System.Int32 with
     member this.FromString( s : string ) =
        System.Int32.Parse(s)"""
-        { config with
-              MaxFunctionBindingWidth = 120 }
+        { config with MaxFunctionBindingWidth = 120 }
     |> prepend newline
     |> should
         equal
@@ -415,8 +412,7 @@ type SpeedingTicket() =
 let CalculateFine (ticket : SpeedingTicket) =
     let delta = ticket.GetMPHOver(limit = 55, speed = 70)
     if delta < 20 then 50.0 else 100.0"""
-        { config with
-              MaxValueBindingWidth = 120 }
+        { config with MaxValueBindingWidth = 120 }
     |> prepend newline
     |> should
         equal
@@ -655,8 +651,7 @@ let ``should keep the ? in optional parameters`` () =
         shellExec(Shell.GetParams(cmd, ?args = args))
 
     """
-        { config with
-              MaxFunctionBindingWidth = 120 }
+        { config with MaxFunctionBindingWidth = 120 }
     |> should
         equal
         """type Shell() =
@@ -695,8 +690,7 @@ let ``should keep brackets around type signatures`` () =
 let user_printers = ref([] : (string * (term -> unit)) list)
 let the_interface = ref([] : (string * (string * hol_type)) list)
     """
-        { config with
-              MaxValueBindingWidth = 50 }
+        { config with MaxValueBindingWidth = 50 }
     |> prepend newline
     |> should
         equal
@@ -1086,8 +1080,8 @@ let ``operator in words should not print to symbol, 409`` () =
         """type T() =
     static member op_LessThan(a, b) = a < b"""
         { config with
-              SpaceBeforeMember = true
-              MaxFunctionBindingWidth = 120 }
+            SpaceBeforeMember = true
+            MaxFunctionBindingWidth = 120 }
     |> should
         equal
         """type T() =
@@ -1108,8 +1102,7 @@ let ``operator in words in member`` () =
         false
         """type A() =
     member this.B(op_Inequality : string) = ()"""
-        { config with
-              MaxFunctionBindingWidth = 120 }
+        { config with MaxFunctionBindingWidth = 120 }
     |> should
         equal
         """type A() =
@@ -1130,8 +1123,7 @@ type TestExtensions =
     [<Extension>]
     static member SomeOtherExtension(x) = ""
 """
-        { config with
-              MaxValueBindingWidth = 120 }
+        { config with MaxValueBindingWidth = 120 }
     |> prepend newline
     |> should
         equal
@@ -1332,8 +1324,7 @@ let ``long type members should have parameters on separate lines, 719`` () =
         """type C () =
     member __.LongMethodWithLotsOfParameters(aVeryLongType: AVeryLongTypeThatYouNeedToUse, aSecondVeryLongType: AVeryLongTypeThatYouNeedToUse, aThirdVeryLongType: AVeryLongTypeThatYouNeedToUse) =  aVeryLongType aSecondVeryLongType aThirdVeryLongType
 """
-        { config with
-              SpaceBeforeClassConstructor = true }
+        { config with SpaceBeforeClassConstructor = true }
     |> prepend newline
     |> should
         equal
@@ -1355,8 +1346,7 @@ let ``long type member with return type should have parameters on separate lines
         """type C () =
     member __.LongMethodWithLotsOfParameters(aVeryLongType: AVeryLongTypeThatYouNeedToUse, aSecondVeryLongType: AVeryLongTypeThatYouNeedToUse, aThirdVeryLongType: AVeryLongTypeThatYouNeedToUse) : int =  aVeryLongType aSecondVeryLongType aThirdVeryLongType
 """
-        { config with
-              SpaceBeforeClassConstructor = true }
+        { config with SpaceBeforeClassConstructor = true }
     |> prepend newline
     |> should
         equal
@@ -1378,8 +1368,7 @@ let ``long constructors should have parameters on separate lines`` () =
         """type C (aVeryLongType : AVeryLongTypeThatYouNeedToUse, aSecondVeryLongType : AVeryLongTypeThatYouNeedToUse, aThirdVeryLongType : AVeryLongTypeThatYouNeedToUse) =
     member this.X = 42
 """
-        { config with
-              SpaceBeforeClassConstructor = true }
+        { config with SpaceBeforeClassConstructor = true }
     |> prepend newline
     |> should
         equal
@@ -1426,8 +1415,8 @@ let ``keep correct indentation after multiline member definition, 845`` () =
         printfn "b"
 """
         { config with
-              MaxLineLength = 80
-              MaxFunctionBindingWidth = 120 }
+            MaxLineLength = 80
+            MaxFunctionBindingWidth = 120 }
     |> prepend newline
     |> should
         equal
@@ -1457,8 +1446,8 @@ let ``keep correct indentation after multiline typed member definition`` () =
         printfn "b"
 """
         { config with
-              MaxLineLength = 80
-              MaxFunctionBindingWidth = 120 }
+            MaxLineLength = 80
+            MaxFunctionBindingWidth = 120 }
     |> prepend newline
     |> should
         equal
@@ -1509,8 +1498,7 @@ let ``split multiple parameters over multiple lines and have correct indentation
 
     static member SomeOtherMember () = printfn "c"
 """
-        { config with
-              MaxFunctionBindingWidth = 120 }
+        { config with MaxFunctionBindingWidth = 120 }
     |> prepend newline
     |> should
         equal
@@ -1646,9 +1634,9 @@ type C() =
         aVeryLongType + aSecondVeryLongType + aThirdVeryLongType
 """
         { config with
-              MaxLineLength = 80
-              SpaceBeforeColon = true
-              MaxInfixOperatorExpression = 80 }
+            MaxLineLength = 80
+            SpaceBeforeColon = true
+            MaxInfixOperatorExpression = 80 }
     |> prepend newline
     |> should
         equal
@@ -1673,9 +1661,9 @@ type C() =
         aVeryLongType + aSecondVeryLongType + aThirdVeryLongType
 """
         { config with
-              MaxLineLength = 80
-              SpaceBeforeColon = true
-              MaxInfixOperatorExpression = 80 }
+            MaxLineLength = 80
+            SpaceBeforeColon = true
+            MaxInfixOperatorExpression = 80 }
     |> prepend newline
     |> should
         equal
@@ -1699,8 +1687,8 @@ type VersionMismatchDuringDeserializationException(message: string, innerExcepti
     inherit System.Exception(message, innerException)
 """
         { config with
-              MaxLineLength = 80
-              SpaceBeforeColon = true }
+            MaxLineLength = 80
+            SpaceBeforeColon = true }
     |> prepend newline
     |> should
         equal
@@ -1954,9 +1942,9 @@ type C () =
         someImplementation aVeryLongType aSecondVeryLongType aThirdVeryLongType
 """
         { config with
-              SpaceBeforeClassConstructor = true
-              SpaceBeforeColon = true
-              AlternativeLongMemberDefinitions = true }
+            SpaceBeforeClassConstructor = true
+            SpaceBeforeColon = true
+            AlternativeLongMemberDefinitions = true }
     |> prepend newline
     |> should
         equal
@@ -1982,9 +1970,9 @@ type C () =
         someImplementation aVeryLongType aSecondVeryLongType aThirdVeryLongType
 """
         { config with
-              SpaceBeforeClassConstructor = true
-              SpaceBeforeColon = true
-              AlternativeLongMemberDefinitions = true }
+            SpaceBeforeClassConstructor = true
+            SpaceBeforeColon = true
+            AlternativeLongMemberDefinitions = true }
     |> prepend newline
     |> should
         equal
@@ -2109,8 +2097,8 @@ type C(aVeryLongType: AVeryLongTypeThatYouNeedToUse,
     end
 """
         { config with
-              AlternativeLongMemberDefinitions = true
-              SpaceBeforeColon = true }
+            AlternativeLongMemberDefinitions = true
+            SpaceBeforeColon = true }
     |> prepend newline
     |> should
         equal
@@ -2138,8 +2126,8 @@ type C internal (aVeryLongType: AVeryLongTypeThatYouNeedToUse,
     end
 """
         { config with
-              AlternativeLongMemberDefinitions = true
-              SpaceBeforeColon = true }
+            AlternativeLongMemberDefinitions = true
+            SpaceBeforeColon = true }
     |> prepend newline
     |> should
         equal
@@ -2754,17 +2742,17 @@ and [<CustomEquality ; NoComparison>] Bar<'context, 'a> =
                 }
 """
         { config with
-              MaxLineLength = 100
-              SpaceBeforeUppercaseInvocation = true
-              SpaceBeforeClassConstructor = true
-              SpaceBeforeMember = true
-              SpaceBeforeColon = true
-              SpaceBeforeSemicolon = true
-              MultilineBlockBracketsOnSameColumn = true
-              KeepIfThenInSameLine = true
-              AlignFunctionSignatureToIndentation = true
-              AlternativeLongMemberDefinitions = true
-              MultiLineLambdaClosingNewline = true }
+            MaxLineLength = 100
+            SpaceBeforeUppercaseInvocation = true
+            SpaceBeforeClassConstructor = true
+            SpaceBeforeMember = true
+            SpaceBeforeColon = true
+            SpaceBeforeSemicolon = true
+            MultilineBlockBracketsOnSameColumn = true
+            KeepIfThenInSameLine = true
+            AlignFunctionSignatureToIndentation = true
+            AlternativeLongMemberDefinitions = true
+            MultiLineLambdaClosingNewline = true }
     |> prepend newline
     |> should
         equal
@@ -2837,8 +2825,7 @@ let ``a huge amount of type declarations`` () =
 %s
         """
 
-    let formatted =
-        formatSourceString false sourceCode config
+    let formatted = formatSourceString false sourceCode config
 
     // the result is less important here,
     // the point of this unit test is to verify if a stackoverflow problem at genModuleDeclList has been resolved.
@@ -2855,8 +2842,7 @@ let ``a huge amount of type declarations, signature file`` () =
 %s
         """
 
-    let formatted =
-        formatSourceString true sourceCode config
+    let formatted = formatSourceString true sourceCode config
 
     formatted |> should not' (equal EmptyString)
 
@@ -2873,8 +2859,7 @@ type FooBarry =
 %s
 """
 
-    let formatted =
-        formatSourceString false sourceCode config
+    let formatted = formatSourceString false sourceCode config
 
     formatted |> should not' (equal EmptyString)
 
@@ -2891,7 +2876,6 @@ let leBarry =
 %s }
 """
 
-    let formatted =
-        formatSourceString false sourceCode config
+    let formatted = formatSourceString false sourceCode config
 
     formatted |> should not' (equal EmptyString)

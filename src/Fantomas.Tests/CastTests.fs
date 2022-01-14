@@ -15,13 +15,13 @@ longMethodName
 :?> List<bool>
 """
         { config with
-              MaxLineLength = 30
-              SpaceBeforeUppercaseInvocation = true
-              SpaceBeforeColon = true
-              SpaceBeforeSemicolon = true
-              AlignFunctionSignatureToIndentation = true
-              AlternativeLongMemberDefinitions = true
-              DisableElmishSyntax = true }
+            MaxLineLength = 30
+            SpaceBeforeUppercaseInvocation = true
+            SpaceBeforeColon = true
+            SpaceBeforeSemicolon = true
+            AlignFunctionSignatureToIndentation = true
+            AlternativeLongMemberDefinitions = true
+            DisableElmishSyntax = true }
     |> prepend newline
     |> should
         equal
@@ -43,13 +43,13 @@ longMethodName
 :> List<bool>
 """
         { config with
-              MaxLineLength = 30
-              SpaceBeforeUppercaseInvocation = true
-              SpaceBeforeColon = true
-              SpaceBeforeSemicolon = true
-              AlignFunctionSignatureToIndentation = true
-              AlternativeLongMemberDefinitions = true
-              DisableElmishSyntax = true }
+            MaxLineLength = 30
+            SpaceBeforeUppercaseInvocation = true
+            SpaceBeforeColon = true
+            SpaceBeforeSemicolon = true
+            AlignFunctionSignatureToIndentation = true
+            AlternativeLongMemberDefinitions = true
+            DisableElmishSyntax = true }
     |> prepend newline
     |> should
         equal
@@ -151,9 +151,9 @@ module Foo =
         }
 """
         { config with
-              SpaceBeforeColon = true
-              SpaceBeforeSemicolon = true
-              IndentOnTryWith = true }
+            SpaceBeforeColon = true
+            SpaceBeforeSemicolon = true
+            IndentOnTryWith = true }
     |> prepend newline
     |> should
         equal
@@ -188,9 +188,9 @@ module Foo =
         }
 """
         { config with
-              SpaceBeforeColon = true
-              SpaceBeforeSemicolon = true
-              IndentOnTryWith = true }
+            SpaceBeforeColon = true
+            SpaceBeforeSemicolon = true
+            IndentOnTryWith = true }
     |> prepend newline
     |> should
         equal

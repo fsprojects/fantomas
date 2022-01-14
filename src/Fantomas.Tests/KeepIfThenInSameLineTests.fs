@@ -6,9 +6,9 @@ open Fantomas.Tests.TestHelper
 
 let config =
     { config with
-          KeepIfThenInSameLine = true
-          MaxLineLength = 80
-          MaxIfThenElseShortWidth = 0 }
+        KeepIfThenInSameLine = true
+        MaxLineLength = 80
+        MaxIfThenElseShortWidth = 0 }
 
 [<Test>]
 let ``if only, 825`` () =
@@ -162,9 +162,7 @@ else
 
 [<Test>]
 let ``MaxIfThenElseShortWidth not exceeded, 825`` () =
-    let c =
-        { config with
-              MaxIfThenElseShortWidth = 100 }
+    let c = { config with MaxIfThenElseShortWidth = 100 }
 
     formatSourceString
         false

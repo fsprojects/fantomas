@@ -29,9 +29,9 @@ let x : F = { new F with member __.G _ = Map.empty }
 x.G[].TryFind 3
 """
         { config with
-              SpaceAfterComma = false
-              SpaceAfterSemicolon = false
-              SpaceAroundDelimiter = false }
+            SpaceAfterComma = false
+            SpaceAfterSemicolon = false
+            SpaceAroundDelimiter = false }
     |> prepend newline
     |> should
         equal

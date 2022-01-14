@@ -16,8 +16,7 @@ let UnformattedCode = "let a =   9"
 let ``correctly formatted file should not be written, 1984`` () =
     let fileName = "A"
 
-    use inputFixture =
-        new TemporaryFileCodeSample(FormattedCode, fileName = fileName)
+    use inputFixture = new TemporaryFileCodeSample(FormattedCode, fileName = fileName)
 
     let { ExitCode = exitCode; Output = output } = runFantomasTool inputFixture.Filename
     exitCode |> should equal 0
@@ -28,8 +27,7 @@ let ``correctly formatted file should not be written, 1984`` () =
 let ``incorrectly formatted file should be written`` () =
     let fileName = "A"
 
-    use inputFixture =
-        new TemporaryFileCodeSample(UnformattedCode, fileName = fileName)
+    use inputFixture = new TemporaryFileCodeSample(UnformattedCode, fileName = fileName)
 
     let { ExitCode = exitCode; Output = output } = runFantomasTool inputFixture.Filename
     exitCode |> should equal 0

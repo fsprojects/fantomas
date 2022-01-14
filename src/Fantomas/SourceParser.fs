@@ -44,12 +44,11 @@ let (|Ident|) (s: Ident) =
 
 let (|LongIdent|) (li: LongIdent) =
     li
-    |> Seq.map
-        (fun x ->
-            if x.idText = MangledGlobalName then
-                "global"
-            else
-                (|Ident|) x)
+    |> Seq.map (fun x ->
+        if x.idText = MangledGlobalName then
+            "global"
+        else
+            (|Ident|) x)
     |> String.concat "."
     |> fun s ->
         // Assume that if it starts with base, it's going to be the base keyword
@@ -60,23 +59,21 @@ let (|LongIdent|) (li: LongIdent) =
 
 let (|LongIdentPieces|) (li: LongIdent) =
     li
-    |> List.map
-        (fun x ->
-            if x.idText = MangledGlobalName then
-                "global", x.idRange
-            else
-                (|Ident|) x, x.idRange)
+    |> List.map (fun x ->
+        if x.idText = MangledGlobalName then
+            "global", x.idRange
+        else
+            (|Ident|) x, x.idRange)
 
 let (|LongIdentPiecesExpr|_|) =
     function
     | SynExpr.LongIdent (_, LongIdentWithDots (lids, _), _, _) ->
         lids
-        |> List.map
-            (fun x ->
-                if x.idText = MangledGlobalName then
-                    "global", x.idRange
-                else
-                    (|Ident|) x, x.idRange)
+        |> List.map (fun x ->
+            if x.idText = MangledGlobalName then
+                "global", x.idRange
+            else
+                (|Ident|) x, x.idRange)
         |> Some
     | _ -> None
 
@@ -85,12 +82,11 @@ let (|LongIdentWithDotsPieces|_|) =
     function
     | LongIdentWithDots (lids, _) ->
         lids
-        |> List.map
-            (fun x ->
-                if x.idText = MangledGlobalName then
-                    "global", x.idRange
-                else
-                    (|Ident|) x, x.idRange)
+        |> List.map (fun x ->
+            if x.idText = MangledGlobalName then
+                "global", x.idRange
+            else
+                (|Ident|) x, x.idRange)
         |> Some
 
 let inline (|LongIdentWithDots|) (LongIdentWithDots (LongIdent s, _)) = s
@@ -103,12 +99,11 @@ type Identifier =
         | Id x -> x.idText
         | LongId xs ->
             xs
-            |> Seq.map
-                (fun x ->
-                    if x.idText = MangledGlobalName then
-                        "global"
-                    else
-                        x.idText)
+            |> Seq.map (fun x ->
+                if x.idText = MangledGlobalName then
+                    "global"
+                else
+                    x.idText)
             |> String.concat "."
 
     member x.Ranges =
@@ -642,8 +637,7 @@ let (|ConstUnitExpr|_|) =
 let (|TypeApp|_|) =
     function
     | SynExpr.TypeApp (e, _, ts, _, _, _, range) ->
-        let lessThanRange =
-            Range.mkRange range.FileName e.Range.End ts.Head.Range.Start
+        let lessThanRange = Range.mkRange range.FileName e.Range.End ts.Head.Range.Start
 
         let greaterThanRange =
             Range.mkRange range.FileName (Position.mkPos range.EndLine (range.EndColumn - 1)) range.End
@@ -938,27 +932,22 @@ let rec collectComputationExpressionStatements
     | LetOrUses (bindings, body) ->
         let letBindings = bindings |> List.map LetOrUseStatement
 
-        collectComputationExpressionStatements
-            body
-            (fun bodyStatements ->
-                [ yield! letBindings
-                  yield! bodyStatements ]
-                |> finalContinuation)
+        collectComputationExpressionStatements body (fun bodyStatements ->
+            [ yield! letBindings
+              yield! bodyStatements ]
+            |> finalContinuation)
     | SynExpr.LetOrUseBang (_, isUse, _, pat, expr, andBangs, body, r) ->
-        let letOrUseBang =
-            LetOrUseBangStatement(isUse, pat, expr, r)
+        let letOrUseBang = LetOrUseBangStatement(isUse, pat, expr, r)
 
         let andBangs =
             andBangs
             |> List.map (fun (_, _, _, ap, ae, andRange) -> AndBangStatement(ap, ae, andRange))
 
-        collectComputationExpressionStatements
-            body
-            (fun bodyStatements ->
-                [ letOrUseBang
-                  yield! andBangs
-                  yield! bodyStatements ]
-                |> finalContinuation)
+        collectComputationExpressionStatements body (fun bodyStatements ->
+            [ letOrUseBang
+              yield! andBangs
+              yield! bodyStatements ]
+            |> finalContinuation)
     | SynExpr.Sequential (_, _, e1, e2, _) ->
         let continuations: ((ComputationExpressionStatement list -> ComputationExpressionStatement list) -> ComputationExpressionStatement list) list =
             [ collectComputationExpressionStatements e1
@@ -1606,10 +1595,9 @@ let (|Extern|_|) =
     | Let (LetBinding (ats, px, ao, _, _, PatLongIdent (_, s, [ _, PatTuple ps ], _), TypedExpr (Typed, _, t), _)) ->
         let hasDllImportAttr =
             ats
-            |> List.exists
-                (fun { Attributes = attrs } ->
-                    attrs
-                    |> List.exists (fun (Attribute (name, _, _)) -> name.EndsWith("DllImport")))
+            |> List.exists (fun { Attributes = attrs } ->
+                attrs
+                |> List.exists (fun (Attribute (name, _, _)) -> name.EndsWith("DllImport")))
 
         if hasDllImportAttr then
             Some(ats, px, ao, t, s, ps)
@@ -1767,8 +1755,7 @@ let (|KeepIndentMatch|_|) (e: SynExpr) =
 let (|KeepIndentIfThenElse|_|) (e: SynExpr) =
     match e with
     | ElIf (branches, (_, Some elseExpr), _) ->
-        let branchBodies =
-            branches |> List.map (fun (_, _, _, e, _, _) -> e)
+        let branchBodies = branches |> List.map (fun (_, _, _, e, _, _) -> e)
 
         if shouldNotIndentBranch elseExpr branchBodies then
             Some(branches, elseExpr, e.Range)

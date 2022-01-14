@@ -26,12 +26,11 @@ module Reflection =
     let inline getRecordFields x =
         let names =
             FSharpType.GetRecordFields(x.GetType())
-            |> Seq.map
-                (fun x ->
-                    { PropertyName = x.Name
-                      Category = getCustomAttribute<CategoryAttribute, string> (fun a -> a.Category) x
-                      DisplayName = getCustomAttribute<DisplayNameAttribute, string> (fun a -> a.DisplayName) x
-                      Description = getCustomAttribute<DescriptionAttribute, string> (fun a -> a.Description) x })
+            |> Seq.map (fun x ->
+                { PropertyName = x.Name
+                  Category = getCustomAttribute<CategoryAttribute, string> (fun a -> a.Category) x
+                  DisplayName = getCustomAttribute<DisplayNameAttribute, string> (fun a -> a.DisplayName) x
+                  Description = getCustomAttribute<DescriptionAttribute, string> (fun a -> a.Description) x })
 
         let values = FSharpValue.GetRecordFields x
         Seq.zip names values |> Seq.toArray
@@ -44,12 +43,11 @@ let supportedProperties =
 
 let toEditorConfigName value =
     value
-    |> Seq.map
-        (fun c ->
-            if System.Char.IsUpper(c) then
-                sprintf "_%s" (c.ToString().ToLower())
-            else
-                c.ToString())
+    |> Seq.map (fun c ->
+        if System.Char.IsUpper(c) then
+            sprintf "_%s" (c.ToString().ToLower())
+        else
+            c.ToString())
     |> String.concat ""
     |> fun s -> s.TrimStart([| '_' |])
     |> fun name ->
@@ -60,12 +58,10 @@ let toEditorConfigName value =
 
 let private getFantomasFields (fallbackConfig: FormatConfig) =
     Reflection.getRecordFields fallbackConfig
-    |> Array.map
-        (fun (recordField, defaultValue) ->
-            let editorConfigName =
-                toEditorConfigName recordField.PropertyName
+    |> Array.map (fun (recordField, defaultValue) ->
+        let editorConfigName = toEditorConfigName recordField.PropertyName
 
-            (editorConfigName, defaultValue))
+        (editorConfigName, defaultValue))
 
 let private (|Number|_|) d =
     match System.Int32.TryParse(d) with
@@ -87,39 +83,34 @@ let parseOptionsFromEditorConfig
     (editorConfigProperties: IReadOnlyDictionary<string, string>)
     : FormatConfig =
     getFantomasFields fallbackConfig
-    |> Array.map
-        (fun (ecn, dv) ->
-            match editorConfigProperties.TryGetValue(ecn) with
-            | true, Number n -> n
-            | true, Boolean b -> b
-            | true, MultilineFormatterType mft -> mft
-            | true, EndOfLineStyle eol -> box eol
-            | _ -> dv)
+    |> Array.map (fun (ecn, dv) ->
+        match editorConfigProperties.TryGetValue(ecn) with
+        | true, Number n -> n
+        | true, Boolean b -> b
+        | true, MultilineFormatterType mft -> mft
+        | true, EndOfLineStyle eol -> box eol
+        | _ -> dv)
     |> fun newValues ->
         let formatConfigType = FormatConfig.Default.GetType()
         Microsoft.FSharp.Reflection.FSharpValue.MakeRecord(formatConfigType, newValues) :?> FormatConfig
 
 let configToEditorConfig (config: FormatConfig) : string =
     Reflection.getRecordFields config
-    |> Array.choose
-        (fun (recordField, v) ->
-            match v with
-            | :? System.Boolean as b ->
-                sprintf "%s=%s" (toEditorConfigName recordField.PropertyName) (if b then "true " else "false")
-                |> Some
-            | :? System.Int32 as i ->
-                sprintf "%s=%d" (toEditorConfigName recordField.PropertyName) i
-                |> Some
-            | :? MultilineFormatterType as mft ->
-                sprintf
-                    "%s=%s"
-                    (toEditorConfigName recordField.PropertyName)
-                    (MultilineFormatterType.ToConfigString mft)
-                |> Some
-            | :? EndOfLineStyle as eols ->
-                sprintf "%s=%s" (toEditorConfigName recordField.PropertyName) (EndOfLineStyle.ToConfigString eols)
-                |> Some
-            | _ -> None)
+    |> Array.choose (fun (recordField, v) ->
+        match v with
+        | :? System.Boolean as b ->
+            sprintf "%s=%s" (toEditorConfigName recordField.PropertyName) (if b then "true " else "false")
+            |> Some
+        | :? System.Int32 as i ->
+            sprintf "%s=%d" (toEditorConfigName recordField.PropertyName) i
+            |> Some
+        | :? MultilineFormatterType as mft ->
+            sprintf "%s=%s" (toEditorConfigName recordField.PropertyName) (MultilineFormatterType.ToConfigString mft)
+            |> Some
+        | :? EndOfLineStyle as eols ->
+            sprintf "%s=%s" (toEditorConfigName recordField.PropertyName) (EndOfLineStyle.ToConfigString eols)
+            |> Some
+        | _ -> None)
     |> String.concat "\n"
 
 let private editorConfigParser = EditorConfig.Core.EditorConfigParser()

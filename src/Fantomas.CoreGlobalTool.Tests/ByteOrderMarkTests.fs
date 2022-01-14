@@ -10,8 +10,7 @@ open System.Text
 let Source = "namespace Company.Product.Feature"
 
 let private getInitialBytes file =
-    use file =
-        new FileStream(file, FileMode.Open, FileAccess.Read)
+    use file = new FileStream(file, FileMode.Open, FileAccess.Read)
 
     let mutable bom = Array.zeroCreate 3
     file.Read(bom, 0, 3) |> ignore
@@ -19,8 +18,7 @@ let private getInitialBytes file =
 
 [<Test>]
 let ``byte-order mark should be preserved, 795`` () =
-    use fileFixture =
-        new TemporaryFileCodeSample(Source, true)
+    use fileFixture = new TemporaryFileCodeSample(Source, true)
 
     let { ExitCode = exitCode } = runFantomasTool fileFixture.Filename
     exitCode |> should equal 0
@@ -31,8 +29,7 @@ let ``byte-order mark should be preserved, 795`` () =
 
 [<Test>]
 let ``preserve byte-order from original file`` () =
-    use inputFixture =
-        new TemporaryFileCodeSample(Source, true)
+    use inputFixture = new TemporaryFileCodeSample(Source, true)
 
     use outputFixture = new OutputFile()
 

@@ -527,9 +527,9 @@ let fold (funcs : ResultFunc<'Input, 'Output, 'TError> seq) (input : 'Input) : R
     | false -> Ok collectedOutputs
 """
         { config with
-              MaxLineLength = 100
-              SpaceBeforeColon = true
-              MaxInfixOperatorExpression = 70 }
+            MaxLineLength = 100
+            SpaceBeforeColon = true
+            MaxInfixOperatorExpression = 70 }
     |> prepend newline
     |> should
         equal
@@ -587,8 +587,8 @@ let ``internal keyword included in function signature length check`` () =
     assembly.Name
 """
         { config with
-              MaxLineLength = 90
-              SpaceBeforeColon = true }
+            MaxLineLength = 90
+            SpaceBeforeColon = true }
     |> prepend newline
     |> should
         equal
@@ -724,8 +724,8 @@ let ``long function signature should align with equal sign, 883`` () =
     ()
 """
         { config with
-              IndentSize = 2
-              SpaceBeforeColon = true }
+            IndentSize = 2
+            SpaceBeforeColon = true }
     |> prepend newline
     |> should
         equal
@@ -745,9 +745,9 @@ let ``long function signature should align with equal sign, no return type`` () 
     ()
 """
         { config with
-              IndentSize = 2
-              SpaceBeforeColon = true
-              MaxLineLength = 80 }
+            IndentSize = 2
+            SpaceBeforeColon = true
+            MaxLineLength = 80 }
     |> prepend newline
     |> should
         equal
@@ -813,8 +813,8 @@ let ``align long function signature to indentation without return type `` () =
 let fold (funcs: ResultFunc<'Input, 'Output, 'TError> seq) (input: 'Input) (input2: 'Input) (input3: 'Input) = ()
 """
         { config with
-              MaxLineLength = 60
-              AlignFunctionSignatureToIndentation = true }
+            MaxLineLength = 60
+            AlignFunctionSignatureToIndentation = true }
     |> prepend newline
     |> should
         equal
@@ -836,9 +836,9 @@ let ``align long function signature to indentation with return type`` () =
     ()
 """
         { config with
-              IndentSize = 2
-              SpaceBeforeColon = true
-              AlignFunctionSignatureToIndentation = true }
+            IndentSize = 2
+            SpaceBeforeColon = true
+            AlignFunctionSignatureToIndentation = true }
     |> prepend newline
     |> should
         equal
@@ -864,8 +864,8 @@ and logAnalyticsForRequest (log:ILogger) (httpRequest: HttpRequest) =
     log.Info (sprintf "Meh: %A" httpRequest)
 """
         { config with
-              MaxLineLength = 60
-              AlignFunctionSignatureToIndentation = true }
+            MaxLineLength = 60
+            AlignFunctionSignatureToIndentation = true }
     |> prepend newline
     |> should
         equal
@@ -1217,8 +1217,8 @@ let longFunctionWithLongTupleParameter
     ()
 """
         { config with
-              AlignFunctionSignatureToIndentation = true
-              SpaceBeforeColon = true }
+            AlignFunctionSignatureToIndentation = true
+            SpaceBeforeColon = true }
     |> prepend newline
     |> should
         equal
@@ -1327,8 +1327,7 @@ let longFunctionWithLongTupleParameterAndReturnType (aVeryLongParam: AVeryLongTy
         // ... the body of the method follows
         ()
 """
-        { config with
-              AlignFunctionSignatureToIndentation = true }
+        { config with AlignFunctionSignatureToIndentation = true }
     |> prepend newline
     |> should
         equal

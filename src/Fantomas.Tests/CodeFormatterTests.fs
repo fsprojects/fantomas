@@ -18,8 +18,7 @@ let main argv _ =
     0
 """
 
-    let parsingOptions =
-        CodeFormatterImpl.createParsingOptionsFromFile fileName
+    let parsingOptions = CodeFormatterImpl.createParsingOptionsFromFile fileName
 
     CodeFormatter.FormatDocumentAsync(
         fileName,
@@ -46,8 +45,7 @@ let main _ =
     0
 """
 
-    let parsingOptions =
-        CodeFormatterImpl.createParsingOptionsFromFile fileName
+    let parsingOptions = CodeFormatterImpl.createParsingOptionsFromFile fileName
 
     CodeFormatter.FormatDocumentAsync(
         fileName,

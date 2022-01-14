@@ -60,10 +60,9 @@ type Queue<'T>(data: list<'T []>, length: int) =
 
     member this.Rev() =
         data
-        |> Seq.collect
-            (fun arr ->
-                seq { arr.Length - 1 .. -1 .. 0 }
-                |> Seq.map (fun i -> arr.[i]))
+        |> Seq.collect (fun arr ->
+            seq { arr.Length - 1 .. -1 .. 0 }
+            |> Seq.map (fun i -> arr.[i]))
 
     member this.Append xs =
         Queue(Array.ofList xs :: data, length + List.length xs)

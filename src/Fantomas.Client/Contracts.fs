@@ -60,17 +60,16 @@ type FantomasService =
     interface
         inherit IDisposable
 
-        abstract member VersionAsync :
-            filePath: string * ?cancellationToken: CancellationToken -> Task<FantomasResponse>
+        abstract member VersionAsync: filePath: string * ?cancellationToken: CancellationToken -> Task<FantomasResponse>
 
-        abstract member FormatDocumentAsync :
+        abstract member FormatDocumentAsync:
             FormatDocumentRequest * ?cancellationToken: CancellationToken -> Task<FantomasResponse>
 
-        abstract member FormatSelectionAsync :
+        abstract member FormatSelectionAsync:
             FormatSelectionRequest * ?cancellationToken: CancellationToken -> Task<FantomasResponse>
 
-        abstract member ConfigurationAsync :
+        abstract member ConfigurationAsync:
             filePath: string * ?cancellationToken: CancellationToken -> Task<FantomasResponse>
 
-        abstract member ClearCache : unit -> unit
+        abstract member ClearCache: unit -> unit
     end

@@ -20,8 +20,7 @@ let private fileContentMatches (expectedContent: string) (actualPath: string) : 
 
 [<Test>]
 let ``format multiple paths`` () =
-    use config =
-        new ConfigurationFile("[*]\nend_of_line = lf")
+    use config = new ConfigurationFile("[*]\nend_of_line = lf")
 
     use fileFixtureOne = new TemporaryFileCodeSample(UserCode)
 
@@ -38,8 +37,7 @@ let ``format multiple paths`` () =
 
 [<Test>]
 let ``format multiple paths cannot be combined with --out`` () =
-    use config =
-        new ConfigurationFile("[*]\nend_of_line = lf")
+    use config = new ConfigurationFile("[*]\nend_of_line = lf")
 
     use fileFixtureOne = new TemporaryFileCodeSample(UserCode)
 
@@ -57,8 +55,7 @@ let ``format multiple paths cannot be combined with --out`` () =
 
 [<Test>]
 let ``format multiple paths cannot be combined with --stdout`` () =
-    use config =
-        new ConfigurationFile("[*]\nend_of_line = lf")
+    use config = new ConfigurationFile("[*]\nend_of_line = lf")
 
     use fileFixtureOne = new TemporaryFileCodeSample(UserCode)
 
@@ -76,15 +73,13 @@ let ``format multiple paths cannot be combined with --stdout`` () =
 
 [<Test>]
 let ``format multiple paths with recursive flag`` () =
-    use config =
-        new ConfigurationFile("[*]\nend_of_line = lf")
+    use config = new ConfigurationFile("[*]\nend_of_line = lf")
 
     use fileFixtureOne = new TemporaryFileCodeSample(UserCode)
 
     use fileFixtureTwo = new TemporaryFileCodeSample(UserCode)
 
-    use fileFixtureThree =
-        new TemporaryFileCodeSample(UserCode, subFolder = "sub")
+    use fileFixtureThree = new TemporaryFileCodeSample(UserCode, subFolder = "sub")
 
     let arguments =
         sprintf "\"%s\" \"%s\" \"sub\" -r" fileFixtureOne.Filename fileFixtureTwo.Filename

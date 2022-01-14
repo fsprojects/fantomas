@@ -741,8 +741,7 @@ let ``multiline feliz element`` () =
             prop.text "Decrement"
         ]
 """
-        { config with
-              SingleArgumentWebMode = true }
+        { config with SingleArgumentWebMode = true }
     |> prepend newline
     |> should
         equal
@@ -769,8 +768,7 @@ let ``nested feliz elements`` () =
         ]
     ]
 """
-        { config with
-              SingleArgumentWebMode = true }
+        { config with SingleArgumentWebMode = true }
     |> prepend newline
     |> should
         equal
@@ -816,8 +814,7 @@ open Browser.Dom
 
 ReactDOM.render(counter, document.getElementById "root")
 """
-        { config with
-              SingleArgumentWebMode = true }
+        { config with SingleArgumentWebMode = true }
     |> prepend newline
     |> should
         equal
@@ -868,8 +865,7 @@ Html.ul [
   Html.li [ Html.em "Three" ]
 ]
 """
-        { config with
-              SingleArgumentWebMode = true }
+        { config with SingleArgumentWebMode = true }
     |> prepend newline
     |> should
         equal
@@ -917,8 +913,7 @@ let drawer =
             ]
         ]
 """
-        { config with
-              SingleArgumentWebMode = true }
+        { config with SingleArgumentWebMode = true }
     |> prepend newline
     |> should
         equal
@@ -1066,8 +1061,7 @@ let ``keep comment after closing bracket, single web mode`` () =
                             SynExpr.ForEach(DebugPointAtFor.No, SeqExprOnly b1, b2, pat, expr1, expr2, zero))
                             Arb.generate<_> Arb.generate<_> genSubDeclExpr genSubDeclExpr genSubSynPat ] //
 """
-        { config with
-              SingleArgumentWebMode = true }
+        { config with SingleArgumentWebMode = true }
     |> prepend newline
     |> should
         equal
@@ -1180,8 +1174,7 @@ let html =
         ]
     ]
 """
-        { config with
-              SingleArgumentWebMode = true }
+        { config with SingleArgumentWebMode = true }
     |> prepend newline
     |> should
         equal
@@ -1226,8 +1219,7 @@ let html =
         ]
     ]
 """
-        { config with
-              SingleArgumentWebMode = true }
+        { config with SingleArgumentWebMode = true }
     |> prepend newline
     |> should
         equal
@@ -1299,11 +1291,11 @@ let Dashboard () =
     ]
 """
         { config with
-              RecordMultilineFormatter = Fantomas.FormatConfig.MultilineFormatterType.NumberOfItems
-              MaxArrayOrListWidth = 20
-              MaxElmishWidth = 10
-              SingleArgumentWebMode = true
-              MultiLineLambdaClosingNewline = true }
+            RecordMultilineFormatter = Fantomas.FormatConfig.MultilineFormatterType.NumberOfItems
+            MaxArrayOrListWidth = 20
+            MaxElmishWidth = 10
+            SingleArgumentWebMode = true
+            MultiLineLambdaClosingNewline = true }
     |> prepend newline
     |> should
         equal

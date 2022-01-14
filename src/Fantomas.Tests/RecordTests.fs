@@ -65,8 +65,7 @@ type Element =
 
     /// Replaces the children with a single text node.
     static member ( -- ) : self: Element * text: string -> Element"""
-        { config with
-              SemicolonAtEndOfLine = true }
+        { config with SemicolonAtEndOfLine = true }
     |> prepend newline
     |> should
         equal
@@ -160,8 +159,8 @@ let ``should not break inside of if statements in records`` () =
 
     """
         { config with
-              SemicolonAtEndOfLine = true
-              MaxIfThenElseShortWidth = 52 }
+            SemicolonAtEndOfLine = true
+            MaxIfThenElseShortWidth = 52 }
     |> should
         equal
         """let XpkgDefaults () =
@@ -256,8 +255,7 @@ let newDocument = //somecomment
       created = document.Created.ToLocalTime() }
     |> JsonConvert.SerializeObject
 """
-        { config with
-              MaxInfixOperatorExpression = 75 }
+        { config with MaxInfixOperatorExpression = 75 }
     |> prepend newline
     |> should
         equal
@@ -1252,8 +1250,7 @@ type XX =
       b: int }
     static member private foo: int = 30
 """
-        { config with
-              NewlineBetweenTypeDefinitionAndMembers = true }
+        { config with NewlineBetweenTypeDefinitionAndMembers = true }
     |> prepend newline
     |> should
         equal
@@ -1441,8 +1438,8 @@ module Foo =
     type private Bang = abstract Baz : int
 """
         { config with
-              MaxLineLength = 40
-              SpaceBeforeUppercaseInvocation = true }
+            MaxLineLength = 40
+            SpaceBeforeUppercaseInvocation = true }
     |> prepend newline
     |> should
         equal
@@ -1522,8 +1519,7 @@ match entities with
       Type = Elephant } ] -> ()
 | _ -> ()
 """
-        { config with
-              SemicolonAtEndOfLine = true }
+        { config with SemicolonAtEndOfLine = true }
     |> prepend newline
     |> should
         equal

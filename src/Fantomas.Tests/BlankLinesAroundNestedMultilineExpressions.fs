@@ -4,9 +4,7 @@ open NUnit.Framework
 open FsUnit
 open Fantomas.Tests.TestHelper
 
-let config =
-    { config with
-          BlankLinesAroundNestedMultilineExpressions = false }
+let config = { config with BlankLinesAroundNestedMultilineExpressions = false }
 
 [<Test>]
 let ``basic behavior`` () =

@@ -29,24 +29,22 @@ let private isValidAndHasNoWarnings fileName source parsingOptions =
     let allDefineOptions, _ = TokenParser.getDefines source
 
     allDefineOptions
-    |> List.map
-        (fun conditionalCompilationDefines ->
-            async {
-                let parsingOptionsWithDefines =
-                    { parsingOptions with
-                          ConditionalCompilationDefines = conditionalCompilationDefines }
-                // Run the first phase (untyped parsing) of the compiler
-                let sourceText = SourceText.ofString source
+    |> List.map (fun conditionalCompilationDefines ->
+        async {
+            let parsingOptionsWithDefines =
+                { parsingOptions with ConditionalCompilationDefines = conditionalCompilationDefines }
+            // Run the first phase (untyped parsing) of the compiler
+            let sourceText = SourceText.ofString source
 
-                let! untypedRes = sharedChecker.Value.ParseFile(fileName, sourceText, parsingOptionsWithDefines)
+            let! untypedRes = sharedChecker.Value.ParseFile(fileName, sourceText, parsingOptionsWithDefines)
 
-                let errors =
-                    untypedRes.Diagnostics
-                    |> Array.filter (fun e -> not (List.contains e.Message safeToIgnoreWarnings))
-                // FSharpErrorInfo contains both Errors and Warnings
-                // https://fsharp.github.io/FSharp.Compiler.Service/reference/fsharp-compiler-sourcecodeservices-fsharperrorinfo.html
-                return Array.isEmpty errors
-            })
+            let errors =
+                untypedRes.Diagnostics
+                |> Array.filter (fun e -> not (List.contains e.Message safeToIgnoreWarnings))
+            // FSharpErrorInfo contains both Errors and Warnings
+            // https://fsharp.github.io/FSharp.Compiler.Service/reference/fsharp-compiler-sourcecodeservices-fsharperrorinfo.html
+            return Array.isEmpty errors
+        })
     |> Async.Parallel
     |> Async.map (Seq.fold (&&) true)
 
@@ -60,8 +58,7 @@ let formatSourceString isFsiFile (s: string) config =
         else
             "/src.fsx"
 
-    let parsingOptions =
-        CodeFormatterImpl.createParsingOptionsFromFile fileName
+    let parsingOptions = CodeFormatterImpl.createParsingOptionsFromFile fileName
 
     async {
         let! formatted =
@@ -93,9 +90,7 @@ let formatSourceStringWithDefines defines (s: string) config =
 
     let parsingOptions =
         CodeFormatterImpl.createParsingOptionsFromFile fileName
-        |> fun p ->
-            { p with
-                  ConditionalCompilationDefines = defines }
+        |> fun p -> { p with ConditionalCompilationDefines = defines }
 
     let result =
         async {
@@ -231,9 +226,7 @@ let tryFormatAST ast sourceCode config =
     with
     | _ -> ""
 
-let formatConfig =
-    { FormatConfig.Default with
-          StrictMode = true }
+let formatConfig = { FormatConfig.Default with StrictMode = true }
 
 // Regenerate inputs from expression ASTs
 // Might suffer from bugs in formatting phase
@@ -320,8 +313,7 @@ let mkConfigFromContent fileName folder content =
     file
 
 type TemporaryFileCodeSample internal (codeSnippet: string) =
-    let filename =
-        Path.Join(Path.GetTempPath(), Guid.NewGuid().ToString() + ".fs")
+    let filename = Path.Join(Path.GetTempPath(), Guid.NewGuid().ToString() + ".fs")
 
     do File.WriteAllText(filename, codeSnippet)
 

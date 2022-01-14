@@ -24,8 +24,7 @@ let test x y =
 
 if age < 10
 then printfn "You are only %d years old and already learning F#? Wow!" age"""
-        { config with
-              MaxIfThenElseShortWidth = 60 }
+        { config with MaxIfThenElseShortWidth = 60 }
     |> prepend newline
     |> should
         equal
@@ -675,8 +674,7 @@ let internal coli f' (c: seq<'T>) f (ctx: Context) =
 
     st
 """
-        { config with
-              MaxIfThenElseShortWidth = 50 }
+        { config with MaxIfThenElseShortWidth = 50 }
     |> prepend newline
     |> should
         equal
@@ -718,8 +716,7 @@ let ``keep new line before for loop, 1317`` () =
 
       state
 """
-        { config with
-              MaxDotGetExpressionWidth = 60 }
+        { config with MaxDotGetExpressionWidth = 60 }
     |> prepend newline
     |> should
         equal
@@ -972,9 +969,9 @@ module Foo =
             failwith ""
 """
         { config with
-              SpaceBeforeColon = true
-              SpaceBeforeSemicolon = true
-              IndentOnTryWith = true }
+            SpaceBeforeColon = true
+            SpaceBeforeSemicolon = true
+            IndentOnTryWith = true }
     |> prepend newline
     |> should
         equal
@@ -1006,9 +1003,9 @@ module Foo =
             :? Exception as e -> failwith ""
 """
         { config with
-              SpaceBeforeColon = true
-              SpaceBeforeSemicolon = true
-              IndentOnTryWith = true }
+            SpaceBeforeColon = true
+            SpaceBeforeSemicolon = true
+            IndentOnTryWith = true }
     |> prepend newline
     |> should
         equal
@@ -1055,18 +1052,18 @@ module Foo =
             }
 """
         { config with
-              SpaceBeforeUppercaseInvocation = true
-              SpaceBeforeClassConstructor = true
-              SpaceBeforeMember = true
-              SpaceBeforeColon = true
-              SpaceBeforeSemicolon = true
-              MultilineBlockBracketsOnSameColumn = true
-              NewlineBetweenTypeDefinitionAndMembers = true
-              KeepIfThenInSameLine = true
-              AlignFunctionSignatureToIndentation = true
-              AlternativeLongMemberDefinitions = true
-              MultiLineLambdaClosingNewline = true
-              KeepIndentInBranch = true }
+            SpaceBeforeUppercaseInvocation = true
+            SpaceBeforeClassConstructor = true
+            SpaceBeforeMember = true
+            SpaceBeforeColon = true
+            SpaceBeforeSemicolon = true
+            MultilineBlockBracketsOnSameColumn = true
+            NewlineBetweenTypeDefinitionAndMembers = true
+            KeepIfThenInSameLine = true
+            AlignFunctionSignatureToIndentation = true
+            AlternativeLongMemberDefinitions = true
+            MultiLineLambdaClosingNewline = true
+            KeepIndentInBranch = true }
     |> prepend newline
     |> should
         equal

@@ -79,9 +79,7 @@ module WriterModel =
 
     let update maxPageWidth cmd m =
         let doNewline m =
-            let m =
-                { m with
-                      Indent = max m.Indent m.AtColumn }
+            let m = { m with Indent = max m.Indent m.AtColumn }
 
             let nextLine = String.replicate m.Indent " "
 
@@ -93,9 +91,9 @@ module WriterModel =
             let otherLines = List.tail m.Lines
 
             { m with
-                  Lines = nextLine :: currentLine :: otherLines
-                  WriteBeforeNewline = ""
-                  Column = m.Indent }
+                Lines = nextLine :: currentLine :: otherLines
+                WriteBeforeNewline = ""
+                Column = m.Indent }
 
         let updateCmd cmd =
             match cmd with
@@ -103,8 +101,8 @@ module WriterModel =
             | WriteLineBecauseOfTrivia -> doNewline m
             | WriteLineInsideStringConst ->
                 { m with
-                      Lines = String.empty :: m.Lines
-                      Column = 0 }
+                    Lines = String.empty :: m.Lines
+                    Column = 0 }
             | WriteLineInsideTrivia ->
                 let lines =
                     match m.Lines with
@@ -114,19 +112,17 @@ module WriterModel =
                 { m with Lines = lines; Column = 0 }
             | Write s ->
                 { m with
-                      Lines = (List.head m.Lines + s) :: (List.tail m.Lines)
-                      Column = m.Column + (String.length s) }
+                    Lines = (List.head m.Lines + s) :: (List.tail m.Lines)
+                    Column = m.Column + (String.length s) }
             | WriteBeforeNewline s -> { m with WriteBeforeNewline = s }
             | IndentBy x ->
                 { m with
-                      Indent =
-                          if m.AtColumn >= m.Indent + x then
-                              m.AtColumn + x
-                          else
-                              m.Indent + x }
-            | UnIndentBy x ->
-                { m with
-                      Indent = max m.AtColumn <| m.Indent - x }
+                    Indent =
+                        if m.AtColumn >= m.Indent + x then
+                            m.AtColumn + x
+                        else
+                            m.Indent + x }
+            | UnIndentBy x -> { m with Indent = max m.AtColumn <| m.Indent - x }
             | SetAtColumn c -> { m with AtColumn = c }
             | RestoreAtColumn c -> { m with AtColumn = c }
             | SetIndent c -> { m with Indent = c }
@@ -147,16 +143,13 @@ module WriterModel =
 
             let updatedInfos =
                 infos
-                |> List.map
-                    (fun info ->
-                        let tooLong = info.IsTooLong maxPageWidth m.Column
+                |> List.map (fun info ->
+                    let tooLong = info.IsTooLong maxPageWidth m.Column
 
-                        { info with
-                              ConfirmedMultiline = tooLong || nextCmdCausesMultiline })
+                    { info with ConfirmedMultiline = tooLong || nextCmdCausesMultiline })
 
             if List.exists (fun i -> i.ConfirmedMultiline) updatedInfos then
-                { m with
-                      Mode = ShortExpression(updatedInfos) }
+                { m with Mode = ShortExpression(updatedInfos) }
             else
                 updateCmd cmd
 
@@ -178,8 +171,7 @@ module WriterEvents =
     let isMultiline evs =
         evs
         |> Queue.toSeq
-        |> Seq.exists
-            (function
+        |> Seq.exists (function
             | WriteLine
             | WriteLineBecauseOfTrivia -> true
             | _ -> false)
@@ -218,8 +210,7 @@ type internal Context =
         =
         let content = String.normalizeNewLine content
 
-        let tokens =
-            TokenParser.tokenize defines hashTokens content
+        let tokens = TokenParser.tokenize defines hashTokens content
 
         let trivia =
             match maybeAst, config.StrictMode with
@@ -232,55 +223,52 @@ type internal Context =
 
         let triviaByNodes =
             trivia
-            |> List.choose
-                (fun tn ->
-                    match tn.Type with
-                    | MainNode mn -> Some(mn, tn)
-                    | _ -> None)
+            |> List.choose (fun tn ->
+                match tn.Type with
+                | MainNode mn -> Some(mn, tn)
+                | _ -> None)
             |> List.groupBy fst
             |> List.map (fun (k, g) -> k, List.map snd g)
             |> Map.ofList
 
         let triviaByTokenNames =
             trivia
-            |> List.choose
-                (fun tn ->
-                    match tn.Type with
-                    | Token (tname, _) -> Some(tname, tn)
-                    | _ -> None)
+            |> List.choose (fun tn ->
+                match tn.Type with
+                | Token (tname, _) -> Some(tname, tn)
+                | _ -> None)
             |> List.groupBy fst
             |> List.map (fun (k, g) -> k, List.map snd g)
             |> Map.ofList
 
         { Context.Default with
-              Config = config
-              Content = content
-              TriviaMainNodes = triviaByNodes
-              TriviaTokenNodes = triviaByTokenNames
-              FileName = fileName }
+            Config = config
+            Content = content
+            TriviaMainNodes = triviaByNodes
+            TriviaTokenNodes = triviaByTokenNames
+            FileName = fileName }
 
     member x.WithDummy(writerCommands, ?keepPageWidth) =
-        let keepPageWidth =
-            keepPageWidth |> Option.defaultValue false
+        let keepPageWidth = keepPageWidth |> Option.defaultValue false
 
         let mkModel m =
             { m with
-                  Mode = Dummy
-                  Lines = [ String.replicate x.WriterModel.Column " " ]
-                  WriteBeforeNewline = "" }
+                Mode = Dummy
+                Lines = [ String.replicate x.WriterModel.Column " " ]
+                WriteBeforeNewline = "" }
         // Use infinite column width to encounter worst-case scenario
         let config =
             { x.Config with
-                  MaxLineLength =
-                      if keepPageWidth then
-                          x.Config.MaxLineLength
-                      else
-                          Int32.MaxValue }
+                MaxLineLength =
+                    if keepPageWidth then
+                        x.Config.MaxLineLength
+                    else
+                        Int32.MaxValue }
 
         { x with
-              WriterModel = mkModel x.WriterModel
-              WriterEvents = writerCommands
-              Config = config }
+            WriterModel = mkModel x.WriterModel
+            WriterEvents = writerCommands
+            Config = config }
 
     member x.WithShortExpression(maxWidth, ?startColumn) =
         let info =
@@ -293,15 +281,8 @@ type internal Context =
             if List.exists (fun i -> i = info) infos then
                 x
             else
-                { x with
-                      WriterModel =
-                          { x.WriterModel with
-                                Mode = ShortExpression(info :: infos) } }
-        | _ ->
-            { x with
-                  WriterModel =
-                      { x.WriterModel with
-                            Mode = ShortExpression([ info ]) } }
+                { x with WriterModel = { x.WriterModel with Mode = ShortExpression(info :: infos) } }
+        | _ -> { x with WriterModel = { x.WriterModel with Mode = ShortExpression([ info ]) } }
 
     member x.MkRange (startPos: pos) (endPos: pos) = mkRange x.FileName startPos endPos
 
@@ -313,10 +294,10 @@ let internal writerEvent e ctx =
 
     let ctx' =
         { ctx with
-              WriterEvents = Queue.append ctx.WriterEvents evs
-              WriterModel =
-                  (ctx.WriterModel, evs)
-                  ||> Seq.fold (fun m e -> WriterModel.update ctx.Config.MaxLineLength e m) }
+            WriterEvents = Queue.append ctx.WriterEvents evs
+            WriterModel =
+                (ctx.WriterModel, evs)
+                ||> Seq.fold (fun m e -> WriterModel.update ctx.Config.MaxLineLength e m) }
 
     ctx'
 
@@ -343,8 +324,7 @@ let internal dumpAndContinue (ctx: Context) =
     let m = finalizeWriterModel ctx
     let lines = m.WriterModel.Lines |> List.rev
 
-    let code =
-        String.concat ctx.Config.EndOfLine.NewLineString lines
+    let code = String.concat ctx.Config.EndOfLine.NewLineString lines
 
     printfn "%s" code
 #endif
@@ -357,30 +337,26 @@ type Context with
 let internal writeEventsOnLastLine ctx =
     ctx.WriterEvents
     |> Queue.rev
-    |> Seq.takeWhile
-        (function
+    |> Seq.takeWhile (function
         | WriteLine
         | WriteLineBecauseOfTrivia
         | WriteLineInsideStringConst -> false
         | _ -> true)
-    |> Seq.choose
-        (function
+    |> Seq.choose (function
         | Write w when (String.length w > 0) -> Some w
         | _ -> None)
 
 let internal lastWriteEventIsNewline ctx =
     ctx.WriterEvents
     |> Queue.rev
-    |> Seq.skipWhile
-        (function
+    |> Seq.skipWhile (function
         | RestoreIndent _
         | RestoreAtColumn _
         | UnIndentBy _
         | Write "" -> true
         | _ -> false)
     |> Seq.tryHead
-    |> Option.map
-        (function
+    |> Option.map (function
         | WriteLineBecauseOfTrivia
         | WriteLine -> true
         | _ -> false)
@@ -400,7 +376,7 @@ let private (|EmptyHashDefineBlock|_|) (events: WriterEvent array) =
                 | WriteLineInsideStringConst
                 | Write "" -> true
                 | _ -> false)
-                events.[1..(events.Length - 2)]
+                events.[1 .. (events.Length - 2)]
 
         if emptyLinesInBetween then
             Some events
@@ -412,8 +388,7 @@ let private (|EmptyHashDefineBlock|_|) (events: WriterEvent array) =
 let internal newlineBetweenLastWriteEvent ctx =
     ctx.WriterEvents
     |> Queue.rev
-    |> Seq.takeWhile
-        (function
+    |> Seq.takeWhile (function
         | Write ""
         | WriteLine
         | IndentBy _
@@ -423,8 +398,7 @@ let internal newlineBetweenLastWriteEvent ctx =
         | SetAtColumn _
         | RestoreAtColumn _ -> true
         | _ -> false)
-    |> Seq.filter
-        (function
+    |> Seq.filter (function
         | WriteLine _ -> true
         | _ -> false)
     |> Seq.length
@@ -689,7 +663,7 @@ let internal whenShortIndent f ctx =
 
 /// Repeat application of a function n times
 let internal rep n (f: Context -> Context) (ctx: Context) =
-    [ 1 .. n ] |> List.fold (fun c _ -> f c) ctx
+    [ 1..n ] |> List.fold (fun c _ -> f c) ctx
 
 let internal wordAnd = !- " and "
 let internal wordOr = !- " or "
@@ -842,14 +816,13 @@ let internal indentIfNeeded f (ctx: Context) =
 
 let internal eventsWithoutMultilineWrite ctx =
     { ctx with
-          WriterEvents =
-              ctx.WriterEvents
-              |> Queue.toSeq
-              |> Seq.filter
-                  (function
-                  | Write s when s.Contains("\n") -> false
-                  | _ -> true)
-              |> Queue.ofSeq }
+        WriterEvents =
+            ctx.WriterEvents
+            |> Queue.toSeq
+            |> Seq.filter (function
+                | Write s when s.Contains("\n") -> false
+                | _ -> true)
+            |> Queue.ofSeq }
 
 let private shortExpressionWithFallback
     (shortExpression: Context -> Context)
@@ -881,17 +854,15 @@ let private shortExpressionWithFallback
         match resultContext.WriterModel.Mode with
         | ShortExpression infos ->
             // verify the expression is not longer than allowed
-            if List.exists
-                (fun info ->
-                    info.ConfirmedMultiline
-                    || info.IsTooLong ctx.Config.MaxLineLength resultContext.Column)
-                infos then
+            if
+                List.exists
+                    (fun info ->
+                        info.ConfirmedMultiline
+                        || info.IsTooLong ctx.Config.MaxLineLength resultContext.Column)
+                    infos then
                 fallbackExpression ctx
             else
-                { resultContext with
-                      WriterModel =
-                          { resultContext.WriterModel with
-                                Mode = ctx.WriterModel.Mode } }
+                { resultContext with WriterModel = { resultContext.WriterModel with Mode = ctx.WriterModel.Mode } }
         | _ ->
             // you should never hit this branch
             fallbackExpression ctx
@@ -987,28 +958,24 @@ let private expressionExceedsPageWidth beforeShort afterShort beforeLong afterLo
         // if the context is already inside a ShortExpression mode, we should try the shortExpression in this case.
         (beforeShort +> expr +> afterShort) ctx
     | _ ->
-        let shortExpressionContext =
-            ctx.WithShortExpression(ctx.Config.MaxLineLength, 0)
+        let shortExpressionContext = ctx.WithShortExpression(ctx.Config.MaxLineLength, 0)
 
-        let resultContext =
-            (beforeShort +> expr +> afterShort) shortExpressionContext
+        let resultContext = (beforeShort +> expr +> afterShort) shortExpressionContext
 
         let fallbackExpression = beforeLong +> expr +> afterLong
 
         match resultContext.WriterModel.Mode with
         | ShortExpression infos ->
             // verify the expression is not longer than allowed
-            if List.exists
-                (fun info ->
-                    info.ConfirmedMultiline
-                    || info.IsTooLong ctx.Config.MaxLineLength resultContext.Column)
-                infos then
+            if
+                List.exists
+                    (fun info ->
+                        info.ConfirmedMultiline
+                        || info.IsTooLong ctx.Config.MaxLineLength resultContext.Column)
+                    infos then
                 fallbackExpression ctx
             else
-                { resultContext with
-                      WriterModel =
-                          { resultContext.WriterModel with
-                                Mode = ctx.WriterModel.Mode } }
+                { resultContext with WriterModel = { resultContext.WriterModel with Mode = ctx.WriterModel.Mode } }
         | _ ->
             // you should never hit this branch
             fallbackExpression ctx
@@ -1081,8 +1048,7 @@ let internal futureNlnCheck f (ctx: Context) =
 /// similar to futureNlnCheck but validates whether the expression is going over the max page width
 /// This functions is does not use any caching
 let internal exceedsWidth maxWidth f (ctx: Context) =
-    let dummyCtx: Context =
-        ctx.WithDummy(Queue.empty, keepPageWidth = true)
+    let dummyCtx: Context = ctx.WithDummy(Queue.empty, keepPageWidth = true)
 
     let currentColumn = dummyCtx.Column
     let ctxAfter: Context = f dummyCtx
@@ -1189,16 +1155,14 @@ let internal printTriviaContent (c: TriviaContent) (ctx: Context) =
 
     let addSpace =
         currentLastLine
-        |> Option.bind
-            (fun line ->
-                Seq.tryLast line
-                |> Option.map (fun lastChar -> lastChar <> ' '))
+        |> Option.bind (fun line ->
+            Seq.tryLast line
+            |> Option.map (fun lastChar -> lastChar <> ' '))
         |> Option.defaultValue false
 
     match c with
     | Comment (LineCommentAfterSourceCode s) ->
-        let comment =
-            sprintf "%s%s" (if addSpace then " " else String.empty) s
+        let comment = sprintf "%s%s" (if addSpace then " " else String.empty) s
 
         writerEvent (WriteBeforeNewline comment)
     | Comment (BlockComment (s, before, after)) ->
@@ -1279,10 +1243,9 @@ let internal leaveNodeFor (mainNodeName: FsAstType) (range: Range) (ctx: Context
 
 let internal leaveLeftToken (tokenName: FsTokenType) (range: Range) (ctx: Context) =
     (Map.tryFindOrEmptyList tokenName ctx.TriviaTokenNodes)
-    |> List.tryFind
-        (fun tn ->
-            tn.Range.StartLine = range.StartLine
-            && tn.Range.StartColumn = range.StartColumn)
+    |> List.tryFind (fun tn ->
+        tn.Range.StartLine = range.StartLine
+        && tn.Range.StartColumn = range.StartColumn)
     |> fun tn ->
         match tn with
         | Some { ContentAfter = [ TriviaContent.Comment (LineCommentAfterSourceCode lineComment) ] } ->
@@ -1294,13 +1257,12 @@ let internal leaveLeftBrace = leaveLeftToken LBRACE
 
 let internal hasPrintableContent (trivia: TriviaContent list) =
     trivia
-    |> List.exists
-        (fun tn ->
-            match tn with
-            | Comment _
-            | Newline
-            | Directive _ -> true
-            | _ -> false)
+    |> List.exists (fun tn ->
+        match tn with
+        | Comment _
+        | Newline
+        | Directive _ -> true
+        | _ -> false)
 
 let private sepConsideringTriviaContentBeforeBy
     (findNode: Context -> range -> TriviaNode option)
@@ -1347,12 +1309,13 @@ let internal sepNlnConsideringTriviaContentBeforeForMainNode (mainNode: FsAstTyp
 let internal sepNlnForEmptyModule (mainNode: FsAstType) (moduleRange: Range) (ctx: Context) =
     match Map.tryFind mainNode ctx.TriviaMainNodes with
     | Some nodes ->
-        if List.exists
-            (fun tn ->
-                RangeHelpers.rangeEq tn.Range moduleRange
-                && (hasPrintableContent tn.ContentBefore
-                    || hasPrintableContent tn.ContentAfter))
-            nodes then
+        if
+            List.exists
+                (fun tn ->
+                    RangeHelpers.rangeEq tn.Range moduleRange
+                    && (hasPrintableContent tn.ContentBefore
+                        || hasPrintableContent tn.ContentAfter))
+                nodes then
             ctx
         else
             sepNln ctx
@@ -1377,17 +1340,15 @@ let internal sepNlnTypeAndMembers
     (ctx: Context)
     : Context =
     let triviaNodeOfWithKeyword: TriviaNode option =
-        let r =
-            ctx.MkRange lastPositionBeforeMembers firstMemberRange.Start
+        let r = ctx.MkRange lastPositionBeforeMembers firstMemberRange.Start
 
         Map.tryFindOrEmptyList WITH ctx.TriviaTokenNodes
         |> TriviaHelpers.``keyword token inside range`` r
-        |> List.choose
-            (fun (_, tn) ->
-                if List.isNotEmpty tn.ContentBefore then
-                    Some tn
-                else
-                    None)
+        |> List.choose (fun (_, tn) ->
+            if List.isNotEmpty tn.ContentBefore then
+                Some tn
+            else
+                None)
         |> List.tryHead
 
     match triviaNodeOfWithKeyword with
@@ -1424,12 +1385,10 @@ let internal autoNlnConsideringTriviaIfExpressionExceedsPageWidth
         ctx
 
 let internal addExtraNewlineIfLeadingWasMultiline leading sepNlnConsideringTriviaContentBefore continuation =
-    leadingExpressionIsMultiline
-        leading
-        (fun ml ->
-            sepNln
-            +> onlyIf ml sepNlnConsideringTriviaContentBefore
-            +> continuation)
+    leadingExpressionIsMultiline leading (fun ml ->
+        sepNln
+        +> onlyIf ml sepNlnConsideringTriviaContentBefore
+        +> continuation)
 
 type internal ColMultilineItem =
     | ColMultilineItem of
@@ -1528,8 +1487,8 @@ let internal colWithNlnWhenItemIsMultiline (items: ColMultilineItem list) (ctx: 
 
                     loop
                         { acc with
-                              Context = nextCtx
-                              LastBlockMultiline = isMultiline }
+                            Context = nextCtx
+                            LastBlockMultiline = isMultiline }
                         rest
 
             loop itemsState items
@@ -1544,20 +1503,18 @@ let internal colWithNlnWhenItemIsMultilineUsingConfig (items: ColMultilineItem l
 
 let internal genTriviaBeforeClausePipe (rangeOfClause: Range) ctx =
     (Map.tryFindOrEmptyList BAR ctx.TriviaTokenNodes)
-    |> List.tryFind
-        (fun t ->
-            t.Range.StartColumn < rangeOfClause.StartColumn
-            && t.Range.StartLine = rangeOfClause.StartLine)
+    |> List.tryFind (fun t ->
+        t.Range.StartColumn < rangeOfClause.StartColumn
+        && t.Range.StartLine = rangeOfClause.StartLine)
     |> fun trivia ->
         match trivia with
         | Some trivia ->
             let containsOnlyDirectives =
                 trivia.ContentBefore
-                |> List.forall
-                    (fun tn ->
-                        match tn with
-                        | Directive _ -> true
-                        | _ -> false)
+                |> List.forall (fun tn ->
+                    match tn with
+                    | Directive _ -> true
+                    | _ -> false)
 
             onlyIf containsOnlyDirectives sepNlnUnlessLastEventIsNewline
             +> printContentBefore trivia

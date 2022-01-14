@@ -13,16 +13,14 @@ let private hasLinesBetweenAttributesAndFirstNode (attributes: SynAttributes) (f
     let fileName = firstNodeRange.FileName
 
     List.tryLast attributes
-    |> Option.bind
-        (fun lastAttribute ->
-            if lastAttribute.Range.EndLine + 1 < firstNodeRange.StartLine
-               && firstNodeRange.Start.Column > 0 then
-                let pos =
-                    Position.mkPos firstNodeRange.StartLine 0
+    |> Option.bind (fun lastAttribute ->
+        if lastAttribute.Range.EndLine + 1 < firstNodeRange.StartLine
+           && firstNodeRange.Start.Column > 0 then
+            let pos = Position.mkPos firstNodeRange.StartLine 0
 
-                mkRange fileName pos pos |> Some
-            else
-                None)
+            mkRange fileName pos pos |> Some
+        else
+            None)
 
 type SynBinding with
     /// Construct an artificial range after the attributes and before the head pattern.

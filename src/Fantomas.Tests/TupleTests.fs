@@ -15,8 +15,7 @@ let private carouselSample =
         fragment [] []
     ,"CarouselSample")
 """
-        { config with
-              MaxValueBindingWidth = 75 }
+        { config with MaxValueBindingWidth = 75 }
     |> should
         equal
         """let private carouselSample =
@@ -210,8 +209,7 @@ let f =
     |> fun i -> i + 1
     , 6
 """
-        { config with
-              MaxInfixOperatorExpression = 5 }
+        { config with MaxInfixOperatorExpression = 5 }
     |> prepend newline
     |> should
         equal

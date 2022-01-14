@@ -11,23 +11,20 @@ exception CodeFormatException of (string * Option<Exception>) array with
     override x.ToString() =
         let errors =
             x.Data0
-            |> Array.choose
-                (fun z ->
-                    match z with
-                    | file, Some ex -> Some(file, ex)
-                    | _ -> None)
-            |> Array.map
-                (fun z ->
-                    let file, ex = z
-                    file + ":\r\n" + ex.Message + "\r\n\r\n")
+            |> Array.choose (fun z ->
+                match z with
+                | file, Some ex -> Some(file, ex)
+                | _ -> None)
+            |> Array.map (fun z ->
+                let file, ex = z
+                file + ":\r\n" + ex.Message + "\r\n\r\n")
 
         let files =
             x.Data0
-            |> Array.map
-                (fun z ->
-                    match z with
-                    | file, Some _ -> file + " !"
-                    | file, None -> file)
+            |> Array.map (fun z ->
+                match z with
+                | file, Some _ -> file + " !"
+                | file, None -> file)
 
         String.Join(String.Empty, errors)
         + "The following files aren't formatted properly:"
@@ -127,11 +124,10 @@ let formatCode files =
         // Check for formatting errors:
         let errors =
             results
-            |> Array.choose
-                (fun x ->
-                    match x with
-                    | Error (file, ex) -> Some(file, Some(ex))
-                    | _ -> None)
+            |> Array.choose (fun x ->
+                match x with
+                | Error (file, ex) -> Some(file, Some(ex))
+                | _ -> None)
 
         if not <| Array.isEmpty errors then
             raise <| CodeFormatException errors
@@ -139,13 +135,12 @@ let formatCode files =
         // Overwrite source files with formatted content
         let result =
             results
-            |> Array.choose
-                (fun x ->
-                    match x with
-                    | Formatted (source, formatted) ->
-                        File.WriteAllText(source, formatted)
-                        Some source
-                    | _ -> None)
+            |> Array.choose (fun x ->
+                match x with
+                | Formatted (source, formatted) ->
+                    File.WriteAllText(source, formatted)
+                    Some source
+                | _ -> None)
 
         return result
     }
@@ -193,8 +188,7 @@ let checkCode (filenames: seq<string>) =
             | FormatResult.Error (f, e) -> Some(f, e)
             | _ -> None
 
-        let errors =
-            formatted |> Seq.choose getErrors |> Seq.toList
+        let errors = formatted |> Seq.choose getErrors |> Seq.toList
 
         return { Errors = errors; Formatted = changes }
     }
