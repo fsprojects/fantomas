@@ -988,3 +988,58 @@ let x: int = 99
 // bar again, cuz why not
 let x: int = 99
 """
+
+[<Test>]
+let ``comment between attribute and nested module, 2016`` () =
+    formatSourceString
+        false
+        """
+[<AutoOpen>]
+// Having members as extensions gives them lower priority in
+// overload resolution and allows skipping more type annotations.
+module AsyncOptionCEExtensions =
+
+    type AsyncOptionBuilder with
+        member inline __.Source(s: #seq<_>) = s
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+[<AutoOpen>]
+// Having members as extensions gives them lower priority in
+// overload resolution and allows skipping more type annotations.
+module AsyncOptionCEExtensions =
+
+    type AsyncOptionBuilder with
+        member inline __.Source(s: #seq<_>) = s
+"""
+
+[<Test>]
+let ``comment between attribute and nested module, signature file`` () =
+    formatSourceString
+        true
+        """
+[<AutoOpen>]
+// Having members as extensions gives them lower priority in
+// overload resolution and allows skipping more type annotations.
+module AsyncOptionCEExtensions =
+
+    type AsyncOptionBuilder with
+        member inline Source : string -> string
+
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+[<AutoOpen>]
+// Having members as extensions gives them lower priority in
+// overload resolution and allows skipping more type annotations.
+module AsyncOptionCEExtensions =
+
+    type AsyncOptionBuilder with
+        member inline Source: string -> string
+"""

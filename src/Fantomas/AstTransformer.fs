@@ -40,7 +40,13 @@ module private Ast =
                     decls |> List.map visit
 
                 let finalContinuation (nodes: TriviaNodeAssigner list list) : TriviaNodeAssigner list =
+                    let afterAttributesBeforeNestedModule =
+                        ast.AfterAttributesBeforeNestedModuleName
+                        |> Option.map (mkNode SynModuleDecl_NestedModule_AfterAttributesBeforeModuleName)
+                        |> Option.toList
+
                     [ mkNode SynModuleDecl_NestedModule range
+                      yield! afterAttributesBeforeNestedModule
                       yield! visitSynComponentInfo sci
                       yield! (List.collect id nodes) ]
                     |> finalContinuation
@@ -1349,7 +1355,13 @@ module private Ast =
                     List.map visit decls
 
                 let finalContinuation (nodes: TriviaNodeAssigner list list) : TriviaNodeAssigner list =
+                    let afterAttributesBeforeNestedModule =
+                        ast.AfterAttributesBeforeNestedModuleName
+                        |> Option.map (mkNode SynModuleSigDecl_NestedModule_AfterAttributesBeforeModuleName)
+                        |> Option.toList
+
                     [ yield mkNode SynModuleSigDecl_NestedModule range
+                      yield! afterAttributesBeforeNestedModule
                       yield! visitSynComponentInfo sci
                       yield! (List.collect id nodes) ]
                     |> finalContinuation
