@@ -39,8 +39,7 @@ let ``e2e script test with keyword __source__directory__`` () =
 
         let! formattedFiles = FakeHelpers.formatCode [ fsharpScript.FSharpFile ]
 
-        let formattedSource =
-            File.ReadAllText(fsharpScript.FSharpFile)
+        let formattedSource = File.ReadAllText(fsharpScript.FSharpFile)
 
         Array.length formattedFiles == 1
 
@@ -70,12 +69,11 @@ let ``fantomas removes module and namespace if it is only 1 word`` () =
 
         let fantomasConfig =
             { FormatConfig.FormatConfig.Default with
-                  StrictMode = true
-                  IndentSize = 2
-                  SpaceBeforeColon = false }
+                StrictMode = true
+                IndentSize = 2
+                SpaceBeforeColon = false }
 
-        use _editorConfig =
-            new ConfigurationFile(fantomasConfig, rootFolderName)
+        use _editorConfig = new ConfigurationFile(fantomasConfig, rootFolderName)
 
         let! formattedFiles = FakeHelpers.formatCode [ fsharpScript.FSharpFile ]
 

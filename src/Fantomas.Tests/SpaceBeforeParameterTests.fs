@@ -4,9 +4,7 @@ open NUnit.Framework
 open FsUnit
 open Fantomas.Tests.TestHelper
 
-let noSpaceBefore =
-    { config with
-          SpaceBeforeParameter = false }
+let noSpaceBefore = { config with SpaceBeforeParameter = false }
 
 // Space before unit in Uppercase function signature
 

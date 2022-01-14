@@ -30,8 +30,7 @@ module String =
     let private hashRegex = @"^\s*#(if|elseif|else|endif).*"
 
     let private splitWhenHash (newline: string) (source: string) : string list =
-        let lines =
-            source.Split([| newline |], options = StringSplitOptions.None)
+        let lines = source.Split([| newline |], options = StringSplitOptions.None)
 
         let hashLineIndexes =
             lines
@@ -48,7 +47,7 @@ module String =
             match indexes with
             | [] -> finalContinuation []
             | i1 :: i2 :: rest ->
-                let chunk = lines.[i1..(i2 - 1)]
+                let chunk = lines.[i1 .. (i2 - 1)]
                 chunk.[0] <- chunk.[0].TrimStart()
                 loop (i2 :: rest) (fun otherChunks -> chunk :: otherChunks |> finalContinuation)
             | [ lastIndex ] ->
@@ -68,17 +67,16 @@ module String =
 
     let merge (aChunks: string list) (bChunks: string list) : string list =
         List.zip aChunks bChunks
-        |> List.map
-            (fun (a', b') ->
-                let la = lengthWithoutSpaces a'
-                let lb = lengthWithoutSpaces b'
+        |> List.map (fun (a', b') ->
+            let la = lengthWithoutSpaces a'
+            let lb = lengthWithoutSpaces b'
 
-                if la <> lb then
-                    if la > lb then a' else b'
-                else if String.length a' < String.length b' then
-                    a'
-                else
-                    b')
+            if la <> lb then
+                if la > lb then a' else b'
+            else if String.length a' < String.length b' then
+                a'
+            else
+                b')
 
     let empty = String.Empty
 
@@ -90,8 +88,7 @@ module String =
 
 module Cache =
     let alreadyVisited<'key when 'key: not struct> () =
-        let cache =
-            System.Collections.Generic.HashSet<'key>([], HashIdentity.Reference)
+        let cache = System.Collections.Generic.HashSet<'key>([], HashIdentity.Reference)
 
         fun key ->
             if cache.Contains key then
@@ -133,11 +130,10 @@ module List =
         let mutable s = state
 
         l
-        |> List.takeWhile
-            (fun x ->
-                let s', r = f s x
-                s <- s'
-                r)
+        |> List.takeWhile (fun x ->
+            let s', r = f s x
+            s <- s'
+            r)
 
     let isNotEmpty l = (List.isEmpty >> not) l
 

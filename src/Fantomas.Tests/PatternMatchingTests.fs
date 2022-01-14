@@ -503,8 +503,7 @@ let update msg model =
     res
 """
 
-    let afterFirstFormat =
-        formatSourceString false original config80
+    let afterFirstFormat = formatSourceString false original config80
 
     formatSourceString false afterFirstFormat config80
     |> prepend newline
@@ -1167,8 +1166,8 @@ with
             ""
 """
         { config with
-              MaxLineLength = 100
-              AlternativeLongMemberDefinitions = true }
+            MaxLineLength = 100
+            AlternativeLongMemberDefinitions = true }
     |> prepend newline
     |> should
         equal
@@ -1197,9 +1196,9 @@ with
             ""
 """
         { config with
-              MaxLineLength = 100
-              SpaceBeforeColon = true
-              AlternativeLongMemberDefinitions = true }
+            MaxLineLength = 100
+            SpaceBeforeColon = true
+            AlternativeLongMemberDefinitions = true }
     |> prepend newline
     |> should
         equal

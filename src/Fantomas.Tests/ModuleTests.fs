@@ -271,8 +271,7 @@ type SomeType() =
     member this.Print() =
         global.System.Console.WriteLine("Hello World!")
     """
-        { config with
-              MaxFunctionBindingWidth = 120 }
+        { config with MaxFunctionBindingWidth = 120 }
     |> prepend newline
     |> should
         equal
@@ -296,8 +295,7 @@ type SomeType() =
     member this.``new``() =
         System.Console.WriteLine("Hello World!")
     """
-        { config with
-              MaxFunctionBindingWidth = 120 }
+        { config with MaxFunctionBindingWidth = 120 }
     |> prepend newline
     |> should
         equal

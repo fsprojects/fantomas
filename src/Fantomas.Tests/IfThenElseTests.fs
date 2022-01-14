@@ -69,8 +69,7 @@ let ``multiline if without else`` () =
         """
 if foo && bar && meh then aha
 """
-        { config with
-              MaxInfixOperatorExpression = 5 }
+        { config with MaxInfixOperatorExpression = 5 }
     |> prepend newline
     |> should
         equal
@@ -949,8 +948,7 @@ elif strA.String == strB.String && strA.Offset = strB.Offset then
 else
     -1
 """
-        { config with
-              MaxInfixOperatorExpression = 55 }
+        { config with MaxInfixOperatorExpression = 55 }
     |> prepend newline
     |> should
         equal
@@ -1015,8 +1013,7 @@ let (|Integer|_|) (str: string) =
    if System.Int32.TryParse(str, &intvalue) then Some(intvalue)
    else None
 """
-        { config with
-              MaxIfThenElseShortWidth = 70 }
+        { config with MaxIfThenElseShortWidth = 70 }
     |> prepend newline
     |> should
         equal
@@ -1032,8 +1029,7 @@ let ``longer elif condition`` () =
         false
         """if a then b elif somethingABitLongerToForceDifferentStyle then c else d
 """
-        { config with
-              MaxIfThenElseShortWidth = 53 }
+        { config with MaxIfThenElseShortWidth = 53 }
     |> prepend newline
     |> should
         equal
@@ -1045,8 +1041,7 @@ else d
 
 [<Test>]
 let ``impact of MaxIfThenElseShortWidth setting, longer bool expression`` () =
-    let source =
-        """if (tare + netWeight) = 10000 then a else b"""
+    let source = """if (tare + netWeight) = 10000 then a else b"""
 
     formatSourceString false source config
     |> prepend newline
@@ -1059,11 +1054,7 @@ else
     b
 """
 
-    formatSourceString
-        false
-        source
-        { config with
-              MaxIfThenElseShortWidth = 55 }
+    formatSourceString false source { config with MaxIfThenElseShortWidth = 55 }
     |> prepend newline
     |> should
         equal
@@ -1073,14 +1064,9 @@ if (tare + netWeight) = 10000 then a else b
 
 [<Test>]
 let ``impact of MaxIfThenElseShortWidth setting, longer if branch`` () =
-    let source =
-        """if a then (tare + netWeight) + 10000 else 0"""
+    let source = """if a then (tare + netWeight) + 10000 else 0"""
 
-    formatSourceString
-        false
-        source
-        { config with
-              MaxIfThenElseShortWidth = 45 }
+    formatSourceString false source { config with MaxIfThenElseShortWidth = 45 }
     |> prepend newline
     |> should
         equal
@@ -1101,8 +1087,7 @@ else
 
 [<Test>]
 let ``impact of MaxIfThenElseShortWidth setting, longer else branch`` () =
-    let source =
-        """if a then 0 else (tare + netWeight) + 10"""
+    let source = """if a then 0 else (tare + netWeight) + 10"""
 
     formatSourceString false source config
     |> prepend newline
@@ -1112,11 +1097,7 @@ let ``impact of MaxIfThenElseShortWidth setting, longer else branch`` () =
 if a then 0 else (tare + netWeight) + 10
 """
 
-    formatSourceString
-        false
-        source
-        { config with
-              MaxIfThenElseShortWidth = 20 }
+    formatSourceString false source { config with MaxIfThenElseShortWidth = 20 }
     |> prepend newline
     |> should
         equal
@@ -1140,8 +1121,7 @@ module String =
             else
                 if String.length a' < String.length b' then a' else b'
 """
-        { config with
-              MaxIfThenElseShortWidth = 100 }
+        { config with MaxIfThenElseShortWidth = 100 }
     |> prepend newline
     |> should
         equal
@@ -1281,8 +1261,8 @@ let ``don't add additional new line before nested if/then, 1035`` () =
                 | _ -> return Error Array.empty // Not sure this branch can be reached.
 """
         { config with
-              MaxValueBindingWidth = 50
-              MaxFunctionBindingWidth = 50 }
+            MaxValueBindingWidth = 50
+            MaxFunctionBindingWidth = 50 }
     |> prepend newline
     |> should
         equal
@@ -1523,8 +1503,8 @@ let code =
         PrettyNaming.QuoteIdentifierIfNeeded d.Name
 "
         { config with
-              MaxLineLength = 60
-              IndentSize = 2 }
+            MaxLineLength = 60
+            IndentSize = 2 }
     |> prepend newline
     |> should
         equal
@@ -1610,8 +1590,7 @@ if a then
 elif cccccccccccccccccccccccc then d
 else f
 """
-        { config with
-              MaxIfThenElseShortWidth = 20 }
+        { config with MaxIfThenElseShortWidth = 20 }
     |> prepend newline
     |> should
         equal
@@ -2477,8 +2456,8 @@ let ``multiline if/then/else followed by infix, no parenthesis needed`` () =
                 + typ.GenericParameter.Name
 """
         { config with
-              IndentSize = 2
-              MaxIfThenElseShortWidth = 9000 }
+            IndentSize = 2
+            MaxIfThenElseShortWidth = 9000 }
     |> prepend newline
     |> should
         equal

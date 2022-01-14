@@ -27,8 +27,7 @@ indent_size=2
     output
     |> should startWith (sprintf "Processing %s" fileFixture.Filename)
 
-    let result =
-        System.IO.File.ReadAllText(fileFixture.Filename)
+    let result = System.IO.File.ReadAllText(fileFixture.Filename)
 
     result
     |> should
@@ -39,8 +38,7 @@ indent_size=2
 
 [<Test>]
 let ``end_of_line=cr should throw an exception`` () =
-    use fileFixture =
-        new TemporaryFileCodeSample("let a = 9\n")
+    use fileFixture = new TemporaryFileCodeSample("let a = 9\n")
 
     use configFixture =
         new ConfigurationFile(
@@ -66,8 +64,7 @@ let ``uses end_of_line setting to write user newlines`` setting =
     let sampleCode nln =
         sprintf "let a = 9%s%slet b = 7%s" nln nln nln
 
-    use fileFixture =
-        new TemporaryFileCodeSample(sampleCode "\n")
+    use fileFixture = new TemporaryFileCodeSample(sampleCode "\n")
 
     use configFixture =
         new ConfigurationFile(
@@ -82,8 +79,7 @@ end_of_line = %s
     let { ExitCode = exitCode } = runFantomasTool fileFixture.Filename
     exitCode |> should equal 0
 
-    let result =
-        System.IO.File.ReadAllText(fileFixture.Filename)
+    let result = System.IO.File.ReadAllText(fileFixture.Filename)
 
     let expected = sampleCode newline
 
@@ -106,8 +102,7 @@ end_of_line = lf
     let { ExitCode = exitCode } = runFantomasTool fileFixture.Filename
     exitCode |> should equal 0
 
-    let result =
-        System.IO.File.ReadAllText(fileFixture.Filename)
+    let result = System.IO.File.ReadAllText(fileFixture.Filename)
 
     result
     |> should equal "#if FOO\n()\n#else\n()\n#endif\n"

@@ -117,8 +117,8 @@ let c =
     if bar |> Seq.exists ((|KeyValue|) >> snd >> (=) (Some i)) then false else true
 """
         { config with
-              MaxLineLength = 40
-              SpaceBeforeUppercaseInvocation = true }
+            MaxLineLength = 40
+            SpaceBeforeUppercaseInvocation = true }
     |> prepend newline
     |> should
         equal
@@ -281,8 +281,8 @@ let c =
     elif bar |> Seq.exists ((|KeyValue|) >> snd >> (=) (Some i)) then false else true
 """
         { config with
-              MaxLineLength = 40
-              SpaceBeforeUppercaseInvocation = true }
+            MaxLineLength = 40
+            SpaceBeforeUppercaseInvocation = true }
     |> prepend newline
     |> should
         equal

@@ -62,9 +62,9 @@ let (|ParseRegex|_|) regex str =
    then Some (List.tail [ for x in m.Groups -> x.Value ])
    else None"""
         { config with
-              MaxValueBindingWidth = 30
-              MaxFunctionBindingWidth = 30
-              MaxIfThenElseShortWidth = 70 }
+            MaxValueBindingWidth = 30
+            MaxFunctionBindingWidth = 30
+            MaxIfThenElseShortWidth = 70 }
     |> prepend newline
     |> should
         equal

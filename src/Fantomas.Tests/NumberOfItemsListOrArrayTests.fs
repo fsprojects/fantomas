@@ -15,8 +15,7 @@ let ys = [ AReallyLongExpressionThatIsMuchLongerMuchLongerMuchLongerMuchLongerMu
 f xs [ x; y; z ]
 List.map (fun x -> x * x) [1;2;]
     """
-        { config with
-              ArrayOrListMultilineFormatter = NumberOfItems }
+        { config with ArrayOrListMultilineFormatter = NumberOfItems }
     |> prepend newline
     |> should
         equal
@@ -51,8 +50,7 @@ let ys = [| AReallyLongExpressionThatIsMuchLongerMuchLongerMuchLongerMuchLongerM
 f xs [| x; y; z |]
 List.map (fun x -> x * x) [|1;2;|]
     """
-        { config with
-              ArrayOrListMultilineFormatter = NumberOfItems }
+        { config with ArrayOrListMultilineFormatter = NumberOfItems }
     |> prepend newline
     |> should
         equal
@@ -86,8 +84,7 @@ f [ a; b; c ] [ x; y; z ]
 g [ longValueThatIsALotOfCharactersSoooooLong ] [ longValueThatIsALotOfCharactersSoooooLong ]
 h [ longValueThatIsALotOfCharactersSoooooLong; longValueThatIsALotOfCharactersSoooooLong ] [ longValueThatIsALotOfCharactersSoooooLong ]
     """
-        { config with
-              ArrayOrListMultilineFormatter = NumberOfItems }
+        { config with ArrayOrListMultilineFormatter = NumberOfItems }
     |> prepend newline
     |> should
         equal
@@ -121,8 +118,8 @@ f xs [ x; y; z ]
 List.map (fun x -> x * x) [1;2;]
     """
         { config with
-              ArrayOrListMultilineFormatter = NumberOfItems
-              MultilineBlockBracketsOnSameColumn = true }
+            ArrayOrListMultilineFormatter = NumberOfItems
+            MultilineBlockBracketsOnSameColumn = true }
     |> prepend newline
     |> should
         equal
@@ -163,8 +160,8 @@ f xs [| x; y; z |]
 List.map (fun x -> x * x) [|1;2;|]
     """
         { config with
-              ArrayOrListMultilineFormatter = NumberOfItems
-              MultilineBlockBracketsOnSameColumn = true }
+            ArrayOrListMultilineFormatter = NumberOfItems
+            MultilineBlockBracketsOnSameColumn = true }
     |> prepend newline
     |> should
         equal
@@ -204,8 +201,8 @@ g [ longValueThatIsALotOfCharactersSoooooLong ] [ longValueThatIsALotOfCharacter
 h [ longValueThatIsALotOfCharactersSoooooLong; longValueThatIsALotOfCharactersSoooooLong ] [ longValueThatIsALotOfCharactersSoooooLong ]
     """
         { config with
-              ArrayOrListMultilineFormatter = NumberOfItems
-              MultilineBlockBracketsOnSameColumn = true }
+            ArrayOrListMultilineFormatter = NumberOfItems
+            MultilineBlockBracketsOnSameColumn = true }
     |> prepend newline
     |> should
         equal
@@ -242,8 +239,8 @@ g [ longValueThatIsALotOfCharactersSoooooLong ]
 h [ longValueThatIsALotOfCharactersSoooooLong; longValueThatIsALotOfCharactersSoooooLong ]
     """
         { config with
-              ArrayOrListMultilineFormatter = NumberOfItems
-              SingleArgumentWebMode = true }
+            ArrayOrListMultilineFormatter = NumberOfItems
+            SingleArgumentWebMode = true }
     |> prepend newline
     |> should
         equal
@@ -276,9 +273,9 @@ g [ longValueThatIsALotOfCharactersSoooooLong ]
 h [ longValueThatIsALotOfCharactersSoooooLong; longValueThatIsALotOfCharactersSoooooLong ]
     """
         { config with
-              ArrayOrListMultilineFormatter = NumberOfItems
-              SingleArgumentWebMode = true
-              MultilineBlockBracketsOnSameColumn = true }
+            ArrayOrListMultilineFormatter = NumberOfItems
+            SingleArgumentWebMode = true
+            MultilineBlockBracketsOnSameColumn = true }
     |> prepend newline
     |> should
         equal
@@ -307,8 +304,8 @@ let ``long expressions with number of items set to 3 will get split due to max l
 [ longValueThatIsALotOfCharactersSoooooLongAndlongValueThatIsALotOfCharactersSoooooLongAndlongValueThatIsALotOfCharactersSoooooLong; longValueThatIsALotOfCharactersSoooooLong ]
     """
         { config with
-              ArrayOrListMultilineFormatter = NumberOfItems
-              MaxArrayOrListNumberOfItems = 3 }
+            ArrayOrListMultilineFormatter = NumberOfItems
+            MaxArrayOrListNumberOfItems = 3 }
     |> prepend newline
     |> should
         equal

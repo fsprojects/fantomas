@@ -42,10 +42,9 @@ let inline private isNotMemberKeyword (node: TriviaNodeAssigner) =
 
 let private findFirstNodeAfterLine (nodes: TriviaNodeAssigner list) (lineNumber: int) : TriviaNodeAssigner option =
     nodes
-    |> List.tryFind
-        (fun tn ->
-            tn.Range.StartLine > lineNumber
-            && isNotMemberKeyword tn)
+    |> List.tryFind (fun tn ->
+        tn.Range.StartLine > lineNumber
+        && isNotMemberKeyword tn)
 
 let private findLastNodeOnLine (nodes: TriviaNodeAssigner list) lineNumber : TriviaNodeAssigner option =
     nodes
@@ -72,30 +71,27 @@ let private findLastNode (nodes: TriviaNodeAssigner list) : TriviaNodeAssigner o
 
 let private findNodeOnLineAndColumn (nodes: TriviaNodeAssigner list) line column =
     nodes
-    |> List.tryFindBack
-        (fun tn ->
-            tn.Range.StartLine = line
-            && tn.Range.StartColumn = column)
+    |> List.tryFindBack (fun tn ->
+        tn.Range.StartLine = line
+        && tn.Range.StartColumn = column)
 
 let private findMemberDefnMemberNodeOnLine (nodes: TriviaNodeAssigner list) line =
     nodes
-    |> List.tryFind
-        (fun tn ->
-            match tn.Type, tn.Range.StartLine = line with
-            | MainNode SynMemberDefn_Member, true
-            | MainNode SynMemberSig_Member, true
-            | Token (MEMBER, _), true -> true
-            | _ -> false)
+    |> List.tryFind (fun tn ->
+        match tn.Type, tn.Range.StartLine = line with
+        | MainNode SynMemberDefn_Member, true
+        | MainNode SynMemberSig_Member, true
+        | Token (MEMBER, _), true -> true
+        | _ -> false)
 
 let private findNodeBeforeLineAndColumn (nodes: TriviaNodeAssigner list) line column =
     let node =
         nodes
-        |> List.tryFindBack
-            (fun tn ->
-                let range = tn.Range
+        |> List.tryFindBack (fun tn ->
+            let range = tn.Range
 
-                range.StartLine <= line
-                && range.StartColumn <= column)
+            range.StartLine <= line
+            && range.StartColumn <= column)
 
     match node with
     | Some tokenNode ->
@@ -103,13 +99,12 @@ let private findNodeBeforeLineAndColumn (nodes: TriviaNodeAssigner list) line co
         | Token (_, t) when (t.TokenInfo.CharClass = FSharpTokenCharKind.Operator) ->
             // pick the matching ident instead of the token
             nodes
-            |> List.tryFind
-                (fun tn ->
-                    match tn.Type with
-                    | MainNode mn when (mn = SynExpr_Ident) ->
-                        tn.Range.StartLine = t.LineNumber
-                        && tn.Range.StartColumn = tn.Range.StartColumn
-                    | _ -> false)
+            |> List.tryFind (fun tn ->
+                match tn.Type with
+                | MainNode mn when (mn = SynExpr_Ident) ->
+                    tn.Range.StartLine = t.LineNumber
+                    && tn.Range.StartColumn = tn.Range.StartColumn
+                | _ -> false)
         | _ -> node
     | _ -> node
 
@@ -122,61 +117,57 @@ let private findNodeBeforeLineFromStart (nodes: TriviaNodeAssigner list) line =
 
 let private findNodeAfterLineAndColumn (nodes: TriviaNodeAssigner list) line column =
     nodes
-    |> List.tryFind
-        (fun tn ->
-            let range = tn.Range
+    |> List.tryFind (fun tn ->
+        let range = tn.Range
 
-            (range.StartLine > line)
-            || (range.StartLine = line
-                && range.StartColumn > column))
+        (range.StartLine > line)
+        || (range.StartLine = line
+            && range.StartColumn > column))
 
 let private findConstNumberNodeOnLineAndColumn (nodes: TriviaNodeAssigner list) (constantRange: Range) =
     nodes
-    |> List.tryFind
-        (fun tn ->
-            match tn.Type with
-            | MainNode SynConst_Byte
-            | MainNode SynConst_SByte
-            | MainNode SynConst_Int16
-            | MainNode SynConst_Int32
-            | MainNode SynConst_Int64
-            | MainNode SynConst_UInt16
-            | MainNode SynConst_UInt16s
-            | MainNode SynConst_UInt32
-            | MainNode SynConst_UInt64
-            | MainNode SynConst_Double
-            | MainNode SynConst_Single
-            | MainNode SynConst_Decimal
-            | MainNode SynConst_IntPtr
-            | MainNode SynConst_UIntPtr
-            | MainNode SynConst_UserNum ->
-                constantRange.StartLine = tn.Range.StartLine
-                && constantRange.StartColumn = tn.Range.StartColumn
-            | MainNode SynEnumCase_ ->
-                tn.Range.EndLine = constantRange.EndLine
-                && tn.Range.EndColumn = constantRange.EndColumn
-            | _ -> false)
+    |> List.tryFind (fun tn ->
+        match tn.Type with
+        | MainNode SynConst_Byte
+        | MainNode SynConst_SByte
+        | MainNode SynConst_Int16
+        | MainNode SynConst_Int32
+        | MainNode SynConst_Int64
+        | MainNode SynConst_UInt16
+        | MainNode SynConst_UInt16s
+        | MainNode SynConst_UInt32
+        | MainNode SynConst_UInt64
+        | MainNode SynConst_Double
+        | MainNode SynConst_Single
+        | MainNode SynConst_Decimal
+        | MainNode SynConst_IntPtr
+        | MainNode SynConst_UIntPtr
+        | MainNode SynConst_UserNum ->
+            constantRange.StartLine = tn.Range.StartLine
+            && constantRange.StartColumn = tn.Range.StartColumn
+        | MainNode SynEnumCase_ ->
+            tn.Range.EndLine = constantRange.EndLine
+            && tn.Range.EndColumn = constantRange.EndColumn
+        | _ -> false)
 
 let private findNodeForKeywordString (nodes: TriviaNodeAssigner list) (range: Range) =
     nodes
-    |> List.tryFind
-        (fun tn ->
-            match tn.Type with
-            | MainNode SynConst_String ->
-                tn.Range.StartLine = range.StartLine
-                && tn.Range.StartColumn = range.StartColumn
-            | MainNode ParsedHashDirective_ ->
-                tn.Range.StartLine = range.StartLine
-                && tn.Range.EndColumn >= range.EndColumn
-            | _ -> false)
+    |> List.tryFind (fun tn ->
+        match tn.Type with
+        | MainNode SynConst_String ->
+            tn.Range.StartLine = range.StartLine
+            && tn.Range.StartColumn = range.StartColumn
+        | MainNode ParsedHashDirective_ ->
+            tn.Range.StartLine = range.StartLine
+            && tn.Range.EndColumn >= range.EndColumn
+        | _ -> false)
 
 let private findSynConstStringNodeAfter (nodes: TriviaNodeAssigner list) (range: Range) =
     nodes
-    |> List.tryFind
-        (fun tn ->
-            match tn.Type, range.StartLine = tn.Range.StartLine, range.StartColumn + 1 = tn.Range.StartColumn with
-            | MainNode SynConst_String, true, true -> true
-            | _ -> false)
+    |> List.tryFind (fun tn ->
+        match tn.Type, range.StartLine = tn.Range.StartLine, range.StartColumn + 1 = tn.Range.StartColumn with
+        | MainNode SynConst_String, true, true -> true
+        | _ -> false)
 
 let private commentIsAfterLastTriviaNode (triviaNodes: TriviaNodeAssigner list) (range: Range) =
     let hasNoNodesAfterRange =
@@ -204,33 +195,30 @@ let private updateTriviaNode (lens: TriviaNodeAssigner -> unit) (triviaNodes: Tr
 
 let private findNamedPatThatStartsWith (triviaNodes: TriviaNodeAssigner list) column line =
     triviaNodes
-    |> List.tryFind
-        (fun t ->
-            match t.Type with
-            | MainNode SynPat_Named
-            | MainNode SynPat_LongIdent
-            | MainNode SynExpr_Ident ->
-                t.Range.StartColumn = column
-                && t.Range.StartLine = line
-            | _ -> false)
+    |> List.tryFind (fun t ->
+        match t.Type with
+        | MainNode SynPat_Named
+        | MainNode SynPat_LongIdent
+        | MainNode SynExpr_Ident ->
+            t.Range.StartColumn = column
+            && t.Range.StartLine = line
+        | _ -> false)
 
 let private findParsedHashOnLineAndEndswith (triviaNodes: TriviaNodeAssigner list) startLine endColumn =
     triviaNodes
-    |> List.tryFind
-        (fun t ->
-            match t.Type with
-            | MainNode ParsedHashDirective_ ->
-                t.Range.StartLine = startLine
-                && t.Range.EndColumn >= endColumn
-            | _ -> false)
+    |> List.tryFind (fun t ->
+        match t.Type with
+        | MainNode ParsedHashDirective_ ->
+            t.Range.StartLine = startLine
+            && t.Range.EndColumn >= endColumn
+        | _ -> false)
 
 let private findASTNodeOfTypeThatContains (nodes: TriviaNodeAssigner list) typeName range =
     nodes
-    |> List.filter
-        (fun t ->
-            match t.Type with
-            | TriviaNodeType.MainNode mnt when (mnt = typeName) -> RangeHelpers.``range contains`` t.Range range
-            | _ -> false)
+    |> List.filter (fun t ->
+        match t.Type with
+        | TriviaNodeType.MainNode mnt when (mnt = typeName) -> RangeHelpers.``range contains`` t.Range range
+        | _ -> false)
     |> List.tryHead
 
 let private addAllTriviaAsContentAfter (trivia: Trivia list) (singleNode: TriviaNodeAssigner) =
@@ -250,8 +238,7 @@ let private addTriviaToTriviaNode (startOfSourceCode: int) (triviaNodes: TriviaN
     match trivia with
     | { Item = Comment (LineCommentOnSingleLine _ as comment)
         Range = range } ->
-        let nodeAfterLine =
-            findFirstNodeAfterLine triviaNodes range.StartLine
+        let nodeAfterLine = findFirstNodeAfterLine triviaNodes range.StartLine
 
         match nodeAfterLine with
         | Some _ ->
@@ -304,8 +291,7 @@ let private addTriviaToTriviaNode (startOfSourceCode: int) (triviaNodes: TriviaN
 
     // Newlines are only relevant if they occur after the first line of source code
     | { Item = Newline; Range = range } when (range.StartLine > startOfSourceCode) ->
-        let nodeAfterLine =
-            findFirstNodeAfterLine triviaNodes range.StartLine
+        let nodeAfterLine = findFirstNodeAfterLine triviaNodes range.StartLine
 
         match nodeAfterLine with
         | Some _ ->
@@ -333,14 +319,12 @@ let private addTriviaToTriviaNode (startOfSourceCode: int) (triviaNodes: TriviaN
                     && keyword = "member"
                     ->
                     // Combine the two tokens to appear as one
-                    let tokenInfo =
-                        { token.TokenInfo with
-                              RightColumn = kw.TokenInfo.RightColumn }
+                    let tokenInfo = { token.TokenInfo with RightColumn = kw.TokenInfo.RightColumn }
 
                     let combinedKeyword =
                         { token with
-                              Content = "abstract member"
-                              TokenInfo = tokenInfo }
+                            Content = "abstract member"
+                            TokenInfo = tokenInfo }
 
                     tn.ContentItself <- Some(Keyword(combinedKeyword))
                 | _ -> tn.ContentItself <- Some(Keyword(kw)))
@@ -355,11 +339,10 @@ let private addTriviaToTriviaNode (startOfSourceCode: int) (triviaNodes: TriviaN
         Range = range } when (keyword = "in") ->
         // find In keyword TriviaNode
         triviaNodes
-        |> List.tryFind
-            (fun tn ->
-                match tn.Type with
-                | Token (IN, _) -> RangeHelpers.rangeEq range tn.Range
-                | _ -> false)
+        |> List.tryFind (fun tn ->
+            match tn.Type with
+            | Token (IN, _) -> RangeHelpers.rangeEq range tn.Range
+            | _ -> false)
         |> updateTriviaNode (fun tn -> tn.ContentItself <- Some trivia.Item) triviaNodes
 
     | { Item = Keyword { Content = keyword }
@@ -387,8 +370,7 @@ let private addTriviaToTriviaNode (startOfSourceCode: int) (triviaNodes: TriviaN
 
     | { Item = Directive dc as directive
         Range = range } ->
-        let nodeAfterLine =
-            findFirstNodeAfterLine triviaNodes range.StartLine
+        let nodeAfterLine = findFirstNodeAfterLine triviaNodes range.StartLine
 
         match nodeAfterLine with
         | Some _ as node -> updateTriviaNode (fun tn -> tn.ContentBefore.Add(directive)) triviaNodes node
@@ -426,31 +408,29 @@ let private addTriviaToTriviaNode (startOfSourceCode: int) (triviaNodes: TriviaN
     | { Item = IdentBetweenTicks _ as iNode
         Range = range } ->
         triviaNodes
-        |> List.tryFind
-            (fun t ->
-                let isIdent =
-                    match t.Type with
-                    | MainNode SynExpr_Ident
-                    | MainNode SynPat_Named
-                    | MainNode SynPat_LongIdent
-                    | MainNode Ident_
-                    | MainNode SynConst_String -> true
-                    | _ -> false
+        |> List.tryFind (fun t ->
+            let isIdent =
+                match t.Type with
+                | MainNode SynExpr_Ident
+                | MainNode SynPat_Named
+                | MainNode SynPat_LongIdent
+                | MainNode Ident_
+                | MainNode SynConst_String -> true
+                | _ -> false
 
-                isIdent
-                && (t.Range.StartColumn = range.StartColumn
-                    || t.Range.StartColumn = range.StartColumn + 1)
-                && t.Range.StartLine = range.StartLine)
+            isIdent
+            && (t.Range.StartColumn = range.StartColumn
+                || t.Range.StartColumn = range.StartColumn + 1)
+            && t.Range.StartLine = range.StartLine)
         |> updateTriviaNode (fun tn -> tn.ContentItself <- Some iNode) triviaNodes
 
     | { Item = EmbeddedIL _ as eil
         Range = range } ->
         triviaNodes
-        |> List.tryFind
-            (fun t ->
-                match t.Type with
-                | MainNode SynExpr_LibraryOnlyILAssembly -> RangeHelpers.rangeEq t.Range range
-                | _ -> false)
+        |> List.tryFind (fun t ->
+            match t.Type with
+            | MainNode SynExpr_LibraryOnlyILAssembly -> RangeHelpers.rangeEq t.Range range
+            | _ -> false)
         |> updateTriviaNode (fun tn -> tn.ContentItself <- Some eil) triviaNodes
     | _ -> triviaNodes
 
@@ -472,15 +452,13 @@ let collectTrivia (mkRange: MkRange) tokens (ast: ParsedInput) =
 
         | ParsedInput.SigFile (ParsedSigFileInput.ParsedSigFileInput (_, _, _, _, mns)) -> sigAstToNode mns
 
-    let triviaNodesFromTokens =
-        TokenParser.getTriviaNodesFromTokens mkRange tokens
+    let triviaNodesFromTokens = TokenParser.getTriviaNodesFromTokens mkRange tokens
 
     let triviaNodes =
         triviaNodesFromAST @ triviaNodesFromTokens
         |> List.sortBy (fun n -> n.Range.Start.Line, n.Range.Start.Column)
 
-    let trivias =
-        TokenParser.getTriviaFromTokens mkRange tokens
+    let trivias = TokenParser.getTriviaFromTokens mkRange tokens
 
     let startOfSourceCode =
         match tokens with
@@ -494,14 +472,13 @@ let collectTrivia (mkRange: MkRange) tokens (ast: ParsedInput) =
         | EmptyFile _, h :: _ -> addAllTriviaAsContentAfter trivias h
         | _ ->
             List.fold (addTriviaToTriviaNode startOfSourceCode) triviaNodes trivias
-            |> List.choose
-                (fun tn ->
-                    if triviaNodeIsNotEmpty tn then
-                        { Type = tn.Type
-                          Range = tn.Range
-                          ContentBefore = Seq.toList tn.ContentBefore
-                          ContentItself = tn.ContentItself
-                          ContentAfter = Seq.toList tn.ContentAfter }
-                        |> Some
-                    else
-                        None)
+            |> List.choose (fun tn ->
+                if triviaNodeIsNotEmpty tn then
+                    { Type = tn.Type
+                      Range = tn.Range
+                      ContentBefore = Seq.toList tn.ContentBefore
+                      ContentItself = tn.ContentItself
+                      ContentAfter = Seq.toList tn.ContentAfter }
+                    |> Some
+                else
+                    None)

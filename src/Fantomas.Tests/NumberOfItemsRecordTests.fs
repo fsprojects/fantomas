@@ -5,9 +5,7 @@ open FsUnit
 open Fantomas.Tests.TestHelper
 open Fantomas.FormatConfig
 
-let config =
-    { config with
-          RecordMultilineFormatter = NumberOfItems }
+let config = { config with RecordMultilineFormatter = NumberOfItems }
 
 [<Test>]
 let ``single member record stays on one line`` () =
@@ -464,8 +462,7 @@ type Range =
       To: float }
     member this.Length = this.To - this.From
 """
-        { config with
-              MaxValueBindingWidth = 120 }
+        { config with MaxValueBindingWidth = 120 }
     |> prepend newline
     |> should
         equal
@@ -613,8 +610,7 @@ type ShortExpressionInfo =
         || (currentColumn > maxPageWidth) // expression at current position is not going over the page width
     member x.Foo() = ()
 """
-        { config with
-              NewlineBetweenTypeDefinitionAndMembers = false }
+        { config with NewlineBetweenTypeDefinitionAndMembers = false }
     |> prepend newline
     |> should
         equal
@@ -837,8 +833,7 @@ let ``number of items sized record definitions are formatted properly`` () =
 type R = { a: int; b: string; c: float option }
 type S = { AReallyLongExpressionThatIsMuchLongerThan50Characters: int }
     """
-        { config with
-              RecordMultilineFormatter = NumberOfItems }
+        { config with RecordMultilineFormatter = NumberOfItems }
     |> prepend newline
     |> should
         equal
@@ -862,8 +857,8 @@ type R = { a: int; b: string; c: float option }
 type S = { AReallyLongExpressionThatIsMuchLongerThan50Characters: int }
     """
         { config with
-              RecordMultilineFormatter = NumberOfItems
-              MultilineBlockBracketsOnSameColumn = true }
+            RecordMultilineFormatter = NumberOfItems
+            MultilineBlockBracketsOnSameColumn = true }
     |> prepend newline
     |> should
         equal
@@ -895,8 +890,7 @@ g s { AReallyLongExpressionThatIsMuchLongerThan50Characters = 1 }
 f r' { r with a = x; b = y; z = c }
 g s' { s with AReallyLongExpressionThatIsMuchLongerThan50Characters = 1 }
     """
-        { config with
-              RecordMultilineFormatter = NumberOfItems }
+        { config with RecordMultilineFormatter = NumberOfItems }
     |> prepend newline
     |> should
         equal
@@ -954,8 +948,8 @@ f r' { r with a = x; b = y; z = c }
 g s' { s with AReallyLongExpressionThatIsMuchLongerThan50Characters = 1 }
     """
         { config with
-              RecordMultilineFormatter = NumberOfItems
-              MultilineBlockBracketsOnSameColumn = true }
+            RecordMultilineFormatter = NumberOfItems
+            MultilineBlockBracketsOnSameColumn = true }
     |> prepend newline
     |> should
         equal
@@ -1016,8 +1010,7 @@ g s {| AReallyLongExpressionThatIsMuchLongerThan50Characters = 1 |}
 f r' {| r with a = x; b = y; z = c |}
 g s' {| s with AReallyLongExpressionThatIsMuchLongerThan50Characters = 1 |}
     """
-        { config with
-              RecordMultilineFormatter = NumberOfItems }
+        { config with RecordMultilineFormatter = NumberOfItems }
     |> prepend newline
     |> should
         equal
@@ -1075,8 +1068,8 @@ f r' {| r with a = x; b = y; z = c |}
 g s' {| s with AReallyLongExpressionThatIsMuchLongerThan50Characters = 1 |}
     """
         { config with
-              RecordMultilineFormatter = NumberOfItems
-              MultilineBlockBracketsOnSameColumn = true }
+            RecordMultilineFormatter = NumberOfItems
+            MultilineBlockBracketsOnSameColumn = true }
     |> prepend newline
     |> should
         equal
@@ -1130,8 +1123,7 @@ let g (x: {| x: AReallyLongTypeThatIsMuchLongerThan40Characters |}) = x
 type A = {| x: int; y: obj |}
 type B = {| x: AReallyLongTypeThatIsMuchLongerThan40Characters |}
 """
-        { config with
-              RecordMultilineFormatter = NumberOfItems }
+        { config with RecordMultilineFormatter = NumberOfItems }
     |> prepend newline
     |> should
         equal
@@ -1166,8 +1158,8 @@ type A = {| x: int; y: obj |}
 type B = {| x: AReallyLongTypeThatIsMuchLongerThan40Characters |}
 """
         { config with
-              RecordMultilineFormatter = NumberOfItems
-              MultilineBlockBracketsOnSameColumn = true }
+            RecordMultilineFormatter = NumberOfItems
+            MultilineBlockBracketsOnSameColumn = true }
     |> prepend newline
     |> should
         equal

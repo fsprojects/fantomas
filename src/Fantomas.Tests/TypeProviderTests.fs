@@ -49,14 +49,13 @@ type Graphml = XmlProvider<Schema= @"http://graphml.graphdrawing.org/xmlns/1.0/g
 
 [<Test>]
 let ``should throw FormatException on unparsed input`` () =
-    Assert.Throws<Fantomas.FormatConfig.FormatException>
-        (fun () ->
-            formatSourceString
-                false
-                """
+    Assert.Throws<Fantomas.FormatConfig.FormatException> (fun () ->
+        formatSourceString
+            false
+            """
     type GeoResults = JsonProvider<Sample= "A" + "GitHub.json" >"""
-                config
-            |> ignore)
+            config
+        |> ignore)
     |> ignore
 
 [<Test>]

@@ -23,8 +23,7 @@ module IgnoreFile =
         |> List.tryFind (fun p -> Path.Combine(p, IgnoreFileName) |> File.Exists)
         |> Option.map (fun p -> Path.Combine(p, IgnoreFileName))
 
-    let private relativePathPrefix =
-        sprintf ".%c" Path.DirectorySeparatorChar
+    let private relativePathPrefix = sprintf ".%c" Path.DirectorySeparatorChar
 
     let private removeRelativePathPrefix (path: string) =
         if path.StartsWith(relativePathPrefix) then

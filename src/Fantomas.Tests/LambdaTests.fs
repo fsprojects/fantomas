@@ -12,8 +12,8 @@ let ``keep comment after arrow`` () =
  ())
 """
         { config with
-              IndentSize = 2
-              MaxLineLength = 90 }
+            IndentSize = 2
+            MaxLineLength = 90 }
     |> prepend newline
     |> should
         equal
@@ -291,8 +291,7 @@ let ``line comment after lambda should not necessary make it multiline`` () =
         false
         """let a = fun _ -> div [] [] // React.lazy is not compatible with SSR, so just use an empty div
 """
-        { config with
-              MaxFunctionBindingWidth = 150 }
+        { config with MaxFunctionBindingWidth = 150 }
     |> prepend newline
     |> should
         equal
@@ -421,14 +420,14 @@ let projectIntoMap projection =
          |> Map.add eventEnvelope.Metadata.Source newState
 """
         { config with
-              IndentSize = 2
-              SpaceBeforeUppercaseInvocation = true
-              SpaceBeforeColon = true
-              SpaceAfterComma = false
-              SpaceAroundDelimiter = false
-              MaxInfixOperatorExpression = 40
-              MaxFunctionBindingWidth = 60
-              MultilineBlockBracketsOnSameColumn = true }
+            IndentSize = 2
+            SpaceBeforeUppercaseInvocation = true
+            SpaceBeforeColon = true
+            SpaceAfterComma = false
+            SpaceAroundDelimiter = false
+            MaxInfixOperatorExpression = 40
+            MaxFunctionBindingWidth = 60
+            MultilineBlockBracketsOnSameColumn = true }
     |> prepend newline
     |> should
         equal
@@ -474,8 +473,8 @@ let ``don't duplicate new line before LongIdentSet`` () =
                 o.layout <- Some layout)
 """
         { config with
-              MaxValueBindingWidth = 50
-              MaxFunctionBindingWidth = 50 }
+            MaxValueBindingWidth = 50
+            MaxFunctionBindingWidth = 50 }
     |> prepend newline
     |> should
         equal

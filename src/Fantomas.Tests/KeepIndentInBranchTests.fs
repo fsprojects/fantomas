@@ -5,9 +5,7 @@ open FsUnit
 open Fantomas.Tests.TestHelper
 open Fantomas.FormatConfig
 
-let config =
-    { config with
-          KeepIndentInBranch = true }
+let config = { config with KeepIndentInBranch = true }
 
 [<Test>]
 let ``single expression in if branch, multiple expressions in else branch`` () =
@@ -878,8 +876,7 @@ module Foo =
         Thing.execute bar baz (thing, instructions)
         0
 """
-        { config with
-              BlankLinesAroundNestedMultilineExpressions = false }
+        { config with BlankLinesAroundNestedMultilineExpressions = false }
     |> prepend newline
     |> should
         equal
@@ -937,20 +934,20 @@ let main (args : Options) =
     0
 """
         { config with
-              MaxLineLength = 100
-              SpaceBeforeUppercaseInvocation = true
-              SpaceBeforeClassConstructor = true
-              SpaceBeforeMember = true
-              SpaceBeforeColon = true
-              SpaceBeforeSemicolon = true
-              IndentOnTryWith = true
-              MultilineBlockBracketsOnSameColumn = true
-              NewlineBetweenTypeDefinitionAndMembers = true
-              AlignFunctionSignatureToIndentation = true
-              AlternativeLongMemberDefinitions = true
-              MultiLineLambdaClosingNewline = true
-              DisableElmishSyntax = true
-              KeepIndentInBranch = true }
+            MaxLineLength = 100
+            SpaceBeforeUppercaseInvocation = true
+            SpaceBeforeClassConstructor = true
+            SpaceBeforeMember = true
+            SpaceBeforeColon = true
+            SpaceBeforeSemicolon = true
+            IndentOnTryWith = true
+            MultilineBlockBracketsOnSameColumn = true
+            NewlineBetweenTypeDefinitionAndMembers = true
+            AlignFunctionSignatureToIndentation = true
+            AlternativeLongMemberDefinitions = true
+            MultiLineLambdaClosingNewline = true
+            DisableElmishSyntax = true
+            KeepIndentInBranch = true }
     |> prepend newline
     |> should
         equal
@@ -1015,20 +1012,20 @@ let main (args : Options) =
     0
 """
         { config with
-              MaxLineLength = 100
-              SpaceBeforeUppercaseInvocation = true
-              SpaceBeforeClassConstructor = true
-              SpaceBeforeMember = true
-              SpaceBeforeColon = true
-              SpaceBeforeSemicolon = true
-              IndentOnTryWith = true
-              MultilineBlockBracketsOnSameColumn = true
-              NewlineBetweenTypeDefinitionAndMembers = true
-              AlignFunctionSignatureToIndentation = true
-              AlternativeLongMemberDefinitions = true
-              MultiLineLambdaClosingNewline = true
-              DisableElmishSyntax = true
-              KeepIndentInBranch = true }
+            MaxLineLength = 100
+            SpaceBeforeUppercaseInvocation = true
+            SpaceBeforeClassConstructor = true
+            SpaceBeforeMember = true
+            SpaceBeforeColon = true
+            SpaceBeforeSemicolon = true
+            IndentOnTryWith = true
+            MultilineBlockBracketsOnSameColumn = true
+            NewlineBetweenTypeDefinitionAndMembers = true
+            AlignFunctionSignatureToIndentation = true
+            AlternativeLongMemberDefinitions = true
+            MultiLineLambdaClosingNewline = true
+            DisableElmishSyntax = true
+            KeepIndentInBranch = true }
     |> prepend newline
     |> should
         equal
@@ -1098,18 +1095,18 @@ and [<CustomEquality ; NoComparison>] Bar<'context, 'a> =
                 }
 """
         { config with
-              MaxLineLength = 100
-              SpaceBeforeUppercaseInvocation = true
-              SpaceBeforeClassConstructor = true
-              SpaceBeforeMember = true
-              SpaceBeforeColon = true
-              SpaceBeforeSemicolon = true
-              MultilineBlockBracketsOnSameColumn = true
-              KeepIfThenInSameLine = true
-              KeepIndentInBranch = true
-              AlignFunctionSignatureToIndentation = true
-              AlternativeLongMemberDefinitions = true
-              MultiLineLambdaClosingNewline = true }
+            MaxLineLength = 100
+            SpaceBeforeUppercaseInvocation = true
+            SpaceBeforeClassConstructor = true
+            SpaceBeforeMember = true
+            SpaceBeforeColon = true
+            SpaceBeforeSemicolon = true
+            MultilineBlockBracketsOnSameColumn = true
+            KeepIfThenInSameLine = true
+            KeepIndentInBranch = true
+            AlignFunctionSignatureToIndentation = true
+            AlternativeLongMemberDefinitions = true
+            MultiLineLambdaClosingNewline = true }
     |> prepend newline
     |> should
         equal
@@ -1201,18 +1198,18 @@ module Foo =
         failwith ""
 """
         { config with
-              SpaceBeforeUppercaseInvocation = true
-              SpaceBeforeClassConstructor = true
-              SpaceBeforeMember = true
-              SpaceBeforeColon = true
-              SpaceBeforeSemicolon = true
-              MultilineBlockBracketsOnSameColumn = true
-              NewlineBetweenTypeDefinitionAndMembers = true
-              KeepIfThenInSameLine = true
-              AlignFunctionSignatureToIndentation = true
-              AlternativeLongMemberDefinitions = true
-              MultiLineLambdaClosingNewline = true
-              KeepIndentInBranch = true }
+            SpaceBeforeUppercaseInvocation = true
+            SpaceBeforeClassConstructor = true
+            SpaceBeforeMember = true
+            SpaceBeforeColon = true
+            SpaceBeforeSemicolon = true
+            MultilineBlockBracketsOnSameColumn = true
+            NewlineBetweenTypeDefinitionAndMembers = true
+            KeepIfThenInSameLine = true
+            AlignFunctionSignatureToIndentation = true
+            AlternativeLongMemberDefinitions = true
+            MultiLineLambdaClosingNewline = true
+            KeepIndentInBranch = true }
     |> prepend newline
     |> should
         equal
@@ -1270,18 +1267,18 @@ module Foo =
         failwith ""
 """
         { config with
-              SpaceBeforeUppercaseInvocation = true
-              SpaceBeforeClassConstructor = true
-              SpaceBeforeMember = true
-              SpaceBeforeColon = true
-              SpaceBeforeSemicolon = true
-              MultilineBlockBracketsOnSameColumn = true
-              NewlineBetweenTypeDefinitionAndMembers = true
-              KeepIfThenInSameLine = true
-              AlignFunctionSignatureToIndentation = true
-              AlternativeLongMemberDefinitions = true
-              MultiLineLambdaClosingNewline = true
-              KeepIndentInBranch = true }
+            SpaceBeforeUppercaseInvocation = true
+            SpaceBeforeClassConstructor = true
+            SpaceBeforeMember = true
+            SpaceBeforeColon = true
+            SpaceBeforeSemicolon = true
+            MultilineBlockBracketsOnSameColumn = true
+            NewlineBetweenTypeDefinitionAndMembers = true
+            KeepIfThenInSameLine = true
+            AlignFunctionSignatureToIndentation = true
+            AlternativeLongMemberDefinitions = true
+            MultiLineLambdaClosingNewline = true
+            KeepIndentInBranch = true }
     |> prepend newline
     |> should
         equal
@@ -1430,9 +1427,9 @@ module Foo =
         0
 """
         { config with
-              MultiLineLambdaClosingNewline = true
-              MultilineBlockBracketsOnSameColumn = true
-              AlternativeLongMemberDefinitions = true }
+            MultiLineLambdaClosingNewline = true
+            MultilineBlockBracketsOnSameColumn = true
+            AlternativeLongMemberDefinitions = true }
     |> prepend newline
     |> should
         equal
@@ -1600,15 +1597,15 @@ module Foo =
         0
 """
         { config with
-              SpaceBeforeUppercaseInvocation = true
-              SpaceBeforeClassConstructor = true
-              SpaceBeforeMember = true
-              SpaceBeforeColon = true
-              SpaceBeforeSemicolon = true
-              AlignFunctionSignatureToIndentation = true
-              AlternativeLongMemberDefinitions = true
-              MultiLineLambdaClosingNewline = true
-              KeepIndentInBranch = true }
+            SpaceBeforeUppercaseInvocation = true
+            SpaceBeforeClassConstructor = true
+            SpaceBeforeMember = true
+            SpaceBeforeColon = true
+            SpaceBeforeSemicolon = true
+            AlignFunctionSignatureToIndentation = true
+            AlternativeLongMemberDefinitions = true
+            MultiLineLambdaClosingNewline = true
+            KeepIndentInBranch = true }
     |> prepend newline
     |> should
         equal
@@ -1649,15 +1646,15 @@ module Foo =
         0
 """
         { config with
-              SpaceBeforeUppercaseInvocation = true
-              SpaceBeforeClassConstructor = true
-              SpaceBeforeMember = true
-              SpaceBeforeColon = true
-              SpaceBeforeSemicolon = true
-              AlignFunctionSignatureToIndentation = true
-              AlternativeLongMemberDefinitions = true
-              MultiLineLambdaClosingNewline = true
-              KeepIndentInBranch = true }
+            SpaceBeforeUppercaseInvocation = true
+            SpaceBeforeClassConstructor = true
+            SpaceBeforeMember = true
+            SpaceBeforeColon = true
+            SpaceBeforeSemicolon = true
+            AlignFunctionSignatureToIndentation = true
+            AlternativeLongMemberDefinitions = true
+            MultiLineLambdaClosingNewline = true
+            KeepIndentInBranch = true }
     |> prepend newline
     |> should
         equal
@@ -1842,8 +1839,8 @@ let ``tuple is consider as short branch, 1800`` () =
       []
 """
         { config with
-              MultiLineLambdaClosingNewline = true
-              KeepIndentInBranch = true }
+            MultiLineLambdaClosingNewline = true
+            KeepIndentInBranch = true }
     |> prepend newline
     |> should
         equal
@@ -1887,8 +1884,8 @@ let ``parenthesis tuple is consider as short branch`` () =
       []
 """
         { config with
-              MultiLineLambdaClosingNewline = true
-              KeepIndentInBranch = true }
+            MultiLineLambdaClosingNewline = true
+            KeepIndentInBranch = true }
     |> prepend newline
     |> should
         equal
@@ -1933,20 +1930,20 @@ module Foo =
         |> Ok
 """
         { config with
-              MaxLineLength = 100
-              SpaceBeforeUppercaseInvocation = true
-              SpaceBeforeClassConstructor = true
-              SpaceBeforeMember = true
-              SpaceBeforeColon = true
-              SpaceBeforeSemicolon = true
-              IndentOnTryWith = true
-              MultilineBlockBracketsOnSameColumn = true
-              NewlineBetweenTypeDefinitionAndMembers = true
-              AlignFunctionSignatureToIndentation = true
-              AlternativeLongMemberDefinitions = true
-              MultiLineLambdaClosingNewline = true
-              DisableElmishSyntax = true
-              KeepIndentInBranch = true }
+            MaxLineLength = 100
+            SpaceBeforeUppercaseInvocation = true
+            SpaceBeforeClassConstructor = true
+            SpaceBeforeMember = true
+            SpaceBeforeColon = true
+            SpaceBeforeSemicolon = true
+            IndentOnTryWith = true
+            MultilineBlockBracketsOnSameColumn = true
+            NewlineBetweenTypeDefinitionAndMembers = true
+            AlignFunctionSignatureToIndentation = true
+            AlternativeLongMemberDefinitions = true
+            MultiLineLambdaClosingNewline = true
+            DisableElmishSyntax = true
+            KeepIndentInBranch = true }
     |> prepend newline
     |> should
         equal
@@ -1995,20 +1992,20 @@ module Foo =
         |> Ok
 """
         { config with
-              MaxLineLength = 100
-              SpaceBeforeUppercaseInvocation = true
-              SpaceBeforeClassConstructor = true
-              SpaceBeforeMember = true
-              SpaceBeforeColon = true
-              SpaceBeforeSemicolon = true
-              IndentOnTryWith = true
-              MultilineBlockBracketsOnSameColumn = true
-              NewlineBetweenTypeDefinitionAndMembers = true
-              AlignFunctionSignatureToIndentation = true
-              AlternativeLongMemberDefinitions = true
-              MultiLineLambdaClosingNewline = true
-              DisableElmishSyntax = true
-              KeepIndentInBranch = true }
+            MaxLineLength = 100
+            SpaceBeforeUppercaseInvocation = true
+            SpaceBeforeClassConstructor = true
+            SpaceBeforeMember = true
+            SpaceBeforeColon = true
+            SpaceBeforeSemicolon = true
+            IndentOnTryWith = true
+            MultilineBlockBracketsOnSameColumn = true
+            NewlineBetweenTypeDefinitionAndMembers = true
+            AlignFunctionSignatureToIndentation = true
+            AlternativeLongMemberDefinitions = true
+            MultiLineLambdaClosingNewline = true
+            DisableElmishSyntax = true
+            KeepIndentInBranch = true }
     |> prepend newline
     |> should
         equal
@@ -2052,10 +2049,10 @@ module Foo =
                 |> ignore
 """
         { config with
-              MaxLineLength = 100
-              MultilineBlockBracketsOnSameColumn = true
-              MultiLineLambdaClosingNewline = true
-              KeepIndentInBranch = true }
+            MaxLineLength = 100
+            MultilineBlockBracketsOnSameColumn = true
+            MultiLineLambdaClosingNewline = true
+            KeepIndentInBranch = true }
     |> prepend newline
     |> should
         equal

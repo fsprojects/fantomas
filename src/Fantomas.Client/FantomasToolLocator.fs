@@ -10,8 +10,7 @@ open StreamJsonRpc
 open Fantomas.Client.LSPFantomasServiceTypes
 
 // Only 4.6.0-alpha-004 has daemon capabilities
-let private supportedRange =
-    SemanticVersioning.Range(">=v4.6.0-alpha-004")
+let private supportedRange = SemanticVersioning.Range(">=v4.6.0-alpha-004")
 
 let private (|CompatibleVersion|_|) (version: string) =
     match SemanticVersioning.Version.TryParse version with
@@ -46,8 +45,7 @@ let private startProcess (ps: ProcessStartInfo) : Result<Process, ProcessStartEr
         Ok(Process.Start ps)
     with
     | :? Win32Exception as win32ex ->
-        let pathEnv =
-            Environment.GetEnvironmentVariable "PATH"
+        let pathEnv = Environment.GetEnvironmentVariable "PATH"
 
         Error(
             ProcessStartError.ExecutableFileNotFound(
@@ -110,15 +108,13 @@ let private (|CompatibleTool|_|) lines =
     let (|Tools|_|) lines =
         let tools =
             lines
-            |> List.choose
-                (fun (line: string) ->
-                    let parts =
-                        line.Split([| ' ' |], StringSplitOptions.RemoveEmptyEntries)
+            |> List.choose (fun (line: string) ->
+                let parts = line.Split([| ' ' |], StringSplitOptions.RemoveEmptyEntries)
 
-                    if parts.Length > 2 then
-                        Some(parts.[0], parts.[1])
-                    else
-                        None)
+                if parts.Length > 2 then
+                    Some(parts.[0], parts.[1])
+                else
+                    None)
 
         if List.isEmpty tools then
             None
@@ -138,8 +134,7 @@ let private (|CompatibleTool|_|) lines =
         Option.map (snd >> FantomasVersion) tool
     | _ -> None
 
-let private isWindows =
-    RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+let private isWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
 
 // Find an executable fantomas-tool file on the PATH
 let private fantomasVersionOnPath () : (FantomasExecutableFile * FantomasVersion) option =
@@ -147,61 +142,57 @@ let private fantomasVersionOnPath () : (FantomasExecutableFile * FantomasVersion
         match Option.ofObj (Environment.GetEnvironmentVariable("PATH")) with
         | Some s -> s.Split([| if isWindows then ';' else ':' |], StringSplitOptions.RemoveEmptyEntries)
         | None -> Array.empty
-        |> Seq.choose
-            (fun folder ->
-                if isWindows then
-                    let fantomasExe = Path.Combine(folder, "fantomas.exe")
+        |> Seq.choose (fun folder ->
+            if isWindows then
+                let fantomasExe = Path.Combine(folder, "fantomas.exe")
 
-                    let fantomasToolExe =
-                        Path.Combine(folder, "fantomas-tool.exe")
+                let fantomasToolExe = Path.Combine(folder, "fantomas-tool.exe")
 
-                    if File.Exists fantomasExe then
-                        Some fantomasExe
-                    elif File.Exists fantomasToolExe then
-                        Some fantomasToolExe
-                    else
-                        None
+                if File.Exists fantomasExe then
+                    Some fantomasExe
+                elif File.Exists fantomasToolExe then
+                    Some fantomasToolExe
                 else
-                    let fantomas = Path.Combine(folder, "fantomas")
-                    let fantomasTool = Path.Combine(folder, "fantomas-tool")
+                    None
+            else
+                let fantomas = Path.Combine(folder, "fantomas")
+                let fantomasTool = Path.Combine(folder, "fantomas-tool")
 
-                    if File.Exists fantomas then
-                        Some fantomas
-                    elif File.Exists fantomasTool then
-                        Some fantomasTool
-                    else
-                        None)
+                if File.Exists fantomas then
+                    Some fantomas
+                elif File.Exists fantomasTool then
+                    Some fantomasTool
+                else
+                    None)
         |> Seq.tryHead
 
     fantomasExecutableOnPathOpt
-    |> Option.bind
-        (fun fantomasExecutablePath ->
-            let processStart = ProcessStartInfo(fantomasExecutablePath)
-            processStart.Arguments <- "--version"
-            processStart.RedirectStandardOutput <- true
-            processStart.CreateNoWindow <- true
-            processStart.RedirectStandardOutput <- true
-            processStart.RedirectStandardError <- true
-            processStart.UseShellExecute <- false
+    |> Option.bind (fun fantomasExecutablePath ->
+        let processStart = ProcessStartInfo(fantomasExecutablePath)
+        processStart.Arguments <- "--version"
+        processStart.RedirectStandardOutput <- true
+        processStart.CreateNoWindow <- true
+        processStart.RedirectStandardOutput <- true
+        processStart.RedirectStandardError <- true
+        processStart.UseShellExecute <- false
 
-            match startProcess processStart with
-            | Ok p ->
-                p.WaitForExit()
-                let stdOut = p.StandardOutput.ReadToEnd()
+        match startProcess processStart with
+        | Ok p ->
+            p.WaitForExit()
+            let stdOut = p.StandardOutput.ReadToEnd()
 
-                stdOut
-                |> Option.ofObj
-                |> Option.map
-                    (fun s ->
-                        let version =
-                            s
-                                .ToLowerInvariant()
-                                .Replace("fantomas", String.Empty)
-                                .Trim()
+            stdOut
+            |> Option.ofObj
+            |> Option.map (fun s ->
+                let version =
+                    s
+                        .ToLowerInvariant()
+                        .Replace("fantomas", String.Empty)
+                        .Trim()
 
-                        FantomasExecutableFile(fantomasExecutablePath), FantomasVersion(version))
-            | Error (ProcessStartError.ExecutableFileNotFound _)
-            | Error (ProcessStartError.UnExpectedException _) -> None)
+                FantomasExecutableFile(fantomasExecutablePath), FantomasVersion(version))
+        | Error (ProcessStartError.ExecutableFileNotFound _)
+        | Error (ProcessStartError.UnExpectedException _) -> None)
 
 let findFantomasTool (workingDir: Folder) : Result<FantomasToolFound, FantomasToolError> =
     // First try and find a local tool for the folder.
@@ -235,8 +226,7 @@ let createFor (startInfo: FantomasToolStartInfo) : Result<RunningFantomasTool, P
             ps.Arguments <- "fantomas --daemon"
             ps
         | FantomasToolStartInfo.GlobalTool ->
-            let userProfile =
-                Environment.GetFolderPath(Environment.SpecialFolder.UserProfile)
+            let userProfile = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile)
 
             let fantomasExecutable =
                 let fileName =

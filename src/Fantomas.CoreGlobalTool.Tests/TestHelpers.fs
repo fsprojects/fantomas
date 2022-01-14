@@ -36,8 +36,7 @@ type TemporaryFileCodeSample
 
         match internalSubFolders with
         | Some sf ->
-            let tempFolder =
-                Path.Join(Path.GetTempPath(), Path.Join(sf))
+            let tempFolder = Path.Join(Path.GetTempPath(), Path.Join(sf))
 
             if not (Directory.Exists(tempFolder)) then
                 Directory.CreateDirectory(tempFolder) |> ignore
@@ -58,14 +57,12 @@ type TemporaryFileCodeSample
             File.Delete(filename)
 
             internalSubFolders
-            |> Option.iter
-                (fun sf ->
-                    let path = Path.Join(Path.GetTempPath(), sf.[0])
-                    Directory.Delete(path, true))
+            |> Option.iter (fun sf ->
+                let path = Path.Join(Path.GetTempPath(), sf.[0])
+                Directory.Delete(path, true))
 
 type OutputFile internal () =
-    let filename =
-        Path.Join(Path.GetTempPath(), Guid.NewGuid().ToString() + ".fs")
+    let filename = Path.Join(Path.GetTempPath(), Guid.NewGuid().ToString() + ".fs")
 
     member _.Filename: string = filename
 
@@ -75,8 +72,7 @@ type OutputFile internal () =
                 File.Delete(filename)
 
 type ConfigurationFile internal (content: string) =
-    let filename =
-        Path.Join(Path.GetTempPath(), ".editorconfig")
+    let filename = Path.Join(Path.GetTempPath(), ".editorconfig")
 
     do File.WriteAllText(filename, content)
     member _.Filename: string = filename
@@ -87,8 +83,7 @@ type ConfigurationFile internal (content: string) =
                 File.Delete(filename)
 
 type FantomasIgnoreFile internal (content: string) =
-    let filename =
-        Path.Join(Path.GetTempPath(), IgnoreFile.IgnoreFileName)
+    let filename = Path.Join(Path.GetTempPath(), IgnoreFile.IgnoreFileName)
 
     do File.WriteAllText(filename, content)
     member _.Filename: string = filename
@@ -104,8 +99,7 @@ type FantomasToolResult =
       Error: string }
 
 let getFantomasToolStartInfo arguments : ProcessStartInfo =
-    let pwd =
-        Path.GetDirectoryName(typeof<TemporaryFileCodeSample>.Assembly.Location)
+    let pwd = Path.GetDirectoryName(typeof<TemporaryFileCodeSample>.Assembly.Location)
 
     let configuration =
 #if DEBUG

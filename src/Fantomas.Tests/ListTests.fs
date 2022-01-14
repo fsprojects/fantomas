@@ -50,8 +50,7 @@ let ``array values`` () =
 let arr = [|(1, 1, 1); (1, 2, 2); (1, 3, 3); (2, 1, 2); (2, 2, 4); (2, 3, 6); (3, 1, 3);
   (3, 2, 6); (3, 3, 9)|]
     """
-        { config with
-              SemicolonAtEndOfLine = true }
+        { config with SemicolonAtEndOfLine = true }
     |> prepend newline
     |> should
         equal
@@ -372,8 +371,7 @@ let prismCli commando =
         |]
     ()
 """
-        { config with
-              SpaceAroundDelimiter = false }
+        { config with SpaceAroundDelimiter = false }
     |> should
         equal
         """let prismCli commando =
@@ -393,8 +391,7 @@ let ``line comment inside list`` () =
 // foo
 ]
 """
-        { config with
-              SpaceAroundDelimiter = false }
+        { config with SpaceAroundDelimiter = false }
     |> prepend newline
     |> should
         equal
@@ -1916,8 +1913,8 @@ let original_input = [
 ]
 """
         { config with
-              MaxIfThenElseShortWidth = 120
-              MaxArrayOrListWidth = 120 }
+            MaxIfThenElseShortWidth = 120
+            MaxArrayOrListWidth = 120 }
     |> prepend newline
     |> should
         equal
@@ -1939,9 +1936,9 @@ let value = [
 ]
 """
         { config with
-              MaxIfThenElseShortWidth = 120
-              MaxArrayOrListWidth = 120
-              MultilineBlockBracketsOnSameColumn = true }
+            MaxIfThenElseShortWidth = 120
+            MaxArrayOrListWidth = 120
+            MultilineBlockBracketsOnSameColumn = true }
     |> prepend newline
     |> should
         equal
@@ -2183,8 +2180,7 @@ let ``multiline function application inside list`` () =
     uioooooooooooooooooooooooo)
 ]
 """
-        { config with
-              SpaceBeforeLowercaseInvocation = true }
+        { config with SpaceBeforeLowercaseInvocation = true }
     |> prepend newline
     |> should
         equal

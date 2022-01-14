@@ -15,8 +15,7 @@ type Funcs =
     static member ToFunc (f: Action<_,_,_>) =
         Func<_,_,_,_>(fun a b c -> f.Invoke(a,b,c))
     """
-        { config with
-              MaxFunctionBindingWidth = 120 }
+        { config with MaxFunctionBindingWidth = 120 }
     |> should
         equal
         """[<Extension>]
@@ -371,10 +370,10 @@ let main argv =
     0 // return an integer exit code
 """
         { config with
-              SpaceAfterComma = false
-              SpaceAfterSemicolon = false
-              SpaceAroundDelimiter = false
-              SpaceBeforeLowercaseInvocation = false }
+            SpaceAfterComma = false
+            SpaceAfterSemicolon = false
+            SpaceAroundDelimiter = false
+            SpaceBeforeLowercaseInvocation = false }
     |> prepend newline
     |> should
         equal

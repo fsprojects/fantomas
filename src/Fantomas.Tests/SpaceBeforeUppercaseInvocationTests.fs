@@ -4,9 +4,7 @@ open NUnit.Framework
 open FsUnit
 open Fantomas.Tests.TestHelper
 
-let spaceBeforeConfig =
-    { config with
-          SpaceBeforeUppercaseInvocation = true }
+let spaceBeforeConfig = { config with SpaceBeforeUppercaseInvocation = true }
 
 /// Space before () in Uppercase function call
 
@@ -97,8 +95,7 @@ let ``space before uppercase function application cannot apply with dot-chaining
         false
         """foo.Bar().[5]
 """
-        { config with
-              SpaceBeforeUppercaseInvocation = true }
+        { config with SpaceBeforeUppercaseInvocation = true }
     |> prepend newline
     |> should
         equal
@@ -112,8 +109,7 @@ let ``space before uppercase DotIndexedSet`` () =
         false
         """foo.Bar().[5] <- 5
 """
-        { config with
-              SpaceBeforeUppercaseInvocation = true }
+        { config with SpaceBeforeUppercaseInvocation = true }
     |> prepend newline
     |> should
         equal
@@ -131,8 +127,7 @@ module SomeModule =
         let someValue = a.Some.Thing("aaa").[0]
         someValue
 """
-        { config with
-              SpaceBeforeUppercaseInvocation = true }
+        { config with SpaceBeforeUppercaseInvocation = true }
     |> prepend newline
     |> should
         equal
@@ -151,8 +146,7 @@ let ``space before uppercase constructor without new`` () =
 let tree1 =
     BinaryNode(BinaryNode(BinaryValue 1, BinaryValue 2), BinaryNode(BinaryValue 3, BinaryValue 4))
 """
-        { spaceBeforeConfig with
-              MaxLineLength = 80 }
+        { spaceBeforeConfig with MaxLineLength = 80 }
     |> prepend newline
     |> should
         equal
@@ -174,8 +168,7 @@ let person = new Person("Jim", 33)
 let otherThing =
     new Foobar(longname1, longname2, longname3, longname4, longname5, longname6, longname7)
 """
-        { spaceBeforeConfig with
-              MaxLineLength = 90 }
+        { spaceBeforeConfig with MaxLineLength = 90 }
     |> prepend newline
     |> should
         equal
@@ -209,8 +202,7 @@ let untypedRes = checker.ParseFile(file, source, opts)
 let untypedResLong =
     checker.ParseFile(fileName, sourceText, parsingOptionsWithDefines, somethingElseWithARatherLongVariableName)
 """
-        { spaceBeforeConfig with
-              MaxLineLength = 90 }
+        { spaceBeforeConfig with MaxLineLength = 90 }
     |> prepend newline
     |> should
         equal

@@ -26,8 +26,7 @@ let projectUrl = sprintf "%s/%s" gitHome gitName
 // (used as description in AssemblyInfo and as a short summary for NuGet package)
 let summary = "Source code formatter for F#"
 
-let copyright =
-    sprintf "Copyright © %d" DateTime.UtcNow.Year
+let copyright = sprintf "Copyright © %d" DateTime.UtcNow.Year
 
 let configuration = DotNet.BuildConfiguration.Release
 
@@ -48,16 +47,14 @@ let authors =
 
 let owner = "Anh-Dung Phan"
 // Tags for your project (for NuGet package)
-let tags =
-    "F# fsharp formatting beautifier indentation indenter"
+let tags = "F# fsharp formatting beautifier indentation indenter"
 
 let fantomasClientVersion = "0.5.1"
 
 // (<solutionFile>.sln is built during the building process)
 let solutionFile = "fantomas"
 //// Environment.CurrentDirectory <- __SOURCE_DIRECTORY__
-let release =
-    ReleaseNotes.parse (File.ReadAllLines "RELEASE_NOTES.md")
+let release = ReleaseNotes.parse (File.ReadAllLines "RELEASE_NOTES.md")
 
 // Files to format
 let sourceFiles =
@@ -89,8 +86,8 @@ let configureBuildCommandFromFakeBuildScripts scriptPrefix argument pathToProjec
     else
         { ProcessName = "sh"
           Arguments =
-              [ sprintf "%s/%s.sh" pathToProject scriptPrefix
-                argument ] }
+            [ sprintf "%s/%s.sh" pathToProject scriptPrefix
+              argument ] }
 
 let configureBuildCommandFromDefaultFakeBuildScripts pathToProject =
     configureBuildCommandFromFakeBuildScripts "build" "Build" pathToProject
@@ -163,123 +160,111 @@ let externalProjectsToTestFailing =
 // --------------------------------------------------------------------------------------
 // Clean build results & restore NuGet packages
 
-Target.create
-    "Clean"
-    (fun _ ->
-        [ "bin"
-          "src/Fantomas/bin"
-          "src/Fantomas/obj"
-          "src/Fantomas.CoreGlobalTool/bin"
-          "src/Fantomas.CoreGlobalTool/obj"
-          "src/Fantomas.Client/bin"
-          "src/Fantomas.Client/obj" ]
-        |> List.iter Shell.cleanDir)
+Target.create "Clean" (fun _ ->
+    [ "bin"
+      "src/Fantomas/bin"
+      "src/Fantomas/obj"
+      "src/Fantomas.CoreGlobalTool/bin"
+      "src/Fantomas.CoreGlobalTool/obj"
+      "src/Fantomas.Client/bin"
+      "src/Fantomas.Client/obj" ]
+    |> List.iter Shell.cleanDir)
 
-Target.create
-    "ProjectVersion"
-    (fun _ ->
-        let version = release.NugetVersion
+Target.create "ProjectVersion" (fun _ ->
+    let version = release.NugetVersion
 
-        let setProjectVersion project =
-            let file =
-                sprintf "src/%s/%s.fsproj" project project
+    let setProjectVersion project =
+        let file = sprintf "src/%s/%s.fsproj" project project
 
-            Xml.poke
-                file
-                "Project/PropertyGroup/Version/text()"
-                (if project = "Fantomas.Client" then
-                     fantomasClientVersion
-                 else
-                     version)
+        Xml.poke
+            file
+            "Project/PropertyGroup/Version/text()"
+            (if project = "Fantomas.Client" then
+                 fantomasClientVersion
+             else
+                 version)
 
-        setProjectVersion "Fantomas"
-        setProjectVersion "Fantomas.CoreGlobalTool"
-        setProjectVersion "Fantomas.CoreGlobalTool.Tests"
-        setProjectVersion "Fantomas.Tests"
-        setProjectVersion "Fantomas.Extras"
-        setProjectVersion "Fantomas.Client")
+    setProjectVersion "Fantomas"
+    setProjectVersion "Fantomas.CoreGlobalTool"
+    setProjectVersion "Fantomas.CoreGlobalTool.Tests"
+    setProjectVersion "Fantomas.Tests"
+    setProjectVersion "Fantomas.Extras"
+    setProjectVersion "Fantomas.Client")
 
 // --------------------------------------------------------------------------------------
 // Build library & test project
-Target.create
-    "Build"
-    (fun _ ->
-        let sln = sprintf "%s.sln" solutionFile
-        DotNet.build (fun p -> { p with Configuration = configuration }) sln)
+Target.create "Build" (fun _ ->
+    let sln = sprintf "%s.sln" solutionFile
+    DotNet.build (fun p -> { p with Configuration = configuration }) sln)
 
-Target.create
-    "UnitTests"
-    (fun _ ->
-        DotNet.test
-            (fun p ->
-                { p with
-                      Configuration = configuration
-                      NoRestore = true
-                      NoBuild = true
-                // TestAdapterPath = Some "."
-                // Logger = Some "nunit;LogFilePath=../../TestResults.xml"
-                // Current there is an issue with NUnit reporter, https://github.com/nunit/nunit3-vs-adapter/issues/589
-                })
-            "src/Fantomas.Tests/Fantomas.Tests.fsproj"
+Target.create "UnitTests" (fun _ ->
+    DotNet.test
+        (fun p ->
+            { p with
+                Configuration = configuration
+                NoRestore = true
+                NoBuild = true
+            // TestAdapterPath = Some "."
+            // Logger = Some "nunit;LogFilePath=../../TestResults.xml"
+            // Current there is an issue with NUnit reporter, https://github.com/nunit/nunit3-vs-adapter/issues/589
+             })
+        "src/Fantomas.Tests/Fantomas.Tests.fsproj"
 
-        DotNet.test
-            (fun p ->
-                { p with
-                      Configuration = configuration
-                      NoRestore = true
-                      NoBuild = true
-                // TestAdapterPath = Some "."
-                // Logger = Some "nunit;LogFilePath=../../TestResults.xml"
-                // Current there is an issue with NUnit reporter, https://github.com/nunit/nunit3-vs-adapter/issues/589
-                })
-            "src/Fantomas.CoreGlobalTool.Tests/Fantomas.CoreGlobalTool.Tests.fsproj")
+    DotNet.test
+        (fun p ->
+            { p with
+                Configuration = configuration
+                NoRestore = true
+                NoBuild = true
+            // TestAdapterPath = Some "."
+            // Logger = Some "nunit;LogFilePath=../../TestResults.xml"
+            // Current there is an issue with NUnit reporter, https://github.com/nunit/nunit3-vs-adapter/issues/589
+             })
+        "src/Fantomas.CoreGlobalTool.Tests/Fantomas.CoreGlobalTool.Tests.fsproj")
 
 // --------------------------------------------------------------------------------------
 // Build a NuGet package
 
-Target.create
-    "Pack"
-    (fun _ ->
-        let nugetVersion = release.NugetVersion
+Target.create "Pack" (fun _ ->
+    let nugetVersion = release.NugetVersion
 
-        let pack project =
-            let projectPath =
-                sprintf "src/%s/%s.fsproj" project project
+    let pack project =
+        let projectPath = sprintf "src/%s/%s.fsproj" project project
 
-            let args =
-                let defaultArgs = MSBuild.CliArguments.Create()
+        let args =
+            let defaultArgs = MSBuild.CliArguments.Create()
 
-                { defaultArgs with
-                      Properties =
-                          [ "Title", project
-                            "PackageVersion",
-                            (if project = "Fantomas.Client" then
-                                 fantomasClientVersion
-                             else
-                                 nugetVersion)
-                            "Authors", (String.Join(" ", authors))
-                            "Owners", owner
-                            "PackageRequireLicenseAcceptance", "false"
-                            "Description", description
-                            "Summary", summary
-                            "PackageReleaseNotes", ((String.toLines release.Notes).Replace(",", ""))
-                            "Copyright", copyright
-                            "PackageTags", tags
-                            "PackageProjectUrl", projectUrl ] }
+            { defaultArgs with
+                Properties =
+                    [ "Title", project
+                      "PackageVersion",
+                      (if project = "Fantomas.Client" then
+                           fantomasClientVersion
+                       else
+                           nugetVersion)
+                      "Authors", (String.Join(" ", authors))
+                      "Owners", owner
+                      "PackageRequireLicenseAcceptance", "false"
+                      "Description", description
+                      "Summary", summary
+                      "PackageReleaseNotes", ((String.toLines release.Notes).Replace(",", ""))
+                      "Copyright", copyright
+                      "PackageTags", tags
+                      "PackageProjectUrl", projectUrl ] }
 
-            DotNet.pack
-                (fun p ->
-                    { p with
-                          NoRestore = true
-                          Configuration = configuration
-                          OutputPath = Some "./bin"
-                          MSBuildParams = args })
-                projectPath
+        DotNet.pack
+            (fun p ->
+                { p with
+                    NoRestore = true
+                    Configuration = configuration
+                    OutputPath = Some "./bin"
+                    MSBuildParams = args })
+            projectPath
 
-        pack "Fantomas"
-        pack "Fantomas.Extras"
-        pack "Fantomas.CoreGlobalTool"
-        pack "Fantomas.Client")
+    pack "Fantomas"
+    pack "Fantomas.Extras"
+    pack "Fantomas.CoreGlobalTool"
+    pack "Fantomas.Client")
 
 // This takes the list of external projects defined above, does a git checkout of the specified repo and tag,
 // tries to build the project, then reformats with fantomas and tries to build the project again. If this fails
@@ -293,67 +278,62 @@ let testExternalProjects externalProjectsToTest =
                id
            else
                List.filter (fun p -> p.DirectoryName = project)
-        |> List.map
-            (fun project ->
-                let relativeProjectDir =
-                    sprintf "external-project-tests/%s" project.DirectoryName
+        |> List.map (fun project ->
+            let relativeProjectDir = sprintf "external-project-tests/%s" project.DirectoryName
 
-                Shell.cleanDir relativeProjectDir
-                // Use "shallow" clone by setting depth to 1 to only check out the one commit we want to build
-                Fake.Tools.Git.CommandHelper.gitCommand
-                    "."
-                    (sprintf "clone --branch %s --depth 1 %s %s" project.Tag project.GitUrl relativeProjectDir)
+            Shell.cleanDir relativeProjectDir
+            // Use "shallow" clone by setting depth to 1 to only check out the one commit we want to build
+            Fake.Tools.Git.CommandHelper.gitCommand
+                "."
+                (sprintf "clone --branch %s --depth 1 %s %s" project.Tag project.GitUrl relativeProjectDir)
 
-                let fullProjectPath =
-                    sprintf "%s/%s" __SOURCE_DIRECTORY__ relativeProjectDir
+            let fullProjectPath = sprintf "%s/%s" __SOURCE_DIRECTORY__ relativeProjectDir
 
-                let buildStartInfo =
-                    project.BuildConfigurationFn fullProjectPath
+            let buildStartInfo = project.BuildConfigurationFn fullProjectPath
 
-                let buildExternalProject () =
-                    buildStartInfo.Arguments
-                    |> CreateProcess.fromRawCommand buildStartInfo.ProcessName
-                    |> CreateProcess.withWorkingDirectory relativeProjectDir
-                    |> CreateProcess.withTimeout (TimeSpan.FromMinutes 5.0)
-                    |> Proc.run
+            let buildExternalProject () =
+                buildStartInfo.Arguments
+                |> CreateProcess.fromRawCommand buildStartInfo.ProcessName
+                |> CreateProcess.withWorkingDirectory relativeProjectDir
+                |> CreateProcess.withTimeout (TimeSpan.FromMinutes 5.0)
+                |> Proc.run
 
-                let cleanResult = buildExternalProject ()
+            let cleanResult = buildExternalProject ()
 
-                if cleanResult.ExitCode <> 0 then
-                    failwithf
-                        "Initial build of external project %s returned with a non-zero exit code"
-                        project.DirectoryName
+            if cleanResult.ExitCode <> 0 then
+                failwithf
+                    "Initial build of external project %s returned with a non-zero exit code"
+                    project.DirectoryName
 
-                let fantomasStartInfo =
-                    fantomasExecutableForExternalTests __SOURCE_DIRECTORY__
+            let fantomasStartInfo = fantomasExecutableForExternalTests __SOURCE_DIRECTORY__
 
-                let arguments =
-                    fantomasStartInfo.Arguments
-                    @ [ "--recurse"
-                        project.SourceSubDirectory ]
+            let arguments =
+                fantomasStartInfo.Arguments
+                @ [ "--recurse"
+                    project.SourceSubDirectory ]
 
-                let invokeFantomas () =
-                    CreateProcess.fromRawCommand fantomasStartInfo.ProcessName arguments
-                    |> CreateProcess.withWorkingDirectory (sprintf "%s/%s" __SOURCE_DIRECTORY__ relativeProjectDir)
-                    |> CreateProcess.withTimeout (TimeSpan.FromMinutes 5.0)
-                    |> Proc.run
+            let invokeFantomas () =
+                CreateProcess.fromRawCommand fantomasStartInfo.ProcessName arguments
+                |> CreateProcess.withWorkingDirectory (sprintf "%s/%s" __SOURCE_DIRECTORY__ relativeProjectDir)
+                |> CreateProcess.withTimeout (TimeSpan.FromMinutes 5.0)
+                |> Proc.run
 
-                let fantomasResult = invokeFantomas ()
+            let fantomasResult = invokeFantomas ()
 
-                if fantomasResult.ExitCode <> 0 then
+            if fantomasResult.ExitCode <> 0 then
+                Some
+                <| sprintf "Fantomas invokation for %s returned with a non-zero exit code" project.DirectoryName
+            else
+                let formattedResult = buildExternalProject ()
+
+                if formattedResult.ExitCode <> 0 then
                     Some
-                    <| sprintf "Fantomas invokation for %s returned with a non-zero exit code" project.DirectoryName
+                    <| sprintf
+                        "Build of external project after fantomas formatting failed for project %s"
+                        project.DirectoryName
                 else
-                    let formattedResult = buildExternalProject ()
-
-                    if formattedResult.ExitCode <> 0 then
-                        Some
-                        <| sprintf
-                            "Build of external project after fantomas formatting failed for project %s"
-                            project.DirectoryName
-                    else
-                        printfn "Successfully built %s after reformatting" project.DirectoryName
-                        None)
+                    printfn "Successfully built %s after reformatting" project.DirectoryName
+                    None)
         |> List.choose id
 
     if not (List.isEmpty externalBuildErrors) then
@@ -377,19 +357,15 @@ let pushPackage nupkg =
     |> ignore
 
 
-Target.create
-    "Push"
-    (fun _ ->
-        Directory.EnumerateFiles("bin", "*.nupkg", SearchOption.TopDirectoryOnly)
-        |> Seq.filter (fun nupkg -> not (nupkg.Contains("Fantomas.Client")))
-        |> Seq.iter pushPackage)
+Target.create "Push" (fun _ ->
+    Directory.EnumerateFiles("bin", "*.nupkg", SearchOption.TopDirectoryOnly)
+    |> Seq.filter (fun nupkg -> not (nupkg.Contains("Fantomas.Client")))
+    |> Seq.iter pushPackage)
 
-Target.create
-    "PushClient"
-    (fun _ ->
-        Directory.EnumerateFiles("bin", "Fantomas.Client.*.nupkg", SearchOption.TopDirectoryOnly)
-        |> Seq.tryExactlyOne
-        |> Option.iter pushPackage)
+Target.create "PushClient" (fun _ ->
+    Directory.EnumerateFiles("bin", "Fantomas.Client.*.nupkg", SearchOption.TopDirectoryOnly)
+    |> Seq.tryExactlyOne
+    |> Option.iter pushPackage)
 
 let git command =
     CreateProcess.fromRawCommandLine "git" command
@@ -399,121 +375,108 @@ let git command =
 
 open Microsoft.Azure.Cosmos.Table
 
-Target.create
-    "Benchmark"
-    (fun _ ->
-        DotNet.exec
-            id
-            ("src"
-             </> "Fantomas.Benchmarks"
-             </> "bin"
-             </> "Release"
-             </> "net5.0"
-             </> "Fantomas.Benchmarks.dll")
-            ""
-        |> ignore
+Target.create "Benchmark" (fun _ ->
+    DotNet.exec
+        id
+        ("src"
+         </> "Fantomas.Benchmarks"
+         </> "bin"
+         </> "Release"
+         </> "net5.0"
+         </> "Fantomas.Benchmarks.dll")
+        ""
+    |> ignore
 
-        match Environment.environVarOrNone "TABLE_STORAGE_CONNECTION_STRING" with
-        | Some conn ->
-            let branchName = git "rev-parse --abbrev-ref HEAD"
-            let commit = git "rev-parse HEAD"
-            let operatingSystem = Environment.environVar "RUNNER_OS"
+    match Environment.environVarOrNone "TABLE_STORAGE_CONNECTION_STRING" with
+    | Some conn ->
+        let branchName = git "rev-parse --abbrev-ref HEAD"
+        let commit = git "rev-parse HEAD"
+        let operatingSystem = Environment.environVar "RUNNER_OS"
 
-            let results =
-                File.ReadLines(
-                    "./BenchmarkDotNet.Artifacts/results/Fantomas.Benchmarks.Runners.CodePrinterTest-report.csv"
-                )
-                |> Seq.map (fun line -> line.Split(',') |> Array.toList)
-                |> Seq.toList
-                |> fun lineGroups ->
-                    match lineGroups with
-                    | [ header; values ] ->
-                        let csvValues = List.zip header values
+        let results =
+            File.ReadLines("./BenchmarkDotNet.Artifacts/results/Fantomas.Benchmarks.Runners.CodePrinterTest-report.csv")
+            |> Seq.map (fun line -> line.Split(',') |> Array.toList)
+            |> Seq.toList
+            |> fun lineGroups ->
+                match lineGroups with
+                | [ header; values ] ->
+                    let csvValues = List.zip header values
 
-                        let metaData =
-                            [ "Branch", branchName
-                              "Commit", commit
-                              "Operating System", operatingSystem ]
+                    let metaData =
+                        [ "Branch", branchName
+                          "Commit", commit
+                          "Operating System", operatingSystem ]
 
-                        [ yield! csvValues; yield! metaData ]
-                    | _ -> []
+                    [ yield! csvValues; yield! metaData ]
+                | _ -> []
 
-            let storageAccount = CloudStorageAccount.Parse(conn)
-            let tableClient = storageAccount.CreateCloudTableClient()
+        let storageAccount = CloudStorageAccount.Parse(conn)
+        let tableClient = storageAccount.CreateCloudTableClient()
 
-            let table =
-                tableClient.GetTableReference("FantomasBenchmarks")
+        let table = tableClient.GetTableReference("FantomasBenchmarks")
 
-            let entry = DynamicTableEntity()
-            entry.PartitionKey <- "GithubActions"
+        let entry = DynamicTableEntity()
+        entry.PartitionKey <- "GithubActions"
 
-            entry.RowKey <-
-                (sprintf "%s|%s|%s" branchName commit operatingSystem)
-                    .ToLower()
+        entry.RowKey <-
+            (sprintf "%s|%s|%s" branchName commit operatingSystem)
+                .ToLower()
 
-            results
-            |> List.iter
-                (fun (k, v) ->
-                    let key = k.Replace(' ', '_')
+        results
+        |> List.iter (fun (k, v) ->
+            let key = k.Replace(' ', '_')
 
-                    if not (isNull v) then
-                        entry.Properties.Add(key, EntityProperty.CreateEntityPropertyFromObject(v)))
+            if not (isNull v) then
+                entry.Properties.Add(key, EntityProperty.CreateEntityPropertyFromObject(v)))
 
-            let tableOperation = TableOperation.InsertOrReplace(entry)
+        let tableOperation = TableOperation.InsertOrReplace(entry)
 
-            table.Execute(tableOperation) |> printfn "%O"
-        | None -> printfn "Not saving benchmark results to the cloud")
+        table.Execute(tableOperation) |> printfn "%O"
+    | None -> printfn "Not saving benchmark results to the cloud")
 
-Target.create
-    "Format"
-    (fun _ ->
-        let result =
-            sourceFiles
-            |> Seq.map (sprintf "\"%s\"")
-            |> String.concat " "
-            |> DotNet.exec id "fantomas"
+Target.create "Format" (fun _ ->
+    let result =
+        sourceFiles
+        |> Seq.map (sprintf "\"%s\"")
+        |> String.concat " "
+        |> DotNet.exec id "fantomas"
 
-        if not result.OK then
-            printfn "Errors while formatting all files: %A" result.Messages)
+    if not result.OK then
+        printfn "Errors while formatting all files: %A" result.Messages)
 
-Target.create
-    "FormatChanged"
-    (fun _ ->
-        let result =
-            Fake.Tools.Git.FileStatus.getChangedFilesInWorkingCopy "." "HEAD"
-            |> Seq.choose
-                (fun (_, file) ->
-                    let ext = Path.GetExtension(file)
+Target.create "FormatChanged" (fun _ ->
+    let result =
+        Fake.Tools.Git.FileStatus.getChangedFilesInWorkingCopy "." "HEAD"
+        |> Seq.choose (fun (_, file) ->
+            let ext = Path.GetExtension(file)
 
-                    if
-                        file.StartsWith("src")
-                        && (ext = ".fs" || ext = ".fsi")
-                    then
-                        Some(sprintf "\"%s\"" file)
-                    else
-                        None)
-            |> String.concat " "
-            |> DotNet.exec id "fantomas"
+            if
+                file.StartsWith("src")
+                && (ext = ".fs" || ext = ".fsi")
+            then
+                Some(sprintf "\"%s\"" file)
+            else
+                None)
+        |> String.concat " "
+        |> DotNet.exec id "fantomas"
 
-        if not result.OK then
-            printfn "Problem when formatting changed files:\n\n%A" result.Errors)
+    if not result.OK then
+        printfn "Problem when formatting changed files:\n\n%A" result.Errors)
 
-Target.create
-    "CheckFormat"
-    (fun _ ->
-        let result =
-            sourceFiles
-            |> Seq.map (sprintf "\"%s\"")
-            |> String.concat " "
-            |> sprintf "%s --check"
-            |> DotNet.exec id "fantomas"
+Target.create "CheckFormat" (fun _ ->
+    let result =
+        sourceFiles
+        |> Seq.map (sprintf "\"%s\"")
+        |> String.concat " "
+        |> sprintf "%s --check"
+        |> DotNet.exec id "fantomas"
 
-        if result.ExitCode = 0 then
-            Trace.log "No files need formatting"
-        elif result.ExitCode = 99 then
-            failwith "Some files need formatting, run `dotnet fake build -t Format` to format them"
-        else
-            Trace.logf "Errors while formatting: %A" result.Errors)
+    if result.ExitCode = 0 then
+        Trace.log "No files need formatting"
+    elif result.ExitCode = 99 then
+        failwith "Some files need formatting, run `dotnet fake build -t Format` to format them"
+    else
+        Trace.logf "Errors while formatting: %A" result.Errors)
 
 // --------------------------------------------------------------------------------------
 // Run all targets by default. Invoke 'build <Target>' to override

@@ -87,11 +87,10 @@ let rec allFiles isRec path =
              SearchOption.TopDirectoryOnly)
 
     Directory.GetFiles(path, "*.*", searchOption)
-    |> Seq.filter
-        (fun f ->
-            isFSharpFile f
-            && not (isInExcludedDir f)
-            && not (IgnoreFile.isIgnoredFile f))
+    |> Seq.filter (fun f ->
+        isFSharpFile f
+        && not (isInExcludedDir f)
+        && not (IgnoreFile.isIgnoredFile f))
 
 /// Fantomas assumes the input files are UTF-8
 /// As is stated in F# language spec: https://fsharp.org/specs/language-spec/4.1/FSharpSpec-4.1-latest.pdf#page=25
@@ -99,8 +98,7 @@ let private hasByteOrderMark file =
     if File.Exists(file) then
         let preamble = Encoding.UTF8.GetPreamble()
 
-        use file =
-            new FileStream(file, FileMode.Open, FileAccess.Read)
+        use file = new FileStream(file, FileMode.Open, FileAccess.Read)
 
         let mutable bom = Array.zeroCreate 3
         file.Read(bom, 0, 3) |> ignore
@@ -259,8 +257,7 @@ let main argv =
             | None -> OutputPath.NotKnown
 
     let inputPath =
-        let maybeInput =
-            results.TryGetResult <@ Arguments.Input @>
+        let maybeInput = results.TryGetResult <@ Arguments.Input @>
 
         match maybeInput with
         | Some [ input ] ->
@@ -280,14 +277,12 @@ let main argv =
                 match files with
                 | [] -> finalContinuation ([], [])
                 | h :: rest ->
-                    loop
-                        rest
-                        (fun (files, folders) ->
-                            if isFolder h then
-                                files, (h :: folders)
-                            else
-                                (h :: files), folders
-                            |> finalContinuation)
+                    loop rest (fun (files, folders) ->
+                        if isFolder h then
+                            files, (h :: folders)
+                        else
+                            (h :: files), folders
+                        |> finalContinuation)
 
             let filesAndFolders = loop inputs id
             InputPath.Multiple filesAndFolders
@@ -308,8 +303,7 @@ let main argv =
     let fsi = results.Contains <@ Arguments.Fsi @>
     let recurse = results.Contains <@ Arguments.Recurse @>
 
-    let version =
-        results.TryGetResult <@ Arguments.Version @>
+    let version = results.TryGetResult <@ Arguments.Version @>
 
     let fileToFile (inFile: string) (outFile: string) =
         try
@@ -394,18 +388,17 @@ let main argv =
             Directory.CreateDirectory(outputFolder) |> ignore
 
         allFiles recurse inputFolder
-        |> Seq.iter
-            (fun i ->
-                // s supposes to have form s1/suffix
-                let suffix = i.Substring(inputFolder.Length + 1)
+        |> Seq.iter (fun i ->
+            // s supposes to have form s1/suffix
+            let suffix = i.Substring(inputFolder.Length + 1)
 
-                let o =
-                    if inputFolder <> outputFolder then
-                        Path.Combine(outputFolder, suffix)
-                    else
-                        i
+            let o =
+                if inputFolder <> outputFolder then
+                    Path.Combine(outputFolder, suffix)
+                else
+                    i
 
-                processFile i o)
+            processFile i o)
 
     let fileToStdOut inFile =
         try
@@ -424,12 +417,11 @@ let main argv =
 
     let filesAndFolders (files: string list) (folders: string list) : unit =
         files
-        |> List.iter
-            (fun file ->
-                if (IgnoreFile.isIgnoredFile file) then
-                    printfn "'%s' was ignored" file
-                else
-                    processFile file file)
+        |> List.iter (fun file ->
+            if (IgnoreFile.isIgnoredFile file) then
+                printfn "'%s' was ignored" file
+            else
+                processFile file file)
 
         folders
         |> List.iter (fun folder -> processFolder folder folder)

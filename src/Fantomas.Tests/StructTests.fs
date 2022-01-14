@@ -22,8 +22,7 @@ type NameStruct =
     end
 
 let n = new NameStruct("Hippo")"""
-        { config with
-              MaxValueBindingWidth = 120 }
+        { config with MaxValueBindingWidth = 120 }
     |> prepend newline
     |> should
         equal

@@ -19,8 +19,7 @@ type Interface3 =
     inherit Interface1
     inherit Interface2
     abstract member Method3 : int -> int"""
-        { config with
-              MaxFunctionBindingWidth = 120 }
+        { config with MaxFunctionBindingWidth = 120 }
     |> prepend newline
     |> should
         equal
@@ -49,8 +48,7 @@ let ``should not add with to interface definitions with no members`` () =
         member this.Serialize sb = sb.AppendFormat("\"{0}\"", escape v)
         member this.ToXml() = v :> obj
     """
-        { config with
-              MaxValueBindingWidth = 120 }
+        { config with MaxValueBindingWidth = 120 }
     |> should
         equal
         """type Text(text: string) =
@@ -110,8 +108,7 @@ let f () =
       interface INotifyEnumerableInternal<'T>
       interface IEnumerable<_> with
         member x.GetEnumerator() = null }"""
-        { config with
-              MaxValueBindingWidth = 120 }
+        { config with MaxValueBindingWidth = 120 }
     |> prepend newline
     |> should
         equal
@@ -194,9 +191,9 @@ type MyLogInteface() =
         member x.Info () = ()
         override x.Version () = ()"""
         { config with
-              MaxLineLength = 119
-              MaxFunctionBindingWidth = 120
-              MaxIfThenElseShortWidth = 80 }
+            MaxLineLength = 119
+            MaxFunctionBindingWidth = 120
+            MaxIfThenElseShortWidth = 80 }
     |> prepend newline
     |> should
         equal
@@ -373,8 +370,8 @@ type IFoo =
     abstract Blah : foo : string -> bar : string -> baz : string -> int
 """
         { config with
-              MaxLineLength = 50
-              SpaceBeforeColon = true }
+            MaxLineLength = 50
+            SpaceBeforeColon = true }
     |> prepend newline
     |> should
         equal
@@ -396,8 +393,8 @@ type IFoo =
     abstract Blah : string -> string -> string -> int -> string -> string
 """
         { config with
-              MaxLineLength = 60
-              SpaceBeforeColon = true }
+            MaxLineLength = 60
+            SpaceBeforeColon = true }
     |> prepend newline
     |> should
         equal
@@ -421,8 +418,8 @@ type IFoo =
     abstract Bar : [<Path "bar">] bar : string  * [<Path "baz">] baz : string ->  Task<Foo>
 """
         { config with
-              MaxLineLength = 60
-              SpaceBeforeColon = true }
+            MaxLineLength = 60
+            SpaceBeforeColon = true }
     |> prepend newline
     |> should
         equal
@@ -443,8 +440,8 @@ type IFoo =
     abstract Bar : i : int -> a : string * foo : int -> string
 """
         { config with
-              MaxLineLength = 50
-              SpaceBeforeColon = true }
+            MaxLineLength = 50
+            SpaceBeforeColon = true }
     |> prepend newline
     |> should
         equal
@@ -465,8 +462,8 @@ type IFoo =
     abstract Bar : i : int -> a : string * foo : int * someReallyLongNameThatMakesTheTupleMultiLine : string -> string
 """
         { config with
-              MaxLineLength = 60
-              SpaceBeforeColon = true }
+            MaxLineLength = 60
+            SpaceBeforeColon = true }
     |> prepend newline
     |> should
         equal

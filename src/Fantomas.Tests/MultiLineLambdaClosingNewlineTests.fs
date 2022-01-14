@@ -6,9 +6,7 @@ open Fantomas.Tests.TestHelper
 
 let defaultConfig = config
 
-let config =
-    { config with
-          MultiLineLambdaClosingNewline = true }
+let config = { config with MultiLineLambdaClosingNewline = true }
 
 [<Test>]
 let ``function with single multiline lambda`` () =
@@ -27,8 +25,7 @@ List.collect (fun (a, element) ->
         shape
 )
 """
-        { config with
-              MaxInfixOperatorExpression = 35 }
+        { config with MaxInfixOperatorExpression = 35 }
     |> prepend newline
     |> should
         equal
@@ -107,8 +104,7 @@ let printListWithOffset a list1 =
         >> printfn "%d"
     ) list1
 """
-        { defaultConfig with
-              MaxInfixOperatorExpression = 5 }
+        { defaultConfig with MaxInfixOperatorExpression = 5 }
     |> prepend newline
     |> should
         equal
@@ -228,8 +224,7 @@ let printListWithOffset a list1 =
         >> printfn "%d"
     )
 """
-        { config with
-              MaxInfixOperatorExpression = 10 }
+        { config with MaxInfixOperatorExpression = 10 }
     |> prepend newline
     |> should
         equal
@@ -301,8 +296,7 @@ let foldList a list1 =
     list1
     |> List.fold (((+) a) >> printfn "%d") someVeryLongAccumulatorNameThatMakesTheWholeConstructMultilineBecauseOfTheLongName
 """
-        { defaultConfig with
-              MaxInfixOperatorExpression = 35 }
+        { defaultConfig with MaxInfixOperatorExpression = 35 }
     |> prepend newline
     |> should
         equal
@@ -338,8 +332,7 @@ myValue.UppercaseMemberCall(fun x ->
     let y = x + 1
     x + y)
 """
-        { config with
-              SpaceBeforeUppercaseInvocation = false }
+        { config with SpaceBeforeUppercaseInvocation = false }
     |> prepend newline
     |> should
         equal
@@ -368,8 +361,7 @@ myValue.UppercaseMemberCall(fun x ->
     let y = x + 1
     x + y)
 """
-        { config with
-              SpaceBeforeUppercaseInvocation = true }
+        { config with SpaceBeforeUppercaseInvocation = true }
     |> prepend newline
     |> should
         equal
@@ -398,8 +390,7 @@ myValue.lowercaseMemberCall(fun x ->
     let y = x + 1
     x + y)
 """
-        { config with
-              SpaceBeforeLowercaseInvocation = false }
+        { config with SpaceBeforeLowercaseInvocation = false }
     |> prepend newline
     |> should
         equal
@@ -428,8 +419,7 @@ myValue.lowercaseMemberCall(fun x ->
     let y = x + 1
     x + y)
 """
-        { config with
-              SpaceBeforeLowercaseInvocation = true }
+        { config with SpaceBeforeLowercaseInvocation = true }
     |> prepend newline
     |> should
         equal
@@ -517,8 +507,7 @@ let choose chooser source =
             |> Option.defaultValue set)
         Set.empty
 """
-        { config with
-              SpaceBeforeLowercaseInvocation = false }
+        { config with SpaceBeforeLowercaseInvocation = false }
     |> prepend newline
     |> should
         equal
@@ -547,8 +536,8 @@ module Caching =
             )
 """
         { config with
-              MaxLineLength = 80
-              MultiLineLambdaClosingNewline = true }
+            MaxLineLength = 80
+            MultiLineLambdaClosingNewline = true }
     |> prepend newline
     |> should
         equal
@@ -581,16 +570,16 @@ module Foo =
           y
 """
         { config with
-              MaxLineLength = 100
-              SpaceBeforeUppercaseInvocation = true
-              SpaceBeforeClassConstructor = true
-              SpaceBeforeMember = true
-              SpaceBeforeColon = true
-              SpaceBeforeSemicolon = true
-              MultilineBlockBracketsOnSameColumn = true
-              KeepIfThenInSameLine = true
-              MultiLineLambdaClosingNewline = true
-              KeepIndentInBranch = true }
+            MaxLineLength = 100
+            SpaceBeforeUppercaseInvocation = true
+            SpaceBeforeClassConstructor = true
+            SpaceBeforeMember = true
+            SpaceBeforeColon = true
+            SpaceBeforeSemicolon = true
+            MultilineBlockBracketsOnSameColumn = true
+            KeepIfThenInSameLine = true
+            MultiLineLambdaClosingNewline = true
+            KeepIndentInBranch = true }
     |> prepend newline
     |> should
         equal
@@ -628,16 +617,16 @@ module Foo =
             y
 """
         { config with
-              MaxLineLength = 100
-              SpaceBeforeUppercaseInvocation = true
-              SpaceBeforeClassConstructor = true
-              SpaceBeforeMember = true
-              SpaceBeforeColon = true
-              SpaceBeforeSemicolon = true
-              MultilineBlockBracketsOnSameColumn = true
-              KeepIfThenInSameLine = true
-              MultiLineLambdaClosingNewline = true
-              KeepIndentInBranch = true }
+            MaxLineLength = 100
+            SpaceBeforeUppercaseInvocation = true
+            SpaceBeforeClassConstructor = true
+            SpaceBeforeMember = true
+            SpaceBeforeColon = true
+            SpaceBeforeSemicolon = true
+            MultilineBlockBracketsOnSameColumn = true
+            KeepIfThenInSameLine = true
+            MultiLineLambdaClosingNewline = true
+            KeepIndentInBranch = true }
     |> prepend newline
     |> should
         equal
@@ -716,8 +705,8 @@ module Foo =
         )
 """
         { config with
-              MultiLineLambdaClosingNewline = true
-              KeepIndentInBranch = true }
+            MultiLineLambdaClosingNewline = true
+            KeepIndentInBranch = true }
     |> prepend newline
     |> should
         equal
@@ -777,8 +766,8 @@ module Foo =
         ) meh
 """
         { config with
-              MultiLineLambdaClosingNewline = true
-              KeepIndentInBranch = true }
+            MultiLineLambdaClosingNewline = true
+            KeepIndentInBranch = true }
     |> prepend newline
     |> should
         equal

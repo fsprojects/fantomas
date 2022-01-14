@@ -171,8 +171,8 @@ let ``should break on . operator and keep indentation`` () =
       .Replace("**" + seperator, ".|(?<=^|" + replacementSeparator + ")" )
     """
         { config with
-              MaxLineLength = 80
-              MaxInfixOperatorExpression = 60 }
+            MaxLineLength = 80
+            MaxInfixOperatorExpression = 60 }
     |> should
         equal
         """let pattern =
@@ -287,11 +287,7 @@ let output = 2 >>.~ 3
 
 [<Test>]
 let ``should not add newline before = operator after |>`` () =
-    formatSourceString
-        false
-        """1 |> max 0 = 1"""
-        { config with
-              MaxInfixOperatorExpression = 15 }
+    formatSourceString false """1 |> max 0 = 1""" { config with MaxInfixOperatorExpression = 15 }
     |> should
         equal
         """1 |> max 0 = 1
@@ -422,8 +418,7 @@ let ``giraffe sample`` () =
         """
 let WebApp = route "/ping" >=> authorized >=> text "pong"
 """
-        { config with
-              MaxInfixOperatorExpression = 20 }
+        { config with MaxInfixOperatorExpression = 20 }
     |> prepend newline
     |> should
         equal
@@ -781,8 +776,7 @@ let ``simple math`` () =
         false
         """let myValue = a + b * c
 """
-        { config with
-              MaxInfixOperatorExpression = 5 }
+        { config with MaxInfixOperatorExpression = 5 }
     |> prepend newline
     |> should
         equal
@@ -798,8 +792,7 @@ let ``simple math in one line`` () =
         false
         """let myValue = a + b * c
 """
-        { config with
-              MaxInfixOperatorExpression = 50 }
+        { config with MaxInfixOperatorExpression = 50 }
     |> prepend newline
     |> should
         equal
@@ -813,8 +806,7 @@ let ``simple math reversed`` () =
         false
         """let myValue = a * b + c
 """
-        { config with
-              MaxInfixOperatorExpression = 5 }
+        { config with MaxInfixOperatorExpression = 5 }
     |> prepend newline
     |> should
         equal
@@ -830,8 +822,7 @@ let ``multiple sum operators`` () =
         false
         """let myValue = a + b * c + d
 """
-        { config with
-              MaxInfixOperatorExpression = 5 }
+        { config with MaxInfixOperatorExpression = 5 }
     |> prepend newline
     |> should
         equal
@@ -1108,19 +1099,19 @@ module Foo =
         )
 """
         { config with
-              MaxLineLength = 100
-              SpaceBeforeUppercaseInvocation = true
-              SpaceBeforeClassConstructor = true
-              SpaceBeforeMember = true
-              SpaceBeforeColon = true
-              SpaceBeforeSemicolon = true
-              MultilineBlockBracketsOnSameColumn = true
-              NewlineBetweenTypeDefinitionAndMembers = true
-              KeepIfThenInSameLine = true
-              AlignFunctionSignatureToIndentation = true
-              AlternativeLongMemberDefinitions = true
-              MultiLineLambdaClosingNewline = true
-              KeepIndentInBranch = true }
+            MaxLineLength = 100
+            SpaceBeforeUppercaseInvocation = true
+            SpaceBeforeClassConstructor = true
+            SpaceBeforeMember = true
+            SpaceBeforeColon = true
+            SpaceBeforeSemicolon = true
+            MultilineBlockBracketsOnSameColumn = true
+            NewlineBetweenTypeDefinitionAndMembers = true
+            KeepIfThenInSameLine = true
+            AlignFunctionSignatureToIndentation = true
+            AlternativeLongMemberDefinitions = true
+            MultiLineLambdaClosingNewline = true
+            KeepIndentInBranch = true }
     |> prepend newline
     |> should
         equal

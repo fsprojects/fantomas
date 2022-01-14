@@ -492,8 +492,7 @@ let ``some spacing is still lost in and around #if blocks, 303`` () =
                    assemblyName.PublicKey <- key'.PublicKey // sets token implicitly
 #endif
 """
-        { config with
-              MaxInfixOperatorExpression = 75 }
+        { config with MaxInfixOperatorExpression = 75 }
     |> prepend newline
     |> should
         equal
@@ -541,8 +540,7 @@ let ``some spacing is still lost in and around #if blocks, no defines`` () =
                    assemblyName.PublicKey <- key'.PublicKey // sets token implicitly
 #endif
 """
-        { config with
-              MaxInfixOperatorExpression = 75 }
+        { config with MaxInfixOperatorExpression = 75 }
     |> prepend newline
     |> should
         equal
@@ -590,8 +588,7 @@ let ``some spacing is still lost in and around #if blocks, NETCOREAPP2_0`` () =
                    assemblyName.PublicKey <- key'.PublicKey // sets token implicitly
 #endif
 """
-        { config with
-              MaxInfixOperatorExpression = 75 }
+        { config with MaxInfixOperatorExpression = 75 }
     |> prepend newline
     |> should
         equal
@@ -2206,8 +2203,7 @@ let getDefaultProxyFor =
             | Some p -> if p.GetProxy uri <> uri then p else getDefault()
             | None -> getDefault())
 """
-        { config with
-              MaxIfThenElseShortWidth = 50 }
+        { config with MaxIfThenElseShortWidth = 50 }
     |> prepend newline
     |> should
         equal
@@ -2418,8 +2414,7 @@ let ``empty hash directive block should not make expression multiline`` () =
         assemblyName.PublicKey <- null
         assemblyName.PublicKeyToken <- null
 """
-        { config with
-              MaxInfixOperatorExpression = 75 }
+        { config with MaxInfixOperatorExpression = 75 }
     |> prepend newline
     |> should
         equal

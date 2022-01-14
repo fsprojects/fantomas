@@ -6,9 +6,9 @@ open Fantomas.Tests.TestHelper
 
 let config =
     { config with
-          MultilineBlockBracketsOnSameColumn = true
-          SpaceBeforeColon = true
-          SpaceBeforeSemicolon = true }
+        MultilineBlockBracketsOnSameColumn = true
+        SpaceBeforeColon = true
+        SpaceBeforeSemicolon = true }
 
 [<Test>]
 let ``array values`` () =
@@ -410,15 +410,15 @@ module Foo =
         ()
 """
         { config with
-              MaxLineLength = 100
-              SpaceBeforeUppercaseInvocation = true
-              SpaceBeforeClassConstructor = true
-              SpaceBeforeMember = true
-              SpaceBeforeColon = true
-              SpaceBeforeSemicolon = true
-              MultilineBlockBracketsOnSameColumn = true
-              AlignFunctionSignatureToIndentation = true
-              MultiLineLambdaClosingNewline = true }
+            MaxLineLength = 100
+            SpaceBeforeUppercaseInvocation = true
+            SpaceBeforeClassConstructor = true
+            SpaceBeforeMember = true
+            SpaceBeforeColon = true
+            SpaceBeforeSemicolon = true
+            MultilineBlockBracketsOnSameColumn = true
+            AlignFunctionSignatureToIndentation = true
+            MultiLineLambdaClosingNewline = true }
     |> prepend newline
     |> should
         equal

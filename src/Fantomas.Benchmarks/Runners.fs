@@ -20,8 +20,7 @@ type CodePrinterTest() =
 
         let fileName = Path.GetFileName(path)
 
-        let parsingOptions =
-            CodeFormatterImpl.createParsingOptionsFromFile fileName
+        let parsingOptions = CodeFormatterImpl.createParsingOptionsFromFile fileName
 
         let content =
             File.ReadAllText(path)

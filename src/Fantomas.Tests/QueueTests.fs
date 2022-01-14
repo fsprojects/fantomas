@@ -51,8 +51,7 @@ let ``Queue.rev`` () =
     Check.One(
         Config.Default,
         (fun xs ->
-            let result =
-                Queue.ofList xs |> Queue.rev |> Seq.toList
+            let result = Queue.ofList xs |> Queue.rev |> Seq.toList
 
             let expected = xs |> List.rev
             result |> should equivalent expected)
@@ -63,8 +62,7 @@ let ``Queue.toSeq`` () =
     Check.One(
         Config.Default,
         (fun xs ->
-            let result =
-                Queue.ofList xs |> Queue.toSeq |> Seq.toList
+            let result = Queue.ofList xs |> Queue.toSeq |> Seq.toList
 
             let expected = xs
             result |> should equivalent expected)

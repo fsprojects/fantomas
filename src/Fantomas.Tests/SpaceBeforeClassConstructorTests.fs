@@ -4,9 +4,7 @@ open NUnit.Framework
 open FsUnit
 open Fantomas.Tests.TestHelper
 
-let spaceBeforeConfig =
-    { config with
-          SpaceBeforeClassConstructor = true }
+let spaceBeforeConfig = { config with SpaceBeforeClassConstructor = true }
 
 // Space before unit in Uppercase class definition
 
@@ -277,8 +275,7 @@ type DerivedClass =
         { inherit BaseClass "meh"
           string2 = str2 }
 """
-        { config with
-              SpaceBeforeClassConstructor = false }
+        { config with SpaceBeforeClassConstructor = false }
     |> prepend newline
     |> should
         equal
@@ -309,8 +306,7 @@ type DerivedClass =
         { inherit BaseClass(str1)
           string2 = str2 }
 """
-        { spaceBeforeConfig with
-              MultilineBlockBracketsOnSameColumn = true }
+        { spaceBeforeConfig with MultilineBlockBracketsOnSameColumn = true }
     |> prepend newline
     |> should
         equal

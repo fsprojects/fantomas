@@ -24,8 +24,7 @@ let CorrectlyFormatted =
 
 [<Test>]
 let ``formatted files should report no changes`` () =
-    use fileFixture =
-        new TemporaryFileCodeSample(CorrectlyFormatted)
+    use fileFixture = new TemporaryFileCodeSample(CorrectlyFormatted)
 
     let result =
         fileFixture.Filename
@@ -51,8 +50,7 @@ let ``files with errors should report an internal error`` () =
 
 [<Test>]
 let ``files that need formatting should report that they need to be formatted`` () =
-    use fileFixture =
-        new TemporaryFileCodeSample(NeedsFormatting)
+    use fileFixture = new TemporaryFileCodeSample(NeedsFormatting)
 
     let result =
         fileFixture.Filename
