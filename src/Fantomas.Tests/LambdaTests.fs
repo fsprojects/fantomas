@@ -1086,3 +1086,20 @@ let g =
                revisionNumber = r
                processName = pn } -> p, r, pn)
 """
+
+[<Test>]
+let ``comment after arrow is preserved, 1870`` () =
+    formatSourceString
+        false
+        """
+fun a ->   // foo
+    a
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+fun a -> // foo
+    a
+"""
