@@ -1651,11 +1651,6 @@ let rec (|UppercaseSynType|LowercaseSynType|) (synType: SynType) =
     | SynType.App (st, _, _, _, _, _, _) -> (|UppercaseSynType|LowercaseSynType|) st
     | _ -> failwithf "cannot determine if synType %A is uppercase or lowercase" synType
 
-let isFunctionBinding (p: SynPat) =
-    match p with
-    | PatLongIdent (_, _, ps, _) when (List.isNotEmpty ps) -> true
-    | _ -> false
-
 let (|ElmishReactWithoutChildren|_|) e =
     match e with
     | IndexWithoutDotExpr _ -> None
