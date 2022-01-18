@@ -4213,31 +4213,10 @@ and genUnionCase astContext (hasVerticalBar: bool) (UnionCase (ats, px, _, s, Un
     +> onlyIf (List.isNotEmpty fs) (expressionFitsOnRestOfLine shortExpr longExpr)
     |> genTriviaFor SynUnionCase_ node.Range
 
-and genEnumCase astContext (EnumCase (ats, px, _, (_, _)) as node) =
-    let genCase (ctx: Context) =
-        let expr =
-            match node with
-            | EnumCase (_, _, identInAST, (c, r)) ->
-                let triviaNode =
-                    Map.tryFindOrEmptyList SynEnumCase_ ctx.TriviaMainNodes
-                    |> List.tryFind (fun tn -> RangeHelpers.rangeEq tn.Range r)
-
-                match triviaNode with
-                | Some ({ ContentItself = Some (Number n) } as tn) ->
-                    printContentBefore tn
-                    +> !-identInAST
-                    +> !- " = "
-                    +> !-n
-                    +> printContentAfter tn
-                | Some tn ->
-                    printContentBefore tn
-                    +> !-identInAST
-                    +> !- " = "
-                    +> genConst c r
-                    +> printContentAfter tn
-                | None -> !-identInAST +> !- " = " +> genConst c r
-
-        expr ctx
+and genEnumCase astContext (EnumCase (ats, px, identInAST, c, cr, r) as node) =
+    let genCase =
+        !-identInAST +> !- " = " +> genConst c cr
+        |> genTriviaFor SynEnumCase_ r
 
     genPreXmlDoc px
     +> genTriviaBeforeClausePipe node.Range

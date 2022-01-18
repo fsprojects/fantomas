@@ -408,8 +408,7 @@ let (|UnionCaseType|) =
 let (|Field|) (SynField (ats, isStatic, ido, t, isMutable, px, ao, _)) =
     (ats, px, ao, isStatic, isMutable, t, Option.map (|Ident|) ido)
 
-// TODO: use added range in CodePrinter
-let (|EnumCase|) (SynEnumCase (ats, Ident s, c, _, px, r)) = (ats, px, s, (c, r))
+let (|EnumCase|) (SynEnumCase (ats, Ident s, c, cr, px, r)) = (ats, px, s, c, cr, r)
 
 // Member definitions (11 cases)
 

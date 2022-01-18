@@ -1064,11 +1064,11 @@ module private Ast =
 
     and visitSynEnumCase (sec: SynEnumCase) : TriviaNodeAssigner list =
         match sec with
-        | SynEnumCase (attrs, ident, value, _, _, range) ->
+        | SynEnumCase (attrs, ident, value, valueRange, _, range) ->
             [ yield mkNode SynEnumCase_ range
               yield! (visitSynAttributeLists attrs)
               yield visitIdent ident
-              yield visitSynConst range value ]
+              yield visitSynConst valueRange value ]
 
     and visitSynField (sfield: SynField) : TriviaNodeAssigner list =
         match sfield with
