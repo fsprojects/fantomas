@@ -145,9 +145,6 @@ let private findConstNumberNodeOnLineAndColumn (nodes: TriviaNodeAssigner list) 
         | MainNode SynConst_UserNum ->
             constantRange.StartLine = tn.Range.StartLine
             && constantRange.StartColumn = tn.Range.StartColumn
-        | MainNode SynEnumCase_ ->
-            tn.Range.EndLine = constantRange.EndLine
-            && tn.Range.EndColumn = constantRange.EndColumn
         | _ -> false)
 
 let private findNodeForKeywordString (nodes: TriviaNodeAssigner list) (range: Range) =
