@@ -93,20 +93,19 @@ let isValidAST ast =
 
     and validateModuleDecl (decl: SynModuleDecl) =
         match decl with
-        | SynModuleDecl.Exception (SynExceptionDefn (_repr, synMembers, _defnRange), _range) ->
+        | SynModuleDecl.Exception(exnDefn = SynExceptionDefn (members = synMembers)) ->
             List.forall validateMemberDefn synMembers
         | SynModuleDecl.Let (_isRecursive, bindings, _range) -> List.forall validateBinding bindings
         | SynModuleDecl.ModuleAbbrev (_lhs, _rhs, _range) -> true
         | SynModuleDecl.NamespaceFragment fragment -> validateModuleOrNamespace fragment
-        | SynModuleDecl.NestedModule (_componentInfo, _isRec, modules, _isContinuing, _range) ->
-            List.forall validateModuleDecl modules
+        | SynModuleDecl.NestedModule (decls = decls) -> List.forall validateModuleDecl decls
         | SynModuleDecl.Types (typeDefs, _range) -> List.forall validateTypeDefn typeDefs
         | SynModuleDecl.DoExpr (_, expr, _) -> validateExpr expr
         | SynModuleDecl.Attributes _
         | SynModuleDecl.HashDirective _
         | SynModuleDecl.Open _ -> true
 
-    and validateTypeDefn (SynTypeDefn (_componentInfo, representation, members, _implicitConstructor, _range)) =
+    and validateTypeDefn (SynTypeDefn (typeRepr = representation; members = members)) =
         validateTypeDefnRepr representation
         && List.forall validateMemberDefn members
 
@@ -128,18 +127,8 @@ let isValidAST ast =
     and validateMemberDefn (memberDefn: SynMemberDefn) =
         match memberDefn with
         | SynMemberDefn.AbstractSlot (_synValSig, _memberFlags, _range) -> true
-        | SynMemberDefn.AutoProperty (_attributes,
-                                      _isStatic,
-                                      _id,
-                                      _type,
-                                      _memberKind,
-                                      _memberFlags,
-                                      _xmlDoc,
-                                      _access,
-                                      expr,
-                                      _r1,
-                                      _r2) -> validateExpr expr
-        | SynMemberDefn.Interface (_interfaceType, members, _range) ->
+        | SynMemberDefn.AutoProperty (synExpr = expr) -> validateExpr expr
+        | SynMemberDefn.Interface (members = members) ->
             defaultArg (Option.map (List.forall validateMemberDefn) members) true
         | SynMemberDefn.Member (binding, _range) -> validateBinding binding
         | SynMemberDefn.NestedType (typeDef, _access, _range) -> validateTypeDefn typeDef
@@ -150,20 +139,7 @@ let isValidAST ast =
         | SynMemberDefn.ImplicitCtor _ -> true
         | SynMemberDefn.ImplicitInherit (_, expr, _, _) -> validateExpr expr
 
-    and validateBinding
-        (SynBinding (_access,
-                     _bindingKind,
-                     _isInline,
-                     _isMutable,
-                     _attrs,
-                     _xmldoc,
-                     _valData,
-                     headPat,
-                     _retTy,
-                     expr,
-                     _bindingRange,
-                     _seqPoint))
-        =
+    and validateBinding (SynBinding (headPat = headPat; expr = expr)) =
         validateExpr expr && validatePattern headPat
 
     and validateClause (Clause (pat, exprOpt, _, expr)) =
@@ -184,12 +160,13 @@ let isValidAST ast =
         | SynExpr.ArrayOrList (_, synExprList, _range) -> List.forall validateExpr synExprList
 
         | SynExpr.Record (_inheritOpt, _copyOpt, fields, _range) ->
-            List.forall (fun (_, e, _) -> defaultArg (Option.map validateExpr e) true) fields
-        | SynExpr.AnonRecd (_inheritOpt, _copyOpt, fields, _range) -> List.forall (fun (_, e) -> validateExpr e) fields
+            List.forall (fun (SynExprRecordField (expr = e)) -> defaultArg (Option.map validateExpr e) true) fields
+        | SynExpr.AnonRecd (_inheritOpt, _copyOpt, fields, _range) ->
+            List.forall (fun (_, _, e) -> validateExpr e) fields
 
         | SynExpr.New (_, _synType, synExpr, _range) -> validateExpr synExpr
 
-        | SynExpr.ObjExpr (_ty, _baseCallOpt, binds, _ifaces, _range1, _range2) -> List.forall validateBinding binds
+        | SynExpr.ObjExpr (bindings = binds) -> List.forall validateBinding binds
 
         | SynExpr.While (_sequencePointInfoForWhileLoop, synExpr1, synExpr2, _range) ->
             List.forall validateExpr [ synExpr1; synExpr2 ]
@@ -197,7 +174,7 @@ let isValidAST ast =
             List.forall validateExpr [ synExpr1; synExpr2 ]
             && validatePattern synPat
 
-        | SynExpr.For (_sequencePointInfoForForLoop, _ident, synExpr1, _, synExpr2, synExpr3, _range) ->
+        | SynExpr.For (identBody = synExpr1; toBody = synExpr2; doBody = synExpr3) ->
             List.forall validateExpr [ synExpr1; synExpr2; synExpr3 ]
 
         | SynExpr.ArrayOrListComputed (_, synExpr, _range) -> validateExpr synExpr
@@ -206,8 +183,8 @@ let isValidAST ast =
 
         | SynExpr.MatchLambda (_isExnMatch, _argm, synMatchClauseList, _spBind, _wholem) ->
             List.forall validateClause synMatchClauseList
-        | SynExpr.Match (_sequencePointInfoForBinding, synExpr, synMatchClauseList, _range)
-        | SynExpr.MatchBang (_sequencePointInfoForBinding, synExpr, synMatchClauseList, _range) ->
+        | SynExpr.Match (expr = synExpr; clauses = synMatchClauseList)
+        | SynExpr.MatchBang (expr = synExpr; clauses = synMatchClauseList) ->
             validateExpr synExpr
             && List.forall validateClause synMatchClauseList
 
@@ -224,13 +201,7 @@ let isValidAST ast =
             List.forall validateBinding synBindingList
             && validateExpr synExpr
 
-        | SynExpr.TryWith (synExpr,
-                           _range,
-                           synMatchClauseList,
-                           _range2,
-                           _range3,
-                           _sequencePointInfoForTry,
-                           _sequencePointInfoForWith) ->
+        | SynExpr.TryWith (tryExpr = synExpr; withCases = synMatchClauseList) ->
             validateExpr synExpr
             && List.forall validateClause synMatchClauseList
 
@@ -293,13 +264,13 @@ let isValidAST ast =
         | SynExpr.YieldOrReturnFrom (_, synExpr, _range)
         | SynExpr.DoBang (synExpr, _range) -> validateExpr synExpr
 
-        | SynExpr.LetOrUseBang (_sequencePointInfoForBinding, _, _, synPat, synExpr1, ands, synExpr2, _range) ->
+        | SynExpr.LetOrUseBang (pat = synPat; rhs = synExpr1; andBangs = ands; body = synExpr2) ->
             List.forall validateExpr [ synExpr1; synExpr2 ]
             && validatePattern synPat
             && List.forall
                 (fun (pat, e) -> validateExpr e && validatePattern pat)
                 (ands
-                 |> List.map (fun (_, _, _, pat, e, _) -> pat, e))
+                 |> List.map (fun (SynExprAndBang (pat = pat; body = e)) -> pat, e))
 
         | SynExpr.LibraryOnlyILAssembly _
         | SynExpr.LibraryOnlyStaticOptimization _
@@ -331,11 +302,11 @@ let isValidAST ast =
         | SynPat.Attrib (pat, _attrib, _range) -> validatePattern pat
         | SynPat.Or (pat1, pat2, _range) -> validatePattern pat1 && validatePattern pat2
         | SynPat.Ands (pats, _range) -> List.forall validatePattern pats
-        | SynPat.LongIdent (_, _, _, constructorArgs, _, _) -> validateConstructorArgs constructorArgs
+        | SynPat.LongIdent (argPats = constructorArgs) -> validateConstructorArgs constructorArgs
         | SynPat.Tuple (false, pats, _range) -> List.forall validatePattern pats
         | SynPat.Paren (pat, _range) -> validatePattern pat
         | SynPat.ArrayOrList (_isArray, pats, _range) -> List.forall validatePattern pats
-        | SynPat.Record (identPats, _range) -> List.forall (fun (_, pat) -> validatePattern pat) identPats
+        | SynPat.Record (identPats, _range) -> List.forall (fun (_, _, pat) -> validatePattern pat) identPats
         | SynPat.OptionalVal (_ident, _range) -> true
         | SynPat.IsInst (_typ, _range) -> true
         | SynPat.QuoteExpr (expr, _range) -> validateExpr expr
@@ -347,7 +318,7 @@ let isValidAST ast =
     and validateConstructorArgs =
         function
         | SynArgPats.Pats pats -> List.forall validatePattern pats
-        | SynArgPats.NamePatPairs (identPats, _range) -> List.forall (snd >> validatePattern) identPats
+        | SynArgPats.NamePatPairs (identPats, _range) -> List.forall (fun (_, _, pat) -> validatePattern pat) identPats
 
     match ast with
     | ParsedInput.SigFile _input ->

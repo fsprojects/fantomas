@@ -21,7 +21,6 @@ type FsTokenType =
     | DOT_DOT_HAT
     | ELIF
     | ELSE
-    | EQUALS
     | FINALLY
     | GREATER
     | IF
@@ -43,7 +42,6 @@ type FsTokenType =
     | QMARK_QMARK
     | THEN
     | TRY
-    | WITH
 
 type Token =
     { TokenInfo: FSharpTokenInfo
@@ -98,6 +96,7 @@ type FsAstType =
     | SynModuleDecl_ModuleAbbrev
     | SynModuleDecl_NestedModule
     | SynModuleDecl_NestedModule_AfterAttributesBeforeModuleName
+    | SynModuleDecl_NestedModule_Equals
     | SynModuleDecl_Let
     | SynModuleDecl_DoExpr
     | SynModuleDecl_Types
@@ -119,10 +118,13 @@ type FsAstType =
     | SynExpr_Record_OpeningBrace
     | SynExpr_Record_ClosingBrace
     | SynExpr_AnonRecd
+    | SynExpr_AnonRecd_Field_Equals
     | SynExpr_New
     | SynExpr_ObjExpr
+    | SynExpr_ObjExpr_With
     | SynExpr_While
     | SynExpr_For
+    | SynExpr_For_Equals
     | SynExpr_ForEach
     // | SynExpr_ArrayOrListComputed generalized in SynExpr_ArrayOrList
     | SynExpr_ArrayOrList
@@ -136,6 +138,8 @@ type FsAstType =
     | SynExpr_MatchLambda
     | SynExpr_MatchLambda_Function
     | SynExpr_Match
+    | SynExpr_Match_Match
+    | SynExpr_Match_With
     | SynExpr_Do
     | SynExpr_Do_Do
     | SynExpr_Assert
@@ -146,6 +150,8 @@ type FsAstType =
     | SynExpr_TypeApp_Greater
     // | SynExpr_LetOrUse use first nested SynExpr
     | SynExpr_TryWith
+    | SynExpr_TryWith_Try
+    | SynExpr_TryWith_With
     | SynExpr_TryFinally
     | SynExpr_Lazy
     | SynExpr_Lazy_Lazy
@@ -187,7 +193,13 @@ type FsAstType =
     | SynExpr_YieldOrReturnFrom_ReturnBang
     | SynExpr_YieldOrReturnFrom_YieldBang
     | SynExpr_LetOrUseBang
+    | SynExpr_LetOrUseBang_Equals
+    // Maybe a thing after https://github.com/dotnet/fsharp/issues/12619
+    // | SynExprAndBang_
+    | SynExprAndBang_Equals
     | SynExpr_MatchBang
+    | SynExpr_MatchBang_Match
+    | SynExpr_MatchBang_With
     | SynExpr_DoBang
     | SynExpr_DoBang_DoBang
     | SynExpr_LibraryOnlyILAssembly
@@ -205,6 +217,7 @@ type FsAstType =
     | SynInterpolatedStringPart_String
     | SynInterpolatedStringPart_FillExpr
     | RecordField_
+    | RecordField_Equals
     | AnonRecordField_
     | AnonRecordTypeField_
     | SynMemberSig_Member
@@ -218,9 +231,14 @@ type FsAstType =
     | SynMatchClause_Arrow
     | ArgOptions_
     | SynInterfaceImpl_
+    | SynInterfaceImpl_With
     | SynTypeDefn_
     | SynTypeDefn_AfterAttributesBeforeComponentInfo
+    | SynTypeDefn_Equals
+    | SynTypeDefn_With
     | SynTypeDefnSig_
+    | SynTypeDefnSig_Equals
+    | SynTypeDefnSig_With
     // | SynTypeDefnSigRepr_ObjectModel use first nested node
     | SynTypeDefnSigRepr_Exception
     | SynMemberDefn_Open
@@ -231,10 +249,13 @@ type FsAstType =
     | SynMemberDefn_LetBindings
     | SynMemberDefn_AbstractSlot
     | SynMemberDefn_Interface
+    | SynMemberDefn_Interface_With
     | SynMemberDefn_Inherit
     | SynMemberDefn_ValField
     | SynMemberDefn_NestedType
     | SynMemberDefn_AutoProperty
+    | SynMemberDefn_AutoProperty_Equals
+    | SynMemberDefn_AutoProperty_With
     | SynSimplePat_Id
     | SynSimplePat_Typed
     | SynSimplePat_Attrib
@@ -244,6 +265,7 @@ type FsAstType =
     | SynBindingKind_Normal
     | SynBindingKind_Do
     | SynBinding_AfterAttributes_BeforeHeadPattern
+    | SynBinding_Equals
     | SynBindingReturnInfo_
     | SynTyparDecls_PostfixList
     | SynTyparDecls_SinglePrefix
@@ -251,6 +273,7 @@ type FsAstType =
     | SynTyparDecl_
     // | Typar_ , unused
     | SynValSig_
+    | SynValSig_With
     // | SynPat_Const, use SynConst instead
     | SynPat_Wild
     | SynPat_Named
@@ -260,12 +283,15 @@ type FsAstType =
     // | SynPat_Or, use the inner patterns instead
     | SynPat_Ands
     | SynPat_LongIdent
+    | SynPat_LongIdent_And
+    | SynPat_LongIdent_With
     | SynPat_Tuple
     | SynPat_Paren
     | SynPat_Paren_OpeningParenthesis
     | SynPat_Paren_ClosingParenthesis
     | SynPat_ArrayOrList
     | SynPat_Record
+    | SynPat_Record_Field_Equals
     | SynPat_Null
     | SynPat_OptionalVal
     | SynPat_IsInst
@@ -299,6 +325,7 @@ type FsAstType =
     | SynConst_SourceIdentifier
     | SynArgPats_Pats
     | SynArgPats_NamePatPairs
+    | SynArgPats_NamePatPairs_Equals
     | SynComponentInfo_
     // | SynTypeDefnRepr_ObjectModel use first nested node
     // | SynTypeDefnRepr_Simple use first nested node
@@ -312,6 +339,7 @@ type FsAstType =
     | SynTypeDefnKind_Abbrev
     | SynTypeDefnKind_Opaque
     | SynTypeDefnKind_Augmentation
+    | SynTypeDefnKind_Augmentation_With
     | SynTypeDefnKind_IL
     | SynTypeDefnKind_Delegate
     | SynTypeDefnSimpleRepr_None
@@ -325,6 +353,7 @@ type FsAstType =
     | SynTypeDefnSimpleRepr_TypeAbbrev
     | SynTypeDefnSimpleRepr_Exception
     | SynExceptionDefn_
+    | SynExceptionDefn_With
     | SynExceptionDefnRepr_
     | SynAttribute_
     | SynAttributeList_
@@ -332,6 +361,7 @@ type FsAstType =
     | SynUnionCaseKind_Fields
     | SynUnionCaseKind_FullType
     | SynEnumCase_
+    | SynEnumCase_Equals
     | SynField_
     | SynField_AfterAttributesBeforeIdentifier
     | SynType_LongIdent
@@ -373,6 +403,7 @@ type FsAstType =
     | SynModuleSigDecl_ModuleAbbrev
     | SynModuleSigDecl_NestedModule
     | SynModuleSigDecl_NestedModule_AfterAttributesBeforeModuleName
+    | SynModuleSigDecl_NestedModule_Equals
     | SynModuleSigDecl_Types
     | SynModuleSigDecl_Open
     | SynModuleSigDecl_OpenType
@@ -380,6 +411,7 @@ type FsAstType =
     | SynModuleSigDecl_Exception
     | SynModuleSigDecl_NamespaceFragment
     | SynExceptionSig_
+    | SynExceptionSig_With
     | SynAccess_Private
     | SynAccess_Internal
     | SynAccess_Public

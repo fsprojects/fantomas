@@ -13,6 +13,7 @@ let private lineCommentTag = 8
 let private commentTag = 3
 let private greaterTag = 160
 let private identTag = 192
+let private equalsTag = 69
 
 // workaround for cases where tokenizer dont output "delayed" part of operator after ">."
 // See https://github.com/fsharp/FSharp.Compiler.Service/issues/874
@@ -1120,11 +1121,9 @@ let getTriviaFromTokens (mkRange: MkRange) (tokens: Token list) =
     |> List.sortBy (fun t -> t.Range.StartLine, t.Range.StartColumn)
 
 let private tokenNames =
-    [ "EQUALS"
-      "BAR"
+    [ "BAR"
       "TRY"
       "FINALLY"
-      "WITH"
       "MEMBER"
       "AND_BANG"
       "IN" ]
@@ -1148,7 +1147,6 @@ let internal getFsToken tokenName =
     | "DOT_DOT_HAT" -> DOT_DOT_HAT
     | "ELIF" -> ELIF
     | "ELSE" -> ELSE
-    | "EQUALS" -> EQUALS
     | "FINALLY" -> FINALLY
     | "GREATER" -> GREATER
     | "IF" -> IF
@@ -1170,7 +1168,6 @@ let internal getFsToken tokenName =
     | "QMARK_QMARK" -> QMARK_QMARK
     | "THEN" -> THEN
     | "TRY" -> TRY
-    | "WITH" -> WITH
     | _ -> failwithf "was not expecting token %s" tokenName
 
 let getTriviaNodesFromTokens (mkRange: MkRange) (tokens: Token list) =

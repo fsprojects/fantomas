@@ -59,26 +59,3 @@ type SynModuleSigDecl with
         | SynModuleSigDecl.NestedModule(moduleInfo = SynComponentInfo (attributes = attrs; longId = lid :: _)) ->
             hasLinesBetweenAttributesAndFirstNode attrs lid.idRange
         | _ -> None
-
-// TODO: Remove when https://github.com/dotnet/fsharp/pull/12441 is part of FCS
-type SynExceptionDefnRepr with
-    member this.FullRange: range =
-        match this with
-        | SynExceptionDefnRepr (attributes = attrs; range = m) ->
-            match attrs with
-            | h :: _ -> mkRange m.FileName h.Range.Start m.End
-            | _ -> m
-
-type SynExceptionSig with
-    member this.FullRange: range =
-        match this with
-        | SynExceptionSig (exnRepr = exnRepr; members = members; range = m) ->
-            match List.tryLast members with
-            | Some lastMember -> mkRange m.FileName exnRepr.FullRange.Start lastMember.Range.End
-            | None -> exnRepr.FullRange
-
-type SynModuleSigDecl with
-    member this.FullRange: Range =
-        match this with
-        | SynModuleSigDecl.Exception (SynExceptionSig _ as ses, _) -> ses.FullRange
-        | _ -> this.Range

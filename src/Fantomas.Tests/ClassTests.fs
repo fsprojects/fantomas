@@ -393,8 +393,8 @@ let ``member properties with type annotation`` () =
         and set (_: int): unit = ()
 
     member this.Z
-        with get (): int = 1
-        and set (_: int): unit = ()
+        with set (_: int): unit = ()
+        and get (): int = 1
 """
 
 [<Test>]

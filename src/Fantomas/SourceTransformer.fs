@@ -100,16 +100,16 @@ let rec (|SigValL|_|) =
 /// Assume that PropertySet comes right after PropertyGet.
 let (|PropertyWithGetSet|_|) =
     function
-    | PropertyBinding (_, _, _, _, MFProperty PropertyGet, PatLongIdent (_, s1, _, _), _, _) as b1 :: bs ->
+    | PropertyBinding (_, _, _, _, MFProperty PropertyGet, PatLongIdent (_, s1, _, _, _), _, _, _) as b1 :: bs ->
         match bs with
-        | PropertyBinding (_, _, _, _, MFProperty PropertySet, PatLongIdent (_, s2, _, _), _, _) as b2 :: bs when
+        | PropertyBinding (_, _, _, _, MFProperty PropertySet, PatLongIdent (_, s2, _, _, _), _, _, _) as b2 :: bs when
             s1 = s2
             ->
             Some((b1, b2), bs)
         | _ -> None
-    | PropertyBinding (_, _, _, _, MFProperty PropertySet, PatLongIdent (_, s2, _, _), _, _) as b2 :: bs ->
+    | PropertyBinding (_, _, _, _, MFProperty PropertySet, PatLongIdent (_, s2, _, _, _), _, _, _) as b2 :: bs ->
         match bs with
-        | PropertyBinding (_, _, _, _, MFProperty PropertyGet, PatLongIdent (_, s1, _, _), _, _) as b1 :: bs when
+        | PropertyBinding (_, _, _, _, MFProperty PropertyGet, PatLongIdent (_, s1, _, _, _), _, _, _) as b1 :: bs when
             s1 = s2
             ->
             Some((b1, b2), bs)
@@ -165,6 +165,14 @@ let synMemberDefnToFsAstType =
     | SynMemberDefn.ValField _ -> SynMemberDefn_ValField
     | SynMemberDefn.NestedType _ -> SynMemberDefn_NestedType
     | SynMemberDefn.AutoProperty _ -> SynMemberDefn_AutoProperty
+
+let synMemberSigToFsAstType =
+    function
+    | SynMemberSig.Interface _ -> SynMemberSig_Interface
+    | SynMemberSig.Inherit _ -> SynMemberSig_Inherit
+    | SynMemberSig.Member _ -> SynMemberSig_Member
+    | SynMemberSig.NestedType _ -> SynMemberSig_NestedType
+    | SynMemberSig.ValField _ -> SynMemberSig_ValField
 
 let synConstToFsAstType =
     function
@@ -277,7 +285,7 @@ let synModuleSigDeclToFsAstType =
     | SynModuleSigDecl.NamespaceFragment _ -> SynModuleSigDecl_NamespaceFragment
     | SynModuleSigDecl.ModuleAbbrev _ -> SynModuleSigDecl_ModuleAbbrev
 
-let synBindingToFsAstType (SynBinding (_, kind, _, _, _, _, _, _, _, _, _, _)) =
+let synBindingToFsAstType (SynBinding (kind = kind)) =
     match kind with
     | SynBindingKind.StandaloneExpression -> SynBindingKind_StandaloneExpression
     | SynBindingKind.Normal -> SynBindingKind_Normal

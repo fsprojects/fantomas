@@ -143,7 +143,7 @@ let ``block comment added to trivia`` () =
     let triviaNodes = toTrivia source |> List.head
 
     match triviaNodes with
-    | [ { ContentBefore = [ Comment (BlockComment (comment, _, _)) ] } ] -> comment == "(* meh *)"
+    | [ { ContentAfter = [ Comment (BlockComment (comment, _, _)) ] } ] -> comment == "(* meh *)"
     | _ -> failwith "Expected block comment"
 
 [<Test>]

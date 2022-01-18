@@ -1320,22 +1320,18 @@ let internal sepNlnForEmptyNamespace (namespaceRange: Range) ctx =
     | _ -> sepNln ctx
 
 let internal sepNlnTypeAndMembers
-    (lastPositionBeforeMembers: Position)
+    (withKeywordNodeType: FsAstType)
+    (withKeywordRange: range option)
     (firstMemberRange: Range)
     (mainNodeType: FsAstType)
     (ctx: Context)
     : Context =
     let triviaNodeOfWithKeyword: TriviaNode option =
-        let r = ctx.MkRange lastPositionBeforeMembers firstMemberRange.Start
-
-        Map.tryFindOrEmptyList WITH ctx.TriviaTokenNodes
-        |> TriviaHelpers.``keyword token inside range`` r
-        |> List.choose (fun (_, tn) ->
-            if List.isNotEmpty tn.ContentBefore then
-                Some tn
-            else
-                None)
-        |> List.tryHead
+        withKeywordRange
+        |> Option.bind (fun r ->
+            ctx.TriviaMainNodes
+            |> Map.tryFindOrEmptyList withKeywordNodeType
+            |> List.tryFind (fun tn -> RangeHelpers.rangeEq r tn.Range))
 
     match triviaNodeOfWithKeyword with
     | Some tn -> printContentBefore tn ctx
