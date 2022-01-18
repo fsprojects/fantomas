@@ -1226,9 +1226,7 @@ module private Ast =
             | SynConst.SourceIdentifier _ -> SynConst_SourceIdentifier
 
         match sc with
-        | SynConst.Measure (n, numberRange, _) ->
-            // TODO: take constant range into account
-            mkNode (t n) numberRange
+        | SynConst.Measure (n, numberRange, _) -> mkNode (t n) numberRange
         | _ -> mkNode (t sc) (sc.Range parentRange)
 
     and visitSynValInfo (svi: SynValInfo) =
