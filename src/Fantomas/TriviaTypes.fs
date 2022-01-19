@@ -9,7 +9,6 @@ type FsTokenType =
     | AND_BANG
     | BAR
     | BAR_BAR
-    | BAR_RBRACK
     | COLON_COLON
     | COLON_EQUALS
     | COLON_GREATER
@@ -34,8 +33,6 @@ type FsTokenType =
     | INFIX_STAR_STAR_OP
     | INT32_DOT_DOT
     | LBRACE
-    | LBRACK
-    | LBRACK_BAR
     | LESS
     | LPAREN
     | LPAREN_STAR_RPAREN
@@ -47,7 +44,6 @@ type FsTokenType =
     | QMARK
     | QMARK_QMARK
     | RBRACE
-    | RBRACK
     | RPAREN
     | THEN
     | TRY
@@ -128,8 +124,10 @@ type FsAstType =
     | SynExpr_While
     | SynExpr_For
     | SynExpr_ForEach
-    | SynExpr_ArrayOrListComputed
+    // | SynExpr_ArrayOrListComputed generalized in SynExpr_ArrayOrList
     | SynExpr_ArrayOrList
+    | SynExpr_ArrayOrList_OpeningDelimiter
+    | SynExpr_ArrayOrList_ClosingDelimiter
     // | SynExpr_ComputationExpr use first nested SynExpr
     | SynExpr_Lambda
     | SynExpr_Lambda_Arrow

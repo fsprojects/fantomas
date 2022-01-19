@@ -1028,33 +1028,31 @@ and genExpr astContext synExpr ctx =
 
     let expr =
         match synExpr with
-        | ElmishReactWithoutChildren (identifier, isArray, children, childrenRange) when
+        | ElmishReactWithoutChildren (identifier, openingTokenRange, isArray, children, closingTokenRange) when
             (not ctx.Config.DisableElmishSyntax)
             ->
             fun (ctx: Context) ->
-                let tokenSize = if isArray then 2 else 1
-
-                let openingTokenRange, openTokenType =
-                    ctx.MkRangeWith
-                        (childrenRange.Start.Line, childrenRange.Start.Column)
-                        (childrenRange.Start.Line, (childrenRange.Start.Column + tokenSize)),
-                    (if isArray then LBRACK_BAR else LBRACK)
-
-                let closingTokenRange, closingTokenType =
-                    ctx.MkRangeWith
-                        (childrenRange.End.Line, (childrenRange.End.Column - tokenSize))
-                        (childrenRange.End.Line, childrenRange.End.Column),
-                    (if isArray then BAR_RBRACK else RBRACK)
-
                 let shortExpression =
                     let noChildren =
-                        tokN openingTokenRange openTokenType (ifElse isArray sepOpenAFixed sepOpenLFixed)
-                        +> tokN closingTokenRange closingTokenType (ifElse isArray sepCloseAFixed sepCloseLFixed)
+                        genTriviaFor
+                            SynExpr_ArrayOrList_OpeningDelimiter
+                            openingTokenRange
+                            (ifElse isArray sepOpenAFixed sepOpenLFixed)
+                        +> genTriviaFor
+                            SynExpr_ArrayOrList_ClosingDelimiter
+                            closingTokenRange
+                            (ifElse isArray sepCloseAFixed sepCloseLFixed)
 
                     let genChildren =
-                        tokN openingTokenRange openTokenType (ifElse isArray sepOpenA sepOpenL)
+                        genTriviaFor
+                            SynExpr_ArrayOrList_OpeningDelimiter
+                            openingTokenRange
+                            (ifElse isArray sepOpenA sepOpenL)
                         +> col sepSemi children (genExpr astContext)
-                        +> tokN closingTokenRange closingTokenType (ifElse isArray sepCloseA sepCloseL)
+                        +> genTriviaFor
+                            SynExpr_ArrayOrList_ClosingDelimiter
+                            closingTokenRange
+                            (ifElse isArray sepCloseA sepCloseL)
 
                     !-identifier
                     +> sepSpace
@@ -1063,7 +1061,10 @@ and genExpr astContext synExpr ctx =
                 let elmishExpression =
                     !-identifier
                     +> sepSpace
-                    +> tokN openingTokenRange openTokenType (ifElse isArray sepOpenA sepOpenL)
+                    +> genTriviaFor
+                        SynExpr_ArrayOrList_OpeningDelimiter
+                        openingTokenRange
+                        (ifElse isArray sepOpenA sepOpenL)
                     +> atCurrentColumn (
                         col sepNln children (genExpr astContext)
                         +> onlyIf
@@ -1072,9 +1073,12 @@ and genExpr astContext synExpr ctx =
                                 (function
                                 | Comment (BlockComment _) -> true
                                 | _ -> false)
-                                (Map.tryFindOrEmptyList closingTokenType ctx.TriviaTokenNodes))
+                                (Map.tryFindOrEmptyList SynExpr_ArrayOrList_ClosingDelimiter ctx.TriviaMainNodes))
                             sepNln
-                        +> tokN closingTokenRange closingTokenType (ifElse isArray sepCloseA sepCloseL)
+                        +> genTriviaFor
+                            SynExpr_ArrayOrList_ClosingDelimiter
+                            closingTokenRange
+                            (ifElse isArray sepCloseA sepCloseL)
                     )
 
                 let felizExpression =
@@ -1084,22 +1088,24 @@ and genExpr astContext synExpr ctx =
                             (function
                             | Comment (BlockComment _) -> true
                             | _ -> false)
-                            (Map.tryFindOrEmptyList closingTokenType ctx.TriviaTokenNodes)
+                            (Map.tryFindOrEmptyList SynExpr_ArrayOrList_ClosingDelimiter ctx.TriviaMainNodes)
 
                     let hasChildren = List.isNotEmpty children
 
                     atCurrentColumn (
                         !-identifier
                         +> sepSpace
-                        +> tokN openingTokenRange openTokenType (ifElse isArray sepOpenAFixed sepOpenLFixed)
+                        +> genTriviaFor
+                            SynExpr_ArrayOrList_OpeningDelimiter
+                            openingTokenRange
+                            (ifElse isArray sepOpenAFixed sepOpenLFixed)
                         +> onlyIf hasChildren (indent +> sepNln)
                         +> col sepNln children (genExpr astContext)
                         +> onlyIf hasBlockCommentBeforeClosingToken (sepNln +> unindent)
-                        +> enterNodeTokenByName closingTokenRange closingTokenType
-                        +> onlyIfNot hasBlockCommentBeforeClosingToken unindent
-                        +> onlyIf hasChildren sepNlnUnlessLastEventIsNewline
-                        +> ifElse isArray sepCloseAFixed sepCloseLFixed
-                        +> leaveNodeTokenByName closingTokenRange closingTokenType
+                        +> (onlyIfNot hasBlockCommentBeforeClosingToken unindent
+                            +> onlyIf hasChildren sepNlnUnlessLastEventIsNewline
+                            +> ifElse isArray sepCloseAFixed sepCloseLFixed
+                            |> genTriviaFor SynExpr_ArrayOrList_ClosingDelimiter closingTokenRange)
                     )
 
                 let multilineExpression =
@@ -1111,55 +1117,73 @@ and genExpr astContext synExpr ctx =
 
                 isShortExpression ctx.Config.MaxElmishWidth smallExpression multilineExpression ctx
 
-        | ElmishReactWithChildren ((identifier, _, _), attributes, (isArray, children, childrenRange)) when
+        | ElmishReactWithChildren ((identifier, _, _),
+                                   attributes,
+                                   (isArray, openingTokenRange, children, closingTokenRange)) when
             (not ctx.Config.DisableElmishSyntax)
             ->
             let genChildren isShort =
-                let tokenSize = if isArray then 2 else 1
-
-                let openingTokenRange, openTokenType =
-                    ctx.MkRangeWith
-                        (childrenRange.Start.Line, childrenRange.Start.Column)
-                        (childrenRange.Start.Line, (childrenRange.Start.Column + tokenSize)),
-                    (if isArray then LBRACK_BAR else LBRACK)
-
-                let closingTokenRange, closingTokenType =
-                    ctx.MkRangeWith
-                        (childrenRange.End.Line, (childrenRange.End.Column - tokenSize))
-                        (childrenRange.End.Line, childrenRange.End.Column),
-                    (if isArray then BAR_RBRACK else RBRACK)
-
                 match children with
                 | [] ->
-                    tokN openingTokenRange openTokenType (ifElse isArray sepOpenAFixed sepOpenLFixed)
-                    +> tokN closingTokenRange closingTokenType (ifElse isArray sepCloseAFixed sepCloseLFixed)
+                    genTriviaFor
+                        SynExpr_ArrayOrList_OpeningDelimiter
+                        openingTokenRange
+                        (ifElse isArray sepOpenAFixed sepOpenLFixed)
+                    +> genTriviaFor
+                        SynExpr_ArrayOrList_ClosingDelimiter
+                        closingTokenRange
+                        (ifElse isArray sepCloseAFixed sepCloseLFixed)
                 | [ singleChild ] ->
                     if isShort then
-                        tokN openingTokenRange openTokenType (ifElse isArray sepOpenA sepOpenL)
+                        genTriviaFor
+                            SynExpr_ArrayOrList_OpeningDelimiter
+                            openingTokenRange
+                            (ifElse isArray sepOpenA sepOpenL)
                         +> genExpr astContext singleChild
-                        +> tokN closingTokenRange closingTokenType (ifElse isArray sepCloseA sepCloseL)
+                        +> genTriviaFor
+                            SynExpr_ArrayOrList_ClosingDelimiter
+                            closingTokenRange
+                            (ifElse isArray sepCloseA sepCloseL)
                     else
-                        tokN openingTokenRange openTokenType (ifElse isArray sepOpenA sepOpenL)
+                        genTriviaFor
+                            SynExpr_ArrayOrList_OpeningDelimiter
+                            openingTokenRange
+                            (ifElse isArray sepOpenA sepOpenL)
                         +> indent
                         +> sepNln
                         +> genExpr astContext singleChild
                         +> unindent
                         +> sepNln
-                        +> tokN closingTokenRange closingTokenType (ifElse isArray sepCloseAFixed sepCloseLFixed)
+                        +> genTriviaFor
+                            SynExpr_ArrayOrList_ClosingDelimiter
+                            closingTokenRange
+                            (ifElse isArray sepCloseAFixed sepCloseLFixed)
 
                 | children ->
                     if isShort then
-                        tokN openingTokenRange openTokenType (ifElse isArray sepOpenA sepOpenL)
+                        genTriviaFor
+                            SynExpr_ArrayOrList_OpeningDelimiter
+                            openingTokenRange
+                            (ifElse isArray sepOpenA sepOpenL)
                         +> col sepSemi children (genExpr astContext)
-                        +> tokN closingTokenRange closingTokenType (ifElse isArray sepCloseA sepCloseL)
+                        +> genTriviaFor
+                            SynExpr_ArrayOrList_ClosingDelimiter
+                            closingTokenRange
+                            (ifElse isArray sepCloseA sepCloseL)
                     else
-                        tokN openingTokenRange openTokenType (ifElse isArray sepOpenA sepOpenL)
+                        genTriviaFor
+                            SynExpr_ArrayOrList_OpeningDelimiter
+                            openingTokenRange
+                            (ifElse isArray sepOpenA sepOpenL)
                         +> indent
                         +> sepNln
                         +> col sepNln children (genExpr astContext)
                         +> unindent
                         +> sepNln
-                        +> tokN closingTokenRange closingTokenType (ifElse isArray sepCloseAFixed sepCloseLFixed)
+                        +> genTriviaFor
+                            SynExpr_ArrayOrList_ClosingDelimiter
+                            closingTokenRange
+                            (ifElse isArray sepCloseAFixed sepCloseLFixed)
 
             let shortExpression =
                 !-identifier
@@ -1289,41 +1313,24 @@ and genExpr astContext synExpr ctx =
             +> sepOpenT
             +> genTuple astContext es
             +> sepCloseT
-        | ArrayOrList (isArray, []) ->
+        | ArrayOrList (sr, isArray, [], er, _) ->
             ifElse
                 isArray
-                (enterNodeTokenByName synExpr.Range LBRACK_BAR
-                 +> sepOpenAFixed
-                 +> leaveNodeTokenByName synExpr.Range LBRACK_BAR
-                 +> enterNodeTokenByName synExpr.Range BAR_RBRACK
-                 +> sepCloseAFixed
-                 +> leaveNodeTokenByName synExpr.Range BAR_RBRACK)
-                (enterNodeTokenByName synExpr.Range LBRACK
-                 +> sepOpenLFixed
-                 +> leaveNodeTokenByName synExpr.Range LBRACK
-                 +> enterNodeTokenByName synExpr.Range RBRACK
-                 +> sepCloseLFixed
-                 +> leaveNodeTokenByName synExpr.Range RBRACK)
-        | ArrayOrList (isArray, xs) as alNode ->
-            let tokenSize = if isArray then 2 else 1
-
-            let openingTokenRange =
-                ctx.MkRangeWith
-                    (alNode.Range.Start.Line, alNode.Range.Start.Column)
-                    (alNode.Range.Start.Line, (alNode.Range.Start.Column + tokenSize))
-
-            let closingTokenRange =
-                ctx.MkRangeWith
-                    (alNode.Range.End.Line, (alNode.Range.End.Column - tokenSize))
-                    (alNode.Range.End.Line, alNode.Range.End.Column)
-
+                (genTriviaFor SynExpr_ArrayOrList_OpeningDelimiter sr sepOpenAFixed
+                 +> genTriviaFor SynExpr_ArrayOrList_ClosingDelimiter er sepCloseAFixed)
+                (genTriviaFor SynExpr_ArrayOrList_OpeningDelimiter sr sepOpenLFixed
+                 +> genTriviaFor SynExpr_ArrayOrList_ClosingDelimiter er sepCloseLFixed)
+        | ArrayOrList (openingTokenRange, isArray, xs, closingTokenRange, _) ->
             let smallExpression =
-                ifElse isArray (tokN openingTokenRange LBRACK_BAR sepOpenA) (tokN openingTokenRange LBRACK sepOpenL)
+                ifElse
+                    isArray
+                    (genTriviaFor SynExpr_ArrayOrList_OpeningDelimiter openingTokenRange sepOpenA)
+                    (genTriviaFor SynExpr_ArrayOrList_OpeningDelimiter openingTokenRange sepOpenL)
                 +> col sepSemi xs (genExpr astContext)
                 +> ifElse
                     isArray
-                    (tokN closingTokenRange BAR_RBRACK sepCloseA)
-                    (tokN closingTokenRange RBRACK sepCloseL)
+                    (genTriviaFor SynExpr_ArrayOrList_ClosingDelimiter closingTokenRange sepCloseA)
+                    (genTriviaFor SynExpr_ArrayOrList_ClosingDelimiter closingTokenRange sepCloseL)
 
             let multilineExpression =
                 ifAlignBrackets
@@ -1376,7 +1383,7 @@ and genExpr astContext synExpr ctx =
             let longExpression =
                 ifAlignBrackets
                     (genMultilineAnonRecordAlignBrackets isStruct fields copyInfo astContext)
-                    (genMultilineAnonRecord isStruct fields copyInfo synExpr.Range astContext)
+                    (genMultilineAnonRecord isStruct fields copyInfo astContext)
 
             fun (ctx: Context) ->
                 let size = getRecordSize ctx fields
@@ -2417,7 +2424,6 @@ and genExpr astContext synExpr ctx =
             +> sepOpenLFixed
             +> genExpr astContext indexArgs
             +> sepCloseLFixed
-            +> leaveNodeTokenByName synExpr.Range RBRACK
         | DotIndexedGet (AppSingleParenArg (e, px), indexArgs) ->
             let short = genExpr astContext e +> genExpr astContext px
 
@@ -2430,7 +2436,6 @@ and genExpr astContext synExpr ctx =
                 +> sepOpenLFixed
                 +> genExpr astContext indexArgs
                 +> sepCloseLFixed
-                +> leaveNodeTokenByName synExpr.Range RBRACK
 
             expressionFitsOnRestOfLine (short +> idx) (long +> idx)
         | DotIndexedGet (objectExpr, indexArgs) ->
@@ -2439,7 +2444,6 @@ and genExpr astContext synExpr ctx =
             +> sepOpenLFixed
             +> genExpr astContext indexArgs
             +> sepCloseLFixed
-            +> leaveNodeTokenByName synExpr.Range RBRACK
         | DotIndexedSet (App (e, [ ConstExpr (SynConst.Unit, _) as ux ]), indexArgs, valueExpr) ->
             let appExpr = genExpr astContext e +> genExpr astContext ux
 
@@ -2448,7 +2452,6 @@ and genExpr astContext synExpr ctx =
                 +> sepOpenLFixed
                 +> genExpr astContext indexArgs
                 +> sepCloseLFixed
-                +> leaveNodeTokenByName synExpr.Range RBRACK
                 +> sepArrowRev
 
             expressionFitsOnRestOfLine
@@ -2468,7 +2471,6 @@ and genExpr astContext synExpr ctx =
                 +> sepOpenLFixed
                 +> genExpr astContext indexArgs
                 +> sepCloseLFixed
-                +> leaveNodeTokenByName synExpr.Range RBRACK
                 +> sepArrowRev
 
             expressionFitsOnRestOfLine
@@ -2655,7 +2657,7 @@ and genExpr astContext synExpr ctx =
             | SynExpr.TryFinally _ -> genTriviaFor SynExpr_TryFinally synExpr.Range
             | SynExpr.LongIdentSet _ -> genTriviaFor SynExpr_LongIdentSet synExpr.Range
             | SynExpr.ArrayOrList _ -> genTriviaFor SynExpr_ArrayOrList synExpr.Range
-            | SynExpr.ArrayOrListComputed _ -> genTriviaFor SynExpr_ArrayOrListComputed synExpr.Range
+            | SynExpr.ArrayOrListComputed _ -> genTriviaFor SynExpr_ArrayOrList synExpr.Range
             | SynExpr.Paren _ -> genTriviaFor SynExpr_Paren synExpr.Range
             | SynExpr.InterpolatedString _ -> genTriviaFor SynExpr_InterpolatedString synExpr.Range
             | SynExpr.Tuple _ -> genTriviaFor SynExpr_Tuple synExpr.Range
@@ -3029,11 +3031,11 @@ and genMultilineRecordInstanceAlignBrackets
          +> sepCloseSFixed)
     |> atCurrentColumnIndent
 
-and genMultilineAnonRecord (isStruct: bool) fields copyInfo (range: Range) (astContext: ASTContext) =
+and genMultilineAnonRecord (isStruct: bool) fields copyInfo (astContext: ASTContext) =
     let recordExpr =
         match copyInfo with
         | Some e ->
-            (tokN range LBRACK_BAR sepOpenAnonRecd)
+            sepOpenAnonRecd
             +> atCurrentColumn (
                 genExpr astContext e
                 +> (!- " with"
@@ -3042,7 +3044,7 @@ and genMultilineAnonRecord (isStruct: bool) fields copyInfo (range: Range) (astC
                     +> col sepSemiNln fields (genAnonRecordFieldName astContext)
                     +> unindent)
             )
-            +> (tokN range BAR_RBRACK sepCloseAnonRecd)
+            +> sepCloseAnonRecd
         | None ->
             fun ctx ->
                 // position after `{| ` or `{|`
@@ -3054,7 +3056,7 @@ and genMultilineAnonRecord (isStruct: bool) fields copyInfo (range: Range) (astC
                            2)
 
                 atCurrentColumn
-                    ((tokN range LBRACK_BAR sepOpenAnonRecd)
+                    (sepOpenAnonRecd
                      +> col sepSemiNln fields (fun (AnonRecordFieldName (s, e)) ->
                          let expr =
                              if ctx.Config.IndentSize < 3 then
@@ -3068,7 +3070,7 @@ and genMultilineAnonRecord (isStruct: bool) fields copyInfo (range: Range) (astC
                          +> !-s
                          +> sepEq
                          +> expr)
-                     +> (tokN range BAR_RBRACK sepCloseAnonRecd))
+                     +> sepCloseAnonRecd)
                     ctx
 
     onlyIf isStruct !- "struct " +> recordExpr
@@ -3147,39 +3149,45 @@ and genMultiLineArrayOrList
     ctx
     =
     if isArray then
-        (tokN openingTokenRange LBRACK_BAR sepOpenA
+        (genTriviaFor SynExpr_ArrayOrList_OpeningDelimiter openingTokenRange sepOpenA
          +> atCurrentColumnIndent (
              sepNlnWhenWriteBeforeNewlineNotEmpty sepNone
              +> col sepSemiNln xs (genExpr astContext)
-             +> tokN closingTokenRange BAR_RBRACK (ifElseCtx lastWriteEventIsNewline sepCloseAFixed sepCloseA)
+             +> genTriviaFor
+                 SynExpr_ArrayOrList_ClosingDelimiter
+                 closingTokenRange
+                 (ifElseCtx lastWriteEventIsNewline sepCloseAFixed sepCloseA)
          ))
             ctx
     else
-        (tokN openingTokenRange LBRACK sepOpenL
+        (genTriviaFor SynExpr_ArrayOrList_OpeningDelimiter openingTokenRange sepOpenL
          +> atCurrentColumnIndent (
              sepNlnWhenWriteBeforeNewlineNotEmpty sepNone
              +> col sepSemiNln xs (genExpr astContext)
-             +> tokN closingTokenRange RBRACK (ifElseCtx lastWriteEventIsNewline sepCloseLFixed sepCloseL)
+             +> genTriviaFor
+                 SynExpr_ArrayOrList_ClosingDelimiter
+                 closingTokenRange
+                 (ifElseCtx lastWriteEventIsNewline sepCloseLFixed sepCloseL)
          ))
             ctx
 
 and genMultiLineArrayOrListAlignBrackets (isArray: bool) xs openingTokenRange closingTokenRange astContext =
     if isArray then
-        tokN openingTokenRange LBRACK_BAR sepOpenAFixed
+        genTriviaFor SynExpr_ArrayOrList_OpeningDelimiter openingTokenRange sepOpenAFixed
         +> indent
         +> sepNlnUnlessLastEventIsNewline
         +> col sepNln xs (genExpr astContext)
         +> unindent
         +> sepNlnUnlessLastEventIsNewline
-        +> tokN closingTokenRange BAR_RBRACK sepCloseAFixed
+        +> genTriviaFor SynExpr_ArrayOrList_ClosingDelimiter closingTokenRange sepCloseAFixed
     else
-        tokN openingTokenRange LBRACK sepOpenLFixed
+        genTriviaFor SynExpr_ArrayOrList_OpeningDelimiter openingTokenRange sepOpenLFixed
         +> indent
         +> sepNlnUnlessLastEventIsNewline
         +> col sepNln xs (genExpr astContext)
         +> unindent
         +> sepNlnUnlessLastEventIsNewline
-        +> tokN closingTokenRange RBRACK sepCloseLFixed
+        +> genTriviaFor SynExpr_ArrayOrList_ClosingDelimiter closingTokenRange sepCloseLFixed
 
 and genApp astContext e es ctx =
     let shortExpression =
