@@ -691,10 +691,18 @@ let (|NamedComputationExpr|_|) =
 
 /// Combines all ArrayOrList patterns
 let (|ArrayOrList|_|) =
+    let (|Size|) isArray = if isArray then 2 else 1
+
     function
-    | SynExpr.ArrayOrListComputed (isArray, Sequentials xs, _) -> Some(isArray, xs)
-    | SynExpr.ArrayOrListComputed (isArray, singleExpr, _) -> Some(isArray, [ singleExpr ])
-    | SynExpr.ArrayOrList (isArray, xs, _) -> Some(isArray, xs)
+    | SynExpr.ArrayOrListComputed (Size size as isArray, Sequentials xs, range) ->
+        let sr, er = RangeHelpers.mkStartEndRange size range
+        Some(sr, isArray, xs, er, range)
+    | SynExpr.ArrayOrListComputed (Size size as isArray, singleExpr, range) ->
+        let sr, er = RangeHelpers.mkStartEndRange size range
+        Some(sr, isArray, [ singleExpr ], er, range)
+    | SynExpr.ArrayOrList (Size size as isArray, xs, range) ->
+        let sr, er = RangeHelpers.mkStartEndRange size range
+        Some(sr, isArray, xs, er, range)
     | _ -> None
 
 let (|Tuple|_|) =
@@ -1653,8 +1661,8 @@ let rec (|UppercaseSynType|LowercaseSynType|) (synType: SynType) =
 let (|ElmishReactWithoutChildren|_|) e =
     match e with
     | IndexWithoutDotExpr _ -> None
-    | SynExpr.App (_, false, OptVar (ident, _, _), (ArrayOrList (isArray, children) as aolEx), _) ->
-        Some(ident, isArray, children, aolEx.Range)
+    | SynExpr.App (_, false, OptVar (ident, _, _), ArrayOrList (sr, isArray, children, er, _), _) ->
+        Some(ident, sr, isArray, children, er)
     | _ -> None
 
 let (|ElmishReactWithChildren|_|) (e: SynExpr) =
@@ -1662,8 +1670,8 @@ let (|ElmishReactWithChildren|_|) (e: SynExpr) =
     | SynExpr.App (_,
                    false,
                    SynExpr.App (_, false, OptVar ident, (ArrayOrList _ as attributes), _),
-                   (ArrayOrList (isArray, children) as childrenNode),
-                   _) -> Some(ident, attributes, (isArray, children, childrenNode.Range))
+                   ArrayOrList (sr, isArray, children, er, _),
+                   _) -> Some(ident, attributes, (isArray, sr, children, er))
     | _ -> None
 
 let isIfThenElseWithYieldReturn e =

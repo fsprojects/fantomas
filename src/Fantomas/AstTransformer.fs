@@ -129,16 +129,21 @@ module private Ast =
                     |> finalContinuation
 
                 Continuation.sequence continuations finalContinuation
-            | SynExpr.ArrayOrList (_, exprs, range) ->
+            | SourceParser.ArrayOrList (startRange, _isArray, exprs, endRange, range) ->
                 let continuations: ((TriviaNodeAssigner list -> TriviaNodeAssigner list) -> TriviaNodeAssigner list) list =
                     exprs |> List.map visit
 
                 let finalContinuation (nodes: TriviaNodeAssigner list list) : TriviaNodeAssigner list =
-                    mkNode SynExpr_ArrayOrList range
-                    :: (List.collect id nodes)
+                    [ yield mkNode SynExpr_ArrayOrList range
+                      yield mkNode SynExpr_ArrayOrList_OpeningDelimiter startRange
+                      yield! List.collect id nodes
+                      yield mkNode SynExpr_ArrayOrList_ClosingDelimiter endRange ]
                     |> finalContinuation
 
                 Continuation.sequence continuations finalContinuation
+            // Captured above
+            | SynExpr.ArrayOrList _
+            | SynExpr.ArrayOrListComputed _ -> []
             | SynExpr.Record (_, _, recordFields, range) ->
                 mkNode SynExpr_Record range
                 :: (List.collect visitRecordField recordFields)
@@ -194,10 +199,6 @@ module private Ast =
                     |> finalContinuation
 
                 Continuation.sequence continuations finalContinuation
-            | SynExpr.ArrayOrListComputed (_, expr, range) ->
-                visit expr (fun nodes ->
-                    mkNode SynExpr_ArrayOrListComputed range :: nodes
-                    |> finalContinuation)
             | SynExpr.ComputationExpr (_, expr, _) -> visit expr finalContinuation
             | SynExpr.Lambda (_, _, args, arrowRange, body, _parsedData, range) ->
                 visit body (fun nodes ->
@@ -888,6 +889,7 @@ module private Ast =
                 visit pat (fun nodes ->
                     mkNode SynPat_Paren range :: nodes
                     |> finalContinuation)
+
             | SynPat.ArrayOrList (_, pats, range) ->
                 let continuations: ((TriviaNodeAssigner list -> TriviaNodeAssigner list) -> TriviaNodeAssigner list) list =
                     pats |> List.map visit
@@ -898,6 +900,7 @@ module private Ast =
                     |> finalContinuation
 
                 Continuation.sequence continuations finalContinuation
+
             | SynPat.Record (pats, range) ->
                 let continuations: ((TriviaNodeAssigner list -> TriviaNodeAssigner list) -> TriviaNodeAssigner list) list =
                     pats |> List.map (snd >> visit)

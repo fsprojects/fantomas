@@ -1124,10 +1124,6 @@ let private tokenNames =
       "RBRACE"
       "LPAREN"
       "RPAREN"
-      "LBRACK"
-      "RBRACK"
-      "LBRACK_BAR"
-      "BAR_RBRACK"
       "EQUALS"
       "BAR"
       "TRY"
@@ -1146,7 +1142,6 @@ let internal getFsToken tokenName =
     | "AND_BANG" -> AND_BANG
     | "BAR" -> BAR
     | "BAR_BAR" -> BAR_BAR
-    | "BAR_RBRACK" -> BAR_RBRACK
     | "COLON_COLON" -> COLON_COLON
     | "COLON_EQUALS" -> COLON_EQUALS
     | "COLON_GREATER" -> COLON_GREATER
@@ -1171,8 +1166,6 @@ let internal getFsToken tokenName =
     | "INFIX_STAR_STAR_OP" -> INFIX_STAR_STAR_OP
     | "INT32_DOT_DOT" -> INT32_DOT_DOT
     | "LBRACE" -> LBRACE
-    | "LBRACK" -> LBRACK
-    | "LBRACK_BAR" -> LBRACK_BAR
     | "LESS" -> LESS
     | "LPAREN" -> LPAREN
     | "LPAREN_STAR_RPAREN" -> LPAREN_STAR_RPAREN
@@ -1184,7 +1177,6 @@ let internal getFsToken tokenName =
     | "QMARK" -> QMARK
     | "QMARK_QMARK" -> QMARK_QMARK
     | "RBRACE" -> RBRACE
-    | "RBRACK" -> RBRACK
     | "RPAREN" -> RPAREN
     | "THEN" -> THEN
     | "TRY" -> TRY
