@@ -1346,10 +1346,9 @@ and genExpr astContext synExpr ctx =
 
                     isSmallExpression size smallExpression multilineExpression ctx
 
-        | Record (inheritOpt, xs, eo) ->
+        | Record (openingBrace, inheritOpt, xs, eo, closingBrace) ->
             let smallRecordExpr =
-                sepOpenS
-                +> leaveLeftBrace synExpr.Range
+                genTriviaFor SynExpr_Record_OpeningBrace openingBrace sepOpenS
                 +> optSingle
                     (fun (inheritType, inheritExpr) ->
                         !- "inherit "
@@ -1360,13 +1359,12 @@ and genExpr astContext synExpr ctx =
                     inheritOpt
                 +> optSingle (fun e -> genExpr astContext e +> !- " with ") eo
                 +> col sepSemi xs (genRecordFieldName astContext)
-                +> sepCloseS
-                +> leaveNodeTokenByName synExpr.Range RBRACE
+                +> genTriviaFor SynExpr_Record_ClosingBrace closingBrace sepCloseS
 
             let multilineRecordExpr =
                 ifAlignBrackets
-                    (genMultilineRecordInstanceAlignBrackets inheritOpt xs eo synExpr astContext)
-                    (genMultilineRecordInstance inheritOpt xs eo synExpr astContext)
+                    (genMultilineRecordInstanceAlignBrackets astContext openingBrace inheritOpt xs eo closingBrace)
+                    (genMultilineRecordInstance astContext openingBrace inheritOpt xs eo closingBrace)
 
             fun ctx ->
                 let size = getRecordSize ctx xs
@@ -1443,54 +1441,39 @@ and genExpr astContext synExpr ctx =
                      +> unindent)
             )
 
-        | NamedComputationExpr (nameExpr, bodyExpr, bodyRange) ->
+        | NamedComputationExpr (nameExpr, openingBrace, bodyExpr, closingBrace) ->
             fun ctx ->
-                let openingBrace =
-                    ctx.MkRangeWith
-                        (bodyRange.StartLine, bodyRange.StartColumn)
-                        (bodyRange.StartLine, bodyRange.StartColumn + 1)
-
-                let closingBrace =
-                    ctx.MkRangeWith(bodyRange.EndLine, bodyRange.EndColumn - 1) (bodyRange.EndLine, bodyRange.EndColumn)
-
                 let short =
                     genExpr astContext nameExpr
                     +> sepSpace
-                    +> tokN openingBrace LBRACE sepOpenS
+                    +> genTriviaFor SynExpr_ComputationExpr_OpeningBrace openingBrace sepOpenS
                     +> genExpr astContext bodyExpr
-                    +> tokN closingBrace RBRACE sepCloseS
+                    +> genTriviaFor SynExpr_ComputationExpr_ClosingBrace closingBrace sepCloseS
 
                 let long =
                     genExpr astContext nameExpr
                     +> sepSpace
-                    +> tokN openingBrace LBRACE sepOpenS
+                    +> genTriviaFor SynExpr_ComputationExpr_OpeningBrace openingBrace sepOpenS
                     +> indent
                     +> sepNln
                     +> genExpr astContext bodyExpr
                     +> unindent
                     +> sepNln
-                    +> tokN closingBrace RBRACE sepCloseSFixed
+                    +> genTriviaFor SynExpr_ComputationExpr_ClosingBrace closingBrace sepCloseSFixed
 
                 expressionFitsOnRestOfLine short long ctx
-        | ComputationExpr (e, bodyRange) ->
-            fun ctx ->
-                let openingBrace =
-                    ctx.MkRangeWith
-                        (bodyRange.StartLine, bodyRange.StartColumn)
-                        (bodyRange.StartLine, bodyRange.StartColumn + 1)
-
-                let closingBrace =
-                    ctx.MkRangeWith(bodyRange.EndLine, bodyRange.EndColumn - 1) (bodyRange.EndLine, bodyRange.EndColumn)
-
-                (expressionFitsOnRestOfLine
-                    (tokN openingBrace LBRACE sepOpenS
-                     +> genExpr astContext e
-                     +> tokN closingBrace RBRACE sepCloseS)
-                    (tokN openingBrace LBRACE sepOpenS
-                     +> genExpr astContext e
-                     +> unindent
-                     +> tokN closingBrace RBRACE (sepNlnUnlessLastEventIsNewline +> sepCloseSFixed)))
-                    ctx
+        | ComputationExpr (openingBrace, e, closingBrace) ->
+            expressionFitsOnRestOfLine
+                (genTriviaFor SynExpr_ComputationExpr_OpeningBrace openingBrace sepOpenS
+                 +> genExpr astContext e
+                 +> genTriviaFor SynExpr_ComputationExpr_ClosingBrace closingBrace sepCloseS)
+                (genTriviaFor SynExpr_ComputationExpr_OpeningBrace openingBrace sepOpenS
+                 +> genExpr astContext e
+                 +> unindent
+                 +> genTriviaFor
+                     SynExpr_ComputationExpr_ClosingBrace
+                     closingBrace
+                     (sepNlnUnlessLastEventIsNewline +> sepCloseSFixed))
 
         | CompExprBody statements ->
             let genCompExprStatement astContext ces =
@@ -2903,11 +2886,12 @@ and genGenericTypeParameters astContext lt ts gt =
         +> tokN gt GREATER (!- ">")
 
 and genMultilineRecordInstance
+    (astContext: ASTContext)
+    (openingBrace: Range)
     (inheritOpt: (SynType * SynExpr) option)
     (xs: (RecordFieldName * SynExpr option * BlockSeparator option) list)
     (eo: SynExpr option)
-    synExpr
-    astContext
+    (closingBrace: Range)
     (ctx: Context)
     =
     let ifIndentLesserThan size lesser greater ctx =
@@ -2923,7 +2907,7 @@ and genMultilineRecordInstance
     let expr =
         match inheritOpt with
         | Some (t, e) ->
-            tokN synExpr.Range LBRACE sepOpenS
+            genTriviaFor SynExpr_Record_OpeningBrace openingBrace sepOpenS
             +> atCurrentColumn (
                 !- "inherit "
                 +> genType astContext false t
@@ -2931,7 +2915,7 @@ and genMultilineRecordInstance
                 +> genExpr astContext e
                 +> onlyIf (List.isNotEmpty xs) sepNln
                 +> fieldsExpr
-                +> tokN synExpr.Range RBRACE sepCloseS
+                +> genTriviaFor SynExpr_Record_ClosingBrace closingBrace sepCloseS
             )
         | None ->
             match eo with
@@ -2946,16 +2930,16 @@ and genMultilineRecordInstance
                                1)
 
                     atCurrentColumn
-                        (tokN synExpr.Range LBRACE sepOpenS
+                        (genTriviaFor SynExpr_Record_OpeningBrace openingBrace sepOpenS
                          +> sepNlnWhenWriteBeforeNewlineNotEmpty sepNone // comment after curly brace
                          +> col sepSemiNln xs (fun e ->
                              // Add spaces to ensure the record field (incl trivia) starts at the right column.
                              addFixedSpaces targetColumn
                              // Lock the start of the record field, however keep potential indentations in relation to the opening curly brace
                              +> atCurrentColumn (genRecordFieldName astContext e))
-                         +> tokN
-                             synExpr.Range
-                             RBRACE
+                         +> genTriviaFor
+                             SynExpr_Record_ClosingBrace
+                             closingBrace
                              (sepNlnWhenWriteBeforeNewlineNotEmpty sepNone // comment after last record field
                               +> (fun ctx ->
                                   // Edge case scenario to make sure that the closing brace is not before the opening one
@@ -2968,23 +2952,24 @@ and genMultilineRecordInstance
                                       ifElseCtx lastWriteEventIsNewline sepCloseSFixed sepCloseS ctx)))
                         ctx
             | Some e ->
-                tokN synExpr.Range LBRACE sepOpenS
+                genTriviaFor SynExpr_Record_OpeningBrace openingBrace sepOpenS
                 +> genExpr astContext e
                 +> !- " with"
                 +> ifIndentLesserThan
                     3
                     (sepSpaceOrDoubleIndentAndNlnIfExpressionExceedsPageWidth fieldsExpr)
                     (sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth fieldsExpr)
-                +> tokN synExpr.Range RBRACE sepCloseS
+                +> genTriviaFor SynExpr_Record_ClosingBrace closingBrace sepCloseS
 
     expr ctx
 
 and genMultilineRecordInstanceAlignBrackets
+    (astContext: ASTContext)
+    (openingBrace: Range)
     (inheritOpt: (SynType * SynExpr) option)
     (xs: (RecordFieldName * SynExpr option * BlockSeparator option) list)
     (eo: SynExpr option)
-    synExpr
-    astContext
+    (closingBrace: Range)
     =
     let fieldsExpr = col sepSemiNln xs (genRecordFieldName astContext)
 
@@ -2992,7 +2977,7 @@ and genMultilineRecordInstanceAlignBrackets
 
     match inheritOpt, eo with
     | Some (inheritType, inheritExpr), None ->
-        sepOpenS
+        genTriviaFor SynExpr_Record_OpeningBrace openingBrace sepOpenS
         +> ifElse hasFields (indent +> sepNln) sepNone
         +> !- "inherit "
         +> genType astContext false inheritType
@@ -3004,11 +2989,12 @@ and genMultilineRecordInstanceAlignBrackets
              +> fieldsExpr
              +> unindent
              +> sepNln
-             +> sepCloseSFixed)
-            (sepSpace +> sepCloseSFixed)
+             +> genTriviaFor SynExpr_Record_ClosingBrace closingBrace sepCloseSFixed)
+            (sepSpace
+             +> genTriviaFor SynExpr_Record_ClosingBrace closingBrace sepCloseSFixed)
 
     | None, Some e ->
-        sepOpenS
+        genTriviaFor SynExpr_Record_OpeningBrace openingBrace sepOpenS
         +> atCurrentColumnIndent (genExpr astContext e)
         +> (!- " with"
             +> indent
@@ -3018,17 +3004,16 @@ and genMultilineRecordInstanceAlignBrackets
             +> unindent
             +> whenShortIndent unindent
             +> sepNln
-            +> sepCloseSFixed)
+            +> genTriviaFor SynExpr_Record_ClosingBrace closingBrace sepCloseSFixed)
 
     | _ ->
-        (sepOpenSFixed
+        (genTriviaFor SynExpr_Record_OpeningBrace openingBrace sepOpenSFixed
          +> indent
          +> sepNln
          +> fieldsExpr
          +> unindent
-         +> enterNodeTokenByName synExpr.Range RBRACE
          +> ifElseCtx lastWriteEventIsNewline sepNone sepNln
-         +> sepCloseSFixed)
+         +> genTriviaFor SynExpr_Record_ClosingBrace closingBrace sepCloseSFixed)
     |> atCurrentColumnIndent
 
 and genMultilineAnonRecord (isStruct: bool) fields copyInfo (astContext: ASTContext) =
@@ -3647,20 +3632,18 @@ and genTypeDefn
         +> genMemberDefnList { astContext with InterfaceRange = None } ms
         +> unindent
 
-    | Simple (TDSRRecord (ao', fs)) ->
+    | Simple (TDSRRecord (openingBrace, ao', fs, closingBrace)) ->
         let smallExpression =
             sepSpace
             +> optSingle (fun ao -> genAccess ao +> sepSpace) ao'
-            +> sepOpenS
-            +> leaveLeftBrace tdr.Range
+            +> genTriviaFor SynTypeDefnSimpleRepr_Record_OpeningBrace openingBrace sepOpenS
             +> col sepSemi fs (genField astContext "")
-            +> sepCloseS
-            +> leaveNodeTokenByName node.Range RBRACE
+            +> genTriviaFor SynTypeDefnSimpleRepr_Record_ClosingBrace closingBrace sepCloseS
 
         let multilineExpression =
             ifAlignBrackets
-                (genMultilineSimpleRecordTypeDefnAlignBrackets tdr ms ao' fs astContext)
-                (genMultilineSimpleRecordTypeDefn tdr ms ao' fs astContext)
+                (genMultilineSimpleRecordTypeDefnAlignBrackets astContext openingBrace tdr ms ao' fs closingBrace)
+                (genMultilineSimpleRecordTypeDefn astContext openingBrace tdr ms ao' fs closingBrace)
 
         let bodyExpr ctx =
             let size = getRecordSize ctx fs
@@ -3819,36 +3802,38 @@ and genTypeDefn
     | ExceptionRepr (ExceptionDefRepr (ats, px, ao, uc)) -> genExceptionBody astContext ats px ao uc
     |> genTriviaFor SynTypeDefn_ node.Range
 
-and genMultilineSimpleRecordTypeDefn tdr ms ao' fs astContext =
+and genMultilineSimpleRecordTypeDefn astContext openingBrace tdr ms ao' fs closingBrace =
     // the typeName is already printed
     sepNlnUnlessLastEventIsNewline
     +> opt (indent +> sepNln) ao' genAccess
+    +> enterNodeFor SynTypeDefnSimpleRepr_Record_OpeningBrace openingBrace
     +> sepOpenS
     +> atCurrentColumn (
-        leaveLeftBrace tdr.Range
+        leaveNodeFor SynTypeDefnSimpleRepr_Record_OpeningBrace openingBrace
+        +> sepNlnWhenWriteBeforeNewlineNotEmpty sepNone
         +> col sepSemiNln fs (genField astContext "")
     )
-    +> sepCloseS
-    +> leaveNodeTokenByName tdr.Range RBRACE
+    +> genTriviaFor SynTypeDefnSimpleRepr_Record_ClosingBrace closingBrace sepCloseS
     +> optSingle (fun _ -> unindent) ao'
     +> onlyIf (List.isNotEmpty ms) sepNln
     +> sepNlnBetweenTypeAndMembers tdr ms
     +> genMemberDefnList { astContext with InterfaceRange = None } ms
 
-and genMultilineSimpleRecordTypeDefnAlignBrackets tdr ms ao' fs astContext =
+and genMultilineSimpleRecordTypeDefnAlignBrackets astContext openingBrace tdr ms ao' fs closingBrace =
     // the typeName is already printed
     sepNlnUnlessLastEventIsNewline
     +> opt (indent +> sepNln) ao' genAccess
+    +> enterNodeFor SynTypeDefnSimpleRepr_Record_OpeningBrace openingBrace
     +> sepOpenSFixed
     +> indent
     +> sepNln
     +> atCurrentColumn (
-        leaveLeftBrace tdr.Range
+        leaveNodeFor SynTypeDefnSimpleRepr_Record_OpeningBrace openingBrace
         +> col sepSemiNln fs (genField astContext "")
     )
     +> unindent
     +> sepNln
-    +> sepCloseSFixed
+    +> genTriviaFor SynTypeDefnSimpleRepr_Record_ClosingBrace closingBrace sepCloseSFixed
     +> optSingle (fun _ -> unindent) ao'
     +> onlyIf (List.isNotEmpty ms) sepNln
     +> sepNlnBetweenTypeAndMembers tdr ms
@@ -3947,20 +3932,18 @@ and genSigTypeDefn
         +> colPre sepNln sepNln ms (genMemberSig astContext)
         +> unindent
 
-    | SigSimple (TDSRRecord (ao', fs)) ->
+    | SigSimple (TDSRRecord (openingBrace, ao', fs, closingBrace)) ->
         let smallExpression =
             sepSpace
             +> optSingle (fun ao -> genAccess ao +> sepSpace) ao'
-            +> sepOpenS
-            +> leaveLeftBrace tdr.Range
+            +> genTriviaFor SynExpr_Record_OpeningBrace openingBrace sepOpenS
             +> col sepSemi fs (genField astContext "")
-            +> sepCloseS
-            +> leaveNodeTokenByName tdr.Range RBRACE
+            +> genTriviaFor SynExpr_Record_ClosingBrace closingBrace sepCloseS
 
         let multilineExpression =
             ifAlignBrackets
-                (genSigSimpleRecordAlignBrackets tdr ms ao' fs astContext)
-                (genSigSimpleRecord tdr ms ao' fs astContext)
+                (genSigSimpleRecordAlignBrackets astContext openingBrace tdr ms ao' fs closingBrace)
+                (genSigSimpleRecord astContext openingBrace tdr ms ao' fs closingBrace)
 
         let bodyExpr ctx =
             let size = getRecordSize ctx fs
@@ -3977,9 +3960,7 @@ and genSigTypeDefn
         typeName
         +> sepEq
         +> indent
-        +> enterNodeFor SynTypeDefnSimpleRepr_Record tdr.Range
-        +> bodyExpr
-        +> leaveNodeFor SynTypeDefnSimpleRepr_Record tdr.Range
+        +> genTriviaFor SynTypeDefnSimpleRepr_Record tdr.Range bodyExpr
         +> unindent
 
     | SigSimple TDSRNone ->
@@ -4062,34 +4043,37 @@ and genSigTypeDefn
     | SigExceptionRepr (SigExceptionDefRepr (ats, px, ao, uc)) -> genExceptionBody astContext ats px ao uc
     |> genTriviaFor SynTypeDefnSig_ fullRange
 
-and genSigSimpleRecord tdr ms ao' fs astContext =
+and genSigSimpleRecord astContext openingBrace tdr ms ao' fs closingBrace =
     // the typeName is already printed
     sepNlnUnlessLastEventIsNewline
     +> opt (indent +> sepNln) ao' genAccess
+    +> enterNodeFor SynTypeDefnSimpleRepr_Record_OpeningBrace openingBrace
     +> sepOpenS
     +> atCurrentColumn (
-        leaveLeftBrace tdr.Range
+        leaveNodeFor SynTypeDefnSimpleRepr_Record_OpeningBrace openingBrace
+        +> sepNlnWhenWriteBeforeNewlineNotEmpty sepNone
         +> col sepSemiNln fs (genField astContext "")
     )
-    +> sepCloseS
+    +> genTriviaFor SynTypeDefnSimpleRepr_Record_ClosingBrace closingBrace sepCloseS
     +> optSingle (fun _ -> unindent) ao'
     +> sepNlnBetweenSigTypeAndMembers tdr ms
     +> colPre sepNln sepNln ms (genMemberSig astContext)
 
-and genSigSimpleRecordAlignBrackets tdr ms ao' fs astContext =
+and genSigSimpleRecordAlignBrackets astContext openingBrace tdr ms ao' fs closingBrace =
     // the typeName is already printed
     sepNlnUnlessLastEventIsNewline
     +> opt (indent +> sepNln) ao' genAccess
+    +> enterNodeFor SynTypeDefnSimpleRepr_Record_OpeningBrace openingBrace
     +> sepOpenSFixed
     +> indent
     +> sepNln
     +> atCurrentColumn (
-        leaveLeftBrace tdr.Range
+        leaveNodeFor SynTypeDefnSimpleRepr_Record_OpeningBrace closingBrace
         +> col sepSemiNln fs (genField astContext "")
     )
     +> unindent
     +> sepNln
-    +> sepCloseSFixed
+    +> genTriviaFor SynTypeDefnSimpleRepr_Record_ClosingBrace closingBrace sepCloseSFixed
     +> optSingle (fun _ -> unindent) ao'
     +> sepNlnBetweenSigTypeAndMembers tdr ms
     +> colPre sepNln sepNln ms (genMemberSig astContext)

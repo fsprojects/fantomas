@@ -101,7 +101,6 @@ let a = 7
         == expectedComment
     | _ -> fail ()
 
-
 [<Test>]
 let ``comments inside record`` () =
     let source =
@@ -112,7 +111,7 @@ let ``comments inside record`` () =
     let triviaNodes = toTrivia source |> List.head
 
     match triviaNodes with
-    | [ { Type = TriviaNodeType.Token (LBRACE, _)
+    | [ { Type = TriviaNodeType.MainNode SynExpr_Record_OpeningBrace
           ContentAfter = [ Comment (LineCommentAfterSourceCode "// foo") ] } ] -> pass ()
     | _ -> fail ()
 

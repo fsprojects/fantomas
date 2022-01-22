@@ -39,3 +39,8 @@ module RangeHelpers =
             Range.mkRange r.FileName (Position.mkPos r.EndLine (r.EndColumn - size)) r.End
 
         startRange, endRange
+
+module RangePatterns =
+    let (|StartEndRange|) (size: int) (range: range) =
+        let o, c = RangeHelpers.mkStartEndRange size range
+        o, range, c

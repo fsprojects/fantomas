@@ -32,7 +32,6 @@ type FsTokenType =
     | INFIX_STAR_DIV_MOD_OP
     | INFIX_STAR_STAR_OP
     | INT32_DOT_DOT
-    | LBRACE
     | LESS
     | LPAREN
     | LPAREN_STAR_RPAREN
@@ -43,7 +42,6 @@ type FsTokenType =
     | PREFIX_OP
     | QMARK
     | QMARK_QMARK
-    | RBRACE
     | RPAREN
     | THEN
     | TRY
@@ -118,6 +116,8 @@ type FsAstType =
     | SynExpr_Tuple
     | SynExpr_StructTuple
     | SynExpr_Record
+    | SynExpr_Record_OpeningBrace
+    | SynExpr_Record_ClosingBrace
     | SynExpr_AnonRecd
     | SynExpr_New
     | SynExpr_ObjExpr
@@ -129,6 +129,8 @@ type FsAstType =
     | SynExpr_ArrayOrList_OpeningDelimiter
     | SynExpr_ArrayOrList_ClosingDelimiter
     // | SynExpr_ComputationExpr use first nested SynExpr
+    | SynExpr_ComputationExpr_OpeningBrace
+    | SynExpr_ComputationExpr_ClosingBrace
     | SynExpr_Lambda
     | SynExpr_Lambda_Arrow
     | SynExpr_MatchLambda
@@ -297,6 +299,8 @@ type FsAstType =
     | SynTypeDefnSimpleRepr_Union
     | SynTypeDefnSimpleRepr_Enum
     | SynTypeDefnSimpleRepr_Record
+    | SynTypeDefnSimpleRepr_Record_OpeningBrace
+    | SynTypeDefnSimpleRepr_Record_ClosingBrace
     | SynTypeDefnSimpleRepr_General
     | SynTypeDefnSimpleRepr_LibraryOnlyILAssembly
     | SynTypeDefnSimpleRepr_TypeAbbrev
