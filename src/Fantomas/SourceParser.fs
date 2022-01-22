@@ -7,6 +7,7 @@ open FSharp.Compiler.Text
 open FSharp.Compiler.Xml
 open Fantomas
 open Fantomas.TriviaTypes
+open Fantomas.RangePatterns
 
 /// Don't put space before and after these operators
 let internal noSpaceInfixOps = set [ "?" ]
@@ -675,7 +676,8 @@ let (|SimpleExpr|_|) =
 
 let (|ComputationExpr|_|) =
     function
-    | SynExpr.ComputationExpr (_, expr, range) -> Some(expr, range)
+    | SynExpr.ComputationExpr (_, expr, StartEndRange 1 (openingBrace, range, closingBrace)) ->
+        Some(openingBrace, expr, closingBrace)
     | _ -> None
 
 // seq { expr }
@@ -685,8 +687,8 @@ let (|NamedComputationExpr|_|) =
                    false,
                    (SynExpr.App _ as nameExpr
                    | SimpleExpr nameExpr),
-                   ComputationExpr (compExpr, bodyRange),
-                   _) -> Some(nameExpr, compExpr, bodyRange)
+                   ComputationExpr (openingBrace, compExpr, closingBrace),
+                   _) -> Some(nameExpr, openingBrace, compExpr, closingBrace)
     | _ -> None
 
 /// Combines all ArrayOrList patterns
@@ -1077,12 +1079,12 @@ let rec (|ElIf|_|) =
 
 let (|Record|_|) =
     function
-    | SynExpr.Record (inheritOpt, eo, xs, _) ->
+    | SynExpr.Record (inheritOpt, eo, xs, StartEndRange 1 (openingBrace, _, closingBrace)) ->
         let inheritOpt =
             inheritOpt
             |> Option.map (fun (typ, expr, _, _, _) -> (typ, expr))
 
-        Some(inheritOpt, xs, Option.map fst eo)
+        Some(openingBrace, inheritOpt, xs, Option.map fst eo, closingBrace)
     | _ -> None
 
 let (|AnonRecord|_|) =
@@ -1335,7 +1337,8 @@ let (|TDSREnum|TDSRUnion|TDSRRecord|TDSRNone|TDSRTypeAbbrev|TDSRException|) =
     function
     | SynTypeDefnSimpleRepr.Enum (ecs, _) -> TDSREnum ecs
     | SynTypeDefnSimpleRepr.Union (ao, xs, _) -> TDSRUnion(ao, xs)
-    | SynTypeDefnSimpleRepr.Record (ao, fs, _) -> TDSRRecord(ao, fs)
+    | SynTypeDefnSimpleRepr.Record (ao, fs, StartEndRange 1 (openingBrace, _, closingBrace)) ->
+        TDSRRecord(openingBrace, ao, fs, closingBrace)
     | SynTypeDefnSimpleRepr.None _ -> TDSRNone()
     | SynTypeDefnSimpleRepr.TypeAbbrev (_, t, _) -> TDSRTypeAbbrev t
     | SynTypeDefnSimpleRepr.General _ -> failwith "General should not appear in the parse tree"
