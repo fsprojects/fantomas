@@ -741,3 +741,41 @@ module Input
 
 let modules = [ 109024; 137172; 80445; 80044 ]
 """
+
+[<Test>]
+let ``comment after equals sign in named module`` () =
+    formatSourceString
+        false
+        """
+module Foo =   // comment
+    let bar = 9
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+module Foo = // comment
+    let bar = 9
+"""
+
+[<Test>]
+let ``comment after equals sign in named module, signature file`` () =
+    formatSourceString
+        true
+        """
+namespace Meh
+
+module Foo =   // comment
+    val bar : int
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+namespace Meh
+
+module Foo = // comment
+    val bar: int
+"""

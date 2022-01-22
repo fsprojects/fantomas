@@ -328,10 +328,10 @@ let (|NestedModule|_|) =
     function
     | SynModuleDecl.NestedModule (SynComponentInfo (ats, _, _, LongIdent s, px, _, ao, _),
                                   isRecursive,
-                                  _equalsRange,
+                                  equalsRange,
                                   xs,
                                   _,
-                                  _) -> Some(ats, px, ao, s, isRecursive, xs)
+                                  _) -> Some(ats, px, ao, s, isRecursive, equalsRange, xs)
     | _ -> None
 
 let (|Exception|_|) =
@@ -378,8 +378,8 @@ let (|SigTypes|_|) =
 
 let (|SigNestedModule|_|) =
     function
-    | SynModuleSigDecl.NestedModule (SynComponentInfo (ats, _, _, LongIdent s, px, _, ao, _), _, _equalsRange, xs, _) ->
-        Some(ats, px, ao, s, xs)
+    | SynModuleSigDecl.NestedModule (SynComponentInfo (ats, _, _, LongIdent s, px, _, ao, _), _, equalsRange, xs, _) ->
+        Some(ats, px, ao, s, equalsRange, xs)
     | _ -> None
 
 let (|SigException|_|) =
@@ -403,11 +403,11 @@ let (|ExceptionDef|)
 
 let (|SigExceptionDef|)
     (SynExceptionSig.SynExceptionSig (SynExceptionDefnRepr.SynExceptionDefnRepr (ats, uc, _, px, ao, _),
-                                      _withKeyword,
+                                      withKeyword,
                                       ms,
                                       _))
     =
-    (ats, px, ao, uc, ms)
+    (ats, px, ao, uc, withKeyword, ms)
 
 let (|UnionCase|) (SynUnionCase (ats, Ident s, uct, px, ao, _)) = (ats, px, ao, s, uct)
 
@@ -419,7 +419,7 @@ let (|UnionCaseType|) =
 let (|Field|) (SynField (ats, isStatic, ido, t, isMutable, px, ao, _)) =
     (ats, px, ao, isStatic, isMutable, t, Option.map (|Ident|) ido)
 
-let (|EnumCase|) (SynEnumCase (ats, Ident s, _equalsRange, c, cr, px, r)) = (ats, px, s, c, cr, r)
+let (|EnumCase|) (SynEnumCase (ats, Ident s, equalsRange, c, cr, px, r)) = (ats, px, s, equalsRange, c, cr, r)
 
 // Member definitions (11 cases)
 
@@ -470,13 +470,13 @@ let (|MDLetBindings|_|) =
 
 let (|MDAbstractSlot|_|) =
     function
-    | SynMemberDefn.AbstractSlot (SynValSig (ats, Ident s, tds, t, vi, _, _, px, ao, _, _withKeyword, _), mf, _) ->
+    | SynMemberDefn.AbstractSlot (SynValSig (ats, Ident s, tds, t, vi, _, _, px, ao, _, _, _), mf, _) ->
         Some(ats, px, ao, s, t, vi, tds, mf)
     | _ -> None
 
 let (|MDInterface|_|) =
     function
-    | SynMemberDefn.Interface (t, _withKeyword, mdo, range) -> Some(t, mdo, range)
+    | SynMemberDefn.Interface (t, withKeyword, mdo, range) -> Some(t, withKeyword, mdo, range)
     | _ -> None
 
 let (|MDAutoProperty|_|) =
@@ -489,16 +489,17 @@ let (|MDAutoProperty|_|) =
                                   memberKindToMemberFlags,
                                   px,
                                   ao,
-                                  _equalsRange,
+                                  equalsRange,
                                   e,
-                                  _withKeyword,
+                                  withKeyword,
                                   _,
-                                  _) -> Some(ats, px, ao, mk, e, s, isStatic, typeOpt, memberKindToMemberFlags)
+                                  _) ->
+        Some(ats, px, ao, mk, equalsRange, e, withKeyword, s, isStatic, typeOpt, memberKindToMemberFlags)
     | _ -> None
 
 // Interface impl
 
-let (|InterfaceImpl|) (SynInterfaceImpl (t, _withKeywordRange, bs, range)) = (t, bs, range)
+let (|InterfaceImpl|) (SynInterfaceImpl (t, withKeywordRange, bs, range)) = (t, withKeywordRange, bs, range)
 
 // Bindings
 
@@ -544,8 +545,8 @@ let (|MFMember|MFStaticMember|MFConstructor|MFOverride|) (mf: SynMemberFlags) =
 
 let (|DoBinding|LetBinding|MemberBinding|PropertyBinding|ExplicitCtor|) =
     function
-    | SynBinding (ao, _, _, _, ats, px, SynValData (Some MFConstructor, _, ido), pat, _, _equalsRange, expr, _, _) ->
-        ExplicitCtor(ats, px, ao, pat, expr, Option.map (|Ident|) ido)
+    | SynBinding (ao, _, _, _, ats, px, SynValData (Some MFConstructor, _, ido), pat, _, equalsRange, expr, _, _) ->
+        ExplicitCtor(ats, px, ao, pat, equalsRange, expr, Option.map (|Ident|) ido)
     | SynBinding (ao,
                   _,
                   isInline,
@@ -561,7 +562,7 @@ let (|DoBinding|LetBinding|MemberBinding|PropertyBinding|ExplicitCtor|) =
                   _) -> PropertyBinding(ats, px, ao, isInline, mf, pat, equalsRange, expr, synValInfo)
     | SynBinding (ao, _, isInline, _, ats, px, SynValData (Some mf, synValInfo, _), pat, _, equalsRange, expr, _, _) ->
         MemberBinding(ats, px, ao, isInline, mf, pat, equalsRange, expr, synValInfo)
-    | SynBinding (_, SynBindingKind.Do, _, _, ats, px, _, _, _, _equalsRange, expr, _, _) -> DoBinding(ats, px, expr)
+    | SynBinding (_, SynBindingKind.Do, _, _, ats, px, _, _, _, _, expr, _, _) -> DoBinding(ats, px, expr)
     | SynBinding (ao, _, isInline, isMutable, attrs, px, SynValData (_, valInfo, _), pat, _, equalsRange, expr, _, _) ->
         LetBinding(attrs, px, ao, isInline, isMutable, pat, equalsRange, expr, valInfo)
 
@@ -641,7 +642,7 @@ let (|While|_|) =
 
 let (|For|_|) =
     function
-    | SynExpr.For (_, Ident s, _equalsRange, e1, isUp, e2, e3, _) -> Some(s, e1, e2, e3, isUp)
+    | SynExpr.For (_, Ident s, equalsRange, e1, isUp, e2, e3, _) -> Some(s, equalsRange, e1, e2, e3, isUp)
     | _ -> None
 
 let (|NullExpr|_|) =
@@ -968,8 +969,8 @@ let rec (|LetOrUses|_|) =
 
 type ComputationExpressionStatement =
     | LetOrUseStatement of prefix: string * binding: SynBinding
-    | LetOrUseBangStatement of isUse: bool * SynPat * SynExpr * range
-    | AndBangStatement of SynPat * SynExpr * range
+    | LetOrUseBangStatement of isUse: bool * SynPat * equalsRange: range option * SynExpr * range: range
+    | AndBangStatement of SynPat * equalsRange: range * SynExpr * range: range
     | OtherStatement of SynExpr
 
 let rec collectComputationExpressionStatements
@@ -984,13 +985,13 @@ let rec collectComputationExpressionStatements
             [ yield! letBindings
               yield! bodyStatements ]
             |> finalContinuation)
-    | SynExpr.LetOrUseBang (_, isUse, _, pat, _equalsRange, expr, andBangs, body, r) ->
-        let letOrUseBang = LetOrUseBangStatement(isUse, pat, expr, r)
+    | SynExpr.LetOrUseBang (_, isUse, _, pat, equalsRange, expr, andBangs, body, r) ->
+        let letOrUseBang = LetOrUseBangStatement(isUse, pat, equalsRange, expr, r)
 
         let andBangs =
             andBangs
-            |> List.map (fun (SynExprAndBang (_, _, _, ap, _equalsRange, ae, andRange)) ->
-                AndBangStatement(ap, ae, andRange))
+            |> List.map (fun (SynExprAndBang (_, _, _, ap, equalsRange, ae, andRange)) ->
+                AndBangStatement(ap, equalsRange, ae, andRange))
 
         collectComputationExpressionStatements body (fun bodyStatements ->
             [ letOrUseBang
@@ -1132,7 +1133,7 @@ let (|AnonRecord|_|) =
 
 let (|ObjExpr|_|) =
     function
-    | SynExpr.ObjExpr (t, eio, _withKeyword, bd, ims, _, range) -> Some(t, eio, bd, ims, range)
+    | SynExpr.ObjExpr (t, eio, withKeyword, bd, ims, _, range) -> Some(t, eio, withKeyword, bd, ims, range)
     | _ -> None
 
 let (|LongIdentSet|_|) =
@@ -1142,8 +1143,7 @@ let (|LongIdentSet|_|) =
 
 let (|TryWith|_|) =
     function
-    | SynExpr.TryWith (tryKeyword, e, _, withKeyword, cs, mWithToLast, _, _, _) ->
-        Some(tryKeyword, e, withKeyword, mWithToLast, cs)
+    | SynExpr.TryWith (tryKeyword, e, _, withKeyword, cs, _, _, _, _) -> Some(tryKeyword, e, withKeyword, cs)
     | _ -> None
 
 let (|TryFinally|_|) =
@@ -1260,7 +1260,13 @@ let (|PatLongIdent|_|) =
         match xs with
         | SynArgPats.Pats ps -> Some(ao, s, propertyKeyword, List.map (fun p -> (None, p)) ps, tpso)
         | SynArgPats.NamePatPairs (nps, _) ->
-            Some(ao, s, propertyKeyword, List.map (fun (Ident ident, _equalsRange, p) -> (Some ident, p)) nps, tpso)
+            Some(
+                ao,
+                s,
+                propertyKeyword,
+                List.map (fun (Ident ident, equalsRange, p) -> (Some(ident, equalsRange), p)) nps,
+                tpso
+            )
     | _ -> None
 
 let (|PatParen|_|) =
@@ -1341,7 +1347,7 @@ and skipGeneratedMatch expr =
     | SynExpr.Match (_matchKeyword,
                      _,
                      _,
-                     _withKeyword,
+                     _,
                      [ SynMatchClause.SynMatchClause (_, _, _, innerExpr, _, _) as clause ],
                      matchRange) when matchRange.Start = clause.Range.Start -> skipGeneratedMatch innerExpr
     | _ -> expr
@@ -1428,7 +1434,7 @@ type TypeDefnKindSingle =
     | TCUnion
     | TCAbbrev
     | TCOpaque
-    | TCAugmentation
+    | TCAugmentation of withKeyword: range
     | TCIL
 
 let (|TCSimple|TCDelegate|) =
@@ -1441,30 +1447,30 @@ let (|TCSimple|TCDelegate|) =
     | SynTypeDefnKind.Union -> TCSimple TCUnion
     | SynTypeDefnKind.Abbrev -> TCSimple TCAbbrev
     | SynTypeDefnKind.Opaque -> TCSimple TCOpaque
-    | SynTypeDefnKind.Augmentation _withKeyword -> TCSimple TCAugmentation
+    | SynTypeDefnKind.Augmentation withKeyword -> TCSimple(TCAugmentation withKeyword)
     | SynTypeDefnKind.IL -> TCSimple TCIL
     | SynTypeDefnKind.Delegate (t, vi) -> TCDelegate(t, vi)
 
 let (|TypeDef|)
     (SynTypeDefn (SynComponentInfo (ats, tds, tcs, LongIdent s, px, preferPostfix, ao, _),
-                  _equalsRange,
+                  equalsRange,
                   tdr,
                   withKeyword,
                   ms,
                   _,
                   _))
     =
-    (ats, px, ao, tds, tcs, tdr, withKeyword, ms, s, preferPostfix)
+    (ats, px, ao, tds, tcs, equalsRange, tdr, withKeyword, ms, s, preferPostfix)
 
 let (|SigTypeDef|)
     (SynTypeDefnSig (SynComponentInfo (ats, tds, tcs, LongIdent s, px, preferPostfix, ao, _),
-                     _equalsRange,
+                     equalsRange,
                      tdr,
                      withKeyword,
                      ms,
                      range))
     =
-    (ats, px, ao, tds, tcs, tdr, withKeyword, ms, s, preferPostfix, range)
+    (ats, px, ao, tds, tcs, equalsRange, tdr, withKeyword, ms, s, preferPostfix, range)
 
 let (|TyparDecl|) (SynTyparDecl (ats, tp)) = (ats, tp)
 
@@ -1627,7 +1633,7 @@ let (|Val|)
                 px,
                 ao,
                 eo,
-                _withKeyword,
+                _,
                 range))
     =
     (ats, px, ao, s, ident.idRange, t, vi, isInline, isMutable, typars, eo, range)
@@ -1636,10 +1642,10 @@ let (|Val|)
 
 let (|RecordFieldName|) ((LongIdentWithDots s, _): RecordFieldName, eo: SynExpr option, _) = (s, eo)
 
-let (|AnonRecordFieldName|) (ident: Ident, e: SynExpr) = (ident.idRange, ident.idText, e)
+let (|AnonRecordFieldName|) (ident: Ident, eq:range option, e: SynExpr) = (ident.idText, ident.idRange, eq, e)
 let (|AnonRecordFieldType|) (Ident s: Ident, t: SynType) = (s, t)
 
-let (|PatRecordFieldName|) ((LongIdent s1, Ident s2), equalsRange, p) = (s1, s2, equalsRange, p)
+let (|PatRecordFieldName|) ((LongIdent s1, Ident s2), _, p) = (s1, s2, p)
 
 let (|ValInfo|) (SynValInfo (aiss, ai)) = (aiss, ai)
 
@@ -1792,12 +1798,12 @@ let private shouldNotIndentBranch e es =
     && isLongElseBranch e
 
 let (|KeepIndentMatch|_|) (e: SynExpr) =
-    let mapClauses matchExpr withKeyword clauses range t =
+    let mapClauses matchKeyword matchExpr withKeyword clauses range t =
         match clauses with
         | [] -> None
         | [ (Clause (_, _, _, lastClause)) ] ->
             if shouldNotIndentBranch lastClause [] then
-                Some(matchExpr, withKeyword, clauses, range, t)
+                Some(matchKeyword, matchExpr, withKeyword, clauses, range, t)
             else
                 None
         | clauses ->
@@ -1809,15 +1815,15 @@ let (|KeepIndentMatch|_|) (e: SynExpr) =
             let (Clause (_, _, _, lastClause)) = List.last clauses
 
             if shouldNotIndentBranch lastClause firstClauses then
-                Some(matchExpr, withKeyword, clauses, range, t)
+                Some(matchKeyword, matchExpr, withKeyword, clauses, range, t)
             else
                 None
 
     match e with
-    | Match (_matchKeyword, matchExpr, withKeyword, clauses) ->
-        mapClauses matchExpr withKeyword clauses e.Range SynExpr_Match
-    | MatchBang (_matchKeyword, matchExpr, withKeyword, clauses) ->
-        mapClauses matchExpr withKeyword clauses e.Range SynExpr_MatchBang
+    | Match (matchKeyword, matchExpr, withKeyword, clauses) ->
+        mapClauses matchKeyword matchExpr withKeyword clauses e.Range SynExpr_Match
+    | MatchBang (matchKeyword, matchExpr, withKeyword, clauses) ->
+        mapClauses matchKeyword matchExpr withKeyword clauses e.Range SynExpr_MatchBang
     | _ -> None
 
 let (|KeepIndentIfThenElse|_|) (e: SynExpr) =

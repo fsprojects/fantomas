@@ -1229,3 +1229,41 @@ let x =
         Age = 41
     |}
 """
+
+[<Test>]
+let ``comment after equals in record field`` () =
+    formatSourceString
+        false
+        """
+{ A = //comment 
+      B }
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+{
+    A = //comment
+        B
+}
+"""
+
+[<Test>]
+let ``comment after equals in anonymous record field`` () =
+    formatSourceString
+        false
+        """
+{| A = //comment 
+      B |}
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+{|
+    A = //comment
+        B
+|}
+"""

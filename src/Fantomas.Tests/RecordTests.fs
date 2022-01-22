@@ -1949,3 +1949,54 @@ let defaultTestOptions fwk common (o: DotNet.TestOptions) =
         Framework = fwk // Some "netcoreapp3.0"
         Configuration = DotNet.BuildConfiguration.Debug }
 """
+
+[<Test>]
+let ``comment after equals in record field`` () =
+    formatSourceString
+        false
+        """
+{ A = //comment 
+      B }
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+{ A = //comment
+    B }
+"""
+
+[<Test>]
+let ``comment after equals in anonymous record field`` () =
+    formatSourceString
+        false
+        """
+{| A = //comment 
+      B |}
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+{| A = //comment
+    B |}
+"""
+
+[<Test>]
+let ``comment after equals sign in record type definition`` () =
+    formatSourceString
+        false
+        """
+type Foo =   // comment
+    { Bar: int }
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type Foo = // comment
+    { Bar: int }
+"""

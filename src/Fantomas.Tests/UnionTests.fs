@@ -859,3 +859,39 @@ type TransactionType =
     | [<CompiledName "External Credit Balance Refund">] ExternalCreditBalanceRefund
     | [<CompiledName "Credit Balance Adjustment (Applied from Credit Balance)">] CreditBalanceAdjustmentAppliedFromCreditBalance
 """
+
+[<Test>]
+let ``comment after equals in enum`` () =
+    formatSourceString
+        false
+        """
+type Foo =   // comment
+    | Bar = // other comment
+             1
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type Foo = // comment
+    | Bar = // other comment
+        1
+"""
+
+[<Test>]
+let ``comment after equals in union`` () =
+    formatSourceString
+        false
+        """
+type Foo =   // comment
+    | Bar of string * int64
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type Foo = // comment
+    | Bar of string * int64
+"""

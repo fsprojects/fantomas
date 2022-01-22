@@ -31,6 +31,44 @@ exception BuildException of string * list<string> with
 """
 
 [<Test>]
+let ``comment after with keyword in exception type`` () =
+    formatSourceString
+        false
+        """
+exception FooException  with  // comment
+    member this.Bar ()  =  ()
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+exception FooException with // comment
+    member this.Bar() = ()
+"""
+
+[<Test>]
+let ``comment after with keyword in exception type in signature files`` () =
+    formatSourceString
+        true
+        """
+namespace Moon
+
+exception FooException  with  // comment
+    member Bar: unit -> unit
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+namespace Moon
+
+exception FooException with // comment
+    member Bar: unit -> unit
+"""
+
+[<Test>]
 let ``type annotations`` () =
     formatSourceString
         false

@@ -291,7 +291,8 @@ type FsAstType =
     | SynPat_Paren_ClosingParenthesis
     | SynPat_ArrayOrList
     | SynPat_Record
-    | SynPat_Record_Field_Equals
+    // comments are this equal do not lead to valid code
+//    | SynPat_Record_Field_Equals
     | SynPat_Null
     | SynPat_OptionalVal
     | SynPat_IsInst

@@ -1048,3 +1048,28 @@ type Subject<'a> private () =
     /// Each notification is broadcasted to all subscribed observers.
     static member broadcast = new System.Reactive.Subjects.Subject<'a>()
 """
+
+[<Test>]
+let ``comments after equals sign in read/write property`` () =
+    formatSourceString
+        false
+        """
+type Foo() =
+    member this.MyReadWriteProperty
+        with get () =   //comment get 
+            myInternalValue
+        and set (value) =   // comment set
+            myInternalValue <- value
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type Foo() =
+    member this.MyReadWriteProperty
+        with get () = //comment get
+            myInternalValue
+        and set (value) = // comment set
+            myInternalValue <- value
+"""

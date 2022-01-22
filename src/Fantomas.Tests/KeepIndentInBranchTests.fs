@@ -2147,3 +2147,57 @@ module Foo =
         leftSet.SymmetricExceptWith(FooBarBaz.keys rightThings)
         |> ignore
 """
+
+[<Test>]
+let ``comment after match keyword`` () =
+    formatSourceString
+        false
+        """
+match  // comment
+    Stream.peel rest with
+| None -> failwith "oh no"
+| Some longName ->
+
+longName
+|> Map.map (fun _ -> TypedTerm.force<int>)
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+match // comment
+    Stream.peel rest with
+| None -> failwith "oh no"
+| Some longName ->
+
+longName
+|> Map.map (fun _ -> TypedTerm.force<int>)
+"""
+
+[<Test>]
+let ``comment after match bang keyword`` () =
+    formatSourceString
+        false
+        """
+match!  // comment
+    Stream.peel rest with
+| None -> failwith "oh no"
+| Some longName ->
+
+longName
+|> Map.map (fun _ -> TypedTerm.force<int>)
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+match! // comment
+    Stream.peel rest with
+| None -> failwith "oh no"
+| Some longName ->
+
+longName
+|> Map.map (fun _ -> TypedTerm.force<int>)
+"""

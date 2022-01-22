@@ -632,7 +632,7 @@ module private Ast =
             visitSynExpr expr
             @ (Option.toList ident |> List.map visitIdent)
 
-    and visitRecordField (SynExprRecordField ((fieldName, _), equalsRange, synExprOption, blockSeparator)) =
+    and visitRecordField (SynExprRecordField ((fieldName, _), equalsRange, synExprOption, _blockSeparator)) =
         [ yield mkNode RecordField_ fieldName.Range
           yield! mkNodeOption RecordField_Equals equalsRange
           yield!
@@ -988,11 +988,7 @@ module private Ast =
 
             | SynPat.Record (pats, range) ->
                 let continuations: ((TriviaNodeAssigner list -> TriviaNodeAssigner list) -> TriviaNodeAssigner list) list =
-                    pats
-                    |> List.map (fun (_, equalsRange, pat) ->
-                        fun nodes ->
-                            mkNode SynPat_Record_Field_Equals equalsRange
-                            :: visit pat nodes)
+                    pats |> List.map (fun (_, _, pat) -> visit pat)
 
                 let finalContinuation (nodes: TriviaNodeAssigner list list) : TriviaNodeAssigner list =
                     mkNode SynPat_Record range
