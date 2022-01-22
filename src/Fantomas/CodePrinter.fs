@@ -1974,13 +1974,19 @@ and genExpr astContext synExpr ctx =
 
         // functionName arg1 arg2 (fun x y z -> ...)
         | AppWithLambda (e, es, lpr, lambda, rpr, pr) ->
-            let sepSpaceAfterFunctionName ctx =
-                match List.tryHead es with
-                | Some (SimpleExpr _) -> sepSpace ctx
-                | _ ->
+            let sepSpaceAfterFunctionName =
+                let sepSpaceBasedOnSetting e =
                     match e with
-                    | UppercaseSynExpr -> onlyIf ctx.Config.SpaceBeforeUppercaseInvocation sepSpace ctx
-                    | LowercaseSynExpr -> onlyIf ctx.Config.SpaceBeforeLowercaseInvocation sepSpace ctx
+                    | UppercaseSynExpr -> (fun ctx -> onlyIf ctx.Config.SpaceBeforeUppercaseInvocation sepSpace ctx)
+                    | LowercaseSynExpr -> (fun ctx -> onlyIf ctx.Config.SpaceBeforeLowercaseInvocation sepSpace ctx)
+
+                match List.tryHead es with
+                | None ->
+                    match e with
+                    | Paren _ -> sepSpace
+                    | _ -> sepSpaceBasedOnSetting e
+                | Some (SimpleExpr _) -> sepSpace
+                | _ -> sepSpaceBasedOnSetting e
 
             let short =
                 genExpr astContext e
