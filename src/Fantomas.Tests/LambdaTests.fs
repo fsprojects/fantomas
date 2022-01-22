@@ -1103,3 +1103,37 @@ fun a ->   // foo
 fun a -> // foo
     a
 """
+
+[<Test>]
+let ``parenthesis function call with lambda argument, 2015`` () =
+    formatSourceString
+        false
+        """
+(if true then foo else goo) (fun _ -> 42)
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+(if true then foo else goo) (fun _ -> 42)
+"""
+
+[<Test>]
+let ``parenthesis function call with long lambda argument`` () =
+    formatSourceString
+        false
+        """
+(if true then foo else goo) (fun _ ->
+                                                        // comment
+                                                        42)
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+(if true then foo else goo) (fun _ ->
+    // comment
+    42)
+"""
