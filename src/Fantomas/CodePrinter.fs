@@ -3732,13 +3732,12 @@ and genTypeDefn
                 (genMultilineSimpleRecordTypeDefnAlignBrackets
                     astContext
                     openingBrace
-                    tdr
                     withKeyword
                     ms
                     ao'
                     fs
                     closingBrace)
-                (genMultilineSimpleRecordTypeDefn astContext openingBrace tdr withKeyword ms ao' fs closingBrace)
+                (genMultilineSimpleRecordTypeDefn astContext openingBrace withKeyword ms ao' fs closingBrace)
 
         let bodyExpr ctx =
             let size = getRecordSize ctx fs
@@ -3899,7 +3898,7 @@ and genTypeDefn
     | ExceptionRepr (ExceptionDefRepr (ats, px, ao, uc)) -> genExceptionBody astContext ats px ao uc
     |> genTriviaFor SynTypeDefn_ node.Range
 
-and genMultilineSimpleRecordTypeDefn astContext openingBrace tdr withKeyword ms ao' fs closingBrace =
+and genMultilineSimpleRecordTypeDefn astContext openingBrace withKeyword ms ao' fs closingBrace =
     // the typeName is already printed
     sepNlnUnlessLastEventIsNewline
     +> opt (indent +> sepNln) ao' genAccess
@@ -3916,7 +3915,7 @@ and genMultilineSimpleRecordTypeDefn astContext openingBrace tdr withKeyword ms 
     +> sepNlnBetweenTypeAndMembers withKeyword ms
     +> genMemberDefnList { astContext with InterfaceRange = None } ms
 
-and genMultilineSimpleRecordTypeDefnAlignBrackets astContext openingBrace tdr withKeyword ms ao' fs closingBrace =
+and genMultilineSimpleRecordTypeDefnAlignBrackets astContext openingBrace withKeyword ms ao' fs closingBrace =
     // the typeName is already printed
     sepNlnUnlessLastEventIsNewline
     +> opt (indent +> sepNln) ao' genAccess
@@ -4030,8 +4029,8 @@ and genSigTypeDefn
 
         let multilineExpression =
             ifAlignBrackets
-                (genSigSimpleRecordAlignBrackets astContext openingBrace tdr withKeyword ms ao' fs closingBrace)
-                (genSigSimpleRecord astContext openingBrace tdr withKeyword ms ao' fs closingBrace)
+                (genSigSimpleRecordAlignBrackets astContext openingBrace withKeyword ms ao' fs closingBrace)
+                (genSigSimpleRecord astContext openingBrace withKeyword ms ao' fs closingBrace)
 
         let bodyExpr ctx =
             let size = getRecordSize ctx fs
@@ -4135,7 +4134,7 @@ and genSigTypeDefn
     | SigExceptionRepr (SigExceptionDefRepr (ats, px, ao, uc)) -> genExceptionBody astContext ats px ao uc
     |> genTriviaFor SynTypeDefnSig_ fullRange
 
-and genSigSimpleRecord astContext openingBrace tdr withKeyword ms ao' fs closingBrace =
+and genSigSimpleRecord astContext openingBrace withKeyword ms ao' fs closingBrace =
     // the typeName is already printed
     sepNlnUnlessLastEventIsNewline
     +> opt (indent +> sepNln) ao' genAccess
@@ -4151,7 +4150,7 @@ and genSigSimpleRecord astContext openingBrace tdr withKeyword ms ao' fs closing
     +> sepNlnBetweenSigTypeAndMembers withKeyword ms
     +> colPre sepNln sepNln ms (genMemberSig astContext)
 
-and genSigSimpleRecordAlignBrackets astContext openingBrace tdr withKeyword ms ao' fs closingBrace =
+and genSigSimpleRecordAlignBrackets astContext openingBrace withKeyword ms ao' fs closingBrace =
     // the typeName is already printed
     sepNlnUnlessLastEventIsNewline
     +> opt (indent +> sepNln) ao' genAccess
