@@ -267,16 +267,6 @@ let ``comment after left brace of record`` () =
     | _ -> failwith "expected line comment after left brace"
 
 [<Test>]
-let ``left brace should be found in tokens`` () =
-    let source = "type R = { A: int }"
-
-    let triviaNodes = tokenize source |> getTriviaNodesFromTokens
-
-    match triviaNodes.[0].Type, triviaNodes.[1].Type, triviaNodes.[2].Type with
-    | Token (EQUALS, _), Token (LBRACE, _), Token (RBRACE, _) -> pass ()
-    | _ -> fail ()
-
-[<Test>]
 let ``leading and trailing whitespaces should be found in tokens`` () =
     let source =
         """

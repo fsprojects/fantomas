@@ -4,6 +4,7 @@ open FSharp.Compiler.Text
 open FSharp.Compiler.Syntax
 open Fantomas.TriviaTypes
 open Fantomas.AstExtensions
+open Fantomas.RangePatterns
 open Fantomas
 
 type Id = { Ident: string; Range: Range }
@@ -129,19 +130,26 @@ module private Ast =
                     |> finalContinuation
 
                 Continuation.sequence continuations finalContinuation
-            | SynExpr.ArrayOrList (_, exprs, range) ->
+            | SourceParser.ArrayOrList (startRange, _isArray, exprs, endRange, range) ->
                 let continuations: ((TriviaNodeAssigner list -> TriviaNodeAssigner list) -> TriviaNodeAssigner list) list =
                     exprs |> List.map visit
 
                 let finalContinuation (nodes: TriviaNodeAssigner list list) : TriviaNodeAssigner list =
-                    mkNode SynExpr_ArrayOrList range
-                    :: (List.collect id nodes)
+                    [ yield mkNode SynExpr_ArrayOrList range
+                      yield mkNode SynExpr_ArrayOrList_OpeningDelimiter startRange
+                      yield! List.collect id nodes
+                      yield mkNode SynExpr_ArrayOrList_ClosingDelimiter endRange ]
                     |> finalContinuation
 
                 Continuation.sequence continuations finalContinuation
-            | SynExpr.Record (_, _, recordFields, range) ->
-                mkNode SynExpr_Record range
-                :: (List.collect visitRecordField recordFields)
+            // Captured above
+            | SynExpr.ArrayOrList _
+            | SynExpr.ArrayOrListComputed _ -> []
+            | SynExpr.Record (_, _, recordFields, StartEndRange 1 (openingBrace, range, closingBrace)) ->
+                [ yield mkNode SynExpr_Record range
+                  yield mkNode SynExpr_Record_OpeningBrace openingBrace
+                  yield! List.collect visitRecordField recordFields
+                  yield mkNode SynExpr_Record_ClosingBrace closingBrace ]
                 |> finalContinuation
             | SynExpr.AnonRecd (_, _, recordFields, range) ->
                 mkNode SynExpr_AnonRecd range
@@ -194,11 +202,10 @@ module private Ast =
                     |> finalContinuation
 
                 Continuation.sequence continuations finalContinuation
-            | SynExpr.ArrayOrListComputed (_, expr, range) ->
-                visit expr (fun nodes ->
-                    mkNode SynExpr_ArrayOrListComputed range :: nodes
-                    |> finalContinuation)
-            | SynExpr.ComputationExpr (_, expr, _) -> visit expr finalContinuation
+            | SynExpr.ComputationExpr (_, expr, StartEndRange 1 (openingBrace, _, closingBrace)) ->
+                [ yield mkNode SynExpr_ComputationExpr_OpeningBrace openingBrace
+                  yield! visit expr finalContinuation
+                  yield mkNode SynExpr_ComputationExpr_ClosingBrace closingBrace ]
             | SynExpr.Lambda (_, _, args, arrowRange, body, _parsedData, range) ->
                 visit body (fun nodes ->
                     [ yield mkNode SynExpr_Lambda range
@@ -888,6 +895,7 @@ module private Ast =
                 visit pat (fun nodes ->
                     mkNode SynPat_Paren range :: nodes
                     |> finalContinuation)
+
             | SynPat.ArrayOrList (_, pats, range) ->
                 let continuations: ((TriviaNodeAssigner list -> TriviaNodeAssigner list) -> TriviaNodeAssigner list) list =
                     pats |> List.map visit
@@ -898,6 +906,7 @@ module private Ast =
                     |> finalContinuation
 
                 Continuation.sequence continuations finalContinuation
+
             | SynPat.Record (pats, range) ->
                 let continuations: ((TriviaNodeAssigner list -> TriviaNodeAssigner list) -> TriviaNodeAssigner list) list =
                     pats |> List.map (snd >> visit)
@@ -998,9 +1007,11 @@ module private Ast =
         | SynTypeDefnSimpleRepr.Enum (enumCases, range) ->
             mkNode SynTypeDefnSimpleRepr_Enum range
             :: (List.collect visitSynEnumCase enumCases)
-        | SynTypeDefnSimpleRepr.Record (_, recordFields, range) ->
-            mkNode SynTypeDefnSimpleRepr_Record range
-            :: (List.collect visitSynField recordFields)
+        | SynTypeDefnSimpleRepr.Record (_, recordFields, StartEndRange 1 (openingBrace, range, closingBrace)) ->
+            [ yield mkNode SynTypeDefnSimpleRepr_Record range
+              yield mkNode SynTypeDefnSimpleRepr_Record_OpeningBrace openingBrace
+              yield! List.collect visitSynField recordFields
+              yield mkNode SynTypeDefnSimpleRepr_Record_ClosingBrace closingBrace ]
         | SynTypeDefnSimpleRepr.General (_, _, _, _, _, _, _, range) ->
             mkNode SynTypeDefnSimpleRepr_General range
             |> List.singleton
@@ -1064,11 +1075,11 @@ module private Ast =
 
     and visitSynEnumCase (sec: SynEnumCase) : TriviaNodeAssigner list =
         match sec with
-        | SynEnumCase (attrs, ident, value, _, _, range) ->
+        | SynEnumCase (attrs, ident, value, valueRange, _, range) ->
             [ yield mkNode SynEnumCase_ range
               yield! (visitSynAttributeLists attrs)
               yield visitIdent ident
-              yield visitSynConst range value ]
+              yield visitSynConst valueRange value ]
 
     and visitSynField (sfield: SynField) : TriviaNodeAssigner list =
         match sfield with
@@ -1226,9 +1237,7 @@ module private Ast =
             | SynConst.SourceIdentifier _ -> SynConst_SourceIdentifier
 
         match sc with
-        | SynConst.Measure (n, numberRange, _) ->
-            // TODO: take constant range into account
-            mkNode (t n) numberRange
+        | SynConst.Measure (n, numberRange, _) -> mkNode (t n) numberRange
         | _ -> mkNode (t sc) (sc.Range parentRange)
 
     and visitSynValInfo (svi: SynValInfo) =
