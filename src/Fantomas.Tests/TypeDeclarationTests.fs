@@ -421,7 +421,7 @@ type SpeedingTicket() =
     member this.GetMPHOver(speed: int, limit: int) = speed - limit
 
 let CalculateFine (ticket: SpeedingTicket) =
-    let delta = ticket.GetMPHOver(limit = 55, speed = 70)
+    let delta = ticket.GetMPHOver(limit=55, speed=70)
     if delta < 20 then 50.0 else 100.0
 """
 
@@ -656,7 +656,7 @@ let ``should keep the ? in optional parameters`` () =
         equal
         """type Shell() =
     static member private GetParams(cmd, ?args) = doStuff
-    static member Exec(cmd, ?args) = shellExec (Shell.GetParams(cmd, ?args = args))
+    static member Exec(cmd, ?args) = shellExec (Shell.GetParams(cmd, ?args=args))
 """
 
 [<Test>]
@@ -979,11 +979,11 @@ let x =
         """
 let x =
     JobCollectionCreateParameters(
-        Label = "Test",
-        IntrinsicSettings =
+        Label="Test",
+        IntrinsicSettings=
             JobCollectionIntrinsicSettings(
-                Plan = JobCollectionPlan.Standard,
-                Quota = new JobCollectionQuota(MaxJobCount = Nullable(50))
+                Plan=JobCollectionPlan.Standard,
+                Quota=new JobCollectionQuota(MaxJobCount=Nullable(50))
             )
     )
 """
@@ -2437,8 +2437,8 @@ type public Foo() =
         new TypedThingDefinition(
             "StringA",
             SomeLongThing.SomeProperty,
-            IsMandatory = new Nullable<bool>(true),
-            Blablablabla = moreStuff
+            IsMandatory=new Nullable<bool>(true),
+            Blablablabla=moreStuff
         )
 
     // With "member val" it generates invalid code
@@ -2446,8 +2446,8 @@ type public Foo() =
         new TypedThingDefinition(
             "StringA",
             SomeLongThing.SomeProperty,
-            IsMandatory = new Nullable<bool>(true),
-            Blablablabla = moreStuff
+            IsMandatory=new Nullable<bool>(true),
+            Blablablabla=moreStuff
         )
 """
 

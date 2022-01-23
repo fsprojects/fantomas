@@ -1007,14 +1007,11 @@ and genTuple astContext es =
 and genNamedArgumentExpr (astContext: ASTContext) operatorExpr e1 e2 =
     let short =
         genExpr astContext e1
-        +> sepSpace
         +> genInfixOperator "=" operatorExpr
-        +> sepSpace
         +> genExpr astContext e2
 
     let long =
         genExpr astContext e1
-        +> sepSpace
         +> genInfixOperator "=" operatorExpr
         +> indent
         +> sepNln
@@ -1269,7 +1266,7 @@ and genExpr astContext synExpr ctx =
                 !- "new "
                 +> genType astContext false t
                 +> sepSpace
-                +> genExpr astContext px
+                +> genSingleLineFunctionApplicationArguments astContext px
 
             let long =
                 !- "new "
@@ -1797,7 +1794,9 @@ and genExpr astContext synExpr ctx =
 
         // Foo().Bar
         | DotGetAppParen (e, px, lids) ->
-            let shortAppExpr = genExpr astContext e +> genExpr astContext px
+            let shortAppExpr =
+                genExpr astContext e
+                +> genSingleLineFunctionApplicationArguments astContext px
 
             let longAppExpr =
                 let functionName argFn =
@@ -1855,7 +1854,7 @@ and genExpr astContext synExpr ctx =
                     genLidsWithDots lids
                     +> optSingle (fun (lt, ts, gt) -> genGenericTypeParameters astContext lt ts gt) t
                     +> genSpaceBeforeLids idx lastEsIndex lids e
-                    +> genExpr astContext e
+                    +> genSingleLineFunctionApplicationArguments astContext e
 
                 let long =
                     genLidsWithDotsAndNewlines lids
@@ -1891,7 +1890,7 @@ and genExpr astContext synExpr ctx =
                     genFunctionNameWithMultilineLids
                         (optSingle (fun (lt, ts, gt) -> genGenericTypeParameters astContext lt ts gt) t
                          +> expressionFitsOnRestOfLine
-                             (genExpr astContext px)
+                             (genSingleLineFunctionApplicationArguments astContext px)
                              (genMultilineFunctionApplicationArguments astContext px))
                         lids
                 | AppOrTypeApp (LongIdentPiecesExpr lids, t, [ e2 ]) when (List.moreThanOne lids) ->
@@ -1907,7 +1906,7 @@ and genExpr astContext synExpr ctx =
                     let short =
                         genExpr astContext e
                         +> optSingle (fun (lt, ts, gt) -> genGenericTypeParameters astContext lt ts gt) t
-                        +> genExpr astContext px
+                        +> genSingleLineFunctionApplicationArguments astContext px
 
                     let long =
                         genExpr astContext e
@@ -1927,7 +1926,7 @@ and genExpr astContext synExpr ctx =
                     genLidsWithDots lids
                     +> optSingle (fun (lt, ts, gt) -> genGenericTypeParameters astContext lt ts gt) t
                     +> genSpaceBeforeLids idx lastEsIndex lids e
-                    +> genExpr astContext e
+                    +> genSingleLineFunctionApplicationArguments astContext e
 
                 let long =
                     genLidsWithDotsAndNewlines lids
@@ -1973,7 +1972,7 @@ and genExpr astContext synExpr ctx =
             let short =
                 genExpr astContext e
                 +> sepSpace
-                +> genExpr astContext px
+                +> genSingleLineFunctionApplicationArguments astContext px
 
             let long =
                 genExpr astContext e
@@ -2419,7 +2418,9 @@ and genExpr astContext synExpr ctx =
             +> sepCloseLFixed
             +> leaveNodeTokenByName synExpr.Range RBRACK
         | DotIndexedGet (AppSingleParenArg (e, px), indexArgs) ->
-            let short = genExpr astContext e +> genExpr astContext px
+            let short =
+                genExpr astContext e
+                +> genSingleLineFunctionApplicationArguments astContext px
 
             let long =
                 genExpr astContext e
@@ -2457,7 +2458,9 @@ and genExpr astContext synExpr ctx =
                  +> idx
                  +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext valueExpr))
         | DotIndexedSet (AppSingleParenArg (a, px), indexArgs, valueExpr) ->
-            let short = genExpr astContext a +> genExpr astContext px
+            let short =
+                genExpr astContext a
+                +> genSingleLineFunctionApplicationArguments astContext px
 
             let long =
                 genExpr astContext a
@@ -2850,6 +2853,32 @@ and genFunctionNameWithMultilineLids f lids =
         +> f
         +> unindent
     | _ -> sepNone
+
+and genSingleLineFunctionApplicationArguments astContext argExpr =
+    let argsInsideParenthesis lpr rpr pr f =
+        sepOpenTFor lpr
+        +> indent
+        +> f
+        +> unindent
+        +> sepCloseTFor rpr pr
+        |> genTriviaFor SynExpr_Paren pr
+
+    let genArgumentExpr isTupleArgument astContext e =
+        match e with
+        | Lambda (_) when isTupleArgument = true -> sepOpenT +> genExpr astContext e +> sepCloseT
+        | InfixApp (equal, operatorExpr, e1, e2) when (equal = "=") ->
+            genNamedArgumentExpr astContext operatorExpr e1 e2
+        | _ -> genExpr astContext e
+
+    match argExpr with
+    | Paren (lpr, Tuple (args, tupleRange), rpr, pr) ->
+        (col (sepCommaFixed +> sepSpace) args (genArgumentExpr true astContext))
+        |> genTriviaFor SynExpr_Tuple tupleRange
+        |> argsInsideParenthesis lpr rpr pr
+    | Paren (lpr, singleExpr, rpr, pr) ->
+        genArgumentExpr false astContext singleExpr
+        |> argsInsideParenthesis lpr rpr pr
+    | _ -> genArgumentExpr false astContext argExpr
 
 and genMultilineFunctionApplicationArguments astContext argExpr =
     let argsInsideParenthesis lpr rpr pr f =
