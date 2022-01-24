@@ -1066,7 +1066,8 @@ and genExpr astContext synExpr ctx =
                         openingTokenRange
                         (ifElse isArray sepOpenA sepOpenL)
                     +> atCurrentColumn (
-                        col sepNln children (genExpr astContext)
+                        sepNlnWhenWriteBeforeNewlineNotEmpty sepNone
+                        +> col sepNln children (genExpr astContext)
                         +> onlyIf
                             (TriviaHelpers.``has content before that matches``
                                 (fun tn -> RangeHelpers.rangeEq tn.Range closingTokenRange)
