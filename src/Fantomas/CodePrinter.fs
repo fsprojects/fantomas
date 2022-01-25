@@ -4889,8 +4889,7 @@ and genPatRecordFieldName astContext (PatRecordFieldName (s1, s2, p)) =
     +> genPat { astContext with IsInsideMatchClausePattern = false } p // see issue 1252.
 
 and genPatWithIdent astContext (ido, p) =
-    opt (sepEq +> sepSpace) ido (!-)
-    +> genPat astContext p
+    opt sepEqFixed ido (!-) +> genPat astContext p
 
 and genPat astContext pat =
     match pat with

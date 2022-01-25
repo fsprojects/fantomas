@@ -182,7 +182,7 @@ let main argv =
     let d = Test(B=1, A=2)
 
     match d with
-    | Test (A = a; B = b) -> a + b
+    | Test (A=a; B=b) -> a + b
     | _ -> 0
 """
 
