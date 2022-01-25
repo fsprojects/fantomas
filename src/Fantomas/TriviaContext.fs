@@ -10,11 +10,6 @@ let tokN (range: Range) (tokenName: FsTokenType) f =
     +> f
     +> leaveNodeTokenByName range tokenName
 
-let sepOpenTFor r = tokN r LPAREN sepOpenT
-
-let sepCloseTFor rpr pr =
-    tokN (Option.defaultValue pr rpr) RPAREN sepCloseT
-
 let getIndentBetweenTicksFromSynPat patRange fallback ctx =
     TriviaHelpers.getNodesForTypes [ SynPat_LongIdent; SynPat_Named ] ctx.TriviaMainNodes
     |> List.choose (fun t ->

@@ -1120,9 +1120,7 @@ let getTriviaFromTokens (mkRange: MkRange) (tokens: Token list) =
     |> List.sortBy (fun t -> t.Range.StartLine, t.Range.StartColumn)
 
 let private tokenNames =
-    [ "LPAREN"
-      "RPAREN"
-      "EQUALS"
+    [ "EQUALS"
       "BAR"
       "TRY"
       "FINALLY"
@@ -1164,7 +1162,6 @@ let internal getFsToken tokenName =
     | "INFIX_STAR_STAR_OP" -> INFIX_STAR_STAR_OP
     | "INT32_DOT_DOT" -> INT32_DOT_DOT
     | "LESS" -> LESS
-    | "LPAREN" -> LPAREN
     | "LPAREN_STAR_RPAREN" -> LPAREN_STAR_RPAREN
     | "MEMBER" -> MEMBER
     | "MINUS" -> MINUS
@@ -1173,7 +1170,6 @@ let internal getFsToken tokenName =
     | "PREFIX_OP" -> PREFIX_OP
     | "QMARK" -> QMARK
     | "QMARK_QMARK" -> QMARK_QMARK
-    | "RPAREN" -> RPAREN
     | "THEN" -> THEN
     | "TRY" -> TRY
     | "WITH" -> WITH
