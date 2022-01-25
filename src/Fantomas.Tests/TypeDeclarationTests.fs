@@ -2879,3 +2879,18 @@ let leBarry =
     let formatted = formatSourceString false sourceCode config
 
     formatted |> should not' (equal EmptyString)
+
+[<Test>]
+let ``trivia after parenthesis in syn type`` () =
+    formatSourceString
+        false
+        """
+type A = ( (* string *) int * int )
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type A = ( (* string *) int * int)
+"""
