@@ -45,7 +45,7 @@ let myInstance =
         """
 let myInstance =
     new EvilBadRequest(
-        Content=
+        Content =
             new StringContent(
                 "File was too way too large, as in waaaaaaaaaaaaaaaaaaaay tooooooooo long",
                 System.Text.Encoding.UTF16,

@@ -980,7 +980,7 @@ let x =
 let x =
     JobCollectionCreateParameters(
         Label="Test",
-        IntrinsicSettings=
+        IntrinsicSettings =
             JobCollectionIntrinsicSettings(
                 Plan=JobCollectionPlan.Standard,
                 Quota=new JobCollectionQuota(MaxJobCount=Nullable(50))

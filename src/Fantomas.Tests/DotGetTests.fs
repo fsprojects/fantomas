@@ -596,7 +596,7 @@ SomeFunction(name = SearchForName(
         equal
         """
 SomeFunction(
-    name=
+    name =
         SearchForName(
             "foooooooooooooooooooooooooooooooooooooooooooooooooo",
             "baaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaar"
@@ -621,7 +621,7 @@ SomeFunction(name = SearchForName(
         equal
         """
 SomeFunction(
-    name=
+    name =
         SearchForName (
             "foooooooooooooooooooooooooooooooooooooooooooooooooo",
             "baaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaar"

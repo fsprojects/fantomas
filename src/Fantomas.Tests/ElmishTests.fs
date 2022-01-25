@@ -26,7 +26,7 @@ let view (model: Model) dispatch =
         appearing=(fun () -> dispatch PageAppearing),
         title=model.Planet.Info.Name,
         backgroundColor=Color.Black,
-        content=
+        content =
             [ "....long line....................................................................................................." ]
     )
 """
@@ -103,28 +103,28 @@ let ``fabulous view`` () =
 let loginPage =
     View.ContentPage(
         title="Fabulous Demo",
-        content=
+        content =
             View.ScrollView(
-                content=
+                content =
                     View.StackLayout(
                         padding=30.0,
-                        children=
+                        children =
                             [ View.Frame(
                                   verticalOptions=LayoutOptions.CenterAndExpand,
-                                  content=
+                                  content =
                                       View.StackLayout(
-                                          children=
+                                          children =
                                               [ View.Entry(
                                                     placeholder="User name",
                                                     isEnabled=(not model.IsSigningIn),
-                                                    textChanged=
+                                                    textChanged =
                                                         (fun args -> (dispatch (UserNameChanged args.NewTextValue)))
                                                 )
                                                 View.Entry(
                                                     placeholder="Password",
                                                     isPassword=true,
                                                     isEnabled=(not model.IsSigningIn),
-                                                    textChanged=
+                                                    textChanged =
                                                         (fun args -> (dispatch (PasswordChanged args.NewTextValue)))
                                                 )
                                                 View.Button(

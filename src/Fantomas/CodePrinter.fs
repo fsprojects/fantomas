@@ -1012,6 +1012,7 @@ and genNamedArgumentExpr (astContext: ASTContext) operatorExpr e1 e2 =
 
     let long =
         genExpr astContext e1
+        +> sepSpace
         +> genInfixOperator "=" operatorExpr
         +> indent
         +> sepNln

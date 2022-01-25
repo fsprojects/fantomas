@@ -191,7 +191,7 @@ let main argv =
     use fun1 =
         R.eval (
             R.parse (
-                text=
+                text =
                     \"\"\"
     function(i) {
         x <- rnorm(1000)
