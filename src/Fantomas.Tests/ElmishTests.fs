@@ -1444,3 +1444,23 @@ a [] [
 // def
 ]
 """
+
+[<Test>]
+let ``comment after opening bracket in Elmish expression without children, 2037`` () =
+    formatSourceString
+        false
+        """
+ReactDom.render (React.strictMode [ // comment 
+                                    App() ], root)
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+ReactDom.render (
+    React.strictMode [ // comment
+                       App() ],
+    root
+)
+"""

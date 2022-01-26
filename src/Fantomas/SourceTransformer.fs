@@ -206,7 +206,8 @@ let rec synExprToFsAstType (expr: SynExpr) : FsAstType * Range =
     | SynExpr.DoBang _ -> SynExpr_DoBang, expr.Range
     | SynExpr.Paren _ -> SynExpr_Paren, expr.Range
     | SynExpr.AnonRecd _ -> SynExpr_AnonRecd, expr.Range
-    | SynExpr.ArrayOrListComputed _ -> SynExpr_ArrayOrListComputed, expr.Range
+    | SynExpr.ArrayOrList _ -> SynExpr_ArrayOrList, expr.Range
+    | SynExpr.ArrayOrListComputed _ -> SynExpr_ArrayOrList, expr.Range
     | SynExpr.LongIdentSet _ -> SynExpr_LongIdentSet, expr.Range
     | SynExpr.New _ -> SynExpr_New, expr.Range
     | SynExpr.Quote _ -> SynExpr_Quote, expr.Range
@@ -226,7 +227,6 @@ let rec synExprToFsAstType (expr: SynExpr) : FsAstType * Range =
     | SynExpr.Do _ -> SynExpr_Do, expr.Range
     | SynExpr.AddressOf _ -> SynExpr_AddressOf, expr.Range
     | SynExpr.Typed (e, _, _) -> synExprToFsAstType e
-    | SynExpr.ArrayOrList _ -> SynExpr_ArrayOrList, expr.Range
     | SynExpr.ObjExpr _ -> SynExpr_ObjExpr, expr.Range
     | SynExpr.For _ -> SynExpr_For, expr.Range
     | SynExpr.ForEach _ -> SynExpr_ForEach, expr.Range

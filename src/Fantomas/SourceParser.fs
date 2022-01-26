@@ -7,6 +7,7 @@ open FSharp.Compiler.Text
 open FSharp.Compiler.Xml
 open Fantomas
 open Fantomas.TriviaTypes
+open Fantomas.RangePatterns
 
 /// Don't put space before and after these operators
 let internal noSpaceInfixOps = set [ "?" ]
@@ -408,8 +409,7 @@ let (|UnionCaseType|) =
 let (|Field|) (SynField (ats, isStatic, ido, t, isMutable, px, ao, _)) =
     (ats, px, ao, isStatic, isMutable, t, Option.map (|Ident|) ido)
 
-// TODO: use added range in CodePrinter
-let (|EnumCase|) (SynEnumCase (ats, Ident s, c, _, px, r)) = (ats, px, s, (c, r))
+let (|EnumCase|) (SynEnumCase (ats, Ident s, c, cr, px, r)) = (ats, px, s, c, cr, r)
 
 // Member definitions (11 cases)
 
@@ -676,7 +676,8 @@ let (|SimpleExpr|_|) =
 
 let (|ComputationExpr|_|) =
     function
-    | SynExpr.ComputationExpr (_, expr, range) -> Some(expr, range)
+    | SynExpr.ComputationExpr (_, expr, StartEndRange 1 (openingBrace, _range, closingBrace)) ->
+        Some(openingBrace, expr, closingBrace)
     | _ -> None
 
 // seq { expr }
@@ -686,16 +687,24 @@ let (|NamedComputationExpr|_|) =
                    false,
                    (SynExpr.App _ as nameExpr
                    | SimpleExpr nameExpr),
-                   ComputationExpr (compExpr, bodyRange),
-                   _) -> Some(nameExpr, compExpr, bodyRange)
+                   ComputationExpr (openingBrace, compExpr, closingBrace),
+                   _) -> Some(nameExpr, openingBrace, compExpr, closingBrace)
     | _ -> None
 
 /// Combines all ArrayOrList patterns
 let (|ArrayOrList|_|) =
+    let (|Size|) isArray = if isArray then 2 else 1
+
     function
-    | SynExpr.ArrayOrListComputed (isArray, Sequentials xs, _) -> Some(isArray, xs)
-    | SynExpr.ArrayOrListComputed (isArray, singleExpr, _) -> Some(isArray, [ singleExpr ])
-    | SynExpr.ArrayOrList (isArray, xs, _) -> Some(isArray, xs)
+    | SynExpr.ArrayOrListComputed (Size size as isArray, Sequentials xs, range) ->
+        let sr, er = RangeHelpers.mkStartEndRange size range
+        Some(sr, isArray, xs, er, range)
+    | SynExpr.ArrayOrListComputed (Size size as isArray, singleExpr, range) ->
+        let sr, er = RangeHelpers.mkStartEndRange size range
+        Some(sr, isArray, [ singleExpr ], er, range)
+    | SynExpr.ArrayOrList (Size size as isArray, xs, range) ->
+        let sr, er = RangeHelpers.mkStartEndRange size range
+        Some(sr, isArray, xs, er, range)
     | _ -> None
 
 let (|Tuple|_|) =
@@ -1070,12 +1079,12 @@ let rec (|ElIf|_|) =
 
 let (|Record|_|) =
     function
-    | SynExpr.Record (inheritOpt, eo, xs, _) ->
+    | SynExpr.Record (inheritOpt, eo, xs, StartEndRange 1 (openingBrace, _, closingBrace)) ->
         let inheritOpt =
             inheritOpt
             |> Option.map (fun (typ, expr, _, _, _) -> (typ, expr))
 
-        Some(inheritOpt, xs, Option.map fst eo)
+        Some(openingBrace, inheritOpt, xs, Option.map fst eo, closingBrace)
     | _ -> None
 
 let (|AnonRecord|_|) =
@@ -1215,7 +1224,7 @@ let (|PatLongIdent|_|) =
 
 let (|PatParen|_|) =
     function
-    | SynPat.Paren (p, _) -> Some p
+    | SynPat.Paren (p, StartEndRange 1 (lpr, _, rpr)) -> Some(lpr, p, rpr)
     | _ -> None
 
 let (|PatRecord|_|) =
@@ -1328,7 +1337,8 @@ let (|TDSREnum|TDSRUnion|TDSRRecord|TDSRNone|TDSRTypeAbbrev|TDSRException|) =
     function
     | SynTypeDefnSimpleRepr.Enum (ecs, _) -> TDSREnum ecs
     | SynTypeDefnSimpleRepr.Union (ao, xs, _) -> TDSRUnion(ao, xs)
-    | SynTypeDefnSimpleRepr.Record (ao, fs, _) -> TDSRRecord(ao, fs)
+    | SynTypeDefnSimpleRepr.Record (ao, fs, StartEndRange 1 (openingBrace, _, closingBrace)) ->
+        TDSRRecord(openingBrace, ao, fs, closingBrace)
     | SynTypeDefnSimpleRepr.None _ -> TDSRNone()
     | SynTypeDefnSimpleRepr.TypeAbbrev (_, t, _) -> TDSRTypeAbbrev t
     | SynTypeDefnSimpleRepr.General _ -> failwith "General should not appear in the parse tree"
@@ -1497,7 +1507,7 @@ let (|TAnonRecord|_|) =
 
 let (|TParen|_|) =
     function
-    | SynType.Paren (innerType, _) -> Some(innerType)
+    | SynType.Paren (innerType, StartEndRange 1 (lpr, _, rpr)) -> Some(lpr, innerType, rpr)
     | _ -> None
 // Type parameter
 
@@ -1651,16 +1661,11 @@ let rec (|UppercaseSynType|LowercaseSynType|) (synType: SynType) =
     | SynType.App (st, _, _, _, _, _, _) -> (|UppercaseSynType|LowercaseSynType|) st
     | _ -> failwithf "cannot determine if synType %A is uppercase or lowercase" synType
 
-let isFunctionBinding (p: SynPat) =
-    match p with
-    | PatLongIdent (_, _, ps, _) when (List.isNotEmpty ps) -> true
-    | _ -> false
-
 let (|ElmishReactWithoutChildren|_|) e =
     match e with
     | IndexWithoutDotExpr _ -> None
-    | SynExpr.App (_, false, OptVar (ident, _, _), (ArrayOrList (isArray, children) as aolEx), _) ->
-        Some(ident, isArray, children, aolEx.Range)
+    | SynExpr.App (_, false, OptVar (ident, _, _), ArrayOrList (sr, isArray, children, er, _), _) ->
+        Some(ident, sr, isArray, children, er)
     | _ -> None
 
 let (|ElmishReactWithChildren|_|) (e: SynExpr) =
@@ -1668,8 +1673,8 @@ let (|ElmishReactWithChildren|_|) (e: SynExpr) =
     | SynExpr.App (_,
                    false,
                    SynExpr.App (_, false, OptVar ident, (ArrayOrList _ as attributes), _),
-                   (ArrayOrList (isArray, children) as childrenNode),
-                   _) -> Some(ident, attributes, (isArray, children, childrenNode.Range))
+                   ArrayOrList (sr, isArray, children, er, _),
+                   _) -> Some(ident, attributes, (isArray, sr, children, er))
     | _ -> None
 
 let isIfThenElseWithYieldReturn e =
