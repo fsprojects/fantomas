@@ -11,6 +11,7 @@ type Id = { Ident: string; Range: Range }
 
 module Helpers =
     let mkNode (t: FsAstType) (r: range) = TriviaNodeAssigner(MainNode(t), r)
+    let mkNodeOption (t: FsAstType) (r: range option) : TriviaNodeAssigner list = Option.toList r |> List.map (mkNode t)
 
 module private Ast =
     open Helpers
@@ -100,9 +101,12 @@ module private Ast =
             (finalContinuation: TriviaNodeAssigner list -> TriviaNodeAssigner list)
             : TriviaNodeAssigner list =
             match synExpr with
-            | SynExpr.Paren (expr, _, _, range) ->
+            | SynExpr.Paren (expr, lpr, rpr, range) ->
                 visit expr (fun nodes ->
-                    mkNode SynExpr_Paren range :: nodes
+                    [ yield mkNode SynExpr_Paren range
+                      yield mkNode SynExpr_Paren_OpeningParenthesis lpr
+                      yield! nodes
+                      yield! mkNodeOption SynExpr_Paren_ClosingParenthesis rpr ]
                     |> finalContinuation)
             | SynExpr.Quote (operator, _, quotedSynExpr, _, range) ->
                 let continuations: ((TriviaNodeAssigner list -> TriviaNodeAssigner list) -> TriviaNodeAssigner list) list =
@@ -114,10 +118,7 @@ module private Ast =
                     |> finalContinuation
 
                 Continuation.sequence continuations finalContinuation
-            | SynExpr.Const (constant, range) ->
-                visitSynConst range constant
-                |> List.singleton
-                |> finalContinuation
+            | SynExpr.Const (constant, range) -> visitSynConst range constant |> finalContinuation
             | SynExpr.Typed (expr, typeName, _) ->
                 visit expr (fun nodes -> nodes @ visitSynType typeName |> finalContinuation)
             | SynExpr.Tuple (_, exprs, _, range) ->
@@ -777,11 +778,16 @@ module private Ast =
                     |> List.singleton
                 | None -> []
 
+            let headPatNodes =
+                match kind with
+                | SynBindingKind.Do -> []
+                | _ -> visitSynPat headPat
+
             [ yield mkNode t binding.RangeOfBindingWithRhs
               yield! visitSynAttributeLists attrs
               yield! afterAttributesBeforeHeadPattern
               yield! visitSynValData valData
-              yield! visitSynPat headPat
+              yield! headPatNodes
               yield!
                   (match returnInfo with
                    | Some ri -> visitSynBindingReturnInfo ri
@@ -826,9 +832,7 @@ module private Ast =
             (finalContinuation: TriviaNodeAssigner list -> TriviaNodeAssigner list)
             : TriviaNodeAssigner list =
             match sp with
-            | SynPat.Const (sc, range) ->
-                List.singleton (visitSynConst range sc)
-                |> finalContinuation
+            | SynPat.Const (sc, range) -> visitSynConst range sc |> finalContinuation
             | SynPat.Wild range ->
                 mkNode SynPat_Wild range
                 |> List.singleton
@@ -891,9 +895,12 @@ module private Ast =
                     |> finalContinuation
 
                 Continuation.sequence continuations finalContinuation
-            | SynPat.Paren (pat, range) ->
+            | SynPat.Paren (pat, StartEndRange 1 (lpr, range, rpr)) ->
                 visit pat (fun nodes ->
-                    mkNode SynPat_Paren range :: nodes
+                    [ yield mkNode SynPat_Paren range
+                      yield mkNode SynPat_Paren_OpeningParenthesis lpr
+                      yield! nodes
+                      yield mkNode SynPat_Paren_ClosingParenthesis rpr ]
                     |> finalContinuation)
 
             | SynPat.ArrayOrList (_, pats, range) ->
@@ -1079,7 +1086,7 @@ module private Ast =
             [ yield mkNode SynEnumCase_ range
               yield! (visitSynAttributeLists attrs)
               yield visitIdent ident
-              yield visitSynConst valueRange value ]
+              yield! visitSynConst valueRange value ]
 
     and visitSynField (sfield: SynField) : TriviaNodeAssigner list =
         match sfield with
@@ -1182,8 +1189,8 @@ module private Ast =
                     mkNode SynType_MeasurePower range :: nodes
                     |> finalContinuation)
             | SynType.StaticConstant (constant, range) ->
-                [ mkNode SynType_StaticConstant range
-                  visitSynConst range constant ]
+                [ yield mkNode SynType_StaticConstant range
+                  yield! visitSynConst range constant ]
                 |> finalContinuation
             | SynType.StaticConstantExpr (expr, range) ->
                 mkNode SynType_StaticConstantExpr range
@@ -1203,18 +1210,21 @@ module private Ast =
                 mkNode SynType_AnonRecd range
                 :: (List.collect visitAnonRecordTypeField typeNames)
                 |> finalContinuation
-            | SynType.Paren (innerType, range) ->
+            | SynType.Paren (innerType, StartEndRange 1 (lpr, range, rpr)) ->
                 visit innerType (fun nodes ->
-                    mkNode SynType_Paren range :: nodes
+                    [ yield mkNode SynType_Paren range
+                      yield mkNode SynType_Paren_OpeningParenthesis lpr
+                      yield! nodes
+                      yield mkNode SynType_Paren_ClosingParenthesis rpr ]
                     |> finalContinuation)
 
         visit st id
 
-    and visitSynConst (parentRange: Range) (sc: SynConst) : TriviaNodeAssigner =
+    and visitSynConst (parentRange: Range) (sc: SynConst) : TriviaNodeAssigner list =
         let t sc =
             match sc with
             | SynConst.Bool _ -> SynConst_Bool
-            | SynConst.Unit _ -> SynConst_Unit
+            | SynConst.Unit -> SynConst_Unit
             | SynConst.SByte _ -> SynConst_SByte
             | SynConst.Byte _ -> SynConst_Byte
             | SynConst.Int16 _ -> SynConst_Int16
@@ -1237,8 +1247,14 @@ module private Ast =
             | SynConst.SourceIdentifier _ -> SynConst_SourceIdentifier
 
         match sc with
-        | SynConst.Measure (n, numberRange, _) -> mkNode (t n) numberRange
-        | _ -> mkNode (t sc) (sc.Range parentRange)
+        | SynConst.Measure (n, numberRange, _) -> [ mkNode (t n) numberRange ]
+        | SynConst.Unit ->
+            match parentRange with
+            | StartEndRange 1 (lpr, range, rpr) ->
+                [ mkNode SynConst_Unit range
+                  mkNode SynConst_Unit_OpeningParenthesis lpr
+                  mkNode SynConst_Unit_ClosingParenthesis rpr ]
+        | _ -> [ mkNode (t sc) (sc.Range parentRange) ]
 
     and visitSynValInfo (svi: SynValInfo) =
         match svi with

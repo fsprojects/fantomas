@@ -676,7 +676,7 @@ let (|SimpleExpr|_|) =
 
 let (|ComputationExpr|_|) =
     function
-    | SynExpr.ComputationExpr (_, expr, StartEndRange 1 (openingBrace, range, closingBrace)) ->
+    | SynExpr.ComputationExpr (_, expr, StartEndRange 1 (openingBrace, _range, closingBrace)) ->
         Some(openingBrace, expr, closingBrace)
     | _ -> None
 
@@ -1224,7 +1224,7 @@ let (|PatLongIdent|_|) =
 
 let (|PatParen|_|) =
     function
-    | SynPat.Paren (p, _) -> Some p
+    | SynPat.Paren (p, StartEndRange 1 (lpr, _, rpr)) -> Some(lpr, p, rpr)
     | _ -> None
 
 let (|PatRecord|_|) =
@@ -1507,7 +1507,7 @@ let (|TAnonRecord|_|) =
 
 let (|TParen|_|) =
     function
-    | SynType.Paren (innerType, _) -> Some(innerType)
+    | SynType.Paren (innerType, StartEndRange 1 (lpr, _, rpr)) -> Some(lpr, innerType, rpr)
     | _ -> None
 // Type parameter
 
