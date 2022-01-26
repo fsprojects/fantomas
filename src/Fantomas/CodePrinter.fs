@@ -2853,7 +2853,7 @@ and genSingleLineFunctionApplicationArguments astContext argExpr =
         +> indent
         +> f
         +> unindent
-        +> sepCloseTFor rpr pr
+        +> sepCloseTFor rpr
         |> genTriviaFor SynExpr_Paren pr
 
     let genArgumentExpr isTupleArgument astContext e =
