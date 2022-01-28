@@ -1209,10 +1209,7 @@ and genExpr astContext synExpr ctx =
 
                 isShortExpression ctx.Config.MaxElmishWidth smallExpression longExpression ctx
 
-        | SingleExpr (Lazy, e) ->
-            // Always add braces when dealing with lazy
-            let hasParenthesis = hasParenthesis e
-
+        | LazyExpr (lazyKeyword, e) ->
             let isInfixExpr =
                 match e with
                 | InfixApp _ -> true
@@ -1231,26 +1228,28 @@ and genExpr astContext synExpr ctx =
                     ctx
 
             let genNonInfixExpr =
-                autoIndentAndNlnIfExpressionExceedsPageWidth (
-                    onlyIfNot hasParenthesis sepOpenT
-                    +> genExpr astContext e
-                    +> onlyIfNot hasParenthesis sepCloseT
-                )
+                autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e)
 
-            str "lazy "
+            genTriviaFor SynExpr_Lazy_Lazy lazyKeyword !- "lazy "
             +> ifElse isInfixExpr genInfixExpr genNonInfixExpr
 
         | SingleExpr (kind, e) ->
-            str kind
-            +> (match kind with
-                | YieldFrom
-                | Yield
-                | Return
-                | ReturnFrom
-                | Do
-                | DoBang -> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e)
-                | _ -> genExpr astContext e)
-
+            match kind with
+            | InferredDowncast downcastKeyword ->
+                genTriviaFor SynExpr_InferredDowncast_Downcast downcastKeyword !- "downcast "
+            | InferredUpcast upcastKeyword -> genTriviaFor SynExpr_InferredUpcast_Upcast upcastKeyword !- "upcast "
+            | Assert assertKeyword -> genTriviaFor SynExpr_Assert_Assert assertKeyword !- "assert "
+            | AddressOfSingle ampersandToken -> genTriviaFor SynExpr_AddressOf_SingleAmpersand ampersandToken !- "&"
+            | AddressOfDouble ampersandToken -> genTriviaFor SynExpr_AddressOf_DoubleAmpersand ampersandToken !- "&&"
+            | Yield yieldKeyword -> genTriviaFor SynExpr_YieldOrReturn_Yield yieldKeyword !- "yield "
+            | Return returnKeyword -> genTriviaFor SynExpr_YieldOrReturn_Return returnKeyword !- "return "
+            | YieldFrom yieldBangKeyword ->
+                genTriviaFor SynExpr_YieldOrReturnFrom_YieldBang yieldBangKeyword !- "yield! "
+            | ReturnFrom returnBangKeyword ->
+                genTriviaFor SynExpr_YieldOrReturnFrom_ReturnBang returnBangKeyword !- "return! "
+            | Do doKeyword -> genTriviaFor SynExpr_Do_Do doKeyword !- "do "
+            | DoBang doBangKeyword -> genTriviaFor SynExpr_DoBang_DoBang doBangKeyword !- "do! "
+            +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e)
         | ConstExpr (c, r) -> genConst c r
         | NullExpr -> !- "null"
         // Not sure about the role of e1
