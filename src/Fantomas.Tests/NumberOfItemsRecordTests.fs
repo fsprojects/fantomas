@@ -800,8 +800,6 @@ let config =
     }
 """
 
-// FIXME: See https://github.com/fsprojects/fantomas/issues/1172
-[<Ignore("Issue #1172")>]
 [<Test>]
 let ``comment after closing brace in nested record, 1172`` () =
     formatSourceString
@@ -820,8 +818,8 @@ let person =
 let person =
     { Name = "James"
       Address =
-          { Street = "Bakerstreet"
-            Number = 42 } // end address
+        { Street = "Bakerstreet"
+          Number = 42 } // end address
     } // end person
 """
 
