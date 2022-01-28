@@ -1286,3 +1286,11 @@ git diff --cached --name-only --diff-filter=ACM -z | xargs -0 git add
 
 Fantomas also exposes some less official helper functions in [Fantomas.Extras](https://www.nuget.org/packages/Fantomas.Extras/), these will be deprecated in the next major version.
 It is advised to run the `fantomas-tool` instead when using FAKE, see [example](../fake-sample/README.md).
+
+## Updating to a new Fantomas version
+
+By default, Fantomas adheres to the Microsoft [F# code formatting guidelines](https://docs.microsoft.com/en-us/dotnet/fsharp/style-guide/formatting).
+If these change, Fantomas will follow accordingly. Due to this reason, the output cannot be guaranteed to remain the same when upgrading to a new minor version.
+
+If you are using Git for your source control, it is recommended to ignore commits where `fantomas-tool` was updated using a [.git-blame-ignore-revs file](https://git-scm.com/docs/git-blame#Documentation/git-blame.txt---ignore-revltrevgt).
+Check out this [blogpost](https://www.moxio.com/blog/43/ignoring-bulk-change-commits-with-git-blame) for more details.
