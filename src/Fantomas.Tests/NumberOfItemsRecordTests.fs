@@ -390,8 +390,6 @@ let obj1 =
         member x.ToString() = "F#" }
 """
 
-// FIXME: See https://github.com/fsprojects/fantomas/issues/1170
-[<Ignore("Issue #1170")>]
 [<Test>]
 let ``object expressions in list, 1170`` () =
     formatSourceString
