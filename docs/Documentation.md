@@ -50,6 +50,21 @@ If they are folders, the structure of input folder will be reflected in the outp
 The tool will explore the input folder recursively if you set `--recurse` option.
 If you omit the output path, Fantomas will overwrite the input files.
 
+### Check mode
+
+*starting version 3.3*
+
+Verify is a single file or folder was formatted correctly.
+
+> dotnet fantomas --check Source.fs
+
+This will verify if the file `Source.fs` still needs formatting.
+If it does, the process will return exit code 99.
+In case the file does not require any formatting, exit code 0 is returned.
+Unexpected errors will return exit code 1.
+
+This scenario is meant to be executed in a continuous integration environment, to enforce that the newly added code was formatted correctly.
+
 ### Multiple paths
 
 *starting version 4.5*
