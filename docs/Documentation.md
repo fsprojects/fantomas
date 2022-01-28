@@ -135,6 +135,9 @@ fsharp_bar_before_discriminated_union_declaration=false
 fsharp_strict_mode=false
 ```
 
+Please note that you should only add settings to the `.editorconfig` file when you want to deviate from the default settings.
+Copying this list above is unnecessary.
+
 ### indent_size
 
 ` indent_size` has to be between 1 and 10.
