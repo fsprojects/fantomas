@@ -1269,6 +1269,5 @@ git diff --cached --name-only --diff-filter=ACM -z | xargs -0 git add
 
 ## FAKE Helpers
 
-Fantomas also exposes some less official helper functions when formatting code in FAKE scripts.
-Checkout the [FAKE sample](../fake-sample/README.md) for more details.
-These functions are not considered to be part of the public API, so they could be improved without the need to bump the major version.
+Fantomas also exposes some less official helper functions in [Fantomas.Extras](https://www.nuget.org/packages/Fantomas.Extras/), these will be deprecated in the next major version.
+It is advised to run the `fantomas-tool` instead when using FAKE, see [example](../fake-sample/README.md).
