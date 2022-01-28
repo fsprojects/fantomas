@@ -76,3 +76,35 @@ let setup =
          let value = 1
          value)
 """
+
+[<Test>]
+let ``comment after lazy keyword`` () =
+    formatSourceString
+        false
+        """
+lazy // comment
+    foobar
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+lazy // comment
+    foobar
+"""
+
+[<Test>]
+let ``lazy with long indent expr should not get any additional parenthesis`` () =
+    formatSourceString
+        false
+        """
+let theme = lazy Application.Current.RequestedTheme
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let theme = lazy Application.Current.RequestedTheme
+"""

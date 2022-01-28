@@ -551,48 +551,39 @@ let (|Paren|_|) =
     | SynExpr.Paren (e, lpr, rpr, r) -> Some(lpr, e, rpr, r)
     | _ -> None
 
+let (|LazyExpr|_|) (e: SynExpr) =
+    match e with
+    | SynExpr.Lazy (e, StartRange 4 (lazyKeyword, _range)) -> Some(lazyKeyword, e)
+    | _ -> None
+
 type ExprKind =
-    | InferredDowncast
-    | InferredUpcast
-    | Lazy
-    | Assert
-    | AddressOfSingle
-    | AddressOfDouble
-    | Yield
-    | Return
-    | YieldFrom
-    | ReturnFrom
-    | Do
-    | DoBang
-    override x.ToString() =
-        match x with
-        | InferredDowncast -> "downcast "
-        | InferredUpcast -> "upcast "
-        | Lazy -> "lazy "
-        | Assert -> "assert "
-        | AddressOfSingle -> "&"
-        | AddressOfDouble -> "&&"
-        | Yield -> "yield "
-        | Return -> "return "
-        | YieldFrom -> "yield! "
-        | ReturnFrom -> "return! "
-        | Do -> "do "
-        | DoBang -> "do! "
+    | InferredDowncast of keyword: range
+    | InferredUpcast of keyword: range
+    | Assert of keyword: range
+    | AddressOfSingle of token: range
+    | AddressOfDouble of token: range
+    | Yield of keyword: range
+    | Return of keyword: range
+    | YieldFrom of keyword: range
+    | ReturnFrom of keyword: range
+    | Do of keyword: range
+    | DoBang of Keyword: range
 
 let (|SingleExpr|_|) =
     function
-    | SynExpr.InferredDowncast (e, _) -> Some(InferredDowncast, e)
-    | SynExpr.InferredUpcast (e, _) -> Some(InferredUpcast, e)
-    | SynExpr.Lazy (e, _) -> Some(Lazy, e)
-    | SynExpr.Assert (e, _) -> Some(Assert, e)
-    | SynExpr.AddressOf (true, e, _, _) -> Some(AddressOfSingle, e)
-    | SynExpr.AddressOf (false, e, _, _) -> Some(AddressOfDouble, e)
-    | SynExpr.YieldOrReturn ((true, _), e, _) -> Some(Yield, e)
-    | SynExpr.YieldOrReturn ((false, _), e, _) -> Some(Return, e)
-    | SynExpr.YieldOrReturnFrom ((true, _), e, _) -> Some(YieldFrom, e)
-    | SynExpr.YieldOrReturnFrom ((false, _), e, _) -> Some(ReturnFrom, e)
-    | SynExpr.Do (e, _) -> Some(Do, e)
-    | SynExpr.DoBang (e, _) -> Some(DoBang, e)
+    | SynExpr.InferredDowncast (e, StartRange 8 (downcastKeyword, _range)) -> Some(InferredDowncast downcastKeyword, e)
+    | SynExpr.InferredUpcast (e, StartRange 6 (upcastKeyword, _range)) -> Some(InferredUpcast upcastKeyword, e)
+    | SynExpr.Assert (e, StartRange 6 (assertKeyword, _range)) -> Some(Assert assertKeyword, e)
+    | SynExpr.AddressOf (true, e, _, StartRange 1 (ampersandToken, _range)) -> Some(AddressOfSingle ampersandToken, e)
+    | SynExpr.AddressOf (false, e, _, StartRange 2 (ampersandToken, _range)) -> Some(AddressOfDouble ampersandToken, e)
+    | SynExpr.YieldOrReturn ((true, _), e, StartRange 5 (yieldKeyword, _range)) -> Some(Yield yieldKeyword, e)
+    | SynExpr.YieldOrReturn ((false, _), e, StartRange 6 (returnKeyword, _range)) -> Some(Return returnKeyword, e)
+    | SynExpr.YieldOrReturnFrom ((true, _), e, StartRange 6 (yieldBangKeyword, _range)) ->
+        Some(YieldFrom yieldBangKeyword, e)
+    | SynExpr.YieldOrReturnFrom ((false, _), e, StartRange 7 (returnBangKeyword, _range)) ->
+        Some(ReturnFrom returnBangKeyword, e)
+    | SynExpr.Do (e, StartRange 2 (doKeyword, _range)) -> Some(Do doKeyword, e)
+    | SynExpr.DoBang (e, StartRange 3 (doBangKeyword, _range)) -> Some(DoBang doBangKeyword, e)
     | _ -> None
 
 type TypedExprKind =
@@ -980,7 +971,7 @@ let rec (|CompExprBody|_|) expr =
 
 let (|ForEach|_|) =
     function
-    | SynExpr.ForEach (_, SeqExprOnly true, _, pat, e1, SingleExpr (Yield, e2), _) -> Some(pat, e1, e2, true)
+    | SynExpr.ForEach (_, SeqExprOnly true, _, pat, e1, SingleExpr (Yield _, e2), _) -> Some(pat, e1, e2, true)
     | SynExpr.ForEach (_, SeqExprOnly isArrow, _, pat, e1, e2, _) -> Some(pat, e1, e2, isArrow)
     | _ -> None
 
