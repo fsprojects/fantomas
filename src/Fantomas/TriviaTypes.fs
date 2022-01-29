@@ -6,7 +6,6 @@ open FSharp.Compiler.Tokenization
 type FsTokenType =
     | AMP
     | AMP_AMP
-    | AND_BANG
     | BAR
     | BAR_BAR
     | COLON_COLON
@@ -194,8 +193,7 @@ type FsAstType =
     | SynExpr_YieldOrReturnFrom_YieldBang
     | SynExpr_LetOrUseBang
     | SynExpr_LetOrUseBang_Equals
-    // Maybe a thing after https://github.com/dotnet/fsharp/issues/12619
-    // | SynExprAndBang_
+    | SynExprAndBang_
     | SynExprAndBang_Equals
     | SynExpr_MatchBang
     | SynExpr_MatchBang_Match

@@ -1125,14 +1125,12 @@ let private tokenNames =
       "TRY"
       "FINALLY"
       "MEMBER"
-      "AND_BANG"
       "IN" ]
 
 let internal getFsToken tokenName =
     match tokenName with
     | "AMP" -> AMP
     | "AMP_AMP" -> AMP_AMP
-    | "AND_BANG" -> AND_BANG
     | "BAR" -> BAR
     | "BAR_BAR" -> BAR_BAR
     | "COLON_COLON" -> COLON_COLON

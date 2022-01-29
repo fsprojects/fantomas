@@ -990,8 +990,9 @@ let rec collectComputationExpressionStatements
 
         let andBangs =
             andBangs
-            |> List.map (fun (SynExprAndBang (_, _, _, ap, equalsRange, ae, andRange)) ->
-                AndBangStatement(ap, equalsRange, ae, andRange))
+            |> List.map (fun (SynExprAndBang (_, _, _, ap, equalsRange, ae, andBangKeyword)) ->
+                let range = Range.unionRanges andBangKeyword ae.Range
+                AndBangStatement(ap, equalsRange, ae, range))
 
         collectComputationExpressionStatements body (fun bodyStatements ->
             [ letOrUseBang

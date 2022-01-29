@@ -1562,13 +1562,13 @@ and genExpr astContext synExpr ctx =
                     +> genEq SynExpr_LetOrUseBang_Equals equalsRange
                     +> sepSpace
                     +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext expr)
-                | AndBangStatement (pat, equalsRange, expr, andRange) ->
-                    enterNodeTokenByName andRange AND_BANG
-                    +> !- "and! "
+                | AndBangStatement (pat, equalsRange, expr, range) ->
+                    !- "and! "
                     +> genPat astContext pat
                     +> genEq SynExprAndBang_Equals (Some equalsRange)
                     +> sepSpace
                     +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext expr)
+                    |> genTriviaFor SynExprAndBang_ range
                 | OtherStatement expr -> genExpr astContext expr
 
             let getRangeOfCompExprStatement ces =
@@ -1583,7 +1583,7 @@ and genExpr astContext synExpr ctx =
                 | LetOrUseStatement (_, b) ->
                     sepNlnConsideringTriviaContentBeforeForMainNode (synBindingToFsAstType b) r
                 | LetOrUseBangStatement _ -> sepNlnConsideringTriviaContentBeforeForMainNode SynExpr_LetOrUseBang r
-                | AndBangStatement _ -> sepNlnConsideringTriviaContentBeforeForToken AND_BANG r
+                | AndBangStatement (_, _, _, r) -> sepNlnConsideringTriviaContentBeforeForMainNode SynExprAndBang_ r
                 | OtherStatement e ->
                     let t, r = synExprToFsAstType e
                     sepNlnConsideringTriviaContentBeforeForMainNode t r

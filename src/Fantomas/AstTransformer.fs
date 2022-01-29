@@ -675,8 +675,11 @@ module private Ast =
                  yield! mkNodeOption SynMatchClause_Arrow arrowRange
                  yield! visitSynExpr e2 ]
 
-    and visitSynExprAndBang (SynExprAndBang (_, _, _, pat, equalsRange, body, _range)) : TriviaNodeAssigner list =
-        [ // yield mkNode SynExprAndBang_ range
+    // TODO: revisit after https://github.com/dotnet/fsharp/issues/12619
+    and visitSynExprAndBang
+        (SynExprAndBang (_, _, _, pat, equalsRange, body, andBangKeyword))
+        : TriviaNodeAssigner list =
+        [ yield mkNode SynExprAndBang_ (Range.unionRanges andBangKeyword body.Range)
           yield! visitSynPat pat
           yield mkNode SynExprAndBang_Equals equalsRange
           yield! visitSynExpr body ]
