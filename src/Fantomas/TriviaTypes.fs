@@ -336,7 +336,8 @@ type FsAstType =
     | SynType_LongIdentApp
     | SynType_Tuple
     | SynType_Array
-    | SynType_Fun
+    // Not an ideal trivia node candidate as the ident inside the SynType.Fun are better suited
+    // | SynType_Fun
     | SynType_Var
     | SynType_Anon
     | SynType_WithGlobalConstraints
