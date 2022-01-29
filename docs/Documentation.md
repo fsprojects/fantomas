@@ -54,13 +54,13 @@ If you omit the output path, Fantomas will overwrite the input files.
 
 *starting version 3.3*
 
-Verify is a single file or folder was formatted correctly.
+Verify that a single file or folder was formatted correctly.
 
 > dotnet fantomas --check Source.fs
 
 This will verify if the file `Source.fs` still needs formatting.
 If it does, the process will return exit code 99.
-In case the file does not require any formatting, exit code 0 is returned.
+In the case that the file does not require any formatting, exit code 0 is returned.
 Unexpected errors will return exit code 1.
 
 This scenario is meant to be executed in a continuous integration environment, to enforce that the newly added code was formatted correctly.
@@ -151,7 +151,7 @@ fsharp_strict_mode=false
 ```
 
 Please note that you should only add settings to the `.editorconfig` file when you want to deviate from the default settings.
-Copying this list above is unnecessary.
+Copying the entire list above is unnecessary.
 
 ### indent_size
 
