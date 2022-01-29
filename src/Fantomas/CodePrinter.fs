@@ -4244,7 +4244,9 @@ and genType astContext outerBracket t =
         | THashConstraint t ->
             let wrapInParentheses f =
                 match t with
-                | TApp (_, ts, isPostfix) when (isPostfix && List.isNotEmpty ts) -> sepOpenT +> f +> sepCloseT
+                | TApp (_, ts, isPostfix, range) when (isPostfix && List.isNotEmpty ts) ->
+                    sepOpenT +> f +> sepCloseT
+                    |> genTriviaFor SynType_App range
                 | _ -> f
 
             !- "#" +> wrapInParentheses (loop t)
@@ -4264,9 +4266,11 @@ and genType astContext outerBracket t =
         // Do similar for tuples after an arrow
         | TFun (t, TTuple ts) -> loop t +> sepArrow +> loopTTupleList ts
         | TFuns ts -> col sepArrow ts loop
-        | TApp (TLongIdent "nativeptr", [ t ], true) when astContext.IsCStylePattern -> loop t -- "*"
-        | TApp (TLongIdent "byref", [ t ], true) when astContext.IsCStylePattern -> loop t -- "&"
-        | TApp (t, ts, isPostfix) ->
+        | TApp (TLongIdent "nativeptr", [ t ], true, range) when astContext.IsCStylePattern ->
+            loop t -- "*" |> genTriviaFor SynType_App range
+        | TApp (TLongIdent "byref", [ t ], true, range) when astContext.IsCStylePattern ->
+            loop t -- "&" |> genTriviaFor SynType_App range
+        | TApp (t, ts, isPostfix, range) ->
             let postForm =
                 match ts with
                 | [] -> loop t
@@ -4282,6 +4286,7 @@ and genType astContext outerBracket t =
                 postForm
                 (loop t
                  +> genPrefixTypes astContext ts current.Range)
+            |> genTriviaFor SynType_App range
 
         | TLongIdentApp (t, s, ts) ->
             loop t -- sprintf ".%s" s

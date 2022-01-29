@@ -1463,7 +1463,7 @@ let rec (|TFuns|_|) =
 
 let (|TApp|_|) =
     function
-    | SynType.App (t, _, ts, _, _, isPostfix, _) -> Some(t, ts, isPostfix)
+    | SynType.App (t, _, ts, _, _, isPostfix, range) -> Some(t, ts, isPostfix, range)
     | _ -> None
 
 let (|TLongIdentApp|_|) =

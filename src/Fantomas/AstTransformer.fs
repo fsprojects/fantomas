@@ -1182,14 +1182,12 @@ module private Ast =
                 visit elementType (fun nodes ->
                     mkNode SynType_Array range :: nodes
                     |> finalContinuation)
-            | SynType.Fun (argType, returnType, range) ->
+            | SynType.Fun (argType, returnType, _range) ->
                 let continuations: ((TriviaNodeAssigner list -> TriviaNodeAssigner list) -> TriviaNodeAssigner list) list =
                     [ visit argType; visit returnType ]
 
                 let finalContinuation (nodes: TriviaNodeAssigner list list) : TriviaNodeAssigner list =
-                    mkNode SynType_Fun range
-                    :: (List.collect id nodes)
-                    |> finalContinuation
+                    List.collect id nodes |> finalContinuation
 
                 Continuation.sequence continuations finalContinuation
             | SynType.Var (_, range) ->
