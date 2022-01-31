@@ -522,7 +522,7 @@ let private (|InterpStringEndOrPartToken|_|) token =
         None
 
 let escapedCharacterRegex =
-    System.Text.RegularExpressions.Regex("(\\\\(a|b|f|n|r|t|u|v|x|'|\\\"|\\\\))+")
+    System.Text.RegularExpressions.Regex("(\\\\(a|b|f|n|r|t|u|v|x|0|'|\\\"|\\\\))+")
 
 let private (|MultipleStringTextTokens|_|) tokens =
     let f _ =

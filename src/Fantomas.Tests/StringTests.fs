@@ -339,3 +339,8 @@ let s =
     \"\"\"aaaa   
 bbb\"\"\"
 "
+
+[<Test>]
+let ``unicode null character should be recognized as a trivia item, 2050`` () =
+    formatSourceString false "let s = \"\000\"" config
+    |> should equal (sprintf "let s = \"%s\"\n" "\000")
