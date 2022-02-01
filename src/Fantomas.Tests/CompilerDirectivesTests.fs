@@ -2121,6 +2121,27 @@ open Shared
 """
 
 [<Test>]
+let ``namespace under parsed hash directives, 2014`` () =
+    formatSourceString
+        false
+        """
+#load "Types.fsx"
+#load "Project.fsx"
+
+namespace MyNamespace
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+#load "Types.fsx"
+#load "Project.fsx"
+
+namespace MyNamespace
+"""
+
+[<Test>]
 let ``empty module with trivia, FAKE`` () =
     formatSourceStringWithDefines
         [ "FAKE" ]
