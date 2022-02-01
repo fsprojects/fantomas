@@ -1,3 +1,18 @@
+#### 4.6.1 - 02/2022
+
+* Fix Type parameter comment lost in formatting. [#2052](https://github.com/fsprojects/fantomas/issues/2052)
+* Fix Unicode string containing "\000" is replaced by null character when being formatted. [#2050](https://github.com/fsprojects/fantomas/issues/2050)
+* Fix Idempotency problem when comment after opening bracket in Elmish expression without children. [#2037](https://github.com/fsprojects/fantomas/issues/2037)
+* Fix Default settings in .editorconfig files. [#2030](https://github.com/fsprojects/fantomas/issues/2030)
+* Fix "cannot determine if synExpr Paren" when Lambda after If expression. [#2015](https://github.com/fsprojects/fantomas/issues/2015)
+* Fix Comment removed in do binding. [#1875](https://github.com/fsprojects/fantomas/issues/1875)
+* Fix Comment after arrow is missing in SynExpr.Lambda. [#1870](https://github.com/fsprojects/fantomas/issues/1870)
+* Fix else if turned into elif when KeepIndentInBranch = true. [#1818](https://github.com/fsprojects/fantomas/issues/1818)
+* Fix Comment after closing brace in nested record is lost with default settings. [#1172](https://github.com/fsprojects/fantomas/issues/1172)
+* Fix Inconsistent spacing of multiline object expressions in lists with default settings. [#1170](https://github.com/fsprojects/fantomas/issues/1170)
+* Fix type definition in signature file wrapped with hash directives. [#1115](https://github.com/fsprojects/fantomas/issues/1115)
+* Fix Strict mode strips literal strings. [#560](https://github.com/fsprojects/fantomas/issues/560)
+
 #### 4.6.0 - 01/2022
 
 * Unify Fantomas versions across editors. [#1844](https://github.com/fsprojects/fantomas/issues/1844)
