@@ -4260,7 +4260,9 @@ and genType astContext outerBracket t =
             +> loop t2
         | TArray (t, n) -> loop t -- " [" +> rep (n - 1) (!- ",") -- "]"
         | TAnon -> sepWild
-        | TVar tp -> genTypar astContext tp
+        | TVar (tp, r) ->
+            genTypar astContext tp
+            |> genTriviaFor SynType_Var r
         // Drop bracket around tuples before an arrow
         | TFun (TTuple ts, t) -> loopTTupleList ts +> sepArrow +> loop t
         // Do similar for tuples after an arrow
@@ -4399,7 +4401,7 @@ and genPrefixTypes astContext node (range: Range) ctx =
     match node with
     | [] -> ctx
     // Where <  and ^ meet, we need an extra space. For example:  seq< ^a >
-    | TVar (Typar (_, true)) as t :: ts ->
+    | TVar (Typar (_, _, true), _r) as t :: ts ->
         (!- "< "
          +> col sepComma (t :: ts) (genType astContext false)
          -- " >")
@@ -4491,10 +4493,9 @@ and genTypeList astContext node =
 
     expressionFitsOnRestOfLine shortExpr longExpr
 
-and genTypar astContext (Typar (s, isHead) as node) =
+and genTypar astContext (Typar (s, idRange, isHead)) =
     ifElse isHead (ifElse astContext.IsFirstTypeParam (!- " ^") (!- "^")) (!- "'")
-    -- s
-    |> genTriviaFor SynType_Var node.Range
+    +> genTriviaFor Ident_ idRange !-s
 
 and genTypeConstraint astContext node =
     match node with

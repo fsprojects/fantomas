@@ -181,10 +181,10 @@ let (|OpNameFull|) (x: Identifier) =
 
 // Type params
 
-let inline (|Typar|) (SynTypar.SynTypar (Ident s, req, _)) =
+let inline (|Typar|) (SynTypar.SynTypar (Ident s as ident, req, _)) =
     match req with
-    | TyparStaticReq.None -> (s, false)
-    | TyparStaticReq.HeadType -> (s, true)
+    | TyparStaticReq.None -> (s, ident.idRange, false)
+    | TyparStaticReq.HeadType -> (s, ident.idRange, true)
 
 let inline (|ValTyparDecls|) (SynValTyparDecls (tds, b)) = (tds, b)
 
@@ -199,7 +199,7 @@ let rec (|RationalConst|) =
 let (|Measure|) x =
     let rec loop =
         function
-        | SynMeasure.Var (Typar (s, _), _) -> s
+        | SynMeasure.Var (Typar (s, _, _), _) -> s
         | SynMeasure.Anon _ -> "_"
         | SynMeasure.One -> "1"
         | SynMeasure.Product (m1, m2, _) ->
@@ -1446,7 +1446,7 @@ let (|TAnon|_|) =
 
 let (|TVar|_|) =
     function
-    | SynType.Var (tp, _) -> Some tp
+    | SynType.Var (tp, r) -> Some(tp, r)
     | _ -> None
 
 let (|TFun|_|) =
@@ -1648,7 +1648,7 @@ let rec (|UppercaseSynType|LowercaseSynType|) (synType: SynType) =
 
     match synType with
     | SynType.LongIdent (LongIdentWithDots lid) -> lid.Split('.') |> Seq.last |> upperOrLower
-    | SynType.Var (Typar (s, _), _) -> upperOrLower s
+    | SynType.Var (Typar (s, _, _), _) -> upperOrLower s
     | SynType.App (st, _, _, _, _, _, _) -> (|UppercaseSynType|LowercaseSynType|) st
     | _ -> failwithf "cannot determine if synType %A is uppercase or lowercase" synType
 
