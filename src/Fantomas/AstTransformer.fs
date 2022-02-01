@@ -853,7 +853,11 @@ module private Ast =
 
     and visitSynTyparDecl (std: SynTyparDecl) : TriviaNodeAssigner list =
         match std with
-        | SynTyparDecl (attrs, _) -> [ yield! (visitSynAttributeLists attrs) ]
+        | SynTyparDecl (attrs, synTypar) ->
+            [ yield! (visitSynAttributeLists attrs)
+              yield visitSynTypar synTypar ]
+
+    and visitSynTypar (SynTypar (ident, _typarStaticReq, _isCompGen)) = mkNode Ident_ ident.idRange
 
     and visitSynBindingReturnInfo (returnInfo: SynBindingReturnInfo) : TriviaNodeAssigner list =
         match returnInfo with

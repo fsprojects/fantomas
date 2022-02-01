@@ -1744,3 +1744,18 @@ let a = 9
 // bar
 let a = 9
 """
+
+[<Test>]
+let ``comment after SynTypar, 2052`` () =
+    formatSourceString
+        false
+        """
+let Foo<'T (* TODO *)> () = ()
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let Foo<'T (* TODO *) > () = ()
+"""
