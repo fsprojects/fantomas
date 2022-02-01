@@ -249,11 +249,13 @@ module private Ast =
                     |> finalContinuation
 
                 Continuation.sequence continuations finalContinuation
-            | SynExpr.TypeApp (expr, _, typeNames, _, _, _, range) ->
+            | SynExpr.TypeApp (expr, lessRange, typeNames, _, greaterRange, _, range) ->
                 visit expr (fun nodes ->
                     [ yield mkNode SynExpr_TypeApp range
+                      yield mkNode SynExpr_TypeApp_Less lessRange
                       yield! nodes
-                      yield! (List.collect visitSynType typeNames) ]
+                      yield! (List.collect visitSynType typeNames)
+                      yield! mkNodeOption SynExpr_TypeApp_Greater greaterRange ]
                     |> finalContinuation)
             | SynExpr.LetOrUse (_, _, bindings, body, _) ->
                 visit body (fun nodes ->
@@ -1150,14 +1152,16 @@ module private Ast =
             : TriviaNodeAssigner list =
             match st with
             | SynType.LongIdent li -> visitLongIdentWithDots li |> finalContinuation
-            | SynType.App (typeName, _, typeArgs, _, _, _, range) ->
+            | SynType.App (typeName, lessRange, typeArgs, _, greaterRange, _, range) ->
                 let continuations: ((TriviaNodeAssigner list -> TriviaNodeAssigner list) -> TriviaNodeAssigner list) list =
                     [ yield! (List.map visit typeArgs)
                       yield visit typeName ]
 
                 let finalContinuation (nodes: TriviaNodeAssigner list list) : TriviaNodeAssigner list =
-                    mkNode SynType_App range
-                    :: (List.collect id nodes)
+                    [ yield mkNode SynType_App range
+                      yield! mkNodeOption SynType_App_Less lessRange
+                      yield! List.collect id nodes
+                      yield! mkNodeOption SynType_App_Greater greaterRange ]
                     |> finalContinuation
 
                 Continuation.sequence continuations finalContinuation

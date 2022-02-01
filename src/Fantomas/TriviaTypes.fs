@@ -142,6 +142,8 @@ type FsAstType =
     | SynExpr_Assert_Assert
     | SynExpr_App
     | SynExpr_TypeApp
+    | SynExpr_TypeApp_Less
+    | SynExpr_TypeApp_Greater
     // | SynExpr_LetOrUse use first nested SynExpr
     | SynExpr_TryWith
     | SynExpr_TryFinally
@@ -333,7 +335,11 @@ type FsAstType =
     | SynField_AfterAttributesBeforeIdentifier
     | SynType_LongIdent
     | SynType_App
+    | SynType_App_Less
+    | SynType_App_Greater
     | SynType_LongIdentApp
+    | SynType_LongIdentApp_Less
+    | SynType_LongIdentApp_Greater
     | SynType_Tuple
     | SynType_Array
     // Not an ideal trivia node candidate as the ident inside the SynType.Fun are better suited

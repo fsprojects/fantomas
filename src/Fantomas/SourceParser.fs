@@ -627,13 +627,7 @@ let (|ConstUnitExpr|_|) =
 
 let (|TypeApp|_|) =
     function
-    | SynExpr.TypeApp (e, _, ts, _, _, _, range) ->
-        let lessThanRange = Range.mkRange range.FileName e.Range.End ts.Head.Range.Start
-
-        let greaterThanRange =
-            Range.mkRange range.FileName (Position.mkPos range.EndLine (range.EndColumn - 1)) range.End
-
-        Some(e, lessThanRange, ts, greaterThanRange)
+    | SynExpr.TypeApp (e, lessRange, ts, _, Some greaterRange, _, range) -> Some(e, lessRange, ts, greaterRange)
     | _ -> None
 
 let (|Match|_|) =
@@ -1463,12 +1457,14 @@ let rec (|TFuns|_|) =
 
 let (|TApp|_|) =
     function
-    | SynType.App (t, _, ts, _, _, isPostfix, range) -> Some(t, ts, isPostfix, range)
+    | SynType.App (t, lessRange, ts, _, greaterRange, isPostfix, range) ->
+        Some(t, lessRange, ts, greaterRange, isPostfix, range)
     | _ -> None
 
 let (|TLongIdentApp|_|) =
     function
-    | SynType.LongIdentApp (t, LongIdentWithDots s, _, ts, _, _, _) -> Some(t, s, ts)
+    | SynType.LongIdentApp (t, LongIdentWithDots s, lessRange, ts, _, greaterRange, _) ->
+        Some(t, s, lessRange, ts, greaterRange)
     | _ -> None
 
 let (|TTuple|_|) =

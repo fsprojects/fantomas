@@ -2886,10 +2886,10 @@ and genGenericTypeParameters astContext lt ts gt =
     match ts with
     | [] -> sepNone
     | ts ->
-        tokN lt LESS (!- "<")
+        genTriviaFor SynExpr_TypeApp_Less lt !- "<"
         +> coli sepComma ts (fun idx -> genType { astContext with IsFirstTypeParam = idx = 0 } false)
         +> indentIfNeeded sepNone
-        +> tokN gt GREATER (!- ">")
+        +> genTriviaFor SynExpr_TypeApp_Greater gt !- ">"
 
 and genMultilineRecordInstance
     (astContext: ASTContext)
@@ -4244,7 +4244,7 @@ and genType astContext outerBracket t =
         | THashConstraint t ->
             let wrapInParentheses f =
                 match t with
-                | TApp (_, ts, isPostfix, range) when (isPostfix && List.isNotEmpty ts) ->
+                | TApp (_, _, ts, _, isPostfix, range) when (isPostfix && List.isNotEmpty ts) ->
                     sepOpenT +> f +> sepCloseT
                     |> genTriviaFor SynType_App range
                 | _ -> f
@@ -4268,11 +4268,11 @@ and genType astContext outerBracket t =
         // Do similar for tuples after an arrow
         | TFun (t, TTuple ts) -> loop t +> sepArrow +> loopTTupleList ts
         | TFuns ts -> col sepArrow ts loop
-        | TApp (TLongIdent "nativeptr", [ t ], true, range) when astContext.IsCStylePattern ->
+        | TApp (TLongIdent "nativeptr", _, [ t ], _, true, range) when astContext.IsCStylePattern ->
             loop t -- "*" |> genTriviaFor SynType_App range
-        | TApp (TLongIdent "byref", [ t ], true, range) when astContext.IsCStylePattern ->
+        | TApp (TLongIdent "byref", _, [ t ], _, true, range) when astContext.IsCStylePattern ->
             loop t -- "&" |> genTriviaFor SynType_App range
-        | TApp (t, ts, isPostfix, range) ->
+        | TApp (t, lessRange, ts, greaterRange, isPostfix, range) ->
             let postForm =
                 match ts with
                 | [] -> loop t
@@ -4287,12 +4287,18 @@ and genType astContext outerBracket t =
                 isPostfix
                 postForm
                 (loop t
-                 +> genPrefixTypes astContext ts current.Range)
+                 +> genPrefixTypes astContext SynType_App_Less lessRange ts SynType_App_Greater greaterRange)
             |> genTriviaFor SynType_App range
 
-        | TLongIdentApp (t, s, ts) ->
+        | TLongIdentApp (t, s, lessRange, ts, greaterRange) ->
             loop t -- sprintf ".%s" s
-            +> genPrefixTypes astContext ts current.Range
+            +> genPrefixTypes
+                astContext
+                SynType_LongIdentApp_Less
+                lessRange
+                ts
+                SynType_LongIdentApp_Greater
+                greaterRange
         | TTuple ts -> loopTTupleList ts
         | TStructTuple ts ->
             !- "struct "
@@ -4397,23 +4403,31 @@ and addSpaceIfSynTypeStaticConstantHasAtSignBeforeString (t: SynType) (ctx: Cont
 and genAnonRecordFieldType astContext (AnonRecordFieldType (s, t)) =
     !-s +> sepColon +> (genType astContext false t)
 
-and genPrefixTypes astContext node (range: Range) ctx =
-    match node with
+and genPrefixTypes
+    astContext
+    (lessNodeType: FsAstType)
+    (lessRange: range option)
+    ts
+    (greaterNodeType: FsAstType)
+    (greaterRange: range option)
+    ctx
+    =
+    match ts with
     | [] -> ctx
     // Where <  and ^ meet, we need an extra space. For example:  seq< ^a >
     | TVar (Typar (_, _, true), _r) as t :: ts ->
-        (!- "< "
+        (genTriviaForOption lessNodeType lessRange !- "< "
          +> col sepComma (t :: ts) (genType astContext false)
-         -- " >")
+         +> genTriviaForOption greaterNodeType greaterRange !- " >")
             ctx
     | t :: _ ->
-        (!- "<"
+        (genTriviaForOption lessNodeType lessRange !- "<"
          +> atCurrentColumnIndent (
              addSpaceIfSynTypeStaticConstantHasAtSignBeforeString t
-             +> col sepComma node (genType astContext false)
+             +> col sepComma ts (genType astContext false)
              +> addSpaceIfSynTypeStaticConstantHasAtSignBeforeString t
          )
-         +> tokN range GREATER (!- ">"))
+         +> genTriviaForOption greaterNodeType greaterRange !- ">")
             ctx
 
 and genTypeList astContext node =
@@ -5715,6 +5729,11 @@ and genTriviaFor (mainNodeName: FsAstType) (range: Range) f ctx =
      +> f
      +> leaveNodeFor mainNodeName range)
         ctx
+
+and genTriviaForOption (mainNodeName: FsAstType) (range: range option) f ctx =
+    match range with
+    | None -> ctx
+    | Some range -> genTriviaFor mainNodeName range f ctx
 
 and genLambdaArrowWithTrivia (bodyExpr: Context -> Context) (arrowRange: Range option) =
     optSingle
