@@ -220,7 +220,7 @@ let rec synExprToFsAstType (expr: SynExpr) : FsAstType * Range =
     | SynExpr.New _ -> SynExpr_New, expr.Range
     | SynExpr.Quote _ -> SynExpr_Quote, expr.Range
     | SynExpr.DotIndexedSet _ -> SynExpr_DotIndexedSet, expr.Range
-    | SynExpr.LetOrUse (_, _, bs, e, _) ->
+    | SynExpr.LetOrUse (bindings = bs; body = e) ->
         match bs with
         | [] -> synExprToFsAstType e
         | SynBinding (kind = kind) as b :: _ ->

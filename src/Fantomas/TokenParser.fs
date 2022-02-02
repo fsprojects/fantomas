@@ -1120,12 +1120,7 @@ let getTriviaFromTokens (mkRange: MkRange) (tokens: Token list) =
     fromTokens @ newLines
     |> List.sortBy (fun t -> t.Range.StartLine, t.Range.StartColumn)
 
-let private tokenNames =
-    [ "BAR"
-      "TRY"
-      "FINALLY"
-      "MEMBER"
-      "IN" ]
+let private tokenNames = [ "BAR"; "MEMBER"; "IN" ]
 
 let internal getFsToken tokenName =
     match tokenName with
@@ -1145,7 +1140,6 @@ let internal getFsToken tokenName =
     | "DOT_DOT_HAT" -> DOT_DOT_HAT
     | "ELIF" -> ELIF
     | "ELSE" -> ELSE
-    | "FINALLY" -> FINALLY
     | "GREATER" -> GREATER
     | "IF" -> IF
     | "IN" -> IN
@@ -1165,7 +1159,6 @@ let internal getFsToken tokenName =
     | "QMARK" -> QMARK
     | "QMARK_QMARK" -> QMARK_QMARK
     | "THEN" -> THEN
-    | "TRY" -> TRY
     | _ -> failwithf "was not expecting token %s" tokenName
 
 let getTriviaNodesFromTokens (mkRange: MkRange) (tokens: Token list) =

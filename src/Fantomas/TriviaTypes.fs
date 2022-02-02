@@ -20,7 +20,6 @@ type FsTokenType =
     | DOT_DOT_HAT
     | ELIF
     | ELSE
-    | FINALLY
     | GREATER
     | IF
     | IN
@@ -40,7 +39,6 @@ type FsTokenType =
     | QMARK
     | QMARK_QMARK
     | THEN
-    | TRY
 
 type Token =
     { TokenInfo: FSharpTokenInfo
@@ -152,6 +150,8 @@ type FsAstType =
     | SynExpr_TryWith_Try
     | SynExpr_TryWith_With
     | SynExpr_TryFinally
+    | SynExpr_TryFinally_Try
+    | SynExpr_TryFinally_Finally
     | SynExpr_Lazy
     | SynExpr_Lazy_Lazy
     // | SynExpr_Sequential use first nested SynExpr

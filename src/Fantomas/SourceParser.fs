@@ -409,7 +409,7 @@ let (|SigExceptionDef|)
     =
     (ats, px, ao, uc, withKeyword, ms)
 
-let (|UnionCase|) (SynUnionCase (ats, Ident s, uct, px, ao, _)) = (ats, px, ao, s, uct)
+let (|UnionCase|) (SynUnionCase (ats, Ident s, uct, px, ao, _, trivia)) = (ats, px, ao, s, uct)
 
 let (|UnionCaseType|) =
     function
@@ -419,7 +419,8 @@ let (|UnionCaseType|) =
 let (|Field|) (SynField (ats, isStatic, ido, t, isMutable, px, ao, _)) =
     (ats, px, ao, isStatic, isMutable, t, Option.map (|Ident|) ido)
 
-let (|EnumCase|) (SynEnumCase (ats, Ident s, equalsRange, c, cr, px, r)) = (ats, px, s, equalsRange, c, cr, r)
+let (|EnumCase|) (SynEnumCase (ats, Ident s, c, cr, px, r, trivia)) =
+    (ats, px, s, trivia.EqualsRange, c, cr, r)
 
 // Member definitions (11 cases)
 
@@ -662,7 +663,7 @@ let (|ConstUnitExpr|_|) =
 
 let (|TypeApp|_|) =
     function
-    | SynExpr.TypeApp (e, lessRange, ts, _, Some greaterRange, _, range) -> Some(e, lessRange, ts, greaterRange)
+    | SynExpr.TypeApp (e, lessRange, ts, _, Some greaterRange, _, _range) -> Some(e, lessRange, ts, greaterRange)
     | _ -> None
 
 let (|Match|_|) =
@@ -926,14 +927,14 @@ let (|JoinIn|_|) =
 
 let (|LetOrUse|_|) =
     function
-    | SynExpr.LetOrUse (isRec, isUse, xs, e, _) -> Some(isRec, isUse, xs, e)
+    | SynExpr.LetOrUse (isRec, isUse, xs, e, _, trivia) -> Some(isRec, isUse, xs, e)
     | _ -> None
 
 /// Unfold a list of let bindings
 /// Recursive and use properties have to be determined at this point
 let rec (|LetOrUses|_|) =
     function
-    | SynExpr.LetOrUse (isRec, isUse, xs, LetOrUses (ys, e), _) ->
+    | SynExpr.LetOrUse (isRec, isUse, xs, LetOrUses (ys, e), _, trivia) ->
         let prefix =
             if isUse then "use "
             elif isRec then "let rec "
@@ -949,7 +950,7 @@ let rec (|LetOrUses|_|) =
                 xs
 
         Some(xs' @ ys, e)
-    | SynExpr.LetOrUse (isRec, isUse, xs, e, _) ->
+    | SynExpr.LetOrUse (isRec, isUse, xs, e, _, trivia) ->
         let prefix =
             if isUse then "use "
             elif isRec then "let rec "
@@ -1013,7 +1014,7 @@ let rec collectComputationExpressionStatements
 /// Matches if the SynExpr has some or of computation expression member call inside.
 let rec (|CompExprBody|_|) expr =
     match expr with
-    | SynExpr.LetOrUse (_, _, _, CompExprBody _, _)
+    | SynExpr.LetOrUse(body = CompExprBody _)
     | SynExpr.LetOrUseBang _
     | SynExpr.Sequential _ -> Some(collectComputationExpressionStatements expr id)
     | _ -> None
@@ -1094,27 +1095,23 @@ let (|IfThenElse|_|) =
 
 let rec (|ElIf|_|) =
     function
-    | SynExpr.IfThenElse (ifKw,
-                          isElif,
-                          e1,
-                          thenKw,
+    | SynExpr.IfThenElse (e1,
                           e2,
-                          elseKw,
                           Some (ElIf ((_, eshIfKw, eshIsElif, eshE1, eshThenKw, eshE2) :: es, elseInfo, _)),
                           _,
                           _,
-                          _,
-                          range) ->
+                          range,
+                          trivia) ->
         Some(
-            ((None, ifKw, isElif, e1, thenKw, e2)
-             :: (elseKw, eshIfKw, eshIsElif, eshE1, eshThenKw, eshE2)
+            ((None, trivia.IfKeyword, trivia.IsElif, e1, trivia.ThenKeyword, e2)
+             :: (trivia.ElseKeyword, eshIfKw, eshIsElif, eshE1, eshThenKw, eshE2)
                 :: es),
             elseInfo,
             range
         )
 
-    | SynExpr.IfThenElse (ifKw, isElif, e1, thenKw, e2, elseKw, e3, _, _, _, range) ->
-        Some([ (None, ifKw, isElif, e1, thenKw, e2) ], (elseKw, e3), range)
+    | SynExpr.IfThenElse (e1, e2, e3, _, _, range, trivia) ->
+        Some([ (None, trivia.IfKeyword, trivia.IsElif, e1, trivia.ThenKeyword, e2) ], (trivia.ElseKeyword, e3), range)
     | _ -> None
 
 let (|Record|_|) =
@@ -1144,12 +1141,12 @@ let (|LongIdentSet|_|) =
 
 let (|TryWith|_|) =
     function
-    | SynExpr.TryWith (tryKeyword, e, _, withKeyword, cs, _, _, _, _) -> Some(tryKeyword, e, withKeyword, cs)
+    | SynExpr.TryWith (e, cs, _, _, _, trivia) -> Some(trivia.TryKeyword, e, trivia.WithKeyword, cs)
     | _ -> None
 
 let (|TryFinally|_|) =
     function
-    | SynExpr.TryFinally (e1, e2, _, _, _) -> Some(e1, e2)
+    | SynExpr.TryFinally (e1, e2, _, _, _, trivia) -> Some(trivia.TryKeyword, e1, trivia.FinallyKeyword, e2)
     | _ -> None
 
 let (|ParsingError|_|) =
@@ -1335,12 +1332,12 @@ let (|RecordField|) =
     function
     | SynField (ats, _, ido, _, _, px, ao, _) -> (ats, px, ao, Option.map (|Ident|) ido)
 
-let (|Clause|) (SynMatchClause (p, eo, arrowRange, e, _, _)) = (p, eo, arrowRange, e)
+let (|Clause|) (SynMatchClause (p, eo, e, _, _, trivia)) = (p, eo, trivia.ArrowRange, e)
 
 /// Process compiler-generated matches in an appropriate way
 let rec private skipGeneratedLambdas expr =
     match expr with
-    | SynExpr.Lambda (_, true, _, _, bodyExpr, _, _) -> skipGeneratedLambdas bodyExpr
+    | SynExpr.Lambda (inLambdaSeq = true; body = bodyExpr) -> skipGeneratedLambdas bodyExpr
     | _ -> expr
 
 and skipGeneratedMatch expr =
@@ -1349,18 +1346,18 @@ and skipGeneratedMatch expr =
                      _,
                      _,
                      _,
-                     [ SynMatchClause.SynMatchClause (_, _, _, innerExpr, _, _) as clause ],
+                     [ SynMatchClause.SynMatchClause (resultExpr = innerExpr) as clause ],
                      matchRange) when matchRange.Start = clause.Range.Start -> skipGeneratedMatch innerExpr
     | _ -> expr
 
 let (|Lambda|_|) =
     function
-    | SynExpr.Lambda (_, _, _, arrowRange, _, Some (pats, body), range) ->
+    | SynExpr.Lambda (_, _, _, _, Some (pats, body), range, trivia) ->
         let inline getLambdaBodyExpr expr =
             let skippedLambdas = skipGeneratedLambdas expr
             skipGeneratedMatch skippedLambdas
 
-        Some(pats, arrowRange, getLambdaBodyExpr body, range)
+        Some(pats, trivia.ArrowRange, getLambdaBodyExpr body, range)
     | _ -> None
 
 let (|AppWithLambda|_|) (e: SynExpr) =

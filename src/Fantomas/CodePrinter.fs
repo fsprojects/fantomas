@@ -2315,14 +2315,14 @@ and genExpr astContext synExpr ctx =
                 +> unindentOnWith
             )
 
-        | TryFinally (e1, e2) ->
+        | TryFinally (tryKeyword, e1, finallyKeyword, e2) ->
             atCurrentColumn (
-                kw TRY !- "try "
+                genTriviaFor SynExpr_TryFinally_Try tryKeyword !- "try "
                 +> indent
                 +> sepNln
                 +> genExpr astContext e1
                 +> unindent
-                +> kw FINALLY !+~ "finally"
+                +> genTriviaFor SynExpr_TryFinally_Finally finallyKeyword !+~ "finally"
                 +> indent
                 +> sepNln
                 +> genExpr astContext e2

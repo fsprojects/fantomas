@@ -210,7 +210,7 @@ module private Ast =
                 [ yield mkNode SynExpr_ComputationExpr_OpeningBrace openingBrace
                   yield! visit expr finalContinuation
                   yield mkNode SynExpr_ComputationExpr_ClosingBrace closingBrace ]
-            | SynExpr.Lambda (_, _, args, arrowRange, body, _parsedData, range) ->
+            | SynExpr.Lambda (_, _, args, body, _parsedData, range, { ArrowRange = arrowRange }) ->
                 visit body (fun nodes ->
                     [ yield mkNode SynExpr_Lambda range
                       yield! visitSynSimplePats args
@@ -260,12 +260,18 @@ module private Ast =
                       yield! (List.collect visitSynType typeNames)
                       yield! mkNodeOption SynExpr_TypeApp_Greater greaterRange ]
                     |> finalContinuation)
-            | SynExpr.LetOrUse (_, _, bindings, body, _) ->
+            | SynExpr.LetOrUse (_, _, bindings, body, _, trivia) ->
                 visit body (fun nodes ->
                     [ yield! (List.collect visitSynBinding bindings)
                       yield! nodes ]
                     |> finalContinuation)
-            | SynExpr.TryWith (tryKeyword, tryExpr, _, withKeyword, withCases, _, range, _, _) ->
+            | SynExpr.TryWith (tryExpr,
+                               withCases,
+                               range,
+                               _,
+                               _,
+                               { TryKeyword = tryKeyword
+                                 WithKeyword = withKeyword }) ->
                 visit tryExpr (fun nodes ->
                     [ yield mkNode SynExpr_TryWith range
                       yield mkNode SynExpr_TryWith_Try tryKeyword
@@ -273,13 +279,15 @@ module private Ast =
                       yield mkNode SynExpr_TryWith_With withKeyword
                       yield! withCases |> List.collect visitSynMatchClause ]
                     |> finalContinuation)
-            | SynExpr.TryFinally (tryExpr, finallyExpr, range, _, _) ->
+            | SynExpr.TryFinally (tryExpr, finallyExpr, range, _, _, trivia) ->
                 let continuations: ((TriviaNodeAssigner list -> TriviaNodeAssigner list) -> TriviaNodeAssigner list) list =
                     [ visit tryExpr; visit finallyExpr ]
 
                 let finalContinuation (nodes: TriviaNodeAssigner list list) : TriviaNodeAssigner list =
-                    mkNode SynExpr_TryFinally range
-                    :: (List.collect id nodes)
+                    [ yield mkNode SynExpr_TryFinally range
+                      yield mkNode SynExpr_TryFinally_Try trivia.TryKeyword
+                      yield mkNode SynExpr_TryFinally_Finally trivia.FinallyKeyword
+                      yield! List.collect id nodes ]
                     |> finalContinuation
 
                 Continuation.sequence continuations finalContinuation
@@ -351,7 +359,7 @@ module private Ast =
 
                 Continuation.sequence continuations finalContinuation
 
-            | SynExpr.IfThenElse (ifKw, isElif, ifExpr, thenKw, thenExpr, elseKw, elseExpr, _, _, _, range) ->
+            | SynExpr.IfThenElse (ifExpr, thenExpr, elseExpr, _, _, range, trivia) ->
                 let continuations: ((TriviaNodeAssigner list -> TriviaNodeAssigner list) -> TriviaNodeAssigner list) list =
                     [ yield visit ifExpr
                       yield visit thenExpr
@@ -361,13 +369,13 @@ module private Ast =
                     [ yield mkNode SynExpr_IfThenElse range
                       yield
                           mkNode
-                              (if isElif then
+                              (if trivia.IsElif then
                                    SynExpr_IfThenElse_Elif
                                else
                                    SynExpr_IfThenElse_If)
-                              ifKw
-                      yield mkNode SynExpr_IfThenElse_Then thenKw
-                      yield! mkNodeOption SynExpr_IfThenElse_Else elseKw
+                              trivia.IfKeyword
+                      yield mkNode SynExpr_IfThenElse_Then trivia.ThenKeyword
+                      yield! mkNodeOption SynExpr_IfThenElse_Else trivia.ElseKeyword
                       yield! (List.collect id nodes) ]
                     |> finalContinuation
 
@@ -667,12 +675,12 @@ module private Ast =
 
     and visitSynMatchClause (mc: SynMatchClause) : TriviaNodeAssigner list =
         match mc with
-        | SynMatchClause (pat, e1, arrowRange, e2, _range, _) ->
+        | SynMatchClause (pat, e1, e2, _range, _, trivia) ->
             mkNode SynMatchClause_ mc.Range // _range is the same range as pat, see https://github.com/dotnet/fsharp/issues/10877
             :: [ yield! visitSynPat pat
                  if e1.IsSome then
                      yield! visitSynExpr e1.Value
-                 yield! mkNodeOption SynMatchClause_Arrow arrowRange
+                 yield! mkNodeOption SynMatchClause_Arrow trivia.ArrowRange
                  yield! visitSynExpr e2 ]
 
     // TODO: revisit after https://github.com/dotnet/fsharp/issues/12619
@@ -1138,7 +1146,7 @@ module private Ast =
 
     and visitSynUnionCase (uc: SynUnionCase) : TriviaNodeAssigner list =
         match uc with
-        | SynUnionCase (attrs, _, uct, _, _, range) ->
+        | SynUnionCase (attrs, _, uct, _, _, range, trivia) ->
             [ yield mkNode SynUnionCase_ range
               yield! visitSynUnionCaseType uct
               yield! (visitSynAttributeLists attrs) ]
@@ -1150,7 +1158,7 @@ module private Ast =
 
     and visitSynEnumCase (sec: SynEnumCase) : TriviaNodeAssigner list =
         match sec with
-        | SynEnumCase (attrs, ident, equalsRange, value, valueRange, _, range) ->
+        | SynEnumCase (attrs, ident, value, valueRange, _, range, { EqualsRange = equalsRange }) ->
             [ yield mkNode SynEnumCase_ range
               yield! (visitSynAttributeLists attrs)
               yield visitIdent ident

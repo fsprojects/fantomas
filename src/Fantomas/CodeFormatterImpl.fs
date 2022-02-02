@@ -179,7 +179,7 @@ let isValidAST ast =
 
         | SynExpr.ArrayOrListComputed (_, synExpr, _range) -> validateExpr synExpr
         | SynExpr.ComputationExpr (_, synExpr, _range) -> validateExpr synExpr
-        | SynExpr.Lambda (_, _, _synSimplePats, _arrow, synExpr, _parsedData, _range) -> validateExpr synExpr
+        | SynExpr.Lambda (body = synExpr) -> validateExpr synExpr
 
         | SynExpr.MatchLambda (_isExnMatch, _argm, synMatchClauseList, _spBind, _wholem) ->
             List.forall validateClause synMatchClauseList
@@ -197,7 +197,7 @@ let isValidAST ast =
 
         | SynExpr.TypeApp (synExpr, _, _synTypeList, _commas, _, _, _range) -> validateExpr synExpr
 
-        | SynExpr.LetOrUse (_, _, synBindingList, synExpr, _range) ->
+        | SynExpr.LetOrUse (bindings = synBindingList; body = synExpr) ->
             List.forall validateBinding synBindingList
             && validateExpr synExpr
 
@@ -205,24 +205,14 @@ let isValidAST ast =
             validateExpr synExpr
             && List.forall validateClause synMatchClauseList
 
-        | SynExpr.TryFinally (synExpr1, synExpr2, _range, _sequencePointInfoForTry, _sequencePointInfoForFinally) ->
+        | SynExpr.TryFinally (tryExpr = synExpr1; finallyExpr = synExpr2) ->
             List.forall validateExpr [ synExpr1; synExpr2 ]
 
         | SynExpr.Sequential (_sequencePointInfoForSeq, _, synExpr1, synExpr2, _range)
         | SynExpr.SequentialOrImplicitYield (_sequencePointInfoForSeq, synExpr1, synExpr2, _, _range) ->
             List.forall validateExpr [ synExpr1; synExpr2 ]
 
-        | SynExpr.IfThenElse (_,
-                              _,
-                              synExpr1,
-                              _,
-                              synExpr2,
-                              _,
-                              synExprOpt,
-                              _sequencePointInfoForBinding,
-                              _isRecovery,
-                              _range,
-                              _range2) ->
+        | SynExpr.IfThenElse (ifExpr = synExpr1; thenExpr = synExpr2; elseExpr = synExprOpt) ->
             match synExprOpt with
             | Some synExpr3 -> List.forall validateExpr [ synExpr1; synExpr2; synExpr3 ]
             | None -> List.forall validateExpr [ synExpr1; synExpr2 ]
