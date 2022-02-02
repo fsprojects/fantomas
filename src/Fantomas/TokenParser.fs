@@ -1120,7 +1120,7 @@ let getTriviaFromTokens (mkRange: MkRange) (tokens: Token list) =
     fromTokens @ newLines
     |> List.sortBy (fun t -> t.Range.StartLine, t.Range.StartColumn)
 
-let private tokenNames = [ "BAR"; "MEMBER"; "IN" ]
+let private tokenNames = [ "BAR"; "MEMBER" ]
 
 let internal getFsToken tokenName =
     match tokenName with

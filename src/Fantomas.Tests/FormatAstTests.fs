@@ -40,12 +40,9 @@ let formatAst code =
 let ``format the ast works correctly with no source code`` () = formatAst "()" |> should equal "()"
 
 [<Test>]
-let ``let in should not be used`` () =
+let ``let in should be used`` () =
     formatAst "let x = 1 in ()"
-    |> should
-        equal
-        """let x = 1
-()"""
+    |> should equal """let x = 1 in ()"""
 
 [<Test>]
 let ``elif keyword is present in raw AST`` () =

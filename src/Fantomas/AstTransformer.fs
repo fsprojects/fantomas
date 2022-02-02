@@ -261,8 +261,18 @@ module private Ast =
                       yield! mkNodeOption SynExpr_TypeApp_Greater greaterRange ]
                     |> finalContinuation)
             | SynExpr.LetOrUse (_, _, bindings, body, _, trivia) ->
+                let inKeyword =
+                    match trivia.InKeyword with
+                    | None -> None
+                    | Some inKw ->
+                        if Position.posEq inKw.Start body.Range.Start then
+                            None
+                        else
+                            Some inKw
+
                 visit body (fun nodes ->
                     [ yield! (List.collect visitSynBinding bindings)
+                      yield! mkNodeOption SynExpr_LetOrUse_In inKeyword
                       yield! nodes ]
                     |> finalContinuation)
             | SynExpr.TryWith (tryExpr,

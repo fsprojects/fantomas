@@ -1095,8 +1095,6 @@ and genNamedArgumentExpr (astContext: ASTContext) operatorExpr e1 e2 appRange =
     |> genTriviaFor SynExpr_App appRange
 
 and genExpr astContext synExpr ctx =
-    let kw tokenName f = tokN synExpr.Range tokenName f
-
     let expr =
         match synExpr with
         | ElmishReactWithoutChildren (identifier, openingTokenRange, isArray, children, closingTokenRange) when
@@ -1552,9 +1550,10 @@ and genExpr astContext synExpr ctx =
         | CompExprBody statements ->
             let genCompExprStatement astContext ces =
                 match ces with
-                | LetOrUseStatement (prefix, binding) ->
+                | LetOrUseStatement (prefix, binding, inKeyword) ->
                     enterNodeFor (synBindingToFsAstType binding) binding.RangeOfBindingWithRhs
                     +> genLetBinding astContext prefix binding
+                    +> genTriviaForOption SynExpr_LetOrUse_In inKeyword !- " in "
                 | LetOrUseBangStatement (isUse, pat, equalsRange, expr, r) ->
                     enterNodeFor SynExpr_LetOrUseBang r // print Trivia before entire LetBang expression
                     +> ifElse isUse (!- "use! ") (!- "let! ")
@@ -1573,14 +1572,14 @@ and genExpr astContext synExpr ctx =
 
             let getRangeOfCompExprStatement ces =
                 match ces with
-                | LetOrUseStatement (_, binding) -> binding.RangeOfBindingWithRhs
+                | LetOrUseStatement (_, binding, _) -> binding.RangeOfBindingWithRhs
                 | LetOrUseBangStatement (range = r) -> r
                 | AndBangStatement (range = r) -> r
                 | OtherStatement expr -> expr.Range
 
             let getSepNln ces r =
                 match ces with
-                | LetOrUseStatement (_, b) ->
+                | LetOrUseStatement (_, b, _) ->
                     sepNlnConsideringTriviaContentBeforeForMainNode (synBindingToFsAstType b) r
                 | LetOrUseBangStatement _ -> sepNlnConsideringTriviaContentBeforeForMainNode SynExpr_LetOrUseBang r
                 | AndBangStatement (_, _, _, r) -> sepNlnConsideringTriviaContentBeforeForMainNode SynExprAndBang_ r
@@ -2287,18 +2286,10 @@ and genExpr astContext synExpr ctx =
             genExpr astContext e
             +> genGenericTypeParameters astContext lt ts gt
         | LetOrUses (bs, e) ->
-            fun ctx ->
-                let items =
-                    let inKeywords = Map.tryFindOrEmptyList IN ctx.TriviaTokenNodes
+            let items =
+                collectMultilineItemForLetOrUses astContext bs (collectMultilineItemForSynExpr astContext e)
 
-                    collectMultilineItemForLetOrUses
-                        astContext
-                        inKeywords
-                        bs
-                        e
-                        (collectMultilineItemForSynExpr astContext inKeywords e)
-
-                atCurrentColumn (colWithNlnWhenItemIsMultilineUsingConfig items) ctx
+            atCurrentColumn (colWithNlnWhenItemIsMultilineUsingConfig items)
         // Could customize a bit if e is single line
         | TryWith (tryKeyword, e, withKeyword, cs) ->
             atCurrentColumn (
@@ -2330,12 +2321,8 @@ and genExpr astContext synExpr ctx =
             )
 
         | Sequentials es ->
-            fun ctx ->
-                let inKeywords = Map.tryFindOrEmptyList IN ctx.TriviaTokenNodes
-
-                let items = List.collect (collectMultilineItemForSynExpr astContext inKeywords) es
-
-                atCurrentColumn (colWithNlnWhenItemIsMultilineUsingConfig items) ctx
+            let items = List.collect (collectMultilineItemForSynExpr astContext) es
+            atCurrentColumn (colWithNlnWhenItemIsMultilineUsingConfig items)
         // A generalization of IfThenElse
         | ElIf ((_, ifKw, isElif, e1, thenKw, e2) :: es, (elseKw, elseOpt), _) ->
             // https://docs.microsoft.com/en-us/dotnet/fsharp/style-guide/formatting#formatting-if-expressions
@@ -2860,7 +2847,11 @@ and genExprInMultilineInfixExpr astContext e =
     match e with
     | LetOrUses (xs, e) ->
         atCurrentColumn (
-            col sepNln xs (fun (pref, lb) -> genLetBinding astContext pref lb +> !- " in")
+            col sepNln xs (fun (pref, lb, inKeyword) ->
+                genLetBinding astContext pref lb
+                +> (match inKeyword with
+                    | Some inKw -> genTriviaFor SynExpr_LetOrUse_In inKw !- " in"
+                    | None -> !- " in"))
             +> sepNln
             +> expressionFitsOnRestOfLine
                 (genExpr astContext e)
@@ -3542,48 +3533,27 @@ and genAppWithParenthesis app astContext =
     | Choice1Of2 t -> genAppWithTupledArgument t astContext
     | Choice2Of2 s -> genAppWithSingleParenthesisArgument s astContext
 
-and collectMultilineItemForSynExpr
-    (astContext: ASTContext)
-    (inKeyWordTrivia: TriviaNode list)
-    (e: SynExpr)
-    : ColMultilineItem list =
+and collectMultilineItemForSynExpr (astContext: ASTContext) (e: SynExpr) : ColMultilineItem list =
     match e with
-    | LetOrUses (bs, e) ->
-        collectMultilineItemForLetOrUses
-            astContext
-            inKeyWordTrivia
-            bs
-            e
-            (collectMultilineItemForSynExpr astContext inKeyWordTrivia e)
+    | LetOrUses (bs, e) -> collectMultilineItemForLetOrUses astContext bs (collectMultilineItemForSynExpr astContext e)
     | Sequentials s ->
         s
-        |> List.collect (collectMultilineItemForSynExpr astContext inKeyWordTrivia)
+        |> List.collect (collectMultilineItemForSynExpr astContext)
     | _ ->
         let t, r = synExprToFsAstType e
         [ ColMultilineItem(genExpr astContext e, sepNlnConsideringTriviaContentBeforeForMainNode t r) ]
 
 and collectMultilineItemForLetOrUses
     (astContext: ASTContext)
-    (inKeyWordTrivia: TriviaNode list)
-    (bs: (string * SynBinding) list)
-    (e: SynExpr)
+    (bs: (string * SynBinding * range option) list)
     (itemsForExpr: ColMultilineItem list)
     : ColMultilineItem list =
-    // It be nice if the `in` keyword was part of the AST tree as suggested in
-    // https://github.com/dotnet/fsharp/issues/10198
-    let bindingHasInKeyword (binding: SynBinding) : bool =
-        let inRange =
-            Range.mkRange binding.RangeOfBindingWithRhs.FileName binding.RangeOfBindingWithRhs.End e.Range.Start
 
-        inKeyWordTrivia
-        |> TriviaHelpers.``keyword token after start column and on same line`` inRange
-        |> List.isNotEmpty
-
-    let multilineBinding p x =
+    let multilineBinding p x inKw =
         let expr =
             enterNodeFor (synBindingToFsAstType x) x.RangeOfBindingWithRhs
             +> genLetBinding astContext p x
-            +> genInKeyword x e
+            +> genTriviaForOption SynExpr_LetOrUse_In inKw !- " in "
 
         let range = x.RangeOfBindingWithRhs
 
@@ -3594,11 +3564,11 @@ and collectMultilineItemForLetOrUses
 
     let multipleOrLongBs bs =
         bs
-        |> List.map (fun (p, x) -> multilineBinding p x)
+        |> List.map (fun (p, x, inKw) -> multilineBinding p x inKw)
 
     match bs, itemsForExpr with
     | [], _ -> itemsForExpr
-    | [ p, b ], [ ColMultilineItem (expr, sepNlnForExpr) ] ->
+    | [ p, b, inKeyword ], [ ColMultilineItem (expr, sepNlnForExpr) ] ->
         // This is a trickier case
         // maybe the let binding and expression are short so they form one ColMultilineItem
         // Something like: let a = 1 in ()
@@ -3608,34 +3578,18 @@ and collectMultilineItemForLetOrUses
         let sepNlnForBinding =
             sepNlnConsideringTriviaContentBeforeForMainNode (synBindingToFsAstType b) range
 
-        if bindingHasInKeyword b then
+        match inKeyword with
+        | Some inKw ->
             // single multiline item
             let expr =
                 enterNodeFor (synBindingToFsAstType b) b.RangeOfBindingWithRhs
                 +> genLetBinding astContext p b
-                +> genInKeyword b e
+                +> genTriviaFor SynExpr_LetOrUse_In inKw !- " in "
                 +> expressionFitsOnRestOfLine expr (sepNln +> sepNlnForExpr +> expr)
 
             [ ColMultilineItem(expr, sepNlnForBinding) ]
-        else
-            multipleOrLongBs bs @ itemsForExpr
+        | None -> multipleOrLongBs bs @ itemsForExpr
     | bs, _ -> multipleOrLongBs bs @ itemsForExpr
-
-and genInKeyword (binding: SynBinding) (e: SynExpr) (ctx: Context) =
-    let inKeyWordTrivia (binding: SynBinding) =
-        let inRange = ctx.MkRange binding.RangeOfBindingWithRhs.End e.Range.Start
-
-        Map.tryFindOrEmptyList IN ctx.TriviaTokenNodes
-        |> TriviaHelpers.``keyword token after start column and on same line`` inRange
-        |> List.tryHead
-
-    match inKeyWordTrivia binding with
-    | Some (_, tn) ->
-        (printContentBefore tn
-         +> !- " in "
-         +> printContentAfter tn)
-            ctx
-    | None -> sepNone ctx
 
 and sepNlnBetweenTypeAndMembers (withKeywordRange: range option) (ms: SynMemberDefn list) =
     match List.tryHead ms with
@@ -5512,28 +5466,19 @@ and genParenTupleWithIndentAndNewlines
 and genAfterAttributesBefore (astType: FsAstType) (r: Range option) : Context -> Context =
     optSingle (fun r -> genTriviaFor astType r id) r
 
-and collectMultilineItemForSynExprKeepIndent
-    (astContext: ASTContext)
-    (inKeyWordTrivia: TriviaNode list)
-    (e: SynExpr)
-    : ColMultilineItem list =
+and collectMultilineItemForSynExprKeepIndent (astContext: ASTContext) (e: SynExpr) : ColMultilineItem list =
     match e with
     | LetOrUses (bs, e) ->
-        collectMultilineItemForLetOrUses
-            astContext
-            inKeyWordTrivia
-            bs
-            e
-            (collectMultilineItemForSynExprKeepIndent astContext inKeyWordTrivia e)
+        collectMultilineItemForLetOrUses astContext bs (collectMultilineItemForSynExprKeepIndent astContext e)
     | Sequentials es ->
         let lastIndex = es.Length - 1
 
         es
         |> List.mapi (fun idx e ->
             if idx = lastIndex then
-                collectMultilineItemForSynExprKeepIndent astContext inKeyWordTrivia e
+                collectMultilineItemForSynExprKeepIndent astContext e
             else
-                collectMultilineItemForSynExpr astContext inKeyWordTrivia e)
+                collectMultilineItemForSynExpr astContext e)
         |> List.collect id
     | KeepIndentMatch (matchKeywordRange, me, withRange, clauses, range, matchTriviaType) ->
         ColMultilineItem(
@@ -5553,8 +5498,7 @@ and collectMultilineItemForSynExprKeepIndent
 
 and genExprKeepIndentInBranch (astContext: ASTContext) (e: SynExpr) : Context -> Context =
     let keepIndentExpr (ctx: Context) =
-        let items =
-            collectMultilineItemForSynExprKeepIndent astContext (Map.tryFindOrEmptyList IN ctx.TriviaTokenNodes) e
+        let items = collectMultilineItemForSynExprKeepIndent astContext e
 
         colWithNlnWhenItemIsMultilineUsingConfig items ctx
 

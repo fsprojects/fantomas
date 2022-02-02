@@ -925,28 +925,38 @@ let (|JoinIn|_|) =
     | SynExpr.JoinIn (e1, _, e2, _) -> Some(e1, e2)
     | _ -> None
 
-let (|LetOrUse|_|) =
-    function
-    | SynExpr.LetOrUse (isRec, isUse, xs, e, _, trivia) -> Some(isRec, isUse, xs, e)
-    | _ -> None
+let private mkInKeyword (lastIndex: int) (index: int) (inKw: range option) (body: SynExpr) =
+    if index <> lastIndex then
+        None
+    else
+        match inKw with
+        | None -> None
+        | Some inKw ->
+            if Position.posEq inKw.Start body.Range.Start then
+                None
+            else
+                Some inKw
+
 
 /// Unfold a list of let bindings
 /// Recursive and use properties have to be determined at this point
 let rec (|LetOrUses|_|) =
     function
-    | SynExpr.LetOrUse (isRec, isUse, xs, LetOrUses (ys, e), _, trivia) ->
+    | SynExpr.LetOrUse (isRec, isUse, xs, (LetOrUses (ys, e) as body), _, trivia) ->
         let prefix =
             if isUse then "use "
             elif isRec then "let rec "
             else "let "
 
         let xs' =
+            let lastIndex = xs.Length - 1
+
             List.mapi
                 (fun i x ->
                     if i = 0 then
-                        (prefix, x)
+                        (prefix, x, mkInKeyword lastIndex i trivia.InKeyword body)
                     else
-                        ("and ", x))
+                        ("and ", x, mkInKeyword lastIndex i trivia.InKeyword body))
                 xs
 
         Some(xs' @ ys, e)
@@ -957,19 +967,21 @@ let rec (|LetOrUses|_|) =
             else "let "
 
         let xs' =
+            let lastIndex = xs.Length - 1
+
             List.mapi
                 (fun i x ->
                     if i = 0 then
-                        (prefix, x)
+                        (prefix, x, mkInKeyword lastIndex i trivia.InKeyword e)
                     else
-                        ("and ", x))
+                        ("and ", x, mkInKeyword lastIndex i trivia.InKeyword e))
                 xs
 
         Some(xs', e)
     | _ -> None
 
 type ComputationExpressionStatement =
-    | LetOrUseStatement of prefix: string * binding: SynBinding
+    | LetOrUseStatement of prefix: string * binding: SynBinding * inKeyword: range option
     | LetOrUseBangStatement of isUse: bool * SynPat * equalsRange: range option * SynExpr * range: range
     | AndBangStatement of SynPat * equalsRange: range * SynExpr * range: range
     | OtherStatement of SynExpr

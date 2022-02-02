@@ -146,6 +146,7 @@ type FsAstType =
     | SynExpr_TypeApp_Less
     | SynExpr_TypeApp_Greater
     // | SynExpr_LetOrUse use first nested SynExpr
+    | SynExpr_LetOrUse_In
     | SynExpr_TryWith
     | SynExpr_TryWith_Try
     | SynExpr_TryWith_With
