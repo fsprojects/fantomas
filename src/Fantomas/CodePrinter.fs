@@ -89,7 +89,7 @@ and addFinalNewline ctx =
     mns = modules : SynModuleOrNamespace list
 *)
 and genImpFile astContext (ParsedImplFileInput (hs, mns)) =
-    col sepNone hs genParsedHashDirective
+    col sepNln hs genParsedHashDirective
     +> (if hs.IsEmpty then sepNone else sepNln)
     +> col sepNln mns (genModuleOrNamespace astContext)
 
