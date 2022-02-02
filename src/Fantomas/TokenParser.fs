@@ -522,7 +522,7 @@ let private (|InterpStringEndOrPartToken|_|) token =
         None
 
 let escapedCharacterRegex =
-    System.Text.RegularExpressions.Regex("(\\\\(a|b|f|n|r|t|u|v|x|'|\\\"|\\\\))+")
+    System.Text.RegularExpressions.Regex("(\\\\(a|b|f|n|r|t|u|v|x|0|'|\\\"|\\\\))+")
 
 let private (|MultipleStringTextTokens|_|) tokens =
     let f _ =
@@ -1129,8 +1129,6 @@ let private tokenNames =
       "AND_BANG"
       "IN" ]
 
-let private tokenKinds = [ FSharpTokenCharKind.Operator ]
-
 let internal getFsToken tokenName =
     match tokenName with
     | "AMP" -> AMP
@@ -1177,9 +1175,7 @@ let internal getFsToken tokenName =
 
 let getTriviaNodesFromTokens (mkRange: MkRange) (tokens: Token list) =
     tokens
-    |> List.filter (fun t ->
-        List.exists (fun tn -> tn = t.TokenInfo.TokenName) tokenNames
-        || List.exists (fun tk -> tk = t.TokenInfo.CharClass) tokenKinds)
+    |> List.filter (fun t -> List.exists (fun tn -> tn = t.TokenInfo.TokenName) tokenNames)
     |> List.map (fun t ->
         let range = getRangeBetween mkRange t t
         TriviaNodeAssigner(TriviaNodeType.Token(getFsToken t.TokenInfo.TokenName, t), range))

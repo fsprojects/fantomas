@@ -137,13 +137,18 @@ type FsAstType =
     | SynExpr_MatchLambda_Function
     | SynExpr_Match
     | SynExpr_Do
+    | SynExpr_Do_Do
     | SynExpr_Assert
+    | SynExpr_Assert_Assert
     | SynExpr_App
     | SynExpr_TypeApp
+    | SynExpr_TypeApp_Less
+    | SynExpr_TypeApp_Greater
     // | SynExpr_LetOrUse use first nested SynExpr
     | SynExpr_TryWith
     | SynExpr_TryFinally
     | SynExpr_Lazy
+    | SynExpr_Lazy_Lazy
     // | SynExpr_Sequential use first nested SynExpr
     | SynExpr_SequentialOrImplicitYield
     | SynExpr_IfThenElse
@@ -165,17 +170,26 @@ type FsAstType =
     | SynExpr_Upcast
     | SynExpr_Downcast
     | SynExpr_InferredUpcast
+    | SynExpr_InferredUpcast_Upcast
     | SynExpr_InferredDowncast
+    | SynExpr_InferredDowncast_Downcast
     | SynExpr_Null
     | SynExpr_AddressOf
+    | SynExpr_AddressOf_SingleAmpersand
+    | SynExpr_AddressOf_DoubleAmpersand
     | SynExpr_TraitCall
     | SynExpr_JoinIn
     | SynExpr_ImplicitZero
     | SynExpr_YieldOrReturn
+    | SynExpr_YieldOrReturn_Return
+    | SynExpr_YieldOrReturn_Yield
     | SynExpr_YieldOrReturnFrom
+    | SynExpr_YieldOrReturnFrom_ReturnBang
+    | SynExpr_YieldOrReturnFrom_YieldBang
     | SynExpr_LetOrUseBang
     | SynExpr_MatchBang
     | SynExpr_DoBang
+    | SynExpr_DoBang_DoBang
     | SynExpr_LibraryOnlyILAssembly
     | SynExpr_LibraryOnlyStaticOptimization
     | SynExpr_LibraryOnlyUnionCaseFieldGet
@@ -321,10 +335,15 @@ type FsAstType =
     | SynField_AfterAttributesBeforeIdentifier
     | SynType_LongIdent
     | SynType_App
+    | SynType_App_Less
+    | SynType_App_Greater
     | SynType_LongIdentApp
+    | SynType_LongIdentApp_Less
+    | SynType_LongIdentApp_Greater
     | SynType_Tuple
     | SynType_Array
-    | SynType_Fun
+    // Not an ideal trivia node candidate as the ident inside the SynType.Fun are better suited
+    // | SynType_Fun
     | SynType_Var
     | SynType_Anon
     | SynType_WithGlobalConstraints

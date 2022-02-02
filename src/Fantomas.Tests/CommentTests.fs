@@ -1744,3 +1744,43 @@ let a = 9
 // bar
 let a = 9
 """
+
+[<Test>]
+let ``comment after SynTypar, 2052`` () =
+    formatSourceString
+        false
+        """
+let Foo<'T (* TODO *)> () = ()
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let Foo<'T (* TODO *) > () = ()
+"""
+
+[<Test>]
+let ``comment after SynTypeApp idents, 1899`` () =
+    formatSourceString
+        false
+        """
+[<RequireQualifiedAccess>]
+module Example =
+
+  let dict1 = ConcurrentDictionary< (* some comment 1 *) int32, unit>()
+  let dict2 = ConcurrentDictionary< (* some comment 2 *) int64, ConcurrentDictionary<(* some comment 3 *) int32, unit>>()
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+[<RequireQualifiedAccess>]
+module Example =
+
+    let dict1 = ConcurrentDictionary< (* some comment 1 *) int32, unit>()
+
+    let dict2 =
+        ConcurrentDictionary< (* some comment 2 *) int64, ConcurrentDictionary< (* some comment 3 *) int32, unit>>()
+"""

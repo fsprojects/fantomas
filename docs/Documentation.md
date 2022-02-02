@@ -50,6 +50,21 @@ If they are folders, the structure of input folder will be reflected in the outp
 The tool will explore the input folder recursively if you set `--recurse` option.
 If you omit the output path, Fantomas will overwrite the input files.
 
+### Check mode
+
+*starting version 3.3*
+
+Verify that a single file or folder was formatted correctly.
+
+> dotnet fantomas --check Source.fs
+
+This will verify if the file `Source.fs` still needs formatting.
+If it does, the process will return exit code 99.
+In the case that the file does not require any formatting, exit code 0 is returned.
+Unexpected errors will return exit code 1.
+
+This scenario is meant to be executed in a continuous integration environment, to enforce that the newly added code was formatted correctly.
+
 ### Multiple paths
 
 *starting version 4.5*
@@ -134,6 +149,9 @@ fsharp_blank_lines_around_nested_multiline_expressions=true
 fsharp_bar_before_discriminated_union_declaration=false
 fsharp_strict_mode=false
 ```
+
+Please note that you should only add settings to the `.editorconfig` file when you want to deviate from the default settings.
+Copying the entire list above is unnecessary.
 
 ### indent_size
 
@@ -1266,6 +1284,13 @@ git diff --cached --name-only --diff-filter=ACM -z | xargs -0 git add
 
 ## FAKE Helpers
 
-Fantomas also exposes some less official helper functions when formatting code in FAKE scripts.
-Checkout the [FAKE sample](../fake-sample/README.md) for more details.
-These functions are not considered to be part of the public API, so they could be improved without the need to bump the major version.
+Fantomas also exposes some less official helper functions in [Fantomas.Extras](https://www.nuget.org/packages/Fantomas.Extras/), these will be deprecated in the next major version.
+It is advised to run the `fantomas-tool` instead when using FAKE, see [example](../fake-sample/README.md).
+
+## Updating to a new Fantomas version
+
+By default, Fantomas adheres to the Microsoft [F# code formatting guidelines](https://docs.microsoft.com/en-us/dotnet/fsharp/style-guide/formatting).
+If these change, Fantomas will follow accordingly. Due to this reason, the output cannot be guaranteed to remain the same when upgrading to a new minor version.
+
+If you are using Git for your source control, it is recommended to ignore commits where `fantomas-tool` was updated using a [.git-blame-ignore-revs file](https://git-scm.com/docs/git-blame#Documentation/git-blame.txt---ignore-revltrevgt).
+Check out this [blogpost](https://www.moxio.com/blog/43/ignoring-bulk-change-commits-with-git-blame) for more details.
