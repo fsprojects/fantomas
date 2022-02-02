@@ -1137,3 +1137,20 @@ let ``parenthesis function call with long lambda argument`` () =
     // comment
     42)
 """
+
+[<Test>]
+let ``function expression and argument expression with parenthesis, 1998`` () =
+    formatSourceString
+        false
+        """
+(SomeModule.doSomething << SomeModule.doSomethingElse) (fun x -> x)
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+(SomeModule.doSomething
+ << SomeModule.doSomethingElse)
+    (fun x -> x)
+"""
