@@ -1677,6 +1677,11 @@ let isSynExprLambda =
     | SynExpr.Lambda _ -> true
     | _ -> false
 
+let isIfThenElse =
+    function
+    | SynExpr.IfThenElse _ -> true
+    | _ -> false
+
 let (|AppParenTupleArg|_|) e =
     match e with
     | AppSingleParenArg (a, Paren (lpr, Tuple (ts, tr), rpr, pr)) -> Some(a, lpr, ts, tr, rpr, pr)
