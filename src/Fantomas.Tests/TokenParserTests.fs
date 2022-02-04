@@ -27,7 +27,6 @@ let private mkRange: MkRange =
             (FSharp.Compiler.Text.Position.mkPos el ec)
 
 let private getTriviaFromTokens = getTriviaFromTokens mkRange
-let private getTriviaNodesFromTokens = getTriviaNodesFromTokens mkRange
 
 [<Test>]
 let ``simple compiler directive should be found`` () =

@@ -10,7 +10,7 @@ open Fantomas
 type Id = { Ident: string; Range: Range }
 
 module Helpers =
-    let mkNode (t: FsAstType) (r: range) = TriviaNodeAssigner(MainNode(t), r)
+    let mkNode (t: FsAstType) (r: range) = TriviaNodeAssigner(t, r)
     let mkNodeOption (t: FsAstType) (r: range option) : TriviaNodeAssigner list = Option.toList r |> List.map (mkNode t)
 
 module private Ast =
@@ -942,7 +942,9 @@ module private Ast =
                     [ visit synPat; visit synPat2 ]
 
                 let finalContinuation (nodes: TriviaNodeAssigner list list) : TriviaNodeAssigner list =
-                    List.collect id nodes |> finalContinuation
+                    [ yield! List.collect id nodes
+                      yield mkNode SynPat_Or_Bar trivia.BarRange ]
+                    |> finalContinuation
 
                 Continuation.sequence continuations finalContinuation
             | SynPat.Ands (pats, range) ->
@@ -1141,7 +1143,7 @@ module private Ast =
         List.collect visitSynAttributeList attrs
 
     and visitSynAttributeList (attrs: SynAttributeList) : TriviaNodeAssigner list =
-        TriviaNodeAssigner(MainNode(SynAttributeList_), attrs.Range)
+        mkNode SynAttributeList_ attrs.Range
         :: (List.collect visitSynAttribute attrs.Attributes)
 
     and visitSynUnionCase (uc: SynUnionCase) : TriviaNodeAssigner list =
@@ -1158,11 +1160,12 @@ module private Ast =
 
     and visitSynEnumCase (sec: SynEnumCase) : TriviaNodeAssigner list =
         match sec with
-        | SynEnumCase (attrs, ident, value, valueRange, _, range, { EqualsRange = equalsRange }) ->
-            [ yield mkNode SynEnumCase_ range
+        | SynEnumCase (attrs, ident, value, valueRange, _, range, trivia) ->
+            [ yield! mkNodeOption SynEnumCase_Bar trivia.BarRange
+              yield mkNode SynEnumCase_ range
               yield! (visitSynAttributeLists attrs)
               yield visitIdent ident
-              yield mkNode SynEnumCase_Equals equalsRange
+              yield mkNode SynEnumCase_Equals trivia.EqualsRange
               yield! visitSynConst valueRange value ]
 
     and visitSynField (sfield: SynField) : TriviaNodeAssigner list =

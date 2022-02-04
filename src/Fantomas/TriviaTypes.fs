@@ -3,42 +3,6 @@ module Fantomas.TriviaTypes
 open FSharp.Compiler.Text
 open FSharp.Compiler.Tokenization
 
-type FsTokenType =
-    | AMP
-    | AMP_AMP
-    | BAR
-    | BAR_BAR
-    | COLON_COLON
-    | COLON_EQUALS
-    | COLON_GREATER
-    | COLON_QMARK
-    | COLON_QMARK_GREATER
-    | DELAYED
-    | DO
-    | DOLLAR
-    | DOT_DOT
-    | DOT_DOT_HAT
-    | ELIF
-    | ELSE
-    | GREATER
-    | IF
-    | IN
-    | INFIX_AMP_OP
-    | INFIX_BAR_OP
-    | INFIX_COMPARE_OP
-    | INFIX_STAR_DIV_MOD_OP
-    | INFIX_STAR_STAR_OP
-    | INT32_DOT_DOT
-    | LESS
-    | LPAREN_STAR_RPAREN
-    | MINUS
-    | PERCENT_OP
-    | PLUS_MINUS_OP
-    | PREFIX_OP
-    | QMARK
-    | QMARK_QMARK
-    | THEN
-
 type Token =
     { TokenInfo: FSharpTokenInfo
       LineNumber: int
@@ -279,6 +243,7 @@ type FsAstType =
     | SynPat_Typed
     | SynPat_Attrib
     // | SynPat_Or, use the inner patterns instead
+    | SynPat_Or_Bar
     | SynPat_Ands
     | SynPat_LongIdent
     | SynPat_LongIdent_And
@@ -360,6 +325,7 @@ type FsAstType =
     | SynUnionCaseKind_Fields
     | SynUnionCaseKind_FullType
     | SynEnumCase_
+    | SynEnumCase_Bar
     | SynEnumCase_Equals
     | SynField_
     | SynField_AfterAttributesBeforeIdentifier
@@ -419,18 +385,14 @@ type FsAstType =
     | File_
     | SigFile_
 
-type TriviaNodeType =
-    | MainNode of ``type``: FsAstType
-    | Token of ``type``: FsTokenType * Token
-
 type TriviaNode =
-    { Type: TriviaNodeType
+    { Type: FsAstType
       ContentBefore: TriviaContent list
       ContentItself: TriviaContent option
       ContentAfter: TriviaContent list
       Range: Range }
 
-type TriviaNodeAssigner(nodeType: TriviaNodeType, range: Range) =
+type TriviaNodeAssigner(nodeType: FsAstType, range: Range) =
     member this.Type = nodeType
     member this.Range = range
     member val ContentBefore = ResizeArray<TriviaContent>() with get, set

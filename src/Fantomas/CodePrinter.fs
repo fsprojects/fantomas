@@ -2596,7 +2596,7 @@ and genExpr astContext synExpr ctx =
                         Map.tryFindOrEmptyList SynInterpolatedStringPart_String ctx.TriviaMainNodes
                         |> List.choose (fun tn ->
                             match tn.Type, tn.ContentItself with
-                            | MainNode SynInterpolatedStringPart_String, Some (StringContent sc) when
+                            | SynInterpolatedStringPart_String, Some (StringContent sc) when
                                 (RangeHelpers.rangeEq tn.Range range)
                                 ->
                                 Some sc
@@ -4218,14 +4218,13 @@ and genUnionCase astContext (hasVerticalBar: bool) (UnionCase (ats, px, _, s, Un
         +> unindent
 
     genPreXmlDoc px
-    +> genTriviaBeforeClausePipe node.Range
     +> ifElse hasVerticalBar sepBar sepNone
     +> genOnelinerAttributes astContext ats
     -- s
     +> onlyIf (List.isNotEmpty fs) (expressionFitsOnRestOfLine shortExpr longExpr)
     |> genTriviaFor SynUnionCase_ node.Range
 
-and genEnumCase astContext (EnumCase (ats, px, identInAST, equalsRange, c, cr, r) as node) =
+and genEnumCase astContext (EnumCase (ats, barRange, px, identInAST, equalsRange, c, cr, r) as node) =
     let genCase =
         (!-identInAST
          +> genEq SynEnumCase_Equals (Some equalsRange)
@@ -4233,8 +4232,9 @@ and genEnumCase astContext (EnumCase (ats, px, identInAST, equalsRange, c, cr, r
         |> genTriviaFor SynEnumCase_ r
 
     genPreXmlDoc px
-    +> genTriviaBeforeClausePipe node.Range
-    +> sepBar
+    +> (match barRange with
+        | None -> sepBar
+        | Some barRange -> genTriviaFor SynEnumCase_Bar barRange sepBar)
     +> genOnelinerAttributes astContext ats
     +> genCase
 
@@ -4617,9 +4617,8 @@ and genClause astContext hasBar (Clause (p, eo, arrowRange, e) as ce) =
                      +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e))
                         ctx)
 
-    genTriviaBeforeClausePipe p.Range
-    +> (onlyIf hasBar sepBar +> patAndBody
-        |> genTriviaFor SynMatchClause_ ce.Range)
+    (onlyIf hasBar sepBar +> patAndBody
+     |> genTriviaFor SynMatchClause_ ce.Range)
 
 and genClauses astContext cs =
     col sepNln cs (genClause astContext true)
@@ -4907,8 +4906,7 @@ and genPat astContext pat =
     | PatOr (p1, barRange, p2) ->
         genPat astContext p1
         +> ifElse astContext.IsInsideMatchClausePattern sepNln sepSpace
-        +> enterNodeTokenByName barRange BAR
-        -- "| "
+        +> genTriviaFor SynPat_Or_Bar barRange !- "| "
         +> genPat astContext p2
     | PatAnds ps -> col (!- " & ") ps (genPat astContext)
     | PatNullary PatNull -> !- "null"
@@ -5647,9 +5645,7 @@ and genConst (c: SynConst) (r: Range) =
 
         let genNumber (ctx: Context) = genConstNumber c numberRange ctx
 
-        genNumber
-        +> measure
-        +> leaveNodeTokenByName r GREATER
+        genNumber +> measure
     | SynConst.SourceIdentifier (c, _, r) -> !-c |> genTriviaFor SynConst_SourceIdentifier r
 
 and genConstNumber (c: SynConst) (r: Range) =

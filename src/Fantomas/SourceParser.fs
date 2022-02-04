@@ -421,7 +421,7 @@ let (|Field|) (SynField (ats, isStatic, ido, t, isMutable, px, ao, _)) =
     (ats, px, ao, isStatic, isMutable, t, Option.map (|Ident|) ido)
 
 let (|EnumCase|) (SynEnumCase (ats, Ident s, c, cr, px, r, trivia)) =
-    (ats, px, s, trivia.EqualsRange, c, cr, r)
+    (ats, trivia.BarRange, px, s, trivia.EqualsRange, c, cr, r)
 
 // Member definitions (11 cases)
 
