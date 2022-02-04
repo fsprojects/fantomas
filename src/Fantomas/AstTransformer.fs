@@ -163,14 +163,15 @@ module private Ast =
                       yield! nodes
                       yield! visitSynType typeName ]
                     |> finalContinuation)
-            | SynExpr.ObjExpr (objType, argOptions, withRange, bindings, extraImpls, _, range) ->
+            | SynExpr.ObjExpr (objType, argOptions, withRange, bindings, members, extraImpls, _, range) ->
                 [ yield mkNode SynExpr_ObjExpr range
                   yield! visitSynType objType
                   if argOptions.IsSome then
                       yield! visitArgsOption argOptions.Value
                   yield! mkNodeOption SynExpr_ObjExpr_With withRange
-                  yield! extraImpls |> List.collect visitSynInterfaceImpl
-                  yield! bindings |> List.collect visitSynBinding ]
+                  yield! bindings |> List.collect visitSynBinding
+                  yield! members |> List.collect visitSynMemberDefn
+                  yield! extraImpls |> List.collect visitSynInterfaceImpl ]
                 |> finalContinuation
             | SynExpr.While (_, whileExpr, doExpr, range) ->
                 let continuations: ((TriviaNodeAssigner list -> TriviaNodeAssigner list) -> TriviaNodeAssigner list) list =
@@ -261,18 +262,9 @@ module private Ast =
                       yield! mkNodeOption SynExpr_TypeApp_Greater greaterRange ]
                     |> finalContinuation)
             | SynExpr.LetOrUse (_, _, bindings, body, _, trivia) ->
-                let inKeyword =
-                    match trivia.InKeyword with
-                    | None -> None
-                    | Some inKw ->
-                        if Position.posEq inKw.Start body.Range.Start then
-                            None
-                        else
-                            Some inKw
-
                 visit body (fun nodes ->
                     [ yield! (List.collect visitSynBinding bindings)
-                      yield! mkNodeOption SynExpr_LetOrUse_In inKeyword
+                      yield! mkNodeOption SynExpr_LetOrUse_In trivia.InKeyword
                       yield! nodes ]
                     |> finalContinuation)
             | SynExpr.TryWith (tryExpr,
@@ -693,24 +685,22 @@ module private Ast =
                  yield! mkNodeOption SynMatchClause_Arrow trivia.ArrowRange
                  yield! visitSynExpr e2 ]
 
-    // TODO: revisit after https://github.com/dotnet/fsharp/issues/12619
-    and visitSynExprAndBang
-        (SynExprAndBang (_, _, _, pat, equalsRange, body, andBangKeyword))
-        : TriviaNodeAssigner list =
-        [ yield mkNode SynExprAndBang_ (Range.unionRanges andBangKeyword body.Range)
+    and visitSynExprAndBang (SynExprAndBang (_, _, _, pat, body, range, trivia)) : TriviaNodeAssigner list =
+        [ yield mkNode SynExprAndBang_ range
           yield! visitSynPat pat
-          yield mkNode SynExprAndBang_Equals equalsRange
+          yield mkNode SynExprAndBang_Equals trivia.EqualsRange
           yield! visitSynExpr body ]
 
     and visitArgsOption (expr: SynExpr, _: Ident option) = visitSynExpr expr
 
     and visitSynInterfaceImpl (ii: SynInterfaceImpl) : TriviaNodeAssigner list =
         match ii with
-        | SynInterfaceImpl (typ, withKeyword, bindings, range) ->
+        | SynInterfaceImpl (typ, withKeyword, bindings, members, range) ->
             [ yield mkNode SynInterfaceImpl_ range
               yield! mkNodeOption SynInterfaceImpl_With withKeyword
               yield! visitSynType typ
-              yield! (bindings |> List.collect visitSynBinding) ]
+              yield! (bindings |> List.collect visitSynBinding)
+              yield! (members |> List.collect visitSynMemberDefn) ]
 
     and visitSynTypeDefn (td: SynTypeDefn) =
         match td with
@@ -947,7 +937,7 @@ module private Ast =
                       yield! nodes
                       yield! (visitSynAttributeLists attrs) ]
                     |> finalContinuation)
-            | SynPat.Or (synPat, synPat2, _range) ->
+            | SynPat.Or (synPat, synPat2, _range, trivia) ->
                 let continuations: ((TriviaNodeAssigner list -> TriviaNodeAssigner list) -> TriviaNodeAssigner list) list =
                     [ visit synPat; visit synPat2 ]
 
@@ -1359,13 +1349,19 @@ module private Ast =
 
     and visitSynModuleOrNamespaceSig (modOrNs: SynModuleOrNamespaceSig) : TriviaNodeAssigner list =
         match modOrNs with
-        | SynModuleOrNamespaceSig (longIdent, _, kind, decls, _, attrs, _, _range) ->
+        | SynModuleOrNamespaceSig (longIdent, _, kind, decls, _, attrs, _, range) ->
             let longIdentNodes =
                 match kind, decls with
                 | SynModuleOrNamespaceKind.AnonModule, _ :: _ -> []
                 | _ -> visitLongIdentIncludingFullRange longIdent
 
-            [ yield! longIdentNodes
+            let moduleOrNamespaceSig =
+                match kind with
+                | SynModuleOrNamespaceKind.NamedModule -> [ mkNode SynModuleOrNamespaceSig_NamedModule range ]
+                | _ -> []
+
+            [ yield! moduleOrNamespaceSig
+              yield! longIdentNodes
               yield! (visitSynAttributeLists attrs)
               yield! (decls |> List.collect visitSynModuleSigDecl) ]
 

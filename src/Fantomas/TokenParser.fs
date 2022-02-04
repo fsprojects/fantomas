@@ -450,14 +450,7 @@ let private getContentFromTokens tokens =
     |> List.map (fun t -> t.Content)
     |> String.concat String.Empty
 
-let private keywordTrivia =
-    [ "OVERRIDE"
-      "MEMBER"
-      "DEFAULT"
-      "ABSTRACT"
-      "KEYWORD_STRING"
-      "QMARK"
-      "IN" ]
+let private keywordTrivia = [ "KEYWORD_STRING"; "QMARK" ]
 
 let private numberTrivia =
     [ "UINT8"
@@ -805,6 +798,10 @@ let rec private getTriviaFromTokensThemSelves
     foundTrivia
     =
     match tokens with
+    // Skip triple slash comments
+    | LineComments ({ Content = "///" } :: _, rest) ->
+        getTriviaFromTokensThemSelves mkRange lastButOneNonWhiteSpaceToken lastNonWhiteSpaceToken rest foundTrivia
+
     | LineComments ({ LineNumber = headLineNumber } :: _ as commentTokens, rest) ->
         let isAfterSourceCode =
             match lastButOneNonWhiteSpaceToken, lastNonWhiteSpaceToken with
@@ -1120,7 +1117,7 @@ let getTriviaFromTokens (mkRange: MkRange) (tokens: Token list) =
     fromTokens @ newLines
     |> List.sortBy (fun t -> t.Range.StartLine, t.Range.StartColumn)
 
-let private tokenNames = [ "BAR"; "MEMBER" ]
+let private tokenNames = [ "BAR" ]
 
 let internal getFsToken tokenName =
     match tokenName with
@@ -1151,7 +1148,6 @@ let internal getFsToken tokenName =
     | "INT32_DOT_DOT" -> INT32_DOT_DOT
     | "LESS" -> LESS
     | "LPAREN_STAR_RPAREN" -> LPAREN_STAR_RPAREN
-    | "MEMBER" -> MEMBER
     | "MINUS" -> MINUS
     | "PERCENT_OP" -> PERCENT_OP
     | "PLUS_MINUS_OP" -> PLUS_MINUS_OP

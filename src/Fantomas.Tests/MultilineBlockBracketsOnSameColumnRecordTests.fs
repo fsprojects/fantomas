@@ -485,6 +485,7 @@ type Element =
         equal
         """
 module RecordSignature
+
 /// Represents simple XML elements.
 type Element =
     {

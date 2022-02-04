@@ -23,8 +23,7 @@ let sharedChecker = lazy (FSharpChecker.Create())
 
 let private safeToIgnoreWarnings =
     [ "This construct is deprecated: it is only for use in the F# library"
-      "Identifiers containing '@' are reserved for use in F# code generation"
-      "XML comment is not placed on a valid language element." ]
+      "Identifiers containing '@' are reserved for use in F# code generation" ]
 
 let private isValidAndHasNoWarnings fileName source parsingOptions =
     let allDefineOptions, _ = TokenParser.getDefines source

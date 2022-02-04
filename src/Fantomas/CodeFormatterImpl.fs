@@ -290,7 +290,7 @@ let isValidAST ast =
         | SynPat.As (pat1, pat2, _) -> validatePattern pat1 && validatePattern pat2
         | SynPat.Typed (pat, _typ, _range) -> validatePattern pat
         | SynPat.Attrib (pat, _attrib, _range) -> validatePattern pat
-        | SynPat.Or (pat1, pat2, _range) -> validatePattern pat1 && validatePattern pat2
+        | SynPat.Or (lhsPat = pat1; rhsPat = pat2) -> validatePattern pat1 && validatePattern pat2
         | SynPat.Ands (pats, _range) -> List.forall validatePattern pats
         | SynPat.LongIdent (argPats = constructorArgs) -> validateConstructorArgs constructorArgs
         | SynPat.Tuple (false, pats, _range) -> List.forall validatePattern pats

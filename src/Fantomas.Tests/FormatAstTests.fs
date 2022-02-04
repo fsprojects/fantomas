@@ -88,7 +88,7 @@ type Foo =
         """[<AbstractClass>]
 type Foo =
     abstract foo: int
-    override __.foo = 1"""
+    default __.foo = 1"""
 
 [<Test>]
 let ``default implementations in abstract classes with `default` keyword should be emited as it was before from AST with origin source, 742``
@@ -130,7 +130,7 @@ let ``object expression should emit override keyword on AST formatting without o
     |> should
         equal
         """{ new System.IDisposable with
-    override __.Dispose() = () }"""
+    member __.Dispose() = () }"""
 
 [<Test>]
 let ``object expression should preserve member keyword on AST formatting with origin source, 742`` () =

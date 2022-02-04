@@ -37,7 +37,8 @@ let inline private mainNodeIs name (t: TriviaNodeAssigner) =
 // so it is not an ideal candidate node to have trivia content
 let inline private isNotMemberKeyword (node: TriviaNodeAssigner) =
     match node.Type with
-    | Token (MEMBER, _) -> false
+    // TODO: probably replace with main node counterpart, or not
+//    | Token (MEMBER, _) -> false
     | _ -> true
 
 let private findFirstNodeAfterLine (nodes: TriviaNodeAssigner list) (lineNumber: int) : TriviaNodeAssigner option =
@@ -74,15 +75,6 @@ let private findNodeOnLineAndColumn (nodes: TriviaNodeAssigner list) line column
     |> List.tryFindBack (fun tn ->
         tn.Range.StartLine = line
         && tn.Range.StartColumn = column)
-
-let private findMemberDefnMemberNodeOnLine (nodes: TriviaNodeAssigner list) line =
-    nodes
-    |> List.tryFind (fun tn ->
-        match tn.Type, tn.Range.StartLine = line with
-        | MainNode SynMemberDefn_Member, true
-        | MainNode SynMemberSig_Member, true
-        | Token (MEMBER, _), true -> true
-        | _ -> false)
 
 let private findNodeBeforeLineAndColumn (nodes: TriviaNodeAssigner list) line column =
     let node =
@@ -300,34 +292,6 @@ let private addTriviaToTriviaNode (startOfSourceCode: int) (triviaNodes: TriviaN
             // try and find a node above
             findNodeBeforeLineFromStart triviaNodes range.StartLine
             |> updateTriviaNode (fun tn -> tn.ContentAfter.Add(Newline)) triviaNodes
-
-    | { Item = Keyword ({ Content = keyword } as kw)
-        Range = range } when
-        (keyword = "override"
-         || keyword = "default"
-         || keyword = "member"
-         || keyword = "abstract")
-        ->
-        findMemberDefnMemberNodeOnLine triviaNodes range.StartLine
-        |> updateTriviaNode
-            (fun tn ->
-                match tn.Type, tn.ContentItself with
-                | TriviaNodeType.Token (MEMBER, _), Some (Keyword ({ Content = existingKeywordContent } as token))
-                | MainNode SynMemberSig_Member, Some (Keyword ({ Content = existingKeywordContent } as token)) when
-                    existingKeywordContent = "abstract"
-                    && keyword = "member"
-                    ->
-                    // Combine the two tokens to appear as one
-                    let tokenInfo = { token.TokenInfo with RightColumn = kw.TokenInfo.RightColumn }
-
-                    let combinedKeyword =
-                        { token with
-                            Content = "abstract member"
-                            TokenInfo = tokenInfo }
-
-                    tn.ContentItself <- Some(Keyword(combinedKeyword))
-                | _ -> tn.ContentItself <- Some(Keyword(kw)))
-            triviaNodes
 
     | { Item = Keyword ({ TokenInfo = { TokenName = tn } } as kw)
         Range = range } when (tn = "QMARK") ->

@@ -245,15 +245,16 @@ let (|ModuleOrNamespace|)
     (ats, px, ao, lids, mds, isRecursive, kind)
 
 let (|SigModuleOrNamespace|)
-    (SynModuleOrNamespaceSig.SynModuleOrNamespaceSig (LongIdentPieces lids, isRecursive, kind, mds, px, ats, ao, _))
+    (SynModuleOrNamespaceSig.SynModuleOrNamespaceSig (LongIdentPieces lids, isRecursive, kind, mds, px, ats, ao, range))
     =
-    (ats, px, ao, lids, mds, isRecursive, kind)
+    (ats, px, ao, lids, mds, isRecursive, kind, range)
 
 let (|EmptyFile|_|) (input: ParsedInput) =
     match input with
     | ImplFile (ParsedImplFileInput (_, [ ModuleOrNamespace (_, _, _, _, [], _, SynModuleOrNamespaceKind.AnonModule) ])) ->
         Some input
-    | SigFile (ParsedSigFileInput (_, [ SigModuleOrNamespace (_, _, _, _, [], _, SynModuleOrNamespaceKind.AnonModule) ])) ->
+    | SigFile (ParsedSigFileInput (_,
+                                   [ SigModuleOrNamespace (_, _, _, _, [], _, SynModuleOrNamespaceKind.AnonModule, _) ])) ->
         Some input
     | _ -> None
 
@@ -456,7 +457,7 @@ let (|MDValField|_|) =
 
 let (|MDImplicitCtor|_|) =
     function
-    | SynMemberDefn.ImplicitCtor (ao, ats, ps, ido, _docs, _) -> Some(ats, ao, ps, Option.map (|Ident|) ido)
+    | SynMemberDefn.ImplicitCtor (ao, ats, ps, ido, docs, _) -> Some(docs, ats, ao, ps, Option.map (|Ident|) ido)
     | _ -> None
 
 let (|MDMember|_|) =
@@ -500,7 +501,8 @@ let (|MDAutoProperty|_|) =
 
 // Interface impl
 
-let (|InterfaceImpl|) (SynInterfaceImpl (t, withKeywordRange, bs, range)) = (t, withKeywordRange, bs, range)
+let (|InterfaceImpl|) (SynInterfaceImpl (t, withKeywordRange, bs, members, range)) =
+    (t, withKeywordRange, bs, members, range)
 
 // Bindings
 
@@ -525,8 +527,6 @@ let (|MFProperty|_|) (mf: SynMemberFlags) =
     | SynMemberKind.PropertySet
     | SynMemberKind.PropertyGetSet as mk -> Some mk
     | _ -> None
-
-let (|MFMemberFlags|) (mf: SynMemberFlags) = mf.MemberKind
 
 /// This pattern finds out which keyword to use
 let (|MFMember|MFStaticMember|MFConstructor|MFOverride|) (mf: SynMemberFlags) =
@@ -925,19 +925,6 @@ let (|JoinIn|_|) =
     | SynExpr.JoinIn (e1, _, e2, _) -> Some(e1, e2)
     | _ -> None
 
-let private mkInKeyword (lastIndex: int) (index: int) (inKw: range option) (body: SynExpr) =
-    if index <> lastIndex then
-        None
-    else
-        match inKw with
-        | None -> None
-        | Some inKw ->
-            if Position.posEq inKw.Start body.Range.Start then
-                None
-            else
-                Some inKw
-
-
 /// Unfold a list of let bindings
 /// Recursive and use properties have to be determined at this point
 let rec (|LetOrUses|_|) =
@@ -954,9 +941,19 @@ let rec (|LetOrUses|_|) =
             List.mapi
                 (fun i x ->
                     if i = 0 then
-                        (prefix, x, mkInKeyword lastIndex i trivia.InKeyword body)
+                        (prefix,
+                         x,
+                         if i = lastIndex then
+                             trivia.InKeyword
+                         else
+                             None)
                     else
-                        ("and ", x, mkInKeyword lastIndex i trivia.InKeyword body))
+                        ("and ",
+                         x,
+                         if i = lastIndex then
+                             trivia.InKeyword
+                         else
+                             None))
                 xs
 
         Some(xs' @ ys, e)
@@ -972,9 +969,19 @@ let rec (|LetOrUses|_|) =
             List.mapi
                 (fun i x ->
                     if i = 0 then
-                        (prefix, x, mkInKeyword lastIndex i trivia.InKeyword e)
+                        (prefix,
+                         x,
+                         if i = lastIndex then
+                             trivia.InKeyword
+                         else
+                             None)
                     else
-                        ("and ", x, mkInKeyword lastIndex i trivia.InKeyword e))
+                        ("and ",
+                         x,
+                         if i = lastIndex then
+                             trivia.InKeyword
+                         else
+                             None))
                 xs
 
         Some(xs', e)
@@ -1003,9 +1010,8 @@ let rec collectComputationExpressionStatements
 
         let andBangs =
             andBangs
-            |> List.map (fun (SynExprAndBang (_, _, _, ap, equalsRange, ae, andBangKeyword)) ->
-                let range = Range.unionRanges andBangKeyword ae.Range
-                AndBangStatement(ap, equalsRange, ae, range))
+            |> List.map (fun (SynExprAndBang (_, _, _, ap, ae, range, trivia)) ->
+                AndBangStatement(ap, trivia.EqualsRange, ae, range))
 
         collectComputationExpressionStatements body (fun bodyStatements ->
             [ letOrUseBang
@@ -1143,7 +1149,8 @@ let (|AnonRecord|_|) =
 
 let (|ObjExpr|_|) =
     function
-    | SynExpr.ObjExpr (t, eio, withKeyword, bd, ims, _, range) -> Some(t, eio, withKeyword, bd, ims, range)
+    | SynExpr.ObjExpr (t, eio, withKeyword, bd, members, ims, _, range) ->
+        Some(t, eio, withKeyword, bd, members, ims, range)
     | _ -> None
 
 let (|LongIdentSet|_|) =
@@ -1199,13 +1206,13 @@ let (|PatAttrib|_|) =
 
 let (|PatOr|_|) =
     function
-    | SynPat.Or (p1, p2, _) -> Some(p1, p2)
+    | SynPat.Or (p1, p2, _, trivia) -> Some(p1, trivia.BarRange, p2)
     | _ -> None
 
 let rec (|PatOrs|_|) =
     function
-    | PatOr (PatOrs pats, p2) -> Some [ yield! pats; yield p2 ]
-    | PatOr (p1, p2) -> Some [ p1; p2 ]
+    | PatOr (PatOrs (p1, pats), barRange, p2) -> Some(p1, [ yield! pats; yield (barRange, p2) ])
+    | PatOr (p1, barRange, p2) -> Some(p1, [ barRange, p2 ])
     | _ -> None
 
 let (|PatAnds|_|) =

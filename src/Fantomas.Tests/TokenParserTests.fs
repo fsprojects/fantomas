@@ -301,28 +301,6 @@ let x = 1
     | _ -> Assert.Fail(sprintf "Unexpected trivia %A" triviaNodes)
 
 [<Test>]
-let ``member and override`` () =
-    let source =
-        """
-type MyLogInteface() =
-    interface LogInterface with
-        member x.Print msg = printfn "%s" msg
-        override x.GetLogFile environment = "..."
-"""
-
-    let triviaNodes =
-        tokenize source
-        |> getTriviaFromTokens
-        |> List.choose (fun { Item = item } ->
-            match item with
-            | Keyword { Content = kw } -> Some kw
-            | _ -> None)
-
-    match triviaNodes with
-    | [ "member"; "override" ] -> pass ()
-    | _ -> fail ()
-
-[<Test>]
 let ``at before string`` () =
     let source = "@\"foo\""
 
