@@ -1951,6 +1951,26 @@ let value =
 """
 
 [<Test>]
+let ``list with if/then/else expressions should always be multiline, 2055`` () =
+    formatSourceString
+        false
+        """
+let wrong = [
+    if false then 1
+    if true then 2
+]
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let wrong =
+    [ if false then 1
+      if true then 2 ]
+"""
+
+[<Test>]
 let ``multiline yield expression should be indented, 882`` () =
     formatSourceString
         false
