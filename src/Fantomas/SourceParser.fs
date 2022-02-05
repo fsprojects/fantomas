@@ -1672,13 +1672,9 @@ let isIfThenElseWithYieldReturn e =
     | SynExpr.IfThenElse (thenExpr = SynExpr.YieldOrReturn _; elseExpr = Some (SynExpr.YieldOrReturnFrom _)) -> true
     | _ -> false
 
-let isSynExprLambda =
+let isSynExprLambdaOrIfThenElse =
     function
-    | SynExpr.Lambda _ -> true
-    | _ -> false
-
-let isIfThenElse =
-    function
+    | SynExpr.Lambda _
     | SynExpr.IfThenElse _ -> true
     | _ -> false
 

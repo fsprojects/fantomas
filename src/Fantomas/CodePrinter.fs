@@ -1339,7 +1339,7 @@ and genExpr astContext synExpr ctx =
 
             fun ctx ->
                 if List.exists isIfThenElseWithYieldReturn xs
-                   || List.forall (fun x -> isSynExprLambda x || isIfThenElse x) xs then
+                   || List.forall isSynExprLambdaOrIfThenElse xs then
                     multilineExpression ctx
                 else
                     let size = getListOrArrayExprSize ctx ctx.Config.MaxArrayOrListWidth xs
