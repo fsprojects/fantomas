@@ -303,3 +303,49 @@ let shrinkInput input =
         //stdout.WriteLine("Can't shrink {0} further.", sprintf "%A" input)
         Seq.empty
 """
+
+[<Test>]
+let ``comment in LongIdent application, 2062`` () =
+    formatSourceString
+        false
+        """
+Rollbar
+  .RollbarLocator
+  .RollbarInstance
+  // .AsBlockingLogger(System.TimeSpan.FromSeconds 5)
+  .Error(package, custom)
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+Rollbar
+    .RollbarLocator
+    .RollbarInstance
+    // .AsBlockingLogger(System.TimeSpan.FromSeconds 5)
+    .Error(package, custom)
+"""
+
+[<Test>]
+let ``comment inside LongIdentWithDots preserved, 2027`` () =
+    formatSourceString
+        false
+        """
+let path =
+    match normalizedPath with
+    | path ->
+        path  // translate path to Python relative syntax
+            .Replace("../../../", "....")
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let path =
+    match normalizedPath with
+    | path ->
+        path // translate path to Python relative syntax
+            .Replace("../../../", "....")
+"""
