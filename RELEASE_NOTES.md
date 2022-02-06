@@ -1,3 +1,11 @@
+#### 4.6.2 - 02/2022
+
+* Fix Comment in method chain gets deleted. [#2062](https://github.com/fsprojects/fantomas/issues/2062)
+* Fix Idempotency and correctness problem when using multiple if statements as list comprehension. [#2055](https://github.com/fsprojects/fantomas/issues/2055)
+* Fix Comment inside LongIdentWithDots not preserved. [#2027](https://github.com/fsprojects/fantomas/issues/2027)
+* Fix Consecutive #load statements are merged into one line if namespace is declared below. [#2014](https://github.com/fsprojects/fantomas/issues/2014)
+* Fix Line of code including a backward composition operator causes error. [#1998](https://github.com/fsprojects/fantomas/issues/1998)
+
 #### 4.6.1 - 02/2022
 
 * Fix Type parameter comment lost in formatting. [#2052](https://github.com/fsprojects/fantomas/issues/2052)
