@@ -1953,6 +1953,29 @@ and genExpr astContext synExpr ctx =
 
             expressionFitsOnRestOfLine short long
 
+        // path.Replace("../../../", "....")
+        | AppSingleParenArg (LongIdentPiecesExpr lids as functionOrMethod, px) ->
+            let addSpace =
+                onlyIfCtx (addSpaceBeforeParensInFunCall functionOrMethod px) sepSpace
+
+            let shortLids =
+                col sepDot lids (fun (s, r) ->
+                    genTriviaFor Ident_ r !-s
+                    +> sepNlnWhenWriteBeforeNewlineNotEmpty sepNone)
+
+            let short = shortLids +> addSpace +> genExpr astContext px
+
+            let long =
+                let args =
+                    addSpace
+                    +> expressionFitsOnRestOfLine
+                        (genExpr astContext px)
+                        (genMultilineFunctionApplicationArguments astContext px)
+
+                ifElseCtx (futureNlnCheck shortLids) (genFunctionNameWithMultilineLids args lids) (shortLids +> args)
+
+            expressionFitsOnRestOfLine short long
+
         | AppSingleParenArg (e, px) ->
             let sepSpace (ctx: Context) =
                 match e with
@@ -2805,9 +2828,7 @@ and genLidsWithDots (lids: (string * range) list) =
     +> col !- "." lids (fun (s, _) -> !-s)
 
 and genLidsWithDotsAndNewlines (lids: (string * range) list) =
-    optSingle (fun (_, r) -> enterNodeFor Ident_ r) (List.tryHead lids)
-    +> !- "."
-    +> col (sepNln +> !- ".") lids (fun (s, _) -> !-s)
+    col sepNln lids (fun (s, r) -> genTriviaFor Ident_ r !- $".{s}")
 
 and genSpaceBeforeLids
     (currentIndex: int)
@@ -2833,8 +2854,7 @@ and genSpaceBeforeLids
 and genFunctionNameWithMultilineLids f lids =
     match lids with
     | (s, r) :: t ->
-        enterNodeFor Ident_ r
-        +> !-s
+        genTriviaFor Ident_ r !-s
         +> indent
         +> sepNln
         +> genLidsWithDotsAndNewlines t
