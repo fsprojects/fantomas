@@ -20,7 +20,7 @@ We'll ask for a regression test when you fix a bug, to guarantee that you won't 
 
 Our goal is for Fantomas to be able to format all files out of the box without breaking correctness.
 It's very important to us that a new user's experience is smooth and at the very least results in correct code.
-bugs labelled `bug (soundness)` all indicate places where a new user might bounce off Fantomas because it actually broke their code.
+Bugs labelled `bug (soundness)` all indicate places where a new user might bounce off Fantomas because it actually broke their code.
 We want to make sure users get a chance to explore the settings and tweak the style.
 If you can help us out by fixing a soundness bug, you can really help the project move forward.
 
@@ -43,7 +43,7 @@ This tool will only improve by adoption.
 
 Fantomas grew significantly as a result of its first sponsorship deal with [G-Research](https://www.gresearch.co.uk/).
 It would still be in the dark ages if it weren't for this support. For that we will forever be grateful.
-If you want to help increase adoption by providing financial support, you can reach out to [sponsoring@fantomas.io](mailto:sponsoring@fantomas.io). 
+If you want to help increase adoption by providing financial support, you can reach out to [sponsoring@fantomas.io](mailto:sponsoring@fantomas.io).
 
 ## What are we not looking for?
 
@@ -158,6 +158,9 @@ For example, `git checkout -b fix-1404`.
 - Code should be formatted to our standard style, using either `dotnet fake run build.fsx -t Format` which works on all files, or
   `dotnet fake run build.fsx -t FormatChanged` to just change the files in git.
 
+- Finally, make sure to run `dotnet fake build`. Among other things, this will check the format of the code and will tell you, if
+ your changes caused any tests to fail.
+
 ### Small steps
 
 It is better to create a draft pull request with some initial small changes, and engage conversation, than to spend a lot of effort on a large pull request that was never discussed.
@@ -176,12 +179,12 @@ In short, Fantomas is a source-code-to-source-code compiler. It will transform t
 It uses the [F# Compiler Services](https://fsharp.github.io/FSharp.Compiler.Service/index.html) to do this. The F# compiler will be used to create an [UnTyped Abstract Syntax](https://fsharp.github.io/FSharp.Compiler.Service/reference/fsharp-compiler-syntaxtree.html) tree (or "AST").
 The AST is then reprinted in `CodePrinter.fs`: once the whole tree is traversed, the formatted code can be constructed.
 
-There is a catch, though. The AST does not have all the original information the was once in the source code. 
+There is a catch, though. The AST does not have all the original information that was once in the source code.
 Things like code comments, for example, are not present in the tree given to us by the F# compiler.
 We call these pieces of information "trivia".
 Fantomas uses another part of the F# Compiler Services to detect trivia: namely, the tokenizer.
 All tokens are processed to find trivia, then trivia are assigned to "trivia nodes" (a concept of Fantomas, not of the F# compiler).
-Trivia nodes are linked to an existing AST node or a F# token. They serve as a marker to indicate where in `CodePrinter.fs` the trivia needs to be added to the formatted code.
+Trivia nodes are linked to an existing AST node or an F# token. They serve as a marker to indicate where in `CodePrinter.fs` the trivia needs to be added to the formatted code.
 
 ## YouTube video series
 
