@@ -310,7 +310,7 @@ The maintainers know the code and will be able to tell.
 
 # Community
 
-There is a [Gitter](https://gitter.im/fsprojects/fantomas) channel or you can try the `#editor_support` channel in the [F# Foundation Slack](https://fsharp.slack.com).
+There is a [Discord](https://discord.gg/D5QXvQrBVa) server or you can try the `#editor_support` channel in the [F# Foundation Slack](https://fsharp.slack.com).
 
 ## Talks
 
