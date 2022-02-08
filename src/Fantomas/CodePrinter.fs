@@ -2632,10 +2632,18 @@ and genExpr astContext synExpr ctx =
 
                 expr ctx
         | IndexRangeExpr (None, None) -> !- "*"
+        | IndexRangeExpr (Some (IndexRangeExpr (Some (ConstNumberExpr e1), Some (ConstNumberExpr e2))),
+                          Some (ConstNumberExpr e3)) ->
+            genExpr astContext e1
+            +> !- ".."
+            +> genExpr astContext e2
+            +> !- ".."
+            +> genExpr astContext e3
         | IndexRangeExpr (e1, e2) ->
             let hasSpaces =
                 let rec (|AtomicExpr|_|) e =
                     match e with
+                    | NegativeNumber _ -> None
                     | SynExpr.Ident _
                     | SynExpr.Const (SynConst.Int32 _, _)
                     | IndexRangeExpr (Some (AtomicExpr _), Some (AtomicExpr _))
