@@ -1,6 +1,9 @@
-nunit
-NUnit3TestAdapter
-Microsoft.NET.Test.Sdk
 FSharp.Compiler.Service
 FSharp.Core
+
+group tests
 FsUnit
+FsCheck
+Microsoft.NET.Test.Sdk
+NUnit3TestAdapter
+NunitXml.TestLogger

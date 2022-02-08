@@ -1,20 +1,10 @@
 source https://api.nuget.org/v3/index.json
 
-framework: netstandard2.0, net6.0
+framework: netstandard2.0
 storage: none
 
 nuget FSharp.Core 6.0.1 content: none
 nuget FSharp.Compiler.Service 41.0.1
-nuget FsUnit
-nuget FsCheck
-nuget Microsoft.NET.Test.Sdk
-nuget nunit 3.13.2
-nuget NUnit3TestAdapter 4.0.0-beta.1
-nuget NunitXml.TestLogger
-nuget Argu
-nuget BenchmarkDotNet
-nuget editorconfig
-nuget MAB.DotIgnore 3.0.2
 nuget Microsoft.SourceLink.GitHub copy_local: true
 
 github: fsprojects/fantomas:829faa6ba834f99afed9b4434b3a1680536474b2 src/Fantomas/CodePrinter.fs
@@ -36,6 +26,7 @@ group build
 
 group tool
     storage: none
+    framework: netcoreapp3.1, net6.0
     source https://api.nuget.org/v3/index.json
 
     nuget FSharp.Core 6.0.1
@@ -52,3 +43,30 @@ group client
     nuget StreamJsonRpc
     nuget Microsoft.SourceLink.GitHub copy_local: true
     nuget SemanticVersioning
+
+group extras
+    storage: none
+    framework: netstandard2.0
+    source https://api.nuget.org/v3/index.json
+
+    nuget editorconfig
+    nuget MAB.DotIgnore 3.0.2
+
+group tests
+    storage: none
+    framework: net6.0
+    source https://api.nuget.org/v3/index.json
+
+    nuget FsUnit
+    nuget FsCheck
+    nuget Microsoft.NET.Test.Sdk
+    nuget nunit 3.13.2
+    nuget NUnit3TestAdapter 4.0.0-beta.1
+    nuget NunitXml.TestLogger
+
+group benchmarks
+    storage: none
+    framework: net6.0
+    source https://api.nuget.org/v3/index.json
+    
+    nuget BenchmarkDotNet
