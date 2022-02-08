@@ -4286,7 +4286,9 @@ and genType astContext outerBracket t =
             loop t1 -- "="
             +> addSpaceIfSynTypeStaticConstantHasAtSignBeforeString t2
             +> loop t2
-        | TArray (t, n) -> loop t -- " [" +> rep (n - 1) (!- ",") -- "]"
+        | TArray (t, n, r) ->
+            loop t -- " [" +> rep (n - 1) (!- ",") -- "]"
+            |> genTriviaFor SynType_Array r
         | TAnon -> sepWild
         | TVar (tp, r) ->
             genTypar astContext tp
@@ -5387,6 +5389,11 @@ and genSynBindingValue
             +> genType astContext false rt
         | None -> sepNone
 
+    let genTriviaForReturnType =
+        match returnType with
+        | Some rt -> genTriviaFor SynBindingReturnInfo_ rt.Range
+        | None -> id
+
     let equalsRange (ctx: Context) =
         let endPos =
             match returnType with
@@ -5418,7 +5425,9 @@ and genSynBindingValue
             +> genReturnType
             +> (fun ctx -> genEqualsInBinding (equalsRange ctx) ctx)
 
-        let short = prefix +> genExprKeepIndentInBranch astContext e
+        let short =
+            prefix +> genExprKeepIndentInBranch astContext e
+            |> genTriviaForReturnType
 
         let long =
             prefix
@@ -5426,6 +5435,7 @@ and genSynBindingValue
             +> sepNln
             +> genExprKeepIndentInBranch astContext e
             +> unindent
+            |> genTriviaForReturnType
 
         isShortExpression ctx.Config.MaxValueBindingWidth short long ctx)
 

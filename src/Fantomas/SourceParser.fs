@@ -1450,7 +1450,7 @@ let (|TStaticConstantNamed|_|) =
 
 let (|TArray|_|) =
     function
-    | SynType.Array (n, t, _) -> Some(t, n)
+    | SynType.Array (n, t, r) -> Some(t, n, r)
     | _ -> None
 
 let (|TAnon|_|) =
