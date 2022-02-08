@@ -1,3 +1,9 @@
+#### 4.6.3 - 02/2022
+
+* Documentation: Running fake build locally. [#2056](https://github.com/fsprojects/fantomas/issues/2056)
+* Documentation: Replace Gitter with Discord. [#2070](https://github.com/fsprojects/fantomas/pull/2070)
+* Fix Spaces are lost in multi range expression. [#2071](https://github.com/fsprojects/fantomas/issues/2071)
+
 #### 4.6.2 - 02/2022
 
 * Fix Comment in method chain gets deleted. [#2062](https://github.com/fsprojects/fantomas/issues/2062)
