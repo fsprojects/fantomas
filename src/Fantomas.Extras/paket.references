@@ -1,4 +1,6 @@
 FSharp.Core
+Microsoft.SourceLink.GitHub
+
+group extras
 editorconfig
 MAB.DotIgnore
-Microsoft.SourceLink.GitHub
