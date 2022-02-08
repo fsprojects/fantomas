@@ -129,3 +129,22 @@ let segment = System.Uri(ctx.Request.Path.Value).Segments[1]
         """
 let segment = System.Uri(ctx.Request.Path.Value).Segments[1]
 """
+
+[<Test>]
+let ``negative numbers should keep space, 2071`` () =
+    formatSourceString
+        false
+        """
+  do
+    for i in [ maxIndex .. -1 .. startIndex ] do
+      stack.Push i
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+do
+    for i in [ maxIndex .. -1 .. startIndex ] do
+        stack.Push i
+"""

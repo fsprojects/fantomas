@@ -2636,6 +2636,12 @@ and genExpr astContext synExpr ctx =
             let hasSpaces =
                 let rec (|AtomicExpr|_|) e =
                     match e with
+                    | ConstExpr (SynConst.Double v, _) when v < 0. -> None
+                    | ConstExpr (SynConst.Decimal v, _) when v < 0M -> None
+                    | ConstExpr (SynConst.Single v, _) when v < 0f -> None
+                    | ConstExpr (SynConst.Int16 v, _) when v < 0s -> None
+                    | ConstExpr (SynConst.Int32 v, _) when v < 0 -> None
+                    | ConstExpr (SynConst.Int64 v, _) when v < 0L -> None
                     | SynExpr.Ident _
                     | SynExpr.Const (SynConst.Int32 _, _)
                     | IndexRangeExpr (Some (AtomicExpr _), Some (AtomicExpr _))
