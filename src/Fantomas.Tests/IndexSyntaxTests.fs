@@ -131,7 +131,7 @@ let segment = System.Uri(ctx.Request.Path.Value).Segments[1]
 """
 
 [<Test>]
-let ``negative numbers should keep space, 2071`` () =
+let ``ident and negative number should keep space, 2071`` () =
     formatSourceString
         false
         """
