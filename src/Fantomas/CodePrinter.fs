@@ -2000,16 +2000,13 @@ and genExpr astContext synExpr ctx =
             let sepSpaceAfterFunctionName =
                 let sepSpaceBasedOnSetting e =
                     match e with
+                    | Paren _ -> sepSpace
                     | UppercaseSynExpr -> (fun ctx -> onlyIf ctx.Config.SpaceBeforeUppercaseInvocation sepSpace ctx)
                     | LowercaseSynExpr -> (fun ctx -> onlyIf ctx.Config.SpaceBeforeLowercaseInvocation sepSpace ctx)
 
-                match List.tryHead es with
-                | None ->
-                    match e with
-                    | Paren _ -> sepSpace
-                    | _ -> sepSpaceBasedOnSetting e
-                | Some (SimpleExpr _) -> sepSpace
-                | _ -> sepSpaceBasedOnSetting e
+                match es with
+                | [] -> sepSpaceBasedOnSetting e
+                | _ -> sepSpace
 
             let short =
                 genExpr astContext e
@@ -3215,8 +3212,8 @@ and genApp astContext e es ctx =
                 (fun ctx ->
                     match es with
                     | [] -> false
-                    | [ h ]
-                    | h :: _ -> addSpaceBeforeParensInFunCall e h ctx)
+                    | [ h ] -> addSpaceBeforeParensInFunCall e h ctx
+                    | _ -> true)
                 sepSpace
                 sepNone
 
