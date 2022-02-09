@@ -3215,6 +3215,10 @@ and genApp astContext e es ctx =
                 (fun ctx ->
                     match es with
                     | [] -> false
+                    | Paren _ :: rest when es.Length > 1 ->
+                        match rest with
+                        | Paren _ :: _ -> true
+                        | _ -> addSpaceBeforeParensInFunCall e es.Head ctx
                     | [ h ]
                     | h :: _ -> addSpaceBeforeParensInFunCall e h ctx)
                 sepSpace
