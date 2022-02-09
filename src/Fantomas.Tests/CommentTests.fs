@@ -86,6 +86,44 @@ let print_30_permut () =
     permutation
 """
 
+[<Test>]
+let ``comments on let bindings with return type, 2043`` () =
+    formatSourceString
+        false
+        """
+let count: int [] // foo
+    = [2]
+    """
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let count: int [] // foo
+    =
+    [ 2 ]
+"""
+
+[<Test>]
+let ``comments after SynType_Array in record type, 2043`` () =
+    formatSourceString
+        false
+        """
+type Model =
+    { Flags: bool [] // foo
+      Name: string // bar
+      Street: string }
+    """
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type Model =
+    { Flags: bool [] // foo
+      Name: string // bar
+      Street: string }
+"""
 
 [<Test>]
 let ``xml documentation`` () =
