@@ -948,7 +948,7 @@ module Infrastructure =
 #if DEBUG
         failwith message
 #else
-        let sentryEvent = SentryEvent (SentryMessage message, Level=errorLevel)
+        let sentryEvent = SentryEvent (SentryMessage message, Level = errorLevel)
         ()
 #endif
 """
@@ -970,7 +970,7 @@ module Infrastructure =
 #if DEBUG
         failwith message
 #else
-        let sentryEvent = SentryEvent(SentryMessage message, Level=errorLevel)
+        let sentryEvent = SentryEvent(SentryMessage message, Level = errorLevel)
         ()
 #endif
 """

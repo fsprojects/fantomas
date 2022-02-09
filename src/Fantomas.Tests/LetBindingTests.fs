@@ -1030,7 +1030,7 @@ let notFound () =
 
     new HttpResponseMessage(
         HttpStatusCode.NotFound,
-        Content=new StringContent(json, System.Text.Encoding.UTF8, "application/json")
+        Content = new StringContent(json, System.Text.Encoding.UTF8, "application/json")
     )
 """
 
@@ -1048,7 +1048,7 @@ let ``don't add additional newline before SynExpr.New, 1049`` () =
             sprintf "%i.%i.%i" version.Major version.Minor version.Revision
 
         new HttpResponseMessage(HttpStatusCode.OK,
-                                Content=new StringContent(version, System.Text.Encoding.UTF8, "application/text"))
+                                Content = new StringContent(version, System.Text.Encoding.UTF8, "application/text"))
 """
         config
     |> prepend newline
@@ -1066,7 +1066,7 @@ let getVersion () =
 
     new HttpResponseMessage(
         HttpStatusCode.OK,
-        Content=new StringContent(version, System.Text.Encoding.UTF8, "application/text")
+        Content = new StringContent(version, System.Text.Encoding.UTF8, "application/text")
     )
 """
 
@@ -1811,7 +1811,7 @@ module PoorlyIndented =
                        where id = :id
       "> dependency
 
-     cmd.AsyncExecute(id=thingId)
+     cmd.AsyncExecute(id = thingId)
 """
         config
     |> prepend newline
@@ -1830,7 +1830,7 @@ module PoorlyIndented =
       "         >
                 dependency
 
-        cmd.AsyncExecute(id=thingId)
+        cmd.AsyncExecute(id = thingId)
 """
 
 [<Test>]

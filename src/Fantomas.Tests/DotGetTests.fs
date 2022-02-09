@@ -231,7 +231,7 @@ let main args =
         .ConfigureWebHostDefaults(fun builder ->
             builder
                 .CaptureStartupErrors(true)
-                .UseSerilog(dispose=true)
+                .UseSerilog(dispose = true)
                 .UseStartup<Startup>()
             |> ignore)
         .Build()
@@ -284,7 +284,7 @@ let c =
 let c =
     builder
         .CaptureStartupErrors(true)
-        .UseSerilog(dispose=true)
+        .UseSerilog(dispose = true)
         .UseStartup<Startup>()
 """
 

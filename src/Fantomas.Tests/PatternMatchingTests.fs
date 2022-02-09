@@ -2049,7 +2049,7 @@ match!
 """
 
 [<Test>]
-let ``single line named fields in a pattern matching should not have space surrounding the '=', 1877`` () =
+let ``single line named fields in a pattern matching should have space surrounding the '=', 1877`` () =
     formatSourceString
         false
         """
@@ -2064,6 +2064,6 @@ let examineData x =
         """
 let examineData x =
     match data with
-    | OnePartData (part1=p1) -> p1
-    | TwoPartData (part1=p1; part2=p2) -> p1 + p2
+    | OnePartData (part1 = p1) -> p1
+    | TwoPartData (part1 = p1; part2 = p2) -> p1 + p2
 """

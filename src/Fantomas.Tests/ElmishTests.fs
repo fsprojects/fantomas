@@ -23,9 +23,9 @@ let ``long named arguments should go on newline`` () =
         """
 let view (model: Model) dispatch =
     View.ContentPage(
-        appearing=(fun () -> dispatch PageAppearing),
-        title=model.Planet.Info.Name,
-        backgroundColor=Color.Black,
+        appearing = (fun () -> dispatch PageAppearing),
+        title = model.Planet.Info.Name,
+        backgroundColor = Color.Black,
         content =
             [ "....long line....................................................................................................." ]
     )
@@ -49,9 +49,9 @@ let a =
         """
 let a =
     View.Entry(
-        placeholder="User name",
-        isEnabled=(not model.IsSigningIn),
-        textChanged=(fun args -> (dispatch (UserNameChanged args.NewTextValue)))
+        placeholder = "User name",
+        isEnabled = (not model.IsSigningIn),
+        textChanged = (fun args -> (dispatch (UserNameChanged args.NewTextValue)))
     )
 """
 
@@ -102,42 +102,42 @@ let ``fabulous view`` () =
         """
 let loginPage =
     View.ContentPage(
-        title="Fabulous Demo",
+        title = "Fabulous Demo",
         content =
             View.ScrollView(
                 content =
                     View.StackLayout(
-                        padding=30.0,
+                        padding = 30.0,
                         children =
                             [ View.Frame(
-                                  verticalOptions=LayoutOptions.CenterAndExpand,
+                                  verticalOptions = LayoutOptions.CenterAndExpand,
                                   content =
                                       View.StackLayout(
                                           children =
                                               [ View.Entry(
-                                                    placeholder="User name",
-                                                    isEnabled=(not model.IsSigningIn),
+                                                    placeholder = "User name",
+                                                    isEnabled = (not model.IsSigningIn),
                                                     textChanged =
                                                         (fun args -> (dispatch (UserNameChanged args.NewTextValue)))
                                                 )
                                                 View.Entry(
-                                                    placeholder="Password",
-                                                    isPassword=true,
-                                                    isEnabled=(not model.IsSigningIn),
+                                                    placeholder = "Password",
+                                                    isPassword = true,
+                                                    isEnabled = (not model.IsSigningIn),
                                                     textChanged =
                                                         (fun args -> (dispatch (PasswordChanged args.NewTextValue)))
                                                 )
                                                 View.Button(
-                                                    text="Sign in",
-                                                    heightRequest=30.0,
-                                                    isVisible=(not model.IsSigningIn),
-                                                    command=(fun () -> dispatch SignIn),
-                                                    canExecute=model.IsCredentialsProvided
+                                                    text = "Sign in",
+                                                    heightRequest = 30.0,
+                                                    isVisible = (not model.IsSigningIn),
+                                                    command = (fun () -> dispatch SignIn),
+                                                    canExecute = model.IsCredentialsProvided
                                                 )
                                                 View.ActivityIndicator(
-                                                    isRunning=true,
-                                                    heightRequest=30.0,
-                                                    isVisible=model.IsSigningIn
+                                                    isRunning = true,
+                                                    heightRequest = 30.0,
+                                                    isVisible = model.IsSigningIn
                                                 ) ]
                                       )
                               ) ]

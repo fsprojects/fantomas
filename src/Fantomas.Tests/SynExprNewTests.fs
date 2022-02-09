@@ -24,7 +24,7 @@ let ``combination of named and non named arguments, 1158`` () =
 let private sendTooLargeError () =
     new HttpResponseMessage(
         HttpStatusCode.RequestEntityTooLarge,
-        Content=new StringContent("File was too way too large", System.Text.Encoding.UTF16, "application/text")
+        Content = new StringContent("File was too way too large", System.Text.Encoding.UTF16, "application/text")
     )
 """
 

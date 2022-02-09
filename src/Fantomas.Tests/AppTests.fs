@@ -753,7 +753,7 @@ x |> f<y> // some comment
 """
 
 [<Test>]
-let ``single named arguments should not have space surrounding the '=', 1877`` () =
+let ``single named arguments should have space surrounding the '=', 1877`` () =
     formatSourceString
         false
         """
@@ -763,11 +763,11 @@ let makeStreamReader x = new System.IO.StreamReader(path=x)"""
     |> should
         equal
         """
-let makeStreamReader x = new System.IO.StreamReader(path=x)
+let makeStreamReader x = new System.IO.StreamReader(path = x)
 """
 
 [<Test>]
-let ``multiple named arguments should not have space surrounding the '=', 1877`` () =
+let ``multiple named arguments should have space surrounding the '=', 1877`` () =
     formatSourceString
         false
         """
@@ -777,5 +777,5 @@ let makeStreamReader x y = new StreamReader(arg1=x, arg2=y)"""
     |> should
         equal
         """
-let makeStreamReader x y = new StreamReader(arg1=x, arg2=y)
+let makeStreamReader x y = new StreamReader(arg1 = x, arg2 = y)
 """
