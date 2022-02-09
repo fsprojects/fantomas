@@ -725,6 +725,26 @@ let (|IndexFromEndExpr|_|) =
     | SynExpr.IndexFromEnd (e, _r) -> Some e
     | _ -> None
 
+let (|ConstNumberExpr|_|) =
+    function
+    | ConstExpr (SynConst.Double _, _) as e -> Some e
+    | ConstExpr (SynConst.Decimal _, _) as e -> Some e
+    | ConstExpr (SynConst.Single _, _) as e -> Some e
+    | ConstExpr (SynConst.Int16 _, _) as e -> Some e
+    | ConstExpr (SynConst.Int32 _, _) as e -> Some e
+    | ConstExpr (SynConst.Int64 _, _) as e -> Some e
+    | _ -> None
+
+let (|NegativeNumber|_|) =
+    function
+    | ConstExpr (SynConst.Double v, _) as e when v < 0. -> Some e
+    | ConstExpr (SynConst.Decimal v, _) as e when v < 0M -> Some e
+    | ConstExpr (SynConst.Single v, _) as e when v < 0f -> Some e
+    | ConstExpr (SynConst.Int16 v, _) as e when v < 0s -> Some e
+    | ConstExpr (SynConst.Int32 v, _) as e when v < 0 -> Some e
+    | ConstExpr (SynConst.Int64 v, _) as e when v < 0L -> Some e
+    | _ -> None
+
 let (|OptVar|_|) =
     function
     | SynExpr.Ident (IdentOrKeyword (OpNameFull (s, r))) -> Some(s, false, r)
@@ -1672,9 +1692,10 @@ let isIfThenElseWithYieldReturn e =
     | SynExpr.IfThenElse (thenExpr = SynExpr.YieldOrReturn _; elseExpr = Some (SynExpr.YieldOrReturnFrom _)) -> true
     | _ -> false
 
-let isSynExprLambda =
+let isSynExprLambdaOrIfThenElse =
     function
-    | SynExpr.Lambda _ -> true
+    | SynExpr.Lambda _
+    | SynExpr.IfThenElse _ -> true
     | _ -> false
 
 let (|AppParenTupleArg|_|) e =
