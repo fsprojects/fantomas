@@ -5377,6 +5377,27 @@ and genSynBindingValue
 
     let genValueName = genPat astContext valueName
 
+    let genEqualsInBinding (ctx: Context) =
+        let equalsRange =
+            let endPos =
+                match returnType with
+                | Some rt -> rt.Range.End
+                | None -> valueName.Range.End
+
+            ctx.MkRange endPos e.Range.Start
+
+        let space =
+            ctx.TriviaTokenNodes
+            |> Map.tryFindOrEmptyList EQUALS
+            |> fun triviaNodes ->
+                match TriviaHelpers.findInRange triviaNodes equalsRange with
+                | Some tn when (List.isNotEmpty tn.ContentAfter) -> sepNone
+                | _ -> sepSpace
+
+        (tokN equalsRange EQUALS (sepSpace +> sepEqFixed)
+         +> space)
+            ctx
+
     let genReturnType =
         match returnType with
         | Some rt ->
@@ -5386,32 +5407,10 @@ and genSynBindingValue
                 | _ -> false
 
             ifElse hasGenerics sepColonWithSpacesFixed sepColon
-            +> genType astContext false rt
-        | None -> sepNone
-
-    let genTriviaForReturnType =
-        match returnType with
-        | Some rt -> genTriviaFor SynBindingReturnInfo_ rt.Range
-        | None -> id
-
-    let equalsRange (ctx: Context) =
-        let endPos =
-            match returnType with
-            | Some rt -> rt.Range.End
-            | None -> valueName.Range.End
-
-        ctx.MkRange endPos e.Range.Start
-
-    let genEqualsInBinding (equalsRange: Range) (ctx: Context) =
-        let space =
-            ctx.TriviaTokenNodes
-            |> Map.tryFindOrEmptyList EQUALS
-            |> fun triviaNodes ->
-                match TriviaHelpers.findInRange triviaNodes equalsRange with
-                | Some tn when (List.isNotEmpty tn.ContentAfter) -> sepNone
-                | _ -> sepSpace
-
-        (tokN equalsRange EQUALS sepEq +> space) ctx
+            +> (genType astContext false rt
+                |> genTriviaFor SynBindingReturnInfo_ rt.Range)
+            +> autoIndentAndNlnWhenWriteBeforeNewlineNotEmpty genEqualsInBinding
+        | None -> genEqualsInBinding
 
     genPreXmlDoc px
     +> genAttrIsFirstChild
@@ -5423,11 +5422,8 @@ and genSynBindingValue
             +> sepSpace
             +> genValueName
             +> genReturnType
-            +> (fun ctx -> genEqualsInBinding (equalsRange ctx) ctx)
 
-        let short =
-            prefix +> genExprKeepIndentInBranch astContext e
-            |> genTriviaForReturnType
+        let short = prefix +> genExprKeepIndentInBranch astContext e
 
         let long =
             prefix
@@ -5435,7 +5431,6 @@ and genSynBindingValue
             +> sepNln
             +> genExprKeepIndentInBranch astContext e
             +> unindent
-            |> genTriviaForReturnType
 
         isShortExpression ctx.Config.MaxValueBindingWidth short long ctx)
 

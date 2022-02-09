@@ -99,7 +99,9 @@ let count: int [] // foo
     |> should
         equal
         """
-let count: int [] = [ 2 ] // foo
+let count: int [] // foo
+    =
+    [ 2 ]
 """
 
 [<Test>]
