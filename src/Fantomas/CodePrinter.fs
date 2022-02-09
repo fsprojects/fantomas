@@ -1337,7 +1337,7 @@ and genExpr astContext synExpr ctx =
 
             fun ctx ->
                 if List.exists isIfThenElseWithYieldReturn xs
-                   || List.forall isSynExprLambda xs then
+                   || List.forall isSynExprLambdaOrIfThenElse xs then
                     multilineExpression ctx
                 else
                     let size = getListOrArrayExprSize ctx ctx.Config.MaxArrayOrListWidth xs
@@ -1950,6 +1950,29 @@ and genExpr astContext synExpr ctx =
             let short = genAppWithParenthesis app astContext
 
             let long = genAlternativeAppWithParenthesis app astContext
+
+            expressionFitsOnRestOfLine short long
+
+        // path.Replace("../../../", "....")
+        | AppSingleParenArg (LongIdentPiecesExpr lids as functionOrMethod, px) ->
+            let addSpace =
+                onlyIfCtx (addSpaceBeforeParensInFunCall functionOrMethod px) sepSpace
+
+            let shortLids =
+                col sepDot lids (fun (s, r) ->
+                    genTriviaFor Ident_ r !-s
+                    +> sepNlnWhenWriteBeforeNewlineNotEmpty sepNone)
+
+            let short = shortLids +> addSpace +> genExpr astContext px
+
+            let long =
+                let args =
+                    addSpace
+                    +> expressionFitsOnRestOfLine
+                        (genExpr astContext px)
+                        (genMultilineFunctionApplicationArguments astContext px)
+
+                ifElseCtx (futureNlnCheck shortLids) (genFunctionNameWithMultilineLids args lids) (shortLids +> args)
 
             expressionFitsOnRestOfLine short long
 
@@ -2613,10 +2636,18 @@ and genExpr astContext synExpr ctx =
 
                 expr ctx
         | IndexRangeExpr (None, None) -> !- "*"
+        | IndexRangeExpr (Some (IndexRangeExpr (Some (ConstNumberExpr e1), Some (ConstNumberExpr e2))),
+                          Some (ConstNumberExpr e3)) ->
+            genExpr astContext e1
+            +> !- ".."
+            +> genExpr astContext e2
+            +> !- ".."
+            +> genExpr astContext e3
         | IndexRangeExpr (e1, e2) ->
             let hasSpaces =
                 let rec (|AtomicExpr|_|) e =
                     match e with
+                    | NegativeNumber _ -> None
                     | SynExpr.Ident _
                     | SynExpr.Const (SynConst.Int32 _, _)
                     | IndexRangeExpr (Some (AtomicExpr _), Some (AtomicExpr _))
@@ -2809,9 +2840,7 @@ and genLidsWithDots (lids: (string * range) list) =
     +> col !- "." lids (fun (s, _) -> !-s)
 
 and genLidsWithDotsAndNewlines (lids: (string * range) list) =
-    optSingle (fun (_, r) -> enterNodeFor Ident_ r) (List.tryHead lids)
-    +> !- "."
-    +> col (sepNln +> !- ".") lids (fun (s, _) -> !-s)
+    col sepNln lids (fun (s, r) -> genTriviaFor Ident_ r !- $".{s}")
 
 and genSpaceBeforeLids
     (currentIndex: int)
@@ -2837,8 +2866,7 @@ and genSpaceBeforeLids
 and genFunctionNameWithMultilineLids f lids =
     match lids with
     | (s, r) :: t ->
-        enterNodeFor Ident_ r
-        +> !-s
+        genTriviaFor Ident_ r !-s
         +> indent
         +> sepNln
         +> genLidsWithDotsAndNewlines t
