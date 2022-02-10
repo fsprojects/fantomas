@@ -1894,3 +1894,27 @@ let parse (checker: FSharpChecker) (parsingOptions: FSharpParsingOptions) { File
         })
     |> Async.Parallel
 """
+
+[<Test>]
+let ``anonymous records with comments on members, 2067`` () =
+    formatSourceString
+        false
+        """
+{|
+    // The foo value.
+    FooValue = fooValue
+    // The bar value.
+    BarValue = barValue
+|}
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+{|
+// The foo value.
+FooValue = fooValue
+   // The bar value.
+BarValue = barValue |}
+"""

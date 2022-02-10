@@ -1583,7 +1583,7 @@ let (|Val|)
 
 let (|RecordFieldName|) ((LongIdentWithDots s, _): RecordFieldName, eo: SynExpr option, _) = (s, eo)
 
-let (|AnonRecordFieldName|) (Ident s: Ident, e: SynExpr) = (s, e)
+let (|AnonRecordFieldName|) (ident: Ident, e: SynExpr) = (ident.idRange, ident.idText, e)
 let (|AnonRecordFieldType|) (Ident s: Ident, t: SynType) = (s, t)
 
 let (|PatRecordFieldName|) ((LongIdent s1, Ident s2), p) = (s1, s2, p)

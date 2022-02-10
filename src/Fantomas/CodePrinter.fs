@@ -965,10 +965,10 @@ and genRecordFieldName astContext (RecordFieldName (s, eo) as node) =
         !-s +> sepEq +> expr)
     |> genTriviaFor RecordField_ range
 
-and genAnonRecordFieldName astContext (AnonRecordFieldName (s, e)) =
+and genAnonRecordFieldName astContext (AnonRecordFieldName (r, s, e)) =
     let expr = sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e)
 
-    !-s +> sepEq +> expr
+    genTriviaFor Ident_ r !-s +> sepEq +> expr
 
 and genTuple astContext es =
     let genShortExpr astContext e =
@@ -3076,7 +3076,7 @@ and genMultilineAnonRecord (isStruct: bool) fields copyInfo (astContext: ASTCont
 
                 atCurrentColumn
                     (sepOpenAnonRecd
-                     +> col sepSemiNln fields (fun (AnonRecordFieldName (s, e)) ->
+                     +> col sepSemiNln fields (fun (AnonRecordFieldName (r, s, e)) ->
                          let expr =
                              if ctx.Config.IndentSize < 3 then
                                  sepSpaceOrDoubleIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e)
@@ -3086,7 +3086,7 @@ and genMultilineAnonRecord (isStruct: bool) fields copyInfo (astContext: ASTCont
                          // Add enough spaces to start at the right column but indent from the opening curly brace.
                          // Use a double indent when using a small indent size to avoid offset warnings.
                          addFixedSpaces targetColumn
-                         +> !-s
+                         +> genTriviaFor Ident_ r !-s
                          +> sepEq
                          +> expr)
                      +> sepCloseAnonRecd)
