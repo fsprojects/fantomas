@@ -1896,7 +1896,7 @@ let parse (checker: FSharpChecker) (parsingOptions: FSharpParsingOptions) { File
 """
 
 [<Test>]
-let ``anonymous records with comments on members, 2067`` () =
+let ``anonymous records with comments on record fields, 2067`` () =
     formatSourceString
         false
         """
