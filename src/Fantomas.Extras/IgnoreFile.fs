@@ -10,10 +10,16 @@ module IgnoreFile =
     [<Literal>]
     let IgnoreFileName = ".fantomasignore"
 
-    let internal findIgnoreFile<'a> (fs: IFileSystem) (readFile: string -> 'a) (ignoreFiles: ConcurrentDictionary<string, 'a option>) (filePath: string) : 'a option =
+    let internal findIgnoreFile<'a>
+        (fs: IFileSystem)
+        (readFile: string -> 'a)
+        (ignoreFiles: ConcurrentDictionary<string, 'a option>)
+        (filePath: string)
+        : 'a option =
         // Note that this function has side effects: it mutates the global static state `ignoreFiles`.
-        let rec findIgnoreFileAbove (path : IDirectoryInfo) : 'a option =
+        let rec findIgnoreFileAbove (path: IDirectoryInfo) : 'a option =
             let potentialFile = fs.Path.Combine(path.FullName, IgnoreFileName)
+
             match ignoreFiles.TryGetValue path.FullName with
             | true, Some f -> Some f
             | true, None ->
@@ -28,12 +34,16 @@ module IgnoreFile =
                     findIgnoreFileAbove path.Parent
             | _, _ ->
                 let result =
-                    if fs.File.Exists potentialFile then readFile potentialFile |> Some else None
-                ignoreFiles.TryAdd (path.FullName, result)
+                    if fs.File.Exists potentialFile then
+                        readFile potentialFile |> Some
+                    else
+                        None
+
+                ignoreFiles.TryAdd(path.FullName, result)
                 // We don't care if another thread beat us to this, they'll have
                 // inserted exactly what we wanted to insert anyway
                 |> ignore
-                
+
                 match result with
                 | None ->
                     if isNull path.Parent then
@@ -44,8 +54,11 @@ module IgnoreFile =
 
         findIgnoreFileAbove (fs.Directory.GetParent filePath)
 
-    let private removeRelativePathPrefix (fs : IFileSystem) (path: string) =
-        if path.StartsWith(sprintf ".%c" fs.Path.DirectorySeparatorChar) || path.StartsWith(sprintf ".%c" fs.Path.AltDirectorySeparatorChar) then
+    let private removeRelativePathPrefix (fs: IFileSystem) (path: string) =
+        if
+            path.StartsWith(sprintf ".%c" fs.Path.DirectorySeparatorChar)
+            || path.StartsWith(sprintf ".%c" fs.Path.AltDirectorySeparatorChar)
+        then
             path.Substring(2)
         else
             path
@@ -53,16 +66,17 @@ module IgnoreFile =
     /// Store of the IgnoreFiles present in each folder discovered so far.
     /// This is to save repeatedly hitting the disk for each file, and to save
     /// loading the IgnoreLists from the disk repeatedly (which is nontrivially expensive!).
-    let private ignoreFiles : ConcurrentDictionary<string, IgnoreList option> = ConcurrentDictionary ()
-    
+    let private ignoreFiles: ConcurrentDictionary<string, IgnoreList option> =
+        ConcurrentDictionary()
+
     let isIgnoredFile (file: string) =
-        let fs = FileSystem ()
+        let fs = FileSystem()
         let fullPath = fs.Path.GetFullPath(file)
 
         match findIgnoreFile fs IgnoreList ignoreFiles fullPath with
         | None -> false
         | Some ignores ->
- 
+
             try
                 let path = removeRelativePathPrefix fs file
                 ignores.IsIgnored(path, false)
