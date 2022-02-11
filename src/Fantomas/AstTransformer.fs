@@ -3,7 +3,6 @@ module Fantomas.AstTransformer
 open FSharp.Compiler.Text
 open FSharp.Compiler.Syntax
 open Fantomas.TriviaTypes
-open Fantomas.AstExtensions
 open Fantomas.RangePatterns
 open Fantomas
 
@@ -68,20 +67,27 @@ module private Ast =
             | SynModuleDecl.ModuleAbbrev (_, _, range) ->
                 [ mkNode SynModuleDecl_ModuleAbbrev range ]
                 |> finalContinuation
-            | SynModuleDecl.NestedModule (sci, _, equalsRange, decls, _, range) ->
+            | SynModuleDecl.NestedModule (SynComponentInfo (xmlDoc = preXmlDoc; attributes = attrs) as sci,
+                                          _,
+                                          decls,
+                                          _,
+                                          range,
+                                          trivia) ->
                 let continuations: ((TriviaNodeAssigner list -> TriviaNodeAssigner list) -> TriviaNodeAssigner list) list =
                     decls |> List.map visit
 
-                let finalContinuation (nodes: TriviaNodeAssigner list list) : TriviaNodeAssigner list =
-                    let afterAttributesBeforeNestedModule =
-                        mkNodeOption
-                            SynModuleDecl_NestedModule_AfterAttributesBeforeModuleName
-                            ast.AfterAttributesBeforeNestedModuleName
+                let moduleNode =
+                    mkNodeForRangeAfterXmlAndAttributes
+                        SynModuleDecl_NestedModule_Module
+                        preXmlDoc
+                        attrs
+                        trivia.ModuleKeyword
 
+                let finalContinuation (nodes: TriviaNodeAssigner list list) : TriviaNodeAssigner list =
                     [ mkNode SynModuleDecl_NestedModule range
-                      yield! afterAttributesBeforeNestedModule
+                      yield! moduleNode
                       yield! visitSynComponentInfo sci
-                      yield! mkNodeOption SynModuleDecl_NestedModule_Equals equalsRange
+                      yield! mkNodeOption SynModuleDecl_NestedModule_Equals trivia.EqualsRange
                       yield! (List.collect id nodes) ]
                     |> finalContinuation
 
@@ -1407,20 +1413,26 @@ module private Ast =
                 mkNode SynModuleSigDecl_ModuleAbbrev range
                 |> List.singleton
                 |> finalContinuation
-            | SynModuleSigDecl.NestedModule (sci, _, equalsRange, decls, range) ->
+            | SynModuleSigDecl.NestedModule (SynComponentInfo (xmlDoc = preXmlDoc; attributes = attrs) as sci,
+                                             _,
+                                             decls,
+                                             range,
+                                             trivia) ->
                 let continuations: ((TriviaNodeAssigner list -> TriviaNodeAssigner list) -> TriviaNodeAssigner list) list =
                     List.map visit decls
 
-                let finalContinuation (nodes: TriviaNodeAssigner list list) : TriviaNodeAssigner list =
-                    let afterAttributesBeforeNestedModule =
-                        mkNodeOption
-                            SynModuleSigDecl_NestedModule_AfterAttributesBeforeModuleName
-                            ast.AfterAttributesBeforeNestedModuleName
+                let moduleKeyword =
+                    mkNodeForRangeAfterXmlAndAttributes
+                        SynModuleSigDecl_NestedModule_Module
+                        preXmlDoc
+                        attrs
+                        trivia.ModuleKeyword
 
+                let finalContinuation (nodes: TriviaNodeAssigner list list) : TriviaNodeAssigner list =
                     [ yield mkNode SynModuleSigDecl_NestedModule range
-                      yield! afterAttributesBeforeNestedModule
+                      yield! moduleKeyword
                       yield! visitSynComponentInfo sci
-                      yield! mkNodeOption SynModuleSigDecl_NestedModule_Equals equalsRange
+                      yield! mkNodeOption SynModuleSigDecl_NestedModule_Equals trivia.EqualsRange
                       yield! (List.collect id nodes) ]
                     |> finalContinuation
 
@@ -1470,6 +1482,11 @@ module private Ast =
     and visitLongIdentIncludingFullRange (li: LongIdent) : TriviaNodeAssigner list =
         // LongIdent is a bit of an artificial AST node
         // meant to be used as namespace or module identifier
+        let longIdentFullRange (li: LongIdent) : Range =
+            match li with
+            | [] -> range.Zero
+            | h :: _ -> Range.unionRanges h.idRange (List.last li).idRange
+
         mkNode LongIdent_ (longIdentFullRange li)
         :: List.map visitIdent li
 

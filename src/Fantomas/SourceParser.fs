@@ -328,12 +328,8 @@ let (|Types|_|) =
 
 let (|NestedModule|_|) =
     function
-    | SynModuleDecl.NestedModule (SynComponentInfo (ats, _, _, LongIdent s, px, _, ao, _),
-                                  isRecursive,
-                                  equalsRange,
-                                  xs,
-                                  _,
-                                  _) -> Some(ats, px, ao, s, isRecursive, equalsRange, xs)
+    | SynModuleDecl.NestedModule (SynComponentInfo (ats, _, _, LongIdent s, px, _, ao, _), isRecursive, xs, _, _, trivia) ->
+        Some(ats, px, trivia.ModuleKeyword, ao, s, isRecursive, trivia.EqualsRange, xs)
     | _ -> None
 
 let (|Exception|_|) =
@@ -380,8 +376,8 @@ let (|SigTypes|_|) =
 
 let (|SigNestedModule|_|) =
     function
-    | SynModuleSigDecl.NestedModule (SynComponentInfo (ats, _, _, LongIdent s, px, _, ao, _), _, equalsRange, xs, _) ->
-        Some(ats, px, ao, s, equalsRange, xs)
+    | SynModuleSigDecl.NestedModule (SynComponentInfo (ats, _, _, LongIdent s, px, _, ao, _), _, xs, _, trivia) ->
+        Some(ats, px, trivia.ModuleKeyword, ao, s, trivia.EqualsRange, xs)
     | _ -> None
 
 let (|SigException|_|) =

@@ -55,7 +55,7 @@ type FsAstType =
     //    | SynModuleOrNamespace_NamedModule
     | SynModuleDecl_ModuleAbbrev
     | SynModuleDecl_NestedModule
-    | SynModuleDecl_NestedModule_AfterAttributesBeforeModuleName
+    | SynModuleDecl_NestedModule_Module
     | SynModuleDecl_NestedModule_Equals
     | SynModuleDecl_Let
     | SynModuleDecl_DoExpr
@@ -370,7 +370,7 @@ type FsAstType =
     | SynModuleOrNamespaceSig_NamedModule
     | SynModuleSigDecl_ModuleAbbrev
     | SynModuleSigDecl_NestedModule
-    | SynModuleSigDecl_NestedModule_AfterAttributesBeforeModuleName
+    | SynModuleSigDecl_NestedModule_Module
     | SynModuleSigDecl_NestedModule_Equals
     | SynModuleSigDecl_Types
     | SynModuleSigDecl_Open

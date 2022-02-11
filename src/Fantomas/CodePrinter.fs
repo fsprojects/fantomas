@@ -12,7 +12,6 @@ open Fantomas.SourceTransformer
 open Fantomas.Context
 open Fantomas.TriviaTypes
 open Fantomas.TriviaContext
-open Fantomas.AstExtensions
 
 /// This type consists of contextual information which is important for formatting
 /// Please avoid using this record as it can be the cause of unexpected behavior when used incorrectly
@@ -351,13 +350,10 @@ and genModuleDecl astContext (node: SynModuleDecl) =
 
     | ModuleAbbrev (s1, s2) -> !- "module " -- s1 +> sepEq +> sepSpace -- s2
     | NamespaceFragment m -> failwithf "NamespaceFragment hasn't been implemented yet: %O" m
-    | NestedModule (ats, px, ao, s, isRecursive, equalsRange, mds) ->
+    | NestedModule (ats, px, moduleKeyword, ao, s, isRecursive, equalsRange, mds) ->
         genPreXmlDoc px
         +> genAttributes astContext ats
-        +> genAfterAttributesBefore
-            SynModuleDecl_NestedModule_AfterAttributesBeforeModuleName
-            node.AfterAttributesBeforeNestedModuleName
-        +> (!- "module ")
+        +> genTriviaForOption SynModuleDecl_NestedModule_Module moduleKeyword (!- "module ")
         +> opt sepSpace ao genAccess
         +> ifElse isRecursive (!- "rec ") sepNone
         -- s
@@ -392,13 +388,10 @@ and genSigModuleDecl astContext node =
     | SigVal v -> genVal astContext v
     | SigModuleAbbrev (s1, s2) -> !- "module " -- s1 +> sepEq +> sepSpace -- s2
     | SigNamespaceFragment m -> failwithf "NamespaceFragment is not supported yet: %O" m
-    | SigNestedModule (ats, px, ao, s, equalsRange, mds) ->
+    | SigNestedModule (ats, px, moduleKeyword, ao, s, equalsRange, mds) ->
         genPreXmlDoc px
         +> genAttributes astContext ats
-        +> genAfterAttributesBefore
-            SynModuleSigDecl_NestedModule_AfterAttributesBeforeModuleName
-            node.AfterAttributesBeforeNestedModuleName
-        -- "module "
+        +> genTriviaForOption SynModuleSigDecl_NestedModule_Module moduleKeyword !- "module "
         +> opt sepSpace ao genAccess
         -- s
         +> genEq SynModuleSigDecl_NestedModule_Equals equalsRange
@@ -5364,9 +5357,6 @@ and genParenTupleWithIndentAndNewlines
     +> sepNln
     +> genTriviaFor SynPat_Paren_ClosingParenthesis rpr sepCloseT
     |> genTriviaFor SynPat_Paren pr
-
-and genAfterAttributesBefore (astType: FsAstType) (r: Range option) : Context -> Context =
-    optSingle (fun r -> genTriviaFor astType r id) r
 
 and collectMultilineItemForSynExprKeepIndent (astContext: ASTContext) (e: SynExpr) : ColMultilineItem list =
     match e with
