@@ -16,7 +16,7 @@ module IgnoreFile =
         (ignoreFiles: ConcurrentDictionary<string, 'a option>)
         (filePath: string)
         : 'a option =
-        // Note that this function has side effects: it mutates the global static state `ignoreFiles`.
+        // Note that this function has side effects: it mutates the state `ignoreFiles`.
         let rec findIgnoreFileAbove (path: IDirectoryInfo) : 'a option =
             let potentialFile = fs.Path.Combine(path.FullName, IgnoreFileName)
 
