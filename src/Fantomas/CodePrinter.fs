@@ -544,7 +544,7 @@ and genTypeAndParam astContext typeName (tds: SynTyparDecls option) tcs =
         genTyparDecl { astContext with IsFirstTypeParam = true } td
         +> sepSpace
         -- typeName
-        +> colPre (!- " when ") wordAnd tcs (genTypeConstraint astContext)
+    +> colPre (!- " when ") wordAnd tcs (genTypeConstraint astContext)
 
 and genTypeParamPostfix astContext tds =
     match tds with

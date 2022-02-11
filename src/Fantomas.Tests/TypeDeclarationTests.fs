@@ -2894,3 +2894,33 @@ type A = ( (* string *) int * int )
         """
 type A = ( (* string *) int * int)
 """
+
+[<Test>]
+let ``type abbreviation with comparison constraint, 2075`` () =
+    formatSourceString
+        false
+        """
+type Graph<'a> when 'a:comparison = Set<'a * 'a>
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type Graph<'a> when 'a: comparison = Set<'a * 'a>
+"""
+
+[<Test>]
+let ``type abbreviation with comparison constraint inside generic parameter scope`` () =
+    formatSourceString
+        false
+        """
+type Graph<'a when 'a:comparison> = Set<'a * 'a>
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type Graph<'a when 'a: comparison> = Set<'a * 'a>
+"""
