@@ -983,7 +983,7 @@ and genTuple astContext es =
             |> List.exists (function
                 | SynExpr.Match _, _
                 | SynExpr.Lambda _, _
-                | InfixApp (_, _, _, SynExpr.Lambda _), _ -> true
+                | InfixApp (_, _, _, SynExpr.Lambda _, _), _ -> true
                 | _ -> false)
 
         let sep =
@@ -1004,7 +1004,7 @@ and genTuple astContext es =
 
     atCurrentColumn (expressionFitsOnRestOfLine shortExpression longExpression)
 
-and genNamedArgumentExpr (astContext: ASTContext) operatorExpr e1 e2 =
+and genNamedArgumentExpr (astContext: ASTContext) operatorExpr e1 e2 appRange =
     let short =
         genExpr astContext e1
         +> sepSpace
@@ -1022,6 +1022,7 @@ and genNamedArgumentExpr (astContext: ASTContext) operatorExpr e1 e2 =
         +> unindent
 
     expressionFitsOnRestOfLine short long
+    |> genTriviaFor SynExpr_App appRange
 
 and genExpr astContext synExpr ctx =
     let kw tokenName f = tokN synExpr.Range tokenName f
@@ -1719,7 +1720,7 @@ and genExpr astContext synExpr ctx =
             fun ctx ->
                 atCurrentColumn (isShortExpression ctx.Config.MaxInfixOperatorExpression shortExpr multilineExpr) ctx
 
-        | InfixApp (operatorText, operatorExpr, e1, e2) ->
+        | InfixApp (operatorText, operatorExpr, e1, e2, _) ->
             fun ctx ->
                 isShortExpression
                     ctx.Config.MaxInfixOperatorExpression
@@ -2819,7 +2820,7 @@ and genExprInMultilineInfixExpr astContext e =
                  +> sepCloseTFor rpr
                  |> genTriviaFor SynExpr_Paren pr)
                     ctx
-    | Paren (_, InfixApp (_, _, DotGet _, _), _, _)
+    | Paren (_, InfixApp (_, _, DotGet _, _, _), _, _)
     | Paren (_, DotGetApp _, _, _) -> atCurrentColumnIndent (genExpr astContext e)
     | MatchLambda (keywordRange, cs) ->
         (!- "function "
@@ -2883,8 +2884,8 @@ and genMultilineFunctionApplicationArguments astContext argExpr =
 
     let genExpr astContext e =
         match e with
-        | InfixApp (equal, operatorExpr, e1, e2) when (equal = "=") ->
-            genNamedArgumentExpr astContext operatorExpr e1 e2
+        | InfixApp (equal, operatorExpr, e1, e2, range) when (equal = "=") ->
+            genNamedArgumentExpr astContext operatorExpr e1 e2 range
         | _ -> genExpr astContext e
 
     match argExpr with
@@ -3391,14 +3392,14 @@ and genExprInIfOrMatch astContext (e: SynExpr) (ctx: Context) : Context =
         | AppParenArg app ->
             genAlternativeAppWithParenthesis app astContext
             |> indentNlnUnindentNln
-        | InfixApp (s, e, (AppParenArg app as e1), e2) ->
+        | InfixApp (s, e, (AppParenArg app as e1), e2, _) ->
             (expressionFitsOnRestOfLine (genExpr astContext e1) (genAlternativeAppWithParenthesis app astContext)
              +> ifElse (noBreakInfixOps.Contains(s)) sepSpace sepNln
              +> genInfixOperator s e
              +> sepSpace
              +> genExpr astContext e2)
             |> indentNlnUnindentNln
-        | InfixApp (s, e, e1, (AppParenArg app as e2)) ->
+        | InfixApp (s, e, e1, (AppParenArg app as e2), _) ->
             (genExpr astContext e1
              +> sepNln
              +> genInfixOperator s e

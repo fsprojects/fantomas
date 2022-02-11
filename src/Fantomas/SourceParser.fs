@@ -824,13 +824,13 @@ let (|PrefixApp|_|) =
 
 let (|InfixApp|_|) synExpr =
     match synExpr with
-    | SynExpr.App (_, true, (Var "::" as e), Tuple ([ e1; e2 ], _), _) -> Some("::", e, e1, e2)
-    | SynExpr.App (_, _, SynExpr.App (_, true, (Var s as e), e1, _), e2, _) -> Some(s, e, e1, e2)
+    | SynExpr.App (_, true, (Var "::" as e), Tuple ([ e1; e2 ], _), range) -> Some("::", e, e1, e2, range)
+    | SynExpr.App (_, _, SynExpr.App (_, true, (Var s as e), e1, _), e2, range) -> Some(s, e, e1, e2, range)
     | _ -> None
 
 let (|NewlineInfixApp|_|) =
     function
-    | InfixApp (text, operatorExpr, e1, e2) when (newLineInfixOps.Contains(text)) -> Some(text, operatorExpr, e1, e2)
+    | InfixApp (text, operatorExpr, e1, e2, _) when (newLineInfixOps.Contains(text)) -> Some(text, operatorExpr, e1, e2)
     | _ -> None
 
 let (|NewlineInfixApps|_|) e =
@@ -848,13 +848,13 @@ let (|NewlineInfixApps|_|) e =
 let (|SameInfixApps|_|) e =
     let rec loop operator synExpr =
         match synExpr with
-        | InfixApp (s, opE, e, e2) when (s = operator) ->
+        | InfixApp (s, opE, e, e2, _) when (s = operator) ->
             let e1, es = loop operator e
             (e1, (s, opE, e2) :: es)
         | e -> (e, [])
 
     match e with
-    | InfixApp (operatorText, _, _, _) ->
+    | InfixApp (operatorText, _, _, _, _) ->
         match loop operatorText e with
         | e, es when (List.length es > 1) -> Some(e, List.rev es)
         | _ -> None
