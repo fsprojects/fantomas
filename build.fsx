@@ -478,6 +478,10 @@ Target.create "CheckFormat" (fun _ ->
     else
         Trace.logf "Errors while formatting: %A" result.Errors)
 
+Target.create "EnsureRepoConfig" (fun _ ->
+    Fake.Tools.Git.CommandHelper.gitCommand "" "config core.hooksPath .githooks"
+)
+
 // --------------------------------------------------------------------------------------
 // Run all targets by default. Invoke 'build <Target>' to override
 

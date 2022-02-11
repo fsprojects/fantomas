@@ -1,0 +1,4 @@
+#!/bin/sh
+
+# ensure that formatting is correct before pushing to the remote repository
+dotnet fake build -t CheckFormat
