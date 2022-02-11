@@ -56,6 +56,9 @@ Fantomas tries to adhere to two F# style guides:
 Please o please, discuss everything related to code style on those repositories; the Fantomas repo is not the place to discuss whether one style is better than another.
 Can't find anything mentioned on those repos? Open an issue there and **engage in conversation**.
 
+To engage in conversation, please be aware of the following: by default Fantomas follows the Microsoft style guide. If you have a question about something that is missing, it should be raised in [fsharp/fslang-design](https://github.com/fsharp/fslang-design#style-guide).
+In case something is missing in the G-Research guide, it is implied that they follow the guidance of the Microsoft style guide.
+
 When a person opens a feature request that has not been discussed anywhere, it is hard for the maintainers of Fantomas to be the judge of style.
 Will this feature increase adoption for the project?
 Every feature carries an ongoing maintenance/support burden; are enough people going to want this feature that it's worth changing the code and taking on the maintenance?
@@ -134,6 +137,14 @@ When developing a new feature, add new tests to cover all code paths.
 
 ## Guidelines
 
+- Please always rebase your code on the targeted branch.
+  To keep your fork up to date, run this command:
+  > git remote add upstream https://github.com/fsprojects/fantomas.git
+
+  Updating your fork:
+
+  > git checkout master && git fetch upstream && git rebase upstream/master && git push
+
 - Unit test names should start with a lowercase letter.
 - Verify if the change you are making should also apply to signature files (`*.fsi`).
 - Check if you need additional tests to cope with a different combination of settings.
@@ -167,6 +178,23 @@ It is better to create a draft pull request with some initial small changes, and
 Someone might be able to warn you in advance that your change will have wide implications for the rest of Fantomas, or might be able to point you in the right direction.
 However, this can only happen if you discuss your proposed changes early and often.
 It's often better to check *before* contributing that you're setting off on the right path.
+
+## Fixing style guide inconsistencies
+
+Fantomas tries to keep up with the style guides, but as these are living documents, it can occur that something is listed in the style that Fantomas is not respecting.
+In this case, please create an issue using our [online tool](https://fsprojects.github.io/fantomas-tools/#/).  
+Copy the code snippet from the guide and add a link to the section of the guide that is not being respected.  
+The maintainers will then add the `bug (stylistic)` to confirm the bug is fixable in Fantomas. In most cases, it may seem obvious that the case can be fixed.
+However, in the past there have been changes to the style guide that Fantomas could not implement for technical reasons: Fantomas can only implement rules based on information entirely contained within the untyped syntax tree.
+
+### Target the next minor or major branch
+
+When fixing a stylistic issue, please ask the maintainers what branch should be targeted. The rule of thumb is that the `master` branch is used for fixing `bug (soundness)` and will be used for revision releases.
+Strive to ensure that end users can always update to the latest patch revision of their current minor or major without fear.
+
+A user should only need to deal with style changes when they have explicitly [chosen to upgrade](https://github.com/fsprojects/fantomas/blob/master/docs/Documentation.md#updating-to-a-new-fantomas-version) to a new minor or major version.
+In case no major or minor branch was created yet, please reach out to the maintainers.  
+The maintainers will frequently rebase this branch on top of the master branch and release alpha/beta packages accordingly.
 
 # Your First Contribution
 
