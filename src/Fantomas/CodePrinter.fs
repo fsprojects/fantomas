@@ -4193,22 +4193,18 @@ and genEnumCase astContext (EnumCase (ats, barRange, px, identInAST, equalsRange
     +> genOnelinerAttributes astContext ats
     +> genCase
 
-and genField astContext prefix (Field (ats, px, ao, isStatic, isMutable, t, so) as node) =
-    let range =
-        match node with
-        | SynField (_, _, _, _, _, _, _, range) -> range
+and genField astContext prefix (Field (ats, px, ao, isStatic, isMutable, t, so, innerRange, range)) =
     // Being protective on union case declaration
     let t = genType astContext astContext.IsUnionField t
 
     genPreXmlDoc px
     +> genAttributes astContext ats
-    +> genAfterAttributesBefore SynField_AfterAttributesBeforeIdentifier node.AfterAttributesBeforeIdentifier
     +> ifElse isStatic (!- "static ") sepNone
     -- prefix
     +> ifElse isMutable (!- "mutable ") sepNone
     +> opt sepSpace ao genAccess
-    +> opt sepColon so (!-)
-    +> t
+    +> (opt sepColon so (!-) +> t
+        |> optSingle (genTriviaFor SynField_IdentifierAndType) innerRange)
     |> genTriviaFor SynField_ range
 
 and genType astContext outerBracket t =

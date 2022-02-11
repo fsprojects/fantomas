@@ -329,7 +329,7 @@ type FsAstType =
     | SynEnumCase_Bar
     | SynEnumCase_Equals
     | SynField_
-    | SynField_AfterAttributesBeforeIdentifier
+    | SynField_IdentifierAndType
     | SynType_LongIdent
     | SynType_App
     | SynType_App_Less

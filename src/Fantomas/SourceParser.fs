@@ -418,8 +418,12 @@ let (|UnionCaseType|) =
     | SynUnionCaseKind.Fields fs -> fs
     | SynUnionCaseKind.FullType _ -> failwith "UnionCaseFullType should be used internally only."
 
-let (|Field|) (SynField (ats, isStatic, ido, t, isMutable, px, ao, _)) =
-    (ats, px, ao, isStatic, isMutable, t, Option.map (|Ident|) ido)
+let (|Field|) (SynField (ats, isStatic, ido, t, isMutable, px, ao, range)) =
+    let innerRange =
+        ido
+        |> Option.map (fun i -> Range.unionRanges i.idRange t.Range)
+
+    (ats, px, ao, isStatic, isMutable, t, Option.map (|Ident|) ido, innerRange, range)
 
 let (|EnumCase|) (SynEnumCase (ats, Ident s, c, cr, px, r, trivia)) =
     (ats, trivia.BarRange, px, s, trivia.EqualsRange, c, cr, r)

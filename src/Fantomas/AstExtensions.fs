@@ -22,13 +22,6 @@ let private hasLinesBetweenAttributesAndFirstNode (attributes: SynAttributes) (f
         else
             None)
 
-type SynField with
-    member this.AfterAttributesBeforeIdentifier: Range option =
-        match this with
-        | SynField(attributes = []) -> None
-        | SynField (attributes = _ :: _; idOpt = None) -> None
-        | SynField (attributes = attrs; idOpt = Some ident) -> hasLinesBetweenAttributesAndFirstNode attrs ident.idRange
-
 type SynModuleDecl with
     member this.AfterAttributesBeforeNestedModuleName: Range option =
         match this with

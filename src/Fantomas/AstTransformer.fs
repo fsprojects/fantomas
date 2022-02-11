@@ -14,16 +14,16 @@ module Helpers =
     let mkNodeOption (t: FsAstType) (r: range option) : TriviaNodeAssigner list = Option.toList r |> List.map (mkNode t)
 
     // We only need the let/type keyword anchor if there are xml docs or attributes present that have space between itself and the let/type keyword
-    let mkNodeForKeywordAfterXmlAndAttributes
+    let mkNodeForRangeAfterXmlAndAttributes
         (t: FsAstType)
         (SourceParser.PreXmlDoc (xml, xmlRange))
         (attrs: SynAttributeList list)
-        (keywordRange: range option)
+        (r: range option)
         : TriviaNodeAssigner list =
         if Array.isEmpty xml && attrs.IsEmpty then
             []
         else
-            match keywordRange with
+            match r with
             | None -> []
             | Some keyword ->
                 let lastLine =
@@ -742,7 +742,7 @@ module private Ast =
                        range,
                        trivia) ->
             let typeKeyword =
-                mkNodeForKeywordAfterXmlAndAttributes SynTypeDefn_Type preXmlDoc attrs trivia.TypeKeyword
+                mkNodeForRangeAfterXmlAndAttributes SynTypeDefn_Type preXmlDoc attrs trivia.TypeKeyword
 
             // TODO process implicitConstructor ??
             [ yield mkNode SynTypeDefn_ range
@@ -879,7 +879,7 @@ module private Ast =
                 | _ -> visitSynPat headPat
 
             let letNode =
-                mkNodeForKeywordAfterXmlAndAttributes SynBinding_Let preXml attrs trivia.LetKeyword
+                mkNodeForRangeAfterXmlAndAttributes SynBinding_Let preXml attrs trivia.LetKeyword
 
             [ yield mkNode t binding.RangeOfBindingWithRhs
               yield! visitSynAttributeLists attrs
@@ -1198,17 +1198,18 @@ module private Ast =
 
     and visitSynField (sfield: SynField) : TriviaNodeAssigner list =
         match sfield with
-        | SynField (attrs, _, _ident, typ, _, _, _, range) ->
-            let afterAttributesBeforeIdentifier =
-                match sfield.AfterAttributesBeforeIdentifier with
+        | SynField (attrs, _, ident, typ, _, preXmlDoc, _, range) ->
+            let innerNode =
+                match ident with
                 | None -> []
-                | Some r ->
-                    mkNode SynField_AfterAttributesBeforeIdentifier r
-                    |> List.singleton
+                | Some ident ->
+                    Range.unionRanges ident.idRange typ.Range
+                    |> Some
+                    |> mkNodeForRangeAfterXmlAndAttributes SynField_IdentifierAndType preXmlDoc attrs
 
             [ yield mkNode SynField_ range
               yield! (visitSynAttributeLists attrs)
-              yield! afterAttributesBeforeIdentifier
+              yield! innerNode
               yield! visitSynType typ ]
 
     and visitSynType (st: SynType) =
