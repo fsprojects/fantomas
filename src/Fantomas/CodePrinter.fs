@@ -507,7 +507,7 @@ and genAttributes astContext (ats: SynAttributes) =
             chain ctx)
         sepNone
 
-and genPreXmlDoc (PreXmlDoc lines) =
+and genPreXmlDoc (PreXmlDoc (lines, _)) =
     colPost sepNln sepNln lines (sprintf "///%s" >> (!-))
 
 and genExprSepEqPrependType
@@ -565,7 +565,7 @@ and genLetBinding astContext pref b =
     let isRecursiveLetOrUseFunction = (pref = "and ")
 
     match b with
-    | LetBinding (ats, px, ao, isInline, isMutable, p, equalsRange, e, valInfo) ->
+    | LetBinding (ats, px, letKeyword, ao, isInline, isMutable, p, equalsRange, e, valInfo) ->
         match e, p with
         | TypedExpr (Typed, e, t), PatLongIdent (ao, s, _, ps, tpso) when (List.isNotEmpty ps) ->
             genSynBindingFunctionWithReturnType
@@ -574,7 +574,7 @@ and genLetBinding astContext pref b =
                 isRecursiveLetOrUseFunction
                 px
                 ats
-                b.AfterAttributesBeforeHeadPattern
+                letKeyword
                 genPref
                 ao
                 isInline
@@ -594,7 +594,7 @@ and genLetBinding astContext pref b =
                 isRecursiveLetOrUseFunction
                 px
                 ats
-                b.AfterAttributesBeforeHeadPattern
+                letKeyword
                 genPref
                 ao
                 isInline
@@ -611,7 +611,7 @@ and genLetBinding astContext pref b =
                 isRecursiveLetOrUseFunction
                 px
                 ats
-                b.AfterAttributesBeforeHeadPattern
+                letKeyword
                 genPref
                 ao
                 isInline
@@ -639,7 +639,7 @@ and genLetBinding astContext pref b =
                 isRecursiveLetOrUseFunction
                 px
                 ats
-                b.AfterAttributesBeforeHeadPattern
+                letKeyword
                 genPref
                 ao
                 isInline
@@ -890,7 +890,7 @@ and genMemberBindingImpl
             false
             px
             ats
-            b.AfterAttributesBeforeHeadPattern
+            None
             prefix
             ao
             isInline
@@ -904,53 +904,10 @@ and genMemberBindingImpl
             equalsRange
             e
     | e, PatLongIdent (ao, s, _, ps, tpso) when (List.isNotEmpty ps) ->
-        genSynBindingFunction
-            astContext
-            true
-            false
-            px
-            ats
-            b.AfterAttributesBeforeHeadPattern
-            prefix
-            ao
-            isInline
-            false
-            s
-            p.Range
-            ps
-            tpso
-            equalsRange
-            e
+        genSynBindingFunction astContext true false px ats None prefix ao isInline false s p.Range ps tpso equalsRange e
     | TypedExpr (Typed, e, t), pat ->
-        genSynBindingValue
-            astContext
-            false
-            px
-            ats
-            b.AfterAttributesBeforeHeadPattern
-            prefix
-            ao
-            isInline
-            false
-            pat
-            (Some t)
-            equalsRange
-            e
-    | _, pat ->
-        genSynBindingValue
-            astContext
-            false
-            px
-            ats
-            b.AfterAttributesBeforeHeadPattern
-            prefix
-            ao
-            isInline
-            false
-            pat
-            None
-            equalsRange
-            e
+        genSynBindingValue astContext false px ats None prefix ao isInline false pat (Some t) equalsRange e
+    | _, pat -> genSynBindingValue astContext false px ats None prefix ao isInline false pat None equalsRange e
 
 and genMemberFlags (mf: SynMemberFlags) =
     match mf.Trivia with
@@ -4692,7 +4649,7 @@ and genMemberDefn astContext node =
 
     | MDInherit (t, _) -> !- "inherit " +> genType astContext false t
     | MDValField f -> genField astContext "val " f
-    | MDImplicitCtor (xmlDoc, ats, ao, ps, so) ->
+    | MDImplicitCtor ((PreXmlDoc (xmlDoc, _) as preXmlDoc), ats, ao, ps, so) ->
         let rec simplePats ps =
             match ps with
             | SynSimplePats.SimplePats (pats, _) -> pats
@@ -4715,12 +4672,12 @@ and genMemberDefn astContext node =
 
                 isEmpty ps
 
-            let hasXmlDocComment = ((|PreXmlDoc|) xmlDoc).Length > 0
+            let hasXmlDocComment = xmlDoc.Length > 0
 
             let longExpr ctx =
                 (indent
                  +> sepNln
-                 +> genPreXmlDoc xmlDoc
+                 +> genPreXmlDoc preXmlDoc
                  +> optSingle (fun ao -> genAccess ao +> sepNln) ao
                  +> ifElse emptyPats (sepOpenT +> sepCloseT) (fun ctx ->
                      let shortPats =
@@ -5082,7 +5039,7 @@ and genSynBindingFunction
     (isRecursiveLetOrUseFunction: bool)
     (px: PreXmlDoc)
     (ats: SynAttributes)
-    (afterAttributesBeforeHeadPattern: Range option)
+    (letKeyword: range option)
     (pref: Context -> Context)
     (ao: SynAccess option)
     (isInline: bool)
@@ -5153,8 +5110,7 @@ and genSynBindingFunction
              +> unindent)
                 ctx
 
-        genAfterAttributesBefore SynBinding_AfterAttributes_BeforeHeadPattern afterAttributesBeforeHeadPattern
-        +> expressionFitsOnRestOfLine short long
+        expressionFitsOnRestOfLine short long
 
     let body (ctx: Context) =
         genExprKeepIndentInBranch astContext e ctx
@@ -5167,6 +5123,7 @@ and genSynBindingFunction
 
     (genPreXmlDoc px
      +> genAttrIsFirstChild
+     +> optSingle (enterNodeFor SynBinding_Let) letKeyword
      +> leadingExpressionIsMultiline genSignature genExpr)
         ctx
 
@@ -5176,7 +5133,7 @@ and genSynBindingFunctionWithReturnType
     (isRecursiveLetOrUseFunction: bool)
     (px: PreXmlDoc)
     (ats: SynAttributes)
-    (afterAttributesBeforeHeadPattern: Range option)
+    (letKeyword: range option)
     (pref: Context -> Context)
     (ao: SynAccess option)
     (isInline: bool)
@@ -5262,8 +5219,7 @@ and genSynBindingFunctionWithReturnType
              +> unindent)
                 ctx
 
-        genAfterAttributesBefore SynBinding_AfterAttributes_BeforeHeadPattern afterAttributesBeforeHeadPattern
-        +> expressionFitsOnRestOfLine short long
+        expressionFitsOnRestOfLine short long
 
     let body = genExprKeepIndentInBranch astContext e
 
@@ -5275,6 +5231,7 @@ and genSynBindingFunctionWithReturnType
 
     (genPreXmlDoc px
      +> genAttrIsFirstChild
+     +> optSingle (enterNodeFor SynBinding_Let) letKeyword
      +> leadingExpressionIsMultiline genSignature genExpr)
         ctx
 
@@ -5330,7 +5287,7 @@ and genSynBindingValue
     (isRecursiveLetOrUseFunction: bool)
     (px: PreXmlDoc)
     (ats: SynAttributes)
-    (afterAttributesBeforeHeadPattern: Range option)
+    (letKeyword: range option)
     (pref: Context -> Context)
     (ao: SynAccess option)
     (isInline: bool)
@@ -5378,7 +5335,7 @@ and genSynBindingValue
 
     genPreXmlDoc px
     +> genAttrIsFirstChild
-    +> genAfterAttributesBefore SynBinding_AfterAttributes_BeforeHeadPattern afterAttributesBeforeHeadPattern
+    +> optSingle (enterNodeFor SynBinding_Let) letKeyword
     +> genPref
     +> (fun ctx ->
         let prefix =

@@ -702,6 +702,19 @@ let private (|LineComments|_|) (tokens: Token list) =
         Some(commentTokens, rest)
     | _ -> None
 
+let private (|TripleSlashLineComment|_|) (tokens: Token list) =
+    let rec collect (tokens: Token list) (lineNumber: int) : Token list =
+        match tokens with
+        | LineCommentToken lc :: rest when (lc.LineNumber = lineNumber) -> collect rest lc.LineNumber
+        | _ -> tokens
+
+    match tokens with
+    | LineCommentToken { Content = ("///" | "///<")
+                         LineNumber = ln } :: _ ->
+        let rest = collect tokens ln
+        Some(rest)
+    | _ -> None
+
 let private collectComment (commentTokens: Token list) =
     commentTokens
     |> List.groupBy (fun t -> t.LineNumber)
@@ -798,6 +811,10 @@ let rec private getTriviaFromTokensThemSelves
     foundTrivia
     =
     match tokens with
+    // Skip triple slash comments
+    | TripleSlashLineComment (rest) ->
+        getTriviaFromTokensThemSelves mkRange lastButOneNonWhiteSpaceToken lastNonWhiteSpaceToken rest foundTrivia
+
     // Skip triple slash comments
     | LineComments ({ Content = "///" } :: _, rest) ->
         getTriviaFromTokensThemSelves mkRange lastButOneNonWhiteSpaceToken lastNonWhiteSpaceToken rest foundTrivia

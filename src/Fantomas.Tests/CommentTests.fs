@@ -215,7 +215,6 @@ let f () =
 """
 
 [<Test>]
-[<Ignore("The `let` keyword should be part of the SynModuleDeclLetTrivia")>]
 let ``should keep well-aligned comments`` () =
     formatSourceString
         false
@@ -246,7 +245,6 @@ let f () =
 """
 
 [<Test>]
-[<Ignore("The `let` keyword should be part of the SynModuleDeclLetTrivia")>]
 let ``should align mis-aligned comments`` () =
     formatSourceString
         false

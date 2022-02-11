@@ -271,7 +271,8 @@ let (|Access|) =
     | SynAccess.Private -> "private"
 
 let (|PreXmlDoc|) (px: PreXmlDoc) =
-    px.ToXmlDoc(false, None).UnprocessedLines
+    let xmlDoc = px.ToXmlDoc(false, None)
+    xmlDoc.UnprocessedLines, xmlDoc.Range
 
 // Module declarations (11 cases)
 let (|Open|_|) =
@@ -565,7 +566,7 @@ let (|DoBinding|LetBinding|MemberBinding|PropertyBinding|ExplicitCtor|) =
         MemberBinding(ats, px, ao, isInline, mf, pat, trivia.EqualsRange, expr, synValInfo)
     | SynBinding (_, SynBindingKind.Do, _, _, ats, px, _, _, _, expr, _, _, trivia) -> DoBinding(ats, px, expr)
     | SynBinding (ao, _, isInline, isMutable, attrs, px, SynValData (_, valInfo, _), pat, _, expr, _, _, trivia) ->
-        LetBinding(attrs, px, ao, isInline, isMutable, pat, trivia.EqualsRange, expr, valInfo)
+        LetBinding(attrs, px, trivia.LetKeyword, ao, isInline, isMutable, pat, trivia.EqualsRange, expr, valInfo)
 
 // Expressions (55 cases, lacking to handle 11 cases)
 
@@ -1679,7 +1680,16 @@ let (|FunType|) (t, ValInfo (argTypes, returnType)) =
 /// Probably we should use lexing information to improve its accuracy
 let (|Extern|_|) =
     function
-    | Let (LetBinding (ats, px, ao, _, _, PatLongIdent (_, s, _, [ _, PatTuple ps ], _), _, TypedExpr (Typed, _, t), _)) ->
+    | Let (LetBinding (ats,
+                       px,
+                       _,
+                       ao,
+                       _,
+                       _,
+                       PatLongIdent (_, s, _, [ _, PatTuple ps ], _),
+                       _,
+                       TypedExpr (Typed, _, t),
+                       _)) ->
         let hasDllImportAttr =
             ats
             |> List.exists (fun { Attributes = attrs } ->

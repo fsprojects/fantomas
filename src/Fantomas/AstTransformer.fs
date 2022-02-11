@@ -834,28 +834,59 @@ module private Ast =
 
     and visitSynBinding (binding: SynBinding) : TriviaNodeAssigner list =
         match binding with
-        | SynBinding (_, kind, _, _, attrs, _, valData, headPat, returnInfo, expr, _range, _, trivia) ->
+        | SynBinding (_,
+                      kind,
+                      _,
+                      _,
+                      attrs,
+                      (SourceParser.PreXmlDoc (xml, xmlRange)),
+                      valData,
+                      headPat,
+                      returnInfo,
+                      expr,
+                      _range,
+                      _,
+                      trivia) ->
             let t =
                 match kind with
                 | SynBindingKind.StandaloneExpression -> SynBindingKind_StandaloneExpression
                 | SynBindingKind.Normal -> SynBindingKind_Normal
                 | SynBindingKind.Do -> SynBindingKind_Do
 
-            let afterAttributesBeforeHeadPattern =
-                match binding.AfterAttributesBeforeHeadPattern with
-                | Some r ->
-                    mkNode SynBinding_AfterAttributes_BeforeHeadPattern r
-                    |> List.singleton
-                | None -> []
-
             let headPatNodes =
                 match kind with
                 | SynBindingKind.Do -> []
                 | _ -> visitSynPat headPat
 
+            // We only need the let keyword anchor if there are xml docs or attributes present that have space between itself and the let keyword
+            let letNode =
+                if Array.isEmpty xml && attrs.IsEmpty then
+                    []
+                else
+                    match trivia.LetKeyword with
+                    | None -> []
+                    | Some letKeyword ->
+                        let lastLine =
+                            let lastAttrLine =
+                                match List.tryLast attrs with
+                                | None -> 0
+                                | Some a -> a.Range.EndLine
+
+                            System.Math.Max(xmlRange.EndLine, lastAttrLine)
+
+                        if letKeyword.StartLine > lastLine + 1 then
+                            // In this scenario there is trivia underneath the attributes or xmldoc
+                            // f.ex.:
+                            // [<AttributeOne()>]
+                            // // some comment
+                            // let a = 0
+                            [ mkNode SynBinding_Let letKeyword ]
+                        else
+                            []
+
             [ yield mkNode t binding.RangeOfBindingWithRhs
               yield! visitSynAttributeLists attrs
-              yield! afterAttributesBeforeHeadPattern
+              yield! letNode
               yield! visitSynValData valData
               yield! headPatNodes
               yield!

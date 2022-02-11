@@ -22,14 +22,6 @@ let private hasLinesBetweenAttributesAndFirstNode (attributes: SynAttributes) (f
         else
             None)
 
-type SynBinding with
-    /// Construct an artificial range after the attributes and before the head pattern.
-    /// This is to detect newline or comment trivia in that exact location.
-    member this.AfterAttributesBeforeHeadPattern: Range option =
-        match this with
-        | SynBinding(attributes = []) -> None
-        | SynBinding (attributes = attrs; headPat = pat) -> hasLinesBetweenAttributesAndFirstNode attrs pat.Range
-
 type SynTypeDefn with
     member this.AfterAttributesBeforeComponentInfo: Range option =
         match this with
