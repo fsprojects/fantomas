@@ -4286,7 +4286,9 @@ and genType astContext outerBracket t =
             loop t1 -- "="
             +> addSpaceIfSynTypeStaticConstantHasAtSignBeforeString t2
             +> loop t2
-        | TArray (t, n) -> loop t -- " [" +> rep (n - 1) (!- ",") -- "]"
+        | TArray (t, n, r) ->
+            loop t -- " [" +> rep (n - 1) (!- ",") -- "]"
+            |> genTriviaFor SynType_Array r
         | TAnon -> sepWild
         | TVar (tp, r) ->
             genTypar astContext tp
@@ -5375,6 +5377,27 @@ and genSynBindingValue
 
     let genValueName = genPat astContext valueName
 
+    let genEqualsInBinding (ctx: Context) =
+        let equalsRange =
+            let endPos =
+                match returnType with
+                | Some rt -> rt.Range.End
+                | None -> valueName.Range.End
+
+            ctx.MkRange endPos e.Range.Start
+
+        let space =
+            ctx.TriviaTokenNodes
+            |> Map.tryFindOrEmptyList EQUALS
+            |> fun triviaNodes ->
+                match TriviaHelpers.findInRange triviaNodes equalsRange with
+                | Some tn when (List.isNotEmpty tn.ContentAfter) -> sepNone
+                | _ -> sepSpace
+
+        (tokN equalsRange EQUALS (sepSpace +> sepEqFixed)
+         +> space)
+            ctx
+
     let genReturnType =
         match returnType with
         | Some rt ->
@@ -5384,27 +5407,10 @@ and genSynBindingValue
                 | _ -> false
 
             ifElse hasGenerics sepColonWithSpacesFixed sepColon
-            +> genType astContext false rt
-        | None -> sepNone
-
-    let equalsRange (ctx: Context) =
-        let endPos =
-            match returnType with
-            | Some rt -> rt.Range.End
-            | None -> valueName.Range.End
-
-        ctx.MkRange endPos e.Range.Start
-
-    let genEqualsInBinding (equalsRange: Range) (ctx: Context) =
-        let space =
-            ctx.TriviaTokenNodes
-            |> Map.tryFindOrEmptyList EQUALS
-            |> fun triviaNodes ->
-                match TriviaHelpers.findInRange triviaNodes equalsRange with
-                | Some tn when (List.isNotEmpty tn.ContentAfter) -> sepNone
-                | _ -> sepSpace
-
-        (tokN equalsRange EQUALS sepEq +> space) ctx
+            +> (genType astContext false rt
+                |> genTriviaFor SynBindingReturnInfo_ rt.Range)
+            +> autoIndentAndNlnWhenWriteBeforeNewlineNotEmpty genEqualsInBinding
+        | None -> genEqualsInBinding
 
     genPreXmlDoc px
     +> genAttrIsFirstChild
@@ -5416,7 +5422,6 @@ and genSynBindingValue
             +> sepSpace
             +> genValueName
             +> genReturnType
-            +> (fun ctx -> genEqualsInBinding (equalsRange ctx) ctx)
 
         let short = prefix +> genExprKeepIndentInBranch astContext e
 
