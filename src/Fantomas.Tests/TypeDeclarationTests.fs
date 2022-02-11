@@ -2909,3 +2909,18 @@ type Graph<'a> when 'a:comparison = Set<'a * 'a>
         """
 type Graph<'a> when 'a: comparison = Set<'a * 'a>
 """
+
+[<Test>]
+let ``type abbreviation with comparison constraint inside generic parameter scope`` () =
+    formatSourceString
+        false
+        """
+type Graph<'a when 'a:comparison> = Set<'a * 'a>
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type Graph<'a when 'a: comparison> = Set<'a * 'a>
+"""
