@@ -15,8 +15,18 @@ module IgnoreFile =
         let rec findIgnoreFileAbove (path : IDirectoryInfo) : 'a option =
             let potentialFile = fs.Path.Combine(path.FullName, IgnoreFileName)
             match ignoreFiles.TryGetValue path.FullName with
-            | true, f -> f
-            | false, _ ->
+            | true, Some f -> Some f
+            | true, None ->
+                // A slight inefficiency here, in exchange for making the code a lot shorter:
+                // if we've already computed that there is no .fantomasignore file immediately at this level,
+                // we keep looking upwards in our knowledge of the file hierarchy.
+                // (This is inefficient: we could in theory have stored the actual final result at all levels
+                // once we computed it the first time.)
+                if isNull path.Parent then
+                    None
+                else
+                    findIgnoreFileAbove path.Parent
+            | _, _ ->
                 let result =
                     if fs.File.Exists potentialFile then readFile potentialFile |> Some else None
                 ignoreFiles.TryAdd (path.FullName, result)
