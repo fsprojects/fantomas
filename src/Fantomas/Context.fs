@@ -1281,6 +1281,12 @@ let internal sepNlnWhenWriteBeforeNewlineNotEmpty fallback (ctx: Context) =
     else
         fallback ctx
 
+let internal sepSpaceUnlessWriteBeforeNewlineNotEmpty (ctx: Context) =
+    if String.isNotNullOrEmpty ctx.WriterModel.WriteBeforeNewline then
+        ctx
+    else
+        sepSpace ctx
+
 let internal autoIndentAndNlnWhenWriteBeforeNewlineNotEmpty (f: Context -> Context) (ctx: Context) =
     if String.isNotNullOrEmpty ctx.WriterModel.WriteBeforeNewline then
         (indent +> sepNln +> f +> unindent) ctx

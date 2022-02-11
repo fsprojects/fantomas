@@ -546,8 +546,8 @@ let (|MFMember|MFStaticMember|MFConstructor|MFOverride|) (mf: SynMemberFlags) =
 
 let (|DoBinding|LetBinding|MemberBinding|PropertyBinding|ExplicitCtor|) =
     function
-    | SynBinding (ao, _, _, _, ats, px, SynValData (Some MFConstructor, _, ido), pat, _, equalsRange, expr, _, _) ->
-        ExplicitCtor(ats, px, ao, pat, equalsRange, expr, Option.map (|Ident|) ido)
+    | SynBinding (ao, _, _, _, ats, px, SynValData (Some MFConstructor, _, ido), pat, _, expr, _, _, trivia) ->
+        ExplicitCtor(ats, px, ao, pat, trivia.EqualsRange, expr, Option.map (|Ident|) ido)
     | SynBinding (ao,
                   _,
                   isInline,
@@ -557,15 +557,15 @@ let (|DoBinding|LetBinding|MemberBinding|PropertyBinding|ExplicitCtor|) =
                   SynValData (Some (MFProperty _ as mf), synValInfo, _),
                   pat,
                   _,
-                  equalsRange,
                   expr,
                   _,
-                  _) -> PropertyBinding(ats, px, ao, isInline, mf, pat, equalsRange, expr, synValInfo)
-    | SynBinding (ao, _, isInline, _, ats, px, SynValData (Some mf, synValInfo, _), pat, _, equalsRange, expr, _, _) ->
-        MemberBinding(ats, px, ao, isInline, mf, pat, equalsRange, expr, synValInfo)
-    | SynBinding (_, SynBindingKind.Do, _, _, ats, px, _, _, _, _, expr, _, _) -> DoBinding(ats, px, expr)
-    | SynBinding (ao, _, isInline, isMutable, attrs, px, SynValData (_, valInfo, _), pat, _, equalsRange, expr, _, _) ->
-        LetBinding(attrs, px, ao, isInline, isMutable, pat, equalsRange, expr, valInfo)
+                  _,
+                  trivia) -> PropertyBinding(ats, px, ao, isInline, mf, pat, trivia.EqualsRange, expr, synValInfo)
+    | SynBinding (ao, _, isInline, _, ats, px, SynValData (Some mf, synValInfo, _), pat, _, expr, _, _, trivia) ->
+        MemberBinding(ats, px, ao, isInline, mf, pat, trivia.EqualsRange, expr, synValInfo)
+    | SynBinding (_, SynBindingKind.Do, _, _, ats, px, _, _, _, expr, _, _, trivia) -> DoBinding(ats, px, expr)
+    | SynBinding (ao, _, isInline, isMutable, attrs, px, SynValData (_, valInfo, _), pat, _, expr, _, _, trivia) ->
+        LetBinding(attrs, px, ao, isInline, isMutable, pat, trivia.EqualsRange, expr, valInfo)
 
 // Expressions (55 cases, lacking to handle 11 cases)
 
@@ -1469,15 +1469,9 @@ let (|TCSimple|TCDelegate|) =
     | SynTypeDefnKind.Delegate (t, vi) -> TCDelegate(t, vi)
 
 let (|TypeDef|)
-    (SynTypeDefn (SynComponentInfo (ats, tds, tcs, LongIdent s, px, preferPostfix, ao, _),
-                  equalsRange,
-                  tdr,
-                  withKeyword,
-                  ms,
-                  _,
-                  _))
+    (SynTypeDefn (SynComponentInfo (ats, tds, tcs, LongIdent s, px, preferPostfix, ao, _), tdr, ms, _, _, trivia))
     =
-    (ats, px, ao, tds, tcs, equalsRange, tdr, withKeyword, ms, s, preferPostfix)
+    (ats, px, ao, tds, tcs, trivia.EqualsRange, tdr, trivia.WithKeyword, ms, s, preferPostfix)
 
 let (|SigTypeDef|)
     (SynTypeDefnSig (SynComponentInfo (ats, tds, tcs, LongIdent s, px, preferPostfix, ao, _),
@@ -1659,7 +1653,7 @@ let (|Val|)
 
 let (|RecordFieldName|) ((LongIdentWithDots s, _): RecordFieldName, eo: SynExpr option, _) = (s, eo)
 
-let (|AnonRecordFieldName|) (ident: Ident, eq:range option, e: SynExpr) = (ident.idText, ident.idRange, eq, e)
+let (|AnonRecordFieldName|) (ident: Ident, eq: range option, e: SynExpr) = (ident.idText, ident.idRange, eq, e)
 let (|AnonRecordFieldType|) (Ident s: Ident, t: SynType) = (s, t)
 
 let (|PatRecordFieldName|) ((LongIdent s1, Ident s2), _, p) = (s1, s2, p)

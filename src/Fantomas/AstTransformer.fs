@@ -650,7 +650,7 @@ module private Ast =
                | Some e -> visitSynExpr e
                | None -> []) ]
 
-    and visitAnonRecordField (_: Ident, equalsRange: range option, expr: SynExpr) =
+    and visitAnonRecordField (ident: Ident, equalsRange: range option, expr: SynExpr) =
         [ yield visitIdent ident
           yield! mkNodeOption SynExpr_AnonRecd_Field_Equals equalsRange
           yield! visitSynExpr expr ]
@@ -704,7 +704,7 @@ module private Ast =
 
     and visitSynTypeDefn (td: SynTypeDefn) =
         match td with
-        | SynTypeDefn (sci, equalsRange, stdr, withKeyword, members, implicitConstructor, range) ->
+        | SynTypeDefn (sci, stdr, members, implicitConstructor, range, trivia) ->
             let afterAttributesBeforeRepr =
                 match td.AfterAttributesBeforeComponentInfo with
                 | None -> []
@@ -714,11 +714,11 @@ module private Ast =
 
             // TODO process implicitConstructor ??
             [ yield mkNode SynTypeDefn_ range
-              yield! mkNodeOption SynTypeDefn_Equals equalsRange
+              yield! mkNodeOption SynTypeDefn_Equals trivia.EqualsRange
               yield! visitSynComponentInfo sci
               yield! afterAttributesBeforeRepr
               yield! visitSynTypeDefnRepr stdr
-              yield! mkNodeOption SynTypeDefn_With withKeyword
+              yield! mkNodeOption SynTypeDefn_With trivia.WithKeyword
               yield! (members |> List.collect visitSynMemberDefn) ]
 
     and visitSynTypeDefnSig (typeDefSig: SynTypeDefnSig) : TriviaNodeAssigner list =
@@ -834,7 +834,7 @@ module private Ast =
 
     and visitSynBinding (binding: SynBinding) : TriviaNodeAssigner list =
         match binding with
-        | SynBinding (_, kind, _, _, attrs, _, valData, headPat, returnInfo, equalsRange, expr, _range, _) ->
+        | SynBinding (_, kind, _, _, attrs, _, valData, headPat, returnInfo, expr, _range, _, trivia) ->
             let t =
                 match kind with
                 | SynBindingKind.StandaloneExpression -> SynBindingKind_StandaloneExpression
@@ -862,7 +862,7 @@ module private Ast =
                   (match returnInfo with
                    | Some ri -> visitSynBindingReturnInfo ri
                    | None -> [])
-              yield! mkNodeOption SynBinding_Equals equalsRange
+              yield! mkNodeOption SynBinding_Equals trivia.EqualsRange
               yield! visitSynExpr expr ]
 
     and visitSynValData (svd: SynValData) : TriviaNodeAssigner list =

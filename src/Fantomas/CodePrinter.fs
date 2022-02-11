@@ -5357,33 +5357,24 @@ and genSynBindingValue
     let genValueName = genPat astContext valueName
 
     let genEqualsInBinding (ctx: Context) =
-        let space =
-            match equalsRange with
-            | None -> sepSpace
-            | Some eqR ->
-                ctx.TriviaMainNodes
-                |> Map.tryFindOrEmptyList SynBinding_Equals
-                |> List.tryFind (fun tn -> tn.Range = eqR)
-                |> fun triviaNode ->
-                    match triviaNode with
-                    | Some tn when (List.isNotEmpty tn.ContentAfter) -> sepNone
-                    | _ -> sepSpace
-
-        (genEq SynBinding_Equals equalsRange +> space) ctx
+        (genEqFixed SynBinding_Equals equalsRange
+         +> sepSpaceUnlessWriteBeforeNewlineNotEmpty)
+            ctx
 
     let genReturnType =
         match returnType with
         | Some rt ->
             let hasGenerics =
                 match valueName with
-                | SynPat.LongIdent (_, _, Some _, _, _, _) -> true
+                | SynPat.LongIdent (_, _, _, Some _, _, _, _) -> true
                 | _ -> false
 
             ifElse hasGenerics sepColonWithSpacesFixed sepColon
             +> (genType astContext false rt
                 |> genTriviaFor SynBindingReturnInfo_ rt.Range)
+            +> sepSpaceUnlessWriteBeforeNewlineNotEmpty
             +> autoIndentAndNlnWhenWriteBeforeNewlineNotEmpty genEqualsInBinding
-        | None -> genEqualsInBinding
+        | None -> sepSpace +> genEqualsInBinding
 
     genPreXmlDoc px
     +> genAttrIsFirstChild
