@@ -1164,3 +1164,28 @@ type Foo =
 
     static member Baz : int
 """
+
+[<Test>]
+let ``anonymous records with comments on record fields`` () =
+    formatSourceString
+        false
+        """
+{|
+    // The foo value.
+    FooValue = fooValue
+    // The bar value.
+    BarValue = barValue
+|}
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+{|
+    // The foo value.
+    FooValue = fooValue
+    // The bar value.
+    BarValue = barValue
+|}
+"""

@@ -634,7 +634,7 @@ module private Ast =
             | Some e -> visitSynExpr e
             | None -> [])
 
-    and visitAnonRecordField (_: Ident, expr: SynExpr) = visitSynExpr expr
+    and visitAnonRecordField (ident: Ident, expr: SynExpr) = visitIdent ident :: visitSynExpr expr
 
     and visitAnonRecordTypeField (_: Ident, t: SynType) = visitSynType t
 
