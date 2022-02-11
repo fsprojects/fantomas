@@ -3525,16 +3525,14 @@ and sepNlnBetweenTypeAndMembers (withKeywordRange: range option) (ms: SynMemberD
 and genTypeDefn
     astContext
     (isFirstTypeDefn: bool)
-    (TypeDef (ats, px, ao, tds, tcs, equalsRange, tdr, withKeyword, ms, s, preferPostfix) as node)
+    (TypeDef (ats, px, typeKeyword, ao, tds, tcs, equalsRange, tdr, withKeyword, ms, s, preferPostfix) as node)
     =
     let typeName =
         genPreXmlDoc px
         +> ifElse
             isFirstTypeDefn
             (genAttributes astContext ats
-             +> genAfterAttributesBefore
-                 SynTypeDefn_AfterAttributesBeforeComponentInfo
-                 node.AfterAttributesBeforeComponentInfo
+             +> optSingle (enterNodeFor SynTypeDefn_Type) typeKeyword
              -- "type ")
             (!- "and " +> genOnelinerAttributes astContext ats)
         +> opt sepSpace ao genAccess

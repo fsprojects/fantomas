@@ -13,6 +13,37 @@ module Helpers =
     let mkNode (t: FsAstType) (r: range) = TriviaNodeAssigner(t, r)
     let mkNodeOption (t: FsAstType) (r: range option) : TriviaNodeAssigner list = Option.toList r |> List.map (mkNode t)
 
+    // We only need the let/type keyword anchor if there are xml docs or attributes present that have space between itself and the let/type keyword
+    let mkNodeForKeywordAfterXmlAndAttributes
+        (t: FsAstType)
+        (SourceParser.PreXmlDoc (xml, xmlRange))
+        (attrs: SynAttributeList list)
+        (keywordRange: range option)
+        : TriviaNodeAssigner list =
+        if Array.isEmpty xml && attrs.IsEmpty then
+            []
+        else
+            match keywordRange with
+            | None -> []
+            | Some keyword ->
+                let lastLine =
+                    let lastAttrLine =
+                        match List.tryLast attrs with
+                        | None -> 0
+                        | Some a -> a.Range.EndLine
+
+                    System.Math.Max(xmlRange.EndLine, lastAttrLine)
+
+                if keyword.StartLine > lastLine + 1 then
+                    // In this scenario there is trivia underneath the attributes or xmldoc
+                    // f.ex.:
+                    // [<AttributeOne()>]
+                    // // some comment
+                    // let a = 0
+                    [ mkNode t keyword ]
+                else
+                    []
+
 module private Ast =
     open Helpers
 
@@ -704,19 +735,20 @@ module private Ast =
 
     and visitSynTypeDefn (td: SynTypeDefn) =
         match td with
-        | SynTypeDefn (sci, stdr, members, implicitConstructor, range, trivia) ->
-            let afterAttributesBeforeRepr =
-                match td.AfterAttributesBeforeComponentInfo with
-                | None -> []
-                | Some r ->
-                    mkNode SynTypeDefn_AfterAttributesBeforeComponentInfo r
-                    |> List.singleton
+        | SynTypeDefn (SynComponentInfo (xmlDoc = preXmlDoc; attributes = attrs) as sci,
+                       stdr,
+                       members,
+                       implicitConstructor,
+                       range,
+                       trivia) ->
+            let typeKeyword =
+                mkNodeForKeywordAfterXmlAndAttributes SynTypeDefn_Type preXmlDoc attrs trivia.TypeKeyword
 
             // TODO process implicitConstructor ??
             [ yield mkNode SynTypeDefn_ range
+              yield! typeKeyword
               yield! mkNodeOption SynTypeDefn_Equals trivia.EqualsRange
               yield! visitSynComponentInfo sci
-              yield! afterAttributesBeforeRepr
               yield! visitSynTypeDefnRepr stdr
               yield! mkNodeOption SynTypeDefn_With trivia.WithKeyword
               yield! (members |> List.collect visitSynMemberDefn) ]
@@ -834,19 +866,7 @@ module private Ast =
 
     and visitSynBinding (binding: SynBinding) : TriviaNodeAssigner list =
         match binding with
-        | SynBinding (_,
-                      kind,
-                      _,
-                      _,
-                      attrs,
-                      (SourceParser.PreXmlDoc (xml, xmlRange)),
-                      valData,
-                      headPat,
-                      returnInfo,
-                      expr,
-                      _range,
-                      _,
-                      trivia) ->
+        | SynBinding (_, kind, _, _, attrs, preXml, valData, headPat, returnInfo, expr, _range, _, trivia) ->
             let t =
                 match kind with
                 | SynBindingKind.StandaloneExpression -> SynBindingKind_StandaloneExpression
@@ -858,31 +878,8 @@ module private Ast =
                 | SynBindingKind.Do -> []
                 | _ -> visitSynPat headPat
 
-            // We only need the let keyword anchor if there are xml docs or attributes present that have space between itself and the let keyword
             let letNode =
-                if Array.isEmpty xml && attrs.IsEmpty then
-                    []
-                else
-                    match trivia.LetKeyword with
-                    | None -> []
-                    | Some letKeyword ->
-                        let lastLine =
-                            let lastAttrLine =
-                                match List.tryLast attrs with
-                                | None -> 0
-                                | Some a -> a.Range.EndLine
-
-                            System.Math.Max(xmlRange.EndLine, lastAttrLine)
-
-                        if letKeyword.StartLine > lastLine + 1 then
-                            // In this scenario there is trivia underneath the attributes or xmldoc
-                            // f.ex.:
-                            // [<AttributeOne()>]
-                            // // some comment
-                            // let a = 0
-                            [ mkNode SynBinding_Let letKeyword ]
-                        else
-                            []
+                mkNodeForKeywordAfterXmlAndAttributes SynBinding_Let preXml attrs trivia.LetKeyword
 
             [ yield mkNode t binding.RangeOfBindingWithRhs
               yield! visitSynAttributeLists attrs

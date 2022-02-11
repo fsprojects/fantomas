@@ -195,7 +195,7 @@ type FsAstType =
     | SynInterfaceImpl_
     | SynInterfaceImpl_With
     | SynTypeDefn_
-    | SynTypeDefn_AfterAttributesBeforeComponentInfo
+    | SynTypeDefn_Type
     | SynTypeDefn_Equals
     | SynTypeDefn_With
     | SynTypeDefnSig_

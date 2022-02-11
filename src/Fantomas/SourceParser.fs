@@ -1472,7 +1472,7 @@ let (|TCSimple|TCDelegate|) =
 let (|TypeDef|)
     (SynTypeDefn (SynComponentInfo (ats, tds, tcs, LongIdent s, px, preferPostfix, ao, _), tdr, ms, _, _, trivia))
     =
-    (ats, px, ao, tds, tcs, trivia.EqualsRange, tdr, trivia.WithKeyword, ms, s, preferPostfix)
+    (ats, px, trivia.TypeKeyword, ao, tds, tcs, trivia.EqualsRange, tdr, trivia.WithKeyword, ms, s, preferPostfix)
 
 let (|SigTypeDef|)
     (SynTypeDefnSig (SynComponentInfo (ats, tds, tcs, LongIdent s, px, preferPostfix, ao, _),

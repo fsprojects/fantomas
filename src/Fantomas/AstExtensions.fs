@@ -22,13 +22,6 @@ let private hasLinesBetweenAttributesAndFirstNode (attributes: SynAttributes) (f
         else
             None)
 
-type SynTypeDefn with
-    member this.AfterAttributesBeforeComponentInfo: Range option =
-        match this with
-        | SynTypeDefn(typeInfo = SynComponentInfo(attributes = [])) -> None
-        | SynTypeDefn(typeInfo = SynComponentInfo (attributes = attrs; range = compRange)) ->
-            hasLinesBetweenAttributesAndFirstNode attrs compRange
-
 type SynField with
     member this.AfterAttributesBeforeIdentifier: Range option =
         match this with
