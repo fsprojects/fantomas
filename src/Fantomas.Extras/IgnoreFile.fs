@@ -3,44 +3,58 @@ namespace Fantomas.Extras
 [<RequireQualifiedAccess>]
 module IgnoreFile =
 
-    open System.IO
+    open System.Collections.Concurrent
+    open System.IO.Abstractions
     open MAB.DotIgnore
 
     [<Literal>]
     let IgnoreFileName = ".fantomasignore"
 
-    let rec private findIgnoreFile (filePath: string) : string option =
-        let allParents =
-            let rec addParent (di: DirectoryInfo) (finalContinuation: string list -> string list) =
-                if isNull di.Parent then
-                    finalContinuation [ di.FullName ]
-                else
-                    addParent di.Parent (fun parents -> di.FullName :: parents |> finalContinuation)
+    let internal findIgnoreFile<'a> (fs: IFileSystem) (readFile: string -> 'a) (ignoreFiles: ConcurrentDictionary<string, 'a option>) (filePath: string) : 'a option =
+        // Note that this function has side effects: it mutates the global static state `ignoreFiles`.
+        let rec findIgnoreFileAbove (path : IDirectoryInfo) : 'a option =
+            let potentialFile = fs.Path.Combine(path.FullName, IgnoreFileName)
+            match ignoreFiles.TryGetValue path.FullName with
+            | true, f -> f
+            | false, _ ->
+                let result =
+                    if fs.File.Exists potentialFile then readFile potentialFile |> Some else None
+                ignoreFiles.TryAdd (path.FullName, result)
+                // We don't care if another thread beat us to this, they'll have
+                // inserted exactly what we wanted to insert anyway
+                |> ignore
+                
+                match result with
+                | None ->
+                    if isNull path.Parent then
+                        None
+                    else
+                        findIgnoreFileAbove path.Parent
+                | Some _ -> result
 
-            addParent (Directory.GetParent filePath) id
+        findIgnoreFileAbove (fs.Directory.GetParent filePath)
 
-        allParents
-        |> List.tryFind (fun p -> Path.Combine(p, IgnoreFileName) |> File.Exists)
-        |> Option.map (fun p -> Path.Combine(p, IgnoreFileName))
-
-    let private relativePathPrefix = sprintf ".%c" Path.DirectorySeparatorChar
-
-    let private removeRelativePathPrefix (path: string) =
-        if path.StartsWith(relativePathPrefix) then
+    let private removeRelativePathPrefix (fs : IFileSystem) (path: string) =
+        if path.StartsWith(sprintf ".%c" fs.Path.DirectorySeparatorChar) || path.StartsWith(sprintf ".%c" fs.Path.AltDirectorySeparatorChar) then
             path.Substring(2)
         else
             path
 
+    /// Store of the IgnoreFiles present in each folder discovered so far.
+    /// This is to save repeatedly hitting the disk for each file, and to save
+    /// loading the IgnoreLists from the disk repeatedly (which is nontrivially expensive!).
+    let private ignoreFiles : ConcurrentDictionary<string, IgnoreList option> = ConcurrentDictionary ()
+    
     let isIgnoredFile (file: string) =
-        let fullPath = Path.GetFullPath(file)
+        let fs = FileSystem ()
+        let fullPath = fs.Path.GetFullPath(file)
 
-        match findIgnoreFile fullPath with
+        match findIgnoreFile fs IgnoreList ignoreFiles fullPath with
         | None -> false
-        | Some ignoreFile ->
-            let ignores = IgnoreList(ignoreFile)
-
+        | Some ignores ->
+ 
             try
-                let path = removeRelativePathPrefix file
+                let path = removeRelativePathPrefix fs file
                 ignores.IsIgnored(path, false)
             with
             | ex ->

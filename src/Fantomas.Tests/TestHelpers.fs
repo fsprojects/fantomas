@@ -11,7 +11,6 @@ open FSharp.Compiler.Syntax
 open FSharp.Compiler.Xml
 open Fantomas.FormatConfig
 open Fantomas
-open Fantomas.Extras
 
 [<assembly: Parallelizable(ParallelScope.All)>]
 do ()

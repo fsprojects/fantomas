@@ -92,6 +92,7 @@
     <Compile Include="IndexSyntaxTests.fs" />
     <Compile Include="InsertFinalNewlineTests.fs" />
     <Compile Include="SingleExprTests.fs" />
+    <Compile Include="IgnoreFileTests.fs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Fantomas.Extras\Fantomas.Extras.fsproj" />
