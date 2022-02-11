@@ -779,3 +779,101 @@ let makeStreamReader x y = new StreamReader(arg1=x, arg2=y)"""
         """
 let makeStreamReader x y = new StreamReader(arg1 = x, arg2 = y)
 """
+
+[<Test>]
+let ``print comments before named argument application`` () =
+    formatSourceString
+        false
+        """
+let Ok (content: string) =
+// #if API_GATEWAY || MADAPI
+    APIGatewayHttpApiV2ProxyResponse(
+        StatusCode = int HttpStatusCode.OK,
+        Body = content,
+  //  #if API_GATEWAY
+        //Headers = Map.empty.Add("Content-Type", "text/plain")
+  //  #else
+        Headers = Map.empty.Add("Content-Type", "application/json")
+// #endif
+    )
+// #else
+    ApplicationLoadBalancerResponse(
+        StatusCode = int HttpStatusCode.OK,
+        Body = content,
+        Headers = Map.empty.Add("Content-Type", "text/plain")
+    )
+// #endif
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let Ok (content: string) =
+    // #if API_GATEWAY || MADAPI
+    APIGatewayHttpApiV2ProxyResponse(
+        StatusCode = int HttpStatusCode.OK,
+        Body = content,
+        //  #if API_GATEWAY
+        //Headers = Map.empty.Add("Content-Type", "text/plain")
+        //  #else
+        Headers = Map.empty.Add("Content-Type", "application/json")
+    // #endif
+    )
+    // #else
+    ApplicationLoadBalancerResponse(
+        StatusCode = int HttpStatusCode.OK,
+        Body = content,
+        Headers = Map.empty.Add("Content-Type", "text/plain")
+    )
+// #endif
+"""
+
+[<Test>]
+let ``print trivia before named argument application, 2068`` () =
+    formatSourceString
+        false
+        """
+let Ok (content: string) =
+#if API_GATEWAY || MADAPI
+    APIGatewayHttpApiV2ProxyResponse(
+        StatusCode = int HttpStatusCode.OK,
+        Body = content,
+#if API_GATEWAY
+        Headers = Map.empty.Add("Content-Type", "text/plain")
+#else
+        Headers = Map.empty.Add("Content-Type", "application/json")
+#endif
+    )
+#else
+    ApplicationLoadBalancerResponse(
+        StatusCode = int HttpStatusCode.OK,
+        Body = content,
+        Headers = Map.empty.Add("Content-Type", "text/plain")
+    )
+#endif
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let Ok (content: string) =
+#if API_GATEWAY || MADAPI
+    APIGatewayHttpApiV2ProxyResponse(
+        StatusCode = int HttpStatusCode.OK,
+        Body = content,
+#if API_GATEWAY
+        Headers = Map.empty.Add("Content-Type", "text/plain")
+#else
+        Headers = Map.empty.Add("Content-Type", "application/json")
+#endif
+    )
+#else
+    ApplicationLoadBalancerResponse(
+        StatusCode = int HttpStatusCode.OK,
+        Body = content,
+        Headers = Map.empty.Add("Content-Type", "text/plain")
+    )
+#endif
+"""
