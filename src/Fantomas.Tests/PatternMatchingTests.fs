@@ -2047,3 +2047,23 @@ match!
 | None -> false
 | Some balance -> someRetrievedBalance = balance
 """
+
+[<Test>]
+let ``single line named fields in a pattern matching should have space surrounding the '=', 1877`` () =
+    formatSourceString
+        false
+        """
+let examineData x =
+    match data with
+    | OnePartData(part1 = p1) -> p1
+    | TwoPartData(part1 = p1; part2=p2) -> p1 + p2"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let examineData x =
+    match data with
+    | OnePartData (part1 = p1) -> p1
+    | TwoPartData (part1 = p1; part2 = p2) -> p1 + p2
+"""
