@@ -63,6 +63,7 @@ module IgnoreFile =
         else
             path
 
+    /// Global static state.
     /// Store of the IgnoreFiles present in each folder discovered so far.
     /// This is to save repeatedly hitting the disk for each file, and to save
     /// loading the IgnoreLists from the disk repeatedly (which is nontrivially expensive!).
