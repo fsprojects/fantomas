@@ -1,3 +1,10 @@
+#### 4.6.4 - 02/2022
+
+* Fix type declaration loses 'when' qualifier. [#2075](https://github.com/fsprojects/fantomas/issues/2075)
+* Fix Comments in anonymous record values are deleted. [#2067](https://github.com/fsprojects/fantomas/issues/2067)
+* Fix Comment after [] is lost, more common in records. [#2043](https://github.com/fsprojects/fantomas/issues/2043)
+* Fix Named argument should have a space. [#1877](https://github.com/fsprojects/fantomas/issues/1877)
+
 #### 4.6.3 - 02/2022
 
 * Documentation: Running fake build locally. [#2056](https://github.com/fsprojects/fantomas/issues/2056)
