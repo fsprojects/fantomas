@@ -14,7 +14,7 @@ To keep things focused, the scope is currently limited to the Fable.React and Fe
 
 ## Key concepts
 
-There are two active patterns for [SynExpr](https://fsharp.github.io/FSharp.Compiler.Service/reference/fsharp-compiler-syntaxtree-synexpr.html) that capture the shapes in the Elmish DSL.
+There are two active patterns for [SynExpr](https://fsharp.github.io/fsharp-compiler-docs/reference/fsharp-compiler-syntax-synexpr.html) that capture the shapes in the Elmish DSL.
 
 See [SourceParser](../src/Fantomas/SourceParser.fs#:~:text=elmishreactwithoutchildren):
  
