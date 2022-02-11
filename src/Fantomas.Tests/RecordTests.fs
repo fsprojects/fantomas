@@ -1913,8 +1913,8 @@ let ``anonymous records with comments on record fields, 2067`` () =
         equal
         """
 {|
-// The foo value.
-FooValue = fooValue
+   // The foo value.
+   FooValue = fooValue
    // The bar value.
-BarValue = barValue |}
+   BarValue = barValue |}
 """

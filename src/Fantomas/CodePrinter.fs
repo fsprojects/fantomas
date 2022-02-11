@@ -3086,7 +3086,7 @@ and genMultilineAnonRecord (isStruct: bool) fields copyInfo (astContext: ASTCont
                          // Add enough spaces to start at the right column but indent from the opening curly brace.
                          // Use a double indent when using a small indent size to avoid offset warnings.
                          addFixedSpaces targetColumn
-                         +> genTriviaFor Ident_ r !-s
+                         +> atCurrentColumn (genTriviaFor Ident_ r (!-s))
                          +> sepEq
                          +> expr)
                      +> sepCloseAnonRecd)
