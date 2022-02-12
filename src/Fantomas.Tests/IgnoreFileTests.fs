@@ -57,7 +57,7 @@ let ``findIgnoreFile does not crash at the root`` (fantomasIgnorePresent: bool) 
     |> shouldEqual fantomasIgnore
 
     snapshot dict
-    |> shouldEqual [ "/", fantomasIgnore ]
+    |> shouldEqual [ root, fantomasIgnore ]
 
 [<Test>]
 let ``findIgnoreFile preferentially finds the fantomasignore next to the source file`` () =
