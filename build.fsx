@@ -454,29 +454,30 @@ Target.create "CheckFormat" (fun _ ->
 Target.create "EnsureRepoConfig" (fun _ ->
     // Configure custom git hooks
     // * Currently only used to ensure that code is formatted before pushing
-    Fake.Tools.Git.CommandHelper.gitCommand "" "config core.hooksPath .githooks"
-)
+    Fake.Tools.Git.CommandHelper.gitCommand "" "config core.hooksPath .githooks")
 
 let sw (s: string) (t: string) =
-    if t.StartsWith s then Some $"* {t.Substring(s.Length)}" else None
+    if t.StartsWith s then
+        Some $"* {t.Substring(s.Length)}"
+    else
+        None
 
 let (|Fix|_|) = sw "Fix "
 let (|Doc|_|) = sw "Documentation: "
 let (|Improve|_|) = sw "Improve: "
 let (|Feature|_|) = sw "Feature "
 
-let toChangeLogEntry (n: ReleaseNotes.ReleaseNotes): Changelog.ChangelogEntry =
-    let mapChange (s: string): Changelog.Change option =
+let toChangeLogEntry (n: ReleaseNotes.ReleaseNotes) : Changelog.ChangelogEntry =
+    let mapChange (s: string) : Changelog.Change option =
         match s with
-        | Feature line ->
-            Changelog.Change.New("added", line) |> Some
-        | Fix line | Improve line ->
-            Changelog.Change.New("fixed", line) |> Some
-        | Doc line ->
-            Changelog.Change.New("Documented", line) |> Some
+        | Feature line -> Changelog.Change.New("added", line) |> Some
+        | Fix line
+        | Improve line -> Changelog.Change.New("fixed", line) |> Some
+        | Doc line -> Changelog.Change.New("Documented", line) |> Some
         | line ->
             Trace.tracefn $"Unknown change type '{s}' in release notes for version {n.NugetVersion}"
             Changelog.Change.New("changed", line) |> Some
+
     let lines = n.Notes |> List.choose mapChange
     Changelog.ChangelogEntry.New(n.AssemblyVersion, n.NugetVersion, n.Date, None, lines, false)
 
@@ -484,8 +485,7 @@ Target.create "GenerateChangelog" (fun _ ->
     ReleaseNotes.parseAll (File.ReadAllLines "RELEASE_NOTES.md")
     |> List.map toChangeLogEntry
     |> Changelog.fromEntries
-    |> Changelog.save "CHANGELOG.md"
-)
+    |> Changelog.save "CHANGELOG.md")
 
 // --------------------------------------------------------------------------------------
 // Run all targets by default. Invoke 'build <Target>' to override
