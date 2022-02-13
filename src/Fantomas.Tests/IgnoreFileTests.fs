@@ -1,7 +1,7 @@
 module Fantomas.Tests.TestIgnoreFile
 
-open System.Collections.Concurrent
 open System.Collections.Generic
+open System.Collections.Immutable
 open NUnit.Framework
 open FsUnitTyped
 open Fantomas.Extras
@@ -14,7 +14,7 @@ let private makeFileHierarchy (fs: IFileSystem) (filePaths: string list) : unit 
         fileInfo.Directory.Create()
         fs.File.WriteAllText(fileInfo.FullName, "some text")
 
-let private snapshot (fs: ConcurrentDictionary<'k, 'v>) : ('k * 'v) list =
+let private snapshot (fs: IReadOnlyDictionary<'k, 'v>) : ('k * 'v) list =
     fs
     |> Seq.map (function
         | KeyValue (k, v) -> (k, v))
@@ -51,10 +51,10 @@ let ``findIgnoreFile does not crash at the root`` (fantomasIgnorePresent: bool) 
 
     let readFile = oneShotParser ()
 
-    let dict = ConcurrentDictionary()
+    let found, dict =
+        IgnoreFileStore.findIgnoreFile fs readFile ImmutableDictionary.Empty fileAtRoot
 
-    IgnoreFile.findIgnoreFile fs readFile dict fileAtRoot
-    |> shouldEqual fantomasIgnore
+    found |> shouldEqual fantomasIgnore
 
     snapshot dict
     |> shouldEqual [ root, fantomasIgnore ]
@@ -76,10 +76,10 @@ let ``findIgnoreFile preferentially finds the fantomasignore next to the source 
 
     let readFile = oneShotParser ()
 
-    let dict = ConcurrentDictionary()
+    let found, dict =
+        IgnoreFileStore.findIgnoreFile fs readFile ImmutableDictionary.Empty source
 
-    IgnoreFile.findIgnoreFile fs readFile dict source
-    |> shouldEqual (Some target)
+    found |> shouldEqual (Some target)
 
     snapshot dict
     |> shouldEqual [ fs.Directory.GetParent(target).FullName, Some target ]
@@ -100,10 +100,10 @@ let ``findIgnoreFile can find the fantomasignore one layer up from the source fi
 
     let readFile = oneShotParser ()
 
-    let dict = ConcurrentDictionary()
+    let found, dict =
+        IgnoreFileStore.findIgnoreFile fs readFile ImmutableDictionary.Empty source
 
-    IgnoreFile.findIgnoreFile fs readFile dict source
-    |> shouldEqual (Some target)
+    found |> shouldEqual (Some target)
 
     snapshot dict
     |> shouldEqual [ fs.Directory.GetParent(target).FullName, Some target
@@ -123,17 +123,17 @@ let ``findIgnoreFile uses the store`` () =
 
     let readFile = oneShotParser ()
 
-    let dict = ConcurrentDictionary()
+    let found, dict =
+        IgnoreFileStore.findIgnoreFile fs readFile ImmutableDictionary.Empty source1
 
-    IgnoreFile.findIgnoreFile fs readFile dict source1
-    |> shouldEqual (Some target)
+    found |> shouldEqual (Some target)
 
     snapshot dict
     |> shouldEqual [ fs.Directory.GetParent(target).FullName, Some target
                      fs.Directory.GetParent(source1).FullName, None ]
 
-    IgnoreFile.findIgnoreFile fs readFile dict source2
-    |> shouldEqual (Some target)
+    let found, dict = IgnoreFileStore.findIgnoreFile fs readFile dict source2
+    found |> shouldEqual (Some target)
 
     snapshot dict
     |> shouldEqual [ fs.Directory.GetParent(target).FullName, Some target
