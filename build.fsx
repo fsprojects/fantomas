@@ -476,7 +476,14 @@ Target.create "CheckFormat" (fun _ ->
     elif result.ExitCode = 99 then
         failwith "Some files need formatting, run `dotnet fake build -t Format` to format them"
     else
-        Trace.logf "Errors while formatting: %A" result.Errors)
+        Trace.logf "Errors while formatting: %A" result.Errors
+        failwith "Unknown errors while formatting")
+
+Target.create "EnsureRepoConfig" (fun _ ->
+    // Configure custom git hooks
+    // * Currently only used to ensure that code is formatted before pushing
+    Fake.Tools.Git.CommandHelper.gitCommand "" "config core.hooksPath .githooks"
+)
 
 // --------------------------------------------------------------------------------------
 // Run all targets by default. Invoke 'build <Target>' to override
