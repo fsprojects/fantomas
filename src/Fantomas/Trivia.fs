@@ -92,6 +92,13 @@ let private findNodeBeforeLineAndColumn (nodes: TriviaNodeAssigner list) line co
 
             range.StartLine <= line
             && range.StartColumn <= column)
+        |> function
+            | None ->
+                nodes
+                |> List.tryFindBack (fun tn ->
+                    let range = tn.Range
+                    range.StartLine <= line)
+            | Some n -> Some n
 
     match node with
     | Some tokenNode ->
