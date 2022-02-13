@@ -194,8 +194,8 @@ It's often better to check *before* contributing that you're setting off on the 
 ## Fixing style guide inconsistencies
 
 Fantomas tries to keep up with the style guides, but as these are living documents, it can occur that something is listed in the style that Fantomas is not respecting.
-In this case, please create an issue using our [online tool](https://fsprojects.github.io/fantomas-tools/#/).
-Copy the code snippet from the guide and add a link to the section of the guide that is not being respected.
+In this case, please create an issue using our [online tool](https://fsprojects.github.io/fantomas-tools/#/). 
+Copy the code snippet from the guide and add a link to the section of the guide that is not being respected. 
 The maintainers will then add the `bug (stylistic)` to confirm the bug is fixable in Fantomas. In most cases, it may seem obvious that the case can be fixed.
 However, in the past there have been changes to the style guide that Fantomas could not implement for technical reasons: Fantomas can only implement rules based on information entirely contained within the untyped syntax tree.
 
@@ -205,7 +205,7 @@ When fixing a stylistic issue, please ask the maintainers what branch should be 
 Strive to ensure that end users can always update to the latest patch revision of their current minor or major without fear.
 
 A user should only need to deal with style changes when they have explicitly [chosen to upgrade](https://github.com/fsprojects/fantomas/blob/master/docs/Documentation.md#updating-to-a-new-fantomas-version) to a new minor or major version.
-In case no major or minor branch was created yet, please reach out to the maintainers.
+In case no major or minor branch was created yet, please reach out to the maintainers. 
 The maintainers will frequently rebase this branch on top of the master branch and release alpha/beta packages accordingly.
 
 # Your First Contribution
