@@ -54,7 +54,7 @@ let fantomasClientVersion = "0.5.1"
 // (<solutionFile>.sln is built during the building process)
 let solutionFile = "fantomas"
 //// Environment.CurrentDirectory <- __SOURCE_DIRECTORY__
-let release = ReleaseNotes.parse (File.ReadAllLines "RELEASE_NOTES.md")
+
 
 // Files to format
 let sourceFiles =
@@ -170,26 +170,6 @@ Target.create "Clean" (fun _ ->
       "src/Fantomas.Client/obj" ]
     |> List.iter Shell.cleanDir)
 
-Target.create "ProjectVersion" (fun _ ->
-    let version = release.NugetVersion
-
-    let setProjectVersion project =
-        let file = sprintf "src/%s/%s.fsproj" project project
-
-        Xml.poke
-            file
-            "Project/PropertyGroup/Version/text()"
-            (if project = "Fantomas.Client" then
-                 fantomasClientVersion
-             else
-                 version)
-
-    setProjectVersion "Fantomas"
-    setProjectVersion "Fantomas.CoreGlobalTool"
-    setProjectVersion "Fantomas.CoreGlobalTool.Tests"
-    setProjectVersion "Fantomas.Tests"
-    setProjectVersion "Fantomas.Extras"
-    setProjectVersion "Fantomas.Client")
 
 // --------------------------------------------------------------------------------------
 // Build library & test project
@@ -226,8 +206,6 @@ Target.create "UnitTests" (fun _ ->
 // Build a NuGet package
 
 Target.create "Pack" (fun _ ->
-    let nugetVersion = release.NugetVersion
-
     let pack project =
         let projectPath = sprintf "src/%s/%s.fsproj" project project
 
@@ -237,17 +215,11 @@ Target.create "Pack" (fun _ ->
             { defaultArgs with
                 Properties =
                     [ "Title", project
-                      "PackageVersion",
-                      (if project = "Fantomas.Client" then
-                           fantomasClientVersion
-                       else
-                           nugetVersion)
                       "Authors", (String.Join(" ", authors))
                       "Owners", owner
                       "PackageRequireLicenseAcceptance", "false"
                       "Description", description
                       "Summary", summary
-                      "PackageReleaseNotes", ((String.toLines release.Notes).Replace(",", ""))
                       "Copyright", copyright
                       "PackageTags", tags
                       "PackageProjectUrl", projectUrl ] }
@@ -521,7 +493,6 @@ Target.create "GenerateChangelog" (fun _ ->
 Target.create "All" ignore
 
 "Clean"
-==> "ProjectVersion"
 ==> "CheckFormat"
 ==> "Build"
 ==> "UnitTests"
