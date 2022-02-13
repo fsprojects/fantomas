@@ -185,3 +185,30 @@ else if fooo then bar
 elif foooo then bar
 else bar
 """
+
+[<Test>]
+let ``indentation with KeepIfThenInSameLine, 1160`` () =
+    formatSourceString
+        false
+        """
+let intermediateModel: IntermediateModel =
+    initialIntermediateModel
+    |> fold caseFold events
+    |> if super long complicated condition that maybe should be factored out then
+           updateActions
+       else
+           id
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let intermediateModel: IntermediateModel =
+    initialIntermediateModel
+    |> fold caseFold events
+    |> if super long complicated condition that maybe should be factored out then
+           updateActions
+       else
+           id
+"""
