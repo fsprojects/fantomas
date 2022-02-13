@@ -36,10 +36,38 @@ type FantomasDaemon(sender: Stream, reader: Stream) as this =
     let ignoreFileStore =
         new IgnoreFileStore<_>(FileSystem(), IgnoreList, (fun ignoreList path -> ignoreList.IsIgnored(path, false)))
 
+    let rec ignoreFileInvalidation () =
+        async {
+            do! Async.Sleep(TimeSpan.FromSeconds 5.0)
+            ignoreFileStore.PurgeCache()
+            return! ignoreFileInvalidation ()
+        }
+
+    let ignoreFileCancellation = new CancellationTokenSource()
+
+    let ignoreFileInvalidation =
+        Async.StartAsTask(ignoreFileInvalidation (), cancellationToken = ignoreFileCancellation.Token)
+
     do rpc.Disconnected.Add(fun _ -> exit ())
 
     interface IDisposable with
         member this.Dispose() =
+            ignoreFileCancellation.Cancel()
+
+            try
+                ignoreFileInvalidation.Wait()
+            with
+            | :? AggregateException as exc ->
+                let cancelledSuccessfully =
+                    exc.InnerExceptions
+                    |> Seq.exists (fun exc ->
+                        not
+                        <| Object.ReferenceEquals(exc :?> TaskCanceledException, null))
+
+                if not <| cancelledSuccessfully then
+                    reraise ()
+
+            ignoreFileCancellation.Dispose()
             (ignoreFileStore :> IDisposable).Dispose()
             disconnectEvent.Dispose()
 
