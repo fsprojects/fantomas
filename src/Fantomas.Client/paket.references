@@ -1,5 +1,7 @@
+Ionide.KeepAChangelog.Tasks
+Dotnet.ReproducibleBuilds
+
 group client
 FSharp.Core
 StreamJsonRpc
-Microsoft.SourceLink.GitHub
 SemanticVersioning

@@ -1,3 +1,6 @@
+Ionide.KeepAChangelog.Tasks
+Dotnet.ReproducibleBuilds
+
 group tool
 FSharp.Core
 Argu
