@@ -9,7 +9,7 @@ module internal IgnoreFileStore =
 
     [<Literal>]
     let IgnoreFileName = ".fantomasignore"
-    
+
     let internal findIgnoreFile<'a>
         (fs: IFileSystem)
         (readFile: string -> 'a)
@@ -17,7 +17,10 @@ module internal IgnoreFileStore =
         (filePath: string)
         : 'a option * ImmutableDictionary<string, 'a option> =
         // Note that this function has side effects: it mutates the state `ignoreFiles`.
-        let rec findIgnoreFileAbove (ignoreFiles: ImmutableDictionary<string, 'a option>) (path: IDirectoryInfo) : 'a option * ImmutableDictionary<string, 'a option> =
+        let rec findIgnoreFileAbove
+            (ignoreFiles: ImmutableDictionary<string, 'a option>)
+            (path: IDirectoryInfo)
+            : 'a option * ImmutableDictionary<string, 'a option> =
             let potentialFile = fs.Path.Combine(path.FullName, IgnoreFileName)
 
             match ignoreFiles.TryGetValue path.FullName with
@@ -39,8 +42,7 @@ module internal IgnoreFileStore =
                     else
                         None
 
-                let ignoreFiles =
-                    ignoreFiles.Add(path.FullName, result)
+                let ignoreFiles = ignoreFiles.Add(path.FullName, result)
 
                 match result with
                 | None ->
@@ -52,19 +54,24 @@ module internal IgnoreFileStore =
 
         findIgnoreFileAbove ignoreFiles (fs.Directory.GetParent filePath)
 
-    type Message<'a> =
-        | RequestFilePath of string * AsyncReplyChannel<'a>
-        
-    let rec loop<'a> (fs : IFileSystem) (readFile : string -> 'a) (state : ImmutableDictionary<string, 'a option>) (mb : MailboxProcessor<_>) =
+    type Message<'a> = RequestFilePath of string * AsyncReplyChannel<'a>
+
+    let rec loop<'a>
+        (fs: IFileSystem)
+        (readFile: string -> 'a)
+        (state: ImmutableDictionary<string, 'a option>)
+        (mb: MailboxProcessor<_>)
+        =
         async {
-            let! message = mb.Receive ()
+            let! message = mb.Receive()
+
             match message with
             | Message.RequestFilePath (path, reply) ->
                 let found, state = findIgnoreFile fs readFile state path
                 reply.Reply found
                 return! loop fs readFile state mb
         }
-        
+
     let removeRelativePathPrefix (fs: IFileSystem) (path: string) =
         if
             path.StartsWith(sprintf ".%c" fs.Path.DirectorySeparatorChar)
@@ -74,14 +81,23 @@ module internal IgnoreFileStore =
         else
             path
 
-type IgnoreFileStore<'a> (fs : IFileSystem, readFile: string -> 'a, isIgnored: 'a -> string -> bool, ?cancellationToken: CancellationToken) =
+type IgnoreFileStore<'a>
+    (
+        fs: IFileSystem,
+        readFile: string -> 'a,
+        isIgnored: 'a -> string -> bool,
+        ?cancellationToken: CancellationToken
+    ) =
     let mailbox: MailboxProcessor<_> =
-        MailboxProcessor.Start (IgnoreFileStore.loop<'a> fs readFile ImmutableDictionary.Empty, ?cancellationToken=cancellationToken)
-    
-    member _.IsIgnoredFile (file: string) : bool =
+        MailboxProcessor.Start(
+            IgnoreFileStore.loop<'a> fs readFile ImmutableDictionary.Empty,
+            ?cancellationToken = cancellationToken
+        )
+
+    member _.IsIgnoredFile(file: string) : bool =
         let fullPath = fs.Path.GetFullPath(file)
-        
-        match mailbox.PostAndReply (fun reply -> IgnoreFileStore.Message.RequestFilePath (fullPath, reply)) with
+
+        match mailbox.PostAndReply(fun reply -> IgnoreFileStore.Message.RequestFilePath(fullPath, reply)) with
         | None -> false
         | Some ignores ->
 
@@ -95,16 +111,14 @@ type IgnoreFileStore<'a> (fs : IFileSystem, readFile: string -> 'a, isIgnored: '
 
 [<RequireQualifiedAccess>]
 module IgnoreFile =
-    
+
     open MAB.DotIgnore
-    
+
     [<Literal>]
     let IgnoreFileName = IgnoreFileStore.IgnoreFileName
-    
+
     let private defaultStore =
-        lazy
-            IgnoreFileStore (FileSystem (), IgnoreList, fun ignoreList path -> ignoreList.IsIgnored (path, false))
-    
+        lazy IgnoreFileStore(FileSystem(), IgnoreList, (fun ignoreList path -> ignoreList.IsIgnored(path, false)))
+
     let isIgnoredFile filePath =
         defaultStore.Force().IsIgnoredFile filePath
-            
