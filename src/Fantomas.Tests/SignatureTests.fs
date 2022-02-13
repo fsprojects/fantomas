@@ -208,6 +208,23 @@ type Test =
 """
 
 [<Test>]
+let ``should keep access modifiers in extern declaration, 1213`` () =
+    formatSourceString
+        false
+        """
+[<DllImport("kernel32.dll")>]
+extern UIntPtr private GetProcessHeap()
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+[<DllImport("kernel32.dll")>]
+extern UIntPtr private GetProcessHeap()
+"""
+
+[<Test>]
 let ``comment should stay above type`` () =
     formatSourceString
         true
