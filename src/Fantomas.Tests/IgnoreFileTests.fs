@@ -227,6 +227,7 @@ let ``Can purge the cache`` () =
 
     // Now clear the cache and observe another read
     ignoreFileStore.PurgeCache()
+    |> Async.RunSynchronously
 
     ignoreFileStore.IsIgnoredFile source1
     |> shouldEqual false

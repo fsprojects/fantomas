@@ -104,8 +104,8 @@ type IgnoreFileStore<'a>
             ?cancellationToken = cancellationToken
         )
 
-    member _.PurgeCache() : unit =
-        mailbox.PostAndReply IgnoreFileStore.Message.PurgeCache
+    member _.PurgeCache() : Async<unit> =
+        mailbox.PostAndAsyncReply IgnoreFileStore.Message.PurgeCache
 
     member _.IsIgnoredFile(file: string) : bool =
         let fullPath = fs.Path.GetFullPath(file)
