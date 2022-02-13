@@ -1,5 +1,6 @@
 namespace Fantomas.Extras
 
+open System
 open System.Collections.Immutable
 open System.IO.Abstractions
 open System.Threading
@@ -16,7 +17,6 @@ module internal IgnoreFileStore =
         (ignoreFiles: ImmutableDictionary<string, 'a option>)
         (filePath: string)
         : 'a option * ImmutableDictionary<string, 'a option> =
-        // Note that this function has side effects: it mutates the state `ignoreFiles`.
         let rec findIgnoreFileAbove
             (ignoreFiles: ImmutableDictionary<string, 'a option>)
             (path: IDirectoryInfo)
@@ -54,7 +54,10 @@ module internal IgnoreFileStore =
 
         findIgnoreFileAbove ignoreFiles (fs.Directory.GetParent filePath)
 
-    type Message<'a> = RequestFilePath of string * AsyncReplyChannel<'a>
+    type Message<'a> =
+        | RequestFilePath of string * AsyncReplyChannel<'a>
+        | PurgeCache of AsyncReplyChannel<unit>
+        | Quit of AsyncReplyChannel<unit>
 
     let rec loop<'a>
         (fs: IFileSystem)
@@ -70,6 +73,12 @@ module internal IgnoreFileStore =
                 let found, state = findIgnoreFile fs readFile state path
                 reply.Reply found
                 return! loop fs readFile state mb
+            | Message.PurgeCache channel ->
+                channel.Reply()
+                return! loop fs readFile ImmutableDictionary.Empty mb
+            | Message.Quit channel ->
+                channel.Reply()
+                return ()
         }
 
     let removeRelativePathPrefix (fs: IFileSystem) (path: string) =
@@ -81,6 +90,7 @@ module internal IgnoreFileStore =
         else
             path
 
+[<NoEquality; NoComparison>]
 type IgnoreFileStore<'a>
     (
         fs: IFileSystem,
@@ -93,6 +103,9 @@ type IgnoreFileStore<'a>
             IgnoreFileStore.loop<'a> fs readFile ImmutableDictionary.Empty,
             ?cancellationToken = cancellationToken
         )
+
+    member _.PurgeCache() : unit =
+        mailbox.PostAndReply IgnoreFileStore.Message.PurgeCache
 
     member _.IsIgnoredFile(file: string) : bool =
         let fullPath = fs.Path.GetFullPath(file)
@@ -109,6 +122,11 @@ type IgnoreFileStore<'a>
                 printfn "%A" ex
                 false
 
+    interface IDisposable with
+        override _.Dispose() =
+            mailbox.PostAndReply IgnoreFileStore.Message.Quit
+            (mailbox :> IDisposable).Dispose()
+
 [<RequireQualifiedAccess>]
 module IgnoreFile =
 
@@ -118,7 +136,8 @@ module IgnoreFile =
     let IgnoreFileName = IgnoreFileStore.IgnoreFileName
 
     let private defaultStore =
-        lazy IgnoreFileStore(FileSystem(), IgnoreList, (fun ignoreList path -> ignoreList.IsIgnored(path, false)))
+        lazy
+            new IgnoreFileStore<_>(FileSystem(), IgnoreList, (fun ignoreList path -> ignoreList.IsIgnored(path, false)))
 
     let isIgnoredFile filePath =
         defaultStore.Force().IsIgnoredFile filePath

@@ -3,10 +3,13 @@
 open System
 open System.Diagnostics
 open System.IO
+open System.IO.Abstractions
 open System.Threading
 open System.Threading.Tasks
 open FSharp.Compiler.Text.Range
 open FSharp.Compiler.Text.Position
+open Fantomas.Extras
+open MAB.DotIgnore
 open StreamJsonRpc
 open Thoth.Json.Net
 open Fantomas.Client.Contracts
@@ -30,10 +33,15 @@ type FantomasDaemon(sender: Stream, reader: Stream) as this =
 
     let exit () = disconnectEvent.Set() |> ignore
 
+    let ignoreFileStore =
+        new IgnoreFileStore<_>(FileSystem(), IgnoreList, (fun ignoreList path -> ignoreList.IsIgnored(path, false)))
+
     do rpc.Disconnected.Add(fun _ -> exit ())
 
     interface IDisposable with
-        member this.Dispose() = disconnectEvent.Dispose()
+        member this.Dispose() =
+            (ignoreFileStore :> IDisposable).Dispose()
+            disconnectEvent.Dispose()
 
     /// returns a hot task that resolves when the stream has terminated
     member this.WaitForClose = rpc.Completion
@@ -44,7 +52,7 @@ type FantomasDaemon(sender: Stream, reader: Stream) as this =
     [<JsonRpcMethod(Methods.FormatDocument, UseSingleObjectParameterDeserialization = true)>]
     member _.FormatDocumentAsync(request: FormatDocumentRequest) : Task<FormatDocumentResponse> =
         async {
-            if Fantomas.Extras.IgnoreFile.isIgnoredFile request.FilePath then
+            if ignoreFileStore.IsIgnoredFile request.FilePath then
                 return FormatDocumentResponse.IgnoredFile request.FilePath
             else
                 let config =

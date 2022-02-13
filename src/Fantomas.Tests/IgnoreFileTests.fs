@@ -138,3 +138,99 @@ let ``findIgnoreFile uses the store`` () =
     snapshot dict
     |> shouldEqual [ fs.Directory.GetParent(target).FullName, Some target
                      fs.Directory.GetParent(source1).FullName, None ]
+
+[<TestCase true>]
+[<TestCase false>]
+let ``IgnoreFileStore calls isIgnored`` (source1First: bool) =
+    let fs = MockFileSystem()
+    let root = fs.Path.GetTempPath() |> fs.Path.GetPathRoot
+
+    let source1 = fs.Path.Combine(root, "folder1", "folder2", "Source1.fs")
+    let source2 = fs.Path.Combine(root, "folder1", "folder2", "Source2.fs")
+    let target = fs.Path.Combine(root, "folder1", ".fantomasignore")
+
+    [ source1; source2; target ]
+    |> makeFileHierarchy fs
+
+    let read = oneShotParser ()
+
+    // Specify that source1 is ignored, but not source2
+    let isIgnored ignoreList filePath =
+        // The mock "read from filesystem" of oneShotParser will just give us back
+        // the path it read.
+        ignoreList |> shouldEqual target
+        filePath = source1
+
+    use ignoreFileStore = new IgnoreFileStore<_>(fs, read, isIgnored)
+
+    // The cache is hit, so we only make one call to the filesystem in the following.
+
+    let testSource1 () =
+        ignoreFileStore.IsIgnoredFile source1
+        |> shouldEqual true
+
+    let testSource2 () =
+        ignoreFileStore.IsIgnoredFile source2
+        |> shouldEqual false
+
+    if source1First then
+        testSource1 ()
+        testSource2 ()
+    else
+        testSource2 ()
+        testSource1 ()
+
+[<Test>]
+let ``Can purge the cache`` () =
+    let fs = MockFileSystem()
+    let root = fs.Path.GetTempPath() |> fs.Path.GetPathRoot
+
+    let source1 = fs.Path.Combine(root, "folder1", "folder2", "Source1.fs")
+    let source2 = fs.Path.Combine(root, "folder1", "folder2", "Source2.fs")
+    let target = fs.Path.Combine(root, "folder1", ".fantomasignore")
+
+    [ source1; source2; target ]
+    |> makeFileHierarchy fs
+
+    let fileSystemReads, read =
+        let reads = ResizeArray()
+
+        reads :> IReadOnlyList<_>,
+        fun s ->
+            reads.Add s
+            "some ignore list contents"
+
+    let isIgnored ignoreList filePath =
+        // In this test we only read one .fantomasignore file
+        ignoreList
+        |> shouldEqual "some ignore list contents"
+        // And we only ask about one source file
+        filePath |> shouldEqual source1
+        false
+
+    use ignoreFileStore = new IgnoreFileStore<_>(fs, read, isIgnored)
+
+    ignoreFileStore.IsIgnoredFile source1
+    |> shouldEqual false
+
+    fileSystemReads
+    |> Seq.toList
+    |> shouldEqual [ target ]
+
+    // The cache is used the second time
+    ignoreFileStore.IsIgnoredFile source1
+    |> shouldEqual false
+
+    fileSystemReads
+    |> Seq.toList
+    |> shouldEqual [ target ]
+
+    // Now clear the cache and observe another read
+    ignoreFileStore.PurgeCache()
+
+    ignoreFileStore.IsIgnoredFile source1
+    |> shouldEqual false
+
+    fileSystemReads
+    |> Seq.toList
+    |> shouldEqual [ target; target ]
