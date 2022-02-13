@@ -799,7 +799,7 @@ type Triangle() =
 
 ### fsharp_max_dot_get_expression_width
 
-Control the maximum width for which (nested) [SynExpr.DotGet](https://fsharp.github.io/FSharp.Compiler.Service/reference/fsharp-compiler-syntaxtree-synexpr.html) expressions should be in one line.
+Control the maximum width for which (nested) [SynExpr.DotGet](https://fsharp.github.io/fsharp-compiler-docs/reference/fsharp-compiler-syntax-synexpr.html#DotGet) expressions should be in one line.
 Default = 50.
 
 `defaultConfig`
