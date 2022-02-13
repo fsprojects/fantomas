@@ -16,40 +16,10 @@ let gitHome = "https://github.com/fsprojects"
 // The name of the project on GitHub
 let gitName = "fantomas"
 
-// The name of the project
-// (used by attributes in AssemblyInfo, name of a NuGet package and directory in 'src')
-let project = "Fantomas"
 
 let projectUrl = sprintf "%s/%s" gitHome gitName
 
-// Short summary of the project
-// (used as description in AssemblyInfo and as a short summary for NuGet package)
-let summary = "Source code formatter for F#"
-
-let copyright = sprintf "Copyright © %d" DateTime.UtcNow.Year
-
 let configuration = DotNet.BuildConfiguration.Release
-
-// Longer description of the project
-// (used as a description for NuGet package; line breaks are automatically cleaned up)
-let description =
-    """This library aims at formatting F# source files based on a given configuration.
-Fantomas will ensure correct indentation and consistent spacing between elements in the source files.
-Some common use cases include
-(1) Reformatting a code base to conform a universal page width
-(2) Converting legacy code from verbose syntax to light syntax
-(3) Formatting auto-generated F# signatures."""
-
-// List of author names (for NuGet package)
-let authors =
-    [ "Florian Verdonck"
-      "Jindřich Ivánek" ]
-
-let owner = "Anh-Dung Phan"
-// Tags for your project (for NuGet package)
-let tags = "F# fsharp formatting beautifier indentation indenter"
-
-let fantomasClientVersion = "0.5.1"
 
 // (<solutionFile>.sln is built during the building process)
 let solutionFile = "fantomas"
@@ -206,37 +176,13 @@ Target.create "UnitTests" (fun _ ->
 // Build a NuGet package
 
 Target.create "Pack" (fun _ ->
-    let pack project =
-        let projectPath = sprintf "src/%s/%s.fsproj" project project
-
-        let args =
-            let defaultArgs = MSBuild.CliArguments.Create()
-
-            { defaultArgs with
-                Properties =
-                    [ "Title", project
-                      "Authors", (String.Join(" ", authors))
-                      "Owners", owner
-                      "PackageRequireLicenseAcceptance", "false"
-                      "Description", description
-                      "Summary", summary
-                      "Copyright", copyright
-                      "PackageTags", tags
-                      "PackageProjectUrl", projectUrl ] }
-
-        DotNet.pack
-            (fun p ->
-                { p with
-                    NoRestore = true
-                    Configuration = configuration
-                    OutputPath = Some "./bin"
-                    MSBuildParams = args })
-            projectPath
-
-    pack "Fantomas"
-    pack "Fantomas.Extras"
-    pack "Fantomas.CoreGlobalTool"
-    pack "Fantomas.Client")
+    DotNet.pack
+        (fun p ->
+            { p with
+                NoRestore = true
+                Configuration = configuration
+                OutputPath = Some "./bin" })
+        solutionFile)
 
 // This takes the list of external projects defined above, does a git checkout of the specified repo and tag,
 // tries to build the project, then reformats with fantomas and tries to build the project again. If this fails
