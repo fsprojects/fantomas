@@ -415,6 +415,23 @@ extern bool DestroyEnvironmentBlock(IntPtr lpEnvironment)
 """
 
 [<Test>]
+let ``should keep access modifiers in extern declaration, 1213`` () =
+    formatSourceString
+        false
+        """
+[<DllImport("kernel32.dll")>]
+extern UIntPtr private GetProcessHeap()
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+[<DllImport("kernel32.dll")>]
+extern UIntPtr private GetProcessHeap()
+"""
+
+[<Test>]
 let ``should handle desugared matches correctly`` () =
     formatSourceString
         false
