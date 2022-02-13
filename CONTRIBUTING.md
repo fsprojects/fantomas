@@ -86,11 +86,20 @@ After cloning the repository, you can restore the local .NET tools:
 
 > dotnet tool restore
 
-Next, you can execute FAKE build targets.
+Next, you should run a FAKE target that sets up some git repo-level configuration.
+
+> dotnet fake build -t EnsureRepoConfig
+
+This target makes changes to the local git repository configuration to ensure 
+that formatting of new code is consistent before it is pushed up to a remote repository.
+
+Finally, you can execute FAKE build targets.
 
 > dotnet fake run build.fsx --list
 
 The default target will execute the CI build.
+
+> dotnet fake build
 
 # Pull request ground rules
 
