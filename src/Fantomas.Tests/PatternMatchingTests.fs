@@ -1123,7 +1123,7 @@ match foo with
     let range = getRangeBetween "keyword" headToken headToken
 
     let info =
-        Trivia.Create(Keyword(headToken)) range
+        Trivia.Create (Keyword(headToken)) range
         |> List.prependItem foundTrivia
 
     getTriviaFromTokensThemSelves allTokens rest info
