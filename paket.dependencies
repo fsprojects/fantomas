@@ -26,10 +26,11 @@ group build
 
 group tool
     storage: none
-    framework: netcoreapp3.1, net6.0
+    framework: netcoreapp3.1
     source https://api.nuget.org/v3/index.json
 
     nuget FSharp.Core 6.0.1
+    nuget FSharp.Compiler.Service 41.0.1
     nuget Argu
     nuget StreamJsonRpc
     nuget Thoth.Json.Net
@@ -49,6 +50,8 @@ group extras
     framework: netstandard2.0
     source https://api.nuget.org/v3/index.json
 
+    nuget FSharp.Core 6.0.1 content: none
+    nuget Microsoft.SourceLink.GitHub copy_local: true
     nuget editorconfig
     nuget MAB.DotIgnore 3.0.2
 
@@ -57,6 +60,8 @@ group tests
     framework: net6.0
     source https://api.nuget.org/v3/index.json
 
+    nuget FSharp.Core 6.0.1 content: none
+    nuget FSharp.Compiler.Service 41.0.1
     nuget FsUnit
     nuget FsCheck
     nuget Microsoft.NET.Test.Sdk
@@ -68,5 +73,7 @@ group benchmarks
     storage: none
     framework: net6.0
     source https://api.nuget.org/v3/index.json
-    
+
+    nuget FSharp.Core 6.0.1 content: none
+    nuget FSharp.Compiler.Service 41.0.1
     nuget BenchmarkDotNet

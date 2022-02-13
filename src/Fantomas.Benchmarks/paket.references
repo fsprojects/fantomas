@@ -1,5 +1,4 @@
+group benchmarks
 FSharp.Core
 FSharp.Compiler.Service
-
-group benchmarks
 BenchmarkDotNet
