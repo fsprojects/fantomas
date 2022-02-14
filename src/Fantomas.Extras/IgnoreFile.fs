@@ -1,27 +1,39 @@
 namespace Fantomas.Extras
 
+open System.IO
+open MAB.DotIgnore
+
+type IgnoreFile =
+    { Location: FileInfo
+      IgnoreList: IgnoreList }
+
 [<RequireQualifiedAccess>]
 module IgnoreFile =
-
-    open System.IO
-    open MAB.DotIgnore
 
     [<Literal>]
     let IgnoreFileName = ".fantomasignore"
 
-    let rec private findIgnoreFile (filePath: string) : string option =
-        let allParents =
-            let rec addParent (di: DirectoryInfo) (finalContinuation: string list -> string list) =
-                if isNull di.Parent then
-                    finalContinuation [ di.FullName ]
+    /// Find the `.fantomasignore` file above the given filepath, if one exists.
+    /// Note that this is intended for use only in the daemon; the command-line tool
+    /// does not support `.fantomasignore` files anywhere other than the current
+    /// working directory.
+    let find (filePath: string) : IgnoreFile option =
+        let rec walkUp (currentDirectory: DirectoryInfo) : IgnoreFile option =
+            if isNull currentDirectory then
+                None
+            else
+                let potentialFile =
+                    Path.Combine(currentDirectory.FullName, IgnoreFileName)
+                    |> FileInfo
+
+                if potentialFile.Exists then
+                    { Location = potentialFile
+                      IgnoreList = IgnoreList(potentialFile.FullName) }
+                    |> Some
                 else
-                    addParent di.Parent (fun parents -> di.FullName :: parents |> finalContinuation)
+                    walkUp currentDirectory.Parent
 
-            addParent (Directory.GetParent filePath) id
-
-        allParents
-        |> List.tryFind (fun p -> Path.Combine(p, IgnoreFileName) |> File.Exists)
-        |> Option.map (fun p -> Path.Combine(p, IgnoreFileName))
+        walkUp (FileInfo(filePath).Directory)
 
     let private relativePathPrefix = sprintf ".%c" Path.DirectorySeparatorChar
 
@@ -31,17 +43,30 @@ module IgnoreFile =
         else
             path
 
-    let isIgnoredFile (file: string) =
-        let fullPath = Path.GetFullPath(file)
+    /// When executed from the command line, Fantomas only supports a `.fantomasignore` file in the
+    /// current working directory. This is that `.fantomasignore` file.
+    let current: Lazy<IgnoreFile option> =
+        lazy
+            let path =
+                Path.Combine(System.Environment.CurrentDirectory, IgnoreFileName)
+                |> FileInfo
 
-        match findIgnoreFile fullPath with
+            if path.Exists then
+                { Location = path
+                  IgnoreList = IgnoreList(path.FullName) }
+                |> Some
+            else
+                None
+
+    let isIgnoredFile (ignoreFile: IgnoreFile option) (file: string) : bool =
+        match ignoreFile with
         | None -> false
         | Some ignoreFile ->
-            let ignores = IgnoreList(ignoreFile)
+            let fullPath = Path.GetFullPath(file)
 
             try
-                let path = removeRelativePathPrefix file
-                ignores.IsIgnored(path, false)
+                let path = removeRelativePathPrefix fullPath
+                ignoreFile.IgnoreList.IsIgnored(path, false)
             with
             | ex ->
                 printfn "%A" ex
