@@ -45,6 +45,8 @@ group tool
     nuget StreamJsonRpc
     nuget Thoth.Json.Net
     nuget SerilogTraceListener
+    nuget Ionide.KeepAChangelog.Tasks copy_local: true
+    nuget Dotnet.ReproducibleBuilds copy_local: true
 
 group client
     storage: none

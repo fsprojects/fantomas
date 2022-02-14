@@ -10,8 +10,6 @@
     <PackAsTool>True</PackAsTool>
     <AssemblyName>fantomas-tool</AssemblyName>
     <WarningsAsErrors>FS0025</WarningsAsErrors>
-    <PackageLicenseFile>LICENSE.md</PackageLicenseFile>
-    <PackageIcon>fantomas_logo.png</PackageIcon>
     <IsPackable>true</IsPackable>
   </PropertyGroup>
   <ItemGroup>
@@ -21,8 +19,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="paket.references" />
-    <None Include="..\..\LICENSE.md" Visible="false" Pack="true" PackagePath="" />
-    <None Include="..\..\fantomas_logo.png" Visible="false" Pack="true" PackagePath="" />
     <Compile Include="Daemon.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>

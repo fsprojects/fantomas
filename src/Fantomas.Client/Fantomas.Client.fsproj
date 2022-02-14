@@ -3,18 +3,12 @@
     <ChangelogFile>$(MSBuildThisFileDirectory)CHANGELOG.md</ChangelogFile>
     <TargetFramework>netstandard2.0</TargetFramework>
     <Description>Companion library to format using fantomas tool.</Description>
-    <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <WarnOn>3390;$(WarnOn)</WarnOn>
     <WarningsAsErrors>FS0025</WarningsAsErrors>
-    <PackageLicenseFile>LICENSE.md</PackageLicenseFile>
-    <PackageIcon>fantomas_logo.png</PackageIcon>
-    <EmbedUntrackedSources>true</EmbedUntrackedSources>
     <IsPackable>true</IsPackable>
   </PropertyGroup>
   <ItemGroup>
     <None Include="paket.references" />
-    <None Include="..\..\LICENSE.md" Visible="false" Pack="true" PackagePath="" />
-    <None Include="..\..\fantomas_logo.png" Visible="false" Pack="true" PackagePath="" />
     <Compile Include="Contracts.fs" />
     <Compile Include="LSPFantomasServiceTypes.fs" />
     <Compile Include="FantomasToolLocator.fs" />

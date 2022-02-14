@@ -10,19 +10,10 @@ open System
 open System.IO
 open Fake.DotNet
 
-// Git configuration (used for publishing documentation in gh-pages branch)
-// The profile where the project is posted
-let gitHome = "https://github.com/fsprojects"
-// The name of the project on GitHub
-let gitName = "fantomas"
-
-
-let projectUrl = sprintf "%s/%s" gitHome gitName
-
 let configuration = DotNet.BuildConfiguration.Release
 
 // (<solutionFile>.sln is built during the building process)
-let solutionFile = "fantomas"
+let solutionFile = "fantomas.sln"
 //// Environment.CurrentDirectory <- __SOURCE_DIRECTORY__
 
 
@@ -143,9 +134,7 @@ Target.create "Clean" (fun _ ->
 
 // --------------------------------------------------------------------------------------
 // Build library & test project
-Target.create "Build" (fun _ ->
-    let sln = sprintf "%s.sln" solutionFile
-    DotNet.build (fun p -> { p with Configuration = configuration }) sln)
+Target.create "Build" (fun _ -> DotNet.build (fun p -> { p with Configuration = configuration }) solutionFile)
 
 Target.create "UnitTests" (fun _ ->
     DotNet.test
