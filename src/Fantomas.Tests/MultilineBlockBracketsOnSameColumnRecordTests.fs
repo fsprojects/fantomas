@@ -3,6 +3,7 @@ module Fantomas.Tests.MultilineBlockBracketsOnSameColumnRecordTests
 open NUnit.Framework
 open FsUnit
 open Fantomas.Tests.TestHelper
+open Fantomas.FormatConfig
 
 let config =
     { config with
@@ -1188,4 +1189,43 @@ let ``anonymous records with comments on record fields`` () =
     // The bar value.
     BarValue = barValue
 |}
+"""
+
+[<Test>]
+let ``creating anonymous record based on a function call, 1749`` () =
+    formatSourceString
+        false
+        """
+type Foo = static member Create a = {| Name = "Isaac" |}
+type Bar() = member _.Create (a,b) = ()
+let bar = Bar()
+type Thing = static member Stuff = 123
+let x = {| Foo.Create ([ bar.Create(Thing.Stuff, Thing.Stuff) ]) with Age = 41 |}
+"""
+        { config with
+            ArrayOrListMultilineFormatter = MultilineFormatterType.CharacterWidth
+            SpaceBeforeUppercaseInvocation = true }
+    |> prepend newline
+    |> should
+        equal
+        """
+type Foo =
+    static member Create a = {| Name = "Isaac" |}
+
+type Bar() =
+    member _.Create(a, b) = ()
+
+let bar = Bar ()
+
+type Thing =
+    static member Stuff = 123
+
+let x =
+    {| Foo.Create (
+           [
+               bar.Create (Thing.Stuff, Thing.Stuff)
+           ]
+       ) with
+        Age = 41
+    |}
 """
