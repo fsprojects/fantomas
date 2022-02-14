@@ -3,7 +3,6 @@ namespace Fantomas.Extras
 open System
 open System.Collections.Immutable
 open System.IO.Abstractions
-open System.Threading
 
 [<RequireQualifiedAccess>]
 module internal IgnoreFileStore =
@@ -91,18 +90,9 @@ module internal IgnoreFileStore =
             path
 
 [<NoEquality; NoComparison>]
-type IgnoreFileStore<'a>
-    (
-        fs: IFileSystem,
-        readFile: string -> 'a,
-        isIgnored: 'a -> string -> bool,
-        ?cancellationToken: CancellationToken
-    ) =
+type IgnoreFileStore<'a>(fs: IFileSystem, readFile: string -> 'a, isIgnored: 'a -> string -> bool) =
     let mailbox: MailboxProcessor<_> =
-        MailboxProcessor.Start(
-            IgnoreFileStore.loop<'a> fs readFile ImmutableDictionary.Empty,
-            ?cancellationToken = cancellationToken
-        )
+        MailboxProcessor.Start(IgnoreFileStore.loop<'a> fs readFile ImmutableDictionary.Empty)
 
     member _.PurgeCache() : Async<unit> =
         mailbox.PostAndAsyncReply IgnoreFileStore.Message.PurgeCache
