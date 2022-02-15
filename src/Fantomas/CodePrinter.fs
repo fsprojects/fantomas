@@ -3099,7 +3099,7 @@ and genMultilineAnonRecordAlignBrackets (isStruct: bool) fields copyInfo astCont
     let fieldsExpr = col sepSemiNln fields (genAnonRecordFieldName astContext)
 
     let copyExpr fieldsExpr e =
-        genExpr astContext e
+        atCurrentColumnIndent (genExpr astContext e)
         +> (!- " with"
             +> indent
             +> whenShortIndent indent
