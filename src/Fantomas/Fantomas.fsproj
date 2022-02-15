@@ -31,5 +31,8 @@
     <Compile Include="CodeFormatter.fsi" />
     <Compile Include="CodeFormatter.fs" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Fantomas.FCS\Fantomas.FCS.fsproj" />
+  </ItemGroup>
   <Import Project="..\..\.paket\Paket.Restore.targets" />
 </Project>

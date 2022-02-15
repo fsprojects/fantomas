@@ -1,0 +1,5 @@
+group compiler
+FSharp.Core
+System.Memory
+System.Runtime
+FsLexYacc
