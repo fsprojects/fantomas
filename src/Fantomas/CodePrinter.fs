@@ -1633,7 +1633,7 @@ and genExpr astContext synExpr ctx =
         | Paren (lpr, e, rpr, _pr) ->
             match e with
             | LetOrUses _
-            | Sequential (_, LetOrUses _, _) ->
+            | Sequential _ ->
                 sepOpenTFor lpr
                 +> atCurrentColumn (genExpr astContext e)
                 +> sepCloseTFor rpr
@@ -2832,9 +2832,7 @@ and genExprInMultilineInfixExpr astContext e =
     | _ -> genExpr astContext e
 
 and genLidsWithDots (lids: (string * range) list) =
-    optSingle (fun (_, r) -> enterNodeFor Ident_ r) (List.tryHead lids)
-    +> !- "."
-    +> col !- "." lids (fun (s, _) -> !-s)
+    col sepNone lids (fun (s, r) -> genTriviaFor Ident_ r !- $".{s}")
 
 and genLidsWithDotsAndNewlines (lids: (string * range) list) =
     col sepNln lids (fun (s, r) -> genTriviaFor Ident_ r !- $".{s}")
@@ -3099,7 +3097,7 @@ and genMultilineAnonRecordAlignBrackets (isStruct: bool) fields copyInfo astCont
     let fieldsExpr = col sepSemiNln fields (genAnonRecordFieldName astContext)
 
     let copyExpr fieldsExpr e =
-        genExpr astContext e
+        atCurrentColumnIndent (genExpr astContext e)
         +> (!- " with"
             +> indent
             +> whenShortIndent indent

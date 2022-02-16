@@ -978,9 +978,7 @@ let rec (|CompExprBody|_|) expr =
     match expr with
     | SynExpr.LetOrUse (_, _, _, CompExprBody _, _)
     | SynExpr.LetOrUseBang _
-    | SynExpr.Sequential (_, _, _, SynExpr.YieldOrReturn _, _)
-    | SynExpr.Sequential (_, _, _, SynExpr.LetOrUse _, _)
-    | SynExpr.Sequential (_, _, _, SynExpr.LetOrUseBang _, _) -> Some(collectComputationExpressionStatements expr id)
+    | SynExpr.Sequential _ -> Some(collectComputationExpressionStatements expr id)
     | _ -> None
 
 let (|ForEach|_|) =
