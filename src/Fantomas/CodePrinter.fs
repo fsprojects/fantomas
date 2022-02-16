@@ -2832,9 +2832,7 @@ and genExprInMultilineInfixExpr astContext e =
     | _ -> genExpr astContext e
 
 and genLidsWithDots (lids: (string * range) list) =
-    optSingle (fun (_, r) -> enterNodeFor Ident_ r) (List.tryHead lids)
-    +> !- "."
-    +> col !- "." lids (fun (s, _) -> !-s)
+    col sepNone lids (fun (s, r) -> genTriviaFor Ident_ r !- $".{s}")
 
 and genLidsWithDotsAndNewlines (lids: (string * range) list) =
     col sepNln lids (fun (s, r) -> genTriviaFor Ident_ r !- $".{s}")
