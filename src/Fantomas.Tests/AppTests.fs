@@ -877,3 +877,31 @@ let Ok (content: string) =
     )
 #endif
 """
+
+[<Test>]
+let ``should not add newline before "let!", 1932`` () =
+    formatSourceString
+        false
+        """
+promise {
+    setItems [||]
+    setFetchingItems true
+    let! items = Api.fetchItems partNumber
+    setFetchingItems false
+}
+|> Promise.start
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+promise {
+    setItems [||]
+    setFetchingItems true
+    let! items = Api.fetchItems partNumber
+    setFetchingItems false
+}
+|> Promise.start
+"""
+

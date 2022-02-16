@@ -1633,7 +1633,7 @@ and genExpr astContext synExpr ctx =
         | Paren (lpr, e, rpr, _pr) ->
             match e with
             | LetOrUses _
-            | Sequential (_, LetOrUses _, _) ->
+            | Sequential _ ->
                 sepOpenTFor lpr
                 +> atCurrentColumn (genExpr astContext e)
                 +> sepCloseTFor rpr
