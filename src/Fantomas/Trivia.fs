@@ -279,7 +279,9 @@ let private addTriviaToTriviaNode (startOfSourceCode: int) (triviaNodes: TriviaN
         | Some n, _ ->
             Some n
             |> updateTriviaNode (fun tn -> tn.ContentAfter.Add(Comment(BlockComment(comment, true, false)))) triviaNodes
-        | None, None -> triviaNodes
+        | None, None ->
+            findNodeBeforeLineFromStart triviaNodes range.StartLine
+            |> updateTriviaNode (fun tn -> tn.ContentAfter.Add(Comment(BlockComment(comment, true, true)))) triviaNodes
 
     | { Item = Comment (LineCommentAfterSourceCode _ as comment)
         Range = range } ->
