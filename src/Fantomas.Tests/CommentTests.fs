@@ -937,7 +937,7 @@ type substring =
 """
 
 [<Test>]
-let ``Single block comment in namespace, 1951`` () =
+let ``single block comment in namespace, 1951`` () =
     formatSourceString
         false
         """

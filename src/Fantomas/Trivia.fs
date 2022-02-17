@@ -253,9 +253,6 @@ let private addTriviaToTriviaNode (startOfSourceCode: int) (triviaNodes: TriviaN
 
         let nodeBefore =
             findNodeBeforeLineAndColumn triviaNodes range.StartLine range.StartColumn
-            |> function
-                | Some n -> Some n
-                | None -> findNodeBeforeLineFromStart triviaNodes range.StartLine
 
         match nodeBefore, nodeAfter with
         | Some nb, Some na when
@@ -282,7 +279,9 @@ let private addTriviaToTriviaNode (startOfSourceCode: int) (triviaNodes: TriviaN
         | Some n, _ ->
             Some n
             |> updateTriviaNode (fun tn -> tn.ContentAfter.Add(Comment(BlockComment(comment, true, false)))) triviaNodes
-        | None, None -> triviaNodes
+        | None, None ->
+            findNodeBeforeLineFromStart triviaNodes range.StartLine
+            |> updateTriviaNode (fun tn -> tn.ContentAfter.Add(Comment(BlockComment(comment, true, true)))) triviaNodes
 
     | { Item = Comment (LineCommentAfterSourceCode _ as comment)
         Range = range } ->
