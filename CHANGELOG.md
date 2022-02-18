@@ -1,9 +1,17 @@
 # Changelog
 
-## [Unreleased]
+## [4.6.5] - 2022-02-18
 
 ### Changed
 * Use [KeepAChangelog](https://keepachangelog.com/en/1.0.0/#how) instead of `RELEASE_NOTES.md`. [#2095](https://github.com/fsprojects/fantomas/pull/2095)
+
+### Fixed
+* Error formatting defines #if (!DEBUG) ... #endif (no #else). [#2098](https://github.com/fsprojects/fantomas/issues/2098)
+* Single block comment in namespace is disappearing. [#1951](https://github.com/fsprojects/fantomas/issues/1951)
+* Unexpected newline added before let bang. [#1932](https://github.com/fsprojects/fantomas/issues/1932)
+* Creating anonymous record based on a function call with a list arg fails. [#1749](https://github.com/fsprojects/fantomas/issues/1749)
+* Access modifier is lost in extern declaration. [#1213](https://github.com/fsprojects/fantomas/issues/1213)
+* Unexpected indentation in if-else when using keep_if_then_in_same_line=true. [#1160](https://github.com/fsprojects/fantomas/issues/1160)
 
 ## [4.6.4] - 2022-02-11
 
