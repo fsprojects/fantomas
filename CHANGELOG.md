@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+* Use [KeepAChangelog](https://keepachangelog.com/en/1.0.0/#how) instead of `RELEASE_NOTES.md`. [#2095](https://github.com/fsprojects/fantomas/pull/2095)
+
 ## [4.6.4] - 2022-02-01
 
 ### Fixed
@@ -45,16 +50,16 @@
 ## [4.6.0] - 2022-01-01
 
 ### Changed
-Unify Fantomas versions across editors. [#1844](https://github.com/fsprojects/fantomas/issues/1844)
-Update formatting types in signatures (See [fslang-design](https://github.com/fsharp/fslang-design/issues/644)). [#1994](https://github.com/fsprojects/fantomas/pull/1994)
-Read editorconfig settings before overwriting settings with request configuration. [#2006](https://github.com/fsprojects/fantomas/pull/2006)
-Expose configuration documentation in Fantomas.Daemon [#1956](https://github.com/fsprojects/fantomas/pull/1956)
-Update FCS to 41.0.1 [#1949](https://github.com/fsprojects/fantomas/pull/1949)
-Wider default fsharp_max_value_binding_width. [#1947](https://github.com/fsprojects/fantomas/pull/1947)
-Update FCS to 41.0.0-preview.21472.3 [#1927](https://github.com/fsprojects/fantomas/pull/1927)
-Update record should indent from the curly brace instead of the identifier. [#1876](https://github.com/fsprojects/fantomas/issues/1876)
-Update style of lambda argument. [#1871](https://github.com/fsprojects/fantomas/issues/1871)
-Update to FCS 40.0.1-preview.21352.5
+* Unify Fantomas versions across editors. [#1844](https://github.com/fsprojects/fantomas/issues/1844)
+* Update formatting types in signatures (See [fslang-design](https://github.com/fsharp/fslang-design/issues/644)). [#1994](https://github.com/fsprojects/fantomas/pull/1994)
+* Read editorconfig settings before overwriting settings with request configuration. [#2006](https://github.com/fsprojects/fantomas/pull/2006)
+* Expose configuration documentation in Fantomas.Daemon [#1956](https://github.com/fsprojects/fantomas/pull/1956)
+* Update FCS to 41.0.1 [#1949](https://github.com/fsprojects/fantomas/pull/1949)
+* Wider default fsharp_max_value_binding_width. [#1947](https://github.com/fsprojects/fantomas/pull/1947)
+* Update FCS to 41.0.0-preview.21472.3 [#1927](https://github.com/fsprojects/fantomas/pull/1927)
+* Update record should indent from the curly brace instead of the identifier. [#1876](https://github.com/fsprojects/fantomas/issues/1876)
+* Update style of lambda argument. [#1871](https://github.com/fsprojects/fantomas/issues/1871)
+* Update to FCS 40.0.1-preview.21352.5
 
 ### Added
 * Editor.config: insert_final_newline. [#2002](https://github.com/fsprojects/fantomas/issues/2002)
@@ -150,7 +155,7 @@ Update to FCS 40.0.1-preview.21352.5
 * Comment is lost at the end of a match. [#1822](https://github.com/fsprojects/fantomas/issues/1822)
 
 ### Changed
-Honor .fantomasignore file when processing a folder. [#1834](https://github.com/fsprojects/fantomas/pull/1834)
+* Honor .fantomasignore file when processing a folder. [#1834](https://github.com/fsprojects/fantomas/pull/1834)
 
 ## [4.5.0] - 2021-07-01
 
@@ -161,8 +166,8 @@ Honor .fantomasignore file when processing a folder. [#1834](https://github.com/
 * BlankLinesAroundNestedMultilineExpressions. [#1587](https://github.com/fsprojects/fantomas/pull/1587)
 
 ### Changed
-Initial support of KeepIndentInBranch. [#1361](https://github.com/fsprojects/fantomas/issues/1361)
-Update to FCS 39 [#1479](https://github.com/fsprojects/fantomas/pull/1479)
+* Initial support of KeepIndentInBranch. [#1361](https://github.com/fsprojects/fantomas/issues/1361)
+* Update to FCS 39 [#1479](https://github.com/fsprojects/fantomas/pull/1479)
 
 ### Fixed
 * Collect empty define block as single trivia. [#1528](https://github.com/fsprojects/fantomas/pull/1528)
@@ -306,9 +311,9 @@ Update to FCS 39 [#1479](https://github.com/fsprojects/fantomas/pull/1479)
 ## [4.4.0] - 2021-02-01
 
 ### Changed
-Revisit SynExpr.IfThenElse. [#1258](https://github.com/fsprojects/fantomas/issues/1258)
-Target netcoreapp3.1 for fantomas-tool.
-Stricter trivia selection. [#1304](https://github.com/fsprojects/fantomas/pull/1304)
+* Revisit SynExpr.IfThenElse. [#1258](https://github.com/fsprojects/fantomas/issues/1258)
+* Target netcoreapp3.1 for fantomas-tool.
+* Stricter trivia selection. [#1304](https://github.com/fsprojects/fantomas/pull/1304)
 
 ### Fixed
 * Idempotency problem when function argument's type annotation requires brackets. [#1470](https://github.com/fsprojects/fantomas/issues/1470)
@@ -389,9 +394,9 @@ Stricter trivia selection. [#1304](https://github.com/fsprojects/fantomas/pull/1
 * Disable Elmish syntax. [#1198](https://github.com/fsprojects/fantomas/issues/1198)
 
 ### Changed
-Support user-provided end-of-line characters. [#1231](https://github.com/fsprojects/fantomas/issues/1231)
-Add option to make expressions multiline based on number of subexpressions rather than character length. [#1143](https://github.com/fsprojects/fantomas/issues/1143)
-Update to FCS 38. [#1240](https://github.com/fsprojects/fantomas/pull/1240)
+* Support user-provided end-of-line characters. [#1231](https://github.com/fsprojects/fantomas/issues/1231)
+* Add option to make expressions multiline based on number of subexpressions rather than character length. [#1143](https://github.com/fsprojects/fantomas/issues/1143)
+* Update to FCS 38. [#1240](https://github.com/fsprojects/fantomas/pull/1240)
 
 ### Fixed
 * Comment after let binding breaks downstream output. [#1284](https://github.com/fsprojects/fantomas/issues/1284)
@@ -456,10 +461,10 @@ Update to FCS 38. [#1240](https://github.com/fsprojects/fantomas/pull/1240)
 ## [4.1.0] - 2020-09-01
 
 ### Changed
-Ignore files by `.fantomasignore` file. [#420](https://github.com/fsprojects/fantomas/issues/420)
-Limit trivia by AST MainNode name. [#992](https://github.com/fsprojects/fantomas/pull/992)
-Lead by example. [#666](https://github.com/fsprojects/fantomas/issues/666)
-Verify all unit test whether the formatted code is valid. [#842](https://github.com/fsprojects/fantomas/issues/842)
+* Ignore files by `.fantomasignore` file. [#420](https://github.com/fsprojects/fantomas/issues/420)
+* Limit trivia by AST MainNode name. [#992](https://github.com/fsprojects/fantomas/pull/992)
+* Lead by example. [#666](https://github.com/fsprojects/fantomas/issues/666)
+* Verify all unit test whether the formatted code is valid. [#842](https://github.com/fsprojects/fantomas/issues/842)
 
 ### Fixed
 * Comments get dropped from the end of multi-line records. [#1124](https://github.com/fsprojects/fantomas/issues/1124)
@@ -493,30 +498,30 @@ Verify all unit test whether the formatted code is valid. [#842](https://github.
 ## [4.0.0] - 2020-08-01
 
 ### Changed
-Add initial support of String Interpolation. [#998](https://github.com/fsprojects/fantomas/issues/998)
-Extract FakeHelpers and EditorConfig to Fantomas.Extras project [#986](https://github.com/fsprojects/fantomas/issues/986)
-Update FCS to 37. [#996](https://github.com/fsprojects/fantomas/pull/996)
-Update FCS to 36. [#899](https://github.com/fsprojects/fantomas/pull/899), [#961](https://github.com/fsprojects/fantomas/pull/961)
-Replaced json configuration with .editorconfig. [#650](https://github.com/fsprojects/fantomas/issues/650)
-Sunset setting ReorderOpenDeclaration. [#645](https://github.com/fsprojects/fantomas/issues/645)
-Sunset setting KeepNewlineAfter. [#737](https://github.com/fsprojects/fantomas/issues/737)
-Renamed setting IndentSpaceNum to IndentSize. [#940](https://github.com/fsprojects/fantomas/pull/940)
-Renamed setting PageWidth to MaxLineLength. [#940](https://github.com/fsprojects/fantomas/pull/940)
-Removed all style configuration options from CLI tool. [#704](https://github.com/fsprojects/fantomas/issues/704)
-Added [Benchmarks](https://fsprojects.github.io/fantomas/). [#867](https://github.com/fsprojects/fantomas/issues/867)
-Split up setting SpaceBeforeArgument to multiple settings. [#649](https://github.com/fsprojects/fantomas/pull/649)
-- SpaceBeforeParameter
-- SpaceBeforeLowercaseInvocation
-- SpaceBeforeUppercaseInvocation
-- SpaceBeforeClassConstructor
-- SpaceBeforeMember
-Increase control over length of certain code constructs. [#697](https://github.com/fsprojects/fantomas/issues/697)
-- MaxRecordWidth
-- MaxArrayOrListWidth
-- MaxValueBindingWidth
-- MaxFunctionBindingWidth
-- MaxElmishWidth
-Better support for Elmish inspired code. [#922](https://github.com/fsprojects/fantomas/pull/922)
+* Add initial support of String Interpolation. [#998](https://github.com/fsprojects/fantomas/issues/998)
+* Extract FakeHelpers and EditorConfig to Fantomas.Extras project [#986](https://github.com/fsprojects/fantomas/issues/986)
+* Update FCS to 37. [#996](https://github.com/fsprojects/fantomas/pull/996)
+* Update FCS to 36. [#899](https://github.com/fsprojects/fantomas/pull/899), [#961](https://github.com/fsprojects/fantomas/pull/961)
+* Replaced json configuration with .editorconfig. [#650](https://github.com/fsprojects/fantomas/issues/650)
+* Sunset setting ReorderOpenDeclaration. [#645](https://github.com/fsprojects/fantomas/issues/645)
+* Sunset setting KeepNewlineAfter. [#737](https://github.com/fsprojects/fantomas/issues/737)
+* Renamed setting IndentSpaceNum to IndentSize. [#940](https://github.com/fsprojects/fantomas/pull/940)
+* Renamed setting PageWidth to MaxLineLength. [#940](https://github.com/fsprojects/fantomas/pull/940)
+* Removed all style configuration options from CLI tool. [#704](https://github.com/fsprojects/fantomas/issues/704)
+* Added [Benchmarks](https://fsprojects.github.io/fantomas/). [#867](https://github.com/fsprojects/fantomas/issues/867)
+* Split up setting SpaceBeforeArgument to multiple settings. [#649](https://github.com/fsprojects/fantomas/pull/649)
+  - SpaceBeforeParameter
+  - SpaceBeforeLowercaseInvocation
+  - SpaceBeforeUppercaseInvocation
+  - SpaceBeforeClassConstructor
+  - SpaceBeforeMember
+* Increase control over length of certain code constructs. [#697](https://github.com/fsprojects/fantomas/issues/697)
+  - MaxRecordWidth
+  - MaxArrayOrListWidth
+  - MaxValueBindingWidth
+  - MaxFunctionBindingWidth
+  - MaxElmishWidth
+* Better support for Elmish inspired code. [#922](https://github.com/fsprojects/fantomas/pull/922)
 
 ### Added
 * SingleArgumentWebMode. [#927](https://github.com/fsprojects/fantomas/issues/927)
@@ -641,12 +646,12 @@ Better support for Elmish inspired code. [#922](https://github.com/fsprojects/fa
 ## [3.3.0] - 2020-02-01
 
 ### Changed
-Support for `and!`. [#690](https://github.com/fsprojects/fantomas/issues/690)
-Support for new slice syntax. [#691](https://github.com/fsprojects/fantomas/issues/691)
-Support for check style flag [#642](https://github.com/fsprojects/fantomas/issues/642)
-Update FCS to 34.1 [#699](https://github.com/fsprojects/fantomas/pull/699)
-Allow to configure spaces before and after semicolon. [#653](https://github.com/fsprojects/fantomas/issues/653)
-Update README with link to YouTube videos series. [#672](https://github.com/fsprojects/fantomas/pull/672)
+* Support for `and!`. [#690](https://github.com/fsprojects/fantomas/issues/690)
+* Support for new slice syntax. [#691](https://github.com/fsprojects/fantomas/issues/691)
+* Support for check style flag [#642](https://github.com/fsprojects/fantomas/issues/642)
+* Update FCS to 34.1 [#699](https://github.com/fsprojects/fantomas/pull/699)
+* Allow to configure spaces before and after semicolon. [#653](https://github.com/fsprojects/fantomas/issues/653)
+* Update README with link to YouTube videos series. [#672](https://github.com/fsprojects/fantomas/pull/672)
 
 ### Fixed
 * Problem with --config and directory names containing ".". [#694](https://github.com/fsprojects/fantomas/issues/694)
@@ -662,8 +667,8 @@ Update README with link to YouTube videos series. [#672](https://github.com/fspr
 ## [3.2.0] - 2020-02-01
 
 ### Changed
-Added support for settings configuration file. [#354](https://github.com/fsprojects/fantomas/issues/354)
-Use Argu for commandline argument parsing. [#607](https://github.com/fsprojects/fantomas/pull/607)
+* Added support for settings configuration file. [#354](https://github.com/fsprojects/fantomas/issues/354)
+* Use Argu for commandline argument parsing. [#607](https://github.com/fsprojects/fantomas/pull/607)
 
 ### Fixed
 * Unicode null escapes are *still* unescaped. [#632](https://github.com/fsprojects/fantomas/issues/632)
@@ -720,19 +725,19 @@ Use Argu for commandline argument parsing. [#607](https://github.com/fsprojects/
 * Indexer usage fails to parse. [#497](https://github.com/fsprojects/fantomas/issues/497)
 
 ### Changed
-Use FCS 33.0.0. [pull/568](https://github.com/fsprojects/fantomas/pull/568)
-Use dotnet tools [pull/558](https://github.com/fsprojects/fantomas/pull/558)
-Add `--maxIfThenElseShortWidth` option, see [documentation](https://github.com/fsprojects/fantomas/blob/master/docs/Documentation.md)
+* Use FCS 33.0.0. [pull/568](https://github.com/fsprojects/fantomas/pull/568)
+* Use dotnet tools [pull/558](https://github.com/fsprojects/fantomas/pull/558)
+* Add `--maxIfThenElseShortWidth` option, see [documentation](https://github.com/fsprojects/fantomas/blob/master/docs/Documentation.md)
 
 ## [3.0.0] - 2019-10-01
 
 ### Changed
-Use FCS 32.0.0. [490b121af427ec4f6eba94f6d6d08cf3f91e04c8](https://github.com/fsprojects/fantomas/pull/434/commits/490b121af427ec4f6eba94f6d6d08cf3f91e04c8)
-Deprecate PreserveEndOfLine feature. [#390](https://github.com/fsprojects/fantomas/issues/390)
-Upgrade to .NET Core 3.0 and deprecate dotnet-fantomas. [b13aa00a57541be5f6182dc65ee27dc81174ab15](https://github.com/fsprojects/fantomas/pull/434/commits/b13aa00a57541be5f6182dc65ee27dc81174ab15)
-F# 4.7 support. [9ab8f007446d2e8311a204a9c8a73d758a189939](https://github.com/fsprojects/fantomas/pull/434/commits/9ab8f007446d2e8311a204a9c8a73d758a189939)
-KeepNewlineAfter setting. [#449](https://github.com/fsprojects/fantomas/issues/449)
-Refactored API [#454](https://github.com/fsprojects/fantomas/issues/454)
+* Use FCS 32.0.0. [490b121af427ec4f6eba94f6d6d08cf3f91e04c8](https://github.com/fsprojects/fantomas/pull/434/commits/490b121af427ec4f6eba94f6d6d08cf3f91e04c8)
+* Deprecate PreserveEndOfLine feature. [#390](https://github.com/fsprojects/fantomas/issues/390)
+* Upgrade to .NET Core 3.0 and deprecate dotnet-fantomas. [b13aa00a57541be5f6182dc65ee27dc81174ab15](https://github.com/fsprojects/fantomas/pull/434/commits/b13aa00a57541be5f6182dc65ee27dc81174ab15)
+* F# 4.7 support. [9ab8f007446d2e8311a204a9c8a73d758a189939](https://github.com/fsprojects/fantomas/pull/434/commits/9ab8f007446d2e8311a204a9c8a73d758a189939)
+* KeepNewlineAfter setting. [#449](https://github.com/fsprojects/fantomas/issues/449)
+* Refactored API [#454](https://github.com/fsprojects/fantomas/issues/454)
 
 ### Fixed
 * Adding parentheses around expressions can lead to incorrect indentation. [#385](https://github.com/fsprojects/fantomas/issues/385)
@@ -812,39 +817,39 @@ Refactored API [#454](https://github.com/fsprojects/fantomas/issues/454)
 ## [3.0.0-beta-006]
 
 ### Changed
-FCS 32
-Partial F# 4.7 support
+* FCS 32
+* Partial F# 4.7 support
 
 ## [3.0.0-beta-005]
 
 ### Changed
-Move to .NETCore 3 global tool, deprecated net461
-Deprecated dotnet-fantomas tool
-Bug fixes
+* Move to .NETCore 3 global tool, deprecated net461
+* Deprecated dotnet-fantomas tool
+* Bug fixes
 
 ## [3.0.0-beta-004]
 
 ### Changed
-Restructured library API
-Improved performance
+* Restructured library API
+* Improved performance
 
 ## [3.0.0-beta-003]
 
 ### Changed
-More trivia fixes
-FCS 31
+* More trivia fixes
+* FCS 31
 
 ## [3.0.0-beta-002]
 
 ### Changed
-More fixes with hash directives
+* More fixes with hash directives
 
 ## [3.0.0-beta-001]
 
 ### Changed
-Use FCS 28.0.0 and net461. [#436](https://github.com/fsprojects/fantomas/pull/436)
-Deprecated `PreserveEndOfLine` setting in favor of Trivia. [#434](https://github.com/fsprojects/fantomas/pull/434)
-Added support for formatting multiple code path in defines.
+* Use FCS 28.0.0 and net461. [#436](https://github.com/fsprojects/fantomas/pull/436)
+* Deprecated `PreserveEndOfLine` setting in favor of Trivia. [#434](https://github.com/fsprojects/fantomas/pull/434)
+* Added support for formatting multiple code path in defines.
 
 ## [2.9.2]
 
@@ -861,22 +866,22 @@ Added support for formatting multiple code path in defines.
 * creates invalid F# for string handling operations. [#365](https://github.com/fsprojects/fantomas/issues/365)
 
 ### Changed
-Use qualified name for inputPath and outputPath. [#376](https://github.com/fsprojects/fantomas/pull/376)
-Added Nightly nuget feed. [#375](https://github.com/fsprojects/fantomas/pull/375)
-Moved solution file to root folder. [#377](https://github.com/fsprojects/fantomas/pull/377)
-Add support for SynExpr.Set(_,_,_). [#368](https://github.com/fsprojects/fantomas/issues/368)
-Use FAKE 5. [#261](https://github.com/fsprojects/fantomas/issues/261)
-Added FAKE 5 sample. [#402](https://github.com/fsprojects/fantomas/issues/402)
+* Use qualified name for inputPath and outputPath. [#376](https://github.com/fsprojects/fantomas/pull/376)
+* Added Nightly nuget feed. [#375](https://github.com/fsprojects/fantomas/pull/375)
+* Moved solution file to root folder. [#377](https://github.com/fsprojects/fantomas/pull/377)
+* Add support for SynExpr.Set(_,_,_). [#368](https://github.com/fsprojects/fantomas/issues/368)
+* Use FAKE 5. [#261](https://github.com/fsprojects/fantomas/issues/261)
+* Added FAKE 5 sample. [#402](https://github.com/fsprojects/fantomas/issues/402)
 
 ## [2.9.1]
 
 ### Changed
-Added instructions for vscode and online website. [#333](https://github.com/fsprojects/fantomas/pull/333)
-Removed trailing spaces for each line, after formatting. [#328](https://github.com/fsprojects/fantomas/issues/328)
-Allow easy build/format/build cycle of external projects. [#337](https://github.com/fsprojects/fantomas/pull/337)
-Update to .NET Core 2.1 [#350](https://github.com/fsprojects/fantomas/issues/350)
-Removed unused open statements. [#352](https://github.com/fsprojects/fantomas/pull/352)
-Added regression test for Implicit module is added to resulting code. [#355](https://github.com/fsprojects/fantomas/pull/355)
+* Added instructions for vscode and online website. [#333](https://github.com/fsprojects/fantomas/pull/333)
+* Removed trailing spaces for each line, after formatting. [#328](https://github.com/fsprojects/fantomas/issues/328)
+* Allow easy build/format/build cycle of external projects. [#337](https://github.com/fsprojects/fantomas/pull/337)
+* Update to .NET Core 2.1 [#350](https://github.com/fsprojects/fantomas/issues/350)
+* Removed unused open statements. [#352](https://github.com/fsprojects/fantomas/pull/352)
+* Added regression test for Implicit module is added to resulting code. [#355](https://github.com/fsprojects/fantomas/pull/355)
 
 ### Fixed
 * `in` is removed from binding when PreserveEndOfLine is true. [#340](https://github.com/fsprojects/fantomas/issues/340)
@@ -888,14 +893,14 @@ Added regression test for Implicit module is added to resulting code. [#355](htt
 ## [2.9.0]
 
 ### Changed
-Improved README. [#243](https://github.com/fsprojects/fantomas/issues/243)
-Bad split of chained method call expression. [#246](https://github.com/fsprojects/fantomas/issues/246)
-rec modifier removed for namespaces and modules. [#292](https://github.com/fsprojects/fantomas/issues/292)
-Over-enthusiastic removal of parentheses [#249](https://github.com/fsprojects/fantomas/issues/249)
-Broken reformat of "if" inside call (fantomas-tool 2.8.0) [#288](https://github.com/fsprojects/fantomas/issues/288)
-Support struct tuple. [#224](https://github.com/fsprojects/fantomas/issues/224)
-Support match! [#262](https://github.com/fsprojects/fantomas/issues/262)
-Upgrade to .NET 4.5.2 [#325](https://github.com/fsprojects/fantomas/pull/325)
+* Improved README. [#243](https://github.com/fsprojects/fantomas/issues/243)
+* Bad split of chained method call expression. [#246](https://github.com/fsprojects/fantomas/issues/246)
+* rec modifier removed for namespaces and modules. [#292](https://github.com/fsprojects/fantomas/issues/292)
+* Over-enthusiastic removal of parentheses [#249](https://github.com/fsprojects/fantomas/issues/249)
+* Broken reformat of "if" inside call (fantomas-tool 2.8.0) [#288](https://github.com/fsprojects/fantomas/issues/288)
+* Support struct tuple. [#224](https://github.com/fsprojects/fantomas/issues/224)
+* Support match! [#262](https://github.com/fsprojects/fantomas/issues/262)
+* Upgrade to .NET 4.5.2 [#325](https://github.com/fsprojects/fantomas/pull/325)
 
 ### Fixed
 * for AST formatting regression. [#321](https://github.com/fsprojects/fantomas/issues/321)
@@ -903,16 +908,16 @@ Upgrade to .NET 4.5.2 [#325](https://github.com/fsprojects/fantomas/pull/325)
 ## [2.8.1]
 
 ### Changed
-Force parameter is *true* by default. [#267](https://github.com/fsprojects/fantomas/issues/267)
-Formatting compiler directives with inactive code is incorrect. [#270](https://github.com/fsprojects/fantomas/issues/270)
-rec keyword is removed from recursive modules [#274](https://github.com/fsprojects/fantomas/issues/274)
-Access modifiers in method signatures in signature files are not formatted correctly. [#284](https://github.com/fsprojects/fantomas/issues/284)
-`#if FOO || BAR => #if FOO` [#280](https://github.com/fsprojects/fantomas/issues/280)
-`override` becomes `member` in interface implementations. [#263](https://github.com/fsprojects/fantomas/issues/263)
-Operator >>.~ incorrectly formatted. [#291](https://github.com/fsprojects/fantomas/issues/291)
-Bad choice of line break location in boolean equality expression. [#248](https://github.com/fsprojects/fantomas/issues/248)
-Pipe operator inside quotation expression leads to wrong indentation. [#256](https://github.com/fsprojects/fantomas/issues/256)
-broken indent by pipe formatting. [#269](https://github.com/fsprojects/fantomas/issues/269)
+* Force parameter is *true* by default. [#267](https://github.com/fsprojects/fantomas/issues/267)
+* Formatting compiler directives with inactive code is incorrect. [#270](https://github.com/fsprojects/fantomas/issues/270)
+* rec keyword is removed from recursive modules [#274](https://github.com/fsprojects/fantomas/issues/274)
+* Access modifiers in method signatures in signature files are not formatted correctly. [#284](https://github.com/fsprojects/fantomas/issues/284)
+* `#if FOO || BAR => #if FOO` [#280](https://github.com/fsprojects/fantomas/issues/280)
+* `override` becomes `member` in interface implementations. [#263](https://github.com/fsprojects/fantomas/issues/263)
+* Operator >>.~ incorrectly formatted. [#291](https://github.com/fsprojects/fantomas/issues/291)
+* Bad choice of line break location in boolean equality expression. [#248](https://github.com/fsprojects/fantomas/issues/248)
+* Pipe operator inside quotation expression leads to wrong indentation. [#256](https://github.com/fsprojects/fantomas/issues/256)
+* broken indent by pipe formatting. [#269](https://github.com/fsprojects/fantomas/issues/269)
 
 ### Fixed
 * "Fantômas" mistranslation in README. [#273](https://github.com/fsprojects/fantomas/pull/273)
@@ -921,11 +926,11 @@ broken indent by pipe formatting. [#269](https://github.com/fsprojects/fantomas/
 ## [2.8.0]
 
 ### Changed
-Wrong indentation of `else` after comment [#241](https://github.com/dungpa/fantomas/issues/241)
-Change Content to None [#238](https://github.com/dungpa/fantomas/issues/238)
-Formatting of code with a pipe and a lambda expression [#211](https://github.com/dungpa/fantomas/issues/211)
-Added support for a global dotnet cli tool [#252](https://github.com/dungpa/fantomas/issues/252)
-Added option to preserve blank lines [#143](https://github.com/dungpa/fantomas/issues/143)
+* Wrong indentation of `else` after comment [#241](https://github.com/dungpa/fantomas/issues/241)
+* Change Content to None [#238](https://github.com/dungpa/fantomas/issues/238)
+* Formatting of code with a pipe and a lambda expression [#211](https://github.com/dungpa/fantomas/issues/211)
+* Added support for a global dotnet cli tool [#252](https://github.com/dungpa/fantomas/issues/252)
+* Added option to preserve blank lines [#143](https://github.com/dungpa/fantomas/issues/143)
 
 ### Fixed
 * for chopped of members [#239](https://github.com/dungpa/fantomas/issues/239)
@@ -933,53 +938,53 @@ Added option to preserve blank lines [#143](https://github.com/dungpa/fantomas/i
 ## [2.7.1]
 
 ### Changed
-Hotfix for runtime problem when using dotnet cli tool
+* Hotfix for runtime problem when using dotnet cli tool
 
 ## [2.7.0]
 
 ### Changed
-Upgrade to .NET Core 2.0
-Published as `clitool`
-Upgrade to FCS 22.0.3
-Single case DUs on same line [#234](https://github.com/dungpa/fantomas/pull/234)
-Removed whitespaces around type provider arguments [#235](https://github.com/dungpa/fantomas/pull/235)
+* Upgrade to .NET Core 2.0
+* Published as `clitool`
+* Upgrade to FCS 22.0.3
+* Single case DUs on same line [#234](https://github.com/dungpa/fantomas/pull/234)
+* Removed whitespaces around type provider arguments [#235](https://github.com/dungpa/fantomas/pull/235)
 
 ## [2.6.1]
 
 ### Changed
-Upgrade to FCS 11.0.4
+* Upgrade to FCS 11.0.4
 
 ## [2.5.0]
 
 ### Changed
-Upgrade to FCS 10.0.0
+* Upgrade to FCS 10.0.0
 
 ## [2.4.0]
 
 ### Changed
-Upgrade to FCS 8.0.0
+* Upgrade to FCS 8.0.0
 
 ## [2.3.0]
 
 ### Changed
-Upgrade to FCS 5.0.0
+* Upgrade to FCS 5.0.0
 
 ## [2.2.0]
 
 ### Changed
-Handle record types with private fields [#197](https://github.com/dungpa/fantomas/pull/197)
-Create a separate CLI NuGet package [#196](https://github.com/dungpa/fantomas/pull/196)
-Do not print out module names if not necessary [#196](https://github.com/dungpa/fantomas/pull/196)
+* Handle record types with private fields [#197](https://github.com/dungpa/fantomas/pull/197)
+* Create a separate CLI NuGet package [#196](https://github.com/dungpa/fantomas/pull/196)
+* Do not print out module names if not necessary [#196](https://github.com/dungpa/fantomas/pull/196)
 
 ## [2.1.0]
 
 ### Changed
-Upgrade to FCS 2.0.0.8
+* Upgrade to FCS 2.0.0.8
 
 ## [2.0.2]
 
 ### Changed
-Add a new public API using static members. Deprecate old functions.
+* Add a new public API using static members. Deprecate old functions.
 
 ### Fixed
 * https://github.com/fsprojects/VisualFSharpPowerTools/issues/1151
@@ -991,7 +996,7 @@ Add a new public API using static members. Deprecate old functions.
 * https://github.com/fsprojects/VisualFSharpPowerTools/issues/366 [#177](https://github.com/dungpa/fantomas/pull/177)
 
 ### Changed
-Migrate to FCS 1.4.0.5
+* Migrate to FCS 1.4.0.5
 
 ## [1.10.0]
 
@@ -1006,15 +1011,15 @@ Improve formatting of bind operator [#175](https://github.com/dungpa/fantomas/pu
 ## [1.8.0-beta]
 
 ### Changed
-Migrate to F# 4.0 ([#170](https://github.com/dungpa/fantomas/pull/170))
+* Migrate to F# 4.0 ([#170](https://github.com/dungpa/fantomas/pull/170))
 
 ## [1.7.0]
 
 ### Changed
-Print attributes on member arguments ([#168](https://github.com/dungpa/fantomas/pull/168))
-Do not misrecognize "then" blocks in explicit constructors ([#168](https://github.com/dungpa/fantomas/pull/168))
-Suppress whitespaces inside dot access ([#168](https://github.com/dungpa/fantomas/pull/168))
-Insert brackets around tuples in type test patterns ([#168](https://github.com/dungpa/fantomas/pull/168))
+* Print attributes on member arguments ([#168](https://github.com/dungpa/fantomas/pull/168))
+* Do not misrecognize "then" blocks in explicit constructors ([#168](https://github.com/dungpa/fantomas/pull/168))
+* Suppress whitespaces inside dot access ([#168](https://github.com/dungpa/fantomas/pull/168))
+* Insert brackets around tuples in type test patterns ([#168](https://github.com/dungpa/fantomas/pull/168))
 
 ### Fixed
 * desugar patterns' bug exposed by FsCheck ([#167](https://github.com/dungpa/fantomas/pull/167))
@@ -1022,76 +1027,76 @@ Insert brackets around tuples in type test patterns ([#168](https://github.com/d
 ## [1.6.0]
 
 ### Changed
-Add FAKE task helper
+* Add FAKE task helper
 
 ## [1.5.0]
 
 ### Changed
-Bugfix release
+* Bugfix release
 
 ## [1.4.0]
 
 ### Changed
-Bugfix release
+* Bugfix release
 
 ## [1.3.0]
 
 ### Changed
-Bugfix release
+* Bugfix release
 
 ## [1.2.0]
 
 ### Changed
-Bugfix release
+* Bugfix release
 
 ## [1.1.0]
 
 ### Changed
-Bugfix release
+* Bugfix release
 
 ## [1.0.5]
 
 ### Changed
-Fully support F# 3.1
-Compatible with F# on Mono
-Handle external functions
-Improve support of multiline strings
-Implement various bug fixes
+* Fully support F# 3.1
+* Compatible with F# on Mono
+* Handle external functions
+* Improve support of multiline strings
+* Implement various bug fixes
 
 ## [1.0.4]
 
 ### Changed
-Implement various bug fixes
+* Implement various bug fixes
 
 ## [1.0.3]
 
 ### Changed
-Implement various bug fixes
-Synchronize version numbers with NuGet packages
+* Implement various bug fixes
+* Synchronize version numbers with NuGet packages
 
 ## [0.7.1]
 
 ### Changed
-Support Visual Studio 2013 (not support F# 3.1 constructs yet)
+* Support Visual Studio 2013 (not support F# 3.1 constructs yet)
 
 ## [0.7.0]
 
 ### Changed
-Implement formatting cursor positions
-Implement reordering of open statements
-Enhance indentation of anonymous functions
-Add line breaks for nested let bindings
-Implement various bug fixes
+* Implement formatting cursor positions
+* Implement reordering of open statements
+* Enhance indentation of anonymous functions
+* Add line breaks for nested let bindings
+* Implement various bug fixes
 
 ## [0.5.0]
 
 ### Changed
-Improve formatting of signatures
-Improve UI interaction
-Enhance spacing of function applications and arguments
-Implement various bug fixes
+* Improve formatting of signatures
+* Improve UI interaction
+* Enhance spacing of function applications and arguments
+* Implement various bug fixes
 
 ## [0.4.1]
 
 ### Changed
-Initial release
+* Initial release
