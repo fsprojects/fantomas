@@ -13,6 +13,13 @@
 * Access modifier is lost in extern declaration. [#1213](https://github.com/fsprojects/fantomas/issues/1213)
 * Unexpected indentation in if-else when using keep_if_then_in_same_line=true. [#1160](https://github.com/fsprojects/fantomas/issues/1160)
 
+### Documentation
+* Add additional information about the style guide in CONTRIBUTING.md. [#2078](https://github.com/fsprojects/fantomas/pull/2078)
+* Fix FSharp compiler docs link for SynExpr. [#2082](https://github.com/fsprojects/fantomas/pull/2082)
+* Fix FSharp compiler docs link for SynExpr.DotGet expression. [#2084](https://github.com/fsprojects/fantomas/pull/2084)
+* Pre push hook to ensure code is formatted on upload. [#2085](https://github.com/fsprojects/fantomas/pull/2085)
+* Explain what's needed to close issues, that aren't reproducible anymore. [#2092](https://github.com/fsprojects/fantomas/pull/2092)
+
 ## [4.6.4] - 2022-02-11
 
 ### Fixed
