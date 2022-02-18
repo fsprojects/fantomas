@@ -4,3 +4,5 @@ Argu
 StreamJsonRpc
 Thoth.Json.Net
 SerilogTraceListener
+Ionide.KeepAChangelog.Tasks
+Dotnet.ReproducibleBuilds

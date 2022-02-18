@@ -1,22 +1,14 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
+    <ChangelogFile>$(MSBuildThisFileDirectory)CHANGELOG.md</ChangelogFile>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <Version>0.5.1</Version>
     <Description>Companion library to format using fantomas tool.</Description>
-    <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <WarnOn>3390;$(WarnOn)</WarnOn>
     <WarningsAsErrors>FS0025</WarningsAsErrors>
-    <PackageLicenseFile>LICENSE.md</PackageLicenseFile>
-    <PackageIcon>fantomas_logo.png</PackageIcon>
-    <PublishRepositoryUrl>true</PublishRepositoryUrl>
-    <EmbedUntrackedSources>true</EmbedUntrackedSources>
-    <DebugType>embedded</DebugType>
-    <RepositoryUrl>https://github.com/fsprojects/fantomas</RepositoryUrl>
+    <IsPackable>true</IsPackable>
   </PropertyGroup>
   <ItemGroup>
     <None Include="paket.references" />
-    <None Include="..\..\LICENSE.md" Visible="false" Pack="true" PackagePath="" />
-    <None Include="..\..\fantomas_logo.png" Visible="false" Pack="true" PackagePath="" />
     <Compile Include="Contracts.fs" />
     <Compile Include="LSPFantomasServiceTypes.fs" />
     <Compile Include="FantomasToolLocator.fs" />

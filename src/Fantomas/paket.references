@@ -1,3 +1,4 @@
 FSharp.Compiler.Service
 FSharp.Core
-Microsoft.SourceLink.GitHub
+Ionide.KeepAChangelog.Tasks
+Dotnet.ReproducibleBuilds

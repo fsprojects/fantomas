@@ -15,9 +15,11 @@ nuget Argu
 nuget BenchmarkDotNet
 nuget editorconfig
 nuget MAB.DotIgnore 3.0.2
-nuget Microsoft.SourceLink.GitHub copy_local: true
+nuget Ionide.KeepAChangelog.Tasks copy_local: true
+nuget Dotnet.ReproducibleBuilds copy_local: true
 
 github: fsprojects/fantomas:829faa6ba834f99afed9b4434b3a1680536474b2 src/Fantomas/CodePrinter.fs
+
 
 group build
     storage: none
@@ -43,6 +45,8 @@ group tool
     nuget StreamJsonRpc
     nuget Thoth.Json.Net
     nuget SerilogTraceListener
+    nuget Ionide.KeepAChangelog.Tasks copy_local: true
+    nuget Dotnet.ReproducibleBuilds copy_local: true
 
 group client
     storage: none
@@ -50,5 +54,5 @@ group client
     
     nuget FSharp.Core 5
     nuget StreamJsonRpc
-    nuget Microsoft.SourceLink.GitHub copy_local: true
+
     nuget SemanticVersioning
