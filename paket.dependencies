@@ -1,20 +1,20 @@
 source https://api.nuget.org/v3/index.json
 
-framework: netstandard2.0, net5.0, netcoreapp3.1
+framework: netstandard2.0, net6.0, netcoreapp3.1
 storage: none
 
-nuget FSharp.Core 6.0.1
+nuget FSharp.Core 6.0.1 content: none
 nuget FSharp.Compiler.Service 41.0.1
 nuget FsUnit
 nuget FsCheck
-nuget Microsoft.NET.Test.Sdk 16.9.1
-nuget nunit 3.13.1
-nuget NUnit3TestAdapter 4.0.0-beta.1
+nuget Microsoft.NET.Test.Sdk
+nuget nunit
+nuget NUnit3TestAdapter
 nuget NunitXml.TestLogger
 nuget Argu
 nuget BenchmarkDotNet
 nuget editorconfig
-nuget MAB.DotIgnore 3.0.2
+nuget MAB.DotIgnore
 nuget Ionide.KeepAChangelog.Tasks copy_local: true
 nuget Dotnet.ReproducibleBuilds copy_local: true
 
@@ -26,7 +26,7 @@ group build
     source https://api.nuget.org/v3/index.json
 
     nuget Microsoft.Azure.Cosmos.Table
-    nuget FSharp.Core ~> 5
+    nuget FSharp.Core ~> 5 content: none
     nuget Fake.Core.ReleaseNotes
     nuget Fake.Core.Xml
     nuget Fake.DotNet.Cli
@@ -40,7 +40,7 @@ group tool
     storage: none
     source https://api.nuget.org/v3/index.json
 
-    nuget FSharp.Core 6.0.1
+    nuget FSharp.Core 6.0.1 content: none
     nuget Argu
     nuget StreamJsonRpc
     nuget Thoth.Json.Net
@@ -52,7 +52,7 @@ group client
     storage: none
     source https://api.nuget.org/v3/index.json
     
-    nuget FSharp.Core 5
+    nuget FSharp.Core 5 content: none
     nuget StreamJsonRpc
 
     nuget SemanticVersioning

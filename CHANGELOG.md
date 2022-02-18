@@ -1,5 +1,10 @@
 # Changelog
 
+## [Unreleased]
+
+### Changed
+* Update .NET SDK to 6.0.200. [#2105](https://github.com/fsprojects/fantomas/pull/2105)
+
 ## [4.6.5] - 2022-02-18
 
 ### Changed
