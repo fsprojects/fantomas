@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## [Unreleased]
 
 ### Changed
 * Use [KeepAChangelog](https://keepachangelog.com/en/1.0.0/#how) instead of `RELEASE_NOTES.md`. [#2095](https://github.com/fsprojects/fantomas/pull/2095)
@@ -814,44 +814,44 @@
 * for i in 1..-1..0 do: should add space before `-`. [#456](https://github.com/fsprojects/fantomas/issues/456)
 * Incorrect handling of attributes in static method. [#452](https://github.com/fsprojects/fantomas/issues/452)
 
-## [3.0.0-beta-006]
+## [3.0.0-beta-006] - 2019-10-02
 
 ### Changed
 * FCS 32
 * Partial F# 4.7 support
 
-## [3.0.0-beta-005]
+## [3.0.0-beta-005] - 2019-09-27
 
 ### Changed
 * Move to .NETCore 3 global tool, deprecated net461
 * Deprecated dotnet-fantomas tool
 * Bug fixes
 
-## [3.0.0-beta-004]
+## [3.0.0-beta-004] - 2019-09-18
 
 ### Changed
 * Restructured library API
 * Improved performance
 
-## [3.0.0-beta-003]
+## [3.0.0-beta-003] - 2019-09-13
 
 ### Changed
 * More trivia fixes
 * FCS 31
 
-## [3.0.0-beta-002]
+## [3.0.0-beta-002] - 2019-07-20
 
 ### Changed
 * More fixes with hash directives
 
-## [3.0.0-beta-001]
+## [3.0.0-beta-001] - 2019-07-12
 
 ### Changed
 * Use FCS 28.0.0 and net461. [#436](https://github.com/fsprojects/fantomas/pull/436)
 * Deprecated `PreserveEndOfLine` setting in favor of Trivia. [#434](https://github.com/fsprojects/fantomas/pull/434)
 * Added support for formatting multiple code path in defines.
 
-## [2.9.2]
+## [2.9.2] - 2019-02-02
 
 ### Fixed
 * PreserveEndOfLine introduces additional newlines. [#360](https://github.com/fsprojects/fantomas/issues/360)
@@ -873,7 +873,7 @@
 * Use FAKE 5. [#261](https://github.com/fsprojects/fantomas/issues/261)
 * Added FAKE 5 sample. [#402](https://github.com/fsprojects/fantomas/issues/402)
 
-## [2.9.1]
+## [2.9.1] - 2018-11-20
 
 ### Changed
 * Added instructions for vscode and online website. [#333](https://github.com/fsprojects/fantomas/pull/333)
@@ -890,7 +890,7 @@
 * Fluent API with comments breaks code. [#331](https://github.com/fsprojects/fantomas/issues/331)
 * wrong comment placement. [#289](https://github.com/fsprojects/fantomas/issues/289)
 
-## [2.9.0]
+## [2.9.0] - 2018-10-17
 
 ### Changed
 * Improved README. [#243](https://github.com/fsprojects/fantomas/issues/243)
@@ -905,7 +905,7 @@
 ### Fixed
 * for AST formatting regression. [#321](https://github.com/fsprojects/fantomas/issues/321)
 
-## [2.8.1]
+## [2.8.1] - 2018-09-12
 
 ### Changed
 * Force parameter is *true* by default. [#267](https://github.com/fsprojects/fantomas/issues/267)
@@ -923,7 +923,7 @@
 * "Fantômas" mistranslation in README. [#273](https://github.com/fsprojects/fantomas/pull/273)
 * for preserve EOL feature. [#275](https://github.com/fsprojects/fantomas/pull/275)
 
-## [2.8.0]
+## [2.8.0] - 2018-07-07
 
 ### Changed
 * Wrong indentation of `else` after comment [#241](https://github.com/dungpa/fantomas/issues/241)
@@ -935,12 +935,12 @@
 ### Fixed
 * for chopped of members [#239](https://github.com/dungpa/fantomas/issues/239)
 
-## [2.7.1]
+## [2.7.1] - 2018-05-02
 
 ### Changed
 * Hotfix for runtime problem when using dotnet cli tool
 
-## [2.7.0]
+## [2.7.0] - 2018-05-02
 
 ### Changed
 * Upgrade to .NET Core 2.0
@@ -949,39 +949,39 @@
 * Single case DUs on same line [#234](https://github.com/dungpa/fantomas/pull/234)
 * Removed whitespaces around type provider arguments [#235](https://github.com/dungpa/fantomas/pull/235)
 
-## [2.6.1]
+## [2.6.1] - 2017-04-22
 
 ### Changed
 * Upgrade to FCS 11.0.4
 
-## [2.5.0]
+## [2.5.0] - 2017-02-19
 
 ### Changed
 * Upgrade to FCS 10.0.0
 
-## [2.4.0]
+## [2.4.0] - 2016-10-24
 
 ### Changed
 * Upgrade to FCS 8.0.0
 
-## [2.3.0]
+## [2.3.0] - 2016-07-09
 
 ### Changed
 * Upgrade to FCS 5.0.0
 
-## [2.2.0]
+## [2.2.0] - 2016-04-24
 
 ### Changed
 * Handle record types with private fields [#197](https://github.com/dungpa/fantomas/pull/197)
 * Create a separate CLI NuGet package [#196](https://github.com/dungpa/fantomas/pull/196)
 * Do not print out module names if not necessary [#196](https://github.com/dungpa/fantomas/pull/196)
 
-## [2.1.0]
+## [2.1.0] - 2016-04-01
 
 ### Changed
 * Upgrade to FCS 2.0.0.8
 
-## [2.0.2]
+## [2.0.2] - 2015-11-15
 
 ### Changed
 * Add a new public API using static members. Deprecate old functions.
@@ -990,7 +990,7 @@
 * https://github.com/fsprojects/VisualFSharpPowerTools/issues/1151
 * https://github.com/fsprojects/VisualFSharpPowerTools/issues/1143
 
-## [1.11.0]
+## [1.11.0] - 2015-09-12
 
 ### Fixed
 * https://github.com/fsprojects/VisualFSharpPowerTools/issues/366 [#177](https://github.com/dungpa/fantomas/pull/177)
@@ -998,22 +998,22 @@
 ### Changed
 * Migrate to FCS 1.4.0.5
 
-## [1.10.0]
+## [1.10.0] - 2015-08-29
 
 ### Changed
 Improve formatting of bind operator [#175](https://github.com/dungpa/fantomas/pull/175)
 
-## [1.9.0]
+## [1.9.0] - 2015-08-10
 
 ### Fixed
 * https://github.com/fsprojects/VisualFSharpPowerTools/issues/1050 ([#172](https://github.com/dungpa/fantomas/pull/172))
 
-## [1.8.0-beta]
+## [1.8.0-beta] - 2015-07-19
 
 ### Changed
 * Migrate to F# 4.0 ([#170](https://github.com/dungpa/fantomas/pull/170))
 
-## [1.7.0]
+## [1.7.0] - 2015-06-10
 
 ### Changed
 * Print attributes on member arguments ([#168](https://github.com/dungpa/fantomas/pull/168))
@@ -1024,37 +1024,37 @@ Improve formatting of bind operator [#175](https://github.com/dungpa/fantomas/pu
 ### Fixed
 * desugar patterns' bug exposed by FsCheck ([#167](https://github.com/dungpa/fantomas/pull/167))
 
-## [1.6.0]
+## [1.6.0] - 2014-10-25
 
 ### Changed
 * Add FAKE task helper
 
-## [1.5.0]
+## [1.5.0] - 2014-09-18
 
 ### Changed
 * Bugfix release
 
-## [1.4.0]
+## [1.4.0] - 2014-07-01
 
 ### Changed
 * Bugfix release
 
-## [1.3.0]
+## [1.3.0] - 2014-05-17
 
 ### Changed
 * Bugfix release
 
-## [1.2.0]
+## [1.2.0] - 2014-04-21
 
 ### Changed
 * Bugfix release
 
-## [1.1.0]
+## [1.1.0] - 2014-03-29
 
 ### Changed
 * Bugfix release
 
-## [1.0.5]
+## [1.0.5] - 2014-01-07
 
 ### Changed
 * Fully support F# 3.1
@@ -1063,23 +1063,23 @@ Improve formatting of bind operator [#175](https://github.com/dungpa/fantomas/pu
 * Improve support of multiline strings
 * Implement various bug fixes
 
-## [1.0.4]
+## [1.0.4] - 2013-11-16
 
 ### Changed
 * Implement various bug fixes
 
-## [1.0.3]
+## [1.0.3] - 2013-10-06
 
 ### Changed
 * Implement various bug fixes
 * Synchronize version numbers with NuGet packages
 
-## [0.7.1]
+## [0.7.1] - 2013-03-24
 
 ### Changed
 * Support Visual Studio 2013 (not support F# 3.1 constructs yet)
 
-## [0.7.0]
+## [0.7.0] - 2013-03-24
 
 ### Changed
 * Implement formatting cursor positions
@@ -1088,7 +1088,7 @@ Improve formatting of bind operator [#175](https://github.com/dungpa/fantomas/pu
 * Add line breaks for nested let bindings
 * Implement various bug fixes
 
-## [0.5.0]
+## [0.5.0] - 2013-03-22
 
 ### Changed
 * Improve formatting of signatures
@@ -1096,7 +1096,7 @@ Improve formatting of bind operator [#175](https://github.com/dungpa/fantomas/pu
 * Enhance spacing of function applications and arguments
 * Implement various bug fixes
 
-## [0.4.1]
+## [0.4.1] - 2013-03-22
 
 ### Changed
 * Initial release

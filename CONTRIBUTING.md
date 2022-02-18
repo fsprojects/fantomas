@@ -207,7 +207,7 @@ For example, `git checkout -b fix-1404`.
   - If there's not an `Unreleased` section in the `CHANGELOG.md`, create one at the top above the most recent version like so:
   
     ```markdown
-    ## Unreleased
+    ## [Unreleased]
 
     ### Changed
     * Your new feature goes here
