@@ -63,9 +63,7 @@ type FantomasDaemon(sender: Stream, reader: Stream) as this =
                         CodeFormatter.FormatDocumentAsync(
                             request.FilePath,
                             SourceString request.SourceCode,
-                            config,
-                            CodeFormatterImpl.createParsingOptionsFromFile request.FilePath,
-                            CodeFormatterImpl.sharedChecker.Value
+                            config
                         )
 
                     if formatted = request.SourceCode then
@@ -80,31 +78,32 @@ type FantomasDaemon(sender: Stream, reader: Stream) as this =
     [<JsonRpcMethod(Methods.FormatSelection, UseSingleObjectParameterDeserialization = true)>]
     member _.FormatSelectionAsync(request: FormatSelectionRequest) : Task<FormatSelectionResponse> =
         async {
-            let config =
-                match request.Config with
-                | Some configProperties ->
-                    let config = readConfiguration request.FilePath
-                    parseOptionsFromEditorConfig config configProperties
-                | None -> readConfiguration request.FilePath
-
-            let range =
-                let r = request.Range
-                mkRange request.FilePath (mkPos r.StartLine r.StartColumn) (mkPos r.EndLine r.EndColumn)
-
-            try
-                let! formatted =
-                    CodeFormatter.FormatSelectionAsync(
-                        request.FilePath,
-                        range,
-                        SourceString request.SourceCode,
-                        config,
-                        CodeFormatterImpl.createParsingOptionsFromFile request.FilePath,
-                        CodeFormatterImpl.sharedChecker.Value
-                    )
-
-                return FormatSelectionResponse.Formatted(request.FilePath, formatted)
-            with
-            | ex -> return FormatSelectionResponse.Error(request.FilePath, ex.Message)
+            return FormatSelectionResponse.Error(request.FilePath, "Format selection is no longer supported in Fantomas 5.")
+//            let config =
+//                match request.Config with
+//                | Some configProperties ->
+//                    let config = readConfiguration request.FilePath
+//                    parseOptionsFromEditorConfig config configProperties
+//                | None -> readConfiguration request.FilePath
+//
+//            let range =
+//                let r = request.Range
+//                mkRange request.FilePath (mkPos r.StartLine r.StartColumn) (mkPos r.EndLine r.EndColumn)
+//
+//            try
+//                let! formatted =
+//                    CodeFormatter.FormatSelectionAsync(
+//                        request.FilePath,
+//                        range,
+//                        SourceString request.SourceCode,
+//                        config,
+//                        CodeFormatterImpl.createParsingOptionsFromFile request.FilePath,
+//                        CodeFormatterImpl.sharedChecker.Value
+//                    )
+//
+//                return FormatSelectionResponse.Formatted(request.FilePath, formatted)
+//            with
+//            | ex -> return FormatSelectionResponse.Error(request.FilePath, ex.Message)
         }
         |> Async.StartAsTask
 

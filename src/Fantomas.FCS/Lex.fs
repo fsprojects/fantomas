@@ -17,10 +17,9 @@ type FSharpLexerFlags =
     | UseLexFilter = 0x10000
 
 let lex
-    (text: ISourceText)
-    (conditionalCompilationDefines: string list)
     (onToken: Parser.token -> range -> unit)
-    (pathMap: Internal.Utilities.PathMap)
+    (conditionalCompilationDefines: string list)
+    (text: ISourceText)
     : unit =
     let errorLogger: ErrorLogger =
         { new ErrorLogger("DiscardErrorsLogger") with
@@ -30,7 +29,7 @@ let lex
     let langVersion = Features.LanguageVersion.Default
     let reportLibraryOnlyFeatures = false
     let canSkipTrivia = false //(flags &&& FSharpLexerFlags.SkipTrivia) = FSharpLexerFlags.SkipTrivia
-    let isLightSyntaxOn = false // (flags &&& FSharpLexerFlags.LightSyntaxOn) = FSharpLexerFlags.LightSyntaxOn
+    let isLightSyntaxOn = true // (flags &&& FSharpLexerFlags.LightSyntaxOn) = FSharpLexerFlags.LightSyntaxOn
     let isCompiling = false // (flags &&& FSharpLexerFlags.Compiling) = FSharpLexerFlags.Compiling
     let isCompilingFSharpCore = false // (flags &&& FSharpLexerFlags.CompilingFSharpCore) = FSharpLexerFlags.CompilingFSharpCore
     let canUseLexFilter = true // No idea...  (flags &&& FSharpLexerFlags.UseLexFilter) = FSharpLexerFlags.UseLexFilter
@@ -41,7 +40,14 @@ let lex
     let lightStatus = LightSyntaxStatus(isLightSyntaxOn, true)
 
     let lexargs =
-        mkLexargs (conditionalCompilationDefines, lightStatus, LexResourceManager(0), [], errorLogger, pathMap)
+        mkLexargs (
+            conditionalCompilationDefines,
+            lightStatus,
+            LexResourceManager(0),
+            [],
+            errorLogger,
+            Internal.Utilities.PathMap.empty
+        )
 
     let lexargs = { lexargs with applyLineDirectives = isCompiling }
 

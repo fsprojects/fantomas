@@ -381,8 +381,6 @@ module private rec Test =
 
 [<Test>]
 let ``implicit module should not be added to code`` () =
-    let fileName = "60Seconds.fsx"
-
     let sourceCode =
         """open System
 
@@ -391,11 +389,9 @@ type T() =
         override x.Dispose() = ()"""
 
     CodeFormatter.FormatDocumentAsync(
-        fileName,
-        SourceOrigin.SourceString sourceCode,
-        config,
-        CodeFormatterImpl.createParsingOptionsFromFile fileName,
-        sharedChecker.Value
+        false,
+        sourceCode,
+        config
     )
     |> Async.RunSynchronously
     |> fun s -> s.Replace("\r\n", "\n")

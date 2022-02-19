@@ -12,6 +12,7 @@
 
   <ItemGroup>
     <None Include="paket.references" />
+    <Compile Include="AssemblyInfo.fs" />
     <EmbeddedText Include="..\..\..\fsharp\src\fsharp\FSComp.txt">
       <Link>FSComp.txt</Link>
     </EmbeddedText>

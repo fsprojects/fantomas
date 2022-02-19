@@ -21,6 +21,7 @@
     <Compile Include="FormatConfig.fs" />
     <Compile Include="TokenParserBoolExpr.fs" />
     <Compile Include="TriviaHelpers.fs" />
+    <Compile Include="DefineParser.fs" />
     <Compile Include="TokenParser.fs" />
     <Compile Include="Trivia.fs" />
     <Compile Include="Context.fs" />

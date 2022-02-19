@@ -59,3 +59,13 @@ group client
     nuget StreamJsonRpc
 
     nuget SemanticVersioning
+
+group compiler
+    storage: none
+    source https://api.nuget.org/v3/index.json
+    framework: netstandard2.0
+
+    nuget FSharp.Core 6.0.1 content: none
+    nuget System.Memory
+    nuget System.Runtime
+    nuget FsLexYacc 10.2.0

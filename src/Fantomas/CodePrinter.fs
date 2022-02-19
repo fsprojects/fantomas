@@ -1678,9 +1678,14 @@ and genExpr astContext synExpr ctx =
         // This supposes to be an infix function, but for some reason it isn't picked up by InfixApps
         | App (Var "?", e :: es) ->
             match es with
-            | SynExpr.Const (SynConst.String _, _) :: _ ->
+            | SynExpr.Const (SynConst.String (text=text), _) :: rest ->
+                let genText =
+                    !- (if text = "checked" then "``checked``" else text)
+                
                 genExpr astContext e -- "?"
-                +> col sepSpace es (genExpr astContext)
+                +> genText
+                +> sepSpace
+                +> col sepSpace rest (genExpr astContext)
             | _ ->
                 genExpr astContext e -- "?"
                 +> sepOpenT
@@ -5675,11 +5680,10 @@ and genConst (c: SynConst) (r: Range) =
                 printContentBefore tn
                 +> !-sc
                 +> printContentAfter tn
-            | Some ({ ContentBefore = [ Keyword ({ TokenInfo = { TokenName = "KEYWORD_STRING" }
-                                                   Content = kw }) ] }) -> !-kw
-            | Some ({ ContentBefore = [ Keyword { TokenInfo = { TokenName = "QMARK" } } ]
-                      ContentItself = Some (IdentBetweenTicks ibt) }) -> !-ibt
-            | Some { ContentBefore = [ Keyword { TokenInfo = { TokenName = "QMARK" } } ] } -> !-s
+//            | Some ({ ContentBefore = [ Keyword ({ TokenInfo = { TokenName = "KEYWORD_STRING" }
+//                                                   Content = kw }) ] }) -> !-kw
+//            | Some { ContentItself = Some (IdentBetweenTicks ibt) } -> !-ibt
+//            | Some { ContentBefore = [ Keyword { TokenInfo = { TokenName = "QMARK" } } ] } -> !-s
             | Some tn ->
                 let escaped = Regex.Replace(s, "\"{1}", "\\\"")
 

@@ -6,7 +6,6 @@ open Fantomas
 
 [<Test>]
 let ``sanitize filename if Program.fs`` () =
-    let fileName = "Program.fs"
 
     let source =
         """
@@ -18,22 +17,12 @@ let main argv _ =
     0
 """
 
-    let parsingOptions = CodeFormatterImpl.createParsingOptionsFromFile fileName
-
-    CodeFormatter.FormatDocumentAsync(
-        fileName,
-        SourceOrigin.SourceString source,
-        config,
-        parsingOptions,
-        sharedChecker.Value
-    )
+    CodeFormatter.FormatDocumentAsync(false, source, config)
     |> Async.RunSynchronously
     |> ignore
 
 [<Test>]
 let ``sanitize filename if path with Program.fs`` () =
-    let fileName = @"d:\dev\bootcamp\src\Program.fs"
-
     let source =
         """
 open System
@@ -45,14 +34,6 @@ let main _ =
     0
 """
 
-    let parsingOptions = CodeFormatterImpl.createParsingOptionsFromFile fileName
-
-    CodeFormatter.FormatDocumentAsync(
-        fileName,
-        SourceOrigin.SourceString source,
-        config,
-        parsingOptions,
-        sharedChecker.Value
-    )
+    CodeFormatter.FormatDocumentAsync(false, source, config)
     |> Async.RunSynchronously
     |> ignore

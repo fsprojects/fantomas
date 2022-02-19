@@ -181,8 +181,6 @@ type internal Context =
       WriterEvents: Queue<WriterEvent>
       BreakLines: bool
       BreakOn: string -> bool
-      /// The original source string to query as a last resort
-      Content: string
       TriviaMainNodes: Map<FsAstType, TriviaNode list>
       FileName: string }
 
@@ -193,29 +191,24 @@ type internal Context =
           WriterEvents = Queue.empty
           BreakLines = true
           BreakOn = (fun _ -> false)
-          Content = ""
           TriviaMainNodes = Map.empty
           FileName = String.Empty }
 
     static member Create
         config
         defines
-        (fileName: string)
-        (hashTokens: Token list)
-        (content: string)
-        (maybeAst: ParsedInput option)
+        (hashTokens: (*Token*) obj list)
+        (source: ISourceText option)
+        (ast: ParsedInput)
         =
-        let content = String.normalizeNewLine content
-
-        let tokens = TokenParser.tokenize defines hashTokens content
+        let tokens = [] // TokenParser.tokenize defines hashTokens content
 
         let trivia =
-            match maybeAst, config.StrictMode with
-            | Some ast, false ->
-                let mkRange (startLine, startCol) (endLine, endCol) =
-                    mkRange fileName (mkPos startLine startCol) (mkPos endLine endCol)
-
-                Trivia.collectTrivia mkRange tokens ast
+            match source with
+            | Some source when not config.StrictMode ->
+//                let mkRange (startLine, startCol) (endLine, endCol) =
+//                    mkRange fileName (mkPos startLine startCol) (mkPos endLine endCol)
+                Trivia.collectTrivia source ast
             | _ -> []
 
         let triviaByNodes =
@@ -225,9 +218,7 @@ type internal Context =
 
         { Context.Default with
             Config = config
-            Content = content
-            TriviaMainNodes = triviaByNodes
-            FileName = fileName }
+            TriviaMainNodes = triviaByNodes }
 
     member x.WithDummy(writerCommands, ?keepPageWidth) =
         let keepPageWidth = keepPageWidth |> Option.defaultValue false
@@ -1176,7 +1167,7 @@ let internal printTriviaContent (c: TriviaContent) (ctx: Context) =
         +> sepSpace
         +> ifElse after sepNlnForTrivia sepNone
     | Newline -> (ifElse addNewline (sepNlnForTrivia +> sepNlnForTrivia) sepNlnForTrivia)
-    | Keyword _
+//    | Keyword _
     | Number _
     | StringContent _
     | IdentOperatorAsWord _

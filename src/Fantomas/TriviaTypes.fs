@@ -1,12 +1,14 @@
 module Fantomas.TriviaTypes
 
 open FSharp.Compiler.Text
-open FSharp.Compiler.Tokenization
+//open FSharp.Compiler.Tokenization
 
-type Token =
-    { TokenInfo: FSharpTokenInfo
-      LineNumber: int
-      Content: string }
+type FSharpTokenInfo = class end
+
+//type Token =
+//    { TokenInfo: FSharpTokenInfo
+//      LineNumber: int
+//      Content: string }
 
 type Comment =
     | LineCommentAfterSourceCode of comment: string
@@ -26,7 +28,7 @@ let a = 7
 *)
 
 type TriviaContent =
-    | Keyword of Token
+    //| Keyword of Token
     | Number of string
     | StringContent of string
     | IdentOperatorAsWord of string

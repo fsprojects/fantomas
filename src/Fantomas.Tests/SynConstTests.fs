@@ -684,3 +684,8 @@ let s = @"\"
         """
 let s = @"\"
 """
+
+[<Test>]
+let ``single digit constant`` () =
+    formatSourceString false "1" { config with InsertFinalNewline = false }
+    |> should equal "1"

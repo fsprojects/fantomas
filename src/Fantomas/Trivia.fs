@@ -2,7 +2,7 @@ module internal Fantomas.Trivia
 
 open FSharp.Compiler.Text
 open FSharp.Compiler.Syntax
-open FSharp.Compiler.Tokenization
+//open FSharp.Compiler.Tokenization
 open Fantomas
 open Fantomas.SourceParser
 open Fantomas.AstTransformer
@@ -223,22 +223,22 @@ let private addTriviaToTriviaNode (startOfSourceCode: int) (triviaNodes: TriviaN
             findNodeBeforeLineFromStart triviaNodes range.StartLine
             |> updateTriviaNode (fun tn -> tn.ContentAfter.Add(Newline)) triviaNodes
 
-    | { Item = Keyword ({ TokenInfo = { TokenName = tn } } as kw)
-        Range = range } when (tn = "QMARK") ->
-        findSynConstStringNodeAfter triviaNodes range
-        |> updateTriviaNode (fun tn -> tn.ContentBefore.Add(Keyword(kw))) triviaNodes
+//    | { Item = Keyword ({ TokenInfo = { TokenName = tn } } as kw)
+//        Range = range } when (tn = "QMARK") ->
+//        findSynConstStringNodeAfter triviaNodes range
+//        |> updateTriviaNode (fun tn -> tn.ContentBefore.Add(Keyword(kw))) triviaNodes
 
-    | { Item = Keyword keyword
-        Range = range } ->
-        findNodeOnLineAndColumn triviaNodes range.StartLine range.StartColumn
-        |> fun nodeOnLineAndColumn ->
-            match nodeOnLineAndColumn with
-            | Some _ ->
-                nodeOnLineAndColumn
-                |> updateTriviaNode (fun tn -> tn.ContentBefore.Add(Keyword(keyword))) triviaNodes
-            | None ->
-                findParsedHashOnLineAndEndswith triviaNodes range.StartLine range.EndColumn
-                |> updateTriviaNode (fun tn -> tn.ContentBefore.Add(Keyword(keyword))) triviaNodes
+//    | { Item = Keyword keyword
+//        Range = range } ->
+//        findNodeOnLineAndColumn triviaNodes range.StartLine range.StartColumn
+//        |> fun nodeOnLineAndColumn ->
+//            match nodeOnLineAndColumn with
+//            | Some _ ->
+//                nodeOnLineAndColumn
+//                |> updateTriviaNode (fun tn -> tn.ContentBefore.Add(Keyword(keyword))) triviaNodes
+//            | None ->
+//                findParsedHashOnLineAndEndswith triviaNodes range.StartLine range.EndColumn
+//                |> updateTriviaNode (fun tn -> tn.ContentBefore.Add(Keyword(keyword))) triviaNodes
 
     | { Item = Directive dc as directive
         Range = range } ->
@@ -317,7 +317,7 @@ let private triviaNodeIsNotEmpty (triviaNode: TriviaNodeAssigner) =
     3. Merge trivias with triviaNodes
     4. genTrivia should use ranges to identify what extra content should be added from what triviaNode
 *)
-let collectTrivia (mkRange: MkRange) tokens (ast: ParsedInput) =
+let collectTrivia (source: ISourceText) (ast: ParsedInput) =
     let triviaNodesFromAST =
         match ast with
         | ParsedInput.ImplFile (ParsedImplFileInput.ParsedImplFileInput (_, _, _, _, hds, mns, _)) -> astToNode hds mns
@@ -328,12 +328,12 @@ let collectTrivia (mkRange: MkRange) tokens (ast: ParsedInput) =
         triviaNodesFromAST
         |> List.sortBy (fun n -> n.Range.Start.Line, n.Range.Start.Column)
 
-    let trivias = TokenParser.getTriviaFromTokens mkRange tokens
+    let trivias = TokenParser.getTriviaFromTokens source
 
-    let startOfSourceCode =
-        match tokens with
-        | h :: _ -> h.LineNumber // Keep track of comments or hash defines before the first AST node
-        | _ -> 1
+    let startOfSourceCode = 1
+//        match tokens with
+//        | h :: _ -> h.LineNumber // Keep track of comments or hash defines before the first AST node
+//        | _ -> 1
 
     match trivias with
     | [] -> []
