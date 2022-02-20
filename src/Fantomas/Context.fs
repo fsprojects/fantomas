@@ -161,7 +161,9 @@ module WriterEvents =
                 | CommentOrDefineEvent _ -> WriteLineInsideTrivia
                 | _ -> WriteLineInsideStringConst
 
-            s.Split('\n')
+            // Trustworthy multiline string in the original AST can contain \r
+            // Internally we process everything with \n and at the end we respect the .editorconfig end_of_line setting.
+            s.Replace("\r", "").Split('\n')
             |> Seq.map (fun x -> [ Write x ])
             |> Seq.reduce (fun x y -> x @ [ writeLine ] @ y)
             |> Seq.toList
@@ -194,19 +196,13 @@ type internal Context =
           TriviaMainNodes = Map.empty
           FileName = String.Empty }
 
-    static member Create
-        config
-        defines
-        (hashTokens: (*Token*) obj list)
-        (source: ISourceText option)
-        (ast: ParsedInput)
-        =
+    static member Create config defines (hashTokens: obj list) (source: ISourceText option) (ast: ParsedInput) =
         let tokens = [] // TokenParser.tokenize defines hashTokens content
 
         let trivia =
             match source with
             | Some source when not config.StrictMode ->
-//                let mkRange (startLine, startCol) (endLine, endCol) =
+                //                let mkRange (startLine, startCol) (endLine, endCol) =
 //                    mkRange fileName (mkPos startLine startCol) (mkPos endLine endCol)
                 Trivia.collectTrivia source ast
             | _ -> []
@@ -1167,7 +1163,7 @@ let internal printTriviaContent (c: TriviaContent) (ctx: Context) =
         +> sepSpace
         +> ifElse after sepNlnForTrivia sepNone
     | Newline -> (ifElse addNewline (sepNlnForTrivia +> sepNlnForTrivia) sepNlnForTrivia)
-//    | Keyword _
+    //    | Keyword _
     | Number _
     | StringContent _
     | IdentOperatorAsWord _

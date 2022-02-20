@@ -1163,7 +1163,7 @@ let private (|BlockCommentOpeningCommentToken|_|) (token: token) =
 
 let private (|QuoteStringToken|_|) token =
     match token with
-    | STRING_TEXT (LexerContinuation.String _) -> Some()
+    | STRING_TEXT (LexerContinuation.String (style = style)) -> Some style
     | _ -> None
 
 type TokenAndRange = token * range
@@ -1182,9 +1182,21 @@ type TriviaBuilderState =
         startRange: range *
         previousTokenWasStar: bool *
         collector: StringBuilder
-    | CaptureString of
+    | CaptureSingleQuoteString of
         startRange: range *
-        lastTokenAndRange: TokenAndRange *
+        lastTokenWasBackSlash: bool *
+        /// We don't know upfront if the string is really going to be a trivia, there is a slight change that we can actually trust the string value from the AST.
+        confirmedTrivia: bool *
+        collector: StringBuilder
+    // TODO: I'm not sure yet we need to capture here at all
+    | CaptureTripleQuoteString of
+        startRange: range *
+        /// We don't know upfront if the string is really going to be a trivia, there is a slight change that we can actually trust the string value from the AST.
+        // confirmedTrivia: bool *
+        collector: StringBuilder
+    | CaptureVerbatimString of
+        startRange: range *
+        lastTokenWasBackSlash: bool *
         /// We don't know upfront if the string is really going to be a trivia, there is a slight change that we can actually trust the string value from the AST.
         confirmedTrivia: bool *
         collector: StringBuilder
@@ -1201,6 +1213,19 @@ let private createLineComment afterSourceCode startRange range sb =
 
     { Item = Comment(item comment)
       Range = r }
+
+let private createStringTrivia
+    (getContentAt: range -> string)
+    (startRange: range)
+    (endRange: range)
+    (sb: StringBuilder)
+    =
+    let quote = getContentAt endRange
+    let content = sb.Append(quote).ToString()
+    let range = Range.unionRanges startRange endRange
+
+    { Item = StringContent content
+      Range = range }
 
 let private (|DecompiledOperatorToken|_|) (token: token) =
     match token with
@@ -1317,9 +1342,13 @@ let getTriviaFromTokens (source: ISourceText) =
                 let sb = StringBuilder(opener)
                 CaptureBlockComment(lastTokenAndRange, range, false, sb)
 
-            | NotCollecting _, QuoteStringToken ->
+            | NotCollecting _, QuoteStringToken style ->
                 let quote = getContentAt range
-                CaptureString(range, tokenAndRange, false, StringBuilder(quote))
+
+                match style with
+                | LexerStringStyle.SingleQuote -> CaptureSingleQuoteString(range, false, false, StringBuilder(quote))
+                | LexerStringStyle.TripleQuote -> CaptureTripleQuoteString(range, StringBuilder(quote))
+                | LexerStringStyle.Verbatim -> CaptureVerbatimString(range, false, false, StringBuilder(quote))
 
             | NotCollecting _, DecompiledOperatorToken ident ->
                 let trivia =
@@ -1400,26 +1429,29 @@ let getTriviaFromTokens (source: ISourceText) =
                 let content = getContentAt range
                 CaptureBlockComment(lastTokenAndRange, startRange, previousTokenWasStar, sb.Append(content))
 
-            // escaped string quote at this point
-            | CaptureString (startRange, (LEX_FAILURE "Unexpected character '\\'", _),  _, sb), QuoteStringToken ->
+            // backslash before non back slash
+            | CaptureSingleQuoteString (startRange, false, _, sb), LEX_FAILURE "Unexpected character '\\'" ->
                 let content = getContentAt range
-                CaptureString(startRange, tokenAndRange, true, sb.Append(content))
-            
-            | CaptureString (startRange, _,  confirmedTrivia, sb), QuoteStringToken ->
+                CaptureSingleQuoteString(startRange, true, true, sb.Append(content))
+
+            // backslash before quote
+            | CaptureSingleQuoteString (startRange, true, _, sb), QuoteStringToken _ ->
+                let content = getContentAt range
+                CaptureSingleQuoteString(startRange, false, true, sb.Append(content))
+
+            // End of single quote string
+            | CaptureSingleQuoteString (startRange, _, confirmedTrivia, sb),
+              QuoteStringToken LexerStringStyle.SingleQuote ->
                 if confirmedTrivia then
-                    let quote = getContentAt range
-                    let content = sb.Append(quote).ToString()
-                    let range = Range.unionRanges startRange range
-
-                    let trivia =
-                        { Item = StringContent content
-                          Range = range }
-
-                    triviaCollection.Add trivia
+                    triviaCollection.Add(createStringTrivia getContentAt startRange range sb)
 
                 NotCollecting tokenAndRange
 
-            | CaptureString (startRange, _, confirmedTrivia, sb), _token ->
+            // ignore the content of triple quoted string, they can be trusted
+            | CaptureTripleQuoteString _, QuoteStringToken LexerStringStyle.TripleQuote -> NotCollecting tokenAndRange
+
+            // capture normal token as part of single quote string
+            | CaptureSingleQuoteString (startRange, _, confirmedTrivia, sb), _token ->
                 let content = getContentAt range
 
                 let isConfirmedTrivia =
@@ -1427,7 +1459,12 @@ let getTriviaFromTokens (source: ISourceText) =
                     || startRange.StartLine < range.EndLine
                     || content = "\\"
 
-                CaptureString(startRange, tokenAndRange, isConfirmedTrivia, sb.Append(content))
+                CaptureSingleQuoteString(startRange, false, isConfirmedTrivia, sb.Append(content))
+
+            // capture normal token as part of triple quote string
+            | CaptureTripleQuoteString (startRange, sb), _token ->
+                let content = getContentAt range
+                CaptureTripleQuoteString(startRange, sb.Append(content))
 
             | _ -> acc)
         (NotCollecting(OBLOCKBEGIN, Range.Zero))

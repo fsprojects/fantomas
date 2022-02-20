@@ -1678,10 +1678,13 @@ and genExpr astContext synExpr ctx =
         // This supposes to be an infix function, but for some reason it isn't picked up by InfixApps
         | App (Var "?", e :: es) ->
             match es with
-            | SynExpr.Const (SynConst.String (text=text), _) :: rest ->
+            | SynExpr.Const (SynConst.String (text = text), _) :: rest ->
                 let genText =
-                    !- (if text = "checked" then "``checked``" else text)
-                
+                    !-(if text = "checked" then
+                           "``checked``"
+                       else
+                           text)
+
                 genExpr astContext e -- "?"
                 +> genText
                 +> sepSpace
@@ -5680,7 +5683,7 @@ and genConst (c: SynConst) (r: Range) =
                 printContentBefore tn
                 +> !-sc
                 +> printContentAfter tn
-//            | Some ({ ContentBefore = [ Keyword ({ TokenInfo = { TokenName = "KEYWORD_STRING" }
+            //            | Some ({ ContentBefore = [ Keyword ({ TokenInfo = { TokenName = "KEYWORD_STRING" }
 //                                                   Content = kw }) ] }) -> !-kw
 //            | Some { ContentItself = Some (IdentBetweenTicks ibt) } -> !-ibt
 //            | Some { ContentBefore = [ Keyword { TokenInfo = { TokenName = "QMARK" } } ] } -> !-s
@@ -5785,13 +5788,13 @@ and genConstBytes (bytes: byte []) (r: Range) =
 and genConstString (stringKind: SynStringKind) (value: string) =
     let escaped = Regex.Replace(value, "\"{1}", "\\\"")
 
-    let stringStart, stringEnd =
+    let content =
         match stringKind with
-        | SynStringKind.Regular -> "\"", "\""
-        | SynStringKind.Verbatim -> "@\"", "\""
-        | SynStringKind.TripleQuote -> "\"\"\"", "\"\"\""
+        | SynStringKind.Regular -> String.Concat("\"", escaped, "\"")
+        | SynStringKind.Verbatim -> String.Concat("@\"", value, "\"")
+        | SynStringKind.TripleQuote -> String.Concat("\"\"\"", value, "\"\"\"")
 
-    !-(sprintf "%s%s%s" stringStart escaped stringEnd)
+    !-content
 
 and genSynStaticOptimizationConstraint
     (astContext: ASTContext)

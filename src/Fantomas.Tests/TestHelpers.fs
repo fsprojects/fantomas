@@ -45,9 +45,6 @@ let private isValidAndHasNoWarnings fileName source =
     |> Async.map (Seq.fold (&&) true)
 
 let formatSourceString isFsiFile (s: string) config =
-    // On Linux/Mac this will exercise different line endings
-    let s = s.Replace("\r\n", Environment.NewLine)
-
     async {
         let! formatted = CodeFormatter.FormatDocumentAsync(isFsiFile, s, config)
 

@@ -499,11 +499,15 @@ let ``three comments on single lines`` () =
 
     match triviaNodes with
     | [ { Item = Comment (LineCommentOnSingleLine comment1) }
-        { Item = Comment (LineCommentOnSingleLine comment2)  }
-        { Item = Comment (LineCommentOnSingleLine comment3)  } ] ->
-        comment1 == "// You can use the `fun` keyword to write lambda's."
+        { Item = Comment (LineCommentOnSingleLine comment2) }
+        { Item = Comment (LineCommentOnSingleLine comment3) } ] ->
+        comment1
+        == "// You can use the `fun` keyword to write lambda's."
+
         comment2 == "// Mind the -> instead of C#'s =>"
-        comment3 == "// TODO: complete the lambda so that the value is returned in uppercase."
+
+        comment3
+        == "// TODO: complete the lambda so that the value is returned in uppercase."
     | _ -> Assert.Fail($"expected LineCommentOnSingleLine, got {triviaNodes}")
 
 [<Test>]
@@ -518,9 +522,9 @@ let `` comment followed by newline`` () =
     let triviaNodes = getTriviaFromTokens source
 
     match triviaNodes with
-    | [ { Item = Comment (LineCommentOnSingleLine comment) }
-        { Item = Newline  } ] ->
-        comment == "// ref: https://docs.microsoft.com/en-us/dotnet/fsharp/language-reference/functions/lambda-expressions-the-fun-keyword"
+    | [ { Item = Comment (LineCommentOnSingleLine comment) }; { Item = Newline } ] ->
+        comment
+        == "// ref: https://docs.microsoft.com/en-us/dotnet/fsharp/language-reference/functions/lambda-expressions-the-fun-keyword"
     | _ -> Assert.Fail($"expected LineCommentOnSingleLine, got {triviaNodes}")
 
 [<Test>]
@@ -536,8 +540,28 @@ type T =
 
     match triviaNodes with
     | [ { Item = Comment (LineCommentOnSingleLine comment) } ] ->
-        comment == "// Delay in ms since it entered the queue"
+        comment
+        == "// Delay in ms since it entered the queue"
     | _ -> Assert.Fail($"expected LineCommentOnSingleLine, got {triviaNodes}")
+
+[<Test>]
+let ``escaped slash in string`` () =
+    // "\\"
+    let source = "\"\\\\\\\\\""
+    let triviaNodes = getTriviaFromTokens source
+
+    match triviaNodes with
+    | [ { Item = StringContent "\"\\\\\\\\\"" } ] -> Assert.Pass()
+    | _ -> Assert.Fail($"expected StringContent, got {triviaNodes}")
+
+[<Test>]
+let ``quotes in triple quoted string`` () =
+    let source = "\"\"\"...\"\"...\"\"\""
+    let triviaNodes = getTriviaFromTokens source
+
+    match triviaNodes with
+    | [] -> Assert.Pass()
+    | _ -> Assert.Fail($"expected no trivia, got {triviaNodes}")
 
 (*
 type T =
@@ -633,7 +657,7 @@ let ``actual newline should be trivia`` () =
 
     match triviaNodes with
     | [ { Item = StringContent sc } ] -> "\"\n\"" == sc
-    | _ -> Assert.Fail($"Expected no StringContent, got {triviaNodes}")
+    | _ -> Assert.Fail($"Expected StringContent, got {triviaNodes}")
 
 [<Test>]
 let ``newline in string`` () =
@@ -659,7 +683,7 @@ let ``detect IdentOperatorAsWord`` () =
     match triviaNodes with
     | [ { Item = IdentOperatorAsWord o } ] -> "op_LessThan" == o
     | _ -> Assert.Fail($"Expected IdentOperatorAsWord, got {triviaNodes}")
-    
+
 //
 //[<Test>]
 //let ``newline with slashes in string`` () =
