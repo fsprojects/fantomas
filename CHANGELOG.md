@@ -5,6 +5,9 @@
 ### Changed
 * Update .NET SDK to 6.0.200. [#2105](https://github.com/fsprojects/fantomas/pull/2105)
 
+### Fixed
+* Valid input => Formatted content is not valid F# code. [#2109](https://github.com/fsprojects/fantomas/issues/2109)
+
 ## [4.6.5] - 2022-02-18
 
 ### Changed
