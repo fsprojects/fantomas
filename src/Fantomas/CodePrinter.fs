@@ -5781,9 +5781,12 @@ and genConstBytes (bytes: byte []) (r: Range) =
                 | _ -> None)
 
         match trivia with
-        | Some t -> !-t
-        | None -> !-(sprintf "%A" bytes)
-        <| ctx
+        | Some t -> (!-t +> !- "B") ctx
+        | None ->
+            let content =
+                System.String(Array.map (fun (byte: byte) -> Convert.ToChar(byte)) bytes)
+
+            !- $"\"{content}\"B" ctx
 
 and genConstString (stringKind: SynStringKind) (value: string) =
     let escaped = Regex.Replace(value, "\"{1}", "\\\"")

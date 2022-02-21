@@ -392,6 +392,21 @@ let x = 1
 """
 
 [<Test>]
+let ``bytes string with escaped character`` () =
+    formatSourceString
+        false
+        """
+let bytes = "meh\n"B
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let bytes = "meh\n"B
+"""
+
+[<Test>]
 let ``trivia after SynConst.String, 1518`` () =
     formatSourceString
         false
