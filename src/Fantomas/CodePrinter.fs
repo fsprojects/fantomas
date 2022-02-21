@@ -4469,13 +4469,7 @@ and genType astContext outerBracket t =
 and addSpaceIfSynTypeStaticConstantHasAtSignBeforeString (t: SynType) (ctx: Context) =
     let hasAtSign =
         match t with
-        | TStaticConstant (_, r) ->
-            TriviaHelpers.``has content itself that matches``
-                (function
-                | StringContent sc -> sc.StartsWith("@")
-                | _ -> false)
-                r
-                (Map.tryFindOrEmptyList SynConst_String ctx.TriviaMainNodes)
+        | TStaticConstant (SynConst.String (_, SynStringKind.Verbatim, _), _) -> true
         | _ -> false
 
     onlyIf hasAtSign sepSpace ctx
@@ -5687,13 +5681,15 @@ and genConst (c: SynConst) (r: Range) =
 //                                                   Content = kw }) ] }) -> !-kw
 //            | Some { ContentItself = Some (IdentBetweenTicks ibt) } -> !-ibt
 //            | Some { ContentBefore = [ Keyword { TokenInfo = { TokenName = "QMARK" } } ] } -> !-s
-            | Some tn ->
-                let escaped = Regex.Replace(s, "\"{1}", "\\\"")
-
-                printContentBefore tn
-                +> !-(sprintf "\"%s\"" escaped)
-                +> printContentAfter tn
-            | None -> genConstString kind s
+//            | Some tn ->
+//                let escaped = Regex.Replace(s, "\"{1}", "\\\"")
+//
+//                printContentBefore tn
+//                +> !-(sprintf "\"%s\"" escaped)
+//                +> printContentAfter tn
+            | _ ->
+                genConstString kind s
+                |> genTriviaFor SynConst_String r
 
             <| ctx
     | SynConst.Char c ->
