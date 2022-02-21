@@ -274,10 +274,7 @@ Log.Logger <-
 
 [<Test>]
 let ``parse fixed in SingleExpr`` () =
-    formatSourceString
-        false
-        """let x = fixed expr"""
-        config
+    formatSourceString false """let x = fixed expr""" config
     |> prepend newline
     |> should
         equal
