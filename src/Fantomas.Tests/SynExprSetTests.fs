@@ -271,13 +271,3 @@ Log.Logger <-
         .WriteTo.Console()
         .CreateLogger ()
 """
-
-[<Test>]
-let ``parse fixed in SingleExpr`` () =
-    formatSourceString false """let x = fixed expr""" config
-    |> prepend newline
-    |> should
-        equal
-        """
-let x = fixed expr
-"""
