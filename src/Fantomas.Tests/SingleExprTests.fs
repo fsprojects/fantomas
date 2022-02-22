@@ -237,6 +237,7 @@ let a = fixed // comment
     |> should
         equal
         """
-let a = // comment
-    fixed b
+let a =
+    fixed // comment
+        b
 """

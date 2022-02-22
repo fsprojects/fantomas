@@ -198,6 +198,7 @@ type FsAstType =
     | SynExpr_FromParseError
     | SynExpr_DiscardAfterMissingQualificationAfterDot
     | SynExpr_Fixed
+    | SynExpr_Fixed_Fixed
     | SynExpr_InterpolatedString
     | SynExpr_IndexRange
     | SynExpr_IndexFromEnd

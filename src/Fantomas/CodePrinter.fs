@@ -1250,7 +1250,7 @@ and genExpr astContext synExpr ctx =
                 genTriviaFor SynExpr_YieldOrReturnFrom_ReturnBang returnBangKeyword !- "return! "
             | Do doKeyword -> genTriviaFor SynExpr_Do_Do doKeyword !- "do "
             | DoBang doBangKeyword -> genTriviaFor SynExpr_DoBang_DoBang doBangKeyword !- "do! "
-            | Fixed fixedKeyword -> genTriviaFor SynExpr_Fixed fixedKeyword !- "fixed "
+            | Fixed fixedKeyword -> genTriviaFor SynExpr_Fixed_Fixed fixedKeyword !- "fixed "
             +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e)
         | ConstExpr (c, r) -> genConst c r
         | NullExpr -> !- "null"
