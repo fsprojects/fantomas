@@ -2986,7 +2986,7 @@ and genMultilineRecordInstance
                         ctx
             | Some e ->
                 genTriviaFor SynExpr_Record_OpeningBrace openingBrace sepOpenS
-                +> genExpr astContext e
+                +> atCurrentColumnIndent (genExpr astContext e)
                 +> !- " with"
                 +> ifIndentLesserThan
                     3
