@@ -226,7 +226,9 @@ let x = fixed expr
 
 [<Test>]
 let ``handle comment after `fixed` in SingleExpr, 2112`` () =
-    formatSourceString false """
+    formatSourceString
+        false
+        """
 let a = fixed // comment
                  b
 """
