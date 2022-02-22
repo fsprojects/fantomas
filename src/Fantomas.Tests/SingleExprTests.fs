@@ -215,11 +215,26 @@ let ``comment after address of tokens`` () =
 """
 
 [<Test>]
-let ``parse fixed in SingleExpr`` () =
+let ``parse `fixed` in SingleExpr, 2112`` () =
     formatSourceString false """let x = fixed expr""" config
     |> prepend newline
     |> should
         equal
         """
 let x = fixed expr
+"""
+
+[<Test>]
+let ``handle comment after `fixed` in SingleExpr, 2112`` () =
+    formatSourceString false """
+let a = fixed // comment
+                 b
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let a = // comment
+    fixed b
 """
