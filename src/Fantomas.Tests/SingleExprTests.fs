@@ -11,7 +11,7 @@ let ``comment after do keyword, 1875`` () =
         """
 do  // Comment DO
         let x = 1
-        f (x)
+        f (x) 
 """
         config
     |> prepend newline
