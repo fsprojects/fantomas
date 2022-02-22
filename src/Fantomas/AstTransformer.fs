@@ -600,9 +600,11 @@ module private Ast =
                     mkNode SynExpr_DiscardAfterMissingQualificationAfterDot range
                     :: nodes
                     |> finalContinuation)
-            | SynExpr.Fixed (expr, range) ->
+            | SynExpr.Fixed (expr, StartRange 5 (fixedKeyword, range)) ->
                 visit expr (fun nodes ->
-                    mkNode SynExpr_Fixed range :: nodes
+                    [ yield mkNode SynExpr_Fixed range
+                      yield mkNode SynExpr_Fixed_Fixed fixedKeyword
+                      yield! nodes ]
                     |> finalContinuation)
             | SynExpr.InterpolatedString (parts, _, range) ->
                 mkNode SynExpr_InterpolatedString range
