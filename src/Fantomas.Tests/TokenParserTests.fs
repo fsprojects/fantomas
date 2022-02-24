@@ -28,9 +28,10 @@ let private isNewline item =
 //            (FSharp.Compiler.Text.Position.mkPos sl sc)
 //            (FSharp.Compiler.Text.Position.mkPos el ec)
 //
-let private getTriviaFromTokens =
-    CodeFormatterImpl.getSourceText
-    >> getTriviaFromTokens
+let private getTriviaFromTokens text =
+    CodeFormatterImpl.getSourceText text
+    |> fun source -> getTriviaFromTokens source []
+    |> fun { Trivia = trivia } -> trivia
 //
 //[<Test>]
 //let ``simple compiler directive should be found`` () =
@@ -545,16 +546,6 @@ type T =
     | _ -> Assert.Fail($"expected LineCommentOnSingleLine, got {triviaNodes}")
 
 [<Test>]
-let ``escaped slash in string`` () =
-    // "\\"
-    let source = "\"\\\\\\\\\""
-    let triviaNodes = getTriviaFromTokens source
-
-    match triviaNodes with
-    | [ { Item = StringContent "\"\\\\\\\\\"" } ] -> Assert.Pass()
-    | _ -> Assert.Fail($"expected StringContent, got {triviaNodes}")
-
-[<Test>]
 let ``quotes in triple quoted string`` () =
     let source = "\"\"\"...\"\"...\"\"\""
     let triviaNodes = getTriviaFromTokens source
@@ -636,43 +627,6 @@ let ``simple string should not be trivia`` () =
     match triviaNodes with
     | [] -> Assert.Pass()
     | _ -> Assert.Fail($"Expected no trivia, got {triviaNodes}")
-
-[<Test>]
-let ``escaped newline should be trivia`` () =
-    let source = "\"\\na\""
-
-    let triviaNodes = getTriviaFromTokens source
-
-    match triviaNodes with
-    | [ { Item = StringContent _ } ] -> Assert.Pass()
-    | _ -> Assert.Fail($"Expected no StringContent, got {triviaNodes}")
-
-[<Test>]
-let ``actual newline should be trivia`` () =
-    let source =
-        "\"
-\""
-
-    let triviaNodes = getTriviaFromTokens source
-
-    match triviaNodes with
-    | [ { Item = StringContent sc } ] -> "\"\n\"" == sc
-    | _ -> Assert.Fail($"Expected StringContent, got {triviaNodes}")
-
-[<Test>]
-let ``newline in string`` () =
-    let source =
-        "\"
-\""
-
-    let triviaNodes =
-        getTriviaFromTokens source
-        |> List.filter (fun { Item = item } ->
-            match item with
-            | StringContent "\"\n\"" -> true
-            | _ -> false)
-
-    List.length triviaNodes == 1
 
 [<Test>]
 let ``detect IdentOperatorAsWord`` () =

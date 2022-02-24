@@ -6,6 +6,7 @@ open FSharp.Compiler.Text
 open FSharp.Compiler.Parser
 open FSharp.Compiler.ParseHelpers
 open FSharp.Compiler.Syntax.PrettyNaming
+open Fantomas.SourceTextExtensions
 open Fantomas.TriviaTypes
 open Fantomas.FCS.Lex
 
@@ -1182,24 +1183,9 @@ type TriviaBuilderState =
         startRange: range *
         previousTokenWasStar: bool *
         collector: StringBuilder
-    | CaptureSingleQuoteString of
-        startRange: range *
-        lastTokenWasBackSlash: bool *
-        /// We don't know upfront if the string is really going to be a trivia, there is a slight change that we can actually trust the string value from the AST.
-        confirmedTrivia: bool *
-        collector: StringBuilder
-    // TODO: I'm not sure yet we need to capture here at all
-    | CaptureTripleQuoteString of
-        startRange: range *
-        /// We don't know upfront if the string is really going to be a trivia, there is a slight change that we can actually trust the string value from the AST.
-        // confirmedTrivia: bool *
-        collector: StringBuilder
-    | CaptureVerbatimString of
-        startRange: range *
-        lastTokenWasBackSlash: bool *
-        /// We don't know upfront if the string is really going to be a trivia, there is a slight change that we can actually trust the string value from the AST.
-        confirmedTrivia: bool *
-        collector: StringBuilder
+    | CaptureSingleQuoteString of lastTokenWasBackSlash: bool
+    | CaptureTripleQuoteString
+    | CaptureVerbatimString of lastTokenWasBackSlash: bool
 
 let private createLineComment afterSourceCode startRange range sb =
     let r = Range.unionRanges startRange range
@@ -1265,18 +1251,12 @@ let private (|NumberToken|_|) (token: token) =
     | IEEE64 _ -> Some()
     | _ -> None
 
-let getTriviaFromTokens (source: ISourceText) =
-    let getContentAt (range: range) : string =
-        let startLine = range.StartLine - 1
-        let line = source.GetLineString startLine
+type TriviaCollectionResult =
+    { AssignedContentItself: bool
+      Trivia: Trivia list
+      Nodes: TriviaNodeAssigner list }
 
-        if range.StartLine = range.EndLine then
-            let length = range.EndColumn - range.StartColumn
-            line.Substring(range.StartColumn, length)
-        else
-            // TODO: not sure if this is a safe assumption
-            "\n"
-
+let getTriviaFromTokens (source: ISourceText) (nodes: TriviaNodeAssigner list) : TriviaCollectionResult =
     let mutable tokenCollector = ListCollector<token * range>()
     let mutable currentLine = 0
 
@@ -1311,6 +1291,26 @@ let getTriviaFromTokens (source: ISourceText) =
     let mutable triviaCollection = ListCollector<Trivia>()
     let tokens = tokenCollector.Close()
 
+    let mutable assignedContentItself = false
+
+    let triviaFromSourceCaptured =
+        nodes
+        |> List.map (fun n ->
+            match n.Type with
+            | SynConst_String
+            | SynConst_Bytes
+            | SynInterpolatedStringPart_String ->
+                assignedContentItself <- true
+                let content = source.GetContentAt n.Range
+                n.ContentItself <- Some(TriviaContent.StringContent content)
+                n
+            | SynExpr_LibraryOnlyILAssembly ->
+                assignedContentItself <- true
+                let content = source.GetContentAt n.Range
+                n.ContentItself <- Some(TriviaContent.EmbeddedIL content)
+                n
+            | _ -> n)
+
     // tokens |> List.iter (printfn "%A")
 
     tokens
@@ -1335,7 +1335,7 @@ let getTriviaFromTokens (source: ISourceText) =
 
             | NotCollecting lastTokenAndRange, NonTripleSlashOpeningCommentToken ->
                 let afterSourceCode = (snd lastTokenAndRange).EndLine = range.EndLine
-                let sb = StringBuilder(getContentAt range)
+                let sb = StringBuilder(source.GetContentAt range)
                 CaptureLineComment(lastTokenAndRange, afterSourceCode, range, range, sb)
 
             | NotCollecting lastTokenAndRange, BlockCommentOpeningCommentToken opener ->
@@ -1343,12 +1343,12 @@ let getTriviaFromTokens (source: ISourceText) =
                 CaptureBlockComment(lastTokenAndRange, range, false, sb)
 
             | NotCollecting _, QuoteStringToken style ->
-                let quote = getContentAt range
+                let quote = source.GetContentAt range
 
                 match style with
-                | LexerStringStyle.SingleQuote -> CaptureSingleQuoteString(range, false, false, StringBuilder(quote))
-                | LexerStringStyle.TripleQuote -> CaptureTripleQuoteString(range, StringBuilder(quote))
-                | LexerStringStyle.Verbatim -> CaptureVerbatimString(range, false, false, StringBuilder(quote))
+                | LexerStringStyle.SingleQuote -> CaptureSingleQuoteString false
+                | LexerStringStyle.TripleQuote -> CaptureTripleQuoteString
+                | LexerStringStyle.Verbatim -> CaptureVerbatimString false
 
             | NotCollecting _, DecompiledOperatorToken ident ->
                 let trivia =
@@ -1359,7 +1359,7 @@ let getTriviaFromTokens (source: ISourceText) =
                 NotCollecting tokenAndRange
 
             | NotCollecting _, CharToken ->
-                let content = getContentAt range
+                let content = source.GetContentAt range
 
                 if not (digitOrLetterCharRegex.IsMatch(content)) then
                     let trivia =
@@ -1371,7 +1371,7 @@ let getTriviaFromTokens (source: ISourceText) =
                 NotCollecting tokenAndRange
 
             | NotCollecting _, NumberToken ->
-                let content = getContentAt range
+                let content = source.GetContentAt range
 
                 if not (onlyNumberRegex.IsMatch(content)) then
                     let trivia = { Item = Number content; Range = range }
@@ -1380,7 +1380,7 @@ let getTriviaFromTokens (source: ISourceText) =
                 NotCollecting tokenAndRange
 
             | NotCollecting _, IDENT _ ->
-                let content = getContentAt range
+                let content = source.GetContentAt range
 
                 if content.StartsWith("``") && content.EndsWith("``") then
                     let trivia =
@@ -1396,7 +1396,7 @@ let getTriviaFromTokens (source: ISourceText) =
 
             | CaptureLineComment (lastTokenAndRange, afterSourceCode, startRange, _, sb), CommentContentToken range ->
                 if startRange.StartLine = range.EndLine then
-                    let content = getContentAt range
+                    let content = source.GetContentAt range
                     CaptureLineComment(lastTokenAndRange, afterSourceCode, startRange, range, sb.Append(content))
                 else
                     let trivia = createLineComment afterSourceCode startRange range sb
@@ -1426,51 +1426,39 @@ let getTriviaFromTokens (source: ISourceText) =
                     CaptureBlockComment(lastTokenAndRange, startRange, true, sb.Append(")"))
 
             | CaptureBlockComment (lastTokenAndRange, startRange, previousTokenWasStar, sb), _ ->
-                let content = getContentAt range
+                let content = source.GetContentAt range
                 CaptureBlockComment(lastTokenAndRange, startRange, previousTokenWasStar, sb.Append(content))
 
             // backslash before non back slash
-            | CaptureSingleQuoteString (startRange, false, _, sb), LEX_FAILURE "Unexpected character '\\'" ->
-                let content = getContentAt range
-                CaptureSingleQuoteString(startRange, true, true, sb.Append(content))
+            | CaptureSingleQuoteString false, LEX_FAILURE "Unexpected character '\\'" -> CaptureSingleQuoteString true
 
             // backslash before quote
-            | CaptureSingleQuoteString (startRange, true, _, sb), QuoteStringToken _ ->
-                let content = getContentAt range
-                CaptureSingleQuoteString(startRange, false, true, sb.Append(content))
+            | CaptureSingleQuoteString true, QuoteStringToken _ -> CaptureSingleQuoteString false
 
             // End of single quote string
-            | CaptureSingleQuoteString (startRange, _, confirmedTrivia, sb),
-              QuoteStringToken LexerStringStyle.SingleQuote ->
-                if confirmedTrivia then
-                    triviaCollection.Add(createStringTrivia getContentAt startRange range sb)
+            | CaptureSingleQuoteString _, QuoteStringToken LexerStringStyle.SingleQuote -> NotCollecting tokenAndRange
 
-                NotCollecting tokenAndRange
-
-            // ignore the content of triple quoted string, they can be trusted
+            // End of triple quoted string
             | CaptureTripleQuoteString _, QuoteStringToken LexerStringStyle.TripleQuote -> NotCollecting tokenAndRange
 
+            // End of verbatim string
+            | CaptureVerbatimString _, QuoteStringToken LexerStringStyle.SingleQuote -> NotCollecting tokenAndRange
+
             // capture normal token as part of single quote string
-            | CaptureSingleQuoteString (startRange, _, confirmedTrivia, sb), _token ->
-                let content = getContentAt range
-
-                let isConfirmedTrivia =
-                    confirmedTrivia
-                    || startRange.StartLine < range.EndLine
-                    || content = "\\"
-
-                CaptureSingleQuoteString(startRange, false, isConfirmedTrivia, sb.Append(content))
+            | CaptureSingleQuoteString _, _token -> CaptureSingleQuoteString false
 
             // capture normal token as part of triple quote string
-            | CaptureTripleQuoteString (startRange, sb), _token ->
-                let content = getContentAt range
-                CaptureTripleQuoteString(startRange, sb.Append(content))
+            | CaptureTripleQuoteString, _token -> CaptureTripleQuoteString
+
+            | CaptureVerbatimString _, _token -> CaptureVerbatimString false
 
             | _ -> acc)
         (NotCollecting(OBLOCKBEGIN, Range.Zero))
     |> ignore<TriviaBuilderState>
 
-    triviaCollection.Close()
+    { AssignedContentItself = assignedContentItself
+      Trivia = triviaCollection.Close()
+      Nodes = triviaFromSourceCaptured }
 
 //    let fromTokens = getTriviaFromTokensThemSelves mkRange None None tokens []
 //

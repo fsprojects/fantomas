@@ -9,6 +9,7 @@
   <ItemGroup>
     <None Include="paket.references" />
     <Compile Include="AssemblyInfo.fs" />
+    <Compile Include="SourceTextExtensions.fs" />
     <Compile Include="RangeHelpers.fs" />
     <Compile Include="TriviaTypes.fs" />
     <Compile Include="Dbg.fs" />

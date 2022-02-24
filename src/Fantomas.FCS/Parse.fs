@@ -397,4 +397,4 @@ let parseFile (isSignature: bool) (sourceText: ISourceText) =
 
     // TODO: think about what to return
     // errHandler.CollectedDiagnostics, parseResult, errHandler.AnyErrors
-    parseResult
+    parseResult, errorLogger.Diagnostics

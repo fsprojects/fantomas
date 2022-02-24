@@ -1676,6 +1676,7 @@ and genExpr astContext synExpr ctx =
                 +> sepCloseTFor rpr
 
         // This supposes to be an infix function, but for some reason it isn't picked up by InfixApps
+        // TODO: improve when https://github.com/dotnet/fsharp/issues/12755 is implemented.
         | App (Var "?", e :: es) ->
             match es with
             | SynExpr.Const (SynConst.String (text = text), _) :: rest ->
@@ -1687,7 +1688,7 @@ and genExpr astContext synExpr ctx =
 
                 genExpr astContext e -- "?"
                 +> genText
-                +> sepSpace
+                +> onlyIfNot rest.IsEmpty sepSpace
                 +> col sepSpace rest (genExpr astContext)
             | _ ->
                 genExpr astContext e -- "?"
@@ -5777,7 +5778,7 @@ and genConstBytes (bytes: byte []) (r: Range) =
                 | _ -> None)
 
         match trivia with
-        | Some t -> (!-t +> !- "B") ctx
+        | Some t -> !- t ctx
         | None ->
             let content =
                 System.String(Array.map (fun (byte: byte) -> Convert.ToChar(byte)) bytes)

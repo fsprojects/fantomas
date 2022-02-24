@@ -37,9 +37,7 @@ open Fantomas.CodePrinter
 //        |> String.concat "\n"
 
 
-let getSourceText (source:string): ISourceText =
-   source.TrimEnd()
-   |> SourceText.ofString
+let getSourceText (source: string) : ISourceText = source.TrimEnd() |> SourceText.ofString
 
 let parse (isSignature: bool) (source: ISourceText) =
     let allDefineOptions, defineHashTokens = [ [] ], [] // TokenParser.getDefines source
@@ -47,20 +45,17 @@ let parse (isSignature: bool) (source: ISourceText) =
     allDefineOptions
     |> List.map (fun conditionalCompilationDefines ->
         async {
-            let untypedRes = Fantomas.FCS.Parse.parseFile isSignature source // checker.ParseFile(fileName, sourceText, parsingOptionsWithDefines)
+            let untypedTree, diagnostics = Fantomas.FCS.Parse.parseFile isSignature source // checker.ParseFile(fileName, sourceText, parsingOptionsWithDefines)
 
             //            if untypedRes.ParseHadErrors then
-//                let errors =
-//                    untypedRes.Diagnostics
-//                    |> Array.filter (fun e -> e.Severity = FSharpDiagnosticSeverity.Error)
-//
-//                if not <| Array.isEmpty errors then
-//                    raise
-//                    <| FormatException(
-//                        sprintf "Parsing failed with errors: %A\nAnd options: %A" errors parsingOptionsWithDefines
-//                    )
+            let errors =
+                diagnostics
+                |> List.filter (fun (_, s) -> s = FSharpDiagnosticSeverity.Error)
 
-            return (untypedRes, conditionalCompilationDefines, defineHashTokens)
+            if not errors.IsEmpty then
+                raise (FormatException $"Parsing failed with errors: %A{diagnostics}\nAnd options: %A{[]}")
+
+            return (untypedTree, conditionalCompilationDefines, defineHashTokens)
         })
     |> Async.Parallel
 
@@ -322,11 +317,7 @@ let formatWith ast defines hashTokens (source: ISourceText option) config =
 
     formattedSourceCode
 
-let format
-    (config: FormatConfig)
-    (isSignature: bool)
-    (source: ISourceText)
-    : Async<string> =
+let format (config: FormatConfig) (isSignature: bool) (source: ISourceText) : Async<string> =
     async {
         let! asts = parse isSignature source
 
@@ -377,8 +368,7 @@ Please raise an issue at https://fsprojects.github.io/fantomas-tools/#/fantomas/
 let formatDocument config isSignature source = format config isSignature source
 
 /// Format an abstract syntax tree using given config
-let formatAST ast defines source config =
-    formatWith ast defines [] source config
+let formatAST ast defines source config = formatWith ast defines [] source config
 
 /// Make a range from (startLine, startCol) to (endLine, endCol) to select some text
 let makeRange fileName startLine startCol endLine endCol =

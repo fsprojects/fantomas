@@ -223,12 +223,12 @@ let private addTriviaToTriviaNode (startOfSourceCode: int) (triviaNodes: TriviaN
             findNodeBeforeLineFromStart triviaNodes range.StartLine
             |> updateTriviaNode (fun tn -> tn.ContentAfter.Add(Newline)) triviaNodes
 
-//    | { Item = Keyword ({ TokenInfo = { TokenName = tn } } as kw)
+    //    | { Item = Keyword ({ TokenInfo = { TokenName = tn } } as kw)
 //        Range = range } when (tn = "QMARK") ->
 //        findSynConstStringNodeAfter triviaNodes range
 //        |> updateTriviaNode (fun tn -> tn.ContentBefore.Add(Keyword(kw))) triviaNodes
 
-//    | { Item = Keyword keyword
+    //    | { Item = Keyword keyword
 //        Range = range } ->
 //        findNodeOnLineAndColumn triviaNodes range.StartLine range.StartColumn
 //        |> fun nodeOnLineAndColumn ->
@@ -311,6 +311,19 @@ let private triviaNodeIsNotEmpty (triviaNode: TriviaNodeAssigner) =
     || not (Seq.isEmpty triviaNode.ContentBefore)
     || Option.isSome triviaNode.ContentItself
 
+let private transformNonEmptyNodes (nodes: TriviaNodeAssigner list) : TriviaNode list =
+    nodes
+    |> List.choose (fun tn ->
+        if triviaNodeIsNotEmpty tn then
+            { Type = tn.Type
+              Range = tn.Range
+              ContentBefore = Seq.toList tn.ContentBefore
+              ContentItself = tn.ContentItself
+              ContentAfter = Seq.toList tn.ContentAfter }
+            |> Some
+        else
+            None)
+
 (*
     1. Collect TriviaNode from tokens and AST
     2. Collect TriviaContent from tokens
@@ -328,27 +341,24 @@ let collectTrivia (source: ISourceText) (ast: ParsedInput) =
         triviaNodesFromAST
         |> List.sortBy (fun n -> n.Range.Start.Line, n.Range.Start.Column)
 
-    let trivias = TokenParser.getTriviaFromTokens source
+    // At this point TriviaContent.StringContent has been assigned to the correct string nodes
+    let triviaCollectionResult = TokenParser.getTriviaFromTokens source triviaNodes
 
     let startOfSourceCode = 1
-//        match tokens with
+    //        match tokens with
 //        | h :: _ -> h.LineNumber // Keep track of comments or hash defines before the first AST node
 //        | _ -> 1
 
-    match trivias with
-    | [] -> []
+    match triviaCollectionResult.Trivia with
+    | [] ->
+        if not triviaCollectionResult.AssignedContentItself then
+            []
+        else
+            transformNonEmptyNodes triviaCollectionResult.Nodes
+
     | _ ->
         match ast, triviaNodes with
-        | EmptyFile _, h :: _ -> addAllTriviaAsContentAfter trivias h
+        | EmptyFile _, h :: _ -> addAllTriviaAsContentAfter triviaCollectionResult.Trivia h
         | _ ->
-            List.fold (addTriviaToTriviaNode startOfSourceCode) triviaNodes trivias
-            |> List.choose (fun tn ->
-                if triviaNodeIsNotEmpty tn then
-                    { Type = tn.Type
-                      Range = tn.Range
-                      ContentBefore = Seq.toList tn.ContentBefore
-                      ContentItself = tn.ContentItself
-                      ContentAfter = Seq.toList tn.ContentAfter }
-                    |> Some
-                else
-                    None)
+            List.fold (addTriviaToTriviaNode startOfSourceCode) triviaNodes triviaCollectionResult.Trivia
+            |> transformNonEmptyNodes
