@@ -937,6 +937,27 @@ type substring =
 """
 
 [<Test>]
+let ``single block comment in namespace, 1951`` () =
+    formatSourceString
+        false
+        """
+namespace ASTViewer.Server
+(* open Microsoft.Azure.Functions.Worker.Http
+open Microsoft.Azure.Functions.Worker
+open Microsoft.Extensions.Logging *)
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+namespace ASTViewer.Server
+(* open Microsoft.Azure.Functions.Worker.Http
+open Microsoft.Azure.Functions.Worker
+open Microsoft.Extensions.Logging *)
+"""
+
+[<Test>]
 let ``line comment after "then"`` () =
     formatSourceString
         false

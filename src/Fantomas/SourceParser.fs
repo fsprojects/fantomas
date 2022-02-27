@@ -568,6 +568,7 @@ type ExprKind =
     | ReturnFrom of keyword: range
     | Do of keyword: range
     | DoBang of Keyword: range
+    | Fixed of keyword: range
 
 let (|SingleExpr|_|) =
     function
@@ -584,6 +585,7 @@ let (|SingleExpr|_|) =
         Some(ReturnFrom returnBangKeyword, e)
     | SynExpr.Do (e, StartRange 2 (doKeyword, _range)) -> Some(Do doKeyword, e)
     | SynExpr.DoBang (e, StartRange 3 (doBangKeyword, _range)) -> Some(DoBang doBangKeyword, e)
+    | SynExpr.Fixed (e, StartRange 5 (fixedKeyword, _range)) -> Some(Fixed fixedKeyword, e)
     | _ -> None
 
 type TypedExprKind =
@@ -978,9 +980,7 @@ let rec (|CompExprBody|_|) expr =
     match expr with
     | SynExpr.LetOrUse (_, _, _, CompExprBody _, _)
     | SynExpr.LetOrUseBang _
-    | SynExpr.Sequential (_, _, _, SynExpr.YieldOrReturn _, _)
-    | SynExpr.Sequential (_, _, _, SynExpr.LetOrUse _, _)
-    | SynExpr.Sequential (_, _, _, SynExpr.LetOrUseBang _, _) -> Some(collectComputationExpressionStatements expr id)
+    | SynExpr.Sequential _ -> Some(collectComputationExpressionStatements expr id)
     | _ -> None
 
 let (|ForEach|_|) =

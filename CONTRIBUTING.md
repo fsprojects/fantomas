@@ -149,25 +149,41 @@ That way, we can ensure the issue stays fixed after closing it.
 
 ## Guidelines
 
-- Please always rebase your code on the targeted branch.
-  To keep your fork up to date, run this command:
-  > git remote add upstream https://github.com/fsprojects/fantomas.git
+### Target branch
 
-  Updating your fork:
+Please always rebase your code on the targeted branch.
+To keep your fork up to date, run this command:
+> git remote add upstream https://github.com/fsprojects/fantomas.git
 
-  > git checkout master && git fetch upstream && git rebase upstream/master && git push
+Updating your fork:
+
+> git checkout master && git fetch upstream && git rebase upstream/master && git push
+
+### Unit test
 
 - Unit test names should start with a lowercase letter.
-- Verify if the change you are making should also apply to signature files (`*.fsi`).
-- Check if you need additional tests to cope with a different combination of settings.
-- Check if you need additional tests to cope with a different combination of defines (`#if DEBUG`, ...).
-- Write/update documentation when necessary.
 - When creating a test that is linked to a GitHub issue, add the number at the back with a comma, as in the following:
 
 ```fsharp
 [<Test>]
 let ``preserve compile directive between piped functions, 512`` () = ...
 ```
+
+### Verify signature files
+
+Verify if the change you are making should also apply to signature files (`*.fsi`).
+
+### Verify slight variations
+
+- Check if you need additional tests to cope with a different combination of settings.
+- Check if you need additional tests to cope with a different combination of defines (`#if DEBUG`, ...).
+
+### Documentation
+
+Write/update documentation when necessary.
+
+### Pull request title
+
 - Give your PR a meaningful title. Make sure it covers the change you are introducing in Fantomas.
 
     For example:
@@ -178,10 +194,41 @@ let ``preserve compile directive between piped functions, 512`` () = ...
 - Not mandatory, but when fixing a bug consider using `fix-<issue-number>` as the git branch name.<br />
 For example, `git checkout -b fix-1404`.
 
+### Format your changes
+
 - Code should be formatted to our standard style, using either `dotnet fake run build.fsx -t Format` which works on all files, or
   `dotnet fake run build.fsx -t FormatChanged` to just change the files in git.
+  - If you forget, there's a git `pre-push` script that will run this for you, make sure to run `dotnet fake build -t EnsureRepoConfig` to set that hook up.
 
-- Finally, make sure to run `dotnet fake build`. Among other things, this will check the format of the code and will tell you, if
+### Changelog
+
+- Add an entry to the `CHANGELOG.md` in the `Unreleased` section based on what kind of change your change is. Follow the guidelines at [KeepAChangelog](https://keepachangelog.com/en/1.0.0/#how) to make your message relevant to future readers.
+  - If you're not sure what Changelog section your change belongs to, start with `Changed` and ask for clarification in your Pull Request
+  - If there's not an `Unreleased` section in the `CHANGELOG.md`, create one at the top above the most recent version like so:
+  
+    ```markdown
+    ## [Unreleased]
+
+    ### Changed
+    * Your new feature goes here
+
+    ## [4.7.4] - 2022-02-10
+
+    ### Added
+    * Awesome feature number one
+    ```
+
+  - When fixing a `bug (soundness)`, add a line in the following format to `Fixed`:
+    `* <Original GitHub issue title> [#issue-number](https://github.com/fsprojects/fantomas/issues/issue-number)`.
+    For example, `* Spaces are lost in multi range expression. [#2071](https://github.com/fsprojects/fantomas/issues/2071)`.
+    Do the same, if you fixed a `bug (stylistic)` that is not related to any style guide.
+  - When fixing a `bug (stylistic)`, add a line in the following format to `Changed`
+    `Update style of xyz. [#issue-number](https://github.com/fsprojects/fantomas/issues/issue-number)`
+  - For example, `* Update style of lambda argument. [#1871](https://github.com/fsprojects/fantomas/issues/1871)`.
+
+### Run a local build
+
+Finally, make sure to run `dotnet fake build`. Among other things, this will check the format of the code and will tell you, if
  your changes caused any tests to fail.
 
 ### Small steps
@@ -267,7 +314,7 @@ When faced with this issue, ask yourself the following questions:
 - Is the trivia being printed in `CodePrinter.fs` when the trivia node is processed?
 
 Without any debugging, these questions can already point you in the right direction to solve the problem.
-You might be surprised how little code change was necessary to resolve the bug ;) See, for example, #1130, which solved a problem like this in only five lines.
+You might be surprised how little code change was necessary to resolve the bug ;) See, for example, [#1130](https://github.com/fsprojects/fantomas/pull/1130), which solved a problem like this in only five lines.
 
 ### Repeating newline bug
 

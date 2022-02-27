@@ -1250,6 +1250,7 @@ and genExpr astContext synExpr ctx =
                 genTriviaFor SynExpr_YieldOrReturnFrom_ReturnBang returnBangKeyword !- "return! "
             | Do doKeyword -> genTriviaFor SynExpr_Do_Do doKeyword !- "do "
             | DoBang doBangKeyword -> genTriviaFor SynExpr_DoBang_DoBang doBangKeyword !- "do! "
+            | Fixed fixedKeyword -> genTriviaFor SynExpr_Fixed_Fixed fixedKeyword !- "fixed "
             +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e)
         | ConstExpr (c, r) -> genConst c r
         | NullExpr -> !- "null"
@@ -1633,7 +1634,7 @@ and genExpr astContext synExpr ctx =
         | Paren (lpr, e, rpr, _pr) ->
             match e with
             | LetOrUses _
-            | Sequential (_, LetOrUses _, _) ->
+            | Sequential _ ->
                 sepOpenTFor lpr
                 +> atCurrentColumn (genExpr astContext e)
                 +> sepCloseTFor rpr
@@ -2832,9 +2833,7 @@ and genExprInMultilineInfixExpr astContext e =
     | _ -> genExpr astContext e
 
 and genLidsWithDots (lids: (string * range) list) =
-    optSingle (fun (_, r) -> enterNodeFor Ident_ r) (List.tryHead lids)
-    +> !- "."
-    +> col !- "." lids (fun (s, _) -> !-s)
+    col sepNone lids (fun (s, r) -> genTriviaFor Ident_ r !- $".{s}")
 
 and genLidsWithDotsAndNewlines (lids: (string * range) list) =
     col sepNln lids (fun (s, r) -> genTriviaFor Ident_ r !- $".{s}")
@@ -2988,7 +2987,7 @@ and genMultilineRecordInstance
                         ctx
             | Some e ->
                 genTriviaFor SynExpr_Record_OpeningBrace openingBrace sepOpenS
-                +> genExpr astContext e
+                +> atCurrentColumnIndent (genExpr astContext e)
                 +> !- " with"
                 +> ifIndentLesserThan
                     3
@@ -3099,7 +3098,7 @@ and genMultilineAnonRecordAlignBrackets (isStruct: bool) fields copyInfo astCont
     let fieldsExpr = col sepSemiNln fields (genAnonRecordFieldName astContext)
 
     let copyExpr fieldsExpr e =
-        genExpr astContext e
+        atCurrentColumnIndent (genExpr astContext e)
         +> (!- " with"
             +> indent
             +> whenShortIndent indent

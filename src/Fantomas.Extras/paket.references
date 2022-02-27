@@ -1,4 +1,6 @@
 FSharp.Core
+Ionide.KeepAChangelog.Tasks
+Dotnet.ReproducibleBuilds
 editorconfig
 MAB.DotIgnore
 Microsoft.SourceLink.GitHub

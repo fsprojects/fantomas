@@ -10,51 +10,12 @@ open System
 open System.IO
 open Fake.DotNet
 
-// Git configuration (used for publishing documentation in gh-pages branch)
-// The profile where the project is posted
-let gitHome = "https://github.com/fsprojects"
-// The name of the project on GitHub
-let gitName = "fantomas"
-
-// The name of the project
-// (used by attributes in AssemblyInfo, name of a NuGet package and directory in 'src')
-let project = "Fantomas"
-
-let projectUrl = sprintf "%s/%s" gitHome gitName
-
-// Short summary of the project
-// (used as description in AssemblyInfo and as a short summary for NuGet package)
-let summary = "Source code formatter for F#"
-
-let copyright = sprintf "Copyright © %d" DateTime.UtcNow.Year
-
 let configuration = DotNet.BuildConfiguration.Release
 
-// Longer description of the project
-// (used as a description for NuGet package; line breaks are automatically cleaned up)
-let description =
-    """This library aims at formatting F# source files based on a given configuration.
-Fantomas will ensure correct indentation and consistent spacing between elements in the source files.
-Some common use cases include
-(1) Reformatting a code base to conform a universal page width
-(2) Converting legacy code from verbose syntax to light syntax
-(3) Formatting auto-generated F# signatures."""
-
-// List of author names (for NuGet package)
-let authors =
-    [ "Florian Verdonck"
-      "Jindřich Ivánek" ]
-
-let owner = "Anh-Dung Phan"
-// Tags for your project (for NuGet package)
-let tags = "F# fsharp formatting beautifier indentation indenter"
-
-let fantomasClientVersion = "0.5.1"
-
 // (<solutionFile>.sln is built during the building process)
-let solutionFile = "fantomas"
+let solutionFile = "fantomas.sln"
 //// Environment.CurrentDirectory <- __SOURCE_DIRECTORY__
-let release = ReleaseNotes.parse (File.ReadAllLines "RELEASE_NOTES.md")
+
 
 // Files to format
 let sourceFiles =
@@ -170,32 +131,10 @@ Target.create "Clean" (fun _ ->
       "src/Fantomas.Client/obj" ]
     |> List.iter Shell.cleanDir)
 
-Target.create "ProjectVersion" (fun _ ->
-    let version = release.NugetVersion
-
-    let setProjectVersion project =
-        let file = sprintf "src/%s/%s.fsproj" project project
-
-        Xml.poke
-            file
-            "Project/PropertyGroup/Version/text()"
-            (if project = "Fantomas.Client" then
-                 fantomasClientVersion
-             else
-                 version)
-
-    setProjectVersion "Fantomas"
-    setProjectVersion "Fantomas.CoreGlobalTool"
-    setProjectVersion "Fantomas.CoreGlobalTool.Tests"
-    setProjectVersion "Fantomas.Tests"
-    setProjectVersion "Fantomas.Extras"
-    setProjectVersion "Fantomas.Client")
 
 // --------------------------------------------------------------------------------------
 // Build library & test project
-Target.create "Build" (fun _ ->
-    let sln = sprintf "%s.sln" solutionFile
-    DotNet.build (fun p -> { p with Configuration = configuration }) sln)
+Target.create "Build" (fun _ -> DotNet.build (fun p -> { p with Configuration = configuration }) solutionFile)
 
 Target.create "UnitTests" (fun _ ->
     DotNet.test
@@ -226,45 +165,13 @@ Target.create "UnitTests" (fun _ ->
 // Build a NuGet package
 
 Target.create "Pack" (fun _ ->
-    let nugetVersion = release.NugetVersion
-
-    let pack project =
-        let projectPath = sprintf "src/%s/%s.fsproj" project project
-
-        let args =
-            let defaultArgs = MSBuild.CliArguments.Create()
-
-            { defaultArgs with
-                Properties =
-                    [ "Title", project
-                      "PackageVersion",
-                      (if project = "Fantomas.Client" then
-                           fantomasClientVersion
-                       else
-                           nugetVersion)
-                      "Authors", (String.Join(" ", authors))
-                      "Owners", owner
-                      "PackageRequireLicenseAcceptance", "false"
-                      "Description", description
-                      "Summary", summary
-                      "PackageReleaseNotes", ((String.toLines release.Notes).Replace(",", ""))
-                      "Copyright", copyright
-                      "PackageTags", tags
-                      "PackageProjectUrl", projectUrl ] }
-
-        DotNet.pack
-            (fun p ->
-                { p with
-                    NoRestore = true
-                    Configuration = configuration
-                    OutputPath = Some "./bin"
-                    MSBuildParams = args })
-            projectPath
-
-    pack "Fantomas"
-    pack "Fantomas.Extras"
-    pack "Fantomas.CoreGlobalTool"
-    pack "Fantomas.Client")
+    DotNet.pack
+        (fun p ->
+            { p with
+                NoRestore = true
+                Configuration = configuration
+                OutputPath = Some "./bin" })
+        solutionFile)
 
 // This takes the list of external projects defined above, does a git checkout of the specified repo and tag,
 // tries to build the project, then reformats with fantomas and tries to build the project again. If this fails
@@ -382,7 +289,7 @@ Target.create "Benchmark" (fun _ ->
          </> "Fantomas.Benchmarks"
          </> "bin"
          </> "Release"
-         </> "net5.0"
+         </> "net6.0"
          </> "Fantomas.Benchmarks.dll")
         ""
     |> ignore
@@ -482,8 +389,7 @@ Target.create "CheckFormat" (fun _ ->
 Target.create "EnsureRepoConfig" (fun _ ->
     // Configure custom git hooks
     // * Currently only used to ensure that code is formatted before pushing
-    Fake.Tools.Git.CommandHelper.gitCommand "" "config core.hooksPath .githooks"
-)
+    Fake.Tools.Git.CommandHelper.gitCommand "" "config core.hooksPath .githooks")
 
 // --------------------------------------------------------------------------------------
 // Run all targets by default. Invoke 'build <Target>' to override
@@ -491,7 +397,6 @@ Target.create "EnsureRepoConfig" (fun _ ->
 Target.create "All" ignore
 
 "Clean"
-==> "ProjectVersion"
 ==> "CheckFormat"
 ==> "Build"
 ==> "UnitTests"
