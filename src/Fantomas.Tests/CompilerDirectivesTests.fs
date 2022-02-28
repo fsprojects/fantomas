@@ -2421,6 +2421,33 @@ let ``hash if and hash else should be one trivia`` () =
 """
 
 [<Test>]
+let ``hash nested`` () =
+    formatSourceStringWithDefines
+        []
+        """
+#if FOO
+    \"\"\"
+    #if BAR
+                printfn "FOO"
+    #endif
+    \"\"\"
+#else
+                ()
+#endif
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+#if FOO
+
+#else
+()
+#endif
+"""
+
+[<Test>]
 let ``empty hash directive block should not make expression multiline`` () =
     formatSourceString
         false

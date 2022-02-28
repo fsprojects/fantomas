@@ -28,7 +28,7 @@ let lex
 
     let langVersion = Features.LanguageVersion.Default
     let reportLibraryOnlyFeatures = false
-    let canSkipTrivia = false //(flags &&& FSharpLexerFlags.SkipTrivia) = FSharpLexerFlags.SkipTrivia
+    let canSkipTrivia = true //(flags &&& FSharpLexerFlags.SkipTrivia) = FSharpLexerFlags.SkipTrivia
     let isLightSyntaxOn = true // (flags &&& FSharpLexerFlags.LightSyntaxOn) = FSharpLexerFlags.LightSyntaxOn
     let isCompiling = false // (flags &&& FSharpLexerFlags.Compiling) = FSharpLexerFlags.Compiling
     let isCompilingFSharpCore = false // (flags &&& FSharpLexerFlags.CompilingFSharpCore) = FSharpLexerFlags.CompilingFSharpCore

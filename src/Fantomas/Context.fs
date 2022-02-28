@@ -196,15 +196,10 @@ type internal Context =
           TriviaMainNodes = Map.empty
           FileName = String.Empty }
 
-    static member Create config defines (hashTokens: obj list) (source: ISourceText option) (ast: ParsedInput) =
-        let tokens = [] // TokenParser.tokenize defines hashTokens content
-
+    static member Create config (source: ISourceText option) (defineCombination: DefineCombination) (ast: ParsedInput) =
         let trivia =
             match source with
-            | Some source when not config.StrictMode ->
-                //                let mkRange (startLine, startCol) (endLine, endCol) =
-//                    mkRange fileName (mkPos startLine startCol) (mkPos endLine endCol)
-                Trivia.collectTrivia source ast
+            | Some source when not config.StrictMode -> Trivia.collectTrivia source defineCombination ast
             | _ -> []
 
         let triviaByNodes =

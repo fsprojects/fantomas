@@ -2,6 +2,7 @@ module Fantomas.Tests.TestHelper
 
 open System
 open System.IO
+open Fantomas.TriviaTypes
 open NUnit.Framework
 open FsCheck
 open FsUnit
@@ -61,19 +62,22 @@ let formatSourceString isFsiFile (s: string) config =
 let formatSourceStringWithDefines defines (s: string) config =
     // On Linux/Mac this will exercise different line endings
     let s = s.Replace("\r\n", Environment.NewLine)
-    let fileName = "/src.fsx"
 
     let result =
         async {
             let source = CodeFormatterImpl.getSourceText s
             let! asts = CodeFormatterImpl.parse false source
 
-            let ast, hashTokens =
-                Array.filter (fun (_, d, _) -> d = defines) asts
+            let ast, defineCombination =
+                Array.filter
+                    (fun (_, d) ->
+                        match d with
+                        | DefineCombination.Defines d -> d = defines
+                        | _ -> false)
+                    asts
                 |> Array.head
-                |> fun (ast, _, hashTokens) -> ast, hashTokens
 
-            return CodeFormatterImpl.formatWith ast defines hashTokens (Some source) config
+            return CodeFormatterImpl.formatWith (Some source) defineCombination ast config
         }
         |> Async.RunSynchronously
 
@@ -110,11 +114,6 @@ let isValidFSharpCode isFsiFile s =
     CodeFormatter.IsValidFSharpCodeAsync(isFsiFile, s)
     |> Async.RunSynchronously
 
-let parse isFsiFile s =
-    CodeFormatterImpl.getSourceText s
-    |> CodeFormatterImpl.parse isFsiFile
-    |> Async.RunSynchronously
-
 let formatAST a s c =
     CodeFormatter.FormatASTAsync(a, [], s, c)
     |> Async.RunSynchronously
@@ -129,46 +128,7 @@ let equal x =
 
 let inline prepend s content = s + content
 let inline append s content = content + s
-
-let printAST isFsiFile sourceCode =
-    let ast = parse isFsiFile sourceCode
-    printfn "AST:"
-    printfn "%A" ast
-
 let zero = range.Zero
-
-type Input = Input of string
-
-let toSynExprs (Input s) =
-    let ast =
-        try
-            parse false s
-            |> Array.map (fun (ast, _, _) -> ast)
-            |> Some
-        with
-        | _ -> None
-
-    match ast with
-    | Some [| (ParsedInput.ImplFile (ParsedImplFileInput ("/tmp.fsx",
-                                                          _,
-                                                          QualifiedNameOfFile _,
-                                                          [],
-                                                          [],
-                                                          [ SynModuleOrNamespace (_,
-                                                                                  false,
-                                                                                  SynModuleOrNamespaceKind.AnonModule,
-                                                                                  exprs,
-                                                                                  _,
-                                                                                  _,
-                                                                                  _,
-                                                                                  _) ],
-                                                          _))) |] ->
-        List.choose
-            (function
-            | SynModuleDecl.DoExpr (_, expr, _) -> Some expr
-            | _ -> None)
-            exprs
-    | _ -> []
 
 let tryFormatAST ast sourceCode config =
     try
@@ -177,35 +137,6 @@ let tryFormatAST ast sourceCode config =
     | _ -> ""
 
 let formatConfig = { FormatConfig.Default with StrictMode = true }
-
-// Regenerate inputs from expression ASTs
-// Might suffer from bugs in formatting phase
-let fromSynExpr expr =
-    let ast =
-        let ident = Ident("Tmp", zero)
-
-        ParsedInput.ImplFile(
-            ParsedImplFileInput(
-                "/tmp.fsx",
-                true,
-                QualifiedNameOfFile ident,
-                [],
-                [],
-                [ SynModuleOrNamespace(
-                      [ ident ],
-                      false,
-                      SynModuleOrNamespaceKind.AnonModule,
-                      [ SynModuleDecl.DoExpr(DebugPointAtBinding.NoneAtDo, expr, zero) ],
-                      PreXmlDoc.Empty,
-                      [],
-                      None,
-                      zero
-                  ) ],
-                (true, true)
-            )
-        )
-
-    Input(tryFormatAST ast None formatConfig)
 
 let shouldNotChangeAfterFormat source =
     formatSourceString false source config

@@ -1,5 +1,5 @@
 [<RequireQualifiedAccess>]
-module Fantomas.CodeFormatterImpl
+module internal Fantomas.CodeFormatterImpl
 
 open System
 open System.Diagnostics
@@ -15,6 +15,7 @@ open Fantomas
 open Fantomas.FormatConfig
 open Fantomas.SourceOrigin
 open Fantomas.SourceParser
+open Fantomas.TriviaTypes
 open Fantomas.CodePrinter
 
 // Share an F# checker instance across formatting calls
@@ -39,15 +40,22 @@ open Fantomas.CodePrinter
 
 let getSourceText (source: string) : ISourceText = source.TrimEnd() |> SourceText.ofString
 
-let parse (isSignature: bool) (source: ISourceText) =
-    let allDefineOptions, defineHashTokens = [ [] ], [] // TokenParser.getDefines source
+let parse (isSignature: bool) (source: ISourceText) : Async<(ParsedInput * DefineCombination) []> =
+    let defineCombinations: DefineCombination list =
+        TokenParser.getDefineCombination source
+    //let allDefineOptions, defineHashTokens = TokenParser.getDefinesFromTokens source
 
-    allDefineOptions
-    |> List.map (fun conditionalCompilationDefines ->
+    defineCombinations
+    |> List.map (fun defineCombination ->
         async {
-            let untypedTree, diagnostics = Fantomas.FCS.Parse.parseFile isSignature source // checker.ParseFile(fileName, sourceText, parsingOptionsWithDefines)
+            let defines =
+                match defineCombination with
+                | DefineCombination.NoDefines _ -> []
+                | DefineCombination.Defines defines -> defines
 
-            //            if untypedRes.ParseHadErrors then
+            let untypedTree, diagnostics =
+                Fantomas.FCS.Parse.parseFile isSignature source defines
+
             let errors =
                 diagnostics
                 |> List.filter (fun (_, s) -> s = FSharpDiagnosticSeverity.Error)
@@ -55,7 +63,7 @@ let parse (isSignature: bool) (source: ISourceText) =
             if not errors.IsEmpty then
                 raise (FormatException $"Parsing failed with errors: %A{diagnostics}\nAnd options: %A{[]}")
 
-            return (untypedTree, conditionalCompilationDefines, defineHashTokens)
+            return (untypedTree, defineCombination) // , defineHashTokens)
         })
     |> Async.Parallel
 
@@ -307,9 +315,9 @@ let isValidFSharpCode (isSignature: bool) (source: ISourceText) : Async<bool> =
         | _ -> return false
     }
 
-let formatWith ast defines hashTokens (source: ISourceText option) config =
+let formatWith (source: ISourceText option) (defineCombination: DefineCombination) ast config =
     let formattedSourceCode =
-        let context = Context.Context.Create config defines hashTokens source ast
+        let context = Context.Context.Create config source defineCombination ast
 
         context
         |> genParsedInput ASTContext.Default ast
@@ -323,10 +331,10 @@ let format (config: FormatConfig) (isSignature: bool) (source: ISourceText) : As
 
         let! results =
             asts
-            |> Array.map (fun (ast', defines, hashTokens) ->
+            |> Array.map (fun (ast', defineCombination) ->
                 async {
-                    let formattedCode = formatWith ast' defines hashTokens (Some source) config
-                    return (defines, formattedCode)
+                    let formattedCode = formatWith (Some source) defineCombination ast' config
+                    return (defineCombination, formattedCode)
                 })
             |> Async.Parallel
             |> Async.map Array.toList
@@ -336,7 +344,13 @@ let format (config: FormatConfig) (isSignature: bool) (source: ISourceText) : As
             | [] -> failwith "not possible"
             | [ (_, x) ] -> x
             | all ->
-                let allInFragments = String.splitInFragments config.EndOfLine.NewLineString all
+                let allInFragments =
+                    all
+                    |> List.map (fun (dc, code) ->
+                        match dc with
+                        | DefineCombination.NoDefines _ -> ([], code)
+                        | DefineCombination.Defines defines -> (defines, code))
+                    |> String.splitInFragments config.EndOfLine.NewLineString
 
                 let allHaveSameFragmentCount =
                     let allWithCount = List.map (fun (_, f: string list) -> f.Length) allInFragments
@@ -368,7 +382,8 @@ Please raise an issue at https://fsprojects.github.io/fantomas-tools/#/fantomas/
 let formatDocument config isSignature source = format config isSignature source
 
 /// Format an abstract syntax tree using given config
-let formatAST ast defines source config = formatWith ast defines [] source config
+let formatAST ast defines source config =
+    formatWith source (DefineCombination.Defines defines) ast config
 
 /// Make a range from (startLine, startCol) to (endLine, endCol) to select some text
 let makeRange fileName startLine startCol endLine endCol =

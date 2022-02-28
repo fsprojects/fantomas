@@ -6,9 +6,31 @@ open FSharp.Compiler.Text
 open FSharp.Compiler.Parser
 open FSharp.Compiler.ParseHelpers
 open FSharp.Compiler.Syntax.PrettyNaming
-open Fantomas.SourceTextExtensions
+open Fantomas.TokenParserBoolExpr
 open Fantomas.TriviaTypes
 open Fantomas.FCS.Lex
+
+type ISourceText with
+    member this.GetContentAt(range: range) : string =
+        let startLine = range.StartLine - 1
+        let line = this.GetLineString startLine
+
+        if range.StartLine = range.EndLine then
+            let length = range.EndColumn - range.StartColumn
+            line.Substring(range.StartColumn, length)
+        else
+            let firstLineContent = line.Substring(range.StartColumn)
+            let sb = StringBuilder().AppendLine(firstLineContent)
+
+            (sb, [ range.StartLine .. range.EndLine - 2 ])
+            ||> List.fold (fun sb lineNumber -> sb.AppendLine(this.GetLineString lineNumber))
+            |> fun sb ->
+                let lastLine = this.GetLineString(range.EndLine - 1)
+
+                sb
+                    .Append(lastLine.Substring(0, range.EndColumn))
+                    .ToString()
+
 
 //
 //open System
@@ -1184,7 +1206,7 @@ type TriviaBuilderState =
         previousTokenWasStar: bool *
         collector: StringBuilder
     | CaptureSingleQuoteString of lastTokenWasBackSlash: bool
-    | CaptureTripleQuoteString
+    | CaptureTripleQuoteString of lastTokenWasBackSlash: bool
     | CaptureVerbatimString of lastTokenWasBackSlash: bool
 
 let private createLineComment afterSourceCode startRange range sb =
@@ -1199,19 +1221,6 @@ let private createLineComment afterSourceCode startRange range sb =
 
     { Item = Comment(item comment)
       Range = r }
-
-let private createStringTrivia
-    (getContentAt: range -> string)
-    (startRange: range)
-    (endRange: range)
-    (sb: StringBuilder)
-    =
-    let quote = getContentAt endRange
-    let content = sb.Append(quote).ToString()
-    let range = Range.unionRanges startRange endRange
-
-    { Item = StringContent content
-      Range = range }
 
 let private (|DecompiledOperatorToken|_|) (token: token) =
     match token with
@@ -1251,12 +1260,7 @@ let private (|NumberToken|_|) (token: token) =
     | IEEE64 _ -> Some()
     | _ -> None
 
-type TriviaCollectionResult =
-    { AssignedContentItself: bool
-      Trivia: Trivia list
-      Nodes: TriviaNodeAssigner list }
-
-let getTriviaFromTokens (source: ISourceText) (nodes: TriviaNodeAssigner list) : TriviaCollectionResult =
+let private getTokensFromSource (source: ISourceText) (defines: string list) : TokenWithRangeList =
     let mutable tokenCollector = ListCollector<token * range>()
     let mutable currentLine = 0
 
@@ -1286,10 +1290,250 @@ let getTriviaFromTokens (source: ISourceText) (nodes: TriviaNodeAssigner list) :
 
             tokenCollector.Add(token, range)
 
-    lex onToken [] source
+    lex onToken defines source
+    tokenCollector.Close()
 
+let private getDefinesFromTokens (tokens: TokenWithRangeList) : HashLine list =
+    let mutable hashTokenContent = ListCollector<HashLine>()
+
+    let parseHashLine (content: string) : string list * string list =
+        let source = SourceText.ofString content
+        let tokens = getTokensFromSource source []
+
+        let content =
+            tokens
+            |> List.choose (fun (t, _r) ->
+                match t with
+                | IDENT s -> Some s
+                | BAR_BAR -> Some "||"
+                | _ -> None)
+
+        let words =
+            tokens
+            |> List.choose (fun (t, _r) ->
+                match t with
+                | IDENT s -> Some s
+                | _ -> None)
+            |> List.distinct
+
+        content, words
+
+    // tokens |> List.iter (printfn "%A")
+    tokens
+    |> List.fold
+        (fun acc tokenAndRange ->
+            let token, range = tokenAndRange
+
+            match acc, token with
+            | NotCollecting lastTokenAndRange, HASH_IF (_, content, _) ->
+                let hashIf =
+                    content.Substring(3) // strip #if
+                    |> parseHashLine
+                    |> HashLine.If
+
+                hashTokenContent.Add(hashIf)
+                NotCollecting lastTokenAndRange
+
+            | NotCollecting lastTokenAndRange, HASH_ELSE _ ->
+                hashTokenContent.Add HashLine.Else
+                NotCollecting lastTokenAndRange
+
+            | NotCollecting lastTokenAndRange, HASH_ENDIF _ ->
+                hashTokenContent.Add HashLine.EndIf
+                NotCollecting lastTokenAndRange
+
+            | NotCollecting lastTokenAndRange, NonTripleSlashOpeningCommentToken ->
+                CaptureLineComment(lastTokenAndRange, false, range, range, StringBuilder())
+
+            | NotCollecting lastTokenAndRange, BlockCommentOpeningCommentToken _ ->
+                CaptureBlockComment(lastTokenAndRange, range, false, StringBuilder())
+
+            | NotCollecting _, QuoteStringToken style ->
+                match style with
+                | LexerStringStyle.SingleQuote -> CaptureSingleQuoteString false
+                | LexerStringStyle.TripleQuote -> CaptureTripleQuoteString false
+                | LexerStringStyle.Verbatim -> CaptureVerbatimString false
+
+            // There is content in this token
+            | NotCollecting _, _ -> NotCollecting tokenAndRange
+
+            | CaptureLineComment (lastTokenAndRange, afterSourceCode, startRange, _, sb), CommentContentToken range ->
+                if startRange.StartLine = range.EndLine then
+                    CaptureLineComment(lastTokenAndRange, afterSourceCode, startRange, range, sb)
+                else
+                    NotCollecting lastTokenAndRange
+
+            | CaptureLineComment (lastTokenAndRange, _, _, _, _), _ -> NotCollecting lastTokenAndRange
+
+            | CaptureBlockComment (lastTokenAndRange, startRange, _, sb), STAR ->
+                CaptureBlockComment(lastTokenAndRange, startRange, true, sb)
+
+            | CaptureBlockComment (lastTokenAndRange, startRange, previousTokenWasStar, sb), RPAREN_IS_HERE ->
+                if previousTokenWasStar then
+                    NotCollecting lastTokenAndRange
+                else
+                    CaptureBlockComment(lastTokenAndRange, startRange, true, sb)
+
+            | CaptureBlockComment (lastTokenAndRange, startRange, previousTokenWasStar, sb), _ ->
+                CaptureBlockComment(lastTokenAndRange, startRange, previousTokenWasStar, sb)
+
+            // backslash before non back slash
+            | CaptureSingleQuoteString false, LEX_FAILURE "Unexpected character '\\'" -> CaptureSingleQuoteString true
+
+            // backslash before non back slash in triple quote
+            | CaptureTripleQuoteString false, LEX_FAILURE "Unexpected character '\\'" -> CaptureTripleQuoteString true
+
+            // backslash before quote
+            | CaptureSingleQuoteString true, QuoteStringToken _ -> CaptureSingleQuoteString false
+
+            // backslash before triple quote
+            | CaptureTripleQuoteString true, QuoteStringToken LexerStringStyle.TripleQuote ->
+                CaptureTripleQuoteString false
+
+            // End of single quote string
+            | CaptureSingleQuoteString _, QuoteStringToken LexerStringStyle.SingleQuote -> NotCollecting tokenAndRange
+
+            // End of triple quoted string
+            | CaptureTripleQuoteString _, QuoteStringToken LexerStringStyle.TripleQuote -> NotCollecting tokenAndRange
+
+            // End of verbatim string
+            | CaptureVerbatimString _, QuoteStringToken LexerStringStyle.SingleQuote -> NotCollecting tokenAndRange
+
+            // capture normal token as part of single quote string
+            | CaptureSingleQuoteString _, _token -> CaptureSingleQuoteString false
+
+            // capture normal token as part of triple quote string
+            | CaptureTripleQuoteString _, _token -> CaptureTripleQuoteString false
+
+            | CaptureVerbatimString _, _token -> CaptureVerbatimString false
+
+            | _ -> acc)
+        (NotCollecting(OBLOCKBEGIN, Range.Zero))
+    |> ignore<TriviaBuilderState>
+
+    hashTokenContent.Close()
+//    let defineTokens =
+//    hashTokenContent.Close()
+//    |> Seq.collect (fun hashContent ->
+//        hashContent.Split([| "#if"; " "; "("; ")"; "&"; "|" |], StringSplitOptions.RemoveEmptyEntries))
+//    |> Seq.map (fun s -> s.Trim())
+//    |> Seq.distinct
+//    |> Seq.toList
+
+
+// hier
+
+let private getIndividualDefine (hashLines: HashLine list) : string list list =
+    hashLines
+    |> List.collect (function
+        | HashLine.If (words = words) -> words
+        | _ -> [])
+    // { TokenInfo = { TokenName = tn } } -> tn = "IDENT" || tn = "FALSE" || tn = "TRUE")
+    // |> List.map (fun t -> t.Content)
+    |> List.distinct
+    |> List.map List.singleton
+
+let private getDefineExprs (hashLines: HashLine list) =
+    //    let parseHashContent (tokens: TokenWithRangeList) =
+//        let allowedContent = set [ "||"; "&&"; "!"; "("; ")" ]
+//
+//        tokens
+//        |> List.choose (fun (t,r) ->
+//            match t with
+//            | IDENT s -> Some s
+//            | _ -> None)
+////            t.TokenInfo.TokenName = "IDENT"
+////            || t.TokenInfo.TokenName = "TRUE"
+////            || t.TokenInfo.TokenName = "FALSE"
+////            || Set.contains t.Content allowedContent)
+////      |> Seq.map (fun t -> t.Content)
+////        |> Seq.toList
+//        |> BoolExprParser.parse
+
+    //    let tokensByLine =
+//        hashTokens
+//        |> List.groupBy (fun (_,r) -> r.StartLine)
+//        |> List.sortBy fst
+
+    let result =
+        (([], []), hashLines)
+        ||> List.fold (fun (contextExprs, exprAcc) hashLine ->
+            let contextExpr e =
+                e :: contextExprs
+                |> List.reduce (fun x y -> BoolExpr.And(x, y))
+
+            //            let t =
+//                lineTokens
+//                |> Seq.tryFind (fun x -> x.TokenInfo.TokenName = "HASH_IF")
+
+            // match t |> Option.map (fun x -> x.Content) with
+            match hashLine with
+            | HashLine.If (content = content) ->
+                BoolExprParser.parse content
+                // | Some "#if" ->
+                // parseHashContent lineTokens
+                //  content
+                |> Option.map (fun e -> e :: contextExprs, contextExpr e :: exprAcc)
+                |> Option.defaultValue (contextExprs, exprAcc)
+            //| Some "#else" ->
+            | HashLine.Else ->
+                contextExprs,
+                BoolExpr.Not(
+                    contextExprs
+                    |> List.reduce (fun x y -> BoolExpr.And(x, y))
+                )
+                :: exprAcc
+            //| Some "#endif" -> List.tail contextExprs, exprAcc
+            | HashLine.EndIf -> List.tail contextExprs, exprAcc)
+        // | _ -> contextExprs, exprAcc)
+        |> snd
+        |> List.rev
+
+    result
+
+let private getOptimizedDefinesSets (hashTokens: HashLine list) =
+    let maxSteps = FormatConfig.satSolveMaxStepsMaxSteps
+
+    match getDefineExprs hashTokens
+          |> BoolExpr.mergeBoolExprs maxSteps
+          |> List.map snd
+        with
+    | [] -> [ [] ]
+    | xs -> xs
+
+let getDefineCombination (source: ISourceText) : DefineCombination list =
+    let tokens = getTokensFromSource source []
+
+    // List.iter (printfn "%A") tokens
+
+    let hashTokens: HashLine list = getDefinesFromTokens tokens
+
+    let defineCombinations =
+        [ yield! getOptimizedDefinesSets hashTokens
+          yield! getIndividualDefine hashTokens ]
+        // TODO: it this still necessary?
+        // solver should already have these rigth?
+//        @ (getDefinesWords hashTokens
+//           |> List.map List.singleton)
+//        @ [ [] ]
+        |> List.distinct
+
+    match defineCombinations with
+    | [ [] ] -> [ DefineCombination.NoDefines tokens ]
+    | combinations -> List.map DefineCombination.Defines combinations
+
+let getTriviaFromTokens
+    (source: ISourceText)
+    (nodes: TriviaNodeAssigner list)
+    (defineCombination: DefineCombination)
+    : TriviaCollectionResult =
     let mutable triviaCollection = ListCollector<Trivia>()
-    let tokens = tokenCollector.Close()
+
+    // In case there are no defines in the source file, we can re-use the tokens we used to detect the defines.
+    let tokens =
+        match defineCombination with
+        | DefineCombination.NoDefines tokens -> tokens
+        | DefineCombination.Defines defines -> getTokensFromSource source defines
 
     let mutable assignedContentItself = false
 
@@ -1322,6 +1566,30 @@ let getTriviaFromTokens (source: ISourceText) (nodes: TriviaNodeAssigner list) :
             let token, range = tokenAndRange
 
             match acc, token with
+            | NotCollecting lastTokenAndRange, HASH_IF (_, content, _) ->
+                let hashIf =
+                    { Item = Directive content
+                      Range = range }
+
+                triviaCollection.Add hashIf
+                NotCollecting lastTokenAndRange
+
+            | NotCollecting lastTokenAndRange, HASH_ELSE _ ->
+                let hashElse =
+                    { Item = Directive "#else"
+                      Range = range }
+
+                triviaCollection.Add hashElse
+                NotCollecting lastTokenAndRange
+
+            | NotCollecting lastTokenAndRange, HASH_ENDIF _ ->
+                let hashEndIf =
+                    { Item = Directive "#endif"
+                      Range = range }
+
+                triviaCollection.Add hashEndIf
+                NotCollecting lastTokenAndRange
+
             | NotCollecting lastTokenAndRange, Newline range _ ->
                 // TODO: capture as one newline
                 let trivia =
@@ -1335,6 +1603,7 @@ let getTriviaFromTokens (source: ISourceText) (nodes: TriviaNodeAssigner list) :
 
             | NotCollecting lastTokenAndRange, NonTripleSlashOpeningCommentToken ->
                 let afterSourceCode = (snd lastTokenAndRange).EndLine = range.EndLine
+
                 let sb = StringBuilder(source.GetContentAt range)
                 CaptureLineComment(lastTokenAndRange, afterSourceCode, range, range, sb)
 
@@ -1343,11 +1612,9 @@ let getTriviaFromTokens (source: ISourceText) (nodes: TriviaNodeAssigner list) :
                 CaptureBlockComment(lastTokenAndRange, range, false, sb)
 
             | NotCollecting _, QuoteStringToken style ->
-                let quote = source.GetContentAt range
-
                 match style with
                 | LexerStringStyle.SingleQuote -> CaptureSingleQuoteString false
-                | LexerStringStyle.TripleQuote -> CaptureTripleQuoteString
+                | LexerStringStyle.TripleQuote -> CaptureTripleQuoteString false
                 | LexerStringStyle.Verbatim -> CaptureVerbatimString false
 
             | NotCollecting _, DecompiledOperatorToken ident ->
@@ -1400,11 +1667,13 @@ let getTriviaFromTokens (source: ISourceText) (nodes: TriviaNodeAssigner list) :
                     CaptureLineComment(lastTokenAndRange, afterSourceCode, startRange, range, sb.Append(content))
                 else
                     let trivia = createLineComment afterSourceCode startRange range sb
+
                     triviaCollection.Add trivia
                     NotCollecting lastTokenAndRange
 
             | CaptureLineComment (lastTokenAndRange, afterSourceCode, startRange, endRange, sb), _ ->
                 let trivia = createLineComment afterSourceCode startRange endRange sb
+
                 triviaCollection.Add trivia
                 NotCollecting lastTokenAndRange
 
@@ -1432,8 +1701,15 @@ let getTriviaFromTokens (source: ISourceText) (nodes: TriviaNodeAssigner list) :
             // backslash before non back slash
             | CaptureSingleQuoteString false, LEX_FAILURE "Unexpected character '\\'" -> CaptureSingleQuoteString true
 
+            // backslash before non back slash in triple quote
+            | CaptureTripleQuoteString false, LEX_FAILURE "Unexpected character '\\'" -> CaptureTripleQuoteString true
+
             // backslash before quote
             | CaptureSingleQuoteString true, QuoteStringToken _ -> CaptureSingleQuoteString false
+
+            // backslash before triple quote
+            | CaptureTripleQuoteString true, QuoteStringToken LexerStringStyle.TripleQuote ->
+                CaptureTripleQuoteString false
 
             // End of single quote string
             | CaptureSingleQuoteString _, QuoteStringToken LexerStringStyle.SingleQuote -> NotCollecting tokenAndRange
@@ -1448,7 +1724,7 @@ let getTriviaFromTokens (source: ISourceText) (nodes: TriviaNodeAssigner list) :
             | CaptureSingleQuoteString _, _token -> CaptureSingleQuoteString false
 
             // capture normal token as part of triple quote string
-            | CaptureTripleQuoteString, _token -> CaptureTripleQuoteString
+            | CaptureTripleQuoteString _, _token -> CaptureTripleQuoteString false
 
             | CaptureVerbatimString _, _token -> CaptureVerbatimString false
 

@@ -1,14 +1,26 @@
-module Fantomas.TriviaTypes
+module internal Fantomas.TriviaTypes
 
+open System.Runtime.CompilerServices
 open FSharp.Compiler.Text
+open FSharp.Compiler.Parser
 //open FSharp.Compiler.Tokenization
 
-type FSharpTokenInfo = class end
+type FSharpTokenInfo =
+    class
+    end
 
-//type Token =
-//    { TokenInfo: FSharpTokenInfo
-//      LineNumber: int
-//      Content: string }
+[<RequireQualifiedAccess>]
+type HashLine =
+    | If of content: string list * words: string list
+    | Else
+    | EndIf
+
+type TokenWithRangeList = (token * range) list
+
+[<RequireQualifiedAccess>]
+type DefineCombination =
+    | NoDefines of existingTokens: TokenWithRangeList
+    | Defines of defines: string list
 
 type Comment =
     | LineCommentAfterSourceCode of comment: string
@@ -398,5 +410,10 @@ type TriviaNodeAssigner(nodeType: FsAstType, range: Range) =
     member val ContentBefore = ResizeArray<TriviaContent>() with get, set
     member val ContentItself = Option<TriviaContent>.None with get, set
     member val ContentAfter = ResizeArray<TriviaContent>() with get, set
+
+type TriviaCollectionResult =
+    { AssignedContentItself: bool
+      Trivia: Trivia list
+      Nodes: TriviaNodeAssigner list }
 
 type MkRange = int * int -> int * int -> Range

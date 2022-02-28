@@ -1,6 +1,7 @@
 namespace Fantomas
 
 open FSharp.Compiler.Syntax
+open Fantomas.TriviaTypes
 
 [<Sealed>]
 type CodeFormatter =
@@ -10,7 +11,13 @@ type CodeFormatter =
                 CodeFormatterImpl.getSourceText source
                 |> CodeFormatterImpl.parse isSignature
 
-            return (Array.map (fun (a, d, _) -> a, d) asts)
+            return
+                Array.map
+                    (fun (a, d) ->
+                        match d with
+                        | DefineCombination.NoDefines _ -> (a, [])
+                        | DefineCombination.Defines defines -> (a, defines))
+                    asts
         }
 
     static member FormatASTAsync(ast: ParsedInput, defines: string list, source, config) : Async<string> =

@@ -347,7 +347,7 @@ let createLexerFunction (defines: string list) lexbuf (errorLogger: ErrorLogger)
 
     (fun _ -> tokenizer.GetToken())
 
-let parseFile (isSignature: bool) (sourceText: ISourceText) =
+let parseFile (isSignature: bool) (sourceText: ISourceText) (defines: string list) =
     // let errHandler = ErrorHandler(true, fileName, options.ErrorSeverityOptions, sourceText, suggestNamesForErrors)
     // TODO
     // CapturingErrorLogger
@@ -375,7 +375,7 @@ let parseFile (isSignature: bool) (sourceText: ISourceText) =
 
         usingLexbufForParsing (createLexbuf "preview" sourceText, fileName) (fun lexbuf ->
 
-            let lexfun = createLexerFunction [] lexbuf errorLogger
+            let lexfun = createLexerFunction defines lexbuf errorLogger
             // both don't matter for Fantomas
             let isLastCompiland = false
             let isExe = false
