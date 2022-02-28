@@ -233,6 +233,21 @@ module BoolExpr =
             | Satisfiable x -> Some x
             | _ -> None
 
+    /// Determine the result of an expression for a given set of defines
+    let solveExprForDefines (expr: BoolExpr) (defines: string seq) : bool =
+        let defines = Set(defines)
+
+        let rec visit (expr: BoolExpr) (continuation: bool -> bool) : bool =
+            match expr with
+            | BoolExpr.Not e -> visit e (not >> continuation)
+            | BoolExpr.And (e1, e2) -> visit e1 (fun r1 -> visit e2 (fun r2 -> r1 && r2 |> continuation))
+            | BoolExpr.Or (e1, e2) -> visit e1 (fun r1 -> visit e2 (fun r2 -> r1 || r2 |> continuation))
+            | BoolExpr.Ident "TRUE" -> continuation true
+            | BoolExpr.Ident "FALSE" -> continuation false
+            | BoolExpr.Ident s -> defines.Contains s |> continuation
+
+        visit expr id
+
 module BoolExprParser =
     let (|Eq|_|) x y = if x = y then Some() else None
 

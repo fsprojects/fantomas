@@ -1,14 +1,16 @@
 module internal Fantomas.TokenParser
 
+open System
 open System.Text
 open Microsoft.FSharp.Core.CompilerServices
 open FSharp.Compiler.Text
 open FSharp.Compiler.Parser
 open FSharp.Compiler.ParseHelpers
 open FSharp.Compiler.Syntax.PrettyNaming
+open Fantomas.FCS.Lex
+open Fantomas
 open Fantomas.TokenParserBoolExpr
 open Fantomas.TriviaTypes
-open Fantomas.FCS.Lex
 
 type ISourceText with
     member this.GetContentAt(range: range) : string =
@@ -1192,7 +1194,7 @@ let private (|QuoteStringToken|_|) token =
 type TokenAndRange = token * range
 
 [<NoEquality; NoComparison>]
-type TriviaBuilderState =
+type TriviaCollectorState =
     | NotCollecting of lastTokenAndRange: TokenAndRange
     | CaptureLineComment of
         lastTokenAndRange: TokenAndRange *
@@ -1208,6 +1210,14 @@ type TriviaBuilderState =
     | CaptureSingleQuoteString of lastTokenWasBackSlash: bool
     | CaptureTripleQuoteString of lastTokenWasBackSlash: bool
     | CaptureVerbatimString of lastTokenWasBackSlash: bool
+
+and ActiveCodeState =
+    | HashIf of range: range * content: string * active: bool
+    | HashElse of range: range * content: string * active: bool
+
+and TriviaBuilderState =
+    { CodePath: ActiveCodeState list
+      CollectorState: TriviaCollectorState }
 
 let private createLineComment afterSourceCode startRange range sb =
     let r = Range.unionRanges startRange range
@@ -1293,123 +1303,128 @@ let private getTokensFromSource (source: ISourceText) (defines: string list) : T
     lex onToken defines source
     tokenCollector.Close()
 
+let private parseHashLine (content: string) : string list * string list =
+    let content =
+        content
+            .Trim()
+            .Substring(3) // strip #if
+            .Split([| "//" |], StringSplitOptions.RemoveEmptyEntries).[0] // strip any comments
+
+    let source = SourceText.ofString content
+    let tokens = getTokensFromSource source []
+
+    let content =
+        tokens
+        |> List.choose (fun (t, _r) ->
+            match t with
+            | IDENT s -> Some s
+            | BAR_BAR -> Some "||"
+            | AMP_AMP -> Some "&&"
+            | LPAREN -> Some "("
+            | RPAREN -> Some ")"
+            | PREFIX_OP _ -> Some "!"
+            | _ -> None)
+
+    let words =
+        tokens
+        |> List.choose (fun (t, _r) ->
+            match t with
+            | IDENT s -> Some s
+            | _ -> None)
+        |> List.distinct
+
+    content, words
+
 let private getDefinesFromTokens (tokens: TokenWithRangeList) : HashLine list =
     let mutable hashTokenContent = ListCollector<HashLine>()
-
-    let parseHashLine (content: string) : string list * string list =
-        let source = SourceText.ofString content
-        let tokens = getTokensFromSource source []
-
-        let content =
-            tokens
-            |> List.choose (fun (t, _r) ->
-                match t with
-                | IDENT s -> Some s
-                | BAR_BAR -> Some "||"
-                | _ -> None)
-
-        let words =
-            tokens
-            |> List.choose (fun (t, _r) ->
-                match t with
-                | IDENT s -> Some s
-                | _ -> None)
-            |> List.distinct
-
-        content, words
+    let initialState: TriviaCollectorState = NotCollecting(OBLOCKBEGIN, Range.Zero)
 
     // tokens |> List.iter (printfn "%A")
-    tokens
-    |> List.fold
-        (fun acc tokenAndRange ->
-            let token, range = tokenAndRange
+    (initialState, tokens)
+    ||> List.fold (fun acc tokenAndRange ->
+        let token, range = tokenAndRange
 
-            match acc, token with
-            | NotCollecting lastTokenAndRange, HASH_IF (_, content, _) ->
-                let hashIf =
-                    content.Substring(3) // strip #if
-                    |> parseHashLine
-                    |> HashLine.If
+        match acc, token with
+        | NotCollecting lastTokenAndRange, HASH_IF (_, content, _) ->
+            let hashIf = content |> parseHashLine |> HashLine.If
 
-                hashTokenContent.Add(hashIf)
+            hashTokenContent.Add(hashIf)
+            NotCollecting lastTokenAndRange
+
+        | NotCollecting lastTokenAndRange, HASH_ELSE _ ->
+            hashTokenContent.Add HashLine.Else
+            NotCollecting lastTokenAndRange
+
+        | NotCollecting lastTokenAndRange, HASH_ENDIF _ ->
+            hashTokenContent.Add HashLine.EndIf
+            NotCollecting lastTokenAndRange
+
+        | NotCollecting lastTokenAndRange, NonTripleSlashOpeningCommentToken ->
+            CaptureLineComment(lastTokenAndRange, false, range, range, StringBuilder())
+
+        | NotCollecting lastTokenAndRange, BlockCommentOpeningCommentToken _ ->
+            CaptureBlockComment(lastTokenAndRange, range, false, StringBuilder())
+
+        | NotCollecting _, QuoteStringToken style ->
+            match style with
+            | LexerStringStyle.SingleQuote -> CaptureSingleQuoteString false
+            | LexerStringStyle.TripleQuote -> CaptureTripleQuoteString false
+            | LexerStringStyle.Verbatim -> CaptureVerbatimString false
+
+        // There is content in this token
+        | NotCollecting _, _ -> NotCollecting tokenAndRange
+
+        | CaptureLineComment (lastTokenAndRange, afterSourceCode, startRange, _, sb), CommentContentToken range ->
+            if startRange.StartLine = range.EndLine then
+                CaptureLineComment(lastTokenAndRange, afterSourceCode, startRange, range, sb)
+            else
                 NotCollecting lastTokenAndRange
 
-            | NotCollecting lastTokenAndRange, HASH_ELSE _ ->
-                hashTokenContent.Add HashLine.Else
+        | CaptureLineComment (lastTokenAndRange, _, _, _, _), _ -> NotCollecting lastTokenAndRange
+
+        | CaptureBlockComment (lastTokenAndRange, startRange, _, sb), STAR ->
+            CaptureBlockComment(lastTokenAndRange, startRange, true, sb)
+
+        | CaptureBlockComment (lastTokenAndRange, startRange, previousTokenWasStar, sb), RPAREN_IS_HERE ->
+            if previousTokenWasStar then
                 NotCollecting lastTokenAndRange
-
-            | NotCollecting lastTokenAndRange, HASH_ENDIF _ ->
-                hashTokenContent.Add HashLine.EndIf
-                NotCollecting lastTokenAndRange
-
-            | NotCollecting lastTokenAndRange, NonTripleSlashOpeningCommentToken ->
-                CaptureLineComment(lastTokenAndRange, false, range, range, StringBuilder())
-
-            | NotCollecting lastTokenAndRange, BlockCommentOpeningCommentToken _ ->
-                CaptureBlockComment(lastTokenAndRange, range, false, StringBuilder())
-
-            | NotCollecting _, QuoteStringToken style ->
-                match style with
-                | LexerStringStyle.SingleQuote -> CaptureSingleQuoteString false
-                | LexerStringStyle.TripleQuote -> CaptureTripleQuoteString false
-                | LexerStringStyle.Verbatim -> CaptureVerbatimString false
-
-            // There is content in this token
-            | NotCollecting _, _ -> NotCollecting tokenAndRange
-
-            | CaptureLineComment (lastTokenAndRange, afterSourceCode, startRange, _, sb), CommentContentToken range ->
-                if startRange.StartLine = range.EndLine then
-                    CaptureLineComment(lastTokenAndRange, afterSourceCode, startRange, range, sb)
-                else
-                    NotCollecting lastTokenAndRange
-
-            | CaptureLineComment (lastTokenAndRange, _, _, _, _), _ -> NotCollecting lastTokenAndRange
-
-            | CaptureBlockComment (lastTokenAndRange, startRange, _, sb), STAR ->
+            else
                 CaptureBlockComment(lastTokenAndRange, startRange, true, sb)
 
-            | CaptureBlockComment (lastTokenAndRange, startRange, previousTokenWasStar, sb), RPAREN_IS_HERE ->
-                if previousTokenWasStar then
-                    NotCollecting lastTokenAndRange
-                else
-                    CaptureBlockComment(lastTokenAndRange, startRange, true, sb)
+        | CaptureBlockComment (lastTokenAndRange, startRange, previousTokenWasStar, sb), _ ->
+            CaptureBlockComment(lastTokenAndRange, startRange, previousTokenWasStar, sb)
 
-            | CaptureBlockComment (lastTokenAndRange, startRange, previousTokenWasStar, sb), _ ->
-                CaptureBlockComment(lastTokenAndRange, startRange, previousTokenWasStar, sb)
+        // backslash before non back slash
+        | CaptureSingleQuoteString false, LEX_FAILURE "Unexpected character '\\'" -> CaptureSingleQuoteString true
 
-            // backslash before non back slash
-            | CaptureSingleQuoteString false, LEX_FAILURE "Unexpected character '\\'" -> CaptureSingleQuoteString true
+        // backslash before non back slash in triple quote
+        | CaptureTripleQuoteString false, LEX_FAILURE "Unexpected character '\\'" -> CaptureTripleQuoteString true
 
-            // backslash before non back slash in triple quote
-            | CaptureTripleQuoteString false, LEX_FAILURE "Unexpected character '\\'" -> CaptureTripleQuoteString true
+        // backslash before quote
+        | CaptureSingleQuoteString true, QuoteStringToken _ -> CaptureSingleQuoteString false
 
-            // backslash before quote
-            | CaptureSingleQuoteString true, QuoteStringToken _ -> CaptureSingleQuoteString false
+        // backslash before triple quote
+        | CaptureTripleQuoteString true, QuoteStringToken LexerStringStyle.TripleQuote -> CaptureTripleQuoteString false
 
-            // backslash before triple quote
-            | CaptureTripleQuoteString true, QuoteStringToken LexerStringStyle.TripleQuote ->
-                CaptureTripleQuoteString false
+        // End of single quote string
+        | CaptureSingleQuoteString _, QuoteStringToken LexerStringStyle.SingleQuote -> NotCollecting tokenAndRange
 
-            // End of single quote string
-            | CaptureSingleQuoteString _, QuoteStringToken LexerStringStyle.SingleQuote -> NotCollecting tokenAndRange
+        // End of triple quoted string
+        | CaptureTripleQuoteString _, QuoteStringToken LexerStringStyle.TripleQuote -> NotCollecting tokenAndRange
 
-            // End of triple quoted string
-            | CaptureTripleQuoteString _, QuoteStringToken LexerStringStyle.TripleQuote -> NotCollecting tokenAndRange
+        // End of verbatim string
+        | CaptureVerbatimString _, QuoteStringToken LexerStringStyle.SingleQuote -> NotCollecting tokenAndRange
 
-            // End of verbatim string
-            | CaptureVerbatimString _, QuoteStringToken LexerStringStyle.SingleQuote -> NotCollecting tokenAndRange
+        // capture normal token as part of single quote string
+        | CaptureSingleQuoteString _, _token -> CaptureSingleQuoteString false
 
-            // capture normal token as part of single quote string
-            | CaptureSingleQuoteString _, _token -> CaptureSingleQuoteString false
+        // capture normal token as part of triple quote string
+        | CaptureTripleQuoteString _, _token -> CaptureTripleQuoteString false
 
-            // capture normal token as part of triple quote string
-            | CaptureTripleQuoteString _, _token -> CaptureTripleQuoteString false
+        | CaptureVerbatimString _, _token -> CaptureVerbatimString false
 
-            | CaptureVerbatimString _, _token -> CaptureVerbatimString false
-
-            | _ -> acc)
-        (NotCollecting(OBLOCKBEGIN, Range.Zero))
-    |> ignore<TriviaBuilderState>
+        | _ -> acc)
+    |> ignore<TriviaCollectorState>
 
     hashTokenContent.Close()
 //    let defineTokens =
@@ -1509,13 +1524,9 @@ let getDefineCombination (source: ISourceText) : DefineCombination list =
     let hashTokens: HashLine list = getDefinesFromTokens tokens
 
     let defineCombinations =
-        [ yield! getOptimizedDefinesSets hashTokens
+        [ yield [] // always include the empty defines set
+          yield! getOptimizedDefinesSets hashTokens
           yield! getIndividualDefine hashTokens ]
-        // TODO: it this still necessary?
-        // solver should already have these rigth?
-//        @ (getDefinesWords hashTokens
-//           |> List.map List.singleton)
-//        @ [ [] ]
         |> List.distinct
 
     match defineCombinations with
@@ -1557,179 +1568,275 @@ let getTriviaFromTokens
 
     // tokens |> List.iter (printfn "%A")
 
+    let creatDeadCodeDirective
+        (startRange: range)
+        (startContent: string)
+        (endRange: range)
+        (endContent: string)
+        : Trivia =
+        let lines = endRange.StartLine - startRange.StartLine - 1
+        let range = Range.mkRange startRange.FileName startRange.Start endRange.End
+
+        let directiveContent =
+            [ yield startContent
+              yield! List.init lines (fun _ -> String.Empty)
+              yield endContent ]
+            |> String.concat "\n"
+
+        { Item = Directive directiveContent
+          Range = range }
+
+    let initialState: TriviaBuilderState =
+        { CodePath = []
+          CollectorState = NotCollecting(OBLOCKBEGIN, Range.Zero) }
+
     tokens
     |> List.skipWhile (function
         | WHITESPACE _, _ -> true
         | _ -> false)
     |> List.fold
-        (fun acc tokenAndRange ->
+        (fun (acc: TriviaBuilderState) tokenAndRange ->
             let token, range = tokenAndRange
 
-            match acc, token with
-            | NotCollecting lastTokenAndRange, HASH_IF (_, content, _) ->
-                let hashIf =
-                    { Item = Directive content
-                      Range = range }
+            match acc.CollectorState, acc.CodePath, token with
+            | TriviaCollectorState.NotCollecting _, currentCodePath, HASH_IF (_, content, _) ->
+                let isActiveCode =
+                    let expr =
+                        parseHashLine content
+                        |> fst
+                        |> BoolExprParser.parse
 
-                triviaCollection.Add hashIf
-                NotCollecting lastTokenAndRange
+                    let defines =
+                        match defineCombination with
+                        | DefineCombination.NoDefines _ -> []
+                        | DefineCombination.Defines defines -> defines
 
-            | NotCollecting lastTokenAndRange, HASH_ELSE _ ->
-                let hashElse =
-                    { Item = Directive "#else"
-                      Range = range }
+                    match expr with
+                    | None -> failwithf $"Could not solve expression %s{content} for defines %A{defineCombination}"
+                    | Some expr -> BoolExpr.solveExprForDefines expr defines
 
-                triviaCollection.Add hashElse
-                NotCollecting lastTokenAndRange
+                let nextPath = ActiveCodeState.HashIf(range, content, isActiveCode)
 
-            | NotCollecting lastTokenAndRange, HASH_ENDIF _ ->
-                let hashEndIf =
-                    { Item = Directive "#endif"
-                      Range = range }
+                // Only add a directive trivia when the following code is active
+                // dead code is capture after the `#else` or `#endif`
+                if isActiveCode then
+                    let hashIf =
+                        { Item = Directive content
+                          Range = range }
 
-                triviaCollection.Add hashEndIf
-                NotCollecting lastTokenAndRange
+                    triviaCollection.Add hashIf
 
-            | NotCollecting lastTokenAndRange, Newline range _ ->
-                // TODO: capture as one newline
-                let trivia =
-                    { Item = Newline
-                      Range = Range.mkRange range.FileName range.Start range.Start }
+                { acc with
+                    CollectorState = NotCollecting tokenAndRange
+                    CodePath = nextPath :: currentCodePath }
 
-                triviaCollection.Add trivia
-                NotCollecting lastTokenAndRange
+            | TriviaCollectorState.NotCollecting _,
+              ActiveCodeState.HashIf (hashIfRange, content, active) :: rest,
+              HASH_ELSE _ ->
+                if not active then
+                    // Add dead code
+                    let trivia = creatDeadCodeDirective hashIfRange content range "#else"
+                    triviaCollection.Add trivia
 
-            | NotCollecting lastTokenAndRange, WHITESPACE _ -> NotCollecting lastTokenAndRange
+                // either we just walked over some dead code of we didn't
+                let codePath =
+                    ActiveCodeState.HashElse(range, "#else", not active)
+                    :: rest
 
-            | NotCollecting lastTokenAndRange, NonTripleSlashOpeningCommentToken ->
-                let afterSourceCode = (snd lastTokenAndRange).EndLine = range.EndLine
+                { acc with
+                    CollectorState = NotCollecting tokenAndRange
+                    CodePath = codePath }
 
-                let sb = StringBuilder(source.GetContentAt range)
-                CaptureLineComment(lastTokenAndRange, afterSourceCode, range, range, sb)
+            | TriviaCollectorState.NotCollecting _,
+              ActiveCodeState.HashIf (active = active; content = content; range = hashIfRange) :: rest,
+              HASH_ENDIF _
+            | TriviaCollectorState.NotCollecting _,
+              ActiveCodeState.HashElse (active = active; content = content; range = hashIfRange) :: rest,
+              HASH_ENDIF _ ->
+                if not active then
+                    // Add dead code
+                    let trivia = creatDeadCodeDirective hashIfRange content range "#endif"
+                    triviaCollection.Add trivia
+                else
+                    let hashEndIf =
+                        { Item = Directive "#endif"
+                          Range = range }
 
-            | NotCollecting lastTokenAndRange, BlockCommentOpeningCommentToken opener ->
-                let sb = StringBuilder(opener)
-                CaptureBlockComment(lastTokenAndRange, range, false, sb)
+                    triviaCollection.Add hashEndIf
 
-            | NotCollecting _, QuoteStringToken style ->
-                match style with
-                | LexerStringStyle.SingleQuote -> CaptureSingleQuoteString false
-                | LexerStringStyle.TripleQuote -> CaptureTripleQuoteString false
-                | LexerStringStyle.Verbatim -> CaptureVerbatimString false
+                { acc with
+                    CollectorState = NotCollecting tokenAndRange
+                    // pop the current code path
+                    CodePath = rest }
 
-            | NotCollecting _, DecompiledOperatorToken ident ->
-                let trivia =
-                    { Item = IdentOperatorAsWord ident
-                      Range = range }
+            | TriviaCollectorState.NotCollecting _, ActiveCodeState.HashIf(active = false) :: _, _
+            | TriviaCollectorState.NotCollecting _, ActiveCodeState.HashElse(active = false) :: _, _ ->
+                // walking over dead code
+                acc
 
-                triviaCollection.Add trivia
-                NotCollecting tokenAndRange
-
-            | NotCollecting _, CharToken ->
-                let content = source.GetContentAt range
-
-                if not (digitOrLetterCharRegex.IsMatch(content)) then
+            | _ ->
+                // Normal trivia collection code flow
+                match acc.CollectorState, token with
+                | NotCollecting lastTokenAndRange, Newline range _ ->
+                    // TODO: capture as one newline
                     let trivia =
-                        { Item = CharContent content
+                        { Item = Newline
+                          Range = Range.mkRange range.FileName range.Start range.Start }
+
+                    triviaCollection.Add trivia
+                    { acc with CollectorState = NotCollecting lastTokenAndRange }
+
+                | NotCollecting lastTokenAndRange, WHITESPACE _ ->
+                    { acc with CollectorState = NotCollecting lastTokenAndRange }
+
+                | NotCollecting lastTokenAndRange, NonTripleSlashOpeningCommentToken ->
+                    let afterSourceCode = (snd lastTokenAndRange).EndLine = range.EndLine
+
+                    let sb = StringBuilder(source.GetContentAt range)
+                    { acc with CollectorState = CaptureLineComment(lastTokenAndRange, afterSourceCode, range, range, sb) }
+
+                | NotCollecting lastTokenAndRange, BlockCommentOpeningCommentToken opener ->
+                    let sb = StringBuilder(opener)
+                    { acc with CollectorState = CaptureBlockComment(lastTokenAndRange, range, false, sb) }
+
+                | NotCollecting _, QuoteStringToken style ->
+                    match style with
+                    | LexerStringStyle.SingleQuote -> { acc with CollectorState = CaptureSingleQuoteString false }
+                    | LexerStringStyle.TripleQuote -> { acc with CollectorState = CaptureTripleQuoteString false }
+                    | LexerStringStyle.Verbatim -> { acc with CollectorState = CaptureVerbatimString false }
+
+                | NotCollecting _, DecompiledOperatorToken ident ->
+                    let trivia =
+                        { Item = IdentOperatorAsWord ident
                           Range = range }
 
                     triviaCollection.Add trivia
+                    { acc with CollectorState = NotCollecting tokenAndRange }
 
-                NotCollecting tokenAndRange
-
-            | NotCollecting _, NumberToken ->
-                let content = source.GetContentAt range
-
-                if not (onlyNumberRegex.IsMatch(content)) then
-                    let trivia = { Item = Number content; Range = range }
-                    triviaCollection.Add trivia
-
-                NotCollecting tokenAndRange
-
-            | NotCollecting _, IDENT _ ->
-                let content = source.GetContentAt range
-
-                if content.StartsWith("``") && content.EndsWith("``") then
-                    let trivia =
-                        { Item = IdentBetweenTicks content
-                          Range = range }
-
-                    triviaCollection.Add trivia
-
-                NotCollecting tokenAndRange
-
-            // There is content in this token
-            | NotCollecting _, _ -> NotCollecting tokenAndRange
-
-            | CaptureLineComment (lastTokenAndRange, afterSourceCode, startRange, _, sb), CommentContentToken range ->
-                if startRange.StartLine = range.EndLine then
+                | NotCollecting _, CharToken ->
                     let content = source.GetContentAt range
-                    CaptureLineComment(lastTokenAndRange, afterSourceCode, startRange, range, sb.Append(content))
-                else
-                    let trivia = createLineComment afterSourceCode startRange range sb
+
+                    if not (digitOrLetterCharRegex.IsMatch(content)) then
+                        let trivia =
+                            { Item = CharContent content
+                              Range = range }
+
+                        triviaCollection.Add trivia
+
+                    { acc with CollectorState = NotCollecting tokenAndRange }
+
+                | NotCollecting _, NumberToken ->
+                    let content = source.GetContentAt range
+
+                    if not (onlyNumberRegex.IsMatch(content)) then
+                        let trivia = { Item = Number content; Range = range }
+                        triviaCollection.Add trivia
+
+                    { acc with CollectorState = NotCollecting tokenAndRange }
+
+                | NotCollecting _, IDENT _ ->
+                    let content = source.GetContentAt range
+
+                    if content.StartsWith("``") && content.EndsWith("``") then
+                        let trivia =
+                            { Item = IdentBetweenTicks content
+                              Range = range }
+
+                        triviaCollection.Add trivia
+
+                    { acc with CollectorState = NotCollecting tokenAndRange }
+
+                // There is content in this token
+                | NotCollecting _, _ -> { acc with CollectorState = NotCollecting tokenAndRange }
+
+                | CaptureLineComment (lastTokenAndRange, afterSourceCode, startRange, _, sb), CommentContentToken range ->
+                    if startRange.StartLine = range.EndLine then
+                        let content = source.GetContentAt range
+
+                        { acc with
+                            CollectorState =
+                                CaptureLineComment(
+                                    lastTokenAndRange,
+                                    afterSourceCode,
+                                    startRange,
+                                    range,
+                                    sb.Append(content)
+                                ) }
+                    else
+                        let trivia = createLineComment afterSourceCode startRange range sb
+
+                        triviaCollection.Add trivia
+                        { acc with CollectorState = NotCollecting lastTokenAndRange }
+
+                | CaptureLineComment (lastTokenAndRange, afterSourceCode, startRange, endRange, sb), _ ->
+                    let trivia = createLineComment afterSourceCode startRange endRange sb
 
                     triviaCollection.Add trivia
-                    NotCollecting lastTokenAndRange
+                    { acc with CollectorState = NotCollecting lastTokenAndRange }
 
-            | CaptureLineComment (lastTokenAndRange, afterSourceCode, startRange, endRange, sb), _ ->
-                let trivia = createLineComment afterSourceCode startRange endRange sb
+                | CaptureBlockComment (lastTokenAndRange, startRange, _, sb), STAR ->
+                    { acc with CollectorState = CaptureBlockComment(lastTokenAndRange, startRange, true, sb.Append("*")) }
 
-                triviaCollection.Add trivia
-                NotCollecting lastTokenAndRange
+                | CaptureBlockComment (lastTokenAndRange, startRange, previousTokenWasStar, sb), RPAREN_IS_HERE ->
+                    if previousTokenWasStar then
+                        // End of block comment *)
+                        let content = sb.Append(")").ToString()
 
-            | CaptureBlockComment (lastTokenAndRange, startRange, _, sb), STAR ->
-                CaptureBlockComment(lastTokenAndRange, startRange, true, sb.Append("*"))
+                        let trivia =
+                            { Item = Comment(BlockComment(content, false, false))
+                              Range = Range.unionRanges startRange range }
 
-            | CaptureBlockComment (lastTokenAndRange, startRange, previousTokenWasStar, sb), RPAREN_IS_HERE ->
-                if previousTokenWasStar then
-                    // End of block comment *)
-                    let content = sb.Append(")").ToString()
+                        triviaCollection.Add trivia
+                        { acc with CollectorState = NotCollecting lastTokenAndRange }
+                    else
+                        { acc with
+                            CollectorState = CaptureBlockComment(lastTokenAndRange, startRange, true, sb.Append(")")) }
 
-                    let trivia =
-                        { Item = Comment(BlockComment(content, false, false))
-                          Range = Range.unionRanges startRange range }
+                | CaptureBlockComment (lastTokenAndRange, startRange, previousTokenWasStar, sb), _ ->
+                    let content = source.GetContentAt range
 
-                    triviaCollection.Add trivia
-                    NotCollecting lastTokenAndRange
-                else
-                    CaptureBlockComment(lastTokenAndRange, startRange, true, sb.Append(")"))
+                    { acc with
+                        CollectorState =
+                            CaptureBlockComment(lastTokenAndRange, startRange, previousTokenWasStar, sb.Append(content)) }
 
-            | CaptureBlockComment (lastTokenAndRange, startRange, previousTokenWasStar, sb), _ ->
-                let content = source.GetContentAt range
-                CaptureBlockComment(lastTokenAndRange, startRange, previousTokenWasStar, sb.Append(content))
+                // backslash before non back slash
+                | CaptureSingleQuoteString false, LEX_FAILURE "Unexpected character '\\'" ->
+                    { acc with CollectorState = CaptureSingleQuoteString true }
 
-            // backslash before non back slash
-            | CaptureSingleQuoteString false, LEX_FAILURE "Unexpected character '\\'" -> CaptureSingleQuoteString true
+                // backslash before non back slash in triple quote
+                | CaptureTripleQuoteString false, LEX_FAILURE "Unexpected character '\\'" ->
+                    { acc with CollectorState = CaptureTripleQuoteString true }
 
-            // backslash before non back slash in triple quote
-            | CaptureTripleQuoteString false, LEX_FAILURE "Unexpected character '\\'" -> CaptureTripleQuoteString true
+                // backslash before quote
+                | CaptureSingleQuoteString true, QuoteStringToken _ ->
+                    { acc with CollectorState = CaptureSingleQuoteString false }
 
-            // backslash before quote
-            | CaptureSingleQuoteString true, QuoteStringToken _ -> CaptureSingleQuoteString false
+                // backslash before triple quote
+                | CaptureTripleQuoteString true, QuoteStringToken LexerStringStyle.TripleQuote ->
+                    { acc with CollectorState = CaptureTripleQuoteString false }
 
-            // backslash before triple quote
-            | CaptureTripleQuoteString true, QuoteStringToken LexerStringStyle.TripleQuote ->
-                CaptureTripleQuoteString false
+                // End of single quote string
+                | CaptureSingleQuoteString _, QuoteStringToken LexerStringStyle.SingleQuote ->
+                    { acc with CollectorState = NotCollecting tokenAndRange }
 
-            // End of single quote string
-            | CaptureSingleQuoteString _, QuoteStringToken LexerStringStyle.SingleQuote -> NotCollecting tokenAndRange
+                // End of triple quoted string
+                | CaptureTripleQuoteString _, QuoteStringToken LexerStringStyle.TripleQuote ->
+                    { acc with CollectorState = NotCollecting tokenAndRange }
 
-            // End of triple quoted string
-            | CaptureTripleQuoteString _, QuoteStringToken LexerStringStyle.TripleQuote -> NotCollecting tokenAndRange
+                // End of verbatim string
+                | CaptureVerbatimString _, QuoteStringToken LexerStringStyle.SingleQuote ->
+                    { acc with CollectorState = NotCollecting tokenAndRange }
 
-            // End of verbatim string
-            | CaptureVerbatimString _, QuoteStringToken LexerStringStyle.SingleQuote -> NotCollecting tokenAndRange
+                // capture normal token as part of single quote string
+                | CaptureSingleQuoteString _, _token -> { acc with CollectorState = CaptureSingleQuoteString false }
 
-            // capture normal token as part of single quote string
-            | CaptureSingleQuoteString _, _token -> CaptureSingleQuoteString false
+                // capture normal token as part of triple quote string
+                | CaptureTripleQuoteString _, _token -> { acc with CollectorState = CaptureTripleQuoteString false }
 
-            // capture normal token as part of triple quote string
-            | CaptureTripleQuoteString _, _token -> CaptureTripleQuoteString false
+                | CaptureVerbatimString _, _token -> { acc with CollectorState = CaptureVerbatimString false }
 
-            | CaptureVerbatimString _, _token -> CaptureVerbatimString false
-
-            | _ -> acc)
-        (NotCollecting(OBLOCKBEGIN, Range.Zero))
+                | _ -> acc)
+        initialState
     |> ignore<TriviaBuilderState>
 
     { AssignedContentItself = assignedContentItself
