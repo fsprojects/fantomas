@@ -14,8 +14,15 @@ let private isNewline item =
     | Newline -> true
     | _ -> false
 
-let private getDefines (v: string) = []
-//    let sourceText = CodeFormatterImpl.getSourceText v
+let private getDefines (v: string) =
+    let sourceText = CodeFormatterImpl.getSourceText v
+
+    getDefineCombination sourceText
+    |> List.collect (function
+        | DefineCombination.NoDefines _ -> []
+        | DefineCombination.Defines defines -> defines)
+    |> List.distinct
+    |> List.sort
 //    let tokens = getTokensFromSource sourceText []
 //    getDefinesFromTokens tokens
 //
@@ -74,7 +81,7 @@ let x = 1
 """
 
     getDefines source
-    == [ "INTERACTIVE"; "FOO"; "BAR"; "BUZZ" ]
+    == [ "BAR"; "BUZZ"; "FOO"; "INTERACTIVE" ]
 
 [<Test>]
 let ``tokens from directive inside a directive are being added`` () =
@@ -87,7 +94,7 @@ let ``tokens from directive inside a directive are being added`` () =
 """
 
     let defines = getDefines source
-    defines == [ "FOO"; "BAR" ]
+    defines == [ "BAR"; "FOO" ]
 
 //    let tokens = TokenParser.tokenize [] hashTokens source
 //
@@ -729,7 +736,7 @@ let a = \"\"
 #endif
 "
 
-    getDefines source == [ "FOO"; "BAR" ]
+    getDefines source == [ "BAR"; "FOO" ]
 
 [<Test>]
 let ``open close of triple quote string on same line`` () =

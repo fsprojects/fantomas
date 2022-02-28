@@ -1319,9 +1319,11 @@ let private parseHashLine (content: string) : string list * string list =
             match t with
             | IDENT s -> Some s
             | BAR_BAR -> Some "||"
-            | AMP_AMP -> Some "&&"
+            | AMP_AMP
+            | ADJACENT_PREFIX_OP "&&" -> Some "&&"
             | LPAREN -> Some "("
-            | RPAREN -> Some ")"
+            | RPAREN
+            | RPAREN_IS_HERE -> Some ")"
             | PREFIX_OP _ -> Some "!"
             | _ -> None)
 
