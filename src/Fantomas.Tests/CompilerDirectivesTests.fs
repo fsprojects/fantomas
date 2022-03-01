@@ -172,6 +172,38 @@ let private assemblyConfig =
 #endif
 """
 
+[<Test>]
+let ``should handle nested compiler directives, DEBUG`` () =
+    formatSourceStringWithDefines
+        [ "DEBUG" ]
+        """
+let [<Literal>] private assemblyConfig =
+    #if DEBUG
+        ()
+    #else
+        #if TRACE
+            "TRACE"
+        #else
+            ""
+        #endif
+    #endif
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+[<Literal>]
+let private assemblyConfig =
+#if DEBUG
+    ()
+#else
+#if TRACE
+#else
+#endif
+#endif
+"""
+
 [<Test; Description("inactive code is not formatted correctly")>]
 let ``should break lines before compiler directives`` () =
     formatSourceString
@@ -221,7 +253,6 @@ let [<Literal>] private assemblyConfig() =
 [<Literal>]
 let private assemblyConfig () =
 #if TRACE
-
 #else
     let x = "x"
 #endif
@@ -359,6 +390,25 @@ let x = 1
     |> should
         equal
         """#if INTERACTIVE || (FOO && BAR) || BUZZ
+let x = 1
+#endif
+"""
+
+[<Test>]
+let ``should handle combined #if, INTERACTIVE`` () =
+    formatSourceStringWithDefines
+        [ "INTERACTIVE" ]
+        """
+#if INTERACTIVE || (FOO && BAR) || BUZZ
+let x = 1
+#endif
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+#if INTERACTIVE || (FOO && BAR) || BUZZ
 let x = 1
 #endif
 """
@@ -548,7 +598,6 @@ let ``some spacing is still lost in and around #if blocks, no defines`` () =
 let internal UpdateStrongNaming (assembly: AssemblyDefinition) (key: StrongNameKeyPair option) =
     let assemblyName = assembly.Name
 #if NETCOREAPP2_0
-
 #else
     match key with
     | None ->
@@ -598,8 +647,6 @@ let internal UpdateStrongNaming (assembly: AssemblyDefinition) (key: StrongNameK
 #if NETCOREAPP2_0
     do
 #else
-
-
 #endif
         assembly.MainModule.Attributes <- assembly.MainModule.Attributes &&& (~~~ModuleAttributes.StrongNameSigned)
         assemblyName.HasPublicKey <- false
@@ -607,8 +654,6 @@ let internal UpdateStrongNaming (assembly: AssemblyDefinition) (key: StrongNameK
         assemblyName.PublicKeyToken <- null
 #if NETCOREAPP2_0
 #else
-
-
 #endif
 """
 
@@ -679,8 +724,6 @@ type FunctionComponent =
                 (createObj [ "fallback" ==> fallback ])
                 [ ReactElementType.create elemType props [] ]
 #else
-
-
 #endif
 #endif
 
@@ -737,24 +780,8 @@ type LazyFunctionComponent<'Props> = 'Props -> ReactElement
 
 type FunctionComponent =
 #if !FABLE_REPL_LIB
-
-
-
-
-
-
 #if FABLE_COMPILER
-
-
-
-
-
-
-
-
 #else
-
-
 #endif
 #endif
 
@@ -816,14 +843,6 @@ type FunctionComponent =
     /// directly to the argument position (avoid pipes)
     static member inline Lazy(f: 'Props -> ReactElement, fallback: ReactElement) : LazyFunctionComponent<'Props> =
 #if FABLE_COMPILER
-
-
-
-
-
-
-
-
 #else
         fun _ -> div [] [] // React.lazy is not compatible with SSR, so just use an empty div
 #endif
@@ -960,7 +979,6 @@ let ``module with nested directives, no defines`` () =
         equal
         """module ReactDomBindings =
 #if FABLE_REPL_LIB
-
 #else
     [<Import("*", "react-dom")>]
 #endif
@@ -995,13 +1013,10 @@ let ``module with nested directives, FABLE_REPL_LIB`` () =
 #if FABLE_REPL_LIB
     [<Global("ReactDOM")>]
 #else
-
 #endif
     let ReactDom: IReactDom = jsNative
 
 #if !FABLE_REPL_LIB
-
-
 #endif
 """
 
@@ -1069,7 +1084,6 @@ let foo = 42
         equal
         """
 #if SOMETHING
-
 #endif
 """
 
@@ -1153,8 +1167,6 @@ open System.Runtime.InteropServices
 
 [<assembly: InternalsVisibleTo("AltCover.FSApi, PublicKey=0024000004800000940000000602000000240000525341310004000001000100916443A2EE1D294E8CFA7666FB3F512D998D7CEAC4909E35EDB2AC1E104DE68890A93716D1D1931F7228AAC0523CACF50FD82CDB4CCF4FF4BF0DED95E3A383F4F371E3B82C45502CE74D7D572583495208C1905E0F1E8A3CCE66C4C75E4CA32E9A8F8DEE64E059C0DC0266E8D2CB6D7EBD464B47E062F80B63D390E389217FB7")>]
 #if NETCOREAPP2_0
-
-
 #endif
 [<assembly: CLSCompliant(true)>]
 [<assembly: ComVisible(false)>]
@@ -1180,7 +1192,6 @@ do  ()
         """
 [<assembly: Foo>]
 #if BAR
-
 #endif
 [<assembly: Meh>]
 do ()
@@ -1380,7 +1391,6 @@ let foo =
     [ 1 ]
     |> List.sort
 #if DEBUG
-
 #endif
     |> List.sort
 """
@@ -1506,7 +1516,6 @@ namespace AltCover.Recorder
 open System
 
 #if NET2
-
 #else
 [<System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage>]
 #endif
@@ -1548,7 +1557,6 @@ open System
 #if NET2
 [<ProgIdAttribute("ExcludeFromCodeCoverage hack for OpenCover issue 615")>]
 #else
-
 #endif
 type internal Close =
   | DomainUnload
@@ -1596,22 +1604,6 @@ module Dbg =
 namespace global
 
 #if DEBUG
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 #else
 module Dbg =
     let tee (f: 'a -> unit) (x: 'a) = x
@@ -1675,10 +1667,6 @@ module Dbg =
     let teePrint x = tee (printfn "%A") x
     let print x = printfn "%A" x
 #else
-
-
-
-
 #endif
 """
 
@@ -1906,7 +1894,6 @@ let config =
       theme_variant = Some "red"
       root_url =
 #if WATCH
-
 #else
         "https://fsprojects.github.io/fantomas/"
 #endif
@@ -1943,7 +1930,6 @@ let config =
 #if WATCH
         "http://localhost:8080/"
 #else
-
 #endif
     }
 """
@@ -2011,7 +1997,6 @@ let ``compiler defines around parameter type definition, no defines`` () =
 let UpdateUI
     (theModel:
 #if NETCOREAPP2_1
-
 #else
                TreeModel
 #endif
@@ -2160,7 +2145,6 @@ let ``empty module with trivia, FAKE`` () =
 // This file is automatically generated by FAKE
 // This file is needed for IDE support only
 #if !FAKE
-
 #endif
 """
 
@@ -2392,7 +2376,6 @@ let x =
         """
 let x =
 #if DEBUG
-
 #endif
     ()
 """
@@ -2414,34 +2397,32 @@ let ``hash if and hash else should be one trivia`` () =
         equal
         """
 #if FOO
-
 #else
 ()
 #endif
 """
 
 [<Test>]
-let ``hash nested`` () =
+let ``hash nested in multiline string`` () =
     formatSourceStringWithDefines
         []
-        """
+        "
 #if FOO
     \"\"\"
     #if BAR
-                printfn "FOO"
+                printfn \"FOO\"
     #endif
     \"\"\"
 #else
                 ()
 #endif
-"""
+"
         config
     |> prepend newline
     |> should
         equal
         """
 #if FOO
-
 #else
 ()
 #endif
@@ -2777,5 +2758,74 @@ type UnresolvedAssemblyReference = UnresolvedAssemblyReference of string * Assem
 #if !NO_EXTENSIONTYPING
 type ResolvedExtensionReference =
     | ResolvedExtensionReference of string * AssemblyReference list * Tainted<ITypeProvider> list
+#endif
+"""
+
+[<Test>]
+let ``nested defines, all active code`` () =
+    formatSourceStringWithDefines
+        [ "FOO"; "BAR" ]
+        """
+#if FOO
+    #if BAR
+        ()
+    #endif
+#endif
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+#if FOO
+#if BAR
+()
+#endif
+#endif
+"""
+
+[<Test>]
+let ``nested defines, all dead code`` () =
+    formatSourceStringWithDefines
+        [ "BAR" ]
+        """
+#if FOO
+    #if BAR
+        ()
+    #endif
+#endif
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+#if FOO
+#if BAR
+#endif
+#endif
+"""
+
+[<Test>]
+let ``dead code in active block`` () =
+    formatSourceStringWithDefines
+        [ "FOO" ]
+        """
+#if FOO
+    #if BAR
+        a
+    #endif
+    b
+#endif
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+#if FOO
+#if BAR
+#endif
+b
 #endif
 """

@@ -72,7 +72,7 @@ let formatSourceStringWithDefines defines (s: string) config =
                 Array.filter
                     (fun (_, d) ->
                         match d with
-                        | DefineCombination.Defines d -> d = defines
+                        | DefineCombination.Defines d -> (List.sort d) = (List.sort defines)
                         | _ -> false)
                     asts
                 |> Array.head

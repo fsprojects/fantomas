@@ -240,10 +240,8 @@ module BoolExpr =
         let rec visit (expr: BoolExpr) (continuation: bool -> bool) : bool =
             match expr with
             | BoolExpr.Not e -> visit e (not >> continuation)
-            | BoolExpr.And (e1, e2) -> visit e1 (fun r1 -> visit e2 (fun r2 -> r1 && r2 |> continuation))
-            | BoolExpr.Or (e1, e2) -> visit e1 (fun r1 -> visit e2 (fun r2 -> r1 || r2 |> continuation))
-            | BoolExpr.Ident "TRUE" -> continuation true
-            | BoolExpr.Ident "FALSE" -> continuation false
+            | BoolExpr.And (e1, e2) -> visit e1 (fun r1 -> visit e2 (fun r2 -> (r1 && r2) |> continuation))
+            | BoolExpr.Or (e1, e2) -> visit e1 (fun r1 -> visit e2 (fun r2 -> (r1 || r2) |> continuation))
             | BoolExpr.Ident s -> defines.Contains s |> continuation
 
         visit expr id

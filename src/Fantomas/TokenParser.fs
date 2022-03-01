@@ -1211,12 +1211,21 @@ type TriviaCollectorState =
     | CaptureTripleQuoteString of lastTokenWasBackSlash: bool
     | CaptureVerbatimString of lastTokenWasBackSlash: bool
 
-and ActiveCodeState =
-    | HashIf of range: range * content: string * active: bool
-    | HashElse of range: range * content: string * active: bool
+[<RequireQualifiedAccess>]
+type ConditionalCodeTree =
+    | TopLevel
+    | Nested of currentNode: ConditionalCodeNode
+    | NestedAndDead of deadNode: ConditionalCodeNode * hashLines: string list * endIfLevel: int
 
-and TriviaBuilderState =
-    { CodePath: ActiveCodeState list
+and ConditionalCodeNode =
+    { IsActive: bool
+      Parent: ConditionalCodeTree
+      IfCondition: string
+      StartRange: range
+      Else: range option }
+
+type TriviaBuilderState =
+    { CodePath: ConditionalCodeTree
       CollectorState: TriviaCollectorState }
 
 let private createLineComment afterSourceCode startRange range sb =
@@ -1325,6 +1334,8 @@ let private parseHashLine (content: string) : string list * string list =
             | RPAREN
             | RPAREN_IS_HERE -> Some ")"
             | PREFIX_OP _ -> Some "!"
+            | TRUE -> Some "true"
+            | FALSE -> Some "false"
             | _ -> None)
 
     let words =
@@ -1576,20 +1587,15 @@ let getTriviaFromTokens
         (endRange: range)
         (endContent: string)
         : Trivia =
-        let lines = endRange.StartLine - startRange.StartLine - 1
         let range = Range.mkRange startRange.FileName startRange.Start endRange.End
 
-        let directiveContent =
-            [ yield startContent
-              yield! List.init lines (fun _ -> String.Empty)
-              yield endContent ]
-            |> String.concat "\n"
+        let directiveContent = String.Concat(startContent, "\n", endContent)
 
         { Item = Directive directiveContent
           Range = range }
 
     let initialState: TriviaBuilderState =
-        { CodePath = []
+        { CodePath = ConditionalCodeTree.TopLevel
           CollectorState = NotCollecting(OBLOCKBEGIN, Range.Zero) }
 
     tokens
@@ -1601,23 +1607,50 @@ let getTriviaFromTokens
             let token, range = tokenAndRange
 
             match acc.CollectorState, acc.CodePath, token with
+            // New level of conditional code
             | TriviaCollectorState.NotCollecting _, currentCodePath, HASH_IF (_, content, _) ->
+                let content = content.TrimStart()
+
                 let isActiveCode =
-                    let expr =
-                        parseHashLine content
-                        |> fst
-                        |> BoolExprParser.parse
+                    match currentCodePath with
+                    // If we are currently inside dead code, the new code can never be active
+                    | ConditionalCodeTree.Nested { IsActive = false } -> false
+                    | _ ->
+                        let expr =
+                            parseHashLine content
+                            |> fst
+                            |> BoolExprParser.parse
 
-                    let defines =
-                        match defineCombination with
-                        | DefineCombination.NoDefines _ -> []
-                        | DefineCombination.Defines defines -> defines
+                        let defines =
+                            match defineCombination with
+                            | DefineCombination.NoDefines _ -> []
+                            | DefineCombination.Defines defines -> defines
 
-                    match expr with
-                    | None -> failwithf $"Could not solve expression %s{content} for defines %A{defineCombination}"
-                    | Some expr -> BoolExpr.solveExprForDefines expr defines
+                        match expr with
+                        | None -> failwithf $"Could not solve expression %s{content} for defines %A{defineCombination}"
+                        | Some expr -> BoolExpr.solveExprForDefines expr defines
 
-                let nextPath = ActiveCodeState.HashIf(range, content, isActiveCode)
+                let nextCodePath =
+                    match currentCodePath with
+                    | ConditionalCodeTree.TopLevel ->
+                        ConditionalCodeTree.Nested
+                            { IsActive = isActiveCode
+                              Parent = ConditionalCodeTree.TopLevel
+                              IfCondition = content
+                              StartRange = range
+                              Else = None }
+
+                    | ConditionalCodeTree.Nested { IsActive = true } ->
+                        ConditionalCodeTree.Nested
+                            { IsActive = isActiveCode
+                              IfCondition = content
+                              StartRange = range
+                              Else = None
+                              Parent = currentCodePath }
+                    | ConditionalCodeTree.Nested ({ IsActive = false } as current) ->
+                        ConditionalCodeTree.NestedAndDead(current, [ content ], 1)
+                    | ConditionalCodeTree.NestedAndDead (current, hashLines, endIfLevel) ->
+                        ConditionalCodeTree.NestedAndDead(current, content :: hashLines, endIfLevel + 1)
 
                 // Only add a directive trivia when the following code is active
                 // dead code is capture after the `#else` or `#endif`
@@ -1630,34 +1663,66 @@ let getTriviaFromTokens
 
                 { acc with
                     CollectorState = NotCollecting tokenAndRange
-                    CodePath = nextPath :: currentCodePath }
+                    CodePath = nextCodePath }
 
-            | TriviaCollectorState.NotCollecting _,
-              ActiveCodeState.HashIf (hashIfRange, content, active) :: rest,
-              HASH_ELSE _ ->
-                if not active then
-                    // Add dead code
-                    let trivia = creatDeadCodeDirective hashIfRange content range "#else"
+            // Visiting other branch of conditional code
+            | TriviaCollectorState.NotCollecting _, ConditionalCodeTree.Nested node, HASH_ELSE _ ->
+                if not node.IsActive then
+                    // Add dead code, next branch will be active
+                    let trivia = creatDeadCodeDirective node.StartRange node.IfCondition range "#else"
                     triviaCollection.Add trivia
 
-                // either we just walked over some dead code of we didn't
                 let codePath =
-                    ActiveCodeState.HashElse(range, "#else", not active)
-                    :: rest
+                    // either we just walked over some dead code of we didn't
+                    // swap the code path
+                    ConditionalCodeTree.Nested
+                        { node with
+                            Else = Some range
+                            IsActive = not node.IsActive }
 
                 { acc with
                     CollectorState = NotCollecting tokenAndRange
                     CodePath = codePath }
 
+            // capture #else in dead code
             | TriviaCollectorState.NotCollecting _,
-              ActiveCodeState.HashIf (active = active; content = content; range = hashIfRange) :: rest,
-              HASH_ENDIF _
-            | TriviaCollectorState.NotCollecting _,
-              ActiveCodeState.HashElse (active = active; content = content; range = hashIfRange) :: rest,
-              HASH_ENDIF _ ->
-                if not active then
+              ConditionalCodeTree.NestedAndDead (node, hashLines, endIfLevel),
+              HASH_ELSE _ ->
+                if endIfLevel = 0 then
+                    // #else closed the `node`
+                    let content =
+                        [ yield node.IfCondition
+                          yield! (List.rev hashLines)
+                          yield "#else" ]
+                        |> String.concat "\n"
+
+                    let range = Range.mkRange node.StartRange.FileName node.StartRange.Start range.End
+
+                    let trivia =
+                        { Item = Directive content
+                          Range = range }
+
+                    triviaCollection.Add trivia
+
+                    { acc with
+                        CollectorState = NotCollecting tokenAndRange
+                        CodePath = ConditionalCodeTree.Nested({ node with IsActive = not node.IsActive }) }
+                else
+                    // #else as part of nested and dead code
+                    { acc with
+                        CollectorState = NotCollecting tokenAndRange
+                        CodePath = ConditionalCodeTree.NestedAndDead(node, "#else" :: hashLines, endIfLevel) }
+
+            // Ending current branch of conditional code
+            | TriviaCollectorState.NotCollecting _, ConditionalCodeTree.Nested node, HASH_ENDIF _ ->
+                if not node.IsActive then
                     // Add dead code
-                    let trivia = creatDeadCodeDirective hashIfRange content range "#endif"
+                    let startRange, startContent =
+                        match node.Else with
+                        | None -> node.StartRange, node.IfCondition
+                        | Some elseRange -> elseRange, "#else"
+
+                    let trivia = creatDeadCodeDirective startRange startContent range "#endif"
                     triviaCollection.Add trivia
                 else
                     let hashEndIf =
@@ -1669,13 +1734,64 @@ let getTriviaFromTokens
                 { acc with
                     CollectorState = NotCollecting tokenAndRange
                     // pop the current code path
-                    CodePath = rest }
+                    CodePath = node.Parent }
 
-            | TriviaCollectorState.NotCollecting _, ActiveCodeState.HashIf(active = false) :: _, _
-            | TriviaCollectorState.NotCollecting _, ActiveCodeState.HashElse(active = false) :: _, _ ->
-                // walking over dead code
+            // Ending some branch in dead code
+            | TriviaCollectorState.NotCollecting _,
+              ConditionalCodeTree.NestedAndDead (node, hashLines, endIfLevel),
+              HASH_ENDIF _ ->
+                if endIfLevel = 0 then
+                    // Close of the original dead code
+                    let startRange, startContent =
+                        match node.Else with
+                        | Some elseRange when not node.IsActive -> elseRange, "#else"
+                        | _ -> node.StartRange, node.IfCondition
+
+                    let content =
+                        [ yield startContent
+                          yield! (List.rev hashLines)
+                          yield "#endif" ]
+                        |> String.concat "\n"
+
+                    let range = Range.mkRange node.StartRange.FileName startRange.Start range.End
+
+                    let trivia =
+                        { Item = Directive content
+                          Range = range }
+
+                    triviaCollection.Add trivia
+
+                    { acc with
+                        CollectorState = NotCollecting tokenAndRange
+                        CodePath = node.Parent }
+                else
+                    { acc with
+                        CollectorState = NotCollecting tokenAndRange
+                        CodePath = ConditionalCodeTree.NestedAndDead(node, "#endif" :: hashLines, endIfLevel - 1) }
+
+
+            // Respect string content in dead code, this should not yield any hash lines
+            | TriviaCollectorState.NotCollecting _,
+              ConditionalCodeTree.Nested { IsActive = false },
+              QuoteStringToken LexerStringStyle.TripleQuote
+            | TriviaCollectorState.NotCollecting _,
+              ConditionalCodeTree.NestedAndDead _,
+              QuoteStringToken LexerStringStyle.TripleQuote ->
+                { acc with CollectorState = CaptureTripleQuoteString false }
+
+            // Close string content in dead code
+            | TriviaCollectorState.CaptureTripleQuoteString _,
+              ConditionalCodeTree.Nested { IsActive = false },
+              QuoteStringToken LexerStringStyle.TripleQuote
+            | TriviaCollectorState.CaptureTripleQuoteString _,
+              ConditionalCodeTree.NestedAndDead _,
+              QuoteStringToken LexerStringStyle.TripleQuote ->
+                { acc with CollectorState = TriviaCollectorState.NotCollecting tokenAndRange }
+
+            // Ignoring dead code
+            | TriviaCollectorState.NotCollecting _, ConditionalCodeTree.Nested { IsActive = false }, _
+            | TriviaCollectorState.NotCollecting _, ConditionalCodeTree.NestedAndDead _, _ -> //
                 acc
-
             | _ ->
                 // Normal trivia collection code flow
                 match acc.CollectorState, token with

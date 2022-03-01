@@ -327,7 +327,6 @@ let ``different attributes according to defines, no defines`` () =
         """
 [<
 #if NETCOREAPP2_1
-
 #else
   Widget;
 #endif
@@ -356,7 +355,6 @@ let ``different attributes according to defines, NETCOREAPP2_1`` () =
 #if NETCOREAPP2_1
   Builder.Object;
 #else
-
 #endif
   DefaultValue(true)>]
 let foo = ()
