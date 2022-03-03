@@ -11,13 +11,7 @@ type CodeFormatter =
                 CodeFormatterImpl.getSourceText source
                 |> CodeFormatterImpl.parse isSignature
 
-            return
-                Array.map
-                    (fun (a, d) ->
-                        match d with
-                        | DefineCombination.NoDefines _ -> (a, [])
-                        | DefineCombination.Defines defines -> (a, defines))
-                    asts
+            return Array.map (fun (a, d: DefineCombination) -> a, d.DefineList) asts
         }
 
     static member FormatASTAsync(ast: ParsedInput, defines: string list, source, config) : Async<string> =

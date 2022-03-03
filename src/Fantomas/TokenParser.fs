@@ -1205,6 +1205,9 @@ type TriviaCollectorState =
     | CaptureBlockComment of
         lastTokenAndRange: TokenAndRange *
         startRange: range *
+        /// Edge case, we need to keep track of nested block comments.
+        /// We don't necessarily consider a comment closed from the first *)
+        level: int *
         previousTokenWasStar: bool *
         collector: StringBuilder
     | CaptureSingleQuoteString of lastTokenWasBackSlash: bool
@@ -1376,7 +1379,7 @@ let private getDefinesFromTokens (tokens: TokenWithRangeList) : HashLine list =
             CaptureLineComment(lastTokenAndRange, false, range, range, StringBuilder())
 
         | NotCollecting lastTokenAndRange, BlockCommentOpeningCommentToken _ ->
-            CaptureBlockComment(lastTokenAndRange, range, false, StringBuilder())
+            CaptureBlockComment(lastTokenAndRange, range, 0, false, StringBuilder())
 
         | NotCollecting _, QuoteStringToken style ->
             match style with
@@ -1395,17 +1398,22 @@ let private getDefinesFromTokens (tokens: TokenWithRangeList) : HashLine list =
 
         | CaptureLineComment (lastTokenAndRange, _, _, _, _), _ -> NotCollecting lastTokenAndRange
 
-        | CaptureBlockComment (lastTokenAndRange, startRange, _, sb), STAR ->
-            CaptureBlockComment(lastTokenAndRange, startRange, true, sb)
+        | CaptureBlockComment (lastTokenAndRange, startRange, level, _, sb), BlockCommentOpeningCommentToken _ ->
+            CaptureBlockComment(lastTokenAndRange, startRange, level + 1, false, sb)
 
-        | CaptureBlockComment (lastTokenAndRange, startRange, previousTokenWasStar, sb), RPAREN_IS_HERE ->
-            if previousTokenWasStar then
+        | CaptureBlockComment (lastTokenAndRange, startRange, level, _, sb), STAR ->
+            CaptureBlockComment(lastTokenAndRange, startRange, level, true, sb)
+
+        | CaptureBlockComment (lastTokenAndRange, startRange, level, previousTokenWasStar, sb), RPAREN_IS_HERE ->
+            if previousTokenWasStar && level = 0 then
                 NotCollecting lastTokenAndRange
+            elif previousTokenWasStar then
+                CaptureBlockComment(lastTokenAndRange, startRange, level - 1, false, sb)
             else
-                CaptureBlockComment(lastTokenAndRange, startRange, true, sb)
+                CaptureBlockComment(lastTokenAndRange, startRange, level, false, sb)
 
-        | CaptureBlockComment (lastTokenAndRange, startRange, previousTokenWasStar, sb), _ ->
-            CaptureBlockComment(lastTokenAndRange, startRange, previousTokenWasStar, sb)
+        | CaptureBlockComment (lastTokenAndRange, startRange, level, previousTokenWasStar, sb), _ ->
+            CaptureBlockComment(lastTokenAndRange, startRange, level, previousTokenWasStar, sb)
 
         // backslash before non back slash
         | CaptureSingleQuoteString false, LEX_FAILURE "Unexpected character '\\'" -> CaptureSingleQuoteString true
@@ -1769,7 +1777,6 @@ let getTriviaFromTokens
                         CollectorState = NotCollecting tokenAndRange
                         CodePath = ConditionalCodeTree.NestedAndDead(node, "#endif" :: hashLines, endIfLevel - 1) }
 
-
             // Respect string content in dead code, this should not yield any hash lines
             | TriviaCollectorState.NotCollecting _,
               ConditionalCodeTree.Nested { IsActive = false },
@@ -1815,7 +1822,7 @@ let getTriviaFromTokens
 
                 | NotCollecting lastTokenAndRange, BlockCommentOpeningCommentToken opener ->
                     let sb = StringBuilder(opener)
-                    { acc with CollectorState = CaptureBlockComment(lastTokenAndRange, range, false, sb) }
+                    { acc with CollectorState = CaptureBlockComment(lastTokenAndRange, range, 0, false, sb) }
 
                 | NotCollecting _, QuoteStringToken style ->
                     match style with
@@ -1892,11 +1899,17 @@ let getTriviaFromTokens
                     triviaCollection.Add trivia
                     { acc with CollectorState = NotCollecting lastTokenAndRange }
 
-                | CaptureBlockComment (lastTokenAndRange, startRange, _, sb), STAR ->
-                    { acc with CollectorState = CaptureBlockComment(lastTokenAndRange, startRange, true, sb.Append("*")) }
+                | CaptureBlockComment (lastTokenAndRange, startRange, level, _, sb), BlockCommentOpeningCommentToken bc ->
+                    { acc with
+                        CollectorState =
+                            CaptureBlockComment(lastTokenAndRange, startRange, level + 1, false, sb.Append(bc)) }
 
-                | CaptureBlockComment (lastTokenAndRange, startRange, previousTokenWasStar, sb), RPAREN_IS_HERE ->
-                    if previousTokenWasStar then
+                | CaptureBlockComment (lastTokenAndRange, startRange, level, _, sb), STAR ->
+                    { acc with
+                        CollectorState = CaptureBlockComment(lastTokenAndRange, startRange, level, true, sb.Append("*")) }
+
+                | CaptureBlockComment (lastTokenAndRange, startRange, level, previousTokenWasStar, sb), RPAREN_IS_HERE ->
+                    if previousTokenWasStar && level = 0 then
                         // End of block comment *)
                         let content = sb.Append(")").ToString()
 
@@ -1906,16 +1919,27 @@ let getTriviaFromTokens
 
                         triviaCollection.Add trivia
                         { acc with CollectorState = NotCollecting lastTokenAndRange }
+                    elif previousTokenWasStar then
+                        { acc with
+                            CollectorState =
+                                CaptureBlockComment(lastTokenAndRange, startRange, level - 1, true, sb.Append(")")) }
                     else
                         { acc with
-                            CollectorState = CaptureBlockComment(lastTokenAndRange, startRange, true, sb.Append(")")) }
+                            CollectorState =
+                                CaptureBlockComment(lastTokenAndRange, startRange, level, true, sb.Append(")")) }
 
-                | CaptureBlockComment (lastTokenAndRange, startRange, previousTokenWasStar, sb), _ ->
+                | CaptureBlockComment (lastTokenAndRange, startRange, level, previousTokenWasStar, sb), _ ->
                     let content = source.GetContentAt range
 
                     { acc with
                         CollectorState =
-                            CaptureBlockComment(lastTokenAndRange, startRange, previousTokenWasStar, sb.Append(content)) }
+                            CaptureBlockComment(
+                                lastTokenAndRange,
+                                startRange,
+                                level,
+                                previousTokenWasStar,
+                                sb.Append(content)
+                            ) }
 
                 // backslash before non back slash
                 | CaptureSingleQuoteString false, LEX_FAILURE "Unexpected character '\\'" ->

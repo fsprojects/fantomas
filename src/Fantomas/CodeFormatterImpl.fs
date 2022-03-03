@@ -48,10 +48,7 @@ let parse (isSignature: bool) (source: ISourceText) : Async<(ParsedInput * Defin
     defineCombinations
     |> List.map (fun defineCombination ->
         async {
-            let defines =
-                match defineCombination with
-                | DefineCombination.NoDefines _ -> []
-                | DefineCombination.Defines defines -> defines
+            let defines = defineCombination.DefineList
 
             let untypedTree, diagnostics =
                 Fantomas.FCS.Parse.parseFile isSignature source defines
@@ -346,10 +343,7 @@ let format (config: FormatConfig) (isSignature: bool) (source: ISourceText) : As
             | all ->
                 let allInFragments =
                     all
-                    |> List.map (fun (dc, code) ->
-                        match dc with
-                        | DefineCombination.NoDefines _ -> ([], code)
-                        | DefineCombination.Defines defines -> (defines, code))
+                    |> List.map (fun (dc, code) -> dc.DefineList, code)
                     |> String.splitInFragments config.EndOfLine.NewLineString
 
                 let allHaveSameFragmentCount =

@@ -21,6 +21,10 @@ type TokenWithRangeList = (token * range) list
 type DefineCombination =
     | NoDefines of existingTokens: TokenWithRangeList
     | Defines of defines: string list
+    member this.DefineList: string list =
+        match this with
+        | NoDefines _ -> []
+        | Defines defines -> defines
 
 type Comment =
     | LineCommentAfterSourceCode of comment: string
