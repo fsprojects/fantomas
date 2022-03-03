@@ -196,10 +196,16 @@ type internal Context =
           TriviaMainNodes = Map.empty
           FileName = String.Empty }
 
-    static member Create config (source: ISourceText option) (defineCombination: DefineCombination) (ast: ParsedInput) =
+    static member Create
+        config
+        (sourceAndTokens: (ISourceText * TokenWithRangeList) option)
+        (defineCombination: DefineCombination)
+        (ast: ParsedInput)
+        =
         let trivia =
-            match source with
-            | Some source when not config.StrictMode -> Trivia.collectTrivia source defineCombination ast
+            match sourceAndTokens with
+            | Some (source, tokens) when not config.StrictMode ->
+                Trivia.collectTrivia source tokens defineCombination ast
             | _ -> []
 
         let triviaByNodes =

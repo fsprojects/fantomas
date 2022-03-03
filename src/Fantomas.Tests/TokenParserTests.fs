@@ -11,18 +11,16 @@ let private getDefines (v: string) =
     let sourceText = CodeFormatterImpl.getSourceText v
 
     getDefineCombination sourceText
-    |> List.collect (function
-        | DefineCombination.NoDefines _ -> []
-        | DefineCombination.Defines defines -> defines)
+    |> snd
+    |> List.collect id
     |> List.distinct
     |> List.sort
 
 let private getTriviaFromTokens text =
     let source = CodeFormatterImpl.getSourceText text
-    //let tokens = getTokensFromSource source []
-    let defineCombination = getDefineCombination source |> List.head
+    let tokens, _ = getDefineCombination source
 
-    getTriviaFromTokens source [] defineCombination
+    getTriviaFromTokens source tokens [] []
     |> fun { Trivia = trivia } -> trivia
 
 [<Test>]

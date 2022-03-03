@@ -330,7 +330,12 @@ let private transformNonEmptyNodes (nodes: TriviaNodeAssigner list) : TriviaNode
     3. Merge trivias with triviaNodes
     4. genTrivia should use ranges to identify what extra content should be added from what triviaNode
 *)
-let collectTrivia (source: ISourceText) (defineCombination: DefineCombination) (ast: ParsedInput) : TriviaNode list =
+let collectTrivia
+    (source: ISourceText)
+    (tokens: TokenWithRangeList)
+    (defineCombination: DefineCombination)
+    (ast: ParsedInput)
+    : TriviaNode list =
     let triviaNodesFromAST =
         match ast with
         | ParsedInput.ImplFile (ParsedImplFileInput.ParsedImplFileInput (_, _, _, _, hds, mns, _)) -> astToNode hds mns
@@ -343,7 +348,7 @@ let collectTrivia (source: ISourceText) (defineCombination: DefineCombination) (
 
     // At this point TriviaContent.StringContent has been assigned to the correct string nodes
     let triviaCollectionResult =
-        TokenParser.getTriviaFromTokens source triviaNodes defineCombination
+        TokenParser.getTriviaFromTokens source tokens triviaNodes defineCombination
 
     let startOfSourceCode = 1
     //        match tokens with

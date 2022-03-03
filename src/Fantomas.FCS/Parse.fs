@@ -3,10 +3,8 @@ module internal Fantomas.FCS.Parse
 open System
 open Internal.Utilities
 open Internal.Utilities.Library
-open Internal.Utilities.Text.Parsing
 open FSharp.Compiler
 open FSharp.Compiler.AbstractIL.IL
-open FSharp.Compiler.Diagnostics
 open FSharp.Compiler.ErrorLogger
 open FSharp.Compiler.Features
 open FSharp.Compiler.Lexhelp
@@ -60,11 +58,13 @@ let ComputeAnonModuleName check defaultNamespace filename (m: range) =
 
     pathToSynLid anonymousModuleNameRange (splitNamespace combined)
 
-let IsScript filename = false
-//    let lower = String.lowercase filename
-//    FSharpScriptFileSuffixes |> List.exists (FileSystemUtils.checkSuffix lower)
+let IsScript filename =
+    let lower = String.lowercase filename
 
-let PostParseModuleImpl (_i, defaultNamespace, isLastCompiland, filename, impl) =
+    FSharpScriptFileSuffixes
+    |> List.exists (FileSystemUtils.checkSuffix lower)
+
+let PostParseModuleImpl (_i, defaultNamespace, _isLastCompiland, filename, impl) =
     match impl with
     | ParsedImplFileFragment.NamedModule (SynModuleOrNamespace (lid, isRec, kind, decls, xmlDoc, attribs, access, m)) ->
         let lid =
@@ -182,7 +182,7 @@ let PostParseModuleImpls (defaultNamespace, filename, isLastCompiland, ParsedImp
         ParsedImplFileInput(filename, isScript, qualName, scopedPragmas, hashDirectives, impls, isLastCompiland)
     )
 
-let PostParseModuleSpec (_i, defaultNamespace, isLastCompiland, filename, intf) =
+let PostParseModuleSpec (_i, defaultNamespace, _isLastCompiland, filename, intf) =
     match intf with
     | ParsedSigFileFragment.NamedModule (SynModuleOrNamespaceSig (lid, isRec, kind, decls, xmlDoc, attribs, access, m)) ->
         let lid =
@@ -249,7 +249,6 @@ let PostParseModuleSpecs (defaultNamespace, filename, isLastCompiland, ParsedSig
 let ParseInput
     (
         lexer,
-        diagnosticOptions: FSharpDiagnosticOptions,
         errorLogger: ErrorLogger,
         lexbuf: UnicodeLexing.Lexbuf,
         defaultNamespace,
@@ -381,15 +380,7 @@ let parseFile (isSignature: bool) (sourceText: ISourceText) (defines: string lis
             let isExe = false
 
             try
-                ParseInput(
-                    lexfun,
-                    FSharpDiagnosticOptions.Default,
-                    errorLogger,
-                    lexbuf,
-                    None,
-                    fileName,
-                    (isLastCompiland, isExe)
-                )
+                ParseInput(lexfun, errorLogger, lexbuf, None, fileName, (isLastCompiland, isExe))
             with
             | e ->
                 errorLogger.StopProcessingRecovery e range0 // don't re-raise any exceptions, we must return None.

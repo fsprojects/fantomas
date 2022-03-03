@@ -1191,8 +1191,6 @@ let private (|QuoteStringToken|_|) token =
     | STRING_TEXT (LexerContinuation.String (style = style)) -> Some style
     | _ -> None
 
-type TokenAndRange = token * range
-
 [<NoEquality; NoComparison>]
 type TriviaCollectorState =
     | NotCollecting of lastTokenAndRange: TokenAndRange
@@ -1537,7 +1535,7 @@ let private getOptimizedDefinesSets (hashTokens: HashLine list) =
     | [] -> [ [] ]
     | xs -> xs
 
-let getDefineCombination (source: ISourceText) : DefineCombination list =
+let getDefineCombination (source: ISourceText) : TokenWithRangeList * DefineCombination list =
     let tokens = getTokensFromSource source []
 
     // List.iter (printfn "%A") tokens
@@ -1550,23 +1548,15 @@ let getDefineCombination (source: ISourceText) : DefineCombination list =
           yield! getIndividualDefine hashTokens ]
         |> List.distinct
 
-    match defineCombinations with
-    | [ [] ] -> [ DefineCombination.NoDefines tokens ]
-    | combinations -> List.map DefineCombination.Defines combinations
+    tokens, defineCombinations
 
 let getTriviaFromTokens
     (source: ISourceText)
+    (tokens: TokenWithRangeList)
     (nodes: TriviaNodeAssigner list)
     (defineCombination: DefineCombination)
     : TriviaCollectionResult =
     let mutable triviaCollection = ListCollector<Trivia>()
-
-    // In case there are no defines in the source file, we can re-use the tokens we used to detect the defines.
-    let tokens =
-        match defineCombination with
-        | DefineCombination.NoDefines tokens -> tokens
-        | DefineCombination.Defines defines -> getTokensFromSource source defines
-
     let mutable assignedContentItself = false
 
     let triviaFromSourceCaptured =
@@ -1629,14 +1619,9 @@ let getTriviaFromTokens
                             |> fst
                             |> BoolExprParser.parse
 
-                        let defines =
-                            match defineCombination with
-                            | DefineCombination.NoDefines _ -> []
-                            | DefineCombination.Defines defines -> defines
-
                         match expr with
                         | None -> failwithf $"Could not solve expression %s{content} for defines %A{defineCombination}"
-                        | Some expr -> BoolExpr.solveExprForDefines expr defines
+                        | Some expr -> BoolExpr.solveExprForDefines expr defineCombination
 
                 let nextCodePath =
                     match currentCodePath with

@@ -8,20 +8,18 @@ open Fantomas.TriviaTypes
 let private toTrivia source =
     let sourceText = CodeFormatterImpl.getSourceText source
 
-    let defineCombination =
-        TokenParser.getDefineCombination sourceText
-        |> List.head
+    let tokens, _ = TokenParser.getDefineCombination sourceText
 
     let ast, _ = Fantomas.FCS.Parse.parseFile false sourceText []
-    Trivia.collectTrivia sourceText defineCombination ast
+    Trivia.collectTrivia sourceText tokens [] ast
 
 let private toTriviaWithDefines source =
     let sourceText = CodeFormatterImpl.getSourceText source
-    let defineCombinations = TokenParser.getDefineCombination sourceText
+    let tokens, defineCombinations = TokenParser.getDefineCombination sourceText
     let ast, _ = Fantomas.FCS.Parse.parseFile false sourceText []
 
     defineCombinations
-    |> List.map (fun dc -> dc.DefineList, Trivia.collectTrivia sourceText dc ast)
+    |> List.map (fun dc -> dc, Trivia.collectTrivia sourceText tokens dc ast)
     |> Map.ofList
 
 [<Test>]

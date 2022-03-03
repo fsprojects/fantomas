@@ -1,13 +1,9 @@
 module internal Fantomas.TriviaTypes
 
-open System.Runtime.CompilerServices
 open FSharp.Compiler.Text
 open FSharp.Compiler.Parser
-//open FSharp.Compiler.Tokenization
 
-type FSharpTokenInfo =
-    class
-    end
+type TokenAndRange = token * range
 
 [<RequireQualifiedAccess>]
 type HashLine =
@@ -16,15 +12,7 @@ type HashLine =
     | EndIf
 
 type TokenWithRangeList = (token * range) list
-
-[<RequireQualifiedAccess>]
-type DefineCombination =
-    | NoDefines of existingTokens: TokenWithRangeList
-    | Defines of defines: string list
-    member this.DefineList: string list =
-        match this with
-        | NoDefines _ -> []
-        | Defines defines -> defines
+type DefineCombination = string list
 
 type Comment =
     | LineCommentAfterSourceCode of comment: string

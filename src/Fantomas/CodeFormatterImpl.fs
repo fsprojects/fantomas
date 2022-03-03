@@ -40,18 +40,14 @@ open Fantomas.CodePrinter
 
 let getSourceText (source: string) : ISourceText = source.TrimEnd() |> SourceText.ofString
 
-let parse (isSignature: bool) (source: ISourceText) : Async<(ParsedInput * DefineCombination) []> =
-    let defineCombinations: DefineCombination list =
-        TokenParser.getDefineCombination source
-    //let allDefineOptions, defineHashTokens = TokenParser.getDefinesFromTokens source
+let parse (isSignature: bool) (source: ISourceText) : Async<(ParsedInput * TokenWithRangeList * DefineCombination) []> =
+    let tokens, defineCombinations = TokenParser.getDefineCombination source
 
     defineCombinations
     |> List.map (fun defineCombination ->
         async {
-            let defines = defineCombination.DefineList
-
             let untypedTree, diagnostics =
-                Fantomas.FCS.Parse.parseFile isSignature source defines
+                Fantomas.FCS.Parse.parseFile isSignature source defineCombination
 
             let errors =
                 diagnostics
@@ -60,7 +56,7 @@ let parse (isSignature: bool) (source: ISourceText) : Async<(ParsedInput * Defin
             if not errors.IsEmpty then
                 raise (FormatException $"Parsing failed with errors: %A{diagnostics}\nAnd options: %A{[]}")
 
-            return (untypedTree, defineCombination) // , defineHashTokens)
+            return (untypedTree, tokens, defineCombination) // , defineHashTokens)
         })
     |> Async.Parallel
 
@@ -312,9 +308,14 @@ let isValidFSharpCode (isSignature: bool) (source: ISourceText) : Async<bool> =
         | _ -> return false
     }
 
-let formatWith (source: ISourceText option) (defineCombination: DefineCombination) ast config =
+let formatWith
+    (sourceAndTokens: (ISourceText * TokenWithRangeList) option)
+    (defineCombination: DefineCombination)
+    ast
+    config
+    =
     let formattedSourceCode =
-        let context = Context.Context.Create config source defineCombination ast
+        let context = Context.Context.Create config sourceAndTokens defineCombination ast
 
         context
         |> genParsedInput ASTContext.Default ast
@@ -328,9 +329,9 @@ let format (config: FormatConfig) (isSignature: bool) (source: ISourceText) : As
 
         let! results =
             asts
-            |> Array.map (fun (ast', defineCombination) ->
+            |> Array.map (fun (ast', tokens, defineCombination) ->
                 async {
-                    let formattedCode = formatWith (Some source) defineCombination ast' config
+                    let formattedCode = formatWith (Some(source, tokens)) defineCombination ast' config
                     return (defineCombination, formattedCode)
                 })
             |> Async.Parallel
@@ -343,7 +344,6 @@ let format (config: FormatConfig) (isSignature: bool) (source: ISourceText) : As
             | all ->
                 let allInFragments =
                     all
-                    |> List.map (fun (dc, code) -> dc.DefineList, code)
                     |> String.splitInFragments config.EndOfLine.NewLineString
 
                 let allHaveSameFragmentCount =
@@ -376,8 +376,8 @@ Please raise an issue at https://fsprojects.github.io/fantomas-tools/#/fantomas/
 let formatDocument config isSignature source = format config isSignature source
 
 /// Format an abstract syntax tree using given config
-let formatAST ast defines source config =
-    formatWith source (DefineCombination.Defines defines) ast config
+let formatAST ast defines sourceAndTokens config =
+    formatWith sourceAndTokens defines ast config
 
 /// Make a range from (startLine, startCol) to (endLine, endCol) to select some text
 let makeRange fileName startLine startCol endLine endCol =
