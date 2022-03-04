@@ -2708,6 +2708,9 @@ and genExpr astContext synExpr ctx =
                 id
             | SynExpr.Typed _ ->
                 // child nodes contain trivia
+                id
+            | SynExpr.DebugPoint _ ->
+                // I don't believe the parser will ever return this node
                 id)
 
     expr ctx

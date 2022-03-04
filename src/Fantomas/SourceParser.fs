@@ -144,7 +144,7 @@ let (|OpNameFullInPattern|) (x: Identifier) =
         || IsPrefixOperator s
         || IsTernaryOperator s
         || s = "op_Dynamic" then
-         /// Use two spaces for symmetry
+         // Use two spaces for symmetry
          if String.startsWithOrdinal "*" s' && s' <> "*" then
              sprintf "( %s )" s'
          else
@@ -168,7 +168,7 @@ let (|OpNameFull|) (x: Identifier) =
           || IsPrefixOperator s
           || IsTernaryOperator s
           || s = "op_Dynamic" then
-         /// Use two spaces for symmetry
+         // Use two spaces for symmetry
          if String.startsWithOrdinal "*" s' && s' <> "*" then
              sprintf " %s " s'
          else
@@ -644,7 +644,7 @@ let (|While|_|) =
 
 let (|For|_|) =
     function
-    | SynExpr.For (_, Ident s, equalsRange, e1, isUp, e2, e3, _) -> Some(s, equalsRange, e1, e2, e3, isUp)
+    | SynExpr.For (_, _, Ident s, equalsRange, e1, isUp, e2, e3, _) -> Some(s, equalsRange, e1, e2, e3, isUp)
     | _ -> None
 
 let (|NullExpr|_|) =
@@ -1040,8 +1040,8 @@ let rec (|CompExprBody|_|) expr =
 
 let (|ForEach|_|) =
     function
-    | SynExpr.ForEach (_, SeqExprOnly true, _, pat, e1, SingleExpr (Yield _, e2), _) -> Some(pat, e1, e2, true)
-    | SynExpr.ForEach (_, SeqExprOnly isArrow, _, pat, e1, e2, _) -> Some(pat, e1, e2, isArrow)
+    | SynExpr.ForEach (_, _, SeqExprOnly true, _, pat, e1, SingleExpr (Yield _, e2), _) -> Some(pat, e1, e2, true)
+    | SynExpr.ForEach (_, _, SeqExprOnly isArrow, _, pat, e1, e2, _) -> Some(pat, e1, e2, isArrow)
     | _ -> None
 
 let (|DotIndexedSet|_|) =

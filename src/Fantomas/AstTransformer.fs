@@ -220,7 +220,7 @@ module private Ast =
                     |> finalContinuation
 
                 Continuation.sequence continuations finalContinuation
-            | SynExpr.For (_, _, equalsRange, identBody, _, toBody, doBody, range) ->
+            | SynExpr.For (_, _, _, equalsRange, identBody, _, toBody, doBody, range) ->
                 let continuations: ((TriviaNodeAssigner list -> TriviaNodeAssigner list) -> TriviaNodeAssigner list) list =
                     [ visit identBody
                       visit toBody
@@ -233,7 +233,7 @@ module private Ast =
                     |> finalContinuation
 
                 Continuation.sequence continuations finalContinuation
-            | SynExpr.ForEach (_, SeqExprOnly _, _, pat, enumExpr, bodyExpr, range) ->
+            | SynExpr.ForEach (_, _, SeqExprOnly _, _, pat, enumExpr, bodyExpr, range) ->
                 let continuations: ((TriviaNodeAssigner list -> TriviaNodeAssigner list) -> TriviaNodeAssigner list) list =
                     [ visit enumExpr; visit bodyExpr ]
 
@@ -667,6 +667,7 @@ module private Ast =
             | SynExpr.IndexFromEnd (e, range) ->
                 [ yield mkNode SynExpr_IndexFromEnd range
                   yield! visitSynExpr e ]
+            | SynExpr.DebugPoint _ -> []
 
         visit synExpr id
 

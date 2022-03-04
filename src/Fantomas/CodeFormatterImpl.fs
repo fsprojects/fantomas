@@ -170,7 +170,7 @@ let isValidAST ast =
 
         | SynExpr.While (_sequencePointInfoForWhileLoop, synExpr1, synExpr2, _range) ->
             List.forall validateExpr [ synExpr1; synExpr2 ]
-        | SynExpr.ForEach (_sequencePointInfoForForLoop, _seqExprOnly, _isFromSource, synPat, synExpr1, synExpr2, _range) ->
+        | SynExpr.ForEach (pat = synPat; enumExpr = synExpr1; bodyExpr = synExpr2) ->
             List.forall validateExpr [ synExpr1; synExpr2 ]
             && validatePattern synPat
 
@@ -280,6 +280,7 @@ let isValidAST ast =
             defaultArg (Option.map validateExpr e1) true
             && defaultArg (Option.map validateExpr e2) true
         | SynExpr.IndexFromEnd (e, _) -> validateExpr e
+        | SynExpr.DebugPoint (innerExpr = e) -> validateExpr e
 
     and validatePattern =
         function
