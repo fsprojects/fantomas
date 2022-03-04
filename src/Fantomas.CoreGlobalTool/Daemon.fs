@@ -6,14 +6,11 @@ open System.IO
 open System.IO.Abstractions
 open System.Threading
 open System.Threading.Tasks
-open FSharp.Compiler.Text.Range
-open FSharp.Compiler.Text.Position
 open StreamJsonRpc
 open Thoth.Json.Net
 open Fantomas.Client.Contracts
 open Fantomas.Client.LSPFantomasServiceTypes
 open Fantomas
-open Fantomas.SourceOrigin
 open Fantomas.FormatConfig
 open Fantomas.Extras.EditorConfig
 open Fantomas.Extras
@@ -60,11 +57,8 @@ type FantomasDaemon(sender: Stream, reader: Stream) as this =
 
                 try
                     let! formatted =
-                        CodeFormatter.FormatDocumentAsync(
-                            request.FilePath,
-                            SourceString request.SourceCode,
-                            config
-                        )
+                        let isSignature = request.FilePath.EndsWith(".fsi")
+                        CodeFormatter.FormatDocumentAsync(isSignature, request.SourceCode, config)
 
                     if formatted = request.SourceCode then
                         return FormatDocumentResponse.Unchanged request.FilePath
@@ -78,8 +72,12 @@ type FantomasDaemon(sender: Stream, reader: Stream) as this =
     [<JsonRpcMethod(Methods.FormatSelection, UseSingleObjectParameterDeserialization = true)>]
     member _.FormatSelectionAsync(request: FormatSelectionRequest) : Task<FormatSelectionResponse> =
         async {
-            return FormatSelectionResponse.Error(request.FilePath, "Format selection is no longer supported in Fantomas 5.")
-//            let config =
+            return
+                FormatSelectionResponse.Error(
+                    request.FilePath,
+                    "Format selection is no longer supported in Fantomas 5."
+                )
+        //            let config =
 //                match request.Config with
 //                | Some configProperties ->
 //                    let config = readConfiguration request.FilePath

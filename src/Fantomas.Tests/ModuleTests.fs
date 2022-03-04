@@ -388,11 +388,7 @@ type T() =
     interface IDisposable with
         override x.Dispose() = ()"""
 
-    CodeFormatter.FormatDocumentAsync(
-        false,
-        sourceCode,
-        config
-    )
+    CodeFormatter.FormatDocumentAsync(false, sourceCode, config)
     |> Async.RunSynchronously
     |> fun s -> s.Replace("\r\n", "\n")
     |> should

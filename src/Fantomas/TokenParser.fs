@@ -1280,7 +1280,7 @@ let private (|NumberToken|_|) (token: token) =
     | IEEE64 _ -> Some()
     | _ -> None
 
-let private getTokensFromSource (source: ISourceText) (defines: string list) : TokenWithRangeList =
+let private getTokensFromSource (source: ISourceText) : TokenWithRangeList =
     let mutable tokenCollector = ListCollector<token * range>()
     let mutable currentLine = 0
 
@@ -1310,7 +1310,7 @@ let private getTokensFromSource (source: ISourceText) (defines: string list) : T
 
             tokenCollector.Add(token, range)
 
-    lex onToken defines source
+    lex onToken source
     tokenCollector.Close()
 
 let private parseHashLine (content: string) : string list * string list =
@@ -1321,7 +1321,7 @@ let private parseHashLine (content: string) : string list * string list =
             .Split([| "//" |], StringSplitOptions.RemoveEmptyEntries).[0] // strip any comments
 
     let source = SourceText.ofString content
-    let tokens = getTokensFromSource source []
+    let tokens = getTokensFromSource source
 
     let content =
         tokens
@@ -1536,7 +1536,7 @@ let private getOptimizedDefinesSets (hashTokens: HashLine list) =
     | xs -> xs
 
 let getDefineCombination (source: ISourceText) : TokenWithRangeList * DefineCombination list =
-    let tokens = getTokensFromSource source []
+    let tokens = getTokensFromSource source
 
     // List.iter (printfn "%A") tokens
 

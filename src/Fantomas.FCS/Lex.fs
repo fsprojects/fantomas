@@ -16,11 +16,7 @@ type FSharpLexerFlags =
     | SkipTrivia = 0x01000
     | UseLexFilter = 0x10000
 
-let lex
-    (onToken: Parser.token -> range -> unit)
-    (conditionalCompilationDefines: string list)
-    (text: ISourceText)
-    : unit =
+let lex (onToken: Parser.token -> range -> unit) (text: ISourceText) : unit =
     let errorLogger: ErrorLogger =
         { new ErrorLogger("DiscardErrorsLogger") with
             member x.DiagnosticSink(phasedError, severity) = ()
@@ -40,14 +36,7 @@ let lex
     let lightStatus = LightSyntaxStatus(isLightSyntaxOn, true)
 
     let lexargs =
-        mkLexargs (
-            conditionalCompilationDefines,
-            lightStatus,
-            LexResourceManager(0),
-            [],
-            errorLogger,
-            Internal.Utilities.PathMap.empty
-        )
+        mkLexargs ([], lightStatus, LexResourceManager(0), [], errorLogger, Internal.Utilities.PathMap.empty)
 
     let lexargs = { lexargs with applyLineDirectives = isCompiling }
 
