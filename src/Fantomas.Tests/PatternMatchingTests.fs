@@ -2123,3 +2123,30 @@ match!
 match! a with // foo
 | B b -> ()
 """
+
+[<Test>]
+let ``comment after match keyword, 1851`` () =
+    formatSourceString
+        false
+        """
+match // foo
+                                a with
+| _ -> ()
+
+match! // foo!
+                                a with
+| _ -> ()
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+match // foo
+    a with
+| _ -> ()
+
+match! // foo!
+    a with
+| _ -> ()
+"""
