@@ -2001,3 +2001,22 @@ type Foo =   // comment
 type Foo = // comment
     { Bar: int }
 """
+
+[<Test>]
+let ``comment after equals sign in anonymous record field, 1921`` () =
+    formatSourceString
+        false
+        """
+let a =
+    {| Foo = //
+        2 |}
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let a =
+    {| Foo = //
+        2 |}
+"""
