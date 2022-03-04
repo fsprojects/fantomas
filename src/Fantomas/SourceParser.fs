@@ -1010,8 +1010,8 @@ let rec collectComputationExpressionStatements
             [ yield! letBindings
               yield! bodyStatements ]
             |> finalContinuation)
-    | SynExpr.LetOrUseBang (_, isUse, _, pat, equalsRange, expr, andBangs, body, r) ->
-        let letOrUseBang = LetOrUseBangStatement(isUse, pat, equalsRange, expr, r)
+    | SynExpr.LetOrUseBang (_, isUse, _, pat, expr, andBangs, body, r, trivia) ->
+        let letOrUseBang = LetOrUseBangStatement(isUse, pat, trivia.EqualsRange, expr, r)
 
         let andBangs =
             andBangs

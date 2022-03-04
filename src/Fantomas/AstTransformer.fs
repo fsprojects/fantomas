@@ -593,7 +593,7 @@ module private Ast =
                       yield mkNode keywordType keywordRange
                       yield! nodes ]
                     |> finalContinuation)
-            | SynExpr.LetOrUseBang (_, _, _, pat, equalsRange, rhsExpr, andBangs, body, range) ->
+            | SynExpr.LetOrUseBang (_, _, _, pat, rhsExpr, andBangs, body, range, trivia) ->
                 let continuations: ((TriviaNodeAssigner list -> TriviaNodeAssigner list) -> TriviaNodeAssigner list) list =
                     [ yield visit rhsExpr
                       yield visit body
@@ -602,7 +602,7 @@ module private Ast =
                 let finalContinuation (nodes: TriviaNodeAssigner list list) : TriviaNodeAssigner list =
                     [ yield mkNode SynExpr_LetOrUseBang range
                       yield! visitSynPat pat
-                      yield! mkNodeOption SynExpr_LetOrUseBang_Equals equalsRange
+                      yield! mkNodeOption SynExpr_LetOrUseBang_Equals trivia.EqualsRange
                       yield! (List.collect id nodes) ]
                     |> finalContinuation
 
