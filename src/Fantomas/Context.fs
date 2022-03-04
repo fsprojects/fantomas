@@ -50,8 +50,7 @@ type WriteModelMode =
     | ShortExpression of ShortExpressionInfo list
 
 type WriterModel =
-    {
-      /// lines of resulting text, in reverse order (to allow more efficient adding line to end)
+    { /// lines of resulting text, in reverse order (to allow more efficient adding line to end)
       Lines: string list
       /// current indentation
       Indent: int
@@ -269,7 +268,7 @@ type internal Context =
     member x.MkRange (startPos: pos) (endPos: pos) = mkRange x.FileName startPos endPos
 
     member x.MkRangeWith (startLine, startColumn) (endLine, endColumn) =
-        x.MkRange(mkPos startLine startColumn) (mkPos endLine endColumn)
+        x.MkRange (mkPos startLine startColumn) (mkPos endLine endColumn)
 
 let internal writerEvent e ctx =
     let evs = WriterEvents.normalize e

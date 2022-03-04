@@ -923,7 +923,7 @@ let rec private getTriviaFromTokensThemSelves
             getRangeBetween mkRange headToken (Option.defaultValue headToken lastToken)
 
         let info =
-            Trivia.Create(Comment(BlockComment(comment, false, false))) range
+            Trivia.Create (Comment(BlockComment(comment, false, false))) range
             |> List.prependItem foundTrivia
 
         getTriviaFromTokensThemSelves mkRange lastButOne lastToken rest info
@@ -932,7 +932,7 @@ let rec private getTriviaFromTokensThemSelves
         let range = getRangeBetween mkRange koo koo
 
         let info =
-            Trivia.Create(Keyword(koo)) range
+            Trivia.Create (Keyword(koo)) range
             |> List.prependItem foundTrivia
 
         getTriviaFromTokensThemSelves mkRange lastNonWhiteSpaceToken (Some koo) rest info
@@ -960,7 +960,7 @@ let rec private getTriviaFromTokensThemSelves
         let range = getRangeBetween mkRange (List.head hashTokens) (List.last hashTokens)
 
         let info =
-            Trivia.Create(Directive(directiveContent)) range
+            Trivia.Create (Directive(directiveContent)) range
             |> List.prependItem foundTrivia
 
         getTriviaFromTokensThemSelves mkRange lastButOneNonWhiteSpaceToken lastNonWhiteSpaceToken rest info
@@ -986,7 +986,7 @@ let rec private getTriviaFromTokensThemSelves
         let range = getRangeBetween mkRange stringTokens.Head interpStringEnd
 
         let info =
-            Trivia.Create(StringContent(stringContent)) range
+            Trivia.Create (StringContent(stringContent)) range
             |> List.prependItem foundTrivia
 
         let prevButOne, prev = List.tryLast stringTokens, Some interpStringEnd
@@ -999,7 +999,7 @@ let rec private getTriviaFromTokensThemSelves
         let range = getRangeBetween mkRange head (Option.defaultValue head lastToken)
 
         let info =
-            Trivia.Create(StringContent(stringContent)) range
+            Trivia.Create (StringContent(stringContent)) range
             |> List.prependItem foundTrivia
 
         let nextRest =
@@ -1013,7 +1013,7 @@ let rec private getTriviaFromTokensThemSelves
         let range = getRangeBetween mkRange minus number
 
         let info =
-            Trivia.Create(Number(minus.Content + number.Content)) range
+            Trivia.Create (Number(minus.Content + number.Content)) range
             |> List.prependItem foundTrivia
 
         getTriviaFromTokensThemSelves mkRange (Some minus) (Some number) rest info
@@ -1022,7 +1022,7 @@ let rec private getTriviaFromTokensThemSelves
         let range = getRangeForSingleToken mkRange number
 
         let info =
-            Trivia.Create(Number(number.Content)) range
+            Trivia.Create (Number(number.Content)) range
             |> List.prependItem foundTrivia
 
         getTriviaFromTokensThemSelves mkRange lastNonWhiteSpaceToken (Some number) rest info
@@ -1031,7 +1031,7 @@ let rec private getTriviaFromTokensThemSelves
         let range = getRangeBetween mkRange ident ident
 
         let info =
-            Trivia.Create(IdentOperatorAsWord ident.Content) range
+            Trivia.Create (IdentOperatorAsWord ident.Content) range
             |> List.prependItem foundTrivia
 
         getTriviaFromTokensThemSelves mkRange lastNonWhiteSpaceToken (Some ident) rest info
@@ -1040,7 +1040,7 @@ let rec private getTriviaFromTokensThemSelves
         let range = getRangeBetween mkRange ident ident
 
         let info =
-            Trivia.Create(IdentBetweenTicks(ident.Content)) range
+            Trivia.Create (IdentBetweenTicks(ident.Content)) range
             |> List.prependItem foundTrivia
 
         getTriviaFromTokensThemSelves mkRange lastNonWhiteSpaceToken (Some ident) rest info
@@ -1049,7 +1049,7 @@ let rec private getTriviaFromTokensThemSelves
         let range = getRangeBetween mkRange head head
 
         let info =
-            Trivia.Create(CharContent(head.Content)) range
+            Trivia.Create (CharContent(head.Content)) range
             |> List.prependItem foundTrivia
 
         getTriviaFromTokensThemSelves mkRange lastNonWhiteSpaceToken (Some head) rest info
@@ -1067,7 +1067,7 @@ let rec private getTriviaFromTokensThemSelves
             mkRange (startT.LineNumber, startT.TokenInfo.LeftColumn) (endT.LineNumber, endT.TokenInfo.RightColumn + 1)
 
         let info =
-            Trivia.Create(EmbeddedIL(content)) range
+            Trivia.Create (EmbeddedIL(content)) range
             |> List.prependItem foundTrivia
 
         let prevButOne, prev =
