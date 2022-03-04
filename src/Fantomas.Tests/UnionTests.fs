@@ -359,7 +359,7 @@ let ``single case DU with comment above clause, 567`` () =
         false
         """type 'a MyGenericType =
   ///
-  Foo
+  | Foo
 """
         config
     |> prepend newline
@@ -368,7 +368,7 @@ let ``single case DU with comment above clause, 567`` () =
         """
 type 'a MyGenericType =
     ///
-    Foo
+    | Foo
 """
 
 [<Test>]
@@ -648,8 +648,8 @@ let ``comment after union fields wrapped in parenthesis, 1128`` () =
 module Test
 
 type t =
-   | Beta of (unit -> unit) /// comment is gone
-   | Alpha of bool /// comment stays
+   | Beta of (unit -> unit) // comment is gone
+   | Alpha of bool // comment stays
 """
         config
     |> prepend newline
@@ -659,8 +659,8 @@ type t =
 module Test
 
 type t =
-    | Beta of (unit -> unit) /// comment is gone
-    | Alpha of bool /// comment stays
+    | Beta of (unit -> unit) // comment is gone
+    | Alpha of bool // comment stays
 """
 
 [<Test>]
@@ -858,4 +858,40 @@ namespace X
 type TransactionType =
     | [<CompiledName "External Credit Balance Refund">] ExternalCreditBalanceRefund
     | [<CompiledName "Credit Balance Adjustment (Applied from Credit Balance)">] CreditBalanceAdjustmentAppliedFromCreditBalance
+"""
+
+[<Test>]
+let ``comment after equals in enum`` () =
+    formatSourceString
+        false
+        """
+type Foo =   // comment
+    | Bar = // other comment
+             1
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type Foo = // comment
+    | Bar = // other comment
+        1
+"""
+
+[<Test>]
+let ``comment after equals in union`` () =
+    formatSourceString
+        false
+        """
+type Foo =   // comment
+    | Bar of string * int64
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type Foo = // comment
+    | Bar of string * int64
 """

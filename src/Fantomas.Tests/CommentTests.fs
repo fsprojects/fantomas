@@ -1729,7 +1729,7 @@ with
 """
 
 [<Test>]
-let ``comment shold not be lost`` () =
+let ``comment should not be lost`` () =
     formatSourceString
         false
         """
