@@ -1,12 +1,17 @@
 # Changelog
 
-## [Unreleased]
+## [4.6.6] - 2022-03-04
 
 ### Changed
 * Update .NET SDK to 6.0.200. [#2105](https://github.com/fsprojects/fantomas/pull/2105)
+* Lock FCS version in Fantomas nuspec. [#2118](https://github.com/fsprojects/fantomas/issues/2118)
 
 ### Fixed
 * Keep copyInfo for record fixed at starting column. [#2109](https://github.com/fsprojects/fantomas/issues/2109)
+* Unexpected expression: Fixed. [#2112](https://github.com/fsprojects/fantomas/issues/2112)
+
+### Documentation
+* Fixed typo in Formatting-Elmish-code.md [#2120](https://github.com/fsprojects/fantomas/pull/2120)
 
 ## [4.6.5] - 2022-02-18
 
