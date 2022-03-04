@@ -12,7 +12,6 @@
     <Compile Include="TriviaTypes.fs" />
     <Compile Include="Dbg.fs" />
     <Compile Include="Utils.fs" />
-    <Compile Include="AstExtensions.fs" />
     <Compile Include="SourceParser.fs" />
     <Compile Include="AstTransformer.fs" />
     <Compile Include="SourceOrigin.fs" />

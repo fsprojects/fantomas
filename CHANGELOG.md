@@ -1,5 +1,12 @@
 # Changelog
 
+## [4.7.0] - 2022-03-04
+
+### Changed
+* Always add a space for multiple curried args invocation. [#2087](https://github.com/fsprojects/fantomas/issues/2087)
+* Update FCS to 41.0.3. [#2122](https://github.com/fsprojects/fantomas/pull/2122)
+* Print XML Document comments from AST. [#1878](https://github.com/fsprojects/fantomas/issues/1878)
+
 ## [4.6.6] - 2022-03-04
 
 ### Changed

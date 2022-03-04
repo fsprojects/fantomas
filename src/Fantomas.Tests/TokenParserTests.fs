@@ -27,7 +27,6 @@ let private mkRange: MkRange =
             (FSharp.Compiler.Text.Position.mkPos el ec)
 
 let private getTriviaFromTokens = getTriviaFromTokens mkRange
-let private getTriviaNodesFromTokens = getTriviaNodesFromTokens mkRange
 
 [<Test>]
 let ``simple compiler directive should be found`` () =
@@ -299,28 +298,6 @@ let x = 1
     match triviaNodes with
     | [ { Item = Newline }; { Item = Directive "#if NOT_DEFINED\n#else\n\n#endif" } ] -> pass ()
     | _ -> Assert.Fail(sprintf "Unexpected trivia %A" triviaNodes)
-
-[<Test>]
-let ``member and override`` () =
-    let source =
-        """
-type MyLogInteface() =
-    interface LogInterface with
-        member x.Print msg = printfn "%s" msg
-        override x.GetLogFile environment = "..."
-"""
-
-    let triviaNodes =
-        tokenize source
-        |> getTriviaFromTokens
-        |> List.choose (fun { Item = item } ->
-            match item with
-            | Keyword { Content = kw } -> Some kw
-            | _ -> None)
-
-    match triviaNodes with
-    | [ "member"; "override" ] -> pass ()
-    | _ -> fail ()
 
 [<Test>]
 let ``at before string`` () =

@@ -2237,10 +2237,9 @@ let getDefaultProxyFor =
 #if CUSTOM_WEBPROXY
             let result =
                 { new IWebProxy with
-                    member __.Credentials = null
-
                     member __.Credentials
-                        with set _value = ()
+                        with get () = null
+                        and set _value = ()
 
                     member __.GetProxy _ = null
                     member __.IsBypassed(_host: Uri) = true }
