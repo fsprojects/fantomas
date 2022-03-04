@@ -2962,3 +2962,24 @@ type Graph<'a when 'a:comparison> = Set<'a * 'a>
         """
 type Graph<'a when 'a: comparison> = Set<'a * 'a>
 """
+
+[<Test>]
+let ``comment after equals sign in type defn, 2001`` () =
+    formatSourceString
+        false
+        """
+type V = // comment
+    { X: SomeFieldType
+      Y: OhSomethingElse
+      Z: ALongTypeName }
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type V = // comment
+    { X: SomeFieldType
+      Y: OhSomethingElse
+      Z: ALongTypeName }
+"""

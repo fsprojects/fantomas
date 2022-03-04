@@ -1,5 +1,11 @@
 # Changelog
 
+## [Unreleased]
+
+### Fixed
+* Comment after equals is remove in anonymous record. [#1921](https://github.com/fsprojects/fantomas/issues/1921)
+* Comment after equals in record type is lost. [#2001](https://github.com/fsprojects/fantomas/issues/2001)
+
 ## [4.7.0] - 2022-03-04
 
 ### Changed
