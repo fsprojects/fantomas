@@ -60,7 +60,7 @@ let parse (isSignature: bool) (source: ISourceText) : Async<(ParsedInput * Token
         })
     |> Async.Parallel
 
-/// Check whether an AST consists of parsing errors
+// Check whether an AST consists of parsing errors
 //let isValidAST ast =
 //    let rec validateImplFileInput (SourceParser.ParsedImplFileInput (_, moduleOrNamespaceList)) =
 //        List.forall validateModuleOrNamespace moduleOrNamespaceList
@@ -404,7 +404,7 @@ let rec getEndLineIndex (lines: _ []) i =
 //    && tok.CharClass <> FSharpTokenCharKind.Comment
 //    && tok.TokenName <> "STRING_TEXT"
 
-/// Find out the start token
+// Find out the start token
 //let rec getStartCol (r: Range) (tokenizer: FSharpLineTokenizer) lexState =
 //    match tokenizer.ScanToken(!lexState) with
 //    | Some tok, state ->

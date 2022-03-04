@@ -85,7 +85,7 @@ let PostParseModuleImpl (_i, defaultNamespace, _isLastCompiland, filename, impl)
 //            | _ -> errorR(Error(FSComp.SR.buildMultiFileRequiresNamespaceOrModule(), trimRangeToLine m))
 
         let modname =
-            ComputeAnonModuleName(not (isNil defs)) defaultNamespace filename (trimRangeToLine m)
+            ComputeAnonModuleName (not (isNil defs)) defaultNamespace filename (trimRangeToLine m)
 
         SynModuleOrNamespace(modname, false, SynModuleOrNamespaceKind.AnonModule, defs, PreXmlDoc.Empty, [], None, m)
 
@@ -125,7 +125,7 @@ let QualFileNameOfImpls filename specs =
     | [ SynModuleOrNamespace (modname, _, kind, _, _, _, _, m) ] when kind.IsModule ->
         QualFileNameOfModuleName m filename modname
     | [ SynModuleOrNamespace (_, _, kind, _, _, _, _, m) ] when not kind.IsModule -> QualFileNameOfFilename m filename
-    | _ -> QualFileNameOfFilename(mkRange filename pos0 pos0) filename
+    | _ -> QualFileNameOfFilename (mkRange filename pos0 pos0) filename
 
 let QualFileNameOfSpecs filename specs =
     match specs with
@@ -133,7 +133,7 @@ let QualFileNameOfSpecs filename specs =
         QualFileNameOfModuleName m filename modname
     | [ SynModuleOrNamespaceSig (_, _, kind, _, _, _, _, m) ] when not kind.IsModule ->
         QualFileNameOfFilename m filename
-    | _ -> QualFileNameOfFilename(mkRange filename pos0 pos0) filename
+    | _ -> QualFileNameOfFilename (mkRange filename pos0 pos0) filename
 
 //let GetScopedPragmasForHashDirective hd =
 //    [ match hd with
@@ -203,7 +203,7 @@ let PostParseModuleSpec (_i, defaultNamespace, _isLastCompiland, filename, intf)
 //            | _ -> errorR(Error(FSComp.SR.buildMultiFileRequiresNamespaceOrModule(), m))
 
         let modname =
-            ComputeAnonModuleName(not (isNil defs)) defaultNamespace filename (trimRangeToLine m)
+            ComputeAnonModuleName (not (isNil defs)) defaultNamespace filename (trimRangeToLine m)
 
         SynModuleOrNamespaceSig(modname, false, SynModuleOrNamespaceKind.AnonModule, defs, PreXmlDoc.Empty, [], None, m)
 

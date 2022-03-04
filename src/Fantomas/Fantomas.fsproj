@@ -11,7 +11,6 @@
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
     <DebugType>embedded</DebugType>
     <RepositoryUrl>https://github.com/fsprojects/fantomas</RepositoryUrl>
-    <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);CopyProjectReferencesToPackage</TargetsForTfmSpecificBuildOutput>
   </PropertyGroup>
   <ItemGroup>
     <None Include="paket.references" />
@@ -39,12 +38,7 @@
     <Compile Include="CodeFormatter.fs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Fantomas.FCS\Fantomas.FCS.fsproj" PrivateAssets="All" />
+    <ProjectReference Include="..\Fantomas.FCS\Fantomas.FCS.fsproj" />
   </ItemGroup>
-  <Target DependsOnTargets="ResolveReferences" Name="CopyProjectReferencesToPackage">
-    <ItemGroup>
-      <BuildOutputInPackage Include="@(ReferenceCopyLocalPaths->WithMetadataValue('ReferenceSourceTarget', 'ProjectReference'))"/>
-    </ItemGroup>
-  </Target>
   <Import Project="..\..\.paket\Paket.Restore.targets" />
 </Project>
