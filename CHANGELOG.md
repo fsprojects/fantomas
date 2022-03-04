@@ -1,5 +1,11 @@
 # Changelog
 
+## [Unreleased]
+
+### Changed
+* Always add a space for multiple curried args invocation. [#2087](https://github.com/fsprojects/fantomas/issues/2087)
+* Update FCS to 41.0.3
+
 ## [4.6.6] - 2022-03-04
 
 ### Changed
