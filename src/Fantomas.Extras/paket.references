@@ -1,6 +1,5 @@
 FSharp.Core
-Ionide.KeepAChangelog.Tasks
-Dotnet.ReproducibleBuilds
+Ionide.KeepAChangelog.Tasks copy_local: true
+Dotnet.ReproducibleBuilds copy_local: true
 editorconfig
 MAB.DotIgnore
-Microsoft.SourceLink.GitHub

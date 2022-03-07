@@ -1,5 +1,5 @@
-Ionide.KeepAChangelog.Tasks
-Dotnet.ReproducibleBuilds
+Ionide.KeepAChangelog.Tasks copy_local: true
+Dotnet.ReproducibleBuilds copy_local: true
 
 group client
 FSharp.Core
