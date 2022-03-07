@@ -3650,7 +3650,7 @@ and genTypeDefn
             else
                 isSmallExpression size short (indent +> sepNln +> short +> unindent) ctx
 
-        typeName +> sepEq +> genTypeDefinition
+        typeName +> genEq SynTypeDefn_Equals equalsRange +> genTypeDefinition
 
     | Simple TDSRNone -> typeName
     | Simple (TDSRTypeAbbrev t) ->
