@@ -7,6 +7,7 @@
 * Comment after equals in record type is lost. [#2001](https://github.com/fsprojects/fantomas/issues/2001)
 * Comment after match keyword is lost. [#1851](https://github.com/fsprojects/fantomas/issues/1851)
 * Preserve in keyword on next line. [#1182](https://github.com/fsprojects/fantomas/issues/1182)
+* Remove Ionide.KeepAChangelog.Tasks and Dotnet.ReproducibleBuilds as NuGet dependencies. [#2131](https://github.com/fsprojects/fantomas/pull/2131)
 
 ## [4.7.0] - 2022-03-04
 
