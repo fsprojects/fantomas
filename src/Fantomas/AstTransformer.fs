@@ -902,7 +902,14 @@ module private Ast =
 
     and visitSynValData (svd: SynValData) : TriviaNodeAssigner list =
         match svd with
-        | SynValData (_, svi, _) -> visitSynValInfo svi
+        | SynValData (memberFlags, svi, _) ->
+            let flagNodes =
+                match memberFlags with
+                | Some { Trivia = trivia } -> mkNodeOption SynValData_Static trivia.StaticRange
+                | _ -> []
+
+            [ yield! flagNodes
+              yield! visitSynValInfo svi ]
 
     and visitSynValSig (svs: SynValSig) : TriviaNodeAssigner list =
         match svs with

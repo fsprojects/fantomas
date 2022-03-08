@@ -554,7 +554,9 @@ and genTypeParamPostfix astContext tds =
     | _ -> sepNone
 
 and genLetBinding astContext pref b =
-    let genPref = !-pref
+    let genPref letKeyword =
+        genTriviaForOption SynBinding_Let letKeyword !-pref
+
     let isRecursiveLetOrUseFunction = (pref = "and ")
 
     match b with
@@ -567,8 +569,7 @@ and genLetBinding astContext pref b =
                 isRecursiveLetOrUseFunction
                 px
                 ats
-                letKeyword
-                genPref
+                (genPref letKeyword)
                 ao
                 isInline
                 isMutable
@@ -587,8 +588,7 @@ and genLetBinding astContext pref b =
                 isRecursiveLetOrUseFunction
                 px
                 ats
-                letKeyword
-                genPref
+                (genPref letKeyword)
                 ao
                 isInline
                 isMutable
@@ -604,8 +604,7 @@ and genLetBinding astContext pref b =
                 isRecursiveLetOrUseFunction
                 px
                 ats
-                letKeyword
-                genPref
+                (genPref letKeyword)
                 ao
                 isInline
                 isMutable
@@ -632,8 +631,7 @@ and genLetBinding astContext pref b =
                 isRecursiveLetOrUseFunction
                 px
                 ats
-                letKeyword
-                genPref
+                (genPref letKeyword)
                 ao
                 isInline
                 isMutable
@@ -800,7 +798,7 @@ and genMemberBinding astContext b =
                     (onlyIfNot mf.IsInstance (!- "static ")
                      +> !- "member ")
 
-                genMemberBindingImpl astContext prefix b ats px ao isInline pat equalsRange e synValInfo
+                genMemberBindingImpl astContext prefix ats px ao isInline pat equalsRange e synValInfo
             | _ ->
                 let ps = List.map snd ps
 
@@ -822,7 +820,7 @@ and genMemberBinding astContext b =
     | MemberBinding (ats, px, ao, isInline, mf, p, equalsRange, e, synValInfo) ->
         let prefix = genMemberFlags mf
 
-        genMemberBindingImpl astContext prefix b ats px ao isInline p equalsRange e synValInfo
+        genMemberBindingImpl astContext prefix ats px ao isInline p equalsRange e synValInfo
 
     | ExplicitCtor (ats, px, ao, p, equalsRange, e, so) ->
         let prefix =
@@ -865,7 +863,6 @@ and genMemberBinding astContext b =
 and genMemberBindingImpl
     (astContext: ASTContext)
     (prefix: Context -> Context)
-    (b: SynBinding)
     (ats: SynAttributes)
     (px: PreXmlDoc)
     (ao: SynAccess option)
@@ -883,7 +880,6 @@ and genMemberBindingImpl
             false
             px
             ats
-            None
             prefix
             ao
             isInline
@@ -897,15 +893,18 @@ and genMemberBindingImpl
             equalsRange
             e
     | e, PatLongIdent (ao, s, _, ps, tpso) when (List.isNotEmpty ps) ->
-        genSynBindingFunction astContext true false px ats None prefix ao isInline false s p.Range ps tpso equalsRange e
+        genSynBindingFunction astContext true false px ats prefix ao isInline false s p.Range ps tpso equalsRange e
     | TypedExpr (Typed, e, t), pat ->
-        genSynBindingValue astContext false px ats None prefix ao isInline false pat (Some t) equalsRange e
-    | _, pat -> genSynBindingValue astContext false px ats None prefix ao isInline false pat None equalsRange e
+        genSynBindingValue astContext false px ats prefix ao isInline false pat (Some t) equalsRange e
+    | _, pat -> genSynBindingValue astContext false px ats prefix ao isInline false pat None equalsRange e
 
 and genMemberFlags (mf: SynMemberFlags) =
     match mf.Trivia with
-    | { StaticRange = Some _s
-        MemberRange = Some _m } -> !- "static member "
+    | { StaticRange = Some s
+        MemberRange = Some _m } ->
+        genTriviaFor SynValData_Static s !- "static"
+        +> sepSpace
+        +> !- "member "
     | { OverrideRange = Some _o } -> !- "override "
     | { DefaultRange = Some _d } -> !- "default "
     | { AbstractRange = Some _a
@@ -5029,7 +5028,6 @@ and genSynBindingFunction
     (isRecursiveLetOrUseFunction: bool)
     (px: PreXmlDoc)
     (ats: SynAttributes)
-    (letKeyword: range option)
     (pref: Context -> Context)
     (ao: SynAccess option)
     (isInline: bool)
@@ -5074,8 +5072,7 @@ and genSynBindingFunction
             | _ -> sepSpace
 
         let short =
-            genPref
-            +> afterLetKeyword
+            afterLetKeyword
             +> genFunctionName
             +> spaceBeforeParameters
             +> col sepSpace parameters (genPatWithIdent astContext)
@@ -5088,8 +5085,7 @@ and genSynBindingFunction
                     genParenTupleWithIndentAndNewlines astContext lpr ps rpr pp.Range, true
                 | _ -> col sepNln parameters (genPatWithIdent astContext), false
 
-            (genPref
-             +> afterLetKeyword
+            (afterLetKeyword
              +> sepSpace
              +> genFunctionName
              +> indent
@@ -5113,7 +5109,7 @@ and genSynBindingFunction
 
     (genPreXmlDoc px
      +> genAttrIsFirstChild
-     +> optSingle (enterNodeFor SynBinding_Let) letKeyword
+     +> genPref
      +> leadingExpressionIsMultiline genSignature genExpr)
         ctx
 
@@ -5123,7 +5119,6 @@ and genSynBindingFunctionWithReturnType
     (isRecursiveLetOrUseFunction: bool)
     (px: PreXmlDoc)
     (ats: SynAttributes)
-    (letKeyword: range option)
     (pref: Context -> Context)
     (ao: SynAccess option)
     (isInline: bool)
@@ -5180,8 +5175,7 @@ and genSynBindingFunctionWithReturnType
             | _ -> sepSpace
 
         let short =
-            genPref
-            +> afterLetKeyword
+            afterLetKeyword
             +> sepSpace
             +> genFunctionName
             +> spaceBeforeParameters
@@ -5196,8 +5190,7 @@ and genSynBindingFunctionWithReturnType
                     genParenTupleWithIndentAndNewlines astContext lpr ps rpr pp.Range, true
                 | _ -> col sepNln parameters (genPatWithIdent astContext), false
 
-            (genPref
-             +> afterLetKeyword
+            (afterLetKeyword
              +> sepSpace
              +> genFunctionName
              +> indent
@@ -5221,7 +5214,7 @@ and genSynBindingFunctionWithReturnType
 
     (genPreXmlDoc px
      +> genAttrIsFirstChild
-     +> optSingle (enterNodeFor SynBinding_Let) letKeyword
+     +> genPref
      +> leadingExpressionIsMultiline genSignature genExpr)
         ctx
 
@@ -5277,7 +5270,6 @@ and genSynBindingValue
     (isRecursiveLetOrUseFunction: bool)
     (px: PreXmlDoc)
     (ats: SynAttributes)
-    (letKeyword: range option)
     (pref: Context -> Context)
     (ao: SynAccess option)
     (isInline: bool)
@@ -5325,7 +5317,6 @@ and genSynBindingValue
 
     genPreXmlDoc px
     +> genAttrIsFirstChild
-    +> optSingle (enterNodeFor SynBinding_Let) letKeyword
     +> genPref
     +> (fun ctx ->
         let prefix =
