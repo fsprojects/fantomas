@@ -22,6 +22,7 @@ Some common use cases include:
         <PackageIcon>fantomas_logo.png</PackageIcon>
         <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
         <PackageReadmeFile>README.md</PackageReadmeFile>
+        <Tailcalls>true</Tailcalls>
     </PropertyGroup>
 
     <ItemGroup Condition="'$(IsPackable)' == 'true'">
