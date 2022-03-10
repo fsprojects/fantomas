@@ -4,6 +4,7 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <WarningsAsErrors>FS0025</WarningsAsErrors>
     <IsPackable>true</IsPackable>
+    <Tailcalls>true</Tailcalls>
   </PropertyGroup>
   <ItemGroup>
     <None Include="paket.references" />
