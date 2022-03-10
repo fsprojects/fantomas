@@ -464,6 +464,29 @@ let CalculateFine (ticket: SpeedingTicket) =
 """
 
 [<Test>]
+let ``separate-indexed-properties`` () =
+    formatSourceString
+        false
+        """
+type Foo() =
+    member this.Item
+        with get (name: string): obj option = None
+
+    member this.Item
+        with set (name: string) (v: obj option): unit =
+            ()"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type Foo() =
+    member this.Item
+        with set (name: string) (v: obj option): unit = ()
+        and get (name: string): obj option = None
+"""
+
+[<Test>]
 let ``indexed properties`` () =
     formatSourceString
         false

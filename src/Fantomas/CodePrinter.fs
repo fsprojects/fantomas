@@ -718,16 +718,19 @@ and genPropertyWithGetSet astContext (b1, b2) =
         let ps1 = List.map snd ps1
         let ps2 = List.map snd ps2
 
-        let genGet =
-            genProperty astContext (genPropertyKeyword pk1) ao1 "get " ps1 SynBinding_Equals eqR1 e1
+        let genGet okw ikw =
+            genProperty astContext (genPropertyKeyword (okw, ikw)) ao1 "get " ps1 SynBinding_Equals eqR1 e1
 
-        let genSet =
-            genProperty astContext (genPropertyKeyword pk2) ao2 "set " ps2 SynBinding_Equals eqR2 e2
+        let genSet okw ikw =
+            genProperty astContext (genPropertyKeyword (okw, ikw)) ao2 "set " ps2 SynBinding_Equals eqR2 e2
+
+        let w = Some "with"
+        let a = Some "and"
 
         let genGetSet =
-            match pk2 with
-            | Some (PropertyKeyword.With _) -> genSet +> sepNln +> genGet
-            | _ -> genGet +> sepNln +> genSet
+            match pk1, pk2 with
+            | Some _, Some (PropertyKeyword.With _) -> genSet w pk1 +> sepNln +> genGet a pk2
+            | _ -> genGet w pk1 +> sepNln +> genSet a pk2
 
         prefix
         +> !-s1
@@ -737,11 +740,16 @@ and genPropertyWithGetSet astContext (b1, b2) =
         +> unindent
     | _ -> sepNone
 
-and genPropertyKeyword (pkw: PropertyKeyword option) (ctx: Context) =
-    match pkw with
+and genPropertyKeyword (outputKeyword: string option, inputKeyword: PropertyKeyword option) (ctx: Context) =
+    match outputKeyword with
     | None -> ctx
-    | Some (PropertyKeyword.And r) -> (!- "and " |> genTriviaFor SynPat_LongIdent_And r) ctx
-    | Some (PropertyKeyword.With r) -> (!- "with " |> genTriviaFor SynPat_LongIdent_With r) ctx
+    | Some keyword ->
+        let start = keyword + " "
+
+        match inputKeyword with
+        | None -> ctx
+        | Some (PropertyKeyword.And r) -> (!-start |> genTriviaFor SynPat_LongIdent_And r) ctx
+        | Some (PropertyKeyword.With r) -> (!-start |> genTriviaFor SynPat_LongIdent_With r) ctx
 
 and genMemberBindingList astContext node =
     let rec collectItems
