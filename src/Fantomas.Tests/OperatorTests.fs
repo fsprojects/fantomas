@@ -1277,3 +1277,21 @@ StringPosition.(|A|B|)
 
 let f (|A|B|) = (|A|B|)
 """
+
+[<Test>]
+let ``multiline expressions in equals infix operator, 1863`` () =
+    formatSourceString
+        false
+        """
+
+ let v =       attr.Method.DeclaringType.TypeSpec.Name = typeof<TypeProviderEditorHideMethodsAttribute>.FullName
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let v =
+    attr.Method.DeclaringType.TypeSpec.Name = typeof<TypeProviderEditorHideMethodsAttribute>
+                                                  .FullName
+"""

@@ -2747,7 +2747,7 @@ and genOnelinerInfixExpr astContext e1 operatorText operatorExpr e2 =
     +> sepSpace
     +> genInfixOperator operatorText operatorExpr
     +> sepSpace
-    +> genExpr astContext e2
+    +> atCurrentColumnIndent (genExpr astContext e2)
 
 and genMultilineInfixExpr astContext e1 operatorText operatorExpr e2 =
     let genE1 (ctx: Context) =

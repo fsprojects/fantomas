@@ -1231,7 +1231,7 @@ let x =
                tcref.ILTyconRawMetadata.CustomAttrs.AsArray
                |> Array.exists (fun attr ->
                    attr.Method.DeclaringType.TypeSpec.Name = typeof<TypeProviderEditorHideMethodsAttribute>
-                       .FullName)
+                                                                 .FullName)
            else
                false
 """
@@ -1262,8 +1262,7 @@ let x =
                tcref.ILTyconRawMetadata.CustomAttrs.AsArray
                |> Array.exists
                    (fun attr ->
-                       attr.Method.DeclaringType.TypeSpec.Name = typeof<TypeProviderEditorHideMethodsAttribute>
-                           .FullName)
+                       attr.Method.DeclaringType.TypeSpec.Name = typeof<TypeProviderEditorHideMethodsAttribute>.FullName)
            else
                false
 """
@@ -1293,7 +1292,7 @@ let x =
                tcref.ILTyconRawMetadata.CustomAttrs.AsArray
                |> Array.exists (fun attr ->
                    attr.Method.DeclaringType.TypeSpec.Name = typeof<TypeProviderEditorHideMethodsAttribute>
-                       .FullName)
+                                                                 .FullName)
            else
                false
 """
