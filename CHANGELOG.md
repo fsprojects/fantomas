@@ -1,5 +1,10 @@
 # Changelog
 
+## [4.7.2] - 2022-03-11
+
+### Fixed
+*  Reordering comments on modules. [#2141](https://github.com/fsprojects/fantomas/issues/2141)
+
 ## [4.7.1] - 2022-03-08
 
 ### Fixed
