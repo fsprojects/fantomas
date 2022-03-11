@@ -718,16 +718,21 @@ and genPropertyWithGetSet astContext (b1, b2) =
         let ps1 = List.map snd ps1
         let ps2 = List.map snd ps2
 
-        let genGet =
-            genProperty astContext (genPropertyKeyword pk1) ao1 "get " ps1 SynBinding_Equals eqR1 e1
+        let genGet okw ikw =
+            genProperty astContext (genPropertyKeyword (okw, ikw)) ao1 "get " ps1 SynBinding_Equals eqR1 e1
 
-        let genSet =
-            genProperty astContext (genPropertyKeyword pk2) ao2 "set " ps2 SynBinding_Equals eqR2 e2
+        let genSet okw ikw =
+            genProperty astContext (genPropertyKeyword (okw, ikw)) ao2 "set " ps2 SynBinding_Equals eqR2 e2
+
+        let w = "with"
+        let a = "and"
 
         let genGetSet =
+            // regardless of get/set ordering, the second member needs to be rendered as keyword "and", not keyword "with".
+            // therefore, the genGet and genSet helper functions have to take the desired keyword as a parameter.
             match pk2 with
-            | Some (PropertyKeyword.With _) -> genSet +> sepNln +> genGet
-            | _ -> genGet +> sepNln +> genSet
+            | Some (PropertyKeyword.With _) -> genSet w pk1 +> sepNln +> genGet a pk2
+            | _ -> genGet w pk1 +> sepNln +> genSet a pk2
 
         prefix
         +> !-s1
@@ -737,11 +742,22 @@ and genPropertyWithGetSet astContext (b1, b2) =
         +> unindent
     | _ -> sepNone
 
-and genPropertyKeyword (pkw: PropertyKeyword option) (ctx: Context) =
-    match pkw with
+/// <summary>Generate the keyword <code>and</code> or <code>with</code>, along with any matching syntax trivia, for a given keyword</summary>
+/// <param name="outputKeyword">the keyword that the user wants for the property after writing.</param>
+/// <param name="inputKeyword">the parsed keyword range for the property from the AST. this is used to lookup trivia based on its range, since this range can differ from the output keyword's range.</param>
+/// <param name="ctx">the writing context context, not used inside this function</param>
+/// <remarks>The output keyword and input keyword can be different in the case of a property where the getter and setter are defined separately.
+/// Fantomas will combine the definitions, each of which are defined as <code>member blah with get</code>, <code>member blah with get</code>,
+/// into a combined getter and setter on a single member. This means that one of the <code>with</code> must be rewritten as an <code>and</code>,
+/// but we need to preserve the trivia.</remarks>
+/// <returns>A function that will transform and rewrite the member property keywords.</returns>
+and genPropertyKeyword (outputKeyword: string, inputKeyword: PropertyKeyword option) (ctx: Context) =
+    let start = outputKeyword + " "
+
+    match inputKeyword with
     | None -> ctx
-    | Some (PropertyKeyword.And r) -> (!- "and " |> genTriviaFor SynPat_LongIdent_And r) ctx
-    | Some (PropertyKeyword.With r) -> (!- "with " |> genTriviaFor SynPat_LongIdent_With r) ctx
+    | Some (PropertyKeyword.And r) -> (!-start |> genTriviaFor SynPat_LongIdent_And r) ctx
+    | Some (PropertyKeyword.With r) -> (!-start |> genTriviaFor SynPat_LongIdent_With r) ctx
 
 and genMemberBindingList astContext node =
     let rec collectItems

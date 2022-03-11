@@ -4,6 +4,7 @@
 
 ### Fixed
 * Option parameter name is lost in tuple. [#2144](https://github.com/fsprojects/fantomas/issues/2144)
+* Emit correct keyword for properties with both getter and setter specified [#2129](https://github.com/fsprojects/fantomas/issues/2129)
 
 ## [4.7.2] - 2022-03-11
 
