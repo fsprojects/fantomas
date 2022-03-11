@@ -724,8 +724,8 @@ and genPropertyWithGetSet astContext (b1, b2) =
         let genSet okw ikw =
             genProperty astContext (genPropertyKeyword (okw, ikw)) ao2 "set " ps2 SynBinding_Equals eqR2 e2
 
-        let w = Some "with"
-        let a = Some "and"
+        let w = "with"
+        let a = "and"
 
         let genGetSet =
             match pk1, pk2 with
@@ -740,16 +740,22 @@ and genPropertyWithGetSet astContext (b1, b2) =
         +> unindent
     | _ -> sepNone
 
-and genPropertyKeyword (outputKeyword: string option, inputKeyword: PropertyKeyword option) (ctx: Context) =
-    match outputKeyword with
-    | None -> ctx
-    | Some keyword ->
-        let start = keyword + " "
+/// <summary>Generate the keyword <code>and</code> or <code>with</code>, along with any matching syntax trivia, for a given keyword</summary>
+/// <param name="outputKeyword">the keyword that the user wants for the property after writing.</param>
+/// <param name="inputKeyword">the parsed keyword range for the property from the AST. this is used to lookup trivia based on its range, since this range can differ from the output keyword's range.</param>
+/// <param name="ctx">the writing context context, not used inside this function</param>
+/// <remarks>The output keyword and input keyword can be different in the case of a property where the getter and setter are defined separately.
+/// Fantomas will combine the definitions, each of which are defined as <code>member blah with get</code>, <code>member blah with get</code>,
+/// into a combined getter and setter on a single member. This means that one of the <code>with</code> must be rewritten as an <code>and</code>,
+/// but we need to preserve the trivia.</remarks>
+/// <returns>A function that will transform and rewrite the member property keywords.</returns>
+and genPropertyKeyword (outputKeyword: string, inputKeyword: PropertyKeyword option) (ctx: Context) =
+    let start = outputKeyword + " "
 
-        match inputKeyword with
-        | None -> ctx
-        | Some (PropertyKeyword.And r) -> (!-start |> genTriviaFor SynPat_LongIdent_And r) ctx
-        | Some (PropertyKeyword.With r) -> (!-start |> genTriviaFor SynPat_LongIdent_With r) ctx
+    match inputKeyword with
+    | None -> ctx
+    | Some (PropertyKeyword.And r) -> (!-start |> genTriviaFor SynPat_LongIdent_And r) ctx
+    | Some (PropertyKeyword.With r) -> (!-start |> genTriviaFor SynPat_LongIdent_With r) ctx
 
 and genMemberBindingList astContext node =
     let rec collectItems
