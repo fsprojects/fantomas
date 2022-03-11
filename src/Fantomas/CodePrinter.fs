@@ -4097,17 +4097,32 @@ and genConstraints astContext (t: SynType) (vi: SynValInfo) =
             match ti, vi with
             | TFuns ts, SynValInfo (curriedArgInfos, returnType) ->
                 let namedArgInfos =
-                    (List.map List.head curriedArgInfos)
-                    @ [ returnType ]
-                    |> List.map (fun (SynArgInfo (_, _, i)) -> i)
+                    [ yield! curriedArgInfos
+                      yield [ returnType ] ]
 
-                coli sepArrow ts (fun i t ->
-                    let genNamedArg =
-                        List.tryItem i namedArgInfos
-                        |> Option.bind id
-                        |> optSingle (fun (Ident s) -> !-s +> sepColon)
+                let args = List.zip namedArgInfos ts
 
-                    genNamedArg +> genType astContext false t)
+                col sepArrow args (fun (argInfo, t) ->
+                    match argInfo, t with
+                    | [], _ -> genType astContext false t
+                    | [ SynArgInfo (_, isOptional, Some (Ident s)) ], _ ->
+                        onlyIf isOptional (!- "?")
+                        +> !-s
+                        +> sepColon
+                        +> genType astContext false t
+                    | [ SynArgInfo _ ], _ -> genType astContext false t
+                    | multipleArgInfo, TTuple ts ->
+                        let combined = List.zip multipleArgInfo ts
+
+                        col sepStar combined (fun (argInfo, (_, t)) ->
+                            let genNamed =
+                                match argInfo with
+                                | SynArgInfo (_, isOptional, Some (Ident s)) ->
+                                    onlyIf isOptional (!- "?") +> !-s +> sepColon
+                                | _ -> sepNone
+
+                            genNamed +> genType astContext false t)
+                    | _ -> sepNone)
             | _ -> genType astContext false ti
 
         genType
