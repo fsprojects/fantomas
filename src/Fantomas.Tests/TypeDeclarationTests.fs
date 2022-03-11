@@ -2983,3 +2983,81 @@ type V = // comment
       Y: OhSomethingElse
       Z: ALongTypeName }
 """
+
+[<Test>]
+let ``trivia between xml doc and member, 2147`` () =
+    formatSourceString
+        true
+        """
+// Copyright (c) Microsoft Corporation.  All Rights Reserved.  See License.txt in the project root for license information.
+
+module internal FSharp.Compiler.Infos
+
+type MethInfo =
+    | FSMeth of tcGlobals: TcGlobals
+    
+/// Get the information about provided static parameters, if any
+// #if NO_EXTENSIONTYPING
+    member ProvidedStaticParameterInfo: obj option
+// #else
+//     member ProvidedStaticParameterInfo: (Tainted<ProvidedMethodBase> * Tainted<ProvidedParameterInfo> []) option
+// #endif
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+// Copyright (c) Microsoft Corporation.  All Rights Reserved.  See License.txt in the project root for license information.
+
+module internal FSharp.Compiler.Infos
+
+type MethInfo =
+    | FSMeth of tcGlobals: TcGlobals
+
+    /// Get the information about provided static parameters, if any
+    // #if NO_EXTENSIONTYPING
+    member ProvidedStaticParameterInfo: obj option
+// #else
+//     member ProvidedStaticParameterInfo: (Tainted<ProvidedMethodBase> * Tainted<ProvidedParameterInfo> []) option
+// #endif
+"""
+
+[<Test>]
+let ``hash directive between xml doc and member`` () =
+    formatSourceString
+        true
+        """
+// Copyright (c) Microsoft Corporation.  All Rights Reserved.  See License.txt in the project root for license information.
+
+module internal FSharp.Compiler.Infos
+
+type MethInfo =
+    | FSMeth of tcGlobals: TcGlobals
+    
+/// Get the information about provided static parameters, if any
+#if NO_EXTENSIONTYPING
+    member ProvidedStaticParameterInfo: obj option
+#else
+    member ProvidedStaticParameterInfo: (Tainted<ProvidedMethodBase> * Tainted<ProvidedParameterInfo> []) option
+#endif
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+// Copyright (c) Microsoft Corporation.  All Rights Reserved.  See License.txt in the project root for license information.
+
+module internal FSharp.Compiler.Infos
+
+type MethInfo =
+    | FSMeth of tcGlobals: TcGlobals
+
+    /// Get the information about provided static parameters, if any
+#if NO_EXTENSIONTYPING
+    member ProvidedStaticParameterInfo: obj option
+#else
+    member ProvidedStaticParameterInfo: (Tainted<ProvidedMethodBase> * Tainted<ProvidedParameterInfo> []) option
+#endif
+"""

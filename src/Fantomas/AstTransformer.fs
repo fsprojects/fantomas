@@ -705,9 +705,10 @@ module private Ast =
 
     and visitSynMemberSig (ms: SynMemberSig) : TriviaNodeAssigner list =
         match ms with
-        | SynMemberSig.Member (valSig, _, range) ->
-            mkNode SynMemberSig_Member range
-            :: (visitSynValSig valSig)
+        | SynMemberSig.Member (valSig, mf, range) ->
+            [ yield mkNode SynMemberSig_Member range
+              yield! visitSynMemberFlags mf
+              yield! visitSynValSig valSig ]
         | SynMemberSig.Interface (typeName, range) ->
             mkNode SynMemberSig_Interface range
             :: (visitSynType typeName)
@@ -913,11 +914,15 @@ module private Ast =
         | SynValData (memberFlags, svi, _) ->
             let flagNodes =
                 match memberFlags with
-                | Some { Trivia = trivia } -> mkNodeOption SynValData_Static trivia.StaticRange
-                | _ -> []
+                | Some mf -> visitSynMemberFlags mf
+                | None -> []
 
             [ yield! flagNodes
               yield! visitSynValInfo svi ]
+
+    and visitSynMemberFlags (memberFlags: SynMemberFlags) : TriviaNodeAssigner list =
+        [ yield! mkNodeOption SynValData_Static memberFlags.Trivia.StaticRange
+          yield! mkNodeOption SynValData_Member memberFlags.Trivia.MemberRange ]
 
     and visitSynValSig (svs: SynValSig) : TriviaNodeAssigner list =
         match svs with

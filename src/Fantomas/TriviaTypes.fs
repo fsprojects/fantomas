@@ -354,6 +354,7 @@ type FsAstType =
     | SynType_Paren_ClosingParenthesis
     | SynValData_
     | SynValData_Static
+    | SynValData_Member
     | SynValInfo_
     | SynArgInfo_
     | ParsedHashDirective_

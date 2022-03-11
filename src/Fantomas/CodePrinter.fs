@@ -916,7 +916,7 @@ and genMemberFlags (mf: SynMemberFlags) =
     | { DefaultRange = Some _d } -> !- "default "
     | { AbstractRange = Some _a
         MemberRange = Some _m } -> !- "abstract member "
-    | { MemberRange = Some _m } -> !- "member "
+    | { MemberRange = Some m } -> genTriviaFor SynValData_Member m !- "member "
     | { AbstractRange = Some _a } -> !- "abstract "
     | _ -> sepNone
 
