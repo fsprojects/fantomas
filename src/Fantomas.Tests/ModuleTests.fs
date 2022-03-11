@@ -779,3 +779,128 @@ namespace Meh
 module Foo = // comment
     val bar: int
 """
+
+[<Test>]
+let ``comment above named module with xml doc, 2141`` () =
+    formatSourceString
+        false
+        """
+// Boring copyright notice
+
+(* Some other preamble *)
+
+/// This module is amazing it's full of helpful lookup queries
+module Queries
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+// Boring copyright notice
+
+(* Some other preamble *)
+
+/// This module is amazing it's full of helpful lookup queries
+module Queries
+"""
+
+[<Test>]
+let ``comment before declared namespace`` () =
+    formatSourceString
+        false
+        """
+// some comment
+namespace Blah
+let a = 0
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+// some comment
+namespace Blah
+
+let a = 0
+"""
+
+[<Test>]
+let ``comment before global namespace`` () =
+    formatSourceString
+        false
+        """
+// some comment
+namespace global
+let a = 0
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+// some comment
+namespace global
+
+let a = 0
+"""
+
+[<Test>]
+let ``comment before declared namespace in signature file`` () =
+    formatSourceString
+        true
+        """
+// some comment
+namespace Blah
+val a : int
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+// some comment
+namespace Blah
+
+val a: int
+"""
+
+[<Test>]
+let ``comment before global namespace in signature file`` () =
+    formatSourceString
+        true
+        """
+// some comment
+namespace global
+val a : int
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+// some comment
+namespace global
+
+val a: int
+"""
+
+[<Test>]
+let ``comment before named module in signature file`` () =
+    formatSourceString
+        true
+        """
+// some comment
+module Meh
+val a : int
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+// some comment
+module Meh
+
+val a: int
+"""

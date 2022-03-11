@@ -48,13 +48,21 @@ module private Ast =
 
     let rec visitSynModuleOrNamespace (modOrNs: SynModuleOrNamespace) : TriviaNodeAssigner list =
         match modOrNs with
-        | SynModuleOrNamespace (longIdent, _, kind, decls, _, attrs, _, _range) ->
+        | SynModuleOrNamespace (longIdent, _, kind, decls, _, attrs, _, range) ->
+            let moduleOrNamespace =
+                match kind with
+                | SynModuleOrNamespaceKind.DeclaredNamespace -> [ mkNode SynModuleOrNamespace_DeclaredNamespace range ]
+                | SynModuleOrNamespaceKind.GlobalNamespace -> [ mkNode SynModuleOrNamespace_GlobalNamespace range ]
+                | SynModuleOrNamespaceKind.NamedModule -> [ mkNode SynModuleOrNamespace_NamedModule range ]
+                | SynModuleOrNamespaceKind.AnonModule -> []
+
             let longIdentNodes =
                 match kind, decls with
                 | SynModuleOrNamespaceKind.AnonModule, _ :: _ -> []
                 | _ -> visitLongIdentIncludingFullRange longIdent
 
-            [ yield! longIdentNodes
+            [ yield! moduleOrNamespace
+              yield! longIdentNodes
               yield! (visitSynAttributeLists attrs)
               yield! (decls |> List.collect visitSynModuleDecl) ]
 
@@ -1403,6 +1411,9 @@ module private Ast =
 
             let moduleOrNamespaceSig =
                 match kind with
+                | SynModuleOrNamespaceKind.DeclaredNamespace ->
+                    [ mkNode SynModuleOrNamespaceSig_DeclaredNamespace range ]
+                | SynModuleOrNamespaceKind.GlobalNamespace -> [ mkNode SynModuleOrNamespaceSig_GlobalNamespace range ]
                 | SynModuleOrNamespaceKind.NamedModule -> [ mkNode SynModuleOrNamespaceSig_NamedModule range ]
                 | _ -> []
 

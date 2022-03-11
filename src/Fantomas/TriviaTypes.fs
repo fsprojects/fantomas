@@ -47,12 +47,10 @@ type TriviaIndex = TriviaIndex of int * int
 type FsAstType =
     | Ident_
     | LongIdent_ // namespace or module identifier
-    // Modules and namespaces cannot really be trusted
-    // Their range can be influenced by non code constructs (like comments)
-    //    | SynModuleOrNamespace_AnonModule
-    //    | SynModuleOrNamespace_DeclaredNamespace
-    //    | SynModuleOrNamespace_GlobalNamespace
-    //    | SynModuleOrNamespace_NamedModule
+    //    | SynModuleOrNamespace_AnonModule, pick first child node instead
+    | SynModuleOrNamespace_DeclaredNamespace
+    | SynModuleOrNamespace_GlobalNamespace
+    | SynModuleOrNamespace_NamedModule
     | SynModuleDecl_ModuleAbbrev
     | SynModuleDecl_NestedModule
     | SynModuleDecl_NestedModule_Module
@@ -361,13 +359,9 @@ type FsAstType =
     | ParsedHashDirective_
     | ParsedHashDirectiveArgument_String
     | ParsedHashDirectiveArgument_SourceIdentifier
-    // Modules and namespaces cannot really be trusted
-    // Update 2022: this is not entirely true anymore.
-    // TODO: investigate what the status of this is.
-    // Their range can be influenced by non code constructs (like comments)
-//    | SynModuleOrNamespaceSig_AnonModule
-//    | SynModuleOrNamespaceSig_DeclaredNamespace
-//    | SynModuleOrNamespaceSig_GlobalNamespace
+    //    | SynModuleOrNamespaceSig_AnonModule, pick first child node
+    | SynModuleOrNamespaceSig_DeclaredNamespace
+    | SynModuleOrNamespaceSig_GlobalNamespace
     | SynModuleOrNamespaceSig_NamedModule
     | SynModuleSigDecl_ModuleAbbrev
     | SynModuleSigDecl_NestedModule

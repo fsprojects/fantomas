@@ -119,7 +119,7 @@ and genModuleOrNamespaceKind (kind: SynModuleOrNamespaceKind) =
     | SynModuleOrNamespaceKind.GlobalNamespace -> !- "namespace global"
     | SynModuleOrNamespaceKind.AnonModule -> sepNone
 
-and genModuleOrNamespace astContext (ModuleOrNamespace (ats, px, ao, lids, mds, isRecursive, moduleKind)) =
+and genModuleOrNamespace astContext (ModuleOrNamespace (ats, px, ao, lids, mds, isRecursive, moduleKind, range)) =
     let sepModuleAndFirstDecl =
         let firstDecl = List.tryHead mds
 
@@ -131,7 +131,7 @@ and genModuleOrNamespace astContext (ModuleOrNamespace (ats, px, ao, lids, mds, 
 
     let lidsFullRange =
         match lids with
-        | [] -> range.Zero
+        | [] -> FSharp.Compiler.Text.range.Zero
         | (_, r) :: _ -> Range.unionRanges r (List.last lids |> snd)
 
     let moduleOrNamespace =
@@ -154,6 +154,11 @@ and genModuleOrNamespace astContext (ModuleOrNamespace (ats, px, ao, lids, mds, 
     +> ifElse (moduleKind = SynModuleOrNamespaceKind.AnonModule) genTriviaForAnonModuleIdent moduleOrNamespace
     +> sepModuleAndFirstDecl
     +> genModuleDeclList astContext mds
+    |> (match moduleKind with
+        | SynModuleOrNamespaceKind.AnonModule -> id
+        | SynModuleOrNamespaceKind.DeclaredNamespace -> genTriviaFor SynModuleOrNamespace_DeclaredNamespace range
+        | SynModuleOrNamespaceKind.GlobalNamespace -> genTriviaFor SynModuleOrNamespace_GlobalNamespace range
+        | SynModuleOrNamespaceKind.NamedModule -> genTriviaFor SynModuleOrNamespace_NamedModule range)
 
 and genSigModuleOrNamespace astContext (SigModuleOrNamespace (ats, px, ao, lids, mds, isRecursive, moduleKind, range)) =
     let sepModuleAndFirstDecl =
@@ -187,6 +192,8 @@ and genSigModuleOrNamespace astContext (SigModuleOrNamespace (ats, px, ao, lids,
     +> sepModuleAndFirstDecl
     +> genSigModuleDeclList astContext mds
     |> (match moduleKind with
+        | SynModuleOrNamespaceKind.DeclaredNamespace -> genTriviaFor SynModuleOrNamespaceSig_DeclaredNamespace range
+        | SynModuleOrNamespaceKind.GlobalNamespace -> genTriviaFor SynModuleOrNamespaceSig_GlobalNamespace range
         | SynModuleOrNamespaceKind.NamedModule -> genTriviaFor SynModuleOrNamespaceSig_NamedModule range
         | _ -> id)
 

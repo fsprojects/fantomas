@@ -240,9 +240,9 @@ let (|ParsedImplFileInput|) (ParsedImplFileInput.ParsedImplFileInput (_, _, _, _
 let (|ParsedSigFileInput|) (ParsedSigFileInput.ParsedSigFileInput (_, _, _, hs, mns)) = (hs, mns)
 
 let (|ModuleOrNamespace|)
-    (SynModuleOrNamespace.SynModuleOrNamespace (LongIdentPieces lids, isRecursive, kind, mds, px, ats, ao, _))
+    (SynModuleOrNamespace.SynModuleOrNamespace (LongIdentPieces lids, isRecursive, kind, mds, px, ats, ao, range))
     =
-    (ats, px, ao, lids, mds, isRecursive, kind)
+    (ats, px, ao, lids, mds, isRecursive, kind, range)
 
 let (|SigModuleOrNamespace|)
     (SynModuleOrNamespaceSig.SynModuleOrNamespaceSig (LongIdentPieces lids, isRecursive, kind, mds, px, ats, ao, range))
@@ -251,7 +251,8 @@ let (|SigModuleOrNamespace|)
 
 let (|EmptyFile|_|) (input: ParsedInput) =
     match input with
-    | ImplFile (ParsedImplFileInput (_, [ ModuleOrNamespace (_, _, _, _, [], _, SynModuleOrNamespaceKind.AnonModule) ])) ->
+    | ImplFile (ParsedImplFileInput (_,
+                                     [ ModuleOrNamespace (_, _, _, _, [], _, SynModuleOrNamespaceKind.AnonModule, _) ])) ->
         Some input
     | SigFile (ParsedSigFileInput (_,
                                    [ SigModuleOrNamespace (_, _, _, _, [], _, SynModuleOrNamespaceKind.AnonModule, _) ])) ->
