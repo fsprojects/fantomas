@@ -728,8 +728,10 @@ and genPropertyWithGetSet astContext (b1, b2) =
         let a = "and"
 
         let genGetSet =
-            match pk1, pk2 with
-            | Some _, Some (PropertyKeyword.With _) -> genSet w pk1 +> sepNln +> genGet a pk2
+            // regardless of get/set ordering, the second member needs to be rendered as keyword "and", not keyword "with".
+            // therefore, the genGet and genSet helper functions have to take the desired keyword as a parameter.
+            match pk2 with
+            | Some (PropertyKeyword.With _) -> genSet w pk1 +> sepNln +> genGet a pk2
             | _ -> genGet w pk1 +> sepNln +> genSet a pk2
 
         prefix
