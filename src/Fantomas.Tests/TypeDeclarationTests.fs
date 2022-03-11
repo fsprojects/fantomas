@@ -464,7 +464,7 @@ let CalculateFine (ticket: SpeedingTicket) =
 """
 
 [<Test>]
-let ``separate-indexed-properties`` () =
+let ``separate-indexed-properties, 2129`` () =
     formatSourceString
         false
         """
