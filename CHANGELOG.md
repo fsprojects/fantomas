@@ -1,11 +1,12 @@
 # Changelog
 
-## [Unreleased]
+## [4.7.3] - 2022-03-12
 
 ### Fixed
 * Option parameter name is lost in tuple. [#2144](https://github.com/fsprojects/fantomas/issues/2144)
 * Trivia between XmlDoc and member is not printed. [#2147](https://github.com/fsprojects/fantomas/issues/2147)
 * Emit correct keyword for properties with both getter and setter specified [#2129](https://github.com/fsprojects/fantomas/issues/2129)
+* Duplicate ///-comments when immediately preceded by a //-comment. [#2152](https://github.com/fsprojects/fantomas/issues/2152)
 
 ## [4.7.2] - 2022-03-11
 

@@ -692,6 +692,11 @@ let private (|LineComments|_|) (tokens: Token list) =
         (finalContinuation: Token list -> Token list)
         : Token list * Token list =
         match tokens with
+        // When collecting a line comment, stop if we move from a double slash to a triple slash comment.
+        | LineCommentToken { Content = "///"
+                             LineNumber = tripleLn } :: _ when tripleLn = lastLineNumber + 1 ->
+            finalContinuation [], tokens
+        // Collect comment tokens when the current line is underneath the previous one.
         | LineCommentToken lc :: rest when (lc.LineNumber <= lastLineNumber + 1) ->
             collect rest lc.LineNumber (fun commentTokens -> lc :: commentTokens |> finalContinuation)
         | _ -> finalContinuation [], tokens
@@ -812,11 +817,7 @@ let rec private getTriviaFromTokensThemSelves
     =
     match tokens with
     // Skip triple slash comments
-    | TripleSlashLineComment (rest) ->
-        getTriviaFromTokensThemSelves mkRange lastButOneNonWhiteSpaceToken lastNonWhiteSpaceToken rest foundTrivia
-
-    // Skip triple slash comments
-    | LineComments ({ Content = "///" } :: _, rest) ->
+    | TripleSlashLineComment rest ->
         getTriviaFromTokensThemSelves mkRange lastButOneNonWhiteSpaceToken lastNonWhiteSpaceToken rest foundTrivia
 
     | LineComments ({ LineNumber = headLineNumber } :: _ as commentTokens, rest) ->
