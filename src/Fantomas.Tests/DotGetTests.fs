@@ -1360,3 +1360,20 @@ module Program =
         builder.Build().RunAsync() |> ignore
         0
 """
+
+[<Test>]
+let ``dotget inside a quotation, 2154`` () =
+    formatSourceString
+        false
+        """
+(fun (Singleton arg) -> <@@ ((%%arg: Indicators) :> IIndicators).AsyncGetIndicator(indicatorIdVal) @@>)
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+(fun (Singleton arg) ->
+    <@@ ((%%arg: Indicators) :> IIndicators)
+            .AsyncGetIndicator(indicatorIdVal) @@>)
+"""

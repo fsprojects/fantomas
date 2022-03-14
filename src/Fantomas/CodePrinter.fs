@@ -1263,7 +1263,11 @@ and genExpr astContext synExpr ctx =
         | NullExpr -> !- "null"
         // Not sure about the role of e1
         | Quote (_, e2, isRaw) ->
-            let e = genExpr astContext e2
+            let e =
+                match e2 with
+                | DotGetApp _ -> atCurrentColumnIndent (genExpr astContext e2)
+                | _ -> genExpr astContext e2
+
             ifElse isRaw (!- "<@@ " +> e -- " @@>") (!- "<@ " +> e -- " @>")
         | TypedExpr (TypeTest, e, t) ->
             genExpr astContext e -- " :? "
