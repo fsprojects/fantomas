@@ -9,6 +9,7 @@ let config =
           MultilineBlockBracketsOnSameColumn = true
           Ragnarok = true }
 
+//TODO: This test is still failing
 [<Test>]
 let ``record type definition`` () =
     formatSourceString
