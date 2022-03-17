@@ -8,6 +8,7 @@
     <IntermediateOutputPath>generated</IntermediateOutputPath>
     <FsYaccOutputFolder>$(IntermediateOutputPath)\$(TargetFramework)\</FsYaccOutputFolder>
     <FsLexOutputFolder>$(IntermediateOutputPath)\$(TargetFramework)\</FsLexOutputFolder>
+    <Tailcalls>true</Tailcalls>
   </PropertyGroup>
 
   <ItemGroup>
