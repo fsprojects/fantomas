@@ -37,12 +37,6 @@ let private findLastNode (nodes: TriviaNodeAssigner list) : TriviaNodeAssigner o
         |> List.maxBy (fun tn -> tn.Range.EndLine)
         |> Some
 
-let private findNodeOnLineAndColumn (nodes: TriviaNodeAssigner list) line column =
-    nodes
-    |> List.tryFindBack (fun tn ->
-        tn.Range.StartLine = line
-        && tn.Range.StartColumn = column)
-
 let private findNodeBeforeLineAndColumn (nodes: TriviaNodeAssigner list) line column =
     nodes
     |> List.tryFindBack (fun tn ->
@@ -223,23 +217,6 @@ let private addTriviaToTriviaNode (startOfSourceCode: int) (triviaNodes: TriviaN
             findNodeBeforeLineFromStart triviaNodes range.StartLine
             |> updateTriviaNode (fun tn -> tn.ContentAfter.Add(Newline)) triviaNodes
 
-    //    | { Item = Keyword ({ TokenInfo = { TokenName = tn } } as kw)
-//        Range = range } when (tn = "QMARK") ->
-//        findSynConstStringNodeAfter triviaNodes range
-//        |> updateTriviaNode (fun tn -> tn.ContentBefore.Add(Keyword(kw))) triviaNodes
-
-    //    | { Item = Keyword keyword
-//        Range = range } ->
-//        findNodeOnLineAndColumn triviaNodes range.StartLine range.StartColumn
-//        |> fun nodeOnLineAndColumn ->
-//            match nodeOnLineAndColumn with
-//            | Some _ ->
-//                nodeOnLineAndColumn
-//                |> updateTriviaNode (fun tn -> tn.ContentBefore.Add(Keyword(keyword))) triviaNodes
-//            | None ->
-//                findParsedHashOnLineAndEndswith triviaNodes range.StartLine range.EndColumn
-//                |> updateTriviaNode (fun tn -> tn.ContentBefore.Add(Keyword(keyword))) triviaNodes
-
     | { Item = Directive dc as directive
         Range = range } ->
         let nodeAfterLine = findFirstNodeAfterLine triviaNodes range.StartLine
@@ -256,21 +233,6 @@ let private addTriviaToTriviaNode (startOfSourceCode: int) (triviaNodes: TriviaN
                     let directive = Directive dc
                     tn.ContentAfter.Add(directive))
                 triviaNodes
-
-    | { Item = StringContent _ as siNode
-        Range = range } ->
-        findNodeOnLineAndColumn triviaNodes range.StartLine range.StartColumn
-        |> updateTriviaNode (fun tn -> tn.ContentItself <- Some siNode) triviaNodes
-
-    | { Item = Number _ as number
-        Range = range } ->
-        findConstNumberNodeOnLineAndColumn triviaNodes range
-        |> updateTriviaNode (fun tn -> tn.ContentItself <- Some number) triviaNodes
-
-    | { Item = CharContent _ as chNode
-        Range = range } ->
-        findNodeOnLineAndColumn triviaNodes range.StartLine range.StartColumn
-        |> updateTriviaNode (fun tn -> tn.ContentItself <- Some chNode) triviaNodes
 
     | { Item = IdentOperatorAsWord _ as ifw
         Range = range } ->
@@ -296,14 +258,6 @@ let private addTriviaToTriviaNode (startOfSourceCode: int) (triviaNodes: TriviaN
             && t.Range.StartLine = range.StartLine)
         |> updateTriviaNode (fun tn -> tn.ContentItself <- Some iNode) triviaNodes
 
-    | { Item = EmbeddedIL _ as eil
-        Range = range } ->
-        triviaNodes
-        |> List.tryFind (fun t ->
-            match t.Type with
-            | SynExpr_LibraryOnlyILAssembly -> RangeHelpers.rangeEq t.Range range
-            | _ -> false)
-        |> updateTriviaNode (fun tn -> tn.ContentItself <- Some eil) triviaNodes
     | _ -> triviaNodes
 
 let private triviaNodeIsNotEmpty (triviaNode: TriviaNodeAssigner) =
@@ -346,25 +300,18 @@ let collectTrivia
         triviaNodesFromAST
         |> List.sortBy (fun n -> n.Range.Start.Line, n.Range.Start.Column)
 
-    // At this point TriviaContent.StringContent has been assigned to the correct string nodes
-    let triviaCollectionResult =
-        TokenParser.getTriviaFromTokens source tokens triviaNodes defineCombination
+    let trivia = TokenParser.getTriviaFromTokens source tokens defineCombination
 
     let startOfSourceCode = 1
     //        match tokens with
 //        | h :: _ -> h.LineNumber // Keep track of comments or hash defines before the first AST node
 //        | _ -> 1
 
-    match triviaCollectionResult.Trivia with
-    | [] ->
-        if not triviaCollectionResult.AssignedContentItself then
-            []
-        else
-            transformNonEmptyNodes triviaCollectionResult.Nodes
-
+    match trivia with
+    | [] -> []
     | _ ->
         match ast, triviaNodes with
-        | EmptyFile _, h :: _ -> addAllTriviaAsContentAfter triviaCollectionResult.Trivia h
+        | EmptyFile _, h :: _ -> addAllTriviaAsContentAfter trivia h
         | _ ->
-            List.fold (addTriviaToTriviaNode startOfSourceCode) triviaNodes triviaCollectionResult.Trivia
+            List.fold (addTriviaToTriviaNode startOfSourceCode) triviaNodes trivia
             |> transformNonEmptyNodes

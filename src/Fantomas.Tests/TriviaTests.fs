@@ -368,58 +368,6 @@ let foo = 42
     | _ -> Assert.Fail $"Expected trivia in content after, got {trivia}"
 
 [<Test>]
-let ``string constant with blank lines`` () =
-    let multilineString =
-        "some
-
-content
-
-with empty lines"
-        |> String.normalizeNewLine
-
-    let source = sprintf "let x = \"%s\"" multilineString
-
-    let trivia = toTrivia source
-
-    match trivia with
-    | [ { ContentItself = Some (StringContent sc)
-          Type = SynConst_String } ] ->
-        String.normalizeNewLine sc
-        == String.normalizeNewLine $"\"%s{multilineString}\""
-    | _ -> fail ()
-
-[<Test>]
-let ``triple quote string constant with blank lines`` () =
-    let multilineString =
-        "some
-
-content
-
-with empty lines"
-        |> String.normalizeNewLine
-
-    let source = sprintf "let x = \"\"\"%s\"\"\"" multilineString
-
-    let trivia = toTrivia source
-
-    match trivia with
-    | [ { ContentItself = Some (StringContent sc)
-          Type = SynConst_String } ] ->
-        String.normalizeNewLine sc
-        == String.normalizeNewLine $"\"\"\"%s{multilineString}\"\"\""
-    | _ -> fail ()
-
-[<Test>]
-let ``char content`` () =
-    let source = "let nulchar = \'\\u0000\'"
-    let trivia = toTrivia source
-
-    match trivia with
-    | [ { ContentItself = Some (CharContent "\'\\u0000\'")
-          Type = SynConst_Char } ] -> pass ()
-    | _ -> Assert.Fail(sprintf "Unexpected trivia: %A" trivia)
-
-[<Test>]
 let ``leading newlines should not be captured as trivia`` () =
     let source =
         """
@@ -458,17 +406,6 @@ type LongIdentWithDots =
                 | _ -> false)
                 cb
         )
-    | _ -> fail ()
-
-[<Test>]
-let ``number expression`` () =
-    let source = sprintf "let x = 2.0m"
-
-    let trivia = toTrivia source
-
-    match trivia with
-    | [ { ContentItself = Some (Number n)
-          Type = _ } ] -> n == "2.0m"
     | _ -> fail ()
 
 [<Test>]

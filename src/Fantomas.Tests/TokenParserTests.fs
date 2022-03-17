@@ -20,8 +20,7 @@ let private getTriviaFromTokens text =
     let source = CodeFormatterImpl.getSourceText text
     let tokens, _ = getDefineCombination source
 
-    getTriviaFromTokens source tokens [] []
-    |> fun { Trivia = trivia } -> trivia
+    getTriviaFromTokens source tokens []
 
 [<Test>]
 let ``simple compiler directive should be found`` () =
@@ -561,16 +560,6 @@ let ``ident between tickets `` () =
 
     match triviaNodes with
     | [ { Item = IdentBetweenTicks "``/ operator combines paths``" } ] -> pass ()
-    | _ -> fail ()
-
-[<Test>]
-let ``escaped char content`` () =
-    let source = "let nulchar = \'\\u0000\'"
-
-    let triviaNodes = getTriviaFromTokens source
-
-    match triviaNodes with
-    | [ { Item = CharContent "\'\\u0000\'" } ] -> pass ()
     | _ -> fail ()
 
 [<Test>]

@@ -1648,17 +1648,9 @@ and genExpr astContext synExpr ctx =
         | Paren (_, ILEmbedded r, rpr, _) ->
             fun ctx ->
                 let expr =
-                    Map.tryFindOrEmptyList SynExpr_LibraryOnlyILAssembly ctx.TriviaMainNodes
-                    |> List.choose (fun tn ->
-                        if RangeHelpers.rangeEq r tn.Range then
-                            match tn.ContentItself with
-                            | Some (EmbeddedIL eil) -> Some eil
-                            | _ -> None
-                        else
-                            None)
-                    |> List.tryHead
-                    |> Option.map (!-)
-                    |> Option.defaultValue sepNone
+                    match ctx.FromSourceText r with
+                    | None -> sepNone
+                    | Some eil -> !-eil
 
                 (expr
                  +> optSingle (leaveNodeFor SynExpr_Paren_ClosingParenthesis) rpr)
@@ -2598,80 +2590,51 @@ and genExpr astContext synExpr ctx =
                     (r.EndColumn + 1)
             )
         | InterpolatedStringExpr (parts, _stringKind) ->
-            // TODO: string kind
-            fun (ctx: Context) ->
-                let stringRanges =
-                    List.choose
-                        (function
-                        | SynInterpolatedStringPart.String (_, r) -> Some r
-                        | _ -> None)
-                        parts
+            let genInterpolatedFillExpr expr =
+                fun ctx ->
+                    let currentConfig = ctx.Config
 
-                // multiline interpolated string will contain the $ and or braces in the triviaContent
-                // example: $"""%s{ , } bar
-                let stringsFromTrivia =
-                    stringRanges
-                    |> List.choose (fun range ->
-                        Map.tryFindOrEmptyList SynInterpolatedStringPart_String ctx.TriviaMainNodes
-                        |> List.choose (fun tn ->
-                            match tn.Type, tn.ContentItself with
-                            | SynInterpolatedStringPart_String, Some (StringContent sc) when
-                                (RangeHelpers.rangeEq tn.Range range)
-                                ->
-                                Some sc
-                            | _ -> None)
-                        |> List.tryHead
-                        |> Option.map (fun sc -> range, sc))
+                    let interpolatedConfig =
+                        { currentConfig with
+                            // override the max line length for the interpolated expression.
+                            // this is to avoid scenarios where the long / multiline format of the expresion will be used
+                            // where the construct is this short
+                            // see unit test ``construct url with Fable``
+                            MaxLineLength = ctx.WriterModel.Column + ctx.Config.MaxLineLength }
 
-                let genInterpolatedFillExpr expr =
+                    genExpr astContext expr { ctx with Config = interpolatedConfig }
+                    // Restore the existing configuration after printing the interpolated expression
+                    |> fun ctx -> { ctx with Config = currentConfig }
+                |> atCurrentColumnIndent
+
+            let withoutSourceText s ctx =
+                match ctx.SourceText with
+                | Some _ -> ctx
+                | None -> !- s ctx
+
+            withoutSourceText "$\""
+            +> col sepNone parts (fun part ->
+                match part with
+                | SynInterpolatedStringPart.String (s, r) ->
                     fun ctx ->
-                        let currentConfig = ctx.Config
+                        let expr =
+                            match ctx.FromSourceText r with
+                            | None -> !-s
+                            | Some s -> !-s
 
-                        let interpolatedConfig =
-                            { currentConfig with
-                                // override the max line length for the interpolated expression.
-                                // this is to avoid scenarios where the long / multiline format of the expresion will be used
-                                // where the construct is this short
-                                // see unit test ``construct url with Fable``
-                                MaxLineLength = ctx.WriterModel.Column + ctx.Config.MaxLineLength }
+                        genTriviaFor SynInterpolatedStringPart_String r expr ctx
+                | SynInterpolatedStringPart.FillExpr (expr, ident) ->
+                    fun ctx ->
+                        let genFill =
+                            genInterpolatedFillExpr expr
+                            +> optSingle (fun (Ident format) -> !- $":%s{format}") ident
 
-                        genExpr astContext expr { ctx with Config = interpolatedConfig }
-                        // Restore the existing configuration after printing the interpolated expression
-                        |> fun ctx -> { ctx with Config = currentConfig }
-                    |> atCurrentColumnIndent
+                        if ctx.Config.StrictMode then
+                            (!- "{" +> genFill +> !- "}") ctx
+                        else
+                            genFill ctx)
+            +> withoutSourceText "\""
 
-                let expr =
-                    if List.length stringRanges = List.length stringsFromTrivia then
-                        colEx
-                            (fun _ -> sepNone)
-                            parts
-                            (fun part ->
-                                match part with
-                                | SynInterpolatedStringPart.String (_, range) ->
-                                    let stringFromTrivia =
-                                        List.find (fun (r, _) -> RangeHelpers.rangeEq range r) stringsFromTrivia
-                                        |> snd
-
-                                    !-stringFromTrivia
-                                    |> genTriviaFor SynInterpolatedStringPart_String range
-                                | SynInterpolatedStringPart.FillExpr (expr, ident) ->
-                                    genInterpolatedFillExpr expr
-                                    +> optSingle (fun (Ident format) -> !-(sprintf ":%s" format)) ident)
-                    else
-                        !- "$\""
-                        +> colEx
-                            (fun _ -> sepNone)
-                            parts
-                            (fun part ->
-                                match part with
-                                | SynInterpolatedStringPart.String (s, r) ->
-                                    !-s
-                                    |> genTriviaFor SynInterpolatedStringPart_String r
-                                | SynInterpolatedStringPart.FillExpr (expr, _ident) ->
-                                    !- "{" +> genInterpolatedFillExpr expr +> !- "}")
-                        +> !- "\""
-
-                expr ctx
         | IndexRangeExpr (None, None) -> !- "*"
         | IndexRangeExpr (Some (IndexRangeExpr (Some (ConstNumberExpr e1), Some (ConstNumberExpr e2))),
                           Some (ConstNumberExpr e3)) ->
@@ -5667,54 +5630,24 @@ and genConst (c: SynConst) (r: Range) =
     | SynConst.UIntPtr _
     | SynConst.UserNum _ -> genConstNumber c r
     | SynConst.String (s, kind, r) ->
-        // TODO: take string kind into account
         fun (ctx: Context) ->
-            let trivia =
-                Map.tryFindOrEmptyList SynConst_String ctx.TriviaMainNodes
-                |> List.tryFind (fun tv -> RangeHelpers.rangeEq tv.Range r)
+            let expr =
+                match ctx.FromSourceText r with
+                | None -> genConstString kind s
+                | Some s -> !-s
 
-            match trivia with
-            | Some ({ ContentItself = Some (StringContent sc) } as tn) ->
-                printContentBefore tn
-                +> !-sc
-                +> printContentAfter tn
-            //            | Some ({ ContentBefore = [ Keyword ({ TokenInfo = { TokenName = "KEYWORD_STRING" }
-//                                                   Content = kw }) ] }) -> !-kw
-//            | Some { ContentItself = Some (IdentBetweenTicks ibt) } -> !-ibt
-//            | Some { ContentBefore = [ Keyword { TokenInfo = { TokenName = "QMARK" } } ] } -> !-s
-//            | Some tn ->
-//                let escaped = Regex.Replace(s, "\"{1}", "\\\"")
-//
-//                printContentBefore tn
-//                +> !-(sprintf "\"%s\"" escaped)
-//                +> printContentAfter tn
-            | _ ->
-                genConstString kind s
-                |> genTriviaFor SynConst_String r
+            genTriviaFor SynConst_String r expr ctx
 
-            <| ctx
     | SynConst.Char c ->
         fun (ctx: Context) ->
-            let tn =
-                Map.tryFindOrEmptyList SynConst_Char ctx.TriviaMainNodes
-                |> List.tryFind (fun t -> RangeHelpers.rangeEq t.Range r)
-
             let expr =
-                match tn with
-                | Some ({ ContentItself = Some (CharContent content) } as tn) ->
-                    printContentBefore tn -- content
-                    +> printContentAfter tn
-                | Some tn ->
-                    let escapedChar = Char.escape c
-
-                    printContentBefore tn
-                    -- (sprintf "\'%s\'" escapedChar)
-                    +> printContentAfter tn
+                match ctx.FromSourceText r with
+                | Some c -> !-c
                 | None ->
                     let escapedChar = Char.escape c
-                    !-(sprintf "\'%s\'" escapedChar)
+                    !- $"\'%s{escapedChar}\'"
 
-            expr ctx
+            genTriviaFor SynConst_Char r expr ctx
     | SynConst.Bytes (bytes, _, r) ->
         // TODO: take kind into account
         genConstBytes bytes r
@@ -5731,59 +5664,47 @@ and genConst (c: SynConst) (r: Range) =
 
 and genConstNumber (c: SynConst) (r: Range) =
     fun (ctx: Context) ->
-        let findNumberAsContentItself (fallback: Context -> Context) (nodeType: FsAstType) =
-            Map.tryFindOrEmptyList nodeType ctx.TriviaMainNodes
-            |> List.tryFind (fun t -> RangeHelpers.rangeEq t.Range r)
-            |> fun tn ->
-                match tn with
-                | Some ({ ContentItself = Some (Number n) } as tn) ->
-                    printContentBefore tn
-                    +> !-n
-                    +> printContentAfter tn
-                | Some tn ->
-                    printContentBefore tn
-                    +> fallback
-                    +> printContentAfter tn
-                | _ -> fallback
+        let findNumberFromSourceText (fallback: Context -> Context) (nodeType: FsAstType) =
+            let expr =
+                match ctx.FromSourceText r with
+                | None -> fallback
+                | Some n -> !-n
+
+            genTriviaFor nodeType r expr
 
         let expr =
             match c with
-            | SynConst.Byte v -> findNumberAsContentItself (!-(sprintf "%A" v)) SynConst_Byte
-            | SynConst.SByte v -> findNumberAsContentItself (!-(sprintf "%A" v)) SynConst_SByte
-            | SynConst.Int16 v -> findNumberAsContentItself (!-(sprintf "%A" v)) SynConst_Int16
-            | SynConst.Int32 v -> findNumberAsContentItself (!-(sprintf "%A" v)) SynConst_Int32
-            | SynConst.Int64 v -> findNumberAsContentItself (!-(sprintf "%A" v)) SynConst_Int64
-            | SynConst.UInt16 v -> findNumberAsContentItself (!-(sprintf "%A" v)) SynConst_UInt16
-            | SynConst.UInt16s v -> findNumberAsContentItself (!-(sprintf "%A" v)) SynConst_UInt16s
-            | SynConst.UInt32 v -> findNumberAsContentItself (!-(sprintf "%A" v)) SynConst_UInt32
-            | SynConst.UInt64 v -> findNumberAsContentItself (!-(sprintf "%A" v)) SynConst_UInt64
-            | SynConst.Double v -> findNumberAsContentItself (!-(sprintf "%A" v)) SynConst_Double
-            | SynConst.Single v -> findNumberAsContentItself (!-(sprintf "%A" v)) SynConst_Single
-            | SynConst.Decimal v -> findNumberAsContentItself (!-(sprintf "%A" v)) SynConst_Decimal
-            | SynConst.IntPtr v -> findNumberAsContentItself (!-(sprintf "%A" v)) SynConst_IntPtr
-            | SynConst.UIntPtr v -> findNumberAsContentItself (!-(sprintf "%A" v)) SynConst_UIntPtr
-            | SynConst.UserNum (v, s) -> findNumberAsContentItself (!-(sprintf "%s%s" v s)) SynConst_UserNum
-            | _ -> failwithf "Cannot generating Const number for %A" c
+            | SynConst.Byte v -> findNumberFromSourceText (!- $"%A{v}") SynConst_Byte
+            | SynConst.SByte v -> findNumberFromSourceText (!- $"%A{v}") SynConst_SByte
+            | SynConst.Int16 v -> findNumberFromSourceText (!- $"%A{v}") SynConst_Int16
+            | SynConst.Int32 v -> findNumberFromSourceText (!- $"%A{v}") SynConst_Int32
+            | SynConst.Int64 v -> findNumberFromSourceText (!- $"%A{v}") SynConst_Int64
+            | SynConst.UInt16 v -> findNumberFromSourceText (!- $"%A{v}") SynConst_UInt16
+            | SynConst.UInt16s v -> findNumberFromSourceText (!- $"%A{v}") SynConst_UInt16s
+            | SynConst.UInt32 v -> findNumberFromSourceText (!- $"%A{v}") SynConst_UInt32
+            | SynConst.UInt64 v -> findNumberFromSourceText (!- $"%A{v}") SynConst_UInt64
+            | SynConst.Double v -> findNumberFromSourceText (!- $"%A{v}") SynConst_Double
+            | SynConst.Single v -> findNumberFromSourceText (!- $"%A{v}") SynConst_Single
+            | SynConst.Decimal v -> findNumberFromSourceText (!- $"%A{v}") SynConst_Decimal
+            | SynConst.IntPtr v -> findNumberFromSourceText (!- $"%A{v}") SynConst_IntPtr
+            | SynConst.UIntPtr v -> findNumberFromSourceText (!- $"%A{v}") SynConst_UIntPtr
+            | SynConst.UserNum (v, s) -> findNumberFromSourceText (!- $"%s{v}%s{s}") SynConst_UserNum
+            | _ -> failwithf $"Cannot generating Const number for %A{c}"
 
         expr ctx
 
 and genConstBytes (bytes: byte []) (r: Range) =
     fun (ctx: Context) ->
-        let trivia =
-            Map.tryFindOrEmptyList SynConst_Bytes ctx.TriviaMainNodes
-            |> List.tryFind (fun t -> RangeHelpers.rangeEq t.Range r)
-            |> Option.bind (fun tv ->
-                match tv.ContentItself with
-                | Some (StringContent content) -> Some content
-                | _ -> None)
+        let expr =
+            match ctx.FromSourceText r with
+            | Some s -> !-s
+            | None ->
+                let content =
+                    System.String(Array.map (fun (byte: byte) -> Convert.ToChar(byte)) bytes)
 
-        match trivia with
-        | Some t -> !- t ctx
-        | None ->
-            let content =
-                System.String(Array.map (fun (byte: byte) -> Convert.ToChar(byte)) bytes)
+                !- $"\"{content}\"B"
 
-            !- $"\"{content}\"B" ctx
+        genTriviaFor SynConst_Bytes r expr ctx
 
 and genConstString (stringKind: SynStringKind) (value: string) =
     let escaped = Regex.Replace(value, "\"{1}", "\\\"")

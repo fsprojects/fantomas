@@ -9,29 +9,9 @@ open FSharp.Compiler.ParseHelpers
 open FSharp.Compiler.Syntax.PrettyNaming
 open Fantomas.FCS.Lex
 open Fantomas
+open Fantomas.ISourceTextExtensions
 open Fantomas.TokenParserBoolExpr
 open Fantomas.TriviaTypes
-
-type ISourceText with
-    member this.GetContentAt(range: range) : string =
-        let startLine = range.StartLine - 1
-        let line = this.GetLineString startLine
-
-        if range.StartLine = range.EndLine then
-            let length = range.EndColumn - range.StartColumn
-            line.Substring(range.StartColumn, length)
-        else
-            let firstLineContent = line.Substring(range.StartColumn)
-            let sb = StringBuilder().AppendLine(firstLineContent)
-
-            (sb, [ range.StartLine .. range.EndLine - 2 ])
-            ||> List.fold (fun sb lineNumber -> sb.AppendLine(this.GetLineString lineNumber))
-            |> fun sb ->
-                let lastLine = this.GetLineString(range.EndLine - 1)
-
-                sb
-                    .Append(lastLine.Substring(0, range.EndColumn))
-                    .ToString()
 
 let private (|Newline|_|) (range: range) (token: token) =
     match token with
@@ -131,34 +111,6 @@ let private (|DecompiledOperatorToken|_|) (token: token) =
             Some ident
         else
             None
-    | _ -> None
-
-let private digitOrLetterCharRegex =
-    System.Text.RegularExpressions.Regex(@"^'(\d|[a-zA-Z])'$")
-
-let private (|CharToken|_|) (token: token) =
-    match token with
-    | CHAR _ -> Some()
-    | _ -> None
-
-let private onlyNumberRegex = System.Text.RegularExpressions.Regex(@"^\d+$")
-
-let private (|NumberToken|_|) (token: token) =
-    match token with
-    | DECIMAL _
-    | BIGNUM _
-    | INT8 _
-    | UINT8 _
-    | INT16 _
-    | UINT16 _
-    | INT32 _
-    | UINT32 _
-    | INT64 _
-    | UINT64 _
-    | UNATIVEINT _
-    | NATIVEINT _
-    | IEEE32 _
-    | IEEE64 _ -> Some()
     | _ -> None
 
 let private getTokensFromSource (source: ISourceText) : TokenWithRangeList =
@@ -387,33 +339,13 @@ let getDefineCombination (source: ISourceText) : TokenWithRangeList * DefineComb
 let getTriviaFromTokens
     (source: ISourceText)
     (tokens: TokenWithRangeList)
-    (nodes: TriviaNodeAssigner list)
     (defineCombination: DefineCombination)
-    : TriviaCollectionResult =
+    : Trivia list =
     let mutable triviaCollection = ListCollector<Trivia>()
-    let mutable assignedContentItself = false
-
-    let triviaFromSourceCaptured =
-        nodes
-        |> List.map (fun n ->
-            match n.Type with
-            | SynConst_String
-            | SynConst_Bytes
-            | SynInterpolatedStringPart_String ->
-                assignedContentItself <- true
-                let content = source.GetContentAt n.Range
-                n.ContentItself <- Some(TriviaContent.StringContent content)
-                n
-            | SynExpr_LibraryOnlyILAssembly ->
-                assignedContentItself <- true
-                let content = source.GetContentAt n.Range
-                n.ContentItself <- Some(TriviaContent.EmbeddedIL content)
-                n
-            | _ -> n)
 
     // tokens |> List.iter (printfn "%A")
 
-    let creatDeadCodeDirective
+    let createDeadCodeDirective
         (startRange: range)
         (startContent: string)
         (endRange: range)
@@ -496,7 +428,7 @@ let getTriviaFromTokens
             | TriviaCollectorState.NotCollecting _, ConditionalCodeTree.Nested node, HASH_ELSE _ ->
                 if not node.IsActive then
                     // Add dead code, next branch will be active
-                    let trivia = creatDeadCodeDirective node.StartRange node.IfCondition range "#else"
+                    let trivia = createDeadCodeDirective node.StartRange node.IfCondition range "#else"
                     triviaCollection.Add trivia
 
                 let codePath =
@@ -549,7 +481,7 @@ let getTriviaFromTokens
                         | None -> node.StartRange, node.IfCondition
                         | Some elseRange -> elseRange, "#else"
 
-                    let trivia = creatDeadCodeDirective startRange startContent range "#endif"
+                    let trivia = createDeadCodeDirective startRange startContent range "#endif"
                     triviaCollection.Add trivia
                 else
                     let hashEndIf =
@@ -655,27 +587,6 @@ let getTriviaFromTokens
                           Range = range }
 
                     triviaCollection.Add trivia
-                    { acc with CollectorState = NotCollecting tokenAndRange }
-
-                | NotCollecting _, CharToken ->
-                    let content = source.GetContentAt range
-
-                    if not (digitOrLetterCharRegex.IsMatch(content)) then
-                        let trivia =
-                            { Item = CharContent content
-                              Range = range }
-
-                        triviaCollection.Add trivia
-
-                    { acc with CollectorState = NotCollecting tokenAndRange }
-
-                | NotCollecting _, NumberToken ->
-                    let content = source.GetContentAt range
-
-                    if not (onlyNumberRegex.IsMatch(content)) then
-                        let trivia = { Item = Number content; Range = range }
-                        triviaCollection.Add trivia
-
                     { acc with CollectorState = NotCollecting tokenAndRange }
 
                 | NotCollecting _, IDENT _ ->
@@ -800,6 +711,4 @@ let getTriviaFromTokens
         initialState
     |> ignore<TriviaBuilderState>
 
-    { AssignedContentItself = assignedContentItself
-      Trivia = triviaCollection.Close()
-      Nodes = triviaFromSourceCaptured }
+    triviaCollection.Close()

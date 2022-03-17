@@ -32,16 +32,11 @@ let a = 7
 *)
 
 type TriviaContent =
-    //| Keyword of Token
-    | Number of string
-    | StringContent of string
     | IdentOperatorAsWord of string
     | IdentBetweenTicks of string
     | Comment of Comment
     | Newline
     | Directive of directive: string
-    | CharContent of string
-    | EmbeddedIL of string
 
 type Trivia =
     { Item: TriviaContent
@@ -402,10 +397,5 @@ type TriviaNodeAssigner(nodeType: FsAstType, range: Range) =
     member val ContentBefore = ResizeArray<TriviaContent>() with get, set
     member val ContentItself = Option<TriviaContent>.None with get, set
     member val ContentAfter = ResizeArray<TriviaContent>() with get, set
-
-type TriviaCollectionResult =
-    { AssignedContentItself: bool
-      Trivia: Trivia list
-      Nodes: TriviaNodeAssigner list }
 
 type MkRange = int * int -> int * int -> Range

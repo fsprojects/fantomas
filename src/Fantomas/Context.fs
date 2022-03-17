@@ -2,10 +2,9 @@ module Fantomas.Context
 
 open System
 open FSharp.Compiler.Text
-open FSharp.Compiler.Text.Range
-open FSharp.Compiler.Text.Position
 open FSharp.Compiler.Syntax
 open Fantomas
+open Fantomas.ISourceTextExtensions
 open Fantomas.FormatConfig
 open Fantomas.TriviaTypes
 
@@ -184,7 +183,8 @@ type internal Context =
       BreakLines: bool
       BreakOn: string -> bool
       TriviaMainNodes: Map<FsAstType, TriviaNode list>
-      FileName: string }
+      FileName: string
+      SourceText: ISourceText option }
 
     /// Initialize with a string writer and use space as delimiter
     static member Default =
@@ -194,7 +194,8 @@ type internal Context =
           BreakLines = true
           BreakOn = (fun _ -> false)
           TriviaMainNodes = Map.empty
-          FileName = String.Empty }
+          FileName = String.Empty
+          SourceText = None }
 
     static member Create
         config
@@ -202,11 +203,11 @@ type internal Context =
         (defineCombination: DefineCombination)
         (ast: ParsedInput)
         =
-        let trivia =
+        let trivia, sourceText =
             match sourceAndTokens with
             | Some (source, tokens) when not config.StrictMode ->
-                Trivia.collectTrivia source tokens defineCombination ast
-            | _ -> []
+                Trivia.collectTrivia source tokens defineCombination ast, Some source
+            | _ -> [], None
 
         let triviaByNodes =
             trivia
@@ -215,6 +216,7 @@ type internal Context =
 
         { Context.Default with
             Config = config
+            SourceText = sourceText
             TriviaMainNodes = triviaByNodes }
 
     member x.WithDummy(writerCommands, ?keepPageWidth) =
@@ -253,10 +255,8 @@ type internal Context =
                 { x with WriterModel = { x.WriterModel with Mode = ShortExpression(info :: infos) } }
         | _ -> { x with WriterModel = { x.WriterModel with Mode = ShortExpression([ info ]) } }
 
-    member x.MkRange (startPos: pos) (endPos: pos) = mkRange x.FileName startPos endPos
-
-    member x.MkRangeWith (startLine, startColumn) (endLine, endColumn) =
-        x.MkRange (mkPos startLine startColumn) (mkPos endLine endColumn)
+    member x.FromSourceText(range: range) : string option =
+        Option.map (fun (sourceText: ISourceText) -> sourceText.GetContentAt range) x.SourceText
 
 let internal writerEvent e ctx =
     let evs = WriterEvents.normalize e
@@ -1164,13 +1164,8 @@ let internal printTriviaContent (c: TriviaContent) (ctx: Context) =
         +> sepSpace
         +> ifElse after sepNlnForTrivia sepNone
     | Newline -> (ifElse addNewline (sepNlnForTrivia +> sepNlnForTrivia) sepNlnForTrivia)
-    //    | Keyword _
-    | Number _
-    | StringContent _
     | IdentOperatorAsWord _
-    | IdentBetweenTicks _
-    | CharContent _
-    | EmbeddedIL _ -> sepNone // don't print here but somewhere in CodePrinter
+    | IdentBetweenTicks _ -> sepNone // don't print here but somewhere in CodePrinter
     | Directive s
     | Comment (LineCommentOnSingleLine s) ->
         (ifElse addNewline sepNlnForTrivia sepNone)
