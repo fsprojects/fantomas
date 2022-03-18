@@ -62,7 +62,7 @@ let ``no extra newline after record type with no members`` () =
       To : float
       Name: string }
 """
-        config
+        { config with MaxRecordWidth = 39 }
     |> prepend newline
     |> should
         equal
