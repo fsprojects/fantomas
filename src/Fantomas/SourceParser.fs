@@ -1847,3 +1847,24 @@ let (|KeepIndentIfThenElse|_|) (e: SynExpr) =
         else
             None
     | _ -> None
+
+let (|RagnarokExpr|_|) (e: SynExpr) =
+    match e with
+    // { foo with Bar = bar }
+    | SynExpr.Record(copyInfo = Some _) -> None
+    | SynExpr.Record _
+    | SynExpr.AnonRecd _
+    // task { ... }
+    | SynExpr.App (ExprAtomicFlag.NonAtomic, false, SynExpr.Ident _, SynExpr.ComputationExpr _, _)
+    | ArrayOrList _ -> Some e
+    | _ -> None
+
+let hasMultipleClausesWhereOneHasRagnarok (ragnarokEnabled) (cs: SynMatchClause list) : bool =
+    ragnarokEnabled
+    && List.moreThanOne cs
+    && List.exists
+        (fun (SynMatchClause (resultExpr = e)) ->
+            match e with
+            | RagnarokExpr _ -> true
+            | _ -> false)
+        cs
