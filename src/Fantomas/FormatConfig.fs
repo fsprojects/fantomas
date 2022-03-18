@@ -219,6 +219,10 @@ type FormatConfig =
       BarBeforeDiscriminatedUnionDeclaration: bool
 
       [<Category("Convention")>]
+      [<DisplayName("Ragnarok")>]
+      Ragnarok: bool
+
+      [<Category("Convention")>]
       [<DisplayName("Strict mode")>]
       [<Description("Pretty printing based on ASTs only.\nPlease do not use this setting for formatting hand written code!")>]
       StrictMode: bool }
@@ -263,4 +267,5 @@ type FormatConfig =
           KeepIndentInBranch = false
           BlankLinesAroundNestedMultilineExpressions = true
           BarBeforeDiscriminatedUnionDeclaration = false
+          Ragnarok = false
           StrictMode = false }
