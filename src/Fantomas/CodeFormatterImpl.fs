@@ -2,8 +2,6 @@
 module internal Fantomas.CodeFormatterImpl
 
 open System
-open System.Diagnostics
-open System.Text.RegularExpressions
 //open FSharp.Compiler.CodeAnalysis
 open FSharp.Compiler.Diagnostics
 open FSharp.Compiler.Syntax
@@ -13,7 +11,6 @@ open FSharp.Compiler.Text.Range
 //open FSharp.Compiler.Tokenization
 open Fantomas
 open Fantomas.FormatConfig
-open Fantomas.SourceOrigin
 open Fantomas.SourceParser
 open Fantomas.TriviaTypes
 open Fantomas.CodePrinter
@@ -40,25 +37,49 @@ open Fantomas.CodePrinter
 
 let getSourceText (source: string) : ISourceText = source.TrimEnd() |> SourceText.ofString
 
-let parse (isSignature: bool) (source: ISourceText) : Async<(ParsedInput * TokenWithRangeList * DefineCombination) []> =
-    let tokens, defineCombinations = TokenParser.getDefineCombination source
+let parse (isSignature: bool) (source: ISourceText) : Async<(ParsedInput * SourceToken list * DefineCombination) []> =
+    // First get the syntax tree without any defines
+    let baseUntypedTree, baseDiagnostics =
+        Fantomas.FCS.Parse.parseFile isSignature source []
 
-    defineCombinations
-    |> List.map (fun defineCombination ->
+    let tokens = TokenParser.getTokensFromSource source
+
+    let hashDirectives =
+        match baseUntypedTree with
+        | ImplFile (ParsedImplFileInput (_, _, directives))
+        | SigFile (ParsedSigFileInput (_, _, directives)) -> directives
+
+    match hashDirectives with
+    | [] ->
         async {
-            let untypedTree, diagnostics =
-                Fantomas.FCS.Parse.parseFile isSignature source defineCombination
-
             let errors =
-                diagnostics
+                baseDiagnostics
                 |> List.filter (fun (_, s) -> s = FSharpDiagnosticSeverity.Error)
 
             if not errors.IsEmpty then
-                raise (FormatException $"Parsing failed with errors: %A{diagnostics}\nAnd options: %A{[]}")
+                raise (FormatException $"Parsing failed with errors: %A{baseDiagnostics}\nAnd options: %A{[]}")
 
-            return (untypedTree, tokens, defineCombination) // , defineHashTokens)
-        })
-    |> Async.Parallel
+            return [| (baseUntypedTree, tokens, []) |]
+        }
+    | hashDirectives ->
+        let defineCombinations = TokenParser.getDefineCombination hashDirectives
+
+        defineCombinations
+        |> List.map (fun defineCombination ->
+            async {
+                let untypedTree, diagnostics =
+                    Fantomas.FCS.Parse.parseFile isSignature source defineCombination
+
+                let errors =
+                    diagnostics
+                    |> List.filter (fun (_, s) -> s = FSharpDiagnosticSeverity.Error)
+
+                if not errors.IsEmpty then
+                    raise (FormatException $"Parsing failed with errors: %A{diagnostics}\nAnd options: %A{[]}")
+
+                return (untypedTree, tokens, defineCombination)
+            })
+        |> Async.Parallel
 
 // Check whether an AST consists of parsing errors
 //let isValidAST ast =
@@ -309,7 +330,7 @@ let isValidFSharpCode (isSignature: bool) (source: ISourceText) : Async<bool> =
     }
 
 let formatWith
-    (sourceAndTokens: (ISourceText * TokenWithRangeList) option)
+    (sourceAndTokens: (ISourceText * SourceToken list) option)
     (defineCombination: DefineCombination)
     ast
     config

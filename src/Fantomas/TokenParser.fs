@@ -1,12 +1,13 @@
 module internal Fantomas.TokenParser
 
-open System
 open System.Text
 open Microsoft.FSharp.Core.CompilerServices
+open FSharp.Compiler
 open FSharp.Compiler.Text
 open FSharp.Compiler.Parser
 open FSharp.Compiler.ParseHelpers
 open FSharp.Compiler.Syntax.PrettyNaming
+open FSharp.Compiler.SyntaxTrivia
 open Fantomas.FCS.Lex
 open Fantomas
 open Fantomas.ISourceTextExtensions
@@ -54,15 +55,15 @@ let private (|QuoteStringToken|_|) token =
 
 [<NoEquality; NoComparison>]
 type TriviaCollectorState =
-    | NotCollecting of lastTokenAndRange: TokenAndRange
+    | NotCollecting of lastTokenAndRange: SourceToken
     | CaptureLineComment of
-        lastTokenAndRange: TokenAndRange *
+        lastTokenAndRange: SourceToken *
         afterSourceCode: bool *
         startRange: range *
         endRange: range *
         collector: StringBuilder
     | CaptureBlockComment of
-        lastTokenAndRange: TokenAndRange *
+        lastTokenAndRange: SourceToken *
         startRange: range *
         /// Edge case, we need to keep track of nested block comments.
         /// We don't necessarily consider a comment closed from the first *)
@@ -77,12 +78,12 @@ type TriviaCollectorState =
 type ConditionalCodeTree =
     | TopLevel
     | Nested of currentNode: ConditionalCodeNode
-    | NestedAndDead of deadNode: ConditionalCodeNode * hashLines: string list * endIfLevel: int
+    | NestedAndDead of deadNode: ConditionalCodeNode * endIfLevel: int
 
 and ConditionalCodeNode =
     { IsActive: bool
       Parent: ConditionalCodeTree
-      IfCondition: string
+      IfCondition: IfDirectiveExpression
       StartRange: range
       Else: range option }
 
@@ -113,11 +114,26 @@ let private (|DecompiledOperatorToken|_|) (token: token) =
             None
     | _ -> None
 
-let private getTokensFromSource (source: ISourceText) : TokenWithRangeList =
-    let mutable tokenCollector = ListCollector<token * range>()
-    let mutable currentLine = 0
+let private ifDefKey = "Ifdef"
 
-    let onToken (token: token) (range: FSharp.Compiler.Text.Range) =
+let private getLastItemFromStore (lexbuf: UnicodeLexing.Lexbuf) : int * ConditionalDirectiveTrivia option =
+    match lexbuf.BufferLocalStore.TryGetValue ifDefKey with
+    | true, store -> store
+    | _ ->
+        let store = box (ResizeArray<ConditionalDirectiveTrivia>())
+        lexbuf.BufferLocalStore.[ifDefKey] <- store
+        store
+    |> unbox<ResizeArray<ConditionalDirectiveTrivia>>
+    |> fun trivia -> trivia.Count, Seq.tryLast trivia
+
+let getTokensFromSource (source: ISourceText) : SourceToken list =
+    let mutable tokenCollector = ListCollector<SourceToken>()
+    let mutable currentLine = 0
+    let mutable currentHashDirectiveTriviaCount = 0
+
+    let onToken (token: token) (lexbuf: UnicodeLexing.Lexbuf) =
+        let range = lexbuf.LexemeRange
+
         match token with
         | OBLOCKBEGIN
         | OBLOCKEND_COMING_SOON
@@ -138,256 +154,109 @@ let private getTokensFromSource (source: ISourceText) : TokenWithRangeList =
         | SEMICOLON when (range.StartLine > currentLine) -> ()
         | _ ->
             match token with
-            | WHITESPACE _ -> ()
-            | _ -> currentLine <- range.EndLine
+            | WHITESPACE _ -> tokenCollector.Add(SourceToken.Token(token, range))
+            | HASH_IF _
+            | HASH_ELSE _
+            | HASH_ENDIF _ ->
+                let triviaCount, lastItem = getLastItemFromStore lexbuf
 
-            tokenCollector.Add(token, range)
+                if triviaCount > currentHashDirectiveTriviaCount then
+                    Option.iter (fun item -> tokenCollector.Add(SourceToken.Hash(item))) lastItem
+                else
+                    tokenCollector.Add(SourceToken.Token(token, range))
+            | _ ->
+                currentLine <- range.EndLine
+                tokenCollector.Add(SourceToken.Token(token, range))
 
     lex onToken source
     tokenCollector.Close()
 
-let private parseHashLine (content: string) : string list * string list =
-    let content =
-        content
-            .Trim()
-            .Substring(3) // strip #if
-            .Split([| "//" |], StringSplitOptions.RemoveEmptyEntries).[0] // strip any comments
+let private getIndividualDefine (hashDirectives: ConditionalDirectiveTrivia list) : string list list =
+    let rec visit (expr: IfDirectiveExpression) : string list =
+        match expr with
+        | IfDirectiveExpression.Not expr -> visit expr
+        | IfDirectiveExpression.And (e1, e2)
+        | IfDirectiveExpression.Or (e1, e2) -> visit e1 @ visit e2
+        | IfDirectiveExpression.Ident s -> List.singleton s
 
-    let source = SourceText.ofString content
-    let tokens = getTokensFromSource source
-
-    let content =
-        tokens
-        |> List.choose (fun (t, _r) ->
-            match t with
-            | IDENT s -> Some s
-            | BAR_BAR -> Some "||"
-            | AMP_AMP
-            | ADJACENT_PREFIX_OP "&&" -> Some "&&"
-            | LPAREN -> Some "("
-            | RPAREN
-            | RPAREN_IS_HERE -> Some ")"
-            | PREFIX_OP _ -> Some "!"
-            | TRUE -> Some "true"
-            | FALSE -> Some "false"
-            | _ -> None)
-
-    let words =
-        tokens
-        |> List.choose (fun (t, _r) ->
-            match t with
-            | IDENT s -> Some s
-            | _ -> None)
-        |> List.distinct
-
-    content, words
-
-let private getDefinesFromTokens (tokens: TokenWithRangeList) : HashLine list =
-    let mutable hashTokenContent = ListCollector<HashLine>()
-    let initialState: TriviaCollectorState = NotCollecting(OBLOCKBEGIN, Range.Zero)
-
-    (initialState, tokens)
-    ||> List.fold (fun acc tokenAndRange ->
-        let token, range = tokenAndRange
-
-        match acc, token with
-        | NotCollecting lastTokenAndRange, HASH_IF (_, content, _) ->
-            let hashIf = content |> parseHashLine |> HashLine.If
-
-            hashTokenContent.Add(hashIf)
-            NotCollecting lastTokenAndRange
-
-        | NotCollecting lastTokenAndRange, HASH_ELSE _ ->
-            hashTokenContent.Add HashLine.Else
-            NotCollecting lastTokenAndRange
-
-        | NotCollecting lastTokenAndRange, HASH_ENDIF _ ->
-            hashTokenContent.Add HashLine.EndIf
-            NotCollecting lastTokenAndRange
-
-        | NotCollecting lastTokenAndRange, NonTripleSlashOpeningCommentToken ->
-            CaptureLineComment(lastTokenAndRange, false, range, range, StringBuilder())
-
-        | NotCollecting lastTokenAndRange, BlockCommentOpeningCommentToken _ ->
-            CaptureBlockComment(lastTokenAndRange, range, 0, false, StringBuilder())
-
-        | NotCollecting _, QuoteStringToken style ->
-            match style with
-            | LexerStringStyle.SingleQuote -> CaptureSingleQuoteString false
-            | LexerStringStyle.TripleQuote -> CaptureTripleQuoteString false
-            | LexerStringStyle.Verbatim -> CaptureVerbatimString false
-
-        // There is content in this token
-        | NotCollecting _, _ -> NotCollecting tokenAndRange
-
-        | CaptureLineComment (lastTokenAndRange, afterSourceCode, startRange, _, sb), CommentContentToken range ->
-            if startRange.StartLine = range.EndLine then
-                CaptureLineComment(lastTokenAndRange, afterSourceCode, startRange, range, sb)
-            else
-                NotCollecting lastTokenAndRange
-
-        | CaptureLineComment (lastTokenAndRange, _, _, _, _), _ -> NotCollecting lastTokenAndRange
-
-        | CaptureBlockComment (lastTokenAndRange, startRange, level, _, sb), BlockCommentOpeningCommentToken _ ->
-            CaptureBlockComment(lastTokenAndRange, startRange, level + 1, false, sb)
-
-        | CaptureBlockComment (lastTokenAndRange, startRange, level, _, sb), STAR ->
-            CaptureBlockComment(lastTokenAndRange, startRange, level, true, sb)
-
-        | CaptureBlockComment (lastTokenAndRange, startRange, level, previousTokenWasStar, sb), RPAREN_IS_HERE ->
-            if previousTokenWasStar && level = 0 then
-                NotCollecting lastTokenAndRange
-            elif previousTokenWasStar then
-                CaptureBlockComment(lastTokenAndRange, startRange, level - 1, false, sb)
-            else
-                CaptureBlockComment(lastTokenAndRange, startRange, level, false, sb)
-
-        | CaptureBlockComment (lastTokenAndRange, startRange, level, previousTokenWasStar, sb), _ ->
-            CaptureBlockComment(lastTokenAndRange, startRange, level, previousTokenWasStar, sb)
-
-        // backslash before non back slash
-        | CaptureSingleQuoteString false, LEX_FAILURE "Unexpected character '\\'" -> CaptureSingleQuoteString true
-
-        // backslash before non back slash in triple quote
-        | CaptureTripleQuoteString false, LEX_FAILURE "Unexpected character '\\'" -> CaptureTripleQuoteString true
-
-        // backslash before quote
-        | CaptureSingleQuoteString true, QuoteStringToken _ -> CaptureSingleQuoteString false
-
-        // backslash before triple quote
-        | CaptureTripleQuoteString true, QuoteStringToken LexerStringStyle.TripleQuote -> CaptureTripleQuoteString false
-
-        // End of single quote string
-        | CaptureSingleQuoteString _, QuoteStringToken LexerStringStyle.SingleQuote -> NotCollecting tokenAndRange
-
-        // End of triple quoted string
-        | CaptureTripleQuoteString _, QuoteStringToken LexerStringStyle.TripleQuote -> NotCollecting tokenAndRange
-
-        // End of verbatim string
-        | CaptureVerbatimString _, QuoteStringToken LexerStringStyle.SingleQuote -> NotCollecting tokenAndRange
-
-        // capture normal token as part of single quote string
-        | CaptureSingleQuoteString _, _token -> CaptureSingleQuoteString false
-
-        // capture normal token as part of triple quote string
-        | CaptureTripleQuoteString _, _token -> CaptureTripleQuoteString false
-
-        | CaptureVerbatimString _, _token -> CaptureVerbatimString false
-
-        | _ -> acc)
-    |> ignore<TriviaCollectorState>
-
-    hashTokenContent.Close()
-
-let private getIndividualDefine (hashLines: HashLine list) : string list list =
-    hashLines
+    hashDirectives
     |> List.collect (function
-        | HashLine.If (words = words) -> words
+        | ConditionalDirectiveTrivia.If (expr, _r) -> visit expr
         | _ -> [])
     |> List.distinct
     |> List.map List.singleton
 
-let private getDefineExprs (hashLines: HashLine list) =
+let private getDefineExprs (hashDirectives: ConditionalDirectiveTrivia list) =
     let result =
-        (([], []), hashLines)
+        (([], []), hashDirectives)
         ||> List.fold (fun (contextExprs, exprAcc) hashLine ->
             let contextExpr e =
                 e :: contextExprs
-                |> List.reduce (fun x y -> BoolExpr.And(x, y))
+                |> List.reduce (fun x y -> IfDirectiveExpression.And(x, y))
 
             match hashLine with
-            | HashLine.If (content = content) ->
-                BoolExprParser.parse content
-                |> Option.map (fun e -> e :: contextExprs, contextExpr e :: exprAcc)
-                |> Option.defaultValue (contextExprs, exprAcc)
-            | HashLine.Else ->
+            | ConditionalDirectiveTrivia.If (expr, _) -> expr :: contextExprs, contextExpr expr :: exprAcc
+            | ConditionalDirectiveTrivia.Else _ ->
                 contextExprs,
-                BoolExpr.Not(
+                IfDirectiveExpression.Not(
                     contextExprs
-                    |> List.reduce (fun x y -> BoolExpr.And(x, y))
+                    |> List.reduce (fun x y -> IfDirectiveExpression.And(x, y))
                 )
                 :: exprAcc
-            | HashLine.EndIf -> List.tail contextExprs, exprAcc)
+            | ConditionalDirectiveTrivia.EndIf _ -> List.tail contextExprs, exprAcc)
         |> snd
         |> List.rev
 
     result
 
-let private getOptimizedDefinesSets (hashTokens: HashLine list) =
+let private getOptimizedDefinesSets (hashDirectives: ConditionalDirectiveTrivia list) =
     let maxSteps = FormatConfig.satSolveMaxStepsMaxSteps
+    let defineExprs = getDefineExprs hashDirectives
 
-    match getDefineExprs hashTokens
-          |> BoolExpr.mergeBoolExprs maxSteps
+    match mergeBoolExprs maxSteps defineExprs
           |> List.map snd
         with
     | [] -> [ [] ]
     | xs -> xs
 
-let getDefineCombination (source: ISourceText) : TokenWithRangeList * DefineCombination list =
-    let tokens = getTokensFromSource source
+let getDefineCombination (hashDirectives: ConditionalDirectiveTrivia list) : DefineCombination list =
 
-    let hashTokens: HashLine list = getDefinesFromTokens tokens
-
-    let defineCombinations =
-        [ yield [] // always include the empty defines set
-          yield! getOptimizedDefinesSets hashTokens
-          yield! getIndividualDefine hashTokens ]
-        |> List.distinct
-
-    tokens, defineCombinations
+    [ yield [] // always include the empty defines set
+      yield! getOptimizedDefinesSets hashDirectives
+      yield! getIndividualDefine hashDirectives ]
+    |> List.distinct
 
 let getTriviaFromTokens
     (source: ISourceText)
-    (tokens: TokenWithRangeList)
+    (tokens: SourceToken list)
     (defineCombination: DefineCombination)
     : Trivia list =
     let mutable triviaCollection = ListCollector<Trivia>()
 
     // tokens |> List.iter (printfn "%A")
 
-    let createDeadCodeDirective
-        (startRange: range)
-        (startContent: string)
-        (endRange: range)
-        (endContent: string)
-        : Trivia =
-        let range = Range.mkRange startRange.FileName startRange.Start endRange.End
-
-        let directiveContent = String.Concat(startContent, "\n", endContent)
-
-        { Item = Directive directiveContent
-          Range = range }
-
     let initialState: TriviaBuilderState =
         { CodePath = ConditionalCodeTree.TopLevel
-          CollectorState = NotCollecting(OBLOCKBEGIN, Range.Zero) }
+          CollectorState = NotCollecting(SourceToken.Token(OBLOCKBEGIN, Range.Zero)) }
 
     tokens
     |> List.skipWhile (function
-        | WHITESPACE _, _ -> true
+        | SourceToken.Token (WHITESPACE _, _) -> true
         | _ -> false)
     |> List.fold
-        (fun (acc: TriviaBuilderState) tokenAndRange ->
-            let token, range = tokenAndRange
+        (fun (acc: TriviaBuilderState) sourceToken ->
 
-            match acc.CollectorState, acc.CodePath, token with
+            match acc.CollectorState, acc.CodePath, sourceToken with
             // New level of conditional code
-            | TriviaCollectorState.NotCollecting _, currentCodePath, HASH_IF (_, content, _) ->
-                let content = content.TrimStart()
+            | TriviaCollectorState.NotCollecting _,
+              currentCodePath,
+              SourceToken.Hash (ConditionalDirectiveTrivia.If (expr, _)) ->
 
                 let isActiveCode =
                     match currentCodePath with
                     // If we are currently inside dead code, the new code can never be active
                     | ConditionalCodeTree.Nested { IsActive = false } -> false
-                    | _ ->
-                        let expr =
-                            parseHashLine content
-                            |> fst
-                            |> BoolExprParser.parse
-
-                        match expr with
-                        | None -> failwithf $"Could not solve expression %s{content} for defines %A{defineCombination}"
-                        | Some expr -> BoolExpr.solveExprForDefines expr defineCombination
+                    | _ -> solveExprForDefines expr defineCombination
 
                 let nextCodePath =
                     match currentCodePath with
@@ -395,162 +264,74 @@ let getTriviaFromTokens
                         ConditionalCodeTree.Nested
                             { IsActive = isActiveCode
                               Parent = ConditionalCodeTree.TopLevel
-                              IfCondition = content
-                              StartRange = range
+                              IfCondition = expr
+                              StartRange = sourceToken.Range
                               Else = None }
 
                     | ConditionalCodeTree.Nested { IsActive = true } ->
                         ConditionalCodeTree.Nested
                             { IsActive = isActiveCode
-                              IfCondition = content
-                              StartRange = range
+                              IfCondition = expr
+                              StartRange = sourceToken.Range
                               Else = None
                               Parent = currentCodePath }
                     | ConditionalCodeTree.Nested ({ IsActive = false } as current) ->
-                        ConditionalCodeTree.NestedAndDead(current, [ content ], 1)
-                    | ConditionalCodeTree.NestedAndDead (current, hashLines, endIfLevel) ->
-                        ConditionalCodeTree.NestedAndDead(current, content :: hashLines, endIfLevel + 1)
-
-                // Only add a directive trivia when the following code is active
-                // dead code is capture after the `#else` or `#endif`
-                if isActiveCode then
-                    let hashIf =
-                        { Item = Directive content
-                          Range = range }
-
-                    triviaCollection.Add hashIf
+                        ConditionalCodeTree.NestedAndDead(current, 1)
+                    | ConditionalCodeTree.NestedAndDead (current, endIfLevel) ->
+                        ConditionalCodeTree.NestedAndDead(current, endIfLevel + 1)
 
                 { acc with
-                    CollectorState = NotCollecting tokenAndRange
+                    CollectorState = NotCollecting sourceToken
                     CodePath = nextCodePath }
 
             // Visiting other branch of conditional code
-            | TriviaCollectorState.NotCollecting _, ConditionalCodeTree.Nested node, HASH_ELSE _ ->
-                if not node.IsActive then
-                    // Add dead code, next branch will be active
-                    let trivia = createDeadCodeDirective node.StartRange node.IfCondition range "#else"
-                    triviaCollection.Add trivia
-
+            | TriviaCollectorState.NotCollecting _,
+              ConditionalCodeTree.Nested node,
+              SourceToken.Hash (ConditionalDirectiveTrivia.Else _) ->
                 let codePath =
                     // either we just walked over some dead code of we didn't
                     // swap the code path
                     ConditionalCodeTree.Nested
                         { node with
-                            Else = Some range
+                            Else = Some sourceToken.Range
                             IsActive = not node.IsActive }
 
                 { acc with
-                    CollectorState = NotCollecting tokenAndRange
+                    CollectorState = NotCollecting sourceToken
                     CodePath = codePath }
 
             // capture #else in dead code
             | TriviaCollectorState.NotCollecting _,
-              ConditionalCodeTree.NestedAndDead (node, hashLines, endIfLevel),
-              HASH_ELSE _ ->
+              ConditionalCodeTree.NestedAndDead (node, endIfLevel),
+              SourceToken.Hash (ConditionalDirectiveTrivia.Else _) ->
                 if endIfLevel = 0 then
-                    // #else closed the `node`
-                    let content =
-                        [ yield node.IfCondition
-                          yield! (List.rev hashLines)
-                          yield "#else" ]
-                        |> String.concat "\n"
-
-                    let range = Range.mkRange node.StartRange.FileName node.StartRange.Start range.End
-
-                    let trivia =
-                        { Item = Directive content
-                          Range = range }
-
-                    triviaCollection.Add trivia
-
                     { acc with
-                        CollectorState = NotCollecting tokenAndRange
+                        CollectorState = NotCollecting sourceToken
                         CodePath = ConditionalCodeTree.Nested({ node with IsActive = not node.IsActive }) }
                 else
                     // #else as part of nested and dead code
                     { acc with
-                        CollectorState = NotCollecting tokenAndRange
-                        CodePath = ConditionalCodeTree.NestedAndDead(node, "#else" :: hashLines, endIfLevel) }
-
-            // Ending current branch of conditional code
-            | TriviaCollectorState.NotCollecting _, ConditionalCodeTree.Nested node, HASH_ENDIF _ ->
-                if not node.IsActive then
-                    // Add dead code
-                    let startRange, startContent =
-                        match node.Else with
-                        | None -> node.StartRange, node.IfCondition
-                        | Some elseRange -> elseRange, "#else"
-
-                    let trivia = createDeadCodeDirective startRange startContent range "#endif"
-                    triviaCollection.Add trivia
-                else
-                    let hashEndIf =
-                        { Item = Directive "#endif"
-                          Range = range }
-
-                    triviaCollection.Add hashEndIf
-
-                { acc with
-                    CollectorState = NotCollecting tokenAndRange
-                    // pop the current code path
-                    CodePath = node.Parent }
+                        CollectorState = NotCollecting sourceToken
+                        CodePath = ConditionalCodeTree.NestedAndDead(node, endIfLevel) }
 
             // Ending some branch in dead code
             | TriviaCollectorState.NotCollecting _,
-              ConditionalCodeTree.NestedAndDead (node, hashLines, endIfLevel),
-              HASH_ENDIF _ ->
+              ConditionalCodeTree.NestedAndDead (node, endIfLevel),
+              SourceToken.Hash (ConditionalDirectiveTrivia.EndIf _) ->
                 if endIfLevel = 0 then
-                    // Close of the original dead code
-                    let startRange, startContent =
-                        match node.Else with
-                        | Some elseRange when not node.IsActive -> elseRange, "#else"
-                        | _ -> node.StartRange, node.IfCondition
-
-                    let content =
-                        [ yield startContent
-                          yield! (List.rev hashLines)
-                          yield "#endif" ]
-                        |> String.concat "\n"
-
-                    let range = Range.mkRange node.StartRange.FileName startRange.Start range.End
-
-                    let trivia =
-                        { Item = Directive content
-                          Range = range }
-
-                    triviaCollection.Add trivia
-
                     { acc with
-                        CollectorState = NotCollecting tokenAndRange
+                        CollectorState = NotCollecting sourceToken
                         CodePath = node.Parent }
                 else
                     { acc with
-                        CollectorState = NotCollecting tokenAndRange
-                        CodePath = ConditionalCodeTree.NestedAndDead(node, "#endif" :: hashLines, endIfLevel - 1) }
-
-            // Respect string content in dead code, this should not yield any hash lines
-            | TriviaCollectorState.NotCollecting _,
-              ConditionalCodeTree.Nested { IsActive = false },
-              QuoteStringToken LexerStringStyle.TripleQuote
-            | TriviaCollectorState.NotCollecting _,
-              ConditionalCodeTree.NestedAndDead _,
-              QuoteStringToken LexerStringStyle.TripleQuote ->
-                { acc with CollectorState = CaptureTripleQuoteString false }
-
-            // Close string content in dead code
-            | TriviaCollectorState.CaptureTripleQuoteString _,
-              ConditionalCodeTree.Nested { IsActive = false },
-              QuoteStringToken LexerStringStyle.TripleQuote
-            | TriviaCollectorState.CaptureTripleQuoteString _,
-              ConditionalCodeTree.NestedAndDead _,
-              QuoteStringToken LexerStringStyle.TripleQuote ->
-                { acc with CollectorState = TriviaCollectorState.NotCollecting tokenAndRange }
+                        CollectorState = NotCollecting sourceToken
+                        CodePath = ConditionalCodeTree.NestedAndDead(node, endIfLevel - 1) }
 
             // Ignoring dead code
             | TriviaCollectorState.NotCollecting _, ConditionalCodeTree.Nested { IsActive = false }, _
             | TriviaCollectorState.NotCollecting _, ConditionalCodeTree.NestedAndDead _, _ -> //
                 acc
-            | _ ->
+            | _, _, SourceToken.Token (token, range) ->
                 // Normal trivia collection code flow
                 match acc.CollectorState, token with
                 | NotCollecting lastTokenAndRange, Newline range _ ->
@@ -566,7 +347,7 @@ let getTriviaFromTokens
                     { acc with CollectorState = NotCollecting lastTokenAndRange }
 
                 | NotCollecting lastTokenAndRange, NonTripleSlashOpeningCommentToken ->
-                    let afterSourceCode = (snd lastTokenAndRange).EndLine = range.EndLine
+                    let afterSourceCode = lastTokenAndRange.Range.EndLine = range.EndLine
 
                     let sb = StringBuilder(source.GetContentAt range)
                     { acc with CollectorState = CaptureLineComment(lastTokenAndRange, afterSourceCode, range, range, sb) }
@@ -587,7 +368,7 @@ let getTriviaFromTokens
                           Range = range }
 
                     triviaCollection.Add trivia
-                    { acc with CollectorState = NotCollecting tokenAndRange }
+                    { acc with CollectorState = NotCollecting sourceToken }
 
                 | NotCollecting _, IDENT _ ->
                     let content = source.GetContentAt range
@@ -599,10 +380,10 @@ let getTriviaFromTokens
 
                         triviaCollection.Add trivia
 
-                    { acc with CollectorState = NotCollecting tokenAndRange }
+                    { acc with CollectorState = NotCollecting sourceToken }
 
                 // There is content in this token
-                | NotCollecting _, _ -> { acc with CollectorState = NotCollecting tokenAndRange }
+                | NotCollecting _, _ -> { acc with CollectorState = NotCollecting sourceToken }
 
                 | CaptureLineComment (lastTokenAndRange, afterSourceCode, startRange, _, sb), CommentContentToken range ->
                     if startRange.StartLine = range.EndLine then
@@ -689,15 +470,15 @@ let getTriviaFromTokens
 
                 // End of single quote string
                 | CaptureSingleQuoteString _, QuoteStringToken LexerStringStyle.SingleQuote ->
-                    { acc with CollectorState = NotCollecting tokenAndRange }
+                    { acc with CollectorState = NotCollecting sourceToken }
 
                 // End of triple quoted string
                 | CaptureTripleQuoteString _, QuoteStringToken LexerStringStyle.TripleQuote ->
-                    { acc with CollectorState = NotCollecting tokenAndRange }
+                    { acc with CollectorState = NotCollecting sourceToken }
 
                 // End of verbatim string
                 | CaptureVerbatimString _, QuoteStringToken LexerStringStyle.SingleQuote ->
-                    { acc with CollectorState = NotCollecting tokenAndRange }
+                    { acc with CollectorState = NotCollecting sourceToken }
 
                 // capture normal token as part of single quote string
                 | CaptureSingleQuoteString _, _token -> { acc with CollectorState = CaptureSingleQuoteString false }
@@ -707,7 +488,8 @@ let getTriviaFromTokens
 
                 | CaptureVerbatimString _, _token -> { acc with CollectorState = CaptureVerbatimString false }
 
-                | _ -> acc)
+                | _ -> acc
+            | _ -> acc)
         initialState
     |> ignore<TriviaBuilderState>
 

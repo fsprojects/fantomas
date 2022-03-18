@@ -2,21 +2,27 @@ module Fantomas.Tests.TriviaTests
 
 open NUnit.Framework
 open Fantomas
+open Fantomas.SourceParser
 open Fantomas.Tests.TestHelper
 open Fantomas.TriviaTypes
 
 let private toTrivia source =
     let sourceText = CodeFormatterImpl.getSourceText source
-
-    let tokens, _ = TokenParser.getDefineCombination sourceText
-
+    let tokens = TokenParser.getTokensFromSource sourceText
     let ast, _ = Fantomas.FCS.Parse.parseFile false sourceText []
     Trivia.collectTrivia sourceText tokens [] ast
 
 let private toTriviaWithDefines source =
     let sourceText = CodeFormatterImpl.getSourceText source
-    let tokens, defineCombinations = TokenParser.getDefineCombination sourceText
-    let ast, _ = Fantomas.FCS.Parse.parseFile false sourceText []
+    let tokens = TokenParser.getTokensFromSource sourceText
+    let ast, _diagnostics = Fantomas.FCS.Parse.parseFile false sourceText []
+
+    let hashDirectives =
+        match ast with
+        | ImplFile (ParsedImplFileInput (_, _, directives))
+        | SigFile (ParsedSigFileInput (_, _, directives)) -> directives
+
+    let defineCombinations = TokenParser.getDefineCombination hashDirectives
 
     defineCombinations
     |> List.map (fun dc -> dc, Trivia.collectTrivia sourceText tokens dc ast)

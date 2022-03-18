@@ -2,16 +2,21 @@ module internal Fantomas.TriviaTypes
 
 open FSharp.Compiler.Text
 open FSharp.Compiler.Parser
+open FSharp.Compiler.SyntaxTrivia
 
 type TokenAndRange = token * range
 
-[<RequireQualifiedAccess>]
-type HashLine =
-    | If of content: string list * words: string list
-    | Else
-    | EndIf
+[<RequireQualifiedAccess; NoEquality; NoComparison>]
+type SourceToken =
+    | Token of token * range
+    | Hash of ConditionalDirectiveTrivia
+    member x.Range =
+        match x with
+        | SourceToken.Token (_, r)
+        | SourceToken.Hash (ConditionalDirectiveTrivia.If (_, r))
+        | SourceToken.Hash (ConditionalDirectiveTrivia.Else r)
+        | SourceToken.Hash (ConditionalDirectiveTrivia.EndIf r) -> r
 
-type TokenWithRangeList = (token * range) list
 type DefineCombination = string list
 
 type Comment =

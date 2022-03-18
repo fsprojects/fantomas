@@ -1,25 +1,31 @@
 module Fantomas.Tests.TokenParserTests
 
-open Fantomas
+
 open NUnit.Framework
 open FsUnit
+open Fantomas
+open Fantomas.SourceParser
 open Fantomas.TokenParser
 open Fantomas.TriviaTypes
 open Fantomas.Tests.TestHelper
 
 let private getDefines (v: string) =
     let sourceText = CodeFormatterImpl.getSourceText v
+    let baseUntypedTree, _diagnostics = Fantomas.FCS.Parse.parseFile false sourceText []
 
-    getDefineCombination sourceText
-    |> snd
+    let hashDirectives =
+        match baseUntypedTree with
+        | ImplFile (ParsedImplFileInput (_, _, directives))
+        | SigFile (ParsedSigFileInput (_, _, directives)) -> directives
+
+    getDefineCombination hashDirectives
     |> List.collect id
     |> List.distinct
     |> List.sort
 
 let private getTriviaFromTokens text =
     let source = CodeFormatterImpl.getSourceText text
-    let tokens, _ = getDefineCombination source
-
+    let tokens = getTokensFromSource source
     getTriviaFromTokens source tokens []
 
 [<Test>]

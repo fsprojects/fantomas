@@ -18,7 +18,7 @@ type CodeFormatter =
             Option.map
                 (fun source ->
                     let sourceText = CodeFormatterImpl.getSourceText source
-                    let tokens, _ = TokenParser.getDefineCombination sourceText
+                    let tokens = TokenParser.getTokensFromSource sourceText
                     sourceText, tokens)
                 source
 

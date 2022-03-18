@@ -199,7 +199,7 @@ type internal Context =
 
     static member Create
         config
-        (sourceAndTokens: (ISourceText * TokenWithRangeList) option)
+        (sourceAndTokens: (ISourceText * SourceToken list) option)
         (defineCombination: DefineCombination)
         (ast: ParsedInput)
         =

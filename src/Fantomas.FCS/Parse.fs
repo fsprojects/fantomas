@@ -152,7 +152,14 @@ let GetScopedPragmasForInput input =
     | ParsedInput.SigFile (ParsedSigFileInput (scopedPragmas = pragmas)) -> pragmas
     | ParsedInput.ImplFile (ParsedImplFileInput (scopedPragmas = pragmas)) -> pragmas
 
-let PostParseModuleImpls (defaultNamespace, filename, isLastCompiland, ParsedImplFile (hashDirectives, impls)) =
+let PostParseModuleImpls
+    (
+        defaultNamespace,
+        filename,
+        isLastCompiland,
+        ParsedImplFile (hashDirectives, impls),
+        lexbuf: UnicodeLexing.Lexbuf
+    ) =
     match impls
           |> List.rev
           |> List.tryPick (function
@@ -170,16 +177,19 @@ let PostParseModuleImpls (defaultNamespace, filename, isLastCompiland, ParsedImp
     let isScript = IsScript filename
 
     let scopedPragmas = []
-    //        [ for SynModuleOrNamespace(_, _, _, decls, _, _, _, _) in impls do
-//            for d in decls do
-//                match d with
-//                | SynModuleDecl.HashDirective (hd, _) -> yield! GetScopedPragmasForHashDirective hd
-//                | _ -> ()
-//          for hd in hashDirectives do
-//              yield! GetScopedPragmasForHashDirective hd ]
+    let conditionalDirectives = LexbufIfdefStore.GetTrivia(lexbuf)
 
     ParsedInput.ImplFile(
-        ParsedImplFileInput(filename, isScript, qualName, scopedPragmas, hashDirectives, impls, isLastCompiland)
+        ParsedImplFileInput(
+            filename,
+            isScript,
+            qualName,
+            scopedPragmas,
+            hashDirectives,
+            impls,
+            isLastCompiland,
+            { ConditionalDirectives = conditionalDirectives }
+        )
     )
 
 let PostParseModuleSpec (_i, defaultNamespace, _isLastCompiland, filename, intf) =
@@ -220,7 +230,14 @@ let PostParseModuleSpec (_i, defaultNamespace, _isLastCompiland, filename, intf)
 
         SynModuleOrNamespaceSig(lid, a, kind, c, d, e, None, m)
 
-let PostParseModuleSpecs (defaultNamespace, filename, isLastCompiland, ParsedSigFile (hashDirectives, specs)) =
+let PostParseModuleSpecs
+    (
+        defaultNamespace,
+        filename,
+        isLastCompiland,
+        ParsedSigFile (hashDirectives, specs),
+        lexbuf: UnicodeLexing.Lexbuf
+    ) =
     match specs
           |> List.rev
           |> List.tryPick (function
@@ -244,7 +261,18 @@ let PostParseModuleSpecs (defaultNamespace, filename, isLastCompiland, ParsedSig
 //          for hd in hashDirectives do
 //              yield! GetScopedPragmasForHashDirective hd ]
 
-    ParsedInput.SigFile(ParsedSigFileInput(filename, qualName, scopedPragmas, hashDirectives, specs))
+    let conditionalDirectives = LexbufIfdefStore.GetTrivia(lexbuf)
+
+    ParsedInput.SigFile(
+        ParsedSigFileInput(
+            filename,
+            qualName,
+            scopedPragmas,
+            hashDirectives,
+            specs,
+            { ConditionalDirectives = conditionalDirectives }
+        )
+    )
 
 let ParseInput
     (
@@ -289,14 +317,14 @@ let ParseInput
             then
                 let impl = Parser.implementationFile lexer lexbuf
                 LexbufLocalXmlDocStore.ReportInvalidXmlDocPositions(lexbuf)
-                PostParseModuleImpls(defaultNamespace, filename, isLastCompiland, impl)
+                PostParseModuleImpls(defaultNamespace, filename, isLastCompiland, impl, lexbuf)
             elif
                 FSharpSigFileSuffixes
                 |> List.exists (FileSystemUtils.checkSuffix lower)
             then
                 let intfs = Parser.signatureFile lexer lexbuf
                 LexbufLocalXmlDocStore.ReportInvalidXmlDocPositions(lexbuf)
-                PostParseModuleSpecs(defaultNamespace, filename, isLastCompiland, intfs)
+                PostParseModuleSpecs(defaultNamespace, filename, isLastCompiland, intfs, lexbuf)
             else if lexbuf.SupportsFeature LanguageFeature.MLCompatRevisions then
                 error (Error(FSComp.SR.buildInvalidSourceFileExtensionUpdated filename, rangeStartup))
             else
@@ -317,10 +345,21 @@ let EmptyParsedInput (filename, isLastCompiland) =
         FSharpSigFileSuffixes
         |> List.exists (FileSystemUtils.checkSuffix lower)
     then
-        ParsedInput.SigFile(ParsedSigFileInput(filename, QualFileNameOfImpls filename [], [], [], []))
+        ParsedInput.SigFile(
+            ParsedSigFileInput(filename, QualFileNameOfImpls filename [], [], [], [], { ConditionalDirectives = [] })
+        )
     else
         ParsedInput.ImplFile(
-            ParsedImplFileInput(filename, false, QualFileNameOfImpls filename [], [], [], [], isLastCompiland)
+            ParsedImplFileInput(
+                filename,
+                false,
+                QualFileNameOfImpls filename [],
+                [],
+                [],
+                [],
+                isLastCompiland,
+                { ConditionalDirectives = [] }
+            )
         )
 
 let createLexbuf langVersion sourceText =

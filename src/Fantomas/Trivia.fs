@@ -1,9 +1,11 @@
 module internal Fantomas.Trivia
 
+open FSharp.Compiler.SyntaxTrivia
 open FSharp.Compiler.Text
 open FSharp.Compiler.Syntax
 //open FSharp.Compiler.Tokenization
 open Fantomas
+open Fantomas.ISourceTextExtensions
 open Fantomas.SourceParser
 open Fantomas.AstTransformer
 open Fantomas.TriviaTypes
@@ -278,6 +280,19 @@ let private transformNonEmptyNodes (nodes: TriviaNodeAssigner list) : TriviaNode
         else
             None)
 
+let private collectTriviaFromDirectives
+    (source: ISourceText)
+    (directives: ConditionalDirectiveTrivia list)
+    : Trivia list =
+    directives
+    |> List.map (function
+        | ConditionalDirectiveTrivia.If (_, r) ->
+            let text = source.GetContentAt r
+            { Item = Directive text; Range = r }
+
+        | ConditionalDirectiveTrivia.Else r -> { Item = Directive "#else"; Range = r }
+        | ConditionalDirectiveTrivia.EndIf r -> { Item = Directive "#endif"; Range = r })
+
 (*
     1. Collect TriviaNode from tokens and AST
     2. Collect TriviaContent from tokens
@@ -286,21 +301,23 @@ let private transformNonEmptyNodes (nodes: TriviaNodeAssigner list) : TriviaNode
 *)
 let collectTrivia
     (source: ISourceText)
-    (tokens: TokenWithRangeList)
+    (tokens: SourceToken list)
     (defineCombination: DefineCombination)
     (ast: ParsedInput)
     : TriviaNode list =
-    let triviaNodesFromAST =
+    let triviaNodesFromAST, directives =
         match ast with
-        | ParsedInput.ImplFile (ParsedImplFileInput.ParsedImplFileInput (_, _, _, _, hds, mns, _)) -> astToNode hds mns
-
-        | ParsedInput.SigFile (ParsedSigFileInput.ParsedSigFileInput (_, _, _, _, mns)) -> sigAstToNode mns
+        | ParsedInput.ImplFile (ParsedImplFileInput (hds, mns, directives)) -> astToNode hds mns, directives
+        | ParsedInput.SigFile (ParsedSigFileInput (_, mns, directives)) -> sigAstToNode mns, directives
 
     let triviaNodes =
         triviaNodesFromAST
         |> List.sortBy (fun n -> n.Range.Start.Line, n.Range.Start.Column)
 
-    let trivia = TokenParser.getTriviaFromTokens source tokens defineCombination
+    let trivia =
+        [ yield! TokenParser.getTriviaFromTokens source tokens defineCombination
+          yield! collectTriviaFromDirectives source directives ]
+        |> List.sortBy (fun n -> n.Range.Start.Line, n.Range.Start.Column)
 
     let startOfSourceCode = 1
     //        match tokens with

@@ -235,9 +235,19 @@ let (|ImplFile|SigFile|) =
     | ParsedInput.ImplFile im -> ImplFile im
     | ParsedInput.SigFile si -> SigFile si
 
-let (|ParsedImplFileInput|) (ParsedImplFileInput.ParsedImplFileInput (_, _, _, _, hs, mns, _)) = (hs, mns)
+let (|ParsedImplFileInput|)
+    (ParsedImplFileInput.ParsedImplFileInput (hashDirectives = hs
+                                              modules = mns
+                                              trivia = { ConditionalDirectives = directives }))
+    =
+    (hs, mns, directives)
 
-let (|ParsedSigFileInput|) (ParsedSigFileInput.ParsedSigFileInput (_, _, _, hs, mns)) = (hs, mns)
+let (|ParsedSigFileInput|)
+    (ParsedSigFileInput.ParsedSigFileInput (hashDirectives = hs
+                                            modules = mns
+                                            trivia = { ConditionalDirectives = directives }))
+    =
+    (hs, mns, directives)
 
 let (|ModuleOrNamespace|)
     (SynModuleOrNamespace.SynModuleOrNamespace (LongIdentPieces lids, isRecursive, kind, mds, px, ats, ao, range))
@@ -252,11 +262,11 @@ let (|SigModuleOrNamespace|)
 let (|EmptyFile|_|) (input: ParsedInput) =
     match input with
     | ImplFile (ParsedImplFileInput (_,
-                                     [ ModuleOrNamespace (_, _, _, _, [], _, SynModuleOrNamespaceKind.AnonModule, _) ])) ->
-        Some input
+                                     [ ModuleOrNamespace (_, _, _, _, [], _, SynModuleOrNamespaceKind.AnonModule, _) ],
+                                     _)) -> Some input
     | SigFile (ParsedSigFileInput (_,
-                                   [ SigModuleOrNamespace (_, _, _, _, [], _, SynModuleOrNamespaceKind.AnonModule, _) ])) ->
-        Some input
+                                   [ SigModuleOrNamespace (_, _, _, _, [], _, SynModuleOrNamespaceKind.AnonModule, _) ],
+                                   _)) -> Some input
     | _ -> None
 
 let (|Attribute|) (a: SynAttribute) =

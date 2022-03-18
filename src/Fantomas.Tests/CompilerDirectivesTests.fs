@@ -2429,6 +2429,37 @@ let ``hash nested in multiline string`` () =
 """
 
 [<Test>]
+let ``hash nested in multiline block comment`` () =
+    formatSourceStringWithDefines
+        []
+        """
+#if FOO
+    (*
+        #if BAR
+                    printfn "FOO"
+        #endif
+    *)
+#else
+                ()
+#endif
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+#if FOO
+    (*
+        #if BAR
+                    printfn "FOO"
+        #endif
+    *)
+#else
+()
+#endif
+"""
+
+[<Test>]
 let ``empty hash directive block should not make expression multiline`` () =
     formatSourceString
         false
