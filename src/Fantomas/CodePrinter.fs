@@ -1217,15 +1217,16 @@ and genExpr astContext synExpr ctx =
             +> ifElse isInfixExpr genInfixExpr genNonInfixExpr
 
         | SingleExpr (kind, e) ->
-            let mapping = 
+            let mapping =
                 (match kind with
-                | YieldFrom _
-                | Yield  _
-                | Return _
-                | ReturnFrom _
-                | Do _
-                | DoBang _ -> autoIndentAndNlnIfExpressionExceedsPageWidthUnlessRagnarok (genExpr astContext) e
-                | _ -> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e))
+                 | YieldFrom _
+                 | Yield _
+                 | Return _
+                 | ReturnFrom _
+                 | Do _
+                 | DoBang _ -> autoIndentAndNlnIfExpressionExceedsPageWidthUnlessRagnarok (genExpr astContext) e
+                 | _ -> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e))
+
             match kind with
             | InferredDowncast downcastKeyword ->
                 genTriviaFor SynExpr_InferredDowncast_Downcast downcastKeyword !- "downcast "
@@ -1242,7 +1243,7 @@ and genExpr astContext synExpr ctx =
             | Do doKeyword -> genTriviaFor SynExpr_Do_Do doKeyword !- "do "
             | DoBang doBangKeyword -> genTriviaFor SynExpr_DoBang_DoBang doBangKeyword !- "do! "
             | Fixed fixedKeyword -> genTriviaFor SynExpr_Fixed_Fixed fixedKeyword !- "fixed "
-            +> mapping 
+            +> mapping
 
         | ConstExpr (c, r) -> genConst c r
         | NullExpr -> !- "null"
@@ -3627,6 +3628,7 @@ and genTypeDefn
                     fs
                     closingBrace)
                 (genMultilineSimpleRecordTypeDefn astContext openingBrace withKeyword ms ao' fs closingBrace)
+
         let bodyExpr size ctx =
             if (List.isEmpty ms) then
                 (isSmallExpression size smallExpression multilineExpression
@@ -3650,7 +3652,9 @@ and genTypeDefn
             else
                 isSmallExpression size short (indent +> sepNln +> short +> unindent) ctx
 
-        typeName +> genEq SynTypeDefn_Equals equalsRange +> genTypeDefinition
+        typeName
+        +> genEq SynTypeDefn_Equals equalsRange
+        +> genTypeDefinition
 
     | Simple TDSRNone -> typeName
     | Simple (TDSRTypeAbbrev t) ->
@@ -3812,8 +3816,7 @@ and genMultilineSimpleRecordTypeDefn astContext openingBrace withKeyword ms ao' 
 
 and genMultilineSimpleRecordTypeDefnAlignBrackets astContext openingBrace withKeyword ms ao' fs closingBrace =
     // the typeName is already printed
-    sepNlnUnlessLastEventIsNewline
-    +> opt (indent +> sepNln) ao' genAccess
+    opt (indent +> sepNln) ao' genAccess
     +> enterNodeFor SynTypeDefnSimpleRepr_Record_OpeningBrace openingBrace
     +> sepOpenSFixed
     +> indent
@@ -4547,9 +4550,7 @@ and genClause
     (hasMultipleClausesWhereOneHasRagnarok: bool)
     (Clause (p, eo, arrowRange, e) as ce)
     =
-    let astCtx =
-        { astContext with
-              IsInsideMatchClausePattern = true }
+    let astCtx = { astContext with IsInsideMatchClausePattern = true }
 
     let patAndBody =
         genPat astCtx p
@@ -4594,10 +4595,10 @@ and genClause
                         ctx)
 
     (onlyIf hasBar sepBar
-    +> (fun ctx ->
-        if hasMultipleClausesWhereOneHasRagnarok then
-            // avoid edge case
-            (*
+     +> (fun ctx ->
+         if hasMultipleClausesWhereOneHasRagnarok then
+             // avoid edge case
+             (*
                 match x with
                 | y -> [
                     1
@@ -4610,11 +4611,11 @@ and genClause
                     6
                 ]
             *)
-            // ] and | cannot align, otherwise you get a parser error
-            atCurrentColumn patAndBody ctx
-        else
-            patAndBody ctx)
-    |> genTriviaFor SynMatchClause_ ce.Range)
+             // ] and | cannot align, otherwise you get a parser error
+             atCurrentColumn patAndBody ctx
+         else
+             patAndBody ctx)
+     |> genTriviaFor SynMatchClause_ ce.Range)
 
 and genClauses astContext cs (ctx: Context) =
     col sepNln cs (genClause astContext true (hasMultipleClausesWhereOneHasRagnarok ctx.Config.Ragnarok cs)) ctx
