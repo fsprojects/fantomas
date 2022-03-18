@@ -92,6 +92,25 @@
     <Compile Include="IndexSyntaxTests.fs" />
     <Compile Include="InsertFinalNewlineTests.fs" />
     <Compile Include="SingleExprTests.fs" />
+    <Compile Include="Ragnarok\SynBindingValueExpressionTests.fs" />
+    <Compile Include="Ragnarok\SynBindingFunctionExpressionTests.fs" />
+    <Compile Include="Ragnarok\SynBindingFunctionLongPatternExpressionTests.fs" />
+    <Compile Include="Ragnarok\SynBindingFunctionWithReturnTypeExpressionTests.fs" />
+    <Compile Include="Ragnarok\LetOrUseBangExpressionTests.fs" />
+    <Compile Include="Ragnarok\YieldOrReturnExpressionTests.fs" />
+    <Compile Include="Ragnarok\YieldOrReturnBangExpressionTests.fs" />
+    <Compile Include="Ragnarok\SynExprAndBangExpressionTests.fs" />
+    <Compile Include="Ragnarok\LongIdentSetExpressionTests.fs" />
+    <Compile Include="Ragnarok\DotIndexedSetExpressionTests.fs" />
+    <Compile Include="Ragnarok\SetExpressionTests.fs" />
+    <Compile Include="Ragnarok\DotSetExpressionTests.fs" />
+    <Compile Include="Ragnarok\LambdaExpressionTests.fs" />
+    <Compile Include="Ragnarok\MultiLineLambdaClosingNewlineExpressionTests.fs" />
+    <Compile Include="Ragnarok\SynMatchClauseExpressionTests.fs" />
+    <Compile Include="Ragnarok\KeepIndentInBranchExpressionTests.fs" />
+    <Compile Include="Ragnarok\SynTypeDefnSimpleReprRecordTests.fs" />
+    <Compile Include="Ragnarok\SynTypeDefnSigReprSimpleTests.fs" />
+    <Compile Include="Ragnarok\NamedArgumentExpressionTests.fs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Fantomas.Extras\Fantomas.Extras.fsproj" />
