@@ -632,7 +632,9 @@ let internal ifElse b (f1: Context -> Context) f2 (ctx: Context) = if b then f1 
 
 let internal ifElseCtx cond (f1: Context -> Context) f2 (ctx: Context) = if cond ctx then f1 ctx else f2 ctx
 let internal ifRagnarokElse = ifElseCtx (fun ctx -> ctx.Config.Ragnarok)
-let internal ifRagnarok (f1: Context -> Context) = ifElseCtx (fun ctx -> ctx.Config.Ragnarok) f1 id
+
+let internal ifRagnarok (f1: Context -> Context) =
+    ifElseCtx (fun ctx -> ctx.Config.Ragnarok) f1 id
 
 /// apply f only when cond is true
 let internal onlyIf cond f ctx = if cond then f ctx else ctx
@@ -681,6 +683,7 @@ let internal sepNlnUnlessLastEventIsNewline (ctx: Context) =
         ctx
     else
         sepNln ctx
+
 let internal sepNlnUnlessLastEventIsNewlineOrRagnarok (ctx: Context) =
     if lastWriteEventIsNewline ctx || ctx.Config.Ragnarok then
         ctx

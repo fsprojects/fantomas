@@ -6,8 +6,8 @@ open Fantomas.Tests.TestHelper
 
 let config =
     { config with
-          MultilineBlockBracketsOnSameColumn = true
-          Ragnarok = true }
+        MultilineBlockBracketsOnSameColumn = true
+        Ragnarok = true }
 
 [<Test>]
 let ``yieldOrReturn with record instance`` () =

@@ -6,9 +6,9 @@ open Fantomas.Tests.TestHelper
 
 let config =
     { config with
-          MultilineBlockBracketsOnSameColumn = true
-          KeepIndentInBranch = true
-          Ragnarok = true }
+        MultilineBlockBracketsOnSameColumn = true
+        KeepIndentInBranch = true
+        Ragnarok = true }
 
 // There currently is no conflict with this setting, but I'm guessing the case was never brought up.
 // I would conclude that will never clash.

@@ -6,9 +6,9 @@ open Fantomas.Tests.TestHelper
 
 let config =
     { config with
-          MaxLineLength = 80
-          MultilineBlockBracketsOnSameColumn = true
-          Ragnarok = true }
+        MaxLineLength = 80
+        MultilineBlockBracketsOnSameColumn = true
+        Ragnarok = true }
 
 // TODO: conclude on what should happen here
 // This one feels very weird to have `= {` because the pattern is already multiline
