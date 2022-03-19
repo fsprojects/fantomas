@@ -1,6 +1,9 @@
 # Changelog
 
-## [Unreleased]
+## [5.0.0-alpha-001] - 2022-03-19
+
+### Added
+* Initial settings for strousrup bracket style. [#2161](https://github.com/fsprojects/fantomas/pull/2161)
 
 ### Fixed
 * DotGet in quotation should be further indented. [#2154](https://github.com/fsprojects/fantomas/issues/2154)
