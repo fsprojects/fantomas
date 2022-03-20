@@ -1761,8 +1761,9 @@ let (|ElmishReactWithChildren|_|) (e: SynExpr) =
     | SynExpr.App (_,
                    false,
                    SynExpr.App (_, false, OptVar ident, (ArrayOrList _ as attributes), _),
-                   ArrayOrList (sr, isArray, children, er, _),
-                   _) -> Some(ident, attributes, (isArray, sr, children, er))
+                   ArrayOrList (sr, isArray, children, er, r),
+                   _) when (not (RangeHelpers.isAdjacentTo attributes.Range r)) ->
+        Some(ident, attributes, (isArray, sr, children, er))
     | _ -> None
 
 let isIfThenElseWithYieldReturn e =
