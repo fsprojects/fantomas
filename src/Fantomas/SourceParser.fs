@@ -903,20 +903,6 @@ let (|TernaryApp|_|) =
     | SynExpr.App (_, _, SynExpr.App (_, _, SynExpr.App (_, true, Var "?<-", e1, _), e2, _), e3, _) -> Some(e1, e2, e3)
     | _ -> None
 
-// expr1[expr2]
-// ref: https://github.com/fsharp/fslang-design/blob/main/FSharp-6.0/FS-1110-index-syntax.md
-let (|IndexWithoutDotExpr|_|) =
-    function
-    | SynExpr.App (ExprAtomicFlag.Atomic, false, identifierExpr, SynExpr.ArrayOrListComputed (false, indexExpr, _), _) ->
-        Some(identifierExpr, indexExpr)
-    | SynExpr.App (ExprAtomicFlag.NonAtomic,
-                   false,
-                   identifierExpr,
-                   (SynExpr.ArrayOrListComputed (isArray = false; expr = indexExpr) as argExpr),
-                   _) when (RangeHelpers.isAdjacentTo identifierExpr.Range argExpr.Range) ->
-        Some(identifierExpr, indexExpr)
-    | _ -> None
-
 let (|MatchLambda|_|) =
     function
     | SynExpr.MatchLambda (_, keywordRange, pats, _, _) -> Some(keywordRange, pats)
@@ -1749,22 +1735,24 @@ let rec (|UppercaseSynType|LowercaseSynType|) (synType: SynType) =
     | SynType.App (st, _, _, _, _, _, _) -> (|UppercaseSynType|LowercaseSynType|) st
     | _ -> failwithf "cannot determine if synType %A is uppercase or lowercase" synType
 
-let (|ElmishReactWithoutChildren|_|) e =
+let (|IndexWithoutDotExpr|ElmishReactWithoutChildren|ElmishReactWithChildren|NonAppExpr|) e =
     match e with
-    | IndexWithoutDotExpr _ -> None
+    | SynExpr.App (ExprAtomicFlag.Atomic, false, identifierExpr, SynExpr.ArrayOrListComputed (false, indexExpr, _), _) ->
+        IndexWithoutDotExpr(identifierExpr, indexExpr)
+    | SynExpr.App (ExprAtomicFlag.NonAtomic,
+                   false,
+                   identifierExpr,
+                   (SynExpr.ArrayOrListComputed (isArray = false; expr = indexExpr) as argExpr),
+                   _) when (RangeHelpers.isAdjacentTo identifierExpr.Range argExpr.Range) ->
+        IndexWithoutDotExpr(identifierExpr, indexExpr)
     | SynExpr.App (_, false, OptVar (ident, _, _), ArrayOrList (sr, isArray, children, er, _), _) ->
-        Some(ident, sr, isArray, children, er)
-    | _ -> None
-
-let (|ElmishReactWithChildren|_|) (e: SynExpr) =
-    match e with
+        ElmishReactWithoutChildren(ident, sr, isArray, children, er)
     | SynExpr.App (_,
                    false,
                    SynExpr.App (_, false, OptVar ident, (ArrayOrList _ as attributes), _),
                    ArrayOrList (sr, isArray, children, er, r),
-                   _) when (not (RangeHelpers.isAdjacentTo attributes.Range r)) ->
-        Some(ident, attributes, (isArray, sr, children, er))
-    | _ -> None
+                   _) -> ElmishReactWithChildren(ident, attributes, (isArray, sr, children, er))
+    | _ -> NonAppExpr
 
 let isIfThenElseWithYieldReturn e =
     match e with
