@@ -4,6 +4,7 @@
 
 ### Fixed
 * DotGet in quotation should be further indented. [#2154](https://github.com/fsprojects/fantomas/issues/2154)
+* Reformatting multiple array index operators (v6 style) adds spaces that are invalid [#2151](https://github.com/fsprojects/fantomas/issues/2151)
 
 ## [4.7.3] - 2022-03-12
 
