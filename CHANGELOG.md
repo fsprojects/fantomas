@@ -1,6 +1,6 @@
 # Changelog
 
-## [Unreleased]
+## [4.7.4] - 2022-03-25
 
 ### Fixed
 * DotGet in quotation should be further indented. [#2154](https://github.com/fsprojects/fantomas/issues/2154)
