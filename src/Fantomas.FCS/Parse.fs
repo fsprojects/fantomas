@@ -178,6 +178,7 @@ let PostParseModuleImpls
 
     let scopedPragmas = []
     let conditionalDirectives = LexbufIfdefStore.GetTrivia(lexbuf)
+    let codeComments = LexbufCommentStore.GetComments(lexbuf)
 
     ParsedInput.ImplFile(
         ParsedImplFileInput(
@@ -188,7 +189,8 @@ let PostParseModuleImpls
             hashDirectives,
             impls,
             isLastCompiland,
-            { ConditionalDirectives = conditionalDirectives }
+            { ConditionalDirectives = conditionalDirectives
+              CodeComments = codeComments }
         )
     )
 
@@ -262,6 +264,7 @@ let PostParseModuleSpecs
 //              yield! GetScopedPragmasForHashDirective hd ]
 
     let conditionalDirectives = LexbufIfdefStore.GetTrivia(lexbuf)
+    let codeComments = LexbufCommentStore.GetComments(lexbuf)
 
     ParsedInput.SigFile(
         ParsedSigFileInput(
@@ -270,7 +273,8 @@ let PostParseModuleSpecs
             scopedPragmas,
             hashDirectives,
             specs,
-            { ConditionalDirectives = conditionalDirectives }
+            { ConditionalDirectives = conditionalDirectives
+              CodeComments = codeComments }
         )
     )
 
@@ -346,7 +350,15 @@ let EmptyParsedInput (filename, isLastCompiland) =
         |> List.exists (FileSystemUtils.checkSuffix lower)
     then
         ParsedInput.SigFile(
-            ParsedSigFileInput(filename, QualFileNameOfImpls filename [], [], [], [], { ConditionalDirectives = [] })
+            ParsedSigFileInput(
+                filename,
+                QualFileNameOfImpls filename [],
+                [],
+                [],
+                [],
+                { ConditionalDirectives = []
+                  CodeComments = [] }
+            )
         )
     else
         ParsedInput.ImplFile(
@@ -358,7 +370,8 @@ let EmptyParsedInput (filename, isLastCompiland) =
                 [],
                 [],
                 isLastCompiland,
-                { ConditionalDirectives = [] }
+                { ConditionalDirectives = []
+                  CodeComments = [] }
             )
         )
 

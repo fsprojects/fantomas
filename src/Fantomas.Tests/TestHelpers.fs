@@ -68,11 +68,11 @@ let formatSourceStringWithDefines defines (s: string) config =
             let source = CodeFormatterImpl.getSourceText s
             let! asts = CodeFormatterImpl.parse false source
 
-            let ast, tokens, defineCombination =
-                Array.filter (fun (_, _, d: DefineCombination) -> List.sort d = List.sort defines) asts
+            let ast, defineCombination =
+                Array.filter (fun (_,  d: DefineCombination) -> List.sort d = List.sort defines) asts
                 |> Array.head
 
-            return CodeFormatterImpl.formatWith (Some(source, tokens)) defineCombination ast config
+            return CodeFormatterImpl.formatWith (Some source) defineCombination ast config
         }
         |> Async.RunSynchronously
 

@@ -87,12 +87,12 @@ and addFinalNewline ctx =
     hs = hashDirectives : ParsedHashDirective list
     mns = modules : SynModuleOrNamespace list
 *)
-and genImpFile astContext (ParsedImplFileInput (hs, mns, _)) =
+and genImpFile astContext (ParsedImplFileInput (hs, mns, _, _)) =
     col sepNln hs genParsedHashDirective
     +> (if hs.IsEmpty then sepNone else sepNln)
     +> col sepNln mns (genModuleOrNamespace astContext)
 
-and genSigFile astContext (ParsedSigFileInput (hs, mns, _)) =
+and genSigFile astContext (ParsedSigFileInput (hs, mns, _, _)) =
     col sepNone hs genParsedHashDirective
     +> (if hs.IsEmpty then sepNone else sepNln)
     +> col sepNln mns (genSigModuleOrNamespace astContext)

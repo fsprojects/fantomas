@@ -10,17 +10,11 @@ type CodeFormatter =
                 CodeFormatterImpl.getSourceText source
                 |> CodeFormatterImpl.parse isSignature
 
-            return Array.map (fun (a, _, d) -> a, d) asts
+            return asts
         }
 
     static member FormatASTAsync(ast: ParsedInput, defines: string list, source, config) : Async<string> =
-        let sourceAndTokens =
-            Option.map
-                (fun source ->
-                    let sourceText = CodeFormatterImpl.getSourceText source
-                    let tokens = TokenParser.getTokensFromSource sourceText
-                    sourceText, tokens)
-                source
+        let sourceAndTokens = Option.map CodeFormatterImpl.getSourceText source
 
         CodeFormatterImpl.formatAST ast defines sourceAndTokens config
         |> async.Return

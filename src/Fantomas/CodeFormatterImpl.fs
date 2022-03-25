@@ -34,20 +34,17 @@ open Fantomas.CodePrinter
 //        |> List.map sourceText.GetLineString
 //        |> String.concat "\n"
 
-
 let getSourceText (source: string) : ISourceText = source.TrimEnd() |> SourceText.ofString
 
-let parse (isSignature: bool) (source: ISourceText) : Async<(ParsedInput * SourceToken list * DefineCombination) []> =
+let parse (isSignature: bool) (source: ISourceText) : Async<(ParsedInput * DefineCombination) []> =
     // First get the syntax tree without any defines
     let baseUntypedTree, baseDiagnostics =
         Fantomas.FCS.Parse.parseFile isSignature source []
 
-    let tokens = TokenParser.getTokensFromSource source
-
     let hashDirectives =
         match baseUntypedTree with
-        | ImplFile (ParsedImplFileInput (_, _, directives))
-        | SigFile (ParsedSigFileInput (_, _, directives)) -> directives
+        | ImplFile (ParsedImplFileInput (_, _, directives, _))
+        | SigFile (ParsedSigFileInput (_, _, directives, _)) -> directives
 
     match hashDirectives with
     | [] ->
@@ -59,7 +56,7 @@ let parse (isSignature: bool) (source: ISourceText) : Async<(ParsedInput * Sourc
             if not errors.IsEmpty then
                 raise (FormatException $"Parsing failed with errors: %A{baseDiagnostics}\nAnd options: %A{[]}")
 
-            return [| (baseUntypedTree, tokens, []) |]
+            return [| (baseUntypedTree, []) |]
         }
     | hashDirectives ->
         let defineCombinations = TokenParser.getDefineCombination hashDirectives
@@ -77,7 +74,7 @@ let parse (isSignature: bool) (source: ISourceText) : Async<(ParsedInput * Sourc
                 if not errors.IsEmpty then
                     raise (FormatException $"Parsing failed with errors: %A{diagnostics}\nAnd options: %A{[]}")
 
-                return (untypedTree, tokens, defineCombination)
+                return (untypedTree, defineCombination)
             })
         |> Async.Parallel
 
@@ -329,12 +326,7 @@ let isValidFSharpCode (isSignature: bool) (source: ISourceText) : Async<bool> =
         | _ -> return false
     }
 
-let formatWith
-    (sourceAndTokens: (ISourceText * SourceToken list) option)
-    (defineCombination: DefineCombination)
-    ast
-    config
-    =
+let formatWith (sourceAndTokens: ISourceText option) (defineCombination: DefineCombination) ast config =
     let formattedSourceCode =
         let context = Context.Context.Create config sourceAndTokens defineCombination ast
 
@@ -350,9 +342,9 @@ let format (config: FormatConfig) (isSignature: bool) (source: ISourceText) : As
 
         let! results =
             asts
-            |> Array.map (fun (ast', tokens, defineCombination) ->
+            |> Array.map (fun (ast', defineCombination) ->
                 async {
-                    let formattedCode = formatWith (Some(source, tokens)) defineCombination ast' config
+                    let formattedCode = formatWith (Some source) defineCombination ast' config
                     return (defineCombination, formattedCode)
                 })
             |> Async.Parallel

@@ -1,21 +1,6 @@
 module internal Fantomas.TriviaTypes
 
 open FSharp.Compiler.Text
-open FSharp.Compiler.Parser
-open FSharp.Compiler.SyntaxTrivia
-
-type TokenAndRange = token * range
-
-[<RequireQualifiedAccess; NoEquality; NoComparison>]
-type SourceToken =
-    | Token of token * range
-    | Hash of ConditionalDirectiveTrivia
-    member x.Range =
-        match x with
-        | SourceToken.Token (_, r)
-        | SourceToken.Hash (ConditionalDirectiveTrivia.If (_, r))
-        | SourceToken.Hash (ConditionalDirectiveTrivia.Else r)
-        | SourceToken.Hash (ConditionalDirectiveTrivia.EndIf r) -> r
 
 type DefineCombination = string list
 
@@ -402,5 +387,3 @@ type TriviaNodeAssigner(nodeType: FsAstType, range: Range) =
     member val ContentBefore = ResizeArray<TriviaContent>() with get, set
     member val ContentItself = Option<TriviaContent>.None with get, set
     member val ContentAfter = ResizeArray<TriviaContent>() with get, set
-
-type MkRange = int * int -> int * int -> Range

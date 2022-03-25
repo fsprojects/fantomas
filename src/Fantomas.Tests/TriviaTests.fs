@@ -8,24 +8,22 @@ open Fantomas.TriviaTypes
 
 let private toTrivia source =
     let sourceText = CodeFormatterImpl.getSourceText source
-    let tokens = TokenParser.getTokensFromSource sourceText
     let ast, _ = Fantomas.FCS.Parse.parseFile false sourceText []
-    Trivia.collectTrivia sourceText tokens [] ast
+    Trivia.collectTrivia sourceText ast
 
 let private toTriviaWithDefines source =
     let sourceText = CodeFormatterImpl.getSourceText source
-    let tokens = TokenParser.getTokensFromSource sourceText
     let ast, _diagnostics = Fantomas.FCS.Parse.parseFile false sourceText []
 
     let hashDirectives =
         match ast with
-        | ImplFile (ParsedImplFileInput (_, _, directives))
-        | SigFile (ParsedSigFileInput (_, _, directives)) -> directives
+        | ImplFile (ParsedImplFileInput (_, _, directives, _))
+        | SigFile (ParsedSigFileInput (_, _, directives, _)) -> directives
 
     let defineCombinations = TokenParser.getDefineCombination hashDirectives
 
     defineCombinations
-    |> List.map (fun dc -> dc, Trivia.collectTrivia sourceText tokens dc ast)
+    |> List.map (fun dc -> dc, Trivia.collectTrivia sourceText ast)
     |> Map.ofList
 
 [<Test>]
