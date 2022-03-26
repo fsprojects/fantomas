@@ -1,11 +1,13 @@
 namespace Fantomas.Extras
 
-open System.IO
+open System.IO.Abstractions
 open MAB.DotIgnore
 
+type IsPathIgnored = IFileInfo -> bool
+
 type IgnoreFile =
-    { Location: FileInfo
-      IgnoreList: IgnoreList }
+    { Location: IFileInfo
+      IsIgnored: IsPathIgnored }
 
 [<RequireQualifiedAccess>]
 module IgnoreFile =
@@ -17,37 +19,43 @@ module IgnoreFile =
     /// Note that this is intended for use only in the daemon; the command-line tool
     /// does not support `.fantomasignore` files anywhere other than the current
     /// working directory.
-    let find (filePath: string) : IgnoreFile option =
-        let rec walkUp (currentDirectory: DirectoryInfo) : IgnoreFile option =
+    let find (fs: IFileSystem) (loadIgnoreList: string -> IsPathIgnored) (filePath: string) : IgnoreFile option =
+        let rec walkUp (currentDirectory: IDirectoryInfo) : IgnoreFile option =
             if isNull currentDirectory then
                 None
             else
                 let potentialFile =
-                    Path.Combine(currentDirectory.FullName, IgnoreFileName)
-                    |> FileInfo
+                    fs.Path.Combine(currentDirectory.FullName, IgnoreFileName)
+                    |> fs.FileInfo.FromFileName
 
                 if potentialFile.Exists then
                     { Location = potentialFile
-                      IgnoreList = IgnoreList(potentialFile.FullName) }
+                      IsIgnored = loadIgnoreList potentialFile.FullName }
                     |> Some
                 else
                     walkUp currentDirectory.Parent
 
-        walkUp (FileInfo(filePath).Directory)
+        walkUp (fs.FileInfo.FromFileName(filePath).Directory)
 
-    let private relativePathPrefix = sprintf ".%c" Path.DirectorySeparatorChar
+    let loadIgnoreList (path: string) : IsPathIgnored =
+        let list = IgnoreList(path)
+        fun path -> list.IsIgnored(path.FullName, false)
+
+    let internal current' (fs: IFileSystem) (currentDirectory: string) (loadIgnoreList: string -> IsPathIgnored) =
+        lazy find fs loadIgnoreList (fs.Path.Combine(currentDirectory, "_"))
 
     /// When executed from the command line, Fantomas will not dynamically locate
     /// the most appropriate `.fantomasignore` for each input file; it only finds
     /// a single `.fantomasignore` file. This is that file.
     let current: Lazy<IgnoreFile option> =
-        lazy find (Path.Combine(System.Environment.CurrentDirectory, "_"))
+        current' (FileSystem()) System.Environment.CurrentDirectory loadIgnoreList
 
     let isIgnoredFile (ignoreFile: IgnoreFile option) (file: string) : bool =
         match ignoreFile with
         | None -> false
         | Some ignoreFile ->
-            let fullPath = Path.GetFullPath(file)
+            let fs = ignoreFile.Location.FileSystem
+            let fullPath = fs.Path.GetFullPath(file)
 
             try
                 let path =
@@ -55,8 +63,9 @@ module IgnoreFile =
                         fullPath.[ignoreFile.Location.Directory.FullName.Length + 1 ..]
                     else
                         fullPath
+                    |> fs.FileInfo.FromFileName
 
-                ignoreFile.IgnoreList.IsIgnored(path, false)
+                ignoreFile.IsIgnored path
             with
             | ex ->
                 printfn "%A" ex

@@ -7,6 +7,9 @@ nuget FSharp.Core content: none
 nuget FSharp.Compiler.Service == 41.0.3
 nuget FsUnit
 nuget FsCheck
+nuget System.IO.Abstractions 16.1.10
+nuget System.IO.Abstractions == 16.1.10
+nuget System.IO.Abstractions.TestingHelpers 16.1.10
 nuget Microsoft.NET.Test.Sdk
 nuget nunit
 nuget NUnit3TestAdapter
