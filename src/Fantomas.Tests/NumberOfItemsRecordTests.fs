@@ -437,10 +437,10 @@ type Element =
         equal
         """
 module RecordSignature
+
 /// Represents simple XML elements.
 type Element =
-    {
-      /// The attribute collection.
+    { /// The attribute collection.
       Attributes: IDictionary<Name, string>
 
       /// The children collection.

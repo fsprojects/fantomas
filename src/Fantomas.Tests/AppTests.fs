@@ -905,3 +905,21 @@ promise {
 |> Promise.start
 """
 
+[<Test>]
+let ``function invocation with multiple curried parameters, 2087`` () =
+    formatSourceString
+        false
+        """
+module Foo =
+    let Bar (baz1: int) (baz2: string) (baz3: string) (baz4: string) (baz5: string) =
+        FooBarBaz(someFunc x) (someOtherFunc y)
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+module Foo =
+    let Bar (baz1: int) (baz2: string) (baz3: string) (baz4: string) (baz5: string) =
+        FooBarBaz (someFunc x) (someOtherFunc y)
+"""

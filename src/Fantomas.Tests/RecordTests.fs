@@ -71,10 +71,10 @@ type Element =
         equal
         """
 module RecordSignature
+
 /// Represents simple XML elements.
 type Element =
-    {
-      /// The attribute collection.
+    { /// The attribute collection.
       Attributes: IDictionary<Name, string>;
 
       /// The children collection.
@@ -824,6 +824,7 @@ type Element =
         equal
         """
 module RecordSignature
+
 /// Represents simple XML elements.
 type Element =
     { /// The attribute collection.
@@ -1948,4 +1949,74 @@ let defaultTestOptions fwk common (o: DotNet.TestOptions) =
         NoBuild = true
         Framework = fwk // Some "netcoreapp3.0"
         Configuration = DotNet.BuildConfiguration.Debug }
+"""
+
+[<Test>]
+let ``comment after equals in record field`` () =
+    formatSourceString
+        false
+        """
+{ A = //comment 
+      B }
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+{ A = //comment
+    B }
+"""
+
+[<Test>]
+let ``comment after equals in anonymous record field`` () =
+    formatSourceString
+        false
+        """
+{| A = //comment 
+      B |}
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+{| A = //comment
+    B |}
+"""
+
+[<Test>]
+let ``comment after equals sign in record type definition`` () =
+    formatSourceString
+        false
+        """
+type Foo =   // comment
+    { Bar: int }
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type Foo = // comment
+    { Bar: int }
+"""
+
+[<Test>]
+let ``comment after equals sign in anonymous record field, 1921`` () =
+    formatSourceString
+        false
+        """
+let a =
+    {| Foo = //
+        2 |}
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let a =
+    {| Foo = //
+        2 |}
 """

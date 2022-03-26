@@ -8,6 +8,14 @@ F# source code formatter, inspired by [scalariform](https://github.com/mdr/scala
 [![Build Status Github Actions](https://github.com/fsprojects/fantomas/workflows/Build%20master/badge.svg?branch=master&event=push)](https://github.com/fsprojects/fantomas/actions)
 [![Discord](https://img.shields.io/discord/940511234179096586?label=Fantomas%20Discord&style=flat-square)](https://discord.gg/D5QXvQrBVa)
 
+## Quick install
+
+* Command line: `dotnet tool install -g fantomas-tool`
+* JetBrains Rider: preinstalled
+* VSCode: part of [Ionide](http://ionide.io/) and [fantomas-fmt](https://marketplace.visualstudio.com/items?itemName=paolodellepiane.fantomas-fmt).
+* [Visual Studio 2019](https://marketplace.visualstudio.com/items?itemName=asti.fantomas-vs)
+* [Visual Studio 2022](https://marketplace.visualstudio.com/items?itemName=asti.fantomas-vs22)
+
 ## How to use
 
 ### Command line tool / API
@@ -47,7 +55,10 @@ Alternatively, you can install the [fantomas-fmt](https://marketplace.visualstud
 
 ### Visual Studio
 
-The [F# Formatting](https://marketplace.visualstudio.com/items?itemName=asti.fantomas-vs) extension sets up Fantomas as the default formatter for F# files, configurable from Visual Studio's options.
+The F# Formatting extension sets up Fantomas as the default formatter for F# files, configurable from Visual Studio's options.
+
+* [Visual Studio 2019](https://marketplace.visualstudio.com/items?itemName=asti.fantomas-vs)
+* [Visual Studio 2022](https://marketplace.visualstudio.com/items?itemName=asti.fantomas-vs22)
 
 ### Visual Studio for Mac
 

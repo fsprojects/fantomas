@@ -1352,7 +1352,7 @@ namespace Baz
 module Bar =
 
     [<Obsolete "">]
-    ///
+    ////
     val f : unit -> unit
 """
         config
@@ -1365,7 +1365,7 @@ namespace Baz
 module Bar =
 
     [<Obsolete "">]
-    ///
+    ////
     val f: unit -> unit
 """
 
@@ -1883,4 +1883,34 @@ val SampleTupledFunction:
     arg3: int *
     arg4: int ->
         int list
+"""
+
+[<Test>]
+let ``optional parameter in static type member, 2144`` () =
+    formatSourceString
+        true
+        """
+// Copyright (c) Microsoft Corporation.  All Rights Reserved.  See License.txt in the project root for license information.
+
+namespace Microsoft.FSharp.Control
+    
+    [<Sealed>]
+    [<CompiledName("FSharpAsync")>]
+    type Async =
+        static member AwaitEvent: event:IEvent<'Del,'T> * ?cancelAction : (unit -> unit) -> Async<'T> when 'Del : delegate<'T,unit> and 'Del :> System.Delegate 
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+// Copyright (c) Microsoft Corporation.  All Rights Reserved.  See License.txt in the project root for license information.
+
+namespace Microsoft.FSharp.Control
+
+[<Sealed>]
+[<CompiledName("FSharpAsync")>]
+type Async =
+    static member AwaitEvent: event: IEvent<'Del, 'T> * ?cancelAction: (unit -> unit) -> Async<'T>
+        when 'Del: delegate<'T, unit> and 'Del :> System.Delegate
 """

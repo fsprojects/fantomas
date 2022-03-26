@@ -64,6 +64,27 @@ arr[0, 2, 3, 4]
 """
 
 [<Test>]
+let ``index syntax without dot on array of arrays, 2151`` () =
+    formatSourceString
+        false
+        """
+let a = Array.create 10 -1
+let b = Array.create 10 a
+
+printfn "%d -> %d" a[0] (b[0][0])
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let a = Array.create 10 -1
+let b = Array.create 10 a
+
+printfn "%d -> %d" a[0] (b[0][0])
+"""
+
+[<Test>]
 let ``only add spaces when expressions are atomic`` () =
     formatSourceString
         false

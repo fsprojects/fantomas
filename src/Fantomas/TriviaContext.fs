@@ -3,12 +3,6 @@ module internal Fantomas.TriviaContext
 open Fantomas
 open Fantomas.Context
 open Fantomas.TriviaTypes
-open FSharp.Compiler.Text
-
-let tokN (range: Range) (tokenName: FsTokenType) f =
-    enterNodeTokenByName range tokenName
-    +> f
-    +> leaveNodeTokenByName range tokenName
 
 let getIndentBetweenTicksFromSynPat patRange fallback ctx =
     TriviaHelpers.getNodesForTypes [ SynPat_LongIdent; SynPat_Named ] ctx.TriviaMainNodes

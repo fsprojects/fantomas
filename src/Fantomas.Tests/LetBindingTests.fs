@@ -1959,3 +1959,42 @@ let v =
     let formatted = formatSourceString false sourceCode config
 
     formatted |> should not' (equal EmptyString)
+
+[<Test>]
+let ``in keyword in SynExpr.LetOrUse, 1182`` () =
+    formatSourceString
+        false
+        """
+do
+    let _ = ()
+      in
+     () // note the different indent is allowed here due to `in` use
+
+let escapeEarth myVelocity mySpeed =
+    let
+        escapeVelocityInKmPerSec = 11.186
+    in
+    if myVelocity > escapeVelocityInKmPerSec then
+        "Godspeed"
+    elif mySpeed == orbitalSpeedInKmPerSec then
+        "Stay in orbit"
+    else
+        "Come back"
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+do let _ = () in () // note the different indent is allowed here due to `in` use
+
+let escapeEarth myVelocity mySpeed =
+    let escapeVelocityInKmPerSec = 11.186 in
+
+    if myVelocity > escapeVelocityInKmPerSec then
+        "Godspeed"
+    elif mySpeed == orbitalSpeedInKmPerSec then
+        "Stay in orbit"
+    else
+        "Come back"
+"""

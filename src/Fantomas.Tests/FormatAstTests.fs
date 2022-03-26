@@ -40,12 +40,9 @@ let formatAst code =
 let ``format the ast works correctly with no source code`` () = formatAst "()" |> should equal "()"
 
 [<Test>]
-let ``let in should not be used`` () =
+let ``let in should be used`` () =
     formatAst "let x = 1 in ()"
-    |> should
-        equal
-        """let x = 1
-()"""
+    |> should equal """let x = 1 in ()"""
 
 [<Test>]
 let ``elif keyword is present in raw AST`` () =
@@ -91,7 +88,7 @@ type Foo =
         """[<AbstractClass>]
 type Foo =
     abstract foo: int
-    override __.foo = 1"""
+    default __.foo = 1"""
 
 [<Test>]
 let ``default implementations in abstract classes with `default` keyword should be emited as it was before from AST with origin source, 742``
@@ -133,7 +130,7 @@ let ``object expression should emit override keyword on AST formatting without o
     |> should
         equal
         """{ new System.IDisposable with
-    override __.Dispose() = () }"""
+    member __.Dispose() = () }"""
 
 [<Test>]
 let ``object expression should preserve member keyword on AST formatting with origin source, 742`` () =

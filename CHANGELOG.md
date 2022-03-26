@@ -1,12 +1,53 @@
 # Changelog
 
-## [Unreleased]
+## [4.7.4] - 2022-03-25
+
+### Fixed
+* DotGet in quotation should be further indented. [#2154](https://github.com/fsprojects/fantomas/issues/2154)
+* Reformatting multiple array index operators (v6 style) adds spaces that are invalid [#2151](https://github.com/fsprojects/fantomas/issues/2151)
+
+## [4.7.3] - 2022-03-12
+
+### Fixed
+* Option parameter name is lost in tuple. [#2144](https://github.com/fsprojects/fantomas/issues/2144)
+* Trivia between XmlDoc and member is not printed. [#2147](https://github.com/fsprojects/fantomas/issues/2147)
+* Emit correct keyword for properties with both getter and setter specified [#2129](https://github.com/fsprojects/fantomas/issues/2129)
+* Duplicate ///-comments when immediately preceded by a //-comment. [#2152](https://github.com/fsprojects/fantomas/issues/2152)
+
+## [4.7.2] - 2022-03-11
+
+### Fixed
+*  Reordering comments on modules. [#2141](https://github.com/fsprojects/fantomas/issues/2141)
+
+## [4.7.1] - 2022-03-08
+
+### Fixed
+* Comment after equals is remove in anonymous record. [#1921](https://github.com/fsprojects/fantomas/issues/1921)
+* Comment after equals in record type is lost. [#2001](https://github.com/fsprojects/fantomas/issues/2001)
+* Comment after match keyword is lost. [#1851](https://github.com/fsprojects/fantomas/issues/1851)
+* Preserve in keyword on next line. [#1182](https://github.com/fsprojects/fantomas/issues/1182)
+* Remove Ionide.KeepAChangelog.Tasks and Dotnet.ReproducibleBuilds as NuGet dependencies. [#2131](https://github.com/fsprojects/fantomas/pull/2131)
+* Comment lost between attribute and member. [#2130](https://github.com/fsprojects/fantomas/issues/2130)
+
+## [4.7.0] - 2022-03-04
+
+### Changed
+* Always add a space for multiple curried args invocation. [#2087](https://github.com/fsprojects/fantomas/issues/2087)
+* Update FCS to 41.0.3. [#2122](https://github.com/fsprojects/fantomas/pull/2122)
+* Print XML Document comments from AST. [#1878](https://github.com/fsprojects/fantomas/issues/1878)
+
+## [4.6.6] - 2022-03-04
 
 ### Changed
 * Update .NET SDK to 6.0.200. [#2105](https://github.com/fsprojects/fantomas/pull/2105)
+* Lock FCS version in Fantomas nuspec. [#2118](https://github.com/fsprojects/fantomas/issues/2118)
 
 ### Fixed
 * Keep copyInfo for record fixed at starting column. [#2109](https://github.com/fsprojects/fantomas/issues/2109)
+* Unexpected expression: Fixed. [#2112](https://github.com/fsprojects/fantomas/issues/2112)
+
+### Documentation
+* Fixed typo in Formatting-Elmish-code.md [#2120](https://github.com/fsprojects/fantomas/pull/2120)
 
 ## [4.6.5] - 2022-02-18
 

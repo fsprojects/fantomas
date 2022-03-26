@@ -1123,7 +1123,7 @@ match foo with
     let range = getRangeBetween "keyword" headToken headToken
 
     let info =
-        Trivia.Create(Keyword(headToken)) range
+        Trivia.Create (Keyword(headToken)) range
         |> List.prependItem foundTrivia
 
     getTriviaFromTokensThemSelves allTokens rest info
@@ -2066,4 +2066,87 @@ let examineData x =
     match data with
     | OnePartData (part1 = p1) -> p1
     | TwoPartData (part1 = p1; part2 = p2) -> p1 + p2
+"""
+
+[<Test>]
+let ``comment after match keyword`` () =
+    formatSourceString
+        false
+        """
+match // foo
+        a with
+| B b -> ()
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+match // foo
+    a with
+| B b -> ()
+"""
+
+[<Test>]
+let ``comment after match bang keyword`` () =
+    formatSourceString
+        false
+        """
+match! // foo
+        a with
+| B b -> ()
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+match! // foo
+    a with
+| B b -> ()
+"""
+
+[<Test>]
+let ``comment after with keyword in match bang`` () =
+    formatSourceString
+        false
+        """
+match! 
+        a with // foo
+| B b -> ()
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+match! a with // foo
+| B b -> ()
+"""
+
+[<Test>]
+let ``comment after match keyword, 1851`` () =
+    formatSourceString
+        false
+        """
+match // foo
+                                a with
+| _ -> ()
+
+match! // foo!
+                                a with
+| _ -> ()
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+match // foo
+    a with
+| _ -> ()
+
+match! // foo!
+    a with
+| _ -> ()
 """

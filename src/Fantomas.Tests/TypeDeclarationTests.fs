@@ -31,6 +31,44 @@ exception BuildException of string * list<string> with
 """
 
 [<Test>]
+let ``comment after with keyword in exception type`` () =
+    formatSourceString
+        false
+        """
+exception FooException  with  // comment
+    member this.Bar ()  =  ()
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+exception FooException with // comment
+    member this.Bar() = ()
+"""
+
+[<Test>]
+let ``comment after with keyword in exception type in signature files`` () =
+    formatSourceString
+        true
+        """
+namespace Moon
+
+exception FooException  with  // comment
+    member Bar: unit -> unit
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+namespace Moon
+
+exception FooException with // comment
+    member Bar: unit -> unit
+"""
+
+[<Test>]
 let ``type annotations`` () =
     formatSourceString
         false
@@ -423,6 +461,29 @@ type SpeedingTicket() =
 let CalculateFine (ticket: SpeedingTicket) =
     let delta = ticket.GetMPHOver(limit = 55, speed = 70)
     if delta < 20 then 50.0 else 100.0
+"""
+
+[<Test>]
+let ``separate-indexed-properties, 2129`` () =
+    formatSourceString
+        false
+        """
+type Foo() =
+    member this.Item
+        with get (name: string): obj option = None
+
+    member this.Item
+        with set (name: string) (v: obj option): unit =
+            ()"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type Foo() =
+    member this.Item
+        with set (name: string) (v: obj option): unit = ()
+        and get (name: string): obj option = None
 """
 
 [<Test>]
@@ -1055,7 +1116,7 @@ type Entity() =
         """
 type Entity() =
     abstract Id: int with get, set
-    override val Id = 0 with get, set
+    default val Id = 0 with get, set
 """
 
 [<Test>]
@@ -2923,4 +2984,103 @@ type Graph<'a when 'a:comparison> = Set<'a * 'a>
         equal
         """
 type Graph<'a when 'a: comparison> = Set<'a * 'a>
+"""
+
+[<Test>]
+let ``comment after equals sign in type defn, 2001`` () =
+    formatSourceString
+        false
+        """
+type V = // comment
+    { X: SomeFieldType
+      Y: OhSomethingElse
+      Z: ALongTypeName }
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type V = // comment
+    { X: SomeFieldType
+      Y: OhSomethingElse
+      Z: ALongTypeName }
+"""
+
+[<Test>]
+let ``trivia between xml doc and member, 2147`` () =
+    formatSourceString
+        true
+        """
+// Copyright (c) Microsoft Corporation.  All Rights Reserved.  See License.txt in the project root for license information.
+
+module internal FSharp.Compiler.Infos
+
+type MethInfo =
+    | FSMeth of tcGlobals: TcGlobals
+    
+/// Get the information about provided static parameters, if any
+// #if NO_EXTENSIONTYPING
+    member ProvidedStaticParameterInfo: obj option
+// #else
+//     member ProvidedStaticParameterInfo: (Tainted<ProvidedMethodBase> * Tainted<ProvidedParameterInfo> []) option
+// #endif
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+// Copyright (c) Microsoft Corporation.  All Rights Reserved.  See License.txt in the project root for license information.
+
+module internal FSharp.Compiler.Infos
+
+type MethInfo =
+    | FSMeth of tcGlobals: TcGlobals
+
+    /// Get the information about provided static parameters, if any
+    // #if NO_EXTENSIONTYPING
+    member ProvidedStaticParameterInfo: obj option
+// #else
+//     member ProvidedStaticParameterInfo: (Tainted<ProvidedMethodBase> * Tainted<ProvidedParameterInfo> []) option
+// #endif
+"""
+
+[<Test>]
+let ``hash directive between xml doc and member`` () =
+    formatSourceString
+        true
+        """
+// Copyright (c) Microsoft Corporation.  All Rights Reserved.  See License.txt in the project root for license information.
+
+module internal FSharp.Compiler.Infos
+
+type MethInfo =
+    | FSMeth of tcGlobals: TcGlobals
+    
+/// Get the information about provided static parameters, if any
+#if NO_EXTENSIONTYPING
+    member ProvidedStaticParameterInfo: obj option
+#else
+    member ProvidedStaticParameterInfo: (Tainted<ProvidedMethodBase> * Tainted<ProvidedParameterInfo> []) option
+#endif
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+// Copyright (c) Microsoft Corporation.  All Rights Reserved.  See License.txt in the project root for license information.
+
+module internal FSharp.Compiler.Infos
+
+type MethInfo =
+    | FSMeth of tcGlobals: TcGlobals
+
+    /// Get the information about provided static parameters, if any
+#if NO_EXTENSIONTYPING
+    member ProvidedStaticParameterInfo: obj option
+#else
+    member ProvidedStaticParameterInfo: (Tainted<ProvidedMethodBase> * Tainted<ProvidedParameterInfo> []) option
+#endif
 """

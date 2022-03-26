@@ -393,8 +393,8 @@ let ``member properties with type annotation`` () =
         and set (_: int): unit = ()
 
     member this.Z
-        with get (): int = 1
-        and set (_: int): unit = ()
+        with set (_: int): unit = ()
+        and get (): int = 1
 """
 
 [<Test>]
@@ -1047,4 +1047,29 @@ type Subject<'a> private () =
     /// Represents and object that is both an observable sequence as well as an observer.
     /// Each notification is broadcasted to all subscribed observers.
     static member broadcast = new System.Reactive.Subjects.Subject<'a>()
+"""
+
+[<Test>]
+let ``comments after equals sign in read/write property`` () =
+    formatSourceString
+        false
+        """
+type Foo() =
+    member this.MyReadWriteProperty
+        with get () =   //comment get 
+            myInternalValue
+        and set (value) =   // comment set
+            myInternalValue <- value
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type Foo() =
+    member this.MyReadWriteProperty
+        with get () = //comment get
+            myInternalValue
+        and set (value) = // comment set
+            myInternalValue <- value
 """

@@ -1729,7 +1729,7 @@ with
 """
 
 [<Test>]
-let ``comment shold not be lost`` () =
+let ``comment should not be lost`` () =
     formatSourceString
         false
         """
@@ -1842,4 +1842,27 @@ module Example =
 
     let dict2 =
         ConcurrentDictionary< (* some comment 2 *) int64, ConcurrentDictionary< (* some comment 3 *) int32, unit>>()
+"""
+
+[<Test>]
+let ``correctly collect a double slash comment before a xml doc comment, 2152`` () =
+    formatSourceString
+        false
+        """
+// Maybe computation expression builder, copied from ExtCore library
+/// https://github.com/jack-pappas/ExtCore/blob/master/ExtCore/Control.fs
+[<Sealed>]
+type MaybeBuilder() = class end
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+// Maybe computation expression builder, copied from ExtCore library
+/// https://github.com/jack-pappas/ExtCore/blob/master/ExtCore/Control.fs
+[<Sealed>]
+type MaybeBuilder() =
+    class
+    end
 """

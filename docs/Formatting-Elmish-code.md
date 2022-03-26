@@ -91,6 +91,6 @@ When the children argument is empty, it is placed right after the attributes.
 
 ```fsharp
 let x =
-    div [ OnClick(fun _ -> prinftn "meh")
+    div [ OnClick(fun _ -> printfn "meh")
           ClassName "container" ] []
 ```

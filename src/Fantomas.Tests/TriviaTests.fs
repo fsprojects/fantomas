@@ -63,7 +63,7 @@ let ``line comment on same line, is after last AST item`` () =
     let triviaNodes = toTrivia source |> List.head
 
     match triviaNodes with
-    | [ { Type = MainNode SynConst_Int32
+    | [ { Type = SynConst_Int32
           ContentAfter = [ Comment (LineCommentAfterSourceCode lineComment) ] } ] -> lineComment == "// should be 8"
     | _ -> Assert.Fail(sprintf "Unexpected trivia %A" triviaNodes)
 
@@ -111,7 +111,7 @@ let ``comments inside record`` () =
     let triviaNodes = toTrivia source |> List.head
 
     match triviaNodes with
-    | [ { Type = TriviaNodeType.MainNode SynExpr_Record_OpeningBrace
+    | [ { Type = SynExpr_Record_OpeningBrace
           ContentAfter = [ Comment (LineCommentAfterSourceCode "// foo") ] } ] -> pass ()
     | _ -> fail ()
 
@@ -126,7 +126,7 @@ let ``comment after all source code`` () =
     let triviaNodes = toTrivia source |> List.head
 
     match triviaNodes with
-    | [ { Type = MainNode mn
+    | [ { Type = mn
           ContentAfter = [ Comment (LineCommentOnSingleLine lineComment) ] } ] ->
         mn == SynModuleDecl_Types
 
@@ -143,7 +143,7 @@ let ``block comment added to trivia`` () =
     let triviaNodes = toTrivia source |> List.head
 
     match triviaNodes with
-    | [ { ContentBefore = [ Comment (BlockComment (comment, _, _)) ] } ] -> comment == "(* meh *)"
+    | [ { ContentAfter = [ Comment (BlockComment (comment, _, _)) ] } ] -> comment == "(* meh *)"
     | _ -> failwith "Expected block comment"
 
 [<Test>]
@@ -290,13 +290,13 @@ doSomething()
     let withoutDefine = Map.find [] triviaNodes
 
     match withoutDefine with
-    | [ { Type = MainNode SynModuleDecl_DoExpr
+    | [ { Type = SynModuleDecl_DoExpr
           ContentBefore = [ Directive "#if NOT_DEFINED\n#else" ]
           ContentAfter = [ Directive "#endif" ] } ] -> pass ()
     | _ -> Assert.Fail(sprintf "Unexpected trivia %A" withoutDefine)
 
     match withDefine with
-    | [ { Type = MainNode LongIdent_
+    | [ { Type = LongIdent_
           ContentBefore = [ Directive "#if NOT_DEFINED"; Directive "#else"; Directive "#endif" ]
           ContentAfter = [] } ] -> pass ()
     | _ -> Assert.Fail(sprintf "Unexpected trivia %A" withDefine)
@@ -315,16 +315,16 @@ let x = 1
     let withoutDefine = Map.find [] triviaNodes
 
     match withoutDefine with
-    | [ { Type = MainNode LongIdent_
+    | [ { Type = LongIdent_
           ContentAfter = [ Directive "#if NOT_DEFINED\n\n#endif" ]
           ContentBefore = [] } ] -> pass ()
     | _ -> Assert.Fail(sprintf "Unexpected trivia %A" withoutDefine)
 
     match withDefine with
-    | [ { Type = MainNode LongIdent_
+    | [ { Type = LongIdent_
           ContentBefore = [ Directive "#if NOT_DEFINED" ]
           ContentAfter = [] }
-        { Type = MainNode SynModuleDecl_Let
+        { Type = SynModuleDecl_Let
           ContentBefore = []
           ContentAfter = [ Directive "#endif" ] } ] -> pass ()
     | _ -> Assert.Fail(sprintf "Unexpected trivia %A" withDefine)
@@ -344,7 +344,7 @@ type ExtensibleDumper = A | B
     let trivias = Map.find [ "DEBUG" ] triviaNodes
 
     match trivias with
-    | [ { Type = MainNode LongIdent_
+    | [ { Type = SynModuleOrNamespace_DeclaredNamespace
           ContentAfter = [ Directive "#if EXTENSIBLE_DUMPER\n#if DEBUG\n\n#endif\n#endif" ] } ] -> pass ()
     | _ -> Assert.Fail(sprintf "Unexpected trivia %A" trivias)
 
@@ -373,7 +373,7 @@ let foo = 42
     let trivia = toTriviaWithDefines source |> Map.find []
 
     match trivia with
-    | [ { Type = MainNode LongIdent_
+    | [ { Type = LongIdent_
           ContentAfter = [ Directive "#if SOMETHING\n\n#endif" ] } ] -> pass ()
     | _ -> fail ()
 
@@ -393,7 +393,7 @@ with empty lines"
 
     match trivia with
     | [ { ContentItself = Some (StringContent sc)
-          Type = TriviaNodeType.MainNode SynConst_String } ] -> sc == sprintf "\"%s\"" multilineString
+          Type = SynConst_String } ] -> sc == sprintf "\"%s\"" multilineString
     | _ -> fail ()
 
 [<Test>]
@@ -412,7 +412,7 @@ with empty lines"
 
     match trivia with
     | [ { ContentItself = Some (StringContent sc)
-          Type = TriviaNodeType.MainNode SynConst_String } ] -> sc == sprintf "\"\"\"%s\"\"\"" multilineString
+          Type = SynConst_String } ] -> sc == sprintf "\"\"\"%s\"\"\"" multilineString
     | _ -> fail ()
 
 [<Test>]
@@ -422,7 +422,7 @@ let ``char content`` () =
 
     match trivia with
     | [ { ContentItself = Some (CharContent "\'\\u0000\'")
-          Type = TriviaNodeType.MainNode SynConst_Char } ] -> pass ()
+          Type = SynConst_Char } ] -> pass ()
     | _ -> Assert.Fail(sprintf "Unexpected trivia: %A" trivia)
 
 [<Test>]
@@ -442,13 +442,13 @@ let a = b
 let ``multiple line comments form a single trivia`` () =
     let source =
         """
-/// Represents a long identifier with possible '.' at end.
-///
-/// Typically dotms.Length = lid.Length-1, but they may be same if (incomplete) code ends in a dot, e.g. "Foo.Bar."
-/// The dots mostly matter for parsing, and are typically ignored by the typechecker, but
-/// if dotms.Length = lid.Length, then the parser must have reported an error, so the typechecker is allowed
-/// more freedom about typechecking these expressions.
-/// LongIdent can be empty list - it is used to denote that name of some AST element is absent (i.e. empty type name in inherit)
+// Represents a long identifier with possible '.' at end.
+//
+// Typically dotms.Length = lid.Length-1, but they may be same if (incomplete) code ends in a dot, e.g. "Foo.Bar."
+// The dots mostly matter for parsing, and are typically ignored by the typechecker, but
+// if dotms.Length = lid.Length, then the parser must have reported an error, so the typechecker is allowed
+// more freedom about typechecking these expressions.
+// LongIdent can be empty list - it is used to denote that name of some AST element is absent (i.e. empty type name in inherit)
 type LongIdentWithDots =
     | LongIdentWithDots of id: LongIdent * dotms: range list
 """
@@ -457,13 +457,13 @@ type LongIdentWithDots =
 
     let expectedComment =
         String.normalizeNewLine
-            """/// Represents a long identifier with possible '.' at end.
-///
-/// Typically dotms.Length = lid.Length-1, but they may be same if (incomplete) code ends in a dot, e.g. "Foo.Bar."
-/// The dots mostly matter for parsing, and are typically ignored by the typechecker, but
-/// if dotms.Length = lid.Length, then the parser must have reported an error, so the typechecker is allowed
-/// more freedom about typechecking these expressions.
-/// LongIdent can be empty list - it is used to denote that name of some AST element is absent (i.e. empty type name in inherit)"""
+            """// Represents a long identifier with possible '.' at end.
+//
+// Typically dotms.Length = lid.Length-1, but they may be same if (incomplete) code ends in a dot, e.g. "Foo.Bar."
+// The dots mostly matter for parsing, and are typically ignored by the typechecker, but
+// if dotms.Length = lid.Length, then the parser must have reported an error, so the typechecker is allowed
+// more freedom about typechecking these expressions.
+// LongIdent can be empty list - it is used to denote that name of some AST element is absent (i.e. empty type name in inherit)"""
 
     match trivia with
     | [ { ContentBefore = [ Comment (LineCommentOnSingleLine comment) ] } ] ->
@@ -478,7 +478,7 @@ let ``number expression`` () =
 
     match trivia with
     | [ { ContentItself = Some (Number n)
-          Type = TriviaNodeType.MainNode _ } ] -> n == "2.0m"
+          Type = _ } ] -> n == "2.0m"
     | _ -> fail ()
 
 [<Test>]
@@ -497,6 +497,6 @@ let x =
     printfn "%A" trivia
 
     match trivia with
-    | [ { Type = TriviaNodeType.MainNode SynConst_Unit
+    | [ { Type = SynConst_Unit
           ContentBefore = [ Directive "#if DEBUG\n\n#endif" ] } ] -> pass ()
     | _ -> Assert.Fail(sprintf "Unexpected trivia: %A" trivia)

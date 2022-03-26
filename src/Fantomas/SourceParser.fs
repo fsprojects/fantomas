@@ -140,11 +140,11 @@ let (|OpNameFullInPattern|) (x: Identifier) =
     let s' = DecompileOpName s
 
     (if IsActivePatternName s
-        || IsInfixOperator s
+        || IsMangledInfixOperator s
         || IsPrefixOperator s
         || IsTernaryOperator s
         || s = "op_Dynamic" then
-         /// Use two spaces for symmetry
+         // Use two spaces for symmetry
          if String.startsWithOrdinal "*" s' && s' <> "*" then
              sprintf "( %s )" s'
          else
@@ -164,11 +164,11 @@ let (|OpNameFull|) (x: Identifier) =
 
     (if IsActivePatternName s then
          s
-     elif IsInfixOperator s
+     elif IsMangledInfixOperator s
           || IsPrefixOperator s
           || IsTernaryOperator s
           || s = "op_Dynamic" then
-         /// Use two spaces for symmetry
+         // Use two spaces for symmetry
          if String.startsWithOrdinal "*" s' && s' <> "*" then
              sprintf " %s " s'
          else
@@ -240,20 +240,22 @@ let (|ParsedImplFileInput|) (ParsedImplFileInput.ParsedImplFileInput (_, _, _, _
 let (|ParsedSigFileInput|) (ParsedSigFileInput.ParsedSigFileInput (_, _, _, hs, mns)) = (hs, mns)
 
 let (|ModuleOrNamespace|)
-    (SynModuleOrNamespace.SynModuleOrNamespace (LongIdentPieces lids, isRecursive, kind, mds, px, ats, ao, _))
+    (SynModuleOrNamespace.SynModuleOrNamespace (LongIdentPieces lids, isRecursive, kind, mds, px, ats, ao, range))
     =
-    (ats, px, ao, lids, mds, isRecursive, kind)
+    (ats, px, ao, lids, mds, isRecursive, kind, range)
 
 let (|SigModuleOrNamespace|)
-    (SynModuleOrNamespaceSig.SynModuleOrNamespaceSig (LongIdentPieces lids, isRecursive, kind, mds, px, ats, ao, _))
+    (SynModuleOrNamespaceSig.SynModuleOrNamespaceSig (LongIdentPieces lids, isRecursive, kind, mds, px, ats, ao, range))
     =
-    (ats, px, ao, lids, mds, isRecursive, kind)
+    (ats, px, ao, lids, mds, isRecursive, kind, range)
 
 let (|EmptyFile|_|) (input: ParsedInput) =
     match input with
-    | ImplFile (ParsedImplFileInput (_, [ ModuleOrNamespace (_, _, _, _, [], _, SynModuleOrNamespaceKind.AnonModule) ])) ->
+    | ImplFile (ParsedImplFileInput (_,
+                                     [ ModuleOrNamespace (_, _, _, _, [], _, SynModuleOrNamespaceKind.AnonModule, _) ])) ->
         Some input
-    | SigFile (ParsedSigFileInput (_, [ SigModuleOrNamespace (_, _, _, _, [], _, SynModuleOrNamespaceKind.AnonModule) ])) ->
+    | SigFile (ParsedSigFileInput (_,
+                                   [ SigModuleOrNamespace (_, _, _, _, [], _, SynModuleOrNamespaceKind.AnonModule, _) ])) ->
         Some input
     | _ -> None
 
@@ -270,7 +272,8 @@ let (|Access|) =
     | SynAccess.Private -> "private"
 
 let (|PreXmlDoc|) (px: PreXmlDoc) =
-    px.ToXmlDoc(false, None).UnprocessedLines
+    let xmlDoc = px.ToXmlDoc(false, None)
+    xmlDoc.UnprocessedLines, xmlDoc.Range
 
 // Module declarations (11 cases)
 let (|Open|_|) =
@@ -326,8 +329,8 @@ let (|Types|_|) =
 
 let (|NestedModule|_|) =
     function
-    | SynModuleDecl.NestedModule (SynComponentInfo (ats, _, _, LongIdent s, px, _, ao, _), isRecursive, xs, _, _) ->
-        Some(ats, px, ao, s, isRecursive, xs)
+    | SynModuleDecl.NestedModule (SynComponentInfo (ats, _, _, LongIdent s, px, _, ao, _), isRecursive, xs, _, _, trivia) ->
+        Some(ats, px, trivia.ModuleKeyword, ao, s, isRecursive, trivia.EqualsRange, xs)
     | _ -> None
 
 let (|Exception|_|) =
@@ -374,8 +377,8 @@ let (|SigTypes|_|) =
 
 let (|SigNestedModule|_|) =
     function
-    | SynModuleSigDecl.NestedModule (SynComponentInfo (ats, _, _, LongIdent s, px, _, ao, _), _, xs, _) ->
-        Some(ats, px, ao, s, xs)
+    | SynModuleSigDecl.NestedModule (SynComponentInfo (ats, _, _, LongIdent s, px, _, ao, _), _, xs, _, trivia) ->
+        Some(ats, px, trivia.ModuleKeyword, ao, s, trivia.EqualsRange, xs)
     | _ -> None
 
 let (|SigException|_|) =
@@ -390,26 +393,37 @@ let (|ExceptionDefRepr|) (SynExceptionDefnRepr.SynExceptionDefnRepr (ats, uc, _,
 let (|SigExceptionDefRepr|) (SynExceptionDefnRepr.SynExceptionDefnRepr (ats, uc, _, px, ao, _)) = (ats, px, ao, uc)
 
 let (|ExceptionDef|)
-    (SynExceptionDefn.SynExceptionDefn (SynExceptionDefnRepr.SynExceptionDefnRepr (ats, uc, _, px, ao, _), ms, _))
+    (SynExceptionDefn.SynExceptionDefn (SynExceptionDefnRepr.SynExceptionDefnRepr (ats, uc, _, px, ao, _),
+                                        withKeyword,
+                                        ms,
+                                        _))
     =
-    (ats, px, ao, uc, ms)
+    (ats, px, ao, uc, withKeyword, ms)
 
 let (|SigExceptionDef|)
-    (SynExceptionSig.SynExceptionSig (SynExceptionDefnRepr.SynExceptionDefnRepr (ats, uc, _, px, ao, _), ms, _))
+    (SynExceptionSig.SynExceptionSig (SynExceptionDefnRepr.SynExceptionDefnRepr (ats, uc, _, px, ao, _),
+                                      withKeyword,
+                                      ms,
+                                      _))
     =
-    (ats, px, ao, uc, ms)
+    (ats, px, ao, uc, withKeyword, ms)
 
-let (|UnionCase|) (SynUnionCase (ats, Ident s, uct, px, ao, _)) = (ats, px, ao, s, uct)
+let (|UnionCase|) (SynUnionCase (ats, Ident s, uct, px, ao, _, trivia)) = (ats, px, ao, s, uct)
 
 let (|UnionCaseType|) =
     function
     | SynUnionCaseKind.Fields fs -> fs
     | SynUnionCaseKind.FullType _ -> failwith "UnionCaseFullType should be used internally only."
 
-let (|Field|) (SynField (ats, isStatic, ido, t, isMutable, px, ao, _)) =
-    (ats, px, ao, isStatic, isMutable, t, Option.map (|Ident|) ido)
+let (|Field|) (SynField (ats, isStatic, ido, t, isMutable, px, ao, range)) =
+    let innerRange =
+        ido
+        |> Option.map (fun i -> Range.unionRanges i.idRange t.Range)
 
-let (|EnumCase|) (SynEnumCase (ats, Ident s, c, cr, px, r)) = (ats, px, s, c, cr, r)
+    (ats, px, ao, isStatic, isMutable, t, Option.map (|Ident|) ido, innerRange, range)
+
+let (|EnumCase|) (SynEnumCase (ats, Ident s, c, cr, px, r, trivia)) =
+    (ats, trivia.BarRange, px, s, trivia.EqualsRange, c, cr, r)
 
 // Member definitions (11 cases)
 
@@ -445,7 +459,7 @@ let (|MDValField|_|) =
 
 let (|MDImplicitCtor|_|) =
     function
-    | SynMemberDefn.ImplicitCtor (ao, ats, ps, ido, _docs, _) -> Some(ats, ao, ps, Option.map (|Ident|) ido)
+    | SynMemberDefn.ImplicitCtor (ao, ats, ps, ido, docs, _) -> Some(docs, ats, ao, ps, Option.map (|Ident|) ido)
     | _ -> None
 
 let (|MDMember|_|) =
@@ -460,24 +474,37 @@ let (|MDLetBindings|_|) =
 
 let (|MDAbstractSlot|_|) =
     function
-    | SynMemberDefn.AbstractSlot (SynValSig (ats, Ident s, tds, t, vi, _, _, px, ao, _, _), mf, _) ->
+    | SynMemberDefn.AbstractSlot (SynValSig (ats, Ident s, tds, t, vi, _, _, px, ao, _, _, _), mf, _) ->
         Some(ats, px, ao, s, t, vi, tds, mf)
     | _ -> None
 
 let (|MDInterface|_|) =
     function
-    | SynMemberDefn.Interface (t, mdo, range) -> Some(t, mdo, range)
+    | SynMemberDefn.Interface (t, withKeyword, mdo, range) -> Some(t, withKeyword, mdo, range)
     | _ -> None
 
 let (|MDAutoProperty|_|) =
     function
-    | SynMemberDefn.AutoProperty (ats, isStatic, Ident s, typeOpt, mk, memberKindToMemberFlags, px, ao, e, _, _) ->
-        Some(ats, px, ao, mk, e, s, isStatic, typeOpt, memberKindToMemberFlags)
+    | SynMemberDefn.AutoProperty (ats,
+                                  isStatic,
+                                  Ident s,
+                                  typeOpt,
+                                  mk,
+                                  memberKindToMemberFlags,
+                                  px,
+                                  ao,
+                                  equalsRange,
+                                  e,
+                                  withKeyword,
+                                  _,
+                                  _) ->
+        Some(ats, px, ao, mk, equalsRange, e, withKeyword, s, isStatic, typeOpt, memberKindToMemberFlags)
     | _ -> None
 
 // Interface impl
 
-let (|InterfaceImpl|) (SynInterfaceImpl (t, bs, range)) = (t, bs, range)
+let (|InterfaceImpl|) (SynInterfaceImpl (t, withKeywordRange, bs, members, range)) =
+    (t, withKeywordRange, bs, members, range)
 
 // Bindings
 
@@ -503,8 +530,6 @@ let (|MFProperty|_|) (mf: SynMemberFlags) =
     | SynMemberKind.PropertyGetSet as mk -> Some mk
     | _ -> None
 
-let (|MFMemberFlags|) (mf: SynMemberFlags) = mf.MemberKind
-
 /// This pattern finds out which keyword to use
 let (|MFMember|MFStaticMember|MFConstructor|MFOverride|) (mf: SynMemberFlags) =
     match mf.MemberKind with
@@ -523,15 +548,26 @@ let (|MFMember|MFStaticMember|MFConstructor|MFOverride|) (mf: SynMemberFlags) =
 
 let (|DoBinding|LetBinding|MemberBinding|PropertyBinding|ExplicitCtor|) =
     function
-    | SynBinding (ao, _, _, _, ats, px, SynValData (Some MFConstructor, _, ido), pat, _, expr, _, _) ->
-        ExplicitCtor(ats, px, ao, pat, expr, Option.map (|Ident|) ido)
-    | SynBinding (ao, _, isInline, _, ats, px, SynValData (Some (MFProperty _ as mf), synValInfo, _), pat, _, expr, _, _) ->
-        PropertyBinding(ats, px, ao, isInline, mf, pat, expr, synValInfo)
-    | SynBinding (ao, _, isInline, _, ats, px, SynValData (Some mf, synValInfo, _), pat, _, expr, _, _) ->
-        MemberBinding(ats, px, ao, isInline, mf, pat, expr, synValInfo)
-    | SynBinding (_, SynBindingKind.Do, _, _, ats, px, _, _, _, expr, _, _) -> DoBinding(ats, px, expr)
-    | SynBinding (ao, _, isInline, isMutable, attrs, px, SynValData (_, valInfo, _), pat, _, expr, _, _) ->
-        LetBinding(attrs, px, ao, isInline, isMutable, pat, expr, valInfo)
+    | SynBinding (ao, _, _, _, ats, px, SynValData (Some MFConstructor, _, ido), pat, _, expr, _, _, trivia) ->
+        ExplicitCtor(ats, px, ao, pat, trivia.EqualsRange, expr, Option.map (|Ident|) ido)
+    | SynBinding (ao,
+                  _,
+                  isInline,
+                  _,
+                  ats,
+                  px,
+                  SynValData (Some (MFProperty _ as mf), synValInfo, _),
+                  pat,
+                  _,
+                  expr,
+                  _,
+                  _,
+                  trivia) -> PropertyBinding(ats, px, ao, isInline, mf, pat, trivia.EqualsRange, expr, synValInfo)
+    | SynBinding (ao, _, isInline, _, ats, px, SynValData (Some mf, synValInfo, _), pat, _, expr, _, _, trivia) ->
+        MemberBinding(ats, px, ao, isInline, mf, pat, trivia.EqualsRange, expr, synValInfo)
+    | SynBinding (_, SynBindingKind.Do, _, _, ats, px, _, _, _, expr, _, _, trivia) -> DoBinding(ats, px, expr)
+    | SynBinding (ao, _, isInline, isMutable, attrs, px, SynValData (_, valInfo, _), pat, _, expr, _, _, trivia) ->
+        LetBinding(attrs, px, trivia.LetKeyword, ao, isInline, isMutable, pat, trivia.EqualsRange, expr, valInfo)
 
 // Expressions (55 cases, lacking to handle 11 cases)
 
@@ -609,7 +645,7 @@ let (|While|_|) =
 
 let (|For|_|) =
     function
-    | SynExpr.For (_, Ident s, e1, isUp, e2, e3, _) -> Some(s, e1, e2, e3, isUp)
+    | SynExpr.For (_, _, Ident s, equalsRange, e1, isUp, e2, e3, _) -> Some(s, equalsRange, e1, e2, e3, isUp)
     | _ -> None
 
 let (|NullExpr|_|) =
@@ -629,17 +665,17 @@ let (|ConstUnitExpr|_|) =
 
 let (|TypeApp|_|) =
     function
-    | SynExpr.TypeApp (e, lessRange, ts, _, Some greaterRange, _, range) -> Some(e, lessRange, ts, greaterRange)
+    | SynExpr.TypeApp (e, lessRange, ts, _, Some greaterRange, _, _range) -> Some(e, lessRange, ts, greaterRange)
     | _ -> None
 
 let (|Match|_|) =
     function
-    | SynExpr.Match (_, e, cs, _) -> Some(e, cs)
+    | SynExpr.Match (matchKeyword, _, e, withKeyword, cs, _) -> Some(matchKeyword, e, withKeyword, cs)
     | _ -> None
 
 let (|MatchBang|_|) =
     function
-    | SynExpr.MatchBang (_, e, cs, _) -> Some(e, cs)
+    | SynExpr.MatchBang (matchKeyword, _, e, withKeyword, cs, _) -> Some(matchKeyword, e, withKeyword, cs)
     | _ -> None
 
 let (|Sequential|_|) =
@@ -867,20 +903,6 @@ let (|TernaryApp|_|) =
     | SynExpr.App (_, _, SynExpr.App (_, _, SynExpr.App (_, true, Var "?<-", e1, _), e2, _), e3, _) -> Some(e1, e2, e3)
     | _ -> None
 
-// expr1[expr2]
-// ref: https://github.com/fsharp/fslang-design/blob/main/FSharp-6.0/FS-1110-index-syntax.md
-let (|IndexWithoutDotExpr|_|) =
-    function
-    | SynExpr.App (ExprAtomicFlag.Atomic, false, identifierExpr, SynExpr.ArrayOrListComputed (false, indexExpr, _), _) ->
-        Some(identifierExpr, indexExpr)
-    | SynExpr.App (ExprAtomicFlag.NonAtomic,
-                   false,
-                   identifierExpr,
-                   (SynExpr.ArrayOrListComputed (isArray = false; expr = indexExpr) as argExpr),
-                   _) when (RangeHelpers.isAdjacentTo identifierExpr.Range argExpr.Range) ->
-        Some(identifierExpr, indexExpr)
-    | _ -> None
-
 let (|MatchLambda|_|) =
     function
     | SynExpr.MatchLambda (_, keywordRange, pats, _, _) -> Some(keywordRange, pats)
@@ -891,53 +913,72 @@ let (|JoinIn|_|) =
     | SynExpr.JoinIn (e1, _, e2, _) -> Some(e1, e2)
     | _ -> None
 
-let (|LetOrUse|_|) =
-    function
-    | SynExpr.LetOrUse (isRec, isUse, xs, e, _) -> Some(isRec, isUse, xs, e)
-    | _ -> None
-
 /// Unfold a list of let bindings
 /// Recursive and use properties have to be determined at this point
 let rec (|LetOrUses|_|) =
     function
-    | SynExpr.LetOrUse (isRec, isUse, xs, LetOrUses (ys, e), _) ->
+    | SynExpr.LetOrUse (isRec, isUse, xs, (LetOrUses (ys, e) as body), _, trivia) ->
         let prefix =
             if isUse then "use "
             elif isRec then "let rec "
             else "let "
 
         let xs' =
+            let lastIndex = xs.Length - 1
+
             List.mapi
                 (fun i x ->
                     if i = 0 then
-                        (prefix, x)
+                        (prefix,
+                         x,
+                         if i = lastIndex then
+                             trivia.InKeyword
+                         else
+                             None)
                     else
-                        ("and ", x))
+                        ("and ",
+                         x,
+                         if i = lastIndex then
+                             trivia.InKeyword
+                         else
+                             None))
                 xs
 
         Some(xs' @ ys, e)
-    | SynExpr.LetOrUse (isRec, isUse, xs, e, _) ->
+    | SynExpr.LetOrUse (isRec, isUse, xs, e, _, trivia) ->
         let prefix =
             if isUse then "use "
             elif isRec then "let rec "
             else "let "
 
         let xs' =
+            let lastIndex = xs.Length - 1
+
             List.mapi
                 (fun i x ->
                     if i = 0 then
-                        (prefix, x)
+                        (prefix,
+                         x,
+                         if i = lastIndex then
+                             trivia.InKeyword
+                         else
+                             None)
                     else
-                        ("and ", x))
+                        ("and ",
+                         x,
+                         if i = lastIndex then
+                             trivia.InKeyword
+                         else
+                             None))
                 xs
 
         Some(xs', e)
     | _ -> None
 
 type ComputationExpressionStatement =
-    | LetOrUseStatement of prefix: string * binding: SynBinding
-    | LetOrUseBangStatement of isUse: bool * SynPat * SynExpr * range
-    | AndBangStatement of SynPat * SynExpr * range
+    | LetOrUseStatement of prefix: string * binding: SynBinding * inKeyword: range option
+    | LetOrUseBangStatement of isUse: bool * SynPat * equalsRange: range option * SynExpr * range: range
+    | AndBangStatement of SynPat * equalsRange: range * SynExpr * range: range
     | OtherStatement of SynExpr
 
 let rec collectComputationExpressionStatements
@@ -952,12 +993,13 @@ let rec collectComputationExpressionStatements
             [ yield! letBindings
               yield! bodyStatements ]
             |> finalContinuation)
-    | SynExpr.LetOrUseBang (_, isUse, _, pat, expr, andBangs, body, r) ->
-        let letOrUseBang = LetOrUseBangStatement(isUse, pat, expr, r)
+    | SynExpr.LetOrUseBang (_, isUse, _, pat, equalsRange, expr, andBangs, body, r) ->
+        let letOrUseBang = LetOrUseBangStatement(isUse, pat, equalsRange, expr, r)
 
         let andBangs =
             andBangs
-            |> List.map (fun (_, _, _, ap, ae, andRange) -> AndBangStatement(ap, ae, andRange))
+            |> List.map (fun (SynExprAndBang (_, _, _, ap, ae, range, trivia)) ->
+                AndBangStatement(ap, trivia.EqualsRange, ae, range))
 
         collectComputationExpressionStatements body (fun bodyStatements ->
             [ letOrUseBang
@@ -978,15 +1020,15 @@ let rec collectComputationExpressionStatements
 /// Matches if the SynExpr has some or of computation expression member call inside.
 let rec (|CompExprBody|_|) expr =
     match expr with
-    | SynExpr.LetOrUse (_, _, _, CompExprBody _, _)
+    | SynExpr.LetOrUse(body = CompExprBody _)
     | SynExpr.LetOrUseBang _
     | SynExpr.Sequential _ -> Some(collectComputationExpressionStatements expr id)
     | _ -> None
 
 let (|ForEach|_|) =
     function
-    | SynExpr.ForEach (_, SeqExprOnly true, _, pat, e1, SingleExpr (Yield _, e2), _) -> Some(pat, e1, e2, true)
-    | SynExpr.ForEach (_, SeqExprOnly isArrow, _, pat, e1, e2, _) -> Some(pat, e1, e2, isArrow)
+    | SynExpr.ForEach (_, _, SeqExprOnly true, _, pat, e1, SingleExpr (Yield _, e2), _) -> Some(pat, e1, e2, true)
+    | SynExpr.ForEach (_, _, SeqExprOnly isArrow, _, pat, e1, e2, _) -> Some(pat, e1, e2, isArrow)
     | _ -> None
 
 let (|DotIndexedSet|_|) =
@@ -1059,27 +1101,23 @@ let (|IfThenElse|_|) =
 
 let rec (|ElIf|_|) =
     function
-    | SynExpr.IfThenElse (ifKw,
-                          isElif,
-                          e1,
-                          thenKw,
+    | SynExpr.IfThenElse (e1,
                           e2,
-                          elseKw,
                           Some (ElIf ((_, eshIfKw, eshIsElif, eshE1, eshThenKw, eshE2) :: es, elseInfo, _)),
                           _,
                           _,
-                          _,
-                          range) ->
+                          range,
+                          trivia) ->
         Some(
-            ((None, ifKw, isElif, e1, thenKw, e2)
-             :: (elseKw, eshIfKw, eshIsElif, eshE1, eshThenKw, eshE2)
+            ((None, trivia.IfKeyword, trivia.IsElif, e1, trivia.ThenKeyword, e2)
+             :: (trivia.ElseKeyword, eshIfKw, eshIsElif, eshE1, eshThenKw, eshE2)
                 :: es),
             elseInfo,
             range
         )
 
-    | SynExpr.IfThenElse (ifKw, isElif, e1, thenKw, e2, elseKw, e3, _, _, _, range) ->
-        Some([ (None, ifKw, isElif, e1, thenKw, e2) ], (elseKw, e3), range)
+    | SynExpr.IfThenElse (e1, e2, e3, _, _, range, trivia) ->
+        Some([ (None, trivia.IfKeyword, trivia.IsElif, e1, trivia.ThenKeyword, e2) ], (trivia.ElseKeyword, e3), range)
     | _ -> None
 
 let (|Record|_|) =
@@ -1099,7 +1137,8 @@ let (|AnonRecord|_|) =
 
 let (|ObjExpr|_|) =
     function
-    | SynExpr.ObjExpr (t, eio, bd, ims, _, range) -> Some(t, eio, bd, ims, range)
+    | SynExpr.ObjExpr (t, eio, withKeyword, bd, members, ims, _, range) ->
+        Some(t, eio, withKeyword, bd, members, ims, range)
     | _ -> None
 
 let (|LongIdentSet|_|) =
@@ -1109,12 +1148,12 @@ let (|LongIdentSet|_|) =
 
 let (|TryWith|_|) =
     function
-    | SynExpr.TryWith (e, _, cs, mWithToLast, _, _, _) -> Some(e, mWithToLast, cs)
+    | SynExpr.TryWith (e, cs, _, _, _, trivia) -> Some(trivia.TryKeyword, e, trivia.WithKeyword, cs)
     | _ -> None
 
 let (|TryFinally|_|) =
     function
-    | SynExpr.TryFinally (e1, e2, _, _, _) -> Some(e1, e2)
+    | SynExpr.TryFinally (e1, e2, _, _, _, trivia) -> Some(trivia.TryKeyword, e1, trivia.FinallyKeyword, e2)
     | _ -> None
 
 let (|ParsingError|_|) =
@@ -1155,13 +1194,13 @@ let (|PatAttrib|_|) =
 
 let (|PatOr|_|) =
     function
-    | SynPat.Or (p1, p2, _) -> Some(p1, p2)
+    | SynPat.Or (p1, p2, _, trivia) -> Some(p1, trivia.BarRange, p2)
     | _ -> None
 
 let rec (|PatOrs|_|) =
     function
-    | PatOr (PatOrs pats, p2) -> Some [ yield! pats; yield p2 ]
-    | PatOr (p1, p2) -> Some [ p1; p2 ]
+    | PatOr (PatOrs (p1, pats), barRange, p2) -> Some(p1, [ yield! pats; yield (barRange, p2) ])
+    | PatOr (p1, barRange, p2) -> Some(p1, [ barRange, p2 ])
     | _ -> None
 
 let (|PatAnds|_|) =
@@ -1217,14 +1256,22 @@ let (|PatAs|_|) =
 let (|PatLongIdent|_|) =
     function
     | SynPat.LongIdent (LongIdentWithDots.LongIdentWithDots (LongIdentOrKeyword (OpNameFullInPattern (s, _)), _),
+                        propertyKeyword,
                         _,
                         tpso,
                         xs,
                         ao,
                         _) ->
         match xs with
-        | SynArgPats.Pats ps -> Some(ao, s, List.map (fun p -> (None, p)) ps, tpso)
-        | SynArgPats.NamePatPairs (nps, _) -> Some(ao, s, List.map (fun (Ident ident, p) -> (Some ident, p)) nps, tpso)
+        | SynArgPats.Pats ps -> Some(ao, s, propertyKeyword, List.map (fun p -> (None, p)) ps, tpso)
+        | SynArgPats.NamePatPairs (nps, _) ->
+            Some(
+                ao,
+                s,
+                propertyKeyword,
+                List.map (fun (Ident ident, equalsRange, p) -> (Some(ident, equalsRange), p)) nps,
+                tpso
+            )
     | _ -> None
 
 let (|PatParen|_|) =
@@ -1260,6 +1307,7 @@ let (|PatQuoteExpr|_|) =
 let (|PatExplicitCtor|_|) =
     function
     | SynPat.LongIdent (LongIdentWithDots.LongIdentWithDots ([ newIdent ], _),
+                        _propertyKeyword,
                         _,
                         _,
                         SynArgPats.Pats [ PatParen _ as pat ],
@@ -1291,30 +1339,32 @@ let (|RecordField|) =
     function
     | SynField (ats, _, ido, _, _, px, ao, _) -> (ats, px, ao, Option.map (|Ident|) ido)
 
-let (|Clause|) (SynMatchClause (p, eo, arrowRange, e, _, _)) = (p, eo, arrowRange, e)
+let (|Clause|) (SynMatchClause (p, eo, e, _, _, trivia)) = (p, eo, trivia.ArrowRange, e)
 
 /// Process compiler-generated matches in an appropriate way
 let rec private skipGeneratedLambdas expr =
     match expr with
-    | SynExpr.Lambda (_, true, _, _, bodyExpr, _, _) -> skipGeneratedLambdas bodyExpr
+    | SynExpr.Lambda (inLambdaSeq = true; body = bodyExpr) -> skipGeneratedLambdas bodyExpr
     | _ -> expr
 
 and skipGeneratedMatch expr =
     match expr with
-    | SynExpr.Match (_, _, [ SynMatchClause.SynMatchClause (_, _, _, innerExpr, _, _) as clause ], matchRange) when
-        matchRange.Start = clause.Range.Start
-        ->
-        skipGeneratedMatch innerExpr
+    | SynExpr.Match (_matchKeyword,
+                     _,
+                     _,
+                     _,
+                     [ SynMatchClause.SynMatchClause (resultExpr = innerExpr) as clause ],
+                     matchRange) when matchRange.Start = clause.Range.Start -> skipGeneratedMatch innerExpr
     | _ -> expr
 
 let (|Lambda|_|) =
     function
-    | SynExpr.Lambda (_, _, _, arrowRange, _, Some (pats, body), range) ->
+    | SynExpr.Lambda (_, _, _, _, Some (pats, body), range, trivia) ->
         let inline getLambdaBodyExpr expr =
             let skippedLambdas = skipGeneratedLambdas expr
             skipGeneratedMatch skippedLambdas
 
-        Some(pats, arrowRange, getLambdaBodyExpr body, range)
+        Some(pats, trivia.ArrowRange, getLambdaBodyExpr body, range)
     | _ -> None
 
 let (|AppWithLambda|_|) (e: SynExpr) =
@@ -1389,7 +1439,7 @@ type TypeDefnKindSingle =
     | TCUnion
     | TCAbbrev
     | TCOpaque
-    | TCAugmentation
+    | TCAugmentation of withKeyword: range
     | TCIL
 
 let (|TCSimple|TCDelegate|) =
@@ -1402,17 +1452,24 @@ let (|TCSimple|TCDelegate|) =
     | SynTypeDefnKind.Union -> TCSimple TCUnion
     | SynTypeDefnKind.Abbrev -> TCSimple TCAbbrev
     | SynTypeDefnKind.Opaque -> TCSimple TCOpaque
-    | SynTypeDefnKind.Augmentation -> TCSimple TCAugmentation
+    | SynTypeDefnKind.Augmentation withKeyword -> TCSimple(TCAugmentation withKeyword)
     | SynTypeDefnKind.IL -> TCSimple TCIL
     | SynTypeDefnKind.Delegate (t, vi) -> TCDelegate(t, vi)
 
-let (|TypeDef|) (SynTypeDefn (SynComponentInfo (ats, tds, tcs, LongIdent s, px, preferPostfix, ao, _), tdr, ms, _, _)) =
-    (ats, px, ao, tds, tcs, tdr, ms, s, preferPostfix)
+let (|TypeDef|)
+    (SynTypeDefn (SynComponentInfo (ats, tds, tcs, LongIdent s, px, preferPostfix, ao, _), tdr, ms, _, _, trivia))
+    =
+    (ats, px, trivia.TypeKeyword, ao, tds, tcs, trivia.EqualsRange, tdr, trivia.WithKeyword, ms, s, preferPostfix)
 
 let (|SigTypeDef|)
-    (SynTypeDefnSig (SynComponentInfo (ats, tds, tcs, LongIdent s, px, preferPostfix, ao, _), tdr, ms, range))
+    (SynTypeDefnSig (SynComponentInfo (ats, tds, tcs, LongIdent s, px, preferPostfix, ao, _),
+                     equalsRange,
+                     tdr,
+                     withKeyword,
+                     ms,
+                     range))
     =
-    (ats, px, ao, tds, tcs, tdr, ms, s, preferPostfix, range)
+    (ats, px, ao, tds, tcs, equalsRange, tdr, withKeyword, ms, s, preferPostfix, range)
 
 let (|TyparDecl|) (SynTyparDecl (ats, tp)) = (ats, tp)
 
@@ -1575,6 +1632,7 @@ let (|Val|)
                 px,
                 ao,
                 eo,
+                _,
                 range))
     =
     (ats, px, ao, s, ident.idRange, t, vi, isInline, isMutable, typars, eo, range)
@@ -1583,10 +1641,10 @@ let (|Val|)
 
 let (|RecordFieldName|) ((LongIdentWithDots s, _): RecordFieldName, eo: SynExpr option, _) = (s, eo)
 
-let (|AnonRecordFieldName|) (ident: Ident, e: SynExpr) = (ident.idRange, ident.idText, e)
+let (|AnonRecordFieldName|) (ident: Ident, eq: range option, e: SynExpr) = (ident.idText, ident.idRange, eq, e)
 let (|AnonRecordFieldType|) (Ident s: Ident, t: SynType) = (s, t)
 
-let (|PatRecordFieldName|) ((LongIdent s1, Ident s2), p) = (s1, s2, p)
+let (|PatRecordFieldName|) ((LongIdent s1, Ident s2), _, p) = (s1, s2, p)
 
 let (|ValInfo|) (SynValInfo (aiss, ai)) = (aiss, ai)
 
@@ -1609,7 +1667,16 @@ let (|FunType|) (t, ValInfo (argTypes, returnType)) =
 /// Probably we should use lexing information to improve its accuracy
 let (|Extern|_|) =
     function
-    | Let (LetBinding (ats, px, ao, _, _, PatLongIdent (_, s, [ _, PatTuple ps ], _), TypedExpr (Typed, _, t), _)) ->
+    | Let (LetBinding (ats,
+                       px,
+                       _,
+                       ao,
+                       _,
+                       _,
+                       PatLongIdent (_, s, _, [ _, PatTuple ps ], _),
+                       _,
+                       TypedExpr (Typed, _, t),
+                       _)) ->
         let hasDllImportAttr =
             ats
             |> List.exists (fun { Attributes = attrs } ->
@@ -1668,21 +1735,24 @@ let rec (|UppercaseSynType|LowercaseSynType|) (synType: SynType) =
     | SynType.App (st, _, _, _, _, _, _) -> (|UppercaseSynType|LowercaseSynType|) st
     | _ -> failwithf "cannot determine if synType %A is uppercase or lowercase" synType
 
-let (|ElmishReactWithoutChildren|_|) e =
+let (|IndexWithoutDotExpr|ElmishReactWithoutChildren|ElmishReactWithChildren|NonAppExpr|) e =
     match e with
-    | IndexWithoutDotExpr _ -> None
+    | SynExpr.App (ExprAtomicFlag.Atomic, false, identifierExpr, SynExpr.ArrayOrListComputed (false, indexExpr, _), _) ->
+        IndexWithoutDotExpr(identifierExpr, indexExpr)
+    | SynExpr.App (ExprAtomicFlag.NonAtomic,
+                   false,
+                   identifierExpr,
+                   (SynExpr.ArrayOrListComputed (isArray = false; expr = indexExpr) as argExpr),
+                   _) when (RangeHelpers.isAdjacentTo identifierExpr.Range argExpr.Range) ->
+        IndexWithoutDotExpr(identifierExpr, indexExpr)
     | SynExpr.App (_, false, OptVar (ident, _, _), ArrayOrList (sr, isArray, children, er, _), _) ->
-        Some(ident, sr, isArray, children, er)
-    | _ -> None
-
-let (|ElmishReactWithChildren|_|) (e: SynExpr) =
-    match e with
+        ElmishReactWithoutChildren(ident, sr, isArray, children, er)
     | SynExpr.App (_,
                    false,
                    SynExpr.App (_, false, OptVar ident, (ArrayOrList _ as attributes), _),
-                   ArrayOrList (sr, isArray, children, er, _),
-                   _) -> Some(ident, attributes, (isArray, sr, children, er))
-    | _ -> None
+                   ArrayOrList (sr, isArray, children, er, r),
+                   _) -> ElmishReactWithChildren(ident, attributes, (isArray, sr, children, er))
+    | _ -> NonAppExpr
 
 let isIfThenElseWithYieldReturn e =
     match e with
@@ -1739,12 +1809,12 @@ let private shouldNotIndentBranch e es =
     && isLongElseBranch e
 
 let (|KeepIndentMatch|_|) (e: SynExpr) =
-    let mapClauses matchExpr clauses range t =
+    let mapClauses matchKeyword matchExpr withKeyword clauses range t =
         match clauses with
         | [] -> None
         | [ (Clause (_, _, _, lastClause)) ] ->
             if shouldNotIndentBranch lastClause [] then
-                Some(matchExpr, clauses, range, t)
+                Some(matchKeyword, matchExpr, withKeyword, clauses, range, t)
             else
                 None
         | clauses ->
@@ -1756,13 +1826,15 @@ let (|KeepIndentMatch|_|) (e: SynExpr) =
             let (Clause (_, _, _, lastClause)) = List.last clauses
 
             if shouldNotIndentBranch lastClause firstClauses then
-                Some(matchExpr, clauses, range, t)
+                Some(matchKeyword, matchExpr, withKeyword, clauses, range, t)
             else
                 None
 
     match e with
-    | Match (matchExpr, clauses) -> mapClauses matchExpr clauses e.Range SynExpr_Match
-    | MatchBang (matchExpr, clauses) -> mapClauses matchExpr clauses e.Range SynExpr_MatchBang
+    | Match (matchKeyword, matchExpr, withKeyword, clauses) ->
+        mapClauses matchKeyword matchExpr withKeyword clauses e.Range SynExpr_Match
+    | MatchBang (matchKeyword, matchExpr, withKeyword, clauses) ->
+        mapClauses matchKeyword matchExpr withKeyword clauses e.Range SynExpr_MatchBang
     | _ -> None
 
 let (|KeepIndentIfThenElse|_|) (e: SynExpr) =

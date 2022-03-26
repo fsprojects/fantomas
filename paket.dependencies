@@ -3,8 +3,8 @@ source https://api.nuget.org/v3/index.json
 framework: netstandard2.0, net6.0, netcoreapp3.1
 storage: none
 
-nuget FSharp.Core 6.0.1 content: none
-nuget FSharp.Compiler.Service 41.0.1
+nuget FSharp.Core content: none
+nuget FSharp.Compiler.Service == 41.0.3
 nuget FsUnit
 nuget FsCheck
 nuget Microsoft.NET.Test.Sdk
@@ -40,7 +40,7 @@ group tool
     storage: none
     source https://api.nuget.org/v3/index.json
 
-    nuget FSharp.Core 6.0.1 content: none
+    nuget FSharp.Core content: none
     nuget Argu
     nuget StreamJsonRpc
     nuget Thoth.Json.Net

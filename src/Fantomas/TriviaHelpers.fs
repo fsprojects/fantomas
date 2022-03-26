@@ -27,13 +27,6 @@ module internal TriviaHelpers =
         |> Option.map (fun t -> t.ContentBefore |> List.exists contentBefore)
         |> Option.defaultValue false
 
-    let ``has single line comment before`` (triviaNode: TriviaNode) =
-        triviaNode.ContentBefore
-        |> List.exists (fun tn ->
-            match tn with
-            | Comment (LineCommentOnSingleLine _) -> true
-            | _ -> false)
-
     let ``has content after that ends with``
         (findTrivia: TriviaNode -> bool)
         (contentAfterEnd: TriviaContent -> bool)
@@ -46,59 +39,12 @@ module internal TriviaHelpers =
             |> Option.map contentAfterEnd)
         |> Option.defaultValue false
 
-    let ``keyword token inside range`` (range: Range) (trivia: TriviaNode list) : (Token * TriviaNode) list =
-        trivia
-        |> List.choose (fun t ->
-            match t.Type with
-            | TriviaNodeType.Token (_, tok) when (RangeHelpers.``range contains`` range t.Range) -> Some(tok, t)
-            | _ -> None)
-
-    let ``keyword token after start column and on same line`` (range: Range) (trivia: TriviaNode list) =
-        trivia
-        |> List.choose (fun t ->
-            match t.Type with
-            | TriviaNodeType.Token (_, tok) when
-                (range.StartLine = t.Range.StartLine
-                 && range.StartColumn < t.Range.StartColumn)
-                ->
-                Some(tok, t)
-            | _ -> None)
-
-    let ``has line comment after`` triviaNode =
-        triviaNode.ContentAfter
-        |> List.filter (fun tn ->
-            match tn with
-            | Comment (LineCommentAfterSourceCode _) -> true
-            | _ -> false)
-        |> (List.isEmpty >> not)
-
     let ``has content itself that matches`` (predicate: TriviaContent -> bool) range (triviaNodes: TriviaNode list) =
         triviaNodes
         |> List.exists (fun tn ->
             match RangeHelpers.rangeEq tn.Range range, tn.ContentItself with
             | true, Some t -> predicate t
             | _ -> false)
-
-    let ``has content itself that is multiline string`` range (triviaNodes: TriviaNode list) =
-        triviaNodes
-        |> List.choose (fun tn ->
-            match RangeHelpers.rangeEq tn.Range range, tn.ContentItself with
-            | true, Some (StringContent s) when (String.isMultiline s) -> Some s
-            | _ -> None)
-        |> List.isNotEmpty
-
-    let private isLineComment =
-        function
-        | Comment (LineCommentAfterSourceCode _)
-        | Comment (LineCommentOnSingleLine _) -> true
-        | _ -> false
-
-    let ``has line comments inside`` range (triviaNodes: TriviaNode list) =
-        triviaNodes
-        |> List.exists (fun tn ->
-            RangeHelpers.``range contains`` range tn.Range
-            && (List.exists isLineComment tn.ContentBefore
-                || List.exists isLineComment tn.ContentAfter))
 
     let getNodesForTypes types (dict: Map<'t, TriviaNode list>) =
         types
@@ -108,14 +54,3 @@ module internal TriviaHelpers =
             else
                 List.empty)
         |> List.collect id
-
-    let hasMultilineString range (triviaNodes: TriviaNode list) =
-        triviaNodes
-        |> List.exists (fun tn ->
-            let contentItSelfIsMultilineString () =
-                match tn.ContentItself with
-                | Some (StringContent sc) -> String.isMultiline sc
-                | _ -> false
-
-            RangeHelpers.rangeEq tn.Range range
-            && contentItSelfIsMultilineString ())
