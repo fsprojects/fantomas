@@ -3,7 +3,9 @@ namespace Fantomas.Extras
 open System.IO.Abstractions
 open MAB.DotIgnore
 
-type IsPathIgnored = IFileInfo -> bool
+/// The string argument is taken relative to the location
+/// of the ignore-file.
+type IsPathIgnored = string -> bool
 
 type IgnoreFile =
     { Location: IFileInfo
@@ -39,7 +41,7 @@ module IgnoreFile =
 
     let loadIgnoreList (path: string) : IsPathIgnored =
         let list = IgnoreList(path)
-        fun path -> list.IsIgnored(path.FullName, false)
+        fun path -> list.IsIgnored(path, false)
 
     let internal current' (fs: IFileSystem) (currentDirectory: string) (loadIgnoreList: string -> IsPathIgnored) =
         lazy find fs loadIgnoreList (fs.Path.Combine(currentDirectory, "_"))
@@ -62,8 +64,10 @@ module IgnoreFile =
                     if fullPath.StartsWith ignoreFile.Location.Directory.FullName then
                         fullPath.[ignoreFile.Location.Directory.FullName.Length + 1 ..]
                     else
+                        // This scenario is a bit unexpected - it suggests that we are
+                        // trying to ask an ignorefile whether a file that is outside
+                        // its dependency tree is ignored.
                         fullPath
-                    |> fs.FileInfo.FromFileName
 
                 ignoreFile.IsIgnored path
             with
