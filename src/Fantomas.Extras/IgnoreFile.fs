@@ -46,9 +46,7 @@ module IgnoreFile =
     /// When executed from the command line, Fantomas will not dynamically locate
     /// the most appropriate `.fantomasignore` for each input file; it only finds
     /// a single `.fantomasignore` file. This is that file.
-    let current: Lazy<IgnoreFile option> =
-        lazy
-            find System.Environment.CurrentDirectory
+    let current: Lazy<IgnoreFile option> = lazy find System.Environment.CurrentDirectory
 
     let isIgnoredFile (ignoreFile: IgnoreFile option) (file: string) : bool =
         match ignoreFile with
