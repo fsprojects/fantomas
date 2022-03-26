@@ -43,8 +43,9 @@ module IgnoreFile =
         else
             path
 
-    /// When executed from the command line, Fantomas only supports a `.fantomasignore` file in the
-    /// current working directory. This is that `.fantomasignore` file.
+    /// When executed from the command line, Fantomas will not dynamically locate
+    /// the most appropriate `.fantomasignore` for each input file; it only finds
+    /// a single `.fantomasignore` file. This is that file.
     let current: Lazy<IgnoreFile option> =
         lazy
             find System.Environment.CurrentDirectory
