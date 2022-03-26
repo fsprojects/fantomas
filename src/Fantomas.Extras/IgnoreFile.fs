@@ -37,16 +37,11 @@ module IgnoreFile =
 
     let private relativePathPrefix = sprintf ".%c" Path.DirectorySeparatorChar
 
-    let private removeRelativePathPrefix (path: string) =
-        if path.StartsWith(relativePathPrefix) then
-            path.Substring(2)
-        else
-            path
-
     /// When executed from the command line, Fantomas will not dynamically locate
     /// the most appropriate `.fantomasignore` for each input file; it only finds
     /// a single `.fantomasignore` file. This is that file.
-    let current: Lazy<IgnoreFile option> = lazy find System.Environment.CurrentDirectory
+    let current: Lazy<IgnoreFile option> =
+        lazy find (Path.Combine(System.Environment.CurrentDirectory, "_"))
 
     let isIgnoredFile (ignoreFile: IgnoreFile option) (file: string) : bool =
         match ignoreFile with
@@ -55,7 +50,12 @@ module IgnoreFile =
             let fullPath = Path.GetFullPath(file)
 
             try
-                let path = removeRelativePathPrefix fullPath
+                let path =
+                    if fullPath.StartsWith ignoreFile.Location.Directory.FullName then
+                        fullPath.[ignoreFile.Location.Directory.FullName.Length + 1 ..]
+                    else
+                        fullPath
+
                 ignoreFile.IgnoreList.IsIgnored(path, false)
             with
             | ex ->
