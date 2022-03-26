@@ -47,16 +47,7 @@ module IgnoreFile =
     /// current working directory. This is that `.fantomasignore` file.
     let current: Lazy<IgnoreFile option> =
         lazy
-            let path =
-                Path.Combine(System.Environment.CurrentDirectory, IgnoreFileName)
-                |> FileInfo
-
-            if path.Exists then
-                { Location = path
-                  IgnoreList = IgnoreList(path.FullName) }
-                |> Some
-            else
-                None
+            find System.Environment.CurrentDirectory
 
     let isIgnoredFile (ignoreFile: IgnoreFile option) (file: string) : bool =
         match ignoreFile with
