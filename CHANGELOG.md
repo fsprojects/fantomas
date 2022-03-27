@@ -1,5 +1,10 @@
 # Changelog
 
+## [4.7.5] - 2022-03-27
+
+### Fixed
+* Only load the .fantomasignore file once, except for the daemon. [#2097](https://github.com/fsprojects/fantomas/pull/2097)
+
 ## [4.7.4] - 2022-03-25
 
 ### Fixed
