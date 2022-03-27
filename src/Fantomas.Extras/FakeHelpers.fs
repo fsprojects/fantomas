@@ -44,7 +44,7 @@ let private formatContentInternalAsync
     (file: string)
     (originalContent: string)
     : Async<FormatResult> =
-    if IgnoreFile.isIgnoredFile file then
+    if IgnoreFile.isIgnoredFile (IgnoreFile.current.Force()) file then
         async { return IgnoredFile file }
     else
         async {
@@ -99,7 +99,7 @@ let formatContentAsync = formatContentInternalAsync false
 let private formatFileInternalAsync (compareWithoutLineEndings: bool) (file: string) =
     let config = EditorConfig.readConfiguration file
 
-    if IgnoreFile.isIgnoredFile file then
+    if IgnoreFile.isIgnoredFile (IgnoreFile.current.Force()) file then
         async { return IgnoredFile file }
     else
         let originalContent = File.ReadAllText file
@@ -167,7 +167,10 @@ let checkCode (filenames: seq<string>) =
     async {
         let! formatted =
             filenames
-            |> Seq.filter (IgnoreFile.isIgnoredFile >> not)
+            |> Seq.filter (
+                IgnoreFile.isIgnoredFile (IgnoreFile.current.Force())
+                >> not
+            )
             |> Seq.map (formatFileInternalAsync true)
             |> Async.Parallel
 

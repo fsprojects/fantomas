@@ -1264,6 +1264,9 @@ Exclusion applies both to formatting and the format checking.
 *.fsx
 ```
 
+Note that Fantomas only searches for a `.fantomasignore` file in or above its current working directory, if one exists; unlike Git, it does not traverse the filesystem for each input file to find an appropriate ignore file.
+(This is not true of the Fantomas daemon. The daemon can't rely on being invoked from the right place, and indeed there may not even be a well-defined notion of "right place" for the formatting tasks the daemon is required to perform, so it does search the filesystem for every file individually.)
+
 ## Using the API
 
 See [CodeFormatter.fsi](../src/Fantomas/CodeFormatter.fsi) to view the public API of Fantomas.

@@ -90,7 +90,7 @@ let rec allFiles isRec path =
     |> Seq.filter (fun f ->
         isFSharpFile f
         && not (isInExcludedDir f)
-        && not (IgnoreFile.isIgnoredFile f))
+        && not (IgnoreFile.isIgnoredFile (IgnoreFile.current.Force()) f))
 
 /// Fantomas assumes the input files are UTF-8
 /// As is stated in F# language spec: https://fsharp.org/specs/language-spec/4.1/FSharpSpec-4.1-latest.pdf#page=25
@@ -209,7 +209,7 @@ let runCheckCommand (recurse: bool) (inputPath: InputPath) : int =
     | InputPath.StdIn _ ->
         eprintfn "No input path provided. Nothing to do."
         0
-    | InputPath.File f when (IgnoreFile.isIgnoredFile f) ->
+    | InputPath.File f when (IgnoreFile.isIgnoredFile (IgnoreFile.current.Force()) f) ->
         printfn "'%s' was ignored" f
         0
     | InputPath.File path ->
@@ -418,7 +418,7 @@ let main argv =
     let filesAndFolders (files: string list) (folders: string list) : unit =
         files
         |> List.iter (fun file ->
-            if (IgnoreFile.isIgnoredFile file) then
+            if (IgnoreFile.isIgnoredFile (IgnoreFile.current.Force()) file) then
                 printfn "'%s' was ignored" file
             else
                 processFile file file)
@@ -448,7 +448,8 @@ let main argv =
             | InputPath.Unspecified, _ ->
                 eprintfn "Input path is missing..."
                 exit 1
-            | InputPath.File f, _ when (IgnoreFile.isIgnoredFile f) -> printfn "'%s' was ignored" f
+            | InputPath.File f, _ when (IgnoreFile.isIgnoredFile (IgnoreFile.current.Force()) f) ->
+                printfn "'%s' was ignored" f
             | InputPath.Folder p1, OutputPath.NotKnown -> processFolder p1 p1
             | InputPath.File p1, OutputPath.NotKnown -> processFile p1 p1
             | InputPath.File p1, OutputPath.IO p2 -> processFile p1 p2

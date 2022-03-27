@@ -3,6 +3,7 @@
 open System
 open System.Diagnostics
 open System.IO
+open System.IO.Abstractions
 open System.Threading
 open System.Threading.Tasks
 open FSharp.Compiler.Text.Range
@@ -15,6 +16,7 @@ open Fantomas
 open Fantomas.SourceOrigin
 open Fantomas.FormatConfig
 open Fantomas.Extras.EditorConfig
+open Fantomas.Extras
 
 type FantomasDaemon(sender: Stream, reader: Stream) as this =
     let rpc: JsonRpc = JsonRpc.Attach(sender, reader, this)
@@ -30,6 +32,8 @@ type FantomasDaemon(sender: Stream, reader: Stream) as this =
 
     let exit () = disconnectEvent.Set() |> ignore
 
+    let fs = FileSystem()
+
     do rpc.Disconnected.Add(fun _ -> exit ())
 
     interface IDisposable with
@@ -44,7 +48,7 @@ type FantomasDaemon(sender: Stream, reader: Stream) as this =
     [<JsonRpcMethod(Methods.FormatDocument, UseSingleObjectParameterDeserialization = true)>]
     member _.FormatDocumentAsync(request: FormatDocumentRequest) : Task<FormatDocumentResponse> =
         async {
-            if Fantomas.Extras.IgnoreFile.isIgnoredFile request.FilePath then
+            if IgnoreFile.isIgnoredFile (IgnoreFile.find fs IgnoreFile.loadIgnoreList request.FilePath) request.FilePath then
                 return FormatDocumentResponse.IgnoredFile request.FilePath
             else
                 let config =
