@@ -12,78 +12,12 @@
 <body>
 <div class="jumbotron jumbotron-fluid mb-4">
     <div class="container">
-        <h1 class="display-4">Fantomas Benchmark results</h1>
-        <p class="lead">A benchmark of CodePrinter.fs file</p>
+        <h1 class="display-4">Fantomas Benchmark results are unavailable</h1>
     </div>
 </div>
 <div class="container mt-4">
     <div id="mean"></div>
     <div id="allocations"></div>
 </div>
-<script>
-    const sas = "sv=2019-10-10&ss=t&srt=sco&sp=r&se=2023-01-06T01:12:09Z&st=2020-06-12T16:12:09Z&spr=https&sig=HM4IEoODtjMScM9xKi7z0Jnob98uVCBa5MgYd4AE1aU%3D";
-    const apiUrl = `https://storfantomasmain.table.core.windows.net/FantomasBenchmarks()?$select=Mean,Operating_System,Allocated,Timestamp,StdDev,Commit&${sas}`;
-
-    const sortByTimestamp = (a, b) => {
-        const aDate = new Date(a.Timestamp);
-        const bDate = new Date(b.Timestamp);
-        return bDate - aDate;
-    }
-
-    function createCharts(values) {
-        const sortedValues = values.sort(sortByTimestamp);
-        const createTrace = (operationSystem, property) => {
-            const values = sortedValues.filter(v => v.Operating_System === operationSystem);
-            const x = values.map(v => v.Timestamp);
-            const y = values.map(v => parseFloat(v[property]));
-            return {
-                x,
-                y,
-                "type": "scatter",
-                name: operationSystem
-            }
-        };
-        const createLayout = (title) => {
-            return {
-                title,
-                xaxis: {
-                    title: "Commit date on master"
-                },
-                yaxis: {
-                    title
-                },
-                showLegend: true,
-                legend: {"orientation": "h"}
-            };
-        }
-
-        const createPlot = (property, title, nodeSelector) => {
-            const windows = createTrace("Windows", property);
-            const linux = createTrace("Linux", property);
-            const macOs = createTrace("macOS", property);
-            const node = document.querySelector(nodeSelector);
-            const layout = createLayout(title);
-            Plotly.newPlot(node, [windows, linux, macOs], layout);
-        }
-
-        createPlot("Mean", "Mean time in seconds", "#mean");
-        createPlot("Allocated", "Allocated in GB", "#allocations");
-    }
-
-    window.addEventListener("load", () => {
-        fetch(apiUrl, {
-            method: 'GET',
-            mode: 'cors',
-            headers: {
-                Accept: "application/json;odata=nometadata",
-                "Content-Type": "application/json"
-            }
-        })
-            .then(result => result.json())
-            .then(data => {
-                createCharts(data.value)
-            });
-    })
-</script>
 </body>
 </html>

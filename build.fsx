@@ -294,52 +294,8 @@ Target.create "Benchmark" (fun _ ->
         ""
     |> ignore
 
-    match Environment.environVarOrNone "TABLE_STORAGE_CONNECTION_STRING" with
-    | Some conn ->
-        let branchName = git "rev-parse --abbrev-ref HEAD"
-        let commit = git "rev-parse HEAD"
-        let operatingSystem = Environment.environVar "RUNNER_OS"
-
-        let results =
-            File.ReadLines("./BenchmarkDotNet.Artifacts/results/Fantomas.Benchmarks.Runners.CodePrinterTest-report.csv")
-            |> Seq.map (fun line -> line.Split(',') |> Array.toList)
-            |> Seq.toList
-            |> fun lineGroups ->
-                match lineGroups with
-                | [ header; values ] ->
-                    let csvValues = List.zip header values
-
-                    let metaData =
-                        [ "Branch", branchName
-                          "Commit", commit
-                          "Operating System", operatingSystem ]
-
-                    [ yield! csvValues; yield! metaData ]
-                | _ -> []
-
-        let storageAccount = CloudStorageAccount.Parse(conn)
-        let tableClient = storageAccount.CreateCloudTableClient()
-
-        let table = tableClient.GetTableReference("FantomasBenchmarks")
-
-        let entry = DynamicTableEntity()
-        entry.PartitionKey <- "GithubActions"
-
-        entry.RowKey <-
-            (sprintf "%s|%s|%s" branchName commit operatingSystem)
-                .ToLower()
-
-        results
-        |> List.iter (fun (k, v) ->
-            let key = k.Replace(' ', '_')
-
-            if not (isNull v) then
-                entry.Properties.Add(key, EntityProperty.CreateEntityPropertyFromObject(v)))
-
-        let tableOperation = TableOperation.InsertOrReplace(entry)
-
-        table.Execute(tableOperation) |> printfn "%O"
-    | None -> printfn "Not saving benchmark results to the cloud")
+// TODO: the Azure storage account was removed, migrate this to a new solution.
+)
 
 Target.create "Format" (fun _ ->
     let result =
