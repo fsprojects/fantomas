@@ -533,11 +533,11 @@ and genTyparList astContext tps =
         (sepOpenT
          +> col wordOr tps (genTypar astContext)
          +> sepCloseT)
-        
+
 and genTypeSupportMember astContext st =
     match st with
     | SynType.Var (td, _) -> genTypar astContext td
-    | TLongIdent s -> !- s
+    | TLongIdent s -> !-s
     | _ -> !- ""
 
 and genTypeSupportMemberList astContext tps =
