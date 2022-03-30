@@ -533,6 +533,20 @@ and genTyparList astContext tps =
         (sepOpenT
          +> col wordOr tps (genTypar astContext)
          +> sepCloseT)
+        
+and genTypeSupportMember astContext st =
+    match st with
+    | SynType.Var (td, _) -> genTypar astContext td
+    | TLongIdent s -> !- s
+    | _ -> !- ""
+
+and genTypeSupportMemberList astContext tps =
+    ifElse
+        (List.atMostOne tps)
+        (col wordOr tps (genTypeSupportMember astContext))
+        (sepOpenT
+         +> col wordOr tps (genTypeSupportMember astContext)
+         +> sepCloseT)
 
 and genTypeAndParam astContext typeName (tds: SynTyparDecls option) tcs =
     let types openSep tds tcs closeSep =
@@ -4533,7 +4547,7 @@ and genTypeConstraint astContext node =
         genTypar astContext tp -- " :> "
         +> genType astContext false t
     | TyparSupportsMember (tps, msg) ->
-        genTyparList astContext tps
+        genTypeSupportMemberList astContext tps
         +> sepColon
         +> sepOpenT
         +> genMemberSig astContext msg
