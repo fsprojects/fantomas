@@ -604,8 +604,14 @@ let internal colSurr fStart fEnd f1 (c: list<'T>) f (ctx: Context) =
     if Seq.isEmpty c then
         ctx
     else
-        (col f1 c f |> fun g -> if (List.moreThanOne c) then fStart +> g +> fEnd else g) ctx
-        
+        (col f1 c f
+         |> fun g ->
+             if (List.moreThanOne c) then
+                 fStart +> g +> fEnd
+             else
+                 g)
+            ctx
+
 
 
 /// If there is a value, apply f and f' accordingly, otherwise do nothing
