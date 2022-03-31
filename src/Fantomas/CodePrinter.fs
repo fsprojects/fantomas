@@ -527,12 +527,7 @@ and genExprSepEqPrependType
         +> sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e)
 
 and genTyparList astContext tps =
-    ifElse
-        (List.atMostOne tps)
-        (col wordOr tps (genTypar astContext))
-        (sepOpenT
-         +> col wordOr tps (genTypar astContext)
-         +> sepCloseT)
+    colSurr sepOpenT sepCloseT wordOr tps (genTypar astContext)
 
 and genTypeSupportMember astContext st =
     match st with
@@ -541,12 +536,7 @@ and genTypeSupportMember astContext st =
     | _ -> !- ""
 
 and genTypeSupportMemberList astContext tps =
-    ifElse
-        (List.atMostOne tps)
-        (col wordOr tps (genTypeSupportMember astContext))
-        (sepOpenT
-         +> col wordOr tps (genTypeSupportMember astContext)
-         +> sepCloseT)
+    colSurr sepOpenT sepCloseT wordOr tps (genTypeSupportMember astContext)
 
 and genTypeAndParam astContext typeName (tds: SynTyparDecls option) tcs =
     let types openSep tds tcs closeSep =
