@@ -107,7 +107,7 @@ These can be stored in an [.editorconfig](https://editorconfig.org/) file and wi
 
 A default .editorconfig file would look like
 ```ini
-[*.fs]
+[*.{fs,fsx}]
 indent_size=4
 max_line_length=120
 end_of_line=crlf
