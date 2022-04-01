@@ -599,6 +599,19 @@ let internal colPreEx f2 f1 (c: seq<'T>) f (ctx: Context) =
     else
         colEx f1 c f (f2 ctx)
 
+/// Similar to col, but apply two more functions fStart, fEnd at the beginning and the end if the input sequence is bigger thn one item
+let internal colSurr fStart fEnd f1 (c: list<'T>) f (ctx: Context) =
+    if Seq.isEmpty c then
+        ctx
+    else
+        (col f1 c f
+         |> fun g ->
+             if (List.moreThanOne c) then
+                 fStart +> g +> fEnd
+             else
+                 g)
+            ctx
+
 /// If there is a value, apply f and f' accordingly, otherwise do nothing
 let internal opt (f': Context -> _) o f (ctx: Context) =
     match o with
