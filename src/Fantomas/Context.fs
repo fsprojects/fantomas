@@ -612,8 +612,6 @@ let internal colSurr fStart fEnd f1 (c: list<'T>) f (ctx: Context) =
                  g)
             ctx
 
-
-
 /// If there is a value, apply f and f' accordingly, otherwise do nothing
 let internal opt (f': Context -> _) o f (ctx: Context) =
     match o with
