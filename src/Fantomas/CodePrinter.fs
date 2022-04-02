@@ -4835,7 +4835,12 @@ and genMemberDefn astContext node =
         +> ifElse hasGenerics sepColonWithSpacesFixed sepColon
         +> autoIndentAndNlnIfExpressionExceedsPageWidth (genTypeList astContext namedArgs)
         -- genPropertyKind (not isFunctionProperty) mf.MemberKind
-        +> autoIndentAndNlnIfExpressionExceedsPageWidth (genConstraints astContext t vi)
+        +> onlyIf
+            (match t with
+             | TWithGlobalConstraints _ -> true
+             | _ -> false)
+            autoIndentAndNlnIfExpressionExceedsPageWidth
+            (genConstraints astContext t vi)
 
     | md -> failwithf "Unexpected member definition: %O" md
     |> genTriviaFor (synMemberDefnToFsAstType node) node.Range
