@@ -1,6 +1,5 @@
 module Fantomas.Tests.OpenTypeTests
 
-open Fantomas
 open NUnit.Framework
 open FsUnit
 open Fantomas.Tests.TestHelper
