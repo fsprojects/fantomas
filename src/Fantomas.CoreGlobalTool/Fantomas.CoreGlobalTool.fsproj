@@ -15,7 +15,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Fantomas.Client\Fantomas.Client.fsproj" />
     <ProjectReference Include="..\Fantomas.Extras\Fantomas.Extras.fsproj" />
-    <ProjectReference Include="..\Fantomas\Fantomas.fsproj" />
+    <ProjectReference Include="..\Fantomas\Fantomas.Core.fsproj" />
   </ItemGroup>
   <ItemGroup>
     <None Include="paket.references" />

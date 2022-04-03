@@ -1,4 +1,4 @@
-module Fantomas.TriviaTypes
+module Fantomas.Core.TriviaTypes
 
 open FSharp.Compiler.Text
 open FSharp.Compiler.Tokenization

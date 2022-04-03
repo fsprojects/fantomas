@@ -3,7 +3,7 @@
 open NUnit.Framework
 open FsUnit
 open Fantomas.Tests.TestHelper
-open Fantomas.FormatConfig
+open Fantomas.Core.FormatConfig
 
 let config = { config with KeepIndentInBranch = true }
 

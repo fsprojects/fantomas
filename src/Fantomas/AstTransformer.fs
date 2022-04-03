@@ -1,10 +1,10 @@
-module Fantomas.AstTransformer
+module Fantomas.Core.AstTransformer
 
 open FSharp.Compiler.Text
 open FSharp.Compiler.Syntax
-open Fantomas.TriviaTypes
-open Fantomas.RangePatterns
-open Fantomas
+open Fantomas.Core.TriviaTypes
+open Fantomas.Core.RangePatterns
+open Fantomas.Core
 
 type Id = { Ident: string; Range: Range }
 

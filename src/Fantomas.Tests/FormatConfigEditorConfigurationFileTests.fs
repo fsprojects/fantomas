@@ -1,8 +1,8 @@
 module Fantomas.Tests.FormatConfigEditorConfigurationFileTests
 
 open System
-open Fantomas
-open Fantomas.FormatConfig
+open Fantomas.Core
+open Fantomas.Core.FormatConfig
 open Fantomas.Extras
 open Fantomas.Tests.TestHelper
 open NUnit.Framework

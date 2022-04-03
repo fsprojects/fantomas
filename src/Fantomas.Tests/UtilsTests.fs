@@ -2,7 +2,7 @@ module Fantomas.Tests.UtilsTests
 
 open System
 open NUnit.Framework
-open Fantomas
+open Fantomas.Core
 open Fantomas.Tests.TestHelper
 open FsCheck
 

@@ -1,10 +1,10 @@
 module Fantomas.Tests.TokenParserTests
 
-open Fantomas
+open Fantomas.Core
 open NUnit.Framework
 open FsUnit
-open Fantomas.TokenParser
-open Fantomas.TriviaTypes
+open Fantomas.Core.TokenParser
+open Fantomas.Core.TriviaTypes
 open Fantomas.Tests.TestHelper
 
 let private isNewline item =

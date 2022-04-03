@@ -2,7 +2,7 @@ module Fantomas.Extras.EditorConfig
 
 open System.Collections.Generic
 open System.ComponentModel
-open Fantomas.FormatConfig
+open Fantomas.Core.FormatConfig
 
 module Reflection =
     open System

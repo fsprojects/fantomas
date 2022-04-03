@@ -3,7 +3,7 @@ module Fantomas.Benchmarks.Runners
 open System.IO
 open BenchmarkDotNet.Attributes
 open FSharp.Compiler.CodeAnalysis
-open Fantomas
+open Fantomas.Core
 open Fantomas.Extras
 
 let sharedChecker = lazy (FSharpChecker.Create())

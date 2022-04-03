@@ -1,4 +1,4 @@
-namespace Fantomas
+namespace Fantomas.Core
 
 open FSharp.Compiler.Text
 

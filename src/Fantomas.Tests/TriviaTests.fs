@@ -1,9 +1,9 @@
 module Fantomas.Tests.TriviaTests
 
 open NUnit.Framework
-open Fantomas
+open Fantomas.Core
 open Fantomas.Tests.TestHelper
-open Fantomas.TriviaTypes
+open Fantomas.Core.TriviaTypes
 
 let private collectTrivia =
     Trivia.collectTrivia (fun (sl, sc) (el, ec) ->

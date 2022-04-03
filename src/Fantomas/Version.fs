@@ -1,4 +1,4 @@
-module internal Fantomas.Version
+module internal Fantomas.Core.Version
 
 open System.Reflection
 

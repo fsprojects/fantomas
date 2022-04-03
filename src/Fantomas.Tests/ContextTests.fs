@@ -2,10 +2,10 @@ module Fantomas.Tests.ContextTests
 
 open NUnit.Framework
 open FsUnit
-open Fantomas.Context
+open Fantomas.Core.Context
 open Fantomas.Tests.TestHelper
-open Fantomas.FormatConfig
-open Fantomas
+open Fantomas.Core.FormatConfig
+open Fantomas.Core
 
 [<Test>]
 let ``sepSpace should not add an additional space if the line ends with a space`` () =

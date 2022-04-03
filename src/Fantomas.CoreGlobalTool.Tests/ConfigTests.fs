@@ -1,6 +1,6 @@
 module Fantomas.CoreGlobalTool.Tests.ConfigTests
 
-open Fantomas
+open Fantomas.Core
 open NUnit.Framework
 open FsUnit
 open Fantomas.CoreGlobalTool.Tests.TestHelpers

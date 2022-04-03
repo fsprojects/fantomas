@@ -1,7 +1,7 @@
-namespace Fantomas
+namespace Fantomas.Core
 
 open FSharp.Compiler.Text
-open Fantomas.TriviaTypes
+open Fantomas.Core.TriviaTypes
 
 [<RequireQualifiedAccess>]
 module internal TriviaHelpers =

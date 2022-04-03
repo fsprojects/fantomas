@@ -1291,7 +1291,7 @@ let Dashboard () =
     ]
 """
         { config with
-            RecordMultilineFormatter = Fantomas.FormatConfig.MultilineFormatterType.NumberOfItems
+            RecordMultilineFormatter = Fantomas.Core.FormatConfig.MultilineFormatterType.NumberOfItems
             MaxArrayOrListWidth = 20
             MaxElmishWidth = 10
             SingleArgumentWebMode = true

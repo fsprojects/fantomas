@@ -6,7 +6,7 @@ open Fantomas.CoreGlobalTool.Daemon
 open NUnit.Framework
 open FsUnit
 open Fantomas.CoreGlobalTool.Tests.TestHelpers
-open Fantomas
+open Fantomas.Core
 open Fantomas.Client.Contracts
 open Nerdbank.Streams
 open StreamJsonRpc

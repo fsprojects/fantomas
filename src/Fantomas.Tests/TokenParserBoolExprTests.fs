@@ -1,10 +1,10 @@
 module Fantomas.Tests.TokenParserBoolExprTests
 
-open Fantomas
+open Fantomas.Core
 open NUnit.Framework
 open FsUnit
-open Fantomas.TokenParser
-open Fantomas.TokenParserBoolExpr
+open Fantomas.Core.TokenParser
+open Fantomas.Core.TokenParserBoolExpr
 open Fantomas.Tests.TestHelper
 open FsCheck
 

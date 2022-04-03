@@ -1,4 +1,4 @@
-namespace Fantomas
+namespace Fantomas.Core
 
 [<Sealed>]
 type CodeFormatter =

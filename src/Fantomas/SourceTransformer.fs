@@ -1,10 +1,10 @@
-module internal Fantomas.SourceTransformer
+module internal Fantomas.Core.SourceTransformer
 
 open FSharp.Compiler.Syntax
 open FSharp.Compiler.Text
-open Fantomas.Context
-open Fantomas.SourceParser
-open Fantomas.TriviaTypes
+open Fantomas.Core.Context
+open Fantomas.Core.SourceParser
+open Fantomas.Core.TriviaTypes
 
 [<RequireQualifiedAccess>]
 module List =

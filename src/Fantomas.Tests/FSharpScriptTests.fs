@@ -3,7 +3,7 @@ module Fantomas.Tests.FSharpScriptTests
 open System.IO
 open NUnit.Framework
 open FsUnit
-open Fantomas
+open Fantomas.Core
 open Fantomas.Extras
 open Fantomas.Tests.TestHelper
 open Fantomas.Tests.FormatConfigEditorConfigurationFileTests

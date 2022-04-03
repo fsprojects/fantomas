@@ -1,13 +1,13 @@
-module internal Fantomas.SourceParser
+module internal Fantomas.Core.SourceParser
 
 open System
 open FSharp.Compiler.Syntax
 open FSharp.Compiler.Syntax.PrettyNaming
 open FSharp.Compiler.Text
 open FSharp.Compiler.Xml
-open Fantomas
-open Fantomas.TriviaTypes
-open Fantomas.RangePatterns
+open Fantomas.Core
+open Fantomas.Core.TriviaTypes
+open Fantomas.Core.RangePatterns
 
 /// Don't put space before and after these operators
 let internal noSpaceInfixOps = set [ "?" ]

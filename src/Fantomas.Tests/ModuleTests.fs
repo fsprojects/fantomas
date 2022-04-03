@@ -1,6 +1,6 @@
 module Fantomas.Tests.ModuleTests
 
-open Fantomas
+open Fantomas.Core
 open NUnit.Framework
 open FsUnit
 open Fantomas.Tests.TestHelper

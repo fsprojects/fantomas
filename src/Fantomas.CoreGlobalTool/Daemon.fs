@@ -12,9 +12,9 @@ open StreamJsonRpc
 open Thoth.Json.Net
 open Fantomas.Client.Contracts
 open Fantomas.Client.LSPFantomasServiceTypes
-open Fantomas
-open Fantomas.SourceOrigin
-open Fantomas.FormatConfig
+open Fantomas.Core
+open Fantomas.Core.SourceOrigin
+open Fantomas.Core.FormatConfig
 open Fantomas.Extras.EditorConfig
 open Fantomas.Extras
 

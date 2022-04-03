@@ -1,7 +1,7 @@
-namespace Fantomas
+namespace Fantomas.Core
 
-open Fantomas.FormatConfig
-open Fantomas.SourceOrigin
+open Fantomas.Core.FormatConfig
+open Fantomas.Core.SourceOrigin
 open FSharp.Compiler.Text
 open FSharp.Compiler.CodeAnalysis
 open FSharp.Compiler.Syntax

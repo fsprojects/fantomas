@@ -1,4 +1,4 @@
-module Fantomas.SourceOrigin
+module Fantomas.Core.SourceOrigin
 
 open FSharp.Compiler.Text
 

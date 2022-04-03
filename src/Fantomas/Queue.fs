@@ -1,4 +1,4 @@
-namespace Fantomas
+namespace Fantomas.Core
 
 /// append only collection optimized for quick append of block of data and query operations
 /// data - list of blocks in reverse order

@@ -1,4 +1,4 @@
-module Fantomas.TokenParserBoolExpr
+module Fantomas.Core.TokenParserBoolExpr
 
 #nowarn "40"
 

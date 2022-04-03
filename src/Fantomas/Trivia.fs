@@ -1,12 +1,12 @@
-module internal Fantomas.Trivia
+module internal Fantomas.Core.Trivia
 
 open FSharp.Compiler.Text
 open FSharp.Compiler.Syntax
 open FSharp.Compiler.Tokenization
-open Fantomas
-open Fantomas.SourceParser
-open Fantomas.AstTransformer
-open Fantomas.TriviaTypes
+open Fantomas.Core
+open Fantomas.Core.SourceParser
+open Fantomas.Core.AstTransformer
+open Fantomas.Core.TriviaTypes
 
 let inline isMainNodeFor nodeType (node: TriviaNodeAssigner) = nodeType = node.Type
 

@@ -1,13 +1,13 @@
-module Fantomas.Context
+module Fantomas.Core.Context
 
 open System
 open FSharp.Compiler.Text
 open FSharp.Compiler.Text.Range
 open FSharp.Compiler.Text.Position
 open FSharp.Compiler.Syntax
-open Fantomas
-open Fantomas.FormatConfig
-open Fantomas.TriviaTypes
+open Fantomas.Core
+open Fantomas.Core.FormatConfig
+open Fantomas.Core.TriviaTypes
 
 type WriterEvent =
     | Write of string

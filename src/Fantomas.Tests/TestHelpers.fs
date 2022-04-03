@@ -9,8 +9,8 @@ open FSharp.Compiler.Text
 open FSharp.Compiler.CodeAnalysis
 open FSharp.Compiler.Syntax
 open FSharp.Compiler.Xml
-open Fantomas.FormatConfig
-open Fantomas
+open Fantomas.Core.FormatConfig
+open Fantomas.Core
 open Fantomas.Extras
 
 [<assembly: Parallelizable(ParallelScope.All)>]

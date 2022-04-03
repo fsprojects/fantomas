@@ -1,17 +1,17 @@
-module internal Fantomas.CodePrinter
+module internal Fantomas.Core.CodePrinter
 
 open System
 open System.Text.RegularExpressions
 open FSharp.Compiler.Text
 open FSharp.Compiler.Syntax
 open FSharp.Compiler.Xml
-open Fantomas
-open Fantomas.FormatConfig
-open Fantomas.SourceParser
-open Fantomas.SourceTransformer
-open Fantomas.Context
-open Fantomas.TriviaTypes
-open Fantomas.TriviaContext
+open Fantomas.Core
+open Fantomas.Core.FormatConfig
+open Fantomas.Core.SourceParser
+open Fantomas.Core.SourceTransformer
+open Fantomas.Core.Context
+open Fantomas.Core.TriviaTypes
+open Fantomas.Core.TriviaContext
 
 /// This type consists of contextual information which is important for formatting
 /// Please avoid using this record as it can be the cause of unexpected behavior when used incorrectly

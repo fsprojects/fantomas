@@ -1,8 +1,8 @@
-module internal Fantomas.TriviaContext
+module internal Fantomas.Core.TriviaContext
 
-open Fantomas
-open Fantomas.Context
-open Fantomas.TriviaTypes
+open Fantomas.Core
+open Fantomas.Core.Context
+open Fantomas.Core.TriviaTypes
 
 let getIndentBetweenTicksFromSynPat patRange fallback ctx =
     TriviaHelpers.getNodesForTypes [ SynPat_LongIdent; SynPat_Named ] ctx.TriviaMainNodes

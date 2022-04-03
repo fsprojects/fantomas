@@ -8,7 +8,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".paket", ".paket", "{B570C5
 		paket.dependencies = paket.dependencies
 	EndProjectSection
 EndProject
-Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "Fantomas", "src\Fantomas\Fantomas.fsproj", "{7EA16279-A5F1-4781-A343-4375A04BCE6F}"
+Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "Fantomas.Core", "src\Fantomas\Fantomas.Core.fsproj", "{7EA16279-A5F1-4781-A343-4375A04BCE6F}"
 EndProject
 Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "Fantomas.Tests", "src\Fantomas.Tests\Fantomas.Tests.fsproj", "{DED76E41-B89F-47BA-84C5-3AB0BECFA767}"
 EndProject
@@ -28,7 +28,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{29F22904-C
 		docs\index.html = docs\index.html
 	EndProjectSection
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Fantomas.Client", "src\Fantomas.Client\Fantomas.Client.fsproj", "{AA895F94-CCF2-4FCF-A9BB-E16987B57535}"
+Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "Fantomas.Client", "src\Fantomas.Client\Fantomas.Client.fsproj", "{AA895F94-CCF2-4FCF-A9BB-E16987B57535}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

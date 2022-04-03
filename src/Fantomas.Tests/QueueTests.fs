@@ -1,6 +1,6 @@
 module Fantomas.Tests.QueueTests
 
-open Fantomas
+open Fantomas.Core
 open NUnit.Framework
 open FsUnit
 open FsCheck

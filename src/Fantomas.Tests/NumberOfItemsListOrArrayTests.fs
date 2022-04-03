@@ -3,7 +3,7 @@ module Fantomas.Tests.NumberOfItemsListOrArrayTests
 open NUnit.Framework
 open FsUnit
 open Fantomas.Tests.TestHelper
-open Fantomas.FormatConfig
+open Fantomas.Core.FormatConfig
 
 [<Test>]
 let ``number of items sized lists are formatted properly`` () =

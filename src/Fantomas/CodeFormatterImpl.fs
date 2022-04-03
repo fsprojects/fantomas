@@ -1,5 +1,5 @@
 [<RequireQualifiedAccess>]
-module Fantomas.CodeFormatterImpl
+module Fantomas.Core.CodeFormatterImpl
 
 open System
 open System.Diagnostics
@@ -11,11 +11,11 @@ open FSharp.Compiler.Text
 open FSharp.Compiler.Text.Position
 open FSharp.Compiler.Text.Range
 open FSharp.Compiler.Tokenization
-open Fantomas
-open Fantomas.FormatConfig
-open Fantomas.SourceOrigin
-open Fantomas.SourceParser
-open Fantomas.CodePrinter
+open Fantomas.Core
+open Fantomas.Core.FormatConfig
+open Fantomas.Core.SourceOrigin
+open Fantomas.Core.SourceParser
+open Fantomas.Core.CodePrinter
 
 // Share an F# checker instance across formatting calls
 let sharedChecker = lazy (FSharpChecker.Create())
