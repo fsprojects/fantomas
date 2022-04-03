@@ -2,6 +2,9 @@
 
 ## [5.0.0-alpha-001] - 2022-03-19
 
+### Changed
+* Renamed `fantomas-tool` to `fantomas` and the `Fantomas` namespace to `Fantomas.Core`. [#2174](https://github.com/fsprojects/fantomas/issues/2174)
+
 ### Added
 * Initial settings for strousrup bracket style. [#2161](https://github.com/fsprojects/fantomas/pull/2161)
 
