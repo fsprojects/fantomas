@@ -10,7 +10,7 @@ This was installed by:
 
 > dotnet tool install fake-cli
 
-> dotnet tool install fantomas-tool
+> dotnet tool install fantomas
 
 2. Execute script:
 

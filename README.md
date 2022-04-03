@@ -10,7 +10,7 @@ F# source code formatter, inspired by [scalariform](https://github.com/mdr/scala
 
 ## Quick install
 
-* Command line: `dotnet tool install -g fantomas-tool`
+* Command line: `dotnet tool install -g fantomas`
 * JetBrains Rider: preinstalled
 * VSCode: part of [Ionide](http://ionide.io/) and [fantomas-fmt](https://marketplace.visualstudio.com/items?itemName=paolodellepiane.fantomas-fmt).
 * [Visual Studio 2019](https://marketplace.visualstudio.com/items?itemName=asti.fantomas-vs)
@@ -22,7 +22,7 @@ F# source code formatter, inspired by [scalariform](https://github.com/mdr/scala
 Use this command to install Fantomas as a .NET 5 SDK global tool:
 
 ```
-dotnet tool install -g fantomas-tool
+dotnet tool install -g fantomas
 ```
 
 For detailed guidelines, please read [Fantomas: How to use](docs/Documentation.md#using-the-command-line-tool).
@@ -38,7 +38,7 @@ The [resharper-fsharp](https://github.com/JetBrains/resharper-fsharp) uses fanto
 #### Using the latest version inside Rider
 
 For technical reasons Rider cannot always use the latest version of Fantomas found on NuGet.
-As a workaround you could install [fantomas-tool](https://www.nuget.org/packages/fantomas-tool) locally with `dotnet tool install fantomas-tool` and configure it as an [External tool](https://www.jetbrains.com/help/rider/Settings_Tools_External_Tools.html).
+As a workaround you could install [fantomas](https://www.nuget.org/packages/fantomas) locally with `dotnet tool install fantomas` and configure it as an [External tool](https://www.jetbrains.com/help/rider/Settings_Tools_External_Tools.html).
 
 ![Rider external tool window](./docs/rider-external-tool.png)
 
@@ -62,7 +62,7 @@ The F# Formatting extension sets up Fantomas as the default formatter for F# fil
 
 ### Visual Studio for Mac
 
-Install [fantomas-tool](https://www.nuget.org/packages/fantomas-tool) locally with `dotnet tool install fantomas-tool` and configure it as an [External tool]
+Install [fantomas](https://www.nuget.org/packages/fantomas) locally with `dotnet tool install fantomas` and configure it as an [External tool]
 
 ![VS Mac external tool window](./docs/vsmac-external-tool.png)
 ### Online

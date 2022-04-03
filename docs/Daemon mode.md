@@ -10,13 +10,13 @@ Each version of Fantomas theoretically can have a different outcome as the style
 
 ## Solution
 
-To tackle this problem, we introduce two new concepts: `--daemon` mode for the [fantomas-tool](https://www.nuget.org/packages/fantomas-tool) and [Fantomas.Client](https://www.nuget.org/packages/Fantomas.Client).
+To tackle this problem, we introduce two new concepts: `--daemon` mode for the [fantomas tool](https://www.nuget.org/packages/fantomas) and [Fantomas.Client](https://www.nuget.org/packages/Fantomas.Client).
 `--daemon` would launch the commandline application as a sort of [LSP server](https://microsoft.github.io/language-server-protocol/) and `Fantomas.Client` could connect to this and proxy format requests.
-Editor tooling would be able to launch your pinned version of `fantomas-tool` as a daemon service and interact with it outside-of-process.
+Editor tooling would be able to launch your pinned version of `fantomas` as a daemon service and interact with it outside-of-process.
 
 ## End-user impact
 
-End-users don't have to worry about `Fantomas.Client` or the `--daemon` flag. They only need to install a compatible version of `fantomas-tool`.
+End-users don't have to worry about `Fantomas.Client` or the `--daemon` flag. They only need to install a compatible version of `fantomas`.
 Be it locally or globally. The first compatible version is `4.6.0-alpha-004`, all higher version should work as well.
 Local versions have precedence over the global version.
 
