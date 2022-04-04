@@ -1,6 +1,6 @@
 # Changelog
 
-## [Unreleased]
+## [4.7.6] - 2022-04-04
 
 ### Fixed
 * SRTP or condition disappear when non-generic type is used. [#2168](https://github.com/fsprojects/fantomas/issues/2168)
