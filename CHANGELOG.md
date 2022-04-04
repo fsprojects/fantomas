@@ -1,9 +1,11 @@
 # Changelog
 
-## [5.0.0-alpha-001] - 2022-03-19
+## [Unreleased]
 
 ### Changed
 * Target net6.0 for fantomas-tool.
+
+## [5.0.0-alpha-001] - 2022-03-19
 
 ### Added
 * Initial settings for strousrup bracket style. [#2161](https://github.com/fsprojects/fantomas/pull/2161)
