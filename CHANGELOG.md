@@ -5,19 +5,21 @@
 ### Fixed
 * Multiline parentheses objectExpression in indexer expression. [#2176](https://github.com/fsprojects/fantomas/issues/2176)
 
-## [4.7.6] - 2022-04-04
+## [5.0.0-alpha-002] - 2022-04-04
 
 ### Changed
 * Target net6.0 for fantomas-tool.
-
-### Fixed
-* SRTP or condition disappear when non-generic type is used. [#2168](https://github.com/fsprojects/fantomas/issues/2168)
-* Multiline AbstractSlot without constraints introduces newline [#2175](https://github.com/fsprojects/fantomas/issues/2175)
 
 ## [5.0.0-alpha-001] - 2022-03-19
 
 ### Added
 * Initial settings for strousrup bracket style. [#2161](https://github.com/fsprojects/fantomas/pull/2161)
+
+## [4.7.6] - 2022-04-04
+
+### Fixed
+* SRTP or condition disappear when non-generic type is used. [#2168](https://github.com/fsprojects/fantomas/issues/2168)
+* Multiline AbstractSlot without constraints introduces newline [#2175](https://github.com/fsprojects/fantomas/issues/2175)
 
 ## [4.7.5] - 2022-03-27
 
