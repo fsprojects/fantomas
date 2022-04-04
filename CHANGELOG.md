@@ -2,10 +2,10 @@
 
 ## [Unreleased]
 
-## Changed
+### Changed
 * Target net6.0 for fantomas-tool.
 
-## Fixed
+### Fixed
 * SRTP or condition disappear when non-generic type is used. [#2168](https://github.com/fsprojects/fantomas/issues/2168)
 * Multiline AbstractSlot without constraints introduces newline [#2175](https://github.com/fsprojects/fantomas/issues/2175)
 
