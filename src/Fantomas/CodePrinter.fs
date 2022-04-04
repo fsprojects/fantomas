@@ -2453,7 +2453,12 @@ and genExpr astContext synExpr ctx =
 
             expressionFitsOnRestOfLine (short +> idx) (long +> idx)
         | DotIndexedGet (objectExpr, indexArgs) ->
-            addParenIfAutoNln objectExpr (genExpr astContext)
+            let isParen =
+                match objectExpr with
+                | Paren _ -> true
+                | _ -> false
+
+            ifElse isParen (genExpr astContext objectExpr) (addParenIfAutoNln objectExpr (genExpr astContext))
             -- "."
             +> sepOpenLFixed
             +> genExpr astContext indexArgs
