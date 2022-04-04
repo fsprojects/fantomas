@@ -2,5 +2,3 @@ FSharp.Compiler.Service
 FSharp.Core
 Ionide.KeepAChangelog.Tasks copy_local: true
 Dotnet.ReproducibleBuilds copy_local: true
-System.IO.Abstractions
-System.IO.Abstractions.TestingHelpers

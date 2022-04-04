@@ -935,7 +935,7 @@ let ``space before ^ SRTP type is required in function call, 984`` () =
     formatSourceString
         false
         """
-let inline deserialize< ^a when ( ^a or FromJsonDefaults) : (static member FromJson :  ^a -> Json< ^a>)> json =
+let inline deserialize< ^a when ^a: (static member FromJson: ^a -> Json< ^a >)> json =
     json |> Json.parse |> Json.deserialize< ^a>
 """
         config
@@ -944,6 +944,23 @@ let inline deserialize< ^a when ( ^a or FromJsonDefaults) : (static member FromJ
         equal
         """
 let inline deserialize< ^a when ^a: (static member FromJson: ^a -> Json< ^a >)> json =
+    json |> Json.parse |> Json.deserialize< ^a>
+"""
+
+[<Test>]
+let ``SRTP or condition with non-generic type, 2168`` () =
+    formatSourceString
+        false
+        """
+let inline deserialize< ^a when ( ^a or FromJsonDefaults) : (static member FromJson :  ^a -> Json< ^a>)> json =
+    json |> Json.parse |> Json.deserialize< ^a>
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let inline deserialize< ^a when (^a or FromJsonDefaults): (static member FromJson: ^a -> Json< ^a >)> json =
     json |> Json.parse |> Json.deserialize< ^a>
 """
 

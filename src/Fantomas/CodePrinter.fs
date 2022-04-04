@@ -527,12 +527,16 @@ and genExprSepEqPrependType
         +> sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e)
 
 and genTyparList astContext tps =
-    ifElse
-        (List.atMostOne tps)
-        (col wordOr tps (genTypar astContext))
-        (sepOpenT
-         +> col wordOr tps (genTypar astContext)
-         +> sepCloseT)
+    colSurr sepOpenT sepCloseT wordOr tps (genTypar astContext)
+
+and genTypeSupportMember astContext st =
+    match st with
+    | SynType.Var (td, _) -> genTypar astContext td
+    | TLongIdent s -> !-s
+    | _ -> !- ""
+
+and genTypeSupportMemberList astContext tps =
+    colSurr sepOpenT sepCloseT wordOr tps (genTypeSupportMember astContext)
 
 and genTypeAndParam astContext typeName (tds: SynTyparDecls option) tcs =
     let types openSep tds tcs closeSep =
@@ -4558,7 +4562,7 @@ and genTypeConstraint astContext node =
         genTypar astContext tp -- " :> "
         +> genType astContext false t
     | TyparSupportsMember (tps, msg) ->
-        genTyparList astContext tps
+        genTypeSupportMemberList astContext tps
         +> sepColon
         +> sepOpenT
         +> genMemberSig astContext msg
@@ -4881,7 +4885,12 @@ and genMemberDefn astContext node =
         +> ifElse hasGenerics sepColonWithSpacesFixed sepColon
         +> autoIndentAndNlnIfExpressionExceedsPageWidth (genTypeList astContext namedArgs)
         -- genPropertyKind (not isFunctionProperty) mf.MemberKind
-        +> autoIndentAndNlnIfExpressionExceedsPageWidth (genConstraints astContext t vi)
+        +> onlyIf
+            (match t with
+             | TWithGlobalConstraints _ -> true
+             | _ -> false)
+            autoIndentAndNlnIfExpressionExceedsPageWidth
+            (genConstraints astContext t vi)
 
     | md -> failwithf "Unexpected member definition: %O" md
     |> genTriviaFor (synMemberDefnToFsAstType node) node.Range

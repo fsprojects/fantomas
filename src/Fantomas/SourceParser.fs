@@ -1605,7 +1605,8 @@ let (|TyparSingle|TyparDefaultsToType|TyparSubtypeOfType|TyparSupportsMember|Typ
         TyparSupportsMember(
             List.choose
                 (function
-                | SynType.Var (tp, _) -> Some tp
+                | SynType.Var _ as v -> Some v
+                | TLongIdent _ as i -> Some i
                 | _ -> None)
                 tps,
             msg

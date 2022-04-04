@@ -15,6 +15,8 @@ nuget Argu
 nuget BenchmarkDotNet
 nuget editorconfig
 nuget MAB.DotIgnore
+nuget System.IO.Abstractions
+nuget System.IO.Abstractions.TestingHelpers
 nuget Ionide.KeepAChangelog.Tasks copy_local: true
 nuget Dotnet.ReproducibleBuilds copy_local: true
 
