@@ -405,3 +405,26 @@ type A =
         | B x -> x
         | _ -> failwith "shouldn't happen"
 """
+
+[<Test>]
+let ``multiline abstract member without constraints, 2175`` () =
+    formatSourceString
+        false
+        """
+    type FuseSortFunctionItem =
+        abstract Item: key: string -> U2<{| ``$``: string |}, ResizeArray<{| ``$``: string; idx: float |}>> with get, set
+        abstract X : int
+"""
+        { config with MaxLineLength = 60 }
+    |> prepend newline
+    |> should
+        equal
+        """
+type FuseSortFunctionItem =
+    abstract Item:
+        key: string ->
+            U2<{| ``$``: string |}, ResizeArray<{| ``$``: string
+                                                   idx: float |}>> with get, set
+
+    abstract X: int
+"""
