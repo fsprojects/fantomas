@@ -118,8 +118,8 @@ let getFantomasToolStartInfo arguments : ProcessStartInfo =
             "Fantomas.CoreGlobalTool",
             "bin",
             configuration,
-            "netcoreapp3.1",
-            "fantomas.dll"
+            "net6.0",
+            "fantomas-tool.dll"
         )
 
     let startInfo = ProcessStartInfo("dotnet")

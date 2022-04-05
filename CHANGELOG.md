@@ -1,12 +1,26 @@
 # Changelog
 
-## [5.0.0-alpha-001] - 2022-03-19
+## [Unreleased]
 
 ### Changed
+* Don't add space between type of array and square brackets. [#2192](https://github.com/fsprojects/fantomas/issues/2192)
 * Renamed `fantomas-tool` to `fantomas` and the `Fantomas` namespace to `Fantomas.Core`. [#2174](https://github.com/fsprojects/fantomas/issues/2174)
+
+## [5.0.0-alpha-002] - 2022-04-04
+
+### Changed
+* Target net6.0 for fantomas-tool.
+
+## [5.0.0-alpha-001] - 2022-03-19
 
 ### Added
 * Initial settings for strousrup bracket style. [#2161](https://github.com/fsprojects/fantomas/pull/2161)
+
+## [4.7.6] - 2022-04-04
+
+### Fixed
+* SRTP or condition disappear when non-generic type is used. [#2168](https://github.com/fsprojects/fantomas/issues/2168)
+* Multiline AbstractSlot without constraints introduces newline [#2175](https://github.com/fsprojects/fantomas/issues/2175)
 
 ## [4.7.5] - 2022-03-27
 
