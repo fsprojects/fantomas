@@ -256,12 +256,12 @@ let ``long abstract member definition, 435`` () =
         false
         """
 type Test =
-    abstract RunJobs: folder:string * ?jobs:string * ?ctm:string * ?createDuplicate:bool * ?hold:bool * ?ignoreCriteria:bool * ?independentFlow:bool * ?orderDate:string * ?orderIntoFolder:string * ?variables:Dictionary<string, string> [] * ?waitForOrderDate:bool
+    abstract RunJobs: folder:string * ?jobs:string * ?ctm:string * ?createDuplicate:bool * ?hold:bool * ?ignoreCriteria:bool * ?independentFlow:bool * ?orderDate:string * ?orderIntoFolder:string * ?variables:Dictionary<string, string>[] * ?waitForOrderDate:bool
      -> string
 
     override this.RunJobs(folder: string, ?jobs: string, ?ctm: string, ?createDuplicate: bool, ?hold: bool,
                           ?ignoreCriteria: bool, ?independentFlow: bool, ?orderDate: string, ?orderIntoFolder: string,
-                          ?variables: Dictionary<string, string> [], ?waitForOrderDate: bool) =
+                          ?variables: Dictionary<string, string>[], ?waitForOrderDate: bool) =
         ""
 """
         config
@@ -280,7 +280,7 @@ type Test =
         ?independentFlow: bool *
         ?orderDate: string *
         ?orderIntoFolder: string *
-        ?variables: Dictionary<string, string> [] *
+        ?variables: Dictionary<string, string>[] *
         ?waitForOrderDate: bool ->
             string
 
@@ -295,7 +295,7 @@ type Test =
             ?independentFlow: bool,
             ?orderDate: string,
             ?orderIntoFolder: string,
-            ?variables: Dictionary<string, string> [],
+            ?variables: Dictionary<string, string>[],
             ?waitForOrderDate: bool
         ) =
         ""

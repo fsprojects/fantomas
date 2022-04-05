@@ -1,5 +1,10 @@
 # Changelog
 
+## [Unreleased]
+
+### Changed
+* Don't add space between type of array and square brackets. [#2192](https://github.com/fsprojects/fantomas/issues/2192)
+
 ## [5.0.0-alpha-002] - 2022-04-04
 
 ### Changed

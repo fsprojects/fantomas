@@ -91,7 +91,7 @@ let ``comments on let bindings with return type, 2043`` () =
     formatSourceString
         false
         """
-let count: int [] // foo
+let count: int[] // foo
     = [2]
     """
         config
@@ -99,7 +99,7 @@ let count: int [] // foo
     |> should
         equal
         """
-let count: int [] // foo
+let count: int[] // foo
     =
     [ 2 ]
 """
@@ -110,7 +110,7 @@ let ``comments after SynType_Array in record type, 2043`` () =
         false
         """
 type Model =
-    { Flags: bool [] // foo
+    { Flags: bool[] // foo
       Name: string // bar
       Street: string }
     """
@@ -120,7 +120,7 @@ type Model =
         equal
         """
 type Model =
-    { Flags: bool [] // foo
+    { Flags: bool[] // foo
       Name: string // bar
       Street: string }
 """
