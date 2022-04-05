@@ -119,7 +119,7 @@ let getFantomasToolStartInfo arguments : ProcessStartInfo =
             "bin",
             configuration,
             "net6.0",
-            "fantomas-tool.dll"
+            "fantomas.dll"
         )
 
     let startInfo = ProcessStartInfo("dotnet")
