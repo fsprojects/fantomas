@@ -406,14 +406,14 @@ let ``should put brackets around array type tests`` () =
         false
         """
 match item.Item with
-| :? (Instruction []) -> ()"""
+| :? (Instruction[]) -> ()"""
         config
     |> prepend newline
     |> should
         equal
         """
 match item.Item with
-| :? (Instruction []) -> ()
+| :? (Instruction[]) -> ()
 """
 
 [<Test>]

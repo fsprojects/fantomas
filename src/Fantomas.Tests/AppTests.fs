@@ -444,7 +444,7 @@ let ``space between function and argument in DotIndexedGet, 1261`` () =
     formatSourceString
         false
         """
-type Queue<'T>(data: list<'T []>, length: int) =
+type Queue<'T>(data: list<'T[]>, length: int) =
 
     member this.Head =
         if length > 0
@@ -456,7 +456,7 @@ type Queue<'T>(data: list<'T []>, length: int) =
     |> should
         equal
         """
-type Queue<'T>(data: list<'T []>, length: int) =
+type Queue<'T>(data: list<'T[]>, length: int) =
 
     member this.Head =
         if length > 0 then

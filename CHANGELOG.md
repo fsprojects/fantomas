@@ -24,6 +24,9 @@
 
 ## [4.7.7] - 2022-04-20
 
+### Changed
+* Don't add space between type of array and square brackets. [#2192](https://github.com/fsprojects/fantomas/issues/2192)
+
 ### Fixed
 * Multiline parentheses objectExpression in indexer expression. [#2176](https://github.com/fsprojects/fantomas/issues/2176)
 * Blank line over SynEnumCase is restored incorrectly. [#2155](https://github.com/fsprojects/fantomas/issues/2155)
