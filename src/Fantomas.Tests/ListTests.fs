@@ -199,9 +199,9 @@ let getColumn c (A:_[,]) = flatten A.[*,c..c] |> Seq.toArray"""
     |> should
         equal
         """
-let cast<'a> (A: obj [,]) : 'a [,] = A |> Array2D.map unbox
-let flatten (A: 'a [,]) = A |> Seq.cast<'a>
-let getColumn c (A: _ [,]) = flatten A.[*, c..c] |> Seq.toArray
+let cast<'a> (A: obj[,]) : 'a[,] = A |> Array2D.map unbox
+let flatten (A: 'a[,]) = A |> Seq.cast<'a>
+let getColumn c (A: _[,]) = flatten A.[*, c..c] |> Seq.toArray
 """
 
 [<Test>]
@@ -2134,7 +2134,7 @@ let ``yield inside list that is part of multi line function application, 1191`` 
     formatSourceString
         false
         """
-let private fn (xs: int []) =
+let private fn (xs: int[]) =
     fn2
         ""
         [ let r = Seq.head xs
@@ -2149,7 +2149,7 @@ let private fn (xs: int []) =
     |> should
         equal
         """
-let private fn (xs: int []) =
+let private fn (xs: int[]) =
     fn2
         ""
         [ let r = Seq.head xs
@@ -2281,4 +2281,38 @@ let fns =
       //        deprecated = NotDeprecated }
       // I think the space at the start of the lines above matter
       ]
+"""
+
+[<Test>]
+let ``don't add space between array type and square brackets, 2192`` () =
+    let before =
+        """
+let x: int[] = [ 1, 2, 3 ]
+let x: double[][] = [ [ 1.0, 2.0, 3.0 ] ]
+let foo (x: double[]) (y: object[][]) : string[,] = x :> int[]
+let foo<'T> (x: 'T[]) = x
+"""
+
+    formatSourceString false before config
+    |> prepend newline
+    |> should equal before
+
+let ``remove space between array type and square brackets, 2192`` () =
+    formatSourceString
+        false
+        """
+let x: int [] = [ 1, 2, 3 ]
+let x: double []  [] = [ [ 1.0, 2.0, 3.0 ] ]
+let foo (x: double []) (y: object [] []) : string [,] = x :> int []
+let foo<'T> (x: 'T  []) = x
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let x: int[] = [ 1, 2, 3 ]
+let x: double[][] = [ [ 1.0, 2.0, 3.0 ] ]
+let foo (x: double[]) (y: object[][]) : string[,] = x :> int[]
+let foo<'T> (x: 'T[]) = x
 """

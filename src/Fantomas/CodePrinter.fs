@@ -4329,7 +4329,7 @@ and genType astContext outerBracket t =
             +> addSpaceIfSynTypeStaticConstantHasAtSignBeforeString t2
             +> loop t2
         | TArray (t, n, r) ->
-            loop t -- " [" +> rep (n - 1) (!- ",") -- "]"
+            loop t -- "[" +> rep (n - 1) (!- ",") -- "]"
             |> genTriviaFor SynType_Array r
         | TAnon -> sepWild
         | TVar (tp, r) ->
