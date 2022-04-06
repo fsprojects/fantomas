@@ -41,6 +41,7 @@ group build
 group tool
     storage: none
     source https://api.nuget.org/v3/index.json
+    framework: net6.0
 
     nuget FSharp.Core content: none
     nuget Argu
