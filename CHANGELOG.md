@@ -1,5 +1,10 @@
 # Changelog
 
+## [Unreleased]
+
+### Fixed
+* Multiline parentheses objectExpression in indexer expression. [#2176](https://github.com/fsprojects/fantomas/issues/2176)
+
 ## [4.7.6] - 2022-04-04
 
 ### Fixed

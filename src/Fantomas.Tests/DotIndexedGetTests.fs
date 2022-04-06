@@ -127,3 +127,42 @@ a
     )
     .Meh().[0]
 """
+
+[<Test>]
+let ``multiline parentheses objectExpression in indexer expression, 2176`` () =
+    formatSourceString
+        false
+        """
+namespace FSX.Infrastructure
+
+module Unix =
+
+    let GrabTheFirstStringBeforeTheFirstColon (lines: seq<string>) =
+        seq {
+            for line in lines do
+                yield
+                    (line.Split(
+                        [| ":" |],
+                        StringSplitOptions.RemoveEmptyEntries
+                    )).[0]
+        }
+"""
+        { config with MaxLineLength = 80 }
+    |> prepend newline
+    |> should
+        equal
+        """
+namespace FSX.Infrastructure
+
+module Unix =
+
+    let GrabTheFirstStringBeforeTheFirstColon (lines: seq<string>) =
+        seq {
+            for line in lines do
+                yield
+                    (line.Split(
+                        [| ":" |],
+                        StringSplitOptions.RemoveEmptyEntries
+                    )).[0]
+        }
+"""
