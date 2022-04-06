@@ -104,8 +104,8 @@ module private Ast =
                 mkNode SynModuleDecl_Let range
                 :: (bindings |> List.collect visitSynBinding)
                 |> finalContinuation
-            | SynModuleDecl.DoExpr (_, expr, range) ->
-                mkNode SynModuleDecl_DoExpr range
+            | SynModuleDecl.Expr (expr, range) ->
+                mkNode SynModuleDecl_Expr range
                 :: visitSynExpr expr
                 |> finalContinuation
             | SynModuleDecl.Types (typeDefs, range) ->

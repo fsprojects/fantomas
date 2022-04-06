@@ -317,7 +317,7 @@ and genModuleDecl astContext (node: SynModuleDecl) =
                 |> snd
 
             attributesExpr ctx
-    | DoExpr e -> genExprKeepIndentInBranch astContext e
+    | DeclExpr e -> genExprKeepIndentInBranch astContext e
     | Exception ex -> genException astContext ex
     | HashDirective p -> genParsedHashDirective p
     | Extern (ats, px, ao, t, s, ps) ->

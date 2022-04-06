@@ -331,9 +331,9 @@ let (|LetRec|_|) =
     | SynModuleDecl.Let (true, xs, _) -> Some xs
     | _ -> None
 
-let (|DoExpr|_|) =
+let (|DeclExpr|_|) =
     function
-    | SynModuleDecl.DoExpr (_, x, _) -> Some x
+    | SynModuleDecl.Expr (x, _) -> Some x
     | _ -> None
 
 let (|Types|_|) =

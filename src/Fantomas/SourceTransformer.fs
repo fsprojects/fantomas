@@ -34,11 +34,11 @@ let hasParenInPat =
 
 // A few active patterns for printing purpose
 
-let rec (|DoExprAttributesL|_|) =
+let rec (|DeclExprAttributesL|_|) =
     function
-    | DoExpr _
-    | Attributes _ as x :: DoExprAttributesL (xs, ys) -> Some(x :: xs, ys)
-    | DoExpr _
+    | DeclExpr _
+    | Attributes _ as x :: DeclExprAttributesL (xs, ys) -> Some(x :: xs, ys)
+    | DeclExpr _
     | Attributes _ as x :: ys -> Some([ x ], ys)
     | _ -> None
 
@@ -140,7 +140,7 @@ let addParenForTupleWhen f synExpr ctx =
 
 let synModuleDeclToFsAstType =
     function
-    | SynModuleDecl.DoExpr _ -> SynModuleDecl_DoExpr
+    | SynModuleDecl.Expr _ -> SynModuleDecl_Expr
     | SynModuleDecl.Types _ -> SynModuleDecl_Types
     | SynModuleDecl.NestedModule _ -> SynModuleDecl_NestedModule
     | SynModuleDecl.Let _ -> SynModuleDecl_Let

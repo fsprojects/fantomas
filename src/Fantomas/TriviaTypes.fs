@@ -47,7 +47,7 @@ type FsAstType =
     | SynModuleDecl_NestedModule_Module
     | SynModuleDecl_NestedModule_Equals
     | SynModuleDecl_Let
-    | SynModuleDecl_DoExpr
+    | SynModuleDecl_Expr
     | SynModuleDecl_Types
     | SynModuleDecl_Exception
     | SynModuleDecl_Open
