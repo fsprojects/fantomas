@@ -284,7 +284,7 @@ doSomething()
     let withoutDefine = Map.find [] triviaNodes
 
     match withoutDefine with
-    | [ { Type = SynModuleDecl_DoExpr
+    | [ { Type = SynModuleDecl_Expr
           ContentBefore = [ Directive "#if NOT_DEFINED\n#else" ]
           ContentAfter = [ Directive "#endif" ] } ] -> pass ()
     | _ -> Assert.Fail(sprintf "Unexpected trivia %A" withoutDefine)

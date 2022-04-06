@@ -13,6 +13,7 @@ open FSharp.Compiler.Text.Position
 open FSharp.Compiler.Text.Range
 open FSharp.Compiler.Xml
 open FSharp.Compiler.Syntax
+open FSharp.Compiler.SyntaxTrivia
 open FSharp.Compiler.Syntax.PrettyNaming
 open FSharp.Compiler.SyntaxTreeOps
 open FSharp.Compiler.IO
@@ -152,13 +153,21 @@ let GetScopedPragmasForInput input =
     | ParsedInput.SigFile (ParsedSigFileInput (scopedPragmas = pragmas)) -> pragmas
     | ParsedInput.ImplFile (ParsedImplFileInput (scopedPragmas = pragmas)) -> pragmas
 
+let private collectCodeComments (lexbuf: UnicodeLexing.Lexbuf) (tripleSlashComments: range list) =
+    [ yield! LexbufCommentStore.GetComments(lexbuf)
+      yield! (List.map CommentTrivia.LineComment tripleSlashComments) ]
+    |> List.sortBy (function
+        | CommentTrivia.LineComment r
+        | CommentTrivia.BlockComment r -> r.StartLine, r.StartColumn)
+
 let PostParseModuleImpls
     (
         defaultNamespace,
         filename,
         isLastCompiland,
         ParsedImplFile (hashDirectives, impls),
-        lexbuf: UnicodeLexing.Lexbuf
+        lexbuf: UnicodeLexing.Lexbuf,
+        tripleSlashComments: range list
     ) =
     match impls
           |> List.rev
@@ -178,7 +187,7 @@ let PostParseModuleImpls
 
     let scopedPragmas = []
     let conditionalDirectives = LexbufIfdefStore.GetTrivia(lexbuf)
-    let codeComments = LexbufCommentStore.GetComments(lexbuf)
+    let codeComments = collectCodeComments lexbuf tripleSlashComments
 
     ParsedInput.ImplFile(
         ParsedImplFileInput(
@@ -238,7 +247,8 @@ let PostParseModuleSpecs
         filename,
         isLastCompiland,
         ParsedSigFile (hashDirectives, specs),
-        lexbuf: UnicodeLexing.Lexbuf
+        lexbuf: UnicodeLexing.Lexbuf,
+        tripleSlashComments: range list
     ) =
     match specs
           |> List.rev
@@ -264,7 +274,7 @@ let PostParseModuleSpecs
 //              yield! GetScopedPragmasForHashDirective hd ]
 
     let conditionalDirectives = LexbufIfdefStore.GetTrivia(lexbuf)
-    let codeComments = LexbufCommentStore.GetComments(lexbuf)
+    let codeComments = collectCodeComments lexbuf tripleSlashComments
 
     ParsedInput.SigFile(
         ParsedSigFileInput(
@@ -320,15 +330,21 @@ let ParseInput
                 |> List.exists (FileSystemUtils.checkSuffix lower)
             then
                 let impl = Parser.implementationFile lexer lexbuf
-                LexbufLocalXmlDocStore.ReportInvalidXmlDocPositions(lexbuf)
-                PostParseModuleImpls(defaultNamespace, filename, isLastCompiland, impl, lexbuf)
+
+                let tripleSlashComments =
+                    LexbufLocalXmlDocStore.ReportInvalidXmlDocPositions(lexbuf)
+
+                PostParseModuleImpls(defaultNamespace, filename, isLastCompiland, impl, lexbuf, tripleSlashComments)
             elif
                 FSharpSigFileSuffixes
                 |> List.exists (FileSystemUtils.checkSuffix lower)
             then
                 let intfs = Parser.signatureFile lexer lexbuf
-                LexbufLocalXmlDocStore.ReportInvalidXmlDocPositions(lexbuf)
-                PostParseModuleSpecs(defaultNamespace, filename, isLastCompiland, intfs, lexbuf)
+
+                let tripleSlashComments =
+                    LexbufLocalXmlDocStore.ReportInvalidXmlDocPositions(lexbuf)
+
+                PostParseModuleSpecs(defaultNamespace, filename, isLastCompiland, intfs, lexbuf, tripleSlashComments)
             else if lexbuf.SupportsFeature LanguageFeature.MLCompatRevisions then
                 error (Error(FSComp.SR.buildInvalidSourceFileExtensionUpdated filename, rangeStartup))
             else
