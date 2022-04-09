@@ -408,7 +408,16 @@ let (|SigExceptionDef|)
     =
     (ats, px, ao, uc, withKeyword, ms)
 
-let (|UnionCase|) (SynUnionCase (ats, Ident s, uct, px, ao, _, trivia)) = (ats, px, ao, s, uct)
+let (|UnionCase|) (SynUnionCase (ats, (Ident s as ident), uct, px, ao, r, trivia)) =
+    let fullRange =
+        if not px.IsEmpty then
+            r
+        else
+            match trivia.BarRange with
+            | None -> r
+            | Some barRange -> Range.unionRanges barRange r
+
+    (ats, px, trivia.BarRange, ao, s, ident.idRange, uct, fullRange)
 
 let (|UnionCaseType|) =
     function
@@ -422,8 +431,16 @@ let (|Field|) (SynField (ats, isStatic, ido, t, isMutable, px, ao, range)) =
 
     (ats, px, ao, isStatic, isMutable, t, Option.map (|Ident|) ido, innerRange, range)
 
-let (|EnumCase|) (SynEnumCase (ats, Ident s, c, cr, px, r, trivia)) =
-    (ats, trivia.BarRange, px, s, trivia.EqualsRange, c, cr, r)
+let (|EnumCase|) (SynEnumCase (ats, (Ident s as ident), c, cr, px, r, trivia)) =
+    let fullRange =
+        if not px.IsEmpty then
+            r
+        else
+            match trivia.BarRange with
+            | None -> r
+            | Some barRange -> Range.unionRanges barRange r
+
+    (ats, trivia.BarRange, px, s, ident.idRange, trivia.EqualsRange, c, cr, fullRange)
 
 // Member definitions (11 cases)
 

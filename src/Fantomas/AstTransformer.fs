@@ -1203,8 +1203,10 @@ module private Ast =
 
     and visitSynUnionCase (uc: SynUnionCase) : TriviaNodeAssigner list =
         match uc with
-        | SynUnionCase (attrs, _, uct, _, _, range, trivia) ->
+        | SourceParser.UnionCase (attrs, _, barRange, _, _, identRange, uct, range) ->
             [ yield mkNode SynUnionCase_ range
+              yield! mkNodeOption SynUnionCase_Bar barRange
+              yield mkNode Ident_ identRange
               yield! visitSynUnionCaseType uct
               yield! (visitSynAttributeLists attrs) ]
 
@@ -1215,12 +1217,12 @@ module private Ast =
 
     and visitSynEnumCase (sec: SynEnumCase) : TriviaNodeAssigner list =
         match sec with
-        | SynEnumCase (attrs, ident, value, valueRange, _, range, trivia) ->
-            [ yield! mkNodeOption SynEnumCase_Bar trivia.BarRange
+        | SourceParser.EnumCase (attrs, barRange, _, _, identRange, equalsRange, value, valueRange, range) ->
+            [ yield! mkNodeOption SynEnumCase_Bar barRange
               yield mkNode SynEnumCase_ range
               yield! (visitSynAttributeLists attrs)
-              yield visitIdent ident
-              yield mkNode SynEnumCase_Equals trivia.EqualsRange
+              yield mkNode Ident_ identRange
+              yield mkNode SynEnumCase_Equals equalsRange
               yield! visitSynConst valueRange value ]
 
     and visitSynField (sfield: SynField) : TriviaNodeAssigner list =
