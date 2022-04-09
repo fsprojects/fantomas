@@ -895,3 +895,104 @@ type Foo =   // comment
 type Foo = // comment
     | Bar of string * int64
 """
+
+[<Test>]
+let ``newline trivia before enum case with xml doc, 2155`` () =
+    formatSourceString
+        false
+        """
+/// Specifies the formatting behaviour of JSON values
+[<RequireQualifiedAccess>]
+type JsonSaveOptions =
+    | None = 0
+
+    /// Print the JsonValue in one line in a compact way
+    | DisableFormatting = 1
+
+    | OtherFormatting = 2
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+/// Specifies the formatting behaviour of JSON values
+[<RequireQualifiedAccess>]
+type JsonSaveOptions =
+    | None = 0
+
+    /// Print the JsonValue in one line in a compact way
+    | DisableFormatting = 1
+
+    | OtherFormatting = 2
+"""
+
+[<Test>]
+let ``enum with multiple cases with xml comments, 2188`` () =
+    formatSourceString
+        false
+        """
+/// Represents reasons why a text document is saved.
+type TextDocumentSaveReason =
+/// Manually triggered, e.g. by the user pressing save, by starting debugging,
+/// or by an API call.
+| Manual = 1
+
+/// Automatic after a delay.
+| AfterDelay = 2
+
+/// When the editor lost focus.
+| FocusOut = 3
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+/// Represents reasons why a text document is saved.
+type TextDocumentSaveReason =
+    /// Manually triggered, e.g. by the user pressing save, by starting debugging,
+    /// or by an API call.
+    | Manual = 1
+
+    /// Automatic after a delay.
+    | AfterDelay = 2
+
+    /// When the editor lost focus.
+    | FocusOut = 3
+"""
+
+[<Test>]
+let ``union with multiple cases with xml comments, 2188`` () =
+    formatSourceString
+        false
+        """
+/// Represents reasons why a text document is saved.
+type Meh =
+/// Manually triggered, e.g. by the user pressing save, by starting debugging,
+/// or by an API call.
+| Foo of int
+
+/// Automatic after a delay.
+| Bar of string
+
+/// When the editor lost focus.
+| Few of DateTime
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+/// Represents reasons why a text document is saved.
+type Meh =
+    /// Manually triggered, e.g. by the user pressing save, by starting debugging,
+    /// or by an API call.
+    | Foo of int
+
+    /// Automatic after a delay.
+    | Bar of string
+
+    /// When the editor lost focus.
+    | Few of DateTime
+"""

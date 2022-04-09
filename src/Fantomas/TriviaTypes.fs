@@ -321,6 +321,7 @@ type FsAstType =
     | SynAttribute_
     | SynAttributeList_
     | SynUnionCase_
+    | SynUnionCase_Bar
     | SynUnionCaseKind_Fields
     | SynUnionCaseKind_FullType
     | SynEnumCase_
