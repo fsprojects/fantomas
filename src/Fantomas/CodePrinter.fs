@@ -4212,20 +4212,23 @@ and genUnionCase
     (hasVerticalBar: bool)
     (UnionCase (ats, px, barRange, _, s, identRange, UnionCaseType fs, range))
     =
-    let shortExpr =
-        colPre wordOf sepStar fs (genField { astContext with IsUnionField = true } "")
+    let shortExpr = col sepStar fs (genField { astContext with IsUnionField = true } "")
 
     let longExpr =
-        wordOf
-        +> indent
+        indent
         +> sepNln
         +> atCurrentColumn (col (sepStar +> sepNln) fs (genField { astContext with IsUnionField = true } ""))
         +> unindent
 
     genPreXmlDoc px
-    +> ifElse hasVerticalBar (genTriviaForOptionOr SynUnionCase_Bar barRange sepBar) sepNone
-    +> genOnelinerAttributes astContext ats
-    +> genTriviaFor Ident_ identRange !-s
+    +> genTriviaForOptionOr SynUnionCase_Bar barRange (ifElse hasVerticalBar sepBar sepNone)
+    +> atCurrentColumn (
+        // If the bar has a comment after, add a newline and print the identifier on the same column on the next line.
+        sepNlnWhenWriteBeforeNewlineNotEmpty sepNone
+        +> genOnelinerAttributes astContext ats
+        +> genTriviaFor Ident_ identRange !-s
+        +> onlyIf (List.isNotEmpty fs) wordOf
+    )
     +> onlyIf (List.isNotEmpty fs) (expressionFitsOnRestOfLine shortExpr longExpr)
     |> genTriviaFor SynUnionCase_ range
 
