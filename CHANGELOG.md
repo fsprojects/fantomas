@@ -7,6 +7,9 @@
 
 ### Fixed
 * Multiline parentheses objectExpression in indexer expression. [#2176](https://github.com/fsprojects/fantomas/issues/2176)
+* Blank line over SynEnumCase is restored incorrectly. [#2155](https://github.com/fsprojects/fantomas/issues/2155)
+* XML Doc comments on DU cases seem to get shuffled. [#2188](https://github.com/fsprojects/fantomas/issues/2188)
+* Comment after bar is lost in single case DU. [#2182](https://github.com/fsprojects/fantomas/issues/2182)
 
 ## [5.0.0-alpha-002] - 2022-04-04
 
