@@ -1753,7 +1753,7 @@ let rec (|UppercaseSynType|LowercaseSynType|) (synType: SynType) =
     | SynType.App (st, _, _, _, _, _, _) -> (|UppercaseSynType|LowercaseSynType|) st
     | _ -> failwithf "cannot determine if synType %A is uppercase or lowercase" synType
 
-let (|IndexWithoutDotExpr|ElmishReactWithoutChildren|ElmishReactWithChildren|NonAppExpr|) e =
+let (|IndexWithoutDotExpr|FunctionApplicationSingleList|FunctionApplicationDualList|NonAppExpr|) e =
     match e with
     | SynExpr.App (ExprAtomicFlag.Atomic, false, identifierExpr, SynExpr.ArrayOrListComputed (false, indexExpr, _), _) ->
         IndexWithoutDotExpr(identifierExpr, indexExpr)
@@ -1763,13 +1763,22 @@ let (|IndexWithoutDotExpr|ElmishReactWithoutChildren|ElmishReactWithChildren|Non
                    (SynExpr.ArrayOrListComputed (isArray = false; expr = indexExpr) as argExpr),
                    _) when (RangeHelpers.isAdjacentTo identifierExpr.Range argExpr.Range) ->
         IndexWithoutDotExpr(identifierExpr, indexExpr)
-    | SynExpr.App (_, false, OptVar (ident, _, _), ArrayOrList (sr, isArray, children, er, _), _) ->
-        ElmishReactWithoutChildren(ident, sr, isArray, children, er)
+        // ArrayOrList (sr, isArray, children, er, _)
+    // | SynExpr.App (_, false, OptVar (ident, _, _),  , _) ->
+
+    //     FunctionApplicationSingleList(ident, sr, isArray, children, er)
+    | App(expr, exprs) ->
+        match exprs |> List.rev with
+        | ArrayOrList (sr, isArray, children, er, _)::tail ->  
+            let args = tail |> List.rev
+            FunctionApplicationSingleList(expr, args, sr, isArray, children, er)
+        | _ ->
+            NonAppExpr
     | SynExpr.App (_,
                    false,
                    SynExpr.App (_, false, OptVar ident, (ArrayOrList _ as attributes), _),
                    ArrayOrList (sr, isArray, children, er, r),
-                   _) -> ElmishReactWithChildren(ident, attributes, (isArray, sr, children, er))
+                   _) -> FunctionApplicationDualList(ident, attributes, (isArray, sr, children, er))
     | _ -> NonAppExpr
 
 let isIfThenElseWithYieldReturn e =

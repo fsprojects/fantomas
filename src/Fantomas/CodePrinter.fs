@@ -1037,97 +1037,123 @@ and genNamedArgumentExpr (astContext: ASTContext) operatorExpr e1 e2 appRange =
 and genExpr astContext synExpr ctx =
     let expr =
         match synExpr with
-        | ElmishReactWithoutChildren (identifier, openingTokenRange, isArray, children, closingTokenRange) when
-            (not ctx.Config.DisableElmishSyntax)
-            ->
-            fun (ctx: Context) ->
+        | FunctionApplicationSingleList(expr, args, openingTokenRange, isArray,  children, closingTokenRange) when ctx.Config.Ragnarok ->
+            // fun (ctx : Context) ->
+                let indentNewLine f =
+                    indent
+                    +> sepNln
+                    +> f
+                    +> unindent
                 let shortExpression =
-                    let noChildren =
-                        genTriviaFor
-                            SynExpr_ArrayOrList_OpeningDelimiter
-                            openingTokenRange
-                            (ifElse isArray sepOpenAFixed sepOpenLFixed)
-                        +> genTriviaFor
-                            SynExpr_ArrayOrList_ClosingDelimiter
-                            closingTokenRange
-                            (ifElse isArray sepCloseAFixed sepCloseLFixed)
-
-                    let genChildren =
-                        genTriviaFor
-                            SynExpr_ArrayOrList_OpeningDelimiter
-                            openingTokenRange
-                            (ifElse isArray sepOpenA sepOpenL)
-                        +> col sepSemi children (genExpr astContext)
-                        +> genTriviaFor
-                            SynExpr_ArrayOrList_ClosingDelimiter
-                            closingTokenRange
-                            (ifElse isArray sepCloseA sepCloseL)
-
-                    !-identifier
+                    genExpr astContext expr
                     +> sepSpace
-                    +> ifElse (List.isEmpty children) noChildren genChildren
-
-                let elmishExpression =
-                    !-identifier
+                    +> col sepSpace args (genExpr astContext)
                     +> sepSpace
-                    +> genTriviaFor
-                        SynExpr_ArrayOrList_OpeningDelimiter
-                        openingTokenRange
-                        (ifElse isArray sepOpenA sepOpenL)
-                    +> atCurrentColumn (
-                        sepNlnWhenWriteBeforeNewlineNotEmpty sepNone
-                        +> col sepNln children (genExpr astContext)
-                        +> onlyIf
-                            (TriviaHelpers.``has content before that matches``
-                                (fun tn -> RangeHelpers.rangeEq tn.Range closingTokenRange)
-                                (function
-                                | Comment (BlockComment _) -> true
-                                | _ -> false)
-                                (Map.tryFindOrEmptyList SynExpr_ArrayOrList_ClosingDelimiter ctx.TriviaMainNodes))
-                            sepNln
-                        +> genTriviaFor
-                            SynExpr_ArrayOrList_ClosingDelimiter
-                            closingTokenRange
-                            (ifElse isArray sepCloseA sepCloseL)
-                    )
+                    +> sepOpenLFixed
+                    +> col sepSpace children (genExpr astContext)
+                    +> sepCloseLFixed
+                let longExpression =
+                    // TODO Refactor
+                    genExpr astContext expr
+                    +> sepSpace
+                    +> col sepSpace args (genExpr astContext)
+                    +> sepSpace
+                    +> sepOpenLFixed
+                    +> indentNewLine (col sepSpace children (genExpr astContext))
+                    +> sepNln
+                    +> sepCloseLFixed
+                expressionFitsOnRestOfLine shortExpression longExpression
+        // | FunctionApplicationSingleList (identifier, openingTokenRange, isArray, , children, closingTokenRange) when
+        //     (not ctx.Config.DisableElmishSyntax)
+        //     ->
+        //     fun (ctx: Context) ->
+        //         let shortExpression =
+        //             let noChildren =
+        //                 genTriviaFor
+        //                     SynExpr_ArrayOrList_OpeningDelimiter
+        //                     openingTokenRange
+        //                     (ifElse isArray sepOpenAFixed sepOpenLFixed)
+        //                 +> genTriviaFor
+        //                     SynExpr_ArrayOrList_ClosingDelimiter
+        //                     closingTokenRange
+        //                     (ifElse isArray sepCloseAFixed sepCloseLFixed)
 
-                let felizExpression =
-                    let hasBlockCommentBeforeClosingToken =
-                        TriviaHelpers.``has content before that matches``
-                            (fun tn -> RangeHelpers.rangeEq tn.Range closingTokenRange)
-                            (function
-                            | Comment (BlockComment _) -> true
-                            | _ -> false)
-                            (Map.tryFindOrEmptyList SynExpr_ArrayOrList_ClosingDelimiter ctx.TriviaMainNodes)
+        //             let genChildren =
+        //                 genTriviaFor
+        //                     SynExpr_ArrayOrList_OpeningDelimiter
+        //                     openingTokenRange
+        //                     (ifElse isArray sepOpenA sepOpenL)
+        //                 +> col sepSemi children (genExpr astContext)
+        //                 +> genTriviaFor
+        //                     SynExpr_ArrayOrList_ClosingDelimiter
+        //                     closingTokenRange
+        //                     (ifElse isArray sepCloseA sepCloseL)
 
-                    let hasChildren = List.isNotEmpty children
+        //             !-identifier
+        //             +> sepSpace
+        //             +> ifElse (List.isEmpty children) noChildren genChildren
 
-                    atCurrentColumn (
-                        !-identifier
-                        +> sepSpace
-                        +> genTriviaFor
-                            SynExpr_ArrayOrList_OpeningDelimiter
-                            openingTokenRange
-                            (ifElse isArray sepOpenAFixed sepOpenLFixed)
-                        +> onlyIf hasChildren (indent +> sepNln)
-                        +> col sepNln children (genExpr astContext)
-                        +> onlyIf hasBlockCommentBeforeClosingToken (sepNln +> unindent)
-                        +> (onlyIfNot hasBlockCommentBeforeClosingToken unindent
-                            +> onlyIf hasChildren sepNlnUnlessLastEventIsNewline
-                            +> ifElse isArray sepCloseAFixed sepCloseLFixed
-                            |> genTriviaFor SynExpr_ArrayOrList_ClosingDelimiter closingTokenRange)
-                    )
+        //         let elmishExpression =
+        //             !-identifier
+        //             +> sepSpace
+        //             +> genTriviaFor
+        //                 SynExpr_ArrayOrList_OpeningDelimiter
+        //                 openingTokenRange
+        //                 (ifElse isArray sepOpenA sepOpenL)
+        //             +> atCurrentColumn (
+        //                 sepNlnWhenWriteBeforeNewlineNotEmpty sepNone
+        //                 +> col sepNln children (genExpr astContext)
+        //                 +> onlyIf
+        //                     (TriviaHelpers.``has content before that matches``
+        //                         (fun tn -> RangeHelpers.rangeEq tn.Range closingTokenRange)
+        //                         (function
+        //                         | Comment (BlockComment _) -> true
+        //                         | _ -> false)
+        //                         (Map.tryFindOrEmptyList SynExpr_ArrayOrList_ClosingDelimiter ctx.TriviaMainNodes))
+        //                     sepNln
+        //                 +> genTriviaFor
+        //                     SynExpr_ArrayOrList_ClosingDelimiter
+        //                     closingTokenRange
+        //                     (ifElse isArray sepCloseA sepCloseL)
+        //             )
 
-                let multilineExpression =
-                    ifElse ctx.Config.SingleArgumentWebMode felizExpression elmishExpression
+        //         let felizExpression =
+        //             let hasBlockCommentBeforeClosingToken =
+        //                 TriviaHelpers.``has content before that matches``
+        //                     (fun tn -> RangeHelpers.rangeEq tn.Range closingTokenRange)
+        //                     (function
+        //                     | Comment (BlockComment _) -> true
+        //                     | _ -> false)
+        //                     (Map.tryFindOrEmptyList SynExpr_ArrayOrList_ClosingDelimiter ctx.TriviaMainNodes)
 
-                let size = getListOrArrayExprSize ctx ctx.Config.MaxElmishWidth children
+        //             let hasChildren = List.isNotEmpty children
 
-                let smallExpression = isSmallExpression size shortExpression multilineExpression
+        //             atCurrentColumn (
+        //                 !-identifier
+        //                 +> sepSpace
+        //                 +> genTriviaFor
+        //                     SynExpr_ArrayOrList_OpeningDelimiter
+        //                     openingTokenRange
+        //                     (ifElse isArray sepOpenAFixed sepOpenLFixed)
+        //                 +> onlyIf hasChildren (indent +> sepNln)
+        //                 +> col sepNln children (genExpr astContext)
+        //                 +> onlyIf hasBlockCommentBeforeClosingToken (sepNln +> unindent)
+        //                 +> (onlyIfNot hasBlockCommentBeforeClosingToken unindent
+        //                     +> onlyIf hasChildren sepNlnUnlessLastEventIsNewline
+        //                     +> ifElse isArray sepCloseAFixed sepCloseLFixed
+        //                     |> genTriviaFor SynExpr_ArrayOrList_ClosingDelimiter closingTokenRange)
+        //             )
 
-                isShortExpression ctx.Config.MaxElmishWidth smallExpression multilineExpression ctx
+        //         let multilineExpression =
+        //             ifElse ctx.Config.SingleArgumentWebMode felizExpression elmishExpression
 
-        | ElmishReactWithChildren ((identifier, _, _),
+        //         let size = getListOrArrayExprSize ctx ctx.Config.MaxElmishWidth children
+
+        //         let smallExpression = isSmallExpression size shortExpression multilineExpression
+
+        //         isShortExpression ctx.Config.MaxElmishWidth smallExpression multilineExpression ctx
+
+        | FunctionApplicationDualList ((identifier, _, _),
                                    attributes,
                                    (isArray, openingTokenRange, children, closingTokenRange)) when
             (not ctx.Config.DisableElmishSyntax)
