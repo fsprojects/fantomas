@@ -26,8 +26,63 @@ let config =
 //     } 
 // ]
 
+
 [<Test>]
-let ``Expecto empty testList`` () =
+[<Category("FunctionApplicationTests")>]
+let ``functionapplication elements in the last list empty fit on one line`` () =
+    formatSourceString
+        false
+        """
+functionName a b [   ]
+    """
+            config
+        |> prepend newline
+        |> should
+            equal
+            """
+functionName a b []
+"""
+
+[<Test>]
+[<Category("FunctionApplicationTests")>]
+let ``functionapplication elements in the last list argument fits on one line`` () =
+    formatSourceString
+        false
+        """
+functionName a b [  c; d  ]
+    """
+            config
+        |> prepend newline
+        |> should
+            equal
+            """
+functionName a b [ c; d ]
+"""
+
+
+[<Test>]
+[<Category("FunctionApplicationTests")>]
+let ``functionapplication elements in the last list containing trivia`` () =
+    formatSourceString
+        false
+        """
+functionName a b [ // comment
+                                c; d ]
+    """
+            config
+        |> prepend newline
+        |> should
+            equal
+            """
+functionName a b [ // comment
+    c
+    d
+]
+"""
+
+[<Test>]
+[<Category("FunctionApplicationTests")>]
+let ``functionapplication testList testList single item`` () =
     formatSourceString
         false
         """
@@ -51,19 +106,4 @@ testList "A test group" [
 ]
 """
 
-
-[<Test>]
-let ``Expecto testList single item`` () =
-    formatSourceString
-        false
-        """
-testList "A test group" []
-"""
-        config
-    |> prepend newline
-    |> should
-        equal
-        """
-testList "A test group" []
-"""
 

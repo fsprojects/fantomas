@@ -1034,8 +1034,48 @@ and genNamedArgumentExpr (astContext: ASTContext) operatorExpr e1 e2 appRange =
     expressionFitsOnRestOfLine short long
     |> genTriviaFor SynExpr_App appRange
 
+and genArrayOrList astContext isArray openingTokenRange xs closingTokenRange=
+    match xs with
+    | [] -> 
+        ifElse
+            isArray
+            (genTriviaFor SynExpr_ArrayOrList_OpeningDelimiter openingTokenRange sepOpenAFixed
+                +> genTriviaFor SynExpr_ArrayOrList_ClosingDelimiter closingTokenRange sepCloseAFixed)
+            (genTriviaFor SynExpr_ArrayOrList_OpeningDelimiter openingTokenRange sepOpenLFixed
+                +> genTriviaFor SynExpr_ArrayOrList_ClosingDelimiter closingTokenRange sepCloseLFixed)
+    | _ ->
+        let smallExpression =
+                ifElse
+                    isArray
+                    (genTriviaFor SynExpr_ArrayOrList_OpeningDelimiter openingTokenRange sepOpenA)
+                    (genTriviaFor SynExpr_ArrayOrList_OpeningDelimiter openingTokenRange sepOpenL)
+                +> col sepSemi xs (genExpr astContext)
+                +> ifElse
+                    isArray
+                    (genTriviaFor SynExpr_ArrayOrList_ClosingDelimiter closingTokenRange sepCloseA)
+                    (genTriviaFor SynExpr_ArrayOrList_ClosingDelimiter closingTokenRange sepCloseL)
+
+        let multilineExpression =
+                ifAlignBrackets
+                    (genMultiLineArrayOrListAlignBrackets isArray xs openingTokenRange closingTokenRange astContext)
+                    (genMultiLineArrayOrList isArray xs openingTokenRange closingTokenRange astContext)
+
+        fun ctx ->
+            if List.exists isIfThenElseWithYieldReturn xs
+                || List.forall isSynExprLambdaOrIfThenElse xs then
+                multilineExpression ctx
+            else
+                let size = getListOrArrayExprSize ctx ctx.Config.MaxArrayOrListWidth xs
+
+                isSmallExpression size smallExpression multilineExpression ctx
+
 and genExpr astContext synExpr ctx =
     let expr =
+        // if not(System.Diagnostics.Debugger.IsAttached) then
+        //     eprintfn "Please attach a debugger for PID: %d" (System.Diagnostics.Process.GetCurrentProcess().Id)
+        // while not(System.Diagnostics.Debugger.IsAttached) do
+        //     System.Threading.Thread.Sleep(100)
+        // System.Diagnostics.Debugger.Break()
         match synExpr with
         | FunctionApplicationSingleList(expr, args, openingTokenRange, isArray,  children, closingTokenRange) when ctx.Config.Ragnarok ->
             // fun (ctx : Context) ->
@@ -1049,19 +1089,14 @@ and genExpr astContext synExpr ctx =
                     +> sepSpace
                     +> col sepSpace args (genExpr astContext)
                     +> sepSpace
-                    +> sepOpenLFixed
-                    +> col sepSpace children (genExpr astContext)
-                    +> sepCloseLFixed
+                    +> genArrayOrList astContext isArray openingTokenRange children closingTokenRange
+
                 let longExpression =
-                    // TODO Refactor
                     genExpr astContext expr
                     +> sepSpace
                     +> col sepSpace args (genExpr astContext)
                     +> sepSpace
-                    +> sepOpenLFixed
-                    +> indentNewLine (col sepSpace children (genExpr astContext))
-                    +> sepNln
-                    +> sepCloseLFixed
+                    +> genArrayOrList astContext isArray openingTokenRange children closingTokenRange
                 expressionFitsOnRestOfLine shortExpression longExpression
         // | FunctionApplicationSingleList (identifier, openingTokenRange, isArray, , children, closingTokenRange) when
         //     (not ctx.Config.DisableElmishSyntax)
@@ -1364,39 +1399,8 @@ and genExpr astContext synExpr ctx =
             +> sepOpenT
             +> genTuple astContext es
             +> sepCloseT
-        | ArrayOrList (sr, isArray, [], er, _) ->
-            ifElse
-                isArray
-                (genTriviaFor SynExpr_ArrayOrList_OpeningDelimiter sr sepOpenAFixed
-                 +> genTriviaFor SynExpr_ArrayOrList_ClosingDelimiter er sepCloseAFixed)
-                (genTriviaFor SynExpr_ArrayOrList_OpeningDelimiter sr sepOpenLFixed
-                 +> genTriviaFor SynExpr_ArrayOrList_ClosingDelimiter er sepCloseLFixed)
         | ArrayOrList (openingTokenRange, isArray, xs, closingTokenRange, _) ->
-            let smallExpression =
-                ifElse
-                    isArray
-                    (genTriviaFor SynExpr_ArrayOrList_OpeningDelimiter openingTokenRange sepOpenA)
-                    (genTriviaFor SynExpr_ArrayOrList_OpeningDelimiter openingTokenRange sepOpenL)
-                +> col sepSemi xs (genExpr astContext)
-                +> ifElse
-                    isArray
-                    (genTriviaFor SynExpr_ArrayOrList_ClosingDelimiter closingTokenRange sepCloseA)
-                    (genTriviaFor SynExpr_ArrayOrList_ClosingDelimiter closingTokenRange sepCloseL)
-
-            let multilineExpression =
-                ifAlignBrackets
-                    (genMultiLineArrayOrListAlignBrackets isArray xs openingTokenRange closingTokenRange astContext)
-                    (genMultiLineArrayOrList isArray xs openingTokenRange closingTokenRange astContext)
-
-            fun ctx ->
-                if List.exists isIfThenElseWithYieldReturn xs
-                   || List.forall isSynExprLambdaOrIfThenElse xs then
-                    multilineExpression ctx
-                else
-                    let size = getListOrArrayExprSize ctx ctx.Config.MaxArrayOrListWidth xs
-
-                    isSmallExpression size smallExpression multilineExpression ctx
-
+            genArrayOrList astContext isArray openingTokenRange xs closingTokenRange
         | Record (openingBrace, inheritOpt, xs, eo, closingBrace) ->
             let smallRecordExpr =
                 genTriviaFor SynExpr_Record_OpeningBrace openingBrace sepOpenS
