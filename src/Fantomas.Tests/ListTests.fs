@@ -350,9 +350,10 @@ let prismCli commando =
         equal
         """let prismCli commando =
     let props =
-        createObj [ "component" ==> "pre"
-                    //"className" ==> "language-fsharp"
-                     ]
+        createObj
+            [ "component" ==> "pre"
+              //"className" ==> "language-fsharp"
+              ]
 
     ()
 """
@@ -376,9 +377,10 @@ let prismCli commando =
         equal
         """let prismCli commando =
     let props =
-        createObj [|"component" ==> "pre"
-                    //"className" ==> "language-fsharp"
-                    |]
+        createObj
+            [|"component" ==> "pre"
+              //"className" ==> "language-fsharp"
+              |]
 
     ()
 """

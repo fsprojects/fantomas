@@ -172,10 +172,11 @@ type MNIST
         List.ofSeq
         <| defaultArg
             urls
-            (Seq.ofList [ "http://yann.lecun.com/exdb/mnist/train-images-idx3-ubyte.gz"
-                          "http://yann.lecun.com/exdb/mnist/train-labels-idx1-ubyte.gz"
-                          "http://yann.lecun.com/exdb/mnist/t10k-images-idx3-ubyte.gz"
-                          "http://yann.lecun.com/exdb/mnist/t10k-labels-idx1-ubyte.gz" ])
+            (Seq.ofList
+                [ "http://yann.lecun.com/exdb/mnist/train-images-idx3-ubyte.gz"
+                  "http://yann.lecun.com/exdb/mnist/train-labels-idx1-ubyte.gz"
+                  "http://yann.lecun.com/exdb/mnist/t10k-images-idx3-ubyte.gz"
+                  "http://yann.lecun.com/exdb/mnist/t10k-labels-idx1-ubyte.gz" ])
     let files =
         [ for url in urls do
               Path.Combine(path, Path.GetFileName(url)) ]

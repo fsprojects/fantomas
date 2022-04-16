@@ -65,7 +65,7 @@ let private badgeSample =
 
 exportDefault badgeSample
 """
-        config
+        {config with Ragnarok = true}
     |> prepend newline
     |> should
         equal
@@ -85,13 +85,9 @@ let private badgeSample =
             fragment [] [
                 h3 [] [
                     str "Heading "
-                    Badge.badge [ Badge.Color Secondary ] [
-                        str "New"
-                    ]
+                    Badge.badge [ Badge.Color Secondary ] [ str "New" ]
                 ]
-                Badge.badge [ Badge.Color Warning ] [
-                    str "oh my"
-                ]
+                Badge.badge [ Badge.Color Warning ] [ str "oh my" ]
             ]),
         "BadgeSample"
     )

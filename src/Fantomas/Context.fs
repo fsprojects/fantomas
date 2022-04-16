@@ -1145,7 +1145,7 @@ let internal unindentOnWith (ctx: Context) =
         ctx
 
 let internal ifAlignBrackets f g =
-    ifElseCtx (fun ctx -> ctx.Config.MultilineBlockBracketsOnSameColumn) f g
+    ifElseCtx (fun ctx -> ctx.Config.MultilineBlockBracketsOnSameColumn || ctx.Config.Ragnarok) f g
 
 let internal printTriviaContent (c: TriviaContent) (ctx: Context) =
     let currentLastLine = ctx.WriterModel.Lines |> List.tryHead

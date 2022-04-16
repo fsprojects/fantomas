@@ -1034,7 +1034,7 @@ and genNamedArgumentExpr (astContext: ASTContext) operatorExpr e1 e2 appRange =
     expressionFitsOnRestOfLine short long
     |> genTriviaFor SynExpr_App appRange
 
-and genArrayOrList astContext isArray openingTokenRange xs closingTokenRange=
+and genArrayOrList astContext isArray openingTokenRange xs closingTokenRange maxWidth =
     match xs with
     | [] -> 
         ifElse
@@ -1065,7 +1065,7 @@ and genArrayOrList astContext isArray openingTokenRange xs closingTokenRange=
                 || List.forall isSynExprLambdaOrIfThenElse xs then
                 multilineExpression ctx
             else
-                let size = getListOrArrayExprSize ctx ctx.Config.MaxArrayOrListWidth xs
+                let size = getListOrArrayExprSize ctx maxWidth xs
 
                 isSmallExpression size smallExpression multilineExpression ctx
 
@@ -1077,7 +1077,8 @@ and genExpr astContext synExpr ctx =
         //     System.Threading.Thread.Sleep(100)
         // System.Diagnostics.Debugger.Break()
         match synExpr with
-        | FunctionApplicationSingleList(expr, args, openingTokenRange, isArray,  children, closingTokenRange) when ctx.Config.Ragnarok ->
+        | FunctionApplicationSingleList(expr, args, openingTokenRange, isArray,  children, closingTokenRange) when 
+            ctx.Config.Ragnarok ->
             // fun (ctx : Context) ->
                 let indentNewLine f =
                     indent
@@ -1089,14 +1090,14 @@ and genExpr astContext synExpr ctx =
                     +> sepSpace
                     +> col sepSpace args (genExpr astContext)
                     +> sepSpace
-                    +> genArrayOrList astContext isArray openingTokenRange children closingTokenRange
+                    +> genArrayOrList astContext isArray openingTokenRange children closingTokenRange ctx.Config.MaxElmishWidth
 
                 let longExpression =
                     genExpr astContext expr
                     +> sepSpace
                     +> col sepSpace args (genExpr astContext)
                     +> sepSpace
-                    +> genArrayOrList astContext isArray openingTokenRange children closingTokenRange
+                    +> genArrayOrList astContext isArray openingTokenRange children closingTokenRange ctx.Config.MaxElmishWidth
                 expressionFitsOnRestOfLine shortExpression longExpression
         // | FunctionApplicationSingleList (identifier, openingTokenRange, isArray, , children, closingTokenRange) when
         //     (not ctx.Config.DisableElmishSyntax)
@@ -1188,96 +1189,112 @@ and genExpr astContext synExpr ctx =
 
         //         isShortExpression ctx.Config.MaxElmishWidth smallExpression multilineExpression ctx
 
-        | FunctionApplicationDualList ((identifier, _, _),
-                                   attributes,
-                                   (isArray, openingTokenRange, children, closingTokenRange)) when
-            (not ctx.Config.DisableElmishSyntax)
-            ->
-            let genChildren isShort =
-                match children with
-                | [] ->
-                    genTriviaFor
-                        SynExpr_ArrayOrList_OpeningDelimiter
-                        openingTokenRange
-                        (ifElse isArray sepOpenAFixed sepOpenLFixed)
-                    +> genTriviaFor
-                        SynExpr_ArrayOrList_ClosingDelimiter
-                        closingTokenRange
-                        (ifElse isArray sepCloseAFixed sepCloseLFixed)
-                | [ singleChild ] ->
-                    if isShort then
-                        genTriviaFor
-                            SynExpr_ArrayOrList_OpeningDelimiter
-                            openingTokenRange
-                            (ifElse isArray sepOpenA sepOpenL)
-                        +> genExpr astContext singleChild
-                        +> genTriviaFor
-                            SynExpr_ArrayOrList_ClosingDelimiter
-                            closingTokenRange
-                            (ifElse isArray sepCloseA sepCloseL)
-                    else
-                        genTriviaFor
-                            SynExpr_ArrayOrList_OpeningDelimiter
-                            openingTokenRange
-                            (ifElse isArray sepOpenA sepOpenL)
-                        +> indent
-                        +> sepNln
-                        +> genExpr astContext singleChild
-                        +> unindent
-                        +> sepNln
-                        +> genTriviaFor
-                            SynExpr_ArrayOrList_ClosingDelimiter
-                            closingTokenRange
-                            (ifElse isArray sepCloseAFixed sepCloseLFixed)
-
-                | children ->
-                    if isShort then
-                        genTriviaFor
-                            SynExpr_ArrayOrList_OpeningDelimiter
-                            openingTokenRange
-                            (ifElse isArray sepOpenA sepOpenL)
-                        +> col sepSemi children (genExpr astContext)
-                        +> genTriviaFor
-                            SynExpr_ArrayOrList_ClosingDelimiter
-                            closingTokenRange
-                            (ifElse isArray sepCloseA sepCloseL)
-                    else
-                        genTriviaFor
-                            SynExpr_ArrayOrList_OpeningDelimiter
-                            openingTokenRange
-                            (ifElse isArray sepOpenA sepOpenL)
-                        +> indent
-                        +> sepNln
-                        +> col sepNln children (genExpr astContext)
-                        +> unindent
-                        +> sepNln
-                        +> genTriviaFor
-                            SynExpr_ArrayOrList_ClosingDelimiter
-                            closingTokenRange
-                            (ifElse isArray sepCloseAFixed sepCloseLFixed)
-
-            let shortExpression =
-                !-identifier
-                +> sepSpace
-                +> genExpr astContext attributes
-                +> sepSpace
-                +> genChildren true
-
-            let longExpression =
-                atCurrentColumn (
-                    !-identifier
+        | FunctionApplicationDualList (expr, args, (sr2, isArray2, children2, er2), (sr, isArray, children, er)) when
+            (ctx.Config.Ragnarok) ->
+                let shortExpression =
+                    genExpr astContext expr
                     +> sepSpace
-                    +> atCurrentColumn (genExpr astContext attributes)
+                    +> col sepSpace args (genExpr astContext)
                     +> sepSpace
-                    +> genChildren false
-                )
+                    +> genArrayOrList astContext isArray2 sr2 children2 er2 ctx.Config.MaxElmishWidth
+                    +> sepSpace
+                    +> genArrayOrList astContext isArray sr children er ctx.Config.MaxElmishWidth
 
-            fun ctx ->
-                let size = getListOrArrayExprSize ctx ctx.Config.MaxElmishWidth children
+                let longExpression =
+                    genExpr astContext expr
+                    +> sepSpace
+                    +> col sepSpace args (genExpr astContext)
+                    +> sepSpace
+                    +> genArrayOrList astContext isArray2 sr2 children2 er2 ctx.Config.MaxElmishWidth
+                    +> sepSpace
+                    +> genArrayOrList astContext isArray sr children er ctx.Config.MaxElmishWidth
+                expressionFitsOnRestOfLine shortExpression longExpression
+        //     ->
+        //     let genChildren isShort =
+        //         match children with
+        //         | [] ->
+        //             genTriviaFor
+        //                 SynExpr_ArrayOrList_OpeningDelimiter
+        //                 openingTokenRange
+        //                 (ifElse isArray sepOpenAFixed sepOpenLFixed)
+        //             +> genTriviaFor
+        //                 SynExpr_ArrayOrList_ClosingDelimiter
+        //                 closingTokenRange
+        //                 (ifElse isArray sepCloseAFixed sepCloseLFixed)
+        //         | [ singleChild ] ->
+        //             if isShort then
+        //                 genTriviaFor
+        //                     SynExpr_ArrayOrList_OpeningDelimiter
+        //                     openingTokenRange
+        //                     (ifElse isArray sepOpenA sepOpenL)
+        //                 +> genExpr astContext singleChild
+        //                 +> genTriviaFor
+        //                     SynExpr_ArrayOrList_ClosingDelimiter
+        //                     closingTokenRange
+        //                     (ifElse isArray sepCloseA sepCloseL)
+        //             else
+        //                 genTriviaFor
+        //                     SynExpr_ArrayOrList_OpeningDelimiter
+        //                     openingTokenRange
+        //                     (ifElse isArray sepOpenA sepOpenL)
+        //                 +> indent
+        //                 +> sepNln
+        //                 +> genExpr astContext singleChild
+        //                 +> unindent
+        //                 +> sepNln
+        //                 +> genTriviaFor
+        //                     SynExpr_ArrayOrList_ClosingDelimiter
+        //                     closingTokenRange
+        //                     (ifElse isArray sepCloseAFixed sepCloseLFixed)
 
-                let smallExpression = isSmallExpression size shortExpression longExpression
+        //         | children ->
+        //             if isShort then
+        //                 genTriviaFor
+        //                     SynExpr_ArrayOrList_OpeningDelimiter
+        //                     openingTokenRange
+        //                     (ifElse isArray sepOpenA sepOpenL)
+        //                 +> col sepSemi children (genExpr astContext)
+        //                 +> genTriviaFor
+        //                     SynExpr_ArrayOrList_ClosingDelimiter
+        //                     closingTokenRange
+        //                     (ifElse isArray sepCloseA sepCloseL)
+        //             else
+        //                 genTriviaFor
+        //                     SynExpr_ArrayOrList_OpeningDelimiter
+        //                     openingTokenRange
+        //                     (ifElse isArray sepOpenA sepOpenL)
+        //                 +> indent
+        //                 +> sepNln
+        //                 +> col sepNln children (genExpr astContext)
+        //                 +> unindent
+        //                 +> sepNln
+        //                 +> genTriviaFor
+        //                     SynExpr_ArrayOrList_ClosingDelimiter
+        //                     closingTokenRange
+        //                     (ifElse isArray sepCloseAFixed sepCloseLFixed)
 
-                isShortExpression ctx.Config.MaxElmishWidth smallExpression longExpression ctx
+        //     let shortExpression =
+        //         !-identifier
+        //         +> sepSpace
+        //         +> genExpr astContext attributes
+        //         +> sepSpace
+        //         +> genChildren true
+
+        //     let longExpression =
+        //         atCurrentColumn (
+        //             !-identifier
+        //             +> sepSpace
+        //             +> atCurrentColumn (genExpr astContext attributes)
+        //             +> sepSpace
+        //             +> genChildren false
+        //         )
+
+        //     fun ctx ->
+        //         let size = getListOrArrayExprSize ctx ctx.Config.MaxElmishWidth children
+
+        //         let smallExpression = isSmallExpression size shortExpression longExpression
+
+        //         isShortExpression ctx.Config.MaxElmishWidth smallExpression longExpression ctx
 
         | LazyExpr (lazyKeyword, e) ->
             let isInfixExpr =
@@ -1400,7 +1417,7 @@ and genExpr astContext synExpr ctx =
             +> genTuple astContext es
             +> sepCloseT
         | ArrayOrList (openingTokenRange, isArray, xs, closingTokenRange, _) ->
-            genArrayOrList astContext isArray openingTokenRange xs closingTokenRange
+            genArrayOrList astContext isArray openingTokenRange xs closingTokenRange ctx.Config.MaxArrayOrListWidth
         | Record (openingBrace, inheritOpt, xs, eo, closingBrace) ->
             let smallRecordExpr =
                 genTriviaFor SynExpr_Record_OpeningBrace openingBrace sepOpenS

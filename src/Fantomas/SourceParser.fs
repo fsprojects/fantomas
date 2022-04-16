@@ -1767,18 +1767,24 @@ let (|IndexWithoutDotExpr|FunctionApplicationSingleList|FunctionApplicationDualL
     // | SynExpr.App (_, false, OptVar (ident, _, _),  , _) ->
 
     //     FunctionApplicationSingleList(ident, sr, isArray, children, er)
+    // | SynExpr.App (_,
+    //                false,
+    //                SynExpr.App (_, false, OptVar ident, (ArrayOrList _ as attributes), _),
+    //                ArrayOrList (sr, isArray, children, er, r),
+    //                _) -> FunctionApplicationDualList(ident, attributes, (isArray, sr, children, er))
     | App(expr, exprs) ->
         match exprs |> List.rev with
-        | ArrayOrList (sr, isArray, children, er, _)::tail ->  
+
+        | (ArrayOrList (sr, isArray, children, er, _))::(ArrayOrList (sr2, isArray2, children2, er2, _))::tail ->  
+            let args = tail |> List.rev
+            // put second match in front to get order back to original
+            FunctionApplicationDualList(expr, args, (sr2, isArray2, children2, er2), (sr, isArray, children, er)  )
+
+        | (ArrayOrList (sr, isArray, children, er, _))::tail ->  
             let args = tail |> List.rev
             FunctionApplicationSingleList(expr, args, sr, isArray, children, er)
         | _ ->
             NonAppExpr
-    | SynExpr.App (_,
-                   false,
-                   SynExpr.App (_, false, OptVar ident, (ArrayOrList _ as attributes), _),
-                   ArrayOrList (sr, isArray, children, er, r),
-                   _) -> FunctionApplicationDualList(ident, attributes, (isArray, sr, children, er))
     | _ -> NonAppExpr
 
 let isIfThenElseWithYieldReturn e =
