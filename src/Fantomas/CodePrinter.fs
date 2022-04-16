@@ -1705,7 +1705,7 @@ and genExpr astContext synExpr ctx =
                 +> col sepSpace es (fun (s, oe, e) ->
                     genInfixOperator s oe
                     +> sepSpace
-                    +> genExpr astContext e)
+                    +> (genExpr astContext e |> fun x -> match e with | Lambda _ -> sepOpenT +> x +> sepCloseT | _ -> x))
 
             let multilineExpr =
                 match es with
