@@ -1703,7 +1703,11 @@ and genExpr astContext synExpr ctx =
                 genExpr astContext e
                 +> sepSpace
                 +> col sepSpace es (fun (s, oe, e) ->
-                    let isLambda = match e with | Lambda _ -> true | _ -> false
+                    let isLambda =
+                        match e with
+                        | Lambda _ -> true
+                        | _ -> false
+
                     genInfixOperator s oe
                     +> sepSpace
                     +> onlyIf isLambda sepOpenT
