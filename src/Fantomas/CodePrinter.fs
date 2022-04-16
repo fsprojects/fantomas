@@ -1,4 +1,4 @@
-module internal Fantomas.CodePrinter
+﻿module internal Fantomas.CodePrinter
 
 open System
 open System.Text.RegularExpressions
@@ -1703,9 +1703,12 @@ and genExpr astContext synExpr ctx =
                 genExpr astContext e
                 +> sepSpace
                 +> col sepSpace es (fun (s, oe, e) ->
+                    let isLambda = match e with | Lambda _ -> true | _ -> false
                     genInfixOperator s oe
                     +> sepSpace
-                    +> (genExpr astContext e |> fun x -> match e with | Lambda _ -> sepOpenT +> x +> sepCloseT | _ -> x))
+                    +> onlyIf isLambda sepOpenT
+                    +> genExpr astContext e
+                    +> onlyIf isLambda sepCloseT)
 
             let multilineExpr =
                 match es with
