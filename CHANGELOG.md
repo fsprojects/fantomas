@@ -7,6 +7,7 @@
 * Blank line over SynEnumCase is restored incorrectly. [#2155](https://github.com/fsprojects/fantomas/issues/2155)
 * XML Doc comments on DU cases seem to get shuffled. [#2188](https://github.com/fsprojects/fantomas/issues/2188)
 * Comment after bar is lost in single case DU. [#2182](https://github.com/fsprojects/fantomas/issues/2182)
+* Breaks float range with step-size when trailing 0 is omitted. [#2171](https://github.com/fsprojects/fantomas/issues/2171)
 
 ## [4.7.6] - 2022-04-04
 

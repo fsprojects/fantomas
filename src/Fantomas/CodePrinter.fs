@@ -2641,10 +2641,20 @@ and genExpr astContext synExpr ctx =
         | IndexRangeExpr (None, None) -> !- "*"
         | IndexRangeExpr (Some (IndexRangeExpr (Some (ConstNumberExpr e1), Some (ConstNumberExpr e2))),
                           Some (ConstNumberExpr e3)) ->
+            let hasOmittedTrailingZero =
+                ctx.Content[e1.Range.EndColumn] = '.'
+                || ctx.Content[e2.Range.EndColumn - 1] = '.'
+
+            let dots =
+                if hasOmittedTrailingZero then
+                    " .. "
+                else
+                    ".."
+
             genExpr astContext e1
-            +> !- ".."
+            +> !-dots
             +> genExpr astContext e2
-            +> !- ".."
+            +> !-dots
             +> genExpr astContext e3
         | IndexRangeExpr (e1, e2) ->
             let hasSpaces =
