@@ -2641,12 +2641,17 @@ and genExpr astContext synExpr ctx =
         | IndexRangeExpr (None, None) -> !- "*"
         | IndexRangeExpr (Some (IndexRangeExpr (Some (ConstNumberExpr e1), Some (ConstNumberExpr e2))),
                           Some (ConstNumberExpr e3)) ->
-            let hasOmittedTrailingZero =
-                ctx.Content[e1.Range.EndColumn] = '.'
-                || ctx.Content[e2.Range.EndColumn - 1] = '.'
+            let hasOmittedTrailingZero r =
+                TriviaHelpers.``has content itself that matches``
+                    (function
+                    | Number n -> n.EndsWith(".")
+                    | _ -> false)
+                    r
+                    (Map.tryFindOrEmptyList SynConst_Double ctx.TriviaMainNodes)
 
             let dots =
-                if hasOmittedTrailingZero then
+                if hasOmittedTrailingZero e1.Range
+                   || hasOmittedTrailingZero e2.Range then
                     " .. "
                 else
                     ".."
