@@ -1154,3 +1154,43 @@ let ``function expression and argument expression with parenthesis, 1998`` () =
  << SomeModule.doSomethingElse)
     (fun x -> x)
 """
+
+[<Test>]
+let ``piped lambda with if-then-else, 2196`` () =
+    formatSourceString
+        false
+        """
+let dayOfWeekToNum (d: DayOfWeek) =
+    int d
+    |> fun x -> if x = 0 then 7 else x
+    |> DayNum
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let dayOfWeekToNum (d: DayOfWeek) =
+    int d
+    |> fun x -> if x = 0 then 7 else x
+    |> DayNum
+"""
+
+[<Test>]
+let ``piped lambda with if-then-else, short, 2196`` () =
+    formatSourceString
+        false
+        """
+let foo () =
+    f()
+    |> fun x -> if x then 1 else 2
+    |> g
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let foo () =
+    f () |> (fun x -> if x then 1 else 2) |> g
+"""
