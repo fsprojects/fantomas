@@ -169,3 +169,22 @@ do
     for i in [ maxIndex .. -1 .. startIndex ] do
         stack.Push i
 """
+
+[<Test>]
+let ``float range with trailing zero omitted, 2171`` () =
+    formatSourceString
+        false
+        """
+let a = [1. .. 0.1 .. 2.]
+let b = [1.0 .. 2. .. 10.]
+let c = [1.0 .. 2.0 .. 10.0]
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let a = [ 1. .. 0.1 .. 2. ]
+let b = [ 1.0 .. 2. .. 10. ]
+let c = [ 1.0..2.0..10.0 ]
+"""

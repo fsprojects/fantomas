@@ -1,5 +1,10 @@
 # Changelog
 
+## [Unreleased]
+
+### Fixed
+* Breaks float range with step-size when trailing 0 is omitted. [#2171](https://github.com/fsprojects/fantomas/issues/2171)
+
 ## [4.7.7] - 2022-04-20
 
 ### Fixed
