@@ -188,3 +188,50 @@ let a = [ 1. .. 0.1 .. 2. ]
 let b = [ 1.0 .. 2. .. 10. ]
 let c = [ 1.0..2.0..10.0 ]
 """
+
+[<Test>]
+let ``indexed item invocation, 2106`` () =
+    formatSourceString
+        false
+        """
+array1[0]()
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+array1[0]()
+"""
+
+[<Test>]
+let ``nested indexed item`` () =
+    formatSourceString
+        false
+        """
+let x = array1[0][0]
+let y = callData["key"]["subKey"]
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let x = array1[0][0]
+let y = callData["key"]["subKey"]
+"""
+
+[<Test>]
+let ``triple nested indexed item`` () =
+    formatSourceString
+        false
+        """
+let meh = myList[0][1][2]
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let meh = myList[0][1][2]
+"""
