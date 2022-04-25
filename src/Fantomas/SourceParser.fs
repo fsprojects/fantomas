@@ -1753,7 +1753,9 @@ let rec (|UppercaseSynType|LowercaseSynType|) (synType: SynType) =
     | SynType.App (st, _, _, _, _, _, _) -> (|UppercaseSynType|LowercaseSynType|) st
     | _ -> failwithf "cannot determine if synType %A is uppercase or lowercase" synType
 
-let (|IndexWithoutDotExpr|ElmishReactWithoutChildren|ElmishReactWithChildren|NonAppExpr|) e =
+let rec (|IndexWithoutDotExpr|NestedIndexWithoutDotExpr|ElmishReactWithoutChildren|ElmishReactWithChildren|NonAppExpr|)
+    e
+    =
     match e with
     | SynExpr.App (ExprAtomicFlag.Atomic, false, identifierExpr, SynExpr.ArrayOrListComputed (false, indexExpr, _), _) ->
         IndexWithoutDotExpr(identifierExpr, indexExpr)
@@ -1763,6 +1765,8 @@ let (|IndexWithoutDotExpr|ElmishReactWithoutChildren|ElmishReactWithChildren|Non
                    (SynExpr.ArrayOrListComputed (isArray = false; expr = indexExpr) as argExpr),
                    _) when (RangeHelpers.isAdjacentTo identifierExpr.Range argExpr.Range) ->
         IndexWithoutDotExpr(identifierExpr, indexExpr)
+    | SynExpr.App (ExprAtomicFlag.NonAtomic, false, IndexWithoutDotExpr (identifier, indexExpr), argExpr, _) ->
+        NestedIndexWithoutDotExpr(identifier, indexExpr, argExpr)
     | SynExpr.App (_, false, OptVar (ident, _, _), ArrayOrList (sr, isArray, children, er, _), _) ->
         ElmishReactWithoutChildren(ident, sr, isArray, children, er)
     | SynExpr.App (_,

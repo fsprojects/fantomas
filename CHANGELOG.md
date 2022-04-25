@@ -1,9 +1,10 @@
 # Changelog
 
-## [Unreleased]
+## [4.7.8] - 2022-04-25
 
 ### Fixed
 * Breaks float range with step-size when trailing 0 is omitted. [#2171](https://github.com/fsprojects/fantomas/issues/2171)
+* Fantomas inserts a space between array variable and indexer. [#2106](https://github.com/fsprojects/fantomas/issues/2106)
 
 ## [4.7.7] - 2022-04-20
 
