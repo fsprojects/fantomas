@@ -1,5 +1,10 @@
 # Changelog
 
+## [Unreleased]
+
+### Fixed
+* Idempotency problem with multiline quotation expressions. [#2203](https://github.com/fsprojects/fantomas/issues/2203)
+
 ## [4.7.8] - 2022-04-25
 
 ### Fixed

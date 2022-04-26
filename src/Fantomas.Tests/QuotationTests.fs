@@ -40,3 +40,36 @@ let logger =
         .Returns(())
         .Create()
 """
+
+[<Test>]
+let ``should format multiline quotation expressions idempotent, 2203`` () =
+    formatSourceString
+        false
+        """
+let action =
+    <@
+        let msg = %httpRequestMessageWithPayload
+        RuntimeHelpers.fillHeaders msg %heads
+        async {
+            let! response = (%this).HttpClient.SendAsync(msg) |> Async.AwaitTask
+            return response.EnsureSuccessStatusCode().Content
+        }
+    @>
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let action =
+    <@ let msg = %httpRequestMessageWithPayload
+       RuntimeHelpers.fillHeaders msg %heads
+
+       async {
+           let! response =
+               (%this).HttpClient.SendAsync(msg)
+               |> Async.AwaitTask
+
+           return response.EnsureSuccessStatusCode().Content
+       } @>
+"""
