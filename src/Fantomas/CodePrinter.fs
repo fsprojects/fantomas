@@ -2638,25 +2638,22 @@ and genExpr astContext synExpr ctx =
         | IndexRangeExpr (None, None) -> !- "*"
         | IndexRangeExpr (Some (IndexRangeExpr (Some (ConstNumberExpr e1), Some (ConstNumberExpr e2))),
                           Some (ConstNumberExpr e3)) ->
-            let hasOmittedTrailingZero r =
-                TriviaHelpers.``has content itself that matches``
-                    (function
-                    | Number n -> n.EndsWith(".")
-                    | _ -> false)
-                    r
-                    (Map.tryFindOrEmptyList SynConst_Double ctx.TriviaMainNodes)
+            let hasOmittedTrailingZero (fromSourceText: range -> string option) r =
+                match fromSourceText r with
+                | None -> false
+                | Some sourceText -> sourceText.EndsWith(".")
 
-            let dots =
-                if hasOmittedTrailingZero e1.Range
-                   || hasOmittedTrailingZero e2.Range then
-                    " .. "
+            let dots (ctx: Context) =
+                if hasOmittedTrailingZero ctx.FromSourceText e1.Range
+                   || hasOmittedTrailingZero ctx.FromSourceText e2.Range then
+                    !- " .. " ctx
                 else
-                    ".."
+                    !- ".." ctx
 
             genExpr astContext e1
-            +> !-dots
+            +> dots
             +> genExpr astContext e2
-            +> !-dots
+            +> dots
             +> genExpr astContext e3
         | IndexRangeExpr (e1, e2) ->
             let hasSpaces =
