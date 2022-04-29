@@ -71,6 +71,7 @@ type OutputPath =
 let isInExcludedDir (fullPath: string) =
     set [| "obj"
            ".fable"
+           "fable_modules"
            "node_modules" |]
     |> Set.map (fun dir -> sprintf "%c%s%c" Path.DirectorySeparatorChar dir Path.DirectorySeparatorChar)
     |> Set.exists fullPath.Contains
