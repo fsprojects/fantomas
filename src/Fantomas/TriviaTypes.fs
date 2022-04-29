@@ -37,7 +37,9 @@ type TriviaIndex = TriviaIndex of int * int
 
 type FsAstType =
     | Ident_
-    | LongIdent_ // namespace or module identifier
+    | SynIdent_
+    | LongIdent_
+    | SynLongIdent_
     //    | SynModuleOrNamespace_AnonModule, pick first child node instead
     | SynModuleOrNamespace_DeclaredNamespace
     | SynModuleOrNamespace_GlobalNamespace
@@ -167,8 +169,8 @@ type FsAstType =
     | SynExpr_IndexFromEnd
     | SynInterpolatedStringPart_String
     | SynInterpolatedStringPart_FillExpr
-    | RecordField_
-    | RecordField_Equals
+    | SynExprRecordField_
+    | SynExprRecordField_Equals
     | AnonRecordField_
     | AnonRecordTypeField_
     | SynMemberSig_Member

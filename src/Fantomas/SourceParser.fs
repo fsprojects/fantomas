@@ -3,6 +3,7 @@ module internal Fantomas.SourceParser
 open System
 open FSharp.Compiler.Syntax
 open FSharp.Compiler.Syntax.PrettyNaming
+open FSharp.Compiler.SyntaxTrivia
 open FSharp.Compiler.Text
 open FSharp.Compiler.Xml
 open Fantomas
@@ -25,166 +26,12 @@ type Composite<'a, 'b> =
 [<Literal>]
 let MaxLength = 512
 
-[<Literal>]
-let private MangledGlobalName: string = "`global`"
-
-let (|Ident|) (s: Ident) =
-    let ident = s.idText
-
-    match ident with
-    | "`global`" -> "global"
-    | "not" -> "not"
-    | "params" -> "``params``"
-    | "parallel" -> "``parallel``"
-    | "mod" -> "``mod``"
-    | _ ->
-        if IsActivePatternName ident then
-            sprintf "(%s)" (DecompileOpName ident)
-        else
-            AddBackticksToIdentifierIfNeeded ident
-
-let (|LongIdent|) (li: LongIdent) =
-    li
-    |> Seq.map (fun x ->
-        if x.idText = MangledGlobalName then
-            "global"
-        else
-            (|Ident|) x)
-    |> String.concat "."
-    |> fun s ->
-        // Assume that if it starts with base, it's going to be the base keyword
-        if String.startsWithOrdinal "``base``." s then
-            String.Join("", "base.", s.[9..])
-        else
-            s
-
-let (|LongIdentPieces|) (li: LongIdent) =
-    li
-    |> List.map (fun x ->
-        if x.idText = MangledGlobalName then
-            "global", x.idRange
-        else
-            (|Ident|) x, x.idRange)
-
-let (|LongIdentPiecesExpr|_|) =
-    function
-    | SynExpr.LongIdent (_, LongIdentWithDots (lids, _), _, _) ->
-        lids
-        |> List.map (fun x ->
-            if x.idText = MangledGlobalName then
-                "global", x.idRange
-            else
-                (|Ident|) x, x.idRange)
-        |> Some
-    | _ -> None
-
-
-let (|LongIdentWithDotsPieces|_|) =
-    function
-    | LongIdentWithDots (lids, _) ->
-        lids
-        |> List.map (fun x ->
-            if x.idText = MangledGlobalName then
-                "global", x.idRange
-            else
-                (|Ident|) x, x.idRange)
-        |> Some
-
-let inline (|LongIdentWithDots|) (LongIdentWithDots (LongIdent s, _)) = s
-
-type Identifier =
-    | Id of Ident
-    | LongId of LongIdent
-    member x.Text =
-        match x with
-        | Id x -> x.idText
-        | LongId xs ->
-            xs
-            |> Seq.map (fun x ->
-                if x.idText = MangledGlobalName then
-                    "global"
-                else
-                    x.idText)
-            |> String.concat "."
-
-    member x.Ranges =
-        match x with
-        | Id x -> List.singleton x.idRange
-        | LongId xs -> List.map (fun (x: Ident) -> x.idRange) xs
-
-/// Different from (|Ident|), this pattern also accepts keywords
-let inline (|IdentOrKeyword|) (s: Ident) = Id s
-
-let (|LongIdentOrKeyword|) (li: LongIdent) = LongId li
-
-/// Use infix operators in the short form
-let (|OpName|) (x: Identifier) =
-    let s = x.Text
-    let s' = DecompileOpName s
-
-    if IsActivePatternName s then
-        sprintf "(%s)" s'
-    elif IsPrefixOperator s then
-        if s'.[0] = '~' && s'.Length >= 2 && s'.[1] <> '~' then
-            s'.[1..]
-        else
-            s'
-    else
-        match x with
-        | Id (Ident s)
-        | LongId (LongIdent s) -> DecompileOpName s
-
-let (|OpNameFullInPattern|) (x: Identifier) =
-    let r = x.Ranges
-    let s = x.Text
-    let s' = DecompileOpName s
-
-    (if IsActivePatternName s
-        || IsMangledInfixOperator s
-        || IsPrefixOperator s
-        || IsTernaryOperator s
-        || s = "op_Dynamic" then
-         // Use two spaces for symmetry
-         if String.startsWithOrdinal "*" s' && s' <> "*" then
-             sprintf "( %s )" s'
-         else
-             sprintf "(%s)" s'
-     else
-         match x with
-         | Id (Ident s)
-         | LongId (LongIdent s) -> DecompileOpName s)
-    |> fun s -> (s, r)
-
-
-/// Operators in their declaration form
-let (|OpNameFull|) (x: Identifier) =
-    let r = x.Ranges
-    let s = x.Text
-    let s' = DecompileOpName s
-
-    (if IsActivePatternName s then
-         s
-     elif IsMangledInfixOperator s
-          || IsPrefixOperator s
-          || IsTernaryOperator s
-          || s = "op_Dynamic" then
-         // Use two spaces for symmetry
-         if String.startsWithOrdinal "*" s' && s' <> "*" then
-             sprintf " %s " s'
-         else
-             s'
-     else
-         match x with
-         | Id (Ident s)
-         | LongId (LongIdent s) -> DecompileOpName s)
-    |> fun s -> (s, r)
-
 // Type params
 
-let inline (|Typar|) (SynTypar.SynTypar (Ident s as ident, req, _)) =
+let inline (|Typar|) (SynTypar.SynTypar (ident, req, _)) =
     match req with
-    | TyparStaticReq.None -> (s, ident.idRange, false)
-    | TyparStaticReq.HeadType -> (s, ident.idRange, true)
+    | TyparStaticReq.None -> (ident, false)
+    | TyparStaticReq.HeadType -> (ident, true)
 
 let inline (|ValTyparDecls|) (SynValTyparDecls (tds, b)) = (tds, b)
 
@@ -195,28 +42,6 @@ let rec (|RationalConst|) =
     | SynRationalConst.Integer i -> string i
     | SynRationalConst.Rational (numerator, denominator, _) -> sprintf "(%i/%i)" numerator denominator
     | SynRationalConst.Negate (RationalConst s) -> sprintf "- %s" s
-
-let (|Measure|) x =
-    let rec loop =
-        function
-        | SynMeasure.Var (Typar (s, _, _), _) -> s
-        | SynMeasure.Anon _ -> "_"
-        | SynMeasure.One -> "1"
-        | SynMeasure.Product (m1, m2, _) ->
-            let s1 = loop m1
-            let s2 = loop m2
-            sprintf "%s*%s" s1 s2
-        | SynMeasure.Divide (m1, m2, _) ->
-            let s1 = loop m1
-            let s2 = loop m2
-            sprintf "%s/%s" s1 s2
-        | SynMeasure.Power (m, RationalConst n, _) ->
-            let s = loop m
-            sprintf "%s^%s" s n
-        | SynMeasure.Seq (ms, _) -> List.map loop ms |> String.concat " "
-        | SynMeasure.Named (LongIdent s, _) -> s
-
-    sprintf "<%s>" <| loop x
 
 let (|String|_|) e =
     match e with
@@ -252,12 +77,12 @@ let (|ParsedSigFileInput|)
     (hs, mns, directives, codeComments)
 
 let (|ModuleOrNamespace|)
-    (SynModuleOrNamespace.SynModuleOrNamespace (LongIdentPieces lids, isRecursive, kind, mds, px, ats, ao, range))
+    (SynModuleOrNamespace.SynModuleOrNamespace (lids, isRecursive, kind, mds, px, ats, ao, range))
     =
     (ats, px, ao, lids, mds, isRecursive, kind, range)
 
 let (|SigModuleOrNamespace|)
-    (SynModuleOrNamespaceSig.SynModuleOrNamespaceSig (LongIdentPieces lids, isRecursive, kind, mds, px, ats, ao, range))
+    (SynModuleOrNamespaceSig.SynModuleOrNamespaceSig (lids, isRecursive, kind, mds, px, ats, ao, range))
     =
     (ats, px, ao, lids, mds, isRecursive, kind, range)
 
@@ -273,9 +98,7 @@ let (|EmptyFile|_|) (input: ParsedInput) =
                                    _)) -> Some input
     | _ -> None
 
-let (|Attribute|) (a: SynAttribute) =
-    let (LongIdentWithDots s) = a.TypeName
-    (s, a.ArgExpr, Option.map (fun (i: Ident) -> i.idText) a.Target)
+let (|Attribute|) (a: SynAttribute) = (a.TypeName, a.ArgExpr, a.Target)
 
 // Access modifiers
 
@@ -292,18 +115,18 @@ let (|PreXmlDoc|) (px: PreXmlDoc) =
 // Module declarations (11 cases)
 let (|Open|_|) =
     function
-    | SynModuleDecl.Open (SynOpenDeclTarget.ModuleOrNamespace (LongIdent s, _m), _) -> Some s
+    | SynModuleDecl.Open (SynOpenDeclTarget.ModuleOrNamespace (lid, _m), _) -> Some lid
     | _ -> None
 
 let (|OpenType|_|) =
     function
     // TODO: are there other SynType causes that need to be handled here?
-    | SynModuleDecl.Open (SynOpenDeclTarget.Type (SynType.LongIdent (LongIdentWithDots s), _m), _) -> Some s
+    | SynModuleDecl.Open (SynOpenDeclTarget.Type (SynType.LongIdent synLid, _m), _) -> Some synLid
     | _ -> None
 
 let (|ModuleAbbrev|_|) =
     function
-    | SynModuleDecl.ModuleAbbrev (Ident s1, LongIdent s2, _) -> Some(s1, s2)
+    | SynModuleDecl.ModuleAbbrev (ident, lid, _) -> Some(ident, lid)
     | _ -> None
 
 let (|HashDirective|_|) =
@@ -343,8 +166,8 @@ let (|Types|_|) =
 
 let (|NestedModule|_|) =
     function
-    | SynModuleDecl.NestedModule (SynComponentInfo (ats, _, _, LongIdent s, px, _, ao, _), isRecursive, xs, _, _, trivia) ->
-        Some(ats, px, trivia.ModuleKeyword, ao, s, isRecursive, trivia.EqualsRange, xs)
+    | SynModuleDecl.NestedModule (SynComponentInfo (ats, _, _, lid, px, _, ao, _), isRecursive, xs, _, _, trivia) ->
+        Some(ats, px, trivia.ModuleKeyword, ao, lid, isRecursive, trivia.EqualsRange, xs)
     | _ -> None
 
 let (|Exception|_|) =
@@ -356,17 +179,17 @@ let (|Exception|_|) =
 
 let (|SigOpen|_|) =
     function
-    | SynModuleSigDecl.Open (SynOpenDeclTarget.ModuleOrNamespace (LongIdent s, _), _) -> Some s
+    | SynModuleSigDecl.Open (SynOpenDeclTarget.ModuleOrNamespace (lid, _), _) -> Some lid
     | _ -> None
 
 let (|SigOpenType|_|) =
     function
-    | SynModuleSigDecl.Open (SynOpenDeclTarget.Type (SynType.LongIdent (LongIdentWithDots s), _), _) -> Some s
+    | SynModuleSigDecl.Open (SynOpenDeclTarget.Type (SynType.LongIdent synLongIdent, _), _) -> Some synLongIdent
     | _ -> None
 
 let (|SigModuleAbbrev|_|) =
     function
-    | SynModuleSigDecl.ModuleAbbrev (Ident s1, LongIdent s2, _) -> Some(s1, s2)
+    | SynModuleSigDecl.ModuleAbbrev (ident, lid, _) -> Some(ident, lid)
     | _ -> None
 
 let (|SigHashDirective|_|) =
@@ -391,8 +214,8 @@ let (|SigTypes|_|) =
 
 let (|SigNestedModule|_|) =
     function
-    | SynModuleSigDecl.NestedModule (SynComponentInfo (ats, _, _, LongIdent s, px, _, ao, _), _, xs, _, trivia) ->
-        Some(ats, px, trivia.ModuleKeyword, ao, s, trivia.EqualsRange, xs)
+    | SynModuleSigDecl.NestedModule (SynComponentInfo (ats, _, _, lid, px, _, ao, _), _, xs, _, trivia) ->
+        Some(ats, px, trivia.ModuleKeyword, ao, lid, trivia.EqualsRange, xs)
     | _ -> None
 
 let (|SigException|_|) =
@@ -422,7 +245,7 @@ let (|SigExceptionDef|)
     =
     (ats, px, ao, uc, withKeyword, ms)
 
-let (|UnionCase|) (SynUnionCase (ats, (Ident s as ident), uct, px, ao, r, trivia)) =
+let (|UnionCase|) (SynUnionCase (ats, ident, uct, px, ao, r, trivia)) =
     let fullRange =
         if not px.IsEmpty then
             r
@@ -431,7 +254,7 @@ let (|UnionCase|) (SynUnionCase (ats, (Ident s as ident), uct, px, ao, r, trivia
             | None -> r
             | Some barRange -> Range.unionRanges barRange r
 
-    (ats, px, trivia.BarRange, ao, s, ident.idRange, uct, fullRange)
+    (ats, px, trivia.BarRange, ao, ident, uct, fullRange)
 
 let (|UnionCaseType|) =
     function
@@ -443,9 +266,9 @@ let (|Field|) (SynField (ats, isStatic, ido, t, isMutable, px, ao, range)) =
         ido
         |> Option.map (fun i -> Range.unionRanges i.idRange t.Range)
 
-    (ats, px, ao, isStatic, isMutable, t, Option.map (|Ident|) ido, innerRange, range)
+    (ats, px, ao, isStatic, isMutable, t, ido, innerRange, range)
 
-let (|EnumCase|) (SynEnumCase (ats, (Ident s as ident), c, cr, px, r, trivia)) =
+let (|EnumCase|) (SynEnumCase (ats, ident, c, cr, px, r, trivia)) =
     let fullRange =
         if not px.IsEmpty then
             r
@@ -454,7 +277,7 @@ let (|EnumCase|) (SynEnumCase (ats, (Ident s as ident), c, cr, px, r, trivia)) =
             | None -> r
             | Some barRange -> Range.unionRanges barRange r
 
-    (ats, trivia.BarRange, px, s, ident.idRange, trivia.EqualsRange, c, cr, fullRange)
+    (ats, trivia.BarRange, px, ident, trivia.EqualsRange, c, cr, fullRange)
 
 // Member definitions (11 cases)
 
@@ -465,22 +288,22 @@ let (|MDNestedType|_|) =
 
 let (|MDOpen|_|) =
     function
-    | SynMemberDefn.Open (SynOpenDeclTarget.ModuleOrNamespace (LongIdent s, _), _) -> Some s
+    | SynMemberDefn.Open (SynOpenDeclTarget.ModuleOrNamespace (lid, _), _) -> Some lid
     | _ -> None
 
 let (|MDOpenType|_|) =
     function
-    | SynMemberDefn.Open (SynOpenDeclTarget.Type (SynType.LongIdent (LongIdentWithDots s), _), _) -> Some s
+    | SynMemberDefn.Open (SynOpenDeclTarget.Type (SynType.LongIdent synLongIdent, _), _) -> Some synLongIdent
     | _ -> None
 
 let (|MDImplicitInherit|_|) =
     function
-    | SynMemberDefn.ImplicitInherit (t, e, ido, _) -> Some(t, e, Option.map (|Ident|) ido)
+    | SynMemberDefn.ImplicitInherit (t, e, ido, _) -> Some(t, e, ido)
     | _ -> None
 
 let (|MDInherit|_|) =
     function
-    | SynMemberDefn.Inherit (t, ido, _) -> Some(t, Option.map (|Ident|) ido)
+    | SynMemberDefn.Inherit (t, ido, _) -> Some(t, ido)
     | _ -> None
 
 let (|MDValField|_|) =
@@ -490,7 +313,7 @@ let (|MDValField|_|) =
 
 let (|MDImplicitCtor|_|) =
     function
-    | SynMemberDefn.ImplicitCtor (ao, ats, ps, ido, docs, _) -> Some(docs, ats, ao, ps, Option.map (|Ident|) ido)
+    | SynMemberDefn.ImplicitCtor (ao, ats, ps, ido, docs, _) -> Some(docs, ats, ao, ps, ido)
     | _ -> None
 
 let (|MDMember|_|) =
@@ -505,8 +328,8 @@ let (|MDLetBindings|_|) =
 
 let (|MDAbstractSlot|_|) =
     function
-    | SynMemberDefn.AbstractSlot (SynValSig (ats, Ident s, tds, t, vi, _, _, px, ao, _, _, _), mf, _) ->
-        Some(ats, px, ao, s, t, vi, tds, mf)
+    | SynMemberDefn.AbstractSlot (SynValSig (ats, ident, tds, t, vi, _, _, px, ao, _, _, _), mf, _) ->
+        Some(ats, px, ao, ident, t, vi, tds, mf)
     | _ -> None
 
 let (|MDInterface|_|) =
@@ -518,7 +341,7 @@ let (|MDAutoProperty|_|) =
     function
     | SynMemberDefn.AutoProperty (ats,
                                   isStatic,
-                                  Ident s,
+                                  ident,
                                   typeOpt,
                                   mk,
                                   memberKindToMemberFlags,
@@ -529,7 +352,7 @@ let (|MDAutoProperty|_|) =
                                   withKeyword,
                                   _,
                                   _) ->
-        Some(ats, px, ao, mk, equalsRange, e, withKeyword, s, isStatic, typeOpt, memberKindToMemberFlags)
+        Some(ats, px, ao, mk, equalsRange, e, withKeyword, ident, isStatic, typeOpt, memberKindToMemberFlags)
     | _ -> None
 
 // Interface impl
@@ -580,7 +403,7 @@ let (|MFMember|MFStaticMember|MFConstructor|MFOverride|) (mf: SynMemberFlags) =
 let (|DoBinding|LetBinding|MemberBinding|PropertyBinding|ExplicitCtor|) =
     function
     | SynBinding (ao, _, _, _, ats, px, SynValData (Some MFConstructor, _, ido), pat, _, expr, _, _, trivia) ->
-        ExplicitCtor(ats, px, ao, pat, trivia.EqualsRange, expr, Option.map (|Ident|) ido)
+        ExplicitCtor(ats, px, ao, pat, trivia.EqualsRange, expr, ido)
     | SynBinding (ao,
                   _,
                   isInline,
@@ -596,7 +419,7 @@ let (|DoBinding|LetBinding|MemberBinding|PropertyBinding|ExplicitCtor|) =
                   trivia) -> PropertyBinding(ats, px, ao, isInline, mf, pat, trivia.EqualsRange, expr, synValInfo)
     | SynBinding (ao, _, isInline, _, ats, px, SynValData (Some mf, synValInfo, _), pat, _, expr, _, _, trivia) ->
         MemberBinding(ats, px, ao, isInline, mf, pat, trivia.EqualsRange, expr, synValInfo)
-    | SynBinding (_, SynBindingKind.Do, _, _, ats, px, _, _, _, expr, _, _, trivia) -> DoBinding(ats, px, expr)
+    | SynBinding (_, SynBindingKind.Do, _, _, ats, px, _, _, _, expr, _, _, _trivia) -> DoBinding(ats, px, expr)
     | SynBinding (ao, _, isInline, isMutable, attrs, px, SynValData (_, valInfo, _), pat, _, expr, _, _, trivia) ->
         LetBinding(attrs, px, trivia.LetKeyword, ao, isInline, isMutable, pat, trivia.EqualsRange, expr, valInfo)
 
@@ -676,7 +499,7 @@ let (|While|_|) =
 
 let (|For|_|) =
     function
-    | SynExpr.For (_, _, Ident s, equalsRange, e1, isUp, e2, e3, _) -> Some(s, equalsRange, e1, e2, e3, isUp)
+    | SynExpr.For (_, _, ident, equalsRange, e1, isUp, e2, e3, _) -> Some(ident, equalsRange, e1, e2, e3, isUp)
     | _ -> None
 
 let (|NullExpr|_|) =
@@ -701,12 +524,12 @@ let (|TypeApp|_|) =
 
 let (|Match|_|) =
     function
-    | SynExpr.Match (matchKeyword, _, e, withKeyword, cs, _) -> Some(matchKeyword, e, withKeyword, cs)
+    | SynExpr.Match (_, e, cs, _, trivia) -> Some(trivia.MatchKeyword, e, trivia.WithKeyword, cs)
     | _ -> None
 
 let (|MatchBang|_|) =
     function
-    | SynExpr.MatchBang (matchKeyword, _, e, withKeyword, cs, _) -> Some(matchKeyword, e, withKeyword, cs)
+    | SynExpr.MatchBang (_, e, cs, _, trivia) -> Some(trivia.MatchBangKeyword, e, trivia.WithKeyword, cs)
     | _ -> None
 
 let (|Sequential|_|) =
@@ -771,14 +594,6 @@ let (|StructTuple|_|) =
     | SynExpr.Tuple (true, exprs, _, _) -> Some exprs
     | _ -> None
 
-let (|IndexedVar|_|) =
-    function
-    // We might have to narrow scope of this pattern to avoid incorrect usage
-    | SynExpr.App (_, _, SynExpr.LongIdent (_, LongIdentWithDots "Microsoft.FSharp.Core.Some", _, _), e, _) ->
-        Some(Some e)
-    | SynExpr.LongIdent (_, LongIdentWithDots "Microsoft.FSharp.Core.None", _, _) -> Some None
-    | _ -> None
-
 let (|InterpolatedStringExpr|_|) =
     function
     | SynExpr.InterpolatedString (parts, stringKind, _) -> Some(parts, stringKind)
@@ -814,33 +629,28 @@ let (|NegativeNumber|_|) =
     | ConstExpr (SynConst.Int64 v, _) as e when v < 0L -> Some e
     | _ -> None
 
+let (|IdentExpr|_|) =
+    function
+    | SynExpr.Ident ident -> Some ident
+    | _ -> None
+
 let (|OptVar|_|) =
     function
-    | SynExpr.Ident (IdentOrKeyword (OpNameFull (s, r))) -> Some(s, false, r)
-    | SynExpr.LongIdent (isOpt, LongIdentWithDots.LongIdentWithDots (LongIdentOrKeyword (OpNameFull (s, r)), _), _, _) ->
-        Some(s, isOpt, r)
+    | SynExpr.LongIdent (isOpt, synLongIdent, _, _) -> Some(isOpt, synLongIdent)
     | _ -> None
 
-/// This pattern is escaped by using OpName
-let (|Var|_|) =
+let (|LongIdentExpr|_|) =
     function
-    | SynExpr.Ident (IdentOrKeyword (OpName s)) -> Some s
-    | SynExpr.LongIdent (_, LongIdentWithDots.LongIdentWithDots (LongIdentOrKeyword (OpName s), _), _, _) -> Some s
+    | SynExpr.LongIdent (longDotId = synLongIdent) -> Some synLongIdent
     | _ -> None
 
-// Compiler-generated patterns often have "_arg" prefix
-let (|CompilerGeneratedVar|_|) =
+
+let (|LongIdentExprWithMoreThanOneIdent|_|) =
     function
-    | SynExpr.Ident (IdentOrKeyword (OpName s)) when String.startsWithOrdinal "_arg" s -> Some s
-    | SynExpr.LongIdent (_, LongIdentWithDots.LongIdentWithDots (LongIdentOrKeyword (OpName s), _), opt, _) ->
-        match opt with
-        | Some _ -> Some s
-        | None ->
-            if String.startsWithOrdinal "_arg" s then
-                Some s
-            else
-                None
+    | SynExpr.LongIdent(longDotId = SynLongIdent (id = lids) as synLongIdent) when (List.moreThanOne lids) ->
+        Some synLongIdent
     | _ -> None
+
 
 /// Get all application params at once
 let (|App|_|) e =
@@ -883,23 +693,38 @@ let (|NewTuple|_|) =
 let (|PrefixApp|_|) =
     function
     // Var pattern causes a few prefix operators appear as infix operators
-    | SynExpr.App (_, false, SynExpr.Ident (IdentOrKeyword s), e2, _)
     | SynExpr.App (_,
                    false,
-                   SynExpr.LongIdent (_, LongIdentWithDots.LongIdentWithDots (LongIdentOrKeyword s, _), _, _),
+                   SynExpr.LongIdent (_,
+                                      SynLongIdent ([ _ident ], [], [ Some (IdentTrivia.OriginalNotation operatorName) ]),
+                                      _,
+                                      _),
                    e2,
-                   _) when IsPrefixOperator(DecompileOpName s.Text) -> Some((|OpName|) s, e2)
+                   _) when IsPrefixOperator(operatorName) -> Some(operatorName, e2)
     | _ -> None
 
 let (|InfixApp|_|) synExpr =
     match synExpr with
-    | SynExpr.App (_, true, (Var "::" as e), Tuple ([ e1; e2 ], _), range) -> Some("::", e, e1, e2, range)
-    | SynExpr.App (_, _, SynExpr.App (_, true, (Var s as e), e1, _), e2, range) -> Some(s, e, e1, e2, range)
+    | SynExpr.App (_,
+                   true,
+                   OptVar (_, (SynLongIdent ([ _ident ], [], [ Some (IdentTrivia.OriginalNotation "::") ]) as sli)),
+                   Tuple ([ e1; e2 ], _),
+                   range) -> Some("::", sli, e1, e2, range)
+    | SynExpr.App (_,
+                   _,
+                   SynExpr.App (_,
+                                true,
+                                (OptVar (_,
+                                         (SynLongIdent ([ _ident ], [], [ Some (IdentTrivia.OriginalNotation operator) ]) as sli))),
+                                e1,
+                                _),
+                   e2,
+                   range) -> Some(operator, sli, e1, e2, range)
     | _ -> None
 
 let (|NewlineInfixApp|_|) =
     function
-    | InfixApp (text, operatorExpr, e1, e2, _) when (newLineInfixOps.Contains(text)) -> Some(text, operatorExpr, e1, e2)
+    | InfixApp (text, operatorExpr, e1, e2, _) when newLineInfixOps.Contains(text) -> Some(text, operatorExpr, e1, e2)
     | _ -> None
 
 let (|NewlineInfixApps|_|) e =
@@ -931,7 +756,22 @@ let (|SameInfixApps|_|) e =
 
 let (|TernaryApp|_|) =
     function
-    | SynExpr.App (_, _, SynExpr.App (_, _, SynExpr.App (_, true, Var "?<-", e1, _), e2, _), e3, _) -> Some(e1, e2, e3)
+    | SynExpr.App (_,
+                   _,
+                   SynExpr.App (_,
+                                _,
+                                SynExpr.App (_,
+                                             true,
+                                             OptVar (_,
+                                                     SynLongIdent ([ _ident ],
+                                                                   [],
+                                                                   [ Some (IdentTrivia.OriginalNotation "?<-") ])),
+                                             e1,
+                                             _),
+                                e2,
+                                _),
+                   e3,
+                   _) -> Some(e1, e2, e3)
     | _ -> None
 
 let (|MatchLambda|_|) =
@@ -948,7 +788,7 @@ let (|JoinIn|_|) =
 /// Recursive and use properties have to be determined at this point
 let rec (|LetOrUses|_|) =
     function
-    | SynExpr.LetOrUse (isRec, isUse, xs, (LetOrUses (ys, e) as body), _, trivia) ->
+    | SynExpr.LetOrUse (isRec, isUse, xs, LetOrUses (ys, e), _, trivia) ->
         let prefix =
             if isUse then "use "
             elif isRec then "let rec "
@@ -1069,12 +909,12 @@ let (|DotIndexedSet|_|) =
 
 let (|NamedIndexedPropertySet|_|) =
     function
-    | SynExpr.NamedIndexedPropertySet (LongIdentWithDots ident, e1, e2, _) -> Some(ident, e1, e2)
+    | SynExpr.NamedIndexedPropertySet (synLongIdent, e1, e2, _) -> Some(synLongIdent, e1, e2)
     | _ -> None
 
 let (|DotNamedIndexedPropertySet|_|) =
     function
-    | SynExpr.DotNamedIndexedPropertySet (e, LongIdentWithDots ident, e1, e2, _) -> Some(e, ident, e1, e2)
+    | SynExpr.DotNamedIndexedPropertySet (e, synLongIdent, e1, e2, _) -> Some(e, synLongIdent, e1, e2)
     | _ -> None
 
 let (|DotIndexedGet|_|) =
@@ -1084,7 +924,7 @@ let (|DotIndexedGet|_|) =
 
 let (|DotGet|_|) =
     function
-    | SynExpr.DotGet (e, _, LongIdentWithDotsPieces lids, _) -> Some(e, lids)
+    | SynExpr.DotGet (e, _, synLongIdent, _) -> Some(e, synLongIdent)
     | _ -> None
 
 /// Match function call followed by Property
@@ -1122,7 +962,7 @@ let rec (|DotGetApp|_|) =
 
 let (|DotSet|_|) =
     function
-    | SynExpr.DotSet (e1, LongIdentWithDots s, e2, _) -> Some(e1, s, e2)
+    | SynExpr.DotSet (e1, synLongIdent, e2, _) -> Some(e1, synLongIdent, e2)
     | _ -> None
 
 let (|IfThenElse|_|) =
@@ -1174,7 +1014,7 @@ let (|ObjExpr|_|) =
 
 let (|LongIdentSet|_|) =
     function
-    | SynExpr.LongIdentSet (LongIdentWithDots s, e, r) -> Some(s, e, r)
+    | SynExpr.LongIdentSet (synLongIdent, e, r) -> Some(synLongIdent, e, r)
     | _ -> None
 
 let (|TryWith|_|) =
@@ -1215,7 +1055,7 @@ let (|UnsupportedExpr|_|) =
 
 let (|PatOptionalVal|_|) =
     function
-    | SynPat.OptionalVal (Ident s, _) -> Some s
+    | SynPat.OptionalVal (ident, _) -> Some ident
     | _ -> None
 
 let (|PatAttrib|_|) =
@@ -1276,7 +1116,7 @@ let (|PatTyped|_|) =
 
 let (|PatNamed|_|) pat =
     match pat with
-    | SynPat.Named (IdentOrKeyword (OpNameFullInPattern (s, _)), _, ao, _) -> Some(ao, s)
+    | SynPat.Named (ident, _, ao, _) -> Some(ao, ident)
     | _ -> None
 
 let (|PatAs|_|) =
@@ -1286,21 +1126,15 @@ let (|PatAs|_|) =
 
 let (|PatLongIdent|_|) =
     function
-    | SynPat.LongIdent (LongIdentWithDots.LongIdentWithDots (LongIdentOrKeyword (OpNameFullInPattern (s, _)), _),
-                        propertyKeyword,
-                        _,
-                        tpso,
-                        xs,
-                        ao,
-                        _) ->
+    | SynPat.LongIdent (synLongIdent, propertyKeyword, _, tpso, xs, ao, _) ->
         match xs with
-        | SynArgPats.Pats ps -> Some(ao, s, propertyKeyword, List.map (fun p -> (None, p)) ps, tpso)
+        | SynArgPats.Pats ps -> Some(ao, synLongIdent, propertyKeyword, List.map (fun p -> (None, p)) ps, tpso)
         | SynArgPats.NamePatPairs (nps, _) ->
             Some(
                 ao,
-                s,
+                synLongIdent,
                 propertyKeyword,
-                List.map (fun (Ident ident, equalsRange, p) -> (Some(ident, equalsRange), p)) nps,
+                List.map (fun (ident, equalsRange, p) -> (Some(ident, equalsRange), p)) nps,
                 tpso
             )
     | _ -> None
@@ -1337,7 +1171,7 @@ let (|PatQuoteExpr|_|) =
 
 let (|PatExplicitCtor|_|) =
     function
-    | SynPat.LongIdent (LongIdentWithDots.LongIdentWithDots ([ newIdent ], _),
+    | SynPat.LongIdent (SynLongIdent(id = [ newIdent ]),
                         _propertyKeyword,
                         _,
                         _,
@@ -1358,7 +1192,7 @@ let (|SPAttrib|SPId|SPTyped|) =
     function
     | SynSimplePat.Attrib (sp, ats, _) -> SPAttrib(ats, sp)
     // Not sure compiler generated SPIds are used elsewhere.
-    | SynSimplePat.Id (Ident s, _, isGen, _, isOptArg, _) -> SPId(s, isOptArg, isGen)
+    | SynSimplePat.Id (ident, _, isGen, _, isOptArg, _) -> SPId(ident, isOptArg, isGen)
     | SynSimplePat.Typed (sp, t, _) -> SPTyped(sp, t)
 
 let (|SimplePats|SPSTyped|) =
@@ -1368,7 +1202,7 @@ let (|SimplePats|SPSTyped|) =
 
 let (|RecordField|) =
     function
-    | SynField (ats, _, ido, _, _, px, ao, _) -> (ats, px, ao, Option.map (|Ident|) ido)
+    | SynField (ats, _, ido, _, _, px, ao, _) -> (ats, px, ao, ido)
 
 let (|Clause|) (SynMatchClause (p, eo, e, _, _, trivia)) = (p, eo, trivia.ArrowRange, e)
 
@@ -1380,12 +1214,10 @@ let rec private skipGeneratedLambdas expr =
 
 and skipGeneratedMatch expr =
     match expr with
-    | SynExpr.Match (_matchKeyword,
-                     _,
-                     _,
-                     _,
-                     [ SynMatchClause.SynMatchClause (resultExpr = innerExpr) as clause ],
-                     matchRange) when matchRange.Start = clause.Range.Start -> skipGeneratedMatch innerExpr
+    | SynExpr.Match (_, _, [ SynMatchClause.SynMatchClause (resultExpr = innerExpr) as clause ], matchRange, _) when
+        matchRange.Start = clause.Range.Start
+        ->
+        skipGeneratedMatch innerExpr
     | _ -> expr
 
 let (|Lambda|_|) =
@@ -1405,9 +1237,9 @@ let (|AppWithLambda|_|) (e: SynExpr) =
             match es with
             | [] -> None
             | [ Paren (lpr, Lambda (pats, arrowRange, body, range), rpr, pr) ] ->
-                Some(e, finalContinuation [], lpr, (Choice1Of2(pats, arrowRange, body, range)), rpr, pr)
+                Some(e, finalContinuation [], lpr, Choice1Of2(pats, arrowRange, body, range), rpr, pr)
             | [ Paren (lpr, (MatchLambda (keywordRange, pats) as me), rpr, pr) ] ->
-                Some(e, finalContinuation [], lpr, (Choice2Of2(keywordRange, pats, me.Range)), rpr, pr)
+                Some(e, finalContinuation [], lpr, Choice2Of2(keywordRange, pats, me.Range), rpr, pr)
             | h :: tail ->
                 match h with
                 | Paren (_, Lambda _, _, _)
@@ -1487,20 +1319,18 @@ let (|TCSimple|TCDelegate|) =
     | SynTypeDefnKind.IL -> TCSimple TCIL
     | SynTypeDefnKind.Delegate (t, vi) -> TCDelegate(t, vi)
 
-let (|TypeDef|)
-    (SynTypeDefn (SynComponentInfo (ats, tds, tcs, LongIdent s, px, preferPostfix, ao, _), tdr, ms, _, _, trivia))
-    =
-    (ats, px, trivia.TypeKeyword, ao, tds, tcs, trivia.EqualsRange, tdr, trivia.WithKeyword, ms, s, preferPostfix)
+let (|TypeDef|) (SynTypeDefn (SynComponentInfo (ats, tds, tcs, lid, px, preferPostfix, ao, _), tdr, ms, _, _, trivia)) =
+    (ats, px, trivia.TypeKeyword, ao, tds, tcs, trivia.EqualsRange, tdr, trivia.WithKeyword, ms, lid, preferPostfix)
 
 let (|SigTypeDef|)
-    (SynTypeDefnSig (SynComponentInfo (ats, tds, tcs, LongIdent s, px, preferPostfix, ao, _),
+    (SynTypeDefnSig (SynComponentInfo (ats, tds, tcs, lid, px, preferPostfix, ao, _),
                      equalsRange,
                      tdr,
                      withKeyword,
                      ms,
                      range))
     =
-    (ats, px, ao, tds, tcs, equalsRange, tdr, withKeyword, ms, s, preferPostfix, range)
+    (ats, px, ao, tds, tcs, equalsRange, tdr, withKeyword, ms, lid, preferPostfix, range)
 
 let (|TyparDecl|) (SynTyparDecl (ats, tp)) = (ats, tp)
 
@@ -1571,8 +1401,8 @@ let (|TApp|_|) =
 
 let (|TLongIdentApp|_|) =
     function
-    | SynType.LongIdentApp (t, LongIdentWithDots s, lessRange, ts, _, greaterRange, _) ->
-        Some(t, s, lessRange, ts, greaterRange)
+    | SynType.LongIdentApp (t, synLongIdent, lessRange, ts, _, greaterRange, _) ->
+        Some(t, synLongIdent, lessRange, ts, greaterRange)
     | _ -> None
 
 let (|TTuple|_|) =
@@ -1592,7 +1422,7 @@ let (|TWithGlobalConstraints|_|) =
 
 let (|TLongIdent|_|) =
     function
-    | SynType.LongIdent (LongIdentWithDots s) -> Some s
+    | SynType.LongIdent synLongIdent -> Some synLongIdent
     | _ -> None
 
 let (|TAnonRecord|_|) =
@@ -1654,34 +1484,20 @@ let (|MSMember|MSInterface|MSInherit|MSValField|MSNestedType|) =
     | SynMemberSig.NestedType (tds, _) -> MSNestedType tds
 
 let (|Val|)
-    (SynValSig (ats,
-                (IdentOrKeyword (OpNameFullInPattern (s, _)) as ident),
-                SynValTyparDecls (typars, _),
-                t,
-                vi,
-                isInline,
-                isMutable,
-                px,
-                ao,
-                eo,
-                _,
-                range))
+    (SynValSig (ats, synIdent, SynValTyparDecls (typars, _), t, vi, isInline, isMutable, px, ao, eo, _, range))
     =
-    (ats, px, ao, s, ident.idRange, t, vi, isInline, isMutable, typars, eo, range)
+    (ats, px, ao, synIdent, t, vi, isInline, isMutable, typars, eo, range)
 
 // Misc
 
-let (|RecordFieldName|) ((LongIdentWithDots s, _): RecordFieldName, eo: SynExpr option, _) = (s, eo)
+let (|RecordFieldName|) ((synLongIdent, _): RecordFieldName, eo: SynExpr option, _) = (synLongIdent, eo)
 
 let (|AnonRecordFieldName|) (ident: Ident, eq: range option, e: SynExpr) = (ident.idText, ident.idRange, eq, e)
-let (|AnonRecordFieldType|) (Ident s: Ident, t: SynType) = (s, t)
-
-let (|PatRecordFieldName|) ((LongIdent s1, Ident s2), _, p) = (s1, s2, p)
+let (|AnonRecordFieldType|) (ident, t: SynType) = (ident, t)
 
 let (|ValInfo|) (SynValInfo (aiss, ai)) = (aiss, ai)
 
-let (|ArgInfo|) (SynArgInfo (attribs, isOpt, ido)) =
-    (attribs, Option.map (|Ident|) ido, isOpt)
+let (|ArgInfo|) (SynArgInfo (attribs, isOpt, ido)) = (attribs, ido, isOpt)
 
 /// Extract function arguments with their associated info
 let (|FunType|) (t, ValInfo (argTypes, returnType)) =
@@ -1713,13 +1529,25 @@ let (|Extern|_|) =
             ats
             |> List.exists (fun { Attributes = attrs } ->
                 attrs
-                |> List.exists (fun (Attribute (name, _, _)) -> name.EndsWith("DllImport")))
+                |> List.exists (fun (Attribute (name, _, _)) ->
+                    match List.tryLast name.LongIdent with
+                    | None -> false
+                    | Some name -> name.idText.EndsWith("DllImport")))
 
         if hasDllImportAttr then
             Some(ats, px, ao, t, s, ps)
         else
             None
     | _ -> None
+
+let private getLastPartOfSynLongIdent (synLongIdent: SynLongIdent) : string option =
+    List.tryLast synLongIdent.IdentsWithTrivia
+    |> Option.map (fun (SynIdent (lp, trivia)) ->
+        match trivia with
+        | None
+        | Some (IdentTrivia.HasParenthesis _) -> lp.idText
+        | Some (IdentTrivia.OriginalNotation (text = text))
+        | Some (IdentTrivia.OriginalNotationWithParen (text = text)) -> text)
 
 let rec (|UppercaseSynExpr|LowercaseSynExpr|) (synExpr: SynExpr) =
     let upperOrLower (v: string) =
@@ -1734,16 +1562,13 @@ let rec (|UppercaseSynExpr|LowercaseSynExpr|) (synExpr: SynExpr) =
             LowercaseSynExpr
 
     match synExpr with
-    | SynExpr.Ident (Ident id) -> upperOrLower id
+    | SynExpr.Ident ident -> upperOrLower ident.idText
 
-    | SynExpr.LongIdent (_, LongIdentWithDots lid, _, _) ->
-        let lastPart = Array.tryLast (lid.Split('.'))
-
-        match lastPart with
-        | Some lp -> upperOrLower lp
+    | SynExpr.LongIdent (_, synLongIdent, _, _)
+    | SynExpr.DotGet (_, _, synLongIdent, _) ->
+        match getLastPartOfSynLongIdent synLongIdent with
         | None -> LowercaseSynExpr
-
-    | SynExpr.DotGet (_, _, LongIdentWithDots lid, _) -> upperOrLower lid
+        | Some text -> upperOrLower text
 
     | SynExpr.DotIndexedGet (expr, _, _, _)
     | SynExpr.TypeApp (expr, _, _, _, _, _, _) -> (|UppercaseSynExpr|LowercaseSynExpr|) expr
@@ -1762,8 +1587,11 @@ let rec (|UppercaseSynType|LowercaseSynType|) (synType: SynType) =
             LowercaseSynType
 
     match synType with
-    | SynType.LongIdent (LongIdentWithDots lid) -> lid.Split('.') |> Seq.last |> upperOrLower
-    | SynType.Var (Typar (s, _, _), _) -> upperOrLower s
+    | SynType.LongIdent synLongIdent ->
+        match getLastPartOfSynLongIdent synLongIdent with
+        | None -> LowercaseSynType
+        | Some text -> upperOrLower text
+    | SynType.Var (Typar (ident, _), _) -> upperOrLower ident.idText
     | SynType.App (st, _, _, _, _, _, _) -> (|UppercaseSynType|LowercaseSynType|) st
     | _ -> failwithf "cannot determine if synType %A is uppercase or lowercase" synType
 
@@ -1781,12 +1609,12 @@ let rec (|IndexWithoutDotExpr|NestedIndexWithoutDotExpr|ElmishReactWithoutChildr
         IndexWithoutDotExpr(identifierExpr, indexExpr)
     | SynExpr.App (ExprAtomicFlag.NonAtomic, false, IndexWithoutDotExpr (identifier, indexExpr), argExpr, _) ->
         NestedIndexWithoutDotExpr(identifier, indexExpr, argExpr)
-    | SynExpr.App (_, false, OptVar (ident, _, _), ArrayOrList (sr, isArray, children, er, _), _) ->
+    | SynExpr.App (_, false, OptVar (_, ident), ArrayOrList (sr, isArray, children, er, _), _) ->
         ElmishReactWithoutChildren(ident, sr, isArray, children, er)
     | SynExpr.App (_,
                    false,
-                   SynExpr.App (_, false, OptVar ident, (ArrayOrList _ as attributes), _),
-                   ArrayOrList (sr, isArray, children, er, r),
+                   SynExpr.App (_, false, OptVar (_, ident), (ArrayOrList _ as attributes), _),
+                   ArrayOrList (sr, isArray, children, er, _r),
                    _) -> ElmishReactWithChildren(ident, attributes, (isArray, sr, children, er))
     | _ -> NonAppExpr
 
@@ -1895,7 +1723,7 @@ let (|RagnarokExpr|_|) (e: SynExpr) =
     | ArrayOrList _ -> Some e
     | _ -> None
 
-let hasMultipleClausesWhereOneHasRagnarok (ragnarokEnabled) (cs: SynMatchClause list) : bool =
+let hasMultipleClausesWhereOneHasRagnarok ragnarokEnabled (cs: SynMatchClause list) : bool =
     ragnarokEnabled
     && List.moreThanOne cs
     && List.exists
