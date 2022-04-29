@@ -1116,7 +1116,7 @@ let (|PatTyped|_|) =
 
 let (|PatNamed|_|) pat =
     match pat with
-    | SynPat.Named (ident, _, ao, _) -> Some(ao, ident)
+    | SynPat.Named (si, _, ao, _) -> Some(ao, si)
     | _ -> None
 
 let (|PatAs|_|) =

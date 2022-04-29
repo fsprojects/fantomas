@@ -970,9 +970,9 @@ module private Ast =
                 mkNode SynPat_Wild range
                 |> List.singleton
                 |> finalContinuation
-            | SynPat.Named (ident, _, _, range) ->
+            | SynPat.Named (si, _, _, range) ->
                 [ mkNode SynPat_Named range
-                  visitIdent ident ]
+                  visitSynIdent si ]
                 |> finalContinuation
             | SynPat.As (synPat, synPat2, range) ->
                 let continuations: ((TriviaNodeAssigner list -> TriviaNodeAssigner list) -> TriviaNodeAssigner list) list =

@@ -4993,7 +4993,7 @@ and genPat astContext pat =
              +> sepColon
              +> atCurrentColumnIndent (genType astContext false t))
 
-    | PatNamed (ao, ident) -> opt sepSpace ao genAccess +> genIdent ident
+    | PatNamed (ao, si) -> opt sepSpace ao genAccess +> genSynIdent si
     | PatAs (p1, p2, r) ->
         genPat astContext p1 -- " as "
         +> genPat astContext p2
