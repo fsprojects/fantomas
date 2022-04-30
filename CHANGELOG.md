@@ -5,6 +5,9 @@
 ### Changed
 * Add `fable_modules` to the directories which are always excluded. [Fable 3.4](https://github.com/fable-compiler/Fable/releases/tag/3.4.0)
 
+### Fixed
+* Let binding after match lambda is moved outside of nested module. [#2214](https://github.com/fsprojects/fantomas/issues/2214)
+
 ## [4.7.8] - 2022-04-25
 
 ### Fixed

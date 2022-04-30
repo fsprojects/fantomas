@@ -704,6 +704,45 @@ module App =
 """
 
 [<Test>]
+let ``keep correct indentation for let binding after match lambda inside nested module, 2214`` () =
+    formatSourceString
+        false
+        """
+module Outer
+
+let sort fallback (f: int -> string list) = ()
+
+module Inner =
+
+    let f =
+        sort
+            "Name"
+            (function
+             | 1 -> ["One"]
+             | _ -> ["Not One"])
+
+    let g () = 23
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+module Outer
+
+let sort fallback (f: int -> string list) = ()
+
+module Inner =
+
+    let f =
+        sort "Name" (function
+            | 1 -> [ "One" ]
+            | _ -> [ "Not One" ])
+
+    let g () = 23
+"""
+
+[<Test>]
 let ``nested nested module with single union DU, 1123`` () =
     formatSourceString
         false
