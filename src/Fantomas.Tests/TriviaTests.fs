@@ -285,7 +285,7 @@ doSomething()
 
     match withoutDefine with
     | [ { Type = SynModuleDecl_Expr
-          ContentBefore = [ Directive "#if NOT_DEFINED\n#else" ]
+          ContentBefore = [ Directive "#if NOT_DEFINED"; Directive "#else" ]
           ContentAfter = [ Directive "#endif" ] } ] -> pass ()
     | _ -> Assert.Fail(sprintf "Unexpected trivia %A" withoutDefine)
 
@@ -310,7 +310,7 @@ let x = 1
 
     match withoutDefine with
     | [ { Type = LongIdent_
-          ContentAfter = [ Directive "#if NOT_DEFINED\n#endif" ]
+          ContentAfter = [ Directive "#if NOT_DEFINED"; Directive "#endif" ]
           ContentBefore = [] } ] -> pass ()
     | _ -> Assert.Fail(sprintf "Unexpected trivia %A" withoutDefine)
 
@@ -339,7 +339,10 @@ type ExtensibleDumper = A | B
 
     match trivias with
     | [ { Type = SynModuleOrNamespace_DeclaredNamespace
-          ContentAfter = [ Directive "#if EXTENSIBLE_DUMPER\n#if DEBUG\n#endif\n#endif" ] } ] -> pass ()
+          ContentAfter = [ Directive "#if EXTENSIBLE_DUMPER"
+                           Directive "#if DEBUG"
+                           Directive "#endif"
+                           Directive "#endif" ] } ] -> pass ()
     | _ -> Assert.Fail(sprintf "Unexpected trivia %A" trivias)
 
 [<Test>]
@@ -368,7 +371,7 @@ let foo = 42
 
     match trivia with
     | [ { Type = LongIdent_
-          ContentAfter = [ Directive "#if SOMETHING\n#endif" ] } ] -> pass ()
+          ContentAfter = [ Directive "#if SOMETHING"; Directive "#endif" ] } ] -> pass ()
     | _ -> Assert.Fail $"Expected trivia in content after, got {trivia}"
 
 [<Test>]
@@ -429,5 +432,5 @@ let x =
 
     match trivia with
     | [ { Type = SynConst_Unit
-          ContentBefore = [ Directive "#if DEBUG\n#endif" ] } ] -> pass ()
+          ContentBefore = [ Directive "#if DEBUG"; Directive "#endif" ] } ] -> pass ()
     | _ -> Assert.Fail(sprintf "Unexpected trivia: %A" trivia)
