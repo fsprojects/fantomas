@@ -4972,9 +4972,10 @@ and genPatRecordFieldName astContext ((lid: LongIdent, ident: Ident), _: range, 
         lid.IsEmpty
         (genIdent ident +> sepEq +> sepSpace)
         (genLongIdent lid
+         +> sepDot
+         +> genIdent ident
          +> sepEq
-         +> sepSpace
-         +> genIdent ident)
+         +> sepSpace)
     +> genPat { astContext with IsInsideMatchClausePattern = false } p // see issue 1252.
 
 and genPatWithIdent astContext (ido, p) =
