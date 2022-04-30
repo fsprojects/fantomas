@@ -2135,7 +2135,8 @@ if
      || v.IsIncrClassGeneratedMember)
     &&
 
-    (env.reflect // Check the attributes on any enclosing module
+    (env // Check the attributes on any enclosing module
+     .reflect
      ||
      // Check the attributes on the value
      HasFSharpAttribute g g.attrib_ReflectedDefinitionAttribute v.Attribs
