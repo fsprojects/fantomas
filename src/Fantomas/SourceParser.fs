@@ -698,11 +698,11 @@ let (|PrefixApp|_|) =
     | SynExpr.App (_,
                    false,
                    SynExpr.LongIdent (_,
-                                      SynLongIdent ([ _ident ], [], [ Some (IdentTrivia.OriginalNotation operatorName) ]),
+                                      SynLongIdent ([ ident ], [], [ Some (IdentTrivia.OriginalNotation operatorName) ]),
                                       _,
                                       _),
                    e2,
-                   _) when IsPrefixOperator(operatorName) -> Some(operatorName, e2)
+                   _) when IsPrefixOperator(DecompileOpName ident.idText) -> Some(operatorName, e2)
     | _ -> None
 
 let (|InfixApp|_|) synExpr =
