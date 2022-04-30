@@ -7,6 +7,7 @@ open FSharp.Compiler.SyntaxTrivia
 open FSharp.Compiler.Text
 open FSharp.Compiler.Xml
 open Fantomas
+open Fantomas.AstExtensions
 open Fantomas.TriviaTypes
 open Fantomas.RangePatterns
 
@@ -651,6 +652,19 @@ let (|LongIdentExprWithMoreThanOneIdent|_|) =
         Some synLongIdent
     | _ -> None
 
+// Example: ( *** ) a b
+// (*) a b is ok though
+let (|ParenFunctionNameWithStar|_|) =
+    function
+    | Paren (lpr,
+             LongIdentExpr (SynLongIdent ([ _ ], [], [ Some (IdentTrivia.OriginalNotation originalNotation) ])),
+             rpr,
+             _pr) when
+        (originalNotation.Length > 1
+         && originalNotation.StartsWith("*"))
+        ->
+        Some(lpr, originalNotation, rpr)
+    | _ -> None
 
 /// Get all application params at once
 let (|App|_|) e =
@@ -1140,6 +1154,16 @@ let (|PatLongIdent|_|) =
                 tpso
             )
     | _ -> None
+
+let (|OperatorNameWithStar|PrefixedOperatorNameWithStar|NotAnOperatorNameWithStar|) (synLongIdent: SynLongIdent) =
+    match synLongIdent.IdentsWithTrivia with
+    | [ SynIdent (_, Some (IdentTrivia.OriginalNotationWithParen (text = text))) as synIdent ] when text.StartsWith("*") ->
+        OperatorNameWithStar(text, synIdent.FullRange, synLongIdent.FullRange)
+    | [ prefix; SynIdent (_, Some (IdentTrivia.OriginalNotationWithParen (text = text))) as synIdent ] when
+        text.StartsWith("*")
+        ->
+        PrefixedOperatorNameWithStar(prefix, text, synIdent.FullRange, synLongIdent.FullRange)
+    | _ -> NotAnOperatorNameWithStar
 
 let (|PatParen|_|) =
     function

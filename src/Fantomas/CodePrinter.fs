@@ -1700,8 +1700,10 @@ and genExpr astContext synExpr ctx =
                 (expr
                  +> optSingle (leaveNodeFor SynExpr_Paren_ClosingParenthesis) rpr)
                     ctx
-        | Paren (lpr, LongIdentExpr (SynLongIdent ([ _ ], [], [ Some (IdentTrivia.OriginalNotation "**") ])), rpr, _pr) ->
-            sepOpenTFor lpr +> !- " ** " +> sepCloseTFor rpr
+        | ParenFunctionNameWithStar (lpr, originalNotation, rpr) ->
+            sepOpenTFor lpr
+            +> !- $" {originalNotation} "
+            +> sepCloseTFor rpr
         | Paren (lpr, e, rpr, _pr) ->
             match e with
             | LetOrUses _
@@ -5198,7 +5200,7 @@ and genSynBindingFunction
         +> opt sepSpace ao genAccess
 
     let genFunctionName =
-        genSynLongIdent false functionName
+        genSynBindingFunctionName functionName
         +> opt sepNone genericTypeParameters (fun (ValTyparDecls (tds, _)) -> genTypeParamPostfix astContext tds)
 
     let genSignature =
@@ -5296,7 +5298,7 @@ and genSynBindingFunctionWithReturnType
         +> opt sepSpace ao genAccess
 
     let genFunctionName =
-        genSynLongIdent false functionName
+        genSynBindingFunctionName functionName
         +> opt sepNone genericTypeParameters (fun (ValTyparDecls (tds, _)) -> genTypeParamPostfix astContext tds)
 
     let genReturnType isFixed =
@@ -5479,6 +5481,23 @@ and genSynBindingValue
             +> autoIndentAndNlnExpressUnlessRagnarok (genExprKeepIndentInBranch astContext) e
 
         isShortExpression ctx.Config.MaxValueBindingWidth short long ctx)
+
+// Example case: let ( *= ) a b = ()
+// There must be spaces due to the *
+// The idea is to solve this only where this can occur and not at the SynIdent level.
+and genSynBindingFunctionName (functionName: SynLongIdent) =
+    match functionName with
+    | OperatorNameWithStar (text, synIdentRange, synLongIdentRange) ->
+        !- $"( {text} )"
+        |> genTriviaFor SynIdent_ synIdentRange
+        |> genTriviaFor SynLongIdent_ synLongIdentRange
+    | PrefixedOperatorNameWithStar (prefix, text, synIdentRange, synLongIdentRange) ->
+        genSynIdent false prefix
+        +> sepDot
+        +> !- $"( {text} )"
+        |> genTriviaFor SynIdent_ synIdentRange
+        |> genTriviaFor SynLongIdent_ synLongIdentRange
+    | _ -> genSynLongIdent false functionName
 
 and genParenTupleWithIndentAndNewlines
     (astContext: ASTContext)
