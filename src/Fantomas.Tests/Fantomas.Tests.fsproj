@@ -45,7 +45,7 @@
     <Compile Include="LetBindingTests.fs" />
     <Compile Include="NoTrailingSpacesTests.fs" />
     <Compile Include="LazyTests.fs" />
-    <Compile Include="LongIdentWithDotsTests.fs" />
+    <Compile Include="SynLongIdentTests.fs" />
     <Compile Include="DynamicOperatorTests.fs" />
     <Compile Include="SynExprSetTests.fs" />
     <Compile Include="SynConstTests.fs" />

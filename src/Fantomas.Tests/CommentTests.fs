@@ -503,11 +503,11 @@ let ``should keep comments on almost-equal identifiers`` () =
     formatSourceString
         false
         """
-let zp = p1 lxor p2
+let zp = p1 ``lxor`` p2
 // Comment 1
-let b = zp land (zp)
+let b = zp ``land`` (zp)
 (* Comment 2 *)
-let p = p1 land (b - 1)
+let p = p1 ``land`` (b - 1)
 """
         config
     |> prepend newline

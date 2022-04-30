@@ -69,7 +69,7 @@ let formatSourceStringWithDefines defines (s: string) config =
             let! asts = CodeFormatterImpl.parse false source
 
             let ast, defineCombination =
-                Array.filter (fun (_,  d: DefineCombination) -> List.sort d = List.sort defines) asts
+                Array.filter (fun (_, d: DefineCombination) -> List.sort d = List.sort defines) asts
                 |> Array.head
 
             return CodeFormatterImpl.formatWith (Some source) defineCombination ast config

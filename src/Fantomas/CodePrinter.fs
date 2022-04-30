@@ -437,10 +437,7 @@ and genIdent (ident: Ident) =
         - ident.idRange.StartColumn
 
     let genIdent =
-        if
-            ident.idText.Length + 4 = width
-            || addBackTicksFor.Contains(ident.idText)
-        then
+        if ident.idText.Length + 4 = width then
             // add backticks
             !- $"``{ident.idText}``"
         else
@@ -456,11 +453,7 @@ and genSynIdent (addDot: bool) (synIdent: SynIdent) =
     let (SynIdent (ident, trivia)) = synIdent
 
     match trivia with
-    | Some (IdentTrivia.OriginalNotation text) ->
-        if addBackTicksFor.Contains(text) then
-            !- $"``{ident.idText}``"
-        else
-            !-text
+    | Some (IdentTrivia.OriginalNotation text) -> !-text
     | Some (IdentTrivia.OriginalNotationWithParen (_, text, _)) -> !- $"({text})"
     | Some (IdentTrivia.HasParenthesis _) -> !- $"({ident.idText})"
     | None -> genIdent ident

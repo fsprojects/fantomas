@@ -19,8 +19,6 @@ let internal newLineInfixOps = set [ "|>"; "||>"; "|||>"; ">>"; ">>=" ]
 /// Never break into newlines on these operators
 let internal noBreakInfixOps = set [ "="; ">"; "<"; "%" ]
 
-let internal addBackTicksFor = set [ "land"; "lxor" ]
-
 type Composite<'a, 'b> =
     | Pair of 'b * 'b
     | Single of 'a
