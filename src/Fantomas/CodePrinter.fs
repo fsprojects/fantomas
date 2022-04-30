@@ -5828,15 +5828,15 @@ and genEqFixed (nodeType: FsAstType) (range: range option) =
     | Some r -> genTriviaFor nodeType r sepEqFixed
 
 and genMeasure (measure: SynMeasure) =
-    let measureExpr =
+    let rec loop measure =
         match measure with
         | SynMeasure.Var (Typar (s, _), _) -> !-s.idText
         | SynMeasure.Anon _ -> !- "_"
         | SynMeasure.One -> !- "1"
-        | SynMeasure.Product (m1, m2, _) -> genMeasure m1 +> !- "*" +> genMeasure m2
-        | SynMeasure.Divide (m1, m2, _) -> genMeasure m1 +> !- "/" +> genMeasure m2
-        | SynMeasure.Power (m, RationalConst n, _) -> genMeasure m +> !- $"^{n}"
-        | SynMeasure.Seq (ms, _) -> col sepSpace ms genMeasure
+        | SynMeasure.Product (m1, m2, _) -> loop m1 +> !- "*" +> loop m2
+        | SynMeasure.Divide (m1, m2, _) -> loop m1 +> !- "/" +> loop m2
+        | SynMeasure.Power (m, RationalConst n, _) -> loop m +> !- $"^{n}"
+        | SynMeasure.Seq (ms, _) -> col sepSpace ms loop
         | SynMeasure.Named (lid, _) -> genLongIdent lid
 
-    !- "<" +> measureExpr +> !- ">"
+    !- "<" +> loop measure +> !- ">"
