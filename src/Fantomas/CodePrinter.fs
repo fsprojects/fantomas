@@ -2594,8 +2594,8 @@ and genExpr astContext synExpr ctx =
         | DotSet (e1, sli, e2) ->
             addParenIfAutoNln e1 (genExpr astContext)
             +> sepDot
-            +> !- " <- "
             +> genSynLongIdent false sli
+            +> !- " <- "
             +> autoIndentAndNlnIfExpressionExceedsPageWidthUnlessRagnarok (genExpr astContext) e2
 
         | SynExpr.Set (e1, e2, _) ->
