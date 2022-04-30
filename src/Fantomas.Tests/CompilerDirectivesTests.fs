@@ -2403,6 +2403,7 @@ let ``hash if and hash else should be one trivia`` () =
 """
 
 [<Test>]
+[<Ignore "not support for now">]
 let ``hash nested in multiline string`` () =
     formatSourceStringWithDefines
         []
@@ -2429,6 +2430,7 @@ let ``hash nested in multiline string`` () =
 """
 
 [<Test>]
+[<Ignore "not support for now">]
 let ``hash nested in multiline block comment`` () =
     formatSourceStringWithDefines
         []

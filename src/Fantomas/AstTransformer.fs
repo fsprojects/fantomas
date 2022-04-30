@@ -289,6 +289,17 @@ module private Ast =
                       yield mkNode SynExpr_Assert_Assert assertKeyword
                       yield! nodes ]
                     |> finalContinuation)
+            | SourceParser.InfixApp (_, sli, e1, e2, range) ->
+                let continuations: ((TriviaNodeAssigner list -> TriviaNodeAssigner list) -> TriviaNodeAssigner list) list =
+                    [ visit e1; visit e2 ]
+
+                let finalContinuation (nodes: TriviaNodeAssigner list list) : TriviaNodeAssigner list =
+                    [ yield mkNode SynExpr_App range
+                      yield! visitSynLongIdent sli
+                      yield! List.collect id nodes ]
+                    |> finalContinuation
+
+                Continuation.sequence continuations finalContinuation
             | SynExpr.App (_, _, funcExpr, argExpr, range) ->
                 let continuations: ((TriviaNodeAssigner list -> TriviaNodeAssigner list) -> TriviaNodeAssigner list) list =
                     [ visit funcExpr; visit argExpr ]

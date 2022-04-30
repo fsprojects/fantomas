@@ -60,7 +60,6 @@ Log.Logger <-
         .CreateLogger()
 """
 
-
 [<Test>]
 let ``force newline by adding comments`` () =
     formatSourceString

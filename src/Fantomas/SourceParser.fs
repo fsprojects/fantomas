@@ -19,6 +19,8 @@ let internal newLineInfixOps = set [ "|>"; "||>"; "|||>"; ">>"; ">>=" ]
 /// Never break into newlines on these operators
 let internal noBreakInfixOps = set [ "="; ">"; "<"; "%" ]
 
+let internal addBackTicksFor = set [ "land"; "lxor" ]
+
 type Composite<'a, 'b> =
     | Pair of 'b * 'b
     | Single of 'a
@@ -636,7 +638,7 @@ let (|IdentExpr|_|) =
 
 let (|OptVar|_|) =
     function
-    | SynExpr.LongIdent (isOpt, synLongIdent, _, _) -> Some(isOpt, synLongIdent)
+    | SynExpr.LongIdent (isOpt, synLongIdent, _, m) -> Some(isOpt, synLongIdent, m)
     | _ -> None
 
 let (|LongIdentExpr|_|) =
@@ -707,7 +709,7 @@ let (|InfixApp|_|) synExpr =
     match synExpr with
     | SynExpr.App (_,
                    true,
-                   OptVar (_, (SynLongIdent ([ _ident ], [], [ Some (IdentTrivia.OriginalNotation "::") ]) as sli)),
+                   OptVar (_, (SynLongIdent ([ _ident ], [], [ Some (IdentTrivia.OriginalNotation "::") ]) as sli), _),
                    Tuple ([ e1; e2 ], _),
                    range) -> Some("::", sli, e1, e2, range)
     | SynExpr.App (_,
@@ -715,7 +717,8 @@ let (|InfixApp|_|) synExpr =
                    SynExpr.App (_,
                                 true,
                                 (OptVar (_,
-                                         (SynLongIdent ([ _ident ], [], [ Some (IdentTrivia.OriginalNotation operator) ]) as sli))),
+                                         (SynLongIdent ([ _ident ], [], [ Some (IdentTrivia.OriginalNotation operator) ]) as sli),
+                                         _)),
                                 e1,
                                 _),
                    e2,
@@ -765,7 +768,8 @@ let (|TernaryApp|_|) =
                                              OptVar (_,
                                                      SynLongIdent ([ _ident ],
                                                                    [],
-                                                                   [ Some (IdentTrivia.OriginalNotation "?<-") ])),
+                                                                   [ Some (IdentTrivia.OriginalNotation "?<-") ]),
+                                                     _),
                                              e1,
                                              _),
                                 e2,
@@ -1595,6 +1599,13 @@ let rec (|UppercaseSynType|LowercaseSynType|) (synType: SynType) =
     | SynType.App (st, _, _, _, _, _, _) -> (|UppercaseSynType|LowercaseSynType|) st
     | _ -> failwithf "cannot determine if synType %A is uppercase or lowercase" synType
 
+let private (|IdentExprOrLongIdentExpr|_|) e =
+    match e with
+    | SynExpr.Ident _
+    | SynExpr.LongIdent _ -> Some e
+    | _ -> None
+
+
 let rec (|IndexWithoutDotExpr|NestedIndexWithoutDotExpr|ElmishReactWithoutChildren|ElmishReactWithChildren|NonAppExpr|)
     e
     =
@@ -1609,13 +1620,13 @@ let rec (|IndexWithoutDotExpr|NestedIndexWithoutDotExpr|ElmishReactWithoutChildr
         IndexWithoutDotExpr(identifierExpr, indexExpr)
     | SynExpr.App (ExprAtomicFlag.NonAtomic, false, IndexWithoutDotExpr (identifier, indexExpr), argExpr, _) ->
         NestedIndexWithoutDotExpr(identifier, indexExpr, argExpr)
-    | SynExpr.App (_, false, OptVar (_, ident), ArrayOrList (sr, isArray, children, er, _), _) ->
-        ElmishReactWithoutChildren(ident, sr, isArray, children, er)
+    | SynExpr.App (_, false, IdentExprOrLongIdentExpr identifier, ArrayOrList (sr, isArray, children, er, _), _) ->
+        ElmishReactWithoutChildren(identifier, sr, isArray, children, er)
     | SynExpr.App (_,
                    false,
-                   SynExpr.App (_, false, OptVar (_, ident), (ArrayOrList _ as attributes), _),
+                   SynExpr.App (_, false, IdentExprOrLongIdentExpr identifier, (ArrayOrList _ as attributes), _),
                    ArrayOrList (sr, isArray, children, er, _r),
-                   _) -> ElmishReactWithChildren(ident, attributes, (isArray, sr, children, er))
+                   _) -> ElmishReactWithChildren(identifier, attributes, (isArray, sr, children, er))
     | _ -> NonAppExpr
 
 let isIfThenElseWithYieldReturn e =
