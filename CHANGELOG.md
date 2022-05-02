@@ -1,6 +1,6 @@
 # Changelog
 
-## [Unreleased]
+## [4.7.9] - 2022-05-02
 
 ### Changed
 * Add `fable_modules` to the directories which are always excluded. [Fable 3.4](https://github.com/fable-compiler/Fable/releases/tag/3.4.0)
