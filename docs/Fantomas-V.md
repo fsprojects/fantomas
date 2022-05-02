@@ -1,6 +1,4 @@
-﻿# Fantomas V
-
-*"Bare Metal Alchemist"*
+﻿# Fantomas "Get Back" Five
 
 ## Introduction
 
@@ -65,19 +63,8 @@ The plan is to included those via [Paket GitHub dependencies](https://fsprojects
 ### API layer
 
 As we only are including the files we really really need, we created our own little FCS surface API.
-In `Lex.fs` and `Parse.fs` you can find some (mostly stolen) code that serves as the entry point for Fantomas.
-
-### Lexing at the lower level
-
-Our Fantomas FCS lexing api is using what the `*.fsl` produces. These tokens are quite different with what the classic FCS exposes.
-These tokens miss a lot of details which were otherwise provided by the FCS.
-Some notable things:
-- String text tokens are not marked, we need to detect the opening and closing of strings ourselves.
-- The same with code comments
-- Tokens in dead code are always present. Dead code being non-active code based by the compiler defines.
-- Newlines can be detected in the whitespace tokens. This is a nice improvement as we can detect newlines while going over the tokens.
-  Previously, we had to detect empty lines as a separate step.
-- ...
+In `Parse.fs` you can find some (mostly stolen) code that serves as the entry point for Fantomas, mainly getting the untyped syntax tree.
+We no longer process the F# tokens as the tree now contains enough information to restore the source code.
 
 ### Parsing at the lower level
 
@@ -90,137 +77,24 @@ Some notable things:
 
 ### Collecting trivia
 
-Our core principle of enriching the syntax tree has not change: we find things in the tokens are add them to tree.
-A couple or practical things did change though:
-- hash directives are captured inside the main token scanning round. Previously, we would detect those while we were searching for the different hash directives.
-- Strings, byte string, interpolated string and `LibraryOnlyILAssembly` expressions are now always captured from the tokens.
-  In the past, we would scan each token and decided if need to capture it as trivia based on the content.
-  Once we constructed a token, we required a lookup of a trivia nodes to attach the trivia. This was a quite expensive process.
-  We now, take the range of known string and capture the original text from the `ISourceText`. This is quite fast and does not require us to detect every little edges case on the token side.
-  This is most welcome for interpolated strings as these can be extremely difficult to dissect.
-- Empty lines between hash directives are not captured as trivia anymore.
-  Something like:
-  ```fsharp
-  #if FOO
-  someFunction a b
-  printfn "meh"
-  #endif
-  ```
-  without defines, we will capture the trivia as `#if FOO\n#endif`, were we used to capture it as `#if FOO\n\n\n#endif`.
+Our core principle of enriching the syntax tree has changed a bit. We no longer find additional information in the tokens.
+Some things we still need to grab from the source text though.
+A couple or practical changes:
+- hash directive and code comments are now listed as ranges in the tree. We don't need to detect these anymore from the tokens, but we need do need to assign them to a trivia node.
+- Strings and numbers are always grabbed from the source text based on the range.
+- Idents can be trusted as SynIdent and SynLongIdent can contains additional information on the original format.
 
-### Finding hash defines
+#### Nested defines in weird places
 
-This is reason I started writing up this document. I admit, I got a bit carried away at the start, but this is really what I want to write down for others and my future self.
-
-When Fantomas kicks off, it first tries to find the combination of defines that cover all code paths. Let's unpack this loaded statement with a sample:
-
+As the lexer captures the defines directive there is one known limitation to this:
 ```fsharp
+(*
 #if FOO
-printfn "FOO was active"
-#else
-printfn "no defines"
 #endif
+*)
 ```
-
-The parser will construct a different AST based on what compiler defines are provided.
-If `FOO` is passed it will construct a tree, simplified here:
-```fsharp
-DoExpr
- (Yes tmp.fsx (1,0--1,24),
-  App
-    (NonAtomic, false, Ident printfn,
-     Const
-       (String ("FOO was active", Regular, tmp.fsx (1,8--1,24)),
-        tmp.fsx (1,8--1,24)), tmp.fsx (1,0--1,24)),
-  tmp.fsx (1,0--1,24))
-```
-
-Notice that we lost all notion of the `#if` line, no information is stored.
-If we did not pass any defines, we get the counter part:
-```fsharp
-DoExpr
- (Yes tmp.fsx (1,0--1,24),
-  App
-    (NonAtomic, false, Ident printfn,
-     Const
-       (String ("no defines", Regular, tmp.fsx (1,8--1,24)),
-        tmp.fsx (1,8--1,24)), tmp.fsx (1,0--1,24)),
-  tmp.fsx (1,0--1,24))
-```
-
-To format correct output, we need to format both trees and merge them back together.
-The thing is, upfront we do not know about `FOO` or any other defines.
-We need to detect these in Fantomas, and here comes the important part.
-
-Initially, we create the tokens of a tree without passing any defines.
-We scan these tokens for any `HASH_IF` lines and process these if present.
-Once we have all the lines, we try and detect all combinations of defines that lead to active code.
-This process can be quite complex, f.ex. we can find `#if FOO && (BAR || MEH)`, nested with other fun combinations and so on.
-
-Anyway, once we have an idea of the define combinations, we process each combo.
-In the simplest scenario, no defines are present and we get the untyped ast and process the tokens to get the trivia.
-
-In case, there are multiple combinations of defines we need to process each combination.
-We go over the same tokens in each case, but we skip over the "dead code" paths.
-Every time we encounter a `#if/#else/#end` line, we check with current set of defines if the next code is active or not.
-If the code is active, we process the tokens the same way as if there are no defines. For non active code, we skip over most tokens.
-
-Some examples:
-
-```fsharp
-#if FOO
-0.
-#else
-1.
-#end
-```
-
-with `[]`:
-- The `#if` is detect and we solve the expression for `[]`.
-  Outcome if that the next code is dead code, don't process those tokens.
-  We capture the `#if` line as a trivia
-- We encounter `#else`, meaning our current state gets inverted. We capture the `#else` line as trivia
-  Dead becomes alive and alive becomes dead.
-- `1.` is a special trivia case. Numbers cannot be trusted, therefor a trivia is created.
-  We capture `#endif`, marking all the tokens that follow as active code again. We capture `#endif` as trivia.
-
-Result:
-- 3 times `Define` trivia
-- 1 time `Number` trivia
-
-with `["FOO"]`:
-Some more less the same thing but inverted.
-
-#### Inception and dead inception
-
-> There is a dream inside a dream , I'm wide awake the more I sleep
-
-That is more fun than one `#if ` define? A nested one of course:
-
-```fsharp
-#if FOO
-    a
-    #if BAR
-    b
-    #endif
-    c
-#endif
-d
-```
-
-This leads to four define combinations: `[]`, `["FOO"]`, `["BAR"]`, `["FOO","BAR"]`
-Depending on the combination, we will inevitably encounter a path of dead code.
-We need to ignore trivia in dead code, unless the trivia are any more hash lines.
-
-So, if we process the tokens with `[]`, we need to capture `#if BAR` as trivia even tough after the first line, we know that we are walking dead code. 
-When walking the tokens with all the combinations, the only thing they will always have in common is the hash lines. These should always be there.
-
-Since, we are messed with the more bare bone tokens, we need to detect all these things ourselves.
-The solution in Fantomas (for better or worse) is `TriviaBuilderState` with `ConditionalCodeTree`.
-We need to keep track in what state we are in terms of active code (and how deep down the rabbit hole we are).
-And we need to know when we are inside a code comment or a string, because hash lines inside those don't count.
-
-This code works today but if there is a more elegant way to solve this, I'm really all ears.
+this will be captured in the syntax tree, though it should not be.
+The same thing can occur for multiline strings.
 
 ## Riddles in the Dark
 
@@ -243,8 +117,24 @@ This will have the same namespace as the FCS. People might need a separate build
 
 ### What about performance?
 
-There are no real numbers available at the moment. The unit test do run faster on my local machine.
 Performance was never the greatest motivator for these changes. But yes, a better syntax tree will benefit performance for sure.
+A comparison was made on 30/04:
+
+```
+Master branch
+
+| Method |    Mean |    Error |   StdDev | Rank |      Gen 0 |      Gen 1 |     Gen 2 | Allocated |
+|------- |--------:|---------:|---------:|-----:|-----------:|-----------:|----------:|----------:|
+| Format | 2.635 s | 0.0527 s | 0.0541 s |    1 | 92000.0000 | 32000.0000 | 2000.0000 |      2 GB |
+
+embedded-fcs branch
+
+| Method |     Mean |    Error |   StdDev | Rank |      Gen 0 |     Gen 1 |     Gen 2 | Allocated |
+|------- |---------:|---------:|---------:|-----:|-----------:|----------:|----------:|----------:|
+| Format | 600.1 ms | 11.16 ms | 10.44 ms |    1 | 12000.0000 | 4000.0000 | 1000.0000 |    208 MB |
+```
+
+The estimation is that Fantomas should be at least twice as fast.
 
 ## Breaking the barrel once more
 
