@@ -13,7 +13,6 @@ open Fantomas.SourceParser
 open Fantomas.SourceTransformer
 open Fantomas.Context
 open Fantomas.TriviaTypes
-open Fantomas.TriviaContext
 
 /// This type consists of contextual information which is important for formatting
 /// Please avoid using this record as it can be the cause of unexpected behavior when used incorrectly
