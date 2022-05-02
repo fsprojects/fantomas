@@ -1158,8 +1158,6 @@ let internal printTriviaContent (c: TriviaContent) (ctx: Context) =
         +> sepSpace
         +> ifElse after sepNlnForTrivia sepNone
     | Newline -> (ifElse addNewline (sepNlnForTrivia +> sepNlnForTrivia) sepNlnForTrivia)
-    | IdentOperatorAsWord _
-    | IdentBetweenTicks _ -> sepNone // don't print here but somewhere in CodePrinter
     | Directive s
     | Comment (LineCommentOnSingleLine s) ->
         (ifElse addNewline sepNlnForTrivia sepNone)
@@ -1207,15 +1205,6 @@ let internal leaveNodeFor (mainNodeName: FsAstType) (range: Range) (ctx: Context
         | None -> ctx
     | None -> ctx
 
-let internal hasPrintableContent (trivia: TriviaContent list) =
-    trivia
-    |> List.exists (fun tn ->
-        match tn with
-        | Comment _
-        | Newline
-        | Directive _ -> true
-        | _ -> false)
-
 let private sepConsideringTriviaContentBeforeBy
     (findNode: Context -> range -> TriviaNode option)
     (sepF: Context -> Context)
@@ -1223,7 +1212,7 @@ let private sepConsideringTriviaContentBeforeBy
     (ctx: Context)
     =
     match findNode ctx range with
-    | Some { ContentBefore = contentBefore } when (hasPrintableContent contentBefore) -> ctx
+    | Some { ContentBefore = contentBefore } -> ctx
     | _ -> sepF ctx
 
 let internal sepConsideringTriviaContentBeforeForMainNode sepF (mainNodeName: FsAstType) (range: Range) (ctx: Context) =
@@ -1240,13 +1229,7 @@ let internal sepNlnConsideringTriviaContentBeforeForMainNode (mainNode: FsAstTyp
 let internal sepNlnForEmptyModule (mainNode: FsAstType) (moduleRange: Range) (ctx: Context) =
     match Map.tryFind mainNode ctx.TriviaNodes with
     | Some nodes ->
-        if
-            List.exists
-                (fun tn ->
-                    RangeHelpers.rangeEq tn.Range moduleRange
-                    && (hasPrintableContent tn.ContentBefore
-                        || hasPrintableContent tn.ContentAfter))
-                nodes then
+        if List.exists (fun tn -> RangeHelpers.rangeEq tn.Range moduleRange) nodes then
             ctx
         else
             sepNln ctx

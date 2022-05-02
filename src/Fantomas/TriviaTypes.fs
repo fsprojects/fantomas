@@ -22,8 +22,6 @@ let a = 7
 *)
 
 type TriviaContent =
-    | IdentOperatorAsWord of string
-    | IdentBetweenTicks of string
     | Comment of Comment
     | Newline
     | Directive of directive: string
