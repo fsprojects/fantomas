@@ -1,8 +1,8 @@
-module internal Fantomas.TokenParser // TODO: rename module
+module internal Fantomas.Defines
 
 open FSharp.Compiler.SyntaxTrivia
 open Fantomas
-open Fantomas.TokenParserBoolExpr
+open Fantomas.DefineCombinationSolver
 open Fantomas.TriviaTypes
 
 let private getIndividualDefine (hashDirectives: ConditionalDirectiveTrivia list) : string list list =

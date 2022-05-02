@@ -1,4 +1,4 @@
-module Fantomas.TokenParserBoolExpr
+module Fantomas.DefineCombinationSolver
 
 #nowarn "40"
 

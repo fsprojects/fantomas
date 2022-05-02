@@ -20,7 +20,7 @@ let private toTriviaWithDefines source =
         | ImplFile (ParsedImplFileInput (_, _, directives, _))
         | SigFile (ParsedSigFileInput (_, _, directives, _)) -> directives
 
-    let defineCombinations = TokenParser.getDefineCombination hashDirectives
+    let defineCombinations = Defines.getDefineCombination hashDirectives
 
     defineCombinations
     |> List.map (fun dc -> dc, Trivia.collectTrivia sourceText ast)

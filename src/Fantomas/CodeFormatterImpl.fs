@@ -59,7 +59,7 @@ let parse (isSignature: bool) (source: ISourceText) : Async<(ParsedInput * Defin
             return [| (baseUntypedTree, []) |]
         }
     | hashDirectives ->
-        let defineCombinations = TokenParser.getDefineCombination hashDirectives
+        let defineCombinations = Defines.getDefineCombination hashDirectives
 
         defineCombinations
         |> List.map (fun defineCombination ->

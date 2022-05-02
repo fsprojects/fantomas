@@ -5,7 +5,7 @@ open NUnit.Framework
 open FsUnit
 open Fantomas
 open Fantomas.SourceParser
-open Fantomas.TokenParser
+open Fantomas.Defines
 open Fantomas.Tests.TestHelper
 
 let private getDefines (v: string) =
