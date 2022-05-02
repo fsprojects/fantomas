@@ -146,3 +146,4 @@ group compiler
     nuget System.Memory
     nuget System.Runtime
     nuget FsLexYacc 10.2.0
+    nuget Ionide.KeepAChangelog.Tasks copy_local: true

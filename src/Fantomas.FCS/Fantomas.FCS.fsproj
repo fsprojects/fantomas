@@ -9,6 +9,7 @@
     <FsYaccOutputFolder>$(IntermediateOutputPath)\$(TargetFramework)\</FsYaccOutputFolder>
     <FsLexOutputFolder>$(IntermediateOutputPath)\$(TargetFramework)\</FsLexOutputFolder>
     <Tailcalls>true</Tailcalls>
+    <IsPackable>true</IsPackable>
   </PropertyGroup>
 
   <ItemGroup>

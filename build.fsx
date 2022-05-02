@@ -124,6 +124,8 @@ let externalProjectsToTestFailing =
 
 Target.create "Clean" (fun _ ->
     [ "bin"
+      "src/Fantomas.FCS/bin"
+      "src/Fantomas.FCS/obj"
       "src/Fantomas/bin"
       "src/Fantomas/obj"
       "src/Fantomas.CoreGlobalTool/bin"
