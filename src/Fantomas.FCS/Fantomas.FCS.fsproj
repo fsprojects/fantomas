@@ -270,7 +270,6 @@
     <Compile Include="..\..\paket-files\dotnet\fsharp\src\fsharp\LexFilter.fs">
       <Link>ParserAndUntypedAST\LexFilter.fs</Link>
     </Compile>
-    <Compile Include="Lex.fs" />
     <Compile Include="ParseAndCheckInputs.fs" />
     <Compile Include="Parse.fs" />
   </ItemGroup>
