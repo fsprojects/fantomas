@@ -300,7 +300,7 @@ and genModuleDecl astContext (node: SynModuleDecl) =
                                 | Comment (LineCommentOnSingleLine _)
                                 | Directive _ -> true
                                 | _ -> false)
-                                (Map.tryFindOrEmptyList SynAttributeList_ ctx.TriviaMainNodes)
+                                (Map.tryFindOrEmptyList SynAttributeList_ ctx.TriviaNodes)
 
                         (hasContentAfter, prevExpr +> expr))
                     (true, sepNone)
@@ -547,7 +547,7 @@ and genAttributes astContext (ats: SynAttributes) =
                     | Newline
                     | Comment (LineCommentOnSingleLine _) -> true
                     | _ -> false)
-                    (Map.tryFindOrEmptyList SynAttributeList_ ctx.TriviaMainNodes)
+                    (Map.tryFindOrEmptyList SynAttributeList_ ctx.TriviaNodes)
 
             let chain =
                 acc
@@ -1129,7 +1129,7 @@ and genExpr astContext synExpr ctx =
                                 (function
                                 | Comment (BlockComment _) -> true
                                 | _ -> false)
-                                (Map.tryFindOrEmptyList SynExpr_ArrayOrList_ClosingDelimiter ctx.TriviaMainNodes))
+                                (Map.tryFindOrEmptyList SynExpr_ArrayOrList_ClosingDelimiter ctx.TriviaNodes))
                             sepNln
                         +> genTriviaFor
                             SynExpr_ArrayOrList_ClosingDelimiter
@@ -1144,7 +1144,7 @@ and genExpr astContext synExpr ctx =
                             (function
                             | Comment (BlockComment _) -> true
                             | _ -> false)
-                            (Map.tryFindOrEmptyList SynExpr_ArrayOrList_ClosingDelimiter ctx.TriviaMainNodes)
+                            (Map.tryFindOrEmptyList SynExpr_ArrayOrList_ClosingDelimiter ctx.TriviaNodes)
 
                     let hasChildren = List.isNotEmpty children
 
@@ -1604,7 +1604,7 @@ and genExpr astContext synExpr ctx =
 
                 let expr =
                     let triviaOfLambda f (ctx: Context) =
-                        (Map.tryFindOrEmptyList SynExpr_Lambda ctx.TriviaMainNodes
+                        (Map.tryFindOrEmptyList SynExpr_Lambda ctx.TriviaNodes
                          |> List.tryFind (fun tn -> RangeHelpers.rangeEq tn.Range lambdaRange)
                          |> optSingle f)
                             ctx
@@ -3433,7 +3433,7 @@ and genExprInIfOrMatch astContext (e: SynExpr) (ctx: Context) : Context =
                 (function
                 | Comment (LineCommentOnSingleLine _) -> true
                 | _ -> false)
-                (Map.tryFindOrEmptyList (synExprToFsAstType e |> fst) ctx.TriviaMainNodes)
+                (Map.tryFindOrEmptyList (synExprToFsAstType e |> fst) ctx.TriviaNodes)
 
         let indentNlnUnindentNln f =
             indent +> sepNln +> f +> unindent +> sepNln
@@ -4811,7 +4811,7 @@ and genMemberDefn astContext node =
                          +> sepCloseT
 
                      let triviaBeforePats =
-                         Map.tryFindOrEmptyList SynSimplePats_SimplePats ctx.TriviaMainNodes
+                         Map.tryFindOrEmptyList SynSimplePats_SimplePats ctx.TriviaNodes
                          |> List.tryFind (fun tn -> RangeHelpers.rangeEq tn.Range ps.Range)
 
                      match triviaBeforePats with

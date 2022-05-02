@@ -182,7 +182,7 @@ type internal Context =
       WriterEvents: Queue<WriterEvent>
       BreakLines: bool
       BreakOn: string -> bool
-      TriviaMainNodes: Map<FsAstType, TriviaNode list>
+      TriviaNodes: Map<FsAstType, TriviaNode list>
       FileName: string
       SourceText: ISourceText option }
 
@@ -193,7 +193,7 @@ type internal Context =
           WriterEvents = Queue.empty
           BreakLines = true
           BreakOn = (fun _ -> false)
-          TriviaMainNodes = Map.empty
+          TriviaNodes = Map.empty
           FileName = String.Empty
           SourceText = None }
 
@@ -211,7 +211,7 @@ type internal Context =
         { Context.Default with
             Config = config
             SourceText = sourceText
-            TriviaMainNodes = triviaByNodes }
+            TriviaNodes = triviaByNodes }
 
     member x.WithDummy(writerCommands, ?keepPageWidth) =
         let keepPageWidth = keepPageWidth |> Option.defaultValue false
@@ -1182,7 +1182,7 @@ let private findTriviaOnStartFromRange nodes (range: Range) =
     |> List.tryFind (fun n -> RangeHelpers.rangeStartEq n.Range range)
 
 let internal enterNodeFor (mainNodeName: FsAstType) (range: Range) (ctx: Context) =
-    match Map.tryFind mainNodeName ctx.TriviaMainNodes with
+    match Map.tryFind mainNodeName ctx.TriviaNodes with
     | Some triviaNodes ->
         let tn =
             List.tryFind
@@ -1195,7 +1195,7 @@ let internal enterNodeFor (mainNodeName: FsAstType) (range: Range) (ctx: Context
     | None -> ctx
 
 let internal leaveNodeFor (mainNodeName: FsAstType) (range: Range) (ctx: Context) =
-    match Map.tryFind mainNodeName ctx.TriviaMainNodes with
+    match Map.tryFind mainNodeName ctx.TriviaNodes with
     | Some triviaNodes ->
         let tn =
             List.tryFind
@@ -1228,7 +1228,7 @@ let private sepConsideringTriviaContentBeforeBy
 
 let internal sepConsideringTriviaContentBeforeForMainNode sepF (mainNodeName: FsAstType) (range: Range) (ctx: Context) =
     let findNode ctx range =
-        Map.tryFind mainNodeName ctx.TriviaMainNodes
+        Map.tryFind mainNodeName ctx.TriviaNodes
         |> Option.defaultValue []
         |> List.tryFind (fun { ContentBefore = cb; Range = r } -> List.isNotEmpty cb && RangeHelpers.rangeEq r range)
 
@@ -1238,7 +1238,7 @@ let internal sepNlnConsideringTriviaContentBeforeForMainNode (mainNode: FsAstTyp
     sepConsideringTriviaContentBeforeForMainNode sepNln mainNode range
 
 let internal sepNlnForEmptyModule (mainNode: FsAstType) (moduleRange: Range) (ctx: Context) =
-    match Map.tryFind mainNode ctx.TriviaMainNodes with
+    match Map.tryFind mainNode ctx.TriviaNodes with
     | Some nodes ->
         if
             List.exists
@@ -1262,7 +1262,7 @@ let internal sepNlnTypeAndMembers
     let triviaNodeOfWithKeyword: TriviaNode option =
         withKeywordRange
         |> Option.bind (fun r ->
-            ctx.TriviaMainNodes
+            ctx.TriviaNodes
             |> Map.tryFindOrEmptyList withKeywordNodeType
             |> List.tryFind (fun tn -> RangeHelpers.rangeEq r tn.Range))
 
