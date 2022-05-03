@@ -18,8 +18,10 @@ let ``typed quotations`` () =
     |> should
         equal
         """
-<@ let f x = x + 10
-   f 20 @>
+<@
+    let f x = x + 10
+    f 20
+@>
 """
 
 [<Test>]
@@ -62,14 +64,16 @@ let action =
         equal
         """
 let action =
-    <@ let msg = %httpRequestMessageWithPayload
-       RuntimeHelpers.fillHeaders msg %heads
+    <@
+        let msg = %httpRequestMessageWithPayload
+        RuntimeHelpers.fillHeaders msg %heads
 
-       async {
-           let! response =
-               (%this).HttpClient.SendAsync(msg)
-               |> Async.AwaitTask
+        async {
+            let! response =
+                (%this).HttpClient.SendAsync(msg)
+                |> Async.AwaitTask
 
-           return response.EnsureSuccessStatusCode().Content
-       } @>
+            return response.EnsureSuccessStatusCode().Content
+        }
+    @>
 """

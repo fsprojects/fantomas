@@ -1271,8 +1271,10 @@ and genExpr astContext synExpr ctx =
                 expressionFitsOnRestOfLine
                     (genExpr astContext e2)
                     (indent
-                     +> atCurrentColumnIndent (genExpr astContext e2)
-                     +> unindent)
+                     +> sepNln
+                     +> genExpr astContext e2
+                     +> unindent
+                     +> sepNln)
 
             ifElse
                 isRaw
