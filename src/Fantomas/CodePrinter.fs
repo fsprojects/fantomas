@@ -2205,7 +2205,6 @@ and genExpr astContext synExpr ctx =
                                     +> unindent
                                     |> genTriviaFor SynExpr_MatchLambda matchLambdaRange)
                                 +> sepNlnWhenWriteBeforeNewlineNotEmpty id
-                                +> unindent
                                 +> sepCloseTFor rpr)
                             |> genTriviaFor SynExpr_Paren pr
 
