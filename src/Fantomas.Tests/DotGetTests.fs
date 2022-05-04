@@ -1374,6 +1374,8 @@ let ``dotget inside a quotation, 2154`` () =
         equal
         """
 (fun (Singleton arg) ->
-    <@@ ((%%arg: Indicators) :> IIndicators)
-            .AsyncGetIndicator(indicatorIdVal) @@>)
+    <@@
+        ((%%arg: Indicators) :> IIndicators)
+            .AsyncGetIndicator(indicatorIdVal)
+    @@>)
 """

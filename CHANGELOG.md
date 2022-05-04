@@ -1,5 +1,13 @@
 # Changelog
 
+## [Unreleased]
+
+### Changed
+* Adjusted formatting of quotation expressions to latest F# style guide. [#661](https://github.com/fsharp/fslang-design/issues/661)
+
+### Fixed
+* Idempotency problem with multiline quotation expressions. [#2203](https://github.com/fsprojects/fantomas/issues/2203)
+
 ## [4.7.9] - 2022-05-02
 
 ### Changed
