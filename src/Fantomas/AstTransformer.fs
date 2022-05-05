@@ -49,12 +49,18 @@ module private Ast =
 
     let rec visitSynModuleOrNamespace (modOrNs: SynModuleOrNamespace) : TriviaNodeAssigner list =
         match modOrNs with
-        | SynModuleOrNamespace (longIdent, _, kind, decls, _, attrs, _, range) ->
+        | SynModuleOrNamespace (longIdent, _, kind, decls, _, attrs, _, range, trivia) ->
             let moduleOrNamespace =
                 match kind with
-                | SynModuleOrNamespaceKind.DeclaredNamespace -> [ mkNode SynModuleOrNamespace_DeclaredNamespace range ]
-                | SynModuleOrNamespaceKind.GlobalNamespace -> [ mkNode SynModuleOrNamespace_GlobalNamespace range ]
-                | SynModuleOrNamespaceKind.NamedModule -> [ mkNode SynModuleOrNamespace_NamedModule range ]
+                | SynModuleOrNamespaceKind.DeclaredNamespace ->
+                    [ yield mkNode SynModuleOrNamespace_DeclaredNamespace range
+                      yield! mkNodeOption SynModuleOrNamespace_Namespace trivia.NamespaceKeyword ]
+                | SynModuleOrNamespaceKind.GlobalNamespace ->
+                    [ yield mkNode SynModuleOrNamespace_GlobalNamespace range
+                      yield! mkNodeOption SynModuleOrNamespace_Namespace trivia.NamespaceKeyword ]
+                | SynModuleOrNamespaceKind.NamedModule ->
+                    [ yield mkNode SynModuleOrNamespace_NamedModule range
+                      yield! mkNodeOption SynModuleOrNamespace_Module trivia.ModuleKeyword ]
                 | SynModuleOrNamespaceKind.AnonModule -> []
 
             let longIdentNodes =
@@ -1423,7 +1429,7 @@ module private Ast =
 
     and visitSynModuleOrNamespaceSig (modOrNs: SynModuleOrNamespaceSig) : TriviaNodeAssigner list =
         match modOrNs with
-        | SynModuleOrNamespaceSig (longIdent, _, kind, decls, _, attrs, _, range) ->
+        | SynModuleOrNamespaceSig (longIdent, _, kind, decls, _, attrs, _, range, trivia) ->
             let longIdentNodes =
                 match kind, decls with
                 | SynModuleOrNamespaceKind.AnonModule, _ :: _ -> []
@@ -1432,9 +1438,14 @@ module private Ast =
             let moduleOrNamespaceSig =
                 match kind with
                 | SynModuleOrNamespaceKind.DeclaredNamespace ->
-                    [ mkNode SynModuleOrNamespaceSig_DeclaredNamespace range ]
-                | SynModuleOrNamespaceKind.GlobalNamespace -> [ mkNode SynModuleOrNamespaceSig_GlobalNamespace range ]
-                | SynModuleOrNamespaceKind.NamedModule -> [ mkNode SynModuleOrNamespaceSig_NamedModule range ]
+                    [ yield mkNode SynModuleOrNamespaceSig_DeclaredNamespace range
+                      yield! mkNodeOption SynModuleOrNamespace_Namespace trivia.NamespaceKeyword ]
+                | SynModuleOrNamespaceKind.GlobalNamespace ->
+                    [ mkNode SynModuleOrNamespaceSig_GlobalNamespace range
+                      yield! mkNodeOption SynModuleOrNamespace_Namespace trivia.NamespaceKeyword ]
+                | SynModuleOrNamespaceKind.NamedModule ->
+                    [ mkNode SynModuleOrNamespaceSig_NamedModule range
+                      yield! mkNodeOption SynModuleOrNamespace_Module trivia.ModuleKeyword ]
                 | _ -> []
 
             [ yield! moduleOrNamespaceSig

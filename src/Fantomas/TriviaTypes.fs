@@ -42,6 +42,8 @@ type FsAstType =
     | SynModuleOrNamespace_DeclaredNamespace
     | SynModuleOrNamespace_GlobalNamespace
     | SynModuleOrNamespace_NamedModule
+    | SynModuleOrNamespace_Module
+    | SynModuleOrNamespace_Namespace
     | SynModuleDecl_ModuleAbbrev
     | SynModuleDecl_NestedModule
     | SynModuleDecl_NestedModule_Module

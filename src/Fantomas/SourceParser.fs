@@ -78,23 +78,41 @@ let (|ParsedSigFileInput|)
     (hs, mns, directives, codeComments)
 
 let (|ModuleOrNamespace|)
-    (SynModuleOrNamespace.SynModuleOrNamespace (lids, isRecursive, kind, mds, px, ats, ao, range))
+    (SynModuleOrNamespace.SynModuleOrNamespace (lids, isRecursive, kind, mds, px, ats, ao, range, trivia))
     =
-    (ats, px, ao, lids, mds, isRecursive, kind, range)
+    (ats, px, trivia.ModuleKeyword, trivia.NamespaceKeyword, ao, lids, mds, isRecursive, kind, range)
 
 let (|SigModuleOrNamespace|)
-    (SynModuleOrNamespaceSig.SynModuleOrNamespaceSig (lids, isRecursive, kind, mds, px, ats, ao, range))
+    (SynModuleOrNamespaceSig.SynModuleOrNamespaceSig (lids, isRecursive, kind, mds, px, ats, ao, range, trivia))
     =
-    (ats, px, ao, lids, mds, isRecursive, kind, range)
+    (ats, px, trivia.ModuleKeyword, trivia.NamespaceKeyword, ao, lids, mds, isRecursive, kind, range)
 
 let (|EmptyFile|_|) (input: ParsedInput) =
     match input with
     | ImplFile (ParsedImplFileInput (_,
-                                     [ ModuleOrNamespace (_, _, _, _, [], _, SynModuleOrNamespaceKind.AnonModule, _) ],
+                                     [ ModuleOrNamespace (_,
+                                                          _,
+                                                          _,
+                                                          _,
+                                                          _,
+                                                          _,
+                                                          [],
+                                                          _,
+                                                          SynModuleOrNamespaceKind.AnonModule,
+                                                          _) ],
                                      _,
                                      _)) -> Some input
     | SigFile (ParsedSigFileInput (_,
-                                   [ SigModuleOrNamespace (_, _, _, _, [], _, SynModuleOrNamespaceKind.AnonModule, _) ],
+                                   [ SigModuleOrNamespace (_,
+                                                           _,
+                                                           _,
+                                                           _,
+                                                           _,
+                                                           _,
+                                                           [],
+                                                           _,
+                                                           SynModuleOrNamespaceKind.AnonModule,
+                                                           _) ],
                                    _,
                                    _)) -> Some input
     | _ -> None

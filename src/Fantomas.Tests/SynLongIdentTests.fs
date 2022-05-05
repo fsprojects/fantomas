@@ -386,7 +386,9 @@ let ``backticks can be added from AST only scenarios`` () =
                       PreXmlDoc.Empty,
                       [],
                       None,
-                      Range.Zero
+                      Range.Zero,
+                      { ModuleKeyword = None
+                        NamespaceKeyword = None }
                   ) ],
                 (true, false),
                 { ConditionalDirectives = []

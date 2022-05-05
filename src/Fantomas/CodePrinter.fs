@@ -112,14 +112,24 @@ and genParsedHashDirective (ParsedHashDirective (h, args, r)) =
     +> col sepSpace args genArg
     |> genTriviaFor ParsedHashDirective_ r
 
-and genModuleOrNamespaceKind (kind: SynModuleOrNamespaceKind) =
+and genModuleOrNamespaceKind
+    (moduleRange: range option)
+    (namespaceRange: range option)
+    (kind: SynModuleOrNamespaceKind)
+    =
     match kind with
-    | SynModuleOrNamespaceKind.DeclaredNamespace -> !- "namespace "
-    | SynModuleOrNamespaceKind.NamedModule -> !- "module "
-    | SynModuleOrNamespaceKind.GlobalNamespace -> !- "namespace global"
+    | SynModuleOrNamespaceKind.DeclaredNamespace ->
+        genTriviaForOption SynModuleOrNamespace_Namespace namespaceRange !- "namespace "
+    | SynModuleOrNamespaceKind.NamedModule -> genTriviaForOption SynModuleOrNamespace_Module moduleRange !- "module "
+    | SynModuleOrNamespaceKind.GlobalNamespace ->
+        genTriviaForOption SynModuleOrNamespace_Namespace namespaceRange !- "namespace"
+        +> !- " global"
     | SynModuleOrNamespaceKind.AnonModule -> sepNone
 
-and genModuleOrNamespace astContext (ModuleOrNamespace (ats, px, ao, lids, mds, isRecursive, moduleKind, range)) =
+and genModuleOrNamespace
+    astContext
+    (ModuleOrNamespace (ats, px, moduleRange, namespaceRange, ao, lids, mds, isRecursive, moduleKind, range))
+    =
     let sepModuleAndFirstDecl =
         let firstDecl = List.tryHead mds
 
@@ -130,7 +140,7 @@ and genModuleOrNamespace astContext (ModuleOrNamespace (ats, px, ao, lids, mds, 
             +> sepNlnConsideringTriviaContentBeforeForMainNode (synModuleDeclToFsAstType mdl) mdl.Range
 
     let moduleOrNamespace =
-        genModuleOrNamespaceKind moduleKind
+        genModuleOrNamespaceKind moduleRange namespaceRange moduleKind
         +> opt sepSpace ao genAccess
         +> ifElse isRecursive (!- "rec ") sepNone
         +> genLongIdent lids
@@ -156,7 +166,10 @@ and genModuleOrNamespace astContext (ModuleOrNamespace (ats, px, ao, lids, mds, 
         | SynModuleOrNamespaceKind.GlobalNamespace -> genTriviaFor SynModuleOrNamespace_GlobalNamespace range
         | SynModuleOrNamespaceKind.NamedModule -> genTriviaFor SynModuleOrNamespace_NamedModule range)
 
-and genSigModuleOrNamespace astContext (SigModuleOrNamespace (ats, px, ao, lids, mds, isRecursive, moduleKind, range)) =
+and genSigModuleOrNamespace
+    astContext
+    (SigModuleOrNamespace (ats, px, moduleRange, namespaceRange, ao, lids, mds, isRecursive, moduleKind, range))
+    =
     let sepModuleAndFirstDecl =
         let firstDecl = List.tryHead mds
 
@@ -171,7 +184,7 @@ and genSigModuleOrNamespace astContext (SigModuleOrNamespace (ats, px, ao, lids,
             +> sepNln
 
     let moduleOrNamespace =
-        genModuleOrNamespaceKind moduleKind
+        genModuleOrNamespaceKind moduleRange namespaceRange moduleKind
         +> opt sepSpace ao genAccess
         +> ifElse isRecursive (!- "rec ") sepNone
         +> genLongIdent lids
@@ -5849,5 +5862,6 @@ and genMeasure (measure: SynMeasure) =
         | SynMeasure.Power (m, RationalConst n, _) -> loop m +> !- $"^{n}"
         | SynMeasure.Seq (ms, _) -> col sepSpace ms loop
         | SynMeasure.Named (lid, _) -> genLongIdent lid
+        | SynMeasure.Paren (m, _) -> sepOpenT +> loop m +> sepCloseT
 
     !- "<" +> loop measure +> !- ">"
