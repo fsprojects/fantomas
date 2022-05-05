@@ -945,8 +945,9 @@ module private Ast =
 
     and visitSynValSig (svs: SynValSig) : TriviaNodeAssigner list =
         match svs with
-        | SynValSig (attrs, ident, explicitValDecls, synType, arity, _, _, _, _, expr, withKeyword, range) ->
+        | SynValSig (attrs, ident, explicitValDecls, synType, arity, _, _, _, _, expr, range, trivia) ->
             [ yield mkNode SynValSig_ range
+              yield! mkNodeOption SynValSig_Val trivia.ValKeyword
               yield visitSynIdent ident
               yield! (visitSynAttributeLists attrs)
               yield! visitSynValTyparDecls explicitValDecls
@@ -954,7 +955,7 @@ module private Ast =
               yield! visitSynValInfo arity
               if expr.IsSome then
                   yield! visitSynExpr expr.Value
-              yield! mkNodeOption SynValSig_With withKeyword ]
+              yield! mkNodeOption SynValSig_With trivia.ValKeyword ]
 
     and visitSynValTyparDecls (valTypeDecl: SynValTyparDecls) : TriviaNodeAssigner list =
         match valTypeDecl with

@@ -1343,7 +1343,6 @@ type 'a Bar =
 """
 
 [<Test>]
-[<Ignore "The val keyword should be a part of trivia to properly solve this">]
 let ``comment between attribute and val, 1561`` () =
     formatSourceString
         true

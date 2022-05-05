@@ -227,6 +227,7 @@ type FsAstType =
     | SynTyparDecl_
     // | Typar_ , unused
     | SynValSig_
+    | SynValSig_Val
     | SynValSig_With
     // | SynPat_Const, use SynConst instead
     | SynPat_Wild

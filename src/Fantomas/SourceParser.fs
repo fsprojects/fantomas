@@ -1528,9 +1528,9 @@ let (|MSMember|MSInterface|MSInherit|MSValField|MSNestedType|) =
     | SynMemberSig.NestedType (tds, _) -> MSNestedType tds
 
 let (|Val|)
-    (SynValSig (ats, synIdent, SynValTyparDecls (typars, _), t, vi, isInline, isMutable, px, ao, eo, _, range))
+    (SynValSig (ats, synIdent, SynValTyparDecls (typars, _), t, vi, isInline, isMutable, px, ao, eo, range, trivia))
     =
-    (ats, px, ao, synIdent, t, vi, isInline, isMutable, typars, eo, range)
+    (ats, px, trivia.ValKeyword, ao, synIdent, t, vi, isInline, isMutable, typars, eo, range)
 
 // Misc
 

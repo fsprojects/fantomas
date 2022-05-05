@@ -1004,7 +1004,7 @@ and genMemberFlags (mf: SynMemberFlags) =
     | { AbstractRange = Some _a } -> !- "abstract "
     | _ -> sepNone
 
-and genVal astContext (Val (ats, px, ao, si, t, vi, isInline, isMutable, tds, eo, range)) =
+and genVal astContext (Val (ats, px, valKeyword, ao, si, t, vi, isInline, isMutable, tds, eo, range)) =
     let typeName = genTypeAndParam astContext (genSynIdent false si) tds []
 
     let (FunType namedArgs) = (t, vi)
@@ -1012,7 +1012,7 @@ and genVal astContext (Val (ats, px, ao, si, t, vi, isInline, isMutable, tds, eo
 
     genPreXmlDoc px
     +> genAttributes astContext ats
-    +> (!- "val "
+    +> (genTriviaForOption SynValSig_Val valKeyword !- "val "
         +> onlyIf isInline (!- "inline ")
         +> onlyIf isMutable (!- "mutable ")
         +> opt sepSpace ao genAccess
@@ -4154,7 +4154,7 @@ and genMemberSig astContext node =
         | SynMemberSig.NestedType (_, r) -> r, SynMemberSig_NestedType
 
     match node with
-    | MSMember (Val (ats, px, ao, si, t, vi, isInline, _, tds, eo, _), mf) ->
+    | MSMember (Val (ats, px, _, ao, si, t, vi, isInline, _, tds, eo, _), mf) ->
         let (FunType namedArgs) = (t, vi)
 
         let isFunctionProperty =
