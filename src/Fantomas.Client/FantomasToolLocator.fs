@@ -15,7 +15,7 @@ let private supportedRange = SemanticVersioning.Range(">=v4.6.0-alpha-004")
 let private (|CompatibleVersion|_|) (version: string) =
     match SemanticVersioning.Version.TryParse version with
     | true, parsedVersion ->
-        if supportedRange.IsSatisfied parsedVersion then
+        if supportedRange.IsSatisfied(parsedVersion, includePrerelease = true) then
             Some version
         else
             None
