@@ -1,4 +1,4 @@
-module internal Fantomas.FCS.Parse
+module Fantomas.FCS.Parse
 
 open System
 open Internal.Utilities
@@ -20,7 +20,7 @@ open FSharp.Compiler.IO
 open FSharp.Compiler.ParseHelpers
 open FSharp.Compiler.ParseAndCheckInputs
 
-let ComputeAnonModuleName check defaultNamespace filename (m: range) =
+let private ComputeAnonModuleName check defaultNamespace filename (m: range) =
     let modname = CanonicalizeFilename filename
 
     if
@@ -59,13 +59,13 @@ let ComputeAnonModuleName check defaultNamespace filename (m: range) =
 
     pathToSynLid anonymousModuleNameRange (splitNamespace combined)
 
-let IsScript filename =
+let private IsScript filename =
     let lower = String.lowercase filename
 
     FSharpScriptFileSuffixes
     |> List.exists (FileSystemUtils.checkSuffix lower)
 
-let PostParseModuleImpl (_i, defaultNamespace, _isLastCompiland, filename, impl) =
+let private PostParseModuleImpl (_i, defaultNamespace, _isLastCompiland, filename, impl) =
     match impl with
     | ParsedImplFileFragment.NamedModule (SynModuleOrNamespace (lid,
                                                                 isRec,
@@ -120,7 +120,7 @@ let PostParseModuleImpl (_i, defaultNamespace, _isLastCompiland, filename, impl)
 
 // Give a unique name to the different kinds of inputs. Used to correlate signature and implementation files
 //   QualFileNameOfModuleName - files with a single module declaration or an anonymous module
-let QualFileNameOfModuleName m filename modname =
+let private QualFileNameOfModuleName m filename modname =
     QualifiedNameOfFile(
         mkSynId
             m
@@ -128,7 +128,7 @@ let QualFileNameOfModuleName m filename modname =
              + (if IsScript filename then "$fsx" else ""))
     )
 
-let QualFileNameOfFilename m filename =
+let private QualFileNameOfFilename m filename =
     QualifiedNameOfFile(
         mkSynId
             m
@@ -136,33 +136,21 @@ let QualFileNameOfFilename m filename =
              + (if IsScript filename then "$fsx" else ""))
     )
 
-let QualFileNameOfSpecs filename specs =
+let private QualFileNameOfSpecs filename specs =
     match specs with
     | [ SynModuleOrNamespaceSig (longId = modname; kind = kind; range = m) ] when kind.IsModule ->
         QualFileNameOfModuleName m filename modname
     | [ SynModuleOrNamespaceSig (kind = kind; range = m) ] when not kind.IsModule -> QualFileNameOfFilename m filename
     | _ -> QualFileNameOfFilename (mkRange filename pos0 pos0) filename
 
-let QualFileNameOfImpls filename specs =
+let private QualFileNameOfImpls filename specs =
     match specs with
     | [ SynModuleOrNamespace (longId = modname; kind = kind; range = m) ] when kind.IsModule ->
         QualFileNameOfModuleName m filename modname
     | [ SynModuleOrNamespace (kind = kind; range = m) ] when not kind.IsModule -> QualFileNameOfFilename m filename
     | _ -> QualFileNameOfFilename (mkRange filename pos0 pos0) filename
 
-//let GetScopedPragmasForHashDirective hd =
-//    [ match hd with
-//      | ParsedHashDirective("nowarn", numbers, m) ->
-//          for s in numbers do
-//              match s with
-//              | ParsedHashDirectiveArgument.SourceIdentifier _ -> ()
-//              | ParsedHashDirectiveArgument.String (s, _, _) ->
-//                  match GetWarningNumber(m, s) with
-//                  | None -> ()
-//                  | Some n -> yield ScopedPragma.WarningOff(m, n)
-//      | _ -> () ]
-
-let GetScopedPragmasForInput input =
+let private GetScopedPragmasForInput input =
     match input with
     | ParsedInput.SigFile (ParsedSigFileInput (scopedPragmas = pragmas)) -> pragmas
     | ParsedInput.ImplFile (ParsedImplFileInput (scopedPragmas = pragmas)) -> pragmas
@@ -174,7 +162,7 @@ let private collectCodeComments (lexbuf: UnicodeLexing.Lexbuf) (tripleSlashComme
         | CommentTrivia.LineComment r
         | CommentTrivia.BlockComment r -> r.StartLine, r.StartColumn)
 
-let PostParseModuleImpls
+let private PostParseModuleImpls
     (
         defaultNamespace,
         filename,
@@ -217,7 +205,7 @@ let PostParseModuleImpls
         )
     )
 
-let PostParseModuleSpec (_i, defaultNamespace, _isLastCompiland, filename, intf) =
+let private PostParseModuleSpec (_i, defaultNamespace, _isLastCompiland, filename, intf) =
     match intf with
     | ParsedSigFileFragment.NamedModule (SynModuleOrNamespaceSig (lid,
                                                                   isRec,
@@ -280,7 +268,7 @@ let PostParseModuleSpec (_i, defaultNamespace, _isLastCompiland, filename, intf)
 
         SynModuleOrNamespaceSig(lid, isRecursive, kind, decls, xmlDoc, attributes, None, range, trivia)
 
-let PostParseModuleSpecs
+let private PostParseModuleSpecs
     (
         defaultNamespace,
         filename,
@@ -304,13 +292,6 @@ let PostParseModuleSpecs
 
     let qualName = QualFileNameOfSpecs filename specs
     let scopedPragmas = []
-    //        [ for SynModuleOrNamespaceSig(_, _, _, decls, _, _, _, _) in specs do
-//            for d in decls do
-//                match d with
-//                | SynModuleSigDecl.HashDirective(hd, _) -> yield! GetScopedPragmasForHashDirective hd
-//                | _ -> ()
-//          for hd in hashDirectives do
-//              yield! GetScopedPragmasForHashDirective hd ]
 
     let conditionalDirectives = LexbufIfdefStore.GetTrivia(lexbuf)
     let codeComments = collectCodeComments lexbuf tripleSlashComments
@@ -327,7 +308,7 @@ let PostParseModuleSpecs
         )
     )
 
-let ParseInput
+let private ParseInput
     (
         lexer,
         errorLogger: ErrorLogger,
@@ -397,7 +378,7 @@ let ParseInput
         let filteringErrorLogger = errorLogger // TODO: does this matter? //GetErrorLoggerFilteringByScopedPragmas(false, scopedPragmas, diagnosticOptions, errorLogger)
         delayLogger.CommitDelayedDiagnostics filteringErrorLogger
 
-let EmptyParsedInput (filename, isLastCompiland) =
+let private EmptyParsedInput (filename, isLastCompiland) =
     let lower = String.lowercase filename
 
     if
@@ -430,17 +411,15 @@ let EmptyParsedInput (filename, isLastCompiland) =
             )
         )
 
-let createLexbuf langVersion sourceText =
+let private createLexbuf langVersion sourceText =
     UnicodeLexing.SourceTextAsLexbuf(true, LanguageVersion(langVersion), sourceText)
 
-let createLexerFunction (defines: string list) lexbuf (errorLogger: ErrorLogger) =
+let private createLexerFunction (defines: string list) lexbuf (errorLogger: ErrorLogger) =
     let lightStatus = LightSyntaxStatus(true, true) // getLightSyntaxStatus fileName options
 
     // Note: we don't really attempt to intern strings across a large scope.
     let lexResourceManager = LexResourceManager()
 
-    // When analyzing files using ParseOneFile, i.e. for the use of editing clients, we do not apply line directives.
-    // TODO(pathmap): expose PathMap on the service API, and thread it through here
     let lexargs =
         mkLexargs (defines, lightStatus, lexResourceManager, [], errorLogger, PathMap.empty)
 
@@ -453,24 +432,12 @@ let createLexerFunction (defines: string list) lexbuf (errorLogger: ErrorLogger)
 
     (fun _ -> tokenizer.GetToken())
 
-let parseFile (isSignature: bool) (sourceText: ISourceText) (defines: string list) =
-    // let errHandler = ErrorHandler(true, fileName, options.ErrorSeverityOptions, sourceText, suggestNamesForErrors)
-    // TODO
-    // CapturingErrorLogger
+let parseFile
+    (isSignature: bool)
+    (sourceText: ISourceText)
+    (defines: string list)
+    : ParsedInput * (exn * Diagnostics.FSharpDiagnosticSeverity) list =
     let errorLogger = CapturingErrorLogger("ErrorHandler")
-    //        { new ErrorLogger("ErrorHandler") with
-//            member x.DiagnosticSink (exn, severity) =
-//                match exn.Exception with
-//                | :? SyntaxError as syntaxError ->
-//                    match syntaxError.Data0 with
-//                    | :? ParseErrorContext<_> as pec ->
-//                        printfn "%A" pec
-//                    | _ -> ()
-//                | _ -> ()
-//            member x.ErrorCount = 0 }
-
-    // use unwindEL = PushErrorLoggerPhaseUntilUnwind (fun _oldLogger -> errHandler.ErrorLogger)
-//   use unwindBP = PushThreadBuildPhaseUntilUnwind BuildPhase.Parse
 
     let parseResult =
         let fileName =
@@ -493,6 +460,7 @@ let parseFile (isSignature: bool) (sourceText: ISourceText) (defines: string lis
                 errorLogger.StopProcessingRecovery e range0 // don't re-raise any exceptions, we must return None.
                 EmptyParsedInput(fileName, (isLastCompiland, isExe)))
 
-    // TODO: think about what to return
-    // errHandler.CollectedDiagnostics, parseResult, errHandler.AnyErrors
-    parseResult, errorLogger.Diagnostics
+    let diagnostics =
+        List.map (fun (p, severity) -> p.Exception, severity) errorLogger.Diagnostics
+
+    parseResult, diagnostics
