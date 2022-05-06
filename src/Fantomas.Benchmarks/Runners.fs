@@ -2,7 +2,7 @@ module Fantomas.Benchmarks.Runners
 
 open System.IO
 open BenchmarkDotNet.Attributes
-open Fantomas
+open Fantomas.Core
 
 let config = FormatConfig.FormatConfig.Default
 

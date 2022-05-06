@@ -1,0 +1,7 @@
+FsUnit
+FsCheck
+Microsoft.NET.Test.Sdk
+NUnit3TestAdapter
+NunitXml.TestLogger
+FSharp.Core
+System.IO.Abstractions.TestingHelpers

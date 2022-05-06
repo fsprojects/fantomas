@@ -67,7 +67,7 @@ let fantomasExecutableForExternalTests projectdir =
         | DotNet.BuildConfiguration.Custom s -> s
 
     { ProcessName = "dotnet"
-      Arguments = [ sprintf "%s/src/Fantomas.CoreGlobalTool/bin/%s/net5.0/fantomas-tool.dll" projectdir configuration ] }
+      Arguments = [ $"%s{projectdir}/src/Fantomas/bin/%s{configuration}/net6.0/fantomas.dll" ] }
 
 let externalProjectsToTest =
     [
@@ -126,10 +126,10 @@ Target.create "Clean" (fun _ ->
     [ "bin"
       "src/Fantomas.FCS/bin"
       "src/Fantomas.FCS/obj"
+      "src/Fantomas.Core/bin"
+      "src/Fantomas.Core/obj"
       "src/Fantomas/bin"
       "src/Fantomas/obj"
-      "src/Fantomas.CoreGlobalTool/bin"
-      "src/Fantomas.CoreGlobalTool/obj"
       "src/Fantomas.Client/bin"
       "src/Fantomas.Client/obj" ]
     |> List.iter Shell.cleanDir)
@@ -150,7 +150,7 @@ Target.create "UnitTests" (fun _ ->
             // Logger = Some "nunit;LogFilePath=../../TestResults.xml"
             // Current there is an issue with NUnit reporter, https://github.com/nunit/nunit3-vs-adapter/issues/589
              })
-        "src/Fantomas.Tests/Fantomas.Tests.fsproj"
+        "src/Fantomas.Core.Tests/Fantomas.Core.Tests.fsproj"
 
     DotNet.test
         (fun p ->
@@ -162,7 +162,7 @@ Target.create "UnitTests" (fun _ ->
             // Logger = Some "nunit;LogFilePath=../../TestResults.xml"
             // Current there is an issue with NUnit reporter, https://github.com/nunit/nunit3-vs-adapter/issues/589
              })
-        "src/Fantomas.CoreGlobalTool.Tests/Fantomas.CoreGlobalTool.Tests.fsproj")
+        "src/Fantomas.Tests/Fantomas.Tests.fsproj")
 
 // --------------------------------------------------------------------------------------
 // Build a NuGet package

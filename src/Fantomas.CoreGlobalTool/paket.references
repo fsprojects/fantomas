@@ -1,8 +1,0 @@
-group tool
-FSharp.Core
-Argu
-StreamJsonRpc
-Thoth.Json.Net
-SerilogTraceListener
-Ionide.KeepAChangelog.Tasks copy_local: true
-Dotnet.ReproducibleBuilds copy_local: true

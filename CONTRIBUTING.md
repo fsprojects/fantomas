@@ -126,16 +126,16 @@ let myInput = 42
 ```
 
 The vast majority of the tests use the template listed above. Only deviate from this when necessary.
-Try and find a suitable file in `Fantomas.Tests`, or introduce a new file.
+Try and find a suitable file in `Fantomas.Core.Tests`, or introduce a new file.
 
 A new test file should look like:
 
 ```fsharp
-module Fantomas.Tests.MyNewConceptTests
+module Fantomas.Core.Tests.MyNewConceptTests
 
 open NUnit.Framework
 open FsUnit
-open Fantomas.Tests.TestHelper
+open Fantomas.Core.Tests.TestHelper
 
 // add tests here...
 ```
@@ -350,13 +350,13 @@ or in Bash:
 
 Run a single unit test with `dotnet test --filter`.
 
-> cd .\src\Fantomas.Tests\
+> cd .\src\Fantomas.Core.Tests\
 > dotnet test --filter 1700
 
 The output looks like:
 
 ```
-Test run for C:\Temp\fantomas\src\Fantomas.Tests\bin\Debug\netcoreapp3.1\Fantomas.Tests.dll(.NETCoreApp,Version=v3.1)
+Test run for C:\Temp\fantomas\src\Fantomas.Core.Tests\bin\Debug\netcoreapp3.1\Fantomas.Tests.dll(.NETCoreApp,Version=v3.1)
 Microsoft (R) Test Execution Command Line Tool Version 16.3.0
 Copyright (c) Microsoft Corporation.  All rights reserved.
 

@@ -1,0 +1,3 @@
+FSharp.Core
+Ionide.KeepAChangelog.Tasks copy_local: true
+Dotnet.ReproducibleBuilds copy_local: true

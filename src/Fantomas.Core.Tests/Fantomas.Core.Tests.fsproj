@@ -1,0 +1,120 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <NoWarn>FS0988</NoWarn>
+    <TargetFramework>net6.0</TargetFramework>
+    <WarningsAsErrors>FS0025</WarningsAsErrors>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Include="paket.references" />
+    <Compile Include="FsUnit.fs" />
+    <Compile Include="TestHelpers.fs" />
+    <Compile Include="UtilsTests.fs" />
+    <Compile Include="QueueTests.fs" />
+    <Compile Include="DefinesTests.fs" />
+    <Compile Include="TriviaTests.fs" />
+    <Compile Include="StringTests.fs" />
+    <Compile Include="CommentTests.fs" />
+    <Compile Include="OperatorTests.fs" />
+    <Compile Include="ComparisonTests.fs" />
+    <Compile Include="ControlStructureTests.fs" />
+    <Compile Include="PipingTests.fs" />
+    <Compile Include="AppTests.fs" />
+    <Compile Include="ModuleTests.fs" />
+    <Compile Include="UnionTests.fs" />
+    <Compile Include="RecordTests.fs" />
+    <Compile Include="TypeDeclarationTests.fs" />
+    <Compile Include="InterfaceTests.fs" />
+    <Compile Include="ClassTests.fs" />
+    <Compile Include="StructTests.fs" />
+    <Compile Include="SignatureTests.fs" />
+    <Compile Include="PatternMatchingTests.fs" />
+    <Compile Include="ActivePatternTests.fs" />
+    <Compile Include="QuotationTests.fs" />
+    <Compile Include="FunctionDefinitionTests.fs" />
+    <Compile Include="AttributeTests.fs" />
+    <Compile Include="ListTests.fs" />
+    <Compile Include="CompilerDirectivesTests.fs" />
+    <Compile Include="ComputationExpressionTests.fs" />
+    <Compile Include="TypeProviderTests.fs" />
+    <Compile Include="FormattingSelectionOnlyTests.fs" />
+    <Compile Include="ValidationTests.fs" />
+    <Compile Include="SpecialConstructsTests.fs" />
+    <Compile Include="FormatAstTests.fs" />
+    <Compile Include="LetBindingTests.fs" />
+    <Compile Include="NoTrailingSpacesTests.fs" />
+    <Compile Include="LazyTests.fs" />
+    <Compile Include="SynLongIdentTests.fs" />
+    <Compile Include="DynamicOperatorTests.fs" />
+    <Compile Include="SynExprSetTests.fs" />
+    <Compile Include="SynConstTests.fs" />
+    <Compile Include="TupleTests.fs" />
+    <Compile Include="ElmishTests.fs" />
+    <Compile Include="LambdaTests.fs" />
+    <Compile Include="IfThenElseTests.fs" />
+    <Compile Include="FormatConfigEditorConfigurationFileTests.fs" />
+    <Compile Include="FSharpScriptTests.fs" />
+    <Compile Include="CheckTests.fs" />
+    <Compile Include="ContextTests.fs" />
+    <Compile Include="SpaceBeforeSemicolonTests.fs" />
+    <Compile Include="SpaceBeforeParameterTests.fs" />
+    <Compile Include="SpaceBeforeLowercaseInvocationTests.fs" />
+    <Compile Include="SpaceBeforeUppercaseInvocationTests.fs" />
+    <Compile Include="SpaceBeforeClassConstructorTests.fs" />
+    <Compile Include="SpaceBeforeMemberTests.fs" />
+    <Compile Include="MultilineBlockBracketsOnSameColumnRecordTests.fs" />
+    <Compile Include="MultilineBlockBracketsOnSameColumnArrayOrListTests.fs" />
+    <Compile Include="NewlineBetweenTypeDefinitionAndMembersTests.fs" />
+    <Compile Include="KeepIfThenInSameLineTests.fs" />
+    <Compile Include="MaxValueBindingWidthTests.fs" />
+    <Compile Include="MaxFunctionBindingWidthTests.fs" />
+    <Compile Include="InterpolatedStringTests.fs" />
+    <Compile Include="DotGetTests.fs" />
+    <Compile Include="HashDirectiveTests.fs" />
+    <Compile Include="NumberOfItemsListOrArrayTests.fs" />
+    <Compile Include="NumberOfItemsRecordTests.fs" />
+    <Compile Include="SynExprNewTests.fs" />
+    <Compile Include="DisableElmishTests.fs" />
+    <Compile Include="CastTests.fs" />
+    <Compile Include="MultiLineLambdaClosingNewlineTests.fs" />
+    <Compile Include="OpenTypeTests.fs" />
+    <Compile Include="CodeFormatterTests.fs" />
+    <Compile Include="DotIndexedGetTests.fs" />
+    <Compile Include="DotIndexedSetTests.fs" />
+    <Compile Include="MultilineFunctionApplicationsInConditionExpressionsTests.fs" />
+    <Compile Include="KeepIndentInBranchTests.fs" />
+    <Compile Include="BlankLinesAroundNestedMultilineExpressions.fs" />
+    <Compile Include="ColMultilineItemTests.fs" />
+    <Compile Include="BarBeforeDiscriminatedUnionDeclarationTests.fs" />
+    <Compile Include="SpaceBeforeColonTests.fs" />
+    <Compile Include="LibraryOnlySynExprTests.fs" />
+    <Compile Include="IndexSyntaxTests.fs" />
+    <Compile Include="InsertFinalNewlineTests.fs" />
+    <Compile Include="SingleExprTests.fs" />
+    <Compile Include="IgnoreFileTests.fs" />
+    <Compile Include="Ragnarok\SynBindingValueExpressionTests.fs" />
+    <Compile Include="Ragnarok\SynBindingFunctionExpressionTests.fs" />
+    <Compile Include="Ragnarok\SynBindingFunctionLongPatternExpressionTests.fs" />
+    <Compile Include="Ragnarok\SynBindingFunctionWithReturnTypeExpressionTests.fs" />
+    <Compile Include="Ragnarok\LetOrUseBangExpressionTests.fs" />
+    <Compile Include="Ragnarok\YieldOrReturnExpressionTests.fs" />
+    <Compile Include="Ragnarok\YieldOrReturnBangExpressionTests.fs" />
+    <Compile Include="Ragnarok\SynExprAndBangExpressionTests.fs" />
+    <Compile Include="Ragnarok\LongIdentSetExpressionTests.fs" />
+    <Compile Include="Ragnarok\DotIndexedSetExpressionTests.fs" />
+    <Compile Include="Ragnarok\SetExpressionTests.fs" />
+    <Compile Include="Ragnarok\DotSetExpressionTests.fs" />
+    <Compile Include="Ragnarok\LambdaExpressionTests.fs" />
+    <Compile Include="Ragnarok\MultiLineLambdaClosingNewlineExpressionTests.fs" />
+    <Compile Include="Ragnarok\SynMatchClauseExpressionTests.fs" />
+    <Compile Include="Ragnarok\KeepIndentInBranchExpressionTests.fs" />
+    <Compile Include="Ragnarok\SynTypeDefnSimpleReprRecordTests.fs" />
+    <Compile Include="Ragnarok\SynTypeDefnSigReprSimpleTests.fs" />
+    <Compile Include="Ragnarok\NamedArgumentExpressionTests.fs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Fantomas.Extras\Fantomas.Extras.fsproj" />
+    <ProjectReference Include="..\Fantomas.Core\Fantomas.Core.fsproj" />
+  </ItemGroup>
+  <Import Project="..\..\.paket\Paket.Restore.targets" />
+</Project>

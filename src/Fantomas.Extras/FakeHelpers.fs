@@ -2,9 +2,8 @@ module Fantomas.Extras.FakeHelpers
 
 open System
 open System.IO
-//open FSharp.Compiler.CodeAnalysis
-open Fantomas
-open Fantomas.FormatConfig
+open Fantomas.Core
+open Fantomas.Core.FormatConfig
 open Fantomas.Extras
 
 exception CodeFormatException of (string * Option<Exception>) array with

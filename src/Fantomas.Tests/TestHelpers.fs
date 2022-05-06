@@ -1,199 +1,150 @@
-module Fantomas.Tests.TestHelper
+module Fantomas.Tests.TestHelpers
 
 open System
+open System.Diagnostics
 open System.IO
-open Fantomas.TriviaTypes
-open NUnit.Framework
-open FsCheck
-open FsUnit
-open FSharp.Compiler.Text
-open FSharp.Compiler.Syntax
-open FSharp.Compiler.Xml
-open Fantomas.FormatConfig
-open Fantomas
+open System.Text
+open Fantomas.Extras
 
-[<assembly: Parallelizable(ParallelScope.All)>]
-do ()
+type TemporaryFileCodeSample
+    internal
+    (
+        codeSnippet: string,
+        ?hasByteOrderMark: bool,
+        ?fileName: string,
+        ?subFolder: string,
+        ?subFolders: string array,
+        ?extension: string
+    ) =
+    let hasByteOrderMark = defaultArg hasByteOrderMark false
 
-let config = FormatConfig.Default
-let newline = "\n"
+    let internalSubFolders =
+        match subFolders with
+        | Some sf -> Some sf
+        | None ->
+            match subFolder with
+            | Some sf -> Array.singleton sf |> Some
+            | None -> None
 
-let private safeToIgnoreWarnings =
-    [ "This construct is deprecated: it is only for use in the F# library"
-      "Identifiers containing '@' are reserved for use in F# code generation" ]
+    let filename =
+        let name =
+            match fileName with
+            | Some fn -> fn
+            | None -> Guid.NewGuid().ToString()
 
-let private isValidAndHasNoWarnings fileName source =
-    let allDefineOptions, _ = [], [] //TokenParser.getDefines source
+        let extension = Option.defaultValue "fs" extension
 
-    allDefineOptions
-    |> List.map (fun conditionalCompilationDefines ->
-        async {
+        match internalSubFolders with
+        | Some sf ->
+            let tempFolder = Path.Join(Path.GetTempPath(), Path.Join(sf))
 
-            // Run the first phase (untyped parsing) of the compiler
-            let sourceText = SourceText.ofString source
+            if not (Directory.Exists(tempFolder)) then
+                Directory.CreateDirectory(tempFolder) |> ignore
 
-            let! untypedRes = CodeFormatter.ParseAsync(fileName, source)
-            //sharedChecker.Value.ParseFile(fileName, sourceText, parsingOptionsWithDefines)
+            Path.Join(tempFolder, sprintf "%s.%s" name extension)
+        | None -> Path.Join(Path.GetTempPath(), sprintf "%s.%s" name extension)
 
-            //            let errors =
-//                untypedRes.Diagnostics
-//                |> Array.filter (fun e -> not (List.contains e.Message safeToIgnoreWarnings))
-            // FSharpErrorInfo contains both Errors and Warnings
-            // https://fsharp.github.io/FSharp.Compiler.Service/reference/fsharp-compiler-sourcecodeservices-fsharperrorinfo.html
-            return Array.isEmpty [||] // errors
-        })
-    |> Async.Parallel
-    |> Async.map (Seq.fold (&&) true)
+    do
+        (if hasByteOrderMark then
+             File.WriteAllText(filename, codeSnippet, Encoding.UTF8)
+         else
+             File.WriteAllText(filename, codeSnippet))
 
-let formatSourceString isFsiFile (s: string) config =
-    async {
-        let! formatted = CodeFormatter.FormatDocumentAsync(isFsiFile, s, config)
-
-        let! isValid = isValidAndHasNoWarnings isFsiFile formatted
-
-        if not isValid then
-            failwithf "The formatted result is not valid F# code or contains warnings\n%s" formatted
-
-        return formatted.Replace("\r\n", "\n")
-    }
-
-    |> Async.RunSynchronously
-
-let formatSourceStringWithDefines defines (s: string) config =
-    // On Linux/Mac this will exercise different line endings
-    let s = s.Replace("\r\n", Environment.NewLine)
-
-    let result =
-        async {
-            let source = CodeFormatterImpl.getSourceText s
-            let! asts = CodeFormatterImpl.parse false source
-
-            let ast, defineCombination =
-                Array.filter (fun (_, d: DefineCombination) -> List.sort d = List.sort defines) asts
-                |> Array.head
-
-            return CodeFormatterImpl.formatWith (Some source) defineCombination ast config
-        }
-        |> Async.RunSynchronously
-
-    // merge with itself to make #if go on beginning of line
-    let _, fragments =
-        String.splitInFragments config.EndOfLine.NewLineString [ (defines, result) ]
-        |> List.head
-
-    String.merge fragments fragments
-    |> String.concat config.EndOfLine.NewLineString
-    |> String.normalizeNewLine
-
-let formatSelectionOnly isFsiFile r (s: string) config = failwith "no longer supported"
-//    let s = s.Replace("\r\n", Environment.NewLine)
-//
-//    let fileName =
-//        if isFsiFile then
-//            "/tmp.fsi"
-//        else
-//            "/tmp.fsx"
-//
-//    CodeFormatter.FormatSelectionAsync(
-//        fileName,
-//        r,
-//        SourceOrigin.SourceString s,
-//        config,
-//        CodeFormatterImpl.createParsingOptionsFromFile fileName,
-//        sharedChecker.Value
-//    )
-//    |> Async.RunSynchronously
-//    |> fun s -> s.Replace("\r\n", "\n")
-
-let isValidFSharpCode isFsiFile s =
-    CodeFormatter.IsValidFSharpCodeAsync(isFsiFile, s)
-    |> Async.RunSynchronously
-
-let formatAST a s c =
-    CodeFormatter.FormatASTAsync(a, [], s, c)
-    |> Async.RunSynchronously
-
-let equal x =
-    let x =
-        match box x with
-        | :? String as s -> s.Replace("\r\n", "\n") |> box
-        | x -> x
-
-    equal x
-
-let inline prepend s content = s + content
-let inline append s content = content + s
-let zero = range.Zero
-
-let tryFormatAST ast sourceCode config =
-    try
-        formatAST ast sourceCode config
-    with
-    | _ -> ""
-
-let formatConfig = { FormatConfig.Default with StrictMode = true }
-
-let shouldNotChangeAfterFormat source =
-    formatSourceString false source config
-    |> prepend newline
-    |> should equal source
-
-let (==) actual expected = Assert.AreEqual(expected, actual)
-let fail () = Assert.Fail()
-let pass () = Assert.Pass()
-
-
-/// An FsCheck runner which reports FsCheck test results to NUnit.
-type NUnitRunner() =
-    interface IRunner with
-        member __.OnStartFixture _ = ()
-
-        member __.OnArguments(_ntest, _args, _every) =
-            //stdout.Write(every ntest args)
-            ()
-
-        member __.OnShrink(_args, _everyShrink) =
-            //stdout.Write(everyShrink args)
-            ()
-
-        member __.OnFinished(name, result) =
-            match result with
-            | TestResult.True (_data, _) ->
-                // TODO : Log the result data.
-                Runner.onFinishedToString name result
-                |> stdout.WriteLine
-
-            | TestResult.Exhausted _data ->
-                // TODO : Log the result data.
-                Runner.onFinishedToString name result
-                |> Assert.Inconclusive
-
-            | TestResult.False _ ->
-                // TODO : Log more information about the test failure.
-                Runner.onFinishedToString name result
-                |> Assert.Fail
-
-let private getTempFolder () = Path.GetTempPath()
-
-let private mkConfigPath fileName folder =
-    match folder with
-    | Some folder ->
-        let folderPath = Path.Combine(getTempFolder (), folder)
-        Directory.CreateDirectory(folderPath) |> ignore
-        Path.Combine(folderPath, fileName)
-    | None -> Path.Combine(getTempFolder (), fileName)
-
-let mkConfigFromContent fileName folder content =
-    let file = mkConfigPath fileName folder
-    File.WriteAllText(file, content)
-    file
-
-type TemporaryFileCodeSample internal (codeSnippet: string) =
-    let filename = Path.Join(Path.GetTempPath(), Guid.NewGuid().ToString() + ".fs")
-
-    do File.WriteAllText(filename, codeSnippet)
-
-    member __.Filename: string = filename
+    member _.Filename: string = filename
 
     interface IDisposable with
-        member this.Dispose() : unit = File.Delete(filename)
+        member this.Dispose() : unit =
+            File.Delete(filename)
+
+            internalSubFolders
+            |> Option.iter (fun sf ->
+                let path = Path.Join(Path.GetTempPath(), sf.[0])
+                Directory.Delete(path, true))
+
+type OutputFile internal () =
+    let filename = Path.Join(Path.GetTempPath(), Guid.NewGuid().ToString() + ".fs")
+
+    member _.Filename: string = filename
+
+    interface IDisposable with
+        member this.Dispose() : unit =
+            if File.Exists(filename) then
+                File.Delete(filename)
+
+type ConfigurationFile internal (content: string) =
+    let filename = Path.Join(Path.GetTempPath(), ".editorconfig")
+
+    do File.WriteAllText(filename, content)
+    member _.Filename: string = filename
+
+    interface IDisposable with
+        member this.Dispose() : unit =
+            if File.Exists(filename) then
+                File.Delete(filename)
+
+type FantomasIgnoreFile internal (content: string) =
+    let filename = Path.Join(Path.GetTempPath(), IgnoreFile.IgnoreFileName)
+
+    do File.WriteAllText(filename, content)
+    member _.Filename: string = filename
+
+    interface IDisposable with
+        member this.Dispose() : unit =
+            if File.Exists(filename) then
+                File.Delete(filename)
+
+type FantomasToolResult =
+    { ExitCode: int
+      Output: string
+      Error: string }
+
+let getFantomasToolStartInfo arguments : ProcessStartInfo =
+    let pwd = Path.GetDirectoryName(typeof<TemporaryFileCodeSample>.Assembly.Location)
+
+    let configuration =
+#if DEBUG
+        "Debug"
+#else
+        "Release"
+#endif
+
+    let fantomasDll =
+        Path.Combine(pwd, "..", "..", "..", "..", "Fantomas", "bin", configuration, "net6.0", "fantomas.dll")
+
+    let startInfo = ProcessStartInfo("dotnet")
+    startInfo.UseShellExecute <- false
+    startInfo.Arguments <- sprintf "%s %s" fantomasDll arguments
+    startInfo.WorkingDirectory <- Path.GetTempPath()
+    startInfo.RedirectStandardOutput <- true
+    startInfo.RedirectStandardError <- true
+    startInfo
+
+let runFantomasTool arguments : FantomasToolResult =
+    use p =
+        getFantomasToolStartInfo arguments
+        |> Process.Start
+
+    let output = p.StandardOutput.ReadToEnd()
+    let error = p.StandardError.ReadToEnd()
+    p.WaitForExit()
+
+    { ExitCode = p.ExitCode
+      Output = output
+      Error = error }
+
+let checkCode (files: string list) : FantomasToolResult =
+    let files =
+        files
+        |> List.map (fun file -> sprintf "\"%s\"" file)
+        |> String.concat " "
+
+    let arguments = sprintf "--check %s" files
+    runFantomasTool arguments
+
+let formatCode (files: string list) : FantomasToolResult =
+    let arguments =
+        files
+        |> List.map (fun file -> sprintf "\"%s\"" file)
+        |> String.concat " "
+
+    runFantomasTool arguments

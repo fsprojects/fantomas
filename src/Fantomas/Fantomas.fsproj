@@ -1,39 +1,27 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net6.0</TargetFramework>
+    <!-- Don't create localization (en-US, etc) folders with resources -->
+    <!-- https://github.com/dotnet/fsharp/issues/6007#issuecomment-547041463 -->
+    <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
+    <RollForward>Major</RollForward>
+    <ToolCommandName>fantomas</ToolCommandName>
+    <PackAsTool>True</PackAsTool>
+    <AssemblyName>fantomas</AssemblyName>
     <WarningsAsErrors>FS0025</WarningsAsErrors>
     <IsPackable>true</IsPackable>
-    <Tailcalls>true</Tailcalls>
+    <RootNamespace>Fantomas</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-    <None Include="paket.references" />
-    <Compile Include="AssemblyInfo.fs" />
-    <Compile Include="ISourceTextExtensions.fs" />
-    <Compile Include="AstExtensions.fs" />
-    <Compile Include="RangeHelpers.fs" />
-    <Compile Include="TriviaTypes.fs" />
-    <Compile Include="Dbg.fs" />
-    <Compile Include="Utils.fs" />
-    <Compile Include="SourceParser.fs" />
-    <Compile Include="AstTransformer.fs" />
-    <Compile Include="SourceOrigin.fs" />
-    <Compile Include="Version.fs" />
-    <Compile Include="Queue.fs" />
-    <Compile Include="FormatConfig.fs" />
-    <Compile Include="DefineCombinationSolver.fs" />
-    <Compile Include="TriviaHelpers.fs" />
-    <Compile Include="Defines.fs" />
-    <Compile Include="Trivia.fs" />
-    <Compile Include="Context.fs" />
-    <Compile Include="SourceTransformer.fs" />
-    <Compile Include="CodePrinter.fs" />
-    <Compile Include="CodeFormatterImpl.fs" />
-    <Compile Include="CodeFormatter.fsi" />
-    <Compile Include="CodeFormatter.fs" />
+    <ProjectReference Include="..\Fantomas.Client\Fantomas.Client.fsproj" />
+    <ProjectReference Include="..\Fantomas.Extras\Fantomas.Extras.fsproj" />
+    <ProjectReference Include="..\Fantomas.Core\Fantomas.Core.fsproj" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Fantomas.FCS\Fantomas.FCS.fsproj" />
+    <None Include="paket.references" />
+    <Compile Include="Daemon.fs" />
+    <Compile Include="Program.fs" />
   </ItemGroup>
   <Import Project="..\..\.paket\Paket.Restore.targets" />
 </Project>

@@ -1,9 +1,9 @@
 module Fantomas.Tests.CheckTests
 
+open System.IO
 open NUnit.Framework
 open FsUnit
-open Fantomas.Extras.FakeHelpers
-open Fantomas.Tests.TestHelper
+open Fantomas.Tests.TestHelpers
 
 [<Literal>]
 let NeedsFormatting =
@@ -14,7 +14,7 @@ let b= a +      123
 """
 
 [<Literal>]
-let WithErrors = """let a"""
+let WithErrors = """let a ="""
 
 [<Literal>]
 let CorrectlyFormatted =
@@ -23,41 +23,101 @@ let CorrectlyFormatted =
 """
 
 [<Test>]
-let ``formatted files should report no changes`` () =
+let ``formatted files should report exit code 0`` () =
     use fileFixture = new TemporaryFileCodeSample(CorrectlyFormatted)
 
-    let result =
-        fileFixture.Filename
-        |> Seq.singleton
-        |> checkCode
-        |> Async.RunSynchronously
-
-    result.NeedsFormatting |> should equal false
-    result.IsValid |> should equal true
+    let { ExitCode = exitCode } = checkCode [ fileFixture.Filename ]
+    exitCode |> should equal 0
 
 [<Test>]
-let ``files with errors should report an internal error`` () =
+let ``invalid files should report exit code 1`` () =
     use fileFixture = new TemporaryFileCodeSample(WithErrors)
-
-    let result =
-        fileFixture.Filename
-        |> Seq.singleton
-        |> checkCode
-        |> Async.RunSynchronously
-
-    result.HasErrors |> should equal true
-    List.length result.Errors |> should equal 1
+    let { ExitCode = exitCode } = checkCode [ fileFixture.Filename ]
+    exitCode |> should equal 1
 
 [<Test>]
-let ``files that need formatting should report that they need to be formatted`` () =
+let ``files that need formatting should report exit code 99`` () =
     use fileFixture = new TemporaryFileCodeSample(NeedsFormatting)
 
-    let result =
-        fileFixture.Filename
-        |> Seq.singleton
-        |> checkCode
-        |> Async.RunSynchronously
+    let { ExitCode = exitCode } = checkCode [ fileFixture.Filename ]
+    exitCode |> should equal 99
 
-    result.HasErrors |> should equal false
-    result.NeedsFormatting |> should equal true
-    List.length result.Formatted |> should equal 1
+[<Test>]
+let ``check with Program.fs file`` () =
+    let codeSnippet =
+        """[<EntryPoint>]
+let main _ = 0
+"""
+
+    use fileFixture = new TemporaryFileCodeSample(codeSnippet, fileName = "Program")
+
+    let { ExitCode = exitCode } = checkCode [ fileFixture.Filename ]
+    exitCode |> should equal 0
+
+[<Test>]
+let ``check with different line endings`` () =
+    let codeSnippet =
+        """let a =
+    // some comment
+    42
+"""
+
+    let snippetWithOtherLineEndings =
+        if codeSnippet.Contains("\r\n") then
+            codeSnippet.Replace("\r\n", "\n")
+        else
+            codeSnippet.Replace("\n", "\r\n")
+
+    use fileFixture = new TemporaryFileCodeSample(snippetWithOtherLineEndings)
+
+    let { ExitCode = exitCode } = checkCode [ fileFixture.Filename ]
+    exitCode |> should equal 0
+
+[<Test>]
+let ``check with multiple files`` () =
+    use fileFixtureOne = new TemporaryFileCodeSample("let a =  0")
+
+    use fileFixtureTwo = new TemporaryFileCodeSample("let b = 1")
+
+    let { ExitCode = exitCode; Output = output } =
+        checkCode [ fileFixtureOne.Filename
+                    fileFixtureTwo.Filename ]
+
+    exitCode |> should equal 99
+
+    let needsFormatting =
+        sprintf "%s needs formatting" (Path.GetFileName(fileFixtureOne.Filename))
+
+    output |> should contain needsFormatting
+
+[<Test>]
+let ``check with file and folder`` () =
+    use fileFixtureOne = new TemporaryFileCodeSample("let a =  0", subFolder = "sub")
+
+    use fileFixtureTwo = new TemporaryFileCodeSample("let b = 1")
+
+    let { ExitCode = exitCode; Output = output } =
+        checkCode [ fileFixtureOne.Filename
+                    fileFixtureTwo.Filename ]
+
+    exitCode |> should equal 99
+
+    let needsFormatting =
+        sprintf "sub%c%s needs formatting" Path.DirectorySeparatorChar (Path.GetFileName(fileFixtureOne.Filename))
+
+    output |> should contain needsFormatting
+
+[<Test>]
+let ``honor ignore file when processing a folder`` () =
+    let fileName = "A"
+    let subFolder = System.Guid.NewGuid().ToString("N")
+
+    use ignoreFixture =
+        new TemporaryFileCodeSample("let a =  0", fileName = fileName, subFolder = subFolder)
+
+    use inputFixture = new FantomasIgnoreFile("*.fsx")
+
+    let { Output = output } =
+        runFantomasTool (sprintf "--check .%c%s" Path.DirectorySeparatorChar subFolder)
+
+    output |> should not' (contain "ignored")

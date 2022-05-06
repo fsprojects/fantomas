@@ -21,7 +21,7 @@ let private (|CompatibleVersion|_|) (version: string) =
             None
     | _ -> None
 
-// In the future, fantomas-tool will be renamed to fantomas.
+// In the past, fantomas was named fantomas-tool.
 let private (|CompatibleToolName|_|) toolName =
     if toolName = "fantomas-tool"
        || toolName = "fantomas" then
@@ -136,7 +136,7 @@ let private (|CompatibleTool|_|) lines =
 
 let private isWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
 
-// Find an executable fantomas-tool file on the PATH
+// Find an executable fantomas file on the PATH
 let private fantomasVersionOnPath () : (FantomasExecutableFile * FantomasVersion) option =
     let fantomasExecutableOnPathOpt =
         match Option.ofObj (Environment.GetEnvironmentVariable("PATH")) with
