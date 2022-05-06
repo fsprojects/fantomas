@@ -2019,7 +2019,7 @@ and genExpr astContext synExpr ctx =
                             genExpr astContext e
                             +> sepSpaceAfterFunctionName
                             +> col sepSpace es (genExpr astContext)
-                            +> sepSpace
+                            +> onlyIf (List.isNotEmpty es) sepSpace
                             +> enterNodeFor SynExpr_Paren pr
                             +> sepOpenTFor lpr
                             +> enterNodeFor SynExpr_Lambda lambdaRange
@@ -2035,7 +2035,7 @@ and genExpr astContext synExpr ctx =
                             genExpr astContext e
                             +> sepSpaceAfterFunctionName
                             +> col sepSpace es (genExpr astContext)
-                            +> sepSpace
+                            +> onlyIf (List.isNotEmpty es) sepSpace
                             +> (sepOpenTFor lpr
                                 +> (!- "fun "
                                     +> col sepSpace pats (genPat astContext)

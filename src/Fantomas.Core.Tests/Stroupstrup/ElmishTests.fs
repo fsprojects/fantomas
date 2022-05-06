@@ -511,7 +511,7 @@ let viewEntry todo dispatch =
             valueOrDefault todo.description
             Name "title"
             Id("todo-" + (string todo.id))
-            OnInput (fun ev ->
+            OnInput(fun ev ->
                 UpdateEntry(todo.id, !!ev.target?value)
                 |> dispatch)
             OnBlur(fun _ -> EditingEntry(todo.id, false) |> dispatch)
