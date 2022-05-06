@@ -171,7 +171,7 @@ let ``params arguments`` () =
         false
         """
 type X() =
-    member this.F([<ParamArray>] args: Object[]) =
+    member this.F([<ParamArray>] args: Object []) =
         for arg in args do
             printfn "%A" arg"""
         config
@@ -180,7 +180,7 @@ type X() =
         equal
         """
 type X() =
-    member this.F([<ParamArray>] args: Object[]) =
+    member this.F([<ParamArray>] args: Object []) =
         for arg in args do
             printfn "%A" arg
 """
@@ -1055,14 +1055,14 @@ let ``should preserve attributes on member parameters`` () =
         false
         """
 type ILogger =
-    abstract DebugFormat : format:String * [<ParamArray>]args:Object[] -> unit"""
+    abstract DebugFormat : format:String * [<ParamArray>]args:Object [] -> unit"""
         config
     |> prepend newline
     |> should
         equal
         """
 type ILogger =
-    abstract DebugFormat: format: String * [<ParamArray>] args: Object[] -> unit
+    abstract DebugFormat: format: String * [<ParamArray>] args: Object [] -> unit
 """
 
 [<Test>]
@@ -3062,7 +3062,7 @@ type MethInfo =
 #if NO_EXTENSIONTYPING
     member ProvidedStaticParameterInfo: obj option
 #else
-    member ProvidedStaticParameterInfo: (Tainted<ProvidedMethodBase> * Tainted<ProvidedParameterInfo>[]) option
+    member ProvidedStaticParameterInfo: (Tainted<ProvidedMethodBase> * Tainted<ProvidedParameterInfo> []) option
 #endif
 """
         config
@@ -3081,6 +3081,6 @@ type MethInfo =
 #if NO_EXTENSIONTYPING
     member ProvidedStaticParameterInfo: obj option
 #else
-    member ProvidedStaticParameterInfo: (Tainted<ProvidedMethodBase> * Tainted<ProvidedParameterInfo>[]) option
+    member ProvidedStaticParameterInfo: (Tainted<ProvidedMethodBase> * Tainted<ProvidedParameterInfo> []) option
 #endif
 """

@@ -91,7 +91,7 @@ let ``comments on let bindings with return type, 2043`` () =
     formatSourceString
         false
         """
-let count: int[] // foo
+let count: int [] // foo
     = [2]
     """
         config
@@ -99,7 +99,7 @@ let count: int[] // foo
     |> should
         equal
         """
-let count: int[] // foo
+let count: int [] // foo
     =
     [ 2 ]
 """
@@ -110,7 +110,7 @@ let ``comments after SynType_Array in record type, 2043`` () =
         false
         """
 type Model =
-    { Flags: bool[] // foo
+    { Flags: bool [] // foo
       Name: string // bar
       Street: string }
     """
@@ -120,7 +120,7 @@ type Model =
         equal
         """
 type Model =
-    { Flags: bool[] // foo
+    { Flags: bool [] // foo
       Name: string // bar
       Street: string }
 """
@@ -503,11 +503,11 @@ let ``should keep comments on almost-equal identifiers`` () =
     formatSourceString
         false
         """
-let zp = p1 ``lxor`` p2
+let zp = p1 lxor p2
 // Comment 1
-let b = zp ``land`` (zp)
+let b = zp land (zp)
 (* Comment 2 *)
-let p = p1 ``land`` (b - 1)
+let p = p1 land (b - 1)
 """
         config
     |> prepend newline
@@ -1865,33 +1865,4 @@ type MaybeBuilder() = class end
 type MaybeBuilder() =
     class
     end
-"""
-
-[<Test>]
-let ``restore triple slash comment at invalid location`` () =
-    formatSourceString
-        false
-        """
-/// Valid xml doc
-let x =
-    /// Some great documentation comment
-    /// With a blank line in between
-    /// but on a while loop
-    while true do ()
-    a + 1
-"""
-        config
-    |> prepend newline
-    |> should
-        equal
-        """
-/// Valid xml doc
-let x =
-    /// Some great documentation comment
-    /// With a blank line in between
-    /// but on a while loop
-    while true do
-        ()
-
-    a + 1
 """

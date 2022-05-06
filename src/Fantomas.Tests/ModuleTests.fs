@@ -381,6 +381,8 @@ module private rec Test =
 
 [<Test>]
 let ``implicit module should not be added to code`` () =
+    let fileName = "60Seconds.fsx"
+
     let sourceCode =
         """open System
 
@@ -388,7 +390,13 @@ type T() =
     interface IDisposable with
         override x.Dispose() = ()"""
 
-    CodeFormatter.FormatDocumentAsync(false, sourceCode, config)
+    CodeFormatter.FormatDocumentAsync(
+        fileName,
+        SourceOrigin.SourceString sourceCode,
+        config,
+        CodeFormatterImpl.createParsingOptionsFromFile fileName,
+        sharedChecker.Value
+    )
     |> Async.RunSynchronously
     |> fun s -> s.Replace("\r\n", "\n")
     |> should
@@ -934,78 +942,4 @@ val a : int
 module Meh
 
 val a: int
-"""
-
-[<Test>]
-let ``xml comment above module with nested module`` () =
-    formatSourceString
-        false
-        """
-/// this file contains patches to the F# Compiler Service that have not yet made it into
-/// published nuget packages.  We source-copy them here to have a consistent location for our to-be-removed extensions
-
-module FsAutoComplete.FCSPatches
-
-open FSharp.Compiler.Syntax
-open FSharp.Compiler.Text
-open FsAutoComplete.UntypedAstUtils
-open FSharp.Compiler.CodeAnalysis
-
-module internal SynExprAppLocationsImpl =
-    let a = 42
-"""
-        config
-    |> prepend newline
-    |> should
-        equal
-        """
-/// this file contains patches to the F# Compiler Service that have not yet made it into
-/// published nuget packages.  We source-copy them here to have a consistent location for our to-be-removed extensions
-
-module FsAutoComplete.FCSPatches
-
-open FSharp.Compiler.Syntax
-open FSharp.Compiler.Text
-open FsAutoComplete.UntypedAstUtils
-open FSharp.Compiler.CodeAnalysis
-
-module internal SynExprAppLocationsImpl =
-    let a = 42
-"""
-
-[<Test>]
-let ``xml comment above namespace with nested module`` () =
-    formatSourceString
-        false
-        """
-/// this file contains patches to the F# Compiler Service that have not yet made it into
-/// published nuget packages.  We source-copy them here to have a consistent location for our to-be-removed extensions
-
-namespace FsAutoComplete.FCSPatches
-
-open FSharp.Compiler.Syntax
-open FSharp.Compiler.Text
-open FsAutoComplete.UntypedAstUtils
-open FSharp.Compiler.CodeAnalysis
-
-module internal SynExprAppLocationsImpl =
-    let a = 42
-"""
-        config
-    |> prepend newline
-    |> should
-        equal
-        """
-/// this file contains patches to the F# Compiler Service that have not yet made it into
-/// published nuget packages.  We source-copy them here to have a consistent location for our to-be-removed extensions
-
-namespace FsAutoComplete.FCSPatches
-
-open FSharp.Compiler.Syntax
-open FSharp.Compiler.Text
-open FsAutoComplete.UntypedAstUtils
-open FSharp.Compiler.CodeAnalysis
-
-module internal SynExprAppLocationsImpl =
-    let a = 42
 """

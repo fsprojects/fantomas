@@ -2,7 +2,7 @@ module Fantomas.Extras.FakeHelpers
 
 open System
 open System.IO
-//open FSharp.Compiler.CodeAnalysis
+open FSharp.Compiler.CodeAnalysis
 open Fantomas
 open Fantomas.FormatConfig
 open Fantomas.Extras
@@ -49,9 +49,20 @@ let private formatContentInternalAsync
     else
         async {
             try
-                let isSignatureFile = Path.GetExtension(file) = ".fsi"
+                let fileName =
+                    if Path.GetExtension(file) = ".fsi" then
+                        "tmp.fsi"
+                    else
+                        "tmp.fsx"
 
-                let! formattedContent = CodeFormatter.FormatDocumentAsync(isSignatureFile, originalContent, config)
+                let! formattedContent =
+                    CodeFormatter.FormatDocumentAsync(
+                        fileName,
+                        SourceOrigin.SourceString originalContent,
+                        config,
+                        CodeFormatterImpl.createParsingOptionsFromFile fileName,
+                        CodeFormatterImpl.sharedChecker.Value
+                    )
 
                 let contentChanged =
                     if compareWithoutLineEndings then
@@ -64,7 +75,13 @@ let private formatContentInternalAsync
                         originalContent <> formattedContent
 
                 if contentChanged then
-                    let! isValid = CodeFormatter.IsValidFSharpCodeAsync(isSignatureFile, formattedContent)
+                    let! isValid =
+                        CodeFormatter.IsValidFSharpCodeAsync(
+                            fileName,
+                            (SourceOrigin.SourceString(formattedContent)),
+                            CodeFormatterImpl.createParsingOptionsFromFile fileName,
+                            CodeFormatterImpl.sharedChecker.Value
+                        )
 
                     if not isValid then
                         raise

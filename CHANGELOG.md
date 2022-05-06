@@ -3,21 +3,10 @@
 ## [Unreleased]
 
 ### Changed
-* Don't add space between type of array and square brackets. [#2192](https://github.com/fsprojects/fantomas/issues/2192)
 * Adjusted formatting of quotation expressions to latest F# style guide. [#661](https://github.com/fsharp/fslang-design/issues/661)
 
 ### Fixed
 * Idempotency problem with multiline quotation expressions. [#2203](https://github.com/fsprojects/fantomas/issues/2203)
-
-## [5.0.0-alpha-002] - 2022-04-04
-
-### Changed
-* Target net6.0 for fantomas-tool.
-
-## [5.0.0-alpha-001] - 2022-03-19
-
-### Added
-* Initial settings for strousrup bracket style. [#2161](https://github.com/fsprojects/fantomas/pull/2161)
 
 ## [4.7.9] - 2022-05-02
 

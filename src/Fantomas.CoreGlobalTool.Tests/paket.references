@@ -1,5 +1,6 @@
 nunit
 NUnit3TestAdapter
 Microsoft.NET.Test.Sdk
+FSharp.Compiler.Service
 FSharp.Core
 FsUnit

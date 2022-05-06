@@ -71,7 +71,7 @@ let ``should handle lines with more than 512 characters`` () =
         equal
         """
 (new CsvFile<string * decimal * decimal>(
-    new Func<obj, string[], string * decimal * decimal>(fun (parent: obj) (row: string[]) ->
+    new Func<obj, string [], string * decimal * decimal>(fun (parent: obj) (row: string []) ->
         CommonRuntime.GetNonOptionalValue(
             "Name",
             CommonRuntime.ConvertString(TextConversions.AsOption(row.[0])),
@@ -87,7 +87,7 @@ let ``should handle lines with more than 512 characters`` () =
             CommonRuntime.ConvertDecimal("", TextConversions.AsOption(row.[2])),
             TextConversions.AsOption(row.[2])
         )),
-    new Func<string * decimal * decimal, string[]>(fun (row: string * decimal * decimal) ->
+    new Func<string * decimal * decimal, string []>(fun (row: string * decimal * decimal) ->
         [| CommonRuntime.ConvertStringBack(CommonRuntime.GetOptionalValue((let x, _, _ = row in x)))
            CommonRuntime.ConvertDecimalBack("", CommonRuntime.GetOptionalValue((let _, x, _ = row in x)))
            CommonRuntime.ConvertDecimalBack("", CommonRuntime.GetOptionalValue((let _, _, x = row in x))) |]),
