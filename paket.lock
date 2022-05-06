@@ -1185,12 +1185,12 @@ NUGET
     runtime.ubuntu.18.04-x64.runtime.native.System.Security.Cryptography.OpenSsl (4.3.3) - restriction: && (< net45) (>= netstandard2.0) (< xamarinios) (< xamarinmac) (< xamarintvos) (< xamarinwatchos)
     SemanticVersioning (2.0.2)
       NETStandard.Library (>= 1.6) - restriction: && (< net35) (>= netstandard1.1) (< netstandard2.0)
-    StreamJsonRpc (2.9.85)
-      MessagePack (>= 2.3.75) - restriction: >= netstandard2.0
+    StreamJsonRpc (2.8.28)
+      MessagePack (>= 2.2.85) - restriction: >= netstandard2.0
       Microsoft.Bcl.AsyncInterfaces (>= 5.0) - restriction: >= netstandard2.0
-      Microsoft.VisualStudio.Threading (>= 16.10.56) - restriction: >= netstandard2.0
-      Nerdbank.Streams (>= 2.8.46) - restriction: >= netstandard2.0
-      Newtonsoft.Json (>= 13.0.1) - restriction: >= netstandard2.0
+      Microsoft.VisualStudio.Threading (>= 16.9.60) - restriction: >= netstandard2.0
+      Nerdbank.Streams (>= 2.6.81) - restriction: >= netstandard2.0
+      Newtonsoft.Json (>= 12.0.2) - restriction: >= netstandard2.0
       System.Collections.Immutable (>= 5.0) - restriction: >= netstandard2.0
       System.Diagnostics.DiagnosticSource (>= 5.0.1) - restriction: >= netstandard2.0
       System.IO.Pipelines (>= 5.0.1) - restriction: >= netstandard2.0
@@ -1731,12 +1731,12 @@ NUGET
     Serilog (2.10)
     SerilogTraceListener (3.2)
       Serilog (>= 2.8)
-    StreamJsonRpc (2.9.85)
-      MessagePack (>= 2.3.75)
+    StreamJsonRpc (2.8.28)
+      MessagePack (>= 2.2.85)
       Microsoft.Bcl.AsyncInterfaces (>= 5.0)
-      Microsoft.VisualStudio.Threading (>= 16.10.56)
-      Nerdbank.Streams (>= 2.8.46)
-      Newtonsoft.Json (>= 13.0.1)
+      Microsoft.VisualStudio.Threading (>= 16.9.60)
+      Nerdbank.Streams (>= 2.6.81)
+      Newtonsoft.Json (>= 12.0.2)
       System.Collections.Immutable (>= 5.0)
       System.Diagnostics.DiagnosticSource (>= 5.0.1)
       System.IO.Pipelines (>= 5.0.1)

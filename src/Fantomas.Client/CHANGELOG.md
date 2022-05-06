@@ -2,6 +2,10 @@
 
 This is the changelog for the Fantomas.Client package specifically. It's distinct from that of the overall libraries and command-line tool.
 
+## 0.5.3 - 2022-05-06
+
+* Lower StreamJsonRpc to match 2.8.28. [#2227](https://github.com/fsprojects/fantomas/pull/2227)
+
 ## 0.5.2 - 2022-05-06
 
 ### Fixed
