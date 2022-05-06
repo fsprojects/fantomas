@@ -1056,7 +1056,7 @@ GROUP client
 STORAGE: NONE
 NUGET
   remote: https://api.nuget.org/v3/index.json
-    FSharp.Core (5.0) - content: none
+    FSharp.Core (5.0.1) - content: none
     MessagePack (2.3.85) - restriction: >= netstandard2.0
       MessagePack.Annotations (>= 2.3.85) - restriction: >= netstandard2.0
       Microsoft.Bcl.AsyncInterfaces (>= 1.0) - restriction: || (&& (>= netcoreapp2.1) (< netcoreapp3.1)) (&& (< netcoreapp2.1) (>= netstandard2.0))

@@ -132,7 +132,7 @@ group client
     storage: none
     source https://api.nuget.org/v3/index.json
     
-    nuget FSharp.Core 5 content: none
+    nuget FSharp.Core >= 5.0.1 content: none
     nuget StreamJsonRpc
 
     nuget SemanticVersioning
