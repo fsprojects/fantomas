@@ -1,4 +1,4 @@
-﻿module Fantomas.CoreGlobalTool.Daemon
+﻿module Fantomas.Daemon
 
 open System
 open System.Diagnostics
@@ -10,8 +10,8 @@ open StreamJsonRpc
 open Thoth.Json.Net
 open Fantomas.Client.Contracts
 open Fantomas.Client.LSPFantomasServiceTypes
-open Fantomas
-open Fantomas.FormatConfig
+open Fantomas.Core
+open Fantomas.Core.FormatConfig
 open Fantomas.Extras.EditorConfig
 open Fantomas.Extras
 

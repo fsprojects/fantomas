@@ -12,9 +12,9 @@ Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "Fantomas.Core", "src\Fantom
 EndProject
 Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "Fantomas.Core.Tests", "src\Fantomas.Core.Tests\Fantomas.Core.Tests.fsproj", "{DED76E41-B89F-47BA-84C5-3AB0BECFA767}"
 EndProject
-Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "Fantomas.CoreGlobalTool", "src\Fantomas.CoreGlobalTool\Fantomas.CoreGlobalTool.fsproj", "{DC08805B-C6E2-43F3-B381-E60EE88A079D}"
+Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "Fantomas", "src\Fantomas\Fantomas.fsproj", "{DC08805B-C6E2-43F3-B381-E60EE88A079D}"
 EndProject
-Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "Fantomas.CoreGlobalTool.Tests", "src\Fantomas.CoreGlobalTool.Tests\Fantomas.CoreGlobalTool.Tests.fsproj", "{DEDE6968-0BE8-4415-9262-8355B82AF2C0}"
+Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "Fantomas.Tests", "src\Fantomas.Tests\Fantomas.Tests.fsproj", "{DEDE6968-0BE8-4415-9262-8355B82AF2C0}"
 EndProject
 Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "Fantomas.Benchmarks", "src\Fantomas.Benchmarks\Fantomas.Benchmarks.fsproj", "{B6BC63D5-410D-4DBB-9D45-5638F20BD09B}"
 EndProject

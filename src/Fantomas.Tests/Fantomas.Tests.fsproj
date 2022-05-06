@@ -7,10 +7,11 @@
     <NoWarn>FS0988</NoWarn>
     <WarningsAsErrors>FS0025</WarningsAsErrors>
     <IsPackable>false</IsPackable>
+    <RootNamespace>Fantomas.CoreGlobalTool.Tests</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\Fantomas.Client\Fantomas.Client.fsproj" />
-    <ProjectReference Include="..\Fantomas.CoreGlobalTool\Fantomas.CoreGlobalTool.fsproj" />
+    <ProjectReference Include="..\Fantomas\Fantomas.fsproj" />
   </ItemGroup>
   <ItemGroup>
     <None Include="paket.references" />

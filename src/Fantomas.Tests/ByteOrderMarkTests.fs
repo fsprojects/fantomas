@@ -1,9 +1,9 @@
-module Fantomas.CoreGlobalTool.Tests.ByteOrderMarkTests
+module Fantomas.Tests.ByteOrderMarkTests
 
 open System.IO
 open NUnit.Framework
 open FsUnit
-open Fantomas.CoreGlobalTool.Tests.TestHelpers
+open Fantomas.Tests.TestHelpers
 open System.Text
 
 [<Literal>]

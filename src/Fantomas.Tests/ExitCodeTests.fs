@@ -1,8 +1,8 @@
-module Fantomas.CoreGlobalTool.Tests.ExitCodeTests
+module Fantomas.Tests.ExitCodeTests
 
 open NUnit.Framework
 open FsUnit
-open Fantomas.CoreGlobalTool.Tests.TestHelpers
+open Fantomas.Tests.TestHelpers
 
 [<Literal>]
 let WithErrors = """let a ="""

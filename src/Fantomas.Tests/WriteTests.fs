@@ -1,8 +1,8 @@
-module Fantomas.CoreGlobalTool.Tests.WriteTests
+module Fantomas.Tests.WriteTests
 
 open NUnit.Framework
 open FsUnit
-open Fantomas.CoreGlobalTool.Tests.TestHelpers
+open Fantomas.Tests.TestHelpers
 
 [<Literal>]
 let FormattedCode =

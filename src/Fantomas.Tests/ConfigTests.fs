@@ -1,9 +1,9 @@
-module Fantomas.CoreGlobalTool.Tests.ConfigTests
+module Fantomas.Tests.ConfigTests
 
-open Fantomas
+open Fantomas.Core
 open NUnit.Framework
 open FsUnit
-open Fantomas.CoreGlobalTool.Tests.TestHelpers
+open Fantomas.Tests.TestHelpers
 
 [<Test>]
 let ``config file in working directory should not require relative prefix, 821`` () =

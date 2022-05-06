@@ -163,7 +163,7 @@ let ``configuration file should not affect file extension`` () =
     == defaultConfig.MaxLineLength
 
 [<Test>]
-let ``fantomas-tool configuration file`` () =
+let ``fantomas configuration file`` () =
     let rootDir = tempName ()
 
     let myConfig =

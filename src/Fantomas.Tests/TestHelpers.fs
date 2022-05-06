@@ -1,4 +1,4 @@
-module Fantomas.CoreGlobalTool.Tests.TestHelpers
+module Fantomas.Tests.TestHelpers
 
 open System
 open System.Diagnostics
@@ -115,11 +115,11 @@ let getFantomasToolStartInfo arguments : ProcessStartInfo =
             "..",
             "..",
             "..",
-            "Fantomas.CoreGlobalTool",
+            "Fantomas",
             "bin",
             configuration,
             "net6.0",
-            "fantomas-tool.dll"
+            "fantomas.dll"
         )
 
     let startInfo = ProcessStartInfo("dotnet")

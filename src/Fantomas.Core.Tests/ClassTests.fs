@@ -680,7 +680,7 @@ let ``multiline string inside constructor, 1055`` () =
     formatSourceString
         false
         "
-module Fantomas.CoreGlobalTool.Tests.ConfigTests
+module Fantomas.Tests.ConfigTests
 
 open NUnit.Framework
 open FsUnit
@@ -716,7 +716,7 @@ indent_size=2
     |> should
         equal
         "
-module Fantomas.CoreGlobalTool.Tests.ConfigTests
+module Fantomas.Tests.ConfigTests
 
 open NUnit.Framework
 open FsUnit

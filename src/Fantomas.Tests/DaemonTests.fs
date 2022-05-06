@@ -1,12 +1,12 @@
-module Fantomas.CoreGlobalTool.Tests.DaemonTests
+module Fantomas.Tests.DaemonTests
 
 open System
 open Fantomas.Client.LSPFantomasServiceTypes
-open Fantomas.CoreGlobalTool.Daemon
+open Fantomas.Daemon
 open NUnit.Framework
 open FsUnit
-open Fantomas.CoreGlobalTool.Tests.TestHelpers
-open Fantomas
+open Fantomas.Tests.TestHelpers
+open Fantomas.Core
 open Fantomas.Client.Contracts
 open Nerdbank.Streams
 open StreamJsonRpc

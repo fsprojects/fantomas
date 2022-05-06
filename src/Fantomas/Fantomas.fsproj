@@ -8,9 +8,10 @@
     <RollForward>Major</RollForward>
     <ToolCommandName>fantomas</ToolCommandName>
     <PackAsTool>True</PackAsTool>
-    <AssemblyName>fantomas-tool</AssemblyName>
+    <AssemblyName>fantomas</AssemblyName>
     <WarningsAsErrors>FS0025</WarningsAsErrors>
     <IsPackable>true</IsPackable>
+    <RootNamespace>Fantomas</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\Fantomas.Client\Fantomas.Client.fsproj" />

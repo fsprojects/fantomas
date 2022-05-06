@@ -1,8 +1,8 @@
-module Fantomas.CoreGlobalTool.Tests.MultiplePathsTests
+module Fantomas.Tests.MultiplePathsTests
 
 open NUnit.Framework
 open FsUnit
-open Fantomas.CoreGlobalTool.Tests.TestHelpers
+open Fantomas.Tests.TestHelpers
 open System.IO
 
 [<Literal>]

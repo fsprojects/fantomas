@@ -1,9 +1,9 @@
-module Fantomas.CoreGlobalTool.Tests.IgnoreFilesTests
+module Fantomas.Tests.IgnoreFilesTests
 
 open System.IO
 open NUnit.Framework
 open FsUnit
-open Fantomas.CoreGlobalTool.Tests.TestHelpers
+open Fantomas.Tests.TestHelpers
 
 [<Literal>]
 let Source = "let  foo =   47"

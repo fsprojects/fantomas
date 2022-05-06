@@ -1,9 +1,9 @@
-module Fantomas.CoreGlobalTool.Tests.CheckTests
+module Fantomas.Tests.CheckTests
 
 open System.IO
 open NUnit.Framework
 open FsUnit
-open Fantomas.CoreGlobalTool.Tests.TestHelpers
+open Fantomas.Tests.TestHelpers
 
 [<Literal>]
 let NeedsFormatting =

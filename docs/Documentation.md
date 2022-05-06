@@ -8,10 +8,10 @@ Create a [.NET tool manifest](https://docs.microsoft.com/en-us/dotnet/core/tools
 > dotnet new tool-manifest
 
 Install the command line tool with:
-> dotnet tool install fantomas-tool
+> dotnet tool install fantomas
 
 or install the tool globally with
-> dotnet tool install -g fantomas-tool
+> dotnet tool install -g fantomas
 
 For the overview how to use the tool, you can type the command
 
@@ -1253,7 +1253,7 @@ let add a b = a + b
 
 To exclude files from formatting, create a `.fantomasignore` file in the root of your project.
 `.fantomasignore` uses gitignore syntax (via [MAB.DotIgnore](https://github.com/markashleybell/MAB.DotIgnore)).
-Ignored files will be picked up when the [Fantomas cli tool](https://www.nuget.org/packages/fantomas-tool/) or the FAKE helpers (in [Fantomas.Extras](https://www.nuget.org/packages/Fantomas.Extras/)) are used.
+Ignored files will be picked up when the [Fantomas cli tool](https://www.nuget.org/packages/fantomas/) or the FAKE helpers (in [Fantomas.Extras](https://www.nuget.org/packages/Fantomas.Extras/)) are used.
 Exclusion applies both to formatting and the format checking.
 
 ```
@@ -1281,19 +1281,19 @@ git diff --cached --name-only --diff-filter=ACM -z | xargs -0 $HOME/.dotnet/tool
 git diff --cached --name-only --diff-filter=ACM -z | xargs -0 git add
 ```
 
-<small>This script assumes you have installed Fantomas globally as a [dotnet tool](https://www.nuget.org/packages/fantomas-tool/)</small>
+<small>This script assumes you have installed Fantomas globally as a [dotnet tool](https://www.nuget.org/packages/fantomas/)</small>
 
 **Please use with caution** as [Fantomas is not without bugs](https://github.com/fsprojects/fantomas/issues?q=is%3Aissue+is%3Aopen+label%3A%22bug+%28soundness%29%22).
 
 ## FAKE Helpers
 
 Fantomas also exposes some less official helper functions in [Fantomas.Extras](https://www.nuget.org/packages/Fantomas.Extras/), these will be deprecated in the next major version.
-It is advised to run the `fantomas-tool` instead when using FAKE, see [example](../fake-sample/README.md).
+It is advised to run the `fantomas` instead when using FAKE, see [example](../fake-sample/README.md).
 
 ## Updating to a new Fantomas version
 
 By default, Fantomas adheres to the Microsoft [F# code formatting guidelines](https://docs.microsoft.com/en-us/dotnet/fsharp/style-guide/formatting).
 If these change, Fantomas will follow accordingly. Due to this reason, the output cannot be guaranteed to remain the same when upgrading to a new minor version.
 
-If you are using Git for your source control, it is recommended to ignore commits where `fantomas-tool` was updated using a [.git-blame-ignore-revs file](https://git-scm.com/docs/git-blame#Documentation/git-blame.txt---ignore-revltrevgt).
+If you are using Git for your source control, it is recommended to ignore commits where `fantomas` was updated using a [.git-blame-ignore-revs file](https://git-scm.com/docs/git-blame#Documentation/git-blame.txt---ignore-revltrevgt).
 Check out this [blogpost](https://www.moxio.com/blog/43/ignoring-bulk-change-commits-with-git-blame) for more details.

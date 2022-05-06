@@ -1,8 +1,8 @@
 open System
 open System.IO
-open Fantomas
-open Fantomas.CoreGlobalTool.Daemon
-open Fantomas.FormatConfig
+open Fantomas.Core
+open Fantomas.Daemon
+open Fantomas.Core.FormatConfig
 open Fantomas.Extras
 open Argu
 open System.Text
