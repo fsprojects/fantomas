@@ -1,12 +1,13 @@
 # Changelog
 
-## [Unreleased]
+## [5.0.0-alpha-003] - 2022-05-06
 
 ### Changed
 * Don't add space between type of array and square brackets. [#2192](https://github.com/fsprojects/fantomas/issues/2192)
 * Adjusted formatting of quotation expressions to latest F# style guide. [#661](https://github.com/fsharp/fslang-design/issues/661)
 * Use F# compiler from the source files. [#2217](https://github.com/fsprojects/fantomas/issues/2217)
 * Rename Fantomas to Fantomas.Core and fantomas-tool to fantomas. [#2174](https://github.com/fsprojects/fantomas/issues/2174)
+* Update logo. [#2229](https://github.com/fsprojects/fantomas/pull/2229)
 
 ### Fixed
 * Idempotency problem with multiline quotation expressions. [#2203](https://github.com/fsprojects/fantomas/issues/2203)
