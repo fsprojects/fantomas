@@ -1,0 +1,277 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);57</NoWarn> <!-- Experimental -->
+    <DefineConstants>$(DefineConstants);COMPILER</DefineConstants>
+    <IntermediateOutputPath>generated</IntermediateOutputPath>
+    <FsYaccOutputFolder>$(IntermediateOutputPath)\$(TargetFramework)\</FsYaccOutputFolder>
+    <FsLexOutputFolder>$(IntermediateOutputPath)\$(TargetFramework)\</FsLexOutputFolder>
+    <Tailcalls>true</Tailcalls>
+    <IsPackable>true</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="paket.references" />
+    <Compile Include="AssemblyInfo.fs" />
+    <EmbeddedText Include="..\..\paket-files\dotnet\fsharp\src\fsharp\FSComp.txt">
+      <Link>FSComp.txt</Link>
+    </EmbeddedText>
+    <Compile Include="..\..\paket-files\dotnet\fsharp\src\fsharp\utils\sformat.fsi">
+      <Link>ErrorText\sformat.fsi</Link>
+    </Compile>
+    <Compile Include="..\..\paket-files\dotnet\fsharp\src\fsharp\utils\sformat.fs">
+      <Link>ErrorText\sformat.fs</Link>
+    </Compile>
+    <Compile Include="..\..\paket-files\dotnet\fsharp\src\fsharp\sr.fsi">
+      <Link>ErrorText\sr.fsi</Link>
+    </Compile>
+    <Compile Include="..\..\paket-files\dotnet\fsharp\src\fsharp\sr.fs">
+      <Link>ErrorText\sr.fs</Link>
+    </Compile>
+    <Compile Include="..\..\paket-files\dotnet\fsharp\src\fsharp\LanguageFeatures.fsi">
+      <Link>Facilities\LanguageFeatures.fsi</Link>
+    </Compile>
+    <Compile Include="..\..\paket-files\dotnet\fsharp\src\fsharp\LanguageFeatures.fs">
+      <Link>Facilities\LanguageFeatures.fs</Link>
+    </Compile>
+    <Compile Include="..\..\paket-files\dotnet\fsharp\src\fsharp\utils\ResizeArray.fsi">
+      <Link>Utilities\ResizeArray.fsi</Link>
+    </Compile>
+    <Compile Include="..\..\paket-files\dotnet\fsharp\src\fsharp\utils\ResizeArray.fs">
+      <Link>Utilities\ResizeArray.fs</Link>
+    </Compile>
+    <Compile Include="..\..\paket-files\dotnet\fsharp\src\fsharp\utils\HashMultiMap.fsi">
+      <Link>Utilities\HashMultiMap.fsi</Link>
+    </Compile>
+    <Compile Include="..\..\paket-files\dotnet\fsharp\src\fsharp\utils\HashMultiMap.fs">
+      <Link>Utilities\HashMultiMap.fs</Link>
+    </Compile>
+    <Compile Include="..\..\paket-files\dotnet\fsharp\src\fsharp\utils\TaggedCollections.fsi">
+      <Link>Utilities\TaggedCollections.fsi</Link>
+    </Compile>
+    <Compile Include="..\..\paket-files\dotnet\fsharp\src\fsharp\utils\TaggedCollections.fs">
+      <Link>Utilities\TaggedCollections.fs</Link>
+    </Compile>
+    <Compile Include="..\..\paket-files\dotnet\fsharp\src\fsharp\absil\illib.fsi">
+      <Link>Utilities\illib.fsi</Link>
+    </Compile>
+    <Compile Include="..\..\paket-files\dotnet\fsharp\src\fsharp\absil\illib.fs">
+      <Link>Utilities\illib.fs</Link>
+    </Compile>
+    <Compile Include="..\..\paket-files\dotnet\fsharp\src\fsharp\utils\FileSystem.fsi">
+      <Link>Utilities\FileSystem.fsi</Link>
+    </Compile>
+    <Compile Include="..\..\paket-files\dotnet\fsharp\src\fsharp\utils\FileSystem.fs">
+      <Link>Utilities\FileSystem.fs</Link>
+    </Compile>
+    <Compile Include="..\..\paket-files\dotnet\fsharp\src\fsharp\absil\ildiag.fsi">
+      <Link>Utilities\ildiag.fsi</Link>
+    </Compile>
+    <Compile Include="..\..\paket-files\dotnet\fsharp\src\fsharp\absil\ildiag.fs">
+      <Link>Utilities\ildiag.fs</Link>
+    </Compile>
+    <Compile Include="..\..\paket-files\dotnet\fsharp\src\fsharp\absil\zmap.fsi">
+      <Link>Utilities\zmap.fsi</Link>
+    </Compile>
+    <Compile Include="..\..\paket-files\dotnet\fsharp\src\fsharp\absil\zmap.fs">
+      <Link>Utilities\zmap.fs</Link>
+    </Compile>
+    <Compile Include="..\..\paket-files\dotnet\fsharp\src\fsharp\absil\zset.fsi">
+      <Link>Utilities\zset.fsi</Link>
+    </Compile>
+    <Compile Include="..\..\paket-files\dotnet\fsharp\src\fsharp\absil\zset.fs">
+      <Link>Utilities\zset.fs</Link>
+    </Compile>
+    <Compile Include="..\..\paket-files\dotnet\fsharp\src\fsharp\XmlAdapters.fsi">
+      <Link>Utilities\XmlAdapters.fsi</Link>
+    </Compile>
+    <Compile Include="..\..\paket-files\dotnet\fsharp\src\fsharp\XmlAdapters.fs">
+      <Link>Utilities\XmlAdapters.fs</Link>
+    </Compile>
+    <Compile Include="..\..\paket-files\dotnet\fsharp\src\fsharp\InternalCollections.fsi">
+      <Link>Utilities\InternalCollections.fsi</Link>
+    </Compile>
+    <Compile Include="..\..\paket-files\dotnet\fsharp\src\fsharp\InternalCollections.fs">
+      <Link>Utilities\InternalCollections.fs</Link>
+    </Compile>
+    <Compile Include="..\..\paket-files\dotnet\fsharp\src\fsharp\lib.fsi">
+      <Link>Utilities\lib.fsi</Link>
+    </Compile>
+    <Compile Include="..\..\paket-files\dotnet\fsharp\src\fsharp\lib.fs">
+      <Link>Utilities\lib.fs</Link>
+    </Compile>
+    <Compile Include="..\..\paket-files\dotnet\fsharp\src\fsharp\utils\PathMap.fsi">
+      <Link>Utilities\PathMap.fsi</Link>
+    </Compile>
+    <Compile Include="..\..\paket-files\dotnet\fsharp\src\fsharp\utils\PathMap.fs">
+      <Link>Utilities\PathMap.fs</Link>
+    </Compile>
+    <Compile Include="..\..\paket-files\dotnet\fsharp\src\fsharp\range.fsi">
+      <Link>ErrorLogging\range.fsi</Link>
+    </Compile>
+    <Compile Include="..\..\paket-files\dotnet\fsharp\src\fsharp\range.fs">
+      <Link>ErrorLogging\range.fs</Link>
+    </Compile>
+    <Compile Include="..\..\paket-files\dotnet\fsharp\src\fsharp\Diagnostics.fsi">
+      <Link>ErrorLogging\Diagnostics.fsi</Link>
+    </Compile>
+    <Compile Include="..\..\paket-files\dotnet\fsharp\src\fsharp\Diagnostics.fs">
+      <Link>ErrorLogging\Diagnostics.fs</Link>
+    </Compile>
+    <Compile Include="..\..\paket-files\dotnet\fsharp\src\fsharp\ErrorLogger.fsi">
+      <Link>ErrorLogging\ErrorLogger.fsi</Link>
+    </Compile>
+    <Compile Include="..\..\paket-files\dotnet\fsharp\src\fsharp\ErrorLogger.fs">
+      <Link>ErrorLogging\ErrorLogger.fs</Link>
+    </Compile>
+    <Compile Include="..\..\paket-files\dotnet\fsharp\src\fsharp\utils\prim-lexing.fsi">
+      <Link>LexYaccRuntime\prim-lexing.fsi</Link>
+    </Compile>
+    <Compile Include="..\..\paket-files\dotnet\fsharp\src\fsharp\utils\prim-lexing.fs">
+      <Link>LexYaccRuntime\prim-lexing.fs</Link>
+    </Compile>
+    <Compile Include="..\..\paket-files\dotnet\fsharp\src\fsharp\utils\prim-parsing.fsi">
+      <Link>LexYaccRuntime\prim-parsing.fsi</Link>
+    </Compile>
+    <Compile Include="..\..\paket-files\dotnet\fsharp\src\fsharp\utils\prim-parsing.fs">
+      <Link>LexYaccRuntime\prim-parsing.fs</Link>
+    </Compile>
+    <FsLex Include="..\..\paket-files\dotnet\fsharp\src\fsharp\absil\illex.fsl">
+      <OtherFlags>--unicode --lexlib Internal.Utilities.Text.Lexing</OtherFlags>
+      <Link>AbsIL\illex.fsl</Link>
+    </FsLex>
+    <None Include="..\..\paket-files\dotnet\fsharp\src\fsharp\absil\illex.fsl">
+      <Link>AbsIL\illex.fsl</Link>
+    </None>
+    <FsYacc Include="..\..\paket-files\dotnet\fsharp\src\fsharp\absil\ilpars.fsy">
+      <OtherFlags>--module FSharp.Compiler.AbstractIL.AsciiParser --open FSharp.Compiler.AbstractIL --internal --lexlib Internal.Utilities.Text.Lexing --parslib Internal.Utilities.Text.Parsing</OtherFlags>
+      <Link>AbsIL\ilpars.fsy</Link>
+    </FsYacc>
+    <None Include="..\..\paket-files\dotnet\fsharp\src\fsharp\absil\ilpars.fsy">
+      <Link>AbsIL\FsYacc\ilpars.fsy</Link>
+    </None>
+    <Compile Include="..\..\paket-files\dotnet\fsharp\src\fsharp\absil\il.fsi">
+      <Link>AbsIL\il.fsi</Link>
+    </Compile>
+    <Compile Include="..\..\paket-files\dotnet\fsharp\src\fsharp\absil\il.fs">
+      <Link>AbsIL\il.fs</Link>
+    </Compile>
+    <Compile Include="..\..\paket-files\dotnet\fsharp\src\fsharp\absil\ilx.fsi">
+      <Link>AbsIL\ilx.fsi</Link>
+    </Compile>
+    <Compile Include="..\..\paket-files\dotnet\fsharp\src\fsharp\absil\ilx.fs">
+      <Link>AbsIL\ilx.fs</Link>
+    </Compile>
+    <Compile Include="..\..\paket-files\dotnet\fsharp\src\fsharp\absil\ilascii.fsi">
+      <Link>AbsIL\ilascii.fsi</Link>
+    </Compile>
+    <Compile Include="..\..\paket-files\dotnet\fsharp\src\fsharp\absil\ilascii.fs">
+      <Link>AbsIL\ilascii.fs</Link>
+    </Compile>
+    <Compile Include="$(FsYaccOutputFolder)ilpars.fs">
+      <Link>AbsIL\FsYaccOut\ilpars.fs</Link>
+    </Compile>
+    <Compile Include="$(FsLexOutputFolder)illex.fs">
+      <Link>AbsIL\FsLexOut\illex.fs</Link>
+    </Compile>
+    <Compile Include="..\..\paket-files\dotnet\fsharp\src\fsharp\PrettyNaming.fsi">
+      <Link>PrettyNaming\PrettyNaming.fsi</Link>
+    </Compile>
+    <Compile Include="..\..\paket-files\dotnet\fsharp\src\fsharp\PrettyNaming.fs">
+      <Link>PrettyNaming\PrettyNaming.fs</Link>
+    </Compile>
+    <FsLex Include="..\..\paket-files\dotnet\fsharp\src\fsharp\pplex.fsl">
+      <OtherFlags>--unicode --lexlib Internal.Utilities.Text.Lexing</OtherFlags>
+      <Link>ParserAndUntypedAST\pplex.fsl</Link>
+    </FsLex>
+    <FsYacc Include="..\..\paket-files\dotnet\fsharp\src\fsharp\pppars.fsy">
+      <OtherFlags>--module FSharp.Compiler.PPParser --open FSharp.Compiler --open FSharp.Compiler.Syntax --internal --lexlib Internal.Utilities.Text.Lexing --parslib Internal.Utilities.Text.Parsing</OtherFlags>
+      <Link>ParserAndUntypedAST\pppars.fsy</Link>
+    </FsYacc>
+    <FsLex Include="..\..\paket-files\dotnet\fsharp\src\fsharp\lex.fsl">
+      <OtherFlags>--unicode --lexlib Internal.Utilities.Text.Lexing</OtherFlags>
+      <Link>ParserAndUntypedAST\lex.fsl</Link>
+    </FsLex>
+    <FsYacc Include="..\..\paket-files\dotnet\fsharp\src\fsharp\pars.fsy">
+      <OtherFlags>-v --module FSharp.Compiler.Parser --open FSharp.Compiler --open FSharp.Compiler.Syntax --internal --lexlib Internal.Utilities.Text.Lexing --parslib Internal.Utilities.Text.Parsing</OtherFlags>
+      <Link>ParserAndUntypedAST\pars.fsy</Link>
+    </FsYacc>
+    <None Include="..\..\paket-files\dotnet\fsharp\src\fsharp\pplex.fsl">
+      <Link>ParserAndUntypedAST\FsLex\pplex.fsl</Link>
+    </None>
+    <None Include="..\..\paket-files\dotnet\fsharp\src\fsharp\lex.fsl">
+      <Link>ParserAndUntypedAST\FsLex\lex.fsl</Link>
+    </None>
+    <None Include="..\..\paket-files\dotnet\fsharp\src\fsharp\pppars.fsy">
+      <Link>ParserAndUntypedAST\FsYacc\pppars.fsy</Link>
+    </None>
+    <None Include="..\..\paket-files\dotnet\fsharp\src\fsharp\pars.fsy">
+      <Link>ParserAndUntypedAST\FsYacc\pars.fsy</Link>
+    </None>
+    <Compile Include="..\..\paket-files\dotnet\fsharp\src\fsharp\UnicodeLexing.fsi">
+      <Link>ParserAndUntypedAST\UnicodeLexing.fsi</Link>
+    </Compile>
+    <Compile Include="..\..\paket-files\dotnet\fsharp\src\fsharp\UnicodeLexing.fs">
+      <Link>ParserAndUntypedAST\UnicodeLexing.fs</Link>
+    </Compile>
+    <Compile Include="..\..\paket-files\dotnet\fsharp\src\fsharp\XmlDoc.fsi">
+      <Link>ParserAndUntypedAST\XmlDoc.fsi</Link>
+    </Compile>
+    <Compile Include="..\..\paket-files\dotnet\fsharp\src\fsharp\XmlDoc.fs">
+      <Link>ParserAndUntypedAST\XmlDoc.fs</Link>
+    </Compile>
+    <Compile Include="..\..\paket-files\dotnet\fsharp\src\fsharp\SyntaxTrivia.fsi">
+      <Link>ParserAndUntypedAST\SyntaxTrivia.fsi</Link>
+    </Compile>
+    <Compile Include="..\..\paket-files\dotnet\fsharp\src\fsharp\SyntaxTrivia.fs">
+      <Link>ParserAndUntypedAST\SyntaxTrivia.fs</Link>
+    </Compile>
+    <Compile Include="..\..\paket-files\dotnet\fsharp\src\fsharp\SyntaxTree.fsi">
+      <Link>ParserAndUntypedAST\SyntaxTree.fsi</Link>
+    </Compile>
+    <Compile Include="..\..\paket-files\dotnet\fsharp\src\fsharp\SyntaxTree.fs">
+      <Link>ParserAndUntypedAST\SyntaxTree.fs</Link>
+    </Compile>
+    <Compile Include="..\..\paket-files\dotnet\fsharp\src\fsharp\SyntaxTreeOps.fsi">
+      <Link>ParserAndUntypedAST\SyntaxTreeOps.fsi</Link>
+    </Compile>
+    <Compile Include="..\..\paket-files\dotnet\fsharp\src\fsharp\SyntaxTreeOps.fs">
+      <Link>ParserAndUntypedAST\SyntaxTreeOps.fs</Link>
+    </Compile>
+    <Compile Include="..\..\paket-files\dotnet\fsharp\src\fsharp\ParseHelpers.fsi">
+      <Link>ParserAndUntypedAST\ParseHelpers.fsi</Link>
+    </Compile>
+    <Compile Include="..\..\paket-files\dotnet\fsharp\src\fsharp\ParseHelpers.fs">
+      <Link>ParserAndUntypedAST\ParseHelpers.fs</Link>
+    </Compile>
+    <Compile Include="$(FsYaccOutputFolder)pppars.fs">
+      <Link>ParserAndUntypedAST\FsYaccOutput\pppars.fs</Link>
+    </Compile>
+    <Compile Include="$(FsYaccOutputFolder)pars.fs">
+      <Link>ParserAndUntypedAST\FsYaccOutput\pars.fs</Link>
+    </Compile>
+    <Compile Include="..\..\paket-files\dotnet\fsharp\src\fsharp\lexhelp.fsi">
+      <Link>ParserAndUntypedAST\lexhelp.fsi</Link>
+    </Compile>
+    <Compile Include="..\..\paket-files\dotnet\fsharp\src\fsharp\lexhelp.fs">
+      <Link>ParserAndUntypedAST\lexhelp.fs</Link>
+    </Compile>
+    <Compile Include="$(FsYaccOutputFolder)pplex.fs">
+      <Link>ParserAndUntypedAST\FsLexOutput\pplex.fs</Link>
+    </Compile>
+    <Compile Include="$(FsYaccOutputFolder)\lex.fs">
+      <Link>ParserAndUntypedAST\FsLexOutput\lex.fs</Link>
+    </Compile>
+    <Compile Include="..\..\paket-files\dotnet\fsharp\src\fsharp\LexFilter.fsi">
+      <Link>ParserAndUntypedAST\LexFilter.fsi</Link>
+    </Compile>
+    <Compile Include="..\..\paket-files\dotnet\fsharp\src\fsharp\LexFilter.fs">
+      <Link>ParserAndUntypedAST\LexFilter.fs</Link>
+    </Compile>
+    <Compile Include="ParseAndCheckInputs.fs" />
+    <Compile Include="Parse.fs" />
+  </ItemGroup>
+  <Import Project="..\..\.paket\Paket.Restore.targets" />
+</Project>

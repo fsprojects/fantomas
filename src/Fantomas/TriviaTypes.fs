@@ -1,12 +1,8 @@
-module Fantomas.TriviaTypes
+module internal Fantomas.TriviaTypes
 
 open FSharp.Compiler.Text
-open FSharp.Compiler.Tokenization
 
-type Token =
-    { TokenInfo: FSharpTokenInfo
-      LineNumber: int
-      Content: string }
+type DefineCombination = string list
 
 type Comment =
     | LineCommentAfterSourceCode of comment: string
@@ -26,16 +22,9 @@ let a = 7
 *)
 
 type TriviaContent =
-    | Keyword of Token
-    | Number of string
-    | StringContent of string
-    | IdentOperatorAsWord of string
-    | IdentBetweenTicks of string
     | Comment of Comment
     | Newline
     | Directive of directive: string
-    | CharContent of string
-    | EmbeddedIL of string
 
 type Trivia =
     { Item: TriviaContent
@@ -46,17 +35,21 @@ type TriviaIndex = TriviaIndex of int * int
 
 type FsAstType =
     | Ident_
-    | LongIdent_ // namespace or module identifier
+    | SynIdent_
+    | LongIdent_
+    | SynLongIdent_
     //    | SynModuleOrNamespace_AnonModule, pick first child node instead
     | SynModuleOrNamespace_DeclaredNamespace
     | SynModuleOrNamespace_GlobalNamespace
     | SynModuleOrNamespace_NamedModule
+    | SynModuleOrNamespace_Module
+    | SynModuleOrNamespace_Namespace
     | SynModuleDecl_ModuleAbbrev
     | SynModuleDecl_NestedModule
     | SynModuleDecl_NestedModule_Module
     | SynModuleDecl_NestedModule_Equals
     | SynModuleDecl_Let
-    | SynModuleDecl_DoExpr
+    | SynModuleDecl_Expr
     | SynModuleDecl_Types
     | SynModuleDecl_Exception
     | SynModuleDecl_Open
@@ -176,8 +169,8 @@ type FsAstType =
     | SynExpr_IndexFromEnd
     | SynInterpolatedStringPart_String
     | SynInterpolatedStringPart_FillExpr
-    | RecordField_
-    | RecordField_Equals
+    | SynExprRecordField_
+    | SynExprRecordField_Equals
     | AnonRecordField_
     | AnonRecordTypeField_
     | SynMemberSig_Member
@@ -234,6 +227,7 @@ type FsAstType =
     | SynTyparDecl_
     // | Typar_ , unused
     | SynValSig_
+    | SynValSig_Val
     | SynValSig_With
     // | SynPat_Const, use SynConst instead
     | SynPat_Wild
@@ -396,5 +390,3 @@ type TriviaNodeAssigner(nodeType: FsAstType, range: Range) =
     member val ContentBefore = ResizeArray<TriviaContent>() with get, set
     member val ContentItself = Option<TriviaContent>.None with get, set
     member val ContentAfter = ResizeArray<TriviaContent>() with get, set
-
-type MkRange = int * int -> int * int -> Range

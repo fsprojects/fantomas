@@ -9,6 +9,8 @@
   <ItemGroup>
     <None Include="paket.references" />
     <Compile Include="AssemblyInfo.fs" />
+    <Compile Include="ISourceTextExtensions.fs" />
+    <Compile Include="AstExtensions.fs" />
     <Compile Include="RangeHelpers.fs" />
     <Compile Include="TriviaTypes.fs" />
     <Compile Include="Dbg.fs" />
@@ -19,17 +21,19 @@
     <Compile Include="Version.fs" />
     <Compile Include="Queue.fs" />
     <Compile Include="FormatConfig.fs" />
-    <Compile Include="TokenParserBoolExpr.fs" />
+    <Compile Include="DefineCombinationSolver.fs" />
     <Compile Include="TriviaHelpers.fs" />
-    <Compile Include="TokenParser.fs" />
+    <Compile Include="Defines.fs" />
     <Compile Include="Trivia.fs" />
     <Compile Include="Context.fs" />
     <Compile Include="SourceTransformer.fs" />
-    <Compile Include="TriviaContext.fs" />
     <Compile Include="CodePrinter.fs" />
     <Compile Include="CodeFormatterImpl.fs" />
     <Compile Include="CodeFormatter.fsi" />
     <Compile Include="CodeFormatter.fs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Fantomas.FCS\Fantomas.FCS.fsproj" />
   </ItemGroup>
   <Import Project="..\..\.paket\Paket.Restore.targets" />
 </Project>

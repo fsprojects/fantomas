@@ -2,33 +2,28 @@ module Fantomas.Tests.TriviaTests
 
 open NUnit.Framework
 open Fantomas
+open Fantomas.SourceParser
 open Fantomas.Tests.TestHelper
 open Fantomas.TriviaTypes
 
-let private collectTrivia =
-    Trivia.collectTrivia (fun (sl, sc) (el, ec) ->
-        FSharp.Compiler.Text.Range.mkRange
-            "TriviaTests"
-            (FSharp.Compiler.Text.Position.mkPos sl sc)
-            (FSharp.Compiler.Text.Position.mkPos el ec))
-
 let private toTrivia source =
-    let astWithDefines = parse false source |> Array.toList
-
-    astWithDefines
-    |> List.map (fun (ast, defines, hashTokens) ->
-        let tokens = TokenParser.tokenize defines hashTokens source
-
-        collectTrivia tokens ast)
+    let sourceText = CodeFormatterImpl.getSourceText source
+    let ast, _ = Fantomas.FCS.Parse.parseFile false sourceText []
+    Trivia.collectTrivia sourceText ast
 
 let private toTriviaWithDefines source =
-    let astWithDefines = parse false source |> Array.toList
+    let sourceText = CodeFormatterImpl.getSourceText source
+    let ast, _diagnostics = Fantomas.FCS.Parse.parseFile false sourceText []
 
-    astWithDefines
-    |> List.map (fun (ast, defines, hashTokens) ->
-        let tokens = TokenParser.tokenize defines hashTokens source
+    let hashDirectives =
+        match ast with
+        | ImplFile (ParsedImplFileInput (_, _, directives, _))
+        | SigFile (ParsedSigFileInput (_, _, directives, _)) -> directives
 
-        defines, collectTrivia tokens ast)
+    let defineCombinations = Defines.getDefineCombination hashDirectives
+
+    defineCombinations
+    |> List.map (fun dc -> dc, Trivia.collectTrivia sourceText ast)
     |> Map.ofList
 
 [<Test>]
@@ -38,7 +33,7 @@ let ``line comment that starts at the beginning of a line added to trivia`` () =
 let a = 9
 """
 
-    let triviaNodes = toTrivia source |> List.head
+    let triviaNodes = toTrivia source
 
     match triviaNodes with
     | [ { ContentBefore = [ Comment (LineCommentOnSingleLine lineComment) ] } ] -> lineComment == "// meh"
@@ -51,7 +46,7 @@ let ``line comment that is alone on the single, preceded by whitespaces`` () =
 let a = 'c'
 """
 
-    let triviaNodes = toTrivia source |> List.head
+    let triviaNodes = toTrivia source
 
     match triviaNodes with
     | [ { ContentBefore = [ Comment (LineCommentOnSingleLine lineComment) ] } ] -> lineComment == "// foo"
@@ -60,7 +55,7 @@ let a = 'c'
 [<Test>]
 let ``line comment on same line, is after last AST item`` () =
     let source = "let foo = 7 // should be 8"
-    let triviaNodes = toTrivia source |> List.head
+    let triviaNodes = toTrivia source
 
     match triviaNodes with
     | [ { Type = SynConst_Int32
@@ -74,7 +69,7 @@ let ``newline pick up before let binding`` () =
 
 let b = 9"""
 
-    let triviaNodes = toTrivia source |> List.head
+    let triviaNodes = toTrivia source
 
     match triviaNodes with
     | [ { ContentBefore = [ Newline ] } ] -> pass ()
@@ -88,17 +83,12 @@ let ``multiple comments should be linked to same trivia node`` () =
 let a = 7
 """
 
-    let triviaNodes = toTrivia source |> List.head
-
-    let expectedComment =
-        String.normalizeNewLine
-            """// foo
-// bar"""
+    let triviaNodes = toTrivia source
 
     match triviaNodes with
-    | [ { ContentBefore = [ Comment (LineCommentOnSingleLine comments) ] } ] ->
-        String.normalizeNewLine comments
-        == expectedComment
+    | [ { ContentBefore = [ Comment (LineCommentOnSingleLine c1); Comment (LineCommentOnSingleLine c2) ] } ] ->
+        c1 == "// foo"
+        c2 == "// bar"
     | _ -> fail ()
 
 [<Test>]
@@ -108,7 +98,7 @@ let ``comments inside record`` () =
     { // foo
     B = 7 }"""
 
-    let triviaNodes = toTrivia source |> List.head
+    let triviaNodes = toTrivia source
 
     match triviaNodes with
     | [ { Type = SynExpr_Record_OpeningBrace
@@ -123,7 +113,7 @@ let ``comment after all source code`` () =
 //    override private x.ToString() = ""
 """
 
-    let triviaNodes = toTrivia source |> List.head
+    let triviaNodes = toTrivia source
 
     match triviaNodes with
     | [ { Type = mn
@@ -140,7 +130,7 @@ let ``comment after all source code`` () =
 let ``block comment added to trivia`` () =
     let source = """let a = (* meh *) 9"""
 
-    let triviaNodes = toTrivia source |> List.head
+    let triviaNodes = toTrivia source
 
     match triviaNodes with
     | [ { ContentAfter = [ Comment (BlockComment (comment, _, _)) ] } ] -> comment == "(* meh *)"
@@ -153,7 +143,7 @@ let ``block comment and newline added to trivia`` () =
 let a =  b
 """
 
-    let triviaNodes = toTrivia source |> List.head
+    let triviaNodes = toTrivia source
 
     match triviaNodes with
     | [ { ContentBefore = [ Comment (BlockComment (comment, _, true)) ] } ] -> comment == "(* meh *)"
@@ -165,7 +155,7 @@ let ``block comment on newline EOF added to trivia`` () =
         """let a =  b
 (* meh *)"""
 
-    let triviaNodes = toTrivia source |> List.head
+    let triviaNodes = toTrivia source
 
     match triviaNodes with
     | [ { ContentAfter = [ Comment (BlockComment (comment, true, _)) ] } ] -> comment == "(* meh *)"
@@ -175,7 +165,7 @@ let ``block comment on newline EOF added to trivia`` () =
 let ``block comment on EOF added to trivia`` () =
     let source = """let a =  9 (* meh *)"""
 
-    let triviaNodes = toTrivia source |> List.head
+    let triviaNodes = toTrivia source
 
     match triviaNodes with
     | [ { ContentAfter = [ Comment (BlockComment (comment, _, _)) ] } ] -> comment == "(* meh *)"
@@ -188,7 +178,7 @@ let ``nested block comment parsed correctly`` () =
 let a =  c + d
 """
 
-    let triviaNodes = toTrivia source |> List.head
+    let triviaNodes = toTrivia source
 
     match triviaNodes with
     | [ { ContentBefore = [ Comment (BlockComment (comment, _, true)) ] } ] -> comment == "(* (* meh *) *)"
@@ -202,7 +192,7 @@ let ``line comment inside block comment parsed correctly`` () =
 let a =  9
 """
 
-    let triviaNodes = toTrivia source |> List.head
+    let triviaNodes = toTrivia source
 
     match triviaNodes with
     | [ { ContentBefore = [ Comment (BlockComment (comment, _, true)) ] } ] -> comment == "(* // meh *)"
@@ -217,7 +207,7 @@ bla *)
 let a =  b
 """
 
-    let triviaNodes = toTrivia source |> List.head
+    let triviaNodes = toTrivia source
 
     let expectedComment =
         """(* meh
@@ -225,7 +215,8 @@ bla *)"""
         |> String.normalizeNewLine
 
     match triviaNodes with
-    | [ { ContentBefore = [ Comment (BlockComment (comment, _, true)) ] } ] -> comment == expectedComment
+    | [ { ContentBefore = [ Comment (BlockComment (comment, _, true)) ] } ] ->
+        String.normalizeNewLine comment == expectedComment
     | _ -> failwith "Expected block comment"
 
 
@@ -238,11 +229,12 @@ let ``multiple block comments should be linked to same trivia node`` () =
 x
 """
 
-    let triviaNodes = toTrivia source |> List.head
+    let triviaNodes = toTrivia source
 
     match triviaNodes with
-    | [ { ContentBefore = [ Comment (BlockComment (combinedComment, _, true)) ] } ] ->
-        combinedComment == "(* foo *)\n(* bar *)"
+    | [ { ContentBefore = [ Comment (BlockComment (bc1, true, true)); Comment (BlockComment (bc2, true, true)) ] } ] ->
+        bc1 == "(* foo *)"
+        bc2 == "(* bar *)"
     | _ -> Assert.Fail(sprintf "Unexpected trivia %A" triviaNodes)
 
 [<Test>]
@@ -252,7 +244,7 @@ let ``block comment inside line comment parsed correctly`` () =
 let a =  b + c
 """
 
-    let triviaNodes = toTrivia source |> List.head
+    let triviaNodes = toTrivia source
 
     match triviaNodes with
     | [ { ContentBefore = [ Comment (LineCommentOnSingleLine comment) ] } ] -> comment == "// (* meh *)"
@@ -269,10 +261,12 @@ MEH
 
     let source = sprintf "%s\nprintfn message" comment
 
-    let triviaNodes = toTrivia source |> List.head
+    let triviaNodes = toTrivia source
 
     match triviaNodes with
-    | [ { ContentBefore = [ Comment (BlockComment (c, _, true)) ] } ] -> c == (String.normalizeNewLine comment)
+    | [ { ContentBefore = [ Comment (BlockComment (c, _, true)) ] } ] ->
+        String.normalizeNewLine c
+        == String.normalizeNewLine comment
     | _ -> failwith "Expected block comment"
 
 [<Test>]
@@ -290,8 +284,8 @@ doSomething()
     let withoutDefine = Map.find [] triviaNodes
 
     match withoutDefine with
-    | [ { Type = SynModuleDecl_DoExpr
-          ContentBefore = [ Directive "#if NOT_DEFINED\n#else" ]
+    | [ { Type = SynModuleDecl_Expr
+          ContentBefore = [ Directive "#if NOT_DEFINED"; Directive "#else" ]
           ContentAfter = [ Directive "#endif" ] } ] -> pass ()
     | _ -> Assert.Fail(sprintf "Unexpected trivia %A" withoutDefine)
 
@@ -316,7 +310,7 @@ let x = 1
 
     match withoutDefine with
     | [ { Type = LongIdent_
-          ContentAfter = [ Directive "#if NOT_DEFINED\n\n#endif" ]
+          ContentAfter = [ Directive "#if NOT_DEFINED"; Directive "#endif" ]
           ContentBefore = [] } ] -> pass ()
     | _ -> Assert.Fail(sprintf "Unexpected trivia %A" withoutDefine)
 
@@ -345,7 +339,10 @@ type ExtensibleDumper = A | B
 
     match trivias with
     | [ { Type = SynModuleOrNamespace_DeclaredNamespace
-          ContentAfter = [ Directive "#if EXTENSIBLE_DUMPER\n#if DEBUG\n\n#endif\n#endif" ] } ] -> pass ()
+          ContentAfter = [ Directive "#if EXTENSIBLE_DUMPER"
+                           Directive "#if DEBUG"
+                           Directive "#endif"
+                           Directive "#endif" ] } ] -> pass ()
     | _ -> Assert.Fail(sprintf "Unexpected trivia %A" trivias)
 
 [<Test>]
@@ -356,7 +353,7 @@ let ``trailing newlines should not be picked up in trivia`` () =
 
 """
 
-    let trivia = toTrivia source |> List.head
+    let trivia = toTrivia source
 
     match trivia with
     | [] -> pass ()
@@ -374,56 +371,8 @@ let foo = 42
 
     match trivia with
     | [ { Type = LongIdent_
-          ContentAfter = [ Directive "#if SOMETHING\n\n#endif" ] } ] -> pass ()
-    | _ -> fail ()
-
-[<Test>]
-let ``string constant with blank lines`` () =
-    let multilineString =
-        "some
-
-content
-
-with empty lines"
-        |> String.normalizeNewLine
-
-    let source = sprintf "let x = \"%s\"" multilineString
-
-    let trivia = toTrivia source |> List.head
-
-    match trivia with
-    | [ { ContentItself = Some (StringContent sc)
-          Type = SynConst_String } ] -> sc == sprintf "\"%s\"" multilineString
-    | _ -> fail ()
-
-[<Test>]
-let ``triple quote string constant with blank lines`` () =
-    let multilineString =
-        "some
-
-content
-
-with empty lines"
-        |> String.normalizeNewLine
-
-    let source = sprintf "let x = \"\"\"%s\"\"\"" multilineString
-
-    let trivia = toTrivia source |> List.head
-
-    match trivia with
-    | [ { ContentItself = Some (StringContent sc)
-          Type = SynConst_String } ] -> sc == sprintf "\"\"\"%s\"\"\"" multilineString
-    | _ -> fail ()
-
-[<Test>]
-let ``char content`` () =
-    let source = "let nulchar = \'\\u0000\'"
-    let trivia = toTrivia source |> List.head
-
-    match trivia with
-    | [ { ContentItself = Some (CharContent "\'\\u0000\'")
-          Type = SynConst_Char } ] -> pass ()
-    | _ -> Assert.Fail(sprintf "Unexpected trivia: %A" trivia)
+          ContentAfter = [ Directive "#if SOMETHING"; Directive "#endif" ] } ] -> pass ()
+    | _ -> Assert.Fail $"Expected trivia in content after, got {trivia}"
 
 [<Test>]
 let ``leading newlines should not be captured as trivia`` () =
@@ -432,7 +381,7 @@ let ``leading newlines should not be captured as trivia`` () =
 let a = b
 """
 
-    let trivia = toTrivia source |> List.head
+    let trivia = toTrivia source
 
     match trivia with
     | [] -> pass ()
@@ -453,32 +402,17 @@ type LongIdentWithDots =
     | LongIdentWithDots of id: LongIdent * dotms: range list
 """
 
-    let trivia = toTrivia source |> List.head
-
-    let expectedComment =
-        String.normalizeNewLine
-            """// Represents a long identifier with possible '.' at end.
-//
-// Typically dotms.Length = lid.Length-1, but they may be same if (incomplete) code ends in a dot, e.g. "Foo.Bar."
-// The dots mostly matter for parsing, and are typically ignored by the typechecker, but
-// if dotms.Length = lid.Length, then the parser must have reported an error, so the typechecker is allowed
-// more freedom about typechecking these expressions.
-// LongIdent can be empty list - it is used to denote that name of some AST element is absent (i.e. empty type name in inherit)"""
+    let trivia = toTrivia source
 
     match trivia with
-    | [ { ContentBefore = [ Comment (LineCommentOnSingleLine comment) ] } ] ->
-        String.normalizeNewLine comment == expectedComment
-    | _ -> fail ()
-
-[<Test>]
-let ``number expression`` () =
-    let source = sprintf "let x = 2.0m"
-
-    let trivia = toTrivia source |> List.head
-
-    match trivia with
-    | [ { ContentItself = Some (Number n)
-          Type = _ } ] -> n == "2.0m"
+    | [ { ContentBefore = cb } ] ->
+        Assert.True(
+            List.forall
+                (function
+                | Comment (LineCommentOnSingleLine _) -> true
+                | _ -> false)
+                cb
+        )
     | _ -> fail ()
 
 [<Test>]
@@ -498,5 +432,5 @@ let x =
 
     match trivia with
     | [ { Type = SynConst_Unit
-          ContentBefore = [ Directive "#if DEBUG\n\n#endif" ] } ] -> pass ()
+          ContentBefore = [ Directive "#if DEBUG"; Directive "#endif" ] } ] -> pass ()
     | _ -> Assert.Fail(sprintf "Unexpected trivia: %A" trivia)

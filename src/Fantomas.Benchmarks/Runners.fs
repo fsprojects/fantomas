@@ -2,11 +2,8 @@ module Fantomas.Benchmarks.Runners
 
 open System.IO
 open BenchmarkDotNet.Attributes
-open FSharp.Compiler.CodeAnalysis
 open Fantomas
-open Fantomas.Extras
 
-let sharedChecker = lazy (FSharpChecker.Create())
 let config = FormatConfig.FormatConfig.Default
 
 [<MemoryDiagnoser>]
@@ -18,15 +15,9 @@ type CodePrinterTest() =
             __SOURCE_DIRECTORY__
             + "/../../paket-files/fsprojects/fantomas/src/Fantomas/CodePrinter.fs"
 
-        let fileName = Path.GetFileName(path)
+        let content = File.ReadAllText(path)
 
-        let parsingOptions = CodeFormatterImpl.createParsingOptionsFromFile fileName
-
-        let content =
-            File.ReadAllText(path)
-            |> SourceOrigin.SourceString
-
-        CodeFormatter.FormatDocumentAsync(fileName, content, config, parsingOptions, sharedChecker.Value)
+        CodeFormatter.FormatDocumentAsync(false, content, config)
         |> Async.RunSynchronously
         |> ignore
 

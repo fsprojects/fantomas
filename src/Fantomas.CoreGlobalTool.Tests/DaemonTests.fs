@@ -233,6 +233,7 @@ let a = //
         })
 
 [<Test>]
+[<Ignore("Selection is not implemented right now.")>]
 let ``format selection`` () =
     runWithDaemon (fun client ->
         async {
