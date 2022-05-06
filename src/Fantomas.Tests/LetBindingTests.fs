@@ -693,6 +693,7 @@ let ``handle hash directives before equals, no defines`` () =
 let Baz
     (firstParam: string)
 #if DEBUG
+
 #else
     (secndParam: int)
 #endif

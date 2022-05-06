@@ -1,10 +1,5 @@
-module Fantomas.Tests.SynLongIdentTests
+module Fantomas.Tests.LongIdentWithDotsTests
 
-open FSharp.Compiler.Text
-open FSharp.Compiler.Syntax
-open FSharp.Compiler.SyntaxTrivia
-open FSharp.Compiler.Xml
-open Fantomas
 open NUnit.Framework
 open FsUnit
 open Fantomas.Tests.TestHelper
@@ -64,6 +59,7 @@ Log.Logger <-
         // add more sinks etc.
         .CreateLogger()
 """
+
 
 [<Test>]
 let ``force newline by adding comments`` () =
@@ -353,56 +349,3 @@ let path =
         path // translate path to Python relative syntax
             .Replace("../../../", "....")
 """
-
-[<Test>]
-let ``backticks can be added from AST only scenarios`` () =
-    let tree =
-        let testIdent = Ident("Test", Range.Zero)
-
-        ParsedInput.ImplFile(
-            ParsedImplFileInput(
-                "Test.fsx",
-                true,
-                QualifiedNameOfFile testIdent,
-                [],
-                [],
-                [ SynModuleOrNamespace(
-                      [ testIdent ],
-                      false,
-                      SynModuleOrNamespaceKind.AnonModule,
-                      [ SynModuleDecl.Expr(
-                            SynExpr.LongIdent(
-                                false,
-                                SynLongIdent(
-                                    [ Ident("new", Range.Zero) ],
-                                    [],
-                                    [ Some(IdentTrivia.OriginalNotation "``new``") ]
-                                ),
-                                None,
-                                Range.Zero
-                            ),
-                            Range.Zero
-                        ) ],
-                      PreXmlDoc.Empty,
-                      [],
-                      None,
-                      Range.Zero,
-                      { ModuleKeyword = None
-                        NamespaceKeyword = None }
-                  ) ],
-                (true, false),
-                { ConditionalDirectives = []
-                  CodeComments = [] }
-            )
-        )
-
-    CodeFormatter.FormatASTAsync(
-        tree,
-        [],
-        None,
-        { config with
-            StrictMode = true
-            InsertFinalNewline = false }
-    )
-    |> Async.RunSynchronously
-    |> should equal "``new``"

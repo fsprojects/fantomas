@@ -34,11 +34,11 @@ let hasParenInPat =
 
 // A few active patterns for printing purpose
 
-let rec (|DeclExprAttributesL|_|) =
+let rec (|DoExprAttributesL|_|) =
     function
-    | DeclExpr _
-    | Attributes _ as x :: DeclExprAttributesL (xs, ys) -> Some(x :: xs, ys)
-    | DeclExpr _
+    | DoExpr _
+    | Attributes _ as x :: DoExprAttributesL (xs, ys) -> Some(x :: xs, ys)
+    | DoExpr _
     | Attributes _ as x :: ys -> Some([ x ], ys)
     | _ -> None
 
@@ -96,38 +96,23 @@ let rec (|SigValL|_|) =
     | SigVal _ as x :: ys -> Some([ x ], ys)
     | _ -> None
 
-let private (|SynLongIdentAsString|) (synLongIdent: SynLongIdent) =
-    synLongIdent.LongIdent
-    |> List.map (fun i -> i.idText)
-    |> String.concat "."
-
 /// Gather PropertyGetSet in one printing call.
 /// Assume that PropertySet comes right after PropertyGet.
 let (|PropertyWithGetSet|_|) =
     function
-    | PropertyBinding (_, _, _, _, MFProperty PropertyGet, PatLongIdent (_, SynLongIdentAsString s1, _, _, _), _, _, _) as b1 :: bs ->
+    | PropertyBinding (_, _, _, _, MFProperty PropertyGet, PatLongIdent (_, s1, _, _, _), _, _, _) as b1 :: bs ->
         match bs with
-        | PropertyBinding (_,
-                           _,
-                           _,
-                           _,
-                           MFProperty PropertySet,
-                           PatLongIdent (_, SynLongIdentAsString s2, _, _, _),
-                           _,
-                           _,
-                           _) as b2 :: bs when s1 = s2 -> Some((b1, b2), bs)
+        | PropertyBinding (_, _, _, _, MFProperty PropertySet, PatLongIdent (_, s2, _, _, _), _, _, _) as b2 :: bs when
+            s1 = s2
+            ->
+            Some((b1, b2), bs)
         | _ -> None
-    | PropertyBinding (_, _, _, _, MFProperty PropertySet, PatLongIdent (_, SynLongIdentAsString s2, _, _, _), _, _, _) as b2 :: bs ->
+    | PropertyBinding (_, _, _, _, MFProperty PropertySet, PatLongIdent (_, s2, _, _, _), _, _, _) as b2 :: bs ->
         match bs with
-        | PropertyBinding (_,
-                           _,
-                           _,
-                           _,
-                           MFProperty PropertyGet,
-                           PatLongIdent (_, SynLongIdentAsString s1, _, _, _),
-                           _,
-                           _,
-                           _) as b1 :: bs when s1 = s2 -> Some((b1, b2), bs)
+        | PropertyBinding (_, _, _, _, MFProperty PropertyGet, PatLongIdent (_, s1, _, _, _), _, _, _) as b1 :: bs when
+            s1 = s2
+            ->
+            Some((b1, b2), bs)
         | _ -> None
     | _ -> None
 
@@ -155,7 +140,7 @@ let addParenForTupleWhen f synExpr ctx =
 
 let synModuleDeclToFsAstType =
     function
-    | SynModuleDecl.Expr _ -> SynModuleDecl_Expr
+    | SynModuleDecl.DoExpr _ -> SynModuleDecl_DoExpr
     | SynModuleDecl.Types _ -> SynModuleDecl_Types
     | SynModuleDecl.NestedModule _ -> SynModuleDecl_NestedModule
     | SynModuleDecl.Let _ -> SynModuleDecl_Let
