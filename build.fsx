@@ -21,6 +21,7 @@ let solutionFile = "fantomas.sln"
 let sourceFiles =
     !! "src/**/*.fs" ++ "src/**/*.fsi" ++ "build.fsx"
     -- "src/**/obj/**/*.fs"
+    -- "src/Fantomas.FCS/generated/netstandard2.0/*.*"
 
 // Types and helper functions for building external projects (see the TestExternalProjects target below)
 type ProcessStartInfo =
@@ -123,6 +124,8 @@ let externalProjectsToTestFailing =
 
 Target.create "Clean" (fun _ ->
     [ "bin"
+      "src/Fantomas.FCS/bin"
+      "src/Fantomas.FCS/obj"
       "src/Fantomas/bin"
       "src/Fantomas/obj"
       "src/Fantomas.CoreGlobalTool/bin"

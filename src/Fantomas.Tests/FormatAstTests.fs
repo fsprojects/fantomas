@@ -5,36 +5,23 @@ open NUnit.Framework
 open FsUnit
 open Fantomas.Tests.TestHelper
 
-let parseAndFormat sourceCode originSource =
-
-    let fileName = "/tmp.fsx"
-
+let parseAndFormat fn sourceCode =
     let ast =
-        CodeFormatter.ParseAsync(
-            fileName,
-            sourceCode,
-            CodeFormatterImpl.createParsingOptionsFromFile fileName,
-            sharedChecker.Value
-        )
+        CodeFormatter.ParseAsync(false, sourceCode)
         |> Async.RunSynchronously
         |> Seq.head
         |> fst
 
     let formattedCode =
-        CodeFormatter.FormatASTAsync(ast, fileName, [], originSource, config)
+        CodeFormatter.FormatASTAsync(ast, [], fn sourceCode, config)
         |> Async.RunSynchronously
         |> String.normalizeNewLine
         |> fun s -> s.TrimEnd('\n')
 
     formattedCode
 
-let formatAstWithSourceCode code =
-    let source = SourceOrigin.SourceString code
-    parseAndFormat source (Some source)
-
-let formatAst code =
-    let source = SourceOrigin.SourceString code
-    parseAndFormat source None
+let formatAstWithSourceCode code = parseAndFormat Some code
+let formatAst code = parseAndFormat (fun _ -> None) code
 
 [<Test>]
 let ``format the ast works correctly with no source code`` () = formatAst "()" |> should equal "()"

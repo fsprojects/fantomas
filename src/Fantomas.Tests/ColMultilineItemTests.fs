@@ -524,7 +524,7 @@ let a = p
 ()
 #endif
 
-let i = 0
+let i = 00
 let y = p
 """
 

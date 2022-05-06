@@ -1,5 +1,6 @@
 module Fantomas.Tests.InterpolatedStringTests
 
+open FSharp.Compiler.Text
 open NUnit.Framework
 open FsUnit
 open Fantomas.Tests.TestHelper
@@ -139,6 +140,31 @@ $"\"{bar}\" {1} {2}"
         """
 $"\"{bar}\" {1} {2}"
 """
+
+// TODO: consider cheating an getting all string from ISourceText
+
+[<Test>]
+let ``meh`` () =
+    let source =
+        SourceText.ofString
+            """
+$"\"{bar}\" {1} {2}"
+"""
+
+    let getContentAt (range: range) : string =
+        let startLine = range.StartLine - 1
+        let line = source.GetLineString startLine
+
+        if range.StartLine = range.EndLine then
+            let length = range.EndColumn - range.StartColumn
+            line.Substring(range.StartColumn, length)
+        else
+            // TODO: not sure if this is a safe assumption
+            "\n"
+
+    let r = Range.mkRange "meh.fs" (Position.mkPos 2 0) (Position.mkPos 2 5)
+    let content = getContentAt r
+    ()
 
 [<Test>]
 let ``multiline string literal, issue 1451`` () =

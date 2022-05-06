@@ -1,0 +1,6 @@
+group compiler
+FSharp.Core
+System.Memory
+System.Runtime
+FsLexYacc
+Ionide.KeepAChangelog.Tasks copy_local: true

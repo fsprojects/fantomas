@@ -4,14 +4,15 @@ open System
 open System.Text.RegularExpressions
 open FSharp.Compiler.Text
 open FSharp.Compiler.Syntax
+open FSharp.Compiler.SyntaxTrivia
 open FSharp.Compiler.Xml
 open Fantomas
+open Fantomas.AstExtensions
 open Fantomas.FormatConfig
 open Fantomas.SourceParser
 open Fantomas.SourceTransformer
 open Fantomas.Context
 open Fantomas.TriviaTypes
-open Fantomas.TriviaContext
 
 /// This type consists of contextual information which is important for formatting
 /// Please avoid using this record as it can be the cause of unexpected behavior when used incorrectly
@@ -48,17 +49,16 @@ let rec addSpaceBeforeParensInFunCall functionOrMethod arg (ctx: Context) =
     | LowercaseSynExpr, Paren _ -> ctx.Config.SpaceBeforeLowercaseInvocation
     | _ -> true
 
-let addSpaceBeforeParensInFunDef (spaceBeforeSetting: bool) (functionOrMethod: string) args =
-    let isLastPartUppercase =
-        let parts = functionOrMethod.Split '.'
-        Char.IsUpper parts.[parts.Length - 1].[0]
-
+let addSpaceBeforeParensInFunDef (spaceBeforeSetting: bool) (functionOrMethod: SynLongIdent) args =
     match functionOrMethod, args with
-    | "new", _ -> false
+    | SynLongIdent(id = [ newIdent ]), _ when newIdent.idText = "new" -> false
     | _, PatParen _ -> spaceBeforeSetting
     | _, PatNamed _
     | _, SynPat.Wild _ -> true
-    | _: string, _ -> not isLastPartUppercase
+    | SynLongIdent (id = lid), _ ->
+        match List.tryLast lid with
+        | None -> false
+        | Some ident -> not (Char.IsUpper ident.idText.[0])
     | _ -> true
 
 let rec genParsedInput astContext ast =
@@ -87,12 +87,12 @@ and addFinalNewline ctx =
     hs = hashDirectives : ParsedHashDirective list
     mns = modules : SynModuleOrNamespace list
 *)
-and genImpFile astContext (ParsedImplFileInput (hs, mns)) =
+and genImpFile astContext (ParsedImplFileInput (hs, mns, _, _)) =
     col sepNln hs genParsedHashDirective
     +> (if hs.IsEmpty then sepNone else sepNln)
     +> col sepNln mns (genModuleOrNamespace astContext)
 
-and genSigFile astContext (ParsedSigFileInput (hs, mns)) =
+and genSigFile astContext (ParsedSigFileInput (hs, mns, _, _)) =
     col sepNone hs genParsedHashDirective
     +> (if hs.IsEmpty then sepNone else sepNln)
     +> col sepNln mns (genSigModuleOrNamespace astContext)
@@ -112,14 +112,24 @@ and genParsedHashDirective (ParsedHashDirective (h, args, r)) =
     +> col sepSpace args genArg
     |> genTriviaFor ParsedHashDirective_ r
 
-and genModuleOrNamespaceKind (kind: SynModuleOrNamespaceKind) =
+and genModuleOrNamespaceKind
+    (moduleRange: range option)
+    (namespaceRange: range option)
+    (kind: SynModuleOrNamespaceKind)
+    =
     match kind with
-    | SynModuleOrNamespaceKind.DeclaredNamespace -> !- "namespace "
-    | SynModuleOrNamespaceKind.NamedModule -> !- "module "
-    | SynModuleOrNamespaceKind.GlobalNamespace -> !- "namespace global"
+    | SynModuleOrNamespaceKind.DeclaredNamespace ->
+        genTriviaForOption SynModuleOrNamespace_Namespace namespaceRange !- "namespace "
+    | SynModuleOrNamespaceKind.NamedModule -> genTriviaForOption SynModuleOrNamespace_Module moduleRange !- "module "
+    | SynModuleOrNamespaceKind.GlobalNamespace ->
+        genTriviaForOption SynModuleOrNamespace_Namespace namespaceRange !- "namespace"
+        +> !- " global"
     | SynModuleOrNamespaceKind.AnonModule -> sepNone
 
-and genModuleOrNamespace astContext (ModuleOrNamespace (ats, px, ao, lids, mds, isRecursive, moduleKind, range)) =
+and genModuleOrNamespace
+    astContext
+    (ModuleOrNamespace (ats, px, moduleRange, namespaceRange, ao, lids, mds, isRecursive, moduleKind, range))
+    =
     let sepModuleAndFirstDecl =
         let firstDecl = List.tryHead mds
 
@@ -129,25 +139,21 @@ and genModuleOrNamespace astContext (ModuleOrNamespace (ats, px, ao, lids, mds, 
             sepNln
             +> sepNlnConsideringTriviaContentBeforeForMainNode (synModuleDeclToFsAstType mdl) mdl.Range
 
-    let lidsFullRange =
-        match lids with
-        | [] -> FSharp.Compiler.Text.range.Zero
-        | (_, r) :: _ -> Range.unionRanges r (List.last lids |> snd)
-
     let moduleOrNamespace =
-        genModuleOrNamespaceKind moduleKind
+        genModuleOrNamespaceKind moduleRange namespaceRange moduleKind
         +> opt sepSpace ao genAccess
         +> ifElse isRecursive (!- "rec ") sepNone
-        +> col (!- ".") lids (fun (lid, r) -> genTriviaFor Ident_ r (!-lid))
-        |> genTriviaFor LongIdent_ lidsFullRange
+        +> genLongIdent lids
 
     // Anonymous module do have a single (fixed) ident in the LongIdent
     // We don't print the ident but it could have trivia assigned to it.
     let genTriviaForAnonModuleIdent =
         match lids with
-        | [ (_, r) ] -> genTriviaFor Ident_ r sepNone
+        | [ ident ] ->
+            genTriviaFor Ident_ ident.idRange sepNone
+            |> genTriviaFor LongIdent_ ident.idRange
         | _ -> sepNone
-        |> genTriviaFor LongIdent_ lidsFullRange
+
 
     genPreXmlDoc px
     +> genAttributes astContext ats
@@ -160,7 +166,10 @@ and genModuleOrNamespace astContext (ModuleOrNamespace (ats, px, ao, lids, mds, 
         | SynModuleOrNamespaceKind.GlobalNamespace -> genTriviaFor SynModuleOrNamespace_GlobalNamespace range
         | SynModuleOrNamespaceKind.NamedModule -> genTriviaFor SynModuleOrNamespace_NamedModule range)
 
-and genSigModuleOrNamespace astContext (SigModuleOrNamespace (ats, px, ao, lids, mds, isRecursive, moduleKind, range)) =
+and genSigModuleOrNamespace
+    astContext
+    (SigModuleOrNamespace (ats, px, moduleRange, namespaceRange, ao, lids, mds, isRecursive, moduleKind, range))
+    =
     let sepModuleAndFirstDecl =
         let firstDecl = List.tryHead mds
 
@@ -174,17 +183,11 @@ and genSigModuleOrNamespace astContext (SigModuleOrNamespace (ats, px, ao, lids,
             | _ -> sepNone
             +> sepNln
 
-    let lidsFullRange =
-        match lids with
-        | [] -> FSharp.Compiler.Text.range.Zero
-        | (_, r) :: _ -> Range.unionRanges r (List.last lids |> snd)
-
     let moduleOrNamespace =
-        genModuleOrNamespaceKind moduleKind
+        genModuleOrNamespaceKind moduleRange namespaceRange moduleKind
         +> opt sepSpace ao genAccess
         +> ifElse isRecursive (!- "rec ") sepNone
-        +> col (!- ".") lids (fun (lid, r) -> genTriviaFor Ident_ r (!-lid))
-        |> genTriviaFor LongIdent_ lidsFullRange
+        +> genLongIdent lids
 
     genPreXmlDoc px
     +> genAttributes astContext ats
@@ -309,7 +312,7 @@ and genModuleDecl astContext (node: SynModuleDecl) =
                                 | Comment (LineCommentOnSingleLine _)
                                 | Directive _ -> true
                                 | _ -> false)
-                                (Map.tryFindOrEmptyList SynAttributeList_ ctx.TriviaMainNodes)
+                                (Map.tryFindOrEmptyList SynAttributeList_ ctx.TriviaNodes)
 
                         (hasContentAfter, prevExpr +> expr))
                     (true, sepNone)
@@ -317,16 +320,16 @@ and genModuleDecl astContext (node: SynModuleDecl) =
                 |> snd
 
             attributesExpr ctx
-    | DoExpr e -> genExprKeepIndentInBranch astContext e
+    | DeclExpr e -> genExprKeepIndentInBranch astContext e
     | Exception ex -> genException astContext ex
     | HashDirective p -> genParsedHashDirective p
-    | Extern (ats, px, ao, t, s, ps) ->
+    | Extern (ats, px, ao, t, sli, ps) ->
         genPreXmlDoc px +> genAttributes astContext ats
         -- "extern "
         +> genType { astContext with IsCStylePattern = true } false t
         +> sepSpace
         +> opt sepSpace ao genAccess
-        -- s
+        +> genSynLongIdent false sli
         +> sepOpenT
         +> col sepComma ps (genPat { astContext with IsCStylePattern = true })
         +> sepCloseT
@@ -355,23 +358,28 @@ and genModuleDecl astContext (node: SynModuleDecl) =
                 enterNodeFor (synBindingToFsAstType b) andBinding.RangeOfBindingWithRhs
                 +> genLetBinding astContext "and " andBinding)
 
-    | ModuleAbbrev (s1, s2) -> !- "module " -- s1 +> sepEq +> sepSpace -- s2
+    | ModuleAbbrev (ident, lid) ->
+        !- "module "
+        +> genIdent ident
+        +> sepEq
+        +> sepSpace
+        +> genLongIdent lid
     | NamespaceFragment m -> failwithf "NamespaceFragment hasn't been implemented yet: %O" m
-    | NestedModule (ats, px, moduleKeyword, ao, s, isRecursive, equalsRange, mds) ->
+    | NestedModule (ats, px, moduleKeyword, ao, lid, isRecursive, equalsRange, mds) ->
         genPreXmlDoc px
         +> genAttributes astContext ats
         +> genTriviaForOption SynModuleDecl_NestedModule_Module moduleKeyword (!- "module ")
         +> opt sepSpace ao genAccess
         +> ifElse isRecursive (!- "rec ") sepNone
-        -- s
+        +> genLongIdent lid
         +> genEq SynModuleDecl_NestedModule_Equals equalsRange
         +> indent
         +> sepNln
         +> genModuleDeclList astContext mds
         +> unindent
 
-    | Open s -> !-(sprintf "open %s" s)
-    | OpenType s -> !-(sprintf "open type %s" s)
+    | Open lid -> !- "open " +> genLongIdent lid
+    | OpenType lid -> !- "open type " +> genSynLongIdent false lid
     // There is no nested types and they are recursive if there are more than one definition
     | Types (t :: ts) ->
         let items =
@@ -393,22 +401,27 @@ and genSigModuleDecl astContext node =
     | SigException ex -> genSigException astContext ex
     | SigHashDirective p -> genParsedHashDirective p
     | SigVal v -> genVal astContext v
-    | SigModuleAbbrev (s1, s2) -> !- "module " -- s1 +> sepEq +> sepSpace -- s2
+    | SigModuleAbbrev (ident, lid) ->
+        !- "module "
+        +> genIdent ident
+        +> sepEq
+        +> sepSpace
+        +> genLongIdent lid
     | SigNamespaceFragment m -> failwithf "NamespaceFragment is not supported yet: %O" m
-    | SigNestedModule (ats, px, moduleKeyword, ao, s, equalsRange, mds) ->
+    | SigNestedModule (ats, px, moduleKeyword, ao, lid, equalsRange, mds) ->
         genPreXmlDoc px
         +> genAttributes astContext ats
         +> genTriviaForOption SynModuleSigDecl_NestedModule_Module moduleKeyword !- "module "
         +> opt sepSpace ao genAccess
-        -- s
+        +> genLongIdent lid
         +> genEq SynModuleSigDecl_NestedModule_Equals equalsRange
         +> indent
         +> sepNln
         +> genSigModuleDeclList astContext mds
         +> unindent
 
-    | SigOpen s -> !-(sprintf "open %s" s)
-    | SigOpenType s -> !-(sprintf "open type %s" s)
+    | SigOpen lid -> !- "open " +> genLongIdent lid
+    | SigOpenType sli -> !- "open type " +> genSynLongIdent false sli
     | SigTypes (t :: ts) ->
         let items =
             ColMultilineItem(genSigTypeDefn astContext true t, sepNone)
@@ -430,12 +443,57 @@ and genSigModuleDecl astContext node =
         | SynModuleSigDecl.Exception _ -> genTriviaFor SynModuleSigDecl_Exception node.Range
         | _ -> id)
 
+and genIdent (ident: Ident) =
+    let width =
+        ident.idRange.EndColumn
+        - ident.idRange.StartColumn
+
+    let genIdent =
+        if ident.idText.Length + 4 = width then
+            // add backticks
+            !- $"``{ident.idText}``"
+        else
+            !-ident.idText
+
+    genTriviaFor Ident_ ident.idRange genIdent
+
+and genLongIdent (lid: LongIdent) =
+    col sepDot lid genIdent
+    |> genTriviaFor LongIdent_ (longIdentFullRange lid)
+
+and genSynIdent (addDot: bool) (synIdent: SynIdent) =
+    let (SynIdent (ident, trivia)) = synIdent
+
+    match trivia with
+    | Some (IdentTrivia.OriginalNotation text) -> !-text
+    | Some (IdentTrivia.OriginalNotationWithParen (_, text, _)) -> !- $"({text})"
+    | Some (IdentTrivia.HasParenthesis _) -> !- $"({ident.idText})"
+    | None -> genIdent ident
+
+    |> fun genSy -> genTriviaFor SynIdent_ synIdent.FullRange (onlyIf addDot sepDot +> genSy)
+
+and genSynLongIdent (addLeadingDot: bool) (longIdent: SynLongIdent) =
+    let lastIndex = longIdent.IdentsWithTrivia.Length - 1
+
+    coli sepNone longIdent.IdentsWithTrivia (fun idx si ->
+        genSynIdent (addLeadingDot || idx > 0) si
+        +> onlyIf (idx < lastIndex) (sepNlnWhenWriteBeforeNewlineNotEmpty sepNone))
+    |> genTriviaFor SynLongIdent_ longIdent.FullRange
+
+and genSynLongIdentMultiline (addLeadingDot: bool) (longIdent: SynLongIdent) =
+    coli sepNln longIdent.IdentsWithTrivia (fun idx -> genSynIdent (idx > 0 || addLeadingDot))
+    |> genTriviaFor SynLongIdent_ longIdent.FullRange
+
 and genAccess (Access s) = !-s
 
-and genAttribute astContext (Attribute (s, e, target)) =
+and genAttribute astContext (Attribute (sli, e, target)) =
     match e with
     // Special treatment for function application on attributes
-    | ConstUnitExpr -> !- "[<" +> opt sepColon target (!-) -- s -- ">]"
+    | ConstUnitExpr ->
+        !- "[<"
+        +> opt sepColon target genIdent
+        +> genSynLongIdent false sli
+        +> !- ">]"
     | e ->
         let argSpacing =
             if hasParenthesis e then
@@ -443,15 +501,19 @@ and genAttribute astContext (Attribute (s, e, target)) =
             else
                 sepSpace
 
-        !- "[<" +> opt sepColon target (!-) -- s
+        !- "[<"
+        +> opt sepColon target genIdent
+        +> genSynLongIdent false sli
         +> argSpacing
         +> genExpr astContext e
         -- ">]"
 
 and genAttributesCore astContext (ats: SynAttribute seq) =
-    let genAttributeExpr astContext (Attribute (s, e, target) as attr) =
+    let genAttributeExpr astContext (Attribute (sli, e, target) as attr) =
         match e with
-        | ConstUnitExpr -> opt sepColon target (!-) -- s
+        | ConstUnitExpr ->
+            opt sepColon target genIdent
+            +> genSynLongIdent false sli
         | e ->
             let argSpacing =
                 if hasParenthesis e then
@@ -459,7 +521,8 @@ and genAttributesCore astContext (ats: SynAttribute seq) =
                 else
                     sepSpace
 
-            opt sepColon target (!-) -- s
+            opt sepColon target genIdent
+            +> genSynLongIdent false sli
             +> argSpacing
             +> genExpr astContext e
         |> genTriviaFor SynAttribute_ attr.Range
@@ -496,7 +559,7 @@ and genAttributes astContext (ats: SynAttributes) =
                     | Newline
                     | Comment (LineCommentOnSingleLine _) -> true
                     | _ -> false)
-                    (Map.tryFindOrEmptyList SynAttributeList_ ctx.TriviaMainNodes)
+                    (Map.tryFindOrEmptyList SynAttributeList_ ctx.TriviaNodes)
 
             let chain =
                 acc
@@ -532,13 +595,13 @@ and genTyparList astContext tps =
 and genTypeSupportMember astContext st =
     match st with
     | SynType.Var (td, _) -> genTypar astContext td
-    | TLongIdent s -> !-s
+    | TLongIdent sli -> genSynLongIdent false sli
     | _ -> !- ""
 
 and genTypeSupportMemberList astContext tps =
     colSurr sepOpenT sepCloseT wordOr tps (genTypeSupportMember astContext)
 
-and genTypeAndParam astContext typeName (tds: SynTyparDecls option) tcs =
+and genTypeAndParam astContext (typeName: Context -> Context) (tds: SynTyparDecls option) tcs =
     let types openSep tds tcs closeSep =
         (!-openSep
          +> coli sepComma tds (fun i -> genTyparDecl { astContext with IsFirstTypeParam = i = 0 })
@@ -546,13 +609,13 @@ and genTypeAndParam astContext typeName (tds: SynTyparDecls option) tcs =
          -- closeSep)
 
     match tds with
-    | None -> !-typeName
-    | Some (SynTyparDecls.PostfixList (tds, tcs, _range)) -> !-typeName +> types "<" tds tcs ">"
-    | Some (SynTyparDecls.PrefixList (tds, _range)) -> types "(" tds [] ")" -- " " -- typeName
+    | None -> typeName
+    | Some (SynTyparDecls.PostfixList (tds, tcs, _range)) -> typeName +> types "<" tds tcs ">"
+    | Some (SynTyparDecls.PrefixList (tds, _range)) -> types "(" tds [] ")" -- " " +> typeName
     | Some (SynTyparDecls.SinglePrefix (td, _range)) ->
         genTyparDecl { astContext with IsFirstTypeParam = true } td
         +> sepSpace
-        -- typeName
+        +> typeName
     +> colPre (!- " when ") wordAnd tcs (genTypeConstraint astContext)
 
 and genTypeParamPostfix astContext tds =
@@ -573,7 +636,7 @@ and genLetBinding astContext pref b =
     match b with
     | LetBinding (ats, px, letKeyword, ao, isInline, isMutable, p, equalsRange, e, valInfo) ->
         match e, p with
-        | TypedExpr (Typed, e, t), PatLongIdent (ao, s, _, ps, tpso) when (List.isNotEmpty ps) ->
+        | TypedExpr (Typed, e, t), PatLongIdent (ao, sli, _, ps, tpso) when (List.isNotEmpty ps) ->
             genSynBindingFunctionWithReturnType
                 astContext
                 false
@@ -584,7 +647,7 @@ and genLetBinding astContext pref b =
                 ao
                 isInline
                 isMutable
-                s
+                sli
                 p.Range
                 ps
                 tpso
@@ -592,7 +655,7 @@ and genLetBinding astContext pref b =
                 valInfo
                 equalsRange
                 e
-        | e, PatLongIdent (ao, s, _, ps, tpso) when (List.isNotEmpty ps) ->
+        | e, PatLongIdent (ao, sli, _, ps, tpso) when (List.isNotEmpty ps) ->
             genSynBindingFunction
                 astContext
                 false
@@ -603,7 +666,7 @@ and genLetBinding astContext pref b =
                 ao
                 isInline
                 isMutable
-                s
+                sli
                 p.Range
                 ps
                 tpso
@@ -739,7 +802,7 @@ and genPropertyWithGetSet astContext (b1, b2) =
             | _ -> genGet w pk1 +> sepNln +> genSet a pk2
 
         prefix
-        +> !-s1
+        +> genSynLongIdent false s1
         +> indent
         +> sepNln
         +> genGetSet
@@ -801,7 +864,7 @@ and genMemberBinding astContext b =
             | mf -> failwithf "Unexpected member flags: %O" mf
 
         match p with
-        | PatLongIdent (ao, s, propertyKeyword, ps, _) ->
+        | PatLongIdent (ao, sli, propertyKeyword, ps, _) ->
             assert (ps |> Seq.map fst |> Seq.forall Option.isNone)
 
             match ao, propertyKind, ps with
@@ -837,7 +900,8 @@ and genMemberBinding astContext b =
                         (!- "with " |> genTriviaFor SynPat_LongIdent_And r) ctx
                     | Some (PropertyKeyword.With r) -> (!- "with " |> genTriviaFor SynPat_LongIdent_With r) ctx
 
-                prefix -- s
+                prefix
+                +> genSynLongIdent false sli
                 +> indent
                 +> sepNln
                 +> genProperty astContext genPropertyKeyword ao propertyKind ps SynBinding_Equals equalsRange e
@@ -849,7 +913,7 @@ and genMemberBinding astContext b =
 
         genMemberBindingImpl astContext prefix ats px ao isInline p equalsRange e synValInfo
 
-    | ExplicitCtor (ats, px, ao, p, equalsRange, e, so) ->
+    | ExplicitCtor (ats, px, ao, p, equalsRange, e, io) ->
         let prefix =
             let genPat ctx =
                 match p with
@@ -865,7 +929,7 @@ and genMemberBinding astContext b =
             +> genAttributes astContext ats
             +> opt sepSpace ao genAccess
             +> genPat
-            +> opt sepNone so (sprintf " as %s" >> (!-))
+            +> optSingle (fun ident -> !- " as " +> genIdent ident) io
 
         match e with
         // Handle special "then" block i.e. fake sequential expressions in constructors
@@ -940,20 +1004,19 @@ and genMemberFlags (mf: SynMemberFlags) =
     | { AbstractRange = Some _a } -> !- "abstract "
     | _ -> sepNone
 
-and genVal astContext (Val (ats, px, ao, s, identRange, t, vi, isInline, isMutable, tds, eo, range)) =
-    let typeName = genTypeAndParam astContext s tds []
+and genVal astContext (Val (ats, px, valKeyword, ao, si, t, vi, isInline, isMutable, tds, eo, range)) =
+    let typeName = genTypeAndParam astContext (genSynIdent false si) tds []
 
     let (FunType namedArgs) = (t, vi)
     let hasGenerics = Option.isSome tds
 
     genPreXmlDoc px
     +> genAttributes astContext ats
-    +> (!- "val "
+    +> (genTriviaForOption SynValSig_Val valKeyword !- "val "
         +> onlyIf isInline (!- "inline ")
         +> onlyIf isMutable (!- "mutable ")
         +> opt sepSpace ao genAccess
-        +> typeName
-        |> genTriviaFor Ident_ identRange)
+        +> typeName)
     +> ifElse hasGenerics sepColonWithSpacesFixed sepColon
     +> ifElse
         (List.isNotEmpty namedArgs)
@@ -962,19 +1025,14 @@ and genVal astContext (Val (ats, px, ao, s, identRange, t, vi, isInline, isMutab
     +> optSingle (fun e -> sepEq +> sepSpace +> genExpr astContext e) eo
     |> genTriviaFor SynValSig_ range
 
-and genRecordFieldName
-    astContext
-    (SynExprRecordField ((LongIdentWithDots s as rfn, _), equalsRange, eo, _blockSeparator))
-    =
-    let range = rfn.Range
-
+and genRecordFieldName astContext (SynExprRecordField ((rfn, _), equalsRange, eo, _blockSeparator) as rf) =
     opt sepNone eo (fun e ->
         let expr = sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e)
 
-        !-s
-        +> genEq RecordField_Equals equalsRange
+        genSynLongIdent false rfn
+        +> genEq SynExprRecordField_Equals equalsRange
         +> expr)
-    |> genTriviaFor RecordField_ range
+    |> genTriviaFor SynExprRecordField_ rf.FullRange
 
 and genAnonRecordFieldName astContext (AnonRecordFieldName (s, r, equalsRange, e)) =
     let expr = sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e)
@@ -1017,22 +1075,19 @@ and genTuple astContext es =
 
     atCurrentColumn (expressionFitsOnRestOfLine shortExpression longExpression)
 
-and genNamedArgumentExpr (astContext: ASTContext) operatorExpr e1 e2 appRange =
+and genNamedArgumentExpr (astContext: ASTContext) (operatorSli: SynLongIdent) e1 e2 appRange =
     let short =
         genExpr astContext e1
         +> sepSpace
-        +> genInfixOperator "=" operatorExpr
+        +> genSynLongIdent false operatorSli
         +> sepSpace
         +> genExpr astContext e2
 
     let long =
         genExpr astContext e1
         +> sepSpace
-        +> genInfixOperator "=" operatorExpr
-        +> indent
-        +> sepNln
-        +> genExpr astContext e2
-        +> unindent
+        +> genSynLongIdent false operatorSli
+        +> autoIndentAndNlnExpressUnlessRagnarok (fun e -> sepSpace +> genExpr astContext e) e2
 
     expressionFitsOnRestOfLine short long
     |> genTriviaFor SynExpr_App appRange
@@ -1066,12 +1121,12 @@ and genExpr astContext synExpr ctx =
                             closingTokenRange
                             (ifElse isArray sepCloseA sepCloseL)
 
-                    !-identifier
+                    genExpr astContext identifier
                     +> sepSpace
                     +> ifElse (List.isEmpty children) noChildren genChildren
 
                 let elmishExpression =
-                    !-identifier
+                    genExpr astContext identifier
                     +> sepSpace
                     +> genTriviaFor
                         SynExpr_ArrayOrList_OpeningDelimiter
@@ -1086,7 +1141,7 @@ and genExpr astContext synExpr ctx =
                                 (function
                                 | Comment (BlockComment _) -> true
                                 | _ -> false)
-                                (Map.tryFindOrEmptyList SynExpr_ArrayOrList_ClosingDelimiter ctx.TriviaMainNodes))
+                                (Map.tryFindOrEmptyList SynExpr_ArrayOrList_ClosingDelimiter ctx.TriviaNodes))
                             sepNln
                         +> genTriviaFor
                             SynExpr_ArrayOrList_ClosingDelimiter
@@ -1101,12 +1156,12 @@ and genExpr astContext synExpr ctx =
                             (function
                             | Comment (BlockComment _) -> true
                             | _ -> false)
-                            (Map.tryFindOrEmptyList SynExpr_ArrayOrList_ClosingDelimiter ctx.TriviaMainNodes)
+                            (Map.tryFindOrEmptyList SynExpr_ArrayOrList_ClosingDelimiter ctx.TriviaNodes)
 
                     let hasChildren = List.isNotEmpty children
 
                     atCurrentColumn (
-                        !-identifier
+                        genExpr astContext identifier
                         +> sepSpace
                         +> genTriviaFor
                             SynExpr_ArrayOrList_OpeningDelimiter
@@ -1130,9 +1185,7 @@ and genExpr astContext synExpr ctx =
 
                 isShortExpression ctx.Config.MaxElmishWidth smallExpression multilineExpression ctx
 
-        | ElmishReactWithChildren ((identifier, _, _),
-                                   attributes,
-                                   (isArray, openingTokenRange, children, closingTokenRange)) when
+        | ElmishReactWithChildren (identifier, attributes, (isArray, openingTokenRange, children, closingTokenRange)) when
             (not ctx.Config.DisableElmishSyntax)
             ->
             let genChildren isShort =
@@ -1199,7 +1252,7 @@ and genExpr astContext synExpr ctx =
                             (ifElse isArray sepCloseAFixed sepCloseLFixed)
 
             let shortExpression =
-                !-identifier
+                genExpr astContext identifier
                 +> sepSpace
                 +> genExpr astContext attributes
                 +> sepSpace
@@ -1207,7 +1260,7 @@ and genExpr astContext synExpr ctx =
 
             let longExpression =
                 atCurrentColumn (
-                    !-identifier
+                    genExpr astContext identifier
                     +> sepSpace
                     +> atCurrentColumn (genExpr astContext attributes)
                     +> sepSpace
@@ -1246,6 +1299,16 @@ and genExpr astContext synExpr ctx =
             +> ifElse isInfixExpr genInfixExpr genNonInfixExpr
 
         | SingleExpr (kind, e) ->
+            let mapping =
+                (match kind with
+                 | YieldFrom _
+                 | Yield _
+                 | Return _
+                 | ReturnFrom _
+                 | Do _
+                 | DoBang _ -> autoIndentAndNlnIfExpressionExceedsPageWidthUnlessRagnarok (genExpr astContext) e
+                 | _ -> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e))
+
             match kind with
             | InferredDowncast downcastKeyword ->
                 genTriviaFor SynExpr_InferredDowncast_Downcast downcastKeyword !- "downcast "
@@ -1262,7 +1325,8 @@ and genExpr astContext synExpr ctx =
             | Do doKeyword -> genTriviaFor SynExpr_Do_Do doKeyword !- "do "
             | DoBang doBangKeyword -> genTriviaFor SynExpr_DoBang_DoBang doBangKeyword !- "do! "
             | Fixed fixedKeyword -> genTriviaFor SynExpr_Fixed_Fixed fixedKeyword !- "fixed "
-            +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e)
+            +> mapping
+
         | ConstExpr (c, r) -> genConst c r
         | NullExpr -> !- "null"
         // Not sure about the role of e1
@@ -1436,9 +1500,10 @@ and genExpr astContext synExpr ctx =
                 +> unindent
             )
 
-        | For (s, equalsRange, e1, e2, e3, isUp) ->
+        | For (ident, equalsRange, e1, e2, e3, isUp) ->
             atCurrentColumn (
-                !- $"for %s{s}"
+                !- "for "
+                +> genIdent ident
                 +> genEq SynExpr_For_Equals equalsRange
                 +> sepSpace
                 +> genExpr astContext e1
@@ -1514,13 +1579,13 @@ and genExpr astContext synExpr ctx =
                     +> genPat astContext pat
                     +> genEq SynExpr_LetOrUseBang_Equals equalsRange
                     +> sepSpace
-                    +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext expr)
+                    +> autoIndentAndNlnIfExpressionExceedsPageWidthUnlessRagnarok (genExpr astContext) expr
                 | AndBangStatement (pat, equalsRange, expr, range) ->
                     !- "and! "
                     +> genPat astContext pat
                     +> genEq SynExprAndBang_Equals (Some equalsRange)
                     +> sepSpace
-                    +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext expr)
+                    +> autoIndentAndNlnIfExpressionExceedsPageWidthUnlessRagnarok (genExpr astContext) expr
                     |> genTriviaFor SynExprAndBang_ range
                 | OtherStatement expr -> genExpr astContext expr
 
@@ -1552,13 +1617,13 @@ and genExpr astContext synExpr ctx =
         | JoinIn (e1, e2) ->
             genExpr astContext e1 -- " in "
             +> genExpr astContext e2
-        | Paren (lpr, Lambda (pats, arrowRange, expr, lambdaRange), rpr, _pr) ->
+        | Paren (lpr, Lambda (pats, arrowRange, expr, lambdaRange), rpr, pr) ->
             fun (ctx: Context) ->
-                let body = genExprKeepIndentInBranch astContext expr
+                let body = genExprKeepIndentInBranch astContext
 
                 let expr =
                     let triviaOfLambda f (ctx: Context) =
-                        (Map.tryFindOrEmptyList SynExpr_Lambda ctx.TriviaMainNodes
+                        (Map.tryFindOrEmptyList SynExpr_Lambda ctx.TriviaNodes
                          |> List.tryFind (fun tn -> RangeHelpers.rangeEq tn.Range lambdaRange)
                          |> optSingle f)
                             ctx
@@ -1570,18 +1635,22 @@ and genExpr astContext synExpr ctx =
                     +> (fun ctx ->
                         if not ctx.Config.MultiLineLambdaClosingNewline then
                             genLambdaArrowWithTrivia
-                                (body
-                                 +> triviaOfLambda printContentAfter
-                                 +> sepNlnWhenWriteBeforeNewlineNotEmpty id
-                                 +> sepCloseTFor rpr)
+                                (fun e ->
+                                    body e
+                                    +> triviaOfLambda printContentAfter
+                                    +> sepNlnWhenWriteBeforeNewlineNotEmpty id
+                                    +> sepCloseTFor rpr)
+                                expr
                                 arrowRange
                                 ctx
                         else
                             leadingExpressionIsMultiline
                                 (genLambdaArrowWithTrivia
-                                    (body
-                                     +> triviaOfLambda printContentAfter
-                                     +> sepNlnWhenWriteBeforeNewlineNotEmpty id)
+                                    (fun e ->
+                                        body e
+                                        +> triviaOfLambda printContentAfter
+                                        +> sepNlnWhenWriteBeforeNewlineNotEmpty id)
+                                    expr
                                     arrowRange)
                                 (fun isMultiline -> onlyIf isMultiline sepNln +> sepCloseTFor rpr)
                                 ctx)
@@ -1598,7 +1667,7 @@ and genExpr astContext synExpr ctx =
                         sepArrow
                         |> genTriviaFor SynExpr_Lambda_Arrow arrowRange)
                     arrowRange
-                +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext expr)
+                +> autoIndentAndNlnIfExpressionExceedsPageWidthUnlessRagnarok (genExpr astContext) expr
             )
         | MatchLambda (keywordRange, cs) ->
             (!- "function "
@@ -1643,21 +1712,17 @@ and genExpr astContext synExpr ctx =
         | Paren (_, ILEmbedded r, rpr, _) ->
             fun ctx ->
                 let expr =
-                    Map.tryFindOrEmptyList SynExpr_LibraryOnlyILAssembly ctx.TriviaMainNodes
-                    |> List.choose (fun tn ->
-                        if RangeHelpers.rangeEq r tn.Range then
-                            match tn.ContentItself with
-                            | Some (EmbeddedIL eil) -> Some eil
-                            | _ -> None
-                        else
-                            None)
-                    |> List.tryHead
-                    |> Option.map (!-)
-                    |> Option.defaultValue sepNone
+                    match ctx.FromSourceText r with
+                    | None -> sepNone
+                    | Some eil -> !-eil
 
                 (expr
                  +> optSingle (leaveNodeFor SynExpr_Paren_ClosingParenthesis) rpr)
                     ctx
+        | ParenFunctionNameWithStar (lpr, originalNotation, rpr) ->
+            sepOpenTFor lpr
+            +> !- $" {originalNotation} "
+            +> sepCloseTFor rpr
         | Paren (lpr, e, rpr, _pr) ->
             match e with
             | LetOrUses _
@@ -1671,11 +1736,20 @@ and genExpr astContext synExpr ctx =
                 +> sepCloseTFor rpr
 
         // This supposes to be an infix function, but for some reason it isn't picked up by InfixApps
-        | App (Var "?", e :: es) ->
+        // TODO: improve when https://github.com/dotnet/fsharp/issues/12755 is implemented.
+        | App (OptVar (_, SynLongIdent ([ _ ], [], [ Some (IdentTrivia.OriginalNotation "?") ]), _), e :: es) ->
             match es with
-            | SynExpr.Const (SynConst.String _, _) :: _ ->
+            | SynExpr.Const (SynConst.String (text = text), _) :: rest ->
+                let genText =
+                    !-(if text = "checked" then
+                           "``checked``"
+                       else
+                           text)
+
                 genExpr astContext e -- "?"
-                +> col sepSpace es (genExpr astContext)
+                +> genText
+                +> onlyIfNot rest.IsEmpty sepSpace
+                +> col sepSpace rest (genExpr astContext)
             | _ ->
                 genExpr astContext e -- "?"
                 +> sepOpenT
@@ -1710,7 +1784,7 @@ and genExpr astContext synExpr ctx =
                 genExpr astContext e
                 +> sepSpace
                 +> col sepSpace es (fun (s, oe, e) ->
-                    genInfixOperator s oe
+                    genSynLongIdent false oe
                     +> sepSpace
                     +> onlyIf (isSynExprLambdaOrIfThenElse e) sepOpenT
                     +> genExpr astContext e
@@ -1723,7 +1797,7 @@ and genExpr astContext synExpr ctx =
                     genMultilineInfixExpr astContext e s oe e2
                     +> sepNln
                     +> col sepNln es (fun (s, oe, e) ->
-                        genInfixOperator s oe
+                        genSynLongIdent false oe
                         +> sepSpace
                         +> genExprInMultilineInfixExpr astContext e)
 
@@ -1735,7 +1809,7 @@ and genExpr astContext synExpr ctx =
                 genExpr astContext e
                 +> sepSpace
                 +> col sepSpace es (fun (s, oe, e) ->
-                    genInfixOperator s oe
+                    genSynLongIdent false oe
                     +> sepSpace
                     +> genExpr astContext e)
 
@@ -1743,22 +1817,22 @@ and genExpr astContext synExpr ctx =
                 genExpr astContext e
                 +> sepNln
                 +> col sepNln es (fun (s, oe, e) ->
-                    genInfixOperator s oe
+                    genSynLongIdent false oe
                     +> sepSpace
                     +> genExprInMultilineInfixExpr astContext e)
 
             fun ctx ->
                 atCurrentColumn (isShortExpression ctx.Config.MaxInfixOperatorExpression shortExpr multilineExpr) ctx
 
-        | InfixApp (operatorText, operatorExpr, e1, e2, _) ->
+        | InfixApp (operatorText, operatorSli, e1, e2, _) ->
             fun ctx ->
                 isShortExpression
                     ctx.Config.MaxInfixOperatorExpression
-                    (genOnelinerInfixExpr astContext e1 operatorText operatorExpr e2)
+                    (genOnelinerInfixExpr astContext e1 operatorSli e2)
                     (ifElse
                         (noBreakInfixOps.Contains(operatorText))
-                        (genOnelinerInfixExpr astContext e1 operatorText operatorExpr e2)
-                        (genMultilineInfixExpr astContext e1 operatorText operatorExpr e2))
+                        (genOnelinerInfixExpr astContext e1 operatorSli e2)
+                        (genMultilineInfixExpr astContext e1 operatorText operatorSli e2))
                     ctx
 
         | TernaryApp (e1, e2, e3) ->
@@ -1779,12 +1853,10 @@ and genExpr astContext synExpr ctx =
             +> sepCloseLFixed
 
         // Result<int, string>.Ok 42
-        | App (DotGet (TypeApp (e, lt, ts, gt), lids), es) ->
-            let s = List.map fst lids |> String.concat "."
-
+        | App (DotGet (TypeApp (e, lt, ts, gt), sli), es) ->
             genExpr astContext e
             +> genGenericTypeParameters astContext lt ts gt
-            +> !-(sprintf ".%s" s)
+            +> genSynLongIdent true sli
             +> sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth (col sepSpace es (genExpr astContext))
 
         // Foo(fun x -> x).Bar().Meh
@@ -1792,15 +1864,15 @@ and genExpr astContext synExpr ctx =
             let short =
                 genExpr astContext e
                 +> genExpr astContext px
-                +> genLidsWithDots appLids
+                +> genSynLongIdent true appLids
                 +> col sepComma es (genExpr astContext)
-                +> genLidsWithDots lids
+                +> genSynLongIdent true lids
 
             let long =
                 let functionName =
                     match e with
-                    | LongIdentPiecesExpr lids when (List.moreThanOne lids) -> genFunctionNameWithMultilineLids id lids
-                    | TypeApp (LongIdentPiecesExpr lids, lt, ts, gt) when (List.moreThanOne lids) ->
+                    | LongIdentExprWithMoreThanOneIdent lids -> genFunctionNameWithMultilineLids id lids
+                    | TypeApp (LongIdentExprWithMoreThanOneIdent lids, lt, ts, gt) ->
                         genFunctionNameWithMultilineLids (genGenericTypeParameters astContext lt ts gt) lids
                     | _ -> genExpr astContext e
 
@@ -1808,10 +1880,10 @@ and genExpr astContext synExpr ctx =
                 +> indent
                 +> genExpr astContext px
                 +> sepNln
-                +> genLidsWithDotsAndNewlines appLids
+                +> genSynLongIdentMultiline true appLids
                 +> col sepComma es (genExpr astContext)
                 +> sepNln
-                +> genLidsWithDotsAndNewlines lids
+                +> genSynLongIdentMultiline true lids
                 +> unindent
 
             fun ctx -> isShortExpression ctx.Config.MaxDotGetExpressionWidth short long ctx
@@ -1823,9 +1895,8 @@ and genExpr astContext synExpr ctx =
             let longAppExpr =
                 let functionName argFn =
                     match e with
-                    | LongIdentPiecesExpr lids when (List.moreThanOne lids) ->
-                        genFunctionNameWithMultilineLids argFn lids
-                    | TypeApp (LongIdentPiecesExpr lids, lt, ts, gt) when (List.moreThanOne lids) ->
+                    | LongIdentExprWithMoreThanOneIdent lids -> genFunctionNameWithMultilineLids argFn lids
+                    | TypeApp (LongIdentExprWithMoreThanOneIdent lids, lt, ts, gt) ->
                         genFunctionNameWithMultilineLids
                             (genGenericTypeParameters astContext lt ts gt
                              +> argFn)
@@ -1842,12 +1913,12 @@ and genExpr astContext synExpr ctx =
 
                 functionName arguments
 
-            let shortDotGetExpr = genLidsWithDots lids
+            let shortDotGetExpr = genSynLongIdent true lids
 
             let longDotGetExpr =
                 indent
                 +> sepNln
-                +> genLidsWithDotsAndNewlines lids
+                +> genSynLongIdentMultiline true lids
                 +> unindent
 
             fun ctx ->
@@ -1861,25 +1932,22 @@ and genExpr astContext synExpr ctx =
         | DotGetApp (App (e, [ Paren (_, Lambda _, _, _) as px ]), es) ->
             let genLongFunctionName f =
                 match e with
-                | LongIdentPiecesExpr lids when (List.moreThanOne lids) -> genFunctionNameWithMultilineLids f lids
-                | TypeApp (LongIdentPiecesExpr lids, lt, ts, gt) when (List.moreThanOne lids) ->
+                | LongIdentExprWithMoreThanOneIdent lids -> genFunctionNameWithMultilineLids f lids
+                | TypeApp (LongIdentExprWithMoreThanOneIdent lids, lt, ts, gt) ->
                     genFunctionNameWithMultilineLids (genGenericTypeParameters astContext lt ts gt +> f) lids
                 | _ -> genExpr astContext e +> f
 
             let lastEsIndex = es.Length - 1
 
-            let genApp
-                (idx: int)
-                ((lids, e, t): (string * range) list * SynExpr * (range * SynType list * range) option)
-                : Context -> Context =
+            let genApp (idx: int) (lids, e, t) : Context -> Context =
                 let short =
-                    genLidsWithDots lids
+                    genSynLongIdent true lids
                     +> optSingle (fun (lt, ts, gt) -> genGenericTypeParameters astContext lt ts gt) t
                     +> genSpaceBeforeLids idx lastEsIndex lids e
                     +> genExpr astContext e
 
                 let long =
-                    genLidsWithDotsAndNewlines lids
+                    genSynLongIdentMultiline true lids
                     +> optSingle (fun (lt, ts, gt) -> genGenericTypeParameters astContext lt ts gt) t
                     +> genSpaceBeforeLids idx lastEsIndex lids e
                     +> genMultilineFunctionApplicationArguments astContext e
@@ -1890,7 +1958,7 @@ and genExpr astContext synExpr ctx =
                 genExpr astContext e
                 +> genExpr astContext px
                 +> coli sepNone es (fun idx (lids, e, t) ->
-                    genLidsWithDots lids
+                    genSynLongIdent true lids
                     +> optSingle (fun (lt, ts, gt) -> genGenericTypeParameters astContext lt ts gt) t
                     +> genSpaceBeforeLids idx lastEsIndex lids e
                     +> genExpr astContext e)
@@ -1908,14 +1976,14 @@ and genExpr astContext synExpr ctx =
         | DotGetApp (e, es) ->
             let genLongFunctionName =
                 match e with
-                | AppOrTypeApp (LongIdentPiecesExpr lids, t, [ Paren _ as px ]) when (List.moreThanOne lids) ->
+                | AppOrTypeApp (LongIdentExprWithMoreThanOneIdent lids, t, [ Paren _ as px ]) ->
                     genFunctionNameWithMultilineLids
                         (optSingle (fun (lt, ts, gt) -> genGenericTypeParameters astContext lt ts gt) t
                          +> expressionFitsOnRestOfLine
                              (genExpr astContext px)
                              (genMultilineFunctionApplicationArguments astContext px))
                         lids
-                | AppOrTypeApp (LongIdentPiecesExpr lids, t, [ e2 ]) when (List.moreThanOne lids) ->
+                | AppOrTypeApp (LongIdentExprWithMoreThanOneIdent lids, t, [ e2 ]) ->
                     genFunctionNameWithMultilineLids
                         (optSingle (fun (lt, ts, gt) -> genGenericTypeParameters astContext lt ts gt) t
                          +> genExpr astContext e2)
@@ -1940,18 +2008,15 @@ and genExpr astContext synExpr ctx =
 
             let lastEsIndex = es.Length - 1
 
-            let genApp
-                (idx: int)
-                ((lids, e, t): (string * range) list * SynExpr * (range * SynType list * range) option)
-                : Context -> Context =
+            let genApp (idx: int) (lids, e, t) : Context -> Context =
                 let short =
-                    genLidsWithDots lids
+                    genSynLongIdent true lids
                     +> optSingle (fun (lt, ts, gt) -> genGenericTypeParameters astContext lt ts gt) t
                     +> genSpaceBeforeLids idx lastEsIndex lids e
                     +> genExpr astContext e
 
                 let long =
-                    genLidsWithDotsAndNewlines lids
+                    genSynLongIdentMultiline true lids
                     +> optSingle (fun (lt, ts, gt) -> genGenericTypeParameters astContext lt ts gt) t
                     +> genSpaceBeforeLids idx lastEsIndex lids e
                     +> genMultilineFunctionApplicationArguments astContext e
@@ -1985,14 +2050,11 @@ and genExpr astContext synExpr ctx =
             expressionFitsOnRestOfLine short long
 
         // path.Replace("../../../", "....")
-        | AppSingleParenArg (LongIdentPiecesExpr lids as functionOrMethod, px) ->
+        | AppSingleParenArg (LongIdentExpr lids as functionOrMethod, px) ->
             let addSpace =
                 onlyIfCtx (addSpaceBeforeParensInFunCall functionOrMethod px) sepSpace
 
-            let shortLids =
-                col sepDot lids (fun (s, r) ->
-                    genTriviaFor Ident_ r !-s
-                    +> sepNlnWhenWriteBeforeNewlineNotEmpty sepNone)
+            let shortLids = genSynLongIdent false lids
 
             let short = shortLids +> addSpace +> genExpr astContext px
 
@@ -2079,7 +2141,8 @@ and genExpr astContext synExpr ctx =
                                 +> (!- "fun "
                                     +> col sepSpace pats (genPat astContext)
                                     +> genLambdaArrowWithTrivia
-                                        (genExprKeepIndentInBranch astContext bodyExpr)
+                                        (genExprKeepIndentInBranch astContext)
+                                        bodyExpr
                                         arrowRange
                                     |> genTriviaFor SynExpr_Lambda range)
                                 +> sepNln
@@ -2156,7 +2219,7 @@ and genExpr astContext synExpr ctx =
                             +> (sepOpenTFor lpr
                                 +> (!- "fun "
                                     +> col sepSpace pats (genPat astContext)
-                                    +> genLambdaArrowWithTrivia (genExprKeepIndentInBranch astContext body) arrowRange
+                                    +> genLambdaArrowWithTrivia (genExprKeepIndentInBranch astContext) body arrowRange
                                     |> genTriviaFor SynExpr_Lambda lambdaRange)
                                 +> sepNlnWhenWriteBeforeNewlineNotEmpty sepNone
                                 +> sepCloseTFor rpr
@@ -2171,7 +2234,7 @@ and genExpr astContext synExpr ctx =
                             +> (sepOpenTFor lpr
                                 +> (!- "fun "
                                     +> col sepSpace pats (genPat astContext)
-                                    +> genLambdaArrowWithTrivia (genExprKeepIndentInBranch astContext body) arrowRange
+                                    +> genLambdaArrowWithTrivia (genExprKeepIndentInBranch astContext) body arrowRange
                                     |> genTriviaFor SynExpr_Lambda lambdaRange)
                                 +> sepCloseTFor rpr
                                 |> genTriviaFor SynExpr_Paren pr)
@@ -2264,7 +2327,11 @@ and genExpr astContext synExpr ctx =
                 +> genTriviaFor SynExpr_TryWith_With withKeyword (!- "with")
                 +> indentOnWith
                 +> sepNln
-                +> col sepNln cs (genClause astContext true)
+                +> (fun ctx ->
+                    let hasMultipleClausesWhereOneHasRagnarok =
+                        hasMultipleClausesWhereOneHasRagnarok ctx.Config.Ragnarok cs
+
+                    col sepNln cs (genClause astContext true hasMultipleClausesWhereOneHasRagnarok) ctx)
                 +> unindentOnWith
             )
 
@@ -2430,22 +2497,16 @@ and genExpr astContext synExpr ctx =
 
             atCurrentColumnIndent expr
 
+        | IdentExpr ident -> genIdent ident
+
         // At this stage, all symbolic operators have been handled.
-        | OptVar (s, isOpt, ranges) ->
-            // In case s is f.ex `onStrongDiscard.IsNone`, last range is the range of `IsNone`
-            let lastRange = List.tryLast ranges
-
-            let genS =
-                match lastRange with
-                | Some r -> infixOperatorFromTrivia r s
-                | None -> !-s
-
+        | OptVar (isOpt, sli, _) ->
             ifElse isOpt (!- "?") sepNone
-            +> genS
-            +> opt id lastRange (leaveNodeFor Ident_)
-        | LongIdentSet (s, e, _) ->
-            !-(sprintf "%s <- " s)
-            +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e)
+            +> genSynLongIdent false sli
+        | LongIdentSet (sli, e, _) ->
+            genSynLongIdent false sli
+            +> !- " <- "
+            +> autoIndentAndNlnIfExpressionExceedsPageWidthUnlessRagnarok (genExpr astContext) e
         | DotIndexedGet (App (e, [ ConstExpr (SynConst.Unit, _) as ux ]), indexArgs) ->
             genExpr astContext e
             +> genExpr astContext ux
@@ -2492,7 +2553,7 @@ and genExpr astContext synExpr ctx =
                 (appExpr +> idx +> genExpr astContext valueExpr)
                 (appExpr
                  +> idx
-                 +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext valueExpr))
+                 +> autoIndentAndNlnIfExpressionExceedsPageWidthUnlessRagnarok (genExpr astContext) valueExpr)
         | DotIndexedSet (AppSingleParenArg (a, px), indexArgs, valueExpr) ->
             let short = genExpr astContext a +> genExpr astContext px
 
@@ -2511,45 +2572,50 @@ and genExpr astContext synExpr ctx =
                 (short +> idx +> genExpr astContext valueExpr)
                 (long
                  +> idx
-                 +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext valueExpr))
+                 +> autoIndentAndNlnIfExpressionExceedsPageWidthUnlessRagnarok (genExpr astContext) valueExpr)
 
         | DotIndexedSet (objectExpr, indexArgs, valueExpr) ->
             addParenIfAutoNln objectExpr (genExpr astContext)
             -- ".["
             +> genExpr astContext indexArgs
             -- "] <- "
-            +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext valueExpr)
-        | NamedIndexedPropertySet (ident, e1, e2) ->
-            !-ident +> genExpr astContext e1 -- " <- "
+            +> autoIndentAndNlnIfExpressionExceedsPageWidthUnlessRagnarok (genExpr astContext) valueExpr
+        | NamedIndexedPropertySet (sli, e1, e2) ->
+            genSynLongIdent false sli +> genExpr astContext e1
+            -- " <- "
             +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e2)
-        | DotNamedIndexedPropertySet (e, ident, e1, e2) ->
-            genExpr astContext e -- "." -- ident
+        | DotNamedIndexedPropertySet (e, sli, e1, e2) ->
+            genExpr astContext e
+            +> sepDot
+            +> genSynLongIdent false sli
             +> genExpr astContext e1
             -- " <- "
             +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e2)
 
         // typeof<System.Collections.IEnumerable>.FullName
-        | DotGet (e, lids) ->
-            let shortExpr = genExpr astContext e +> genLidsWithDots lids
+        | DotGet (e, sli) ->
+            let shortExpr = genExpr astContext e +> genSynLongIdent true sli
 
             let longExpr =
                 //genLongIdentWithMultipleFragmentsMultiline astContext e
                 genExpr astContext e
                 +> indent
                 +> sepNln
-                +> genLidsWithDotsAndNewlines lids
+                +> genSynLongIdentMultiline true sli
                 +> unindent
 
             fun ctx -> isShortExpression ctx.Config.MaxDotGetExpressionWidth shortExpr longExpr ctx
-        | DotSet (e1, s, e2) ->
+        | DotSet (e1, sli, e2) ->
             addParenIfAutoNln e1 (genExpr astContext)
-            -- sprintf ".%s <- " s
-            +> genExpr astContext e2
+            +> sepDot
+            +> genSynLongIdent false sli
+            +> !- " <- "
+            +> autoIndentAndNlnIfExpressionExceedsPageWidthUnlessRagnarok (genExpr astContext) e2
 
         | SynExpr.Set (e1, e2, _) ->
             addParenIfAutoNln e1 (genExpr astContext)
             -- sprintf " <- "
-            +> genExpr astContext e2
+            +> autoIndentAndNlnIfExpressionExceedsPageWidthUnlessRagnarok (genExpr astContext) e2
 
         | ParsingError r ->
             raise
@@ -2579,102 +2645,70 @@ and genExpr astContext synExpr ctx =
                     (r.EndColumn + 1)
             )
         | InterpolatedStringExpr (parts, _stringKind) ->
-            // TODO: string kind
-            fun (ctx: Context) ->
-                let stringRanges =
-                    List.choose
-                        (function
-                        | SynInterpolatedStringPart.String (_, r) -> Some r
-                        | _ -> None)
-                        parts
+            let genInterpolatedFillExpr expr =
+                fun ctx ->
+                    let currentConfig = ctx.Config
 
-                // multiline interpolated string will contain the $ and or braces in the triviaContent
-                // example: $"""%s{ , } bar
-                let stringsFromTrivia =
-                    stringRanges
-                    |> List.choose (fun range ->
-                        Map.tryFindOrEmptyList SynInterpolatedStringPart_String ctx.TriviaMainNodes
-                        |> List.choose (fun tn ->
-                            match tn.Type, tn.ContentItself with
-                            | SynInterpolatedStringPart_String, Some (StringContent sc) when
-                                (RangeHelpers.rangeEq tn.Range range)
-                                ->
-                                Some sc
-                            | _ -> None)
-                        |> List.tryHead
-                        |> Option.map (fun sc -> range, sc))
+                    let interpolatedConfig =
+                        { currentConfig with
+                            // override the max line length for the interpolated expression.
+                            // this is to avoid scenarios where the long / multiline format of the expresion will be used
+                            // where the construct is this short
+                            // see unit test ``construct url with Fable``
+                            MaxLineLength = ctx.WriterModel.Column + ctx.Config.MaxLineLength }
 
-                let genInterpolatedFillExpr expr =
+                    genExpr astContext expr { ctx with Config = interpolatedConfig }
+                    // Restore the existing configuration after printing the interpolated expression
+                    |> fun ctx -> { ctx with Config = currentConfig }
+                |> atCurrentColumnIndent
+
+            let withoutSourceText s ctx =
+                match ctx.SourceText with
+                | Some _ -> ctx
+                | None -> !- s ctx
+
+            withoutSourceText "$\""
+            +> col sepNone parts (fun part ->
+                match part with
+                | SynInterpolatedStringPart.String (s, r) ->
                     fun ctx ->
-                        let currentConfig = ctx.Config
+                        let expr =
+                            match ctx.FromSourceText r with
+                            | None -> !-s
+                            | Some s -> !-s
 
-                        let interpolatedConfig =
-                            { currentConfig with
-                                // override the max line length for the interpolated expression.
-                                // this is to avoid scenarios where the long / multiline format of the expresion will be used
-                                // where the construct is this short
-                                // see unit test ``construct url with Fable``
-                                MaxLineLength = ctx.WriterModel.Column + ctx.Config.MaxLineLength }
+                        genTriviaFor SynInterpolatedStringPart_String r expr ctx
+                | SynInterpolatedStringPart.FillExpr (expr, ident) ->
+                    fun ctx ->
+                        let genFill =
+                            genInterpolatedFillExpr expr
+                            +> optSingle (fun format -> sepColonFixed +> genIdent format) ident
 
-                        genExpr astContext expr { ctx with Config = interpolatedConfig }
-                        // Restore the existing configuration after printing the interpolated expression
-                        |> fun ctx -> { ctx with Config = currentConfig }
-                    |> atCurrentColumnIndent
+                        if ctx.Config.StrictMode then
+                            (!- "{" +> genFill +> !- "}") ctx
+                        else
+                            genFill ctx)
+            +> withoutSourceText "\""
 
-                let expr =
-                    if List.length stringRanges = List.length stringsFromTrivia then
-                        colEx
-                            (fun _ -> sepNone)
-                            parts
-                            (fun part ->
-                                match part with
-                                | SynInterpolatedStringPart.String (_, range) ->
-                                    let stringFromTrivia =
-                                        List.find (fun (r, _) -> RangeHelpers.rangeEq range r) stringsFromTrivia
-                                        |> snd
-
-                                    !-stringFromTrivia
-                                    |> genTriviaFor SynInterpolatedStringPart_String range
-                                | SynInterpolatedStringPart.FillExpr (expr, ident) ->
-                                    genInterpolatedFillExpr expr
-                                    +> optSingle (fun (Ident format) -> !-(sprintf ":%s" format)) ident)
-                    else
-                        !- "$\""
-                        +> colEx
-                            (fun _ -> sepNone)
-                            parts
-                            (fun part ->
-                                match part with
-                                | SynInterpolatedStringPart.String (s, r) ->
-                                    !-s
-                                    |> genTriviaFor SynInterpolatedStringPart_String r
-                                | SynInterpolatedStringPart.FillExpr (expr, _ident) ->
-                                    !- "{" +> genInterpolatedFillExpr expr +> !- "}")
-                        +> !- "\""
-
-                expr ctx
         | IndexRangeExpr (None, None) -> !- "*"
         | IndexRangeExpr (Some (IndexRangeExpr (Some (ConstNumberExpr e1), Some (ConstNumberExpr e2))),
                           Some (ConstNumberExpr e3)) ->
-            let hasOmittedTrailingZero r =
-                TriviaHelpers.``has content itself that matches``
-                    (function
-                    | Number n -> n.EndsWith(".")
-                    | _ -> false)
-                    r
-                    (Map.tryFindOrEmptyList SynConst_Double ctx.TriviaMainNodes)
+            let hasOmittedTrailingZero (fromSourceText: range -> string option) r =
+                match fromSourceText r with
+                | None -> false
+                | Some sourceText -> sourceText.EndsWith(".")
 
-            let dots =
-                if hasOmittedTrailingZero e1.Range
-                   || hasOmittedTrailingZero e2.Range then
-                    " .. "
+            let dots (ctx: Context) =
+                if hasOmittedTrailingZero ctx.FromSourceText e1.Range
+                   || hasOmittedTrailingZero ctx.FromSourceText e2.Range then
+                    !- " .. " ctx
                 else
-                    ".."
+                    !- ".." ctx
 
             genExpr astContext e1
-            +> !-dots
+            +> dots
             +> genExpr astContext e2
-            +> !-dots
+            +> dots
             +> genExpr astContext e3
         | IndexRangeExpr (e1, e2) ->
             let hasSpaces =
@@ -2780,19 +2814,15 @@ and genExpr astContext synExpr ctx =
 
     expr ctx
 
-and genInfixOperator operatorText (operatorExpr: SynExpr) =
-    (!-operatorText
-     |> genTriviaFor SynExpr_Ident operatorExpr.Range)
-    +> sepNlnWhenWriteBeforeNewlineNotEmpty sepNone
-
-and genOnelinerInfixExpr astContext e1 operatorText operatorExpr e2 =
+and genOnelinerInfixExpr astContext e1 operatorSli e2 =
     genExpr astContext e1
     +> sepSpace
-    +> genInfixOperator operatorText operatorExpr
+    +> genSynLongIdent false operatorSli
+    +> sepNlnWhenWriteBeforeNewlineNotEmpty sepNone
     +> sepSpace
     +> genExpr astContext e2
 
-and genMultilineInfixExpr astContext e1 operatorText operatorExpr e2 =
+and genMultilineInfixExpr astContext e1 operatorText operatorSli e2 =
     let genE1 (ctx: Context) =
         match e1 with
         | SynExpr.IfThenElse _ when (ctx.Config.IndentSize - 1 <= operatorText.Length) ->
@@ -2823,7 +2853,8 @@ and genMultilineInfixExpr astContext e1 operatorText operatorExpr e2 =
     atCurrentColumn (
         genE1
         +> sepNln
-        +> genInfixOperator operatorText operatorExpr
+        +> genSynLongIdent false operatorSli
+        +> sepNlnWhenWriteBeforeNewlineNotEmpty sepNone
         +> sepSpace
         +> genExprInMultilineInfixExpr astContext e2
     )
@@ -2874,26 +2905,29 @@ and genExprInMultilineInfixExpr astContext e =
         +> unindent
     | _ -> genExpr astContext e
 
-and genLidsWithDots (lids: (string * range) list) =
-    col sepNone lids (fun (s, r) -> genTriviaFor Ident_ r !- $".{s}")
-
-and genLidsWithDotsAndNewlines (lids: (string * range) list) =
-    col sepNln lids (fun (s, r) -> genTriviaFor Ident_ r !- $".{s}")
+//and genLidsWithDots (lids: (string * range) list) =
+//    col sepNone lids (fun (s, r) -> genTriviaFor Ident_ r !- $".{s}")
+//
+//and genLidsWithDotsAndNewlines (lids: (string * range) list) =
+//    col sepNln lids (fun (s, r) -> genTriviaFor Ident_ r !- $".{s}")
 
 and genSpaceBeforeLids
     (currentIndex: int)
     (lastEsIndex: int)
-    (lids: (string * range) list)
+    (lids: SynLongIdent)
     (arg: SynExpr)
     (ctx: Context)
     : Context =
     let config =
-        let s = fst lids.[0]
+        match lids with
+        | SynLongIdent (id = (h :: _)) ->
+            let s = h.idText
 
-        if Char.IsUpper(s.[0]) then
-            ctx.Config.SpaceBeforeUppercaseInvocation
-        else
-            ctx.Config.SpaceBeforeLowercaseInvocation
+            if Char.IsUpper(s.[0]) then
+                ctx.Config.SpaceBeforeUppercaseInvocation
+            else
+                ctx.Config.SpaceBeforeLowercaseInvocation
+        | _ -> ctx.Config.SpaceBeforeUppercaseInvocation
 
     if (lastEsIndex = currentIndex)
        && (not (hasParenthesis arg) || config) then
@@ -2901,16 +2935,17 @@ and genSpaceBeforeLids
     else
         ctx
 
-and genFunctionNameWithMultilineLids f lids =
-    match lids with
-    | (s, r) :: t ->
-        genTriviaFor Ident_ r !-s
+and genFunctionNameWithMultilineLids f (synLongIdent: SynLongIdent) =
+    match synLongIdent.IdentsWithTrivia with
+    | h :: t ->
+        genSynIdent false h
         +> indent
         +> sepNln
-        +> genLidsWithDotsAndNewlines t
+        +> col sepNln t (genSynIdent true)
         +> f
         +> unindent
     | _ -> sepNone
+    |> genTriviaFor SynLongIdent_ synLongIdent.FullRange
 
 and genMultilineFunctionApplicationArguments astContext argExpr =
     let argsInsideParenthesis lpr rpr pr f =
@@ -2925,8 +2960,8 @@ and genMultilineFunctionApplicationArguments astContext argExpr =
 
     let genExpr astContext e =
         match e with
-        | InfixApp (equal, operatorExpr, e1, e2, range) when (equal = "=") ->
-            genNamedArgumentExpr astContext operatorExpr e1 e2 range
+        | InfixApp (equal, operatorSli, e1, e2, range) when (equal = "=") ->
+            genNamedArgumentExpr astContext operatorSli e1 e2 range
         | _ -> genExpr astContext e
 
     match argExpr with
@@ -2936,7 +2971,7 @@ and genMultilineFunctionApplicationArguments astContext argExpr =
                 (sepOpenTFor lpr
                  +> (!- "fun "
                      +> col sepSpace pats (genPat astContext)
-                     +> genLambdaArrowWithTrivia (genExprKeepIndentInBranch astContext body) arrowRange
+                     +> genLambdaArrowWithTrivia (genExprKeepIndentInBranch astContext) body arrowRange
                      |> genTriviaFor SynExpr_Lambda range)
                  +> sepNln
                  +> sepCloseTFor rpr)
@@ -3090,7 +3125,6 @@ and genMultilineRecordInstanceAlignBrackets
          +> unindent
          +> ifElseCtx lastWriteEventIsNewline sepNone sepNln
          +> genTriviaFor SynExpr_Record_ClosingBrace closingBrace sepCloseSFixed)
-    |> atCurrentColumnIndent
 
 and genMultilineAnonRecord (isStruct: bool) fields copyInfo (astContext: ASTContext) =
     let recordExpr =
@@ -3166,7 +3200,7 @@ and genMultilineAnonRecordAlignBrackets (isStruct: bool) fields copyInfo astCont
             +> sepCloseAnonRecdFixed
 
     ifElse isStruct !- "struct " sepNone
-    +> atCurrentColumnIndent genAnonRecord
+    +> genAnonRecord
 
 and genObjExpr t eio withKeyword bd members ims range (astContext: ASTContext) =
     // Check the role of the second part of eio
@@ -3308,7 +3342,7 @@ and genApp astContext e es ctx =
                         leadingExpressionIsMultiline
                             (sepOpenTFor lpr -- "fun "
                              +> pats
-                             +> genLambdaArrowWithTrivia (genExprKeepIndentInBranch astContext bodyExpr) arrowRange)
+                             +> genLambdaArrowWithTrivia (genExprKeepIndentInBranch astContext) bodyExpr arrowRange)
                             (fun isMultiline -> onlyIf isMultiline sepNln +> sepCloseTFor rpr)
                         |> genTriviaFor SynExpr_Paren pr
 
@@ -3354,7 +3388,7 @@ and genLambdaMultiLineClosingNewline
     leadingExpressionIsMultiline
         (sepOpenTFor lpr -- "fun "
          +> col sepSpace pats (genPat astContext)
-         +> genLambdaArrowWithTrivia (genExprKeepIndentInBranch astContext bodyExpr) arrowRange
+         +> genLambdaArrowWithTrivia (genExprKeepIndentInBranch astContext) bodyExpr arrowRange
          |> genTriviaFor SynExpr_Lambda lambdaRange)
         (fun isMultiline -> onlyIf isMultiline sepNln +> sepCloseTFor rpr)
     |> genTriviaFor SynExpr_Paren pr
@@ -3418,7 +3452,7 @@ and genExprInIfOrMatch astContext (e: SynExpr) (ctx: Context) : Context =
                 (function
                 | Comment (LineCommentOnSingleLine _) -> true
                 | _ -> false)
-                (Map.tryFindOrEmptyList (synExprToFsAstType e |> fst) ctx.TriviaMainNodes)
+                (Map.tryFindOrEmptyList (synExprToFsAstType e |> fst) ctx.TriviaNodes)
 
         let indentNlnUnindentNln f =
             indent +> sepNln +> f +> unindent +> sepNln
@@ -3439,17 +3473,17 @@ and genExprInIfOrMatch astContext (e: SynExpr) (ctx: Context) : Context =
         | AppParenArg app ->
             genAlternativeAppWithParenthesis app astContext
             |> indentNlnUnindentNln
-        | InfixApp (s, e, (AppParenArg app as e1), e2, _) ->
+        | InfixApp (s, sli, (AppParenArg app as e1), e2, _) ->
             (expressionFitsOnRestOfLine (genExpr astContext e1) (genAlternativeAppWithParenthesis app astContext)
              +> ifElse (noBreakInfixOps.Contains(s)) sepSpace sepNln
-             +> genInfixOperator s e
+             +> genSynLongIdent false sli
              +> sepSpace
              +> genExpr astContext e2)
             |> indentNlnUnindentNln
-        | InfixApp (s, e, e1, (AppParenArg app as e2), _) ->
+        | InfixApp (s, sli, e1, (AppParenArg app as e2), _) ->
             (genExpr astContext e1
              +> sepNln
-             +> genInfixOperator s e
+             +> genSynLongIdent false sli
              +> sepSpace
              +> expressionFitsOnRestOfLine (genExpr astContext e2) (genAlternativeAppWithParenthesis app astContext))
             |> indentNlnUnindentNln
@@ -3460,7 +3494,7 @@ and genExprInIfOrMatch astContext (e: SynExpr) (ctx: Context) : Context =
              +> sepCloseTFor rpr
              +> sepNln
              +> col sepNln es (fun (opText, opExpr, e) ->
-                 genInfixOperator opText opExpr
+                 genSynLongIdent false opExpr
                  +> sepSpace
                  +> (match e with
                      | Paren (lpr, AppParenArg app, rpr, _pr) ->
@@ -3485,10 +3519,10 @@ and genExprInIfOrMatch astContext (e: SynExpr) (ctx: Context) : Context =
             +> genExpr astContext px1
             +> indent
             +> sepNln
-            +> genLidsWithDotsAndNewlines lids1
+            +> genSynLongIdentMultiline true lids1
             +> genExpr astContext px2
             +> sepNln
-            +> genLidsWithDotsAndNewlines lids2
+            +> genSynLongIdentMultiline true lids2
             +> unindent
             |> genTriviaFor SynExpr_DotGet e.Range
             |> indentNlnUnindentNln
@@ -3586,7 +3620,7 @@ and sepNlnBetweenTypeAndMembers (withKeywordRange: range option) (ms: SynMemberD
 and genTypeDefn
     astContext
     (isFirstTypeDefn: bool)
-    (TypeDef (ats, px, typeKeyword, ao, tds, tcs, equalsRange, tdr, withKeyword, ms, s, preferPostfix) as node)
+    (TypeDef (ats, px, typeKeyword, ao, tds, tcs, equalsRange, tdr, withKeyword, ms, lids, preferPostfix) as node)
     =
     let typeName =
         genPreXmlDoc px
@@ -3597,7 +3631,7 @@ and genTypeDefn
              -- "type ")
             (!- "and " +> genOnelinerAttributes astContext ats)
         +> opt sepSpace ao genAccess
-        +> genTypeAndParam astContext s tds tcs
+        +> genTypeAndParam astContext (genLongIdent lids) tds tcs
 
     match tdr with
     | Simple (TDSREnum ecs) ->
@@ -3619,7 +3653,7 @@ and genTypeDefn
         let unionCases (ctx: Context) =
             match xs with
             | [] -> ctx
-            | [ UnionCase (attrs, _, _, _, _, _, UnionCaseType fields, _) as x ] when List.isEmpty ms ->
+            | [ UnionCase (attrs, _, _, _, _, UnionCaseType fields, _) as x ] when List.isEmpty ms ->
                 let hasVerticalBar =
                     ctx.Config.BarBeforeDiscriminatedUnionDeclaration
                     || List.isNotEmpty attrs
@@ -3678,9 +3712,7 @@ and genTypeDefn
                     closingBrace)
                 (genMultilineSimpleRecordTypeDefn astContext openingBrace withKeyword ms ao' fs closingBrace)
 
-        let bodyExpr ctx =
-            let size = getRecordSize ctx fs
-
+        let bodyExpr size ctx =
             if (List.isEmpty ms) then
                 (isSmallExpression size smallExpression multilineExpression
                  +> leaveNodeFor SynTypeDefnSimpleRepr_Record tdr.Range // this will only print something when there is trivia after } in the short expression
@@ -3690,11 +3722,22 @@ and genTypeDefn
             else
                 multilineExpression ctx
 
+        let genTypeDefinition (ctx: Context) =
+            let size = getRecordSize ctx fs
+
+            let short =
+                enterNodeFor SynTypeDefnSimpleRepr_Record tdr.Range
+                +> bodyExpr size
+                +> leaveNodeFor SynTypeDefnSimpleRepr_Record tdr.Range
+
+            if ctx.Config.Ragnarok && ms.IsEmpty then
+                (sepSpace +> short) ctx
+            else
+                isSmallExpression size short (indent +> sepNln +> short +> unindent) ctx
+
         typeName
         +> genEq SynTypeDefn_Equals equalsRange
-        +> indent
-        +> genTriviaFor SynTypeDefnSimpleRepr_Record tdr.Range bodyExpr
-        +> unindent
+        +> genTypeDefinition
 
     | Simple TDSRNone -> typeName
     | Simple (TDSRTypeAbbrev t) ->
@@ -3856,8 +3899,7 @@ and genMultilineSimpleRecordTypeDefn astContext openingBrace withKeyword ms ao' 
 
 and genMultilineSimpleRecordTypeDefnAlignBrackets astContext openingBrace withKeyword ms ao' fs closingBrace =
     // the typeName is already printed
-    sepNlnUnlessLastEventIsNewline
-    +> opt (indent +> sepNln) ao' genAccess
+    opt (indent +> sepNln) ao' genAccess
     +> enterNodeFor SynTypeDefnSimpleRepr_Record_OpeningBrace openingBrace
     +> sepOpenSFixed
     +> indent
@@ -3882,7 +3924,7 @@ and sepNlnBetweenSigTypeAndMembers (withKeyword: range option) (ms: SynMemberSig
 and genSigTypeDefn
     astContext
     (isFirstSigTypeDefn: bool)
-    (SigTypeDef (ats, px, ao, tds, tcs, equalsRange, tdr, withKeyword, ms, s, _preferPostfix, fullRange))
+    (SigTypeDef (ats, px, ao, tds, tcs, equalsRange, tdr, withKeyword, ms, lid, _preferPostfix, fullRange))
     =
     let genTriviaForOnelinerAttributes f (ctx: Context) =
         match ats with
@@ -3904,7 +3946,7 @@ and genSigTypeDefn
 
     let typeName =
         genXmlTypeKeywordAttrsAccess
-        +> genTypeAndParam astContext s tds tcs
+        +> genTypeAndParam astContext (genLongIdent lid) tds tcs
 
     match tdr with
     | SigSimple (TDSREnum ecs) ->
@@ -3922,7 +3964,7 @@ and genSigTypeDefn
         let unionCases (ctx: Context) =
             match xs with
             | [] -> ctx
-            | [ UnionCase (attrs, _, _, _, _, _, UnionCaseType fields, _) as x ] when List.isEmpty ms ->
+            | [ UnionCase (attrs, _, _, _, _, UnionCaseType fields, _) as x ] when List.isEmpty ms ->
                 let hasVerticalBar =
                     ctx.Config.BarBeforeDiscriminatedUnionDeclaration
                     || List.isNotEmpty attrs
@@ -3971,9 +4013,7 @@ and genSigTypeDefn
                 (genSigSimpleRecordAlignBrackets astContext openingBrace withKeyword ms ao' fs closingBrace)
                 (genSigSimpleRecord astContext openingBrace withKeyword ms ao' fs closingBrace)
 
-        let bodyExpr ctx =
-            let size = getRecordSize ctx fs
-
+        let bodyExpr size ctx =
             if (List.isEmpty ms) then
                 (isSmallExpression size smallExpression multilineExpression
                  +> leaveNodeFor SynTypeDefnSimpleRepr_Record tdr.Range // this will only print something when there is trivia after } in the short expression
@@ -3983,11 +4023,20 @@ and genSigTypeDefn
             else
                 multilineExpression ctx
 
-        typeName
-        +> genEq SynTypeDefnSig_Equals equalsRange
-        +> indent
-        +> genTriviaFor SynTypeDefnSimpleRepr_Record tdr.Range bodyExpr
-        +> unindent
+        let genTypeDefinition (ctx: Context) =
+            let size = getRecordSize ctx fs
+
+            let short =
+                enterNodeFor SynTypeDefnSimpleRepr_Record tdr.Range
+                +> bodyExpr size
+                +> leaveNodeFor SynTypeDefnSimpleRepr_Record tdr.Range
+
+            if ctx.Config.Ragnarok && ms.IsEmpty then
+                (sepSpace +> short) ctx
+            else
+                isSmallExpression size short (indent +> sepNln +> short +> unindent) ctx
+
+        typeName +> sepEq +> genTypeDefinition
 
     | SigSimple TDSRNone ->
         let genMembers =
@@ -4014,13 +4063,13 @@ and genSigTypeDefn
             +> ifElse needsParenthesis sepCloseT sepNone
 
         let short =
-            genTypeAndParam astContext s tds tcs
+            genTypeAndParam astContext (genLongIdent lid) tds tcs
             +> genEq SynTypeDefnSig_Equals equalsRange
             +> sepSpace
             +> genTypeAbbrev
 
         let long =
-            genTypeAndParam astContext s tds tcs
+            genTypeAndParam astContext (genLongIdent lid) tds tcs
             +> sepSpace
             +> genEqFixed SynTypeDefnSig_Equals equalsRange
             +> indent
@@ -4074,10 +4123,7 @@ and genSigTypeDefn
     |> genTriviaFor SynTypeDefnSig_ fullRange
 
 and genSigSimpleRecord astContext openingBrace withKeyword ms ao' fs closingBrace =
-    // the typeName is already printed
-    sepNlnUnlessLastEventIsNewline
-    +> opt (indent +> sepNln) ao' genAccess
-    +> enterNodeFor SynTypeDefnSimpleRepr_Record_OpeningBrace openingBrace
+    opt (indent +> sepNln) ao' genAccess
     +> sepOpenS
     +> atCurrentColumn (
         leaveNodeFor SynTypeDefnSimpleRepr_Record_OpeningBrace openingBrace
@@ -4090,10 +4136,7 @@ and genSigSimpleRecord astContext openingBrace withKeyword ms ao' fs closingBrac
     +> colPre sepNln sepNln ms (genMemberSig astContext)
 
 and genSigSimpleRecordAlignBrackets astContext openingBrace withKeyword ms ao' fs closingBrace =
-    // the typeName is already printed
-    sepNlnUnlessLastEventIsNewline
-    +> opt (indent +> sepNln) ao' genAccess
-    +> enterNodeFor SynTypeDefnSimpleRepr_Record_OpeningBrace openingBrace
+    opt (indent +> sepNln) ao' genAccess
     +> sepOpenSFixed
     +> indent
     +> sepNln
@@ -4118,7 +4161,7 @@ and genMemberSig astContext node =
         | SynMemberSig.NestedType (_, r) -> r, SynMemberSig_NestedType
 
     match node with
-    | MSMember (Val (ats, px, ao, s, _, t, vi, isInline, _, tds, eo, _), mf) ->
+    | MSMember (Val (ats, px, _, ao, si, t, vi, isInline, _, tds, eo, _), mf) ->
         let (FunType namedArgs) = (t, vi)
 
         let isFunctionProperty =
@@ -4133,7 +4176,7 @@ and genMemberSig astContext node =
         +> genMemberFlags mf
         +> ifElse isInline (!- "inline ") sepNone
         +> opt sepSpace ao genAccess
-        +> genTypeAndParam astContext (if s = "``new``" then "new" else s) tds []
+        +> genTypeAndParam astContext (genSynIdent false si) tds [] // (if s = "``new``" then "new" else s)
         +> ifElse hasGenerics sepColonWithSpacesFixed sepColon
         +> ifElse
             (List.isNotEmpty namedArgs)
@@ -4164,9 +4207,9 @@ and genConstraints astContext (t: SynType) (vi: SynValInfo) =
                 col sepArrow args (fun (argInfo, t) ->
                     match argInfo, t with
                     | [], _ -> genType astContext false t
-                    | [ SynArgInfo (_, isOptional, Some (Ident s)) ], _ ->
+                    | [ SynArgInfo (_, isOptional, Some ident) ], _ ->
                         onlyIf isOptional (!- "?")
-                        +> !-s
+                        +> genIdent ident
                         +> sepColon
                         +> genType astContext false t
                     | [ SynArgInfo _ ], _ -> genType astContext false t
@@ -4176,8 +4219,10 @@ and genConstraints astContext (t: SynType) (vi: SynValInfo) =
                         col sepStar combined (fun (argInfo, (_, t)) ->
                             let genNamed =
                                 match argInfo with
-                                | SynArgInfo (_, isOptional, Some (Ident s)) ->
-                                    onlyIf isOptional (!- "?") +> !-s +> sepColon
+                                | SynArgInfo (_, isOptional, Some ident) ->
+                                    onlyIf isOptional (!- "?")
+                                    +> genIdent ident
+                                    +> sepColon
                                 | _ -> sepNone
 
                             genNamed +> genType astContext false t)
@@ -4237,11 +4282,7 @@ and genSigException astContext (SigExceptionDef (ats, px, ao, uc, withKeyword, m
          +> col sepNln ms (genMemberSig astContext)
          +> unindent)
 
-and genUnionCase
-    astContext
-    (hasVerticalBar: bool)
-    (UnionCase (ats, px, barRange, _, s, identRange, UnionCaseType fs, range))
-    =
+and genUnionCase astContext (hasVerticalBar: bool) (UnionCase (ats, px, barRange, _, si, UnionCaseType fs, range)) =
     let shortExpr = col sepStar fs (genField { astContext with IsUnionField = true } "")
 
     let longExpr =
@@ -4256,15 +4297,15 @@ and genUnionCase
         // If the bar has a comment after, add a newline and print the identifier on the same column on the next line.
         sepNlnWhenWriteBeforeNewlineNotEmpty sepNone
         +> genOnelinerAttributes astContext ats
-        +> genTriviaFor Ident_ identRange !-s
+        +> genSynIdent false si
         +> onlyIf (List.isNotEmpty fs) wordOf
     )
     +> onlyIf (List.isNotEmpty fs) (expressionFitsOnRestOfLine shortExpr longExpr)
     |> genTriviaFor SynUnionCase_ range
 
-and genEnumCase astContext (EnumCase (ats, barRange, px, identInAST, identRange, equalsRange, c, cr, r)) =
+and genEnumCase astContext (EnumCase (ats, barRange, px, si, equalsRange, c, cr, r)) =
     let genCase =
-        (genTriviaFor Ident_ identRange !-identInAST
+        (genSynIdent false si
          +> genEq SynEnumCase_Equals (Some equalsRange)
          +> autoIndentAndNlnWhenWriteBeforeNewlineNotEmpty (sepSpace +> genConst c cr))
 
@@ -4286,7 +4327,7 @@ and genField astContext prefix (Field (ats, px, ao, isStatic, isMutable, t, so, 
     -- prefix
     +> ifElse isMutable (!- "mutable ") sepNone
     +> opt sepSpace ao genAccess
-    +> (opt sepColon so (!-) +> t
+    +> (opt sepColon so genIdent +> t
         |> optSingle (genTriviaFor SynField_IdentifierAndType) innerRange)
     |> genTriviaFor SynField_ range
 
@@ -4311,7 +4352,7 @@ and genType astContext outerBracket t =
             +> addSpaceIfSynTypeStaticConstantHasAtSignBeforeString t2
             +> loop t2
         | TArray (t, n, r) ->
-            loop t -- " [" +> rep (n - 1) (!- ",") -- "]"
+            loop t -- "[" +> rep (n - 1) (!- ",") -- "]"
             |> genTriviaFor SynType_Array r
         | TAnon -> sepWild
         | TVar (tp, r) ->
@@ -4322,10 +4363,18 @@ and genType astContext outerBracket t =
         // Do similar for tuples after an arrow
         | TFun (t, TTuple ts) -> loop t +> sepArrow +> loopTTupleList ts
         | TFuns ts -> col sepArrow ts loop
-        | TApp (TLongIdent "nativeptr", _, [ t ], _, true, range) when astContext.IsCStylePattern ->
-            loop t -- "*" |> genTriviaFor SynType_App range
-        | TApp (TLongIdent "byref", _, [ t ], _, true, range) when astContext.IsCStylePattern ->
-            loop t -- "&" |> genTriviaFor SynType_App range
+        | TApp (TLongIdent (SynLongIdent ([ _ ], [], [ Some (IdentTrivia.OriginalNotation "*") ])),
+                _,
+                [ t ],
+                _,
+                true,
+                range) when astContext.IsCStylePattern -> loop t -- "*" |> genTriviaFor SynType_App range
+        | TApp (TLongIdent (SynLongIdent ([ _ ], [], [ Some (IdentTrivia.OriginalNotation "&") ])),
+                _,
+                [ t ],
+                _,
+                true,
+                range) when astContext.IsCStylePattern -> loop t -- "&" |> genTriviaFor SynType_App range
         | TApp (t, lessRange, ts, greaterRange, isPostfix, range) ->
             let postForm =
                 match ts with
@@ -4344,8 +4393,10 @@ and genType astContext outerBracket t =
                  +> genPrefixTypes astContext SynType_App_Less lessRange ts SynType_App_Greater greaterRange)
             |> genTriviaFor SynType_App range
 
-        | TLongIdentApp (t, s, lessRange, ts, greaterRange) ->
-            loop t -- sprintf ".%s" s
+        | TLongIdentApp (t, sli, lessRange, ts, greaterRange) ->
+            loop t
+            +> sepDot
+            +> genSynLongIdent false sli
             +> genPrefixTypes
                 astContext
                 SynType_LongIdentApp_Less
@@ -4366,18 +4417,16 @@ and genType astContext outerBracket t =
         | TWithGlobalConstraints (t, tcs) ->
             loop t
             +> colPre (!- " when ") wordAnd tcs (genTypeConstraint astContext)
-        | SynType.LongIdent (LongIdentWithDots.LongIdentWithDots ([ lid ], _)) when
-            (astContext.IsCStylePattern && lid.idText = "[]")
-            ->
+        | SynType.LongIdent (SynLongIdent(id = [ lid ])) when (astContext.IsCStylePattern && lid.idText = "[]") ->
             !- "[]"
-        | TLongIdent s ->
-            ifElseCtx
-                (fun ctx ->
-                    not ctx.Config.StrictMode
-                    && astContext.IsCStylePattern)
-                (!-(if s = "unit" then "void" else s))
-                (!-s)
-            |> genTriviaFor Ident_ current.Range
+        | TLongIdent sli -> genSynLongIdent false sli
+        //            ifElseCtx
+//                (fun ctx ->
+//                    not ctx.Config.StrictMode
+//                    && astContext.IsCStylePattern)
+//                (!-(if s = "unit" then "void" else s))
+//                (!-s)
+//            |> genTriviaFor Ident_ current.Range
         | TAnonRecord (isStruct, fields) ->
             let smallExpression =
                 ifElse isStruct !- "struct " sepNone
@@ -4443,19 +4492,15 @@ and genType astContext outerBracket t =
 and addSpaceIfSynTypeStaticConstantHasAtSignBeforeString (t: SynType) (ctx: Context) =
     let hasAtSign =
         match t with
-        | TStaticConstant (_, r) ->
-            TriviaHelpers.``has content itself that matches``
-                (function
-                | StringContent sc -> sc.StartsWith("@")
-                | _ -> false)
-                r
-                (Map.tryFindOrEmptyList SynConst_String ctx.TriviaMainNodes)
+        | TStaticConstant (SynConst.String (_, SynStringKind.Verbatim, _), _) -> true
         | _ -> false
 
     onlyIf hasAtSign sepSpace ctx
 
-and genAnonRecordFieldType astContext (AnonRecordFieldType (s, t)) =
-    !-s +> sepColon +> (genType astContext false t)
+and genAnonRecordFieldType astContext (AnonRecordFieldType (ident, t)) =
+    genIdent ident
+    +> sepColon
+    +> (genType astContext false t)
 
 and genPrefixTypes
     astContext
@@ -4469,7 +4514,7 @@ and genPrefixTypes
     match ts with
     | [] -> ctx
     // Where <  and ^ meet, we need an extra space. For example:  seq< ^a >
-    | TVar (Typar (_, _, true), _r) as t :: ts ->
+    | TVar (Typar (_, true), _r) as t :: ts ->
         (genTriviaForOption lessNodeType lessRange !- "< "
          +> col sepComma (t :: ts) (genType astContext false)
          +> genTriviaForOption greaterNodeType greaterRange !- " >")
@@ -4494,13 +4539,7 @@ and genTypeList astContext node =
                 if args.Length = ts'.Length then
                     col sepBefore (Seq.zip args (Seq.map snd ts')) (fun (ArgInfo (ats, so, isOpt), t) ->
                         genOnelinerAttributes astContext ats
-                        +> opt
-                            sepColon
-                            so
-                            (if isOpt then
-                                 (sprintf "?%s" >> (!-))
-                             else
-                                 (!-))
+                        +> opt sepColon so (fun ident -> onlyIf isOpt (!- "?") +> genIdent ident)
                         +> genType astContext hasBracket t)
                 else
                     col sepBefore ts' (snd >> genType astContext hasBracket)
@@ -4516,13 +4555,7 @@ and genTypeList astContext node =
             | _ -> false
             |> fun hasBracket ->
                 genOnelinerAttributes astContext ats
-                +> opt
-                    sepColon
-                    so
-                    (if isOpt then
-                         (sprintf "?%s" >> (!-))
-                     else
-                         (!-))
+                +> opt sepColon so (fun ident -> onlyIf isOpt (!- "?") +> genIdent ident)
                 +> genType astContext hasBracket t
         | _ -> genType astContext false t
 
@@ -4561,9 +4594,9 @@ and genTypeList astContext node =
 
     expressionFitsOnRestOfLine shortExpr longExpr
 
-and genTypar astContext (Typar (s, idRange, isHead)) =
+and genTypar astContext (Typar (ident, isHead)) =
     ifElse isHead (ifElse astContext.IsFirstTypeParam (!- " ^") (!- "^")) (!- "'")
-    +> genTriviaFor Ident_ idRange !-s
+    +> genIdent ident
 
 and genTypeConstraint astContext node =
     match node with
@@ -4606,7 +4639,12 @@ and genInterfaceImpl astContext (InterfaceImpl (t, withKeywordRange, bs, members
         +> genMemberDefnList astContext members
         +> unindent
 
-and genClause astContext hasBar (Clause (p, eo, arrowRange, e) as ce) =
+and genClause
+    (astContext: ASTContext)
+    (hasBar: bool)
+    (hasMultipleClausesWhereOneHasRagnarok: bool)
+    (Clause (p, eo, arrowRange, e) as ce)
+    =
     let astCtx = { astContext with IsInsideMatchClausePattern = true }
 
     let patAndBody =
@@ -4648,14 +4686,34 @@ and genClause astContext hasBar (Clause (p, eo, arrowRange, e) as ce) =
                             sepArrow
                             |> genTriviaFor SynMatchClause_Arrow arrowRange)
                         arrowRange
-                     +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e))
+                     +> autoIndentAndNlnIfExpressionExceedsPageWidthUnlessRagnarok (genExpr astContext) e)
                         ctx)
 
-    (onlyIf hasBar sepBar +> patAndBody
+    (onlyIf hasBar sepBar
+     +> (fun ctx ->
+         if hasMultipleClausesWhereOneHasRagnarok then
+             // avoid edge case
+             (*
+                match x with
+                | y -> [
+                    1
+                    2
+                    3
+                ]
+                | z -> [
+                    4
+                    5
+                    6
+                ]
+            *)
+             // ] and | cannot align, otherwise you get a parser error
+             atCurrentColumn patAndBody ctx
+         else
+             patAndBody ctx)
      |> genTriviaFor SynMatchClause_ ce.Range)
 
-and genClauses astContext cs =
-    col sepNln cs (genClause astContext true)
+and genClauses astContext cs (ctx: Context) =
+    col sepNln cs (genClause astContext true (hasMultipleClausesWhereOneHasRagnarok ctx.Config.Ragnarok cs)) ctx
 
 /// Each multiline member definition has a pre and post new line.
 and genMemberDefnList astContext nodes =
@@ -4694,7 +4752,7 @@ and genMemberDefnList astContext nodes =
 and genMemberDefn astContext node =
     match node with
     | MDNestedType _ -> invalidArg "md" "This is not implemented in F# compiler"
-    | MDOpen s -> !-(sprintf "open %s" s)
+    | MDOpen lid -> !- "open " +> genLongIdent lid
     // What is the role of so
     | MDImplicitInherit (t, e, _) ->
         let genBasecall =
@@ -4772,7 +4830,7 @@ and genMemberDefn astContext node =
                          +> sepCloseT
 
                      let triviaBeforePats =
-                         Map.tryFindOrEmptyList SynSimplePats_SimplePats ctx.TriviaMainNodes
+                         Map.tryFindOrEmptyList SynSimplePats_SimplePats ctx.TriviaNodes
                          |> List.tryFind (fun tn -> RangeHelpers.rangeEq tn.Range ps.Range)
 
                      match triviaBeforePats with
@@ -4795,7 +4853,7 @@ and genMemberDefn astContext node =
         // In implicit constructor, attributes should come even before access qualifiers
         ifElse ats.IsEmpty sepNone (sepSpace +> genOnelinerAttributes astContext ats)
         +> genCtor
-        +> optPre (!- " as ") sepNone so (!-)
+        +> optPre (!- " as ") sepNone so genIdent
 
     | MDMember b -> genMemberBinding astContext b
     | MDLetBindings (isStatic, isRec, b :: bs) ->
@@ -4839,7 +4897,7 @@ and genMemberDefn astContext node =
             +> genMemberDefnList { astContext with InterfaceRange = Some range } mds
             +> unindent)
 
-    | MDAutoProperty (ats, px, ao, mk, equalsRange, e, _withKeyword, s, _isStatic, typeOpt, memberKindToMemberFlags) ->
+    | MDAutoProperty (ats, px, ao, mk, equalsRange, e, _withKeyword, ident, _isStatic, typeOpt, memberKindToMemberFlags) ->
         let isFunctionProperty =
             match typeOpt with
             | Some (TFun _) -> true
@@ -4850,7 +4908,7 @@ and genMemberDefn astContext node =
         +> genMemberFlags (memberKindToMemberFlags mk)
         +> str "val "
         +> opt sepSpace ao genAccess
-        -- s
+        +> genIdent ident
         +> optPre sepColon sepNone typeOpt (genType astContext false)
         +> genEq SynMemberDefn_AutoProperty_Equals (Some equalsRange)
         +> sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth (
@@ -4858,7 +4916,7 @@ and genMemberDefn astContext node =
             -- genPropertyKind (not isFunctionProperty) mk
         )
 
-    | MDAbstractSlot (ats, px, ao, s, t, vi, ValTyparDecls (tds, _), mf) ->
+    | MDAbstractSlot (ats, px, ao, si, t, vi, ValTyparDecls (tds, _), mf) ->
         let (FunType namedArgs) = (t, vi)
 
         let isFunctionProperty =
@@ -4872,7 +4930,7 @@ and genMemberDefn astContext node =
         +> genAttributes astContext ats
         +> opt sepSpace ao genAccess
         +> genMemberFlags mf
-        +> !-s
+        +> genSynIdent false si
         +> genTypeParamPostfix astContext tds
         +> ifElse hasGenerics sepColonWithSpacesFixed sepColon
         +> autoIndentAndNlnIfExpressionExceedsPageWidth (genTypeList astContext namedArgs)
@@ -4901,7 +4959,7 @@ and genPropertyKind useSyntacticSugar node =
 
 and genSimplePat astContext node =
     match node with
-    | SPId (s, isOptArg, _) -> ifElse isOptArg (!-(sprintf "?%s" s)) (!-s)
+    | SPId (ident, isOptArg, _) -> onlyIf isOptArg (!- "?") +> genIdent ident
     | SPTyped (sp, t) ->
         genSimplePat astContext sp
         +> sepColon
@@ -4923,14 +4981,21 @@ and genSimplePats astContext node =
         +> sepColon
         +> genType astContext false t
 
-and genPatRecordFieldName astContext (PatRecordFieldName (s1, s2, p)) =
-    ifElse (s1 = "") (!-(sprintf "%s = " s2)) (!-(sprintf "%s.%s = " s1 s2))
+and genPatRecordFieldName astContext ((lid: LongIdent, ident: Ident), _: range, p: SynPat) =
+    ifElse
+        lid.IsEmpty
+        (genIdent ident +> sepEq +> sepSpace)
+        (genLongIdent lid
+         +> sepDot
+         +> genIdent ident
+         +> sepEq
+         +> sepSpace)
     +> genPat { astContext with IsInsideMatchClausePattern = false } p // see issue 1252.
 
 and genPatWithIdent astContext (ido, p) =
     optSingle
-        (fun (s, eqR) ->
-            !-s
+        (fun (ident, eqR) ->
+            genIdent ident
             +> genEq SynArgPats_NamePatPairs_Equals (Some eqR)
             +> sepSpace)
         ido
@@ -4938,7 +5003,7 @@ and genPatWithIdent astContext (ido, p) =
 
 and genPat astContext pat =
     match pat with
-    | PatOptionalVal s -> !-(sprintf "?%s" s)
+    | PatOptionalVal ident -> !- "?" +> genIdent ident
     | PatAttrib (p, ats) ->
         genOnelinerAttributes astContext ats
         +> genPat astContext p
@@ -4962,34 +5027,30 @@ and genPat astContext pat =
              +> sepColon
              +> atCurrentColumnIndent (genType astContext false t))
 
-    | PatNamed (ao, s) ->
-        opt sepSpace ao genAccess
-        +> infixOperatorFromTrivia pat.Range s
+    | PatNamed (ao, si) -> opt sepSpace ao genAccess +> genSynIdent false si
     | PatAs (p1, p2, r) ->
         genPat astContext p1 -- " as "
         +> genPat astContext p2
         |> genTriviaFor SynPat_As r
-    | PatLongIdent (ao, s, _, ps, tpso) ->
+    | PatLongIdent (ao, sli, _, ps, tpso) ->
         let aoc = opt sepSpace ao genAccess
 
         let tpsoc =
             opt sepNone tpso (fun (ValTyparDecls (tds, _)) -> genTypeParamPostfix astContext tds)
-        // Override escaped new keyword
-        let s = if s = "``new``" then "new" else s
 
-        match ps with
-        | [] -> aoc -- s +> tpsoc
-        | [ (_, PatTuple [ p1; p2 ]) ] when s = "(::)" ->
+        match ps, sli with
+        | [], _ -> aoc +> genSynLongIdent false sli +> tpsoc
+        | [ (_, PatTuple [ p1; p2 ]) ], SynLongIdent(trivia = [ Some (IdentTrivia.OriginalNotation "::") ]) ->
             aoc +> genPat astContext p1 -- " :: "
             +> genPat astContext p2
-        | [ ido, p as ip ] ->
+        | [ ido, p as ip ], _ ->
             aoc
-            +> infixOperatorFromTrivia pat.Range s
+            +> genSynLongIdent false sli
             +> tpsoc
             +> ifElse
                 (hasParenInPat p || Option.isSome ido)
                 (ifElseCtx
-                    (fun ctx -> addSpaceBeforeParensInFunDef ctx.Config.SpaceBeforeParameter s p)
+                    (fun ctx -> addSpaceBeforeParensInFunDef ctx.Config.SpaceBeforeParameter sli p)
                     sepSpace
                     sepNone)
                 sepSpace
@@ -5000,10 +5061,14 @@ and genPat astContext pat =
                  +> sepCloseT)
                 (genPatWithIdent astContext ip)
         // This pattern is potentially long
-        | ps ->
+        | ps, _ ->
             let hasBracket = ps |> Seq.map fst |> Seq.exists Option.isSome
 
-            let genName = aoc -- s +> tpsoc +> sepSpace
+            let genName =
+                aoc
+                +> genSynLongIdent false sli
+                +> tpsoc
+                +> sepSpace
 
             let genParameters =
                 expressionFitsOnRestOfLine
@@ -5125,9 +5190,9 @@ and genSynBindingFunction
     (ao: SynAccess option)
     (isInline: bool)
     (isMutable: bool)
-    (functionName: string)
+    (functionName: SynLongIdent)
     (patRange: Range)
-    (parameters: ((string * range) option * SynPat) list)
+    (parameters: ((Ident * range) option * SynPat) list)
     (genericTypeParameters: SynValTyparDecls option)
     (equalsRange: range option)
     (e: SynExpr)
@@ -5154,7 +5219,7 @@ and genSynBindingFunction
         +> opt sepSpace ao genAccess
 
     let genFunctionName =
-        getIndentBetweenTicksFromSynPat patRange functionName
+        genSynBindingFunctionName functionName
         +> opt sepNone genericTypeParameters (fun (ValTyparDecls (tds, _)) -> genTypeParamPostfix astContext tds)
 
     let genSignature =
@@ -5198,7 +5263,12 @@ and genSynBindingFunction
         if isMultiline then
             (indent +> sepNln +> body +> unindent)
         else
-            sepSpaceIfShortExpressionOrAddIndentAndNewline ctx.Config.MaxFunctionBindingWidth body
+            let short = sepSpace +> body
+
+            let long =
+                autoIndentAndNlnExpressUnlessRagnarok (fun e -> sepSpace +> genExprKeepIndentInBranch astContext e) e
+
+            isShortExpression ctx.Config.MaxFunctionBindingWidth short long
 
     (genPreXmlDoc px
      +> genAttrIsFirstChild
@@ -5216,9 +5286,9 @@ and genSynBindingFunctionWithReturnType
     (ao: SynAccess option)
     (isInline: bool)
     (isMutable: bool)
-    (functionName: string)
+    (functionName: SynLongIdent)
     (patRange: Range)
-    (parameters: ((string * range) option * SynPat) list)
+    (parameters: ((Ident * range) option * SynPat) list)
     (genericTypeParameters: SynValTyparDecls option)
     (returnType: SynType)
     (valInfo: SynValInfo)
@@ -5247,7 +5317,7 @@ and genSynBindingFunctionWithReturnType
         +> opt sepSpace ao genAccess
 
     let genFunctionName =
-        getIndentBetweenTicksFromSynPat patRange functionName
+        genSynBindingFunctionName functionName
         +> opt sepNone genericTypeParameters (fun (ValTyparDecls (tds, _)) -> genTypeParamPostfix astContext tds)
 
     let genReturnType isFixed =
@@ -5303,7 +5373,12 @@ and genSynBindingFunctionWithReturnType
         if isMultiline then
             (indent +> sepNln +> body +> unindent)
         else
-            sepSpaceIfShortExpressionOrAddIndentAndNewline ctx.Config.MaxFunctionBindingWidth body
+            let short = sepSpace +> body
+
+            let long =
+                autoIndentAndNlnExpressUnlessRagnarok (fun e -> sepSpace +> genExprKeepIndentInBranch astContext e) e
+
+            isShortExpression ctx.Config.MaxFunctionBindingWidth short long
 
     (genPreXmlDoc px
      +> genAttrIsFirstChild
@@ -5422,12 +5497,26 @@ and genSynBindingValue
 
         let long =
             prefix
-            +> indent
-            +> sepNln
-            +> genExprKeepIndentInBranch astContext e
-            +> unindent
+            +> autoIndentAndNlnExpressUnlessRagnarok (genExprKeepIndentInBranch astContext) e
 
         isShortExpression ctx.Config.MaxValueBindingWidth short long ctx)
+
+// Example case: let ( *= ) a b = ()
+// There must be spaces due to the *
+// The idea is to solve this only where this can occur and not at the SynIdent level.
+and genSynBindingFunctionName (functionName: SynLongIdent) =
+    match functionName with
+    | OperatorNameWithStar (text, synIdentRange, synLongIdentRange) ->
+        !- $"( {text} )"
+        |> genTriviaFor SynIdent_ synIdentRange
+        |> genTriviaFor SynLongIdent_ synLongIdentRange
+    | PrefixedOperatorNameWithStar (prefix, text, synIdentRange, synLongIdentRange) ->
+        genSynIdent false prefix
+        +> sepDot
+        +> !- $"( {text} )"
+        |> genTriviaFor SynIdent_ synIdentRange
+        |> genTriviaFor SynLongIdent_ synLongIdentRange
+    | _ -> genSynLongIdent false functionName
 
 and genParenTupleWithIndentAndNewlines
     (astContext: ASTContext)
@@ -5509,11 +5598,19 @@ and genKeepIndentMatch
             withRange
     )
     +> sepNln
-    +> coli sepNln clauses (fun idx ->
-        if idx < lastClauseIndex then
-            genClause astContext true
-        else
-            genLastClauseKeepIdent astContext)
+    +> (fun ctx ->
+        let hasMultipleClausesWhereOneHasRagnarok =
+            hasMultipleClausesWhereOneHasRagnarok ctx.Config.Ragnarok clauses
+
+        coli
+            sepNln
+            clauses
+            (fun idx ->
+                if idx < lastClauseIndex then
+                    genClause astContext true hasMultipleClausesWhereOneHasRagnarok
+                else
+                    genLastClauseKeepIdent astContext)
+            ctx)
     |> genTriviaFor triviaType range
 
 and genLastClauseKeepIdent (astContext: ASTContext) (Clause (pat, whenExpr, arrowRange, expr)) =
@@ -5606,130 +5703,88 @@ and genConst (c: SynConst) (r: Range) =
     | SynConst.UIntPtr _
     | SynConst.UserNum _ -> genConstNumber c r
     | SynConst.String (s, kind, r) ->
-        // TODO: take string kind into account
         fun (ctx: Context) ->
-            let trivia =
-                Map.tryFindOrEmptyList SynConst_String ctx.TriviaMainNodes
-                |> List.tryFind (fun tv -> RangeHelpers.rangeEq tv.Range r)
+            let expr =
+                match ctx.FromSourceText r with
+                | None -> genConstString kind s
+                | Some s -> !-s
 
-            match trivia with
-            | Some ({ ContentItself = Some (StringContent sc) } as tn) ->
-                printContentBefore tn
-                +> !-sc
-                +> printContentAfter tn
-            | Some ({ ContentBefore = [ Keyword ({ TokenInfo = { TokenName = "KEYWORD_STRING" }
-                                                   Content = kw }) ] }) -> !-kw
-            | Some ({ ContentBefore = [ Keyword { TokenInfo = { TokenName = "QMARK" } } ]
-                      ContentItself = Some (IdentBetweenTicks ibt) }) -> !-ibt
-            | Some { ContentBefore = [ Keyword { TokenInfo = { TokenName = "QMARK" } } ] } -> !-s
-            | Some tn ->
-                let escaped = Regex.Replace(s, "\"{1}", "\\\"")
+            genTriviaFor SynConst_String r expr ctx
 
-                printContentBefore tn
-                +> !-(sprintf "\"%s\"" escaped)
-                +> printContentAfter tn
-            | None -> genConstString kind s
-
-            <| ctx
     | SynConst.Char c ->
         fun (ctx: Context) ->
-            let tn =
-                Map.tryFindOrEmptyList SynConst_Char ctx.TriviaMainNodes
-                |> List.tryFind (fun t -> RangeHelpers.rangeEq t.Range r)
-
             let expr =
-                match tn with
-                | Some ({ ContentItself = Some (CharContent content) } as tn) ->
-                    printContentBefore tn -- content
-                    +> printContentAfter tn
-                | Some tn ->
-                    let escapedChar = Char.escape c
-
-                    printContentBefore tn
-                    -- (sprintf "\'%s\'" escapedChar)
-                    +> printContentAfter tn
+                match ctx.FromSourceText r with
+                | Some c -> !-c
                 | None ->
                     let escapedChar = Char.escape c
-                    !-(sprintf "\'%s\'" escapedChar)
+                    !- $"\'%s{escapedChar}\'"
 
-            expr ctx
+            genTriviaFor SynConst_Char r expr ctx
     | SynConst.Bytes (bytes, _, r) ->
         // TODO: take kind into account
         genConstBytes bytes r
         |> genTriviaFor SynConst_Bytes r
     | SynConst.Measure (c, numberRange, m) ->
-        let measure =
-            match m with
-            | Measure m -> !-m
-
         let genNumber (ctx: Context) = genConstNumber c numberRange ctx
 
-        genNumber +> measure
+        genNumber +> genMeasure m
     | SynConst.SourceIdentifier (c, _, r) -> !-c |> genTriviaFor SynConst_SourceIdentifier r
 
 and genConstNumber (c: SynConst) (r: Range) =
     fun (ctx: Context) ->
-        let findNumberAsContentItself (fallback: Context -> Context) (nodeType: FsAstType) =
-            Map.tryFindOrEmptyList nodeType ctx.TriviaMainNodes
-            |> List.tryFind (fun t -> RangeHelpers.rangeEq t.Range r)
-            |> fun tn ->
-                match tn with
-                | Some ({ ContentItself = Some (Number n) } as tn) ->
-                    printContentBefore tn
-                    +> !-n
-                    +> printContentAfter tn
-                | Some tn ->
-                    printContentBefore tn
-                    +> fallback
-                    +> printContentAfter tn
-                | _ -> fallback
+        let findNumberFromSourceText (fallback: Context -> Context) (nodeType: FsAstType) =
+            let expr =
+                match ctx.FromSourceText r with
+                | None -> fallback
+                | Some n -> !-n
+
+            genTriviaFor nodeType r expr
 
         let expr =
             match c with
-            | SynConst.Byte v -> findNumberAsContentItself (!-(sprintf "%A" v)) SynConst_Byte
-            | SynConst.SByte v -> findNumberAsContentItself (!-(sprintf "%A" v)) SynConst_SByte
-            | SynConst.Int16 v -> findNumberAsContentItself (!-(sprintf "%A" v)) SynConst_Int16
-            | SynConst.Int32 v -> findNumberAsContentItself (!-(sprintf "%A" v)) SynConst_Int32
-            | SynConst.Int64 v -> findNumberAsContentItself (!-(sprintf "%A" v)) SynConst_Int64
-            | SynConst.UInt16 v -> findNumberAsContentItself (!-(sprintf "%A" v)) SynConst_UInt16
-            | SynConst.UInt16s v -> findNumberAsContentItself (!-(sprintf "%A" v)) SynConst_UInt16s
-            | SynConst.UInt32 v -> findNumberAsContentItself (!-(sprintf "%A" v)) SynConst_UInt32
-            | SynConst.UInt64 v -> findNumberAsContentItself (!-(sprintf "%A" v)) SynConst_UInt64
-            | SynConst.Double v -> findNumberAsContentItself (!-(sprintf "%A" v)) SynConst_Double
-            | SynConst.Single v -> findNumberAsContentItself (!-(sprintf "%A" v)) SynConst_Single
-            | SynConst.Decimal v -> findNumberAsContentItself (!-(sprintf "%A" v)) SynConst_Decimal
-            | SynConst.IntPtr v -> findNumberAsContentItself (!-(sprintf "%A" v)) SynConst_IntPtr
-            | SynConst.UIntPtr v -> findNumberAsContentItself (!-(sprintf "%A" v)) SynConst_UIntPtr
-            | SynConst.UserNum (v, s) -> findNumberAsContentItself (!-(sprintf "%s%s" v s)) SynConst_UserNum
-            | _ -> failwithf "Cannot generating Const number for %A" c
+            | SynConst.Byte v -> findNumberFromSourceText (!- $"%A{v}") SynConst_Byte
+            | SynConst.SByte v -> findNumberFromSourceText (!- $"%A{v}") SynConst_SByte
+            | SynConst.Int16 v -> findNumberFromSourceText (!- $"%A{v}") SynConst_Int16
+            | SynConst.Int32 v -> findNumberFromSourceText (!- $"%A{v}") SynConst_Int32
+            | SynConst.Int64 v -> findNumberFromSourceText (!- $"%A{v}") SynConst_Int64
+            | SynConst.UInt16 v -> findNumberFromSourceText (!- $"%A{v}") SynConst_UInt16
+            | SynConst.UInt16s v -> findNumberFromSourceText (!- $"%A{v}") SynConst_UInt16s
+            | SynConst.UInt32 v -> findNumberFromSourceText (!- $"%A{v}") SynConst_UInt32
+            | SynConst.UInt64 v -> findNumberFromSourceText (!- $"%A{v}") SynConst_UInt64
+            | SynConst.Double v -> findNumberFromSourceText (!- $"%A{v}") SynConst_Double
+            | SynConst.Single v -> findNumberFromSourceText (!- $"%A{v}") SynConst_Single
+            | SynConst.Decimal v -> findNumberFromSourceText (!- $"%A{v}") SynConst_Decimal
+            | SynConst.IntPtr v -> findNumberFromSourceText (!- $"%A{v}") SynConst_IntPtr
+            | SynConst.UIntPtr v -> findNumberFromSourceText (!- $"%A{v}") SynConst_UIntPtr
+            | SynConst.UserNum (v, s) -> findNumberFromSourceText (!- $"%s{v}%s{s}") SynConst_UserNum
+            | _ -> failwithf $"Cannot generating Const number for %A{c}"
 
         expr ctx
 
 and genConstBytes (bytes: byte []) (r: Range) =
     fun (ctx: Context) ->
-        let trivia =
-            Map.tryFindOrEmptyList SynConst_Bytes ctx.TriviaMainNodes
-            |> List.tryFind (fun t -> RangeHelpers.rangeEq t.Range r)
-            |> Option.bind (fun tv ->
-                match tv.ContentItself with
-                | Some (StringContent content) -> Some content
-                | _ -> None)
+        let expr =
+            match ctx.FromSourceText r with
+            | Some s -> !-s
+            | None ->
+                let content =
+                    System.String(Array.map (fun (byte: byte) -> Convert.ToChar(byte)) bytes)
 
-        match trivia with
-        | Some t -> !-t
-        | None -> !-(sprintf "%A" bytes)
-        <| ctx
+                !- $"\"{content}\"B"
+
+        genTriviaFor SynConst_Bytes r expr ctx
 
 and genConstString (stringKind: SynStringKind) (value: string) =
     let escaped = Regex.Replace(value, "\"{1}", "\\\"")
 
-    let stringStart, stringEnd =
+    let content =
         match stringKind with
-        | SynStringKind.Regular -> "\"", "\""
-        | SynStringKind.Verbatim -> "@\"", "\""
-        | SynStringKind.TripleQuote -> "\"\"\"", "\"\"\""
+        | SynStringKind.Regular -> String.Concat("\"", escaped, "\"")
+        | SynStringKind.Verbatim -> String.Concat("@\"", value, "\"")
+        | SynStringKind.TripleQuote -> String.Concat("\"\"\"", value, "\"\"\"")
 
-    !-(sprintf "%s%s%s" stringStart escaped stringEnd)
+    !-content
 
 and genSynStaticOptimizationConstraint
     (astContext: ASTContext)
@@ -5763,7 +5818,11 @@ and genTriviaForOptionOr (mainNodeName: FsAstType) (range: range option) f ctx =
     | None -> f ctx
     | Some range -> genTriviaFor mainNodeName range f ctx
 
-and genLambdaArrowWithTrivia (bodyExpr: Context -> Context) (arrowRange: Range option) =
+and genLambdaArrowWithTrivia
+    (bodyExpr: SynExpr -> Context -> Context)
+    (body: SynExpr)
+    (arrowRange: Range option)
+    : Context -> Context =
     optSingle
         (fun arrowRange ->
             sepArrow
@@ -5771,35 +5830,9 @@ and genLambdaArrowWithTrivia (bodyExpr: Context -> Context) (arrowRange: Range o
         arrowRange
     +> (fun ctx ->
         if String.isNotNullOrEmpty ctx.WriterModel.WriteBeforeNewline then
-            (indent +> sepNln +> bodyExpr +> unindent) ctx
+            (indent +> sepNln +> (bodyExpr body) +> unindent) ctx
         else
-            (autoIndentAndNlnIfExpressionExceedsPageWidth bodyExpr) ctx)
-
-and infixOperatorFromTrivia range fallback (ctx: Context) =
-    // by specs, section 3.4 https://fsharp.org/specs/language-spec/4.1/FSharpSpec-4.1-latest.pdf#page=24&zoom=auto,-137,312
-    let validIdentRegex =
-        """^(_|\p{L}|\p{Nl})([_'0-9]|\p{L}|\p{Nl}\p{Pc}|\p{Mn}|\p{Mc}|\p{Cf})*$"""
-
-    let isValidIdent x = Regex.Match(x, validIdentRegex).Success
-
-    TriviaHelpers.getNodesForTypes
-        [ SynPat_LongIdent
-          SynPat_Named
-          SynExpr_Ident ]
-        ctx.TriviaMainNodes
-    |> List.choose (fun t ->
-        match t.Range = range with
-        | true ->
-            match t.ContentItself with
-            | Some (IdentOperatorAsWord iiw) -> Some iiw
-            | Some (IdentBetweenTicks iiw) when not (isValidIdent fallback) -> Some iiw // Used when value between ``...``
-            | _ -> None
-        | _ -> None)
-    |> List.tryHead
-    |> fun iiw ->
-        match iiw with
-        | Some iiw -> !- iiw ctx
-        | None -> !- fallback ctx
+            autoIndentAndNlnIfExpressionExceedsPageWidthUnlessRagnarok bodyExpr body ctx)
 
 and addSpaceBeforeClassConstructor expr =
     match expr with
@@ -5824,3 +5857,18 @@ and genEqFixed (nodeType: FsAstType) (range: range option) =
     match range with
     | None -> sepEqFixed
     | Some r -> genTriviaFor nodeType r sepEqFixed
+
+and genMeasure (measure: SynMeasure) =
+    let rec loop measure =
+        match measure with
+        | SynMeasure.Var (Typar (s, _), _) -> !-s.idText
+        | SynMeasure.Anon _ -> !- "_"
+        | SynMeasure.One -> !- "1"
+        | SynMeasure.Product (m1, m2, _) -> loop m1 +> !- "*" +> loop m2
+        | SynMeasure.Divide (m1, m2, _) -> loop m1 +> !- "/" +> loop m2
+        | SynMeasure.Power (m, RationalConst n, _) -> loop m +> !- $"^{n}"
+        | SynMeasure.Seq (ms, _) -> col sepSpace ms loop
+        | SynMeasure.Named (lid, _) -> genLongIdent lid
+        | SynMeasure.Paren (m, _) -> sepOpenT +> loop m +> sepCloseT
+
+    !- "<" +> loop measure +> !- ">"
