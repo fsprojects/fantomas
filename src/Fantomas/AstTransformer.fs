@@ -1,7 +1,8 @@
-module Fantomas.AstTransformer
+module internal Fantomas.AstTransformer
 
 open FSharp.Compiler.Text
 open FSharp.Compiler.Syntax
+open Fantomas.AstExtensions
 open Fantomas.TriviaTypes
 open Fantomas.RangePatterns
 open Fantomas
@@ -48,12 +49,18 @@ module private Ast =
 
     let rec visitSynModuleOrNamespace (modOrNs: SynModuleOrNamespace) : TriviaNodeAssigner list =
         match modOrNs with
-        | SynModuleOrNamespace (longIdent, _, kind, decls, _, attrs, _, range) ->
+        | SynModuleOrNamespace (longIdent, _, kind, decls, _, attrs, _, range, trivia) ->
             let moduleOrNamespace =
                 match kind with
-                | SynModuleOrNamespaceKind.DeclaredNamespace -> [ mkNode SynModuleOrNamespace_DeclaredNamespace range ]
-                | SynModuleOrNamespaceKind.GlobalNamespace -> [ mkNode SynModuleOrNamespace_GlobalNamespace range ]
-                | SynModuleOrNamespaceKind.NamedModule -> [ mkNode SynModuleOrNamespace_NamedModule range ]
+                | SynModuleOrNamespaceKind.DeclaredNamespace ->
+                    [ yield mkNode SynModuleOrNamespace_DeclaredNamespace range
+                      yield! mkNodeOption SynModuleOrNamespace_Namespace trivia.NamespaceKeyword ]
+                | SynModuleOrNamespaceKind.GlobalNamespace ->
+                    [ yield mkNode SynModuleOrNamespace_GlobalNamespace range
+                      yield! mkNodeOption SynModuleOrNamespace_Namespace trivia.NamespaceKeyword ]
+                | SynModuleOrNamespaceKind.NamedModule ->
+                    [ yield mkNode SynModuleOrNamespace_NamedModule range
+                      yield! mkNodeOption SynModuleOrNamespace_Module trivia.ModuleKeyword ]
                 | SynModuleOrNamespaceKind.AnonModule -> []
 
             let longIdentNodes =
@@ -104,8 +111,8 @@ module private Ast =
                 mkNode SynModuleDecl_Let range
                 :: (bindings |> List.collect visitSynBinding)
                 |> finalContinuation
-            | SynModuleDecl.DoExpr (_, expr, range) ->
-                mkNode SynModuleDecl_DoExpr range
+            | SynModuleDecl.Expr (expr, range) ->
+                mkNode SynModuleDecl_Expr range
                 :: visitSynExpr expr
                 |> finalContinuation
             | SynModuleDecl.Types (typeDefs, range) ->
@@ -268,12 +275,12 @@ module private Ast =
                 :: mkNode SynExpr_MatchLambda_Function keywordRange
                    :: (List.collect visitSynMatchClause matchClauses)
                 |> finalContinuation
-            | SynExpr.Match (matchKeywordRange, _, expr, withKeywordRange, clauses, range) ->
+            | SynExpr.Match (_, expr, clauses, range, trivia) ->
                 visit expr (fun nodes ->
                     [ yield mkNode SynExpr_Match range
-                      yield mkNode SynExpr_Match_Match matchKeywordRange
+                      yield mkNode SynExpr_Match_Match trivia.MatchKeyword
                       yield! nodes
-                      yield mkNode SynExpr_Match_With withKeywordRange
+                      yield mkNode SynExpr_Match_With trivia.WithKeyword
                       yield! (List.collect visitSynMatchClause clauses) ]
                     |> finalContinuation)
             | SynExpr.Do (expr, StartRange 2 (doKeyword, range)) ->
@@ -288,6 +295,17 @@ module private Ast =
                       yield mkNode SynExpr_Assert_Assert assertKeyword
                       yield! nodes ]
                     |> finalContinuation)
+            | SourceParser.InfixApp (_, sli, e1, e2, range) ->
+                let continuations: ((TriviaNodeAssigner list -> TriviaNodeAssigner list) -> TriviaNodeAssigner list) list =
+                    [ visit e1; visit e2 ]
+
+                let finalContinuation (nodes: TriviaNodeAssigner list list) : TriviaNodeAssigner list =
+                    [ yield mkNode SynExpr_App range
+                      yield! visitSynLongIdent sli
+                      yield! List.collect id nodes ]
+                    |> finalContinuation
+
+                Continuation.sequence continuations finalContinuation
             | SynExpr.App (_, _, funcExpr, argExpr, range) ->
                 let continuations: ((TriviaNodeAssigner list -> TriviaNodeAssigner list) -> TriviaNodeAssigner list) list =
                     [ visit funcExpr; visit argExpr ]
@@ -433,7 +451,7 @@ module private Ast =
                 |> finalContinuation
             | SynExpr.LongIdent (_, longDotId, _, range) ->
                 mkNode SynExpr_LongIdent range
-                :: (visitLongIdentWithDots longDotId)
+                :: (visitSynLongIdent longDotId)
                 |> finalContinuation
             | SynExpr.LongIdentSet (_, expr, range) ->
                 visit expr (fun nodes ->
@@ -444,7 +462,7 @@ module private Ast =
                     [ yield mkNode SynExpr_DotGet range
                       yield! nodes
                       // Idents are collected as children here to deal with unit test ``Fluent api with comments should remain on same lines``
-                      yield! (visitLongIdentWithDots longDotId) ]
+                      yield! (visitSynLongIdent longDotId) ]
                     |> finalContinuation)
             | SynExpr.DotSet (expr, _, e2, range) ->
                 let continuations: ((TriviaNodeAssigner list -> TriviaNodeAssigner list) -> TriviaNodeAssigner list) list =
@@ -593,7 +611,7 @@ module private Ast =
                       yield mkNode keywordType keywordRange
                       yield! nodes ]
                     |> finalContinuation)
-            | SynExpr.LetOrUseBang (_, _, _, pat, equalsRange, rhsExpr, andBangs, body, range) ->
+            | SynExpr.LetOrUseBang (_, _, _, pat, rhsExpr, andBangs, body, range, trivia) ->
                 let continuations: ((TriviaNodeAssigner list -> TriviaNodeAssigner list) -> TriviaNodeAssigner list) list =
                     [ yield visit rhsExpr
                       yield visit body
@@ -602,17 +620,17 @@ module private Ast =
                 let finalContinuation (nodes: TriviaNodeAssigner list list) : TriviaNodeAssigner list =
                     [ yield mkNode SynExpr_LetOrUseBang range
                       yield! visitSynPat pat
-                      yield! mkNodeOption SynExpr_LetOrUseBang_Equals equalsRange
+                      yield! mkNodeOption SynExpr_LetOrUseBang_Equals trivia.EqualsRange
                       yield! (List.collect id nodes) ]
                     |> finalContinuation
 
                 Continuation.sequence continuations finalContinuation
-            | SynExpr.MatchBang (matchKeyword, _, expr, withKeyword, clauses, range) ->
+            | SynExpr.MatchBang (_, expr, clauses, range, trivia) ->
                 visit expr (fun nodes ->
                     [ yield mkNode SynExpr_MatchBang range
-                      yield mkNode SynExpr_MatchBang_Match matchKeyword
+                      yield mkNode SynExpr_MatchBang_Match trivia.MatchBangKeyword
                       yield! nodes
-                      yield mkNode SynExpr_MatchBang_With withKeyword
+                      yield mkNode SynExpr_MatchBang_With trivia.WithKeyword
                       yield! clauses |> List.collect visitSynMatchClause ]
                     |> finalContinuation)
             | SynExpr.DoBang (expr, StartRange 3 (doBangKeyword, range)) ->
@@ -688,9 +706,10 @@ module private Ast =
             visitSynExpr expr
             @ (Option.toList ident |> List.map visitIdent)
 
-    and visitRecordField (SynExprRecordField ((fieldName, _), equalsRange, synExprOption, _blockSeparator)) =
-        [ yield mkNode RecordField_ fieldName.Range
-          yield! mkNodeOption RecordField_Equals equalsRange
+    and visitRecordField (SynExprRecordField ((fieldName, _), equalsRange, synExprOption, _blockSeparator) as rf) =
+        [ yield mkNode SynExprRecordField_ rf.FullRange
+          yield! visitSynLongIdent fieldName
+          yield! mkNodeOption SynExprRecordField_Equals equalsRange
           yield!
               (match synExprOption with
                | Some e -> visitSynExpr e
@@ -926,16 +945,17 @@ module private Ast =
 
     and visitSynValSig (svs: SynValSig) : TriviaNodeAssigner list =
         match svs with
-        | SynValSig (attrs, ident, explicitValDecls, synType, arity, _, _, _, _, expr, withKeyword, range) ->
+        | SynValSig (attrs, ident, explicitValDecls, synType, arity, _, _, _, _, expr, range, trivia) ->
             [ yield mkNode SynValSig_ range
-              yield visitIdent ident
+              yield! mkNodeOption SynValSig_Val trivia.ValKeyword
+              yield visitSynIdent ident
               yield! (visitSynAttributeLists attrs)
               yield! visitSynValTyparDecls explicitValDecls
               yield! visitSynType synType
               yield! visitSynValInfo arity
               if expr.IsSome then
                   yield! visitSynExpr expr.Value
-              yield! mkNodeOption SynValSig_With withKeyword ]
+              yield! mkNodeOption SynValSig_With trivia.ValKeyword ]
 
     and visitSynValTyparDecls (valTypeDecl: SynValTyparDecls) : TriviaNodeAssigner list =
         match valTypeDecl with
@@ -968,9 +988,9 @@ module private Ast =
                 mkNode SynPat_Wild range
                 |> List.singleton
                 |> finalContinuation
-            | SynPat.Named (ident, _, _, range) ->
+            | SynPat.Named (si, _, _, range) ->
                 [ mkNode SynPat_Named range
-                  visitIdent ident ]
+                  visitSynIdent si ]
                 |> finalContinuation
             | SynPat.As (synPat, synPat2, range) ->
                 let continuations: ((TriviaNodeAssigner list -> TriviaNodeAssigner list) -> TriviaNodeAssigner list) list =
@@ -1203,10 +1223,10 @@ module private Ast =
 
     and visitSynUnionCase (uc: SynUnionCase) : TriviaNodeAssigner list =
         match uc with
-        | SourceParser.UnionCase (attrs, _, barRange, _, _, identRange, uct, range) ->
+        | SourceParser.UnionCase (attrs, _, barRange, _, synIdent, uct, range) ->
             [ yield mkNode SynUnionCase_ range
               yield! mkNodeOption SynUnionCase_Bar barRange
-              yield mkNode Ident_ identRange
+              yield visitSynIdent synIdent
               yield! visitSynUnionCaseType uct
               yield! (visitSynAttributeLists attrs) ]
 
@@ -1217,11 +1237,11 @@ module private Ast =
 
     and visitSynEnumCase (sec: SynEnumCase) : TriviaNodeAssigner list =
         match sec with
-        | SourceParser.EnumCase (attrs, barRange, _, _, identRange, equalsRange, value, valueRange, range) ->
+        | SourceParser.EnumCase (attrs, barRange, _, synIdent, equalsRange, value, valueRange, range) ->
             [ yield! mkNodeOption SynEnumCase_Bar barRange
               yield mkNode SynEnumCase_ range
               yield! (visitSynAttributeLists attrs)
-              yield mkNode Ident_ identRange
+              yield visitSynIdent synIdent
               yield mkNode SynEnumCase_Equals equalsRange
               yield! visitSynConst valueRange value ]
 
@@ -1247,7 +1267,7 @@ module private Ast =
             (finalContinuation: TriviaNodeAssigner list -> TriviaNodeAssigner list)
             : TriviaNodeAssigner list =
             match st with
-            | SynType.LongIdent li -> visitLongIdentWithDots li |> finalContinuation
+            | SynType.LongIdent li -> visitSynLongIdent li |> finalContinuation
             | SynType.App (typeName, lessRange, typeArgs, _, greaterRange, _, range) ->
                 let continuations: ((TriviaNodeAssigner list -> TriviaNodeAssigner list) -> TriviaNodeAssigner list) list =
                     [ yield! (List.map visit typeArgs)
@@ -1410,7 +1430,7 @@ module private Ast =
 
     and visitSynModuleOrNamespaceSig (modOrNs: SynModuleOrNamespaceSig) : TriviaNodeAssigner list =
         match modOrNs with
-        | SynModuleOrNamespaceSig (longIdent, _, kind, decls, _, attrs, _, range) ->
+        | SynModuleOrNamespaceSig (longIdent, _, kind, decls, _, attrs, _, range, trivia) ->
             let longIdentNodes =
                 match kind, decls with
                 | SynModuleOrNamespaceKind.AnonModule, _ :: _ -> []
@@ -1419,9 +1439,14 @@ module private Ast =
             let moduleOrNamespaceSig =
                 match kind with
                 | SynModuleOrNamespaceKind.DeclaredNamespace ->
-                    [ mkNode SynModuleOrNamespaceSig_DeclaredNamespace range ]
-                | SynModuleOrNamespaceKind.GlobalNamespace -> [ mkNode SynModuleOrNamespaceSig_GlobalNamespace range ]
-                | SynModuleOrNamespaceKind.NamedModule -> [ mkNode SynModuleOrNamespaceSig_NamedModule range ]
+                    [ yield mkNode SynModuleOrNamespaceSig_DeclaredNamespace range
+                      yield! mkNodeOption SynModuleOrNamespace_Namespace trivia.NamespaceKeyword ]
+                | SynModuleOrNamespaceKind.GlobalNamespace ->
+                    [ mkNode SynModuleOrNamespaceSig_GlobalNamespace range
+                      yield! mkNodeOption SynModuleOrNamespace_Namespace trivia.NamespaceKeyword ]
+                | SynModuleOrNamespaceKind.NamedModule ->
+                    [ mkNode SynModuleOrNamespaceSig_NamedModule range
+                      yield! mkNodeOption SynModuleOrNamespace_Module trivia.ModuleKeyword ]
                 | _ -> []
 
             [ yield! moduleOrNamespaceSig
@@ -1501,22 +1526,17 @@ module private Ast =
               yield! mkNodeOption SynExceptionSig_With withKeyword
               yield! (members |> List.collect visitSynMemberSig) ]
 
-    and visitLongIdentWithDots (lid: LongIdentWithDots) : TriviaNodeAssigner list =
-        match lid with
-        | LongIdentWithDots (ids, _) -> List.map visitIdent ids
+    and visitSynLongIdent (lid: SynLongIdent) : TriviaNodeAssigner list =
+        [ yield mkNode SynLongIdent_ lid.FullRange
+          yield! List.map visitSynIdent lid.IdentsWithTrivia ]
 
     and visitLongIdentIncludingFullRange (li: LongIdent) : TriviaNodeAssigner list =
-        // LongIdent is a bit of an artificial AST node
-        // meant to be used as namespace or module identifier
-        let longIdentFullRange (li: LongIdent) : Range =
-            match li with
-            | [] -> range.Zero
-            | h :: _ -> Range.unionRanges h.idRange (List.last li).idRange
-
         mkNode LongIdent_ (longIdentFullRange li)
         :: List.map visitIdent li
 
     and visitIdent (ident: Ident) : TriviaNodeAssigner = mkNode Ident_ ident.idRange
+
+    and visitSynIdent (si: SynIdent) = mkNode SynIdent_ si.FullRange
 
 let astToNode (hds: ParsedHashDirective list) (mdls: SynModuleOrNamespace list) : TriviaNodeAssigner list =
     [ yield! List.collect Ast.visitSynModuleOrNamespace mdls

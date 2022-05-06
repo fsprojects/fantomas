@@ -2,16 +2,15 @@ module Fantomas.Tests.TestHelper
 
 open System
 open System.IO
+open Fantomas.TriviaTypes
 open NUnit.Framework
 open FsCheck
 open FsUnit
 open FSharp.Compiler.Text
-open FSharp.Compiler.CodeAnalysis
 open FSharp.Compiler.Syntax
 open FSharp.Compiler.Xml
 open Fantomas.FormatConfig
 open Fantomas
-open Fantomas.Extras
 
 [<assembly: Parallelizable(ParallelScope.All)>]
 do ()
@@ -19,58 +18,38 @@ do ()
 let config = FormatConfig.Default
 let newline = "\n"
 
-let sharedChecker = lazy (FSharpChecker.Create())
-
 let private safeToIgnoreWarnings =
     [ "This construct is deprecated: it is only for use in the F# library"
       "Identifiers containing '@' are reserved for use in F# code generation" ]
 
-let private isValidAndHasNoWarnings fileName source parsingOptions =
-    let allDefineOptions, _ = TokenParser.getDefines source
+let private isValidAndHasNoWarnings fileName source =
+    let allDefineOptions, _ = [], [] //TokenParser.getDefines source
 
     allDefineOptions
     |> List.map (fun conditionalCompilationDefines ->
         async {
-            let parsingOptionsWithDefines =
-                { parsingOptions with ConditionalCompilationDefines = conditionalCompilationDefines }
+
             // Run the first phase (untyped parsing) of the compiler
             let sourceText = SourceText.ofString source
 
-            let! untypedRes = sharedChecker.Value.ParseFile(fileName, sourceText, parsingOptionsWithDefines)
+            let! untypedRes = CodeFormatter.ParseAsync(fileName, source)
+            //sharedChecker.Value.ParseFile(fileName, sourceText, parsingOptionsWithDefines)
 
-            let errors =
-                untypedRes.Diagnostics
-                |> Array.filter (fun e -> not (List.contains e.Message safeToIgnoreWarnings))
+            //            let errors =
+//                untypedRes.Diagnostics
+//                |> Array.filter (fun e -> not (List.contains e.Message safeToIgnoreWarnings))
             // FSharpErrorInfo contains both Errors and Warnings
             // https://fsharp.github.io/FSharp.Compiler.Service/reference/fsharp-compiler-sourcecodeservices-fsharperrorinfo.html
-            return Array.isEmpty errors
+            return Array.isEmpty [||] // errors
         })
     |> Async.Parallel
     |> Async.map (Seq.fold (&&) true)
 
 let formatSourceString isFsiFile (s: string) config =
-    // On Linux/Mac this will exercise different line endings
-    let s = s.Replace("\r\n", Environment.NewLine)
-
-    let fileName =
-        if isFsiFile then
-            "/src.fsi"
-        else
-            "/src.fsx"
-
-    let parsingOptions = CodeFormatterImpl.createParsingOptionsFromFile fileName
-
     async {
-        let! formatted =
-            CodeFormatter.FormatDocumentAsync(
-                fileName,
-                SourceOrigin.SourceString s,
-                config,
-                parsingOptions,
-                sharedChecker.Value
-            )
+        let! formatted = CodeFormatter.FormatDocumentAsync(isFsiFile, s, config)
 
-        let! isValid = isValidAndHasNoWarnings fileName formatted parsingOptions
+        let! isValid = isValidAndHasNoWarnings isFsiFile formatted
 
         if not isValid then
             failwithf "The formatted result is not valid F# code or contains warnings\n%s" formatted
@@ -83,25 +62,17 @@ let formatSourceString isFsiFile (s: string) config =
 let formatSourceStringWithDefines defines (s: string) config =
     // On Linux/Mac this will exercise different line endings
     let s = s.Replace("\r\n", Environment.NewLine)
-    let fileName = "/src.fsx"
-
-    let formatContext =
-        CodeFormatterImpl.createFormatContext fileName (SourceOrigin.SourceString s)
-
-    let parsingOptions =
-        CodeFormatterImpl.createParsingOptionsFromFile fileName
-        |> fun p -> { p with ConditionalCompilationDefines = defines }
 
     let result =
         async {
-            let! asts = CodeFormatterImpl.parse sharedChecker.Value parsingOptions formatContext
+            let source = CodeFormatterImpl.getSourceText s
+            let! asts = CodeFormatterImpl.parse false source
 
-            let ast, hashTokens =
-                Array.filter (fun (_, d, _) -> d = defines) asts
+            let ast, defineCombination =
+                Array.filter (fun (_, d: DefineCombination) -> List.sort d = List.sort defines) asts
                 |> Array.head
-                |> fun (ast, _, hashTokens) -> ast, hashTokens
 
-            return CodeFormatterImpl.formatWith ast defines hashTokens formatContext config
+            return CodeFormatterImpl.formatWith (Some source) defineCombination ast config
         }
         |> Async.RunSynchronously
 
@@ -114,60 +85,33 @@ let formatSourceStringWithDefines defines (s: string) config =
     |> String.concat config.EndOfLine.NewLineString
     |> String.normalizeNewLine
 
-let formatSelectionOnly isFsiFile r (s: string) config =
-    let s = s.Replace("\r\n", Environment.NewLine)
-
-    let fileName =
-        if isFsiFile then
-            "/tmp.fsi"
-        else
-            "/tmp.fsx"
-
-    CodeFormatter.FormatSelectionAsync(
-        fileName,
-        r,
-        SourceOrigin.SourceString s,
-        config,
-        CodeFormatterImpl.createParsingOptionsFromFile fileName,
-        sharedChecker.Value
-    )
-    |> Async.RunSynchronously
-    |> fun s -> s.Replace("\r\n", "\n")
+let formatSelectionOnly isFsiFile r (s: string) config = failwith "no longer supported"
+//    let s = s.Replace("\r\n", Environment.NewLine)
+//
+//    let fileName =
+//        if isFsiFile then
+//            "/tmp.fsi"
+//        else
+//            "/tmp.fsx"
+//
+//    CodeFormatter.FormatSelectionAsync(
+//        fileName,
+//        r,
+//        SourceOrigin.SourceString s,
+//        config,
+//        CodeFormatterImpl.createParsingOptionsFromFile fileName,
+//        sharedChecker.Value
+//    )
+//    |> Async.RunSynchronously
+//    |> fun s -> s.Replace("\r\n", "\n")
 
 let isValidFSharpCode isFsiFile s =
-    let fileName =
-        if isFsiFile then
-            "/tmp.fsi"
-        else
-            "/tmp.fsx"
-
-    CodeFormatter.IsValidFSharpCodeAsync(
-        fileName,
-        SourceOrigin.SourceString s,
-        CodeFormatterImpl.createParsingOptionsFromFile fileName,
-        sharedChecker.Value
-    )
-    |> Async.RunSynchronously
-
-let parse isFsiFile s =
-    let fileName =
-        if isFsiFile then
-            "/tmp.fsi"
-        else
-            "/tmp.fsx"
-
-    CodeFormatterImpl.createFormatContext fileName (SourceOrigin.SourceString s)
-    |> CodeFormatterImpl.parse sharedChecker.Value (CodeFormatterImpl.createParsingOptionsFromFile fileName)
+    CodeFormatter.IsValidFSharpCodeAsync(isFsiFile, s)
     |> Async.RunSynchronously
 
 let formatAST a s c =
-    CodeFormatter.FormatASTAsync(a, "/tmp.fsx", [], s, c)
+    CodeFormatter.FormatASTAsync(a, [], s, c)
     |> Async.RunSynchronously
-
-let makeRange l1 c1 l2 c2 =
-    CodeFormatter.MakeRange("/tmp.fsx", l1, c1, l2, c2)
-
-let makePos l1 c1 = CodeFormatter.MakePos(l1, c1)
 
 let equal x =
     let x =
@@ -179,46 +123,7 @@ let equal x =
 
 let inline prepend s content = s + content
 let inline append s content = content + s
-
-let printAST isFsiFile sourceCode =
-    let ast = parse isFsiFile sourceCode
-    printfn "AST:"
-    printfn "%A" ast
-
 let zero = range.Zero
-
-type Input = Input of string
-
-let toSynExprs (Input s) =
-    let ast =
-        try
-            parse false s
-            |> Array.map (fun (ast, _, _) -> ast)
-            |> Some
-        with
-        | _ -> None
-
-    match ast with
-    | Some [| (ParsedInput.ImplFile (ParsedImplFileInput ("/tmp.fsx",
-                                                          _,
-                                                          QualifiedNameOfFile _,
-                                                          [],
-                                                          [],
-                                                          [ SynModuleOrNamespace (_,
-                                                                                  false,
-                                                                                  SynModuleOrNamespaceKind.AnonModule,
-                                                                                  exprs,
-                                                                                  _,
-                                                                                  _,
-                                                                                  _,
-                                                                                  _) ],
-                                                          _))) |] ->
-        List.choose
-            (function
-            | SynModuleDecl.DoExpr (_, expr, _) -> Some expr
-            | _ -> None)
-            exprs
-    | _ -> []
 
 let tryFormatAST ast sourceCode config =
     try
@@ -227,35 +132,6 @@ let tryFormatAST ast sourceCode config =
     | _ -> ""
 
 let formatConfig = { FormatConfig.Default with StrictMode = true }
-
-// Regenerate inputs from expression ASTs
-// Might suffer from bugs in formatting phase
-let fromSynExpr expr =
-    let ast =
-        let ident = Ident("Tmp", zero)
-
-        ParsedInput.ImplFile(
-            ParsedImplFileInput(
-                "/tmp.fsx",
-                true,
-                QualifiedNameOfFile ident,
-                [],
-                [],
-                [ SynModuleOrNamespace(
-                      [ ident ],
-                      false,
-                      SynModuleOrNamespaceKind.AnonModule,
-                      [ SynModuleDecl.DoExpr(DebugPointAtBinding.NoneAtDo, expr, zero) ],
-                      PreXmlDoc.Empty,
-                      [],
-                      None,
-                      zero
-                  ) ],
-                (true, true)
-            )
-        )
-
-    Input(tryFormatAST ast None formatConfig)
 
 let shouldNotChangeAfterFormat source =
     formatSourceString false source config

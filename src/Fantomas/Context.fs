@@ -2,10 +2,9 @@ module Fantomas.Context
 
 open System
 open FSharp.Compiler.Text
-open FSharp.Compiler.Text.Range
-open FSharp.Compiler.Text.Position
 open FSharp.Compiler.Syntax
 open Fantomas
+open Fantomas.ISourceTextExtensions
 open Fantomas.FormatConfig
 open Fantomas.TriviaTypes
 
@@ -161,7 +160,9 @@ module WriterEvents =
                 | CommentOrDefineEvent _ -> WriteLineInsideTrivia
                 | _ -> WriteLineInsideStringConst
 
-            s.Split('\n')
+            // Trustworthy multiline string in the original AST can contain \r
+            // Internally we process everything with \n and at the end we respect the .editorconfig end_of_line setting.
+            s.Replace("\r", "").Split('\n')
             |> Seq.map (fun x -> [ Write x ])
             |> Seq.reduce (fun x y -> x @ [ writeLine ] @ y)
             |> Seq.toList
@@ -181,10 +182,9 @@ type internal Context =
       WriterEvents: Queue<WriterEvent>
       BreakLines: bool
       BreakOn: string -> bool
-      /// The original source string to query as a last resort
-      Content: string
-      TriviaMainNodes: Map<FsAstType, TriviaNode list>
-      FileName: string }
+      TriviaNodes: Map<FsAstType, TriviaNode list>
+      FileName: string
+      SourceText: ISourceText option }
 
     /// Initialize with a string writer and use space as delimiter
     static member Default =
@@ -193,30 +193,15 @@ type internal Context =
           WriterEvents = Queue.empty
           BreakLines = true
           BreakOn = (fun _ -> false)
-          Content = ""
-          TriviaMainNodes = Map.empty
-          FileName = String.Empty }
+          TriviaNodes = Map.empty
+          FileName = String.Empty
+          SourceText = None }
 
-    static member Create
-        config
-        defines
-        (fileName: string)
-        (hashTokens: Token list)
-        (content: string)
-        (maybeAst: ParsedInput option)
-        =
-        let content = String.normalizeNewLine content
-
-        let tokens = TokenParser.tokenize defines hashTokens content
-
-        let trivia =
-            match maybeAst, config.StrictMode with
-            | Some ast, false ->
-                let mkRange (startLine, startCol) (endLine, endCol) =
-                    mkRange fileName (mkPos startLine startCol) (mkPos endLine endCol)
-
-                Trivia.collectTrivia mkRange tokens ast
-            | _ -> []
+    static member Create config (source: ISourceText option) (defineCombination: DefineCombination) (ast: ParsedInput) =
+        let trivia, sourceText =
+            match source with
+            | Some source when not config.StrictMode -> Trivia.collectTrivia source ast, Some source
+            | _ -> [], None
 
         let triviaByNodes =
             trivia
@@ -225,9 +210,8 @@ type internal Context =
 
         { Context.Default with
             Config = config
-            Content = content
-            TriviaMainNodes = triviaByNodes
-            FileName = fileName }
+            SourceText = sourceText
+            TriviaNodes = triviaByNodes }
 
     member x.WithDummy(writerCommands, ?keepPageWidth) =
         let keepPageWidth = keepPageWidth |> Option.defaultValue false
@@ -265,10 +249,8 @@ type internal Context =
                 { x with WriterModel = { x.WriterModel with Mode = ShortExpression(info :: infos) } }
         | _ -> { x with WriterModel = { x.WriterModel with Mode = ShortExpression([ info ]) } }
 
-    member x.MkRange (startPos: pos) (endPos: pos) = mkRange x.FileName startPos endPos
-
-    member x.MkRangeWith (startLine, startColumn) (endLine, endColumn) =
-        x.MkRange (mkPos startLine startColumn) (mkPos endLine endColumn)
+    member x.FromSourceText(range: range) : string option =
+        Option.map (fun (sourceText: ISourceText) -> sourceText.GetContentAt range) x.SourceText
 
 let internal writerEvent e ctx =
     let evs = WriterEvents.normalize e
@@ -1176,13 +1158,6 @@ let internal printTriviaContent (c: TriviaContent) (ctx: Context) =
         +> sepSpace
         +> ifElse after sepNlnForTrivia sepNone
     | Newline -> (ifElse addNewline (sepNlnForTrivia +> sepNlnForTrivia) sepNlnForTrivia)
-    | Keyword _
-    | Number _
-    | StringContent _
-    | IdentOperatorAsWord _
-    | IdentBetweenTicks _
-    | CharContent _
-    | EmbeddedIL _ -> sepNone // don't print here but somewhere in CodePrinter
     | Directive s
     | Comment (LineCommentOnSingleLine s) ->
         (ifElse addNewline sepNlnForTrivia sepNone)
@@ -1205,7 +1180,7 @@ let private findTriviaOnStartFromRange nodes (range: Range) =
     |> List.tryFind (fun n -> RangeHelpers.rangeStartEq n.Range range)
 
 let internal enterNodeFor (mainNodeName: FsAstType) (range: Range) (ctx: Context) =
-    match Map.tryFind mainNodeName ctx.TriviaMainNodes with
+    match Map.tryFind mainNodeName ctx.TriviaNodes with
     | Some triviaNodes ->
         let tn =
             List.tryFind
@@ -1218,7 +1193,7 @@ let internal enterNodeFor (mainNodeName: FsAstType) (range: Range) (ctx: Context
     | None -> ctx
 
 let internal leaveNodeFor (mainNodeName: FsAstType) (range: Range) (ctx: Context) =
-    match Map.tryFind mainNodeName ctx.TriviaMainNodes with
+    match Map.tryFind mainNodeName ctx.TriviaNodes with
     | Some triviaNodes ->
         let tn =
             List.tryFind
@@ -1230,15 +1205,6 @@ let internal leaveNodeFor (mainNodeName: FsAstType) (range: Range) (ctx: Context
         | None -> ctx
     | None -> ctx
 
-let internal hasPrintableContent (trivia: TriviaContent list) =
-    trivia
-    |> List.exists (fun tn ->
-        match tn with
-        | Comment _
-        | Newline
-        | Directive _ -> true
-        | _ -> false)
-
 let private sepConsideringTriviaContentBeforeBy
     (findNode: Context -> range -> TriviaNode option)
     (sepF: Context -> Context)
@@ -1246,12 +1212,12 @@ let private sepConsideringTriviaContentBeforeBy
     (ctx: Context)
     =
     match findNode ctx range with
-    | Some { ContentBefore = contentBefore } when (hasPrintableContent contentBefore) -> ctx
+    | Some { ContentBefore = contentBefore } -> ctx
     | _ -> sepF ctx
 
 let internal sepConsideringTriviaContentBeforeForMainNode sepF (mainNodeName: FsAstType) (range: Range) (ctx: Context) =
     let findNode ctx range =
-        Map.tryFind mainNodeName ctx.TriviaMainNodes
+        Map.tryFind mainNodeName ctx.TriviaNodes
         |> Option.defaultValue []
         |> List.tryFind (fun { ContentBefore = cb; Range = r } -> List.isNotEmpty cb && RangeHelpers.rangeEq r range)
 
@@ -1261,15 +1227,9 @@ let internal sepNlnConsideringTriviaContentBeforeForMainNode (mainNode: FsAstTyp
     sepConsideringTriviaContentBeforeForMainNode sepNln mainNode range
 
 let internal sepNlnForEmptyModule (mainNode: FsAstType) (moduleRange: Range) (ctx: Context) =
-    match Map.tryFind mainNode ctx.TriviaMainNodes with
+    match Map.tryFind mainNode ctx.TriviaNodes with
     | Some nodes ->
-        if
-            List.exists
-                (fun tn ->
-                    RangeHelpers.rangeEq tn.Range moduleRange
-                    && (hasPrintableContent tn.ContentBefore
-                        || hasPrintableContent tn.ContentAfter))
-                nodes then
+        if List.exists (fun tn -> RangeHelpers.rangeEq tn.Range moduleRange) nodes then
             ctx
         else
             sepNln ctx
@@ -1285,7 +1245,7 @@ let internal sepNlnTypeAndMembers
     let triviaNodeOfWithKeyword: TriviaNode option =
         withKeywordRange
         |> Option.bind (fun r ->
-            ctx.TriviaMainNodes
+            ctx.TriviaNodes
             |> Map.tryFindOrEmptyList withKeywordNodeType
             |> List.tryFind (fun tn -> RangeHelpers.rangeEq r tn.Range))
 

@@ -183,3 +183,4 @@ external-project-tests/
 .vscode/
 BenchmarkDotNet.Artifacts/
 FormatChanged.ps1
+src/Fantomas.FCS/generated/

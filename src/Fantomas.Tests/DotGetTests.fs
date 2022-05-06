@@ -1161,7 +1161,7 @@ type Class() =
         equal
         """
 type Class() =
-    member this.kk() =
+    member this.``kk``() =
         async {
             mock
                 .Setup(fun m ->
