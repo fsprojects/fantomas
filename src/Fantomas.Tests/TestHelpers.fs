@@ -109,18 +109,7 @@ let getFantomasToolStartInfo arguments : ProcessStartInfo =
 #endif
 
     let fantomasDll =
-        Path.Combine(
-            pwd,
-            "..",
-            "..",
-            "..",
-            "..",
-            "Fantomas",
-            "bin",
-            configuration,
-            "net6.0",
-            "fantomas.dll"
-        )
+        Path.Combine(pwd, "..", "..", "..", "..", "Fantomas", "bin", configuration, "net6.0", "fantomas.dll")
 
     let startInfo = ProcessStartInfo("dotnet")
     startInfo.UseShellExecute <- false
