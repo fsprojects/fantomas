@@ -37,3 +37,21 @@ match req.``include`` with
 | None -> tc.TestItems()
 | Some includedTests -> includedTests.ToArray()
 """
+
+[<Test>]
+let ``base without ticks, 2212`` () =
+    formatSourceString
+        false
+        """
+type X =  
+  override this.f(y) : bool =
+    base.f(y)
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type X =
+    override this.f(y) : bool = base.f (y)
+"""
