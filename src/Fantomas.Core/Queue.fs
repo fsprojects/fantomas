@@ -2,7 +2,7 @@ namespace Fantomas.Core
 
 /// append only collection optimized for quick append of block of data and query operations
 /// data - list of blocks in reverse order
-type Queue<'T>(data: list<'T []>, length: int) =
+type Queue<'T>(data: list<'T[]>, length: int) =
     let mutable hashCode = None
 
     override this.GetHashCode() =
@@ -77,7 +77,7 @@ type Queue<'T>(data: list<'T []>, length: int) =
 
             let rec dataToEnd acc =
                 function
-                | hd: _ [] :: tl ->
+                | hd: _[] :: tl ->
                     if i > hd.Length then
                         i <- i - hd.Length
                         dataToEnd (hd :: acc) tl
@@ -88,7 +88,7 @@ type Queue<'T>(data: list<'T []>, length: int) =
 
             let rec exists xs =
                 match xs with
-                | arr: _ [] :: tl ->
+                | arr: _[] :: tl ->
                     while not r && i < arr.Length do
                         if f arr.[i] then r <- true
                         i <- i + 1
@@ -135,4 +135,4 @@ module Queue =
     let inline append (q: Queue<'T>) xs = q.Append xs
 
     /// Equivalent of q |> Queue.toSeq |> Seq.skip n |> Seq.skipWhile p |> Seq.exists f
-    let inline skipExists (n: int) (f: 'T -> bool) (p: 'T [] -> bool) (q: Queue<'T>) : bool = q.SkipExists n f p
+    let inline skipExists (n: int) (f: 'T -> bool) (p: 'T[] -> bool) (q: Queue<'T>) : bool = q.SkipExists n f p

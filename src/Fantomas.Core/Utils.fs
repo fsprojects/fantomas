@@ -43,7 +43,7 @@ module String =
             | Some 0 -> hashLineIndexes
             | _ -> 0 :: hashLineIndexes
 
-        let rec loop (indexes: int list) (finalContinuation: string [] list -> string [] list) =
+        let rec loop (indexes: int list) (finalContinuation: string[] list -> string[] list) =
             match indexes with
             | [] -> finalContinuation []
             | i1 :: i2 :: rest ->
