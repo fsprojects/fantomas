@@ -1895,3 +1895,24 @@ let x =
 
     a + 1
 """
+
+[<Test>]
+let ``xml comment above double slash comment, 2186`` () =
+    formatSourceString
+        false
+        """
+/// <summary>
+/// Some comment
+/// </summary>
+// type TestUnion = First | Second of int | Third of string
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+/// <summary>
+/// Some comment
+/// </summary>
+// type TestUnion = First | Second of int | Third of string
+"""
