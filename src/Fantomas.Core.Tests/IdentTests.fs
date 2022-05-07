@@ -70,3 +70,18 @@ let ``constraint`` = 1
         """
 let ``constraint`` = 1
 """
+
+[<Test>]
+let ``process with ticks, 2034`` () =
+    formatSourceString
+        false
+        """
+let ``process`` = 1
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let ``process`` = 1
+"""
