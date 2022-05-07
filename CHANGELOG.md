@@ -6,6 +6,7 @@
 * Fantomas v4.6.4 and onwards removes backticks. [#2164](https://github.com/fsprojects/fantomas/issues/2164)
 * include is reserved keyword. [#2167](https://github.com/fsprojects/fantomas/issues/2167)
 * base keyword given backticks when overriding with argument. [#2212](https://github.com/fsprojects/fantomas/issues/2212)
+* Fantomas removes backticks around constraint. [#2116](https://github.com/fsprojects/fantomas/issues/2116)
 
 ## [5.0.0-alpha-004] - 2022-05-07
 

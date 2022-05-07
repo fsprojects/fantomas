@@ -55,3 +55,18 @@ type X =
 type X =
     override this.f(y) : bool = base.f (y)
 """
+
+[<Test>]
+let ``constraint with ticks, 2116`` () =
+    formatSourceString
+        false
+        """
+let ``constraint`` = 1
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let ``constraint`` = 1
+"""
