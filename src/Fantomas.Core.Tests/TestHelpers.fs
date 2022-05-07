@@ -133,10 +133,13 @@ let tryFormatAST ast sourceCode config =
 
 let formatConfig = { FormatConfig.Default with StrictMode = true }
 
-let shouldNotChangeAfterFormat source =
+let checkFormat config source expected =
     formatSourceString false source config
     |> prepend newline
-    |> should equal source
+    |> should equal expected
+    
+let shouldNotChangeAfterFormat source =
+    checkFormat config source source
 
 let (==) actual expected = Assert.AreEqual(expected, actual)
 let fail () = Assert.Fail()
