@@ -36,8 +36,8 @@ let private isValidAndHasNoWarnings fileName source =
             //sharedChecker.Value.ParseFile(fileName, sourceText, parsingOptionsWithDefines)
 
             //            let errors =
-            //                untypedRes.Diagnostics
-            //                |> Array.filter (fun e -> not (List.contains e.Message safeToIgnoreWarnings))
+//                untypedRes.Diagnostics
+//                |> Array.filter (fun e -> not (List.contains e.Message safeToIgnoreWarnings))
             // FSharpErrorInfo contains both Errors and Warnings
             // https://fsharp.github.io/FSharp.Compiler.Service/reference/fsharp-compiler-sourcecodeservices-fsharperrorinfo.html
             return Array.isEmpty [||] // errors

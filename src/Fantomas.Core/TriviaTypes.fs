@@ -248,7 +248,7 @@ type FsAstType =
     | SynPat_ArrayOrList
     | SynPat_Record
     // comments are this equal do not lead to valid code
-    //    | SynPat_Record_Field_Equals
+//    | SynPat_Record_Field_Equals
     | SynPat_Null
     | SynPat_OptionalVal
     | SynPat_IsInst

@@ -4421,12 +4421,12 @@ and genType astContext outerBracket t =
             !- "[]"
         | TLongIdent sli -> genSynLongIdent false sli
         //            ifElseCtx
-        //                (fun ctx ->
-        //                    not ctx.Config.StrictMode
-        //                    && astContext.IsCStylePattern)
-        //                (!-(if s = "unit" then "void" else s))
-        //                (!-s)
-        //            |> genTriviaFor Ident_ current.Range
+//                (fun ctx ->
+//                    not ctx.Config.StrictMode
+//                    && astContext.IsCStylePattern)
+//                (!-(if s = "unit" then "void" else s))
+//                (!-s)
+//            |> genTriviaFor Ident_ current.Range
         | TAnonRecord (isStruct, fields) ->
             let smallExpression =
                 ifElse isStruct !- "struct " sepNone
@@ -5762,7 +5762,7 @@ and genConstNumber (c: SynConst) (r: Range) =
 
         expr ctx
 
-and genConstBytes (bytes: byte[]) (r: Range) =
+and genConstBytes (bytes: byte []) (r: Range) =
     fun (ctx: Context) ->
         let expr =
             match ctx.FromSourceText r with
