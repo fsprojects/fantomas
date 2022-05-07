@@ -1,5 +1,10 @@
 # Changelog
 
+## [5.0.0-alpha-004] - 2022-05-07
+
+### Changed
+* FCS: Expose FSharpParserDiagnostic from parseFile. [https://github.com/fsprojects/fantomas/pull/2233](2233)
+
 ## [5.0.0-alpha-003] - 2022-05-06
 
 ### Changed
