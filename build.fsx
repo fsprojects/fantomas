@@ -72,10 +72,10 @@ let fantomasExecutableForExternalTests projectdir =
 let externalProjectsToTest =
     [
       //    { GitUrl = @"https://github.com/fsprojects/Argu"
-//      DirectoryName = "Argu"
-//      Tag = "5.1.0"
-//      SourceSubDirectory = "src"
-//      BuildConfigurationFn = configureBuildCommandFromDefaultFakeBuildScripts }
+      //      DirectoryName = "Argu"
+      //      Tag = "5.1.0"
+      //      SourceSubDirectory = "src"
+      //      BuildConfigurationFn = configureBuildCommandFromDefaultFakeBuildScripts }
       { GitUrl = @"https://github.com/jack-pappas/ExtCore"
         DirectoryName = "ExtCore"
         Tag = "master"

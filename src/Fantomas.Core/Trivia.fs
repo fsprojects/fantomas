@@ -368,8 +368,8 @@ let collectTrivia (source: ISourceText) (ast: ParsedInput) : TriviaNode list =
 
     let startOfSourceCode = 1
     //        match tokens with
-//        | h :: _ -> h.LineNumber // Keep track of comments or hash defines before the first AST node
-//        | _ -> 1
+    //        | h :: _ -> h.LineNumber // Keep track of comments or hash defines before the first AST node
+    //        | _ -> 1
 
     match trivia with
     | [] -> []
