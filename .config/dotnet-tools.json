@@ -20,8 +20,8 @@
         "dotnet-fsharplint"
       ]
     },
-    "fantomas-tool": {
-      "version": "4.7.5",
+    "fantomas": {
+      "version": "5.0.0-alpha-004",
       "commands": [
         "fantomas"
       ]
