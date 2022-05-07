@@ -8,6 +8,7 @@ open Fantomas.Core.ISourceTextExtensions
 open Fantomas.Core.SourceParser
 open Fantomas.Core.AstTransformer
 open Fantomas.Core.TriviaTypes
+open Fantomas.Core.FormatConfig
 
 let inline isMainNodeFor nodeType (node: TriviaNodeAssigner) = nodeType = node.Type
 
@@ -148,7 +149,7 @@ let private addAllTriviaAsContentAfter (trivia: Trivia list) (singleNode: Trivia
       ContentAfter = contentAfter }
     |> List.singleton
 
-let private addTriviaToTriviaNode (startOfSourceCode: int) (triviaNodes: TriviaNodeAssigner list) trivia =
+let private addTriviaToTriviaNode (config: FormatConfig) (startOfSourceCode: int) (triviaNodes: TriviaNodeAssigner list) trivia =
     match trivia with
     | { Item = Comment (LineCommentOnSingleLine _ as comment)
         Range = range } ->
@@ -207,16 +208,21 @@ let private addTriviaToTriviaNode (startOfSourceCode: int) (triviaNodes: TriviaN
 
     // Newlines are only relevant if they occur after the first line of source code
     | { Item = Newline; Range = range } when (range.StartLine > startOfSourceCode) ->
+        let canAddNewline triviaContent =
+            let numberOfNewlinesAtEndOfContent triviaContent =
+                ResizeArray.revSeq triviaContent |> Seq.takeWhile ((=) Newline) |> Seq.length
+            numberOfNewlinesAtEndOfContent triviaContent < config.KeepMaxBlankLines
+            
         let nodeAfterLine = findFirstNodeAfterLine triviaNodes range.StartLine
 
         match nodeAfterLine with
         | Some _ ->
             nodeAfterLine
-            |> updateTriviaNode (fun tn -> tn.ContentBefore.Add(Newline)) triviaNodes
+            |> updateTriviaNode (fun tn -> if canAddNewline tn.ContentBefore then tn.ContentBefore.Add(Newline)) triviaNodes
         | None ->
             // try and find a node above
             findNodeBeforeLineFromStart triviaNodes range.StartLine
-            |> updateTriviaNode (fun tn -> tn.ContentAfter.Add(Newline)) triviaNodes
+            |> updateTriviaNode (fun tn -> if canAddNewline tn.ContentAfter then tn.ContentAfter.Add(Newline)) triviaNodes
 
     | { Item = Directive dc as directive
         Range = range } ->
@@ -348,7 +354,7 @@ let private collectTriviaFromBlankLines
     3. Merge trivias with triviaNodes
     4. genTrivia should use ranges to identify what extra content should be added from what triviaNode
 *)
-let collectTrivia (source: ISourceText) (ast: ParsedInput) : TriviaNode list =
+let collectTrivia (config: FormatConfig) (source: ISourceText) (ast: ParsedInput) : TriviaNode list =
     let triviaNodesFromAST, directives, codeComments =
         match ast with
         | ParsedInput.ImplFile (ParsedImplFileInput (hds, mns, directives, codeComments)) ->
@@ -377,5 +383,5 @@ let collectTrivia (source: ISourceText) (ast: ParsedInput) : TriviaNode list =
         match ast, triviaNodes with
         | EmptyFile _, h :: _ -> addAllTriviaAsContentAfter trivia h
         | _ ->
-            List.fold (addTriviaToTriviaNode startOfSourceCode) triviaNodes trivia
+            List.fold (addTriviaToTriviaNode config startOfSourceCode) triviaNodes trivia
             |> transformNonEmptyNodes

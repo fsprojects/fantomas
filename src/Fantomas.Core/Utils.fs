@@ -154,6 +154,13 @@ module List =
 
         go 0 [] xs
 
+module ResizeArray =
+    let revSeq (xs: ResizeArray<_>) =
+        let count = xs.Count
+        seq {
+            for i = count - 1 downto 0 do yield xs[i]
+        }
+
 module Map =
     let tryFindOrDefault (defaultValue: 'g) (key: 't) (map: Map<'t, 'g>) =
         match Map.tryFind key map with
