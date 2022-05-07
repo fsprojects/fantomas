@@ -18,3 +18,22 @@ let foo = {| ``type`` = "hi" |}
         """
 let foo = {| ``type`` = "hi" |}
 """
+
+[<Test>]
+let ``include with ticks, 2167`` () =
+    formatSourceString
+        false
+        """
+            match req.``include`` with
+            | None -> tc.TestItems()
+            | Some includedTests -> includedTests.ToArray()
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+match req.``include`` with
+| None -> tc.TestItems()
+| Some includedTests -> includedTests.ToArray()
+"""
