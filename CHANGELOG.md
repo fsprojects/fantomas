@@ -1,6 +1,6 @@
 # Changelog
 
-## [Unreleased]
+## [5.0.0-alpha-005] - 2022-05-07
 
 ### Fixed
 * Fantomas v4.6.4 and onwards removes backticks. [#2164](https://github.com/fsprojects/fantomas/issues/2164)
