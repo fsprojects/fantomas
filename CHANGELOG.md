@@ -9,6 +9,7 @@
 * Fantomas removes backticks around constraint. [#2116](https://github.com/fsprojects/fantomas/issues/2116)
 * Keep backticks in identifiers. [#2034](https://github.com/fsprojects/fantomas/issues/2034)
 * Parens stripped from custom definitions of op_Range and op_RangeStep operators. [#1842](https://github.com/fsprojects/fantomas/issues/1842)
+* XML docs for commented code automatically removed. [#2186](https://github.com/fsprojects/fantomas/issues/2186)
 
 ## [5.0.0-alpha-004] - 2022-05-07
 
