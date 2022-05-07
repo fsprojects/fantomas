@@ -149,7 +149,12 @@ let private addAllTriviaAsContentAfter (trivia: Trivia list) (singleNode: Trivia
       ContentAfter = contentAfter }
     |> List.singleton
 
-let private addTriviaToTriviaNode (config: FormatConfig) (startOfSourceCode: int) (triviaNodes: TriviaNodeAssigner list) trivia =
+let private addTriviaToTriviaNode
+    (config: FormatConfig)
+    (startOfSourceCode: int)
+    (triviaNodes: TriviaNodeAssigner list)
+    trivia
+    =
     match trivia with
     | { Item = Comment (LineCommentOnSingleLine _ as comment)
         Range = range } ->
@@ -210,19 +215,30 @@ let private addTriviaToTriviaNode (config: FormatConfig) (startOfSourceCode: int
     | { Item = Newline; Range = range } when (range.StartLine > startOfSourceCode) ->
         let canAddNewline triviaContent =
             let numberOfNewlinesAtEndOfContent triviaContent =
-                ResizeArray.revSeq triviaContent |> Seq.takeWhile ((=) Newline) |> Seq.length
+                ResizeArray.revSeq triviaContent
+                |> Seq.takeWhile ((=) Newline)
+                |> Seq.length
+
             numberOfNewlinesAtEndOfContent triviaContent < config.KeepMaxBlankLines
-            
+
         let nodeAfterLine = findFirstNodeAfterLine triviaNodes range.StartLine
 
         match nodeAfterLine with
         | Some _ ->
             nodeAfterLine
-            |> updateTriviaNode (fun tn -> if canAddNewline tn.ContentBefore then tn.ContentBefore.Add(Newline)) triviaNodes
+            |> updateTriviaNode
+                (fun tn ->
+                    if canAddNewline tn.ContentBefore then
+                        tn.ContentBefore.Add(Newline))
+                triviaNodes
         | None ->
             // try and find a node above
             findNodeBeforeLineFromStart triviaNodes range.StartLine
-            |> updateTriviaNode (fun tn -> if canAddNewline tn.ContentAfter then tn.ContentAfter.Add(Newline)) triviaNodes
+            |> updateTriviaNode
+                (fun tn ->
+                    if canAddNewline tn.ContentAfter then
+                        tn.ContentAfter.Add(Newline))
+                triviaNodes
 
     | { Item = Directive dc as directive
         Range = range } ->

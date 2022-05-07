@@ -9,7 +9,8 @@ let config x = { config with KeepMaxBlankLines = x }
 
 [<Test>]
 let ``reduce 2 empty lines to 1`` () =
-    checkFormat (config 1)
+    checkFormat
+        (config 1)
         """
 open Foo
 
@@ -24,7 +25,8 @@ let x = 42
 
 [<Test>]
 let ``reduce 3 empty lines to 2`` () =
-    checkFormat (config 2)
+    checkFormat
+        (config 2)
         """
 open Foo
 
@@ -41,7 +43,8 @@ let x = 42
 
 [<Test>]
 let ``reduce 3 empty lines to 1`` () =
-    checkFormat (config 1)
+    checkFormat
+        (config 1)
         """
 open Foo
 
@@ -58,7 +61,8 @@ let x = 42
 
 [<Test>]
 let ``only generated empty lines`` () =
-    checkFormat (config 0)
+    checkFormat
+        (config 0)
         """
 open Foo
 
@@ -82,7 +86,8 @@ module M2 =
 
 [<Test>]
 let ``dont reduce empty lines in string`` () =
-    checkFormat (config 1)
+    checkFormat
+        (config 1)
         "
 let x = \"\"\"
 

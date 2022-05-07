@@ -137,9 +137,8 @@ let checkFormat config source expected =
     formatSourceString false source config
     |> prepend newline
     |> should equal expected
-    
-let shouldNotChangeAfterFormat source =
-    checkFormat config source source
+
+let shouldNotChangeAfterFormat source = checkFormat config source source
 
 let (==) actual expected = Assert.AreEqual(expected, actual)
 let fail () = Assert.Fail()

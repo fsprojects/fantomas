@@ -157,8 +157,10 @@ module List =
 module ResizeArray =
     let revSeq (xs: ResizeArray<_>) =
         let count = xs.Count
+
         seq {
-            for i = count - 1 downto 0 do yield xs[i]
+            for i = count - 1 downto 0 do
+                yield xs[i]
         }
 
 module Map =
