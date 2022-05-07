@@ -30,7 +30,7 @@ let parse (isSignature: bool) (source: ISourceText) : Async<(ParsedInput * Defin
         async {
             let errors =
                 baseDiagnostics
-                |> List.filter (fun (_, s) -> s = FSharpDiagnosticSeverity.Error)
+                |> List.filter (fun d -> d.Severity = FSharpDiagnosticSeverity.Error)
 
             if not errors.IsEmpty then
                 raise (FormatException $"Parsing failed with errors: %A{baseDiagnostics}\nAnd options: %A{[]}")
@@ -48,7 +48,7 @@ let parse (isSignature: bool) (source: ISourceText) : Async<(ParsedInput * Defin
 
                 let errors =
                     diagnostics
-                    |> List.filter (fun (_, s) -> s = FSharpDiagnosticSeverity.Error)
+                    |> List.filter (fun d -> d.Severity = FSharpDiagnosticSeverity.Error)
 
                 if not errors.IsEmpty then
                     raise (FormatException $"Parsing failed with errors: %A{diagnostics}\nAnd options: %A{[]}")
