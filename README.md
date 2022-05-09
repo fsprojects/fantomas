@@ -98,7 +98,7 @@ To illustrate, the following example
 	    | TyCon of string * Type list
 	    with override this.ToString () =
 	            match this with
-	            | TyLam (t1, t2) -> sprintf "(%s -> %s)" (t1.ToString()) (t2.ToString())
+	            | TyLam (t1, t2) -> sprintf "(%O -> %O)" t1 t2
 	            | TyVar a -> a
 	            | TyCon (s, ts) -> s
 	```
@@ -111,7 +111,7 @@ To illustrate, the following example
 	    | TyCon of string * Type list
 	    override this.ToString() =
 	        match this with
-	        | TyLam(t1, t2) -> sprintf "(%s -> %s)" (t1.ToString()) (t2.ToString())
+	        | TyLam(t1, t2) -> sprintf "(%O -> %O)" t1 t2
 	        | TyVar a -> a
 	        | TyCon(s, ts) -> s
 	```
