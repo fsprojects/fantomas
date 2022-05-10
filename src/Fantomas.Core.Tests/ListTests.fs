@@ -346,13 +346,16 @@ let prismCli commando =
     ()
 """
         config
+    |> prepend newline
     |> should
         equal
-        """let prismCli commando =
+        """
+let prismCli commando =
     let props =
-        createObj [ "component" ==> "pre"
-                    //"className" ==> "language-fsharp"
-                     ]
+        createObj
+            [ "component" ==> "pre"
+              //"className" ==> "language-fsharp"
+              ]
 
     ()
 """
@@ -372,13 +375,16 @@ let prismCli commando =
     ()
 """
         { config with SpaceAroundDelimiter = false }
+    |> prepend newline
     |> should
         equal
-        """let prismCli commando =
+        """
+let prismCli commando =
     let props =
-        createObj [|"component" ==> "pre"
-                    //"className" ==> "language-fsharp"
-                    |]
+        createObj
+            [|"component" ==> "pre"
+              //"className" ==> "language-fsharp"
+              |]
 
     ()
 """

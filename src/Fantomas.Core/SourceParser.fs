@@ -1646,9 +1646,7 @@ let private (|IdentExprOrLongIdentExpr|_|) e =
     | _ -> None
 
 
-let rec (|IndexWithoutDotExpr|NestedIndexWithoutDotExpr|ElmishReactWithoutChildren|ElmishReactWithChildren|NonAppExpr|)
-    e
-    =
+let rec (|IndexWithoutDotExpr|NestedIndexWithoutDotExpr|NonAppExpr|) e =
     match e with
     | SynExpr.App (ExprAtomicFlag.Atomic, false, identifierExpr, SynExpr.ArrayOrListComputed (false, indexExpr, _), _) ->
         IndexWithoutDotExpr(identifierExpr, indexExpr)
@@ -1660,13 +1658,6 @@ let rec (|IndexWithoutDotExpr|NestedIndexWithoutDotExpr|ElmishReactWithoutChildr
         IndexWithoutDotExpr(identifierExpr, indexExpr)
     | SynExpr.App (ExprAtomicFlag.NonAtomic, false, IndexWithoutDotExpr (identifier, indexExpr), argExpr, _) ->
         NestedIndexWithoutDotExpr(identifier, indexExpr, argExpr)
-    | SynExpr.App (_, false, IdentExprOrLongIdentExpr identifier, ArrayOrList (sr, isArray, children, er, _), _) ->
-        ElmishReactWithoutChildren(identifier, sr, isArray, children, er)
-    | SynExpr.App (_,
-                   false,
-                   SynExpr.App (_, false, IdentExprOrLongIdentExpr identifier, (ArrayOrList _ as attributes), _),
-                   ArrayOrList (sr, isArray, children, er, _r),
-                   _) -> ElmishReactWithChildren(identifier, attributes, (isArray, sr, children, er))
     | _ -> NonAppExpr
 
 let isIfThenElseWithYieldReturn e =

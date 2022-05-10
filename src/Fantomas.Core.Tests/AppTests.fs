@@ -672,9 +672,7 @@ let ``string interpolation should not affect multiline function applications, 17
 
            mkMember $"this.Try{memberName}" None [ mkSynAttribute "CustomOperation" (mkSynExprConstString $"try{memberName}") ] [ parameters ] (objectStateExpr body)
 """
-        { config with
-            IndentSize = 2
-            DisableElmishSyntax = true }
+        { config with IndentSize = 2 }
     |> prepend newline
     |> should
         equal

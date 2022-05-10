@@ -181,14 +181,6 @@ type FormatConfig =
       [<Description("Obsolete setting, this no longer has any effect and will be removed in the next major version.")>]
       KeepIfThenInSameLine: bool
 
-      [<Category("Elmish")>]
-      [<DisplayName("Maximum width for elmish syntax")>]
-      MaxElmishWidth: Num
-
-      [<Category("Elmish")>]
-      [<DisplayName("Single-argument web mode")>]
-      SingleArgumentWebMode: bool
-
       [<Category("Convention")>]
       [<DisplayName("Align function signature to indentation")>]
       AlignFunctionSignatureToIndentation: bool
@@ -200,10 +192,6 @@ type FormatConfig =
       [<Category("Boundaries")>]
       [<DisplayName("MultiLine-lambda has closing newline")>]
       MultiLineLambdaClosingNewline: bool
-
-      [<Category("Elmish")>]
-      [<DisplayName("Disable support for elmish syntax")>]
-      DisableElmishSyntax: bool
 
       [<Category("Indentation")>]
       [<DisplayName("Keep indent in branch")>]
@@ -258,12 +246,9 @@ type FormatConfig =
           MultilineBlockBracketsOnSameColumn = false
           NewlineBetweenTypeDefinitionAndMembers = false
           KeepIfThenInSameLine = false
-          MaxElmishWidth = 40
-          SingleArgumentWebMode = false
           AlignFunctionSignatureToIndentation = false
           AlternativeLongMemberDefinitions = false
           MultiLineLambdaClosingNewline = false
-          DisableElmishSyntax = false
           KeepIndentInBranch = false
           BlankLinesAroundNestedMultilineExpressions = true
           BarBeforeDiscriminatedUnionDeclaration = false
