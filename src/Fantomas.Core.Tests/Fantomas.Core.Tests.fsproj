@@ -111,6 +111,8 @@
     <Compile Include="Ragnarok\SynTypeDefnSigReprSimpleTests.fs" />
     <Compile Include="Ragnarok\NamedArgumentExpressionTests.fs" />
     <Compile Include="Ragnarok\ElmishTests.fs" />
+    <Compile Include="Ragnarok\FunctionApplicationSingleListTests.fs" />
+    <Compile Include="Ragnarok\FunctionApplicationDualListTests.fs" />
     <Compile Include="IdentTests.fs" />
   </ItemGroup>
   <ItemGroup>
