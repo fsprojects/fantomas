@@ -735,8 +735,9 @@ type RoleAdminImportController(akkaService: AkkaService) =
         <| asyncResult {
             let! state =
                 (LowerCaseString.create args.State, file)
-                |> pipeObjectThroughValidation [ (fst, [ stateIsValid ])
-                                                 (snd, [ (fun s -> Ok s) ]) ]
+                |> pipeObjectThroughValidation
+                    [ (fst, [ stateIsValid ])
+                      (snd, [ (fun s -> Ok s) ]) ]
 
             let! filePath = FormFile.downloadAsTemp file
 

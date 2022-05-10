@@ -340,25 +340,6 @@ fsharp_max_infix_operator_expression = 123
     config.MaxInfixOperatorExpression == 123
 
 [<Test>]
-let fsharp_disable_elmish_syntax () =
-    let rootDir = tempName ()
-
-    let editorConfig =
-        """
-[*.fs]
-fsharp_disable_elmish_syntax = true
-"""
-
-    use configFixture =
-        new ConfigurationFile(defaultConfig, rootDir, content = editorConfig)
-
-    use fsharpFile = new FSharpFile(rootDir)
-
-    let config = EditorConfig.readConfiguration fsharpFile.FSharpFile
-
-    Assert.IsTrue config.DisableElmishSyntax
-
-[<Test>]
 let ``end_of_line = cr should throw`` () =
     let rootDir = tempName ()
 

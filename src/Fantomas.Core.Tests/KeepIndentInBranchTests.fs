@@ -946,7 +946,6 @@ let main (args : Options) =
             AlignFunctionSignatureToIndentation = true
             AlternativeLongMemberDefinitions = true
             MultiLineLambdaClosingNewline = true
-            DisableElmishSyntax = true
             KeepIndentInBranch = true }
     |> prepend newline
     |> should
@@ -1024,7 +1023,6 @@ let main (args : Options) =
             AlignFunctionSignatureToIndentation = true
             AlternativeLongMemberDefinitions = true
             MultiLineLambdaClosingNewline = true
-            DisableElmishSyntax = true
             KeepIndentInBranch = true }
     |> prepend newline
     |> should
@@ -1942,7 +1940,6 @@ module Foo =
             AlignFunctionSignatureToIndentation = true
             AlternativeLongMemberDefinitions = true
             MultiLineLambdaClosingNewline = true
-            DisableElmishSyntax = true
             KeepIndentInBranch = true }
     |> prepend newline
     |> should
@@ -2004,7 +2001,6 @@ module Foo =
             AlignFunctionSignatureToIndentation = true
             AlternativeLongMemberDefinitions = true
             MultiLineLambdaClosingNewline = true
-            DisableElmishSyntax = true
             KeepIndentInBranch = true }
     |> prepend newline
     |> should

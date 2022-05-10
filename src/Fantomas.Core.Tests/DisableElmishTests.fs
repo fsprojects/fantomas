@@ -4,8 +4,6 @@ open NUnit.Framework
 open FsUnit
 open Fantomas.Core.Tests.TestHelper
 
-let config = { config with DisableElmishSyntax = true }
-
 [<Test>]
 let ``function call with two list argument`` () =
     formatSourceString
@@ -30,7 +28,7 @@ let ``function with short array argument`` () =
         """
 InstanceObject.make [| a; b; c |]
 """
-        { config with MaxElmishWidth = 10 }
+        config
     |> prepend newline
     |> should
         equal
@@ -167,48 +165,4 @@ type Event =
                         Encode.string "locationNoLongerSellsRonnies"
                         (Identifier.Read >> Encode.guid) id
                     |]
-"""
-
-[<Test>]
-let ``elmish settings should not have any effect`` () =
-    formatSourceString
-        false
-        """
-let counter = React.functionComponent(fun () ->
-    let (count, setCount) = React.useState(0)
-    Html.div [
-        Html.button [
-            prop.style [ style.marginRight 5 ]
-            prop.onClick (fun _ -> setCount(count + 1))
-            prop.text "Increment"
-        ]
-        Html.button [
-            prop.style [ style.marginLeft 5 ]
-            prop.onClick (fun _ -> setCount(count - 1))
-            prop.text "Decrement"
-        ]
-        Html.h1 count
-    ])
-"""
-        { config with
-            MaxElmishWidth = 30
-            SingleArgumentWebMode = true }
-    |> prepend newline
-    |> should
-        equal
-        """
-let counter =
-    React.functionComponent (fun () ->
-        let (count, setCount) = React.useState (0)
-
-        Html.div
-            [ Html.button
-                  [ prop.style [ style.marginRight 5 ]
-                    prop.onClick (fun _ -> setCount (count + 1))
-                    prop.text "Increment" ]
-              Html.button
-                  [ prop.style [ style.marginLeft 5 ]
-                    prop.onClick (fun _ -> setCount (count - 1))
-                    prop.text "Decrement" ]
-              Html.h1 count ])
 """

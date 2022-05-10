@@ -761,8 +761,7 @@ let blah =
             NewlineBetweenTypeDefinitionAndMembers = true
             AlignFunctionSignatureToIndentation = true
             AlternativeLongMemberDefinitions = true
-            MultiLineLambdaClosingNewline = true
-            DisableElmishSyntax = true }
+            MultiLineLambdaClosingNewline = true }
     |> prepend newline
     |> should
         equal
@@ -801,8 +800,7 @@ let blah =
             NewlineBetweenTypeDefinitionAndMembers = true
             AlignFunctionSignatureToIndentation = true
             AlternativeLongMemberDefinitions = true
-            MultiLineLambdaClosingNewline = true
-            DisableElmishSyntax = true }
+            MultiLineLambdaClosingNewline = true }
     |> prepend newline
     |> should
         equal

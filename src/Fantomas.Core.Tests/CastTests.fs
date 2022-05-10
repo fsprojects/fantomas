@@ -20,8 +20,7 @@ longMethodName
             SpaceBeforeColon = true
             SpaceBeforeSemicolon = true
             AlignFunctionSignatureToIndentation = true
-            AlternativeLongMemberDefinitions = true
-            DisableElmishSyntax = true }
+            AlternativeLongMemberDefinitions = true }
     |> prepend newline
     |> should
         equal
@@ -48,8 +47,7 @@ longMethodName
             SpaceBeforeColon = true
             SpaceBeforeSemicolon = true
             AlignFunctionSignatureToIndentation = true
-            AlternativeLongMemberDefinitions = true
-            DisableElmishSyntax = true }
+            AlternativeLongMemberDefinitions = true }
     |> prepend newline
     |> should
         equal
