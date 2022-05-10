@@ -76,7 +76,6 @@ List.map
 """
 
 [<Test>]
-[<Ignore "Revisit">]
 let ``number of items sized Elmish lists are formatted properly`` () =
     formatSourceString
         false
@@ -85,27 +84,30 @@ f [ a; b; c ] [ x; y; z ]
 g [ longValueThatIsALotOfCharactersSoooooLong ] [ longValueThatIsALotOfCharactersSoooooLong ]
 h [ longValueThatIsALotOfCharactersSoooooLong; longValueThatIsALotOfCharactersSoooooLong ] [ longValueThatIsALotOfCharactersSoooooLong ]
     """
-        { config with ArrayOrListMultilineFormatter = NumberOfItems }
+        { config with
+            ArrayOrListMultilineFormatter = NumberOfItems
+            MultilineBlockBracketsOnSameColumn = true
+            Ragnarok = true }
     |> prepend newline
     |> should
         equal
         """
-f [ a
+f [
+    a
     b
-    c ] [
+    c
+] [
     x
     y
     z
 ]
 
-g [ longValueThatIsALotOfCharactersSoooooLong ] [
-    longValueThatIsALotOfCharactersSoooooLong
-]
+g [ longValueThatIsALotOfCharactersSoooooLong ] [ longValueThatIsALotOfCharactersSoooooLong ]
 
-h [ longValueThatIsALotOfCharactersSoooooLong
-    longValueThatIsALotOfCharactersSoooooLong ] [
+h [
     longValueThatIsALotOfCharactersSoooooLong
-]
+    longValueThatIsALotOfCharactersSoooooLong
+] [ longValueThatIsALotOfCharactersSoooooLong ]
 """
 
 [<Test>]
@@ -193,7 +195,6 @@ List.map
 """
 
 [<Test>]
-[<Ignore "Revisit">]
 let ``number of items sized Elmish lists with block brackets on same column are formatted properly`` () =
     formatSourceString
         false
@@ -204,7 +205,8 @@ h [ longValueThatIsALotOfCharactersSoooooLong; longValueThatIsALotOfCharactersSo
     """
         { config with
             ArrayOrListMultilineFormatter = NumberOfItems
-            MultilineBlockBracketsOnSameColumn = true }
+            MultilineBlockBracketsOnSameColumn = true
+            Ragnarok = true }
     |> prepend newline
     |> should
         equal
@@ -213,26 +215,21 @@ f [
     a
     b
     c
-  ] [
+] [
     x
     y
     z
 ]
 
-g [ longValueThatIsALotOfCharactersSoooooLong ] [
-    longValueThatIsALotOfCharactersSoooooLong
-]
+g [ longValueThatIsALotOfCharactersSoooooLong ] [ longValueThatIsALotOfCharactersSoooooLong ]
 
 h [
     longValueThatIsALotOfCharactersSoooooLong
     longValueThatIsALotOfCharactersSoooooLong
-  ] [
-    longValueThatIsALotOfCharactersSoooooLong
-]
+] [ longValueThatIsALotOfCharactersSoooooLong ]
 """
 
 [<Test>]
-[<Ignore "Revisit">]
 let ``number of items sized Elmish lists with single argument web mode are formatted properly`` () =
     formatSourceString
         false
@@ -241,7 +238,10 @@ f [ a; b; c ]
 g [ longValueThatIsALotOfCharactersSoooooLong ]
 h [ longValueThatIsALotOfCharactersSoooooLong; longValueThatIsALotOfCharactersSoooooLong ]
     """
-        { config with ArrayOrListMultilineFormatter = NumberOfItems }
+        { config with
+            ArrayOrListMultilineFormatter = NumberOfItems
+            MultilineBlockBracketsOnSameColumn = true
+            Ragnarok = true }
     |> prepend newline
     |> should
         equal
@@ -252,9 +252,7 @@ f [
     c
 ]
 
-g [
-    longValueThatIsALotOfCharactersSoooooLong
-]
+g [ longValueThatIsALotOfCharactersSoooooLong ]
 
 h [
     longValueThatIsALotOfCharactersSoooooLong
@@ -263,7 +261,6 @@ h [
 """
 
 [<Test>]
-[<Ignore "Revisit">]
 let ``number of items sized Elmish lists with single argument web mode and multiline block brackets on same column are formatted properly``
     ()
     =
@@ -276,7 +273,8 @@ h [ longValueThatIsALotOfCharactersSoooooLong; longValueThatIsALotOfCharactersSo
     """
         { config with
             ArrayOrListMultilineFormatter = NumberOfItems
-            MultilineBlockBracketsOnSameColumn = true }
+            MultilineBlockBracketsOnSameColumn = true
+            Ragnarok = true }
     |> prepend newline
     |> should
         equal
@@ -287,9 +285,7 @@ f [
     c
 ]
 
-g [
-    longValueThatIsALotOfCharactersSoooooLong
-]
+g [ longValueThatIsALotOfCharactersSoooooLong ]
 
 h [
     longValueThatIsALotOfCharactersSoooooLong
