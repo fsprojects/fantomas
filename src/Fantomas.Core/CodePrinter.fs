@@ -1123,7 +1123,7 @@ and genExpr astContext synExpr ctx =
             else
                 short
 
-        | EndsWithDualListAppExpr (e, es, props, children) ->
+        | EndsWithDualListAppExpr (e, es, props, children) when ctx.Config.Ragnarok ->
             // check if everything else beside the last array/list fits on one line
             let singleLineTestExpr =
                 genExpr astContext e
