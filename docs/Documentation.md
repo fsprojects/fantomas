@@ -138,12 +138,9 @@ fsharp_max_dot_get_expression_width=50
 fsharp_multiline_block_brackets_on_same_column=false
 fsharp_newline_between_type_definition_and_members=false
 fsharp_keep_if_then_in_same_line=false
-fsharp_max_elmish_width=40
-fsharp_single_argument_web_mode=false
 fsharp_align_function_signature_to_indentation=false
 fsharp_alternative_long_member_definitions=false
 fsharp_multi_line_lambda_closing_newline=false
-fsharp_disable_elmish_syntax=false
 fsharp_keep_indent_in_branch=false
 fsharp_blank_lines_around_nested_multiline_expressions=true
 fsharp_bar_before_discriminated_union_declaration=false
@@ -924,54 +921,6 @@ else
     c.ToString()
 ```
 
-### fsharp_max_elmish_width
-
-Control the maximum width for which an elmish expression should be in one line.
-See [Formatting Elmish style guide](./Formatting-Elmish-code.md) for more information.
-Default = 40.
-
-`defaultConfig`
-
-```fsharp
-let d = div [] [ p [] [ str "meh" ] ]
-```
-
-`{ defaultConfig with MaxElmishWidth = 10 }`
-
-```fsharp
-let d =
-    div [] [
-        p [] [
-            str "meh"
-        ]
-    ]
-```
-
-### fsharp_single_argument_web_mode
-
-Applies similar behavior when the elmish expression only contains a single argument.
-Default = false.
-
-`defaultConfig`
-
-```fsharp
-let a =
-    Html.button [ prop.style [ style.marginLeft 5 ]
-                  prop.onClick (fun _ -> setCount (count - 1))
-                  prop.text "Decrement" ]
-```
-
-`{ defaultConfig with SingleArgumentWebMode = true} `
-
-```fsharp
-let a =
-    Html.button [
-        prop.style [ style.marginLeft 5 ]
-        prop.onClick (fun _ -> setCount (count - 1))
-        prop.text "Decrement"
-    ]
-```
-
 ### fsharp_align_function_signature_to_indentation
 
 When a function signature exceeds the `max_line_length`, Fantomas will put all parameters on separate lines.
@@ -1094,31 +1043,6 @@ let printListWithOffset a list1 =
         // print stuff
         printfn "%d" (a + elem)
     )
-```
-
-### fsharp_disable_elmish_syntax
-
-Disable the default [Elmish formatting style](./Formatting-Elmish-code.md). When `fsharp_disable_elmish_syntax` is enabled `fsharp_max_elmish_width` and `fsharp_single_argument_web_mode` will have no effect anymore.
-
-`defaultConfig`
-
-```fsharp
-let encodeInput (input: Input) =
-    Encode.object [ "sourceCode", Encode.string input.SourceCode
-                    "defines",
-                    (Array.map Encode.string input.Defines
-                     |> Encode.array)
-                    "isFsi", Encode.bool input.IsFsi ]
-```
-
-`{ defaultConfig with DisableElmishSyntax = true }`
-
-```fsharp
-let encodeUrlModel code model: JsonValue =
-    Encode.object
-        [ "defines", Encode.string model.Defines
-          "isFsi", Encode.bool model.IsFsi
-          "code", Encode.string code ]
 ```
 
 ### fsharp_keep_indent_in_branch
