@@ -73,7 +73,6 @@
     <Compile Include="NumberOfItemsListOrArrayTests.fs" />
     <Compile Include="NumberOfItemsRecordTests.fs" />
     <Compile Include="SynExprNewTests.fs" />
-    <Compile Include="DisableElmishTests.fs" />
     <Compile Include="CastTests.fs" />
     <Compile Include="MultiLineLambdaClosingNewlineTests.fs" />
     <Compile Include="OpenTypeTests.fs" />
