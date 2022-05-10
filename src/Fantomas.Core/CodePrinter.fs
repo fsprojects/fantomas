@@ -1034,10 +1034,10 @@ and genRecordFieldName astContext (SynExprRecordField ((rfn, _), equalsRange, eo
         +> expr)
     |> genTriviaFor SynExprRecordField_ rf.FullRange
 
-and genAnonRecordFieldName astContext (AnonRecordFieldName (s, r, equalsRange, e)) =
+and genAnonRecordFieldName astContext (AnonRecordFieldName (ident, equalsRange, e)) =
     let expr = sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e)
 
-    genTriviaFor Ident_ r !-s
+    genIdent ident
     +> genEq SynExpr_AnonRecd_Field_Equals equalsRange
     +> expr
 
@@ -3152,7 +3152,7 @@ and genMultilineAnonRecord (isStruct: bool) fields copyInfo (astContext: ASTCont
 
                 atCurrentColumn
                     (sepOpenAnonRecd
-                     +> col sepSemiNln fields (fun (AnonRecordFieldName (s, r, eq, e)) ->
+                     +> col sepSemiNln fields (fun (AnonRecordFieldName (ident, eq, e)) ->
                          let expr =
                              if ctx.Config.IndentSize < 3 then
                                  sepSpaceOrDoubleIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e)
@@ -3162,7 +3162,7 @@ and genMultilineAnonRecord (isStruct: bool) fields copyInfo (astContext: ASTCont
                          // Add enough spaces to start at the right column but indent from the opening curly brace.
                          // Use a double indent when using a small indent size to avoid offset warnings.
                          addFixedSpaces targetColumn
-                         +> atCurrentColumn (genTriviaFor Ident_ r (!-s))
+                         +> atCurrentColumn (genIdent ident)
                          +> genEq SynExpr_AnonRecd_Field_Equals eq
                          +> expr)
                      +> sepCloseAnonRecd)
@@ -4421,12 +4421,12 @@ and genType astContext outerBracket t =
             !- "[]"
         | TLongIdent sli -> genSynLongIdent false sli
         //            ifElseCtx
-//                (fun ctx ->
-//                    not ctx.Config.StrictMode
-//                    && astContext.IsCStylePattern)
-//                (!-(if s = "unit" then "void" else s))
-//                (!-s)
-//            |> genTriviaFor Ident_ current.Range
+        //                (fun ctx ->
+        //                    not ctx.Config.StrictMode
+        //                    && astContext.IsCStylePattern)
+        //                (!-(if s = "unit" then "void" else s))
+        //                (!-s)
+        //            |> genTriviaFor Ident_ current.Range
         | TAnonRecord (isStruct, fields) ->
             let smallExpression =
                 ifElse isStruct !- "struct " sepNone
@@ -5762,7 +5762,7 @@ and genConstNumber (c: SynConst) (r: Range) =
 
         expr ctx
 
-and genConstBytes (bytes: byte []) (r: Range) =
+and genConstBytes (bytes: byte[]) (r: Range) =
     fun (ctx: Context) ->
         let expr =
             match ctx.FromSourceText r with

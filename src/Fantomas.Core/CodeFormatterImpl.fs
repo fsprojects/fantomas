@@ -15,7 +15,7 @@ open Fantomas.Core.CodePrinter
 
 let getSourceText (source: string) : ISourceText = source.TrimEnd() |> SourceText.ofString
 
-let parse (isSignature: bool) (source: ISourceText) : Async<(ParsedInput * DefineCombination) []> =
+let parse (isSignature: bool) (source: ISourceText) : Async<(ParsedInput * DefineCombination)[]> =
     // First get the syntax tree without any defines
     let baseUntypedTree, baseDiagnostics =
         Fantomas.FCS.Parse.parseFile isSignature source []
@@ -30,7 +30,7 @@ let parse (isSignature: bool) (source: ISourceText) : Async<(ParsedInput * Defin
         async {
             let errors =
                 baseDiagnostics
-                |> List.filter (fun (_, s) -> s = FSharpDiagnosticSeverity.Error)
+                |> List.filter (fun d -> d.Severity = FSharpDiagnosticSeverity.Error)
 
             if not errors.IsEmpty then
                 raise (FormatException $"Parsing failed with errors: %A{baseDiagnostics}\nAnd options: %A{[]}")
@@ -48,7 +48,7 @@ let parse (isSignature: bool) (source: ISourceText) : Async<(ParsedInput * Defin
 
                 let errors =
                     diagnostics
-                    |> List.filter (fun (_, s) -> s = FSharpDiagnosticSeverity.Error)
+                    |> List.filter (fun d -> d.Severity = FSharpDiagnosticSeverity.Error)
 
                 if not errors.IsEmpty then
                     raise (FormatException $"Parsing failed with errors: %A{diagnostics}\nAnd options: %A{[]}")
@@ -296,10 +296,10 @@ let isValidFSharpCode (isSignature: bool) (source: ISourceText) : Async<bool> =
             let! ast = parse isSignature source
 
             //            let isValid =
-//                ast
-//                |> Array.forall (fun (a, _, _) -> isValidAST a)
-//
-//            return isValid
+            //                ast
+            //                |> Array.forall (fun (a, _, _) -> isValidAST a)
+            //
+            //            return isValid
             return true
         with
         | _ -> return false
@@ -376,14 +376,14 @@ let makeRange fileName startLine startCol endLine endCol =
     mkRange fileName (mkPos startLine startCol) (mkPos endLine endCol)
 
 /// Get first non-whitespace line
-let rec getStartLineIndex (lines: _ []) i =
+let rec getStartLineIndex (lines: _[]) i =
     if i = lines.Length - 1
        || not <| String.IsNullOrWhiteSpace(lines.[i]) then
         i
     else
         getStartLineIndex lines (i + 1)
 
-let rec getEndLineIndex (lines: _ []) i =
+let rec getEndLineIndex (lines: _[]) i =
     if i = 0
        || not <| String.IsNullOrWhiteSpace(lines.[i]) then
         i

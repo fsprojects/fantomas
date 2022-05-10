@@ -23,6 +23,8 @@ github: fsprojects/fantomas:829faa6ba834f99afed9b4434b3a1680536474b2 src/Fantoma
 
 # F# compiler source
 github: dotnet/fsharp:7de9637f8d7839c2312748dcbbabb4cda7455548 src/fsharp/FSComp.txt
+github: dotnet/fsharp:7de9637f8d7839c2312748dcbbabb4cda7455548 src/fsharp/fsi/FSIstrings.txt
+github: dotnet/fsharp:7de9637f8d7839c2312748dcbbabb4cda7455548 src/fsharp/FSStrings.resx
 github: dotnet/fsharp:7de9637f8d7839c2312748dcbbabb4cda7455548 src/fsharp/utils/sformat.fsi
 github: dotnet/fsharp:7de9637f8d7839c2312748dcbbabb4cda7455548 src/fsharp/utils/sformat.fs
 github: dotnet/fsharp:7de9637f8d7839c2312748dcbbabb4cda7455548 src/fsharp/sr.fsi

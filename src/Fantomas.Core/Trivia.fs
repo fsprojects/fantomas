@@ -277,7 +277,7 @@ let private transformNonEmptyNodes (nodes: TriviaNodeAssigner list) : TriviaNode
         else
             None)
 
-let private collectTriviaFromDirectives
+let internal collectTriviaFromDirectives
     (source: ISourceText)
     (directives: ConditionalDirectiveTrivia list)
     : Trivia list =
@@ -290,7 +290,7 @@ let private collectTriviaFromDirectives
         | ConditionalDirectiveTrivia.Else r -> { Item = Directive "#else"; Range = r }
         | ConditionalDirectiveTrivia.EndIf r -> { Item = Directive "#endif"; Range = r })
 
-let private collectTriviaFromCodeComments (source: ISourceText) (codeComments: CommentTrivia list) : Trivia list =
+let internal collectTriviaFromCodeComments (source: ISourceText) (codeComments: CommentTrivia list) : Trivia list =
     codeComments
     |> List.map (function
         | CommentTrivia.BlockComment r ->
@@ -310,7 +310,7 @@ let private collectTriviaFromCodeComments (source: ISourceText) (codeComments: C
 
             { Item = item; Range = r })
 
-let private collectTriviaFromBlankLines
+let internal collectTriviaFromBlankLines
     (source: ISourceText)
     (triviaNodes: TriviaNodeAssigner list)
     (codeComments: CommentTrivia list)
@@ -390,8 +390,8 @@ let collectTrivia (config: FormatConfig) (source: ISourceText) (ast: ParsedInput
 
     let startOfSourceCode = 1
     //        match tokens with
-//        | h :: _ -> h.LineNumber // Keep track of comments or hash defines before the first AST node
-//        | _ -> 1
+    //        | h :: _ -> h.LineNumber // Keep track of comments or hash defines before the first AST node
+    //        | _ -> 1
 
     match trivia with
     | [] -> []

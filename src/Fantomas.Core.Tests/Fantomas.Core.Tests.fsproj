@@ -112,6 +112,7 @@
     <Compile Include="Ragnarok\SynTypeDefnSimpleReprRecordTests.fs" />
     <Compile Include="Ragnarok\SynTypeDefnSigReprSimpleTests.fs" />
     <Compile Include="Ragnarok\NamedArgumentExpressionTests.fs" />
+    <Compile Include="IdentTests.fs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Fantomas.Extras\Fantomas.Extras.fsproj" />

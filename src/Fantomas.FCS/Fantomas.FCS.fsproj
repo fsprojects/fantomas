@@ -18,6 +18,13 @@
     <EmbeddedText Include="..\..\paket-files\dotnet\fsharp\src\fsharp\FSComp.txt">
       <Link>FSComp.txt</Link>
     </EmbeddedText>
+    <EmbeddedText Include="..\..\paket-files\dotnet\fsharp\src\fsharp\fsi\FSIstrings.txt">
+      <Link>FSIstrings.txt</Link>
+    </EmbeddedText>
+    <EmbeddedResource Include="..\..\paket-files\dotnet\fsharp\src\fsharp\FSStrings.resx">
+      <Link>FSStrings.resx</Link>
+      <LogicalName>FSStrings.resources</LogicalName>
+    </EmbeddedResource>
     <Compile Include="..\..\paket-files\dotnet\fsharp\src\fsharp\utils\sformat.fsi">
       <Link>ErrorText\sformat.fsi</Link>
     </Compile>

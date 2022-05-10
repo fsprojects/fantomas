@@ -1,5 +1,21 @@
 # Changelog
 
+## [5.0.0-alpha-005] - 2022-05-07
+
+### Fixed
+* Fantomas v4.6.4 and onwards removes backticks. [#2164](https://github.com/fsprojects/fantomas/issues/2164)
+* include is reserved keyword. [#2167](https://github.com/fsprojects/fantomas/issues/2167)
+* base keyword given backticks when overriding with argument. [#2212](https://github.com/fsprojects/fantomas/issues/2212)
+* Fantomas removes backticks around constraint. [#2116](https://github.com/fsprojects/fantomas/issues/2116)
+* Keep backticks in identifiers. [#2034](https://github.com/fsprojects/fantomas/issues/2034)
+* Parens stripped from custom definitions of op_Range and op_RangeStep operators. [#1842](https://github.com/fsprojects/fantomas/issues/1842)
+* XML docs for commented code automatically removed. [#2186](https://github.com/fsprojects/fantomas/issues/2186)
+
+## [5.0.0-alpha-004] - 2022-05-07
+
+### Changed
+* FCS: Expose FSharpParserDiagnostic from parseFile. [https://github.com/fsprojects/fantomas/pull/2233](2233)
+
 ## [5.0.0-alpha-003] - 2022-05-06
 
 ### Changed
