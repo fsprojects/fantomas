@@ -149,12 +149,7 @@ let private addAllTriviaAsContentAfter (trivia: Trivia list) (singleNode: Trivia
       ContentAfter = contentAfter }
     |> List.singleton
 
-let private addTriviaToTriviaNode
-    (config: FormatConfig)
-    (startOfSourceCode: int)
-    (triviaNodes: TriviaNodeAssigner list)
-    trivia
-    =
+let private addTriviaToTriviaNode (startOfSourceCode: int) (triviaNodes: TriviaNodeAssigner list) trivia =
     match trivia with
     | { Item = Comment (LineCommentOnSingleLine _ as comment)
         Range = range } ->
@@ -213,32 +208,16 @@ let private addTriviaToTriviaNode
 
     // Newlines are only relevant if they occur after the first line of source code
     | { Item = Newline; Range = range } when (range.StartLine > startOfSourceCode) ->
-        let canAddNewline triviaContent =
-            let numberOfNewlinesAtEndOfContent triviaContent =
-                ResizeArray.revSeq triviaContent
-                |> Seq.takeWhile ((=) Newline)
-                |> Seq.length
-
-            numberOfNewlinesAtEndOfContent triviaContent < config.KeepMaxBlankLines
-
         let nodeAfterLine = findFirstNodeAfterLine triviaNodes range.StartLine
 
         match nodeAfterLine with
         | Some _ ->
             nodeAfterLine
-            |> updateTriviaNode
-                (fun tn ->
-                    if canAddNewline tn.ContentBefore then
-                        tn.ContentBefore.Add(Newline))
-                triviaNodes
+            |> updateTriviaNode (fun tn -> tn.ContentBefore.Add(Newline)) triviaNodes
         | None ->
             // try and find a node above
             findNodeBeforeLineFromStart triviaNodes range.StartLine
-            |> updateTriviaNode
-                (fun tn ->
-                    if canAddNewline tn.ContentAfter then
-                        tn.ContentAfter.Add(Newline))
-                triviaNodes
+            |> updateTriviaNode (fun tn -> tn.ContentAfter.Add(Newline)) triviaNodes
 
     | { Item = Directive dc as directive
         Range = range } ->
@@ -311,6 +290,7 @@ let internal collectTriviaFromCodeComments (source: ISourceText) (codeComments: 
             { Item = item; Range = r })
 
 let internal collectTriviaFromBlankLines
+    (config: FormatConfig)
     (source: ISourceText)
     (triviaNodes: TriviaNodeAssigner list)
     (codeComments: CommentTrivia list)
@@ -348,21 +328,24 @@ let internal collectTriviaFromBlankLines
 
     let max = source.GetLineCount() - 1
 
-    [ 0..max ]
-    |> List.choose (fun idx ->
+    (0, [ 0..max ])
+    ||> List.chooseState (fun count idx ->
         if ignoreLines.Contains(idx + 1) then
-            None
+            0, None
         else
             let line = source.GetLineString(idx)
 
             if String.isNotNullOrWhitespace line then
-                None
+                0, None
             else
                 let range =
                     let p = Position.mkPos (idx + 1) 0
                     Range.mkFileIndexRange fileIndex p p
 
-                Some { Item = Newline; Range = range })
+                if count < config.KeepMaxBlankLines then
+                    (count + 1), Some { Item = Newline; Range = range }
+                else
+                    count, None)
 
 (*
     1. Collect TriviaNode from tokens and AST
@@ -385,7 +368,7 @@ let collectTrivia (config: FormatConfig) (source: ISourceText) (ast: ParsedInput
     let trivia =
         [ yield! collectTriviaFromDirectives source directives
           yield! collectTriviaFromCodeComments source codeComments
-          yield! collectTriviaFromBlankLines source triviaNodes codeComments ]
+          yield! collectTriviaFromBlankLines config source triviaNodes codeComments ]
         |> List.sortBy (fun n -> n.Range.Start.Line, n.Range.Start.Column)
 
     let startOfSourceCode = 1
@@ -399,5 +382,5 @@ let collectTrivia (config: FormatConfig) (source: ISourceText) (ast: ParsedInput
         match ast, triviaNodes with
         | EmptyFile _, h :: _ -> addAllTriviaAsContentAfter trivia h
         | _ ->
-            List.fold (addTriviaToTriviaNode config startOfSourceCode) triviaNodes trivia
+            List.fold (addTriviaToTriviaNode startOfSourceCode) triviaNodes trivia
             |> transformNonEmptyNodes

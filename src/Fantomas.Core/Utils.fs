@@ -135,6 +135,15 @@ module List =
             s <- s'
             r)
 
+    let chooseState f state l =
+        let mutable s = state
+
+        l
+        |> List.choose (fun x ->
+            let s', r = f s x
+            s <- s'
+            r)
+
     let isNotEmpty l = (List.isEmpty >> not) l
 
     let moreThanOne =
@@ -153,15 +162,6 @@ module List =
             | [] -> List.rev before, after
 
         go 0 [] xs
-
-module ResizeArray =
-    let revSeq (xs: ResizeArray<_>) =
-        let count = xs.Count
-
-        seq {
-            for i = count - 1 downto 0 do
-                yield xs[i]
-        }
 
 module Map =
     let tryFindOrDefault (defaultValue: 'g) (key: 't) (map: Map<'t, 'g>) =
