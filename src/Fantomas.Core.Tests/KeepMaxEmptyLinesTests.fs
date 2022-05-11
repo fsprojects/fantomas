@@ -5,7 +5,7 @@ open FsUnit
 open Fantomas.Core.Tests.TestHelper
 open Fantomas.Core.FormatConfig
 
-let config x = { config with KeepMaxBlankLines = x }
+let config x = { config with KeepMaxNumberOfBlankLines = x }
 
 [<Test>]
 let ``reduce 2 empty lines to 1`` () =

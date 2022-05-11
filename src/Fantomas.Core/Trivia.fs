@@ -342,7 +342,7 @@ let internal collectTriviaFromBlankLines
                     let p = Position.mkPos (idx + 1) 0
                     Range.mkFileIndexRange fileIndex p p
 
-                if count < config.KeepMaxBlankLines then
+                if count < config.KeepMaxNumberOfBlankLines then
                     (count + 1), Some { Item = Newline; Range = range }
                 else
                     count, None)

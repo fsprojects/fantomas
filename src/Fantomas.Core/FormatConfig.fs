@@ -224,7 +224,7 @@ type FormatConfig =
 
       [<Category("Convention")>]
       [<DisplayName("Maximum number of consecutive blank lines to keep")>]
-      KeepMaxBlankLines: Num
+      KeepMaxNumberOfBlankLines: Num
 
       [<Category("Convention")>]
       [<DisplayName("Strict mode")>]
@@ -272,5 +272,5 @@ type FormatConfig =
           BlankLinesAroundNestedMultilineExpressions = true
           BarBeforeDiscriminatedUnionDeclaration = false
           Ragnarok = false
-          KeepMaxBlankLines = 100
+          KeepMaxNumberOfBlankLines = 100
           StrictMode = false }
