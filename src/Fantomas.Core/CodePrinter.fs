@@ -1908,215 +1908,12 @@ and genExpr astContext synExpr ctx =
 
             expressionFitsOnRestOfLine short long
 
+        | DotGetAppWithLambda ((e, es, lpr, lambda, rpr, pr), lids) ->
+            genAppWithLambda (e, es, lpr, lambda, rpr, pr) false (Some lids) astContext
+
         // functionName arg1 arg2 (fun x y z -> ...)
         | AppWithLambda (e, es, lpr, lambda, rpr, pr) ->
-            let sepSpaceAfterFunctionName =
-                let sepSpaceBasedOnSetting e =
-                    match e with
-                    | Paren _ -> sepSpace
-                    | UppercaseSynExpr -> (fun ctx -> onlyIf ctx.Config.SpaceBeforeUppercaseInvocation sepSpace ctx)
-                    | LowercaseSynExpr -> (fun ctx -> onlyIf ctx.Config.SpaceBeforeLowercaseInvocation sepSpace ctx)
-
-                match es with
-                | [] -> sepSpaceBasedOnSetting e
-                | _ -> sepSpace
-
-            let short =
-                genExpr astContext e
-                +> sepSpaceAfterFunctionName
-                +> col sepSpace es (genExpr astContext)
-                +> onlyIf (List.isNotEmpty es) sepSpace
-                +> (sepOpenTFor lpr
-                    +> (match lambda with
-                        | Choice1Of2 (pats, arrowRange, body, lambdaRange) ->
-                            !- "fun "
-                            +> col sepSpace pats (genPat astContext)
-                            +> optSingle
-                                (fun arrowRange ->
-                                    sepArrow
-                                    |> genTriviaFor SynExpr_Lambda_Arrow arrowRange)
-                                arrowRange
-                            +> genExprKeepIndentInBranch astContext body
-                            |> genTriviaFor SynExpr_Lambda lambdaRange
-                        | Choice2Of2 (keywordRange, cs, range) ->
-                            (!- "function "
-                             |> genTriviaFor SynExpr_MatchLambda_Function keywordRange)
-                            +> indent
-                            +> sepNln
-                            +> genClauses astContext cs
-                            +> unindent
-                            |> genTriviaFor SynExpr_MatchLambda range)
-                    +> sepNlnWhenWriteBeforeNewlineNotEmpty sepNone
-                    +> sepCloseTFor rpr
-                    |> genTriviaFor SynExpr_Paren pr)
-
-            let long (ctx: Context) : Context =
-                if ctx.Config.MultiLineLambdaClosingNewline then
-                    let genArguments =
-                        match es with
-                        | [] ->
-                            match lambda with
-                            | Choice1Of2 (pats, arrowRange, bodyExpr, range) ->
-                                sepOpenTFor lpr
-                                +> (!- "fun "
-                                    +> col sepSpace pats (genPat astContext)
-                                    +> genLambdaArrowWithTrivia
-                                        (genExprKeepIndentInBranch astContext)
-                                        bodyExpr
-                                        arrowRange
-                                    |> genTriviaFor SynExpr_Lambda range)
-                                +> sepNln
-                                +> sepCloseTFor rpr
-                                |> genTriviaFor SynExpr_Paren pr
-                            | Choice2Of2 (keywordRange, cs, matchLambdaRange) ->
-                                sepOpenTFor lpr
-                                +> indent
-                                +> sepNln
-                                +> ((!- "function "
-                                     |> genTriviaFor SynExpr_MatchLambda_Function keywordRange)
-                                    +> sepNln
-                                    +> genClauses astContext cs
-                                    |> genTriviaFor SynExpr_MatchLambda matchLambdaRange)
-                                +> unindent
-                                +> sepNln
-                                +> sepCloseTFor rpr
-                                |> genTriviaFor SynExpr_Paren pr
-
-                        | es ->
-                            col sepNln es (genExpr astContext)
-                            +> sepNln
-                            +> (match lambda with
-                                | Choice1Of2 (pats, arrowRange, bodyExpr, range) ->
-                                    genLambdaMultiLineClosingNewline
-                                        astContext
-                                        lpr
-                                        pats
-                                        arrowRange
-                                        bodyExpr
-                                        range
-                                        rpr
-                                        pr
-                                | Choice2Of2 (keywordRange, cs, matchLambdaRange) ->
-                                    (sepOpenTFor lpr
-                                     +> ((!- "function "
-                                          |> genTriviaFor SynExpr_MatchLambda_Function keywordRange)
-                                         +> sepNln
-                                         +> genClauses astContext cs
-                                         |> genTriviaFor SynExpr_MatchLambda matchLambdaRange)
-                                     +> sepNln
-                                     +> sepCloseTFor rpr)
-                                    |> genTriviaFor SynExpr_Paren pr)
-                            +> unindent
-
-                    (genExpr astContext e
-                     +> ifElse (List.isEmpty es) sepSpaceAfterFunctionName (indent +> sepNln)
-                     +> genArguments)
-                        ctx
-                else
-                    match lambda with
-                    | Choice1Of2 (pats, arrowRange, body, lambdaRange) ->
-                        let singleLineTestExpr =
-                            genExpr astContext e
-                            +> sepSpaceAfterFunctionName
-                            +> col sepSpace es (genExpr astContext)
-                            +> onlyIf (List.isNotEmpty es) sepSpace
-                            +> enterNodeFor SynExpr_Paren pr
-                            +> sepOpenTFor lpr
-                            +> enterNodeFor SynExpr_Lambda lambdaRange
-                            +> !- "fun "
-                            +> col sepSpace pats (genPat astContext)
-                            +> optSingle
-                                (fun arrowRange ->
-                                    sepArrow
-                                    |> genTriviaFor SynExpr_Lambda_Arrow arrowRange)
-                                arrowRange
-
-                        let singleLine =
-                            genExpr astContext e
-                            +> sepSpaceAfterFunctionName
-                            +> col sepSpace es (genExpr astContext)
-                            +> onlyIf (List.isNotEmpty es) sepSpace
-                            +> (sepOpenTFor lpr
-                                +> (!- "fun "
-                                    +> col sepSpace pats (genPat astContext)
-                                    +> genLambdaArrowWithTrivia (genExprKeepIndentInBranch astContext) body arrowRange
-                                    |> genTriviaFor SynExpr_Lambda lambdaRange)
-                                +> sepNlnWhenWriteBeforeNewlineNotEmpty sepNone
-                                +> sepCloseTFor rpr
-                                |> genTriviaFor SynExpr_Paren pr)
-
-                        let multiLine =
-                            genExpr astContext e
-                            +> indent
-                            +> sepNln
-                            +> col sepNln es (genExpr astContext)
-                            +> onlyIfNot (List.isEmpty es) sepNln
-                            +> (sepOpenTFor lpr
-                                +> (!- "fun "
-                                    +> col sepSpace pats (genPat astContext)
-                                    +> genLambdaArrowWithTrivia (genExprKeepIndentInBranch astContext) body arrowRange
-                                    |> genTriviaFor SynExpr_Lambda lambdaRange)
-                                +> sepCloseTFor rpr
-                                |> genTriviaFor SynExpr_Paren pr)
-                            +> unindent
-
-                        if futureNlnCheck singleLineTestExpr ctx then
-                            multiLine ctx
-                        else
-                            singleLine ctx
-
-                    | Choice2Of2 (keywordRange, cs, matchLambdaRange) ->
-                        let singleLineTestExpr =
-                            genExpr astContext e
-                            +> sepSpaceAfterFunctionName
-                            +> col sepSpace es (genExpr astContext)
-                            +> enterNodeFor SynExpr_Paren pr
-                            +> sepOpenTFor lpr
-                            +> enterNodeFor SynExpr_MatchLambda matchLambdaRange
-                            +> enterNodeFor SynExpr_MatchLambda_Function keywordRange
-                            +> !- "function "
-
-                        let singleLine =
-                            genExpr astContext e
-                            +> sepSpaceAfterFunctionName
-                            +> col sepSpace es (genExpr astContext)
-                            +> sepSpace
-                            +> (sepOpenTFor lpr
-                                +> ((!- "function "
-                                     |> genTriviaFor SynExpr_MatchLambda_Function keywordRange)
-                                    +> indent
-                                    +> sepNln
-                                    +> genClauses astContext cs
-                                    +> unindent
-                                    |> genTriviaFor SynExpr_MatchLambda matchLambdaRange)
-                                +> sepNlnWhenWriteBeforeNewlineNotEmpty id
-                                +> sepCloseTFor rpr)
-                            |> genTriviaFor SynExpr_Paren pr
-
-                        let multiLine =
-                            genExpr astContext e
-                            +> indent
-                            +> sepNln
-                            +> col sepNln es (genExpr astContext)
-                            +> sepNln
-                            +> (sepOpenTFor lpr
-                                +> atCurrentColumn (
-                                    (!- "function "
-                                     |> genTriviaFor SynExpr_MatchLambda_Function keywordRange)
-                                    +> sepNln
-                                    +> genClauses astContext cs
-                                    |> genTriviaFor SynExpr_MatchLambda matchLambdaRange
-                                )
-                                +> sepCloseTFor rpr
-                                |> genTriviaFor SynExpr_Paren pr)
-                            +> unindent
-
-                        if futureNlnCheck singleLineTestExpr ctx then
-                            multiLine ctx
-                        else
-                            singleLine ctx
-
-            expressionFitsOnRestOfLine short long
+            genAppWithLambda (e, es, lpr, lambda, rpr, pr) true None astContext
 
         | NestedIndexWithoutDotExpr (identifierExpr, indexExpr, argExpr) ->
             genExpr astContext identifierExpr
@@ -3332,6 +3129,224 @@ and genAppWithSingleParenthesisArgument (e, lpr, a, rpr, _pr) astContext =
     +> sepOpenTFor lpr
     +> (genExpr astContext a)
     +> sepCloseTFor rpr
+
+and genAppWithLambda (e, es, lpr, lambda, rpr, pr) withSpaceBeforeLambdaParen lids astContext =
+    let addSynLongIdentAfterNlnIfGiven =
+        match lids with
+        | Some i ->
+            (indent
+             +> sepNln
+             +> genSynLongIdent true i
+             +> unindent)
+        | None -> id
+
+    let addSynLongIdentIfGiven =
+        match lids with
+        | Some i -> (indent >> genSynLongIdent true i)
+        | None -> id
+
+    let sepSpaceAfterFunctionName =
+        let sepSpaceBasedOnSetting e =
+            match e with
+            | Paren _ -> sepSpace
+            | UppercaseSynExpr -> (fun ctx -> onlyIf ctx.Config.SpaceBeforeUppercaseInvocation sepSpace ctx)
+            | LowercaseSynExpr -> (fun ctx -> onlyIf ctx.Config.SpaceBeforeLowercaseInvocation sepSpace ctx)
+
+        match es with
+        | [] -> sepSpaceBasedOnSetting e
+        | _ -> sepSpace
+
+    let short =
+        genExpr astContext e
+        +> sepSpaceAfterFunctionName
+        +> col sepSpace es (genExpr astContext)
+        +> onlyIf (List.isNotEmpty es) sepSpace
+        +> (sepOpenTFor lpr
+            +> (match lambda with
+                | Choice1Of2 (pats, arrowRange, body, lambdaRange) ->
+                    !- "fun "
+                    +> col sepSpace pats (genPat astContext)
+                    +> optSingle
+                        (fun arrowRange ->
+                            sepArrow
+                            |> genTriviaFor SynExpr_Lambda_Arrow arrowRange)
+                        arrowRange
+                    +> genExprKeepIndentInBranch astContext body
+                    |> genTriviaFor SynExpr_Lambda lambdaRange
+                | Choice2Of2 (keywordRange, cs, range) ->
+                    (!- "function "
+                     |> genTriviaFor SynExpr_MatchLambda_Function keywordRange)
+                    +> indent
+                    +> sepNln
+                    +> genClauses astContext cs
+                    +> unindent
+                    |> genTriviaFor SynExpr_MatchLambda range)
+            +> sepNlnWhenWriteBeforeNewlineNotEmpty sepNone
+            +> sepCloseTFor rpr
+            |> genTriviaFor SynExpr_Paren pr)
+        >> addSynLongIdentIfGiven
+
+    let long (ctx: Context) : Context =
+        if ctx.Config.MultiLineLambdaClosingNewline then
+            let genArguments =
+                match es with
+                | [] ->
+                    match lambda with
+                    | Choice1Of2 (pats, arrowRange, bodyExpr, range) ->
+                        sepOpenTFor lpr
+                        +> (!- "fun "
+                            +> col sepSpace pats (genPat astContext)
+                            +> genLambdaArrowWithTrivia (genExprKeepIndentInBranch astContext) bodyExpr arrowRange
+                            |> genTriviaFor SynExpr_Lambda range)
+                        +> sepNln
+                        +> sepCloseTFor rpr
+                        |> genTriviaFor SynExpr_Paren pr
+                    | Choice2Of2 (keywordRange, cs, matchLambdaRange) ->
+                        sepOpenTFor lpr
+                        +> indent
+                        +> sepNln
+                        +> ((!- "function "
+                             |> genTriviaFor SynExpr_MatchLambda_Function keywordRange)
+                            +> sepNln
+                            +> genClauses astContext cs
+                            |> genTriviaFor SynExpr_MatchLambda matchLambdaRange)
+                        +> unindent
+                        +> sepNln
+                        +> sepCloseTFor rpr
+                        |> genTriviaFor SynExpr_Paren pr
+
+                | es ->
+                    col sepNln es (genExpr astContext)
+                    +> sepNln
+                    +> (match lambda with
+                        | Choice1Of2 (pats, arrowRange, bodyExpr, range) ->
+                            genLambdaMultiLineClosingNewline astContext lpr pats arrowRange bodyExpr range rpr pr
+                        | Choice2Of2 (keywordRange, cs, matchLambdaRange) ->
+                            (sepOpenTFor lpr
+                             +> ((!- "function "
+                                  |> genTriviaFor SynExpr_MatchLambda_Function keywordRange)
+                                 +> sepNln
+                                 +> genClauses astContext cs
+                                 |> genTriviaFor SynExpr_MatchLambda matchLambdaRange)
+                             +> sepNln
+                             +> sepCloseTFor rpr)
+                            |> genTriviaFor SynExpr_Paren pr)
+                    +> unindent
+
+            (genExpr astContext e
+             +> ifElse (List.isEmpty es) sepSpaceAfterFunctionName (indent +> sepNln)
+             +> genArguments
+             +> addSynLongIdentAfterNlnIfGiven)
+                ctx
+        else
+            match lambda with
+            | Choice1Of2 (pats, arrowRange, body, lambdaRange) ->
+                let singleLineTestExpr =
+                    genExpr astContext e
+                    +> sepSpaceAfterFunctionName
+                    +> col sepSpace es (genExpr astContext)
+                    +> onlyIf withSpaceBeforeLambdaParen sepSpace
+                    +> enterNodeFor SynExpr_Paren pr
+                    +> sepOpenTFor lpr
+                    +> enterNodeFor SynExpr_Lambda lambdaRange
+                    +> !- "fun "
+                    +> col sepSpace pats (genPat astContext)
+                    +> optSingle
+                        (fun arrowRange ->
+                            sepArrow
+                            |> genTriviaFor SynExpr_Lambda_Arrow arrowRange)
+                        arrowRange
+
+                let singleLine =
+                    genExpr astContext e
+                    +> sepSpaceAfterFunctionName
+                    +> col sepSpace es (genExpr astContext)
+                    +> onlyIf withSpaceBeforeLambdaParen sepSpace
+                    +> (sepOpenTFor lpr
+                        +> (!- "fun "
+                            +> col sepSpace pats (genPat astContext)
+                            +> genLambdaArrowWithTrivia (genExprKeepIndentInBranch astContext) body arrowRange
+                            |> genTriviaFor SynExpr_Lambda lambdaRange)
+                        +> sepNlnWhenWriteBeforeNewlineNotEmpty sepNone
+                        +> sepCloseTFor rpr
+                        |> genTriviaFor SynExpr_Paren pr)
+                    +> addSynLongIdentAfterNlnIfGiven
+
+                let multiLine =
+                    genExpr astContext e
+                    +> indent
+                    +> sepNln
+                    +> col sepNln es (genExpr astContext)
+                    +> onlyIfNot (List.isEmpty es) sepNln
+                    +> (sepOpenTFor lpr
+                        +> (!- "fun "
+                            +> col sepSpace pats (genPat astContext)
+                            +> genLambdaArrowWithTrivia (genExprKeepIndentInBranch astContext) body arrowRange
+                            |> genTriviaFor SynExpr_Lambda lambdaRange)
+                        +> sepCloseTFor rpr
+                        |> genTriviaFor SynExpr_Paren pr)
+                    +> addSynLongIdentAfterNlnIfGiven
+                    +> unindent
+
+                if futureNlnCheck singleLineTestExpr ctx then
+                    multiLine ctx
+                else
+                    singleLine ctx
+
+            | Choice2Of2 (keywordRange, cs, matchLambdaRange) ->
+                let singleLineTestExpr =
+                    genExpr astContext e
+                    +> sepSpaceAfterFunctionName
+                    +> col sepSpace es (genExpr astContext)
+                    +> enterNodeFor SynExpr_Paren pr
+                    +> sepOpenTFor lpr
+                    +> enterNodeFor SynExpr_MatchLambda matchLambdaRange
+                    +> enterNodeFor SynExpr_MatchLambda_Function keywordRange
+                    +> !- "function "
+
+                let singleLine =
+                    genExpr astContext e
+                    +> sepSpaceAfterFunctionName
+                    +> col sepSpace es (genExpr astContext)
+                    +> sepSpace
+                    +> (sepOpenTFor lpr
+                        +> ((!- "function "
+                             |> genTriviaFor SynExpr_MatchLambda_Function keywordRange)
+                            +> indent
+                            +> sepNln
+                            +> genClauses astContext cs
+                            +> unindent
+                            |> genTriviaFor SynExpr_MatchLambda matchLambdaRange)
+                        +> sepNlnWhenWriteBeforeNewlineNotEmpty id
+                        +> sepCloseTFor rpr)
+                    |> genTriviaFor SynExpr_Paren pr
+                    >> addSynLongIdentIfGiven
+
+                let multiLine =
+                    genExpr astContext e
+                    +> indent
+                    +> sepNln
+                    +> col sepNln es (genExpr astContext)
+                    +> sepNln
+                    +> (sepOpenTFor lpr
+                        +> atCurrentColumn (
+                            (!- "function "
+                             |> genTriviaFor SynExpr_MatchLambda_Function keywordRange)
+                            +> sepNln
+                            +> genClauses astContext cs
+                            |> genTriviaFor SynExpr_MatchLambda matchLambdaRange
+                        )
+                        +> sepCloseTFor rpr
+                        |> genTriviaFor SynExpr_Paren pr)
+                    +> addSynLongIdentAfterNlnIfGiven
+                    +> unindent
+
+                if futureNlnCheck singleLineTestExpr ctx then
+                    multiLine ctx
+                else
+                    singleLine ctx
+
+    expressionFitsOnRestOfLine short long
 
 and genExprInIfOrMatch astContext (e: SynExpr) (ctx: Context) : Context =
     let short =

@@ -1293,6 +1293,12 @@ let (|AppWithLambda|_|) (e: SynExpr) =
         visit es id
     | _ -> None
 
+// Foo(fun x -> y).Bar
+let (|DotGetAppWithLambda|_|) =
+    function
+    | DotGet (AppWithLambda (e, [], lpr, c, rpr, pr), lids) -> Some((e, [], lpr, c, rpr, pr), lids)
+    | _ -> None
+
 // Type definitions
 
 let (|TDSREnum|TDSRUnion|TDSRRecord|TDSRNone|TDSRTypeAbbrev|TDSRException|) =

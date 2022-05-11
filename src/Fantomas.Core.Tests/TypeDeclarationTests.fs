@@ -806,7 +806,7 @@ type BlobHelper(Account : CloudStorageAccount) =
         """
 type BlobHelper(Account: CloudStorageAccount) =
     new(configurationSettingName, hostedService) =
-        CloudStorageAccount.SetConfigurationSettingPublisher(fun configName configSettingPublisher ->
+        CloudStorageAccount.SetConfigurationSettingPublisher (fun configName configSettingPublisher ->
             let connectionString =
                 if hostedService then
                     RoleEnvironment.GetConfigurationSettingValue(configName)
