@@ -10,7 +10,8 @@ let checkFormat config source expected =
     |> prepend newline
     |> should equal expected
 
-let config x = { config with KeepMaxNumberOfBlankLines = x }
+let config x =
+    { config with KeepMaxNumberOfBlankLines = x }
 
 [<Test>]
 let ``reduce 2 empty lines to 1`` () =
