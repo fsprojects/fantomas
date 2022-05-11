@@ -3184,7 +3184,6 @@ and genAppWithLambda (e, es, lpr, lambda, rpr, pr) withSpaceBeforeLambdaParen li
             +> sepNlnWhenWriteBeforeNewlineNotEmpty sepNone
             +> sepCloseTFor rpr
             |> genTriviaFor SynExpr_Paren pr)
-        >> addSynLongIdentIfGiven
 
     let long (ctx: Context) : Context =
         if ctx.Config.MultiLineLambdaClosingNewline then
@@ -3235,8 +3234,7 @@ and genAppWithLambda (e, es, lpr, lambda, rpr, pr) withSpaceBeforeLambdaParen li
 
             (genExpr astContext e
              +> ifElse (List.isEmpty es) sepSpaceAfterFunctionName (indent +> sepNln)
-             +> genArguments
-             +> addSynLongIdentAfterNlnIfGiven)
+             +> genArguments)
                 ctx
         else
             match lambda with
@@ -3270,7 +3268,6 @@ and genAppWithLambda (e, es, lpr, lambda, rpr, pr) withSpaceBeforeLambdaParen li
                         +> sepNlnWhenWriteBeforeNewlineNotEmpty sepNone
                         +> sepCloseTFor rpr
                         |> genTriviaFor SynExpr_Paren pr)
-                    +> addSynLongIdentAfterNlnIfGiven
 
                 let multiLine =
                     genExpr astContext e
@@ -3285,7 +3282,6 @@ and genAppWithLambda (e, es, lpr, lambda, rpr, pr) withSpaceBeforeLambdaParen li
                             |> genTriviaFor SynExpr_Lambda lambdaRange)
                         +> sepCloseTFor rpr
                         |> genTriviaFor SynExpr_Paren pr)
-                    +> addSynLongIdentAfterNlnIfGiven
                     +> unindent
 
                 if futureNlnCheck singleLineTestExpr ctx then
@@ -3320,7 +3316,6 @@ and genAppWithLambda (e, es, lpr, lambda, rpr, pr) withSpaceBeforeLambdaParen li
                         +> sepNlnWhenWriteBeforeNewlineNotEmpty id
                         +> sepCloseTFor rpr)
                     |> genTriviaFor SynExpr_Paren pr
-                    >> addSynLongIdentIfGiven
 
                 let multiLine =
                     genExpr astContext e
@@ -3338,7 +3333,6 @@ and genAppWithLambda (e, es, lpr, lambda, rpr, pr) withSpaceBeforeLambdaParen li
                         )
                         +> sepCloseTFor rpr
                         |> genTriviaFor SynExpr_Paren pr)
-                    +> addSynLongIdentAfterNlnIfGiven
                     +> unindent
 
                 if futureNlnCheck singleLineTestExpr ctx then
@@ -3346,7 +3340,7 @@ and genAppWithLambda (e, es, lpr, lambda, rpr, pr) withSpaceBeforeLambdaParen li
                 else
                     singleLine ctx
 
-    expressionFitsOnRestOfLine short long
+    expressionFitsOnRestOfLine (short +> addSynLongIdentIfGiven) (long +> addSynLongIdentAfterNlnIfGiven)
 
 and genExprInIfOrMatch astContext (e: SynExpr) (ctx: Context) : Context =
     let short =
