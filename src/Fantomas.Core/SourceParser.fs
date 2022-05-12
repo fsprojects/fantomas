@@ -1645,9 +1645,7 @@ let private (|IdentExprOrLongIdentExpr|_|) e =
     | SynExpr.LongIdent _ -> Some e
     | _ -> None
 
-let rec (|IndexWithoutDotExpr|NestedIndexWithoutDotExpr|EndsWithSingleListAppExpr|EndsWithDualListAppExpr|NonAppExpr|)
-    e
-    =
+let rec (|IndexWithoutDotExpr|NestedIndexWithoutDotExpr|NonAppExpr|) e =
     match e with
     | SynExpr.App (ExprAtomicFlag.Atomic, false, identifierExpr, SynExpr.ArrayOrListComputed (false, indexExpr, _), _) ->
         IndexWithoutDotExpr(identifierExpr, indexExpr)
@@ -1659,32 +1657,45 @@ let rec (|IndexWithoutDotExpr|NestedIndexWithoutDotExpr|EndsWithSingleListAppExp
         IndexWithoutDotExpr(identifierExpr, indexExpr)
     | SynExpr.App (ExprAtomicFlag.NonAtomic, false, IndexWithoutDotExpr (identifier, indexExpr), argExpr, _) ->
         NestedIndexWithoutDotExpr(identifier, indexExpr, argExpr)
-
-    | SynExpr.App (ExprAtomicFlag.NonAtomic,
-                   false,
-                   EndsWithSingleListAppExpr (e, es, lastButOneArg),
-                   (ArrayOrList _ as lastArg),
-                   _) -> EndsWithDualListAppExpr(e, es, lastButOneArg, lastArg)
-    | SynExpr.App (ExprAtomicFlag.NonAtomic, false, (SynExpr.App _ as funcExpr), (ArrayOrList _ as lastArg), _) ->
-        let rec collectApplicationArgument (e: SynExpr) (continuation: SynExpr seq -> SynExpr seq) =
-            match e with
-            | SynExpr.App (ExprAtomicFlag.NonAtomic, false, (SynExpr.App _ as funcExpr), argExpr, _) ->
-                collectApplicationArgument funcExpr (fun es ->
-                    seq {
-                        yield! es
-                        yield argExpr
-                    }
-                    |> continuation)
-            | SynExpr.App (ExprAtomicFlag.NonAtomic, false, funcNameExpr, ae, _) ->
-                let args = Seq.toList (continuation (Seq.singleton ae))
-
-                EndsWithSingleListAppExpr(funcNameExpr, args, lastArg)
-            | _ -> NonAppExpr
-
-        collectApplicationArgument funcExpr id
-    | SynExpr.App (ExprAtomicFlag.NonAtomic, false, funcExpr, (ArrayOrList _ as lastArg), _) ->
-        EndsWithSingleListAppExpr(funcExpr, [], lastArg)
     | _ -> NonAppExpr
+
+let rec (|EndsWithSingleListAppExpr|_|) (isRagnarok: bool) (e: SynExpr) =
+    if not isRagnarok then
+        None
+    else
+        match e with
+        | SynExpr.App (ExprAtomicFlag.NonAtomic, false, (SynExpr.App _ as funcExpr), (ArrayOrList _ as lastArg), _) ->
+            let rec collectApplicationArgument (e: SynExpr) (continuation: SynExpr seq -> SynExpr seq) =
+                match e with
+                | SynExpr.App (ExprAtomicFlag.NonAtomic, false, (SynExpr.App _ as funcExpr), argExpr, _) ->
+                    collectApplicationArgument funcExpr (fun es ->
+                        seq {
+                            yield! es
+                            yield argExpr
+                        }
+                        |> continuation)
+                | SynExpr.App (ExprAtomicFlag.NonAtomic, false, funcNameExpr, ae, _) ->
+                    let args = Seq.toList (continuation (Seq.singleton ae))
+
+                    Some(funcNameExpr, args, lastArg)
+                | _ -> None
+
+            collectApplicationArgument funcExpr id
+        | SynExpr.App (ExprAtomicFlag.NonAtomic, false, funcExpr, (ArrayOrList _ as lastArg), _) ->
+            Some(funcExpr, [], lastArg)
+        | _ -> None
+
+let (|EndsWithDualListAppExpr|_|) (isRagnarok: bool) (e: SynExpr) =
+    if not isRagnarok then
+        None
+    else
+        match e with
+        | SynExpr.App (ExprAtomicFlag.NonAtomic,
+                       false,
+                       EndsWithSingleListAppExpr isRagnarok (e, es, lastButOneArg),
+                       (ArrayOrList _ as lastArg),
+                       _) -> Some(e, es, lastButOneArg, lastArg)
+        | _ -> None
 
 let isIfThenElseWithYieldReturn e =
     match e with

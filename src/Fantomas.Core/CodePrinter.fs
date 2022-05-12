@@ -1095,81 +1095,6 @@ and genNamedArgumentExpr (astContext: ASTContext) (operatorSli: SynLongIdent) e1
 and genExpr astContext synExpr ctx =
     let expr =
         match synExpr with
-        | EndsWithSingleListAppExpr (e, es, a) when ctx.Config.Ragnarok ->
-            // check if everything else beside the last array/list fits on one line
-            let singleLineTestExpr =
-                genExpr astContext e
-                +> sepSpace
-                +> col sepSpace es (genExpr astContext)
-
-            let short =
-                genExpr astContext e
-                +> sepSpace
-                +> col sepSpace es (genExpr astContext)
-                +> onlyIfNot es.IsEmpty sepSpace
-                +> genExpr astContext a
-
-            let long =
-                genExpr astContext e
-                +> indent
-                +> sepNln
-                +> col sepNln es (genExpr astContext)
-                +> onlyIfNot es.IsEmpty sepNln
-                +> genExpr astContext a
-                +> unindent
-
-            if futureNlnCheck singleLineTestExpr ctx then
-                long
-            else
-                short
-
-        | EndsWithDualListAppExpr (e, es, props, children) when ctx.Config.Ragnarok ->
-            // check if everything else beside the last array/list fits on one line
-            let singleLineTestExpr =
-                genExpr astContext e
-                +> sepSpace
-                +> col sepSpace es (genExpr astContext)
-                +> sepSpace
-                +> genExpr astContext props
-
-            let short =
-                genExpr astContext e
-                +> sepSpace
-                +> col sepSpace es (genExpr astContext)
-                +> onlyIfNot es.IsEmpty sepSpace
-                +> genExpr astContext props
-                +> sepSpace
-                +> genExpr astContext children
-
-            let long =
-                // check if everything besides both lists fits on one line
-                let singleLineTestExpr =
-                    genExpr astContext e
-                    +> sepSpace
-                    +> col sepSpace es (genExpr astContext)
-
-                if futureNlnCheck singleLineTestExpr ctx then
-                    genExpr astContext e
-                    +> indent
-                    +> sepNln
-                    +> col sepNln es (genExpr astContext)
-                    +> sepSpace
-                    +> genExpr astContext props
-                    +> sepSpace
-                    +> genExpr astContext children
-                    +> unindent
-                else
-                    genExpr astContext e
-                    +> sepSpace
-                    +> col sepSpace es (genExpr astContext)
-                    +> genExpr astContext props
-                    +> sepSpace
-                    +> genExpr astContext children
-
-            if futureNlnCheck singleLineTestExpr ctx then
-                long
-            else
-                short
         | LazyExpr (lazyKeyword, e) ->
             let isInfixExpr =
                 match e with
@@ -2200,6 +2125,81 @@ and genExpr astContext synExpr ctx =
             +> genExpr astContext indexExpr
             +> sepCloseLFixed
             +> genExpr astContext argExpr
+        | EndsWithDualListAppExpr ctx.Config.Ragnarok (e, es, props, children) ->
+            // check if everything else beside the last array/list fits on one line
+            let singleLineTestExpr =
+                genExpr astContext e
+                +> sepSpace
+                +> col sepSpace es (genExpr astContext)
+                +> sepSpace
+                +> genExpr astContext props
+
+            let short =
+                genExpr astContext e
+                +> sepSpace
+                +> col sepSpace es (genExpr astContext)
+                +> onlyIfNot es.IsEmpty sepSpace
+                +> genExpr astContext props
+                +> sepSpace
+                +> genExpr astContext children
+
+            let long =
+                // check if everything besides both lists fits on one line
+                let singleLineTestExpr =
+                    genExpr astContext e
+                    +> sepSpace
+                    +> col sepSpace es (genExpr astContext)
+
+                if futureNlnCheck singleLineTestExpr ctx then
+                    genExpr astContext e
+                    +> indent
+                    +> sepNln
+                    +> col sepNln es (genExpr astContext)
+                    +> sepSpace
+                    +> genExpr astContext props
+                    +> sepSpace
+                    +> genExpr astContext children
+                    +> unindent
+                else
+                    genExpr astContext e
+                    +> sepSpace
+                    +> col sepSpace es (genExpr astContext)
+                    +> genExpr astContext props
+                    +> sepSpace
+                    +> genExpr astContext children
+
+            if futureNlnCheck singleLineTestExpr ctx then
+                long
+            else
+                short
+
+        | EndsWithSingleListAppExpr ctx.Config.Ragnarok (e, es, a) ->
+            // check if everything else beside the last array/list fits on one line
+            let singleLineTestExpr =
+                genExpr astContext e
+                +> sepSpace
+                +> col sepSpace es (genExpr astContext)
+
+            let short =
+                genExpr astContext e
+                +> sepSpace
+                +> col sepSpace es (genExpr astContext)
+                +> onlyIfNot es.IsEmpty sepSpace
+                +> genExpr astContext a
+
+            let long =
+                genExpr astContext e
+                +> indent
+                +> sepNln
+                +> col sepNln es (genExpr astContext)
+                +> onlyIfNot es.IsEmpty sepNln
+                +> genExpr astContext a
+                +> unindent
+
+            if futureNlnCheck singleLineTestExpr ctx then
+                long
+            else
+                short
 
         // Always spacing in multiple arguments
         | App (e, es) -> genApp astContext e es
