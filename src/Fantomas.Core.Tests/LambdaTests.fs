@@ -312,7 +312,7 @@ CloudStorageAccount.SetConfigurationSettingPublisher(fun configName configSettin
     |> should
         equal
         """
-CloudStorageAccount.SetConfigurationSettingPublisher (fun configName configSettingPublisher ->
+CloudStorageAccount.SetConfigurationSettingPublisher(fun configName configSettingPublisher ->
     let connectionString =
         if hostedService then
             RoleEnvironment.GetConfigurationSettingValue(configName)
@@ -731,7 +731,7 @@ services.AddHttpsRedirection(Action<HttpsRedirectionOptions>(fun options ->
         equal
         """
 services.AddHttpsRedirection(
-    Action<HttpsRedirectionOptions> (fun options ->
+    Action<HttpsRedirectionOptions>(fun options ->
         // meh
         options.HttpsPort <- Nullable(7002))
 )
@@ -1189,6 +1189,35 @@ let foo () =
         """
 let foo () =
     f () |> (fun x -> if x then 1 else 2) |> g
+"""
+
+[<Test>]
+let ``don't add space before paren lambda argument, 2041`` () =
+    formatSourceString
+        false
+        """
+Task.Run<CommandResult>(fun () ->
+    // long
+    // comment
+    task)
+|> ignore<Task<CommandResult>>
+
+Task.Run<CommandResult> (task)
+|> ignore<Task<CommandResult>>
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+Task.Run<CommandResult>(fun () ->
+    // long
+    // comment
+    task)
+|> ignore<Task<CommandResult>>
+
+Task.Run<CommandResult>(task)
+|> ignore<Task<CommandResult>>
 """
 
 [<Test>]

@@ -1909,11 +1909,31 @@ and genExpr astContext synExpr ctx =
             expressionFitsOnRestOfLine short long
 
         | DotGetAppWithLambda ((e, es, lpr, lambda, rpr, pr), lids) ->
-            genAppWithLambda (e, es, lpr, lambda, rpr, pr) false (Some lids) astContext
+            leadingExpressionIsMultiline
+                (genAppWithLambda astContext sepNone (e, es, lpr, lambda, rpr, pr))
+                (fun isMultline ->
+                    if isMultline then
+                        (indent
+                         +> sepNln
+                         +> genSynLongIdent true lids
+                         +> unindent)
+                    else
+                        (indent >> genSynLongIdent true lids))
 
         // functionName arg1 arg2 (fun x y z -> ...)
         | AppWithLambda (e, es, lpr, lambda, rpr, pr) ->
-            genAppWithLambda (e, es, lpr, lambda, rpr, pr) true None astContext
+            let sepSpaceAfterFunctionName =
+                let sepSpaceBasedOnSetting e =
+                    match e with
+                    | Paren _ -> sepSpace
+                    | UppercaseSynExpr -> (fun ctx -> onlyIf ctx.Config.SpaceBeforeUppercaseInvocation sepSpace ctx)
+                    | LowercaseSynExpr -> (fun ctx -> onlyIf ctx.Config.SpaceBeforeLowercaseInvocation sepSpace ctx)
+
+                match es with
+                | [] -> sepSpaceBasedOnSetting e
+                | _ -> sepSpace
+
+            genAppWithLambda astContext sepSpaceAfterFunctionName (e, es, lpr, lambda, rpr, pr)
 
         | NestedIndexWithoutDotExpr (identifierExpr, indexExpr, argExpr) ->
             genExpr astContext identifierExpr
@@ -3130,35 +3150,10 @@ and genAppWithSingleParenthesisArgument (e, lpr, a, rpr, _pr) astContext =
     +> (genExpr astContext a)
     +> sepCloseTFor rpr
 
-and genAppWithLambda (e, es, lpr, lambda, rpr, pr) withSpaceBeforeLambdaParen lids astContext =
-    let addSynLongIdentAfterNlnIfGiven =
-        match lids with
-        | Some i ->
-            (indent
-             +> sepNln
-             +> genSynLongIdent true i
-             +> unindent)
-        | None -> id
-
-    let addSynLongIdentIfGiven =
-        match lids with
-        | Some i -> (indent >> genSynLongIdent true i)
-        | None -> id
-
-    let sepSpaceAfterFunctionName =
-        let sepSpaceBasedOnSetting e =
-            match e with
-            | Paren _ -> sepSpace
-            | UppercaseSynExpr -> (fun ctx -> onlyIf ctx.Config.SpaceBeforeUppercaseInvocation sepSpace ctx)
-            | LowercaseSynExpr -> (fun ctx -> onlyIf ctx.Config.SpaceBeforeLowercaseInvocation sepSpace ctx)
-
-        match es with
-        | [] -> sepSpaceBasedOnSetting e
-        | _ -> sepSpace
-
+and genAppWithLambda astContext sep (e, es, lpr, lambda, rpr, pr) =
     let short =
         genExpr astContext e
-        +> sepSpaceAfterFunctionName
+        +> sep
         +> col sepSpace es (genExpr astContext)
         +> onlyIf (List.isNotEmpty es) sepSpace
         +> (sepOpenTFor lpr
@@ -3233,7 +3228,7 @@ and genAppWithLambda (e, es, lpr, lambda, rpr, pr) withSpaceBeforeLambdaParen li
                     +> unindent
 
             (genExpr astContext e
-             +> ifElse (List.isEmpty es) sepSpaceAfterFunctionName (indent +> sepNln)
+             +> ifElse (List.isEmpty es) sep (indent +> sepNln)
              +> genArguments)
                 ctx
         else
@@ -3241,9 +3236,9 @@ and genAppWithLambda (e, es, lpr, lambda, rpr, pr) withSpaceBeforeLambdaParen li
             | Choice1Of2 (pats, arrowRange, body, lambdaRange) ->
                 let singleLineTestExpr =
                     genExpr astContext e
-                    +> sepSpaceAfterFunctionName
+                    +> sep
                     +> col sepSpace es (genExpr astContext)
-                    +> onlyIf withSpaceBeforeLambdaParen sepSpace
+                    +> sep
                     +> enterNodeFor SynExpr_Paren pr
                     +> sepOpenTFor lpr
                     +> enterNodeFor SynExpr_Lambda lambdaRange
@@ -3257,9 +3252,9 @@ and genAppWithLambda (e, es, lpr, lambda, rpr, pr) withSpaceBeforeLambdaParen li
 
                 let singleLine =
                     genExpr astContext e
-                    +> sepSpaceAfterFunctionName
+                    +> sep
                     +> col sepSpace es (genExpr astContext)
-                    +> onlyIf withSpaceBeforeLambdaParen sepSpace
+                    +> sep
                     +> (sepOpenTFor lpr
                         +> (!- "fun "
                             +> col sepSpace pats (genPat astContext)
@@ -3292,7 +3287,7 @@ and genAppWithLambda (e, es, lpr, lambda, rpr, pr) withSpaceBeforeLambdaParen li
             | Choice2Of2 (keywordRange, cs, matchLambdaRange) ->
                 let singleLineTestExpr =
                     genExpr astContext e
-                    +> sepSpaceAfterFunctionName
+                    +> sep
                     +> col sepSpace es (genExpr astContext)
                     +> enterNodeFor SynExpr_Paren pr
                     +> sepOpenTFor lpr
@@ -3302,7 +3297,7 @@ and genAppWithLambda (e, es, lpr, lambda, rpr, pr) withSpaceBeforeLambdaParen li
 
                 let singleLine =
                     genExpr astContext e
-                    +> sepSpaceAfterFunctionName
+                    +> sep
                     +> col sepSpace es (genExpr astContext)
                     +> sepSpace
                     +> (sepOpenTFor lpr
@@ -3340,7 +3335,7 @@ and genAppWithLambda (e, es, lpr, lambda, rpr, pr) withSpaceBeforeLambdaParen li
                 else
                     singleLine ctx
 
-    expressionFitsOnRestOfLine (short +> addSynLongIdentIfGiven) (long +> addSynLongIdentAfterNlnIfGiven)
+    expressionFitsOnRestOfLine short long
 
 and genExprInIfOrMatch astContext (e: SynExpr) (ctx: Context) : Context =
     let short =
