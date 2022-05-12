@@ -135,6 +135,15 @@ module List =
             s <- s'
             r)
 
+    let chooseState f state l =
+        let mutable s = state
+
+        l
+        |> List.choose (fun x ->
+            let s', r = f s x
+            s <- s'
+            r)
+
     let isNotEmpty l = (List.isEmpty >> not) l
 
     let moreThanOne =

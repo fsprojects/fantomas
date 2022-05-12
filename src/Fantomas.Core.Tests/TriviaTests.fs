@@ -5,11 +5,12 @@ open Fantomas.Core
 open Fantomas.Core.SourceParser
 open Fantomas.Core.Tests.TestHelper
 open Fantomas.Core.TriviaTypes
+open Fantomas.Core.FormatConfig
 
 let private toTrivia source =
     let sourceText = CodeFormatterImpl.getSourceText source
     let ast, _ = Fantomas.FCS.Parse.parseFile false sourceText []
-    Trivia.collectTrivia sourceText ast
+    Trivia.collectTrivia FormatConfig.Default sourceText ast
 
 let private toTriviaWithDefines source =
     let sourceText = CodeFormatterImpl.getSourceText source
@@ -23,7 +24,7 @@ let private toTriviaWithDefines source =
     let defineCombinations = Defines.getDefineCombination hashDirectives
 
     defineCombinations
-    |> List.map (fun dc -> dc, Trivia.collectTrivia sourceText ast)
+    |> List.map (fun dc -> dc, Trivia.collectTrivia FormatConfig.Default sourceText ast)
     |> Map.ofList
 
 [<Test>]

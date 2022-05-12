@@ -91,6 +91,7 @@
     <Compile Include="IndexSyntaxTests.fs" />
     <Compile Include="InsertFinalNewlineTests.fs" />
     <Compile Include="SingleExprTests.fs" />
+    <Compile Include="KeepMaxEmptyLinesTests.fs" />
     <Compile Include="IgnoreFileTests.fs" />
     <Compile Include="Ragnarok\SynBindingValueExpressionTests.fs" />
     <Compile Include="Ragnarok\SynBindingFunctionExpressionTests.fs" />
