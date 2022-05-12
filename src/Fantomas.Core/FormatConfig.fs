@@ -211,6 +211,10 @@ type FormatConfig =
       Ragnarok: bool
 
       [<Category("Convention")>]
+      [<DisplayName("Maximum number of consecutive blank lines to keep")>]
+      KeepMaxNumberOfBlankLines: Num
+
+      [<Category("Convention")>]
       [<DisplayName("Strict mode")>]
       [<Description("Pretty printing based on ASTs only.\nPlease do not use this setting for formatting hand written code!")>]
       StrictMode: bool }
@@ -253,4 +257,5 @@ type FormatConfig =
           BlankLinesAroundNestedMultilineExpressions = true
           BarBeforeDiscriminatedUnionDeclaration = false
           Ragnarok = false
+          KeepMaxNumberOfBlankLines = 100
           StrictMode = false }

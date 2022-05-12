@@ -200,7 +200,7 @@ type internal Context =
     static member Create config (source: ISourceText option) (defineCombination: DefineCombination) (ast: ParsedInput) =
         let trivia, sourceText =
             match source with
-            | Some source when not config.StrictMode -> Trivia.collectTrivia source ast, Some source
+            | Some source when not config.StrictMode -> Trivia.collectTrivia config source ast, Some source
             | _ -> [], None
 
         let triviaByNodes =

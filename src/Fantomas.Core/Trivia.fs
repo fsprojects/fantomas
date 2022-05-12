@@ -8,6 +8,7 @@ open Fantomas.Core.ISourceTextExtensions
 open Fantomas.Core.SourceParser
 open Fantomas.Core.AstTransformer
 open Fantomas.Core.TriviaTypes
+open Fantomas.Core.FormatConfig
 
 let inline isMainNodeFor nodeType (node: TriviaNodeAssigner) = nodeType = node.Type
 
@@ -289,6 +290,7 @@ let internal collectTriviaFromCodeComments (source: ISourceText) (codeComments: 
             { Item = item; Range = r })
 
 let internal collectTriviaFromBlankLines
+    (config: FormatConfig)
     (source: ISourceText)
     (triviaNodes: TriviaNodeAssigner list)
     (codeComments: CommentTrivia list)
@@ -326,21 +328,24 @@ let internal collectTriviaFromBlankLines
 
     let max = source.GetLineCount() - 1
 
-    [ 0..max ]
-    |> List.choose (fun idx ->
+    (0, [ 0..max ])
+    ||> List.chooseState (fun count idx ->
         if ignoreLines.Contains(idx + 1) then
-            None
+            0, None
         else
             let line = source.GetLineString(idx)
 
             if String.isNotNullOrWhitespace line then
-                None
+                0, None
             else
                 let range =
                     let p = Position.mkPos (idx + 1) 0
                     Range.mkFileIndexRange fileIndex p p
 
-                Some { Item = Newline; Range = range })
+                if count < config.KeepMaxNumberOfBlankLines then
+                    (count + 1), Some { Item = Newline; Range = range }
+                else
+                    count, None)
 
 (*
     1. Collect TriviaNode from tokens and AST
@@ -348,7 +353,7 @@ let internal collectTriviaFromBlankLines
     3. Merge trivias with triviaNodes
     4. genTrivia should use ranges to identify what extra content should be added from what triviaNode
 *)
-let collectTrivia (source: ISourceText) (ast: ParsedInput) : TriviaNode list =
+let collectTrivia (config: FormatConfig) (source: ISourceText) (ast: ParsedInput) : TriviaNode list =
     let triviaNodesFromAST, directives, codeComments =
         match ast with
         | ParsedInput.ImplFile (ParsedImplFileInput (hds, mns, directives, codeComments)) ->
@@ -363,7 +368,7 @@ let collectTrivia (source: ISourceText) (ast: ParsedInput) : TriviaNode list =
     let trivia =
         [ yield! collectTriviaFromDirectives source directives
           yield! collectTriviaFromCodeComments source codeComments
-          yield! collectTriviaFromBlankLines source triviaNodes codeComments ]
+          yield! collectTriviaFromBlankLines config source triviaNodes codeComments ]
         |> List.sortBy (fun n -> n.Range.Start.Line, n.Range.Start.Column)
 
     let startOfSourceCode = 1
