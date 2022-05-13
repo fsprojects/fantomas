@@ -406,13 +406,13 @@ fsharp_multi_line_lambda_closing_newline = true
     Assert.IsTrue config.MultiLineLambdaClosingNewline
 
 [<Test>]
-let fsharp_keep_indent_in_branch () =
+let fsharp_experimental_keep_indent_in_branch () =
     let rootDir = tempName ()
 
     let editorConfig =
         """
 [*.fs]
-fsharp_keep_indent_in_branch = true
+fsharp_experimental_keep_indent_in_branch = true
 """
 
     use configFixture =
