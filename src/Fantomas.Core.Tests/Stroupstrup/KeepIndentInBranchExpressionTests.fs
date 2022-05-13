@@ -7,7 +7,7 @@ open Fantomas.Core.Tests.TestHelper
 let config =
     { config with
         MultilineBlockBracketsOnSameColumn = true
-        KeepIndentInBranch = true
+        ExperimentalKeepIndentInBranch = true
         ExperimentalStroupstrupStyle = true }
 
 // There currently is no conflict with this setting, but I'm guessing the case was never brought up.

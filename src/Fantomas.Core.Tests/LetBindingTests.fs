@@ -1640,7 +1640,7 @@ stepLog.LogInformation (
             AlignFunctionSignatureToIndentation = true
             AlternativeLongMemberDefinitions = true
             MultiLineLambdaClosingNewline = true
-            KeepIndentInBranch = true }
+            ExperimentalKeepIndentInBranch = true }
     |> prepend newline
     |> should
         equal
@@ -1691,7 +1691,7 @@ module Foo =
             AlignFunctionSignatureToIndentation = true
             AlternativeLongMemberDefinitions = true
             MultiLineLambdaClosingNewline = true
-            KeepIndentInBranch = true }
+            ExperimentalKeepIndentInBranch = true }
     |> prepend newline
     |> should
         equal

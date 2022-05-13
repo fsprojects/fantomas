@@ -5469,7 +5469,7 @@ and genExprKeepIndentInBranch (astContext: ASTContext) (e: SynExpr) : Context ->
 
         colWithNlnWhenItemIsMultilineUsingConfig items ctx
 
-    ifElseCtx (fun ctx -> ctx.Config.KeepIndentInBranch) keepIndentExpr (genExpr astContext e)
+    ifElseCtx (fun ctx -> ctx.Config.ExperimentalKeepIndentInBranch) keepIndentExpr (genExpr astContext e)
 
 and genKeepIndentMatch
     (astContext: ASTContext)

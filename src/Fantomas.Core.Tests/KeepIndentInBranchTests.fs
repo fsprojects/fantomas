@@ -5,7 +5,7 @@ open FsUnit
 open Fantomas.Core.Tests.TestHelper
 open Fantomas.Core.FormatConfig
 
-let config = { config with KeepIndentInBranch = true }
+let config = { config with ExperimentalKeepIndentInBranch = true }
 
 [<Test>]
 let ``single expression in if branch, multiple expressions in else branch`` () =
@@ -945,7 +945,7 @@ let main (args : Options) =
             AlignFunctionSignatureToIndentation = true
             AlternativeLongMemberDefinitions = true
             MultiLineLambdaClosingNewline = true
-            KeepIndentInBranch = true }
+            ExperimentalKeepIndentInBranch = true }
     |> prepend newline
     |> should
         equal
@@ -1021,7 +1021,7 @@ let main (args : Options) =
             AlignFunctionSignatureToIndentation = true
             AlternativeLongMemberDefinitions = true
             MultiLineLambdaClosingNewline = true
-            KeepIndentInBranch = true }
+            ExperimentalKeepIndentInBranch = true }
     |> prepend newline
     |> should
         equal
@@ -1098,7 +1098,7 @@ and [<CustomEquality ; NoComparison>] Bar<'context, 'a> =
             SpaceBeforeColon = true
             SpaceBeforeSemicolon = true
             MultilineBlockBracketsOnSameColumn = true
-            KeepIndentInBranch = true
+            ExperimentalKeepIndentInBranch = true
             AlignFunctionSignatureToIndentation = true
             AlternativeLongMemberDefinitions = true
             MultiLineLambdaClosingNewline = true }
@@ -1203,7 +1203,7 @@ module Foo =
             AlignFunctionSignatureToIndentation = true
             AlternativeLongMemberDefinitions = true
             MultiLineLambdaClosingNewline = true
-            KeepIndentInBranch = true }
+            ExperimentalKeepIndentInBranch = true }
     |> prepend newline
     |> should
         equal
@@ -1271,7 +1271,7 @@ module Foo =
             AlignFunctionSignatureToIndentation = true
             AlternativeLongMemberDefinitions = true
             MultiLineLambdaClosingNewline = true
-            KeepIndentInBranch = true }
+            ExperimentalKeepIndentInBranch = true }
     |> prepend newline
     |> should
         equal
@@ -1598,7 +1598,7 @@ module Foo =
             AlignFunctionSignatureToIndentation = true
             AlternativeLongMemberDefinitions = true
             MultiLineLambdaClosingNewline = true
-            KeepIndentInBranch = true }
+            ExperimentalKeepIndentInBranch = true }
     |> prepend newline
     |> should
         equal
@@ -1647,7 +1647,7 @@ module Foo =
             AlignFunctionSignatureToIndentation = true
             AlternativeLongMemberDefinitions = true
             MultiLineLambdaClosingNewline = true
-            KeepIndentInBranch = true }
+            ExperimentalKeepIndentInBranch = true }
     |> prepend newline
     |> should
         equal
@@ -1833,7 +1833,7 @@ let ``tuple is consider as short branch, 1800`` () =
 """
         { config with
             MultiLineLambdaClosingNewline = true
-            KeepIndentInBranch = true }
+            ExperimentalKeepIndentInBranch = true }
     |> prepend newline
     |> should
         equal
@@ -1878,7 +1878,7 @@ let ``parenthesis tuple is consider as short branch`` () =
 """
         { config with
             MultiLineLambdaClosingNewline = true
-            KeepIndentInBranch = true }
+            ExperimentalKeepIndentInBranch = true }
     |> prepend newline
     |> should
         equal
@@ -1934,7 +1934,7 @@ module Foo =
             AlignFunctionSignatureToIndentation = true
             AlternativeLongMemberDefinitions = true
             MultiLineLambdaClosingNewline = true
-            KeepIndentInBranch = true }
+            ExperimentalKeepIndentInBranch = true }
     |> prepend newline
     |> should
         equal
@@ -1994,7 +1994,7 @@ module Foo =
             AlignFunctionSignatureToIndentation = true
             AlternativeLongMemberDefinitions = true
             MultiLineLambdaClosingNewline = true
-            KeepIndentInBranch = true }
+            ExperimentalKeepIndentInBranch = true }
     |> prepend newline
     |> should
         equal
@@ -2041,7 +2041,7 @@ module Foo =
             MaxLineLength = 100
             MultilineBlockBracketsOnSameColumn = true
             MultiLineLambdaClosingNewline = true
-            KeepIndentInBranch = true }
+            ExperimentalKeepIndentInBranch = true }
     |> prepend newline
     |> should
         equal
@@ -2117,7 +2117,7 @@ module Foo =
             MaxLineLength = 100
             MultilineBlockBracketsOnSameColumn = true
             MultiLineLambdaClosingNewline = true
-            KeepIndentInBranch = true }
+            ExperimentalKeepIndentInBranch = true }
     |> prepend newline
     |> should
         equal

@@ -422,7 +422,7 @@ fsharp_keep_indent_in_branch = true
 
     let config = EditorConfig.readConfiguration fsharpFile.FSharpFile
 
-    Assert.IsTrue config.KeepIndentInBranch
+    Assert.IsTrue config.ExperimentalKeepIndentInBranch
 
 [<Test>]
 let fsharp_bar_before_discriminated_union_declaration () =

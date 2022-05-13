@@ -138,7 +138,7 @@ fsharp_newline_between_type_definition_and_members=false
 fsharp_align_function_signature_to_indentation=false
 fsharp_alternative_long_member_definitions=false
 fsharp_multi_line_lambda_closing_newline=false
-fsharp_keep_indent_in_branch=false
+fsharp_experimental_keep_indent_in_branch=false
 fsharp_blank_lines_around_nested_multiline_expressions=true
 fsharp_bar_before_discriminated_union_declaration=false
 fsharp_experimental_stroupstrup_style=false
@@ -954,7 +954,7 @@ let printListWithOffset a list1 =
     )
 ```
 
-### fsharp_keep_indent_in_branch
+### fsharp_experimental_keep_indent_in_branch
 
 Breaks the normal indentation flow for the last branch of a pattern match or if/then/else expression.
 Only when the pattern match or if/then/else is the return value of a function or member.

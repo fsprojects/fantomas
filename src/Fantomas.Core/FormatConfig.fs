@@ -182,7 +182,7 @@ type FormatConfig =
       [<Category("Indentation")>]
       [<DisplayName("Keep indent in branch")>]
       [<Description("Experimental feature, use at your own risk.")>]
-      KeepIndentInBranch: bool
+      ExperimentalKeepIndentInBranch: bool
 
       [<Category("Convention")>]
       [<DisplayName("Keep empty lines around nested multi-line expressions")>]
@@ -236,7 +236,7 @@ type FormatConfig =
           AlignFunctionSignatureToIndentation = false
           AlternativeLongMemberDefinitions = false
           MultiLineLambdaClosingNewline = false
-          KeepIndentInBranch = false
+          ExperimentalKeepIndentInBranch = false
           BlankLinesAroundNestedMultilineExpressions = true
           BarBeforeDiscriminatedUnionDeclaration = false
           ExperimentalStroupstrupStyle = false
