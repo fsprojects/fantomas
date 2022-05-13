@@ -10,6 +10,11 @@
 
 * Remove Elmish settings `fsharp_max_elmish_width`, `fsharp_single_argument_web_mode` & `fsharp_disable_elmish_syntax`. [#2180](https://github.com/fsprojects/fantomas/issues/2180)
 
+
+### Changed
+
+* Update FCS to More cleanup, e063dd2a7005faf953619ab4f232d1e3606c7ed2
+
 ## [5.0.0-alpha-005] - 2022-05-07
 
 ### Fixed
