@@ -1,10 +1,11 @@
 # Changelog
 
-## [Unreleased]
+## [5.0.0-alpha-006] - 2022-05-13
 
 ### Added
 
 * Format function application that end with a list in the Stroustrup bracket style. [#2244](https://github.com/fsprojects/fantomas/pull/2244)
+* Option to reduce multiple blank lines from source code. [#2198](https://github.com/fsprojects/fantomas/issues/2198)
 
 ### Removed
 
@@ -15,7 +16,7 @@
 
 ### Changed
 
-* Update FCS to More cleanup, e063dd2a7005faf953619ab4f232d1e3606c7ed2
+* Update FCS to 'More cleanup', commit e063dd2a7005faf953619ab4f232d1e3606c7ed2
 * Rename `fsharp_ragnarok` to `fsharp_experimental_stroupstrup_style` and `fsharp_keep_indent_in_branch` to `fsharp_experimental_keep_indent_in_branch`. [#2251](https://github.com/fsprojects/fantomas/pull/2251)
 * Consider wider default format for record declarations if any XML doc comments are present on fields. [#1879](https://github.com/fsprojects/fantomas/issues/1879)
 
