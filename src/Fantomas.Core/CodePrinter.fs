@@ -6,7 +6,6 @@ open FSharp.Compiler.Text
 open FSharp.Compiler.Syntax
 open FSharp.Compiler.SyntaxTrivia
 open FSharp.Compiler.Xml
-open Fantomas
 open Fantomas.Core.AstExtensions
 open Fantomas.Core.FormatConfig
 open Fantomas.Core.SourceParser
@@ -2909,7 +2908,7 @@ and genMultilineRecordInstance
 
     let expressionStartColumn = ctx.Column
 
-    let fieldsExpr = col sepSemiNln xs (genRecordFieldName astContext)
+    let fieldsExpr = col sepNln xs (genRecordFieldName astContext)
 
     let expr =
         match inheritOpt with
@@ -2939,7 +2938,7 @@ and genMultilineRecordInstance
                     atCurrentColumn
                         (genTriviaFor SynExpr_Record_OpeningBrace openingBrace sepOpenS
                          +> sepNlnWhenWriteBeforeNewlineNotEmpty sepNone // comment after curly brace
-                         +> col sepSemiNln xs (fun e ->
+                         +> col sepNln xs (fun e ->
                              // Add spaces to ensure the record field (incl trivia) starts at the right column.
                              addFixedSpaces targetColumn
                              // Lock the start of the record field, however keep potential indentations in relation to the opening curly brace
@@ -2978,7 +2977,7 @@ and genMultilineRecordInstanceAlignBrackets
     (eo: SynExpr option)
     (closingBrace: Range)
     =
-    let fieldsExpr = col sepSemiNln xs (genRecordFieldName astContext)
+    let fieldsExpr = col sepNln xs (genRecordFieldName astContext)
 
     let hasFields = List.isNotEmpty xs
 
@@ -3032,7 +3031,7 @@ and genMultilineAnonRecord (isStruct: bool) fields copyInfo (astContext: ASTCont
                 +> (!- " with"
                     +> indent
                     +> sepNln
-                    +> col sepSemiNln fields (genAnonRecordFieldName astContext)
+                    +> col sepNln fields (genAnonRecordFieldName astContext)
                     +> unindent)
             )
             +> sepCloseAnonRecd
@@ -3048,7 +3047,7 @@ and genMultilineAnonRecord (isStruct: bool) fields copyInfo (astContext: ASTCont
 
                 atCurrentColumn
                     (sepOpenAnonRecd
-                     +> col sepSemiNln fields (fun (AnonRecordFieldName (ident, eq, e)) ->
+                     +> col sepNln fields (fun (AnonRecordFieldName (ident, eq, e)) ->
                          let expr =
                              if ctx.Config.IndentSize < 3 then
                                  sepSpaceOrDoubleIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e)
@@ -3067,7 +3066,7 @@ and genMultilineAnonRecord (isStruct: bool) fields copyInfo (astContext: ASTCont
     onlyIf isStruct !- "struct " +> recordExpr
 
 and genMultilineAnonRecordAlignBrackets (isStruct: bool) fields copyInfo astContext =
-    let fieldsExpr = col sepSemiNln fields (genAnonRecordFieldName astContext)
+    let fieldsExpr = col sepNln fields (genAnonRecordFieldName astContext)
 
     let copyExpr fieldsExpr e =
         atCurrentColumnIndent (genExpr astContext e)
@@ -3149,7 +3148,7 @@ and genMultiLineArrayOrList
         (genTriviaFor SynExpr_ArrayOrList_OpeningDelimiter openingTokenRange sepOpenA
          +> atCurrentColumnIndent (
              sepNlnWhenWriteBeforeNewlineNotEmpty sepNone
-             +> col sepSemiNln xs (genExpr astContext)
+             +> col sepNln xs (genExpr astContext)
              +> genTriviaFor
                  SynExpr_ArrayOrList_ClosingDelimiter
                  closingTokenRange
@@ -3160,7 +3159,7 @@ and genMultiLineArrayOrList
         (genTriviaFor SynExpr_ArrayOrList_OpeningDelimiter openingTokenRange sepOpenL
          +> atCurrentColumnIndent (
              sepNlnWhenWriteBeforeNewlineNotEmpty sepNone
-             +> col sepSemiNln xs (genExpr astContext)
+             +> col sepNln xs (genExpr astContext)
              +> genTriviaFor
                  SynExpr_ArrayOrList_ClosingDelimiter
                  closingTokenRange
@@ -3785,7 +3784,7 @@ and genMultilineSimpleRecordTypeDefn astContext openingBrace withKeyword ms ao' 
     +> atCurrentColumn (
         leaveNodeFor SynTypeDefnSimpleRepr_Record_OpeningBrace openingBrace
         +> sepNlnWhenWriteBeforeNewlineNotEmpty sepNone
-        +> col sepSemiNln fs (genField astContext "")
+        +> col sepNln fs (genField astContext "")
     )
     +> genTriviaFor SynTypeDefnSimpleRepr_Record_ClosingBrace closingBrace sepCloseS
     +> optSingle (fun _ -> unindent) ao'
@@ -3802,7 +3801,7 @@ and genMultilineSimpleRecordTypeDefnAlignBrackets astContext openingBrace withKe
     +> sepNln
     +> atCurrentColumn (
         leaveNodeFor SynTypeDefnSimpleRepr_Record_OpeningBrace openingBrace
-        +> col sepSemiNln fs (genField astContext "")
+        +> col sepNln fs (genField astContext "")
     )
     +> unindent
     +> sepNln
@@ -4024,7 +4023,7 @@ and genSigSimpleRecord astContext openingBrace withKeyword ms ao' fs closingBrac
     +> atCurrentColumn (
         leaveNodeFor SynTypeDefnSimpleRepr_Record_OpeningBrace openingBrace
         +> sepNlnWhenWriteBeforeNewlineNotEmpty sepNone
-        +> col sepSemiNln fs (genField astContext "")
+        +> col sepNln fs (genField astContext "")
     )
     +> genTriviaFor SynTypeDefnSimpleRepr_Record_ClosingBrace closingBrace sepCloseS
     +> optSingle (fun _ -> unindent) ao'
@@ -4038,7 +4037,7 @@ and genSigSimpleRecordAlignBrackets astContext openingBrace withKeyword ms ao' f
     +> sepNln
     +> atCurrentColumn (
         leaveNodeFor SynTypeDefnSimpleRepr_Record_OpeningBrace closingBrace
-        +> col sepSemiNln fs (genField astContext "")
+        +> col sepNln fs (genField astContext "")
     )
     +> unindent
     +> sepNln
@@ -4333,7 +4332,7 @@ and genType astContext outerBracket t =
             let longExpression =
                 ifElse isStruct !- "struct " sepNone
                 +> sepOpenAnonRecd
-                +> atCurrentColumn (col sepSemiNln fields (genAnonRecordFieldType astContext))
+                +> atCurrentColumn (col sepNln fields (genAnonRecordFieldType astContext))
                 +> sepCloseAnonRecd
 
             fun (ctx: Context) ->
@@ -5022,7 +5021,7 @@ and genPat astContext pat =
         let genPats =
             let short = colAutoNlnSkip0 sepSemi ps (genPat astContext)
 
-            let long = col sepSemiNln ps (genPat astContext)
+            let long = col sepNln ps (genPat astContext)
             expressionFitsOnRestOfLine short long
 
         ifElse ps.IsEmpty (sepOpenLFixed +> sepCloseLFixed) (sepOpenL +> atCurrentColumn genPats +> sepCloseL)
@@ -5031,7 +5030,7 @@ and genPat astContext pat =
         let genPats =
             let short = colAutoNlnSkip0 sepSemi ps (genPat astContext)
 
-            let long = col sepSemiNln ps (genPat astContext)
+            let long = col sepNln ps (genPat astContext)
             expressionFitsOnRestOfLine short long
 
         ifElse ps.IsEmpty (sepOpenAFixed +> sepCloseAFixed) (sepOpenA +> atCurrentColumn genPats +> sepCloseA)
@@ -5045,14 +5044,14 @@ and genPat astContext pat =
         // Note that MultilineBlockBracketsOnSameColumn is not taken into account here.
         let multilineRecordExpr =
             sepOpenS
-            +> atCurrentColumn (col sepSemiNln xs (genPatRecordFieldName astContext))
+            +> atCurrentColumn (col sepNln xs (genPatRecordFieldName astContext))
             +> sepCloseS
 
         let multilineRecordExprAlignBrackets =
             sepOpenSFixed
             +> indent
             +> sepNln
-            +> atCurrentColumn (col sepSemiNln xs (genPatRecordFieldName astContext))
+            +> atCurrentColumn (col sepNln xs (genPatRecordFieldName astContext))
             +> unindent
             +> sepNln
             +> sepCloseSFixed

@@ -95,11 +95,11 @@ let ``should keep the (string option * Node) list type signature`` () =
       NextNodes : (string option * Node) list }
 
     """
-        { config with SemicolonAtEndOfLine = true }
+        config
     |> should
         equal
         """type Node =
-    { Name: string;
+    { Name: string
       NextNodes: (string option * Node) list }
 """
 

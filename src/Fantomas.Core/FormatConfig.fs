@@ -75,11 +75,6 @@ type FormatConfig =
       [<DisplayName("Insert final newline")>]
       InsertFinalNewline: bool
 
-      [<Category("Convention")>]
-      [<DisplayName("Semicolon at end-of-line")>]
-      [<Description("Forces a semicolon to be added to the end of a line")>]
-      SemicolonAtEndOfLine: bool
-
       [<Category("Spacing")>]
       [<DisplayName("Before parameter")>]
       SpaceBeforeParameter: bool
@@ -224,7 +219,6 @@ type FormatConfig =
           MaxLineLength = 120
           EndOfLine = EndOfLineStyle.FromEnvironment
           InsertFinalNewline = true
-          SemicolonAtEndOfLine = false
           SpaceBeforeParameter = true
           SpaceBeforeLowercaseInvocation = true
           SpaceBeforeUppercaseInvocation = false

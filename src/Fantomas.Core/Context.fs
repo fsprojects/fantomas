@@ -1105,13 +1105,6 @@ let internal sepSemi (ctx: Context) =
     | true, true -> str " ; "
     <| ctx
 
-let internal sepSemiNln (ctx: Context) =
-    // sepNln part is essential to indentation
-    if ctx.Config.SemicolonAtEndOfLine then
-        (!- ";" +> sepNln) ctx
-    else
-        sepNln ctx
-
 /// Conditional indentation on with keyword
 let internal indentOnWith (ctx: Context) =
     if ctx.Config.IndentOnTryWith then

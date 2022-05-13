@@ -112,7 +112,6 @@ indent_size=4
 max_line_length=120
 end_of_line=crlf
 insert_final_newline=true
-fsharp_semicolon_at_end_of_line=false
 fsharp_space_before_parameter=true
 fsharp_space_before_lowercase_invocation=true
 fsharp_space_before_uppercase_invocation=false
@@ -235,37 +234,6 @@ let a = 42
 
 ```fsharp
 let a = 42
-```
-
-### fsharp_semicolon_at_end_of_line
-
-Add semicolons at the end of lines.
-Default = false.
-
-`defaultConfig`
-
-```fsharp
-let saturn =
-    { X = 8.343366718
-      Y = 4.124798564
-      Z = -0.4035234171
-      VX = -0.002767425107 * daysPerYear
-      VY = 0.004998528012 * daysPerYear
-      VZ = 2.304172976e-05 * daysPerYear
-      Mass = 0.0002858859807 * solarMass }
-```
-
-`{ defaultConfig with SemicolonAtEndOfLine = true }`
-
-```fsharp
-let saturn =
-    { X = 8.343366718;
-      Y = 4.124798564;
-      Z = -0.4035234171;
-      VX = -0.002767425107 * daysPerYear;
-      VY = 0.004998528012 * daysPerYear;
-      VZ = 2.304172976e-05 * daysPerYear;
-      Mass = 0.0002858859807 * solarMass }
 ```
 
 ### fsharp_space_before_parameter
