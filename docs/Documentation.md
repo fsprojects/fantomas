@@ -136,7 +136,6 @@ fsharp_max_function_binding_width=40
 fsharp_max_dot_get_expression_width=50
 fsharp_multiline_block_brackets_on_same_column=false
 fsharp_newline_between_type_definition_and_members=false
-fsharp_keep_if_then_in_same_line=false
 fsharp_align_function_signature_to_indentation=false
 fsharp_alternative_long_member_definitions=false
 fsharp_multi_line_lambda_closing_newline=false
@@ -858,36 +857,6 @@ type Range =
       To: float }
 
     member this.Length = this.To - this.From
-```
-
-### fsharp_keep_if_then_in_same_line
-
-**Deprecated setting!**
-
-This setting will be removed in the next major version of Fantomas.
-As of 4.4, it has no effect anymore due to a change in the MS F# style guide.
-
-#### Original description:
-
-Bypasses the situation where `if`,`then` and `else` are placed underneath each other.
-This will ensure `if` and `then` are kept in the same line.
-Default = false.
-
-`defaultConfig`
-
-```fsharp
-if System.Char.IsUpper(c)
-then sprintf "________%s" (c.ToString().ToLower())
-else c.ToString()
-```
-
-`{ defaultConfig with KeepIfThenInSameLine = true }`
-
-```fsharp
-if System.Char.IsUpper(c) then
-    sprintf "________%s" (c.ToString().ToLower())
-else
-    c.ToString()
 ```
 
 ### fsharp_align_function_signature_to_indentation

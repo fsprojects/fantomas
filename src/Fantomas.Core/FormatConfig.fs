@@ -172,11 +172,6 @@ type FormatConfig =
       NewlineBetweenTypeDefinitionAndMembers: bool
 
       [<Category("Convention")>]
-      [<DisplayName("Keep If-Then in same line")>]
-      [<Description("Obsolete setting, this no longer has any effect and will be removed in the next major version.")>]
-      KeepIfThenInSameLine: bool
-
-      [<Category("Convention")>]
       [<DisplayName("Align function signature to indentation")>]
       AlignFunctionSignatureToIndentation: bool
 
@@ -243,7 +238,6 @@ type FormatConfig =
           MaxDotGetExpressionWidth = 50
           MultilineBlockBracketsOnSameColumn = false
           NewlineBetweenTypeDefinitionAndMembers = false
-          KeepIfThenInSameLine = false
           AlignFunctionSignatureToIndentation = false
           AlternativeLongMemberDefinitions = false
           MultiLineLambdaClosingNewline = false

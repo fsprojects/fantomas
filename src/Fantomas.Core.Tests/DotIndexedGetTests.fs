@@ -86,7 +86,6 @@ let mySampleMethod() =
             SpaceBeforeColon = true
             MaxIfThenElseShortWidth = 25
             MultilineBlockBracketsOnSameColumn = true
-            KeepIfThenInSameLine = true
             AlignFunctionSignatureToIndentation = true
             AlternativeLongMemberDefinitions = true
             MultiLineLambdaClosingNewline = true }
