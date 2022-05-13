@@ -391,7 +391,6 @@ let private ParseInput
             else
                 error (Error(FSComp.SR.buildInvalidSourceFileExtension filename, rangeStartup))
 
-
         scopedPragmas <- GetScopedPragmasForInput input
         input
     finally
@@ -891,7 +890,6 @@ let private getSyntaxErrorMessage ctxt =
                 | Parser.NONTERM_interaction
                 | Parser.NONTERM__startinteraction -> Some()
                 | _ -> None
-
 
             // Canonicalize the categories and check for a unique category
             ctxt.ReducibleProductions

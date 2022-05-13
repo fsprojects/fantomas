@@ -221,7 +221,6 @@ match x with
     }
 """
 
-
 [<Test>]
 let ``synMatchClause in try/with expression with record instance `` () =
     formatSourceString

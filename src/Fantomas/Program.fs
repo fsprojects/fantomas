@@ -8,7 +8,8 @@ open Argu
 open System.Text
 
 let extensions =
-    set [| ".fs"
+    set
+        [| ".fs"
            ".fsx"
            ".fsi"
            ".ml"
@@ -69,7 +70,8 @@ type OutputPath =
     | NotKnown
 
 let isInExcludedDir (fullPath: string) =
-    set [| "obj"
+    set
+        [| "obj"
            ".fable"
            "fable_modules"
            "node_modules" |]

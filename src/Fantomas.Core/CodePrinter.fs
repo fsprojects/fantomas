@@ -16,18 +16,20 @@ open Fantomas.Core.TriviaTypes
 /// This type consists of contextual information which is important for formatting
 /// Please avoid using this record as it can be the cause of unexpected behavior when used incorrectly
 type ASTContext =
-    { /// Current node is a subnode deep down in an interface
-      InterfaceRange: Range option
-      /// This pattern matters for formatting extern declarations
-      IsCStylePattern: bool
-      /// Range operators are naked in 'for..in..do' constructs
-      IsNakedRange: bool
-      /// A field is rendered as union field or not
-      IsUnionField: bool
-      /// First type param might need extra spaces to avoid parsing errors on `<^`, `<'`, etc.
-      IsFirstTypeParam: bool
-      /// Inside a SynPat of MatchClause
-      IsInsideMatchClausePattern: bool }
+    {
+        /// Current node is a subnode deep down in an interface
+        InterfaceRange: Range option
+        /// This pattern matters for formatting extern declarations
+        IsCStylePattern: bool
+        /// Range operators are naked in 'for..in..do' constructs
+        IsNakedRange: bool
+        /// A field is rendered as union field or not
+        IsUnionField: bool
+        /// First type param might need extra spaces to avoid parsing errors on `<^`, `<'`, etc.
+        IsFirstTypeParam: bool
+        /// Inside a SynPat of MatchClause
+        IsInsideMatchClausePattern: bool
+    }
     static member Default =
         { InterfaceRange = None
           IsCStylePattern = false
@@ -152,7 +154,6 @@ and genModuleOrNamespace
             genTriviaFor Ident_ ident.idRange sepNone
             |> genTriviaFor LongIdent_ ident.idRange
         | _ -> sepNone
-
 
     genPreXmlDoc px
     +> genAttributes astContext ats
@@ -4088,7 +4089,6 @@ and genMemberSig astContext node =
             (genConstraints astContext t vi)
         -- (genPropertyKind (not isFunctionProperty) mf.MemberKind)
         +> optSingle (fun e -> sepEq +> sepSpace +> genExpr astContext e) eo
-
 
     | MSInterface t -> !- "interface " +> genType astContext false t
     | MSInherit t -> !- "inherit " +> genType astContext false t

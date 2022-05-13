@@ -228,7 +228,6 @@ let ``div with short attributes`` () =
 let d = div [ ClassName "mt-4" ] []
 """
 
-
 [<Test>]
 let ``div with no attributes and short children`` () =
     formatSourceString
@@ -330,7 +329,6 @@ let d =
     ]
 """
 
-
 [<Test>]
 let ``short div with short p`` () =
     formatSourceString
@@ -345,7 +343,6 @@ let ``short div with short p`` () =
         """
 let d = div [] [ p [] [ str "meh" ] ]
 """
-
 
 [<Test>]
 let ``short div with multiple short children`` () =

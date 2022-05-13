@@ -117,36 +117,40 @@ type FantomasDaemon(sender: Stream, reader: Stream) as this =
                     |> List.map (fun v -> key, Encode.string v)
 
                 let meta =
-                    List.concat [| optionalField "category" recordField.Category
-                                   optionalField "displayName" recordField.DisplayName
-                                   optionalField "description" recordField.Description |]
+                    List.concat
+                        [| optionalField "category" recordField.Category
+                           optionalField "displayName" recordField.DisplayName
+                           optionalField "description" recordField.Description |]
 
                 let type' =
                     match defaultValue with
                     | :? bool as b ->
                         Some(
-                            Encode.object [ yield "type", Encode.string "boolean"
-                                            yield "defaultValue", Encode.string (if b then "true" else "false")
-                                            yield! meta ]
+                            Encode.object
+                                [ yield "type", Encode.string "boolean"
+                                  yield "defaultValue", Encode.string (if b then "true" else "false")
+                                  yield! meta ]
                         )
                     | :? int as i ->
                         Some(
-                            Encode.object [ yield "type", Encode.string "number"
-                                            yield "defaultValue", Encode.string (string i)
-                                            yield! meta ]
+                            Encode.object
+                                [ yield "type", Encode.string "number"
+                                  yield "defaultValue", Encode.string (string i)
+                                  yield! meta ]
                         )
                     | :? MultilineFormatterType as m ->
                         Some(
-                            Encode.object [ yield "type", Encode.string "multilineFormatterType"
-                                            yield
-                                                "defaultValue", Encode.string (MultilineFormatterType.ToConfigString m)
-                                            yield! meta ]
+                            Encode.object
+                                [ yield "type", Encode.string "multilineFormatterType"
+                                  yield "defaultValue", Encode.string (MultilineFormatterType.ToConfigString m)
+                                  yield! meta ]
                         )
                     | :? EndOfLineStyle as e ->
                         Some(
-                            Encode.object [ yield "type", Encode.string "endOfLineStyle"
-                                            yield "defaultValue", Encode.string (EndOfLineStyle.ToConfigString e)
-                                            yield! meta ]
+                            Encode.object
+                                [ yield "type", Encode.string "endOfLineStyle"
+                                  yield "defaultValue", Encode.string (EndOfLineStyle.ToConfigString e)
+                                  yield! meta ]
                         )
                     | _ -> None
 
@@ -155,17 +159,21 @@ type FantomasDaemon(sender: Stream, reader: Stream) as this =
             |> Encode.object
 
         let enumOptions =
-            Encode.object [ "multilineFormatterType",
-                            Encode.list [ (MultilineFormatterType.ToConfigString MultilineFormatterType.CharacterWidth
-                                           |> Encode.string)
-                                          (MultilineFormatterType.ToConfigString MultilineFormatterType.NumberOfItems
-                                           |> Encode.string) ]
-                            "endOfLineStyle",
-                            Encode.list [ (EndOfLineStyle.ToConfigString EndOfLineStyle.LF
-                                           |> Encode.string)
-                                          (EndOfLineStyle.ToConfigString EndOfLineStyle.CRLF
-                                           |> Encode.string) ] ]
+            Encode.object
+                [ "multilineFormatterType",
+                  Encode.list
+                      [ (MultilineFormatterType.ToConfigString MultilineFormatterType.CharacterWidth
+                         |> Encode.string)
+                        (MultilineFormatterType.ToConfigString MultilineFormatterType.NumberOfItems
+                         |> Encode.string) ]
+                  "endOfLineStyle",
+                  Encode.list
+                      [ (EndOfLineStyle.ToConfigString EndOfLineStyle.LF
+                         |> Encode.string)
+                        (EndOfLineStyle.ToConfigString EndOfLineStyle.CRLF
+                         |> Encode.string) ] ]
 
-        Encode.object [ "settings", settings
-                        "enumOptions", enumOptions ]
+        Encode.object
+            [ "settings", settings
+              "enumOptions", enumOptions ]
         |> Encode.toString 4

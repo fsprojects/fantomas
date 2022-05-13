@@ -82,7 +82,6 @@ let private addTaskToScheduler
     }
 """
 
-
 [<Test>]
 let ``synbinding function with anonymous record`` () =
     formatSourceString
@@ -238,7 +237,6 @@ let private addTaskToScheduler
         itemFive
     |]
 """
-
 
 [<Test>]
 let ``type member function with record instance`` () =

@@ -36,7 +36,6 @@ type FormatResult =
     | Error of filename: string * formattingError: Exception
     | IgnoredFile of filename: string
 
-
 let private formatContentInternalAsync
     (compareWithoutLineEndings: bool)
     (config: FormatConfig)

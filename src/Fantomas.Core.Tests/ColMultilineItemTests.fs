@@ -21,7 +21,6 @@ let a = 2
 let b = 3
 """
 
-
 [<Test>]
 let ``three short let binding should not have extra newline`` () =
     formatSourceString

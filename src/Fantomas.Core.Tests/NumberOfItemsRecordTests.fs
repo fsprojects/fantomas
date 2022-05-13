@@ -595,7 +595,6 @@ type MyRecord =
     member Score: unit -> int
 """
 
-
 [<Test>]
 let ``no newline before first multiline member`` () =
     formatSourceString

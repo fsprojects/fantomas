@@ -16,7 +16,6 @@ let configuration = DotNet.BuildConfiguration.Release
 let solutionFile = "fantomas.sln"
 //// Environment.CurrentDirectory <- __SOURCE_DIRECTORY__
 
-
 // Files to format
 let sourceFiles =
     !! "src/**/*.fs" ++ "src/**/*.fsi" ++ "build.fsx"
@@ -134,7 +133,6 @@ Target.create "Clean" (fun _ ->
       "src/Fantomas.Client/obj" ]
     |> List.iter Shell.cleanDir)
 
-
 // --------------------------------------------------------------------------------------
 // Build library & test project
 Target.create "Build" (fun _ -> DotNet.build (fun p -> { p with Configuration = configuration }) solutionFile)
@@ -249,7 +247,6 @@ let testExternalProjects externalProjectsToTest =
     if not (List.isEmpty externalBuildErrors) then
         failwith (String.Join("\n", externalBuildErrors))
 
-
 Target.create "TestExternalProjects" (fun _ -> testExternalProjects externalProjectsToTest)
 
 Target.create "TestExternalProjectsFailing" (fun _ -> testExternalProjects externalProjectsToTestFailing)
@@ -265,7 +262,6 @@ let pushPackage nupkg =
     |> CreateProcess.ensureExitCode
     |> Proc.run
     |> ignore
-
 
 Target.create "Push" (fun _ ->
     Directory.EnumerateFiles("bin", "*.nupkg", SearchOption.TopDirectoryOnly)

@@ -1,0 +1,5 @@
+[src/**/*.{fs,fsi}]
+fsharp_keep_max_number_of_blank_lines=1
+
+[build.fsx]
+fsharp_keep_max_number_of_blank_lines=1

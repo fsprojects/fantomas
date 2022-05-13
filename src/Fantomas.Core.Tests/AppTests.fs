@@ -516,7 +516,6 @@ let ``parenthesis around short composed function expression, no tuple in if, 170
         """if ((=) ownerName) then 6
 """
 
-
 [<Test>]
 let ``parenthesis around simple function expression`` () =
     formatSourceString

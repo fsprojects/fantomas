@@ -1684,7 +1684,6 @@ type DeviceNotificationHandler<'Notification, 'CallbackId, 'RegisterInputData, '
     let a = 5
 """
 
-
 [<Test>]
 let ``long type members should be in multiple lines, 868`` () =
     formatSourceString
