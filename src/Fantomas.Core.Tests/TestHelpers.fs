@@ -22,37 +22,14 @@ let private safeToIgnoreWarnings =
     [ "This construct is deprecated: it is only for use in the F# library"
       "Identifiers containing '@' are reserved for use in F# code generation" ]
 
-let private isValidAndHasNoWarnings fileName source =
-    let allDefineOptions, _ = [], [] //TokenParser.getDefines source
-
-    allDefineOptions
-    |> List.map (fun conditionalCompilationDefines ->
-        async {
-
-            // Run the first phase (untyped parsing) of the compiler
-            let sourceText = SourceText.ofString source
-
-            let! untypedRes = CodeFormatter.ParseAsync(fileName, source)
-            //sharedChecker.Value.ParseFile(fileName, sourceText, parsingOptionsWithDefines)
-
-            //            let errors =
-            //                untypedRes.Diagnostics
-            //                |> Array.filter (fun e -> not (List.contains e.Message safeToIgnoreWarnings))
-            // FSharpErrorInfo contains both Errors and Warnings
-            // https://fsharp.github.io/FSharp.Compiler.Service/reference/fsharp-compiler-sourcecodeservices-fsharperrorinfo.html
-            return Array.isEmpty [||] // errors
-        })
-    |> Async.Parallel
-    |> Async.map (Seq.fold (&&) true)
-
 let formatSourceString isFsiFile (s: string) config =
     async {
         let! formatted = CodeFormatter.FormatDocumentAsync(isFsiFile, s, config)
 
-        let! isValid = isValidAndHasNoWarnings isFsiFile formatted
+        let! isValid = CodeFormatter.IsValidFSharpCodeAsync(isFsiFile, formatted)
 
         if not isValid then
-            failwithf "The formatted result is not valid F# code or contains warnings\n%s" formatted
+            failwithf $"The formatted result is not valid F# code or contains warnings\n%s{formatted}"
 
         return formatted.Replace("\r\n", "\n")
     }

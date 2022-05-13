@@ -24,9 +24,6 @@ type CodeFormatter =
         |> CodeFormatterImpl.formatDocument config isSignature
 
     static member IsValidFSharpCodeAsync(isSignature: bool, source: string) =
-        CodeFormatterImpl.getSourceText source
-        |> CodeFormatterImpl.isValidFSharpCode isSignature
-
-    static member IsValidASTAsync(ast: ParsedInput) = async { return true }
+        Validation.isValidFSharpCode isSignature source
 
     static member GetVersion() = Version.fantomasVersion.Value

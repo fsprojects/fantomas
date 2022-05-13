@@ -4,6 +4,7 @@
 
 ### Changed
 * Update FCS to 'Add SynExpr.Dynamic to SyntaxTree.', commit b822e2793bd6387c40cfd5b25d604e002a253257
+* Restore the validation API. [#2236](https://github.com/fsprojects/fantomas/issues/2236)
 
 ## [5.0.0-alpha-006] - 2022-05-13
 
