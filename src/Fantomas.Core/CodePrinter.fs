@@ -1911,14 +1911,14 @@ and genExpr astContext synExpr ctx =
         | DotGetAppWithLambda ((e, es, lpr, lambda, rpr, pr), lids) ->
             leadingExpressionIsMultiline
                 (genAppWithLambda astContext sepNone (e, es, lpr, lambda, rpr, pr))
-                (fun isMultline ->
-                    if isMultline then
+                (fun isMultiline ->
+                    if isMultiline then
                         (indent
                          +> sepNln
                          +> genSynLongIdent true lids
                          +> unindent)
                     else
-                        (indent >> genSynLongIdent true lids))
+                        genSynLongIdent true lids)
 
         // functionName arg1 arg2 (fun x y z -> ...)
         | AppWithLambda (e, es, lpr, lambda, rpr, pr) ->
