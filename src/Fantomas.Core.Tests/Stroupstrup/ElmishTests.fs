@@ -7,7 +7,7 @@ open Fantomas.Core.Tests.TestHelper
 let config =
     { config with
         MultilineBlockBracketsOnSameColumn = true
-        Ragnarok = true }
+        ExperimentalStroupstrupStyle = true }
 
 [<Test>]
 let ``long named arguments should go on newline`` () =

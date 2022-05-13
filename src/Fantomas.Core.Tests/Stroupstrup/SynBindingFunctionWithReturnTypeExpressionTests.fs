@@ -1,4 +1,4 @@
-﻿module Fantomas.Core.Tests.Ragnarok.SynBindingFunctionExpressionTests
+﻿module Fantomas.Core.Tests.Stroupstrup.SynBindingFunctionWithReturnTypeExpressionTests
 
 open NUnit.Framework
 open FsUnit
@@ -7,14 +7,14 @@ open Fantomas.Core.Tests.TestHelper
 let config =
     { config with
         MultilineBlockBracketsOnSameColumn = true
-        Ragnarok = true }
+        ExperimentalStroupstrupStyle = true }
 
 [<Test>]
 let ``synbinding function with record instance `` () =
     formatSourceString
         false
         """
-let x y =
+let x y : MyRecord =
     { A = longTypeName
       B = someOtherVariable
       C = ziggyBarX }
@@ -24,7 +24,7 @@ let x y =
     |> should
         equal
         """
-let x y = {
+let x y : MyRecord = {
     A = longTypeName
     B = someOtherVariable
     C = ziggyBarX
@@ -36,7 +36,7 @@ let ``synbinding function with update record`` () =
     formatSourceString
         false
         """
-let x y =
+let x y : MyRecord =
     { astContext with IsInsideMatchClausePattern = true }
 """
         config
@@ -44,7 +44,7 @@ let x y =
     |> should
         equal
         """
-let x y =
+let x y : MyRecord =
     { astContext with
         IsInsideMatchClausePattern = true
     }
@@ -55,7 +55,7 @@ let ``synbinding function with anonymous record instance `` () =
     formatSourceString
         false
         """
-let x y =
+let x y : {| A:int; B:int; C:int |} =
     {| A = longTypeName
        B = someOtherVariable
        C = ziggyBarX |}
@@ -65,7 +65,7 @@ let x y =
     |> should
         equal
         """
-let x y = {|
+let x y : {| A: int; B: int; C: int |} = {|
     A = longTypeName
     B = someOtherVariable
     C = ziggyBarX
@@ -77,7 +77,7 @@ let ``synbinding function with computation expression`` () =
     formatSourceString
         false
         """
-let x y =
+let x y: Task<unit> =
     task {
         // some computation here
         ()
@@ -88,7 +88,7 @@ let x y =
     |> should
         equal
         """
-let x y = task {
+let x y : Task<unit> = task {
     // some computation here
     ()
 }
@@ -99,7 +99,7 @@ let ``synbinding function with list`` () =
     formatSourceString
         false
         """
-let x y =
+let x y : int list =
     [ itemOne
       itemTwo
       itemThree
@@ -111,7 +111,7 @@ let x y =
     |> should
         equal
         """
-let x y = [
+let x y : int list = [
     itemOne
     itemTwo
     itemThree
@@ -125,7 +125,7 @@ let ``synbinding function with array`` () =
     formatSourceString
         false
         """
-let x y =
+let x y : int array =
     [| itemOne
        itemTwo
        itemThree
@@ -137,7 +137,7 @@ let x y =
     |> should
         equal
         """
-let x y = [|
+let x y : int array = [|
     itemOne
     itemTwo
     itemThree
@@ -152,7 +152,7 @@ let ``type member function with record instance`` () =
         false
         """
 type Foo() =
-    member this.Bar x =
+    member this.Bar x : MyRecord =
         { A = longTypeName
           B = someOtherVariable
           C = ziggyBarX }
@@ -163,7 +163,7 @@ type Foo() =
         equal
         """
 type Foo() =
-    member this.Bar x = {
+    member this.Bar x : MyRecord = {
         A = longTypeName
         B = someOtherVariable
         C = ziggyBarX
@@ -176,7 +176,7 @@ let ``type member function with update record`` () =
         false
         """
 type Foo() =
-    member this.Bar x = { astContext with IsInsideMatchClausePattern = true }
+    member this.Bar x : MyRecord = { astContext with IsInsideMatchClausePattern = true }
 """
         config
     |> prepend newline
@@ -184,7 +184,7 @@ type Foo() =
         equal
         """
 type Foo() =
-    member this.Bar x =
+    member this.Bar x : MyRecord =
         { astContext with
             IsInsideMatchClausePattern = true
         }
@@ -196,7 +196,7 @@ let ``type member function with anonymous record instance`` () =
         false
         """
 type Foo() =
-    member this.Bar x =
+    member this.Bar x : {| A:int; B:int; C:int |} =
         {| A = longTypeName
            B = someOtherVariable
            C = ziggyBarX |}
@@ -207,7 +207,7 @@ type Foo() =
         equal
         """
 type Foo() =
-    member this.Bar x = {|
+    member this.Bar x : {| A: int; B: int; C: int |} = {|
         A = longTypeName
         B = someOtherVariable
         C = ziggyBarX
@@ -220,7 +220,7 @@ let ``type member function with anonymous record instance struct`` () =
         false
         """
 type Foo() =
-    member this.Bar x =
+    member this.Bar x : {| A:int; B:int; C:int |} =
        struct
             {| A = longTypeName
                B = someOtherVariable
@@ -232,7 +232,7 @@ type Foo() =
         equal
         """
 type Foo() =
-    member this.Bar x = struct {|
+    member this.Bar x : {| A: int; B: int; C: int |} = struct {|
         A = longTypeName
         B = someOtherVariable
         C = ziggyBarX
@@ -245,7 +245,7 @@ let ``type member function with computation expression`` () =
         false
         """
 type Foo() =
-    member this.Bar x =
+    member this.Bar x : Task<unit> =
         task {
             // some computation here
             ()
@@ -257,7 +257,7 @@ type Foo() =
         equal
         """
 type Foo() =
-    member this.Bar x = task {
+    member this.Bar x : Task<unit> = task {
         // some computation here
         ()
     }
@@ -269,7 +269,7 @@ let ``type member function with list`` () =
         false
         """
 type Foo() =
-    member this.Bar x =
+    member this.Bar x : int list =
         [ itemOne
           itemTwo
           itemThree
@@ -282,7 +282,7 @@ type Foo() =
         equal
         """
 type Foo() =
-    member this.Bar x = [
+    member this.Bar x : int list = [
         itemOne
         itemTwo
         itemThree
@@ -297,7 +297,7 @@ let ``type member function with array`` () =
         false
         """
 type Foo() =
-    member this.Bar x =
+    member this.Bar x : int array =
         [| itemOne
            itemTwo
            itemThree
@@ -310,7 +310,7 @@ type Foo() =
         equal
         """
 type Foo() =
-    member this.Bar x = [|
+    member this.Bar x : int array = [|
         itemOne
         itemTwo
         itemThree

@@ -461,3 +461,24 @@ insert_final_newline = false
     let config = EditorConfig.readConfiguration fsharpFile.FSharpFile
 
     Assert.IsFalse config.InsertFinalNewline
+
+[<Test>]
+let ``Stroupstrup style`` () =
+    let rootDir = tempName ()
+
+    let editorConfig =
+        """
+[*.fs]
+fsharp_multiline_block_brackets_on_same_column = true
+fsharp_experimental_stroupstrup_style = true
+"""
+
+    use configFixture =
+        new ConfigurationFile(defaultConfig, rootDir, content = editorConfig)
+
+    use fsharpFile = new FSharpFile(rootDir)
+
+    let config = EditorConfig.readConfiguration fsharpFile.FSharpFile
+
+    Assert.IsTrue config.MultilineBlockBracketsOnSameColumn
+    Assert.IsTrue config.ExperimentalStroupstrupStyle

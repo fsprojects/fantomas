@@ -1,4 +1,4 @@
-﻿module Fantomas.Core.Tests.Ragnarok.SynBindingFunctionLongPatternExpressionTests
+﻿module Fantomas.Core.Tests.Stroupstrup.SynBindingFunctionLongPatternExpressionTests
 
 open NUnit.Framework
 open FsUnit
@@ -8,7 +8,7 @@ let config =
     { config with
         MaxLineLength = 80
         MultilineBlockBracketsOnSameColumn = true
-        Ragnarok = true }
+        ExperimentalStroupstrupStyle = true }
 
 // TODO: conclude on what should happen here
 // This one feels very weird to have `= {` because the pattern is already multiline

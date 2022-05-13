@@ -1,4 +1,4 @@
-﻿module Fantomas.Core.Tests.Ragnarok.DotIndexedSetExpressionTests
+﻿module Fantomas.Core.Tests.Stroupstrup.SynMatchClauseExpressionTests
 
 open NUnit.Framework
 open FsUnit
@@ -7,14 +7,15 @@ open Fantomas.Core.Tests.TestHelper
 let config =
     { config with
         MultilineBlockBracketsOnSameColumn = true
-        Ragnarok = true }
+        ExperimentalStroupstrupStyle = true }
 
 [<Test>]
-let ``dotIndexedSet with record instance `` () =
+let ``synMatchClause in match expression with record instance `` () =
     formatSourceString
         false
         """
-myMutable.[x] <-
+match x with
+| _ ->
     { A = longTypeName
       B = someOtherVariable
       C = ziggyBarX }
@@ -24,7 +25,8 @@ myMutable.[x] <-
     |> should
         equal
         """
-myMutable.[x] <- {
+match x with
+| _ -> {
     A = longTypeName
     B = someOtherVariable
     C = ziggyBarX
@@ -32,11 +34,12 @@ myMutable.[x] <- {
 """
 
 [<Test>]
-let ``dotIndexedSet with update record`` () =
+let ``synMatchClause in match expression with update record`` () =
     formatSourceString
         false
         """
-myMutable.[x] <-
+match x with
+| _ ->
     { astContext with IsInsideMatchClausePattern = true }
 """
         config
@@ -44,18 +47,20 @@ myMutable.[x] <-
     |> should
         equal
         """
-myMutable.[x] <-
+match x with
+| _ ->
     { astContext with
         IsInsideMatchClausePattern = true
     }
 """
 
 [<Test>]
-let ``dotIndexedSet with anonymous record instance`` () =
+let ``synMatchClause in match expression with anonymous record instance`` () =
     formatSourceString
         false
         """
-myMutable.[x] <-
+match x with
+| _ ->
    {| A = longTypeName
       B = someOtherVariable
       C = ziggyBarX |}
@@ -65,7 +70,8 @@ myMutable.[x] <-
     |> should
         equal
         """
-myMutable.[x] <- {|
+match x with
+| _ -> {|
     A = longTypeName
     B = someOtherVariable
     C = ziggyBarX
@@ -73,11 +79,12 @@ myMutable.[x] <- {|
 """
 
 [<Test>]
-let ``dotIndexedSet with anonymous record instance struct`` () =
+let ``synMatchClause in match expression with anonymous record instance struct`` () =
     formatSourceString
         false
         """
-myMutable.[x] <-
+match x with
+| _ ->
    struct
         {| A = longTypeName
            B = someOtherVariable
@@ -88,7 +95,8 @@ myMutable.[x] <-
     |> should
         equal
         """
-myMutable.[x] <- struct {|
+match x with
+| _ -> struct {|
     A = longTypeName
     B = someOtherVariable
     C = ziggyBarX
@@ -96,11 +104,12 @@ myMutable.[x] <- struct {|
 """
 
 [<Test>]
-let ``dotIndexedSet with computation expression`` () =
+let ``synMatchClause in match expression with computation expression`` () =
     formatSourceString
         false
         """
-myMutable.[x] <-
+match x with
+| _ ->
     task {
         // some computation here
         ()
@@ -111,18 +120,20 @@ myMutable.[x] <-
     |> should
         equal
         """
-myMutable.[x] <- task {
+match x with
+| _ -> task {
     // some computation here
     ()
 }
 """
 
 [<Test>]
-let ``dotIndexedSet with list`` () =
+let ``synMatchClause in match expression with list`` () =
     formatSourceString
         false
         """
-myMutable.[x] <-
+match x with
+| _ ->
     [ itemOne
       itemTwo
       itemThree
@@ -134,7 +145,8 @@ myMutable.[x] <-
     |> should
         equal
         """
-myMutable.[x] <- [
+match x with
+| _ -> [
     itemOne
     itemTwo
     itemThree
@@ -144,11 +156,12 @@ myMutable.[x] <- [
 """
 
 [<Test>]
-let ``dotIndexedSet with array`` () =
+let ``synMatchClause in match expression with array`` () =
     formatSourceString
         false
         """
-myMutable.[x] <-
+match x with
+| _ ->
     [| itemOne
        itemTwo
        itemThree
@@ -160,7 +173,8 @@ myMutable.[x] <-
     |> should
         equal
         """
-myMutable.[x] <- [|
+match x with
+| _ -> [|
     itemOne
     itemTwo
     itemThree
@@ -169,12 +183,53 @@ myMutable.[x] <- [|
 |]
 """
 
+// TODO: Here, I again feel this is fitting not to have ragnarok.
+// Similar to long patterns in synbinding functions.
+
 [<Test>]
-let ``application unit dotIndexedSet with record instance `` () =
+let ``synMatchClause in match expression with long when expression with record instance `` () =
     formatSourceString
         false
         """
-app().[x] <-
+match x with
+| _ when (try
+            somethingDangerous ()
+            true
+          with | ex -> false)
+                                    ->
+                                        { A = longTypeName
+                                          B = someOtherVariable
+                                          C = ziggyBarX }
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+match x with
+| _ when
+    (try
+        somethingDangerous ()
+        true
+     with
+     | ex -> false)
+    ->
+    {
+        A = longTypeName
+        B = someOtherVariable
+        C = ziggyBarX
+    }
+"""
+
+
+[<Test>]
+let ``synMatchClause in try/with expression with record instance `` () =
+    formatSourceString
+        false
+        """
+try
+    foo()
+with ex ->
     { A = longTypeName
       B = someOtherVariable
       C = ziggyBarX }
@@ -184,7 +239,10 @@ app().[x] <-
     |> should
         equal
         """
-app().[x] <- {
+try
+    foo ()
+with
+| ex -> {
     A = longTypeName
     B = someOtherVariable
     C = ziggyBarX
@@ -192,11 +250,13 @@ app().[x] <- {
 """
 
 [<Test>]
-let ``application unit dotIndexedSet with update record`` () =
+let ``synMatchClause in try/with expression with update record`` () =
     formatSourceString
         false
         """
-app().[x] <-
+try
+    foo()
+with ex ->
     { astContext with IsInsideMatchClausePattern = true }
 """
         config
@@ -204,18 +264,23 @@ app().[x] <-
     |> should
         equal
         """
-app().[x] <-
+try
+    foo ()
+with
+| ex ->
     { astContext with
         IsInsideMatchClausePattern = true
     }
 """
 
 [<Test>]
-let ``application unit dotIndexedSet with anonymous record instance`` () =
+let ``synMatchClause in try/with expression with anonymous record instance`` () =
     formatSourceString
         false
         """
-app().[x] <-
+try
+    foo()
+with ex ->
    {| A = longTypeName
       B = someOtherVariable
       C = ziggyBarX |}
@@ -225,7 +290,10 @@ app().[x] <-
     |> should
         equal
         """
-app().[x] <- {|
+try
+    foo ()
+with
+| ex -> {|
     A = longTypeName
     B = someOtherVariable
     C = ziggyBarX
@@ -233,11 +301,13 @@ app().[x] <- {|
 """
 
 [<Test>]
-let ``application unit dotIndexedSet with anonymous record instance struct`` () =
+let ``synMatchClause in try/with expression with anonymous record instance struct`` () =
     formatSourceString
         false
         """
-app().[x] <-
+try
+    foo()
+with ex ->
    struct
         {| A = longTypeName
            B = someOtherVariable
@@ -248,7 +318,10 @@ app().[x] <-
     |> should
         equal
         """
-app().[x] <- struct {|
+try
+    foo ()
+with
+| ex -> struct {|
     A = longTypeName
     B = someOtherVariable
     C = ziggyBarX
@@ -256,11 +329,14 @@ app().[x] <- struct {|
 """
 
 [<Test>]
-let ``application unit dotIndexedSet with computation expression`` () =
+let ``synMatchClause in try/with expression with computation expression`` () =
     formatSourceString
         false
         """
-app().[x] <-
+try
+    foo()
+with
+| ex ->
     task {
         // some computation here
         ()
@@ -271,18 +347,24 @@ app().[x] <-
     |> should
         equal
         """
-app().[x] <- task {
+try
+    foo ()
+with
+| ex -> task {
     // some computation here
     ()
 }
 """
 
 [<Test>]
-let ``application unit dotIndexedSet with list`` () =
+let ``synMatchClause in try/with expression with list`` () =
     formatSourceString
         false
         """
-app().[x] <-
+try
+    foo ()
+with
+| ex ->
     [ itemOne
       itemTwo
       itemThree
@@ -294,7 +376,10 @@ app().[x] <-
     |> should
         equal
         """
-app().[x] <- [
+try
+    foo ()
+with
+| ex -> [
     itemOne
     itemTwo
     itemThree
@@ -304,11 +389,14 @@ app().[x] <- [
 """
 
 [<Test>]
-let ``application unit dotIndexedSet with array`` () =
+let ``synMatchClause in try/with expression with array`` () =
     formatSourceString
         false
         """
-app().[x] <-
+try
+    foo ()
+with
+| ex ->
     [| itemOne
        itemTwo
        itemThree
@@ -320,7 +408,10 @@ app().[x] <-
     |> should
         equal
         """
-app().[x] <- [|
+try
+    foo ()
+with
+| ex -> [|
     itemOne
     itemTwo
     itemThree
@@ -329,178 +420,35 @@ app().[x] <- [|
 |]
 """
 
-// See https://github.com/fsprojects/fantomas/issues/1999
-
 [<Test>]
-let ``application parenthesis expr dotIndexedSet with record instance `` () =
+let ``multiple clauses with lists`` () =
     formatSourceString
         false
         """
-app(meh).[x] <-
-    { A = longTypeName
-      B = someOtherVariable
-      C = ziggyBarX }
+match x with
+| SynMemberDefn.ImplicitCtor (_, attrs, ctorArgs, _, _xmlDoc, range) ->
+    [ yield mkNode SynMemberDefn_ImplicitCtor range
+      yield! (visitSynAttributeLists attrs)
+      yield! visitSynSimplePats ctorArgs ]
+| SynMemberDefn.ImplicitInherit (inheritType, inheritArgs, _, range) ->
+    [ yield mkNode SynMemberDefn_ImplicitInherit range
+      yield! visitSynType inheritType
+      yield! visitSynExpr inheritArgs ]
 """
         config
     |> prepend newline
     |> should
         equal
         """
-app(
-    meh
-).[x] <- {
-    A = longTypeName
-    B = someOtherVariable
-    C = ziggyBarX
-}
-"""
-
-[<Test>]
-let ``application parenthesis expr dotIndexedSet with update record`` () =
-    formatSourceString
-        false
-        """
-app(meh).[x] <-
-    { astContext with IsInsideMatchClausePattern = true }
-"""
-        config
-    |> prepend newline
-    |> should
-        equal
-        """
-app(
-    meh
-).[x] <-
-    { astContext with
-        IsInsideMatchClausePattern = true
-    }
-"""
-
-[<Test>]
-let ``application parenthesis expr dotIndexedSet with anonymous record instance`` () =
-    formatSourceString
-        false
-        """
-app(meh).[x] <-
-   {| A = longTypeName
-      B = someOtherVariable
-      C = ziggyBarX |}
-"""
-        config
-    |> prepend newline
-    |> should
-        equal
-        """
-app(
-    meh
-).[x] <- {|
-    A = longTypeName
-    B = someOtherVariable
-    C = ziggyBarX
-|}
-"""
-
-[<Test>]
-let ``application parenthesis expr dotIndexedSet with anonymous record instance struct`` () =
-    formatSourceString
-        false
-        """
-app(meh).[x] <-
-   struct
-        {| A = longTypeName
-           B = someOtherVariable
-           C = ziggyBarX |}
-"""
-        config
-    |> prepend newline
-    |> should
-        equal
-        """
-app(
-    meh
-).[x] <- struct {|
-    A = longTypeName
-    B = someOtherVariable
-    C = ziggyBarX
-|}
-"""
-
-[<Test>]
-let ``application parenthesis expr dotIndexedSet with computation expression`` () =
-    formatSourceString
-        false
-        """
-app(meh).[x] <-
-    task {
-        // some computation here
-        ()
-    }
-"""
-        config
-    |> prepend newline
-    |> should
-        equal
-        """
-app(
-    meh
-).[x] <- task {
-    // some computation here
-    ()
-}
-"""
-
-[<Test>]
-let ``application parenthesis expr dotIndexedSet with list`` () =
-    formatSourceString
-        false
-        """
-app(meh).[x] <-
-    [ itemOne
-      itemTwo
-      itemThree
-      itemFour
-      itemFive ]
-"""
-        config
-    |> prepend newline
-    |> should
-        equal
-        """
-app(
-    meh
-).[x] <- [
-    itemOne
-    itemTwo
-    itemThree
-    itemFour
-    itemFive
-]
-"""
-
-[<Test>]
-let ``application parenthesis expr dotIndexedSet with array`` () =
-    formatSourceString
-        false
-        """
-app(meh).[x] <-
-    [| itemOne
-       itemTwo
-       itemThree
-       itemFour
-       itemFive |]
-"""
-        config
-    |> prepend newline
-    |> should
-        equal
-        """
-app(
-    meh
-).[x] <- [|
-    itemOne
-    itemTwo
-    itemThree
-    itemFour
-    itemFive
-|]
+match x with
+| SynMemberDefn.ImplicitCtor (_, attrs, ctorArgs, _, _xmlDoc, range) -> [
+    yield mkNode SynMemberDefn_ImplicitCtor range
+    yield! (visitSynAttributeLists attrs)
+    yield! visitSynSimplePats ctorArgs
+  ]
+| SynMemberDefn.ImplicitInherit (inheritType, inheritArgs, _, range) -> [
+    yield mkNode SynMemberDefn_ImplicitInherit range
+    yield! visitSynType inheritType
+    yield! visitSynExpr inheritArgs
+  ]
 """

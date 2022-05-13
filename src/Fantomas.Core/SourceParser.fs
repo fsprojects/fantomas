@@ -1791,23 +1791,26 @@ let (|KeepIndentIfThenElse|_|) (e: SynExpr) =
             None
     | _ -> None
 
-let (|RagnarokExpr|_|) (e: SynExpr) =
-    match e with
-    // { foo with Bar = bar }
-    | SynExpr.Record(copyInfo = Some _) -> None
-    | SynExpr.Record _
-    | SynExpr.AnonRecd _
-    // task { ... }
-    | SynExpr.App (ExprAtomicFlag.NonAtomic, false, SynExpr.Ident _, SynExpr.ComputationExpr _, _)
-    | ArrayOrList _ -> Some e
-    | _ -> None
+let (|StroupstrupStyleExpr|_|) (isStroupstrupStyleEnabled: bool) (e: SynExpr) =
+    if not isStroupstrupStyleEnabled then
+        None
+    else
+        match e with
+        // { foo with Bar = bar }
+        | SynExpr.Record(copyInfo = Some _) -> None
+        | SynExpr.Record _
+        | SynExpr.AnonRecd _
+        // task { ... }
+        | SynExpr.App (ExprAtomicFlag.NonAtomic, false, SynExpr.Ident _, SynExpr.ComputationExpr _, _)
+        | ArrayOrList _ -> Some e
+        | _ -> None
 
-let hasMultipleClausesWhereOneHasRagnarok ragnarokEnabled (cs: SynMatchClause list) : bool =
-    ragnarokEnabled
+let hasMultipleClausesWhereOneHasStroupstrup isStroupstrupStyleEnabled (cs: SynMatchClause list) : bool =
+    isStroupstrupStyleEnabled
     && List.moreThanOne cs
     && List.exists
         (fun (SynMatchClause (resultExpr = e)) ->
             match e with
-            | RagnarokExpr _ -> true
+            | StroupstrupStyleExpr isStroupstrupStyleEnabled _ -> true
             | _ -> false)
         cs

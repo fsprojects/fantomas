@@ -1,4 +1,4 @@
-﻿module Fantomas.Core.Tests.Ragnarok.KeepIndentInBranchExpressionTests
+﻿module Fantomas.Core.Tests.Stroupstrup.SetExpressionTests
 
 open NUnit.Framework
 open FsUnit
@@ -7,19 +7,14 @@ open Fantomas.Core.Tests.TestHelper
 let config =
     { config with
         MultilineBlockBracketsOnSameColumn = true
-        KeepIndentInBranch = true
-        Ragnarok = true }
-
-// There currently is no conflict with this setting, but I'm guessing the case was never brought up.
-// I would conclude that will never clash.
+        ExperimentalStroupstrupStyle = true }
 
 [<Test>]
-let ``synMatchClause in match expression with record instance `` () =
+let ``set with record instance `` () =
     formatSourceString
         false
         """
-match x with
-| _ ->
+myMutable[x] <-
     { A = longTypeName
       B = someOtherVariable
       C = ziggyBarX }
@@ -29,8 +24,7 @@ match x with
     |> should
         equal
         """
-match x with
-| _ -> {
+myMutable[x] <- {
     A = longTypeName
     B = someOtherVariable
     C = ziggyBarX
@@ -38,12 +32,11 @@ match x with
 """
 
 [<Test>]
-let ``synMatchClause in match expression with update record`` () =
+let ``set with update record`` () =
     formatSourceString
         false
         """
-match x with
-| _ ->
+myMutable[x] <-
     { astContext with IsInsideMatchClausePattern = true }
 """
         config
@@ -51,20 +44,18 @@ match x with
     |> should
         equal
         """
-match x with
-| _ ->
+myMutable[x] <-
     { astContext with
         IsInsideMatchClausePattern = true
     }
 """
 
 [<Test>]
-let ``synMatchClause in match expression with anonymous record instance`` () =
+let ``set with anonymous record instance`` () =
     formatSourceString
         false
         """
-match x with
-| _ ->
+myMutable[x] <-
    {| A = longTypeName
       B = someOtherVariable
       C = ziggyBarX |}
@@ -74,8 +65,7 @@ match x with
     |> should
         equal
         """
-match x with
-| _ -> {|
+myMutable[x] <- {|
     A = longTypeName
     B = someOtherVariable
     C = ziggyBarX
@@ -83,12 +73,11 @@ match x with
 """
 
 [<Test>]
-let ``synMatchClause in match expression with anonymous record instance struct`` () =
+let ``set with anonymous record instance struct`` () =
     formatSourceString
         false
         """
-match x with
-| _ ->
+myMutable[x] <-
    struct
         {| A = longTypeName
            B = someOtherVariable
@@ -99,8 +88,7 @@ match x with
     |> should
         equal
         """
-match x with
-| _ -> struct {|
+myMutable[x] <- struct {|
     A = longTypeName
     B = someOtherVariable
     C = ziggyBarX
@@ -108,12 +96,11 @@ match x with
 """
 
 [<Test>]
-let ``synMatchClause in match expression with computation expression`` () =
+let ``set with computation expression`` () =
     formatSourceString
         false
         """
-match x with
-| _ ->
+myMutable[x] <-
     task {
         // some computation here
         ()
@@ -124,20 +111,18 @@ match x with
     |> should
         equal
         """
-match x with
-| _ -> task {
+myMutable[x] <- task {
     // some computation here
     ()
 }
 """
 
 [<Test>]
-let ``synMatchClause in match expression with list`` () =
+let ``set with list`` () =
     formatSourceString
         false
         """
-match x with
-| _ ->
+myMutable[x] <-
     [ itemOne
       itemTwo
       itemThree
@@ -149,8 +134,7 @@ match x with
     |> should
         equal
         """
-match x with
-| _ -> [
+myMutable[x] <- [
     itemOne
     itemTwo
     itemThree
@@ -160,12 +144,11 @@ match x with
 """
 
 [<Test>]
-let ``synMatchClause in match expression with array`` () =
+let ``set with array`` () =
     formatSourceString
         false
         """
-match x with
-| _ ->
+myMutable[x] <-
     [| itemOne
        itemTwo
        itemThree
@@ -177,8 +160,7 @@ match x with
     |> should
         equal
         """
-match x with
-| _ -> [|
+myMutable[x] <- [|
     itemOne
     itemTwo
     itemThree
