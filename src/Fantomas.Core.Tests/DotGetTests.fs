@@ -442,13 +442,13 @@ let getColl2 =
         .ToString()
 
 let getColl3 =
-    GetCollection (fun _ parser ->
+    GetCollection(fun _ parser ->
         let x = 3
         x)
         .Foo
 
 let getColl4 =
-    GetCollection (fun parser ->
+    GetCollection(fun parser ->
         let x = 4
         x)
         .Foo
