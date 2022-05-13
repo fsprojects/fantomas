@@ -694,6 +694,16 @@ module private Ast =
                 [ yield mkNode SynExpr_IndexFromEnd range
                   yield! visitSynExpr e ]
             | SynExpr.DebugPoint _ -> []
+            | SynExpr.Dynamic (funcExpr, _, argExpr, range) ->
+                let continuations: ((TriviaNodeAssigner list -> TriviaNodeAssigner list) -> TriviaNodeAssigner list) list =
+                    [ visit funcExpr; visit argExpr ]
+
+                let finalContinuation (nodes: TriviaNodeAssigner list list) : TriviaNodeAssigner list =
+                    mkNode SynExpr_Dynamic range
+                    :: (List.collect id nodes)
+                    |> finalContinuation
+
+                Continuation.sequence continuations finalContinuation
 
         visit synExpr id
 
