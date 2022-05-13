@@ -360,7 +360,6 @@ let prismCli commando =
     ()
 """
 
-
 [<Test>]
 let ``line comment inside array parameter`` () =
     formatSourceString
@@ -1615,7 +1614,6 @@ let nestedList: obj list =
         "22222222bbbbbbbbbbbbbbb"
         "33333333bbbbbbbbbbbbbbb" ] ]
 """
-
 
 [<Test>]
 let ``comment after [| should be preserved, 551`` () =

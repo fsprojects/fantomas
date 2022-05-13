@@ -688,7 +688,6 @@ type C() =
     member x.P = g 3
 """
 
-
 [<Test>]
 let ``line comment with only two slashes`` () =
     let source =

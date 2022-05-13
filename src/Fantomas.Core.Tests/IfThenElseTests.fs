@@ -422,7 +422,6 @@ else // meh
     1
 """
 
-
 [<Test>]
 let ``comment after else branch expression`` () =
     formatSourceString

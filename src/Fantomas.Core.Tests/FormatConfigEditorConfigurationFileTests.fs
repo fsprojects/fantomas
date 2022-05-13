@@ -354,7 +354,7 @@ end_of_line = cr
     use fsharpFile = new FSharpFile(rootDir)
 
     let ex =
-        Assert.Throws (fun () ->
+        Assert.Throws(fun () ->
             EditorConfig.readConfiguration fsharpFile.FSharpFile
             |> ignore)
 

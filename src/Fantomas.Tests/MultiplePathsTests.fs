@@ -27,8 +27,9 @@ let ``format multiple paths`` () =
     use fileFixtureTwo = new TemporaryFileCodeSample(UserCode)
 
     let { ExitCode = exitCode } =
-        formatCode [ fileFixtureOne.Filename
-                     fileFixtureTwo.Filename ]
+        formatCode
+            [ fileFixtureOne.Filename
+              fileFixtureTwo.Filename ]
 
     exitCode |> should equal 0
 

@@ -246,7 +246,6 @@ let ``should not mess up ?<- operator`` () =
         """x?v <- 2
 """
 
-
 [<Test>]
 let ``should pipeline monadic bind`` () =
     formatSourceString
@@ -300,7 +299,6 @@ let ``should not add space around .. operator`` () =
         equal
         """[ 1..10 ]
 """
-
 
 [<Test>]
 let ``should not add space around .. .. operators`` () =

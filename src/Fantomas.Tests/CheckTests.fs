@@ -80,8 +80,9 @@ let ``check with multiple files`` () =
     use fileFixtureTwo = new TemporaryFileCodeSample("let b = 1")
 
     let { ExitCode = exitCode; Output = output } =
-        checkCode [ fileFixtureOne.Filename
-                    fileFixtureTwo.Filename ]
+        checkCode
+            [ fileFixtureOne.Filename
+              fileFixtureTwo.Filename ]
 
     exitCode |> should equal 99
 
@@ -97,8 +98,9 @@ let ``check with file and folder`` () =
     use fileFixtureTwo = new TemporaryFileCodeSample("let b = 1")
 
     let { ExitCode = exitCode; Output = output } =
-        checkCode [ fileFixtureOne.Filename
-                    fileFixtureTwo.Filename ]
+        checkCode
+            [ fileFixtureOne.Filename
+              fileFixtureTwo.Filename ]
 
     exitCode |> should equal 99
 

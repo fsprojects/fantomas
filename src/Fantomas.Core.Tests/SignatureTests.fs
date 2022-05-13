@@ -38,7 +38,6 @@ let MSBuildWithProjectProperties outputPath (targets: string) (properties: strin
     doingsomstuff
 """
 
-
 [<Test>]
 let ``should keep the string * string list type signature in functions`` () =
     shouldNotChangeAfterFormat
@@ -46,7 +45,6 @@ let ``should keep the string * string list type signature in functions`` () =
 let MSBuildWithProjectProperties outputPath (targets: string) (properties: (string -> string) * string list) projects =
     doingsomstuff
 """
-
 
 [<Test>]
 let ``should not add parens in signature`` () =

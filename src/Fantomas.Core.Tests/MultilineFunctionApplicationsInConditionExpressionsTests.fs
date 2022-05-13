@@ -31,7 +31,6 @@ let foo () =
     | false, _ -> failwith ""
 """
 
-
 [<Test>]
 let ``inside match expression, single argument in parenthesis`` () =
     formatSourceString

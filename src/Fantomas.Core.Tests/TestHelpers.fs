@@ -142,7 +142,6 @@ let (==) actual expected = Assert.AreEqual(expected, actual)
 let fail () = Assert.Fail()
 let pass () = Assert.Pass()
 
-
 /// An FsCheck runner which reports FsCheck test results to NUnit.
 type NUnitRunner() =
     interface IRunner with

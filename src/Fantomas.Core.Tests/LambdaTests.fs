@@ -193,7 +193,6 @@ let a =
         a + b)
 """
 
-
 [<Test>]
 let ``indent when identifier is smaller than ident size`` () =
     formatSourceString
@@ -294,7 +293,6 @@ let ``line comment after lambda should not necessary make it multiline`` () =
         """
 let a = fun _ -> div [] [] // React.lazy is not compatible with SSR, so just use an empty div
 """
-
 
 [<Test>]
 let ``multiline let binding in lambda`` () =

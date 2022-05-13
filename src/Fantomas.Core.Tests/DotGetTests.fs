@@ -1216,7 +1216,6 @@ m.Property(fun p -> p.Name).HasMaxLength 64
 m.Property(fun p -> p.Name).HasMaxLength 64
 """
 
-
 [<Test>]
 let ``dotget function application should add space before argument, long`` () =
     formatSourceString

@@ -185,7 +185,6 @@ let a =  c + d
     | [ { ContentBefore = [ Comment (BlockComment (comment, _, true)) ] } ] -> comment == "(* (* meh *) *)"
     | _ -> failwith "Expected block comment"
 
-
 [<Test>]
 let ``line comment inside block comment parsed correctly`` () =
     let source =
@@ -198,7 +197,6 @@ let a =  9
     match triviaNodes with
     | [ { ContentBefore = [ Comment (BlockComment (comment, _, true)) ] } ] -> comment == "(* // meh *)"
     | _ -> failwith "Expected block comment"
-
 
 [<Test>]
 let ``multiline block comment added to trivia`` () =
@@ -219,7 +217,6 @@ bla *)"""
     | [ { ContentBefore = [ Comment (BlockComment (comment, _, true)) ] } ] ->
         String.normalizeNewLine comment == expectedComment
     | _ -> failwith "Expected block comment"
-
 
 [<Test>]
 let ``multiple block comments should be linked to same trivia node`` () =
@@ -359,7 +356,6 @@ let ``trailing newlines should not be picked up in trivia`` () =
     match trivia with
     | [] -> pass ()
     | _ -> fail ()
-
 
 [<Test>]
 let ``code in non-active defines should be returned in trivia`` () =

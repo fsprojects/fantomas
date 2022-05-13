@@ -64,7 +64,6 @@ open Foo
 let x = 42
 """
 
-
 [<Test>]
 let ``only generated empty lines`` () =
     checkFormat

@@ -71,9 +71,7 @@ let private normalizeCNF expr =
         | _ -> None
 
     expr
-    |> mapUntilNotChanged [ doubleNegative
-                            deMorgan
-                            expandOr ]
+    |> mapUntilNotChanged [ doubleNegative; deMorgan; expandOr ]
 
 type Literal =
     | Positive of string

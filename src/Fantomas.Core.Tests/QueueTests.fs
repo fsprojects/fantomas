@@ -90,7 +90,6 @@ let ``Queue.skipExists`` () =
                  result |> should equal expected))
     )
 
-
 [<Test>]
 let ``Queue ref transp`` () =
     Check.One(

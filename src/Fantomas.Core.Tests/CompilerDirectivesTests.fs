@@ -1565,7 +1565,6 @@ type internal Close =
   | Resume
 """
 
-
 [<Test>]
 let ``namespace global mixed with hash directives, no directives`` () =
     formatSourceStringWithDefines

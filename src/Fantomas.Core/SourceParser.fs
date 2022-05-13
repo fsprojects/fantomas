@@ -663,7 +663,6 @@ let (|LongIdentExpr|_|) =
     | SynExpr.LongIdent (longDotId = synLongIdent) -> Some synLongIdent
     | _ -> None
 
-
 let (|LongIdentExprWithMoreThanOneIdent|_|) =
     function
     | SynExpr.LongIdent(longDotId = SynLongIdent (id = lids) as synLongIdent) when (List.moreThanOne lids) ->
@@ -1230,7 +1229,6 @@ type SynSimplePats with
         match pat with
         | SynSimplePats.SimplePats (_, r)
         | SynSimplePats.Typed (_, _, r) -> r
-
 
 let (|SPAttrib|SPId|SPTyped|) =
     function

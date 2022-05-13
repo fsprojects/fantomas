@@ -20,12 +20,14 @@ module Methods =
     let Configuration = "fantomas/configuration"
 
 type FormatDocumentRequest =
-    { SourceCode: string
-      /// File path will be used to identify the .editorconfig options
-      /// Unless the configuration is passed
-      FilePath: string
-      /// Overrides the found .editorconfig.
-      Config: IReadOnlyDictionary<string, string> option }
+    {
+        SourceCode: string
+        /// File path will be used to identify the .editorconfig options
+        /// Unless the configuration is passed
+        FilePath: string
+        /// Overrides the found .editorconfig.
+        Config: IReadOnlyDictionary<string, string> option
+    }
 
 type FantomasResponse =
     { Code: int
@@ -33,14 +35,16 @@ type FantomasResponse =
       Content: string option }
 
 type FormatSelectionRequest =
-    { SourceCode: string
-      /// File path will be used to identify the .editorconfig options
-      /// Unless the configuration is passed
-      FilePath: string
-      /// Overrides the found .editorconfig.
-      Config: IReadOnlyDictionary<string, string> option
-      /// Range follows the same semantics of the FSharp Compiler Range type.
-      Range: FormatSelectionRange }
+    {
+        SourceCode: string
+        /// File path will be used to identify the .editorconfig options
+        /// Unless the configuration is passed
+        FilePath: string
+        /// Overrides the found .editorconfig.
+        Config: IReadOnlyDictionary<string, string> option
+        /// Range follows the same semantics of the FSharp Compiler Range type.
+        Range: FormatSelectionRange
+    }
 
 and FormatSelectionRange =
     struct

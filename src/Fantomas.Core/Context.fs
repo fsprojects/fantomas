@@ -49,18 +49,20 @@ type WriteModelMode =
     | ShortExpression of ShortExpressionInfo list
 
 type WriterModel =
-    { /// lines of resulting text, in reverse order (to allow more efficient adding line to end)
-      Lines: string list
-      /// current indentation
-      Indent: int
-      /// helper indentation information, if AtColumn > Indent after NewLine, Indent will be set to AtColumn
-      AtColumn: int
-      /// text to be written before next newline
-      WriteBeforeNewline: string
-      /// dummy = "fake" writer used in `autoNln`, `autoNlnByFuture`
-      Mode: WriteModelMode
-      /// current length of last line of output
-      Column: int }
+    {
+        /// lines of resulting text, in reverse order (to allow more efficient adding line to end)
+        Lines: string list
+        /// current indentation
+        Indent: int
+        /// helper indentation information, if AtColumn > Indent after NewLine, Indent will be set to AtColumn
+        AtColumn: int
+        /// text to be written before next newline
+        WriteBeforeNewline: string
+        /// dummy = "fake" writer used in `autoNln`, `autoNlnByFuture`
+        Mode: WriteModelMode
+        /// current length of last line of output
+        Column: int
+    }
     member __.IsDummy =
         match __.Mode with
         | Dummy -> true
