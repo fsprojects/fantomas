@@ -9,7 +9,7 @@ open Internal.Utilities
 open Internal.Utilities.Library
 open FSharp.Compiler
 open FSharp.Compiler.AbstractIL.IL
-open FSharp.Compiler.ErrorLogger
+open FSharp.Compiler.DiagnosticsLogger
 open FSharp.Compiler.Features
 open FSharp.Compiler.Lexhelp
 open FSharp.Compiler.Text
@@ -22,7 +22,24 @@ open FSharp.Compiler.Syntax.PrettyNaming
 open FSharp.Compiler.SyntaxTreeOps
 open FSharp.Compiler.IO
 open FSharp.Compiler.ParseHelpers
-open FSharp.Compiler.ParseAndCheckInputs
+
+let private FSharpSigFileSuffixes = [ ".mli"; ".fsi" ]
+
+let private mlCompatSuffixes = [ ".mli"; ".ml" ]
+
+let private FSharpImplFileSuffixes = [ ".ml"; ".fs"; ".fsscript"; ".fsx" ]
+
+let private FSharpScriptFileSuffixes = [ ".fsscript"; ".fsx" ]
+
+let private CanonicalizeFilename filename =
+    let basic = FileSystemUtils.fileNameOfPath filename
+
+    String.capitalize (
+        try
+            FileSystemUtils.chopExtension basic
+        with
+        | _ -> basic
+    )
 
 let private ComputeAnonModuleName check defaultNamespace filename (m: range) =
     let modname = CanonicalizeFilename filename
@@ -315,7 +332,7 @@ let private PostParseModuleSpecs
 let private ParseInput
     (
         lexer,
-        errorLogger: ErrorLogger,
+        errorLogger: CapturingDiagnosticsLogger,
         lexbuf: UnicodeLexing.Lexbuf,
         defaultNamespace,
         filename,
@@ -331,8 +348,8 @@ let private ParseInput
 
     // Delay sending errors and warnings until after the file is parsed. This gives us a chance to scrape the
     // #nowarn declarations for the file
-    let delayLogger = CapturingErrorLogger("Parsing")
-    use unwindEL = PushErrorLoggerPhaseUntilUnwind(fun _ -> delayLogger)
+    let delayLogger = CapturingDiagnosticsLogger("Parsing")
+    use unwindEL = PushDiagnosticsLoggerPhaseUntilUnwind(fun _ -> delayLogger)
     use unwindBP = PushThreadBuildPhaseUntilUnwind BuildPhase.Parse
 
     let mutable scopedPragmas = []
@@ -418,8 +435,8 @@ let private EmptyParsedInput (filename, isLastCompiland) =
 let private createLexbuf langVersion sourceText =
     UnicodeLexing.SourceTextAsLexbuf(true, LanguageVersion(langVersion), sourceText)
 
-let private createLexerFunction (defines: string list) lexbuf (errorLogger: ErrorLogger) =
-    let lightStatus = LightSyntaxStatus(true, true) // getLightSyntaxStatus fileName options
+let private createLexerFunction (defines: string list) lexbuf (errorLogger: CapturingDiagnosticsLogger) =
+    let lightStatus = IndentationAwareSyntaxStatus(true, true)
 
     // Note: we don't really attempt to intern strings across a large scope.
     let lexResourceManager = LexResourceManager()
@@ -1086,7 +1103,7 @@ let parseFile
     (sourceText: ISourceText)
     (defines: string list)
     : ParsedInput * FSharpParserDiagnostic list =
-    let errorLogger = CapturingErrorLogger("ErrorHandler")
+    let errorLogger = CapturingDiagnosticsLogger("ErrorHandler")
 
     let parseResult =
         let fileName =
