@@ -669,6 +669,11 @@ let (|LongIdentExprWithMoreThanOneIdent|_|) =
         Some synLongIdent
     | _ -> None
 
+let (|DynamicExpr|_|) =
+    function
+    | SynExpr.Dynamic (funcExpr, _, argExpr, _) -> Some(funcExpr, argExpr)
+    | _ -> None
+
 // Example: ( *** ) a b
 // (*) a b is ok though
 let (|ParenFunctionNameWithStar|_|) =
@@ -1619,7 +1624,8 @@ let rec (|UppercaseSynExpr|LowercaseSynExpr|) (synExpr: SynExpr) =
         | Some text -> upperOrLower text
 
     | SynExpr.DotIndexedGet (expr, _, _, _)
-    | SynExpr.TypeApp (expr, _, _, _, _, _, _) -> (|UppercaseSynExpr|LowercaseSynExpr|) expr
+    | SynExpr.TypeApp (expr, _, _, _, _, _, _)
+    | SynExpr.Dynamic (funcExpr = expr) -> (|UppercaseSynExpr|LowercaseSynExpr|) expr
     | _ -> failwithf "cannot determine if synExpr %A is uppercase or lowercase" synExpr
 
 let rec (|UppercaseSynType|LowercaseSynType|) (synType: SynType) =

@@ -1556,26 +1556,10 @@ and genExpr astContext synExpr ctx =
                 +> genExpr astContext e
                 +> sepCloseTFor rpr
 
-        // This supposes to be an infix function, but for some reason it isn't picked up by InfixApps
-        // TODO: improve when https://github.com/dotnet/fsharp/issues/12755 is implemented.
-        | App (OptVar (_, SynLongIdent ([ _ ], [], [ Some (IdentTrivia.OriginalNotation "?") ]), _), e :: es) ->
-            match es with
-            | SynExpr.Const (SynConst.String (text = text), _) :: rest ->
-                let genText =
-                    !-(if text = "checked" then
-                           "``checked``"
-                       else
-                           text)
-
-                genExpr astContext e -- "?"
-                +> genText
-                +> onlyIfNot rest.IsEmpty sepSpace
-                +> col sepSpace rest (genExpr astContext)
-            | _ ->
-                genExpr astContext e -- "?"
-                +> sepOpenT
-                +> col sepSpace es (genExpr astContext)
-                +> sepCloseT
+        | DynamicExpr (func, arg) ->
+            genExpr astContext func
+            +> !- "?"
+            +> genExpr astContext arg
 
         // Separate two prefix ops by spaces
         | PrefixApp (s1, PrefixApp (s2, e)) -> !-(sprintf "%s %s" s1 s2) +> genExpr astContext e
@@ -2505,6 +2489,7 @@ and genExpr astContext synExpr ctx =
             | SynExpr.TypeTest _ -> genTriviaFor SynExpr_TypeTest synExpr.Range
             | SynExpr.IndexRange _ -> genTriviaFor SynExpr_IndexRange synExpr.Range
             | SynExpr.IndexFromEnd _ -> genTriviaFor SynExpr_IndexFromEnd synExpr.Range
+            | SynExpr.Dynamic _ -> genTriviaFor SynExpr_Dynamic synExpr.Range
             | SynExpr.Const _ ->
                 // SynConst has trivia attached to it
                 id
