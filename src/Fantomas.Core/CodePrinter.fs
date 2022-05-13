@@ -3593,17 +3593,20 @@ and genTypeDefn
             +> col sepSemi fs (genField astContext "")
             +> genTriviaFor SynTypeDefnSimpleRepr_Record_ClosingBrace closingBrace sepCloseS
 
-        let multilineExpression =
-            ifAlignBrackets
-                (genMultilineSimpleRecordTypeDefnAlignBrackets
+        let multilineExpression (ctx: Context) =
+            if ctx.Config.MultilineBlockBracketsOnSameColumn
+               || (List.exists (fun (SynField (xmlDoc = xmlDoc)) -> not xmlDoc.IsEmpty) fs) then
+                genMultilineSimpleRecordTypeDefnAlignBrackets
                     astContext
                     openingBrace
                     withKeyword
                     ms
                     ao'
                     fs
-                    closingBrace)
-                (genMultilineSimpleRecordTypeDefn astContext openingBrace withKeyword ms ao' fs closingBrace)
+                    closingBrace
+                    ctx
+            else
+                genMultilineSimpleRecordTypeDefn astContext openingBrace withKeyword ms ao' fs closingBrace ctx
 
         let bodyExpr size ctx =
             if (List.isEmpty ms) then
@@ -3898,14 +3901,16 @@ and genSigTypeDefn
         let smallExpression =
             sepSpace
             +> optSingle (fun ao -> genAccess ao +> sepSpace) ao'
-            +> genTriviaFor SynExpr_Record_OpeningBrace openingBrace sepOpenS
+            +> genTriviaFor SynTypeDefnSimpleRepr_Record_OpeningBrace openingBrace sepOpenS
             +> col sepSemi fs (genField astContext "")
-            +> genTriviaFor SynExpr_Record_ClosingBrace closingBrace sepCloseS
+            +> genTriviaFor SynTypeDefnSimpleRepr_Record_ClosingBrace closingBrace sepCloseS
 
-        let multilineExpression =
-            ifAlignBrackets
-                (genSigSimpleRecordAlignBrackets astContext openingBrace withKeyword ms ao' fs closingBrace)
-                (genSigSimpleRecord astContext openingBrace withKeyword ms ao' fs closingBrace)
+        let multilineExpression (ctx: Context) =
+            if ctx.Config.MultilineBlockBracketsOnSameColumn
+               || (List.exists (fun (SynField (xmlDoc = xmlDoc)) -> not xmlDoc.IsEmpty) fs) then
+                genSigSimpleRecordAlignBrackets astContext openingBrace withKeyword ms ao' fs closingBrace ctx
+            else
+                genSigSimpleRecord astContext openingBrace withKeyword ms ao' fs closingBrace ctx
 
         let bodyExpr size ctx =
             if (List.isEmpty ms) then
