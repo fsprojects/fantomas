@@ -191,7 +191,8 @@ let ``non existing file should return defaults for readConfiguration`` () =
 
     use configFixture = new ConfigurationFile(defaultConfig, rootDir)
 
-    let config = EditorConfig.readConfiguration "bogus.fs"
+    let config =
+        EditorConfig.readConfiguration (Path.Join(Path.GetTempPath(), "bogus.fs"))
 
     config == defaultConfig
 
@@ -205,7 +206,8 @@ let ``non existing file should return None for tryReadConfiguration`` () =
 
     use configFixture = new ConfigurationFile(defaultConfig, rootDir)
 
-    let config = EditorConfig.tryReadConfiguration "bogus.fs"
+    let config =
+        EditorConfig.tryReadConfiguration (Path.Join(Path.GetTempPath(), "bogus.fs"))
 
     config == None
 
