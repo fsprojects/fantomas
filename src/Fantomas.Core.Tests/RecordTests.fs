@@ -158,8 +158,7 @@ let ``should not break inside of if statements in records`` () =
     }
 
     """
-        { config with
-            MaxIfThenElseShortWidth = 52 }
+        { config with MaxIfThenElseShortWidth = 52 }
     |> should
         equal
         """let XpkgDefaults () =
