@@ -1,4 +1,4 @@
-﻿module Fantomas.Core.Tests.Ragnarok.MultiLineLambdaClosingNewlineExpressionTests
+﻿module Fantomas.Core.Tests.Stroupstrup.MultiLineLambdaClosingNewlineExpressionTests
 
 open NUnit.Framework
 open FsUnit
@@ -8,7 +8,7 @@ let config =
     { config with
         MultilineBlockBracketsOnSameColumn = true
         MultiLineLambdaClosingNewline = true
-        Ragnarok = true }
+        ExperimentalStroupstrupStyle = true }
 
 // TODO: figure out what should happen when you mix MultiLineLambdaClosingNewline and Ragnarok
 // From a technical point of view, this is correct behavior but having `})` at the end seems sensible as well.

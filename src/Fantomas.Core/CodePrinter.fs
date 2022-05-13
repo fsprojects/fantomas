@@ -2124,7 +2124,7 @@ and genExpr astContext synExpr ctx =
             +> genExpr astContext indexExpr
             +> sepCloseLFixed
             +> genExpr astContext argExpr
-        | EndsWithDualListAppExpr ctx.Config.Ragnarok (e, es, props, children) ->
+        | EndsWithDualListAppExpr ctx.Config.ExperimentalStroupstrupStyle (e, es, props, children) ->
             // check if everything else beside the last array/list fits on one line
             let singleLineTestExpr =
                 genExpr astContext e
@@ -2172,7 +2172,7 @@ and genExpr astContext synExpr ctx =
             else
                 short
 
-        | EndsWithSingleListAppExpr ctx.Config.Ragnarok (e, es, a) ->
+        | EndsWithSingleListAppExpr ctx.Config.ExperimentalStroupstrupStyle (e, es, a) ->
             // check if everything else beside the last array/list fits on one line
             let singleLineTestExpr =
                 genExpr astContext e
@@ -2223,7 +2223,7 @@ and genExpr astContext synExpr ctx =
                 +> sepNln
                 +> (fun ctx ->
                     let hasMultipleClausesWhereOneHasRagnarok =
-                        hasMultipleClausesWhereOneHasRagnarok ctx.Config.Ragnarok cs
+                        hasMultipleClausesWhereOneHasStroupstrup ctx.Config.ExperimentalStroupstrupStyle cs
 
                     col sepNln cs (genClause astContext true hasMultipleClausesWhereOneHasRagnarok) ctx)
             )
@@ -3623,7 +3623,8 @@ and genTypeDefn
                 +> bodyExpr size
                 +> leaveNodeFor SynTypeDefnSimpleRepr_Record tdr.Range
 
-            if ctx.Config.Ragnarok && ms.IsEmpty then
+            if ctx.Config.ExperimentalStroupstrupStyle
+               && ms.IsEmpty then
                 (sepSpace +> short) ctx
             else
                 isSmallExpression size short (indent +> sepNln +> short +> unindent) ctx
@@ -3924,7 +3925,8 @@ and genSigTypeDefn
                 +> bodyExpr size
                 +> leaveNodeFor SynTypeDefnSimpleRepr_Record tdr.Range
 
-            if ctx.Config.Ragnarok && ms.IsEmpty then
+            if ctx.Config.ExperimentalStroupstrupStyle
+               && ms.IsEmpty then
                 (sepSpace +> short) ctx
             else
                 isSmallExpression size short (indent +> sepNln +> short +> unindent) ctx
@@ -4606,7 +4608,11 @@ and genClause
      |> genTriviaFor SynMatchClause_ ce.Range)
 
 and genClauses astContext cs (ctx: Context) =
-    col sepNln cs (genClause astContext true (hasMultipleClausesWhereOneHasRagnarok ctx.Config.Ragnarok cs)) ctx
+    col
+        sepNln
+        cs
+        (genClause astContext true (hasMultipleClausesWhereOneHasStroupstrup ctx.Config.ExperimentalStroupstrupStyle cs))
+        ctx
 
 /// Each multiline member definition has a pre and post new line.
 and genMemberDefnList astContext nodes =
@@ -5463,7 +5469,7 @@ and genExprKeepIndentInBranch (astContext: ASTContext) (e: SynExpr) : Context ->
 
         colWithNlnWhenItemIsMultilineUsingConfig items ctx
 
-    ifElseCtx (fun ctx -> ctx.Config.KeepIndentInBranch) keepIndentExpr (genExpr astContext e)
+    ifElseCtx (fun ctx -> ctx.Config.ExperimentalKeepIndentInBranch) keepIndentExpr (genExpr astContext e)
 
 and genKeepIndentMatch
     (astContext: ASTContext)
@@ -5493,7 +5499,7 @@ and genKeepIndentMatch
     +> sepNln
     +> (fun ctx ->
         let hasMultipleClausesWhereOneHasRagnarok =
-            hasMultipleClausesWhereOneHasRagnarok ctx.Config.Ragnarok clauses
+            hasMultipleClausesWhereOneHasStroupstrup ctx.Config.ExperimentalStroupstrupStyle clauses
 
         coli
             sepNln

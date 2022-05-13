@@ -1,4 +1,4 @@
-﻿module Fantomas.Core.Tests.Ragnarok.FunctionApplicationSingleListTests
+﻿module Fantomas.Core.Tests.Stroupstrup.FunctionApplicationSingleListTests
 
 open NUnit.Framework
 open FsUnit
@@ -7,7 +7,7 @@ open Fantomas.Core.Tests.TestHelper
 let config =
     { config with
         MultilineBlockBracketsOnSameColumn = true
-        Ragnarok = true }
+        ExperimentalStroupstrupStyle = true }
 
 [<Test>]
 let ``short function application`` () =

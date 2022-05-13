@@ -578,7 +578,7 @@ module Foo =
             SpaceBeforeSemicolon = true
             MultilineBlockBracketsOnSameColumn = true
             MultiLineLambdaClosingNewline = true
-            KeepIndentInBranch = true }
+            ExperimentalKeepIndentInBranch = true }
     |> prepend newline
     |> should
         equal
@@ -624,7 +624,7 @@ module Foo =
             SpaceBeforeSemicolon = true
             MultilineBlockBracketsOnSameColumn = true
             MultiLineLambdaClosingNewline = true
-            KeepIndentInBranch = true }
+            ExperimentalKeepIndentInBranch = true }
     |> prepend newline
     |> should
         equal
@@ -704,7 +704,7 @@ module Foo =
 """
         { config with
             MultiLineLambdaClosingNewline = true
-            KeepIndentInBranch = true }
+            ExperimentalKeepIndentInBranch = true }
     |> prepend newline
     |> should
         equal
@@ -765,7 +765,7 @@ module Foo =
 """
         { config with
             MultiLineLambdaClosingNewline = true
-            KeepIndentInBranch = true }
+            ExperimentalKeepIndentInBranch = true }
     |> prepend newline
     |> should
         equal

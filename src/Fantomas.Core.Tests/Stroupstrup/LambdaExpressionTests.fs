@@ -1,4 +1,4 @@
-﻿module Fantomas.Core.Tests.Ragnarok.LambdaExpressionTests
+﻿module Fantomas.Core.Tests.Stroupstrup.LambdaExpressionTests
 
 open NUnit.Framework
 open FsUnit
@@ -7,7 +7,7 @@ open Fantomas.Core.Tests.TestHelper
 let config =
     { config with
         MultilineBlockBracketsOnSameColumn = true
-        Ragnarok = true }
+        ExperimentalStroupstrupStyle = true }
 
 [<Test>]
 let ``lambda with record instance `` () =

@@ -1,4 +1,4 @@
-﻿module Fantomas.Core.Tests.Ragnarok.SetExpressionTests
+﻿module Fantomas.Core.Tests.Stroupstrup.DotSetExpressionTests
 
 open NUnit.Framework
 open FsUnit
@@ -7,14 +7,14 @@ open Fantomas.Core.Tests.TestHelper
 let config =
     { config with
         MultilineBlockBracketsOnSameColumn = true
-        Ragnarok = true }
+        ExperimentalStroupstrupStyle = true }
 
 [<Test>]
-let ``set with record instance `` () =
+let ``dotSet with record instance `` () =
     formatSourceString
         false
         """
-myMutable[x] <-
+App().foo <-
     { A = longTypeName
       B = someOtherVariable
       C = ziggyBarX }
@@ -24,7 +24,7 @@ myMutable[x] <-
     |> should
         equal
         """
-myMutable[x] <- {
+App().foo <- {
     A = longTypeName
     B = someOtherVariable
     C = ziggyBarX
@@ -32,11 +32,11 @@ myMutable[x] <- {
 """
 
 [<Test>]
-let ``set with update record`` () =
+let ``dotSet with update record`` () =
     formatSourceString
         false
         """
-myMutable[x] <-
+App().foo <-
     { astContext with IsInsideMatchClausePattern = true }
 """
         config
@@ -44,18 +44,18 @@ myMutable[x] <-
     |> should
         equal
         """
-myMutable[x] <-
+App().foo <-
     { astContext with
         IsInsideMatchClausePattern = true
     }
 """
 
 [<Test>]
-let ``set with anonymous record instance`` () =
+let ``dotSet with anonymous record instance`` () =
     formatSourceString
         false
         """
-myMutable[x] <-
+App().foo <-
    {| A = longTypeName
       B = someOtherVariable
       C = ziggyBarX |}
@@ -65,7 +65,7 @@ myMutable[x] <-
     |> should
         equal
         """
-myMutable[x] <- {|
+App().foo <- {|
     A = longTypeName
     B = someOtherVariable
     C = ziggyBarX
@@ -73,11 +73,11 @@ myMutable[x] <- {|
 """
 
 [<Test>]
-let ``set with anonymous record instance struct`` () =
+let ``dotSet with anonymous record instance struct`` () =
     formatSourceString
         false
         """
-myMutable[x] <-
+App().foo <-
    struct
         {| A = longTypeName
            B = someOtherVariable
@@ -88,7 +88,7 @@ myMutable[x] <-
     |> should
         equal
         """
-myMutable[x] <- struct {|
+App().foo <- struct {|
     A = longTypeName
     B = someOtherVariable
     C = ziggyBarX
@@ -96,11 +96,11 @@ myMutable[x] <- struct {|
 """
 
 [<Test>]
-let ``set with computation expression`` () =
+let ``dotSet with computation expression`` () =
     formatSourceString
         false
         """
-myMutable[x] <-
+App().foo <-
     task {
         // some computation here
         ()
@@ -111,18 +111,18 @@ myMutable[x] <-
     |> should
         equal
         """
-myMutable[x] <- task {
+App().foo <- task {
     // some computation here
     ()
 }
 """
 
 [<Test>]
-let ``set with list`` () =
+let ``dotSet with list`` () =
     formatSourceString
         false
         """
-myMutable[x] <-
+App().foo <-
     [ itemOne
       itemTwo
       itemThree
@@ -134,7 +134,7 @@ myMutable[x] <-
     |> should
         equal
         """
-myMutable[x] <- [
+App().foo <- [
     itemOne
     itemTwo
     itemThree
@@ -144,11 +144,11 @@ myMutable[x] <- [
 """
 
 [<Test>]
-let ``set with array`` () =
+let ``dotSet with array`` () =
     formatSourceString
         false
         """
-myMutable[x] <-
+App().foo <-
     [| itemOne
        itemTwo
        itemThree
@@ -160,7 +160,7 @@ myMutable[x] <-
     |> should
         equal
         """
-myMutable[x] <- [|
+App().foo <- [|
     itemOne
     itemTwo
     itemThree

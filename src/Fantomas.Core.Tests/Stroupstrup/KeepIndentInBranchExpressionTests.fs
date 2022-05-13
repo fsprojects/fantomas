@@ -1,4 +1,4 @@
-﻿module Fantomas.Core.Tests.Ragnarok.KeepIndentInBranchExpressionTests
+﻿module Fantomas.Core.Tests.Stroupstrup.KeepIndentInBranchExpressionTests
 
 open NUnit.Framework
 open FsUnit
@@ -7,8 +7,8 @@ open Fantomas.Core.Tests.TestHelper
 let config =
     { config with
         MultilineBlockBracketsOnSameColumn = true
-        KeepIndentInBranch = true
-        Ragnarok = true }
+        ExperimentalKeepIndentInBranch = true
+        ExperimentalStroupstrupStyle = true }
 
 // There currently is no conflict with this setting, but I'm guessing the case was never brought up.
 // I would conclude that will never clash.

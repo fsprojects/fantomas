@@ -182,7 +182,7 @@ type FormatConfig =
       [<Category("Indentation")>]
       [<DisplayName("Keep indent in branch")>]
       [<Description("Experimental feature, use at your own risk.")>]
-      KeepIndentInBranch: bool
+      ExperimentalKeepIndentInBranch: bool
 
       [<Category("Convention")>]
       [<DisplayName("Keep empty lines around nested multi-line expressions")>]
@@ -194,7 +194,7 @@ type FormatConfig =
 
       [<Category("Convention")>]
       [<DisplayName("Ragnarok")>]
-      Ragnarok: bool
+      ExperimentalStroupstrupStyle: bool
 
       [<Category("Convention")>]
       [<DisplayName("Maximum number of consecutive blank lines to keep")>]
@@ -236,9 +236,9 @@ type FormatConfig =
           AlignFunctionSignatureToIndentation = false
           AlternativeLongMemberDefinitions = false
           MultiLineLambdaClosingNewline = false
-          KeepIndentInBranch = false
+          ExperimentalKeepIndentInBranch = false
           BlankLinesAroundNestedMultilineExpressions = true
           BarBeforeDiscriminatedUnionDeclaration = false
-          Ragnarok = false
+          ExperimentalStroupstrupStyle = false
           KeepMaxNumberOfBlankLines = 100
           StrictMode = false }

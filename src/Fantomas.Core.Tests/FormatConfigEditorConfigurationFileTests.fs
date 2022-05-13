@@ -406,13 +406,13 @@ fsharp_multi_line_lambda_closing_newline = true
     Assert.IsTrue config.MultiLineLambdaClosingNewline
 
 [<Test>]
-let fsharp_keep_indent_in_branch () =
+let fsharp_experimental_keep_indent_in_branch () =
     let rootDir = tempName ()
 
     let editorConfig =
         """
 [*.fs]
-fsharp_keep_indent_in_branch = true
+fsharp_experimental_keep_indent_in_branch = true
 """
 
     use configFixture =
@@ -422,7 +422,7 @@ fsharp_keep_indent_in_branch = true
 
     let config = EditorConfig.readConfiguration fsharpFile.FSharpFile
 
-    Assert.IsTrue config.KeepIndentInBranch
+    Assert.IsTrue config.ExperimentalKeepIndentInBranch
 
 [<Test>]
 let fsharp_bar_before_discriminated_union_declaration () =
@@ -461,3 +461,24 @@ insert_final_newline = false
     let config = EditorConfig.readConfiguration fsharpFile.FSharpFile
 
     Assert.IsFalse config.InsertFinalNewline
+
+[<Test>]
+let ``Stroupstrup style`` () =
+    let rootDir = tempName ()
+
+    let editorConfig =
+        """
+[*.fs]
+fsharp_multiline_block_brackets_on_same_column = true
+fsharp_experimental_stroupstrup_style = true
+"""
+
+    use configFixture =
+        new ConfigurationFile(defaultConfig, rootDir, content = editorConfig)
+
+    use fsharpFile = new FSharpFile(rootDir)
+
+    let config = EditorConfig.readConfiguration fsharpFile.FSharpFile
+
+    Assert.IsTrue config.MultilineBlockBracketsOnSameColumn
+    Assert.IsTrue config.ExperimentalStroupstrupStyle
