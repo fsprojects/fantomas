@@ -111,10 +111,6 @@ type FormatConfig =
       [<DisplayName("After semicolon")>]
       SpaceAfterSemicolon: bool
 
-      [<Category("Indentation")>]
-      [<DisplayName("Indent try-with")>]
-      IndentOnTryWith: bool
-
       [<Category("Spacing")>]
       [<DisplayName("Around delimiter")>]
       SpaceAroundDelimiter: bool
@@ -223,7 +219,6 @@ type FormatConfig =
           SpaceAfterComma = true
           SpaceBeforeSemicolon = false
           SpaceAfterSemicolon = true
-          IndentOnTryWith = false
           SpaceAroundDelimiter = true
           MaxIfThenElseShortWidth = 40
           MaxInfixOperatorExpression = 50

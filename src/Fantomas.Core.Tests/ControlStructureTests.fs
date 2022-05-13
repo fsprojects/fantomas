@@ -740,108 +740,6 @@ let foldi (folder: 'State -> int -> 'T -> 'State) (state: 'State) (array: 'T[]) 
 """
 
 [<Test>]
-let ``line comment inside short `with` block (of a try-with), 1219`` () =
-    formatSourceString
-        false
-        """
-      try
-          //comment1
-          TrySomething(someParam)
-      with
-          //comment2
-          ex ->
-          MakeSureToCleanup(someParam)
-"""
-        { config with IndentOnTryWith = true }
-    |> prepend newline
-    |> should
-        equal
-        """
-try
-    //comment1
-    TrySomething(someParam)
-with
-    //comment2
-    | ex -> MakeSureToCleanup(someParam)
-"""
-
-[<Test>]
-let ``line comment inside `with` block (of a try-with), 1219`` () =
-    formatSourceString
-        false
-        """module Foo =
-        let Bar () =
-            async {
-                try
-                    let! content = tryDownloadFile url
-                    return Some content
-                with
-                    // should we specify HttpRequestException?
-                    ex ->
-                        Infrastructure.ReportWarning ex
-                        return None
-            }
-"""
-        { config with IndentOnTryWith = true }
-    |> prepend newline
-    |> should
-        equal
-        """
-module Foo =
-    let Bar () =
-        async {
-            try
-                let! content = tryDownloadFile url
-                return Some content
-            with
-                // should we specify HttpRequestException?
-                | ex ->
-                    Infrastructure.ReportWarning ex
-                    return None
-        }
-"""
-
-[<Test>]
-let ``line comment inside nested `with` block (of a try-with), 1219`` () =
-    formatSourceString
-        false
-        """
-      try
-          //comment1
-          try
-              //comment2
-              TrySomething(someParam)
-          with
-              //comment3
-              ex ->
-              MakeSureToCleanup(someParam)
-
-      with
-          ex ->
-          Infrastructure.ReportWarning ex
-          return None
-"""
-        { config with IndentOnTryWith = true }
-    |> prepend newline
-    |> should
-        equal
-        """
-try
-    //comment1
-    try
-        //comment2
-        TrySomething(someParam)
-    with
-        //comment3
-        | ex -> MakeSureToCleanup(someParam)
-
-with
-    | ex ->
-        Infrastructure.ReportWarning ex
-        return None
-"""
-
-[<Test>]
 let ``try/with with multiple type checks, 1395`` () =
     formatSourceString
         false
@@ -970,8 +868,7 @@ module Foo =
 """
         { config with
             SpaceBeforeColon = true
-            SpaceBeforeSemicolon = true
-            IndentOnTryWith = true }
+            SpaceBeforeSemicolon = true }
     |> prepend newline
     |> should
         equal
@@ -983,8 +880,8 @@ module Foo =
         try
             failwith ""
         with
-            // hi!
-            | :? Exception as e -> failwith ""
+        // hi!
+        | :? Exception as e -> failwith ""
 """
 
 [<Test>]
@@ -999,13 +896,12 @@ module Foo =
         try
             failwith ""
         with
-            // hi!
-            :? Exception as e -> failwith ""
+        // hi!
+        | :? Exception as e -> failwith ""
 """
         { config with
             SpaceBeforeColon = true
-            SpaceBeforeSemicolon = true
-            IndentOnTryWith = true }
+            SpaceBeforeSemicolon = true }
     |> prepend newline
     |> should
         equal
@@ -1017,8 +913,8 @@ module Foo =
         try
             failwith ""
         with
-            // hi!
-            | :? Exception as e -> failwith ""
+        // hi!
+        | :? Exception as e -> failwith ""
 """
 
 [<Test>]
@@ -1112,28 +1008,6 @@ try
     ()
 with
 | exc -> ()
-"""
-
-[<Test>]
-let ``short catch clause in try/with should have pipe, IndentOnTryWith = true`` () =
-    formatSourceString
-        false
-        """
-try
-    ()
-with
-| exc ->
-    ()
-"""
-        { config with IndentOnTryWith = true }
-    |> prepend newline
-    |> should
-        equal
-        """
-try
-    ()
-with
-    | exc -> ()
 """
 
 [<Test>]

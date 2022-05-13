@@ -219,7 +219,6 @@ let ``indent_style tab edge case`` () =
 indent_style=tab
 indent_size=tab
 tab_width=5
-fsharp_indent_on_try_with=true
 """
 
     use configFixture =

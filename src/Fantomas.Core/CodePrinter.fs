@@ -2220,14 +2220,12 @@ and genExpr astContext synExpr ctx =
                 +> unindent
                 +> sepNln // unless trivia?
                 +> genTriviaFor SynExpr_TryWith_With withKeyword (!- "with")
-                +> indentOnWith
                 +> sepNln
                 +> (fun ctx ->
                     let hasMultipleClausesWhereOneHasRagnarok =
                         hasMultipleClausesWhereOneHasRagnarok ctx.Config.Ragnarok cs
 
                     col sepNln cs (genClause astContext true hasMultipleClausesWhereOneHasRagnarok) ctx)
-                +> unindentOnWith
             )
 
         | TryFinally (tryKeyword, e1, finallyKeyword, e2) ->

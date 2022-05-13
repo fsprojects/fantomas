@@ -150,8 +150,7 @@ module Foo =
 """
         { config with
             SpaceBeforeColon = true
-            SpaceBeforeSemicolon = true
-            IndentOnTryWith = true }
+            SpaceBeforeSemicolon = true }
     |> prepend newline
     |> should
         equal
@@ -187,8 +186,7 @@ module Foo =
 """
         { config with
             SpaceBeforeColon = true
-            SpaceBeforeSemicolon = true
-            IndentOnTryWith = true }
+            SpaceBeforeSemicolon = true }
     |> prepend newline
     |> should
         equal

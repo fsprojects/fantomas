@@ -121,7 +121,6 @@ fsharp_space_before_colon=false
 fsharp_space_after_comma=true
 fsharp_space_before_semicolon=false
 fsharp_space_after_semicolon=true
-fsharp_indent_on_try_with=false
 fsharp_space_around_delimiter=true
 fsharp_max_if_then_else_short_width=40
 fsharp_max_infix_operator_expression=50
@@ -421,35 +420,6 @@ type C = { X: int; Y: int }
 let a = [ 1;2;3 ]
 let b = [| foo;bar |]
 type C = { X: int;Y: int }
-```
-
-### fsharp_indent_on_try_with
-
-Adds an extra indent to the `with` block of a try/with expression.
-Default = false.
-
-`defaultConfig`
-
-```fsharp
-try
-    if System.DateTime.Now.Second % 3 = 0
-    then raise (new System.Exception())
-    else raise (new System.ApplicationException())
-with
-| :? System.ApplicationException -> printfn "A second that was not a multiple of 3"
-| _ -> printfn "A second that was a multiple of 3"
-```
-
-`{ defaultConfig with IndentOnTryWith = true }`
-
-```fsharp
-try
-    if System.DateTime.Now.Second % 3 = 0
-    then raise (new System.Exception())
-    else raise (new System.ApplicationException())
-with
-    | :? System.ApplicationException -> printfn "A second that was not a multiple of 3"
-    | _ -> printfn "A second that was a multiple of 3"
 ```
 
 ### fsharp_space_around_delimiter

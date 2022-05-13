@@ -1105,20 +1105,6 @@ let internal sepSemi (ctx: Context) =
     | true, true -> str " ; "
     <| ctx
 
-/// Conditional indentation on with keyword
-let internal indentOnWith (ctx: Context) =
-    if ctx.Config.IndentOnTryWith then
-        indent ctx
-    else
-        ctx
-
-/// Conditional unindentation on with keyword
-let internal unindentOnWith (ctx: Context) =
-    if ctx.Config.IndentOnTryWith then
-        unindent ctx
-    else
-        ctx
-
 let internal ifAlignBrackets f g =
     ifElseCtx (fun ctx -> ctx.Config.MultilineBlockBracketsOnSameColumn) f g
 
