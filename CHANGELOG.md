@@ -17,6 +17,7 @@
 
 * Update FCS to More cleanup, e063dd2a7005faf953619ab4f232d1e3606c7ed2
 * Rename `fsharp_ragnarok` to `fsharp_experimental_stroupstrup_style` and `fsharp_keep_indent_in_branch` to `fsharp_experimental_keep_indent_in_branch`. [#2251](https://github.com/fsprojects/fantomas/pull/2251)
+* Consider wider default format for record declarations if any XML doc comments are present on fields. [#1879](https://github.com/fsprojects/fantomas/issues/1879)
 
 ## [5.0.0-alpha-005] - 2022-05-07
 
