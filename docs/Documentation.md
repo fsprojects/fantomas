@@ -141,6 +141,7 @@ fsharp_multi_line_lambda_closing_newline=false
 fsharp_keep_indent_in_branch=false
 fsharp_blank_lines_around_nested_multiline_expressions=true
 fsharp_bar_before_discriminated_union_declaration=false
+fsharp_experimental_stroupstrup_style=false
 fsharp_keep_max_number_of_blank_lines=100
 fsharp_strict_mode=false
 ```
@@ -1052,6 +1053,10 @@ type MyDU = Short of int
 ```fsharp
 type MyDU = | Short of int
 ```
+
+### fsharp_experimental_stroupstrup_style
+
+Please contribute to https://github.com/fsprojects/fantomas/issues/1408.
 
 ### fsharp_keep_max_number_of_blank_lines
 
