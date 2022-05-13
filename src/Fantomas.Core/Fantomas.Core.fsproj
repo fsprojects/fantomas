@@ -27,6 +27,7 @@
     <Compile Include="SourceTransformer.fs" />
     <Compile Include="CodePrinter.fs" />
     <Compile Include="CodeFormatterImpl.fs" />
+    <Compile Include="Validation.fs" />
     <Compile Include="CodeFormatter.fsi" />
     <Compile Include="CodeFormatter.fs" />
   </ItemGroup>

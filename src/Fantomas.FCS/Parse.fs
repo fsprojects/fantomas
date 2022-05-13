@@ -582,6 +582,9 @@ let private TokenName1TokenName2E () =
 let private TokenName1TokenName2TokenName3E () =
     DeclareResourceString("TokenName1TokenName2TokenName3", "%s%s%s")
 
+let private LibraryUseOnlyE () =
+    DeclareResourceString("LibraryUseOnly", "")
+
 let private getSyntaxErrorMessage ctxt =
     let ctxt =
         unbox<Internal.Utilities.Text.Parsing.ParseErrorContext<Parser.token>> ctxt
@@ -1131,6 +1134,7 @@ let parseFile
                     match p.Exception with
                     | :? IndentationProblem as ip -> Some ip.Data1, ip.Data0, Some 58
                     | :? SyntaxError as se -> Some se.range, (getSyntaxErrorMessage se.Data0), Some 10
+                    | :? LibraryUseOnly as luo -> Some luo.range, LibraryUseOnlyE().Format, Some 42
                     | _ -> None, p.Exception.Message, None
 
                 { Severity = severity

@@ -2103,6 +2103,7 @@ else
 """
 
 [<Test>]
+[<Ignore "Tracked in https://github.com/fsprojects/fantomas/issues/1588">]
 let ``line comment before multiline if expression, 1588`` () =
     formatSourceString
         false
