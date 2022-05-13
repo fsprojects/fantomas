@@ -65,7 +65,7 @@ type Element =
 
     /// Replaces the children with a single text node.
     static member ( -- ) : self: Element * text: string -> Element"""
-        { config with SemicolonAtEndOfLine = true }
+        config
     |> prepend newline
     |> should
         equal
@@ -75,10 +75,10 @@ module RecordSignature
 /// Represents simple XML elements.
 type Element =
     { /// The attribute collection.
-      Attributes: IDictionary<Name, string>;
+      Attributes: IDictionary<Name, string>
 
       /// The children collection.
-      Children: seq<INode>;
+      Children: seq<INode>
 
       /// The qualified name.
       Name: Name }
@@ -158,27 +158,25 @@ let ``should not break inside of if statements in records`` () =
     }
 
     """
-        { config with
-            SemicolonAtEndOfLine = true
-            MaxIfThenElseShortWidth = 52 }
+        { config with MaxIfThenElseShortWidth = 52 }
     |> should
         equal
         """let XpkgDefaults () =
-    { ToolPath = "./tools/xpkg/xpkg.exe";
-      WorkingDir = "./";
-      TimeOut = TimeSpan.FromMinutes 5.;
-      Package = null;
-      Version = if not isLocalBuild then buildVersion else "0.1.0.0";
-      OutputPath = "./xpkg";
-      Project = null;
-      Summary = null;
-      Publisher = null;
-      Website = null;
-      Details = "Details.md";
-      License = "License.md";
-      GettingStarted = "GettingStarted.md";
-      Icons = [];
-      Libraries = [];
+    { ToolPath = "./tools/xpkg/xpkg.exe"
+      WorkingDir = "./"
+      TimeOut = TimeSpan.FromMinutes 5.
+      Package = null
+      Version = if not isLocalBuild then buildVersion else "0.1.0.0"
+      OutputPath = "./xpkg"
+      Project = null
+      Summary = null
+      Publisher = null
+      Website = null
+      Details = "Details.md"
+      License = "License.md"
+      GettingStarted = "GettingStarted.md"
+      Icons = []
+      Libraries = []
       Samples = [] }
 """
 
@@ -1507,7 +1505,7 @@ match entities with
 """
 
 [<Test>]
-let ``multiline records in pattern list should have semicolon`` () =
+let ``multiline records in pattern list`` () =
     formatSourceString
         false
         """
@@ -1520,17 +1518,17 @@ match entities with
       Type = Elephant } ] -> ()
 | _ -> ()
 """
-        { config with SemicolonAtEndOfLine = true }
+        config
     |> prepend newline
     |> should
         equal
         """
 match entities with
-| [ { Key = "0031ff53-e59b-49e3-8e0f-53f72a3890d1";
-      Type = Elephant };
-    { Key = "0031ff53-e59b-49e3-8e0f-53f72a3890d2";
-      Type = Elephant };
-    { Key = "0031ff53-e59b-49e3-8e0f-53f72a3890d3";
+| [ { Key = "0031ff53-e59b-49e3-8e0f-53f72a3890d1"
+      Type = Elephant }
+    { Key = "0031ff53-e59b-49e3-8e0f-53f72a3890d2"
+      Type = Elephant }
+    { Key = "0031ff53-e59b-49e3-8e0f-53f72a3890d3"
       Type = Elephant } ] -> ()
 | _ -> ()
 """

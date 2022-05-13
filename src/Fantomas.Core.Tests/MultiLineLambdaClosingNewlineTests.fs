@@ -577,7 +577,6 @@ module Foo =
             SpaceBeforeColon = true
             SpaceBeforeSemicolon = true
             MultilineBlockBracketsOnSameColumn = true
-            KeepIfThenInSameLine = true
             MultiLineLambdaClosingNewline = true
             KeepIndentInBranch = true }
     |> prepend newline
@@ -624,7 +623,6 @@ module Foo =
             SpaceBeforeColon = true
             SpaceBeforeSemicolon = true
             MultilineBlockBracketsOnSameColumn = true
-            KeepIfThenInSameLine = true
             MultiLineLambdaClosingNewline = true
             KeepIndentInBranch = true }
     |> prepend newline

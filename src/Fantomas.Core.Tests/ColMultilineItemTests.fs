@@ -391,7 +391,6 @@ let blah<'a> config : Type =
             SpaceBeforeSemicolon = true
             MultilineBlockBracketsOnSameColumn = true
             NewlineBetweenTypeDefinitionAndMembers = true
-            KeepIfThenInSameLine = true
             AlignFunctionSignatureToIndentation = true
             AlternativeLongMemberDefinitions = true
             MultiLineLambdaClosingNewline = true }

@@ -64,7 +64,6 @@
     <Compile Include="MultilineBlockBracketsOnSameColumnRecordTests.fs" />
     <Compile Include="MultilineBlockBracketsOnSameColumnArrayOrListTests.fs" />
     <Compile Include="NewlineBetweenTypeDefinitionAndMembersTests.fs" />
-    <Compile Include="KeepIfThenInSameLineTests.fs" />
     <Compile Include="MaxValueBindingWidthTests.fs" />
     <Compile Include="MaxFunctionBindingWidthTests.fs" />
     <Compile Include="InterpolatedStringTests.fs" />

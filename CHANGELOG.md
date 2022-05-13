@@ -8,8 +8,10 @@
 
 ### Removed
 
-* Remove Elmish settings `fsharp_max_elmish_width`, `fsharp_single_argument_web_mode` & `fsharp_disable_elmish_syntax`. [#2180](https://github.com/fsprojects/fantomas/issues/2180)
-
+* Remove Elmish settings: `fsharp_max_elmish_width`, `fsharp_single_argument_web_mode` & `fsharp_disable_elmish_syntax`. [#2180](https://github.com/fsprojects/fantomas/issues/2180)
+* Remove `fsharp_semicolon_at_end_of_line`. [#2247](https://github.com/fsprojects/fantomas/issues/2247)
+* Remove `fsharp_keep_if_then_in_same_line`. [#2248](https://github.com/fsprojects/fantomas/issues/2248)
+* Remove `fsharp_indent_on_try_with`. [#2249](https://github.com/fsprojects/fantomas/issues/2249)
 
 ### Changed
 

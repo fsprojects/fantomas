@@ -1107,7 +1107,6 @@ module Foo =
             SpaceBeforeSemicolon = true
             MultilineBlockBracketsOnSameColumn = true
             NewlineBetweenTypeDefinitionAndMembers = true
-            KeepIfThenInSameLine = true
             AlignFunctionSignatureToIndentation = true
             AlternativeLongMemberDefinitions = true
             MultiLineLambdaClosingNewline = true

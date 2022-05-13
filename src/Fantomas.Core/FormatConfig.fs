@@ -75,11 +75,6 @@ type FormatConfig =
       [<DisplayName("Insert final newline")>]
       InsertFinalNewline: bool
 
-      [<Category("Convention")>]
-      [<DisplayName("Semicolon at end-of-line")>]
-      [<Description("Forces a semicolon to be added to the end of a line")>]
-      SemicolonAtEndOfLine: bool
-
       [<Category("Spacing")>]
       [<DisplayName("Before parameter")>]
       SpaceBeforeParameter: bool
@@ -115,10 +110,6 @@ type FormatConfig =
       [<Category("Spacing")>]
       [<DisplayName("After semicolon")>]
       SpaceAfterSemicolon: bool
-
-      [<Category("Indentation")>]
-      [<DisplayName("Indent try-with")>]
-      IndentOnTryWith: bool
 
       [<Category("Spacing")>]
       [<DisplayName("Around delimiter")>]
@@ -177,11 +168,6 @@ type FormatConfig =
       NewlineBetweenTypeDefinitionAndMembers: bool
 
       [<Category("Convention")>]
-      [<DisplayName("Keep If-Then in same line")>]
-      [<Description("Obsolete setting, this no longer has any effect and will be removed in the next major version.")>]
-      KeepIfThenInSameLine: bool
-
-      [<Category("Convention")>]
       [<DisplayName("Align function signature to indentation")>]
       AlignFunctionSignatureToIndentation: bool
 
@@ -224,7 +210,6 @@ type FormatConfig =
           MaxLineLength = 120
           EndOfLine = EndOfLineStyle.FromEnvironment
           InsertFinalNewline = true
-          SemicolonAtEndOfLine = false
           SpaceBeforeParameter = true
           SpaceBeforeLowercaseInvocation = true
           SpaceBeforeUppercaseInvocation = false
@@ -234,7 +219,6 @@ type FormatConfig =
           SpaceAfterComma = true
           SpaceBeforeSemicolon = false
           SpaceAfterSemicolon = true
-          IndentOnTryWith = false
           SpaceAroundDelimiter = true
           MaxIfThenElseShortWidth = 40
           MaxInfixOperatorExpression = 50
@@ -249,7 +233,6 @@ type FormatConfig =
           MaxDotGetExpressionWidth = 50
           MultilineBlockBracketsOnSameColumn = false
           NewlineBetweenTypeDefinitionAndMembers = false
-          KeepIfThenInSameLine = false
           AlignFunctionSignatureToIndentation = false
           AlternativeLongMemberDefinitions = false
           MultiLineLambdaClosingNewline = false

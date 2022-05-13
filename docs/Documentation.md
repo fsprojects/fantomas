@@ -112,7 +112,6 @@ indent_size=4
 max_line_length=120
 end_of_line=crlf
 insert_final_newline=true
-fsharp_semicolon_at_end_of_line=false
 fsharp_space_before_parameter=true
 fsharp_space_before_lowercase_invocation=true
 fsharp_space_before_uppercase_invocation=false
@@ -122,7 +121,6 @@ fsharp_space_before_colon=false
 fsharp_space_after_comma=true
 fsharp_space_before_semicolon=false
 fsharp_space_after_semicolon=true
-fsharp_indent_on_try_with=false
 fsharp_space_around_delimiter=true
 fsharp_max_if_then_else_short_width=40
 fsharp_max_infix_operator_expression=50
@@ -137,7 +135,6 @@ fsharp_max_function_binding_width=40
 fsharp_max_dot_get_expression_width=50
 fsharp_multiline_block_brackets_on_same_column=false
 fsharp_newline_between_type_definition_and_members=false
-fsharp_keep_if_then_in_same_line=false
 fsharp_align_function_signature_to_indentation=false
 fsharp_alternative_long_member_definitions=false
 fsharp_multi_line_lambda_closing_newline=false
@@ -235,37 +232,6 @@ let a = 42
 
 ```fsharp
 let a = 42
-```
-
-### fsharp_semicolon_at_end_of_line
-
-Add semicolons at the end of lines.
-Default = false.
-
-`defaultConfig`
-
-```fsharp
-let saturn =
-    { X = 8.343366718
-      Y = 4.124798564
-      Z = -0.4035234171
-      VX = -0.002767425107 * daysPerYear
-      VY = 0.004998528012 * daysPerYear
-      VZ = 2.304172976e-05 * daysPerYear
-      Mass = 0.0002858859807 * solarMass }
-```
-
-`{ defaultConfig with SemicolonAtEndOfLine = true }`
-
-```fsharp
-let saturn =
-    { X = 8.343366718;
-      Y = 4.124798564;
-      Z = -0.4035234171;
-      VX = -0.002767425107 * daysPerYear;
-      VY = 0.004998528012 * daysPerYear;
-      VZ = 2.304172976e-05 * daysPerYear;
-      Mass = 0.0002858859807 * solarMass }
 ```
 
 ### fsharp_space_before_parameter
@@ -454,35 +420,6 @@ type C = { X: int; Y: int }
 let a = [ 1;2;3 ]
 let b = [| foo;bar |]
 type C = { X: int;Y: int }
-```
-
-### fsharp_indent_on_try_with
-
-Adds an extra indent to the `with` block of a try/with expression.
-Default = false.
-
-`defaultConfig`
-
-```fsharp
-try
-    if System.DateTime.Now.Second % 3 = 0
-    then raise (new System.Exception())
-    else raise (new System.ApplicationException())
-with
-| :? System.ApplicationException -> printfn "A second that was not a multiple of 3"
-| _ -> printfn "A second that was a multiple of 3"
-```
-
-`{ defaultConfig with IndentOnTryWith = true }`
-
-```fsharp
-try
-    if System.DateTime.Now.Second % 3 = 0
-    then raise (new System.Exception())
-    else raise (new System.ApplicationException())
-with
-    | :? System.ApplicationException -> printfn "A second that was not a multiple of 3"
-    | _ -> printfn "A second that was a multiple of 3"
 ```
 
 ### fsharp_space_around_delimiter
@@ -890,36 +827,6 @@ type Range =
       To: float }
 
     member this.Length = this.To - this.From
-```
-
-### fsharp_keep_if_then_in_same_line
-
-**Deprecated setting!**
-
-This setting will be removed in the next major version of Fantomas.
-As of 4.4, it has no effect anymore due to a change in the MS F# style guide.
-
-#### Original description:
-
-Bypasses the situation where `if`,`then` and `else` are placed underneath each other.
-This will ensure `if` and `then` are kept in the same line.
-Default = false.
-
-`defaultConfig`
-
-```fsharp
-if System.Char.IsUpper(c)
-then sprintf "________%s" (c.ToString().ToLower())
-else c.ToString()
-```
-
-`{ defaultConfig with KeepIfThenInSameLine = true }`
-
-```fsharp
-if System.Char.IsUpper(c) then
-    sprintf "________%s" (c.ToString().ToLower())
-else
-    c.ToString()
 ```
 
 ### fsharp_align_function_signature_to_indentation
