@@ -1,5 +1,10 @@
 # Changelog
 
+## [Unreleased]
+
+### Changed
+* Update FCS to 'Add SynExpr.Dynamic to SyntaxTree.', commit b822e2793bd6387c40cfd5b25d604e002a253257
+
 ## [5.0.0-alpha-006] - 2022-05-13
 
 ### Added
