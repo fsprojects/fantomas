@@ -4,6 +4,11 @@ open NUnit.Framework
 open FsUnit
 open Fantomas.Core.Tests.TestHelper
 
+let config =
+    { config with
+        MultilineBlockBracketsOnSameColumn = true
+        Ragnarok = true }
+
 [<Test>]
 let ``long named arguments should go on newline`` () =
     formatSourceString
@@ -26,8 +31,9 @@ let view (model: Model) dispatch =
         appearing = (fun () -> dispatch PageAppearing),
         title = model.Planet.Info.Name,
         backgroundColor = Color.Black,
-        content =
-            [ "....long line....................................................................................................." ]
+        content = [
+            "....long line....................................................................................................."
+        ]
     )
 """
 
@@ -108,39 +114,41 @@ let loginPage =
                 content =
                     View.StackLayout(
                         padding = 30.0,
-                        children =
-                            [ View.Frame(
-                                  verticalOptions = LayoutOptions.CenterAndExpand,
-                                  content =
-                                      View.StackLayout(
-                                          children =
-                                              [ View.Entry(
-                                                    placeholder = "User name",
-                                                    isEnabled = (not model.IsSigningIn),
-                                                    textChanged =
-                                                        (fun args -> (dispatch (UserNameChanged args.NewTextValue)))
-                                                )
-                                                View.Entry(
-                                                    placeholder = "Password",
-                                                    isPassword = true,
-                                                    isEnabled = (not model.IsSigningIn),
-                                                    textChanged =
-                                                        (fun args -> (dispatch (PasswordChanged args.NewTextValue)))
-                                                )
-                                                View.Button(
-                                                    text = "Sign in",
-                                                    heightRequest = 30.0,
-                                                    isVisible = (not model.IsSigningIn),
-                                                    command = (fun () -> dispatch SignIn),
-                                                    canExecute = model.IsCredentialsProvided
-                                                )
-                                                View.ActivityIndicator(
-                                                    isRunning = true,
-                                                    heightRequest = 30.0,
-                                                    isVisible = model.IsSigningIn
-                                                ) ]
-                                      )
-                              ) ]
+                        children = [
+                            View.Frame(
+                                verticalOptions = LayoutOptions.CenterAndExpand,
+                                content =
+                                    View.StackLayout(
+                                        children = [
+                                            View.Entry(
+                                                placeholder = "User name",
+                                                isEnabled = (not model.IsSigningIn),
+                                                textChanged =
+                                                    (fun args -> (dispatch (UserNameChanged args.NewTextValue)))
+                                            )
+                                            View.Entry(
+                                                placeholder = "Password",
+                                                isPassword = true,
+                                                isEnabled = (not model.IsSigningIn),
+                                                textChanged =
+                                                    (fun args -> (dispatch (PasswordChanged args.NewTextValue)))
+                                            )
+                                            View.Button(
+                                                text = "Sign in",
+                                                heightRequest = 30.0,
+                                                isVisible = (not model.IsSigningIn),
+                                                command = (fun () -> dispatch SignIn),
+                                                canExecute = model.IsCredentialsProvided
+                                            )
+                                            View.ActivityIndicator(
+                                                isRunning = true,
+                                                heightRequest = 30.0,
+                                                isVisible = model.IsSigningIn
+                                            )
+                                        ]
+                                    )
+                            )
+                        ]
                     )
             )
     )
@@ -180,14 +188,16 @@ let ``multiline input with multiple attributes`` () =
         false
         """let i = input [ Type "text"; Required "required" ]
 """
-        config
+        { config with MaxArrayOrListWidth = 20 }
     |> prepend newline
     |> should
         equal
         """
 let i =
-    input [ Type "text"
-            Required "required" ]
+    input [
+        Type "text"
+        Required "required"
+    ]
 """
 
 [<Test>]
@@ -245,8 +255,10 @@ let ``div with multiline attributes`` () =
         equal
         """
 let d =
-    div [ ClassName "container"
-          OnClick(fun _ -> printfn "meh") ] []
+    div [
+        ClassName "container"
+        OnClick(fun _ -> printfn "meh")
+    ] []
 """
 
 [<Test>]
@@ -309,8 +321,10 @@ div [ ClassName "container"; OnClick (fun _ -> printfn "meh") ] [
         equal
         """
 let d =
-    div [ ClassName "container"
-          OnClick(fun _ -> printfn "meh") ] [
+    div [
+        ClassName "container"
+        OnClick(fun _ -> printfn "meh")
+    ] [
         span [] [ str "foo" ]
         code [] [ str "bar" ]
     ]
@@ -360,7 +374,7 @@ let ``div with long children but a long setting`` () =
         p [] [ str "baaaaaaaar" ]
     ]
 """
-        { config with MaxElmishWidth = 150 }
+        { config with MaxArrayOrListWidth = 150 }
     |> prepend newline
     |> should
         equal
@@ -403,9 +417,7 @@ let ``div with longer p`` () =
         """
 let d =
     div [] [
-        p [] [
-            str "meeeeeeeeeeeeeeeeeeeeehhhh"
-        ]
+        p [] [ str "meeeeeeeeeeeeeeeeeeeeehhhh" ]
     ]
 """
 
@@ -434,13 +446,9 @@ let view model dispatch =
         """
 let view model dispatch =
     div [] [
-        button [ OnClick(fun _ -> dispatch Decrement) ] [
-            str "-"
-        ]
+        button [ OnClick(fun _ -> dispatch Decrement) ] [ str "-" ]
         div [] [ str (sprintf "%A" model) ]
-        button [ OnClick(fun _ -> dispatch Increment) ] [
-            str "+"
-        ]
+        button [ OnClick(fun _ -> dispatch Increment) ] [ str "+" ]
     ]
 """
 
@@ -477,28 +485,38 @@ let viewEntry todo dispatch =
         equal
         """
 let viewEntry todo dispatch =
-    li [ classList [ ("completed", todo.completed)
-                     ("editing", todo.editing) ] ] [
-        div [ ClassName "view" ] [
-            input [ ClassName "toggle"
-                    Type "checkbox"
-                    Checked todo.completed
-                    OnChange(fun _ -> Check(todo.id, (not todo.completed)) |> dispatch) ]
-            label [ OnDoubleClick(fun _ -> EditingEntry(todo.id, true) |> dispatch) ] [
-                str todo.description
-            ]
-            button [ ClassName "destroy"
-                     OnClick(fun _ -> Delete todo.id |> dispatch) ] []
+    li [
+        classList [
+            ("completed", todo.completed)
+            ("editing", todo.editing)
         ]
-        input [ ClassName "edit"
-                valueOrDefault todo.description
-                Name "title"
-                Id("todo-" + (string todo.id))
-                OnInput (fun ev ->
-                    UpdateEntry(todo.id, !!ev.target?value)
-                    |> dispatch)
-                OnBlur(fun _ -> EditingEntry(todo.id, false) |> dispatch)
-                onEnter (EditingEntry(todo.id, false)) dispatch ]
+    ] [
+        div [ ClassName "view" ] [
+            input [
+                ClassName "toggle"
+                Type "checkbox"
+                Checked todo.completed
+                OnChange(fun _ -> Check(todo.id, (not todo.completed)) |> dispatch)
+            ]
+            label [
+                OnDoubleClick(fun _ -> EditingEntry(todo.id, true) |> dispatch)
+            ] [ str todo.description ]
+            button [
+                ClassName "destroy"
+                OnClick(fun _ -> Delete todo.id |> dispatch)
+            ] []
+        ]
+        input [
+            ClassName "edit"
+            valueOrDefault todo.description
+            Name "title"
+            Id("todo-" + (string todo.id))
+            OnInput (fun ev ->
+                UpdateEntry(todo.id, !!ev.target?value)
+                |> dispatch)
+            OnBlur(fun _ -> EditingEntry(todo.id, false) |> dispatch)
+            onEnter (EditingEntry(todo.id, false)) dispatch
+        ]
     ]
 """
 
@@ -517,8 +535,10 @@ let ``multiline attributes, no children`` () =
         equal
         """
 let a =
-    button [ ClassName "destroy"
-             OnClick(fun _ -> Delete todo.id |> dispatch) ] []
+    button [
+        ClassName "destroy"
+        OnClick(fun _ -> Delete todo.id |> dispatch)
+    ] []
 """
 
 [<Test>]
@@ -543,7 +563,9 @@ table [ ClassName "table table-striped table-hover mb-0" ]
     |> should
         equal
         """
-table [ ClassName "table table-striped table-hover mb-0" ] [
+table [
+    ClassName "table table-striped table-hover mb-0"
+] [
     tbody [] [
         tokenDetailRow "TokenName" (str tokenName)
         tokenDetailRow "LeftColumn" (ofInt leftColumn)
@@ -552,11 +574,7 @@ table [ ClassName "table table-striped table-hover mb-0" ] [
         tokenDetailRow "ColorClass" (str colorClass)
         tokenDetailRow "CharClass" (str charClass)
         tokenDetailRow "Tag" (ofInt tag)
-        tokenDetailRow
-            "FullMatchedLength"
-            (span [ ClassName "has-text-weight-semibold" ] [
-                ofInt fullMatchedLength
-             ])
+        tokenDetailRow "FullMatchedLength" (span [ ClassName "has-text-weight-semibold" ] [ ofInt fullMatchedLength ])
     ]
 ]
 """
@@ -581,9 +599,13 @@ let commands dispatch =
         equal
         """
 let commands dispatch =
-    Button.button [ Button.Color Primary
-                    Button.Custom [ ClassName "rounded-0"
-                                    OnClick(fun _ -> dispatch GetTrivia) ] ] [
+    Button.button [
+        Button.Color Primary
+        Button.Custom [
+            ClassName "rounded-0"
+            OnClick(fun _ -> dispatch GetTrivia)
+        ]
+    ] [
         i [ ClassName "fas fa-code mr-1" ] []
         str "Get trivia"
     ]
@@ -628,12 +650,16 @@ let view (CurrentTime time) dispatch =
         equal
         """
 let view (CurrentTime time) dispatch =
-  svg [ ViewBox "0 0 100 100"
-        SVG.Width "350px" ] [
-    circle [ Cx "50"
-             Cy "50"
-             R "45"
-             SVG.Fill "#0B79CE" ] []
+  svg [
+    ViewBox "0 0 100 100"
+    SVG.Width "350px"
+  ] [
+    circle [
+      Cx "50"
+      Cy "50"
+      R "45"
+      SVG.Fill "#0B79CE"
+    ] []
     // Hours
     clockHand (Hour time.Hour) "lightgreen" "2" 25.0
     handTop time.Hour "lightgreen" 25.0 12.0
@@ -644,12 +670,14 @@ let view (CurrentTime time) dispatch =
     clockHand (Second time.Second) "#023963" "1" 40.0
     handTop time.Second "#023963" 40.0 60.0
     // circle in the center
-    circle [ Cx "50"
-             Cy "50"
-             R "3"
-             SVG.Fill "#0B79CE"
-             SVG.Stroke "#023963"
-             SVG.StrokeWidth 1.0 ] []
+    circle [
+      Cx "50"
+      Cy "50"
+      R "3"
+      SVG.Fill "#0B79CE"
+      SVG.Stroke "#023963"
+      SVG.StrokeWidth 1.0
+    ] []
   ]
 """
 
@@ -665,9 +693,11 @@ let ``input with attribute array`` () =
         equal
         """
 let ia =
-    input [| Type "hidden"
-             Name "code"
-             Required "required" |]
+    input [|
+        Type "hidden"
+        Name "code"
+        Required "required"
+    |]
 """
 
 [<Test>]
@@ -677,7 +707,7 @@ let ``div with children array`` () =
         """let d =
     div [||] [| p [||] [| str "oh my foobar" |] |]
 """
-        config
+        { config with MaxArrayOrListWidth = 35 }
     |> prepend newline
     |> should
         equal
@@ -709,9 +739,7 @@ let ``mix lists and array`` () =
 let view dispatch model =
     div [| Class "container" |] [
         h1 [] [| str "my title" |]
-        button [| OnClick(fun _ -> dispatch Msg.Foo) |] [
-            str "click me"
-        ]
+        button [| OnClick(fun _ -> dispatch Msg.Foo) |] [ str "click me" ]
     ]
 """
 
@@ -741,7 +769,7 @@ let ``multiline feliz element`` () =
             prop.text "Decrement"
         ]
 """
-        { config with SingleArgumentWebMode = true }
+        config
     |> prepend newline
     |> should
         equal
@@ -768,7 +796,7 @@ let ``nested feliz elements`` () =
         ]
     ]
 """
-        { config with SingleArgumentWebMode = true }
+        config
     |> prepend newline
     |> should
         equal
@@ -814,7 +842,7 @@ open Browser.Dom
 
 ReactDOM.render(counter, document.getElementById "root")
 """
-        { config with SingleArgumentWebMode = true }
+        config
     |> prepend newline
     |> should
         equal
@@ -865,7 +893,7 @@ Html.ul [
   Html.li [ Html.em "Three" ]
 ]
 """
-        { config with SingleArgumentWebMode = true }
+        config
     |> prepend newline
     |> should
         equal
@@ -913,7 +941,7 @@ let drawer =
             ]
         ]
 """
-        { config with SingleArgumentWebMode = true }
+        config
     |> prepend newline
     |> should
         equal
@@ -923,9 +951,7 @@ let drawer =
         // drawer.open' props.IsOpen
 
         drawer.children [
-            Html.div [
-                prop.className classes.toolbar
-            ]
+            Html.div [ prop.className classes.toolbar ]
             props.Items
             |> List.map (fun s ->
                 Mui.listItem [
@@ -1003,11 +1029,13 @@ let private useLocationDetail (auth0 : Auth0Hook) (roles : RolesHook) id =
                 |> Promise.bind (fun authToken ->
                     let url = sprintf "%s/users/%s" Common.backendUrl (location.Creator)
 
-                    fetch
-                        url
-                        [ requestHeaders [ HttpRequestHeaders.ContentType "application/json"
-                                           Common.authHeader authToken
-                                           Common.subscriptionHeader ] ])
+                    fetch url [
+                        requestHeaders [
+                            HttpRequestHeaders.ContentType "application/json"
+                            Common.authHeader authToken
+                            Common.subscriptionHeader
+                        ]
+                    ])
                 |> Promise.bind (fun res -> res.text ())
                 |> Promise.iter (fun json ->
                     let usersResult = Decode.fromString nameDecoder json
@@ -1015,8 +1043,10 @@ let private useLocationDetail (auth0 : Auth0Hook) (roles : RolesHook) id =
                     match usersResult with
                     | Ok name -> setCreatorName (Some name)
                     | Error err -> JS.console.log err)),
-        [| box roles.Roles
-           box location.Creator |]
+        [|
+            box roles.Roles
+            box location.Creator
+        |]
     )
 
     location, creatorName
@@ -1038,16 +1068,17 @@ let ``keep comment after closing bracket, 1089`` () =
     |> should
         equal
         """
-Gen.frequency [ 8,
-                2,
-                Gen.map5
-                    (fun b1 b2 expr1 expr2 pat ->
-                        SynExpr.ForEach(DebugPointAtFor.No, SeqExprOnly b1, b2, pat, expr1, expr2, zero))
-                    Arb.generate<_>
-                    Arb.generate<_>
-                    genSubDeclExpr
-                    genSubDeclExpr
-                    genSubSynPat ] //
+Gen.frequency [
+    8,
+    2,
+    Gen.map5
+        (fun b1 b2 expr1 expr2 pat -> SynExpr.ForEach(DebugPointAtFor.No, SeqExprOnly b1, b2, pat, expr1, expr2, zero))
+        Arb.generate<_>
+        Arb.generate<_>
+        genSubDeclExpr
+        genSubDeclExpr
+        genSubSynPat
+] //
 """
 
 [<Test>]
@@ -1061,7 +1092,7 @@ let ``keep comment after closing bracket, single web mode`` () =
                             SynExpr.ForEach(DebugPointAtFor.No, SeqExprOnly b1, b2, pat, expr1, expr2, zero))
                             Arb.generate<_> Arb.generate<_> genSubDeclExpr genSubDeclExpr genSubSynPat ] //
 """
-        { config with SingleArgumentWebMode = true }
+        config
     |> prepend newline
     |> should
         equal
@@ -1109,14 +1140,21 @@ let html =
         equal
         """
 let html =
-    Html.div [ prop.className "navbar-menu"
-               prop.children [ Html.div [ prop.className "navbar-start"
-                                          prop.children [ Html.a [ prop.className "navbar-item" ]
-                                                          (*
+    Html.div [
+        prop.className "navbar-menu"
+        prop.children [
+            Html.div [
+                prop.className "navbar-start"
+                prop.children [
+                    Html.a [ prop.className "navbar-item" ]
+                (*
                     Html.a [ prop.className "navbar-item"; prop.href (baseUrl +/ "Files") ] [
                         prop.text "Files"
                     ]*)
-                                                           ] ] ] ]
+                ]
+            ]
+        ]
+    ]
 """
 
 [<Test>]
@@ -1124,30 +1162,44 @@ let ``don't repeat comment in nested Elmish element, idempotent check`` () =
     formatSourceString
         false
         """
-let html2 =
-    Html.div [ prop.className "navbar-menu"
-               prop.children [ Html.div [ prop.className "navbar-start"
-                                          prop.children [ Html.a [ prop.className "navbar-item" ]
-                                                          (*
+let html =
+    Html.div [
+        prop.className "navbar-menu"
+        prop.children [
+            Html.div [
+                prop.className "navbar-start"
+                prop.children [
+                    Html.a [ prop.className "navbar-item" ]
+                (*
                     Html.a [ prop.className "navbar-item"; prop.href (baseUrl +/ "Files") ] [
                         prop.text "Files"
                     ]*)
-                                                           ] ] ] ]
+                ]
+            ]
+        ]
+    ]
 """
         config
     |> prepend newline
     |> should
         equal
         """
-let html2 =
-    Html.div [ prop.className "navbar-menu"
-               prop.children [ Html.div [ prop.className "navbar-start"
-                                          prop.children [ Html.a [ prop.className "navbar-item" ]
-                                                          (*
+let html =
+    Html.div [
+        prop.className "navbar-menu"
+        prop.children [
+            Html.div [
+                prop.className "navbar-start"
+                prop.children [
+                    Html.a [ prop.className "navbar-item" ]
+                (*
                     Html.a [ prop.className "navbar-item"; prop.href (baseUrl +/ "Files") ] [
                         prop.text "Files"
                     ]*)
-                                                           ] ] ] ]
+                ]
+            ]
+        ]
+    ]
 """
 
 [<Test>]
@@ -1174,7 +1226,7 @@ let html =
         ]
     ]
 """
-        { config with SingleArgumentWebMode = true }
+        config
     |> prepend newline
     |> should
         equal
@@ -1187,7 +1239,7 @@ let html =
                 prop.className "navbar-start"
                 prop.children [
                     Html.a [ prop.className "navbar-item" ]
-                    (*
+                (*
                     Html.a [ prop.className "navbar-item"; prop.href (baseUrl +/ "Files") ] [
                         prop.text "Files"
                     ]*)
@@ -1210,7 +1262,7 @@ let html =
                 prop.className "navbar-start"
                 prop.children [
                     Html.a [ prop.className "navbar-item" ]
-                    (*
+                (*
                     Html.a [ prop.className "navbar-item"; prop.href (baseUrl +/ "Files") ] [
                         prop.text "Files"
                     ]*)
@@ -1219,7 +1271,7 @@ let html =
         ]
     ]
 """
-        { config with SingleArgumentWebMode = true }
+        config
     |> prepend newline
     |> should
         equal
@@ -1232,7 +1284,7 @@ let html =
                 prop.className "navbar-start"
                 prop.children [
                     Html.a [ prop.className "navbar-item" ]
-                    (*
+                (*
                     Html.a [ prop.className "navbar-item"; prop.href (baseUrl +/ "Files") ] [
                         prop.text "Files"
                     ]*)
@@ -1269,11 +1321,18 @@ let html =
         equal
         """
 let html =
-    Html.div [ prop.className "navbar-menu"
-               prop.children [ Html.div [ prop.className "navbar-start"
-                                          prop.children [ Html.a [ prop.className "navbar-item" ]
-                                                          (* meh *)
-                                                           ] ] ] ]
+    Html.div [
+        prop.className "navbar-menu"
+        prop.children [
+            Html.div [
+                prop.className "navbar-start"
+                prop.children [
+                    Html.a [ prop.className "navbar-item" ]
+                (* meh *)
+                ]
+            ]
+        ]
+    ]
 """
 
 [<Test>]
@@ -1293,8 +1352,7 @@ let Dashboard () =
         { config with
             RecordMultilineFormatter = Fantomas.Core.FormatConfig.MultilineFormatterType.NumberOfItems
             MaxArrayOrListWidth = 20
-            MaxElmishWidth = 10
-            SingleArgumentWebMode = true
+            // MaxElmishWidth = 10
             MultiLineLambdaClosingNewline = true }
     |> prepend newline
     |> should
@@ -1460,7 +1518,8 @@ ReactDom.render (React.strictMode [ // comment
         """
 ReactDom.render (
     React.strictMode [ // comment
-                       App() ],
+        App()
+    ],
     root
 )
 """

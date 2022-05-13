@@ -23,7 +23,6 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{29F22904-C9E0-40AA-B971-9AE377C17F59}"
 	ProjectSection(SolutionItems) = preProject
 		docs\Documentation.md = docs\Documentation.md
-		docs\Formatting-Elmish-code.md = docs\Formatting-Elmish-code.md
 		docs\FormattingConventions.md = docs\FormattingConventions.md
 		docs\index.html = docs\index.html
 	EndProjectSection

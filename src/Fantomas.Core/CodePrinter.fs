@@ -1095,185 +1095,6 @@ and genNamedArgumentExpr (astContext: ASTContext) (operatorSli: SynLongIdent) e1
 and genExpr astContext synExpr ctx =
     let expr =
         match synExpr with
-        | ElmishReactWithoutChildren (identifier, openingTokenRange, isArray, children, closingTokenRange) when
-            (not ctx.Config.DisableElmishSyntax)
-            ->
-            fun (ctx: Context) ->
-                let shortExpression =
-                    let noChildren =
-                        genTriviaFor
-                            SynExpr_ArrayOrList_OpeningDelimiter
-                            openingTokenRange
-                            (ifElse isArray sepOpenAFixed sepOpenLFixed)
-                        +> genTriviaFor
-                            SynExpr_ArrayOrList_ClosingDelimiter
-                            closingTokenRange
-                            (ifElse isArray sepCloseAFixed sepCloseLFixed)
-
-                    let genChildren =
-                        genTriviaFor
-                            SynExpr_ArrayOrList_OpeningDelimiter
-                            openingTokenRange
-                            (ifElse isArray sepOpenA sepOpenL)
-                        +> col sepSemi children (genExpr astContext)
-                        +> genTriviaFor
-                            SynExpr_ArrayOrList_ClosingDelimiter
-                            closingTokenRange
-                            (ifElse isArray sepCloseA sepCloseL)
-
-                    genExpr astContext identifier
-                    +> sepSpace
-                    +> ifElse (List.isEmpty children) noChildren genChildren
-
-                let elmishExpression =
-                    genExpr astContext identifier
-                    +> sepSpace
-                    +> genTriviaFor
-                        SynExpr_ArrayOrList_OpeningDelimiter
-                        openingTokenRange
-                        (ifElse isArray sepOpenA sepOpenL)
-                    +> atCurrentColumn (
-                        sepNlnWhenWriteBeforeNewlineNotEmpty sepNone
-                        +> col sepNln children (genExpr astContext)
-                        +> onlyIf
-                            (TriviaHelpers.``has content before that matches``
-                                (fun tn -> RangeHelpers.rangeEq tn.Range closingTokenRange)
-                                (function
-                                | Comment (BlockComment _) -> true
-                                | _ -> false)
-                                (Map.tryFindOrEmptyList SynExpr_ArrayOrList_ClosingDelimiter ctx.TriviaNodes))
-                            sepNln
-                        +> genTriviaFor
-                            SynExpr_ArrayOrList_ClosingDelimiter
-                            closingTokenRange
-                            (ifElse isArray sepCloseA sepCloseL)
-                    )
-
-                let felizExpression =
-                    let hasBlockCommentBeforeClosingToken =
-                        TriviaHelpers.``has content before that matches``
-                            (fun tn -> RangeHelpers.rangeEq tn.Range closingTokenRange)
-                            (function
-                            | Comment (BlockComment _) -> true
-                            | _ -> false)
-                            (Map.tryFindOrEmptyList SynExpr_ArrayOrList_ClosingDelimiter ctx.TriviaNodes)
-
-                    let hasChildren = List.isNotEmpty children
-
-                    atCurrentColumn (
-                        genExpr astContext identifier
-                        +> sepSpace
-                        +> genTriviaFor
-                            SynExpr_ArrayOrList_OpeningDelimiter
-                            openingTokenRange
-                            (ifElse isArray sepOpenAFixed sepOpenLFixed)
-                        +> onlyIf hasChildren (indent +> sepNln)
-                        +> col sepNln children (genExpr astContext)
-                        +> onlyIf hasBlockCommentBeforeClosingToken (sepNln +> unindent)
-                        +> (onlyIfNot hasBlockCommentBeforeClosingToken unindent
-                            +> onlyIf hasChildren sepNlnUnlessLastEventIsNewline
-                            +> ifElse isArray sepCloseAFixed sepCloseLFixed
-                            |> genTriviaFor SynExpr_ArrayOrList_ClosingDelimiter closingTokenRange)
-                    )
-
-                let multilineExpression =
-                    ifElse ctx.Config.SingleArgumentWebMode felizExpression elmishExpression
-
-                let size = getListOrArrayExprSize ctx ctx.Config.MaxElmishWidth children
-
-                let smallExpression = isSmallExpression size shortExpression multilineExpression
-
-                isShortExpression ctx.Config.MaxElmishWidth smallExpression multilineExpression ctx
-
-        | ElmishReactWithChildren (identifier, attributes, (isArray, openingTokenRange, children, closingTokenRange)) when
-            (not ctx.Config.DisableElmishSyntax)
-            ->
-            let genChildren isShort =
-                match children with
-                | [] ->
-                    genTriviaFor
-                        SynExpr_ArrayOrList_OpeningDelimiter
-                        openingTokenRange
-                        (ifElse isArray sepOpenAFixed sepOpenLFixed)
-                    +> genTriviaFor
-                        SynExpr_ArrayOrList_ClosingDelimiter
-                        closingTokenRange
-                        (ifElse isArray sepCloseAFixed sepCloseLFixed)
-                | [ singleChild ] ->
-                    if isShort then
-                        genTriviaFor
-                            SynExpr_ArrayOrList_OpeningDelimiter
-                            openingTokenRange
-                            (ifElse isArray sepOpenA sepOpenL)
-                        +> genExpr astContext singleChild
-                        +> genTriviaFor
-                            SynExpr_ArrayOrList_ClosingDelimiter
-                            closingTokenRange
-                            (ifElse isArray sepCloseA sepCloseL)
-                    else
-                        genTriviaFor
-                            SynExpr_ArrayOrList_OpeningDelimiter
-                            openingTokenRange
-                            (ifElse isArray sepOpenA sepOpenL)
-                        +> indent
-                        +> sepNln
-                        +> genExpr astContext singleChild
-                        +> unindent
-                        +> sepNln
-                        +> genTriviaFor
-                            SynExpr_ArrayOrList_ClosingDelimiter
-                            closingTokenRange
-                            (ifElse isArray sepCloseAFixed sepCloseLFixed)
-
-                | children ->
-                    if isShort then
-                        genTriviaFor
-                            SynExpr_ArrayOrList_OpeningDelimiter
-                            openingTokenRange
-                            (ifElse isArray sepOpenA sepOpenL)
-                        +> col sepSemi children (genExpr astContext)
-                        +> genTriviaFor
-                            SynExpr_ArrayOrList_ClosingDelimiter
-                            closingTokenRange
-                            (ifElse isArray sepCloseA sepCloseL)
-                    else
-                        genTriviaFor
-                            SynExpr_ArrayOrList_OpeningDelimiter
-                            openingTokenRange
-                            (ifElse isArray sepOpenA sepOpenL)
-                        +> indent
-                        +> sepNln
-                        +> col sepNln children (genExpr astContext)
-                        +> unindent
-                        +> sepNln
-                        +> genTriviaFor
-                            SynExpr_ArrayOrList_ClosingDelimiter
-                            closingTokenRange
-                            (ifElse isArray sepCloseAFixed sepCloseLFixed)
-
-            let shortExpression =
-                genExpr astContext identifier
-                +> sepSpace
-                +> genExpr astContext attributes
-                +> sepSpace
-                +> genChildren true
-
-            let longExpression =
-                atCurrentColumn (
-                    genExpr astContext identifier
-                    +> sepSpace
-                    +> atCurrentColumn (genExpr astContext attributes)
-                    +> sepSpace
-                    +> genChildren false
-                )
-
-            fun ctx ->
-                let size = getListOrArrayExprSize ctx ctx.Config.MaxElmishWidth children
-
-                let smallExpression = isSmallExpression size shortExpression longExpression
-
-                isShortExpression ctx.Config.MaxElmishWidth smallExpression longExpression ctx
-
         | LazyExpr (lazyKeyword, e) ->
             let isInfixExpr =
                 match e with
@@ -2304,6 +2125,81 @@ and genExpr astContext synExpr ctx =
             +> genExpr astContext indexExpr
             +> sepCloseLFixed
             +> genExpr astContext argExpr
+        | EndsWithDualListAppExpr ctx.Config.Ragnarok (e, es, props, children) ->
+            // check if everything else beside the last array/list fits on one line
+            let singleLineTestExpr =
+                genExpr astContext e
+                +> sepSpace
+                +> col sepSpace es (genExpr astContext)
+                +> sepSpace
+                +> genExpr astContext props
+
+            let short =
+                genExpr astContext e
+                +> sepSpace
+                +> col sepSpace es (genExpr astContext)
+                +> onlyIfNot es.IsEmpty sepSpace
+                +> genExpr astContext props
+                +> sepSpace
+                +> genExpr astContext children
+
+            let long =
+                // check if everything besides both lists fits on one line
+                let singleLineTestExpr =
+                    genExpr astContext e
+                    +> sepSpace
+                    +> col sepSpace es (genExpr astContext)
+
+                if futureNlnCheck singleLineTestExpr ctx then
+                    genExpr astContext e
+                    +> indent
+                    +> sepNln
+                    +> col sepNln es (genExpr astContext)
+                    +> sepSpace
+                    +> genExpr astContext props
+                    +> sepSpace
+                    +> genExpr astContext children
+                    +> unindent
+                else
+                    genExpr astContext e
+                    +> sepSpace
+                    +> col sepSpace es (genExpr astContext)
+                    +> genExpr astContext props
+                    +> sepSpace
+                    +> genExpr astContext children
+
+            if futureNlnCheck singleLineTestExpr ctx then
+                long
+            else
+                short
+
+        | EndsWithSingleListAppExpr ctx.Config.Ragnarok (e, es, a) ->
+            // check if everything else beside the last array/list fits on one line
+            let singleLineTestExpr =
+                genExpr astContext e
+                +> sepSpace
+                +> col sepSpace es (genExpr astContext)
+
+            let short =
+                genExpr astContext e
+                +> sepSpace
+                +> col sepSpace es (genExpr astContext)
+                +> onlyIfNot es.IsEmpty sepSpace
+                +> genExpr astContext a
+
+            let long =
+                genExpr astContext e
+                +> indent
+                +> sepNln
+                +> col sepNln es (genExpr astContext)
+                +> onlyIfNot es.IsEmpty sepNln
+                +> genExpr astContext a
+                +> unindent
+
+            if futureNlnCheck singleLineTestExpr ctx then
+                long
+            else
+                short
 
         // Always spacing in multiple arguments
         | App (e, es) -> genApp astContext e es

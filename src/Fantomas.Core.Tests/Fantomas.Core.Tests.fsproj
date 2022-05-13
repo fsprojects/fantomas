@@ -49,7 +49,6 @@
     <Compile Include="SynExprSetTests.fs" />
     <Compile Include="SynConstTests.fs" />
     <Compile Include="TupleTests.fs" />
-    <Compile Include="ElmishTests.fs" />
     <Compile Include="LambdaTests.fs" />
     <Compile Include="IfThenElseTests.fs" />
     <Compile Include="FormatConfigEditorConfigurationFileTests.fs" />
@@ -74,7 +73,6 @@
     <Compile Include="NumberOfItemsListOrArrayTests.fs" />
     <Compile Include="NumberOfItemsRecordTests.fs" />
     <Compile Include="SynExprNewTests.fs" />
-    <Compile Include="DisableElmishTests.fs" />
     <Compile Include="CastTests.fs" />
     <Compile Include="MultiLineLambdaClosingNewlineTests.fs" />
     <Compile Include="OpenTypeTests.fs" />
@@ -112,6 +110,9 @@
     <Compile Include="Ragnarok\SynTypeDefnSimpleReprRecordTests.fs" />
     <Compile Include="Ragnarok\SynTypeDefnSigReprSimpleTests.fs" />
     <Compile Include="Ragnarok\NamedArgumentExpressionTests.fs" />
+    <Compile Include="Ragnarok\ElmishTests.fs" />
+    <Compile Include="Ragnarok\FunctionApplicationSingleListTests.fs" />
+    <Compile Include="Ragnarok\FunctionApplicationDualListTests.fs" />
     <Compile Include="IdentTests.fs" />
   </ItemGroup>
   <ItemGroup>

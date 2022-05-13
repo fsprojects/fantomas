@@ -103,19 +103,21 @@ let options =
 
         o.interaction <-
             Some(
-                createObj [ "hover" ==> true
-                            "zoomView" ==> true
-                            "hoverConnectedEdges" ==> false ]
+                createObj
+                    [ "hover" ==> true
+                      "zoomView" ==> true
+                      "hoverConnectedEdges" ==> false ]
             )
 
         o.layout <- Some(createObj [ "randomSeed" ==> 0 ])
 
         let hierOpts dir =
-            createObj [ "enabled" ==> true
-                        "levelSeparation" ==> 170
-                        "nodeSpacing" ==> 100
-                        "treeSpacing" ==> 100
-                        "direction" ==> dir ]
+            createObj
+                [ "enabled" ==> true
+                  "levelSeparation" ==> 170
+                  "nodeSpacing" ==> 100
+                  "treeSpacing" ==> 100
+                  "direction" ==> dir ]
 
         let layout =
             match opts.Layout with

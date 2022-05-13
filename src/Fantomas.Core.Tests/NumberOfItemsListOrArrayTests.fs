@@ -84,27 +84,30 @@ f [ a; b; c ] [ x; y; z ]
 g [ longValueThatIsALotOfCharactersSoooooLong ] [ longValueThatIsALotOfCharactersSoooooLong ]
 h [ longValueThatIsALotOfCharactersSoooooLong; longValueThatIsALotOfCharactersSoooooLong ] [ longValueThatIsALotOfCharactersSoooooLong ]
     """
-        { config with ArrayOrListMultilineFormatter = NumberOfItems }
+        { config with
+            ArrayOrListMultilineFormatter = NumberOfItems
+            MultilineBlockBracketsOnSameColumn = true
+            Ragnarok = true }
     |> prepend newline
     |> should
         equal
         """
-f [ a
+f [
+    a
     b
-    c ] [
+    c
+] [
     x
     y
     z
 ]
 
-g [ longValueThatIsALotOfCharactersSoooooLong ] [
-    longValueThatIsALotOfCharactersSoooooLong
-]
+g [ longValueThatIsALotOfCharactersSoooooLong ] [ longValueThatIsALotOfCharactersSoooooLong ]
 
-h [ longValueThatIsALotOfCharactersSoooooLong
-    longValueThatIsALotOfCharactersSoooooLong ] [
+h [
     longValueThatIsALotOfCharactersSoooooLong
-]
+    longValueThatIsALotOfCharactersSoooooLong
+] [ longValueThatIsALotOfCharactersSoooooLong ]
 """
 
 [<Test>]
@@ -202,7 +205,8 @@ h [ longValueThatIsALotOfCharactersSoooooLong; longValueThatIsALotOfCharactersSo
     """
         { config with
             ArrayOrListMultilineFormatter = NumberOfItems
-            MultilineBlockBracketsOnSameColumn = true }
+            MultilineBlockBracketsOnSameColumn = true
+            Ragnarok = true }
     |> prepend newline
     |> should
         equal
@@ -211,22 +215,18 @@ f [
     a
     b
     c
-  ] [
+] [
     x
     y
     z
 ]
 
-g [ longValueThatIsALotOfCharactersSoooooLong ] [
-    longValueThatIsALotOfCharactersSoooooLong
-]
+g [ longValueThatIsALotOfCharactersSoooooLong ] [ longValueThatIsALotOfCharactersSoooooLong ]
 
 h [
     longValueThatIsALotOfCharactersSoooooLong
     longValueThatIsALotOfCharactersSoooooLong
-  ] [
-    longValueThatIsALotOfCharactersSoooooLong
-]
+] [ longValueThatIsALotOfCharactersSoooooLong ]
 """
 
 [<Test>]
@@ -240,7 +240,8 @@ h [ longValueThatIsALotOfCharactersSoooooLong; longValueThatIsALotOfCharactersSo
     """
         { config with
             ArrayOrListMultilineFormatter = NumberOfItems
-            SingleArgumentWebMode = true }
+            MultilineBlockBracketsOnSameColumn = true
+            Ragnarok = true }
     |> prepend newline
     |> should
         equal
@@ -251,9 +252,7 @@ f [
     c
 ]
 
-g [
-    longValueThatIsALotOfCharactersSoooooLong
-]
+g [ longValueThatIsALotOfCharactersSoooooLong ]
 
 h [
     longValueThatIsALotOfCharactersSoooooLong
@@ -274,8 +273,8 @@ h [ longValueThatIsALotOfCharactersSoooooLong; longValueThatIsALotOfCharactersSo
     """
         { config with
             ArrayOrListMultilineFormatter = NumberOfItems
-            SingleArgumentWebMode = true
-            MultilineBlockBracketsOnSameColumn = true }
+            MultilineBlockBracketsOnSameColumn = true
+            Ragnarok = true }
     |> prepend newline
     |> should
         equal
@@ -286,9 +285,7 @@ f [
     c
 ]
 
-g [
-    longValueThatIsALotOfCharactersSoooooLong
-]
+g [ longValueThatIsALotOfCharactersSoooooLong ]
 
 h [
     longValueThatIsALotOfCharactersSoooooLong
