@@ -1759,8 +1759,7 @@ let sendPushNotifications =
                     let ps = PushSubscription(s.Endpoint, s.P256DH, s.Auth)
 
                     do! webPushClient.SendNotificationAsync(ps, payload, vapidDetails)
-                with
-                | :? WebPushException as wpex ->
+                with :? WebPushException as wpex ->
                     log.LogError(sprintf "Couldn't send notification to %s, %A" user.UserId wpex)
 
                     do!

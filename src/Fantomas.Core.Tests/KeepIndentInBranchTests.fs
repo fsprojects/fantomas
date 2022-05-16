@@ -732,10 +732,10 @@ type Foo() =
             try
                 try
                     cleanUp ()
-                with
-                | :? IOException -> foo ()
-            with
-            | exc -> foooo ()
+                with :? IOException ->
+                    foo ()
+            with exc ->
+                foooo ()
 """
 
 [<Test>]

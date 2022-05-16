@@ -135,8 +135,7 @@ let result1 = divide1 100 0
 let divide1 x y =
     try
         Some(x / y)
-    with
-    | :? System.DivideByZeroException ->
+    with :? System.DivideByZeroException ->
         printfn "Division by zero!"
         None
 
@@ -279,8 +278,8 @@ let x =
     if
         try
             true
-        with
-        | Failure _ -> false
+        with Failure _ ->
+            false
     then
         ()
     else
@@ -819,7 +818,8 @@ try
     foo.CreationTime <> defaultTime
 with
 // hmm
-| :? FileNotFoundException -> false
+| :? FileNotFoundException ->
+    false
 """
 
 [<Test>]
@@ -847,7 +847,8 @@ try
     foo.CreationTime <> defaultTime
 with
 // hmm
-| :? FileNotFoundException -> false
+| :? FileNotFoundException ->
+    false
 """
 
 [<Test>]
@@ -881,7 +882,8 @@ module Foo =
             failwith ""
         with
         // hi!
-        | :? Exception as e -> failwith ""
+        | :? Exception as e ->
+            failwith ""
 """
 
 [<Test>]
@@ -914,7 +916,8 @@ module Foo =
             failwith ""
         with
         // hi!
-        | :? Exception as e -> failwith ""
+        | :? Exception as e ->
+            failwith ""
 """
 
 [<Test>]
@@ -980,7 +983,8 @@ module Foo =
                                 foo.CreationTime <> defaultTime
                             with
                             // hmm
-                            | :? FileNotFoundException -> false
+                            | :? FileNotFoundException ->
+                                false
 
                         exists
 
@@ -989,7 +993,7 @@ module Foo =
 """
 
 [<Test>]
-let ``short catch clause in try/with should have pipe, 1571`` () =
+let ``short catch clause in try/with should not have pipe, 1571`` () =
     formatSourceString
         false
         """
@@ -1006,8 +1010,8 @@ with
         """
 try
     ()
-with
-| exc -> ()
+with exc ->
+    ()
 """
 
 [<Test>]
@@ -1035,8 +1039,43 @@ let isAbstractNonVirtualMember (m: FSharpMemberOrFunctionOrValue) =
     && (try
             m.ImplementedAbstractSignatures <> null
             && m.ImplementedAbstractSignatures.Count = 0
-        with
-        | _ -> true) // exceptions here trying to acces the member means we're safe
+        with _ ->
+            true) // exceptions here trying to acces the member means we're safe
     // this member is not an override
     && not m.IsOverrideOrExplicitInterfaceImplementation
+"""
+
+[<Test>]
+let ``try/with with a single clause, 1881`` () =
+    formatSourceString
+        false
+        """
+// OK
+try
+    persistState currentState
+with ex ->
+    printfn "Something went wrong: %A" ex
+
+// OK
+try
+    persistState currentState
+with :? System.ApplicationException as ex ->
+    printfn "Something went wrong: %A" ex
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+// OK
+try
+    persistState currentState
+with ex ->
+    printfn "Something went wrong: %A" ex
+
+// OK
+try
+    persistState currentState
+with :? System.ApplicationException as ex ->
+    printfn "Something went wrong: %A" ex
 """

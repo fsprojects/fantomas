@@ -244,8 +244,8 @@ try
                 s' = s0 && can (type_match ty ty0) [])
             (!the_interface)
     )
-with
-| Failure _ -> s0
+with Failure _ ->
+    s0
 """
 
 [<Test>]
@@ -1263,8 +1263,8 @@ let private formatResponse<'options> () =
 
                 return sendBadRequest content
 
-            with
-            | exn -> return sendBadRequest (sprintf "%A" exn)
+            with exn ->
+                return sendBadRequest (sprintf "%A" exn)
         | Error err -> return sendInternalError (err)
     }
 """
@@ -1851,8 +1851,8 @@ match x with
  | _ ->
      try
          somethingElse ()
-     with
-     | e -> printfn "failure %A" e)
+     with e ->
+         printfn "failure %A" e)
 --*-- bar
 """
 

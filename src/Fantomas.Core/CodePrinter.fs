@@ -2019,10 +2019,43 @@ and genExpr astContext synExpr ctx =
                 collectMultilineItemForLetOrUses astContext bs (collectMultilineItemForSynExpr astContext e)
 
             atCurrentColumn (colWithNlnWhenItemIsMultilineUsingConfig items)
-        // Could customize a bit if e is single line
+
+        | TryWithSingleClause (tryKeyword, e, withKeyword, barRange, p, eo, arrowRange, catchExpr, clauseRange) ->
+            let genClause =
+                leadingExpressionResult
+                    (enterNodeFor SynMatchClause_ clauseRange
+                     +> genTriviaForOption SynMatchClause_Bar barRange sepNone)
+                    (fun ((linesBefore, _), (linesAfter, _)) ->
+                        onlyIfCtx
+                            (fun ctx ->
+                                linesAfter > linesBefore
+                                || hasWriteBeforeNewlineContent ctx)
+                            sepBar)
+                +> genPat astContext p
+                +> optSingle
+                    (fun e ->
+                        !- " when"
+                        +> sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e))
+                    eo
+                +> genTriviaForOption SynMatchClause_Arrow arrowRange sepArrow
+                +> autoIndentAndNlnExpressUnlessRagnarok (genExpr astContext) catchExpr
+                +> leaveNodeFor SynMatchClause_ clauseRange
+
+            atCurrentColumn (
+                genTriviaFor SynExpr_TryWith_Try tryKeyword !- "try"
+                +> indent
+                +> sepNln
+                +> genExpr astContext e
+                +> unindent
+                +> sepNln
+                +> genTriviaFor SynExpr_TryWith_With withKeyword (!- "with")
+                +> sepSpace
+                +> genClause
+            )
+
         | TryWith (tryKeyword, e, withKeyword, cs) ->
             atCurrentColumn (
-                genTriviaFor SynExpr_TryWith_Try tryKeyword !- "try "
+                genTriviaFor SynExpr_TryWith_Try tryKeyword !- "try"
                 +> indent
                 +> sepNln
                 +> genExpr astContext e
@@ -2034,7 +2067,7 @@ and genExpr astContext synExpr ctx =
                     let hasMultipleClausesWhereOneHasRagnarok =
                         hasMultipleClausesWhereOneHasStroustrup ctx.Config.ExperimentalStroustrupStyle cs
 
-                    col sepNln cs (genClause astContext true hasMultipleClausesWhereOneHasRagnarok) ctx)
+                    col sepNln cs (genClause astContext hasMultipleClausesWhereOneHasRagnarok) ctx)
             )
 
         | TryFinally (tryKeyword, e1, finallyKeyword, e2) ->
@@ -4517,9 +4550,8 @@ and genInterfaceImpl astContext (InterfaceImpl (t, withKeywordRange, bs, members
 
 and genClause
     (astContext: ASTContext)
-    (hasBar: bool)
     (hasMultipleClausesWhereOneHasRagnarok: bool)
-    (Clause (p, eo, arrowRange, e) as ce)
+    (Clause (barRange, p, eo, arrowRange, e, clauseRange))
     =
     let astCtx = { astContext with IsInsideMatchClausePattern = true }
 
@@ -4565,7 +4597,12 @@ and genClause
                      +> autoIndentAndNlnIfExpressionExceedsPageWidthUnlessRagnarok (genExpr astContext) e)
                         ctx)
 
-    (onlyIf hasBar sepBar
+    let genBar =
+        match barRange with
+        | Some barRange -> genTriviaFor SynMatchClause_Bar barRange sepBar
+        | None -> sepBar
+
+    (genBar
      +> (fun ctx ->
          if hasMultipleClausesWhereOneHasRagnarok then
              // avoid edge case
@@ -4586,13 +4623,13 @@ and genClause
              atCurrentColumn patAndBody ctx
          else
              patAndBody ctx)
-     |> genTriviaFor SynMatchClause_ ce.Range)
+     |> genTriviaFor SynMatchClause_ clauseRange)
 
 and genClauses astContext cs (ctx: Context) =
     col
         sepNln
         cs
-        (genClause astContext true (hasMultipleClausesWhereOneHasStroustrup ctx.Config.ExperimentalStroustrupStyle cs))
+        (genClause astContext (hasMultipleClausesWhereOneHasStroustrup ctx.Config.ExperimentalStroustrupStyle cs))
         ctx
 
 /// Each multiline member definition has a pre and post new line.
@@ -5486,13 +5523,13 @@ and genKeepIndentMatch
             clauses
             (fun idx ->
                 if idx < lastClauseIndex then
-                    genClause astContext true hasMultipleClausesWhereOneHasRagnarok
+                    genClause astContext hasMultipleClausesWhereOneHasRagnarok
                 else
                     genLastClauseKeepIdent astContext)
             ctx)
     |> genTriviaFor triviaType range
 
-and genLastClauseKeepIdent (astContext: ASTContext) (Clause (pat, whenExpr, arrowRange, expr)) =
+and genLastClauseKeepIdent (astContext: ASTContext) (Clause (_, pat, whenExpr, arrowRange, expr, _)) =
     sepBar
     +> genPat astContext pat
     +> sepSpace
@@ -5708,7 +5745,7 @@ and genLambdaArrowWithTrivia
             |> genTriviaFor SynExpr_Lambda_Arrow arrowRange)
         arrowRange
     +> (fun ctx ->
-        if String.isNotNullOrEmpty ctx.WriterModel.WriteBeforeNewline then
+        if hasWriteBeforeNewlineContent ctx then
             (indent +> sepNln +> (bodyExpr body) +> unindent) ctx
         else
             autoIndentAndNlnIfExpressionExceedsPageWidthUnlessRagnarok bodyExpr body ctx)

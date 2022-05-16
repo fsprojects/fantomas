@@ -1251,7 +1251,22 @@ let (|RecordField|) =
     function
     | SynField (ats, _, ido, _, _, px, ao, _) -> (ats, px, ao, ido)
 
-let (|Clause|) (SynMatchClause (p, eo, e, _, _, trivia)) = (p, eo, trivia.ArrowRange, e)
+let (|Clause|) (SynMatchClause (p, eo, e, range, _, trivia)) =
+    let fullRange =
+        match trivia.BarRange with
+        | None -> range
+        | Some barRange -> Range.unionRanges barRange range
+
+    (trivia.BarRange, p, eo, trivia.ArrowRange, e, fullRange)
+
+let (|TryWithSingleClause|_|) =
+    function
+    | TryWith (tryKeyword, e, withKeyword, [ (Clause (barRange, p, eo, arrowRange, catchExpr, clauseRange)) ]) ->
+        match p with
+        | SynPat.Or _
+        | SynPat.As (SynPat.Or _, _, _) -> None
+        | _ -> Some(tryKeyword, e, withKeyword, barRange, p, eo, arrowRange, catchExpr, clauseRange)
+    | _ -> None
 
 /// Process compiler-generated matches in an appropriate way
 let rec private skipGeneratedLambdas expr =
@@ -1765,7 +1780,7 @@ let (|KeepIndentMatch|_|) (e: SynExpr) =
     let mapClauses matchKeyword matchExpr withKeyword clauses range t =
         match clauses with
         | [] -> None
-        | [ (Clause (_, _, _, lastClause)) ] ->
+        | [ (Clause (_, _, _, _, lastClause, _)) ] ->
             if shouldNotIndentBranch lastClause [] then
                 Some(matchKeyword, matchExpr, withKeyword, clauses, range, t)
             else
@@ -1774,9 +1789,9 @@ let (|KeepIndentMatch|_|) (e: SynExpr) =
             let firstClauses =
                 clauses
                 |> List.take (clauses.Length - 1)
-                |> List.map (fun (Clause (_, _, _, expr)) -> expr)
+                |> List.map (fun (Clause (_, _, _, _, expr, _)) -> expr)
 
-            let (Clause (_, _, _, lastClause)) = List.last clauses
+            let (Clause (_, _, _, _, lastClause, _)) = List.last clauses
 
             if shouldNotIndentBranch lastClause firstClauses then
                 Some(matchKeyword, matchExpr, withKeyword, clauses, range, t)

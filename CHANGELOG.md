@@ -8,6 +8,7 @@
 
 ### Changed
 * Formatting of multi-constrained SRTP functions needs improvement. [#2230](https://github.com/fsprojects/fantomas/issues/2230)
+* Try/With with a single clause. [#1881](https://github.com/fsprojects/fantomas/issues/1881)
 
 ## [5.0.0-alpha-007] - 2022-05-16
 

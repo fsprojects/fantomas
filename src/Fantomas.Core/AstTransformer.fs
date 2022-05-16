@@ -753,13 +753,14 @@ module private Ast =
 
     and visitSynMatchClause (mc: SynMatchClause) : TriviaNodeAssigner list =
         match mc with
-        | SynMatchClause (pat, e1, e2, _range, _, trivia) ->
-            mkNode SynMatchClause_ mc.Range // _range is the same range as pat, see https://github.com/dotnet/fsharp/issues/10877
-            :: [ yield! visitSynPat pat
-                 if e1.IsSome then
-                     yield! visitSynExpr e1.Value
-                 yield! mkNodeOption SynMatchClause_Arrow trivia.ArrowRange
-                 yield! visitSynExpr e2 ]
+        | SourceParser.Clause (barRange, pat, eo, arrowRange, e, range) ->
+            [ yield mkNode SynMatchClause_ range
+              yield! visitSynPat pat
+              yield! mkNodeOption SynMatchClause_Bar barRange
+              if eo.IsSome then
+                  yield! visitSynExpr eo.Value
+              yield! mkNodeOption SynMatchClause_Arrow arrowRange
+              yield! visitSynExpr e ]
 
     and visitSynExprAndBang (SynExprAndBang (_, _, _, pat, body, range, trivia)) : TriviaNodeAssigner list =
         [ yield mkNode SynExprAndBang_ range
