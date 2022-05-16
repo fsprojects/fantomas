@@ -1498,7 +1498,10 @@ module private Ast =
                     |> finalContinuation
 
                 Continuation.sequence continuations finalContinuation
-            | SynModuleSigDecl.Val (SynValSig.SynValSig _ as node, _) -> visitSynValSig node |> finalContinuation
+            | SynModuleSigDecl.Val (SynValSig.SynValSig _ as node, range) ->
+                [ yield mkNode SynModuleSigDecl_Val range
+                  yield! visitSynValSig node ]
+                |> finalContinuation
             | SynModuleSigDecl.Types (typeDefs, range) ->
                 mkNode SynModuleSigDecl_Types range
                 :: (List.collect visitSynTypeDefnSig typeDefs)

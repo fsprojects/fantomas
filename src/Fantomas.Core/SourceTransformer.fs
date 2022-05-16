@@ -293,11 +293,12 @@ let rec synExprToFsAstType (expr: SynExpr) : FsAstType * Range =
 
 let synModuleSigDeclToFsAstType =
     function
-    | SynModuleSigDecl.Val _ -> SynValSig_
+    | SynModuleSigDecl.Val _ -> SynModuleSigDecl_Val
     | SynModuleSigDecl.Exception _ -> SynModuleSigDecl_Exception
     | SynModuleSigDecl.NestedModule _ -> SynModuleSigDecl_NestedModule
     | SynModuleSigDecl.Types _ -> SynModuleSigDecl_Types
-    | SynModuleSigDecl.Open _ -> SynModuleSigDecl_Open
+    | SynModuleSigDecl.Open (SynOpenDeclTarget.ModuleOrNamespace _, _) -> SynModuleSigDecl_Open
+    | SynModuleSigDecl.Open (SynOpenDeclTarget.Type _, _) -> SynModuleSigDecl_OpenType
     | SynModuleSigDecl.HashDirective _ -> SynModuleSigDecl_HashDirective
     | SynModuleSigDecl.NamespaceFragment _ -> SynModuleSigDecl_NamespaceFragment
     | SynModuleSigDecl.ModuleAbbrev _ -> SynModuleSigDecl_ModuleAbbrev

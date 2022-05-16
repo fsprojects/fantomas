@@ -179,7 +179,7 @@ and genSigModuleOrNamespace
             match mdl with
             | SynModuleSigDecl.Types _ ->
                 sepNlnConsideringTriviaContentBeforeForMainNode SynModuleSigDecl_Types mdl.Range
-            | SynModuleSigDecl.Val _ -> sepNlnConsideringTriviaContentBeforeForMainNode SynValSig_ mdl.Range
+            | SynModuleSigDecl.Val _ -> sepNlnConsideringTriviaContentBeforeForMainNode SynModuleSigDecl_Val mdl.Range
             | _ -> sepNone
             +> sepNln
 
@@ -210,9 +210,11 @@ and genModuleDeclList astContext e =
         | OpenL (xs, ys) ->
             let expr = col sepNln xs (genModuleDecl astContext)
 
-            let r = List.head xs |> fun mdl -> mdl.Range
+            let r, triviaType =
+                List.head xs
+                |> fun mdl -> mdl.Range, synModuleDeclToFsAstType mdl
             // SynModuleDecl.Open cannot have attributes
-            let sepNln = sepNlnConsideringTriviaContentBeforeForMainNode SynModuleDecl_Open r
+            let sepNln = sepNlnConsideringTriviaContentBeforeForMainNode triviaType r
 
             collectItems ys (fun ysItems ->
                 ColMultilineItem(expr, sepNln) :: ysItems
@@ -267,13 +269,28 @@ and genSigModuleDeclList astContext (e: SynModuleSigDecl list) =
         | SigOpenL (xs, ys) ->
             let expr = col sepNln xs (genSigModuleDecl astContext)
 
-            let r = List.head xs |> fun mdl -> mdl.Range
+            let r, triviaType =
+                List.head xs
+                |> fun mdl -> mdl.Range, synModuleSigDeclToFsAstType mdl
             // SynModuleSigDecl.Open cannot have attributes
-            let sepNln = sepNlnConsideringTriviaContentBeforeForMainNode SynModuleSigDecl_Open r
+            let sepNln = sepNlnConsideringTriviaContentBeforeForMainNode triviaType r
 
             collectItems ys (fun ysItems ->
                 ColMultilineItem(expr, sepNln) :: ysItems
                 |> finalContinuation)
+
+        | SigHashDirectiveL (xs, ys) ->
+            let expr = col sepNln xs (genSigModuleDecl astContext)
+
+            let r = List.head xs |> fun mdl -> mdl.Range
+
+            let sepNln =
+                sepNlnConsideringTriviaContentBeforeForMainNode SynModuleSigDecl_HashDirective r
+
+            collectItems ys (fun ysItems ->
+                ColMultilineItem(expr, sepNln) :: ysItems
+                |> finalContinuation)
+
         | s :: rest ->
             let sepNln =
                 sepNlnConsideringTriviaContentBeforeForMainNode (synModuleSigDeclToFsAstType s) s.Range
@@ -434,14 +451,7 @@ and genSigModuleDecl astContext node =
 
         colWithNlnWhenItemIsMultilineUsingConfig items
     | md -> failwithf "Unexpected module signature declaration: %O" md
-    |> (match node with
-        | SynModuleSigDecl.Types _ -> genTriviaFor SynModuleSigDecl_Types node.Range
-        | SynModuleSigDecl.NestedModule _ -> genTriviaFor SynModuleSigDecl_NestedModule node.Range
-        | SynModuleSigDecl.Open (SynOpenDeclTarget.ModuleOrNamespace _, _) ->
-            genTriviaFor SynModuleSigDecl_Open node.Range
-        | SynModuleSigDecl.Open (SynOpenDeclTarget.Type _, _) -> genTriviaFor SynModuleSigDecl_OpenType node.Range
-        | SynModuleSigDecl.Exception _ -> genTriviaFor SynModuleSigDecl_Exception node.Range
-        | _ -> id)
+    |> genTriviaFor (synModuleSigDeclToFsAstType node) node.Range
 
 and genIdent (ident: Ident) =
     let width =

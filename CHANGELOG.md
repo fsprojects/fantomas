@@ -1,5 +1,10 @@
 # Changelog
 
+## [Unreleased]
+
+### Fixed
+* Idempotency problem with ParsedHashDirective in signature file. [#2258](https://github.com/fsprojects/fantomas/issues/2258)
+
 ## [5.0.0-alpha-007] - 2022-05-16
 
 ### Changed

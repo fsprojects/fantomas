@@ -360,6 +360,7 @@ type FsAstType =
     | SynModuleOrNamespaceSig_DeclaredNamespace
     | SynModuleOrNamespaceSig_GlobalNamespace
     | SynModuleOrNamespaceSig_NamedModule
+    | SynModuleSigDecl_Val
     | SynModuleSigDecl_ModuleAbbrev
     | SynModuleSigDecl_NestedModule
     | SynModuleSigDecl_NestedModule_Module
