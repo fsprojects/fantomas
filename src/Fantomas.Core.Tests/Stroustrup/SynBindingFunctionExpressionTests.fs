@@ -1,4 +1,4 @@
-﻿module Fantomas.Core.Tests.Stroupstrup.SynBindingFunctionExpressionTests
+﻿module Fantomas.Core.Tests.Stroustrup.SynBindingFunctionExpressionTests
 
 open NUnit.Framework
 open FsUnit

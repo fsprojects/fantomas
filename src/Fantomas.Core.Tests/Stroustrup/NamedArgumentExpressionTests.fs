@@ -1,4 +1,4 @@
-﻿module Fantomas.Core.Tests.Stroupstrup.NamedArgumentExpressionTests
+﻿module Fantomas.Core.Tests.Stroustrup.NamedArgumentExpressionTests
 
 open NUnit.Framework
 open FsUnit

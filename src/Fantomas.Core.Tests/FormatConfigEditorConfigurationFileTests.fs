@@ -465,7 +465,7 @@ insert_final_newline = false
     Assert.IsFalse config.InsertFinalNewline
 
 [<Test>]
-let ``Stroupstrup style`` () =
+let ``Stroustrup style`` () =
     let rootDir = tempName ()
 
     let editorConfig =

@@ -1,4 +1,4 @@
-﻿module Fantomas.Core.Tests.Stroupstrup.SynExprAndBangExpressionTests
+﻿module Fantomas.Core.Tests.Stroustrup.SynExprAndBangExpressionTests
 
 open NUnit.Framework
 open FsUnit

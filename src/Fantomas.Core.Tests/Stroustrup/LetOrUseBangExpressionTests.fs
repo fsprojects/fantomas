@@ -1,4 +1,4 @@
-﻿module Fantomas.Core.Tests.Stroupstrup.LetOrUseBangExpressionTests
+﻿module Fantomas.Core.Tests.Stroustrup.LetOrUseBangExpressionTests
 
 open NUnit.Framework
 open FsUnit
