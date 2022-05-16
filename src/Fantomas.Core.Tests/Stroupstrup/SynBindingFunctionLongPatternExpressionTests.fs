@@ -8,7 +8,7 @@ let config =
     { config with
         MaxLineLength = 80
         MultilineBlockBracketsOnSameColumn = true
-        ExperimentalStroupstrupStyle = true }
+        ExperimentalStroustrupStyle = true }
 
 // TODO: conclude on what should happen here
 // This one feels very weird to have `= {` because the pattern is already multiline

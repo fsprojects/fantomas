@@ -194,7 +194,7 @@ type FormatConfig =
 
       [<Category("Convention")>]
       [<DisplayName("Ragnarok")>]
-      ExperimentalStroupstrupStyle: bool
+      ExperimentalStroustrupStyle: bool
 
       [<Category("Convention")>]
       [<DisplayName("Maximum number of consecutive blank lines to keep")>]
@@ -239,6 +239,6 @@ type FormatConfig =
           ExperimentalKeepIndentInBranch = false
           BlankLinesAroundNestedMultilineExpressions = true
           BarBeforeDiscriminatedUnionDeclaration = false
-          ExperimentalStroupstrupStyle = false
+          ExperimentalStroustrupStyle = false
           KeepMaxNumberOfBlankLines = 100
           StrictMode = false }

@@ -1,10 +1,11 @@
 # Changelog
 
-## [Unreleased]
+## [5.0.0-alpha-007] - 2022-05-16
 
 ### Changed
 * Update FCS to 'Add SynExpr.Dynamic to SyntaxTree.', commit b822e2793bd6387c40cfd5b25d604e002a253257
 * Restore the validation API. [#2236](https://github.com/fsprojects/fantomas/issues/2236)
+* Renamed `fsharp_experimental_stroupstrup_style` to `fsharp_experimental_stroustrup_style`. [#2257](https://github.com/fsprojects/fantomas/pull/2257)
 
 ## [5.0.0-alpha-006] - 2022-05-13
 
