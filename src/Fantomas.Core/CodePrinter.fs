@@ -894,10 +894,7 @@ and genMemberBinding astContext b =
                         )
                     | _ -> p
 
-                let prefix =
-                    (onlyIfNot mf.IsInstance (!- "static ")
-                     +> !- "member ")
-
+                let prefix = genMemberFlags mf
                 genMemberBindingImpl astContext prefix ats px ao isInline pat equalsRange e synValInfo
             | _ ->
                 let ps = List.map snd ps
