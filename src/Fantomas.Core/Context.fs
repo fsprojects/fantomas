@@ -1280,7 +1280,7 @@ let internal addExtraNewlineIfLeadingWasMultiline leading sepNlnConsideringTrivi
 
 let internal autoIndentAndNlnExpressUnlessRagnarok (f: SynExpr -> Context -> Context) (e: SynExpr) (ctx: Context) =
     match e with
-    | SourceParser.StroupstrupStyleExpr ctx.Config.ExperimentalStroustrupStyle e -> f e ctx
+    | SourceParser.StroustrupStyleExpr ctx.Config.ExperimentalStroustrupStyle e -> f e ctx
     | _ -> (indent +> sepNln +> f e +> unindent) ctx
 
 let internal autoIndentAndNlnIfExpressionExceedsPageWidthUnlessRagnarok
@@ -1289,7 +1289,7 @@ let internal autoIndentAndNlnIfExpressionExceedsPageWidthUnlessRagnarok
     (ctx: Context)
     =
     match e with
-    | SourceParser.StroupstrupStyleExpr ctx.Config.ExperimentalStroustrupStyle e -> f e ctx
+    | SourceParser.StroustrupStyleExpr ctx.Config.ExperimentalStroustrupStyle e -> f e ctx
     | _ -> autoIndentAndNlnIfExpressionExceedsPageWidth (f e) ctx
 
 type internal ColMultilineItem =

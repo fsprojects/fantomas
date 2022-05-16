@@ -1801,8 +1801,8 @@ let (|KeepIndentIfThenElse|_|) (e: SynExpr) =
             None
     | _ -> None
 
-let (|StroupstrupStyleExpr|_|) (isStroupstrupStyleEnabled: bool) (e: SynExpr) =
-    if not isStroupstrupStyleEnabled then
+let (|StroustrupStyleExpr|_|) (isStroustrupStyleEnabled: bool) (e: SynExpr) =
+    if not isStroustrupStyleEnabled then
         None
     else
         match e with
@@ -1815,12 +1815,12 @@ let (|StroupstrupStyleExpr|_|) (isStroupstrupStyleEnabled: bool) (e: SynExpr) =
         | ArrayOrList _ -> Some e
         | _ -> None
 
-let hasMultipleClausesWhereOneHasStroupstrup isStroupstrupStyleEnabled (cs: SynMatchClause list) : bool =
-    isStroupstrupStyleEnabled
+let hasMultipleClausesWhereOneHasStroustrup isStroustrupStyleEnabled (cs: SynMatchClause list) : bool =
+    isStroustrupStyleEnabled
     && List.moreThanOne cs
     && List.exists
         (fun (SynMatchClause (resultExpr = e)) ->
             match e with
-            | StroupstrupStyleExpr isStroupstrupStyleEnabled _ -> true
+            | StroustrupStyleExpr isStroustrupStyleEnabled _ -> true
             | _ -> false)
         cs

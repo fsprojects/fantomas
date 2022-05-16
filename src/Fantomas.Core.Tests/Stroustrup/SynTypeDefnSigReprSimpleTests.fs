@@ -1,4 +1,4 @@
-﻿module Fantomas.Core.Tests.Stroupstrup.SynTypeDefnSimpleReprRecordTests
+﻿module Fantomas.Core.Tests.Stroustrup.SynTypeDefnSigReprSimpleTests
 
 open NUnit.Framework
 open FsUnit
@@ -12,8 +12,10 @@ let config =
 [<Test>]
 let ``record type definition`` () =
     formatSourceString
-        false
+        true
         """
+namespace Foo
+
 type V =
     { X: SomeFieldType
       Y: OhSomethingElse
@@ -24,6 +26,8 @@ type V =
     |> should
         equal
         """
+namespace Foo
+
 type V = {
     X: SomeFieldType
     Y: OhSomethingElse
@@ -35,8 +39,10 @@ type V = {
 [<Ignore("See https://github.com/fsprojects/fantomas/issues/2001, this will be easier to fix in future FCS version")>]
 let ``record type definition with comment after equals`` () =
     formatSourceString
-        false
+        true
         """
+namespace Foo
+
 type V = // comment
     { X: SomeFieldType
       Y: OhSomethingElse
@@ -47,6 +53,8 @@ type V = // comment
     |> should
         equal
         """
+namespace Foo
+
 type V = // comment
     {
         X: SomeFieldType
@@ -61,24 +69,28 @@ type V = // comment
 [<Test>]
 let ``record type definition with members`` () =
     formatSourceString
-        false
+        true
         """
+namespace Foo
+
 type V =
     { X: SomeFieldType
       Y: OhSomethingElse
       Z: ALongTypeName }
-    member this.Coordinate = (this.X, this.Y, this.Z)
+    member Coordinate : SomeFieldType * OhSomethingElse * ALongTypeName
 """
         config
     |> prepend newline
     |> should
         equal
         """
+namespace Foo
+
 type V =
     {
         X: SomeFieldType
         Y: OhSomethingElse
         Z: ALongTypeName
     }
-    member this.Coordinate = (this.X, this.Y, this.Z)
+    member Coordinate: SomeFieldType * OhSomethingElse * ALongTypeName
 """

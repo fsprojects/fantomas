@@ -1,4 +1,4 @@
-﻿module Fantomas.Core.Tests.Stroupstrup.LambdaExpressionTests
+﻿module Fantomas.Core.Tests.Stroustrup.LambdaExpressionTests
 
 open NUnit.Framework
 open FsUnit

@@ -1,4 +1,4 @@
-﻿module Fantomas.Core.Tests.Stroupstrup.SynBindingValueExpressionTests
+﻿module Fantomas.Core.Tests.Stroustrup.SynBindingFunctionWithReturnTypeExpressionTests
 
 open NUnit.Framework
 open FsUnit
@@ -10,11 +10,11 @@ let config =
         ExperimentalStroustrupStyle = true }
 
 [<Test>]
-let ``synbinding value with record instance `` () =
+let ``synbinding function with record instance `` () =
     formatSourceString
         false
         """
-let x =
+let x y : MyRecord =
     { A = longTypeName
       B = someOtherVariable
       C = ziggyBarX }
@@ -24,7 +24,7 @@ let x =
     |> should
         equal
         """
-let x = {
+let x y : MyRecord = {
     A = longTypeName
     B = someOtherVariable
     C = ziggyBarX
@@ -32,11 +32,11 @@ let x = {
 """
 
 [<Test>]
-let ``synbinding value with update record`` () =
+let ``synbinding function with update record`` () =
     formatSourceString
         false
         """
-let astCtx =
+let x y : MyRecord =
     { astContext with IsInsideMatchClausePattern = true }
 """
         config
@@ -44,28 +44,28 @@ let astCtx =
     |> should
         equal
         """
-let astCtx =
+let x y : MyRecord =
     { astContext with
         IsInsideMatchClausePattern = true
     }
 """
 
 [<Test>]
-let ``synbinding value with anonymous record instance`` () =
+let ``synbinding function with anonymous record instance `` () =
     formatSourceString
         false
         """
-let x =
-   {| A = longTypeName
-      B = someOtherVariable
-      C = ziggyBarX |}
+let x y : {| A:int; B:int; C:int |} =
+    {| A = longTypeName
+       B = someOtherVariable
+       C = ziggyBarX |}
 """
         config
     |> prepend newline
     |> should
         equal
         """
-let x = {|
+let x y : {| A: int; B: int; C: int |} = {|
     A = longTypeName
     B = someOtherVariable
     C = ziggyBarX
@@ -73,34 +73,11 @@ let x = {|
 """
 
 [<Test>]
-let ``synbinding value with anonymous record instance struct`` () =
+let ``synbinding function with computation expression`` () =
     formatSourceString
         false
         """
-let x =
-   struct
-        {| A = longTypeName
-           B = someOtherVariable
-           C = ziggyBarX |}
-"""
-        config
-    |> prepend newline
-    |> should
-        equal
-        """
-let x = struct {|
-    A = longTypeName
-    B = someOtherVariable
-    C = ziggyBarX
-|}
-"""
-
-[<Test>]
-let ``synbinding value with computation expression`` () =
-    formatSourceString
-        false
-        """
-let t =
+let x y: Task<unit> =
     task {
         // some computation here
         ()
@@ -111,18 +88,18 @@ let t =
     |> should
         equal
         """
-let t = task {
+let x y : Task<unit> = task {
     // some computation here
     ()
 }
 """
 
 [<Test>]
-let ``synbinding value with list`` () =
+let ``synbinding function with list`` () =
     formatSourceString
         false
         """
-let t =
+let x y : int list =
     [ itemOne
       itemTwo
       itemThree
@@ -134,7 +111,7 @@ let t =
     |> should
         equal
         """
-let t = [
+let x y : int list = [
     itemOne
     itemTwo
     itemThree
@@ -144,11 +121,11 @@ let t = [
 """
 
 [<Test>]
-let ``synbinding value with array`` () =
+let ``synbinding function with array`` () =
     formatSourceString
         false
         """
-let t =
+let x y : int array =
     [| itemOne
        itemTwo
        itemThree
@@ -160,7 +137,7 @@ let t =
     |> should
         equal
         """
-let t = [|
+let x y : int array = [|
     itemOne
     itemTwo
     itemThree
@@ -170,39 +147,12 @@ let t = [|
 """
 
 [<Test>]
-let ``nested synbinding value with record`` () =
-    formatSourceString
-        false
-        """
-let outer =
-    let inner =
-        {
-            X = someGreatXValue
-            Y = someRatherSmallYValue
-        }
-    ()
-"""
-        config
-    |> prepend newline
-    |> should
-        equal
-        """
-let outer =
-    let inner = {
-        X = someGreatXValue
-        Y = someRatherSmallYValue
-    }
-
-    ()
-"""
-
-[<Test>]
-let ``type member value with record instance`` () =
+let ``type member function with record instance`` () =
     formatSourceString
         false
         """
 type Foo() =
-    member this.Bar =
+    member this.Bar x : MyRecord =
         { A = longTypeName
           B = someOtherVariable
           C = ziggyBarX }
@@ -213,7 +163,7 @@ type Foo() =
         equal
         """
 type Foo() =
-    member this.Bar = {
+    member this.Bar x : MyRecord = {
         A = longTypeName
         B = someOtherVariable
         C = ziggyBarX
@@ -221,12 +171,12 @@ type Foo() =
 """
 
 [<Test>]
-let ``type member value with update record`` () =
+let ``type member function with update record`` () =
     formatSourceString
         false
         """
 type Foo() =
-    member this.Bar = { astContext with IsInsideMatchClausePattern = true }
+    member this.Bar x : MyRecord = { astContext with IsInsideMatchClausePattern = true }
 """
         config
     |> prepend newline
@@ -234,19 +184,19 @@ type Foo() =
         equal
         """
 type Foo() =
-    member this.Bar =
+    member this.Bar x : MyRecord =
         { astContext with
             IsInsideMatchClausePattern = true
         }
 """
 
 [<Test>]
-let ``type member value with anonymous record instance`` () =
+let ``type member function with anonymous record instance`` () =
     formatSourceString
         false
         """
 type Foo() =
-    member this.Bar =
+    member this.Bar x : {| A:int; B:int; C:int |} =
         {| A = longTypeName
            B = someOtherVariable
            C = ziggyBarX |}
@@ -257,7 +207,7 @@ type Foo() =
         equal
         """
 type Foo() =
-    member this.Bar = {|
+    member this.Bar x : {| A: int; B: int; C: int |} = {|
         A = longTypeName
         B = someOtherVariable
         C = ziggyBarX
@@ -265,12 +215,12 @@ type Foo() =
 """
 
 [<Test>]
-let ``type member value with anonymous record instance struct`` () =
+let ``type member function with anonymous record instance struct`` () =
     formatSourceString
         false
         """
 type Foo() =
-    member this.Bar =
+    member this.Bar x : {| A:int; B:int; C:int |} =
        struct
             {| A = longTypeName
                B = someOtherVariable
@@ -282,7 +232,7 @@ type Foo() =
         equal
         """
 type Foo() =
-    member this.Bar = struct {|
+    member this.Bar x : {| A: int; B: int; C: int |} = struct {|
         A = longTypeName
         B = someOtherVariable
         C = ziggyBarX
@@ -290,12 +240,12 @@ type Foo() =
 """
 
 [<Test>]
-let ``type member value with computation expression`` () =
+let ``type member function with computation expression`` () =
     formatSourceString
         false
         """
 type Foo() =
-    member this.Bar =
+    member this.Bar x : Task<unit> =
         task {
             // some computation here
             ()
@@ -307,19 +257,19 @@ type Foo() =
         equal
         """
 type Foo() =
-    member this.Bar = task {
+    member this.Bar x : Task<unit> = task {
         // some computation here
         ()
     }
 """
 
 [<Test>]
-let ``type member value with list`` () =
+let ``type member function with list`` () =
     formatSourceString
         false
         """
 type Foo() =
-    member this.Bar =
+    member this.Bar x : int list =
         [ itemOne
           itemTwo
           itemThree
@@ -332,7 +282,7 @@ type Foo() =
         equal
         """
 type Foo() =
-    member this.Bar = [
+    member this.Bar x : int list = [
         itemOne
         itemTwo
         itemThree
@@ -342,12 +292,12 @@ type Foo() =
 """
 
 [<Test>]
-let ``type member value with array`` () =
+let ``type member function with array`` () =
     formatSourceString
         false
         """
 type Foo() =
-    member this.Bar =
+    member this.Bar x : int array =
         [| itemOne
            itemTwo
            itemThree
@@ -360,7 +310,7 @@ type Foo() =
         equal
         """
 type Foo() =
-    member this.Bar = [|
+    member this.Bar x : int array = [|
         itemOne
         itemTwo
         itemThree

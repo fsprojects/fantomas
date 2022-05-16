@@ -2032,7 +2032,7 @@ and genExpr astContext synExpr ctx =
                 +> sepNln
                 +> (fun ctx ->
                     let hasMultipleClausesWhereOneHasRagnarok =
-                        hasMultipleClausesWhereOneHasStroupstrup ctx.Config.ExperimentalStroustrupStyle cs
+                        hasMultipleClausesWhereOneHasStroustrup ctx.Config.ExperimentalStroustrupStyle cs
 
                     col sepNln cs (genClause astContext true hasMultipleClausesWhereOneHasRagnarok) ctx)
             )
@@ -4612,7 +4612,7 @@ and genClauses astContext cs (ctx: Context) =
     col
         sepNln
         cs
-        (genClause astContext true (hasMultipleClausesWhereOneHasStroupstrup ctx.Config.ExperimentalStroustrupStyle cs))
+        (genClause astContext true (hasMultipleClausesWhereOneHasStroustrup ctx.Config.ExperimentalStroustrupStyle cs))
         ctx
 
 /// Each multiline member definition has a pre and post new line.
@@ -5500,7 +5500,7 @@ and genKeepIndentMatch
     +> sepNln
     +> (fun ctx ->
         let hasMultipleClausesWhereOneHasRagnarok =
-            hasMultipleClausesWhereOneHasStroupstrup ctx.Config.ExperimentalStroustrupStyle clauses
+            hasMultipleClausesWhereOneHasStroustrup ctx.Config.ExperimentalStroustrupStyle clauses
 
         coli
             sepNln

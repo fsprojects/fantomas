@@ -1,4 +1,4 @@
-﻿module Fantomas.Core.Tests.Stroupstrup.FunctionApplicationDualListTests
+﻿module Fantomas.Core.Tests.Stroustrup.FunctionApplicationSingleListTests
 
 open NUnit.Framework
 open FsUnit
@@ -10,52 +10,42 @@ let config =
         ExperimentalStroustrupStyle = true }
 
 [<Test>]
-let ``two short lists`` () =
+let ``short function application`` () =
     formatSourceString
         false
         """
-fn [ a1; a2 ]    [ b1 ; b2 ]
+fn [   b1;   b1 ]
 """
         config
     |> prepend newline
     |> should
         equal
         """
-fn [ a1; a2 ] [ b1; b2 ]
+fn [ b1; b1 ]
 """
 
 [<Test>]
-let ``first list short, second multiline`` () =
+let ``short function application with additional parameters`` () =
     formatSourceString
         false
         """
-fn [ a1
-     a2 ] [
-    b1 // comment
-    b2
-]
+fn a b [   b1;   b1 ]
 """
         config
     |> prepend newline
     |> should
         equal
         """
-fn [ a1; a2 ] [
-    b1 // comment
-    b2
-]
+fn a b [ b1; b1 ]
 """
 
 [<Test>]
-let ``first list multiline, second multiline`` () =
+let ``function application where the list is multiline`` () =
     formatSourceString
         false
         """
-fn [ a1 // hey
-     a2 ] [
-    b1 // comment
-    b2
-]
+fn [   b1; // some comment
+       b2]
 """
         config
     |> prepend newline
@@ -63,26 +53,39 @@ fn [ a1 // hey
         equal
         """
 fn [
-    a1 // hey
-    a2
-] [
+    b1 // some comment
+    b2
+]
+"""
+
+[<Test>]
+let ``short function application where the list is multiline and additional parameters`` () =
+    formatSourceString
+        false
+        """
+fn a b [   b1; // comment
+           b2 ]
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+fn a b [
     b1 // comment
     b2
 ]
 """
 
 [<Test>]
-let ``first list multiline, second multiline and other long arguments`` () =
+let ``short function application with additional multiline parameters`` () =
     formatSourceString
         false
         """
-fn a b (try somethingDangerous with ex -> printfn "meh" ) c [ a1 // hey
-                                                              a2 ] [
-    b1 // comment
-    b2
-]
+fn a b (try somethingDangerous with ex -> printfn "meh" ) c [   b1; // comment
+           b2 ]
 """
-        { config with MaxArrayOrListWidth = 0 }
+        config
     |> prepend newline
     |> should
         equal
@@ -94,10 +97,8 @@ fn
         somethingDangerous
      with
      | ex -> printfn "meh")
-    c [
-        a1 // hey
-        a2
-    ] [
+    c
+    [
         b1 // comment
         b2
     ]

@@ -1,4 +1,4 @@
-﻿module Fantomas.Core.Tests.Stroupstrup.DotIndexedSetExpressionTests
+﻿module Fantomas.Core.Tests.Stroustrup.DotIndexedSetExpressionTests
 
 open NUnit.Framework
 open FsUnit

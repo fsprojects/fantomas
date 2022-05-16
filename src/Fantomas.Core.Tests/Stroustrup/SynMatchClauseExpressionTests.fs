@@ -1,4 +1,4 @@
-﻿module Fantomas.Core.Tests.Stroupstrup.SynMatchClauseExpressionTests
+﻿module Fantomas.Core.Tests.Stroustrup.SynMatchClauseExpressionTests
 
 open NUnit.Framework
 open FsUnit

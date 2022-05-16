@@ -1,4 +1,4 @@
-﻿module Fantomas.Core.Tests.Stroupstrup.MultiLineLambdaClosingNewlineExpressionTests
+﻿module Fantomas.Core.Tests.Stroustrup.MultiLineLambdaClosingNewlineExpressionTests
 
 open NUnit.Framework
 open FsUnit
