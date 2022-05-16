@@ -472,7 +472,7 @@ let ``Stroupstrup style`` () =
         """
 [*.fs]
 fsharp_multiline_block_brackets_on_same_column = true
-fsharp_experimental_stroupstrup_style = true
+fsharp_experimental_stroustrup_style = true
 """
 
     use configFixture =
@@ -483,4 +483,4 @@ fsharp_experimental_stroupstrup_style = true
     let config = EditorConfig.readConfiguration fsharpFile.FSharpFile
 
     Assert.IsTrue config.MultilineBlockBracketsOnSameColumn
-    Assert.IsTrue config.ExperimentalStroupstrupStyle
+    Assert.IsTrue config.ExperimentalStroustrupStyle

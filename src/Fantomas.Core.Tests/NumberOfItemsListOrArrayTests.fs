@@ -87,7 +87,7 @@ h [ longValueThatIsALotOfCharactersSoooooLong; longValueThatIsALotOfCharactersSo
         { config with
             ArrayOrListMultilineFormatter = NumberOfItems
             MultilineBlockBracketsOnSameColumn = true
-            ExperimentalStroupstrupStyle = true }
+            ExperimentalStroustrupStyle = true }
     |> prepend newline
     |> should
         equal
@@ -206,7 +206,7 @@ h [ longValueThatIsALotOfCharactersSoooooLong; longValueThatIsALotOfCharactersSo
         { config with
             ArrayOrListMultilineFormatter = NumberOfItems
             MultilineBlockBracketsOnSameColumn = true
-            ExperimentalStroupstrupStyle = true }
+            ExperimentalStroustrupStyle = true }
     |> prepend newline
     |> should
         equal
@@ -241,7 +241,7 @@ h [ longValueThatIsALotOfCharactersSoooooLong; longValueThatIsALotOfCharactersSo
         { config with
             ArrayOrListMultilineFormatter = NumberOfItems
             MultilineBlockBracketsOnSameColumn = true
-            ExperimentalStroupstrupStyle = true }
+            ExperimentalStroustrupStyle = true }
     |> prepend newline
     |> should
         equal
@@ -274,7 +274,7 @@ h [ longValueThatIsALotOfCharactersSoooooLong; longValueThatIsALotOfCharactersSo
         { config with
             ArrayOrListMultilineFormatter = NumberOfItems
             MultilineBlockBracketsOnSameColumn = true
-            ExperimentalStroupstrupStyle = true }
+            ExperimentalStroustrupStyle = true }
     |> prepend newline
     |> should
         equal

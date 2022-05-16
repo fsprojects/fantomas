@@ -7,7 +7,7 @@ open Fantomas.Core.Tests.TestHelper
 let config =
     { config with
         MultilineBlockBracketsOnSameColumn = true
-        ExperimentalStroupstrupStyle = true }
+        ExperimentalStroustrupStyle = true }
 
 [<Test>]
 let ``andBang with record instance`` () =
