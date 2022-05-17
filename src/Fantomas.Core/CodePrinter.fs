@@ -4125,11 +4125,19 @@ and genConstraints astContext (t: SynType) (vi: SynValInfo) =
                     | _ -> sepNone)
             | _ -> genType astContext false ti
 
+        let genConstraints =
+            let short =
+                ifElse (List.isNotEmpty tcs) (!- "when ") sepSpace
+                +> col wordAnd tcs (genTypeConstraint astContext)
+
+            let long =
+                ifElse (List.isNotEmpty tcs) (!- "when ") sepSpace
+                +> col (sepNln +> wordAndFixed +> sepSpace) tcs (genTypeConstraint astContext)
+
+            expressionFitsOnRestOfLine short long
+
         genType
-        +> sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth (
-            ifElse (List.isNotEmpty tcs) (!- "when ") sepSpace
-            +> col wordAnd tcs (genTypeConstraint astContext)
-        )
+        +> sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth genConstraints
     | _ -> sepNone
 
 and genTyparDecl astContext (TyparDecl (ats, tp)) =

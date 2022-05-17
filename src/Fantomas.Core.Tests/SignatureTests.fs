@@ -1912,3 +1912,30 @@ type Async =
     static member AwaitEvent: event: IEvent<'Del, 'T> * ?cancelAction: (unit -> unit) -> Async<'T>
         when 'Del: delegate<'T, unit> and 'Del :> System.Delegate
 """
+
+[<Test>]
+let ``multi-constrained SRTP functions, 2230`` () =
+    formatSourceString
+        true
+        """
+/// Throws <c>ArgumentException</c>
+/// </example>
+[<CompiledName("Average")>]
+val inline average   : array:^T[] -> ^T   
+                            when ^T : (static member ( + ) : ^T * ^T -> ^T) 
+                            and  ^T : (static member DivideByInt : ^T*int -> ^T) 
+                            and  ^T : (static member Zero : ^T)
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+/// Throws <c>ArgumentException</c>
+/// </example>
+[<CompiledName("Average")>]
+val inline average: array: ^T[] -> ^T
+    when ^T: (static member (+): ^T * ^T -> ^T)
+    and ^T: (static member DivideByInt: ^T * int -> ^T)
+    and ^T: (static member Zero: ^T)
+"""

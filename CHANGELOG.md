@@ -6,6 +6,9 @@
 * Idempotency problem with ParsedHashDirective in signature file. [#2258](https://github.com/fsprojects/fantomas/issues/2258)
 * Keyword 'override' gets changed to 'member'. [#2221](https://github.com/fsprojects/fantomas/issues/2221)
 
+### Changed
+* Formatting of multi-constrained SRTP functions needs improvement. [#2230](https://github.com/fsprojects/fantomas/issues/2230)
+
 ## [5.0.0-alpha-007] - 2022-05-16
 
 ### Changed
