@@ -650,6 +650,7 @@ let internal rep n (f: Context -> Context) (ctx: Context) =
     [ 1..n ] |> List.fold (fun c _ -> f c) ctx
 
 let internal wordAnd = !- " and "
+let internal wordAndFixed = !- "and"
 let internal wordOr = !- " or "
 let internal wordOf = !- " of "
 // Separator functions
