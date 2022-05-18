@@ -735,8 +735,9 @@ module Foo =
 namespace Blah
 
 module Foo =
-    val inline sum: ('a -> ^value) -> 'a Foo -> ^value
-        when ^value: (static member (+): ^value * ^value -> ^value) and ^value: (static member Zero: ^value)
+    val inline sum:
+        ('a -> ^value) -> 'a Foo -> ^value
+            when ^value: (static member (+): ^value * ^value -> ^value) and ^value: (static member Zero: ^value)
 """
 
 [<Test>]
@@ -1909,8 +1910,9 @@ namespace Microsoft.FSharp.Control
 [<Sealed>]
 [<CompiledName("FSharpAsync")>]
 type Async =
-    static member AwaitEvent: event: IEvent<'Del, 'T> * ?cancelAction: (unit -> unit) -> Async<'T>
-        when 'Del: delegate<'T, unit> and 'Del :> System.Delegate
+    static member AwaitEvent:
+        event: IEvent<'Del, 'T> * ?cancelAction: (unit -> unit) -> Async<'T>
+            when 'Del: delegate<'T, unit> and 'Del :> System.Delegate
 """
 
 [<Test>]
@@ -1934,8 +1936,102 @@ val inline average   : array:^T[] -> ^T
 /// Throws <c>ArgumentException</c>
 /// </example>
 [<CompiledName("Average")>]
-val inline average: array: ^T[] -> ^T
+val inline average:
+    array: ^T[] -> ^T
+        when ^T: (static member (+): ^T * ^T -> ^T)
+        and ^T: (static member DivideByInt: ^T * int -> ^T)
+        and ^T: (static member Zero: ^T)
+"""
+
+[<Test>]
+let ``long curried value with constraints`` () =
+    formatSourceString
+        true
+        """
+[<CompiledName("Average")>]
+val inline average: array: ^T[] -> array: ^T[] -> array: ^T[] -> array: ^T[] -> array: ^T[] -> array: ^T[] -> array: ^T[] -> array: ^T[] -> array: ^T[] -> ^T
     when ^T: (static member (+): ^T * ^T -> ^T)
     and ^T: (static member DivideByInt: ^T * int -> ^T)
     and ^T: (static member Zero: ^T)
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+[<CompiledName("Average")>]
+val inline average:
+    array: ^T[] ->
+    array: ^T[] ->
+    array: ^T[] ->
+    array: ^T[] ->
+    array: ^T[] ->
+    array: ^T[] ->
+    array: ^T[] ->
+    array: ^T[] ->
+    array: ^T[] ->
+        ^T
+        when ^T: (static member (+): ^T * ^T -> ^T)
+        and ^T: (static member DivideByInt: ^T * int -> ^T)
+        and ^T: (static member Zero: ^T)
+"""
+
+[<Test>]
+let ``long tupled value with constraints`` () =
+    formatSourceString
+        true
+        """
+[<CompiledName("Average")>]
+val inline average: array: ^T[] * array: ^T[] * array: ^T[] * array: ^T[] * array: ^T[] * array: ^T[] * array: ^T[] * array: ^T[] * array: ^T[] -> ^T
+    when ^T: (static member (+): ^T * ^T -> ^T)
+    and ^T: (static member DivideByInt: ^T * int -> ^T)
+    and ^T: (static member Zero: ^T)
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+[<CompiledName("Average")>]
+val inline average:
+    array: ^T[] *
+    array: ^T[] *
+    array: ^T[] *
+    array: ^T[] *
+    array: ^T[] *
+    array: ^T[] *
+    array: ^T[] *
+    array: ^T[] *
+    array: ^T[] ->
+        ^T
+        when ^T: (static member (+): ^T * ^T -> ^T)
+        and ^T: (static member DivideByInt: ^T * int -> ^T)
+        and ^T: (static member Zero: ^T)
+"""
+
+[<Test>]
+let ``long mixed curried and tuple value with constraints`` () =
+    formatSourceString
+        true
+        """
+[<CompiledName("Average")>]
+val inline average: array: ^T[] * array: ^T[] * array: ^T[] -> array: ^T[] * array: ^T[] * array: ^T[] -> array: ^T[] * array: ^T[] * array: ^T[] -> ^T
+    when ^T: (static member (+): ^T * ^T -> ^T)
+    and ^T: (static member DivideByInt: ^T * int -> ^T)
+    and ^T: (static member Zero: ^T)
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+[<CompiledName("Average")>]
+val inline average:
+    array: ^T[] * array: ^T[] * array: ^T[] ->
+        array: ^T[] * array: ^T[] * array: ^T[] ->
+            array: ^T[] * array: ^T[] * array: ^T[] ->
+                ^T
+        when ^T: (static member (+): ^T * ^T -> ^T)
+        and ^T: (static member DivideByInt: ^T * int -> ^T)
+        and ^T: (static member Zero: ^T)
 """

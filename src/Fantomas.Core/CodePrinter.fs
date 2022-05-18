@@ -4092,38 +4092,8 @@ and genConstraints astContext (t: SynType) (vi: SynValInfo) =
     match t with
     | TWithGlobalConstraints (ti, tcs) ->
         let genType =
-            match ti, vi with
-            | TFuns ts, SynValInfo (curriedArgInfos, returnType) ->
-                let namedArgInfos =
-                    [ yield! curriedArgInfos
-                      yield [ returnType ] ]
-
-                let args = List.zip namedArgInfos ts
-
-                col sepArrow args (fun (argInfo, t) ->
-                    match argInfo, t with
-                    | [], _ -> genType astContext false t
-                    | [ SynArgInfo (_, isOptional, Some ident) ], _ ->
-                        onlyIf isOptional (!- "?")
-                        +> genIdent ident
-                        +> sepColon
-                        +> genType astContext false t
-                    | [ SynArgInfo _ ], _ -> genType astContext false t
-                    | multipleArgInfo, TTuple ts ->
-                        let combined = List.zip multipleArgInfo ts
-
-                        col sepStar combined (fun (argInfo, (_, t)) ->
-                            let genNamed =
-                                match argInfo with
-                                | SynArgInfo (_, isOptional, Some ident) ->
-                                    onlyIf isOptional (!- "?")
-                                    +> genIdent ident
-                                    +> sepColon
-                                | _ -> sepNone
-
-                            genNamed +> genType astContext false t)
-                    | _ -> sepNone)
-            | _ -> genType astContext false ti
+            let (FunType namedArgs) = (ti, vi)
+            genTypeList astContext namedArgs
 
         let genConstraints =
             let short =
@@ -4136,8 +4106,10 @@ and genConstraints astContext (t: SynType) (vi: SynValInfo) =
 
             expressionFitsOnRestOfLine short long
 
-        genType
-        +> sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth genConstraints
+        autoIndentAndNlnIfExpressionExceedsPageWidth (
+            genType
+            +> sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth genConstraints
+        )
     | _ -> sepNone
 
 and genTyparDecl astContext (TyparDecl (ats, tp)) =
@@ -4847,7 +4819,6 @@ and genMemberDefn astContext node =
             (match t with
              | TWithGlobalConstraints _ -> true
              | _ -> false)
-            autoIndentAndNlnIfExpressionExceedsPageWidth
             (genConstraints astContext t vi)
 
     | md -> failwithf "Unexpected member definition: %O" md
