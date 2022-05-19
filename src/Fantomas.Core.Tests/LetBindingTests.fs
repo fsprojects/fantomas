@@ -894,8 +894,7 @@ let private authenticateRequest (logger: ILogger) header =
                 logger.LogError(sprintf "User has a valid token but lacks the correct permission")
                 return None
         }
-    with
-    | exn ->
+    with exn ->
         logger.LogError(sprintf "Could not authenticate token %s\n%A" token exn)
         task { return None }
 """

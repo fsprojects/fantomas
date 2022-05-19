@@ -211,8 +211,8 @@ match x with
     (try
         somethingDangerous ()
         true
-     with
-     | ex -> false)
+     with ex ->
+         false)
     ->
     {
         A = longTypeName
@@ -240,8 +240,7 @@ with ex ->
         """
 try
     foo ()
-with
-| ex -> {
+with ex -> {
     A = longTypeName
     B = someOtherVariable
     C = ziggyBarX
@@ -265,8 +264,7 @@ with ex ->
         """
 try
     foo ()
-with
-| ex ->
+with ex ->
     { astContext with
         IsInsideMatchClausePattern = true
     }
@@ -291,8 +289,7 @@ with ex ->
         """
 try
     foo ()
-with
-| ex -> {|
+with ex -> {|
     A = longTypeName
     B = someOtherVariable
     C = ziggyBarX
@@ -319,8 +316,7 @@ with ex ->
         """
 try
     foo ()
-with
-| ex -> struct {|
+with ex -> struct {|
     A = longTypeName
     B = someOtherVariable
     C = ziggyBarX
@@ -348,8 +344,7 @@ with
         """
 try
     foo ()
-with
-| ex -> task {
+with ex -> task {
     // some computation here
     ()
 }
@@ -377,8 +372,7 @@ with
         """
 try
     foo ()
-with
-| ex -> [
+with ex -> [
     itemOne
     itemTwo
     itemThree
@@ -409,8 +403,7 @@ with
         """
 try
     foo ()
-with
-| ex -> [|
+with ex -> [|
     itemOne
     itemTwo
     itemThree

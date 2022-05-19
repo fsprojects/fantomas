@@ -135,8 +135,8 @@ let b (x: int) (y: int) : int =
 let c () =
     try
         0
-    with
-    | ex -> 1
+    with ex ->
+        1
 """
 
 [<Test>]

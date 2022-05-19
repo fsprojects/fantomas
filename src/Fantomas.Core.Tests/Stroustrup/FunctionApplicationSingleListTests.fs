@@ -95,8 +95,8 @@ fn
     b
     (try
         somethingDangerous
-     with
-     | ex -> printfn "meh")
+     with ex ->
+         printfn "meh")
     c
     [
         b1 // comment

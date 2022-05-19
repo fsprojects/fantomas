@@ -95,11 +95,10 @@ module ElectrumClient =
                     stratumClient.ServerVersion
                         CLIENT_NAME_SENT_TO_STRATUM_SERVER_WHEN_HELLO
                         PROTOCOL_VERSION_SUPPORTED
-                with
-                | :? ElectrumServerReturningErrorException as except when
-                    except.Message.EndsWith
-                        (PROTOCOL_VERSION_SUPPORTED.ToString())
-                    ->
+                with :? ElectrumServerReturningErrorException as except when
+                    except.Message.EndsWith(
+                        PROTOCOL_VERSION_SUPPORTED.ToString()
+                    ) ->
 
                     failwith "xxx"
 

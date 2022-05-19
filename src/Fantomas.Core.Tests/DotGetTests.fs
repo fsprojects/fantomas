@@ -992,8 +992,8 @@ type Foobar =
                        .GetSystemAssemblies()
                        .Contains(fileNameWithoutExtension filename))
                 || tcConfig.FxResolver.IsInReferenceAssemblyPackDirectory filename)
-        with
-        | _ -> false
+        with _ ->
+            false
 """
 
 [<Test>]

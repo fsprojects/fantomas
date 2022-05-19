@@ -154,8 +154,7 @@ let main _ =
             |> ignore
 
             0
-        with
-        | ex ->
+        with ex ->
             Log.Fatal(ex, "Service terminated unexpectedly")
 
             1

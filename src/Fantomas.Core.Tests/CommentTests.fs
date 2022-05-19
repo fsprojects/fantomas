@@ -1724,10 +1724,10 @@ try
     try
         ()
     // xxx
-    with
-    | _ -> ()
-with
-| _ -> ()
+    with _ ->
+        ()
+with _ ->
+    ()
 """
 
 [<Test>]
@@ -1754,7 +1754,8 @@ try
 with
 
 
-| b -> c
+| b ->
+    c
 """
 
 [<Test>]
@@ -1778,13 +1779,12 @@ with
         """
 try
     a
-with
-| b ->
+with b ->
     try
         c
     // inner comment
-    with
-    | d -> ()
+    with d ->
+        ()
 """
 
 [<Test>]

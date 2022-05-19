@@ -266,8 +266,11 @@ let internal writerEvent e ctx =
 
     ctx'
 
+let internal hasWriteBeforeNewlineContent ctx =
+    String.isNotNullOrEmpty ctx.WriterModel.WriteBeforeNewline
+
 let internal finalizeWriterModel (ctx: Context) =
-    if ctx.WriterModel.WriteBeforeNewline <> "" then
+    if hasWriteBeforeNewlineContent ctx then
         writerEvent (Write ctx.WriterModel.WriteBeforeNewline) ctx
     else
         ctx
@@ -1243,19 +1246,19 @@ let internal sepNlnTypeAndMembers
             ctx
 
 let internal sepNlnWhenWriteBeforeNewlineNotEmpty fallback (ctx: Context) =
-    if String.isNotNullOrEmpty ctx.WriterModel.WriteBeforeNewline then
+    if hasWriteBeforeNewlineContent ctx then
         sepNln ctx
     else
         fallback ctx
 
 let internal sepSpaceUnlessWriteBeforeNewlineNotEmpty (ctx: Context) =
-    if String.isNotNullOrEmpty ctx.WriterModel.WriteBeforeNewline then
+    if hasWriteBeforeNewlineContent ctx then
         ctx
     else
         sepSpace ctx
 
 let internal autoIndentAndNlnWhenWriteBeforeNewlineNotEmpty (f: Context -> Context) (ctx: Context) =
-    if String.isNotNullOrEmpty ctx.WriterModel.WriteBeforeNewline then
+    if hasWriteBeforeNewlineContent ctx then
         (indent +> sepNln +> f +> unindent) ctx
     else
         f ctx

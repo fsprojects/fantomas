@@ -183,6 +183,7 @@ type FsAstType =
     | SynIndexerArg_Two
     | SynMatchClause_
     | SynMatchClause_Arrow
+    | SynMatchClause_Bar
     | ArgOptions_
     | SynInterfaceImpl_
     | SynInterfaceImpl_With
