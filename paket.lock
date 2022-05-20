@@ -144,7 +144,7 @@ NUGET
       System.Security.AccessControl (>= 5.0)
       System.Security.Principal.Windows (>= 5.0)
     System.Management (6.0)
-      Microsoft.Win32.Registry (>= 5.0) - restriction: || (== netcoreapp3.1) (&& (== netstandard2.0) (>= netcoreapp3.1))
+      Microsoft.Win32.Registry (>= 5.0) - restriction: || (&& (== net6.0) (== netstandard2.0)) (== netcoreapp3.1) (&& (== netstandard2.0) (>= netcoreapp3.1))
       System.CodeDom (>= 6.0)
     System.Memory (4.5.4)
       System.Buffers (>= 4.5.1) - restriction: || (&& (== net6.0) (>= monotouch)) (&& (== net6.0) (>= net461)) (&& (== net6.0) (< netcoreapp2.0)) (&& (== net6.0) (< netstandard1.1)) (&& (== net6.0) (< netstandard2.0)) (&& (== net6.0) (>= xamarinios)) (&& (== net6.0) (>= xamarinmac)) (&& (== net6.0) (>= xamarintvos)) (&& (== net6.0) (>= xamarinwatchos)) (&& (== netcoreapp3.1) (>= monotouch)) (&& (== netcoreapp3.1) (>= net461)) (&& (== netcoreapp3.1) (< netcoreapp2.0)) (&& (== netcoreapp3.1) (< netstandard1.1)) (&& (== netcoreapp3.1) (< netstandard2.0)) (&& (== netcoreapp3.1) (>= xamarinios)) (&& (== netcoreapp3.1) (>= xamarinmac)) (&& (== netcoreapp3.1) (>= xamarintvos)) (&& (== netcoreapp3.1) (>= xamarinwatchos)) (== netstandard2.0)
@@ -1638,9 +1638,8 @@ NUGET
     editorconfig (0.12.2)
     Fable.Core (3.6.2)
     FSharp.Core (6.0.3) - content: none
+    Ignore (0.1.42)
     Ionide.KeepAChangelog.Tasks (0.1.6) - copy_local: true
-    MAB.DotIgnore (3.0.2)
-      NETStandard.Library (>= 1.6.1)
     MessagePack (2.3.85)
       MessagePack.Annotations (>= 2.3.85)
     MessagePack.Annotations (2.3.85)
@@ -1683,8 +1682,6 @@ NUGET
       Microsoft.VisualStudio.Validation (>= 16.10.26)
       System.IO.Pipelines (>= 5.0.1)
       System.Runtime.CompilerServices.Unsafe (>= 5.0)
-    NETStandard.Library (2.0.3)
-      Microsoft.NETCore.Platforms (>= 1.1)
     Newtonsoft.Json (13.0.1)
     runtime.debian.8-x64.runtime.native.System.Security.Cryptography.OpenSsl (4.3.3)
     runtime.debian.9-x64.runtime.native.System.Security.Cryptography.OpenSsl (4.3.3)

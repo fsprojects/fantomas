@@ -134,7 +134,7 @@ group tool
     nuget Thoth.Json.Net
     nuget SerilogTraceListener
     nuget editorconfig
-    nuget MAB.DotIgnore
+    nuget Ignore
     nuget System.IO.Abstractions
     nuget Ionide.KeepAChangelog.Tasks copy_local: true
     nuget Dotnet.ReproducibleBuilds copy_local: true
@@ -145,7 +145,6 @@ group client
     
     nuget FSharp.Core >= 5.0.1 content: none
     nuget StreamJsonRpc
-
     nuget SemanticVersioning
 
 group compiler

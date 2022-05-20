@@ -1,7 +1,7 @@
 namespace Fantomas
 
 open System.IO.Abstractions
-open MAB.DotIgnore
+open Ignore
 
 /// The string argument is taken relative to the location
 /// of the ignore-file.
@@ -39,9 +39,25 @@ module IgnoreFile =
 
         walkUp (fs.FileInfo.FromFileName(filePath).Directory)
 
-    let loadIgnoreList (path: string) : IsPathIgnored =
-        let list = IgnoreList(path)
-        fun path -> list.IsIgnored(path, false)
+    let loadIgnoreList (fs: IFileSystem) (ignoreFilePath: string) : IsPathIgnored =
+        let lines = fs.File.ReadAllLines(ignoreFilePath)
+
+        let fantomasIgnore =
+            (Ignore(), lines)
+            ||> Array.fold (fun (ig: Ignore) (line: string) -> ig.Add(line))
+
+        fun path ->
+            // See https://git-scm.com/docs/gitignore
+            // We transform the incoming path relative to the .ignoreFilePath folder.
+            // In a cli scenario that is the current directory, for the daemon it is the first found ignore file.
+            // .gitignore uses forward slashes to path separators
+            let relativePath =
+                fs
+                    .Path
+                    .GetRelativePath(fs.Directory.GetParent(ignoreFilePath).FullName, path)
+                    .Replace("\\", "/")
+
+            fantomasIgnore.IsIgnored(relativePath)
 
     let internal current' (fs: IFileSystem) (currentDirectory: string) (loadIgnoreList: string -> IsPathIgnored) =
         lazy find fs loadIgnoreList (fs.Path.Combine(currentDirectory, "_"))
@@ -50,7 +66,8 @@ module IgnoreFile =
     /// the most appropriate `.fantomasignore` for each input file; it only finds
     /// a single `.fantomasignore` file. This is that file.
     let current: Lazy<IgnoreFile option> =
-        current' (FileSystem()) System.Environment.CurrentDirectory loadIgnoreList
+        let fs = FileSystem()
+        current' fs System.Environment.CurrentDirectory (loadIgnoreList fs)
 
     let isIgnoredFile (ignoreFile: IgnoreFile option) (file: string) : bool =
         match ignoreFile with
