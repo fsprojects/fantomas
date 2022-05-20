@@ -1,9 +1,9 @@
 open System
 open System.IO
 open Fantomas.Core
+open Fantomas
 open Fantomas.Daemon
 open Fantomas.Core.FormatConfig
-open Fantomas.Extras
 open Argu
 open System.Text
 
@@ -130,28 +130,26 @@ let processSourceString isFsiFile s (tw: Choice<TextWriter, string>) config =
             printfn "%s has been written." path
 
     async {
-        let! formatted =
-            s
-            |> FakeHelpers.formatContentAsync config fileName
+        let! formatted = s |> Format.formatContentAsync config fileName
 
         match formatted with
-        | FakeHelpers.FormatResult.Formatted (_, formattedContent) -> formattedContent |> writeResult
-        | FakeHelpers.FormatResult.Unchanged file -> printfn "'%s' was unchanged" file
-        | FakeHelpers.IgnoredFile file -> printfn "'%s' was ignored" file
-        | FakeHelpers.FormatResult.Error (_, ex) -> raise <| ex
+        | Format.FormatResult.Formatted (_, formattedContent) -> formattedContent |> writeResult
+        | Format.FormatResult.Unchanged file -> printfn "'%s' was unchanged" file
+        | Format.IgnoredFile file -> printfn "'%s' was ignored" file
+        | Format.FormatResult.Error (_, ex) -> raise <| ex
     }
     |> Async.RunSynchronously
 
 /// Format inFile and write to text writer
 let processSourceFile inFile (tw: TextWriter) =
     async {
-        let! formatted = FakeHelpers.formatFileAsync inFile
+        let! formatted = Format.formatFileAsync inFile
 
         match formatted with
-        | FakeHelpers.FormatResult.Formatted (_, formattedContent) -> tw.Write(formattedContent)
-        | FakeHelpers.FormatResult.Unchanged _ -> inFile |> File.ReadAllText |> tw.Write
-        | FakeHelpers.IgnoredFile file -> printfn "'%s' was ignored" file
-        | FakeHelpers.FormatResult.Error (_, ex) -> raise <| ex
+        | Format.FormatResult.Formatted (_, formattedContent) -> tw.Write(formattedContent)
+        | Format.FormatResult.Unchanged _ -> inFile |> File.ReadAllText |> tw.Write
+        | Format.IgnoredFile file -> printfn "'%s' was ignored" file
+        | Format.FormatResult.Error (_, ex) -> raise <| ex
     }
     |> Async.RunSynchronously
 
@@ -186,7 +184,7 @@ let readFromStdin (lineLimit: int) =
         else
             Some(input)
 
-let private reportCheckResults (output: TextWriter) (checkResult: FakeHelpers.CheckResult) =
+let private reportCheckResults (output: TextWriter) (checkResult: Format.CheckResult) =
     checkResult.Errors
     |> List.map (fun (filename, exn) -> sprintf "error: Failed to format %s: %s" filename (exn.ToString()))
     |> Seq.iter output.WriteLine
@@ -197,9 +195,9 @@ let private reportCheckResults (output: TextWriter) (checkResult: FakeHelpers.Ch
 
 let runCheckCommand (recurse: bool) (inputPath: InputPath) : int =
     let check files =
-        Async.RunSynchronously(FakeHelpers.checkCode files)
+        Async.RunSynchronously(Format.checkCode files)
 
-    let processCheckResult (checkResult: FakeHelpers.CheckResult) =
+    let processCheckResult (checkResult: Format.CheckResult) =
         if checkResult.IsValid then
             stdout.WriteLine "No changes required."
             0
@@ -437,7 +435,7 @@ let main argv =
         printfn "Fantomas v%s" version
     elif isDaemon then
         let daemon =
-            new FantomasDaemon((Console.OpenStandardOutput()), (Console.OpenStandardInput()))
+            new FantomasDaemon(Console.OpenStandardOutput(), Console.OpenStandardInput())
 
         AppDomain.CurrentDomain.ProcessExit.Add(fun _ -> (daemon :> IDisposable).Dispose())
 

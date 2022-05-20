@@ -1112,8 +1112,8 @@ let add a b = a + b
 *starting version 4.1*
 
 To exclude files from formatting, create a `.fantomasignore` file in the root of your project.
-`.fantomasignore` uses gitignore syntax (via [MAB.DotIgnore](https://github.com/markashleybell/MAB.DotIgnore)).
-Ignored files will be picked up when the [Fantomas cli tool](https://www.nuget.org/packages/fantomas/) or the FAKE helpers (in [Fantomas.Extras](https://www.nuget.org/packages/Fantomas.Extras/)) are used.
+`.fantomasignore` uses [gitignore](https://git-scm.com/docs/gitignore) syntax (processed via [Ignore](https://github.com/goelhardik/ignore)).
+Ignored files will be picked up when the [Fantomas cli tool](https://www.nuget.org/packages/fantomas/).
 Exclusion applies both to formatting and the format checking.
 
 ```

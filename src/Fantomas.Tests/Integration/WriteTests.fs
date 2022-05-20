@@ -1,4 +1,4 @@
-module Fantomas.Tests.WriteTests
+module Fantomas.Tests.Integration.WriteTests
 
 open NUnit.Framework
 open FsUnit

@@ -4,7 +4,7 @@ open System
 open System.Diagnostics
 open System.IO
 open System.Text
-open Fantomas.Extras
+open Fantomas
 
 type TemporaryFileCodeSample
     internal

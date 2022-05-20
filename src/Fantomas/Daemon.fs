@@ -12,8 +12,7 @@ open Fantomas.Client.Contracts
 open Fantomas.Client.LSPFantomasServiceTypes
 open Fantomas.Core
 open Fantomas.Core.FormatConfig
-open Fantomas.Extras.EditorConfig
-open Fantomas.Extras
+open Fantomas.EditorConfig
 
 type FantomasDaemon(sender: Stream, reader: Stream) as this =
     let rpc: JsonRpc = JsonRpc.Attach(sender, reader, this)
@@ -45,7 +44,10 @@ type FantomasDaemon(sender: Stream, reader: Stream) as this =
     [<JsonRpcMethod(Methods.FormatDocument, UseSingleObjectParameterDeserialization = true)>]
     member _.FormatDocumentAsync(request: FormatDocumentRequest) : Task<FormatDocumentResponse> =
         async {
-            if IgnoreFile.isIgnoredFile (IgnoreFile.find fs IgnoreFile.loadIgnoreList request.FilePath) request.FilePath then
+            if
+                IgnoreFile.isIgnoredFile
+                    (IgnoreFile.find fs (IgnoreFile.loadIgnoreList fs) request.FilePath)
+                    request.FilePath then
                 return FormatDocumentResponse.IgnoredFile request.FilePath
             else
                 let config =

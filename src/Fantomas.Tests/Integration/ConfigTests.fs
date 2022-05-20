@@ -1,4 +1,4 @@
-module Fantomas.Tests.ConfigTests
+module Fantomas.Tests.Integration.ConfigTests
 
 open Fantomas.Core
 open NUnit.Framework

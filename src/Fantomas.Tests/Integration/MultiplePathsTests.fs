@@ -1,4 +1,4 @@
-module Fantomas.Tests.MultiplePathsTests
+module Fantomas.Tests.Integration.MultiplePathsTests
 
 open NUnit.Framework
 open FsUnit

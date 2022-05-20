@@ -1,4 +1,4 @@
-module Fantomas.Tests.IgnoreFilesTests
+module Fantomas.Tests.Integration.IgnoreFilesTests
 
 open System.IO
 open NUnit.Framework
@@ -53,7 +53,7 @@ let ``ignore specific file in subfolder`` () =
 
     use ignoreFixture = new FantomasIgnoreFile(sprintf "%s/%s/A.fs" sub1 sub2)
 
-    let { ExitCode = exitCode; Output = output } =
+    let { ExitCode = exitCode } =
         runFantomasTool (sprintf "--recurse --check .%c%s" Path.DirectorySeparatorChar sub1)
 
     exitCode |> should equal 0
