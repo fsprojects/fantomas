@@ -1994,3 +1994,42 @@ let escapeEarth myVelocity mySpeed =
     else
         "Come back"
 """
+
+[<Test>]
+let ``long value with constraints, 2267`` () =
+    formatSourceString
+        false
+        """
+let inline NonStructural<'TInput when 'TInput: (static member (<): 'TInput * 'TInput -> bool) and 'TInput: (static member (>): 'TInput * 'TInput -> bool)> : IComparer<'TInput> = ()
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let inline NonStructural<'TInput
+    when 'TInput: (static member (<): 'TInput * 'TInput -> bool)
+    and 'TInput: (static member (>): 'TInput * 'TInput -> bool)> : IComparer<'TInput> =
+    ()
+"""
+
+[<Test>]
+let ``long function with constraints, 2267`` () =
+    formatSourceString
+        false
+        """
+let inline NonStructural<'TInput when 'TInput: (static member (<): 'TInput * 'TInput -> bool) and 'TInput: (static member (>): 'TInput * 'TInput -> bool)>  (a:'TInput) (b:'TInput) : IComparer<'TInput> = ()
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let inline NonStructural<'TInput
+    when 'TInput: (static member (<): 'TInput * 'TInput -> bool)
+    and 'TInput: (static member (>): 'TInput * 'TInput -> bool)>
+    (a: 'TInput)
+    (b: 'TInput)
+    : IComparer<'TInput> =
+    ()
+"""
