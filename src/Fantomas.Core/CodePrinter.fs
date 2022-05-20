@@ -613,9 +613,21 @@ and genTypeSupportMemberList astContext tps =
 
 and genTypeAndParam astContext (typeName: Context -> Context) (tds: SynTyparDecls option) tcs =
     let types openSep tds tcs closeSep =
+        let genConstraints =
+            match tcs with
+            | [] -> sepNone
+            | _ ->
+                let short =
+                    colPre (sepSpace +> !- "when ") wordAnd tcs (genTypeConstraint astContext)
+
+                let long =
+                    colPre (!- "when ") (sepNln +> wordAndFixed +> sepSpace) tcs (genTypeConstraint astContext)
+
+                autoIndentAndNlnIfExpressionExceedsPageWidth (expressionFitsOnRestOfLine short long)
+
         (!-openSep
          +> coli sepComma tds (fun i -> genTyparDecl { astContext with IsFirstTypeParam = i = 0 })
-         +> colPre (!- " when ") wordAnd tcs (genTypeConstraint astContext)
+         +> genConstraints
          -- closeSep)
 
     match tds with
