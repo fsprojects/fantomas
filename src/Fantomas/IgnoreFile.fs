@@ -1,4 +1,4 @@
-namespace Fantomas.Extras
+namespace Fantomas
 
 open System.IO.Abstractions
 open MAB.DotIgnore

@@ -8,10 +8,6 @@
   </PropertyGroup>
   <ItemGroup>
     <None Include="paket.references" />
-    <Compile Include="AssemblyInfo.fs" />
-    <Compile Include="EditorConfig.fs" />
-    <Compile Include="IgnoreFile.fs" />
-    <Compile Include="FakeHelpers.fs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Fantomas.Core\Fantomas.Core.fsproj" />

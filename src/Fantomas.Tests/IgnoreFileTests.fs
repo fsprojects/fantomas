@@ -3,7 +3,7 @@ module Fantomas.Core.Tests.IgnoreFileTests
 open System.Collections.Generic
 open NUnit.Framework
 open FsUnitTyped
-open Fantomas.Extras
+open Fantomas
 open System.IO.Abstractions
 open System.IO.Abstractions.TestingHelpers
 

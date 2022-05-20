@@ -1,13 +1,13 @@
-module Fantomas.Core.Tests.FormatConfigEditorConfigurationFileTests
+module Fantomas.Tests.EditorConfigurationTests
 
 open System
 open Fantomas.Core
 open Fantomas.Core.FormatConfig
-open Fantomas.Extras
-open Fantomas.Core.Tests.TestHelper
+open Fantomas
 open NUnit.Framework
 open System.IO
 
+let private (==) actual expected = Assert.AreEqual(expected, actual)
 let private defaultConfig = FormatConfig.Default
 let tempName () = Guid.NewGuid().ToString("N")
 
@@ -49,7 +49,7 @@ type ConfigurationFile
                 | Some true -> "root=true"
                 | _ -> String.empty
 
-            sprintf "%s\n\n%s\n%s" root header (EditorConfig.configToEditorConfig config)
+            $"%s{root}\n\n%s{header}\n%s{EditorConfig.configToEditorConfig config}"
 
     do File.WriteAllText(editorConfigPath, content)
 

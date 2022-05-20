@@ -1,4 +1,4 @@
-module Fantomas.Tests.ExitCodeTests
+module Fantomas.Tests.Integration.ExitCodeTests
 
 open NUnit.Framework
 open FsUnit

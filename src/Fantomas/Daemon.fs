@@ -12,8 +12,7 @@ open Fantomas.Client.Contracts
 open Fantomas.Client.LSPFantomasServiceTypes
 open Fantomas.Core
 open Fantomas.Core.FormatConfig
-open Fantomas.Extras.EditorConfig
-open Fantomas.Extras
+open Fantomas.EditorConfig
 
 type FantomasDaemon(sender: Stream, reader: Stream) as this =
     let rpc: JsonRpc = JsonRpc.Attach(sender, reader, this)

@@ -1,4 +1,4 @@
-module Fantomas.Tests.ByteOrderMarkTests
+module Fantomas.Tests.Integration.ByteOrderMarkTests
 
 open System.IO
 open NUnit.Framework

@@ -1,4 +1,4 @@
-module Fantomas.Tests.DaemonTests
+module Fantomas.Tests.Integration.DaemonTests
 
 open System
 open Fantomas.Client.LSPFantomasServiceTypes
@@ -49,7 +49,7 @@ let ``config request`` () =
                 |> Async.AwaitTask
 
             FormatConfig.FormatConfig.Default
-            |> Fantomas.Extras.EditorConfig.configToEditorConfig
+            |> Fantomas.EditorConfig.configToEditorConfig
             |> fun s -> s.Split('\n')
             |> Seq.map (fun line -> line.Split('=').[0])
             |> Seq.iter (fun setting -> Assert.True(config.Contains(setting)))

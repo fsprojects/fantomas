@@ -1,4 +1,4 @@
-module Fantomas.Tests.IgnoreFilesTests
+module Fantomas.Tests.Integration.IgnoreFilesTests
 
 open System.IO
 open NUnit.Framework

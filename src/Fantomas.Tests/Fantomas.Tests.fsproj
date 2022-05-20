@@ -17,13 +17,16 @@
     <None Include="paket.references" />
     <Compile Include="TestHelpers.fs" />
     <Compile Include="CheckTests.fs" />
-    <Compile Include="ByteOrderMarkTests.fs" />
-    <Compile Include="ConfigTests.fs" />
-    <Compile Include="IgnoreFilesTests.fs" />
-    <Compile Include="ExitCodeTests.fs" />
-    <Compile Include="MultiplePathsTests.fs" />
-    <Compile Include="WriteTests.fs" />
-    <Compile Include="DaemonTests.fs" />
+    <Compile Include="IgnoreFileTests.fs" />
+    <Compile Include="EditorConfigurationTests.fs" />
+    <Compile Include="Integration\CheckTests.fs" />
+    <Compile Include="Integration\ByteOrderMarkTests.fs" />
+    <Compile Include="Integration\ConfigTests.fs" />
+    <Compile Include="Integration\IgnoreFilesTests.fs" />
+    <Compile Include="Integration\ExitCodeTests.fs" />
+    <Compile Include="Integration\MultiplePathsTests.fs" />
+    <Compile Include="Integration\WriteTests.fs" />
+    <Compile Include="Integration\DaemonTests.fs" />
   </ItemGroup>
   <Import Project="..\..\.paket\Paket.Restore.targets" />
 </Project>

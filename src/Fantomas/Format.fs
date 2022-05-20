@@ -1,10 +1,9 @@
-module Fantomas.Extras.FakeHelpers
+module Fantomas.Format
 
 open System
 open System.IO
 open Fantomas.Core
 open Fantomas.Core.FormatConfig
-open Fantomas.Extras
 
 exception CodeFormatException of (string * Option<Exception>) array with
     override x.ToString() =

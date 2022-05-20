@@ -1,4 +1,4 @@
-module Fantomas.Extras.EditorConfig
+module Fantomas.EditorConfig
 
 open System.Collections.Generic
 open System.ComponentModel
@@ -63,7 +63,7 @@ let private getFantomasFields (fallbackConfig: FormatConfig) =
 
         (editorConfigName, defaultValue))
 
-let private (|Number|_|) d =
+let private (|Number|_|) (d: string) =
     match System.Int32.TryParse(d) with
     | true, d -> Some(box d)
     | _ -> None
@@ -102,7 +102,7 @@ let configToEditorConfig (config: FormatConfig) : string =
             sprintf "%s=%s" (toEditorConfigName recordField.PropertyName) (if b then "true " else "false")
             |> Some
         | :? System.Int32 as i ->
-            sprintf "%s=%d" (toEditorConfigName recordField.PropertyName) i
+            $"%s{toEditorConfigName recordField.PropertyName}=%d{i}"
             |> Some
         | :? MultilineFormatterType as mft ->
             sprintf "%s=%s" (toEditorConfigName recordField.PropertyName) (MultilineFormatterType.ToConfigString mft)

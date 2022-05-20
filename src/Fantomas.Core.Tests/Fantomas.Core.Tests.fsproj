@@ -51,9 +51,6 @@
     <Compile Include="TupleTests.fs" />
     <Compile Include="LambdaTests.fs" />
     <Compile Include="IfThenElseTests.fs" />
-    <Compile Include="FormatConfigEditorConfigurationFileTests.fs" />
-    <Compile Include="FSharpScriptTests.fs" />
-    <Compile Include="CheckTests.fs" />
     <Compile Include="ContextTests.fs" />
     <Compile Include="SpaceBeforeSemicolonTests.fs" />
     <Compile Include="SpaceBeforeParameterTests.fs" />
@@ -89,7 +86,6 @@
     <Compile Include="InsertFinalNewlineTests.fs" />
     <Compile Include="SingleExprTests.fs" />
     <Compile Include="KeepMaxEmptyLinesTests.fs" />
-    <Compile Include="IgnoreFileTests.fs" />
     <Compile Include="Stroustrup\SynBindingValueExpressionTests.fs" />
     <Compile Include="Stroustrup\SynBindingFunctionExpressionTests.fs" />
     <Compile Include="Stroustrup\SynBindingFunctionLongPatternExpressionTests.fs" />
