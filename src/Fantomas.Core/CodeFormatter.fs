@@ -23,6 +23,10 @@ type CodeFormatter =
         CodeFormatterImpl.getSourceText source
         |> CodeFormatterImpl.formatDocument config isSignature
 
+    static member FormatSelectionAsync(isSignature, source, selection, config) =
+        CodeFormatterImpl.getSourceText source
+        |> Selection.formatSelection config isSignature selection
+
     static member IsValidFSharpCodeAsync(isSignature: bool, source: string) =
         Validation.isValidFSharpCode isSignature source
 

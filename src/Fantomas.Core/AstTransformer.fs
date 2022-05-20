@@ -8,6 +8,13 @@ open Fantomas.Core.RangePatterns
 open Fantomas.Core
 
 let mkNode (t: FsAstType) (r: range) = TriviaNodeAssigner(t, r)
+
+let mkSynModuleDeclNode (t: FsAstType) (astNode: SynModuleDecl) (r: range) =
+    TriviaNodeAssigner(t, r, Choice1Of2 astNode)
+
+let mkSynExprNode (t: FsAstType) (astNode: SynExpr) (r: range) =
+    TriviaNodeAssigner(t, r, Choice2Of2 astNode)
+
 let mkNodeOption (t: FsAstType) (r: range option) : TriviaNodeAssigner list = Option.toList r |> List.map (mkNode t)
 
 // We only need the let/type keyword anchor if there are xml docs or attributes present that have space between itself and the let/type keyword
@@ -65,7 +72,7 @@ let rec visitSynModuleOrNamespace (modOrNs: SynModuleOrNamespace) : TriviaNodeAs
         [ yield! moduleOrNamespace
           yield! longIdentNodes
           yield! (visitSynAttributeLists attrs)
-          yield! (decls |> List.collect visitSynModuleDecl) ]
+          yield! (List.collect visitSynModuleDecl decls) ]
 
 and visitSynModuleDecl (ast: SynModuleDecl) : TriviaNodeAssigner list =
     let rec visit
@@ -74,7 +81,7 @@ and visitSynModuleDecl (ast: SynModuleDecl) : TriviaNodeAssigner list =
         : TriviaNodeAssigner list =
         match ast with
         | SynModuleDecl.ModuleAbbrev (_, _, range) ->
-            [ mkNode SynModuleDecl_ModuleAbbrev range ]
+            [ mkSynModuleDeclNode SynModuleDecl_ModuleAbbrev ast range ]
             |> finalContinuation
         | SynModuleDecl.NestedModule (SynComponentInfo (xmlDoc = preXmlDoc; attributes = attrs) as sci,
                                       _,
@@ -93,7 +100,7 @@ and visitSynModuleDecl (ast: SynModuleDecl) : TriviaNodeAssigner list =
                     trivia.ModuleKeyword
 
             let finalContinuation (nodes: TriviaNodeAssigner list list) : TriviaNodeAssigner list =
-                [ mkNode SynModuleDecl_NestedModule range
+                [ mkSynModuleDeclNode SynModuleDecl_NestedModule ast range
                   yield! moduleNode
                   yield! visitSynComponentInfo sci
                   yield! mkNodeOption SynModuleDecl_NestedModule_Equals trivia.EqualsRange
@@ -102,38 +109,38 @@ and visitSynModuleDecl (ast: SynModuleDecl) : TriviaNodeAssigner list =
 
             Continuation.sequence continuations finalContinuation
         | SynModuleDecl.Let (_, bindings, range) ->
-            mkNode SynModuleDecl_Let range
+            mkSynModuleDeclNode SynModuleDecl_Let ast range
             :: (bindings |> List.collect visitSynBinding)
             |> finalContinuation
         | SynModuleDecl.Expr (expr, range) ->
-            mkNode SynModuleDecl_Expr range
+            mkSynModuleDeclNode SynModuleDecl_Expr ast range
             :: visitSynExpr expr
             |> finalContinuation
         | SynModuleDecl.Types (typeDefs, range) ->
-            mkNode SynModuleDecl_Types range
+            mkSynModuleDeclNode SynModuleDecl_Types ast range
             :: (typeDefs |> List.collect visitSynTypeDefn)
             |> finalContinuation
         | SynModuleDecl.Exception (exceptionDef, range) ->
-            mkNode SynModuleDecl_Exception range
+            mkSynModuleDeclNode SynModuleDecl_Exception ast range
             :: (visitSynExceptionDefn exceptionDef)
             |> finalContinuation
         | SynModuleDecl.Open (target, parentRange) ->
             // we use the parent ranges here to match up with the trivia parsed
             match target with
             | SynOpenDeclTarget.ModuleOrNamespace (_, _range) ->
-                mkNode SynModuleDecl_Open parentRange
+                mkSynModuleDeclNode SynModuleDecl_Open ast parentRange
                 |> List.singleton
                 |> finalContinuation
             | SynOpenDeclTarget.Type (synType, _range) ->
-                mkNode SynModuleDecl_OpenType parentRange
+                mkSynModuleDeclNode SynModuleDecl_OpenType ast parentRange
                 :: (visitSynType synType)
                 |> finalContinuation
         | SynModuleDecl.Attributes (attrs, range) ->
-            mkNode SynModuleDecl_Attributes range
+            mkSynModuleDeclNode SynModuleDecl_Attributes ast range
             :: (visitSynAttributeLists attrs)
             |> finalContinuation
         | SynModuleDecl.HashDirective (hash, range) ->
-            [ mkNode SynModuleDecl_HashDirective range
+            [ mkSynModuleDeclNode SynModuleDecl_HashDirective ast range
               visitParsedHashDirective hash ]
             |> finalContinuation
         | SynModuleDecl.NamespaceFragment moduleOrNamespace ->
@@ -294,7 +301,7 @@ and visitSynExpr (synExpr: SynExpr) : TriviaNodeAssigner list =
                 [ visit e1; visit e2 ]
 
             let finalContinuation (nodes: TriviaNodeAssigner list list) : TriviaNodeAssigner list =
-                [ yield mkNode SynExpr_App range
+                [ yield mkSynExprNode SynExpr_App synExpr range
                   yield! visitSynLongIdent sli
                   yield! List.collect id nodes ]
                 |> finalContinuation
@@ -305,7 +312,7 @@ and visitSynExpr (synExpr: SynExpr) : TriviaNodeAssigner list =
                 [ visit funcExpr; visit argExpr ]
 
             let finalContinuation (nodes: TriviaNodeAssigner list list) : TriviaNodeAssigner list =
-                mkNode SynExpr_App range
+                mkSynExprNode SynExpr_App synExpr range
                 :: (List.collect id nodes)
                 |> finalContinuation
 
@@ -332,7 +339,7 @@ and visitSynExpr (synExpr: SynExpr) : TriviaNodeAssigner list =
                            { TryKeyword = tryKeyword
                              WithKeyword = withKeyword }) ->
             visit tryExpr (fun nodes ->
-                [ yield mkNode SynExpr_TryWith range
+                [ yield mkSynExprNode SynExpr_TryWith synExpr range
                   yield mkNode SynExpr_TryWith_Try tryKeyword
                   yield! nodes
                   yield mkNode SynExpr_TryWith_With withKeyword

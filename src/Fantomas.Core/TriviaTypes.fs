@@ -1,5 +1,6 @@
 module internal Fantomas.Core.TriviaTypes
 
+open FSharp.Compiler.Syntax
 open FSharp.Compiler.Text
 
 type DefineCombination = string list
@@ -387,9 +388,13 @@ type TriviaNode =
       ContentAfter: TriviaContent list
       Range: Range }
 
-type TriviaNodeAssigner(nodeType: FsAstType, range: Range) =
+type FSharpASTNode = Choice<SynModuleDecl, SynExpr>
+
+type TriviaNodeAssigner(nodeType: FsAstType, range: Range, ?astNode: FSharpASTNode) =
     member this.Type = nodeType
     member this.Range = range
+    member this.HasFSharpASTNode = Option.isSome astNode
+    member this.FSharpASTNode = astNode
     member val ContentBefore = ResizeArray<TriviaContent>() with get, set
     member val ContentItself = Option<TriviaContent>.None with get, set
     member val ContentAfter = ResizeArray<TriviaContent>() with get, set

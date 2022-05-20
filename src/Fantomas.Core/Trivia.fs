@@ -294,9 +294,9 @@ let internal collectTriviaFromBlankLines
                     count, None)
 
 (*
-    1. Collect TriviaNode from tokens and AST
-    2. Collect TriviaContent from tokens
-    3. Merge trivias with triviaNodes
+    1. Collect TriviaNodes from AST
+    2. Extract trivia from directives, comments and blank lines
+    3. Merge trivia with triviaNodes
     4. genTrivia should use ranges to identify what extra content should be added from what triviaNode
 *)
 let collectTrivia (config: FormatConfig) (source: ISourceText) (ast: ParsedInput) : TriviaNode list =
@@ -317,10 +317,8 @@ let collectTrivia (config: FormatConfig) (source: ISourceText) (ast: ParsedInput
           yield! collectTriviaFromBlankLines config source triviaNodes codeComments ]
         |> List.sortBy (fun n -> n.Range.Start.Line, n.Range.Start.Column)
 
+    // TODO: do we still need this?
     let startOfSourceCode = 1
-    //        match tokens with
-    //        | h :: _ -> h.LineNumber // Keep track of comments or hash defines before the first AST node
-    //        | _ -> 1
 
     match trivia with
     | [] -> []

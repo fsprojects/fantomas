@@ -62,26 +62,6 @@ let formatSourceStringWithDefines defines (s: string) config =
     |> String.concat config.EndOfLine.NewLineString
     |> String.normalizeNewLine
 
-let formatSelectionOnly isFsiFile r (s: string) config = failwith "no longer supported"
-//    let s = s.Replace("\r\n", Environment.NewLine)
-//
-//    let fileName =
-//        if isFsiFile then
-//            "/tmp.fsi"
-//        else
-//            "/tmp.fsx"
-//
-//    CodeFormatter.FormatSelectionAsync(
-//        fileName,
-//        r,
-//        SourceOrigin.SourceString s,
-//        config,
-//        CodeFormatterImpl.createParsingOptionsFromFile fileName,
-//        sharedChecker.Value
-//    )
-//    |> Async.RunSynchronously
-//    |> fun s -> s.Replace("\r\n", "\n")
-
 let isValidFSharpCode isFsiFile s =
     CodeFormatter.IsValidFSharpCodeAsync(isFsiFile, s)
     |> Async.RunSynchronously
