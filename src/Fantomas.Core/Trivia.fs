@@ -10,8 +10,6 @@ open Fantomas.Core.AstTransformer
 open Fantomas.Core.TriviaTypes
 open Fantomas.Core.FormatConfig
 
-let inline isMainNodeFor nodeType (node: TriviaNodeAssigner) = nodeType = node.Type
-
 let private findFirstNodeAfterLine (nodes: TriviaNodeAssigner list) (lineNumber: int) : TriviaNodeAssigner option =
     nodes
     |> List.tryFind (fun tn -> tn.Range.StartLine > lineNumber)
@@ -24,8 +22,8 @@ let private findLastNodeOnLine (nodes: TriviaNodeAssigner list) lineNumber : Tri
         match candidates with
         | app :: ident :: _ when
             (app.Range.End = ident.Range.End
-             && isMainNodeFor SynExpr_App app
-             && isMainNodeFor SynExpr_Ident ident)
+             && app.Type = SynExpr_App
+             && ident.Type = SynExpr_Ident)
             ->
             Some ident
         | h :: _ -> Some h
@@ -62,36 +60,6 @@ let private findNodeAfterLineAndColumn (nodes: TriviaNodeAssigner list) line col
         || (range.StartLine = line
             && range.StartColumn > column))
 
-let private findConstNumberNodeOnLineAndColumn (nodes: TriviaNodeAssigner list) (constantRange: Range) =
-    nodes
-    |> List.tryFind (fun tn ->
-        match tn.Type with
-        | SynConst_Byte
-        | SynConst_SByte
-        | SynConst_Int16
-        | SynConst_Int32
-        | SynConst_Int64
-        | SynConst_UInt16
-        | SynConst_UInt16s
-        | SynConst_UInt32
-        | SynConst_UInt64
-        | SynConst_Double
-        | SynConst_Single
-        | SynConst_Decimal
-        | SynConst_IntPtr
-        | SynConst_UIntPtr
-        | SynConst_UserNum ->
-            constantRange.StartLine = tn.Range.StartLine
-            && constantRange.StartColumn = tn.Range.StartColumn
-        | _ -> false)
-
-let private findSynConstStringNodeAfter (nodes: TriviaNodeAssigner list) (range: Range) =
-    nodes
-    |> List.tryFind (fun tn ->
-        match tn.Type, range.StartLine = tn.Range.StartLine, range.StartColumn + 1 = tn.Range.StartColumn with
-        | SynConst_String, true, true -> true
-        | _ -> false)
-
 let private commentIsAfterLastTriviaNode (triviaNodes: TriviaNodeAssigner list) (range: Range) =
     let hasNoNodesAfterRange =
         triviaNodes
@@ -113,28 +81,7 @@ let private updateTriviaNode (lens: TriviaNodeAssigner -> unit) (triviaNodes: Tr
         lens triviaNodes.[index]
 
         triviaNodes
-    //        |> List.mapi (fun idx tn -> if idx = index then lens tn else tn)
     | None -> triviaNodes
-
-let private findNamedPatThatStartsWith (triviaNodes: TriviaNodeAssigner list) column line =
-    triviaNodes
-    |> List.tryFind (fun t ->
-        match t.Type with
-        | SynPat_Named
-        | SynPat_LongIdent
-        | SynExpr_Ident ->
-            t.Range.StartColumn = column
-            && t.Range.StartLine = line
-        | _ -> false)
-
-let private findParsedHashOnLineAndEndswith (triviaNodes: TriviaNodeAssigner list) startLine endColumn =
-    triviaNodes
-    |> List.tryFind (fun t ->
-        match t.Type with
-        | ParsedHashDirective_ ->
-            t.Range.StartLine = startLine
-            && t.Range.EndColumn >= endColumn
-        | _ -> false)
 
 let private addAllTriviaAsContentAfter (trivia: Trivia list) (singleNode: TriviaNodeAssigner) =
     let contentAfter =
