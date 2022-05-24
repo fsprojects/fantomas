@@ -9,6 +9,8 @@
 ### Changed
 * Formatting of multi-constrained SRTP functions needs improvement. [#2230](https://github.com/fsprojects/fantomas/issues/2230)
 * Try/With with a single clause. [#1881](https://github.com/fsprojects/fantomas/issues/1881)
+* Long type argument with constraints is not respecting max_line_length. [#2266](https://github.com/fsprojects/fantomas/issues/2266)
+* Long function argument with constraints is not respecting max_line_length. [#2267](https://github.com/fsprojects/fantomas/issues/2267)
 
 ### Removed
 
