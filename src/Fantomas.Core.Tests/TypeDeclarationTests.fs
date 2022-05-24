@@ -1659,7 +1659,8 @@ type SomeType =
 let ``access modifier before long constructor`` () =
     formatSourceString
         false
-        """type INotifications<'a,'b,'c,'d,'e> =
+        """
+type INotifications<'a,'b,'c,'d,'e> =
     class
     end
 type DeviceNotificationHandler<'Notification, 'CallbackId, 'RegisterInputData, 'RegisterOutputData, 'UnregisterOutputData> private (client: INotifications<'Notification, 'CallbackId, 'RegisterInputData, 'RegisterOutputData, 'UnregisterOutputData>, callbackId: 'CallbackId, validateUnregisterOutputData: 'UnregisterOutputData -> unit) =
@@ -3081,4 +3082,44 @@ type MethInfo =
 #else
     member ProvidedStaticParameterInfo: (Tainted<ProvidedMethodBase> * Tainted<ProvidedParameterInfo>[]) option
 #endif
+"""
+
+[<Test>]
+let ``long type argument with constraints, 2266`` () =
+    formatSourceString
+        false
+        """
+type Event<'Delegate, 'Args when 'Delegate: delegate<'Args, unit> and 'Delegate :> System.Delegate and 'Delegate: not struct> () =
+                        class end
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type Event<'Delegate, 'Args
+    when 'Delegate: delegate<'Args, unit> and 'Delegate :> System.Delegate and 'Delegate: not struct>() =
+    class
+    end
+"""
+
+[<Test>]
+let ``long type argument with constraints, short max_line_length`` () =
+    formatSourceString
+        false
+        """
+type Event<'Delegate, 'Args when 'Delegate: delegate<'Args, unit> and 'Delegate :> System.Delegate and 'Delegate: not struct> () =
+                        class end
+"""
+        { config with MaxLineLength = 80 }
+    |> prepend newline
+    |> should
+        equal
+        """
+type Event<'Delegate, 'Args
+    when 'Delegate: delegate<'Args, unit>
+    and 'Delegate :> System.Delegate
+    and 'Delegate: not struct>() =
+    class
+    end
 """
