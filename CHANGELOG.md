@@ -3,6 +3,7 @@
 ## [Unreleased]
 
 ### Fixed
+* Superfluous space between negate and RationalConst. [#2265](https://github.com/fsprojects/fantomas/issues/2265)
 * Idempotency problem with ParsedHashDirective in signature file. [#2258](https://github.com/fsprojects/fantomas/issues/2258)
 * Keyword 'override' gets changed to 'member'. [#2221](https://github.com/fsprojects/fantomas/issues/2221)
 
