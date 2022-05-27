@@ -150,6 +150,21 @@ module Runner =
 """
 
 [<Test>]
+let ``formats negate of RationalConst without leading space in front of the const, 2265`` () =
+    formatSourceString
+        false
+        """
+type becquerel = second^-1
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type becquerel = second^-1
+"""
+
+[<Test>]
 let ``array literals of BigInteger, 682`` () =
     formatSourceString false "let input = [| 1I;0I;-1I |]" config
     |> should
