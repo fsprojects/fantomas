@@ -6,6 +6,7 @@
 * Superfluous space between negate and RationalConst. [#2265](https://github.com/fsprojects/fantomas/issues/2265)
 * Idempotency problem with ParsedHashDirective in signature file. [#2258](https://github.com/fsprojects/fantomas/issues/2258)
 * Keyword 'override' gets changed to 'member'. [#2221](https://github.com/fsprojects/fantomas/issues/2221)
+* Spaces around binary operators in units of measure. [#2207](https://github.com/fsprojects/fantomas/issues/2207)
 
 ### Changed
 * Formatting of multi-constrained SRTP functions needs improvement. [#2230](https://github.com/fsprojects/fantomas/issues/2230)
