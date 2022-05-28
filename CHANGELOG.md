@@ -1,6 +1,6 @@
 # Changelog
 
-## [Unreleased]
+## [5.0.0-alpha-008] - 2022-05-28
 
 ### Fixed
 * Superfluous space between negate and RationalConst. [#2265](https://github.com/fsprojects/fantomas/issues/2265)
