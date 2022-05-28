@@ -107,6 +107,27 @@ functionApplication
     argumentTwo
     argumentThree"""
 
+[<Test>]
+let ``only format trivia inside the selection`` () =
+    formatSelectionOnly
+        false
+        (mkSelection (5, 0) (6, 20))
+        """
+
+
+
+
+let a =  9
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+
+let a = 9
+"""
+
 // 10	25	10	82
 //[<Test>]
 //let ``should format a part of a line correctly`` () =

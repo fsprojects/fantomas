@@ -235,6 +235,11 @@ let internal collectTriviaFromCodeComments (source: ISourceText) (codeComments: 
 
             { Item = item; Range = r })
 
+// TODO: optimize the range of which newlines are allowed in
+// for a selection, the newlines should be found inside the selection
+// for a file, the newlines should be start from the first node till the end of the file.
+// Or maybe event the last node? Is preserving trailing newlines relevant?
+
 let internal collectTriviaFromBlankLines
     (config: FormatConfig)
     (source: ISourceText)

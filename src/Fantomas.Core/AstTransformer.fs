@@ -7,6 +7,9 @@ open Fantomas.Core.TriviaTypes
 open Fantomas.Core.RangePatterns
 open Fantomas.Core
 
+let sortChildren =
+    Array.sortBy (fun ({ Range = range }: TriviaNodeAssigner) -> range.StartLine, range.StartColumn)
+
 let mkNode (t: FsAstType) (r: range) = TriviaNodeAssigner(t, r)
 
 let mkSynModuleDeclNode (t: FsAstType) (astNode: SynModuleDecl) (r: range) =
@@ -48,7 +51,8 @@ let mkNodeForRangeAfterXmlAndAttributes
             else
                 []
 
-let rec visitSynModuleOrNamespace (modOrNs: SynModuleOrNamespace) : TriviaNodeAssigner list =
+// TODO: introduce a couple of more parent nodes in trivia types
+let rec visitSynModuleOrNamespace (modOrNs: SynModuleOrNamespace) : TriviaNodeAssigner =
     match modOrNs with
     | SynModuleOrNamespace (longIdent, _, kind, decls, _, attrs, _, range, trivia) ->
         let moduleOrNamespace =
@@ -785,13 +789,12 @@ and visitSynTypeDefn (td: SynTypeDefn) =
     | SynTypeDefn (SynComponentInfo (xmlDoc = preXmlDoc; attributes = attrs) as sci,
                    stdr,
                    members,
-                   implicitConstructor,
+                   _implicitConstructor,
                    range,
                    trivia) ->
         let typeKeyword =
             mkNodeForRangeAfterXmlAndAttributes SynTypeDefn_Type preXmlDoc attrs trivia.TypeKeyword
 
-        // TODO process implicitConstructor ??
         [ yield mkNode SynTypeDefn_ range
           yield! typeKeyword
           yield! mkNodeOption SynTypeDefn_Equals trivia.EqualsRange
@@ -1553,9 +1556,17 @@ and visitIdent (ident: Ident) : TriviaNodeAssigner = mkNode Ident_ ident.idRange
 
 and visitSynIdent (si: SynIdent) = mkNode SynIdent_ si.FullRange
 
-let astToNode (hds: ParsedHashDirective list) (mdls: SynModuleOrNamespace list) : TriviaNodeAssigner list =
-    [ yield! List.collect visitSynModuleOrNamespace mdls
-      yield! List.map visitParsedHashDirective hds ]
+let astToNode (range: range) (hds: ParsedHashDirective list) (mdls: SynModuleOrNamespace list) : TriviaNodeAssigner =
+    { Range = range
+      Type = ParsedInput_
+      Children =
+        Helpers.sortChildren
+            [| yield! List.map Ast.visitSynModuleOrNamespace mdls
+               yield! List.map Ast.visitParsedHashDirective hds |]
+      FSharpASTNode = None }
+//
+// [ yield! List.collect Ast.visitSynModuleOrNamespace mdls
+//   yield! List.map Ast.visitParsedHashDirective hds ]
 
 let sigAstToNode (ast: SynModuleOrNamespaceSig list) : TriviaNodeAssigner list =
     List.collect visitSynModuleOrNamespaceSig ast

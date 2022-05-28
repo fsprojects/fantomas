@@ -35,3 +35,10 @@ type SynExprRecordField with
         match this with
         | SynExprRecordField ((fieldName, _), Some equalsRange, _, _) -> unionRanges fieldName.FullRange equalsRange
         | SynExprRecordField ((fieldName, _), None, _, _) -> fieldName.FullRange
+
+// TODO: construct actual range of  file, from first to last content
+type ParsedInput with
+    member this.FullRange: range =
+        match this with
+        | ParsedInput.ImplFile (ParsedImplFileInput _)
+        | ParsedInput.SigFile (ParsedSigFileInput _) -> Range.Zero

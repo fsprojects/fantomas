@@ -35,6 +35,8 @@ type Trivia =
 type TriviaIndex = TriviaIndex of int * int
 
 type FsAstType =
+    /// Root node of the syntax tree
+    | ParsedInput_
     | Ident_
     | SynIdent_
     | LongIdent_
@@ -390,7 +392,7 @@ type TriviaNode =
 
 type FSharpASTNode = Choice<SynModuleDecl, SynExpr>
 
-type TriviaNodeAssigner(nodeType: FsAstType, range: Range, ?astNode: FSharpASTNode) =
+type TriviaNodeAssignerOld(nodeType: FsAstType, range: Range, ?astNode: FSharpASTNode) =
     member this.Type = nodeType
     member this.Range = range
     member this.HasFSharpASTNode = Option.isSome astNode
@@ -398,3 +400,16 @@ type TriviaNodeAssigner(nodeType: FsAstType, range: Range, ?astNode: FSharpASTNo
     member val ContentBefore = ResizeArray<TriviaContent>() with get, set
     member val ContentItself = Option<TriviaContent>.None with get, set
     member val ContentAfter = ResizeArray<TriviaContent>() with get, set
+
+type TriviaNodeAssigner =
+    { Range: range
+      Type: FsAstType
+      Children: TriviaNodeAssigner array
+      FSharpASTNode: FSharpASTNode option }
+
+type TriviaAssignmentInstruction =
+    | AddBefore of trivia: Trivia * ``type``: FsAstType * range: range
+    | AddAfter of trivia: Trivia * ``type``: FsAstType * range: range
+    
+// TODO: consider adding two Maps in the context to store before and after trivia
+// Each map has key of type:FsAstType * startPos:int * startLine:int
