@@ -1,5 +1,10 @@
 # Changelog
 
+## [Unreleased]
+
+### Fixed
+* Explicit interface with SpaceBeforeClassConstructor. [#2226](https://github.com/fsprojects/fantomas/issues/2226)
+
 ## [5.0.0-alpha-008] - 2022-05-28
 
 ### Fixed

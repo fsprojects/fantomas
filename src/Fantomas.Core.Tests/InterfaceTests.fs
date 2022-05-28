@@ -591,3 +591,38 @@ and Bar =
         [<SomeAttribute>]
         member this.SomeFunctionWithReturnType(a: int) : int = a + 5
 """
+
+[<Test>]
+let ``explicit interface with SpaceBeforeClassConstructor, 2226`` () =
+    formatSourceString
+        false
+        """
+type IInterface =
+    interface
+    end
+
+type IInterface2 =
+    interface
+        abstract member X: unit -> unit
+    end
+
+type IInterface3 =
+    abstract member X: unit -> unit
+"""
+        { config with SpaceBeforeClassConstructor = true }
+    |> prepend newline
+    |> should
+        equal
+        """
+type IInterface =
+    interface
+    end
+
+type IInterface2 =
+    interface
+        abstract member X: unit -> unit
+    end
+
+type IInterface3 =
+    abstract member X: unit -> unit
+"""
