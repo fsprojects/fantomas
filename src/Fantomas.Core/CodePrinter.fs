@@ -5794,8 +5794,8 @@ and genMeasure (measure: SynMeasure) =
         | SynMeasure.Var (Typar (s, _), _) -> !-s.idText
         | SynMeasure.Anon _ -> !- "_"
         | SynMeasure.One -> !- "1"
-        | SynMeasure.Product (m1, m2, _) -> loop m1 +> !- "*" +> loop m2
-        | SynMeasure.Divide (m1, m2, _) -> loop m1 +> !- "/" +> loop m2
+        | SynMeasure.Product (m1, m2, _) -> loop m1 +> !- " * " +> loop m2
+        | SynMeasure.Divide (m1, m2, _) -> loop m1 +> !- " / " +> loop m2
         | SynMeasure.Power (m, RationalConst n, _) -> loop m +> !- $"^{n}"
         | SynMeasure.Seq (ms, _) -> col sepSpace ms loop
         | SynMeasure.Named (lid, _) -> genLongIdent lid
