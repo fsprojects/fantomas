@@ -1216,7 +1216,7 @@ let sepNlnConsideringTriviaContentBeforeForMainNode (mainNode: FsAstType) (range
 let sepNlnForEmptyModule (mainNode: FsAstType) (moduleRange: Range) (ctx: Context) =
     match Map.tryFind mainNode ctx.TriviaNodes with
     | Some nodes ->
-        if List.exists (fun tn -> RangeHelpers.rangeEq tn.Range moduleRange) nodes then
+        if List.exists (fun (tn: TriviaNode) -> RangeHelpers.rangeEq tn.Range moduleRange) nodes then
             ctx
         else
             sepNln ctx

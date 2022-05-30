@@ -36,9 +36,144 @@ type SynExprRecordField with
         | SynExprRecordField ((fieldName, _), Some equalsRange, _, _) -> unionRanges fieldName.FullRange equalsRange
         | SynExprRecordField ((fieldName, _), None, _, _) -> fieldName.FullRange
 
+type SynModuleOrNamespace with
+    member this.FullRange: range =
+        match this with
+        | SynModuleOrNamespace (kind = SynModuleOrNamespaceKind.AnonModule; decls = decls) ->
+            match List.tryHead decls, List.tryLast decls with
+            | None, None -> Range.Zero
+            | Some d, None
+            | None, Some d -> d.Range
+            | Some s, Some e -> unionRanges s.Range e.Range
+
+        | _ -> this.Range
+
+type SynModuleOrNamespaceSig with
+    member this.FullRange: range =
+        match this with
+        | SynModuleOrNamespaceSig (kind = SynModuleOrNamespaceKind.AnonModule; decls = decls) ->
+            match List.tryHead decls, List.tryLast decls with
+            | None, None -> Range.Zero
+            | Some d, None
+            | None, Some d -> d.Range
+            | Some s, Some e -> unionRanges s.Range e.Range
+
+        | _ -> this.Range
+
 // TODO: construct actual range of  file, from first to last content
 type ParsedInput with
     member this.FullRange: range =
         match this with
-        | ParsedInput.ImplFile (ParsedImplFileInput _)
-        | ParsedInput.SigFile (ParsedSigFileInput _) -> Range.Zero
+        | ParsedInput.ImplFile (ParsedImplFileInput (hashDirectives = directives; modules = modules)) ->
+            let startPos =
+                match directives with
+                | ParsedHashDirective (range = r) :: _ -> r.Start
+                | [] ->
+                    match modules with
+                    | m :: _ -> m.FullRange.Start
+                    | _ -> Range.Zero.Start
+
+            let endPos =
+                match List.tryLast modules with
+                | None ->
+                    match List.tryLast directives with
+                    | None -> Range.Zero.End
+                    | Some (ParsedHashDirective (range = r)) -> r.End
+                | Some lastModule -> lastModule.FullRange.End
+
+            mkRange this.Range.FileName startPos endPos
+        | ParsedInput.SigFile (ParsedSigFileInput (hashDirectives = directives; modules = modules)) ->
+            let startPos =
+                match directives with
+                | ParsedHashDirective (range = r) :: _ -> r.Start
+                | [] ->
+                    match modules with
+                    | m :: _ -> m.FullRange.Start
+                    | _ -> Range.Zero.Start
+
+            let endPos =
+                match List.tryLast modules with
+                | None ->
+                    match List.tryLast directives with
+                    | None -> Range.Zero.End
+                    | Some (ParsedHashDirective (range = r)) -> r.End
+                | Some lastModule -> lastModule.FullRange.End
+
+            mkRange this.Range.FileName startPos endPos
+
+type SynMemberFlags with
+    member memberFlags.FullRange: range option =
+        RangeHelpers.mergeRanges
+            [ yield! Option.toList memberFlags.Trivia.AbstractRange
+              yield! Option.toList memberFlags.Trivia.DefaultRange
+              yield! Option.toList memberFlags.Trivia.MemberRange
+              yield! Option.toList memberFlags.Trivia.OverrideRange
+              yield! Option.toList memberFlags.Trivia.StaticRange ]
+
+type SynValInfo with
+    member synValInfo.FullRange: range option =
+        match synValInfo with
+        | SynValInfo (returnInfo = ri) ->
+            match List.tryHead ri.Attributes, ri.Ident with
+            | None, None -> None
+            | Some a, None -> Some a.Range
+            | None, Some i -> Some i.idRange
+            | Some a, Some i -> Some(unionRanges a.Range i.idRange)
+
+type SynValData with
+    member synValData.FullRange: range option =
+        match synValData with
+        | SynValData (mf, valInfo, thisIdOpt) ->
+            let mfRange = Option.bind (fun (mf: SynMemberFlags) -> mf.FullRange) mf
+            let valInfo = valInfo.FullRange
+            let thisRange = Option.map (fun (id: Ident) -> id.idRange) thisIdOpt
+
+            RangeHelpers.mergeRanges
+                [ yield! Option.toList mfRange
+                  yield! Option.toList valInfo
+                  yield! Option.toList thisRange ]
+
+let synTypeDefnKindDelegateFullRange (signature: SynType) (signatureInfo: SynValInfo) =
+    let startRange = signature.Range
+
+    let endRange =
+        match signatureInfo.FullRange with
+        | Some r -> r
+        | None -> signature.Range
+
+    unionRanges startRange endRange
+
+type SynArgInfo with
+    member this.FullRange: range option =
+        let (SynArgInfo (attrs, _, ident)) = this
+
+        let attrRange =
+            attrs
+            |> List.map (fun a -> a.Range)
+            |> RangeHelpers.mergeRanges
+
+        let identRange = Option.map (fun (i: Ident) -> i.idRange) ident
+
+        match attrRange, identRange with
+        | None, None -> None
+        | Some a, Some i -> Some(unionRanges a i)
+        | None, Some r
+        | Some r, None -> Some r
+
+type SynInterpolatedStringPart with
+    member this.FullRange =
+        match this with
+        | SynInterpolatedStringPart.String (_, r) -> r
+        | SynInterpolatedStringPart.FillExpr (expr, ident) ->
+            match ident with
+            | None -> expr.Range
+            | Some i -> unionRanges expr.Range i.idRange
+
+type SynTyparDecl with
+    member std.FullRange: range =
+        let (SynTyparDecl (attrs, synTypar)) = std
+        let attrRange = List.map (fun (a: SynAttributeList) -> a.Range) attrs
+
+        match RangeHelpers.mergeRanges attrRange with
+        | None -> synTypar.Range
+        | Some ar -> unionRanges ar synTypar.Range

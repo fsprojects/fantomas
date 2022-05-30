@@ -45,6 +45,7 @@ type FsAstType =
     | SynModuleOrNamespace_DeclaredNamespace
     | SynModuleOrNamespace_GlobalNamespace
     | SynModuleOrNamespace_NamedModule
+    | SynModuleOrNamespace_AnonModule
     | SynModuleOrNamespace_Module
     | SynModuleOrNamespace_Namespace
     | SynModuleDecl_ModuleAbbrev
@@ -64,14 +65,15 @@ type FsAstType =
     | SynExpr_Paren_OpeningParenthesis
     | SynExpr_Paren_ClosingParenthesis
     | SynExpr_Quote
-    // | SynExpr_Const use SynConst instead
-    // | SynExpr_Typed use either the nested SynExpr or SynType
+    | SynExpr_Const
+    // | SynExpr_Typed
     | SynExpr_Tuple
     | SynExpr_StructTuple
     | SynExpr_Record
     | SynExpr_Record_OpeningBrace
     | SynExpr_Record_ClosingBrace
     | SynExpr_AnonRecd
+    | SynExpr_AnonRecd_Field
     | SynExpr_AnonRecd_Field_Equals
     | SynExpr_New
     | SynExpr_ObjExpr
@@ -84,7 +86,7 @@ type FsAstType =
     | SynExpr_ArrayOrList
     | SynExpr_ArrayOrList_OpeningDelimiter
     | SynExpr_ArrayOrList_ClosingDelimiter
-    // | SynExpr_ComputationExpr use first nested SynExpr
+    | SynExpr_ComputationExpr
     | SynExpr_ComputationExpr_OpeningBrace
     | SynExpr_ComputationExpr_ClosingBrace
     | SynExpr_Lambda
@@ -102,7 +104,7 @@ type FsAstType =
     | SynExpr_TypeApp
     | SynExpr_TypeApp_Less
     | SynExpr_TypeApp_Greater
-    // | SynExpr_LetOrUse use first nested SynExpr
+    | SynExpr_LetOrUse
     | SynExpr_LetOrUse_In
     | SynExpr_TryWith
     | SynExpr_TryWith_Try
@@ -112,7 +114,7 @@ type FsAstType =
     | SynExpr_TryFinally_Finally
     | SynExpr_Lazy
     | SynExpr_Lazy_Lazy
-    // | SynExpr_Sequential use first nested SynExpr
+    | SynExpr_Sequential
     | SynExpr_SequentialOrImplicitYield
     | SynExpr_IfThenElse
     | SynExpr_IfThenElse_If
@@ -197,8 +199,9 @@ type FsAstType =
     | SynTypeDefnSig_
     | SynTypeDefnSig_Equals
     | SynTypeDefnSig_With
-    // | SynTypeDefnSigRepr_ObjectModel use first nested node
-    | SynTypeDefnSigRepr_Exception
+    | SynTypeDefnSigRepr_ObjectModel
+    // | SynTypeDefnSigRepr_Simple
+    // | SynTypeDefnSigRepr_Exception
     | SynMemberDefn_Open
     | SynMemberDefn_OpenType
     | SynMemberDefn_Member
@@ -240,7 +243,7 @@ type FsAstType =
     | SynPat_As
     | SynPat_Typed
     | SynPat_Attrib
-    // | SynPat_Or, use the inner patterns instead
+    | SynPat_Or
     | SynPat_Or_Bar
     | SynPat_Ands
     | SynPat_LongIdent
@@ -287,11 +290,13 @@ type FsAstType =
     | SynConst_SourceIdentifier
     | SynArgPats_Pats
     | SynArgPats_NamePatPairs
+    // TODO: update in CodePrinter
+    | SynArgPats_NamePatPair
     | SynArgPats_NamePatPairs_Equals
     | SynComponentInfo_
-    // | SynTypeDefnRepr_ObjectModel use first nested node
-    // | SynTypeDefnRepr_Simple use first nested node
-    | SynTypeDefnRepr_Exception
+    | SynTypeDefnRepr_ObjectModel
+    // | SynTypeDefnRepr_Simple
+    // | SynTypeDefnRepr_Exception
     | SynTypeDefnKind_Unspecified
     | SynTypeDefnKind_Class
     | SynTypeDefnKind_Interface
@@ -337,8 +342,7 @@ type FsAstType =
     | SynType_LongIdentApp_Greater
     | SynType_Tuple
     | SynType_Array
-    // Not an ideal trivia node candidate as the ident inside the SynType.Fun are better suited
-    // | SynType_Fun
+    | SynType_Fun
     | SynType_Var
     | SynType_Anon
     | SynType_WithGlobalConstraints
@@ -390,7 +394,7 @@ type TriviaNode =
       ContentAfter: TriviaContent list
       Range: Range }
 
-type FSharpASTNode = Choice<SynModuleDecl, SynExpr>
+type FSharpASTNode = Choice<SynModuleDecl, SynModuleSigDecl, SynExpr>
 
 type TriviaNodeAssignerOld(nodeType: FsAstType, range: Range, ?astNode: FSharpASTNode) =
     member this.Type = nodeType
@@ -410,6 +414,6 @@ type TriviaNodeAssigner =
 type TriviaAssignmentInstruction =
     | AddBefore of trivia: Trivia * ``type``: FsAstType * range: range
     | AddAfter of trivia: Trivia * ``type``: FsAstType * range: range
-    
+
 // TODO: consider adding two Maps in the context to store before and after trivia
 // Each map has key of type:FsAstType * startPos:int * startLine:int

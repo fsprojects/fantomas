@@ -10,8 +10,8 @@
     <None Include="paket.references" />
     <Compile Include="AssemblyInfo.fs" />
     <Compile Include="ISourceTextExtensions.fs" />
-    <Compile Include="AstExtensions.fs" />
     <Compile Include="RangeHelpers.fs" />
+    <Compile Include="AstExtensions.fs" />
     <Compile Include="TriviaTypes.fs" />
     <Compile Include="Utils.fs" />
     <Compile Include="SourceParser.fs" />

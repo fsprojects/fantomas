@@ -5,6 +5,7 @@ open FSharp.Compiler.Text
 open FSharp.Compiler.Xml
 open Fantomas.Core.FormatConfig
 open Fantomas.Core.SourceParser
+open Fantomas.Core.AstExtensions
 open Fantomas.Core.TriviaTypes
 open Fantomas.Core.AstTransformer
 
@@ -27,11 +28,6 @@ let private mkSynModuleDecl (expr: SynExpr) : SynModuleDecl = SynModuleDecl.Expr
 /// Wrap the selected node inside an anonymous module
 /// Keep the original trivia of the ParsedInput so code comments could still be restored.
 let private mkTreeWithSingleNode (fullTree: ParsedInput) (astNode: FSharpASTNode) : ParsedInput =
-    let insertNode =
-        match astNode with
-        | Choice1Of2 synModuleDecl -> synModuleDecl
-        | Choice2Of2 synExpr -> mkSynModuleDecl synExpr
-
     match fullTree with
     | ParsedInput.ImplFile (ParsedImplFileInput.ParsedImplFileInput (fileName,
                                                                      isScript,
@@ -41,6 +37,12 @@ let private mkTreeWithSingleNode (fullTree: ParsedInput) (astNode: FSharpASTNode
                                                                      _modules,
                                                                      isLastCompiland,
                                                                      trivia)) ->
+        let insertNode =
+            match astNode with
+            | Choice1Of3 synModuleDecl -> synModuleDecl
+            | Choice2Of3 _ -> failwith "Unexpected signature module declaration in implementation file"
+            | Choice3Of3 synExpr -> mkSynModuleDecl synExpr
+
         ParsedInput.ImplFile(
             ParsedImplFileInput.ParsedImplFileInput(
                 fileName,
@@ -72,14 +74,15 @@ let formatSelection
         else
             let triviaNodes =
                 match baseUntypedTree with
-                | ImplFile (ParsedImplFileInput (hds, mns, _, _)) -> astToNode hds mns
-                | SigFile (ParsedSigFileInput (_, mns, _, _)) -> sigAstToNode mns
-                |> List.sortBy (fun n -> n.Range.Start.Line, n.Range.Start.Column)
+                | ImplFile (ParsedImplFileInput (hds, mns, _, _)) -> astToNode baseUntypedTree.FullRange hds mns
+                | SigFile (ParsedSigFileInput (_, mns, _, _)) -> sigAstToNode baseUntypedTree.FullRange mns
+            //|> List.sortBy (fun n -> n.Range.Start.Line, n.Range.Start.Column)
 
             let treeWithSelection =
-                triviaNodes
-                |> List.filter (fun tna ->
-                    tna.HasFSharpASTNode
+                // triviaNodes
+                []
+                |> List.filter (fun (tna: TriviaNodeAssigner) ->
+                    Option.isSome tna.FSharpASTNode
                     && RangeHelpers.``range contains`` selection tna.Range)
                 |> List.sortByDescending (fun tna ->
                     if tna.Range.StartLine = tna.Range.EndLine then
