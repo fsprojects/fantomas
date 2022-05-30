@@ -3722,7 +3722,7 @@ and genTypeDefn
             | TCSimple TCInterface -> Some range
             | _ -> None
 
-        let isClass = interfaceRange = None
+        let isClass = Option.isNone interfaceRange
 
         let astContext = { astContext with InterfaceRange = interfaceRange }
 
