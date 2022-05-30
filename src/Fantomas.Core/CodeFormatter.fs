@@ -23,6 +23,8 @@ type CodeFormatter =
         CodeFormatterImpl.getSourceText source
         |> CodeFormatterImpl.formatDocument config isSignature
 
+    // TODO: should this return the range of the actual formatted node
+    // The selection might have been larger than the actual formatted node
     static member FormatSelectionAsync(isSignature, source, selection, config) =
         CodeFormatterImpl.getSourceText source
         |> Selection.formatSelection config isSignature selection

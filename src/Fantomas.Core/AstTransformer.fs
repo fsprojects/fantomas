@@ -479,7 +479,7 @@ and visitSynExpr (synExpr: SynExpr) : TriviaNodeAssigner =
         | SynExpr.Sequential (_, _, expr1, expr2, _) ->
             visit expr2 (fun node1 ->
                 visit expr1 (fun node2 ->
-                    mkNodeWithChildren SynExpr_Sequential synExpr.Range (sortChildren [| node1; node2 |])
+                    mkSynExprNode SynExpr_Sequential synExpr synExpr.Range (sortChildren [| node1; node2 |])
                     |> finalContinuation))
         | SynExpr.SequentialOrImplicitYield (_, expr1, expr2, ifNotStmt, range) ->
             let continuations: ((TriviaNodeAssigner -> TriviaNodeAssigner) -> TriviaNodeAssigner) list =

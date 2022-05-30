@@ -9,6 +9,40 @@ open Fantomas.Core.AstExtensions
 open Fantomas.Core.TriviaTypes
 open Fantomas.Core.AstTransformer
 
+// TODO: check Option.isSome tna.FSharpASTNode
+let rec private findNodeWhereSelectionFitsIn (root: TriviaNodeAssigner) (selection: range) : TriviaNodeAssigner option =
+    let doesSelectionFitInNode = RangeHelpers.``range contains`` root.Range selection
+
+    if not doesSelectionFitInNode then
+        None
+    else
+        // The more specific the node fits the selection, the better
+        let findDeeperNode =
+            root.Children
+            |> Array.choose (fun childNode -> findNodeWhereSelectionFitsIn childNode selection)
+
+        match Array.tryHead findDeeperNode with
+        | Some betterChild -> Some betterChild
+        | None -> Some root
+
+let private findNode (maxLineLength: int) (selection: range) (node: TriviaNodeAssigner) : TriviaNodeAssigner option =
+    let selectionSurface = RangeHelpers.surfaceArea maxLineLength selection
+
+    // Some parent nodes should be filtered out
+    let rec selectNode (node: TriviaNodeAssigner) : TriviaNodeAssigner array =
+        match node.Type with
+        | SynExpr_Sequential -> Array.collect selectNode node.Children
+        | _ -> [| node |]
+
+    [| yield! selectNode node
+       yield! Array.collect selectNode node.Children |]
+    |> Array.filter (fun a -> Option.isSome a.FSharpASTNode)
+    |> Array.sortBy (fun n ->
+        // Find the node that matches the selection as close as possible
+        let nodeSurface = RangeHelpers.surfaceArea maxLineLength n.Range
+        System.Math.Abs(selectionSurface - nodeSurface))
+    |> Array.tryHead
+
 let private mkAnonSynModuleOrNamespace decl =
     SynModuleOrNamespace(
         [],
@@ -70,47 +104,26 @@ let formatSelection
         let isValid = Validation.noWarningOrErrorDiagnostics baseDiagnostics
 
         if not isValid then
+            failwith "not valid"
             return None
         else
-            let triviaNodes =
+            let triviaNode =
                 match baseUntypedTree with
                 | ImplFile (ParsedImplFileInput (hds, mns, _, _)) -> astToNode baseUntypedTree.FullRange hds mns
                 | SigFile (ParsedSigFileInput (_, mns, _, _)) -> sigAstToNode baseUntypedTree.FullRange mns
-            //|> List.sortBy (fun n -> n.Range.Start.Line, n.Range.Start.Column)
+
+            let selection =
+                Range.mkRange triviaNode.Range.FileName selection.Start selection.End
 
             let treeWithSelection =
-                // triviaNodes
-                []
-                |> List.filter (fun (tna: TriviaNodeAssigner) ->
-                    Option.isSome tna.FSharpASTNode
-                    && RangeHelpers.``range contains`` selection tna.Range)
-                |> List.sortByDescending (fun tna ->
-                    if tna.Range.StartLine = tna.Range.EndLine then
-                        tna.Range.EndColumn - tna.Range.StartColumn
-                    else
-                        // Calculate an artificial surface of positions they range consume.
-                        // Take the max_line_length as size for a blank line
-                        // This isn't totally accurate, but will do the trick.
-                        // The larger the surface, the closer to the selection the node is.
-                        let linesInBetween =
-                            match [ tna.Range.StartLine + 1 .. tna.Range.EndLine - 1 ] with
-                            | []
-                            | [ _ ] -> 0
-                            | lines -> lines.Length * config.MaxLineLength
-
-                        (config.MaxLineLength - tna.Range.StartColumn)
-                        + linesInBetween
-                        + tna.Range.EndColumn)
-#if DEBUG
-                |> fun tap ->
-                    printfn "sorted: %A" tap
-                    tap
-#endif
-                |> List.tryHead
+                findNodeWhereSelectionFitsIn triviaNode selection
+                |> Option.bind (findNode config.MaxLineLength selection)
                 |> Option.bind (fun tna -> Option.map (mkTreeWithSingleNode baseUntypedTree) tna.FSharpASTNode)
 
             match treeWithSelection with
-            | None -> return None
+            | None ->
+                failwithf "no node found, %A %A" selection baseUntypedTree
+                return None
             | Some tree ->
                 let maxLineLength = config.MaxLineLength - selection.StartColumn
 

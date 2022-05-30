@@ -244,10 +244,10 @@ let internal collectTriviaFromCodeComments (source: ISourceText) (codeComments: 
 let internal collectTriviaFromBlankLines
     (config: FormatConfig)
     (source: ISourceText)
-    (triviaNodes: TriviaNodeAssigner list)
+    (triviaNode: TriviaNodeAssigner)
     (codeComments: CommentTrivia list)
     : Trivia list =
-    let fileIndex = triviaNodes.Head.Range.FileIndex
+    let fileIndex = triviaNode.Range.FileIndex
 
     let captureLinesIfMultiline (r: range) =
         if r.StartLine = r.EndLine then
@@ -256,13 +256,24 @@ let internal collectTriviaFromBlankLines
             [ r.StartLine .. r.EndLine ]
 
     let multilineStringsLines =
-        triviaNodes
-        |> List.collect (fun tn ->
-            match tn.Type with
-            | SynConst_String
-            | SynConst_Bytes
-            | SynInterpolatedStringPart_String -> captureLinesIfMultiline tn.Range
-            | _ -> [])
+        let rec visit (node: TriviaNodeAssigner) (finalContinuation: int list -> int list) =
+            let continuations: ((int list -> int list) -> int list) list =
+                Array.toList node.Children |> List.map visit
+
+            let currentLines =
+                match node.Type with
+                | SynConst_String
+                | SynConst_Bytes
+                | SynInterpolatedStringPart_String -> captureLinesIfMultiline node.Range
+                | _ -> []
+
+            let finalContinuation (lines: int list list) : int list =
+                List.collect id (currentLines :: lines)
+                |> finalContinuation
+
+            Continuation.sequence continuations finalContinuation
+
+        visit triviaNode id
 
     let blockCommentLines =
         codeComments
@@ -313,14 +324,10 @@ let collectTrivia (config: FormatConfig) (source: ISourceText) (ast: ParsedInput
         | ParsedInput.SigFile (ParsedSigFileInput (_, mns, directives, codeComments)) ->
             sigAstToNode ast.FullRange mns, directives, codeComments
 
-    // let triviaNodes =
-    //     triviaNodesFromAST
-    //     |> List.sortBy (fun n -> n.Range.Start.Line, n.Range.Start.Column)
-
     let trivia =
         [ yield! collectTriviaFromDirectives source directives
           yield! collectTriviaFromCodeComments source codeComments
-          yield! collectTriviaFromBlankLines config source [] (* triviaNodes *) codeComments ]
+          yield! collectTriviaFromBlankLines config source triviaNodesFromAST codeComments ]
         |> List.sortBy (fun n -> n.Range.Start.Line, n.Range.Start.Column)
 
     // TODO: do we still need this?

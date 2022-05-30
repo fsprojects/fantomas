@@ -6,11 +6,7 @@ open FSharp.Compiler.Text
 module RangeHelpers =
 
     /// Checks if Range B is fully contained by Range A
-    let ``range contains`` (a: Range) (b: Range) =
-        (a.Start.Line, a.Start.Column)
-        <= (b.Start.Line, b.Start.Column)
-        && (a.End.Line, a.End.Column)
-           >= (b.End.Line, b.End.Column)
+    let ``range contains`` (a: Range) (b: Range) = Range.rangeContainsRange a b
 
     // check if b is after a
     let ``range after`` (a: Range) (b: Range) =
@@ -51,6 +47,21 @@ module RangeHelpers =
             |> List.sortBy (fun r -> r.StartLine, r.StartColumn)
             |> List.reduce Range.unionRanges
             |> Some
+
+    /// Calculate an artificial surface area based on the range.
+    let surfaceArea (maxLineLength: int) (range: range) : int =
+        // Calculate an artificial surface of positions they range consume.
+        // Take the max_line_length as size for a blank line
+        // This isn't totally accurate, but will do the trick.
+        let linesInBetween =
+            match [ range.StartLine + 1 .. range.EndLine - 1 ] with
+            | []
+            | [ _ ] -> 0
+            | lines -> lines.Length * maxLineLength
+
+        (maxLineLength - range.StartColumn)
+        + linesInBetween
+        + range.EndColumn
 
 module RangePatterns =
     let (|StartEndRange|) (size: int) (range: range) =
