@@ -3722,10 +3722,12 @@ and genTypeDefn
             | TCSimple TCInterface -> Some range
             | _ -> None
 
+        let isClass = Option.isNone interfaceRange
+
         let astContext = { astContext with InterfaceRange = interfaceRange }
 
         typeName
-        +> sepSpaceBeforeClassConstructor
+        +> onlyIf isClass sepSpaceBeforeClassConstructor
         +> leadingExpressionIsMultiline (opt sepNone impCtor (genMemberDefn astContext)) (fun isMulti ctx ->
             if isMulti
                && ctx.Config.AlternativeLongMemberDefinitions then
