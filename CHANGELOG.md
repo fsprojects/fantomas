@@ -1,5 +1,10 @@
 # Changelog
 
+## [Unreleased]
+
+### Fixed
+* Spaces around binary operators in units of measure. [#2207](https://github.com/fsprojects/fantomas/issues/2207)
+
 ## [5.0.0-alpha-008] - 2022-05-28
 
 ### Fixed
