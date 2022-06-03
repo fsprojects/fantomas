@@ -26,7 +26,7 @@ let private toTriviaWithDefines source =
     defineCombinations
     |> List.map (fun dc -> dc, Trivia.collectTrivia FormatConfig.Default sourceText ast None)
     |> Map.ofList
-
+(*
 [<Test>]
 let ``line comment that starts at the beginning of a line added to trivia`` () =
     let source =
@@ -431,3 +431,4 @@ let x =
     | [ { Type = SynConst_Unit
           ContentBefore = [ Directive "#if DEBUG"; Directive "#endif" ] } ] -> pass ()
     | _ -> Assert.Fail(sprintf "Unexpected trivia: %A" trivia)
+*)

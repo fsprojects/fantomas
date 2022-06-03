@@ -63,9 +63,12 @@ let addSpaceBeforeParensInFunDef (spaceBeforeSetting: bool) (functionOrMethod: S
     | _ -> true
 
 let rec genParsedInput astContext ast =
-    match ast with
-    | ImplFile im -> genImpFile astContext im
-    | SigFile si -> genSigFile astContext si
+    let genParsedInput =
+        match ast with
+        | ImplFile im -> genImpFile astContext im
+        | SigFile si -> genSigFile astContext si
+
+    genTriviaFor ParsedInput_ ast.FullRange genParsedInput
     +> addFinalNewline
 
 /// Respect insert_final_newline setting
@@ -157,8 +160,10 @@ and genModuleOrNamespace
 
     genPreXmlDoc px
     +> genAttributes astContext ats
-    +> ifElse (moduleKind = SynModuleOrNamespaceKind.AnonModule) genTriviaForAnonModuleIdent moduleOrNamespace
-    +> sepModuleAndFirstDecl
+    +> ifElse
+        (moduleKind = SynModuleOrNamespaceKind.AnonModule)
+        genTriviaForAnonModuleIdent
+        (moduleOrNamespace +> sepModuleAndFirstDecl)
     +> genModuleDeclList astContext mds
     |> (match moduleKind with
         | SynModuleOrNamespaceKind.AnonModule -> id
@@ -191,8 +196,7 @@ and genSigModuleOrNamespace
 
     genPreXmlDoc px
     +> genAttributes astContext ats
-    +> ifElse (moduleKind = SynModuleOrNamespaceKind.AnonModule) sepNone moduleOrNamespace
-    +> sepModuleAndFirstDecl
+    +> ifElse (moduleKind = SynModuleOrNamespaceKind.AnonModule) sepNone (moduleOrNamespace +> sepModuleAndFirstDecl)
     +> genSigModuleDeclList astContext mds
     |> (match moduleKind with
         | SynModuleOrNamespaceKind.DeclaredNamespace -> genTriviaFor SynModuleOrNamespaceSig_DeclaredNamespace range
@@ -306,7 +310,7 @@ and genSigModuleDeclList astContext (e: SynModuleSigDecl list) =
 and genModuleDecl astContext (node: SynModuleDecl) =
     match node with
     | Attributes ats ->
-        fun ctx ->
+        fun (ctx: Context) ->
             let attributesExpr =
                 // attributes can have trivia content before or after
                 // we do extra detection to ensure no additional newline is introduced
@@ -321,16 +325,7 @@ and genModuleDecl astContext (node: SynModuleDecl) =
                             +> ((col sepNln a.Attributes (genAttribute astContext))
                                 |> genTriviaFor SynAttributeList_ a.Range)
 
-                        let hasContentAfter =
-                            TriviaHelpers.``has content after after that matches``
-                                (fun tn -> RangeHelpers.rangeEq tn.Range a.Range)
-                                (function
-                                | Newline
-                                | Comment (LineCommentOnSingleLine _)
-                                | Directive _ -> true
-                                | _ -> false)
-                                (Map.tryFindOrEmptyList SynAttributeList_ ctx.TriviaNodes)
-
+                        let hasContentAfter = ctx.HasContentAfter(SynAttributeList_, a.Range)
                         (hasContentAfter, prevExpr +> expr))
                     (true, sepNone)
                     ats
@@ -561,15 +556,7 @@ and genAttributes astContext (ats: SynAttributes) =
     ats
     |> List.fold
         (fun acc a (ctx: Context) ->
-            let dontAddNewline =
-                TriviaHelpers.``has content after that ends with``
-                    (fun t -> RangeHelpers.rangeEq t.Range a.Range)
-                    (function
-                    | Directive _
-                    | Newline
-                    | Comment (LineCommentOnSingleLine _) -> true
-                    | _ -> false)
-                    (Map.tryFindOrEmptyList SynAttributeList_ ctx.TriviaNodes)
+            let dontAddNewline = ctx.HasContentAfter(SynAttributeList_, a.Range)
 
             let chain =
                 acc
@@ -1462,14 +1449,19 @@ and genExpr astContext synExpr ctx =
                 let body = genExprKeepIndentInBranch astContext
 
                 let expr =
-                    let triviaOfLambda f (ctx: Context) =
-                        (Map.tryFindOrEmptyList SynExpr_Lambda ctx.TriviaNodes
-                         |> List.tryFind (fun tn -> RangeHelpers.rangeEq tn.Range lambdaRange)
-                         |> optSingle f)
+                    let triviaOfLambda f before (ctx: Context) =
+                        (Map.tryFindOrEmptyList
+                            SynExpr_Lambda
+                            (if before then
+                                 ctx.TriviaBefore
+                             else
+                                 ctx.TriviaAfter)
+                         |> List.filter (fun tn -> RangeHelpers.rangeEq tn.Range lambdaRange)
+                         |> f)
                             ctx
 
                     sepOpenTFor lpr
-                    +> triviaOfLambda printContentBefore
+                    +> triviaOfLambda printTriviaInstructions true
                     -- "fun "
                     +> col sepSpace pats (genPat astContext)
                     +> (fun ctx ->
@@ -1477,7 +1469,7 @@ and genExpr astContext synExpr ctx =
                             genLambdaArrowWithTrivia
                                 (fun e ->
                                     body e
-                                    +> triviaOfLambda printContentAfter
+                                    +> triviaOfLambda printTriviaInstructions false
                                     +> sepNlnWhenWriteBeforeNewlineNotEmpty id
                                     +> sepCloseTFor rpr)
                                 expr
@@ -1488,7 +1480,7 @@ and genExpr astContext synExpr ctx =
                                 (genLambdaArrowWithTrivia
                                     (fun e ->
                                         body e
-                                        +> triviaOfLambda printContentAfter
+                                        +> triviaOfLambda printTriviaInstructions false
                                         +> sepNlnWhenWriteBeforeNewlineNotEmpty id)
                                     expr
                                     arrowRange)
@@ -3382,12 +3374,15 @@ and genExprInIfOrMatch astContext (e: SynExpr) (ctx: Context) : Context =
 
     let long =
         let hasCommentBeforeExpr (e: SynExpr) =
-            TriviaHelpers.``has content before that matches``
-                (fun tn -> RangeHelpers.rangeEq tn.Range e.Range)
-                (function
-                | Comment (LineCommentOnSingleLine _) -> true
-                | _ -> false)
-                (Map.tryFindOrEmptyList (synExprToFsAstType e |> fst) ctx.TriviaNodes)
+            match Map.tryFindOrEmptyList (synExprToFsAstType e |> fst) ctx.TriviaBefore with
+            | [] -> false
+            | triviaInstructions ->
+                List.exists
+                    (fun ti ->
+                        match ti.Trivia.Item with
+                        | Comment (LineCommentOnSingleLine _) -> RangeHelpers.rangeEq ti.Range e.Range
+                        | _ -> false)
+                    triviaInstructions
 
         let indentNlnUnindentNln f =
             indent +> sepNln +> f +> unindent +> sepNln
@@ -4760,18 +4755,18 @@ and genMemberDefn astContext node =
                          +> sepNln
                          +> sepCloseT
 
-                     let triviaBeforePats =
-                         Map.tryFindOrEmptyList SynSimplePats_SimplePats ctx.TriviaNodes
-                         |> List.tryFind (fun tn -> RangeHelpers.rangeEq tn.Range ps.Range)
+                     let hasTriviaBeforePats = ctx.HasContentBefore(SynSimplePats_SimplePats, ps.Range)
 
-                     match triviaBeforePats with
-                     | Some tn ->
-                         (printContentBefore tn
-                          +> expressionFitsOnRestOfLine shortPats longPats
-                          +> printContentAfter tn)
+                     if hasTriviaBeforePats then
+                         genTriviaFor
+                             SynSimplePats_SimplePats
+                             ps.Range
+                             (expressionFitsOnRestOfLine shortPats longPats)
                              ctx
-                     | None when hasXmlDocComment -> expressionFitsOnRestOfLine shortPats longPats ctx
-                     | _ -> longPats ctx)
+                     elif hasXmlDocComment then
+                         expressionFitsOnRestOfLine shortPats longPats ctx
+                     else
+                         longPats ctx)
                  +> onlyIf ctx.Config.AlternativeLongMemberDefinitions sepNln
                  +> unindent)
                     ctx

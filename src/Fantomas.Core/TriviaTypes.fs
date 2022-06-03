@@ -114,7 +114,7 @@ type FsAstType =
     | SynExpr_TryFinally_Finally
     | SynExpr_Lazy
     | SynExpr_Lazy_Lazy
-    | SynExpr_Sequential
+    // | SynExpr_Sequential
     | SynExpr_SequentialOrImplicitYield
     | SynExpr_IfThenElse
     | SynExpr_IfThenElse_If
@@ -411,9 +411,15 @@ type TriviaNodeAssigner =
       Children: TriviaNodeAssigner array
       FSharpASTNode: FSharpASTNode option }
 
-type TriviaAssignmentInstruction =
-    | AddBefore of trivia: Trivia * ``type``: FsAstType * range: range
-    | AddAfter of trivia: Trivia * ``type``: FsAstType * range: range
+type TriviaInstruction =
+    { Trivia: Trivia
+      Type: FsAstType
+      Range: range
+      AddBefore: bool }
+
+type TriviaForSelection =
+    { Selection: range
+      RootNode: TriviaNodeAssigner }
 
 // TODO: consider adding two Maps in the context to store before and after trivia
 // Each map has key of type:FsAstType * startPos:int * startLine:int

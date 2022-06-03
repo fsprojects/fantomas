@@ -58,7 +58,7 @@ let formatWith
     (sourceText: ISourceText option)
     (ast: ParsedInput)
     (config: FormatConfig)
-    (selection: range option)
+    (selection: TriviaForSelection option)
     : string =
     let formattedSourceCode =
         let context = Context.Context.Create config sourceText ast selection
@@ -122,5 +122,10 @@ Please raise an issue at https://fsprojects.github.io/fantomas-tools/#/fantomas/
 let formatDocument config isSignature source = format config isSignature source
 
 /// Format an abstract syntax tree using given config
-let formatAST ast sourceText config selection =
+let formatAST
+    (ast: ParsedInput)
+    (sourceText: ISourceText option)
+    (config: FormatConfig)
+    (selection: TriviaForSelection option)
+    : string =
     formatWith sourceText ast config selection
