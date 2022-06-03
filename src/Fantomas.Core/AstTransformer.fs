@@ -438,15 +438,9 @@ and visitSynExpr (synExpr: SynExpr) : TriviaNodeAssigner list =
                 |> finalContinuation)
         | SynExpr.LetOrUse (_, _, bindings, body, _, trivia) ->
             visit body (fun nodes ->
-                mkSynExprNode
-                    SynExpr_LetOrUse
-                    synExpr
-                    synExpr.Range
-                    (sortChildren
-                        [| yield! (List.map visitSynBinding bindings)
-                           yield! Option.toList (mkNodeOption SynExpr_LetOrUse_In trivia.InKeyword)
-                           yield! nodes |])
-                |> List.singleton
+                [ yield! (List.map visitSynBinding bindings)
+                  yield! Option.toList (mkNodeOption SynExpr_LetOrUse_In trivia.InKeyword)
+                  yield! nodes ]
                 |> finalContinuation)
         | SynExpr.TryWith (tryExpr,
                            withCases,
