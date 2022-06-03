@@ -6,7 +6,9 @@ open FSharp.Compiler.Text
 module RangeHelpers =
 
     /// Checks if Range B is fully contained by Range A
-    let ``range contains`` (a: Range) (b: Range) = Range.rangeContainsRange a b
+    let rangeContainsRange (a: Range) (b: Range) =
+        Position.posGeq b.Start a.Start
+        && Position.posGeq a.End b.End
 
     // check if b is after a
     let ``range after`` (a: Range) (b: Range) =

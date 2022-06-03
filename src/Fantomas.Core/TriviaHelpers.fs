@@ -7,7 +7,7 @@ open Fantomas.Core.TriviaTypes
 module internal TriviaHelpers =
     let findInRange (trivia: TriviaNode list) (range: Range) =
         trivia
-        |> List.tryFind (fun t -> RangeHelpers.``range contains`` range t.Range)
+        |> List.tryFind (fun t -> RangeHelpers.rangeContainsRange range t.Range)
 
     let ``has content after after that matches``
         (findTrivia: TriviaNode -> bool)
