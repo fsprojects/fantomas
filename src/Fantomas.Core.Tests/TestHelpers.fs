@@ -7,8 +7,6 @@ open NUnit.Framework
 open FsCheck
 open FsUnit
 open FSharp.Compiler.Text
-open FSharp.Compiler.Syntax
-open FSharp.Compiler.Xml
 open Fantomas.Core.FormatConfig
 open Fantomas.Core
 
@@ -45,11 +43,12 @@ let formatSourceStringWithDefines defines (s: string) config =
             let source = CodeFormatterImpl.getSourceText s
             let! asts = CodeFormatterImpl.parse false source
 
-            let ast, defineCombination =
+            let ast =
                 Array.filter (fun (_, d: DefineCombination) -> List.sort d = List.sort defines) asts
                 |> Array.head
+                |> fst
 
-            return CodeFormatterImpl.formatWith (Some source) defineCombination ast config
+            return CodeFormatterImpl.formatWith (Some source) ast config None
         }
         |> Async.RunSynchronously
 
@@ -67,7 +66,7 @@ let isValidFSharpCode isFsiFile s =
     |> Async.RunSynchronously
 
 let formatAST a s c =
-    CodeFormatter.FormatASTAsync(a, [], s, c)
+    CodeFormatter.FormatASTAsync(a, s, c)
     |> Async.RunSynchronously
 
 let equal x =

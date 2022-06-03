@@ -397,7 +397,6 @@ let ``backticks can be added from AST only scenarios`` () =
 
     CodeFormatter.FormatASTAsync(
         tree,
-        [],
         None,
         { config with
             StrictMode = true

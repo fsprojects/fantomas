@@ -199,10 +199,10 @@ type internal Context =
           FileName = String.Empty
           SourceText = None }
 
-    static member Create config (source: ISourceText option) (defineCombination: DefineCombination) (ast: ParsedInput) =
+    static member Create config (source: ISourceText option) (ast: ParsedInput) (selection: range option) =
         let trivia, sourceText =
             match source with
-            | Some source when not config.StrictMode -> Trivia.collectTrivia config source ast, Some source
+            | Some source when not config.StrictMode -> Trivia.collectTrivia config source ast selection, Some source
             | _ -> [], None
 
         let triviaByNodes =

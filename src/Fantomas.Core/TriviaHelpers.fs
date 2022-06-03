@@ -5,10 +5,6 @@ open Fantomas.Core.TriviaTypes
 
 [<RequireQualifiedAccess>]
 module internal TriviaHelpers =
-    let findInRange (trivia: TriviaNode list) (range: Range) =
-        trivia
-        |> List.tryFind (fun t -> RangeHelpers.rangeContainsRange range t.Range)
-
     let ``has content after after that matches``
         (findTrivia: TriviaNode -> bool)
         (contentAfter: TriviaContent -> bool)

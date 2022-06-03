@@ -207,6 +207,7 @@ let private addTriviaToTriviaNode (startOfSourceCode: int) (triviaNodes: TriviaN
 let internal collectTriviaFromDirectives
     (source: ISourceText)
     (directives: ConditionalDirectiveTrivia list)
+    (selection: range option)
     : Trivia list =
     directives
     |> List.map (function
@@ -215,8 +216,16 @@ let internal collectTriviaFromDirectives
         | ConditionalDirectiveTrivia.EndIf r ->
             let text = (source.GetContentAt r).TrimEnd()
             { Item = Directive text; Range = r })
+    |> fun trivia ->
+        match selection with
+        | None -> trivia
+        | Some selection -> List.filter (fun t -> RangeHelpers.rangeContainsRange selection t.Range) trivia
 
-let internal collectTriviaFromCodeComments (source: ISourceText) (codeComments: CommentTrivia list) : Trivia list =
+let internal collectTriviaFromCodeComments
+    (source: ISourceText)
+    (codeComments: CommentTrivia list)
+    (selection: range option)
+    : Trivia list =
     codeComments
     |> List.map (function
         | CommentTrivia.BlockComment r ->
@@ -235,6 +244,10 @@ let internal collectTriviaFromCodeComments (source: ISourceText) (codeComments: 
                 )
 
             { Item = item; Range = r })
+    |> fun trivia ->
+        match selection with
+        | None -> trivia
+        | Some selection -> List.filter (fun t -> RangeHelpers.rangeContainsRange selection t.Range) trivia
 
 // TODO: optimize the range of which newlines are allowed in
 // for a selection, the newlines should be found inside the selection
@@ -246,6 +259,7 @@ let internal collectTriviaFromBlankLines
     (source: ISourceText)
     (triviaNode: TriviaNodeAssigner)
     (codeComments: CommentTrivia list)
+    (codeRange: range)
     : Trivia list =
     let fileIndex = triviaNode.Range.FileIndex
 
@@ -289,9 +303,10 @@ let internal collectTriviaFromBlankLines
             }
         )
 
-    let max = source.GetLineCount() - 1
+    let min = codeRange.StartLine - 1
+    let max = codeRange.EndLine - 1
 
-    (0, [ 0..max ])
+    (min, [ min..max ])
     ||> List.chooseState (fun count idx ->
         if ignoreLines.Contains(idx + 1) then
             0, None
@@ -316,7 +331,12 @@ let internal collectTriviaFromBlankLines
     3. Merge trivia with triviaNodes
     4. genTrivia should use ranges to identify what extra content should be added from what triviaNode
 *)
-let collectTrivia (config: FormatConfig) (source: ISourceText) (ast: ParsedInput) : TriviaNode list =
+let collectTrivia
+    (config: FormatConfig)
+    (source: ISourceText)
+    (ast: ParsedInput)
+    (selection: range option)
+    : TriviaNode list =
     let triviaNodesFromAST, directives, codeComments =
         match ast with
         | ParsedInput.ImplFile (ParsedImplFileInput (hds, mns, directives, codeComments)) ->
@@ -325,9 +345,15 @@ let collectTrivia (config: FormatConfig) (source: ISourceText) (ast: ParsedInput
             sigAstToNode ast.FullRange mns, directives, codeComments
 
     let trivia =
-        [ yield! collectTriviaFromDirectives source directives
-          yield! collectTriviaFromCodeComments source codeComments
-          yield! collectTriviaFromBlankLines config source triviaNodesFromAST codeComments ]
+        [ yield! collectTriviaFromDirectives source directives selection
+          yield! collectTriviaFromCodeComments source codeComments selection
+          yield!
+              collectTriviaFromBlankLines
+                  config
+                  source
+                  triviaNodesFromAST
+                  codeComments
+                  (Option.defaultValue ast.FullRange selection) ]
         |> List.sortBy (fun n -> n.Range.Start.Line, n.Range.Start.Column)
 
     // TODO: do we still need this?

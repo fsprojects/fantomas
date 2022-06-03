@@ -5,18 +5,13 @@ open FSharp.Compiler.Syntax
 [<Sealed>]
 type CodeFormatter =
     static member ParseAsync(isSignature, source) : Async<(ParsedInput * string list) array> =
-        async {
-            let! asts =
-                CodeFormatterImpl.getSourceText source
-                |> CodeFormatterImpl.parse isSignature
+        CodeFormatterImpl.getSourceText source
+        |> CodeFormatterImpl.parse isSignature
 
-            return asts
-        }
-
-    static member FormatASTAsync(ast: ParsedInput, defines: string list, source, config) : Async<string> =
+    static member FormatASTAsync(ast: ParsedInput, source, config) : Async<string> =
         let sourceAndTokens = Option.map CodeFormatterImpl.getSourceText source
 
-        CodeFormatterImpl.formatAST ast defines sourceAndTokens config
+        CodeFormatterImpl.formatAST ast sourceAndTokens config None
         |> async.Return
 
     static member FormatDocumentAsync(isSignature, source, config) =

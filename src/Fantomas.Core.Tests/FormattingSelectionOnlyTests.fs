@@ -111,9 +111,9 @@ functionApplication
 let ``only format trivia inside the selection`` () =
     formatSelectionOnly
         false
-        (mkSelection (5, 0) (6, 20))
+        (mkSelection (5, 0) (6, 10))
         """
-
+let x = 0
 
 
 

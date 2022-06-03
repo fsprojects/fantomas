@@ -150,7 +150,7 @@ let formatSelection
                         MaxLineLength = maxLineLength }
 
                 let selection =
-                    CodeFormatterImpl.formatAST tree [] (Some sourceText) selectionConfig
+                    CodeFormatterImpl.formatAST tree (Some sourceText) selectionConfig (Some selection)
 
                 return Some(selection.TrimEnd([| '\r'; '\n' |]))
     }
