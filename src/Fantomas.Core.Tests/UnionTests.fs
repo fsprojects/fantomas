@@ -880,6 +880,25 @@ type Foo = // comment
 """
 
 [<Test>]
+let ``comment after variants with modules`` () =
+    formatSourceString
+        false
+        """
+type X = 
+  | A of int // This comment survives
+  | B of C.D // This comment survives
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type X =
+    | A of int // This comment survives
+    | B of C.D // This comment survives
+"""
+
+[<Test>]
 let ``comment after equals in union`` () =
     formatSourceString
         false
