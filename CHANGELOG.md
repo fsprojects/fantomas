@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+## Changed
+* Trivia not restored after long identifier in SynField. [#2290](https://github.com/fsprojects/fantomas/pull/2290)
+
 ### Fixed
 * Explicit interface with SpaceBeforeClassConstructor. [#2226](https://github.com/fsprojects/fantomas/issues/2226)
 * Spaces around binary operators in units of measure. [#2207](https://github.com/fsprojects/fantomas/issues/2207)

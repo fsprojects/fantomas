@@ -880,7 +880,7 @@ type Foo = // comment
 """
 
 [<Test>]
-let ``comment after variants with modules`` () =
+let ``trivia not restored after long identifier in SynField, 2103`` () =
     formatSourceString
         false
         """
