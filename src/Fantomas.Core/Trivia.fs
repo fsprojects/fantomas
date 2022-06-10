@@ -294,69 +294,73 @@ let internal collectTriviaFromBlankLines
     (codeComments: CommentTrivia list)
     (codeRange: range)
     : Trivia list =
-    let fileIndex = triviaNode.Range.FileIndex
+    if codeRange.StartLine = 0 && codeRange.EndLine = 0 then
+        // weird edge cases where there is no source code but only hash defines
+        []
+    else
+        let fileIndex = triviaNode.Range.FileIndex
 
-    let captureLinesIfMultiline (r: range) =
-        if r.StartLine = r.EndLine then
-            []
-        else
-            [ r.StartLine .. r.EndLine ]
+        let captureLinesIfMultiline (r: range) =
+            if r.StartLine = r.EndLine then
+                []
+            else
+                [ r.StartLine .. r.EndLine ]
 
-    let multilineStringsLines =
-        let rec visit (node: TriviaNodeAssigner) (finalContinuation: int list -> int list) =
-            let continuations: ((int list -> int list) -> int list) list =
-                Array.toList node.Children |> List.map visit
+        let multilineStringsLines =
+            let rec visit (node: TriviaNodeAssigner) (finalContinuation: int list -> int list) =
+                let continuations: ((int list -> int list) -> int list) list =
+                    Array.toList node.Children |> List.map visit
 
-            let currentLines =
-                match node.Type with
-                | SynConst_String
-                | SynConst_Bytes
-                | SynInterpolatedStringPart_String -> captureLinesIfMultiline node.Range
-                | _ -> []
+                let currentLines =
+                    match node.Type with
+                    | SynConst_String
+                    | SynConst_Bytes
+                    | SynInterpolatedStringPart_String -> captureLinesIfMultiline node.Range
+                    | _ -> []
 
-            let finalContinuation (lines: int list list) : int list =
-                List.collect id (currentLines :: lines)
-                |> finalContinuation
+                let finalContinuation (lines: int list list) : int list =
+                    List.collect id (currentLines :: lines)
+                    |> finalContinuation
 
-            Continuation.sequence continuations finalContinuation
+                Continuation.sequence continuations finalContinuation
 
-        visit triviaNode id
+            visit triviaNode id
 
-    let blockCommentLines =
-        codeComments
-        |> List.collect (function
-            | CommentTrivia.BlockComment r -> captureLinesIfMultiline r
-            | CommentTrivia.LineComment _ -> [])
+        let blockCommentLines =
+            codeComments
+            |> List.collect (function
+                | CommentTrivia.BlockComment r -> captureLinesIfMultiline r
+                | CommentTrivia.LineComment _ -> [])
 
-    let ignoreLines =
-        Set(
-            seq {
-                yield! multilineStringsLines
-                yield! blockCommentLines
-            }
-        )
+        let ignoreLines =
+            Set(
+                seq {
+                    yield! multilineStringsLines
+                    yield! blockCommentLines
+                }
+            )
 
-    let min = codeRange.StartLine - 1
-    let max = codeRange.EndLine - 1
+        let min = codeRange.StartLine - 1
+        let max = codeRange.EndLine - 1
 
-    (min, [ min..max ])
-    ||> List.chooseState (fun count idx ->
-        if ignoreLines.Contains(idx + 1) then
-            0, None
-        else
-            let line = source.GetLineString(idx)
-
-            if String.isNotNullOrWhitespace line then
+        (min, [ min..max ])
+        ||> List.chooseState (fun count idx ->
+            if ignoreLines.Contains(idx + 1) then
                 0, None
             else
-                let range =
-                    let p = Position.mkPos (idx + 1) 0
-                    Range.mkFileIndexRange fileIndex p p
+                let line = source.GetLineString(idx)
 
-                if count < config.KeepMaxNumberOfBlankLines then
-                    (count + 1), Some { Item = Newline; Range = range }
+                if String.isNotNullOrWhitespace line then
+                    0, None
                 else
-                    count, None)
+                    let range =
+                        let p = Position.mkPos (idx + 1) 0
+                        Range.mkFileIndexRange fileIndex p p
+
+                    if count < config.KeepMaxNumberOfBlankLines then
+                        (count + 1), Some { Item = Newline; Range = range }
+                    else
+                        count, None)
 
 /// The trivia is not a part of the tree
 /// Either assign it on top of below the root node
