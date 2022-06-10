@@ -33,6 +33,7 @@ type SynLongIdent with
 type SynExprRecordField with
     member this.FullRange: range =
         match this with
+        | SynExprRecordField ((fieldName, _), _, Some expr, _) -> unionRanges fieldName.FullRange expr.Range
         | SynExprRecordField ((fieldName, _), Some equalsRange, _, _) -> unionRanges fieldName.FullRange equalsRange
         | SynExprRecordField ((fieldName, _), None, _, _) -> fieldName.FullRange
 
