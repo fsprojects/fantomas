@@ -340,8 +340,8 @@ let internal collectTriviaFromBlankLines
                 }
             )
 
-        let min = codeRange.StartLine - 1
-        let max = codeRange.EndLine - 1
+        let min = System.Math.Max(0, codeRange.StartLine - 1)
+        let max = System.Math.Min(source.Length - 1, codeRange.EndLine - 1)
 
         (min, [ min..max ])
         ||> List.chooseState (fun count idx ->
