@@ -39,9 +39,9 @@ let findLastNode (nodes: TriviaNodeAssigner list) : TriviaNodeAssigner option =
         |> List.maxBy (fun tn -> tn.Range.EndLine)
         |> Some
 
-let findNodeBeforeLineAndColumn (nodes: TriviaNodeAssigner list) line column =
+let findNodeBeforeLineAndColumn (nodes: TriviaNodeAssigner seq) line column =
     nodes
-    |> List.tryFindBack (fun tn ->
+    |> Seq.tryFindBack (fun tn ->
         let range = tn.Range
 
         range.StartLine <= line
@@ -53,9 +53,9 @@ let findNodeBeforeLineFromStart (nodes: TriviaNodeAssigner list) line =
     |> List.sortByDescending (fun tn -> tn.Range.EndLine, -tn.Range.StartColumn)
     |> List.tryFind (fun tn -> tn.Range.StartLine < line)
 
-let findNodeAfterLineAndColumn (nodes: TriviaNodeAssigner list) line column =
+let findNodeAfterLineAndColumn (nodes: TriviaNodeAssigner seq) line column =
     nodes
-    |> List.tryFind (fun tn ->
+    |> Seq.tryFind (fun tn ->
         let range = tn.Range
 
         (range.StartLine > line)
@@ -401,6 +401,57 @@ let lineCommentAfterSourceCodeToTriviaInstruction
           Range = node.Range
           AddBefore = false })
 
+let blockCommentToTriviaInstruction (containerNode: TriviaNodeAssigner) (trivia: Trivia) : TriviaInstruction option =
+    let nodeAfter =
+        findNodeAfterLineAndColumn containerNode.Children trivia.Range.StartLine trivia.Range.StartColumn
+
+    let nodeBefore =
+        findNodeBeforeLineAndColumn containerNode.Children trivia.Range.StartLine trivia.Range.StartColumn
+
+    let triviaWith newlineBefore newlineAfter =
+        match trivia with
+        | { Item = Comment (BlockComment (content, _, _)) } ->
+            { trivia with Item = Comment(BlockComment(content, newlineBefore, newlineAfter)) }
+        | _ -> trivia
+
+    match nodeBefore, nodeAfter with
+    | Some nb, None when nb.Range.EndLine = trivia.Range.StartLine ->
+        Some
+            { Trivia = triviaWith false false
+              Type = nb.Type
+              Range = nb.Range
+              AddBefore = false }
+    | _ -> None
+
+//     match nodeBefore, nodeAfter with
+//     | Some nb, Some na when
+//         (nb.Range.EndLine < range.StartLine
+//          && na.Range.StartLine > range.EndLine)
+//         ->
+//         Some na
+//         |> updateTriviaNode (fun tn -> tn.ContentBefore.Add(Comment(BlockComment(comment, true, true)))) triviaNodes
+//     | Some n, _ when n.Range.EndLine = range.StartLine ->
+//         Some n
+//         |> updateTriviaNode
+//             (fun tn -> tn.ContentAfter.Add(Comment(BlockComment(comment, false, false))))
+//             triviaNodes
+//     | _, Some n ->
+//         Some n
+//         |> updateTriviaNode
+//             (fun tn ->
+//                 let newline = tn.Range.StartLine > range.EndLine
+//                 tn.ContentBefore.Add(Comment(BlockComment(comment, false, newline))))
+//             triviaNodes
+//     | Some _, _ when (commentIsAfterLastTriviaNode triviaNodes range) ->
+//         findLastNode triviaNodes
+//         |> updateTriviaNode (fun tn -> tn.ContentAfter.Add(Comment(BlockComment(comment, true, false)))) triviaNodes
+//     | Some n, _ ->
+//         Some n
+//         |> updateTriviaNode (fun tn -> tn.ContentAfter.Add(Comment(BlockComment(comment, true, false)))) triviaNodes
+//     | None, None ->
+//         findNodeBeforeLineFromStart triviaNodes range.StartLine
+//         |> updateTriviaNode (fun tn -> tn.ContentAfter.Add(Comment(BlockComment(comment, true, true)))) triviaNodes
+
 let mapTriviaToTriviaInstruction (rootNode: TriviaNodeAssigner) (trivia: Trivia) : TriviaInstruction option =
     let smallestNodeThatContainsTrivia = findNodeWhereRangeFitsIn rootNode trivia.Range
 
@@ -413,9 +464,7 @@ let mapTriviaToTriviaInstruction (rootNode: TriviaNodeAssigner) (trivia: Trivia)
         | TriviaContent.Directive _ -> simpleTriviaToTriviaInstruction parentNode trivia
         | TriviaContent.Comment (Comment.LineCommentAfterSourceCode _) ->
             lineCommentAfterSourceCodeToTriviaInstruction parentNode trivia
-        | TriviaContent.Comment (Comment.BlockComment _) ->
-
-            None
+        | TriviaContent.Comment (Comment.BlockComment _) -> blockCommentToTriviaInstruction parentNode trivia
 
 (*
     1. Collect TriviaNodes from AST

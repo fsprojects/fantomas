@@ -73,35 +73,33 @@ let mkNodeForRangeAfterXmlAndAttributes
             else
                 []
 
-let rec visitSynModuleOrNamespace (modOrNs: SynModuleOrNamespace) : TriviaNodeAssigner =
-    match modOrNs with
-    | SynModuleOrNamespace (longIdent, _, kind, decls, _, attrs, _, _range, trivia) ->
-        let astType, moduleOrNamespace =
-            match kind with
-            | SynModuleOrNamespaceKind.DeclaredNamespace ->
-                SynModuleOrNamespace_DeclaredNamespace,
-                mkNodeOption SynModuleOrNamespace_Namespace trivia.NamespaceKeyword
-            | SynModuleOrNamespaceKind.GlobalNamespace ->
-                SynModuleOrNamespace_GlobalNamespace,
-                mkNodeOption SynModuleOrNamespace_Namespace trivia.NamespaceKeyword
-            | SynModuleOrNamespaceKind.NamedModule ->
-                SynModuleOrNamespace_NamedModule, mkNodeOption SynModuleOrNamespace_Module trivia.ModuleKeyword
-            | SynModuleOrNamespaceKind.AnonModule -> SynModuleOrNamespace_AnonModule, None
+let rec visitSynModuleOrNamespace
+    (SourceParser.ModuleOrNamespace (attrs, _, moduleKeyword, namespaceKeyword, _, longIdent, decls, _, kind, fullRange))
+    =
+    let astType, moduleOrNamespace =
+        match kind with
+        | SynModuleOrNamespaceKind.DeclaredNamespace ->
+            SynModuleOrNamespace_DeclaredNamespace, mkNodeOption SynModuleOrNamespace_Namespace namespaceKeyword
+        | SynModuleOrNamespaceKind.GlobalNamespace ->
+            SynModuleOrNamespace_GlobalNamespace, mkNodeOption SynModuleOrNamespace_Namespace namespaceKeyword
+        | SynModuleOrNamespaceKind.NamedModule ->
+            SynModuleOrNamespace_NamedModule, mkNodeOption SynModuleOrNamespace_Module moduleKeyword
+        | SynModuleOrNamespaceKind.AnonModule -> SynModuleOrNamespace_AnonModule, None
 
-        let longIdentNodes =
-            match kind, decls with
-            | SynModuleOrNamespaceKind.AnonModule, _ :: _ -> None
-            | _ -> Some(visitLongIdentIncludingFullRange longIdent)
+    let longIdentNodes =
+        match kind, decls with
+        | SynModuleOrNamespaceKind.AnonModule, _ :: _ -> None
+        | _ -> Some(visitLongIdentIncludingFullRange longIdent)
 
-        { Range = modOrNs.FullRange
-          Type = astType
-          FSharpASTNode = None
-          Children =
-            sortChildren
-                [| yield! Option.toList moduleOrNamespace
-                   yield! Option.toList longIdentNodes
-                   yield! visitSynAttributeLists attrs
-                   yield! (List.map visitSynModuleDecl decls) |] }
+    { Range = fullRange
+      Type = astType
+      FSharpASTNode = None
+      Children =
+        sortChildren
+            [| yield! Option.toList moduleOrNamespace
+               yield! Option.toList longIdentNodes
+               yield! visitSynAttributeLists attrs
+               yield! (List.map visitSynModuleDecl decls) |] }
 
 and visitSynModuleDecl (ast: SynModuleDecl) : TriviaNodeAssigner =
     let rec visit
@@ -1691,35 +1689,42 @@ and visitParsedHashDirective (hash: ParsedHashDirective) : TriviaNodeAssigner =
     match hash with
     | ParsedHashDirective (_, _, range) -> mkNode ParsedHashDirective_ range
 
-and visitSynModuleOrNamespaceSig (modOrNs: SynModuleOrNamespaceSig) : TriviaNodeAssigner =
-    match modOrNs with
-    | SynModuleOrNamespaceSig (longIdent, _, kind, decls, _, attrs, _, _range, trivia) ->
-        let astType, moduleOrNamespace =
-            match kind with
-            | SynModuleOrNamespaceKind.DeclaredNamespace ->
-                SynModuleOrNamespace_DeclaredNamespace,
-                mkNodeOption SynModuleOrNamespace_Namespace trivia.NamespaceKeyword
-            | SynModuleOrNamespaceKind.GlobalNamespace ->
-                SynModuleOrNamespace_GlobalNamespace,
-                mkNodeOption SynModuleOrNamespace_Namespace trivia.NamespaceKeyword
-            | SynModuleOrNamespaceKind.NamedModule ->
-                SynModuleOrNamespace_NamedModule, mkNodeOption SynModuleOrNamespace_Module trivia.ModuleKeyword
-            | SynModuleOrNamespaceKind.AnonModule -> SynModuleOrNamespace_AnonModule, None
+and visitSynModuleOrNamespaceSig
+    (SourceParser.SigModuleOrNamespace (attrs,
+                                        _,
+                                        moduleKeyword,
+                                        namespaceKeyword,
+                                        _,
+                                        longIdent,
+                                        decls,
+                                        _,
+                                        kind,
+                                        fullRange))
+    =
+    let astType, moduleOrNamespace =
+        match kind with
+        | SynModuleOrNamespaceKind.DeclaredNamespace ->
+            SynModuleOrNamespace_DeclaredNamespace, mkNodeOption SynModuleOrNamespace_Namespace namespaceKeyword
+        | SynModuleOrNamespaceKind.GlobalNamespace ->
+            SynModuleOrNamespace_GlobalNamespace, mkNodeOption SynModuleOrNamespace_Namespace namespaceKeyword
+        | SynModuleOrNamespaceKind.NamedModule ->
+            SynModuleOrNamespace_NamedModule, mkNodeOption SynModuleOrNamespace_Module moduleKeyword
+        | SynModuleOrNamespaceKind.AnonModule -> SynModuleOrNamespace_AnonModule, None
 
-        let longIdentNodes =
-            match kind, decls with
-            | SynModuleOrNamespaceKind.AnonModule, _ :: _ -> None
-            | _ -> Some(visitLongIdentIncludingFullRange longIdent)
+    let longIdentNodes =
+        match kind, decls with
+        | SynModuleOrNamespaceKind.AnonModule, _ :: _ -> None
+        | _ -> Some(visitLongIdentIncludingFullRange longIdent)
 
-        { Range = modOrNs.FullRange
-          Type = astType
-          FSharpASTNode = None
-          Children =
-            sortChildren
-                [| yield! Option.toList moduleOrNamespace
-                   yield! Option.toList longIdentNodes
-                   yield! visitSynAttributeLists attrs
-                   yield! (List.map visitSynModuleSigDecl decls) |] }
+    { Range = fullRange
+      Type = astType
+      FSharpASTNode = None
+      Children =
+        sortChildren
+            [| yield! Option.toList moduleOrNamespace
+               yield! Option.toList longIdentNodes
+               yield! visitSynAttributeLists attrs
+               yield! (List.map visitSynModuleSigDecl decls) |] }
 
 and visitSynModuleSigDecl (ast: SynModuleSigDecl) : TriviaNodeAssigner =
     let rec visit

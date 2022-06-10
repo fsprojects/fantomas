@@ -78,9 +78,9 @@ let (|ParsedSigFileInput|)
     (hs, mns, directives, codeComments)
 
 let (|ModuleOrNamespace|)
-    (SynModuleOrNamespace.SynModuleOrNamespace (lids, isRecursive, kind, mds, px, ats, ao, range, trivia))
+    (SynModuleOrNamespace.SynModuleOrNamespace (lids, isRecursive, kind, mds, px, ats, ao, _range, trivia) as m)
     =
-    (ats, px, trivia.ModuleKeyword, trivia.NamespaceKeyword, ao, lids, mds, isRecursive, kind, range)
+    (ats, px, trivia.ModuleKeyword, trivia.NamespaceKeyword, ao, lids, mds, isRecursive, kind, m.FullRange)
 
 let (|SigModuleOrNamespace|)
     (SynModuleOrNamespaceSig.SynModuleOrNamespaceSig (lids, isRecursive, kind, mds, px, ats, ao, range, trivia))
