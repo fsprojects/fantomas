@@ -762,15 +762,16 @@ let (|InfixApp|_|) synExpr =
 
 let (|NewlineInfixApp|_|) =
     function
-    | InfixApp (text, operatorExpr, e1, e2, _) when newLineInfixOps.Contains(text) -> Some(text, operatorExpr, e1, e2)
+    | InfixApp (text, operatorExpr, e1, e2, range) when newLineInfixOps.Contains(text) ->
+        Some(text, operatorExpr, e1, e2, range)
     | _ -> None
 
 let (|NewlineInfixApps|_|) e =
     let rec loop synExpr =
         match synExpr with
-        | NewlineInfixApp (s, opE, e, e2) ->
+        | NewlineInfixApp (s, opE, e, e2, range) ->
             let e1, es = loop e
-            (e1, (s, opE, e2) :: es)
+            (e1, (s, opE, e2, range) :: es)
         | e -> (e, [])
 
     match loop e with
@@ -1775,8 +1776,8 @@ let private shouldNotIndentBranch e es =
         | Match _
         | TryWith _
         | App (_, [ ObjExpr _ ])
-        | NewlineInfixApp (_, _, AppParenTupleArg _, _)
-        | NewlineInfixApp (_, _, _, App (_, [ Paren (_, Lambda _, _, _) ])) -> true
+        | NewlineInfixApp (_, _, AppParenTupleArg _, _, _)
+        | NewlineInfixApp (_, _, _, App (_, [ Paren (_, Lambda _, _, _) ]), _) -> true
         | _ -> false
 
     List.forall isShortIfBranch es

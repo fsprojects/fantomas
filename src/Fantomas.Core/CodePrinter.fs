@@ -1598,15 +1598,15 @@ and genExpr astContext synExpr ctx =
             +> extraSpaceBeforeString
             +> genExpr astContext e
 
-        | NewlineInfixApp (operatorText, operatorExpr, (Lambda _ as e1), e2)
-        | NewlineInfixApp (operatorText, operatorExpr, (IfThenElse _ as e1), e2) ->
+        | NewlineInfixApp (operatorText, operatorExpr, (Lambda _ as e1), e2, _)
+        | NewlineInfixApp (operatorText, operatorExpr, (IfThenElse _ as e1), e2, _) ->
             genMultilineInfixExpr astContext e1 operatorText operatorExpr e2
 
         | NewlineInfixApps (e, es) ->
             let shortExpr =
                 genExpr astContext e
                 +> sepSpace
-                +> col sepSpace es (fun (s, oe, e) ->
+                +> col sepSpace es (fun (s, oe, e, _range) ->
                     genSynLongIdent false oe
                     +> sepSpace
                     +> onlyIf (isSynExprLambdaOrIfThenElse e) sepOpenT
@@ -1616,11 +1616,13 @@ and genExpr astContext synExpr ctx =
             let multilineExpr =
                 match es with
                 | [] -> genExpr astContext e
-                | (s, oe, e2) :: es ->
+                | (s, oe, e2, range) :: es ->
                     genMultilineInfixExpr astContext e s oe e2
+                    +> leaveNodeFor SynExpr_App range
                     +> sepNln
-                    +> col sepNln es (fun (s, oe, e) ->
-                        genSynLongIdent false oe
+                    +> col sepNln es (fun (s, oe, e, range) ->
+                        leaveNodeFor SynExpr_App range
+                        +> genSynLongIdent false oe
                         +> sepSpace
                         +> genExprInMultilineInfixExpr astContext e)
 
