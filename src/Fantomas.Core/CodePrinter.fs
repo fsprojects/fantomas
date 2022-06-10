@@ -2534,9 +2534,7 @@ and genExpr astContext synExpr ctx =
             | SynExpr.IndexRange _ -> genTriviaFor SynExpr_IndexRange synExpr.Range
             | SynExpr.IndexFromEnd _ -> genTriviaFor SynExpr_IndexFromEnd synExpr.Range
             | SynExpr.Dynamic _ -> genTriviaFor SynExpr_Dynamic synExpr.Range
-            | SynExpr.Const _ ->
-                // SynConst has trivia attached to it
-                id
+            | SynExpr.Const _ -> genTriviaFor SynExpr_Const synExpr.Range
             | SynExpr.LetOrUse _
             | SynExpr.Sequential _
             | SynExpr.ComputationExpr _ ->
