@@ -1123,32 +1123,24 @@ and visitSynBinding (binding: SynBinding) : TriviaNodeAssigner =
             (sortChildren
                 [| yield! visitSynAttributeLists attrs
                    yield! letNode
-                   yield! Option.toList (visitSynValData valData)
+                   yield! visitSynValData valData
                    yield! Option.toList headPatNodes
                    yield! Option.toList returnInfo
                    yield! Option.toList (mkNodeOption SynBinding_Equals trivia.EqualsRange)
                    yield! visitSynExpr expr |])
 
-and visitSynValData (svd: SynValData) : TriviaNodeAssigner option =
+and visitSynValData (svd: SynValData) : TriviaNodeAssigner list =
     match svd with
     | SynValData (memberFlags, svi, _) ->
-        let flagNodes =
-            match memberFlags with
-            | Some mf -> visitSynMemberFlags mf
-            | None -> []
-
-        svd.FullRange
-        |> Option.map (fun range ->
-            mkNodeWithChildren
-                SynValData_
-                range
-                (sortChildren
-                    [| yield! flagNodes
-                       yield! Option.toList (visitSynValInfo svi) |]))
+        [ yield!
+              (Option.map visitSynMemberFlags
+               >> Option.defaultValue [])
+                  memberFlags
+          yield! Option.toList (visitSynValInfo svi) ]
 
 and visitSynMemberFlags (memberFlags: SynMemberFlags) : TriviaNodeAssigner list =
-    [ yield! Option.toList (mkNodeOption SynValData_Static memberFlags.Trivia.StaticRange)
-      yield! Option.toList (mkNodeOption SynValData_Member memberFlags.Trivia.MemberRange) ]
+    [ yield! Option.toList (mkNodeOption SynMemberFlags_Static memberFlags.Trivia.StaticRange)
+      yield! Option.toList (mkNodeOption SynMemberFlags_Member memberFlags.Trivia.MemberRange) ]
 
 and visitSynValSig (svs: SynValSig) : TriviaNodeAssigner =
     match svs with

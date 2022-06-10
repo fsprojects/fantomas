@@ -999,14 +999,14 @@ and genMemberFlags (mf: SynMemberFlags) =
     match mf.Trivia with
     | { StaticRange = Some s
         MemberRange = Some _m } ->
-        genTriviaFor SynValData_Static s !- "static"
+        genTriviaFor SynMemberFlags_Static s !- "static"
         +> sepSpace
         +> !- "member "
     | { OverrideRange = Some _o } -> !- "override "
     | { DefaultRange = Some _d } -> !- "default "
     | { AbstractRange = Some _a
         MemberRange = Some _m } -> !- "abstract member "
-    | { MemberRange = Some m } -> genTriviaFor SynValData_Member m !- "member "
+    | { MemberRange = Some m } -> genTriviaFor SynMemberFlags_Member m !- "member "
     | { AbstractRange = Some _a } -> !- "abstract "
     | _ -> sepNone
 
