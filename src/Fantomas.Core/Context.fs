@@ -1166,7 +1166,7 @@ let printTriviaContent (c: TriviaContent) (ctx: Context) =
         +> ifElse after sepNlnForTrivia sepNone
     | Newline -> (ifElse addNewline (sepNlnForTrivia +> sepNlnForTrivia) sepNlnForTrivia)
     | Directive s
-    | Comment (LineCommentOnSingleLine s) ->
+    | Comment (CommentOnSingleLine s) ->
         (ifElse addNewline sepNlnForTrivia sepNone)
         +> !-s
         +> sepNlnForTrivia

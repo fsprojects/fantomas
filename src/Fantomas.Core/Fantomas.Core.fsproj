@@ -22,6 +22,7 @@
     <Compile Include="FormatConfig.fs" />
     <Compile Include="DefineCombinationSolver.fs" />
     <Compile Include="Defines.fs" />
+    <Compile Include="Trivia.fsi" />
     <Compile Include="Trivia.fs" />
     <Compile Include="Context.fs" />
     <Compile Include="SourceTransformer.fs" />

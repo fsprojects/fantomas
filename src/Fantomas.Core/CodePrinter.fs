@@ -3380,7 +3380,7 @@ and genExprInIfOrMatch astContext (e: SynExpr) (ctx: Context) : Context =
                 List.exists
                     (fun ti ->
                         match ti.Trivia.Item with
-                        | Comment (LineCommentOnSingleLine _) -> RangeHelpers.rangeEq ti.Range e.Range
+                        | Comment (CommentOnSingleLine _) -> RangeHelpers.rangeEq ti.Range e.Range
                         | _ -> false)
                     triviaInstructions
 

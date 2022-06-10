@@ -7,7 +7,8 @@ type DefineCombination = string list
 
 type Comment =
     | LineCommentAfterSourceCode of comment: string
-    | LineCommentOnSingleLine of comment: string
+    /// This can be both a BlockComment or a LineComment
+    | CommentOnSingleLine of comment: string
     | BlockComment of string * newlineBefore: bool * newlineAfter: bool
 
 (* LineComment Examples
