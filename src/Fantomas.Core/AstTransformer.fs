@@ -135,7 +135,7 @@ and visitSynModuleDecl (ast: SynModuleDecl) : TriviaNodeAssigner =
                     range
                     (sortChildren
                         [| yield! moduleNode
-                           yield visitSynComponentInfo sci
+                           yield! visitSynComponentInfo sci
                            yield! Option.toList (mkNodeOption SynModuleDecl_NestedModule_Equals trivia.EqualsRange)
                            yield! nodes |])
                 |> finalContinuation
@@ -976,7 +976,7 @@ and visitSynTypeDefn (td: SynTypeDefn) : TriviaNodeAssigner =
             (sortChildren
                 [| yield! typeKeyword
                    yield! Option.toList (mkNodeOption SynTypeDefn_Equals trivia.EqualsRange)
-                   yield visitSynComponentInfo sci
+                   yield! visitSynComponentInfo sci
                    yield visitSynTypeDefnRepr stdr
                    yield! Option.toList (mkNodeOption SynTypeDefn_With trivia.WithKeyword)
                    yield! List.map visitSynMemberDefn members |])
@@ -988,7 +988,7 @@ and visitSynTypeDefnSig (typeDefSig: SynTypeDefnSig) : TriviaNodeAssigner =
             SynTypeDefnSig_
             typeDefSig.Range
             (sortChildren
-                [| yield visitSynComponentInfo sci
+                [| yield! visitSynComponentInfo sci
                    yield! Option.toList (mkNodeOption SynTypeDefnSig_Equals equalsRange)
                    yield visitSynTypeDefnSigRepr synTypeDefnSigReprs
                    yield! Option.toList (mkNodeOption SynTypeDefnSig_With withRange)
@@ -1344,15 +1344,11 @@ and visitSynConstructorArgs (ctorArgs: SynArgPats) : TriviaNodeAssigner option =
 
         Some(mkNodeWithChildren SynArgPats_NamePatPairs range (sortChildren [| yield! children |]))
 
-and visitSynComponentInfo (sci: SynComponentInfo) : TriviaNodeAssigner =
+and visitSynComponentInfo (sci: SynComponentInfo) : TriviaNodeAssigner list =
     match sci with
-    | SynComponentInfo (attribs, typeParams, _, _, _, _, _, range) ->
-        mkNodeWithChildren
-            SynComponentInfo_
-            range
-            (sortChildren
-                [| yield! visitSynAttributeLists attribs
-                   yield! (Option.map visitSynTyparDecls >> Option.toList) typeParams |])
+    | SynComponentInfo (attributes = attribs; typeParams = typeParams) ->
+        [ yield! visitSynAttributeLists attribs
+          yield! (Option.map visitSynTyparDecls >> Option.toList) typeParams ]
 
 and visitSynTyparDecls (decls: SynTyparDecls) : TriviaNodeAssigner =
     match decls with
@@ -1751,7 +1747,7 @@ and visitSynModuleSigDecl (ast: SynModuleSigDecl) : TriviaNodeAssigner =
                     range
                     (sortChildren
                         [| yield! moduleKeyword
-                           yield visitSynComponentInfo sci
+                           yield! visitSynComponentInfo sci
                            yield! Option.toList (mkNodeOption SynModuleSigDecl_NestedModule_Equals trivia.EqualsRange)
                            yield! nodes |])
                 |> finalContinuation

@@ -293,7 +293,7 @@ type FsAstType =
     // TODO: update in CodePrinter
     | SynArgPats_NamePatPair
     | SynArgPats_NamePatPairs_Equals
-    | SynComponentInfo_
+    // | SynComponentInfo_
     | SynTypeDefnRepr_ObjectModel
     // | SynTypeDefnRepr_Simple
     // | SynTypeDefnRepr_Exception

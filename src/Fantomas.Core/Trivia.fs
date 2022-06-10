@@ -362,8 +362,8 @@ let private triviaBeforeOrAfterEntireTree (rootNode: TriviaNodeAssigner) (trivia
       Range = rootNode.Range
       AddBefore = isBefore }
 
-// Try to put the trivia on top of the closest node
-// If that didn't work put it after a node
+/// Try to put the trivia on top of the closest node
+/// If that didn't work put it after a node
 let private simpleTriviaToTriviaInstruction
     (containerNode: TriviaNodeAssigner)
     (trivia: Trivia)
@@ -434,6 +434,8 @@ let collectTrivia
                 | Some { RootNode = rootNode } -> rootNode
 
             rootNode, directives, codeComments
+
+    printTriviaNode rootNode
 
     let trivia =
         let codeRange =
