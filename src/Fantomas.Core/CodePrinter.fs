@@ -166,7 +166,7 @@ and genModuleOrNamespace
         (moduleOrNamespace +> sepModuleAndFirstDecl)
     +> genModuleDeclList astContext mds
     |> (match moduleKind with
-        | SynModuleOrNamespaceKind.AnonModule -> id
+        | SynModuleOrNamespaceKind.AnonModule -> genTriviaFor SynModuleOrNamespace_AnonModule range
         | SynModuleOrNamespaceKind.DeclaredNamespace -> genTriviaFor SynModuleOrNamespace_DeclaredNamespace range
         | SynModuleOrNamespaceKind.GlobalNamespace -> genTriviaFor SynModuleOrNamespace_GlobalNamespace range
         | SynModuleOrNamespaceKind.NamedModule -> genTriviaFor SynModuleOrNamespace_NamedModule range)

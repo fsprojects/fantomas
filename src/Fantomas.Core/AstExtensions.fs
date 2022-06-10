@@ -60,11 +60,17 @@ type SynModuleOrNamespaceSig with
 
         | _ -> this.Range
 
+type CommentTrivia with
+    member this.Range =
+        match this with
+        | CommentTrivia.LineComment (range = r)
+        | CommentTrivia.BlockComment (range = r) -> r
+
 // TODO: construct actual range of  file, from first to last content
 type ParsedInput with
     member this.FullRange: range =
         match this with
-        | ParsedInput.ImplFile (ParsedImplFileInput (hashDirectives = directives; modules = modules)) ->
+        | ParsedInput.ImplFile (ParsedImplFileInput (hashDirectives = directives; modules = modules; trivia = trivia)) ->
             let startPos =
                 match directives with
                 | ParsedHashDirective (range = r) :: _ -> r.Start
@@ -81,8 +87,16 @@ type ParsedInput with
                     | Some (ParsedHashDirective (range = r)) -> r.End
                 | Some lastModule -> lastModule.FullRange.End
 
-            mkRange this.Range.FileName startPos endPos
-        | ParsedInput.SigFile (ParsedSigFileInput (hashDirectives = directives; modules = modules)) ->
+            let astRange = mkRange this.Range.FileName startPos endPos
+
+            (astRange, trivia.CodeComments)
+            ||> List.fold (fun acc codeComment ->
+                if acc.StartLine < codeComment.Range.StartLine then
+                    acc
+                else
+                    unionRanges codeComment.Range acc)
+
+        | ParsedInput.SigFile (ParsedSigFileInput (hashDirectives = directives; modules = modules; trivia = trivia)) ->
             let startPos =
                 match directives with
                 | ParsedHashDirective (range = r) :: _ -> r.Start
@@ -99,7 +113,14 @@ type ParsedInput with
                     | Some (ParsedHashDirective (range = r)) -> r.End
                 | Some lastModule -> lastModule.FullRange.End
 
-            mkRange this.Range.FileName startPos endPos
+            let astRange = mkRange this.Range.FileName startPos endPos
+
+            (astRange, trivia.CodeComments)
+            ||> List.fold (fun acc codeComment ->
+                if acc.StartLine < codeComment.Range.StartLine then
+                    acc
+                else
+                    unionRanges codeComment.Range acc)
 
 type SynMemberFlags with
     member memberFlags.FullRange: range option =
