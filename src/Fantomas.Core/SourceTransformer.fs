@@ -219,7 +219,7 @@ let rec synExprToFsAstType (expr: SynExpr) : FsAstType * Range =
     | SynExpr.YieldOrReturn _ -> SynExpr_YieldOrReturn, expr.Range
     | SynExpr.IfThenElse _ -> SynExpr_IfThenElse, expr.Range
     | SynExpr.LetOrUseBang _ -> SynExpr_LetOrUseBang, expr.Range
-    | SynExpr.Const (c, _) -> synConstToFsAstType c, expr.Range
+    | SynExpr.Const _ -> SynExpr_Const, expr.Range
     | SynExpr.Lambda _ -> SynExpr_Lambda, expr.Range
     | SynExpr.Ident _ -> SynExpr_Ident, expr.Range
     | SynExpr.App _ -> SynExpr_App, expr.Range
