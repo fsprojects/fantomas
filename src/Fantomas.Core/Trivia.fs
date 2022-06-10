@@ -375,7 +375,7 @@ let triviaBeforeOrAfterEntireTree (rootNode: TriviaNodeAssigner) (trivia: Trivia
       AddBefore = isBefore }
 
 /// Try to put the trivia on top of the closest node
-/// If that didn't work put it after a node
+/// If that didn't work put it after the last node
 let simpleTriviaToTriviaInstruction (containerNode: TriviaNodeAssigner) (trivia: Trivia) : TriviaInstruction option =
     containerNode.Children
     |> Array.tryFind (fun node -> node.Range.StartLine > trivia.Range.StartLine)
@@ -384,6 +384,13 @@ let simpleTriviaToTriviaInstruction (containerNode: TriviaNodeAssigner) (trivia:
           Type = node.Type
           Range = node.Range
           AddBefore = true })
+    |> Option.orElseWith (fun () ->
+        Array.tryLast containerNode.Children
+        |> Option.map (fun node ->
+            { Trivia = trivia
+              Type = node.Type
+              Range = node.Range
+              AddBefore = false }))
 
 let lineCommentAfterSourceCodeToTriviaInstruction
     (containerNode: TriviaNodeAssigner)

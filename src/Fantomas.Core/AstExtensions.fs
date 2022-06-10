@@ -66,6 +66,17 @@ type CommentTrivia with
         | CommentTrivia.LineComment (range = r)
         | CommentTrivia.BlockComment (range = r) -> r
 
+let private includeComments (baseRange: range) (comments: CommentTrivia list) : range =
+    (baseRange, comments)
+    ||> List.fold (fun acc codeComment ->
+        if acc.StartLine < codeComment.Range.StartLine
+           && acc.EndLine > codeComment.Range.EndLine then
+            acc
+        elif codeComment.Range.EndLine > acc.EndLine then
+            unionRanges acc codeComment.Range
+        else
+            unionRanges codeComment.Range acc)
+
 // TODO: construct actual range of  file, from first to last content
 type ParsedInput with
     member this.FullRange: range =
@@ -88,13 +99,7 @@ type ParsedInput with
                 | Some lastModule -> lastModule.FullRange.End
 
             let astRange = mkRange this.Range.FileName startPos endPos
-
-            (astRange, trivia.CodeComments)
-            ||> List.fold (fun acc codeComment ->
-                if acc.StartLine < codeComment.Range.StartLine then
-                    acc
-                else
-                    unionRanges codeComment.Range acc)
+            includeComments astRange trivia.CodeComments
 
         | ParsedInput.SigFile (ParsedSigFileInput (hashDirectives = directives; modules = modules; trivia = trivia)) ->
             let startPos =
@@ -114,13 +119,7 @@ type ParsedInput with
                 | Some lastModule -> lastModule.FullRange.End
 
             let astRange = mkRange this.Range.FileName startPos endPos
-
-            (astRange, trivia.CodeComments)
-            ||> List.fold (fun acc codeComment ->
-                if acc.StartLine < codeComment.Range.StartLine then
-                    acc
-                else
-                    unionRanges codeComment.Range acc)
+            includeComments astRange trivia.CodeComments
 
 type SynMemberFlags with
     member memberFlags.FullRange: range option =
