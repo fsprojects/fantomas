@@ -300,7 +300,7 @@ and visitSynExpr (synExpr: SynExpr) : TriviaNodeAssigner list =
                        yield! visitOptSynExpr (Option.map fst argOptions)
                        yield! Option.toList (mkNodeOption SynExpr_ObjExpr_With withRange)
                        yield! List.map visitSynBinding bindings
-                       yield! List.map visitSynMemberDefn members
+                       yield! visitSynMemberDefns members
                        yield! List.map visitSynInterfaceImpl extraImpls |])
             |> List.singleton
             |> finalContinuation
@@ -957,7 +957,7 @@ and visitSynInterfaceImpl (ii: SynInterfaceImpl) : TriviaNodeAssigner =
                 [| yield! Option.toList (mkNodeOption SynInterfaceImpl_With withKeyword)
                    yield visitSynType typ
                    yield! List.map visitSynBinding bindings
-                   yield! List.map visitSynMemberDefn members |])
+                   yield! visitSynMemberDefns members |])
 
 and visitSynTypeDefn (td: SynTypeDefn) : TriviaNodeAssigner =
     match td with
@@ -979,7 +979,7 @@ and visitSynTypeDefn (td: SynTypeDefn) : TriviaNodeAssigner =
                    yield! visitSynComponentInfo sci
                    yield visitSynTypeDefnRepr stdr
                    yield! Option.toList (mkNodeOption SynTypeDefn_With trivia.WithKeyword)
-                   yield! List.map visitSynMemberDefn members |])
+                   yield! visitSynMemberDefns members |])
 
 and visitSynTypeDefnSig (typeDefSig: SynTypeDefnSig) : TriviaNodeAssigner =
     match typeDefSig with
@@ -1039,7 +1039,7 @@ and visitSynMemberDefn (mbrDef: SynMemberDefn) : TriviaNodeAssigner =
         let ms =
             match members with
             | None -> []
-            | Some ms -> List.map visitSynMemberDefn ms
+            | Some ms -> visitSynMemberDefns ms
 
         mkNodeWithChildren
             SynMemberDefn_Interface
@@ -1061,6 +1061,24 @@ and visitSynMemberDefn (mbrDef: SynMemberDefn) : TriviaNodeAssigner =
                    yield! (visitSynAttributeLists attrs)
                    yield! (Option.map visitSynType >> Option.toList) typeOpt
                    yield! visitSynExpr synExpr |])
+
+and visitSynMemberDefns (ms: SynMemberDefn list) : TriviaNodeAssigner list =
+    ms
+    |> List.groupBy (fun ms -> ms.Range)
+    |> List.map (fun (_, g) ->
+        match g with
+        | [ single ] -> visitSynMemberDefn single
+        | [ SynMemberDefn.Member _ as gt; SynMemberDefn.Member _ as st ] ->
+            let getNode = visitSynMemberDefn gt
+            let setNode = visitSynMemberDefn st
+
+            let combinedChildren =
+                sortChildren
+                    [| yield! getNode.Children
+                       yield! setNode.Children |]
+
+            { getNode with Children = combinedChildren }
+        | _ -> failwith "most unexpected")
 
 and visitSynSimplePat (sp: SynSimplePat) : TriviaNodeAssigner =
     let rec visit (sp: SynSimplePat) (continuation: TriviaNodeAssigner -> TriviaNodeAssigner) : TriviaNodeAssigner =
@@ -1251,7 +1269,7 @@ and visitSynPat (sp: SynPat) : TriviaNodeAssigner =
                 (sortChildren
                     [| yield! propertyNodes
                        yield! Option.toList (Option.bind visitSynValTyparDecls svtd)
-                       yield! Option.toList (visitSynConstructorArgs ctorArgs) |])
+                       yield! visitSynConstructorArgs ctorArgs |])
             |> finalContinuation
         | SynPat.Tuple (_, pats, range) ->
             let continuations: ((TriviaNodeAssigner -> TriviaNodeAssigner) -> TriviaNodeAssigner) list =
@@ -1315,14 +1333,9 @@ and visitSynPat (sp: SynPat) : TriviaNodeAssigner =
 
     visit sp id
 
-and visitSynConstructorArgs (ctorArgs: SynArgPats) : TriviaNodeAssigner option =
+and visitSynConstructorArgs (ctorArgs: SynArgPats) : TriviaNodeAssigner list =
     match ctorArgs with
-    | SynArgPats.Pats pats ->
-        pats
-        |> List.map (fun p -> p.Range)
-        |> RangeHelpers.mergeRanges
-        |> Option.map (fun range ->
-            mkNodeWithChildren SynArgPats_Pats range (sortChildren [| yield! List.map visitSynPat pats |]))
+    | SynArgPats.Pats pats -> List.map visitSynPat pats
     | SynArgPats.NamePatPairs (pats, range) ->
         let children =
             pats
@@ -1334,7 +1347,7 @@ and visitSynConstructorArgs (ctorArgs: SynArgPats) : TriviaNodeAssigner option =
                        mkNode SynArgPats_NamePatPairs_Equals eqRange
                        visitSynPat pat |])
 
-        Some(mkNodeWithChildren SynArgPats_NamePatPairs range (sortChildren [| yield! children |]))
+        [ mkNodeWithChildren SynArgPats_NamePatPairs range (sortChildren [| yield! children |]) ]
 
 and visitSynComponentInfo (sci: SynComponentInfo) : TriviaNodeAssigner list =
     match sci with
@@ -1359,7 +1372,7 @@ and visitSynTypeDefnRepr (stdr: SynTypeDefnRepr) : TriviaNodeAssigner =
             range
             (sortChildren
                 [| yield! Option.toList (visitSynTypeDefnKind kind)
-                   yield! List.map visitSynMemberDefn members |])
+                   yield! visitSynMemberDefns members |])
     | SynTypeDefnRepr.Simple (simpleRepr, _) -> visitSynTypeDefnSimpleRepr simpleRepr
     | SynTypeDefnRepr.Exception exceptionRepr -> visitSynExceptionDefnRepr exceptionRepr
 
@@ -1422,7 +1435,7 @@ and visitSynExceptionDefn (exceptionDef: SynExceptionDefn) : TriviaNodeAssigner 
             (sortChildren
                 [| yield visitSynExceptionDefnRepr sedr
                    yield! Option.toList (mkNodeOption SynExceptionDefn_With withKeyword)
-                   yield! List.map visitSynMemberDefn members |])
+                   yield! visitSynMemberDefns members |])
 
 and visitSynExceptionDefnRepr (sedr: SynExceptionDefnRepr) : TriviaNodeAssigner =
     match sedr with
@@ -1487,7 +1500,7 @@ and visitSynEnumCase (sec: SynEnumCase) : TriviaNodeAssigner =
 
 and visitSynField (sfield: SynField) : TriviaNodeAssigner =
     match sfield with
-    | SynField (attrs, _, ident, typ, _, preXmlDoc, _, range) ->
+    | SynField (attrs, _, ident, typ, _, preXmlDoc, _, _range) ->
         let innerNode =
             match ident with
             | None -> []
