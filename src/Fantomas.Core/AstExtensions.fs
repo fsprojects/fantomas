@@ -177,3 +177,12 @@ type SynTyparDecl with
         match RangeHelpers.mergeRanges attrRange with
         | None -> synTypar.Range
         | Some ar -> unionRanges ar synTypar.Range
+
+// TODO: made fix this one over at the compiler side
+type SynField with
+    member sf.FullRange: range =
+        let (SynField (attributes = attrs; range = r)) = sf
+
+        match attrs with
+        | [] -> r
+        | head :: _ -> unionRanges head.Range r

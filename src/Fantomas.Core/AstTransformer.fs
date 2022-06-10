@@ -1498,7 +1498,7 @@ and visitSynField (sfield: SynField) : TriviaNodeAssigner =
 
         mkNodeWithChildren
             SynField_
-            range
+            sfield.FullRange
             (sortChildren
                 [| yield! (visitSynAttributeLists attrs)
                    yield! innerNode
