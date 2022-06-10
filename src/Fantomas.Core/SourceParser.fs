@@ -1401,7 +1401,12 @@ let (|SigTypeDef|)
     =
     (ats, px, ao, tds, tcs, equalsRange, tdr, withKeyword, ms, lid, preferPostfix, range)
 
-let (|TyparDecl|) (SynTyparDecl (ats, tp)) = (ats, tp)
+let (|TyparDecl|) (SynTyparDecl (ats, tp) as std) = (ats, tp, std.FullRange)
+
+let (|PostfixList|_|) =
+    function
+    | SynTyparDecls.PostfixList (tds, tcs, StartEndRange 1 (gt, r, lt)) -> Some(gt, tds, tcs, lt, r)
+    | _ -> None
 
 // Types (15 cases)
 

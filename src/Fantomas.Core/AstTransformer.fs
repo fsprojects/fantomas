@@ -1181,10 +1181,10 @@ and visitSynValTyparDecls (valTypeDecl: SynValTyparDecls) : TriviaNodeAssigner o
 
 and visitSynTyparDecl (std: SynTyparDecl) : TriviaNodeAssigner =
     match std with
-    | SynTyparDecl (attrs, synTypar) ->
+    | SourceParser.TyparDecl (attrs, synTypar, fullRange) ->
         mkNodeWithChildren
             SynTyparDecl_
-            std.FullRange
+            fullRange
             (sortChildren
                 [| yield! (visitSynAttributeLists attrs)
                    yield visitSynTypar synTypar |])
@@ -1355,6 +1355,14 @@ and visitSynComponentInfo (sci: SynComponentInfo) : TriviaNodeAssigner list =
 
 and visitSynTyparDecls (decls: SynTyparDecls) : TriviaNodeAssigner =
     match decls with
+    | SourceParser.PostfixList (gt, decls, _constraints, lt, range) ->
+        mkNodeWithChildren
+            SynTyparDecls_PostfixList
+            range
+            (sortChildren
+                [| yield mkNode SynTyparDecls_PostfixList_Greater gt
+                   yield! List.map visitSynTyparDecl decls
+                   yield mkNode SynTyparDecls_PostfixList_Lesser lt |])
     | SynTyparDecls.PostfixList (decls, _constraints, range) ->
         mkNodeWithChildren SynTyparDecls_PostfixList range (sortChildren [| yield! List.map visitSynTyparDecl decls |])
     | SynTyparDecls.PrefixList (decls, range) ->

@@ -600,15 +600,22 @@ and genTypeSupportMemberList astContext tps =
 
 and genTypeAndParam astContext (typeName: Context -> Context) (tds: SynTyparDecls option) tcs =
     let types openSep tds tcs closeSep =
-        (!-openSep
+        (openSep
          +> coli sepComma tds (fun i -> genTyparDecl { astContext with IsFirstTypeParam = i = 0 })
          +> genSynTypeConstraintList astContext tcs
-         -- closeSep)
+         +> closeSep)
 
     match tds with
     | None -> typeName
-    | Some (SynTyparDecls.PostfixList (tds, tcs, _range)) -> typeName +> types "<" tds tcs ">"
-    | Some (SynTyparDecls.PrefixList (tds, _range)) -> types "(" tds [] ")" -- " " +> typeName
+    | Some (PostfixList (gt, tds, tcs, lt, _)) ->
+        typeName
+        +> types
+            (genTriviaFor SynTyparDecls_PostfixList_Greater gt !- "<")
+            tds
+            tcs
+            (genTriviaFor SynTyparDecls_PostfixList_Lesser lt !- ">")
+    | Some (SynTyparDecls.PostfixList _) -> sepNone // captured above
+    | Some (SynTyparDecls.PrefixList (tds, _range)) -> types (!- "(") tds [] (!- ")") -- " " +> typeName
     | Some (SynTyparDecls.SinglePrefix (td, _range)) ->
         genTyparDecl { astContext with IsFirstTypeParam = true } td
         +> sepSpace
@@ -617,11 +624,11 @@ and genTypeAndParam astContext (typeName: Context -> Context) (tds: SynTyparDecl
 
 and genTypeParamPostfix astContext tds =
     match tds with
-    | Some (SynTyparDecls.PostfixList (tds, tcs, _range)) ->
-        (!- "<"
-         +> coli sepComma tds (fun i -> genTyparDecl { astContext with IsFirstTypeParam = i = 0 })
-         +> genSynTypeConstraintList astContext tcs
-         -- ">")
+    | Some (PostfixList (gt, tds, tcs, lt, _range)) ->
+        (genTriviaFor SynTyparDecls_PostfixList_Greater gt !- "<")
+        +> coli sepComma tds (fun i -> genTyparDecl { astContext with IsFirstTypeParam = i = 0 })
+        +> genSynTypeConstraintList astContext tcs
+        +> (genTriviaFor SynTyparDecls_PostfixList_Lesser lt !- ">")
     | _ -> sepNone
 
 and genSynTypeConstraintList astContext tcs =
@@ -4155,9 +4162,10 @@ and genConstraints astContext (t: SynType) (vi: SynValInfo) =
         )
     | _ -> sepNone
 
-and genTyparDecl astContext (TyparDecl (ats, tp)) =
+and genTyparDecl astContext (TyparDecl (ats, tp, fullRange)) =
     genOnelinerAttributes astContext ats
     +> genTypar astContext tp
+    |> genTriviaFor SynTyparDecl_ fullRange
 
 and genTypeDefKind node =
     match node with

@@ -428,6 +428,22 @@ let blockCommentToTriviaInstruction (containerNode: TriviaNodeAssigner) (trivia:
               Type = nb.Type
               Range = nb.Range
               AddBefore = false }
+    | Some nb, Some na when
+        (nb.Range.EndLine < trivia.Range.StartLine
+         && na.Range.StartLine > trivia.Range.EndLine)
+        ->
+        Some
+            { Trivia = triviaWith true true
+              Type = na.Type
+              Range = na.Range
+              AddBefore = true }
+
+    | Some nb, _ when nb.Range.EndLine = trivia.Range.StartLine ->
+        Some
+            { Trivia = triviaWith false false
+              Type = nb.Type
+              Range = nb.Range
+              AddBefore = false }
     | _ -> None
 
 //     match nodeBefore, nodeAfter with

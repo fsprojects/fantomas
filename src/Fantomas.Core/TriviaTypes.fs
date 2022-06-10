@@ -231,6 +231,8 @@ type FsAstType =
     | SynBinding_Equals
     | SynBindingReturnInfo_
     | SynTyparDecls_PostfixList
+    | SynTyparDecls_PostfixList_Greater
+    | SynTyparDecls_PostfixList_Lesser
     | SynTyparDecls_SinglePrefix
     | SynTyparDecls_PrefixList
     | SynTyparDecl_
