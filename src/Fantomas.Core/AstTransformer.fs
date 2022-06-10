@@ -213,7 +213,7 @@ and visitSynExpr (synExpr: SynExpr) : TriviaNodeAssigner list =
                 List.map visit xs
 
             let finalContinuation (nodes: TriviaNodeAssigner list list) : TriviaNodeAssigner list =
-                List.collect id nodes
+                List.collect id nodes |> finalContinuation
 
             Continuation.sequence continuations finalContinuation
         | SynExpr.Paren (expr, lpr, rpr, range) ->

@@ -435,7 +435,7 @@ let collectTrivia
 
             rootNode, directives, codeComments
 
-    printTriviaNode rootNode
+    //printTriviaNode rootNode
 
     let trivia =
         let codeRange =
