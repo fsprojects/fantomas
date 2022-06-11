@@ -1631,8 +1631,7 @@ and visitSynType (st: SynType) : TriviaNodeAssigner =
                     SynType_Paren
                     range
                     (sortChildren
-                        [| yield mkNode SynType_Paren range
-                           yield mkNode SynType_Paren_OpeningParenthesis lpr
+                        [| yield mkNode SynType_Paren_OpeningParenthesis lpr
                            yield node
                            yield mkNode SynType_Paren_ClosingParenthesis rpr |])
                 |> finalContinuation)
