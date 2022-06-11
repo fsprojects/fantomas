@@ -975,7 +975,7 @@ and visitSynTypeDefn (td: SynTypeDefn) : TriviaNodeAssigner =
                 [| yield! typeKeyword
                    yield! Option.toList (mkNodeOption SynTypeDefn_Equals trivia.EqualsRange)
                    yield! visitSynComponentInfo sci
-                   yield visitSynTypeDefnRepr stdr
+                   yield! visitSynTypeDefnRepr stdr
                    yield! Option.toList (mkNodeOption SynTypeDefn_With trivia.WithKeyword)
                    yield! visitSynMemberDefns members |])
 
@@ -1370,17 +1370,13 @@ and visitSynTyparDecls (decls: SynTyparDecls) : TriviaNodeAssigner =
     | SynTyparDecls.SinglePrefix (decl, range) ->
         mkNodeWithChildren SynTyparDecls_SinglePrefix range [| visitSynTyparDecl decl |]
 
-and visitSynTypeDefnRepr (stdr: SynTypeDefnRepr) : TriviaNodeAssigner =
+and visitSynTypeDefnRepr (stdr: SynTypeDefnRepr) : TriviaNodeAssigner list =
     match stdr with
-    | SynTypeDefnRepr.ObjectModel (kind, members, range) ->
-        mkNodeWithChildren
-            SynTypeDefnRepr_ObjectModel
-            range
-            (sortChildren
-                [| yield! Option.toList (visitSynTypeDefnKind kind)
-                   yield! visitSynMemberDefns members |])
-    | SynTypeDefnRepr.Simple (simpleRepr, _) -> visitSynTypeDefnSimpleRepr simpleRepr
-    | SynTypeDefnRepr.Exception exceptionRepr -> visitSynExceptionDefnRepr exceptionRepr
+    | SynTypeDefnRepr.ObjectModel (kind, members, _range) ->
+        [ yield! Option.toList (visitSynTypeDefnKind kind)
+          yield! visitSynMemberDefns members ]
+    | SynTypeDefnRepr.Simple (simpleRepr, _) -> [ visitSynTypeDefnSimpleRepr simpleRepr ]
+    | SynTypeDefnRepr.Exception exceptionRepr -> [ visitSynExceptionDefnRepr exceptionRepr ]
 
 and visitSynTypeDefnKind (kind: SynTypeDefnKind) : TriviaNodeAssigner option =
     match kind with

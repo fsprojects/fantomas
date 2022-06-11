@@ -3817,10 +3817,7 @@ and genTypeDefn
         +> genEq SynTypeDefn_Equals equalsRange
         +> indent
         +> sepNln
-        +> genTriviaFor
-            SynTypeDefnRepr_ObjectModel
-            tdr.Range
-            (genMemberDefnList { astContext with InterfaceRange = None } others)
+        +> genMemberDefnList { astContext with InterfaceRange = None } others
         +> unindent
 
     | ExceptionRepr (ExceptionDefRepr (ats, px, ao, uc)) -> genExceptionBody astContext ats px ao uc
