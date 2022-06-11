@@ -366,7 +366,7 @@ type FsAstType =
     | ParsedHashDirective_
     | ParsedHashDirectiveArgument_String
     | ParsedHashDirectiveArgument_SourceIdentifier
-    //    | SynModuleOrNamespaceSig_AnonModule, pick first child node
+    | SynModuleOrNamespaceSig_AnonModule
     | SynModuleOrNamespaceSig_DeclaredNamespace
     | SynModuleOrNamespaceSig_GlobalNamespace
     | SynModuleOrNamespaceSig_NamedModule

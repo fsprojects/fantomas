@@ -1708,12 +1708,12 @@ and visitSynModuleOrNamespaceSig
     let astType, moduleOrNamespace =
         match kind with
         | SynModuleOrNamespaceKind.DeclaredNamespace ->
-            SynModuleOrNamespace_DeclaredNamespace, mkNodeOption SynModuleOrNamespace_Namespace namespaceKeyword
+            SynModuleOrNamespaceSig_DeclaredNamespace, mkNodeOption SynModuleOrNamespace_Namespace namespaceKeyword
         | SynModuleOrNamespaceKind.GlobalNamespace ->
-            SynModuleOrNamespace_GlobalNamespace, mkNodeOption SynModuleOrNamespace_Namespace namespaceKeyword
+            SynModuleOrNamespaceSig_GlobalNamespace, mkNodeOption SynModuleOrNamespace_Namespace namespaceKeyword
         | SynModuleOrNamespaceKind.NamedModule ->
-            SynModuleOrNamespace_NamedModule, mkNodeOption SynModuleOrNamespace_Module moduleKeyword
-        | SynModuleOrNamespaceKind.AnonModule -> SynModuleOrNamespace_AnonModule, None
+            SynModuleOrNamespaceSig_NamedModule, mkNodeOption SynModuleOrNamespace_Module moduleKeyword
+        | SynModuleOrNamespaceKind.AnonModule -> SynModuleOrNamespaceSig_AnonModule, None
 
     let longIdentNodes =
         match kind, decls with
