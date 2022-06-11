@@ -404,6 +404,15 @@ and visitSynExpr (synExpr: SynExpr) : TriviaNodeAssigner list =
                            yield! nodes |])
                 |> List.singleton
                 |> finalContinuation)
+        | SourceParser.NewlineInfixApps (e, es)
+        | SourceParser.SameInfixApps (e, es) ->
+            let continuations: ((TriviaNodeAssigner list -> TriviaNodeAssigner list) -> TriviaNodeAssigner list) list =
+                [ yield visit e
+                  yield! List.map (fun (_, _, e) -> visit e) es ]
+
+            processSequence finalContinuation continuations (fun nodes ->
+                let operators = List.map (fun (_, operator, _) -> visitSynLongIdent operator) es
+                mkSynExprNode SynExpr_App synExpr synExpr.Range (sortChildren [| yield! nodes; yield! operators |]))
         | SourceParser.InfixApp (_, sli, e1, e2, range) ->
             let continuations: ((TriviaNodeAssigner list -> TriviaNodeAssigner list) -> TriviaNodeAssigner list) list =
                 [ visit e1; visit e2 ]
