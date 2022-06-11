@@ -915,12 +915,14 @@ and visitAnonRecordTypeField (_: Ident, t: SynType) = visitSynType t
 and visitSynMemberSig (ms: SynMemberSig) : TriviaNodeAssigner =
     match ms with
     | SynMemberSig.Member (valSig, mf, range) ->
+        let valSigNode = visitSynValSig valSig
+
         mkNodeWithChildren
             SynMemberSig_Member
             range
             (sortChildren
                 [| yield! visitSynMemberFlags mf
-                   yield visitSynValSig valSig |])
+                   yield! valSigNode.Children |])
     | SynMemberSig.Interface (typeName, range) ->
         mkNodeWithChildren SynMemberSig_Interface range [| visitSynType typeName |]
     | SynMemberSig.Inherit (typeName, range) ->
