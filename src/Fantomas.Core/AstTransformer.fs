@@ -1078,13 +1078,23 @@ and visitSynMemberDefns (ms: SynMemberDefn list) : TriviaNodeAssigner list =
     |> List.map (fun (_, g) ->
         match g with
         | [ single ] -> visitSynMemberDefn single
-        | [ SynMemberDefn.Member _ as gt; SynMemberDefn.Member _ as st ] ->
+        | [ SynMemberDefn.Member(memberDefn = SynBinding(headPat = SynPat.LongIdent (propertyKeyword = pk1))) as gt
+            SynMemberDefn.Member(memberDefn = SynBinding(headPat = SynPat.LongIdent (propertyKeyword = pk2))) as st ] ->
+            // Duplicate with/and keyword because they are stored somewhat weirdly in the headPat.
+            let propertyNodes pk =
+                match pk with
+                | Some (PropertyKeyword.And r) -> [ mkNode SynPat_LongIdent_And r ]
+                | Some (PropertyKeyword.With r) -> [ mkNode SynPat_LongIdent_With r ]
+                | None -> []
+
             let getNode = visitSynMemberDefn gt
             let setNode = visitSynMemberDefn st
 
             let combinedChildren =
                 sortChildren
-                    [| yield! getNode.Children
+                    [| yield! propertyNodes pk1
+                       yield! getNode.Children
+                       yield! propertyNodes pk2
                        yield! setNode.Children |]
 
             { getNode with Children = combinedChildren }
