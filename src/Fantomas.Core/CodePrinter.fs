@@ -546,26 +546,16 @@ and genAttributesCore astContext (ats: SynAttribute seq) =
 
 and genOnelinerAttributes astContext ats =
     let ats = List.collect (fun (a: SynAttributeList) -> a.Attributes) ats
-
     ifElse (Seq.isEmpty ats) sepNone (genAttributesCore astContext ats +> sepSpace)
 
 /// Try to group attributes if they are on the same line
 /// Separate same-line attributes by ';'
 /// Each bucket is printed in a different line
 and genAttributes astContext (ats: SynAttributes) =
-    ats
-    |> List.fold
-        (fun acc a (ctx: Context) ->
-            let dontAddNewline = ctx.HasContentAfter(SynAttributeList_, a.Range)
-
-            let chain =
-                acc
-                +> (genAttributesCore astContext a.Attributes
-                    |> genTriviaFor SynAttributeList_ a.Range)
-                +> ifElse dontAddNewline sepNone sepNln
-
-            chain ctx)
-        sepNone
+    colPost sepNlnUnlessLastEventIsNewline sepNln ats (fun a ->
+        (genAttributesCore astContext a.Attributes
+         |> genTriviaFor SynAttributeList_ a.Range)
+        +> sepNlnWhenWriteBeforeNewlineNotEmpty sepNone)
 
 and genPreXmlDoc (PreXmlDoc (lines, _)) =
     colPost sepNln sepNln lines (sprintf "///%s" >> (!-))
