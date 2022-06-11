@@ -346,18 +346,19 @@ and visitSynExpr (synExpr: SynExpr) : TriviaNodeAssigner list =
                            yield mkNode SynExpr_ComputationExpr_ClosingBrace closingBrace |])
                 |> List.singleton
                 |> finalContinuation)
-        | SynExpr.Lambda (_, _, args, body, _parsedData, range, { ArrowRange = arrowRange }) ->
-            visit body (fun nodes ->
+        | SourceParser.Lambda (pats, arrowRange, expr, range) ->
+            visit expr (fun nodes ->
                 mkSynExprNode
                     SynExpr_Lambda
                     synExpr
                     range
                     (sortChildren
-                        [| yield visitSynSimplePats args
+                        [| yield! List.map visitSynPat pats
                            yield! Option.toList (mkNodeOption SynExpr_Lambda_Arrow arrowRange)
                            yield! nodes |])
                 |> List.singleton
                 |> finalContinuation)
+        | SynExpr.Lambda _ -> failwith "should be tackled above"
         | SynExpr.MatchLambda (_, keywordRange, matchClauses, _, range) ->
             mkSynExprNode
                 SynExpr_MatchLambda
