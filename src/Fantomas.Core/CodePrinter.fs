@@ -1047,12 +1047,13 @@ and genRecordFieldName astContext (SynExprRecordField ((rfn, _), equalsRange, eo
         +> expr)
     |> genTriviaFor SynExprRecordField_ rf.FullRange
 
-and genAnonRecordFieldName astContext (AnonRecordFieldName (ident, equalsRange, e)) =
+and genAnonRecordFieldName astContext (AnonRecordFieldName (ident, equalsRange, e, range)) =
     let expr = sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e)
 
     genIdent ident
     +> genEq SynExpr_AnonRecd_Field_Equals equalsRange
     +> expr
+    |> genTriviaFor SynExpr_AnonRecd_Field range
 
 and genTuple astContext es =
     let genShortExpr astContext e =
@@ -2899,7 +2900,7 @@ and genMultilineAnonRecord (isStruct: bool) fields copyInfo (astContext: ASTCont
 
                 atCurrentColumn
                     (sepOpenAnonRecd
-                     +> col sepNln fields (fun (AnonRecordFieldName (ident, eq, e)) ->
+                     +> col sepNln fields (fun (AnonRecordFieldName (ident, eq, e, range)) ->
                          let expr =
                              if ctx.Config.IndentSize < 3 then
                                  sepSpaceOrDoubleIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e)
@@ -2911,7 +2912,8 @@ and genMultilineAnonRecord (isStruct: bool) fields copyInfo (astContext: ASTCont
                          addFixedSpaces targetColumn
                          +> atCurrentColumn (genIdent ident)
                          +> genEq SynExpr_AnonRecd_Field_Equals eq
-                         +> expr)
+                         +> expr
+                         |> genTriviaFor SynExpr_AnonRecd_Field range)
                      +> sepCloseAnonRecd)
                     ctx
 

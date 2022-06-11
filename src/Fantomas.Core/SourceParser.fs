@@ -1567,7 +1567,10 @@ let (|Val|)
 
 let (|RecordFieldName|) ((synLongIdent, _): RecordFieldName, eo: SynExpr option, _) = (synLongIdent, eo)
 
-let (|AnonRecordFieldName|) (ident: Ident, eq: range option, e: SynExpr) = (ident, eq, e)
+let (|AnonRecordFieldName|) (ident: Ident, eq: range option, e: SynExpr) =
+    let range = Range.unionRanges ident.idRange e.Range
+    (ident, eq, e, range)
+
 let (|AnonRecordFieldType|) (ident, t: SynType) = (ident, t)
 
 let (|ValInfo|) (SynValInfo (aiss, ai)) = (aiss, ai)

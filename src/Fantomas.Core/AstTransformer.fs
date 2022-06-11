@@ -891,10 +891,10 @@ and visitRecordField (SynExprRecordField ((fieldName, _), equalsRange, synExprOp
                     >> List.collect id)
                        synExprOption |])
 
-and visitAnonRecordField (ident: Ident, equalsRange: range option, expr: SynExpr) =
+and visitAnonRecordField (SourceParser.AnonRecordFieldName (ident, equalsRange, expr, range)) =
     mkNodeWithChildren
         SynExpr_AnonRecd_Field
-        (Range.unionRanges ident.idRange expr.Range)
+        range
         (sortChildren
             [| yield visitIdent ident
                yield! Option.toList (mkNodeOption SynExpr_AnonRecd_Field_Equals equalsRange)
