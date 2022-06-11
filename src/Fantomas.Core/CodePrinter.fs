@@ -5103,6 +5103,7 @@ and genPat astContext pat =
         | SynPat.Wild _ -> genTriviaFor SynPat_Wild pat.Range
         | SynPat.LongIdent _ -> genTriviaFor SynPat_LongIdent pat.Range
         | SynPat.Paren _ -> genTriviaFor SynPat_Paren pat.Range
+        | SynPat.Or _ -> genTriviaFor SynPat_Or pat.Range
         | _ -> id)
 
 and genSynBindingFunction
