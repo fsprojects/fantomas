@@ -396,16 +396,32 @@ let simpleTriviaToTriviaInstruction (containerNode: TriviaNodeAssigner) (trivia:
               Range = node.Range
               AddBefore = false }))
 
+/// Try and find the smallest possible node
 let lineCommentAfterSourceCodeToTriviaInstruction
     (containerNode: TriviaNodeAssigner)
     (trivia: Trivia)
     : TriviaInstruction option =
     let lineNumber = trivia.Range.StartLine
 
-    containerNode.Children
-    |> Array.filter (fun node -> node.Range.EndLine = lineNumber)
-    |> Array.sortByDescending (fun node -> node.Range.StartColumn)
-    |> Array.tryHead
+    let rec visit node : TriviaNodeAssigner option =
+        let result =
+            node.Children
+            |> Array.filter (fun node -> node.Range.EndLine = lineNumber)
+            |> Array.sortByDescending (fun node -> node.Range.StartColumn)
+            |> Array.tryHead
+
+        match result with
+        | None -> None
+        | Some result ->
+            // Try and find a better node at the exact same column
+            let childNode = visit result
+
+            match childNode with
+            | Some childNode when childNode.Range.EndColumn = result.Range.EndColumn -> Some childNode
+            | Some _
+            | None -> Some result
+
+    visit containerNode
     |> Option.map (fun node ->
         { Trivia = trivia
           Type = node.Type
