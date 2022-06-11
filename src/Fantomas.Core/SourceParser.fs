@@ -781,9 +781,9 @@ let (|NewlineInfixApps|_|) e =
 let (|SameInfixApps|_|) e =
     let rec loop operator synExpr =
         match synExpr with
-        | InfixApp (s, opE, e, e2, _) when (s = operator) ->
+        | InfixApp (s, opE, e, e2, range) when (s = operator) ->
             let e1, es = loop operator e
-            (e1, (s, opE, e2) :: es)
+            (e1, (s, opE, e2, range) :: es)
         | e -> (e, [])
 
     match e with
