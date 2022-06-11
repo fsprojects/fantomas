@@ -65,7 +65,7 @@ let formatWith
 
         context
         |> genParsedInput ASTContext.Default ast
-        |> Context.dump
+        |> Context.dump (Option.isSome selection)
 
     formattedSourceCode
 

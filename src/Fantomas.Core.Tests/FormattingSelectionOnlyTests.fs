@@ -74,6 +74,7 @@ let x =
     |> should
         equal
         "
+
 try
     something ()
 with ex ->
@@ -125,8 +126,7 @@ let a =  9
         equal
         """
 
-let a = 9
-"""
+let a = 9"""
 
 // 10	25	10	82
 //[<Test>]

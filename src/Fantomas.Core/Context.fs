@@ -295,7 +295,7 @@ let finalizeWriterModel (ctx: Context) =
     else
         ctx
 
-let dump (ctx: Context) =
+let dump (isSelection: bool) (ctx: Context) =
     let ctx = finalizeWriterModel ctx
 
     match ctx.WriterModel.Lines with
@@ -304,7 +304,12 @@ let dump (ctx: Context) =
         // Always trim the last line
         h.TrimEnd() :: tail
     |> List.rev
-    |> List.skipWhile ((=) "")
+    |> fun lines ->
+        // Don't skip leading newlines when formatting a selection.
+        if isSelection then
+            lines
+        else
+            List.skipWhile ((=) "") lines
     |> String.concat ctx.Config.EndOfLine.NewLineString
 
 let dumpAndContinue (ctx: Context) =
