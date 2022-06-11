@@ -1,4 +1,4 @@
-﻿module Fantomas.Core.AstExtensions
+﻿module internal Fantomas.Core.AstExtensions
 
 open FSharp.Compiler.SyntaxTrivia
 open FSharp.Compiler.Text
@@ -67,18 +67,32 @@ type CommentTrivia with
         | CommentTrivia.LineComment (range = r)
         | CommentTrivia.BlockComment (range = r) -> r
 
-let private includeComments (baseRange: range) (comments: CommentTrivia list) : range =
-    (baseRange, comments)
-    ||> List.fold (fun acc codeComment ->
-        if acc.StartLine < codeComment.Range.StartLine
-           && acc.EndLine > codeComment.Range.EndLine then
-            acc
-        elif codeComment.Range.EndLine > acc.EndLine then
-            unionRanges acc codeComment.Range
-        else
-            unionRanges codeComment.Range acc)
+type ConditionalDirectiveTrivia with
+    member this.Range =
+        match this with
+        | ConditionalDirectiveTrivia.If (range = range)
+        | ConditionalDirectiveTrivia.Else (range = range)
+        | ConditionalDirectiveTrivia.EndIf (range = range) -> range
 
-// TODO: construct actual range of  file, from first to last content
+let includeTrivia
+    (baseRange: range)
+    (comments: CommentTrivia list)
+    (conditionDirectives: ConditionalDirectiveTrivia list)
+    : range =
+    let ranges =
+        [ yield! List.map (fun (c: CommentTrivia) -> c.Range) comments
+          yield! List.map (fun (c: ConditionalDirectiveTrivia) -> c.Range) conditionDirectives ]
+
+    (baseRange, ranges)
+    ||> List.fold (fun acc triviaRange ->
+        if acc.StartLine < triviaRange.StartLine
+           && acc.EndLine > triviaRange.EndLine then
+            acc
+        elif triviaRange.EndLine > acc.EndLine then
+            unionRanges acc triviaRange
+        else
+            unionRanges triviaRange acc)
+
 type ParsedInput with
     member this.FullRange: range =
         match this with
@@ -100,7 +114,7 @@ type ParsedInput with
                 | Some lastModule -> lastModule.FullRange.End
 
             let astRange = mkRange this.Range.FileName startPos endPos
-            includeComments astRange trivia.CodeComments
+            includeTrivia astRange trivia.CodeComments trivia.ConditionalDirectives
 
         | ParsedInput.SigFile (ParsedSigFileInput (hashDirectives = directives; modules = modules; trivia = trivia)) ->
             let startPos =
@@ -120,7 +134,7 @@ type ParsedInput with
                 | Some lastModule -> lastModule.FullRange.End
 
             let astRange = mkRange this.Range.FileName startPos endPos
-            includeComments astRange trivia.CodeComments
+            includeTrivia astRange trivia.CodeComments trivia.ConditionalDirectives
 
 type SynMemberFlags with
     member memberFlags.FullRange: range option =
