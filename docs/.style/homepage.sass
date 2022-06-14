@@ -11,7 +11,7 @@ $secondary: #2FBADC
 $black: #222222
 $white: #FFF
 $navbar-light-brand-color: $white
-$navbar-light-brand-hover-color:  $white
+$navbar-light-brand-hover-color: $white
 $navbar-light-color: $white
 $navbar-light-hover-color: $white
 $navbar-nav-link-padding-x: 0
@@ -23,6 +23,9 @@ $navbar-nav-link-padding-x: 0
 
 // 4. Include any optional Bootstrap components as you like
 @import "./bootstrap/scss/utilities"
+
+$utilities: map-merge($utilities, ("border-start": map-merge(map-get($utilities, "border-start"), ("responsive": true))))
+
 @import "./bootstrap/scss/reboot"
 @import "./bootstrap/scss/type"
 @import "./bootstrap/scss/images"
@@ -32,6 +35,9 @@ $navbar-nav-link-padding-x: 0
 @import "./bootstrap/scss/transitions"
 @import "./bootstrap/scss/nav"
 @import "./bootstrap/scss/navbar"
+@import "./bootstrap/scss/tooltip"
+@import "./bootstrap/scss/carousel"
+@import "./bootstrap/scss/card"
 @import "./bootstrap/scss/helpers"
 
 // 5. Add additional custom code here
@@ -75,6 +81,7 @@ header
       text-transform: uppercase
       text-decoration: none
       color: $white
+
       &:active
         color: $white
 
@@ -87,6 +94,7 @@ header
       .nav-link
         position: relative
         text-transform: uppercase
+
         &::after
           content: ''
           position: absolute
@@ -99,16 +107,16 @@ header
           opacity: 0
           transform: scale(0)
           transform-origin: center
-          
+
         &:hover::after, &:focus::after
           transform: scale(1)
           opacity: 1
 
-    //.navbar-collapse.collapse.show
-    //  .nav-item
-    //    padding: 0.5rem 0
-    //    border-top: 1px solid $white
-          
+  //.navbar-collapse.collapse.show
+  //  .nav-item
+  //    padding: 0.5rem 0
+  //    border-top: 1px solid $white
+
   #core-title
     color: $white
     text-align: center
@@ -140,7 +148,7 @@ header
   z-index: 5
   right: 2rem
   bottom: 2rem
-  
+
   strong
     display: block
     margin-bottom: 0.25rem
@@ -156,6 +164,44 @@ code
   font-size: 1.6rem
   font-weight: 700
 
-#get-started
-  button
-    cursor: grab
+.pointer
+  cursor: pointer
+
+section
+  padding: 3rem 0
+  @include media-breakpoint-up(lg)
+    padding: 4rem 0
+    
+
+#testimonialsCarousel
+  .carousel-item
+    q
+      min-height: 160px
+
+#users
+  #tile-container
+    display: flex
+    flex-wrap: wrap
+    .tile
+      padding: 0.25rem
+      display: flex
+      flex-direction: column
+      justify-content: flex-start
+      //border: 1px solid red
+      img
+        width: 50px
+
+    @include media-breakpoint-up(md)
+      .tile
+        padding: 0.5rem
+        img
+          width: 100px
+
+    @include media-breakpoint-up(lg)
+      .tile
+        img
+          width: 150px
+
+#media
+  .tweet
+    margin-top: -10px

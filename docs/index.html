@@ -97,20 +97,20 @@
     </video>
 </header>
 <main>
-    <div class="container">
-        <div id="intro" class="py-4">
+    <section class="container">
+        <div id="intro">
             <div class="text-center">
                 <a href="https://www.nuget.org/packages/fantomas">
                     <img src="https://img.shields.io/nuget/vpre/Fantomas?color=2FBADC&label=Fantomas%20on%20Nuget&style=flat-square"
                          alt="Nuget Shield">
                 </a>
-                <h1 class="mt-3">FANTOMAS</h1>
+                <h1 class="my-3">FANTOMAS</h1>
             </div>
             <div class="row">
-                <div class="col-12 col-md-6">
+                <div class="col-12 my-4 my-md-0 col-md-6">
                     <div class="d-flex flex-column align-items-center">
                         <h2 class="text-primary mb-4">What is Fantomas?</h2>
-                        <ul>
+                        <ul class="mb-0">
                             <li>An opinionated code formatter for F#</li>
                             <li>Integrates with most editors</li>
                             <li>Implements the <a
@@ -120,10 +120,10 @@
                     </div>
 
                 </div>
-                <div class="col-12 col-md-6">
+                <div class="col-12 my-4 my-md-0 col-md-6 border-start-md">
                     <div class="d-flex flex-column align-items-center">
                         <h2 class="text-primary mb-4">Why?</h2>
-                        <ul>
+                        <ul class="mb-0">
                             <li>No need to discuss style in code review</li>
                             <li>Cleaner source control diffs</li>
                             <li>Peace of mind</li>
@@ -132,27 +132,209 @@
                 </div>
             </div>
         </div>
-    </div>
-    <div id="get-started" class="bg-secondary text-white py-4">
+    </section>
+    <section id="get-started" class="bg-secondary text-white">
         <div class="container text-center">
             <h2>Get started</h2>
             <p class="text-capitalize">Install <strong>Fantomas</strong> as <em>.NET tool</em></p>
             <div class="d-flex justify-content-center align-items-center">
                 <code class="my-4">
                     <i class="bi bi-chevron-right"></i> dotnet tool install fantomas --prerelease
+                    <button class="btn btn-outline-light ms-3 pointer"
+                            data-bs-toggle="tooltip" data-bs-placement="top"
+                            title="Copy to clipboard">
+                        <i class="bi bi-clipboard"></i>
+                    </button>
                 </code>
-                <button class="btn btn-outline-light ms-3">
-                    <i class="bi bi-clipboard"></i>
-                </button>
             </div>
             <p>The easiest way to get started is to install Fantomas as a local .NET tool.<br/>
                 Check out our <a href="./docs" class="text-black-50">documentation</a> for more details.</p>
         </div>
-    </div>
-    <div>testimonials</div>
-    <div>who is using fantomas</div>
-    <div>sponsors</div>
-    <div>contact</div>
+    </section>
+    <section class="bg-primary">
+        <div class="container text-white text-center">
+            <h2>What people say about Fantomas</h2>
+            <div id="testimonialsCarousel" class="carousel slide mt-4" data-bs-ride="carousel">
+                <div class="carousel-indicators">
+                    <button type="button" data-bs-target="#testimonialsCarousel" data-bs-slide-to="0" class="active"
+                            aria-current="true" aria-label="Slide 1"></button>
+                    <button type="button" data-bs-target="#testimonialsCarousel" data-bs-slide-to="1"
+                            aria-label="Slide 2"></button>
+                    <button type="button" data-bs-target="#testimonialsCarousel" data-bs-slide-to="2"
+                            aria-label="Slide 3"></button>
+                </div>
+                <div class="carousel-inner">
+                    <div class="carousel-item active">
+                        <q class="fs-3 d-block my-2">Something Don said</q>
+                        <div class="carousel-caption d-none d-md-block">
+                            <h5><i class="bi bi-dash-lg"></i> Don Syme</h5>
+                            <p>creator of F#</p>
+                        </div>
+                    </div>
+                    <div class="carousel-item">
+                        <q class="fs-3 d-block my-2">Something Chet said</q>
+                        <div class="carousel-caption d-none d-md-block">
+                            <h5><i class="bi bi-dash-lg"></i> Chet Husk</h5>
+                            <p>F# community hero</p>
+                        </div>
+                    </div>
+                    <div class="carousel-item">
+                        <q class="fs-3 d-block my-2">Something Sergey said</q>
+                        <div class="carousel-caption d-none d-md-block">
+                            <h5><i class="bi bi-dash-lg"></i> Sergey Tihon</h5>
+                            <p>editor of the F# weekly newsletter</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <section id="users">
+        <div class="container">
+            <h2 class="mb-4 text-primary">Who uses Fantomas?</h2>
+            <div id="tile-container">
+                <a class="tile" href="https://github.com/dotnet/fsharp" data-bs-toggle="tooltip" title="dotnet/fsharp">
+                    <img src="./images/users/fsharp-compiler.png" alt="F# compiler logo">
+                </a>
+                <a class="tile" href="https://github.com/darklang/dark" data-bs-toggle="tooltip" title="darklang/dark">
+                    <img src="./images/users/dark.png" alt="Darklang logo">
+                </a>
+                <a class="tile" href="https://github.com/fsharp/FsAutoComplete" data-bs-toggle="tooltip"
+                   title="fsharp/FsAutoComplete">
+                    <img src="./images/users/fsautocomplete.png" alt="FsAutocomplete Ionide logo">
+                </a>
+                <a class="tile" href="https://github.com/fsprojects/Fantomas" data-bs-toggle="tooltip"
+                   title="fsprojects/Fantomas">
+                    <img src="./images/icon-fantomas-color.svg" alt="Fantomas logo">
+                </a>
+                <a class="tile" href="https://github.com/fsprojects/Fabulous" data-bs-toggle="tooltip"
+                   title="fsprojects/Fabulous">
+                    <img src="./images/users/fabulous.png" alt="Fabulous logo">
+                </a>
+                <a class="tile" href="https://github.com/fsprojects/FSharp.Data" data-bs-toggle="tooltip"
+                   title="fsprojects/FSharp.Data">
+                    <img src="./images/users/fsharp-data.png" alt="FSharp.Data logo">
+                </a>
+                <a class="tile" href="https://github.com/TheAngryByrd/MiniScaffold" data-bs-toggle="tooltip"
+                   title="TheAngryByrd/MiniScaffold">
+                    <img src="./images/users/unknown-github.png" alt="Default GitHub logo">
+                </a>
+            </div>
+        </div>
+    </section>
+    <section class="bg-light" id="sponsors">
+        <div class="container">
+            <h2 class="text-center">Sponsors</h2>
+            <h3 class="my-4">Enterprise sponsors</h3>
+            <div class="row">
+                <div class="col-6">
+                    <a href="https://www.gresearch.co.uk/">
+                        <img src="./images/sponsors/g-research.jpg" alt="G-Research" class="w-100 mx-auto">
+                    </a>
+                </div>
+                <div class="col-6 d-flex">
+                    <a href="https://nojaf.com/" class="w-100 m-auto">
+                        <img src="./images/sponsors/nojaf.svg" alt="Nojaf"/>
+                    </a>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-6"><h4 class="text-center my-4">G-Research</h4></div>
+                <div class="col-6"><h4 class="text-center my-4">Nojaf</h4></div>
+            </div>
+            <h3>Community sponsors</h3>
+            <ul class="mt-3">
+                <li><a href="https://tinybluerobots.com">Tiny Blue Robots</a></li>
+                <li><a href="https://github.com/ThisFunctionalTom">Tomas Leko</a></li>
+                <li><a href="https://github.com/zyzhu">Zhenyong Zhu</a></li>
+                <li><a href="https://github.com/NicoVIII">NicoVIII</a></li>
+                <li><a href="https://github.com/cartermp">Phillip Carter</a></li>
+                <li><a href="https://www.gresearch.co.uk">G-Research-OSS</a></li>
+                <li><a href="https://github.com/edgarfgp">Edgar Gonzalez</a></li>
+            </ul>
+        </div>
+    </section>
+    <section class="bg-secondary" id="media">
+        <div class="container text-white">
+            <h2>Media</h2>
+            <div class="text-center my-4">
+                <div class="ratio ratio-16x9">
+                    <iframe src="https://www.youtube.com/embed/R9Ob5Vp4a9c"
+                            title="YouTube video player"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                            allowfullscreen></iframe>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="tweet">
+                        <blockquote class="twitter-tweet"><p lang="en" dir="ltr">Yesterday I had a blast during the <a
+                                href="https://twitter.com/FSharpLondon?ref_src=twsrc%5Etfw">@FSharpLondon</a> meetup!
+                            Thanks
+                            again for having me! I wrote a blog post that captures some of the story beats from
+                            yesterday <a
+                                    href="https://t.co/ViCkmmMSci">https://t.co/ViCkmmMSci</a>. I&#39;m really happy how
+                            Fantomas v5 is shaping up😊 <a
+                                    href="https://twitter.com/hashtag/fsharp?src=hash&amp;ref_src=twsrc%5Etfw">#fsharp</a>
+                            <a href="https://t.co/83bjAp9ody">https://t.co/83bjAp9ody</a></p>&mdash; Florian Verdonck
+                            (@verdonckflorian) <a
+                                    href="https://twitter.com/verdonckflorian/status/1529019121433821184?ref_src=twsrc%5Etfw">May
+                                24, 2022</a></blockquote>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card bg-white">
+                        <div class="card-body text-dark">
+                            <h5 class="card-title text-primary"><i class="bi bi-newspaper me-1"></i>World domination,
+                                part one</h5>
+                            <p class="card-text">A blogpost about the V5 improvements</p>
+                            <a href="https://blog.nojaf.com/2022/05/24/word-domination-part-one/"
+                               class="btn btn-primary text-white d-inline-block float-end mt-1">Read blogpost</a>
+                        </div>
+                    </div>
+                    <div class="card bg-white mt-4">
+                        <div class="card-body text-dark">
+                            <h5 class="card-title text-primary"><i class="bi bi-youtube me-1"></i>Daemon</h5>
+                            <div class="ratio ratio-16x9">
+                                <iframe src="https://www.youtube.com/embed/1jb6K_HZaEY" title="YouTube video player"
+                                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                        allowfullscreen></iframe>
+                            </div>
+                            <a href="https://www.youtube.com/watch?v=1jb6K_HZaEY&ab_channel=nojaf"
+                               class="btn btn-primary text-white d-inline-block float-end mt-2">Watch on YouTube</a>
+                        </div>
+                    </div>
+                    <div class="card bg-white">
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card bg-white">
+                        <div class="card-body text-dark">
+                            <h5 class="card-title text-primary"><i class="bi bi-youtube me-1"></i>Custom Ranges</h5>
+                            <div class="ratio ratio-16x9">
+                                <iframe src="https://www.youtube.com/embed/X02YRO7kOOA"
+                                        title="YouTube video player"
+                                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                        allowfullscreen></iframe>
+                            </div>
+                            <a href="https://www.youtube.com/watch?v=X02YRO7kOOAs&ab_channel=nojaf"
+                               class="btn btn-primary text-white d-inline-block float-end mt-2">Watch on YouTube</a>
+                        </div>
+                    </div>
+                    <div class="card bg-white mt-4">
+                        <div class="card-body text-dark">
+                            <h5 class="card-title text-primary"><i class="bi bi-newspaper me-1"></i>A word on
+                                triple-slash comments</h5>
+                            <p class="card-text">A blogpost about the importance of triple-slash comments</p>
+                            <a href="https://blog.nojaf.com/2022/03/05/a-word-on-triple-slash-comments/"
+                               class="btn btn-primary text-white d-inline-block float-end mt-1">Read blogpost</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <section>contact</section>
 </main>
 <div class="discord">
     <strong>Join us on Discord</strong>
@@ -169,7 +351,6 @@
     import Typewriter from 'https://cdn.skypack.dev/typewriter-effect/dist/core';
     import {scrollIntoView} from 'https://cdn.skypack.dev/scroll-js';
     import copyTextToClipboard from 'https://cdn.skypack.dev/copy-text-to-clipboard';
-    import Toastify from 'https://cdn.skypack.dev/toastify-js';
 
     new Typewriter('#core-title', {
         strings: [
@@ -190,19 +371,29 @@
             scrollIntoView(getStarted, {easing: 'ease-in-out'});
         })
 
-        document.querySelector("#get-started button").addEventListener("click", () => {
+        document.querySelectorAll("#users .tile").forEach(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))
+
+        const getStartedButton = document.querySelector("#get-started button");
+        const getStartedButtonToolTip = new bootstrap.Tooltip(getStartedButton);
+        getStartedButton.addEventListener("click", () => {
             const code = document.querySelector("#get-started code").textContent.trim();
             copyTextToClipboard(code);
-            Toastify({
-                text: "Command was copied!",
-                className: "bg-primary text-white",
-                position: "center",
-                gravity: "bottom",
-                style: {"background": "initial"}
-            }).showToast();
+            const icon = document.querySelector("#get-started button .bi")
+            icon.classList.toggle("bi-clipboard")
+            icon.classList.toggle("bi-check")
+            getStartedButton.setAttribute("data-bs-original-title", "Copied to clipboard");
+            getStartedButtonToolTip.show();
+            // Reset
+            setTimeout(() => {
+                icon.classList.toggle("bi-clipboard")
+                icon.classList.toggle("bi-check")
+                getStartedButton.setAttribute("data-bs-original-title", "Copy to clipboard");
+                getStartedButtonToolTip.show();
+            }, 1000)
         })
     })
 </script>
+<script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
 </body>
 
 </html>
