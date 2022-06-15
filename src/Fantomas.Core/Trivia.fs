@@ -12,79 +12,6 @@ open Fantomas.Core.AstTransformer
 open Fantomas.Core.TriviaTypes
 open Fantomas.Core.FormatConfig
 
-let findFirstNodeAfterLine (nodes: TriviaNode list) (lineNumber: int) : TriviaNode option =
-    nodes
-    |> List.tryFind (fun tn -> tn.Range.StartLine > lineNumber)
-
-let findLastNodeOnLine (nodes: TriviaNode list) lineNumber : TriviaNode option =
-    nodes
-    |> List.filter (fun tn -> tn.Range.EndLine = lineNumber)
-    |> List.sortByDescending (fun tn -> tn.Range.EndColumn, tn.Range.StartColumn)
-    |> fun candidates ->
-        match candidates with
-        | app :: ident :: _ when
-            (app.Range.End = ident.Range.End
-             && app.Type = SynExpr_App
-             && ident.Type = SynExpr_Ident)
-            ->
-            Some ident
-        | h :: _ -> Some h
-        | [] -> None
-
-let findLastNode (nodes: TriviaNode list) : TriviaNode option =
-    match nodes with
-    | [] -> None
-    | nodes ->
-        nodes
-        |> List.maxBy (fun tn -> tn.Range.EndLine)
-        |> Some
-
-let findNodeBeforeLineAndColumn (nodes: TriviaNode seq) line column =
-    nodes
-    |> Seq.tryFindBack (fun tn ->
-        let range = tn.Range
-
-        range.StartLine <= line
-        && range.StartColumn <= column)
-
-let findNodeBeforeLineFromStart (nodes: TriviaNode list) line =
-    nodes
-    |> List.filter (fun tn -> tn.Range.EndLine < line)
-    |> List.sortByDescending (fun tn -> tn.Range.EndLine, -tn.Range.StartColumn)
-    |> List.tryFind (fun tn -> tn.Range.StartLine < line)
-
-let findNodeAfterLineAndColumn (nodes: TriviaNode seq) line column =
-    nodes
-    |> Seq.tryFind (fun tn ->
-        let range = tn.Range
-
-        (range.StartLine > line)
-        || (range.StartLine = line
-            && range.StartColumn > column))
-
-let commentIsAfterLastTriviaNode (triviaNodes: TriviaNode list) (range: Range) =
-    let hasNoNodesAfterRange =
-        triviaNodes
-        |> Seq.exists (fun tn -> tn.Range.EndLine > range.StartLine)
-        |> not
-
-    hasNoNodesAfterRange
-
-// let updateTriviaNode (lens: TriviaNode -> unit) (triviaNodes: TriviaNode list) triviaNode =
-//     match triviaNode with
-//     | Some tNode ->
-//         // There are situations where the same range can be linked to multiple different AST nodes.
-//         // F.ex a getter and setter in one line.
-//         // We want to be sure that one node will be projected by the lens function.
-//         let index =
-//             triviaNodes
-//             |> List.findIndex (fun tn -> tn = tNode)
-//
-//         lens triviaNodes.[index]
-//
-//         triviaNodes
-//     | None -> triviaNodes
-
 let printTriviaNode (node: TriviaNode) : unit =
     let rec visit (level: int) (node: TriviaNode) =
         printfn "%s%A: %A" ("".PadRight(level * 2)) node.Type node.Range
@@ -107,113 +34,6 @@ let rec findNodeWhereRangeFitsIn (root: TriviaNode) (range: range) : TriviaNode 
         match betterChildNode with
         | Some betterChild -> Some betterChild
         | None -> Some root
-
-// let addTriviaToTriviaNode (startOfSourceCode: int) (triviaNodes: TriviaNode list) trivia = triviaNodes
-// match trivia with
-// | { Item = Comment (LineCommentOnSingleLine _ as comment)
-//     Range = range } ->
-//     let nodeAfterLine = findFirstNodeAfterLine triviaNodes range.StartLine
-//
-//     match nodeAfterLine with
-//     | Some _ ->
-//         nodeAfterLine
-//         |> updateTriviaNode (fun tn -> tn.ContentBefore.Add(Comment(comment))) triviaNodes
-//     | None ->
-//         // try and find a node above
-//         findNodeBeforeLineFromStart triviaNodes range.StartLine
-//         |> updateTriviaNode (fun tn -> tn.ContentAfter.Add(Comment(comment))) triviaNodes
-//
-// | { Item = Comment (BlockComment (comment, _, _))
-//     Range = range } ->
-//     let nodeAfter =
-//         findNodeAfterLineAndColumn triviaNodes range.StartLine range.StartColumn
-//
-//     let nodeBefore =
-//         findNodeBeforeLineAndColumn triviaNodes range.StartLine range.StartColumn
-//
-//     match nodeBefore, nodeAfter with
-//     | Some nb, Some na when
-//         (nb.Range.EndLine < range.StartLine
-//          && na.Range.StartLine > range.EndLine)
-//         ->
-//         Some na
-//         |> updateTriviaNode (fun tn -> tn.ContentBefore.Add(Comment(BlockComment(comment, true, true)))) triviaNodes
-//     | Some n, _ when n.Range.EndLine = range.StartLine ->
-//         Some n
-//         |> updateTriviaNode
-//             (fun tn -> tn.ContentAfter.Add(Comment(BlockComment(comment, false, false))))
-//             triviaNodes
-//     | _, Some n ->
-//         Some n
-//         |> updateTriviaNode
-//             (fun tn ->
-//                 let newline = tn.Range.StartLine > range.EndLine
-//                 tn.ContentBefore.Add(Comment(BlockComment(comment, false, newline))))
-//             triviaNodes
-//     | Some _, _ when (commentIsAfterLastTriviaNode triviaNodes range) ->
-//         findLastNode triviaNodes
-//         |> updateTriviaNode (fun tn -> tn.ContentAfter.Add(Comment(BlockComment(comment, true, false)))) triviaNodes
-//     | Some n, _ ->
-//         Some n
-//         |> updateTriviaNode (fun tn -> tn.ContentAfter.Add(Comment(BlockComment(comment, true, false)))) triviaNodes
-//     | None, None ->
-//         findNodeBeforeLineFromStart triviaNodes range.StartLine
-//         |> updateTriviaNode (fun tn -> tn.ContentAfter.Add(Comment(BlockComment(comment, true, true)))) triviaNodes
-//
-// | { Item = Comment (LineCommentAfterSourceCode _ as comment)
-//     Range = range } ->
-//     findLastNodeOnLine triviaNodes range.EndLine
-//     |> updateTriviaNode (fun tn -> tn.ContentAfter.Add(Comment(comment))) triviaNodes
-//
-// // Newlines are only relevant if they occur after the first line of source code
-// | { Item = Newline; Range = range } when (range.StartLine > startOfSourceCode) ->
-//     let nodeAfterLine = findFirstNodeAfterLine triviaNodes range.StartLine
-//
-//     match nodeAfterLine with
-//     | Some _ ->
-//         nodeAfterLine
-//         |> updateTriviaNode (fun tn -> tn.ContentBefore.Add(Newline)) triviaNodes
-//     | None ->
-//         // try and find a node above
-//         findNodeBeforeLineFromStart triviaNodes range.StartLine
-//         |> updateTriviaNode (fun tn -> tn.ContentAfter.Add(Newline)) triviaNodes
-//
-// | { Item = Directive dc as directive
-//     Range = range } ->
-//     let nodeAfterLine = findFirstNodeAfterLine triviaNodes range.StartLine
-//
-//     match nodeAfterLine with
-//     | Some _ as node -> updateTriviaNode (fun tn -> tn.ContentBefore.Add(directive)) triviaNodes node
-//     | None ->
-//         let findNode nodes =
-//             findNodeBeforeLineFromStart nodes range.StartLine
-//
-//         findNode triviaNodes
-//         |> updateTriviaNode
-//             (fun tn ->
-//                 let directive = Directive dc
-//                 tn.ContentAfter.Add(directive))
-//             triviaNodes
-//
-// | _ -> triviaNodes
-
-// let triviaNodeIsNotEmpty (triviaNode: TriviaNode) =
-//     not (Seq.isEmpty triviaNode.ContentAfter)
-//     || not (Seq.isEmpty triviaNode.ContentBefore)
-//     || Option.isSome triviaNode.ContentItself
-//
-// let transformNonEmptyNodes (nodes: TriviaNode list) : TriviaNode list =
-//     nodes
-//     |> List.choose (fun tn ->
-//         if triviaNodeIsNotEmpty tn then
-//             { Type = tn.Type
-//               Range = tn.Range
-//               ContentBefore = Seq.toList tn.ContentBefore
-//               ContentItself = tn.ContentItself
-//               ContentAfter = Seq.toList tn.ContentAfter }
-//             |> Some
-//         else
-//             None)
 
 let internal collectTriviaFromDirectives
     (source: ISourceText)
@@ -242,7 +62,9 @@ let internal collectTriviaFromCodeComments
     |> List.map (function
         | CommentTrivia.BlockComment r ->
             let content = source.GetContentAt r
+
             let startLine = source.GetLineString(r.StartLine - 1)
+
             let endLine = source.GetLineString(r.EndLine - 1)
 
             if
@@ -257,6 +79,7 @@ let internal collectTriviaFromCodeComments
 
         | CommentTrivia.LineComment r ->
             let content = source.GetContentAt r
+
             let line = source.GetLineString(r.StartLine - 1)
 
             let item =
@@ -328,6 +151,7 @@ let internal collectTriviaFromBlankLines
             )
 
         let min = System.Math.Max(0, codeRange.StartLine - 1)
+
         let max = System.Math.Min(source.Length - 1, codeRange.EndLine - 1)
 
         (min, [ min..max ])
@@ -348,6 +172,23 @@ let internal collectTriviaFromBlankLines
                         (count + 1), Some { Item = Newline; Range = range }
                     else
                         count, None)
+
+let findNodeBeforeLineAndColumn (nodes: TriviaNode seq) line column =
+    nodes
+    |> Seq.tryFindBack (fun tn ->
+        let range = tn.Range
+
+        range.StartLine <= line
+        && range.StartColumn <= column)
+
+let findNodeAfterLineAndColumn (nodes: TriviaNode seq) line column =
+    nodes
+    |> Seq.tryFind (fun tn ->
+        let range = tn.Range
+
+        (range.StartLine > line)
+        || (range.StartLine = line
+            && range.StartColumn > column))
 
 /// The trivia is not a part of the tree
 /// Either assign it on top of below the root node
@@ -453,35 +294,6 @@ let blockCommentToTriviaInstruction (containerNode: TriviaNode) (trivia: Trivia)
               AddBefore = false }
     | _ -> None
 
-//     match nodeBefore, nodeAfter with
-//     | Some nb, Some na when
-//         (nb.Range.EndLine < range.StartLine
-//          && na.Range.StartLine > range.EndLine)
-//         ->
-//         Some na
-//         |> updateTriviaNode (fun tn -> tn.ContentBefore.Add(Comment(BlockComment(comment, true, true)))) triviaNodes
-//     | Some n, _ when n.Range.EndLine = range.StartLine ->
-//         Some n
-//         |> updateTriviaNode
-//             (fun tn -> tn.ContentAfter.Add(Comment(BlockComment(comment, false, false))))
-//             triviaNodes
-//     | _, Some n ->
-//         Some n
-//         |> updateTriviaNode
-//             (fun tn ->
-//                 let newline = tn.Range.StartLine > range.EndLine
-//                 tn.ContentBefore.Add(Comment(BlockComment(comment, false, newline))))
-//             triviaNodes
-//     | Some _, _ when (commentIsAfterLastTriviaNode triviaNodes range) ->
-//         findLastNode triviaNodes
-//         |> updateTriviaNode (fun tn -> tn.ContentAfter.Add(Comment(BlockComment(comment, true, false)))) triviaNodes
-//     | Some n, _ ->
-//         Some n
-//         |> updateTriviaNode (fun tn -> tn.ContentAfter.Add(Comment(BlockComment(comment, true, false)))) triviaNodes
-//     | None, None ->
-//         findNodeBeforeLineFromStart triviaNodes range.StartLine
-//         |> updateTriviaNode (fun tn -> tn.ContentAfter.Add(Comment(BlockComment(comment, true, true)))) triviaNodes
-
 let mapTriviaToTriviaInstruction (rootNode: TriviaNode) (trivia: Trivia) : TriviaInstruction option =
     let smallestNodeThatContainsTrivia = findNodeWhereRangeFitsIn rootNode trivia.Range
 
@@ -524,8 +336,6 @@ let collectTrivia
                 | Some { RootNode = rootNode } -> rootNode
 
             rootNode, directives, codeComments
-
-    // printTriviaNode rootNode
 
     let trivia =
         let codeRange =
