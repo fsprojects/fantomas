@@ -241,11 +241,7 @@
                     </a>
                 </div>
             </div>
-            <div class="row">
-                <div class="col-6"><h4 class="text-center my-4">G-Research</h4></div>
-                <div class="col-6"><h4 class="text-center my-4">Nojaf</h4></div>
-            </div>
-            <h3>Community sponsors</h3>
+            <h3 class="my-4">Community sponsors</h3>
             <ul class="mt-3">
                 <li><a href="https://tinybluerobots.com">Tiny Blue Robots</a></li>
                 <li><a href="https://github.com/ThisFunctionalTom">Tomas Leko</a></li>
@@ -371,7 +367,15 @@
             </div>
         </div>
     </section>
-    <section>contact</section>
+    <section class="bg-dark py-2">
+        <footer class="container text-light">
+            <ul class="list-unstyled m-0 d-flex justify-content-evenly">
+                <li>&copy; Fantomas <span id="year"></span></li>
+                <li><a href="mailto:info@fantomas.com" class="text-light text-decoration-none d-flex align-items-center">
+                    <i class="bi bi-envelope me-1"></i>email</a></li>
+            </ul>
+        </footer>
+    </section>
 </main>
 <div class="discord">
     <strong>Join us on Discord</strong>
@@ -403,8 +407,11 @@
 
     addEventListener("load", () => {
         const video = document.querySelector("video")
-        if (window.innerWidth > 768) { video.setAttribute("autoplay",""); video.play(); }
-        
+        if (window.innerWidth > 768) {
+            video.setAttribute("autoplay", "");
+            video.play();
+        }
+
         [document.querySelector("header a.btn"), document.querySelector("#your-logo-here")]
             .forEach(a => {
                     a.addEventListener("click", ev => {
@@ -435,6 +442,8 @@
                 getStartedButtonToolTip.show();
             }, 1000)
         })
+
+        document.querySelector("#year").textContent = "" + new Date().getFullYear();
     })
 </script>
 <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
