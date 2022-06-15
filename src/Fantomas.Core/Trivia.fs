@@ -12,11 +12,11 @@ open Fantomas.Core.AstTransformer
 open Fantomas.Core.TriviaTypes
 open Fantomas.Core.FormatConfig
 
-let findFirstNodeAfterLine (nodes: TriviaNodeAssigner list) (lineNumber: int) : TriviaNodeAssigner option =
+let findFirstNodeAfterLine (nodes: TriviaNode list) (lineNumber: int) : TriviaNode option =
     nodes
     |> List.tryFind (fun tn -> tn.Range.StartLine > lineNumber)
 
-let findLastNodeOnLine (nodes: TriviaNodeAssigner list) lineNumber : TriviaNodeAssigner option =
+let findLastNodeOnLine (nodes: TriviaNode list) lineNumber : TriviaNode option =
     nodes
     |> List.filter (fun tn -> tn.Range.EndLine = lineNumber)
     |> List.sortByDescending (fun tn -> tn.Range.EndColumn, tn.Range.StartColumn)
@@ -31,7 +31,7 @@ let findLastNodeOnLine (nodes: TriviaNodeAssigner list) lineNumber : TriviaNodeA
         | h :: _ -> Some h
         | [] -> None
 
-let findLastNode (nodes: TriviaNodeAssigner list) : TriviaNodeAssigner option =
+let findLastNode (nodes: TriviaNode list) : TriviaNode option =
     match nodes with
     | [] -> None
     | nodes ->
@@ -39,7 +39,7 @@ let findLastNode (nodes: TriviaNodeAssigner list) : TriviaNodeAssigner option =
         |> List.maxBy (fun tn -> tn.Range.EndLine)
         |> Some
 
-let findNodeBeforeLineAndColumn (nodes: TriviaNodeAssigner seq) line column =
+let findNodeBeforeLineAndColumn (nodes: TriviaNode seq) line column =
     nodes
     |> Seq.tryFindBack (fun tn ->
         let range = tn.Range
@@ -47,13 +47,13 @@ let findNodeBeforeLineAndColumn (nodes: TriviaNodeAssigner seq) line column =
         range.StartLine <= line
         && range.StartColumn <= column)
 
-let findNodeBeforeLineFromStart (nodes: TriviaNodeAssigner list) line =
+let findNodeBeforeLineFromStart (nodes: TriviaNode list) line =
     nodes
     |> List.filter (fun tn -> tn.Range.EndLine < line)
     |> List.sortByDescending (fun tn -> tn.Range.EndLine, -tn.Range.StartColumn)
     |> List.tryFind (fun tn -> tn.Range.StartLine < line)
 
-let findNodeAfterLineAndColumn (nodes: TriviaNodeAssigner seq) line column =
+let findNodeAfterLineAndColumn (nodes: TriviaNode seq) line column =
     nodes
     |> Seq.tryFind (fun tn ->
         let range = tn.Range
@@ -62,7 +62,7 @@ let findNodeAfterLineAndColumn (nodes: TriviaNodeAssigner seq) line column =
         || (range.StartLine = line
             && range.StartColumn > column))
 
-let commentIsAfterLastTriviaNode (triviaNodes: TriviaNodeAssigner list) (range: Range) =
+let commentIsAfterLastTriviaNode (triviaNodes: TriviaNode list) (range: Range) =
     let hasNoNodesAfterRange =
         triviaNodes
         |> Seq.exists (fun tn -> tn.Range.EndLine > range.StartLine)
@@ -70,7 +70,7 @@ let commentIsAfterLastTriviaNode (triviaNodes: TriviaNodeAssigner list) (range: 
 
     hasNoNodesAfterRange
 
-// let updateTriviaNode (lens: TriviaNodeAssigner -> unit) (triviaNodes: TriviaNodeAssigner list) triviaNode =
+// let updateTriviaNode (lens: TriviaNode -> unit) (triviaNodes: TriviaNode list) triviaNode =
 //     match triviaNode with
 //     | Some tNode ->
 //         // There are situations where the same range can be linked to multiple different AST nodes.
@@ -85,27 +85,14 @@ let commentIsAfterLastTriviaNode (triviaNodes: TriviaNodeAssigner list) (range: 
 //         triviaNodes
 //     | None -> triviaNodes
 
-let addAllTriviaAsContentAfter (trivia: Trivia list) (singleNode: TriviaNodeAssigner) =
-    let contentAfter =
-        trivia
-        |> List.skipWhile (fun tn -> tn.Item = Newline) // skip leading newlines
-        |> List.map (fun tn -> tn.Item)
-
-    { Type = singleNode.Type
-      Range = singleNode.Range
-      ContentBefore = []
-      ContentItself = None
-      ContentAfter = contentAfter }
-    |> List.singleton
-
-let printTriviaNode (node: TriviaNodeAssigner) : unit =
-    let rec visit (level: int) (node: TriviaNodeAssigner) =
+let printTriviaNode (node: TriviaNode) : unit =
+    let rec visit (level: int) (node: TriviaNode) =
         printfn "%s%A: %A" ("".PadRight(level * 2)) node.Type node.Range
         Array.iter (visit (level + 1)) node.Children
 
     visit 0 node
 
-let rec findNodeWhereRangeFitsIn (root: TriviaNodeAssigner) (range: range) : TriviaNodeAssigner option =
+let rec findNodeWhereRangeFitsIn (root: TriviaNode) (range: range) : TriviaNode option =
     let doesSelectionFitInNode = RangeHelpers.rangeContainsRange root.Range range
 
     if not doesSelectionFitInNode then
@@ -121,7 +108,7 @@ let rec findNodeWhereRangeFitsIn (root: TriviaNodeAssigner) (range: range) : Tri
         | Some betterChild -> Some betterChild
         | None -> Some root
 
-// let addTriviaToTriviaNode (startOfSourceCode: int) (triviaNodes: TriviaNodeAssigner list) trivia = triviaNodes
+// let addTriviaToTriviaNode (startOfSourceCode: int) (triviaNodes: TriviaNode list) trivia = triviaNodes
 // match trivia with
 // | { Item = Comment (LineCommentOnSingleLine _ as comment)
 //     Range = range } ->
@@ -210,12 +197,12 @@ let rec findNodeWhereRangeFitsIn (root: TriviaNodeAssigner) (range: range) : Tri
 //
 // | _ -> triviaNodes
 
-// let triviaNodeIsNotEmpty (triviaNode: TriviaNodeAssigner) =
+// let triviaNodeIsNotEmpty (triviaNode: TriviaNode) =
 //     not (Seq.isEmpty triviaNode.ContentAfter)
 //     || not (Seq.isEmpty triviaNode.ContentBefore)
 //     || Option.isSome triviaNode.ContentItself
 //
-// let transformNonEmptyNodes (nodes: TriviaNodeAssigner list) : TriviaNode list =
+// let transformNonEmptyNodes (nodes: TriviaNode list) : TriviaNode list =
 //     nodes
 //     |> List.choose (fun tn ->
 //         if triviaNodeIsNotEmpty tn then
@@ -290,7 +277,7 @@ let internal collectTriviaFromCodeComments
 let internal collectTriviaFromBlankLines
     (config: FormatConfig)
     (source: ISourceText)
-    (triviaNode: TriviaNodeAssigner)
+    (triviaNode: TriviaNode)
     (codeComments: CommentTrivia list)
     (codeRange: range)
     : Trivia list =
@@ -307,7 +294,7 @@ let internal collectTriviaFromBlankLines
                 [ r.StartLine .. r.EndLine ]
 
         let multilineStringsLines =
-            let rec visit (node: TriviaNodeAssigner) (finalContinuation: int list -> int list) =
+            let rec visit (node: TriviaNode) (finalContinuation: int list -> int list) =
                 let continuations: ((int list -> int list) -> int list) list =
                     Array.toList node.Children |> List.map visit
 
@@ -364,7 +351,7 @@ let internal collectTriviaFromBlankLines
 
 /// The trivia is not a part of the tree
 /// Either assign it on top of below the root node
-let triviaBeforeOrAfterEntireTree (rootNode: TriviaNodeAssigner) (trivia: Trivia) : TriviaInstruction =
+let triviaBeforeOrAfterEntireTree (rootNode: TriviaNode) (trivia: Trivia) : TriviaInstruction =
     let isBefore = trivia.Range.EndLine < rootNode.Range.StartLine
 
     let trivia =
@@ -380,7 +367,7 @@ let triviaBeforeOrAfterEntireTree (rootNode: TriviaNodeAssigner) (trivia: Trivia
 
 /// Try to put the trivia on top of the closest node
 /// If that didn't work put it after the last node
-let simpleTriviaToTriviaInstruction (containerNode: TriviaNodeAssigner) (trivia: Trivia) : TriviaInstruction option =
+let simpleTriviaToTriviaInstruction (containerNode: TriviaNode) (trivia: Trivia) : TriviaInstruction option =
     containerNode.Children
     |> Array.tryFind (fun node -> node.Range.StartLine > trivia.Range.StartLine)
     |> Option.map (fun node ->
@@ -398,12 +385,12 @@ let simpleTriviaToTriviaInstruction (containerNode: TriviaNodeAssigner) (trivia:
 
 /// Try and find the smallest possible node
 let lineCommentAfterSourceCodeToTriviaInstruction
-    (containerNode: TriviaNodeAssigner)
+    (containerNode: TriviaNode)
     (trivia: Trivia)
     : TriviaInstruction option =
     let lineNumber = trivia.Range.StartLine
 
-    let rec visit node : TriviaNodeAssigner option =
+    let rec visit node : TriviaNode option =
         let result =
             node.Children
             |> Array.filter (fun node -> node.Range.EndLine = lineNumber)
@@ -428,7 +415,7 @@ let lineCommentAfterSourceCodeToTriviaInstruction
           Range = node.Range
           AddBefore = false })
 
-let blockCommentToTriviaInstruction (containerNode: TriviaNodeAssigner) (trivia: Trivia) : TriviaInstruction option =
+let blockCommentToTriviaInstruction (containerNode: TriviaNode) (trivia: Trivia) : TriviaInstruction option =
     let nodeAfter =
         findNodeAfterLineAndColumn containerNode.Children trivia.Range.StartLine trivia.Range.StartColumn
 
@@ -495,7 +482,7 @@ let blockCommentToTriviaInstruction (containerNode: TriviaNodeAssigner) (trivia:
 //         findNodeBeforeLineFromStart triviaNodes range.StartLine
 //         |> updateTriviaNode (fun tn -> tn.ContentAfter.Add(Comment(BlockComment(comment, true, true)))) triviaNodes
 
-let mapTriviaToTriviaInstruction (rootNode: TriviaNodeAssigner) (trivia: Trivia) : TriviaInstruction option =
+let mapTriviaToTriviaInstruction (rootNode: TriviaNode) (trivia: Trivia) : TriviaInstruction option =
     let smallestNodeThatContainsTrivia = findNodeWhereRangeFitsIn rootNode trivia.Range
 
     match smallestNodeThatContainsTrivia with

@@ -7,6 +7,6 @@ open Fantomas.Core.FormatConfig
 
 val collectTrivia: FormatConfig -> ISourceText -> ParsedInput -> TriviaForSelection option -> TriviaInstruction list
 
-val printTriviaNode: TriviaNodeAssigner -> unit
+val printTriviaNode: TriviaNode -> unit
 
-val findNodeWhereRangeFitsIn: TriviaNodeAssigner -> range -> TriviaNodeAssigner option
+val findNodeWhereRangeFitsIn: TriviaNode -> range -> TriviaNode option

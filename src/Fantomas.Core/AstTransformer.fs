@@ -8,7 +8,7 @@ open Fantomas.Core.RangePatterns
 open Fantomas.Core
 
 let sortChildren =
-    Array.sortBy (fun ({ Range = range }: TriviaNodeAssigner) -> range.StartLine, range.StartColumn)
+    Array.sortBy (fun ({ Range = range }: TriviaNode) -> range.StartLine, range.StartColumn)
 
 let mkNode (t: FsAstType) (r: range) =
     { Range = r
@@ -16,31 +16,31 @@ let mkNode (t: FsAstType) (r: range) =
       Children = Array.empty
       FSharpASTNode = None }
 
-let mkNodeWithChildren (t: FsAstType) (r: range) (children: TriviaNodeAssigner array) =
+let mkNodeWithChildren (t: FsAstType) (r: range) (children: TriviaNode array) =
     { Range = r
       Type = t
       Children = children
       FSharpASTNode = None }
 
-let mkSynModuleDeclNode (t: FsAstType) (astNode: SynModuleDecl) (r: range) (children: TriviaNodeAssigner array) =
+let mkSynModuleDeclNode (t: FsAstType) (astNode: SynModuleDecl) (r: range) (children: TriviaNode array) =
     { Range = r
       Type = t
       Children = children
       FSharpASTNode = Some(Choice1Of3 astNode) }
 
-let mkSynModuleSigDeclNode (t: FsAstType) (astNode: SynModuleSigDecl) (r: range) (children: TriviaNodeAssigner array) =
+let mkSynModuleSigDeclNode (t: FsAstType) (astNode: SynModuleSigDecl) (r: range) (children: TriviaNode array) =
     { Range = r
       Type = t
       Children = children
       FSharpASTNode = Some(Choice2Of3 astNode) }
 
-let mkSynExprNode (t: FsAstType) (astNode: SynExpr) (r: range) (children: TriviaNodeAssigner array) =
+let mkSynExprNode (t: FsAstType) (astNode: SynExpr) (r: range) (children: TriviaNode array) =
     { Range = r
       Type = t
       Children = children
       FSharpASTNode = Some(Choice3Of3 astNode) }
 
-let mkNodeOption (t: FsAstType) (r: range option) : TriviaNodeAssigner option = Option.map (mkNode t) r
+let mkNodeOption (t: FsAstType) (r: range option) : TriviaNode option = Option.map (mkNode t) r
 
 // We only need the let/type keyword anchor if there are xml docs or attributes present that have space between itself and the let/type keyword
 let mkNodeForRangeAfterXmlAndAttributes
@@ -48,7 +48,7 @@ let mkNodeForRangeAfterXmlAndAttributes
     (SourceParser.PreXmlDoc (xml, xmlRange))
     (attrs: SynAttributeList list)
     (r: range option)
-    : TriviaNodeAssigner list =
+    : TriviaNode list =
     if Array.isEmpty xml && attrs.IsEmpty then
         []
     else
@@ -101,11 +101,8 @@ let rec visitSynModuleOrNamespace
                yield! visitSynAttributeLists attrs
                yield! (List.map visitSynModuleDecl decls) |] }
 
-and visitSynModuleDecl (ast: SynModuleDecl) : TriviaNodeAssigner =
-    let rec visit
-        (ast: SynModuleDecl)
-        (finalContinuation: TriviaNodeAssigner -> TriviaNodeAssigner)
-        : TriviaNodeAssigner =
+and visitSynModuleDecl (ast: SynModuleDecl) : TriviaNode =
+    let rec visit (ast: SynModuleDecl) (finalContinuation: TriviaNode -> TriviaNode) : TriviaNode =
         match ast with
         | SynModuleDecl.ModuleAbbrev (_, _, range) ->
             mkSynModuleDeclNode SynModuleDecl_ModuleAbbrev ast range Array.empty
@@ -116,7 +113,7 @@ and visitSynModuleDecl (ast: SynModuleDecl) : TriviaNodeAssigner =
                                       _,
                                       range,
                                       trivia) ->
-            let continuations: ((TriviaNodeAssigner -> TriviaNodeAssigner) -> TriviaNodeAssigner) list =
+            let continuations: ((TriviaNode -> TriviaNode) -> TriviaNode) list =
                 List.map visit decls
 
             let moduleNode =
@@ -126,7 +123,7 @@ and visitSynModuleDecl (ast: SynModuleDecl) : TriviaNodeAssigner =
                     attrs
                     trivia.ModuleKeyword
 
-            let finalContinuation (nodes: TriviaNodeAssigner list) : TriviaNodeAssigner =
+            let finalContinuation (nodes: TriviaNode list) : TriviaNode =
                 mkSynModuleDeclNode
                     SynModuleDecl_NestedModule
                     ast
@@ -188,29 +185,26 @@ and visitSynModuleDecl (ast: SynModuleDecl) : TriviaNodeAssigner =
 
     visit ast id
 
-and visitSynExpr (synExpr: SynExpr) : TriviaNodeAssigner list =
+and visitSynExpr (synExpr: SynExpr) : TriviaNode list =
     let processSequence
-        (finalContinuation: TriviaNodeAssigner list -> TriviaNodeAssigner list)
-        (continuations: ((TriviaNodeAssigner list -> TriviaNodeAssigner list) -> TriviaNodeAssigner list) list)
-        (mkNode: TriviaNodeAssigner list -> TriviaNodeAssigner)
-        : TriviaNodeAssigner list =
-        let finalContinuation (nodes: TriviaNodeAssigner list list) : TriviaNodeAssigner list =
+        (finalContinuation: TriviaNode list -> TriviaNode list)
+        (continuations: ((TriviaNode list -> TriviaNode list) -> TriviaNode list) list)
+        (mkNode: TriviaNode list -> TriviaNode)
+        : TriviaNode list =
+        let finalContinuation (nodes: TriviaNode list list) : TriviaNode list =
             mkNode (List.collect id nodes)
             |> List.singleton
             |> finalContinuation
 
         Continuation.sequence continuations finalContinuation
 
-    let rec visit
-        (synExpr: SynExpr)
-        (finalContinuation: TriviaNodeAssigner list -> TriviaNodeAssigner list)
-        : TriviaNodeAssigner list =
+    let rec visit (synExpr: SynExpr) (finalContinuation: TriviaNode list -> TriviaNode list) : TriviaNode list =
         match synExpr with
         | SourceParser.Sequentials xs ->
-            let continuations: ((TriviaNodeAssigner list -> TriviaNodeAssigner list) -> TriviaNodeAssigner list) list =
+            let continuations: ((TriviaNode list -> TriviaNode list) -> TriviaNode list) list =
                 List.map visit xs
 
-            let finalContinuation (nodes: TriviaNodeAssigner list list) : TriviaNodeAssigner list =
+            let finalContinuation (nodes: TriviaNode list list) : TriviaNode list =
                 List.collect id nodes |> finalContinuation
 
             Continuation.sequence continuations finalContinuation
@@ -226,7 +220,7 @@ and visitSynExpr (synExpr: SynExpr) : TriviaNodeAssigner list =
                 |> List.singleton
                 |> finalContinuation)
         | SynExpr.Quote (operator, _, quotedSynExpr, _, range) ->
-            let continuations: ((TriviaNodeAssigner list -> TriviaNodeAssigner list) -> TriviaNodeAssigner list) list =
+            let continuations: ((TriviaNode list -> TriviaNode list) -> TriviaNode list) list =
                 [ visit operator; visit quotedSynExpr ]
 
             processSequence finalContinuation continuations (fun nodes ->
@@ -237,13 +231,13 @@ and visitSynExpr (synExpr: SynExpr) : TriviaNodeAssigner list =
             |> finalContinuation
         | SynExpr.Typed (expr, _typeName, _range) -> visit expr finalContinuation
         | SynExpr.Tuple (_, exprs, _, range) ->
-            let continuations: ((TriviaNodeAssigner list -> TriviaNodeAssigner list) -> TriviaNodeAssigner list) list =
+            let continuations: ((TriviaNode list -> TriviaNode list) -> TriviaNode list) list =
                 List.map visit exprs
 
             processSequence finalContinuation continuations (fun nodes ->
                 mkSynExprNode SynExpr_Tuple synExpr range (sortChildren [| yield! nodes |]))
         | SourceParser.ArrayOrList (startRange, _isArray, exprs, endRange, range) ->
-            let continuations: ((TriviaNodeAssigner list -> TriviaNodeAssigner list) -> TriviaNodeAssigner list) list =
+            let continuations: ((TriviaNode list -> TriviaNode list) -> TriviaNode list) list =
                 exprs |> List.map visit
 
             processSequence finalContinuation continuations (fun nodes ->
@@ -303,13 +297,13 @@ and visitSynExpr (synExpr: SynExpr) : TriviaNodeAssigner list =
             |> List.singleton
             |> finalContinuation
         | SynExpr.While (_, whileExpr, doExpr, range) ->
-            let continuations: ((TriviaNodeAssigner list -> TriviaNodeAssigner list) -> TriviaNodeAssigner list) list =
+            let continuations: ((TriviaNode list -> TriviaNode list) -> TriviaNode list) list =
                 [ visit whileExpr; visit doExpr ]
 
             processSequence finalContinuation continuations (fun nodes ->
                 mkSynExprNode SynExpr_While synExpr range (sortChildren [| yield! nodes |]))
         | SynExpr.For (_, _, _, equalsRange, identBody, _, toBody, doBody, range) ->
-            let continuations: ((TriviaNodeAssigner list -> TriviaNodeAssigner list) -> TriviaNodeAssigner list) list =
+            let continuations: ((TriviaNode list -> TriviaNode list) -> TriviaNode list) list =
                 [ visit identBody
                   visit toBody
                   visit doBody ]
@@ -323,7 +317,7 @@ and visitSynExpr (synExpr: SynExpr) : TriviaNodeAssigner list =
                         [| yield! Option.toList (mkNodeOption SynExpr_For_Equals equalsRange)
                            yield! nodes |]))
         | SynExpr.ForEach (_, _, SeqExprOnly _, _, pat, enumExpr, bodyExpr, range) ->
-            let continuations: ((TriviaNodeAssigner list -> TriviaNodeAssigner list) -> TriviaNodeAssigner list) list =
+            let continuations: ((TriviaNode list -> TriviaNode list) -> TriviaNode list) list =
                 [ visit enumExpr; visit bodyExpr ]
 
             processSequence finalContinuation continuations (fun nodes ->
@@ -406,7 +400,7 @@ and visitSynExpr (synExpr: SynExpr) : TriviaNodeAssigner list =
                 |> finalContinuation)
         | SourceParser.NewlineInfixApps (e, es)
         | SourceParser.SameInfixApps (e, es) ->
-            let continuations: ((TriviaNodeAssigner list -> TriviaNodeAssigner list) -> TriviaNodeAssigner list) list =
+            let continuations: ((TriviaNode list -> TriviaNode list) -> TriviaNode list) list =
                 [ yield visit e
                   yield! List.map (fun (_, _, e) -> visit e) es ]
 
@@ -414,7 +408,7 @@ and visitSynExpr (synExpr: SynExpr) : TriviaNodeAssigner list =
                 let operators = List.map (fun (_, operator, _) -> visitSynLongIdent operator) es
                 mkSynExprNode SynExpr_App synExpr synExpr.Range (sortChildren [| yield! nodes; yield! operators |]))
         | SourceParser.InfixApp (_, sli, e1, e2, range) ->
-            let continuations: ((TriviaNodeAssigner list -> TriviaNodeAssigner list) -> TriviaNodeAssigner list) list =
+            let continuations: ((TriviaNode list -> TriviaNode list) -> TriviaNode list) list =
                 [ visit e1; visit e2 ]
 
             processSequence finalContinuation continuations (fun nodes ->
@@ -426,7 +420,7 @@ and visitSynExpr (synExpr: SynExpr) : TriviaNodeAssigner list =
                         [| yield visitSynLongIdent sli
                            yield! nodes |]))
         | SynExpr.App (_, _, funcExpr, argExpr, range) ->
-            let continuations: ((TriviaNodeAssigner list -> TriviaNodeAssigner list) -> TriviaNodeAssigner list) list =
+            let continuations: ((TriviaNode list -> TriviaNode list) -> TriviaNode list) list =
                 [ visit funcExpr; visit argExpr ]
 
             processSequence finalContinuation continuations (fun nodes ->
@@ -470,7 +464,7 @@ and visitSynExpr (synExpr: SynExpr) : TriviaNodeAssigner list =
                 |> List.singleton
                 |> finalContinuation)
         | SynExpr.TryFinally (tryExpr, finallyExpr, range, _, _, trivia) ->
-            let continuations: ((TriviaNodeAssigner list -> TriviaNodeAssigner list) -> TriviaNodeAssigner list) list =
+            let continuations: ((TriviaNode list -> TriviaNode list) -> TriviaNode list) list =
                 [ visit tryExpr; visit finallyExpr ]
 
             processSequence finalContinuation continuations (fun nodes ->
@@ -495,7 +489,7 @@ and visitSynExpr (synExpr: SynExpr) : TriviaNodeAssigner list =
                 |> finalContinuation)
         | SynExpr.Sequential _ -> failwith "SynExpr.Sequential should have been captured before"
         | SynExpr.SequentialOrImplicitYield (_, expr1, expr2, ifNotStmt, range) ->
-            let continuations: ((TriviaNodeAssigner list -> TriviaNodeAssigner list) -> TriviaNodeAssigner list) list =
+            let continuations: ((TriviaNode list -> TriviaNode list) -> TriviaNode list) list =
                 [ visit expr1
                   visit expr2
                   visit ifNotStmt ]
@@ -507,7 +501,7 @@ and visitSynExpr (synExpr: SynExpr) : TriviaNodeAssigner list =
                 es
                 |> List.collect (fun (_, _, _, e1, _, e2) -> [ visit e1; visit e2 ])
 
-            let continuations: ((TriviaNodeAssigner list -> TriviaNodeAssigner list) -> TriviaNodeAssigner list) list =
+            let continuations: ((TriviaNode list -> TriviaNode list) -> TriviaNode list) list =
                 [ yield visit ifExpr
                   yield visit thenExpr
                   yield! elifs
@@ -548,7 +542,7 @@ and visitSynExpr (synExpr: SynExpr) : TriviaNodeAssigner list =
                            yield! nodes |]))
 
         | SynExpr.IfThenElse (ifExpr, thenExpr, elseExpr, _, _, range, trivia) ->
-            let continuations: ((TriviaNodeAssigner list -> TriviaNodeAssigner list) -> TriviaNodeAssigner list) list =
+            let continuations: ((TriviaNode list -> TriviaNode list) -> TriviaNode list) list =
                 [ yield visit ifExpr
                   yield visit thenExpr
                   yield! (Option.toList elseExpr |> List.map visit) ]
@@ -596,25 +590,25 @@ and visitSynExpr (synExpr: SynExpr) : TriviaNodeAssigner list =
                 |> List.singleton
                 |> finalContinuation)
         | SynExpr.DotSet (expr, _, e2, range) ->
-            let continuations: ((TriviaNodeAssigner list -> TriviaNodeAssigner list) -> TriviaNodeAssigner list) list =
+            let continuations: ((TriviaNode list -> TriviaNode list) -> TriviaNode list) list =
                 [ visit expr; visit e2 ]
 
             processSequence finalContinuation continuations (fun nodes ->
                 mkSynExprNode SynExpr_DotSet synExpr range (sortChildren [| yield! nodes |]))
         | SynExpr.Set (e1, e2, range) ->
-            let continuations: ((TriviaNodeAssigner list -> TriviaNodeAssigner list) -> TriviaNodeAssigner list) list =
+            let continuations: ((TriviaNode list -> TriviaNode list) -> TriviaNode list) list =
                 [ visit e1; visit e2 ]
 
             processSequence finalContinuation continuations (fun nodes ->
                 mkSynExprNode SynExpr_Set synExpr range (sortChildren [| yield! nodes |]))
         | SynExpr.DotIndexedGet (objectExpr, indexArgs, _, range) ->
-            let continuations: ((TriviaNodeAssigner list -> TriviaNodeAssigner list) -> TriviaNodeAssigner list) list =
+            let continuations: ((TriviaNode list -> TriviaNode list) -> TriviaNode list) list =
                 [ visit objectExpr; visit indexArgs ]
 
             processSequence finalContinuation continuations (fun nodes ->
                 mkSynExprNode SynExpr_DotIndexedGet synExpr range (sortChildren [| yield! nodes |]))
         | SynExpr.DotIndexedSet (objectExpr, indexArgs, valueExpr, _, _, range) ->
-            let continuations: ((TriviaNodeAssigner list -> TriviaNodeAssigner list) -> TriviaNodeAssigner list) list =
+            let continuations: ((TriviaNode list -> TriviaNode list) -> TriviaNode list) list =
                 [ visit objectExpr
                   visit indexArgs
                   visit valueExpr ]
@@ -622,13 +616,13 @@ and visitSynExpr (synExpr: SynExpr) : TriviaNodeAssigner list =
             processSequence finalContinuation continuations (fun nodes ->
                 mkSynExprNode SynExpr_DotIndexedSet synExpr range (sortChildren [| yield! nodes |]))
         | SynExpr.NamedIndexedPropertySet (_, e1, e2, range) ->
-            let continuations: ((TriviaNodeAssigner list -> TriviaNodeAssigner list) -> TriviaNodeAssigner list) list =
+            let continuations: ((TriviaNode list -> TriviaNode list) -> TriviaNode list) list =
                 [ visit e1; visit e2 ]
 
             processSequence finalContinuation continuations (fun nodes ->
                 mkSynExprNode SynExpr_NamedIndexedPropertySet synExpr range (sortChildren [| yield! nodes |]))
         | SynExpr.DotNamedIndexedPropertySet (expr, _, e1, e2, range) ->
-            let continuations: ((TriviaNodeAssigner list -> TriviaNodeAssigner list) -> TriviaNodeAssigner list) list =
+            let continuations: ((TriviaNode list -> TriviaNode list) -> TriviaNode list) list =
                 [ visit expr; visit e1; visit e2 ]
 
             processSequence finalContinuation continuations (fun nodes ->
@@ -721,7 +715,7 @@ and visitSynExpr (synExpr: SynExpr) : TriviaNodeAssigner list =
                 |> List.singleton
                 |> finalContinuation)
         | SynExpr.JoinIn (expr, _, expr2, range) ->
-            let continuations: ((TriviaNodeAssigner list -> TriviaNodeAssigner list) -> TriviaNodeAssigner list) list =
+            let continuations: ((TriviaNode list -> TriviaNode list) -> TriviaNode list) list =
                 [ visit expr; visit expr2 ]
 
             processSequence finalContinuation continuations (fun nodes ->
@@ -765,7 +759,7 @@ and visitSynExpr (synExpr: SynExpr) : TriviaNodeAssigner list =
                 |> List.singleton
                 |> finalContinuation)
         | SynExpr.LetOrUseBang (_, _, _, pat, rhsExpr, andBangs, body, range, trivia) ->
-            let continuations: ((TriviaNodeAssigner list -> TriviaNodeAssigner list) -> TriviaNodeAssigner list) list =
+            let continuations: ((TriviaNode list -> TriviaNode list) -> TriviaNode list) list =
                 [ yield visit rhsExpr
                   yield visit body ]
 
@@ -817,7 +811,7 @@ and visitSynExpr (synExpr: SynExpr) : TriviaNodeAssigner list =
                 |> List.singleton
                 |> finalContinuation)
         | SynExpr.LibraryOnlyUnionCaseFieldSet (e1, _, _, e2, range) ->
-            let continuations: ((TriviaNodeAssigner list -> TriviaNodeAssigner list) -> TriviaNodeAssigner list) list =
+            let continuations: ((TriviaNode list -> TriviaNode list) -> TriviaNode list) list =
                 [ visit e1; visit e2 ]
 
             processSequence finalContinuation continuations (fun nodes ->
@@ -856,7 +850,7 @@ and visitSynExpr (synExpr: SynExpr) : TriviaNodeAssigner list =
             |> List.singleton
             |> finalContinuation
         | SynExpr.IndexRange (e1, _, e2, _, _, range) ->
-            let continuations: ((TriviaNodeAssigner list -> TriviaNodeAssigner list) -> TriviaNodeAssigner list) list =
+            let continuations: ((TriviaNode list -> TriviaNode list) -> TriviaNode list) list =
                 [ yield! (e1 |> Option.map visit |> Option.toList)
                   yield! (e2 |> Option.map visit |> Option.toList) ]
 
@@ -869,7 +863,7 @@ and visitSynExpr (synExpr: SynExpr) : TriviaNodeAssigner list =
                 |> finalContinuation)
         | SynExpr.DebugPoint (innerExpr = expr) -> visit expr finalContinuation
         | SynExpr.Dynamic (funcExpr, _, argExpr, range) ->
-            let continuations: ((TriviaNodeAssigner list -> TriviaNodeAssigner list) -> TriviaNodeAssigner list) list =
+            let continuations: ((TriviaNode list -> TriviaNode list) -> TriviaNode list) list =
                 [ visit funcExpr; visit argExpr ]
 
             processSequence finalContinuation continuations (fun nodes ->
@@ -877,7 +871,7 @@ and visitSynExpr (synExpr: SynExpr) : TriviaNodeAssigner list =
 
     visit synExpr id
 
-and visitSynInterpolatedStringPart (synInterpolatedStringPart: SynInterpolatedStringPart) : TriviaNodeAssigner =
+and visitSynInterpolatedStringPart (synInterpolatedStringPart: SynInterpolatedStringPart) : TriviaNode =
     match synInterpolatedStringPart with
     | SynInterpolatedStringPart.String (_, range) -> mkNode SynInterpolatedStringPart_String range
     | SynInterpolatedStringPart.FillExpr (expr, ident) ->
@@ -912,7 +906,7 @@ and visitAnonRecordField (SourceParser.AnonRecordFieldName (ident, equalsRange, 
 
 and visitAnonRecordTypeField (_: Ident, t: SynType) = visitSynType t
 
-and visitSynMemberSig (ms: SynMemberSig) : TriviaNodeAssigner =
+and visitSynMemberSig (ms: SynMemberSig) : TriviaNode =
     match ms with
     | SynMemberSig.Member (valSig, mf, range) ->
         let valSigNode = visitSynValSig valSig
@@ -931,7 +925,7 @@ and visitSynMemberSig (ms: SynMemberSig) : TriviaNodeAssigner =
     | SynMemberSig.NestedType (typedef, range) ->
         mkNodeWithChildren SynMemberSig_NestedType range [| visitSynTypeDefnSig typedef |]
 
-and visitSynMatchClause (mc: SynMatchClause) : TriviaNodeAssigner =
+and visitSynMatchClause (mc: SynMatchClause) : TriviaNode =
     match mc with
     | SourceParser.Clause (barRange, pat, eo, arrowRange, e, range) ->
         mkNodeWithChildren
@@ -948,7 +942,7 @@ and visitSynMatchClause (mc: SynMatchClause) : TriviaNodeAssigner =
                    yield! Option.toList (mkNodeOption SynMatchClause_Arrow arrowRange)
                    yield! visitSynExpr e |])
 
-and visitSynExprAndBang (SynExprAndBang (_, _, _, pat, body, range, trivia)) : TriviaNodeAssigner =
+and visitSynExprAndBang (SynExprAndBang (_, _, _, pat, body, range, trivia)) : TriviaNode =
     mkNodeWithChildren
         SynExprAndBang_
         range
@@ -957,7 +951,7 @@ and visitSynExprAndBang (SynExprAndBang (_, _, _, pat, body, range, trivia)) : T
                yield mkNode SynExprAndBang_Equals trivia.EqualsRange
                yield! visitSynExpr body |])
 
-and visitSynInterfaceImpl (ii: SynInterfaceImpl) : TriviaNodeAssigner =
+and visitSynInterfaceImpl (ii: SynInterfaceImpl) : TriviaNode =
     match ii with
     | SynInterfaceImpl (typ, withKeyword, bindings, members, range) ->
         mkNodeWithChildren
@@ -969,7 +963,7 @@ and visitSynInterfaceImpl (ii: SynInterfaceImpl) : TriviaNodeAssigner =
                    yield! List.map visitSynBinding bindings
                    yield! visitSynMemberDefns members |])
 
-and visitSynTypeDefn (td: SynTypeDefn) : TriviaNodeAssigner =
+and visitSynTypeDefn (td: SynTypeDefn) : TriviaNode =
     match td with
     | SynTypeDefn (SynComponentInfo (xmlDoc = preXmlDoc; attributes = attrs) as sci,
                    stdr,
@@ -991,7 +985,7 @@ and visitSynTypeDefn (td: SynTypeDefn) : TriviaNodeAssigner =
                    yield! Option.toList (mkNodeOption SynTypeDefn_With trivia.WithKeyword)
                    yield! visitSynMemberDefns members |])
 
-and visitSynTypeDefnSig (typeDefSig: SynTypeDefnSig) : TriviaNodeAssigner =
+and visitSynTypeDefnSig (typeDefSig: SynTypeDefnSig) : TriviaNode =
     match typeDefSig with
     | SynTypeDefnSig (sci, equalsRange, synTypeDefnSigReprs, withRange, memberSig, _) ->
         mkNodeWithChildren
@@ -1004,7 +998,7 @@ and visitSynTypeDefnSig (typeDefSig: SynTypeDefnSig) : TriviaNodeAssigner =
                    yield! Option.toList (mkNodeOption SynTypeDefnSig_With withRange)
                    yield! List.map visitSynMemberSig memberSig |])
 
-and visitSynTypeDefnSigRepr (stdr: SynTypeDefnSigRepr) : TriviaNodeAssigner =
+and visitSynTypeDefnSigRepr (stdr: SynTypeDefnSigRepr) : TriviaNode =
     match stdr with
     | SynTypeDefnSigRepr.ObjectModel (kind, members, range) ->
         mkNodeWithChildren
@@ -1016,7 +1010,7 @@ and visitSynTypeDefnSigRepr (stdr: SynTypeDefnSigRepr) : TriviaNodeAssigner =
     | SynTypeDefnSigRepr.Simple (simpleRepr, _range) -> visitSynTypeDefnSimpleRepr simpleRepr
     | SynTypeDefnSigRepr.Exception exceptionRepr -> visitSynExceptionDefnRepr exceptionRepr
 
-and visitSynMemberDefn (mbrDef: SynMemberDefn) : TriviaNodeAssigner =
+and visitSynMemberDefn (mbrDef: SynMemberDefn) : TriviaNode =
     match mbrDef with
     | SynMemberDefn.Open (target, parentRange) ->
         // we use the parent ranges here to match up with the trivia parsed
@@ -1072,7 +1066,7 @@ and visitSynMemberDefn (mbrDef: SynMemberDefn) : TriviaNodeAssigner =
                    yield! (Option.map visitSynType >> Option.toList) typeOpt
                    yield! visitSynExpr synExpr |])
 
-and visitSynMemberDefns (ms: SynMemberDefn list) : TriviaNodeAssigner list =
+and visitSynMemberDefns (ms: SynMemberDefn list) : TriviaNode list =
     ms
     |> List.groupBy (fun ms -> ms.Range)
     |> List.map (fun (_, g) ->
@@ -1100,8 +1094,8 @@ and visitSynMemberDefns (ms: SynMemberDefn list) : TriviaNodeAssigner list =
             { getNode with Children = combinedChildren }
         | _ -> failwith "most unexpected")
 
-and visitSynSimplePat (sp: SynSimplePat) : TriviaNodeAssigner =
-    let rec visit (sp: SynSimplePat) (continuation: TriviaNodeAssigner -> TriviaNodeAssigner) : TriviaNodeAssigner =
+and visitSynSimplePat (sp: SynSimplePat) : TriviaNode =
+    let rec visit (sp: SynSimplePat) (continuation: TriviaNode -> TriviaNode) : TriviaNode =
         match sp with
         | SynSimplePat.Id (_, _, _, _, _, range) -> mkNode SynSimplePat_Id range |> continuation
         | SynSimplePat.Typed (simplePat, typ, range) ->
@@ -1120,8 +1114,8 @@ and visitSynSimplePat (sp: SynSimplePat) : TriviaNodeAssigner =
 
     visit sp id
 
-and visitSynSimplePats (sp: SynSimplePats) : TriviaNodeAssigner =
-    let rec visit (sp: SynSimplePats) (continuation: TriviaNodeAssigner -> TriviaNodeAssigner) =
+and visitSynSimplePats (sp: SynSimplePats) : TriviaNode =
+    let rec visit (sp: SynSimplePats) (continuation: TriviaNode -> TriviaNode) =
         match sp with
         | SynSimplePats.SimplePats (pats, range) ->
             mkNodeWithChildren
@@ -1136,7 +1130,7 @@ and visitSynSimplePats (sp: SynSimplePats) : TriviaNodeAssigner =
 
     visit sp id
 
-and visitSynBinding (binding: SynBinding) : TriviaNodeAssigner =
+and visitSynBinding (binding: SynBinding) : TriviaNode =
     match binding with
     | SynBinding (_, kind, _, _, attrs, preXml, valData, headPat, returnInfo, expr, _range, _, trivia) ->
         let t =
@@ -1167,7 +1161,7 @@ and visitSynBinding (binding: SynBinding) : TriviaNodeAssigner =
                    yield! Option.toList (mkNodeOption SynBinding_Equals trivia.EqualsRange)
                    yield! visitSynExpr expr |])
 
-and visitSynValData (svd: SynValData) : TriviaNodeAssigner list =
+and visitSynValData (svd: SynValData) : TriviaNode list =
     match svd with
     | SynValData (memberFlags, svi, _) ->
         [ yield!
@@ -1176,11 +1170,11 @@ and visitSynValData (svd: SynValData) : TriviaNodeAssigner list =
                   memberFlags
           yield! Option.toList (visitSynValInfo svi) ]
 
-and visitSynMemberFlags (memberFlags: SynMemberFlags) : TriviaNodeAssigner list =
+and visitSynMemberFlags (memberFlags: SynMemberFlags) : TriviaNode list =
     [ yield! Option.toList (mkNodeOption SynMemberFlags_Static memberFlags.Trivia.StaticRange)
       yield! Option.toList (mkNodeOption SynMemberFlags_Member memberFlags.Trivia.MemberRange) ]
 
-and visitSynValSig (svs: SynValSig) : TriviaNodeAssigner =
+and visitSynValSig (svs: SynValSig) : TriviaNode =
     match svs with
     | SynValSig (attrs, ident, explicitValDecls, synType, arity, _, _, _, _, expr, range, trivia) ->
         mkNodeWithChildren
@@ -1196,12 +1190,12 @@ and visitSynValSig (svs: SynValSig) : TriviaNodeAssigner =
                    yield! visitOptSynExpr expr
                    yield! Option.toList (mkNodeOption SynValSig_With trivia.ValKeyword) |])
 
-and visitSynValTyparDecls (valTypeDecl: SynValTyparDecls) : TriviaNodeAssigner option =
+and visitSynValTyparDecls (valTypeDecl: SynValTyparDecls) : TriviaNode option =
     match valTypeDecl with
     | SynValTyparDecls (Some typardecl, _) -> Some(visitSynTyparDecls typardecl)
     | _ -> None
 
-and visitSynTyparDecl (std: SynTyparDecl) : TriviaNodeAssigner =
+and visitSynTyparDecl (std: SynTyparDecl) : TriviaNode =
     match std with
     | SourceParser.TyparDecl (attrs, synTypar, fullRange) ->
         mkNodeWithChildren
@@ -1213,7 +1207,7 @@ and visitSynTyparDecl (std: SynTyparDecl) : TriviaNodeAssigner =
 
 and visitSynTypar (SynTypar (ident, _typarStaticReq, _isCompGen)) = mkNode Ident_ ident.idRange
 
-and visitSynBindingReturnInfo (returnInfo: SynBindingReturnInfo) : TriviaNodeAssigner =
+and visitSynBindingReturnInfo (returnInfo: SynBindingReturnInfo) : TriviaNode =
     match returnInfo with
     | SynBindingReturnInfo (typeName, range, attrs) ->
         mkNodeWithChildren
@@ -1223,8 +1217,8 @@ and visitSynBindingReturnInfo (returnInfo: SynBindingReturnInfo) : TriviaNodeAss
                 [| yield visitSynType typeName
                    yield! (visitSynAttributeLists attrs) |])
 
-and visitSynPat (sp: SynPat) : TriviaNodeAssigner =
-    let rec visit (sp: SynPat) (finalContinuation: TriviaNodeAssigner -> TriviaNodeAssigner) : TriviaNodeAssigner =
+and visitSynPat (sp: SynPat) : TriviaNode =
+    let rec visit (sp: SynPat) (finalContinuation: TriviaNode -> TriviaNode) : TriviaNode =
         match sp with
         | SynPat.Const (sc, range) -> visitSynConst range sc |> finalContinuation
         | SynPat.Wild range -> mkNode SynPat_Wild range |> finalContinuation
@@ -1232,10 +1226,10 @@ and visitSynPat (sp: SynPat) : TriviaNodeAssigner =
             mkNodeWithChildren SynPat_Named range [| visitSynIdent si |]
             |> finalContinuation
         | SynPat.As (synPat, synPat2, range) ->
-            let continuations: ((TriviaNodeAssigner -> TriviaNodeAssigner) -> TriviaNodeAssigner) list =
+            let continuations: ((TriviaNode -> TriviaNode) -> TriviaNode) list =
                 [ visit synPat; visit synPat2 ]
 
-            let finalContinuation (nodes: TriviaNodeAssigner list) : TriviaNodeAssigner =
+            let finalContinuation (nodes: TriviaNode list) : TriviaNode =
                 mkNodeWithChildren SynPat_As range (sortChildren [| yield! nodes |])
                 |> finalContinuation
 
@@ -1254,10 +1248,10 @@ and visitSynPat (sp: SynPat) : TriviaNodeAssigner =
                            yield! (visitSynAttributeLists attrs) |])
                 |> finalContinuation)
         | SynPat.Or (synPat, synPat2, range, trivia) ->
-            let continuations: ((TriviaNodeAssigner -> TriviaNodeAssigner) -> TriviaNodeAssigner) list =
+            let continuations: ((TriviaNode -> TriviaNode) -> TriviaNode) list =
                 [ visit synPat; visit synPat2 ]
 
-            let finalContinuation (nodes: TriviaNodeAssigner list) : TriviaNodeAssigner =
+            let finalContinuation (nodes: TriviaNode list) : TriviaNode =
                 mkNodeWithChildren
                     SynPat_Or
                     range
@@ -1268,10 +1262,10 @@ and visitSynPat (sp: SynPat) : TriviaNodeAssigner =
 
             Continuation.sequence continuations finalContinuation
         | SynPat.Ands (pats, range) ->
-            let continuations: ((TriviaNodeAssigner -> TriviaNodeAssigner) -> TriviaNodeAssigner) list =
+            let continuations: ((TriviaNode -> TriviaNode) -> TriviaNode) list =
                 pats |> List.map visit
 
-            let finalContinuation (nodes: TriviaNodeAssigner list) : TriviaNodeAssigner =
+            let finalContinuation (nodes: TriviaNode list) : TriviaNode =
                 mkNodeWithChildren SynPat_Ands range (sortChildren [| yield! nodes |])
                 |> finalContinuation
 
@@ -1292,10 +1286,10 @@ and visitSynPat (sp: SynPat) : TriviaNodeAssigner =
                        yield! visitSynConstructorArgs ctorArgs |])
             |> finalContinuation
         | SynPat.Tuple (_, pats, range) ->
-            let continuations: ((TriviaNodeAssigner -> TriviaNodeAssigner) -> TriviaNodeAssigner) list =
+            let continuations: ((TriviaNode -> TriviaNode) -> TriviaNode) list =
                 pats |> List.map visit
 
-            let finalContinuation (nodes: TriviaNodeAssigner list) : TriviaNodeAssigner =
+            let finalContinuation (nodes: TriviaNode list) : TriviaNode =
                 mkNodeWithChildren SynPat_Tuple range (sortChildren [| yield! nodes |])
                 |> finalContinuation
 
@@ -1312,20 +1306,20 @@ and visitSynPat (sp: SynPat) : TriviaNodeAssigner =
                 |> finalContinuation)
 
         | SynPat.ArrayOrList (_, pats, range) ->
-            let continuations: ((TriviaNodeAssigner -> TriviaNodeAssigner) -> TriviaNodeAssigner) list =
+            let continuations: ((TriviaNode -> TriviaNode) -> TriviaNode) list =
                 List.map visit pats
 
-            let finalContinuation (nodes: TriviaNodeAssigner list) : TriviaNodeAssigner =
+            let finalContinuation (nodes: TriviaNode list) : TriviaNode =
                 mkNodeWithChildren SynPat_ArrayOrList range (sortChildren [| yield! nodes |])
                 |> finalContinuation
 
             Continuation.sequence continuations finalContinuation
 
         | SynPat.Record (pats, range) ->
-            let continuations: ((TriviaNodeAssigner -> TriviaNodeAssigner) -> TriviaNodeAssigner) list =
+            let continuations: ((TriviaNode -> TriviaNode) -> TriviaNode) list =
                 pats |> List.map (fun (_, _, pat) -> visit pat)
 
-            let finalContinuation (nodes: TriviaNodeAssigner list) : TriviaNodeAssigner =
+            let finalContinuation (nodes: TriviaNode list) : TriviaNode =
                 mkNodeWithChildren SynPat_Record range (sortChildren [| yield! nodes |])
                 |> finalContinuation
 
@@ -1353,7 +1347,7 @@ and visitSynPat (sp: SynPat) : TriviaNodeAssigner =
 
     visit sp id
 
-and visitSynConstructorArgs (ctorArgs: SynArgPats) : TriviaNodeAssigner list =
+and visitSynConstructorArgs (ctorArgs: SynArgPats) : TriviaNode list =
     match ctorArgs with
     | SynArgPats.Pats pats -> List.map visitSynPat pats
     | SynArgPats.NamePatPairs (pats, range) ->
@@ -1369,13 +1363,13 @@ and visitSynConstructorArgs (ctorArgs: SynArgPats) : TriviaNodeAssigner list =
 
         [ mkNodeWithChildren SynArgPats_NamePatPairs range (sortChildren [| yield! children |]) ]
 
-and visitSynComponentInfo (sci: SynComponentInfo) : TriviaNodeAssigner list =
+and visitSynComponentInfo (sci: SynComponentInfo) : TriviaNode list =
     match sci with
     | SynComponentInfo (attributes = attribs; typeParams = typeParams) ->
         [ yield! visitSynAttributeLists attribs
           yield! (Option.map visitSynTyparDecls >> Option.toList) typeParams ]
 
-and visitSynTyparDecls (decls: SynTyparDecls) : TriviaNodeAssigner =
+and visitSynTyparDecls (decls: SynTyparDecls) : TriviaNode =
     match decls with
     | SourceParser.PostfixList (gt, decls, _constraints, lt, range) ->
         mkNodeWithChildren
@@ -1392,7 +1386,7 @@ and visitSynTyparDecls (decls: SynTyparDecls) : TriviaNodeAssigner =
     | SynTyparDecls.SinglePrefix (decl, range) ->
         mkNodeWithChildren SynTyparDecls_SinglePrefix range [| visitSynTyparDecl decl |]
 
-and visitSynTypeDefnRepr (stdr: SynTypeDefnRepr) : TriviaNodeAssigner list =
+and visitSynTypeDefnRepr (stdr: SynTypeDefnRepr) : TriviaNode list =
     match stdr with
     | SynTypeDefnRepr.ObjectModel (kind, members, _range) ->
         [ yield! Option.toList (visitSynTypeDefnKind kind)
@@ -1400,7 +1394,7 @@ and visitSynTypeDefnRepr (stdr: SynTypeDefnRepr) : TriviaNodeAssigner list =
     | SynTypeDefnRepr.Simple (simpleRepr, _) -> [ visitSynTypeDefnSimpleRepr simpleRepr ]
     | SynTypeDefnRepr.Exception exceptionRepr -> [ visitSynExceptionDefnRepr exceptionRepr ]
 
-and visitSynTypeDefnKind (kind: SynTypeDefnKind) : TriviaNodeAssigner option =
+and visitSynTypeDefnKind (kind: SynTypeDefnKind) : TriviaNode option =
     match kind with
     | SynTypeDefnKind.Unspecified
     | SynTypeDefnKind.Class
@@ -1423,7 +1417,7 @@ and visitSynTypeDefnKind (kind: SynTypeDefnKind) : TriviaNodeAssigner option =
                        yield! Option.toList (visitSynValInfo valinfo) |])
         )
 
-and visitSynTypeDefnSimpleRepr (arg: SynTypeDefnSimpleRepr) : TriviaNodeAssigner =
+and visitSynTypeDefnSimpleRepr (arg: SynTypeDefnSimpleRepr) : TriviaNode =
     match arg with
     | SynTypeDefnSimpleRepr.None range -> mkNode SynTypeDefnSimpleRepr_None range
     | SynTypeDefnSimpleRepr.Union (_, unionCases, range) ->
@@ -1450,7 +1444,7 @@ and visitSynTypeDefnSimpleRepr (arg: SynTypeDefnSimpleRepr) : TriviaNodeAssigner
         mkNodeWithChildren SynTypeDefnSimpleRepr_TypeAbbrev range [| visitSynType typ |]
     | SynTypeDefnSimpleRepr.Exception edr -> visitSynExceptionDefnRepr edr
 
-and visitSynExceptionDefn (exceptionDef: SynExceptionDefn) : TriviaNodeAssigner =
+and visitSynExceptionDefn (exceptionDef: SynExceptionDefn) : TriviaNode =
     match exceptionDef with
     | SynExceptionDefn (sedr, withKeyword, members, range) ->
         mkNodeWithChildren
@@ -1461,7 +1455,7 @@ and visitSynExceptionDefn (exceptionDef: SynExceptionDefn) : TriviaNodeAssigner 
                    yield! Option.toList (mkNodeOption SynExceptionDefn_With withKeyword)
                    yield! visitSynMemberDefns members |])
 
-and visitSynExceptionDefnRepr (sedr: SynExceptionDefnRepr) : TriviaNodeAssigner =
+and visitSynExceptionDefnRepr (sedr: SynExceptionDefnRepr) : TriviaNode =
     match sedr with
     | SynExceptionDefnRepr (attrs, unionCase, longId, _, _, range) ->
         mkNodeWithChildren
@@ -1475,22 +1469,21 @@ and visitSynExceptionDefnRepr (sedr: SynExceptionDefnRepr) : TriviaNodeAssigner 
                         >> Option.toList)
                            longId |])
 
-and visitSynAttribute (attr: SynAttribute) : TriviaNodeAssigner =
+and visitSynAttribute (attr: SynAttribute) : TriviaNode =
     { Range = attr.Range
       Type = SynAttribute_
       Children = [| yield! visitSynExpr attr.ArgExpr |]
       FSharpASTNode = None }
 
-and visitSynAttributeLists (attrs: SynAttributeList list) : TriviaNodeAssigner list =
-    List.map visitSynAttributeList attrs
+and visitSynAttributeLists (attrs: SynAttributeList list) : TriviaNode list = List.map visitSynAttributeList attrs
 
-and visitSynAttributeList (attrs: SynAttributeList) : TriviaNodeAssigner =
+and visitSynAttributeList (attrs: SynAttributeList) : TriviaNode =
     { Range = attrs.Range
       Type = SynAttributeList_
       Children = sortChildren [| yield! List.map visitSynAttribute attrs.Attributes |]
       FSharpASTNode = None }
 
-and visitSynUnionCase (uc: SynUnionCase) : TriviaNodeAssigner =
+and visitSynUnionCase (uc: SynUnionCase) : TriviaNode =
     match uc with
     | SourceParser.UnionCase (attrs, _, barRange, _, synIdent, uct, range) ->
         mkNodeWithChildren
@@ -1502,14 +1495,14 @@ and visitSynUnionCase (uc: SynUnionCase) : TriviaNodeAssigner =
                    yield! visitSynUnionCaseType uct
                    yield! (visitSynAttributeLists attrs) |])
 
-and visitSynUnionCaseType (uct: SynUnionCaseKind) : TriviaNodeAssigner list =
+and visitSynUnionCaseType (uct: SynUnionCaseKind) : TriviaNode list =
     match uct with
     | SynUnionCaseKind.Fields fields -> List.map visitSynField fields
     | SynUnionCaseKind.FullType (stype, valInfo) ->
         [ visitSynType stype
           yield! Option.toList (visitSynValInfo valInfo) ]
 
-and visitSynEnumCase (sec: SynEnumCase) : TriviaNodeAssigner =
+and visitSynEnumCase (sec: SynEnumCase) : TriviaNode =
     match sec with
     | SourceParser.EnumCase (attrs, barRange, _, synIdent, equalsRange, value, valueRange, range) ->
         mkNodeWithChildren
@@ -1522,7 +1515,7 @@ and visitSynEnumCase (sec: SynEnumCase) : TriviaNodeAssigner =
                    yield mkNode SynEnumCase_Equals equalsRange
                    yield visitSynConst valueRange value |])
 
-and visitSynField (sfield: SynField) : TriviaNodeAssigner =
+and visitSynField (sfield: SynField) : TriviaNode =
     match sfield with
     | SynField (attrs, _, ident, typ, _, preXmlDoc, _, _range) ->
         let innerNode =
@@ -1541,16 +1534,16 @@ and visitSynField (sfield: SynField) : TriviaNodeAssigner =
                    yield! innerNode
                    yield visitSynType typ |])
 
-and visitSynType (st: SynType) : TriviaNodeAssigner =
-    let rec visit (st: SynType) (finalContinuation: TriviaNodeAssigner -> TriviaNodeAssigner) : TriviaNodeAssigner =
+and visitSynType (st: SynType) : TriviaNode =
+    let rec visit (st: SynType) (finalContinuation: TriviaNode -> TriviaNode) : TriviaNode =
         match st with
         | SynType.LongIdent li -> visitSynLongIdent li |> finalContinuation
         | SynType.App (typeName, lessRange, typeArgs, _, greaterRange, _, range) ->
-            let continuations: ((TriviaNodeAssigner -> TriviaNodeAssigner) -> TriviaNodeAssigner) list =
+            let continuations: ((TriviaNode -> TriviaNode) -> TriviaNode) list =
                 [ yield! (List.map visit typeArgs)
                   yield visit typeName ]
 
-            let finalContinuation (nodes: TriviaNodeAssigner list) : TriviaNodeAssigner =
+            let finalContinuation (nodes: TriviaNode list) : TriviaNode =
                 mkNodeWithChildren
                     SynType_App
                     range
@@ -1562,20 +1555,20 @@ and visitSynType (st: SynType) : TriviaNodeAssigner =
 
             Continuation.sequence continuations finalContinuation
         | SynType.LongIdentApp (typeName, _, _, typeArgs, _, _, range) ->
-            let continuations: ((TriviaNodeAssigner -> TriviaNodeAssigner) -> TriviaNodeAssigner) list =
+            let continuations: ((TriviaNode -> TriviaNode) -> TriviaNode) list =
                 [ yield visit typeName
                   yield! (List.map visit typeArgs) ]
 
-            let finalContinuation (nodes: TriviaNodeAssigner list) : TriviaNodeAssigner =
+            let finalContinuation (nodes: TriviaNode list) : TriviaNode =
                 mkNodeWithChildren SynType_LongIdentApp range (sortChildren [| yield! nodes |])
                 |> finalContinuation
 
             Continuation.sequence continuations finalContinuation
         | SynType.Tuple (_, typeNames, range) ->
-            let continuations: ((TriviaNodeAssigner -> TriviaNodeAssigner) -> TriviaNodeAssigner) list =
+            let continuations: ((TriviaNode -> TriviaNode) -> TriviaNode) list =
                 List.map (snd >> visit) typeNames
 
-            let finalContinuation (nodes: TriviaNodeAssigner list) : TriviaNodeAssigner =
+            let finalContinuation (nodes: TriviaNode list) : TriviaNode =
                 mkNodeWithChildren SynType_Tuple range (sortChildren [| yield! nodes |])
                 |> finalContinuation
 
@@ -1585,10 +1578,10 @@ and visitSynType (st: SynType) : TriviaNodeAssigner =
                 mkNodeWithChildren SynType_Array range [| node |]
                 |> finalContinuation)
         | SynType.Fun (argType, returnType, range) ->
-            let continuations: ((TriviaNodeAssigner -> TriviaNodeAssigner) -> TriviaNodeAssigner) list =
+            let continuations: ((TriviaNode -> TriviaNode) -> TriviaNode) list =
                 [ visit argType; visit returnType ]
 
-            let finalContinuation (nodes: TriviaNodeAssigner list) : TriviaNodeAssigner =
+            let finalContinuation (nodes: TriviaNode list) : TriviaNode =
                 mkNodeWithChildren SynType_Fun range (sortChildren [| yield! nodes |])
                 |> finalContinuation
 
@@ -1604,11 +1597,11 @@ and visitSynType (st: SynType) : TriviaNodeAssigner =
                 mkNodeWithChildren SynType_HashConstraint range [| node |]
                 |> finalContinuation)
         | SynType.MeasureDivide (dividendType, divisorType, range) ->
-            let continuations: ((TriviaNodeAssigner -> TriviaNodeAssigner) -> TriviaNodeAssigner) list =
+            let continuations: ((TriviaNode -> TriviaNode) -> TriviaNode) list =
                 [ visit dividendType
                   visit divisorType ]
 
-            let finalContinuation (nodes: TriviaNodeAssigner list) : TriviaNodeAssigner =
+            let finalContinuation (nodes: TriviaNode list) : TriviaNode =
                 mkNodeWithChildren SynType_MeasureDivide range (sortChildren [| yield! nodes |])
                 |> finalContinuation
 
@@ -1624,10 +1617,10 @@ and visitSynType (st: SynType) : TriviaNodeAssigner =
             mkNodeWithChildren SynType_StaticConstantExpr range [| yield! visitSynExpr expr |]
             |> finalContinuation
         | SynType.StaticConstantNamed (expr, typ, range) ->
-            let continuations: ((TriviaNodeAssigner -> TriviaNodeAssigner) -> TriviaNodeAssigner) list =
+            let continuations: ((TriviaNode -> TriviaNode) -> TriviaNode) list =
                 [ visit expr; visit typ ]
 
-            let finalContinuation (nodes: TriviaNodeAssigner list) : TriviaNodeAssigner =
+            let finalContinuation (nodes: TriviaNode list) : TriviaNode =
                 mkNodeWithChildren SynType_StaticConstantNamed range (sortChildren [| yield! nodes |])
                 |> finalContinuation
 
@@ -1648,7 +1641,7 @@ and visitSynType (st: SynType) : TriviaNodeAssigner =
 
     visit st id
 
-and visitSynConst (parentRange: Range) (sc: SynConst) : TriviaNodeAssigner =
+and visitSynConst (parentRange: Range) (sc: SynConst) : TriviaNode =
     let t sc =
         match sc with
         | SynConst.Bool _ -> SynConst_Bool
@@ -1686,7 +1679,7 @@ and visitSynConst (parentRange: Range) (sc: SynConst) : TriviaNodeAssigner =
                    mkNode SynConst_Unit_ClosingParenthesis rpr |]
     | _ -> mkNode (t sc) (sc.Range parentRange)
 
-and visitSynValInfo (svi: SynValInfo) : TriviaNodeAssigner option =
+and visitSynValInfo (svi: SynValInfo) : TriviaNode option =
     match svi with
     | SynValInfo (args, arg) ->
         svi.FullRange
@@ -1698,7 +1691,7 @@ and visitSynValInfo (svi: SynValInfo) : TriviaNodeAssigner option =
                     [| yield! List.collect (List.collect (visitSynArgInfo >> Option.toList)) args
                        yield! (Option.toList (visitSynArgInfo arg)) |]))
 
-and visitSynArgInfo (sai: SynArgInfo) : TriviaNodeAssigner option =
+and visitSynArgInfo (sai: SynArgInfo) : TriviaNode option =
     match sai with
     | SynArgInfo (attrs, _, ident) ->
         sai.FullRange
@@ -1710,7 +1703,7 @@ and visitSynArgInfo (sai: SynArgInfo) : TriviaNodeAssigner option =
                     [| yield! visitSynAttributeLists attrs
                        yield! (Option.map visitIdent >> Option.toList) ident |]))
 
-and visitParsedHashDirective (hash: ParsedHashDirective) : TriviaNodeAssigner =
+and visitParsedHashDirective (hash: ParsedHashDirective) : TriviaNode =
     match hash with
     | ParsedHashDirective (_, _, range) -> mkNode ParsedHashDirective_ range
 
@@ -1751,11 +1744,8 @@ and visitSynModuleOrNamespaceSig
                yield! visitSynAttributeLists attrs
                yield! (List.map visitSynModuleSigDecl decls) |] }
 
-and visitSynModuleSigDecl (ast: SynModuleSigDecl) : TriviaNodeAssigner =
-    let rec visit
-        (ast: SynModuleSigDecl)
-        (finalContinuation: TriviaNodeAssigner -> TriviaNodeAssigner)
-        : TriviaNodeAssigner =
+and visitSynModuleSigDecl (ast: SynModuleSigDecl) : TriviaNode =
+    let rec visit (ast: SynModuleSigDecl) (finalContinuation: TriviaNode -> TriviaNode) : TriviaNode =
         match ast with
         | SynModuleSigDecl.ModuleAbbrev (_, _, range) ->
             mkSynModuleSigDeclNode SynModuleSigDecl_ModuleAbbrev ast range Array.empty
@@ -1765,7 +1755,7 @@ and visitSynModuleSigDecl (ast: SynModuleSigDecl) : TriviaNodeAssigner =
                                          decls,
                                          range,
                                          trivia) ->
-            let continuations: ((TriviaNodeAssigner -> TriviaNodeAssigner) -> TriviaNodeAssigner) list =
+            let continuations: ((TriviaNode -> TriviaNode) -> TriviaNode) list =
                 List.map visit decls
 
             let moduleKeyword =
@@ -1775,7 +1765,7 @@ and visitSynModuleSigDecl (ast: SynModuleSigDecl) : TriviaNodeAssigner =
                     attrs
                     trivia.ModuleKeyword
 
-            let finalContinuation (nodes: TriviaNodeAssigner list) : TriviaNodeAssigner =
+            let finalContinuation (nodes: TriviaNode list) : TriviaNode =
                 mkSynModuleSigDeclNode
                     SynModuleSigDecl_NestedModule
                     ast
@@ -1827,7 +1817,7 @@ and visitSynModuleSigDecl (ast: SynModuleSigDecl) : TriviaNodeAssigner =
 
     visit ast id
 
-and visitSynExceptionSig (exceptionDef: SynExceptionSig) : TriviaNodeAssigner =
+and visitSynExceptionSig (exceptionDef: SynExceptionSig) : TriviaNode =
     match exceptionDef with
     | SynExceptionSig (sedr, withKeyword, members, range) ->
         mkNodeWithChildren
@@ -1838,25 +1828,25 @@ and visitSynExceptionSig (exceptionDef: SynExceptionSig) : TriviaNodeAssigner =
                    yield! Option.toList (mkNodeOption SynExceptionSig_With withKeyword)
                    yield! List.map visitSynMemberSig members |])
 
-and visitSynLongIdent (lid: SynLongIdent) : TriviaNodeAssigner =
+and visitSynLongIdent (lid: SynLongIdent) : TriviaNode =
     mkNodeWithChildren
         SynLongIdent_
         lid.FullRange
         (sortChildren [| yield! List.map visitSynIdent lid.IdentsWithTrivia |])
 
-and visitLongIdentIncludingFullRange (li: LongIdent) : TriviaNodeAssigner =
+and visitLongIdentIncludingFullRange (li: LongIdent) : TriviaNode =
     mkNodeWithChildren LongIdent_ (longIdentFullRange li) [| yield! List.map visitIdent li |]
 
-and visitIdent (ident: Ident) : TriviaNodeAssigner = mkNode Ident_ ident.idRange
+and visitIdent (ident: Ident) : TriviaNode = mkNode Ident_ ident.idRange
 
 and visitSynIdent (si: SynIdent) = mkNode SynIdent_ si.FullRange
 
-and visitOptSynExpr (synExpr: SynExpr option) : TriviaNodeAssigner list =
+and visitOptSynExpr (synExpr: SynExpr option) : TriviaNode list =
     match Option.map visitSynExpr synExpr with
     | None -> []
     | Some xs -> xs
 
-let astToNode (range: range) (hds: ParsedHashDirective list) (mdls: SynModuleOrNamespace list) : TriviaNodeAssigner =
+let astToNode (range: range) (hds: ParsedHashDirective list) (mdls: SynModuleOrNamespace list) : TriviaNode =
     { Range = range
       Type = ParsedInput_
       Children =
@@ -1865,7 +1855,7 @@ let astToNode (range: range) (hds: ParsedHashDirective list) (mdls: SynModuleOrN
                yield! List.map visitParsedHashDirective hds |]
       FSharpASTNode = None }
 
-let sigAstToNode (range: range) (ast: SynModuleOrNamespaceSig list) : TriviaNodeAssigner =
+let sigAstToNode (range: range) (ast: SynModuleOrNamespaceSig list) : TriviaNode =
     { Range = range
       Type = ParsedInput_
       Children = sortChildren [| yield! List.map visitSynModuleOrNamespaceSig ast |]

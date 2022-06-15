@@ -5728,7 +5728,6 @@ and genSynStaticOptimizationConstraint
     !- " when "
     +> col sepSpace constraints (genConstraint astContext)
 
-// TODO: we do a double look in this case, both before and after
 and genTriviaFor (mainNodeName: FsAstType) (range: Range) f ctx =
     (enterNodeFor mainNodeName range
      +> f

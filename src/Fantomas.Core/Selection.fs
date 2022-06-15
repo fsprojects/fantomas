@@ -10,7 +10,7 @@ open Fantomas.Core.TriviaTypes
 open Fantomas.Core.AstTransformer
 open Fantomas.Core.Trivia
 
-let private findNode (maxLineLength: int) (selection: range) (node: TriviaNodeAssigner) : TriviaNodeAssigner option =
+let private findNode (maxLineLength: int) (selection: range) (node: TriviaNode) : TriviaNode option =
     let isExactSelection =
         selection.StartLine = node.Range.StartLine
         && selection.StartColumn = node.Range.StartColumn

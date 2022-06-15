@@ -389,39 +389,34 @@ type FsAstType =
     | File_
     | SigFile_
 
-type TriviaNode =
-    { Type: FsAstType
-      ContentBefore: TriviaContent list
-      ContentItself: TriviaContent option
-      ContentAfter: TriviaContent list
-      Range: Range }
-
 type FSharpASTNode = Choice<SynModuleDecl, SynModuleSigDecl, SynExpr>
 
-type TriviaNodeAssignerOld(nodeType: FsAstType, range: Range, ?astNode: FSharpASTNode) =
-    member this.Type = nodeType
-    member this.Range = range
-    member this.HasFSharpASTNode = Option.isSome astNode
-    member this.FSharpASTNode = astNode
-    member val ContentBefore = ResizeArray<TriviaContent>() with get, set
-    member val ContentItself = Option<TriviaContent>.None with get, set
-    member val ContentAfter = ResizeArray<TriviaContent>() with get, set
+/// A hierarchical node structure that represents AST nodes as found in the tree.
+/// The tree structure might deviate from what the AST has, if it is a better fit for Fantomas.
+/// For example some child nodes might be placed under a different parent.
+type TriviaNode =
+    {
+        /// This range might be a .FullRange calculated range if it suits Fantomas better.
+        Range: range
+        Type: FsAstType
+        /// These children need to be traversed in both directions, hence the choice for an array collection.
+        Children: TriviaNode array
+        FSharpASTNode: FSharpASTNode option
+    }
 
-type TriviaNodeAssigner =
-    { Range: range
-      Type: FsAstType
-      Children: TriviaNodeAssigner array
-      FSharpASTNode: FSharpASTNode option }
-
+/// Used in CodePrinter, to restore the assigned trivia
 type TriviaInstruction =
-    { Trivia: Trivia
-      Type: FsAstType
-      Range: range
-      AddBefore: bool }
+    {
+        Trivia: Trivia
+        Type: FsAstType
+        Range: range
+        /// Should the Trivia be added before the node range or after
+        AddBefore: bool
+    }
 
 type TriviaForSelection =
-    { Selection: range
-      RootNode: TriviaNodeAssigner }
-
-// TODO: consider adding two Maps in the context to store before and after trivia
-// Each map has key of type:FsAstType * startPos:int * startLine:int
+    {
+        Selection: range
+        /// Largest AST node that fits the selection range.
+        RootNode: TriviaNode
+    }
