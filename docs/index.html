@@ -91,7 +91,7 @@
         </a>
     </div>
     <div class="video-overlay"></div>
-    <video autoplay muted loop>
+    <video preload="none" muted loop>
         <source src="./videos/movie.webm" type="video/webm">
         <source src="./videos/movie.mp4" type="video/mp4">
     </video>
@@ -219,6 +219,9 @@
                    title="TheAngryByrd/MiniScaffold">
                     <img src="./images/users/unknown-github.png" alt="Default GitHub logo">
                 </a>
+                <a class="tile" href="#get-started" id="your-logo-here">
+                    <p>Your logo here?</p>
+                </a>
             </div>
         </div>
     </section>
@@ -281,6 +284,15 @@
                                     href="https://twitter.com/verdonckflorian/status/1529019121433821184?ref_src=twsrc%5Etfw">May
                                 24, 2022</a></blockquote>
                     </div>
+                    <div class="card bg-white mt-4">
+                        <div class="card-body text-dark">
+                            <h5 class="card-title text-primary"><i class="bi bi-newspaper me-1"></i>Fantomas Daemon</h5>
+                            <p class="card-text">A blogpost about how to use a custom version of Fantomas in your
+                                editor.</p>
+                            <a href="https://blog.nojaf.com/2021/12/07/fs-advent-2021-fantomas-daemon/"
+                               class="btn btn-primary text-white d-inline-block float-end mt-1">Read blogpost</a>
+                        </div>
+                    </div>
                 </div>
                 <div class="col-md-4">
                     <div class="card bg-white">
@@ -304,7 +316,20 @@
                                class="btn btn-primary text-white d-inline-block float-end mt-2">Watch on YouTube</a>
                         </div>
                     </div>
-                    <div class="card bg-white">
+                    <div class="mt-4">
+                        <div class="tweet">
+                            <blockquote class="twitter-tweet"><p lang="en" dir="ltr">Hi <a
+                                    href="https://twitter.com/hashtag/fsharp?src=hash&amp;ref_src=twsrc%5Etfw">#fsharp</a>,
+                                for
+                                the next major release, I&#39;d like to go with a new logo for Fantomas.<br>Cast your
+                                vote
+                                on <a
+                                        href="https://t.co/7akdM6lgrO">https://t.co/7akdM6lgrO</a></p>&mdash; Florian
+                                Verdonck
+                                (@verdonckflorian) <a
+                                        href="https://twitter.com/verdonckflorian/status/1516681868221026308?ref_src=twsrc%5Etfw">April
+                                    20, 2022</a></blockquote>
+                        </div>
                     </div>
                 </div>
                 <div class="col-md-4">
@@ -328,6 +353,18 @@
                             <p class="card-text">A blogpost about the importance of triple-slash comments</p>
                             <a href="https://blog.nojaf.com/2022/03/05/a-word-on-triple-slash-comments/"
                                class="btn btn-primary text-white d-inline-block float-end mt-1">Read blogpost</a>
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <div class="tweet">
+                            <blockquote class="twitter-tweet"><p lang="en" dir="ltr">Automatic code formatting using
+                                Fantomas (<a href="https://t.co/R5SHSjfucF">https://t.co/R5SHSjfucF</a>) is now applied
+                                to (nearly) all signature files under &quot;src&quot;, you format code using<br><br>
+                                dotnet fantomas etc -r<br><br>For example the primary syntax tree file: <a
+                                        href="https://t.co/BBQFGEH2VM">https://t.co/BBQFGEH2VM</a></p>&mdash; Don Syme
+                                (@dsymetweets) <a
+                                        href="https://twitter.com/dsymetweets/status/1524539611833380865?ref_src=twsrc%5Etfw">May
+                                    11, 2022</a></blockquote>
                         </div>
                     </div>
                 </div>
@@ -365,11 +402,18 @@
     });
 
     addEventListener("load", () => {
-        document.querySelector("header a.btn").addEventListener("click", ev => {
-            ev.preventDefault();
-            const getStarted = document.querySelector("#get-started")
-            scrollIntoView(getStarted, {easing: 'ease-in-out'});
-        })
+        const video = document.querySelector("video")
+        if (window.innerWidth > 768) { video.setAttribute("autoplay",""); video.play(); }
+        
+        [document.querySelector("header a.btn"), document.querySelector("#your-logo-here")]
+            .forEach(a => {
+                    a.addEventListener("click", ev => {
+                        ev.preventDefault();
+                        const getStarted = document.querySelector("#get-started")
+                        scrollIntoView(getStarted, {easing: 'ease-in-out'});
+                    })
+                }
+            )
 
         document.querySelectorAll("#users .tile").forEach(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))
 
