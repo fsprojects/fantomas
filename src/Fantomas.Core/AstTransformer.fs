@@ -1003,7 +1003,7 @@ and visitSynTypeDefnSigRepr (stdr: SynTypeDefnSigRepr) : TriviaNode list =
     | SynTypeDefnSigRepr.ObjectModel (kind, members, _range) ->
         [ yield! Option.toList (visitSynTypeDefnKind kind)
           yield! List.map visitSynMemberSig members ]
-    | SynTypeDefnSigRepr.Simple (simpleRepr, _range) -> [ visitSynTypeDefnSimpleRepr simpleRepr ]
+    | SynTypeDefnSigRepr.Simple (simpleRepr, _range) -> visitSynTypeDefnSimpleRepr simpleRepr
     | SynTypeDefnSigRepr.Exception exceptionRepr -> [ visitSynExceptionDefnRepr exceptionRepr ]
 
 and visitSynMemberDefn (mbrDef: SynMemberDefn) : TriviaNode =
@@ -1387,7 +1387,7 @@ and visitSynTypeDefnRepr (stdr: SynTypeDefnRepr) : TriviaNode list =
     | SynTypeDefnRepr.ObjectModel (kind, members, _range) ->
         [ yield! Option.toList (visitSynTypeDefnKind kind)
           yield! visitSynMemberDefns members ]
-    | SynTypeDefnRepr.Simple (simpleRepr, _) -> [ visitSynTypeDefnSimpleRepr simpleRepr ]
+    | SynTypeDefnRepr.Simple (simpleRepr, _) -> visitSynTypeDefnSimpleRepr simpleRepr
     | SynTypeDefnRepr.Exception exceptionRepr -> [ visitSynExceptionDefnRepr exceptionRepr ]
 
 and visitSynTypeDefnKind (kind: SynTypeDefnKind) : TriviaNode option =
@@ -1413,32 +1413,22 @@ and visitSynTypeDefnKind (kind: SynTypeDefnKind) : TriviaNode option =
                        yield! Option.toList (visitSynValInfo valinfo) |])
         )
 
-and visitSynTypeDefnSimpleRepr (arg: SynTypeDefnSimpleRepr) : TriviaNode =
+and visitSynTypeDefnSimpleRepr (arg: SynTypeDefnSimpleRepr) : TriviaNode list =
     match arg with
-    | SynTypeDefnSimpleRepr.None range -> mkNode SynTypeDefnSimpleRepr_None range
-    | SynTypeDefnSimpleRepr.Union (_, unionCases, range) ->
-        mkNodeWithChildren
-            SynTypeDefnSimpleRepr_Union
-            range
-            (sortChildren [| yield! List.map visitSynUnionCase unionCases |])
-    | SynTypeDefnSimpleRepr.Enum (enumCases, range) ->
-        mkNodeWithChildren
-            SynTypeDefnSimpleRepr_Enum
-            range
-            (sortChildren [| yield! List.map visitSynEnumCase enumCases |])
-    | SynTypeDefnSimpleRepr.Record (_, recordFields, StartEndRange 1 (openingBrace, range, closingBrace)) ->
-        mkNodeWithChildren
-            SynTypeDefnSimpleRepr_Record
-            range
-            (sortChildren
-                [| yield mkNode SynTypeDefnSimpleRepr_Record_OpeningBrace openingBrace
-                   yield! List.map visitSynField recordFields
-                   yield mkNode SynTypeDefnSimpleRepr_Record_ClosingBrace closingBrace |])
-    | SynTypeDefnSimpleRepr.General (_, _, _, _, _, _, _, range) -> mkNode SynTypeDefnSimpleRepr_General range
-    | SynTypeDefnSimpleRepr.LibraryOnlyILAssembly (_, range) -> mkNode SynTypeDefnSimpleRepr_LibraryOnlyILAssembly range
-    | SynTypeDefnSimpleRepr.TypeAbbrev (_, typ, range) ->
-        mkNodeWithChildren SynTypeDefnSimpleRepr_TypeAbbrev range [| visitSynType typ |]
-    | SynTypeDefnSimpleRepr.Exception edr -> visitSynExceptionDefnRepr edr
+    | SynTypeDefnSimpleRepr.None _range -> []
+    | SynTypeDefnSimpleRepr.Union (vis, unionCases, _range) ->
+        [ yield! visitOptSynAccess vis
+          yield! List.map visitSynUnionCase unionCases ]
+    | SynTypeDefnSimpleRepr.Enum (enumCases, _range) -> List.map visitSynEnumCase enumCases
+    | SynTypeDefnSimpleRepr.Record (vis, recordFields, StartEndRange 1 (openingBrace, _range, closingBrace)) ->
+        [ yield! visitOptSynAccess vis
+          yield mkNode SynTypeDefnSimpleRepr_Record_OpeningBrace openingBrace
+          yield! List.map visitSynField recordFields
+          yield mkNode SynTypeDefnSimpleRepr_Record_ClosingBrace closingBrace ]
+    | SynTypeDefnSimpleRepr.General (_, _, _, _, _, _, _, _range) -> []
+    | SynTypeDefnSimpleRepr.LibraryOnlyILAssembly (_, _range) -> []
+    | SynTypeDefnSimpleRepr.TypeAbbrev (_, typ, _range) -> [ visitSynType typ ]
+    | SynTypeDefnSimpleRepr.Exception edr -> [ visitSynExceptionDefnRepr edr ]
 
 and visitSynExceptionDefn (exceptionDef: SynExceptionDefn) : TriviaNode =
     match exceptionDef with
@@ -1841,6 +1831,17 @@ and visitOptSynExpr (synExpr: SynExpr option) : TriviaNode list =
     match Option.map visitSynExpr synExpr with
     | None -> []
     | Some xs -> xs
+
+and visitOptSynAccess (synAccess: SynAccess option) : TriviaNode list =
+    match synAccess with
+    | None -> []
+    | Some vis -> [ visitSynAccess vis ]
+
+and visitSynAccess (synAccess: SynAccess) : TriviaNode =
+    match synAccess with
+    | SynAccess.Private r -> mkNode SynAccess_Private r
+    | SynAccess.Internal r -> mkNode SynAccess_Internal r
+    | SynAccess.Public r -> mkNode SynAccess_Public r
 
 let astToNode (range: range) (hds: ParsedHashDirective list) (mdls: SynModuleOrNamespace list) : TriviaNode =
     { Range = range

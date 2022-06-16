@@ -119,14 +119,6 @@ let (|EmptyFile|_|) (input: ParsedInput) =
 
 let (|Attribute|) (a: SynAttribute) = (a.TypeName, a.ArgExpr, a.Target)
 
-// Access modifiers
-
-let (|Access|) =
-    function
-    | SynAccess.Public -> "public"
-    | SynAccess.Internal -> "internal"
-    | SynAccess.Private -> "private"
-
 let (|PreXmlDoc|) (px: PreXmlDoc) =
     let xmlDoc = px.ToXmlDoc(false, None)
     xmlDoc.UnprocessedLines, xmlDoc.Range

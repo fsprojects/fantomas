@@ -489,7 +489,11 @@ and genSynLongIdentMultiline (addLeadingDot: bool) (longIdent: SynLongIdent) =
     coli sepNln longIdent.IdentsWithTrivia (fun idx -> genSynIdent (idx > 0 || addLeadingDot))
     |> genTriviaFor SynLongIdent_ longIdent.FullRange
 
-and genAccess (Access s) = !-s
+and genAccess (vis: SynAccess) =
+    match vis with
+    | SynAccess.Public r -> genTriviaFor SynAccess_Public r !- "public"
+    | SynAccess.Internal r -> genTriviaFor SynAccess_Internal r !- "internal"
+    | SynAccess.Private r -> genTriviaFor SynAccess_Private r !- "private"
 
 and genAttribute astContext (Attribute (sli, e, target)) =
     match e with
@@ -3568,15 +3572,12 @@ and genTypeDefn
         +> genEq SynTypeDefn_Equals equalsRange
         +> indent
         +> sepNln
-        +> genTriviaFor
-            SynTypeDefnSimpleRepr_Enum
-            tdr.Range
-            (col sepNln ecs (genEnumCase astContext)
-             +> onlyIf (List.isNotEmpty ms) sepNln
-             +> sepNlnBetweenTypeAndMembers withKeyword ms
-             +> genMemberDefnList { astContext with InterfaceRange = None } ms
-             // Add newline after un-indent to be spacing-correct
-             +> unindent)
+        +> (col sepNln ecs (genEnumCase astContext)
+            +> onlyIf (List.isNotEmpty ms) sepNln
+            +> sepNlnBetweenTypeAndMembers withKeyword ms
+            +> genMemberDefnList { astContext with InterfaceRange = None } ms
+            // Add newline after un-indent to be spacing-correct
+            +> unindent)
 
     | Simple (TDSRUnion (ao', xs)) ->
         let unionCases (ctx: Context) =
@@ -3589,28 +3590,19 @@ and genTypeDefn
                     || List.isEmpty fields
 
                 let short =
-                    genTriviaFor
-                        SynTypeDefnSimpleRepr_Union
-                        tdr.Range
-                        (opt sepSpace ao' genAccess
-                         +> genUnionCase astContext hasVerticalBar x)
+                    opt sepSpace ao' genAccess
+                    +> genUnionCase astContext hasVerticalBar x
 
                 let long =
-                    genTriviaFor
-                        SynTypeDefnSimpleRepr_Union
-                        tdr.Range
-                        (opt sepSpace ao' genAccess
-                         +> genUnionCase astContext true x)
+                    opt sepSpace ao' genAccess
+                    +> genUnionCase astContext true x
 
                 expressionFitsOnRestOfLine (indent +> sepSpace +> short) (indent +> sepNln +> long) ctx
             | xs ->
                 indent
                 +> sepNln
-                +> genTriviaFor
-                    SynTypeDefnSimpleRepr_Union
-                    tdr.Range
-                    (opt sepNln ao' genAccess
-                     +> col sepNln xs (genUnionCase astContext true))
+                +> (opt sepNln ao' genAccess
+                    +> col sepNln xs (genUnionCase astContext true))
                 <| ctx
 
         typeName
@@ -3646,21 +3638,13 @@ and genTypeDefn
 
         let bodyExpr size ctx =
             if (List.isEmpty ms) then
-                (isSmallExpression size smallExpression multilineExpression
-                 +> leaveNodeFor SynTypeDefnSimpleRepr_Record tdr.Range // this will only print something when there is trivia after } in the short expression
-                // Yet it cannot be part of the short expression otherwise the multiline expression would be triggered unwillingly.
-                )
-                    ctx
+                (isSmallExpression size smallExpression multilineExpression) ctx
             else
                 multilineExpression ctx
 
         let genTypeDefinition (ctx: Context) =
             let size = getRecordSize ctx fs
-
-            let short =
-                enterNodeFor SynTypeDefnSimpleRepr_Record tdr.Range
-                +> bodyExpr size
-                +> leaveNodeFor SynTypeDefnSimpleRepr_Record tdr.Range
+            let short = bodyExpr size
 
             if ctx.Config.ExperimentalStroustrupStyle
                && ms.IsEmpty then
@@ -3683,7 +3667,6 @@ and genTypeDefn
             ifElse needsParenthesis sepOpenT sepNone
             +> genType astContext false t
             +> ifElse needsParenthesis sepCloseT sepNone
-            |> genTriviaFor SynTypeDefnSimpleRepr_TypeAbbrev tdr.Range
 
         let genMembers =
             ifElse
@@ -3906,26 +3889,19 @@ and genSigTypeDefn
                     || List.isEmpty fields
 
                 let short =
-                    genTriviaFor
-                        SynTypeDefnSimpleRepr_Union
-                        tdr.Range
-                        (opt sepSpace ao' genAccess
-                         +> genUnionCase astContext hasVerticalBar x)
+                    opt sepSpace ao' genAccess
+                    +> genUnionCase astContext hasVerticalBar x
 
                 let long =
-                    genTriviaFor
-                        SynTypeDefnSimpleRepr_Union
-                        tdr.Range
-                        (opt sepSpace ao' genAccess
-                         +> genUnionCase astContext true x)
+                    opt sepSpace ao' genAccess
+                    +> genUnionCase astContext true x
 
                 expressionFitsOnRestOfLine (indent +> sepSpace +> short) (indent +> sepNln +> long) ctx
             | xs ->
                 (indent
                  +> sepNln
-                 +> (opt sepNln ao' genAccess
-                     +> col sepNln xs (genUnionCase astContext true)
-                     |> genTriviaFor SynTypeDefnSimpleRepr_Union tdr.Range))
+                 +> opt sepNln ao' genAccess
+                 +> col sepNln xs (genUnionCase astContext true))
                     ctx
 
         typeName
@@ -3952,21 +3928,13 @@ and genSigTypeDefn
 
         let bodyExpr size ctx =
             if (List.isEmpty ms) then
-                (isSmallExpression size smallExpression multilineExpression
-                 +> leaveNodeFor SynTypeDefnSimpleRepr_Record tdr.Range // this will only print something when there is trivia after } in the short expression
-                // Yet it cannot be part of the short expression otherwise the multiline expression would be triggered unwillingly.
-                )
-                    ctx
+                (isSmallExpression size smallExpression multilineExpression) ctx
             else
                 multilineExpression ctx
 
         let genTypeDefinition (ctx: Context) =
             let size = getRecordSize ctx fs
-
-            let short =
-                enterNodeFor SynTypeDefnSimpleRepr_Record tdr.Range
-                +> bodyExpr size
-                +> leaveNodeFor SynTypeDefnSimpleRepr_Record tdr.Range
+            let short = bodyExpr size
 
             if ctx.Config.ExperimentalStroustrupStyle
                && ms.IsEmpty then

@@ -308,3 +308,9 @@ let synBindingToFsAstType (SynBinding (kind = kind)) =
     | SynBindingKind.StandaloneExpression -> SynBindingKind_StandaloneExpression
     | SynBindingKind.Normal -> SynBindingKind_Normal
     | SynBindingKind.Do -> SynBindingKind_Do
+
+let synAccessToFsAstType (vis: SynAccess) =
+    match vis with
+    | SynAccess.Internal _ -> SynAccess_Internal
+    | SynAccess.Private _ -> SynAccess_Private
+    | SynAccess.Public _ -> SynAccess_Public

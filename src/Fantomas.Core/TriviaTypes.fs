@@ -311,16 +311,16 @@ type FsAstType =
     | SynTypeDefnKind_Augmentation_With
     | SynTypeDefnKind_IL
     | SynTypeDefnKind_Delegate
-    | SynTypeDefnSimpleRepr_None
-    | SynTypeDefnSimpleRepr_Union
-    | SynTypeDefnSimpleRepr_Enum
+    //    | SynTypeDefnSimpleRepr_None
+    //    | SynTypeDefnSimpleRepr_Union
+    //    | SynTypeDefnSimpleRepr_Enum
     | SynTypeDefnSimpleRepr_Record
     | SynTypeDefnSimpleRepr_Record_OpeningBrace
     | SynTypeDefnSimpleRepr_Record_ClosingBrace
-    | SynTypeDefnSimpleRepr_General
-    | SynTypeDefnSimpleRepr_LibraryOnlyILAssembly
-    | SynTypeDefnSimpleRepr_TypeAbbrev
-    | SynTypeDefnSimpleRepr_Exception
+    //    | SynTypeDefnSimpleRepr_General
+    //    | SynTypeDefnSimpleRepr_LibraryOnlyILAssembly
+    //    | SynTypeDefnSimpleRepr_TypeAbbrev
+    //    | SynTypeDefnSimpleRepr_Exception
     | SynExceptionDefn_
     | SynExceptionDefn_With
     | SynExceptionDefnRepr_

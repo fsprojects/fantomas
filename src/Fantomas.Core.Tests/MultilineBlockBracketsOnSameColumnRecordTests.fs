@@ -950,7 +950,10 @@ namespace Foo
 type TestType =
     // Here is some comment about the type
     // Some more comments
-    private { Meh : TimeSpan }
+    private
+        {
+            Meh : TimeSpan
+        }
 """
 
 [<Test>]

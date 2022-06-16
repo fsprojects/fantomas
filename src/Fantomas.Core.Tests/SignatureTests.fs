@@ -1122,7 +1122,8 @@ namespace Foo
 type TestType =
     // Here is some comment about the type
     // Some more comments
-    private { Meh: TimeSpan }
+    private
+        { Meh: TimeSpan }
 """
 
 [<Test>]
@@ -2061,4 +2062,47 @@ type ILVersionInfo =
     val Minor: uint16
     val Build: uint16
     val Revision: uint16
+"""
+
+[<Test>]
+let ``type augmentations with trivia between members`` () =
+    formatSourceString
+        true
+        """
+    type DiagnosticsLogger with
+
+        member ErrorR: exn: exn -> unit
+
+        member Warning: exn: exn -> unit
+
+        member Error: exn: exn -> 'T
+
+        member SimulateError: diagnostic: PhasedDiagnostic -> 'T
+
+        member ErrorRecovery: exn: exn -> m: range -> unit
+
+        member StopProcessingRecovery: exn: exn -> m: range -> unit
+
+        member ErrorRecoveryNoRange: exn: exn -> unit
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type DiagnosticsLogger with
+
+    member ErrorR: exn: exn -> unit
+
+    member Warning: exn: exn -> unit
+
+    member Error: exn: exn -> 'T
+
+    member SimulateError: diagnostic: PhasedDiagnostic -> 'T
+
+    member ErrorRecovery: exn: exn -> m: range -> unit
+
+    member StopProcessingRecovery: exn: exn -> m: range -> unit
+
+    member ErrorRecoveryNoRange: exn: exn -> unit
 """
