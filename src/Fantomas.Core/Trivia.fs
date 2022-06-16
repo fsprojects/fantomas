@@ -180,6 +180,12 @@ let findNodeBeforeLineAndColumn (nodes: TriviaNode seq) line column =
 
         range.StartLine <= line
         && range.StartColumn <= column)
+    |> Option.map (fun node ->
+        match node.Type with
+        // SynExpr.App is typically consumed by partial active patterns.
+        // It is easier to work with the last child node.
+        | SynExpr_App -> Array.last node.Children
+        | _ -> node)
 
 let findNodeAfterLineAndColumn (nodes: TriviaNode seq) line column =
     nodes
@@ -336,6 +342,8 @@ let collectTrivia
                 | Some { RootNode = rootNode } -> rootNode
 
             rootNode, directives, codeComments
+
+    // printTriviaNode rootNode
 
     let trivia =
         let codeRange =
