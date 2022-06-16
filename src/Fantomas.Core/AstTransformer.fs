@@ -994,21 +994,17 @@ and visitSynTypeDefnSig (typeDefSig: SynTypeDefnSig) : TriviaNode =
             (sortChildren
                 [| yield! visitSynComponentInfo sci
                    yield! Option.toList (mkNodeOption SynTypeDefnSig_Equals equalsRange)
-                   yield visitSynTypeDefnSigRepr synTypeDefnSigReprs
+                   yield! visitSynTypeDefnSigRepr synTypeDefnSigReprs
                    yield! Option.toList (mkNodeOption SynTypeDefnSig_With withRange)
                    yield! List.map visitSynMemberSig memberSig |])
 
-and visitSynTypeDefnSigRepr (stdr: SynTypeDefnSigRepr) : TriviaNode =
+and visitSynTypeDefnSigRepr (stdr: SynTypeDefnSigRepr) : TriviaNode list =
     match stdr with
-    | SynTypeDefnSigRepr.ObjectModel (kind, members, range) ->
-        mkNodeWithChildren
-            SynTypeDefnSigRepr_ObjectModel
-            range
-            (sortChildren
-                [| yield! Option.toList (visitSynTypeDefnKind kind)
-                   yield! List.map visitSynMemberSig members |])
-    | SynTypeDefnSigRepr.Simple (simpleRepr, _range) -> visitSynTypeDefnSimpleRepr simpleRepr
-    | SynTypeDefnSigRepr.Exception exceptionRepr -> visitSynExceptionDefnRepr exceptionRepr
+    | SynTypeDefnSigRepr.ObjectModel (kind, members, _range) ->
+        [ yield! Option.toList (visitSynTypeDefnKind kind)
+          yield! List.map visitSynMemberSig members ]
+    | SynTypeDefnSigRepr.Simple (simpleRepr, _range) -> [ visitSynTypeDefnSimpleRepr simpleRepr ]
+    | SynTypeDefnSigRepr.Exception exceptionRepr -> [ visitSynExceptionDefnRepr exceptionRepr ]
 
 and visitSynMemberDefn (mbrDef: SynMemberDefn) : TriviaNode =
     match mbrDef with

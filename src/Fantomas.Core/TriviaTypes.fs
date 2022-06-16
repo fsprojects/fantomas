@@ -200,7 +200,7 @@ type FsAstType =
     | SynTypeDefnSig_
     | SynTypeDefnSig_Equals
     | SynTypeDefnSig_With
-    | SynTypeDefnSigRepr_ObjectModel
+    // | SynTypeDefnSigRepr_ObjectModel
     // | SynTypeDefnSigRepr_Simple
     // | SynTypeDefnSigRepr_Exception
     | SynMemberDefn_Open

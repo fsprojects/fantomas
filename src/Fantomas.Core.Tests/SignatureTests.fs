@@ -2035,3 +2035,30 @@ val inline average:
         and ^T: (static member DivideByInt: ^T * int -> ^T)
         and ^T: (static member Zero: ^T)
 """
+
+[<Test>]
+let ``blank line under struct type name`` () =
+    formatSourceString
+        true
+        """
+[<Struct>]
+type ILVersionInfo =
+
+    val Major: uint16
+    val Minor: uint16
+    val Build: uint16
+    val Revision: uint16
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+[<Struct>]
+type ILVersionInfo =
+
+    val Major: uint16
+    val Minor: uint16
+    val Build: uint16
+    val Revision: uint16
+"""
