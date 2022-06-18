@@ -2525,6 +2525,24 @@ let tcrefObjTy, enclosingDeclaredTypars, renaming, objTy =
 #endif
 """
 
+
+[<Test>]
+let ``comment after endif compiler define`` () =
+    formatSourceString
+        false
+        """
+#if FOOBAR
+#endif // This comment should survive
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+#if FOOBAR
+#endif // This comment should survive
+"""
+
 [<Test>]
 let ``defines as trivia for SynExpr.TypeApp, 1543`` () =
     formatSourceString
