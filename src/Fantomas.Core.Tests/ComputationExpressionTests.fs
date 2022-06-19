@@ -2450,3 +2450,26 @@ async {
     return model.Prop
 }
 """
+
+[<Test>]
+let ``named ce with generic parameter, 2285`` () =
+    formatSourceString
+        false
+        """
+odata<Person> {
+    count
+    take 10
+    skip 10
+}
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+odata<Person> {
+    count
+    take 10
+    skip 10
+}
+"""
