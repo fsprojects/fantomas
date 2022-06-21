@@ -1,6 +1,6 @@
 # Changelog
 
-## [Unreleased]
+## [5.0.0-alpha-009] - 2022-06-21
 
 ### Fixed
 * Explicit interface with SpaceBeforeClassConstructor. [#2226](https://github.com/fsprojects/fantomas/issues/2226)
@@ -71,7 +71,7 @@
 ## [5.0.0-alpha-004] - 2022-05-07
 
 ### Changed
-* FCS: Expose FSharpParserDiagnostic from parseFile. [https://github.com/fsprojects/fantomas/pull/2233](2233)
+* FCS: Expose FSharpParserDiagnostic from parseFile. [https://github.com/fsprojects/fantomas/pull/2233](https://github.com/fsprojects/fantomas/pull/2233)
 
 ## [5.0.0-alpha-003] - 2022-05-06
 
