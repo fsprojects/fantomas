@@ -262,12 +262,11 @@ let internal collectTriviaFromDirectives
     : Trivia list =
     directives
     |> List.map (function
-        | ConditionalDirectiveTrivia.If (_, r) ->
-            let text = source.GetContentAt r
-            { Item = Directive text; Range = r }
-
-        | ConditionalDirectiveTrivia.Else r -> { Item = Directive "#else"; Range = r }
-        | ConditionalDirectiveTrivia.EndIf r -> { Item = Directive "#endif"; Range = r })
+        | ConditionalDirectiveTrivia.If (_, r)
+        | ConditionalDirectiveTrivia.Else r
+        | ConditionalDirectiveTrivia.EndIf r ->
+            let text = (source.GetContentAt r).TrimEnd()
+            { Item = Directive text; Range = r })
 
 let internal collectTriviaFromCodeComments (source: ISourceText) (codeComments: CommentTrivia list) : Trivia list =
     codeComments
