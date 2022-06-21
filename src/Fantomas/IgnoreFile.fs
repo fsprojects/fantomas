@@ -87,7 +87,6 @@ module IgnoreFile =
                         fullPath
 
                 ignoreFile.IsIgnored path
-            with
-            | ex ->
+            with ex ->
                 printfn "%A" ex
                 false

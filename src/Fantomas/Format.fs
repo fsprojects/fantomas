@@ -70,8 +70,8 @@ let private formatContentInternalAsync
                     return Formatted(filename = file, formattedContent = formattedContent)
                 else
                     return Unchanged(filename = file)
-            with
-            | ex -> return Error(file, ex)
+            with ex ->
+                return Error(file, ex)
         }
 
 let formatContentAsync = formatContentInternalAsync false

@@ -37,8 +37,8 @@ let private CanonicalizeFilename filename =
     String.capitalize (
         try
             FileSystemUtils.chopExtension basic
-        with
-        | _ -> basic
+        with _ ->
+            basic
     )
 
 let private ComputeAnonModuleName check defaultNamespace filename (m: range) =
@@ -1122,8 +1122,7 @@ let parseFile
 
             try
                 ParseInput(lexfun, errorLogger, lexbuf, None, fileName, (isLastCompiland, isExe))
-            with
-            | e ->
+            with e ->
                 errorLogger.StopProcessingRecovery e range0 // don't re-raise any exceptions, we must return None.
                 EmptyParsedInput(fileName, (isLastCompiland, isExe)))
 

@@ -66,8 +66,8 @@ type FantomasDaemon(sender: Stream, reader: Stream) as this =
                         return FormatDocumentResponse.Unchanged request.FilePath
                     else
                         return FormatDocumentResponse.Formatted(request.FilePath, formatted)
-                with
-                | ex -> return FormatDocumentResponse.Error(request.FilePath, ex.Message)
+                with ex ->
+                    return FormatDocumentResponse.Error(request.FilePath, ex.Message)
         }
         |> Async.StartAsTask
 
