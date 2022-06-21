@@ -331,8 +331,7 @@ let main argv =
 
             buffer.Flush()
             printfn "%s has been written." outFile
-        with
-        | exn ->
+        with exn ->
             eprintfn "The following exception occurred while formatting %s: %O" inFile exn
 
             if force then
@@ -354,8 +353,7 @@ let main argv =
                 time (fun () -> processSourceString fsi s (Choice2Of2 outFile) config)
             else
                 processSourceString fsi s (Choice2Of2 outFile) config
-        with
-        | exn ->
+        with exn ->
             eprintfn "The following exception occurs while formatting stdin: %O" exn
 
             if force then
@@ -369,8 +367,7 @@ let main argv =
             use buffer = new StringWriter() :> TextWriter
             processSourceString fsi s (Choice1Of2 buffer) config
             stdout.Write(buffer.ToString())
-        with
-        | exn ->
+        with exn ->
             eprintfn "The following exception occurs while formatting stdin: %O" exn
             if force then stdout.Write(s)
             reraise ()
@@ -407,8 +404,7 @@ let main argv =
             // Don't record running time when output formatted content to console
             processSourceFile inFile buffer
             stdout.Write(buffer.ToString())
-        with
-        | exn ->
+        with exn ->
             eprintfn "The following exception occurred while formatting %s: %O" inFile exn
 
             if force then
@@ -466,8 +462,7 @@ let main argv =
                 eprintfn "--stdout and --out cannot be combined with multiple files."
                 exit 1
             | InputPath.Multiple (files, folders), OutputPath.NotKnown -> filesAndFolders files folders
-        with
-        | exn ->
+        with exn ->
             printfn "%s" exn.Message
             exit 1
 

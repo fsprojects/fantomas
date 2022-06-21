@@ -269,8 +269,7 @@ let createFor (startInfo: FantomasToolStartInfo) : Result<RunningFantomasTool, P
                 { RpcClient = client
                   Process = daemonProcess
                   StartInfo = startInfo }
-        with
-        | ex ->
+        with ex ->
             let error =
                 if daemonProcess.HasExited then
                     let stdErr = daemonProcess.StandardError.ReadToEnd()

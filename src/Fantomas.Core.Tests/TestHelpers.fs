@@ -105,8 +105,8 @@ let zero = range.Zero
 let tryFormatAST ast sourceCode config =
     try
         formatAST ast sourceCode config
-    with
-    | _ -> ""
+    with _ ->
+        ""
 
 let formatConfig = { FormatConfig.Default with StrictMode = true }
 
