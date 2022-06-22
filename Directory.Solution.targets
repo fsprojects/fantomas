@@ -64,6 +64,6 @@
     </Target>
 
     <Target Name="Benchmark">
-        <Exec Command="dotnet src/Fantomas.Benchmarks/bin/Release/net6.0/Fantomas.Benchmarks.dll" />
+        <Exec Command="dotnet src/Fantomas.Benchmarks/bin/Release/net6.0/Fantomas.Benchmarks.dll" IgnoreStandardErrorWarningFormat="true" />
     </Target>
 </Project>
