@@ -284,6 +284,15 @@ let git command =
 
 open Microsoft.Azure.Cosmos.Table
 
+Target.create "CheckFormat" (fun _ ->
+    DotNet.build
+        (fun opts -> { opts with MSBuildParams = { opts.MSBuildParams with Targets = [ "CheckFormat" ] } })
+        "fantomas.sln")
+
+Target.create "Benchmark" (fun _ ->
+    DotNet.build
+        (fun opts -> { opts with MSBuildParams = { opts.MSBuildParams with Targets = [ "Benchmark" ] } })
+        "fantomas.sln")
 
 // TODO: the Azure storage account was removed, migrate this to a new solution.
 
