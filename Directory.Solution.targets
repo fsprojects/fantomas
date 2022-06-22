@@ -2,18 +2,30 @@
     <Target Name="RestoreTools">
         <Exec Command="dotnet tool restore" />
     </Target>
+
     <Target
-            Name="Format"
-            DependsOnTargets="RestoreTools">
+            Name="DiscoverSourceFiles"
+            Outputs="FormatSources"
+            Returns="FormatSources">
         <ItemGroup>
-            <FormatItems
+            <FormatSources
                     Include="src/**/*.fs"
                     Exclude="src/**/obj/**/*.fs;src/Fantomas.FCS/generated/netstandard2.0/*.*" />
-            <FormatItems Include="src/**/*.fsi" />
-            <FormatItems Include="build.fsx" />
+            <FormatSources Include="src/**/*.fsi" />
+            <FormatSources Include="build.fsx" />
         </ItemGroup>
+    </Target>
 
-        <Exec Command="dotnet fantomas @(FormatItems, ' ')" />
+    <Target
+            Name="Format"
+            DependsOnTargets="RestoreTools;DiscoverSourceFiles">
+        <Exec Command="dotnet fantomas @(FormatSources, ' ')" />
+    </Target>
+
+    <Target
+            Name="CheckFormat"
+            DependsOnTargets="RestoreTools;DiscoverSourceFiles">
+        <Exec Command="dotnet fantomas --check @(FormatSources, ' ')" />
     </Target>
 
     <Target
