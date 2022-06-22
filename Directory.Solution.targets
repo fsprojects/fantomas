@@ -2,13 +2,48 @@
     <Target Name="RestoreTools">
         <Exec Command="dotnet tool restore" />
     </Target>
-    <Target Name="Format" DependsOnTargets="RestoreTools">
+    <Target
+            Name="Format"
+            DependsOnTargets="RestoreTools">
         <ItemGroup>
-            <FormatItems Include="src/**/*.fs" Exclude="src/**/obj/**/*.fs;src/Fantomas.FCS/generated/netstandard2.0/*.*" />
+            <FormatItems
+                    Include="src/**/*.fs"
+                    Exclude="src/**/obj/**/*.fs;src/Fantomas.FCS/generated/netstandard2.0/*.*" />
             <FormatItems Include="src/**/*.fsi" />
             <FormatItems Include="build.fsx" />
         </ItemGroup>
-        
+
         <Exec Command="dotnet fantomas @(FormatItems, ' ')" />
+    </Target>
+
+    <Target
+            Name="_GetChangedFilesInWorkingCopy"
+            Outputs="ChangedFiles"
+            Returns="ChangedFiles">
+        <Exec
+                Command="git diff --name-only"
+                ConsoleToMsBuild="true"
+                EchoOff="true">
+            <Output
+                    TaskParameter="ConsoleOutput"
+                    ItemName="ChangedFiles" />
+        </Exec>
+
+    </Target>
+
+    <Target
+            Name="FormatChanged"
+            DependsOnTargets="RestoreTools;_GetChangedFilesInWorkingCopy">
+        <ItemGroup>
+            <SourceFiles
+                    Include="%(ChangedFiles.Identity)"
+                    Condition="@(ChangedFiles->StartsWith('src'))" />
+            <FormatItems
+                    Include="@(SourceFiles)"
+                    Condition="'%(SourceFiles.Extension)' == '.fs' or '%(SourceFiles.Extension)' == '.fsi'" />
+        </ItemGroup>
+        <Exec
+                Command="dotnet fantomas @(FormatItems, ' ')"
+                Condition="@(FormatItems->Count()) > 0" />
     </Target>
 </Project>
