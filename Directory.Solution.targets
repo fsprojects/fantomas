@@ -58,4 +58,12 @@
                 Command="dotnet fantomas @(FormatItems, ' ')"
                 Condition="@(FormatItems->Count()) > 0" />
     </Target>
+
+    <Target Name="EnsureRepoConfig">
+        <Exec Command="git config core.hooksPath .githooks" />
+    </Target>
+
+    <Target Name="Benchmark">
+        <Exec Command="dotnet src/Fantomas.Benchmarks/bin/Release/net6.0/Fantomas.Benchmarks.dll" />
+    </Target>
 </Project>

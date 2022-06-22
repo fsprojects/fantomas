@@ -284,70 +284,8 @@ let git command =
 
 open Microsoft.Azure.Cosmos.Table
 
-Target.create "Benchmark" (fun _ ->
-    DotNet.exec
-        id
-        ("src"
-         </> "Fantomas.Benchmarks"
-         </> "bin"
-         </> "Release"
-         </> "net6.0"
-         </> "Fantomas.Benchmarks.dll")
-        ""
-    |> ignore
 
 // TODO: the Azure storage account was removed, migrate this to a new solution.
-)
-
-Target.create "Format" (fun _ ->
-    let result =
-        sourceFiles
-        |> Seq.map (sprintf "\"%s\"")
-        |> String.concat " "
-        |> DotNet.exec id "fantomas"
-
-    if not result.OK then
-        printfn "Errors while formatting all files: %A" result.Messages)
-
-Target.create "FormatChanged" (fun _ ->
-    let result =
-        Fake.Tools.Git.FileStatus.getChangedFilesInWorkingCopy "." "HEAD"
-        |> Seq.choose (fun (_, file) ->
-            let ext = Path.GetExtension(file)
-
-            if
-                file.StartsWith("src")
-                && (ext = ".fs" || ext = ".fsi")
-            then
-                Some(sprintf "\"%s\"" file)
-            else
-                None)
-        |> String.concat " "
-        |> DotNet.exec id "fantomas"
-
-    if not result.OK then
-        printfn "Problem when formatting changed files:\n\n%A" result.Errors)
-
-Target.create "CheckFormat" (fun _ ->
-    let result =
-        sourceFiles
-        |> Seq.map (sprintf "\"%s\"")
-        |> String.concat " "
-        |> sprintf "%s --check"
-        |> DotNet.exec id "fantomas"
-
-    if result.ExitCode = 0 then
-        Trace.log "No files need formatting"
-    elif result.ExitCode = 99 then
-        failwith "Some files need formatting, run `dotnet fake build -t Format` to format them"
-    else
-        Trace.logf "Errors while formatting: %A" result.Errors
-        failwith "Unknown errors while formatting")
-
-Target.create "EnsureRepoConfig" (fun _ ->
-    // Configure custom git hooks
-    // * Currently only used to ensure that code is formatted before pushing
-    Fake.Tools.Git.CommandHelper.gitCommand "" "config core.hooksPath .githooks")
 
 Target.create "Docs" (fun _ ->
     DotNet.exec id "fsi" "./docs/.style/style.fsx"
