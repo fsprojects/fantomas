@@ -1,0 +1,16 @@
+<Project>
+    <ItemGroup>
+        <FormatItems Include="src/**/*.fs" Exclude="src/**/obj/**/*.fs;src/Fantomas.FCS/generated/netstandard2.0/*.*" />
+        <FormatItems Include="src/**/*.fsi" />
+        <FormatItems Include="build.fsx" />
+    </ItemGroup>
+    <Target Name="RestoreTools">
+        <Exec Command="dotnet tool restore" />
+    </Target>
+    <Target Name="Format" DependsOnTargets="RestoreTools">
+        <PropertyGroup>
+            <_ItemList>%(FormatItems.Identity)</_ItemList>
+        </PropertyGroup>
+        <Exec Command="dotnet fantomas @(FormatItems, ' ')" />
+    </Target>
+</Project>
