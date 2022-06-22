@@ -3131,3 +3131,19 @@ type Event<'Delegate, 'Args
     class
     end
 """
+
+[<Test>]
+let ``unit of measure should keep idempotency after formatting`` () =
+    formatSourceString
+        false
+        """
+[<Measure>] type herth = / second
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+[<Measure>]
+type herth = / second
+"""
