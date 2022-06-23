@@ -10,8 +10,8 @@
         <ItemGroup>
             <FormatSources
                     Include="src/**/*.fs"
-                    Exclude="src/**/obj/**/*.fs;src/Fantomas.FCS/generated/netstandard2.0/*.*" />
-            <FormatSources Include="src/**/*.fsi" />
+                    Exclude="src/**/obj/**/*.fs;src/Fantomas.FCS/generated/netstandard2.0/*.fs" />
+            <FormatSources Include="src/**/*.fsi" Exclude="src/Fantomas.FCS/generated/netstandard2.0/*.fsi" />
             <FormatSources Include="build.fsx" />
         </ItemGroup>
     </Target>
