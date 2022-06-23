@@ -67,4 +67,13 @@
         <Exec Command="dotnet build -c Release src/Fantomas.Benchmarks" />
         <Exec Command="dotnet src/Fantomas.Benchmarks/bin/Release/net6.0/Fantomas.Benchmarks.dll" IgnoreStandardErrorWarningFormat="true" />
     </Target>
+    
+    <Target Name="All">
+        <Exec Command="dotnet clean" />
+        <CallTarget Targets="CheckFormat" />
+        <Exec Command="dotnet build -c Release" />
+        <Exec Command="dotnet test -c Release --no-restore --no-build" />
+        <CallTarget Targets="BenchMark" />
+        <Exec Command="dotnet pack --no-restore -c Release -o ./bin" />
+    </Target>
 </Project>
