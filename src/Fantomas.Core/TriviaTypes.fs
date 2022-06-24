@@ -345,6 +345,7 @@ type FsAstType =
     | SynType_Tuple
     | SynType_Array
     | SynType_Fun
+    | SynType_Fun_Arrow
     | SynType_Var
     | SynType_Anon
     | SynType_WithGlobalConstraints

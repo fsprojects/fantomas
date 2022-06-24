@@ -1809,7 +1809,7 @@ and genExpr astContext synExpr ctx =
                 | AppOrTypeApp (SimpleExpr e, t, [ ConstExpr (SynConst.Unit, r) ]) ->
                     genExpr astContext e
                     +> optSingle (fun (lt, ts, gt) -> genGenericTypeParameters astContext lt ts gt) t
-                    +> genConst SynConst.Unit r
+                    +> genTriviaFor SynExpr_Const r (genConst SynConst.Unit r)
                 | AppOrTypeApp (SimpleExpr e, t, [ Paren _ as px ]) ->
                     let short =
                         genExpr astContext e
@@ -4245,10 +4245,20 @@ and genType astContext outerBracket t =
             genTypar astContext tp
             |> genTriviaFor SynType_Var r
         // Drop bracket around tuples before an arrow
-        | TFun (TTuple ts, t) -> loopTTupleList ts +> sepArrow +> loop t
+        | TFun (TTuple ts, arrow, t) ->
+            loopTTupleList ts
+            +> genTriviaFor SynType_Fun_Arrow arrow sepArrow
+            +> loop t
         // Do similar for tuples after an arrow
-        | TFun (t, TTuple ts) -> loop t +> sepArrow +> loopTTupleList ts
-        | TFuns ts -> col sepArrow ts loop
+        | TFun (t, arrow, TTuple ts) ->
+            loop t
+            +> genTriviaFor SynType_Fun_Arrow arrow sepArrow
+            +> loopTTupleList ts
+        | TFuns (ts, ret) ->
+            col sepNone ts (fun (t, arrow) ->
+                loop t
+                +> genTriviaFor SynType_Fun_Arrow arrow sepArrow)
+            +> loop ret
         | TApp (TLongIdent (SynLongIdent ([ _ ], [], [ Some (IdentTrivia.OriginalNotation "*") ])),
                 _,
                 [ t ],
@@ -4298,7 +4308,7 @@ and genType astContext outerBracket t =
             +> sepCloseT
         | TWithGlobalConstraints (TVar _, [ TyparSubtypeOfType _ as tc ]) -> genTypeConstraint astContext tc
         | TWithGlobalConstraints (TFuns ts, tcs) ->
-            col sepArrow ts loop
+            loopFuns ts
             +> colPre (!- " when ") wordAnd tcs (genTypeConstraint astContext)
         | TWithGlobalConstraints (t, tcs) ->
             loop t
@@ -4306,13 +4316,7 @@ and genType astContext outerBracket t =
         | SynType.LongIdent (SynLongIdent(id = [ lid ])) when (astContext.IsCStylePattern && lid.idText = "[]") ->
             !- "[]"
         | TLongIdent sli -> genSynLongIdent false sli
-        //            ifElseCtx
-        //                (fun ctx ->
-        //                    not ctx.Config.StrictMode
-        //                    && astContext.IsCStylePattern)
-        //                (!-(if s = "unit" then "void" else s))
-        //                (!-s)
-        //            |> genTriviaFor Ident_ current.Range
+
         | TAnonRecord (isStruct, fields) ->
             let smallExpression =
                 ifElse isStruct !- "struct " sepNone
@@ -4343,33 +4347,45 @@ and genType astContext outerBracket t =
             loop t -- (if isDivide then " / " else " * ")
             +> loopTTupleList ts
 
+    and loopFuns (ts, ret) =
+        let short =
+            col sepNone ts (fun (t, arrow) ->
+                loop t
+                +> genTriviaFor SynType_Fun_Arrow arrow sepArrow
+                +> sepNlnWhenWriteBeforeNewlineNotEmpty sepNone)
+            +> loop ret
+
+        let long =
+            match ts with
+            | [] -> loop ret
+            | (ht, ha) :: rest ->
+                loop ht
+                +> indent
+                +> sepNln
+                +> genTriviaFor SynType_Fun_Arrow ha sepArrowFixed
+                +> sepSpace
+                +> col sepNone rest (fun (t, arrow) ->
+                    loop t
+                    +> sepNln
+                    +> genTriviaFor SynType_Fun_Arrow arrow sepArrowFixed
+                    +> sepSpace)
+                +> loop ret
+                +> unindent
+
+        expressionFitsOnRestOfLine short long
+
     match t with
-    | TFun (TTuple ts, t) ->
+    | TFun (TTuple ts, arrow, t) ->
         ifElse
             outerBracket
             (sepOpenT
              +> loopTTupleList ts
-             +> sepArrow
+             +> genTriviaFor SynType_Fun_Arrow arrow sepArrow
              +> loop t
              +> sepCloseT)
             (loopTTupleList ts +> sepArrow +> loop t)
     | TFuns ts ->
-        let short = col sepArrow ts loop
-
-        let long =
-            match ts with
-            | [] -> sepNone
-            | h :: rest ->
-                loop h
-                +> indent
-                +> sepNln
-                +> sepArrowFixed
-                +> sepSpace
-                +> col (sepNln +> sepArrowFixed +> sepSpace) rest loop
-                +> unindent
-
-        let genTs = expressionFitsOnRestOfLine short long
-
+        let genTs = loopFuns ts
         ifElse outerBracket (sepOpenT +> genTs +> sepCloseT) genTs
     | TTuple ts -> ifElse outerBracket (sepOpenT +> loopTTupleList ts +> sepCloseT) (loopTTupleList ts)
     | _ -> loop t
@@ -4416,36 +4432,40 @@ and genPrefixTypes
             ctx
 
 and genTypeList astContext node =
-    let gt (t, args: SynArgInfo list) =
-        match t, args with
-        | TTuple ts', _ ->
-            let hasBracket = not node.IsEmpty
+    let gt (t, args: SynArgInfo list, optArrow) =
+        let genType =
+            match t, args with
+            | TTuple ts', _ ->
+                let hasBracket = not node.IsEmpty
 
-            let gt sepBefore =
-                if args.Length = ts'.Length then
-                    col sepBefore (Seq.zip args (Seq.map snd ts')) (fun (ArgInfo (ats, so, isOpt), t) ->
-                        genOnelinerAttributes astContext ats
-                        +> opt sepColon so (fun ident -> onlyIf isOpt (!- "?") +> genIdent ident)
-                        +> genType astContext hasBracket t)
-                else
-                    col sepBefore ts' (snd >> genType astContext hasBracket)
+                let gt sepBefore =
+                    if args.Length = ts'.Length then
+                        col sepBefore (Seq.zip args (Seq.map snd ts')) (fun (ArgInfo (ats, so, isOpt), t) ->
+                            genOnelinerAttributes astContext ats
+                            +> opt sepColon so (fun ident -> onlyIf isOpt (!- "?") +> genIdent ident)
+                            +> genType astContext hasBracket t)
+                    else
+                        col sepBefore ts' (snd >> genType astContext hasBracket)
 
-            let shortExpr = gt sepStar
-            let longExpr = gt (sepSpace +> sepStarFixed +> sepNln)
-            expressionFitsOnRestOfLine shortExpr longExpr
+                let shortExpr = gt sepStar
+                let longExpr = gt (sepSpace +> sepStarFixed +> sepNln)
+                expressionFitsOnRestOfLine shortExpr longExpr
 
-        | _, [ ArgInfo (ats, so, isOpt) ] ->
-            match t with
-            | TTuple _ -> not node.IsEmpty
-            | TFun _ -> true // Fun is grouped by brackets inside 'genType astContext true t'
-            | _ -> false
-            |> fun hasBracket ->
-                genOnelinerAttributes astContext ats
-                +> opt sepColon so (fun ident -> onlyIf isOpt (!- "?") +> genIdent ident)
-                +> genType astContext hasBracket t
-        | _ -> genType astContext false t
+            | _, [ ArgInfo (ats, so, isOpt) ] ->
+                match t with
+                | TTuple _ -> not node.IsEmpty
+                | TFun _ -> true // Fun is grouped by brackets inside 'genType astContext true t'
+                | _ -> false
+                |> fun hasBracket ->
+                    genOnelinerAttributes astContext ats
+                    +> opt sepColon so (fun ident -> onlyIf isOpt (!- "?") +> genIdent ident)
+                    +> genType astContext hasBracket t
+            | _ -> genType astContext false t
 
-    let shortExpr = col sepArrow node gt
+        genType
+        +> optSingle (fun arrow -> genTriviaFor SynType_Fun_Arrow arrow sepArrow) optArrow
+
+    let shortExpr = col sepNone node gt
 
     let longExpr =
         let lastIndex = node.Length - 1
@@ -4453,7 +4473,7 @@ and genTypeList astContext node =
         let isTupleOrLastIndex index =
             index = lastIndex
             || match List.tryItem (index - 1) node with
-               | Some (TTuple _, _) -> true
+               | Some (TTuple _, _, _) -> true
                | _ -> false
 
         let resetIndent =
@@ -4468,14 +4488,7 @@ and genTypeList astContext node =
                         None)
                 |> List.reduce (+>)
 
-        colii
-            (fun idx ->
-                sepSpace
-                +> sepArrowFixed
-                +> onlyIf (isTupleOrLastIndex idx) indent
-                +> sepNln)
-            node
-            (fun _ -> gt)
+        colii (fun idx -> onlyIf (isTupleOrLastIndex idx) indent +> sepNln) node (fun _ -> gt)
         +> resetIndent
 
     expressionFitsOnRestOfLine shortExpr longExpr

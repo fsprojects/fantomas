@@ -1450,14 +1450,14 @@ let (|TVar|_|) =
 
 let (|TFun|_|) =
     function
-    | SynType.Fun (t1, t2, _) -> Some(t1, t2)
+    | SynType.Fun (t1, t2, _, { ArrowRange = arrow }) -> Some(t1, arrow, t2)
     | _ -> None
 
 // Arrow type is right-associative
 let rec (|TFuns|_|) =
     function
-    | TFun (t1, TFuns ts) -> Some [ yield t1; yield! ts ]
-    | TFun (t1, t2) -> Some [ t1; t2 ]
+    | TFun (t1, arrow, TFuns (ts, ret)) -> Some((t1, arrow) :: ts, ret)
+    | TFun (t1, arrow, t2) -> Some([ t1, arrow ], t2)
     | _ -> None
 
 let (|TApp|_|) =
@@ -1575,8 +1575,8 @@ let (|FunType|) (t, ValInfo (argTypes, returnType)) =
     // The number of arg info will determine semantics of argument types.
     let rec loop =
         function
-        | TFun (t1, t2), argType :: argTypes -> (t1, argType) :: loop (t2, argTypes)
-        | t, [] -> [ (t, [ returnType ]) ]
+        | TFun (t1, arrow, t2), argType :: argTypes -> (t1, argType, Some arrow) :: loop (t2, argTypes)
+        | t, [] -> [ (t, [ returnType ], None) ]
         | _ -> []
 
     loop (t, argTypes)

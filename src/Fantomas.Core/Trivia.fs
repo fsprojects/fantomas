@@ -178,7 +178,11 @@ let rec visitLastChildNode (node: TriviaNode) : TriviaNode =
     match node.Type with
     | SynExpr_IfThenElse
     | SynExpr_App
-    | SynBindingKind_Normal -> visitLastChildNode (Array.last node.Children)
+    | SynBindingKind_Normal
+    | SynModuleOrNamespace_AnonModule
+    | SynModuleDecl_Expr
+    | SynExpr_Match
+    | SynMatchClause_ -> visitLastChildNode (Array.last node.Children)
     | _ -> node
 
 let findNodeBeforeLineAndColumn (nodes: TriviaNode seq) line column =
@@ -240,26 +244,16 @@ let lineCommentAfterSourceCodeToTriviaInstruction
     : TriviaInstruction option =
     let lineNumber = trivia.Range.StartLine
 
-    let rec visit node : TriviaNode option =
-        let result =
-            node.Children
-            |> Array.filter (fun node -> node.Range.EndLine = lineNumber)
-            |> Array.sortByDescending (fun node -> node.Range.StartColumn)
-            |> Array.tryHead
+    let result =
+        containerNode.Children
+        |> Array.filter (fun node -> node.Range.EndLine = lineNumber)
+        |> Array.sortByDescending (fun node -> node.Range.StartColumn)
+        |> Array.tryHead
 
-        match result with
-        | None -> None
-        | Some result ->
-            // Try and find a better node at the exact same column
-            let childNode = visit result
-
-            match childNode with
-            | Some childNode when childNode.Range.EndColumn = result.Range.EndColumn -> Some childNode
-            | Some _
-            | None -> Some result
-
-    visit containerNode
+    result
     |> Option.map (fun node ->
+        let node = visitLastChildNode node
+
         { Trivia = trivia
           Type = node.Type
           Range = node.Range

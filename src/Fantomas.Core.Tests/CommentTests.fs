@@ -1947,3 +1947,28 @@ let compilerOptionUsage (CompilerOption (s, tag, spec, _, _)) =
 
     s
 """
+
+[<Test>]
+let ``block comment should be attached to last argument of application`` () =
+    formatSourceString
+        false
+        """
+match meh with
+| OptionGeneral _ ->
+    if tag = "" then
+        sprintf "%s" s
+    else
+        sprintf "%s:%s" s tag (* still being decided *)
+"""
+        { config with MaxIfThenElseShortWidth = 60 }
+    |> prepend newline
+    |> should
+        equal
+        """
+match meh with
+| OptionGeneral _ ->
+    if tag = "" then
+        sprintf "%s" s
+    else
+        sprintf "%s:%s" s tag (* still being decided *)
+"""

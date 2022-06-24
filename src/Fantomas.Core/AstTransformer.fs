@@ -1563,12 +1563,17 @@ and visitSynType (st: SynType) : TriviaNode =
             visit elementType (fun node ->
                 mkNodeWithChildren SynType_Array range [| node |]
                 |> finalContinuation)
-        | SynType.Fun (argType, returnType, range) ->
+        | SynType.Fun (argType, returnType, range, { ArrowRange = arrow }) ->
             let continuations: ((TriviaNode -> TriviaNode) -> TriviaNode) list =
                 [ visit argType; visit returnType ]
 
             let finalContinuation (nodes: TriviaNode list) : TriviaNode =
-                mkNodeWithChildren SynType_Fun range (sortChildren [| yield! nodes |])
+                mkNodeWithChildren
+                    SynType_Fun
+                    range
+                    (sortChildren
+                        [| yield! nodes
+                           yield mkNode SynType_Fun_Arrow arrow |])
                 |> finalContinuation
 
             Continuation.sequence continuations finalContinuation
