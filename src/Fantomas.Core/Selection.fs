@@ -10,7 +10,7 @@ open Fantomas.Core.TriviaTypes
 open Fantomas.Core.AstTransformer
 open Fantomas.Core.Trivia
 
-let private findNode (maxLineLength: int) (selection: range) (node: TriviaNode) : TriviaNode option =
+let private findNode (selection: range) (node: TriviaNode) : TriviaNode option =
     let isExactSelection =
         selection.StartLine = node.Range.StartLine
         && selection.StartColumn = node.Range.StartColumn
@@ -20,15 +20,7 @@ let private findNode (maxLineLength: int) (selection: range) (node: TriviaNode) 
     if isExactSelection then
         Some node
     else
-        let selectionSurface = RangeHelpers.surfaceArea maxLineLength selection
-
-        [| yield node; yield! node.Children |]
-        |> Array.filter (fun a -> Option.isSome a.FSharpASTNode)
-        |> Array.sortBy (fun n ->
-            // Find the node that matches the selection as close as possible
-            let nodeSurface = RangeHelpers.surfaceArea maxLineLength n.Range
-            System.Math.Abs(selectionSurface - nodeSurface))
-        |> Array.tryHead
+        None
 
 let private mkAnonSynModuleOrNamespace decl =
     SynModuleOrNamespace(
@@ -83,7 +75,7 @@ let formatSelection
     (isSignature: bool)
     (selection: range)
     (sourceText: ISourceText)
-    : Async<string option> =
+    : Async<(string * range) option> =
     async {
         let baseUntypedTree, baseDiagnostics =
             Fantomas.FCS.Parse.parseFile isSignature sourceText []
@@ -91,7 +83,7 @@ let formatSelection
         let isValid = Validation.noWarningOrErrorDiagnostics baseDiagnostics
 
         if not isValid then
-            failwith "not valid"
+            failwith "Format selection cannot work unless the entire tree is valid."
             return None
         else
             let rootNode =
@@ -103,16 +95,74 @@ let formatSelection
             printTriviaNode rootNode
 #endif
 
+            let selection =
+                let lines =
+                    [| selection.StartLine .. selection.EndLine |]
+                    |> Array.choose (fun lineNumber ->
+                        let idx = lineNumber - 1
+
+                        if idx < 0 then
+                            None
+                        else
+                            let line = sourceText.GetLineString(idx)
+
+                            if String.isNotNullOrWhitespace line then
+                                Some(lineNumber, line)
+                            else
+                                None)
+
+                match Array.tryHead lines, Array.tryLast lines with
+                | Some (startLineNumber, startLine), Some (endLineNumber, endLine) ->
+                    let startColumn =
+                        // The selection is on the same line as the code but appears to be inside whitespace
+                        if startLineNumber = selection.StartLine then
+                            Seq.takeWhile System.Char.IsWhiteSpace startLine
+                            |> Seq.length
+                            |> fun firstCharOnLine -> System.Math.Max(firstCharOnLine, selection.StartColumn)
+                        else
+                            // The selection is on a different line than the code, take first non-whitespace character
+                            Seq.takeWhile System.Char.IsWhiteSpace startLine
+                            |> Seq.length
+
+                    let endColumn =
+                        // The selection is on the same line as the code but appears to be inside whitespace
+                        if endLineNumber = selection.EndLine then
+                            Seq.rev endLine
+                            |> Seq.takeWhile System.Char.IsWhiteSpace
+                            |> Seq.length
+                            |> fun trimmedEnd -> endLine.Length - trimmedEnd
+                            |> fun lastCharOnLine -> System.Math.Min(lastCharOnLine, selection.EndColumn)
+                        else
+                            // The selection is on a different line than the code, take first non-whitespace character
+                            Seq.rev endLine
+                            |> Seq.takeWhile System.Char.IsWhiteSpace
+                            |> Seq.length
+                            |> fun trimmedEnd -> endLine.Length - trimmedEnd
+
+                    if startLineNumber <> selection.StartLine
+                       || startColumn <> selection.StartColumn
+                       || endLineNumber <> selection.EndLine
+                       || endColumn <> selection.EndColumn then
+
+                        Range.mkFileIndexRange
+                            rootNode.Range.FileIndex
+                            (Position.mkPos startLineNumber startColumn)
+                            (Position.mkPos endLineNumber endColumn)
+                    else
+                        selection
+                | _ -> selection
+
             let treeWithSelection =
                 findNodeWhereRangeFitsIn rootNode selection
-                |> Option.bind (findNode config.MaxLineLength selection)
-                |> Option.bind (fun tna -> Option.map (mkTreeWithSingleNode baseUntypedTree) tna.FSharpASTNode)
+                |> Option.bind (findNode selection)
+                |> Option.bind (fun tna ->
+                    Option.map (fun astNode -> mkTreeWithSingleNode baseUntypedTree astNode, tna) tna.FSharpASTNode)
 
             match treeWithSelection with
             | None ->
                 failwithf "no node found, %A %A" selection baseUntypedTree
                 return None
-            | Some tree ->
+            | Some (tree, node) ->
                 let maxLineLength = config.MaxLineLength - selection.StartColumn
 
                 let selectionConfig =
@@ -121,13 +171,7 @@ let formatSelection
                         MaxLineLength = maxLineLength }
 
                 let selection =
-                    CodeFormatterImpl.formatAST
-                        tree
-                        (Some sourceText)
-                        selectionConfig
-                        (Some
-                            { RootNode = rootNode
-                              Selection = selection })
+                    CodeFormatterImpl.formatAST tree (Some sourceText) selectionConfig (Some { Node = node })
 
-                return Some(selection.TrimEnd([| '\r'; '\n' |]))
+                return Some(selection.TrimEnd([| '\r'; '\n' |]), node.Range)
     }

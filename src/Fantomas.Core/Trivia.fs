@@ -50,8 +50,8 @@ let internal collectTriviaFromDirectives
     |> fun trivia ->
         match selection with
         | None -> trivia
-        | Some { Selection = selection } ->
-            List.filter (fun t -> RangeHelpers.rangeContainsRange selection t.Range) trivia
+        | Some { Node = rootNode } ->
+            List.filter (fun t -> RangeHelpers.rangeContainsRange rootNode.Range t.Range) trivia
 
 let internal collectTriviaFromCodeComments
     (source: ISourceText)
@@ -94,8 +94,8 @@ let internal collectTriviaFromCodeComments
     |> fun trivia ->
         match selection with
         | None -> trivia
-        | Some { Selection = selection } ->
-            List.filter (fun t -> RangeHelpers.rangeContainsRange selection t.Range) trivia
+        | Some { Node = rootNode } ->
+            List.filter (fun t -> RangeHelpers.rangeContainsRange rootNode.Range t.Range) trivia
 
 let internal collectTriviaFromBlankLines
     (config: FormatConfig)
@@ -350,14 +350,14 @@ let collectTrivia
             let rootNode =
                 match selection with
                 | None -> astToNode ast.FullRange hds mns
-                | Some { RootNode = rootNode } -> rootNode
+                | Some { Node = rootNode } -> rootNode
 
             rootNode, directives, codeComments
         | ParsedInput.SigFile (ParsedSigFileInput (_, mns, directives, codeComments)) ->
             let rootNode =
                 match selection with
                 | None -> sigAstToNode ast.FullRange mns
-                | Some { RootNode = rootNode } -> rootNode
+                | Some { Node = rootNode } -> rootNode
 
             rootNode, directives, codeComments
 
@@ -367,7 +367,7 @@ let collectTrivia
         let codeRange =
             match selection with
             | None -> ast.FullRange
-            | Some { Selection = selection } -> selection
+            | Some { Node = rootNode } -> rootNode.Range
 
         [ yield! collectTriviaFromDirectives source directives selection
           yield! collectTriviaFromCodeComments source codeComments selection

@@ -14,14 +14,27 @@ let private formatSelectionOnly isFsiFile selection (source: string) config =
         |> Async.RunSynchronously
 
     match result with
-    | Some formattedSelection -> formattedSelection.Replace("\r\n", "\n")
+    | Some (formattedSelection, _) -> formattedSelection.Replace("\r\n", "\n")
     | None ->
         Assert.Fail("CodeFormatter.FormatSelectionAsync did not yield a result")
         System.String.Empty
 
+let private formatSelectionAndAssertRange isFsiFile selection source config =
+    let result =
+        CodeFormatter.FormatSelectionAsync(isFsiFile, source, selection, config)
+        |> Async.RunSynchronously
+
+    match result with
+    | Some (_, range) ->
+        (range.StartLine, range.StartColumn, range.EndLine, range.EndColumn)
+        == (selection.StartLine, selection.StartColumn, selection.EndLine, selection.EndColumn)
+    | None -> Assert.Fail("CodeFormatter.FormatSelectionAsync did not yield a result")
+
 let private mkSelection (startLine, startColumn) (endLine, endColumn) =
     let startPos = Position.mkPos startLine startColumn
+
     let endPos = Position.mkPos endLine endColumn
+
     Range.mkRange "selection" startPos endPos
 
 [<Test>]
@@ -74,7 +87,6 @@ let x =
     |> should
         equal
         "
-
 try
     something ()
 with ex ->
@@ -109,24 +121,31 @@ functionApplication
     argumentThree"""
 
 [<Test>]
-let ``only format trivia inside the selection`` () =
+let ``format block comment inside selection`` () =
     formatSelectionOnly
         false
-        (mkSelection (5, 0) (6, 10))
+        (mkSelection (2, 8) (2, 82))
         """
-let x = 0
-
-
-
-let a =  9
+let v = functionApplication argumentOne   (* FOOBAR *)   argumentTwo argumentThree
 """
         config
     |> prepend newline
     |> should
         equal
         """
+functionApplication argumentOne (* FOOBAR *) argumentTwo argumentThree"""
 
-let a = 9"""
+[<Test>]
+let ``format addition`` () =
+    formatSelectionAndAssertRange
+        false
+        (mkSelection (3, 8) (3, 17))
+        """
+let x = 9
+let y = a   +   x
+let z = ""
+"""
+        config
 
 // 10	25	10	82
 //[<Test>]

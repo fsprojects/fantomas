@@ -417,7 +417,6 @@ type TriviaInstruction =
 
 type TriviaForSelection =
     {
-        Selection: range
-        /// Largest AST node that fits the selection range.
-        RootNode: TriviaNode
+        /// The AST node that matches the exact selection range.
+        Node: TriviaNode
     }
