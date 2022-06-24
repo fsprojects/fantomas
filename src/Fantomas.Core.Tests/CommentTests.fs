@@ -1972,3 +1972,453 @@ match meh with
     else
         sprintf "%s:%s" s tag (* still being decided *)
 """
+
+[<Test>]
+let ``block comment after let decl`` () =
+    formatSourceString
+        false
+        """
+let compilerOptionUsage (CompilerOption (s, tag, spec, _, _)) =
+    let s =
+        if s = "--" then
+            ""
+        else
+            s (* s="flag" for "--flag" options. s="--" for "--" option. Adjust printing here for "--" case. *)
+
+    match spec with
+    | OptionUnit _
+    | OptionSet _
+    | OptionClear _
+    | OptionHelp _ -> sprintf "--%s" s
+    | OptionStringList _ -> sprintf "--%s:%s" s tag
+    | OptionIntList _ -> sprintf "--%s:%s" s tag
+    | OptionSwitch _ -> sprintf "--%s[+|-]" s
+    | OptionStringListSwitch _ -> sprintf "--%s[+|-]:%s" s tag
+    | OptionIntListSwitch _ -> sprintf "--%s[+|-]:%s" s tag
+    | OptionString _ -> sprintf "--%s:%s" s tag
+    | OptionInt _ -> sprintf "--%s:%s" s tag
+    | OptionFloat _ -> sprintf "--%s:%s" s tag
+    | OptionRest _ -> sprintf "--%s ..." s
+    | OptionGeneral _ ->
+        if tag = "" then
+            sprintf "%s" s
+        else
+            sprintf "%s:%s" s tag (* still being decided *)
+"""
+        { config with MaxIfThenElseShortWidth = 60 }
+    |> prepend newline
+    |> should
+        equal
+        """
+let compilerOptionUsage (CompilerOption (s, tag, spec, _, _)) =
+    let s =
+        if s = "--" then
+            ""
+        else
+            s (* s="flag" for "--flag" options. s="--" for "--" option. Adjust printing here for "--" case. *)
+
+    match spec with
+    | OptionUnit _
+    | OptionSet _
+    | OptionClear _
+    | OptionHelp _ -> sprintf "--%s" s
+    | OptionStringList _ -> sprintf "--%s:%s" s tag
+    | OptionIntList _ -> sprintf "--%s:%s" s tag
+    | OptionSwitch _ -> sprintf "--%s[+|-]" s
+    | OptionStringListSwitch _ -> sprintf "--%s[+|-]:%s" s tag
+    | OptionIntListSwitch _ -> sprintf "--%s[+|-]:%s" s tag
+    | OptionString _ -> sprintf "--%s:%s" s tag
+    | OptionInt _ -> sprintf "--%s:%s" s tag
+    | OptionFloat _ -> sprintf "--%s:%s" s tag
+    | OptionRest _ -> sprintf "--%s ..." s
+    | OptionGeneral _ ->
+        if tag = "" then
+            sprintf "%s" s
+        else
+            sprintf "%s:%s" s tag (* still being decided *)
+"""
+
+[<Test>]
+let ``comment after long parameter signature`` () =
+    formatSourceString
+        false
+        """
+type CreateFSharpManifestResourceName public () =
+    inherit CreateCSharpManifestResourceName()
+
+    member val UseStandardResourceNames = false with get, set
+
+    override this.CreateManifestName
+        (
+            fileName: string,
+            linkFileName: string,
+            rootNamespace: string,  // may be null
+            dependentUponFileName: string,  // may be null
+            binaryStream: Stream // may be null
+        ) : string =
+        ()
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type CreateFSharpManifestResourceName public () =
+    inherit CreateCSharpManifestResourceName()
+
+    member val UseStandardResourceNames = false with get, set
+
+    override this.CreateManifestName
+        (
+            fileName: string,
+            linkFileName: string,
+            rootNamespace: string,  // may be null
+            dependentUponFileName: string,  // may be null
+            binaryStream: Stream // may be null
+        ) : string =
+        ()
+"""
+
+[<Test>]
+let ``comment after type in tuple`` () =
+    formatSourceString
+        false
+        """
+[<RequireQualifiedAccess; StructuralEquality; StructuralComparison>]
+type ILNativeType =
+    | UInt64
+    | Array of
+        ILNativeType option *
+        (int32 * int32 option) option (* optional idx of parameter giving size plus optional additive i.e. num elems *)
+    | Int
+    | UInt
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+[<RequireQualifiedAccess; StructuralEquality; StructuralComparison>]
+type ILNativeType =
+    | UInt64
+    | Array of
+        ILNativeType option *
+        (int32 * int32 option) option (* optional idx of parameter giving size plus optional additive i.e. num elems *)
+    | Int
+    | UInt
+"""
+
+[<Test>]
+let ``comment after entire member`` () =
+    formatSourceString
+        false
+        """
+type Meh () =
+    member x.IsComInterop =
+        x.Attributes &&& TypeAttributes.Import
+        <> enum 0 (* Class or interface generated for COM interop *)
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type Meh() =
+    member x.IsComInterop =
+        x.Attributes &&& TypeAttributes.Import
+        <> enum 0 (* Class or interface generated for COM interop *)
+"""
+
+[<Test>]
+let ``comment after val in signature file`` () =
+    formatSourceString
+        true
+        """
+/// Not all custom attribute data can be decoded without binding types.  In particular
+/// enums must be bound in order to discover the size of the underlying integer.
+/// The following assumes enums have size int32.
+val internal decodeILAttribData:
+    ILAttribute ->
+        ILAttribElem list (* fixed args *) *
+        ILAttributeNamedArg list (* named args: values and flags indicating if they are fields or properties *)
+        
+val internal mkILCustomAttribMethRef:
+    ILMethodSpec *
+    ILAttribElem list (* fixed args: values and implicit types *) *
+    ILAttributeNamedArg list (* named args: values and flags indicating if they are fields or properties *) ->
+        ILAttribute
+
+val pdbReaderGetMethodFromDocumentPosition: PdbReader -> PdbDocument -> int (* line *)  -> int (* col *)  -> PdbMethod
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+/// Not all custom attribute data can be decoded without binding types.  In particular
+/// enums must be bound in order to discover the size of the underlying integer.
+/// The following assumes enums have size int32.
+val internal decodeILAttribData:
+    ILAttribute ->
+        ILAttribElem list (* fixed args *) *
+        ILAttributeNamedArg list (* named args: values and flags indicating if they are fields or properties *)
+
+val internal mkILCustomAttribMethRef:
+    ILMethodSpec *
+    ILAttribElem list (* fixed args: values and implicit types *) *
+    ILAttributeNamedArg list (* named args: values and flags indicating if they are fields or properties *) ->
+        ILAttribute
+
+val pdbReaderGetMethodFromDocumentPosition: PdbReader -> PdbDocument -> int (* line *) -> int (* col *) -> PdbMethod
+"""
+
+[<Test>]
+let ``comment after nested module`` () =
+    formatSourceString
+        false
+        """
+module TableNames =
+    let MethodSpec = TableName 43
+    let GenericParamConstraint = TableName 44
+
+    let UserStrings =
+        TableName 0x70 (* Special encoding of embedded UserString tokens - See 1.9 Partition III *)
+
+module NextModule =
+    ()
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+module TableNames =
+    let MethodSpec = TableName 43
+    let GenericParamConstraint = TableName 44
+
+    let UserStrings =
+        TableName 0x70 (* Special encoding of embedded UserString tokens - See 1.9 Partition III *)
+
+module NextModule =
+    ()
+"""
+
+[<Test>]
+let ``comment after lambda`` () =
+    formatSourceString
+        false
+        """
+let ilvs =
+    lvs
+    |> Array.toList
+    |> List.filter (fun l ->
+        let k, _idx = pdbVariableGetAddressAttributes l
+        k = 1 (* ADDR_IL_OFFSET *) )
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let ilvs =
+    lvs
+    |> Array.toList
+    |> List.filter (fun l ->
+        let k, _idx = pdbVariableGetAddressAttributes l
+        k = 1 (* ADDR_IL_OFFSET *) )
+"""
+
+[<Test>]
+let ``comment after union type`` () =
+    formatSourceString
+        true
+        """
+type IlxUnionHasHelpers =
+    | NoHelpers
+    | AllHelpers
+    | SpecialFSharpListHelpers
+    | SpecialFSharpOptionHelpers
+
+/// Union references
+type IlxUnionRef =
+    | IlxUnionRef of
+        boxity: ILBoxity *
+        ILTypeRef *
+        IlxUnionCase[] *
+        bool (* IsNullPermitted *)  *
+        IlxUnionHasHelpers (* HasHelpers *)
+
+type IlxUnionSpec =
+    | IlxUnionSpec of IlxUnionRef * ILGenericArgs
+
+    member DeclaringType: ILType
+
+    member GenericArgs: ILGenericArgs
+
+    member Alternatives: IlxUnionCase list
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type IlxUnionHasHelpers =
+    | NoHelpers
+    | AllHelpers
+    | SpecialFSharpListHelpers
+    | SpecialFSharpOptionHelpers
+
+/// Union references
+type IlxUnionRef =
+    | IlxUnionRef of
+        boxity: ILBoxity *
+        ILTypeRef *
+        IlxUnionCase[] *
+        bool (* IsNullPermitted *)  *
+        IlxUnionHasHelpers (* HasHelpers *)
+
+type IlxUnionSpec =
+    | IlxUnionSpec of IlxUnionRef * ILGenericArgs
+
+    member DeclaringType: ILType
+
+    member GenericArgs: ILGenericArgs
+
+    member Alternatives: IlxUnionCase list
+"""
+
+[<Test>]
+let ``comment above type in function signature`` () =
+    formatSourceString
+        true
+        """
+/// Compile a pattern into a decision tree and a set of targets.
+val internal CompilePattern:
+    TcGlobals ->
+    DisplayEnv ->
+    Import.ImportMap ->
+    (ValRef -> ValUseFlag -> TTypes -> range -> Expr * TType) ->
+    InfoReader ->
+    // range of the expression we are matching on
+    range ->
+        a
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+/// Compile a pattern into a decision tree and a set of targets.
+val internal CompilePattern:
+    TcGlobals ->
+    DisplayEnv ->
+    Import.ImportMap ->
+    (ValRef -> ValUseFlag -> TTypes -> range -> Expr * TType) ->
+    InfoReader ->
+    // range of the expression we are matching on
+    range ->
+        a
+"""
+
+[<Test>]
+let ``comment after LetOrUseBang`` () =
+    formatSourceString
+        false
+        """
+node {
+    let! cachedResults =
+        node {
+            let! builderOpt, creationDiags = getAnyBuilder (options, userOpName)
+
+            match builderOpt with
+            | Some builder ->
+                match! bc.GetCachedCheckFileResult(builder, fileName, sourceText, options) with
+                | Some (_, checkResults) ->
+                    return Some(builder, creationDiags, Some(FSharpCheckFileAnswer.Succeeded checkResults))
+                | _ -> return Some(builder, creationDiags, None)
+            | _ -> return None // the builder wasn't ready
+        }
+
+    ()
+}
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+node {
+    let! cachedResults =
+        node {
+            let! builderOpt, creationDiags = getAnyBuilder (options, userOpName)
+
+            match builderOpt with
+            | Some builder ->
+                match! bc.GetCachedCheckFileResult(builder, fileName, sourceText, options) with
+                | Some (_, checkResults) ->
+                    return Some(builder, creationDiags, Some(FSharpCheckFileAnswer.Succeeded checkResults))
+                | _ -> return Some(builder, creationDiags, None)
+            | _ -> return None // the builder wasn't ready
+        }
+
+    ()
+}
+"""
+
+[<Test>]
+let ``comment after parameters and before equals sign`` () =
+    formatSourceString
+        false
+        """
+let GetValueInfo bindingFlags (x: 'a, ty: Type) (* x could be null *)  =
+    let obj = (box x)
+    ()
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let GetValueInfo bindingFlags (x: 'a, ty: Type) (* x could be null *)  =
+    let obj = (box x)
+    ()
+"""
+
+[<Test>]
+let ``comment between fun types`` () =
+    formatSourceString
+        true
+        """
+/// A set of function parameters (visitor) for folding over expressions
+type ExprFolder<'State> =
+    { exprIntercept: ('State -> Expr -> 'State) (* noInterceptF *)
+        -> ('State -> Expr -> 'State)
+        -> 'State
+        -> Expr
+        -> 'State (* recurseF *)
+      valBindingSiteIntercept: 'State -> bool * Val -> 'State
+      nonRecBindingsIntercept: 'State -> Binding -> 'State
+      recBindingsIntercept: 'State -> Bindings -> 'State
+      dtreeIntercept: 'State -> DecisionTree -> 'State
+      targetIntercept: ('State -> Expr -> 'State) -> 'State -> DecisionTreeTarget -> 'State option
+      tmethodIntercept: ('State -> Expr -> 'State) -> 'State -> ObjExprMethod -> 'State option }
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+/// A set of function parameters (visitor) for folding over expressions
+type ExprFolder<'State> =
+    { exprIntercept: ('State -> Expr -> 'State) (* noInterceptF *)
+        -> ('State -> Expr -> 'State)
+        -> 'State
+        -> Expr
+        -> 'State (* recurseF *)
+      valBindingSiteIntercept: 'State -> bool * Val -> 'State
+      nonRecBindingsIntercept: 'State -> Binding -> 'State
+      recBindingsIntercept: 'State -> Bindings -> 'State
+      dtreeIntercept: 'State -> DecisionTree -> 'State
+      targetIntercept: ('State -> Expr -> 'State) -> 'State -> DecisionTreeTarget -> 'State option
+      tmethodIntercept: ('State -> Expr -> 'State) -> 'State -> ObjExprMethod -> 'State option }
+"""

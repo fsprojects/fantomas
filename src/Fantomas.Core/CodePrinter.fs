@@ -4333,10 +4333,11 @@ and genType astContext outerBracket t =
             fun (ctx: Context) ->
                 let size = getRecordSize ctx fields
                 isSmallExpression size smallExpression longExpression ctx
-        | TParen (lpr, innerT, rpr) ->
+        | TParen (lpr, innerT, rpr, pr) ->
             genTriviaFor SynType_Paren_OpeningParenthesis lpr sepOpenT
             +> loop innerT
             +> genTriviaFor SynType_Paren_ClosingParenthesis rpr sepCloseT
+            |> genTriviaFor SynType_Paren pr
         | t -> failwithf "Unexpected type: %O" t
 
     and loopTTupleList =
@@ -4432,7 +4433,7 @@ and genPrefixTypes
             ctx
 
 and genTypeList astContext node =
-    let gt (t, args: SynArgInfo list, optArrow) =
+    let gt addTrailingSpace (t, args: SynArgInfo list, optArrow) =
         let genType =
             match t, args with
             | TTuple ts', _ ->
@@ -4463,9 +4464,14 @@ and genTypeList astContext node =
             | _ -> genType astContext false t
 
         genType
-        +> optSingle (fun arrow -> genTriviaFor SynType_Fun_Arrow arrow sepArrow) optArrow
+        +> optSingle
+            (fun arrow ->
+                sepSpace
+                +> genTriviaFor SynType_Fun_Arrow arrow sepArrowFixed
+                +> onlyIf addTrailingSpace sepSpace)
+            optArrow
 
-    let shortExpr = col sepNone node gt
+    let shortExpr = col sepNone node (gt true)
 
     let longExpr =
         let lastIndex = node.Length - 1
@@ -4488,7 +4494,7 @@ and genTypeList astContext node =
                         None)
                 |> List.reduce (+>)
 
-        colii (fun idx -> onlyIf (isTupleOrLastIndex idx) indent +> sepNln) node (fun _ -> gt)
+        colii (fun idx -> onlyIf (isTupleOrLastIndex idx) indent +> sepNln) node (fun _ -> gt false)
         +> resetIndent
 
     expressionFitsOnRestOfLine shortExpr longExpr

@@ -1499,7 +1499,7 @@ let (|TAnonRecord|_|) =
 
 let (|TParen|_|) =
     function
-    | SynType.Paren (innerType, StartEndRange 1 (lpr, _, rpr)) -> Some(lpr, innerType, rpr)
+    | SynType.Paren (innerType, StartEndRange 1 (lpr, pr, rpr)) -> Some(lpr, innerType, rpr, pr)
     | _ -> None
 // Type parameter
 

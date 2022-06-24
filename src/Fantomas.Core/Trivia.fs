@@ -178,11 +178,33 @@ let rec visitLastChildNode (node: TriviaNode) : TriviaNode =
     match node.Type with
     | SynExpr_IfThenElse
     | SynExpr_App
+    | SynExpr_Lambda
+    | SynExpr_LetOrUseBang
     | SynBindingKind_Normal
     | SynModuleOrNamespace_AnonModule
     | SynModuleDecl_Expr
+    | SynModuleDecl_Let
+    | SynModuleDecl_Types
+    | SynModuleDecl_NestedModule
+    | SynModuleSigDecl_Val
+    | SynModuleSigDecl_Types
+    | SynModuleSigDecl_NestedModule
+    | SynValSig_
     | SynExpr_Match
-    | SynMatchClause_ -> visitLastChildNode (Array.last node.Children)
+    | SynExpr_MatchBang
+    | SynMatchClause_
+    | SynPat_Typed
+    | SynPat_Tuple
+    | SynType_Tuple
+    | SynType_App
+    | SynType_Fun
+    | SynExpr_Tuple
+    | SynUnionCase_
+    | SynEnumCase_
+    | SynTypeDefn_
+    | SynTypeDefnSig_
+    | SynMemberDefn_Member -> visitLastChildNode (Array.last node.Children)
+    | SynPat_LongIdent when not (Array.isEmpty node.Children) -> visitLastChildNode (Array.last node.Children)
     | _ -> node
 
 let findNodeBeforeLineAndColumn (nodes: TriviaNode seq) line column =
@@ -190,8 +212,7 @@ let findNodeBeforeLineAndColumn (nodes: TriviaNode seq) line column =
     |> Seq.tryFindBack (fun tn ->
         let range = tn.Range
 
-        range.StartLine <= line
-        && range.StartColumn <= column)
+        range.EndLine <= line && range.EndColumn <= column)
     |> Option.map visitLastChildNode
 
 let findNodeAfterLineAndColumn (nodes: TriviaNode seq) line column =

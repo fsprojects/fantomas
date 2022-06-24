@@ -1563,6 +1563,21 @@ and visitSynType (st: SynType) : TriviaNode =
             visit elementType (fun node ->
                 mkNodeWithChildren SynType_Array range [| node |]
                 |> finalContinuation)
+        | SourceParser.TFuns (ts, returnType) ->
+            let continuations: ((TriviaNode -> TriviaNode) -> TriviaNode) list =
+                [ yield! List.map (fst >> visit) ts
+                  yield visit returnType ]
+
+            let finalContinuation (nodes: TriviaNode list) : TriviaNode =
+                mkNodeWithChildren
+                    SynType_Fun
+                    st.Range
+                    (sortChildren
+                        [| yield! nodes
+                           yield! List.map (fun (_, arrow) -> mkNode SynType_Fun_Arrow arrow) ts |])
+                |> finalContinuation
+
+            Continuation.sequence continuations finalContinuation
         | SynType.Fun (argType, returnType, range, { ArrowRange = arrow }) ->
             let continuations: ((TriviaNode -> TriviaNode) -> TriviaNode) list =
                 [ visit argType; visit returnType ]
