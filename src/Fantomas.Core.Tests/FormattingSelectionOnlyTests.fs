@@ -136,6 +136,62 @@ let v = functionApplication argumentOne   (* FOOBAR *)   argumentTwo argumentThr
 functionApplication argumentOne (* FOOBAR *) argumentTwo argumentThree"""
 
 [<Test>]
+let ``format top level signature value`` () =
+    formatSelectionOnly
+        true
+        (mkSelection (2, 0) (2, 20))
+        """
+val meh     :    int
+val otherThing: string -> string
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+val meh: int"""
+
+[<Test>]
+let ``format type definition`` () =
+    formatSelectionOnly
+        false
+        (mkSelection (2, 0) (6, 1))
+        """
+type Meh = {
+    X : int
+    Y: string
+    Z: DateTime
+}
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type Meh = { X: int; Y: string; Z: DateTime }"""
+
+[<Test>]
+let ``format type definition in signature file`` () =
+    formatSelectionOnly
+        true
+        (mkSelection (4, 0) (8, 1))
+        """
+namespace A.B.C
+
+type Meh = {
+    X : int
+    Y: string
+    Z: DateTime
+}
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type Meh = { X: int; Y: string; Z: DateTime }"""
+
+[<Test>]
 let ``format addition`` () =
     formatSelectionAndAssertRange
         false

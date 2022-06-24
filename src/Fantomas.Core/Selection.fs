@@ -36,6 +36,20 @@ let private mkAnonSynModuleOrNamespace decl =
           NamespaceKeyword = None }
     )
 
+let private mkAnonSynModuleOrNamespaceSig decl =
+    SynModuleOrNamespaceSig(
+        [],
+        false,
+        SynModuleOrNamespaceKind.AnonModule,
+        [ decl ],
+        PreXmlDoc.Empty,
+        [],
+        None,
+        Range.Zero,
+        { ModuleKeyword = None
+          NamespaceKeyword = None }
+    )
+
 let private mkSynModuleDecl (expr: SynExpr) : SynModuleDecl = SynModuleDecl.Expr(expr, expr.Range)
 
 /// Wrap the selected node inside an anonymous module
@@ -52,9 +66,10 @@ let private mkTreeWithSingleNode (fullTree: ParsedInput) (astNode: FSharpASTNode
                                                                      trivia)) ->
         let insertNode =
             match astNode with
-            | Choice1Of3 synModuleDecl -> synModuleDecl
-            | Choice2Of3 _ -> failwith "Unexpected signature module declaration in implementation file"
-            | Choice3Of3 synExpr -> mkSynModuleDecl synExpr
+            | FSharpASTNode.ModuleDecl synModuleDecl -> synModuleDecl
+            | FSharpASTNode.Expr synExpr -> mkSynModuleDecl synExpr
+            | FSharpASTNode.ModuleSigDecl _
+            | FSharpASTNode.ValSig _ -> failwith "Unexpected signature ast node in implementation file"
 
         ParsedInput.ImplFile(
             ParsedImplFileInput.ParsedImplFileInput(
@@ -68,7 +83,29 @@ let private mkTreeWithSingleNode (fullTree: ParsedInput) (astNode: FSharpASTNode
                 trivia
             )
         )
-    | ParsedInput.SigFile _sigFile -> fullTree
+    | ParsedInput.SigFile (ParsedSigFileInput.ParsedSigFileInput (fileName,
+                                                                  qualifiedNameOfFile,
+                                                                  scopedPragmas,
+                                                                  _hashDirectives,
+                                                                  _sigDecls,
+                                                                  trivia)) ->
+        let insertNode =
+            match astNode with
+            | FSharpASTNode.ModuleSigDecl decl -> decl
+            | FSharpASTNode.ValSig (SynValSig (range = range) as valSig) -> SynModuleSigDecl.Val(valSig, range)
+            | FSharpASTNode.Expr _
+            | FSharpASTNode.ModuleDecl _ -> failwith "Unexpected implementation ast node in implementation file"
+
+        ParsedInput.SigFile(
+            ParsedSigFileInput.ParsedSigFileInput(
+                fileName,
+                qualifiedNameOfFile,
+                scopedPragmas,
+                [],
+                [ mkAnonSynModuleOrNamespaceSig insertNode ],
+                trivia
+            )
+        )
 
 let formatSelection
     (config: FormatConfig)

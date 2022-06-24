@@ -390,7 +390,12 @@ type FsAstType =
     | File_
     | SigFile_
 
-type FSharpASTNode = Choice<SynModuleDecl, SynModuleSigDecl, SynExpr>
+[<RequireQualifiedAccess>]
+type FSharpASTNode =
+    | ModuleDecl of SynModuleDecl
+    | ModuleSigDecl of SynModuleSigDecl
+    | Expr of SynExpr
+    | ValSig of SynValSig
 
 /// A hierarchical node structure that represents AST nodes as found in the tree.
 /// The tree structure might deviate from what the AST has, if it is a better fit for Fantomas.

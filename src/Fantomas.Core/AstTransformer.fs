@@ -26,19 +26,25 @@ let mkSynModuleDeclNode (t: FsAstType) (astNode: SynModuleDecl) (r: range) (chil
     { Range = r
       Type = t
       Children = children
-      FSharpASTNode = Some(Choice1Of3 astNode) }
+      FSharpASTNode = Some(FSharpASTNode.ModuleDecl astNode) }
 
 let mkSynModuleSigDeclNode (t: FsAstType) (astNode: SynModuleSigDecl) (r: range) (children: TriviaNode array) =
     { Range = r
       Type = t
       Children = children
-      FSharpASTNode = Some(Choice2Of3 astNode) }
+      FSharpASTNode = Some(FSharpASTNode.ModuleSigDecl astNode) }
 
 let mkSynExprNode (t: FsAstType) (astNode: SynExpr) (r: range) (children: TriviaNode array) =
     { Range = r
       Type = t
       Children = children
-      FSharpASTNode = Some(Choice3Of3 astNode) }
+      FSharpASTNode = Some(FSharpASTNode.Expr astNode) }
+
+let mkSynValSig (astNode: SynValSig) (r: range) (children: TriviaNode array) =
+    { Range = r
+      Type = SynValSig_
+      Children = children
+      FSharpASTNode = Some(FSharpASTNode.ValSig astNode) }
 
 let mkNodeOption (t: FsAstType) (r: range option) : TriviaNode option = Option.map (mkNode t) r
 
@@ -1173,8 +1179,8 @@ and visitSynMemberFlags (memberFlags: SynMemberFlags) : TriviaNode list =
 and visitSynValSig (svs: SynValSig) : TriviaNode =
     match svs with
     | SynValSig (attrs, ident, explicitValDecls, synType, arity, _, _, _, _, expr, range, trivia) ->
-        mkNodeWithChildren
-            SynValSig_
+        mkSynValSig
+            svs
             range
             (sortChildren
                 [| yield! Option.toList (mkNodeOption SynValSig_Val trivia.ValKeyword)
