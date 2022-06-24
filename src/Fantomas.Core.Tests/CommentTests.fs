@@ -1918,3 +1918,32 @@ let ``xml comment above double slash comment, 2186`` () =
 /// </summary>
 // type TestUnion = First | Second of int | Third of string
 """
+
+[<Test>]
+let ``block comment should be attached to else expr`` () =
+    formatSourceString
+        false
+        """
+let compilerOptionUsage (CompilerOption (s, tag, spec, _, _)) =
+    let s =
+        if s = "--" then
+            ""
+        else
+            s (* s="flag" for "--flag" options. s="--" for "--" option. Adjust printing here for "--" case. *)
+    
+    s
+"""
+        { config with MaxIfThenElseShortWidth = 60 }
+    |> prepend newline
+    |> should
+        equal
+        """
+let compilerOptionUsage (CompilerOption (s, tag, spec, _, _)) =
+    let s =
+        if s = "--" then
+            ""
+        else
+            s (* s="flag" for "--flag" options. s="--" for "--" option. Adjust printing here for "--" case. *)
+
+    s
+"""

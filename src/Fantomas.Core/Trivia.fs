@@ -173,6 +173,14 @@ let internal collectTriviaFromBlankLines
                     else
                         count, None)
 
+/// Find the last child node that will be the last node of the parent node.
+let rec visitLastChildNode (node: TriviaNode) : TriviaNode =
+    match node.Type with
+    | SynExpr_IfThenElse
+    | SynExpr_App
+    | SynBindingKind_Normal -> visitLastChildNode (Array.last node.Children)
+    | _ -> node
+
 let findNodeBeforeLineAndColumn (nodes: TriviaNode seq) line column =
     nodes
     |> Seq.tryFindBack (fun tn ->
@@ -180,12 +188,7 @@ let findNodeBeforeLineAndColumn (nodes: TriviaNode seq) line column =
 
         range.StartLine <= line
         && range.StartColumn <= column)
-    |> Option.map (fun node ->
-        match node.Type with
-        // SynExpr.App is typically consumed by partial active patterns.
-        // It is easier to work with the last child node.
-        | SynExpr_App -> Array.last node.Children
-        | _ -> node)
+    |> Option.map visitLastChildNode
 
 let findNodeAfterLineAndColumn (nodes: TriviaNode seq) line column =
     nodes
