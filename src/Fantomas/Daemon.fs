@@ -90,21 +90,18 @@ type FantomasDaemon(sender: Stream, reader: Stream) as this =
                     (Position.mkPos r.EndLine r.EndColumn)
 
             try
-                let! formatted =
+                let! formatted, actualSelection =
                     CodeFormatter.FormatSelectionAsync(request.IsSignatureFile, request.SourceCode, selection, config)
 
-                match formatted with
-                | Some (formatted, actualSelection) ->
-                    let actualSelection =
-                        FormatSelectionRange(
-                            actualSelection.StartLine,
-                            actualSelection.StartColumn,
-                            actualSelection.EndLine,
-                            actualSelection.EndColumn
-                        )
+                let actualSelection =
+                    FormatSelectionRange(
+                        actualSelection.StartLine,
+                        actualSelection.StartColumn,
+                        actualSelection.EndLine,
+                        actualSelection.EndColumn
+                    )
 
-                    return FormatSelectionResponse.Formatted(request.FilePath, formatted, actualSelection)
-                | None -> return FormatSelectionResponse.Error(request.FilePath, "Unable to format selection.")
+                return FormatSelectionResponse.Formatted(request.FilePath, formatted, actualSelection)
             with ex ->
                 return FormatSelectionResponse.Error(request.FilePath, ex.Message)
         }

@@ -169,7 +169,7 @@ let formatSelection
     (isSignature: bool)
     (selection: range)
     (sourceText: ISourceText)
-    : Async<(string * range) option> =
+    : Async<string * range> =
     async {
         let baseUntypedTree, baseDiagnostics =
             Fantomas.FCS.Parse.parseFile isSignature sourceText []
@@ -177,40 +177,38 @@ let formatSelection
         let isValid = Validation.noWarningOrErrorDiagnostics baseDiagnostics
 
         if not isValid then
-            failwith "Format selection cannot work unless the entire tree is valid."
-            return None
-        else
-            let rootNode =
-                match baseUntypedTree with
-                | ImplFile (ParsedImplFileInput (hds, mns, _, _)) -> astToNode baseUntypedTree.FullRange hds mns
-                | SigFile (ParsedSigFileInput (_, mns, _, _)) -> sigAstToNode baseUntypedTree.FullRange mns
+            raise (FormatException $"Parsing failed with errors: %A{baseDiagnostics}")
+
+        let rootNode =
+            match baseUntypedTree with
+            | ImplFile (ParsedImplFileInput (hds, mns, _, _)) -> astToNode baseUntypedTree.FullRange hds mns
+            | SigFile (ParsedSigFileInput (_, mns, _, _)) -> sigAstToNode baseUntypedTree.FullRange mns
 
 #if DEBUG
-            printTriviaNode rootNode
+        printTriviaNode rootNode
 #endif
 
-            let selection = correctSelection rootNode.Range.FileIndex sourceText selection
+        let selection = correctSelection rootNode.Range.FileIndex sourceText selection
 
-            let treeWithSelection =
-                findNodeWhereRangeFitsIn rootNode selection
-                |> Option.bind (findNode selection)
-                |> Option.bind (fun tna ->
-                    Option.map (fun astNode -> mkTreeWithSingleNode baseUntypedTree astNode, tna) tna.FSharpASTNode)
+        let treeWithSelection =
+            findNodeWhereRangeFitsIn rootNode selection
+            |> Option.bind (findNode selection)
+            |> Option.bind (fun tna ->
+                Option.map (fun astNode -> mkTreeWithSingleNode baseUntypedTree astNode, tna) tna.FSharpASTNode)
 
-            match treeWithSelection with
-            | None ->
-                failwithf "no node found, %A %A" selection baseUntypedTree
-                return None
-            | Some (tree, node) ->
-                let maxLineLength = config.MaxLineLength - selection.StartColumn
+        if treeWithSelection.IsNone then
+            raise (FormatException("No suitable AST node was found for the given selection."))
 
-                let selectionConfig =
-                    { config with
-                        InsertFinalNewline = false
-                        MaxLineLength = maxLineLength }
+        let tree, node = treeWithSelection.Value
+        let maxLineLength = config.MaxLineLength - selection.StartColumn
 
-                let selection =
-                    CodeFormatterImpl.formatAST tree (Some sourceText) selectionConfig (Some { Node = node })
+        let selectionConfig =
+            { config with
+                InsertFinalNewline = false
+                MaxLineLength = maxLineLength }
 
-                return Some(selection.TrimEnd([| '\r'; '\n' |]), node.Range)
+        let selection =
+            CodeFormatterImpl.formatAST tree (Some sourceText) selectionConfig (Some { Node = node })
+
+        return selection.TrimEnd([| '\r'; '\n' |]), node.Range
     }

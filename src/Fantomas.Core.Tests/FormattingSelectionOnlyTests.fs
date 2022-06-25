@@ -9,32 +9,23 @@ open Fantomas.Core.Tests.TestHelper
 let private config = FormatConfig.FormatConfig.Default
 
 let private formatSelectionOnly isFsiFile selection (source: string) config =
-    let result =
+    let formattedSelection, _ =
         CodeFormatter.FormatSelectionAsync(isFsiFile, source, selection, config)
         |> Async.RunSynchronously
 
-    match result with
-    | Some (formattedSelection, _) -> formattedSelection.Replace("\r\n", "\n")
-    | None ->
-        Assert.Fail("CodeFormatter.FormatSelectionAsync did not yield a result")
-        System.String.Empty
+    formattedSelection.Replace("\r\n", "\n")
 
 let private formatSelectionAndAssertRange isFsiFile selection source config =
-    let result =
+    let _, resultRange =
         CodeFormatter.FormatSelectionAsync(isFsiFile, source, selection, config)
         |> Async.RunSynchronously
 
-    match result with
-    | Some (_, range) ->
-        (range.StartLine, range.StartColumn, range.EndLine, range.EndColumn)
-        == (selection.StartLine, selection.StartColumn, selection.EndLine, selection.EndColumn)
-    | None -> Assert.Fail("CodeFormatter.FormatSelectionAsync did not yield a result")
+    (resultRange.StartLine, resultRange.StartColumn, resultRange.EndLine, resultRange.EndColumn)
+    == (selection.StartLine, selection.StartColumn, selection.EndLine, selection.EndColumn)
 
 let private mkSelection (startLine, startColumn) (endLine, endColumn) =
     let startPos = Position.mkPos startLine startColumn
-
     let endPos = Position.mkPos endLine endColumn
-
     Range.mkRange "selection" startPos endPos
 
 [<Test>]

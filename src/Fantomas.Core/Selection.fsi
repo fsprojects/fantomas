@@ -4,8 +4,4 @@ open FSharp.Compiler.Text
 open Fantomas.Core.FormatConfig
 
 val formatSelection:
-    config: FormatConfig ->
-    isSignature: bool ->
-    selection: range ->
-    sourceText: ISourceText ->
-        Async<(string * range) option>
+    config: FormatConfig -> isSignature: bool -> selection: range -> sourceText: ISourceText -> Async<string * range>

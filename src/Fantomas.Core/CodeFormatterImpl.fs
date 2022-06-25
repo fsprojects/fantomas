@@ -30,7 +30,7 @@ let parse (isSignature: bool) (source: ISourceText) : Async<(ParsedInput * Defin
                 |> List.filter (fun d -> d.Severity = FSharpDiagnosticSeverity.Error)
 
             if not errors.IsEmpty then
-                raise (FormatException $"Parsing failed with errors: %A{baseDiagnostics}\nAnd options: %A{[]}")
+                raise (FormatException $"Parsing failed with errors: %A{baseDiagnostics}")
 
             return [| (baseUntypedTree, []) |]
         }
@@ -48,7 +48,7 @@ let parse (isSignature: bool) (source: ISourceText) : Async<(ParsedInput * Defin
                     |> List.filter (fun d -> d.Severity = FSharpDiagnosticSeverity.Error)
 
                 if not errors.IsEmpty then
-                    raise (FormatException $"Parsing failed with errors: %A{diagnostics}\nAnd options: %A{[]}")
+                    raise (FormatException $"Parsing failed with errors: %A{diagnostics}")
 
                 return (untypedTree, defineCombination)
             })
@@ -104,12 +104,14 @@ let format (config: FormatConfig) (isSignature: bool) (source: ISourceText) : As
                             sprintf "[%s] has %i fragments" (String.concat ", " defines) fragments.Length)
                         |> String.concat config.EndOfLine.NewLineString
 
-                    failwithf
-                        """Fantomas is trying to format the input multiple times due to the detect of multiple defines.
+                    raise (
+                        FormatException(
+                            $"""Fantomas is trying to format the input multiple times due to the detect of multiple defines.
 There is a problem with merging all the code back together.
-%s
+{chunkReport}
 Please raise an issue at https://fsprojects.github.io/fantomas-tools/#/fantomas/preview."""
-                        chunkReport
+                        )
+                    )
 
                 List.map snd allInFragments
                 |> List.reduce String.merge
