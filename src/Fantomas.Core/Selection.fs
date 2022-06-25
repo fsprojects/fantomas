@@ -10,7 +10,64 @@ open Fantomas.Core.TriviaTypes
 open Fantomas.Core.AstTransformer
 open Fantomas.Core.Trivia
 
-let private findNode (selection: range) (node: TriviaNode) : TriviaNode option =
+let correctSelection (fileIndex: int) (sourceText: ISourceText) (selection: range) =
+    let lines =
+        [| selection.StartLine .. selection.EndLine |]
+        |> Array.choose (fun lineNumber ->
+            let idx = lineNumber - 1
+
+            if idx < 0 then
+                None
+            else
+                let line = sourceText.GetLineString(idx)
+
+                if String.isNotNullOrWhitespace line then
+                    Some(lineNumber, line)
+                else
+                    None)
+
+    match Array.tryHead lines, Array.tryLast lines with
+    | Some (startLineNumber, startLine), Some (endLineNumber, endLine) ->
+        let startColumn =
+            // The selection is on the same line as the code but appears to be inside whitespace
+            if startLineNumber = selection.StartLine then
+                Seq.takeWhile System.Char.IsWhiteSpace startLine
+                |> Seq.length
+                |> fun firstCharOnLine -> System.Math.Max(firstCharOnLine, selection.StartColumn)
+            else
+                // The selection is on a different line than the code, take first non-whitespace character
+                Seq.takeWhile System.Char.IsWhiteSpace startLine
+                |> Seq.length
+
+        let endColumn =
+            // The selection is on the same line as the code but appears to be inside whitespace
+            if endLineNumber = selection.EndLine then
+                Seq.rev endLine
+                |> Seq.takeWhile System.Char.IsWhiteSpace
+                |> Seq.length
+                |> fun trimmedEnd -> endLine.Length - trimmedEnd
+                |> fun lastCharOnLine -> System.Math.Min(lastCharOnLine, selection.EndColumn)
+            else
+                // The selection is on a different line than the code, take first non-whitespace character
+                Seq.rev endLine
+                |> Seq.takeWhile System.Char.IsWhiteSpace
+                |> Seq.length
+                |> fun trimmedEnd -> endLine.Length - trimmedEnd
+
+        if startLineNumber <> selection.StartLine
+           || startColumn <> selection.StartColumn
+           || endLineNumber <> selection.EndLine
+           || endColumn <> selection.EndColumn then
+
+            Range.mkFileIndexRange
+                fileIndex
+                (Position.mkPos startLineNumber startColumn)
+                (Position.mkPos endLineNumber endColumn)
+        else
+            selection
+    | _ -> selection
+
+let findNode (selection: range) (node: TriviaNode) : TriviaNode option =
     let isExactSelection =
         selection.StartLine = node.Range.StartLine
         && selection.StartColumn = node.Range.StartColumn
@@ -22,7 +79,7 @@ let private findNode (selection: range) (node: TriviaNode) : TriviaNode option =
     else
         None
 
-let private mkAnonSynModuleOrNamespace decl =
+let mkAnonSynModuleOrNamespace decl =
     SynModuleOrNamespace(
         [],
         false,
@@ -36,7 +93,7 @@ let private mkAnonSynModuleOrNamespace decl =
           NamespaceKeyword = None }
     )
 
-let private mkAnonSynModuleOrNamespaceSig decl =
+let mkAnonSynModuleOrNamespaceSig decl =
     SynModuleOrNamespaceSig(
         [],
         false,
@@ -50,11 +107,11 @@ let private mkAnonSynModuleOrNamespaceSig decl =
           NamespaceKeyword = None }
     )
 
-let private mkSynModuleDecl (expr: SynExpr) : SynModuleDecl = SynModuleDecl.Expr(expr, expr.Range)
+let mkSynModuleDecl (expr: SynExpr) : SynModuleDecl = SynModuleDecl.Expr(expr, expr.Range)
 
-/// Wrap the selected node inside an anonymous module
+/// Wrap the selected node inside an anonymous module.
 /// Keep the original trivia of the ParsedInput so code comments could still be restored.
-let private mkTreeWithSingleNode (fullTree: ParsedInput) (astNode: FSharpASTNode) : ParsedInput =
+let mkTreeWithSingleNode (fullTree: ParsedInput) (astNode: FSharpASTNode) : ParsedInput =
     match fullTree with
     | ParsedInput.ImplFile (ParsedImplFileInput.ParsedImplFileInput (fileName,
                                                                      isScript,
@@ -132,62 +189,7 @@ let formatSelection
             printTriviaNode rootNode
 #endif
 
-            let selection =
-                let lines =
-                    [| selection.StartLine .. selection.EndLine |]
-                    |> Array.choose (fun lineNumber ->
-                        let idx = lineNumber - 1
-
-                        if idx < 0 then
-                            None
-                        else
-                            let line = sourceText.GetLineString(idx)
-
-                            if String.isNotNullOrWhitespace line then
-                                Some(lineNumber, line)
-                            else
-                                None)
-
-                match Array.tryHead lines, Array.tryLast lines with
-                | Some (startLineNumber, startLine), Some (endLineNumber, endLine) ->
-                    let startColumn =
-                        // The selection is on the same line as the code but appears to be inside whitespace
-                        if startLineNumber = selection.StartLine then
-                            Seq.takeWhile System.Char.IsWhiteSpace startLine
-                            |> Seq.length
-                            |> fun firstCharOnLine -> System.Math.Max(firstCharOnLine, selection.StartColumn)
-                        else
-                            // The selection is on a different line than the code, take first non-whitespace character
-                            Seq.takeWhile System.Char.IsWhiteSpace startLine
-                            |> Seq.length
-
-                    let endColumn =
-                        // The selection is on the same line as the code but appears to be inside whitespace
-                        if endLineNumber = selection.EndLine then
-                            Seq.rev endLine
-                            |> Seq.takeWhile System.Char.IsWhiteSpace
-                            |> Seq.length
-                            |> fun trimmedEnd -> endLine.Length - trimmedEnd
-                            |> fun lastCharOnLine -> System.Math.Min(lastCharOnLine, selection.EndColumn)
-                        else
-                            // The selection is on a different line than the code, take first non-whitespace character
-                            Seq.rev endLine
-                            |> Seq.takeWhile System.Char.IsWhiteSpace
-                            |> Seq.length
-                            |> fun trimmedEnd -> endLine.Length - trimmedEnd
-
-                    if startLineNumber <> selection.StartLine
-                       || startColumn <> selection.StartColumn
-                       || endLineNumber <> selection.EndLine
-                       || endColumn <> selection.EndColumn then
-
-                        Range.mkFileIndexRange
-                            rootNode.Range.FileIndex
-                            (Position.mkPos startLineNumber startColumn)
-                            (Position.mkPos endLineNumber endColumn)
-                    else
-                        selection
-                | _ -> selection
+            let selection = correctSelection rootNode.Range.FileIndex sourceText selection
 
             let treeWithSelection =
                 findNodeWhereRangeFitsIn rootNode selection

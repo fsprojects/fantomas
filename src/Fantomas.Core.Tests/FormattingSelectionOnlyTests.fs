@@ -93,7 +93,7 @@ with ex ->
     printfn \"caught\""
 
 /// The point of this test is to format the function application as multiline.
-/// because that is what would happen if the entire file was formatted.
+/// Because that is what would happen if the entire file was formatted.
 [<Test>]
 let ``indented SynExpr with exact selection`` () =
     formatSelectionOnly

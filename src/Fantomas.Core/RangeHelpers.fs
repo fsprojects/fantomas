@@ -52,8 +52,8 @@ module RangeHelpers =
 
     /// Calculate an artificial surface area based on the range.
     let surfaceArea (maxLineLength: int) (range: range) : int =
-        // Calculate an artificial surface of positions they range consume.
-        // Take the max_line_length as size for a blank line
+        // Calculate an artificial surface of positions the range consumes.
+        // Take the max_line_length as size for a blank line.
         // This isn't totally accurate, but will do the trick.
         let linesInBetween =
             match [ range.StartLine + 1 .. range.EndLine - 1 ] with
