@@ -1129,7 +1129,25 @@ Note that Fantomas only searches for a `.fantomasignore` file in or above its cu
 
 ## Using the API
 
-See [CodeFormatter.fsi](../src/Fantomas/CodeFormatter.fsi) to view the public API of Fantomas.
+See [CodeFormatter.fsi](../src/Fantomas.Core/CodeFormatter.fsi) to view the public API of Fantomas.
+
+### Format selection
+
+Fantomas provides limited support for formatted a selection of code in a file, using the `CodeFormatter.FormatSelectionAsync` function.  
+This is a very challenging domain, so not every scenario is covered.
+Fantomas is able to format:
+- Top-level declarations like [SynModuleDecl](https://fsharp.github.io/fsharp-compiler-docs/reference/fsharp-compiler-syntax-synmoduledecl.html) and [SynModuleSigDecl](https://fsharp.github.io/fsharp-compiler-docs/reference/fsharp-compiler-syntax-synmodulesigdecl.html).
+- Expressions like [SynExpr](https://fsharp.github.io/fsharp-compiler-docs/reference/fsharp-compiler-syntax-synexpr.html)
+- 'val' definitions like [SynValSig](https://fsharp.github.io/fsharp-compiler-docs/reference/fsharp-compiler-syntax-synvalsig.html)
+
+The selection can have leading or trailing spaces but an exact selection is recommended.
+Invalid selections where no matching AST node is found will result in an exception.
+The return value of the function is the formatted code and the range of the formatted AST node.
+If the input selection range contained whitespaces, the result selection will contain the exact range of the formatted AST node.
+
+Please consider contributing to this feature if you encounter any issues.
+
+```fsharp
 
 ## A git pre-commit hook sample
 
