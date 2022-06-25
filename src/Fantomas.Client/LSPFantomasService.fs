@@ -150,13 +150,15 @@ let private getDaemon (agent: MailboxProcessor<Msg>) (folder: Folder) : Result<J
 let private fileNotFoundResponse filePath : Task<FantomasResponse> =
     { Code = int FantomasResponseCode.FileNotFound
       FilePath = filePath
-      Content = Some(sprintf "File \"%s\" does not exist" filePath) }
+      Content = Some(sprintf "File \"%s\" does not exist" filePath)
+      SelectedRange = None }
     |> Task.FromResult
 
 let private fileNotAbsoluteResponse filePath : Task<FantomasResponse> =
     { Code = int FantomasResponseCode.FilePathIsNotAbsolute
       FilePath = filePath
-      Content = Some(sprintf "\"%s\" is not an absolute file path. Relative paths are not supported" filePath) }
+      Content = Some(sprintf "\"%s\" is not an absolute file path. Relative paths are not supported" filePath)
+      SelectedRange = None }
     |> Task.FromResult
 
 let private daemonNotFoundResponse filePath (error: GetDaemonError) : Task<FantomasResponse> =
@@ -195,13 +197,15 @@ let private daemonNotFoundResponse filePath (error: GetDaemonError) : Task<Fanto
 
     { Code = int code
       FilePath = filePath
-      Content = Some content }
+      Content = Some content
+      SelectedRange = None }
     |> Task.FromResult
 
 let private cancellationWasRequestedResponse filePath : Task<FantomasResponse> =
     { Code = int FantomasResponseCode.CancellationWasRequested
       FilePath = filePath
-      Content = Some "FantomasService is being or has been disposed." }
+      Content = Some "FantomasService is being or has been disposed."
+      SelectedRange = None }
     |> Task.FromResult
 
 let mapResultToResponse (filePath: string) (result: Result<Task<FantomasResponse>, FantomasServiceError>) =
@@ -235,7 +239,8 @@ type LSPFantomasService() =
                     .ContinueWith(fun (t: Task<string>) ->
                         { Code = int FantomasResponseCode.Version
                           Content = Some t.Result
-                          FilePath = filePath }))
+                          FilePath = filePath
+                          SelectedRange = None }))
             |> mapResultToResponse filePath
 
         member _.FormatDocumentAsync
@@ -288,7 +293,8 @@ type LSPFantomasService() =
 
                         { Code = int FantomasResponseCode.Configuration
                           FilePath = filePath
-                          Content = Some t.Result }))
+                          Content = Some t.Result
+                          SelectedRange = None }))
             |> mapResultToResponse filePath
 
         member _.ClearCache() = agent.PostAndReply Reset

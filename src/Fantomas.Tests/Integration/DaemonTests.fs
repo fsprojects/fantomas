@@ -233,7 +233,6 @@ let a = //
         })
 
 [<Test>]
-[<Ignore("Selection is not implemented right now.")>]
 let ``format selection`` () =
     runWithDaemon (fun client ->
         async {
@@ -259,14 +258,12 @@ let    y     = 5
                 |> Async.AwaitTask
 
             match response with
-            | FormatSelectionResponse.Formatted (fileName, formatted) ->
+            | FormatSelectionResponse.Formatted (fileName, formatted, _) ->
                 fileName |> should equal codeFile.Filename
-                assertFormatted formatted "let x = 4\n"
+                assertFormatted formatted "let x = 4"
             | otherResponse -> Assert.Fail $"Unexpected response %A{otherResponse}"
         })
 
-// I don't know if formatting selection for signature files has ever worked.
-// There is no way of getting valid AST of the substring as far as I know.
 [<Test>]
 let ``format selection, fsi`` () =
     runWithDaemon (fun client ->
@@ -293,7 +290,9 @@ val    y     : string
                 |> Async.AwaitTask
 
             match response with
-            | FormatSelectionResponse.Error _ -> Assert.Pass()
+            | FormatSelectionResponse.Formatted (fileName, formatted, _) ->
+                fileName |> should equal codeFile.Filename
+                assertFormatted formatted "val x: int"
             | otherResponse -> Assert.Fail $"Unexpected response %A{otherResponse}"
         })
 

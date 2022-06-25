@@ -8,6 +8,7 @@ open System.Threading
 open System.Threading.Tasks
 open StreamJsonRpc
 open Thoth.Json.Net
+open FSharp.Compiler.Text
 open Fantomas.Client.Contracts
 open Fantomas.Client.LSPFantomasServiceTypes
 open Fantomas.Core
@@ -59,8 +60,7 @@ type FantomasDaemon(sender: Stream, reader: Stream) as this =
 
                 try
                     let! formatted =
-                        let isSignature = request.FilePath.EndsWith(".fsi")
-                        CodeFormatter.FormatDocumentAsync(isSignature, request.SourceCode, config)
+                        CodeFormatter.FormatDocumentAsync(request.IsSignatureFile, request.SourceCode, config)
 
                     if formatted = request.SourceCode then
                         return FormatDocumentResponse.Unchanged request.FilePath
@@ -74,36 +74,39 @@ type FantomasDaemon(sender: Stream, reader: Stream) as this =
     [<JsonRpcMethod(Methods.FormatSelection, UseSingleObjectParameterDeserialization = true)>]
     member _.FormatSelectionAsync(request: FormatSelectionRequest) : Task<FormatSelectionResponse> =
         async {
-            return
-                FormatSelectionResponse.Error(
-                    request.FilePath,
-                    "Format selection is no longer supported in Fantomas 5."
-                )
-        //            let config =
-        //                match request.Config with
-        //                | Some configProperties ->
-        //                    let config = readConfiguration request.FilePath
-        //                    parseOptionsFromEditorConfig config configProperties
-        //                | None -> readConfiguration request.FilePath
-        //
-        //            let range =
-        //                let r = request.Range
-        //                mkRange request.FilePath (mkPos r.StartLine r.StartColumn) (mkPos r.EndLine r.EndColumn)
-        //
-        //            try
-        //                let! formatted =
-        //                    CodeFormatter.FormatSelectionAsync(
-        //                        request.FilePath,
-        //                        range,
-        //                        SourceString request.SourceCode,
-        //                        config,
-        //                        CodeFormatterImpl.createParsingOptionsFromFile request.FilePath,
-        //                        CodeFormatterImpl.sharedChecker.Value
-        //                    )
-        //
-        //                return FormatSelectionResponse.Formatted(request.FilePath, formatted)
-        //            with
-        //            | ex -> return FormatSelectionResponse.Error(request.FilePath, ex.Message)
+            let config =
+                match request.Config with
+                | Some configProperties ->
+                    let config = readConfiguration request.FilePath
+                    parseOptionsFromEditorConfig config configProperties
+                | None -> readConfiguration request.FilePath
+
+            let selection =
+                let r = request.Range
+
+                Range.mkRange
+                    request.FilePath
+                    (Position.mkPos r.StartLine r.StartColumn)
+                    (Position.mkPos r.EndLine r.EndColumn)
+
+            try
+                let! formatted =
+                    CodeFormatter.FormatSelectionAsync(request.IsSignatureFile, request.SourceCode, selection, config)
+
+                match formatted with
+                | Some (formatted, actualSelection) ->
+                    let actualSelection =
+                        FormatSelectionRange(
+                            actualSelection.StartLine,
+                            actualSelection.StartColumn,
+                            actualSelection.EndLine,
+                            actualSelection.EndColumn
+                        )
+
+                    return FormatSelectionResponse.Formatted(request.FilePath, formatted, actualSelection)
+                | None -> return FormatSelectionResponse.Error(request.FilePath, "Unable to format selection.")
+            with ex ->
+                return FormatSelectionResponse.Error(request.FilePath, ex.Message)
         }
         |> Async.StartAsTask
 
