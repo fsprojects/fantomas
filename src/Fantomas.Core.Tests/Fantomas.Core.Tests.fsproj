@@ -110,6 +110,7 @@
     <Compile Include="Stroustrup\FunctionApplicationDualListTests.fs" />
     <Compile Include="IdentTests.fs" />
     <Compile Include="RecordDeclarationsWithXMLDocTests.fs" />
+    <Compile Include="AstExtensionsTests.fs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Fantomas.Extras\Fantomas.Extras.fsproj" />

@@ -7,8 +7,6 @@ open NUnit.Framework
 open FsCheck
 open FsUnit
 open FSharp.Compiler.Text
-open FSharp.Compiler.Syntax
-open FSharp.Compiler.Xml
 open Fantomas.Core.FormatConfig
 open Fantomas.Core
 
@@ -45,11 +43,12 @@ let formatSourceStringWithDefines defines (s: string) config =
             let source = CodeFormatterImpl.getSourceText s
             let! asts = CodeFormatterImpl.parse false source
 
-            let ast, defineCombination =
+            let ast =
                 Array.filter (fun (_, d: DefineCombination) -> List.sort d = List.sort defines) asts
                 |> Array.head
+                |> fst
 
-            return CodeFormatterImpl.formatWith (Some source) defineCombination ast config
+            return CodeFormatterImpl.formatWith (Some source) ast config None
         }
         |> Async.RunSynchronously
 
@@ -62,32 +61,12 @@ let formatSourceStringWithDefines defines (s: string) config =
     |> String.concat config.EndOfLine.NewLineString
     |> String.normalizeNewLine
 
-let formatSelectionOnly isFsiFile r (s: string) config = failwith "no longer supported"
-//    let s = s.Replace("\r\n", Environment.NewLine)
-//
-//    let fileName =
-//        if isFsiFile then
-//            "/tmp.fsi"
-//        else
-//            "/tmp.fsx"
-//
-//    CodeFormatter.FormatSelectionAsync(
-//        fileName,
-//        r,
-//        SourceOrigin.SourceString s,
-//        config,
-//        CodeFormatterImpl.createParsingOptionsFromFile fileName,
-//        sharedChecker.Value
-//    )
-//    |> Async.RunSynchronously
-//    |> fun s -> s.Replace("\r\n", "\n")
-
 let isValidFSharpCode isFsiFile s =
     CodeFormatter.IsValidFSharpCodeAsync(isFsiFile, s)
     |> Async.RunSynchronously
 
 let formatAST a s c =
-    CodeFormatter.FormatASTAsync(a, [], s, c)
+    CodeFormatter.FormatASTAsync(a, s, c)
     |> Async.RunSynchronously
 
 let equal x =

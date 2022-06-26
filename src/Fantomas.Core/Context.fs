@@ -184,7 +184,8 @@ type internal Context =
       WriterEvents: Queue<WriterEvent>
       BreakLines: bool
       BreakOn: string -> bool
-      TriviaNodes: Map<FsAstType, TriviaNode list>
+      TriviaBefore: Map<FsAstType, TriviaInstruction list>
+      TriviaAfter: Map<FsAstType, TriviaInstruction list>
       FileName: string
       SourceText: ISourceText option }
 
@@ -195,25 +196,34 @@ type internal Context =
           WriterEvents = Queue.empty
           BreakLines = true
           BreakOn = (fun _ -> false)
-          TriviaNodes = Map.empty
+          TriviaBefore = Map.empty
+          TriviaAfter = Map.empty
           FileName = String.Empty
           SourceText = None }
 
-    static member Create config (source: ISourceText option) (defineCombination: DefineCombination) (ast: ParsedInput) =
-        let trivia, sourceText =
+    static member Create
+        config
+        (source: ISourceText option)
+        (ast: ParsedInput)
+        (selection: TriviaForSelection option)
+        : Context =
+        let triviaInstructions, sourceText =
             match source with
-            | Some source when not config.StrictMode -> Trivia.collectTrivia config source ast, Some source
+            | Some source when not config.StrictMode -> Trivia.collectTrivia config source ast selection, Some source
             | _ -> [], None
 
-        let triviaByNodes =
-            trivia
-            |> List.groupBy (fun t -> t.Type)
-            |> Map.ofList
+        let triviaBefore, triviaAfter =
+            let triviaInstructionsBefore, triviaInstructionsAfter =
+                List.partition (fun ti -> ti.AddBefore) triviaInstructions
+
+            let createMapByType = List.groupBy (fun t -> t.Type) >> Map.ofList
+            createMapByType triviaInstructionsBefore, createMapByType triviaInstructionsAfter
 
         { Context.Default with
             Config = config
             SourceText = sourceText
-            TriviaNodes = triviaByNodes }
+            TriviaBefore = triviaBefore
+            TriviaAfter = triviaAfter }
 
     member x.WithDummy(writerCommands, ?keepPageWidth) =
         let keepPageWidth = keepPageWidth |> Option.defaultValue false
@@ -254,6 +264,16 @@ type internal Context =
     member x.FromSourceText(range: range) : string option =
         Option.map (fun (sourceText: ISourceText) -> sourceText.GetContentAt range) x.SourceText
 
+    member x.HasContentAfter(``type``: FsAstType, range: range) : bool =
+        match Map.tryFindOrEmptyList ``type`` x.TriviaAfter with
+        | [] -> false
+        | triviaInstructions -> List.exists (fun ti -> RangeHelpers.rangeEq ti.Range range) triviaInstructions
+
+    member x.HasContentBefore(``type``: FsAstType, range: range) : bool =
+        match Map.tryFindOrEmptyList ``type`` x.TriviaBefore with
+        | [] -> false
+        | triviaInstructions -> List.exists (fun ti -> RangeHelpers.rangeEq ti.Range range) triviaInstructions
+
 let writerEvent e ctx =
     let evs = WriterEvents.normalize e
 
@@ -275,7 +295,7 @@ let finalizeWriterModel (ctx: Context) =
     else
         ctx
 
-let dump (ctx: Context) =
+let dump (isSelection: bool) (ctx: Context) =
     let ctx = finalizeWriterModel ctx
 
     match ctx.WriterModel.Lines with
@@ -284,7 +304,12 @@ let dump (ctx: Context) =
         // Always trim the last line
         h.TrimEnd() :: tail
     |> List.rev
-    |> List.skipWhile ((=) "")
+    |> fun lines ->
+        // Don't skip leading newlines when formatting a selection.
+        if isSelection then
+            lines
+        else
+            List.skipWhile ((=) "") lines
     |> String.concat ctx.Config.EndOfLine.NewLineString
 
 let dumpAndContinue (ctx: Context) =
@@ -1146,81 +1171,62 @@ let printTriviaContent (c: TriviaContent) (ctx: Context) =
         +> ifElse after sepNlnForTrivia sepNone
     | Newline -> (ifElse addNewline (sepNlnForTrivia +> sepNlnForTrivia) sepNlnForTrivia)
     | Directive s
-    | Comment (LineCommentOnSingleLine s) ->
+    | Comment (CommentOnSingleLine s) ->
         (ifElse addNewline sepNlnForTrivia sepNone)
         +> !-s
         +> sepNlnForTrivia
     <| ctx
 
-let printContentBefore triviaNode =
-    col sepNone triviaNode.ContentBefore printTriviaContent
-
-let printContentAfter triviaNode =
-    col sepNone triviaNode.ContentAfter printTriviaContent
-
-let private findTriviaRangeEq nodes (range: Range) =
-    nodes
-    |> List.tryFind (fun n -> RangeHelpers.rangeEq n.Range range)
+let printTriviaInstructions (triviaInstructions: TriviaInstruction list) =
+    col sepNone triviaInstructions (fun { Trivia = trivia } -> printTriviaContent trivia.Item)
 
 let private findTriviaOnStartFromRange nodes (range: Range) =
     nodes
     |> List.tryFind (fun n -> RangeHelpers.rangeStartEq n.Range range)
 
 let enterNodeFor (mainNodeName: FsAstType) (range: Range) (ctx: Context) =
-    match Map.tryFind mainNodeName ctx.TriviaNodes with
+    match Map.tryFind mainNodeName ctx.TriviaBefore with
     | Some triviaNodes ->
-        let tn =
-            List.tryFind
-                (fun { Range = r; ContentBefore = cb } -> List.isNotEmpty cb && RangeHelpers.rangeEq r range)
-                triviaNodes
+        let triviaInstructions =
+            List.filter (fun ({ Range = r }: TriviaInstruction) -> RangeHelpers.rangeEq r range) triviaNodes
 
-        match tn with
-        | Some triviaNode -> (printContentBefore triviaNode) ctx
-        | None -> ctx
+        match triviaInstructions with
+        | [] -> ctx
+        | triviaInstructions -> printTriviaInstructions triviaInstructions ctx
     | None -> ctx
 
 let leaveNodeFor (mainNodeName: FsAstType) (range: Range) (ctx: Context) =
-    match Map.tryFind mainNodeName ctx.TriviaNodes with
+    match Map.tryFind mainNodeName ctx.TriviaAfter with
     | Some triviaNodes ->
-        let tn =
-            List.tryFind
-                (fun { Range = r; ContentAfter = ca } -> List.isNotEmpty ca && RangeHelpers.rangeEq r range)
-                triviaNodes
+        let triviaInstructions =
+            List.filter (fun ({ Range = r }: TriviaInstruction) -> RangeHelpers.rangeEq r range) triviaNodes
 
-        match tn with
-        | Some triviaNode -> (printContentAfter triviaNode) ctx
-        | None -> ctx
+        match triviaInstructions with
+        | [] -> ctx
+        | triviaInstructions -> printTriviaInstructions triviaInstructions ctx
     | None -> ctx
 
 let private sepConsideringTriviaContentBeforeBy
-    (findNode: Context -> range -> TriviaNode option)
+    (hasTriviaBefore: Context -> range -> bool)
     (sepF: Context -> Context)
     (range: Range)
     (ctx: Context)
     =
-    match findNode ctx range with
-    | Some { ContentBefore = contentBefore } -> ctx
-    | _ -> sepF ctx
+    if hasTriviaBefore ctx range then
+        ctx
+    else
+        sepF ctx
 
 let sepConsideringTriviaContentBeforeForMainNode sepF (mainNodeName: FsAstType) (range: Range) (ctx: Context) =
     let findNode ctx range =
-        Map.tryFind mainNodeName ctx.TriviaNodes
+        Map.tryFind mainNodeName ctx.TriviaBefore
         |> Option.defaultValue []
-        |> List.tryFind (fun { ContentBefore = cb; Range = r } -> List.isNotEmpty cb && RangeHelpers.rangeEq r range)
+        |> List.exists (fun ({ Range = r }: TriviaInstruction) -> RangeHelpers.rangeEq r range)
 
     sepConsideringTriviaContentBeforeBy findNode sepF range ctx
 
 let sepNlnConsideringTriviaContentBeforeForMainNode (mainNode: FsAstType) (range: Range) =
     sepConsideringTriviaContentBeforeForMainNode sepNln mainNode range
-
-let sepNlnForEmptyModule (mainNode: FsAstType) (moduleRange: Range) (ctx: Context) =
-    match Map.tryFind mainNode ctx.TriviaNodes with
-    | Some nodes ->
-        if List.exists (fun tn -> RangeHelpers.rangeEq tn.Range moduleRange) nodes then
-            ctx
-        else
-            sepNln ctx
-    | _ -> sepNln ctx
 
 let sepNlnTypeAndMembers
     (withKeywordNodeType: FsAstType)
@@ -1229,20 +1235,21 @@ let sepNlnTypeAndMembers
     (mainNodeType: FsAstType)
     (ctx: Context)
     : Context =
-    let triviaNodeOfWithKeyword: TriviaNode option =
-        withKeywordRange
-        |> Option.bind (fun r ->
-            ctx.TriviaNodes
+    let triviaBeforeWithKeyword: TriviaInstruction list =
+        match withKeywordRange with
+        | None -> []
+        | Some withKeywordRange ->
+            ctx.TriviaBefore
             |> Map.tryFindOrEmptyList withKeywordNodeType
-            |> List.tryFind (fun tn -> RangeHelpers.rangeEq r tn.Range))
+            |> List.filter (fun tn -> RangeHelpers.rangeEq withKeywordRange tn.Range)
 
-    match triviaNodeOfWithKeyword with
-    | Some tn -> printContentBefore tn ctx
-    | None ->
+    match triviaBeforeWithKeyword with
+    | [] ->
         if ctx.Config.NewlineBetweenTypeDefinitionAndMembers then
             sepNlnConsideringTriviaContentBeforeForMainNode mainNodeType firstMemberRange ctx
         else
             ctx
+    | triviaInstructions -> printTriviaInstructions triviaInstructions ctx
 
 let sepNlnWhenWriteBeforeNewlineNotEmpty fallback (ctx: Context) =
     if hasWriteBeforeNewlineContent ctx then

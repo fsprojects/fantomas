@@ -761,7 +761,8 @@ type TestType =
 type TestType =
     // Here is some comment about the type
     // Some more comments
-    private { Foo: int }
+    private
+        { Foo: int }
 """
 
 [<Test>]

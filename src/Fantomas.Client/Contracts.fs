@@ -29,10 +29,7 @@ type FormatDocumentRequest =
         Config: IReadOnlyDictionary<string, string> option
     }
 
-type FantomasResponse =
-    { Code: int
-      FilePath: string
-      Content: string option }
+    member this.IsSignatureFile = this.FilePath.EndsWith(".fsi")
 
 type FormatSelectionRequest =
     {
@@ -45,6 +42,7 @@ type FormatSelectionRequest =
         /// Range follows the same semantics of the FSharp Compiler Range type.
         Range: FormatSelectionRange
     }
+    member this.IsSignatureFile = this.FilePath.EndsWith(".fsi")
 
 and FormatSelectionRange =
     struct
@@ -59,6 +57,16 @@ and FormatSelectionRange =
               EndLine = endLine
               EndColumn = endColumn }
     end
+
+type FantomasResponse =
+    {
+        Code: int
+        FilePath: string
+        Content: string option
+        /// The actual range that was used to format a selection.
+        /// This can differ from the input selection range if the selection had leading or trailing whitespace.
+        SelectedRange: FormatSelectionRange option
+    }
 
 type FantomasService =
     interface

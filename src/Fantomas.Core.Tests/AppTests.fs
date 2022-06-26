@@ -1049,3 +1049,18 @@ module Foo =
     let Bar (baz1: int) (baz2: string) (baz3: string) (baz4: string) (baz5: string) =
         FooBarBaz (someFunc x) (someOtherFunc y)
 """
+
+[<Test>]
+let ``block comment between arguments`` () =
+    formatSourceString
+        false
+        """
+printf "%-40s %s" "" (*<--flags*) word
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+printf "%-40s %s" "" (*<--flags*) word
+"""

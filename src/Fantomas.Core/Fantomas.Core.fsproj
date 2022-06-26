@@ -10,8 +10,9 @@
     <None Include="paket.references" />
     <Compile Include="AssemblyInfo.fs" />
     <Compile Include="ISourceTextExtensions.fs" />
-    <Compile Include="AstExtensions.fs" />
     <Compile Include="RangeHelpers.fs" />
+    <Compile Include="AstExtensions.fsi" />
+    <Compile Include="AstExtensions.fs" />
     <Compile Include="TriviaTypes.fs" />
     <Compile Include="Utils.fs" />
     <Compile Include="SourceParser.fs" />
@@ -21,8 +22,8 @@
     <Compile Include="Queue.fs" />
     <Compile Include="FormatConfig.fs" />
     <Compile Include="DefineCombinationSolver.fs" />
-    <Compile Include="TriviaHelpers.fs" />
     <Compile Include="Defines.fs" />
+    <Compile Include="Trivia.fsi" />
     <Compile Include="Trivia.fs" />
     <Compile Include="Context.fs" />
     <Compile Include="SourceTransformer.fs" />
@@ -30,6 +31,8 @@
     <Compile Include="CodePrinter.fs" />
     <Compile Include="CodeFormatterImpl.fs" />
     <Compile Include="Validation.fs" />
+    <Compile Include="Selection.fsi" />
+    <Compile Include="Selection.fs" />
     <Compile Include="CodeFormatter.fsi" />
     <Compile Include="CodeFormatter.fs" />
   </ItemGroup>

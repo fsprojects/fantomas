@@ -2232,21 +2232,6 @@ type ProjectController(checker: FSharpChecker) =
 """
 
 [<Test>]
-let ``meh`` () =
-    formatSourceString
-        false
-        """
-Environment.workspaceLoadDelay().TotalMilliseconds
-"""
-        config
-    |> prepend newline
-    |> should
-        equal
-        """
-Environment.workspaceLoadDelay().TotalMilliseconds
-"""
-
-[<Test>]
 let ``multiline do bang with parenthesis`` () =
     formatSourceString
         false

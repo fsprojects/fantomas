@@ -1,12 +1,14 @@
 module internal Fantomas.Core.TriviaTypes
 
+open FSharp.Compiler.Syntax
 open FSharp.Compiler.Text
 
 type DefineCombination = string list
 
 type Comment =
     | LineCommentAfterSourceCode of comment: string
-    | LineCommentOnSingleLine of comment: string
+    /// This can be both a BlockComment or a LineComment
+    | CommentOnSingleLine of comment: string
     | BlockComment of string * newlineBefore: bool * newlineAfter: bool
 
 (* LineComment Examples
@@ -34,6 +36,8 @@ type Trivia =
 type TriviaIndex = TriviaIndex of int * int
 
 type FsAstType =
+    /// Root node of the syntax tree
+    | ParsedInput_
     | Ident_
     | SynIdent_
     | LongIdent_
@@ -42,6 +46,7 @@ type FsAstType =
     | SynModuleOrNamespace_DeclaredNamespace
     | SynModuleOrNamespace_GlobalNamespace
     | SynModuleOrNamespace_NamedModule
+    | SynModuleOrNamespace_AnonModule
     | SynModuleOrNamespace_Module
     | SynModuleOrNamespace_Namespace
     | SynModuleDecl_ModuleAbbrev
@@ -61,14 +66,15 @@ type FsAstType =
     | SynExpr_Paren_OpeningParenthesis
     | SynExpr_Paren_ClosingParenthesis
     | SynExpr_Quote
-    // | SynExpr_Const use SynConst instead
-    // | SynExpr_Typed use either the nested SynExpr or SynType
+    | SynExpr_Const
+    // | SynExpr_Typed
     | SynExpr_Tuple
     | SynExpr_StructTuple
     | SynExpr_Record
     | SynExpr_Record_OpeningBrace
     | SynExpr_Record_ClosingBrace
     | SynExpr_AnonRecd
+    | SynExpr_AnonRecd_Field
     | SynExpr_AnonRecd_Field_Equals
     | SynExpr_New
     | SynExpr_ObjExpr
@@ -81,7 +87,7 @@ type FsAstType =
     | SynExpr_ArrayOrList
     | SynExpr_ArrayOrList_OpeningDelimiter
     | SynExpr_ArrayOrList_ClosingDelimiter
-    // | SynExpr_ComputationExpr use first nested SynExpr
+    | SynExpr_ComputationExpr
     | SynExpr_ComputationExpr_OpeningBrace
     | SynExpr_ComputationExpr_ClosingBrace
     | SynExpr_Lambda
@@ -109,7 +115,7 @@ type FsAstType =
     | SynExpr_TryFinally_Finally
     | SynExpr_Lazy
     | SynExpr_Lazy_Lazy
-    // | SynExpr_Sequential use first nested SynExpr
+    // | SynExpr_Sequential
     | SynExpr_SequentialOrImplicitYield
     | SynExpr_IfThenElse
     | SynExpr_IfThenElse_If
@@ -194,8 +200,9 @@ type FsAstType =
     | SynTypeDefnSig_
     | SynTypeDefnSig_Equals
     | SynTypeDefnSig_With
-    // | SynTypeDefnSigRepr_ObjectModel use first nested node
-    | SynTypeDefnSigRepr_Exception
+    // | SynTypeDefnSigRepr_ObjectModel
+    // | SynTypeDefnSigRepr_Simple
+    // | SynTypeDefnSigRepr_Exception
     | SynMemberDefn_Open
     | SynMemberDefn_OpenType
     | SynMemberDefn_Member
@@ -224,6 +231,8 @@ type FsAstType =
     | SynBinding_Equals
     | SynBindingReturnInfo_
     | SynTyparDecls_PostfixList
+    | SynTyparDecls_PostfixList_Greater
+    | SynTyparDecls_PostfixList_Lesser
     | SynTyparDecls_SinglePrefix
     | SynTyparDecls_PrefixList
     | SynTyparDecl_
@@ -237,7 +246,7 @@ type FsAstType =
     | SynPat_As
     | SynPat_Typed
     | SynPat_Attrib
-    // | SynPat_Or, use the inner patterns instead
+    | SynPat_Or
     | SynPat_Or_Bar
     | SynPat_Ands
     | SynPat_LongIdent
@@ -284,11 +293,12 @@ type FsAstType =
     | SynConst_SourceIdentifier
     | SynArgPats_Pats
     | SynArgPats_NamePatPairs
+    | SynArgPats_NamePatPair
     | SynArgPats_NamePatPairs_Equals
-    | SynComponentInfo_
-    // | SynTypeDefnRepr_ObjectModel use first nested node
-    // | SynTypeDefnRepr_Simple use first nested node
-    | SynTypeDefnRepr_Exception
+    // | SynComponentInfo_
+    // | SynTypeDefnRepr_ObjectModel
+    // | SynTypeDefnRepr_Simple
+    // | SynTypeDefnRepr_Exception
     | SynTypeDefnKind_Unspecified
     | SynTypeDefnKind_Class
     | SynTypeDefnKind_Interface
@@ -301,16 +311,16 @@ type FsAstType =
     | SynTypeDefnKind_Augmentation_With
     | SynTypeDefnKind_IL
     | SynTypeDefnKind_Delegate
-    | SynTypeDefnSimpleRepr_None
-    | SynTypeDefnSimpleRepr_Union
-    | SynTypeDefnSimpleRepr_Enum
+    //    | SynTypeDefnSimpleRepr_None
+    //    | SynTypeDefnSimpleRepr_Union
+    //    | SynTypeDefnSimpleRepr_Enum
     | SynTypeDefnSimpleRepr_Record
     | SynTypeDefnSimpleRepr_Record_OpeningBrace
     | SynTypeDefnSimpleRepr_Record_ClosingBrace
-    | SynTypeDefnSimpleRepr_General
-    | SynTypeDefnSimpleRepr_LibraryOnlyILAssembly
-    | SynTypeDefnSimpleRepr_TypeAbbrev
-    | SynTypeDefnSimpleRepr_Exception
+    //    | SynTypeDefnSimpleRepr_General
+    //    | SynTypeDefnSimpleRepr_LibraryOnlyILAssembly
+    //    | SynTypeDefnSimpleRepr_TypeAbbrev
+    //    | SynTypeDefnSimpleRepr_Exception
     | SynExceptionDefn_
     | SynExceptionDefn_With
     | SynExceptionDefnRepr_
@@ -334,8 +344,8 @@ type FsAstType =
     | SynType_LongIdentApp_Greater
     | SynType_Tuple
     | SynType_Array
-    // Not an ideal trivia node candidate as the ident inside the SynType.Fun are better suited
-    // | SynType_Fun
+    | SynType_Fun
+    | SynType_Fun_Arrow
     | SynType_Var
     | SynType_Anon
     | SynType_WithGlobalConstraints
@@ -349,15 +359,15 @@ type FsAstType =
     | SynType_Paren
     | SynType_Paren_OpeningParenthesis
     | SynType_Paren_ClosingParenthesis
-    | SynValData_
-    | SynValData_Static
-    | SynValData_Member
+    //    | SynValData_
+    | SynMemberFlags_Static
+    | SynMemberFlags_Member
     | SynValInfo_
     | SynArgInfo_
     | ParsedHashDirective_
     | ParsedHashDirectiveArgument_String
     | ParsedHashDirectiveArgument_SourceIdentifier
-    //    | SynModuleOrNamespaceSig_AnonModule, pick first child node
+    | SynModuleOrNamespaceSig_AnonModule
     | SynModuleOrNamespaceSig_DeclaredNamespace
     | SynModuleOrNamespaceSig_GlobalNamespace
     | SynModuleOrNamespaceSig_NamedModule
@@ -380,16 +390,38 @@ type FsAstType =
     | File_
     | SigFile_
 
-type TriviaNode =
-    { Type: FsAstType
-      ContentBefore: TriviaContent list
-      ContentItself: TriviaContent option
-      ContentAfter: TriviaContent list
-      Range: Range }
+[<RequireQualifiedAccess>]
+type FSharpASTNode =
+    | ModuleDecl of SynModuleDecl
+    | ModuleSigDecl of SynModuleSigDecl
+    | Expr of SynExpr
+    | ValSig of SynValSig
 
-type TriviaNodeAssigner(nodeType: FsAstType, range: Range) =
-    member this.Type = nodeType
-    member this.Range = range
-    member val ContentBefore = ResizeArray<TriviaContent>() with get, set
-    member val ContentItself = Option<TriviaContent>.None with get, set
-    member val ContentAfter = ResizeArray<TriviaContent>() with get, set
+/// A hierarchical node structure that represents AST nodes as found in the tree.
+/// The tree structure might deviate from what the AST has, if it is a better fit for Fantomas.
+/// For example some child nodes might be placed under a different parent.
+type TriviaNode =
+    {
+        /// This range might be a .FullRange calculated range if it suits Fantomas better.
+        Range: range
+        Type: FsAstType
+        /// These children need to be traversed in both directions, hence the choice for an array collection.
+        Children: TriviaNode array
+        FSharpASTNode: FSharpASTNode option
+    }
+
+/// Used in CodePrinter, to restore the assigned trivia
+type TriviaInstruction =
+    {
+        Trivia: Trivia
+        Type: FsAstType
+        Range: range
+        /// Should the Trivia be added before the node range or after
+        AddBefore: bool
+    }
+
+type TriviaForSelection =
+    {
+        /// The AST node that matches the exact selection range.
+        Node: TriviaNode
+    }

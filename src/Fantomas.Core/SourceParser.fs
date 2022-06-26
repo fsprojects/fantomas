@@ -78,9 +78,9 @@ let (|ParsedSigFileInput|)
     (hs, mns, directives, codeComments)
 
 let (|ModuleOrNamespace|)
-    (SynModuleOrNamespace.SynModuleOrNamespace (lids, isRecursive, kind, mds, px, ats, ao, range, trivia))
+    (SynModuleOrNamespace.SynModuleOrNamespace (lids, isRecursive, kind, mds, px, ats, ao, _range, trivia) as m)
     =
-    (ats, px, trivia.ModuleKeyword, trivia.NamespaceKeyword, ao, lids, mds, isRecursive, kind, range)
+    (ats, px, trivia.ModuleKeyword, trivia.NamespaceKeyword, ao, lids, mds, isRecursive, kind, m.FullRange)
 
 let (|SigModuleOrNamespace|)
     (SynModuleOrNamespaceSig.SynModuleOrNamespaceSig (lids, isRecursive, kind, mds, px, ats, ao, range, trivia))
@@ -118,14 +118,6 @@ let (|EmptyFile|_|) (input: ParsedInput) =
     | _ -> None
 
 let (|Attribute|) (a: SynAttribute) = (a.TypeName, a.ArgExpr, a.Target)
-
-// Access modifiers
-
-let (|Access|) =
-    function
-    | SynAccess.Public -> "public"
-    | SynAccess.Internal -> "internal"
-    | SynAccess.Private -> "private"
 
 let (|PreXmlDoc|) (px: PreXmlDoc) =
     let xmlDoc = px.ToXmlDoc(false, None)
@@ -762,7 +754,8 @@ let (|InfixApp|_|) synExpr =
 
 let (|NewlineInfixApp|_|) =
     function
-    | InfixApp (text, operatorExpr, e1, e2, _) when newLineInfixOps.Contains(text) -> Some(text, operatorExpr, e1, e2)
+    | InfixApp (text, operatorExpr, e1, e2, _range) when newLineInfixOps.Contains(text) ->
+        Some(text, operatorExpr, e1, e2)
     | _ -> None
 
 let (|NewlineInfixApps|_|) e =
@@ -780,7 +773,7 @@ let (|NewlineInfixApps|_|) e =
 let (|SameInfixApps|_|) e =
     let rec loop operator synExpr =
         match synExpr with
-        | InfixApp (s, opE, e, e2, _) when (s = operator) ->
+        | InfixApp (s, opE, e, e2, _range) when (s = operator) ->
             let e1, es = loop operator e
             (e1, (s, opE, e2) :: es)
         | e -> (e, [])
@@ -1401,7 +1394,12 @@ let (|SigTypeDef|)
     =
     (ats, px, ao, tds, tcs, equalsRange, tdr, withKeyword, ms, lid, preferPostfix, range)
 
-let (|TyparDecl|) (SynTyparDecl (ats, tp)) = (ats, tp)
+let (|TyparDecl|) (SynTyparDecl (ats, tp) as std) = (ats, tp, std.FullRange)
+
+let (|PostfixList|_|) =
+    function
+    | SynTyparDecls.PostfixList (tds, tcs, StartEndRange 1 (gt, r, lt)) -> Some(gt, tds, tcs, lt, r)
+    | _ -> None
 
 // Types (15 cases)
 
@@ -1452,14 +1450,14 @@ let (|TVar|_|) =
 
 let (|TFun|_|) =
     function
-    | SynType.Fun (t1, t2, _) -> Some(t1, t2)
+    | SynType.Fun (t1, t2, _, { ArrowRange = arrow }) -> Some(t1, arrow, t2)
     | _ -> None
 
 // Arrow type is right-associative
 let rec (|TFuns|_|) =
     function
-    | TFun (t1, TFuns ts) -> Some [ yield t1; yield! ts ]
-    | TFun (t1, t2) -> Some [ t1; t2 ]
+    | TFun (t1, arrow, TFuns (ts, ret)) -> Some((t1, arrow) :: ts, ret)
+    | TFun (t1, arrow, t2) -> Some([ t1, arrow ], t2)
     | _ -> None
 
 let (|TApp|_|) =
@@ -1501,7 +1499,7 @@ let (|TAnonRecord|_|) =
 
 let (|TParen|_|) =
     function
-    | SynType.Paren (innerType, StartEndRange 1 (lpr, _, rpr)) -> Some(lpr, innerType, rpr)
+    | SynType.Paren (innerType, StartEndRange 1 (lpr, pr, rpr)) -> Some(lpr, innerType, rpr, pr)
     | _ -> None
 // Type parameter
 
@@ -1561,7 +1559,10 @@ let (|Val|)
 
 let (|RecordFieldName|) ((synLongIdent, _): RecordFieldName, eo: SynExpr option, _) = (synLongIdent, eo)
 
-let (|AnonRecordFieldName|) (ident: Ident, eq: range option, e: SynExpr) = (ident, eq, e)
+let (|AnonRecordFieldName|) (ident: Ident, eq: range option, e: SynExpr) =
+    let range = Range.unionRanges ident.idRange e.Range
+    (ident, eq, e, range)
+
 let (|AnonRecordFieldType|) (ident, t: SynType) = (ident, t)
 
 let (|ValInfo|) (SynValInfo (aiss, ai)) = (aiss, ai)
@@ -1574,8 +1575,8 @@ let (|FunType|) (t, ValInfo (argTypes, returnType)) =
     // The number of arg info will determine semantics of argument types.
     let rec loop =
         function
-        | TFun (t1, t2), argType :: argTypes -> (t1, argType) :: loop (t2, argTypes)
-        | t, [] -> [ (t, [ returnType ]) ]
+        | TFun (t1, arrow, t2), argType :: argTypes -> (t1, argType, Some arrow) :: loop (t2, argTypes)
+        | t, [] -> [ (t, [ returnType ], None) ]
         | _ -> []
 
     loop (t, argTypes)

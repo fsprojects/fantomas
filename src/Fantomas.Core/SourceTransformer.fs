@@ -219,7 +219,7 @@ let rec synExprToFsAstType (expr: SynExpr) : FsAstType * Range =
     | SynExpr.YieldOrReturn _ -> SynExpr_YieldOrReturn, expr.Range
     | SynExpr.IfThenElse _ -> SynExpr_IfThenElse, expr.Range
     | SynExpr.LetOrUseBang _ -> SynExpr_LetOrUseBang, expr.Range
-    | SynExpr.Const (c, _) -> synConstToFsAstType c, expr.Range
+    | SynExpr.Const _ -> SynExpr_Const, expr.Range
     | SynExpr.Lambda _ -> SynExpr_Lambda, expr.Range
     | SynExpr.Ident _ -> SynExpr_Ident, expr.Range
     | SynExpr.App _ -> SynExpr_App, expr.Range
@@ -308,3 +308,9 @@ let synBindingToFsAstType (SynBinding (kind = kind)) =
     | SynBindingKind.StandaloneExpression -> SynBindingKind_StandaloneExpression
     | SynBindingKind.Normal -> SynBindingKind_Normal
     | SynBindingKind.Do -> SynBindingKind_Do
+
+let synAccessToFsAstType (vis: SynAccess) =
+    match vis with
+    | SynAccess.Internal _ -> SynAccess_Internal
+    | SynAccess.Private _ -> SynAccess_Private
+    | SynAccess.Public _ -> SynAccess_Public

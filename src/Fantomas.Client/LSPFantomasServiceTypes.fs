@@ -20,19 +20,21 @@ type FantomasResponseCode =
 
 [<RequireQualifiedAccess>]
 type FormatSelectionResponse =
-    | Formatted of filename: string * formattedContent: string
+    | Formatted of filename: string * formattedContent: string * formattedRange: FormatSelectionRange
     | Error of filename: string * formattingError: string
 
     member this.AsFormatResponse() =
         match this with
-        | FormatSelectionResponse.Formatted (name, content) ->
+        | FormatSelectionResponse.Formatted (name, content, formattedRange) ->
             { Code = int FantomasResponseCode.Formatted
               FilePath = name
-              Content = Some content }
+              Content = Some content
+              SelectedRange = Some formattedRange }
         | FormatSelectionResponse.Error (name, ex) ->
             { Code = int FantomasResponseCode.Error
               FilePath = name
-              Content = Some ex }
+              Content = Some ex
+              SelectedRange = None }
 
 [<RequireQualifiedAccess>]
 type FormatDocumentResponse =
@@ -46,19 +48,23 @@ type FormatDocumentResponse =
         | FormatDocumentResponse.Formatted (name, content) ->
             { Code = int FantomasResponseCode.Formatted
               FilePath = name
-              Content = Some content }
+              Content = Some content
+              SelectedRange = None }
         | FormatDocumentResponse.Unchanged name ->
             { Code = int FantomasResponseCode.UnChanged
               FilePath = name
-              Content = None }
+              Content = None
+              SelectedRange = None }
         | FormatDocumentResponse.Error (name, err) ->
             { Code = int FantomasResponseCode.Error
               FilePath = name
-              Content = Some(err) }
+              Content = Some(err)
+              SelectedRange = None }
         | FormatDocumentResponse.IgnoredFile name ->
             { Code = int FantomasResponseCode.Ignored
               FilePath = name
-              Content = None }
+              Content = None
+              SelectedRange = None }
 
 type FantomasVersion = FantomasVersion of string
 type FantomasExecutableFile = FantomasExecutableFile of string

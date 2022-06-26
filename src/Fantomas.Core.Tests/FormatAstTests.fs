@@ -13,7 +13,7 @@ let parseAndFormat fn sourceCode =
         |> fst
 
     let formattedCode =
-        CodeFormatter.FormatASTAsync(ast, [], fn sourceCode, config)
+        CodeFormatter.FormatASTAsync(ast, fn sourceCode, config)
         |> Async.RunSynchronously
         |> String.normalizeNewLine
         |> fun s -> s.TrimEnd('\n')

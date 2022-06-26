@@ -10,7 +10,7 @@ open Fantomas.Core.FormatConfig
 let private toTrivia source =
     let sourceText = CodeFormatterImpl.getSourceText source
     let ast, _ = Fantomas.FCS.Parse.parseFile false sourceText []
-    Trivia.collectTrivia FormatConfig.Default sourceText ast
+    Trivia.collectTrivia FormatConfig.Default sourceText ast None
 
 let private toTriviaWithDefines source =
     let sourceText = CodeFormatterImpl.getSourceText source
@@ -24,9 +24,9 @@ let private toTriviaWithDefines source =
     let defineCombinations = Defines.getDefineCombination hashDirectives
 
     defineCombinations
-    |> List.map (fun dc -> dc, Trivia.collectTrivia FormatConfig.Default sourceText ast)
+    |> List.map (fun dc -> dc, Trivia.collectTrivia FormatConfig.Default sourceText ast None)
     |> Map.ofList
-
+(*
 [<Test>]
 let ``line comment that starts at the beginning of a line added to trivia`` () =
     let source =
@@ -431,3 +431,4 @@ let x =
     | [ { Type = SynConst_Unit
           ContentBefore = [ Directive "#if DEBUG"; Directive "#endif" ] } ] -> pass ()
     | _ -> Assert.Fail(sprintf "Unexpected trivia: %A" trivia)
+*)
