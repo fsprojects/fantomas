@@ -150,14 +150,14 @@ let private getDaemon (agent: MailboxProcessor<Msg>) (folder: Folder) : Result<J
 let private fileNotFoundResponse filePath : Task<FantomasResponse> =
     { Code = int FantomasResponseCode.FileNotFound
       FilePath = filePath
-      Content = Some(sprintf "File \"%s\" does not exist" filePath)
+      Content = Some $"File \"%s{filePath}\" does not exist."
       SelectedRange = None }
     |> Task.FromResult
 
 let private fileNotAbsoluteResponse filePath : Task<FantomasResponse> =
     { Code = int FantomasResponseCode.FilePathIsNotAbsolute
       FilePath = filePath
-      Content = Some(sprintf "\"%s\" is not an absolute file path. Relative paths are not supported" filePath)
+      Content = Some $"\"%s{filePath}\" is not an absolute file path. Relative paths are not supported."
       SelectedRange = None }
     |> Task.FromResult
 

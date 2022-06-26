@@ -1133,7 +1133,7 @@ See [CodeFormatter.fsi](../src/Fantomas.Core/CodeFormatter.fsi) to view the publ
 
 ### Format selection
 
-Fantomas provides limited support for formatted a selection of code in a file, using the `CodeFormatter.FormatSelectionAsync` function.  
+Fantomas provides limited support for formatting a selection of code in a file, using the `CodeFormatter.FormatSelectionAsync` function.  
 This is a very challenging domain, so not every scenario is covered.
 Fantomas is able to format:
 - Top-level declarations like [SynModuleDecl](https://fsharp.github.io/fsharp-compiler-docs/reference/fsharp-compiler-syntax-synmoduledecl.html) and [SynModuleSigDecl](https://fsharp.github.io/fsharp-compiler-docs/reference/fsharp-compiler-syntax-synmodulesigdecl.html).
