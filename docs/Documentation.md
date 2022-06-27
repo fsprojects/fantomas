@@ -1147,8 +1147,6 @@ If the input selection range contained whitespaces, the result selection will co
 
 Please consider contributing to this feature if you encounter any issues.
 
-```fsharp
-
 ## A git pre-commit hook sample
 
 A very elegant and transparent way to use Fantomas is including it in a pre-commit git hook, by creating a `.git/hooks/pre-commit` file with:
