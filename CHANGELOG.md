@@ -1,5 +1,11 @@
 # Changelog
 
+## [5.0.0-alpha-010] - 2022-06-27
+
+### Changed
+* Restore the FormatSelection public API. [#2237](https://github.com/fsprojects/fantomas/issues/2237)
+* Refactor list of TriviaNodeAssigner to tree structure. [#2271](https://github.com/fsprojects/fantomas/issues/2271)
+
 ## [5.0.0-alpha-009] - 2022-06-21
 
 ### Fixed

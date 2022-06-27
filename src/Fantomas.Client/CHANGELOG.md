@@ -2,7 +2,7 @@
 
 This is the changelog for the Fantomas.Client package specifically. It's distinct from that of the overall libraries and command-line tool.
 
-## [Unreleased]
+## 0.6.0 - 2022-06-27
 
 ### Changed
 * Add `SelectedRange` to `FantomasResponse`.
