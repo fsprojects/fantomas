@@ -2274,7 +2274,7 @@ type IlxUnionRef =
         boxity: ILBoxity *
         ILTypeRef *
         IlxUnionCase[] *
-        bool (* IsNullPermitted *)  *
+        bool (* IsNullPermitted *) *
         IlxUnionHasHelpers (* HasHelpers *)
 
 type IlxUnionSpec =
@@ -2421,4 +2421,26 @@ type ExprFolder<'State> =
       dtreeIntercept: 'State -> DecisionTree -> 'State
       targetIntercept: ('State -> Expr -> 'State) -> 'State -> DecisionTreeTarget -> 'State option
       tmethodIntercept: ('State -> Expr -> 'State) -> 'State -> ObjExprMethod -> 'State option }
+"""
+
+[<Test>]
+let ``block comments in type definition, 1975`` () =
+    formatSourceString
+        true
+        """
+module M
+
+module A =
+    type ProviderGeneratedType = ProviderGeneratedType of (*ilOrigTyRef*)ILTypeRef * (*ilRenamedTyRef*)ILTypeRef * ProviderGeneratedType list
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+module M
+
+module A =
+    type ProviderGeneratedType =
+        | ProviderGeneratedType (*ilOrigTyRef*) of ILTypeRef (*ilRenamedTyRef*) * ILTypeRef * ProviderGeneratedType list
 """

@@ -676,10 +676,6 @@ let whenShortIndent f ctx =
 let rep n (f: Context -> Context) (ctx: Context) =
     [ 1..n ] |> List.fold (fun c _ -> f c) ctx
 
-let wordAnd = !- " and "
-let wordAndFixed = !- "and"
-let wordOr = !- " or "
-let wordOf = !- " of "
 // Separator functions
 let sepNone = id
 let sepDot = !- "."
@@ -718,7 +714,7 @@ let sepNlnUnlessLastEventIsNewlineOrRagnarok (ctx: Context) =
     else
         sepNln ctx
 
-let sepStar = !- " * "
+let sepStar = sepSpace +> !- "* "
 let sepStarFixed = !- "* "
 let sepEq = !- " ="
 let sepEqFixed = !- "="
@@ -813,6 +809,11 @@ let sepOpenT = !- "("
 
 /// closing token of tuple
 let sepCloseT = !- ")"
+
+let wordAnd = sepSpace +> !- "and "
+let wordAndFixed = !- "and"
+let wordOr = sepSpace +> !- "or "
+let wordOf = sepSpace +> !- "of "
 
 // we need to make sure each expression in the function application has offset at least greater than
 // indentation of the function expression itself
