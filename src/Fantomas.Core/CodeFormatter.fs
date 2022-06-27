@@ -1,6 +1,7 @@
 namespace Fantomas.Core
 
 open FSharp.Compiler.Syntax
+open FSharp.Compiler.Text
 
 [<Sealed>]
 type CodeFormatter =
@@ -28,3 +29,6 @@ type CodeFormatter =
         Validation.isValidFSharpCode isSignature source
 
     static member GetVersion() = Version.fantomasVersion.Value
+
+    static member MakeRange(fileName, startLine, startCol, endLine, endCol) =
+        Range.mkRange fileName (Position.mkPos startLine startCol) (Position.mkPos endLine endCol)

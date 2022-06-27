@@ -1,5 +1,10 @@
 # Changelog
 
+## [Unreleased]
+
+### Changed
+* Restore the CodeFormatter.MakeRange public API. [#2306](https://github.com/fsprojects/fantomas/pull/2306)
+
 ## [5.0.0-alpha-010] - 2022-06-27
 
 ### Changed
