@@ -25,3 +25,6 @@ type CodeFormatter =
 
     /// Returns the version of Fantomas found in the AssemblyInfo
     static member GetVersion: unit -> string
+
+    /// Make a range from (startLine, startCol) to (endLine, endCol) to select some text
+    static member MakeRange: fileName: string * startLine: int * startCol: int * endLine: int * endCol: int -> range
