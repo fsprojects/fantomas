@@ -21,7 +21,7 @@
       ]
     },
     "fantomas": {
-      "version": "5.0.0-alpha-009",
+      "version": "5.0.0-alpha-010",
       "commands": [
         "fantomas"
       ]
