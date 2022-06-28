@@ -1310,7 +1310,7 @@ open FSharp.Compiler.Features
 open FSharp.Compiler.CodeAnalysis
 open FSharp.Compiler.Text
 
-exception FileNameNotResolved of string (*description of searched locations*)  * string * range (*filename*)
+exception FileNameNotResolved of string (*description of searched locations*) * string * range (*filename*)
 
 exception LoadedSourceNotFoundIgnoring of string * range (*filename*)
 """
