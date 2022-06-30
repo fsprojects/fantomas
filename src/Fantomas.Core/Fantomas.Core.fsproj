@@ -21,7 +21,7 @@
     <Compile Include="Version.fs" />
     <Compile Include="Queue.fs" />
     <Compile Include="FormatConfig.fs" />
-    <Compile Include="DefineCombinationSolver.fs" />
+    <Compile Include="Defines.fsi" />
     <Compile Include="Defines.fs" />
     <Compile Include="Trivia.fsi" />
     <Compile Include="Trivia.fs" />
@@ -29,6 +29,7 @@
     <Compile Include="SourceTransformer.fs" />
     <Compile Include="CodePrinter.fsi" />
     <Compile Include="CodePrinter.fs" />
+    <Compile Include="CodeFormatterImpl.fsi" />
     <Compile Include="CodeFormatterImpl.fs" />
     <Compile Include="Validation.fs" />
     <Compile Include="Selection.fsi" />

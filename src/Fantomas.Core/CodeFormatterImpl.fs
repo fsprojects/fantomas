@@ -54,9 +54,10 @@ let parse (isSignature: bool) (source: ISourceText) : Async<(ParsedInput * Defin
             })
         |> Async.Parallel
 
-let formatWith
-    (sourceText: ISourceText option)
+/// Format an abstract syntax tree using given config
+let formatAST
     (ast: ParsedInput)
+    (sourceText: ISourceText option)
     (config: FormatConfig)
     (selection: TriviaForSelection option)
     : string =
@@ -77,7 +78,7 @@ let format (config: FormatConfig) (isSignature: bool) (source: ISourceText) : As
             asts
             |> Array.map (fun (ast', defineCombination) ->
                 async {
-                    let formattedCode = formatWith (Some source) ast' config None
+                    let formattedCode = formatAST ast' (Some source) config None
                     return (defineCombination, formattedCode)
                 })
             |> Async.Parallel
@@ -122,12 +123,3 @@ Please raise an issue at https://fsprojects.github.io/fantomas-tools/#/fantomas/
 
 /// Format a source string using given config
 let formatDocument config isSignature source = format config isSignature source
-
-/// Format an abstract syntax tree using given config
-let formatAST
-    (ast: ParsedInput)
-    (sourceText: ISourceText option)
-    (config: FormatConfig)
-    (selection: TriviaForSelection option)
-    : string =
-    formatWith sourceText ast config selection
