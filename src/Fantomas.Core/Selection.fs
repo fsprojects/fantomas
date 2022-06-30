@@ -1,4 +1,4 @@
-﻿module Fantomas.Core.Selection
+﻿module internal Fantomas.Core.Selection
 
 open FSharp.Compiler.Syntax
 open FSharp.Compiler.Text
