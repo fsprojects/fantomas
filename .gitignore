@@ -185,6 +185,8 @@ BenchmarkDotNet.Artifacts/
 FormatChanged.ps1
 src/Fantomas.FCS/generated/
 
-# generated style sheet
+# FsDocs
 docs/homepage.css
 docs/homepage.css.map
+output/
+.fsdocs/cache
