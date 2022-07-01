@@ -14,16 +14,6 @@ let configuration = DotNet.BuildConfiguration.Release
 
 // (<solutionFile>.sln is built during the building process)
 let solutionFile = "fantomas.sln"
-//// Environment.CurrentDirectory <- __SOURCE_DIRECTORY__
-
-// Files to format
-let sourceFiles =
-    !! "src/**/*.fs"
-    ++ "src/**/*.fsi"
-    ++ "build.fsx"
-    ++ "docs/**/*.fsx"
-    -- "src/**/obj/**/*.fs"
-    -- "src/Fantomas.FCS/generated/netstandard2.0/*.*"
 
 // Types and helper functions for building external projects (see the TestExternalProjects target below)
 type ProcessStartInfo =
@@ -124,58 +114,9 @@ let externalProjectsToTestFailing =
 // --------------------------------------------------------------------------------------
 // Clean build results & restore NuGet packages
 
-Target.create "Clean" (fun _ ->
-    [ "bin"
-      "src/Fantomas.FCS/bin"
-      "src/Fantomas.FCS/obj"
-      "src/Fantomas.Core/bin"
-      "src/Fantomas.Core/obj"
-      "src/Fantomas/bin"
-      "src/Fantomas/obj"
-      "src/Fantomas.Client/bin"
-      "src/Fantomas.Client/obj" ]
-    |> List.iter Shell.cleanDir)
-
 // --------------------------------------------------------------------------------------
 // Build library & test project
 Target.create "Build" (fun _ -> DotNet.build (fun p -> { p with Configuration = configuration }) solutionFile)
-
-Target.create "UnitTests" (fun _ ->
-    DotNet.test
-        (fun p ->
-            { p with
-                Configuration = configuration
-                NoRestore = true
-                NoBuild = true
-            // TestAdapterPath = Some "."
-            // Logger = Some "nunit;LogFilePath=../../TestResults.xml"
-            // Current there is an issue with NUnit reporter, https://github.com/nunit/nunit3-vs-adapter/issues/589
-             })
-        "src/Fantomas.Core.Tests/Fantomas.Core.Tests.fsproj"
-
-    DotNet.test
-        (fun p ->
-            { p with
-                Configuration = configuration
-                NoRestore = true
-                NoBuild = true
-            // TestAdapterPath = Some "."
-            // Logger = Some "nunit;LogFilePath=../../TestResults.xml"
-            // Current there is an issue with NUnit reporter, https://github.com/nunit/nunit3-vs-adapter/issues/589
-             })
-        "src/Fantomas.Tests/Fantomas.Tests.fsproj")
-
-// --------------------------------------------------------------------------------------
-// Build a NuGet package
-
-Target.create "Pack" (fun _ ->
-    DotNet.pack
-        (fun p ->
-            { p with
-                NoRestore = true
-                Configuration = configuration
-                OutputPath = Some "./bin" })
-        solutionFile)
 
 // This takes the list of external projects defined above, does a git checkout of the specified repo and tag,
 // tries to build the project, then reformats with fantomas and tries to build the project again. If this fails
@@ -276,48 +217,4 @@ Target.create "PushClient" (fun _ ->
     |> Seq.tryExactlyOne
     |> Option.iter pushPackage)
 
-let git command =
-    CreateProcess.fromRawCommandLine "git" command
-    |> CreateProcess.redirectOutput
-    |> Proc.run
-    |> fun p -> p.Result.Output.Trim()
-
-open Microsoft.Azure.Cosmos.Table
-
-Target.create "CheckFormat" (fun _ ->
-    DotNet.build
-        (fun opts -> { opts with MSBuildParams = { opts.MSBuildParams with Targets = [ "CheckFormat" ] } })
-        "fantomas.sln")
-
-Target.create "Benchmark" (fun _ ->
-    DotNet.build
-        (fun opts -> { opts with MSBuildParams = { opts.MSBuildParams with Targets = [ "Benchmark" ] } })
-        "fantomas.sln")
-
-// TODO: the Azure storage account was removed, migrate this to a new solution.
-
-Target.create "Docs" (fun _ ->
-    DotNet.exec id "fsi" "./docs/.style/style.fsx"
-    |> ignore
-
-    DotNet.exec id "fsdocs" "build --clean --properties Configuration=Release"
-    |> ignore)
-
-// --------------------------------------------------------------------------------------
-// Run all targets by default. Invoke 'build <Target>' to override
-
-Target.create "All" ignore
-
-"Clean"
-==> "CheckFormat"
-==> "Build"
-==> "UnitTests"
-==> "Benchmark"
-==> "Pack"
-==> "Docs"
-==> "All"
-==> "Push"
-
 "Build" ==> "TestExternalProjects"
-
-Target.runOrDefault "All"

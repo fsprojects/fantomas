@@ -18,15 +18,11 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: Setup .NET Core
-      uses: actions/setup-dotnet@v1
+      uses: actions/setup-dotnet@v2
       with:
         dotnet-version: ${{ matrix.dotnet }}
-    - name: Install local tools
-      run: dotnet tool restore
-    - name: Paket restore
-      run: dotnet paket restore
     - name: Build
-      run: dotnet fake run build.fsx
+      run: dotnet build /t:All
       env:
         CI: true
         TABLE_STORAGE_CONNECTION_STRING: ${{ secrets.TABLE_STORAGE_CONNECTION_STRING }}
