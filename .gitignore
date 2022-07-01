@@ -189,4 +189,4 @@ src/Fantomas.FCS/generated/
 docs/homepage.css
 docs/homepage.css.map
 output/
-.fsdocs/cache
+**/.fsdocs/cache

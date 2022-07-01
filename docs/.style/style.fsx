@@ -16,18 +16,11 @@ let (</>) a b = Path.Combine(a, b)
 let inputFile = __SOURCE_DIRECTORY__ </> "homepage.sass"
 let inputFolder = __SOURCE_DIRECTORY__
 
-let output =
-    __SOURCE_DIRECTORY__
-    </> ".."
-    </> "homepage.css"
+let output = __SOURCE_DIRECTORY__ </> ".." </> "homepage.css"
 
 let compileSass () =
     try
-        let result =
-            sassCompiler.CompileFile(
-                inputFile,
-                ?outputPath = Some output
-            )
+        let result = sassCompiler.CompileFile(inputFile, ?outputPath = Some output)
 
         File.WriteAllText(output, result.CompiledContent)
         printfn "Compiled %s at %A" output DateTime.Now
@@ -46,26 +39,33 @@ let compileSass () =
             (SassErrorHelpers.GenerateErrorDetails e)
     | ex -> printfn "Unexpected exception during Sass compilation: %A" ex
 
+let isWatch =
+    match Seq.tryLast fsi.CommandLineArgs with
+    | Some "--watch" -> true
+    | _ -> false
 
-let fsw = new FileSystemWatcher(inputFolder)
-fsw.IncludeSubdirectories <- true
-fsw.Filters.Add("*.sass")
-fsw.NotifyFilter <- NotifyFilters.FileName ||| NotifyFilters.Size
-fsw.EnableRaisingEvents <- true
+if isWatch then
+    let fsw = new FileSystemWatcher(inputFolder)
+    fsw.IncludeSubdirectories <- true
+    fsw.Filters.Add("*.sass")
+    fsw.NotifyFilter <- NotifyFilters.FileName ||| NotifyFilters.Size
+    fsw.EnableRaisingEvents <- true
 
-let mapEvent ev = Observable.map (fun _ -> ()) ev
+    let mapEvent ev = Observable.map (fun _ -> ()) ev
 
-let subscriber =
-    [| mapEvent fsw.Renamed
-       mapEvent fsw.Changed
-       mapEvent fsw.Deleted
-       mapEvent fsw.Created |]
-    |> Observable.mergeArray
-    |> Observable.startWith [| () |]
-    |> Observable.throttle (TimeSpan.FromMilliseconds 200.)
-    |> Observable.subscribe compileSass
+    let subscriber =
+        [| mapEvent fsw.Renamed
+           mapEvent fsw.Changed
+           mapEvent fsw.Deleted
+           mapEvent fsw.Created |]
+        |> Observable.mergeArray
+        |> Observable.startWith [| () |]
+        |> Observable.throttle (TimeSpan.FromMilliseconds 200.)
+        |> Observable.subscribe compileSass
 
-let _ = Console.ReadLine()
-subscriber.Dispose()
+    let _ = Console.ReadLine()
+    subscriber.Dispose()
 
-printfn "Goodbye"
+    printfn "Goodbye"
+else
+    compileSass ()
