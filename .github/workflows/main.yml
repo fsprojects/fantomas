@@ -26,10 +26,14 @@ jobs:
     - name: Restore
       run: dotnet restore
     - name: Build
-      run: "dotnet build /t:All"
+      run: "dotnet build /t:All -bl" 
       env:
         CI: true
-        TABLE_STORAGE_CONNECTION_STRING: ${{ secrets.TABLE_STORAGE_CONNECTION_STRING }}
+    - uses: actions/upload-artifact@v3
+      with:
+        name: binlog
+        path: msbuild.binlog
+      if: failure()
     - name: "trigger fantomas-tools action"
       if: matrix.os == 'ubuntu-latest' && github.ref == 'refs/heads/master'
       run: "curl -H 'Accept: application/vnd.github.everest-preview+json' -H 'Authorization: token ${{secrets.FANTOMAS_TOOLS_TOKEN}}' --request POST --data '{\"event_type\": \"fantomas-commit-on-master\"}' https://api.github.com/repos/fsprojects/fantomas-tools/dispatches"
