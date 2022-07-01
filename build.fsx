@@ -18,7 +18,10 @@ let solutionFile = "fantomas.sln"
 
 // Files to format
 let sourceFiles =
-    !! "src/**/*.fs" ++ "src/**/*.fsi" ++ "build.fsx"
+    !! "src/**/*.fs"
+    ++ "src/**/*.fsi"
+    ++ "build.fsx"
+    ++ "docs/**/*.fsx"
     -- "src/**/obj/**/*.fs"
     -- "src/Fantomas.FCS/generated/netstandard2.0/*.*"
 
@@ -346,6 +349,13 @@ Target.create "EnsureRepoConfig" (fun _ ->
     // * Currently only used to ensure that code is formatted before pushing
     Fake.Tools.Git.CommandHelper.gitCommand "" "config core.hooksPath .githooks")
 
+Target.create "Docs" (fun _ ->
+    DotNet.exec id "fsi" "./docs/.style/style.fsx"
+    |> ignore
+
+    DotNet.exec id "fsdocs" "build --clean --properties Configuration=Release"
+    |> ignore)
+
 // --------------------------------------------------------------------------------------
 // Run all targets by default. Invoke 'build <Target>' to override
 
@@ -357,6 +367,7 @@ Target.create "All" ignore
 ==> "UnitTests"
 ==> "Benchmark"
 ==> "Pack"
+==> "Docs"
 ==> "All"
 ==> "Push"
 

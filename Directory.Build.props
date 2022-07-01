@@ -23,6 +23,12 @@ Some common use cases include:
         <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
         <PackageReadmeFile>README.md</PackageReadmeFile>
     </PropertyGroup>
+    
+    <PropertyGroup>
+        <FsDocsLicenseLink>https://github.com/fsprojects/fantomas/blob/master/LICENSE.md</FsDocsLicenseLink>
+        <FsDocsReleaseNotesLink>https://github.com/fsprojects/fantomas/blob/master/CHANGELOG.md</FsDocsReleaseNotesLink>
+        <RepositoryUrl>https://github.com/fsprojects/fantomas</RepositoryUrl>
+    </PropertyGroup>
 
     <ItemGroup Condition="'$(IsPackable)' == 'true'">
         <None Include="$(MSBuildThisFileDirectory)fantomas_logo.png" Visible="false" Pack="true" PackagePath="" />
