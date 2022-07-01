@@ -1,0 +1,3178 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <title>FSharp.Compiler.Syntax</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="author" content="Florian Verdonck, Jindřich Ivánek">
+
+    <link rel="stylesheet" id="theme_link" href="https://cdnjs.cloudflare.com/ajax/libs/bootswatch/4.6.0/materia/bootstrap.min.css">
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-Piv4xVNRyMGpqkS2by6br4gNJ7DXjqk09RmUpJ8jgGtD7zP9yug3goQfGII0yAns" crossorigin="anonymous"></script>
+
+    <script type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+
+    <link rel="shortcut icon" type="image/x-icon" href="img/favicon.ico">
+    <link type="text/css" rel="stylesheet" href="/fantomas/content/navbar-fixed-left.css" />
+    <link type="text/css" rel="stylesheet" href="/fantomas/content/fsdocs-default.css" />
+    <link type="text/css" rel="stylesheet" href="/fantomas/content/fsdocs-custom.css" />
+    <script type="text/javascript" src="/fantomas/content/fsdocs-tips.js"></script>
+    <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <!-- BEGIN SEARCH BOX: this adds support for the search box -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/JavaScript-autoComplete/1.0.4/auto-complete.css" />
+    <!-- END SEARCH BOX: this adds support for the search box -->
+    
+</head>
+
+<body>
+    <nav class="navbar navbar-expand-md navbar-light bg-secondary fixed-left" id="fsdocs-nav">
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarsExampleDefault" aria-controls="navbarsExampleDefault" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse navbar-nav-scroll" id="navbarsExampleDefault">
+            <a href="/fantomas/"><img id="fsdocs-logo" src="/fantomas/img/logo.png" /></a>
+            <!-- BEGIN SEARCH BOX: this adds support for the search box -->
+            <div id="header">
+                <div class="searchbox" id="fsdocs-searchbox">
+                    <label for="search-by">
+                        <i class="fas fa-search"></i>
+                    </label>
+                    <input data-search-input="" id="search-by" type="search" placeholder="Search..." />
+                    <span data-search-clear="">
+                        <i class="fas fa-times"></i>
+                    </span>
+                </div>
+            </div>
+
+            <!-- END SEARCH BOX: this adds support for the search box -->
+            <ul class="navbar-nav">
+                <li class="nav-header">Links</li>
+                <li class="nav-item" id="fsdocs-license-link"><a class="nav-link" href="https://github.com/fsprojects/fantomas/blob/master/LICENSE.md">License</a></li>
+                <li class="nav-item" id="fsdocs-release-notes-link"><a class="nav-link" href="https://github.com/fsprojects/fantomas/blob/master/CHANGELOG.md">Release Notes</a></li>
+                <li class="nav-item" id="fsdocs-repository-link"><a class="nav-link" href="https://github.com/fsprojects/fantomas/">Source Repository</a></li>
+                
+                <li class="nav-header">
+  API Reference
+</li>             
+<li class="nav-item">
+  <a class="nav-link" href="/fantomas/reference/index.html">
+    All Namespaces
+  </a>
+</li>
+            </ul>
+        </div>
+    </nav>
+    <div class="container">
+        <div class="masthead">
+            <h3 class="muted"><a href="/fantomas/">fantomas</a></h3>
+        </div>
+        <hr />
+        <div class="container" id="fsdocs-content">
+            <div>
+  <h2 id="fsharp-compiler-syntax">
+    FSharp.Compiler.Syntax Namespace
+  </h2>
+  <div class="fsdocs-xmldoc"></div>
+  <table class="table outer-list fsdocs-entity-list">
+    <thead>
+      <tr>
+        <td>
+          Type/Module
+        </td>
+        <td>
+          Description
+        </td>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="fsdocs-entity-name">
+          <p>
+            <a name="BlockSeparator">
+              <a href="/fantomas/reference/fsharp-compiler-syntax-blockseparator.html">
+                BlockSeparator
+              </a>
+            </a>
+          </p>
+        </td>
+        <td class="fsdocs-entity-xmldoc">
+          <div>
+            <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:T:FSharp.Compiler.Syntax.BlockSeparator`')">
+              <img src="/fantomas/content/img/copy-md.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-md-hover.png" class="hover"/>
+            </div>
+            <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:FSharp.Compiler.Syntax.BlockSeparator\'/>')">
+              <img src="/fantomas/content/img/copy-xml.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+            </div>
+            <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/SyntaxTree/SyntaxTree.fsi#L346-346" class="fsdocs-source-link" title="Source on GitHub">
+              <img src="/fantomas/content/img/github.png" class="normal"/>
+              <img src="/fantomas/content/img/github-hover.png" class="hover"/>
+            </a>
+            <p class="fsdocs-summary">
+              
+ Represents the location of the separator block + optional position
+ of the semicolon (used for tooling support)
+
+            </p>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td class="fsdocs-entity-name">
+          <p>
+            <a name="DebugPointAtBinding">
+              <a href="/fantomas/reference/fsharp-compiler-syntax-debugpointatbinding.html">
+                DebugPointAtBinding
+              </a>
+            </a>
+          </p>
+        </td>
+        <td class="fsdocs-entity-xmldoc">
+          <div>
+            <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:T:FSharp.Compiler.Syntax.DebugPointAtBinding`')">
+              <img src="/fantomas/content/img/copy-md.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-md-hover.png" class="hover"/>
+            </div>
+            <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:FSharp.Compiler.Syntax.DebugPointAtBinding\'/>')">
+              <img src="/fantomas/content/img/copy-xml.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+            </div>
+            <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/SyntaxTree/SyntaxTree.fsi#L311-311" class="fsdocs-source-link" title="Source on GitHub">
+              <img src="/fantomas/content/img/github.png" class="normal"/>
+              <img src="/fantomas/content/img/github-hover.png" class="hover"/>
+            </a>
+            <p class="fsdocs-summary">
+              
+ Represents whether a debug point should be present for a 'let' binding,
+ that is whether the construct corresponds to a debug point in the original source.
+
+            </p>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td class="fsdocs-entity-name">
+          <p>
+            <a name="DebugPointAtFinally">
+              <a href="/fantomas/reference/fsharp-compiler-syntax-debugpointatfinally.html">
+                DebugPointAtFinally
+              </a>
+            </a>
+          </p>
+        </td>
+        <td class="fsdocs-entity-xmldoc">
+          <div>
+            <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:T:FSharp.Compiler.Syntax.DebugPointAtFinally`')">
+              <img src="/fantomas/content/img/copy-md.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-md-hover.png" class="hover"/>
+            </div>
+            <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:FSharp.Compiler.Syntax.DebugPointAtFinally\'/>')">
+              <img src="/fantomas/content/img/copy-xml.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+            </div>
+            <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/SyntaxTree/SyntaxTree.fsi#L283-283" class="fsdocs-source-link" title="Source on GitHub">
+              <img src="/fantomas/content/img/github.png" class="normal"/>
+              <img src="/fantomas/content/img/github-hover.png" class="hover"/>
+            </a>
+            <p class="fsdocs-summary">
+              
+ Represents whether a debug point should be present for the 'finally' in a 'try .. finally',
+ that is whether the construct corresponds to a debug point in the original source.
+
+            </p>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td class="fsdocs-entity-name">
+          <p>
+            <a name="DebugPointAtFor">
+              <a href="/fantomas/reference/fsharp-compiler-syntax-debugpointatfor.html">
+                DebugPointAtFor
+              </a>
+            </a>
+          </p>
+        </td>
+        <td class="fsdocs-entity-xmldoc">
+          <div>
+            <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:T:FSharp.Compiler.Syntax.DebugPointAtFor`')">
+              <img src="/fantomas/content/img/copy-md.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-md-hover.png" class="hover"/>
+            </div>
+            <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:FSharp.Compiler.Syntax.DebugPointAtFor\'/>')">
+              <img src="/fantomas/content/img/copy-xml.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+            </div>
+            <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/SyntaxTree/SyntaxTree.fsi#L290-290" class="fsdocs-source-link" title="Source on GitHub">
+              <img src="/fantomas/content/img/github.png" class="normal"/>
+              <img src="/fantomas/content/img/github-hover.png" class="hover"/>
+            </a>
+            <p class="fsdocs-summary">
+              
+ Represents whether a debug point should be present for the 'for' in a 'for...' loop,
+ that is whether the construct corresponds to a debug point in the original source.
+
+            </p>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td class="fsdocs-entity-name">
+          <p>
+            <a name="DebugPointAtInOrTo">
+              <a href="/fantomas/reference/fsharp-compiler-syntax-debugpointatinorto.html">
+                DebugPointAtInOrTo
+              </a>
+            </a>
+          </p>
+        </td>
+        <td class="fsdocs-entity-xmldoc">
+          <div>
+            <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:T:FSharp.Compiler.Syntax.DebugPointAtInOrTo`')">
+              <img src="/fantomas/content/img/copy-md.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-md-hover.png" class="hover"/>
+            </div>
+            <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:FSharp.Compiler.Syntax.DebugPointAtInOrTo\'/>')">
+              <img src="/fantomas/content/img/copy-xml.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+            </div>
+            <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/SyntaxTree/SyntaxTree.fsi#L297-297" class="fsdocs-source-link" title="Source on GitHub">
+              <img src="/fantomas/content/img/github.png" class="normal"/>
+              <img src="/fantomas/content/img/github-hover.png" class="hover"/>
+            </a>
+            <p class="fsdocs-summary">
+              
+ Represents whether a debug point should be present for the 'in' or 'to' of a 'for...' loop,
+ that is whether the construct corresponds to a debug point in the original source.
+
+            </p>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td class="fsdocs-entity-name">
+          <p>
+            <a name="DebugPointAtLeafExpr">
+              <a href="/fantomas/reference/fsharp-compiler-syntax-debugpointatleafexpr.html">
+                DebugPointAtLeafExpr
+              </a>
+            </a>
+          </p>
+        </td>
+        <td class="fsdocs-entity-xmldoc">
+          <div>
+            <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:T:FSharp.Compiler.Syntax.DebugPointAtLeafExpr`')">
+              <img src="/fantomas/content/img/copy-md.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-md-hover.png" class="hover"/>
+            </div>
+            <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:FSharp.Compiler.Syntax.DebugPointAtLeafExpr\'/>')">
+              <img src="/fantomas/content/img/copy-xml.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+            </div>
+            <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/SyntaxTree/SyntaxTree.fsi#L247-247" class="fsdocs-source-link" title="Source on GitHub">
+              <img src="/fantomas/content/img/github.png" class="normal"/>
+              <img src="/fantomas/content/img/github-hover.png" class="hover"/>
+            </a>
+            <p class="fsdocs-summary">
+              
+ Represents a debug point at a leaf expression (e.g. an application or constant).
+
+            </p>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td class="fsdocs-entity-name">
+          <p>
+            <a name="DebugPointAtSequential">
+              <a href="/fantomas/reference/fsharp-compiler-syntax-debugpointatsequential.html">
+                DebugPointAtSequential
+              </a>
+            </a>
+          </p>
+        </td>
+        <td class="fsdocs-entity-xmldoc">
+          <div>
+            <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:T:FSharp.Compiler.Syntax.DebugPointAtSequential`')">
+              <img src="/fantomas/content/img/copy-md.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-md-hover.png" class="hover"/>
+            </div>
+            <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:FSharp.Compiler.Syntax.DebugPointAtSequential\'/>')">
+              <img src="/fantomas/content/img/copy-xml.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+            </div>
+            <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/SyntaxTree/SyntaxTree.fsi#L253-253" class="fsdocs-source-link" title="Source on GitHub">
+              <img src="/fantomas/content/img/github.png" class="normal"/>
+              <img src="/fantomas/content/img/github-hover.png" class="hover"/>
+            </a>
+            <p class="fsdocs-summary">
+              
+ Represents whether a debug point should be suppressed for either the
+ first or second part of a sequential execution, that is whether the
+ construct corresponds to a debug point in the original source.
+
+            </p>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td class="fsdocs-entity-name">
+          <p>
+            <a name="DebugPointAtTarget">
+              <a href="/fantomas/reference/fsharp-compiler-syntax-debugpointattarget.html">
+                DebugPointAtTarget
+              </a>
+            </a>
+          </p>
+        </td>
+        <td class="fsdocs-entity-xmldoc">
+          <div>
+            <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:T:FSharp.Compiler.Syntax.DebugPointAtTarget`')">
+              <img src="/fantomas/content/img/copy-md.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-md-hover.png" class="hover"/>
+            </div>
+            <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:FSharp.Compiler.Syntax.DebugPointAtTarget\'/>')">
+              <img src="/fantomas/content/img/copy-xml.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+            </div>
+            <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/SyntaxTree/SyntaxTree.fsi#L241-241" class="fsdocs-source-link" title="Source on GitHub">
+              <img src="/fantomas/content/img/github.png" class="normal"/>
+              <img src="/fantomas/content/img/github-hover.png" class="hover"/>
+            </a>
+            <p class="fsdocs-summary">
+              
+ Represents whether a debug point should be present for the target
+ of a decision tree, that is whether the construct corresponds to a debug
+ point in the original source.
+
+            </p>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td class="fsdocs-entity-name">
+          <p>
+            <a name="DebugPointAtTry">
+              <a href="/fantomas/reference/fsharp-compiler-syntax-debugpointattry.html">
+                DebugPointAtTry
+              </a>
+            </a>
+          </p>
+        </td>
+        <td class="fsdocs-entity-xmldoc">
+          <div>
+            <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:T:FSharp.Compiler.Syntax.DebugPointAtTry`')">
+              <img src="/fantomas/content/img/copy-md.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-md-hover.png" class="hover"/>
+            </div>
+            <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:FSharp.Compiler.Syntax.DebugPointAtTry\'/>')">
+              <img src="/fantomas/content/img/copy-xml.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+            </div>
+            <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/SyntaxTree/SyntaxTree.fsi#L269-269" class="fsdocs-source-link" title="Source on GitHub">
+              <img src="/fantomas/content/img/github.png" class="normal"/>
+              <img src="/fantomas/content/img/github-hover.png" class="hover"/>
+            </a>
+            <p class="fsdocs-summary">
+              
+ Represents whether a debug point should be present for a 'try', that is whether
+ the construct corresponds to a debug point in the original source.
+
+            </p>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td class="fsdocs-entity-name">
+          <p>
+            <a name="DebugPointAtWhile">
+              <a href="/fantomas/reference/fsharp-compiler-syntax-debugpointatwhile.html">
+                DebugPointAtWhile
+              </a>
+            </a>
+          </p>
+        </td>
+        <td class="fsdocs-entity-xmldoc">
+          <div>
+            <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:T:FSharp.Compiler.Syntax.DebugPointAtWhile`')">
+              <img src="/fantomas/content/img/copy-md.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-md-hover.png" class="hover"/>
+            </div>
+            <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:FSharp.Compiler.Syntax.DebugPointAtWhile\'/>')">
+              <img src="/fantomas/content/img/copy-xml.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+            </div>
+            <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/SyntaxTree/SyntaxTree.fsi#L304-304" class="fsdocs-source-link" title="Source on GitHub">
+              <img src="/fantomas/content/img/github.png" class="normal"/>
+              <img src="/fantomas/content/img/github-hover.png" class="hover"/>
+            </a>
+            <p class="fsdocs-summary">
+              
+ Represents whether a debug point should be present for the 'while' in a 'while...' loop,
+ that is whether the construct corresponds to a debug point in the original source.
+
+            </p>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td class="fsdocs-entity-name">
+          <p>
+            <a name="DebugPointAtWith">
+              <a href="/fantomas/reference/fsharp-compiler-syntax-debugpointatwith.html">
+                DebugPointAtWith
+              </a>
+            </a>
+          </p>
+        </td>
+        <td class="fsdocs-entity-xmldoc">
+          <div>
+            <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:T:FSharp.Compiler.Syntax.DebugPointAtWith`')">
+              <img src="/fantomas/content/img/copy-md.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-md-hover.png" class="hover"/>
+            </div>
+            <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:FSharp.Compiler.Syntax.DebugPointAtWith\'/>')">
+              <img src="/fantomas/content/img/copy-xml.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+            </div>
+            <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/SyntaxTree/SyntaxTree.fsi#L276-276" class="fsdocs-source-link" title="Source on GitHub">
+              <img src="/fantomas/content/img/github.png" class="normal"/>
+              <img src="/fantomas/content/img/github-hover.png" class="hover"/>
+            </a>
+            <p class="fsdocs-summary">
+              
+ Represents whether a debug point should be present for the 'with' in a 'try .. with',
+ that is whether the construct corresponds to a debug point in the original source.
+
+            </p>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td class="fsdocs-entity-name">
+          <p>
+            <a name="ExprAtomicFlag">
+              <a href="/fantomas/reference/fsharp-compiler-syntax-expratomicflag.html">
+                ExprAtomicFlag
+              </a>
+            </a>
+          </p>
+        </td>
+        <td class="fsdocs-entity-xmldoc">
+          <div>
+            <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:T:FSharp.Compiler.Syntax.ExprAtomicFlag`')">
+              <img src="/fantomas/content/img/copy-md.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-md-hover.png" class="hover"/>
+            </div>
+            <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:FSharp.Compiler.Syntax.ExprAtomicFlag\'/>')">
+              <img src="/fantomas/content/img/copy-xml.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+            </div>
+            <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/SyntaxTree/SyntaxTree.fsi#L358-358" class="fsdocs-source-link" title="Source on GitHub">
+              <img src="/fantomas/content/img/github.png" class="normal"/>
+              <img src="/fantomas/content/img/github-hover.png" class="hover"/>
+            </a>
+            <p class="fsdocs-summary">
+              
+ Indicates if an expression is an atomic expression.
+
+ An atomic expression has no whitespace unless enclosed in parentheses, e.g.
+ 1, "3", ident, ident.[expr] and (expr). If an atomic expression has type T,
+ then the largest expression ending at the same range as the atomic expression
+ also has type T.
+
+            </p>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td class="fsdocs-entity-name">
+          <p>
+            <a name="Ident">
+              <a href="/fantomas/reference/fsharp-compiler-syntax-ident.html">
+                Ident
+              </a>
+            </a>
+          </p>
+        </td>
+        <td class="fsdocs-entity-xmldoc">
+          <div>
+            <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:T:FSharp.Compiler.Syntax.Ident`')">
+              <img src="/fantomas/content/img/copy-md.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-md-hover.png" class="hover"/>
+            </div>
+            <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:FSharp.Compiler.Syntax.Ident\'/>')">
+              <img src="/fantomas/content/img/copy-xml.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+            </div>
+            <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/SyntaxTree/SyntaxTree.fsi#L13-13" class="fsdocs-source-link" title="Source on GitHub">
+              <img src="/fantomas/content/img/github.png" class="normal"/>
+              <img src="/fantomas/content/img/github-hover.png" class="hover"/>
+            </a>
+            <p class="fsdocs-summary">
+              
+ Represents an identifier in F# code
+
+            </p>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td class="fsdocs-entity-name">
+          <p>
+            <a name="LongIdent">
+              <a href="/fantomas/reference/fsharp-compiler-syntax-longident.html">
+                LongIdent
+              </a>
+            </a>
+          </p>
+        </td>
+        <td class="fsdocs-entity-xmldoc">
+          <div>
+            <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:T:FSharp.Compiler.Syntax.LongIdent`')">
+              <img src="/fantomas/content/img/copy-md.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-md-hover.png" class="hover"/>
+            </div>
+            <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:FSharp.Compiler.Syntax.LongIdent\'/>')">
+              <img src="/fantomas/content/img/copy-xml.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+            </div>
+            <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/SyntaxTree/SyntaxTree.fsi#L22-22" class="fsdocs-source-link" title="Source on GitHub">
+              <img src="/fantomas/content/img/github.png" class="normal"/>
+              <img src="/fantomas/content/img/github-hover.png" class="hover"/>
+            </a>
+            <p class="fsdocs-summary">
+              
+ Represents a long identifier e.g. 'A.B.C'
+
+            </p>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td class="fsdocs-entity-name">
+          <p>
+            <a name="ParsedHashDirective">
+              <a href="/fantomas/reference/fsharp-compiler-syntax-parsedhashdirective.html">
+                ParsedHashDirective
+              </a>
+            </a>
+          </p>
+        </td>
+        <td class="fsdocs-entity-xmldoc">
+          <div>
+            <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:T:FSharp.Compiler.Syntax.ParsedHashDirective`')">
+              <img src="/fantomas/content/img/copy-md.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-md-hover.png" class="hover"/>
+            </div>
+            <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:FSharp.Compiler.Syntax.ParsedHashDirective\'/>')">
+              <img src="/fantomas/content/img/copy-xml.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+            </div>
+            <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/SyntaxTree/SyntaxTree.fsi#L1775-1775" class="fsdocs-source-link" title="Source on GitHub">
+              <img src="/fantomas/content/img/github.png" class="normal"/>
+              <img src="/fantomas/content/img/github-hover.png" class="hover"/>
+            </a>
+            <p class="fsdocs-summary">
+              
+ Represents a parsed hash directive
+
+            </p>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td class="fsdocs-entity-name">
+          <p>
+            <a name="ParsedHashDirectiveArgument">
+              <a href="/fantomas/reference/fsharp-compiler-syntax-parsedhashdirectiveargument.html">
+                ParsedHashDirectiveArgument
+              </a>
+            </a>
+          </p>
+        </td>
+        <td class="fsdocs-entity-xmldoc">
+          <div>
+            <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:T:FSharp.Compiler.Syntax.ParsedHashDirectiveArgument`')">
+              <img src="/fantomas/content/img/copy-md.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-md-hover.png" class="hover"/>
+            </div>
+            <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:FSharp.Compiler.Syntax.ParsedHashDirectiveArgument\'/>')">
+              <img src="/fantomas/content/img/copy-xml.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+            </div>
+            <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/SyntaxTree/SyntaxTree.fsi#L1766-1766" class="fsdocs-source-link" title="Source on GitHub">
+              <img src="/fantomas/content/img/github.png" class="normal"/>
+              <img src="/fantomas/content/img/github-hover.png" class="hover"/>
+            </a>
+            <p class="fsdocs-summary">
+              
+ Represents a parsed hash directive argument
+
+            </p>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td class="fsdocs-entity-name">
+          <p>
+            <a name="ParsedImplFile">
+              <a href="/fantomas/reference/fsharp-compiler-syntax-parsedimplfile.html">
+                ParsedImplFile
+              </a>
+            </a>
+          </p>
+        </td>
+        <td class="fsdocs-entity-xmldoc">
+          <div>
+            <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:T:FSharp.Compiler.Syntax.ParsedImplFile`')">
+              <img src="/fantomas/content/img/copy-md.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-md-hover.png" class="hover"/>
+            </div>
+            <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:FSharp.Compiler.Syntax.ParsedImplFile\'/>')">
+              <img src="/fantomas/content/img/copy-xml.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+            </div>
+            <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/SyntaxTree/SyntaxTree.fsi#L1828-1828" class="fsdocs-source-link" title="Source on GitHub">
+              <img src="/fantomas/content/img/github.png" class="normal"/>
+              <img src="/fantomas/content/img/github-hover.png" class="hover"/>
+            </a>
+            <p class="fsdocs-summary">
+              
+ Represents a parsed implementation file made up of fragments
+
+            </p>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td class="fsdocs-entity-name">
+          <p>
+            <a name="ParsedImplFileFragment">
+              <a href="/fantomas/reference/fsharp-compiler-syntax-parsedimplfilefragment.html">
+                ParsedImplFileFragment
+              </a>
+            </a>
+          </p>
+        </td>
+        <td class="fsdocs-entity-xmldoc">
+          <div>
+            <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:T:FSharp.Compiler.Syntax.ParsedImplFileFragment`')">
+              <img src="/fantomas/content/img/copy-md.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-md-hover.png" class="hover"/>
+            </div>
+            <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:FSharp.Compiler.Syntax.ParsedImplFileFragment\'/>')">
+              <img src="/fantomas/content/img/copy-xml.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+            </div>
+            <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/SyntaxTree/SyntaxTree.fsi#L1779-1779" class="fsdocs-source-link" title="Source on GitHub">
+              <img src="/fantomas/content/img/github.png" class="normal"/>
+              <img src="/fantomas/content/img/github-hover.png" class="hover"/>
+            </a>
+            <p class="fsdocs-summary">
+              
+ Represents the syntax tree for the contents of a parsed implementation file
+
+            </p>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td class="fsdocs-entity-name">
+          <p>
+            <a name="ParsedImplFileInput">
+              <a href="/fantomas/reference/fsharp-compiler-syntax-parsedimplfileinput.html">
+                ParsedImplFileInput
+              </a>
+            </a>
+          </p>
+        </td>
+        <td class="fsdocs-entity-xmldoc">
+          <div>
+            <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:T:FSharp.Compiler.Syntax.ParsedImplFileInput`')">
+              <img src="/fantomas/content/img/copy-md.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-md-hover.png" class="hover"/>
+            </div>
+            <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:FSharp.Compiler.Syntax.ParsedImplFileInput\'/>')">
+              <img src="/fantomas/content/img/copy-xml.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+            </div>
+            <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/SyntaxTree/SyntaxTree.fsi#L1857-1857" class="fsdocs-source-link" title="Source on GitHub">
+              <img src="/fantomas/content/img/github.png" class="normal"/>
+              <img src="/fantomas/content/img/github-hover.png" class="hover"/>
+            </a>
+            <p class="fsdocs-summary">
+              
+ Represents the full syntax tree, file name and other parsing information for an implementation file
+
+            </p>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td class="fsdocs-entity-name">
+          <p>
+            <a name="ParsedInput">
+              <a href="/fantomas/reference/fsharp-compiler-syntax-parsedinput.html">
+                ParsedInput
+              </a>
+            </a>
+          </p>
+        </td>
+        <td class="fsdocs-entity-xmldoc">
+          <div>
+            <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:T:FSharp.Compiler.Syntax.ParsedInput`')">
+              <img src="/fantomas/content/img/copy-md.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-md-hover.png" class="hover"/>
+            </div>
+            <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:FSharp.Compiler.Syntax.ParsedInput\'/>')">
+              <img src="/fantomas/content/img/copy-xml.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+            </div>
+            <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/SyntaxTree/SyntaxTree.fsi#L1881-1881" class="fsdocs-source-link" title="Source on GitHub">
+              <img src="/fantomas/content/img/github.png" class="normal"/>
+              <img src="/fantomas/content/img/github-hover.png" class="hover"/>
+            </a>
+            <p class="fsdocs-summary">
+              
+ Represents the syntax tree for a parsed implementation or signature file
+
+            </p>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td class="fsdocs-entity-name">
+          <p>
+            <a name="ParsedScriptInteraction">
+              <a href="/fantomas/reference/fsharp-compiler-syntax-parsedscriptinteraction.html">
+                ParsedScriptInteraction
+              </a>
+            </a>
+          </p>
+        </td>
+        <td class="fsdocs-entity-xmldoc">
+          <div>
+            <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:T:FSharp.Compiler.Syntax.ParsedScriptInteraction`')">
+              <img src="/fantomas/content/img/copy-md.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-md-hover.png" class="hover"/>
+            </div>
+            <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:FSharp.Compiler.Syntax.ParsedScriptInteraction\'/>')">
+              <img src="/fantomas/content/img/copy-xml.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+            </div>
+            <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/SyntaxTree/SyntaxTree.fsi#L1821-1821" class="fsdocs-source-link" title="Source on GitHub">
+              <img src="/fantomas/content/img/github.png" class="normal"/>
+              <img src="/fantomas/content/img/github-hover.png" class="hover"/>
+            </a>
+            <p class="fsdocs-summary">
+              
+ Represents a parsed syntax tree for an F# Interactive interaction
+
+            </p>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td class="fsdocs-entity-name">
+          <p>
+            <a name="ParsedSigFile">
+              <a href="/fantomas/reference/fsharp-compiler-syntax-parsedsigfile.html">
+                ParsedSigFile
+              </a>
+            </a>
+          </p>
+        </td>
+        <td class="fsdocs-entity-xmldoc">
+          <div>
+            <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:T:FSharp.Compiler.Syntax.ParsedSigFile`')">
+              <img src="/fantomas/content/img/copy-md.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-md-hover.png" class="hover"/>
+            </div>
+            <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:FSharp.Compiler.Syntax.ParsedSigFile\'/>')">
+              <img src="/fantomas/content/img/copy-xml.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+            </div>
+            <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/SyntaxTree/SyntaxTree.fsi#L1833-1833" class="fsdocs-source-link" title="Source on GitHub">
+              <img src="/fantomas/content/img/github.png" class="normal"/>
+              <img src="/fantomas/content/img/github-hover.png" class="hover"/>
+            </a>
+            <p class="fsdocs-summary">
+              
+ Represents a parsed signature file made up of fragments
+
+            </p>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td class="fsdocs-entity-name">
+          <p>
+            <a name="ParsedSigFileFragment">
+              <a href="/fantomas/reference/fsharp-compiler-syntax-parsedsigfilefragment.html">
+                ParsedSigFileFragment
+              </a>
+            </a>
+          </p>
+        </td>
+        <td class="fsdocs-entity-xmldoc">
+          <div>
+            <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:T:FSharp.Compiler.Syntax.ParsedSigFileFragment`')">
+              <img src="/fantomas/content/img/copy-md.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-md-hover.png" class="hover"/>
+            </div>
+            <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:FSharp.Compiler.Syntax.ParsedSigFileFragment\'/>')">
+              <img src="/fantomas/content/img/copy-xml.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+            </div>
+            <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/SyntaxTree/SyntaxTree.fsi#L1800-1800" class="fsdocs-source-link" title="Source on GitHub">
+              <img src="/fantomas/content/img/github.png" class="normal"/>
+              <img src="/fantomas/content/img/github-hover.png" class="hover"/>
+            </a>
+            <p class="fsdocs-summary">
+              
+ Represents the syntax tree for the contents of a parsed signature file
+
+            </p>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td class="fsdocs-entity-name">
+          <p>
+            <a name="ParsedSigFileInput">
+              <a href="/fantomas/reference/fsharp-compiler-syntax-parsedsigfileinput.html">
+                ParsedSigFileInput
+              </a>
+            </a>
+          </p>
+        </td>
+        <td class="fsdocs-entity-xmldoc">
+          <div>
+            <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:T:FSharp.Compiler.Syntax.ParsedSigFileInput`')">
+              <img src="/fantomas/content/img/copy-md.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-md-hover.png" class="hover"/>
+            </div>
+            <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:FSharp.Compiler.Syntax.ParsedSigFileInput\'/>')">
+              <img src="/fantomas/content/img/copy-xml.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+            </div>
+            <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/SyntaxTree/SyntaxTree.fsi#L1870-1870" class="fsdocs-source-link" title="Source on GitHub">
+              <img src="/fantomas/content/img/github.png" class="normal"/>
+              <img src="/fantomas/content/img/github-hover.png" class="hover"/>
+            </a>
+            <p class="fsdocs-summary">
+              
+ Represents the full syntax tree, file name and other parsing information for a signature file
+
+            </p>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td class="fsdocs-entity-name">
+          <p>
+            <a name="ParserDetail">
+              <a href="/fantomas/reference/fsharp-compiler-syntax-parserdetail.html">
+                ParserDetail
+              </a>
+            </a>
+          </p>
+        </td>
+        <td class="fsdocs-entity-xmldoc">
+          <div>
+            <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:T:FSharp.Compiler.Syntax.ParserDetail`')">
+              <img src="/fantomas/content/img/copy-md.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-md-hover.png" class="hover"/>
+            </div>
+            <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:FSharp.Compiler.Syntax.ParserDetail\'/>')">
+              <img src="/fantomas/content/img/copy-xml.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+            </div>
+            <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/SyntaxTree/SyntaxTree.fsi#L65-65" class="fsdocs-source-link" title="Source on GitHub">
+              <img src="/fantomas/content/img/github.png" class="normal"/>
+              <img src="/fantomas/content/img/github-hover.png" class="hover"/>
+            </a>
+            <p class="fsdocs-summary">
+              
+ Indicates if the construct arises from error recovery
+
+            </p>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td class="fsdocs-entity-name">
+          <p>
+            <a name="PrettyNaming">
+              <a href="/fantomas/reference/fsharp-compiler-syntax-prettynaming.html">
+                PrettyNaming
+              </a>
+            </a>
+          </p>
+        </td>
+        <td class="fsdocs-entity-xmldoc">
+          <div>
+            <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:T:FSharp.Compiler.Syntax.PrettyNaming`')">
+              <img src="/fantomas/content/img/copy-md.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-md-hover.png" class="hover"/>
+            </div>
+            <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:FSharp.Compiler.Syntax.PrettyNaming\'/>')">
+              <img src="/fantomas/content/img/copy-xml.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+            </div>
+            <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/SyntaxTree/PrettyNaming.fsi#L5-5" class="fsdocs-source-link" title="Source on GitHub">
+              <img src="/fantomas/content/img/github.png" class="normal"/>
+              <img src="/fantomas/content/img/github-hover.png" class="hover"/>
+            </a>
+            <p class="fsdocs-summary">
+              
+ Some general F# utilities for mangling / unmangling / manipulating names.
+ Anything to do with special names of identifiers and other lexical rules
+
+            </p>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td class="fsdocs-entity-name">
+          <p>
+            <a name="PropertyKeyword">
+              <a href="/fantomas/reference/fsharp-compiler-syntax-propertykeyword.html">
+                PropertyKeyword
+              </a>
+            </a>
+          </p>
+        </td>
+        <td class="fsdocs-entity-xmldoc">
+          <div>
+            <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:T:FSharp.Compiler.Syntax.PropertyKeyword`')">
+              <img src="/fantomas/content/img/copy-md.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-md-hover.png" class="hover"/>
+            </div>
+            <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:FSharp.Compiler.Syntax.PropertyKeyword\'/>')">
+              <img src="/fantomas/content/img/copy-xml.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+            </div>
+            <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/SyntaxTree/SyntaxTree.fsi#L1094-1094" class="fsdocs-source-link" title="Source on GitHub">
+              <img src="/fantomas/content/img/github.png" class="normal"/>
+              <img src="/fantomas/content/img/github-hover.png" class="hover"/>
+            </a>
+            <p class="fsdocs-summary">
+              
+ Represents a used keyword for a property member
+
+            </p>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td class="fsdocs-entity-name">
+          <p>
+            <a name="QualifiedNameOfFile">
+              <a href="/fantomas/reference/fsharp-compiler-syntax-qualifiednameoffile.html">
+                QualifiedNameOfFile
+              </a>
+            </a>
+          </p>
+        </td>
+        <td class="fsdocs-entity-xmldoc">
+          <div>
+            <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:T:FSharp.Compiler.Syntax.QualifiedNameOfFile`')">
+              <img src="/fantomas/content/img/copy-md.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-md-hover.png" class="hover"/>
+            </div>
+            <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:FSharp.Compiler.Syntax.QualifiedNameOfFile\'/>')">
+              <img src="/fantomas/content/img/copy-xml.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+            </div>
+            <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/SyntaxTree/SyntaxTree.fsi#L1843-1843" class="fsdocs-source-link" title="Source on GitHub">
+              <img src="/fantomas/content/img/github.png" class="normal"/>
+              <img src="/fantomas/content/img/github-hover.png" class="hover"/>
+            </a>
+            <p class="fsdocs-summary">
+              
+ Represents a qualifying name for anonymous module specifications and implementations,
+
+            </p>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td class="fsdocs-entity-name">
+          <p>
+            <a name="RecordFieldName">
+              <a href="/fantomas/reference/fsharp-compiler-syntax-recordfieldname.html">
+                RecordFieldName
+              </a>
+            </a>
+          </p>
+        </td>
+        <td class="fsdocs-entity-xmldoc">
+          <div>
+            <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:T:FSharp.Compiler.Syntax.RecordFieldName`')">
+              <img src="/fantomas/content/img/copy-md.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-md-hover.png" class="hover"/>
+            </div>
+            <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:FSharp.Compiler.Syntax.RecordFieldName\'/>')">
+              <img src="/fantomas/content/img/copy-xml.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+            </div>
+            <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/SyntaxTree/SyntaxTree.fsi#L350-350" class="fsdocs-source-link" title="Source on GitHub">
+              <img src="/fantomas/content/img/github.png" class="normal"/>
+              <img src="/fantomas/content/img/github-hover.png" class="hover"/>
+            </a>
+            <p class="fsdocs-summary">
+              
+ Represents a record field name plus a flag indicating if given record field name is syntactically
+ correct and can be used in name resolution.
+
+            </p>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td class="fsdocs-entity-name">
+          <p>
+            <a name="ScopedPragma">
+              <a href="/fantomas/reference/fsharp-compiler-syntax-scopedpragma.html">
+                ScopedPragma
+              </a>
+            </a>
+          </p>
+        </td>
+        <td class="fsdocs-entity-xmldoc">
+          <div>
+            <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:T:FSharp.Compiler.Syntax.ScopedPragma`')">
+              <img src="/fantomas/content/img/copy-md.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-md-hover.png" class="hover"/>
+            </div>
+            <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:FSharp.Compiler.Syntax.ScopedPragma\'/>')">
+              <img src="/fantomas/content/img/copy-xml.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+            </div>
+            <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/SyntaxTree/SyntaxTree.fsi#L1837-1837" class="fsdocs-source-link" title="Source on GitHub">
+              <img src="/fantomas/content/img/github.png" class="normal"/>
+              <img src="/fantomas/content/img/github-hover.png" class="hover"/>
+            </a>
+            <p class="fsdocs-summary">
+              
+ Represents a scoped pragma
+
+            </p>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td class="fsdocs-entity-name">
+          <p>
+            <a name="SeqExprOnly">
+              <a href="/fantomas/reference/fsharp-compiler-syntax-seqexpronly.html">
+                SeqExprOnly
+              </a>
+            </a>
+          </p>
+        </td>
+        <td class="fsdocs-entity-xmldoc">
+          <div>
+            <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:T:FSharp.Compiler.Syntax.SeqExprOnly`')">
+              <img src="/fantomas/content/img/copy-md.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-md-hover.png" class="hover"/>
+            </div>
+            <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:FSharp.Compiler.Syntax.SeqExprOnly\'/>')">
+              <img src="/fantomas/content/img/copy-xml.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+            </div>
+            <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/SyntaxTree/SyntaxTree.fsi#L340-340" class="fsdocs-source-link" title="Source on GitHub">
+              <img src="/fantomas/content/img/github.png" class="normal"/>
+              <img src="/fantomas/content/img/github-hover.png" class="hover"/>
+            </a>
+            <p class="fsdocs-summary">
+              
+ Indicates if a for loop is 'for x in e1 -> e2', only valid in sequence expressions
+
+            </p>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td class="fsdocs-entity-name">
+          <p>
+            <a name="SynAccess">
+              <a href="/fantomas/reference/fsharp-compiler-syntax-synaccess.html">
+                SynAccess
+              </a>
+            </a>
+          </p>
+        </td>
+        <td class="fsdocs-entity-xmldoc">
+          <div>
+            <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:T:FSharp.Compiler.Syntax.SynAccess`')">
+              <img src="/fantomas/content/img/copy-md.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-md-hover.png" class="hover"/>
+            </div>
+            <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:FSharp.Compiler.Syntax.SynAccess\'/>')">
+              <img src="/fantomas/content/img/copy-xml.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+            </div>
+            <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/SyntaxTree/SyntaxTree.fsi#L225-225" class="fsdocs-source-link" title="Source on GitHub">
+              <img src="/fantomas/content/img/github.png" class="normal"/>
+              <img src="/fantomas/content/img/github-hover.png" class="hover"/>
+            </a>
+            <p class="fsdocs-summary">
+              
+ Represents an accessibility modifier in F# syntax
+
+            </p>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td class="fsdocs-entity-name">
+          <p>
+            <a name="SynArgInfo">
+              <a href="/fantomas/reference/fsharp-compiler-syntax-synarginfo.html">
+                SynArgInfo
+              </a>
+            </a>
+          </p>
+        </td>
+        <td class="fsdocs-entity-xmldoc">
+          <div>
+            <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:T:FSharp.Compiler.Syntax.SynArgInfo`')">
+              <img src="/fantomas/content/img/copy-md.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-md-hover.png" class="hover"/>
+            </div>
+            <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:FSharp.Compiler.Syntax.SynArgInfo\'/>')">
+              <img src="/fantomas/content/img/copy-xml.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+            </div>
+            <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/SyntaxTree/SyntaxTree.fsi#L1472-1472" class="fsdocs-source-link" title="Source on GitHub">
+              <img src="/fantomas/content/img/github.png" class="normal"/>
+              <img src="/fantomas/content/img/github-hover.png" class="hover"/>
+            </a>
+            <p class="fsdocs-summary">
+              
+ Represents the argument names and other metadata for a parameter for a member or function
+
+            </p>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td class="fsdocs-entity-name">
+          <p>
+            <a name="SynArgPats">
+              <a href="/fantomas/reference/fsharp-compiler-syntax-synargpats.html">
+                SynArgPats
+              </a>
+            </a>
+          </p>
+        </td>
+        <td class="fsdocs-entity-xmldoc">
+          <div>
+            <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:T:FSharp.Compiler.Syntax.SynArgPats`')">
+              <img src="/fantomas/content/img/copy-md.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-md-hover.png" class="hover"/>
+            </div>
+            <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:FSharp.Compiler.Syntax.SynArgPats\'/>')">
+              <img src="/fantomas/content/img/copy-xml.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+            </div>
+            <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/SyntaxTree/SyntaxTree.fsi#L1006-1006" class="fsdocs-source-link" title="Source on GitHub">
+              <img src="/fantomas/content/img/github.png" class="normal"/>
+              <img src="/fantomas/content/img/github-hover.png" class="hover"/>
+            </a>
+            <p class="fsdocs-summary">
+              
+ Represents a syntax tree for arguments patterns
+
+            </p>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td class="fsdocs-entity-name">
+          <p>
+            <a name="SynAttribute">
+              <a href="/fantomas/reference/fsharp-compiler-syntax-synattribute.html">
+                SynAttribute
+              </a>
+            </a>
+          </p>
+        </td>
+        <td class="fsdocs-entity-xmldoc">
+          <div>
+            <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:T:FSharp.Compiler.Syntax.SynAttribute`')">
+              <img src="/fantomas/content/img/copy-md.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-md-hover.png" class="hover"/>
+            </div>
+            <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:FSharp.Compiler.Syntax.SynAttribute\'/>')">
+              <img src="/fantomas/content/img/copy-xml.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+            </div>
+            <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/SyntaxTree/SyntaxTree.fsi#L1127-1127" class="fsdocs-source-link" title="Source on GitHub">
+              <img src="/fantomas/content/img/github.png" class="normal"/>
+              <img src="/fantomas/content/img/github-hover.png" class="hover"/>
+            </a>
+            <p class="fsdocs-summary">
+              
+ Represents an attribute
+
+            </p>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td class="fsdocs-entity-name">
+          <p>
+            <a name="SynAttributeList">
+              <a href="/fantomas/reference/fsharp-compiler-syntax-synattributelist.html">
+                SynAttributeList
+              </a>
+            </a>
+          </p>
+        </td>
+        <td class="fsdocs-entity-xmldoc">
+          <div>
+            <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:T:FSharp.Compiler.Syntax.SynAttributeList`')">
+              <img src="/fantomas/content/img/copy-md.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-md-hover.png" class="hover"/>
+            </div>
+            <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:FSharp.Compiler.Syntax.SynAttributeList\'/>')">
+              <img src="/fantomas/content/img/copy-xml.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+            </div>
+            <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/SyntaxTree/SyntaxTree.fsi#L1147-1147" class="fsdocs-source-link" title="Source on GitHub">
+              <img src="/fantomas/content/img/github.png" class="normal"/>
+              <img src="/fantomas/content/img/github-hover.png" class="hover"/>
+            </a>
+            <p class="fsdocs-summary">
+              
+ List of attributes enclosed in [< ... >].
+
+            </p>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td class="fsdocs-entity-name">
+          <p>
+            <a name="SynAttributes">
+              <a href="/fantomas/reference/fsharp-compiler-syntax-synattributes.html">
+                SynAttributes
+              </a>
+            </a>
+          </p>
+        </td>
+        <td class="fsdocs-entity-xmldoc">
+          <div>
+            <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:T:FSharp.Compiler.Syntax.SynAttributes`')">
+              <img src="/fantomas/content/img/copy-md.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-md-hover.png" class="hover"/>
+            </div>
+            <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:FSharp.Compiler.Syntax.SynAttributes\'/>')">
+              <img src="/fantomas/content/img/copy-xml.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+            </div>
+            <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/SyntaxTree/SyntaxTree.fsi#L1156-1156" class="fsdocs-source-link" title="Source on GitHub">
+              <img src="/fantomas/content/img/github.png" class="normal"/>
+              <img src="/fantomas/content/img/github-hover.png" class="hover"/>
+            </a>
+            <p class="fsdocs-summary">
+              
+            </p>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td class="fsdocs-entity-name">
+          <p>
+            <a name="SynBinding">
+              <a href="/fantomas/reference/fsharp-compiler-syntax-synbinding.html">
+                SynBinding
+              </a>
+            </a>
+          </p>
+        </td>
+        <td class="fsdocs-entity-xmldoc">
+          <div>
+            <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:T:FSharp.Compiler.Syntax.SynBinding`')">
+              <img src="/fantomas/content/img/copy-md.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-md-hover.png" class="hover"/>
+            </div>
+            <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:FSharp.Compiler.Syntax.SynBinding\'/>')">
+              <img src="/fantomas/content/img/copy-xml.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+            </div>
+            <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/SyntaxTree/SyntaxTree.fsi#L1167-1167" class="fsdocs-source-link" title="Source on GitHub">
+              <img src="/fantomas/content/img/github.png" class="normal"/>
+              <img src="/fantomas/content/img/github-hover.png" class="hover"/>
+            </a>
+            <p class="fsdocs-summary">
+              
+ Represents a binding for a 'let' or 'member' declaration
+
+            </p>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td class="fsdocs-entity-name">
+          <p>
+            <a name="SynBindingKind">
+              <a href="/fantomas/reference/fsharp-compiler-syntax-synbindingkind.html">
+                SynBindingKind
+              </a>
+            </a>
+          </p>
+        </td>
+        <td class="fsdocs-entity-xmldoc">
+          <div>
+            <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:T:FSharp.Compiler.Syntax.SynBindingKind`')">
+              <img src="/fantomas/content/img/copy-md.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-md-hover.png" class="hover"/>
+            </div>
+            <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:FSharp.Compiler.Syntax.SynBindingKind\'/>')">
+              <img src="/fantomas/content/img/copy-xml.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+            </div>
+            <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/SyntaxTree/SyntaxTree.fsi#L364-364" class="fsdocs-source-link" title="Source on GitHub">
+              <img src="/fantomas/content/img/github.png" class="normal"/>
+              <img src="/fantomas/content/img/github-hover.png" class="hover"/>
+            </a>
+            <p class="fsdocs-summary">
+              
+ The kind associated with a binding - "let", "do" or a standalone expression
+
+            </p>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td class="fsdocs-entity-name">
+          <p>
+            <a name="SynBindingReturnInfo">
+              <a href="/fantomas/reference/fsharp-compiler-syntax-synbindingreturninfo.html">
+                SynBindingReturnInfo
+              </a>
+            </a>
+          </p>
+        </td>
+        <td class="fsdocs-entity-xmldoc">
+          <div>
+            <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:T:FSharp.Compiler.Syntax.SynBindingReturnInfo`')">
+              <img src="/fantomas/content/img/copy-md.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-md-hover.png" class="hover"/>
+            </div>
+            <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:FSharp.Compiler.Syntax.SynBindingReturnInfo\'/>')">
+              <img src="/fantomas/content/img/copy-xml.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+            </div>
+            <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/SyntaxTree/SyntaxTree.fsi#L1195-1195" class="fsdocs-source-link" title="Source on GitHub">
+              <img src="/fantomas/content/img/github.png" class="normal"/>
+              <img src="/fantomas/content/img/github-hover.png" class="hover"/>
+            </a>
+            <p class="fsdocs-summary">
+              
+ Represents the return information in a binding for a 'let' or 'member' declaration
+
+            </p>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td class="fsdocs-entity-name">
+          <p>
+            <a name="SynByteStringKind">
+              <a href="/fantomas/reference/fsharp-compiler-syntax-synbytestringkind.html">
+                SynByteStringKind
+              </a>
+            </a>
+          </p>
+        </td>
+        <td class="fsdocs-entity-xmldoc">
+          <div>
+            <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:T:FSharp.Compiler.Syntax.SynByteStringKind`')">
+              <img src="/fantomas/content/img/copy-md.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-md-hover.png" class="hover"/>
+            </div>
+            <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:FSharp.Compiler.Syntax.SynByteStringKind\'/>')">
+              <img src="/fantomas/content/img/copy-xml.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+            </div>
+            <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/SyntaxTree/SyntaxTree.fsi#L98-98" class="fsdocs-source-link" title="Source on GitHub">
+              <img src="/fantomas/content/img/github.png" class="normal"/>
+              <img src="/fantomas/content/img/github-hover.png" class="hover"/>
+            </a>
+            <p class="fsdocs-summary">
+              
+ Indicate if the byte string had a special format
+
+            </p>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td class="fsdocs-entity-name">
+          <p>
+            <a name="SynComponentInfo">
+              <a href="/fantomas/reference/fsharp-compiler-syntax-syncomponentinfo.html">
+                SynComponentInfo
+              </a>
+            </a>
+          </p>
+        </td>
+        <td class="fsdocs-entity-xmldoc">
+          <div>
+            <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:T:FSharp.Compiler.Syntax.SynComponentInfo`')">
+              <img src="/fantomas/content/img/copy-md.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-md-hover.png" class="hover"/>
+            </div>
+            <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:FSharp.Compiler.Syntax.SynComponentInfo\'/>')">
+              <img src="/fantomas/content/img/copy-xml.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+            </div>
+            <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/SyntaxTree/SyntaxTree.fsi#L1422-1422" class="fsdocs-source-link" title="Source on GitHub">
+              <img src="/fantomas/content/img/github.png" class="normal"/>
+              <img src="/fantomas/content/img/github-hover.png" class="hover"/>
+            </a>
+            <p class="fsdocs-summary">
+              
+ Represents the syntax tree associated with the name of a type definition or module
+ in signature or implementation.
+
+ This includes the name, attributes, type parameters, constraints, documentation and accessibility
+ for a type definition or module. For modules, entries such as the type parameters are
+ always empty.
+
+            </p>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td class="fsdocs-entity-name">
+          <p>
+            <a name="SynConst">
+              <a href="/fantomas/reference/fsharp-compiler-syntax-synconst.html">
+                SynConst
+              </a>
+            </a>
+          </p>
+        </td>
+        <td class="fsdocs-entity-xmldoc">
+          <div>
+            <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:T:FSharp.Compiler.Syntax.SynConst`')">
+              <img src="/fantomas/content/img/copy-md.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-md-hover.png" class="hover"/>
+            </div>
+            <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:FSharp.Compiler.Syntax.SynConst\'/>')">
+              <img src="/fantomas/content/img/copy-xml.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+            </div>
+            <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/SyntaxTree/SyntaxTree.fsi#L104-104" class="fsdocs-source-link" title="Source on GitHub">
+              <img src="/fantomas/content/img/github.png" class="normal"/>
+              <img src="/fantomas/content/img/github-hover.png" class="hover"/>
+            </a>
+            <p class="fsdocs-summary">
+              
+ The unchecked abstract syntax tree of constants in F# types and expressions.
+
+            </p>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td class="fsdocs-entity-name">
+          <p>
+            <a name="SynEnumCase">
+              <a href="/fantomas/reference/fsharp-compiler-syntax-synenumcase.html">
+                SynEnumCase
+              </a>
+            </a>
+          </p>
+        </td>
+        <td class="fsdocs-entity-xmldoc">
+          <div>
+            <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:T:FSharp.Compiler.Syntax.SynEnumCase`')">
+              <img src="/fantomas/content/img/copy-md.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-md-hover.png" class="hover"/>
+            </div>
+            <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:FSharp.Compiler.Syntax.SynEnumCase\'/>')">
+              <img src="/fantomas/content/img/copy-xml.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+            </div>
+            <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/SyntaxTree/SyntaxTree.fsi#L1328-1328" class="fsdocs-source-link" title="Source on GitHub">
+              <img src="/fantomas/content/img/github.png" class="normal"/>
+              <img src="/fantomas/content/img/github-hover.png" class="hover"/>
+            </a>
+            <p class="fsdocs-summary">
+              
+ Represents the syntax tree for one case in an enum definition.
+
+            </p>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td class="fsdocs-entity-name">
+          <p>
+            <a name="SynExceptionDefn">
+              <a href="/fantomas/reference/fsharp-compiler-syntax-synexceptiondefn.html">
+                SynExceptionDefn
+              </a>
+            </a>
+          </p>
+        </td>
+        <td class="fsdocs-entity-xmldoc">
+          <div>
+            <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:T:FSharp.Compiler.Syntax.SynExceptionDefn`')">
+              <img src="/fantomas/content/img/copy-md.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-md-hover.png" class="hover"/>
+            </div>
+            <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:FSharp.Compiler.Syntax.SynExceptionDefn\'/>')">
+              <img src="/fantomas/content/img/copy-xml.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+            </div>
+            <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/SyntaxTree/SyntaxTree.fsi#L1506-1506" class="fsdocs-source-link" title="Source on GitHub">
+              <img src="/fantomas/content/img/github.png" class="normal"/>
+              <img src="/fantomas/content/img/github-hover.png" class="hover"/>
+            </a>
+            <p class="fsdocs-summary">
+              
+ Represents the right hand side of an exception declaration 'exception E = ... ' plus
+ any member definitions for the exception
+
+            </p>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td class="fsdocs-entity-name">
+          <p>
+            <a name="SynExceptionDefnRepr">
+              <a href="/fantomas/reference/fsharp-compiler-syntax-synexceptiondefnrepr.html">
+                SynExceptionDefnRepr
+              </a>
+            </a>
+          </p>
+        </td>
+        <td class="fsdocs-entity-xmldoc">
+          <div>
+            <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:T:FSharp.Compiler.Syntax.SynExceptionDefnRepr`')">
+              <img src="/fantomas/content/img/copy-md.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-md-hover.png" class="hover"/>
+            </div>
+            <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:FSharp.Compiler.Syntax.SynExceptionDefnRepr\'/>')">
+              <img src="/fantomas/content/img/copy-xml.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+            </div>
+            <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/SyntaxTree/SyntaxTree.fsi#L1490-1490" class="fsdocs-source-link" title="Source on GitHub">
+              <img src="/fantomas/content/img/github.png" class="normal"/>
+              <img src="/fantomas/content/img/github-hover.png" class="hover"/>
+            </a>
+            <p class="fsdocs-summary">
+              
+ Represents the right hand side of an exception declaration 'exception E = ... '
+
+            </p>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td class="fsdocs-entity-name">
+          <p>
+            <a name="SynExceptionSig">
+              <a href="/fantomas/reference/fsharp-compiler-syntax-synexceptionsig.html">
+                SynExceptionSig
+              </a>
+            </a>
+          </p>
+        </td>
+        <td class="fsdocs-entity-xmldoc">
+          <div>
+            <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:T:FSharp.Compiler.Syntax.SynExceptionSig`')">
+              <img src="/fantomas/content/img/copy-md.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-md-hover.png" class="hover"/>
+            </div>
+            <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:FSharp.Compiler.Syntax.SynExceptionSig\'/>')">
+              <img src="/fantomas/content/img/copy-xml.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+            </div>
+            <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/SyntaxTree/SyntaxTree.fsi#L1668-1668" class="fsdocs-source-link" title="Source on GitHub">
+              <img src="/fantomas/content/img/github.png" class="normal"/>
+              <img src="/fantomas/content/img/github-hover.png" class="hover"/>
+            </a>
+            <p class="fsdocs-summary">
+              
+ Represents the right hand side of an exception definition in a signature file
+
+            </p>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td class="fsdocs-entity-name">
+          <p>
+            <a name="SynExpr">
+              <a href="/fantomas/reference/fsharp-compiler-syntax-synexpr.html">
+                SynExpr
+              </a>
+            </a>
+          </p>
+        </td>
+        <td class="fsdocs-entity-xmldoc">
+          <div>
+            <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:T:FSharp.Compiler.Syntax.SynExpr`')">
+              <img src="/fantomas/content/img/copy-md.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-md-hover.png" class="hover"/>
+            </div>
+            <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:FSharp.Compiler.Syntax.SynExpr\'/>')">
+              <img src="/fantomas/content/img/copy-xml.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+            </div>
+            <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/SyntaxTree/SyntaxTree.fsi#L511-511" class="fsdocs-source-link" title="Source on GitHub">
+              <img src="/fantomas/content/img/github.png" class="normal"/>
+              <img src="/fantomas/content/img/github-hover.png" class="hover"/>
+            </a>
+            <p class="fsdocs-summary">
+              
+ Represents a syntax tree for F# expressions
+
+            </p>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td class="fsdocs-entity-name">
+          <p>
+            <a name="SynExprAndBang">
+              <a href="/fantomas/reference/fsharp-compiler-syntax-synexprandbang.html">
+                SynExprAndBang
+              </a>
+            </a>
+          </p>
+        </td>
+        <td class="fsdocs-entity-xmldoc">
+          <div>
+            <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:T:FSharp.Compiler.Syntax.SynExprAndBang`')">
+              <img src="/fantomas/content/img/copy-md.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-md-hover.png" class="hover"/>
+            </div>
+            <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:FSharp.Compiler.Syntax.SynExprAndBang\'/>')">
+              <img src="/fantomas/content/img/copy-xml.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+            </div>
+            <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/SyntaxTree/SyntaxTree.fsi#L917-917" class="fsdocs-source-link" title="Source on GitHub">
+              <img src="/fantomas/content/img/github.png" class="normal"/>
+              <img src="/fantomas/content/img/github-hover.png" class="hover"/>
+            </a>
+            <p class="fsdocs-summary">
+              
+            </p>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td class="fsdocs-entity-name">
+          <p>
+            <a name="SynExprRecordField">
+              <a href="/fantomas/reference/fsharp-compiler-syntax-synexprrecordfield.html">
+                SynExprRecordField
+              </a>
+            </a>
+          </p>
+        </td>
+        <td class="fsdocs-entity-xmldoc">
+          <div>
+            <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:T:FSharp.Compiler.Syntax.SynExprRecordField`')">
+              <img src="/fantomas/content/img/copy-md.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-md-hover.png" class="hover"/>
+            </div>
+            <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:FSharp.Compiler.Syntax.SynExprRecordField\'/>')">
+              <img src="/fantomas/content/img/copy-xml.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+            </div>
+            <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/SyntaxTree/SyntaxTree.fsi#L928-928" class="fsdocs-source-link" title="Source on GitHub">
+              <img src="/fantomas/content/img/github.png" class="normal"/>
+              <img src="/fantomas/content/img/github-hover.png" class="hover"/>
+            </a>
+            <p class="fsdocs-summary">
+              
+            </p>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td class="fsdocs-entity-name">
+          <p>
+            <a name="SynField">
+              <a href="/fantomas/reference/fsharp-compiler-syntax-synfield.html">
+                SynField
+              </a>
+            </a>
+          </p>
+        </td>
+        <td class="fsdocs-entity-xmldoc">
+          <div>
+            <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:T:FSharp.Compiler.Syntax.SynField`')">
+              <img src="/fantomas/content/img/copy-md.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-md-hover.png" class="hover"/>
+            </div>
+            <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:FSharp.Compiler.Syntax.SynField\'/>')">
+              <img src="/fantomas/content/img/copy-xml.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+            </div>
+            <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/SyntaxTree/SyntaxTree.fsi#L1404-1404" class="fsdocs-source-link" title="Source on GitHub">
+              <img src="/fantomas/content/img/github.png" class="normal"/>
+              <img src="/fantomas/content/img/github-hover.png" class="hover"/>
+            </a>
+            <p class="fsdocs-summary">
+              
+ Represents the syntax tree for a field declaration in a record or class
+
+            </p>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td class="fsdocs-entity-name">
+          <p>
+            <a name="SynIdent">
+              <a href="/fantomas/reference/fsharp-compiler-syntax-synident.html">
+                SynIdent
+              </a>
+            </a>
+          </p>
+        </td>
+        <td class="fsdocs-entity-xmldoc">
+          <div>
+            <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:T:FSharp.Compiler.Syntax.SynIdent`')">
+              <img src="/fantomas/content/img/copy-md.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-md-hover.png" class="hover"/>
+            </div>
+            <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:FSharp.Compiler.Syntax.SynIdent\'/>')">
+              <img src="/fantomas/content/img/copy-xml.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+            </div>
+            <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/SyntaxTree/SyntaxTree.fsi#L19-19" class="fsdocs-source-link" title="Source on GitHub">
+              <img src="/fantomas/content/img/github.png" class="normal"/>
+              <img src="/fantomas/content/img/github-hover.png" class="hover"/>
+            </a>
+            <p class="fsdocs-summary">
+              
+ Represents an identifier with potentially additional trivia information.
+
+            </p>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td class="fsdocs-entity-name">
+          <p>
+            <a name="SynInterfaceImpl">
+              <a href="/fantomas/reference/fsharp-compiler-syntax-syninterfaceimpl.html">
+                SynInterfaceImpl
+              </a>
+            </a>
+          </p>
+        </td>
+        <td class="fsdocs-entity-xmldoc">
+          <div>
+            <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:T:FSharp.Compiler.Syntax.SynInterfaceImpl`')">
+              <img src="/fantomas/content/img/copy-md.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-md-hover.png" class="hover"/>
+            </div>
+            <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:FSharp.Compiler.Syntax.SynInterfaceImpl\'/>')">
+              <img src="/fantomas/content/img/copy-xml.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+            </div>
+            <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/SyntaxTree/SyntaxTree.fsi#L1100-1100" class="fsdocs-source-link" title="Source on GitHub">
+              <img src="/fantomas/content/img/github.png" class="normal"/>
+              <img src="/fantomas/content/img/github-hover.png" class="hover"/>
+            </a>
+            <p class="fsdocs-summary">
+              
+ Represents a set of bindings that implement an interface
+
+            </p>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td class="fsdocs-entity-name">
+          <p>
+            <a name="SynInterpolatedStringPart">
+              <a href="/fantomas/reference/fsharp-compiler-syntax-syninterpolatedstringpart.html">
+                SynInterpolatedStringPart
+              </a>
+            </a>
+          </p>
+        </td>
+        <td class="fsdocs-entity-xmldoc">
+          <div>
+            <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:T:FSharp.Compiler.Syntax.SynInterpolatedStringPart`')">
+              <img src="/fantomas/content/img/copy-md.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-md-hover.png" class="hover"/>
+            </div>
+            <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:FSharp.Compiler.Syntax.SynInterpolatedStringPart\'/>')">
+              <img src="/fantomas/content/img/copy-xml.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+            </div>
+            <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/SyntaxTree/SyntaxTree.fsi#L936-936" class="fsdocs-source-link" title="Source on GitHub">
+              <img src="/fantomas/content/img/github.png" class="normal"/>
+              <img src="/fantomas/content/img/github-hover.png" class="hover"/>
+            </a>
+            <p class="fsdocs-summary">
+              
+            </p>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td class="fsdocs-entity-name">
+          <p>
+            <a name="SynLongIdent">
+              <a href="/fantomas/reference/fsharp-compiler-syntax-synlongident.html">
+                SynLongIdent
+              </a>
+            </a>
+          </p>
+        </td>
+        <td class="fsdocs-entity-xmldoc">
+          <div>
+            <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:T:FSharp.Compiler.Syntax.SynLongIdent`')">
+              <img src="/fantomas/content/img/copy-md.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-md-hover.png" class="hover"/>
+            </div>
+            <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:FSharp.Compiler.Syntax.SynLongIdent\'/>')">
+              <img src="/fantomas/content/img/copy-xml.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+            </div>
+            <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/SyntaxTree/SyntaxTree.fsi#L31-31" class="fsdocs-source-link" title="Source on GitHub">
+              <img src="/fantomas/content/img/github.png" class="normal"/>
+              <img src="/fantomas/content/img/github-hover.png" class="hover"/>
+            </a>
+            <p class="fsdocs-summary">
+              
+ Represents a long identifier with possible '.' at end.
+
+ Typically dotRanges.Length = lid.Length-1, but they may be same if (incomplete) code ends in a dot, e.g. "Foo.Bar."
+ The dots mostly matter for parsing, and are typically ignored by the typechecker, but
+ if dotRanges.Length = lid.Length, then the parser must have reported an error, so the typechecker is allowed
+ more freedom about typechecking these expressions.
+ LongIdent can be empty list - it is used to denote that name of some AST element is absent (i.e. empty type name in inherit)
+
+            </p>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td class="fsdocs-entity-name">
+          <p>
+            <a name="SynLongIdentHelpers">
+              <a href="/fantomas/reference/fsharp-compiler-syntax-synlongidenthelpers.html">
+                SynLongIdentHelpers
+              </a>
+            </a>
+          </p>
+        </td>
+        <td class="fsdocs-entity-xmldoc">
+          <div>
+            <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:T:FSharp.Compiler.Syntax.SynLongIdentHelpers`')">
+              <img src="/fantomas/content/img/copy-md.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-md-hover.png" class="hover"/>
+            </div>
+            <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:FSharp.Compiler.Syntax.SynLongIdentHelpers\'/>')">
+              <img src="/fantomas/content/img/copy-xml.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+            </div>
+            <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/SyntaxTree/SyntaxTree.fsi#L56-56" class="fsdocs-source-link" title="Source on GitHub">
+              <img src="/fantomas/content/img/github.png" class="normal"/>
+              <img src="/fantomas/content/img/github-hover.png" class="hover"/>
+            </a>
+            <p class="fsdocs-summary">
+              
+            </p>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td class="fsdocs-entity-name">
+          <p>
+            <a name="SynMatchClause">
+              <a href="/fantomas/reference/fsharp-compiler-syntax-synmatchclause.html">
+                SynMatchClause
+              </a>
+            </a>
+          </p>
+        </td>
+        <td class="fsdocs-entity-xmldoc">
+          <div>
+            <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:T:FSharp.Compiler.Syntax.SynMatchClause`')">
+              <img src="/fantomas/content/img/copy-md.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-md-hover.png" class="hover"/>
+            </div>
+            <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:FSharp.Compiler.Syntax.SynMatchClause\'/>')">
+              <img src="/fantomas/content/img/copy-xml.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+            </div>
+            <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/SyntaxTree/SyntaxTree.fsi#L1110-1110" class="fsdocs-source-link" title="Source on GitHub">
+              <img src="/fantomas/content/img/github.png" class="normal"/>
+              <img src="/fantomas/content/img/github-hover.png" class="hover"/>
+            </a>
+            <p class="fsdocs-summary">
+              
+ Represents a clause in a 'match' expression
+
+            </p>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td class="fsdocs-entity-name">
+          <p>
+            <a name="SynMeasure">
+              <a href="/fantomas/reference/fsharp-compiler-syntax-synmeasure.html">
+                SynMeasure
+              </a>
+            </a>
+          </p>
+        </td>
+        <td class="fsdocs-entity-xmldoc">
+          <div>
+            <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:T:FSharp.Compiler.Syntax.SynMeasure`')">
+              <img src="/fantomas/content/img/copy-md.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-md-hover.png" class="hover"/>
+            </div>
+            <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:FSharp.Compiler.Syntax.SynMeasure\'/>')">
+              <img src="/fantomas/content/img/copy-xml.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+            </div>
+            <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/SyntaxTree/SyntaxTree.fsi#L184-184" class="fsdocs-source-link" title="Source on GitHub">
+              <img src="/fantomas/content/img/github.png" class="normal"/>
+              <img src="/fantomas/content/img/github-hover.png" class="hover"/>
+            </a>
+            <p class="fsdocs-summary">
+              
+ Represents an unchecked syntax tree of F# unit of measure annotations.
+
+            </p>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td class="fsdocs-entity-name">
+          <p>
+            <a name="SynMemberDefn">
+              <a href="/fantomas/reference/fsharp-compiler-syntax-synmemberdefn.html">
+                SynMemberDefn
+              </a>
+            </a>
+          </p>
+        </td>
+        <td class="fsdocs-entity-xmldoc">
+          <div>
+            <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:T:FSharp.Compiler.Syntax.SynMemberDefn`')">
+              <img src="/fantomas/content/img/copy-md.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-md-hover.png" class="hover"/>
+            </div>
+            <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:FSharp.Compiler.Syntax.SynMemberDefn\'/>')">
+              <img src="/fantomas/content/img/copy-xml.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+            </div>
+            <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/SyntaxTree/SyntaxTree.fsi#L1551-1551" class="fsdocs-source-link" title="Source on GitHub">
+              <img src="/fantomas/content/img/github.png" class="normal"/>
+              <img src="/fantomas/content/img/github-hover.png" class="hover"/>
+            </a>
+            <p class="fsdocs-summary">
+              
+ Represents a definition element within a type definition, e.g. 'member ... '
+
+            </p>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td class="fsdocs-entity-name">
+          <p>
+            <a name="SynMemberDefns">
+              <a href="/fantomas/reference/fsharp-compiler-syntax-synmemberdefns.html">
+                SynMemberDefns
+              </a>
+            </a>
+          </p>
+        </td>
+        <td class="fsdocs-entity-xmldoc">
+          <div>
+            <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:T:FSharp.Compiler.Syntax.SynMemberDefns`')">
+              <img src="/fantomas/content/img/copy-md.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-md-hover.png" class="hover"/>
+            </div>
+            <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:FSharp.Compiler.Syntax.SynMemberDefns\'/>')">
+              <img src="/fantomas/content/img/copy-xml.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+            </div>
+            <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/SyntaxTree/SyntaxTree.fsi#L1608-1608" class="fsdocs-source-link" title="Source on GitHub">
+              <img src="/fantomas/content/img/github.png" class="normal"/>
+              <img src="/fantomas/content/img/github-hover.png" class="hover"/>
+            </a>
+            <p class="fsdocs-summary">
+              
+            </p>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td class="fsdocs-entity-name">
+          <p>
+            <a name="SynMemberFlags">
+              <a href="/fantomas/reference/fsharp-compiler-syntax-synmemberflags.html">
+                SynMemberFlags
+              </a>
+            </a>
+          </p>
+        </td>
+        <td class="fsdocs-entity-xmldoc">
+          <div>
+            <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:T:FSharp.Compiler.Syntax.SynMemberFlags`')">
+              <img src="/fantomas/content/img/copy-md.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-md-hover.png" class="hover"/>
+            </div>
+            <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:FSharp.Compiler.Syntax.SynMemberFlags\'/>')">
+              <img src="/fantomas/content/img/copy-xml.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+            </div>
+            <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/SyntaxTree/SyntaxTree.fsi#L1199-1199" class="fsdocs-source-link" title="Source on GitHub">
+              <img src="/fantomas/content/img/github.png" class="normal"/>
+              <img src="/fantomas/content/img/github-hover.png" class="hover"/>
+            </a>
+            <p class="fsdocs-summary">
+              
+ Represents the flags for a 'member' declaration
+
+            </p>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td class="fsdocs-entity-name">
+          <p>
+            <a name="SynMemberKind">
+              <a href="/fantomas/reference/fsharp-compiler-syntax-synmemberkind.html">
+                SynMemberKind
+              </a>
+            </a>
+          </p>
+        </td>
+        <td class="fsdocs-entity-xmldoc">
+          <div>
+            <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:T:FSharp.Compiler.Syntax.SynMemberKind`')">
+              <img src="/fantomas/content/img/copy-md.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-md-hover.png" class="hover"/>
+            </div>
+            <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:FSharp.Compiler.Syntax.SynMemberKind\'/>')">
+              <img src="/fantomas/content/img/copy-xml.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+            </div>
+            <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/SyntaxTree/SyntaxTree.fsi#L1222-1222" class="fsdocs-source-link" title="Source on GitHub">
+              <img src="/fantomas/content/img/github.png" class="normal"/>
+              <img src="/fantomas/content/img/github-hover.png" class="hover"/>
+            </a>
+            <p class="fsdocs-summary">
+              
+ Note the member kind is actually computed partially by a syntax tree transformation in tc.fs
+
+            </p>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td class="fsdocs-entity-name">
+          <p>
+            <a name="SynMemberSig">
+              <a href="/fantomas/reference/fsharp-compiler-syntax-synmembersig.html">
+                SynMemberSig
+              </a>
+            </a>
+          </p>
+        </td>
+        <td class="fsdocs-entity-xmldoc">
+          <div>
+            <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:T:FSharp.Compiler.Syntax.SynMemberSig`')">
+              <img src="/fantomas/content/img/copy-md.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-md-hover.png" class="hover"/>
+            </div>
+            <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:FSharp.Compiler.Syntax.SynMemberSig\'/>')">
+              <img src="/fantomas/content/img/copy-xml.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+            </div>
+            <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/SyntaxTree/SyntaxTree.fsi#L1246-1246" class="fsdocs-source-link" title="Source on GitHub">
+              <img src="/fantomas/content/img/github.png" class="normal"/>
+              <img src="/fantomas/content/img/github-hover.png" class="hover"/>
+            </a>
+            <p class="fsdocs-summary">
+              
+ Represents the syntax tree for a member signature (used in signature files, abstract member declarations
+ and member constraints)
+
+            </p>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td class="fsdocs-entity-name">
+          <p>
+            <a name="SynModuleDecl">
+              <a href="/fantomas/reference/fsharp-compiler-syntax-synmoduledecl.html">
+                SynModuleDecl
+              </a>
+            </a>
+          </p>
+        </td>
+        <td class="fsdocs-entity-xmldoc">
+          <div>
+            <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:T:FSharp.Compiler.Syntax.SynModuleDecl`')">
+              <img src="/fantomas/content/img/copy-md.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-md-hover.png" class="hover"/>
+            </div>
+            <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:FSharp.Compiler.Syntax.SynModuleDecl\'/>')">
+              <img src="/fantomas/content/img/copy-xml.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+            </div>
+            <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/SyntaxTree/SyntaxTree.fsi#L1612-1612" class="fsdocs-source-link" title="Source on GitHub">
+              <img src="/fantomas/content/img/github.png" class="normal"/>
+              <img src="/fantomas/content/img/github-hover.png" class="hover"/>
+            </a>
+            <p class="fsdocs-summary">
+              
+ Represents a definition within a module
+
+            </p>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td class="fsdocs-entity-name">
+          <p>
+            <a name="SynModuleOrNamespace">
+              <a href="/fantomas/reference/fsharp-compiler-syntax-synmoduleornamespace.html">
+                SynModuleOrNamespace
+              </a>
+            </a>
+          </p>
+        </td>
+        <td class="fsdocs-entity-xmldoc">
+          <div>
+            <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:T:FSharp.Compiler.Syntax.SynModuleOrNamespace`')">
+              <img src="/fantomas/content/img/copy-md.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-md-hover.png" class="hover"/>
+            </div>
+            <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:FSharp.Compiler.Syntax.SynModuleOrNamespace\'/>')">
+              <img src="/fantomas/content/img/copy-xml.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+            </div>
+            <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/SyntaxTree/SyntaxTree.fsi#L1732-1732" class="fsdocs-source-link" title="Source on GitHub">
+              <img src="/fantomas/content/img/github.png" class="normal"/>
+              <img src="/fantomas/content/img/github-hover.png" class="hover"/>
+            </a>
+            <p class="fsdocs-summary">
+              
+ Represents the definition of a module or namespace
+
+            </p>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td class="fsdocs-entity-name">
+          <p>
+            <a name="SynModuleOrNamespaceKind">
+              <a href="/fantomas/reference/fsharp-compiler-syntax-synmoduleornamespacekind.html">
+                SynModuleOrNamespaceKind
+              </a>
+            </a>
+          </p>
+        </td>
+        <td class="fsdocs-entity-xmldoc">
+          <div>
+            <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:T:FSharp.Compiler.Syntax.SynModuleOrNamespaceKind`')">
+              <img src="/fantomas/content/img/copy-md.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-md-hover.png" class="hover"/>
+            </div>
+            <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:FSharp.Compiler.Syntax.SynModuleOrNamespaceKind\'/>')">
+              <img src="/fantomas/content/img/copy-xml.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+            </div>
+            <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/SyntaxTree/SyntaxTree.fsi#L1714-1714" class="fsdocs-source-link" title="Source on GitHub">
+              <img src="/fantomas/content/img/github.png" class="normal"/>
+              <img src="/fantomas/content/img/github-hover.png" class="hover"/>
+            </a>
+            <p class="fsdocs-summary">
+              
+ Represents the kind of a module or namespace definition
+
+            </p>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td class="fsdocs-entity-name">
+          <p>
+            <a name="SynModuleOrNamespaceSig">
+              <a href="/fantomas/reference/fsharp-compiler-syntax-synmoduleornamespacesig.html">
+                SynModuleOrNamespaceSig
+              </a>
+            </a>
+          </p>
+        </td>
+        <td class="fsdocs-entity-xmldoc">
+          <div>
+            <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:T:FSharp.Compiler.Syntax.SynModuleOrNamespaceSig`')">
+              <img src="/fantomas/content/img/copy-md.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-md-hover.png" class="hover"/>
+            </div>
+            <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:FSharp.Compiler.Syntax.SynModuleOrNamespaceSig\'/>')">
+              <img src="/fantomas/content/img/copy-xml.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+            </div>
+            <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/SyntaxTree/SyntaxTree.fsi#L1749-1749" class="fsdocs-source-link" title="Source on GitHub">
+              <img src="/fantomas/content/img/github.png" class="normal"/>
+              <img src="/fantomas/content/img/github-hover.png" class="hover"/>
+            </a>
+            <p class="fsdocs-summary">
+              
+ Represents the definition of a module or namespace in a signature file
+
+            </p>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td class="fsdocs-entity-name">
+          <p>
+            <a name="SynModuleSigDecl">
+              <a href="/fantomas/reference/fsharp-compiler-syntax-synmodulesigdecl.html">
+                SynModuleSigDecl
+              </a>
+            </a>
+          </p>
+        </td>
+        <td class="fsdocs-entity-xmldoc">
+          <div>
+            <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:T:FSharp.Compiler.Syntax.SynModuleSigDecl`')">
+              <img src="/fantomas/content/img/copy-md.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-md-hover.png" class="hover"/>
+            </div>
+            <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:FSharp.Compiler.Syntax.SynModuleSigDecl\'/>')">
+              <img src="/fantomas/content/img/copy-xml.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+            </div>
+            <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/SyntaxTree/SyntaxTree.fsi#L1677-1677" class="fsdocs-source-link" title="Source on GitHub">
+              <img src="/fantomas/content/img/github.png" class="normal"/>
+              <img src="/fantomas/content/img/github-hover.png" class="hover"/>
+            </a>
+            <p class="fsdocs-summary">
+              
+ Represents a definition within a module or namespace in a signature file
+
+            </p>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td class="fsdocs-entity-name">
+          <p>
+            <a name="SynOpenDeclTarget">
+              <a href="/fantomas/reference/fsharp-compiler-syntax-synopendecltarget.html">
+                SynOpenDeclTarget
+              </a>
+            </a>
+          </p>
+        </td>
+        <td class="fsdocs-entity-xmldoc">
+          <div>
+            <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:T:FSharp.Compiler.Syntax.SynOpenDeclTarget`')">
+              <img src="/fantomas/content/img/copy-md.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-md-hover.png" class="hover"/>
+            </div>
+            <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:FSharp.Compiler.Syntax.SynOpenDeclTarget\'/>')">
+              <img src="/fantomas/content/img/copy-xml.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+            </div>
+            <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/SyntaxTree/SyntaxTree.fsi#L1655-1655" class="fsdocs-source-link" title="Source on GitHub">
+              <img src="/fantomas/content/img/github.png" class="normal"/>
+              <img src="/fantomas/content/img/github-hover.png" class="hover"/>
+            </a>
+            <p class="fsdocs-summary">
+              
+ Represents the target of the open declaration
+
+            </p>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td class="fsdocs-entity-name">
+          <p>
+            <a name="SynPat">
+              <a href="/fantomas/reference/fsharp-compiler-syntax-synpat.html">
+                SynPat
+              </a>
+            </a>
+          </p>
+        </td>
+        <td class="fsdocs-entity-xmldoc">
+          <div>
+            <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:T:FSharp.Compiler.Syntax.SynPat`')">
+              <img src="/fantomas/content/img/copy-md.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-md-hover.png" class="hover"/>
+            </div>
+            <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:FSharp.Compiler.Syntax.SynPat\'/>')">
+              <img src="/fantomas/content/img/copy-xml.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+            </div>
+            <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/SyntaxTree/SyntaxTree.fsi#L1015-1015" class="fsdocs-source-link" title="Source on GitHub">
+              <img src="/fantomas/content/img/github.png" class="normal"/>
+              <img src="/fantomas/content/img/github-hover.png" class="hover"/>
+            </a>
+            <p class="fsdocs-summary">
+              
+ Represents a syntax tree for an F# pattern
+
+            </p>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td class="fsdocs-entity-name">
+          <p>
+            <a name="SynRationalConst">
+              <a href="/fantomas/reference/fsharp-compiler-syntax-synrationalconst.html">
+                SynRationalConst
+              </a>
+            </a>
+          </p>
+        </td>
+        <td class="fsdocs-entity-xmldoc">
+          <div>
+            <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:T:FSharp.Compiler.Syntax.SynRationalConst`')">
+              <img src="/fantomas/content/img/copy-md.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-md-hover.png" class="hover"/>
+            </div>
+            <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:FSharp.Compiler.Syntax.SynRationalConst\'/>')">
+              <img src="/fantomas/content/img/copy-xml.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+            </div>
+            <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/SyntaxTree/SyntaxTree.fsi#L215-215" class="fsdocs-source-link" title="Source on GitHub">
+              <img src="/fantomas/content/img/github.png" class="normal"/>
+              <img src="/fantomas/content/img/github-hover.png" class="hover"/>
+            </a>
+            <p class="fsdocs-summary">
+              
+ Represents an unchecked syntax tree of F# unit of measure exponents.
+
+            </p>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td class="fsdocs-entity-name">
+          <p>
+            <a name="SynReturnInfo">
+              <a href="/fantomas/reference/fsharp-compiler-syntax-synreturninfo.html">
+                SynReturnInfo
+              </a>
+            </a>
+          </p>
+        </td>
+        <td class="fsdocs-entity-xmldoc">
+          <div>
+            <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:T:FSharp.Compiler.Syntax.SynReturnInfo`')">
+              <img src="/fantomas/content/img/copy-md.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-md-hover.png" class="hover"/>
+            </div>
+            <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:FSharp.Compiler.Syntax.SynReturnInfo\'/>')">
+              <img src="/fantomas/content/img/copy-xml.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+            </div>
+            <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/SyntaxTree/SyntaxTree.fsi#L1486-1486" class="fsdocs-source-link" title="Source on GitHub">
+              <img src="/fantomas/content/img/github.png" class="normal"/>
+              <img src="/fantomas/content/img/github-hover.png" class="hover"/>
+            </a>
+            <p class="fsdocs-summary">
+              
+ Represents the syntactic elements associated with the "return" of a function or method.
+
+            </p>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td class="fsdocs-entity-name">
+          <p>
+            <a name="SynSimplePat">
+              <a href="/fantomas/reference/fsharp-compiler-syntax-synsimplepat.html">
+                SynSimplePat
+              </a>
+            </a>
+          </p>
+        </td>
+        <td class="fsdocs-entity-xmldoc">
+          <div>
+            <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:T:FSharp.Compiler.Syntax.SynSimplePat`')">
+              <img src="/fantomas/content/img/copy-md.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-md-hover.png" class="hover"/>
+            </div>
+            <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:FSharp.Compiler.Syntax.SynSimplePat\'/>')">
+              <img src="/fantomas/content/img/copy-xml.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+            </div>
+            <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/SyntaxTree/SyntaxTree.fsi#L942-942" class="fsdocs-source-link" title="Source on GitHub">
+              <img src="/fantomas/content/img/github.png" class="normal"/>
+              <img src="/fantomas/content/img/github-hover.png" class="hover"/>
+            </a>
+            <p class="fsdocs-summary">
+              
+ Represents a syntax tree for simple F# patterns
+
+            </p>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td class="fsdocs-entity-name">
+          <p>
+            <a name="SynSimplePatAlternativeIdInfo">
+              <a href="/fantomas/reference/fsharp-compiler-syntax-synsimplepatalternativeidinfo.html">
+                SynSimplePatAlternativeIdInfo
+              </a>
+            </a>
+          </p>
+        </td>
+        <td class="fsdocs-entity-xmldoc">
+          <div>
+            <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:T:FSharp.Compiler.Syntax.SynSimplePatAlternativeIdInfo`')">
+              <img src="/fantomas/content/img/copy-md.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-md-hover.png" class="hover"/>
+            </div>
+            <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:FSharp.Compiler.Syntax.SynSimplePatAlternativeIdInfo\'/>')">
+              <img src="/fantomas/content/img/copy-xml.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+            </div>
+            <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/SyntaxTree/SyntaxTree.fsi#L974-974" class="fsdocs-source-link" title="Source on GitHub">
+              <img src="/fantomas/content/img/github.png" class="normal"/>
+              <img src="/fantomas/content/img/github-hover.png" class="hover"/>
+            </a>
+            <p class="fsdocs-summary">
+              
+ Represents the alternative identifier for a simple pattern
+
+            </p>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td class="fsdocs-entity-name">
+          <p>
+            <a name="SynSimplePats">
+              <a href="/fantomas/reference/fsharp-compiler-syntax-synsimplepats.html">
+                SynSimplePats
+              </a>
+            </a>
+          </p>
+        </td>
+        <td class="fsdocs-entity-xmldoc">
+          <div>
+            <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:T:FSharp.Compiler.Syntax.SynSimplePats`')">
+              <img src="/fantomas/content/img/copy-md.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-md-hover.png" class="hover"/>
+            </div>
+            <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:FSharp.Compiler.Syntax.SynSimplePats\'/>')">
+              <img src="/fantomas/content/img/copy-xml.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+            </div>
+            <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/SyntaxTree/SyntaxTree.fsi#L997-997" class="fsdocs-source-link" title="Source on GitHub">
+              <img src="/fantomas/content/img/github.png" class="normal"/>
+              <img src="/fantomas/content/img/github-hover.png" class="hover"/>
+            </a>
+            <p class="fsdocs-summary">
+              
+ Represents a simple set of variable bindings a, (a, b) or (a: Type, b: Type) at a lambda,
+ function definition or other binding point, after the elimination of pattern matching
+ from the construct, e.g. after changing a "function pat1 -> rule1 | ..." to a
+ "fun v -> match v with ..."
+
+            </p>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td class="fsdocs-entity-name">
+          <p>
+            <a name="SynStaticOptimizationConstraint">
+              <a href="/fantomas/reference/fsharp-compiler-syntax-synstaticoptimizationconstraint.html">
+                SynStaticOptimizationConstraint
+              </a>
+            </a>
+          </p>
+        </td>
+        <td class="fsdocs-entity-xmldoc">
+          <div>
+            <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:T:FSharp.Compiler.Syntax.SynStaticOptimizationConstraint`')">
+              <img src="/fantomas/content/img/copy-md.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-md-hover.png" class="hover"/>
+            </div>
+            <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:FSharp.Compiler.Syntax.SynStaticOptimizationConstraint\'/>')">
+              <img src="/fantomas/content/img/copy-xml.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+            </div>
+            <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/SyntaxTree/SyntaxTree.fsi#L984-984" class="fsdocs-source-link" title="Source on GitHub">
+              <img src="/fantomas/content/img/github.png" class="normal"/>
+              <img src="/fantomas/content/img/github-hover.png" class="hover"/>
+            </a>
+            <p class="fsdocs-summary">
+              
+ Represents a syntax tree for a static optimization constraint in the F# core library
+
+            </p>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td class="fsdocs-entity-name">
+          <p>
+            <a name="SynStringKind">
+              <a href="/fantomas/reference/fsharp-compiler-syntax-synstringkind.html">
+                SynStringKind
+              </a>
+            </a>
+          </p>
+        </td>
+        <td class="fsdocs-entity-xmldoc">
+          <div>
+            <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:T:FSharp.Compiler.Syntax.SynStringKind`')">
+              <img src="/fantomas/content/img/copy-md.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-md-hover.png" class="hover"/>
+            </div>
+            <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:FSharp.Compiler.Syntax.SynStringKind\'/>')">
+              <img src="/fantomas/content/img/copy-xml.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+            </div>
+            <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/SyntaxTree/SyntaxTree.fsi#L91-91" class="fsdocs-source-link" title="Source on GitHub">
+              <img src="/fantomas/content/img/github.png" class="normal"/>
+              <img src="/fantomas/content/img/github-hover.png" class="hover"/>
+            </a>
+            <p class="fsdocs-summary">
+              
+ Indicate if the string had a special format
+
+            </p>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td class="fsdocs-entity-name">
+          <p>
+            <a name="SynTypar">
+              <a href="/fantomas/reference/fsharp-compiler-syntax-syntypar.html">
+                SynTypar
+              </a>
+            </a>
+          </p>
+        </td>
+        <td class="fsdocs-entity-xmldoc">
+          <div>
+            <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:T:FSharp.Compiler.Syntax.SynTypar`')">
+              <img src="/fantomas/content/img/copy-md.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-md-hover.png" class="hover"/>
+            </div>
+            <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:FSharp.Compiler.Syntax.SynTypar\'/>')">
+              <img src="/fantomas/content/img/copy-xml.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+            </div>
+            <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/SyntaxTree/SyntaxTree.fsi#L83-83" class="fsdocs-source-link" title="Source on GitHub">
+              <img src="/fantomas/content/img/github.png" class="normal"/>
+              <img src="/fantomas/content/img/github-hover.png" class="hover"/>
+            </a>
+            <p class="fsdocs-summary">
+              
+ Represents a syntactic type parameter
+
+            </p>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td class="fsdocs-entity-name">
+          <p>
+            <a name="SynTyparDecl">
+              <a href="/fantomas/reference/fsharp-compiler-syntax-syntypardecl.html">
+                SynTyparDecl
+              </a>
+            </a>
+          </p>
+        </td>
+        <td class="fsdocs-entity-xmldoc">
+          <div>
+            <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:T:FSharp.Compiler.Syntax.SynTyparDecl`')">
+              <img src="/fantomas/content/img/copy-md.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-md-hover.png" class="hover"/>
+            </div>
+            <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:FSharp.Compiler.Syntax.SynTyparDecl\'/>')">
+              <img src="/fantomas/content/img/copy-xml.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+            </div>
+            <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/SyntaxTree/SyntaxTree.fsi#L377-377" class="fsdocs-source-link" title="Source on GitHub">
+              <img src="/fantomas/content/img/github.png" class="normal"/>
+              <img src="/fantomas/content/img/github-hover.png" class="hover"/>
+            </a>
+            <p class="fsdocs-summary">
+              
+ Represents the explicit declaration of a type parameter
+
+            </p>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td class="fsdocs-entity-name">
+          <p>
+            <a name="SynTyparDecls">
+              <a href="/fantomas/reference/fsharp-compiler-syntax-syntypardecls.html">
+                SynTyparDecls
+              </a>
+            </a>
+          </p>
+        </td>
+        <td class="fsdocs-entity-xmldoc">
+          <div>
+            <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:T:FSharp.Compiler.Syntax.SynTyparDecls`')">
+              <img src="/fantomas/content/img/copy-md.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-md-hover.png" class="hover"/>
+            </div>
+            <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:FSharp.Compiler.Syntax.SynTyparDecls\'/>')">
+              <img src="/fantomas/content/img/copy-xml.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+            </div>
+            <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/SyntaxTree/SyntaxTree.fsi#L421-421" class="fsdocs-source-link" title="Source on GitHub">
+              <img src="/fantomas/content/img/github.png" class="normal"/>
+              <img src="/fantomas/content/img/github-hover.png" class="hover"/>
+            </a>
+            <p class="fsdocs-summary">
+              
+ List of type parameter declarations with optional type constraints,
+ enclosed in `< ... >` (postfix) or `( ... )` (prefix), or a single prefix parameter.
+
+            </p>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td class="fsdocs-entity-name">
+          <p>
+            <a name="SynType">
+              <a href="/fantomas/reference/fsharp-compiler-syntax-syntype.html">
+                SynType
+              </a>
+            </a>
+          </p>
+        </td>
+        <td class="fsdocs-entity-xmldoc">
+          <div>
+            <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:T:FSharp.Compiler.Syntax.SynType`')">
+              <img src="/fantomas/content/img/copy-md.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-md-hover.png" class="hover"/>
+            </div>
+            <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:FSharp.Compiler.Syntax.SynType\'/>')">
+              <img src="/fantomas/content/img/copy-xml.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+            </div>
+            <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/SyntaxTree/SyntaxTree.fsi#L432-432" class="fsdocs-source-link" title="Source on GitHub">
+              <img src="/fantomas/content/img/github.png" class="normal"/>
+              <img src="/fantomas/content/img/github-hover.png" class="hover"/>
+            </a>
+            <p class="fsdocs-summary">
+              
+ Represents a syntax tree for F# types
+
+            </p>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td class="fsdocs-entity-name">
+          <p>
+            <a name="SynTypeConstraint">
+              <a href="/fantomas/reference/fsharp-compiler-syntax-syntypeconstraint.html">
+                SynTypeConstraint
+              </a>
+            </a>
+          </p>
+        </td>
+        <td class="fsdocs-entity-xmldoc">
+          <div>
+            <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:T:FSharp.Compiler.Syntax.SynTypeConstraint`')">
+              <img src="/fantomas/content/img/copy-md.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-md-hover.png" class="hover"/>
+            </div>
+            <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:FSharp.Compiler.Syntax.SynTypeConstraint\'/>')">
+              <img src="/fantomas/content/img/copy-xml.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+            </div>
+            <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/SyntaxTree/SyntaxTree.fsi#L381-381" class="fsdocs-source-link" title="Source on GitHub">
+              <img src="/fantomas/content/img/github.png" class="normal"/>
+              <img src="/fantomas/content/img/github-hover.png" class="hover"/>
+            </a>
+            <p class="fsdocs-summary">
+              
+ The unchecked abstract syntax tree of F# type constraints
+
+            </p>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td class="fsdocs-entity-name">
+          <p>
+            <a name="SynTypeDefn">
+              <a href="/fantomas/reference/fsharp-compiler-syntax-syntypedefn.html">
+                SynTypeDefn
+              </a>
+            </a>
+          </p>
+        </td>
+        <td class="fsdocs-entity-xmldoc">
+          <div>
+            <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:T:FSharp.Compiler.Syntax.SynTypeDefn`')">
+              <img src="/fantomas/content/img/copy-md.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-md-hover.png" class="hover"/>
+            </div>
+            <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:FSharp.Compiler.Syntax.SynTypeDefn\'/>')">
+              <img src="/fantomas/content/img/copy-xml.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+            </div>
+            <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/SyntaxTree/SyntaxTree.fsi#L1537-1537" class="fsdocs-source-link" title="Source on GitHub">
+              <img src="/fantomas/content/img/github.png" class="normal"/>
+              <img src="/fantomas/content/img/github-hover.png" class="hover"/>
+            </a>
+            <p class="fsdocs-summary">
+              
+ Represents a type or exception declaration 'type C = ... ' plus
+ any additional member definitions for the type
+
+            </p>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td class="fsdocs-entity-name">
+          <p>
+            <a name="SynTypeDefnKind">
+              <a href="/fantomas/reference/fsharp-compiler-syntax-syntypedefnkind.html">
+                SynTypeDefnKind
+              </a>
+            </a>
+          </p>
+        </td>
+        <td class="fsdocs-entity-xmldoc">
+          <div>
+            <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:T:FSharp.Compiler.Syntax.SynTypeDefnKind`')">
+              <img src="/fantomas/content/img/copy-md.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-md-hover.png" class="hover"/>
+            </div>
+            <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:FSharp.Compiler.Syntax.SynTypeDefnKind\'/>')">
+              <img src="/fantomas/content/img/copy-xml.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+            </div>
+            <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/SyntaxTree/SyntaxTree.fsi#L1268-1268" class="fsdocs-source-link" title="Source on GitHub">
+              <img src="/fantomas/content/img/github.png" class="normal"/>
+              <img src="/fantomas/content/img/github-hover.png" class="hover"/>
+            </a>
+            <p class="fsdocs-summary">
+              
+ Represents the kind of a type definition whether explicit or inferred
+
+            </p>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td class="fsdocs-entity-name">
+          <p>
+            <a name="SynTypeDefnRepr">
+              <a href="/fantomas/reference/fsharp-compiler-syntax-syntypedefnrepr.html">
+                SynTypeDefnRepr
+              </a>
+            </a>
+          </p>
+        </td>
+        <td class="fsdocs-entity-xmldoc">
+          <div>
+            <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:T:FSharp.Compiler.Syntax.SynTypeDefnRepr`')">
+              <img src="/fantomas/content/img/copy-md.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-md-hover.png" class="hover"/>
+            </div>
+            <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:FSharp.Compiler.Syntax.SynTypeDefnRepr\'/>')">
+              <img src="/fantomas/content/img/copy-xml.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+            </div>
+            <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/SyntaxTree/SyntaxTree.fsi#L1520-1520" class="fsdocs-source-link" title="Source on GitHub">
+              <img src="/fantomas/content/img/github.png" class="normal"/>
+              <img src="/fantomas/content/img/github-hover.png" class="hover"/>
+            </a>
+            <p class="fsdocs-summary">
+              
+ Represents the right hand side of a type or exception declaration 'type C = ... ' plus
+ any additional member definitions for the type
+
+            </p>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td class="fsdocs-entity-name">
+          <p>
+            <a name="SynTypeDefnSig">
+              <a href="/fantomas/reference/fsharp-compiler-syntax-syntypedefnsig.html">
+                SynTypeDefnSig
+              </a>
+            </a>
+          </p>
+        </td>
+        <td class="fsdocs-entity-xmldoc">
+          <div>
+            <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:T:FSharp.Compiler.Syntax.SynTypeDefnSig`')">
+              <img src="/fantomas/content/img/copy-md.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-md-hover.png" class="hover"/>
+            </div>
+            <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:FSharp.Compiler.Syntax.SynTypeDefnSig\'/>')">
+              <img src="/fantomas/content/img/copy-xml.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+            </div>
+            <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/SyntaxTree/SyntaxTree.fsi#L1388-1388" class="fsdocs-source-link" title="Source on GitHub">
+              <img src="/fantomas/content/img/github.png" class="normal"/>
+              <img src="/fantomas/content/img/github-hover.png" class="hover"/>
+            </a>
+            <p class="fsdocs-summary">
+              
+ Represents the syntax tree for a type definition in a signature
+
+            </p>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td class="fsdocs-entity-name">
+          <p>
+            <a name="SynTypeDefnSigRepr">
+              <a href="/fantomas/reference/fsharp-compiler-syntax-syntypedefnsigrepr.html">
+                SynTypeDefnSigRepr
+              </a>
+            </a>
+          </p>
+        </td>
+        <td class="fsdocs-entity-xmldoc">
+          <div>
+            <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:T:FSharp.Compiler.Syntax.SynTypeDefnSigRepr`')">
+              <img src="/fantomas/content/img/copy-md.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-md-hover.png" class="hover"/>
+            </div>
+            <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:FSharp.Compiler.Syntax.SynTypeDefnSigRepr\'/>')">
+              <img src="/fantomas/content/img/copy-xml.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+            </div>
+            <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/SyntaxTree/SyntaxTree.fsi#L1373-1373" class="fsdocs-source-link" title="Source on GitHub">
+              <img src="/fantomas/content/img/github.png" class="normal"/>
+              <img src="/fantomas/content/img/github-hover.png" class="hover"/>
+            </a>
+            <p class="fsdocs-summary">
+              
+ Represents the syntax tree for the right-hand-side of a type definition in a signature.
+ Note: in practice, using a discriminated union to make a distinction between
+ "simple" types and "object oriented" types is not particularly useful.
+
+            </p>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td class="fsdocs-entity-name">
+          <p>
+            <a name="SynTypeDefnSimpleRepr">
+              <a href="/fantomas/reference/fsharp-compiler-syntax-syntypedefnsimplerepr.html">
+                SynTypeDefnSimpleRepr
+              </a>
+            </a>
+          </p>
+        </td>
+        <td class="fsdocs-entity-xmldoc">
+          <div>
+            <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:T:FSharp.Compiler.Syntax.SynTypeDefnSimpleRepr`')">
+              <img src="/fantomas/content/img/copy-md.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-md-hover.png" class="hover"/>
+            </div>
+            <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:FSharp.Compiler.Syntax.SynTypeDefnSimpleRepr\'/>')">
+              <img src="/fantomas/content/img/copy-xml.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+            </div>
+            <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/SyntaxTree/SyntaxTree.fsi#L1284-1284" class="fsdocs-source-link" title="Source on GitHub">
+              <img src="/fantomas/content/img/github.png" class="normal"/>
+              <img src="/fantomas/content/img/github-hover.png" class="hover"/>
+            </a>
+            <p class="fsdocs-summary">
+              
+ Represents the syntax tree for the core of a simple type definition, in either signature
+ or implementation.
+
+            </p>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td class="fsdocs-entity-name">
+          <p>
+            <a name="SynUnionCase">
+              <a href="/fantomas/reference/fsharp-compiler-syntax-synunioncase.html">
+                SynUnionCase
+              </a>
+            </a>
+          </p>
+        </td>
+        <td class="fsdocs-entity-xmldoc">
+          <div>
+            <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:T:FSharp.Compiler.Syntax.SynUnionCase`')">
+              <img src="/fantomas/content/img/copy-md.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-md-hover.png" class="hover"/>
+            </div>
+            <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:FSharp.Compiler.Syntax.SynUnionCase\'/>')">
+              <img src="/fantomas/content/img/copy-xml.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+            </div>
+            <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/SyntaxTree/SyntaxTree.fsi#L1344-1344" class="fsdocs-source-link" title="Source on GitHub">
+              <img src="/fantomas/content/img/github.png" class="normal"/>
+              <img src="/fantomas/content/img/github-hover.png" class="hover"/>
+            </a>
+            <p class="fsdocs-summary">
+              
+ Represents the syntax tree for one case in a union definition.
+
+            </p>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td class="fsdocs-entity-name">
+          <p>
+            <a name="SynUnionCaseKind">
+              <a href="/fantomas/reference/fsharp-compiler-syntax-synunioncasekind.html">
+                SynUnionCaseKind
+              </a>
+            </a>
+          </p>
+        </td>
+        <td class="fsdocs-entity-xmldoc">
+          <div>
+            <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:T:FSharp.Compiler.Syntax.SynUnionCaseKind`')">
+              <img src="/fantomas/content/img/copy-md.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-md-hover.png" class="hover"/>
+            </div>
+            <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:FSharp.Compiler.Syntax.SynUnionCaseKind\'/>')">
+              <img src="/fantomas/content/img/copy-xml.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+            </div>
+            <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/SyntaxTree/SyntaxTree.fsi#L1361-1361" class="fsdocs-source-link" title="Source on GitHub">
+              <img src="/fantomas/content/img/github.png" class="normal"/>
+              <img src="/fantomas/content/img/github-hover.png" class="hover"/>
+            </a>
+            <p class="fsdocs-summary">
+              
+ Represents the syntax tree for the right-hand-side of union definition, excluding members,
+ in either a signature or implementation.
+
+            </p>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td class="fsdocs-entity-name">
+          <p>
+            <a name="SynValData">
+              <a href="/fantomas/reference/fsharp-compiler-syntax-synvaldata.html">
+                SynValData
+              </a>
+            </a>
+          </p>
+        </td>
+        <td class="fsdocs-entity-xmldoc">
+          <div>
+            <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:T:FSharp.Compiler.Syntax.SynValData`')">
+              <img src="/fantomas/content/img/copy-md.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-md-hover.png" class="hover"/>
+            </div>
+            <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:FSharp.Compiler.Syntax.SynValData\'/>')">
+              <img src="/fantomas/content/img/copy-xml.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+            </div>
+            <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/SyntaxTree/SyntaxTree.fsi#L1160-1160" class="fsdocs-source-link" title="Source on GitHub">
+              <img src="/fantomas/content/img/github.png" class="normal"/>
+              <img src="/fantomas/content/img/github-hover.png" class="hover"/>
+            </a>
+            <p class="fsdocs-summary">
+              
+ Represents extra information about the declaration of a value
+
+            </p>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td class="fsdocs-entity-name">
+          <p>
+            <a name="SynValInfo">
+              <a href="/fantomas/reference/fsharp-compiler-syntax-synvalinfo.html">
+                SynValInfo
+              </a>
+            </a>
+          </p>
+        </td>
+        <td class="fsdocs-entity-xmldoc">
+          <div>
+            <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:T:FSharp.Compiler.Syntax.SynValInfo`')">
+              <img src="/fantomas/content/img/copy-md.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-md-hover.png" class="hover"/>
+            </div>
+            <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:FSharp.Compiler.Syntax.SynValInfo\'/>')">
+              <img src="/fantomas/content/img/copy-xml.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+            </div>
+            <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/SyntaxTree/SyntaxTree.fsi#L1461-1461" class="fsdocs-source-link" title="Source on GitHub">
+              <img src="/fantomas/content/img/github.png" class="normal"/>
+              <img src="/fantomas/content/img/github-hover.png" class="hover"/>
+            </a>
+            <p class="fsdocs-summary">
+              
+ The argument names and other metadata for a member or function
+
+            </p>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td class="fsdocs-entity-name">
+          <p>
+            <a name="SynValSig">
+              <a href="/fantomas/reference/fsharp-compiler-syntax-synvalsig.html">
+                SynValSig
+              </a>
+            </a>
+          </p>
+        </td>
+        <td class="fsdocs-entity-xmldoc">
+          <div>
+            <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:T:FSharp.Compiler.Syntax.SynValSig`')">
+              <img src="/fantomas/content/img/copy-md.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-md-hover.png" class="hover"/>
+            </div>
+            <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:FSharp.Compiler.Syntax.SynValSig\'/>')">
+              <img src="/fantomas/content/img/copy-xml.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+            </div>
+            <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/SyntaxTree/SyntaxTree.fsi#L1438-1438" class="fsdocs-source-link" title="Source on GitHub">
+              <img src="/fantomas/content/img/github.png" class="normal"/>
+              <img src="/fantomas/content/img/github-hover.png" class="hover"/>
+            </a>
+            <p class="fsdocs-summary">
+              
+ Represents the syntax tree for a 'val' definition in an abstract slot or a signature file
+
+            </p>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td class="fsdocs-entity-name">
+          <p>
+            <a name="SynValTyparDecls">
+              <a href="/fantomas/reference/fsharp-compiler-syntax-synvaltypardecls.html">
+                SynValTyparDecls
+              </a>
+            </a>
+          </p>
+        </td>
+        <td class="fsdocs-entity-xmldoc">
+          <div>
+            <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:T:FSharp.Compiler.Syntax.SynValTyparDecls`')">
+              <img src="/fantomas/content/img/copy-md.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-md-hover.png" class="hover"/>
+            </div>
+            <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:FSharp.Compiler.Syntax.SynValTyparDecls\'/>')">
+              <img src="/fantomas/content/img/copy-xml.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+            </div>
+            <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/SyntaxTree/SyntaxTree.fsi#L1482-1482" class="fsdocs-source-link" title="Source on GitHub">
+              <img src="/fantomas/content/img/github.png" class="normal"/>
+              <img src="/fantomas/content/img/github-hover.png" class="hover"/>
+            </a>
+            <p class="fsdocs-summary">
+              
+ Represents the names and other metadata for the type parameters for a member or function
+
+            </p>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td class="fsdocs-entity-name">
+          <p>
+            <a name="TyparStaticReq">
+              <a href="/fantomas/reference/fsharp-compiler-syntax-typarstaticreq.html">
+                TyparStaticReq
+              </a>
+            </a>
+          </p>
+        </td>
+        <td class="fsdocs-entity-xmldoc">
+          <div>
+            <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:T:FSharp.Compiler.Syntax.TyparStaticReq`')">
+              <img src="/fantomas/content/img/copy-md.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-md-hover.png" class="hover"/>
+            </div>
+            <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:FSharp.Compiler.Syntax.TyparStaticReq\'/>')">
+              <img src="/fantomas/content/img/copy-xml.png" class="normal"/>
+              <img src="/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+            </div>
+            <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/SyntaxTree/SyntaxTree.fsi#L74-74" class="fsdocs-source-link" title="Source on GitHub">
+              <img src="/fantomas/content/img/github.png" class="normal"/>
+              <img src="/fantomas/content/img/github-hover.png" class="hover"/>
+            </a>
+            <p class="fsdocs-summary">
+              
+ Represents whether a type parameter has a static requirement or not (^T or 'T)
+
+            </p>
+          </div>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+            
+        </div>
+
+        <!-- BEGIN SEARCH BOX: this adds support for the search box -->
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/JavaScript-autoComplete/1.0.4/auto-complete.css" />
+        <script type="text/javascript">var fsdocs_search_baseurl = '/fantomas/';</script>
+        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/lunr.js/2.3.8/lunr.min.js"></script>
+        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/JavaScript-autoComplete/1.0.4/auto-complete.min.js"></script>
+        <script type="text/javascript" src="/fantomas/content/fsdocs-search.js"></script>
+        <!-- END SEARCH BOX: this adds support for the search box -->
+    </div>
+</body>
+
+</html>

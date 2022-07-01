@@ -1,7 +1,0 @@
-image: gitpod/workspace-dotnet
-vscode:
-  extensions:
-    - muhammad-sammy.csharp@1.23.9:BMArOoGwWqKRrH6s4E2/AQ==
-    - ionide.ionide-fsharp@5.3.2:ktwOdXq2H8VHS6SX8scVIw==
-tasks:
-  - init: dotnet tool restore && dotnet fake run build.fsx -t Clean

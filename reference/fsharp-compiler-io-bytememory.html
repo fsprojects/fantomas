@@ -1,0 +1,1680 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <title>ByteMemory (fantomas)</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="author" content="Florian Verdonck, Jindřich Ivánek">
+
+    <link rel="stylesheet" id="theme_link" href="https://cdnjs.cloudflare.com/ajax/libs/bootswatch/4.6.0/materia/bootstrap.min.css">
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-Piv4xVNRyMGpqkS2by6br4gNJ7DXjqk09RmUpJ8jgGtD7zP9yug3goQfGII0yAns" crossorigin="anonymous"></script>
+
+    <script type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+
+    <link rel="shortcut icon" type="image/x-icon" href="img/favicon.ico">
+    <link type="text/css" rel="stylesheet" href="/fantomas/content/navbar-fixed-left.css" />
+    <link type="text/css" rel="stylesheet" href="/fantomas/content/fsdocs-default.css" />
+    <link type="text/css" rel="stylesheet" href="/fantomas/content/fsdocs-custom.css" />
+    <script type="text/javascript" src="/fantomas/content/fsdocs-tips.js"></script>
+    <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <!-- BEGIN SEARCH BOX: this adds support for the search box -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/JavaScript-autoComplete/1.0.4/auto-complete.css" />
+    <!-- END SEARCH BOX: this adds support for the search box -->
+    
+</head>
+
+<body>
+    <nav class="navbar navbar-expand-md navbar-light bg-secondary fixed-left" id="fsdocs-nav">
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarsExampleDefault" aria-controls="navbarsExampleDefault" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse navbar-nav-scroll" id="navbarsExampleDefault">
+            <a href="/fantomas/"><img id="fsdocs-logo" src="/fantomas/img/logo.png" /></a>
+            <!-- BEGIN SEARCH BOX: this adds support for the search box -->
+            <div id="header">
+                <div class="searchbox" id="fsdocs-searchbox">
+                    <label for="search-by">
+                        <i class="fas fa-search"></i>
+                    </label>
+                    <input data-search-input="" id="search-by" type="search" placeholder="Search..." />
+                    <span data-search-clear="">
+                        <i class="fas fa-times"></i>
+                    </span>
+                </div>
+            </div>
+
+            <!-- END SEARCH BOX: this adds support for the search box -->
+            <ul class="navbar-nav">
+                <li class="nav-header">Links</li>
+                <li class="nav-item" id="fsdocs-license-link"><a class="nav-link" href="https://github.com/fsprojects/fantomas/blob/master/LICENSE.md">License</a></li>
+                <li class="nav-item" id="fsdocs-release-notes-link"><a class="nav-link" href="https://github.com/fsprojects/fantomas/blob/master/CHANGELOG.md">Release Notes</a></li>
+                <li class="nav-item" id="fsdocs-repository-link"><a class="nav-link" href="https://github.com/fsprojects/fantomas/">Source Repository</a></li>
+                
+                <li class="nav-header">
+  API Reference
+</li>             
+<li class="nav-item">
+  <a class="nav-link" href="/fantomas/reference/index.html">
+    All Namespaces
+  </a>
+</li>
+            </ul>
+        </div>
+    </nav>
+    <div class="container">
+        <div class="masthead">
+            <h3 class="muted"><a href="/fantomas/">fantomas</a></h3>
+        </div>
+        <hr />
+        <div class="container" id="fsdocs-content">
+            <div>
+  <h2>
+    ByteMemory Type
+  </h2>
+  <dl class="fsdocs-metadata">
+    <dt>
+      Namespace: 
+      <a href="/fantomas/reference/fsharp-compiler-io.html">
+        FSharp.Compiler.IO
+      </a>
+    </dt>
+    <dt>
+      Assembly: Fantomas.FCS.dll
+    </dt>
+    <dt>
+      Base Type: 
+      <code>obj</code>
+    </dt>
+  </dl>
+  <div class="fsdocs-xmldoc">
+    <div>
+      <p class="fsdocs-summary">
+        
+ A view over bytes.
+ May be backed by managed or unmanaged memory, or memory mapped file.
+
+      </p>
+    </div>
+  </div>
+  <div></div>
+  <div></div>
+  <div></div>
+  <div></div>
+  <div></div>
+  <div></div>
+  <div></div>
+  <div>
+    <h3>
+      Instance members
+    </h3>
+    <table class="table outer-list fsdocs-member-list">
+      <thead>
+        <tr>
+          <td class="fsdocs-member-list-header">
+            Instance member
+          </td>
+          <td class="fsdocs-member-list-header">
+            Description
+          </td>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '638', 638)" onmouseover="showTip(event, '638', 638)">
+                <p>
+                  <a id="AsReadOnly">
+                    <a href="#AsReadOnly">
+                      <code><span>this.AsReadOnly</span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="638">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>this.AsReadOnly</span></code>
+                  <br/>
+                  <br/>
+                  <span>
+                    Returns: 
+                    <code><a href="/fantomas/reference/fsharp-compiler-io-readonlybytememory.html">ReadOnlyByteMemory</a></code>
+                  </span>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-summary">
+              <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:M:FSharp.Compiler.IO.ByteMemory.AsReadOnly`')">
+                <img src="/fantomas/content/img/copy-md.png" class="normal"/>
+                <img src="/fantomas/content/img/copy-md-hover.png" class="hover"/>
+              </div>
+              <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'M:FSharp.Compiler.IO.ByteMemory.AsReadOnly\'/>')">
+                <img src="/fantomas/content/img/copy-xml.png" class="normal"/>
+                <img src="/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+              </div>
+              <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/Utilities/FileSystem.fs#L856-856" class="fsdocs-source-link" title="Source on GitHub">
+                <img src="/fantomas/content/img/github.png" class="normal"/>
+                <img src="/fantomas/content/img/github-hover.png" class="hover"/>
+              </a>
+              <p class="fsdocs-summary">
+                
+              </p>
+            </div>
+            <dl class="fsdocs-returns">
+              <dt>
+                <span class="fsdocs-return-name">
+                  Returns: 
+                </span>
+                <code><a href="/fantomas/reference/fsharp-compiler-io-readonlybytememory.html">ReadOnlyByteMemory</a></code>
+              </dt>
+              <dd class="fsdocs-return-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '639', 639)" onmouseover="showTip(event, '639', 639)">
+                <p>
+                  <a id="AsReadOnlyStream">
+                    <a href="#AsReadOnlyStream">
+                      <code><span>this.AsReadOnlyStream</span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="639">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>this.AsReadOnlyStream</span></code>
+                  <br/>
+                  <br/>
+                  <span>
+                    Returns: 
+                    <code><a href="https://docs.microsoft.com/dotnet/api/system.io.stream">Stream</a></code>
+                  </span>
+                  <br/>
+                  Modifiers: 
+                  abstract
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-summary">
+              <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:M:FSharp.Compiler.IO.ByteMemory.AsReadOnlyStream`')">
+                <img src="/fantomas/content/img/copy-md.png" class="normal"/>
+                <img src="/fantomas/content/img/copy-md-hover.png" class="hover"/>
+              </div>
+              <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'M:FSharp.Compiler.IO.ByteMemory.AsReadOnlyStream\'/>')">
+                <img src="/fantomas/content/img/copy-xml.png" class="normal"/>
+                <img src="/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+              </div>
+              <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/Utilities/FileSystem.fs#L66-66" class="fsdocs-source-link" title="Source on GitHub">
+                <img src="/fantomas/content/img/github.png" class="normal"/>
+                <img src="/fantomas/content/img/github-hover.png" class="hover"/>
+              </a>
+              <p class="fsdocs-summary">
+                
+ Get a stream representation of the backing memory.
+ Disposing this will not free up any of the backing memory.
+ Stream cannot be written to.
+
+              </p>
+            </div>
+            <dl class="fsdocs-returns">
+              <dt>
+                <span class="fsdocs-return-name">
+                  Returns: 
+                </span>
+                <code><a href="https://docs.microsoft.com/dotnet/api/system.io.stream">Stream</a></code>
+              </dt>
+              <dd class="fsdocs-return-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '640', 640)" onmouseover="showTip(event, '640', 640)">
+                <p>
+                  <a id="AsStream">
+                    <a href="#AsStream">
+                      <code><span>this.AsStream</span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="640">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>this.AsStream</span></code>
+                  <br/>
+                  <br/>
+                  <span>
+                    Returns: 
+                    <code><a href="https://docs.microsoft.com/dotnet/api/system.io.stream">Stream</a></code>
+                  </span>
+                  <br/>
+                  Modifiers: 
+                  abstract
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-summary">
+              <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:M:FSharp.Compiler.IO.ByteMemory.AsStream`')">
+                <img src="/fantomas/content/img/copy-md.png" class="normal"/>
+                <img src="/fantomas/content/img/copy-md-hover.png" class="hover"/>
+              </div>
+              <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'M:FSharp.Compiler.IO.ByteMemory.AsStream\'/>')">
+                <img src="/fantomas/content/img/copy-xml.png" class="normal"/>
+                <img src="/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+              </div>
+              <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/Utilities/FileSystem.fs#L65-65" class="fsdocs-source-link" title="Source on GitHub">
+                <img src="/fantomas/content/img/github.png" class="normal"/>
+                <img src="/fantomas/content/img/github-hover.png" class="hover"/>
+              </a>
+              <p class="fsdocs-summary">
+                
+ Get a stream representation of the backing memory.
+ Disposing this will not free up any of the backing memory.
+
+              </p>
+            </div>
+            <dl class="fsdocs-returns">
+              <dt>
+                <span class="fsdocs-return-name">
+                  Returns: 
+                </span>
+                <code><a href="https://docs.microsoft.com/dotnet/api/system.io.stream">Stream</a></code>
+              </dt>
+              <dd class="fsdocs-return-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '641', 641)" onmouseover="showTip(event, '641', 641)">
+                <p>
+                  <a id="Copy">
+                    <a href="#Copy">
+                      <code><span>this.Copy</span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="641">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>this.Copy</span></code>
+                  <br/>
+                  <br/>
+                  Parameters: 
+                  <ul>
+                    <span>
+                      <b>
+                        srcOffset
+                      </b>
+                      :
+                      <code>int</code>
+                    </span>
+                    <br/>
+                    <span>
+                      <b>
+                        dest
+                      </b>
+                      :
+                      <code><span>byte[]</span></code>
+                    </span>
+                    <br/>
+                    <span>
+                      <b>
+                        destOffset
+                      </b>
+                      :
+                      <code>int</code>
+                    </span>
+                    <br/>
+                    <span>
+                      <b>
+                        count
+                      </b>
+                      :
+                      <code>int</code>
+                    </span>
+                    <br/>
+                  </ul>
+                  <br/>
+                  Modifiers: 
+                  abstract
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-summary">
+              <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:M:FSharp.Compiler.IO.ByteMemory.Copy`')">
+                <img src="/fantomas/content/img/copy-md.png" class="normal"/>
+                <img src="/fantomas/content/img/copy-md-hover.png" class="hover"/>
+              </div>
+              <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'M:FSharp.Compiler.IO.ByteMemory.Copy\'/>')">
+                <img src="/fantomas/content/img/copy-xml.png" class="normal"/>
+                <img src="/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+              </div>
+              <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/Utilities/FileSystem.fs#L63-63" class="fsdocs-source-link" title="Source on GitHub">
+                <img src="/fantomas/content/img/github.png" class="normal"/>
+                <img src="/fantomas/content/img/github-hover.png" class="hover"/>
+              </a>
+              <p class="fsdocs-summary">
+                
+              </p>
+            </div>
+            <dl class="fsdocs-params">
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  srcOffset
+                </span>
+                :
+                <code>int</code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  dest
+                </span>
+                :
+                <code><span>byte[]</span></code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  destOffset
+                </span>
+                :
+                <code>int</code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  count
+                </span>
+                :
+                <code>int</code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '642', 642)" onmouseover="showTip(event, '642', 642)">
+                <p>
+                  <a id="CopyTo">
+                    <a href="#CopyTo">
+                      <code><span>this.CopyTo</span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="642">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>this.CopyTo</span></code>
+                  <br/>
+                  <br/>
+                  Parameters: 
+                  <ul>
+                    <span>
+                      <b>
+                        arg0
+                      </b>
+                      :
+                      <code><a href="https://docs.microsoft.com/dotnet/api/system.io.stream">Stream</a></code>
+                    </span>
+                    <br/>
+                  </ul>
+                  <br/>
+                  Modifiers: 
+                  abstract
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-summary">
+              <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:M:FSharp.Compiler.IO.ByteMemory.CopyTo`')">
+                <img src="/fantomas/content/img/copy-md.png" class="normal"/>
+                <img src="/fantomas/content/img/copy-md-hover.png" class="hover"/>
+              </div>
+              <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'M:FSharp.Compiler.IO.ByteMemory.CopyTo\'/>')">
+                <img src="/fantomas/content/img/copy-xml.png" class="normal"/>
+                <img src="/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+              </div>
+              <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/Utilities/FileSystem.fs#L62-62" class="fsdocs-source-link" title="Source on GitHub">
+                <img src="/fantomas/content/img/github.png" class="normal"/>
+                <img src="/fantomas/content/img/github-hover.png" class="hover"/>
+              </a>
+              <p class="fsdocs-summary">
+                
+              </p>
+            </div>
+            <dl class="fsdocs-params">
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  arg0
+                </span>
+                :
+                <code><a href="https://docs.microsoft.com/dotnet/api/system.io.stream">Stream</a></code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '643', 643)" onmouseover="showTip(event, '643', 643)">
+                <p>
+                  <a id="Item">
+                    <a href="#Item">
+                      <code><span>this.[<span>arg1</span>]</span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="643">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>this.[<span>arg1</span>]</span></code>
+                  <br/>
+                  <br/>
+                  Parameters: 
+                  <ul>
+                    <span>
+                      <b>
+                        arg0
+                      </b>
+                      :
+                      <code>int</code>
+                    </span>
+                    <br/>
+                  </ul>
+                  <br/>
+                  <span>
+                    Returns: 
+                    <code>byte</code>
+                  </span>
+                  <br/>
+                  Modifiers: 
+                  abstract
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-summary">
+              <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:P:FSharp.Compiler.IO.ByteMemory.Item`')">
+                <img src="/fantomas/content/img/copy-md.png" class="normal"/>
+                <img src="/fantomas/content/img/copy-md-hover.png" class="hover"/>
+              </div>
+              <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'P:FSharp.Compiler.IO.ByteMemory.Item\'/>')">
+                <img src="/fantomas/content/img/copy-xml.png" class="normal"/>
+                <img src="/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+              </div>
+              <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/Utilities/FileSystem.fs#L54-54" class="fsdocs-source-link" title="Source on GitHub">
+                <img src="/fantomas/content/img/github.png" class="normal"/>
+                <img src="/fantomas/content/img/github-hover.png" class="hover"/>
+              </a>
+              <p class="fsdocs-summary">
+                
+              </p>
+            </div>
+            <dl class="fsdocs-params">
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  arg0
+                </span>
+                :
+                <code>int</code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+            </dl>
+            <dl class="fsdocs-returns">
+              <dt>
+                <span class="fsdocs-return-name">
+                  Returns: 
+                </span>
+                <code>byte</code>
+              </dt>
+              <dd class="fsdocs-return-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '644', 644)" onmouseover="showTip(event, '644', 644)">
+                <p>
+                  <a id="Length">
+                    <a href="#Length">
+                      <code><span>this.Length</span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="644">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>this.Length</span></code>
+                  <br/>
+                  <br/>
+                  <span>
+                    Returns: 
+                    <code>int</code>
+                  </span>
+                  <br/>
+                  Modifiers: 
+                  abstract
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-summary">
+              <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:P:FSharp.Compiler.IO.ByteMemory.Length`')">
+                <img src="/fantomas/content/img/copy-md.png" class="normal"/>
+                <img src="/fantomas/content/img/copy-md-hover.png" class="hover"/>
+              </div>
+              <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'P:FSharp.Compiler.IO.ByteMemory.Length\'/>')">
+                <img src="/fantomas/content/img/copy-xml.png" class="normal"/>
+                <img src="/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+              </div>
+              <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/Utilities/FileSystem.fs#L55-55" class="fsdocs-source-link" title="Source on GitHub">
+                <img src="/fantomas/content/img/github.png" class="normal"/>
+                <img src="/fantomas/content/img/github-hover.png" class="hover"/>
+              </a>
+              <p class="fsdocs-summary">
+                
+              </p>
+            </div>
+            <dl class="fsdocs-returns">
+              <dt>
+                <span class="fsdocs-return-name">
+                  Returns: 
+                </span>
+                <code>int</code>
+              </dt>
+              <dd class="fsdocs-return-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '645', 645)" onmouseover="showTip(event, '645', 645)">
+                <p>
+                  <a id="ReadAllBytes">
+                    <a href="#ReadAllBytes">
+                      <code><span>this.ReadAllBytes</span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="645">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>this.ReadAllBytes</span></code>
+                  <br/>
+                  <br/>
+                  <span>
+                    Returns: 
+                    <code><span>byte[]</span></code>
+                  </span>
+                  <br/>
+                  Modifiers: 
+                  abstract
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-summary">
+              <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:M:FSharp.Compiler.IO.ByteMemory.ReadAllBytes`')">
+                <img src="/fantomas/content/img/copy-md.png" class="normal"/>
+                <img src="/fantomas/content/img/copy-md-hover.png" class="hover"/>
+              </div>
+              <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'M:FSharp.Compiler.IO.ByteMemory.ReadAllBytes\'/>')">
+                <img src="/fantomas/content/img/copy-xml.png" class="normal"/>
+                <img src="/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+              </div>
+              <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/Utilities/FileSystem.fs#L56-56" class="fsdocs-source-link" title="Source on GitHub">
+                <img src="/fantomas/content/img/github.png" class="normal"/>
+                <img src="/fantomas/content/img/github-hover.png" class="hover"/>
+              </a>
+              <p class="fsdocs-summary">
+                
+              </p>
+            </div>
+            <dl class="fsdocs-returns">
+              <dt>
+                <span class="fsdocs-return-name">
+                  Returns: 
+                </span>
+                <code><span>byte[]</span></code>
+              </dt>
+              <dd class="fsdocs-return-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '646', 646)" onmouseover="showTip(event, '646', 646)">
+                <p>
+                  <a id="ReadBytes">
+                    <a href="#ReadBytes">
+                      <code><span>this.ReadBytes</span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="646">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>this.ReadBytes</span></code>
+                  <br/>
+                  <br/>
+                  Parameters: 
+                  <ul>
+                    <span>
+                      <b>
+                        pos
+                      </b>
+                      :
+                      <code>int</code>
+                    </span>
+                    <br/>
+                    <span>
+                      <b>
+                        count
+                      </b>
+                      :
+                      <code>int</code>
+                    </span>
+                    <br/>
+                  </ul>
+                  <br/>
+                  <span>
+                    Returns: 
+                    <code><span>byte[]</span></code>
+                  </span>
+                  <br/>
+                  Modifiers: 
+                  abstract
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-summary">
+              <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:M:FSharp.Compiler.IO.ByteMemory.ReadBytes`')">
+                <img src="/fantomas/content/img/copy-md.png" class="normal"/>
+                <img src="/fantomas/content/img/copy-md-hover.png" class="hover"/>
+              </div>
+              <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'M:FSharp.Compiler.IO.ByteMemory.ReadBytes\'/>')">
+                <img src="/fantomas/content/img/copy-xml.png" class="normal"/>
+                <img src="/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+              </div>
+              <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/Utilities/FileSystem.fs#L57-57" class="fsdocs-source-link" title="Source on GitHub">
+                <img src="/fantomas/content/img/github.png" class="normal"/>
+                <img src="/fantomas/content/img/github-hover.png" class="hover"/>
+              </a>
+              <p class="fsdocs-summary">
+                
+              </p>
+            </div>
+            <dl class="fsdocs-params">
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  pos
+                </span>
+                :
+                <code>int</code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  count
+                </span>
+                :
+                <code>int</code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+            </dl>
+            <dl class="fsdocs-returns">
+              <dt>
+                <span class="fsdocs-return-name">
+                  Returns: 
+                </span>
+                <code><span>byte[]</span></code>
+              </dt>
+              <dd class="fsdocs-return-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '647', 647)" onmouseover="showTip(event, '647', 647)">
+                <p>
+                  <a id="ReadInt32">
+                    <a href="#ReadInt32">
+                      <code><span>this.ReadInt32</span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="647">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>this.ReadInt32</span></code>
+                  <br/>
+                  <br/>
+                  Parameters: 
+                  <ul>
+                    <span>
+                      <b>
+                        pos
+                      </b>
+                      :
+                      <code>int</code>
+                    </span>
+                    <br/>
+                  </ul>
+                  <br/>
+                  <span>
+                    Returns: 
+                    <code>int</code>
+                  </span>
+                  <br/>
+                  Modifiers: 
+                  abstract
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-summary">
+              <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:M:FSharp.Compiler.IO.ByteMemory.ReadInt32`')">
+                <img src="/fantomas/content/img/copy-md.png" class="normal"/>
+                <img src="/fantomas/content/img/copy-md-hover.png" class="hover"/>
+              </div>
+              <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'M:FSharp.Compiler.IO.ByteMemory.ReadInt32\'/>')">
+                <img src="/fantomas/content/img/copy-xml.png" class="normal"/>
+                <img src="/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+              </div>
+              <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/Utilities/FileSystem.fs#L58-58" class="fsdocs-source-link" title="Source on GitHub">
+                <img src="/fantomas/content/img/github.png" class="normal"/>
+                <img src="/fantomas/content/img/github-hover.png" class="hover"/>
+              </a>
+              <p class="fsdocs-summary">
+                
+              </p>
+            </div>
+            <dl class="fsdocs-params">
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  pos
+                </span>
+                :
+                <code>int</code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+            </dl>
+            <dl class="fsdocs-returns">
+              <dt>
+                <span class="fsdocs-return-name">
+                  Returns: 
+                </span>
+                <code>int</code>
+              </dt>
+              <dd class="fsdocs-return-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '648', 648)" onmouseover="showTip(event, '648', 648)">
+                <p>
+                  <a id="ReadUInt16">
+                    <a href="#ReadUInt16">
+                      <code><span>this.ReadUInt16</span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="648">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>this.ReadUInt16</span></code>
+                  <br/>
+                  <br/>
+                  Parameters: 
+                  <ul>
+                    <span>
+                      <b>
+                        pos
+                      </b>
+                      :
+                      <code>int</code>
+                    </span>
+                    <br/>
+                  </ul>
+                  <br/>
+                  <span>
+                    Returns: 
+                    <code>uint16</code>
+                  </span>
+                  <br/>
+                  Modifiers: 
+                  abstract
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-summary">
+              <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:M:FSharp.Compiler.IO.ByteMemory.ReadUInt16`')">
+                <img src="/fantomas/content/img/copy-md.png" class="normal"/>
+                <img src="/fantomas/content/img/copy-md-hover.png" class="hover"/>
+              </div>
+              <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'M:FSharp.Compiler.IO.ByteMemory.ReadUInt16\'/>')">
+                <img src="/fantomas/content/img/copy-xml.png" class="normal"/>
+                <img src="/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+              </div>
+              <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/Utilities/FileSystem.fs#L59-59" class="fsdocs-source-link" title="Source on GitHub">
+                <img src="/fantomas/content/img/github.png" class="normal"/>
+                <img src="/fantomas/content/img/github-hover.png" class="hover"/>
+              </a>
+              <p class="fsdocs-summary">
+                
+              </p>
+            </div>
+            <dl class="fsdocs-params">
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  pos
+                </span>
+                :
+                <code>int</code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+            </dl>
+            <dl class="fsdocs-returns">
+              <dt>
+                <span class="fsdocs-return-name">
+                  Returns: 
+                </span>
+                <code>uint16</code>
+              </dt>
+              <dd class="fsdocs-return-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '649', 649)" onmouseover="showTip(event, '649', 649)">
+                <p>
+                  <a id="ReadUtf8String">
+                    <a href="#ReadUtf8String">
+                      <code><span>this.ReadUtf8String</span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="649">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>this.ReadUtf8String</span></code>
+                  <br/>
+                  <br/>
+                  Parameters: 
+                  <ul>
+                    <span>
+                      <b>
+                        pos
+                      </b>
+                      :
+                      <code>int</code>
+                    </span>
+                    <br/>
+                    <span>
+                      <b>
+                        count
+                      </b>
+                      :
+                      <code>int</code>
+                    </span>
+                    <br/>
+                  </ul>
+                  <br/>
+                  <span>
+                    Returns: 
+                    <code>string</code>
+                  </span>
+                  <br/>
+                  Modifiers: 
+                  abstract
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-summary">
+              <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:M:FSharp.Compiler.IO.ByteMemory.ReadUtf8String`')">
+                <img src="/fantomas/content/img/copy-md.png" class="normal"/>
+                <img src="/fantomas/content/img/copy-md-hover.png" class="hover"/>
+              </div>
+              <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'M:FSharp.Compiler.IO.ByteMemory.ReadUtf8String\'/>')">
+                <img src="/fantomas/content/img/copy-xml.png" class="normal"/>
+                <img src="/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+              </div>
+              <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/Utilities/FileSystem.fs#L60-60" class="fsdocs-source-link" title="Source on GitHub">
+                <img src="/fantomas/content/img/github.png" class="normal"/>
+                <img src="/fantomas/content/img/github-hover.png" class="hover"/>
+              </a>
+              <p class="fsdocs-summary">
+                
+              </p>
+            </div>
+            <dl class="fsdocs-params">
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  pos
+                </span>
+                :
+                <code>int</code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  count
+                </span>
+                :
+                <code>int</code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+            </dl>
+            <dl class="fsdocs-returns">
+              <dt>
+                <span class="fsdocs-return-name">
+                  Returns: 
+                </span>
+                <code>string</code>
+              </dt>
+              <dd class="fsdocs-return-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '650', 650)" onmouseover="showTip(event, '650', 650)">
+                <p>
+                  <a id="Slice">
+                    <a href="#Slice">
+                      <code><span>this.Slice</span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="650">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>this.Slice</span></code>
+                  <br/>
+                  <br/>
+                  Parameters: 
+                  <ul>
+                    <span>
+                      <b>
+                        pos
+                      </b>
+                      :
+                      <code>int</code>
+                    </span>
+                    <br/>
+                    <span>
+                      <b>
+                        count
+                      </b>
+                      :
+                      <code>int</code>
+                    </span>
+                    <br/>
+                  </ul>
+                  <br/>
+                  <span>
+                    Returns: 
+                    <code><a href="/fantomas/reference/fsharp-compiler-io-bytememory.html">ByteMemory</a></code>
+                  </span>
+                  <br/>
+                  Modifiers: 
+                  abstract
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-summary">
+              <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:M:FSharp.Compiler.IO.ByteMemory.Slice`')">
+                <img src="/fantomas/content/img/copy-md.png" class="normal"/>
+                <img src="/fantomas/content/img/copy-md-hover.png" class="hover"/>
+              </div>
+              <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'M:FSharp.Compiler.IO.ByteMemory.Slice\'/>')">
+                <img src="/fantomas/content/img/copy-xml.png" class="normal"/>
+                <img src="/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+              </div>
+              <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/Utilities/FileSystem.fs#L61-61" class="fsdocs-source-link" title="Source on GitHub">
+                <img src="/fantomas/content/img/github.png" class="normal"/>
+                <img src="/fantomas/content/img/github-hover.png" class="hover"/>
+              </a>
+              <p class="fsdocs-summary">
+                
+              </p>
+            </div>
+            <dl class="fsdocs-params">
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  pos
+                </span>
+                :
+                <code>int</code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  count
+                </span>
+                :
+                <code>int</code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+            </dl>
+            <dl class="fsdocs-returns">
+              <dt>
+                <span class="fsdocs-return-name">
+                  Returns: 
+                </span>
+                <code><a href="/fantomas/reference/fsharp-compiler-io-bytememory.html">ByteMemory</a></code>
+              </dt>
+              <dd class="fsdocs-return-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '651', 651)" onmouseover="showTip(event, '651', 651)">
+                <p>
+                  <a id="ToArray">
+                    <a href="#ToArray">
+                      <code><span>this.ToArray</span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="651">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>this.ToArray</span></code>
+                  <br/>
+                  <br/>
+                  <span>
+                    Returns: 
+                    <code><span>byte[]</span></code>
+                  </span>
+                  <br/>
+                  Modifiers: 
+                  abstract
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-summary">
+              <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:M:FSharp.Compiler.IO.ByteMemory.ToArray`')">
+                <img src="/fantomas/content/img/copy-md.png" class="normal"/>
+                <img src="/fantomas/content/img/copy-md-hover.png" class="hover"/>
+              </div>
+              <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'M:FSharp.Compiler.IO.ByteMemory.ToArray\'/>')">
+                <img src="/fantomas/content/img/copy-xml.png" class="normal"/>
+                <img src="/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+              </div>
+              <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/Utilities/FileSystem.fs#L64-64" class="fsdocs-source-link" title="Source on GitHub">
+                <img src="/fantomas/content/img/github.png" class="normal"/>
+                <img src="/fantomas/content/img/github-hover.png" class="hover"/>
+              </a>
+              <p class="fsdocs-summary">
+                
+              </p>
+            </div>
+            <dl class="fsdocs-returns">
+              <dt>
+                <span class="fsdocs-return-name">
+                  Returns: 
+                </span>
+                <code><span>byte[]</span></code>
+              </dt>
+              <dd class="fsdocs-return-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <div>
+    <h3>
+      Static members
+    </h3>
+    <table class="table outer-list fsdocs-member-list">
+      <thead>
+        <tr>
+          <td class="fsdocs-member-list-header">
+            Static member
+          </td>
+          <td class="fsdocs-member-list-header">
+            Description
+          </td>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '652', 652)" onmouseover="showTip(event, '652', 652)">
+                <p>
+                  <a id="Empty">
+                    <a href="#Empty">
+                      <code><span>ByteMemory.Empty</span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="652">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>ByteMemory.Empty</span></code>
+                  <br/>
+                  <br/>
+                  <span>
+                    Returns: 
+                    <code><a href="/fantomas/reference/fsharp-compiler-io-bytememory.html">ByteMemory</a></code>
+                  </span>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-summary">
+              <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:P:FSharp.Compiler.IO.ByteMemory.Empty`')">
+                <img src="/fantomas/content/img/copy-md.png" class="normal"/>
+                <img src="/fantomas/content/img/copy-md-hover.png" class="hover"/>
+              </div>
+              <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'P:FSharp.Compiler.IO.ByteMemory.Empty\'/>')">
+                <img src="/fantomas/content/img/copy-xml.png" class="normal"/>
+                <img src="/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+              </div>
+              <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/Utilities/FileSystem.fs#L858-858" class="fsdocs-source-link" title="Source on GitHub">
+                <img src="/fantomas/content/img/github.png" class="normal"/>
+                <img src="/fantomas/content/img/github-hover.png" class="hover"/>
+              </a>
+              <p class="fsdocs-summary">
+                
+ Empty byte memory.
+
+              </p>
+            </div>
+            <dl class="fsdocs-returns">
+              <dt>
+                <span class="fsdocs-return-name">
+                  Returns: 
+                </span>
+                <code><a href="/fantomas/reference/fsharp-compiler-io-bytememory.html">ByteMemory</a></code>
+              </dt>
+              <dd class="fsdocs-return-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '653', 653)" onmouseover="showTip(event, '653', 653)">
+                <p>
+                  <a id="FromArray">
+                    <a href="#FromArray">
+                      <code><span>ByteMemory.FromArray<span><span>(<span>bytes</span>)</span></span></span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="653">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>ByteMemory.FromArray<span><span>(<span>bytes</span>)</span></span></span></code>
+                  <br/>
+                  <br/>
+                  Parameters: 
+                  <ul>
+                    <span>
+                      <b>
+                        bytes
+                      </b>
+                      :
+                      <code><span>byte[]</span></code>
+                    </span>
+                    <br/>
+                  </ul>
+                  <br/>
+                  <span>
+                    Returns: 
+                    <code><a href="/fantomas/reference/fsharp-compiler-io-bytememory.html">ByteMemory</a></code>
+                  </span>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-summary">
+              <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:M:FSharp.Compiler.IO.ByteMemory.FromArray`')">
+                <img src="/fantomas/content/img/copy-md.png" class="normal"/>
+                <img src="/fantomas/content/img/copy-md-hover.png" class="hover"/>
+              </div>
+              <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'M:FSharp.Compiler.IO.ByteMemory.FromArray\'/>')">
+                <img src="/fantomas/content/img/copy-xml.png" class="normal"/>
+                <img src="/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+              </div>
+              <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/Utilities/FileSystem.fs#L870-870" class="fsdocs-source-link" title="Source on GitHub">
+                <img src="/fantomas/content/img/github.png" class="normal"/>
+                <img src="/fantomas/content/img/github-hover.png" class="hover"/>
+              </a>
+              <p class="fsdocs-summary">
+                
+ Creates a ByteMemory object that is backed by a byte array.
+
+              </p>
+            </div>
+            <dl class="fsdocs-params">
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  bytes
+                </span>
+                :
+                <code><span>byte[]</span></code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+            </dl>
+            <dl class="fsdocs-returns">
+              <dt>
+                <span class="fsdocs-return-name">
+                  Returns: 
+                </span>
+                <code><a href="/fantomas/reference/fsharp-compiler-io-bytememory.html">ByteMemory</a></code>
+              </dt>
+              <dd class="fsdocs-return-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '654', 654)" onmouseover="showTip(event, '654', 654)">
+                <p>
+                  <a id="FromArray">
+                    <a href="#FromArray">
+                      <code><span>ByteMemory.FromArray<span><span>(<span>bytes,&#32;offset,&#32;length</span>)</span></span></span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="654">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>ByteMemory.FromArray<span><span>(<span>bytes,&#32;offset,&#32;length</span>)</span></span></span></code>
+                  <br/>
+                  <br/>
+                  Parameters: 
+                  <ul>
+                    <span>
+                      <b>
+                        bytes
+                      </b>
+                      :
+                      <code><span>byte[]</span></code>
+                    </span>
+                    <br/>
+                    <span>
+                      <b>
+                        offset
+                      </b>
+                      :
+                      <code>int</code>
+                    </span>
+                    <br/>
+                    <span>
+                      <b>
+                        length
+                      </b>
+                      :
+                      <code>int</code>
+                    </span>
+                    <br/>
+                  </ul>
+                  <br/>
+                  <span>
+                    Returns: 
+                    <code><a href="/fantomas/reference/fsharp-compiler-io-bytememory.html">ByteMemory</a></code>
+                  </span>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-summary">
+              <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:M:FSharp.Compiler.IO.ByteMemory.FromArray`')">
+                <img src="/fantomas/content/img/copy-md.png" class="normal"/>
+                <img src="/fantomas/content/img/copy-md-hover.png" class="hover"/>
+              </div>
+              <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'M:FSharp.Compiler.IO.ByteMemory.FromArray\'/>')">
+                <img src="/fantomas/content/img/copy-xml.png" class="normal"/>
+                <img src="/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+              </div>
+              <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/Utilities/FileSystem.fs#L867-867" class="fsdocs-source-link" title="Source on GitHub">
+                <img src="/fantomas/content/img/github.png" class="normal"/>
+                <img src="/fantomas/content/img/github-hover.png" class="hover"/>
+              </a>
+              <p class="fsdocs-summary">
+                
+ Creates a ByteMemory object that is backed by a byte array with the specified offset and length.
+
+              </p>
+            </div>
+            <dl class="fsdocs-params">
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  bytes
+                </span>
+                :
+                <code><span>byte[]</span></code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  offset
+                </span>
+                :
+                <code>int</code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  length
+                </span>
+                :
+                <code>int</code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+            </dl>
+            <dl class="fsdocs-returns">
+              <dt>
+                <span class="fsdocs-return-name">
+                  Returns: 
+                </span>
+                <code><a href="/fantomas/reference/fsharp-compiler-io-bytememory.html">ByteMemory</a></code>
+              </dt>
+              <dd class="fsdocs-return-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '655', 655)" onmouseover="showTip(event, '655', 655)">
+                <p>
+                  <a id="FromMemoryMappedFile">
+                    <a href="#FromMemoryMappedFile">
+                      <code><span>ByteMemory.FromMemoryMappedFile<span><span>(<span>arg1</span>)</span></span></span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="655">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>ByteMemory.FromMemoryMappedFile<span><span>(<span>arg1</span>)</span></span></span></code>
+                  <br/>
+                  <br/>
+                  Parameters: 
+                  <ul>
+                    <span>
+                      <b>
+                        arg0
+                      </b>
+                      :
+                      <code><a href="https://docs.microsoft.com/dotnet/api/system.io.memorymappedfiles.memorymappedfile">MemoryMappedFile</a></code>
+                    </span>
+                    <br/>
+                  </ul>
+                  <br/>
+                  <span>
+                    Returns: 
+                    <code><a href="/fantomas/reference/fsharp-compiler-io-bytememory.html">ByteMemory</a></code>
+                  </span>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-summary">
+              <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:M:FSharp.Compiler.IO.ByteMemory.FromMemoryMappedFile`')">
+                <img src="/fantomas/content/img/copy-md.png" class="normal"/>
+                <img src="/fantomas/content/img/copy-md-hover.png" class="hover"/>
+              </div>
+              <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'M:FSharp.Compiler.IO.ByteMemory.FromMemoryMappedFile\'/>')">
+                <img src="/fantomas/content/img/copy-xml.png" class="normal"/>
+                <img src="/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+              </div>
+              <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/Utilities/FileSystem.fs#L860-860" class="fsdocs-source-link" title="Source on GitHub">
+                <img src="/fantomas/content/img/github.png" class="normal"/>
+                <img src="/fantomas/content/img/github-hover.png" class="hover"/>
+              </a>
+              <p class="fsdocs-summary">
+                
+ Create a ByteMemory object that has a backing memory mapped file.
+
+              </p>
+            </div>
+            <dl class="fsdocs-params">
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  arg0
+                </span>
+                :
+                <code><a href="https://docs.microsoft.com/dotnet/api/system.io.memorymappedfiles.memorymappedfile">MemoryMappedFile</a></code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+            </dl>
+            <dl class="fsdocs-returns">
+              <dt>
+                <span class="fsdocs-return-name">
+                  Returns: 
+                </span>
+                <code><a href="/fantomas/reference/fsharp-compiler-io-bytememory.html">ByteMemory</a></code>
+              </dt>
+              <dd class="fsdocs-return-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '656', 656)" onmouseover="showTip(event, '656', 656)">
+                <p>
+                  <a id="FromUnsafePointer">
+                    <a href="#FromUnsafePointer">
+                      <code><span>ByteMemory.FromUnsafePointer<span><span>(<span>addr,&#32;length,&#32;holder</span>)</span></span></span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="656">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>ByteMemory.FromUnsafePointer<span><span>(<span>addr,&#32;length,&#32;holder</span>)</span></span></span></code>
+                  <br/>
+                  <br/>
+                  Parameters: 
+                  <ul>
+                    <span>
+                      <b>
+                        addr
+                      </b>
+                      :
+                      <code>nativeint</code>
+                    </span>
+                    <br/>
+                    <span>
+                      <b>
+                        length
+                      </b>
+                      :
+                      <code>int</code>
+                    </span>
+                    <br/>
+                    <span>
+                      <b>
+                        holder
+                      </b>
+                      :
+                      <code>obj</code>
+                    </span>
+                    <br/>
+                  </ul>
+                  <br/>
+                  <span>
+                    Returns: 
+                    <code><a href="/fantomas/reference/fsharp-compiler-io-bytememory.html">ByteMemory</a></code>
+                  </span>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-summary">
+              <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:M:FSharp.Compiler.IO.ByteMemory.FromUnsafePointer`')">
+                <img src="/fantomas/content/img/copy-md.png" class="normal"/>
+                <img src="/fantomas/content/img/copy-md-hover.png" class="hover"/>
+              </div>
+              <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'M:FSharp.Compiler.IO.ByteMemory.FromUnsafePointer\'/>')">
+                <img src="/fantomas/content/img/copy-xml.png" class="normal"/>
+                <img src="/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+              </div>
+              <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/Utilities/FileSystem.fs#L864-864" class="fsdocs-source-link" title="Source on GitHub">
+                <img src="/fantomas/content/img/github.png" class="normal"/>
+                <img src="/fantomas/content/img/github-hover.png" class="hover"/>
+              </a>
+              <p class="fsdocs-summary">
+                
+ Creates a ByteMemory object that is backed by a raw pointer.
+ Use with care.
+
+              </p>
+            </div>
+            <dl class="fsdocs-params">
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  addr
+                </span>
+                :
+                <code>nativeint</code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  length
+                </span>
+                :
+                <code>int</code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  holder
+                </span>
+                :
+                <code>obj</code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+            </dl>
+            <dl class="fsdocs-returns">
+              <dt>
+                <span class="fsdocs-return-name">
+                  Returns: 
+                </span>
+                <code><a href="/fantomas/reference/fsharp-compiler-io-bytememory.html">ByteMemory</a></code>
+              </dt>
+              <dd class="fsdocs-return-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+            
+        </div>
+
+        <!-- BEGIN SEARCH BOX: this adds support for the search box -->
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/JavaScript-autoComplete/1.0.4/auto-complete.css" />
+        <script type="text/javascript">var fsdocs_search_baseurl = '/fantomas/';</script>
+        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/lunr.js/2.3.8/lunr.min.js"></script>
+        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/JavaScript-autoComplete/1.0.4/auto-complete.min.js"></script>
+        <script type="text/javascript" src="/fantomas/content/fsdocs-search.js"></script>
+        <!-- END SEARCH BOX: this adds support for the search box -->
+    </div>
+</body>
+
+</html>

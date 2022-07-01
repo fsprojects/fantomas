@@ -1,0 +1,1948 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <title>IFileSystem (fantomas)</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="author" content="Florian Verdonck, Jindřich Ivánek">
+
+    <link rel="stylesheet" id="theme_link" href="https://cdnjs.cloudflare.com/ajax/libs/bootswatch/4.6.0/materia/bootstrap.min.css">
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-Piv4xVNRyMGpqkS2by6br4gNJ7DXjqk09RmUpJ8jgGtD7zP9yug3goQfGII0yAns" crossorigin="anonymous"></script>
+
+    <script type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+
+    <link rel="shortcut icon" type="image/x-icon" href="img/favicon.ico">
+    <link type="text/css" rel="stylesheet" href="/fantomas/content/navbar-fixed-left.css" />
+    <link type="text/css" rel="stylesheet" href="/fantomas/content/fsdocs-default.css" />
+    <link type="text/css" rel="stylesheet" href="/fantomas/content/fsdocs-custom.css" />
+    <script type="text/javascript" src="/fantomas/content/fsdocs-tips.js"></script>
+    <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <!-- BEGIN SEARCH BOX: this adds support for the search box -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/JavaScript-autoComplete/1.0.4/auto-complete.css" />
+    <!-- END SEARCH BOX: this adds support for the search box -->
+    
+</head>
+
+<body>
+    <nav class="navbar navbar-expand-md navbar-light bg-secondary fixed-left" id="fsdocs-nav">
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarsExampleDefault" aria-controls="navbarsExampleDefault" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse navbar-nav-scroll" id="navbarsExampleDefault">
+            <a href="/fantomas/"><img id="fsdocs-logo" src="/fantomas/img/logo.png" /></a>
+            <!-- BEGIN SEARCH BOX: this adds support for the search box -->
+            <div id="header">
+                <div class="searchbox" id="fsdocs-searchbox">
+                    <label for="search-by">
+                        <i class="fas fa-search"></i>
+                    </label>
+                    <input data-search-input="" id="search-by" type="search" placeholder="Search..." />
+                    <span data-search-clear="">
+                        <i class="fas fa-times"></i>
+                    </span>
+                </div>
+            </div>
+
+            <!-- END SEARCH BOX: this adds support for the search box -->
+            <ul class="navbar-nav">
+                <li class="nav-header">Links</li>
+                <li class="nav-item" id="fsdocs-license-link"><a class="nav-link" href="https://github.com/fsprojects/fantomas/blob/master/LICENSE.md">License</a></li>
+                <li class="nav-item" id="fsdocs-release-notes-link"><a class="nav-link" href="https://github.com/fsprojects/fantomas/blob/master/CHANGELOG.md">Release Notes</a></li>
+                <li class="nav-item" id="fsdocs-repository-link"><a class="nav-link" href="https://github.com/fsprojects/fantomas/">Source Repository</a></li>
+                
+                <li class="nav-header">
+  API Reference
+</li>             
+<li class="nav-item">
+  <a class="nav-link" href="/fantomas/reference/index.html">
+    All Namespaces
+  </a>
+</li>
+            </ul>
+        </div>
+    </nav>
+    <div class="container">
+        <div class="masthead">
+            <h3 class="muted"><a href="/fantomas/">fantomas</a></h3>
+        </div>
+        <hr />
+        <div class="container" id="fsdocs-content">
+            <div>
+  <h2>
+    IFileSystem Type
+  </h2>
+  <dl class="fsdocs-metadata">
+    <dt>
+      Namespace: 
+      <a href="/fantomas/reference/fsharp-compiler-io.html">
+        FSharp.Compiler.IO
+      </a>
+    </dt>
+    <dt>
+      Assembly: Fantomas.FCS.dll
+    </dt>
+    <dt>
+      Base Type: 
+      <code>obj</code>
+    </dt>
+    <dt>
+      All Interfaces: 
+      <code><a href="/fantomas/reference/fsharp-compiler-io-ifilesystem.html">IFileSystem</a></code>
+    </dt>
+  </dl>
+  <div class="fsdocs-xmldoc">
+    <div>
+      <p class="fsdocs-summary">
+        
+ Represents a shim for the file system
+
+      </p>
+    </div>
+  </div>
+  <div></div>
+  <div></div>
+  <div></div>
+  <div></div>
+  <div></div>
+  <div></div>
+  <div></div>
+  <div>
+    <h3>
+      Instance members
+    </h3>
+    <table class="table outer-list fsdocs-member-list">
+      <thead>
+        <tr>
+          <td class="fsdocs-member-list-header">
+            Instance member
+          </td>
+          <td class="fsdocs-member-list-header">
+            Description
+          </td>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '682', 682)" onmouseover="showTip(event, '682', 682)">
+                <p>
+                  <a id="AssemblyLoader">
+                    <a href="#AssemblyLoader">
+                      <code><span>this.AssemblyLoader</span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="682">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>this.AssemblyLoader</span></code>
+                  <br/>
+                  <br/>
+                  <span>
+                    Returns: 
+                    <code><a href="/fantomas/reference/fsharp-compiler-io-iassemblyloader.html">IAssemblyLoader</a></code>
+                  </span>
+                  <br/>
+                  Modifiers: 
+                  abstract
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-summary">
+              <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:P:FSharp.Compiler.IO.IFileSystem.AssemblyLoader`')">
+                <img src="/fantomas/content/img/copy-md.png" class="normal"/>
+                <img src="/fantomas/content/img/copy-md-hover.png" class="hover"/>
+              </div>
+              <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'P:FSharp.Compiler.IO.IFileSystem.AssemblyLoader\'/>')">
+                <img src="/fantomas/content/img/copy-xml.png" class="normal"/>
+                <img src="/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+              </div>
+              <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/Utilities/FileSystem.fs#L471-471" class="fsdocs-source-link" title="Source on GitHub">
+                <img src="/fantomas/content/img/github.png" class="normal"/>
+                <img src="/fantomas/content/img/github-hover.png" class="hover"/>
+              </a>
+              <p class="fsdocs-summary">
+                
+              </p>
+            </div>
+            <dl class="fsdocs-returns">
+              <dt>
+                <span class="fsdocs-return-name">
+                  Returns: 
+                </span>
+                <code><a href="/fantomas/reference/fsharp-compiler-io-iassemblyloader.html">IAssemblyLoader</a></code>
+              </dt>
+              <dd class="fsdocs-return-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '683', 683)" onmouseover="showTip(event, '683', 683)">
+                <p>
+                  <a id="CopyShim">
+                    <a href="#CopyShim">
+                      <code><span>this.CopyShim</span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="683">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>this.CopyShim</span></code>
+                  <br/>
+                  <br/>
+                  Parameters: 
+                  <ul>
+                    <span>
+                      <b>
+                        src
+                      </b>
+                      :
+                      <code>string</code>
+                    </span>
+                    <br/>
+                    <span>
+                      <b>
+                        dest
+                      </b>
+                      :
+                      <code>string</code>
+                    </span>
+                    <br/>
+                    <span>
+                      <b>
+                        overwrite
+                      </b>
+                      :
+                      <code>bool</code>
+                    </span>
+                    <br/>
+                  </ul>
+                  <br/>
+                  Modifiers: 
+                  abstract
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-summary">
+              <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:M:FSharp.Compiler.IO.IFileSystem.CopyShim`')">
+                <img src="/fantomas/content/img/copy-md.png" class="normal"/>
+                <img src="/fantomas/content/img/copy-md-hover.png" class="hover"/>
+              </div>
+              <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'M:FSharp.Compiler.IO.IFileSystem.CopyShim\'/>')">
+                <img src="/fantomas/content/img/copy-xml.png" class="normal"/>
+                <img src="/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+              </div>
+              <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/Utilities/FileSystem.fs#L495-495" class="fsdocs-source-link" title="Source on GitHub">
+                <img src="/fantomas/content/img/github.png" class="normal"/>
+                <img src="/fantomas/content/img/github-hover.png" class="hover"/>
+              </a>
+              <p class="fsdocs-summary">
+                
+              </p>
+            </div>
+            <dl class="fsdocs-params">
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  src
+                </span>
+                :
+                <code>string</code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  dest
+                </span>
+                :
+                <code>string</code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  overwrite
+                </span>
+                :
+                <code>bool</code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '684', 684)" onmouseover="showTip(event, '684', 684)">
+                <p>
+                  <a id="DirectoryCreateShim">
+                    <a href="#DirectoryCreateShim">
+                      <code><span>this.DirectoryCreateShim</span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="684">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>this.DirectoryCreateShim</span></code>
+                  <br/>
+                  <br/>
+                  Parameters: 
+                  <ul>
+                    <span>
+                      <b>
+                        path
+                      </b>
+                      :
+                      <code>string</code>
+                    </span>
+                    <br/>
+                  </ul>
+                  <br/>
+                  <span>
+                    Returns: 
+                    <code>string</code>
+                  </span>
+                  <br/>
+                  Modifiers: 
+                  abstract
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-summary">
+              <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:M:FSharp.Compiler.IO.IFileSystem.DirectoryCreateShim`')">
+                <img src="/fantomas/content/img/copy-md.png" class="normal"/>
+                <img src="/fantomas/content/img/copy-md-hover.png" class="hover"/>
+              </div>
+              <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'M:FSharp.Compiler.IO.IFileSystem.DirectoryCreateShim\'/>')">
+                <img src="/fantomas/content/img/copy-xml.png" class="normal"/>
+                <img src="/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+              </div>
+              <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/Utilities/FileSystem.fs#L501-501" class="fsdocs-source-link" title="Source on GitHub">
+                <img src="/fantomas/content/img/github.png" class="normal"/>
+                <img src="/fantomas/content/img/github-hover.png" class="hover"/>
+              </a>
+              <p class="fsdocs-summary">
+                
+ A shim over Directory.Exists, but returns a string, the FullName of the resulting
+ DirectoryInfo.
+
+              </p>
+            </div>
+            <dl class="fsdocs-params">
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  path
+                </span>
+                :
+                <code>string</code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+            </dl>
+            <dl class="fsdocs-returns">
+              <dt>
+                <span class="fsdocs-return-name">
+                  Returns: 
+                </span>
+                <code>string</code>
+              </dt>
+              <dd class="fsdocs-return-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '685', 685)" onmouseover="showTip(event, '685', 685)">
+                <p>
+                  <a id="DirectoryDeleteShim">
+                    <a href="#DirectoryDeleteShim">
+                      <code><span>this.DirectoryDeleteShim</span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="685">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>this.DirectoryDeleteShim</span></code>
+                  <br/>
+                  <br/>
+                  Parameters: 
+                  <ul>
+                    <span>
+                      <b>
+                        path
+                      </b>
+                      :
+                      <code>string</code>
+                    </span>
+                    <br/>
+                  </ul>
+                  <br/>
+                  Modifiers: 
+                  abstract
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-summary">
+              <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:M:FSharp.Compiler.IO.IFileSystem.DirectoryDeleteShim`')">
+                <img src="/fantomas/content/img/copy-md.png" class="normal"/>
+                <img src="/fantomas/content/img/copy-md-hover.png" class="hover"/>
+              </div>
+              <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'M:FSharp.Compiler.IO.IFileSystem.DirectoryDeleteShim\'/>')">
+                <img src="/fantomas/content/img/copy-xml.png" class="normal"/>
+                <img src="/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+              </div>
+              <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/Utilities/FileSystem.fs#L505-505" class="fsdocs-source-link" title="Source on GitHub">
+                <img src="/fantomas/content/img/github.png" class="normal"/>
+                <img src="/fantomas/content/img/github-hover.png" class="hover"/>
+              </a>
+              <p class="fsdocs-summary">
+                
+ A shim over Directory.Delete
+
+              </p>
+            </div>
+            <dl class="fsdocs-params">
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  path
+                </span>
+                :
+                <code>string</code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '686', 686)" onmouseover="showTip(event, '686', 686)">
+                <p>
+                  <a id="DirectoryExistsShim">
+                    <a href="#DirectoryExistsShim">
+                      <code><span>this.DirectoryExistsShim</span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="686">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>this.DirectoryExistsShim</span></code>
+                  <br/>
+                  <br/>
+                  Parameters: 
+                  <ul>
+                    <span>
+                      <b>
+                        path
+                      </b>
+                      :
+                      <code>string</code>
+                    </span>
+                    <br/>
+                  </ul>
+                  <br/>
+                  <span>
+                    Returns: 
+                    <code>bool</code>
+                  </span>
+                  <br/>
+                  Modifiers: 
+                  abstract
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-summary">
+              <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:M:FSharp.Compiler.IO.IFileSystem.DirectoryExistsShim`')">
+                <img src="/fantomas/content/img/copy-md.png" class="normal"/>
+                <img src="/fantomas/content/img/copy-md-hover.png" class="hover"/>
+              </div>
+              <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'M:FSharp.Compiler.IO.IFileSystem.DirectoryExistsShim\'/>')">
+                <img src="/fantomas/content/img/copy-xml.png" class="normal"/>
+                <img src="/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+              </div>
+              <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/Utilities/FileSystem.fs#L503-503" class="fsdocs-source-link" title="Source on GitHub">
+                <img src="/fantomas/content/img/github.png" class="normal"/>
+                <img src="/fantomas/content/img/github-hover.png" class="hover"/>
+              </a>
+              <p class="fsdocs-summary">
+                
+ A shim over Directory.Exists
+
+              </p>
+            </div>
+            <dl class="fsdocs-params">
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  path
+                </span>
+                :
+                <code>string</code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+            </dl>
+            <dl class="fsdocs-returns">
+              <dt>
+                <span class="fsdocs-return-name">
+                  Returns: 
+                </span>
+                <code>bool</code>
+              </dt>
+              <dd class="fsdocs-return-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '687', 687)" onmouseover="showTip(event, '687', 687)">
+                <p>
+                  <a id="EnumerateDirectoriesShim">
+                    <a href="#EnumerateDirectoriesShim">
+                      <code><span>this.EnumerateDirectoriesShim</span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="687">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>this.EnumerateDirectoriesShim</span></code>
+                  <br/>
+                  <br/>
+                  Parameters: 
+                  <ul>
+                    <span>
+                      <b>
+                        path
+                      </b>
+                      :
+                      <code>string</code>
+                    </span>
+                    <br/>
+                  </ul>
+                  <br/>
+                  <span>
+                    Returns: 
+                    <code><span>seq&lt;string&gt;</span></code>
+                  </span>
+                  <br/>
+                  Modifiers: 
+                  abstract
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-summary">
+              <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:M:FSharp.Compiler.IO.IFileSystem.EnumerateDirectoriesShim`')">
+                <img src="/fantomas/content/img/copy-md.png" class="normal"/>
+                <img src="/fantomas/content/img/copy-md-hover.png" class="hover"/>
+              </div>
+              <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'M:FSharp.Compiler.IO.IFileSystem.EnumerateDirectoriesShim\'/>')">
+                <img src="/fantomas/content/img/copy-xml.png" class="normal"/>
+                <img src="/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+              </div>
+              <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/Utilities/FileSystem.fs#L509-509" class="fsdocs-source-link" title="Source on GitHub">
+                <img src="/fantomas/content/img/github.png" class="normal"/>
+                <img src="/fantomas/content/img/github-hover.png" class="hover"/>
+              </a>
+              <p class="fsdocs-summary">
+                
+ A shim over Directory.EnumerateDirectories
+
+              </p>
+            </div>
+            <dl class="fsdocs-params">
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  path
+                </span>
+                :
+                <code>string</code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+            </dl>
+            <dl class="fsdocs-returns">
+              <dt>
+                <span class="fsdocs-return-name">
+                  Returns: 
+                </span>
+                <code><span>seq&lt;string&gt;</span></code>
+              </dt>
+              <dd class="fsdocs-return-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '688', 688)" onmouseover="showTip(event, '688', 688)">
+                <p>
+                  <a id="EnumerateFilesShim">
+                    <a href="#EnumerateFilesShim">
+                      <code><span>this.EnumerateFilesShim</span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="688">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>this.EnumerateFilesShim</span></code>
+                  <br/>
+                  <br/>
+                  Parameters: 
+                  <ul>
+                    <span>
+                      <b>
+                        path
+                      </b>
+                      :
+                      <code>string</code>
+                    </span>
+                    <br/>
+                    <span>
+                      <b>
+                        pattern
+                      </b>
+                      :
+                      <code>string</code>
+                    </span>
+                    <br/>
+                  </ul>
+                  <br/>
+                  <span>
+                    Returns: 
+                    <code><span>seq&lt;string&gt;</span></code>
+                  </span>
+                  <br/>
+                  Modifiers: 
+                  abstract
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-summary">
+              <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:M:FSharp.Compiler.IO.IFileSystem.EnumerateFilesShim`')">
+                <img src="/fantomas/content/img/copy-md.png" class="normal"/>
+                <img src="/fantomas/content/img/copy-md-hover.png" class="hover"/>
+              </div>
+              <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'M:FSharp.Compiler.IO.IFileSystem.EnumerateFilesShim\'/>')">
+                <img src="/fantomas/content/img/copy-xml.png" class="normal"/>
+                <img src="/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+              </div>
+              <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/Utilities/FileSystem.fs#L507-507" class="fsdocs-source-link" title="Source on GitHub">
+                <img src="/fantomas/content/img/github.png" class="normal"/>
+                <img src="/fantomas/content/img/github-hover.png" class="hover"/>
+              </a>
+              <p class="fsdocs-summary">
+                
+ A shim over Directory.EnumerateFiles
+
+              </p>
+            </div>
+            <dl class="fsdocs-params">
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  path
+                </span>
+                :
+                <code>string</code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  pattern
+                </span>
+                :
+                <code>string</code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+            </dl>
+            <dl class="fsdocs-returns">
+              <dt>
+                <span class="fsdocs-return-name">
+                  Returns: 
+                </span>
+                <code><span>seq&lt;string&gt;</span></code>
+              </dt>
+              <dd class="fsdocs-return-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '689', 689)" onmouseover="showTip(event, '689', 689)">
+                <p>
+                  <a id="FileDeleteShim">
+                    <a href="#FileDeleteShim">
+                      <code><span>this.FileDeleteShim</span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="689">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>this.FileDeleteShim</span></code>
+                  <br/>
+                  <br/>
+                  Parameters: 
+                  <ul>
+                    <span>
+                      <b>
+                        fileName
+                      </b>
+                      :
+                      <code>string</code>
+                    </span>
+                    <br/>
+                  </ul>
+                  <br/>
+                  Modifiers: 
+                  abstract
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-summary">
+              <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:M:FSharp.Compiler.IO.IFileSystem.FileDeleteShim`')">
+                <img src="/fantomas/content/img/copy-md.png" class="normal"/>
+                <img src="/fantomas/content/img/copy-md-hover.png" class="hover"/>
+              </div>
+              <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'M:FSharp.Compiler.IO.IFileSystem.FileDeleteShim\'/>')">
+                <img src="/fantomas/content/img/copy-xml.png" class="normal"/>
+                <img src="/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+              </div>
+              <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/Utilities/FileSystem.fs#L499-499" class="fsdocs-source-link" title="Source on GitHub">
+                <img src="/fantomas/content/img/github.png" class="normal"/>
+                <img src="/fantomas/content/img/github-hover.png" class="hover"/>
+              </a>
+              <p class="fsdocs-summary">
+                
+ A shim over File.Delete
+
+              </p>
+            </div>
+            <dl class="fsdocs-params">
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  fileName
+                </span>
+                :
+                <code>string</code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '690', 690)" onmouseover="showTip(event, '690', 690)">
+                <p>
+                  <a id="FileExistsShim">
+                    <a href="#FileExistsShim">
+                      <code><span>this.FileExistsShim</span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="690">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>this.FileExistsShim</span></code>
+                  <br/>
+                  <br/>
+                  Parameters: 
+                  <ul>
+                    <span>
+                      <b>
+                        fileName
+                      </b>
+                      :
+                      <code>string</code>
+                    </span>
+                    <br/>
+                  </ul>
+                  <br/>
+                  <span>
+                    Returns: 
+                    <code>bool</code>
+                  </span>
+                  <br/>
+                  Modifiers: 
+                  abstract
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-summary">
+              <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:M:FSharp.Compiler.IO.IFileSystem.FileExistsShim`')">
+                <img src="/fantomas/content/img/copy-md.png" class="normal"/>
+                <img src="/fantomas/content/img/copy-md-hover.png" class="hover"/>
+              </div>
+              <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'M:FSharp.Compiler.IO.IFileSystem.FileExistsShim\'/>')">
+                <img src="/fantomas/content/img/copy-xml.png" class="normal"/>
+                <img src="/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+              </div>
+              <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/Utilities/FileSystem.fs#L497-497" class="fsdocs-source-link" title="Source on GitHub">
+                <img src="/fantomas/content/img/github.png" class="normal"/>
+                <img src="/fantomas/content/img/github-hover.png" class="hover"/>
+              </a>
+              <p class="fsdocs-summary">
+                
+ A shim over File.Exists
+
+              </p>
+            </div>
+            <dl class="fsdocs-params">
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  fileName
+                </span>
+                :
+                <code>string</code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+            </dl>
+            <dl class="fsdocs-returns">
+              <dt>
+                <span class="fsdocs-return-name">
+                  Returns: 
+                </span>
+                <code>bool</code>
+              </dt>
+              <dd class="fsdocs-return-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '691', 691)" onmouseover="showTip(event, '691', 691)">
+                <p>
+                  <a id="GetCreationTimeShim">
+                    <a href="#GetCreationTimeShim">
+                      <code><span>this.GetCreationTimeShim</span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="691">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>this.GetCreationTimeShim</span></code>
+                  <br/>
+                  <br/>
+                  Parameters: 
+                  <ul>
+                    <span>
+                      <b>
+                        path
+                      </b>
+                      :
+                      <code>string</code>
+                    </span>
+                    <br/>
+                  </ul>
+                  <br/>
+                  <span>
+                    Returns: 
+                    <code><a href="https://docs.microsoft.com/dotnet/api/system.datetime">DateTime</a></code>
+                  </span>
+                  <br/>
+                  Modifiers: 
+                  abstract
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-summary">
+              <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:M:FSharp.Compiler.IO.IFileSystem.GetCreationTimeShim`')">
+                <img src="/fantomas/content/img/copy-md.png" class="normal"/>
+                <img src="/fantomas/content/img/copy-md-hover.png" class="hover"/>
+              </div>
+              <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'M:FSharp.Compiler.IO.IFileSystem.GetCreationTimeShim\'/>')">
+                <img src="/fantomas/content/img/copy-xml.png" class="normal"/>
+                <img src="/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+              </div>
+              <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/Utilities/FileSystem.fs#L493-493" class="fsdocs-source-link" title="Source on GitHub">
+                <img src="/fantomas/content/img/github.png" class="normal"/>
+                <img src="/fantomas/content/img/github-hover.png" class="hover"/>
+              </a>
+              <p class="fsdocs-summary">
+                
+              </p>
+            </div>
+            <dl class="fsdocs-params">
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  path
+                </span>
+                :
+                <code>string</code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+            </dl>
+            <dl class="fsdocs-returns">
+              <dt>
+                <span class="fsdocs-return-name">
+                  Returns: 
+                </span>
+                <code><a href="https://docs.microsoft.com/dotnet/api/system.datetime">DateTime</a></code>
+              </dt>
+              <dd class="fsdocs-return-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '692', 692)" onmouseover="showTip(event, '692', 692)">
+                <p>
+                  <a id="GetDirectoryNameShim">
+                    <a href="#GetDirectoryNameShim">
+                      <code><span>this.GetDirectoryNameShim</span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="692">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>this.GetDirectoryNameShim</span></code>
+                  <br/>
+                  <br/>
+                  Parameters: 
+                  <ul>
+                    <span>
+                      <b>
+                        path
+                      </b>
+                      :
+                      <code>string</code>
+                    </span>
+                    <br/>
+                  </ul>
+                  <br/>
+                  <span>
+                    Returns: 
+                    <code>string</code>
+                  </span>
+                  <br/>
+                  Modifiers: 
+                  abstract
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-summary">
+              <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:M:FSharp.Compiler.IO.IFileSystem.GetDirectoryNameShim`')">
+                <img src="/fantomas/content/img/copy-md.png" class="normal"/>
+                <img src="/fantomas/content/img/copy-md-hover.png" class="hover"/>
+              </div>
+              <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'M:FSharp.Compiler.IO.IFileSystem.GetDirectoryNameShim\'/>')">
+                <img src="/fantomas/content/img/copy-xml.png" class="normal"/>
+                <img src="/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+              </div>
+              <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/Utilities/FileSystem.fs#L489-489" class="fsdocs-source-link" title="Source on GitHub">
+                <img src="/fantomas/content/img/github.png" class="normal"/>
+                <img src="/fantomas/content/img/github-hover.png" class="hover"/>
+              </a>
+              <p class="fsdocs-summary">
+                
+ A shim for getting directory name from path
+
+              </p>
+            </div>
+            <dl class="fsdocs-params">
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  path
+                </span>
+                :
+                <code>string</code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+            </dl>
+            <dl class="fsdocs-returns">
+              <dt>
+                <span class="fsdocs-return-name">
+                  Returns: 
+                </span>
+                <code>string</code>
+              </dt>
+              <dd class="fsdocs-return-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '693', 693)" onmouseover="showTip(event, '693', 693)">
+                <p>
+                  <a id="GetFullFilePathInDirectoryShim">
+                    <a href="#GetFullFilePathInDirectoryShim">
+                      <code><span>this.GetFullFilePathInDirectoryShim</span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="693">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>this.GetFullFilePathInDirectoryShim</span></code>
+                  <br/>
+                  <br/>
+                  Parameters: 
+                  <ul>
+                    <span>
+                      <b>
+                        dir
+                      </b>
+                      :
+                      <code>string</code>
+                    </span>
+                    <br/>
+                    <span>
+                      <b>
+                        fileName
+                      </b>
+                      :
+                      <code>string</code>
+                    </span>
+                    <br/>
+                  </ul>
+                  <br/>
+                  <span>
+                    Returns: 
+                    <code>string</code>
+                  </span>
+                  <br/>
+                  Modifiers: 
+                  abstract
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-summary">
+              <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:M:FSharp.Compiler.IO.IFileSystem.GetFullFilePathInDirectoryShim`')">
+                <img src="/fantomas/content/img/copy-md.png" class="normal"/>
+                <img src="/fantomas/content/img/copy-md-hover.png" class="hover"/>
+              </div>
+              <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'M:FSharp.Compiler.IO.IFileSystem.GetFullFilePathInDirectoryShim\'/>')">
+                <img src="/fantomas/content/img/copy-xml.png" class="normal"/>
+                <img src="/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+              </div>
+              <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/Utilities/FileSystem.fs#L479-479" class="fsdocs-source-link" title="Source on GitHub">
+                <img src="/fantomas/content/img/github.png" class="normal"/>
+                <img src="/fantomas/content/img/github-hover.png" class="hover"/>
+              </a>
+              <p class="fsdocs-summary">
+                
+ Take in a directory, filename, and return canonicalized path to the file name in directory.
+ If file name path is rooted, ignores directory and returns file name path.
+ Otherwise, combines directory with file name and gets full path via GetFullPathShim(string).
+
+              </p>
+            </div>
+            <dl class="fsdocs-params">
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  dir
+                </span>
+                :
+                <code>string</code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  fileName
+                </span>
+                :
+                <code>string</code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+            </dl>
+            <dl class="fsdocs-returns">
+              <dt>
+                <span class="fsdocs-return-name">
+                  Returns: 
+                </span>
+                <code>string</code>
+              </dt>
+              <dd class="fsdocs-return-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '694', 694)" onmouseover="showTip(event, '694', 694)">
+                <p>
+                  <a id="GetFullPathShim">
+                    <a href="#GetFullPathShim">
+                      <code><span>this.GetFullPathShim</span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="694">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>this.GetFullPathShim</span></code>
+                  <br/>
+                  <br/>
+                  Parameters: 
+                  <ul>
+                    <span>
+                      <b>
+                        fileName
+                      </b>
+                      :
+                      <code>string</code>
+                    </span>
+                    <br/>
+                  </ul>
+                  <br/>
+                  <span>
+                    Returns: 
+                    <code>string</code>
+                  </span>
+                  <br/>
+                  Modifiers: 
+                  abstract
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-summary">
+              <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:M:FSharp.Compiler.IO.IFileSystem.GetFullPathShim`')">
+                <img src="/fantomas/content/img/copy-md.png" class="normal"/>
+                <img src="/fantomas/content/img/copy-md-hover.png" class="hover"/>
+              </div>
+              <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'M:FSharp.Compiler.IO.IFileSystem.GetFullPathShim\'/>')">
+                <img src="/fantomas/content/img/copy-xml.png" class="normal"/>
+                <img src="/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+              </div>
+              <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/Utilities/FileSystem.fs#L477-477" class="fsdocs-source-link" title="Source on GitHub">
+                <img src="/fantomas/content/img/github.png" class="normal"/>
+                <img src="/fantomas/content/img/github-hover.png" class="hover"/>
+              </a>
+              <p class="fsdocs-summary">
+                
+ Take in a file name with an absolute path, and return the same file name
+ but canonicalized with respect to extra path separators (e.g. C:\\\\foo.txt)
+ and '..' portions
+
+              </p>
+            </div>
+            <dl class="fsdocs-params">
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  fileName
+                </span>
+                :
+                <code>string</code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+            </dl>
+            <dl class="fsdocs-returns">
+              <dt>
+                <span class="fsdocs-return-name">
+                  Returns: 
+                </span>
+                <code>string</code>
+              </dt>
+              <dd class="fsdocs-return-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '695', 695)" onmouseover="showTip(event, '695', 695)">
+                <p>
+                  <a id="GetLastWriteTimeShim">
+                    <a href="#GetLastWriteTimeShim">
+                      <code><span>this.GetLastWriteTimeShim</span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="695">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>this.GetLastWriteTimeShim</span></code>
+                  <br/>
+                  <br/>
+                  Parameters: 
+                  <ul>
+                    <span>
+                      <b>
+                        fileName
+                      </b>
+                      :
+                      <code>string</code>
+                    </span>
+                    <br/>
+                  </ul>
+                  <br/>
+                  <span>
+                    Returns: 
+                    <code><a href="https://docs.microsoft.com/dotnet/api/system.datetime">DateTime</a></code>
+                  </span>
+                  <br/>
+                  Modifiers: 
+                  abstract
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-summary">
+              <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:M:FSharp.Compiler.IO.IFileSystem.GetLastWriteTimeShim`')">
+                <img src="/fantomas/content/img/copy-md.png" class="normal"/>
+                <img src="/fantomas/content/img/copy-md-hover.png" class="hover"/>
+              </div>
+              <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'M:FSharp.Compiler.IO.IFileSystem.GetLastWriteTimeShim\'/>')">
+                <img src="/fantomas/content/img/copy-xml.png" class="normal"/>
+                <img src="/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+              </div>
+              <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/Utilities/FileSystem.fs#L491-491" class="fsdocs-source-link" title="Source on GitHub">
+                <img src="/fantomas/content/img/github.png" class="normal"/>
+                <img src="/fantomas/content/img/github-hover.png" class="hover"/>
+              </a>
+              <p class="fsdocs-summary">
+                
+ Utc time of the last modification
+
+              </p>
+            </div>
+            <dl class="fsdocs-params">
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  fileName
+                </span>
+                :
+                <code>string</code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+            </dl>
+            <dl class="fsdocs-returns">
+              <dt>
+                <span class="fsdocs-return-name">
+                  Returns: 
+                </span>
+                <code><a href="https://docs.microsoft.com/dotnet/api/system.datetime">DateTime</a></code>
+              </dt>
+              <dd class="fsdocs-return-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '696', 696)" onmouseover="showTip(event, '696', 696)">
+                <p>
+                  <a id="GetTempPathShim">
+                    <a href="#GetTempPathShim">
+                      <code><span>this.GetTempPathShim</span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="696">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>this.GetTempPathShim</span></code>
+                  <br/>
+                  <br/>
+                  <span>
+                    Returns: 
+                    <code>string</code>
+                  </span>
+                  <br/>
+                  Modifiers: 
+                  abstract
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-summary">
+              <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:M:FSharp.Compiler.IO.IFileSystem.GetTempPathShim`')">
+                <img src="/fantomas/content/img/copy-md.png" class="normal"/>
+                <img src="/fantomas/content/img/copy-md-hover.png" class="hover"/>
+              </div>
+              <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'M:FSharp.Compiler.IO.IFileSystem.GetTempPathShim\'/>')">
+                <img src="/fantomas/content/img/copy-xml.png" class="normal"/>
+                <img src="/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+              </div>
+              <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/Utilities/FileSystem.fs#L487-487" class="fsdocs-source-link" title="Source on GitHub">
+                <img src="/fantomas/content/img/github.png" class="normal"/>
+                <img src="/fantomas/content/img/github-hover.png" class="hover"/>
+              </a>
+              <p class="fsdocs-summary">
+                
+ A shim over Path.GetTempPath
+
+              </p>
+            </div>
+            <dl class="fsdocs-returns">
+              <dt>
+                <span class="fsdocs-return-name">
+                  Returns: 
+                </span>
+                <code>string</code>
+              </dt>
+              <dd class="fsdocs-return-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '697', 697)" onmouseover="showTip(event, '697', 697)">
+                <p>
+                  <a id="IsInvalidPathShim">
+                    <a href="#IsInvalidPathShim">
+                      <code><span>this.IsInvalidPathShim</span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="697">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>this.IsInvalidPathShim</span></code>
+                  <br/>
+                  <br/>
+                  Parameters: 
+                  <ul>
+                    <span>
+                      <b>
+                        path
+                      </b>
+                      :
+                      <code>string</code>
+                    </span>
+                    <br/>
+                  </ul>
+                  <br/>
+                  <span>
+                    Returns: 
+                    <code>bool</code>
+                  </span>
+                  <br/>
+                  Modifiers: 
+                  abstract
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-summary">
+              <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:M:FSharp.Compiler.IO.IFileSystem.IsInvalidPathShim`')">
+                <img src="/fantomas/content/img/copy-md.png" class="normal"/>
+                <img src="/fantomas/content/img/copy-md-hover.png" class="hover"/>
+              </div>
+              <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'M:FSharp.Compiler.IO.IFileSystem.IsInvalidPathShim\'/>')">
+                <img src="/fantomas/content/img/copy-xml.png" class="normal"/>
+                <img src="/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+              </div>
+              <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/Utilities/FileSystem.fs#L485-485" class="fsdocs-source-link" title="Source on GitHub">
+                <img src="/fantomas/content/img/github.png" class="normal"/>
+                <img src="/fantomas/content/img/github-hover.png" class="hover"/>
+              </a>
+              <p class="fsdocs-summary">
+                
+ A shim over Path.IsInvalidPath
+
+              </p>
+            </div>
+            <dl class="fsdocs-params">
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  path
+                </span>
+                :
+                <code>string</code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+            </dl>
+            <dl class="fsdocs-returns">
+              <dt>
+                <span class="fsdocs-return-name">
+                  Returns: 
+                </span>
+                <code>bool</code>
+              </dt>
+              <dd class="fsdocs-return-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '698', 698)" onmouseover="showTip(event, '698', 698)">
+                <p>
+                  <a id="IsPathRootedShim">
+                    <a href="#IsPathRootedShim">
+                      <code><span>this.IsPathRootedShim</span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="698">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>this.IsPathRootedShim</span></code>
+                  <br/>
+                  <br/>
+                  Parameters: 
+                  <ul>
+                    <span>
+                      <b>
+                        path
+                      </b>
+                      :
+                      <code>string</code>
+                    </span>
+                    <br/>
+                  </ul>
+                  <br/>
+                  <span>
+                    Returns: 
+                    <code>bool</code>
+                  </span>
+                  <br/>
+                  Modifiers: 
+                  abstract
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-summary">
+              <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:M:FSharp.Compiler.IO.IFileSystem.IsPathRootedShim`')">
+                <img src="/fantomas/content/img/copy-md.png" class="normal"/>
+                <img src="/fantomas/content/img/copy-md-hover.png" class="hover"/>
+              </div>
+              <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'M:FSharp.Compiler.IO.IFileSystem.IsPathRootedShim\'/>')">
+                <img src="/fantomas/content/img/copy-xml.png" class="normal"/>
+                <img src="/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+              </div>
+              <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/Utilities/FileSystem.fs#L481-481" class="fsdocs-source-link" title="Source on GitHub">
+                <img src="/fantomas/content/img/github.png" class="normal"/>
+                <img src="/fantomas/content/img/github-hover.png" class="hover"/>
+              </a>
+              <p class="fsdocs-summary">
+                
+ A shim over Path.IsPathRooted
+
+              </p>
+            </div>
+            <dl class="fsdocs-params">
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  path
+                </span>
+                :
+                <code>string</code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+            </dl>
+            <dl class="fsdocs-returns">
+              <dt>
+                <span class="fsdocs-return-name">
+                  Returns: 
+                </span>
+                <code>bool</code>
+              </dt>
+              <dd class="fsdocs-return-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '699', 699)" onmouseover="showTip(event, '699', 699)">
+                <p>
+                  <a id="IsStableFileHeuristic">
+                    <a href="#IsStableFileHeuristic">
+                      <code><span>this.IsStableFileHeuristic</span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="699">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>this.IsStableFileHeuristic</span></code>
+                  <br/>
+                  <br/>
+                  Parameters: 
+                  <ul>
+                    <span>
+                      <b>
+                        fileName
+                      </b>
+                      :
+                      <code>string</code>
+                    </span>
+                    <br/>
+                  </ul>
+                  <br/>
+                  <span>
+                    Returns: 
+                    <code>bool</code>
+                  </span>
+                  <br/>
+                  Modifiers: 
+                  abstract
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-summary">
+              <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:M:FSharp.Compiler.IO.IFileSystem.IsStableFileHeuristic`')">
+                <img src="/fantomas/content/img/copy-md.png" class="normal"/>
+                <img src="/fantomas/content/img/copy-md-hover.png" class="hover"/>
+              </div>
+              <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'M:FSharp.Compiler.IO.IFileSystem.IsStableFileHeuristic\'/>')">
+                <img src="/fantomas/content/img/copy-xml.png" class="normal"/>
+                <img src="/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+              </div>
+              <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/Utilities/FileSystem.fs#L511-511" class="fsdocs-source-link" title="Source on GitHub">
+                <img src="/fantomas/content/img/github.png" class="normal"/>
+                <img src="/fantomas/content/img/github-hover.png" class="hover"/>
+              </a>
+              <p class="fsdocs-summary">
+                
+ Used to determine if a file will not be subject to deletion during the lifetime of a typical client process.
+
+              </p>
+            </div>
+            <dl class="fsdocs-params">
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  fileName
+                </span>
+                :
+                <code>string</code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+            </dl>
+            <dl class="fsdocs-returns">
+              <dt>
+                <span class="fsdocs-return-name">
+                  Returns: 
+                </span>
+                <code>bool</code>
+              </dt>
+              <dd class="fsdocs-return-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '700', 700)" onmouseover="showTip(event, '700', 700)">
+                <p>
+                  <a id="NormalizePathShim">
+                    <a href="#NormalizePathShim">
+                      <code><span>this.NormalizePathShim</span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="700">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>this.NormalizePathShim</span></code>
+                  <br/>
+                  <br/>
+                  Parameters: 
+                  <ul>
+                    <span>
+                      <b>
+                        path
+                      </b>
+                      :
+                      <code>string</code>
+                    </span>
+                    <br/>
+                  </ul>
+                  <br/>
+                  <span>
+                    Returns: 
+                    <code>string</code>
+                  </span>
+                  <br/>
+                  Modifiers: 
+                  abstract
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-summary">
+              <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:M:FSharp.Compiler.IO.IFileSystem.NormalizePathShim`')">
+                <img src="/fantomas/content/img/copy-md.png" class="normal"/>
+                <img src="/fantomas/content/img/copy-md-hover.png" class="hover"/>
+              </div>
+              <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'M:FSharp.Compiler.IO.IFileSystem.NormalizePathShim\'/>')">
+                <img src="/fantomas/content/img/copy-xml.png" class="normal"/>
+                <img src="/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+              </div>
+              <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/Utilities/FileSystem.fs#L483-483" class="fsdocs-source-link" title="Source on GitHub">
+                <img src="/fantomas/content/img/github.png" class="normal"/>
+                <img src="/fantomas/content/img/github-hover.png" class="hover"/>
+              </a>
+              <p class="fsdocs-summary">
+                
+ Removes relative parts from any full paths
+
+              </p>
+            </div>
+            <dl class="fsdocs-params">
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  path
+                </span>
+                :
+                <code>string</code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+            </dl>
+            <dl class="fsdocs-returns">
+              <dt>
+                <span class="fsdocs-return-name">
+                  Returns: 
+                </span>
+                <code>string</code>
+              </dt>
+              <dd class="fsdocs-return-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '701', 701)" onmouseover="showTip(event, '701', 701)">
+                <p>
+                  <a id="OpenFileForReadShim">
+                    <a href="#OpenFileForReadShim">
+                      <code><span>this.OpenFileForReadShim</span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="701">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>this.OpenFileForReadShim</span></code>
+                  <br/>
+                  <br/>
+                  Parameters: 
+                  <ul>
+                    <span>
+                      <b>
+                        filePath
+                      </b>
+                      :
+                      <code>string</code>
+                    </span>
+                    <br/>
+                    <span>
+                      <b>
+                        ?useMemoryMappedFile
+                      </b>
+                      :
+                      <code>bool</code>
+                    </span>
+                    <br/>
+                    <span>
+                      <b>
+                        ?shouldShadowCopy
+                      </b>
+                      :
+                      <code>bool</code>
+                    </span>
+                    <br/>
+                  </ul>
+                  <br/>
+                  <span>
+                    Returns: 
+                    <code><a href="https://docs.microsoft.com/dotnet/api/system.io.stream">Stream</a></code>
+                  </span>
+                  <br/>
+                  Modifiers: 
+                  abstract
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-summary">
+              <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:M:FSharp.Compiler.IO.IFileSystem.OpenFileForReadShim`')">
+                <img src="/fantomas/content/img/copy-md.png" class="normal"/>
+                <img src="/fantomas/content/img/copy-md-hover.png" class="hover"/>
+              </div>
+              <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'M:FSharp.Compiler.IO.IFileSystem.OpenFileForReadShim\'/>')">
+                <img src="/fantomas/content/img/copy-xml.png" class="normal"/>
+                <img src="/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+              </div>
+              <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/Utilities/FileSystem.fs#L473-473" class="fsdocs-source-link" title="Source on GitHub">
+                <img src="/fantomas/content/img/github.png" class="normal"/>
+                <img src="/fantomas/content/img/github-hover.png" class="hover"/>
+              </a>
+              <p class="fsdocs-summary">
+                
+ Open the file for read, returns ByteMemory, uses either FileStream (for smaller files) or MemoryMappedFile (for potentially big files, such as dlls).
+
+              </p>
+            </div>
+            <dl class="fsdocs-params">
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  filePath
+                </span>
+                :
+                <code>string</code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  ?useMemoryMappedFile
+                </span>
+                :
+                <code>bool</code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  ?shouldShadowCopy
+                </span>
+                :
+                <code>bool</code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+            </dl>
+            <dl class="fsdocs-returns">
+              <dt>
+                <span class="fsdocs-return-name">
+                  Returns: 
+                </span>
+                <code><a href="https://docs.microsoft.com/dotnet/api/system.io.stream">Stream</a></code>
+              </dt>
+              <dd class="fsdocs-return-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '702', 702)" onmouseover="showTip(event, '702', 702)">
+                <p>
+                  <a id="OpenFileForWriteShim">
+                    <a href="#OpenFileForWriteShim">
+                      <code><span>this.OpenFileForWriteShim</span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="702">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>this.OpenFileForWriteShim</span></code>
+                  <br/>
+                  <br/>
+                  Parameters: 
+                  <ul>
+                    <span>
+                      <b>
+                        filePath
+                      </b>
+                      :
+                      <code>string</code>
+                    </span>
+                    <br/>
+                    <span>
+                      <b>
+                        ?fileMode
+                      </b>
+                      :
+                      <code><a href="https://docs.microsoft.com/dotnet/api/system.io.filemode">FileMode</a></code>
+                    </span>
+                    <br/>
+                    <span>
+                      <b>
+                        ?fileAccess
+                      </b>
+                      :
+                      <code><a href="https://docs.microsoft.com/dotnet/api/system.io.fileaccess">FileAccess</a></code>
+                    </span>
+                    <br/>
+                    <span>
+                      <b>
+                        ?fileShare
+                      </b>
+                      :
+                      <code><a href="https://docs.microsoft.com/dotnet/api/system.io.fileshare">FileShare</a></code>
+                    </span>
+                    <br/>
+                  </ul>
+                  <br/>
+                  <span>
+                    Returns: 
+                    <code><a href="https://docs.microsoft.com/dotnet/api/system.io.stream">Stream</a></code>
+                  </span>
+                  <br/>
+                  Modifiers: 
+                  abstract
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-summary">
+              <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:M:FSharp.Compiler.IO.IFileSystem.OpenFileForWriteShim`')">
+                <img src="/fantomas/content/img/copy-md.png" class="normal"/>
+                <img src="/fantomas/content/img/copy-md-hover.png" class="hover"/>
+              </div>
+              <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'M:FSharp.Compiler.IO.IFileSystem.OpenFileForWriteShim\'/>')">
+                <img src="/fantomas/content/img/copy-xml.png" class="normal"/>
+                <img src="/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+              </div>
+              <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/Utilities/FileSystem.fs#L475-475" class="fsdocs-source-link" title="Source on GitHub">
+                <img src="/fantomas/content/img/github.png" class="normal"/>
+                <img src="/fantomas/content/img/github-hover.png" class="hover"/>
+              </a>
+              <p class="fsdocs-summary">
+                
+ Open the file for writing. Returns a Stream.
+
+              </p>
+            </div>
+            <dl class="fsdocs-params">
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  filePath
+                </span>
+                :
+                <code>string</code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  ?fileMode
+                </span>
+                :
+                <code><a href="https://docs.microsoft.com/dotnet/api/system.io.filemode">FileMode</a></code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  ?fileAccess
+                </span>
+                :
+                <code><a href="https://docs.microsoft.com/dotnet/api/system.io.fileaccess">FileAccess</a></code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  ?fileShare
+                </span>
+                :
+                <code><a href="https://docs.microsoft.com/dotnet/api/system.io.fileshare">FileShare</a></code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+            </dl>
+            <dl class="fsdocs-returns">
+              <dt>
+                <span class="fsdocs-return-name">
+                  Returns: 
+                </span>
+                <code><a href="https://docs.microsoft.com/dotnet/api/system.io.stream">Stream</a></code>
+              </dt>
+              <dd class="fsdocs-return-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <div></div>
+</div>
+            
+        </div>
+
+        <!-- BEGIN SEARCH BOX: this adds support for the search box -->
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/JavaScript-autoComplete/1.0.4/auto-complete.css" />
+        <script type="text/javascript">var fsdocs_search_baseurl = '/fantomas/';</script>
+        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/lunr.js/2.3.8/lunr.min.js"></script>
+        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/JavaScript-autoComplete/1.0.4/auto-complete.min.js"></script>
+        <script type="text/javascript" src="/fantomas/content/fsdocs-search.js"></script>
+        <!-- END SEARCH BOX: this adds support for the search box -->
+    </div>
+</body>
+
+</html>
