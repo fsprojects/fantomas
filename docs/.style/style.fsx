@@ -1,4 +1,6 @@
 ﻿#r "nuget: JavaScriptEngineSwitcher.ChakraCore.Native.win-x64"
+#r "nuget: JavaScriptEngineSwitcher.ChakraCore.Native.linux-x64"
+#r "nuget: JavaScriptEngineSwitcher.ChakraCore.Native.osx-x64"
 #r "nuget: JavaScriptEngineSwitcher.ChakraCore, 3.18.2"
 #r "nuget: DartSassHost, 1.0.0-preview7"
 #r "nuget: FSharp.Control.Reactive, 5.0.5"
