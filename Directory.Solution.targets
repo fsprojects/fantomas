@@ -64,16 +64,20 @@
     </Target>
 
     <Target Name="Benchmark">
-        <Exec Command="dotnet build -c Release src/Fantomas.Benchmarks" />
-        <Exec Command="dotnet src/Fantomas.Benchmarks/bin/Release/net6.0/Fantomas.Benchmarks.dll" IgnoreStandardErrorWarningFormat="true" />
+        <MSBuild Projects="src/Fantomas.Benchmarks/Fantomas.Benchmarks.fsproj" Targets="Build" Properties="Configuration=Release">
+            <Output
+                TaskParameter="TargetOutputs"
+                ItemName="BenchmarkAssemblies" />
+        </MSBuild>
+        <Exec Command="dotnet @(BenchmarkAssemblies)" IgnoreStandardErrorWarningFormat="true" />
     </Target>
     
     <Target Name="All">
-        <Exec Command="dotnet clean" />
+        <MSBuild Projects="fantomas.sln" Targets="Clean" />
         <CallTarget Targets="CheckFormat" />
-        <Exec Command="dotnet build -c Release" />
-        <Exec Command="dotnet test -c Release --no-restore --no-build" />
+        <MSBuild Projects="fantomas.sln" Targets="Build" Properties="Configuration=Release" />
+        <MSBuild Projects="fantomas.sln" Targets="VSTest" Properties="Configuration=Release" />
         <CallTarget Targets="BenchMark" />
-        <Exec Command="dotnet pack --no-restore -c Release -o ./bin" />
+        <MSBuild Projects="fantomas.sln" Targets="Pack" Properties="Configuration=Release;PackageOutputPath=$(MSBuildThisFileDirectory)bin"/>
     </Target>
 </Project>
