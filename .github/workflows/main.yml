@@ -22,7 +22,7 @@ jobs:
       with:
         dotnet-version: ${{ matrix.dotnet }}
     - name: Build
-      run: dotnet build /t:All
+      run: "dotnet build /t:All"
       env:
         CI: true
         TABLE_STORAGE_CONNECTION_STRING: ${{ secrets.TABLE_STORAGE_CONNECTION_STRING }}
