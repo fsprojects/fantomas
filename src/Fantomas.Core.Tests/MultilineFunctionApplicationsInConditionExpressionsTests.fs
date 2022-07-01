@@ -21,12 +21,11 @@ let foo () =
         """
 let foo () =
     match
-        b.TryGetValue
-            (
-                longlonglonglonglong,
-                b
-            )
-        with
+        b.TryGetValue(
+            longlonglonglonglong,
+            b
+        )
+    with
     | true, i -> Some i
     | false, _ -> failwith ""
 """
@@ -48,9 +47,10 @@ let foo () =
         """
 let foo () =
     match
-        b.TryGetValue
-            (longlonglonglonglong)
-        with
+        b.TryGetValue(
+            longlonglonglonglong
+        )
+    with
     | true, i -> Some i
     | false, _ -> failwith ""
 """
@@ -177,9 +177,10 @@ let foo () =
 let foo () =
     async {
         match!
-            b.TryGetValue
-                (longlonglonglonglong)
-            with
+            b.TryGetValue(
+                longlonglonglonglong
+            )
+        with
         | true, i -> Some i
         | false, _ -> failwith ""
     }
@@ -205,12 +206,11 @@ let foo () =
 let foo () =
     async {
         match!
-            b.TryGetValue
-                (
-                    longlonglonglonglong,
-                    b
-                )
-            with
+            b.TryGetValue(
+                longlonglonglonglong,
+                b
+            )
+        with
         | true, i -> Some i
         | false, _ -> failwith ""
     }

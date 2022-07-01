@@ -1390,30 +1390,10 @@ and genExpr astContext synExpr ctx =
             +> sepNln
             +> genClauses astContext cs
         | Match (matchRange, e, withRange, cs) ->
-            let genMatchExpr =
-                genTriviaFor SynExpr_Match_Match matchRange !- "match "
-                +> autoIndentAndNlnWhenWriteBeforeNewlineNotEmpty (
-                    expressionFitsOnRestOfLine
-                        (genExpr astContext e
-                         +> genWithAfterMatch SynExpr_Match_With withRange)
-                        (genExprInIfOrMatch astContext e
-                         +> (sepNlnUnlessLastEventIsNewline
-                             +> (genWithAfterMatch SynExpr_Match_With withRange)))
-                )
-
+            let genMatchExpr = genMatchWith astContext matchRange e withRange
             atCurrentColumn (genMatchExpr +> sepNln +> genClauses astContext cs)
         | MatchBang (matchRange, e, withRange, cs) ->
-            let genMatchExpr =
-                genTriviaFor SynExpr_MatchBang_Match matchRange !- "match! "
-                +> autoIndentAndNlnWhenWriteBeforeNewlineNotEmpty (
-                    expressionFitsOnRestOfLine
-                        (genExpr astContext e
-                         +> genWithAfterMatch SynExpr_MatchBang_With withRange)
-                        (genExprInIfOrMatch astContext e
-                         +> (sepNlnUnlessLastEventIsNewline
-                             +> (genWithAfterMatch SynExpr_MatchBang_With withRange)))
-                )
-
+            let genMatchExpr = genMatchBangWith astContext matchRange e withRange
             atCurrentColumn (genMatchExpr +> sepNln +> genClauses astContext cs)
         | TraitCall (tps, msg, e) ->
             genTyparList astContext tps
@@ -1423,7 +1403,6 @@ and genExpr astContext synExpr ctx =
             +> sepCloseT
             +> sepSpace
             +> genExpr astContext e
-
         | Paren (_, ILEmbedded r, rpr, _) ->
             fun ctx ->
                 let expr =
@@ -1976,26 +1955,7 @@ and genExpr astContext synExpr ctx =
             atCurrentColumn (colWithNlnWhenItemIsMultilineUsingConfig items)
 
         | IfThenWithoutElse (ifKw, ifExpr, thenKw, thenExpr) ->
-            let genIf = genTriviaFor SynExpr_IfThenElse_If ifKw !- "if"
-            let genThen = genTriviaFor SynExpr_IfThenElse_Then thenKw !- "then"
-
-            let shortIfExpr =
-                genIf
-                +> sepSpace
-                +> genExpr astContext ifExpr
-                +> sepSpace
-                +> genThen
-
-            let longIfExpr =
-                genIf
-                +> indent
-                +> sepNln
-                +> genExpr astContext ifExpr
-                +> unindent
-                +> sepNln
-                +> genThen
-
-            leadingExpressionIsMultiline (expressionFitsOnRestOfLine shortIfExpr longIfExpr) (fun isMultiline ctx ->
+            leadingExpressionIsMultiline (genIfThen astContext ifKw ifExpr thenKw) (fun isMultiline ctx ->
                 if isMultiline then
                     (indent
                      +> sepNln
@@ -3290,6 +3250,73 @@ and genAppWithLambda astContext sep (e, es, lpr, lambda, rpr, pr) =
 
     expressionFitsOnRestOfLine short long
 
+and genControlExpressionStart
+    astContext
+    (startKeywordType: FsAstType)
+    (startKeywordRange: range)
+    (startKeywordText: string)
+    (innerExpr: SynExpr)
+    (endKeywordType: FsAstType)
+    (endKeywordRange: range)
+    (endKeywordText: string)
+    =
+    let genStartKeyword =
+        genTriviaFor startKeywordType startKeywordRange !-startKeywordText
+
+    let genEndKeyword = genTriviaFor endKeywordType endKeywordRange !-endKeywordText
+
+    let shortIfExpr =
+        genStartKeyword
+        +> sepSpace
+        +> genExpr astContext innerExpr
+        +> sepSpace
+        +> genEndKeyword
+
+    let longIfExpr =
+        genStartKeyword
+        +> indent
+        +> sepNln
+        +> genExpr astContext innerExpr
+        +> unindent
+        +> sepNln
+        +> genEndKeyword
+
+    expressionFitsOnRestOfLine shortIfExpr longIfExpr
+
+and genIfThen astContext (ifKeyword: range) (ifExpr: SynExpr) (thenKeyword: range) =
+    genControlExpressionStart
+        astContext
+        SynExpr_IfThenElse_If
+        ifKeyword
+        "if"
+        ifExpr
+        SynExpr_IfThenElse_Then
+        thenKeyword
+        "then"
+
+and genMatchWith astContext (matchKeyword: range) (matchExpr: SynExpr) (withKeyword: range) =
+    genControlExpressionStart
+        astContext
+        SynExpr_Match_Match
+        matchKeyword
+        "match"
+        matchExpr
+        SynExpr_Match_With
+        withKeyword
+        "with"
+
+and genMatchBangWith astContext (matchKeyword: range) (matchExpr: SynExpr) (withKeyword: range) =
+    genControlExpressionStart
+        astContext
+        SynExpr_MatchBang_Match
+        matchKeyword
+        "match!"
+        matchExpr
+        SynExpr_MatchBang_With
+        withKeyword
+        "with"
+
+// TODO: remove 😁
 and genExprInIfOrMatch astContext (e: SynExpr) (ctx: Context) : Context =
     let short =
         sepNlnWhenWriteBeforeNewlineNotEmpty sepSpace

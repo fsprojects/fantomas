@@ -656,7 +656,7 @@ let MethInfoIsUnseen g m ty minfo =
                 (fun fsAttribs -> Some bar)
                 (fun provAttribs -> Some(CheckProvidedAttributesForUnseen provAttribs m))
                 (fun _provAttribs -> None)
-            with
+        with
         | Some res -> res
         | None -> false
 
@@ -702,7 +702,7 @@ let MethInfoIsUnseen g m ty minfo =
 #else
                 (fun _provAttribs -> None)
 #endif
-            with
+        with
         | Some res -> res
         | None -> false
 
@@ -1143,12 +1143,11 @@ match x (Map.tryFind somelongidentifier a + Option.defaultValue longidentifier) 
         equal
         """
 match
-    x
-        (
-            Map.tryFind somelongidentifier a
-            + Option.defaultValue longidentifier
-        )
-    with
+    x (
+        Map.tryFind somelongidentifier a
+        + Option.defaultValue longidentifier
+    )
+with
 | _ -> ()
 """
 
@@ -1294,7 +1293,7 @@ match
     match u with
     | null -> ""
     | s -> s
-    with
+with
 | "" -> x
 | _ -> failwith ""
 """
@@ -1324,7 +1323,7 @@ match
     match! u with
     | null -> ""
     | s -> s
-    with
+with
 | "" -> x
 | _ -> failwith ""
 """
@@ -1354,7 +1353,7 @@ match!
     match u with
     | null -> ""
     | s -> s
-    with
+with
 | "" -> x
 | _ -> failwith ""
 """
@@ -1384,7 +1383,7 @@ match!
     match! u with
     | null -> ""
     | s -> s
-    with
+with
 | "" -> x
 | _ -> failwith ""
 """
@@ -1898,13 +1897,12 @@ match structuralTypes |> List.tryFind (fst >> checkIfFieldTypeSupportsComparison
         """
 match
     structuralTypes
-    |> List.tryFind
-        (
-            fst
-            >> checkIfFieldTypeSupportsComparison tycon
-            >> not
-        )
-    with
+    |> List.tryFind (
+        fst
+        >> checkIfFieldTypeSupportsComparison tycon
+        >> not
+    )
+with
 | _ -> ()
 """
 
@@ -1923,13 +1921,12 @@ match! structuralTypes |> List.tryFind (fst >> checkIfFieldTypeSupportsCompariso
         """
 match!
   structuralTypes
-  |> List.tryFind
-    (
-      fst
-      >> checkIfFieldTypeSupportsComparison tycon
-      >> not
-    )
-  with
+  |> List.tryFind (
+    fst
+    >> checkIfFieldTypeSupportsComparison tycon
+    >> not
+  )
+with
 | _ -> ()
 """
 
@@ -2021,7 +2018,7 @@ match
     Caching.Instance.TryRetrieveLastCompoundBalanceLoooooooooooooooooooooooooooooooooooooooooooongFuncName
         address
         currency
-    with
+with
 | None -> false
 | Some balance -> someRetrievedBalance = balance
 """
@@ -2043,7 +2040,7 @@ match!
     Caching.Instance.TryRetrieveLastCompoundBalanceLoooooooooooooooooooooooooooooooooooooooooooongFuncName
         address
         currency
-    with
+with
 | None -> false
 | Some balance -> someRetrievedBalance = balance
 """
@@ -2083,7 +2080,8 @@ match // foo
         equal
         """
 match // foo
-    a with
+    a
+with
 | B b -> ()
 """
 
@@ -2102,7 +2100,8 @@ match! // foo
         equal
         """
 match! // foo
-    a with
+    a
+with
 | B b -> ()
 """
 
@@ -2143,10 +2142,12 @@ match! // foo!
         equal
         """
 match // foo
-    a with
+    a
+with
 | _ -> ()
 
 match! // foo!
-    a with
+    a
+with
 | _ -> ()
 """
