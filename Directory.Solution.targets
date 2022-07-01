@@ -74,6 +74,7 @@
     </Target>
     
     <Target Name="All">
+        <CallTarget Targets="RestoreTools" />
         <MSBuild Projects="fantomas.sln" Targets="Clean" />
         <CallTarget Targets="CheckFormat" />
         <MSBuild Projects="fantomas.sln" Targets="Build" Properties="Configuration=Release" />
