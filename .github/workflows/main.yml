@@ -23,6 +23,8 @@ jobs:
         dotnet-version: ${{ matrix.dotnet }}
     - name: Restore tools
       run: dotnet tool restore
+    - name: Restore
+      run: dotnet restore
     - name: Build
       run: "dotnet build /t:All"
       env:
