@@ -4,6 +4,12 @@
     </Target>
 
     <Target
+            Name="Restore_EnsureTools"
+            BeforeTargets="_GenerateRestoreGraph">
+        <CallTarget Targets="RestoreTools" />
+    </Target>
+
+    <Target
             Name="DiscoverSourceFiles"
             Outputs="FormatSources"
             Returns="FormatSources">
@@ -11,7 +17,9 @@
             <FormatSources
                     Include="src/**/*.fs"
                     Exclude="src/**/obj/**/*.fs;src/Fantomas.FCS/generated/netstandard2.0/*.fs" />
-            <FormatSources Include="src/**/*.fsi" Exclude="src/Fantomas.FCS/generated/netstandard2.0/*.fsi" />
+            <FormatSources
+                    Include="src/**/*.fsi"
+                    Exclude="src/Fantomas.FCS/generated/netstandard2.0/*.fsi" />
             <FormatSources Include="build.fsx" />
             <FormatSources Include="docs/**/*.fsx" />
         </ItemGroup>
@@ -65,26 +73,48 @@
     </Target>
 
     <Target Name="Benchmark">
-        <MSBuild Projects="src/Fantomas.Benchmarks/Fantomas.Benchmarks.fsproj" Targets="Build" Properties="Configuration=Release">
+        <MSBuild
+                Projects="src/Fantomas.Benchmarks/Fantomas.Benchmarks.fsproj"
+                Targets="Build"
+                Properties="Configuration=Release">
             <Output
-                TaskParameter="TargetOutputs"
-                ItemName="BenchmarkAssemblies" />
+                    TaskParameter="TargetOutputs"
+                    ItemName="BenchmarkAssemblies" />
         </MSBuild>
-        <Exec Command="dotnet @(BenchmarkAssemblies)" IgnoreStandardErrorWarningFormat="true" />
-    </Target>
-    
-    <Target Name="All">
-        <CallTarget Targets="RestoreTools" />
-        <MSBuild Projects="fantomas.sln" Targets="Clean" />
-        <CallTarget Targets="CheckFormat" />
-        <MSBuild Projects="fantomas.sln" Targets="Build" Properties="Configuration=Release" />
-        <MSBuild Projects="fantomas.sln" Targets="VSTest" Properties="Configuration=Release" />
-        <CallTarget Targets="BenchMark" />
-        <MSBuild Projects="fantomas.sln" Targets="Pack" Properties="Configuration=Release;PackageOutputPath=$(MSBuildThisFileDirectory)bin"/>
+        <Exec
+                Command="dotnet @(BenchmarkAssemblies)"
+                IgnoreStandardErrorWarningFormat="true" />
     </Target>
 
-    <Target Name="Docs" DependsOnTargets="RestoreTools">
-        <Exec Command="dotnet fsi docs/.style/style.fsx" IgnoreStandardErrorWarningFormat="true" />
-        <Exec Command="dotnet fsdocs build --clean --properties Configuration=Release" IgnoreStandardErrorWarningFormat="true" />
+    <Target Name="All">
+        <CallTarget Targets="RestoreTools" />
+        <MSBuild
+                Projects="fantomas.sln"
+                Targets="Clean" />
+        <CallTarget Targets="CheckFormat" />
+        <MSBuild
+                Projects="fantomas.sln"
+                Targets="Build"
+                Properties="Configuration=Release" />
+        <MSBuild
+                Projects="fantomas.sln"
+                Targets="VSTest"
+                Properties="Configuration=Release" />
+        <CallTarget Targets="BenchMark" />
+        <MSBuild
+                Projects="fantomas.sln"
+                Targets="Pack"
+                Properties="Configuration=Release;PackageOutputPath=$(MSBuildThisFileDirectory)bin" />
+    </Target>
+
+    <Target
+            Name="Docs"
+            DependsOnTargets="RestoreTools">
+        <Exec
+                Command="dotnet fsi docs/.style/style.fsx"
+                IgnoreStandardErrorWarningFormat="true" />
+        <Exec
+                Command="dotnet fsdocs build --clean --properties Configuration=Release"
+                IgnoreStandardErrorWarningFormat="true" />
     </Target>
 </Project>
