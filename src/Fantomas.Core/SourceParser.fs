@@ -1065,6 +1065,14 @@ let (|IfThenElse|_|) =
     | SynExpr.IfThenElse _ as e -> Some e
     | _ -> None
 
+let (|IfThenWithoutElse|_|) =
+    function
+    | SynExpr.IfThenElse (ifExpr, thenExpr, None, _, _, _, trivia) ->
+        match ifExpr with
+        | IfThenElse _ -> None
+        | _ -> Some(trivia.IfKeyword, ifExpr, trivia.ThenKeyword, thenExpr)
+    | _ -> None
+
 let rec (|ElIf|_|) =
     function
     | SynExpr.IfThenElse (e1,

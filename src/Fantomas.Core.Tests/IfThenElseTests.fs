@@ -6,13 +6,13 @@ open Fantomas.Core.Tests.TestHelper
 
 [<Test>]
 let ``single line if without else`` () =
-    formatSourceString false "if foo then bar" config
-    |> prepend newline
-    |> should
-        equal
-        """
-if foo then bar
-"""
+    formatSourceString
+        false
+        "if foo then bar"
+        { config with
+            InsertFinalNewline = false
+            MaxIfThenShortWidth = 4 }
+    |> should equal "if foo then bar"
 
 [<Test>]
 let ``if without else, if is longer`` () =
@@ -54,7 +54,7 @@ let ``short if then without else`` () =
         """
 if a then b
 """
-        config
+        { config with MaxIfThenShortWidth = 2 }
     |> prepend newline
     |> should
         equal
@@ -74,9 +74,11 @@ if foo && bar && meh then aha
     |> should
         equal
         """
-if foo
-   && bar
-   && meh then
+if
+    foo
+    && bar
+    && meh
+then
     aha
 """
 
@@ -1786,10 +1788,12 @@ module UtxoCoinAccount =
         (amount: TransferAmount)
         (password: string)
         =
-        if (baseAccount.PublicAddress.Equals(
+        if
+            (baseAccount.PublicAddress.Equals(
                 destination,
                 StringComparison.InvariantCultureIgnoreCase
-            )) then
+            ))
+        then
             raise DestinationEqualToOrigin
 """
 

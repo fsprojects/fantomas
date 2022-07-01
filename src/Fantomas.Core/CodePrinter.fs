@@ -1974,6 +1974,45 @@ and genExpr astContext synExpr ctx =
         | Sequentials es ->
             let items = List.collect (collectMultilineItemForSynExpr astContext) es
             atCurrentColumn (colWithNlnWhenItemIsMultilineUsingConfig items)
+
+        | IfThenWithoutElse (ifKw, ifExpr, thenKw, thenExpr) ->
+            let genIf = genTriviaFor SynExpr_IfThenElse_If ifKw !- "if"
+            let genThen = genTriviaFor SynExpr_IfThenElse_Then thenKw !- "then"
+
+            let shortIfExpr =
+                genIf
+                +> sepSpace
+                +> genExpr astContext ifExpr
+                +> sepSpace
+                +> genThen
+
+            let longIfExpr =
+                genIf
+                +> indent
+                +> sepNln
+                +> genExpr astContext ifExpr
+                +> unindent
+                +> sepNln
+                +> genThen
+
+            leadingExpressionIsMultiline (expressionFitsOnRestOfLine shortIfExpr longIfExpr) (fun isMultiline ctx ->
+                if isMultiline then
+                    (indent
+                     +> sepNln
+                     +> genExpr astContext thenExpr
+                     +> unindent)
+                        ctx
+                else
+                    isShortExpression
+                        ctx.Config.MaxIfThenShortWidth
+                        (sepSpace +> genExpr astContext thenExpr)
+                        (indent
+                         +> sepNln
+                         +> genExpr astContext thenExpr
+                         +> unindent)
+                        ctx)
+            |> atCurrentColumnIndent
+
         // A generalization of IfThenElse
         | ElIf ((_, ifKw, isElif, e1, thenKw, e2) :: es, (elseKw, elseOpt), _) ->
             // https://docs.microsoft.com/en-us/dotnet/fsharp/style-guide/formatting#formatting-if-expressions

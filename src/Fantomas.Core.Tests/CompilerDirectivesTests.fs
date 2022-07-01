@@ -1646,7 +1646,7 @@ module Dbg =
     let print _ = ()
 #endif
 """
-        config
+        { config with MaxIfThenShortWidth = 10 }
     |> prepend newline
     |> should
         equal
@@ -1704,7 +1704,7 @@ module Dbg =
     let print _ = ()
 #endif
 """
-        config
+        { config with MaxIfThenShortWidth = 10 }
     |> prepend newline
     |> should
         equal

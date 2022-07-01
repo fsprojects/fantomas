@@ -150,8 +150,9 @@ if MyGrandFunctionThatTakesASingleArgument ( myEvenGranderArgumentNameThatGoesOn
         equal
         """
 if
-    MyGrandFunctionThatTakesASingleArgument
-        (myEvenGranderArgumentNameThatGoesOnForEverAndEver)
+    MyGrandFunctionThatTakesASingleArgument(
+        myEvenGranderArgumentNameThatGoesOnForEverAndEver
+    )
 then
     ()
 """
@@ -248,21 +249,18 @@ module Web3ServerSeedList =
         | Some rpcResponseEx ->
             if rpcResponseEx.RpcError <> null then
                 if
-                    (not
-                        (
-                            rpcResponseEx.RpcError.Message.Contains
-                                "pruning=archive"
-                        ))
-                    && (not
-                        (
-                            rpcResponseEx.RpcError.Message.Contains
-                                "header not found"
-                        ))
-                    && (not
-                        (
-                            rpcResponseEx.RpcError.Message.Contains
-                                "missing trie node"
-                        ))
+                    (not (
+                        rpcResponseEx.RpcError.Message.Contains
+                            "pruning=archive"
+                    ))
+                    && (not (
+                        rpcResponseEx.RpcError.Message.Contains
+                            "header not found"
+                    ))
+                    && (not (
+                        rpcResponseEx.RpcError.Message.Contains
+                            "missing trie node"
+                    ))
                 then
                     raise UnexpectedRpcResponseError
         | _ -> ()

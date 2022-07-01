@@ -674,11 +674,14 @@ lock lockingObj (fun () ->
         equal
         """
 lock lockingObj (fun () ->
-    if not thing then printfn ""
+    if not thing then
+        printfn ""
 
     match error with
     | Some error ->
-        if foo then ()
+        if foo then
+            ()
+
         thing ()
         false
     | None ->

@@ -1116,8 +1116,10 @@ module Foo =
 module Foo =
     let bar () =
 
-        if not
-           <| RuntimeInformation.IsOSPlatform OSPlatform.Windows then
+        if
+            not
+            <| RuntimeInformation.IsOSPlatform OSPlatform.Windows
+        then
             raise
             <| PlatformNotSupportedException (
                 "Blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah"
