@@ -24,7 +24,7 @@ jobs:
     - name: Restore tools
       run: dotnet tool restore
     - name: Restore
-      run: dotnet restore
+      run: dotnet paket restore && dotnet restore
     - name: Build
       run: "dotnet build /t:All -bl" 
       env:
