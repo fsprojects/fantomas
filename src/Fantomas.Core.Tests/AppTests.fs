@@ -495,18 +495,13 @@ let ``parenthesis around short composed function expression, tuple in if, 1700``
         false
         "if ((=) (ownerName, username)) then 6"
         { config with
-            MaxIfThenShortWidth = 20
+            MaxIfThenShortWidth = 40
             InsertFinalNewline = false }
     |> should equal "if ((=) (ownerName, username)) then 6"
 
 [<Test>]
 let ``parenthesis around short composed function expression, no tuple, 1700`` () =
-    formatSourceString
-        false
-        """((=) ownerName)"""
-        { config with
-            MaxIfThenShortWidth = 20
-            InsertFinalNewline = false }
+    formatSourceString false """((=) ownerName)""" { config with InsertFinalNewline = false }
     |> should equal """((=) ownerName)"""
 
 [<Test>]
@@ -515,7 +510,7 @@ let ``parenthesis around short composed function expression, no tuple in if, 170
         false
         "if ((=) ownerName) then 6"
         { config with
-            MaxIfThenShortWidth = 20
+            MaxIfThenShortWidth = 25
             InsertFinalNewline = false }
     |> should equal "if ((=) ownerName) then 6"
 

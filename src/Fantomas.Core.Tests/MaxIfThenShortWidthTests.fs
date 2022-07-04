@@ -27,7 +27,7 @@ let ``keep entire expression in one line`` () =
         """
 if a then () 
 """
-        { config with MaxIfThenShortWidth = 3 }
+        { config with MaxIfThenShortWidth = 12 }
     |> prepend newline
     |> should
         equal
@@ -52,4 +52,45 @@ if // comment makes expr multiline
     a
 then
     b
+"""
+
+[<Test>]
+let ``apply same rules for nested if/then/else without else expr`` () =
+    formatSourceString
+        false
+        """
+if a then b
+elif c then d
+elif e then f
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+if a then
+    b
+elif c then
+    d
+elif e then
+    f
+"""
+
+[<Test>]
+let ``apply same rules for nested if/then/else without else expr, MaxIfThenShortWidth = 15`` () =
+    formatSourceString
+        false
+        """
+if a then b
+elif c then d
+elif e then f
+"""
+        { config with MaxIfThenShortWidth = 15 }
+    |> prepend newline
+    |> should
+        equal
+        """
+if a then b
+elif c then d
+elif e then f
 """

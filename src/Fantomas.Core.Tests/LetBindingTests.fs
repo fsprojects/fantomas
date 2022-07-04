@@ -394,7 +394,19 @@ let ``comment trivia before simple sequence doesn't force remaining to get offse
 
 [<Test>]
 let ``no extra newline should be added between IfThenElse within Sequential, 588`` () =
-    shouldNotChangeAfterFormat
+    formatSourceString
+        false
+        """
+let x =
+    if true then printfn "a"
+    elif true then printfn "b"
+
+    if true then 1 else 0
+"""
+        { config with MaxIfThenShortWidth = 50 }
+    |> prepend newline
+    |> should
+        equal
         """
 let x =
     if true then printfn "a"
@@ -1344,12 +1356,14 @@ let internal sepSpace =
     // ignore multiple spaces, space on start of file, after newline
     // TODO: this is inefficient - maybe remember last char written?
     fun (ctx: Context) ->
-        if (not ctx.WriterInitModel.IsDummy
-            && let s = dump ctx in
+        if
+            (not ctx.WriterInitModel.IsDummy
+             && let s = dump ctx in
 
-               s = ""
-               || s.EndsWith " "
-               || s.EndsWith Environment.NewLine) then
+                s = ""
+                || s.EndsWith " "
+                || s.EndsWith Environment.NewLine)
+        then
             ctx
         else
             (!- " ") ctx

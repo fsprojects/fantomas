@@ -124,12 +124,11 @@ let c =
 let c =
     if
         bar
-        |> Seq.exists
-            (
-                (|KeyValue|)
-                >> snd
-                >> (=) (Some i)
-            )
+        |> Seq.exists (
+            (|KeyValue|)
+            >> snd
+            >> (=) (Some i)
+        )
     then
         false
     else
@@ -288,12 +287,11 @@ let c =
         true
     elif
         bar
-        |> Seq.exists
-            (
-                (|KeyValue|)
-                >> snd
-                >> (=) (Some i)
-            )
+        |> Seq.exists (
+            (|KeyValue|)
+            >> snd
+            >> (=) (Some i)
+        )
     then
         false
     else

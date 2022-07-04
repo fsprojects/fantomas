@@ -1072,9 +1072,15 @@ let futureNlnCheck f (ctx: Context) =
 let exceedsWidth maxWidth f (ctx: Context) =
     let dummyCtx: Context = ctx.WithDummy(Queue.empty, keepPageWidth = true)
 
+    let currentLines = dummyCtx.WriterModel.Lines.Length
     let currentColumn = dummyCtx.Column
     let ctxAfter: Context = f dummyCtx
-    (ctxAfter.Column - currentColumn) > maxWidth
+    let linesAfter = ctxAfter.WriterModel.Lines.Length
+    let columnAfter = ctxAfter.Column
+
+    linesAfter > currentLines
+    || (columnAfter - currentColumn) > maxWidth
+    || currentColumn > ctx.Config.MaxLineLength
 
 /// Similar to col, skip auto newline for index 0
 let colAutoNlnSkip0i f' (c: seq<'T>) f (ctx: Context) =
