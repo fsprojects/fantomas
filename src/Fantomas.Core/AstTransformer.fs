@@ -1067,34 +1067,25 @@ and visitSynMemberDefn (mbrDef: SynMemberDefn) : TriviaNode =
                    yield! (visitSynAttributeLists attrs)
                    yield! (Option.map visitSynType >> Option.toList) typeOpt
                    yield! visitSynExpr synExpr |])
+    | SynMemberDefn.GetSetMember (getBinding, setBinding, range, trivia) ->
+        let visitBinding = Option.toList >> List.map visitSynBinding
+        let mkKeyword t r = mkNodeOption t r |> Option.toList
 
-and visitSynMemberDefns (ms: SynMemberDefn list) : TriviaNode list =
-    ms
-    |> List.groupBy (fun ms -> ms.Range)
-    |> List.map (fun (_, g) ->
-        match g with
-        | [ single ] -> visitSynMemberDefn single
-        | [ SynMemberDefn.Member(memberDefn = SynBinding(headPat = SynPat.LongIdent (propertyKeyword = pk1))) as gt
-            SynMemberDefn.Member(memberDefn = SynBinding(headPat = SynPat.LongIdent (propertyKeyword = pk2))) as st ] ->
-            // Duplicate with/and keyword because they are stored somewhat weirdly in the headPat.
-            let propertyNodes pk =
-                match pk with
-                | Some (PropertyKeyword.And r) -> [ mkNode SynPat_LongIdent_And r ]
-                | Some (PropertyKeyword.With r) -> [ mkNode SynPat_LongIdent_With r ]
-                | None -> []
+        let keywords =
+            [| yield mkNode SynMemberDefn_GetSetMember_With trivia.WithKeyword
+               yield! mkKeyword SynMemberDefn_GetSetMember_Get trivia.GetKeyword
+               yield! mkKeyword SynMemberDefn_GetSetMember_And trivia.AndKeyword
+               yield! mkKeyword SynMemberDefn_GetSetMember_Set trivia.SetKeyword |]
 
-            let getNode = visitSynMemberDefn gt
-            let setNode = visitSynMemberDefn st
+        mkNodeWithChildren
+            SynMemberDefn_GetSetMember
+            range
+            (sortChildren
+                [| yield! visitBinding getBinding
+                   yield! visitBinding setBinding
+                   yield! keywords |])
 
-            let combinedChildren =
-                sortChildren
-                    [| yield! propertyNodes pk1
-                       yield! getNode.Children
-                       yield! propertyNodes pk2
-                       yield! setNode.Children |]
-
-            { getNode with Children = combinedChildren }
-        | _ -> failwith "most unexpected")
+and visitSynMemberDefns (ms: SynMemberDefn list) : TriviaNode list = List.map visitSynMemberDefn ms
 
 and visitSynSimplePat (sp: SynSimplePat) : TriviaNode =
     let rec visit (sp: SynSimplePat) (continuation: TriviaNode -> TriviaNode) : TriviaNode =
@@ -1272,19 +1263,12 @@ and visitSynPat (sp: SynPat) : TriviaNode =
                 |> finalContinuation
 
             Continuation.sequence continuations finalContinuation
-        | SynPat.LongIdent (_, propertyKeyword, _, svtd, ctorArgs, _, range) ->
-            let propertyNodes =
-                match propertyKeyword with
-                | Some (PropertyKeyword.And r) -> [ mkNode SynPat_LongIdent_And r ]
-                | Some (PropertyKeyword.With r) -> [ mkNode SynPat_LongIdent_With r ]
-                | None -> []
-
+        | SynPat.LongIdent (_, _, svtd, ctorArgs, _, range) ->
             mkNodeWithChildren
                 SynPat_LongIdent
                 range
                 (sortChildren
-                    [| yield! propertyNodes
-                       yield! Option.toList (Option.bind visitSynValTyparDecls svtd)
+                    [| yield! Option.toList (Option.bind visitSynValTyparDecls svtd)
                        yield! visitSynConstructorArgs ctorArgs |])
             |> finalContinuation
         | SynPat.Tuple (_, pats, range) ->

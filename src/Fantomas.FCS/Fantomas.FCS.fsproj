@@ -275,10 +275,11 @@
     <Compile Include="..\..\paket-files\dotnet\fsharp\src\Compiler\SyntaxTree\SyntaxTreeOps.fs">
       <Link>SyntaxTree\SyntaxTreeOps.fs</Link>
     </Compile>
-    <Compile Include="..\..\paket-files\dotnet\fsharp\src\Compiler\SyntaxTree\ParseHelpers.fsi">
+    <Compile Include="C:\Users\nojaf\Projects\fsharp\src\Compiler\SyntaxTree\ParseHelpers.fsi">
       <Link>SyntaxTree\ParseHelpers.fsi</Link>
     </Compile>
-    <Compile Include="..\..\paket-files\dotnet\fsharp\src\Compiler\SyntaxTree\ParseHelpers.fs">
+<!--    <Compile Include="..\..\paket-files\dotnet\fsharp\src\Compiler\SyntaxTree\ParseHelpers.fs">-->
+    <Compile Include="C:\Users\nojaf\Projects\fsharp\src\Compiler\SyntaxTree\ParseHelpers.fs">
       <Link>SyntaxTree\ParseHelpers.fs</Link>
     </Compile>
     <Compile Include="$(FsYaccOutputFolder)pppars.fs">

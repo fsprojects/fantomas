@@ -101,42 +101,32 @@ let private (|SynLongIdentAsString|) (synLongIdent: SynLongIdent) =
     |> List.map (fun i -> i.idText)
     |> String.concat "."
 
-/// Gather PropertyGetSet in one printing call.
-/// Assume that PropertySet comes right after PropertyGet.
-let (|PropertyWithGetSet|_|) =
+// Provide short-hand notation `x.Member = ...` for `x.Member with get()` getters
+let (|LongGetMember|_|) =
     function
-    | PropertyBinding (_, _, _, _, MFProperty PropertyGet, PatLongIdent (_, SynLongIdentAsString s1, _, _, _), _, _, _) as b1 :: bs ->
-        match bs with
-        | PropertyBinding (_,
-                           _,
-                           _,
-                           _,
-                           MFProperty PropertySet,
-                           PatLongIdent (_, SynLongIdentAsString s2, _, _, _),
-                           _,
-                           _,
-                           _) as b2 :: bs when s1 = s2 -> Some((b1, b2), bs)
-        | _ -> None
-    | PropertyBinding (_, _, _, _, MFProperty PropertySet, PatLongIdent (_, SynLongIdentAsString s2, _, _, _), _, _, _) as b2 :: bs ->
-        match bs with
-        | PropertyBinding (_,
-                           _,
-                           _,
-                           _,
-                           MFProperty PropertyGet,
-                           PatLongIdent (_, SynLongIdentAsString s1, _, _, _),
-                           _,
-                           _,
-                           _) as b1 :: bs when s1 = s2 -> Some((b1, b2), bs)
-        | _ -> None
-    | _ -> None
+    | SynMemberDefn.GetSetMember (Some (SynBinding (ao,
+                                                    kind,
+                                                    isInline,
+                                                    isMutable,
+                                                    ats,
+                                                    px,
+                                                    valData,
+                                                    (PatLongIdent (None, _, [ _, PatParen (_, PatUnitConst, _) ], _) as p),
+                                                    ri,
+                                                    e,
+                                                    bindingRange,
+                                                    dp,
+                                                    trivia)),
+                                  None,
+                                  _,
+                                  { GetKeyword = Some _ }) ->
+        let pat =
+            match p with
+            | SynPat.LongIdent (lid, extraId, typarDecls, _, accessibility, range) ->
+                SynPat.LongIdent(lid, extraId, typarDecls, SynArgPats.Pats([]), accessibility, range)
+            | _ -> p
 
-let (|PropertyWithGetSetMemberDefn|_|) =
-    function
-    | MDMember x1 :: MDMember x2 :: xs ->
-        match [ x1; x2 ] with
-        | PropertyWithGetSet ((x1, x2), []) -> Some((x1, x2), xs)
-        | _ -> None
+        Some(SynBinding(ao, kind, isInline, isMutable, ats, px, valData, pat, ri, e, bindingRange, dp, trivia))
     | _ -> None
 
 let addParenIfAutoNln synExpr f =
@@ -180,6 +170,7 @@ let synMemberDefnToFsAstType =
     | SynMemberDefn.ValField _ -> SynMemberDefn_ValField
     | SynMemberDefn.NestedType _ -> SynMemberDefn_NestedType
     | SynMemberDefn.AutoProperty _ -> SynMemberDefn_AutoProperty
+    | SynMemberDefn.GetSetMember _ -> SynMemberDefn_GetSetMember
 
 let synMemberSigToFsAstType =
     function

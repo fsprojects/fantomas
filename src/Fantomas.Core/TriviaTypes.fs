@@ -218,6 +218,11 @@ type FsAstType =
     | SynMemberDefn_AutoProperty
     | SynMemberDefn_AutoProperty_Equals
     | SynMemberDefn_AutoProperty_With
+    | SynMemberDefn_GetSetMember
+    | SynMemberDefn_GetSetMember_And
+    | SynMemberDefn_GetSetMember_Get
+    | SynMemberDefn_GetSetMember_With
+    | SynMemberDefn_GetSetMember_Set
     | SynSimplePat_Id
     | SynSimplePat_Typed
     | SynSimplePat_Attrib
@@ -250,8 +255,6 @@ type FsAstType =
     | SynPat_Or_Bar
     | SynPat_Ands
     | SynPat_LongIdent
-    | SynPat_LongIdent_And
-    | SynPat_LongIdent_With
     | SynPat_Tuple
     | SynPat_Paren
     | SynPat_Paren_OpeningParenthesis
