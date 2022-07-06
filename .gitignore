@@ -188,5 +188,7 @@ src/Fantomas.FCS/generated/
 # FsDocs
 docs/homepage.css
 docs/homepage.css.map
+docs/fsdocs-custom.css
+docs/global-config.css
 output/
 **/.fsdocs/cache

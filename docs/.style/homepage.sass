@@ -1,49 +1,6 @@
-﻿// Custom.scss
-// Option B: Include parts of Bootstrap
+﻿@import "./global-config.sass"
 
-// 1. Include functions first (so you can manipulate colors, SVGs, calc, etc)
-@import "./bootstrap/scss/functions"
-
-// 2. Include any default variable overrides here
-$font-family-sans-serif: 'Reem Kufi', sans-serif
-$primary: #338CBB
-$secondary: #2FBADC
-$black: #222222
-$white: #FFF
-$navbar-light-brand-color: $white
-$navbar-light-brand-hover-color: $white
-$navbar-light-color: $white
-$navbar-light-hover-color: $white
-$navbar-nav-link-padding-x: 0
-
-// 3. Include remainder of required Bootstrap stylesheets
-@import "./bootstrap/scss/variables"
-@import "./bootstrap/scss/mixins"
-@import "./bootstrap/scss/root"
-
-// 4. Include any optional Bootstrap components as you like
-@import "./bootstrap/scss/utilities"
-
-$utilities: map-merge($utilities, ("border-start": map-merge(map-get($utilities, "border-start"), ("responsive": true))))
-
-@import "./bootstrap/scss/reboot"
-@import "./bootstrap/scss/type"
-@import "./bootstrap/scss/images"
-@import "./bootstrap/scss/containers"
-@import "./bootstrap/scss/grid"
-@import "./bootstrap/scss/buttons"
-@import "./bootstrap/scss/transitions"
-@import "./bootstrap/scss/nav"
-@import "./bootstrap/scss/navbar"
-@import "./bootstrap/scss/tooltip"
-@import "./bootstrap/scss/carousel"
-@import "./bootstrap/scss/card"
-@import "./bootstrap/scss/helpers"
-
-// 5. Add additional custom code here
-@import "./bootstrap/scss/utilities/api"
-
-html, body
+html, bod
   width: 100%
   margin: 0
 
@@ -127,6 +84,7 @@ header
     transform: translate(-50%, -50%)
 
   #cta-buttons
+    z-index:1
     position: absolute
     bottom: 9rem
     left: 50%

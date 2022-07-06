@@ -15,17 +15,30 @@ open FSharp.Control.Reactive
 let sassCompiler = new SassCompiler(new ChakraCoreJsEngineFactory())
 let (</>) a b = Path.Combine(a, b)
 
-let inputFile = __SOURCE_DIRECTORY__ </> "homepage.sass"
+let inputFileHomepage = __SOURCE_DIRECTORY__ </> "homepage.sass"
+let inputFileTemplate = __SOURCE_DIRECTORY__ </> "fsdocs-custom.sass"
+let inputGlobalConfig = __SOURCE_DIRECTORY__ </> "global-config.sass"
 let inputFolder = __SOURCE_DIRECTORY__
 
-let output = __SOURCE_DIRECTORY__ </> ".." </> "homepage.css"
+let outputGlobalConfig = __SOURCE_DIRECTORY__ </> ".." </> "global-config.css"
+let outputHomepage = __SOURCE_DIRECTORY__ </> ".." </> "homepage.css"
+let outputTemplate = __SOURCE_DIRECTORY__ </> ".." </> "content/fsdocs-custom.css"
 
 let compileSass () =
     try
-        let result = sassCompiler.CompileFile(inputFile, ?outputPath = Some output)
+        let homepage = sassCompiler.CompileFile(inputFileHomepage, ?outputPath = Some outputHomepage)
+        let template = sassCompiler.CompileFile(inputFileTemplate, ?outputPath = Some outputTemplate)
+        let globalConfig = sassCompiler.CompileFile(inputGlobalConfig, ?outputPath = Some outputGlobalConfig)
 
-        File.WriteAllText(output, result.CompiledContent)
-        printfn "Compiled %s at %A" output DateTime.Now
+        File.WriteAllText(outputHomepage, homepage.CompiledContent)
+        printfn "Compiled %s at %A" outputTemplate DateTime.Now
+
+        File.WriteAllText(outputTemplate, template.CompiledContent)
+        printfn "Compiled %s at %A" outputTemplate DateTime.Now
+
+        File.WriteAllText(outputGlobalConfig, globalConfig.CompiledContent)
+        printfn "Compiled %s at %A" outputGlobalConfig DateTime.Now
+
     with
     | :? SassCompilerLoadException as sclex ->
         printfn
