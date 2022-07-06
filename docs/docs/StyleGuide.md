@@ -1,5 +1,5 @@
 ---
-category: End-user documentation
+category: Documentation
 categoryindex: 1
 index: 6
 ---
