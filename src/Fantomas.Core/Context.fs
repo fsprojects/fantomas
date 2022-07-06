@@ -815,6 +815,8 @@ let wordAndFixed = !- "and"
 let wordOr = sepSpace +> !- "or "
 let wordOf = sepSpace +> !- "of "
 
+let indentSepNlnUnindent f = indent +> sepNln +> f +> unindent
+
 // we need to make sure each expression in the function application has offset at least greater than
 // indentation of the function expression itself
 // we replace sepSpace in such case
@@ -891,10 +893,10 @@ let isShortExpression maxWidth (shortExpression: Context -> Context) fallbackExp
     shortExpressionWithFallback shortExpression fallbackExpression maxWidth None ctx
 
 let isShortExpressionOrAddIndentAndNewline maxWidth expr (ctx: Context) =
-    shortExpressionWithFallback expr (indent +> sepNln +> expr +> unindent) maxWidth None ctx
+    shortExpressionWithFallback expr (indentSepNlnUnindent expr) maxWidth None ctx
 
 let sepSpaceIfShortExpressionOrAddIndentAndNewline maxWidth expr (ctx: Context) =
-    shortExpressionWithFallback (sepSpace +> expr) (indent +> sepNln +> expr +> unindent) maxWidth None ctx
+    shortExpressionWithFallback (sepSpace +> expr) (indentSepNlnUnindent expr) maxWidth None ctx
 
 let expressionFitsOnRestOfLine expression fallbackExpression (ctx: Context) =
     shortExpressionWithFallback expression fallbackExpression ctx.Config.MaxLineLength (Some 0) ctx
@@ -1266,7 +1268,7 @@ let sepSpaceUnlessWriteBeforeNewlineNotEmpty (ctx: Context) =
 
 let autoIndentAndNlnWhenWriteBeforeNewlineNotEmpty (f: Context -> Context) (ctx: Context) =
     if hasWriteBeforeNewlineContent ctx then
-        (indent +> sepNln +> f +> unindent) ctx
+        indentSepNlnUnindent f ctx
     else
         f ctx
 
@@ -1288,7 +1290,7 @@ let addExtraNewlineIfLeadingWasMultiline leading sepNlnConsideringTriviaContentB
 let autoIndentAndNlnExpressUnlessRagnarok (f: SynExpr -> Context -> Context) (e: SynExpr) (ctx: Context) =
     match e with
     | SourceParser.StroustrupStyleExpr ctx.Config.ExperimentalStroustrupStyle e -> f e ctx
-    | _ -> (indent +> sepNln +> f e +> unindent) ctx
+    | _ -> indentSepNlnUnindent (f e) ctx
 
 let autoIndentAndNlnIfExpressionExceedsPageWidthUnlessRagnarok
     (f: SynExpr -> Context -> Context)
