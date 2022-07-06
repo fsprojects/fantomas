@@ -20,15 +20,28 @@ let inputFileTemplate = __SOURCE_DIRECTORY__ </> "fsdocs-custom.sass"
 let inputGlobalConfig = __SOURCE_DIRECTORY__ </> "global-config.sass"
 let inputFolder = __SOURCE_DIRECTORY__
 
-let outputGlobalConfig = __SOURCE_DIRECTORY__ </> ".." </> "global-config.css"
+let outputGlobalConfig =
+    __SOURCE_DIRECTORY__
+    </> ".."
+    </> "global-config.css"
+
 let outputHomepage = __SOURCE_DIRECTORY__ </> ".." </> "homepage.css"
-let outputTemplate = __SOURCE_DIRECTORY__ </> ".." </> "content/fsdocs-custom.css"
+
+let outputTemplate =
+    __SOURCE_DIRECTORY__
+    </> ".."
+    </> "content/fsdocs-custom.css"
 
 let compileSass () =
     try
-        let homepage = sassCompiler.CompileFile(inputFileHomepage, ?outputPath = Some outputHomepage)
-        let template = sassCompiler.CompileFile(inputFileTemplate, ?outputPath = Some outputTemplate)
-        let globalConfig = sassCompiler.CompileFile(inputGlobalConfig, ?outputPath = Some outputGlobalConfig)
+        let homepage =
+            sassCompiler.CompileFile(inputFileHomepage, ?outputPath = Some outputHomepage)
+
+        let template =
+            sassCompiler.CompileFile(inputFileTemplate, ?outputPath = Some outputTemplate)
+
+        let globalConfig =
+            sassCompiler.CompileFile(inputGlobalConfig, ?outputPath = Some outputGlobalConfig)
 
         File.WriteAllText(outputHomepage, homepage.CompiledContent)
         printfn "Compiled %s at %A" outputTemplate DateTime.Now
