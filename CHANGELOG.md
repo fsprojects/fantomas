@@ -5,7 +5,7 @@
 ### Changed
 * Restore the CodeFormatter.MakeRange public API. [#2306](https://github.com/fsprojects/fantomas/pull/2306)
 * Update FCS to 'Add arrow to SynType.Fun trivia.', commit 5a5a5f6cd07aa4a8326baa07d4f7af1305ced6f4
-* Update FCS to 'Refactor get/set members to SynMemberDefn.GetSetMember.', commit 0c5671f3b87e3fe076344bbf8997aa6587e582ff
+* Update FCS to 'Fix setter first', commit 267d0a57f217df756d9ac33c6aa4ffbfe3b53097
 
 ## [5.0.0-alpha-010] - 2022-06-27
 
