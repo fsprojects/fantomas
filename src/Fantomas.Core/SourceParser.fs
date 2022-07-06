@@ -491,19 +491,6 @@ let (|DoBinding|LetBinding|MemberBinding|ExplicitCtor|) b =
     match b with
     | SynBinding (ao, _, _, _, ats, px, SynValData (Some MFConstructor, _, ido), pat, _, expr, _, _, trivia) ->
         ExplicitCtor(ats, px, ao, pat, trivia.EqualsRange, expr, ido)
-    //    | SynBinding (ao,
-    //                  _,
-    //                  isInline,
-    //                  _,
-    //                  ats,
-    //                  px,
-    //                  SynValData (Some (MFProperty _ as mf), synValInfo, _),
-    //                  pat,
-    //                  _,
-    //                  expr,
-    //                  _,
-    //                  _,
-    //                  trivia) -> PropertyBinding(ats, px, ao, isInline, mf, pat, trivia.EqualsRange, expr, synValInfo)
     | SynBinding (ao, _, isInline, _, ats, px, SynValData (Some mf, synValInfo, _), pat, _, expr, _, _, trivia) ->
         MemberBinding(ats, px, ao, isInline, mf, pat, trivia.EqualsRange, expr, synValInfo)
     | SynBinding (_, SynBindingKind.Do, _, _, ats, px, _, _, _, expr, _, _, _trivia) -> DoBinding(ats, px, expr)
