@@ -369,14 +369,14 @@ Process Id: 20312, Name: dotnet
 
 And we can now attach to the unit testing process.
 
-![Run .NET Core Attach ](./docs/fantomas-debug-vscode-1.png)
+![Run .NET Core Attach ](./docs-old/fantomas-debug-vscode-1.png)
 
-![Choose process id](./docs/fantomas-debug-vscode-2.png)
+![Choose process id](./docs-old/fantomas-debug-vscode-2.png)
 
 **Press the play button once the process has been chosen!**
 This might be a bit strange but you need to press play in order for the debugger to start working.
 
-![Hit the breakpoint](./docs/fantomas-debug-vscode-3.png)
+![Hit the breakpoint](./docs-old/fantomas-debug-vscode-3.png)
 
 Check out this [video fragment](https://youtu.be/axHIazqiO9E?t=65) to see this in action.
 
