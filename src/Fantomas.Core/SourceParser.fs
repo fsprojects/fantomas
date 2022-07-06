@@ -366,6 +366,82 @@ let (|MDAutoProperty|_|) =
         Some(ats, px, ao, mk, equalsRange, e, withKeyword, ident, isStatic, typeOpt, memberKindToMemberFlags)
     | _ -> None
 
+let (|MDPropertyGetSet|_|) =
+    function
+    | SynMemberDefn.GetSetMember (Some (SynBinding (accessibility = ao
+                                                    isInline = isInline
+                                                    attributes = ats
+                                                    xmlDoc = px
+                                                    valData = SynValData(memberFlags = Some mf)
+                                                    headPat = SynPat.LongIdent (longDotId = memberName)) as getBinding),
+                                  Some setBinding,
+                                  _,
+                                  { GetKeyword = Some getKeyword
+                                    SetKeyword = Some setKeyword
+                                    WithKeyword = withKeyword
+                                    AndKeyword = andKeyword }) ->
+        let firstBinding, secondBinding =
+            if Position.posLt getKeyword.Start setKeyword.Start then
+                (SynMemberDefn_GetSetMember_Get, getKeyword, getBinding),
+                Some(SynMemberDefn_GetSetMember_Set, setKeyword, setBinding)
+            else
+                (SynMemberDefn_GetSetMember_Set, setKeyword, setBinding),
+                Some(SynMemberDefn_GetSetMember_Get, getKeyword, getBinding)
+
+        Some(px, ats, mf, isInline, ao, memberName, withKeyword, firstBinding, andKeyword, secondBinding)
+    | SynMemberDefn.GetSetMember (None,
+                                  Some (SynBinding (accessibility = ao
+                                                    isInline = isInline
+                                                    attributes = ats
+                                                    xmlDoc = px
+                                                    valData = SynValData(memberFlags = Some mf)
+                                                    headPat = SynPat.LongIdent (longDotId = memberName)) as binding),
+                                  _,
+                                  { WithKeyword = withKeyword
+                                    GetKeyword = getKeyword
+                                    SetKeyword = setKeyword })
+    | SynMemberDefn.GetSetMember (Some (SynBinding (accessibility = ao
+                                                    isInline = isInline
+                                                    attributes = ats
+                                                    xmlDoc = px
+                                                    valData = SynValData(memberFlags = Some mf)
+                                                    headPat = SynPat.LongIdent (longDotId = memberName)) as binding),
+                                  None,
+                                  _,
+                                  { WithKeyword = withKeyword
+                                    GetKeyword = getKeyword
+                                    SetKeyword = setKeyword }) ->
+        match getKeyword, setKeyword with
+        | Some getKeyword, None ->
+            Some(
+                px,
+                ats,
+                mf,
+                isInline,
+                ao,
+                memberName,
+                withKeyword,
+                (SynMemberDefn_GetSetMember_Get, getKeyword, binding),
+                None,
+                None
+            )
+        | None, Some setKeyword ->
+            Some(
+                px,
+                ats,
+                mf,
+                isInline,
+                ao,
+                memberName,
+                withKeyword,
+                (SynMemberDefn_GetSetMember_Set, setKeyword, binding),
+                None,
+                None
+            )
+        | _ -> None
+
+    | _ -> None
+
 // Interface impl
 
 let (|InterfaceImpl|) (SynInterfaceImpl (t, withKeywordRange, bs, members, range)) =
@@ -411,23 +487,10 @@ let (|MFMember|MFStaticMember|MFConstructor|MFOverride|) (mf: SynMemberFlags) =
         else
             MFStaticMember mk
 
-let (|DoBinding|LetBinding|MemberBinding|PropertyBinding|ExplicitCtor|) =
-    function
+let (|DoBinding|LetBinding|MemberBinding|ExplicitCtor|) b =
+    match b with
     | SynBinding (ao, _, _, _, ats, px, SynValData (Some MFConstructor, _, ido), pat, _, expr, _, _, trivia) ->
         ExplicitCtor(ats, px, ao, pat, trivia.EqualsRange, expr, ido)
-    | SynBinding (ao,
-                  _,
-                  isInline,
-                  _,
-                  ats,
-                  px,
-                  SynValData (Some (MFProperty _ as mf), synValInfo, _),
-                  pat,
-                  _,
-                  expr,
-                  _,
-                  _,
-                  trivia) -> PropertyBinding(ats, px, ao, isInline, mf, pat, trivia.EqualsRange, expr, synValInfo)
     | SynBinding (ao, _, isInline, _, ats, px, SynValData (Some mf, synValInfo, _), pat, _, expr, _, _, trivia) ->
         MemberBinding(ats, px, ao, isInline, mf, pat, trivia.EqualsRange, expr, synValInfo)
     | SynBinding (_, SynBindingKind.Do, _, _, ats, px, _, _, _, expr, _, _, _trivia) -> DoBinding(ats, px, expr)
@@ -1158,17 +1221,11 @@ let (|PatAs|_|) =
 
 let (|PatLongIdent|_|) =
     function
-    | SynPat.LongIdent (synLongIdent, propertyKeyword, _, tpso, xs, ao, _) ->
+    | SynPat.LongIdent (synLongIdent, _, tpso, xs, ao, _) ->
         match xs with
-        | SynArgPats.Pats ps -> Some(ao, synLongIdent, propertyKeyword, List.map (fun p -> (None, p)) ps, tpso)
+        | SynArgPats.Pats ps -> Some(ao, synLongIdent, List.map (fun p -> (None, p)) ps, tpso)
         | SynArgPats.NamePatPairs (nps, _) ->
-            Some(
-                ao,
-                synLongIdent,
-                propertyKeyword,
-                List.map (fun (ident, equalsRange, p) -> (Some(ident, equalsRange), p)) nps,
-                tpso
-            )
+            Some(ao, synLongIdent, List.map (fun (ident, equalsRange, p) -> (Some(ident, equalsRange), p)) nps, tpso)
     | _ -> None
 
 let (|OperatorNameWithStar|PrefixedOperatorNameWithStar|NotAnOperatorNameWithStar|) (synLongIdent: SynLongIdent) =
@@ -1213,13 +1270,10 @@ let (|PatQuoteExpr|_|) =
 
 let (|PatExplicitCtor|_|) =
     function
-    | SynPat.LongIdent (SynLongIdent(id = [ newIdent ]),
-                        _propertyKeyword,
-                        _,
-                        _,
-                        SynArgPats.Pats [ PatParen _ as pat ],
-                        ao,
-                        _) when (newIdent.idText = "new") -> Some(ao, pat)
+    | SynPat.LongIdent (SynLongIdent(id = [ newIdent ]), _, _, SynArgPats.Pats [ PatParen _ as pat ], ao, _) when
+        (newIdent.idText = "new")
+        ->
+        Some(ao, pat)
     | _ -> None
 
 // Members
@@ -1585,16 +1639,7 @@ let (|FunType|) (t, ValInfo (argTypes, returnType)) =
 /// Probably we should use lexing information to improve its accuracy
 let (|Extern|_|) =
     function
-    | Let (LetBinding (ats,
-                       px,
-                       _,
-                       ao,
-                       _,
-                       _,
-                       PatLongIdent (_, s, _, [ _, PatTuple ps ], _),
-                       _,
-                       TypedExpr (Typed, _, t),
-                       _)) ->
+    | Let (LetBinding (ats, px, _, ao, _, _, PatLongIdent (_, s, [ _, PatTuple ps ], _), _, TypedExpr (Typed, _, t), _)) ->
         let hasDllImportAttr =
             ats
             |> List.exists (fun { Attributes = attrs } ->

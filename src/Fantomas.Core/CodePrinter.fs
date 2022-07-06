@@ -646,7 +646,7 @@ and genLetBinding astContext pref b =
     match b with
     | LetBinding (ats, px, letKeyword, ao, isInline, isMutable, p, equalsRange, e, valInfo) ->
         match e, p with
-        | TypedExpr (Typed, e, t), PatLongIdent (ao, sli, _, ps, tpso) when (List.isNotEmpty ps) ->
+        | TypedExpr (Typed, e, t), PatLongIdent (ao, sli, ps, tpso) when (List.isNotEmpty ps) ->
             genSynBindingFunctionWithReturnType
                 astContext
                 false
@@ -665,7 +665,7 @@ and genLetBinding astContext pref b =
                 valInfo
                 equalsRange
                 e
-        | e, PatLongIdent (ao, sli, _, ps, tpso) when (List.isNotEmpty ps) ->
+        | e, PatLongIdent (ao, sli, ps, tpso) when (List.isNotEmpty ps) ->
             genSynBindingFunction
                 astContext
                 false
@@ -738,186 +738,67 @@ and genLetBinding astContext pref b =
     | b -> failwithf "%O isn't a let binding" b
     +> leaveNodeFor (synBindingToFsAstType b) b.RangeOfBindingWithRhs
 
-and genProperty
-    astContext
-    (prefix: Context -> Context)
-    ao
-    propertyKind
-    ps
-    (equalsAstType: FsAstType)
-    (equalsRange: range option)
-    e
-    =
-    let tuplerize ps =
-        let rec loop acc =
-            function
-            | [ p ] -> (List.rev acc, p)
-            | p1 :: ps -> loop (p1 :: acc) ps
-            | [] -> invalidArg "p" "Patterns should not be empty"
+and genProperty astContext (getOrSetType: FsAstType, getOrSetRange: range, binding: SynBinding) =
+    let genGetOrSet =
+        let getOrSetText =
+            match getOrSetType with
+            | SynMemberDefn_GetSetMember_Get -> "get"
+            | SynMemberDefn_GetSetMember_Set -> "set"
+            | _ -> failwith "expected \"get\" or \"set\""
 
-        loop [] ps
+        genTriviaFor getOrSetType getOrSetRange !-getOrSetText
+        +> sepSpace
 
-    match ps with
-    | [ PatTuple ps ] ->
-        let ps, p = tuplerize ps
+    match binding with
+    | SynBinding (headPat = PatLongIdent (ao, _, ps, _); expr = e; trivia = { EqualsRange = equalsRange }) ->
+        let tuplerize ps =
+            let rec loop acc =
+                function
+                | [ p ] -> (List.rev acc, p)
+                | p1 :: ps -> loop (p1 :: acc) ps
+                | [] -> invalidArg "p" "Patterns should not be empty"
 
-        prefix +> opt sepSpace ao genAccess
-        -- propertyKind
-        +> ifElse
-            (List.atMostOne ps)
-            (col sepComma ps (genPat astContext) +> sepSpace)
-            (sepOpenT
-             +> col sepComma ps (genPat astContext)
-             +> sepCloseT
-             +> sepSpace)
-        +> genPat astContext p
-        +> genExprSepEqPrependType astContext equalsAstType equalsRange e
+            loop [] ps
 
-    | ps ->
-        prefix +> opt sepSpace ao genAccess
-        -- propertyKind
-        +> col sepSpace ps (genPat astContext)
-        +> genExprSepEqPrependType astContext equalsAstType equalsRange e
+        match ps with
+        | [ _, PatTuple ps ] ->
+            let ps, p = tuplerize ps
 
-and genPropertyWithGetSet astContext (b1, b2) =
-    match b1, b2 with
-    | PropertyBinding (ats, px, ao, isInline, mf1, PatLongIdent (ao1, s1, pk1, ps1, _), eqR1, e1, _),
-      PropertyBinding (_, _, _, _, _, PatLongIdent (ao2, _, pk2, ps2, _), eqR2, e2, _) ->
-        let prefix =
-            genPreXmlDoc px
-            +> genAttributes astContext ats
-            +> genMemberFlags mf1
-            +> ifElse isInline (!- "inline ") sepNone
-            +> opt sepSpace ao genAccess
+            opt sepSpace ao genAccess
+            +> genGetOrSet
+            +> ifElse
+                (List.atMostOne ps)
+                (col sepComma ps (genPat astContext) +> sepSpace)
+                (sepOpenT
+                 +> col sepComma ps (genPat astContext)
+                 +> sepCloseT
+                 +> sepSpace)
+            +> genPat astContext p
+            +> genExprSepEqPrependType astContext SynBinding_Equals equalsRange e
 
-        assert (ps1 |> Seq.map fst |> Seq.forall Option.isNone)
-        assert (ps2 |> Seq.map fst |> Seq.forall Option.isNone)
-        let ps1 = List.map snd ps1
-        let ps2 = List.map snd ps2
-
-        let genGet okw ikw =
-            genProperty astContext (genPropertyKeyword (okw, ikw)) ao1 "get " ps1 SynBinding_Equals eqR1 e1
-
-        let genSet okw ikw =
-            genProperty astContext (genPropertyKeyword (okw, ikw)) ao2 "set " ps2 SynBinding_Equals eqR2 e2
-
-        let w = "with"
-        let a = "and"
-
-        let genGetSet =
-            // regardless of get/set ordering, the second member needs to be rendered as keyword "and", not keyword "with".
-            // therefore, the genGet and genSet helper functions have to take the desired keyword as a parameter.
-            match pk2 with
-            | Some (PropertyKeyword.With _) -> genSet w pk1 +> sepNln +> genGet a pk2
-            | _ -> genGet w pk1 +> sepNln +> genSet a pk2
-
-        prefix
-        +> genSynLongIdent false s1
-        +> indent
-        +> sepNln
-        +> genGetSet
-        +> unindent
+        | ps ->
+            opt sepSpace ao genAccess
+            +> genGetOrSet
+            +> col sepSpace ps (fun (_, pat) -> genPat astContext pat)
+            +> genExprSepEqPrependType astContext SynBinding_Equals equalsRange e
     | _ -> sepNone
 
-/// <summary>Generate the keyword <code>and</code> or <code>with</code>, along with any matching syntax trivia, for a given keyword</summary>
-/// <param name="outputKeyword">the keyword that the user wants for the property after writing.</param>
-/// <param name="inputKeyword">the parsed keyword range for the property from the AST. this is used to lookup trivia based on its range, since this range can differ from the output keyword's range.</param>
-/// <param name="ctx">the writing context context, not used inside this function</param>
-/// <remarks>The output keyword and input keyword can be different in the case of a property where the getter and setter are defined separately.
-/// Fantomas will combine the definitions, each of which are defined as <code>member blah with get</code>, <code>member blah with get</code>,
-/// into a combined getter and setter on a single member. This means that one of the <code>with</code> must be rewritten as an <code>and</code>,
-/// but we need to preserve the trivia.</remarks>
-/// <returns>A function that will transform and rewrite the member property keywords.</returns>
-and genPropertyKeyword (outputKeyword: string, inputKeyword: PropertyKeyword option) (ctx: Context) =
-    let start = outputKeyword + " "
+and genMemberBindingList astContext ms =
+    ms
+    |> List.map (fun (mb: SynBinding) ->
+        let expr = genMemberBinding astContext mb
+        let r = mb.RangeOfBindingWithRhs
 
-    match inputKeyword with
-    | None -> ctx
-    | Some (PropertyKeyword.And r) -> (!-start |> genTriviaFor SynPat_LongIdent_And r) ctx
-    | Some (PropertyKeyword.With r) -> (!-start |> genTriviaFor SynPat_LongIdent_With r) ctx
+        let sepNln =
+            sepNlnConsideringTriviaContentBeforeForMainNode (synBindingToFsAstType mb) r
 
-and genMemberBindingList astContext node =
-    let rec collectItems
-        (node: SynBinding list)
-        (finalContinuation: ColMultilineItem list -> ColMultilineItem list)
-        : ColMultilineItem list =
-        match node with
-        | [] -> finalContinuation []
-        | mb :: rest ->
-            let expr = genMemberBinding astContext mb
-            let r = mb.RangeOfBindingWithRhs
-
-            let sepNln =
-                sepNlnConsideringTriviaContentBeforeForMainNode (synBindingToFsAstType mb) r
-
-            collectItems rest (fun restItems ->
-                ColMultilineItem(expr, sepNln) :: restItems
-                |> finalContinuation)
-
-    collectItems node id
+        ColMultilineItem(expr, sepNln))
     |> colWithNlnWhenItemIsMultiline
 
 and genMemberBinding astContext b =
     match b with
-    | PropertyBinding (ats, px, ao, isInline, mf, p, equalsRange, e, synValInfo) ->
-        let prefix =
-            genPreXmlDoc px
-            +> genAttributes astContext ats
-            +> genMemberFlags mf
-            +> ifElse isInline (!- "inline ") sepNone
-            +> opt sepSpace ao genAccess
-
-        let propertyKind =
-            match mf with
-            | MFProperty PropertyGet -> "get "
-            | MFProperty PropertySet -> "set "
-            | mf -> failwithf "Unexpected member flags: %O" mf
-
-        match p with
-        | PatLongIdent (ao, sli, propertyKeyword, ps, _) ->
-            assert (ps |> Seq.map fst |> Seq.forall Option.isNone)
-
-            match ao, propertyKind, ps with
-            | None, "get ", [ _, PatParen (_, PatUnitConst, _) ] ->
-                // Provide short-hand notation `x.Member = ...` for `x.Member with get()` getters
-                let pat =
-                    match p with
-                    | SynPat.LongIdent (lid, propertyKeyword, extraId, typarDecls, _, accessibility, range) ->
-                        SynPat.LongIdent(
-                            lid,
-                            propertyKeyword,
-                            extraId,
-                            typarDecls,
-                            SynArgPats.Pats([]),
-                            accessibility,
-                            range
-                        )
-                    | _ -> p
-
-                let prefix = genMemberFlags mf
-                genMemberBindingImpl astContext prefix ats px ao isInline pat equalsRange e synValInfo
-            | _ ->
-                let ps = List.map snd ps
-
-                let genPropertyKeyword ctx =
-                    match propertyKeyword with
-                    | None -> ctx
-                    | Some (PropertyKeyword.And r) ->
-                        // even if the keyword was `and` in the original source, due to transformations we always want to use `with` here.
-                        (!- "with " |> genTriviaFor SynPat_LongIdent_And r) ctx
-                    | Some (PropertyKeyword.With r) -> (!- "with " |> genTriviaFor SynPat_LongIdent_With r) ctx
-
-                prefix
-                +> genSynLongIdent false sli
-                +> indent
-                +> sepNln
-                +> genProperty astContext genPropertyKeyword ao propertyKind ps SynBinding_Equals equalsRange e
-                +> unindent
-        | p -> failwithf "Unexpected pattern: %O" p
-
     | MemberBinding (ats, px, ao, isInline, mf, p, equalsRange, e, synValInfo) ->
         let prefix = genMemberFlags mf
-
         genMemberBindingImpl astContext prefix ats px ao isInline p equalsRange e synValInfo
 
     | ExplicitCtor (ats, px, ao, p, equalsRange, e, io) ->
@@ -971,7 +852,7 @@ and genMemberBindingImpl
     (synValInfo: SynValInfo)
     =
     match e, p with
-    | TypedExpr (Typed, e, t), PatLongIdent (ao, s, _, ps, tpso) when (List.isNotEmpty ps) ->
+    | TypedExpr (Typed, e, t), PatLongIdent (ao, s, ps, tpso) when (List.isNotEmpty ps) ->
         genSynBindingFunctionWithReturnType
             astContext
             true
@@ -990,7 +871,7 @@ and genMemberBindingImpl
             synValInfo
             equalsRange
             e
-    | e, PatLongIdent (ao, s, _, ps, tpso) when (List.isNotEmpty ps) ->
+    | e, PatLongIdent (ao, s, ps, tpso) when (List.isNotEmpty ps) ->
         genSynBindingFunction astContext true false px ats prefix ao isInline false s p.Range ps tpso equalsRange e
     | TypedExpr (Typed, e, t), pat ->
         genSynBindingValue astContext false px ats prefix ao isInline false pat (Some t) equalsRange e
@@ -4629,37 +4510,13 @@ and genClauses astContext cs (ctx: Context) =
         ctx
 
 /// Each multiline member definition has a pre and post new line.
-and genMemberDefnList astContext nodes =
-    let rec collectItems
-        (nodes: SynMemberDefn list)
-        (finalContinuation: ColMultilineItem list -> ColMultilineItem list)
-        : ColMultilineItem list =
-        match nodes with
-        | [] -> finalContinuation []
-        | PropertyWithGetSetMemberDefn (gs, rest) ->
-            let rangeOfFirstMember = List.head nodes |> fun m -> m.Range
-
-            let expr =
-                enterNodeFor SynMemberDefn_Member rangeOfFirstMember
-                +> genPropertyWithGetSet astContext gs
-
-            let sepNln =
-                sepNlnConsideringTriviaContentBeforeForMainNode SynMemberDefn_Member rangeOfFirstMember
-
-            collectItems rest (fun restItems ->
-                ColMultilineItem(expr, sepNln) :: restItems
-                |> finalContinuation)
-        | m :: rest ->
-            let expr = genMemberDefn astContext m
-
-            let sepNln =
-                sepNlnConsideringTriviaContentBeforeForMainNode (synMemberDefnToFsAstType m) m.Range
-
-            collectItems rest (fun restItems ->
-                ColMultilineItem(expr, sepNln) :: restItems
-                |> finalContinuation)
-
-    collectItems nodes id
+and genMemberDefnList astContext ms =
+    ms
+    |> List.map (fun md ->
+        ColMultilineItem(
+            genMemberDefn astContext md,
+            sepNlnConsideringTriviaContentBeforeForMainNode (synMemberDefnToFsAstType md) md.Range
+        ))
     |> colWithNlnWhenItemIsMultilineUsingConfig
 
 and genMemberDefn astContext node =
@@ -4768,7 +4625,8 @@ and genMemberDefn astContext node =
         +> genCtor
         +> optPre (!- " as ") sepNone so genIdent
 
-    | MDMember b -> genMemberBinding astContext b
+    | MDMember b
+    | LongGetMember b -> genMemberBinding astContext b
     | MDLetBindings (isStatic, isRec, b :: bs) ->
         let prefix =
             if isStatic && isRec then
@@ -4853,6 +4711,22 @@ and genMemberDefn astContext node =
              | TWithGlobalConstraints _ -> true
              | _ -> false)
             (genConstraints astContext t vi)
+
+    | MDPropertyGetSet (px, ats, mf, isInline, ao, memberName, withKeyword, firstBinding, andKeyword, secondBinding) ->
+        genPreXmlDoc px
+        +> genAttributes astContext ats
+        +> genMemberFlags mf
+        +> ifElse isInline (!- "inline ") sepNone
+        +> opt sepSpace ao genAccess
+        +> genSynLongIdent false memberName
+        +> indent
+        +> sepNln
+        +> genTriviaFor SynMemberDefn_GetSetMember_With withKeyword !- "with"
+        +> sepSpace
+        +> genProperty astContext firstBinding
+        +> genTriviaForOption SynMemberDefn_GetSetMember_And andKeyword (sepNln +> !- "and" +> sepSpace)
+        +> optSingle (genProperty astContext) secondBinding
+        +> unindent
 
     | md -> failwithf "Unexpected member definition: %O" md
     |> genTriviaFor (synMemberDefnToFsAstType node) node.Range
@@ -4944,7 +4818,7 @@ and genPat astContext pat =
         genPat astContext p1 -- " as "
         +> genPat astContext p2
         |> genTriviaFor SynPat_As r
-    | PatLongIdent (ao, sli, _, ps, tpso) ->
+    | PatLongIdent (ao, sli, ps, tpso) ->
         let aoc = opt sepSpace ao genAccess
 
         let tpsoc =
@@ -5386,7 +5260,7 @@ and genSynBindingValue
         | Some rt ->
             let hasGenerics =
                 match valueName with
-                | SynPat.LongIdent (_, _, _, Some _, _, _, _) -> true
+                | SynPat.LongIdent (_, _, Some _, _, _, _) -> true
                 | _ -> false
 
             ifElse hasGenerics sepColonWithSpacesFixed sepColon
