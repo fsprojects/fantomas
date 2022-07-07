@@ -76,28 +76,13 @@ For example, this code fragment
 
 For more complex examples, please take a look at F# outputs of [20 language shootout programs](tests/languageshootout_output) and [10 CodeReview.SE source files](tests/stackexchange_output).
 
-## Why the name "Fantomas"?
-There are a few reasons to choose the name as such.
-First, it starts with an "F" just like many other F# projects.
-Second, Fantomas is my favourite character in the literature.
-Finally, Fantomas has the same Greek root as "[phantom](https://en.wiktionary.org/wiki/phantom)"; coincidentally F# ASTs and formatting rules are so *mysterious* to be handled correctly.
-
 ## Contributing Guidelines
 
 See the [Contribution Guidelines](./CONTRIBUTING.md).
 
 ## Credits
 We would like to gratefully thank the following persons for their contributions.
-
- - [Eric Taucher](https://github.com/EricGT)
- - [Steffen Forkmann](https://github.com/forki)
- - [Jack Pappas](https://github.com/jack-pappas)
- - [Ivan Towlson](https://github.com/itowlson)
- - [Don Syme](https://github.com/dsyme)
- - [Gustavo Guerra](https://github.com/ovatsus)
- - [Jared Parsons](https://github.com/jaredpar)
- - [Denis Ok](https://github.com/OkayX6)
- - [Enrico Sada](https://github.com/enricosada)
+https://github.com/fsprojects/fantomas/graphs/contributors
 
 ## License
 The library and tool are available under Apache 2.0 license.
