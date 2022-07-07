@@ -1,7 +1,7 @@
 ---
 category: Documentation
 categoryindex: 1
-index: 5
+index: 9
 ---
 # Git hooks
 ## A git pre-commit hook sample

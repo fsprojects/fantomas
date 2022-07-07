@@ -1,7 +1,7 @@
 ---
 category: Documentation
 categoryindex: 1
-index: 4
+index: 8
 ---
 # Formatting Check
 ## Set files to be formatted inside build.fsx with snippet

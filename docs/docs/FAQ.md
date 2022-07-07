@@ -1,7 +1,7 @@
 ---
 category: End-user documentation
 categoryindex: 1
-index: 7
+index: 10
 ---
 # FAQ
 ## Why the name "Fantomas"?

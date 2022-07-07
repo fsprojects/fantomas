@@ -30,7 +30,7 @@ let outputHomepage = __SOURCE_DIRECTORY__ </> ".." </> "homepage.css"
 let outputTemplate =
     __SOURCE_DIRECTORY__
     </> ".."
-    </> "content/fsdocs-custom.css"
+    </> "fsdocs-custom.css"
 
 let compileSass () =
     try

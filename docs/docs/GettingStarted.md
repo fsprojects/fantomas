@@ -5,18 +5,15 @@ index: 1
 ---
 # Getting Started
 
-## Quick install
+* [Command line](#Command-line-tool-API)
+* [Fake build system](FAKE.html): Fantomas can be easily integrated with FAKE build system
+* [JetBrains Rider](Rider.html)
+* [VSCode](VSCode.html)
+* [Visual Studio](VisualStudio.html)
+* Try Fantomas [online](https://fsprojects.github.io/fantomas-tools/#/fantomas/preview)
 
-* Command line: `dotnet tool install -g fantomas`
-* JetBrains Rider: preinstalled
-* VSCode: part of [Ionide](http://ionide.io/) and [fantomas-fmt](https://marketplace.visualstudio.com/items?itemName=paolodellepiane.fantomas-fmt).
-* [Visual Studio 2019](https://marketplace.visualstudio.com/items?itemName=asti.fantomas-vs)
-* [Visual Studio 2022](https://marketplace.visualstudio.com/items?itemName=asti.fantomas-vs22)
-
-## How to use
-
-### Command line tool / API
-
+## Command line tool / API
+TODO: Style blockquotes</br>
 Create a [.NET tool manifest](https://docs.microsoft.com/en-us/dotnet/core/tools/local-tools-how-to-use) to install tools locally
 > dotnet new tool-manifest
 
@@ -108,45 +105,3 @@ $files = git status --porcelain | Where-Object { $_ -match "^\s?A?M(.*)\.fs(x|i)
 Or usage with `find` on unix:
 
 `find my-project/ -type f -name "*.fs" -not -path "*obj*" | xargs dotnet fantomas --check`
-
-### FAKE build system
-Fantomas can be easily integrated with FAKE build system.<br />
-Check out the [sample](https://github.com/fsprojects/fantomas/blob/master/fake-sample/README.md).
-
-### JetBrains Rider
-
-The [resharper-fsharp](https://github.com/JetBrains/resharper-fsharp) uses fantomas under the hood to format the source code. No need for any additional plugins.
-
-#### Using the latest version inside Rider
-
-For technical reasons Rider cannot always use the latest version of Fantomas found on NuGet.
-As a workaround you could install [fantomas](https://www.nuget.org/packages/fantomas-tool) locally with `dotnet tool install fantomas-tool` and configure it as an [External tool](https://www.jetbrains.com/help/rider/Settings_Tools_External_Tools.html).
-
-![Rider external tool window](./docs/rider-external-tool.png)
-
-![Rider action window](./docs/rider-action-window.png)
-
-**This will have an impact on your editing experiencing in Rider**, the external change to the file by the command line application might trigger more internal logic inside Rider than necessary.
-It could be noticeable in regards to the default formatting experience.
-
-### Visual Studio Code
-
-The recommended way to use Fantomas is by using the [Ionide plugin](http://ionide.io/). Fantomas is integrated in [FSAutoComplete](https://github.com/fsharp/FsAutoComplete/) which is the language server used by Ionide.
-
-Alternatively, you can install the [fantomas-fmt](https://marketplace.visualstudio.com/items?itemName=paolodellepiane.fantomas-fmt) extension.
-
-### Visual Studio
-
-The F# Formatting extension sets up Fantomas as the default formatter for F# files, configurable from Visual Studio's options.
-
-* [Visual Studio 2019](https://marketplace.visualstudio.com/items?itemName=asti.fantomas-vs)
-* [Visual Studio 2022](https://marketplace.visualstudio.com/items?itemName=asti.fantomas-vs22)
-
-### Visual Studio for Mac
-
-Install [fantomas](https://www.nuget.org/packages/fantomas) locally with `dotnet tool install fantomas-tool` and configure it as an [External tool]
-
-![VS Mac external tool window](./docs/vsmac-external-tool.png)
-### Online
-
-Try the Fantomas [online](https://fsprojects.github.io/fantomas-tools/#/fantomas/preview).

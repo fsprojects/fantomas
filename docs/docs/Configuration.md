@@ -1,7 +1,7 @@
 ---
 category: Documentation
 categoryindex: 1
-index: 2
+index: 5
 ---
 # Configuration
 
