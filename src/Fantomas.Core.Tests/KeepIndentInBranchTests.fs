@@ -2196,3 +2196,47 @@ with
 longName
 |> Map.map (fun _ -> TypedTerm.force<int>)
 """
+
+[<Test>]
+let ``nested match inside let bindings, 1825`` () =
+    formatSourceString
+        false
+        """
+module Foo =
+
+    let blah =
+        
+        let a =
+            match true with
+            | false ->
+                match result with
+                | Error _ -> failwith ""
+                | Ok _ ->
+                printfn "hi"
+                failwith "blah blah blah blah"
+            | true -> failwith ""
+
+        failwith ""
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+module Foo =
+
+    let blah =
+
+        let a =
+            match true with
+            | false ->
+                match result with
+                | Error _ -> failwith ""
+                | Ok _ ->
+
+                printfn "hi"
+                failwith "blah blah blah blah"
+            | true -> failwith ""
+
+        failwith ""
+"""
