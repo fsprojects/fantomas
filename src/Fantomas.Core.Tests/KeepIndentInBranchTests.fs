@@ -16,12 +16,12 @@ let foo () =
     if someCondition then
         0
     else
-        let config = Configuration.Read "/myfolder/myfile.xml"
-        let result = Process.main config otherArg
-        if result.IsOk then
-            0
-        else
-            -1
+    let config = Configuration.Read "/myfolder/myfile.xml"
+    let result = Process.main config otherArg
+    if result.IsOk then
+        0
+    else
+        -1
 """
         config
     |> prepend newline
@@ -57,10 +57,10 @@ let main argv =
         printfn "Would execute actions, but --dry-run was supplied: %+A" instructions
         0
     else
-        // proceed with main method
-        let output = Library.execute instructions
-        // do more stuff
-        0
+    // proceed with main method
+    let output = Library.execute instructions
+    // do more stuff
+    0
 """
         config
     |> prepend newline
@@ -108,10 +108,10 @@ let main argv =
         printfn "Would execute actions, but --dry-run was supplied: %+A" instructions
         0
     | RunMode.Wet ->
-        // proceed with main method
-        let output = Library.execute instructions
-        // do more stuff
-        0
+    // proceed with main method
+    let output = Library.execute instructions
+    // do more stuff
+    0
 """
         config
     |> prepend newline
@@ -160,10 +160,10 @@ let main argv =
         printfn "Would execute actions, but --dry-run was supplied: %+A" instructions
         0
     | RunMode.Wet ->
-        printfn "here it comes"
-        let output = Library.execute instructions
-        // do more stuff
-        0
+    printfn "here it comes"
+    let output = Library.execute instructions
+    // do more stuff
+    0
 """
         config
     |> prepend newline
@@ -213,10 +213,10 @@ let main argv =
         printfn "Would execute actions, but --dry-run was supplied: %+A" instructions
         0
     | RunMode.Wet ->
-        // proceed with main method
-        let output = Library.execute instructions
-        // do more stuff
-        0
+    // proceed with main method
+    let output = Library.execute instructions
+    // do more stuff
+    0
 """
         config
     |> prepend newline
@@ -268,8 +268,8 @@ module Foo =
                     None
                 | _ ->
 
-                    doEvenMore ()
-                    Some 3
+                doEvenMore ()
+                Some 3
         }
 """
         config
@@ -324,8 +324,8 @@ module Foo =
                     None
                 | _ ->
 
-                    doEvenMore ()
-                    Some 3
+                doEvenMore ()
+                Some 3
         }
 """
         config
@@ -368,9 +368,9 @@ let sum a b =
     | _, Negative _ ->
         None
     | a, b ->
-        logMessage "a and b are both positive"
-        // some grand explainer about the code
-        Some (a + b)
+    logMessage "a and b are both positive"
+    // some grand explainer about the code
+    Some (a + b)
 """
         config
     |> prepend newline
@@ -397,12 +397,12 @@ let sum a b =
     match a with
     | Negative -> None
     | _ ->
-        match b with
-        | Negative -> None
-        | _ ->
-            logMessage "a and b are both positive"
-            // some grand explainer about the code
-            Some(a + b)
+    match b with
+    | Negative -> None
+    | _ ->
+    logMessage "a and b are both positive"
+    // some grand explainer about the code
+    Some(a + b)
 """
         config
     |> prepend newline
@@ -432,13 +432,13 @@ let sum a b =
     if a < 0 then
         None
     else
-        logMessage "a is positive"
-        if b < 0 then
-            None
-        else
-            logMessage "a and b are both positive"
-            // some grand explainer about the code
-            Some(a + b)
+    logMessage "a is positive"
+    if b < 0 then
+        None
+    else
+    logMessage "a and b are both positive"
+    // some grand explainer about the code
+    Some(a + b)
 """
         config
     |> prepend newline
@@ -470,13 +470,13 @@ let sum a b =
     if a < 0 then
         None
     else
-        logMessage "a is positive"
-        match b with
-        | Negative -> None
-        | _ ->
-            logMessage "a and b are both positive"
-            // some grand explainer about the code
-            Some (a + b)
+    logMessage "a is positive"
+    match b with
+    | Negative -> None
+    | _ ->
+    logMessage "a and b are both positive"
+    // some grand explainer about the code
+    Some (a + b)
 """
         config
     |> prepend newline
@@ -555,7 +555,7 @@ if baz then
     printfn "Aborting."
     1
 else
-0
+    0
 """
         config
     |> prepend newline
@@ -1075,25 +1075,25 @@ and [<CustomEquality ; NoComparison>] Bar<'context, 'a> =
     member this.InnerEquals<'innerContextLongLongLong, 'd, 'e> (a : Foo<'innerContextLongLongLong, 'd>) (b : Foo<'innerContext, 'd>) (cont : bool -> 'e) : 'e =
         if a.Hash <> b.Hash then cont false
         else
-            match a.Foo, b.Foo with
-            | Foo.Apply a, Foo.Apply b ->
-                a.Apply { new ApplyEval<_, _, _> with
-                    member __.Eval<'bb> (a : Foo<'innerContextLongLongLong, 'bb -> 'b> * Foo<'innerContextLongLongLong, 'bb>) =
-                        let (af, av) = a
-                        b.Apply { new ApplyEval<_, _, _> with
-                            member __.Eval<'cb> (b : Foo<'innerContextLongLongLong, 'cb -> 'b> * Foo<'innerContextLongLongLong, 'bc>) =
-                                let (bf, bv) = b
-                                if typeof<'bb> = typeof<'cb> then
-                                    let bv = unbox<Foo<'innerContextLongLongLong, 'bb>> bv
-                                    this.InnerEquals av bv (fun inner ->
-                                        if inner then
-                                            let bv = unbox<Foo<'innerContextLongLongLong, 'bb -> 'b>> bf
-                                            this.InnerEquals af bf cont
-                                        else cont false
-                                    )
-                                else cont false
-                        }
-                }
+        match a.Foo, b.Foo with
+        | Foo.Apply a, Foo.Apply b ->
+        a.Apply { new ApplyEval<_, _, _> with
+                member __.Eval<'bb> (a : Foo<'innerContextLongLongLong, 'bb -> 'b> * Foo<'innerContextLongLongLong, 'bb>) =
+                    let (af, av) = a
+                    b.Apply { new ApplyEval<_, _, _> with
+                        member __.Eval<'cb> (b : Foo<'innerContextLongLongLong, 'cb -> 'b> * Foo<'innerContextLongLongLong, 'bc>) =
+                            let (bf, bv) = b
+                            if typeof<'bb> = typeof<'cb> then
+                                let bv = unbox<Foo<'innerContextLongLongLong, 'bb>> bv
+                                this.InnerEquals av bv (fun inner ->
+                                    if inner then
+                                        let bv = unbox<Foo<'innerContextLongLongLong, 'bb -> 'b>> bf
+                                        this.InnerEquals af bf cont
+                                    else cont false
+                                )
+                            else cont false
+                    }
+        }
 """
         { config with
             MaxLineLength = 100
@@ -1510,16 +1510,15 @@ let x y =
         """
 let x y =
     if
-        not
-            (
-                result.HasResultsFor(
-                    [ "label"
-                      "ipv4"
-                      "macAddress"
-                      "medium"
-                      "manufacturer" ]
-                )
+        not (
+            result.HasResultsFor(
+                [ "label"
+                  "ipv4"
+                  "macAddress"
+                  "medium"
+                  "manufacturer" ]
             )
+        )
     then
         None
     else
@@ -1558,16 +1557,15 @@ let x =
         """
 let x =
     if
-        not
-            (
-                result.HasResultsFor(
-                    [ "label"
-                      "ipv4"
-                      "macAddress"
-                      "medium"
-                      "manufacturer" ]
-                )
+        not (
+            result.HasResultsFor(
+                [ "label"
+                  "ipv4"
+                  "macAddress"
+                  "medium"
+                  "manufacturer" ]
             )
+        )
     then
         None
     else
@@ -1687,11 +1685,11 @@ let mapOperationToWebPart (operation: OpenApiOperationDescription) : SynExpr =
     let route =
         match operation with
         | _ -> // no route parameters
-            let route = mkAppNonAtomicExpr (mkIdentExpr "route") (mkStringExprConst operation.Path)
-            let responseHttpFunc =
-                mkLambdaExpr [ ] unitExpr
-                |> mkParenExpr
-            infixFish route responseHttpFunc
+        let route = mkAppNonAtomicExpr (mkIdentExpr "route") (mkStringExprConst operation.Path)
+        let responseHttpFunc =
+            mkLambdaExpr [ ] unitExpr
+            |> mkParenExpr
+        infixFish route responseHttpFunc
 
     infixFish verb route
 """
@@ -1725,16 +1723,16 @@ let updateModuleInImpl (ast: ParsedInput) (mdl: SynModuleOrNamespace) : ParsedIn
     match ast with
     | ParsedInput.SigFile _ -> ast
     | ParsedInput.ImplFile _ ->
-        ParsedImplFileInput(
-            fileName,
-            isScript,
-            qualifiedNameOfFile,
-            scopedPragmas,
-            hashDirectives,
-            [ mdl ],
-            isLastAndCompiled
-        )
-        |> ParsedInput.ImplFile
+    ParsedImplFileInput(
+        fileName,
+        isScript,
+        qualifiedNameOfFile,
+        scopedPragmas,
+        hashDirectives,
+        [ mdl ],
+        isLastAndCompiled
+    )
+    |> ParsedInput.ImplFile
 """
         config
     |> prepend newline
@@ -1767,25 +1765,25 @@ let private parseModel (modelSrc: string) : Result<MyReturnType, string list> =
   if not (File.Exists(modelSrc)) then
     Error [ sprintf "Provided modelSrc \"%s\" does not exist" modelSrc ]
   else
-    let graph = new QueryableGraph()
-    graph.LoadFromFile(modelSrc, TurtleParser())
+  let graph = new QueryableGraph()
+  graph.LoadFromFile(modelSrc, TurtleParser())
 
-    let xsdPath =
-      Path.Combine(Directory.GetCurrentDirectory(), "Some.xsd")
+  let xsdPath =
+    Path.Combine(Directory.GetCurrentDirectory(), "Some.xsd")
 
-    let ontologyPath =
-      Path.Combine(Directory.GetCurrentDirectory(), "Some.ttl")
+  let ontologyPath =
+    Path.Combine(Directory.GetCurrentDirectory(), "Some.ttl")
 
-    let ontoGraph = new OntologyGraph()
-    FileLoader.Load(ontoGraph, ontologyPath)
+  let ontoGraph = new OntologyGraph()
+  FileLoader.Load(ontoGraph, ontologyPath)
 
-    let validationErrors =
-      GraphValidation.validate xsdPath ontoGraph "http://company.com/meh" graph
+  let validationErrors =
+    GraphValidation.validate xsdPath ontoGraph "http://company.com/meh" graph
 
-    if List.isEmpty validationErrors then
-      Ok graph
-    else
-      Error validationErrors
+  if List.isEmpty validationErrors then
+    Ok graph
+  else
+    Error validationErrors
 """
         config
     |> prepend newline
@@ -1829,10 +1827,10 @@ let ``tuple is consider as short branch, 1800`` () =
           // look it's a tuple
           nextModel, objectsRemoved
         | Some subjectToRemove ->
-          let a = 5
-          let b = 6
-          someFunctionApp a b |> ignore
-          acc)
+        let a = 5
+        let b = 6
+        someFunctionApp a b |> ignore
+        acc)
       state
       []
 """
@@ -1874,10 +1872,10 @@ let ``parenthesis tuple is consider as short branch`` () =
           // look it's a tuple but wrapped in parenthesis
           (nextModel, objectsRemoved)
         | Some subjectToRemove ->
-          let a = 5
-          let b = 6
-          someFunctionApp a b |> ignore
-          acc)
+        let a = 5
+        let b = 6
+        someFunctionApp a b |> ignore
+        acc)
       state
       []
 """
@@ -1949,11 +1947,10 @@ module Foo =
 
         if
             output.Exists
-            && not
-                (
-                    output.EnumerateFiles () |> Seq.isEmpty
-                    && onlyContainsFoobar output
-                )
+            && not (
+                output.EnumerateFiles () |> Seq.isEmpty
+                && onlyContainsFoobar output
+            )
         then
             Error (FooBarBazError.ErrorCase output)
         else
@@ -2009,12 +2006,11 @@ module Foo =
 
         match
             output.Exists
-            && not
-                (
-                    output.EnumerateFiles () |> Seq.isEmpty
-                    && onlyContainsFoobar output
-                )
-            with
+            && not (
+                output.EnumerateFiles () |> Seq.isEmpty
+                && onlyContainsFoobar output
+            )
+        with
         | true -> Error (FooBarBazError.ErrorCase output)
         | false ->
 
@@ -2038,9 +2034,9 @@ module Foo =
             if foo = bar then
                 ()
             else
-                let leftSet = HashSet (FooBarBaz.keys leftThings)
-                leftSet.SymmetricExceptWith (FooBarBaz.keys rightThings)
-                |> ignore
+            let leftSet = HashSet (FooBarBaz.keys leftThings)
+            leftSet.SymmetricExceptWith (FooBarBaz.keys rightThings)
+            |> ignore
 """
         { config with
             MaxLineLength = 100
@@ -2053,7 +2049,9 @@ module Foo =
         """
 module Foo =
     let assertConsistent () : unit =
-        if veryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryLong then
+        if
+            veryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryLong
+        then
             ()
         else if foo = bar then
             ()
@@ -2079,8 +2077,8 @@ module TestThing =
         match Stream.peel rest with
         | None -> failwith "oh no"
         | Some longName ->
-            longName
-            |> Map.map (fun _ -> TypedTerm.force<int>)
+        longName
+        |> Map.map (fun _ -> TypedTerm.force<int>)
 """
         config
     |> prepend newline
@@ -2114,9 +2112,9 @@ module Foo =
             if foo = bar then
                 ()
             else
-                let leftSet = HashSet (FooBarBaz.keys leftThings)
-                leftSet.SymmetricExceptWith (FooBarBaz.keys rightThings)
-                |> ignore
+            let leftSet = HashSet (FooBarBaz.keys leftThings)
+            leftSet.SymmetricExceptWith (FooBarBaz.keys rightThings)
+            |> ignore
 """
         { config with
             MaxLineLength = 100
@@ -2129,7 +2127,9 @@ module Foo =
         """
 module Foo =
     let assertConsistent () : unit =
-        if veryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryLong then
+        if
+            veryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryLong
+        then
             ()
         else if foo = bar then
             ()
@@ -2160,7 +2160,8 @@ longName
         equal
         """
 match // comment
-    Stream.peel rest with
+    Stream.peel rest
+with
 | None -> failwith "oh no"
 | Some longName ->
 
@@ -2187,7 +2188,8 @@ longName
         equal
         """
 match! // comment
-    Stream.peel rest with
+    Stream.peel rest
+with
 | None -> failwith "oh no"
 | Some longName ->
 
