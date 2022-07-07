@@ -3268,8 +3268,7 @@ and genExprInIfOrMatch astContext (e: SynExpr) (ctx: Context) : Context =
                         | _ -> false)
                     triviaInstructions
 
-        let indentNlnUnindentNln f =
-            indent +> sepNln +> f +> unindent +> sepNln
+        let indentNlnUnindentNln f = indentSepNlnUnindent f +> sepNln
 
         let fallback =
             if hasCommentBeforeExpr e then
@@ -3531,7 +3530,7 @@ and genTypeDefn
                && ms.IsEmpty then
                 (sepSpace +> short) ctx
             else
-                isSmallExpression size short (indent +> sepNln +> short +> unindent) ctx
+                isSmallExpression size short (indentSepNlnUnindent short) ctx
 
         typeName
         +> genEq SynTypeDefn_Equals equalsRange
@@ -3821,7 +3820,7 @@ and genSigTypeDefn
                && ms.IsEmpty then
                 (sepSpace +> short) ctx
             else
-                isSmallExpression size short (indent +> sepNln +> short +> unindent) ctx
+                isSmallExpression size short (indentSepNlnUnindent short) ctx
 
         typeName +> sepEq +> genTypeDefinition
 
@@ -5048,7 +5047,7 @@ and genSynBindingFunction
 
     let genExpr isMultiline =
         if isMultiline then
-            (indent +> sepNln +> body +> unindent)
+            indentSepNlnUnindent body
         else
             let short = sepSpace +> body
 
@@ -5158,7 +5157,7 @@ and genSynBindingFunctionWithReturnType
 
     let genExpr isMultiline =
         if isMultiline then
-            (indent +> sepNln +> body +> unindent)
+            indentSepNlnUnindent body
         else
             let short = sepSpace +> body
 
@@ -5617,7 +5616,7 @@ and genLambdaArrowWithTrivia
         arrowRange
     +> (fun ctx ->
         if hasWriteBeforeNewlineContent ctx then
-            (indent +> sepNln +> (bodyExpr body) +> unindent) ctx
+            indentSepNlnUnindent (bodyExpr body) ctx
         else
             autoIndentAndNlnIfExpressionExceedsPageWidthUnlessRagnarok bodyExpr body ctx)
 
