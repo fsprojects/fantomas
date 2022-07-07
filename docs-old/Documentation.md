@@ -122,6 +122,7 @@ fsharp_space_after_comma=true
 fsharp_space_before_semicolon=false
 fsharp_space_after_semicolon=true
 fsharp_space_around_delimiter=true
+fsharp_max_if_then_short_width=0
 fsharp_max_if_then_else_short_width=40
 fsharp_max_infix_operator_expression=50
 fsharp_max_record_width=40
@@ -440,6 +441,26 @@ let b = [| 4;5;6 |]
 ```fsharp
 let a = [1;2;3]
 let b = [|4;5;6|]
+```
+
+### fsharp_max_if_then_short_width
+
+Control the maximum length for which if/then expression without an else expression can be on one line.  
+The [Microsoft F# style guide](https://docs.microsoft.com/en-us/dotnet/fsharp/style-guide/formatting#formatting-if-expressions) recommends to never write such an expression in one line.
+> If the else expression is absent, it is recommended to never to write the entire expression in one line.
+Default = 0.
+
+`defaultConfig`
+
+```fsharp
+if a then 
+    ()
+```
+
+`{ defaultConfig with MaxIfThenShortWidth = 15 }`
+
+```fsharp
+if a then ()
 ```
 
 ### fsharp_max_if_then_else_short_width

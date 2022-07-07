@@ -1646,7 +1646,7 @@ module Dbg =
     let print _ = ()
 #endif
 """
-        config
+        { config with MaxIfThenShortWidth = 30 }
     |> prepend newline
     |> should
         equal
@@ -1704,7 +1704,7 @@ module Dbg =
     let print _ = ()
 #endif
 """
-        config
+        { config with MaxIfThenShortWidth = 30 }
     |> prepend newline
     |> should
         equal
@@ -2504,7 +2504,7 @@ let ``comment after compiler define`` () =
     let tcrefObjTy, enclosingDeclaredTypars, renaming, objTy = FreshenTyconRef m rigid tcref declaredTyconTypars
 #endif
 """
-        config
+        { config with MaxIfThenElseShortWidth = 20 }
     |> prepend newline
     |> should
         equal

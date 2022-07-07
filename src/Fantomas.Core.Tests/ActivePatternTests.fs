@@ -64,7 +64,7 @@ let (|ParseRegex|_|) regex str =
         { config with
             MaxValueBindingWidth = 30
             MaxFunctionBindingWidth = 30
-            MaxIfThenElseShortWidth = 70 }
+            MaxIfThenElseShortWidth = 75 }
     |> prepend newline
     |> should
         equal

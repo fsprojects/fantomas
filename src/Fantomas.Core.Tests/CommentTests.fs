@@ -495,7 +495,9 @@ if a then
     ()
 else
 // Comment 1
-if b then
+if
+    b
+then
     ()
 // Comment 2
 else
@@ -993,7 +995,8 @@ else 0"""
         equal
         """
 if //comment
-    true then
+    true
+then
     1
 else
     0

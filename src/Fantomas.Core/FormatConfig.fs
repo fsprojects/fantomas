@@ -116,6 +116,10 @@ type FormatConfig =
       SpaceAroundDelimiter: bool
 
       [<Category("Boundaries")>]
+      [<DisplayName("Maximum if-then width")>]
+      MaxIfThenShortWidth: Num
+
+      [<Category("Boundaries")>]
       [<DisplayName("Maximum if-then-else width")>]
       MaxIfThenElseShortWidth: Num
 
@@ -220,6 +224,7 @@ type FormatConfig =
           SpaceBeforeSemicolon = false
           SpaceAfterSemicolon = true
           SpaceAroundDelimiter = true
+          MaxIfThenShortWidth = 0
           MaxIfThenElseShortWidth = 40
           MaxInfixOperatorExpression = 50
           MaxRecordWidth = 40

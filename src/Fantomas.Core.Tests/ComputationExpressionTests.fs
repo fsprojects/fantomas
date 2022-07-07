@@ -1909,7 +1909,9 @@ let create: Highlighter =
                 |> List.ofSeq
                 |> FormattedText.fromList
 """
-        { config with MaxIfThenElseShortWidth = 80 }
+        { config with
+            MaxIfThenElseShortWidth = 80
+            MaxIfThenShortWidth = 80 }
     |> prepend newline
     |> should
         equal

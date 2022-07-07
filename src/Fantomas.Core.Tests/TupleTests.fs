@@ -260,8 +260,10 @@ let y =
          ""
      elif args.StartsWith("(") then
          args
-     elif v.CurriedParameterGroups.Count > 1
-          && (not verboseMode) then
+     elif
+         v.CurriedParameterGroups.Count > 1
+         && (not verboseMode)
+     then
          " " + args
      else
          sprintf "(%s)" args),

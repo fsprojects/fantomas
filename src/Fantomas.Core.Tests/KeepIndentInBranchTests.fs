@@ -528,8 +528,10 @@ let rec getEndCol (r: Range) (tokenizer: FSharpLineTokenizer) lexState =
     | Some (tok), state ->
         Debug.WriteLine("End token: {0}", sprintf "%A" tok |> box)
 
-        if tok.RightColumn >= r.EndColumn
-           && isSignificantToken tok then
+        if
+            tok.RightColumn >= r.EndColumn
+            && isSignificantToken tok
+        then
             tok.RightColumn
         else
             lexState := state
@@ -674,11 +676,14 @@ lock lockingObj (fun () ->
         equal
         """
 lock lockingObj (fun () ->
-    if not thing then printfn ""
+    if not thing then
+        printfn ""
 
     match error with
     | Some error ->
-        if foo then ()
+        if foo then
+            ()
+
         thing ()
         false
     | None ->

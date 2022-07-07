@@ -21,12 +21,11 @@ let foo () =
         """
 let foo () =
     match
-        b.TryGetValue
-            (
-                longlonglonglonglong,
-                b
-            )
-        with
+        b.TryGetValue(
+            longlonglonglonglong,
+            b
+        )
+    with
     | true, i -> Some i
     | false, _ -> failwith ""
 """
@@ -48,9 +47,10 @@ let foo () =
         """
 let foo () =
     match
-        b.TryGetValue
-            (longlonglonglonglong)
-        with
+        b.TryGetValue(
+            longlonglonglonglong
+        )
+    with
     | true, i -> Some i
     | false, _ -> failwith ""
 """
@@ -124,12 +124,11 @@ let c =
 let c =
     if
         bar
-        |> Seq.exists
-            (
-                (|KeyValue|)
-                >> snd
-                >> (=) (Some i)
-            )
+        |> Seq.exists (
+            (|KeyValue|)
+            >> snd
+            >> (=) (Some i)
+        )
     then
         false
     else
@@ -150,8 +149,9 @@ if MyGrandFunctionThatTakesASingleArgument ( myEvenGranderArgumentNameThatGoesOn
         equal
         """
 if
-    MyGrandFunctionThatTakesASingleArgument
-        (myEvenGranderArgumentNameThatGoesOnForEverAndEver)
+    MyGrandFunctionThatTakesASingleArgument(
+        myEvenGranderArgumentNameThatGoesOnForEverAndEver
+    )
 then
     ()
 """
@@ -176,9 +176,10 @@ let foo () =
 let foo () =
     async {
         match!
-            b.TryGetValue
-                (longlonglonglonglong)
-            with
+            b.TryGetValue(
+                longlonglonglonglong
+            )
+        with
         | true, i -> Some i
         | false, _ -> failwith ""
     }
@@ -204,12 +205,11 @@ let foo () =
 let foo () =
     async {
         match!
-            b.TryGetValue
-                (
-                    longlonglonglonglong,
-                    b
-                )
-            with
+            b.TryGetValue(
+                longlonglonglonglong,
+                b
+            )
+        with
         | true, i -> Some i
         | false, _ -> failwith ""
     }
@@ -248,21 +248,18 @@ module Web3ServerSeedList =
         | Some rpcResponseEx ->
             if rpcResponseEx.RpcError <> null then
                 if
-                    (not
-                        (
-                            rpcResponseEx.RpcError.Message.Contains
-                                "pruning=archive"
-                        ))
-                    && (not
-                        (
-                            rpcResponseEx.RpcError.Message.Contains
-                                "header not found"
-                        ))
-                    && (not
-                        (
-                            rpcResponseEx.RpcError.Message.Contains
-                                "missing trie node"
-                        ))
+                    (not (
+                        rpcResponseEx.RpcError.Message.Contains
+                            "pruning=archive"
+                    ))
+                    && (not (
+                        rpcResponseEx.RpcError.Message.Contains
+                            "header not found"
+                    ))
+                    && (not (
+                        rpcResponseEx.RpcError.Message.Contains
+                            "missing trie node"
+                    ))
                 then
                     raise UnexpectedRpcResponseError
         | _ -> ()
@@ -290,12 +287,11 @@ let c =
         true
     elif
         bar
-        |> Seq.exists
-            (
-                (|KeyValue|)
-                >> snd
-                >> (=) (Some i)
-            )
+        |> Seq.exists (
+            (|KeyValue|)
+            >> snd
+            >> (=) (Some i)
+        )
     then
         false
     else

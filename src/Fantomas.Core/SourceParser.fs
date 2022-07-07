@@ -1083,7 +1083,12 @@ let rec (|ElIf|_|) =
         )
 
     | SynExpr.IfThenElse (e1, e2, e3, _, _, range, trivia) ->
-        Some([ (None, trivia.IfKeyword, trivia.IsElif, e1, trivia.ThenKeyword, e2) ], (trivia.ElseKeyword, e3), range)
+        let elseInfo =
+            match trivia.ElseKeyword, e3 with
+            | Some elseKw, Some elseExpr -> Some(elseKw, elseExpr)
+            | _ -> None
+
+        Some([ (None, trivia.IfKeyword, trivia.IsElif, e1, trivia.ThenKeyword, e2) ], elseInfo, range)
     | _ -> None
 
 let (|Record|_|) =
@@ -1854,7 +1859,7 @@ let (|KeepIndentMatch|_|) (e: SynExpr) =
 
 let (|KeepIndentIfThenElse|_|) (e: SynExpr) =
     match e with
-    | ElIf (branches, (_, Some elseExpr), _) ->
+    | ElIf (branches, Some (_, elseExpr), _) ->
         let branchBodies = branches |> List.map (fun (_, _, _, e, _, _) -> e)
 
         if shouldNotIndentBranch elseExpr branchBodies then

@@ -389,7 +389,7 @@ let ``if/elif without else`` () =
 if true then ()
 elif true then ()
     """
-        config
+        { config with MaxIfThenShortWidth = 20 }
     |> prepend newline
     |> should
         equal

@@ -6,13 +6,13 @@ open Fantomas.Core.Tests.TestHelper
 
 [<Test>]
 let ``single line if without else`` () =
-    formatSourceString false "if foo then bar" config
-    |> prepend newline
-    |> should
-        equal
-        """
-if foo then bar
-"""
+    formatSourceString
+        false
+        "if foo then bar"
+        { config with
+            InsertFinalNewline = false
+            MaxIfThenShortWidth = 15 }
+    |> should equal "if foo then bar"
 
 [<Test>]
 let ``if without else, if is longer`` () =
@@ -54,7 +54,7 @@ let ``short if then without else`` () =
         """
 if a then b
 """
-        config
+        { config with MaxIfThenShortWidth = 12 }
     |> prepend newline
     |> should
         equal
@@ -74,9 +74,11 @@ if foo && bar && meh then aha
     |> should
         equal
         """
-if foo
-   && bar
-   && meh then
+if
+    foo
+    && bar
+    && meh
+then
     aha
 """
 
@@ -223,8 +225,10 @@ let ``multiline condition`` () =
     |> should
         equal
         """
-if (aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
-    && bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb) then
+if
+    (aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+     && bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb)
+then
     x
 else
     y
@@ -342,7 +346,8 @@ let ``comment after if`` () =
         equal
         """
 if // meh
-    x then
+    x
+then
     0
 else
     1
@@ -360,7 +365,8 @@ let ``comment after if branch`` () =
     |> should
         equal
         """
-if x // meh
+if
+    x // meh
 then
     0
 else
@@ -451,7 +457,9 @@ let ``comment after else keyword before if keyword`` () =
 if a then
     b
 else // meh
-if c then
+if
+    c
+then
     d
 else
     e
@@ -472,7 +480,8 @@ let ``comment after else if keyword`` () =
 if a then
     b
 else if // meh
-    c then
+    c
+then
     d
 else
     e
@@ -493,7 +502,8 @@ let ``comment after elif keyword`` () =
 if a then
     b
 elif // meh
-    c then
+    c
+then
     d
 else
     e
@@ -514,7 +524,8 @@ let ``comment after else if boolean expression`` () =
         """
 if a then
     b
-else if c // meh
+else if
+    c // meh
 then
     d
 else
@@ -536,7 +547,8 @@ let ``comment after elif boolean expression`` () =
         """
 if a then
     b
-elif c // meh
+elif
+    c // meh
 then
     d
 else
@@ -556,12 +568,9 @@ let ``comment after else if then keyword`` () =
     |> should
         equal
         """
-if a then
-    b
-else if c then // meh
-    d
-else
-    e
+if a then b
+else if c then d // meh
+else e
 """
 
 [<Test>]
@@ -577,12 +586,9 @@ let ``comment after elif then keyword`` () =
     |> should
         equal
         """
-if a then
-    b
-elif c then // meh
-    d
-else
-    e
+if a then b
+elif c then d // meh
+else e
 """
 
 [<Test>]
@@ -700,7 +706,8 @@ if a then
     b
 else // foo
 if // bar
-    c then
+    c
+then
     d
 else
     e
@@ -921,7 +928,7 @@ else // c10
         """
 if // c1
     a // c2
-    then // c3
+then // c3
     b // c4
 else // c5
 if // c6
@@ -1297,7 +1304,8 @@ let foo result total =
         equal
         """
 let foo result total =
-    if result = 0 // there's a comment here
+    if
+        result = 0 // there's a comment here
     then
         total // and another one
     else
@@ -1510,11 +1518,10 @@ let code =
         "
 let code =
   if
-    System.Text.RegularExpressions.Regex.IsMatch
-      (
-        d.Name,
-        \"\"\"^[a-zA-Z][a-zA-Z0-9']+$\"\"\"
-      )
+    System.Text.RegularExpressions.Regex.IsMatch(
+      d.Name,
+      \"\"\"^[a-zA-Z][a-zA-Z0-9']+$\"\"\"
+    )
   then
     d.Name
   elif d.NamespaceToOpen.IsSome then
@@ -1702,8 +1709,10 @@ let private tryGetUrlWithExactMatch
   (urlPattern: string<Url>)
   (document: Document)
   =
-  if (UMX.untag pathPattern)
-       .Equals(UMX.untag document.Name, System.StringComparison.Ordinal) then
+  if
+    (UMX.untag pathPattern)
+      .Equals(UMX.untag document.Name, System.StringComparison.Ordinal)
+  then
     Some(urlPattern, normalizeRepoPath (UMX.cast<SourcelinkPattern, RepoPathSegment> pathPattern), document)
   else
     None
@@ -1713,8 +1722,10 @@ let private tryGetUrlWithExactMatch
   (urlPattern: string<Url>)
   (document: Document)
   =
-  if (UMX.untag pathPattern)
-       .Equals(UMX.untag document.Name, System.StringComparison.Ordinal) then
+  if
+    (UMX.untag pathPattern)
+      .Equals(UMX.untag document.Name, System.StringComparison.Ordinal)
+  then
     Some(urlPattern, normalizeRepoPath (UMX.cast<SourcelinkPattern, RepoPathSegment> pathPattern), document)
   else
     None
@@ -1786,10 +1797,12 @@ module UtxoCoinAccount =
         (amount: TransferAmount)
         (password: string)
         =
-        if (baseAccount.PublicAddress.Equals(
+        if
+            (baseAccount.PublicAddress.Equals(
                 destination,
                 StringComparison.InvariantCultureIgnoreCase
-            )) then
+            ))
+        then
             raise DestinationEqualToOrigin
 """
 
@@ -1822,11 +1835,9 @@ let x =
 // Original input:
 let x =
     if
-        not
-            (
-                f
-                    aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
-            )
+        not (
+            f aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+        )
     then
         1
     else
@@ -1834,9 +1845,11 @@ let x =
 
 // Formatted output of the above, in for a second format:
 let x =
-    if (not (
+    if
+        (not (
             f aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
-        )) then
+        ))
+    then
         1
     else
         2
@@ -2051,14 +2064,13 @@ else ()
         equal
         """
 if
-    Uri.Compare
-        (
-            foo,
-            bar,
-            UriComponents.Host ||| UriComponents.Path,
-            UriFormat.UriEscaped,
-            StringComparison.CurrentCulture
-        ) = 0
+    Uri.Compare(
+        foo,
+        bar,
+        UriComponents.Host ||| UriComponents.Path,
+        UriFormat.UriEscaped,
+        StringComparison.CurrentCulture
+    ) = 0
 then
     ()
 else
@@ -2186,8 +2198,9 @@ type internal Foo private () =
     static member Bar: int option =
         if thing = 1 then
             printfn "hi"
-        else if veryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryLong
-                |> Seq.forall (fun (u: VeryVeryVeryVeryVeryVeryVeryLong) -> u.Length = 0) //
+        else if
+            veryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryLong
+            |> Seq.forall (fun (u: VeryVeryVeryVeryVeryVeryVeryLong) -> u.Length = 0) //
         then
             printfn "hi"
         else
@@ -2197,8 +2210,9 @@ type internal Foo2 private () =
     static member Bar: int option =
         if thing = 1 then
             printfn "hi"
-        else if veryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryLong
-                |> Seq.forall (fun (u: VeryVeryVeryVeryVeryVeryVeryLong) -> u.Length = 0) //
+        else if
+            veryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryLong
+            |> Seq.forall (fun (u: VeryVeryVeryVeryVeryVeryVeryLong) -> u.Length = 0) //
         then
             printfn "hi"
         else
@@ -2392,7 +2406,8 @@ if
         (function
         | CompExpr _ -> true
         | _ -> false)
-        es then
+        es
+then
     shortExpression ctx
 else
     expressionFitsOnRestOfLine shortExpression longExpression ctx
@@ -2417,8 +2432,12 @@ module Foo =
 module Foo =
     let bar =
         if
-            Regex("long long long long long long long long long")
-                .Match(s)
+            Regex(
+                "long long long long long long long long long"
+            )
+                .Match(
+                s
+            )
                 .Success
         then
             None

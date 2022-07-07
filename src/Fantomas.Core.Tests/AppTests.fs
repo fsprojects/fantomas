@@ -486,35 +486,33 @@ let ``parenthesis around composed function expression, 1341`` () =
 
 [<Test>]
 let ``parenthesis around short composed function expression, tuple, 1700`` () =
-    formatSourceString false """((=) (ownerName, username))""" config
-    |> should
-        equal
-        """((=) (ownerName, username))
-"""
+    formatSourceString false "((=) (ownerName, username))" { config with InsertFinalNewline = false }
+    |> should equal "((=) (ownerName, username))"
 
 [<Test>]
 let ``parenthesis around short composed function expression, tuple in if, 1700`` () =
-    formatSourceString false """if ((=) (ownerName, username)) then 6""" config
-    |> should
-        equal
-        """if ((=) (ownerName, username)) then 6
-"""
+    formatSourceString
+        false
+        "if ((=) (ownerName, username)) then 6"
+        { config with
+            MaxIfThenShortWidth = 40
+            InsertFinalNewline = false }
+    |> should equal "if ((=) (ownerName, username)) then 6"
 
 [<Test>]
 let ``parenthesis around short composed function expression, no tuple, 1700`` () =
-    formatSourceString false """((=) ownerName)""" config
-    |> should
-        equal
-        """((=) ownerName)
-"""
+    formatSourceString false """((=) ownerName)""" { config with InsertFinalNewline = false }
+    |> should equal """((=) ownerName)"""
 
 [<Test>]
 let ``parenthesis around short composed function expression, no tuple in if, 1700, part 2`` () =
-    formatSourceString false """if ((=) ownerName) then 6""" config
-    |> should
-        equal
-        """if ((=) ownerName) then 6
-"""
+    formatSourceString
+        false
+        "if ((=) ownerName) then 6"
+        { config with
+            MaxIfThenShortWidth = 25
+            InsertFinalNewline = false }
+    |> should equal "if ((=) ownerName) then 6"
 
 [<Test>]
 let ``parenthesis around simple function expression`` () =

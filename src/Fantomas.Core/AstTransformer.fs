@@ -502,25 +502,29 @@ and visitSynExpr (synExpr: SynExpr) : TriviaNode list =
 
             processSequence finalContinuation continuations (fun nodes ->
                 mkSynExprNode SynExpr_SequentialOrImplicitYield synExpr range (sortChildren [| yield! nodes |]))
-        | SourceParser.ElIf ((_leadingElseKw, ifKw, isElif, ifExpr, thenKw, thenExpr) :: es, (elseKw, elseExpr), range) ->
+        | SourceParser.ElIf ((_leadingElseKw, ifKw, isElif, ifExpr, thenKw, thenExpr) :: es, elseInfo, range) ->
             let elifs =
                 es
                 |> List.collect (fun (_, _, _, e1, _, e2) -> [ visit e1; visit e2 ])
+
+            let elseExprNodes, elseKeywordNodes =
+                match elseInfo with
+                | None -> [], []
+                | Some (elseKw, elseExpr) -> [ visit elseExpr ], [ mkNode SynExpr_IfThenElse_Else elseKw ]
 
             let continuations: ((TriviaNode list -> TriviaNode list) -> TriviaNode list) list =
                 [ yield visit ifExpr
                   yield visit thenExpr
                   yield! elifs
-                  yield! (Option.toList elseExpr |> List.map visit) ]
+                  yield! elseExprNodes ]
 
             processSequence finalContinuation continuations (fun nodes ->
-                let elseNode elseKw =
-                    mkNodeOption SynExpr_IfThenElse_Else elseKw
-
                 let elifKeywords =
                     es
                     |> List.collect (fun (elseKw, ifKw, isElif, _, thenKw, _) ->
-                        [ yield! Option.toList (elseNode elseKw)
+                        [ yield!
+                              (mkNodeOption SynExpr_IfThenElse_Else elseKw
+                               |> Option.toList)
                           yield
                               mkNode
                                   (if isElif then
@@ -544,7 +548,7 @@ and visitSynExpr (synExpr: SynExpr) : TriviaNode list =
                                    ifKw
                            yield mkNode SynExpr_IfThenElse_Then thenKw
                            yield! elifKeywords
-                           yield! Option.toList (elseNode elseKw)
+                           yield! elseKeywordNodes
                            yield! nodes |]))
 
         | SynExpr.IfThenElse (ifExpr, thenExpr, elseExpr, _, _, range, trivia) ->
