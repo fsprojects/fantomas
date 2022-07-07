@@ -11,6 +11,9 @@
 ### Added
 * Add setting `fsharp_max_if_then_short_width`. [#2299](https://github.com/fsprojects/fantomas/issues/2299)
 
+### Fixed
+* KeepIndentInBranch not respected inside a let and match. [1825](https://github.com/fsprojects/fantomas/issues/1825)
+
 ## [5.0.0-alpha-010] - 2022-06-27
 
 ### Changed

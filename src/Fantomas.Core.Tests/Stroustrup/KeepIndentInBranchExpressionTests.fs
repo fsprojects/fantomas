@@ -4,6 +4,8 @@ open NUnit.Framework
 open FsUnit
 open Fantomas.Core.Tests.TestHelper
 
+// ExperimentalKeepIndentInBranch has precedence over ExperimentalStroustrupStyle
+
 let config =
     { config with
         MultilineBlockBracketsOnSameColumn = true
@@ -30,11 +32,12 @@ match x with
         equal
         """
 match x with
-| _ -> {
-    A = longTypeName
-    B = someOtherVariable
-    C = ziggyBarX
-}
+| _ ->
+    {
+        A = longTypeName
+        B = someOtherVariable
+        C = ziggyBarX
+    }
 """
 
 [<Test>]
@@ -75,11 +78,12 @@ match x with
         equal
         """
 match x with
-| _ -> {|
-    A = longTypeName
-    B = someOtherVariable
-    C = ziggyBarX
-|}
+| _ ->
+    {|
+        A = longTypeName
+        B = someOtherVariable
+        C = ziggyBarX
+    |}
 """
 
 [<Test>]
@@ -100,11 +104,12 @@ match x with
         equal
         """
 match x with
-| _ -> struct {|
-    A = longTypeName
-    B = someOtherVariable
-    C = ziggyBarX
-|}
+| _ ->
+    struct {|
+        A = longTypeName
+        B = someOtherVariable
+        C = ziggyBarX
+    |}
 """
 
 [<Test>]
@@ -125,10 +130,11 @@ match x with
         equal
         """
 match x with
-| _ -> task {
-    // some computation here
-    ()
-}
+| _ ->
+    task {
+        // some computation here
+        ()
+    }
 """
 
 [<Test>]
@@ -150,13 +156,14 @@ match x with
         equal
         """
 match x with
-| _ -> [
-    itemOne
-    itemTwo
-    itemThree
-    itemFour
-    itemFive
-]
+| _ ->
+    [
+        itemOne
+        itemTwo
+        itemThree
+        itemFour
+        itemFive
+    ]
 """
 
 [<Test>]
@@ -178,11 +185,12 @@ match x with
         equal
         """
 match x with
-| _ -> [|
-    itemOne
-    itemTwo
-    itemThree
-    itemFour
-    itemFive
-|]
+| _ ->
+    [|
+        itemOne
+        itemTwo
+        itemThree
+        itemFour
+        itemFive
+    |]
 """
