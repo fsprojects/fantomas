@@ -21,8 +21,6 @@ type ASTContext =
         InterfaceRange: Range option
         /// This pattern matters for formatting extern declarations
         IsCStylePattern: bool
-        /// Range operators are naked in 'for..in..do' constructs
-        IsNakedRange: bool
         /// A field is rendered as union field or not
         IsUnionField: bool
         /// First type param might need extra spaces to avoid parsing errors on `<^`, `<'`, etc.
@@ -33,7 +31,6 @@ type ASTContext =
     static member Default =
         { InterfaceRange = None
           IsCStylePattern = false
-          IsNakedRange = false
           IsUnionField = false
           IsFirstTypeParam = false
           IsInsideMatchClausePattern = false }
@@ -1230,7 +1227,7 @@ and genExpr astContext synExpr ctx =
         | ForEach (p, e1, e2, isArrow) ->
             atCurrentColumn (
                 !- "for " +> genPat astContext p -- " in "
-                +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr { astContext with IsNakedRange = true } e1)
+                +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e1)
                 +> ifElse
                     isArrow
                     (sepArrow
