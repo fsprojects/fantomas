@@ -1,5 +1,10 @@
 # Changelog
 
+## [Unreleased]
+
+### Changed
+* Don't mark optional parameters as required in public API. [#2350](https://github.com/fsprojects/fantomas/pull/2350)
+
 ## [5.0.0-alpha-011] - 2022-07-08
 
 ### Changed
