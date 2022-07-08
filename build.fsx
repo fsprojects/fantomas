@@ -16,15 +16,6 @@ let configuration = DotNet.BuildConfiguration.Release
 let solutionFile = "fantomas.sln"
 //// Environment.CurrentDirectory <- __SOURCE_DIRECTORY__
 
-// Files to format
-let sourceFiles =
-    !! "src/**/*.fs"
-    ++ "src/**/*.fsi"
-    ++ "build.fsx"
-    ++ "docs/**/*.fsx"
-    -- "src/**/obj/**/*.fs"
-    -- "src/Fantomas.FCS/generated/netstandard2.0/*.*"
-
 // Types and helper functions for building external projects (see the TestExternalProjects target below)
 type ProcessStartInfo =
     { ProcessName: string
@@ -300,11 +291,7 @@ Target.create "Benchmark" (fun _ ->
 )
 
 Target.create "Format" (fun _ ->
-    let result =
-        sourceFiles
-        |> Seq.map (sprintf "\"%s\"")
-        |> String.concat " "
-        |> DotNet.exec id "fantomas"
+    let result = DotNet.exec id "fantomas" "--recurse src docs/.style/ build.fsx"
 
     if not result.OK then
         printfn "Errors while formatting all files: %A" result.Messages)
@@ -330,11 +317,7 @@ Target.create "FormatChanged" (fun _ ->
 
 Target.create "CheckFormat" (fun _ ->
     let result =
-        sourceFiles
-        |> Seq.map (sprintf "\"%s\"")
-        |> String.concat " "
-        |> sprintf "%s --check"
-        |> DotNet.exec id "fantomas"
+        DotNet.exec id "fantomas" "--check --recurse src docs/.style/ build.fsx"
 
     if result.ExitCode = 0 then
         Trace.log "No files need formatting"
