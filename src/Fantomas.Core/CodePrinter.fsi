@@ -10,9 +10,6 @@ type ASTContext =
         /// This pattern matters for formatting extern declarations
         IsCStylePattern: bool
 
-        /// Range operators are naked in 'for..in..do' constructs
-        IsNakedRange: bool
-
         /// A field is rendered as union field or not
         IsUnionField: bool
 
