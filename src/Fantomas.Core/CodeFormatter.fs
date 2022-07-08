@@ -9,7 +9,7 @@ type CodeFormatter =
         CodeFormatterImpl.getSourceText source
         |> CodeFormatterImpl.parse isSignature
 
-    static member FormatASTAsync(ast: ParsedInput, source, ?config) : Async<string> =
+    static member FormatASTAsync(ast: ParsedInput, ?source, ?config) : Async<string> =
         let sourceAndTokens = Option.map CodeFormatterImpl.getSourceText source
         let config = Option.defaultValue FormatConfig.FormatConfig.Default config
 
