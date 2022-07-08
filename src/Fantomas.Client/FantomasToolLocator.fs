@@ -23,8 +23,10 @@ let private (|CompatibleVersion|_|) (version: string) =
 
 // In the past, fantomas was named fantomas-tool.
 let private (|CompatibleToolName|_|) toolName =
-    if toolName = "fantomas-tool"
-       || toolName = "fantomas" then
+    if
+        toolName = "fantomas-tool"
+        || toolName = "fantomas"
+    then
         Some toolName
     else
         None

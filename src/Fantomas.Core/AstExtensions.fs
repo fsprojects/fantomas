@@ -85,8 +85,10 @@ let includeTrivia
 
     (baseRange, ranges)
     ||> List.fold (fun acc triviaRange ->
-        if acc.StartLine < triviaRange.StartLine
-           && acc.EndLine > triviaRange.EndLine then
+        if
+            acc.StartLine < triviaRange.StartLine
+            && acc.EndLine > triviaRange.EndLine
+        then
             acc
         elif triviaRange.EndLine > acc.EndLine then
             unionRanges acc triviaRange

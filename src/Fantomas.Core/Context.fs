@@ -708,8 +708,10 @@ let sepNlnUnlessLastEventIsNewline (ctx: Context) =
         sepNln ctx
 
 let sepNlnUnlessLastEventIsNewlineOrRagnarok (ctx: Context) =
-    if lastWriteEventIsNewline ctx
-       || ctx.Config.ExperimentalStroustrupStyle then
+    if
+        lastWriteEventIsNewline ctx
+        || ctx.Config.ExperimentalStroustrupStyle
+    then
         ctx
     else
         sepNln ctx
@@ -881,7 +883,8 @@ let private shortExpressionWithFallback
                     (fun info ->
                         info.ConfirmedMultiline
                         || info.IsTooLong ctx.Config.MaxLineLength resultContext.Column)
-                    infos then
+                    infos
+            then
                 fallbackExpression ctx
             else
                 { resultContext with WriterModel = { resultContext.WriterModel with Mode = ctx.WriterModel.Mode } }
@@ -994,7 +997,8 @@ let private expressionExceedsPageWidth beforeShort afterShort beforeLong afterLo
                     (fun info ->
                         info.ConfirmedMultiline
                         || info.IsTooLong ctx.Config.MaxLineLength resultContext.Column)
-                    infos then
+                    infos
+            then
                 fallbackExpression ctx
             else
                 { resultContext with WriterModel = { resultContext.WriterModel with Mode = ctx.WriterModel.Mode } }
