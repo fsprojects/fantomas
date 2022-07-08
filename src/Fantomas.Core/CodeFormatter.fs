@@ -9,19 +9,22 @@ type CodeFormatter =
         CodeFormatterImpl.getSourceText source
         |> CodeFormatterImpl.parse isSignature
 
-    static member FormatASTAsync(ast: ParsedInput, source, config) : Async<string> =
+    static member FormatASTAsync(ast: ParsedInput, ?source, ?config) : Async<string> =
         let sourceAndTokens = Option.map CodeFormatterImpl.getSourceText source
+        let config = Option.defaultValue FormatConfig.FormatConfig.Default config
 
         CodeFormatterImpl.formatAST ast sourceAndTokens config None
         |> async.Return
 
     static member FormatDocumentAsync(isSignature, source, config) =
+        let config = Option.defaultValue FormatConfig.FormatConfig.Default config
+
         CodeFormatterImpl.getSourceText source
         |> CodeFormatterImpl.formatDocument config isSignature
 
-    // TODO: should this return the range of the actual formatted node
-    // The selection might have been larger than the actual formatted node
     static member FormatSelectionAsync(isSignature, source, selection, config) =
+        let config = Option.defaultValue FormatConfig.FormatConfig.Default config
+
         CodeFormatterImpl.getSourceText source
         |> Selection.formatSelection config isSignature selection
 
