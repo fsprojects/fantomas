@@ -397,10 +397,10 @@ let ``backticks can be added from AST only scenarios`` () =
 
     CodeFormatter.FormatASTAsync(
         tree,
-        None,
-        { config with
-            StrictMode = true
-            InsertFinalNewline = false }
+        config =
+            { config with
+                StrictMode = true
+                InsertFinalNewline = false }
     )
     |> Async.RunSynchronously
     |> should equal "``new``"

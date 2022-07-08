@@ -5,23 +5,23 @@ open FsUnit
 open Fantomas.Core
 open Fantomas.Core.Tests.TestHelper
 
-let parseAndFormat fn sourceCode =
+let parseAndFormat sourceCode =
     let ast =
-        CodeFormatter.ParseAsync(false, sourceCode)
+        CodeFormatter.ParseAsync(false, source = sourceCode)
         |> Async.RunSynchronously
         |> Seq.head
         |> fst
 
     let formattedCode =
-        CodeFormatter.FormatASTAsync(ast, fn sourceCode, config)
+        CodeFormatter.FormatASTAsync(ast, source = sourceCode)
         |> Async.RunSynchronously
         |> String.normalizeNewLine
         |> fun s -> s.TrimEnd('\n')
 
     formattedCode
 
-let formatAstWithSourceCode code = parseAndFormat Some code
-let formatAst code = parseAndFormat (fun _ -> None) code
+let formatAstWithSourceCode code = parseAndFormat code
+let formatAst code = parseAndFormat code
 
 [<Test>]
 let ``format the ast works correctly with no source code`` () = formatAst "()" |> should equal "()"
