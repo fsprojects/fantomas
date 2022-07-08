@@ -5,6 +5,7 @@ open Fantomas
 open Fantomas.Daemon
 open Argu
 open System.Text
+open Fantomas.Format
 
 let extensions =
     set
@@ -27,7 +28,7 @@ type Arguments =
         member s.Usage =
             match s with
             | Recurse -> "Process the input folder recursively."
-            | Force -> "Print the source unchanged if it cannot be parsed correctly."
+            | Force -> "Print the output even if it is not valid F# code. For debugging purposes only."
             | Out _ ->
                 "Give a valid path for files/folders. Files should have .fs, .fsx, .fsi, .ml or .mli extension only. Multiple files/folders are not supported."
             | Profile -> "Print performance profiling information."
@@ -101,7 +102,7 @@ let private hasByteOrderMark file =
         false
 
 /// Format a source string using given config and write to a text writer
-let processSourceString s (fileName: string) config =
+let processSourceString (force: bool) s (fileName: string) config =
     let writeResult (formatted: string) =
         if hasByteOrderMark fileName then
             File.WriteAllText(fileName, formatted, Encoding.UTF8)
@@ -115,22 +116,26 @@ let processSourceString s (fileName: string) config =
 
         match formatted with
         | Format.FormatResult.Formatted (_, formattedContent) -> formattedContent |> writeResult
+        | Format.InvalidCode (_, formattedContent) when force -> formattedContent |> writeResult
         | Format.FormatResult.Unchanged file -> printfn $"'%s{file}' was unchanged"
         | Format.IgnoredFile file -> printfn $"'%s{file}' was ignored"
-        | Format.FormatResult.Error (_, ex) -> raise <| ex
+        | Format.FormatResult.Error (_, ex) -> raise ex
+        | Format.InvalidCode (file, _) -> raise (exn $"Formatting {file} lead to invalid F# code")
     }
     |> Async.RunSynchronously
 
 /// Format inFile and write to text writer
-let processSourceFile inFile (tw: TextWriter) =
+let processSourceFile (force: bool) inFile (tw: TextWriter) =
     async {
         let! formatted = Format.formatFileAsync inFile
 
         match formatted with
         | Format.FormatResult.Formatted (_, formattedContent) -> tw.Write(formattedContent)
+        | Format.InvalidCode (_, formattedContent) when force -> tw.Write(formattedContent)
         | Format.FormatResult.Unchanged _ -> inFile |> File.ReadAllText |> tw.Write
         | Format.IgnoredFile file -> printfn $"'%s{file}' was ignored"
-        | Format.FormatResult.Error (_, ex) -> raise <| ex
+        | Format.FormatResult.Error (_, ex) -> raise ex
+        | Format.InvalidCode (file, _) -> raise (exn $"Formatting {file} lead to invalid F# code")
     }
     |> Async.RunSynchronously
 
@@ -270,7 +275,7 @@ let main argv =
 
     let version = results.TryGetResult <@ Arguments.Version @>
 
-    let fileToFile (inFile: string) (outFile: string) =
+    let fileToFile (force: bool) (inFile: string) (outFile: string) =
         try
             printfn $"Processing %s{inFile}"
             let hasByteOrderMark = hasByteOrderMark inFile
@@ -289,22 +294,17 @@ let main argv =
                 |> Seq.length
                 |> printfn "Line count: %i"
 
-                time (fun () -> processSourceFile inFile buffer)
+                time (fun () -> processSourceFile force inFile buffer)
             else
-                processSourceFile inFile buffer
+                processSourceFile force inFile buffer
 
             buffer.Flush()
             printfn "%s has been written." outFile
         with exn ->
             eprintfn $"The following exception occurred while formatting %s{inFile}: {exn}"
-
-            if force then
-                File.WriteAllText(outFile, File.ReadAllText inFile)
-                printfn $"Force writing original contents to %s{outFile}"
-
             reraise ()
 
-    let stringToFile (s: string) (outFile: string) config =
+    let stringToFile (force: bool) (s: string) (outFile: string) config =
         try
             if profile then
                 printfn
@@ -312,54 +312,54 @@ let main argv =
                     (s.Length
                      - s.Replace(Environment.NewLine, "").Length)
 
-                time (fun () -> processSourceString s outFile config)
+                time (fun () -> processSourceString force s outFile config)
             else
-                processSourceString s outFile config
+                processSourceString force s outFile config
         with exn ->
             eprintfn $"The following exception occurs while formatting stdin: {exn}"
-
-            if force then
-                File.WriteAllText(outFile, s)
-                printfn $"Force writing original contents to %s{outFile}."
-
             reraise ()
 
-    let processFile inputFile outputFile =
+    let processFile force inputFile outputFile =
         if inputFile <> outputFile then
-            fileToFile inputFile outputFile
+            fileToFile force inputFile outputFile
         else
             printfn "Processing %s" inputFile
             let content = File.ReadAllText inputFile
             let config = EditorConfig.readConfiguration inputFile
-            stringToFile content inputFile config
+            stringToFile force content inputFile config
 
-    let processFolder inputFolder outputFolder =
+    let processFolder force inputFolder outputFolder =
         if not <| Directory.Exists(outputFolder) then
             Directory.CreateDirectory(outputFolder) |> ignore
 
         allFiles recurse inputFolder
-        |> Seq.iter (fun i ->
-            // s supposes to have form s1/suffix
-            let suffix = i.Substring(inputFolder.Length + 1)
+        |> Seq.map (fun i ->
+            async {
+                // s supposes to have form s1/suffix
+                let suffix = i.Substring(inputFolder.Length + 1)
 
-            let o =
-                if inputFolder <> outputFolder then
-                    Path.Combine(outputFolder, suffix)
-                else
-                    i
+                let o =
+                    if inputFolder <> outputFolder then
+                        Path.Combine(outputFolder, suffix)
+                    else
+                        i
 
-            processFile i o)
+                processFile force i o
+            })
+        |> Async.Parallel
+        |> Async.Ignore
+        |> Async.RunSynchronously
 
-    let filesAndFolders (files: string list) (folders: string list) : unit =
+    let filesAndFolders force (files: string list) (folders: string list) : unit =
         files
         |> List.iter (fun file ->
             if (IgnoreFile.isIgnoredFile (IgnoreFile.current.Force()) file) then
                 printfn "'%s' was ignored" file
             else
-                processFile file file)
+                processFile force file file)
 
         folders
-        |> List.iter (fun folder -> processFolder folder folder)
+        |> List.iter (fun folder -> processFolder force folder folder)
 
     let check = results.Contains <@ Arguments.Check @>
     let isDaemon = results.Contains <@ Arguments.Daemon @>
@@ -385,11 +385,11 @@ let main argv =
                 exit 1
             | InputPath.File f, _ when (IgnoreFile.isIgnoredFile (IgnoreFile.current.Force()) f) ->
                 printfn "'%s' was ignored" f
-            | InputPath.Folder p1, OutputPath.NotKnown -> processFolder p1 p1
-            | InputPath.File p1, OutputPath.NotKnown -> processFile p1 p1
-            | InputPath.File p1, OutputPath.IO p2 -> processFile p1 p2
-            | InputPath.Folder p1, OutputPath.IO p2 -> processFolder p1 p2
-            | InputPath.Multiple (files, folders), OutputPath.NotKnown -> filesAndFolders files folders
+            | InputPath.Folder p1, OutputPath.NotKnown -> processFolder force p1 p1
+            | InputPath.File p1, OutputPath.NotKnown -> processFile force p1 p1
+            | InputPath.File p1, OutputPath.IO p2 -> processFile force p1 p2
+            | InputPath.Folder p1, OutputPath.IO p2 -> processFolder force p1 p2
+            | InputPath.Multiple (files, folders), OutputPath.NotKnown -> filesAndFolders force files folders
             | InputPath.Multiple _, OutputPath.IO _ ->
                 eprintfn "Multiple input files are not supported with the --out flag."
                 exit 1
