@@ -18,7 +18,7 @@ For the overview how to use the tool, you can type the command
 	dotnet fantomas --help
 
 ```
-USAGE: dotnet fantomas [--help] [--recurse] [--force] [--profile] [--fsi <string>] [--stdin] [--stdout] [--out <string>] [--check] [--daemon] [--version] [<string>...]
+USAGE: dotnet fantomas [--help] [--recurse] [--force] [--profile] [--out <string>] [--check] [--daemon] [--version] [<string>...]
 
 INPUT:
 
@@ -27,12 +27,9 @@ INPUT:
 OPTIONS:
 
     --recurse, -r         Process the input folder recursively.
-    --force               Print the source unchanged if it cannot be parsed correctly.
+    --force               Print the output even if it is not valid F# code. For debugging purposes only.
     --profile             Print performance profiling information.
-    --fsi <string>        Read F# source from stdin as F# signatures.
-    --stdin               Read F# source from standard input.
-    --stdout              Write the formatted source code to standard output.
-    --out <string>        Give a valid path for files/folders. Files should have .fs, .fsx, .fsi, .ml or .mli extension only.
+    --out <string>        Give a valid path for files/folders. Files should have .fs, .fsx, .fsi, .ml or .mli extension only. Multiple files/folders are not supported.
     --check               Don't format files, just check if they have changed. Exits with 0 if it's formatted correctly, with 1 if some files need formatting and 99 if there was an internal error
     --daemon              Daemon mode, launches an LSP-like server to can be used by editor tooling.
     --version, -v         Displays the version of Fantomas

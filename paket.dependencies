@@ -16,6 +16,7 @@ nuget Ionide.KeepAChangelog.Tasks copy_local: true
 nuget Dotnet.ReproducibleBuilds copy_local: true
 
 github: fsprojects/fantomas:829faa6ba834f99afed9b4434b3a1680536474b2 src/Fantomas/CodePrinter.fs
+github: dotnet/fsharp:267d0a57f217df756d9ac33c6aa4ffbfe3b53097 src/Compiler/Checking/CheckDeclarations.fs
 
 # F# compiler source
 github: dotnet/fsharp:267d0a57f217df756d9ac33c6aa4ffbfe3b53097 src/Compiler/FSComp.txt

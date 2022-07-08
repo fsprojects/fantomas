@@ -27,6 +27,7 @@
     <Compile Include="Integration\MultiplePathsTests.fs" />
     <Compile Include="Integration\WriteTests.fs" />
     <Compile Include="Integration\DaemonTests.fs" />
+    <Compile Include="Integration\ForceTests.fs" />
   </ItemGroup>
   <Import Project="..\..\.paket\Paket.Restore.targets" />
 </Project>

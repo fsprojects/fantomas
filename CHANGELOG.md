@@ -1,18 +1,22 @@
 # Changelog
 
-## [Unreleased]
+## [5.0.0-alpha-011] - 2022-07-08
 
 ### Changed
 * Restore the CodeFormatter.MakeRange public API. [#2306](https://github.com/fsprojects/fantomas/pull/2306)
 * Update FCS to 'Add arrow to SynType.Fun trivia.', commit 5a5a5f6cd07aa4a8326baa07d4f7af1305ced6f4
 * Update FCS to 'Fix setter first', commit 267d0a57f217df756d9ac33c6aa4ffbfe3b53097
 * Update style of long if/match expressions (See [fslang-design#646](https://github.com/fsharp/fslang-design/issues/646)). [#2334](https://github.com/fsprojects/fantomas/pull/2334)
+* `--force` will now write a file even when the result is invalid. [#2346](https://github.com/fsprojects/fantomas/issues/2346)
 
 ### Added
 * Add setting `fsharp_max_if_then_short_width`. [#2299](https://github.com/fsprojects/fantomas/issues/2299)
 
 ### Fixed
 * KeepIndentInBranch not respected inside a let and match. [1825](https://github.com/fsprojects/fantomas/issues/1825)
+
+### Removed
+* `--stdin`, `--stdout` and `--fsi` flags. [#2346](https://github.com/fsprojects/fantomas/issues/2346)
 
 ## [5.0.0-alpha-010] - 2022-06-27
 

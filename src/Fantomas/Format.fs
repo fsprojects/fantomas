@@ -32,6 +32,7 @@ exception CodeFormatException of (string * Option<Exception>) array with
 type FormatResult =
     | Formatted of filename: string * formattedContent: string
     | Unchanged of filename: string
+    | InvalidCode of filename: string * formattedContent: string
     | Error of filename: string * formattingError: Exception
     | IgnoredFile of filename: string
 
@@ -64,10 +65,9 @@ let private formatContentInternalAsync
                     let! isValid = CodeFormatter.IsValidFSharpCodeAsync(isSignatureFile, formattedContent)
 
                     if not isValid then
-                        raise
-                        <| FormatException "Formatted content is not valid F# code"
-
-                    return Formatted(filename = file, formattedContent = formattedContent)
+                        return InvalidCode(filename = file, formattedContent = formattedContent)
+                    else
+                        return Formatted(filename = file, formattedContent = formattedContent)
                 else
                     return Unchanged(filename = file)
             with ex ->
@@ -93,37 +93,6 @@ let private formatFileInternalAsync (compareWithoutLineEndings: bool) (file: str
         }
 
 let formatFileAsync = formatFileInternalAsync false
-
-let formatFilesAsync files =
-    files |> Seq.map formatFileAsync |> Async.Parallel
-
-let formatCode files =
-    async {
-        let! results = formatFilesAsync files
-
-        // Check for formatting errors:
-        let errors =
-            results
-            |> Array.choose (fun x ->
-                match x with
-                | Error (file, ex) -> Some(file, Some(ex))
-                | _ -> None)
-
-        if not <| Array.isEmpty errors then
-            raise <| CodeFormatException errors
-
-        // Overwrite source files with formatted content
-        let result =
-            results
-            |> Array.choose (fun x ->
-                match x with
-                | Formatted (source, formatted) ->
-                    File.WriteAllText(source, formatted)
-                    Some source
-                | _ -> None)
-
-        return result
-    }
 
 type CheckResult =
     { Errors: (string * exn) list
@@ -159,7 +128,8 @@ let checkCode (filenames: seq<string>) =
             | FormatResult.Unchanged _
             | FormatResult.IgnoredFile _ -> None
             | FormatResult.Formatted (f, _)
-            | FormatResult.Error (f, _) -> Some f
+            | FormatResult.Error (f, _)
+            | FormatResult.InvalidCode (f, _) -> Some f
 
         let changes =
             formatted

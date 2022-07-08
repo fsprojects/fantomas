@@ -182,6 +182,7 @@ GITHUB
     src/Compiler/AbstractIL/ilpars.fsy (267d0a57f217df756d9ac33c6aa4ffbfe3b53097)
     src/Compiler/AbstractIL/ilx.fs (267d0a57f217df756d9ac33c6aa4ffbfe3b53097)
     src/Compiler/AbstractIL/ilx.fsi (267d0a57f217df756d9ac33c6aa4ffbfe3b53097)
+    src/Compiler/Checking/CheckDeclarations.fs (267d0a57f217df756d9ac33c6aa4ffbfe3b53097)
     src/Compiler/Facilities/DiagnosticOptions.fs (267d0a57f217df756d9ac33c6aa4ffbfe3b53097)
     src/Compiler/Facilities/DiagnosticOptions.fsi (267d0a57f217df756d9ac33c6aa4ffbfe3b53097)
     src/Compiler/Facilities/DiagnosticsLogger.fs (267d0a57f217df756d9ac33c6aa4ffbfe3b53097)

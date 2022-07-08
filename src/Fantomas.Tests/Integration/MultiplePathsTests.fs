@@ -37,42 +37,6 @@ let ``format multiple paths`` () =
     fileContentMatches FormattedCode fileFixtureTwo.Filename
 
 [<Test>]
-let ``format multiple paths cannot be combined with --out`` () =
-    use config = new ConfigurationFile("[*]\nend_of_line = lf")
-
-    use fileFixtureOne = new TemporaryFileCodeSample(UserCode)
-
-    use fileFixtureTwo = new TemporaryFileCodeSample(UserCode)
-
-    let arguments =
-        sprintf "\"%s\" \"%s\" --out \"some Folder\"" fileFixtureOne.Filename fileFixtureTwo.Filename
-
-    let { ExitCode = exitCode; Error = error } = runFantomasTool arguments
-
-    exitCode |> should equal 1
-
-    error
-    |> should contain "--stdout and --out cannot be combined with multiple files."
-
-[<Test>]
-let ``format multiple paths cannot be combined with --stdout`` () =
-    use config = new ConfigurationFile("[*]\nend_of_line = lf")
-
-    use fileFixtureOne = new TemporaryFileCodeSample(UserCode)
-
-    use fileFixtureTwo = new TemporaryFileCodeSample(UserCode)
-
-    let arguments =
-        sprintf "\"%s\" \"%s\" --stdout" fileFixtureOne.Filename fileFixtureTwo.Filename
-
-    let { ExitCode = exitCode; Error = error } = runFantomasTool arguments
-
-    exitCode |> should equal 1
-
-    error
-    |> should contain "--stdout and --out cannot be combined with multiple files."
-
-[<Test>]
 let ``format multiple paths with recursive flag`` () =
     use config = new ConfigurationFile("[*]\nend_of_line = lf")
 
