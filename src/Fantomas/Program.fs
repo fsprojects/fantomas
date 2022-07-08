@@ -333,22 +333,17 @@ let main argv =
             Directory.CreateDirectory(outputFolder) |> ignore
 
         allFiles recurse inputFolder
-        |> Seq.map (fun i ->
-            async {
-                // s supposes to have form s1/suffix
-                let suffix = i.Substring(inputFolder.Length + 1)
+        |> Seq.iter (fun i ->
+            // s supposes to have form s1/suffix
+            let suffix = i.Substring(inputFolder.Length + 1)
 
-                let o =
-                    if inputFolder <> outputFolder then
-                        Path.Combine(outputFolder, suffix)
-                    else
-                        i
+            let o =
+                if inputFolder <> outputFolder then
+                    Path.Combine(outputFolder, suffix)
+                else
+                    i
 
-                processFile force i o
-            })
-        |> Async.Parallel
-        |> Async.Ignore
-        |> Async.RunSynchronously
+            processFile force i o)
 
     let filesAndFolders force (files: string list) (folders: string list) : unit =
         files
