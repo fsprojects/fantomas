@@ -132,8 +132,10 @@ module private DefineCombinationSolver =
             |> List.filter (fun t -> Set.count t = 1)
             |> List.collect Set.toList
 
-        if groupedLiterals enforcedLit
-           |> Seq.exists (fun (_, g) -> List.length g > 1) then
+        if
+            groupedLiterals enforcedLit
+            |> Seq.exists (fun (_, g) -> List.length g > 1)
+        then
             Unsatisfiable
         else
             let singletons, toSolve =
@@ -212,12 +214,13 @@ module private DefineCombinationSolver =
         let rec f exprs =
             let exprsIndexed = exprs |> Seq.mapi (fun i x -> i, x)
 
-            match exprsIndexed
-                  |> allPairs
-                  |> Seq.tryPick (fun ((i, (x, _)), (j, (y, _))) ->
-                      pairSolve x y
-                      |> Option.map (fun r -> (i, x), (j, y), r))
-                with
+            match
+                exprsIndexed
+                |> allPairs
+                |> Seq.tryPick (fun ((i, (x, _)), (j, (y, _))) ->
+                    pairSolve x y
+                    |> Option.map (fun r -> (i, x), (j, y), r))
+            with
             | None -> exprs
             | Some ((i, x), (j, y), r) ->
                 f (
@@ -279,9 +282,10 @@ let getOptimizedDefinesSets (hashDirectives: ConditionalDirectiveTrivia list) =
     let maxSteps = FormatConfig.satSolveMaxStepsMaxSteps
     let defineExprs = getDefineExprs hashDirectives
 
-    match DefineCombinationSolver.mergeBoolExprs maxSteps defineExprs
-          |> List.map snd
-        with
+    match
+        DefineCombinationSolver.mergeBoolExprs maxSteps defineExprs
+        |> List.map snd
+    with
     | [] -> [ [] ]
     | xs -> xs
 

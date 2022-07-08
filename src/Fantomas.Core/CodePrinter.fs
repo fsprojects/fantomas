@@ -1133,8 +1133,10 @@ and genExpr astContext synExpr ctx =
                     (genMultiLineArrayOrList isArray xs openingTokenRange closingTokenRange astContext)
 
             fun ctx ->
-                if List.exists isIfThenElseWithYieldReturn xs
-                   || List.forall isSynExprLambdaOrIfThenElse xs then
+                if
+                    List.exists isIfThenElseWithYieldReturn xs
+                    || List.forall isSynExprLambdaOrIfThenElse xs
+                then
                     multilineExpression ctx
                 else
                     let size = getListOrArrayExprSize ctx ctx.Config.MaxArrayOrListWidth xs
@@ -2290,8 +2292,10 @@ and genExpr astContext synExpr ctx =
                 | Some sourceText -> sourceText.EndsWith(".")
 
             let dots (ctx: Context) =
-                if hasOmittedTrailingZero ctx.FromSourceText e1.Range
-                   || hasOmittedTrailingZero ctx.FromSourceText e2.Range then
+                if
+                    hasOmittedTrailingZero ctx.FromSourceText e1.Range
+                    || hasOmittedTrailingZero ctx.FromSourceText e2.Range
+                then
                     !- " .. " ctx
                 else
                     !- ".." ctx
@@ -2507,8 +2511,10 @@ and genSpaceBeforeLids
                 ctx.Config.SpaceBeforeLowercaseInvocation
         | _ -> ctx.Config.SpaceBeforeUppercaseInvocation
 
-    if (lastEsIndex = currentIndex)
-       && (not (hasParenthesis arg) || config) then
+    if
+        (lastEsIndex = currentIndex)
+        && (not (hasParenthesis arg) || config)
+    then
         sepSpace ctx
     else
         ctx
@@ -2927,7 +2933,8 @@ and genApp astContext e es ctx =
             (function
             | ComputationExpr _ -> true
             | _ -> false)
-            es then
+            es
+    then
         shortExpression ctx
     else
         expressionFitsOnRestOfLine shortExpression longExpression ctx
@@ -3447,8 +3454,10 @@ and genTypeDefn
             +> genTriviaFor SynTypeDefnSimpleRepr_Record_ClosingBrace closingBrace sepCloseS
 
         let multilineExpression (ctx: Context) =
-            if ctx.Config.MultilineBlockBracketsOnSameColumn
-               || (List.exists (fun (SynField (xmlDoc = xmlDoc)) -> not xmlDoc.IsEmpty) fs) then
+            if
+                ctx.Config.MultilineBlockBracketsOnSameColumn
+                || (List.exists (fun (SynField (xmlDoc = xmlDoc)) -> not xmlDoc.IsEmpty) fs)
+            then
                 genMultilineSimpleRecordTypeDefnAlignBrackets
                     astContext
                     openingBrace
@@ -3471,8 +3480,10 @@ and genTypeDefn
             let size = getRecordSize ctx fs
             let short = bodyExpr size
 
-            if ctx.Config.ExperimentalStroustrupStyle
-               && ms.IsEmpty then
+            if
+                ctx.Config.ExperimentalStroustrupStyle
+                && ms.IsEmpty
+            then
                 (sepSpace +> short) ctx
             else
                 isSmallExpression size short (indentSepNlnUnindent short) ctx
@@ -3531,8 +3542,10 @@ and genTypeDefn
         typeName
         +> onlyIf isClass sepSpaceBeforeClassConstructor
         +> leadingExpressionIsMultiline (opt sepNone impCtor (genMemberDefn astContext)) (fun isMulti ctx ->
-            if isMulti
-               && ctx.Config.AlternativeLongMemberDefinitions then
+            if
+                isMulti
+                && ctx.Config.AlternativeLongMemberDefinitions
+            then
                 sepEqFixed ctx
             else
                 sepEq ctx)
@@ -3736,8 +3749,10 @@ and genSigTypeDefn
             +> genTriviaFor SynTypeDefnSimpleRepr_Record_ClosingBrace closingBrace sepCloseS
 
         let multilineExpression (ctx: Context) =
-            if ctx.Config.MultilineBlockBracketsOnSameColumn
-               || (List.exists (fun (SynField (xmlDoc = xmlDoc)) -> not xmlDoc.IsEmpty) fs) then
+            if
+                ctx.Config.MultilineBlockBracketsOnSameColumn
+                || (List.exists (fun (SynField (xmlDoc = xmlDoc)) -> not xmlDoc.IsEmpty) fs)
+            then
                 genSigSimpleRecordAlignBrackets astContext openingBrace withKeyword ms ao' fs closingBrace ctx
             else
                 genSigSimpleRecord astContext openingBrace withKeyword ms ao' fs closingBrace ctx
@@ -3752,8 +3767,10 @@ and genSigTypeDefn
             let size = getRecordSize ctx fs
             let short = bodyExpr size
 
-            if ctx.Config.ExperimentalStroustrupStyle
-               && ms.IsEmpty then
+            if
+                ctx.Config.ExperimentalStroustrupStyle
+                && ms.IsEmpty
+            then
                 (sepSpace +> short) ctx
             else
                 isSmallExpression size short (indentSepNlnUnindent short) ctx
@@ -4380,8 +4397,10 @@ and genClause
                             sepArrow
                             |> genTriviaFor SynMatchClause_Arrow arrowRange)
                         arrowRange
-                     +> (if ctx.Config.ExperimentalKeepIndentInBranch
-                            && isLastItem then
+                     +> (if
+                             ctx.Config.ExperimentalKeepIndentInBranch
+                             && isLastItem
+                         then
                              let short = genExpr astContext e
 
                              let long =
@@ -5444,8 +5463,10 @@ and genMeasure (measure: SynMeasure) =
     !- "<" +> loop measure +> !- ">"
 
 and genKeepIdent startRange (e: SynExpr) ctx =
-    if ctx.Config.ExperimentalKeepIndentInBranch
-       && (startRange.StartColumn = e.Range.StartColumn) then
+    if
+        ctx.Config.ExperimentalKeepIndentInBranch
+        && (startRange.StartColumn = e.Range.StartColumn)
+    then
         let t, r = synExprToFsAstType e
         sepNlnConsideringTriviaContentBeforeForMainNode t r ctx
     else

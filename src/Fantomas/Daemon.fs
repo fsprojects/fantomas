@@ -48,7 +48,8 @@ type FantomasDaemon(sender: Stream, reader: Stream) as this =
             if
                 IgnoreFile.isIgnoredFile
                     (IgnoreFile.find fs (IgnoreFile.loadIgnoreList fs) request.FilePath)
-                    request.FilePath then
+                    request.FilePath
+            then
                 return FormatDocumentResponse.IgnoredFile request.FilePath
             else
                 let config =

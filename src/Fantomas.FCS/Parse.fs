@@ -46,18 +46,16 @@ let private ComputeAnonModuleName check defaultNamespace filename (m: range) =
 
     if
         check
-        && not
-            (
-                modname
-                |> String.forall (fun c -> Char.IsLetterOrDigit c || c = '_')
-            )
+        && not (
+            modname
+            |> String.forall (fun c -> Char.IsLetterOrDigit c || c = '_')
+        )
     then
         if
-            not
-                (
-                    filename.EndsWith("fsx", StringComparison.OrdinalIgnoreCase)
-                    || filename.EndsWith("fsscript", StringComparison.OrdinalIgnoreCase)
-                )
+            not (
+                filename.EndsWith("fsx", StringComparison.OrdinalIgnoreCase)
+                || filename.EndsWith("fsscript", StringComparison.OrdinalIgnoreCase)
+            )
         then
             warning (
                 Error(
@@ -192,12 +190,13 @@ let private PostParseModuleImpls
         lexbuf: UnicodeLexing.Lexbuf,
         tripleSlashComments: range list
     ) =
-    match impls
-          |> List.rev
-          |> List.tryPick (function
-              | ParsedImplFileFragment.NamedModule (SynModuleOrNamespace (longId = lid)) -> Some lid
-              | _ -> None)
-        with
+    match
+        impls
+        |> List.rev
+        |> List.tryPick (function
+            | ParsedImplFileFragment.NamedModule (SynModuleOrNamespace (longId = lid)) -> Some lid
+            | _ -> None)
+    with
     | Some lid when impls.Length > 1 -> errorR (Error(FSComp.SR.buildMultipleToplevelModules (), rangeOfLid lid))
     | _ -> ()
 
@@ -298,12 +297,13 @@ let private PostParseModuleSpecs
         lexbuf: UnicodeLexing.Lexbuf,
         tripleSlashComments: range list
     ) =
-    match specs
-          |> List.rev
-          |> List.tryPick (function
-              | ParsedSigFileFragment.NamedModule (SynModuleOrNamespaceSig (longId = lid)) -> Some lid
-              | _ -> None)
-        with
+    match
+        specs
+        |> List.rev
+        |> List.tryPick (function
+            | ParsedSigFileFragment.NamedModule (SynModuleOrNamespaceSig (longId = lid)) -> Some lid
+            | _ -> None)
+    with
     | Some lid when specs.Length > 1 -> errorR (Error(FSComp.SR.buildMultipleToplevelModules (), rangeOfLid lid))
     | _ -> ()
 
@@ -811,11 +811,12 @@ let private getSyntaxErrorMessage ctxt =
         os.Append(UnexpectedEndOfInputE().Format)
         |> ignore
     | Some token ->
-        match (token
-               |> Parser.tagOfToken
-               |> Parser.tokenTagToTokenId),
-              token
-            with
+        match
+            (token
+             |> Parser.tagOfToken
+             |> Parser.tokenTagToTokenId),
+            token
+        with
         | EndOfStructuredConstructToken, _ -> os.Append(OBlockEndSentenceE().Format) |> ignore
         | Parser.TOKEN_LEX_FAILURE, Parser.LEX_FAILURE str -> Printf.bprintf os $"%s{str}" (* Fix bug://2431 *)
         | token, _ ->
@@ -897,21 +898,22 @@ let private getSyntaxErrorMessage ctxt =
             // Canonicalize the categories and check for a unique category
             ctxt.ReducibleProductions
             |> List.exists (fun prods ->
-                match prods
-                      |> List.map Parser.prodIdxToNonTerminal
-                      |> List.map (function
-                          | NONTERM_Category_Type -> Parser.NONTERM_typ
-                          | NONTERM_Category_Expr -> Parser.NONTERM_declExpr
-                          | NONTERM_Category_Pattern -> Parser.NONTERM_atomicPattern
-                          | NONTERM_Category_IfThenElse -> Parser.NONTERM_ifExprThen
-                          | NONTERM_Category_SignatureFile -> Parser.NONTERM_signatureFile
-                          | NONTERM_Category_ImplementationFile -> Parser.NONTERM_implementationFile
-                          | NONTERM_Category_Definition -> Parser.NONTERM_moduleDefn
-                          | NONTERM_Category_Interaction -> Parser.NONTERM_interaction
-                          | nt -> nt)
-                      |> Set.ofList
-                      |> Set.toList
-                    with
+                match
+                    prods
+                    |> List.map Parser.prodIdxToNonTerminal
+                    |> List.map (function
+                        | NONTERM_Category_Type -> Parser.NONTERM_typ
+                        | NONTERM_Category_Expr -> Parser.NONTERM_declExpr
+                        | NONTERM_Category_Pattern -> Parser.NONTERM_atomicPattern
+                        | NONTERM_Category_IfThenElse -> Parser.NONTERM_ifExprThen
+                        | NONTERM_Category_SignatureFile -> Parser.NONTERM_signatureFile
+                        | NONTERM_Category_ImplementationFile -> Parser.NONTERM_implementationFile
+                        | NONTERM_Category_Definition -> Parser.NONTERM_moduleDefn
+                        | NONTERM_Category_Interaction -> Parser.NONTERM_interaction
+                        | nt -> nt)
+                    |> Set.ofList
+                    |> Set.toList
+                with
                 | [ Parser.NONTERM_interaction ] ->
                     os.Append(NONTERM_interactionE().Format) |> ignore
                     true
@@ -1076,16 +1078,17 @@ let private getSyntaxErrorMessage ctxt =
                 .Replace(SR.GetString("FixSymbol"), "")
                 .Replace(SR.GetString("FixReplace"), "")
 
-        match (ctxt.ShiftTokens
-               |> List.map Parser.tokenTagToTokenId
-               |> List.filter (function
-                   | Parser.TOKEN_error
-                   | Parser.TOKEN_EOF -> false
-                   | _ -> true)
-               |> List.map tokenIdToText
-               |> Set.ofList
-               |> Set.toList)
-            with
+        match
+            (ctxt.ShiftTokens
+             |> List.map Parser.tokenTagToTokenId
+             |> List.filter (function
+                 | Parser.TOKEN_error
+                 | Parser.TOKEN_EOF -> false
+                 | _ -> true)
+             |> List.map tokenIdToText
+             |> Set.ofList
+             |> Set.toList)
+        with
         | [ tokenName1 ] ->
             os.Append(TokenName1E().Format(fix tokenName1))
             |> ignore

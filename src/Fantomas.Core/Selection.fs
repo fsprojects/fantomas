@@ -54,10 +54,12 @@ let correctSelection (fileIndex: int) (sourceText: ISourceText) (selection: rang
                 |> Seq.length
                 |> fun trimmedEnd -> endLine.Length - trimmedEnd
 
-        if startLineNumber <> selection.StartLine
-           || startColumn <> selection.StartColumn
-           || endLineNumber <> selection.EndLine
-           || endColumn <> selection.EndColumn then
+        if
+            startLineNumber <> selection.StartLine
+            || startColumn <> selection.StartColumn
+            || endLineNumber <> selection.EndLine
+            || endColumn <> selection.EndColumn
+        then
 
             Range.mkFileIndexRange
                 fileIndex
