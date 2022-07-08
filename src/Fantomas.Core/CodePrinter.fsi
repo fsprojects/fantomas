@@ -4,9 +4,6 @@
 /// Please avoid using this record as it can be the cause of unexpected behavior when used incorrectly
 type ASTContext =
     {
-        /// Current node is a subnode deep down in an interface
-        InterfaceRange: FSharp.Compiler.Text.Range option
-
         /// This pattern matters for formatting extern declarations
         IsCStylePattern: bool
 
