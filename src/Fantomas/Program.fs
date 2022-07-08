@@ -116,7 +116,9 @@ let processSourceString (force: bool) s (fileName: string) config =
 
         match formatted with
         | Format.FormatResult.Formatted (_, formattedContent) -> formattedContent |> writeResult
-        | Format.InvalidCode (_, formattedContent) when force -> formattedContent |> writeResult
+        | Format.InvalidCode (file, formattedContent) when force ->
+            printfn $"%s{file} was not valid after formatting."
+            formattedContent |> writeResult
         | Format.FormatResult.Unchanged file -> printfn $"'%s{file}' was unchanged"
         | Format.IgnoredFile file -> printfn $"'%s{file}' was ignored"
         | Format.FormatResult.Error (_, ex) -> raise ex
@@ -131,7 +133,9 @@ let processSourceFile (force: bool) inFile (tw: TextWriter) =
 
         match formatted with
         | Format.FormatResult.Formatted (_, formattedContent) -> tw.Write(formattedContent)
-        | Format.InvalidCode (_, formattedContent) when force -> tw.Write(formattedContent)
+        | Format.InvalidCode (file, formattedContent) when force ->
+            printfn $"%s{file} was not valid after formatting."
+            tw.Write(formattedContent)
         | Format.FormatResult.Unchanged _ -> inFile |> File.ReadAllText |> tw.Write
         | Format.IgnoredFile file -> printfn $"'%s{file}' was ignored"
         | Format.FormatResult.Error (_, ex) -> raise ex
@@ -301,7 +305,6 @@ let main argv =
             buffer.Flush()
             printfn "%s has been written." outFile
         with exn ->
-            eprintfn $"The following exception occurred while formatting %s{inFile}: {exn}"
             reraise ()
 
     let stringToFile (force: bool) (s: string) (outFile: string) config =
@@ -316,7 +319,6 @@ let main argv =
             else
                 processSourceString force s outFile config
         with exn ->
-            eprintfn $"The following exception occurs while formatting stdin: {exn}"
             reraise ()
 
     let processFile force inputFile outputFile =
