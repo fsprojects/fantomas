@@ -821,7 +821,8 @@ and genMemberBinding astContext b =
             +> indent
             +> sepNln
             +> genExpr astContext e1
-            ++ "then "
+            +> sepNln
+            +> !- "then "
             +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e2)
             +> unindent
 
@@ -3505,7 +3506,9 @@ and genTypeDefn
             ifElse
                 (List.isEmpty ms)
                 (!- "")
-                (indent ++ "with"
+                (indent
+                 +> sepNln
+                 +> !- "with"
                  +> indent
                  +> sepNln
                  +> sepNlnBetweenTypeAndMembers withKeyword ms
@@ -3552,7 +3555,8 @@ and genTypeDefn
         +> sepNlnBetweenTypeAndMembers withKeyword ms
         +> genMemberDefnList astContext others
         +> unindent
-        ++ "end"
+        +> sepNln
+        +> !- "end"
         +> (fun ctx ->
             match ms with
             | [] -> ctx
@@ -3579,7 +3583,8 @@ and genTypeDefn
         +> sepNln
         +> genMemberDefnList astContext others
         +> unindent
-        ++ "end"
+        +> sepNln
+        +> !- "end"
         +> sepMem
         // Prints any members outside the struct-end construct
         +> genMemberDefnList astContext ms
@@ -3823,7 +3828,8 @@ and genSigTypeDefn
         +> indent
         +> colPre sepNln sepNln mds (genMemberSig astContext)
         +> unindent
-        ++ "end"
+        +> sepNln
+        +> !- "end"
         +> unindent
 
     | SigObjectModel (TCSimple (TCAugmentation withKeyword), _) ->

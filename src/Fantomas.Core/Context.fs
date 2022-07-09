@@ -476,12 +476,6 @@ let (+>) (ctx: Context -> Context) (f: _ -> Context) x =
         y
     | _ -> f y
 
-/// Break-line and append specified string
-let (++) (ctx: Context -> Context) (str: string) x =
-    ctx x
-    |> writerEvent WriteLine
-    |> writerEvent (Write str)
-
 /// Break-line if config says so
 let (+-) (ctx: Context -> Context) (str: string) x =
     let c = ctx x
@@ -513,7 +507,6 @@ let (+~) (ctx: Context -> Context) (str: string) x =
     writerEvent (Write str) c
 
 let (!-) (str: string) = id -- str
-let (!+) (str: string) = id ++ str
 let (!+-) (str: string) = id +- str
 let (!+~) (str: string) = id +~ str
 
@@ -695,7 +688,7 @@ let addFixedSpaces (targetColumn: int) (ctx: Context) : Context =
     let delta = targetColumn - ctx.Column
     onlyIf (delta > 0) (rep delta (!- " ")) ctx
 
-let sepNln = !+ ""
+let sepNln = writerEvent WriteLine
 
 // Use a different WriteLine event to indicate that the newline was introduces due to trivia
 // This is later useful when checking if an expression was multiline when checking for ColMultilineItem
