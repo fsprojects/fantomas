@@ -2817,6 +2817,35 @@ type ResolvedExtensionReference =
 """
 
 [<Test>]
+let ``using a compiler directive should not copy the previous line in fsi files, 1186`` () =
+    formatSourceString
+        true
+        """
+module Foo
+
+type t
+val x : int
+
+#if DEBUG
+val y : int
+#endif
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+module Foo
+
+type t
+val x: int
+
+#if DEBUG
+val y: int
+#endif
+"""
+
+[<Test>]
 let ``content of #if block should not get removed, 801`` () =
     formatSourceString
         false
