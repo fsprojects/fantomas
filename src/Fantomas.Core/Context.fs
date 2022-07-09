@@ -479,12 +479,11 @@ let (+>) (ctx: Context -> Context) (f: _ -> Context) x =
 /// Append specified string without line-break
 let (--) (ctx: Context -> Context) (str: string) x = ctx x |> writerEvent (Write str)
 
-/// Break-line unless we are on empty line
-let (+~) (ctx: Context -> Context) (str: string) x =
+let (!-) (str: string) = id -- str
+
+let (!+~) (str: string) c =
     let addNewline ctx =
         not (forallCharsOnLastLine Char.IsWhiteSpace ctx)
-
-    let c = ctx x
 
     let c =
         if addNewline c then
@@ -493,9 +492,6 @@ let (+~) (ctx: Context -> Context) (str: string) x =
             c
 
     writerEvent (Write str) c
-
-let (!-) (str: string) = id -- str
-let (!+~) (str: string) = id +~ str
 
 /// Print object converted to string
 let str (o: 'T) (ctx: Context) =
