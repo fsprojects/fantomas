@@ -476,18 +476,6 @@ let (+>) (ctx: Context -> Context) (f: _ -> Context) x =
         y
     | _ -> f y
 
-/// Break-line if config says so
-let (+-) (ctx: Context -> Context) (str: string) x =
-    let c = ctx x
-
-    let c =
-        if c.BreakOn str then
-            writerEvent WriteLine c
-        else
-            writerEvent (Write " ") c
-
-    writerEvent (Write str) c
-
 /// Append specified string without line-break
 let (--) (ctx: Context -> Context) (str: string) x = ctx x |> writerEvent (Write str)
 
@@ -507,7 +495,6 @@ let (+~) (ctx: Context -> Context) (str: string) x =
     writerEvent (Write str) c
 
 let (!-) (str: string) = id -- str
-let (!+-) (str: string) = id +- str
 let (!+~) (str: string) = id +~ str
 
 /// Print object converted to string
