@@ -476,10 +476,7 @@ let (+>) (ctx: Context -> Context) (f: _ -> Context) x =
         y
     | _ -> f y
 
-/// Append specified string without line-break
-let (--) (ctx: Context -> Context) (str: string) x = ctx x |> writerEvent (Write str)
-
-let (!-) (str: string) = id -- str
+let (!-) (str: string) = writerEvent (Write str)
 
 let (!+~) (str: string) c =
     let addNewline ctx =
@@ -1155,7 +1152,7 @@ let printTriviaContent (c: TriviaContent) (ctx: Context) =
     | Comment (BlockComment (s, before, after)) ->
         ifElse (before && addNewline) sepNlnForTrivia sepNone
         +> sepSpace
-        -- s
+        +> !-s
         +> sepSpace
         +> ifElse after sepNlnForTrivia sepNone
     | Newline -> (ifElse addNewline (sepNlnForTrivia +> sepNlnForTrivia) sepNlnForTrivia)
