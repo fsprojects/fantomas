@@ -67,7 +67,9 @@ Long comment
         |> String.normalizeNewLine
 
     let expr =
-        sepNone +> sepSpace -- comment
+        sepNone
+        +> sepSpace
+        +> !-comment
         +> sepSpace
         +> sepNone
 

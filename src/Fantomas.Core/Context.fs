@@ -476,33 +476,11 @@ let (+>) (ctx: Context -> Context) (f: _ -> Context) x =
         y
     | _ -> f y
 
-/// Break-line and append specified string
-let (++) (ctx: Context -> Context) (str: string) x =
-    ctx x
-    |> writerEvent WriteLine
-    |> writerEvent (Write str)
+let (!-) (str: string) = writerEvent (Write str)
 
-/// Break-line if config says so
-let (+-) (ctx: Context -> Context) (str: string) x =
-    let c = ctx x
-
-    let c =
-        if c.BreakOn str then
-            writerEvent WriteLine c
-        else
-            writerEvent (Write " ") c
-
-    writerEvent (Write str) c
-
-/// Append specified string without line-break
-let (--) (ctx: Context -> Context) (str: string) x = ctx x |> writerEvent (Write str)
-
-/// Break-line unless we are on empty line
-let (+~) (ctx: Context -> Context) (str: string) x =
+let (!+~) (str: string) c =
     let addNewline ctx =
         not (forallCharsOnLastLine Char.IsWhiteSpace ctx)
-
-    let c = ctx x
 
     let c =
         if addNewline c then
@@ -511,11 +489,6 @@ let (+~) (ctx: Context -> Context) (str: string) x =
             c
 
     writerEvent (Write str) c
-
-let (!-) (str: string) = id -- str
-let (!+) (str: string) = id ++ str
-let (!+-) (str: string) = id +- str
-let (!+~) (str: string) = id +~ str
 
 /// Print object converted to string
 let str (o: 'T) (ctx: Context) =
@@ -695,7 +668,7 @@ let addFixedSpaces (targetColumn: int) (ctx: Context) : Context =
     let delta = targetColumn - ctx.Column
     onlyIf (delta > 0) (rep delta (!- " ")) ctx
 
-let sepNln = !+ ""
+let sepNln = writerEvent WriteLine
 
 // Use a different WriteLine event to indicate that the newline was introduces due to trivia
 // This is later useful when checking if an expression was multiline when checking for ColMultilineItem
@@ -1179,7 +1152,7 @@ let printTriviaContent (c: TriviaContent) (ctx: Context) =
     | Comment (BlockComment (s, before, after)) ->
         ifElse (before && addNewline) sepNlnForTrivia sepNone
         +> sepSpace
-        -- s
+        +> !-s
         +> sepSpace
         +> ifElse after sepNlnForTrivia sepNone
     | Newline -> (ifElse addNewline (sepNlnForTrivia +> sepNlnForTrivia) sepNlnForTrivia)
