@@ -5,6 +5,9 @@
 ### Changed
 * Don't mark optional parameters as required in public API. [#2350](https://github.com/fsprojects/fantomas/pull/2350)
 
+### Fixed
+* Multiline if expression with multiline infix operations. [#1775](https://github.com/fsprojects/fantomas/issues/1775)
+
 ## [5.0.0-alpha-011] - 2022-07-08
 
 ### Changed
