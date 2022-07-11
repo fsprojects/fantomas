@@ -2817,6 +2817,103 @@ type ResolvedExtensionReference =
 """
 
 [<Test>]
+let ``using a compiler directive should not copy the previous line in fsi files, 1186`` () =
+    formatSourceString
+        true
+        """
+module Foo
+
+type t
+val x : int
+
+#if DEBUG
+val y : int
+#endif
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+module Foo
+
+type t
+val x: int
+
+#if DEBUG
+val y: int
+#endif
+"""
+
+[<Test>]
+let ``content of #if block should not get removed, 801`` () =
+    formatSourceString
+        false
+        """
+#if !COMPILED
+
+#I "C:/devuser/AppData/Roaming/npm/node_modules/azure-functions-core-tools/bin"
+#r "Microsoft.Azure.WebJobs.Host.dll"
+#r "System.Net.Http.Formatting.dll"
+
+open Microsoft.Azure.WebJobs
+open Microsoft.Azure.WebJobs.Host
+
+#endif
+
+#load "../shared/utilities.fsx"
+
+open Vspan.Common.Utilities
+
+#load "DialoutFunction.fsx"
+
+open Vspan.Domain.Functions
+
+let Run(message: string, executionContext: ExecutionContext, log: TraceWriter) =
+    let logInfo = log.Info
+    let getSetting = System.Environment.GetEnvironmentVariable
+
+    executionContext
+    |> FunctionGuid logInfo
+    |> ignore
+
+    message |> Out.Dialout.DialoutFunction.Accept logInfo getSetting
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+#if !COMPILED
+
+#I "C:/devuser/AppData/Roaming/npm/node_modules/azure-functions-core-tools/bin"
+#r "Microsoft.Azure.WebJobs.Host.dll"
+#r "System.Net.Http.Formatting.dll"
+
+open Microsoft.Azure.WebJobs
+open Microsoft.Azure.WebJobs.Host
+
+#endif
+
+#load "../shared/utilities.fsx"
+
+open Vspan.Common.Utilities
+
+#load "DialoutFunction.fsx"
+
+open Vspan.Domain.Functions
+
+let Run (message: string, executionContext: ExecutionContext, log: TraceWriter) =
+    let logInfo = log.Info
+    let getSetting = System.Environment.GetEnvironmentVariable
+
+    executionContext |> FunctionGuid logInfo |> ignore
+
+    message
+    |> Out.Dialout.DialoutFunction.Accept logInfo getSetting
+"""
+
+[<Test>]
 let ``nested defines, all active code`` () =
     formatSourceStringWithDefines
         [ "FOO"; "BAR" ]

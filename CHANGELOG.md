@@ -6,6 +6,8 @@
 * Don't mark optional parameters as required in public API. [#2350](https://github.com/fsprojects/fantomas/pull/2350)
 
 ### Fixed
+* Content of #if block removed - Breaking Code on reformat. [#801](https://github.com/fsprojects/fantomas/issues/801)
+* Using a compiler directive copies the previous(?) line in fsi files. [#1186](https://github.com/fsprojects/fantomas/issues/1186)
 * Multiline if expression with multiline infix operations. [#1775](https://github.com/fsprojects/fantomas/issues/1775)
 
 ## [5.0.0-alpha-011] - 2022-07-08
