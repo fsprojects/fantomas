@@ -435,7 +435,8 @@ module Foo =
                         "hello1"
                         "hello1"
                         "hello1"
-                    ] do
+                    ]
+                    do
                     yield
                         i,
                         seq {

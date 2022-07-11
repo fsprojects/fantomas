@@ -1244,16 +1244,17 @@ and genExpr astContext synExpr ctx =
                 !- "for "
                 +> genPat astContext p
                 +> !- " in "
-                +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e1)
-                +> ifElse
-                    isArrow
-                    (sepArrow
-                     +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e2))
-                    (!- " do"
-                     +> indent
-                     +> sepNln
-                     +> genExpr astContext e2
-                     +> unindent)
+                +> leadingExpressionIsMultiline
+                    (autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e1))
+                    (fun isMultiline ->
+                        (ifElse
+                            isArrow
+                            (sepArrow
+                             +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e2))
+                            (ifElse isMultiline (indent +> sepNln +> !- "do") (!- " do" +> indent)
+                             +> sepNln
+                             +> genExpr astContext e2
+                             +> unindent)))
             )
 
         | NamedComputationExpr (nameExpr, openingBrace, bodyExpr, closingBrace) ->

@@ -1378,3 +1378,34 @@ let ``dotget inside a quotation, 2154`` () =
             .AsyncGetIndicator(indicatorIdVal)
     @@>)
 """
+
+[<Test>]
+let ``dotget break in for loop, 1222`` () =
+    formatSourceString
+        false
+        """
+module Foo =
+
+    let CreateReadOnlyAccounts (watchWalletInfo: WatchWalletInfo): Async<unit> =
+        async {
+            for etherCurrency in Currency.GetAll().Where(fun currency -> currency.IsEtherBased ()) do
+                do! ValidateAddress etherCurrency watchWalletInfo.EtherPublicAddress
+        }
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+module Foo =
+
+    let CreateReadOnlyAccounts (watchWalletInfo: WatchWalletInfo) : Async<unit> =
+        async {
+            for etherCurrency in
+                Currency
+                    .GetAll()
+                    .Where(fun currency -> currency.IsEtherBased())
+                do
+                do! ValidateAddress etherCurrency watchWalletInfo.EtherPublicAddress
+        }
+"""
