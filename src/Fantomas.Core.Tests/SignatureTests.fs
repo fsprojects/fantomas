@@ -57,7 +57,9 @@ let ``should not add parens in signature`` () =
     override x.ToString() = sprintf "%s %s" x.Verb x.Path
 
     """
-        { config with MaxFunctionBindingWidth = 120 }
+        { config with
+            MaxFunctionBindingWidth = 120
+            NewlineBetweenTypeDefinitionAndMembers = false }
     |> should
         equal
         """type Route =
@@ -550,7 +552,7 @@ type T =
 type T with
     member Foo: int
 """
-        config
+        { config with NewlineBetweenTypeDefinitionAndMembers = false }
     |> prepend newline
     |> should
         equal
@@ -750,7 +752,9 @@ type Foo =
     | Bar of int
     member Item : unit -> int with get
 """
-        { config with SpaceBeforeColon = true }
+        { config with
+            SpaceBeforeColon = true
+            NewlineBetweenTypeDefinitionAndMembers = false }
     |> prepend newline
     |> should
         equal
@@ -1504,7 +1508,9 @@ and [<CustomEquality>] Bang =
         ///
         override GetHashCode : unit -> int
 """
-        { config with MultilineBlockBracketsOnSameColumn = true }
+        { config with
+            MultilineBlockBracketsOnSameColumn = true
+            NewlineBetweenTypeDefinitionAndMembers = false }
     |> prepend newline
     |> should
         equal
@@ -1603,7 +1609,7 @@ type Foo =
         }
     static member Baz : int
 """
-        config
+        { config with NewlineBetweenTypeDefinitionAndMembers = false }
     |> prepend newline
     |> should
         equal

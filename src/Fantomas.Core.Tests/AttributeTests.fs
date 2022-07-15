@@ -701,7 +701,9 @@ type RoleAdminImportController(akkaService: AkkaService) =
       return Ok job
     }
 """
-        config
+        { config with
+            MaxInfixOperatorExpression = 40
+            MaxArrayOrListWidth = 40 }
     |> prepend newline
     |> should
         equal
@@ -820,7 +822,7 @@ and Y = B
         [<ExcludeFromCodeCoverage>]
         member  this.M() = true
 """
-        config
+        { config with NewlineBetweenTypeDefinitionAndMembers = false }
     |> prepend newline
     |> should
         equal
@@ -952,7 +954,7 @@ module Foo =
         static member doThing person =
             ()
 """
-        config
+        { config with NewlineBetweenTypeDefinitionAndMembers = false }
     |> prepend newline
     |> should
         equal
@@ -1027,7 +1029,7 @@ module AsyncOptionCEExtensions =
     type AsyncOptionBuilder with
         member inline __.Source(s: #seq<_>) = s
 """
-        config
+        { config with NewlineBetweenTypeDefinitionAndMembers = false }
     |> prepend newline
     |> should
         equal
@@ -1055,7 +1057,7 @@ module AsyncOptionCEExtensions =
         member inline Source : string -> string
 
 """
-        config
+        { config with NewlineBetweenTypeDefinitionAndMembers = false }
     |> prepend newline
     |> should
         equal

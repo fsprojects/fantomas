@@ -59,7 +59,7 @@ type Type
             | TyLam (t1, t2) -> sprintf "(%s -> %s)" (t1.ToString()) (t2.ToString())
             | TyVar a -> a
             | TyCon (s, ts) -> s"""
-        config
+        { config with NewlineBetweenTypeDefinitionAndMembers = false }
     |> prepend newline
     |> should
         equal
@@ -89,7 +89,7 @@ type Type
             | TyLam (t1, t2) -> sprintf "(%s -> %s)" (t1.ToString()) (t2.ToString())
             | TyVar a -> a
             | TyCon (s, ts) -> s"""
-        { config with NewlineBetweenTypeDefinitionAndMembers = true }
+        config
     |> prepend newline
     |> should
         equal
@@ -252,7 +252,9 @@ type CustomerId =
     member this.Test() =
         printfn "%A" this
     """
-        { config with MaxFunctionBindingWidth = 120 }
+        { config with
+            MaxFunctionBindingWidth = 120
+            NewlineBetweenTypeDefinitionAndMembers = false }
     |> prepend newline
     |> should
         equal
@@ -684,7 +686,9 @@ type CardValue =
             yield King
         ]
 """
-        { config with MultilineBlockBracketsOnSameColumn = true }
+        { config with
+            MultilineBlockBracketsOnSameColumn = true
+            NewlineBetweenTypeDefinitionAndMembers = false }
     |> prepend newline
     |> should
         equal

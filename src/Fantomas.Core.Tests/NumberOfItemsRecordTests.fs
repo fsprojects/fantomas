@@ -462,7 +462,9 @@ type Range =
       To: float }
     member this.Length = this.To - this.From
 """
-        { config with MaxValueBindingWidth = 120 }
+        { config with
+            MaxValueBindingWidth = 120
+            NewlineBetweenTypeDefinitionAndMembers = false }
     |> prepend newline
     |> should
         equal
@@ -483,7 +485,7 @@ type MyRecord =
     }
     interface IMyInterface
 """
-        config
+        { config with NewlineBetweenTypeDefinitionAndMembers = false }
     |> prepend newline
     |> should
         equal
@@ -579,7 +581,7 @@ type MyRecord =
       Number: int }
     member Score : unit -> int
 """
-        config
+        { config with NewlineBetweenTypeDefinitionAndMembers = false }
     |> prepend newline
     |> should
         equal

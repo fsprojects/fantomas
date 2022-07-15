@@ -434,7 +434,7 @@ let z =
         |> Array.countBy id
     bar
 """
-        config
+        { config with MaxInfixOperatorExpression = 40 }
     |> prepend newline
     |> should
         equal
@@ -1035,7 +1035,7 @@ let ``let bang + do expression + let + return in ce`` () =
         return Ok(user.Identity.Name, collectClaims user)
     }
 """
-        config
+        { config with MaxDotGetExpressionWidth = 50 }
     |> prepend newline
     |> should
         equal
@@ -1587,7 +1587,8 @@ let ``new line between let and let bang, 879`` () =
             SpaceBeforeUppercaseInvocation = true
             IndentSize = 2
             SpaceAroundDelimiter = false
-            MultilineBlockBracketsOnSameColumn = true }
+            MultilineBlockBracketsOnSameColumn = true
+            MaxInfixOperatorExpression = 50 }
     |> prepend newline
     |> should
         equal
@@ -1785,7 +1786,7 @@ let f () =
     return some rather long |> stuff that |> uses piping |> to' demonstrate |> the issue
   }
 """
-        config
+        { config with MaxInfixOperatorExpression = 50 }
     |> prepend newline
     |> should
         equal
@@ -1814,7 +1815,7 @@ let f () =
     return! some rather long |> stuff that |> uses piping |> to' demonstrate |> the issue
   }
 """
-        config
+        { config with MaxInfixOperatorExpression = 50 }
     |> prepend newline
     |> should
         equal
@@ -2174,7 +2175,9 @@ type ProjectController(checker: FSharpChecker) =
     }
 
 """
-        { config with IndentSize = 2 }
+        { config with
+            IndentSize = 2
+            MaxInfixOperatorExpression = 50 }
     |> prepend newline
     |> should
         equal
@@ -2212,7 +2215,9 @@ type ProjectController(checker: FSharpChecker) =
     }
 
 """
-        { config with IndentSize = 2 }
+        { config with
+            IndentSize = 2
+            MaxInfixOperatorExpression = 50 }
     |> prepend newline
     |> should
         equal
@@ -2351,7 +2356,9 @@ aggregateResult {
           More = more }
 }
 """
-        config
+        { config with
+            MaxInfixOperatorExpression = 40
+            MaxDotGetExpressionWidth = 50 }
     |> prepend newline
     |> should
         equal

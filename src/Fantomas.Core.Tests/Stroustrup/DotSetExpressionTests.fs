@@ -7,7 +7,8 @@ open Fantomas.Core.Tests.TestHelper
 let config =
     { config with
         MultilineBlockBracketsOnSameColumn = true
-        ExperimentalStroustrupStyle = true }
+        ExperimentalStroustrupStyle = true
+        MaxArrayOrListWidth = 40 }
 
 [<Test>]
 let ``dotSet with record instance `` () =

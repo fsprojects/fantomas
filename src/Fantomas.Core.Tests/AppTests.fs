@@ -15,7 +15,9 @@ let a =
     |> List.exists (fun p ->
         p.a && p.b |> List.exists (fun o -> o.a = "lorem ipsum dolor sit amet"))
     """
-        { config with MaxLineLength = 80 }
+        { config with
+            MaxLineLength = 80
+            MaxInfixOperatorExpression = 40 }
     |> prepend newline
     |> should
         equal

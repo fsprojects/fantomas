@@ -120,19 +120,19 @@ fsharp_space_before_semicolon=false
 fsharp_space_after_semicolon=true
 fsharp_space_around_delimiter=true
 fsharp_max_if_then_short_width=0
-fsharp_max_if_then_else_short_width=40
-fsharp_max_infix_operator_expression=50
+fsharp_max_if_then_else_short_width=60
+fsharp_max_infix_operator_expression=80
 fsharp_max_record_width=40
 fsharp_max_record_number_of_items=1
 fsharp_record_multiline_formatter=character_width
-fsharp_max_array_or_list_width=40
+fsharp_max_array_or_list_width=80
 fsharp_max_array_or_list_number_of_items=1
 fsharp_array_or_list_multiline_formatter=character_width
 fsharp_max_value_binding_width=80
 fsharp_max_function_binding_width=40
-fsharp_max_dot_get_expression_width=50
+fsharp_max_dot_get_expression_width=80
 fsharp_multiline_block_brackets_on_same_column=false
-fsharp_newline_between_type_definition_and_members=false
+fsharp_newline_between_type_definition_and_members=true
 fsharp_align_function_signature_to_indentation=false
 fsharp_alternative_long_member_definitions=false
 fsharp_multi_line_lambda_closing_newline=false
@@ -470,7 +470,7 @@ There is stated:
 > e1 and e2 are not if/then/else expressions themselves.
 
 This setting facilitates this by determining the maximum character width where the if/then/else expression stays in one line.
-Default = 40.
+Default = 60.
 
 `defaultConfig`
 
@@ -490,7 +490,7 @@ else
 ### fsharp_max_infix_operator_expression
 
 Control the maximum length for which infix expression can be on one line.
-Default = 50.
+Default = 80.
 
 `defaultConfig`
 
@@ -630,8 +630,8 @@ let myRecord'' =
 
 ### fsharp_max_array_or_list_width
 
-Control the maximum width for which lists and arrays can be in one line. Default
-= 40. Requires `fsharp_array_or_list_multiline_formatter` to be
+Control the maximum width for which lists and arrays can be in one line. 
+Default = 80. Requires `fsharp_array_or_list_multiline_formatter` to be
 `character_width` to take effect.
 
 `defaultConfig`
@@ -754,7 +754,7 @@ type Triangle() =
 ### fsharp_max_dot_get_expression_width
 
 Control the maximum width for which (nested) [SynExpr.DotGet](https://fsharp.github.io/fsharp-compiler-docs/reference/fsharp-compiler-syntax-synexpr.html#DotGet) expressions should be in one line.
-Default = 50.
+Default = 80.
 
 `defaultConfig`
 
@@ -762,6 +762,7 @@ Default = 50.
 let job =
     JobBuilder
         .UsingJobData(jobDataMap)
+        .UseSomethingElse()
         .Create<WrapperJob>()
         .Build()
 ```
@@ -770,7 +771,7 @@ let job =
 
 ```fsharp
 let job =
-    JobBuilder.UsingJobData(jobDataMap).Create<WrapperJob>().Build()
+    JobBuilder.UsingJobData(jobDataMap).UseSomethingElse().Create<WrapperJob>().Build()
 ```
 
 ### fsharp_multiline_block_brackets_on_same_column
@@ -827,7 +828,7 @@ let a =
 ### fsharp_newline_between_type_definition_and_members
 
 Adds a new line between a type definition and its first member.
-Default = false.
+Default = true.
 
 `defaultConfig`
 
@@ -835,16 +836,16 @@ Default = false.
 type Range =
     { From: float
       To: float }
+
     member this.Length = this.To - this.From
 ```
 
-`{ defaultConfig with NewlineBetweenTypeDefinitionAndMembers = true }`
+`{ defaultConfig with NewlineBetweenTypeDefinitionAndMembers = false }`
 
 ```fsharp
 type Range =
     { From: float
       To: float }
-
     member this.Length = this.To - this.From
 ```
 

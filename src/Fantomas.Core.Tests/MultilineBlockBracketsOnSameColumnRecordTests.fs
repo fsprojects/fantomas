@@ -9,8 +9,7 @@ let config =
     { config with
         MultilineBlockBracketsOnSameColumn = true
         SpaceBeforeColon = true
-        SpaceBeforeSemicolon = true
-        NewlineBetweenTypeDefinitionAndMembers = true }
+        SpaceBeforeSemicolon = true }
 
 [<Test>]
 let ``single member record stays on one line`` () =
@@ -1207,7 +1206,8 @@ let x = {| Foo.Create ([ bar.Create(Thing.Stuff, Thing.Stuff) ]) with Age = 41 |
 """
         { config with
             ArrayOrListMultilineFormatter = MultilineFormatterType.CharacterWidth
-            SpaceBeforeUppercaseInvocation = true }
+            SpaceBeforeUppercaseInvocation = true
+            MaxArrayOrListWidth = 40 }
     |> prepend newline
     |> should
         equal

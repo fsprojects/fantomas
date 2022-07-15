@@ -1846,7 +1846,7 @@ let run () =
 
 run() // Prints the same thing twice
 """
-        config
+        { config with NewlineBetweenTypeDefinitionAndMembers = false }
     |> prepend newline
     |> should
         equal

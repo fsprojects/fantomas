@@ -10,7 +10,8 @@ let config =
     { config with
         MultilineBlockBracketsOnSameColumn = true
         ExperimentalKeepIndentInBranch = true
-        ExperimentalStroustrupStyle = true }
+        ExperimentalStroustrupStyle = true
+        MaxArrayOrListWidth = 40 }
 
 // There currently is no conflict with this setting, but I'm guessing the case was never brought up.
 // I would conclude that will never clash.

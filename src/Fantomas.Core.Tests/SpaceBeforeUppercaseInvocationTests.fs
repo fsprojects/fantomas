@@ -53,7 +53,7 @@ let ``spaceBeforeUppercaseInvocation should not have impact when member is calle
         """
 let x = DateTimeOffset(2017,6,1,10,3,14,TimeSpan(1,30,0)).LocalDateTime
 """
-        spaceBeforeConfig
+        { spaceBeforeConfig with MaxDotGetExpressionWidth = 50 }
     |> prepend newline
     |> should
         equal

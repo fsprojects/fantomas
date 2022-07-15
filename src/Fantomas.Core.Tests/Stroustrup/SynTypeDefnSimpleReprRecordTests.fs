@@ -69,7 +69,7 @@ type V =
       Z: ALongTypeName }
     member this.Coordinate = (this.X, this.Y, this.Z)
 """
-        config
+        { config with NewlineBetweenTypeDefinitionAndMembers = false }
     |> prepend newline
     |> should
         equal

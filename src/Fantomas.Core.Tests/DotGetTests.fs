@@ -11,7 +11,7 @@ let ``a TypeApp inside a DotGet should stay on the same line, 994`` () =
         """
 Microsoft.FSharp.Reflection.FSharpType.GetUnionCases(typeof<option<option<unit>>>.GetGenericTypeDefinition().MakeGenericType(t)).Assembly
 """
-        config
+        { config with MaxDotGetExpressionWidth = 50 }
     |> prepend newline
     |> should
         equal
@@ -36,7 +36,9 @@ let ``a DotGetApp inside a DotGet should stay on the same line, 1051`` () =
 System.Diagnostics.FileVersionInfo.GetVersionInfo(
                System.Reflection.Assembly.GetExecutingAssembly().Location).FileVersion
 """
-        { config with MaxLineLength = 80 }
+        { config with
+            MaxLineLength = 80
+            MaxDotGetExpressionWidth = 50 }
     |> prepend newline
     |> should
         equal
@@ -65,7 +67,9 @@ let ``split chained method call expression, 246`` () =
            + System.Diagnostics.FileVersionInfo.GetVersionInfo(
                System.Reflection.Assembly.GetExecutingAssembly().Location).FileVersion)
 """
-        config
+        { config with
+            MaxDotGetExpressionWidth = 50
+            MaxInfixOperatorExpression = 50 }
     |> prepend newline
     |> should
         equal
@@ -757,7 +761,6 @@ let blah =
             SpaceBeforeColon = true
             SpaceBeforeSemicolon = true
             MultilineBlockBracketsOnSameColumn = true
-            NewlineBetweenTypeDefinitionAndMembers = true
             AlignFunctionSignatureToIndentation = true
             AlternativeLongMemberDefinitions = true
             MultiLineLambdaClosingNewline = true }
@@ -795,7 +798,6 @@ let blah =
             SpaceBeforeColon = true
             SpaceBeforeSemicolon = true
             MultilineBlockBracketsOnSameColumn = true
-            NewlineBetweenTypeDefinitionAndMembers = true
             AlignFunctionSignatureToIndentation = true
             AlternativeLongMemberDefinitions = true
             MultiLineLambdaClosingNewline = true }
@@ -941,7 +943,7 @@ let PublishValueDefn cenv env declKind (vspec: Val) =
 
     ()
 """
-        config
+        { config with MaxDotGetExpressionWidth = 50 }
     |> prepend newline
     |> should
         equal
@@ -1246,7 +1248,7 @@ let ``dotget lambda multiline application`` () =
         """
 m.Property(fun p -> p.Name).IsRequired().HasColumnName("ModelName").HasMaxLength
 """
-        config
+        { config with MaxDotGetExpressionWidth = 50 }
     |> prepend newline
     |> should
         equal
@@ -1327,7 +1329,7 @@ module Program =
         builder.Build().RunAsync() |> ignore
         0
 """
-        config
+        { config with MaxDotGetExpressionWidth = 50 }
     |> prepend newline
     |> should
         equal
@@ -1367,7 +1369,7 @@ let ``dotget inside a quotation, 2154`` () =
         """
 (fun (Singleton arg) -> <@@ ((%%arg: Indicators) :> IIndicators).AsyncGetIndicator(indicatorIdVal) @@>)
 """
-        config
+        { config with MaxDotGetExpressionWidth = 50 }
     |> prepend newline
     |> should
         equal

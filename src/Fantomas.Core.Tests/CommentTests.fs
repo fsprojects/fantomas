@@ -1382,7 +1382,6 @@ open Something
             SpaceBeforeColon = true
             SpaceBeforeSemicolon = true
             MultilineBlockBracketsOnSameColumn = true
-            NewlineBetweenTypeDefinitionAndMembers = true
             AlignFunctionSignatureToIndentation = true
             AlternativeLongMemberDefinitions = true
             MultiLineLambdaClosingNewline = true
@@ -1645,7 +1644,7 @@ Host
 
 //
 """
-        config
+        { config with MaxDotGetExpressionWidth = 40 }
     |> prepend newline
     |> should
         equal

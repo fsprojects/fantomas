@@ -91,7 +91,9 @@ let ``don't add additional new line after SynExpr.LongIndentSet, 1111`` () =
 
                 o.layout <- Some layout)
 """
-        config
+        { config with
+            MaxArrayOrListWidth = 40
+            MaxInfixOperatorExpression = 50 }
     |> prepend newline
     |> should
         equal
@@ -225,7 +227,7 @@ let ``keep new line before SynExpr.DotIndexedSet, 1314`` () =
 
               lintFixes.[uri] <- fs
 """
-        config
+        { config with MaxInfixOperatorExpression = 50 }
     |> prepend newline
     |> should
         equal

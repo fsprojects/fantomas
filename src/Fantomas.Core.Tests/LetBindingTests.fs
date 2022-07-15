@@ -106,7 +106,9 @@ let tomorrow =
     DateTimeOffset(n.Year, n.Month, n.Day, 0, 0, 0, n.Offset)
         .AddDays(1.)
 """
-        { config with MaxValueBindingWidth = 70 }
+        { config with
+            MaxValueBindingWidth = 70
+            MaxDotGetExpressionWidth = 50 }
     |> prepend newline
     |> should
         equal
@@ -864,7 +866,7 @@ let private authenticateRequest (logger: ILogger) header =
         logger.LogError(sprintf "Could not authenticate token %s\n%A" token exn)
         task { return None }
 """
-        config
+        { config with MaxDotGetExpressionWidth = 50 }
     |> prepend newline
     |> should
         equal
@@ -1000,7 +1002,7 @@ let ``don't add newline before array, 1033`` () =
            "--noframework"
            yield! refs |]
 """
-        config
+        { config with MaxArrayOrListWidth = 40 }
     |> prepend newline
     |> should
         equal
@@ -1060,7 +1062,7 @@ let ``don't add additional newline before SynExpr.New, 1049`` () =
         new HttpResponseMessage(HttpStatusCode.OK,
                                 Content = new StringContent(version, System.Text.Encoding.UTF8, "application/text"))
 """
-        config
+        { config with MaxDotGetExpressionWidth = 50 }
     |> prepend newline
     |> should
         equal
@@ -1215,7 +1217,7 @@ let x =
            else
                false
 """
-        config
+        { config with MaxDotGetExpressionWidth = 50 }
     |> prepend newline
     |> should
         equal
@@ -1277,7 +1279,7 @@ let x =
            else
                false
 """
-        config
+        { config with MaxDotGetExpressionWidth = 50 }
     |> prepend newline
     |> should
         equal
@@ -1347,7 +1349,7 @@ let internal sepSpace =
         if (not ctx.WriterInitModel.IsDummy && let s = dump ctx in s = "" || s.EndsWith " " || s.EndsWith Environment.NewLine) then ctx
         else (!- " ") ctx
 """
-        config
+        { config with MaxInfixOperatorExpression = 50 }
     |> prepend newline
     |> should
         equal
@@ -1991,7 +1993,9 @@ let escapeEarth myVelocity mySpeed =
     else
         "Come back"
 """
-        config
+        { config with
+            MaxInfixOperatorExpression = 50
+            MaxIfThenElseShortWidth = 40 }
     |> prepend newline
     |> should
         equal

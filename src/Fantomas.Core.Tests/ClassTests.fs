@@ -479,7 +479,9 @@ type Exception with
     member inline __.FirstLine =
         __.Message.Split([|Environment.NewLine|], StringSplitOptions.RemoveEmptyEntries).[0]
 """
-        { config with MaxValueBindingWidth = 120 }
+        { config with
+            MaxValueBindingWidth = 120
+            NewlineBetweenTypeDefinitionAndMembers = false }
     |> should
         equal
         """open System
@@ -711,7 +713,7 @@ indent_size=2
   9
 \"\"\"
 "
-        config
+        { config with MaxInfixOperatorExpression = 40 }
     |> prepend newline
     |> should
         equal
@@ -974,7 +976,7 @@ type C() =
   with
     member _.Run() = 1
 """
-        config
+        { config with NewlineBetweenTypeDefinitionAndMembers = false }
     |> prepend newline
     |> should
         equal

@@ -294,7 +294,7 @@ type MyClass() =
 
 type MyClass with
     member this.G() = 200"""
-        config
+        { config with NewlineBetweenTypeDefinitionAndMembers = false }
     |> prepend newline
     |> should
         equal
@@ -315,7 +315,9 @@ let ``optional type extensions`` () =
 type System.Int32 with
     member this.FromString( s : string ) =
        System.Int32.Parse(s)"""
-        { config with MaxFunctionBindingWidth = 120 }
+        { config with
+            MaxFunctionBindingWidth = 120
+            NewlineBetweenTypeDefinitionAndMembers = false }
     |> prepend newline
     |> should
         equal
@@ -801,7 +803,9 @@ type BlobHelper(Account : CloudStorageAccount) =
             configSettingPublisher.Invoke(connectionString) |> ignore)
         BlobHelper(CloudStorageAccount.FromConfigurationSetting(configurationSettingName))
     """
-        config
+        { config with
+            MaxDotGetExpressionWidth = 50
+            MaxInfixOperatorExpression = 40 }
     |> prepend newline
     |> should
         equal
@@ -1128,7 +1132,7 @@ let ``type abbreviation augmentation`` () =
         """type T2 = T2 with
     member __.X = ()
 """
-        config
+        { config with NewlineBetweenTypeDefinitionAndMembers = false }
     |> should
         equal
         """type T2 = T2
@@ -2815,7 +2819,8 @@ and [<CustomEquality ; NoComparison>] Bar<'context, 'a> =
             MultilineBlockBracketsOnSameColumn = true
             AlignFunctionSignatureToIndentation = true
             AlternativeLongMemberDefinitions = true
-            MultiLineLambdaClosingNewline = true }
+            MultiLineLambdaClosingNewline = true
+            NewlineBetweenTypeDefinitionAndMembers = false }
     |> prepend newline
     |> should
         equal

@@ -693,7 +693,7 @@ type FunctionComponent =
 
     static member Foo = ()
 """
-        config
+        { config with MaxDotGetExpressionWidth = 50 }
     |> should
         equal
         """namespace Fable.React
@@ -887,7 +887,7 @@ type FunctionComponent =
 
     static member Foo = ()
 """
-        config
+        { config with MaxDotGetExpressionWidth = 50 }
     |> should
         equal
         """namespace Fable.React
@@ -2274,7 +2274,9 @@ let loader (projectRoot: string) (siteContent: SiteContents) =
 #endif
   disableLiveRefresh
 """
-        config
+        { config with
+            MaxDotGetExpressionWidth = 50
+            MaxInfixOperatorExpression = 50 }
     |> prepend newline
     |> should
         equal
@@ -2330,7 +2332,7 @@ module ReactHookExtensions =
 
             deferred
 """
-        config
+        { config with NewlineBetweenTypeDefinitionAndMembers = false }
     |> prepend newline
     |> should
         equal
@@ -2684,7 +2686,7 @@ let isUnix =
     int Environment.OSVersion.Platform |> fun p -> (p = 4) || (p = 6) || (p = 128)
 #endif
 """
-        config
+        { config with MaxInfixOperatorExpression = 40 }
     |> prepend newline
     |> should
         equal
@@ -2879,7 +2881,7 @@ let Run(message: string, executionContext: ExecutionContext, log: TraceWriter) =
 
     message |> Out.Dialout.DialoutFunction.Accept logInfo getSetting
 """
-        config
+        { config with MaxInfixOperatorExpression = 50 }
     |> prepend newline
     |> should
         equal

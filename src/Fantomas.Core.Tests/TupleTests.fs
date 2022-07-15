@@ -250,7 +250,7 @@ let y =
     else sprintf "(%s)" args
     , namesWithIndices
 """
-        config
+        { config with MaxInfixOperatorExpression = 50 }
     |> prepend newline
     |> should
         equal
