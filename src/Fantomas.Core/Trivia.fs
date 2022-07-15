@@ -129,8 +129,7 @@ let internal collectTriviaFromBlankLines
                     | _ -> []
 
                 let finalContinuation (lines: int list list) : int list =
-                    List.collect id (currentLines :: lines)
-                    |> finalContinuation
+                    List.collect id (currentLines :: lines) |> finalContinuation
 
                 Continuation.sequence continuations finalContinuation
 
@@ -221,8 +220,7 @@ let findNodeAfterLineAndColumn (nodes: TriviaNode seq) line column =
         let range = tn.Range
 
         (range.StartLine > line)
-        || (range.StartLine = line
-            && range.StartColumn > column))
+        || (range.StartLine = line && range.StartColumn > column))
 
 /// The trivia is not a part of the tree
 /// Either assign it on top of below the root node

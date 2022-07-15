@@ -7,20 +7,17 @@ module RangeHelpers =
 
     /// Checks if Range B is fully contained by Range A
     let rangeContainsRange (a: Range) (b: Range) =
-        Position.posGeq b.Start a.Start
-        && Position.posGeq a.End b.End
+        Position.posGeq b.Start a.Start && Position.posGeq a.End b.End
 
     // check if b is after a
     let ``range after`` (a: Range) (b: Range) =
         (a.StartLine, a.StartColumn) < (b.StartLine, b.StartColumn)
 
     let rangeStartEq (r1: Range) (r2: Range) =
-        r1.StartLine = r2.StartLine
-        && r1.StartColumn = r2.StartColumn
+        r1.StartLine = r2.StartLine && r1.StartColumn = r2.StartColumn
 
     let rangeEndEq (r1: Range) (r2: Range) =
-        r1.EndLine = r2.EndLine
-        && r1.EndColumn = r2.EndColumn
+        r1.EndLine = r2.EndLine && r1.EndColumn = r2.EndColumn
 
     let rangeEq = Range.equals
 
@@ -61,9 +58,7 @@ module RangeHelpers =
             | [ _ ] -> 0
             | lines -> lines.Length * maxLineLength
 
-        (maxLineLength - range.StartColumn)
-        + linesInBetween
-        + range.EndColumn
+        (maxLineLength - range.StartColumn) + linesInBetween + range.EndColumn
 
 module RangePatterns =
     let (|StartEndRange|) (size: int) (range: range) =

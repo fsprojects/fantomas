@@ -30,6 +30,7 @@ type EndOfLineStyle =
     | LF
     | CR
     | CRLF
+
     member x.NewLineString =
         match x with
         | LF -> "\n"

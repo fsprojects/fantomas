@@ -28,11 +28,9 @@ module private DefineCombinationSolver =
         | IfDirectiveExpression.Ident i1, IfDirectiveExpression.Ident i2 -> i1 = i2
         | IfDirectiveExpression.Not n1, IfDirectiveExpression.Not n2 -> expressionsAreEquals n1 n2
         | IfDirectiveExpression.And (a1, a2), IfDirectiveExpression.And (b1, b2) ->
-            expressionsAreEquals a1 b1
-            && expressionsAreEquals a2 b2
+            expressionsAreEquals a1 b1 && expressionsAreEquals a2 b2
         | IfDirectiveExpression.Or (a1, a2), IfDirectiveExpression.Or (b1, b2) ->
-            expressionsAreEquals a1 b1
-            && expressionsAreEquals a2 b2
+            expressionsAreEquals a1 b1 && expressionsAreEquals a2 b2
         | _ -> false
 
     let normalizeCNF expr =
@@ -43,11 +41,7 @@ module private DefineCombinationSolver =
             expr
             |> Seq.unfold (fun e ->
                 let e' = oneStep e
-
-                if expressionsAreEquals e e' then
-                    None
-                else
-                    Some(e', e'))
+                if expressionsAreEquals e e' then None else Some(e', e'))
             |> Seq.tryLast
             |> Option.defaultValue expr
 
@@ -71,8 +65,7 @@ module private DefineCombinationSolver =
                 Some(IfDirectiveExpression.And(IfDirectiveExpression.Or(e1, e2), IfDirectiveExpression.Or(e1, e3)))
             | _ -> None
 
-        expr
-        |> mapUntilNotChanged [ doubleNegative; deMorgan; expandOr ]
+        expr |> mapUntilNotChanged [ doubleNegative; deMorgan; expandOr ]
 
     type Literal =
         | Positive of string
@@ -104,9 +97,7 @@ module private DefineCombinationSolver =
                 | _ -> failwithf "Expr not in CNF: %A" e)
             |> set
 
-        e
-        |> toAndList
-        |> List.map (toOrList >> splitByNeg)
+        e |> toAndList |> List.map (toOrList >> splitByNeg)
 
     let eval cnf vals =
         let vals = set vals
@@ -128,19 +119,13 @@ module private DefineCombinationSolver =
             |> Seq.toList
 
         let enforcedLit =
-            cnf
-            |> List.filter (fun t -> Set.count t = 1)
-            |> List.collect Set.toList
+            cnf |> List.filter (fun t -> Set.count t = 1) |> List.collect Set.toList
 
-        if
-            groupedLiterals enforcedLit
-            |> Seq.exists (fun (_, g) -> List.length g > 1)
-        then
+        if groupedLiterals enforcedLit |> Seq.exists (fun (_, g) -> List.length g > 1) then
             Unsatisfiable
         else
             let singletons, toSolve =
-                groupedLiterals allLiterals
-                |> List.partition (fun (_, g) -> List.length g = 1)
+                groupedLiterals allLiterals |> List.partition (fun (_, g) -> List.length g = 1)
 
             let singletonsLit = singletons |> List.collect snd
             let solvedSet = set (enforcedLit @ singletonsLit)
@@ -148,19 +133,13 @@ module private DefineCombinationSolver =
             let toSolve =
                 toSolve
                 |> List.filter (fun (k, _) ->
-                    not (
-                        Set.contains (Positive k) solvedSet
-                        || Set.contains (Negative k) solvedSet
-                    ))
+                    not (Set.contains (Positive k) solvedSet || Set.contains (Negative k) solvedSet))
 
             let rec genCombinations groups =
                 seq {
                     match groups with
                     | [] -> yield []
-                    | g :: gs ->
-                        yield!
-                            genCombinations gs
-                            |> Seq.collect (fun l -> g |> Seq.map (fun x -> x :: l))
+                    | g :: gs -> yield! genCombinations gs |> Seq.collect (fun l -> g |> Seq.map (fun x -> x :: l))
                 }
 
             let solve vals groups =
@@ -203,9 +182,7 @@ module private DefineCombinationSolver =
 
         let allPairs xs =
             xs
-            |> Seq.mapi (fun i x ->
-                xs
-                |> Seq.mapi (fun j y -> if i < j then Some(x, y) else None))
+            |> Seq.mapi (fun i x -> xs |> Seq.mapi (fun j y -> if i < j then Some(x, y) else None))
             |> Seq.collect id
             |> Seq.choose id
 
@@ -218,8 +195,7 @@ module private DefineCombinationSolver =
                 exprsIndexed
                 |> allPairs
                 |> Seq.tryPick (fun ((i, (x, _)), (j, (y, _))) ->
-                    pairSolve x y
-                    |> Option.map (fun r -> (i, x), (j, y), r))
+                    pairSolve x y |> Option.map (fun r -> (i, x), (j, y), r))
             with
             | None -> exprs
             | Some ((i, x), (j, y), r) ->
@@ -233,10 +209,7 @@ module private DefineCombinationSolver =
 
         let r =
             f exprs
-            |> List.choose (fun (e, r) ->
-                r
-                |> Option.orElseWith (fun () -> solve e)
-                |> Option.map (fun x -> e, x))
+            |> List.choose (fun (e, r) -> r |> Option.orElseWith (fun () -> solve e) |> Option.map (fun x -> e, x))
 
         r
 
@@ -260,17 +233,13 @@ let getDefineExprs (hashDirectives: ConditionalDirectiveTrivia list) =
         (([], []), hashDirectives)
         ||> List.fold (fun (contextExprs, exprAcc) hashLine ->
             let contextExpr e =
-                e :: contextExprs
-                |> List.reduce (fun x y -> IfDirectiveExpression.And(x, y))
+                e :: contextExprs |> List.reduce (fun x y -> IfDirectiveExpression.And(x, y))
 
             match hashLine with
             | ConditionalDirectiveTrivia.If (expr, _) -> expr :: contextExprs, contextExpr expr :: exprAcc
             | ConditionalDirectiveTrivia.Else _ ->
                 contextExprs,
-                IfDirectiveExpression.Not(
-                    contextExprs
-                    |> List.reduce (fun x y -> IfDirectiveExpression.And(x, y))
-                )
+                IfDirectiveExpression.Not(contextExprs |> List.reduce (fun x y -> IfDirectiveExpression.And(x, y)))
                 :: exprAcc
             | ConditionalDirectiveTrivia.EndIf _ -> List.tail contextExprs, exprAcc)
         |> snd
@@ -282,10 +251,7 @@ let getOptimizedDefinesSets (hashDirectives: ConditionalDirectiveTrivia list) =
     let maxSteps = FormatConfig.satSolveMaxStepsMaxSteps
     let defineExprs = getDefineExprs hashDirectives
 
-    match
-        DefineCombinationSolver.mergeBoolExprs maxSteps defineExprs
-        |> List.map snd
-    with
+    match DefineCombinationSolver.mergeBoolExprs maxSteps defineExprs |> List.map snd with
     | [] -> [ [] ]
     | xs -> xs
 

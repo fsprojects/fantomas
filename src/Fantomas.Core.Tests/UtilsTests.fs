@@ -153,10 +153,7 @@ let ``when predicate returns true until certain index`` () =
 
         let beforeLength = List.length before
         let afterLength = List.length after
-
-        beforeLength = i
-        && afterLength = List.length xs - i
-        && before @ after = xs
+        beforeLength = i && afterLength = List.length xs - i && before @ after = xs
 
     let gen =
         gen {
@@ -167,6 +164,4 @@ let ``when predicate returns true until certain index`` () =
             return (xs, n)
         }
 
-    property
-    |> Prop.forAll (Arb.fromGen gen)
-    |> Check.QuickThrowOnFailure
+    property |> Prop.forAll (Arb.fromGen gen) |> Check.QuickThrowOnFailure

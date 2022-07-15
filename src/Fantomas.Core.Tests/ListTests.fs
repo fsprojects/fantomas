@@ -2298,9 +2298,7 @@ let foo (x: double[]) (y: object[][]) : string[,] = x :> int[]
 let foo<'T> (x: 'T[]) = x
 """
 
-    formatSourceString false before config
-    |> prepend newline
-    |> should equal before
+    formatSourceString false before config |> prepend newline |> should equal before
 
 let ``remove space between array type and square brackets, 2192`` () =
     formatSourceString

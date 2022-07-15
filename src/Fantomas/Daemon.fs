@@ -115,9 +115,7 @@ type FantomasDaemon(sender: Stream, reader: Stream) as this =
             |> Array.toList
             |> List.choose (fun (recordField, defaultValue) ->
                 let optionalField key value =
-                    value
-                    |> Option.toList
-                    |> List.map (fun v -> key, Encode.string v)
+                    value |> Option.toList |> List.map (fun v -> key, Encode.string v)
 
                 let meta =
                     List.concat
@@ -157,8 +155,7 @@ type FantomasDaemon(sender: Stream, reader: Stream) as this =
                         )
                     | _ -> None
 
-                type'
-                |> Option.map (fun t -> toEditorConfigName recordField.PropertyName, t))
+                type' |> Option.map (fun t -> toEditorConfigName recordField.PropertyName, t))
             |> Encode.object
 
         let enumOptions =
@@ -171,12 +168,8 @@ type FantomasDaemon(sender: Stream, reader: Stream) as this =
                          |> Encode.string) ]
                   "endOfLineStyle",
                   Encode.list
-                      [ (EndOfLineStyle.ToConfigString EndOfLineStyle.LF
-                         |> Encode.string)
-                        (EndOfLineStyle.ToConfigString EndOfLineStyle.CRLF
-                         |> Encode.string) ] ]
+                      [ (EndOfLineStyle.ToConfigString EndOfLineStyle.LF |> Encode.string)
+                        (EndOfLineStyle.ToConfigString EndOfLineStyle.CRLF |> Encode.string) ] ]
 
-        Encode.object
-            [ "settings", settings
-              "enumOptions", enumOptions ]
+        Encode.object [ "settings", settings; "enumOptions", enumOptions ]
         |> Encode.toString 4

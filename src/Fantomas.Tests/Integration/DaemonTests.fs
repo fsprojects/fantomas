@@ -32,21 +32,15 @@ let private runWithDaemon (fn: JsonRpc -> Async<unit>) =
 let ``version request`` () =
     runWithDaemon (fun client ->
         async {
-            let! version =
-                client.InvokeAsync<string>(Methods.Version)
-                |> Async.AwaitTask
-
-            version
-            |> should equal (CodeFormatter.GetVersion())
+            let! version = client.InvokeAsync<string>(Methods.Version) |> Async.AwaitTask
+            version |> should equal (CodeFormatter.GetVersion())
         })
 
 [<Test>]
 let ``config request`` () =
     runWithDaemon (fun client ->
         async {
-            let! config =
-                client.InvokeAsync<string>(Methods.Configuration)
-                |> Async.AwaitTask
+            let! config = client.InvokeAsync<string>(Methods.Configuration) |> Async.AwaitTask
 
             FormatConfig.FormatConfig.Default
             |> Fantomas.EditorConfig.configToEditorConfig

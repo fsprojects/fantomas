@@ -7,13 +7,7 @@ open Argu
 open System.Text
 open Fantomas.Format
 
-let extensions =
-    set
-        [| ".fs"
-           ".fsx"
-           ".fsi"
-           ".ml"
-           ".mli" |]
+let extensions = set [| ".fs"; ".fsx"; ".fsi"; ".ml"; ".mli" |]
 
 type Arguments =
     | [<Unique; AltCommandLine("-r")>] Recurse
@@ -24,6 +18,7 @@ type Arguments =
     | [<Unique>] Daemon
     | [<Unique; AltCommandLine("-v")>] Version
     | [<MainCommand>] Input of string list
+
     interface IArgParserTemplate with
         member s.Usage =
             match s with
@@ -39,8 +34,7 @@ type Arguments =
             | Input _ ->
                 sprintf
                     "Input paths: can be multiple folders or files with %s extension."
-                    (Seq.map (fun s -> "*" + s) extensions
-                     |> String.concat ",")
+                    (Seq.map (fun s -> "*" + s) extensions |> String.concat ",")
 
 let time f =
     let sw = Diagnostics.Stopwatch.StartNew()
@@ -62,11 +56,7 @@ type OutputPath =
     | NotKnown
 
 let isInExcludedDir (fullPath: string) =
-    set
-        [| "obj"
-           ".fable"
-           "fable_modules"
-           "node_modules" |]
+    set [| "obj"; ".fable"; "fable_modules"; "node_modules" |]
     |> Set.map (fun dir -> sprintf "%c%s%c" Path.DirectorySeparatorChar dir Path.DirectorySeparatorChar)
     |> Set.exists fullPath.Contains
 
@@ -202,16 +192,8 @@ let runCheckCommand (recurse: bool) (inputPath: InputPath) : int =
     | InputPath.File f when (IgnoreFile.isIgnoredFile (IgnoreFile.current.Force()) f) ->
         printfn "'%s' was ignored" f
         0
-    | InputPath.File path ->
-        path
-        |> Seq.singleton
-        |> check
-        |> processCheckResult
-    | InputPath.Folder path ->
-        path
-        |> allFiles recurse
-        |> check
-        |> processCheckResult
+    | InputPath.File path -> path |> Seq.singleton |> check |> processCheckResult
+    | InputPath.Folder path -> path |> allFiles recurse |> check |> processCheckResult
     | InputPath.Multiple (files, folders) ->
         let allFilesToCheck =
             seq {
@@ -294,9 +276,7 @@ let main argv =
                     new StreamWriter(outFile)
 
             if profile then
-                File.ReadLines(inFile)
-                |> Seq.length
-                |> printfn "Line count: %i"
+                File.ReadLines(inFile) |> Seq.length |> printfn "Line count: %i"
 
                 time (fun () -> processSourceFile force inFile buffer)
             else
@@ -310,10 +290,7 @@ let main argv =
     let stringToFile (force: bool) (s: string) (outFile: string) config =
         try
             if profile then
-                printfn
-                    "Line count: %i"
-                    (s.Length
-                     - s.Replace(Environment.NewLine, "").Length)
+                printfn "Line count: %i" (s.Length - s.Replace(Environment.NewLine, "").Length)
 
                 time (fun () -> processSourceString force s outFile config)
             else
@@ -355,8 +332,7 @@ let main argv =
             else
                 processFile force file file)
 
-        folders
-        |> List.iter (fun folder -> processFolder force folder folder)
+        folders |> List.iter (fun folder -> processFolder force folder folder)
 
     let check = results.Contains <@ Arguments.Check @>
     let isDaemon = results.Contains <@ Arguments.Daemon @>

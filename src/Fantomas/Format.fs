@@ -56,8 +56,7 @@ let private formatContentInternalAsync
                         let stripNewlines (s: string) =
                             System.Text.RegularExpressions.Regex.Replace(s, @"\n|\r", String.Empty)
 
-                        (stripNewlines originalContent)
-                        <> (stripNewlines formattedContent)
+                        (stripNewlines originalContent) <> (stripNewlines formattedContent)
                     else
                         originalContent <> formattedContent
 
@@ -97,12 +96,10 @@ let formatFileAsync = formatFileInternalAsync false
 type CheckResult =
     { Errors: (string * exn) list
       Formatted: string list }
+
     member this.HasErrors = List.isNotEmpty this.Errors
     member this.NeedsFormatting = List.isNotEmpty this.Formatted
-
-    member this.IsValid =
-        List.isEmpty this.Errors
-        && List.isEmpty this.Formatted
+    member this.IsValid = List.isEmpty this.Errors && List.isEmpty this.Formatted
 
 /// Runs a check on the given files and reports the result to the given output:
 ///
@@ -116,10 +113,7 @@ let checkCode (filenames: seq<string>) =
     async {
         let! formatted =
             filenames
-            |> Seq.filter (
-                IgnoreFile.isIgnoredFile (IgnoreFile.current.Force())
-                >> not
-            )
+            |> Seq.filter (IgnoreFile.isIgnoredFile (IgnoreFile.current.Force()) >> not)
             |> Seq.map (formatFileInternalAsync true)
             |> Async.Parallel
 
@@ -131,10 +125,7 @@ let checkCode (filenames: seq<string>) =
             | FormatResult.Error (f, _)
             | FormatResult.InvalidCode (f, _) -> Some f
 
-        let changes =
-            formatted
-            |> Seq.choose getChangedFile
-            |> Seq.toList
+        let changes = formatted |> Seq.choose getChangedFile |> Seq.toList
 
         let getErrors =
             function

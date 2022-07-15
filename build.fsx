@@ -40,9 +40,7 @@ let configureBuildCommandFromFakeBuildScripts scriptPrefix argument pathToProjec
           Arguments = [ argument ] }
     else
         { ProcessName = "sh"
-          Arguments =
-            [ sprintf "%s/%s.sh" pathToProject scriptPrefix
-              argument ] }
+          Arguments = [ sprintf "%s/%s.sh" pathToProject scriptPrefix; argument ] }
 
 let configureBuildCommandFromDefaultFakeBuildScripts pathToProject =
     configureBuildCommandFromFakeBuildScripts "build" "Build" pathToProject
@@ -210,9 +208,7 @@ let testExternalProjects externalProjectsToTest =
             let fantomasStartInfo = fantomasExecutableForExternalTests __SOURCE_DIRECTORY__
 
             let arguments =
-                fantomasStartInfo.Arguments
-                @ [ "--recurse"
-                    project.SourceSubDirectory ]
+                fantomasStartInfo.Arguments @ [ "--recurse"; project.SourceSubDirectory ]
 
             let invokeFantomas () =
                 CreateProcess.fromRawCommand fantomasStartInfo.ProcessName arguments
@@ -302,10 +298,7 @@ Target.create "FormatChanged" (fun _ ->
         |> Seq.choose (fun (_, file) ->
             let ext = Path.GetExtension(file)
 
-            if
-                file.StartsWith("src")
-                && (ext = ".fs" || ext = ".fsi")
-            then
+            if file.StartsWith("src") && (ext = ".fs" || ext = ".fsi") then
                 Some(sprintf "\"%s\"" file)
             else
                 None)
@@ -333,8 +326,7 @@ Target.create "EnsureRepoConfig" (fun _ ->
     Fake.Tools.Git.CommandHelper.gitCommand "" "config core.hooksPath .githooks")
 
 Target.create "Docs" (fun _ ->
-    DotNet.exec id "fsi" "./docs/.style/style.fsx"
-    |> ignore
+    DotNet.exec id "fsi" "./docs/.style/style.fsx" |> ignore
 
     DotNet.exec id "fsdocs" "build --clean --properties Configuration=Release"
     |> ignore)

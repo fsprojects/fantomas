@@ -98,11 +98,7 @@ let ``IgnoreFile.find preferentially finds the fantomasignore next to the source
     |> makeFileHierarchy fs
 
     let loadIgnoreList, getLoads = oneShotLoader (fun _ -> failwith "never called")
-
-    let ignoreFile =
-        IgnoreFile.find fs loadIgnoreList source
-        |> Option.get
-
+    let ignoreFile = IgnoreFile.find fs loadIgnoreList source |> Option.get
     ignoreFile.Location.FullName |> shouldEqual target
     getLoads () |> shouldEqual (Set.ofList [ target ])
 
@@ -121,11 +117,7 @@ let ``IgnoreFile.find can find the fantomasignore one layer up from the source f
     |> makeFileHierarchy fs
 
     let loadIgnoreList, getLoads = oneShotLoader (fun _ -> failwith "never called")
-
-    let ignoreFile =
-        IgnoreFile.find fs loadIgnoreList source
-        |> Option.get
-
+    let ignoreFile = IgnoreFile.find fs loadIgnoreList source |> Option.get
     ignoreFile.Location.FullName |> shouldEqual target
     getLoads () |> shouldEqual (Set.ofList [ target ])
 

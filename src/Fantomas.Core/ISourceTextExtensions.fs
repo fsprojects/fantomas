@@ -4,6 +4,7 @@ open System.Text
 open FSharp.Compiler.Text
 
 type ISourceText with
+
     member this.GetContentAt(range: range) : string =
         let startLine = range.StartLine - 1
         let line = this.GetLineString startLine
@@ -20,6 +21,4 @@ type ISourceText with
             |> fun sb ->
                 let lastLine = this.GetLineString(range.EndLine - 1)
 
-                sb
-                    .Append(lastLine.Substring(0, range.EndColumn))
-                    .ToString()
+                sb.Append(lastLine.Substring(0, range.EndColumn)).ToString()

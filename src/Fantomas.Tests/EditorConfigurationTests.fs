@@ -142,10 +142,7 @@ let ``parent config should not be taking into account when child is root`` () =
     use fsharpFile = new FSharpFile(rootFolder, subFolder = subFolder)
 
     let config = EditorConfig.readConfiguration fsharpFile.FSharpFile
-
-    config.MaxRecordWidth
-    == defaultConfig.MaxRecordWidth
-
+    config.MaxRecordWidth == defaultConfig.MaxRecordWidth
     config.IndentSize == 2
 
 [<Test>]
@@ -156,11 +153,8 @@ let ``configuration file should not affect file extension`` () =
         new ConfigurationFile({ defaultConfig with MaxLineLength = 90 }, rootFolder)
 
     use fsharpFile = new FSharpFile(rootFolder, fsharpFileExtension = ".fsx")
-
     let config = EditorConfig.readConfiguration fsharpFile.FSharpFile
-
-    config.MaxLineLength
-    == defaultConfig.MaxLineLength
+    config.MaxLineLength == defaultConfig.MaxLineLength
 
 [<Test>]
 let ``fantomas configuration file`` () =
@@ -227,16 +221,12 @@ tab_width=5
         new ConfigurationFile(defaultConfig, rootDir, content = editorConfig)
 
     use fsharpFile = new FSharpFile(rootDir)
-
     let config = EditorConfig.readConfiguration fsharpFile.FSharpFile
-
     config.IndentSize == 5
 
 [<Test>]
 let ``print default editorconfig settings`` () =
-    FormatConfig.Default
-    |> EditorConfig.configToEditorConfig
-    |> printfn "%s"
+    FormatConfig.Default |> EditorConfig.configToEditorConfig |> printfn "%s"
 
 [<Test>]
 let ``list and array number_of_items parsing tests`` () =
@@ -253,13 +243,9 @@ fsharp_max_array_or_list_number_of_items = 4
         new ConfigurationFile(defaultConfig, rootDir, content = editorConfig)
 
     use fsharpFile = new FSharpFile(rootDir)
-
     let config = EditorConfig.readConfiguration fsharpFile.FSharpFile
-
     config.MaxArrayOrListNumberOfItems == 4
-
-    config.ArrayOrListMultilineFormatter
-    == NumberOfItems
+    config.ArrayOrListMultilineFormatter == NumberOfItems
 
 [<Test>]
 let ``list and array character_width parsing test with single option`` () =
@@ -356,16 +342,12 @@ end_of_line = cr
     use fsharpFile = new FSharpFile(rootDir)
 
     let ex =
-        Assert.Throws(fun () ->
-            EditorConfig.readConfiguration fsharpFile.FSharpFile
-            |> ignore)
+        Assert.Throws(fun () -> EditorConfig.readConfiguration fsharpFile.FSharpFile |> ignore)
 
     ex.Message
     == "Carriage returns are not valid for F# code, please use one of 'lf' or 'crlf'"
 
-let valid_eol_settings =
-    [ EndOfLineStyle.LF
-      EndOfLineStyle.CRLF ]
+let valid_eol_settings = [ EndOfLineStyle.LF; EndOfLineStyle.CRLF ]
 
 [<TestCaseSource("valid_eol_settings")>]
 let can_parse_end_of_line_setting (eol: EndOfLineStyle) =

@@ -66,13 +66,7 @@ Long comment
 *)"""
         |> String.normalizeNewLine
 
-    let expr =
-        sepNone
-        +> sepSpace
-        +> !-comment
-        +> sepSpace
-        +> sepNone
-
+    let expr = sepNone +> sepSpace +> !-comment +> sepSpace +> sepNone
     let result = dump (expr Context.Default)
 
     result
@@ -95,8 +89,7 @@ let ``nested exceedsMultiline expression should bubble up to parent check`` () =
             sepOpenA
             +> expressionFitsOnRestOfLine
                 // short expression, should cross the max page width of 50
-                (!- "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
-                 +> !- "BBBBBBBBBBBBBBBBBBBBBBBBBBBBBB")
+                (!- "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" +> !- "BBBBBBBBBBBBBBBBBBBBBBBBBBBBBB")
                 // fallback expression
                 (sepNln
                  +> !- "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
