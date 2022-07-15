@@ -27,6 +27,7 @@ Some common use cases include:
     <PropertyGroup>
         <FsDocsLicenseLink>https://github.com/fsprojects/fantomas/blob/master/LICENSE.md</FsDocsLicenseLink>
         <FsDocsReleaseNotesLink>https://github.com/fsprojects/fantomas/blob/master/CHANGELOG.md</FsDocsReleaseNotesLink>
+        <FsDocsLogoSource>images/logo-fantomas-color.svg</FsDocsLogoSource>
         <RepositoryUrl>https://github.com/fsprojects/fantomas</RepositoryUrl>
     </PropertyGroup>
 
