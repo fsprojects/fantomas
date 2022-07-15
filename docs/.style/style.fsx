@@ -26,8 +26,6 @@ let outputTemplate =
     </> "../content/"
     </> "fsdocs-custom.css"
 
-let outputsidebar = __SOURCE_DIRECTORY__ </> "../content/" </> "sidebar.css"
-
 let compileSass () =
     try
         let homepage =
@@ -41,9 +39,6 @@ let compileSass () =
 
         File.WriteAllText(outputTemplate, template.CompiledContent)
         printfn "Compiled %s at %A" outputTemplate DateTime.Now
-
-        File.WriteAllText(outputsidebar, sidebar.CompiledContent)
-        printfn "Compiled %s at %A" outputsidebar DateTime.Now
 
     with
     | :? SassCompilerLoadException as sclex ->
