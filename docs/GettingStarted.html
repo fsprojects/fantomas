@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <title>Getting Started
+</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="author" content="Florian Verdonck, Jindřich Ivánek">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Reem+Kufi:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.3/font/bootstrap-icons.css">
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <script type="text/javascript" async
+            src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+    <link rel="shortcut icon" type="image/x-icon" href="/fantomas/images/favicon.ico">
+    <link type="text/css" rel="stylesheet" href="/fantomas/content/fsdocs-custom.css"/>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <script type="text/javascript" src="/fantomas/content/fsdocs-tips.js"></script>
+    <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <!-- BEGIN SEARCH BOX: this adds support for the search box -->
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/JavaScript-autoComplete/1.0.4/auto-complete.css"/>
+    <!-- END SEARCH BOX: this adds support for the search box -->
+    
+</head>
+
+<body>
+<main>
+    <div class="flex-shrink-0 p-3 bg-white" style="width: 280px;">
+        <a href="/" class="d-flex align-items-center pb-3 mb-3 link-dark text-decoration-none border-bottom">
+            <svg class="bi me-2" width="30" height="24">
+                <use xlink:href="#bootstrap"/>
+            </svg>
+            <span class="fs-5 fw-semibold">Fantomas</span>
+        </a>
+        <a href="/fantomas/"><img id="fsdocs-logo" src="/fantomas//images/logo-fantomas-color.svg"/></a>
+        <!-- BEGIN SEARCH BOX: this adds support for the search box -->
+        <div id="header">
+            <div class="searchbox" id="fsdocs-searchbox">
+                <label for="search-by">
+                    <i class="fas fa-search"></i>
+                </label>
+                <input data-search-input="" id="search-by" type="search" placeholder="Search..."/>
+                <span data-search-clear="">
+                        <i class="fas fa-times"></i>
+                    </span>
+            </div>
+        </div>
+        <ul class="list-unstyled ps-0" id="sidebar-generation">
+            <li class="nav-header">
+  Documentation
+</li>             
+<li class="nav-item">
+  <a class="nav-link" href="/fantomas/docs/GettingStarted.html">
+    Getting Started
+
+  </a>
+</li>             
+<li class="nav-item">
+  <a class="nav-link" href="/fantomas/docs/IgnoreFiles.html">
+    Ignore Files
+
+  </a>
+</li>             
+<li class="nav-item">
+  <a class="nav-link" href="/fantomas/docs/FormattingCheck.html">
+    Formatting Check
+
+  </a>
+</li>             
+<li class="nav-item">
+  <a class="nav-link" href="/fantomas/docs/GitHooks.html">
+    Git hooks
+
+  </a>
+</li>             
+<li class="nav-header">
+  End-user documentation
+</li>             
+<li class="nav-item">
+  <a class="nav-link" href="/fantomas/docs/FAKE.html">
+    FAKE build system
+
+  </a>
+</li>             
+<li class="nav-item">
+  <a class="nav-link" href="/fantomas/docs/Rider.html">
+    JetBrains Rider
+
+  </a>
+</li>             
+<li class="nav-item">
+  <a class="nav-link" href="/fantomas/docs/VSCode.html">
+    Visual Studio Code
+
+  </a>
+</li>             
+<li class="nav-item">
+  <a class="nav-link" href="/fantomas/docs/Configuration.html">
+    Configuration
+
+  </a>
+</li>             
+<li class="nav-item">
+  <a class="nav-link" href="/fantomas/docs/StyleGuide.html">
+    Style guide
+
+  </a>
+</li>             
+<li class="nav-item">
+  <a class="nav-link" href="/fantomas/docs/VisualStudio.html">
+    Visual Studio
+
+  </a>
+</li>             
+<li class="nav-item">
+  <a class="nav-link" href="/fantomas/docs/Benchmarks.html">
+    Benchmarks
+
+  </a>
+</li>             
+<li class="nav-item">
+  <a class="nav-link" href="/fantomas/docs/FAQ.html">
+    FAQ
+
+  </a>
+</li>
+            <!-- <li class="nav-header">
+  API Reference
+</li>             
+<li class="nav-item">
+  <a class="nav-link" href="/fantomas/reference/index.html">
+    All Namespaces
+  </a>
+</li> -->
+        </ul>
+    </div>
+    <div class="container">
+        <div class="masthead">
+            <h3 class="muted"><a href="/fantomas/">fantomas</a></h3>
+        </div>
+        <hr/>
+        <div class="container" id="fsdocs-content">
+            
+<h1><a name="Getting-Started" class="anchor" href="#Getting-Started">Getting Started</a></h1>
+<ul>
+<li><a href="#Command-line-tool-API">Command line</a></li>
+<li><a href="FAKE.html">Fake build system</a>: Fantomas can be easily integrated with FAKE build system</li>
+<li><a href="Rider.html">JetBrains Rider</a></li>
+<li><a href="VSCode.html">VSCode</a></li>
+<li><a href="VisualStudio.html">Visual Studio</a></li>
+<li>Try Fantomas <a href="https://fsprojects.github.io/fantomas-tools/#/fantomas/preview">online</a></li>
+</ul>
+<h2><a name="Command-line-tool-API" class="anchor" href="#Command-line-tool-API">Command line tool / API</a></h2>
+<p>TODO: Style blockquotes</br>
+Create a <a href="https://docs.microsoft.com/en-us/dotnet/core/tools/local-tools-how-to-use">.NET tool manifest</a> to install tools locally</p>
+<blockquote>
+<p>dotnet new tool-manifest</p>
+</blockquote>
+<p>Install the command line tool with:</p>
+<blockquote>
+<p>dotnet tool install fantomas</p>
+</blockquote>
+<p>or install the tool globally with</p>
+<blockquote>
+<p>dotnet tool install -g fantomas</p>
+</blockquote>
+<p>For the overview how to use the tool, you can type the command</p>
+<pre class="fssnip highlighted"><code lang="fsharp"><span class="id">dotnet</span> <span class="id">fantomas</span> <span class="pn">--</span><span class="id">help</span>
+</code></pre>
+<pre class="fssnip highlighted"><code lang="fsharp"><span class="id">USAGE</span><span class="pn">:</span> <span class="id">dotnet</span> <span class="id">fantomas</span> <span class="pn">[</span><span class="o">--</span><span class="id">help</span><span class="pn">]</span> <span class="pn">[</span><span class="o">--</span><span class="id">recurse</span><span class="pn">]</span> <span class="pn">[</span><span class="o">--</span><span class="id">force</span><span class="pn">]</span> <span class="pn">[</span><span class="o">--</span><span class="id">profile</span><span class="pn">]</span> <span class="pn">[</span><span class="o">--</span><span class="id">fsi</span> <span class="pn">&lt;</span><span onmouseout="hideTip(event, 'fs1', 1)" onmouseover="showTip(event, 'fs1', 1)" class="id">string</span><span class="pn">&gt;]</span> <span class="pn">[</span><span class="o">--</span><span onmouseout="hideTip(event, 'fs2', 2)" onmouseover="showTip(event, 'fs2', 2)" class="id">stdin</span><span class="pn">]</span> <span class="pn">[</span><span class="o">--</span><span onmouseout="hideTip(event, 'fs3', 3)" onmouseover="showTip(event, 'fs3', 3)" class="id">stdout</span><span class="pn">]</span> <span class="pn">[</span><span class="o">--</span><span class="id">out</span> <span class="pn">&lt;</span><span onmouseout="hideTip(event, 'fs1', 4)" onmouseover="showTip(event, 'fs1', 4)" class="id">string</span><span class="pn">&gt;]</span> <span class="pn">[</span><span class="o">--</span><span class="id">check</span><span class="pn">]</span> <span class="pn">[</span><span class="o">--</span><span class="id">daemon</span><span class="pn">]</span> <span class="pn">[</span><span class="o">--</span><span class="id">version</span><span class="pn">]</span> <span class="pn">[&lt;</span><span onmouseout="hideTip(event, 'fs1', 5)" onmouseover="showTip(event, 'fs1', 5)" class="id">string</span><span class="pn">&gt;</span><span class="pn">]</span>
+
+<span class="id">INPUT</span><span class="pn">:</span>
+
+    <span class="pn">&lt;</span><span onmouseout="hideTip(event, 'fs1', 6)" onmouseover="showTip(event, 'fs1', 6)" class="id">string</span><span class="pn">&gt;</span>           <span class="id">Input</span> <span class="id">paths</span><span class="pn">:</span> <span class="id">can</span> <span class="id">be</span> <span class="id">multiple</span> <span class="id">folders</span> <span class="k">or</span> <span class="id">files</span> <span class="k">with</span> <span class="o">*.</span><span class="id">fs</span><span class="pn">,</span><span class="o">*.</span><span class="id">fsi</span><span class="pn">,</span><span class="o">*.</span><span class="id">fsx</span><span class="pn">,</span><span class="o">*.</span><span class="id">ml</span><span class="pn">,</span><span class="o">*.</span><span class="id">mli</span> <span class="id">extension</span><span class="pn">.</span>
+
+<span class="id">OPTIONS</span><span class="pn">:</span>
+
+    <span class="o">--</span><span class="id">recurse</span><span class="pn">,</span> <span class="o">-</span><span class="id">r</span>         <span class="id">Process</span> <span class="id">the</span> <span class="id">input</span> <span class="id">folder</span> <span class="id">recursively</span><span class="pn">.</span>
+    <span class="o">--</span><span class="id">force</span>               <span class="id">Print</span> <span class="id">the</span> <span class="id">source</span> <span class="id">unchanged</span> <span class="k">if</span> <span class="id">it</span> <span class="id">cannot</span> <span class="id">be</span> <span class="id">parsed</span> <span class="id">correctly</span><span class="pn">.</span>
+    <span class="o">--</span><span class="id">profile</span>             <span class="id">Print</span> <span class="id">performance</span> <span class="id">profiling</span> <span class="id">information</span><span class="pn">.</span>
+    <span class="o">--</span><span class="id">fsi</span> <span class="pn">&lt;</span><span onmouseout="hideTip(event, 'fs1', 7)" onmouseover="showTip(event, 'fs1', 7)" class="id">string</span><span class="pn">&gt;</span>        <span class="id">Read</span> <span class="id">F#</span> <span class="id">source</span> <span class="id">from</span> <span onmouseout="hideTip(event, 'fs2', 8)" onmouseover="showTip(event, 'fs2', 8)" class="id">stdin</span> <span class="k">as</span> <span class="id">F#</span> <span class="id">signatures</span><span class="pn">.</span>
+    <span class="o">--</span><span onmouseout="hideTip(event, 'fs2', 9)" onmouseover="showTip(event, 'fs2', 9)" class="id">stdin</span>               <span class="id">Read</span> <span class="id">F#</span> <span class="id">source</span> <span class="id">from</span> <span class="id">standard</span> <span class="id">input</span><span class="pn">.</span>
+    <span class="o">--</span><span onmouseout="hideTip(event, 'fs3', 10)" onmouseover="showTip(event, 'fs3', 10)" class="id">stdout</span>              <span class="id">Write</span> <span class="id">the</span> <span class="id">formatted</span> <span class="id">source</span> <span class="id">code</span> <span class="k">to</span> <span class="id">standard</span> <span class="id">output</span><span class="pn">.</span>
+    <span class="o">--</span><span class="id">out</span> <span class="pn">&lt;</span><span onmouseout="hideTip(event, 'fs1', 11)" onmouseover="showTip(event, 'fs1', 11)" class="id">string</span><span class="pn">&gt;</span>        <span class="id">Give</span> <span class="id">a</span> <span class="id">valid</span> <span class="id">path</span> <span class="k">for</span> <span class="id">files</span><span class="o">/</span><span class="id">folders</span><span class="pn">.</span> <span class="id">Files</span> <span class="id">should</span> <span class="id">have</span> <span class="pn">.</span><span class="id">fs</span><span class="pn">,</span> <span class="pn">.</span><span class="id">fsx</span><span class="pn">,</span> <span class="pn">.</span><span class="id">fsi</span><span class="pn">,</span> <span class="pn">.</span><span class="id">ml</span> <span class="k">or</span> <span class="pn">.</span><span class="id">mli</span> <span class="id">extension</span> <span class="id">only</span><span class="pn">.</span>
+    <span class="o">--</span><span class="id">check</span>               <span class="id">Don&#39;t</span> <span class="id">format</span> <span class="id">files</span><span class="pn">,</span> <span class="id">just</span> <span class="id">check</span> <span class="k">if</span> <span class="id">they</span> <span class="id">have</span> <span class="id">changed</span><span class="pn">.</span> <span class="id">Exits</span> <span class="k">with</span> <span class="n">0</span> <span class="k">if</span> <span class="id">it&#39;s</span> <span class="id">formatted</span> <span class="id">correctly</span><span class="pn">,</span> <span class="k">with</span> <span class="n">1</span> <span class="k">if</span> <span class="id">some</span> <span class="id">files</span> <span class="id">need</span> <span class="id">formatting</span> <span class="k">and</span> <span class="n">99</span> <span class="k">if</span> <span class="id">there</span> <span class="id">was</span> <span class="id">an</span> <span class="k">internal</span> <span class="id">error</span>
+    <span class="o">--</span><span class="id">daemon</span>              <span class="id">Daemon</span> <span class="id">mode</span><span class="pn">,</span> <span class="id">launches</span> <span class="id">an</span> <span class="id">LSP</span><span class="o">-</span><span class="id">like</span> <span class="id">server</span> <span class="k">to</span> <span class="id">can</span> <span class="id">be</span> <span class="id">used</span> <span class="id">by</span> <span class="id">editor</span> <span class="id">tooling</span><span class="pn">.</span>
+    <span class="o">--</span><span class="id">version</span><span class="pn">,</span> <span class="o">-</span><span class="id">v</span>         <span class="id">Displays</span> <span class="id">the</span> <span class="id">version</span> <span class="k">of</span> <span class="id">Fantomas</span>
+    <span class="o">--</span><span class="id">help</span>                <span class="id">display</span> <span class="id">this</span> <span onmouseout="hideTip(event, 'fs4', 12)" onmouseover="showTip(event, 'fs4', 12)" class="id">list</span> <span class="k">of</span> <span class="id">options</span><span class="pn">.</span>
+</code></pre>
+<p>You have to specify an input path and optionally an output path.
+The output path is prompted by <code>--out</code> e.g.</p>
+<pre class="fssnip highlighted"><code lang="fsharp"><span class="id">dotnet</span> <span class="id">fantomas</span> <span class="pn">.</span><span class="o">./../../../</span><span class="id">tests</span><span class="o">/</span><span class="id">stackexchange</span><span class="o">/</span><span onmouseout="hideTip(event, 'fs5', 13)" onmouseover="showTip(event, 'fs5', 13)" class="id">array</span><span class="pn">.</span><span class="id">fs</span> <span class="o">--</span><span class="id">out</span> <span class="pn">.</span><span class="o">./../../../</span><span class="id">tests</span><span class="o">/</span><span class="id">stackexchange_output</span><span class="o">/</span><span onmouseout="hideTip(event, 'fs5', 14)" onmouseover="showTip(event, 'fs5', 14)" class="id">array</span><span class="pn">.</span><span class="id">fs</span> 
+</code></pre>
+<p>Both paths have to be files or folders at the same time.
+If they are folders, the structure of input folder will be reflected in the output one.
+The tool will explore the input folder recursively if you set <code>--recurse</code> option.
+If you omit the output path, Fantomas will overwrite the input files.</p>
+<h3><a name="Check-mode" class="anchor" href="#Check-mode">Check mode</a></h3>
+<p><em>starting version 3.3</em></p>
+<p>Verify that a single file or folder was formatted correctly.</p>
+<blockquote>
+<p>dotnet fantomas --check Source.fs</p>
+</blockquote>
+<p>This will verify if the file <code>Source.fs</code> still needs formatting.
+If it does, the process will return exit code 99.
+In the case that the file does not require any formatting, exit code 0 is returned.
+Unexpected errors will return exit code 1.</p>
+<p>This scenario is meant to be executed in a continuous integration environment, to enforce that the newly added code was formatted correctly.</p>
+<h3><a name="Multiple-paths" class="anchor" href="#Multiple-paths">Multiple paths</a></h3>
+<p><em>starting version 4.5</em></p>
+<p>Multiple paths can be passed as last argument, these can be both files and folders.<br />
+This cannot be combined with the <code>--out</code> and <code>--stdout</code> flags.<br />
+When combined with the <code>--recurse</code> flag, all passed folders will be processed recursively.</p>
+<p>One interesting use-case of passing down multiple paths is that you can easily control the selection and filtering of paths from the current shell.</p>
+<p>Consider the following PowerShell scripts:</p>
+<table class="pre"><tr><td class="snippet"><pre class="fssnip"><code lang="powershell"># Create an array with paths
+$files =
+     Get-ChildItem src/*.fs -Recurse # Find all *.fs files in src,
+     | Where-Object { $_.FullName -notlike "*obj*" } # ignore files in the `obj` folder
+     | ForEach-Object { $_.FullName } #  and select the full path name.
+
+&amp; "dotnet" "fantomas" $files
+</code></pre></td></tr></table>
+<table class="pre"><tr><td class="snippet"><pre class="fssnip"><code lang="powershell"># Filter all added and modified files in git
+$files = git status --porcelain | Where-Object { $_ -match "^\s?A?M(.*)\.fs(x|i)?$" } | ForEach-Object { $_.TrimStart("AM").TrimStart(" ", "M") }
+&amp; "dotnet" "fantomas" $files
+</code></pre></td></tr></table>
+<p>Or usage with <code>find</code> on unix:</p>
+<p><code>find my-project/ -type f -name "*.fs" -not -path "*obj*" | xargs dotnet fantomas --check</code></p>
+
+            <div class="fsdocs-tip" id="fs1">Multiple items<br />val string: value: &#39;T -&gt; string<br /><em>&lt;summary&gt;Converts the argument to a string using &lt;c&gt;ToString&lt;/c&gt;.&lt;/summary&gt;<br />&lt;remarks&gt;For standard integer and floating point values the and any type that implements &lt;c&gt;IFormattable&lt;/c&gt;&lt;c&gt;ToString&lt;/c&gt; conversion uses &lt;c&gt;CultureInfo.InvariantCulture&lt;/c&gt;. &lt;/remarks&gt;<br />&lt;param name=&quot;value&quot;&gt;The input value.&lt;/param&gt;<br />&lt;returns&gt;The converted string.&lt;/returns&gt;<br />&lt;example id=&quot;string-example&quot;&gt;&lt;code lang=&quot;fsharp&quot;&gt;&lt;/code&gt;&lt;/example&gt;</em><br /><br />--------------------<br />type string = System.String<br /><em>&lt;summary&gt;An abbreviation for the CLI type &lt;see cref=&quot;T:System.String&quot; /&gt;.&lt;/summary&gt;<br />&lt;category&gt;Basic Types&lt;/category&gt;</em></div>
+<div class="fsdocs-tip" id="fs2">val stdin&lt;&#39;T&gt; : System.IO.TextReader<br /><em>&lt;summary&gt;Reads the value of the property &lt;see cref=&quot;P:System.Console.In&quot; /&gt;. &lt;/summary&gt;</em></div>
+<div class="fsdocs-tip" id="fs3">val stdout&lt;&#39;T&gt; : System.IO.TextWriter<br /><em>&lt;summary&gt;Reads the value of the property &lt;see cref=&quot;P:System.Console.Out&quot; /&gt;.&lt;/summary&gt;</em></div>
+<div class="fsdocs-tip" id="fs4">type &#39;T list = List&lt;&#39;T&gt;<br /><em>&lt;summary&gt;The type of immutable singly-linked lists. &lt;/summary&gt;<br />&lt;remarks&gt;See the &lt;see cref=&quot;T:Microsoft.FSharp.Collections.ListModule&quot; /&gt; module for further operations related to lists.
+
+ Use the constructors &lt;c&gt;[]&lt;/c&gt; and &lt;c&gt;::&lt;/c&gt; (infix) to create values of this type, or
+ the notation &lt;c&gt;[1; 2; 3]&lt;/c&gt;. Use the values in the &lt;c&gt;List&lt;/c&gt; module to manipulate 
+ values of this type, or pattern match against the values directly.
+
+  See also &lt;a href=&quot;https://docs.microsoft.com/dotnet/fsharp/language-reference/lists&quot;&gt;F# Language Guide - Lists&lt;/a&gt;.
+ &lt;/remarks&gt;</em></div>
+<div class="fsdocs-tip" id="fs5">type &#39;T array = &#39;T[]<br /><em>&lt;summary&gt;Single dimensional, zero-based arrays, written &lt;c&gt;int[]&lt;/c&gt;, &lt;c&gt;string[]&lt;/c&gt; etc.&lt;/summary&gt;<br />&lt;remarks&gt;Use the values in the &lt;see cref=&quot;T:Microsoft.FSharp.Collections.ArrayModule&quot; /&gt; module to manipulate values 
+ of this type, or the notation &lt;c&gt;arr.[x]&lt;/c&gt; to get/set array
+ values.&lt;/remarks&gt;<br />&lt;category&gt;Basic Types&lt;/category&gt;</em></div>
+
+        </div>
+    </div>
+</main>
+<script type="module" src="/fantomas/content/sidebar-generation.js"></script>
+<!-- BEGIN SEARCH BOX: this adds support for the search box -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/JavaScript-autoComplete/1.0.4/auto-complete.css"/>
+<script type="text/javascript">var fsdocs_search_baseurl = '/fantomas/';</script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/lunr.js/2.3.8/lunr.min.js"></script>
+<script type="text/javascript"
+        src="https://cdnjs.cloudflare.com/ajax/libs/JavaScript-autoComplete/1.0.4/auto-complete.min.js"></script>
+<script type="text/javascript" src="/fantomas/content/fsdocs-search.js"></script>
+<!-- END SEARCH BOX: this adds support for the search box -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM"
+        crossorigin="anonymous"></script>
+</body>
+
+</html>

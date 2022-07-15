@@ -8092,172 +8092,107 @@ progress {
     display: none !important;
   }
 }
-html, body {
-  width: 100%;
-  margin: 0;
+#fsdocs-nav {
+  font-size: 0.95rem;
 }
-
-.bred {
-  border: 1px solid red;
+#fsdocs-nav #fsdocs-logo {
+  width: 90%;
+  margin-top: 40px;
+  border-style: none;
 }
-
-header {
-  height: 100vh;
-  position: relative;
-  padding: 4rem 0;
-}
-header video {
-  filter: blur(0.025rem);
-  opacity: 0.8;
-  position: absolute;
-  object-position: 0% 0%;
-  object-fit: cover;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  z-index: -2;
-}
-header .video-overlay {
-  position: absolute;
-  z-index: -1;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(51, 140, 187, 0.6);
-}
-header nav .navbar-brand {
-  text-transform: uppercase;
-  text-decoration: none;
-  color: #FFF;
-}
-header nav .navbar-brand:active {
-  color: #FFF;
-}
-header nav .navbar-brand img {
-  margin-right: 1rem;
-}
-header nav .nav-item {
-  margin-left: 2rem;
-}
-header nav .nav-item .nav-link {
-  position: relative;
-  text-transform: uppercase;
-}
-header nav .nav-item .nav-link::after {
-  content: "";
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  height: 0.1em;
-  background-color: #FFF;
-  transition: opacity 300ms, transform 300ms;
-  opacity: 0;
-  transform: scale(0);
-  transform-origin: center;
-}
-header nav .nav-item .nav-link:hover::after, header nav .nav-item .nav-link:focus::after {
-  transform: scale(1);
-  opacity: 1;
-}
-header #core-title {
-  color: #FFF;
-  text-align: center;
-  font-size: 4rem;
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-}
-header #cta-buttons {
-  position: absolute;
-  bottom: 9rem;
-  left: 50%;
-  transform: translateX(-50%);
-}
-header #cta-buttons a.btn {
-  font-size: 2rem;
+#fsdocs-nav input {
+  margin-right: 20px;
+  margin-top: 20px;
+  margin-bottom: 20px;
+  width: 93%;
+  -webkit-border-radius: 0;
   border-radius: 0;
-  text-transform: uppercase;
-  margin: 0 1rem;
-  margin-bottom: 1rem;
+}
+#fsdocs-nav li.nav-header {
+  padding-left: 0;
+  color: #222222;
+  text-transform: none;
+  font-size: 16px;
+  margin-top: 9px;
+  font-weight: bold;
+}
+#fsdocs-nav a {
+  padding-left: 0;
+  color: #808080;
 }
 
-.discord {
-  position: fixed;
-  background-color: #338CBB;
-  color: #FFF;
-  padding: 0.5rem 1rem;
-  z-index: 5;
-  right: 2rem;
-  bottom: 2rem;
-}
-.discord strong {
-  display: block;
-  margin-bottom: 0.25rem;
+blockquote {
+  margin: 0 1em 0 0.25em;
+  margin-top: 0px;
+  margin-right: 1em;
+  margin-bottom: 0px;
+  margin-left: 0.25em;
+  padding: 0 0.75em 0 1em;
+  border-left: 1px solid #808080;
+  border-right: 0px solid #808080;
 }
 
-ul {
-  list-style: square;
+#fsdocs-content h1 a, #fsdocs-content .h1 a, #fsdocs-content h2 a, #fsdocs-content .h2 a, #fsdocs-content h3 a, #fsdocs-content .h3 a, #fsdocs-content h4 a, #fsdocs-content .h4 a, #fsdocs-content h5 a, #fsdocs-content .h5 a, #fsdocs-content h6 a, #fsdocs-content .h6 a {
+  color: #222222;
+  text-decoration: none;
+  text-decoration-style: none;
 }
-
-code {
-  background-color: #212529;
-  color: #338CBB;
-  padding: 1.6rem;
-  display: inline-block;
+#fsdocs-content h1:hover, #fsdocs-content .h1:hover, #fsdocs-content h1:focus, #fsdocs-content .h1:focus, #fsdocs-content h2:hover, #fsdocs-content .h2:hover, #fsdocs-content h2:focus, #fsdocs-content .h2:focus, #fsdocs-content h3:hover, #fsdocs-content .h3:hover, #fsdocs-content h3:focus, #fsdocs-content .h3:focus, #fsdocs-content h4:hover, #fsdocs-content .h4:hover, #fsdocs-content h4:focus, #fsdocs-content .h4:focus, #fsdocs-content h5:hover, #fsdocs-content .h5:hover, #fsdocs-content h5:focus, #fsdocs-content .h5:focus, #fsdocs-content h6:hover, #fsdocs-content .h6:hover, #fsdocs-content h6:focus, #fsdocs-content .h6:focus {
+  color: #222222;
+  text-decoration: none;
+  text-decoration-style: none;
+}
+#fsdocs-content h1, #fsdocs-content .h1 {
+  margin: 30px 0px 15px 0px;
+  font-size: 2rem;
+  letter-spacing: 1.78px;
+  line-height: 2.5rem;
+  font-weight: 400;
+}
+#fsdocs-content h2, #fsdocs-content .h2 {
   font-size: 1.6rem;
-  font-weight: 700;
+  margin: 20px 0px 10px 0px;
+  font-weight: 400;
+}
+#fsdocs-content h3, #fsdocs-content .h3 {
+  font-size: 1.2rem;
+  margin: 15px 0px 10px 0px;
+  font-weight: 400;
+}
+#fsdocs-content hr {
+  margin: 0px 0px 20px 0px;
+}
+#fsdocs-content li {
+  font-size: 1rem;
+  line-height: 1.375rem;
+  letter-spacing: 0.01px;
+  font-weight: 500;
+  margin: 0px 0px 15px 0px;
+}
+#fsdocs-content p {
+  font-size: 1rem;
+  line-height: 1.375rem;
+  letter-spacing: 0.01px;
+  font-weight: 500;
+  color: #222222;
+}
+#fsdocs-content a {
+  color: #338CBB;
+}
+.fsdocs-source-link {
+  float: right;
+  text-decoration: none;
+}
+.fsdocs-source-link img {
+  border-style: none;
+  margin-left: 10px;
+  width: auto;
+  height: 1.4em;
 }
 
-.pointer {
-  cursor: pointer;
-}
-
-section {
-  padding: 3rem 0;
-}
-@media (min-width: 992px) {
-  section {
-    padding: 4rem 0;
-  }
-}
-
-#testimonialsCarousel .carousel-item q {
-  min-height: 200px;
-}
-
-#users #tile-container {
-  display: flex;
-  flex-wrap: wrap;
-}
-#users #tile-container .tile {
-  padding: 0.25rem;
-  display: flex;
-  flex-direction: column;
-}
-#users #tile-container .tile img {
-  width: 50px;
-}
-#users #tile-container .tile p {
-  margin: auto;
-}
-@media (min-width: 768px) {
-  #users #tile-container .tile {
-    padding: 0.5rem;
-  }
-  #users #tile-container .tile img {
-    width: 100px;
-  }
-}
-@media (min-width: 992px) {
-  #users #tile-container .tile img {
-    width: 150px;
-  }
-}
-
-#media .tweet {
-  margin-top: -10px;
+#fsdocs-logo {
+  width: 140px;
+  height: 140px;
+  margin: 10px 0px 0px 0px;
+  border-style: none;
 }
