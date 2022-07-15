@@ -14,18 +14,26 @@ open FSharp.Control.Reactive
 
 let sassCompiler = new SassCompiler(new ChakraCoreJsEngineFactory())
 let (</>) a b = Path.Combine(a, b)
-
-let inputFile = __SOURCE_DIRECTORY__ </> "homepage.sass"
+let inputFileHomepage = __SOURCE_DIRECTORY__ </> "homepage.sass"
+let inputFileTemplate = __SOURCE_DIRECTORY__ </> "fsdocs-custom.sass"
 let inputFolder = __SOURCE_DIRECTORY__
-
-let output = __SOURCE_DIRECTORY__ </> ".." </> "homepage.css"
+let outputHomepage = __SOURCE_DIRECTORY__ </> ".." </> "homepage.css"
+let outputTemplate = __SOURCE_DIRECTORY__ </> "../content/" </> "fsdocs-custom.css"
 
 let compileSass () =
     try
-        let result = sassCompiler.CompileFile(inputFile, ?outputPath = Some output)
+        let homepage =
+            sassCompiler.CompileFile(inputFileHomepage, ?outputPath = Some outputHomepage)
 
-        File.WriteAllText(output, result.CompiledContent)
-        printfn "Compiled %s at %A" output DateTime.Now
+        let template =
+            sassCompiler.CompileFile(inputFileTemplate, ?outputPath = Some outputTemplate)
+
+        File.WriteAllText(outputHomepage, homepage.CompiledContent)
+        printfn "Compiled %s at %A" outputHomepage DateTime.Now
+
+        File.WriteAllText(outputTemplate, template.CompiledContent)
+        printfn "Compiled %s at %A" outputTemplate DateTime.Now
+
     with
     | :? SassCompilerLoadException as sclex ->
         printfn
