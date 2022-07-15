@@ -1110,7 +1110,7 @@ let ``maintain indent if when condition is multiline`` () =
 
           getTriviaFromTokensThemSelves allTokens rest info
 """
-        config
+        { config with MaxInfixOperatorExpression = 50 }
     |> prepend newline
     |> should
         equal
@@ -1137,7 +1137,7 @@ let ``multiline application call in match expression, 1352`` () =
 match x (Map.tryFind somelongidentifier a + Option.defaultValue longidentifier) with
 | _ -> ()
 """
-        config
+        { config with MaxInfixOperatorExpression = 50 }
     |> prepend newline
     |> should
         equal
@@ -1166,7 +1166,8 @@ with
 """
         { config with
             MaxLineLength = 100
-            AlternativeLongMemberDefinitions = true }
+            AlternativeLongMemberDefinitions = true
+            NewlineBetweenTypeDefinitionAndMembers = false }
     |> prepend newline
     |> should
         equal
@@ -1197,7 +1198,8 @@ with
         { config with
             MaxLineLength = 100
             SpaceBeforeColon = true
-            AlternativeLongMemberDefinitions = true }
+            AlternativeLongMemberDefinitions = true
+            NewlineBetweenTypeDefinitionAndMembers = false }
     |> prepend newline
     |> should
         equal
@@ -1546,7 +1548,9 @@ match x with
             + itemsText
 |> Some
 """
-        { config with IndentSize = 2 }
+        { config with
+            IndentSize = 2
+            MaxInfixOperatorExpression = 50 }
     |> prepend newline
     |> should
         equal
@@ -1581,7 +1585,7 @@ match x with
                 ""
 |||> Some
 """
-        config
+        { config with MaxInfixOperatorExpression = 50 }
     |> prepend newline
     |> should
         equal
@@ -1718,7 +1722,9 @@ let ``don't add unnecessary parenthesis around SynPat.IsInst, 1660`` () =
                 Seq.forall2 Unchecked.equals this y
         | _ -> false
 """
-        config
+        { config with
+            MaxIfThenElseShortWidth = 40
+            MaxInfixOperatorExpression = 50 }
     |> prepend newline
     |> should
         equal
@@ -1890,7 +1896,7 @@ let ``multiline infix expression in match, 1774`` () =
 match structuralTypes |> List.tryFind (fst >> checkIfFieldTypeSupportsComparison tycon >> not) with
 | _ -> ()
 """
-        config
+        { config with MaxInfixOperatorExpression = 50 }
     |> prepend newline
     |> should
         equal
@@ -1914,7 +1920,9 @@ let ``multiline infix expression in match bang`` () =
 match! structuralTypes |> List.tryFind (fst >> checkIfFieldTypeSupportsComparison tycon >> not) with
 | _ -> ()
 """
-        { config with IndentSize = 2 }
+        { config with
+            IndentSize = 2
+            MaxInfixOperatorExpression = 50 }
     |> prepend newline
     |> should
         equal

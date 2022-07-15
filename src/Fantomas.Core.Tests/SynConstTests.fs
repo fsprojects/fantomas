@@ -628,7 +628,10 @@ a:hover {color: #ecc;}
     let packable = Path.getFullName \"./_Binaries/README.html\"
     xmlform.Save packable
 "
-        config
+        { config with
+            MaxDotGetExpressionWidth = 50
+            MaxInfixOperatorExpression = 50
+            MaxArrayOrListWidth = 40 }
     |> prepend newline
     |> should
         equal

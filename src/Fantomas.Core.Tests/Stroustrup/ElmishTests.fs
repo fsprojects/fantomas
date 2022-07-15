@@ -248,7 +248,7 @@ let ``div with multiline attributes`` () =
         false
         """let d = div [ ClassName "container"; OnClick (fun _ -> printfn "meh")  ] []
 """
-        config
+        { config with MaxArrayOrListWidth = 40 }
     |> prepend newline
     |> should
         equal
@@ -270,7 +270,7 @@ let ``div with not attributes and multiple elmish children`` () =
       span [] [ str "b" ]
     ]
 """
-        config
+        { config with MaxArrayOrListWidth = 40 }
     |> prepend newline
     |> should
         equal
@@ -292,7 +292,7 @@ let ``div with single attribute and children`` () =
         p [] [ str "A paragraph" ]
     ]
 """
-        config
+        { config with MaxArrayOrListWidth = 40 }
     |> prepend newline
     |> should
         equal
@@ -314,7 +314,7 @@ div [ ClassName "container"; OnClick (fun _ -> printfn "meh") ] [
     code [] [str "bar"]
 ]
 """
-        config
+        { config with MaxArrayOrListWidth = 40 }
     |> prepend newline
     |> should
         equal
@@ -389,7 +389,7 @@ let ``short div with slightly longer p`` () =
         """let d =
     div [] [ p [] [ str "meeeeeeeeeeeeeeeeeeeeeh" ] ]
 """
-        config
+        { config with MaxArrayOrListWidth = 40 }
     |> prepend newline
     |> should
         equal
@@ -407,7 +407,7 @@ let ``div with longer p`` () =
         """let d =
     div [] [ p [] [ str "meeeeeeeeeeeeeeeeeeeeehhhh" ] ]
 """
-        config
+        { config with MaxArrayOrListWidth = 40 }
     |> prepend newline
     |> should
         equal
@@ -476,7 +476,9 @@ let viewEntry todo dispatch =
                onEnter (EditingEntry (todo.id,false)) dispatch ]
     ]
 """
-        config
+        { config with
+            MaxArrayOrListWidth = 40
+            MaxInfixOperatorExpression = 50 }
     |> prepend newline
     |> should
         equal
@@ -526,7 +528,7 @@ let ``multiline attributes, no children`` () =
                         OnClick(fun _-> Delete todo.id |> dispatch) ]
                       []
 """
-        config
+        { config with MaxArrayOrListWidth = 40 }
     |> prepend newline
     |> should
         equal
@@ -555,7 +557,7 @@ table [ ClassName "table table-striped table-hover mb-0" ]
                       tokenDetailRow "FullMatchedLength"
                           (span [ ClassName "has-text-weight-semibold" ] [ ofInt fullMatchedLength ]) ] ]
 """
-        config
+        { config with MaxArrayOrListWidth = 40 }
     |> prepend newline
     |> should
         equal
@@ -590,7 +592,7 @@ let commands dispatch =
         [ i [ ClassName "fas fa-code mr-1" ] []
           str "Get trivia" ]
 """
-        config
+        { config with MaxArrayOrListWidth = 40 }
     |> prepend newline
     |> should
         equal
@@ -641,7 +643,9 @@ let view (CurrentTime time) dispatch =
             SVG.StrokeWidth 1.0 ] []
       ]
 """
-        { config with IndentSize = 2 }
+        { config with
+            IndentSize = 2
+            MaxArrayOrListWidth = 40 }
     |> prepend newline
     |> should
         equal
@@ -684,7 +688,7 @@ let ``input with attribute array`` () =
         false
         """let ia = input [| Type "hidden"; Name "code"; Required "required" |]
 """
-        config
+        { config with MaxArrayOrListWidth = 50 }
     |> prepend newline
     |> should
         equal
@@ -890,7 +894,7 @@ Html.ul [
   Html.li [ Html.em "Three" ]
 ]
 """
-        config
+        { config with MaxArrayOrListWidth = 40 }
     |> prepend newline
     |> should
         equal
@@ -1003,7 +1007,10 @@ let private useLocationDetail (auth0 : Auth0Hook) (roles : RolesHook) id =
 
     location, creatorName
 """
-        { config with SpaceBeforeColon = true }
+        { config with
+            SpaceBeforeColon = true
+            MaxArrayOrListWidth = 40
+            MaxInfixOperatorExpression = 50 }
     |> prepend newline
     |> should
         equal

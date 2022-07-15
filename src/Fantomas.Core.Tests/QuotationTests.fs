@@ -34,7 +34,19 @@ let ``untyped quotations`` () =
 
 [<Test>]
 let ``should preserve unit literal`` () =
-    shouldNotChangeAfterFormat
+    formatSourceString
+        false
+        """
+let logger =
+    Mock<ILogger>()
+        .Setup(fun log -> <@ log.Log(error) @>)
+        .Returns(())
+        .Create()
+"""
+        { config with MaxDotGetExpressionWidth = 50 }
+    |> prepend newline
+    |> should
+        equal
         """
 let logger =
     Mock<ILogger>()
@@ -58,7 +70,9 @@ let action =
         }
     @>
 """
-        config
+        { config with
+            MaxInfixOperatorExpression = 50
+            MaxDotGetExpressionWidth = 50 }
     |> prepend newline
     |> should
         equal

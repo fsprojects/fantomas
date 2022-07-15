@@ -19,7 +19,7 @@ Log.Logger <-
     .Destructure.FSharpTypes()
     .WriteTo.Console()
     .CreateLogger()"""
-        config
+        { config with MaxDotGetExpressionWidth = 50 }
     |> prepend newline
     |> should
         equal
@@ -122,7 +122,7 @@ let main _ =
     finally
         Log.CloseAndFlush()
 """
-        config
+        { config with MaxDotGetExpressionWidth = 50 }
     |> prepend newline
     |> should
         equal
@@ -203,7 +203,7 @@ module Client =
             )
             .Bind()
 """
-        config
+        { config with MaxInfixOperatorExpression = 50 }
     |> prepend newline
     |> should
         equal
@@ -254,7 +254,7 @@ let ``don't repeat parenthesis for DotGet Paren, 989`` () =
         """(something_really_long
   + another_thing_thats_really_long).A
 """
-        config
+        { config with MaxInfixOperatorExpression = 50 }
     |> prepend newline
     |> should
         equal

@@ -528,10 +528,7 @@ let rec getEndCol (r: Range) (tokenizer: FSharpLineTokenizer) lexState =
     | Some (tok), state ->
         Debug.WriteLine("End token: {0}", sprintf "%A" tok |> box)
 
-        if
-            tok.RightColumn >= r.EndColumn
-            && isSignificantToken tok
-        then
+        if tok.RightColumn >= r.EndColumn && isSignificantToken tok then
             tok.RightColumn
         else
             lexState := state
@@ -946,11 +943,11 @@ let main (args : Options) =
             SpaceBeforeColon = true
             SpaceBeforeSemicolon = true
             MultilineBlockBracketsOnSameColumn = true
-            NewlineBetweenTypeDefinitionAndMembers = true
             AlignFunctionSignatureToIndentation = true
             AlternativeLongMemberDefinitions = true
             MultiLineLambdaClosingNewline = true
-            ExperimentalKeepIndentInBranch = true }
+            ExperimentalKeepIndentInBranch = true
+            MaxInfixOperatorExpression = 50 }
     |> prepend newline
     |> should
         equal
@@ -1022,11 +1019,11 @@ let main (args : Options) =
             SpaceBeforeColon = true
             SpaceBeforeSemicolon = true
             MultilineBlockBracketsOnSameColumn = true
-            NewlineBetweenTypeDefinitionAndMembers = true
             AlignFunctionSignatureToIndentation = true
             AlternativeLongMemberDefinitions = true
             MultiLineLambdaClosingNewline = true
-            ExperimentalKeepIndentInBranch = true }
+            ExperimentalKeepIndentInBranch = true
+            MaxInfixOperatorExpression = 50 }
     |> prepend newline
     |> should
         equal
@@ -1120,6 +1117,7 @@ and [<CustomEquality ; NoComparison>] Bar<'context, 'a> =
             Hash : int
             Foo : Foo<'a, 'b>
         }
+
     member this.InnerEquals<'innerContextLongLongLong, 'd, 'e>
         (a : Foo<'innerContextLongLongLong, 'd>)
         (b : Foo<'innerContext, 'd>)
@@ -1204,7 +1202,6 @@ module Foo =
             SpaceBeforeColon = true
             SpaceBeforeSemicolon = true
             MultilineBlockBracketsOnSameColumn = true
-            NewlineBetweenTypeDefinitionAndMembers = true
             AlignFunctionSignatureToIndentation = true
             AlternativeLongMemberDefinitions = true
             MultiLineLambdaClosingNewline = true
@@ -1272,7 +1269,6 @@ module Foo =
             SpaceBeforeColon = true
             SpaceBeforeSemicolon = true
             MultilineBlockBracketsOnSameColumn = true
-            NewlineBetweenTypeDefinitionAndMembers = true
             AlignFunctionSignatureToIndentation = true
             AlternativeLongMemberDefinitions = true
             MultiLineLambdaClosingNewline = true
@@ -1503,7 +1499,7 @@ let x y =
             let ipv4 = string result.["ipv4"]
             None
 """
-        config
+        { config with MaxArrayOrListWidth = 40 }
     |> prepend newline
     |> should
         equal
@@ -1550,7 +1546,7 @@ let x =
             let ipv4 = string result.["ipv4"]
             None
 """
-        config
+        { config with MaxArrayOrListWidth = 40 }
     |> prepend newline
     |> should
         equal
@@ -1601,7 +1597,8 @@ module Foo =
             AlignFunctionSignatureToIndentation = true
             AlternativeLongMemberDefinitions = true
             MultiLineLambdaClosingNewline = true
-            ExperimentalKeepIndentInBranch = true }
+            ExperimentalKeepIndentInBranch = true
+            MaxInfixOperatorExpression = 50 }
     |> prepend newline
     |> should
         equal
@@ -1650,7 +1647,8 @@ module Foo =
             AlignFunctionSignatureToIndentation = true
             AlternativeLongMemberDefinitions = true
             MultiLineLambdaClosingNewline = true
-            ExperimentalKeepIndentInBranch = true }
+            ExperimentalKeepIndentInBranch = true
+            MaxInfixOperatorExpression = 50 }
     |> prepend newline
     |> should
         equal
@@ -1933,11 +1931,11 @@ module Foo =
             SpaceBeforeColon = true
             SpaceBeforeSemicolon = true
             MultilineBlockBracketsOnSameColumn = true
-            NewlineBetweenTypeDefinitionAndMembers = true
             AlignFunctionSignatureToIndentation = true
             AlternativeLongMemberDefinitions = true
             MultiLineLambdaClosingNewline = true
-            ExperimentalKeepIndentInBranch = true }
+            ExperimentalKeepIndentInBranch = true
+            MaxInfixOperatorExpression = 50 }
     |> prepend newline
     |> should
         equal
@@ -1992,11 +1990,11 @@ module Foo =
             SpaceBeforeColon = true
             SpaceBeforeSemicolon = true
             MultilineBlockBracketsOnSameColumn = true
-            NewlineBetweenTypeDefinitionAndMembers = true
             AlignFunctionSignatureToIndentation = true
             AlternativeLongMemberDefinitions = true
             MultiLineLambdaClosingNewline = true
-            ExperimentalKeepIndentInBranch = true }
+            ExperimentalKeepIndentInBranch = true
+            MaxInfixOperatorExpression = 50 }
     |> prepend newline
     |> should
         equal
@@ -2042,7 +2040,8 @@ module Foo =
             MaxLineLength = 100
             MultilineBlockBracketsOnSameColumn = true
             MultiLineLambdaClosingNewline = true
-            ExperimentalKeepIndentInBranch = true }
+            ExperimentalKeepIndentInBranch = true
+            MaxInfixOperatorExpression = 50 }
     |> prepend newline
     |> should
         equal
@@ -2080,7 +2079,7 @@ module TestThing =
         longName
         |> Map.map (fun _ -> TypedTerm.force<int>)
 """
-        config
+        { config with MaxInfixOperatorExpression = 50 }
     |> prepend newline
     |> should
         equal
@@ -2120,7 +2119,8 @@ module Foo =
             MaxLineLength = 100
             MultilineBlockBracketsOnSameColumn = true
             MultiLineLambdaClosingNewline = true
-            ExperimentalKeepIndentInBranch = true }
+            ExperimentalKeepIndentInBranch = true
+            MaxInfixOperatorExpression = 50 }
     |> prepend newline
     |> should
         equal
@@ -2154,7 +2154,7 @@ match  // comment
 longName
 |> Map.map (fun _ -> TypedTerm.force<int>)
 """
-        config
+        { config with MaxInfixOperatorExpression = 50 }
     |> prepend newline
     |> should
         equal
@@ -2182,7 +2182,7 @@ match!  // comment
 longName
 |> Map.map (fun _ -> TypedTerm.force<int>)
 """
-        config
+        { config with MaxInfixOperatorExpression = 50 }
     |> prepend newline
     |> should
         equal

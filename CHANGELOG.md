@@ -1,9 +1,10 @@
 # Changelog
 
-## [Unreleased]
+## [5.0.0-beta-001] - 2022-07-15
 
 ### Changed
 * Don't mark optional parameters as required in public API. [#2350](https://github.com/fsprojects/fantomas/pull/2350)
+* Update default value for v5. [#2288](https://github.com/fsprojects/fantomas/issues/2288)
 
 ### Fixed
 * Content of #if block removed - Breaking Code on reformat. [#801](https://github.com/fsprojects/fantomas/issues/801)

@@ -1,5 +1,6 @@
 module Fantomas.Core.Tests.OperatorTests
 
+open System.Net.Http.Headers
 open NUnit.Framework
 open FsUnit
 open Fantomas.Core.Tests.TestHelper
@@ -327,7 +328,7 @@ let ``line comment after infix function with parenthesis, 559`` () =
             ()
         }
 """
-        config
+        { config with MaxInfixOperatorExpression = 50 }
     |> prepend newline
     |> should
         equal
@@ -399,7 +400,10 @@ let a = b |> c
 
 [<Test>]
 let ``long expression with pipe should be multiline`` () =
-    formatSourceString false "let a = List.init 40 (fun i -> generateThing i a) |> List.map mapThingToOtherThing" config
+    formatSourceString
+        false
+        "let a = List.init 40 (fun i -> generateThing i a) |> List.map mapThingToOtherThing"
+        { config with MaxInfixOperatorExpression = 50 }
     |> prepend newline
     |> should
         equal
@@ -447,7 +451,7 @@ let ``pipe boolean expression`` () =
         false
         """b && c |> someLongExpressionThatShouldMoveThePipeToTheNextLine
 """
-        config
+        { config with MaxInfixOperatorExpression = 50 }
     |> prepend newline
     |> should
         equal
@@ -558,7 +562,7 @@ let ``modulo operator on same line, 780`` () =
         false
         """let hasUnEvenAmount regex line = (Regex.Matches(line, regex).Count - Regex.Matches(line, "\\\\" + regex).Count) % 2 = 1
 """
-        config
+        { config with MaxInfixOperatorExpression = 50 }
     |> prepend newline
     |> should
         equal
@@ -689,7 +693,7 @@ let private distanceBetweenTwoPoints (latA, lngA) (latB, lngB) =
 
         dist
 """
-        config
+        { config with MaxInfixOperatorExpression = 50 }
     |> prepend newline
     |> should
         equal
@@ -843,7 +847,7 @@ let ``nested math sample`` () =
                * ddddddddddddddddddddddd
                * eeeeeeeeeeeeeeeeeeeeeee)
 """
-        config
+        { config with MaxInfixOperatorExpression = 50 }
     |> prepend newline
     |> should
         equal
@@ -1108,7 +1112,8 @@ module Foo =
             AlignFunctionSignatureToIndentation = true
             AlternativeLongMemberDefinitions = true
             MultiLineLambdaClosingNewline = true
-            ExperimentalKeepIndentInBranch = true }
+            ExperimentalKeepIndentInBranch = true
+            MaxInfixOperatorExpression = 50 }
     |> prepend newline
     |> should
         equal
@@ -1298,7 +1303,7 @@ module TopLevelOpIsolation3 =
     let ``issue 91: op_RangeStep first class syntax for seq return type but arg mismatch`` () =
         <@ (.. ..) 1 2 3 4 @> |> decompile =! "TopLevelOpIsolation3.(.. ..) 1 2 3 4"
 """
-        config
+        { config with MaxInfixOperatorExpression = 50 }
     |> prepend newline
     |> should
         equal
@@ -1335,7 +1340,7 @@ type Test =
     static member create =
     { WorkHoursPerWeek = 40u<hr*(staff weeks)> }
 """
-        config
+        { config with NewlineBetweenTypeDefinitionAndMembers = false }
     |> prepend newline
     |> should
         equal

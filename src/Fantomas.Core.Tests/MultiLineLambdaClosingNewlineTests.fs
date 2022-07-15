@@ -988,7 +988,7 @@ configuration
     .WriteTo
     .Logger(fun x -> x * x)
 """
-        config
+        { config with MaxDotGetExpressionWidth = 50 }
     |> prepend newline
     |> should
         equal

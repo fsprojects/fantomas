@@ -707,7 +707,9 @@ let expect =
                                   args = []
                                   commands = [] }
 """
-        config
+        { config with
+            MaxDotGetExpressionWidth = 50
+            MaxArrayOrListWidth = 40 }
     |> prepend newline
     |> should
         equal
@@ -1007,7 +1009,10 @@ type Foo =
 
 [<Test>]
 let ``short record type with member definitions should be multi line`` () =
-    formatSourceString false "type Foo = { A: int; B:   string } with member this.Foo () = ()" config
+    formatSourceString
+        false
+        "type Foo = { A: int; B:   string } with member this.Foo () = ()"
+        { config with NewlineBetweenTypeDefinitionAndMembers = false }
     |> prepend newline
     |> should
         equal
@@ -1185,7 +1190,7 @@ type ShortExpressionInfo =
         || (currentColumn > maxPageWidth) // expression at current position is not going over the page width
     member x.Foo() = ()
 """
-        config
+        { config with NewlineBetweenTypeDefinitionAndMembers = false }
     |> prepend newline
     |> should
         equal
@@ -1211,7 +1216,7 @@ type XX =
    b:int}
   static member foo = 30
 """
-        config
+        { config with NewlineBetweenTypeDefinitionAndMembers = false }
     |> prepend newline
     |> should
         equal
@@ -1232,7 +1237,7 @@ type XX =
    b:int}
   static member foo : int = 30
 """
-        config
+        { config with NewlineBetweenTypeDefinitionAndMembers = false }
     |> prepend newline
     |> should
         equal
@@ -1938,7 +1943,9 @@ let defaultTestOptions fwk common (o: DotNet.TestOptions) =
           Framework = fwk // Some "netcoreapp3.0"
           Configuration = DotNet.BuildConfiguration.Debug }
 """
-        config
+        { config with
+            MaxDotGetExpressionWidth = 50
+            MaxInfixOperatorExpression = 50 }
     |> prepend newline
     |> should
         equal

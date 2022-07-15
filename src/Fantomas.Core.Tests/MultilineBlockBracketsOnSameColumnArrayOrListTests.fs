@@ -418,7 +418,8 @@ module Foo =
             SpaceBeforeSemicolon = true
             MultilineBlockBracketsOnSameColumn = true
             AlignFunctionSignatureToIndentation = true
-            MultiLineLambdaClosingNewline = true }
+            MultiLineLambdaClosingNewline = true
+            MaxArrayOrListWidth = 40 }
     |> prepend newline
     |> should
         equal

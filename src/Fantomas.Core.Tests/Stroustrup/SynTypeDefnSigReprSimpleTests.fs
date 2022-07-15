@@ -79,7 +79,7 @@ type V =
       Z: ALongTypeName }
     member Coordinate : SomeFieldType * OhSomethingElse * ALongTypeName
 """
-        config
+        { config with NewlineBetweenTypeDefinitionAndMembers = false }
     |> prepend newline
     |> should
         equal
