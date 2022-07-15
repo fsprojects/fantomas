@@ -17,7 +17,6 @@ let (</>) a b = Path.Combine(a, b)
 
 let inputFileHomepage = __SOURCE_DIRECTORY__ </> "homepage.sass"
 let inputFileTemplate = __SOURCE_DIRECTORY__ </> "fsdocs-custom.sass"
-let inputFilesidebar = __SOURCE_DIRECTORY__ </> "sidebar.sass"
 let inputFolder = __SOURCE_DIRECTORY__
 
 let outputHomepage = __SOURCE_DIRECTORY__ </> ".." </> "homepage.css"
@@ -36,9 +35,6 @@ let compileSass () =
 
         let template =
             sassCompiler.CompileFile(inputFileTemplate, ?outputPath = Some outputTemplate)
-
-        let sidebar =
-            sassCompiler.CompileFile(inputFilesidebar, ?outputPath = Some outputsidebar)
 
         File.WriteAllText(outputHomepage, homepage.CompiledContent)
         printfn "Compiled %s at %A" outputHomepage DateTime.Now
