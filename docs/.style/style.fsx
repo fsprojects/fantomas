@@ -14,17 +14,11 @@ open FSharp.Control.Reactive
 
 let sassCompiler = new SassCompiler(new ChakraCoreJsEngineFactory())
 let (</>) a b = Path.Combine(a, b)
-
 let inputFileHomepage = __SOURCE_DIRECTORY__ </> "homepage.sass"
 let inputFileTemplate = __SOURCE_DIRECTORY__ </> "fsdocs-custom.sass"
 let inputFolder = __SOURCE_DIRECTORY__
-
 let outputHomepage = __SOURCE_DIRECTORY__ </> ".." </> "homepage.css"
-
-let outputTemplate =
-    __SOURCE_DIRECTORY__
-    </> "../content/"
-    </> "fsdocs-custom.css"
+let outputTemplate = __SOURCE_DIRECTORY__ </> "../content/" </> "fsdocs-custom.css"
 
 let compileSass () =
     try
