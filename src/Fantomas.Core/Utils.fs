@@ -55,8 +55,7 @@ module String =
                 chunk.[0] <- chunk.[0].TrimStart()
                 finalContinuation [ chunk ]
 
-        loop hashLineIndexesWithStart id
-        |> List.map (String.concat newline)
+        loop hashLineIndexesWithStart id |> List.map (String.concat newline)
 
     let splitInFragments (newline: string) (items: (string list * string) list) : (string list * string list) list =
         List.map
@@ -106,6 +105,7 @@ module Cache =
     [<CustomEquality; NoComparison>]
     type LambdaEqByRef<'a, 'b> =
         | LambdaEqByRef of ('a -> 'b)
+
         override this.Equals(obj) =
             match obj with
             | :? LambdaEqByRef<'a, 'b> as y ->

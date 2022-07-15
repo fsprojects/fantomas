@@ -34,11 +34,6 @@ let ``code that was invalid should be still be written`` () =
         runFantomasTool $"--force --out {outputFixture.Filename} {sourceFile}"
 
     exitCode |> should equal 0
-
-    output
-    |> should contain "was not valid after formatting"
-
+    output |> should contain "was not valid after formatting"
     output |> should contain "has been written"
-
-    File.Exists outputFixture.Filename
-    |> should equal true
+    File.Exists outputFixture.Filename |> should equal true

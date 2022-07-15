@@ -23,10 +23,7 @@ indent_size=2
 
     let { ExitCode = exitCode; Output = output } = runFantomasTool fileFixture.Filename
     exitCode |> should equal 0
-
-    output
-    |> should startWith (sprintf "Processing %s" fileFixture.Filename)
-
+    output |> should startWith (sprintf "Processing %s" fileFixture.Filename)
     let result = System.IO.File.ReadAllText(fileFixture.Filename)
 
     result
@@ -57,9 +54,7 @@ let valid_eol_settings = [ "lf"; "crlf" ]
 [<TestCaseSource("valid_eol_settings")>]
 let ``uses end_of_line setting to write user newlines`` setting =
     let newline =
-        (FormatConfig.EndOfLineStyle.OfConfigString setting)
-            .Value
-            .NewLineString
+        (FormatConfig.EndOfLineStyle.OfConfigString setting).Value.NewLineString
 
     let sampleCode nln =
         sprintf "let a = 9%s%slet b = 7%s" nln nln nln
@@ -104,5 +99,4 @@ end_of_line = lf
 
     let result = System.IO.File.ReadAllText(fileFixture.Filename)
 
-    result
-    |> should equal "#if FOO\n()\n#else\n()\n#endif\n"
+    result |> should equal "#if FOO\n()\n#else\n()\n#endif\n"

@@ -45,9 +45,7 @@ setupServer true
 #endif
 """
 
-    getDefines source
-    |> List.head
-    |> should equal "DEBUG"
+    getDefines source |> List.head |> should equal "DEBUG"
 
 [<Test>]
 let ``get defines from complex statements`` () =
@@ -58,8 +56,7 @@ let x = 1
 #endif
 """
 
-    getDefines source
-    == [ "BAR"; "BUZZ"; "FOO"; "INTERACTIVE" ]
+    getDefines source == [ "BAR"; "BUZZ"; "FOO"; "INTERACTIVE" ]
 
 [<Test>]
 let ``tokens from directive inside a directive are being added`` () =
@@ -84,8 +81,7 @@ let ``define with underscore`` () =
 #endif
 """
 
-    getDefines source
-    == [ "INVARIANT_CULTURE_STRING_COMPARISON" ]
+    getDefines source == [ "INVARIANT_CULTURE_STRING_COMPARISON" ]
 
 [<Test>]
 let ``open close of string on same line`` () =
@@ -279,5 +275,4 @@ let isUnix =
 #endif
         "
 
-    getDefines source
-    == [ "NETSTANDARD1_6"; "NETSTANDARD2_0" ]
+    getDefines source == [ "NETSTANDARD1_6"; "NETSTANDARD2_0" ]

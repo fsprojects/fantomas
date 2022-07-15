@@ -58,8 +58,7 @@ module TopLevelOperators =
     let lessThanOrEqualTo x = LessThanOrEqualConstraint(x)
 
     let shouldFail (f: unit -> unit) =
-        TestDelegate(f)
-        |> should throw typeof<AssertionException>
+        TestDelegate(f) |> should throw typeof<AssertionException>
 
     let endWith (s: string) = EndsWithConstraint s
 

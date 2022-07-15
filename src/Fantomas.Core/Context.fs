@@ -35,6 +35,7 @@ type ShortExpressionInfo =
     { MaxWidth: int
       StartColumn: int
       ConfirmedMultiline: bool }
+
     member x.IsTooLong maxPageWidth currentColumn =
         currentColumn - x.StartColumn > x.MaxWidth // expression is not too long according to MaxWidth
         || (currentColumn > maxPageWidth) // expression at current position is not going over the page width
@@ -63,6 +64,7 @@ type WriterModel =
         /// current length of last line of output
         Column: int
     }
+
     member __.IsDummy =
         match __.Mode with
         | Dummy -> true
@@ -80,14 +82,8 @@ module WriterModel =
     let update maxPageWidth cmd m =
         let doNewline m =
             let m = { m with Indent = max m.Indent m.AtColumn }
-
             let nextLine = String.replicate m.Indent " "
-
-            let currentLine =
-                String
-                    .Concat(List.head m.Lines, m.WriteBeforeNewline)
-                    .TrimEnd()
-
+            let currentLine = String.Concat(List.head m.Lines, m.WriteBeforeNewline).TrimEnd()
             let otherLines = List.tail m.Lines
 
             { m with
@@ -306,10 +302,7 @@ let dump (isSelection: bool) (ctx: Context) =
     |> List.rev
     |> fun lines ->
         // Don't skip leading newlines when formatting a selection.
-        if isSelection then
-            lines
-        else
-            List.skipWhile ((=) "") lines
+        if isSelection then lines else List.skipWhile ((=) "") lines
     |> String.concat ctx.Config.EndOfLine.NewLineString
 
 let dumpAndContinue (ctx: Context) =
@@ -324,6 +317,7 @@ let dumpAndContinue (ctx: Context) =
     ctx
 
 type Context with
+
     member x.Column = x.WriterModel.Column
     member x.FinalizeModel = finalizeWriterModel x
 
@@ -371,10 +365,7 @@ let private (|EmptyHashDefineBlock|_|) (events: WriterEvent array) =
                 | _ -> false)
                 events.[1 .. (events.Length - 2)]
 
-        if emptyLinesInBetween then
-            Some events
-        else
-            None
+        if emptyLinesInBetween then Some events else None
     | _ -> None
 
 /// Validate if there is a complete blank line between the last write event and the last event
@@ -401,9 +392,7 @@ let lastWriteEventOnLastLine ctx =
     writeEventsOnLastLine ctx |> Seq.tryHead
 
 let forallCharsOnLastLine f ctx =
-    writeEventsOnLastLine ctx
-    |> Seq.collect id
-    |> Seq.forall f
+    writeEventsOnLastLine ctx |> Seq.collect id |> Seq.forall f
 
 // A few utility functions from https://github.com/fsharp/powerpack/blob/master/src/FSharp.Compiler.CodeDom/generator.fs
 
@@ -432,10 +421,7 @@ let atIndentLevel alsoSetIndent level (f: Context -> Context) (ctx: Context) =
     let oldColumn = m.AtColumn
 
     (writerEvent (SetAtColumn level)
-     >> if alsoSetIndent then
-            writerEvent (SetIndent level)
-        else
-            id
+     >> if alsoSetIndent then writerEvent (SetIndent level) else id
      >> f
      >> writerEvent (RestoreAtColumn oldColumn)
      >> writerEvent (RestoreIndent oldIndent))
@@ -469,11 +455,7 @@ let (+>) (ctx: Context -> Context) (f: _ -> Context) x =
     let y = ctx x
 
     match y.WriterModel.Mode with
-    | ShortExpression infos when
-        infos
-        |> Seq.exists (fun x -> x.ConfirmedMultiline)
-        ->
-        y
+    | ShortExpression infos when infos |> Seq.exists (fun x -> x.ConfirmedMultiline) -> y
     | _ -> f y
 
 let (!-) (str: string) = writerEvent (Write str)
@@ -482,12 +464,7 @@ let (!+~) (str: string) c =
     let addNewline ctx =
         not (forallCharsOnLastLine Char.IsWhiteSpace ctx)
 
-    let c =
-        if addNewline c then
-            writerEvent WriteLine c
-        else
-            c
-
+    let c = if addNewline c then writerEvent WriteLine c else c
     writerEvent (Write str) c
 
 /// Print object converted to string
@@ -502,10 +479,7 @@ let coli f' (c: seq<'T>) f (ctx: Context) =
     let e = c.GetEnumerator()
 
     while (e.MoveNext()) do
-        if tryPick then
-            tryPick <- false
-        else
-            st <- f' st
+        if tryPick then tryPick <- false else st <- f' st
 
         st <- f i e.Current st
         i <- i + 1
@@ -520,10 +494,7 @@ let colii f' (c: seq<'T>) f (ctx: Context) =
     let e = c.GetEnumerator()
 
     while (e.MoveNext()) do
-        if tryPick then
-            tryPick <- false
-        else
-            st <- f' i st
+        if tryPick then tryPick <- false else st <- f' i st
 
         st <- f i e.Current st
         i <- i + 1
@@ -539,11 +510,7 @@ let col f' (c: seq<'T>) f (ctx: Context) =
     let e = c.GetEnumerator()
 
     while (e.MoveNext()) do
-        if tryPick then
-            tryPick <- false
-        else
-            st <- f' st
-
+        if tryPick then tryPick <- false else st <- f' st
         st <- f e.Current st
 
     st
@@ -555,47 +522,28 @@ let colEx f' (c: seq<'T>) f (ctx: Context) =
     let e = c.GetEnumerator()
 
     while (e.MoveNext()) do
-        if tryPick then
-            tryPick <- false
-        else
-            st <- f' e.Current st
-
+        if tryPick then tryPick <- false else st <- f' e.Current st
         st <- f e.Current st
 
     st
 
 /// Similar to col, apply one more function f2 at the end if the input sequence is not empty
 let colPost f2 f1 (c: seq<'T>) f (ctx: Context) =
-    if Seq.isEmpty c then
-        ctx
-    else
-        f2 (col f1 c f ctx)
+    if Seq.isEmpty c then ctx else f2 (col f1 c f ctx)
 
 /// Similar to col, apply one more function f2 at the beginning if the input sequence is not empty
 let colPre f2 f1 (c: seq<'T>) f (ctx: Context) =
-    if Seq.isEmpty c then
-        ctx
-    else
-        col f1 c f (f2 ctx)
+    if Seq.isEmpty c then ctx else col f1 c f (f2 ctx)
 
 let colPreEx f2 f1 (c: seq<'T>) f (ctx: Context) =
-    if Seq.isEmpty c then
-        ctx
-    else
-        colEx f1 c f (f2 ctx)
+    if Seq.isEmpty c then ctx else colEx f1 c f (f2 ctx)
 
 /// Similar to col, but apply two more functions fStart, fEnd at the beginning and the end if the input sequence is bigger thn one item
 let colSurr fStart fEnd f1 (c: list<'T>) f (ctx: Context) =
     if Seq.isEmpty c then
         ctx
     else
-        (col f1 c f
-         |> fun g ->
-             if (List.moreThanOne c) then
-                 fStart +> g +> fEnd
-             else
-                 g)
-            ctx
+        (col f1 c f |> fun g -> if (List.moreThanOne c) then fStart +> g +> fEnd else g) ctx
 
 /// If there is a value, apply f and f' accordingly, otherwise do nothing
 let opt (f': Context -> _) o f (ctx: Context) =
@@ -675,16 +623,10 @@ let sepNln = writerEvent WriteLine
 let sepNlnForTrivia = writerEvent WriteLineBecauseOfTrivia
 
 let sepNlnUnlessLastEventIsNewline (ctx: Context) =
-    if lastWriteEventIsNewline ctx then
-        ctx
-    else
-        sepNln ctx
+    if lastWriteEventIsNewline ctx then ctx else sepNln ctx
 
 let sepNlnUnlessLastEventIsNewlineOrRagnarok (ctx: Context) =
-    if
-        lastWriteEventIsNewline ctx
-        || ctx.Config.ExperimentalStroustrupStyle
-    then
+    if lastWriteEventIsNewline ctx || ctx.Config.ExperimentalStroustrupStyle then
         ctx
     else
         sepNln ctx
@@ -803,10 +745,7 @@ let indentIfNeeded f (ctx: Context) =
         // missingSpaces needs to be at least one more than the column
         // of function expression being applied upon, otherwise (as known up to F# 4.7)
         // this would lead to a compile error for the function application
-        let missingSpaces =
-            (savedColumn - ctx.FinalizeModel.Column)
-            + ctx.Config.IndentSize
-
+        let missingSpaces = (savedColumn - ctx.FinalizeModel.Column) + ctx.Config.IndentSize
         atIndentLevel true savedColumn (!-(String.replicate missingSpaces " ")) ctx
     else
         f ctx
@@ -832,11 +771,7 @@ let private shortExpressionWithFallback
     // we should try the shortExpression in this case.
     match ctx.WriterModel.Mode with
     | ShortExpression infos when
-        (List.exists
-            (fun info ->
-                info.ConfirmedMultiline
-                || info.IsTooLong ctx.Config.MaxLineLength ctx.Column)
-            infos)
+        (List.exists (fun info -> info.ConfirmedMultiline || info.IsTooLong ctx.Config.MaxLineLength ctx.Column) infos)
         ->
         ctx
     | _ ->
@@ -909,8 +844,7 @@ let leadingExpressionLong threshold leadingExpression continuationExpression (ct
         List.length contextAfterLeading.WriterModel.Lines, contextAfterLeading.WriterModel.Column
 
     continuationExpression
-        (lineCountAfter > lineCountBefore
-         || (columnAfter - columnBefore > threshold))
+        (lineCountAfter > lineCountBefore || (columnAfter - columnBefore > threshold))
         contextAfterLeading
 
 /// A leading expression is not consider multiline if it has a comment before it.
@@ -945,11 +879,7 @@ let private expressionExceedsPageWidth beforeShort afterShort beforeLong afterLo
     // if the context is already inside a ShortExpression mode, we should try the shortExpression in this case.
     match ctx.WriterModel.Mode with
     | ShortExpression infos when
-        (List.exists
-            (fun info ->
-                info.ConfirmedMultiline
-                || info.IsTooLong ctx.Config.MaxLineLength ctx.Column)
-            infos)
+        (List.exists (fun info -> info.ConfirmedMultiline || info.IsTooLong ctx.Config.MaxLineLength ctx.Column) infos)
         ->
         ctx
     | ShortExpression _ ->
@@ -1034,10 +964,7 @@ let futureNlnCheckMem (f, ctx) =
         (false, false)
     else
         // Create a dummy context to evaluate length of current operation
-        let dummyCtx: Context =
-            ctx.WithDummy(Queue.empty, keepPageWidth = true)
-            |> f
-
+        let dummyCtx: Context = ctx.WithDummy(Queue.empty, keepPageWidth = true) |> f
         WriterEvents.isMultiline dummyCtx.WriterEvents, dummyCtx.Column > ctx.Config.MaxLineLength
 
 let futureNlnCheck f (ctx: Context) =
@@ -1086,11 +1013,7 @@ let sepSpaceBeforeClassConstructor ctx =
         ctx
 
 let sepColon (ctx: Context) =
-    let defaultExpr =
-        if ctx.Config.SpaceBeforeColon then
-            str " : "
-        else
-            str ": "
+    let defaultExpr = if ctx.Config.SpaceBeforeColon then str " : " else str ": "
 
     if ctx.WriterModel.IsDummy then
         defaultExpr ctx
@@ -1139,9 +1062,7 @@ let printTriviaContent (c: TriviaContent) (ctx: Context) =
 
     let addSpace =
         currentLastLine
-        |> Option.bind (fun line ->
-            Seq.tryLast line
-            |> Option.map (fun lastChar -> lastChar <> ' '))
+        |> Option.bind (fun line -> Seq.tryLast line |> Option.map (fun lastChar -> lastChar <> ' '))
         |> Option.defaultValue false
 
     match c with
@@ -1157,18 +1078,14 @@ let printTriviaContent (c: TriviaContent) (ctx: Context) =
         +> ifElse after sepNlnForTrivia sepNone
     | Newline -> (ifElse addNewline (sepNlnForTrivia +> sepNlnForTrivia) sepNlnForTrivia)
     | Directive s
-    | Comment (CommentOnSingleLine s) ->
-        (ifElse addNewline sepNlnForTrivia sepNone)
-        +> !-s
-        +> sepNlnForTrivia
+    | Comment (CommentOnSingleLine s) -> (ifElse addNewline sepNlnForTrivia sepNone) +> !-s +> sepNlnForTrivia
     <| ctx
 
 let printTriviaInstructions (triviaInstructions: TriviaInstruction list) =
     col sepNone triviaInstructions (fun { Trivia = trivia } -> printTriviaContent trivia.Item)
 
 let private findTriviaOnStartFromRange nodes (range: Range) =
-    nodes
-    |> List.tryFind (fun n -> RangeHelpers.rangeStartEq n.Range range)
+    nodes |> List.tryFind (fun n -> RangeHelpers.rangeStartEq n.Range range)
 
 let enterNodeFor (mainNodeName: FsAstType) (range: Range) (ctx: Context) =
     match Map.tryFind mainNodeName ctx.TriviaBefore with
@@ -1198,10 +1115,7 @@ let private sepConsideringTriviaContentBeforeBy
     (range: Range)
     (ctx: Context)
     =
-    if hasTriviaBefore ctx range then
-        ctx
-    else
-        sepF ctx
+    if hasTriviaBefore ctx range then ctx else sepF ctx
 
 let sepConsideringTriviaContentBeforeForMainNode sepF (mainNodeName: FsAstType) (range: Range) (ctx: Context) =
     let findNode ctx range =
@@ -1266,9 +1180,7 @@ let autoNlnConsideringTriviaIfExpressionExceedsPageWidth sepNlnConsideringTrivia
 
 let addExtraNewlineIfLeadingWasMultiline leading sepNlnConsideringTriviaContentBefore continuation =
     leadingExpressionIsMultiline leading (fun ml ->
-        sepNln
-        +> onlyIf ml sepNlnConsideringTriviaContentBefore
-        +> continuation)
+        sepNln +> onlyIf ml sepNlnConsideringTriviaContentBefore +> continuation)
 
 let autoIndentAndNlnExpressUnlessRagnarok (f: SynExpr -> Context -> Context) (e: SynExpr) (ctx: Context) =
     match e with

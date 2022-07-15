@@ -97,9 +97,7 @@ let rec (|SigValL|_|) =
     | _ -> None
 
 let private (|SynLongIdentAsString|) (synLongIdent: SynLongIdent) =
-    synLongIdent.LongIdent
-    |> List.map (fun i -> i.idText)
-    |> String.concat "."
+    synLongIdent.LongIdent |> List.map (fun i -> i.idText) |> String.concat "."
 
 // Provide short-hand notation `x.Member = ...` for `x.Member with get()` getters
 let (|LongGetMember|_|) =

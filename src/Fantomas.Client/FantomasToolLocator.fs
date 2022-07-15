@@ -23,10 +23,7 @@ let private (|CompatibleVersion|_|) (version: string) =
 
 // In the past, fantomas was named fantomas-tool.
 let private (|CompatibleToolName|_|) toolName =
-    if
-        toolName = "fantomas-tool"
-        || toolName = "fantomas"
-    then
+    if toolName = "fantomas-tool" || toolName = "fantomas" then
         Some toolName
     else
         None
@@ -70,13 +67,7 @@ let private runToolListCmd (Folder workingDir: Folder) (globalFlag: bool) : Resu
         ps.EnvironmentVariables.Add("DOTNET_CLI_UI_LANGUAGE", "en-us")
 
     ps.CreateNoWindow <- true
-
-    ps.Arguments <-
-        if globalFlag then
-            "tool list -g"
-        else
-            "tool list"
-
+    ps.Arguments <- if globalFlag then "tool list -g" else "tool list"
     ps.RedirectStandardOutput <- true
     ps.RedirectStandardError <- true
     ps.UseShellExecute <- false
@@ -102,10 +93,7 @@ let private (|CompatibleTool|_|) lines =
             None
 
     let (|Dashes|_|) line =
-        if String.forall ((=) '-') line then
-            Some()
-        else
-            None
+        if String.forall ((=) '-') line then Some() else None
 
     let (|Tools|_|) lines =
         let tools =
@@ -118,10 +106,7 @@ let private (|CompatibleTool|_|) lines =
                 else
                     None)
 
-        if List.isEmpty tools then
-            None
-        else
-            Some tools
+        if List.isEmpty tools then None else Some tools
 
     match lines with
     | HeaderLine :: Dashes :: Tools tools ->
@@ -150,22 +135,16 @@ let private fantomasVersionOnPath () : (FantomasExecutableFile * FantomasVersion
 
                 let fantomasToolExe = Path.Combine(folder, "fantomas-tool.exe")
 
-                if File.Exists fantomasExe then
-                    Some fantomasExe
-                elif File.Exists fantomasToolExe then
-                    Some fantomasToolExe
-                else
-                    None
+                if File.Exists fantomasExe then Some fantomasExe
+                elif File.Exists fantomasToolExe then Some fantomasToolExe
+                else None
             else
                 let fantomas = Path.Combine(folder, "fantomas")
                 let fantomasTool = Path.Combine(folder, "fantomas-tool")
 
-                if File.Exists fantomas then
-                    Some fantomas
-                elif File.Exists fantomasTool then
-                    Some fantomasTool
-                else
-                    None)
+                if File.Exists fantomas then Some fantomas
+                elif File.Exists fantomasTool then Some fantomasTool
+                else None)
         |> Seq.tryHead
 
     fantomasExecutableOnPathOpt
@@ -186,12 +165,7 @@ let private fantomasVersionOnPath () : (FantomasExecutableFile * FantomasVersion
             stdOut
             |> Option.ofObj
             |> Option.map (fun s ->
-                let version =
-                    s
-                        .ToLowerInvariant()
-                        .Replace("fantomas", String.Empty)
-                        .Trim()
-
+                let version = s.ToLowerInvariant().Replace("fantomas", String.Empty).Trim()
                 FantomasExecutableFile(fantomasExecutablePath), FantomasVersion(version))
         | Error (ProcessStartError.ExecutableFileNotFound _)
         | Error (ProcessStartError.UnExpectedException _) -> None)
@@ -231,12 +205,7 @@ let createFor (startInfo: FantomasToolStartInfo) : Result<RunningFantomasTool, P
             let userProfile = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile)
 
             let fantomasExecutable =
-                let fileName =
-                    if isWindows then
-                        "fantomas.exe"
-                    else
-                        "fantomas"
-
+                let fileName = if isWindows then "fantomas.exe" else "fantomas"
                 Path.Combine(userProfile, ".dotnet", "tools", fileName)
 
             let ps = ProcessStartInfo(fantomasExecutable)

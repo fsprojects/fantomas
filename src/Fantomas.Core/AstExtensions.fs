@@ -13,6 +13,7 @@ let longIdentFullRange (li: LongIdent) : Range =
     | h :: _ -> unionRanges h.idRange (List.last li).idRange
 
 type SynIdent with
+
     member this.FullRange: range =
         match this with
         | SynIdent (ident, None) -> ident.idRange
@@ -23,6 +24,7 @@ type SynIdent with
             | IdentTrivia.OriginalNotation _ -> ident.idRange
 
 type SynLongIdent with
+
     member this.FullRange: range =
         match this.IdentsWithTrivia with
         | [] -> Range.Zero
@@ -31,6 +33,7 @@ type SynLongIdent with
             List.fold (fun acc (synIdent: SynIdent) -> unionRanges acc synIdent.FullRange) head.FullRange tail
 
 type SynExprRecordField with
+
     member this.FullRange: range =
         match this with
         | SynExprRecordField ((fieldName, _), _, Some expr, _) -> unionRanges fieldName.FullRange expr.Range
@@ -38,6 +41,7 @@ type SynExprRecordField with
         | SynExprRecordField ((fieldName, _), None, _, _) -> fieldName.FullRange
 
 type SynModuleOrNamespace with
+
     member this.FullRange: range =
         match this with
         | SynModuleOrNamespace (kind = SynModuleOrNamespaceKind.AnonModule; decls = decls) ->
@@ -50,6 +54,7 @@ type SynModuleOrNamespace with
         | _ -> this.Range
 
 type SynModuleOrNamespaceSig with
+
     member this.FullRange: range =
         match this with
         | SynModuleOrNamespaceSig (kind = SynModuleOrNamespaceKind.AnonModule; decls = decls) ->
@@ -62,12 +67,14 @@ type SynModuleOrNamespaceSig with
         | _ -> this.Range
 
 type CommentTrivia with
+
     member this.Range =
         match this with
         | CommentTrivia.LineComment (range = r)
         | CommentTrivia.BlockComment (range = r) -> r
 
 type ConditionalDirectiveTrivia with
+
     member this.Range =
         match this with
         | ConditionalDirectiveTrivia.If (range = range)
@@ -85,10 +92,7 @@ let includeTrivia
 
     (baseRange, ranges)
     ||> List.fold (fun acc triviaRange ->
-        if
-            acc.StartLine < triviaRange.StartLine
-            && acc.EndLine > triviaRange.EndLine
-        then
+        if acc.StartLine < triviaRange.StartLine && acc.EndLine > triviaRange.EndLine then
             acc
         elif triviaRange.EndLine > acc.EndLine then
             unionRanges acc triviaRange
@@ -96,6 +100,7 @@ let includeTrivia
             unionRanges triviaRange acc)
 
 type ParsedInput with
+
     member this.FullRange: range =
         match this with
         | ParsedInput.ImplFile (ParsedImplFileInput (hashDirectives = directives; modules = modules; trivia = trivia)) ->
@@ -139,6 +144,7 @@ type ParsedInput with
             includeTrivia astRange trivia.CodeComments trivia.ConditionalDirectives
 
 type SynMemberFlags with
+
     member memberFlags.FullRange: range option =
         RangeHelpers.mergeRanges
             [ yield! Option.toList memberFlags.Trivia.AbstractRange
@@ -148,6 +154,7 @@ type SynMemberFlags with
               yield! Option.toList memberFlags.Trivia.StaticRange ]
 
 type SynValInfo with
+
     member synValInfo.FullRange: range option =
         match synValInfo with
         | SynValInfo (returnInfo = ri) ->
@@ -158,6 +165,7 @@ type SynValInfo with
             | Some a, Some i -> Some(unionRanges a.Range i.idRange)
 
 type SynValData with
+
     member synValData.FullRange: range option =
         match synValData with
         | SynValData (mf, valInfo, thisIdOpt) ->
@@ -181,14 +189,10 @@ let synTypeDefnKindDelegateFullRange (signature: SynType) (signatureInfo: SynVal
     unionRanges startRange endRange
 
 type SynArgInfo with
+
     member this.FullRange: range option =
         let (SynArgInfo (attrs, _, ident)) = this
-
-        let attrRange =
-            attrs
-            |> List.map (fun a -> a.Range)
-            |> RangeHelpers.mergeRanges
-
+        let attrRange = attrs |> List.map (fun a -> a.Range) |> RangeHelpers.mergeRanges
         let identRange = Option.map (fun (i: Ident) -> i.idRange) ident
 
         match attrRange, identRange with
@@ -198,6 +202,7 @@ type SynArgInfo with
         | Some r, None -> Some r
 
 type SynInterpolatedStringPart with
+
     member this.FullRange =
         match this with
         | SynInterpolatedStringPart.String (_, r) -> r
@@ -207,6 +212,7 @@ type SynInterpolatedStringPart with
             | Some i -> unionRanges expr.Range i.idRange
 
 type SynTyparDecl with
+
     member std.FullRange: range =
         let (SynTyparDecl (attrs, synTypar)) = std
         let attrRange = List.map (fun (a: SynAttributeList) -> a.Range) attrs
@@ -217,6 +223,7 @@ type SynTyparDecl with
 
 // TODO: made fix this one over at the compiler side
 type SynField with
+
     member sf.FullRange: range =
         let (SynField (attributes = attrs; range = r)) = sf
 

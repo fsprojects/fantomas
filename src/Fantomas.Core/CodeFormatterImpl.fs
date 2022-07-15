@@ -89,9 +89,7 @@ let format (config: FormatConfig) (isSignature: bool) (source: ISourceText) : As
             | [] -> failwith "not possible"
             | [ (_, x) ] -> x
             | all ->
-                let allInFragments =
-                    all
-                    |> String.splitInFragments config.EndOfLine.NewLineString
+                let allInFragments = all |> String.splitInFragments config.EndOfLine.NewLineString
 
                 let allHaveSameFragmentCount =
                     let allWithCount = List.map (fun (_, f: string list) -> f.Length) allInFragments

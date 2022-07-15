@@ -120,9 +120,7 @@ let getFantomasToolStartInfo arguments : ProcessStartInfo =
     startInfo
 
 let runFantomasTool arguments : FantomasToolResult =
-    use p =
-        getFantomasToolStartInfo arguments
-        |> Process.Start
+    use p = getFantomasToolStartInfo arguments |> Process.Start
 
     let output = p.StandardOutput.ReadToEnd()
     let error = p.StandardError.ReadToEnd()
@@ -134,17 +132,13 @@ let runFantomasTool arguments : FantomasToolResult =
 
 let checkCode (files: string list) : FantomasToolResult =
     let files =
-        files
-        |> List.map (fun file -> sprintf "\"%s\"" file)
-        |> String.concat " "
+        files |> List.map (fun file -> sprintf "\"%s\"" file) |> String.concat " "
 
     let arguments = sprintf "--check %s" files
     runFantomasTool arguments
 
 let formatCode (files: string list) : FantomasToolResult =
     let arguments =
-        files
-        |> List.map (fun file -> sprintf "\"%s\"" file)
-        |> String.concat " "
+        files |> List.map (fun file -> sprintf "\"%s\"" file) |> String.concat " "
 
     runFantomasTool arguments

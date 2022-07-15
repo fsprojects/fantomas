@@ -19,9 +19,7 @@ module Reflection =
         (projection: 't -> 'v)
         (property: PropertyInfo)
         : 'v option =
-        property.GetCustomAttribute<'t>()
-        |> Option.ofObj
-        |> Option.map projection
+        property.GetCustomAttribute<'t>() |> Option.ofObj |> Option.map projection
 
     let inline getRecordFields x =
         let names =
@@ -36,10 +34,7 @@ module Reflection =
         Seq.zip names values |> Seq.toArray
 
 let supportedProperties =
-    [ "max_line_length"
-      "indent_size"
-      "end_of_line"
-      "insert_final_newline" ]
+    [ "max_line_length"; "indent_size"; "end_of_line"; "insert_final_newline" ]
 
 let toEditorConfigName value =
     value
@@ -101,9 +96,7 @@ let configToEditorConfig (config: FormatConfig) : string =
         | :? System.Boolean as b ->
             sprintf "%s=%s" (toEditorConfigName recordField.PropertyName) (if b then "true " else "false")
             |> Some
-        | :? System.Int32 as i ->
-            $"%s{toEditorConfigName recordField.PropertyName}=%d{i}"
-            |> Some
+        | :? System.Int32 as i -> $"%s{toEditorConfigName recordField.PropertyName}=%d{i}" |> Some
         | :? MultilineFormatterType as mft ->
             sprintf "%s=%s" (toEditorConfigName recordField.PropertyName) (MultilineFormatterType.ToConfigString mft)
             |> Some
@@ -125,5 +118,4 @@ let tryReadConfiguration (fsharpFile: string) : FormatConfig option =
         Some(parseOptionsFromEditorConfig FormatConfig.Default editorConfigSettings.Properties)
 
 let readConfiguration (fsharpFile: string) : FormatConfig =
-    tryReadConfiguration fsharpFile
-    |> Option.defaultValue FormatConfig.Default
+    tryReadConfiguration fsharpFile |> Option.defaultValue FormatConfig.Default

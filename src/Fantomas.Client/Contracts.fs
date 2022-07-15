@@ -42,6 +42,7 @@ type FormatSelectionRequest =
         /// Range follows the same semantics of the FSharp Compiler Range type.
         Range: FormatSelectionRange
     }
+
     member this.IsSignatureFile = this.FilePath.EndsWith(".fsi")
 
 and FormatSelectionRange =

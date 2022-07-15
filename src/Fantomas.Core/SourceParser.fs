@@ -273,10 +273,7 @@ let (|UnionCaseType|) =
     | SynUnionCaseKind.FullType _ -> failwith "UnionCaseFullType should be used internally only."
 
 let (|Field|) (SynField (ats, isStatic, ido, t, isMutable, px, ao, range)) =
-    let innerRange =
-        ido
-        |> Option.map (fun i -> Range.unionRanges i.idRange t.Range)
-
+    let innerRange = ido |> Option.map (fun i -> Range.unionRanges i.idRange t.Range)
     (ats, px, ao, isStatic, isMutable, t, ido, innerRange, range)
 
 let (|EnumCase|) (SynEnumCase (ats, ident, c, cr, px, r, trivia)) =
@@ -737,10 +734,7 @@ let (|ParenFunctionNameWithStar|_|) =
     | Paren (lpr,
              LongIdentExpr (SynLongIdent ([ _ ], [], [ Some (IdentTrivia.OriginalNotation originalNotation) ])),
              rpr,
-             _pr) when
-        (originalNotation.Length > 1
-         && originalNotation.StartsWith("*"))
-        ->
+             _pr) when (originalNotation.Length > 1 && originalNotation.StartsWith("*")) ->
         Some(lpr, originalNotation, rpr)
     | _ -> None
 
@@ -895,19 +889,9 @@ let rec (|LetOrUses|_|) =
             List.mapi
                 (fun i x ->
                     if i = 0 then
-                        (prefix,
-                         x,
-                         if i = lastIndex then
-                             trivia.InKeyword
-                         else
-                             None)
+                        (prefix, x, (if i = lastIndex then trivia.InKeyword else None))
                     else
-                        ("and ",
-                         x,
-                         if i = lastIndex then
-                             trivia.InKeyword
-                         else
-                             None))
+                        ("and ", x, (if i = lastIndex then trivia.InKeyword else None)))
                 xs
 
         Some(xs' @ ys, e)
@@ -923,19 +907,9 @@ let rec (|LetOrUses|_|) =
             List.mapi
                 (fun i x ->
                     if i = 0 then
-                        (prefix,
-                         x,
-                         if i = lastIndex then
-                             trivia.InKeyword
-                         else
-                             None)
+                        (prefix, x, (if i = lastIndex then trivia.InKeyword else None))
                     else
-                        ("and ",
-                         x,
-                         if i = lastIndex then
-                             trivia.InKeyword
-                         else
-                             None))
+                        ("and ", x, (if i = lastIndex then trivia.InKeyword else None)))
                 xs
 
         Some(xs', e)
@@ -956,9 +930,7 @@ let rec collectComputationExpressionStatements
         let letBindings = bindings |> List.map LetOrUseStatement
 
         collectComputationExpressionStatements body (fun bodyStatements ->
-            [ yield! letBindings
-              yield! bodyStatements ]
-            |> finalContinuation)
+            [ yield! letBindings; yield! bodyStatements ] |> finalContinuation)
     | SynExpr.LetOrUseBang (_, isUse, _, pat, expr, andBangs, body, r, trivia) ->
         let letOrUseBang = LetOrUseBangStatement(isUse, pat, trivia.EqualsRange, expr, r)
 
@@ -968,10 +940,7 @@ let rec collectComputationExpressionStatements
                 AndBangStatement(ap, trivia.EqualsRange, ae, range))
 
         collectComputationExpressionStatements body (fun bodyStatements ->
-            [ letOrUseBang
-              yield! andBangs
-              yield! bodyStatements ]
-            |> finalContinuation)
+            [ letOrUseBang; yield! andBangs; yield! bodyStatements ] |> finalContinuation)
     | SynExpr.Sequential (_, _, e1, e2, _) ->
         let continuations: ((ComputationExpressionStatement list -> ComputationExpressionStatement list) -> ComputationExpressionStatement list) list =
             [ collectComputationExpressionStatements e1
@@ -1047,11 +1016,7 @@ let rec (|DotGetApp|_|) =
     | SynExpr.App (_, _, DotGet (DotGetApp (e, es), s), e', _) -> Some(e, [ yield! es; yield (s, e', None) ])
     | SynExpr.App (_, _, DotGet (e, s), e', _) -> Some(e, [ (s, e', None) ])
     | SynExpr.App (_, _, TypeApp (DotGet (DotGetApp (e, es), s), lt, ts, gt), e', _) ->
-        Some(
-            e,
-            [ yield! es
-              yield (s, e', Some(lt, ts, gt)) ]
-        )
+        Some(e, [ yield! es; yield (s, e', Some(lt, ts, gt)) ])
     | SynExpr.App (_, _, TypeApp (DotGet (e, s), lt, ts, gt), e', _) -> Some(e, [ (s, e', Some(lt, ts, gt)) ])
     | _ -> None
 
@@ -1076,8 +1041,7 @@ let rec (|ElIf|_|) =
                           trivia) ->
         Some(
             ((None, trivia.IfKeyword, trivia.IsElif, e1, trivia.ThenKeyword, e2)
-             :: (trivia.ElseKeyword, eshIfKw, eshIsElif, eshE1, eshThenKw, eshE2)
-                :: es),
+             :: (trivia.ElseKeyword, eshIfKw, eshIsElif, eshE1, eshThenKw, eshE2) :: es),
             elseInfo,
             range
         )
@@ -1094,9 +1058,7 @@ let rec (|ElIf|_|) =
 let (|Record|_|) =
     function
     | SynExpr.Record (inheritOpt, eo, xs, StartEndRange 1 (openingBrace, _, closingBrace)) ->
-        let inheritOpt =
-            inheritOpt
-            |> Option.map (fun (typ, expr, _, _, _) -> (typ, expr))
+        let inheritOpt = inheritOpt |> Option.map (fun (typ, expr, _, _, _) -> (typ, expr))
 
         Some(openingBrace, inheritOpt, xs, Option.map fst eo, closingBrace)
     | _ -> None
@@ -1283,6 +1245,7 @@ let (|PatExplicitCtor|_|) =
 
 // Members
 type SynSimplePats with
+
     member pat.Range =
         match pat with
         | SynSimplePats.SimplePats (_, r)
@@ -1569,6 +1532,7 @@ type SingleTyparConstraintKind =
     | TyparSupportsNull
     | TyparIsComparable
     | TyparIsEquatable
+
     override x.ToString() =
         match x with
         | TyparIsValueType -> "struct"
@@ -1671,15 +1635,8 @@ let private getLastPartOfSynLongIdent (synLongIdent: SynLongIdent) : string opti
 
 let rec (|UppercaseSynExpr|LowercaseSynExpr|) (synExpr: SynExpr) =
     let upperOrLower (v: string) =
-        let isUpper =
-            Seq.tryHead v
-            |> Option.map Char.IsUpper
-            |> Option.defaultValue false
-
-        if isUpper then
-            UppercaseSynExpr
-        else
-            LowercaseSynExpr
+        let isUpper = Seq.tryHead v |> Option.map Char.IsUpper |> Option.defaultValue false
+        if isUpper then UppercaseSynExpr else LowercaseSynExpr
 
     match synExpr with
     | SynExpr.Ident ident -> upperOrLower ident.idText
@@ -1697,15 +1654,8 @@ let rec (|UppercaseSynExpr|LowercaseSynExpr|) (synExpr: SynExpr) =
 
 let rec (|UppercaseSynType|LowercaseSynType|) (synType: SynType) =
     let upperOrLower (v: string) =
-        let isUpper =
-            Seq.tryHead v
-            |> Option.map Char.IsUpper
-            |> Option.defaultValue false
-
-        if isUpper then
-            UppercaseSynType
-        else
-            LowercaseSynType
+        let isUpper = Seq.tryHead v |> Option.map Char.IsUpper |> Option.defaultValue false
+        if isUpper then UppercaseSynType else LowercaseSynType
 
     match synType with
     | SynType.LongIdent synLongIdent ->

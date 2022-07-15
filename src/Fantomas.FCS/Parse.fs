@@ -46,10 +46,7 @@ let private ComputeAnonModuleName check defaultNamespace filename (m: range) =
 
     if
         check
-        && not (
-            modname
-            |> String.forall (fun c -> Char.IsLetterOrDigit c || c = '_')
-        )
+        && not (modname |> String.forall (fun c -> Char.IsLetterOrDigit c || c = '_'))
     then
         if
             not (
@@ -80,9 +77,7 @@ let private ComputeAnonModuleName check defaultNamespace filename (m: range) =
 
 let private IsScript filename =
     let lower = String.lowercase filename
-
-    FSharpScriptFileSuffixes
-    |> List.exists (FileSystemUtils.checkSuffix lower)
+    FSharpScriptFileSuffixes |> List.exists (FileSystemUtils.checkSuffix lower)
 
 let private PostParseModuleImpl (_i, defaultNamespace, _isLastCompiland, filename, impl) =
     match impl with
@@ -140,20 +135,10 @@ let private PostParseModuleImpl (_i, defaultNamespace, _isLastCompiland, filenam
 // Give a unique name to the different kinds of inputs. Used to correlate signature and implementation files
 //   QualFileNameOfModuleName - files with a single module declaration or an anonymous module
 let private QualFileNameOfModuleName m filename modname =
-    QualifiedNameOfFile(
-        mkSynId
-            m
-            (textOfLid modname
-             + (if IsScript filename then "$fsx" else ""))
-    )
+    QualifiedNameOfFile(mkSynId m (textOfLid modname + (if IsScript filename then "$fsx" else "")))
 
 let private QualFileNameOfFilename m filename =
-    QualifiedNameOfFile(
-        mkSynId
-            m
-            (CanonicalizeFilename filename
-             + (if IsScript filename then "$fsx" else ""))
-    )
+    QualifiedNameOfFile(mkSynId m (CanonicalizeFilename filename + (if IsScript filename then "$fsx" else "")))
 
 let private QualFileNameOfSpecs filename specs =
     match specs with
@@ -356,30 +341,21 @@ let private ParseInput
 
     try
         let input =
-            if
-                mlCompatSuffixes
-                |> List.exists (FileSystemUtils.checkSuffix lower)
-            then
+            if mlCompatSuffixes |> List.exists (FileSystemUtils.checkSuffix lower) then
                 if lexbuf.SupportsFeature LanguageFeature.MLCompatRevisions then
                     errorR (Error(FSComp.SR.buildInvalidSourceFileExtensionML filename, rangeStartup))
                 else
                     mlCompatWarning (FSComp.SR.buildCompilingExtensionIsForML ()) rangeStartup
 
             // Call the appropriate parser - for signature files or implementation files
-            if
-                FSharpImplFileSuffixes
-                |> List.exists (FileSystemUtils.checkSuffix lower)
-            then
+            if FSharpImplFileSuffixes |> List.exists (FileSystemUtils.checkSuffix lower) then
                 let impl = Parser.implementationFile lexer lexbuf
 
                 let tripleSlashComments =
                     LexbufLocalXmlDocStore.ReportInvalidXmlDocPositions(lexbuf)
 
                 PostParseModuleImpls(defaultNamespace, filename, isLastCompiland, impl, lexbuf, tripleSlashComments)
-            elif
-                FSharpSigFileSuffixes
-                |> List.exists (FileSystemUtils.checkSuffix lower)
-            then
+            elif FSharpSigFileSuffixes |> List.exists (FileSystemUtils.checkSuffix lower) then
                 let intfs = Parser.signatureFile lexer lexbuf
 
                 let tripleSlashComments =
@@ -401,10 +377,7 @@ let private ParseInput
 let private EmptyParsedInput (filename, isLastCompiland) =
     let lower = String.lowercase filename
 
-    if
-        FSharpSigFileSuffixes
-        |> List.exists (FileSystemUtils.checkSuffix lower)
-    then
+    if FSharpSigFileSuffixes |> List.exists (FileSystemUtils.checkSuffix lower) then
         ParsedInput.SigFile(
             ParsedSigFileInput(
                 filename,
@@ -807,21 +780,12 @@ let private getSyntaxErrorMessage ctxt =
             result
 
     match ctxt.CurrentToken with
-    | None ->
-        os.Append(UnexpectedEndOfInputE().Format)
-        |> ignore
+    | None -> os.Append(UnexpectedEndOfInputE().Format) |> ignore
     | Some token ->
-        match
-            (token
-             |> Parser.tagOfToken
-             |> Parser.tokenTagToTokenId),
-            token
-        with
+        match (token |> Parser.tagOfToken |> Parser.tokenTagToTokenId), token with
         | EndOfStructuredConstructToken, _ -> os.Append(OBlockEndSentenceE().Format) |> ignore
         | Parser.TOKEN_LEX_FAILURE, Parser.LEX_FAILURE str -> Printf.bprintf os $"%s{str}" (* Fix bug://2431 *)
-        | token, _ ->
-            os.Append(UnexpectedE().Format(token |> tokenIdToText))
-            |> ignore
+        | token, _ -> os.Append(UnexpectedE().Format(token |> tokenIdToText)) |> ignore
 
         (* Search for a state producing a single recognized non-terminal in the states on the stack *)
         let foundInContext =
@@ -918,42 +882,28 @@ let private getSyntaxErrorMessage ctxt =
                     os.Append(NONTERM_interactionE().Format) |> ignore
                     true
                 | [ Parser.NONTERM_hashDirective ] ->
-                    os.Append(NONTERM_hashDirectiveE().Format)
-                    |> ignore
-
+                    os.Append(NONTERM_hashDirectiveE().Format) |> ignore
                     true
                 | [ Parser.NONTERM_fieldDecl ] ->
                     os.Append(NONTERM_fieldDeclE().Format) |> ignore
                     true
                 | [ Parser.NONTERM_unionCaseRepr ] ->
-                    os.Append(NONTERM_unionCaseReprE().Format)
-                    |> ignore
-
+                    os.Append(NONTERM_unionCaseReprE().Format) |> ignore
                     true
                 | [ Parser.NONTERM_localBinding ] ->
-                    os.Append(NONTERM_localBindingE().Format)
-                    |> ignore
-
+                    os.Append(NONTERM_localBindingE().Format) |> ignore
                     true
                 | [ Parser.NONTERM_hardwhiteLetBindings ] ->
-                    os.Append(NONTERM_hardwhiteLetBindingsE().Format)
-                    |> ignore
-
+                    os.Append(NONTERM_hardwhiteLetBindingsE().Format) |> ignore
                     true
                 | [ Parser.NONTERM_classDefnMember ] ->
-                    os.Append(NONTERM_classDefnMemberE().Format)
-                    |> ignore
-
+                    os.Append(NONTERM_classDefnMemberE().Format) |> ignore
                     true
                 | [ Parser.NONTERM_defnBindings ] ->
-                    os.Append(NONTERM_defnBindingsE().Format)
-                    |> ignore
-
+                    os.Append(NONTERM_defnBindingsE().Format) |> ignore
                     true
                 | [ Parser.NONTERM_classMemberSpfn ] ->
-                    os.Append(NONTERM_classMemberSpfnE().Format)
-                    |> ignore
-
+                    os.Append(NONTERM_classMemberSpfnE().Format) |> ignore
                     true
                 | [ Parser.NONTERM_valSpfn ] ->
                     os.Append(NONTERM_valSpfnE().Format) |> ignore
@@ -962,22 +912,16 @@ let private getSyntaxErrorMessage ctxt =
                     os.Append(NONTERM_tyconSpfnE().Format) |> ignore
                     true
                 | [ Parser.NONTERM_anonLambdaExpr ] ->
-                    os.Append(NONTERM_anonLambdaExprE().Format)
-                    |> ignore
-
+                    os.Append(NONTERM_anonLambdaExprE().Format) |> ignore
                     true
                 | [ Parser.NONTERM_attrUnionCaseDecl ] ->
-                    os.Append(NONTERM_attrUnionCaseDeclE().Format)
-                    |> ignore
-
+                    os.Append(NONTERM_attrUnionCaseDeclE().Format) |> ignore
                     true
                 | [ Parser.NONTERM_cPrototype ] ->
                     os.Append(NONTERM_cPrototypeE().Format) |> ignore
                     true
                 | [ Parser.NONTERM_objExpr | Parser.NONTERM_objectImplementationMembers ] ->
-                    os.Append(NONTERM_objectImplementationMembersE().Format)
-                    |> ignore
-
+                    os.Append(NONTERM_objectImplementationMembersE().Format) |> ignore
                     true
                 | [ Parser.NONTERM_ifExprThen | Parser.NONTERM_ifExprElifs | Parser.NONTERM_ifExprCases ] ->
                     os.Append(NONTERM_ifExprCasesE().Format) |> ignore
@@ -986,19 +930,13 @@ let private getSyntaxErrorMessage ctxt =
                     os.Append(NONTERM_openDeclE().Format) |> ignore
                     true
                 | [ Parser.NONTERM_fileModuleSpec ] ->
-                    os.Append(NONTERM_fileModuleSpecE().Format)
-                    |> ignore
-
+                    os.Append(NONTERM_fileModuleSpecE().Format) |> ignore
                     true
                 | [ Parser.NONTERM_patternClauses ] ->
-                    os.Append(NONTERM_patternClausesE().Format)
-                    |> ignore
-
+                    os.Append(NONTERM_patternClausesE().Format) |> ignore
                     true
                 | [ Parser.NONTERM_beginEndExpr ] ->
-                    os.Append(NONTERM_beginEndExprE().Format)
-                    |> ignore
-
+                    os.Append(NONTERM_beginEndExprE().Format) |> ignore
                     true
                 | [ Parser.NONTERM_recdExpr ] ->
                     os.Append(NONTERM_recdExprE().Format) |> ignore
@@ -1010,57 +948,37 @@ let private getSyntaxErrorMessage ctxt =
                     os.Append(NONTERM_exconCoreE().Format) |> ignore
                     true
                 | [ Parser.NONTERM_typeNameInfo ] ->
-                    os.Append(NONTERM_typeNameInfoE().Format)
-                    |> ignore
-
+                    os.Append(NONTERM_typeNameInfoE().Format) |> ignore
                     true
                 | [ Parser.NONTERM_attributeList ] ->
-                    os.Append(NONTERM_attributeListE().Format)
-                    |> ignore
-
+                    os.Append(NONTERM_attributeListE().Format) |> ignore
                     true
                 | [ Parser.NONTERM_quoteExpr ] ->
                     os.Append(NONTERM_quoteExprE().Format) |> ignore
                     true
                 | [ Parser.NONTERM_typeConstraint ] ->
-                    os.Append(NONTERM_typeConstraintE().Format)
-                    |> ignore
-
+                    os.Append(NONTERM_typeConstraintE().Format) |> ignore
                     true
                 | [ NONTERM_Category_ImplementationFile ] ->
-                    os.Append(NONTERM_Category_ImplementationFileE().Format)
-                    |> ignore
-
+                    os.Append(NONTERM_Category_ImplementationFileE().Format) |> ignore
                     true
                 | [ NONTERM_Category_Definition ] ->
-                    os.Append(NONTERM_Category_DefinitionE().Format)
-                    |> ignore
-
+                    os.Append(NONTERM_Category_DefinitionE().Format) |> ignore
                     true
                 | [ NONTERM_Category_SignatureFile ] ->
-                    os.Append(NONTERM_Category_SignatureFileE().Format)
-                    |> ignore
-
+                    os.Append(NONTERM_Category_SignatureFileE().Format) |> ignore
                     true
                 | [ NONTERM_Category_Pattern ] ->
-                    os.Append(NONTERM_Category_PatternE().Format)
-                    |> ignore
-
+                    os.Append(NONTERM_Category_PatternE().Format) |> ignore
                     true
                 | [ NONTERM_Category_Expr ] ->
-                    os.Append(NONTERM_Category_ExprE().Format)
-                    |> ignore
-
+                    os.Append(NONTERM_Category_ExprE().Format) |> ignore
                     true
                 | [ NONTERM_Category_Type ] ->
-                    os.Append(NONTERM_Category_TypeE().Format)
-                    |> ignore
-
+                    os.Append(NONTERM_Category_TypeE().Format) |> ignore
                     true
                 | [ Parser.NONTERM_typeArgsActual ] ->
-                    os.Append(NONTERM_typeArgsActualE().Format)
-                    |> ignore
-
+                    os.Append(NONTERM_typeArgsActualE().Format) |> ignore
                     true
                 | _ -> false)
 
@@ -1089,9 +1007,7 @@ let private getSyntaxErrorMessage ctxt =
              |> Set.ofList
              |> Set.toList)
         with
-        | [ tokenName1 ] ->
-            os.Append(TokenName1E().Format(fix tokenName1))
-            |> ignore
+        | [ tokenName1 ] -> os.Append(TokenName1E().Format(fix tokenName1)) |> ignore
         | [ tokenName1; tokenName2 ] ->
             os.Append(TokenName1TokenName2E().Format (fix tokenName1) (fix tokenName2))
             |> ignore
@@ -1110,11 +1026,7 @@ let parseFile
     let errorLogger = CapturingDiagnosticsLogger("ErrorHandler")
 
     let parseResult =
-        let fileName =
-            if isSignature then
-                "tmp.fsi"
-            else
-                "tmp.fsx"
+        let fileName = if isSignature then "tmp.fsi" else "tmp.fsx"
 
         usingLexbufForParsing (createLexbuf "preview" sourceText, fileName) (fun lexbuf ->
 

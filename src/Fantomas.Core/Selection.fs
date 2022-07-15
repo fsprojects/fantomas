@@ -36,8 +36,7 @@ let correctSelection (fileIndex: int) (sourceText: ISourceText) (selection: rang
                 |> fun firstCharOnLine -> System.Math.Max(firstCharOnLine, selection.StartColumn)
             else
                 // The selection is on a different line than the code, take first non-whitespace character
-                Seq.takeWhile System.Char.IsWhiteSpace startLine
-                |> Seq.length
+                Seq.takeWhile System.Char.IsWhiteSpace startLine |> Seq.length
 
         let endColumn =
             // The selection is on the same line as the code but appears to be inside whitespace
@@ -76,10 +75,7 @@ let findNode (selection: range) (node: TriviaNode) : TriviaNode option =
         && selection.EndLine = node.Range.EndLine
         && selection.EndColumn = node.Range.EndColumn
 
-    if isExactSelection then
-        Some node
-    else
-        None
+    if isExactSelection then Some node else None
 
 let mkAnonSynModuleOrNamespace decl =
     SynModuleOrNamespace(

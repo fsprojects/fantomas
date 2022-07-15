@@ -62,12 +62,10 @@ let formatSourceStringWithDefines defines (s: string) config =
     |> String.normalizeNewLine
 
 let isValidFSharpCode isFsiFile s =
-    CodeFormatter.IsValidFSharpCodeAsync(isFsiFile, s)
-    |> Async.RunSynchronously
+    CodeFormatter.IsValidFSharpCodeAsync(isFsiFile, s) |> Async.RunSynchronously
 
 let formatAST a s c =
-    CodeFormatter.FormatASTAsync(a, s, c)
-    |> Async.RunSynchronously
+    CodeFormatter.FormatASTAsync(a, s, c) |> Async.RunSynchronously
 
 let equal x =
     let x =
@@ -90,9 +88,7 @@ let tryFormatAST ast sourceCode config =
 let formatConfig = { FormatConfig.Default with StrictMode = true }
 
 let shouldNotChangeAfterFormat source =
-    formatSourceString false source config
-    |> prepend newline
-    |> should equal source
+    formatSourceString false source config |> prepend newline |> should equal source
 
 let (==) actual expected = Assert.AreEqual(expected, actual)
 let fail () = Assert.Fail()
@@ -115,18 +111,15 @@ type NUnitRunner() =
             match result with
             | TestResult.True (_data, _) ->
                 // TODO : Log the result data.
-                Runner.onFinishedToString name result
-                |> stdout.WriteLine
+                Runner.onFinishedToString name result |> stdout.WriteLine
 
             | TestResult.Exhausted _data ->
                 // TODO : Log the result data.
-                Runner.onFinishedToString name result
-                |> Assert.Inconclusive
+                Runner.onFinishedToString name result |> Assert.Inconclusive
 
             | TestResult.False _ ->
                 // TODO : Log more information about the test failure.
-                Runner.onFinishedToString name result
-                |> Assert.Fail
+                Runner.onFinishedToString name result |> Assert.Fail
 
 let private getTempFolder () = Path.GetTempPath()
 
