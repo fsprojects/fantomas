@@ -1,5 +1,10 @@
 # Changelog
 
+## [Unreleased]
+
+### Fixed
+* Idempotency problem when using object expression and having a space between get / set lines. [#2372](https://github.com/fsprojects/fantomas/issues/2372)
+
 ## [5.0.0-beta-001] - 2022-07-15
 
 ### Changed

@@ -1149,3 +1149,38 @@ type StreamHelper() =
 
     override x.Dispose disposing = ()
 """
+
+[<Test>]
+let ``trivia before and keyword in SynMemberDefn.GetSet, 2372`` () =
+    formatSourceString
+        false
+        """
+{ new TaskDefinition with
+    member this.Item
+        with get (name: string): obj option = data.TryGet name
+
+
+        and set (name: string) (v: obj option): unit =
+            match v with
+            | None -> data.Remove(name) |> ignore
+            | Some v -> data.[name] <- v
+
+    override this.``type``: string = "fakerun" }
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+{ new TaskDefinition with
+    member this.Item
+        with get (name: string): obj option = data.TryGet name
+
+
+        and set (name: string) (v: obj option): unit =
+            match v with
+            | None -> data.Remove(name) |> ignore
+            | Some v -> data.[name] <- v
+
+    override this.``type``: string = "fakerun" }
+"""
