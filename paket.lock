@@ -27,7 +27,7 @@ NUGET
       Microsoft.SourceLink.GitLab (>= 1.1.1)
     FsCheck (2.16.4)
       FSharp.Core (>= 4.2.3)
-    FSharp.Core (6.0.4) - content: none
+    FSharp.Core (6.0.1) - content: none
     FsUnit (4.2)
       FSharp.Core (>= 5.0.2)
       NETStandard.Library (>= 2.0.3)

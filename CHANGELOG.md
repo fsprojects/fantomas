@@ -1,9 +1,10 @@
 # Changelog
 
-## [Unreleased]
+## [5.0.0-beta-002] - 2022-07-19
 
 ### Fixed
 * Idempotency problem when using object expression and having a space between get / set lines. [#2372](https://github.com/fsprojects/fantomas/issues/2372)
+* FSharp.Core version conflict between Fantomas.Core and Fantomas.FCS. [#2374](https://github.com/fsprojects/fantomas/issues/2374)
 
 ## [5.0.0-beta-001] - 2022-07-15
 
