@@ -114,7 +114,6 @@
     <Compile Include="MaxIfThenShortWidthTests.fs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Fantomas.Extras\Fantomas.Extras.fsproj" />
     <ProjectReference Include="..\Fantomas.Core\Fantomas.Core.fsproj" />
   </ItemGroup>
   <Import Project="..\..\.paket\Paket.Restore.targets" />
