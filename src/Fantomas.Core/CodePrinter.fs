@@ -4357,7 +4357,15 @@ and genMemberDefn astContext node =
         +> genTriviaFor SynMemberDefn_GetSetMember_With withKeyword !- "with"
         +> sepSpace
         +> genProperty astContext firstBinding
-        +> genTriviaForOption SynMemberDefn_GetSetMember_And andKeyword (sepNln +> !- "and" +> sepSpace)
+        +> optSingle
+            (fun andKeyword ->
+                genTriviaFor
+                    SynMemberDefn_GetSetMember_And
+                    andKeyword
+                    (sepNlnConsideringTriviaContentBeforeForMainNode SynMemberDefn_GetSetMember_And andKeyword
+                     +> !- "and"
+                     +> sepSpace))
+            andKeyword
         +> optSingle (genProperty astContext) secondBinding
         +> unindent
 
