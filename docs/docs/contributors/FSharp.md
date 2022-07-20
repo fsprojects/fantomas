@@ -55,6 +55,7 @@ We then later use this pattern to work with the AST we need.
 Example usage in `CodePrinter.fs`:
 
 ```fsharp
+match expr with
 | For (ident, equalsRange, e1, e2, e3, isUp) ->
     atCurrentColumn (
         !- "for "
@@ -70,6 +71,7 @@ Example usage in `CodePrinter.fs`:
         +> genExpr astContext e3
         +> unindent
     )
+| _ -> ...
 ```
 
 - [Custom operators](https://docs.microsoft.com/en-us/dotnet/fsharp/language-reference/operator-overloading#creating-new-operators). In F# there are some special operators like [|>](https://fsharp.github.io/fsharp-core-docs/reference/fsharp-core-operators.html#(|%3E)) and [>>](https://fsharp.github.io/fsharp-core-docs/reference/fsharp-core-operators.html#(%3E%3E)).  
