@@ -1,48 +1,27 @@
 @import "./global-config.sass"
 @import "./fsdocs-default.css"
+@import "./sidebar.sass"
 
+body, html
+  height: 100%
 main
   display: flex
+  height: 100%
 
-#fsdocs-nav
-  #fsdocs-logo
-    width: 90%
-    margin-top: 40px
-    border-style: none
+.nav-item
+    margin-right:10px
 
-  input
-    margin-right: 20px
-    margin-top: 20px
-    margin-bottom: 20px
-    width: 93%
-    -webkit-border-radius: 0
-    border-radius: 0
+.nav-link.active
+    color:$secondary
 
-  font-size: 0.95rem
+.nav-link
+    color:$black
+.nav-link:hover
+    color:$secondary
 
-  .nav-header
-    padding-left: 0
-    color: $black
-    text-transform: none
-    font-size: 16px
-    margin-top: 9px
-    font-weight: bold
-
-  a
-    padding-left: 0
-    color: $gray
-
-blockquote 
-    margin: 0 1em 0 0.25em
-    margin-top: 0px
-    margin-right: 1em
-    margin-bottom: 0px
-    margin-left: 0.25em
-    padding: 0 .75em 0 1em
-    border-left: 1px solid $gray
-    border-right: 0px solid $gray
-
-    
+.bi
+  --bs-text-opacity: 0.5 
+  color:$black
 #fsdocs-content
 
     h1, h2, h3, h4, h5, h6 
@@ -84,8 +63,6 @@ blockquote
         letter-spacing: 0.01px
         font-weight: 500
         color: $black
-    a   
-        color: $primary
     dt
         font-weight:normal
 
@@ -98,9 +75,3 @@ blockquote
     margin-left: 10px
     width: auto
     height: 1.4em
-
-#fsdocs-logo
-    width: 140px
-    height: 140px
-    margin: 10px 0 0 0
-    border-style: none
