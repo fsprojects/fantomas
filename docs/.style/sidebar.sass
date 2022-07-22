@@ -1,4 +1,5 @@
 $sidebar-width: 280px
+
 #sidebar-wrapper
     overflow-y: auto
     position: fixed
@@ -8,6 +9,17 @@ $sidebar-width: 280px
        color: $white
        text-decoration: none
        text-decoration-style: none
+    #sidebar-logo
+        #fsdocs-logo
+            width: 170px
     
 main
-    padding-left: $sidebar-width 
+    padding-right: $sidebar-width
+
+.collapse 
+  &:not(.show) 
+    display: none
+    main
+        padding-right: 0
+  
+

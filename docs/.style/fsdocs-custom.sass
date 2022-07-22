@@ -2,22 +2,30 @@
 @import "./fsdocs-default.css"
 @import "./sidebar.sass"
 
-main
-
-.nav-item
-    margin-right:10px
+.sidebar-toggle
+  opacity: 0.5
 
 .nav-link.active
-    color:$secondary
+    color: $secondary
 
+.input-group
+  .btn
+    color: $black
+    cursor: inherit
+    i
+      opacity: 0.5
+  #search-by
+    color: $black
+    &::placeholder
+      opacity: 0.5
+      color: $black
+      
 .nav-link
-    color:$black
-.nav-link:hover
-    color:$secondary
+    margin-right: 10px
+    color: $black
+    &:hover, &:focus
+        color: $secondary
 
-.bi
-  --bs-text-opacity: 0.5 
-  color:$black
 #fsdocs-content
 
     h1, h2, h3, h4, h5, h6 
@@ -62,7 +70,7 @@ main
     a   
         color: $secondary
     dt
-        font-weight:normal
+        font-weight: normal
 
 .fsdocs-source-link
   float: right
