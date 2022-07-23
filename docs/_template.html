@@ -23,13 +23,11 @@
 </head>
 
 <body>
-  <main >
-    <div id="sidebar-wrapper" class="bg-primary h-100 collapse" >
+  <main id="main-container">
+    <div id="sidebar-wrapper" class="bg-primary h-100 collapse show" >
       <div id="sidebar-logo" class="d-flex justify-content-center p-5">
       <a href="{{fsdocs-logo-link}}"><img id="fsdocs-logo" src="{{root}}/{{fsdocs-logo-src}}" /></a>
 </div>
-      <div id="header">
-      </div>
       <ul class="list-unstyled ps-0 text-white" id="sidebar-generation">
         {{fsdocs-list-of-documents}}
         <!-- {{fsdocs-list-of-namespaces}} -->
@@ -39,7 +37,7 @@
       <div class="content-wrapper">
      <nav class="navbar navbar-expand-lg border py-1">
         <div class="container-fluid">
-          <button class="btn" data-bs-toggle="collapse" data-bs-target="#sidebar-wrapper" aria-controls="sidebar-wrapper" aria-expanded="false" aria-label="Toggle navigation">
+          <button class="btn" data-bs-toggle="collapse" data-bs-target="#sidebar-wrapper" data-bs-parent="#main-container" aria-controls="sidebar-wrapper" aria-expanded="false" aria-label="Toggle navigation">
             <i class="sidebar-toggle fs-3 bi bi-list"></i>
           </button>
           <div class="collapse navbar-collapse" id="navbarText">
@@ -80,6 +78,16 @@
     
   </main>
   <script type="module" src="{{root}}content/sidebar-generation.js"></script>
+  <script type="text/javascript">
+var sidebar = document.getElementById('sidebar-wrapper')
+sidebar.addEventListener('hide.bs.collapse', function (e) {
+  document.getElementById('main-container').classList.add('toggled');
+  console.log(e)
+})
+sidebar.addEventListener('shown.bs.collapse', function () {
+   document.getElementById('main-container').classList.remove('toggled');
+})
+  </script>
   <!-- BEGIN SEARCH BOX: this adds support for the search box -->
   <link rel="stylesheet"
     href="https://cdnjs.cloudflare.com/ajax/libs/JavaScript-autoComplete/1.0.4/auto-complete.css" />

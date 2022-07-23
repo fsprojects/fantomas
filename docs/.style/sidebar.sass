@@ -1,25 +1,29 @@
 $sidebar-width: 280px
 
-#sidebar-wrapper
-    overflow-y: auto
-    position: fixed
-    width: $sidebar-width
-    left: 0
-    a
-       color: $white
-       text-decoration: none
-       text-decoration-style: none
-    #sidebar-logo
-        #fsdocs-logo
-            width: 170px
-    
 main
-    padding-right: $sidebar-width
+    margin-left: $sidebar-width
+    transition: margin 0.3s ease-in-out
+    &.toggled
+        margin-left: 0
 
-.collapse 
-  &:not(.show) 
-    display: none
-    main
-        padding-right: 0
-  
+    #sidebar-wrapper
+        transition: left 0.3s ease-in-out
+        overflow-y: auto
+        position: fixed
+        width: $sidebar-width
+        left: 0
+
+        &:not(.show) 
+            left: -$sidebar-width
+            display: inherit
+
+        a
+           color: $white
+           text-decoration: none
+           text-decoration-style: none
+
+        #sidebar-logo
+            #fsdocs-logo
+                width: 170px
+    
 
