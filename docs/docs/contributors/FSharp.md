@@ -21,7 +21,7 @@ Some other great resources (in no particular order) are:
 F# has a lot of nice language features, although not all of them are used in Fantomas.
 We wish to highlight the most important ones that we use before continuing:
 
-- [Partial active pattern](https://docs.microsoft.com/en-us/dotnet/fsharp/language-reference/active-patterns#partial-active-patterns), these heavily used in `SourceParser.fs`.
+- [Partial active patterns](https://docs.microsoft.com/en-us/dotnet/fsharp/language-reference/active-patterns#partial-active-patterns), these are heavily used in `SourceParser.fs`.
   In short, we use the `Untyped Abstract Syntax Tree` created by the F# parser, we don't use all the information in that tree to restore the source code.
 
 For example [SynExpr.For](https://fsharp.github.io/fsharp-compiler-docs/reference/fsharp-compiler-syntax-synexpr.html#For), the definition looks like:
@@ -76,14 +76,14 @@ match expr with
 
 - [Custom operators](https://docs.microsoft.com/en-us/dotnet/fsharp/language-reference/operator-overloading#creating-new-operators). In F# there are some special operators like [|>](https://fsharp.github.io/fsharp-core-docs/reference/fsharp-core-operators.html#(|%3E)) and [>>](https://fsharp.github.io/fsharp-core-docs/reference/fsharp-core-operators.html#(%3E%3E)).  
 
-Note that these are just function themselves as well. Instead of specifying all the arguments after the function name, (infix) operators let you specify an argument before the operator and after. 
+Note that these are just functions themselves as well. Instead of specifying all the arguments after the function name, (infix) operators let you specify an argument before the operator and after. 
 
 In F#, you are able to create your own operators as well. In Fantomas, the most notable are `!-` and `+>`. We will cover them later, but if you peek in `CodePrinter.fs`, they are heavily used there.
 
 - [Signature files](https://docs.microsoft.com/en-us/dotnet/fsharp/language-reference/signature-files).
 
 In Fantomas we use signature files to define the module boundaries. Everything that is both defined in the implementation file (the `*.fs` file) and in the signature file (the `*.fsi` file) is considered to be visible to other modules.
-If a signature file is present, there is no need to specify `private` in a function you don't want to be visible to other modules. Just don't add `val` entry to the signature file and it will be private automatically.
+If a signature file is present, there is no need to specify `private` in a function you don't want to be visible to other modules. Just don't add a `val` entry to the signature file and it will be private automatically.
 You can look at a signature file to get a glimpse of what the module really does.
 
 - [Type extensions](https://docs.microsoft.com/en-us/dotnet/fsharp/language-reference/type-extensions).
@@ -110,7 +110,7 @@ Don't worry just yet about this implementation, so keep in mind that with this f
 
 - [Function Values](https://docs.microsoft.com/en-us/dotnet/fsharp/language-reference/functions/#function-values)
 
-This is well-known concept in F# and for completion sake we to mention this. In F#, you can pass a function as an argument to another function.
+This is well-known concept in F# and for completion sake we do mention this. In F#, you can pass a function as an argument to another function.
 Fantomas is full of this kind of functions, so be sure to grasp this concept before continuing.
 
 - [Tail recursion](https://docs.microsoft.com/en-us/dotnet/fsharp/language-reference/functions/recursive-functions-the-rec-keyword#tail-recursion)
