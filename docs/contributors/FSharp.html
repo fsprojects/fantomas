@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <title>F#
+</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="author" content="Florian Verdonck, Jindřich Ivánek">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Reem+Kufi:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.3/font/bootstrap-icons.css">
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <script type="text/javascript" async
+            src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+    <link rel="shortcut icon" type="image/x-icon" href="/fantomas/images/favicon.ico">
+    <link type="text/css" rel="stylesheet" href="/fantomas/content/fsdocs-custom.css"/>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <script type="text/javascript" src="/fantomas/content/fsdocs-tips.js"></script>
+    <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <!-- BEGIN SEARCH BOX: this adds support for the search box -->
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/JavaScript-autoComplete/1.0.4/auto-complete.css"/>
+    <!-- END SEARCH BOX: this adds support for the search box -->
+    
+</head>
+
+<body>
+<main>
+    <div class="flex-shrink-0 p-3 bg-white" style="width: 280px;">
+        <a href="/" class="d-flex align-items-center pb-3 mb-3 link-dark text-decoration-none border-bottom">
+            <svg class="bi me-2" width="30" height="24">
+                <use xlink:href="#bootstrap"/>
+            </svg>
+            <span class="fs-5 fw-semibold">Fantomas</span>
+        </a>
+        <a href="/fantomas/"><img id="fsdocs-logo" src="/fantomas//images/logo-fantomas-color.svg"/></a>
+        <!-- BEGIN SEARCH BOX: this adds support for the search box -->
+        <div id="header">
+            <div class="searchbox" id="fsdocs-searchbox">
+                <label for="search-by">
+                    <i class="fas fa-search"></i>
+                </label>
+                <input data-search-input="" id="search-by" type="search" placeholder="Search..."/>
+                <span data-search-clear="">
+                        <i class="fas fa-times"></i>
+                    </span>
+            </div>
+        </div>
+        <ul class="list-unstyled ps-0" id="sidebar-generation">
+            <li class="nav-header">
+  End-user documentation
+</li>             
+<li class="nav-item">
+  <a class="nav-link" href="/fantomas/docs/FAKE.html">
+    FAKE build system
+
+  </a>
+</li>             
+<li class="nav-item">
+  <a class="nav-link" href="/fantomas/docs/Rider.html">
+    JetBrains Rider
+
+  </a>
+</li>             
+<li class="nav-item">
+  <a class="nav-link" href="/fantomas/docs/VSCode.html">
+    Visual Studio Code
+
+  </a>
+</li>             
+<li class="nav-item">
+  <a class="nav-link" href="/fantomas/docs/Configuration.html">
+    Configuration
+
+  </a>
+</li>             
+<li class="nav-item">
+  <a class="nav-link" href="/fantomas/docs/VisualStudio.html">
+    Visual Studio
+
+  </a>
+</li>             
+<li class="nav-item">
+  <a class="nav-link" href="/fantomas/docs/StyleGuide.html">
+    Style guide
+
+  </a>
+</li>             
+<li class="nav-item">
+  <a class="nav-link" href="/fantomas/docs/Benchmarks.html">
+    Benchmarks
+
+  </a>
+</li>             
+<li class="nav-item">
+  <a class="nav-link" href="/fantomas/docs/FAQ.html">
+    FAQ
+
+  </a>
+</li>             
+<li class="nav-header">
+  Documentation
+</li>             
+<li class="nav-item">
+  <a class="nav-link" href="/fantomas/docs/GettingStarted.html">
+    Getting Started
+
+  </a>
+</li>             
+<li class="nav-item">
+  <a class="nav-link" href="/fantomas/docs/IgnoreFiles.html">
+    Ignore Files
+
+  </a>
+</li>             
+<li class="nav-item">
+  <a class="nav-link" href="/fantomas/docs/FormattingCheck.html">
+    Formatting Check
+
+  </a>
+</li>             
+<li class="nav-item">
+  <a class="nav-link" href="/fantomas/docs/GitHooks.html">
+    Git hooks
+
+  </a>
+</li>             
+<li class="nav-header">
+  Contributors
+</li>             
+<li class="nav-item">
+  <a class="nav-link" href="/fantomas/docs/contributors/Index.html">
+    Contributors
+
+  </a>
+</li>             
+<li class="nav-item">
+  <a class="nav-link" href="/fantomas/docs/contributors/FSharp.html">
+    F#
+
+  </a>
+</li>
+            <!-- <li class="nav-header">
+  API Reference
+</li>             
+<li class="nav-item">
+  <a class="nav-link" href="/fantomas/reference/index.html">
+    All Namespaces
+  </a>
+</li> -->
+        </ul>
+    </div>
+    <div class="container">
+        <div class="masthead">
+            <h3 class="muted"><a href="/fantomas/">fantomas</a></h3>
+        </div>
+        <hr/>
+        <div class="container" id="fsdocs-content">
+            
+<h1><a name="F" class="anchor" href="#F">F#</a></h1>
+<h2><a name="New-to-F" class="anchor" href="#New-to-F">New to F#?</a></h2>
+<p>If you are truly brand-new to the F# language, you might want to start by reading the <a href="https://dotnet.microsoft.com/en-us/languages/fsharp">F# documentation of Microsoft</a>.<br />
+Some other great resources (in no particular order) are:</p>
+<ul>
+<li><a href="https://leanpub.com/essential-fsharp">Essential F#</a></li>
+<li><a href="https://fsharpforfunandprofit.com/">F# for Fun and Profit</a></li>
+<li><a href="https://www.youtube.com/watch?v=SvOInBxPL30">F# Fundamentals Tutorial | Learn Functional Programming | Step-by-Step Guide</a></li>
+<li><a href="https://fsharp.org/guides/slack/">F# Foundation Slack</a></li>
+<li><a href="https://discord.com/invite/R6n7c54">F# on Discord</a></li>
+</ul>
+<h2><a name="Used-F-features" class="anchor" href="#Used-F-features">Used F# features</a></h2>
+<p>F# has a lot of nice language features, although not all of them are used in Fantomas.
+We wish to highlight the most important ones that we use before continuing:</p>
+<ul>
+<li>
+<a href="https://docs.microsoft.com/en-us/dotnet/fsharp/language-reference/active-patterns#partial-active-patterns">Partial active patterns</a>, these are heavily used in <code>SourceParser.fs</code>.
+In short, we use the <code>Untyped Abstract Syntax Tree</code> created by the F# parser, we don't use all the information in that tree to restore the source code.
+</li>
+</ul>
+<p>For example <a href="https://fsharp.github.io/fsharp-compiler-docs/reference/fsharp-compiler-syntax-synexpr.html#For">SynExpr.For</a>, the definition looks like:</p>
+<pre class="fssnip highlighted"><code lang="fsharp"><span class="k">type</span> <span class="rt">SynExpr</span> <span class="o">=</span>
+    <span class="o">..</span><span class="pn">.</span>
+    <span class="c">/// F# syntax: &#39;for i = ... to ... do ...&#39;</span>
+    <span class="pn">|</span> <span onmouseout="hideTip(event, 'fs1', 1)" onmouseover="showTip(event, 'fs1', 1)" class="id">For</span> <span class="k">of</span>
+        <span class="id">forDebugPoint</span><span class="pn">:</span> <span class="id">DebugPointAtFor</span> <span class="pn">*</span>
+        <span class="id">toDebugPoint</span><span class="pn">:</span> <span class="id">DebugPointAtInOrTo</span> <span class="pn">*</span>
+        <span class="id">ident</span><span class="pn">:</span> <span class="id">Ident</span> <span class="pn">*</span>
+        <span class="id">equalsRange</span><span class="pn">:</span> <span class="id">range</span> <span onmouseout="hideTip(event, 'fs2', 2)" onmouseover="showTip(event, 'fs2', 2)" class="id">option</span> <span class="pn">*</span>
+        <span class="id">identBody</span><span class="pn">:</span> <span class="id">SynExpr</span> <span class="pn">*</span>
+        <span class="id">direction</span><span class="pn">:</span> <span onmouseout="hideTip(event, 'fs3', 3)" onmouseover="showTip(event, 'fs3', 3)" class="id">bool</span> <span class="pn">*</span>
+        <span class="id">toBody</span><span class="pn">:</span> <span class="id">SynExpr</span> <span class="pn">*</span>
+        <span class="id">doBody</span><span class="pn">:</span> <span class="id">SynExpr</span> <span class="pn">*</span>
+        <span class="id">range</span><span class="pn">:</span> <span class="id">range</span>
+</code></pre>
+<p>However, in Fantomas we have a partial active pattern that we use to easily grab the information we need from the AST.</p>
+<pre class="fssnip highlighted"><code lang="fsharp"><span class="k">let</span> <span class="pn">(</span><span class="fn">|</span><span class="uc">For</span><span class="pn">|</span><span class="id">_</span><span class="pn">|</span><span class="pn">)</span> <span class="o">=</span>
+    <span class="k">function</span>
+    <span class="pn">|</span> <span onmouseout="hideTip(event, 'fs4', 4)" onmouseover="showTip(event, 'fs4', 4)" class="id">SynExpr</span><span class="pn">.</span><span class="id">For</span> <span class="pn">(</span><span class="id">_</span><span class="pn">,</span> <span class="id">_</span><span class="pn">,</span> <span class="id">ident</span><span class="pn">,</span> <span class="id">equalsRange</span><span class="pn">,</span> <span class="id">e1</span><span class="pn">,</span> <span class="id">isUp</span><span class="pn">,</span> <span class="id">e2</span><span class="pn">,</span> <span class="id">e3</span><span class="pn">,</span> <span class="id">_</span><span class="pn">)</span> <span class="k">-&gt;</span> <span onmouseout="hideTip(event, 'fs5', 5)" onmouseover="showTip(event, 'fs5', 5)" class="id">Some</span><span class="pn">(</span><span class="id">ident</span><span class="pn">,</span> <span class="id">equalsRange</span><span class="pn">,</span> <span class="id">e1</span><span class="pn">,</span> <span class="id">e2</span><span class="pn">,</span> <span class="id">e3</span><span class="pn">,</span> <span class="id">isUp</span><span class="pn">)</span>
+    <span class="pn">|</span> <span class="id">_</span> <span class="k">-&gt;</span> <span onmouseout="hideTip(event, 'fs6', 6)" onmouseover="showTip(event, 'fs6', 6)" class="id">None</span>  
+</code></pre>
+<p>Notice the underscores, we don't use the <code>DebugPoint</code> info and <code>range</code>, so we drop that information in the result of the partial active pattern.
+We then later use this pattern to work with the AST we need.
+Example usage in <code>CodePrinter.fs</code>:</p>
+<pre class="fssnip highlighted"><code lang="fsharp"><span class="k">match</span> <span class="id">expr</span> <span class="k">with</span>
+<span class="pn">|</span> <span class="id">For</span> <span class="pn">(</span><span class="id">ident</span><span class="pn">,</span> <span class="id">equalsRange</span><span class="pn">,</span> <span class="id">e1</span><span class="pn">,</span> <span class="id">e2</span><span class="pn">,</span> <span class="id">e3</span><span class="pn">,</span> <span class="id">isUp</span><span class="pn">)</span> <span class="k">-&gt;</span>
+    <span class="id">atCurrentColumn</span> <span class="pn">(</span>
+        <span class="o">!-</span> <span class="s">&quot;for &quot;</span>
+        <span class="o">+&gt;</span> <span class="id">genIdent</span> <span class="id">ident</span>
+        <span class="o">+&gt;</span> <span class="id">genEq</span> <span class="id">SynExpr_For_Equals</span> <span class="id">equalsRange</span>
+        <span class="o">+&gt;</span> <span class="id">sepSpace</span>
+        <span class="o">+&gt;</span> <span class="id">genExpr</span> <span class="id">astContext</span> <span class="id">e1</span>
+        <span class="o">+&gt;</span> <span class="id">ifElse</span> <span class="id">isUp</span> <span class="pn">(</span><span class="o">!-</span> <span class="s">&quot; to &quot;</span><span class="pn">)</span> <span class="pn">(</span><span class="o">!-</span> <span class="s">&quot; downto &quot;</span><span class="pn">)</span>
+        <span class="o">+&gt;</span> <span class="id">genExpr</span> <span class="id">astContext</span> <span class="id">e2</span>
+        <span class="o">+&gt;</span> <span class="o">!-</span> <span class="s">&quot; do&quot;</span>
+        <span class="o">+&gt;</span> <span class="id">indent</span>
+        <span class="o">+&gt;</span> <span class="id">sepNln</span>
+        <span class="o">+&gt;</span> <span class="id">genExpr</span> <span class="id">astContext</span> <span class="id">e3</span>
+        <span class="o">+&gt;</span> <span class="id">unindent</span>
+    <span class="pn">)</span>
+<span class="pn">|</span> <span class="id">_</span> <span class="k">-&gt;</span> <span class="o">..</span><span class="pn">.</span>
+</code></pre>
+<ul>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/fsharp/language-reference/operator-overloading#creating-new-operators">Custom operators</a>. In F# there are some special operators like <a href="https://fsharp.github.io/fsharp-core-docs/reference/fsharp-core-operators.html#(|%3E)">|&gt;</a> and <a href="https://fsharp.github.io/fsharp-core-docs/reference/fsharp-core-operators.html#(%3E%3E)">&gt;&gt;</a>.</li>
+</ul>
+<p>Note that these are just functions themselves as well. Instead of specifying all the arguments after the function name, (infix) operators let you specify an argument before the operator and after.</p>
+<p>In F#, you are able to create your own operators as well. In Fantomas, the most notable are <code>!-</code> and <code>+&gt;</code>. We will cover them later, but if you peek in <code>CodePrinter.fs</code>, they are heavily used there.</p>
+<ul>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/fsharp/language-reference/signature-files">Signature files</a>.</li>
+</ul>
+<p>In Fantomas we use signature files to define the module boundaries. Everything that is both defined in the implementation file (the <code>*.fs</code> file) and in the signature file (the <code>*.fsi</code> file) is considered to be visible to other modules.
+If a signature file is present, there is no need to specify <code>private</code> in a function you don't want to be visible to other modules. Just don't add a <code>val</code> entry to the signature file and it will be private automatically.
+You can look at a signature file to get a glimpse of what the module really does.</p>
+<ul>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/fsharp/language-reference/type-extensions">Type extensions</a>.</li>
+</ul>
+<p>In contrast to partial active patterns, where we want to hide some AST information, it can occur that we need to extend the type of an AST node.
+We do this by adding a new type member to an existing Syntax tree type.
+Example in <code>AstExtensions.fs</code>:</p>
+<pre class="fssnip highlighted"><code lang="fsharp"><span class="k">type</span> <span class="id">SynMemberFlags</span> <span class="k">with</span>
+
+    <span class="k">member</span> <span onmouseout="hideTip(event, 'fs7', 7)" onmouseover="showTip(event, 'fs7', 7)" class="fn">memberFlags</span><span class="pn">.</span><span class="prop">FullRange</span><span class="pn">:</span> <span class="id">range</span> <span onmouseout="hideTip(event, 'fs2', 8)" onmouseover="showTip(event, 'fs2', 8)" class="rt">option</span> <span class="o">=</span>
+        <span class="id">RangeHelpers</span><span class="pn">.</span><span class="id">mergeRanges</span>
+            <span class="pn">[</span> <span class="k">yield!</span> <span onmouseout="hideTip(event, 'fs8', 9)" onmouseover="showTip(event, 'fs8', 9)" class="id">Option</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs9', 10)" onmouseover="showTip(event, 'fs9', 10)" class="id">toList</span> <span onmouseout="hideTip(event, 'fs7', 11)" onmouseover="showTip(event, 'fs7', 11)" class="id">memberFlags</span><span class="pn">.</span><span class="id">Trivia</span><span class="pn">.</span><span class="id">AbstractRange</span>
+              <span class="k">yield!</span> <span onmouseout="hideTip(event, 'fs8', 12)" onmouseover="showTip(event, 'fs8', 12)" class="id">Option</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs9', 13)" onmouseover="showTip(event, 'fs9', 13)" class="id">toList</span> <span onmouseout="hideTip(event, 'fs7', 14)" onmouseover="showTip(event, 'fs7', 14)" class="id">memberFlags</span><span class="pn">.</span><span class="id">Trivia</span><span class="pn">.</span><span class="id">DefaultRange</span>
+              <span class="k">yield!</span> <span onmouseout="hideTip(event, 'fs8', 15)" onmouseover="showTip(event, 'fs8', 15)" class="id">Option</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs9', 16)" onmouseover="showTip(event, 'fs9', 16)" class="id">toList</span> <span onmouseout="hideTip(event, 'fs7', 17)" onmouseover="showTip(event, 'fs7', 17)" class="id">memberFlags</span><span class="pn">.</span><span class="id">Trivia</span><span class="pn">.</span><span class="id">MemberRange</span>
+              <span class="k">yield!</span> <span onmouseout="hideTip(event, 'fs8', 18)" onmouseover="showTip(event, 'fs8', 18)" class="id">Option</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs9', 19)" onmouseover="showTip(event, 'fs9', 19)" class="id">toList</span> <span onmouseout="hideTip(event, 'fs7', 20)" onmouseover="showTip(event, 'fs7', 20)" class="id">memberFlags</span><span class="pn">.</span><span class="id">Trivia</span><span class="pn">.</span><span class="id">OverrideRange</span>
+              <span class="k">yield!</span> <span onmouseout="hideTip(event, 'fs8', 21)" onmouseover="showTip(event, 'fs8', 21)" class="id">Option</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs9', 22)" onmouseover="showTip(event, 'fs9', 22)" class="id">toList</span> <span onmouseout="hideTip(event, 'fs7', 23)" onmouseover="showTip(event, 'fs7', 23)" class="id">memberFlags</span><span class="pn">.</span><span class="id">Trivia</span><span class="pn">.</span><span class="id">StaticRange</span> <span class="pn">]</span>
+</code></pre>
+<p>The type <code>SynMemberFlags</code> does not expose any range information, but we can extend it to do so.<br />
+The <code>.FullRange</code> naming convention is used to indicate that we are not satisfied by the original range or it is lacking all together.<br />
+Don't worry just yet about this implementation, so keep in mind that with this feature we can later use <code>memberFlags.FullRange</code> on a <code>SynMemberFlags</code> instance.</p>
+<ul>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/fsharp/language-reference/functions/#function-values">Function Values</a></li>
+</ul>
+<p>This is well-known concept in F# and for completion sake we do mention this. In F#, you can pass a function as an argument to another function.
+Fantomas is full of this kind of functions, so be sure to grasp this concept before continuing.</p>
+<ul>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/fsharp/language-reference/functions/recursive-functions-the-rec-keyword#tail-recursion">Tail recursion</a></li>
+</ul>
+<p>There are places in the code base where we use some more advanced recursion techniques. <code>AstTransformer.fs</code> is one of them.<br />
+A very good explanation of what happens here can be found in this <a href="https://www.gresearch.co.uk/blog/article/advanced-recursion-techniques-in-f/">blogpost</a>.</p>
+<ul>
+<li><a href="https://medium.com/@dzoukr/event-sourcing-step-by-step-in-f-be808aa0ca18">Event Sourcing</a></li>
+</ul>
+<p>We use event sourcing to capture the instructions on how to write the new code. Instead of writing the new code directly to for example a <code>StringBuilder</code>, we write it to a list of events.<br />
+That list of events will contain instructions like <code>Write "let"</code>, <code>IndentBy 4</code>, <code>WriteLine</code> etc. So it is useful to have some notion of event sourcing.</p>
+<p>Although, it really is an implementation detail in <code>Context.fs</code>, think of it as writing a letter with a pen and a paper.
+We first rehearse what we want to say, then we write the letter. Not write evey word as we are making up the letter, but write the letter as a whole once we know the content.<br />
+These events are used to achieve this.</p>
+
+            <div class="fsdocs-tip" id="fs1">active recognizer For: &#39;a -&gt; &#39;b option</div>
+<div class="fsdocs-tip" id="fs2">type &#39;T option = Option&lt;&#39;T&gt;<br /><em>&lt;summary&gt;The type of optional values. When used from other CLI languages the
+ empty option is the &lt;c&gt;null&lt;/c&gt; value. &lt;/summary&gt;<br />&lt;remarks&gt;Use the constructors &lt;c&gt;Some&lt;/c&gt; and &lt;c&gt;None&lt;/c&gt; to create values of this type.
+ Use the values in the &lt;c&gt;Option&lt;/c&gt; module to manipulate values of this type,
+ or pattern match against the values directly.
+
+ &#39;None&#39; values will appear as the value &lt;c&gt;null&lt;/c&gt; to other CLI languages.
+ Instance methods on this type will appear as static methods to other CLI languages
+ due to the use of &lt;c&gt;null&lt;/c&gt; as a value representation.&lt;/remarks&gt;<br />&lt;category index=&quot;3&quot;&gt;Options&lt;/category&gt;</em></div>
+<div class="fsdocs-tip" id="fs3">[&lt;Struct&gt;]
+type bool = System.Boolean<br /><em>&lt;summary&gt;An abbreviation for the CLI type &lt;see cref=&quot;T:System.Boolean&quot; /&gt;.&lt;/summary&gt;<br />&lt;category&gt;Basic Types&lt;/category&gt;</em></div>
+<div class="fsdocs-tip" id="fs4">type SynExpr =
+  member FullRange: obj</div>
+<div class="fsdocs-tip" id="fs5">union case Option.Some: Value: &#39;T -&gt; Option&lt;&#39;T&gt;<br /><em>&lt;summary&gt;The representation of &quot;Value of type &#39;T&quot;&lt;/summary&gt;<br />&lt;param name=&quot;Value&quot;&gt;The input value.&lt;/param&gt;<br />&lt;returns&gt;An option representing the value.&lt;/returns&gt;</em></div>
+<div class="fsdocs-tip" id="fs6">union case Option.None: Option&lt;&#39;T&gt;<br /><em>&lt;summary&gt;The representation of &quot;No value&quot;&lt;/summary&gt;</em></div>
+<div class="fsdocs-tip" id="fs7">val memberFlags: SynExpr</div>
+<div class="fsdocs-tip" id="fs8">module Option
+
+from Microsoft.FSharp.Core<br /><em>&lt;summary&gt;Contains operations for working with options.&lt;/summary&gt;<br />&lt;category&gt;Options&lt;/category&gt;</em></div>
+<div class="fsdocs-tip" id="fs9">val toList: option: &#39;T option -&gt; &#39;T list<br /><em>&lt;summary&gt;Convert the option to a list of length 0 or 1.&lt;/summary&gt;<br />&lt;param name=&quot;option&quot;&gt;The input option.&lt;/param&gt;<br />&lt;returns&gt;The result list.&lt;/returns&gt;<br />&lt;example id=&quot;toList-1&quot;&gt;&lt;code lang=&quot;fsharp&quot;&gt;
+ (None: int option) |&amp;gt; Option.toList // evaluates to []
+ Some 42 |&amp;gt; Option.toList // evaluates to [42]
+ &lt;/code&gt;&lt;/example&gt;</em></div>
+
+        </div>
+    </div>
+</main>
+<script type="module" src="/fantomas/content/sidebar-generation.js"></script>
+<!-- BEGIN SEARCH BOX: this adds support for the search box -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/JavaScript-autoComplete/1.0.4/auto-complete.css"/>
+<script type="text/javascript">var fsdocs_search_baseurl = '/fantomas/';</script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/lunr.js/2.3.8/lunr.min.js"></script>
+<script type="text/javascript"
+        src="https://cdnjs.cloudflare.com/ajax/libs/JavaScript-autoComplete/1.0.4/auto-complete.min.js"></script>
+<script type="text/javascript" src="/fantomas/content/fsdocs-search.js"></script>
+<!-- END SEARCH BOX: this adds support for the search box -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM"
+        crossorigin="anonymous"></script>
+</body>
+
+</html>
