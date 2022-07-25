@@ -195,7 +195,7 @@ let runCheckCommand (recurse: bool) (inputPath: InputPath) : int =
         eprintfn "Input path '%s' not found" s
         1
     | InputPath.Unspecified _ ->
-        eprintfn "No input path provided. Nothing to do."
+        eprintfn "No input path provided. Call with --help for usage information."
         1
     | InputPath.File f when (IgnoreFile.isIgnoredFile (IgnoreFile.current.Force()) f) ->
         printfn "'%s' was ignored" f
@@ -364,13 +364,13 @@ let main argv =
         try
             match inputPath, outputPath with
             | InputPath.NoFSharpFile s, _ ->
-                eprintfn "Input path '%s' is unsupported file type" s
+                eprintfn "Input path '%s' is unsupported file type." s
                 exit 1
             | InputPath.NotFound s, _ ->
-                eprintfn "Input path '%s' not found" s
+                eprintfn "Input path '%s' not found." s
                 exit 1
             | InputPath.Unspecified, _ ->
-                eprintfn "Input path is missing..."
+                eprintfn "Input path is missing. Call with --help for usage information."
                 exit 1
             | InputPath.File f, _ when (IgnoreFile.isIgnoredFile (IgnoreFile.current.Force()) f) ->
                 printfn "'%s' was ignored" f
