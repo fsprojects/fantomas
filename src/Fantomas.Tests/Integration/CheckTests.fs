@@ -36,6 +36,22 @@ let ``invalid files should report exit code 1`` () =
     exitCode |> should equal 1
 
 [<Test>]
+let ``non-existing file should report exit code 1`` () =
+    let { ExitCode = exitCode } = checkCode [ "somenonexistingfile.fs" ]
+    exitCode |> should equal 1
+
+[<Test>]
+let ``unsupported file should report exit code 1`` () =
+    use fileFixture = new TemporaryFileCodeSample(CorrectlyFormatted, extension = "txt")
+    let { ExitCode = exitCode } = checkCode [ fileFixture.Filename ]
+    exitCode |> should equal 1
+
+[<Test>]
+let ``missing file should report exit code 1`` () =
+    let { ExitCode = exitCode } = checkCode []
+    exitCode |> should equal 1
+
+[<Test>]
 let ``files that need formatting should report exit code 99`` () =
     use fileFixture = new TemporaryFileCodeSample(NeedsFormatting)
 
