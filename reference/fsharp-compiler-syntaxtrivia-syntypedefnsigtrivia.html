@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="utf-8">
-    <title>Msg (fantomas)</title>
+    <title>SynTypeDefnSigTrivia (fantomas)</title>
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <meta name="author" content="Florian Verdonck, Jindřich Ivánek">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -163,54 +163,45 @@
         <div class="container" id="fsdocs-content">
             <div>
   <h2>
-    Msg Type
+    SynTypeDefnSigTrivia Type
   </h2>
   <dl class="fsdocs-metadata">
     <dt>
       Namespace: 
-      <a href="/fantomas/reference/fantomas-client.html">
-        Fantomas.Client
+      <a href="/fantomas/reference/fsharp-compiler-syntaxtrivia.html">
+        FSharp.Compiler.SyntaxTrivia
       </a>
     </dt>
     <dt>
-      Assembly: Fantomas.Client.dll
-    </dt>
-    <dt>
-      Parent Module: 
-      <a href="/fantomas/reference/fantomas-client-lspfantomasservice.html">
-        LSPFantomasService
-      </a>
+      Assembly: Fantomas.FCS.dll
     </dt>
     <dt>
       Base Type: 
       <code>obj</code>
-    </dt>
-    <dt>
-      All Interfaces: 
-      <code><span><a href="https://docs.microsoft.com/dotnet/api/system.iequatable-1">IEquatable</a>&lt;<a href="/fantomas/reference/fantomas-client-lspfantomasservice-msg.html">Msg</a>&gt;</span></code>
-      , 
-      <code><a href="https://docs.microsoft.com/dotnet/api/system.collections.istructuralequatable">IStructuralEquatable</a></code>
     </dt>
   </dl>
   <div class="fsdocs-xmldoc">
     <div>
       <p class="fsdocs-summary">
         
+ Represents additional information for SynTypeDefnSig
+
       </p>
     </div>
   </div>
   <div></div>
   <div></div>
   <div></div>
+  <div></div>
   <div>
     <h3>
-      Union cases
+      Record fields
     </h3>
     <table class="table outer-list fsdocs-member-list">
       <thead>
         <tr>
           <td class="fsdocs-member-list-header">
-            Union case
+            Record Field
           </td>
           <td class="fsdocs-member-list-header">
             Description
@@ -221,40 +212,25 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code onmouseout="hideTip(event, '1329', 1329)" onmouseover="showTip(event, '1329', 1329)">
+              <code onmouseout="hideTip(event, '1196', 1196)" onmouseover="showTip(event, '1196', 1196)">
                 <p>
-                  <a id="GetDaemon">
-                    <a href="#GetDaemon">
-                      <code><span>GetDaemon(<span><a href="/fantomas/reference/fantomas-client-lspfantomasservicetypes-folder.html">Folder</a>,&#32;<span><a href="https://fsharp.github.io/fsharp-core-docs/reference/fsharp-control-fsharpasyncreplychannel-1">AsyncReplyChannel</a>&lt;<span><a href="https://fsharp.github.io/fsharp-core-docs/reference/fsharp-core-fsharpresult-2">Result</a>&lt;<span><a href="https://docs.microsoft.com/dotnet/api/streamjsonrpc.jsonrpc">JsonRpc</a>,&#32;<a href="/fantomas/reference/fantomas-client-lspfantomasservicetypes-getdaemonerror.html">GetDaemonError</a></span>&gt;</span>&gt;</span></span>)</span></code>
+                  <a id="EqualsRange">
+                    <a href="#EqualsRange">
+                      <code>EqualsRange</code>
                     </a>
                   </a>
                 </p>
               </code>
-              <div class="fsdocs-tip" id="1329">
+              <div class="fsdocs-tip" id="1196">
                 <div class="member-tooltip">
                   Full Usage: 
-                  <code><span>GetDaemon(<span><a href="/fantomas/reference/fantomas-client-lspfantomasservicetypes-folder.html">Folder</a>,&#32;<span><a href="https://fsharp.github.io/fsharp-core-docs/reference/fsharp-control-fsharpasyncreplychannel-1">AsyncReplyChannel</a>&lt;<span><a href="https://fsharp.github.io/fsharp-core-docs/reference/fsharp-core-fsharpresult-2">Result</a>&lt;<span><a href="https://docs.microsoft.com/dotnet/api/streamjsonrpc.jsonrpc">JsonRpc</a>,&#32;<a href="/fantomas/reference/fantomas-client-lspfantomasservicetypes-getdaemonerror.html">GetDaemonError</a></span>&gt;</span>&gt;</span></span>)</span></code>
+                  <code>EqualsRange</code>
                   <br/>
                   <br/>
-                  Parameters: 
-                  <ul>
-                    <span>
-                      <b>
-                        Item1
-                      </b>
-                      :
-                      <code><a href="/fantomas/reference/fantomas-client-lspfantomasservicetypes-folder.html">Folder</a></code>
-                    </span>
-                    <br/>
-                    <span>
-                      <b>
-                        Item2
-                      </b>
-                      :
-                      <code><span><a href="https://fsharp.github.io/fsharp-core-docs/reference/fsharp-control-fsharpasyncreplychannel-1">AsyncReplyChannel</a>&lt;<span><a href="https://fsharp.github.io/fsharp-core-docs/reference/fsharp-core-fsharpresult-2">Result</a>&lt;<span><a href="https://docs.microsoft.com/dotnet/api/streamjsonrpc.jsonrpc">JsonRpc</a>,&#32;<a href="/fantomas/reference/fantomas-client-lspfantomasservicetypes-getdaemonerror.html">GetDaemonError</a></span>&gt;</span>&gt;</span></code>
-                    </span>
-                    <br/>
-                  </ul>
+                  <span>
+                    Field type: 
+                    <code><span><a href="/fantomas/reference/fsharp-compiler-text-range-0.html">range</a>&#32;option</span></code>
+                  </span>
                   <br/>
                 </div>
               </div>
@@ -262,63 +238,49 @@
           </td>
           <td class="fsdocs-member-xmldoc">
             <div class="fsdocs-summary">
-              <a href="" class="fsdocs-source-link" title="Source on GitHub">
+              <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/SyntaxTree/SyntaxTrivia.fsi#L226-226" class="fsdocs-source-link" title="Source on GitHub">
                 <img src="/fantomas/content/img/github.png" class="normal"/>
                 <img src="/fantomas/content/img/github-hover.png" class="hover"/>
               </a>
               <p class="fsdocs-summary">
                 
+ The syntax range of the `=` token.
+
               </p>
             </div>
-            <dl class="fsdocs-params">
-              <dt class="fsdocs-param">
-                <span class="fsdocs-param-name">
-                  Item1
+            <dl class="fsdocs-returns">
+              <dt>
+                <span class="fsdocs-return-name">
+                  Field type: 
                 </span>
-                :
-                <code><a href="/fantomas/reference/fantomas-client-lspfantomasservicetypes-folder.html">Folder</a></code>
+                <code><span><a href="/fantomas/reference/fsharp-compiler-text-range-0.html">range</a>&#32;option</span></code>
               </dt>
-              <dd class="fsdocs-param-docs"></dd>
-              <dt class="fsdocs-param">
-                <span class="fsdocs-param-name">
-                  Item2
-                </span>
-                :
-                <code><span><a href="https://fsharp.github.io/fsharp-core-docs/reference/fsharp-control-fsharpasyncreplychannel-1">AsyncReplyChannel</a>&lt;<span><a href="https://fsharp.github.io/fsharp-core-docs/reference/fsharp-core-fsharpresult-2">Result</a>&lt;<span><a href="https://docs.microsoft.com/dotnet/api/streamjsonrpc.jsonrpc">JsonRpc</a>,&#32;<a href="/fantomas/reference/fantomas-client-lspfantomasservicetypes-getdaemonerror.html">GetDaemonError</a></span>&gt;</span>&gt;</span></code>
-              </dt>
-              <dd class="fsdocs-param-docs"></dd>
+              <dd class="fsdocs-return-docs"></dd>
             </dl>
           </td>
         </tr>
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code onmouseout="hideTip(event, '1330', 1330)" onmouseover="showTip(event, '1330', 1330)">
+              <code onmouseout="hideTip(event, '1197', 1197)" onmouseover="showTip(event, '1197', 1197)">
                 <p>
-                  <a id="Reset">
-                    <a href="#Reset">
-                      <code><span>Reset&#32;<span><a href="https://fsharp.github.io/fsharp-core-docs/reference/fsharp-control-fsharpasyncreplychannel-1">AsyncReplyChannel</a>&lt;unit&gt;</span></span></code>
+                  <a id="TypeKeyword">
+                    <a href="#TypeKeyword">
+                      <code>TypeKeyword</code>
                     </a>
                   </a>
                 </p>
               </code>
-              <div class="fsdocs-tip" id="1330">
+              <div class="fsdocs-tip" id="1197">
                 <div class="member-tooltip">
                   Full Usage: 
-                  <code><span>Reset&#32;<span><a href="https://fsharp.github.io/fsharp-core-docs/reference/fsharp-control-fsharpasyncreplychannel-1">AsyncReplyChannel</a>&lt;unit&gt;</span></span></code>
+                  <code>TypeKeyword</code>
                   <br/>
                   <br/>
-                  Parameters: 
-                  <ul>
-                    <span>
-                      <b>
-                        Item
-                      </b>
-                      :
-                      <code><span><a href="https://fsharp.github.io/fsharp-core-docs/reference/fsharp-control-fsharpasyncreplychannel-1">AsyncReplyChannel</a>&lt;unit&gt;</span></code>
-                    </span>
-                    <br/>
-                  </ul>
+                  <span>
+                    Field type: 
+                    <code><span><a href="/fantomas/reference/fsharp-compiler-text-range-0.html">range</a>&#32;option</span></code>
+                  </span>
                   <br/>
                 </div>
               </div>
@@ -326,23 +288,74 @@
           </td>
           <td class="fsdocs-member-xmldoc">
             <div class="fsdocs-summary">
-              <a href="" class="fsdocs-source-link" title="Source on GitHub">
+              <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/SyntaxTree/SyntaxTrivia.fsi#L223-223" class="fsdocs-source-link" title="Source on GitHub">
                 <img src="/fantomas/content/img/github.png" class="normal"/>
                 <img src="/fantomas/content/img/github-hover.png" class="hover"/>
               </a>
               <p class="fsdocs-summary">
                 
+ The syntax range of the `type` keyword.
+
               </p>
             </div>
-            <dl class="fsdocs-params">
-              <dt class="fsdocs-param">
-                <span class="fsdocs-param-name">
-                  Item
+            <dl class="fsdocs-returns">
+              <dt>
+                <span class="fsdocs-return-name">
+                  Field type: 
                 </span>
-                :
-                <code><span><a href="https://fsharp.github.io/fsharp-core-docs/reference/fsharp-control-fsharpasyncreplychannel-1">AsyncReplyChannel</a>&lt;unit&gt;</span></code>
+                <code><span><a href="/fantomas/reference/fsharp-compiler-text-range-0.html">range</a>&#32;option</span></code>
               </dt>
-              <dd class="fsdocs-param-docs"></dd>
+              <dd class="fsdocs-return-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '1198', 1198)" onmouseover="showTip(event, '1198', 1198)">
+                <p>
+                  <a id="WithKeyword">
+                    <a href="#WithKeyword">
+                      <code>WithKeyword</code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="1198">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code>WithKeyword</code>
+                  <br/>
+                  <br/>
+                  <span>
+                    Field type: 
+                    <code><span><a href="/fantomas/reference/fsharp-compiler-text-range-0.html">range</a>&#32;option</span></code>
+                  </span>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-summary">
+              <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/SyntaxTree/SyntaxTrivia.fsi#L229-229" class="fsdocs-source-link" title="Source on GitHub">
+                <img src="/fantomas/content/img/github.png" class="normal"/>
+                <img src="/fantomas/content/img/github-hover.png" class="hover"/>
+              </a>
+              <p class="fsdocs-summary">
+                
+ The syntax range of the `with` keyword
+
+              </p>
+            </div>
+            <dl class="fsdocs-returns">
+              <dt>
+                <span class="fsdocs-return-name">
+                  Field type: 
+                </span>
+                <code><span><a href="/fantomas/reference/fsharp-compiler-text-range-0.html">range</a>&#32;option</span></code>
+              </dt>
+              <dd class="fsdocs-return-docs"></dd>
             </dl>
           </td>
         </tr>
@@ -352,8 +365,81 @@
   <div></div>
   <div></div>
   <div></div>
-  <div></div>
-  <div></div>
+  <div>
+    <h3>
+      Static members
+    </h3>
+    <table class="table outer-list fsdocs-member-list">
+      <thead>
+        <tr>
+          <td class="fsdocs-member-list-header">
+            Static member
+          </td>
+          <td class="fsdocs-member-list-header">
+            Description
+          </td>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '1199', 1199)" onmouseover="showTip(event, '1199', 1199)">
+                <p>
+                  <a id="Zero">
+                    <a href="#Zero">
+                      <code><span>SynTypeDefnSigTrivia.Zero</span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="1199">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>SynTypeDefnSigTrivia.Zero</span></code>
+                  <br/>
+                  <br/>
+                  <span>
+                    Returns: 
+                    <code><a href="/fantomas/reference/fsharp-compiler-syntaxtrivia-syntypedefnsigtrivia.html">SynTypeDefnSigTrivia</a></code>
+                  </span>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-summary">
+              <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:P:FSharp.Compiler.SyntaxTrivia.SynTypeDefnSigTrivia.Zero`')">
+                <img src="/fantomas/content/img/copy-md.png" class="normal"/>
+                <img src="/fantomas/content/img/copy-md-hover.png" class="hover"/>
+              </div>
+              <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'P:FSharp.Compiler.SyntaxTrivia.SynTypeDefnSigTrivia.Zero\'/>')">
+                <img src="/fantomas/content/img/copy-xml.png" class="normal"/>
+                <img src="/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+              </div>
+              <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/SyntaxTree/SyntaxTrivia.fs#L148-148" class="fsdocs-source-link" title="Source on GitHub">
+                <img src="/fantomas/content/img/github.png" class="normal"/>
+                <img src="/fantomas/content/img/github-hover.png" class="hover"/>
+              </a>
+              <p class="fsdocs-summary">
+                
+              </p>
+            </div>
+            <dl class="fsdocs-returns">
+              <dt>
+                <span class="fsdocs-return-name">
+                  Returns: 
+                </span>
+                <code><a href="/fantomas/reference/fsharp-compiler-syntaxtrivia-syntypedefnsigtrivia.html">SynTypeDefnSigTrivia</a></code>
+              </dt>
+              <dd class="fsdocs-return-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
 </div>
             
         </div>

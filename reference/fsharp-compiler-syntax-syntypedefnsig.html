@@ -215,7 +215,7 @@
                 <p>
                   <a id="SynTypeDefnSig">
                     <a href="#SynTypeDefnSig">
-                      <code><span>SynTypeDefnSig(<span>typeInfo,&#32;equalsRange,&#32;typeRepr,&#32;withKeyword,&#32;members,&#32;range</span>)</span></code>
+                      <code><span>SynTypeDefnSig(<span>typeInfo,&#32;typeRepr,&#32;members,&#32;range,&#32;trivia</span>)</span></code>
                     </a>
                   </a>
                 </p>
@@ -223,7 +223,7 @@
               <div class="fsdocs-tip" id="1098">
                 <div class="member-tooltip">
                   Full Usage: 
-                  <code><span>SynTypeDefnSig(<span>typeInfo,&#32;equalsRange,&#32;typeRepr,&#32;withKeyword,&#32;members,&#32;range</span>)</span></code>
+                  <code><span>SynTypeDefnSig(<span>typeInfo,&#32;typeRepr,&#32;members,&#32;range,&#32;trivia</span>)</span></code>
                   <br/>
                   <br/>
                   Parameters: 
@@ -238,26 +238,10 @@
                     <br/>
                     <span>
                       <b>
-                        equalsRange
-                      </b>
-                      :
-                      <code><span><a href="/fantomas/reference/fsharp-compiler-text-range-0.html">range</a>&#32;option</span></code>
-                    </span>
-                    <br/>
-                    <span>
-                      <b>
                         typeRepr
                       </b>
                       :
                       <code><a href="/fantomas/reference/fsharp-compiler-syntax-syntypedefnsigrepr.html">SynTypeDefnSigRepr</a></code>
-                    </span>
-                    <br/>
-                    <span>
-                      <b>
-                        withKeyword
-                      </b>
-                      :
-                      <code><span><a href="/fantomas/reference/fsharp-compiler-text-range-0.html">range</a>&#32;option</span></code>
                     </span>
                     <br/>
                     <span>
@@ -274,6 +258,14 @@
                       </b>
                       :
                       <code><a href="/fantomas/reference/fsharp-compiler-text-range-0.html">range</a></code>
+                    </span>
+                    <br/>
+                    <span>
+                      <b>
+                        trivia
+                      </b>
+                      :
+                      <code><a href="/fantomas/reference/fsharp-compiler-syntaxtrivia-syntypedefnsigtrivia.html">SynTypeDefnSigTrivia</a></code>
                     </span>
                     <br/>
                   </ul>
@@ -305,26 +297,10 @@
               <dd class="fsdocs-param-docs"></dd>
               <dt class="fsdocs-param">
                 <span class="fsdocs-param-name">
-                  equalsRange
-                </span>
-                :
-                <code><span><a href="/fantomas/reference/fsharp-compiler-text-range-0.html">range</a>&#32;option</span></code>
-              </dt>
-              <dd class="fsdocs-param-docs"></dd>
-              <dt class="fsdocs-param">
-                <span class="fsdocs-param-name">
                   typeRepr
                 </span>
                 :
                 <code><a href="/fantomas/reference/fsharp-compiler-syntax-syntypedefnsigrepr.html">SynTypeDefnSigRepr</a></code>
-              </dt>
-              <dd class="fsdocs-param-docs"></dd>
-              <dt class="fsdocs-param">
-                <span class="fsdocs-param-name">
-                  withKeyword
-                </span>
-                :
-                <code><span><a href="/fantomas/reference/fsharp-compiler-text-range-0.html">range</a>&#32;option</span></code>
               </dt>
               <dd class="fsdocs-param-docs"></dd>
               <dt class="fsdocs-param">
@@ -341,6 +317,14 @@
                 </span>
                 :
                 <code><a href="/fantomas/reference/fsharp-compiler-text-range-0.html">range</a></code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  trivia
+                </span>
+                :
+                <code><a href="/fantomas/reference/fsharp-compiler-syntaxtrivia-syntypedefnsigtrivia.html">SynTypeDefnSigTrivia</a></code>
               </dt>
               <dd class="fsdocs-param-docs"></dd>
             </dl>
@@ -405,7 +389,7 @@
                 <img src="/fantomas/content/img/copy-xml.png" class="normal"/>
                 <img src="/fantomas/content/img/copy-xml-hover.png" class="hover"/>
               </div>
-              <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/SyntaxTree/SyntaxTree.fs#L1227-1227" class="fsdocs-source-link" title="Source on GitHub">
+              <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/SyntaxTree/SyntaxTree.fs#L1226-1226" class="fsdocs-source-link" title="Source on GitHub">
                 <img src="/fantomas/content/img/github.png" class="normal"/>
                 <img src="/fantomas/content/img/github-hover.png" class="hover"/>
               </a>
