@@ -914,7 +914,8 @@ and visitSynTypeDefnSig (typeDefSig: SynTypeDefnSig) : TriviaNode =
             SynTypeDefnSig_
             typeDefSig.Range
             (sortChildren
-                [| yield! visitSynComponentInfo sci
+                [| yield! Option.toList (mkNodeOption SynTypeDefnSig_Type trivia.TypeKeyword)
+                   yield! visitSynComponentInfo sci
                    yield! Option.toList (mkNodeOption SynTypeDefnSig_Equals trivia.EqualsRange)
                    yield! visitSynTypeDefnSigRepr synTypeDefnSigReprs
                    yield! Option.toList (mkNodeOption SynTypeDefnSig_With trivia.WithKeyword)

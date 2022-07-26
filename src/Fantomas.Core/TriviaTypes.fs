@@ -199,6 +199,7 @@ type FsAstType =
     | SynTypeDefn_Equals
     | SynTypeDefn_With
     | SynTypeDefnSig_
+    | SynTypeDefnSig_Type
     | SynTypeDefnSig_Equals
     | SynTypeDefnSig_With
     // | SynTypeDefnSigRepr_ObjectModel

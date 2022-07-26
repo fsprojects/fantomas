@@ -1,6 +1,6 @@
 # Changelog
 
-## [Unreleased]
+## [5.0.0-beta-003] - 2022-07-26
 
 ### Changed
 * Show a better error message when the folder does not exist. [#2341](https://github.com/fsprojects/fantomas/issues/2341)
@@ -9,6 +9,7 @@
 ### Fixed
 * global keyword is escaped with single-backticks when used as part of a namespace/module open. [#2274](https://github.com/fsprojects/fantomas/issues/2274)
 * global namespace should not be escaped. [#2366](https://github.com/fsprojects/fantomas/issues/2366)
+* Trivia between xml doc and type not restored. [#2143](https://github.com/fsprojects/fantomas/issues/2143)
 
 ## [5.0.0-beta-002] - 2022-07-19
 
