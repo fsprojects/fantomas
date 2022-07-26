@@ -80,11 +80,17 @@ let internal collectTriviaFromCodeComments
         | CommentTrivia.LineComment r ->
             let content = source.GetContentAt r
 
-            let line = source.GetLineString(r.StartLine - 1)
+            let index = r.StartLine - 1
+
+            let line = source.GetLineString index
 
             let item =
+                let trimmedLine = line.TrimStart(' ', ';')
+
                 Comment(
-                    if line.TrimStart(' ', ';').StartsWith("//") then
+                    if index = 0 && trimmedLine.StartsWith("#!") then // shebang
+                        CommentOnSingleLine content
+                    else if trimmedLine.StartsWith("//") then
                         CommentOnSingleLine content
                     else
                         LineCommentAfterSourceCode content
