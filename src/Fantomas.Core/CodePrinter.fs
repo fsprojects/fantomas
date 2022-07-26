@@ -190,10 +190,10 @@ and genSigModuleOrNamespace
     +> ifElse (moduleKind = SynModuleOrNamespaceKind.AnonModule) sepNone (moduleOrNamespace +> sepModuleAndFirstDecl)
     +> genSigModuleDeclList astContext mds
     |> (match moduleKind with
+        | SynModuleOrNamespaceKind.AnonModule -> genTriviaFor SynModuleOrNamespaceSig_AnonModule range
         | SynModuleOrNamespaceKind.DeclaredNamespace -> genTriviaFor SynModuleOrNamespaceSig_DeclaredNamespace range
         | SynModuleOrNamespaceKind.GlobalNamespace -> genTriviaFor SynModuleOrNamespaceSig_GlobalNamespace range
-        | SynModuleOrNamespaceKind.NamedModule -> genTriviaFor SynModuleOrNamespaceSig_NamedModule range
-        | _ -> id)
+        | SynModuleOrNamespaceKind.NamedModule -> genTriviaFor SynModuleOrNamespaceSig_NamedModule range)
 
 and genModuleDeclList astContext e =
     let rec collectItems
@@ -361,7 +361,7 @@ and genModuleDecl astContext (node: SynModuleDecl) =
         +> genModuleDeclList astContext mds
         +> unindent
 
-    | Open lid -> !- "open " +> genLongIdent lid
+    | Open lid -> !- "open " +> genSynLongIdent false lid
     | OpenType lid -> !- "open type " +> genSynLongIdent false lid
     // There is no nested types and they are recursive if there are more than one definition
     | Types (t :: ts) ->
@@ -398,7 +398,7 @@ and genSigModuleDecl astContext node =
         +> genSigModuleDeclList astContext mds
         +> unindent
 
-    | SigOpen lid -> !- "open " +> genLongIdent lid
+    | SigOpen lid -> !- "open " +> genSynLongIdent false lid
     | SigOpenType sli -> !- "open type " +> genSynLongIdent false sli
     | SigTypes (t :: ts) ->
         let items =
@@ -1307,7 +1307,7 @@ and genExpr astContext synExpr ctx =
 
                 (expr +> optSingle (leaveNodeFor SynExpr_Paren_ClosingParenthesis) rpr) ctx
         | ParenFunctionNameWithStar (lpr, originalNotation, rpr) ->
-            sepOpenTFor lpr +> !- $" {originalNotation} " +> sepCloseTFor rpr
+            sepOpenTFor lpr +> !- $" {originalNotation} " +> sepCloseTFor (Some rpr)
         | Paren (lpr, e, rpr, _pr) ->
             match e with
             | LetOrUses _
@@ -3422,7 +3422,7 @@ and sepNlnBetweenSigTypeAndMembers (withKeyword: range option) (ms: SynMemberSig
 and genSigTypeDefn
     astContext
     (isFirstSigTypeDefn: bool)
-    (SigTypeDef (ats, px, ao, tds, tcs, equalsRange, tdr, withKeyword, ms, lid, _preferPostfix, fullRange))
+    (SigTypeDef (ats, px, typeKeyword, ao, tds, tcs, equalsRange, tdr, withKeyword, ms, lid, _preferPostfix, fullRange))
     =
     let genTriviaForOnelinerAttributes f (ctx: Context) =
         match ats with
@@ -3437,7 +3437,9 @@ and genSigTypeDefn
         genPreXmlDoc px
         +> ifElse
             isFirstSigTypeDefn
-            (genAttributes astContext ats +> !- "type ")
+            (genAttributes astContext ats
+             +> optSingle (enterNodeFor SynTypeDefnSig_Type) typeKeyword
+             +> !- "type ")
             ((!- "and " +> genOnelinerAttributes astContext ats)
              |> genTriviaForOnelinerAttributes)
         +> opt sepSpace ao genAccess
@@ -4171,7 +4173,7 @@ and genMemberDefnList astContext ms =
 and genMemberDefn astContext node =
     match node with
     | MDNestedType _ -> invalidArg "md" "This is not implemented in F# compiler"
-    | MDOpen lid -> !- "open " +> genLongIdent lid
+    | MDOpen lid -> !- "open " +> genSynLongIdent false lid
     // What is the role of so
     | MDImplicitInherit (t, e, _) ->
         let genBasecall =

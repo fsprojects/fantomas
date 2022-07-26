@@ -11,6 +11,10 @@ type SynModuleOrNamespace with
 
     member FullRange: range
 
+type SynModuleOrNamespaceSig with
+
+    member FullRange: range
+
 type SynIdent with
 
     member FullRange: range

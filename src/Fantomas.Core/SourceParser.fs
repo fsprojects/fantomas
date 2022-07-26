@@ -83,9 +83,9 @@ let (|ModuleOrNamespace|)
     (ats, px, trivia.ModuleKeyword, trivia.NamespaceKeyword, ao, lids, mds, isRecursive, kind, m.FullRange)
 
 let (|SigModuleOrNamespace|)
-    (SynModuleOrNamespaceSig.SynModuleOrNamespaceSig (lids, isRecursive, kind, mds, px, ats, ao, range, trivia))
+    (SynModuleOrNamespaceSig.SynModuleOrNamespaceSig (lids, isRecursive, kind, mds, px, ats, ao, _range, trivia) as m)
     =
-    (ats, px, trivia.ModuleKeyword, trivia.NamespaceKeyword, ao, lids, mds, isRecursive, kind, range)
+    (ats, px, trivia.ModuleKeyword, trivia.NamespaceKeyword, ao, lids, mds, isRecursive, kind, m.FullRange)
 
 let (|EmptyFile|_|) (input: ParsedInput) =
     match input with
@@ -731,10 +731,11 @@ let (|DynamicExpr|_|) =
 // (*) a b is ok though
 let (|ParenFunctionNameWithStar|_|) =
     function
-    | Paren (lpr,
-             LongIdentExpr (SynLongIdent ([ _ ], [], [ Some (IdentTrivia.OriginalNotation originalNotation) ])),
-             rpr,
-             _pr) when (originalNotation.Length > 1 && originalNotation.StartsWith("*")) ->
+    | LongIdentExpr (SynLongIdent ([ _ ],
+                                   [],
+                                   [ Some (IdentTrivia.OriginalNotationWithParen (lpr, originalNotation, rpr)) ])) when
+        (originalNotation.Length > 1 && originalNotation.StartsWith("*"))
+        ->
         Some(lpr, originalNotation, rpr)
     | _ -> None
 
@@ -1407,14 +1408,21 @@ let (|TypeDef|) (SynTypeDefn (SynComponentInfo (ats, tds, tcs, lid, px, preferPo
     (ats, px, trivia.TypeKeyword, ao, tds, tcs, trivia.EqualsRange, tdr, trivia.WithKeyword, ms, lid, preferPostfix)
 
 let (|SigTypeDef|)
-    (SynTypeDefnSig (SynComponentInfo (ats, tds, tcs, lid, px, preferPostfix, ao, _),
-                     equalsRange,
-                     tdr,
-                     withKeyword,
-                     ms,
-                     range))
+    (SynTypeDefnSig (SynComponentInfo (ats, tds, tcs, lid, px, preferPostfix, ao, _), tdr, ms, range, trivia))
     =
-    (ats, px, ao, tds, tcs, equalsRange, tdr, withKeyword, ms, lid, preferPostfix, range)
+    (ats,
+     px,
+     trivia.TypeKeyword,
+     ao,
+     tds,
+     tcs,
+     trivia.EqualsRange,
+     tdr,
+     trivia.WithKeyword,
+     ms,
+     lid,
+     preferPostfix,
+     range)
 
 let (|TyparDecl|) (SynTyparDecl (ats, tp) as std) = (ats, tp, std.FullRange)
 

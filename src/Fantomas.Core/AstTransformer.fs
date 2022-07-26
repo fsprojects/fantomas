@@ -166,11 +166,7 @@ and visitSynModuleDecl (ast: SynModuleDecl) : TriviaNode =
             // we use the parent ranges here to match up with the trivia parsed
             match target with
             | SynOpenDeclTarget.ModuleOrNamespace (longId, _range) ->
-                mkSynModuleDeclNode
-                    SynModuleDecl_Open
-                    ast
-                    parentRange
-                    (sortChildren [| visitLongIdentIncludingFullRange longId |])
+                mkSynModuleDeclNode SynModuleDecl_Open ast parentRange (sortChildren [| visitSynLongIdent longId |])
                 |> finalContinuation
             | SynOpenDeclTarget.Type (synType, _range) ->
                 mkSynModuleDeclNode SynModuleDecl_OpenType ast parentRange (sortChildren [| visitSynType synType |])
@@ -913,15 +909,16 @@ and visitSynTypeDefn (td: SynTypeDefn) : TriviaNode =
 
 and visitSynTypeDefnSig (typeDefSig: SynTypeDefnSig) : TriviaNode =
     match typeDefSig with
-    | SynTypeDefnSig (sci, equalsRange, synTypeDefnSigReprs, withRange, memberSig, _) ->
+    | SynTypeDefnSig (sci, synTypeDefnSigReprs, memberSig, _, trivia) ->
         mkNodeWithChildren
             SynTypeDefnSig_
             typeDefSig.Range
             (sortChildren
-                [| yield! visitSynComponentInfo sci
-                   yield! Option.toList (mkNodeOption SynTypeDefnSig_Equals equalsRange)
+                [| yield! Option.toList (mkNodeOption SynTypeDefnSig_Type trivia.TypeKeyword)
+                   yield! visitSynComponentInfo sci
+                   yield! Option.toList (mkNodeOption SynTypeDefnSig_Equals trivia.EqualsRange)
                    yield! visitSynTypeDefnSigRepr synTypeDefnSigReprs
-                   yield! Option.toList (mkNodeOption SynTypeDefnSig_With withRange)
+                   yield! Option.toList (mkNodeOption SynTypeDefnSig_With trivia.WithKeyword)
                    yield! List.map visitSynMemberSig memberSig |])
 
 and visitSynTypeDefnSigRepr (stdr: SynTypeDefnSigRepr) : TriviaNode list =
@@ -938,7 +935,7 @@ and visitSynMemberDefn (mbrDef: SynMemberDefn) : TriviaNode =
         // we use the parent ranges here to match up with the trivia parsed
         match target with
         | SynOpenDeclTarget.ModuleOrNamespace (longIdent, _range) ->
-            mkNodeWithChildren SynMemberDefn_Open parentRange [| visitLongIdentIncludingFullRange longIdent |]
+            mkNodeWithChildren SynMemberDefn_Open parentRange [| visitSynLongIdent longIdent |]
         | SynOpenDeclTarget.Type (synType, _range) ->
             mkNodeWithChildren SynMemberDefn_OpenType parentRange [| visitSynType synType |]
     | SynMemberDefn.Member (memberDefn, range) ->
@@ -1668,7 +1665,7 @@ and visitSynModuleSigDecl (ast: SynModuleSigDecl) : TriviaNode =
                     SynModuleSigDecl_Open
                     ast
                     parentRange
-                    (sortChildren [| visitLongIdentIncludingFullRange longId |])
+                    (sortChildren [| visitSynLongIdent longId |])
                 |> finalContinuation
             | SynOpenDeclTarget.Type (synType, _range) ->
                 mkSynModuleSigDeclNode

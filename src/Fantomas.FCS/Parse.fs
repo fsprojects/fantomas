@@ -414,7 +414,7 @@ let private createLexerFunction (defines: string list) lexbuf (errorLogger: Capt
     let lexResourceManager = LexResourceManager()
 
     let lexargs =
-        mkLexargs (defines, lightStatus, lexResourceManager, [], errorLogger, PathMap.empty)
+        mkLexargs (defines, lightStatus, lexResourceManager, [], errorLogger, PathMap.empty, false)
 
     let lexargs = { lexargs with applyLineDirectives = false }
 
