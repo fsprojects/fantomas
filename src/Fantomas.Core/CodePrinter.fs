@@ -361,7 +361,7 @@ and genModuleDecl astContext (node: SynModuleDecl) =
         +> genModuleDeclList astContext mds
         +> unindent
 
-    | Open lid -> !- "open " +> genLongIdent lid
+    | Open lid -> !- "open " +> genSynLongIdent false lid
     | OpenType lid -> !- "open type " +> genSynLongIdent false lid
     // There is no nested types and they are recursive if there are more than one definition
     | Types (t :: ts) ->
@@ -398,7 +398,7 @@ and genSigModuleDecl astContext node =
         +> genSigModuleDeclList astContext mds
         +> unindent
 
-    | SigOpen lid -> !- "open " +> genLongIdent lid
+    | SigOpen lid -> !- "open " +> genSynLongIdent false lid
     | SigOpenType sli -> !- "open type " +> genSynLongIdent false sli
     | SigTypes (t :: ts) ->
         let items =
@@ -1307,7 +1307,7 @@ and genExpr astContext synExpr ctx =
 
                 (expr +> optSingle (leaveNodeFor SynExpr_Paren_ClosingParenthesis) rpr) ctx
         | ParenFunctionNameWithStar (lpr, originalNotation, rpr) ->
-            sepOpenTFor lpr +> !- $" {originalNotation} " +> sepCloseTFor rpr
+            sepOpenTFor lpr +> !- $" {originalNotation} " +> sepCloseTFor (Some rpr)
         | Paren (lpr, e, rpr, _pr) ->
             match e with
             | LetOrUses _
@@ -4171,7 +4171,7 @@ and genMemberDefnList astContext ms =
 and genMemberDefn astContext node =
     match node with
     | MDNestedType _ -> invalidArg "md" "This is not implemented in F# compiler"
-    | MDOpen lid -> !- "open " +> genLongIdent lid
+    | MDOpen lid -> !- "open " +> genSynLongIdent false lid
     // What is the role of so
     | MDImplicitInherit (t, e, _) ->
         let genBasecall =

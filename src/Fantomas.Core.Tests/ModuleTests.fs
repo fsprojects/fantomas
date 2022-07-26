@@ -1009,3 +1009,43 @@ open FSharp.Compiler.CodeAnalysis
 module internal SynExprAppLocationsImpl =
     let a = 42
 """
+
+[<Test>]
+let ``global keyword in open statement, 2366`` () =
+    formatSourceString
+        false
+        """
+namespace Ionide.VSCode.FSharp
+
+open global.Node
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+namespace Ionide.VSCode.FSharp
+
+open global.Node
+"""
+
+[<Test>]
+let ``global keyword in open statement, signature file`` () =
+    formatSourceString
+        true
+        """
+[<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]
+module Ionide.VSCode.FSharp
+
+open global.Node.ChildProcess
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+[<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]
+module Ionide.VSCode.FSharp
+
+open global.Node.ChildProcess
+"""

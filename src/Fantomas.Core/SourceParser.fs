@@ -731,10 +731,11 @@ let (|DynamicExpr|_|) =
 // (*) a b is ok though
 let (|ParenFunctionNameWithStar|_|) =
     function
-    | Paren (lpr,
-             LongIdentExpr (SynLongIdent ([ _ ], [], [ Some (IdentTrivia.OriginalNotation originalNotation) ])),
-             rpr,
-             _pr) when (originalNotation.Length > 1 && originalNotation.StartsWith("*")) ->
+    | LongIdentExpr (SynLongIdent ([ _ ],
+                                   [],
+                                   [ Some (IdentTrivia.OriginalNotationWithParen (lpr, originalNotation, rpr)) ])) when
+        (originalNotation.Length > 1 && originalNotation.StartsWith("*"))
+        ->
         Some(lpr, originalNotation, rpr)
     | _ -> None
 
@@ -1407,14 +1408,9 @@ let (|TypeDef|) (SynTypeDefn (SynComponentInfo (ats, tds, tcs, lid, px, preferPo
     (ats, px, trivia.TypeKeyword, ao, tds, tcs, trivia.EqualsRange, tdr, trivia.WithKeyword, ms, lid, preferPostfix)
 
 let (|SigTypeDef|)
-    (SynTypeDefnSig (SynComponentInfo (ats, tds, tcs, lid, px, preferPostfix, ao, _),
-                     equalsRange,
-                     tdr,
-                     withKeyword,
-                     ms,
-                     range))
+    (SynTypeDefnSig (SynComponentInfo (ats, tds, tcs, lid, px, preferPostfix, ao, _), tdr, ms, range, trivia))
     =
-    (ats, px, ao, tds, tcs, equalsRange, tdr, withKeyword, ms, lid, preferPostfix, range)
+    (ats, px, ao, tds, tcs, trivia.EqualsRange, tdr, trivia.WithKeyword, ms, lid, preferPostfix, range)
 
 let (|TyparDecl|) (SynTyparDecl (ats, tp) as std) = (ats, tp, std.FullRange)
 
