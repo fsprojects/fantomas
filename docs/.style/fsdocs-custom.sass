@@ -2,8 +2,17 @@
 @import "./fsdocs-default.css"
 @import "./sidebar.sass"
 
+//.content-wrapper
+//    @include media-breakpoint-up(md) 
+//        width: 100%
+
 .sidebar-toggle
   opacity: 0.5
+
+.navbar
+  position: sticky
+  top: 0
+  background-color: $white
 
 .nav-link.active
     color: $secondary
@@ -27,7 +36,6 @@
         color: $secondary
 
 #fsdocs-content
-
     h1, h2, h3, h4, h5, h6 
       a
         color: $black

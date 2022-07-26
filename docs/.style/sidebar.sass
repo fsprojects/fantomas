@@ -1,22 +1,15 @@
 $sidebar-width: 280px
 
 main
-    margin-left: $sidebar-width
+    margin-left: 0
     transition: margin 0.3s ease-in-out
-    &.toggled
-        margin-left: 0
 
     #sidebar-wrapper
+        width: 100%
         transition: left 0.3s ease-in-out
         overflow-y: auto
         position: fixed
-        width: $sidebar-width
-        left: 0
-
-        &:not(.show) 
-            left: -$sidebar-width
-            display: inherit
-
+        z-index: 1000
         a
            color: $white
            text-decoration: none
@@ -25,5 +18,20 @@ main
         #sidebar-logo
             #fsdocs-logo
                 width: 170px
+
+        &:not(.show)
+            display: none
+
+        @include media-breakpoint-up(md) 
+            width: $sidebar-width
+            left: 0
+
+
+    @include media-breakpoint-up(md) 
+        &:not(.toggled)
+            margin-left: $sidebar-width
+
+
+
     
 

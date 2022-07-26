@@ -26,7 +26,7 @@
   <main id="main-container">
     <div id="sidebar-wrapper" class="bg-primary h-100 collapse show" >
       <div id="sidebar-logo" class="d-flex justify-content-center p-5">
-      <a href="{{fsdocs-logo-link}}"><img id="fsdocs-logo" src="{{root}}/{{fsdocs-logo-src}}" /></a>
+      <a href="./index.html" ><img id="fsdocs-logo" src="{{root}}/{{fsdocs-logo-src}}" /></a>
 </div>
       <ul class="list-unstyled ps-0 text-white" id="sidebar-generation">
         {{fsdocs-list-of-documents}}
@@ -43,7 +43,7 @@
           <div class="collapse navbar-collapse" id="navbarText">
             <div class="navbar-nav me-auto mb-2 mb-lg-0 fs-5">
                 <a class="nav-link active" aria-current="page" href="index.html">Docs</a>
-                <a class="nav-link" href="#">Tools</a>
+                <a class="nav-link" target="_blank" href="https://fsprojects.github.io/fantomas-tools/">Tools</a>
             </div>
             <form class="d-flex">
               <div class="input-group me-4">
@@ -62,7 +62,7 @@
                 </span>
               </div>
             </form>
-            <a class="nav-link m-0 p-0" href="https://github.com/fsprojects/fantomas">GitHub<i
+            <a class="nav-link m-0 p-0" target="_blank" href="{{fsdocs-repository-link}}">GitHub<i
                 class="bi bi-box-arrow-up-right mx-2"></i></a>
           </div>
         </div>
@@ -79,13 +79,17 @@
   </main>
   <script type="module" src="{{root}}content/sidebar-generation.js"></script>
   <script type="text/javascript">
-var sidebar = document.getElementById('sidebar-wrapper')
-sidebar.addEventListener('hide.bs.collapse', function (e) {
-  document.getElementById('main-container').classList.add('toggled');
-  console.log(e)
+const sidebar = document.getElementById('sidebar-wrapper')
+
+sidebar.addEventListener('hide.bs.collapse', (e) => {
+  if (e.target && e.target.id === 'sidebar-wrapper') {
+    document.getElementById('main-container').classList.add('toggled');
+  }
 })
-sidebar.addEventListener('shown.bs.collapse', function () {
+sidebar.addEventListener('shown.bs.collapse', (e) => {
+  if (e.target && e.target.id === 'sidebar-wrapper') {
    document.getElementById('main-container').classList.remove('toggled');
+  }
 })
   </script>
   <!-- BEGIN SEARCH BOX: this adds support for the search box -->

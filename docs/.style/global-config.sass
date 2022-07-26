@@ -10,26 +10,25 @@ $primary: #338CBB
 $secondary: #2FBADC
 $black: #222222
 $white: #FFF
-$super-white:#f2f3ee
-$pale-smoke:#d5d6d1
-$beige: #fff7ed
-$ocean: #3c4e52
-$gray: #808080
-$dark-red:#8e0e2b
 $navbar-light-brand-color: $white
 $navbar-light-brand-hover-color: $white
 $navbar-light-color: $white
+$navbar-light-active-color: $secondary
 $navbar-light-hover-color: $white
 $navbar-nav-link-padding-x: 0
 
 // 3. Include remainder of required Bootstrap stylesheets
 @import "./bootstrap/scss/variables"
+
+// 4. Include any default map overrides here
+
+// 5. Include remainder of required parts
+@import "./bootstrap/scss/maps"
 @import "./bootstrap/scss/mixins"
 @import "./bootstrap/scss/root"
 
-// 4. Include any optional Bootstrap components as you like
+// 6. Optionally include any other parts as needed
 @import "./bootstrap/scss/utilities"
-
 
 @import "./bootstrap/scss/forms"
 @import "./bootstrap/scss/reboot"
@@ -46,5 +45,5 @@ $navbar-nav-link-padding-x: 0
 @import "./bootstrap/scss/card"
 @import "./bootstrap/scss/helpers"
 
-// 5. Add additional custom code here
+// 6. Add additional custom code here
 @import "./bootstrap/scss/utilities/api"
