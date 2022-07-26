@@ -1,5 +1,10 @@
 # Changelog
 
+## [Unreleased]
+
+### Changed
+* Show a better error message when the folder does not exist. [#2341](https://github.com/fsprojects/fantomas/issues/2341)
+
 ## [5.0.0-beta-002] - 2022-07-19
 
 ### Fixed
