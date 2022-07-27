@@ -1,5 +1,10 @@
 # Changelog
 
+## [Unreleased]
+
+### Fixed
+* Fantomas moves comma and breaks code [#2381](https://github.com/fsprojects/fantomas/issues/2381)
+
 ## [5.0.0-beta-004] - 2022-07-27
 
 ### Fixed
