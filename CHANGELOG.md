@@ -1,6 +1,6 @@
 # Changelog
 
-## [Unreleased]
+## [5.0.0-beta-004] - 2022-07-27
 
 ### Fixed
 * Shebang directives get removed from scripts [#2367](https://github.com/fsprojects/fantomas/issues/2367)
