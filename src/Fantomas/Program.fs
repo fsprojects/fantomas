@@ -48,6 +48,8 @@ type InputPath =
     | File of string
     | Folder of string
     | Multiple of files: string list * folder: string list
+    | NoFSharpFile of string
+    | NotFound of string
     | Unspecified
 
 [<RequireQualifiedAccess>]
@@ -186,9 +188,15 @@ let runCheckCommand (recurse: bool) (inputPath: InputPath) : int =
             if checkResult.HasErrors then 1 else 99
 
     match inputPath with
+    | InputPath.NoFSharpFile s ->
+        eprintfn "Input path '%s' is unsupported file type" s
+        1
+    | InputPath.NotFound s ->
+        eprintfn "Input path '%s' not found" s
+        1
     | InputPath.Unspecified _ ->
-        eprintfn "No input path provided. Nothing to do."
-        0
+        eprintfn "No input path provided. Call with --help for usage information."
+        1
     | InputPath.File f when (IgnoreFile.isIgnoredFile (IgnoreFile.current.Force()) f) ->
         printfn "'%s' was ignored" f
         0
@@ -232,8 +240,10 @@ let main argv =
                 InputPath.Folder input
             elif File.Exists input && isFSharpFile input then
                 InputPath.File input
+            elif File.Exists input then
+                InputPath.NoFSharpFile input
             else
-                InputPath.Unspecified
+                InputPath.NotFound input
         | Some inputs ->
             let isFolder (path: string) = Path.GetExtension(path) = ""
 
@@ -353,8 +363,14 @@ let main argv =
     else
         try
             match inputPath, outputPath with
+            | InputPath.NoFSharpFile s, _ ->
+                eprintfn "Input path '%s' is unsupported file type." s
+                exit 1
+            | InputPath.NotFound s, _ ->
+                eprintfn "Input path '%s' not found." s
+                exit 1
             | InputPath.Unspecified, _ ->
-                eprintfn "Input path is missing..."
+                eprintfn "Input path is missing. Call with --help for usage information."
                 exit 1
             | InputPath.File f, _ when (IgnoreFile.isIgnoredFile (IgnoreFile.current.Force()) f) ->
                 printfn "'%s' was ignored" f

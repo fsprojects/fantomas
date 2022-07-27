@@ -2112,3 +2112,28 @@ type DiagnosticsLogger with
 
     member ErrorRecoveryNoRange: exn: exn -> unit
 """
+
+[<Test>]
+let ``trivia between xml comment and type keyword, 2143`` () =
+    formatSourceString
+        true
+        """
+/// Represents a line number when using zero-based line counting (used by Visual Studio)
+// #if CHECK_LINE0_TYPES
+
+// #else
+type Line0 = int
+// #endif
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+/// Represents a line number when using zero-based line counting (used by Visual Studio)
+// #if CHECK_LINE0_TYPES
+
+// #else
+type Line0 = int
+// #endif
+"""
