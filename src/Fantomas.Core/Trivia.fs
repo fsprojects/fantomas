@@ -79,9 +79,7 @@ let internal collectTriviaFromCodeComments
 
         | CommentTrivia.LineComment r ->
             let content = source.GetContentAt r
-
             let index = r.StartLine - 1
-
             let line = source.GetLineString index
 
             let item =
