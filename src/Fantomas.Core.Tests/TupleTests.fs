@@ -327,3 +327,36 @@ func (
 // mno
 )
 """
+
+[<Test>]
+let ``comma should not move and change type signature, 2381`` () =
+    formatSourceString
+        false
+        """
+let cts = new CancellationTokenSource()
+
+let mb =
+    MailboxProcessor.Start(
+        fun inbox ->
+            let rec messageLoop _ = async { return! messageLoop () }
+
+            messageLoop ()
+        , cts.Token
+    )
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let cts = new CancellationTokenSource()
+
+let mb =
+    MailboxProcessor.Start(
+        fun inbox ->
+            let rec messageLoop _ = async { return! messageLoop () }
+
+            messageLoop ()
+        , cts.Token
+    )
+"""
