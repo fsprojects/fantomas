@@ -12,8 +12,8 @@ window.addEventListener("load", () => {
     const rootItem = (name, items) => {
         const id = `menu-${name.trim().replace(' ', '-').toLowerCase()}-collapse`;
         return html`
-            <li class="mb-1">
-                <button class="btn align-items-center rounded" data-bs-toggle="collapse"
+            <li class="docs-menu mb-1">
+                <button class="btn fs-5 text-white" data-bs-toggle="collapse"
                         data-bs-target="#${id}" aria-expanded="true">
                     ${name}
                 </button>

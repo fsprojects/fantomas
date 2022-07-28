@@ -24,18 +24,23 @@
 
 <body>
   <main id="main-container">
-    <div id="sidebar-wrapper" class="bg-primary h-100 collapse show" >
+    <div id="sidebar-wrapper" class="bg-primary h-100 fs-5 collapse show" >
+      <div id="sidebar-header" class="d-flex justify-content-end mt-1">
+      <button class="btn d-md-none" data-bs-toggle="collapse" data-bs-target="#sidebar-wrapper" data-bs-parent="#main-container" aria-controls="sidebar-wrapper" aria-expanded="false" aria-label="Toggle navigation">
+        <i class="sidebar-toggle fs-3 bi bi-x-lg"></i>
+                  </button>
+              </div>
       <div id="sidebar-logo" class="d-flex justify-content-center p-5">
       <a href="./index.html" ><img id="fsdocs-logo" src="{{root}}/{{fsdocs-logo-src}}" /></a>
 </div>
-      <ul class="list-unstyled ps-0 text-white" id="sidebar-generation">
+      <ul id="sidebar-generation" class="list-unstyled ps-0 text-white" >
         {{fsdocs-list-of-documents}}
         <!-- {{fsdocs-list-of-namespaces}} -->
       </ul>
     </div>
     <div class="doc-content">
       <div class="content-wrapper">
-     <nav class="navbar navbar-expand-lg border py-1">
+     <nav class="navbar navbar-expand-sm border py-1">
         <div class="container-fluid">
           <button class="btn" data-bs-toggle="collapse" data-bs-target="#sidebar-wrapper" data-bs-parent="#main-container" aria-controls="sidebar-wrapper" aria-expanded="false" aria-label="Toggle navigation">
             <i class="sidebar-toggle fs-3 bi bi-list"></i>
@@ -67,7 +72,7 @@
           </div>
         </div>
       </nav>
-    <div class="container p-0">
+    <div class="content m-3 m-sm-5 py-2 px-3 p-sm-5">
       <div id="fsdocs-content">
         {{fsdocs-content}}
         {{fsdocs-tooltips}}
@@ -79,14 +84,12 @@
   </main>
   <script type="module" src="{{root}}content/sidebar-generation.js"></script>
   <script type="text/javascript">
-const sidebar = document.getElementById('sidebar-wrapper')
-
-sidebar.addEventListener('hide.bs.collapse', (e) => {
+addEventListener('hide.bs.collapse', (e) => {
   if (e.target && e.target.id === 'sidebar-wrapper') {
     document.getElementById('main-container').classList.add('toggled');
   }
 })
-sidebar.addEventListener('shown.bs.collapse', (e) => {
+addEventListener('shown.bs.collapse', (e) => {
   if (e.target && e.target.id === 'sidebar-wrapper') {
    document.getElementById('main-container').classList.remove('toggled');
   }
