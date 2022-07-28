@@ -15,6 +15,7 @@
     <Compile Include="TriviaTests.fs" />
     <Compile Include="StringTests.fs" />
     <Compile Include="CommentTests.fs" />
+    <Compile Include="ShebangTests.fs" />
     <Compile Include="OperatorTests.fs" />
     <Compile Include="ComparisonTests.fs" />
     <Compile Include="ControlStructureTests.fs" />
