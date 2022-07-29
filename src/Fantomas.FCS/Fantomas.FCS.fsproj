@@ -5,9 +5,8 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <NoWarn>$(NoWarn);57</NoWarn> <!-- Experimental -->
     <DefineConstants>$(DefineConstants);COMPILER;USE_SHIPPED_FSCORE</DefineConstants>
-    <IntermediateOutputPath>generated</IntermediateOutputPath>
-    <FsYaccOutputFolder>$(IntermediateOutputPath)\$(TargetFramework)\</FsYaccOutputFolder>
-    <FsLexOutputFolder>$(IntermediateOutputPath)\$(TargetFramework)\</FsLexOutputFolder>
+    <FsYaccOutputFolder>generated\$(TargetFramework)\</FsYaccOutputFolder>
+    <FsLexOutputFolder>generated\$(TargetFramework)\</FsLexOutputFolder>
     <Tailcalls>true</Tailcalls>
     <IsPackable>true</IsPackable>
   </PropertyGroup>
@@ -305,6 +304,7 @@
     <Compile Include="..\..\paket-files\dotnet\fsharp\src\Compiler\SyntaxTree\LexFilter.fs">
       <Link>SyntaxTree\LexFilter.fs</Link>
     </Compile>
+    <Compile Include="Parse.fsi" />
     <Compile Include="Parse.fs" />
   </ItemGroup>
   <Import Project="..\..\.paket\Paket.Restore.targets" />
