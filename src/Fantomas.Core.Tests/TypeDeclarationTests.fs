@@ -3133,7 +3133,7 @@ type Event<'Delegate, 'Args
 """
 
 [<Test>]
-let ``unit of measure should keep idempotency after formatting`` () =
+let ``unit of measure should keep idempotency after formatting, 2264`` () =
     formatSourceString
         false
         """
