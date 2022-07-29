@@ -1423,9 +1423,14 @@ and visitSynType (st: SynType) : TriviaNode =
                 |> finalContinuation
 
             Continuation.sequence continuations finalContinuation
-        | SynType.Tuple (_, typeNames, range) ->
+        | SynType.Tuple (_, path, range) ->
             let continuations: ((TriviaNode -> TriviaNode) -> TriviaNode) list =
-                List.map (snd >> visit) typeNames
+                List.choose
+                    (fun t ->
+                        match t with
+                        | SynTupleTypeSegment.Type t -> Some(visit t)
+                        | _ -> None)
+                    path
 
             let finalContinuation (nodes: TriviaNode list) : TriviaNode =
                 mkNodeWithChildren SynType_Tuple range (sortChildren [| yield! nodes |])

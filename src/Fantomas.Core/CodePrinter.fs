@@ -3881,11 +3881,12 @@ and genType astContext outerBracket t =
             |> genTriviaFor SynType_Paren pr
         | t -> failwithf "Unexpected type: %O" t
 
-    and loopTTupleList =
-        function
-        | [] -> sepNone
-        | [ (_, t) ] -> loop t
-        | (isDivide, t) :: ts -> loop t +> !-(if isDivide then " / " else " * ") +> loopTTupleList ts
+    and loopTTupleList ts =
+        col sepSpace ts (fun t ->
+            match t with
+            | SynTupleTypeSegment.Type t -> loop t
+            | SynTupleTypeSegment.Star _ -> !- "*"
+            | SynTupleTypeSegment.Slash _ -> !- "/")
 
     and loopFuns (ts, ret) =
         let short =
@@ -3976,13 +3977,21 @@ and genTypeList astContext node =
                 let hasBracket = not node.IsEmpty
 
                 let gt sepBefore =
+                    let ts' =
+                        List.choose
+                            (fun t ->
+                                match t with
+                                | SynTupleTypeSegment.Type t -> Some t
+                                | _ -> None)
+                            ts'
+
                     if args.Length = ts'.Length then
-                        col sepBefore (Seq.zip args (Seq.map snd ts')) (fun (ArgInfo (ats, so, isOpt), t) ->
+                        col sepBefore (Seq.zip args ts') (fun (ArgInfo (ats, so, isOpt), t) ->
                             genOnelinerAttributes astContext ats
                             +> opt sepColon so (fun ident -> onlyIf isOpt (!- "?") +> genIdent ident)
                             +> genType astContext hasBracket t)
                     else
-                        col sepBefore ts' (snd >> genType astContext hasBracket)
+                        col sepBefore ts' (genType astContext hasBracket)
 
                 let shortExpr = gt sepStar
                 let longExpr = gt (sepSpace +> sepStarFixed +> sepNln)
