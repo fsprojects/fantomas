@@ -1,10 +1,13 @@
 module Fantomas.Core.Tests.CodePrinterHelperFunctionsTests
 
+open FSharp.Compiler.Syntax
+open FSharp.Compiler.SyntaxTrivia
 open NUnit.Framework
 open FsUnit
 open Fantomas.Core.Context
 open Fantomas.Core.FormatConfig
 open Fantomas.Core
+open Fantomas.Core.TriviaTypes
 
 // This test suite is created to illustrated the various helper function that are being used in `CodePrinter`.
 // We encourage you to debug these when you are new to the code base.
@@ -130,3 +133,149 @@ let ``traversing collections`` () =
     let ctx = Context.Default
     let code = f items ctx |> dump
     Assert.AreEqual("2 + 3 + 4", code)
+
+[<Test>]
+let ``newlines and indentation`` () =
+    // We can update the WriterModel to indent the next line using the `WriterEvent.IndentBy` event
+    // The commonly used helper function for this is `indent`
+    // Indentation only kick in on the next line, this is something to be aware of.
+    // `sepNln` is a helper function that will add a newline.
+
+    let f = !- "first line" +> sepNln +> indent +> !- "second line"
+    // The dump function will respect the newline from the configuration.
+    // For this test we will set it to `EndOfLineStyle.LF`
+    let ctx =
+        { Context.Default with Config = { Context.Default.Config with EndOfLine = EndOfLineStyle.LF } }
+
+    let code = f ctx |> dump
+    Assert.AreEqual("first line\nsecond line", code)
+    // There is no indentation because that would only kick in after the second line.
+
+    let g = !- "first line" +> indent +> sepNln +> !- "second line" +> unindent
+    let indentedCode = g ctx |> dump
+    Assert.AreEqual("first line\n    second line", indentedCode)
+
+    // Using `indent` typically goes together with and `unindent` call.
+    // This is a very common pattern in CodePrinter, so the use of `indentSepNlnUnindent` is encouraged.
+    // Forgetting to `unindent` can be a nasty bug in Fantomas.
+    let h = !- "first line" +> indentSepNlnUnindent (!- "second line")
+    let indentedCode = h ctx |> dump
+    Assert.AreEqual("first line\n    second line", indentedCode)
+
+[<Test>]
+let ``trying multiple code paths`` () =
+    // Sometimes we want to try and fit everything in a single line.
+    // And have a fallback behavior when that is not possible.
+    let short = !- "This fits on a single line"
+    let long = !- "This fits on" +> sepNln +> !- "two lines"
+    // `expressionFitsOnRestOfLine` will try the first expression and if it doesn't fit, it will try the second expression.
+    // All the events of the first expression will be remove from the context when it needs to fallback to the second expression.
+    let f = expressionFitsOnRestOfLine short long
+    // The remainder of the line is calculated by the `max_line_length` and the current column of the WriterModel.
+    // We will artificially set the max_line_length to 10, to trigger the fallback behavior.
+    let ctx =
+        { Context.Default with
+            Config =
+                { Context.Default.Config with
+                    MaxLineLength = 10
+                    EndOfLine = EndOfLineStyle.LF } }
+
+    let code = f ctx |> dump
+    Assert.AreEqual("This fits on\ntwo lines", code)
+
+// There are other various helper functions for code path fallback.
+// `isShortExpression`, `sepSpaceIfShortExpressionOrAddIndentAndNewline`, `leadingExpressionIsMultiline`, ...
+
+[<Test>]
+let ``printing trivia instructions`` () =
+    // As established in the documentation, `TriviaInstructions` can be added to the `Context`.
+    // In `CodePrinter` these need to printed at the right time.
+    // A `TriviaInstruction` always has an `FsAstType` and a `range` value.
+    // This should always correspond to the range of the AST node that is being printed.
+    let sourceCode =
+        """let a =
+    // code comment
+    b"""
+
+    // Parse the source code to an AST.
+    let ast =
+        CodeFormatter.ParseAsync(false, sourceCode)
+        |> Async.RunSynchronously
+        |> Array.head
+        |> fst
+
+    // Dummy active pattern, this mimics what we typically do in SourceParser.
+    // This active pattern will return the `a` node and the `b` node.
+    let (|InterestingTreeNodes|_|) (ast: ParsedInput) =
+        match ast with
+        | ParsedInput.ImplFile (ParsedImplFileInput.ParsedImplFileInput(modules = [ SynModuleOrNamespace.SynModuleOrNamespace(decls = [ SynModuleDecl.Let(bindings = [ SynBinding (headPat = SynPat.Named(ident = SynIdent (aNode,
+                                                                                                                                                                                                                            _))
+                                                                                                                                                                                   expr = SynExpr.Ident (bNode)) ]) ]) ])) ->
+            Some(aNode, bNode)
+        | _ -> None
+
+    // Another active pattern to extract the code comment.
+    // This represents what is happening in `Trivia`.
+    // Grabbing all comments from the toplevel file node and to later assign them to the correct AST child node.
+    let (|SingleComment|_|) (ast: ParsedInput) =
+        match ast with
+        | ParsedInput.ImplFile (ParsedImplFileInput.ParsedImplFileInput(trivia = { CodeComments = [ CommentTrivia.LineComment rangeOfLineComment ] })) ->
+            Some rangeOfLineComment
+        | _ -> None
+
+    let f (ast: ParsedInput) : Context -> Context =
+        match ast with
+        | InterestingTreeNodes (a, b) -> !- "let " +> !-a.idText +> sepEq +> sepSpace +> !-b.idText
+        | _ -> !- "error"
+
+    let codeCommentAsTriviaInstruction: TriviaInstruction list =
+        match ast with
+        | SingleComment comment & InterestingTreeNodes (_, b) ->
+            // In `Trivia` we figured out that the comment belongs to `b`.
+            // Now will map this as `TriviaInstruction`.
+            let trivia: Trivia =
+                { Range = comment
+                  Item = TriviaContent.Comment(Comment.CommentOnSingleLine "// code comment") }
+
+            let instruction: TriviaInstruction =
+                { Trivia = trivia
+                  Type = Ident_
+                  Range = b.idRange
+                  AddBefore = true }
+
+            [ instruction ]
+        | _ -> []
+
+    // Add the trivia instructions to the context.
+    // We optimize this a bit according to trivia before/after and the FsAstType.
+    let ctx =
+        { Context.Default with
+            Config = { Context.Default.Config with EndOfLine = EndOfLineStyle.LF }
+            TriviaBefore = Map.ofList [ FsAstType.Ident_, codeCommentAsTriviaInstruction ] }
+
+    let codeWithoutTriviaPrinting = f ast ctx |> dump
+    Assert.AreEqual("let a = b", codeWithoutTriviaPrinting)
+
+    // We need to write a better function, where the code comment will be restored
+    // `genTriviaFor` is typically the go-to function to write a trivia instruction.
+    // As it not exposed from `CodePrinter`, we need to write our own.
+    let g (ast: ParsedInput) : Context -> Context =
+        match ast with
+        | InterestingTreeNodes (a, b) ->
+            let genB: Context -> Context =
+                // This will write any instructions that match 'FsAstType.Ident_'
+                // and the range of `b` equals the range of the `TriviaInstruction`.
+                enterNodeFor Ident_ b.idRange +> !-b.idText
+            // We could also add `+> leaveNodeFor` here, but again we know in this example there is only one instruction before.
+
+            // Since we know in this example that the body of the let binding is multiline,
+            // we are going to use `indentSepNlnUnindent`.
+            // In practise you cannot make this assumption and we should try both short and long paths.
+            // As an example this is fine.
+            !- "let " +> !-a.idText +> sepEq +> indentSepNlnUnindent genB
+        | _ -> !- "error"
+
+    // Please take a look at `genTriviaFor` to see why we used this function.
+
+    let codeWithTriviaPrinting = g ast ctx |> dump
+    Assert.AreEqual("let a =\n    // code comment\n    b", codeWithTriviaPrinting)
