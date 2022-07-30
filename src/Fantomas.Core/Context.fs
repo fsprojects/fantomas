@@ -1125,7 +1125,7 @@ let sepConsideringTriviaContentBeforeForMainNode sepF (mainNodeName: FsAstType) 
 
     sepConsideringTriviaContentBeforeBy findNode sepF range ctx
 
-let sepNlnConsideringTriviaContentBeforeForMainNode (mainNode: FsAstType) (range: Range) =
+let sepNlnConsideringTriviaContentBeforeFor (mainNode: FsAstType) (range: Range) =
     sepConsideringTriviaContentBeforeForMainNode sepNln mainNode range
 
 let sepNlnTypeAndMembers
@@ -1146,7 +1146,7 @@ let sepNlnTypeAndMembers
     match triviaBeforeWithKeyword with
     | [] ->
         if ctx.Config.NewlineBetweenTypeDefinitionAndMembers then
-            sepNlnConsideringTriviaContentBeforeForMainNode mainNodeType firstMemberRange ctx
+            sepNlnConsideringTriviaContentBeforeFor mainNodeType firstMemberRange ctx
         else
             ctx
     | triviaInstructions -> printTriviaInstructions triviaInstructions ctx

@@ -159,8 +159,15 @@ let ``newlines and indentation`` () =
     // This is a very common pattern in CodePrinter, so the use of `indentSepNlnUnindent` is encouraged.
     // Forgetting to `unindent` can be a nasty bug in Fantomas.
     let h = !- "first line" +> indentSepNlnUnindent (!- "second line")
-    let indentedCode = h ctx |> dump
+    let indentedCtx = h ctx
+    let indentedCode = dump indentedCtx
     Assert.AreEqual("first line\n    second line", indentedCode)
+
+    let events = Queue.toSeq indentedCtx.WriterEvents |> Seq.toList
+
+    match events with
+    | [ Write "first line"; IndentBy 4; WriteLine; Write "second line"; UnIndentBy 4 ] -> Assert.Pass()
+    | events -> Assert.Fail $"Expected one event, got: ${events}"
 
 [<Test>]
 let ``trying multiple code paths`` () =
@@ -210,7 +217,7 @@ let ``printing trivia instructions`` () =
         match ast with
         | ParsedInput.ImplFile (ParsedImplFileInput.ParsedImplFileInput(modules = [ SynModuleOrNamespace.SynModuleOrNamespace(decls = [ SynModuleDecl.Let(bindings = [ SynBinding (headPat = SynPat.Named(ident = SynIdent (aNode,
                                                                                                                                                                                                                             _))
-                                                                                                                                                                                   expr = SynExpr.Ident (bNode)) ]) ]) ])) ->
+                                                                                                                                                                                   expr = SynExpr.Ident bNode) ]) ]) ])) ->
             Some(aNode, bNode)
         | _ -> None
 
@@ -279,3 +286,169 @@ let ``printing trivia instructions`` () =
 
     let codeWithTriviaPrinting = g ast ctx |> dump
     Assert.AreEqual("let a =\n    // code comment\n    b", codeWithTriviaPrinting)
+
+[<Test>]
+let ``blank lines trivia`` () =
+    // Blank lines are also printed as trivia.
+    // However, in some situations they can clash with a composition that always adds a new line.
+
+    let cleanInput =
+        """let a = 1
+let b = 2
+"""
+
+    // Imagine that we always want to print a new line between let bindings.
+
+    // Parse the source code to an AST.
+    let getAst input =
+        CodeFormatter.ParseAsync(false, input)
+        |> Async.RunSynchronously
+        |> Array.head
+        |> fst
+
+    let ast = getAst cleanInput
+
+    let (|TwoBindingsInFile|_|) (ast: ParsedInput) =
+        let (|ValueBinding|_|) (node: SynModuleDecl) =
+            match node with
+            | SynModuleDecl.Let(bindings = [ SynBinding (headPat = SynPat.Named(ident = SynIdent (name, _))
+                                                         expr = SynExpr.Const (SynConst.Int32 value, _)) ]) ->
+                Some(name.idText, value, node.Range)
+            | _ -> None
+
+        match ast with
+        | ParsedInput.ImplFile (ParsedImplFileInput.ParsedImplFileInput(modules = [ SynModuleOrNamespace.SynModuleOrNamespace(decls = [ ValueBinding a
+                                                                                                                                        ValueBinding b ]) ])) ->
+            Some(a, b)
+        | _ -> None
+
+    let f ast =
+        match ast with
+        | TwoBindingsInFile (a, b) ->
+            let genBinding (name, value, range) =
+                // print trivia before SynModuleDecl.Let
+                enterNodeFor SynModuleDecl_Let range
+                +> !- "let"
+                +> sepSpace
+                +> !-name
+                +> sepEq
+                +> sepSpace
+                +> !-(string value)
+
+            genBinding a
+            // One `sepNln` to move to the next line.
+            +> sepNln
+            // Another to insert a complete blank line.
+            +> sepNln
+            +> genBinding b
+
+        | _ -> !- "error"
+
+    let ctx =
+        { Context.Default with Config = { Context.Default.Config with EndOfLine = EndOfLineStyle.LF } }
+
+    let formattedCode = f ast ctx |> dump
+    Assert.AreEqual("let a = 1\n\nlet b = 2", formattedCode)
+
+    // This worked fine, but the next time we will format there will be a TriviaInstruction for the blank line.
+    let newAst = getAst formattedCode
+
+    let triviaInstructions =
+        match newAst with
+        | TwoBindingsInFile (_, (_, _, rangeOfB)) ->
+            // Again, this trivia would be detected in `Trivia`.
+            // We simply things for this example.
+            let rangeOfNewline = CodeFormatter.MakeRange(rangeOfB.FileName, 2, 0, 2, 0)
+
+            let trivia =
+                { Range = rangeOfNewline
+                  Item = TriviaContent.Newline }
+
+            let triviaInstruction =
+                { Trivia = trivia
+                  Type = SynModuleDecl_Let
+                  Range = rangeOfB
+                  AddBefore = true }
+
+            [ triviaInstruction ]
+        | _ -> []
+
+    let ctxWithTrivia =
+        { Context.Default with
+            Config = { Context.Default.Config with EndOfLine = EndOfLineStyle.LF }
+            TriviaBefore = Map.ofList [ SynModuleDecl_Let, triviaInstructions ] }
+
+    let formattedCodeWithTrivia = f newAst ctxWithTrivia |> dump
+    // Notice that we now have two blank lines.
+    // One from the trivia, and one from the fixed sepNln inside `f`.
+    Assert.AreEqual("let a = 1\n\n\nlet b = 2", formattedCodeWithTrivia)
+
+    // The next time we ran this code (assuming all the trivia instructions are provided properly), we would get three newlines.
+    // So, this is becoming a repeating newline bug.
+
+    let g ast =
+        match ast with
+        | TwoBindingsInFile (a, b) ->
+            let genBinding (name, value, range) =
+                // print trivia before SynModuleDecl.Let
+                enterNodeFor SynModuleDecl_Let range
+                +> !- "let"
+                +> sepSpace
+                +> !-name
+                +> sepEq
+                +> sepSpace
+                +> !-(string value)
+
+            // We can resolve this problem by using the helper function `sepNlnConsideringTriviaContentBeforeFor`.
+            // This will add a newline unless there is already a new line following as part of the trivia.
+            let _, _, rangeOfB = b
+
+            genBinding a
+            // A regular `sepNln` to go to the next line.
+            +> sepNln
+            // Only insert a full blank line if there is no newline following the trivia.
+            +> sepNlnConsideringTriviaContentBeforeFor SynModuleDecl_Let rangeOfB
+            +> genBinding b
+
+        | _ -> !- "error"
+
+    let finalCode = g ast ctxWithTrivia |> dump
+    Assert.AreEqual("let a = 1\n\nlet b = 2", finalCode)
+
+[<Test>]
+let ``locking the indentation at a fixed column`` () =
+    // In some scenario's we need to keep code indented at a fixed column.
+    // This is typically to produce valid F# due to the offset rules.
+    let f =
+        sepOpenT
+        +> atCurrentColumn (!- "first line" +> sepNln +> !- "second line")
+        +> sepCloseT
+
+    let ctxBefore =
+        { Context.Default with Config = { Context.Default.Config with EndOfLine = EndOfLineStyle.LF } }
+
+    let ctxAfter = f ctxBefore
+    let code = dump ctxAfter
+    // `atCurrentColumn` will lock the column at position one
+    // Notice the space before the "second line", it is there because of the line will start at column 1.
+    Assert.AreEqual("(first line\n second line)", code)
+
+    let events = (Queue.toSeq >> Seq.toList) ctxAfter.WriterEvents
+
+    match events with
+    | [ WriterEvent.Write "("
+        WriterEvent.SetAtColumn 1
+        WriterEvent.Write "first line"
+        WriterEvent.WriteLine
+        WriterEvent.Write "second line"
+        WriterEvent.RestoreAtColumn 0
+        WriterEvent.RestoreIndent 0
+        WriterEvent.Write ")" ] -> Assert.Pass()
+    | events -> Assert.Fail $"Expected one event, got: ${events}"
+
+// There is also a variation on `atCurrentColumn`: `atCurrentColumnIndent`
+// This locks the column and also applies indentation from that column.
+// `atCurrentColumn` does not have an influence over the indentation.
+
+// In general, you want to avoid using `atCurrentColumn` and `atCurrentColumnIndent` as it breaking the "indentation flow".
+// "indentation flow" is a made up term to indicate that every indent is a multitude of the `indent_size`.
