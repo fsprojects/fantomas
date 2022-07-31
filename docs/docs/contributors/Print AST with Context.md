@@ -69,6 +69,6 @@ Please take a moment to debug the unit tests in `CodePrinterHelperFunctionsTests
 This will give you a better understanding of how we capture events in `CodePrinter`.
 
 <div class="d-flex justify-content-between my-4">
-  <a href="Prepare%20Context.html">Previous</a>
-  <a href="#">Next</a>
+  <a href="./Prepare%20Context.html">Previous</a>
+  <a href="./Formatted+Code.html">Next</a>
 </div>

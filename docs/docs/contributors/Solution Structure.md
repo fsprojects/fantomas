@@ -58,6 +58,6 @@ A suite of unit tests that target the core formatting functionalities of `Fantom
 A suite of end-to-end tests that run the actual `fantomas` command line application.
 
 <div class="d-flex justify-content-between my-4">
-  <a href="./Solution%20Structure.html">Previous</a>
+  <a href="./Getting%20Started.html">Previous</a>
   <a href="./Prepare%20Context.html">Next</a>
 </div>
