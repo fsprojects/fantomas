@@ -876,33 +876,37 @@ and genTuple astContext es =
 
     let shortExpression = col sepComma es (genShortExpr astContext)
 
-    let longExpression =
-        let containsLambdaOrMatchExpr =
-            es
-            |> List.pairwise
-            |> List.exists (function
-                | SynExpr.Match _, _
-                | SynExpr.Lambda _, _
-                | InfixApp (_, _, _, SynExpr.Lambda _, _), _ -> true
-                | _ -> false)
-
-        let sep =
-            if containsLambdaOrMatchExpr then
-                (sepNln +> sepComma)
-            else
-                (sepComma +> sepNln)
-
-        let lastIndex = List.length es - 1
-
-        let genExpr astContext idx e =
-            match e with
-            | SynExpr.IfThenElse _ when (idx < lastIndex) ->
-                autoParenthesisIfExpressionExceedsPageWidth (genExpr astContext e)
-            | _ -> genExpr astContext e
-
-        coli sep es (genExpr astContext)
+    let longExpression = genTupleMultiline astContext es
 
     atCurrentColumn (expressionFitsOnRestOfLine shortExpression longExpression)
+
+and genTupleMultiline astContext es =
+    let containsLambdaOrMatchExpr =
+        es
+        |> List.pairwise
+        |> List.exists (function
+            | SynExpr.Match _, _
+            | SynExpr.Lambda _, _
+            | InfixApp (_, _, _, SynExpr.Lambda _, _), _ -> true
+            | _ -> false)
+
+    let sep =
+        if containsLambdaOrMatchExpr then
+            (sepNln +> sepComma)
+        else
+            (sepCommaFixed +> sepNln)
+
+    let lastIndex = List.length es - 1
+
+    let genExpr astContext idx e =
+        match e with
+        | SynExpr.IfThenElse _ when (idx < lastIndex) ->
+            autoParenthesisIfExpressionExceedsPageWidth (genExpr astContext e)
+        | InfixApp (equal, operatorSli, e1, e2, range) when (equal = "=") ->
+            genNamedArgumentExpr astContext operatorSli e1 e2 range
+        | _ -> genExpr astContext e
+
+    coli sep es (genExpr astContext)
 
 and genNamedArgumentExpr (astContext: ASTContext) (operatorSli: SynLongIdent) e1 e2 appRange =
     let short =
@@ -2377,7 +2381,7 @@ and genMultilineFunctionApplicationArguments astContext argExpr =
             else
                 genExpr astContext argExpr ctx
     | Paren (lpr, Tuple (args, tupleRange), rpr, pr) ->
-        (col (sepCommaFixed +> sepNln) args (genExpr astContext))
+        genTupleMultiline astContext args
         |> genTriviaFor SynExpr_Tuple tupleRange
         |> argsInsideParenthesis lpr rpr pr
     | Paren (lpr, singleExpr, rpr, pr) -> genExpr astContext singleExpr |> argsInsideParenthesis lpr rpr pr
@@ -3877,11 +3881,12 @@ and genType astContext outerBracket t =
             |> genTriviaFor SynType_Paren pr
         | t -> failwithf "Unexpected type: %O" t
 
-    and loopTTupleList =
-        function
-        | [] -> sepNone
-        | [ (_, t) ] -> loop t
-        | (isDivide, t) :: ts -> loop t +> !-(if isDivide then " / " else " * ") +> loopTTupleList ts
+    and loopTTupleList ts =
+        col sepSpace ts (fun t ->
+            match t with
+            | SynTupleTypeSegment.Type t -> loop t
+            | SynTupleTypeSegment.Star _ -> !- "*"
+            | SynTupleTypeSegment.Slash _ -> !- "/")
 
     and loopFuns (ts, ret) =
         let short =
@@ -3972,13 +3977,21 @@ and genTypeList astContext node =
                 let hasBracket = not node.IsEmpty
 
                 let gt sepBefore =
+                    let ts' =
+                        List.choose
+                            (fun t ->
+                                match t with
+                                | SynTupleTypeSegment.Type t -> Some t
+                                | _ -> None)
+                            ts'
+
                     if args.Length = ts'.Length then
-                        col sepBefore (Seq.zip args (Seq.map snd ts')) (fun (ArgInfo (ats, so, isOpt), t) ->
+                        col sepBefore (Seq.zip args ts') (fun (ArgInfo (ats, so, isOpt), t) ->
                             genOnelinerAttributes astContext ats
                             +> opt sepColon so (fun ident -> onlyIf isOpt (!- "?") +> genIdent ident)
                             +> genType astContext hasBracket t)
                     else
-                        col sepBefore ts' (snd >> genType astContext hasBracket)
+                        col sepBefore ts' (genType astContext hasBracket)
 
                 let shortExpr = gt sepStar
                 let longExpr = gt (sepSpace +> sepStarFixed +> sepNln)
