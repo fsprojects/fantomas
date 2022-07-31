@@ -1,4 +1,6 @@
-$sidebar-width: 280px
+@import "./global-config.sass"
+
+$sidebar-width: 300px
 
 main
     margin-left: 0
@@ -11,10 +13,22 @@ main
         position: fixed
         z-index: 1000
 
+        #sidebar-generation
+            .list-wrapper
+                transition: background-color 200ms
+            .menu-open
+                background-color: $menu-open
+            .btn
+                width: 100%
+        .btn
+            border: none
+            
         a
            color: $white
            text-decoration: none
            text-decoration-style: none
+        p
+            letter-spacing: 0.1px
 
         #sidebar-logo
             #fsdocs-logo

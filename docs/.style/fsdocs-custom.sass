@@ -2,18 +2,12 @@
 @import "./fsdocs-default.css"
 @import "./sidebar.sass"
 
-//.content-wrapper
-//    @include media-breakpoint-up(md) 
-//        width: 100%
-
 .sidebar-toggle
   opacity: 0.5
 
 .doc-content
   background-color: $pearl
-  .content-wrapper
-    .content 
-        box-shadow: 0 4px 10px $drop-shadow
+  min-height: 100vh
 
 .navbar
   position: sticky
@@ -42,6 +36,7 @@
         color: $secondary
 
 #fsdocs-content
+    box-shadow: 0 4px 10px $drop-shadow
     h1, h2, h3, h4, h5, h6 
       a
         color: $black
@@ -54,18 +49,18 @@
         text-decoration-style: none
 
     h1
-        margin: 30px 0px 15px 0px
+        padding: 30px 0px 15px 0px
         font-size: 2rem
         letter-spacing: 1.78px
         line-height: 2.5rem
         font-weight: 400
     h2
         font-size: 1.6rem
-        margin: 20px 0px 10px 0px
+        padding: 20px 0px 10px 0px
         font-weight: 400
     h3
         font-size: 1.2rem
-        margin: 15px 0px 10px 0px
+        padding: 15px 0px 10px 0px
         font-weight: 400
     hr
         margin: 0px 0px 20px 0px
@@ -78,7 +73,6 @@
     p
         font-size: 1.0rem
         line-height: 1.5rem
-        letter-spacing: 0.01px
         font-weight: normal
         color: $black
     a   
