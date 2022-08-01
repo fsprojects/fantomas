@@ -1,50 +1,42 @@
 @import "./global-config.sass"
 @import "./fsdocs-default.css"
+@import "./sidebar.sass"
 
-main
-  display: flex
+.sidebar-toggle
+  opacity: 0.5
 
-#fsdocs-nav
-  #fsdocs-logo
-    width: 90%
-    margin-top: 40px
-    border-style: none
+.doc-content
+  background-color: $pearl
+  min-height: 100vh
 
-  input
-    margin-right: 20px
-    margin-top: 20px
-    margin-bottom: 20px
-    width: 93%
-    -webkit-border-radius: 0
-    border-radius: 0
+.navbar
+  position: sticky
+  top: 0
+  background-color: $white
 
-  font-size: 0.95rem
+.nav-link.active
+    color: $secondary
 
-  .nav-header
-    padding-left: 0
+.input-group
+  .btn
     color: $black
-    text-transform: none
-    font-size: 16px
-    margin-top: 9px
-    font-weight: bold
+    cursor: inherit
+    i
+      opacity: 0.5
+  #search-by
+    color: $black
+    &::placeholder
+      opacity: 0.5
+      color: $black
+      
+.nav-link
+    margin-right: 10px
+    color: $black
+    &:hover, &:focus
+        color: $secondary
 
-  a
-    padding-left: 0
-    color: $gray
-
-blockquote 
-    margin: 0 1em 0 0.25em
-    margin-top: 0px
-    margin-right: 1em
-    margin-bottom: 0px
-    margin-left: 0.25em
-    padding: 0 .75em 0 1em
-    border-left: 1px solid $gray
-    border-right: 0px solid $gray
-
-    
 #fsdocs-content
-
+    box-shadow: 0 4px 10px $drop-shadow
     h1, h2, h3, h4, h5, h6 
       a
         color: $black
@@ -57,37 +49,36 @@ blockquote
         text-decoration-style: none
 
     h1
-        margin: 30px 0px 15px 0px
+        padding: 30px 0px 15px 0px
         font-size: 2rem
         letter-spacing: 1.78px
         line-height: 2.5rem
         font-weight: 400
     h2
         font-size: 1.6rem
-        margin: 20px 0px 10px 0px
+        padding: 20px 0px 10px 0px
         font-weight: 400
     h3
         font-size: 1.2rem
-        margin: 15px 0px 10px 0px
+        padding: 15px 0px 10px 0px
         font-weight: 400
     hr
         margin: 0px 0px 20px 0px
     li
         font-size: 1.0rem
-        line-height: 1.375rem
+        line-height: 1.5rem
         letter-spacing: 0.01px
-        font-weight: 500
+        font-weight: normal
         margin: 0px 0px 15px 0px
     p
         font-size: 1.0rem
-        line-height: 1.375rem
-        letter-spacing: 0.01px
-        font-weight: 500
+        line-height: 1.5rem
+        font-weight: normal
         color: $black
     a   
-        color: $primary
+        color: $secondary
     dt
-        font-weight:normal
+        font-weight: normal
 
 .fsdocs-source-link
   float: right
@@ -98,9 +89,3 @@ blockquote
     margin-left: 10px
     width: auto
     height: 1.4em
-
-#fsdocs-logo
-    width: 140px
-    height: 140px
-    margin: 10px 0 0 0
-    border-style: none
