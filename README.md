@@ -10,7 +10,7 @@ F# source code formatter, inspired by [scalariform](https://github.com/mdr/scala
 
 ## Quick install
 
-* Command line: `dotnet tool install -g fantomas`
+* Command line: `dotnet tool install -g fantomas-tool`
 * JetBrains Rider: preinstalled
 * VSCode: part of [Ionide](http://ionide.io/) and [fantomas-fmt](https://marketplace.visualstudio.com/items?itemName=paolodellepiane.fantomas-fmt).
 * [Visual Studio 2019](https://marketplace.visualstudio.com/items?itemName=asti.fantomas-vs)
@@ -22,7 +22,7 @@ F# source code formatter, inspired by [scalariform](https://github.com/mdr/scala
 Use this command to install Fantomas as a .NET 5 SDK global tool:
 
 ```
-dotnet tool install -g fantomas
+dotnet tool install -g fantomas-tool
 ```
 
 For detailed guidelines, please read [Fantomas: How to use](docs/Documentation.md#using-the-command-line-tool).
