@@ -9,9 +9,9 @@ open Fantomas.Core.FormatConfig
 open Fantomas.Core
 open Fantomas.Core.TriviaTypes
 
-// This test suite is created to illustrated the various helper function that are being used in `CodePrinter`.
+// This test suite is created to illustrate the various helper functions that are being used in `CodePrinter`.
 // We encourage you to debug these when you are new to the code base.
-// It might help for some things to "click"
+// It might help for some things to "click".
 
 /// Transform the WriterEvents in a Context to a string
 let private dump (context: Context) : string = dump false context
@@ -97,7 +97,7 @@ let ``some helper function are clever like sepSpace`` () =
     let contextAfter: Context = f contextBefore
     let code = dump contextAfter
 
-    // Wait! Why is the only one space between `a` and `b`?
+    // Wait! Why is there only one space between `a` and `b`?
     // Because `sepSpace` is a helper function that will check if there already is a space as last character in the current line.
     // This is a very useful function to make sure we don't add duplicate spaces.
     // Depending on where we are in the code, we cannot predict what the previous function will have added to the `Context`.
@@ -196,7 +196,7 @@ let ``trying multiple code paths`` () =
 [<Test>]
 let ``printing trivia instructions`` () =
     // As established in the documentation, `TriviaInstructions` can be added to the `Context`.
-    // In `CodePrinter` these need to printed at the right time.
+    // In `CodePrinter` these need to be printed at the right time.
     // A `TriviaInstruction` always has an `FsAstType` and a `range` value.
     // This should always correspond to the range of the AST node that is being printed.
     let sourceCode =
@@ -239,7 +239,7 @@ let ``printing trivia instructions`` () =
         match ast with
         | SingleComment comment & InterestingTreeNodes (_, b) ->
             // In `Trivia` we figured out that the comment belongs to `b`.
-            // Now will map this as `TriviaInstruction`.
+            // Now we will map this as `TriviaInstruction`.
             let trivia: Trivia =
                 { Range = comment
                   Item = TriviaContent.Comment(Comment.CommentOnSingleLine "// code comment") }
@@ -265,7 +265,7 @@ let ``printing trivia instructions`` () =
 
     // We need to write a better function, where the code comment will be restored
     // `genTriviaFor` is typically the go-to function to write a trivia instruction.
-    // As it not exposed from `CodePrinter`, we need to write our own.
+    // As it is not exposed from `CodePrinter`, we need to write our own.
     let g (ast: ParsedInput) : Context -> Context =
         match ast with
         | InterestingTreeNodes (a, b) ->
@@ -357,7 +357,7 @@ let b = 2
         match newAst with
         | TwoBindingsInFile (_, (_, _, rangeOfB)) ->
             // Again, this trivia would be detected in `Trivia`.
-            // We simply things for this example.
+            // We simplify things for this example.
             let rangeOfNewline = CodeFormatter.MakeRange(rangeOfB.FileName, 2, 0, 2, 0)
 
             let trivia =
@@ -417,7 +417,7 @@ let b = 2
 
 [<Test>]
 let ``locking the indentation at a fixed column`` () =
-    // In some scenario's we need to keep code indented at a fixed column.
+    // In some scenarios we need to keep code indented at a fixed column.
     // This is typically to produce valid F# due to the offset rules.
     let f =
         sepOpenT
@@ -446,9 +446,9 @@ let ``locking the indentation at a fixed column`` () =
         WriterEvent.Write ")" ] -> Assert.Pass()
     | events -> Assert.Fail $"Expected one event, got: ${events}"
 
-// There is also a variation on `atCurrentColumn`: `atCurrentColumnIndent`
+// There is also a variation of `atCurrentColumn`: `atCurrentColumnIndent`
 // This locks the column and also applies indentation from that column.
 // `atCurrentColumn` does not have an influence over the indentation.
 
-// In general, you want to avoid using `atCurrentColumn` and `atCurrentColumnIndent` as it breaking the "indentation flow".
+// In general, you want to avoid using `atCurrentColumn` and `atCurrentColumnIndent` as it breaks the "indentation flow".
 // "indentation flow" is a made up term to indicate that every indent is a multitude of the `indent_size`.

@@ -5,7 +5,7 @@ index: 6
 ---
 # Fantomas.Core overview (2)
 
-Once the `Context` is constructed, we can traverse the syntax tree to captures all the `WriterEvent`s.
+Once the `Context` is constructed, we can traverse the syntax tree to capture all the `WriterEvent`s.
 
 <div class="mermaid text-center">
 graph TD
@@ -21,8 +21,8 @@ We enter the module of `CodePrinter` and try and reconstruct the code based on t
 In previous versions of Fantomas, `Context` had a [TextWriter](https://docs.microsoft.com/en-us/dotnet/api/system.io.textwriter?view=net-6.0) that was used to write the output.
 This is a more advanced version of a `StringBuilder` and we wrote the formatted code directly to the buffer.
 
-The key problem with this approach that we couldn't easily revert code that was written to the buffer.  
-For example is the formatted code was crossing the `max_line_length`, we couldn't easily revert the code and try an alternative.
+The key problem with this approach was that we couldn't easily revert code that was written to the buffer.  
+For example, if the formatted code was crossing the `max_line_length`, we couldn't easily revert the code and try an alternative.
 
 That is why we first capture a collection of `WriterEvent`s and then reconstruct the formatted code.  
 If the code is too long, we can drop the last events and try an alternative.
@@ -34,11 +34,11 @@ This happens in the `WriterModel` record. There we store the result of each even
 By doing this, we can assert the result of the output. For example if our code is too long or not.
 
 `WriterEvents` and `WriterModel` are very stable in the code base.  
-When solving a bug, you typically need to change the collected series of events by using different helper function inside `CodePrinter`.
+When solving a bug, you typically need to change the collected series of events by using a different helper function inside `CodePrinter`.
 
 ### CodePrinter
 
-In `CodePrinter` the syntax tree is being traversed with helper of various (partial) active patterns.  
+In `CodePrinter` the syntax tree is being traversed with the help of various (partial) active patterns.  
 These active patterns are defined in `SourceParser` and typically are used to present the information we are interested in, in a different shape.
 
 `CodePrinter` exposes one function `genParsedInput`.

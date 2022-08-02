@@ -77,13 +77,13 @@ The tree will also be created based on a single code path.
 ### Collect Trivia
 
 A syntax tree contains almost all the information we need to format the code. 
-However, there are three items that are either missing all together or are require further processing:
+However, there are three items that are either missing all together or require further processing:
 
 - Blank lines
 - Code comments
 - Conditional directives
 
-These three items are labelled as `Trivia` in Fantomas. We need to restored them because the source code originally had them, but cannot do so purely on the AST.
+These three items are labelled as `Trivia` in Fantomas. We need to restore them because the source code originally had them, but cannot do so purely on the AST.
 
 #### Detecting trivia
 
@@ -126,12 +126,12 @@ Note: blank lines are detected differently, we go over all the lines via the `IS
 
 #### Assigning trivia
 
-Once we have the trivia, we can assign them to an AST node they belong too.
+Once we have the trivia, we can assign them to an AST node they belong to.
 This is one of the more tricky parts of the process.
 
-The syntax tree exists of numerous types of nodes. There is not one discriminated union that captures are the nodes.
+The syntax tree exists of numerous types of nodes. There is not one discriminated union that captures all the nodes.
 Top level nodes are [SynModuleDecl](https://fsharp.github.io/fsharp-compiler-docs/reference/fsharp-compiler-syntax-synmoduledecl.html), expressions are [SynExpr](https://fsharp.github.io/fsharp-compiler-docs/reference/fsharp-compiler-syntax-synexpr.html) and so on.   
-In Fantomas all these types do share a comment trait, the can (almost) all have trivia that belongs to them.
+In Fantomas all these types do share a comment trait, they can (almost) all have trivia that belongs to them.
 
 Example:
 
@@ -177,7 +177,7 @@ We use this custom tree to assign the trivia to the correct node.
 Take our `//comment b` for example, we will assign it to the `SynExpr_Ident` node.
 
 There are different strategies to assign the trivia to a `TriviaNode`, these can be found in the `Trivia` module.  
-Once we know that the code comment along to the ident, we store this information in a `TriviaInstruction`.
+Once we know that the code comment belongs to the ident, we store this information in a `TriviaInstruction`.
 
 ```fsharp
 {
