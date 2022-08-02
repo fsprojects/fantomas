@@ -8,6 +8,7 @@
 ### Fixed
 * Fantomas moves comma and breaks code [#2381](https://github.com/fsprojects/fantomas/issues/2381)
 * Idempotency problem for unit of measure [2264](https://github.com/fsprojects/fantomas/issues/2264)
+* Indent interface member after anonymous record as generic type [#2396](https://github.com/fsprojects/fantomas/issues/2396)
 
 ## [5.0.0-beta-004] - 2022-07-27
 
