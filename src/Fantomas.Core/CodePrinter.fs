@@ -4028,7 +4028,7 @@ and genTypeList astContext node =
                | _ -> false
 
         let resetIndent =
-            if lastIndex < 0 then
+            if lastIndex < 1 then
                 id
             else
                 [ 0..lastIndex ]
