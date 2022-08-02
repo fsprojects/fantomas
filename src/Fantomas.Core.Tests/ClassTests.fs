@@ -1184,3 +1184,32 @@ let ``trivia before and keyword in SynMemberDefn.GetSet, 2372`` () =
 
     override this.``type``: string = "fakerun" }
 """
+
+[<Test>]
+let ``interface member with anonymous record as generic type, 2396`` () =
+    formatSourceString
+        false
+        """
+// ts2fable 0.8.0
+module rec Xterm
+
+type [<AllowNullLiteral>] Terminal =
+    abstract onKey: IEvent<{| key: string; domEvent: KeyboardEvent |}> with get, set
+    abstract onLineFeed: IEvent<unit> with get, set
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+// ts2fable 0.8.0
+module rec Xterm
+
+[<AllowNullLiteral>]
+type Terminal =
+    abstract onKey:
+        IEvent<{| key: string
+                  domEvent: KeyboardEvent |}> with get, set
+
+    abstract onLineFeed: IEvent<unit> with get, set
+"""
