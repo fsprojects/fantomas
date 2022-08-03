@@ -3189,14 +3189,20 @@ and genTypeDefn
         let unionCases (ctx: Context) =
             match xs with
             | [] -> ctx
-            | [ UnionCase (attrs, _, _, _, _, UnionCaseType fields, _) as x ] when List.isEmpty ms ->
+            | [ UnionCase (attrs, px, _, _, _, UnionCaseType fields, _) as x ] when List.isEmpty ms ->
                 let hasVerticalBar =
                     ctx.Config.BarBeforeDiscriminatedUnionDeclaration
                     || List.isNotEmpty attrs
                     || List.isEmpty fields
 
-                let short = opt sepSpace ao' genAccess +> genUnionCase astContext hasVerticalBar x
-                let long = opt sepSpace ao' genAccess +> genUnionCase astContext true x
+                let short =
+                    opt sepSpace ao' (fun vis -> genAccess vis +> onlyIfNot px.IsEmpty sepNln)
+                    +> genUnionCase astContext hasVerticalBar x
+
+                let long =
+                    opt sepSpace ao' (fun vis -> genAccess vis +> onlyIfNot px.IsEmpty sepNln)
+                    +> genUnionCase astContext true x
+
                 expressionFitsOnRestOfLine (indent +> sepSpace +> short) (indent +> sepNln +> long) ctx
             | xs ->
                 indent
@@ -3467,14 +3473,20 @@ and genSigTypeDefn
         let unionCases (ctx: Context) =
             match xs with
             | [] -> ctx
-            | [ UnionCase (attrs, _, _, _, _, UnionCaseType fields, _) as x ] when List.isEmpty ms ->
+            | [ UnionCase (attrs, px, _, _, _, UnionCaseType fields, _) as x ] when List.isEmpty ms ->
                 let hasVerticalBar =
                     ctx.Config.BarBeforeDiscriminatedUnionDeclaration
                     || List.isNotEmpty attrs
                     || List.isEmpty fields
 
-                let short = opt sepSpace ao' genAccess +> genUnionCase astContext hasVerticalBar x
-                let long = opt sepSpace ao' genAccess +> genUnionCase astContext true x
+                let short =
+                    opt sepSpace ao' (fun vis -> genAccess vis +> onlyIfNot px.IsEmpty sepNln)
+                    +> genUnionCase astContext hasVerticalBar x
+
+                let long =
+                    opt sepSpace ao' (fun vis -> genAccess vis +> onlyIfNot px.IsEmpty sepNln)
+                    +> genUnionCase astContext true x
+
                 expressionFitsOnRestOfLine (indent +> sepSpace +> short) (indent +> sepNln +> long) ctx
             | xs ->
                 (indent
