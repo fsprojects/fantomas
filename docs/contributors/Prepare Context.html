@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="author" content="Florian Verdonck, Jindřich Ivánek">
+  <title>Fantomas.Core overview (1)
+</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Reem+Kufi:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.3/font/bootstrap-icons.css">
+  <link rel="shortcut icon" type="image/x-icon" href="/fantomas/images/favicon.ico">
+  <link type="text/css" rel="stylesheet" href="/fantomas/content/fsdocs-custom.css" />
+  <link type="text/css" rel="stylesheet" href="/fantomas/content/fsdocs-default.css" />
+  <script type="text/javascript" src="/fantomas/content/fsdocs-tips.js"></script>
+  <!-- BEGIN SEARCH BOX: this adds support for the search box -->
+  <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+  <link rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/JavaScript-autoComplete/1.0.4/auto-complete.css" />
+  <!-- END SEARCH BOX: this adds support for the search box -->
+  
+</head>
+
+<body>
+  <main id="main-container">
+  
+     <div id="sidebar-wrapper" class="bg-primary h-100 fs-5 collapse show" >
+      <div id="sidebar-header" class="d-flex justify-content-end mt-1">
+      <button class="btn d-md-none" data-bs-toggle="collapse" data-bs-target="#sidebar-wrapper" data-bs-parent="#main-container" aria-controls="sidebar-wrapper" aria-expanded="false" aria-label="Toggle navigation">
+        <i class="sidebar-toggle fs-3 bi bi-x-lg"></i>
+                  </button>
+              </div>
+      <div id="sidebar-logo" class="d-flex justify-content-center p-5">
+      <a href="./index.html" ><img id="fsdocs-logo" src="/fantomas//images/logo-fantomas-white.svg" /></a>
+</div>
+      <div id="sidebar-generation" class="list-unstyled ps-0 text-white fs-6">
+        <li class="nav-header">
+  End-user documentation
+</li>             
+<li class="nav-item">
+  <a class="nav-link" href="/fantomas/docs/FAKE.html">
+    FAKE build system
+
+  </a>
+</li>             
+<li class="nav-item">
+  <a class="nav-link" href="/fantomas/docs/Rider.html">
+    JetBrains Rider
+
+  </a>
+</li>             
+<li class="nav-item">
+  <a class="nav-link" href="/fantomas/docs/VSCode.html">
+    Visual Studio Code
+
+  </a>
+</li>             
+<li class="nav-item">
+  <a class="nav-link" href="/fantomas/docs/Configuration.html">
+    Configuration
+
+  </a>
+</li>             
+<li class="nav-item">
+  <a class="nav-link" href="/fantomas/docs/VisualStudio.html">
+    Visual Studio
+
+  </a>
+</li>             
+<li class="nav-item">
+  <a class="nav-link" href="/fantomas/docs/StyleGuide.html">
+    Style guide
+
+  </a>
+</li>             
+<li class="nav-item">
+  <a class="nav-link" href="/fantomas/docs/Benchmarks.html">
+    Benchmarks
+
+  </a>
+</li>             
+<li class="nav-item">
+  <a class="nav-link" href="/fantomas/docs/FAQ.html">
+    FAQ
+
+  </a>
+</li>             
+<li class="nav-header">
+  Documentation
+</li>             
+<li class="nav-item">
+  <a class="nav-link" href="/fantomas/docs/GettingStarted.html">
+    Getting Started
+
+  </a>
+</li>             
+<li class="nav-item">
+  <a class="nav-link" href="/fantomas/docs/IgnoreFiles.html">
+    Ignore Files
+
+  </a>
+</li>             
+<li class="nav-item">
+  <a class="nav-link" href="/fantomas/docs/FormattingCheck.html">
+    Formatting Check
+
+  </a>
+</li>             
+<li class="nav-item">
+  <a class="nav-link" href="/fantomas/docs/GitHooks.html">
+    Git hooks
+
+  </a>
+</li>             
+<li class="nav-header">
+  Contributors
+</li>             
+<li class="nav-item">
+  <a class="nav-link" href="/fantomas/docs/contributors/Index.html">
+    Contributors
+
+  </a>
+</li>             
+<li class="nav-item">
+  <a class="nav-link" href="/fantomas/docs/contributors/FSharp.html">
+    F#
+
+  </a>
+</li>             
+<li class="nav-item">
+  <a class="nav-link" href="/fantomas/docs/contributors/Getting Started.html">
+    Getting started
+
+  </a>
+</li>             
+<li class="nav-item">
+  <a class="nav-link" href="/fantomas/docs/contributors/Solution Structure.html">
+    Solution structure
+
+  </a>
+</li>             
+<li class="nav-item">
+  <a class="nav-link" href="/fantomas/docs/contributors/Prepare Context.html">
+    Fantomas.Core overview (1)
+
+  </a>
+</li>             
+<li class="nav-item">
+  <a class="nav-link" href="/fantomas/docs/contributors/Print AST with Context.html">
+    Fantomas.Core overview (2)
+
+  </a>
+</li>             
+<li class="nav-item">
+  <a class="nav-link" href="/fantomas/docs/contributors/Formatted Code.html">
+    Fantomas.Core overview (3)
+
+  </a>
+</li>
+      </div>
+    </div>
+
+    <div class="doc-content">
+     <nav class="navbar navbar-expand-sm border py-1">
+        <div class="container-fluid flex-nowrap">
+          <button class="btn" data-bs-toggle="collapse" data-bs-target="#sidebar-wrapper" data-bs-parent="#main-container" aria-controls="sidebar-wrapper" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="sidebar-toggle fs-3 bi bi-list"></i>
+          </button>
+          <div id="mobile-navbar" class="container-fluid d-flex justify-content-between d-sm-none">
+            <i class="invisible bi bi-github fs-3 align-self-end"></i>
+         <a href="./index.html" ><img id="fsdocs-logo" width="32" height="32" src="/fantomas//images/logo.png" /></a>
+            <a class="nav-link m-0 p-0" target="_blank" href="https://github.com/fsprojects/fantomas/"> <i class="bi bi-github fs-3 align-self-end"></i>
+</a>
+          </div>
+          <div class="collapse navbar-collapse" id="navbarText">
+            <div class="navbar-nav me-auto mb-2 mb-lg-0 fs-5">
+                <a class="nav-link active" aria-current="page" href="index.html">Docs</a>
+                <a class="nav-link" target="_blank" href="https://fsprojects.github.io/fantomas-tools/">Tools</a>
+            </div>
+            <form class="d-flex">
+              <div class="input-group me-4">
+              <label for="search-by">
+                <i class="fas fa-search"></i>
+              </label>
+                <div class="btn border-end-0 border">
+                  <i class="bi bi-search"></i>
+                </div>
+                <input aria-label="Search" class="form-control  border-start-0 border" data-search-input=""
+                  id="search-by" type="search" placeholder="Search..." />
+                <span class="input-group-append">
+                </span>
+                <span data-search-clear="">
+                  <i class="fas fa-times"></i>
+                </span>
+              </div>
+            </form>
+            <a class="nav-link m-0 p-0" target="_blank" href="https://github.com/fsprojects/fantomas/">GitHub<i
+                class="bi bi-box-arrow-up-right mx-2"></i></a>
+          </div>
+        </div>
+      </nav>
+      <div id="fsdocs-content" class="bg-white m-2 m-sm-5 p-3 p-sm-4">
+        
+<h1><a name="Fantomas-Core-overview-1" class="anchor" href="#Fantomas-Core-overview-1">Fantomas.Core overview (1)</a></h1>
+<p>In its simplest form, Fantomas.Core works in two major phases: prepare the context and process said context.</p>
+<div class="mermaid text-center">
+graph TD
+    A[Prepare Context] --> B
+    B[Print AST with Context] --> C[Formatted code]
+    style A stroke:#338CBB,stroke-width:2px
+ </div>
+<p>Unfortunately, both phases are not always very straight forward.<br />
+But once you get hang of the first phase, you can easily understand the second phase.</p>
+<h2><a name="Preparing-the-context" class="anchor" href="#Preparing-the-context">Preparing the context</a></h2>
+<p>When we need to format a source code file, we need to prepare the context based on the content of the input file and the configuration of the formatter.
+The most important aspect of this phase is transforming the source code to a syntax tree.
+However we need to do further processing of the AST before we can simply print it out.</p>
+<div class="mermaid text-center">
+graph TD
+    A[Parse AST] --> B
+    B[Collect Trivia] --> C
+    C[Apply configuration]
+</div>
+<h3><a name="Parse-AST" class="anchor" href="#Parse-AST">Parse AST</a></h3>
+<p>Parsing the AST is straightforward. We use the <code>parseFile</code> function from <code>Fantomas.FCS</code> and get back a syntax tree and diagnostic information.<br />
+The diagnostic information is used to report errors and warnings. When we have errors, we stop processing the file.</p>
+<p><strong>Fantomas requires a valid source code to format.</strong></p>
+<p>If your code has errors, the parser cannot return a complete AST which is a strict requirement to run the remaining phases.</p>
+<pre class="fssnip highlighted"><code lang="fsharp"><span class="k">let</span> <span onmouseout="hideTip(event, 'fs1', 1)" onmouseover="showTip(event, 'fs1', 1)" class="id">a</span> <span class="o">=</span>
+</code></pre>
+<p>Returns a parsing error <code>Incomplete structured construct at or before this point in binding</code>.
+This has <code>FSharpDiagnosticSeverity.Error</code> and Fantomas will not process any code that has those.</p>
+<p>When there are only warnings, Fantomas will still try to process the file but will always yield a result.</p>
+<p><code>parseFile</code> takes three parameters:
+- <code>isSignature: bool</code></p>
+<p>The Syntax tree for a signature is a little different than a regular source file. The parser needs to know this and throughout the rest of the process, signature ASTs are treated differently.</p>
+<ul>
+<li><code>sourceText: ISourceText</code></li>
+</ul>
+<p>The input source code string is converted to an <a href="https://fsharp.github.io/fsharp-compiler-docs/reference/fsharp-compiler-text-isourcetext.html">ISourceText</a>) internally.</p>
+<ul>
+<li><code>defines: string list</code></li>
+</ul>
+<p>Conditional compilation defines are passed to the parser. These can have an influence on the parsing process, resulting in different ASTs.</p>
+<pre class="fssnip highlighted"><code lang="fsharp"><span class="k">let</span> <span onmouseout="hideTip(event, 'fs2', 2)" onmouseover="showTip(event, 'fs2', 2)" class="fn">a</span> <span class="o">=</span>
+    <span class="pp">#if</span> <span class="id">DEBUG</span>
+<span class="inactive">    </span><span class="inactive">0</span>
+    <span class="pp">#else</span>
+    <span class="n">1</span>
+    <span class="pp">#endif</span>
+</code></pre>
+<p>Depending on the defines <code>[]</code> or <code>["DEBUG"]</code>, the AST will be different.
+The tree will also be created based on a single code path.</p>
+<h3><a name="Collect-Trivia" class="anchor" href="#Collect-Trivia">Collect Trivia</a></h3>
+<p>A syntax tree contains almost all the information we need to format the code.
+However, there are three items that are either missing all together or require further processing:</p>
+<ul>
+<li>Blank lines</li>
+<li>Code comments</li>
+<li>Conditional directives</li>
+</ul>
+<p>These three items are labelled as <code>Trivia</code> in Fantomas. We need to restore them because the source code originally had them, but cannot do so purely on the AST.</p>
+<h4><a name="Detecting-trivia" class="anchor" href="#Detecting-trivia">Detecting trivia</a></h4>
+<p>Trivia can however be easily detected in Fantomas. Both code comments and conditional directives are present in the AST.
+These are stored on the file level (in <a href="https://fsharp.github.io/fsharp-compiler-docs/reference/fsharp-compiler-syntax-parsedimplfileinput.html">ParsedImplFileInput</a> and  <a href="https://fsharp.github.io/fsharp-compiler-docs/reference/fsharp-compiler-syntax-parsedsigfileinput.html">ParsedSigFileInput</a> in the <code>trivia</code> node).</p>
+<p>In both <a href="https://fsharp.github.io/fsharp-compiler-docs/reference/fsharp-compiler-syntaxtrivia-parsedimplfileinputtrivia.html">ParsedImplFileInputTrivia</a> and <a href="https://fsharp.github.io/fsharp-compiler-docs/reference/fsharp-compiler-syntaxtrivia-parsedsigfileinputtrivia.html">ParsedSigFileInputTrivia</a> we can see comments and conditional directives.</p>
+<pre class="fssnip highlighted"><code lang="fsharp"><span class="k">let</span> <span onmouseout="hideTip(event, 'fs1', 7)" onmouseover="showTip(event, 'fs1', 7)" class="id">a</span> <span class="o">=</span> 
+   <span class="c">// comment b</span>
+   <span class="id">c</span>
+</code></pre>
+<p>roughly translates to</p>
+<pre class="fssnip highlighted"><code lang="fsharp"><span class="id">ImplFile</span>
+  <span class="pn">(</span><span class="id">ParsedImplFileInput</span>
+     <span class="pn">(</span><span class="s">&quot;tmp.fsx&quot;</span><span class="pn">,</span> <span class="k">true</span><span class="pn">,</span> <span class="id">QualifiedNameOfFile</span> <span class="id">Tmp</span><span class="o">$</span><span class="id">fsx</span><span class="pn">,</span> <span class="pn">[</span><span class="pn">]</span><span class="pn">,</span> <span class="pn">[</span><span class="pn">]</span><span class="pn">,</span>
+      <span class="pn">[</span><span class="id">SynModuleOrNamespace</span>
+         <span class="pn">(</span><span class="pn">[</span><span class="id">Tmp</span><span class="pn">]</span><span class="pn">,</span> <span class="k">false</span><span class="pn">,</span> <span class="id">AnonModule</span><span class="pn">,</span>
+          <span class="pn">[</span><span class="id">Let</span>
+             <span class="pn">(</span><span class="k">false</span><span class="pn">,</span>
+              <span class="pn">[</span><span class="id">SynBinding</span><span class="pn">(</span><span class="o">..</span><span class="pn">.</span><span class="pn">)</span><span class="pn">]</span><span class="pn">,</span>
+              <span class="id">tmp</span><span class="pn">.</span><span class="id">fsx</span> <span class="pn">(</span><span class="n">1</span><span class="pn">,</span><span class="n">0</span><span class="o">--</span><span class="n">3</span><span class="pn">,</span><span class="n">4</span><span class="pn">)</span><span class="pn">)</span><span class="pn">]</span><span class="pn">,</span> <span class="id">PreXmlDocEmpty</span><span class="pn">,</span> <span class="pn">[</span><span class="pn">]</span><span class="pn">,</span> <span onmouseout="hideTip(event, 'fs3', 4)" onmouseover="showTip(event, 'fs3', 4)" class="id">None</span><span class="pn">,</span> <span class="id">tmp</span><span class="pn">.</span><span class="id">fsx</span> <span class="pn">(</span><span class="n">1</span><span class="pn">,</span><span class="n">0</span><span class="o">--</span><span class="n">3</span><span class="pn">,</span><span class="n">4</span><span class="pn">)</span><span class="pn">,</span>
+          <span class="pn">{</span> <span class="id">ModuleKeyword</span> <span class="o">=</span> <span onmouseout="hideTip(event, 'fs3', 5)" onmouseover="showTip(event, 'fs3', 5)" class="id">None</span>
+            <span class="id">NamespaceKeyword</span> <span class="o">=</span> <span onmouseout="hideTip(event, 'fs3', 6)" onmouseover="showTip(event, 'fs3', 6)" class="id">None</span> <span class="pn">}</span><span class="pn">)</span><span class="pn">]</span><span class="pn">,</span> <span class="pn">(</span><span class="k">false</span><span class="pn">,</span> <span class="k">false</span><span class="pn">)</span><span class="pn">,</span>
+      <span class="pn">{</span> <span class="id">ConditionalDirectives</span> <span class="o">=</span> <span class="pn">[</span><span class="pn">]</span>
+        <span class="id">CodeComments</span> <span class="o">=</span> <span class="pn">[</span><span class="id">LineComment</span> <span class="id">tmp</span><span class="pn">.</span><span class="id">fsx</span> <span class="pn">(</span><span class="n">2</span><span class="pn">,</span><span class="n">3</span><span class="o">--</span><span class="n">2</span><span class="pn">,</span><span class="n">15</span><span class="pn">)</span><span class="pn">]</span> <span class="pn">}</span><span class="pn">)</span><span class="pn">)</span>
+</code></pre>
+<p>The AST does contain a node for the line comment, but we cannot restore it when we are processing the let binding.<br />
+There is no link between the line comment and the let binding.</p>
+<p>All trivia face this problem, so we need to process them separately.<br />
+We do this in <code>Trivia.collectTrivia</code>.</p>
+<p>Note: blank lines are detected differently, we go over all the lines via the <code>ISourceText</code>.</p>
+<h4><a name="Assigning-trivia" class="anchor" href="#Assigning-trivia">Assigning trivia</a></h4>
+<p>Once we have the trivia, we can assign them to an AST node they belong to.
+This is one of the more tricky parts of the process.</p>
+<p>The syntax tree exists of numerous types of nodes. There is not one discriminated union that captures all the nodes.
+Top level nodes are <a href="https://fsharp.github.io/fsharp-compiler-docs/reference/fsharp-compiler-syntax-synmoduledecl.html">SynModuleDecl</a>, expressions are <a href="https://fsharp.github.io/fsharp-compiler-docs/reference/fsharp-compiler-syntax-synexpr.html">SynExpr</a> and so on.<br />
+In Fantomas all these types do share a comment trait, they can (almost) all have trivia that belongs to them.</p>
+<p>Example:</p>
+<pre class="fssnip highlighted"><code lang="fsharp"><span class="c">// comment 1</span>
+<span class="k">module</span> <span class="id">Hey</span>
+
+<span class="c">// comment 2</span>
+<span class="k">let</span> <span class="id">x</span> <span class="id">y</span> <span class="o">=</span> <span class="c">// comment 3</span>
+    <span class="c">// comment 4</span>
+    <span class="id">y</span> <span class="o">=</span> <span class="n">1</span>
+</code></pre>
+<p>All these comments need to be assigned to the correct node. From the trivia point of view, the owner could be of any type.<br />
+That is why we process the AST into a more generic tree structure called <code>TriviaNode</code>.<br />
+A <code>TriviaNode</code> always has a type field of <code>FsAstType</code> and could have child <code>TriviaNode</code>s.<br />
+<code>FsAstType</code> is discriminated union that represents all the useful types of AST nodes, regardless of the concrete type they belong too.<br />
+You can see in <code>TriviaTypes</code> that this is a long and flat list of all the types.</p>
+<p>We construct the root tree of <code>TriviaNode</code> in <code>ASTTransformer</code>. There we go over the AST and create a tree of <code>TriviaNode</code>s.</p>
+<pre class="fssnip highlighted"><code lang="fsharp"><span class="k">let</span> <span onmouseout="hideTip(event, 'fs1', 7)" onmouseover="showTip(event, 'fs1', 7)" class="id">a</span> <span class="o">=</span> 
+   <span class="c">// comment b</span>
+   <span class="id">c</span>
+</code></pre>
+<p>would be transformed to</p>
+<table class="pre"><tr><td class="snippet"><pre class="fssnip"><code lang="text">ParsedInput_: tmp.fsx (2,0--4,4)
+  SynModuleOrNamespace_AnonModule: tmp.fsx (2,0--4,4)
+    SynModuleDecl_Let: tmp.fsx (2,0--4,4)
+      SynBindingKind_Normal: tmp.fsx (2,4--4,4)
+        SynPat_Named: tmp.fsx (2,4--2,5)
+          SynIdent_: tmp.fsx (2,4--2,5)
+        SynBinding_Equals: tmp.fsx (2,6--2,7)
+        SynExpr_Ident: tmp.fsx (4,3--4,4)
+          Ident_: tmp.fsx (4,3--4,4)
+</code></pre></td></tr></table>
+<p>We use this custom tree to assign the trivia to the correct node.
+Take our <code>//comment b</code> for example, we will assign it to the <code>SynExpr_Ident</code> node.</p>
+<p>There are different strategies to assign the trivia to a <code>TriviaNode</code>, these can be found in the <code>Trivia</code> module.<br />
+Once we know that the code comment belongs to the ident, we store this information in a <code>TriviaInstruction</code>.</p>
+<pre class="fssnip highlighted"><code lang="fsharp"><span class="pn">{</span>
+    <span class="id">Trivia</span> <span class="o">=</span> <span class="pn">{</span> <span class="id">Item</span> <span class="o">=</span> <span class="id">TriviaContent</span><span class="pn">.</span><span class="id">Comment</span> <span class="pn">(</span><span class="id">Comment</span><span class="pn">.</span><span class="id">CommentOnSingleLine</span> <span class="s">&quot;// comment b&quot;</span><span class="pn">)</span>
+    <span class="id">Type</span> <span class="o">=</span> <span class="id">FsAstType</span><span class="pn">.</span><span class="id">SynExpr_Ident</span>
+    <span class="id">Range</span> <span class="o">=</span> <span class="pn">[</span><span class="n">4</span><span class="pn">,</span><span class="n">3</span><span class="o">--</span><span class="n">4</span><span class="pn">,</span><span class="n">4</span><span class="pn">]</span>
+    <span class="id">AddBefore</span> <span class="o">=</span> <span class="k">true</span>
+<span class="pn">}</span>
+</code></pre>
+<p>Lastly, all the instructions are stored in the <code>Context</code> record.</p>
+<p>To summarize, the <code>Context</code> initialization:</p>
+<div class="mermaid text-center">
+graph TD
+    A[Transform AST to TriviaNode tree] --> B
+    B[Capture all trivia from AST and ISourceText] --> C
+    C[Assign trivia to TriviaNode and create TriviaInstructions]
+ </div>
+<div class="d-flex justify-content-between my-4">
+  <a href="./Solution%20Structure.html">Previous</a>
+  <a href="./Print%20AST%20with%20Context.html">Next</a>
+</div>
+
+        <div class="fsdocs-tip" id="fs1">val a: obj</div>
+<div class="fsdocs-tip" id="fs2">val a: int</div>
+<div class="fsdocs-tip" id="fs3">union case Option.None: Option&lt;&#39;T&gt;<br /><em>&lt;summary&gt;The representation of &quot;No value&quot;&lt;/summary&gt;</em></div>
+
+      </div>
+        <div id="push"></div>
+    </div>
+    
+  </main>
+  <script type="module" src="/fantomas/content/sidebar-generation.js"></script>
+  <script type="text/javascript">
+addEventListener('hide.bs.collapse', (e) => {
+  if (e.target && e.target.id === 'sidebar-wrapper') {
+    document.getElementById('main-container').classList.add('toggled');
+  }
+  else{
+    document.getElementById(e.target.id+'-wrapper').classList.remove('menu-open');
+  }
+})
+addEventListener('show.bs.collapse', (e) => {
+  if (e.target && e.target.id === 'sidebar-wrapper') {
+   document.getElementById('main-container').classList.remove('toggled');
+  }
+  else{
+    document.getElementById(e.target.id+'-wrapper').classList.add('menu-open');
+  }
+})
+  </script>
+  <!-- BEGIN SEARCH BOX: this adds support for the search box -->
+  <link rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/JavaScript-autoComplete/1.0.4/auto-complete.css" />
+  <script type="text/javascript">var fsdocs_search_baseurl = '/fantomas/';</script>
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/lunr.js/2.3.8/lunr.min.js"></script>
+  <script type="text/javascript"
+    src="https://cdnjs.cloudflare.com/ajax/libs/JavaScript-autoComplete/1.0.4/auto-complete.min.js"></script>
+  <script type="text/javascript" src="/fantomas/content/fsdocs-search.js"></script>
+  <!-- END SEARCH BOX: this adds support for the search box -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-A3rJD856KowSb7dwlZdYEkO39Gagi7vIsF0jrRAoQmDKKtQBHUuLZ9AsSv4jD4Xa" crossorigin="anonymous"></script>
+  <script type="module">
+      import mermaid from "https://cdn.skypack.dev/mermaid";
+      mermaid.initialize({
+          startOnLoad: true,
+          theme: "base",
+          themeVariables: {
+              primaryColor: '#eff5f7'
+          }
+      });
+  </script>
+</body>
+
+</html>

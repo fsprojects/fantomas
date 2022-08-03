@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="author" content="Florian Verdonck, Jindřich Ivánek">
+  <title>Getting started
+</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Reem+Kufi:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.3/font/bootstrap-icons.css">
+  <link rel="shortcut icon" type="image/x-icon" href="/fantomas/images/favicon.ico">
+  <link type="text/css" rel="stylesheet" href="/fantomas/content/fsdocs-custom.css" />
+  <link type="text/css" rel="stylesheet" href="/fantomas/content/fsdocs-default.css" />
+  <script type="text/javascript" src="/fantomas/content/fsdocs-tips.js"></script>
+  <!-- BEGIN SEARCH BOX: this adds support for the search box -->
+  <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+  <link rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/JavaScript-autoComplete/1.0.4/auto-complete.css" />
+  <!-- END SEARCH BOX: this adds support for the search box -->
+  
+</head>
+
+<body>
+  <main id="main-container">
+  
+     <div id="sidebar-wrapper" class="bg-primary h-100 fs-5 collapse show" >
+      <div id="sidebar-header" class="d-flex justify-content-end mt-1">
+      <button class="btn d-md-none" data-bs-toggle="collapse" data-bs-target="#sidebar-wrapper" data-bs-parent="#main-container" aria-controls="sidebar-wrapper" aria-expanded="false" aria-label="Toggle navigation">
+        <i class="sidebar-toggle fs-3 bi bi-x-lg"></i>
+                  </button>
+              </div>
+      <div id="sidebar-logo" class="d-flex justify-content-center p-5">
+      <a href="./index.html" ><img id="fsdocs-logo" src="/fantomas//images/logo-fantomas-white.svg" /></a>
+</div>
+      <div id="sidebar-generation" class="list-unstyled ps-0 text-white fs-6">
+        <li class="nav-header">
+  End-user documentation
+</li>             
+<li class="nav-item">
+  <a class="nav-link" href="/fantomas/docs/FAKE.html">
+    FAKE build system
+
+  </a>
+</li>             
+<li class="nav-item">
+  <a class="nav-link" href="/fantomas/docs/Rider.html">
+    JetBrains Rider
+
+  </a>
+</li>             
+<li class="nav-item">
+  <a class="nav-link" href="/fantomas/docs/VSCode.html">
+    Visual Studio Code
+
+  </a>
+</li>             
+<li class="nav-item">
+  <a class="nav-link" href="/fantomas/docs/Configuration.html">
+    Configuration
+
+  </a>
+</li>             
+<li class="nav-item">
+  <a class="nav-link" href="/fantomas/docs/VisualStudio.html">
+    Visual Studio
+
+  </a>
+</li>             
+<li class="nav-item">
+  <a class="nav-link" href="/fantomas/docs/StyleGuide.html">
+    Style guide
+
+  </a>
+</li>             
+<li class="nav-item">
+  <a class="nav-link" href="/fantomas/docs/Benchmarks.html">
+    Benchmarks
+
+  </a>
+</li>             
+<li class="nav-item">
+  <a class="nav-link" href="/fantomas/docs/FAQ.html">
+    FAQ
+
+  </a>
+</li>             
+<li class="nav-header">
+  Documentation
+</li>             
+<li class="nav-item">
+  <a class="nav-link" href="/fantomas/docs/GettingStarted.html">
+    Getting Started
+
+  </a>
+</li>             
+<li class="nav-item">
+  <a class="nav-link" href="/fantomas/docs/IgnoreFiles.html">
+    Ignore Files
+
+  </a>
+</li>             
+<li class="nav-item">
+  <a class="nav-link" href="/fantomas/docs/FormattingCheck.html">
+    Formatting Check
+
+  </a>
+</li>             
+<li class="nav-item">
+  <a class="nav-link" href="/fantomas/docs/GitHooks.html">
+    Git hooks
+
+  </a>
+</li>             
+<li class="nav-header">
+  Contributors
+</li>             
+<li class="nav-item">
+  <a class="nav-link" href="/fantomas/docs/contributors/Index.html">
+    Contributors
+
+  </a>
+</li>             
+<li class="nav-item">
+  <a class="nav-link" href="/fantomas/docs/contributors/FSharp.html">
+    F#
+
+  </a>
+</li>             
+<li class="nav-item">
+  <a class="nav-link" href="/fantomas/docs/contributors/Getting Started.html">
+    Getting started
+
+  </a>
+</li>             
+<li class="nav-item">
+  <a class="nav-link" href="/fantomas/docs/contributors/Solution Structure.html">
+    Solution structure
+
+  </a>
+</li>             
+<li class="nav-item">
+  <a class="nav-link" href="/fantomas/docs/contributors/Prepare Context.html">
+    Fantomas.Core overview (1)
+
+  </a>
+</li>             
+<li class="nav-item">
+  <a class="nav-link" href="/fantomas/docs/contributors/Print AST with Context.html">
+    Fantomas.Core overview (2)
+
+  </a>
+</li>             
+<li class="nav-item">
+  <a class="nav-link" href="/fantomas/docs/contributors/Formatted Code.html">
+    Fantomas.Core overview (3)
+
+  </a>
+</li>
+      </div>
+    </div>
+
+    <div class="doc-content">
+     <nav class="navbar navbar-expand-sm border py-1">
+        <div class="container-fluid flex-nowrap">
+          <button class="btn" data-bs-toggle="collapse" data-bs-target="#sidebar-wrapper" data-bs-parent="#main-container" aria-controls="sidebar-wrapper" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="sidebar-toggle fs-3 bi bi-list"></i>
+          </button>
+          <div id="mobile-navbar" class="container-fluid d-flex justify-content-between d-sm-none">
+            <i class="invisible bi bi-github fs-3 align-self-end"></i>
+         <a href="./index.html" ><img id="fsdocs-logo" width="32" height="32" src="/fantomas//images/logo.png" /></a>
+            <a class="nav-link m-0 p-0" target="_blank" href="https://github.com/fsprojects/fantomas/"> <i class="bi bi-github fs-3 align-self-end"></i>
+</a>
+          </div>
+          <div class="collapse navbar-collapse" id="navbarText">
+            <div class="navbar-nav me-auto mb-2 mb-lg-0 fs-5">
+                <a class="nav-link active" aria-current="page" href="index.html">Docs</a>
+                <a class="nav-link" target="_blank" href="https://fsprojects.github.io/fantomas-tools/">Tools</a>
+            </div>
+            <form class="d-flex">
+              <div class="input-group me-4">
+              <label for="search-by">
+                <i class="fas fa-search"></i>
+              </label>
+                <div class="btn border-end-0 border">
+                  <i class="bi bi-search"></i>
+                </div>
+                <input aria-label="Search" class="form-control  border-start-0 border" data-search-input=""
+                  id="search-by" type="search" placeholder="Search..." />
+                <span class="input-group-append">
+                </span>
+                <span data-search-clear="">
+                  <i class="fas fa-times"></i>
+                </span>
+              </div>
+            </form>
+            <a class="nav-link m-0 p-0" target="_blank" href="https://github.com/fsprojects/fantomas/">GitHub<i
+                class="bi bi-box-arrow-up-right mx-2"></i></a>
+          </div>
+        </div>
+      </nav>
+      <div id="fsdocs-content" class="bg-white m-2 m-sm-5 p-3 p-sm-4">
+        
+<h1><a name="Getting-started" class="anchor" href="#Getting-started">Getting started</a></h1>
+<p>Fantomas has a fairly straightforward setup.</p>
+<h2><a name="Recommended-workflow" class="anchor" href="#Recommended-workflow">Recommended workflow</a></h2>
+<p>We recommend the following overall workflow when developing for this repository:</p>
+<ul>
+<li>Fork this repository</li>
+<li>Always work in your fork</li>
+<li>Always keep your fork up to date</li>
+</ul>
+<p>Before updating your fork, run this command:</p>
+<table class="pre"><tr><td class="snippet"><pre class="fssnip"><code lang="shell">git remote add upstream https://github.com/fsprojects/fantomas.git
+</code></pre></td></tr></table>
+<p>This will make management of multiple forks and your own work easier over time.</p>
+<h2><a name="Updating-your-fork" class="anchor" href="#Updating-your-fork">Updating your fork</a></h2>
+<p>We recommend the following commands to update your fork:</p>
+<table class="pre"><tr><td class="snippet"><pre class="fssnip"><code lang="shell">git checkout master
+git clean -xdf
+git fetch upstream
+git rebase upstream/master
+git push
+</code></pre></td></tr></table>
+<p>Or more succinctly:</p>
+<table class="pre"><tr><td class="snippet"><pre class="fssnip"><code lang="shell">git checkout master &amp;&amp; git clean -xdf &amp;&amp; git fetch upstream &amp;&amp; git rebase upstream/master &amp;&amp; git push
+</code></pre></td></tr></table>
+<p>This will update your fork with the latest from <code>fsprojects/fantomas</code> on your machine and push those updates to your remote fork.</p>
+<h2><a name="Initial-build" class="anchor" href="#Initial-build">Initial build</a></h2>
+<p>After cloning the repository, you can restore the local .NET tools:</p>
+<table class="pre"><tr><td class="snippet"><pre class="fssnip"><code lang="shell">dotnet tool restore
+</code></pre></td></tr></table>
+<p>Next, you should run the default FAKE target.
+This will build the solution, run all unit tests and do everything that the CI build does.</p>
+<table class="pre"><tr><td class="snippet"><pre class="fssnip"><code lang="shell">dotnet fake build
+</code></pre></td></tr></table>
+<p>If you are unfamiliar with <a href="https://fake.build/">FAKE</a>, you can read the <a href="https://fake.build/fake-gettingstarted.html">FAKE getting started guide</a>.<br />
+To see what other targets are available, run:</p>
+<table class="pre"><tr><td class="snippet"><pre class="fssnip"><code lang="shell">dotnet fake run build.fsx --list
+</code></pre></td></tr></table>
+<p>Next, you should run a FAKE target that sets up some git repo-level configuration.</p>
+<table class="pre"><tr><td class="snippet"><pre class="fssnip"><code lang="shell">dotnet fake build -t EnsureRepoConfig
+</code></pre></td></tr></table>
+<p>This target makes changes to the local git repository configuration to ensure
+that formatting of new code is consistent before it is pushed up to a remote repository.</p>
+<div class="d-flex justify-content-between my-4">
+  <a href="./FSharp.html">Previous</a>
+  <a href="./Solution%20Structure.html">Next</a>
+</div>
+
+        
+      </div>
+        <div id="push"></div>
+    </div>
+    
+  </main>
+  <script type="module" src="/fantomas/content/sidebar-generation.js"></script>
+  <script type="text/javascript">
+addEventListener('hide.bs.collapse', (e) => {
+  if (e.target && e.target.id === 'sidebar-wrapper') {
+    document.getElementById('main-container').classList.add('toggled');
+  }
+  else{
+    document.getElementById(e.target.id+'-wrapper').classList.remove('menu-open');
+  }
+})
+addEventListener('show.bs.collapse', (e) => {
+  if (e.target && e.target.id === 'sidebar-wrapper') {
+   document.getElementById('main-container').classList.remove('toggled');
+  }
+  else{
+    document.getElementById(e.target.id+'-wrapper').classList.add('menu-open');
+  }
+})
+  </script>
+  <!-- BEGIN SEARCH BOX: this adds support for the search box -->
+  <link rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/JavaScript-autoComplete/1.0.4/auto-complete.css" />
+  <script type="text/javascript">var fsdocs_search_baseurl = '/fantomas/';</script>
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/lunr.js/2.3.8/lunr.min.js"></script>
+  <script type="text/javascript"
+    src="https://cdnjs.cloudflare.com/ajax/libs/JavaScript-autoComplete/1.0.4/auto-complete.min.js"></script>
+  <script type="text/javascript" src="/fantomas/content/fsdocs-search.js"></script>
+  <!-- END SEARCH BOX: this adds support for the search box -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-A3rJD856KowSb7dwlZdYEkO39Gagi7vIsF0jrRAoQmDKKtQBHUuLZ9AsSv4jD4Xa" crossorigin="anonymous"></script>
+  <script type="module">
+      import mermaid from "https://cdn.skypack.dev/mermaid";
+      mermaid.initialize({
+          startOnLoad: true,
+          theme: "base",
+          themeVariables: {
+              primaryColor: '#eff5f7'
+          }
+      });
+  </script>
+</body>
+
+</html>
