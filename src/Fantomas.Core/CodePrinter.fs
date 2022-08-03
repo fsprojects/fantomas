@@ -3894,11 +3894,22 @@ and genType astContext outerBracket t =
         | t -> failwithf "Unexpected type: %O" t
 
     and loopTTupleList ts =
-        col sepSpace ts (fun t ->
-            match t with
-            | SynTupleTypeSegment.Type t -> loop t
-            | SynTupleTypeSegment.Star _ -> !- "*"
-            | SynTupleTypeSegment.Slash _ -> !- "/")
+        if
+            List.forall
+                (function
+                | SynTupleTypeSegment.Type _ -> true
+                | _ -> false)
+                ts
+        then
+            col !- " * " ts (function
+                | SynTupleTypeSegment.Type t -> loop t
+                | _ -> sepNone)
+        else
+            col sepSpace ts (fun t ->
+                match t with
+                | SynTupleTypeSegment.Type t -> loop t
+                | SynTupleTypeSegment.Star _ -> !- "*"
+                | SynTupleTypeSegment.Slash _ -> !- "/")
 
     and loopFuns (ts, ret) =
         let short =
