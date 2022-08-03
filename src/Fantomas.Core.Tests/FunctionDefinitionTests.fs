@@ -1417,3 +1417,33 @@ let bazka (f: ((FooTypeX -> string * string list)) Bar) = failwith ""
         """
 let bazka (f: ((FooTypeX -> string * string list)) Bar) = failwith ""
 """
+
+[<Test>]
+let ``value with tuple return type, 2403`` () =
+    formatSourceString
+        false
+        """
+let a : int * string = 1, ""
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let a: int * string = 1, ""
+"""
+
+[<Test>]
+let ``value with tuple return type, three types`` () =
+    formatSourceString
+        false
+        """
+let a : int * string * bool = 1, "", false
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let a: int * string * bool = 1, "", false
+"""

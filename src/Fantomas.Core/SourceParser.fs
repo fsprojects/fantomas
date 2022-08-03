@@ -1504,6 +1504,15 @@ let (|TLongIdentApp|_|) =
 
 let (|TTuple|_|) =
     function
+    // There could be a star missing due to https://github.com/dotnet/fsharp/pull/13621
+    | SynType.Tuple (false, (SynTupleTypeSegment.Type _ as t1) :: (SynTupleTypeSegment.Type _ as t2) :: rest, _) ->
+        let mStar =
+            Range.mkRange
+                t1.Range.FileName
+                (Position.mkPos t1.Range.StartLine (t1.Range.StartLine + 1))
+                (Position.mkPos t2.Range.EndLine (t2.Range.EndColumn - 1))
+
+        Some(t1 :: SynTupleTypeSegment.Star mStar :: t2 :: rest)
     | SynType.Tuple (false, ts, _) -> Some ts
     | _ -> None
 
