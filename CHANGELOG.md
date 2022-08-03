@@ -6,9 +6,10 @@
 * Update FCS to 'SynType with single slash and type', commit e1f735546a907b0a511b818f10829b1d75139021
 
 ### Fixed
-* Fantomas moves comma and breaks code [#2381](https://github.com/fsprojects/fantomas/issues/2381)
-* Idempotency problem for unit of measure [2264](https://github.com/fsprojects/fantomas/issues/2264)
-* Indent interface member after anonymous record as generic type [#2396](https://github.com/fsprojects/fantomas/issues/2396)
+* Fantomas moves comma and breaks code. [#2381](https://github.com/fsprojects/fantomas/issues/2381)
+* Idempotency problem for unit of measure. [2264](https://github.com/fsprojects/fantomas/issues/2264)
+* Indent interface member after anonymous record as generic type. [#2396](https://github.com/fsprojects/fantomas/issues/2396)
+* Unexpected concatenation of docstring lines after private modifier on DU. [#2401](https://github.com/fsprojects/fantomas/issues/2401)
 
 ## [5.0.0-beta-004] - 2022-07-27
 

@@ -1046,3 +1046,76 @@ type LongIdentWithDots =
         trailingId: LongIdent *
         dotRanges: range list
 """
+
+[<Test>]
+let ``access modifier and xml comment in union, 2401`` () =
+    formatSourceString
+        false
+        """
+type Foo =
+    private
+    /// Foo
+    /// Bar
+    | Thing
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type Foo =
+    private
+    /// Foo
+    /// Bar
+    | Thing
+"""
+
+[<Test>]
+let ``access modifier and xml comment in union, multiple cases`` () =
+    formatSourceString
+        false
+        """
+type Foo =
+    private
+    /// Foo
+    /// Bar
+    | Thing
+    /// XML Doc
+    | OtherThing
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type Foo =
+    private
+    /// Foo
+    /// Bar
+    | Thing
+    /// XML Doc
+    | OtherThing
+"""
+
+[<Test>]
+let ``access modifier and xml comment in union, signature file`` () =
+    formatSourceString
+        true
+        """
+type Foo =
+    private
+    /// Foo
+    /// Bar
+    | Thing
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type Foo =
+    private
+    /// Foo
+    /// Bar
+    | Thing
+"""
