@@ -1432,3 +1432,18 @@ let a : int * string = 1, ""
         """
 let a: int * string = 1, ""
 """
+
+[<Test>]
+let ``value with tuple return type, three types`` () =
+    formatSourceString
+        false
+        """
+let a : int * string * bool = 1, "", false
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let a: int * string * bool = 1, "", false
+"""
