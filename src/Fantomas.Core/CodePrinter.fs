@@ -132,7 +132,7 @@ and genModuleOrNamespace
         | None -> sepNone
         | Some mdl ->
             sepNln
-            +> sepNlnConsideringTriviaContentBeforeForMainNode (synModuleDeclToFsAstType mdl) mdl.Range
+            +> sepNlnConsideringTriviaContentBeforeFor (synModuleDeclToFsAstType mdl) mdl.Range
 
     let moduleOrNamespace =
         genModuleOrNamespaceKind moduleRange namespaceRange moduleKind
@@ -173,9 +173,8 @@ and genSigModuleOrNamespace
         | None -> sepNone
         | Some mdl ->
             match mdl with
-            | SynModuleSigDecl.Types _ ->
-                sepNlnConsideringTriviaContentBeforeForMainNode SynModuleSigDecl_Types mdl.Range
-            | SynModuleSigDecl.Val _ -> sepNlnConsideringTriviaContentBeforeForMainNode SynModuleSigDecl_Val mdl.Range
+            | SynModuleSigDecl.Types _ -> sepNlnConsideringTriviaContentBeforeFor SynModuleSigDecl_Types mdl.Range
+            | SynModuleSigDecl.Val _ -> sepNlnConsideringTriviaContentBeforeFor SynModuleSigDecl_Val mdl.Range
             | _ -> sepNone
             +> sepNln
 
@@ -208,7 +207,7 @@ and genModuleDeclList astContext e =
             let r, triviaType =
                 List.head xs |> fun mdl -> mdl.Range, synModuleDeclToFsAstType mdl
             // SynModuleDecl.Open cannot have attributes
-            let sepNln = sepNlnConsideringTriviaContentBeforeForMainNode triviaType r
+            let sepNln = sepNlnConsideringTriviaContentBeforeFor triviaType r
 
             collectItems ys (fun ysItems -> ColMultilineItem(expr, sepNln) :: ysItems |> finalContinuation)
 
@@ -217,27 +216,25 @@ and genModuleDeclList astContext e =
 
             let r = List.head xs |> fun mdl -> mdl.Range
             // SynModuleDecl.HashDirective cannot have attributes
-            let sepNln =
-                sepNlnConsideringTriviaContentBeforeForMainNode SynModuleDecl_HashDirective r
+            let sepNln = sepNlnConsideringTriviaContentBeforeFor SynModuleDecl_HashDirective r
 
             collectItems ys (fun ysItems -> ColMultilineItem(expr, sepNln) :: ysItems |> finalContinuation)
 
         | AttributesL (xs, y :: rest) ->
             let expr =
                 col sepNln xs (genModuleDecl astContext)
-                +> sepNlnConsideringTriviaContentBeforeForMainNode (synModuleDeclToFsAstType y) y.Range
+                +> sepNlnConsideringTriviaContentBeforeFor (synModuleDeclToFsAstType y) y.Range
                 +> genModuleDecl astContext y
 
             let r = List.head xs |> fun mdl -> mdl.Range
 
-            let sepNln =
-                sepNlnConsideringTriviaContentBeforeForMainNode SynModuleDecl_Attributes r
+            let sepNln = sepNlnConsideringTriviaContentBeforeFor SynModuleDecl_Attributes r
 
             collectItems rest (fun restItems -> ColMultilineItem(expr, sepNln) :: restItems |> finalContinuation)
 
         | m :: rest ->
             let sepNln =
-                sepNlnConsideringTriviaContentBeforeForMainNode (synModuleDeclToFsAstType m) m.Range
+                sepNlnConsideringTriviaContentBeforeFor (synModuleDeclToFsAstType m) m.Range
 
             let expr = genModuleDecl astContext m
 
@@ -258,7 +255,7 @@ and genSigModuleDeclList astContext (e: SynModuleSigDecl list) =
             let r, triviaType =
                 List.head xs |> fun mdl -> mdl.Range, synModuleSigDeclToFsAstType mdl
             // SynModuleSigDecl.Open cannot have attributes
-            let sepNln = sepNlnConsideringTriviaContentBeforeForMainNode triviaType r
+            let sepNln = sepNlnConsideringTriviaContentBeforeFor triviaType r
 
             collectItems ys (fun ysItems -> ColMultilineItem(expr, sepNln) :: ysItems |> finalContinuation)
 
@@ -268,13 +265,13 @@ and genSigModuleDeclList astContext (e: SynModuleSigDecl list) =
             let r = List.head xs |> fun mdl -> mdl.Range
 
             let sepNln =
-                sepNlnConsideringTriviaContentBeforeForMainNode SynModuleSigDecl_HashDirective r
+                sepNlnConsideringTriviaContentBeforeFor SynModuleSigDecl_HashDirective r
 
             collectItems ys (fun ysItems -> ColMultilineItem(expr, sepNln) :: ysItems |> finalContinuation)
 
         | s :: rest ->
             let sepNln =
-                sepNlnConsideringTriviaContentBeforeForMainNode (synModuleSigDeclToFsAstType s) s.Range
+                sepNlnConsideringTriviaContentBeforeFor (synModuleSigDeclToFsAstType s) s.Range
 
             let expr = genSigModuleDecl astContext s
 
@@ -296,7 +293,7 @@ and genModuleDecl astContext (node: SynModuleDecl) =
                             ifElse
                                 prevContentAfterPresent
                                 sepNone
-                                (sepNlnConsideringTriviaContentBeforeForMainNode SynModuleDecl_Attributes a.Range)
+                                (sepNlnConsideringTriviaContentBeforeFor SynModuleDecl_Attributes a.Range)
                             +> ((col sepNln a.Attributes (genAttribute astContext))
                                 |> genTriviaFor SynAttributeList_ a.Range)
 
@@ -329,8 +326,7 @@ and genModuleDecl astContext (node: SynModuleDecl) =
             | Some b' ->
                 let r = b'.RangeOfBindingWithRhs
 
-                sepNln
-                +> sepNlnConsideringTriviaContentBeforeForMainNode (synBindingToFsAstType b) r
+                sepNln +> sepNlnConsideringTriviaContentBeforeFor (synBindingToFsAstType b) r
             | None -> id
 
         genLetBinding astContext "let rec " b
@@ -339,8 +335,7 @@ and genModuleDecl astContext (node: SynModuleDecl) =
             (fun (b': SynBinding) ->
                 let r = b'.RangeOfBindingWithRhs
 
-                sepNln
-                +> sepNlnConsideringTriviaContentBeforeForMainNode (synBindingToFsAstType b) r)
+                sepNln +> sepNlnConsideringTriviaContentBeforeFor (synBindingToFsAstType b) r)
             bs
             (fun andBinding ->
                 enterNodeFor (synBindingToFsAstType b) andBinding.RangeOfBindingWithRhs
@@ -371,7 +366,7 @@ and genModuleDecl astContext (node: SynModuleDecl) =
                     (fun t ->
                         ColMultilineItem(
                             genTypeDefn astContext false t,
-                            sepNlnConsideringTriviaContentBeforeForMainNode SynTypeDefn_ t.Range
+                            sepNlnConsideringTriviaContentBeforeFor SynTypeDefn_ t.Range
                         ))
                     ts)
 
@@ -405,7 +400,7 @@ and genSigModuleDecl astContext node =
             ColMultilineItem(genSigTypeDefn astContext true t, sepNone)
             :: (List.map
                     (fun (t: SynTypeDefnSig) ->
-                        let sepNln = sepNlnConsideringTriviaContentBeforeForMainNode SynTypeDefnSig_ t.Range
+                        let sepNln = sepNlnConsideringTriviaContentBeforeFor SynTypeDefnSig_ t.Range
 
                         ColMultilineItem(genSigTypeDefn astContext false t, sepNln))
                     ts)
@@ -735,8 +730,7 @@ and genMemberBindingList astContext ms =
         let expr = genMemberBinding astContext mb
         let r = mb.RangeOfBindingWithRhs
 
-        let sepNln =
-            sepNlnConsideringTriviaContentBeforeForMainNode (synBindingToFsAstType mb) r
+        let sepNln = sepNlnConsideringTriviaContentBeforeFor (synBindingToFsAstType mb) r
 
         ColMultilineItem(expr, sepNln))
     |> colWithNlnWhenItemIsMultiline
@@ -1219,13 +1213,12 @@ and genExpr astContext synExpr ctx =
 
             let getSepNln ces r =
                 match ces with
-                | LetOrUseStatement (_, b, _) ->
-                    sepNlnConsideringTriviaContentBeforeForMainNode (synBindingToFsAstType b) r
-                | LetOrUseBangStatement _ -> sepNlnConsideringTriviaContentBeforeForMainNode SynExpr_LetOrUseBang r
-                | AndBangStatement (_, _, _, r) -> sepNlnConsideringTriviaContentBeforeForMainNode SynExprAndBang_ r
+                | LetOrUseStatement (_, b, _) -> sepNlnConsideringTriviaContentBeforeFor (synBindingToFsAstType b) r
+                | LetOrUseBangStatement _ -> sepNlnConsideringTriviaContentBeforeFor SynExpr_LetOrUseBang r
+                | AndBangStatement (_, _, _, r) -> sepNlnConsideringTriviaContentBeforeFor SynExprAndBang_ r
                 | OtherStatement e ->
                     let t, r = synExprToFsAstType e
-                    sepNlnConsideringTriviaContentBeforeForMainNode t r
+                    sepNlnConsideringTriviaContentBeforeFor t r
 
             statements
             |> List.map (fun ces ->
@@ -2300,7 +2293,7 @@ and genExprInMultilineInfixExpr astContext e =
                 (genExpr astContext e)
                 (let t, r = synExprToFsAstType e in
 
-                 sepNlnConsideringTriviaContentBeforeForMainNode t r +> genExpr astContext e)
+                 sepNlnConsideringTriviaContentBeforeFor t r +> genExpr astContext e)
         )
     | Paren (lpr, (Match _ as mex), rpr, pr) ->
         fun ctx ->
@@ -3102,7 +3095,7 @@ and collectMultilineItemForSynExpr (astContext: ASTContext) (e: SynExpr) : ColMu
     | Sequentials s -> s |> List.collect (collectMultilineItemForSynExpr astContext)
     | _ ->
         let t, r = synExprToFsAstType e
-        [ ColMultilineItem(genExpr astContext e, sepNlnConsideringTriviaContentBeforeForMainNode t r) ]
+        [ ColMultilineItem(genExpr astContext e, sepNlnConsideringTriviaContentBeforeFor t r) ]
 
 and collectMultilineItemForLetOrUses
     (astContext: ASTContext)
@@ -3118,8 +3111,7 @@ and collectMultilineItemForLetOrUses
 
         let range = x.RangeOfBindingWithRhs
 
-        let sepNln =
-            sepNlnConsideringTriviaContentBeforeForMainNode (synBindingToFsAstType x) range
+        let sepNln = sepNlnConsideringTriviaContentBeforeFor (synBindingToFsAstType x) range
 
         ColMultilineItem(expr, sepNln)
 
@@ -3136,7 +3128,7 @@ and collectMultilineItemForLetOrUses
         let range = b.RangeOfBindingWithRhs
 
         let sepNlnForBinding =
-            sepNlnConsideringTriviaContentBeforeForMainNode (synBindingToFsAstType b) range
+            sepNlnConsideringTriviaContentBeforeFor (synBindingToFsAstType b) range
 
         match inKeyword with
         | Some inKw ->
@@ -3325,7 +3317,7 @@ and genTypeDefn
             | [] -> ctx
             | h :: _ ->
                 (sepNln
-                 +> sepNlnConsideringTriviaContentBeforeForMainNode (synMemberDefnToFsAstType h) h.Range
+                 +> sepNlnConsideringTriviaContentBeforeFor (synMemberDefnToFsAstType h) h.Range
                  +> genMemberDefnList astContext ms)
                     ctx)
         +> unindent
@@ -4191,7 +4183,7 @@ and genMemberDefnList astContext ms =
     |> List.map (fun md ->
         ColMultilineItem(
             genMemberDefn astContext md,
-            sepNlnConsideringTriviaContentBeforeForMainNode (synMemberDefnToFsAstType md) md.Range
+            sepNlnConsideringTriviaContentBeforeFor (synMemberDefnToFsAstType md) md.Range
         ))
     |> colWithNlnWhenItemIsMultilineUsingConfig
 
@@ -4313,9 +4305,7 @@ and genMemberDefn astContext node =
 
                     ColMultilineItem(
                         expr,
-                        sepNlnConsideringTriviaContentBeforeForMainNode
-                            SynBindingKind_Normal
-                            andBinding.RangeOfBindingWithRhs
+                        sepNlnConsideringTriviaContentBeforeFor SynBindingKind_Normal andBinding.RangeOfBindingWithRhs
                     ))
 
             ColMultilineItem(genLetBinding astContext prefix b, sepNone) :: bsItems
@@ -4389,7 +4379,7 @@ and genMemberDefn astContext node =
                 genTriviaFor
                     SynMemberDefn_GetSetMember_And
                     andKeyword
-                    (sepNlnConsideringTriviaContentBeforeForMainNode SynMemberDefn_GetSetMember_And andKeyword
+                    (sepNlnConsideringTriviaContentBeforeFor SynMemberDefn_GetSetMember_And andKeyword
                      +> !- "and"
                      +> sepSpace))
             andKeyword
@@ -5123,6 +5113,6 @@ and genKeepIdent startRange (e: SynExpr) ctx =
         && (startRange.StartColumn = e.Range.StartColumn)
     then
         let t, r = synExprToFsAstType e
-        sepNlnConsideringTriviaContentBeforeForMainNode t r ctx
+        sepNlnConsideringTriviaContentBeforeFor t r ctx
     else
         indent ctx

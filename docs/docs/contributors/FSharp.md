@@ -126,3 +126,8 @@ That list of events will contain instructions like `Write "let"`, `IndentBy 4`, 
 Although, it really is an implementation detail in `Context.fs`, think of it as writing a letter with a pen and a paper.
 We first rehearse what we want to say, then we write the letter. Not write evey word as we are making up the letter, but write the letter as a whole once we know the content.  
 These events are used to achieve this.
+
+<div class="d-flex justify-content-between my-4">
+  <a href="./index.html">Previous</a>
+  <a href="./Getting%20Started.html">Next</a>
+</div>
