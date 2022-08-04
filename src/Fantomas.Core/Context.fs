@@ -180,7 +180,6 @@ type internal Context =
       WriterEvents: Queue<WriterEvent>
       TriviaBefore: Map<FsAstType, TriviaInstruction list>
       TriviaAfter: Map<FsAstType, TriviaInstruction list>
-      FileName: string
       SourceText: ISourceText option }
 
     /// Initialize with a string writer and use space as delimiter
@@ -190,7 +189,6 @@ type internal Context =
           WriterEvents = Queue.empty
           TriviaBefore = Map.empty
           TriviaAfter = Map.empty
-          FileName = String.Empty
           SourceText = None }
 
     static member Create
