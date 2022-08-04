@@ -179,7 +179,6 @@ type internal Context =
       WriterModel: WriterModel
       WriterEvents: Queue<WriterEvent>
       BreakLines: bool
-      BreakOn: string -> bool
       TriviaBefore: Map<FsAstType, TriviaInstruction list>
       TriviaAfter: Map<FsAstType, TriviaInstruction list>
       FileName: string
@@ -191,7 +190,6 @@ type internal Context =
           WriterModel = WriterModel.init
           WriterEvents = Queue.empty
           BreakLines = true
-          BreakOn = (fun _ -> false)
           TriviaBefore = Map.empty
           TriviaAfter = Map.empty
           FileName = String.Empty
