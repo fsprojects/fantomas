@@ -1133,8 +1133,8 @@ let (|PatOr|_|) =
 
 let rec (|PatOrs|_|) =
     function
-    | PatOr (PatOrs (p1, pats), barRange, p2) -> Some(p1, [ yield! pats; yield (barRange, p2) ])
-    | PatOr (p1, barRange, p2) -> Some(p1, [ barRange, p2 ])
+    | PatOr (PatOrs (p1, pats), barRange, p2) as p -> Some(p1, [ yield! pats; yield (barRange, p2, p.Range) ])
+    | PatOr (p1, barRange, p2) as p -> Some(p1, [ barRange, p2, p.Range ])
     | _ -> None
 
 let (|PatAnds|_|) =

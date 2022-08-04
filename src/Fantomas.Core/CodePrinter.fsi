@@ -12,9 +12,6 @@ type ASTContext =
 
         /// First type param might need extra spaces to avoid parsing errors on `<^`, `<'`, etc.
         IsFirstTypeParam: bool
-
-        /// Inside a SynPat of MatchClause
-        IsInsideMatchClausePattern: bool
     }
 
     static member Default: ASTContext
