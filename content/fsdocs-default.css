@@ -1,3 +1,299 @@
+@import url('https://fonts.googleapis.com/css2?family=Hind+Vadodara&family=Roboto+Mono&display=swap');
+/*--------------------------------------------------------------------------
+  Formatting for page & standard document content
+/*--------------------------------------------------------------------------*/
+
+body {
+    font-family: 'Hind Vadodara', sans-serif;
+    /*    padding-top: 0px;
+    padding-bottom: 40px;
+*/
+}
+
+blockquote {
+    margin: 0 1em 0 0.25em;
+    margin-top: 0px;
+    margin-right: 1em;
+    margin-bottom: 0px;
+    margin-left: 0.25em;
+    padding: 0 .75em 0 1em;
+    border-left: 1px solid #777;
+    border-right: 0px solid #777;
+}
+
+/* Format the heading - nicer spacing etc. */
+.masthead {
+    overflow: hidden;
+}
+
+    .masthead .muted a {
+        text-decoration: none;
+        color: #999999;
+    }
+
+    .masthead ul, .masthead li {
+        margin-bottom: 0px;
+    }
+
+    .masthead .nav li {
+        margin-top: 15px;
+        font-size: 110%;
+    }
+
+    .masthead h3 {
+        margin-top: 15px;
+        margin-bottom: 5px;
+        font-size: 170%;
+    }
+
+/*--------------------------------------------------------------------------
+  Formatting fsdocs-content
+/*--------------------------------------------------------------------------*/
+
+/* Change font sizes for headings etc. */
+#fsdocs-content h1 {
+    margin: 30px 0px 15px 0px;
+    /* font-weight: 400; */
+    font-size: 2rem;
+    letter-spacing: 1.78px;
+    line-height: 2.5rem;
+    font-weight: 400;
+}
+
+#fsdocs-content h2 {
+    font-size: 1.6rem;
+    margin: 20px 0px 10px 0px;
+    font-weight: 400;
+}
+
+#fsdocs-content h3 {
+    font-size: 1.2rem;
+    margin: 15px 0px 10px 0px;
+    font-weight: 400;
+}
+
+#fsdocs-content hr {
+    margin: 0px 0px 20px 0px;
+}
+
+#fsdocs-content li {
+    font-size: 1.0rem;
+    line-height: 1.375rem;
+    letter-spacing: 0.01px;
+    font-weight: 500;
+    margin: 0px 0px 15px 0px;
+}
+
+#fsdocs-content p {
+    font-size: 1.0rem;
+    line-height: 1.375rem;
+    letter-spacing: 0.01px;
+    font-weight: 500;
+    color: #262626;
+}
+
+#fsdocs-content a {
+    color: #4974D1;
+}
+/* remove the default bootstrap bold on dt elements */
+#fsdocs-content dt {
+    font-weight: normal;
+}
+
+
+
+/*--------------------------------------------------------------------------
+  Formatting tables in fsdocs-content, using docs.microsoft.com tables
+/*--------------------------------------------------------------------------*/
+
+#fsdocs-content .table {
+    table-layout: auto;
+    width: 100%;
+    font-size: 0.875rem;
+}
+
+    #fsdocs-content .table caption {
+        font-size: 0.8rem;
+        font-weight: 600;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        padding: 1.125rem;
+        border-width: 0 0 1px;
+        border-style: solid;
+        border-color: #e3e3e3;
+        text-align: right;
+    }
+
+    #fsdocs-content .table td,
+    #fsdocs-content .table th {
+        display: table-cell;
+        word-wrap: break-word;
+        padding: 0.75rem 1rem 0.75rem 0rem;
+        line-height: 1.5;
+        vertical-align: top;
+        border-top: 1px solid #e3e3e3;
+        border-right: 0;
+        border-left: 0;
+        border-bottom: 0;
+        border-style: solid;
+    }
+
+    /* suppress the top line on inner lists such as tables of exceptions */
+    #fsdocs-content .table .fsdocs-exception-list td,
+    #fsdocs-content .table .fsdocs-exception-list th {
+        border-top: 0
+    }
+
+    #fsdocs-content .table td p:first-child,
+    #fsdocs-content .table th p:first-child {
+        margin-top: 0;
+    }
+
+    #fsdocs-content .table td.nowrap,
+    #fsdocs-content .table th.nowrap {
+        white-space: nowrap;
+    }
+
+    #fsdocs-content .table td.is-narrow,
+    #fsdocs-content .table th.is-narrow {
+        width: 15%;
+    }
+
+    #fsdocs-content .table th:not([scope='row']) {
+        border-top: 0;
+        border-bottom: 1px;
+    }
+
+    #fsdocs-content .table > caption + thead > tr:first-child > td,
+    #fsdocs-content .table > colgroup + thead > tr:first-child > td,
+    #fsdocs-content .table > thead:first-child > tr:first-child > td {
+        border-top: 0;
+    }
+
+    #fsdocs-content .table table-striped > tbody > tr:nth-of-type(odd) {
+        background-color: var(--box-shadow-light);
+    }
+
+    #fsdocs-content .table.min {
+        width: unset;
+    }
+
+    #fsdocs-content .table.is-left-aligned td:first-child,
+    #fsdocs-content .table.is-left-aligned th:first-child {
+        padding-left: 0;
+    }
+
+        #fsdocs-content .table.is-left-aligned td:first-child a,
+        #fsdocs-content .table.is-left-aligned th:first-child a {
+            outline-offset: -0.125rem;
+        }
+
+@media screen and (max-width: 767px), screen and (min-resolution: 120dpi) and (max-width: 767.9px) {
+    #fsdocs-content .table.is-stacked-mobile td:nth-child(1) {
+        display: block;
+        width: 100%;
+        padding: 1rem 0;
+    }
+
+    #fsdocs-content .table.is-stacked-mobile td:not(:nth-child(1)) {
+        display: block;
+        border-width: 0;
+        padding: 0 0 1rem;
+    }
+}
+
+#fsdocs-content .table.has-inner-borders th,
+#fsdocs-content .table.has-inner-borders td {
+    border-right: 1px solid #e3e3e3;
+}
+
+    #fsdocs-content .table.has-inner-borders th:last-child,
+    #fsdocs-content .table.has-inner-borders td:last-child {
+        border-right: none;
+    }
+
+.fsdocs-entity-list .fsdocs-entity-name {
+    width: 25%;
+    font-weight: bold;
+}
+
+.fsdocs-member-list .fsdocs-member-usage {
+    width: 35%;
+}
+
+/*--------------------------------------------------------------------------
+  Formatting xmldoc sections in fsdocs-content
+/*--------------------------------------------------------------------------*/
+
+.fsdocs-xmldoc, .fsdocs-entity-xmldoc, .fsdocs-member-xmldoc {
+    font-size: 1.0rem;
+    line-height: 1.375rem;
+    letter-spacing: 0.01px;
+    font-weight: 500;
+    color: #262626;    
+}
+
+.fsdocs-xmldoc h1 {
+    font-size: 1.2rem;
+    margin: 10px 0px 0px 0px;
+}
+
+.fsdocs-xmldoc h2 {
+    font-size: 1.2rem;
+    margin: 10px 0px 0px 0px;
+}
+
+.fsdocs-xmldoc h3 {
+    font-size: 1.1rem;
+    margin: 10px 0px 0px 0px;
+}
+
+/* #fsdocs-nav .searchbox {
+    margin-top: 30px;
+    margin-bottom: 30px;
+} */
+
+#fsdocs-nav img.logo{
+    width:90%;
+    /* height:140px; */
+    /* margin:10px 0px 0px 20px; */
+    margin-top:40px;
+    border-style:none;
+}
+
+#fsdocs-nav input{
+    /* margin-left: 20px; */
+    margin-right: 20px;
+    margin-top: 20px;
+    margin-bottom: 20px;
+    width: 93%;
+    -webkit-border-radius: 0;
+    border-radius: 0;
+}
+
+#fsdocs-nav {
+    /* margin-left: -5px; */
+    /* width: 90%; */
+    font-size:0.95rem;
+}
+
+#fsdocs-nav li.nav-header{
+    /* margin-left: -5px; */
+    /* width: 90%; */
+    padding-left: 0;
+    color: #262626;
+    text-transform: none;
+    font-size:16px;
+    margin-top: 9px;
+    font-weight: bold;
+}
+
+#fsdocs-nav a{
+    padding-left: 0;
+    color: #6c6c6d;
+    /* margin-left: 5px; */
+    /* width: 90%; */
+}
 
 /*--------------------------------------------------------------------------
   Formatting pre and code sections in fsdocs-content (code highlighting is
@@ -84,7 +380,88 @@
     line-height: 1.375rem;
     letter-spacing: 0.01px;
     font-weight: 700;
+    color: #262626;    
+}
+
+/*--------------------------------------------------------------------------
+  Formatting github source links
+/*--------------------------------------------------------------------------*/
+
+.fsdocs-source-link {
+    float: right;
+    text-decoration: none;
+}
+
+    .fsdocs-source-link img {
+        border-style: none;
+        margin-left: 10px;
+        width: auto;
+        height: 1.4em;        
+    }
+
+    .fsdocs-source-link .hover {
+        display: none;
+    }
+
+    .fsdocs-source-link:hover .hover {
+        display: block;
+    }
+
+    .fsdocs-source-link .normal {
+        display: block;
+    }
+
+    .fsdocs-source-link:hover .normal {
+        display: none;
+    }
+
+/*--------------------------------------------------------------------------
+  Formatting logo
+/*--------------------------------------------------------------------------*/
+
+#fsdocs-logo {
+    width:140px;
+    height:140px;
+    margin:10px 0px 0px 0px;
+    border-style:none;
+}
+
+/*--------------------------------------------------------------------------
+  
+/*--------------------------------------------------------------------------*/
+
+#fsdocs-content table.pre pre {
+    padding: 0px;
+    margin: 0px;
+    border: none;
+}
+
+/*--------------------------------------------------------------------------
+  Remove formatting from links
+/*--------------------------------------------------------------------------*/
+
+#fsdocs-content h1 a,
+#fsdocs-content h1 a:hover,
+#fsdocs-content h1 a:focus,
+#fsdocs-content h2 a,
+#fsdocs-content h2 a:hover,
+#fsdocs-content h2 a:focus,
+#fsdocs-content h3 a,
+#fsdocs-content h3 a:hover,
+#fsdocs-content h3 a:focus,
+#fsdocs-content h4 a,
+#fsdocs-content h4 a:hover, #fsdocs-content
+#fsdocs-content h4 a:focus,
+#fsdocs-content h5 a,
+#fsdocs-content h5 a:hover,
+#fsdocs-content h5 a:focus,
+#fsdocs-content h6 a,
+#fsdocs-content h6 a:hover,
+#fsdocs-content h6 a:focus {
     color: #262626;
+    text-decoration: none;
+    text-decoration-style: none;
+    /* outline: none */
 }
 
 /*--------------------------------------------------------------------------
@@ -221,7 +598,8 @@ div.fsdocs-tip {
     pointer-events: none;
 }
 
-div.fsdocs-tip code {
-    color: #d1d1d1;
-    font: 0.85rem 'Roboto Mono', monospace;
-}
+    div.fsdocs-tip code {
+        color: #d1d1d1;
+        font: 0.85rem 'Roboto Mono', monospace;
+    }
+

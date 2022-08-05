@@ -44,7 +44,7 @@
   --bs-black-rgb: 34, 34, 34;
   --bs-body-color-rgb: 33, 37, 41;
   --bs-body-bg-rgb: 255, 255, 255;
-  --bs-font-sans-serif: "Reem Kufi", sans-serif;
+  --bs-font-sans-serif: "Poppins", sans-serif;
   --bs-font-monospace: SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
   --bs-gradient: linear-gradient(180deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0));
   --bs-body-font-family: var(--bs-font-sans-serif);
@@ -879,6 +879,7 @@ hr {
 h6, .h6, h5, .h5, h4, .h4, h3, .h3, h2, .h2, h1, .h1 {
   margin-top: 0;
   margin-bottom: 0.5rem;
+  font-family: "Reem Kufi", sans-serif;
   font-weight: 500;
   line-height: 1.2;
 }
@@ -9158,7 +9159,7 @@ main #sidebar-wrapper p {
   letter-spacing: 0.1px;
 }
 main #sidebar-wrapper #sidebar-logo #fsdocs-logo {
-  width: 170px;
+  width: 300px;
 }
 main #sidebar-wrapper:not(.show) {
   display: none;
