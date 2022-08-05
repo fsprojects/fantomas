@@ -70,5 +70,5 @@ This will give you a better understanding of how we capture events in `CodePrint
 
 <div class="d-flex justify-content-between my-4">
   <a href="./Prepare%20Context.html">Previous</a>
-  <a href="./Formatted+Code.html">Next</a>
+  <a href="./Formatted%20Code.html">Next</a>
 </div>
