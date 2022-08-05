@@ -328,7 +328,19 @@ Target.create "EnsureRepoConfig" (fun _ ->
 Target.create "Docs" (fun _ ->
     DotNet.exec id "fsi" "./docs/.style/style.fsx" |> ignore
 
-    DotNet.exec id "fsdocs" "build --clean --properties Configuration=Release"
+    let semanticVersioning =
+        __SOURCE_DIRECTORY__
+        </> "src"
+        </> "Fantomas"
+        </> "bin"
+        </> string configuration
+        </> "net6.0"
+        </> "SemanticVersioning.dll"
+
+    DotNet.exec
+        id
+        "fsdocs"
+        $"build --clean --properties Configuration=Release --fscoptions \" -r:{semanticVersioning}\""
     |> ignore)
 
 // --------------------------------------------------------------------------------------
