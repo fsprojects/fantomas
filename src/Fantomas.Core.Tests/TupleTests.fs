@@ -360,3 +360,36 @@ let mb =
         , cts.Token
     )
 """
+
+[<Test>]
+let ``comma placement should not cause compiler warnings, 2159`` () =
+    formatSourceString
+        false
+        """
+let f x =
+    React.useEffect (fun () ->
+        if length x > 5 && length x < 10 then
+            doX x
+        else
+            doY x
+    , [| x |])
+
+    ()
+"""
+        { config with MaxIfThenElseShortWidth = 40 }
+    |> prepend newline
+    |> should
+        equal
+        """
+let f x =
+    React.useEffect (
+        fun () ->
+            if length x > 5 && length x < 10 then
+                doX x
+            else
+                doY x
+        , [| x |]
+    )
+
+    ()
+"""
