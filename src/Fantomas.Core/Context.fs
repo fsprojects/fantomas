@@ -178,11 +178,8 @@ type internal Context =
     { Config: FormatConfig
       WriterModel: WriterModel
       WriterEvents: Queue<WriterEvent>
-      BreakLines: bool
-      BreakOn: string -> bool
       TriviaBefore: Map<FsAstType, TriviaInstruction list>
       TriviaAfter: Map<FsAstType, TriviaInstruction list>
-      FileName: string
       SourceText: ISourceText option }
 
     /// Initialize with a string writer and use space as delimiter
@@ -190,11 +187,8 @@ type internal Context =
         { Config = FormatConfig.Default
           WriterModel = WriterModel.init
           WriterEvents = Queue.empty
-          BreakLines = true
-          BreakOn = (fun _ -> false)
           TriviaBefore = Map.empty
           TriviaAfter = Map.empty
-          FileName = String.Empty
           SourceText = None }
 
     static member Create
@@ -960,7 +954,7 @@ let autoParenthesisIfExpressionExceedsPageWidth expr (ctx: Context) =
     expressionFitsOnRestOfLine expr (sepOpenT +> expr +> sepCloseT) ctx
 
 let futureNlnCheckMem (f, ctx) =
-    if ctx.WriterModel.IsDummy || not ctx.BreakLines then
+    if ctx.WriterModel.IsDummy then
         (false, false)
     else
         // Create a dummy context to evaluate length of current operation
@@ -1000,11 +994,6 @@ let colAutoNlnSkip0i f' (c: seq<'T>) f (ctx: Context) =
 
 /// Similar to col, skip auto newline for index 0
 let colAutoNlnSkip0 f' c f = colAutoNlnSkip0i f' c (fun _ -> f)
-
-/// Skip all auto-breaking newlines
-let noNln f (ctx: Context) : Context =
-    let res = f { ctx with BreakLines = false }
-    { res with BreakLines = ctx.BreakLines }
 
 let sepSpaceBeforeClassConstructor ctx =
     if ctx.Config.SpaceBeforeClassConstructor then

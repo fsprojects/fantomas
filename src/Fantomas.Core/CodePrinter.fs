@@ -23,15 +23,12 @@ type ASTContext =
         IsUnionField: bool
         /// First type param might need extra spaces to avoid parsing errors on `<^`, `<'`, etc.
         IsFirstTypeParam: bool
-        /// Inside a SynPat of MatchClause
-        IsInsideMatchClausePattern: bool
     }
 
     static member Default =
         { IsCStylePattern = false
           IsUnionField = false
-          IsFirstTypeParam = false
-          IsInsideMatchClausePattern = false }
+          IsFirstTypeParam = false }
 
 let rec addSpaceBeforeParensInFunCall functionOrMethod arg (ctx: Context) =
     match functionOrMethod, arg with
@@ -1735,7 +1732,7 @@ and genExpr astContext synExpr ctx =
                      +> genTriviaForOption SynMatchClause_Bar barRange sepNone)
                     (fun ((linesBefore, _), (linesAfter, _)) ->
                         onlyIfCtx (fun ctx -> linesAfter > linesBefore || hasWriteBeforeNewlineContent ctx) sepBar)
-                +> genPat astContext p
+                +> genPatInClause astContext p
                 +> optSingle
                     (fun e ->
                         !- " when"
@@ -4091,10 +4088,8 @@ and genClause
     (hasMultipleClausesWhereOneHasRagnarok: bool)
     (Clause (barRange, p, eo, arrowRange, e, clauseRange))
     =
-    let astCtx = { astContext with IsInsideMatchClausePattern = true }
-
     let patAndBody =
-        genPat astCtx p
+        genPatInClause astContext p
         +> leadingExpressionIsMultiline
             (optPre (!- " when") sepNone eo (fun e ->
                 let short = sepSpace +> genExpr astContext e
@@ -4160,6 +4155,22 @@ and genClause
          else
              patAndBody ctx)
      |> genTriviaFor SynMatchClause_ clauseRange)
+
+and genPatInClause (astContext: ASTContext) (pat: SynPat) =
+    let genPatOrs (p, ps) =
+        genPat astContext p
+        +> sepNln
+        +> col sepNln ps (fun (barRange, p, patOrRange) ->
+            genTriviaFor SynPat_Or_Bar barRange sepBar
+            +> genPat astContext p
+            +> leaveNodeFor SynPat_Or patOrRange)
+
+    match pat with
+    | PatOrs pats -> genPatOrs pats
+    | PatAs (PatOrs pats, patAs, r) ->
+        genPatOrs pats +> !- " as " +> genPat astContext patAs
+        |> genTriviaFor SynPat_As r
+    | _ -> genPat astContext pat
 
 and genClauses astContext cs (ctx: Context) =
     let lastIndex = cs.Length - 1
@@ -4416,7 +4427,7 @@ and genPatRecordFieldName astContext ((lid: LongIdent, ident: Ident), _: range, 
         lid.IsEmpty
         (genIdent ident +> sepEq +> sepSpace)
         (genLongIdent lid +> sepDot +> genIdent ident +> sepEq +> sepSpace)
-    +> genPat { astContext with IsInsideMatchClausePattern = false } p // see issue 1252.
+    +> genPat astContext p
 
 and genPatWithIdent astContext (ido, p) =
     optSingle (fun (ident, eqR) -> genIdent ident +> genEq SynArgPats_NamePatPairs_Equals (Some eqR) +> sepSpace) ido
@@ -4428,8 +4439,8 @@ and genPat astContext pat =
     | PatAttrib (p, ats) -> genOnelinerAttributes astContext ats +> genPat astContext p
     | PatOr (p1, barRange, p2) ->
         genPat astContext p1
-        +> ifElse astContext.IsInsideMatchClausePattern sepNln sepSpace
-        +> genTriviaFor SynPat_Or_Bar barRange !- "| "
+        +> sepSpace
+        +> genTriviaFor SynPat_Or_Bar barRange sepBar
         +> genPat astContext p2
     | PatAnds ps -> col (!- " & ") ps (genPat astContext)
     | PatNullary PatNull -> !- "null"
@@ -4513,7 +4524,8 @@ and genPat astContext pat =
             sepOpen
             +> genPat astContext patOr
             +> sepSpace
-            +> col sepSpace patOrs (fun (barRange, p) -> sepBar +> genPat astContext p)
+            +> col sepSpace patOrs (fun (barRange, p, _) ->
+                genTriviaFor SynPat_Or_Bar barRange sepBar +> genPat astContext p)
             +> sepClose
 
         let long =
@@ -4526,7 +4538,8 @@ and genPat astContext pat =
                     +> sepNln
                     +> !- " "
                     +> atCurrentColumn (
-                        sepBar +> col (sepNln +> sepBar) pats (fun (barRange, p) -> genPat astContext p)
+                        col sepNln pats (fun (barRange, p, _) ->
+                            genTriviaFor SynPat_Or_Bar barRange sepBar +> genPat astContext p)
                     )
             )
             +> sepClose
