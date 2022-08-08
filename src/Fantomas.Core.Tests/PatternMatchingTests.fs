@@ -2157,3 +2157,29 @@ match! // foo!
 with
 | _ -> ()
 """
+
+[<Test>]
+let ``use of A | B as c fails to format correctly, 2289`` () =
+    formatSourceString
+        false
+        """
+type T = A | B
+
+let f a  =
+    match a with
+    | (A | B as bi, x) ->
+        1
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type T =
+    | A
+    | B
+
+let f a =
+    match a with
+    | (A | B as bi, x) -> 1
+"""
