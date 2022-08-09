@@ -7,6 +7,9 @@
 * Indentation warning for update record in infix operation. [#2355](https://github.com/fsprojects/fantomas/issues/2355)
 * Use of A | B as c fails to format correctly. [#2289](https://github.com/fsprojects/fantomas/issues/2289)
 
+### Changed
+* Update FCS to 'Include star in topTupleType rule', commit f8b56cb6db3c90348810263fd7a5d37dc5719e92
+
 ## [5.0.0-beta-005] - 2022-08-03
 
 ### Changed 
