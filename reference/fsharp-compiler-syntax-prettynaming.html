@@ -252,9 +252,9 @@
             <div>
               <code onmouseout="hideTip(event, '46', 46)" onmouseover="showTip(event, '46', 46)">
                 <p>
-                  <a id="AddBackticksToIdentifierIfNeeded">
-                    <a href="#AddBackticksToIdentifierIfNeeded">
-                      <code><span>AddBackticksToIdentifierIfNeeded&#32;<span>name</span></span></code>
+                  <a id="CompileOpName">
+                    <a href="#CompileOpName">
+                      <code><span>CompileOpName&#32;<span>op</span></span></code>
                     </a>
                   </a>
                 </p>
@@ -262,100 +262,14 @@
               <div class="fsdocs-tip" id="46">
                 <div class="member-tooltip">
                   Full Usage: 
-                  <code><span>AddBackticksToIdentifierIfNeeded&#32;<span>name</span></span></code>
+                  <code><span>CompileOpName&#32;<span>op</span></span></code>
                   <br/>
                   <br/>
                   Parameters: 
                   <ul>
                     <span>
                       <b>
-                        name
-                      </b>
-                      :
-                      <code>string</code>
-                    </span>
-                    <br/>
-                  </ul>
-                  <br/>
-                  <span>
-                    Returns: 
-                    <code>string</code>
-                  </span>
-                  <br/>
-                </div>
-              </div>
-            </div>
-          </td>
-          <td class="fsdocs-member-xmldoc">
-            <div class="fsdocs-summary">
-              <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:M:FSharp.Compiler.Syntax.PrettyNaming.AddBackticksToIdentifierIfNeeded`')">
-                <img src="/fantomas/content/img/copy-md.png" class="normal"/>
-                <img src="/fantomas/content/img/copy-md-hover.png" class="hover"/>
-              </div>
-              <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'M:FSharp.Compiler.Syntax.PrettyNaming.AddBackticksToIdentifierIfNeeded\'/>')">
-                <img src="/fantomas/content/img/copy-xml.png" class="normal"/>
-                <img src="/fantomas/content/img/copy-xml-hover.png" class="hover"/>
-              </div>
-              <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/SyntaxTree/PrettyNaming.fs#L528-528" class="fsdocs-source-link" title="Source on GitHub">
-                <img src="/fantomas/content/img/github.png" class="normal"/>
-                <img src="/fantomas/content/img/github-hover.png" class="hover"/>
-              </a>
-              <p class="fsdocs-summary">
-                
- Adds double backticks if necessary to make a valid identifier, e.g.
-     op_Addition  -->  op_Addition
-     +            -->  ``+``    (this is not op_Addition)
-     |>>          -->  ``|>>``  (this is not an op_)
-     A-B          -->  ``A-B``
-     AB           -->  AB
-     |A|_|        -->  |A|_|    this is an active pattern name, needs parens not backticks
-
-              </p>
-            </div>
-            <dl class="fsdocs-params">
-              <dt class="fsdocs-param">
-                <span class="fsdocs-param-name">
-                  name
-                </span>
-                :
-                <code>string</code>
-              </dt>
-              <dd class="fsdocs-param-docs"></dd>
-            </dl>
-            <dl class="fsdocs-returns">
-              <dt>
-                <span class="fsdocs-return-name">
-                  Returns: 
-                </span>
-                <code>string</code>
-              </dt>
-              <dd class="fsdocs-return-docs"></dd>
-            </dl>
-          </td>
-        </tr>
-        <tr>
-          <td class="fsdocs-member-usage">
-            <div>
-              <code onmouseout="hideTip(event, '47', 47)" onmouseover="showTip(event, '47', 47)">
-                <p>
-                  <a id="CompileOpName">
-                    <a href="#CompileOpName">
-                      <code><span>CompileOpName&#32;<span>arg1</span></span></code>
-                    </a>
-                  </a>
-                </p>
-              </code>
-              <div class="fsdocs-tip" id="47">
-                <div class="member-tooltip">
-                  Full Usage: 
-                  <code><span>CompileOpName&#32;<span>arg1</span></span></code>
-                  <br/>
-                  <br/>
-                  Parameters: 
-                  <ul>
-                    <span>
-                      <b>
-                        arg0
+                        op
                       </b>
                       :
                       <code>string</code>
@@ -382,13 +296,13 @@
                 <img src="/fantomas/content/img/copy-xml.png" class="normal"/>
                 <img src="/fantomas/content/img/copy-xml-hover.png" class="hover"/>
               </div>
-              <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/SyntaxTree/PrettyNaming.fs#L422-422" class="fsdocs-source-link" title="Source on GitHub">
+              <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/SyntaxTree/PrettyNaming.fs#L423-423" class="fsdocs-source-link" title="Source on GitHub">
                 <img src="/fantomas/content/img/github.png" class="normal"/>
                 <img src="/fantomas/content/img/github-hover.png" class="hover"/>
               </a>
               <p class="fsdocs-summary">
                 
- Compiles an operator into a mangled operator name. For example,
+ Converts the core of an operator name into a logical name. For example,
     +  --> op_Addition
     !%  --> op_DereferencePercent
  Only used on actual operator names
@@ -398,7 +312,110 @@
             <dl class="fsdocs-params">
               <dt class="fsdocs-param">
                 <span class="fsdocs-param-name">
-                  arg0
+                  op
+                </span>
+                :
+                <code>string</code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+            </dl>
+            <dl class="fsdocs-returns">
+              <dt>
+                <span class="fsdocs-return-name">
+                  Returns: 
+                </span>
+                <code>string</code>
+              </dt>
+              <dd class="fsdocs-return-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '47', 47)" onmouseover="showTip(event, '47', 47)">
+                <p>
+                  <a id="ConvertValLogicalNameToDisplayNameCore">
+                    <a href="#ConvertValLogicalNameToDisplayNameCore">
+                      <code><span>ConvertValLogicalNameToDisplayNameCore&#32;<span>opName</span></span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="47">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>ConvertValLogicalNameToDisplayNameCore&#32;<span>opName</span></span></code>
+                  <br/>
+                  <br/>
+                  Parameters: 
+                  <ul>
+                    <span>
+                      <b>
+                        opName
+                      </b>
+                      :
+                      <code>string</code>
+                    </span>
+                    <br/>
+                  </ul>
+                  <br/>
+                  <span>
+                    Returns: 
+                    <code>string</code>
+                  </span>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-summary">
+              <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:M:FSharp.Compiler.Syntax.PrettyNaming.ConvertValLogicalNameToDisplayNameCore`')">
+                <img src="/fantomas/content/img/copy-md.png" class="normal"/>
+                <img src="/fantomas/content/img/copy-md-hover.png" class="hover"/>
+              </div>
+              <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'M:FSharp.Compiler.Syntax.PrettyNaming.ConvertValLogicalNameToDisplayNameCore\'/>')">
+                <img src="/fantomas/content/img/copy-xml.png" class="normal"/>
+                <img src="/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+              </div>
+              <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/SyntaxTree/PrettyNaming.fs#L514-514" class="fsdocs-source-link" title="Source on GitHub">
+                <img src="/fantomas/content/img/github.png" class="normal"/>
+                <img src="/fantomas/content/img/github-hover.png" class="hover"/>
+              </a>
+              <p class="fsdocs-summary">
+                
+ Converts the logical name for and operator back into the core of a display name. For example:
+     Foo                   --> Foo
+     +                     --> +
+     op_Addition           --> +
+     op_DereferencePercent --> !%
+     A-B                   --> A-B
+     |A|_|                 --> |A|_|
+     base                  --> base        regardless of IsBaseVal
+ Used on names of all kinds
+
+ TODO: We should assess uses of this function.
+
+ In any cases it is used it probably indicates that text is being
+ generated which:
+    1. does not contain double-backticks for non-identifiers
+    2. does not put parentheses arounf operators or active pattern names
+
+ If the text is immediately in quotes, this is generally ok, e.g.
+
+         error FS0038: '+' is bound twice in this pattern
+         error FS0038: '|A|_|' is bound twice in this pattern
+         error FS0038: 'a a' is bound twice in this pattern
+
+ If not, the it is likely this should be replaced by ConvertValLogicalNameToDisplayName.
+
+              </p>
+            </div>
+            <dl class="fsdocs-params">
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  opName
                 </span>
                 :
                 <code>string</code>
@@ -421,178 +438,6 @@
             <div>
               <code onmouseout="hideTip(event, '48', 48)" onmouseover="showTip(event, '48', 48)">
                 <p>
-                  <a id="DecompileOpName">
-                    <a href="#DecompileOpName">
-                      <code><span>DecompileOpName&#32;<span>arg1</span></span></code>
-                    </a>
-                  </a>
-                </p>
-              </code>
-              <div class="fsdocs-tip" id="48">
-                <div class="member-tooltip">
-                  Full Usage: 
-                  <code><span>DecompileOpName&#32;<span>arg1</span></span></code>
-                  <br/>
-                  <br/>
-                  Parameters: 
-                  <ul>
-                    <span>
-                      <b>
-                        arg0
-                      </b>
-                      :
-                      <code>string</code>
-                    </span>
-                    <br/>
-                  </ul>
-                  <br/>
-                  <span>
-                    Returns: 
-                    <code>string</code>
-                  </span>
-                  <br/>
-                </div>
-              </div>
-            </div>
-          </td>
-          <td class="fsdocs-member-xmldoc">
-            <div class="fsdocs-summary">
-              <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:M:FSharp.Compiler.Syntax.PrettyNaming.DecompileOpName`')">
-                <img src="/fantomas/content/img/copy-md.png" class="normal"/>
-                <img src="/fantomas/content/img/copy-md-hover.png" class="hover"/>
-              </div>
-              <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'M:FSharp.Compiler.Syntax.PrettyNaming.DecompileOpName\'/>')">
-                <img src="/fantomas/content/img/copy-xml.png" class="normal"/>
-                <img src="/fantomas/content/img/copy-xml-hover.png" class="hover"/>
-              </div>
-              <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/SyntaxTree/PrettyNaming.fs#L513-513" class="fsdocs-source-link" title="Source on GitHub">
-                <img src="/fantomas/content/img/github.png" class="normal"/>
-                <img src="/fantomas/content/img/github-hover.png" class="hover"/>
-              </a>
-              <p class="fsdocs-summary">
-                
- Decompiles a potentially-mangled operator name back into a display name. For example:
-     Foo                   --> Foo
-     +                     --> +
-     op_Addition           --> +
-     op_DereferencePercent --> !%
-     A-B                   --> A-B
-     |A|_|                 --> |A|_|
- Used on names of all kinds
-
-              </p>
-            </div>
-            <dl class="fsdocs-params">
-              <dt class="fsdocs-param">
-                <span class="fsdocs-param-name">
-                  arg0
-                </span>
-                :
-                <code>string</code>
-              </dt>
-              <dd class="fsdocs-param-docs"></dd>
-            </dl>
-            <dl class="fsdocs-returns">
-              <dt>
-                <span class="fsdocs-return-name">
-                  Returns: 
-                </span>
-                <code>string</code>
-              </dt>
-              <dd class="fsdocs-return-docs"></dd>
-            </dl>
-          </td>
-        </tr>
-        <tr>
-          <td class="fsdocs-member-usage">
-            <div>
-              <code onmouseout="hideTip(event, '49', 49)" onmouseover="showTip(event, '49', 49)">
-                <p>
-                  <a id="DoesIdentifierNeedBackticks">
-                    <a href="#DoesIdentifierNeedBackticks">
-                      <code><span>DoesIdentifierNeedBackticks&#32;<span>name</span></span></code>
-                    </a>
-                  </a>
-                </p>
-              </code>
-              <div class="fsdocs-tip" id="49">
-                <div class="member-tooltip">
-                  Full Usage: 
-                  <code><span>DoesIdentifierNeedBackticks&#32;<span>name</span></span></code>
-                  <br/>
-                  <br/>
-                  Parameters: 
-                  <ul>
-                    <span>
-                      <b>
-                        name
-                      </b>
-                      :
-                      <code>string</code>
-                    </span>
-                    <br/>
-                  </ul>
-                  <br/>
-                  <span>
-                    Returns: 
-                    <code>bool</code>
-                  </span>
-                  <br/>
-                </div>
-              </div>
-            </div>
-          </td>
-          <td class="fsdocs-member-xmldoc">
-            <div class="fsdocs-summary">
-              <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:M:FSharp.Compiler.Syntax.PrettyNaming.DoesIdentifierNeedBackticks`')">
-                <img src="/fantomas/content/img/copy-md.png" class="normal"/>
-                <img src="/fantomas/content/img/copy-md-hover.png" class="hover"/>
-              </div>
-              <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'M:FSharp.Compiler.Syntax.PrettyNaming.DoesIdentifierNeedBackticks\'/>')">
-                <img src="/fantomas/content/img/copy-xml.png" class="normal"/>
-                <img src="/fantomas/content/img/copy-xml-hover.png" class="hover"/>
-              </div>
-              <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/SyntaxTree/PrettyNaming.fs#L522-522" class="fsdocs-source-link" title="Source on GitHub">
-                <img src="/fantomas/content/img/github.png" class="normal"/>
-                <img src="/fantomas/content/img/github-hover.png" class="hover"/>
-              </a>
-              <p class="fsdocs-summary">
-                
- Returns `true` if given string requires double backticks to be a valid identifier, e.g.
-     +     true, e.g. ``+``    (this is not op_Addition)
-     |>>   true, e.g. ``|>>``  (this is not op_Addition)
-     A-B   true, e.g. ``A-B``
-     AB    false, e.g. AB
-     |A|_| false   // this is an active pattern name, needs parens not backticks
-
-              </p>
-            </div>
-            <dl class="fsdocs-params">
-              <dt class="fsdocs-param">
-                <span class="fsdocs-param-name">
-                  name
-                </span>
-                :
-                <code>string</code>
-              </dt>
-              <dd class="fsdocs-param-docs"></dd>
-            </dl>
-            <dl class="fsdocs-returns">
-              <dt>
-                <span class="fsdocs-return-name">
-                  Returns: 
-                </span>
-                <code>bool</code>
-              </dt>
-              <dd class="fsdocs-return-docs"></dd>
-            </dl>
-          </td>
-        </tr>
-        <tr>
-          <td class="fsdocs-member-usage">
-            <div>
-              <code onmouseout="hideTip(event, '50', 50)" onmouseover="showTip(event, '50', 50)">
-                <p>
                   <a id="FSharpSignatureDataResourceName2">
                     <a href="#FSharpSignatureDataResourceName2">
                       <code><span>FSharpSignatureDataResourceName2&#32;<span></span></span></code>
@@ -600,7 +445,7 @@
                   </a>
                 </p>
               </code>
-              <div class="fsdocs-tip" id="50">
+              <div class="fsdocs-tip" id="48">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>FSharpSignatureDataResourceName2&#32;<span></span></span></code>
@@ -625,7 +470,7 @@
                 <img src="/fantomas/content/img/copy-xml.png" class="normal"/>
                 <img src="/fantomas/content/img/copy-xml-hover.png" class="hover"/>
               </div>
-              <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/SyntaxTree/PrettyNaming.fs#L1097-1097" class="fsdocs-source-link" title="Source on GitHub">
+              <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/SyntaxTree/PrettyNaming.fs#L1109-1109" class="fsdocs-source-link" title="Source on GitHub">
                 <img src="/fantomas/content/img/github.png" class="normal"/>
                 <img src="/fantomas/content/img/github-hover.png" class="hover"/>
               </a>
@@ -647,7 +492,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code onmouseout="hideTip(event, '51', 51)" onmouseover="showTip(event, '51', 51)">
+              <code onmouseout="hideTip(event, '49', 49)" onmouseover="showTip(event, '49', 49)">
                 <p>
                   <a id="FormatAndOtherOverloadsString">
                     <a href="#FormatAndOtherOverloadsString">
@@ -656,7 +501,7 @@
                   </a>
                 </p>
               </code>
-              <div class="fsdocs-tip" id="51">
+              <div class="fsdocs-tip" id="49">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>FormatAndOtherOverloadsString&#32;<span>arg1</span></span></code>
@@ -693,7 +538,7 @@
                 <img src="/fantomas/content/img/copy-xml.png" class="normal"/>
                 <img src="/fantomas/content/img/copy-xml-hover.png" class="hover"/>
               </div>
-              <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/SyntaxTree/PrettyNaming.fs#L1079-1079" class="fsdocs-source-link" title="Source on GitHub">
+              <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/SyntaxTree/PrettyNaming.fs#L1091-1091" class="fsdocs-source-link" title="Source on GitHub">
                 <img src="/fantomas/content/img/github.png" class="normal"/>
                 <img src="/fantomas/content/img/github-hover.png" class="hover"/>
               </a>
@@ -725,7 +570,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code onmouseout="hideTip(event, '52', 52)" onmouseover="showTip(event, '52', 52)">
+              <code onmouseout="hideTip(event, '50', 50)" onmouseover="showTip(event, '50', 50)">
                 <p>
                   <a id="FsiDynamicModulePrefix">
                     <a href="#FsiDynamicModulePrefix">
@@ -734,7 +579,7 @@
                   </a>
                 </p>
               </code>
-              <div class="fsdocs-tip" id="52">
+              <div class="fsdocs-tip" id="50">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>FsiDynamicModulePrefix&#32;<span></span></span></code>
@@ -759,7 +604,7 @@
                 <img src="/fantomas/content/img/copy-xml.png" class="normal"/>
                 <img src="/fantomas/content/img/copy-xml-hover.png" class="hover"/>
               </div>
-              <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/SyntaxTree/PrettyNaming.fs#L1063-1063" class="fsdocs-source-link" title="Source on GitHub">
+              <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/SyntaxTree/PrettyNaming.fs#L1075-1075" class="fsdocs-source-link" title="Source on GitHub">
                 <img src="/fantomas/content/img/github.png" class="normal"/>
                 <img src="/fantomas/content/img/github-hover.png" class="hover"/>
               </a>
@@ -783,7 +628,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code onmouseout="hideTip(event, '53', 53)" onmouseover="showTip(event, '53', 53)">
+              <code onmouseout="hideTip(event, '51', 51)" onmouseover="showTip(event, '51', 51)">
                 <p>
                   <a id="GetLongNameFromString">
                     <a href="#GetLongNameFromString">
@@ -792,7 +637,7 @@
                   </a>
                 </p>
               </code>
-              <div class="fsdocs-tip" id="53">
+              <div class="fsdocs-tip" id="51">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>GetLongNameFromString&#32;<span>arg1</span></span></code>
@@ -829,7 +674,7 @@
                 <img src="/fantomas/content/img/copy-xml.png" class="normal"/>
                 <img src="/fantomas/content/img/copy-xml-hover.png" class="hover"/>
               </div>
-              <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/SyntaxTree/PrettyNaming.fs#L1082-1082" class="fsdocs-source-link" title="Source on GitHub">
+              <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/SyntaxTree/PrettyNaming.fs#L1094-1094" class="fsdocs-source-link" title="Source on GitHub">
                 <img src="/fantomas/content/img/github.png" class="normal"/>
                 <img src="/fantomas/content/img/github-hover.png" class="hover"/>
               </a>
@@ -861,7 +706,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code onmouseout="hideTip(event, '54', 54)" onmouseover="showTip(event, '54', 54)">
+              <code onmouseout="hideTip(event, '52', 52)" onmouseover="showTip(event, '52', 52)">
                 <p>
                   <a id="IsActivePatternName">
                     <a href="#IsActivePatternName">
@@ -870,7 +715,7 @@
                   </a>
                 </p>
               </code>
-              <div class="fsdocs-tip" id="54">
+              <div class="fsdocs-tip" id="52">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>IsActivePatternName&#32;<span>name</span></span></code>
@@ -907,7 +752,7 @@
                 <img src="/fantomas/content/img/copy-xml.png" class="normal"/>
                 <img src="/fantomas/content/img/copy-xml-hover.png" class="hover"/>
               </div>
-              <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/SyntaxTree/PrettyNaming.fs#L303-303" class="fsdocs-source-link" title="Source on GitHub">
+              <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/SyntaxTree/PrettyNaming.fs#L304-304" class="fsdocs-source-link" title="Source on GitHub">
                 <img src="/fantomas/content/img/github.png" class="normal"/>
                 <img src="/fantomas/content/img/github-hover.png" class="hover"/>
               </a>
@@ -920,6 +765,8 @@
      |            --> false
      ||           --> false
      op_Addition  --> false
+
+ TBD: needs unit testing
 
               </p>
             </div>
@@ -947,7 +794,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code onmouseout="hideTip(event, '55', 55)" onmouseover="showTip(event, '55', 55)">
+              <code onmouseout="hideTip(event, '53', 53)" onmouseover="showTip(event, '53', 53)">
                 <p>
                   <a id="IsCompilerGeneratedName">
                     <a href="#IsCompilerGeneratedName">
@@ -956,7 +803,7 @@
                   </a>
                 </p>
               </code>
-              <div class="fsdocs-tip" id="55">
+              <div class="fsdocs-tip" id="53">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>IsCompilerGeneratedName&#32;<span>nm</span></span></code>
@@ -993,7 +840,7 @@
                 <img src="/fantomas/content/img/copy-xml.png" class="normal"/>
                 <img src="/fantomas/content/img/copy-xml-hover.png" class="hover"/>
               </div>
-              <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/SyntaxTree/PrettyNaming.fs#L789-789" class="fsdocs-source-link" title="Source on GitHub">
+              <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/SyntaxTree/PrettyNaming.fs#L801-801" class="fsdocs-source-link" title="Source on GitHub">
                 <img src="/fantomas/content/img/github.png" class="normal"/>
                 <img src="/fantomas/content/img/github-hover.png" class="hover"/>
               </a>
@@ -1025,7 +872,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code onmouseout="hideTip(event, '56', 56)" onmouseover="showTip(event, '56', 56)">
+              <code onmouseout="hideTip(event, '54', 54)" onmouseover="showTip(event, '54', 54)">
                 <p>
                   <a id="IsIdentifierFirstCharacter">
                     <a href="#IsIdentifierFirstCharacter">
@@ -1034,7 +881,7 @@
                   </a>
                 </p>
               </code>
-              <div class="fsdocs-tip" id="56">
+              <div class="fsdocs-tip" id="54">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>IsIdentifierFirstCharacter&#32;<span>c</span></span></code>
@@ -1105,7 +952,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code onmouseout="hideTip(event, '57', 57)" onmouseover="showTip(event, '57', 57)">
+              <code onmouseout="hideTip(event, '55', 55)" onmouseover="showTip(event, '55', 55)">
                 <p>
                   <a id="IsIdentifierName">
                     <a href="#IsIdentifierName">
@@ -1114,7 +961,7 @@
                   </a>
                 </p>
               </code>
-              <div class="fsdocs-tip" id="57">
+              <div class="fsdocs-tip" id="55">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>IsIdentifierName&#32;<span>name</span></span></code>
@@ -1151,13 +998,18 @@
                 <img src="/fantomas/content/img/copy-xml.png" class="normal"/>
                 <img src="/fantomas/content/img/copy-xml-hover.png" class="hover"/>
               </div>
-              <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/SyntaxTree/PrettyNaming.fs#L279-279" class="fsdocs-source-link" title="Source on GitHub">
+              <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/SyntaxTree/PrettyNaming.fs#L280-280" class="fsdocs-source-link" title="Source on GitHub">
                 <img src="/fantomas/content/img/github.png" class="normal"/>
                 <img src="/fantomas/content/img/github-hover.png" class="hover"/>
               </a>
               <p class="fsdocs-summary">
                 
- Is the name a valid F# identifier
+ Is the name a valid F# identifier, primarily used internally in PrettyNaming.fs for determining if an
+ identifier needs backticks.
+
+ In general do not use this routine. It is only used in one quick fix, for determining if it is valid
+ to add "_" in front of an identifier.
+
      A            --> true
      A'           --> true
      _A           --> true
@@ -1165,6 +1017,10 @@
      |A|B|        --> false
      op_Addition  --> true
      +            --> false
+     let          --> false
+     base         --> false
+
+ TBD: needs unit testing
 
               </p>
             </div>
@@ -1192,7 +1048,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code onmouseout="hideTip(event, '58', 58)" onmouseover="showTip(event, '58', 58)">
+              <code onmouseout="hideTip(event, '56', 56)" onmouseover="showTip(event, '56', 56)">
                 <p>
                   <a id="IsIdentifierPartCharacter">
                     <a href="#IsIdentifierPartCharacter">
@@ -1201,7 +1057,7 @@
                   </a>
                 </p>
               </code>
-              <div class="fsdocs-tip" id="58">
+              <div class="fsdocs-tip" id="56">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>IsIdentifierPartCharacter&#32;<span>c</span></span></code>
@@ -1272,7 +1128,332 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
+              <code onmouseout="hideTip(event, '57', 57)" onmouseover="showTip(event, '57', 57)">
+                <p>
+                  <a id="IsLogicalInfixOpName">
+                    <a href="#IsLogicalInfixOpName">
+                      <code><span>IsLogicalInfixOpName&#32;<span>logicalName</span></span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="57">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>IsLogicalInfixOpName&#32;<span>logicalName</span></span></code>
+                  <br/>
+                  <br/>
+                  Parameters: 
+                  <ul>
+                    <span>
+                      <b>
+                        logicalName
+                      </b>
+                      :
+                      <code>string</code>
+                    </span>
+                    <br/>
+                  </ul>
+                  <br/>
+                  <span>
+                    Returns: 
+                    <code>bool</code>
+                  </span>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-summary">
+              <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:M:FSharp.Compiler.Syntax.PrettyNaming.IsLogicalInfixOpName`')">
+                <img src="/fantomas/content/img/copy-md.png" class="normal"/>
+                <img src="/fantomas/content/img/copy-md-hover.png" class="hover"/>
+              </div>
+              <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'M:FSharp.Compiler.Syntax.PrettyNaming.IsLogicalInfixOpName\'/>')">
+                <img src="/fantomas/content/img/copy-xml.png" class="normal"/>
+                <img src="/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+              </div>
+              <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/SyntaxTree/PrettyNaming.fs#L718-718" class="fsdocs-source-link" title="Source on GitHub">
+                <img src="/fantomas/content/img/github.png" class="normal"/>
+                <img src="/fantomas/content/img/github-hover.png" class="hover"/>
+              </a>
+              <p class="fsdocs-summary">
+                
+              </p>
+            </div>
+            <dl class="fsdocs-params">
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  logicalName
+                </span>
+                :
+                <code>string</code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+            </dl>
+            <dl class="fsdocs-returns">
+              <dt>
+                <span class="fsdocs-return-name">
+                  Returns: 
+                </span>
+                <code>bool</code>
+              </dt>
+              <dd class="fsdocs-return-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '58', 58)" onmouseover="showTip(event, '58', 58)">
+                <p>
+                  <a id="IsLogicalOpName">
+                    <a href="#IsLogicalOpName">
+                      <code><span>IsLogicalOpName&#32;<span>logicalName</span></span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="58">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>IsLogicalOpName&#32;<span>logicalName</span></span></code>
+                  <br/>
+                  <br/>
+                  Parameters: 
+                  <ul>
+                    <span>
+                      <b>
+                        logicalName
+                      </b>
+                      :
+                      <code>string</code>
+                    </span>
+                    <br/>
+                  </ul>
+                  <br/>
+                  <span>
+                    Returns: 
+                    <code>bool</code>
+                  </span>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-summary">
+              <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:M:FSharp.Compiler.Syntax.PrettyNaming.IsLogicalOpName`')">
+                <img src="/fantomas/content/img/copy-md.png" class="normal"/>
+                <img src="/fantomas/content/img/copy-md-hover.png" class="hover"/>
+              </div>
+              <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'M:FSharp.Compiler.Syntax.PrettyNaming.IsLogicalOpName\'/>')">
+                <img src="/fantomas/content/img/copy-xml.png" class="normal"/>
+                <img src="/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+              </div>
+              <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/SyntaxTree/PrettyNaming.fs#L764-764" class="fsdocs-source-link" title="Source on GitHub">
+                <img src="/fantomas/content/img/github.png" class="normal"/>
+                <img src="/fantomas/content/img/github-hover.png" class="hover"/>
+              </a>
+              <p class="fsdocs-summary">
+                
+ Is the name a logical operator name, including unary, binary and ternary operators
+    op_UnaryPlus         - yes
+    op_Addition          - yes
+    op_Range             - yes (?)
+    op_RangeStep         - yes (?)
+    op_DynamicAssignment - yes
+    op_Quack             - no
+    +                    - no
+    ABC                  - no
+    ABC DEF              - no
+    base                 - no
+    |A|_|                - no
+
+              </p>
+            </div>
+            <dl class="fsdocs-params">
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  logicalName
+                </span>
+                :
+                <code>string</code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+            </dl>
+            <dl class="fsdocs-returns">
+              <dt>
+                <span class="fsdocs-return-name">
+                  Returns: 
+                </span>
+                <code>bool</code>
+              </dt>
+              <dd class="fsdocs-return-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
               <code onmouseout="hideTip(event, '59', 59)" onmouseover="showTip(event, '59', 59)">
+                <p>
+                  <a id="IsLogicalPrefixOperator">
+                    <a href="#IsLogicalPrefixOperator">
+                      <code><span>IsLogicalPrefixOperator&#32;<span>logicalName</span></span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="59">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>IsLogicalPrefixOperator&#32;<span>logicalName</span></span></code>
+                  <br/>
+                  <br/>
+                  Parameters: 
+                  <ul>
+                    <span>
+                      <b>
+                        logicalName
+                      </b>
+                      :
+                      <code>string</code>
+                    </span>
+                    <br/>
+                  </ul>
+                  <br/>
+                  <span>
+                    Returns: 
+                    <code>bool</code>
+                  </span>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-summary">
+              <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:M:FSharp.Compiler.Syntax.PrettyNaming.IsLogicalPrefixOperator`')">
+                <img src="/fantomas/content/img/copy-md.png" class="normal"/>
+                <img src="/fantomas/content/img/copy-md-hover.png" class="hover"/>
+              </div>
+              <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'M:FSharp.Compiler.Syntax.PrettyNaming.IsLogicalPrefixOperator\'/>')">
+                <img src="/fantomas/content/img/copy-xml.png" class="normal"/>
+                <img src="/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+              </div>
+              <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/SyntaxTree/PrettyNaming.fs#L660-660" class="fsdocs-source-link" title="Source on GitHub">
+                <img src="/fantomas/content/img/github.png" class="normal"/>
+                <img src="/fantomas/content/img/github-hover.png" class="hover"/>
+              </a>
+              <p class="fsdocs-summary">
+                
+              </p>
+            </div>
+            <dl class="fsdocs-params">
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  logicalName
+                </span>
+                :
+                <code>string</code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+            </dl>
+            <dl class="fsdocs-returns">
+              <dt>
+                <span class="fsdocs-return-name">
+                  Returns: 
+                </span>
+                <code>bool</code>
+              </dt>
+              <dd class="fsdocs-return-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '60', 60)" onmouseover="showTip(event, '60', 60)">
+                <p>
+                  <a id="IsLogicalTernaryOperator">
+                    <a href="#IsLogicalTernaryOperator">
+                      <code><span>IsLogicalTernaryOperator&#32;<span>logicalName</span></span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="60">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>IsLogicalTernaryOperator&#32;<span>logicalName</span></span></code>
+                  <br/>
+                  <br/>
+                  Parameters: 
+                  <ul>
+                    <span>
+                      <b>
+                        logicalName
+                      </b>
+                      :
+                      <code>string</code>
+                    </span>
+                    <br/>
+                  </ul>
+                  <br/>
+                  <span>
+                    Returns: 
+                    <code>bool</code>
+                  </span>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-summary">
+              <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:M:FSharp.Compiler.Syntax.PrettyNaming.IsLogicalTernaryOperator`')">
+                <img src="/fantomas/content/img/copy-md.png" class="normal"/>
+                <img src="/fantomas/content/img/copy-md-hover.png" class="hover"/>
+              </div>
+              <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'M:FSharp.Compiler.Syntax.PrettyNaming.IsLogicalTernaryOperator\'/>')">
+                <img src="/fantomas/content/img/copy-xml.png" class="normal"/>
+                <img src="/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+              </div>
+              <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/SyntaxTree/PrettyNaming.fs#L667-667" class="fsdocs-source-link" title="Source on GitHub">
+                <img src="/fantomas/content/img/github.png" class="normal"/>
+                <img src="/fantomas/content/img/github-hover.png" class="hover"/>
+              </a>
+              <p class="fsdocs-summary">
+                
+              </p>
+            </div>
+            <dl class="fsdocs-params">
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  logicalName
+                </span>
+                :
+                <code>string</code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+            </dl>
+            <dl class="fsdocs-returns">
+              <dt>
+                <span class="fsdocs-return-name">
+                  Returns: 
+                </span>
+                <code>bool</code>
+              </dt>
+              <dd class="fsdocs-return-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '61', 61)" onmouseover="showTip(event, '61', 61)">
                 <p>
                   <a id="IsLongIdentifierPartCharacter">
                     <a href="#IsLongIdentifierPartCharacter">
@@ -1281,7 +1462,7 @@
                   </a>
                 </p>
               </code>
-              <div class="fsdocs-tip" id="59">
+              <div class="fsdocs-tip" id="61">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>IsLongIdentifierPartCharacter&#32;<span>c</span></span></code>
@@ -1318,7 +1499,7 @@
                 <img src="/fantomas/content/img/copy-xml.png" class="normal"/>
                 <img src="/fantomas/content/img/copy-xml-hover.png" class="hover"/>
               </div>
-              <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/SyntaxTree/PrettyNaming.fs#L606-606" class="fsdocs-source-link" title="Source on GitHub">
+              <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/SyntaxTree/PrettyNaming.fs#L607-607" class="fsdocs-source-link" title="Source on GitHub">
                 <img src="/fantomas/content/img/github.png" class="normal"/>
                 <img src="/fantomas/content/img/github-hover.png" class="hover"/>
               </a>
@@ -1335,166 +1516,6 @@
                 </span>
                 :
                 <code>char</code>
-              </dt>
-              <dd class="fsdocs-param-docs"></dd>
-            </dl>
-            <dl class="fsdocs-returns">
-              <dt>
-                <span class="fsdocs-return-name">
-                  Returns: 
-                </span>
-                <code>bool</code>
-              </dt>
-              <dd class="fsdocs-return-docs"></dd>
-            </dl>
-          </td>
-        </tr>
-        <tr>
-          <td class="fsdocs-member-usage">
-            <div>
-              <code onmouseout="hideTip(event, '60', 60)" onmouseover="showTip(event, '60', 60)">
-                <p>
-                  <a id="IsMangledInfixOperator">
-                    <a href="#IsMangledInfixOperator">
-                      <code><span>IsMangledInfixOperator&#32;<span>arg1</span></span></code>
-                    </a>
-                  </a>
-                </p>
-              </code>
-              <div class="fsdocs-tip" id="60">
-                <div class="member-tooltip">
-                  Full Usage: 
-                  <code><span>IsMangledInfixOperator&#32;<span>arg1</span></span></code>
-                  <br/>
-                  <br/>
-                  Parameters: 
-                  <ul>
-                    <span>
-                      <b>
-                        arg0
-                      </b>
-                      :
-                      <code>string</code>
-                    </span>
-                    <br/>
-                  </ul>
-                  <br/>
-                  <span>
-                    Returns: 
-                    <code>bool</code>
-                  </span>
-                  <br/>
-                </div>
-              </div>
-            </div>
-          </td>
-          <td class="fsdocs-member-xmldoc">
-            <div class="fsdocs-summary">
-              <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:M:FSharp.Compiler.Syntax.PrettyNaming.IsMangledInfixOperator`')">
-                <img src="/fantomas/content/img/copy-md.png" class="normal"/>
-                <img src="/fantomas/content/img/copy-md-hover.png" class="hover"/>
-              </div>
-              <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'M:FSharp.Compiler.Syntax.PrettyNaming.IsMangledInfixOperator\'/>')">
-                <img src="/fantomas/content/img/copy-xml.png" class="normal"/>
-                <img src="/fantomas/content/img/copy-xml-hover.png" class="hover"/>
-              </div>
-              <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/SyntaxTree/PrettyNaming.fs#L715-715" class="fsdocs-source-link" title="Source on GitHub">
-                <img src="/fantomas/content/img/github.png" class="normal"/>
-                <img src="/fantomas/content/img/github-hover.png" class="hover"/>
-              </a>
-              <p class="fsdocs-summary">
-                
-              </p>
-            </div>
-            <dl class="fsdocs-params">
-              <dt class="fsdocs-param">
-                <span class="fsdocs-param-name">
-                  arg0
-                </span>
-                :
-                <code>string</code>
-              </dt>
-              <dd class="fsdocs-param-docs"></dd>
-            </dl>
-            <dl class="fsdocs-returns">
-              <dt>
-                <span class="fsdocs-return-name">
-                  Returns: 
-                </span>
-                <code>bool</code>
-              </dt>
-              <dd class="fsdocs-return-docs"></dd>
-            </dl>
-          </td>
-        </tr>
-        <tr>
-          <td class="fsdocs-member-usage">
-            <div>
-              <code onmouseout="hideTip(event, '61', 61)" onmouseover="showTip(event, '61', 61)">
-                <p>
-                  <a id="IsMangledOpName">
-                    <a href="#IsMangledOpName">
-                      <code><span>IsMangledOpName&#32;<span>name</span></span></code>
-                    </a>
-                  </a>
-                </p>
-              </code>
-              <div class="fsdocs-tip" id="61">
-                <div class="member-tooltip">
-                  Full Usage: 
-                  <code><span>IsMangledOpName&#32;<span>name</span></span></code>
-                  <br/>
-                  <br/>
-                  Parameters: 
-                  <ul>
-                    <span>
-                      <b>
-                        name
-                      </b>
-                      :
-                      <code>string</code>
-                    </span>
-                    <br/>
-                  </ul>
-                  <br/>
-                  <span>
-                    Returns: 
-                    <code>bool</code>
-                  </span>
-                  <br/>
-                </div>
-              </div>
-            </div>
-          </td>
-          <td class="fsdocs-member-xmldoc">
-            <div class="fsdocs-summary">
-              <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:M:FSharp.Compiler.Syntax.PrettyNaming.IsMangledOpName`')">
-                <img src="/fantomas/content/img/copy-md.png" class="normal"/>
-                <img src="/fantomas/content/img/copy-md-hover.png" class="hover"/>
-              </div>
-              <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'M:FSharp.Compiler.Syntax.PrettyNaming.IsMangledOpName\'/>')">
-                <img src="/fantomas/content/img/copy-xml.png" class="normal"/>
-                <img src="/fantomas/content/img/copy-xml-hover.png" class="hover"/>
-              </div>
-              <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/SyntaxTree/PrettyNaming.fs#L361-361" class="fsdocs-source-link" title="Source on GitHub">
-                <img src="/fantomas/content/img/github.png" class="normal"/>
-                <img src="/fantomas/content/img/github-hover.png" class="hover"/>
-              </a>
-              <p class="fsdocs-summary">
-                
- Is the name a mangled operator name (approximate)
-    op_Addition - yes
-    op_Quack - yes
-
-              </p>
-            </div>
-            <dl class="fsdocs-params">
-              <dt class="fsdocs-param">
-                <span class="fsdocs-param-name">
-                  name
-                </span>
-                :
-                <code>string</code>
               </dt>
               <dd class="fsdocs-param-docs"></dd>
             </dl>
@@ -1558,7 +1579,7 @@
                 <img src="/fantomas/content/img/copy-xml.png" class="normal"/>
                 <img src="/fantomas/content/img/copy-xml-hover.png" class="hover"/>
               </div>
-              <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/SyntaxTree/PrettyNaming.fs#L324-324" class="fsdocs-source-link" title="Source on GitHub">
+              <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/SyntaxTree/PrettyNaming.fs#L325-325" class="fsdocs-source-link" title="Source on GitHub">
                 <img src="/fantomas/content/img/github.png" class="normal"/>
                 <img src="/fantomas/content/img/github-hover.png" class="hover"/>
               </a>
@@ -1597,84 +1618,6 @@
             <div>
               <code onmouseout="hideTip(event, '63', 63)" onmouseover="showTip(event, '63', 63)">
                 <p>
-                  <a id="IsPrefixOperator">
-                    <a href="#IsPrefixOperator">
-                      <code><span>IsPrefixOperator&#32;<span>s</span></span></code>
-                    </a>
-                  </a>
-                </p>
-              </code>
-              <div class="fsdocs-tip" id="63">
-                <div class="member-tooltip">
-                  Full Usage: 
-                  <code><span>IsPrefixOperator&#32;<span>s</span></span></code>
-                  <br/>
-                  <br/>
-                  Parameters: 
-                  <ul>
-                    <span>
-                      <b>
-                        s
-                      </b>
-                      :
-                      <code>string</code>
-                    </span>
-                    <br/>
-                  </ul>
-                  <br/>
-                  <span>
-                    Returns: 
-                    <code>bool</code>
-                  </span>
-                  <br/>
-                </div>
-              </div>
-            </div>
-          </td>
-          <td class="fsdocs-member-xmldoc">
-            <div class="fsdocs-summary">
-              <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:M:FSharp.Compiler.Syntax.PrettyNaming.IsPrefixOperator`')">
-                <img src="/fantomas/content/img/copy-md.png" class="normal"/>
-                <img src="/fantomas/content/img/copy-md-hover.png" class="hover"/>
-              </div>
-              <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'M:FSharp.Compiler.Syntax.PrettyNaming.IsPrefixOperator\'/>')">
-                <img src="/fantomas/content/img/copy-xml.png" class="normal"/>
-                <img src="/fantomas/content/img/copy-xml-hover.png" class="hover"/>
-              </div>
-              <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/SyntaxTree/PrettyNaming.fs#L659-659" class="fsdocs-source-link" title="Source on GitHub">
-                <img src="/fantomas/content/img/github.png" class="normal"/>
-                <img src="/fantomas/content/img/github-hover.png" class="hover"/>
-              </a>
-              <p class="fsdocs-summary">
-                
-              </p>
-            </div>
-            <dl class="fsdocs-params">
-              <dt class="fsdocs-param">
-                <span class="fsdocs-param-name">
-                  s
-                </span>
-                :
-                <code>string</code>
-              </dt>
-              <dd class="fsdocs-param-docs"></dd>
-            </dl>
-            <dl class="fsdocs-returns">
-              <dt>
-                <span class="fsdocs-return-name">
-                  Returns: 
-                </span>
-                <code>bool</code>
-              </dt>
-              <dd class="fsdocs-return-docs"></dd>
-            </dl>
-          </td>
-        </tr>
-        <tr>
-          <td class="fsdocs-member-usage">
-            <div>
-              <code onmouseout="hideTip(event, '64', 64)" onmouseover="showTip(event, '64', 64)">
-                <p>
                   <a id="IsPunctuation">
                     <a href="#IsPunctuation">
                       <code><span>IsPunctuation&#32;<span>s</span></span></code>
@@ -1682,7 +1625,7 @@
                   </a>
                 </p>
               </code>
-              <div class="fsdocs-tip" id="64">
+              <div class="fsdocs-tip" id="63">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>IsPunctuation&#32;<span>s</span></span></code>
@@ -1719,7 +1662,7 @@
                 <img src="/fantomas/content/img/copy-xml.png" class="normal"/>
                 <img src="/fantomas/content/img/copy-xml-hover.png" class="hover"/>
               </div>
-              <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/SyntaxTree/PrettyNaming.fs#L666-666" class="fsdocs-source-link" title="Source on GitHub">
+              <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/SyntaxTree/PrettyNaming.fs#L671-671" class="fsdocs-source-link" title="Source on GitHub">
                 <img src="/fantomas/content/img/github.png" class="normal"/>
                 <img src="/fantomas/content/img/github-hover.png" class="hover"/>
               </a>
@@ -1751,85 +1694,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code onmouseout="hideTip(event, '65', 65)" onmouseover="showTip(event, '65', 65)">
-                <p>
-                  <a id="IsTernaryOperator">
-                    <a href="#IsTernaryOperator">
-                      <code><span>IsTernaryOperator&#32;<span>s</span></span></code>
-                    </a>
-                  </a>
-                </p>
-              </code>
-              <div class="fsdocs-tip" id="65">
-                <div class="member-tooltip">
-                  Full Usage: 
-                  <code><span>IsTernaryOperator&#32;<span>s</span></span></code>
-                  <br/>
-                  <br/>
-                  Parameters: 
-                  <ul>
-                    <span>
-                      <b>
-                        s
-                      </b>
-                      :
-                      <code>string</code>
-                    </span>
-                    <br/>
-                  </ul>
-                  <br/>
-                  <span>
-                    Returns: 
-                    <code>bool</code>
-                  </span>
-                  <br/>
-                </div>
-              </div>
-            </div>
-          </td>
-          <td class="fsdocs-member-xmldoc">
-            <div class="fsdocs-summary">
-              <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:M:FSharp.Compiler.Syntax.PrettyNaming.IsTernaryOperator`')">
-                <img src="/fantomas/content/img/copy-md.png" class="normal"/>
-                <img src="/fantomas/content/img/copy-md-hover.png" class="hover"/>
-              </div>
-              <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'M:FSharp.Compiler.Syntax.PrettyNaming.IsTernaryOperator\'/>')">
-                <img src="/fantomas/content/img/copy-xml.png" class="normal"/>
-                <img src="/fantomas/content/img/copy-xml-hover.png" class="hover"/>
-              </div>
-              <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/SyntaxTree/PrettyNaming.fs#L691-691" class="fsdocs-source-link" title="Source on GitHub">
-                <img src="/fantomas/content/img/github.png" class="normal"/>
-                <img src="/fantomas/content/img/github-hover.png" class="hover"/>
-              </a>
-              <p class="fsdocs-summary">
-                
-              </p>
-            </div>
-            <dl class="fsdocs-params">
-              <dt class="fsdocs-param">
-                <span class="fsdocs-param-name">
-                  s
-                </span>
-                :
-                <code>string</code>
-              </dt>
-              <dd class="fsdocs-param-docs"></dd>
-            </dl>
-            <dl class="fsdocs-returns">
-              <dt>
-                <span class="fsdocs-return-name">
-                  Returns: 
-                </span>
-                <code>bool</code>
-              </dt>
-              <dd class="fsdocs-return-docs"></dd>
-            </dl>
-          </td>
-        </tr>
-        <tr>
-          <td class="fsdocs-member-usage">
-            <div>
-              <code onmouseout="hideTip(event, '66', 66)" onmouseover="showTip(event, '66', 66)">
+              <code onmouseout="hideTip(event, '64', 64)" onmouseover="showTip(event, '64', 64)">
                 <p>
                   <a id="NormalizeIdentifierBackticks">
                     <a href="#NormalizeIdentifierBackticks">
@@ -1838,7 +1703,7 @@
                   </a>
                 </p>
               </code>
-              <div class="fsdocs-tip" id="66">
+              <div class="fsdocs-tip" id="64">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>NormalizeIdentifierBackticks&#32;<span>name</span></span></code>
@@ -1875,12 +1740,19 @@
                 <img src="/fantomas/content/img/copy-xml.png" class="normal"/>
                 <img src="/fantomas/content/img/copy-xml-hover.png" class="hover"/>
               </div>
-              <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/SyntaxTree/PrettyNaming.fs#L539-539" class="fsdocs-source-link" title="Source on GitHub">
+              <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/SyntaxTree/PrettyNaming.fs#L540-540" class="fsdocs-source-link" title="Source on GitHub">
                 <img src="/fantomas/content/img/github.png" class="normal"/>
                 <img src="/fantomas/content/img/github-hover.png" class="hover"/>
               </a>
               <p class="fsdocs-summary">
                 
+ Adds double backticks if necessary to make a valid identifier, e.g.
+     op_Addition  -->  op_Addition
+     +            -->  ``+``    (this is not op_Addition)
+     |>>          -->  ``|>>``  (this is not an op_)
+     A-B          -->  ``A-B``
+     AB           -->  AB
+     |A|_|        -->  |A|_|    this is an active pattern name, needs parens not backticks
  Removes double backticks if not necessary to make a valid identifier, e.g.
      ``A``        --> A
      ``A-B``      --> ``A-B``
@@ -1911,7 +1783,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code onmouseout="hideTip(event, '67', 67)" onmouseover="showTip(event, '67', 67)">
+              <code onmouseout="hideTip(event, '65', 65)" onmouseover="showTip(event, '65', 65)">
                 <p>
                   <a id="TryChopPropertyName">
                     <a href="#TryChopPropertyName">
@@ -1920,7 +1792,7 @@
                   </a>
                 </p>
               </code>
-              <div class="fsdocs-tip" id="67">
+              <div class="fsdocs-tip" id="65">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>TryChopPropertyName&#32;<span>s</span></span></code>
@@ -1957,7 +1829,7 @@
                 <img src="/fantomas/content/img/copy-xml.png" class="normal"/>
                 <img src="/fantomas/content/img/copy-xml-hover.png" class="hover"/>
               </div>
-              <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/SyntaxTree/PrettyNaming.fs#L861-861" class="fsdocs-source-link" title="Source on GitHub">
+              <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/SyntaxTree/PrettyNaming.fs#L873-873" class="fsdocs-source-link" title="Source on GitHub">
                 <img src="/fantomas/content/img/github.png" class="normal"/>
                 <img src="/fantomas/content/img/github-hover.png" class="hover"/>
               </a>
