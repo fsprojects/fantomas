@@ -5,6 +5,7 @@
 ### Fixed
 * Wrong comma placement results in "Possible incorrect indentation". [#2159](https://github.com/fsprojects/fantomas/issues/2159)
 * Indentation warning for update record in infix operation. [#2355](https://github.com/fsprojects/fantomas/issues/2355)
+* Use of A | B as c fails to format correctly. [#2289](https://github.com/fsprojects/fantomas/issues/2289)
 
 ## [5.0.0-beta-005] - 2022-08-03
 
