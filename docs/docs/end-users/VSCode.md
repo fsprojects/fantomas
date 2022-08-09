@@ -1,7 +1,7 @@
 ---
-category: End-user documentation
+category: End-users
 categoryindex: 1
-index: 4
+index: 8
 ---
 # Visual Studio Code
 TODO: Explain version of fantomas used in VSCode.</br>

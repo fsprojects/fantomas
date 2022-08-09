@@ -23,3 +23,7 @@ https://github.com/fsprojects/fantomas/graphs/contributors
 ## License
 The library and tool are available under Apache 2.0 license.
 For more information see the [License file](LICENSE.md).
+
+<div class="text-end my-4">
+    <a href="./end-users/GettingStarted.html">Next</a>
+</div>

@@ -1,7 +1,7 @@
 ---
-category: Documentation
+category: End-users
 categoryindex: 1
-index: 7
+index: 4
 ---
 # Ignore Files 
 

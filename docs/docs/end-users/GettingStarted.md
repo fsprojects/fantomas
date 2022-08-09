@@ -1,27 +1,30 @@
 ---
-category: Documentation
+category: End-users
 categoryindex: 1
 index: 1
 ---
 # Getting Started
 
-* [Command line](#Command-line-tool-API)
-* [Fake build system](FAKE.html): Fantomas can be easily integrated with FAKE build system
-* [JetBrains Rider](Rider.html)
-* [VSCode](VSCode.html)
-* [Visual Studio](VisualStudio.html)
-* Try Fantomas [online](https://fsprojects.github.io/fantomas-tools/#/fantomas/preview)
+Fantomas should be installed as a [.NET tool](https://docs.microsoft.com/en-us/dotnet/core/tools/global-tools).  
+It is recommended to install it as a local tool and stick to a certain version per repository.
 
-## Command line tool / API
-TODO: Style blockquotes</br>
-Create a [.NET tool manifest](https://docs.microsoft.com/en-us/dotnet/core/tools/local-tools-how-to-use) to install tools locally
+## Installation
+
+Create a [.NET tool manifest](https://docs.microsoft.com/en-us/dotnet/core/tools/local-tools-how-to-use) to install tools locally.
+You can skip this step if you wish to install Fantomas globally.
+
 > dotnet new tool-manifest
 
 Install the command line tool with:
-> dotnet tool install fantomas
+
+> dotnet tool install fantomas --prerelease
 
 or install the tool globally with
-> dotnet tool install -g fantomas
+> dotnet tool install -g fantomas --prerelease
+
+[Why do we need that "--prerelease"?](./FAQ.html#Why-do-I-need-prerelease)
+
+## Usage
 
 For the overview how to use the tool, you can type the command
 
@@ -53,55 +56,45 @@ OPTIONS:
 You have to specify an input path and optionally an output path. 
 The output path is prompted by `--out` e.g.
 
-	dotnet fantomas ../../../../tests/stackexchange/array.fs --out ../../../../tests/stackexchange_output/array.fs 
+	dotnet fantomas ./input/array.fs --out ./output/array.fs 
 
 Both paths have to be files or folders at the same time. 
 If they are folders, the structure of input folder will be reflected in the output one. 
 The tool will explore the input folder recursively if you set `--recurse` option.
-If you omit the output path, Fantomas will overwrite the input files.
+If you omit the output path, Fantomas will overwrite the input files unless the content did not change.
 
-### Check mode
-
-*starting version 3.3*
-
-Verify that a single file or folder was formatted correctly.
-
-> dotnet fantomas --check Source.fs
-
-This will verify if the file `Source.fs` still needs formatting.
-If it does, the process will return exit code 99.
-In the case that the file does not require any formatting, exit code 0 is returned.
-Unexpected errors will return exit code 1.
-
-This scenario is meant to be executed in a continuous integration environment, to enforce that the newly added code was formatted correctly.
 
 ### Multiple paths
 
 *starting version 4.5*
 
 Multiple paths can be passed as last argument, these can be both files and folders.  
-This cannot be combined with the `--out` and `--stdout` flags.  
+This cannot be combined with the `--out` flag.  
 When combined with the `--recurse` flag, all passed folders will be processed recursively.
 
 One interesting use-case of passing down multiple paths is that you can easily control the selection and filtering of paths from the current shell.
 
-Consider the following PowerShell scripts:
-```powershell
-# Create an array with paths
-$files =
-     Get-ChildItem src/*.fs -Recurse # Find all *.fs files in src,
-     | Where-Object { $_.FullName -notlike "*obj*" } # ignore files in the `obj` folder
-     | ForEach-Object { $_.FullName } #  and select the full path name.
-
-& "dotnet" "fantomas" $files
-```
+Consider the following PowerShell script:
 
 ```powershell
 # Filter all added and modified files in git
-$files = git status --porcelain | Where-Object { $_ -match "^\s?A?M(.*)\.fs(x|i)?$" } | ForEach-Object { $_.TrimStart("AM").TrimStart(" ", "M") }
-& "dotnet" "fantomas" $files
+# A useful function to add to your $PROFILE
+function Format-Changed(){
+    $files = 
+        git status --porcelain `
+        | Where-Object { ($_.StartsWith(" M") -or $_.StartsWith("AM")) `
+        -and (Test-FSharpExtension $_) } | ForEach-Object { $_.substring(3) }
+    & "dotnet" "fantomas" $files
+}
 ```
 
-Or usage with `find` on unix:
+Or usage with `find` on Unix:
 
-`find my-project/ -type f -name "*.fs" -not -path "*obj*" | xargs dotnet fantomas --check`
+```bash
+find my-project/ -type f -name "*.fs" -not -path "*obj*" | xargs dotnet fantomas --check
+```
+
+<div class="d-flex justify-content-between my-4">
+  <a href="../index.html">Previous</a>
+  <a href="./StyleGuide.html">Next</a>
+</div>
