@@ -91,7 +91,7 @@ This tree is almost identical but the constant value is now `Const (Int32 0, ...
 
 As the combination of directives has an influence on the tree, Fantomas first parses the tree without any directives.
 This base tree is then being inspected for [ConditionalDirectiveTrivia](https://fsharp.github.io/fsharp-compiler-docs/reference/fsharp-compiler-syntaxtrivia-conditionaldirectivetrivia.html).  
-We determine the different combinations the `Defines` module.
+We determine the different combinations in the `Defines` module.
 
 <div class="mermaid text-center">
 graph TD
@@ -131,10 +131,10 @@ let a =
 
 Once every tree is formatted, we chop each file into fragments.
 A fragment is everything between a conditional directive `#if | #else | #endif` or an actual directive.  
-Each result should have the same amount of fragments before we can merged them together.
+Each result should have the same amount of fragments before we can merge them together.
 If this is not the case, it means that somewhere a trivia was not properly restored.
 
-If the number of fragments add up in each tree, then we merge two trees by reducing both list and comparing each fragment.  
+If the number of fragments add up in each tree, then we merge two trees by reducing both lists and comparing each fragment.  
 We always take the longest fragment and thus picking the active code.
 
 ```fsharp
