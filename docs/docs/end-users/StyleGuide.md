@@ -55,6 +55,6 @@ The **out-of-the-box experience** should be a result of what the **brightest min
 If you are _new_ to the F# language, this is what you want.
 
 <div class="d-flex justify-content-between my-4">
-  <a href="../StyleGuide.html">Previous</a>
+  <a href="./GettingStarted.html">Previous</a>
   <a href="./Configuration.html">Next</a>
 </div>
