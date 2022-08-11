@@ -5,8 +5,9 @@ Fantomas
 
 F# source code formatter, inspired by [scalariform](https://github.com/mdr/scalariform) for Scala, [ocp-indent](https://github.com/OCamlPro/ocp-indent) for OCaml and [PythonTidy](https://github.com/acdha/PythonTidy) for Python.
 
-[![Build Status Github Actions](https://github.com/fsprojects/fantomas/workflows/Build%20master/badge.svg?branch=master&event=push)](https://github.com/fsprojects/fantomas/actions)
+![GitHub Workflow Status (event)](https://img.shields.io/github/workflow/status/fsprojects/fantomas/Build%20master?event=push&label=Build%20master&style=flat-square)
 [![Discord](https://img.shields.io/discord/940511234179096586?label=Fantomas%20Discord&style=flat-square)](https://discord.gg/D5QXvQrBVa)
+[![Nuget (with prereleases)](https://img.shields.io/nuget/vpre/fantomas?style=flat-square)](https://www.nuget.org/packages/fantomas/absoluteLatest)
 
 ## Quick install
 
@@ -22,7 +23,7 @@ F# source code formatter, inspired by [scalariform](https://github.com/mdr/scala
 Use this command to install Fantomas as a .NET 5 SDK global tool:
 
 ```
-dotnet tool install -g fantomas
+dotnet tool install -g fantomas --prerelease
 ```
 
 For detailed guidelines, please read [Fantomas: How to use](docs/Documentation.md#using-the-command-line-tool).
