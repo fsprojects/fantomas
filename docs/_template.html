@@ -33,7 +33,7 @@
       <div id="sidebar-logo" class="d-flex justify-content-center p-5">
       <a href="./index.html" ><img id="fsdocs-logo" src="{{root}}/{{fsdocs-logo-src}}" /></a>
 </div>
-      <div class="list-unstyled ps-0 text-white fs-6">
+      <div id=sidebar-generation" class="list-unstyled ps-0 text-white fs-6">
         {{fsdocs-list-of-documents}}
         {{fsdocs-list-of-namespaces}}
       </div>
@@ -86,7 +86,6 @@
     </div>
     
   </main>
-  <script type="module" src="{{root}}content/sidebar-generation.js"></script>
   <script type="text/javascript">
 addEventListener('hide.bs.collapse', (e) => {
   if (e.target && e.target.id === 'sidebar-wrapper') {
