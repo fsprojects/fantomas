@@ -36,10 +36,8 @@ let hasParenInPat =
 
 let rec (|DeclExprAttributesL|_|) =
     function
-    | DeclExpr _
-    | Attributes _ as x :: DeclExprAttributesL (xs, ys) -> Some(x :: xs, ys)
-    | DeclExpr _
-    | Attributes _ as x :: ys -> Some([ x ], ys)
+    | DeclExpr _ | Attributes _ as x :: DeclExprAttributesL (xs, ys) -> Some(x :: xs, ys)
+    | DeclExpr _ | Attributes _ as x :: ys -> Some([ x ], ys)
     | _ -> None
 
 let rec (|HashDirectiveL|_|) =

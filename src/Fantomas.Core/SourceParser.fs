@@ -633,9 +633,7 @@ let (|NamedComputationExpr|_|) =
     function
     | SynExpr.App (ExprAtomicFlag.NonAtomic,
                    false,
-                   ((SynExpr.App _
-                   | SynExpr.TypeApp _) as nameExpr
-                   | SimpleExpr nameExpr),
+                   ((SynExpr.App _ | SynExpr.TypeApp _) as nameExpr | SimpleExpr nameExpr),
                    ComputationExpr (openingBrace, compExpr, closingBrace),
                    _) -> Some(nameExpr, openingBrace, compExpr, closingBrace)
     | _ -> None
