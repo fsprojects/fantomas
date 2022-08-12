@@ -22,11 +22,11 @@ main
                 width: 100%
         .btn
             border: none
-            
+
         a
-           color: $white
-           text-decoration: none
-           text-decoration-style: none
+            color: $white
+            text-decoration: none
+            text-decoration-style: none
         p
             letter-spacing: 0.1px
 
@@ -37,16 +37,10 @@ main
         &:not(.show)
             display: none
 
-        @include media-breakpoint-up(sm) 
+        @include media-breakpoint-up(sm)
             width: $sidebar-width
             left: 0
 
-
-    @include media-breakpoint-up(sm) 
+    @include media-breakpoint-up(sm)
         &:not(.toggled)
             margin-left: $sidebar-width
-
-
-
-    
-
