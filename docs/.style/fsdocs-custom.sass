@@ -1,6 +1,7 @@
 $font-family-sans-serif: 'Poppins', sans-serif
 $headings-font-family: 'Reem Kufi', sans-serif
 
+@import "variables"
 @import "./global-config.sass"
 @import "./fsdocs-default.css"
 @import "./sidebar.sass"
@@ -82,6 +83,16 @@ $headings-font-family: 'Reem Kufi', sans-serif
         color: $secondary
     dt
         font-weight: normal
+  
+    blockquote
+      border-left: 4px solid $primary
+      background-color: $secondary
+      padding: 10px
+      p
+        padding: 0
+        margin: 0
+        line-height: 1
+        color: $white
 
 .fsdocs-source-link
   float: right

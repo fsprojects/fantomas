@@ -1,7 +1,7 @@
 ---
-category: End-user documentation
+category: End-users
 categoryindex: 1
-index: 2
+index: 7
 ---
 # FAKE build system
 # Fantomas Integration with FAKE build system.

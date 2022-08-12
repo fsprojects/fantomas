@@ -1,7 +1,7 @@
 ---
-category: End-user documentation
+category: End-users
 categoryindex: 1
-index: 6
+index: 7
 ---
 # Visual Studio
 TODO: Explain version of fantomas used in Visual Studio.
