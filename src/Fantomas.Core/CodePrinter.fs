@@ -3282,10 +3282,7 @@ and genTypeDefn
         typeName +> genEq SynTypeDefn_Equals equalsRange +> sepSpace +> genTypeBody
     | Simple (TDSRException (ExceptionDefRepr (ats, px, ao, uc))) -> genExceptionBody astContext ats px ao uc
 
-    | ObjectModel (TCSimple (TCInterface
-                   | TCClass) as tdk,
-                   MemberDefnList (impCtor, others),
-                   range) ->
+    | ObjectModel (TCSimple (TCInterface | TCClass) as tdk, MemberDefnList (impCtor, others), range) ->
         let interfaceRange =
             match tdk with
             | TCSimple TCInterface -> Some range
@@ -3564,10 +3561,7 @@ and genSigTypeDefn
         genXmlTypeKeywordAttrsAccess +> expressionFitsOnRestOfLine short long
     | SigSimple (TDSRException (ExceptionDefRepr (ats, px, ao, uc))) -> genExceptionBody astContext ats px ao uc
 
-    | SigObjectModel (TCSimple (TCStruct
-                      | TCInterface
-                      | TCClass) as tdk,
-                      mds) ->
+    | SigObjectModel (TCSimple (TCStruct | TCInterface | TCClass) as tdk, mds) ->
         typeName
         +> genEq SynTypeDefnSig_Equals equalsRange
         +> indent
