@@ -5,7 +5,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
   <meta name="author" content="Florian Verdonck, Jindřich Ivánek">
-  <title>Ignore Files
+  <title>JetBrains Rider
 </title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -32,84 +32,81 @@
                   </button>
               </div>
       <div id="sidebar-logo" class="d-flex justify-content-center p-5">
-      <a href="./index.html" ><img id="fsdocs-logo" src="https://fsprojects.github.io/fantomas//images/logo-fantomas-white.svg" /></a>
+      <a href="https://fsprojects.github.io/fantomas//docs/index.html" ><img id="fsdocs-logo" src="https://fsprojects.github.io/fantomas//images/logo-fantomas-white.svg" /></a>
 </div>
       <div id="sidebar-generation" class="list-unstyled ps-0 text-white fs-6">
         <li class="nav-header">
-  End-user documentation
+  End-users
 </li>             
 <li class="nav-item">
-  <a class="nav-link" href="https://fsprojects.github.io/fantomas/docs/FAKE.html">
-    FAKE build system
-
-  </a>
-</li>             
-<li class="nav-item">
-  <a class="nav-link" href="https://fsprojects.github.io/fantomas/docs/Rider.html">
-    JetBrains Rider
-
-  </a>
-</li>             
-<li class="nav-item">
-  <a class="nav-link" href="https://fsprojects.github.io/fantomas/docs/VSCode.html">
-    Visual Studio Code
-
-  </a>
-</li>             
-<li class="nav-item">
-  <a class="nav-link" href="https://fsprojects.github.io/fantomas/docs/Configuration.html">
-    Configuration
-
-  </a>
-</li>             
-<li class="nav-item">
-  <a class="nav-link" href="https://fsprojects.github.io/fantomas/docs/VisualStudio.html">
-    Visual Studio
-
-  </a>
-</li>             
-<li class="nav-item">
-  <a class="nav-link" href="https://fsprojects.github.io/fantomas/docs/StyleGuide.html">
-    Style guide
-
-  </a>
-</li>             
-<li class="nav-item">
-  <a class="nav-link" href="https://fsprojects.github.io/fantomas/docs/Benchmarks.html">
-    Benchmarks
-
-  </a>
-</li>             
-<li class="nav-item">
-  <a class="nav-link" href="https://fsprojects.github.io/fantomas/docs/FAQ.html">
-    FAQ
-
-  </a>
-</li>             
-<li class="nav-header">
-  Documentation
-</li>             
-<li class="nav-item">
-  <a class="nav-link" href="https://fsprojects.github.io/fantomas/docs/GettingStarted.html">
+  <a class="nav-link" href="https://fsprojects.github.io/fantomas/docs/end-users/GettingStarted.html">
     Getting Started
 
   </a>
 </li>             
 <li class="nav-item">
-  <a class="nav-link" href="https://fsprojects.github.io/fantomas/docs/IgnoreFiles.html">
+  <a class="nav-link" href="https://fsprojects.github.io/fantomas/docs/end-users/StyleGuide.html">
+    Style guide
+
+  </a>
+</li>             
+<li class="nav-item">
+  <a class="nav-link" href="https://fsprojects.github.io/fantomas/docs/end-users/Configuration.html">
+    Configuration
+
+  </a>
+</li>             
+<li class="nav-item">
+  <a class="nav-link" href="https://fsprojects.github.io/fantomas/docs/end-users/IgnoreFiles.html">
     Ignore Files
 
   </a>
 </li>             
 <li class="nav-item">
-  <a class="nav-link" href="https://fsprojects.github.io/fantomas/docs/FormattingCheck.html">
+  <a class="nav-link" href="https://fsprojects.github.io/fantomas/docs/end-users/FormattingCheck.html">
     Formatting Check
 
   </a>
 </li>             
 <li class="nav-item">
-  <a class="nav-link" href="https://fsprojects.github.io/fantomas/docs/GitHooks.html">
+  <a class="nav-link" href="https://fsprojects.github.io/fantomas/docs/end-users/GitHooks.html">
     Git hooks
+
+  </a>
+</li>             
+<li class="nav-item">
+  <a class="nav-link" href="https://fsprojects.github.io/fantomas/docs/end-users/FAKE.html">
+    FAKE build system
+
+  </a>
+</li>             
+<li class="nav-item">
+  <a class="nav-link" href="https://fsprojects.github.io/fantomas/docs/end-users/VisualStudio.html">
+    Visual Studio
+
+  </a>
+</li>             
+<li class="nav-item">
+  <a class="nav-link" href="https://fsprojects.github.io/fantomas/docs/end-users/Rider.html">
+    JetBrains Rider
+
+  </a>
+</li>             
+<li class="nav-item">
+  <a class="nav-link" href="https://fsprojects.github.io/fantomas/docs/end-users/VSCode.html">
+    Visual Studio Code
+
+  </a>
+</li>             
+<li class="nav-item">
+  <a class="nav-link" href="https://fsprojects.github.io/fantomas/docs/end-users/Benchmarks.html">
+    Benchmarks
+
+  </a>
+</li>             
+<li class="nav-item">
+  <a class="nav-link" href="https://fsprojects.github.io/fantomas/docs/end-users/FAQ.html">
+    FAQ
 
   </a>
 </li>             
@@ -208,20 +205,15 @@
       </nav>
       <div id="fsdocs-content" class="bg-white m-2 m-sm-5 p-3 p-sm-4">
         
-<h1><a name="Ignore-Files" class="anchor" href="#Ignore-Files">Ignore Files</a></h1>
-<p><em>starting version 4.1</em></p>
-<p>To exclude files from formatting, create a <code>.fantomasignore</code> file in the root of your project.
-<code>.fantomasignore</code> uses <a href="https://git-scm.com/docs/gitignore">gitignore</a> syntax (processed via <a href="https://github.com/goelhardik/ignore">Ignore</a>).
-Ignored files will be picked up when the <a href="https://www.nuget.org/packages/fantomas/">Fantomas cli tool</a>.
-Exclusion applies both to formatting and the format checking.</p>
-<pre class="fssnip highlighted"><code lang="fsharp"><span class="pn">#</span><span class="id">Ignore</span> <span class="id">Fable</span> <span class="id">files</span>
-<span class="pn">.</span><span class="id">fable</span><span class="o">/</span>
-
-<span class="pn">#</span><span class="id">Ignore</span> <span class="id">script</span> <span class="id">files</span>
-<span class="o">*.</span><span class="id">fsx</span>
-</code></pre>
-<p>Note that Fantomas only searches for a <code>.fantomasignore</code> file in or above its current working directory, if one exists; unlike Git, it does not traverse the filesystem for each input file to find an appropriate ignore file.
-(This is not true of the Fantomas daemon. The daemon can't rely on being invoked from the right place, and indeed there may not even be a well-defined notion of "right place" for the formatting tasks the daemon is required to perform, so it does search the filesystem for every file individually.)</p>
+<h1><a name="JetBrains-Rider" class="anchor" href="#JetBrains-Rider">JetBrains Rider</a></h1>
+<p>The <a href="https://github.com/JetBrains/resharper-fsharp">resharper-fsharp</a> uses fantomas under the hood to format the source code. No need for any additional plugins.</p>
+<h4><a name="Using-the-latest-version-inside-Rider" class="anchor" href="#Using-the-latest-version-inside-Rider">Using the latest version inside Rider</a></h4>
+<p>For technical reasons Rider cannot always use the latest version of Fantomas found on NuGet.
+As a workaround you could install <a href="https://www.nuget.org/packages/fantomas-tool">fantomas</a> locally with <code>dotnet tool install fantomas-tool</code> and configure it as an <a href="https://www.jetbrains.com/help/rider/Settings_Tools_External_Tools.html">External tool</a>.</p>
+<p><img src="./docs/rider-external-tool.png" alt="Rider external tool window" /></p>
+<p><img src="./docs/rider-action-window.png" alt="Rider action window" /></p>
+<p><strong>This will have an impact on your editing experiencing in Rider</strong>, the external change to the file by the command line application might trigger more internal logic inside Rider than necessary.
+It could be noticeable in regards to the default formatting experience.</p>
 
         
       </div>

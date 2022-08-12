@@ -5,7 +5,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
   <meta name="author" content="Florian Verdonck, Jindřich Ivánek">
-  <title>JetBrains Rider
+  <title>Git hooks
 </title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -32,84 +32,81 @@
                   </button>
               </div>
       <div id="sidebar-logo" class="d-flex justify-content-center p-5">
-      <a href="./index.html" ><img id="fsdocs-logo" src="https://fsprojects.github.io/fantomas//images/logo-fantomas-white.svg" /></a>
+      <a href="https://fsprojects.github.io/fantomas//docs/index.html" ><img id="fsdocs-logo" src="https://fsprojects.github.io/fantomas//images/logo-fantomas-white.svg" /></a>
 </div>
       <div id="sidebar-generation" class="list-unstyled ps-0 text-white fs-6">
         <li class="nav-header">
-  End-user documentation
+  End-users
 </li>             
 <li class="nav-item">
-  <a class="nav-link" href="https://fsprojects.github.io/fantomas/docs/FAKE.html">
-    FAKE build system
-
-  </a>
-</li>             
-<li class="nav-item">
-  <a class="nav-link" href="https://fsprojects.github.io/fantomas/docs/Rider.html">
-    JetBrains Rider
-
-  </a>
-</li>             
-<li class="nav-item">
-  <a class="nav-link" href="https://fsprojects.github.io/fantomas/docs/VSCode.html">
-    Visual Studio Code
-
-  </a>
-</li>             
-<li class="nav-item">
-  <a class="nav-link" href="https://fsprojects.github.io/fantomas/docs/Configuration.html">
-    Configuration
-
-  </a>
-</li>             
-<li class="nav-item">
-  <a class="nav-link" href="https://fsprojects.github.io/fantomas/docs/VisualStudio.html">
-    Visual Studio
-
-  </a>
-</li>             
-<li class="nav-item">
-  <a class="nav-link" href="https://fsprojects.github.io/fantomas/docs/StyleGuide.html">
-    Style guide
-
-  </a>
-</li>             
-<li class="nav-item">
-  <a class="nav-link" href="https://fsprojects.github.io/fantomas/docs/Benchmarks.html">
-    Benchmarks
-
-  </a>
-</li>             
-<li class="nav-item">
-  <a class="nav-link" href="https://fsprojects.github.io/fantomas/docs/FAQ.html">
-    FAQ
-
-  </a>
-</li>             
-<li class="nav-header">
-  Documentation
-</li>             
-<li class="nav-item">
-  <a class="nav-link" href="https://fsprojects.github.io/fantomas/docs/GettingStarted.html">
+  <a class="nav-link" href="https://fsprojects.github.io/fantomas/docs/end-users/GettingStarted.html">
     Getting Started
 
   </a>
 </li>             
 <li class="nav-item">
-  <a class="nav-link" href="https://fsprojects.github.io/fantomas/docs/IgnoreFiles.html">
+  <a class="nav-link" href="https://fsprojects.github.io/fantomas/docs/end-users/StyleGuide.html">
+    Style guide
+
+  </a>
+</li>             
+<li class="nav-item">
+  <a class="nav-link" href="https://fsprojects.github.io/fantomas/docs/end-users/Configuration.html">
+    Configuration
+
+  </a>
+</li>             
+<li class="nav-item">
+  <a class="nav-link" href="https://fsprojects.github.io/fantomas/docs/end-users/IgnoreFiles.html">
     Ignore Files
 
   </a>
 </li>             
 <li class="nav-item">
-  <a class="nav-link" href="https://fsprojects.github.io/fantomas/docs/FormattingCheck.html">
+  <a class="nav-link" href="https://fsprojects.github.io/fantomas/docs/end-users/FormattingCheck.html">
     Formatting Check
 
   </a>
 </li>             
 <li class="nav-item">
-  <a class="nav-link" href="https://fsprojects.github.io/fantomas/docs/GitHooks.html">
+  <a class="nav-link" href="https://fsprojects.github.io/fantomas/docs/end-users/GitHooks.html">
     Git hooks
+
+  </a>
+</li>             
+<li class="nav-item">
+  <a class="nav-link" href="https://fsprojects.github.io/fantomas/docs/end-users/FAKE.html">
+    FAKE build system
+
+  </a>
+</li>             
+<li class="nav-item">
+  <a class="nav-link" href="https://fsprojects.github.io/fantomas/docs/end-users/VisualStudio.html">
+    Visual Studio
+
+  </a>
+</li>             
+<li class="nav-item">
+  <a class="nav-link" href="https://fsprojects.github.io/fantomas/docs/end-users/Rider.html">
+    JetBrains Rider
+
+  </a>
+</li>             
+<li class="nav-item">
+  <a class="nav-link" href="https://fsprojects.github.io/fantomas/docs/end-users/VSCode.html">
+    Visual Studio Code
+
+  </a>
+</li>             
+<li class="nav-item">
+  <a class="nav-link" href="https://fsprojects.github.io/fantomas/docs/end-users/Benchmarks.html">
+    Benchmarks
+
+  </a>
+</li>             
+<li class="nav-item">
+  <a class="nav-link" href="https://fsprojects.github.io/fantomas/docs/end-users/FAQ.html">
+    FAQ
 
   </a>
 </li>             
@@ -208,15 +205,15 @@
       </nav>
       <div id="fsdocs-content" class="bg-white m-2 m-sm-5 p-3 p-sm-4">
         
-<h1><a name="JetBrains-Rider" class="anchor" href="#JetBrains-Rider">JetBrains Rider</a></h1>
-<p>The <a href="https://github.com/JetBrains/resharper-fsharp">resharper-fsharp</a> uses fantomas under the hood to format the source code. No need for any additional plugins.</p>
-<h4><a name="Using-the-latest-version-inside-Rider" class="anchor" href="#Using-the-latest-version-inside-Rider">Using the latest version inside Rider</a></h4>
-<p>For technical reasons Rider cannot always use the latest version of Fantomas found on NuGet.
-As a workaround you could install <a href="https://www.nuget.org/packages/fantomas-tool">fantomas</a> locally with <code>dotnet tool install fantomas-tool</code> and configure it as an <a href="https://www.jetbrains.com/help/rider/Settings_Tools_External_Tools.html">External tool</a>.</p>
-<p><img src="./docs/rider-external-tool.png" alt="Rider external tool window" /></p>
-<p><img src="./docs/rider-action-window.png" alt="Rider action window" /></p>
-<p><strong>This will have an impact on your editing experiencing in Rider</strong>, the external change to the file by the command line application might trigger more internal logic inside Rider than necessary.
-It could be noticeable in regards to the default formatting experience.</p>
+<h1><a name="Git-hooks" class="anchor" href="#Git-hooks">Git hooks</a></h1>
+<h2><a name="A-git-pre-commit-hook-sample" class="anchor" href="#A-git-pre-commit-hook-sample">A git pre-commit hook sample</a></h2>
+<p>A very elegant and transparent way to use Fantomas is including it in a pre-commit git hook, by creating a <code>.git/hooks/pre-commit</code> file with:</p>
+<pre class="fssnip highlighted"><code lang="fsharp"><span class="c">#!/bin/sh</span>
+<span class="id">git</span> <span class="id">diff</span> <span class="pn">--</span><span class="id">cached</span> <span class="pn">--</span><span class="id">name</span><span class="o">-</span><span class="id">only</span> <span class="pn">--</span><span class="id">diff</span><span class="o">-</span><span class="id">filter</span><span class="o">=</span><span class="id">ACM</span> <span class="o">-</span><span class="id">z</span> <span class="pn">|</span> <span class="id">xargs</span> <span class="o">-</span><span class="n">0</span> <span class="o">$</span><span class="id">HOME</span><span class="o">/.</span><span class="id">dotnet</span><span class="o">/</span><span class="id">tools</span><span class="o">/</span><span class="id">fantomas</span>
+<span class="id">git</span> <span class="id">diff</span> <span class="o">--</span><span class="id">cached</span> <span class="o">--</span><span class="id">name</span><span class="o">-</span><span class="id">only</span> <span class="o">--</span><span class="id">diff</span><span class="o">-</span><span class="id">filter</span><span class="o">=</span><span class="id">ACM</span> <span class="o">-</span><span class="id">z</span> <span class="pn">|</span> <span class="id">xargs</span> <span class="o">-</span><span class="n">0</span> <span class="id">git</span> <span class="id">add</span>
+</code></pre>
+<p>This script assumes you have installed Fantomas globally as a <a href="https://www.nuget.org/packages/fantomas/">dotnet tool</a></p>
+<p><strong>Please use with caution</strong> as <a href="https://github.com/fsprojects/fantomas/issues?q=is%3Aissue+is%3Aopen+label%3A%22bug+%28soundness%29%22">Fantomas is not without bugs</a>.</p>
 
         
       </div>

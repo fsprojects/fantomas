@@ -9270,6 +9270,17 @@ main #sidebar-wrapper:not(.show) {
 #fsdocs-content dt {
   font-weight: normal;
 }
+#fsdocs-content blockquote {
+  border-left: 4px solid #338CBB;
+  background-color: #2FBADC;
+  padding: 10px;
+}
+#fsdocs-content blockquote p {
+  padding: 0;
+  margin: 0;
+  line-height: 1;
+  color: #FFF;
+}
 
 .fsdocs-source-link {
   float: right;
