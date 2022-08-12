@@ -31,9 +31,9 @@ Even when someone proposes to contribute the setting, it always leads to lament 
 ## Default style guide
 
 As mentioned, the default style guide is not to be discussed on the Fantomas repository. The majority of the maintainers is burnt out talking about style at this point.  
-If you want to discuss the style, you are more then welcome on [fsharp/fslang-design](https://github.com/fsharp/fslang-design#style-guide).  
+If you want to discuss the style, you are more than welcome on [fsharp/fslang-design](https://github.com/fsharp/fslang-design#style-guide).  
 
-However, we greatly encourage that you take some time to **understand the Fantomas code base**.  Having an opinion on code style is easy, everybody writes code so it we all have our thoughts and feelings about it.
+However, we greatly encourage that you take some time to **understand the Fantomas code base**.  Having an opinion on code style is easy, everybody writes code so we all have our thoughts and feelings about it.
 Being able to **translate your thoughts/opinions** and **prototyping them in Fantomas** will gain you a **much larger insight** on how quickly things can get quite complex.  
 
 At the end of the day, if some new idea is validated on `fsharp/fslang-design`, it needs to be:
@@ -45,12 +45,12 @@ At the end of the day, if some new idea is validated on `fsharp/fslang-design`, 
 
 ## G-Research Style
 
-[G-Research](https://www.gresearch.co.uk/) has been our _single enterprise sponsor_ for the last five years. **Fantomas would not exists** in it's current form if it were **not for their support**.  
+[G-Research](https://www.gresearch.co.uk/) has been our _single enterprise sponsor_ for the last five years. **Fantomas would not exist** in it's current form if it were **not for their support**.  
 Their interest was to have a tool that automatically format code according to their _internal guidelines_. These have been made available publicly and can be turned on via [various settings](https://github.com/G-Research/fsharp-formatting-conventions/blob/master/.editorconfig).
 
 ## Recommendations
 
-To strengthen the message of unity we advice that you to not change the default settings.
+To strengthen the message of unity we advice that you do not change the default settings.
 The **out-of-the-box experience** should be a result of what the **brightest minds of the community** came up with.
 If you are _new_ to the F# language, this is what you want.
 
