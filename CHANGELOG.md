@@ -1,6 +1,6 @@
 # Changelog
 
-## [Unreleased]
+## [5.0.0-beta-006] - 2022-08-12
 
 ### Fixed
 * Wrong comma placement results in "Possible incorrect indentation". [#2159](https://github.com/fsprojects/fantomas/issues/2159)
