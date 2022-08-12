@@ -29,7 +29,7 @@ Windows slashes ` \ ` will not work correctly. See [official Git documentation](
 
 ## Great for gradual adoption
 
-It is not always possible to format all code from the moment you start using Fantomas. Your team might be working on a lot of features and the init format can lead to a hugh set of changes in source control.  
+It is not always possible to format all code from the moment you start using Fantomas. Your team might be working on a lot of features and the initial format can lead to a hugh set of changes in source control.  
 The `.fantomasignore` file can help you to introduce Fantomas **bit by bit** to a new code base.  
 A good example of this is [dotnet/fsharp](https://github.com/dotnet/fsharp/blob/main/.fantomasignore), the maintainers initially only formatted signature files and are formatting more code over time.
 
