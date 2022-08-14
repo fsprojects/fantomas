@@ -1,7 +1,7 @@
 ---
-category: Documentation
+category: End-users
 categoryindex: 1
-index: 9
+index: 6
 ---
 # Git hooks
 ## A git pre-commit hook sample

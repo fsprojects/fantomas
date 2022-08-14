@@ -1,7 +1,7 @@
 ---
-category: End-user documentation
+category: End-users
 categoryindex: 1
-index: 5
+index: 3
 ---
 # Configuration
 
@@ -1029,3 +1029,8 @@ let add a b =
 ```fsharp
 let add a b = a + b
 ```
+
+<div class="d-flex justify-content-between my-4">
+  <a href="./StyleGuide.html">Previous</a>
+  <a href="./IgnoreFiles.html">Next</a>
+</div>

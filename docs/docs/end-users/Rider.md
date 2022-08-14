@@ -1,7 +1,7 @@
 ---
-category: End-user documentation
+category: End-users
 categoryindex: 1
-index: 3
+index: 7
 ---
 # JetBrains Rider
 
