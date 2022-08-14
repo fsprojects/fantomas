@@ -22,9 +22,9 @@
 </head>
 
 <body>
-  <main id="main-container" class="toggled">
+  <main id="main-container">
   
-     <div id="sidebar-wrapper" class="bg-primary h-100 fs-5 collapse" >
+     <div id="sidebar-wrapper" class="bg-primary h-100 fs-5 collapse show">
       <div id="sidebar-header" class="d-flex justify-content-end mt-1">
       <button class="btn d-md-none" data-bs-toggle="collapse" data-bs-target="#sidebar-wrapper" data-bs-parent="#main-container" aria-controls="sidebar-wrapper" aria-expanded="false" aria-label="Toggle navigation">
         <i class="sidebar-toggle fs-3 bi bi-x-lg"></i>
@@ -33,7 +33,7 @@
       <div id="sidebar-logo" class="d-flex justify-content-center p-5">
       <a href="./index.html" ><img id="fsdocs-logo" src="{{root}}/{{fsdocs-logo-src}}" /></a>
 </div>
-      <div id=sidebar-content" class="list-unstyled ps-0 text-white fs-6">
+      <div id="sidebar-content" class="list-unstyled ps-0 text-white fs-6">
         {{fsdocs-list-of-documents}}
         {{fsdocs-list-of-namespaces}}
       </div>
