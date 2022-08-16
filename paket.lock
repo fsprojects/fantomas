@@ -262,25 +262,6 @@ GITHUB
     src/Compiler/Utilities/zmap.fsi (f8b56cb6db3c90348810263fd7a5d37dc5719e92)
     src/Compiler/Utilities/zset.fs (f8b56cb6db3c90348810263fd7a5d37dc5719e92)
     src/Compiler/Utilities/zset.fsi (f8b56cb6db3c90348810263fd7a5d37dc5719e92)
- remote: nojaf/FSharp.Formatting
-    FULLPROJECT (4203a0ab91b82a02d0a8dd54d345fbcf870ffed9)
-      CommandLineParser (>= 2.8 < 3.0)
-      FSharp.Compiler.Service (41.0.4)
-      FSharp.Core (>= 4.7)
-      FSharp.Data (>= 3.3 < 4.0)
-      FsUnit (>= 3.8 < 4.0)
-      Ionide.ProjInfo
-      Ionide.ProjInfo.Sln
-      Microsoft.Build.Framework
-      Microsoft.Build.Tasks.Core
-      Microsoft.Build.Utilities.Core
-      Microsoft.CodeAnalysis.CSharp (>= 3.6 < 4.0)
-      Microsoft.NET.Test.Sdk
-      Newtonsoft.Json
-      NUnit (>= 3.12 < 4.0)
-      NUnit3TestAdapter
-      Suave
-      System.Memory
 GROUP build
 STORAGE: NONE
 NUGET
