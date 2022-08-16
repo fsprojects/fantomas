@@ -25,7 +25,7 @@ Fuelled by rage and anger Hektor wanted to know who was responsible for this dev
 Perseus was tasked with getting to the bottom of this mystery and eventually he located the source of the misery.  Hektor tasked him with running a `git blame` command, to see who the culprit really was.
 
 Odysseus credentials showed up, but it was the function Achilles originally wrote. Unable to escape Hektor's wrath, Odysseus was fired immediately.
-Achilles felt bad but couldn't come clean as he was about to get surgery for this heel. Odysseus took the fall like a true hero.
+Achilles felt bad but couldn't come clean as he was about to get surgery for his heel. Odysseus took the fall like a true hero.
 But it lead him to downwards spiral and would take him ten years before he could land another job in the software industry.
 
 ### Aftermath
@@ -35,7 +35,7 @@ After asking five why's, the team had to brainstorm on how to avoid these things
 
 Ultimately, that meeting was mostly about the contents of the function Achilles wrote, but to end on a high note, the team discussed formatting source code afterwards.
 
-Two things could have saved Odysseus: **a formatting check during continuous integration** and `.git-blame-ignore-revs` file.
+The moral of this story is that there are two things that could have saved Odysseus: **a formatting check during continuous integration** and a `.git-blame-ignore-revs` file.
 
 ## --check
 
@@ -83,14 +83,14 @@ Target.runOrDefault "All"
 ```
 
 The recommendation is to install `fantomas` as a local tool and run it using the generic `DotNet.exec` api.
-This translate to running `dotnet fantomas ourSourceFolder --recurse --check`.
+This translates to running `dotnet fantomas ourSourceFolder --recurse --check`.
 
-### Other continuous integration environments
+### Any other continuous integration environment
 
-You want to restore you local `fantomas` tools using `dotnet tool restore`.
+You want to restore your local `fantomas` tool using `dotnet tool restore`.
 Next, you want to run `dotnet fantomas <input> --check` and make sure your continuous integration environment **fails** your job when **a non-zero exit code** is returned.
 
-Pro-tip: print the command users need to run to fix the formatting in the output log when the check failed. 
+**Pro-tip**: print the command users need to run to fix the formatting in the output log when the check failed. This is useful for open-source projects where new contributors might never have exposed to formatting.
 
 ## A git-blame-ignore-revs file
 
@@ -101,15 +101,16 @@ If you are using Git for your source control, it is recommended to ignore commit
 Check out this [blogpost](https://www.moxio.com/blog/43/ignoring-bulk-change-commits-with-git-blame) for more details.
 
 Adding a formatting commit to a configured `.git-blame-ignore-revs` file will prevent you from drawing the wrong conclusions when running a `git blame` command.
+One thing to note is that if you add a commit SHA to a `.git-blame-ignore-revs` file, you cannot squash the commit when merging in the pull request.
 
 ## Checking is good for regressions
 
-Normally, the rule of thumb is that the code style cannot change between revisions.
+Normally, the rule of thumb is that the code style will not change between revisions.  
 If you are using `4.7.2`, then it should be safe for you upgrade to the latest `4.7.X` without seeing any changes.
 
 > Life happens, so this is a best effort guarantee
 
-In case you do see a change that cannot be linked to anything in the [CHANGELOG.md]() file, you may have detected a regression.  
+In case you do see a change that cannot be linked to anything in the [CHANGELOG.md](https://github.com/fsprojects/fantomas/blob/master/CHANGELOG.md) file, you may have detected a regression.  
 Or, more likely, you have something slightly different in your code base that isn't covered yet by a unit test.
 
 No matter the case, when you have a `--check` command somewhere in your continuous integration environment, please consider running a build with the latest compatible version from time to time.  
