@@ -325,17 +325,6 @@ Target.create "EnsureRepoConfig" (fun _ ->
     // * Currently only used to ensure that code is formatted before pushing
     Fake.Tools.Git.CommandHelper.gitCommand "" "config core.hooksPath .githooks")
 
-Target.create "InitDocs" (fun _ ->
-    let fsharpFormatting =
-        __SOURCE_DIRECTORY__ </> "paket-files" </> "nojaf" </> "FSharp.Formatting"
-
-    let setWorkingDir (opt: DotNet.Options) =
-        { opt with WorkingDirectory = fsharpFormatting }
-
-    DotNet.exec setWorkingDir "tool" "restore" |> ignore
-    DotNet.exec setWorkingDir "paket" "restore" |> ignore
-    DotNet.exec setWorkingDir "fake" "build -t Build" |> ignore)
-
 Target.create "Docs" (fun _ ->
     DotNet.exec id "fsi" "./docs/.style/style.fsx" |> ignore
 
@@ -348,19 +337,10 @@ Target.create "Docs" (fun _ ->
         </> "net6.0"
         </> "SemanticVersioning.dll"
 
-    let fsdocs =
-        __SOURCE_DIRECTORY__
-        </> "paket-files"
-        </> "nojaf"
-        </> "FSharp.Formatting"
-        </> "src"
-        </> "fsdocs-tool"
-        </> "bin"
-        </> "Release"
-        </> "net6.0"
-        </> "fsdocs.dll"
-
-    DotNet.exec id fsdocs $"build --clean --properties Configuration=Release --fscoptions \" -r:{semanticVersioning}\""
+    DotNet.exec
+        id
+        "fsdocs"
+        $"build --clean --properties Configuration=Release --fscoptions \" -r:{semanticVersioning}\""
     |> ignore)
 
 // --------------------------------------------------------------------------------------
@@ -374,7 +354,6 @@ Target.create "All" ignore
 ==> "UnitTests"
 ==> "Benchmark"
 ==> "Pack"
-==> "InitDocs"
 ==> "Docs"
 ==> "All"
 ==> "Push"
