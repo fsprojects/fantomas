@@ -25,7 +25,7 @@
 <body>
   <main id="main-container">
   
-     <div id="sidebar-wrapper" class="bg-primary h-100 fs-5 collapse show" >
+     <div id="sidebar-wrapper" class="bg-primary h-100 fs-5 collapse show">
       <div id="sidebar-header" class="d-flex justify-content-end mt-1">
       <button class="btn d-md-none" data-bs-toggle="collapse" data-bs-target="#sidebar-wrapper" data-bs-parent="#main-container" aria-controls="sidebar-wrapper" aria-expanded="false" aria-label="Toggle navigation">
         <i class="sidebar-toggle fs-3 bi bi-x-lg"></i>
@@ -34,133 +34,111 @@
       <div id="sidebar-logo" class="d-flex justify-content-center p-5">
       <a href="https://fsprojects.github.io/fantomas//docs/index.html" ><img id="fsdocs-logo" src="https://fsprojects.github.io/fantomas//images/logo-fantomas-white.svg" /></a>
 </div>
-      <div id="sidebar-generation" class="list-unstyled ps-0 text-white fs-6">
-        <li class="nav-header">
-  End-users
-</li>             
-<li class="nav-item">
-  <a class="nav-link" href="https://fsprojects.github.io/fantomas/docs/end-users/GettingStarted.html">
-    Getting Started
+      <div id="sidebar-content" class="list-unstyled ps-0 text-white fs-6">
+                    <div id="end-users-wrapper" class="p-2 list-wrapper menu-open">
+            <li class="docs-menu">
+                <button class="btn text-white d-flex p-1 justify-content-between align-items-center" data-bs-toggle="collapse"
+                        data-bs-target="#end-users" aria-expanded="true">
+                        End-users
+                        <i class="bi bi-chevron-down mx-2" style="-webkit-text-stroke: 2px;"></i>
+                </button>
+                <div id="end-users" class="ms-4 collapse show">
+                    <ul class="list-unstyled fw-normal mb-0">
+                        <li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/end-users/GettingStarted.html" class="nav-link mt-2 d-block" > Getting Started
+</a></li>
 
-  </a>
-</li>             
-<li class="nav-item">
-  <a class="nav-link" href="https://fsprojects.github.io/fantomas/docs/end-users/StyleGuide.html">
-    Style guide
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/end-users/StyleGuide.html" class="nav-link mt-2 d-block" > Style guide
+</a></li>
 
-  </a>
-</li>             
-<li class="nav-item">
-  <a class="nav-link" href="https://fsprojects.github.io/fantomas/docs/end-users/Configuration.html">
-    Configuration
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/end-users/Configuration.html" class="nav-link mt-2 d-block" > Configuration
+</a></li>
 
-  </a>
-</li>             
-<li class="nav-item">
-  <a class="nav-link" href="https://fsprojects.github.io/fantomas/docs/end-users/IgnoreFiles.html">
-    Ignore Files
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/end-users/IgnoreFiles.html" class="nav-link mt-2 d-block" > Ignore Files
+</a></li>
 
-  </a>
-</li>             
-<li class="nav-item">
-  <a class="nav-link" href="https://fsprojects.github.io/fantomas/docs/end-users/FormattingCheck.html">
-    Formatting Check
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/end-users/FormattingCheck.html" class="nav-link mt-2 d-block" > Formatting Check
+</a></li>
 
-  </a>
-</li>             
-<li class="nav-item">
-  <a class="nav-link" href="https://fsprojects.github.io/fantomas/docs/end-users/GitHooks.html">
-    Git hooks
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/end-users/GitHooks.html" class="nav-link mt-2 d-block" > Git hooks
+</a></li>
 
-  </a>
-</li>             
-<li class="nav-item">
-  <a class="nav-link" href="https://fsprojects.github.io/fantomas/docs/end-users/VisualStudio.html">
-    Visual Studio
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/end-users/VisualStudio.html" class="nav-link mt-2 d-block" > Visual Studio
+</a></li>
 
-  </a>
-</li>             
-<li class="nav-item">
-  <a class="nav-link" href="https://fsprojects.github.io/fantomas/docs/end-users/FAKE.html">
-    FAKE build system
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/end-users/FAKE.html" class="nav-link mt-2 d-block" > FAKE build system
+</a></li>
 
-  </a>
-</li>             
-<li class="nav-item">
-  <a class="nav-link" href="https://fsprojects.github.io/fantomas/docs/end-users/Rider.html">
-    JetBrains Rider
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/end-users/Rider.html" class="nav-link mt-2 d-block" > JetBrains Rider
+</a></li>
 
-  </a>
-</li>             
-<li class="nav-item">
-  <a class="nav-link" href="https://fsprojects.github.io/fantomas/docs/end-users/VSCode.html">
-    Visual Studio Code
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/end-users/VSCode.html" class="nav-link mt-2 d-block" > Visual Studio Code
+</a></li>
 
-  </a>
-</li>             
-<li class="nav-item">
-  <a class="nav-link" href="https://fsprojects.github.io/fantomas/docs/end-users/Benchmarks.html">
-    Benchmarks
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/end-users/Benchmarks.html" class="nav-link mt-2 d-block" > Benchmarks
+</a></li>
 
-  </a>
-</li>             
-<li class="nav-item">
-  <a class="nav-link" href="https://fsprojects.github.io/fantomas/docs/end-users/FAQ.html">
-    FAQ
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/end-users/FAQ.html" class="nav-link mt-2 d-block" > FAQ
+</a></li>
 
-  </a>
-</li>             
-<li class="nav-header">
-  Contributors
-</li>             
-<li class="nav-item">
-  <a class="nav-link" href="https://fsprojects.github.io/fantomas/docs/contributors/Index.html">
-    Contributors
+                    </ul>
+                </div>
+            </li>
+            </div>
 
-  </a>
-</li>             
-<li class="nav-item">
-  <a class="nav-link" href="https://fsprojects.github.io/fantomas/docs/contributors/FSharp.html">
-    F#
+            <div id="contributors-wrapper" class="p-2 list-wrapper menu-open">
+            <li class="docs-menu">
+                <button class="btn text-white d-flex p-1 justify-content-between align-items-center" data-bs-toggle="collapse"
+                        data-bs-target="#contributors" aria-expanded="true">
+                        Contributors
+                        <i class="bi bi-chevron-down mx-2" style="-webkit-text-stroke: 2px;"></i>
+                </button>
+                <div id="contributors" class="ms-4 collapse show">
+                    <ul class="list-unstyled fw-normal mb-0">
+                        <li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/Index.html" class="nav-link mt-2 d-block" > Contributors
+</a></li>
 
-  </a>
-</li>             
-<li class="nav-item">
-  <a class="nav-link" href="https://fsprojects.github.io/fantomas/docs/contributors/Getting Started.html">
-    Getting started
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/FSharp.html" class="nav-link mt-2 d-block" > F#
+</a></li>
 
-  </a>
-</li>             
-<li class="nav-item">
-  <a class="nav-link" href="https://fsprojects.github.io/fantomas/docs/contributors/Solution Structure.html">
-    Solution structure
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/Getting Started.html" class="nav-link mt-2 d-block" > Getting started
+</a></li>
 
-  </a>
-</li>             
-<li class="nav-item">
-  <a class="nav-link" href="https://fsprojects.github.io/fantomas/docs/contributors/Prepare Context.html">
-    Fantomas.Core overview (1)
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/Solution Structure.html" class="nav-link mt-2 d-block" > Solution structure
+</a></li>
 
-  </a>
-</li>             
-<li class="nav-item">
-  <a class="nav-link" href="https://fsprojects.github.io/fantomas/docs/contributors/Print AST with Context.html">
-    Fantomas.Core overview (2)
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/Prepare Context.html" class="nav-link mt-2 d-block" > Fantomas.Core overview (1)
+</a></li>
 
-  </a>
-</li>             
-<li class="nav-item">
-  <a class="nav-link" href="https://fsprojects.github.io/fantomas/docs/contributors/Formatted Code.html">
-    Fantomas.Core overview (3)
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/Print AST with Context.html" class="nav-link mt-2 d-block" > Fantomas.Core overview (2)
+</a></li>
 
-  </a>
-</li>             
-<li class="nav-item">
-  <a class="nav-link" href="https://fsprojects.github.io/fantomas/docs/contributors/Conditional Compilation Directives.html">
-    Formatting Conditional Compilation Directives
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/Formatted Code.html" class="nav-link mt-2 d-block" > Fantomas.Core overview (3)
+</a></li>
 
-  </a>
-</li>
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/Conditional Compilation Directives.html" class="nav-link mt-2 d-block" > Formatting Conditional Compilation Directives
+</a></li>
+
+                    </ul>
+                </div>
+            </li>
+            </div>
+
+                    <div id="api_reference-wrapper" class="p-2 list-wrapper menu-open">
+            <li class="docs-menu">
+                <button class="btn text-white d-flex p-1 justify-content-between align-items-center" data-bs-toggle="collapse"
+                        data-bs-target="#api_reference" aria-expanded="true">
+                        API Reference
+                        <i class="bi bi-chevron-down mx-2" style="-webkit-text-stroke: 2px;"></i>
+                </button>
+                <div id="api_reference" class="ms-4 collapse show">
+                    <ul class="list-unstyled fw-normal mb-0">
+                        <li class="nav-item"><a href="https://fsprojects.github.io/fantomas/reference/index.html" class="nav-link mt-2 d-block" > All Namespaces</a></li>
+
+                    </ul>
+                </div>
+            </li>
+            </div>
+
       </div>
     </div>
 
@@ -280,7 +258,7 @@ Default = 4.</p>
 
   <span class="id">find</span> <span class="o">&lt;|</span> <span class="id">f</span><span class="pn">.</span><span class="id">Length</span> <span class="o">-</span> <span class="n">1</span>
 </code></pre>
-<h3><a name="max-line-length" class="anchor" href="#max-line-length">max<em>line</em>length</a></h3>
+<h3><a name="max_line_length" class="anchor" href="#max_line_length">max_line_length</a></h3>
 <p><code>max_line_length</code> has to be an integer greater or equal to 60.
 This preference sets the column where we break F# constructs into new lines.
 Default = 120.</p>
@@ -295,11 +273,11 @@ Default = 120.</p>
     <span class="id">someLongFunctionNameThatWillTakeFooAndReturnsUnit</span> <span class="id">foo</span>
 <span class="pn">|</span> <span onmouseout="hideTip(event, 'fs4', 11)" onmouseover="showTip(event, 'fs4', 11)" class="id">None</span> <span class="k">-&gt;</span> <span onmouseout="hideTip(event, 'fs5', 12)" onmouseover="showTip(event, 'fs5', 12)" class="id">printfn</span> <span class="s">&quot;nothing&quot;</span>
 </code></pre>
-<h3><a name="end-of-line" class="anchor" href="#end-of-line">end<em>of</em>line</a></h3>
+<h3><a name="end_of_line" class="anchor" href="#end_of_line">end_of_line</a></h3>
 <p><code>end_of_line</code> determines the newline character, <code>lf</code> will add <code>\n</code> where <code>crlf</code> will add <code>\r\n</code>.
 <code>cr</code> is not supported by the F# language spec.
 If not set by the user, the default value is determined by <code>System.Environment.NewLine</code>.</p>
-<h3><a name="insert-final-newline" class="anchor" href="#insert-final-newline">insert<em>final</em>newline</a></h3>
+<h3><a name="insert_final_newline" class="anchor" href="#insert_final_newline">insert_final_newline</a></h3>
 <p>Adds a final newline character at the end of the file.
 Default = true</p>
 <p><code>defaultConfig</code></p>
@@ -308,7 +286,7 @@ Default = true</p>
 <p><code>{ default with InsertFinalNewline = false }</code></p>
 <pre class="fssnip highlighted"><code lang="fsharp"><span class="k">let</span> <span class="id">a</span> <span class="o">=</span> <span class="n">42</span>
 </code></pre>
-<h3><a name="fsharp-space-before_parameter" class="anchor" href="#fsharp-space-before_parameter">fsharp<em>space</em>before_parameter</a></h3>
+<h3><a name="fsharp_space_before_parameter" class="anchor" href="#fsharp_space_before_parameter">fsharp_space_before_parameter</a></h3>
 <p>Add a space after the name of a function and before the opening parenthesis of the first parameter.
 This setting influences function definitions.
 Default = true.</p>
@@ -320,7 +298,7 @@ Default = true.</p>
 <pre class="fssnip highlighted"><code lang="fsharp"><span class="k">let</span> <span class="id">value</span><span class="pn">(</span><span class="id">a</span><span class="pn">:</span> <span onmouseout="hideTip(event, 'fs6', 14)" onmouseover="showTip(event, 'fs6', 14)" class="id">int</span><span class="pn">)</span> <span class="o">=</span> <span class="id">x</span>
 <span class="k">let</span> <span class="id">DumpTrace</span><span class="pn">(</span><span class="pn">)</span> <span class="o">=</span> <span class="pn">(</span><span class="pn">)</span>
 </code></pre>
-<h3><a name="fsharp-space-before-lowercase-invocation" class="anchor" href="#fsharp-space-before-lowercase-invocation">fsharp<em>space</em>before<em>lowercase</em>invocation</a></h3>
+<h3><a name="fsharp_space_before_lowercase_invocation" class="anchor" href="#fsharp_space_before_lowercase_invocation">fsharp_space_before_lowercase_invocation</a></h3>
 <p>Add a space after the name of a lowercased function and before the opening parenthesis of the first argument.
 This setting influences function invocation.
 Default = true.</p>
@@ -332,7 +310,7 @@ Default = true.</p>
 <pre class="fssnip highlighted"><code lang="fsharp"><span class="id">value</span><span class="pn">(</span><span class="id">a</span><span class="pn">,</span> <span class="id">b</span><span class="pn">)</span>
 <span class="id">startTimer</span><span class="pn">(</span><span class="pn">)</span>
 </code></pre>
-<h3><a name="fsharp-space-before-uppercase-invocation" class="anchor" href="#fsharp-space-before-uppercase-invocation">fsharp<em>space</em>before<em>uppercase</em>invocation</a></h3>
+<h3><a name="fsharp_space_before_uppercase_invocation" class="anchor" href="#fsharp_space_before_uppercase_invocation">fsharp_space_before_uppercase_invocation</a></h3>
 <p>Add a space after the name of a uppercased function and before the opening parenthesis of the first argument.
 This setting influences function invocation.
 Default = false.</p>
@@ -344,7 +322,7 @@ Default = false.</p>
 <pre class="fssnip highlighted"><code lang="fsharp"><span class="id">Value</span> <span class="pn">(</span><span class="id">a</span><span class="pn">,</span> <span class="id">b</span><span class="pn">)</span>
 <span class="id">person</span><span class="pn">.</span><span class="id">ToString</span> <span class="pn">(</span><span class="pn">)</span>
 </code></pre>
-<h3><a name="fsharp-space-before-class-constructor" class="anchor" href="#fsharp-space-before-class-constructor">fsharp<em>space</em>before<em>class</em>constructor</a></h3>
+<h3><a name="fsharp_space_before_class_constructor" class="anchor" href="#fsharp_space_before_class_constructor">fsharp_space_before_class_constructor</a></h3>
 <p>Add a space after a type name and before the class constructor.
 Default = false.</p>
 <p><code>defaultConfig</code></p>
@@ -357,7 +335,7 @@ Default = false.</p>
     <span class="k">class</span>
     <span class="k">end</span>
 </code></pre>
-<h3><a name="fsharp-space-before_member" class="anchor" href="#fsharp-space-before_member">fsharp<em>space</em>before_member</a></h3>
+<h3><a name="fsharp_space_before_member" class="anchor" href="#fsharp_space_before_member">fsharp_space_before_member</a></h3>
 <p>Add a space after a member name and before the opening parenthesis of the first parameter.
 Default = false.</p>
 <p><code>defaultConfig</code></p>
@@ -374,7 +352,7 @@ Default = false.</p>
     <span class="k">member</span> <span class="id">__</span><span class="pn">.</span><span class="id">singAlong</span> <span class="pn">(</span><span class="pn">)</span> <span class="o">=</span> <span class="pn">(</span><span class="pn">)</span>
     <span class="k">member</span> <span class="id">__</span><span class="pn">.</span><span class="id">swim</span> <span class="pn">(</span><span class="id">duration</span><span class="pn">:</span> <span class="id">TimeSpan</span><span class="pn">)</span> <span class="o">=</span> <span class="pn">(</span><span class="pn">)</span>
 </code></pre>
-<h3><a name="fsharp-space-before_colon" class="anchor" href="#fsharp-space-before_colon">fsharp<em>space</em>before_colon</a></h3>
+<h3><a name="fsharp_space_before_colon" class="anchor" href="#fsharp_space_before_colon">fsharp_space_before_colon</a></h3>
 <p>Add a space before <code>:</code>. Please note that not every <code>:</code> is controlled by this setting.
 Default = false.</p>
 <p><code>defaultConfig</code></p>
@@ -387,7 +365,7 @@ Default = false.</p>
 <span class="k">let</span> <span class="id">myValue</span> <span class="pn">:</span> <span onmouseout="hideTip(event, 'fs6', 24)" onmouseover="showTip(event, 'fs6', 24)" class="id">int</span> <span class="o">=</span> <span class="n">42</span>
 <span class="k">let</span> <span class="id">update</span> <span class="pn">(</span><span class="id">msg</span> <span class="pn">:</span> <span class="id">Msg</span><span class="pn">)</span> <span class="pn">(</span><span class="id">model</span> <span class="pn">:</span> <span class="id">Model</span><span class="pn">)</span> <span class="pn">:</span> <span class="id">Model</span> <span class="o">=</span> <span class="id">model</span>
 </code></pre>
-<h3><a name="fsharp-space-after_comma" class="anchor" href="#fsharp-space-after_comma">fsharp<em>space</em>after_comma</a></h3>
+<h3><a name="fsharp_space_after_comma" class="anchor" href="#fsharp_space_after_comma">fsharp_space_after_comma</a></h3>
 <p>Adds a space after <code>,</code> in tuples.
 Default = true.</p>
 <p><code>defaultConfig</code></p>
@@ -398,7 +376,7 @@ Default = true.</p>
 <pre class="fssnip highlighted"><code lang="fsharp"><span class="id">myValue</span><span class="pn">.</span><span class="id">SomeFunction</span><span class="pn">(</span><span class="id">foo</span><span class="pn">,</span><span class="id">bar</span><span class="pn">,</span><span class="id">somethingElse</span><span class="pn">)</span>
 <span class="pn">(</span><span class="id">a</span><span class="pn">,</span><span class="id">b</span><span class="pn">,</span><span class="id">c</span><span class="pn">)</span>
 </code></pre>
-<h3><a name="fsharp-space-before_semicolon" class="anchor" href="#fsharp-space-before_semicolon">fsharp<em>space</em>before_semicolon</a></h3>
+<h3><a name="fsharp_space_before_semicolon" class="anchor" href="#fsharp_space_before_semicolon">fsharp_space_before_semicolon</a></h3>
 <p>Adds a space before <code>;</code> in records, arrays, lists, etc.
 Default = false.</p>
 <p><code>defaultConfig</code></p>
@@ -411,7 +389,7 @@ Default = false.</p>
 <span class="k">let</span> <span class="id">b</span> <span class="o">=</span> <span class="pn">[|</span> <span class="id">foo</span> <span class="pn">;</span> <span class="id">bar</span> <span class="pn">|]</span>
 <span class="k">type</span> <span class="id">C</span> <span class="o">=</span> <span class="pn">{</span> <span class="id">X</span><span class="pn">:</span> <span onmouseout="hideTip(event, 'fs6', 27)" onmouseover="showTip(event, 'fs6', 27)" class="id">int</span> <span class="pn">;</span> <span class="id">Y</span><span class="pn">:</span> <span onmouseout="hideTip(event, 'fs6', 28)" onmouseover="showTip(event, 'fs6', 28)" class="id">int</span> <span class="pn">}</span>
 </code></pre>
-<h3><a name="fsharp-space-after_semicolon" class="anchor" href="#fsharp-space-after_semicolon">fsharp<em>space</em>after_semicolon</a></h3>
+<h3><a name="fsharp_space_after_semicolon" class="anchor" href="#fsharp_space_after_semicolon">fsharp_space_after_semicolon</a></h3>
 <p>Adds a space after <code>;</code> in records, arrays, lists, etc.
 Default = true.</p>
 <p><code>defaultConfig</code></p>
@@ -424,7 +402,7 @@ Default = true.</p>
 <span class="k">let</span> <span class="id">b</span> <span class="o">=</span> <span class="pn">[|</span> <span class="id">foo</span><span class="pn">;</span><span class="id">bar</span> <span class="pn">|]</span>
 <span class="k">type</span> <span class="id">C</span> <span class="o">=</span> <span class="pn">{</span> <span class="id">X</span><span class="pn">:</span> <span onmouseout="hideTip(event, 'fs6', 31)" onmouseover="showTip(event, 'fs6', 31)" class="id">int</span><span class="pn">;</span><span class="id">Y</span><span class="pn">:</span> <span onmouseout="hideTip(event, 'fs6', 32)" onmouseover="showTip(event, 'fs6', 32)" class="id">int</span> <span class="pn">}</span>
 </code></pre>
-<h3><a name="fsharp-space-around_delimiter" class="anchor" href="#fsharp-space-around_delimiter">fsharp<em>space</em>around_delimiter</a></h3>
+<h3><a name="fsharp_space_around_delimiter" class="anchor" href="#fsharp_space_around_delimiter">fsharp_space_around_delimiter</a></h3>
 <p>Adds a space around delimiters like <code>[</code>,<code>[|</code>,<code>{</code>.
 Default = true.</p>
 <p><code>defaultConfig</code></p>
@@ -435,7 +413,7 @@ Default = true.</p>
 <pre class="fssnip highlighted"><code lang="fsharp"><span class="k">let</span> <span class="id">a</span> <span class="o">=</span> <span class="pn">[</span><span class="n">1</span><span class="pn">;</span><span class="n">2</span><span class="pn">;</span><span class="n">3</span><span class="pn">]</span>
 <span class="k">let</span> <span class="id">b</span> <span class="o">=</span> <span class="pn">[|</span><span class="n">4</span><span class="pn">;</span><span class="n">5</span><span class="pn">;</span><span class="n">6</span><span class="pn">|]</span>
 </code></pre>
-<h3><a name="fsharp-max-if-then-short_width" class="anchor" href="#fsharp-max-if-then-short_width">fsharp<em>max</em>if<em>then</em>short_width</a></h3>
+<h3><a name="fsharp_max_if_then_short_width" class="anchor" href="#fsharp_max_if_then_short_width">fsharp_max_if_then_short_width</a></h3>
 <p>Control the maximum length for which if/then expression without an else expression can be on one line.<br />
 The <a href="https://docs.microsoft.com/en-us/dotnet/fsharp/style-guide/formatting#formatting-if-expressions">Microsoft F# style guide</a> recommends to never write such an expression in one line.</p>
 <blockquote>
@@ -449,7 +427,7 @@ Default = 0.</p>
 <p><code>{ defaultConfig with MaxIfThenShortWidth = 15 }</code></p>
 <pre class="fssnip highlighted"><code lang="fsharp"><span class="k">if</span> <span class="id">a</span> <span class="k">then</span> <span class="pn">(</span><span class="pn">)</span>
 </code></pre>
-<h3><a name="fsharp-max-if-then-else-short-width" class="anchor" href="#fsharp-max-if-then-else-short-width">fsharp<em>max</em>if<em>then</em>else<em>short</em>width</a></h3>
+<h3><a name="fsharp_max_if_then_else_short_width" class="anchor" href="#fsharp_max_if_then_else_short_width">fsharp_max_if_then_else_short_width</a></h3>
 <p>Fantomas by default follows the if/then/else conventions listed in the <a href="https://docs.microsoft.com/en-us/dotnet/fsharp/style-guide/formatting#formatting-if-expressions">Microsoft F# style guide</a>.
 There is stated:</p>
 <blockquote>
@@ -468,7 +446,7 @@ Default = 40.</p>
 <span class="k">else</span> 
     <span class="id">bogus</span>
 </code></pre>
-<h3><a name="fsharp-max-infix-operator-expression" class="anchor" href="#fsharp-max-infix-operator-expression">fsharp<em>max</em>infix<em>operator</em>expression</a></h3>
+<h3><a name="fsharp_max_infix_operator_expression" class="anchor" href="#fsharp_max_infix_operator_expression">fsharp_max_infix_operator_expression</a></h3>
 <p>Control the maximum length for which infix expression can be on one line.
 Default = 50.</p>
 <p><code>defaultConfig</code></p>
@@ -481,7 +459,7 @@ Default = 50.</p>
     <span class="pn">&gt;</span><span class="o">=&gt;</span> <span class="id">authorized</span>
     <span class="pn">&gt;</span><span class="o">=&gt;</span> <span class="id">text</span> <span class="s">&quot;pong&quot;</span>
 </code></pre>
-<h3><a name="fsharp-max-record_width" class="anchor" href="#fsharp-max-record_width">fsharp<em>max</em>record_width</a></h3>
+<h3><a name="fsharp_max_record_width" class="anchor" href="#fsharp_max_record_width">fsharp_max_record_width</a></h3>
 <p>Control the maximum width for which records should be in one line. Default = 40.
 Requires <code>fsharp_record_multiline_formatter</code> to be <code>character_width</code> to take
 effect.</p>
@@ -500,7 +478,7 @@ effect.</p>
       <span class="id">Y</span> <span class="o">=</span> <span class="n">20</span>
       <span class="id">Length</span> <span class="o">=</span> <span class="n">90</span> <span class="pn">}</span>
 </code></pre>
-<h3><a name="fsharp-max-record-number-of_items" class="anchor" href="#fsharp-max-record-number-of_items">fsharp<em>max</em>record<em>number</em>of_items</a></h3>
+<h3><a name="fsharp_max_record_number_of_items" class="anchor" href="#fsharp_max_record_number_of_items">fsharp_max_record_number_of_items</a></h3>
 <p>Control the maximum number of fields for which records should be in one line.
 Default = 1. Requires <code>fsharp_record_multiline_formatter</code> to be
 <code>number_of_items</code> to take effect.</p>
@@ -542,7 +520,7 @@ MultilineFormatterType.NumberOfItems }</code></p>
           <span class="id">y</span> <span class="o">=</span> <span class="s">&quot;hello&quot;</span>
           <span class="id">z</span> <span class="o">=</span> <span class="n">0.0</span> <span class="pn">}</span>
 </code></pre>
-<h3><a name="fsharp-record-multiline_formatter" class="anchor" href="#fsharp-record-multiline_formatter">fsharp<em>record</em>multiline_formatter</a></h3>
+<h3><a name="fsharp_record_multiline_formatter" class="anchor" href="#fsharp_record_multiline_formatter">fsharp_record_multiline_formatter</a></h3>
 <p>Split records expressions/statements into multiple lines based on the given
 condition. <code>character_width</code> uses character count of the expression, controlled
 by <code>fsharp_max_record_width</code>. <code>number_of_items</code> uses the number of fields in the
@@ -577,7 +555,7 @@ MultilineFormatterType.NumberOfItems }</code></p>
           <span class="id">x</span> <span class="o">=</span> <span class="n">3</span>
           <span class="id">y</span> <span class="o">=</span> <span class="s">&quot;hello&quot;</span> <span class="pn">}</span>
 </code></pre>
-<h3><a name="fsharp-max-array-or-list_width" class="anchor" href="#fsharp-max-array-or-list_width">fsharp<em>max</em>array<em>or</em>list_width</a></h3>
+<h3><a name="fsharp_max_array_or_list_width" class="anchor" href="#fsharp_max_array_or_list_width">fsharp_max_array_or_list_width</a></h3>
 <p>Control the maximum width for which lists and arrays can be in one line. Default
 = 40. Requires <code>fsharp_array_or_list_multiline_formatter</code> to be
 <code>character_width</code> to take effect.</p>
@@ -590,7 +568,7 @@ MultilineFormatterType.NumberOfItems }</code></p>
        <span class="id">two</span>
        <span class="id">three</span> <span class="pn">|]</span>
 </code></pre>
-<h3><a name="fsharp-max-array-or-list-number-of_items" class="anchor" href="#fsharp-max-array-or-list-number-of_items">fsharp<em>max</em>array<em>or</em>list<em>number</em>of_items</a></h3>
+<h3><a name="fsharp_max_array_or_list_number_of_items" class="anchor" href="#fsharp_max_array_or_list_number_of_items">fsharp_max_array_or_list_number_of_items</a></h3>
 <p>Control the maximum number of elements for which lists and arrays can be in
 one line. Default = 1. Requires <code>fsharp_array_or_list_multiline_formatter</code> to be
 <code>number_of_items</code> to take effect.</p>
@@ -608,7 +586,7 @@ MultilineFormatterType.NumberOfItems }</code></p>
        <span class="id">two</span>
        <span class="id">three</span> <span class="pn">|]</span>
 </code></pre>
-<h3><a name="fsharp-array-or-list-multiline_formatter" class="anchor" href="#fsharp-array-or-list-multiline_formatter">fsharp<em>array</em>or<em>list</em>multiline_formatter</a></h3>
+<h3><a name="fsharp_array_or_list_multiline_formatter" class="anchor" href="#fsharp_array_or_list_multiline_formatter">fsharp_array_or_list_multiline_formatter</a></h3>
 <p>Split arrays and lists into multiple lines based on the given condition.
 <code>character_width</code> uses character count of the expression, controlled by
 <code>fsharp_max_array_or_list_width</code>. <code>number_of_items</code> uses the number of elements
@@ -625,7 +603,7 @@ MultilineFormatterType.NumberOfItems }</code></p>
        <span class="id">two</span>
        <span class="id">three</span> <span class="pn">|]</span>
 </code></pre>
-<h3><a name="fsharp-max-value-binding-width" class="anchor" href="#fsharp-max-value-binding-width">fsharp<em>max</em>value<em>binding</em>width</a></h3>
+<h3><a name="fsharp_max_value_binding_width" class="anchor" href="#fsharp_max_value_binding_width">fsharp_max_value_binding_width</a></h3>
 <p>Control the maximum expression width for which let and member value/property bindings should be in one line.
 The width is that of the pattern for the binding plus the implementating expression but not the keywords (e.g. "let").
 Default = 80.</p>
@@ -643,7 +621,7 @@ Default = 80.</p>
     <span class="k">member</span> <span class="id">this</span><span class="pn">.</span><span class="id">HelpText</span> <span class="o">=</span>
         <span class="s">&quot;Some help text&quot;</span>
 </code></pre>
-<h3><a name="fsharp-max-function-binding-width" class="anchor" href="#fsharp-max-function-binding-width">fsharp<em>max</em>function<em>binding</em>width</a></h3>
+<h3><a name="fsharp_max_function_binding_width" class="anchor" href="#fsharp_max_function_binding_width">fsharp_max_function_binding_width</a></h3>
 <p>Control the maximum width for which function and member bindings should be in one line.
 Default = 40.</p>
 <p><code>defaultConfig</code></p>
@@ -660,7 +638,7 @@ Default = 40.</p>
     <span class="k">member</span> <span class="id">this</span><span class="pn">.</span><span class="id">CalculateSurface</span><span class="pn">(</span><span class="id">width</span><span class="pn">:</span> <span onmouseout="hideTip(event, 'fs6', 61)" onmouseover="showTip(event, 'fs6', 61)" class="id">int</span><span class="pn">,</span> <span class="id">height</span><span class="pn">:</span> <span onmouseout="hideTip(event, 'fs6', 62)" onmouseover="showTip(event, 'fs6', 62)" class="id">int</span><span class="pn">)</span> <span class="o">=</span>
         <span class="id">width</span> <span class="pn">*</span> <span class="id">height</span> <span class="o">/</span> <span class="n">2</span>
 </code></pre>
-<h3><a name="fsharp-max-dot-get-expression_width" class="anchor" href="#fsharp-max-dot-get-expression_width">fsharp<em>max</em>dot<em>get</em>expression_width</a></h3>
+<h3><a name="fsharp_max_dot_get_expression_width" class="anchor" href="#fsharp_max_dot_get_expression_width">fsharp_max_dot_get_expression_width</a></h3>
 <p>Control the maximum width for which (nested) <a href="https://fsharp.github.io/fsharp-compiler-docs/reference/fsharp-compiler-syntax-synexpr.html#DotGet">SynExpr.DotGet</a> expressions should be in one line.
 Default = 50.</p>
 <p><code>defaultConfig</code></p>
@@ -674,7 +652,7 @@ Default = 50.</p>
 <pre class="fssnip highlighted"><code lang="fsharp"><span class="k">let</span> <span class="id">job</span> <span class="o">=</span>
     <span class="id">JobBuilder</span><span class="pn">.</span><span class="id">UsingJobData</span><span class="pn">(</span><span class="id">jobDataMap</span><span class="pn">)</span><span class="pn">.</span><span class="id">Create</span><span class="pn">&lt;</span><span class="id">WrapperJob</span><span class="pn">&gt;</span><span class="pn">(</span><span class="pn">)</span><span class="pn">.</span><span class="id">Build</span><span class="pn">(</span><span class="pn">)</span>
 </code></pre>
-<h3><a name="fsharp-multiline-block-brackets-on-same-column" class="anchor" href="#fsharp-multiline-block-brackets-on-same-column">fsharp<em>multiline</em>block<em>brackets</em>on<em>same</em>column</a></h3>
+<h3><a name="fsharp_multiline_block_brackets_on_same_column" class="anchor" href="#fsharp_multiline_block_brackets_on_same_column">fsharp_multiline_block_brackets_on_same_column</a></h3>
 <p>Alternative way of formatting records, arrays and lists. This will align the braces at the same column level.
 Default = false.</p>
 <p><code>defaultConfig</code></p>
@@ -717,7 +695,7 @@ Default = false.</p>
         <span class="pn">(</span><span class="n">7</span><span class="pn">,</span> <span class="n">8</span><span class="pn">,</span> <span class="n">9</span><span class="pn">)</span>
     <span class="pn">|]</span>
 </code></pre>
-<h3><a name="fsharp-newline-between-type-definition-and-members" class="anchor" href="#fsharp-newline-between-type-definition-and-members">fsharp<em>newline</em>between<em>type</em>definition<em>and</em>members</a></h3>
+<h3><a name="fsharp_newline_between_type_definition_and_members" class="anchor" href="#fsharp_newline_between_type_definition_and_members">fsharp_newline_between_type_definition_and_members</a></h3>
 <p>Adds a new line between a type definition and its first member.
 Default = false.</p>
 <p><code>defaultConfig</code></p>
@@ -733,7 +711,7 @@ Default = false.</p>
 
     <span class="k">member</span> <span class="id">this</span><span class="pn">.</span><span class="id">Length</span> <span class="o">=</span> <span class="id">this</span><span class="pn">.</span><span class="id">To</span> <span class="o">-</span> <span class="id">this</span><span class="pn">.</span><span class="id">From</span>
 </code></pre>
-<h3><a name="fsharp-align-function-signature-to_indentation" class="anchor" href="#fsharp-align-function-signature-to_indentation">fsharp<em>align</em>function<em>signature</em>to_indentation</a></h3>
+<h3><a name="fsharp_align_function_signature_to_indentation" class="anchor" href="#fsharp_align_function_signature_to_indentation">fsharp_align_function_signature_to_indentation</a></h3>
 <p>When a function signature exceeds the <code>max_line_length</code>, Fantomas will put all parameters on separate lines.
 This setting also places the equals sign and return type on a new line.
 Default = false.</p>
@@ -754,7 +732,7 @@ Default = false.</p>
     <span class="o">=</span>
     <span class="id">Http</span><span class="pn">.</span><span class="id">main</span> <span class="id">CodeFormatter</span><span class="pn">.</span><span class="id">GetVersion</span> <span class="id">format</span> <span class="id">FormatConfig</span><span class="pn">.</span><span class="id">FormatConfig</span><span class="pn">.</span><span class="id">Default</span> <span onmouseout="hideTip(event, 'fs10', 74)" onmouseover="showTip(event, 'fs10', 74)" class="id">log</span> <span class="id">req</span>
 </code></pre>
-<h3><a name="fsharp-alternative-long-member-definitions" class="anchor" href="#fsharp-alternative-long-member-definitions">fsharp<em>alternative</em>long<em>member</em>definitions</a></h3>
+<h3><a name="fsharp_alternative_long_member_definitions" class="anchor" href="#fsharp_alternative_long_member_definitions">fsharp_alternative_long_member_definitions</a></h3>
 <p>Provides an alternative way of formatting long member and constructor definitions,
 where the difference is mainly in the equal sign and returned type placement.
 Default = false.</p>
@@ -799,7 +777,7 @@ Default = false.</p>
         <span class="o">=</span>
         <span class="n">42</span>
 </code></pre>
-<h3><a name="fsharp-multi-line-lambda-closing_newline" class="anchor" href="#fsharp-multi-line-lambda-closing_newline">fsharp<em>multi</em>line<em>lambda</em>closing_newline</a></h3>
+<h3><a name="fsharp_multi_line_lambda_closing_newline" class="anchor" href="#fsharp_multi_line_lambda_closing_newline">fsharp_multi_line_lambda_closing_newline</a></h3>
 <p>Places the closing parenthesis of a multiline lambda argument on the next line.
 Default = false.</p>
 <p><code>defaultConfig</code></p>
@@ -833,7 +811,7 @@ Default = false.</p>
         <span onmouseout="hideTip(event, 'fs5', 86)" onmouseover="showTip(event, 'fs5', 86)" class="id">printfn</span> <span class="s">&quot;%d&quot;</span> <span class="pn">(</span><span class="id">a</span> <span class="o">+</span> <span class="id">elem</span><span class="pn">)</span>
     <span class="pn">)</span>
 </code></pre>
-<h3><a name="fsharp-experimental-keep-indent-in_branch" class="anchor" href="#fsharp-experimental-keep-indent-in_branch">fsharp<em>experimental</em>keep<em>indent</em>in_branch</a></h3>
+<h3><a name="fsharp_experimental_keep_indent_in_branch" class="anchor" href="#fsharp_experimental_keep_indent_in_branch">fsharp_experimental_keep_indent_in_branch</a></h3>
 <p>Breaks the normal indentation flow for the last branch of a pattern match or if/then/else expression.
 Only when the pattern match or if/then/else is the return value of a function or member.</p>
 <p><em>This feature is considered experimental and is subject to change</em></p>
@@ -867,9 +845,9 @@ Only when the pattern match or if/then/else is the return value of a function or
     <span class="c">// do more stuff</span>
     <span class="n">0</span>
 </code></pre>
-<h3><a name="fsharp-blank-lines-around-nested-multiline-expressions" class="anchor" href="#fsharp-blank-lines-around-nested-multiline-expressions">fsharp<em>blank</em>lines<em>around</em>nested<em>multiline</em>expressions</a></h3>
+<h3><a name="fsharp_blank_lines_around_nested_multiline_expressions" class="anchor" href="#fsharp_blank_lines_around_nested_multiline_expressions">fsharp_blank_lines_around_nested_multiline_expressions</a></h3>
 <p>Surround <strong>nested</strong> multi-line expressions with blank lines.
-Existing blank lines are always preserved (via trivia), with exception when <a href="#fsharp_keep_max_number_of_blank_lines">fsharp<em>keep</em>max<em>number</em>of<em>blank</em>lines</a> is used.<br />
+Existing blank lines are always preserved (via trivia), with exception when <a href="#fsharp_keep_max_number_of_blank_lines">fsharp_keep_max_number_of_blank_lines</a> is used.<br />
 Top level expressions will always follow the <a href="https://github.com/fsprojects/fantomas/blob/master/docs/FormattingConventions.md#2020-revision">2020 blank lines revision</a> principle.
 Default = true.</p>
 <p><code>defaultConfig</code></p>
@@ -901,7 +879,7 @@ Default = true.</p>
     <span class="c">// ...</span>
     <span class="pn">(</span><span class="pn">)</span>
 </code></pre>
-<h3><a name="fsharp-bar-before-discriminated-union_declaration" class="anchor" href="#fsharp-bar-before-discriminated-union_declaration">fsharp<em>bar</em>before<em>discriminated</em>union_declaration</a></h3>
+<h3><a name="fsharp_bar_before_discriminated_union_declaration" class="anchor" href="#fsharp_bar_before_discriminated_union_declaration">fsharp_bar_before_discriminated_union_declaration</a></h3>
 <p>Always use a <code>|</code> before every case in the declaration of a discriminated union. If <code>false</code>, a <code>|</code> character is used only in multiple-case discriminated unions, and is omitted in short single-case DUs.
 Default = false.</p>
 <pre class="fssnip highlighted"><code lang="fsharp"><span class="k">type</span> <span class="id">MyDU</span> <span class="o">=</span> <span class="id">Short</span> <span class="k">of</span> <span onmouseout="hideTip(event, 'fs6', 91)" onmouseover="showTip(event, 'fs6', 91)" class="id">int</span>
@@ -909,9 +887,9 @@ Default = false.</p>
 <p><code>{ defaultConfig with BarBeforeDiscriminatedUnionDeclaration = true }</code></p>
 <pre class="fssnip highlighted"><code lang="fsharp"><span class="k">type</span> <span class="id">MyDU</span> <span class="o">=</span> <span class="pn">|</span> <span class="id">Short</span> <span class="k">of</span> <span onmouseout="hideTip(event, 'fs6', 92)" onmouseover="showTip(event, 'fs6', 92)" class="id">int</span>
 </code></pre>
-<h3><a name="fsharp-experimental-stroustrup_style" class="anchor" href="#fsharp-experimental-stroustrup_style">fsharp<em>experimental</em>stroustrup_style</a></h3>
+<h3><a name="fsharp_experimental_stroustrup_style" class="anchor" href="#fsharp_experimental_stroustrup_style">fsharp_experimental_stroustrup_style</a></h3>
 <p>Please contribute to <a href="https://github.com/fsprojects/fantomas/issues/1408.">https://github.com/fsprojects/fantomas/issues/1408.</a></p>
-<h3><a name="fsharp-keep-max-number-of-blank-lines" class="anchor" href="#fsharp-keep-max-number-of-blank-lines">fsharp<em>keep</em>max<em>number</em>of<em>blank</em>lines</a></h3>
+<h3><a name="fsharp_keep_max_number_of_blank_lines" class="anchor" href="#fsharp_keep_max_number_of_blank_lines">fsharp_keep_max_number_of_blank_lines</a></h3>
 <p>Set maximal number of consecutive blank lines to keep from original source. It doesn't change number of new blank lines generated by Fantomas.
 Default=100</p>
 <p><code>defaultConfig</code></p>
@@ -925,7 +903,7 @@ Default=100</p>
 
 <span class="k">let</span> <span class="id">x</span> <span class="o">=</span> <span class="n">42</span>
 </code></pre>
-<h3><a name="fsharp-strict-mode" class="anchor" href="#fsharp-strict-mode">fsharp<em>strict</em>mode</a></h3>
+<h3><a name="fsharp_strict_mode" class="anchor" href="#fsharp_strict_mode">fsharp_strict_mode</a></h3>
 <p>If being set, pretty printing is only done via ASTs. Compiler directives, inline comments and block comments will be ignored.
 There are numerous situations when the information in the AST alone cannot restore the original code.
 <strong>Please do not use this setting for formatting hand written code!</strong>
@@ -1024,7 +1002,6 @@ from Microsoft.FSharp.Collections<br /><em>&lt;summary&gt;Contains operations fo
     </div>
     
   </main>
-  <script type="module" src="https://fsprojects.github.io/fantomas/content/sidebar-generation.js"></script>
   <script type="text/javascript">
 addEventListener('hide.bs.collapse', (e) => {
   if (e.target && e.target.id === 'sidebar-wrapper') {

@@ -24,7 +24,7 @@
 <body>
   <main id="main-container">
   
-     <div id="sidebar-wrapper" class="bg-primary h-100 fs-5 collapse show" >
+     <div id="sidebar-wrapper" class="bg-primary h-100 fs-5 collapse show">
       <div id="sidebar-header" class="d-flex justify-content-end mt-1">
       <button class="btn d-md-none" data-bs-toggle="collapse" data-bs-target="#sidebar-wrapper" data-bs-parent="#main-container" aria-controls="sidebar-wrapper" aria-expanded="false" aria-label="Toggle navigation">
         <i class="sidebar-toggle fs-3 bi bi-x-lg"></i>
@@ -33,133 +33,111 @@
       <div id="sidebar-logo" class="d-flex justify-content-center p-5">
       <a href="https://fsprojects.github.io/fantomas//docs/index.html" ><img id="fsdocs-logo" src="https://fsprojects.github.io/fantomas//images/logo-fantomas-white.svg" /></a>
 </div>
-      <div id="sidebar-generation" class="list-unstyled ps-0 text-white fs-6">
-        <li class="nav-header">
-  End-users
-</li>             
-<li class="nav-item">
-  <a class="nav-link" href="https://fsprojects.github.io/fantomas/docs/end-users/GettingStarted.html">
-    Getting Started
+      <div id="sidebar-content" class="list-unstyled ps-0 text-white fs-6">
+                    <div id="end-users-wrapper" class="p-2 list-wrapper menu-open">
+            <li class="docs-menu">
+                <button class="btn text-white d-flex p-1 justify-content-between align-items-center" data-bs-toggle="collapse"
+                        data-bs-target="#end-users" aria-expanded="true">
+                        End-users
+                        <i class="bi bi-chevron-down mx-2" style="-webkit-text-stroke: 2px;"></i>
+                </button>
+                <div id="end-users" class="ms-4 collapse show">
+                    <ul class="list-unstyled fw-normal mb-0">
+                        <li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/end-users/GettingStarted.html" class="nav-link mt-2 d-block" > Getting Started
+</a></li>
 
-  </a>
-</li>             
-<li class="nav-item">
-  <a class="nav-link" href="https://fsprojects.github.io/fantomas/docs/end-users/StyleGuide.html">
-    Style guide
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/end-users/StyleGuide.html" class="nav-link mt-2 d-block" > Style guide
+</a></li>
 
-  </a>
-</li>             
-<li class="nav-item">
-  <a class="nav-link" href="https://fsprojects.github.io/fantomas/docs/end-users/Configuration.html">
-    Configuration
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/end-users/Configuration.html" class="nav-link mt-2 d-block" > Configuration
+</a></li>
 
-  </a>
-</li>             
-<li class="nav-item">
-  <a class="nav-link" href="https://fsprojects.github.io/fantomas/docs/end-users/IgnoreFiles.html">
-    Ignore Files
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/end-users/IgnoreFiles.html" class="nav-link mt-2 d-block" > Ignore Files
+</a></li>
 
-  </a>
-</li>             
-<li class="nav-item">
-  <a class="nav-link" href="https://fsprojects.github.io/fantomas/docs/end-users/FormattingCheck.html">
-    Formatting Check
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/end-users/FormattingCheck.html" class="nav-link mt-2 d-block" > Formatting Check
+</a></li>
 
-  </a>
-</li>             
-<li class="nav-item">
-  <a class="nav-link" href="https://fsprojects.github.io/fantomas/docs/end-users/GitHooks.html">
-    Git hooks
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/end-users/GitHooks.html" class="nav-link mt-2 d-block" > Git hooks
+</a></li>
 
-  </a>
-</li>             
-<li class="nav-item">
-  <a class="nav-link" href="https://fsprojects.github.io/fantomas/docs/end-users/VisualStudio.html">
-    Visual Studio
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/end-users/VisualStudio.html" class="nav-link mt-2 d-block" > Visual Studio
+</a></li>
 
-  </a>
-</li>             
-<li class="nav-item">
-  <a class="nav-link" href="https://fsprojects.github.io/fantomas/docs/end-users/FAKE.html">
-    FAKE build system
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/end-users/FAKE.html" class="nav-link mt-2 d-block" > FAKE build system
+</a></li>
 
-  </a>
-</li>             
-<li class="nav-item">
-  <a class="nav-link" href="https://fsprojects.github.io/fantomas/docs/end-users/Rider.html">
-    JetBrains Rider
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/end-users/Rider.html" class="nav-link mt-2 d-block" > JetBrains Rider
+</a></li>
 
-  </a>
-</li>             
-<li class="nav-item">
-  <a class="nav-link" href="https://fsprojects.github.io/fantomas/docs/end-users/VSCode.html">
-    Visual Studio Code
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/end-users/VSCode.html" class="nav-link mt-2 d-block" > Visual Studio Code
+</a></li>
 
-  </a>
-</li>             
-<li class="nav-item">
-  <a class="nav-link" href="https://fsprojects.github.io/fantomas/docs/end-users/Benchmarks.html">
-    Benchmarks
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/end-users/Benchmarks.html" class="nav-link mt-2 d-block" > Benchmarks
+</a></li>
 
-  </a>
-</li>             
-<li class="nav-item">
-  <a class="nav-link" href="https://fsprojects.github.io/fantomas/docs/end-users/FAQ.html">
-    FAQ
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/end-users/FAQ.html" class="nav-link mt-2 d-block" > FAQ
+</a></li>
 
-  </a>
-</li>             
-<li class="nav-header">
-  Contributors
-</li>             
-<li class="nav-item">
-  <a class="nav-link" href="https://fsprojects.github.io/fantomas/docs/contributors/Index.html">
-    Contributors
+                    </ul>
+                </div>
+            </li>
+            </div>
 
-  </a>
-</li>             
-<li class="nav-item">
-  <a class="nav-link" href="https://fsprojects.github.io/fantomas/docs/contributors/FSharp.html">
-    F#
+            <div id="contributors-wrapper" class="p-2 list-wrapper menu-open">
+            <li class="docs-menu">
+                <button class="btn text-white d-flex p-1 justify-content-between align-items-center" data-bs-toggle="collapse"
+                        data-bs-target="#contributors" aria-expanded="true">
+                        Contributors
+                        <i class="bi bi-chevron-down mx-2" style="-webkit-text-stroke: 2px;"></i>
+                </button>
+                <div id="contributors" class="ms-4 collapse show">
+                    <ul class="list-unstyled fw-normal mb-0">
+                        <li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/Index.html" class="nav-link mt-2 d-block" > Contributors
+</a></li>
 
-  </a>
-</li>             
-<li class="nav-item">
-  <a class="nav-link" href="https://fsprojects.github.io/fantomas/docs/contributors/Getting Started.html">
-    Getting started
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/FSharp.html" class="nav-link mt-2 d-block" > F#
+</a></li>
 
-  </a>
-</li>             
-<li class="nav-item">
-  <a class="nav-link" href="https://fsprojects.github.io/fantomas/docs/contributors/Solution Structure.html">
-    Solution structure
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/Getting Started.html" class="nav-link mt-2 d-block" > Getting started
+</a></li>
 
-  </a>
-</li>             
-<li class="nav-item">
-  <a class="nav-link" href="https://fsprojects.github.io/fantomas/docs/contributors/Prepare Context.html">
-    Fantomas.Core overview (1)
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/Solution Structure.html" class="nav-link mt-2 d-block" > Solution structure
+</a></li>
 
-  </a>
-</li>             
-<li class="nav-item">
-  <a class="nav-link" href="https://fsprojects.github.io/fantomas/docs/contributors/Print AST with Context.html">
-    Fantomas.Core overview (2)
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/Prepare Context.html" class="nav-link mt-2 d-block" > Fantomas.Core overview (1)
+</a></li>
 
-  </a>
-</li>             
-<li class="nav-item">
-  <a class="nav-link" href="https://fsprojects.github.io/fantomas/docs/contributors/Formatted Code.html">
-    Fantomas.Core overview (3)
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/Print AST with Context.html" class="nav-link mt-2 d-block" > Fantomas.Core overview (2)
+</a></li>
 
-  </a>
-</li>             
-<li class="nav-item">
-  <a class="nav-link" href="https://fsprojects.github.io/fantomas/docs/contributors/Conditional Compilation Directives.html">
-    Formatting Conditional Compilation Directives
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/Formatted Code.html" class="nav-link mt-2 d-block" > Fantomas.Core overview (3)
+</a></li>
 
-  </a>
-</li>
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/Conditional Compilation Directives.html" class="nav-link mt-2 d-block" > Formatting Conditional Compilation Directives
+</a></li>
+
+                    </ul>
+                </div>
+            </li>
+            </div>
+
+                    <div id="api_reference-wrapper" class="p-2 list-wrapper menu-open">
+            <li class="docs-menu">
+                <button class="btn text-white d-flex p-1 justify-content-between align-items-center" data-bs-toggle="collapse"
+                        data-bs-target="#api_reference" aria-expanded="true">
+                        API Reference
+                        <i class="bi bi-chevron-down mx-2" style="-webkit-text-stroke: 2px;"></i>
+                </button>
+                <div id="api_reference" class="ms-4 collapse show">
+                    <ul class="list-unstyled fw-normal mb-0">
+                        <li class="nav-item"><a href="https://fsprojects.github.io/fantomas/reference/index.html" class="nav-link mt-2 d-block" > All Namespaces</a></li>
+
+                    </ul>
+                </div>
+            </li>
+            </div>
+
       </div>
     </div>
 
@@ -1228,7 +1206,6 @@
     </div>
     
   </main>
-  <script type="module" src="https://fsprojects.github.io/fantomas/content/sidebar-generation.js"></script>
   <script type="text/javascript">
 addEventListener('hide.bs.collapse', (e) => {
   if (e.target && e.target.id === 'sidebar-wrapper') {
