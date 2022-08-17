@@ -3,7 +3,7 @@ $headings-font-family: 'Reem Kufi', sans-serif
 
 @import "variables"
 @import "./global-config.sass"
-@import "./fsdocs-default.css"
+@import "./fsdocs-default"
 @import "./sidebar.sass"
 
 .sidebar-toggle
@@ -19,7 +19,7 @@ $headings-font-family: 'Reem Kufi', sans-serif
   background-color: $white
 
 .nav-link.active
-    color: $secondary
+  color: $secondary
 
 .input-group
   .btn
@@ -32,58 +32,56 @@ $headings-font-family: 'Reem Kufi', sans-serif
     &::placeholder
       opacity: 0.5
       color: $black
-      
+
 .nav-link
-    margin-right: 10px
-    color: $black
-    &:hover, &:focus
-        color: $secondary
+  margin-right: 10px
+  color: $black
+  &:hover, &:focus
+    color: $secondary
 
 #fsdocs-content
-    box-shadow: 0 4px 10px $drop-shadow
-    h1, h2, h3, h4, h5, h6 
-      a
-        color: $black
-        text-decoration: none
-        text-decoration-style: none
+  box-shadow: 0 4px 10px $drop-shadow
+  h1, h2, h3, h4, h5, h6
+    a
+      color: $black
+      text-decoration: none
 
-      &:hover, &:focus
-        color: $black
-        text-decoration: none
-        text-decoration-style: none
+    &:hover, &:focus
+      color: $black
+      text-decoration: none
 
     h1
-        padding: 30px 0px 15px 0px
-        font-size: 2rem
-        letter-spacing: 1.78px
-        line-height: 2.5rem
-        font-weight: 400
+      padding: 30px 0px 15px 0px
+      font-size: 2rem
+      letter-spacing: 1.78px
+      line-height: 2.5rem
+      font-weight: 400
     h2
-        font-size: 1.6rem
-        padding: 20px 0px 10px 0px
-        font-weight: 400
+      font-size: 1.6rem
+      padding: 20px 0px 10px 0px
+      font-weight: 400
     h3
-        font-size: 1.2rem
-        padding: 15px 0px 10px 0px
-        font-weight: 400
+      font-size: 1.2rem
+      padding: 15px 0px 10px 0px
+      font-weight: 400
     hr
-        margin: 0px 0px 20px 0px
+      margin: 0px 0px 20px 0px
     li
-        font-size: 1.0rem
-        line-height: 1.5rem
-        letter-spacing: 0.01px
-        font-weight: normal
-        margin: 0px 0px 15px 0px
+      font-size: 1.0rem
+      line-height: 1.5rem
+      letter-spacing: 0.01px
+      font-weight: normal
+      margin: 0px 0px 15px 0px
     p
-        font-size: 1.0rem
-        line-height: 1.5rem
-        font-weight: normal
-        color: $black
-    a   
-        color: $secondary
+      font-size: 1.0rem
+      line-height: 1.5rem
+      font-weight: normal
+      color: $black
+    a
+      color: $secondary
     dt
-        font-weight: normal
-  
+      font-weight: normal
+
     blockquote
       border-left: 4px solid $primary
       background-color: $secondary
