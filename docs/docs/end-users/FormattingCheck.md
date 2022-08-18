@@ -7,7 +7,7 @@ index: 5
 # Formatting Check
 
 Formatting source code is a habit, a step in your developer workflow.  
-The benefits of consistently formatting is that **your delta** (*typically the changes files in a pull request*) will be **smallest set possible** if every previous change was formatted.
+The benefits of consistently formatting is that **your delta** (*typically the changes in the files of a pull request*) will be the **smallest set possible** if every previous change was formatted.
 
 ## The tragedy of the ancient Greek developers
 
@@ -21,12 +21,12 @@ The next day, Odysseus wants to submit a new pull request. As agreed code should
 As the changes Achilles made were not formatted, there was more code touched than was absolutely necessary. Perseus didn't see any harm in this rectification and merge the pull request as is.
 
 A week later, a huge problem was discovered in production. There was data loss and the entire company was on fire.
-Fuelled by rage and anger Hektor wanted to know who was responsible for this devastating tragedy. You guessed it, somebodies head was about to roll.
+Fuelled by rage and anger Hektor wanted to know who was responsible for this devastating tragedy. You guessed it, somebody's head was about to roll.
 Perseus was tasked with getting to the bottom of this mystery and eventually he located the source of the misery.  Hektor tasked him with running a `git blame` command, to see who the culprit really was.
 
 Odysseus credentials showed up, but it was the function Achilles originally wrote. Unable to escape Hektor's wrath, Odysseus was fired immediately.
 Achilles felt bad but couldn't come clean as he was about to get surgery for his heel. Odysseus took the fall like a true hero.
-But it lead him to downwards spiral and would take him ten years before he could land another job in the software industry.
+But it lead him to a downwards spiral and would take him ten years before he could land another job in the software industry.
 
 ### Aftermath
 
@@ -90,7 +90,7 @@ This translates to running `dotnet fantomas ourSourceFolder --recurse --check`.
 You want to restore your local `fantomas` tool using `dotnet tool restore`.
 Next, you want to run `dotnet fantomas <input> --check` and make sure your continuous integration environment **fails** your job when **a non-zero exit code** is returned.
 
-**Pro-tip**: print the command users need to run to fix the formatting in the output log when the check failed. This is useful for open-source projects where new contributors might never have exposed to formatting.
+**Pro-tip**: print the command users need to run to fix the formatting in the output log when the check failed. This is useful for open-source projects where new contributors might never have been exposed to formatting.
 
 ## A git-blame-ignore-revs file
 
