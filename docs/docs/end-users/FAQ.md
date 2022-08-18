@@ -22,6 +22,11 @@ Thus, for the time being, you need to add `--prerelease` to resolve this.
 
 At the time of writing we are in `beta` and consider **version five** to be **production ready**.
 
+## Why exit code 99 for a failed format check?
+
+No real reason, it was [suggested](https://github.com/fsprojects/fantomas/pull/655#discussion_r374849907) by the contributor [lpedrosa](https://github.com/lpedrosa).  
+It also reminds us of a certain Jay-Z song 😉.
+
 ## Can I make a design suggestion?
 TODO
 
