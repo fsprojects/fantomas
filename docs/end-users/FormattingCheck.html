@@ -184,22 +184,103 @@
       <div id="fsdocs-content" class="bg-white m-2 m-sm-5 p-3 p-sm-4">
         
 <h1><a name="Formatting-Check" class="anchor" href="#Formatting-Check">Formatting Check</a></h1>
+<p>Formatting source code is a habit, a step in your developer workflow.<br />
+The benefits of consistently formatting is that <strong>your delta</strong> (<em>typically the changes in the files of a pull request</em>) will be the <strong>smallest set possible</strong> if every previous change was formatted.</p>
+<h2><a name="The-tragedy-of-the-ancient-Greek-developers" class="anchor" href="#The-tragedy-of-the-ancient-Greek-developers">The tragedy of the ancient Greek developers</a></h2>
+<p>When working with multiple people on the same code base, it is important (to some degrees) that you cannot distinguish who wrote the code.
+If you agree as a team that you need to write unit tests to guarantee the code quality, you expect every developer to cover any new code with a test.<br />
+Formatting is no different, every developer should do it and it is an acceptance criteria for new code.</p>
+<p>Imagine we have multiple developers in our team. Hektor made the initial setup and during a team meeting it was decided that the code should always be formatted.<br />
+Once the initial project structure was delivered, Achilles made a change where the code was not formatted.<br />
+The next day, Odysseus wants to submit a new pull request. As agreed code should be formatted, so Odysseus did exactly that.
+As the changes Achilles made were not formatted, there was more code touched than was absolutely necessary. Perseus didn't see any harm in this rectification and merge the pull request as is.</p>
+<p>A week later, a huge problem was discovered in production. There was data loss and the entire company was on fire.
+Fuelled by rage and anger Hektor wanted to know who was responsible for this devastating tragedy. You guessed it, somebody's head was about to roll.
+Perseus was tasked with getting to the bottom of this mystery and eventually he located the source of the misery.  Hektor tasked him with running a <code>git blame</code> command, to see who the culprit really was.</p>
+<p>Odysseus credentials showed up, but it was the function Achilles originally wrote. Unable to escape Hektor's wrath, Odysseus was fired immediately.
+Achilles felt bad but couldn't come clean as he was about to get surgery for his heel. Odysseus took the fall like a true hero.
+But it lead him to a downwards spiral and would take him ten years before he could land another job in the software industry.</p>
+<h3><a name="Aftermath" class="anchor" href="#Aftermath">Aftermath</a></h3>
+<p>The team was shocked by what had transpired. Besides Hektor overreacting, another painful meeting was planned to have a retrospective on the past events.<br />
+After asking five why's, the team had to brainstorm on how to avoid these things.</p>
+<p>Ultimately, that meeting was mostly about the contents of the function Achilles wrote, but to end on a high note, the team discussed formatting source code afterwards.</p>
+<p>The moral of this story is that there are two things that could have saved Odysseus: <strong>a formatting check during continuous integration</strong> and a <code>.git-blame-ignore-revs</code> file.</p>
+<h2><a name="check" class="anchor" href="#check">--check</a></h2>
 <p><em>starting version 3.3</em></p>
 <p>Verify that a single file or folder was formatted correctly.</p>
 <blockquote>
 <p>dotnet fantomas --check Source.fs</p>
 </blockquote>
 <p>This will verify if the file <code>Source.fs</code> still needs formatting.
-If it does, the process will return exit code 99.
+If it does, the process will return exit code <strong>99</strong>.
 In the case that the file does not require any formatting, exit code 0 is returned.
 Unexpected errors will return exit code 1.</p>
 <p>This scenario is meant to be executed in a continuous integration environment, to enforce that the newly added code was formatted correctly.</p>
-<h2><a name="Set-files-to-be-formatted-inside-build-fsx-with-snippet" class="anchor" href="#Set-files-to-be-formatted-inside-build-fsx-with-snippet">Set files to be formatted inside build.fsx with snippet</a></h2>
-<h2><a name="Add-format-param-to-build-fsx-with-snippet" class="anchor" href="#Add-format-param-to-build-fsx-with-snippet">Add format param to build.fsx with snippet</a></h2>
-<h2><a name="Add-CheckFormat-param-to-build-fsx-with-snippet" class="anchor" href="#Add-CheckFormat-param-to-build-fsx-with-snippet">Add CheckFormat param to build.fsx with snippet</a></h2>
-<h2><a name="How-to-run" class="anchor" href="#How-to-run">How to run</a></h2>
+<h3><a name="FAKE" class="anchor" href="#FAKE">FAKE</a></h3>
+<p>If you are using <code>FAKE</code> by any chance, a good step is to have <code>CheckFormat</code> target early on in the pipeline.</p>
+<pre class="fssnip highlighted"><code lang="fsharp"><span class="id">Target</span><span class="pn">.</span><span class="id">create</span> <span class="s">&quot;CheckFormat&quot;</span> <span class="pn">(</span><span class="k">fun</span> <span class="id">_</span> <span class="k">-&gt;</span>
+    <span class="k">let</span> <span class="id">result</span> <span class="o">=</span>
+        <span class="id">DotNet</span><span class="pn">.</span><span class="id">exec</span> <span onmouseout="hideTip(event, 'fs1', 1)" onmouseover="showTip(event, 'fs1', 1)" class="id">id</span> <span class="s">&quot;fantomas ourSourceFolder --recurse --check&quot;</span>
 
+    <span class="k">if</span> <span class="id">result</span><span class="pn">.</span><span class="id">ExitCode</span> <span class="o">=</span> <span class="n">0</span> <span class="k">then</span>
+        <span class="id">Trace</span><span class="pn">.</span><span class="id">log</span> <span class="s">&quot;No files need formatting&quot;</span>
+    <span class="k">elif</span> <span class="id">result</span><span class="pn">.</span><span class="id">ExitCode</span> <span class="o">=</span> <span class="n">99</span> <span class="k">then</span>
+        <span onmouseout="hideTip(event, 'fs2', 2)" onmouseover="showTip(event, 'fs2', 2)" class="id">failwith</span> <span class="s">&quot;Some files need formatting, run \&quot;dotnet fantomas  ourSourceFolder --recurse\&quot; to resolve this.&quot;</span>
+    <span class="k">else</span>
+        <span class="id">Trace</span><span class="pn">.</span><span class="id">logf</span> <span class="s">&quot;Errors while formatting: %A&quot;</span> <span class="id">result</span><span class="pn">.</span><span class="id">Errors</span><span class="pn">)</span>
         
+<span class="c">// ... more targets</span>
+
+<span class="s">&quot;Clean&quot;</span>
+<span class="pn">==&gt;</span> <span class="s">&quot;CheckFormat&quot;</span>
+<span class="pn">==&gt;</span> <span class="s">&quot;Build&quot;</span>
+<span class="pn">==&gt;</span> <span class="s">&quot;UnitTests&quot;</span>
+<span class="pn">==&gt;</span> <span class="s">&quot;Benchmark&quot;</span>
+<span class="pn">==&gt;</span> <span class="s">&quot;Pack&quot;</span>
+<span class="pn">==&gt;</span> <span class="s">&quot;Docs&quot;</span>
+<span class="pn">==&gt;</span> <span class="s">&quot;All&quot;</span>
+
+<span class="id">Target</span><span class="pn">.</span><span class="id">runOrDefault</span> <span class="s">&quot;All&quot;</span>
+</code></pre>
+<p>The recommendation is to install <code>fantomas</code> as a local tool and run it using the generic <code>DotNet.exec</code> api.
+This translates to running <code>dotnet fantomas ourSourceFolder --recurse --check</code>.</p>
+<h3><a name="Any-other-continuous-integration-environment" class="anchor" href="#Any-other-continuous-integration-environment">Any other continuous integration environment</a></h3>
+<p>You want to restore your local <code>fantomas</code> tool using <code>dotnet tool restore</code>.
+Next, you want to run <code>dotnet fantomas &lt;input&gt; --check</code> and make sure your continuous integration environment <strong>fails</strong> your job when <strong>a non-zero exit code</strong> is returned.</p>
+<p><strong>Pro-tip</strong>: print the command users need to run to fix the formatting in the output log when the check failed. This is useful for open-source projects where new contributors might never have been exposed to formatting.</p>
+<h2><a name="A-git-blame-ignore-revs-file" class="anchor" href="#A-git-blame-ignore-revs-file">A git-blame-ignore-revs file</a></h2>
+<p>By default, Fantomas adheres to the Microsoft <a href="https://docs.microsoft.com/en-us/dotnet/fsharp/style-guide/formatting">F# code formatting guidelines</a>.
+If these change, Fantomas will follow accordingly. Due to this reason, the output cannot be guaranteed to remain the same when upgrading to a new minor version.</p>
+<p>If you are using Git for your source control, it is recommended to ignore commits where <code>fantomas</code> was updated using a <a href="https://git-scm.com/docs/git-blame#Documentation/git-blame.txt---ignore-revltrevgt">.git-blame-ignore-revs file</a>.
+Check out this <a href="https://www.moxio.com/blog/43/ignoring-bulk-change-commits-with-git-blame">blogpost</a> for more details.</p>
+<p>Adding a formatting commit to a configured <code>.git-blame-ignore-revs</code> file will prevent you from drawing the wrong conclusions when running a <code>git blame</code> command.
+One thing to note is that if you add a commit SHA to a <code>.git-blame-ignore-revs</code> file, you cannot squash the commit when merging in the pull request.</p>
+<h2><a name="Checking-is-good-for-regressions" class="anchor" href="#Checking-is-good-for-regressions">Checking is good for regressions</a></h2>
+<p>Normally, the rule of thumb is that the code style will not change between revisions.<br />
+If you are using <code>4.7.2</code>, then it should be safe for you upgrade to the latest <code>4.7.X</code> without seeing any changes.</p>
+<blockquote>
+<p>Life happens, so this is a best effort guarantee</p>
+</blockquote>
+<p>In case you do see a change that cannot be linked to anything in the <a href="https://github.com/fsprojects/fantomas/blob/master/CHANGELOG.md">CHANGELOG.md</a> file, you may have detected a regression.<br />
+Or, more likely, you have something slightly different in your code base that isn't covered yet by a unit test.</p>
+<p>No matter the case, when you have a <code>--check</code> command somewhere in your continuous integration environment, please consider running a build with the latest compatible version from time to time.<br />
+It really helps us spotting problems early on and we can more easily pinpoint the problem due to lesser recent changes.</p>
+<div class="d-flex justify-content-between my-4">
+    <a href="./IgnoreFiles.html">Previous</a>
+</div>
+
+        <div class="fsdocs-tip" id="fs1">val id: x: &#39;T -&gt; &#39;T<br /><em>&lt;summary&gt;The identity function&lt;/summary&gt;<br />&lt;param name=&quot;x&quot;&gt;The input value.&lt;/param&gt;<br />&lt;returns&gt;The same value.&lt;/returns&gt;<br />&lt;example id=&quot;id-example&quot;&gt;&lt;code lang=&quot;fsharp&quot;&gt;
+ id 12     //  Evaulates to 12
+ id &quot;abc&quot;  //  Evaulates to &quot;abc&quot;
+ &lt;/code&gt;&lt;/example&gt;</em></div>
+<div class="fsdocs-tip" id="fs2">val failwith: message: string -&gt; &#39;T<br /><em>&lt;summary&gt;Throw a &lt;see cref=&quot;T:System.Exception&quot; /&gt; exception.&lt;/summary&gt;<br />&lt;param name=&quot;message&quot;&gt;The exception message.&lt;/param&gt;<br />&lt;returns&gt;Never returns.&lt;/returns&gt;<br />&lt;example id=&quot;failwith-example&quot;&gt;&lt;code lang=&quot;fsharp&quot;&gt;
+ let failingFunction() = 
+     failwith &quot;Oh no&quot; // Throws an exception
+     true  // Never reaches this
+   
+ failingFunction()  // Throws a System.Exception
+ &lt;/code&gt;&lt;/example&gt;</em></div>
+
       </div>
         <div id="push"></div>
     </div>
