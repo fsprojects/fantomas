@@ -198,7 +198,8 @@ type FormatConfig =
       BarBeforeDiscriminatedUnionDeclaration: bool
 
       [<Category("Convention")>]
-      [<DisplayName("Ragnarok")>]
+      [<DisplayName("Format braces using Stroustrup Style where possible.")>]
+      [<Description("Experimental feature, use at your own risk.")>]
       ExperimentalStroustrupStyle: bool
 
       [<Category("Convention")>]
