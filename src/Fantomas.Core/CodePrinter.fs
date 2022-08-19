@@ -1333,7 +1333,9 @@ and genExpr astContext synExpr ctx =
 
         | NewlineInfixApps (e, es) ->
             let shortExpr =
-                genExpr astContext e
+                onlyIf (isSynExprLambdaOrIfThenElse e) sepOpenT
+                +> genExpr astContext e
+                +> onlyIf (isSynExprLambdaOrIfThenElse e) sepCloseT
                 +> sepSpace
                 +> col sepSpace es (fun (_s, oe, e) ->
                     genSynLongIdent false oe
@@ -1356,9 +1358,16 @@ and genExpr astContext synExpr ctx =
 
         | SameInfixApps (e, es) ->
             let shortExpr =
-                genExpr astContext e
+                onlyIf (isSynExprLambdaOrIfThenElse e) sepOpenT
+                +> genExpr astContext e
+                +> onlyIf (isSynExprLambdaOrIfThenElse e) sepCloseT
                 +> sepSpace
-                +> col sepSpace es (fun (_s, oe, e) -> genSynLongIdent false oe +> sepSpace +> genExpr astContext e)
+                +> col sepSpace es (fun (_s, oe, e) ->
+                    genSynLongIdent false oe
+                    +> sepSpace
+                    +> onlyIf (isSynExprLambdaOrIfThenElse e) sepOpenT
+                    +> genExpr astContext e
+                    +> onlyIf (isSynExprLambdaOrIfThenElse e) sepCloseT)
 
             let multilineExpr =
                 genExpr astContext e
