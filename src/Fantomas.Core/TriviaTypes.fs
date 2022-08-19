@@ -367,6 +367,7 @@ type FsAstType =
     //    | SynValData_
     | SynMemberFlags_Static
     | SynMemberFlags_Member
+    | SynMemberFlags_Abstract
     | SynValInfo_
     | SynArgInfo_
     | ParsedHashDirective_

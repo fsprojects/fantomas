@@ -821,10 +821,13 @@ and genMemberFlags (mf: SynMemberFlags) =
         MemberRange = Some _m } -> genTriviaFor SynMemberFlags_Static s !- "static" +> sepSpace +> !- "member "
     | { OverrideRange = Some _o } -> !- "override "
     | { DefaultRange = Some _d } -> !- "default "
-    | { AbstractRange = Some _a
-        MemberRange = Some _m } -> !- "abstract member "
+    | { AbstractRange = Some a
+        MemberRange = Some m } ->
+        genTriviaFor SynMemberFlags_Abstract a !- "abstract"
+        +> sepSpace
+        +> genTriviaFor SynMemberFlags_Member m !- "member "
     | { MemberRange = Some m } -> genTriviaFor SynMemberFlags_Member m !- "member "
-    | { AbstractRange = Some _a } -> !- "abstract "
+    | { AbstractRange = Some a } -> genTriviaFor SynMemberFlags_Abstract a !- "abstract "
     | _ -> sepNone
 
 and genVal astContext (Val (ats, px, valKeyword, ao, si, t, vi, isInline, isMutable, tds, eo, range)) =
