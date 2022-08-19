@@ -4458,7 +4458,8 @@ and genPat astContext pat =
     | PatTyped (p, t) ->
         genPat astContext p
         +> sepColon
-        +> autoIndentAndNlnIfExpressionExceedsPageWidth (genType astContext t)
+        +> autoIndentAndNlnIfExpressionExceedsPageWidth (atCurrentColumnIndent (genType astContext t))
+
     | PatNamed (ao, SynIdent (_, Some (ParenStarSynIdent (lpr, op, rpr)))) ->
         genAccessOpt ao
         +> sepOpenTFor lpr
