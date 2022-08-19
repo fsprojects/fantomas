@@ -725,15 +725,20 @@ let (|DynamicExpr|_|) =
     | SynExpr.Dynamic (funcExpr, _, argExpr, _) -> Some(funcExpr, argExpr)
     | _ -> None
 
+let (|ParenStarSynIdent|_|) =
+    function
+    | IdentTrivia.OriginalNotationWithParen (lpr, originalNotation, rpr) ->
+        if originalNotation.Length > 1 && originalNotation.StartsWith("*") then
+            Some(lpr, originalNotation, rpr)
+        else
+            None
+    | _ -> None
+
 // Example: ( *** ) a b
 // (*) a b is ok though
 let (|ParenFunctionNameWithStar|_|) =
     function
-    | LongIdentExpr (SynLongIdent ([ _ ],
-                                   [],
-                                   [ Some (IdentTrivia.OriginalNotationWithParen (lpr, originalNotation, rpr)) ])) when
-        (originalNotation.Length > 1 && originalNotation.StartsWith("*"))
-        ->
+    | LongIdentExpr (SynLongIdent ([ _ ], [], [ Some (ParenStarSynIdent (lpr, originalNotation, rpr)) ])) ->
         Some(lpr, originalNotation, rpr)
     | _ -> None
 
