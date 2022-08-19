@@ -1387,10 +1387,11 @@ let f (x: {| x: int; y:  AReallyLongTypeThatIsMuchLongerThan40Characters |}) = x
         equal
         """
 let f
-    (x : {|
-             x : int
-             y : AReallyLongTypeThatIsMuchLongerThan40Characters
-         |})
+    (x :
+        {|
+            x : int
+            y : AReallyLongTypeThatIsMuchLongerThan40Characters
+        |})
     =
     x
 """
