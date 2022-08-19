@@ -1,6 +1,5 @@
 module Fantomas.Core.Tests.OperatorTests
 
-open System.Net.Http.Headers
 open NUnit.Framework
 open FsUnit
 open Fantomas.Core.Tests.TestHelper
@@ -1348,4 +1347,19 @@ type Test =
 type Test =
     { WorkHoursPerWeek: uint<hr * (staff weeks)> }
     static member create = { WorkHoursPerWeek = 40u<hr * (staff weeks)> }
+"""
+
+[<Test>]
+let ``custom operator starting with *, 2434`` () =
+    formatSourceString
+        false
+        """
+let ( */) = (+)
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let ( */ ) = (+)
 """

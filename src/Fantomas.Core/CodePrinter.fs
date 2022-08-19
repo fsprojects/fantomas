@@ -4453,6 +4453,13 @@ and genPat astContext pat =
              +> sepColon
              +> atCurrentColumnIndent (genType astContext false t))
 
+    | PatNamed (ao, SynIdent (_, Some (ParenStarSynIdent (lpr, op, rpr)))) ->
+        opt sepSpace ao genAccess
+        +> sepOpenTFor lpr
+        +> sepSpace
+        +> !-op
+        +> sepSpace
+        +> sepCloseTFor (Some rpr)
     | PatNamed (ao, si) -> opt sepSpace ao genAccess +> genSynIdent false si
     | PatAs (p1, p2, r) ->
         genPat astContext p1 +> !- " as " +> genPat astContext p2
