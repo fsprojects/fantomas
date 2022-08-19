@@ -1,6 +1,6 @@
 # Changelog
 
-## [Unreleased]
+## [5.0.0-beta-007] - 2022-08-19
 
 ### Fixed
 * `abstract` with docstring and comment gets split up. [#2433](https://github.com/fsprojects/fantomas/issues/2433)
