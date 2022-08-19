@@ -103,6 +103,9 @@ addEventListener('show.bs.collapse', (e) => {
     document.getElementById(e.target.id+'-wrapper').classList.add('menu-open');
   }
 })
+const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
+const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))
+
   </script>
   <!-- BEGIN SEARCH BOX: this adds support for the search box -->
   <link rel="stylesheet"
