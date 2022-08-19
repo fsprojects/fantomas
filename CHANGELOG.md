@@ -5,6 +5,7 @@
 ### Fixed
 * `abstract` with docstring and comment gets split up. [#2433](https://github.com/fsprojects/fantomas/issues/2433)
 * Invalid removal of space in operator which starts with `*`. [#2434](https://github.com/fsprojects/fantomas/issues/2434)
+* Incorrect concatenation of lines with functions. [#2435](https://github.com/fsprojects/fantomas/issues/2435)
 
 ## [5.0.0-beta-006] - 2022-08-12
 
