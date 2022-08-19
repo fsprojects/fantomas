@@ -13,9 +13,33 @@ open Fantomas.Core
 (**
 # Configuration
 Fantomas ships with a series of format options.
-These can be stored in an [.editorconfig](https://editorconfig.org/) file and will be picked up automatically by the commandline tool.
+These can be stored in an [.editorconfig](https://editorconfig.org/) file and will be picked up automatically by the 
+commandline. <br>
+Your IDE should respect your settings, but the implementation of that is editor specific. Setting the configuration via 
+UI might be available depending on the IDE but do note that these features might not be up to 
+date nor work properly, therefore it's support and use is out of scope for this project. 
+
+## Usage
+Inside .editorconfig you can specify the file extension and code location to be use per config:
+```
+[*.fs]
+fsharp_space_before_uppercase_invocation = true
+
+# Write a comment by starting the line with a '#'
+[*.{fs,fsx,fsi}]
+fsharp_bar_before_discriminated_union_declaration = true
+
+# Apply specific settings for a targeted subfolder
+[src/Elmish/View.fs]
+fsharp_multiline_block_brackets_on_same_column = true
+fsharp_experimental_stroustrup_style = true
+```
+## Trying your settings via the online tool
+You can quickly try your settings via the <a href="https://fsprojects.github.io/fantomas-tools/#/fantomas/preview" target="_blank">online tool</a>. <br>
+<img src="{{root}}/online_tool_usage.gif" alt="drawing" width="100%"/>
 
 *)
+
 
 (**
 
