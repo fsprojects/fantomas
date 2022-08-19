@@ -3930,17 +3930,12 @@ and genType astContext t =
         +> colPre (!- " when ") wordAnd tcs (genTypeConstraint astContext)
     | TLongIdent sli -> genSynLongIdent false sli
     | TAnonRecord (isStruct, fields) ->
-        let smallExpression =
-            ifElse isStruct !- "struct " sepNone
-            +> sepOpenAnonRecd
-            +> col sepSemi fields (genAnonRecordFieldType astContext)
-            +> sepCloseAnonRecd
+        let smallExpression = genSingleLineAnonRecordType isStruct fields astContext
 
         let longExpression =
-            ifElse isStruct !- "struct " sepNone
-            +> sepOpenAnonRecd
-            +> atCurrentColumn (col sepNln fields (genAnonRecordFieldType astContext))
-            +> sepCloseAnonRecd
+            ifAlignBrackets
+                (genMultilineAnonRecordTypeAlignBrackets isStruct fields astContext)
+                (genMultilineAnonRecordType isStruct fields astContext)
 
         fun (ctx: Context) ->
             let size = getRecordSize ctx fields
@@ -3978,9 +3973,35 @@ and addSpaceIfSynTypeStaticConstantHasAtSignBeforeString (t: SynType) (ctx: Cont
     onlyIf hasAtSign sepSpace ctx
 
 and genAnonRecordFieldType astContext (AnonRecordFieldType (ident, t)) =
-    genIdent ident
-    +> sepColon
-    +> autoIndentAndNlnIfExpressionExceedsPageWidth (genType astContext t)
+    genIdent ident +> sepColon +> (genType astContext t)
+    
+and genSingleLineAnonRecordType isStruct fields astContext =
+    ifElse isStruct !- "struct " sepNone
+    +> sepOpenAnonRecd
+    +> col sepSemi fields (genAnonRecordFieldType astContext)
+    +> sepCloseAnonRecd
+
+and genMultilineAnonRecordType isStruct fields astContext =
+    let fieldsExpr = col sepNln fields (genAnonRecordFieldType astContext)
+    
+    let genRecord =
+        sepOpenAnonRecd
+        +> atCurrentColumnIndent fieldsExpr
+        +> sepCloseAnonRecd
+        +> unindent
+    
+    ifElse isStruct !- "struct " sepNone +> genRecord
+
+and genMultilineAnonRecordTypeAlignBrackets (isStruct: bool) fields astContext =
+    let fieldsExpr = col sepNln fields (genAnonRecordFieldType astContext)
+
+    let genRecord =
+        sepOpenAnonRecdFixed
+        +> indentSepNlnUnindent (atCurrentColumnIndent fieldsExpr)
+        +> sepNln
+        +> sepCloseAnonRecdFixed
+
+    ifElse isStruct !- "struct " sepNone +> genRecord
 
 and genPrefixTypes
     astContext

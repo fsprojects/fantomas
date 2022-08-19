@@ -175,6 +175,7 @@ module WriterEvents =
             | WriteLineBecauseOfTrivia -> true
             | _ -> false)
 
+[<System.Diagnostics.DebuggerDisplay("\"{Dump()}\"")>]
 type internal Context =
     { Config: FormatConfig
       WriterModel: WriterModel
@@ -320,6 +321,12 @@ type Context with
 
     member x.Column = x.WriterModel.Column
     member x.FinalizeModel = finalizeWriterModel x
+
+    member x.Dump() =
+        let m = finalizeWriterModel x
+        let lines = m.WriterModel.Lines |> List.rev
+
+        String.concat x.Config.EndOfLine.NewLineString lines
 
 let writeEventsOnLastLine ctx =
     ctx.WriterEvents
@@ -920,11 +927,31 @@ let autoIndentAndNlnIfExpressionExceedsPageWidth expr (ctx: Context) =
         expr
         ctx
 
+/// try and write the expression on the remainder of the current line
+/// add an indent if the expression is longer
+let autoIndentIfExpressionExceedsPageWidth expr (ctx: Context) =
+    expressionExceedsPageWidth
+        sepNone
+        sepNone // before and after for short expressions
+        indent
+        unindent // before and after for long expressions
+        expr
+        ctx
+
 let sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth expr (ctx: Context) =
     expressionExceedsPageWidth
         sepSpace
         sepNone // before and after for short expressions
         (indent +> sepNln)
+        unindent // before and after for long expressions
+        expr
+        ctx
+
+let sepSpaceOrIndentIfExpressionExceedsPageWidth expr (ctx: Context) =
+    expressionExceedsPageWidth
+        sepSpace
+        sepNone // before and after for short expressions
+        indent
         unindent // before and after for long expressions
         expr
         ctx
