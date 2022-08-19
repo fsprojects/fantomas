@@ -184,7 +184,7 @@ match x with
 |]
 """
 
-// TODO: Here, I again feel this is fitting not to have ragnarok.
+// TODO: Here, I again feel this is fitting not to have stroustrup.
 // Similar to long patterns in synbinding functions.
 
 [<Test>]

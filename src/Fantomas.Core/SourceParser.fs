@@ -1693,8 +1693,8 @@ let rec (|IndexWithoutDotExpr|NestedIndexWithoutDotExpr|NonAppExpr|) e =
         NestedIndexWithoutDotExpr(identifier, indexExpr, argExpr)
     | _ -> NonAppExpr
 
-let rec (|EndsWithSingleListAppExpr|_|) (isRagnarok: bool) (e: SynExpr) =
-    if not isRagnarok then
+let rec (|EndsWithSingleListAppExpr|_|) (isStroustrup: bool) (e: SynExpr) =
+    if not isStroustrup then
         None
     else
         match e with
@@ -1719,14 +1719,14 @@ let rec (|EndsWithSingleListAppExpr|_|) (isRagnarok: bool) (e: SynExpr) =
             Some(funcExpr, [], lastArg)
         | _ -> None
 
-let (|EndsWithDualListAppExpr|_|) (isRagnarok: bool) (e: SynExpr) =
-    if not isRagnarok then
+let (|EndsWithDualListAppExpr|_|) (isStroustrup: bool) (e: SynExpr) =
+    if not isStroustrup then
         None
     else
         match e with
         | SynExpr.App (ExprAtomicFlag.NonAtomic,
                        false,
-                       EndsWithSingleListAppExpr isRagnarok (e, es, lastButOneArg),
+                       EndsWithSingleListAppExpr isStroustrup (e, es, lastButOneArg),
                        (ArrayOrList _ as lastArg),
                        _) -> Some(e, es, lastButOneArg, lastArg)
         | _ -> None
