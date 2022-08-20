@@ -5,11 +5,13 @@ categoryindex: 1
 index: 3
 ---
 *)
-#r "nuget: Fantomas.Core, 5.0.0-alpha-*"
+#r "nuget: Fantomas.Core, 5.0.0-beta-*"
 
 open Fantomas.Core.FormatConfig
 open Fantomas.Core
-
+let formatCode input configIndent =
+    CodeFormatter.FormatDocumentAsync  (false, input, configIndent)
+    |>  Async.RunSynchronously
 (**
 # Configuration
 Fantomas ships with a series of format options.
@@ -77,8 +79,9 @@ let inline selectRandom (f: _ []) =
     find <| f.Length - 1
 """
 let configIndent = { FormatConfig.Default with IndentSize = 2 }
+formatCode input configIndent
+(*** include-it ***)
 (**
-
 ## Maximum width constraints
 #### <i class="bi bi-check-circle-fill yellow-recommendation" data-bs-toggle="tooltip" data-bs-title="This setting is not recommended"></i>indent_size
 ` indent_size` has to be between 1 and 10.
@@ -159,8 +162,5 @@ let inline selectRandom (f: _ []) =
     find <| f.Length - 1
 """
 let configIndent4 = { FormatConfig.Default with IndentSize = 2 }
-let formatCode input configIndent =
-    CodeFormatter.FormatDocumentAsync  (false, input, configIndent)
-    |>  Async.RunSynchronously
 
 formatCode input configIndent
