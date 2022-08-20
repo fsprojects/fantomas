@@ -50,7 +50,7 @@ You can quickly try your settings via the <a href="https://fsprojects.github.io/
 ## Settings recommendations
 Fantomas ships with a series of settings that you can use freely depending  on your case. However there are settings that we do not recommend and generally should not be used. <br>
 <i class="bi bi-check-circle-fill green-recommendation"></i> Good to use: TBD<br>
-<i class="bi bi-exclamation-circle-fill yellow-recommendation"></i> Not recommended: TBD <br>
+<i class="bi bi-exclamation-circle-fill orange-recommendation"></i> Not recommended: TBD <br>
 <i class="bi bi-check-circle-fill red-recommendation"></i> Do not use: TBD<br>
 *)
 
@@ -83,7 +83,7 @@ formatCode input configIndent
 (*** include-it ***)
 (**
 ## Maximum width constraints
-#### <i class="bi bi-check-circle-fill yellow-recommendation" data-bs-toggle="tooltip" data-bs-title="This setting is not recommended"></i>indent_size
+#### <i class="bi bi-check-circle-fill orange-recommendation" data-bs-toggle="tooltip" data-bs-title="This setting is not recommended"></i>indent_size
 ` indent_size` has to be between 1 and 10.
 
 This preference sets the indentation
@@ -110,7 +110,7 @@ let configIndent2 = { FormatConfig.Default with IndentSize = 2 }
 (**
 
 ## G-Research style
-#### <i class="bi bi-check-circle-fill yellow-recommendation" data-bs-toggle="tooltip" data-bs-title="This setting is not recommended"></i>indent_size
+#### <i class="bi bi-check-circle-fill orange-recommendation" data-bs-toggle="tooltip" data-bs-title="This setting is not recommended"></i>indent_size
 ` indent_size` has to be between 1 and 10.
 
 This preference sets the indentation
