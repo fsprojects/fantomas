@@ -48,10 +48,12 @@ You can quickly try your settings via the <a href="https://fsprojects.github.io/
 (**
 ## Settings recommendations
 Fantomas ships with a series of settings that you can use freely depending  on your case. However, there are settings that we do not recommend and generally should not be used.   
-<i class="bi bi-check-circle-fill green-recommendation"></i> Good to use: TBD  
-<i class="bi bi-exclamation-circle-fill orange-recommendation"></i> Not recommended: TBD   
-<i class="bi bi-check-circle-fill red-recommendation"></i> Do not use: TBD  
-<img class="gresearch-recommendation" src="{{root}}/gresearch.svg" alt="G-Research logo"/> <bold>G-Research:</bold> From G-Research styling guide. 
+<i class="bi bi-check-circle-fill green-recommendation"></i> <strong>Safe to change:</strong> Settings that aren't attached to any guidelines. Depending on your team or your own preferences, feel free to use these as it's been agreed on the codebase, however, you can always use it's defaults.     
+<i class="bi bi-exclamation-circle-fill orange-recommendation"></i> <strong>Not recommended:</strong> Settings that don't follow any guidelines.  
+<i class="bi bi-check-circle-fill red-recommendation"></i> <strong>Do not use:</strong> Experimental settings that might not be stable and don't follow any guidelines.
+  
+<img class="gresearch-recommendation" src="{{root}}/gresearch.svg" alt="G-Research logo"/> <strong>G-Research:</strong> G-Research styling guide. If you use one of these, for consistency reasons you should use all of them.
+  
 *)
 
 (**
