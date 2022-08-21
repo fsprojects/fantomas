@@ -12,6 +12,7 @@ open Fantomas.Core
 let formatCode input configIndent =
     CodeFormatter.FormatDocumentAsync  (false, input, configIndent)
     |>  Async.RunSynchronously
+
 (**
 # Configuration
 Fantomas ships with a limited series of options.
@@ -41,7 +42,7 @@ fsharp_experimental_stroustrup_style = true
 
 (**
 ## Trying your settings via the online tool
-You can quickly try your settings via the <a href="https://fsprojects.github.io/fantomas-tools/#/fantomas/preview" target="_blank">online tool</a>.   
+You can quickly try your settings via the <a href="https://fsprojects.github.io/fantomas-tools/#/fantomas/preview" target="_blank">online tool</a>.  
 <img src="{{root}}/online_tool_usage.gif" alt="drawing" width="100%"/>
 *)
 
@@ -52,8 +53,7 @@ Fantomas ships with a series of settings that you can use freely depending  on y
 <i class="bi bi-exclamation-circle-fill orange-recommendation"></i> <strong>Not recommended:</strong> Settings that don't follow any guidelines.  
 <i class="bi bi-check-circle-fill red-recommendation"></i> <strong>Do not use:</strong> Experimental settings that might not be stable and don't follow any guidelines.
   
-<img class="gresearch-recommendation" src="{{root}}/gresearch.svg" alt="G-Research logo"/> <strong>G-Research:</strong> G-Research styling guide. If you use one of these, for consistency reasons you should use all of them.
-  
+<img class="gresearch-recommendation" src="{{root}}/gresearch.svg" alt="G-Research logo"/> <strong>G-Research:</strong> G-Research styling guide. If you use one of these, for consistency reasons you should use all of them.  
 *)
 
 (**
@@ -68,6 +68,7 @@ Default = 4.
 
 `defaultConfig`
 *)
+
 let input = """ 
 let inline selectRandom (f: _ []) =
     let r = random 1.0
@@ -83,9 +84,10 @@ let inline selectRandom (f: _ []) =
 let configIndent = { FormatConfig.Default with IndentSize = 2 }
 formatCode input configIndent
 (*** include-it ***)
+
 (**
 ## Maximum width constraints
-#### <i class="bi bi-check-circle-fill orange-recommendation" data-bs-toggle="tooltip" data-bs-custom-class="orange-tooltip" data-bs-title="This setting is not recommended"></i>indent_size
+#### <i class="bi bi-check-circle-fill orange-recommendation" data-bs-toggle="tooltip" data-bs-custom-class="orange-tooltip" data-bs-title="This setting is not recommended"></i> indent_size
 ` indent_size` has to be between 1 and 10.
 
 This preference sets the indentation
@@ -94,8 +96,8 @@ The same indentation is ensured to be consistent in a source file.
 Default = 4.
 
 `defaultConfig`
-
 *)
+
 let input2 = """ 
 let inline selectRandom (f: _ []) =
     let r = random 1.0
@@ -109,10 +111,10 @@ let inline selectRandom (f: _ []) =
     find <| f.Length - 1
 """
 let configIndent2 = { FormatConfig.Default with IndentSize = 2 }
-(**
 
+(**
 ## <img class="gresearch-recommendation align-top" data-bs-toggle="tooltip" data-bs-custom-class="gresearch-tooltip" data-bs-title="If you use one of these you should use all G-Research settings for consistency reasons" data-bs-custom-class="orange-tooltip" src="{{root}}/gresearch.svg" alt="G-Research logo"/> G-Research style
-#### <i class="bi bi-check-circle-fill orange-recommendation" data-bs-toggle="tooltip" data-bs-custom-class="orange-tooltip" data-bs-title="This setting is not recommended"></i>indent_size
+#### <i class="bi bi-check-circle-fill orange-recommendation" data-bs-toggle="tooltip" data-bs-custom-class="orange-tooltip" data-bs-title="This setting is not recommended"></i> indent_size
 ` indent_size` has to be between 1 and 10.
 
 This preference sets the indentation
@@ -121,8 +123,8 @@ The same indentation is ensured to be consistent in a source file.
 Default = 4.
 
 `defaultConfig`
-
 *)
+
 let input3 = """ 
 let inline selectRandom (f: _ []) =
     let r = random 1.0
@@ -136,10 +138,10 @@ let inline selectRandom (f: _ []) =
     find <| f.Length - 1
 """
 let configIndent3 = { FormatConfig.Default with IndentSize = 2 }
-(**
 
+(**
 ## Other
-#### <i class="bi bi-check-circle-fill red-recommendation" data-bs-toggle="tooltip" data-bs-custom-class="red-tooltip" data-bs-title="You shouldn't use this setting"></i>indent_size
+#### <i class="bi bi-check-circle-fill red-recommendation" data-bs-toggle="tooltip" data-bs-custom-class="red-tooltip" data-bs-title="You shouldn't use this setting"></i> indent_size
 
 ` indent_size` has to be between 1 and 10.
 
@@ -149,8 +151,8 @@ The same indentation is ensured to be consistent in a source file.
 Default = 4.
 
 `defaultConfig`
-
 *)
+
 let input4 = """ 
 let inline selectRandom (f: _ []) =
     let r = random 1.0
