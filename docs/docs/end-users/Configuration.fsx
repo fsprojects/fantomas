@@ -14,12 +14,11 @@ let formatCode input configIndent =
     |>  Async.RunSynchronously
 (**
 # Configuration
-Fantomas ships with a series of format options.
+Fantomas ships with a limited series of options.
 These can be stored in an [.editorconfig](https://editorconfig.org/) file and will be picked up automatically by the 
-commandline. <br>
-Your IDE should respect your settings, but the implementation of that is editor specific. Setting the configuration via 
-UI might be available depending on the IDE but do note that these features might not be up to 
-date nor work properly, therefore it's support and use is out of scope for this project. 
+commandline.   
+Your IDE should respect your settings, however the implementation of that is editor specific. Setting the configuration via 
+UI might be available depending on the IDE.
 *)
 
 (**
@@ -42,16 +41,16 @@ fsharp_experimental_stroustrup_style = true
 
 (**
 ## Trying your settings via the online tool
-You can quickly try your settings via the <a href="https://fsprojects.github.io/fantomas-tools/#/fantomas/preview" target="_blank">online tool</a>. <br>
+You can quickly try your settings via the <a href="https://fsprojects.github.io/fantomas-tools/#/fantomas/preview" target="_blank">online tool</a>.   
 <img src="{{root}}/online_tool_usage.gif" alt="drawing" width="100%"/>
 *)
 
 (**
 ## Settings recommendations
-Fantomas ships with a series of settings that you can use freely depending  on your case. However there are settings that we do not recommend and generally should not be used. <br>
-<i class="bi bi-check-circle-fill green-recommendation"></i> Good to use: TBD<br>
-<i class="bi bi-exclamation-circle-fill orange-recommendation"></i> Not recommended: TBD <br>
-<i class="bi bi-check-circle-fill red-recommendation"></i> Do not use: TBD<br>
+Fantomas ships with a series of settings that you can use freely depending  on your case. However, there are settings that we do not recommend and generally should not be used.   
+<i class="bi bi-check-circle-fill green-recommendation"></i> Good to use: TBD  
+<i class="bi bi-exclamation-circle-fill orange-recommendation"></i> Not recommended: TBD   
+<i class="bi bi-check-circle-fill red-recommendation"></i> Do not use: TBD  
 <img class="gresearch-recommendation" src="{{root}}/gresearch.svg" alt="G-Research logo"/> <bold>G-Research:</bold> From G-Research styling guide. 
 *)
 
