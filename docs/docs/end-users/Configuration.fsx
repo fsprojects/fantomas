@@ -52,6 +52,7 @@ Fantomas ships with a series of settings that you can use freely depending  on y
 <i class="bi bi-check-circle-fill green-recommendation"></i> Good to use: TBD<br>
 <i class="bi bi-exclamation-circle-fill orange-recommendation"></i> Not recommended: TBD <br>
 <i class="bi bi-check-circle-fill red-recommendation"></i> Do not use: TBD<br>
+<img class="gresearch-recommendation" src="{{root}}/gresearch.svg" alt="G-Research logo"/> <bold>G-Research:</bold> From G-Research styling guide. 
 *)
 
 (**
@@ -109,7 +110,7 @@ let inline selectRandom (f: _ []) =
 let configIndent2 = { FormatConfig.Default with IndentSize = 2 }
 (**
 
-## G-Research style
+## <img class="gresearch-recommendation align-top" src="{{root}}/gresearch.svg" alt="G-Research logo"/> G-Research style
 #### <i class="bi bi-check-circle-fill orange-recommendation" data-bs-toggle="tooltip" data-bs-title="This setting is not recommended"></i>indent_size
 ` indent_size` has to be between 1 and 10.
 
