@@ -9477,51 +9477,51 @@ main #sidebar-wrapper:not(.show) {
   color: #222222;
   text-decoration: none;
 }
-#fsdocs-content h1 h1, #fsdocs-content .h1 h1, #fsdocs-content h1 .h1, #fsdocs-content .h1 .h1, #fsdocs-content h2 h1, #fsdocs-content .h2 h1, #fsdocs-content h2 .h1, #fsdocs-content .h2 .h1, #fsdocs-content h3 h1, #fsdocs-content .h3 h1, #fsdocs-content h3 .h1, #fsdocs-content .h3 .h1, #fsdocs-content h4 h1, #fsdocs-content .h4 h1, #fsdocs-content h4 .h1, #fsdocs-content .h4 .h1, #fsdocs-content h5 h1, #fsdocs-content .h5 h1, #fsdocs-content h5 .h1, #fsdocs-content .h5 .h1, #fsdocs-content h6 h1, #fsdocs-content .h6 h1, #fsdocs-content h6 .h1, #fsdocs-content .h6 .h1 {
-  padding: 30px 0px 15px 0px;
+#fsdocs-content h1, #fsdocs-content .h1 {
+  padding: 30px 0 15px 0;
   font-size: 2rem;
   letter-spacing: 1.78px;
   line-height: 2.5rem;
   font-weight: 400;
 }
-#fsdocs-content h1 h2, #fsdocs-content .h1 h2, #fsdocs-content h1 .h2, #fsdocs-content .h1 .h2, #fsdocs-content h2 h2, #fsdocs-content .h2 h2, #fsdocs-content h2 .h2, #fsdocs-content .h2 .h2, #fsdocs-content h3 h2, #fsdocs-content .h3 h2, #fsdocs-content h3 .h2, #fsdocs-content .h3 .h2, #fsdocs-content h4 h2, #fsdocs-content .h4 h2, #fsdocs-content h4 .h2, #fsdocs-content .h4 .h2, #fsdocs-content h5 h2, #fsdocs-content .h5 h2, #fsdocs-content h5 .h2, #fsdocs-content .h5 .h2, #fsdocs-content h6 h2, #fsdocs-content .h6 h2, #fsdocs-content h6 .h2, #fsdocs-content .h6 .h2 {
+#fsdocs-content h2, #fsdocs-content .h2 {
   font-size: 1.6rem;
-  padding: 20px 0px 10px 0px;
+  padding: 20px 0 10px 0;
   font-weight: 400;
 }
-#fsdocs-content h1 h3, #fsdocs-content .h1 h3, #fsdocs-content h1 .h3, #fsdocs-content .h1 .h3, #fsdocs-content h2 h3, #fsdocs-content .h2 h3, #fsdocs-content h2 .h3, #fsdocs-content .h2 .h3, #fsdocs-content h3 h3, #fsdocs-content .h3 h3, #fsdocs-content h3 .h3, #fsdocs-content .h3 .h3, #fsdocs-content h4 h3, #fsdocs-content .h4 h3, #fsdocs-content h4 .h3, #fsdocs-content .h4 .h3, #fsdocs-content h5 h3, #fsdocs-content .h5 h3, #fsdocs-content h5 .h3, #fsdocs-content .h5 .h3, #fsdocs-content h6 h3, #fsdocs-content .h6 h3, #fsdocs-content h6 .h3, #fsdocs-content .h6 .h3 {
+#fsdocs-content h3, #fsdocs-content .h3 {
   font-size: 1.2rem;
-  padding: 15px 0px 10px 0px;
+  padding: 15px 0 10px 0;
   font-weight: 400;
 }
-#fsdocs-content h1 hr, #fsdocs-content .h1 hr, #fsdocs-content h2 hr, #fsdocs-content .h2 hr, #fsdocs-content h3 hr, #fsdocs-content .h3 hr, #fsdocs-content h4 hr, #fsdocs-content .h4 hr, #fsdocs-content h5 hr, #fsdocs-content .h5 hr, #fsdocs-content h6 hr, #fsdocs-content .h6 hr {
-  margin: 0px 0px 20px 0px;
+#fsdocs-content hr {
+  margin: 0 0 20px 0;
 }
-#fsdocs-content h1 li, #fsdocs-content .h1 li, #fsdocs-content h2 li, #fsdocs-content .h2 li, #fsdocs-content h3 li, #fsdocs-content .h3 li, #fsdocs-content h4 li, #fsdocs-content .h4 li, #fsdocs-content h5 li, #fsdocs-content .h5 li, #fsdocs-content h6 li, #fsdocs-content .h6 li {
+#fsdocs-content li {
   font-size: 1rem;
   line-height: 1.5rem;
   letter-spacing: 0.01px;
   font-weight: normal;
-  margin: 0px 0px 15px 0px;
+  margin: 0 0 15px 0;
 }
-#fsdocs-content h1 p, #fsdocs-content .h1 p, #fsdocs-content h2 p, #fsdocs-content .h2 p, #fsdocs-content h3 p, #fsdocs-content .h3 p, #fsdocs-content h4 p, #fsdocs-content .h4 p, #fsdocs-content h5 p, #fsdocs-content .h5 p, #fsdocs-content h6 p, #fsdocs-content .h6 p {
+#fsdocs-content p {
   font-size: 1rem;
   line-height: 1.5rem;
   font-weight: normal;
   color: #222222;
 }
-#fsdocs-content h1 a, #fsdocs-content .h1 a, #fsdocs-content h2 a, #fsdocs-content .h2 a, #fsdocs-content h3 a, #fsdocs-content .h3 a, #fsdocs-content h4 a, #fsdocs-content .h4 a, #fsdocs-content h5 a, #fsdocs-content .h5 a, #fsdocs-content h6 a, #fsdocs-content .h6 a {
+#fsdocs-content a {
   color: #2FBADC;
 }
-#fsdocs-content h1 dt, #fsdocs-content .h1 dt, #fsdocs-content h2 dt, #fsdocs-content .h2 dt, #fsdocs-content h3 dt, #fsdocs-content .h3 dt, #fsdocs-content h4 dt, #fsdocs-content .h4 dt, #fsdocs-content h5 dt, #fsdocs-content .h5 dt, #fsdocs-content h6 dt, #fsdocs-content .h6 dt {
+#fsdocs-content dt {
   font-weight: normal;
 }
-#fsdocs-content h1 blockquote, #fsdocs-content .h1 blockquote, #fsdocs-content h2 blockquote, #fsdocs-content .h2 blockquote, #fsdocs-content h3 blockquote, #fsdocs-content .h3 blockquote, #fsdocs-content h4 blockquote, #fsdocs-content .h4 blockquote, #fsdocs-content h5 blockquote, #fsdocs-content .h5 blockquote, #fsdocs-content h6 blockquote, #fsdocs-content .h6 blockquote {
+#fsdocs-content blockquote {
   border-left: 4px solid #338CBB;
   background-color: #2FBADC;
   padding: 10px;
 }
-#fsdocs-content h1 blockquote p, #fsdocs-content .h1 blockquote p, #fsdocs-content h2 blockquote p, #fsdocs-content .h2 blockquote p, #fsdocs-content h3 blockquote p, #fsdocs-content .h3 blockquote p, #fsdocs-content h4 blockquote p, #fsdocs-content .h4 blockquote p, #fsdocs-content h5 blockquote p, #fsdocs-content .h5 blockquote p, #fsdocs-content h6 blockquote p, #fsdocs-content .h6 blockquote p {
+#fsdocs-content blockquote p {
   padding: 0;
   margin: 0;
   line-height: 1;
