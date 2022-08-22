@@ -1213,3 +1213,24 @@ type Terminal =
 
     abstract onLineFeed: IEvent<unit> with get, set
 """
+
+[<Test>]
+let ``trivia between xml document and abstract slot, 2433`` () =
+    formatSourceString
+        false
+        """
+type Foo =
+    /// Bar
+    // Baz
+    abstract Quux : int
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type Foo =
+    /// Bar
+    // Baz
+    abstract Quux: int
+"""

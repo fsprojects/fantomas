@@ -952,8 +952,13 @@ and visitSynMemberDefn (mbrDef: SynMemberDefn) : TriviaNode =
             (sortChildren [| yield visitSynType inheritType; yield! visitSynExpr inheritArgs |])
     | SynMemberDefn.LetBindings (bindings, _, _, range) ->
         mkNodeWithChildren SynMemberDefn_LetBindings range (sortChildren [| yield! List.map visitSynBinding bindings |])
-    | SynMemberDefn.AbstractSlot (valSig, _, range) ->
-        mkNodeWithChildren SynMemberDefn_AbstractSlot range [| visitSynValSig valSig |]
+    | SynMemberDefn.AbstractSlot (valSig, memberFlags, range) ->
+        let valSigNode = visitSynValSig valSig
+
+        mkNodeWithChildren
+            SynMemberDefn_AbstractSlot
+            range
+            (sortChildren [| yield! visitSynMemberFlags memberFlags; yield! valSigNode.Children |])
     | SynMemberDefn.Interface (typ, withKeyword, members, range) ->
         let ms =
             match members with
@@ -1073,7 +1078,8 @@ and visitSynValData (svd: SynValData) : TriviaNode list =
 
 and visitSynMemberFlags (memberFlags: SynMemberFlags) : TriviaNode list =
     [ yield! Option.toList (mkNodeOption SynMemberFlags_Static memberFlags.Trivia.StaticRange)
-      yield! Option.toList (mkNodeOption SynMemberFlags_Member memberFlags.Trivia.MemberRange) ]
+      yield! Option.toList (mkNodeOption SynMemberFlags_Member memberFlags.Trivia.MemberRange)
+      yield! Option.toList (mkNodeOption SynMemberFlags_Abstract memberFlags.Trivia.AbstractRange) ]
 
 and visitSynValSig (svs: SynValSig) : TriviaNode =
     match svs with
