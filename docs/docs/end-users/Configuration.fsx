@@ -5,13 +5,6 @@ categoryindex: 1
 index: 3
 ---
 *)
-#r "nuget: Fantomas.Core, 5.0.0-beta-*"
-
-open Fantomas.Core.FormatConfig
-open Fantomas.Core
-let formatCode input configIndent =
-    CodeFormatter.FormatDocumentAsync  (false, input, configIndent)
-    |>  Async.RunSynchronously
 
 (**
 # Configuration
@@ -46,22 +39,29 @@ You can quickly try your settings via the <a href="https://fsprojects.github.io/
 <img src="{{root}}/online_tool_usage.gif" alt="drawing" width="100%"/>
 *)
 
+#r "nuget: Fantomas.Core, 5.0.0-beta-*"
+
+open Fantomas.Core.FormatConfig
+open Fantomas.Core
+let formatCode input configIndent =
+    CodeFormatter.FormatDocumentAsync  (false, input, configIndent)
+    |>  Async.RunSynchronously
+
 (**
 ## Settings recommendations
 Fantomas ships with a series of settings that you can use freely depending  on your case. However, there are settings that we do not recommend and generally should not be used.   
-<i class="bi bi-check-circle-fill green-recommendation" ></i> <strong>Safe to change:</strong> Settings that aren't attached to any guidelines. Depending on your team or your own preferences, feel free to use these as it's been agreed on the codebase, however, you can always use it's defaults.     
-<i class="bi bi-exclamation-circle-fill orange-recommendation"></i> <strong>Not recommended:</strong> Settings that don't follow any guidelines.  
-<i class="bi bi-check-circle-fill red-recommendation"></i> <strong>Do not use:</strong> Experimental settings that might not be stable and don't follow any guidelines.
-  
-<img class="gresearch-recommendation" src="{{root}}/gresearch.svg" alt="G-Research logo"/> <strong>G-Research:</strong> G-Research styling guide. If you use one of these, for consistency reasons you should use all of them.  
+<p><i class="bi bi-check-circle-fill green-recommendation fs-4 align-middle" ></i> <strong>Safe to change:</strong> Settings that aren't attached to any guidelines. Depending on your team or your own preferences, feel free to change these as it's been agreed on the codebase, however, you can always use it's defaults.</p>
+<p><i class="bi bi-exclamation-circle-fill orange-recommendation fs-4 align-middle"></i> <strong>Not recommended:</strong> Settings that don't follow any guidelines.</p>
+<p><i class="bi bi-x-circle-fill red-recommendation fs-4 align-middle"></i> <strong>Do not use:</strong> Settings you should never enable. They might lead to incomplete results.</p>
+<p><img class="gresearch-recommendation align-middle" src="{{root}}/gresearch.svg" alt="G-Research logo"/> <strong>G-Research:</strong> G-Research styling guide. If you use one of these, for consistency reasons you should use all of them.</p>
 *)
 
 (**
 ## Auxiliary settings
-#### <i class="bi bi-check-circle-fill green-recommendation" data-bs-toggle="tooltip" data-bs-custom-class="green-tooltip" data-bs-title="This setting is good to use" ></i> indent_size
+#### <i class="bi bi-check-circle-fill green-recommendation me-1 fs-5" data-bs-toggle="tooltip" data-bs-custom-class="green-tooltip" data-bs-title="This setting is good to use" ></i>indent_size
 ` indent_size` has to be between 1 and 10.
 
-This preference sets the indentation
+This preference sets the indentation.  
 The common values are 2 and 4. 
 The same indentation is ensured to be consistent in a source file.
 Default = 4.
@@ -69,25 +69,25 @@ Default = 4.
 `defaultConfig`
 *)
 
-let input = """ 
-let inline selectRandom (f: _ []) =
-    let r = random 1.0
-
-    let rec find =
-        function
-        | 0 -> fst f.[0]
-        | n when r < snd f.[n] -> fst f.[n]
-        | n -> find (n - 1)
-
-    find <| f.Length - 1
-"""
-let configIndent = { FormatConfig.Default with IndentSize = 2 }
-formatCode input configIndent
+formatCode
+    """ 
+    let inline selectRandom (f: _ []) =
+        let r = random 1.0
+    
+        let rec find =
+            function
+            | 0 -> fst f.[0]
+            | n when r < snd f.[n] -> fst f.[n]
+            | n -> find (n - 1)
+    
+        find <| f.Length - 1
+    """
+    { FormatConfig.Default with IndentSize = 2 }
 (*** include-it ***)
 
 (**
 ## Maximum width constraints
-#### <i class="bi bi-check-circle-fill orange-recommendation" data-bs-toggle="tooltip" data-bs-custom-class="orange-tooltip" data-bs-title="This setting is not recommended"></i> indent_size
+#### <i class="bi bi-check-circle-fill orange-recommendation me-1" data-bs-toggle="tooltip" data-bs-custom-class="orange-tooltip" data-bs-title="This setting is not recommended"></i> indent_size
 ` indent_size` has to be between 1 and 10.
 
 This preference sets the indentation
@@ -98,23 +98,24 @@ Default = 4.
 `defaultConfig`
 *)
 
-let input2 = """ 
-let inline selectRandom (f: _ []) =
-    let r = random 1.0
-
-    let rec find =
-        function
-        | 0 -> fst f.[0]
-        | n when r < snd f.[n] -> fst f.[n]
-        | n -> find (n - 1)
-
-    find <| f.Length - 1
-"""
-let configIndent2 = { FormatConfig.Default with IndentSize = 2 }
+formatCode
+    """ 
+    let inline selectRandom (f: _ []) =
+        let r = random 1.0
+    
+        let rec find =
+            function
+            | 0 -> fst f.[0]
+            | n when r < snd f.[n] -> fst f.[n]
+            | n -> find (n - 1)
+    
+        find <| f.Length - 1
+    """
+{ FormatConfig.Default with IndentSize = 2 }
 
 (**
-## <img class="gresearch-recommendation align-top" data-bs-toggle="tooltip" data-bs-custom-class="gresearch-tooltip" data-bs-title="If you use one of these you should use all G-Research settings for consistency reasons" data-bs-custom-class="orange-tooltip" src="{{root}}/gresearch.svg" alt="G-Research logo"/> G-Research style
-#### <i class="bi bi-check-circle-fill orange-recommendation" data-bs-toggle="tooltip" data-bs-custom-class="orange-tooltip" data-bs-title="This setting is not recommended"></i> indent_size
+## <img class="gresearch-recommendation align-middle" data-bs-toggle="tooltip" data-bs-custom-class="gresearch-tooltip" data-bs-title="If you use one of these you should use all G-Research settings for consistency reasons" data-bs-custom-class="orange-tooltip" src="{{root}}/gresearch.svg" alt="G-Research logo"/> G-Research style
+#### <i class="bi bi-check-circle-fill orange-recommendation me-1" data-bs-toggle="tooltip" data-bs-custom-class="orange-tooltip" data-bs-title="This setting is not recommended"></i>indent_size
 ` indent_size` has to be between 1 and 10.
 
 This preference sets the indentation
@@ -125,23 +126,24 @@ Default = 4.
 `defaultConfig`
 *)
 
-let input3 = """ 
-let inline selectRandom (f: _ []) =
-    let r = random 1.0
-
-    let rec find =
-        function
-        | 0 -> fst f.[0]
-        | n when r < snd f.[n] -> fst f.[n]
-        | n -> find (n - 1)
-
-    find <| f.Length - 1
-"""
-let configIndent3 = { FormatConfig.Default with IndentSize = 2 }
+formatCode
+    """ 
+    let inline selectRandom (f: _ []) =
+        let r = random 1.0
+    
+        let rec find =
+            function
+            | 0 -> fst f.[0]
+            | n when r < snd f.[n] -> fst f.[n]
+            | n -> find (n - 1)
+    
+        find <| f.Length - 1
+    """
+    { FormatConfig.Default with IndentSize = 2 }
 
 (**
 ## Other
-#### <i class="bi bi-check-circle-fill red-recommendation" data-bs-toggle="tooltip" data-bs-custom-class="red-tooltip" data-bs-title="You shouldn't use this setting"></i> indent_size
+#### <i class="bi bi-check-circle-fill red-recommendation me-1" data-bs-toggle="tooltip" data-bs-custom-class="red-tooltip" data-bs-title="You shouldn't use this setting"></i>indent_size
 
 ` indent_size` has to be between 1 and 10.
 
@@ -153,18 +155,17 @@ Default = 4.
 `defaultConfig`
 *)
 
-let input4 = """ 
-let inline selectRandom (f: _ []) =
-    let r = random 1.0
-
-    let rec find =
-        function
-        | 0 -> fst f.[0]
-        | n when r < snd f.[n] -> fst f.[n]
-        | n -> find (n - 1)
-
-    find <| f.Length - 1
-"""
-let configIndent4 = { FormatConfig.Default with IndentSize = 2 }
-
-formatCode input configIndent
+formatCode
+    """ 
+    let inline selectRandom (f: _ []) =
+        let r = random 1.0
+    
+        let rec find =
+            function
+            | 0 -> fst f.[0]
+            | n when r < snd f.[n] -> fst f.[n]
+            | n -> find (n - 1)
+    
+        find <| f.Length - 1
+    """
+    { FormatConfig.Default with IndentSize = 2 }
