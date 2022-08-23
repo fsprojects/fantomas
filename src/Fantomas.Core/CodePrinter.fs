@@ -1401,7 +1401,6 @@ and genExpr astContext synExpr ctx =
             )
 
         | IndexWithoutDotExpr (identifierExpr, indexExpr) ->
-
             let genIndexExpr = genExpr astContext indexExpr
 
             genExpr astContext identifierExpr
