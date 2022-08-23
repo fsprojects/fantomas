@@ -114,7 +114,7 @@ formatCode
 { FormatConfig.Default with IndentSize = 2 }
 
 (**
-## <img class="gresearch-recommendation align-middle" data-bs-toggle="tooltip" data-bs-custom-class="gresearch-tooltip" data-bs-title="If you use one of these you should use all G-Research settings for consistency reasons" data-bs-custom-class="orange-tooltip" src="{{root}}/gresearch.svg" alt="G-Research logo"/> G-Research style
+## <img class="gresearch-recommendation align-middle mb-2" data-bs-toggle="tooltip" data-bs-custom-class="gresearch-tooltip" data-bs-title="If you use one of these you should use all G-Research settings for consistency reasons" data-bs-custom-class="orange-tooltip" src="{{root}}/gresearch.svg" alt="G-Research logo"/> G-Research style
 #### <i class="bi bi-check-circle-fill orange-recommendation me-1" data-bs-toggle="tooltip" data-bs-custom-class="orange-tooltip" data-bs-title="This setting is not recommended"></i>indent_size
 ` indent_size` has to be between 1 and 10.
 
