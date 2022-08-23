@@ -1401,10 +1401,17 @@ and genExpr astContext synExpr ctx =
             )
 
         | IndexWithoutDotExpr (identifierExpr, indexExpr) ->
-            genExpr astContext identifierExpr
-            +> sepOpenLFixed
-            +> genExpr astContext indexExpr
-            +> sepCloseLFixed
+            match indexExpr with
+            | Sequential _ ->
+                genExpr astContext identifierExpr
+                +> sepOpenLFixed
+                +> (genExpr astContext indexExpr |> atCurrentColumnIndent)
+                +> sepCloseLFixed
+            | _ ->
+                genExpr astContext identifierExpr
+                +> sepOpenLFixed
+                +> genExpr astContext indexExpr
+                +> sepCloseLFixed
 
         // Result<int, string>.Ok 42
         | App (DotGet (TypeApp (e, lt, ts, gt), sli), es) ->
