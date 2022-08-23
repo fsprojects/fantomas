@@ -1,3 +1,8 @@
+## [Unreleased]
+
+### Fixed
+* Maintain column indentation for list of functions. [#2158](https://github.com/fsprojects/fantomas/issues/2158) duplicates: [#2195](https://github.com/fsprojects/fantomas/issues/2195), [#2201](https://github.com/fsprojects/fantomas/issues/2201), [#2242](https://github.com/fsprojects/fantomas/issues/2242), [#2392](https://github.com/fsprojects/fantomas/issues/2392).
+
 # Changelog
 
 ## [5.0.0-beta-007] - 2022-08-19
