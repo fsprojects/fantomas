@@ -1401,17 +1401,13 @@ and genExpr astContext synExpr ctx =
             )
 
         | IndexWithoutDotExpr (identifierExpr, indexExpr) ->
-            match indexExpr with
-            | Sequential _ ->
-                genExpr astContext identifierExpr
-                +> sepOpenLFixed
-                +> (genExpr astContext indexExpr |> atCurrentColumnIndent)
-                +> sepCloseLFixed
-            | _ ->
-                genExpr astContext identifierExpr
-                +> sepOpenLFixed
-                +> genExpr astContext indexExpr
-                +> sepCloseLFixed
+
+            let genIndexExpr = genExpr astContext indexExpr
+
+            genExpr astContext identifierExpr
+            +> sepOpenLFixed
+            +> expressionFitsOnRestOfLine genIndexExpr (atCurrentColumnIndent genIndexExpr)
+            +> sepCloseLFixed
 
         // Result<int, string>.Ok 42
         | App (DotGet (TypeApp (e, lt, ts, gt), sli), es) ->
