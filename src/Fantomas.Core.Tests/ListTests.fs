@@ -2321,7 +2321,7 @@ let foo<'T> (x: 'T[]) = x
 """
 
 [<Test>]
-let ``Maintain indentation on function list, 2158`` () =
+let ``maintain indentation on function list, 2158`` () =
     formatSourceString
         false
         """
