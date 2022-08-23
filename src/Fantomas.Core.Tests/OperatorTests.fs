@@ -1,6 +1,5 @@
 module Fantomas.Core.Tests.OperatorTests
 
-open System.Net.Http.Headers
 open NUnit.Framework
 open FsUnit
 open Fantomas.Core.Tests.TestHelper
@@ -1348,4 +1347,71 @@ type Test =
 type Test =
     { WorkHoursPerWeek: uint<hr * (staff weeks)> }
     static member create = { WorkHoursPerWeek = 40u<hr * (staff weeks)> }
+"""
+
+[<Test>]
+let ``custom operator starting with *, 2434`` () =
+    formatSourceString
+        false
+        """
+let ( */) = (+)
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let ( */ ) = (+)
+"""
+
+[<Test>]
+let ``piped lambda on a single line`` () =
+    formatSourceString
+        false
+        """
+let a : (unit -> int) list =
+    fun () -> failwith "" : int
+    |> List.singleton
+    |> id
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let a: (unit -> int) list = (fun () -> failwith "": int) |> List.singleton |> id
+"""
+
+[<Test>]
+let ``piped tuple on a single line`` () =
+    formatSourceString
+        false
+        """
+fun i -> sprintf "%i" i, fun () -> i
+|> List.init foo
+|> Map.ofList
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+(fun i -> sprintf "%i" i, (fun () -> i)) |> List.init foo |> Map.ofList
+"""
+
+[<Test>]
+let ``lambda piped into non newlineInfixApp`` () =
+    formatSourceString
+        false
+        """
+fun sum count -> sum / float count
+<*| sum xs
+<*| count
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+(fun sum count -> sum / float count) <*| sum xs <*| count
 """

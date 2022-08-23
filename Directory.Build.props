@@ -3,7 +3,7 @@
         <!-- Set up version and package release note generation from this changelog. -->
         <ChangelogFile>$(MSBuildThisFileDirectory)CHANGELOG.md</ChangelogFile>
         <!-- Common packaging properties for all packages in this repo -->
-        <Authors>Florian Verdonck, Jindřich Ivánek</Authors>
+        <Authors>Florian Verdonck, Jindřich Ivánek, David Schaefer</Authors>
         <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
         <GenerateDocumentationFile>true</GenerateDocumentationFile>
         <Description>
