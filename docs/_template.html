@@ -87,6 +87,7 @@
     
   </main>
   <script type="text/javascript">
+window.addEventListener('load', (event) => {
 addEventListener('hide.bs.collapse', (e) => {
   if (e.target && e.target.id === 'sidebar-wrapper') {
     document.getElementById('main-container').classList.add('toggled');
@@ -103,7 +104,7 @@ addEventListener('show.bs.collapse', (e) => {
     document.getElementById(e.target.id+'-wrapper').classList.add('menu-open');
   }
 })
-
+});
   </script>
   <!-- BEGIN SEARCH BOX: this adds support for the search box -->
   <link rel="stylesheet"
