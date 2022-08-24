@@ -1,5 +1,14 @@
 # Changelog
 
+## [Unreleased]
+
+### Fixed
+* List of functions misaligned and breaks (Elmish). [#2158](https://github.com/fsprojects/fantomas/issues/2158)
+* Idempotency problem when Elmish Html. [#2195](https://github.com/fsprojects/fantomas/issues/2195)
+* Splitting list results in code that doesn't compile. [#2201](https://github.com/fsprojects/fantomas/issues/2201)
+* Idempotency problem when using a list with interpolated strings. [#2242](https://github.com/fsprojects/fantomas/issues/2242)
+* Idempotency problem when using set and spread syntax. [#2392](https://github.com/fsprojects/fantomas/issues/2392)
+
 ## [5.0.0-beta-007] - 2022-08-19
 
 ### Fixed

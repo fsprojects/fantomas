@@ -1401,9 +1401,11 @@ and genExpr astContext synExpr ctx =
             )
 
         | IndexWithoutDotExpr (identifierExpr, indexExpr) ->
+            let genIndexExpr = genExpr astContext indexExpr
+
             genExpr astContext identifierExpr
             +> sepOpenLFixed
-            +> genExpr astContext indexExpr
+            +> expressionFitsOnRestOfLine genIndexExpr (atCurrentColumnIndent genIndexExpr)
             +> sepCloseLFixed
 
         // Result<int, string>.Ok 42

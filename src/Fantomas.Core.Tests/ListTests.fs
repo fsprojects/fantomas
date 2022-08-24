@@ -2319,3 +2319,22 @@ let x: double[][] = [ [ 1.0, 2.0, 3.0 ] ]
 let foo (x: double[]) (y: object[][]) : string[,] = x :> int[]
 let foo<'T> (x: 'T[]) = x
 """
+
+[<Test>]
+let ``maintain indentation on function list, 2158`` () =
+    formatSourceString
+        false
+        """
+let fns =
+    Functions[Checked false
+              OnChange(fun _ -> s |> updateSettings)]
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let fns =
+    Functions[Checked false
+              OnChange(fun _ -> s |> updateSettings)]
+"""
