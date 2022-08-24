@@ -51,16 +51,16 @@ let formatCode input configIndent =
 ## Settings recommendations
 Fantomas ships with a series of settings that you can use freely depending  on your case. 
 However, there are settings that we do not recommend and generally should not be used.   
-<p><i class="bi bi-check-circle-fill green-recommendation fs-4 align-middle" ></i> <strong>Safe to change:</strong> Settings that aren't attached to any guidelines. Depending on your team or your own preferences, feel free to change these as it's been agreed on the codebase, however, you can always use it's defaults.</p>
-<p><i class="bi bi-exclamation-circle-fill orange-recommendation fs-4 align-middle"></i> <strong>Not recommended:</strong> Settings that don't follow any guidelines.</p>
-<p><i class="bi bi-x-circle-fill red-recommendation fs-4 align-middle"></i> <strong>Do not use:</strong> Settings you should never enable. They might lead to incomplete results.</p>
-<p><img class="gresearch-recommendation align-middle" src="{{root}}/gresearch.svg" alt="G-Research logo"/> <strong>G-Research:</strong> G-Research styling guide. If you use one of these, for consistency reasons you should use all of them.</p>
+<p><fantomas-green></fantomas-green> <strong>Safe to change:</strong> Settings that aren't attached to any guidelines. Depending on your team or your own preferences, feel free to change these as it's been agreed on the codebase, however, you can always use it's defaults.</p>
+<p><fantomas-orange></fantomas-orange> <strong>Not recommended:</strong> Settings that don't follow any guidelines.</p>
+<p><fantomas-red></fantomas-red> <strong>Do not use:</strong> Settings you should never enable. They might lead to incomplete results.</p>
+<p><fantomas-gresearch root="{{root}}"></fantomas-gresearch> <strong>G-Research:</strong> G-Research styling guide. If you use one of these, for consistency reasons you should use all of them.</p>
 *)
 
 (**
 ## Auxiliary settings
 Lorep ipsum dolor sit amet, consectetur adipiscing elit. Donec euismod, nisi vel consectetur interdum, nisi nisi consectetur nisl, eget consectetur nisl nisi vel nisi.
-#### <i class="bi bi-check-circle-fill green-recommendation me-1 fs-5" data-bs-toggle="tooltip" data-bs-custom-class="green-tooltip" data-bs-title="This setting is good to use" ></i>indent_size
+#### <fantomas-green></fantomas-green>indent_size
 
 This preference sets the indentation.  
 The common values are 2 and 4. 
@@ -87,7 +87,7 @@ formatCode
 (**
 ## Maximum width constraints
 Lorep ipsum dolor sit amet, consectetur adipiscing elit. Donec euismod, nisi vel consectetur interdum, nisi nisi consectetur nisl, eget consectetur nisl nisi vel nisi.
-#### <i class="bi bi-check-circle-fill orange-recommendation me-1" data-bs-toggle="tooltip" data-bs-custom-class="orange-tooltip" data-bs-title="This setting is not recommended"></i> indent_size
+#### <fantomas-orange></fantomas-orange>indent_size
 This preference sets the indentation
 The common values are 2 and 4. 
 The same indentation is ensured to be consistent in a source file.
@@ -113,7 +113,7 @@ formatCode
 (**
 ## G-Research style
 Lorep ipsum dolor sit amet, consectetur adipiscing elit. Donec euismod, nisi vel consectetur interdum, nisi nisi consectetur nisl, eget consectetur nisl nisi vel nisi.
-#### <i class="bi bi-check-circle-fill orange-recommendation me-1" data-bs-toggle="tooltip" data-bs-custom-class="orange-tooltip" data-bs-title="This setting is not recommended"></i>indent_size
+#### <fantomas-gresearch root="{{root}}"></fantomas-gresearch>indent_size
 ` indent_size` has to be between 1 and 10.
 
 This preference sets the indentation
@@ -141,7 +141,7 @@ formatCode
 (**
 ## Other
 Lorep ipsum dolor sit amet, consectetur adipiscing elit. Donec euismod, nisi vel consectetur interdum, nisi nisi consectetur nisl, eget consectetur nisl nisi vel nisi.
-#### <i class="bi bi-check-circle-fill red-recommendation me-1" data-bs-toggle="tooltip" data-bs-custom-class="red-tooltip" data-bs-title="You shouldn't use this setting"></i>indent_size
+#### <fantomas-red></fantomas-red>indent_size
 
 ` indent_size` has to be between 1 and 10.
 

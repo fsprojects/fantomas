@@ -23,7 +23,6 @@
 
 <body>
   <main id="main-container">
-  
      <div id="sidebar-wrapper" class="bg-primary h-100 fs-5 collapse show">
       <div id="sidebar-header" class="d-flex justify-content-end mt-1">
       <button class="btn d-md-none" data-bs-toggle="collapse" data-bs-target="#sidebar-wrapper" data-bs-parent="#main-container" aria-controls="sidebar-wrapper" aria-expanded="false" aria-label="Toggle navigation">
@@ -84,7 +83,6 @@
       </div>
         <div id="push"></div>
     </div>
-    
   </main>
   <script type="text/javascript">
 window.addEventListener('load', (event) => {
@@ -117,10 +115,12 @@ addEventListener('show.bs.collapse', (e) => {
   <!-- END SEARCH BOX: this adds support for the search box -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-A3rJD856KowSb7dwlZdYEkO39Gagi7vIsF0jrRAoQmDKKtQBHUuLZ9AsSv4jD4Xa" crossorigin="anonymous"></script>
   <script>
-    //todo onload
+    window.addEventListener('load', (event) => {
     const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
     const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))
+    });
   </script>
+  <script type="module" src="{{root}}content/fantomas-web-components.js"></script>
   <script type="module">
       import mermaid from "https://cdn.skypack.dev/mermaid";
       mermaid.initialize({
@@ -132,5 +132,4 @@ addEventListener('show.bs.collapse', (e) => {
       });
   </script>
 </body>
-
 </html>
