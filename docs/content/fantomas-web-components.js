@@ -1,21 +1,4 @@
 import {html, css, LitElement} from 'https://cdn.skypack.dev/lit';
-export class SimpleGreeting extends LitElement {
-    static styles = css`p { color: blue }`;
-  
-    static properties = {
-      name: {type: String},
-    };
-  
-    constructor() {
-      super();
-      this.name = 'Somebody';
-    }
-  
-    render() {
-      return html`<p>Hello, ${this.name}!</p>`;
-    }
-  }
-
 export class GreenCategory extends LitElement {
   
     static properties = {
@@ -93,4 +76,3 @@ export class OrangeCategory extends LitElement {
   customElements.define('fantomas-orange', OrangeCategory);
   customElements.define('fantomas-red', RedCategory);
   customElements.define('fantomas-gresearch', GResearchCategory);
-  //bi bi-check-circle-fill green-recommendation me-1 fs-5
