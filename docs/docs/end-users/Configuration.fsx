@@ -60,13 +60,8 @@ However, there are settings that we do not recommend and generally should not be
 (**
 ## Auxiliary settings
 Lorep ipsum dolor sit amet, consectetur adipiscing elit. Donec euismod, nisi vel consectetur interdum, nisi nisi consectetur nisl, eget consectetur nisl nisi vel nisi.
-#### <fantomas-setting-icon type="green"></fantomas-setting-icon>indent_size
-
-This preference sets the indentation.  
-The common values are 2 and 4. 
-The same indentation is ensured to be consistent in a source file.
-Default = 4.
-
+#### <fantomas-setting-icon tooltip="Both style guides are based on 4" type="orange"></fantomas-setting-icon>indent_size
+`Lorep` ipsum dolor sit amet, consectetur adipiscing elit. Donec euismod, nisi vel consectetur interdum, nisi nisi consectetur nisl, eget consectetur nisl nisi vel nisi.
 *)
 
 formatCode
@@ -85,42 +80,8 @@ formatCode
     { FormatConfig.Default with IndentSize = 2 }
 (*** include-it ***)
 (**
-## Maximum width constraints
-Lorep ipsum dolor sit amet, consectetur adipiscing elit. Donec euismod, nisi vel consectetur interdum, nisi nisi consectetur nisl, eget consectetur nisl nisi vel nisi.
-#### <fantomas-setting-icon type="orange"></fantomas-setting-icon>indent_size
-This preference sets the indentation
-The common values are 2 and 4. 
-The same indentation is ensured to be consistent in a source file.
-Default = 4.
-
-*)
-
-formatCode
-    """ 
-    let inline selectRandom (f: _ []) =
-        let r = random 1.0
-    
-        let rec find =
-            function
-            | 0 -> fst f.[0]
-            | n when r < snd f.[n] -> fst f.[n]
-            | n -> find (n - 1)
-    
-        find <| f.Length - 1
-    """
-{ FormatConfig.Default with IndentSize = 2 }
-
-(**
-## G-Research style
-Lorep ipsum dolor sit amet, consectetur adipiscing elit. Donec euismod, nisi vel consectetur interdum, nisi nisi consectetur nisl, eget consectetur nisl nisi vel nisi.
-#### <fantomas-setting-icon-gresearch ></fantomas-setting-icon-gresearch>indent_size
-` indent_size` has to be between 1 and 10.
-
-This preference sets the indentation
-The common values are 2 and 4. 
-The same indentation is ensured to be consistent in a source file.
-Default = 4.
-
+#### <fantomas-setting-icon type="green"></fantomas-setting-icon>max_line_length
+`Lorep` ipsum dolor sit amet, consectetur adipiscing elit. Donec euismod, nisi vel consectetur interdum, nisi nisi consectetur nisl, eget consectetur nisl nisi vel nisi.
 *)
 
 formatCode
@@ -137,19 +98,713 @@ formatCode
         find <| f.Length - 1
     """
     { FormatConfig.Default with IndentSize = 2 }
+(*** include-it ***)
+
+(**
+#### <fantomas-setting-icon tooltip="Recommendation: use lf regardless of OS" type="green"></fantomas-setting-icon>end_of_line
+`Lorep` ipsum dolor sit amet, consectetur adipiscing elit. Donec euismod, nisi vel consectetur interdum, nisi nisi consectetur nisl, eget consectetur nisl nisi vel nisi.
+*)
+
+formatCode
+    """ 
+    let inline selectRandom (f: _ []) =
+        let r = random 1.0
+    
+        let rec find =
+            function
+            | 0 -> fst f.[0]
+            | n when r < snd f.[n] -> fst f.[n]
+            | n -> find (n - 1)
+    
+        find <| f.Length - 1
+    """
+    { FormatConfig.Default with IndentSize = 2 }
+(*** include-it ***)
+
+(**
+#### <fantomas-setting-icon tooltip="Recommendation: enable, a file should end on a newline character" type="green"></fantomas-setting-icon>insert_final_newline
+ `Lorep` ipsum dolor sit amet, consectetur adipiscing elit. Donec euismod, nisi vel consectetur interdum, nisi nisi consectetur nisl, eget consectetur nisl nisi vel nisi.
+*)
+
+formatCode
+    """ 
+    let inline selectRandom (f: _ []) =
+        let r = random 1.0
+    
+        let rec find =
+            function
+            | 0 -> fst f.[0]
+            | n when r < snd f.[n] -> fst f.[n]
+            | n -> find (n - 1)
+    
+        find <| f.Length - 1
+    """
+    { FormatConfig.Default with IndentSize = 2 }
+(*** include-it ***)
+
+(**
+#### <fantomas-setting-icon tooltip="No guide changes default" type="orange"></fantomas-setting-icon>fsharp_space_before_parameter
+`Lorep` ipsum dolor sit amet, consectetur adipiscing elit. Donec euismod, nisi vel consectetur interdum, nisi nisi consectetur nisl, eget consectetur nisl nisi vel nisi.
+*)
+
+formatCode
+    """ 
+    let inline selectRandom (f: _ []) =
+        let r = random 1.0
+    
+        let rec find =
+            function
+            | 0 -> fst f.[0]
+            | n when r < snd f.[n] -> fst f.[n]
+            | n -> find (n - 1)
+    
+        find <| f.Length - 1
+    """
+    { FormatConfig.Default with IndentSize = 2 }
+(*** include-it ***)
+
+(**
+#### <fantomas-setting-icon tooltip="No guide changes default" type="orange"></fantomas-setting-icon>fsharp_space_before_lowercase_invocation
+`Lorep` ipsum dolor sit amet, consectetur adipiscing elit. Donec euismod, nisi vel consectetur interdum, nisi nisi consectetur nisl, eget consectetur nisl nisi vel nisi.
+*)
+
+formatCode
+    """ 
+    let inline selectRandom (f: _ []) =
+        let r = random 1.0
+    
+        let rec find =
+            function
+            | 0 -> fst f.[0]
+            | n when r < snd f.[n] -> fst f.[n]
+            | n -> find (n - 1)
+    
+        find <| f.Length - 1
+    """
+    { FormatConfig.Default with IndentSize = 2 }
+(*** include-it ***)
+
+(**
+#### <fantomas-setting-icon tooltip="Note isn't always respected, in some cases it can lead to invalid code" type="green"></fantomas-setting-icon><fantomas-setting-icon-gresearch></fantomas-setting-icon-gresearch>fsharp_space_before_uppercase_invocation
+`Lorep` ipsum dolor sit amet, consectetur adipiscing elit. Donec euismod, nisi vel consectetur interdum, nisi nisi consectetur nisl, eget consectetur nisl nisi vel nisi.
+*)
+
+formatCode
+    """ 
+    let inline selectRandom (f: _ []) =
+        let r = random 1.0
+    
+        let rec find =
+            function
+            | 0 -> fst f.[0]
+            | n when r < snd f.[n] -> fst f.[n]
+            | n -> find (n - 1)
+    
+        find <| f.Length - 1
+    """
+    { FormatConfig.Default with IndentSize = 2 }
+(*** include-it ***)
+
+(**
+#### <fantomas-setting-icon tooltip="No guide changes default" type="orange"></fantomas-setting-icon>fsharp_space_before_class_constructor
+`Lorep` ipsum dolor sit amet, consectetur adipiscing elit. Donec euismod, nisi vel consectetur interdum, nisi nisi consectetur nisl, eget consectetur nisl nisi vel nisi.
+*)
+
+formatCode
+    """ 
+    let inline selectRandom (f: _ []) =
+        let r = random 1.0
+    
+        let rec find =
+            function
+            | 0 -> fst f.[0]
+            | n when r < snd f.[n] -> fst f.[n]
+            | n -> find (n - 1)
+    
+        find <| f.Length - 1
+    """
+    { FormatConfig.Default with IndentSize = 2 }
+(*** include-it ***)
+
+(**
+#### <fantomas-setting-icon type="green"></fantomas-setting-icon><fantomas-setting-icon-gresearch></fantomas-setting-icon-gresearch>fsharp_space_before_member
+`Lorep` ipsum dolor sit amet, consectetur adipiscing elit. Donec euismod, nisi vel consectetur interdum, nisi nisi consectetur nisl, eget consectetur nisl nisi vel nisi.
+*)
+
+formatCode
+    """ 
+    let inline selectRandom (f: _ []) =
+        let r = random 1.0
+    
+        let rec find =
+            function
+            | 0 -> fst f.[0]
+            | n when r < snd f.[n] -> fst f.[n]
+            | n -> find (n - 1)
+    
+        find <| f.Length - 1
+    """
+    { FormatConfig.Default with IndentSize = 2 }
+(*** include-it ***)
+
+(**
+#### <fantomas-setting-icon type="green"></fantomas-setting-icon><fantomas-setting-icon-gresearch></fantomas-setting-icon-gresearch>fsharp_space_before_colon
+`Lorep` ipsum dolor sit amet, consectetur adipiscing elit. Donec euismod, nisi vel consectetur interdum, nisi nisi consectetur nisl, eget consectetur nisl nisi vel nisi.
+*)
+
+formatCode
+    """ 
+    let inline selectRandom (f: _ []) =
+        let r = random 1.0
+    
+        let rec find =
+            function
+            | 0 -> fst f.[0]
+            | n when r < snd f.[n] -> fst f.[n]
+            | n -> find (n - 1)
+    
+        find <| f.Length - 1
+    """
+    { FormatConfig.Default with IndentSize = 2 }
+(*** include-it ***)
+
+
+(**
+#### <fantomas-setting-icon tooltip="No guide changes default" type="orange"></fantomas-setting-icon>fsharp_space_after_comma
+`Lorep` ipsum dolor sit amet, consectetur adipiscing elit. Donec euismod, nisi vel consectetur interdum, nisi nisi consectetur nisl, eget consectetur nisl nisi vel nisi.
+*)
+
+formatCode
+    """ 
+    let inline selectRandom (f: _ []) =
+        let r = random 1.0
+    
+        let rec find =
+            function
+            | 0 -> fst f.[0]
+            | n when r < snd f.[n] -> fst f.[n]
+            | n -> find (n - 1)
+    
+        find <| f.Length - 1
+    """
+    { FormatConfig.Default with IndentSize = 2 }
+(*** include-it ***)
+
+(**
+#### <fantomas-setting-icon type="green"></fantomas-setting-icon><fantomas-setting-icon-gresearch></fantomas-setting-icon-gresearch>fsharp_space_before_semicolon
+`Lorep` ipsum dolor sit amet, consectetur adipiscing elit. Donec euismod, nisi vel consectetur interdum, nisi nisi consectetur nisl, eget consectetur nisl nisi vel nisi.
+*)
+
+formatCode
+    """ 
+    let inline selectRandom (f: _ []) =
+        let r = random 1.0
+    
+        let rec find =
+            function
+            | 0 -> fst f.[0]
+            | n when r < snd f.[n] -> fst f.[n]
+            | n -> find (n - 1)
+    
+        find <| f.Length - 1
+    """
+    { FormatConfig.Default with IndentSize = 2 }
+(*** include-it ***)
+
+
+(**
+#### <fantomas-setting-icon tooltip="No guide changes default" type="orange"></fantomas-setting-icon>fsharp_space_after_semicolon
+`Lorep` ipsum dolor sit amet, consectetur adipiscing elit. Donec euismod, nisi vel consectetur interdum, nisi nisi consectetur nisl, eget consectetur nisl nisi vel nisi.
+*)
+
+formatCode
+    """ 
+    let inline selectRandom (f: _ []) =
+        let r = random 1.0
+    
+        let rec find =
+            function
+            | 0 -> fst f.[0]
+            | n when r < snd f.[n] -> fst f.[n]
+            | n -> find (n - 1)
+    
+        find <| f.Length - 1
+    """
+    { FormatConfig.Default with IndentSize = 2 }
+(*** include-it ***)
+
+(**
+#### <fantomas-setting-icon tooltip="No guide changes default" type="orange"></fantomas-setting-icon>fsharp_space_around_delimiter
+`Lorep` ipsum dolor sit amet, consectetur adipiscing elit. Donec euismod, nisi vel consectetur interdum, nisi nisi consectetur nisl, eget consectetur nisl nisi vel nisi.
+*)
+
+formatCode
+    """ 
+    let inline selectRandom (f: _ []) =
+        let r = random 1.0
+    
+        let rec find =
+            function
+            | 0 -> fst f.[0]
+            | n when r < snd f.[n] -> fst f.[n]
+            | n -> find (n - 1)
+    
+        find <| f.Length - 1
+    """
+    { FormatConfig.Default with IndentSize = 2 }
+(*** include-it ***)
+
+
+(**
+## Maximum width constraints
+#### <fantomas-setting-icon tooltip="Agree within team" type="green"></fantomas-setting-icon>fsharp_max_if_then_short_width
+ `Lorep` ipsum dolor sit amet, consectetur adipiscing elit. Donec euismod, nisi vel consectetur interdum, nisi nisi consectetur nisl, eget consectetur nisl nisi vel nisi.
+*)
+
+formatCode
+    """ 
+    let inline selectRandom (f: _ []) =
+        let r = random 1.0
+    
+        let rec find =
+            function
+            | 0 -> fst f.[0]
+            | n when r < snd f.[n] -> fst f.[n]
+            | n -> find (n - 1)
+    
+        find <| f.Length - 1
+    """
+    { FormatConfig.Default with IndentSize = 2 }
+(*** include-it ***)
+
+(**
+#### <fantomas-setting-icon tooltip="Agree within team" type="green"></fantomas-setting-icon>fsharp_max_if_then_else_short_width
+`Lorep` ipsum dolor sit amet, consectetur adipiscing elit. Donec euismod, nisi vel consectetur interdum, nisi nisi consectetur nisl, eget consectetur nisl nisi vel nisi.
+*)
+
+formatCode
+    """ 
+    let inline selectRandom (f: _ []) =
+        let r = random 1.0
+    
+        let rec find =
+            function
+            | 0 -> fst f.[0]
+            | n when r < snd f.[n] -> fst f.[n]
+            | n -> find (n - 1)
+    
+        find <| f.Length - 1
+    """
+    { FormatConfig.Default with IndentSize = 2 }
+(*** include-it ***)
+
+(**
+#### <fantomas-setting-icon tooltip="Agree within team" type="green"></fantomas-setting-icon>fsharp_max_infix_operator_expression
+`Lorep` ipsum dolor sit amet, consectetur adipiscing elit. Donec euismod, nisi vel consectetur interdum, nisi nisi consectetur nisl, eget consectetur nisl nisi vel nisi.
+*)
+
+formatCode
+    """ 
+    let inline selectRandom (f: _ []) =
+        let r = random 1.0
+    
+        let rec find =
+            function
+            | 0 -> fst f.[0]
+            | n when r < snd f.[n] -> fst f.[n]
+            | n -> find (n - 1)
+    
+        find <| f.Length - 1
+    """
+    { FormatConfig.Default with IndentSize = 2 }
+(*** include-it ***)
+
+(**
+#### <fantomas-setting-icon tooltip="Agree within team" type="green"></fantomas-setting-icon>fsharp_max_record_width
+`Lorep` ipsum dolor sit amet, consectetur adipiscing elit. Donec euismod, nisi vel consectetur interdum, nisi nisi consectetur nisl, eget consectetur nisl nisi vel nisi.
+*)
+
+formatCode
+    """ 
+    let inline selectRandom (f: _ []) =
+        let r = random 1.0
+    
+        let rec find =
+            function
+            | 0 -> fst f.[0]
+            | n when r < snd f.[n] -> fst f.[n]
+            | n -> find (n - 1)
+    
+        find <| f.Length - 1
+    """
+    { FormatConfig.Default with IndentSize = 2 }
+(*** include-it ***)
+
+(**
+#### <fantomas-setting-icon tooltip="Agree within team" type="green"></fantomas-setting-icon>fsharp_max_record_number_of_items
+`Lorep` ipsum dolor sit amet, consectetur adipiscing elit. Donec euismod, nisi vel consectetur interdum, nisi nisi consectetur nisl, eget consectetur nisl nisi vel nisi.
+*)
+
+formatCode
+    """ 
+    let inline selectRandom (f: _ []) =
+        let r = random 1.0
+    
+        let rec find =
+            function
+            | 0 -> fst f.[0]
+            | n when r < snd f.[n] -> fst f.[n]
+            | n -> find (n - 1)
+    
+        find <| f.Length - 1
+    """
+    { FormatConfig.Default with IndentSize = 2 }
+(*** include-it ***)
+
+(**
+#### <fantomas-setting-icon tooltip="Agree within team" type="green"></fantomas-setting-icon>fsharp_record_multiline_formatter
+`Lorep` ipsum dolor sit amet, consectetur adipiscing elit. Donec euismod, nisi vel consectetur interdum, nisi nisi consectetur nisl, eget consectetur nisl nisi vel nisi.
+*)
+
+formatCode
+    """ 
+    let inline selectRandom (f: _ []) =
+        let r = random 1.0
+    
+        let rec find =
+            function
+            | 0 -> fst f.[0]
+            | n when r < snd f.[n] -> fst f.[n]
+            | n -> find (n - 1)
+    
+        find <| f.Length - 1
+    """
+    { FormatConfig.Default with IndentSize = 2 }
+(*** include-it ***)
+
+(**
+#### <fantomas-setting-icon tooltip="Agree within team" type="green"></fantomas-setting-icon>fsharp_max_array_or_list_width
+`Lorep` ipsum dolor sit amet, consectetur adipiscing elit. Donec euismod, nisi vel consectetur interdum, nisi nisi consectetur nisl, eget consectetur nisl nisi vel nisi.
+*)
+
+formatCode
+    """ 
+    let inline selectRandom (f: _ []) =
+        let r = random 1.0
+    
+        let rec find =
+            function
+            | 0 -> fst f.[0]
+            | n when r < snd f.[n] -> fst f.[n]
+            | n -> find (n - 1)
+    
+        find <| f.Length - 1
+    """
+    { FormatConfig.Default with IndentSize = 2 }
+(*** include-it ***)
+
+(**
+#### <fantomas-setting-icon tooltip="Agree within team" type="green"></fantomas-setting-icon>fsharp_max_array_or_list_number_of_items
+`Lorep` ipsum dolor sit amet, consectetur adipiscing elit. Donec euismod, nisi vel consectetur interdum, nisi nisi consectetur nisl, eget consectetur nisl nisi vel nisi.
+*)
+
+formatCode
+    """ 
+    let inline selectRandom (f: _ []) =
+        let r = random 1.0
+    
+        let rec find =
+            function
+            | 0 -> fst f.[0]
+            | n when r < snd f.[n] -> fst f.[n]
+            | n -> find (n - 1)
+    
+        find <| f.Length - 1
+    """
+    { FormatConfig.Default with IndentSize = 2 }
+(*** include-it ***)
+
+(**
+#### <fantomas-setting-icon tooltip="Agree within team" type="green"></fantomas-setting-icon>fsharp_array_or_list_multiline_formatter
+`Lorep` ipsum dolor sit amet, consectetur adipiscing elit. Donec euismod, nisi vel consectetur interdum, nisi nisi consectetur nisl, eget consectetur nisl nisi vel nisi.
+*)
+
+formatCode
+    """ 
+    let inline selectRandom (f: _ []) =
+        let r = random 1.0
+    
+        let rec find =
+            function
+            | 0 -> fst f.[0]
+            | n when r < snd f.[n] -> fst f.[n]
+            | n -> find (n - 1)
+    
+        find <| f.Length - 1
+    """
+    { FormatConfig.Default with IndentSize = 2 }
+(*** include-it ***)
+
+(**
+#### <fantomas-setting-icon tooltip="Agree within team" type="green"></fantomas-setting-icon>fsharp_max_value_binding_width
+`Lorep` ipsum dolor sit amet, consectetur adipiscing elit. Donec euismod, nisi vel consectetur interdum, nisi nisi consectetur nisl, eget consectetur nisl nisi vel nisi.
+*)
+
+formatCode
+    """ 
+    let inline selectRandom (f: _ []) =
+        let r = random 1.0
+    
+        let rec find =
+            function
+            | 0 -> fst f.[0]
+            | n when r < snd f.[n] -> fst f.[n]
+            | n -> find (n - 1)
+    
+        find <| f.Length - 1
+    """
+    { FormatConfig.Default with IndentSize = 2 }
+(*** include-it ***)
+
+(**
+#### <fantomas-setting-icon tooltip="Agree within team" type="green"></fantomas-setting-icon>fsharp_max_function_binding_width
+`Lorep` ipsum dolor sit amet, consectetur adipiscing elit. Donec euismod, nisi vel consectetur interdum, nisi nisi consectetur nisl, eget consectetur nisl nisi vel nisi.
+*)
+
+formatCode
+    """ 
+    let inline selectRandom (f: _ []) =
+        let r = random 1.0
+    
+        let rec find =
+            function
+            | 0 -> fst f.[0]
+            | n when r < snd f.[n] -> fst f.[n]
+            | n -> find (n - 1)
+    
+        find <| f.Length - 1
+    """
+    { FormatConfig.Default with IndentSize = 2 }
+(*** include-it ***)
+
+(**
+#### <fantomas-setting-icon tooltip="Agree within team" type="green"></fantomas-setting-icon>fsharp_max_dot_get_expression_width
+`Lorep` ipsum dolor sit amet, consectetur adipiscing elit. Donec euismod, nisi vel consectetur interdum, nisi nisi consectetur nisl, eget consectetur nisl nisi vel nisi.
+*)
+
+formatCode
+    """ 
+    let inline selectRandom (f: _ []) =
+        let r = random 1.0
+    
+        let rec find =
+            function
+            | 0 -> fst f.[0]
+            | n when r < snd f.[n] -> fst f.[n]
+            | n -> find (n - 1)
+    
+        find <| f.Length - 1
+    """
+    { FormatConfig.Default with IndentSize = 2 }
+(*** include-it ***)
+
+
+
+(**
+## G-Research style
+#### <fantomas-setting-icon type="green"></fantomas-setting-icon><fantomas-setting-icon-gresearch></fantomas-setting-icon-gresearch>fsharp_multiline_block_brackets_on_same_column
+`Lorep` ipsum dolor sit amet, consectetur adipiscing elit. Donec euismod, nisi vel consectetur interdum, nisi nisi consectetur nisl, eget consectetur nisl nisi vel nisi.
+*)
+
+formatCode
+    """ 
+    let inline selectRandom (f: _ []) =
+        let r = random 1.0
+    
+        let rec find =
+            function
+            | 0 -> fst f.[0]
+            | n when r < snd f.[n] -> fst f.[n]
+            | n -> find (n - 1)
+    
+        find <| f.Length - 1
+    """
+    { FormatConfig.Default with IndentSize = 2 }
+(*** include-it ***)
+
+(**
+#### <fantomas-setting-icon type="green"></fantomas-setting-icon><fantomas-setting-icon-gresearch></fantomas-setting-icon-gresearch>fsharp_newline_between_type_definition_and_members
+`Lorep` ipsum dolor sit amet, consectetur adipiscing elit. Donec euismod, nisi vel consectetur interdum, nisi nisi consectetur nisl, eget consectetur nisl nisi vel nisi.
+*)
+
+formatCode
+    """ 
+    let inline selectRandom (f: _ []) =
+        let r = random 1.0
+    
+        let rec find =
+            function
+            | 0 -> fst f.[0]
+            | n when r < snd f.[n] -> fst f.[n]
+            | n -> find (n - 1)
+    
+        find <| f.Length - 1
+    """
+    { FormatConfig.Default with IndentSize = 2 }
+(*** include-it ***)
+
+(**
+#### <fantomas-setting-icon type="green"></fantomas-setting-icon><fantomas-setting-icon-gresearch></fantomas-setting-icon-gresearch>fsharp_align_function_signature_to_indentation
+`Lorep` ipsum dolor sit amet, consectetur adipiscing elit. Donec euismod, nisi vel consectetur interdum, nisi nisi consectetur nisl, eget consectetur nisl nisi vel nisi.
+*)
+
+formatCode
+    """ 
+    let inline selectRandom (f: _ []) =
+        let r = random 1.0
+    
+        let rec find =
+            function
+            | 0 -> fst f.[0]
+            | n when r < snd f.[n] -> fst f.[n]
+            | n -> find (n - 1)
+    
+        find <| f.Length - 1
+    """
+    { FormatConfig.Default with IndentSize = 2 }
+(*** include-it ***)
+
+(**
+#### <fantomas-setting-icon type="green"></fantomas-setting-icon><fantomas-setting-icon-gresearch></fantomas-setting-icon-gresearch>fsharp_alternative_long_member_definitions
+`Lorep` ipsum dolor sit amet, consectetur adipiscing elit. Donec euismod, nisi vel consectetur interdum, nisi nisi consectetur nisl, eget consectetur nisl nisi vel nisi.
+*)
+
+formatCode
+    """ 
+    let inline selectRandom (f: _ []) =
+        let r = random 1.0
+    
+        let rec find =
+            function
+            | 0 -> fst f.[0]
+            | n when r < snd f.[n] -> fst f.[n]
+            | n -> find (n - 1)
+    
+        find <| f.Length - 1
+    """
+    { FormatConfig.Default with IndentSize = 2 }
+(*** include-it ***)
+
+(**
+#### <fantomas-setting-icon type="green"></fantomas-setting-icon><fantomas-setting-icon-gresearch></fantomas-setting-icon-gresearch>fsharp_multi_line_lambda_closing_newline
+`Lorep` ipsum dolor sit amet, consectetur adipiscing elit. Donec euismod, nisi vel consectetur interdum, nisi nisi consectetur nisl, eget consectetur nisl nisi vel nisi.
+*)
+
+formatCode
+    """ 
+    let inline selectRandom (f: _ []) =
+        let r = random 1.0
+    
+        let rec find =
+            function
+            | 0 -> fst f.[0]
+            | n when r < snd f.[n] -> fst f.[n]
+            | n -> find (n - 1)
+    
+        find <| f.Length - 1
+    """
+    { FormatConfig.Default with IndentSize = 2 }
+(*** include-it ***)
+
+(**
+#### <fantomas-setting-icon tooltip="Still experimental" type="orange"></fantomas-setting-icon><fantomas-setting-icon-gresearch></fantomas-setting-icon-gresearch>fsharp_experimental_keep_indent_in_branch
+`Lorep` ipsum dolor sit amet, consectetur adipiscing elit. Donec euismod, nisi vel consectetur interdum, nisi nisi consectetur nisl, eget consectetur nisl nisi vel nisi.
+*)
+
+formatCode
+    """ 
+    let inline selectRandom (f: _ []) =
+        let r = random 1.0
+    
+        let rec find =
+            function
+            | 0 -> fst f.[0]
+            | n when r < snd f.[n] -> fst f.[n]
+            | n -> find (n - 1)
+    
+        find <| f.Length - 1
+    """
+    { FormatConfig.Default with IndentSize = 2 }
+(*** include-it ***)
+
+(**
+#### <fantomas-setting-icon type="green"></fantomas-setting-icon><fantomas-setting-icon-gresearch></fantomas-setting-icon-gresearch>fsharp_blank_lines_around_nested_multiline_expressions
+`Lorep` ipsum dolor sit amet, consectetur adipiscing elit. Donec euismod, nisi vel consectetur interdum, nisi nisi consectetur nisl, eget consectetur nisl nisi vel nisi.
+*)
+
+formatCode
+    """ 
+    let inline selectRandom (f: _ []) =
+        let r = random 1.0
+    
+        let rec find =
+            function
+            | 0 -> fst f.[0]
+            | n when r < snd f.[n] -> fst f.[n]
+            | n -> find (n - 1)
+    
+        find <| f.Length - 1
+    """
+    { FormatConfig.Default with IndentSize = 2 }
+(*** include-it ***)
+
+(**
+#### <fantomas-setting-icon type="green"></fantomas-setting-icon><fantomas-setting-icon-gresearch></fantomas-setting-icon-gresearch>fsharp_bar_before_discriminated_union_declaration
+`Lorep` ipsum dolor sit amet, consectetur adipiscing elit. Donec euismod, nisi vel consectetur interdum, nisi nisi consectetur nisl, eget consectetur nisl nisi vel nisi.
+*)
+
+formatCode
+    """ 
+    let inline selectRandom (f: _ []) =
+        let r = random 1.0
+    
+        let rec find =
+            function
+            | 0 -> fst f.[0]
+            | n when r < snd f.[n] -> fst f.[n]
+            | n -> find (n - 1)
+    
+        find <| f.Length - 1
+    """
+    { FormatConfig.Default with IndentSize = 2 }
+(*** include-it ***)
 
 (**
 ## Other
 Lorep ipsum dolor sit amet, consectetur adipiscing elit. Donec euismod, nisi vel consectetur interdum, nisi nisi consectetur nisl, eget consectetur nisl nisi vel nisi.
-#### <fantomas-setting-icon type="red"></fantomas-setting-icon>indent_size
+#### <fantomas-setting-icon tooltip="Not part of any guide" type="orange"></fantomas-setting-icon><fantomas-setting-icon-gresearch></fantomas-setting-icon-gresearch>fsharp_experimental_stroustrup_style
+`Lorep` ipsum dolor sit amet, consectetur adipiscing elit. Donec euismod, nisi vel consectetur interdum, nisi nisi consectetur nisl, eget consectetur nisl nisi vel nisi.
+*)
 
-` indent_size` has to be between 1 and 10.
+formatCode
+    """ 
+    let inline selectRandom (f: _ []) =
+        let r = random 1.0
+    
+        let rec find =
+            function
+            | 0 -> fst f.[0]
+            | n when r < snd f.[n] -> fst f.[n]
+            | n -> find (n - 1)
+    
+        find <| f.Length - 1
+    """
+ { FormatConfig.Default with IndentSize = 2 }
+(*** include-it ***)
 
-This preference sets the indentation
-The common values are 2 and 4. 
-The same indentation is ensured to be consistent in a source file.
-Default = 4.
-
+(**
+#### <fantomas-setting-icon tooltip="I recommend !" type="green"></fantomas-setting-icon><fantomas-setting-icon-gresearch></fantomas-setting-icon-gresearch>fsharp_keep_max_number_of_blank_lines
+`Lorep` ipsum dolor sit amet, consectetur adipiscing elit. Donec euismod, nisi vel consectetur interdum, nisi nisi consectetur nisl, eget consectetur nisl nisi vel nisi.
 *)
 
 formatCode
@@ -166,3 +821,26 @@ formatCode
         find <| f.Length - 1
     """
     { FormatConfig.Default with IndentSize = 2 }
+(*** include-it ***)
+
+
+(**
+#### <fantomas-setting-icon tooltip="Never use this please" type="red"></fantomas-setting-icon><fantomas-setting-icon-gresearch></fantomas-setting-icon-gresearch>fsharp_strict_mode
+`Lorep` ipsum dolor sit amet, consectetur adipiscing elit. Donec euismod, nisi vel consectetur interdum, nisi nisi consectetur nisl, eget consectetur nisl nisi vel nisi.
+*)
+
+formatCode
+    """ 
+    let inline selectRandom (f: _ []) =
+        let r = random 1.0
+    
+        let rec find =
+            function
+            | 0 -> fst f.[0]
+            | n when r < snd f.[n] -> fst f.[n]
+            | n -> find (n - 1)
+    
+        find <| f.Length - 1
+    """
+    { FormatConfig.Default with IndentSize = 2 }
+(*** include-it ***)
