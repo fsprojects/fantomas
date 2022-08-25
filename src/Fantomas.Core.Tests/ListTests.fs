@@ -2300,6 +2300,7 @@ let foo<'T> (x: 'T[]) = x
 
     formatSourceString false before config |> prepend newline |> should equal before
 
+[<Test>]
 let ``remove space between array type and square brackets, 2192`` () =
     formatSourceString
         false
