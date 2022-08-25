@@ -340,7 +340,7 @@ Target.create "Docs" (fun _ ->
     DotNet.exec
         id
         "fsdocs"
-        $"build --clean --properties Configuration=Release --fscoptions \" -r:{semanticVersioning}\""
+        $"build --clean --properties Configuration=Release --fscoptions \" -r:{semanticVersioning}\" --eval"
     |> ignore)
 
 // --------------------------------------------------------------------------------------
