@@ -53,7 +53,7 @@ Fantomas ships with a series of settings that you can use freely depending  on y
 However, there are settings that we do not recommend and generally should not be used.   
 <p><fantomas-setting-icon type="green"></fantomas-setting-icon><strong>Safe to change:</strong> Settings that aren't attached to any guidelines. Depending on your team or your own preferences, feel free to change these as it's been agreed on the codebase, however, you can always use it's defaults.</p>
 <p><fantomas-setting-icon type="red"></fantomas-setting-icon> <strong>Not recommended:</strong> Settings that don't follow any guidelines.</p>
-<p><fantomas-setting-icon type="orange"></fantomas-setting-icon> <strong>Do not use:</strong> Settings you should never enable. They might lead to incomplete results.</p>
+<p><fantomas-setting-icon type="orange"></fantomas-setting-icon> <strong>Do not use:</strong> Settings where it is not recommended to change the default value. They might lead to incomplete results.</p>
 <p><fantomas-setting-icon-gresearch></fantomas-setting-icon-gresearch> <strong>G-Research:</strong> G-Research styling guide. If you use one of these, for consistency reasons you should use all of them.</p>
 *)
 
@@ -86,16 +86,20 @@ formatCode
 
 formatCode
     """ 
-    let inline selectRandom (f: _ []) =
-        let r = random 1.0
-    
-        let rec find =
-            function
-            | 0 -> fst f.[0]
-            | n when r < snd f.[n] -> fst f.[n]
-            | n -> find (n - 1)
-    
-        find <| f.Length - 1
+let printListWithOffset a list1 =
+    List.iter
+        (fun { ItemOne = a } ->
+            // print
+            printfn "%s" a)
+        list1
+
+let printListWithOffset a list1 =
+    list1
+    |> List.iter
+        (fun elem ->
+            // print stuff
+            printfn "%d" (a + elem))
+
     """
     { FormatConfig.Default with IndentSize = 2 }
 (*** include-it ***)
@@ -844,3 +848,8 @@ formatCode
     """
     { FormatConfig.Default with IndentSize = 2 }
 (*** include-it ***)
+
+<div class="d-flex justify-content-between my-4">
+  <a href="./StyleGuide.html">Previous</a>
+  <a href="./IgnoreFiles.html">Next</a>
+</div>
