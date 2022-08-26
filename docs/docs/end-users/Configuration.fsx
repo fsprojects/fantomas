@@ -129,7 +129,7 @@ Default = true.
 
 formatCode
     """ 
-   let value(a: int) = x
+   let value (a: int) = x
    let DumpTrace() = ()
     """
     { FormatConfig.Default with SpaceBeforeParameter = false }
