@@ -81,7 +81,7 @@ formatCode
 (*** include-it ***)
 (**
 #### <fantomas-setting-icon type="green"></fantomas-setting-icon>max_line_length
-`Lorep` ipsum dolor sit amet, consectetur adipiscing elit. Donec euismod, nisi vel consectetur interdum, nisi nisi consectetur nisl, eget consectetur nisl nisi vel nisi.
+`Lorep` ipsum dolor sit amet,  consectetur adipiscing elit. Donec euismod, nisi vel consectetur interdum, nisi nisi consectetur nisl, eget consectetur nisl nisi vel nisi.
 *)
 
 formatCode
