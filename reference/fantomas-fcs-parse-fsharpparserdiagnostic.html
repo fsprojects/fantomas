@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-root="https://fsprojects.github.io/fantomas/">
 
 <head>
   <meta charset="utf-8">
@@ -23,7 +23,6 @@
 
 <body>
   <main id="main-container">
-  
      <div id="sidebar-wrapper" class="bg-primary h-100 fs-5 collapse show">
       <div id="sidebar-header" class="d-flex justify-content-end mt-1">
       <button class="btn d-md-none" data-bs-toggle="collapse" data-bs-target="#sidebar-wrapper" data-bs-parent="#main-container" aria-controls="sidebar-wrapper" aria-expanded="false" aria-label="Toggle navigation">
@@ -489,9 +488,11 @@
       </div>
         <div id="push"></div>
     </div>
-    
   </main>
   <script type="text/javascript">
+window.addEventListener('load', (event) => {
+    const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
+    const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))
 addEventListener('hide.bs.collapse', (e) => {
   if (e.target && e.target.id === 'sidebar-wrapper') {
     document.getElementById('main-container').classList.add('toggled');
@@ -508,6 +509,7 @@ addEventListener('show.bs.collapse', (e) => {
     document.getElementById(e.target.id+'-wrapper').classList.add('menu-open');
   }
 })
+});
   </script>
   <!-- BEGIN SEARCH BOX: this adds support for the search box -->
   <link rel="stylesheet"
@@ -519,6 +521,7 @@ addEventListener('show.bs.collapse', (e) => {
   <script type="text/javascript" src="https://fsprojects.github.io/fantomas/content/fsdocs-search.js"></script>
   <!-- END SEARCH BOX: this adds support for the search box -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-A3rJD856KowSb7dwlZdYEkO39Gagi7vIsF0jrRAoQmDKKtQBHUuLZ9AsSv4jD4Xa" crossorigin="anonymous"></script>
+  <script type="module" src="https://fsprojects.github.io/fantomas/content/fantomas-setting-icon.js"></script>
   <script type="module">
       import mermaid from "https://cdn.skypack.dev/mermaid";
       mermaid.initialize({
@@ -530,5 +533,4 @@ addEventListener('show.bs.collapse', (e) => {
       });
   </script>
 </body>
-
 </html>
