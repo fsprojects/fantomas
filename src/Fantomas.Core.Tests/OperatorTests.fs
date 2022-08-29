@@ -1415,3 +1415,18 @@ fun sum count -> sum / float count
         """
 (fun sum count -> sum / float count) <*| sum xs <*| count
 """
+
+[<Test>]
+let ``single star operator, 2452`` () =
+    formatSourceString
+        false
+        """
+let (*) x y = x + y
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let (*) x y = x + y
+"""

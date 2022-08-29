@@ -1202,12 +1202,10 @@ let (|PatLongIdent|_|) =
 
 let (|OperatorNameWithStar|PrefixedOperatorNameWithStar|NotAnOperatorNameWithStar|) (synLongIdent: SynLongIdent) =
     match synLongIdent.IdentsWithTrivia with
-    | [ SynIdent (_, Some (IdentTrivia.OriginalNotationWithParen (text = text))) as synIdent ] when text.StartsWith("*") ->
-        OperatorNameWithStar(text, synIdent.FullRange, synLongIdent.FullRange)
-    | [ prefix; SynIdent (_, Some (IdentTrivia.OriginalNotationWithParen (text = text))) as synIdent ] when
-        text.StartsWith("*")
-        ->
-        PrefixedOperatorNameWithStar(prefix, text, synIdent.FullRange, synLongIdent.FullRange)
+    | [ SynIdent(trivia = Some (ParenStarSynIdent (lpr, originalNotation, rpr))) as synIdent ] ->
+        OperatorNameWithStar(lpr, originalNotation, rpr, synIdent.FullRange, synLongIdent.FullRange)
+    | [ prefix; SynIdent(trivia = Some (ParenStarSynIdent (lpr, originalNotation, rpr))) as synIdent ] ->
+        PrefixedOperatorNameWithStar(prefix, lpr, originalNotation, rpr, synIdent.FullRange, synLongIdent.FullRange)
     | _ -> NotAnOperatorNameWithStar
 
 let (|PatParen|_|) =
