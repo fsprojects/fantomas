@@ -9,6 +9,7 @@
 * Idempotency problem when using a list with interpolated strings. [#2242](https://github.com/fsprojects/fantomas/issues/2242)
 * Idempotency problem when using set and spread syntax. [#2392](https://github.com/fsprojects/fantomas/issues/2392)
 * Formatting (*) returns ( * ). [#2452](https://github.com/fsprojects/fantomas/issues/2452)
+* Comment after last case of function with operator is removed.[#2454](https://github.com/fsprojects/fantomas/issues/2454)
 
 ## [5.0.0-beta-007] - 2022-08-19
 

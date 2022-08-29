@@ -2326,6 +2326,7 @@ and genExprInMultilineInfixExpr astContext e =
     | MatchLambda (keywordRange, cs) ->
         (!- "function " |> genTriviaFor SynExpr_MatchLambda_Function keywordRange)
         +> indentSepNlnUnindent (genClauses astContext cs)
+        |> genTriviaFor SynExpr_MatchLambda e.Range
     | Record _ -> atCurrentColumnIndent (genExpr astContext e)
     | _ -> genExpr astContext e
 

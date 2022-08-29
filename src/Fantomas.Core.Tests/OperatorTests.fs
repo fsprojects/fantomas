@@ -1430,3 +1430,26 @@ let (*) x y = x + y
         """
 let (*) x y = x + y
 """
+
+[<Test>]
+let ``trivia after match lambda in infix operation, 2454`` () =
+    formatSourceString
+        false
+        """
+id
+>> function
+    | -1 -> -1 // first comment
+    | 0 -> 0 // second comment
+    | _ -> 1 // third comment
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+id
+>> function
+    | -1 -> -1 // first comment
+    | 0 -> 0 // second comment
+    | _ -> 1 // third comment
+"""
