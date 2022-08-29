@@ -71,14 +71,11 @@ $headings-font-family: 'Reem Kufi', sans-serif
     font-weight: 400
   h4
     .green-recommendation, .orange-recommendation, .red-recommendation
-      vertical-align: 0
       margin-right: 0.5rem
-      font-size: 1.3rem
+      font-size: $configuration-icon-size
+      line-height: 1
     .gresearch-recommendation
-      vertical-align: -0.2rem
       margin-right: 0.5rem
-      width: 20px
-      height: 20px
   hr
     margin: 0 0 20px 0
   li
@@ -110,19 +107,24 @@ $headings-font-family: 'Reem Kufi', sans-serif
   .green-recommendation
     color: $success
     vertical-align: middle
-    font-size: 1.4rem
+    font-size: $configuration-icon-size
+    line-height: 1
   .red-recommendation
     color: $danger
     vertical-align: middle
-    font-size: 1.4rem
+    font-size: $configuration-icon-size
+    line-height: 1
   .orange-recommendation
     color: $warning
     vertical-align: middle
-    font-size: 1.4rem
+    font-size: $configuration-icon-size
+    line-height: 1
   .gresearch-recommendation
     padding: 3px
     background-color: $gresearch-color
     border-radius: 50%
+    vertical-align: middle
+    line-height: $configuration-icon-size
 
 .green-tooltip
   .tooltip-inner
