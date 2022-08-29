@@ -4926,12 +4926,18 @@ and genSynBindingValue
 // The idea is to solve this only where this can occur and not at the SynIdent level.
 and genSynBindingFunctionName (functionName: SynLongIdent) =
     match functionName with
-    | OperatorNameWithStar (text, synIdentRange, synLongIdentRange) ->
-        !- $"( {text} )"
+    | OperatorNameWithStar (lpr, text, rpr, synIdentRange, synLongIdentRange) ->
+        sepOpenTFor lpr +> sepSpace +> !-text +> sepSpace +> sepCloseTFor (Some rpr)
         |> genTriviaFor SynIdent_ synIdentRange
         |> genTriviaFor SynLongIdent_ synLongIdentRange
-    | PrefixedOperatorNameWithStar (prefix, text, synIdentRange, synLongIdentRange) ->
-        genSynIdent false prefix +> sepDot +> !- $"( {text} )"
+    | PrefixedOperatorNameWithStar (prefix, lpr, text, rpr, synIdentRange, synLongIdentRange) ->
+        genSynIdent false prefix
+        +> sepDot
+        +> sepOpenTFor lpr
+        +> sepSpace
+        +> !-text
+        +> sepSpace
+        +> sepCloseTFor (Some rpr)
         |> genTriviaFor SynIdent_ synIdentRange
         |> genTriviaFor SynLongIdent_ synLongIdentRange
     | _ -> genSynLongIdent false functionName
