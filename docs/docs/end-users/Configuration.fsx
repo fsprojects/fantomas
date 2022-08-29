@@ -49,12 +49,12 @@ let formatCode input configIndent =
 
 (**
 ## Settings recommendations
-Fantomas ships with a series of settings that you can use freely depending  on your case. 
+Fantomas ships with a series of settings that you can use freely depending  on your case.  
 However, there are settings that we do not recommend and generally should not be used.   
 <p><fantomas-setting-icon type="green"></fantomas-setting-icon><strong>Safe to change:</strong> Settings that aren't attached to any guidelines. Depending on your team or your own preferences, feel free to change these as it's been agreed on the codebase, however, you can always use it's defaults.</p>
-<p><fantomas-setting-icon type="red"></fantomas-setting-icon> <strong>Not recommended:</strong> Settings that don't follow any guidelines.</p>
-<p><fantomas-setting-icon type="orange"></fantomas-setting-icon> <strong>Do not use:</strong> Settings where it is not recommended to change the default value. They might lead to incomplete results.</p>
-<p><fantomas-setting-icon-gresearch></fantomas-setting-icon-gresearch> <strong>G-Research:</strong> G-Research styling guide. If you use one of these, for consistency reasons you should use all of them.</p>
+<p><fantomas-setting-icon type="red"></fantomas-setting-icon><strong>Not recommended:</strong> Settings that don't follow any guidelines.</p>
+<p><fantomas-setting-icon type="orange"></fantomas-setting-icon><strong>Do not use:</strong> Settings where it is not recommended to change the default value. They might lead to incomplete results.</p>
+<p><fantomas-setting-icon-gresearch></fantomas-setting-icon-gresearch><strong>G-Research:</strong> G-Research styling guide. If you use one of these, for consistency reasons you should use all of them.</p>
 *)
 
 (**
