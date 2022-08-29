@@ -2534,3 +2534,51 @@ let Anonymous =
     {| FontFamily = 700 // font-weight
        FontSize = 48. |} // font-weight
 """
+
+[<Test>]
+let ``the one million dollar fix`` () =
+    formatSourceString
+        false
+        """
+[
+    "thing"
+    "thing2"
+    // no other things
+]
+"""
+        { config with MultilineBlockBracketsOnSameColumn = true }
+    |> prepend newline
+    |> should
+        equal
+        """
+[
+    "thing"
+    "thing2"
+    // no other things
+]
+"""
+
+[<Test>]
+let ``this even works nested, oh my`` () =
+    formatSourceString
+        false
+        """
+let v =
+    [
+        "thing"
+        "thing2"
+        // no other things
+    ]
+"""
+        { config with MultilineBlockBracketsOnSameColumn = true }
+    |> prepend newline
+    |> should
+        equal
+        """
+let v =
+    [
+        "thing"
+        "thing2"
+        // no other things
+    ]
+"""

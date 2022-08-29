@@ -2677,7 +2677,16 @@ and genMultiLineArrayOrListAlignBrackets (isArray: bool) xs openingTokenRange cl
         +> indent
         +> sepNlnUnlessLastEventIsNewline
         +> col sepNln xs (genExpr astContext)
-        +> unindent
+        +> (fun (ctx: Context) ->
+            match Queue.tryHead ctx.WriterEvents with
+            | Some WriterEvent.WriteLineBecauseOfTrivia ->
+                let resetContext =
+                    { ctx with
+                        WriterEvents = ctx.WriterEvents.Tail
+                        WriterModel = { ctx.WriterModel with Lines = List.tail ctx.WriterModel.Lines } }
+
+                (unindent +> sepNlnForTrivia) resetContext
+            | _ -> unindent ctx)
         +> sepNlnUnlessLastEventIsNewline
         +> genTriviaFor SynExpr_ArrayOrList_ClosingDelimiter closingTokenRange sepCloseLFixed
 

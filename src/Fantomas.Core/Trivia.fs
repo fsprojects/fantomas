@@ -242,23 +242,41 @@ let triviaBeforeOrAfterEntireTree (rootNode: TriviaNode) (trivia: Trivia) : Triv
       Range = rootNode.Range
       AddBefore = isBefore }
 
+let (|BracketTriviaNode|_|) (node: TriviaNode) =
+    match node.Type with
+    | SynExpr_ArrayOrList_OpeningDelimiter
+    | SynExpr_ArrayOrList_ClosingDelimiter -> Some node
+    | _ -> None
+
 /// Try to put the trivia on top of the closest node
 /// If that didn't work put it after the last node
 let simpleTriviaToTriviaInstruction (containerNode: TriviaNode) (trivia: Trivia) : TriviaInstruction option =
-    containerNode.Children
-    |> Array.tryFind (fun node -> node.Range.StartLine > trivia.Range.StartLine)
-    |> Option.map (fun node ->
-        { Trivia = trivia
-          Type = node.Type
-          Range = node.Range
-          AddBefore = true })
-    |> Option.orElseWith (fun () ->
+    let nodeAfter =
+        Array.tryFind (fun (node: TriviaNode) -> node.Range.StartLine > trivia.Range.StartLine) containerNode.Children
+
+    let nodeBefore =
+        Array.tryFindBack (fun (node: TriviaNode) -> node.Range.EndLine < trivia.Range.StartLine) containerNode.Children
+
+    match nodeBefore, nodeAfter with
+    | Some nodeBefore, Some (BracketTriviaNode _) when trivia.Range.StartColumn = nodeBefore.Range.StartColumn ->
+        Some
+            { Trivia = trivia
+              Type = nodeBefore.Type
+              Range = nodeBefore.Range
+              AddBefore = false }
+    | _, Some nodeAfter ->
+        Some
+            { Trivia = trivia
+              Type = nodeAfter.Type
+              Range = nodeAfter.Range
+              AddBefore = true }
+    | _ ->
         Array.tryLast containerNode.Children
         |> Option.map (fun node ->
             { Trivia = trivia
               Type = node.Type
               Range = node.Range
-              AddBefore = false }))
+              AddBefore = false })
 
 /// Try and find the smallest possible node
 let lineCommentAfterSourceCodeToTriviaInstruction

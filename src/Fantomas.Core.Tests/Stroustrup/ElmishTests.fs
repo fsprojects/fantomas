@@ -1151,7 +1151,7 @@ let html =
                 prop.className "navbar-start"
                 prop.children [
                     Html.a [ prop.className "navbar-item" ]
-                (*
+                    (*
                     Html.a [ prop.className "navbar-item"; prop.href (baseUrl +/ "Files") ] [
                         prop.text "Files"
                     ]*)
@@ -1174,7 +1174,7 @@ let html =
                 prop.className "navbar-start"
                 prop.children [
                     Html.a [ prop.className "navbar-item" ]
-                (*
+                    (*
                     Html.a [ prop.className "navbar-item"; prop.href (baseUrl +/ "Files") ] [
                         prop.text "Files"
                     ]*)
@@ -1196,7 +1196,7 @@ let html =
                 prop.className "navbar-start"
                 prop.children [
                     Html.a [ prop.className "navbar-item" ]
-                (*
+                    (*
                     Html.a [ prop.className "navbar-item"; prop.href (baseUrl +/ "Files") ] [
                         prop.text "Files"
                     ]*)
@@ -1243,7 +1243,7 @@ let html =
                 prop.className "navbar-start"
                 prop.children [
                     Html.a [ prop.className "navbar-item" ]
-                (*
+                    (*
                     Html.a [ prop.className "navbar-item"; prop.href (baseUrl +/ "Files") ] [
                         prop.text "Files"
                     ]*)
@@ -1332,7 +1332,7 @@ let html =
                 prop.className "navbar-start"
                 prop.children [
                     Html.a [ prop.className "navbar-item" ]
-                (* meh *)
+                    (* meh *)
                 ]
             ]
         ]
@@ -1415,7 +1415,7 @@ open Feliz
 let private App () =
     div [] [
         str "meh 2000k"
-    (*
+        (*
                           {small && <Navigation />}
               <Container>
                 {!small && <Header />}
@@ -1474,7 +1474,7 @@ let private App () =
     div [] [
         str "meh 2000k"
         str "other meh"
-    (*
+        (*
                           {small && <Navigation />}
               <Container>
                 {!small && <Header />}
