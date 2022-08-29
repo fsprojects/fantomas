@@ -287,7 +287,7 @@ Target.create "Benchmark" (fun _ ->
 )
 
 Target.create "Format" (fun _ ->
-    let result = DotNet.exec id "fantomas" "--recurse src docs/.style/ build.fsx"
+    let result = DotNet.exec id "fantomas" "--recurse src docs build.fsx"
 
     if not result.OK then
         printfn "Errors while formatting all files: %A" result.Messages)
@@ -309,8 +309,7 @@ Target.create "FormatChanged" (fun _ ->
         printfn "Problem when formatting changed files:\n\n%A" result.Errors)
 
 Target.create "CheckFormat" (fun _ ->
-    let result =
-        DotNet.exec id "fantomas" "--check --recurse src docs/.style/ build.fsx"
+    let result = DotNet.exec id "fantomas" "--check --recurse src docs build.fsx"
 
     if result.ExitCode = 0 then
         Trace.log "No files need formatting"
