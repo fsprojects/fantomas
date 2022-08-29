@@ -41,6 +41,11 @@ $headings-font-family: 'Reem Kufi', sans-serif
 
 #fsdocs-content
   box-shadow: 0 4px 10px $drop-shadow
+  table.pre
+    background-color: $pearl
+    pre
+      background-color: $pearl
+      color: $primary
   h1, h2, h3, h4, h5, h6
     a
       color: $black
@@ -64,6 +69,16 @@ $headings-font-family: 'Reem Kufi', sans-serif
     font-size: 1.2rem
     padding: 15px 0 10px 0
     font-weight: 400
+  h4
+    .green-recommendation, .orange-recommendation, .red-recommendation
+      vertical-align: 0
+      margin-right: 0.5rem
+      font-size: 1.3rem
+    .gresearch-recommendation
+      vertical-align: -0.2rem
+      margin-right: 0.5rem
+      width: 20px
+      height: 20px
   hr
     margin: 0 0 20px 0
   li
@@ -92,6 +107,35 @@ $headings-font-family: 'Reem Kufi', sans-serif
       line-height: 1
       color: $white
 
+  .green-recommendation
+    color: $success
+    vertical-align: middle
+    font-size: 1.4rem
+  .red-recommendation
+    color: $danger
+    vertical-align: middle
+    font-size: 1.4rem
+  .orange-recommendation
+    color: $warning
+    vertical-align: middle
+    font-size: 1.4rem
+  .gresearch-recommendation
+    padding: 3px
+    background-color: $gresearch-color
+    border-radius: 50%
+
+.green-tooltip
+  .tooltip-inner
+    background-color: $success
+.red-tooltip
+  .tooltip-inner
+    background-color: $danger
+.orange-tooltip
+  .tooltip-inner
+    background-color: $warning
+.gresearch-tooltip
+  .tooltip-inner
+    background-color: $gresearch-color
 .fsdocs-source-link
   float: right
   text-decoration: none
