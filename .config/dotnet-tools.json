@@ -21,13 +21,13 @@
       ]
     },
     "fantomas": {
-      "version": "5.0.0-beta-005",
+      "version": "5.0.0-beta-006",
       "commands": [
         "fantomas"
       ]
     },
     "fsdocs-tool": {
-      "version": "15.0.2",
+      "version": "16.0.1",
       "commands": [
         "fsdocs"
       ]

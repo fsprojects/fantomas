@@ -11,7 +11,7 @@ let config =
         ExperimentalStroustrupStyle = true
         MaxArrayOrListWidth = 40 }
 
-// TODO: figure out what should happen when you mix MultiLineLambdaClosingNewline and Ragnarok
+// TODO: figure out what should happen when you mix MultiLineLambdaClosingNewline and Stroustrup
 // From a technical point of view, this is correct behavior but having `})` at the end seems sensible as well.
 
 [<Test>]

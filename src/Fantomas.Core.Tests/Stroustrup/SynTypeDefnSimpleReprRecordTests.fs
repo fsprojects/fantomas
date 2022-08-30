@@ -55,7 +55,7 @@ type V = // comment
     }
 """
 
-// TODO: I feel like ragnarok should not work when there are members involved
+// TODO: I feel like stroustrup should not work when there are members involved
 // Having members would require the `with` keyword which is not recommended by the style guide: https://docs.microsoft.com/en-us/dotnet/fsharp/style-guide/formatting#formatting-record-declarations
 
 [<Test>]

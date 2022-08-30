@@ -572,9 +572,9 @@ let ifElse b (f1: Context -> Context) f2 (ctx: Context) = if b then f1 ctx else 
 
 let ifElseCtx cond (f1: Context -> Context) f2 (ctx: Context) = if cond ctx then f1 ctx else f2 ctx
 
-let ifRagnarokElse = ifElseCtx (fun ctx -> ctx.Config.ExperimentalStroustrupStyle)
+let ifStroustrupElse = ifElseCtx (fun ctx -> ctx.Config.ExperimentalStroustrupStyle)
 
-let ifRagnarok (f1: Context -> Context) =
+let ifStroustrup (f1: Context -> Context) =
     ifElseCtx (fun ctx -> ctx.Config.ExperimentalStroustrupStyle) f1 id
 
 /// apply f only when cond is true
@@ -619,7 +619,7 @@ let sepNlnForTrivia = writerEvent WriteLineBecauseOfTrivia
 let sepNlnUnlessLastEventIsNewline (ctx: Context) =
     if lastWriteEventIsNewline ctx then ctx else sepNln ctx
 
-let sepNlnUnlessLastEventIsNewlineOrRagnarok (ctx: Context) =
+let sepNlnUnlessLastEventIsNewlineOrStroustrup (ctx: Context) =
     if lastWriteEventIsNewline ctx || ctx.Config.ExperimentalStroustrupStyle then
         ctx
     else
@@ -1171,12 +1171,12 @@ let addExtraNewlineIfLeadingWasMultiline leading sepNlnConsideringTriviaContentB
     leadingExpressionIsMultiline leading (fun ml ->
         sepNln +> onlyIf ml sepNlnConsideringTriviaContentBefore +> continuation)
 
-let autoIndentAndNlnExpressUnlessRagnarok (f: SynExpr -> Context -> Context) (e: SynExpr) (ctx: Context) =
+let autoIndentAndNlnExpressUnlessStroustrup (f: SynExpr -> Context -> Context) (e: SynExpr) (ctx: Context) =
     match e with
     | SourceParser.StroustrupStyleExpr ctx.Config.ExperimentalStroustrupStyle e -> f e ctx
     | _ -> indentSepNlnUnindent (f e) ctx
 
-let autoIndentAndNlnIfExpressionExceedsPageWidthUnlessRagnarok
+let autoIndentAndNlnIfExpressionExceedsPageWidthUnlessStroustrup
     (f: SynExpr -> Context -> Context)
     (e: SynExpr)
     (ctx: Context)

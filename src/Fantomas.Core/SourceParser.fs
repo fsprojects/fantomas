@@ -633,9 +633,7 @@ let (|NamedComputationExpr|_|) =
     function
     | SynExpr.App (ExprAtomicFlag.NonAtomic,
                    false,
-                   ((SynExpr.App _
-                   | SynExpr.TypeApp _) as nameExpr
-                   | SimpleExpr nameExpr),
+                   ((SynExpr.App _ | SynExpr.TypeApp _) as nameExpr | SimpleExpr nameExpr),
                    ComputationExpr (openingBrace, compExpr, closingBrace),
                    _) -> Some(nameExpr, openingBrace, compExpr, closingBrace)
     | _ -> None
@@ -727,15 +725,20 @@ let (|DynamicExpr|_|) =
     | SynExpr.Dynamic (funcExpr, _, argExpr, _) -> Some(funcExpr, argExpr)
     | _ -> None
 
+let (|ParenStarSynIdent|_|) =
+    function
+    | IdentTrivia.OriginalNotationWithParen (lpr, originalNotation, rpr) ->
+        if originalNotation.Length > 1 && originalNotation.StartsWith("*") then
+            Some(lpr, originalNotation, rpr)
+        else
+            None
+    | _ -> None
+
 // Example: ( *** ) a b
 // (*) a b is ok though
 let (|ParenFunctionNameWithStar|_|) =
     function
-    | LongIdentExpr (SynLongIdent ([ _ ],
-                                   [],
-                                   [ Some (IdentTrivia.OriginalNotationWithParen (lpr, originalNotation, rpr)) ])) when
-        (originalNotation.Length > 1 && originalNotation.StartsWith("*"))
-        ->
+    | LongIdentExpr (SynLongIdent ([ _ ], [], [ Some (ParenStarSynIdent (lpr, originalNotation, rpr)) ])) ->
         Some(lpr, originalNotation, rpr)
     | _ -> None
 
@@ -1199,12 +1202,10 @@ let (|PatLongIdent|_|) =
 
 let (|OperatorNameWithStar|PrefixedOperatorNameWithStar|NotAnOperatorNameWithStar|) (synLongIdent: SynLongIdent) =
     match synLongIdent.IdentsWithTrivia with
-    | [ SynIdent (_, Some (IdentTrivia.OriginalNotationWithParen (text = text))) as synIdent ] when text.StartsWith("*") ->
-        OperatorNameWithStar(text, synIdent.FullRange, synLongIdent.FullRange)
-    | [ prefix; SynIdent (_, Some (IdentTrivia.OriginalNotationWithParen (text = text))) as synIdent ] when
-        text.StartsWith("*")
-        ->
-        PrefixedOperatorNameWithStar(prefix, text, synIdent.FullRange, synLongIdent.FullRange)
+    | [ SynIdent(trivia = Some (ParenStarSynIdent (lpr, originalNotation, rpr))) as synIdent ] ->
+        OperatorNameWithStar(lpr, originalNotation, rpr, synIdent.FullRange, synLongIdent.FullRange)
+    | [ prefix; SynIdent(trivia = Some (ParenStarSynIdent (lpr, originalNotation, rpr))) as synIdent ] ->
+        PrefixedOperatorNameWithStar(prefix, lpr, originalNotation, rpr, synIdent.FullRange, synLongIdent.FullRange)
     | _ -> NotAnOperatorNameWithStar
 
 let (|PatParen|_|) =
@@ -1695,8 +1696,8 @@ let rec (|IndexWithoutDotExpr|NestedIndexWithoutDotExpr|NonAppExpr|) e =
         NestedIndexWithoutDotExpr(identifier, indexExpr, argExpr)
     | _ -> NonAppExpr
 
-let rec (|EndsWithSingleListAppExpr|_|) (isRagnarok: bool) (e: SynExpr) =
-    if not isRagnarok then
+let rec (|EndsWithSingleListAppExpr|_|) (isStroustrup: bool) (e: SynExpr) =
+    if not isStroustrup then
         None
     else
         match e with
@@ -1721,14 +1722,14 @@ let rec (|EndsWithSingleListAppExpr|_|) (isRagnarok: bool) (e: SynExpr) =
             Some(funcExpr, [], lastArg)
         | _ -> None
 
-let (|EndsWithDualListAppExpr|_|) (isRagnarok: bool) (e: SynExpr) =
-    if not isRagnarok then
+let (|EndsWithDualListAppExpr|_|) (isStroustrup: bool) (e: SynExpr) =
+    if not isStroustrup then
         None
     else
         match e with
         | SynExpr.App (ExprAtomicFlag.NonAtomic,
                        false,
-                       EndsWithSingleListAppExpr isRagnarok (e, es, lastButOneArg),
+                       EndsWithSingleListAppExpr isStroustrup (e, es, lastButOneArg),
                        (ArrayOrList _ as lastArg),
                        _) -> Some(e, es, lastButOneArg, lastArg)
         | _ -> None

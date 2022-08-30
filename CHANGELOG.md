@@ -3,6 +3,24 @@
 ## [Unreleased]
 
 ### Fixed
+* List of functions misaligned and breaks (Elmish). [#2158](https://github.com/fsprojects/fantomas/issues/2158)
+* Idempotency problem when Elmish Html. [#2195](https://github.com/fsprojects/fantomas/issues/2195)
+* Splitting list results in code that doesn't compile. [#2201](https://github.com/fsprojects/fantomas/issues/2201)
+* Idempotency problem when using a list with interpolated strings. [#2242](https://github.com/fsprojects/fantomas/issues/2242)
+* Idempotency problem when using set and spread syntax. [#2392](https://github.com/fsprojects/fantomas/issues/2392)
+* Formatting (*) returns ( * ). [#2452](https://github.com/fsprojects/fantomas/issues/2452)
+* Comment after last case of function with operator is removed.[#2454](https://github.com/fsprojects/fantomas/issues/2454)
+
+## [5.0.0-beta-007] - 2022-08-19
+
+### Fixed
+* `abstract` with docstring and comment gets split up. [#2433](https://github.com/fsprojects/fantomas/issues/2433)
+* Invalid removal of space in operator which starts with `*`. [#2434](https://github.com/fsprojects/fantomas/issues/2434)
+* Incorrect concatenation of lines with functions. [#2435](https://github.com/fsprojects/fantomas/issues/2435)
+
+## [5.0.0-beta-006] - 2022-08-12
+
+### Fixed
 * Wrong comma placement results in "Possible incorrect indentation". [#2159](https://github.com/fsprojects/fantomas/issues/2159)
 * Indentation warning for update record in infix operation. [#2355](https://github.com/fsprojects/fantomas/issues/2355)
 * Use of A | B as c fails to format correctly. [#2289](https://github.com/fsprojects/fantomas/issues/2289)
