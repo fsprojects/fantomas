@@ -1810,7 +1810,7 @@ let foobar () =
 """
 
 [<Test>]
-let ```multiline type parameters in argument, 1611`` () =
+let ``multiline type parameters in argument, 1611`` () =
     formatSourceString
         false
         """

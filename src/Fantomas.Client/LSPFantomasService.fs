@@ -9,6 +9,21 @@ open Fantomas.Client.Contracts
 open Fantomas.Client.LSPFantomasServiceTypes
 open Fantomas.Client.FantomasToolLocator
 
+type ServiceState =
+    { Daemons: Map<FantomasVersion, RunningFantomasTool>
+      FolderToVersion: Map<Folder, FantomasVersion> }
+
+    static member Empty: ServiceState =
+        { Daemons = Map.empty
+          FolderToVersion = Map.empty }
+
+[<RequireQualifiedAccess>]
+type GetDaemonError =
+    | DotNetToolListError of error: DotNetToolListError
+    | FantomasProcessStart of error: ProcessStartError
+    | InCompatibleVersionFound
+    | CompatibleVersionIsKnownButNoDaemonIsRunning of version: FantomasVersion
+
 type Msg =
     | GetDaemon of Folder * AsyncReplyChannel<Result<JsonRpc, GetDaemonError>>
     | Reset of AsyncReplyChannel<unit>
