@@ -2446,6 +2446,7 @@ module A =
     type ProviderGeneratedType =
         | ProviderGeneratedType (*ilOrigTyRef*) of ILTypeRef (*ilRenamedTyRef*) * ILTypeRef * ProviderGeneratedType list
 """
+
 [<Test>]
 let ``keep trailing spaces inside block comments, 2450`` () =
     formatSourceString

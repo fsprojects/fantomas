@@ -1,6 +1,6 @@
 # Changelog
 
-## [Unreleased]
+## [5.0.0-beta-008] - 2022-08-30
 
 ### Fixed
 * List of functions misaligned and breaks (Elmish). [#2158](https://github.com/fsprojects/fantomas/issues/2158)
