@@ -10,6 +10,7 @@
 * Idempotency problem when using set and spread syntax. [#2392](https://github.com/fsprojects/fantomas/issues/2392)
 * Formatting (*) returns ( * ). [#2452](https://github.com/fsprojects/fantomas/issues/2452)
 * Comment after last case of function with operator is removed.[#2454](https://github.com/fsprojects/fantomas/issues/2454)
+* Trailing whitespace in block comments should be preserved. [#2450](https://github.com/fsprojects/fantomas/issues/2450)
 
 ## [5.0.0-beta-007] - 2022-08-19
 
