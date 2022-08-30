@@ -65,7 +65,7 @@ The F# Formatting extension sets up Fantomas as the default formatter for F# fil
 
 Install [fantomas](https://www.nuget.org/packages/fantomas) locally with `dotnet tool install fantomas-tool` and configure it as an [External tool]
 
-![VS Mac external tool window](./docs/vsmac-external-tool.png)
+![VS Mac external tool window](./docs/vsmac-external-tool.png )
 ### Online
 
 Try the Fantomas [online](https://fsprojects.github.io/fantomas-tools/#/fantomas/preview).
