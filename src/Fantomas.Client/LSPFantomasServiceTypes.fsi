@@ -1,8 +1,5 @@
-﻿module Fantomas.Client.LSPFantomasServiceTypes
+module Fantomas.Client.LSPFantomasServiceTypes
 
-open System
-open System.Diagnostics
-open StreamJsonRpc
 open Fantomas.Client.Contracts
 
 type FantomasResponseCode =
@@ -23,18 +20,7 @@ type FormatSelectionResponse =
     | Formatted of filename: string * formattedContent: string * formattedRange: FormatSelectionRange
     | Error of filename: string * formattingError: string
 
-    member this.AsFormatResponse() =
-        match this with
-        | FormatSelectionResponse.Formatted (name, content, formattedRange) ->
-            { Code = int FantomasResponseCode.Formatted
-              FilePath = name
-              Content = Some content
-              SelectedRange = Some formattedRange }
-        | FormatSelectionResponse.Error (name, ex) ->
-            { Code = int FantomasResponseCode.Error
-              FilePath = name
-              Content = Some ex
-              SelectedRange = None }
+    member AsFormatResponse: unit -> FantomasResponse
 
 [<RequireQualifiedAccess>]
 type FormatDocumentResponse =
@@ -43,31 +29,12 @@ type FormatDocumentResponse =
     | Error of filename: string * formattingError: string
     | IgnoredFile of filename: string
 
-    member this.AsFormatResponse() =
-        match this with
-        | FormatDocumentResponse.Formatted (name, content) ->
-            { Code = int FantomasResponseCode.Formatted
-              FilePath = name
-              Content = Some content
-              SelectedRange = None }
-        | FormatDocumentResponse.Unchanged name ->
-            { Code = int FantomasResponseCode.UnChanged
-              FilePath = name
-              Content = None
-              SelectedRange = None }
-        | FormatDocumentResponse.Error (name, err) ->
-            { Code = int FantomasResponseCode.Error
-              FilePath = name
-              Content = Some(err)
-              SelectedRange = None }
-        | FormatDocumentResponse.IgnoredFile name ->
-            { Code = int FantomasResponseCode.Ignored
-              FilePath = name
-              Content = None
-              SelectedRange = None }
+    member AsFormatResponse: unit -> FantomasResponse
 
 type FantomasVersion = FantomasVersion of string
+
 type FantomasExecutableFile = FantomasExecutableFile of string
+
 type Folder = Folder of path: string
 
 [<RequireQualifiedAccess>]
@@ -77,17 +44,11 @@ type FantomasToolStartInfo =
     | ToolOnPath of executableFile: FantomasExecutableFile
 
 type RunningFantomasTool =
-    { Process: Process
-      RpcClient: JsonRpc
+    { Process: System.Diagnostics.Process
+      RpcClient: StreamJsonRpc.JsonRpc
       StartInfo: FantomasToolStartInfo }
 
-    interface IDisposable with
-        member this.Dispose() : unit =
-            if not this.Process.HasExited then
-                this.Process.Kill()
-
-            this.Process.Dispose()
-            this.RpcClient.Dispose()
+    interface System.IDisposable
 
 [<RequireQualifiedAccess>]
 type ProcessStartError =
