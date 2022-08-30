@@ -54,7 +54,7 @@ let private formatContentInternalAsync
                 let contentChanged =
                     if compareWithoutLineEndings then
                         let stripNewlines (s: string) =
-                            System.Text.RegularExpressions.Regex.Replace(s, @"\n|\r", String.Empty)
+                            System.Text.RegularExpressions.Regex.Replace(s, @"\r", String.Empty)
 
                         (stripNewlines originalContent) <> (stripNewlines formattedContent)
                     else

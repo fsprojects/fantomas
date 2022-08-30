@@ -19,7 +19,6 @@ let WithErrors = """let a"""
 [<Literal>]
 let CorrectlyFormatted =
     """module A
-
 """
 
 [<Test>]
