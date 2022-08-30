@@ -141,6 +141,7 @@ let ``check should fail if the number of newlines is different, 2461`` () =
         """module A
 
 """
+
     use fileFixture = new TemporaryFileCodeSample(codeSnippet)
 
     let { ExitCode = exitCode } = checkCode [ fileFixture.Filename ]
