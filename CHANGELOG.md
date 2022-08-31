@@ -1,5 +1,10 @@
 # Changelog
 
+## [Unreleased]
+
+### Fixed
+* --check should fail if the number of newlines is different. [#2461](https://github.com/fsprojects/fantomas/issues/2461)
+
 ## [5.0.0-beta-008] - 2022-08-30
 
 ### Fixed
