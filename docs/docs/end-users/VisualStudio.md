@@ -12,7 +12,7 @@ The F# Formatting extension sets up Fantomas as the default formatter for F# fil
 
 ### Visual Studio for Mac
 
-1. Install [fantomas](https://www.nuget.org/packages/fantomas) locally with `dotnet tool install fantomas` and configure it as an [External tool]
+1. Install [fantomas](https://www.nuget.org/packages/fantomas) locally with `dotnet tool install fantomas --prerelease` and configure it as an [External tool]
 2. Open the external tool window by going to Tools -> Edit custom tools
 3. Click Add and fill in the information  
 4. Run fantomas inside Tools -> fantomas
