@@ -5,6 +5,7 @@
 ### Fixed
 * --check should fail if the number of newlines is different. [#2461](https://github.com/fsprojects/fantomas/issues/2461)
 * Comment after closing brace of computation expression is lost. [#2466](https://github.com/fsprojects/fantomas/issues/2466)
+* Match statements should not be split into separate lines between parentheses. [#2044](https://github.com/fsprojects/fantomas/issues/2044)
 
 ## [5.0.0-beta-008] - 2022-08-30
 
