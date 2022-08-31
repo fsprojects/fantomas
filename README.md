@@ -13,11 +13,6 @@ F# source code formatter, inspired by [scalariform](https://github.com/mdr/scala
 Every once in a while an `alpha` or `beta` version is published to https://www.nuget.org/.
 Our previous MyGet feed is now deprecated.
 
-## Benchmarks
-
-Some figures can be found at https://fsprojects.github.io/fantomas/ <br/>
-We use [BenchmarkDotNet](https://github.com/dotnet/BenchmarkDotNet) to collect data for each build on the master branch.
-
 ## Purpose
 This project aims at formatting F# source files based on a given configuration.
 Fantomas will ensure correct indentation and consistent spacing between elements in the source files.
