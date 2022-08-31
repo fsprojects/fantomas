@@ -1147,25 +1147,27 @@ and genExpr astContext synExpr ctx =
                     (!- " do" +> indent +> sepNln +> genExpr astContext e2 +> unindent)
             )
 
-        | NamedComputationExpr (nameExpr, openingBrace, bodyExpr, closingBrace) ->
+        | NamedComputationExpr (nameExpr, openingBrace, bodyExpr, closingBrace, computationExprRange) ->
             fun ctx ->
                 let short =
                     genExpr astContext nameExpr
                     +> sepSpace
-                    +> genTriviaFor SynExpr_ComputationExpr_OpeningBrace openingBrace sepOpenS
-                    +> genExpr astContext bodyExpr
-                    +> genTriviaFor SynExpr_ComputationExpr_ClosingBrace closingBrace sepCloseS
+                    +> (genTriviaFor SynExpr_ComputationExpr_OpeningBrace openingBrace sepOpenS
+                        +> genExpr astContext bodyExpr
+                        +> genTriviaFor SynExpr_ComputationExpr_ClosingBrace closingBrace sepCloseS
+                        |> genTriviaFor SynExpr_ComputationExpr computationExprRange)
 
                 let long =
                     genExpr astContext nameExpr
                     +> sepSpace
-                    +> genTriviaFor SynExpr_ComputationExpr_OpeningBrace openingBrace sepOpenS
-                    +> indent
-                    +> sepNln
-                    +> genExpr astContext bodyExpr
-                    +> unindent
-                    +> sepNln
-                    +> genTriviaFor SynExpr_ComputationExpr_ClosingBrace closingBrace sepCloseSFixed
+                    +> (genTriviaFor SynExpr_ComputationExpr_OpeningBrace openingBrace sepOpenS
+                        +> indent
+                        +> sepNln
+                        +> genExpr astContext bodyExpr
+                        +> unindent
+                        +> sepNln
+                        +> genTriviaFor SynExpr_ComputationExpr_ClosingBrace closingBrace sepCloseSFixed
+                        |> genTriviaFor SynExpr_ComputationExpr computationExprRange)
 
                 expressionFitsOnRestOfLine short long ctx
         | ComputationExpr (openingBrace, e, closingBrace) ->
