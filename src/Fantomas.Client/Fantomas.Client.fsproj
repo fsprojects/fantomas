@@ -9,9 +9,13 @@
   </PropertyGroup>
   <ItemGroup>
     <None Include="paket.references" />
+    <Compile Include="Contracts.fsi" />
     <Compile Include="Contracts.fs" />
+    <Compile Include="LSPFantomasServiceTypes.fsi" />
     <Compile Include="LSPFantomasServiceTypes.fs" />
+    <Compile Include="FantomasToolLocator.fsi" />
     <Compile Include="FantomasToolLocator.fs" />
+    <Compile Include="LSPFantomasService.fsi" />
     <Compile Include="LSPFantomasService.fs" />
   </ItemGroup>
   <Import Project="..\..\.paket\Paket.Restore.targets" />

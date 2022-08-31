@@ -10,7 +10,7 @@ index: 3
 # Configuration
 Fantomas ships with a limited series of options.
 These can be stored in an [.editorconfig](https://editorconfig.org/) file and will be picked up automatically by the
-commandline.
+commandline.  
 Your IDE should respect your settings, however the implementation of that is editor specific. Setting the configuration via
 UI might be available depending on the IDE.
 *)
@@ -36,6 +36,7 @@ fsharp_experimental_stroustrup_style = true
 (**
 ## Trying your settings via the online tool
 You can quickly try your settings via the <a href="https://fsprojects.github.io/fantomas-tools/#/fantomas/preview" target="_blank">online tool</a>.
+
 <img src="{{root}}/online_tool_usage.gif" alt="drawing" width="100%"/>
 *)
 
@@ -50,7 +51,7 @@ let formatCode input configIndent =
 
 (**
 ## Settings recommendations
-Fantomas ships with a series of settings that you can use freely depending  on your case.
+Fantomas ships with a series of settings that you can use freely depending  on your case.  
 However, there are settings that we do not recommend and generally should not be used.
 <p><fantomas-setting-icon type="green"></fantomas-setting-icon><strong>Safe to change:</strong> Settings that aren't attached to any guidelines. Depending on your team or your own preferences, feel free to change these as it's been agreed on the codebase, however, you can always use it's defaults.</p>
 <p><fantomas-setting-icon type="orange"></fantomas-setting-icon><strong>Use with caution:</strong> Settings where it is not recommended to change the default value. They might lead to incomplete results.</p>
@@ -65,8 +66,9 @@ However, there are settings that we do not recommend and generally should not be
 ` indent_size` has to be between 1 and 10.
 
 This preference sets the indentation
-The common values are 2 and 4.
+The common values are 2 and 4.  
 The same indentation is ensured to be consistent in a source file.
+
 Default = 4.
 *)
 
@@ -87,8 +89,9 @@ formatCode
 (*** include-it ***)
 (**
 #### <fantomas-setting-icon type="green"></fantomas-setting-icon>max_line_length
-`max_line_length` has to be an integer greater or equal to 60.
+`max_line_length` has to be an integer greater or equal to 60.  
 This preference sets the column where we break F# constructs into new lines.
+
 Default = 120.
 *)
 
@@ -103,14 +106,16 @@ formatCode
 
 (**
 #### <fantomas-setting-icon type="green"></fantomas-setting-icon>end_of_line
-`end_of_line` determines the newline character, `lf` will add `\n` where `crlf` will add `\r\n`.
-`cr` is not supported by the F# language spec.
+`end_of_line` determines the newline character, `lf` will add `\n` where `crlf` will add `\r\n`.  
+`cr` is not supported by the F# language spec.  
 If not set by the user, the default value is determined by `System.Environment.NewLine`.
 *)
 
 (**
-#### <fantomas-setting-icon type="green"></fantomas-setting-icon>insert_final_newline
-Adds a final newline character at the end of the file.
+#### <fantomas-setting-icon type="orange"></fantomas-setting-icon>insert_final_newline
+Adds a final newline character at the end of the file.  
+<a href="https://stackoverflow.com/questions/729692/why-should-text-files-end-with-a-newline" target="_blank">Why should text files end with a newline?</a>
+
 Default = true
 *)
 
@@ -123,8 +128,9 @@ formatCode
 
 (**
 #### <fantomas-setting-icon type="orange"></fantomas-setting-icon>fsharp_space_before_parameter
-Add a space after the name of a function and before the opening parenthesis of the first parameter.
+Add a space after the name of a function and before the opening parenthesis of the first parameter.  
 This setting influences function definitions.
+
 Default = true.
 *)
 
@@ -138,8 +144,9 @@ formatCode
 
 (**
 #### <fantomas-setting-icon type="orange"></fantomas-setting-icon>fsharp_space_before_lowercase_invocation
-Add a space after the name of a lowercased function and before the opening parenthesis of the first argument.
+Add a space after the name of a lowercased function and before the opening parenthesis of the first argument.  
 This setting influences function invocation.
+
 Default = true.
 *)
 
@@ -153,8 +160,9 @@ formatCode
 
 (**
 #### <fantomas-setting-icon type="green"></fantomas-setting-icon><fantomas-setting-icon-gresearch></fantomas-setting-icon-gresearch>fsharp_space_before_uppercase_invocation
-Add a space after the name of a uppercased function and before the opening parenthesis of the first argument.
+Add a space after the name of a uppercase function and before the opening parenthesis of the first argument.  
 This setting influences function invocation.
+
 Default = false.
 *)
 
@@ -169,6 +177,7 @@ formatCode
 (**
 #### <fantomas-setting-icon type="orange"></fantomas-setting-icon>fsharp_space_before_class_constructor
 Add a space after a type name and before the class constructor.
+
 Default = false.
 *)
 
@@ -185,6 +194,7 @@ formatCode
 (**
 #### <fantomas-setting-icon type="green"></fantomas-setting-icon><fantomas-setting-icon-gresearch></fantomas-setting-icon-gresearch>fsharp_space_before_member
 Add a space after a member name and before the opening parenthesis of the first parameter.
+
 Default = false.
 *)
 
@@ -202,6 +212,7 @@ formatCode
 (**
 #### <fantomas-setting-icon type="green"></fantomas-setting-icon><fantomas-setting-icon-gresearch></fantomas-setting-icon-gresearch>fsharp_space_before_colon
 Add a space before `:`. Please note that not every `:` is controlled by this setting.
+
 Default = false.
 *)
 
@@ -217,6 +228,7 @@ formatCode
 (**
 #### <fantomas-setting-icon type="orange"></fantomas-setting-icon>fsharp_space_after_comma
 Adds a space after `,` in tuples.
+
 Default = true.
 *)
 
@@ -231,6 +243,7 @@ formatCode
 (**
 #### <fantomas-setting-icon type="green"></fantomas-setting-icon><fantomas-setting-icon-gresearch></fantomas-setting-icon-gresearch>fsharp_space_before_semicolon
 Adds a space before `;` in records, arrays, lists, etc.
+
 Default = false.
 *)
 
@@ -246,6 +259,7 @@ formatCode
 (**
 #### <fantomas-setting-icon type="orange"></fantomas-setting-icon>fsharp_space_after_semicolon
 Adds a space after `;` in records, arrays, lists, etc.
+
 Default = true.
 *)
 
@@ -261,6 +275,7 @@ formatCode
 (**
 #### <fantomas-setting-icon type="orange"></fantomas-setting-icon>fsharp_space_around_delimiter
 Adds a space around delimiters like `[`,`[|`,{`.
+
 Default = true.
 *)
 
@@ -278,8 +293,9 @@ formatCode
 Settings that control the max width of certain expressions.
 
 #### <fantomas-setting-icon type="orange"></fantomas-setting-icon>fsharp_max_if_then_short_width
-Control the maximum length for which if/then expression without an else expression can be on one line.
+Control the maximum length for which if/then expression without an else expression can be on one line.  
 The [Microsoft F# style guide](https://docs.microsoft.com/en-us/dotnet/fsharp/style-guide/formatting#formatting-if-expressions) recommends to never write such an expression in one line.
+
 > If the else expression is absent, it is recommended to never to write the entire expression in one line.
 
 Default = 0.
@@ -295,7 +311,7 @@ formatCode
 
 (**
 #### <fantomas-setting-icon type="green"></fantomas-setting-icon>fsharp_max_if_then_else_short_width
-Fantomas by default follows the if/then/else conventions listed in the [Microsoft F# style guide](https://docs.microsoft.com/en-us/dotnet/fsharp/style-guide/formatting#formatting-if-expressions).
+Fantomas by default follows the if/then/else conventions listed in the [Microsoft F# style guide](https://docs.microsoft.com/en-us/dotnet/fsharp/style-guide/formatting#formatting-if-expressions).  
 This setting facilitates this by determining the maximum character width where the if/then/else expression stays in one line.
 
 Default = 40.
@@ -311,6 +327,7 @@ formatCode
 (**
 #### <fantomas-setting-icon type="green"></fantomas-setting-icon>fsharp_max_infix_operator_expression
 Control the maximum length for which infix expression can be on one line.
+
 Default = 50.
 *)
 formatCode
@@ -371,9 +388,13 @@ formatCode
 
 (**
 #### <fantomas-setting-icon type="green"></fantomas-setting-icon>fsharp_record_multiline_formatter
-Split records expressions/statements into multiple lines based on the given condition. `character_width` uses character count of the expression, controlled
-by `fsharp_max_record_width`. `number_of_items` uses the number of fields in the record, controlled by `fsharp_max_record_number_of_items`.
-Default = `character_width`. Note that in either case, record expressions/statements are still governed by `max_line_length`.
+Split records expressions/statements into multiple lines based on the given condition.  
+`character_width` uses character count of the expression, controlled by `fsharp_max_record_width`.  
+`number_of_items` uses the number of fields in the record, controlled by `fsharp_max_record_number_of_items`.
+
+Default = `character_width`. 
+
+Note that in either case, record expressions/statements are still governed by `max_line_length`.
 *)
 
 formatCode
@@ -393,7 +414,11 @@ formatCode
 
 (**
 #### <fantomas-setting-icon type="green"></fantomas-setting-icon>fsharp_max_array_or_list_width
-Control the maximum width for which lists and arrays can be in one line. Default= 40. Requires `fsharp_array_or_list_multiline_formatter` to be `character_width` to take effect
+Control the maximum width for which lists and arrays can be in one line. 
+
+Default= 40. 
+
+Requires `fsharp_array_or_list_multiline_formatter` to be `character_width` to take effect
 *)
 
 formatCode
@@ -424,9 +449,9 @@ formatCode
 
 (**
 #### <fantomas-setting-icon type="green"></fantomas-setting-icon>fsharp_array_or_list_multiline_formatter
-Split arrays and lists into multiple lines based on the given condition. `character_width` uses character count of the expression, controlled by
-`fsharp_max_array_or_list_width`. `number_of_items` uses the number of elements
-in the array or list, controlled by `fsharp_max_array_or_list_number_of_items`.
+Split arrays and lists into multiple lines based on the given condition.  
+`character_width` uses character count of the expression, controlled by `fsharp_max_array_or_list_width`.  
+`number_of_items` uses the number of elements in the array or list, controlled by `fsharp_max_array_or_list_number_of_items`.
 
 Default = `character_width`.
 
@@ -442,8 +467,8 @@ formatCode
 
 (**
 #### <fantomas-setting-icon type="green"></fantomas-setting-icon>fsharp_max_value_binding_width
-Control the maximum expression width for which let and member value/property bindings should be in one line.
-The width is that of the pattern for the binding plus the implementating expression but not the keywords (e.g. "let").
+Control the maximum expression width for which let and member value/property bindings should be in one line.  
+The width is that of the pattern for the binding plus the right-hand expression but not the keywords (e.g. "let").
 
 Default = 80.
 *)
@@ -459,8 +484,8 @@ formatCode
 
 (**
 #### <fantomas-setting-icon type="green"></fantomas-setting-icon>fsharp_max_function_binding_width
-Control the maximum width for which function and member bindings should be in one line.
-In contrast to `fsharp_max_value_binding_width`, only the right hand side expression of the binding is measured.
+Control the maximum width for which function and member bindings should be in one line.  
+In contrast to `fsharp_max_value_binding_width`, only the right-hand side expression of the binding is measured.
 
 Default = 40
 *)
@@ -495,7 +520,7 @@ formatCode
 (**
 ## G-Research style
 
-A series of settings required to conform with the [G-Research style guide](https://github.com/G-Research/fsharp-formatting-conventions).
+A series of settings required to conform with the [G-Research style guide](https://github.com/G-Research/fsharp-formatting-conventions).  
 From a consistency point of view, it is recommend to enable all these settings instead of cherry-picking a few.
 
 #### <fantomas-setting-icon type="green"></fantomas-setting-icon><fantomas-setting-icon-gresearch></fantomas-setting-icon-gresearch>fsharp_multiline_block_brackets_on_same_column
@@ -515,12 +540,17 @@ formatCode
 
     type Range =
         { From: float
-          To: float }
+          To: float
+          FileName: string }
 
     let a =
         [| (1, 2, 3)
            (4, 5, 6)
-           (7, 8, 9) |]
+           (7, 8, 9)
+           (10, 11, 12)
+           (13, 14, 15)
+           (16, 17,18)
+           (19, 20, 21) |]
     """
     { FormatConfig.Default with MultilineBlockBracketsOnSameColumn = true }
 (*** include-it ***)
@@ -544,7 +574,7 @@ formatCode
 
 (**
 #### <fantomas-setting-icon type="green"></fantomas-setting-icon><fantomas-setting-icon-gresearch></fantomas-setting-icon-gresearch>fsharp_align_function_signature_to_indentation
-When a function signature exceeds the `max_line_length`, Fantomas will put all parameters on separate lines.
+When a function signature exceeds the `max_line_length`, Fantomas will put all parameters on separate lines.  
 This setting also places the equals sign and return type on a new line.
 
 Default = false.
@@ -617,15 +647,15 @@ formatCode
                 printfn "%d" (a + elem))
 
     """
-    { FormatConfig.Default with AlternativeLongMemberDefinitions = true }
+    { FormatConfig.Default with MultiLineLambdaClosingNewline = true }
 (*** include-it ***)
 
 (**
 #### <fantomas-setting-icon type="orange"></fantomas-setting-icon><fantomas-setting-icon-gresearch></fantomas-setting-icon-gresearch>fsharp_experimental_keep_indent_in_branch
-Breaks the normal indentation flow for the last branch of a pattern match or if/then/else expression.
+Breaks the normal indentation flow for the last branch of a pattern match or if/then/else expression.  
 Only when the last pattern match or else branch was already at the same level of the entire match or if expression.
 
-*This feature is considered experimental and is subject to change*
+*This feature is considered experimental and is subject to change.*
 *)
 
 formatCode
@@ -650,7 +680,8 @@ formatCode
 
 (**
 #### <fantomas-setting-icon type="green"></fantomas-setting-icon>fsharp_bar_before_discriminated_union_declaration
-Always use a `|` before every case in the declaration of a discriminated union. If `false`, a `|` character is used only in multiple-case discriminated unions, and is omitted in short single-case DUs.
+Always use a `|` before every case in the declaration of a discriminated union.  
+If `false`, a `|` character is used only in multiple-case discriminated unions, and is omitted in short single-case DUs.
 
 Default = false.
 *)
@@ -690,8 +721,8 @@ type PostalAddress =
 
 (**
 #### <fantomas-setting-icon type="green"></fantomas-setting-icon>fsharp_blank_lines_around_nested_multiline_expressions
-Surround **nested** multi-line expressions with blank lines.
-Existing blank lines are always preserved (via trivia), with exception when [fsharp_keep_max_number_of_blank_lines](#fsharp_keep_max_number_of_blank_lines) is used.
+Surround **nested** multi-line expressions with blank lines.  
+Existing blank lines are always preserved (via trivia), with exception when [fsharp_keep_max_number_of_blank_lines](#fsharp_keep_max_number_of_blank_lines) is used.  
 Top level expressions will always follow the [2020 blank lines revision](https://github.com/fsprojects/fantomas/blob/master/docs/FormattingConventions.md#2020-revision) principle.
 
 Default = true.
@@ -719,6 +750,7 @@ formatCode
 (**
 #### <fantomas-setting-icon type="green"></fantomas-setting-icon>fsharp_keep_max_number_of_blank_lines
 Set maximal number of consecutive blank lines to keep from original source. It doesn't change number of new blank lines generated by Fantomas.
+
 Default=100
 *)
 
@@ -733,12 +765,13 @@ formatCode
 
 (**
 #### <fantomas-setting-icon type="red"></fantomas-setting-icon>fsharp_strict_mode
-If being set, pretty printing is only done via ASTs. Compiler directives, inline comments and block comments will be ignored.
+If being set, pretty printing is only done via ASTs. Compiler directives, inline comments and block comments will be ignored.  
 There are numerous situations when the information in the AST alone cannot restore the original code.
 
 **Please do not use this setting for formatting hand written code!**
 
 Valid use-case of this settings is code generation in projects like [FsAst](https://github.com/ionide/FsAst) and [Myriad](https://github.com/MoiraeSoftware/myriad).
+
 Default = false.
 *)
 
