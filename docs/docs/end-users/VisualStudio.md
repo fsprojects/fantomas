@@ -18,3 +18,7 @@ The F# Formatting extension sets up Fantomas as the default formatter for F# fil
 4. Run fantomas inside Tools -> fantomas
   
 <img src="{{root}}/images/vsmac-external-tool.png" alt="drawing" width="70%"/>
+<div class="d-flex justify-content-between my-4">
+  <a href="./Rider.html">Previous</a>
+  <a href="./VSCode.html">Next</a>
+</div>

@@ -32,4 +32,6 @@ TODO
 
 ## Is it safe to use the Alpha version of Fantomas?
 TBD
-
+<div class="d-flex justify-content-between my-4">
+  <a href="./Benchmarks.html">Previous</a>
+</div>
