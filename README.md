@@ -9,14 +9,6 @@ F# source code formatter, inspired by [scalariform](https://github.com/mdr/scala
 [![Discord](https://img.shields.io/discord/940511234179096586?label=Fantomas%20Discord&style=flat-square)](https://discord.gg/D5QXvQrBVa)
 [![Nuget (with prereleases)](https://img.shields.io/nuget/vpre/fantomas?style=flat-square)](https://www.nuget.org/packages/fantomas/absoluteLatest)
 
-## Quick install
-
-* Command line: `dotnet tool install -g fantomas`
-* JetBrains Rider: preinstalled
-* VSCode: part of [Ionide](http://ionide.io/) and [fantomas-fmt](https://marketplace.visualstudio.com/items?itemName=paolodellepiane.fantomas-fmt).
-* [Visual Studio 2019](https://marketplace.visualstudio.com/items?itemName=asti.fantomas-vs)
-* [Visual Studio 2022](https://marketplace.visualstudio.com/items?itemName=asti.fantomas-vs22)
-
 ## How to use
 
 ### Command line tool / API
