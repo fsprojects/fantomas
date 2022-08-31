@@ -103,7 +103,7 @@ module WriterModel =
                 let lines =
                     match m.Lines with
                     | [] -> [ String.empty ]
-                    | h :: tail -> String.empty :: (h.TrimEnd()) :: tail
+                    | h :: tail -> String.empty :: h :: tail
 
                 { m with Lines = lines; Column = 0 }
             | Write s ->

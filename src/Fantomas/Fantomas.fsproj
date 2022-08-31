@@ -19,11 +19,17 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="paket.references" />
+    <Compile Include="AssemblyInfo.fsi" />
     <Compile Include="AssemblyInfo.fs" />
+    <Compile Include="IgnoreFile.fsi" />
     <Compile Include="IgnoreFile.fs" />
+    <Compile Include="EditorConfig.fsi" />
     <Compile Include="EditorConfig.fs" />
+    <Compile Include="Format.fsi" />
     <Compile Include="Format.fs" />
+    <Compile Include="Daemon.fsi" />
     <Compile Include="Daemon.fs" />
+    <Compile Include="Program.fsi" />
     <Compile Include="Program.fs" />
   </ItemGroup>
   <Import Project="..\..\.paket\Paket.Restore.targets" />
