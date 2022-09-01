@@ -27,11 +27,11 @@ At the time of writing we are in `beta` and consider **version five** to be **pr
 No real reason, it was [suggested](https://github.com/fsprojects/fantomas/pull/655#discussion_r374849907) by the contributor [lpedrosa](https://github.com/lpedrosa).  
 It also reminds us of a certain Jay-Z song 😉.
 
-## Can I make a design suggestion?
-TODO
-
+## Can I make a style suggestion?
+As mention in [style guide](https://fsprojects.github.io/fantomas/docs/end-users/StyleGuide.html), Fantomas adheres to [Microsoft](https://docs.microsoft.com/en-us/dotnet/fsharp/style-guide/formatting) and [G-Research](https://github.com/G-Research/fsharp-formatting-conventions) style guidelines. For any style related suggestion, please head over to [fsharp/fslang-design](https://github.com/fsharp/fslang-design#style-guide). Also see [Default style guide](https://fsprojects.github.io/fantomas/docs/end-users/StyleGuide.html#Default-style-guide).
 ## Is it safe to use the Alpha version of Fantomas?
-TBD
+Preview alpha versions are generally safe to use but there is no guarantee that the style wouldn't change due to ongoing development.
+
 <div class="d-flex justify-content-between my-4">
   <a href="./Benchmarks.html">Previous</a>
 </div>
