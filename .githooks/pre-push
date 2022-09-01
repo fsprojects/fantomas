@@ -17,4 +17,4 @@ remote_url="$2"
 
 # ensure that formatting is correct before pushing to the remote repository
 dotnet tool restore
-git diff --cached --name-only --diff-filter=ACM -z | xargs -0 dotnet tool fantomas 
+git diff --cached --name-only --diff-filter=ACM -z | xargs -0 dotnet tool run fantomas 
