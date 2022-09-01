@@ -2467,3 +2467,57 @@ odata<Person> {
     skip 10
 }
 """
+
+[<Test>]
+let ``trivia after computation expression, 2466`` () =
+    formatSourceString
+        false
+        """
+                let errs =
+                    (*[omit:(copying of errors omitted)]*)
+                    seq {
+                        for e in res.Errors ->
+                            { StartColumn = e.StartColumn
+                              StartLine = e.StartLine
+                              Message = e.Message
+                              IsError = e.Severity = Error
+                              EndColumn = e.EndColumn
+                              EndLine = e.EndLine }
+                    } (*[/omit]*)
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let errs =
+    (*[omit:(copying of errors omitted)]*)
+    seq {
+        for e in res.Errors ->
+            { StartColumn = e.StartColumn
+              StartLine = e.StartLine
+              Message = e.Message
+              IsError = e.Severity = Error
+              EndColumn = e.EndColumn
+              EndLine = e.EndLine }
+    } (*[/omit]*)
+"""
+
+[<Test>]
+let ``trivia after short computation expression`` () =
+    formatSourceString
+        false
+        """
+let zero =
+    async { () } // foo
+    |> ignore
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let zero =
+    async { () } // foo
+    |> ignore
+"""
