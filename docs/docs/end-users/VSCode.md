@@ -15,11 +15,14 @@ Make sure Ionide is set to the default formatter inside `settings.json` :
 ```
 
 ### Fantomas version detection used by Fantomas.Client
-*starting version 4.6*  
-Fantomas version detection would take into account the following priorities:  
+
+*starting version 4.6*
+
+Fantomas version detection will try and find a compatible version in the following order:
+
 1. The version of Fantomas used by your local project. This is the fantomas version displayed when you run `dotnet tool list` inside the project folder.  
-2. Your global Fantomas version. If fantomas was installed with `dotnet tool install fantomas -g`. You can see your global installations with `dotnet tool list -g`  
-3. Executable named `fantomas` found in your PATH. You can verify it with `echo $PATH`
+2. Your global Fantomas version. If fantomas was installed with `dotnet tool install fantomas -g`. You can see your global installations with `dotnet tool list -g`.  
+3. Executable named `fantomas` found in your PATH.
 
 <div class="d-flex justify-content-between my-4">
   <a href="./VisualStudio.html">Previous</a>
