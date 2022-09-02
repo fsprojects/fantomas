@@ -6,6 +6,7 @@ index: 1000
 # FAQ
 
 ## Why the name "Fantomas"?
+
 There are a few reasons to choose the name as such.
 First, it starts with an "F" just like many other F# projects.
 Second, Fantomas is my favourite character in the literature.
@@ -28,10 +29,13 @@ No real reason, it was [suggested](https://github.com/fsprojects/fantomas/pull/6
 It also reminds us of a certain Jay-Z song 😉.
 
 ## Can I make a style suggestion?
+
 As mention in [style guide](https://fsprojects.github.io/fantomas/docs/end-users/StyleGuide.html), Fantomas adheres to [Microsoft](https://docs.microsoft.com/en-us/dotnet/fsharp/style-guide/formatting) and [G-Research](https://github.com/G-Research/fsharp-formatting-conventions) style guidelines. For any style related suggestion, please head over to [fsharp/fslang-design](https://github.com/fsharp/fslang-design#style-guide). Also see [More context](https://fsprojects.github.io/fantomas/docs/end-users/StyleGuide.html#Default-style-guide).
+
 ## Is it safe to use the Alpha version of Fantomas?
+
 Preview alpha versions are generally safe to use but there is no guarantee that the style wouldn't change due to ongoing development.  
-If a change it's in the changelog, in most cases it'd be considered stable. You should check the [changelog](https://github.com/fsprojects/fantomas/blob/master/CONTRIBUTING.md) to see if there's any relevant change to try out in the Alpha.
+You should check the [changelog](https://github.com/fsprojects/fantomas/blob/master/CONTRIBUTING.md) to see if there's any relevant change to try out in the Alpha.
 
 <div class="d-flex justify-content-between my-4">
   <a href="./Benchmarks.html">Previous</a>
