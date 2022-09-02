@@ -19,7 +19,6 @@ let WithErrors = """let a ="""
 [<Literal>]
 let CorrectlyFormatted =
     """module A
-
 """
 
 [<Test>]
@@ -135,3 +134,15 @@ let ``honor ignore file when processing a folder`` () =
         runFantomasTool (sprintf "--check .%c%s" Path.DirectorySeparatorChar subFolder)
 
     output |> should not' (contain "ignored")
+
+[<Test>]
+let ``check should fail if the number of newlines is different, 2461`` () =
+    let codeSnippet =
+        """module A
+
+"""
+
+    use fileFixture = new TemporaryFileCodeSample(codeSnippet)
+
+    let { ExitCode = exitCode } = checkCode [ fileFixture.Filename ]
+    exitCode |> should equal 99

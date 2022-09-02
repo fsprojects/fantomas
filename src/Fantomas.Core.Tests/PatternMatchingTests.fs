@@ -2183,3 +2183,32 @@ let f a =
     match a with
     | (A | B as bi, x) -> 1
 """
+
+[<Test>]
+let ``match statements should not be split into separate lines between parentheses, 2044`` () =
+    formatSourceString
+        false
+        """
+type Foo =
+  | Bar of int
+  | Baz
+
+let foo =
+  function
+  | Bar (1 | 2) -> true
+  | _ -> false
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type Foo =
+    | Bar of int
+    | Baz
+
+let foo =
+    function
+    | Bar (1 | 2) -> true
+    | _ -> false
+"""
