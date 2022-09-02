@@ -85,24 +85,24 @@
     </div>
   </main>
   <script type="text/javascript">
-    window.addEventListener('load', (event) => {
-      const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
-      const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))
-      addEventListener('hide.bs.collapse', (e) => {
-        if (e.target && e.target.id === 'sidebar-wrapper') {
-          document.getElementById('main-container').classList.add('toggled');
-        }
+window.addEventListener('load', (event) => {
+    const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
+    const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))
+addEventListener('hide.bs.collapse', (e) => {
+  if (e.target && e.target.id === 'sidebar-wrapper') {
+    document.getElementById('main-container').classList.add('toggled');
+  }
   else{
     document.getElementById(e.target.id+'-wrapper').classList.remove('menu-open');
-        }
-      })
-      addEventListener('show.bs.collapse', (e) => {
-        if (e.target && e.target.id === 'sidebar-wrapper') {
-          document.getElementById('main-container').classList.remove('toggled');
-        }
+  }
+})
+addEventListener('show.bs.collapse', (e) => {
+  if (e.target && e.target.id === 'sidebar-wrapper') {
+   document.getElementById('main-container').classList.remove('toggled');
+  }
   else{
     document.getElementById(e.target.id+'-wrapper').classList.add('menu-open');
-        }
+  }
       })
       let fsdocsFileName = `{{fsdocs-source-filename}}`
       let fsdocsSection = fsdocsFileName.substring(fsdocsFileName.indexOf('/') + 1, fsdocsFileName.lastIndexOf('/'))
