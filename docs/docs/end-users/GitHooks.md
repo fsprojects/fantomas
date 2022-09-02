@@ -18,7 +18,7 @@ This script assumes you have installed Fantomas globally as a [dotnet tool](http
 ##### Using fantomas locally
 ```
 #!/bin/sh
-git diff --cached --name-only --diff-filter=ACM -z | xargs -0 dotnet tool run fantomas 
+git diff --cached --name-only --diff-filter=ACM -z | xargs -0 dotnet fantomas 
 git diff --cached --name-only --diff-filter=ACM -z | xargs -0 git add
 ```
 
