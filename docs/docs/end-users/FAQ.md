@@ -30,7 +30,9 @@ It also reminds us of a certain Jay-Z song 😉.
 
 ## Can I make a style suggestion?
 
-As mention in [style guide](https://fsprojects.github.io/fantomas/docs/end-users/StyleGuide.html), Fantomas adheres to [Microsoft](https://docs.microsoft.com/en-us/dotnet/fsharp/style-guide/formatting) and [G-Research](https://github.com/G-Research/fsharp-formatting-conventions) style guidelines. For any style related suggestion, please head over to [fsharp/fslang-design](https://github.com/fsharp/fslang-design#style-guide). Also see [More context](https://fsprojects.github.io/fantomas/docs/end-users/StyleGuide.html#Default-style-guide).
+As mention in [style guide](https://fsprojects.github.io/fantomas/docs/end-users/StyleGuide.html), Fantomas adheres to [Microsoft](https://docs.microsoft.com/en-us/dotnet/fsharp/style-guide/formatting) and [G-Research](https://github.com/G-Research/fsharp-formatting-conventions) style guidelines.  
+For any style related suggestion, please head over to [fsharp/fslang-design](https://github.com/fsharp/fslang-design#style-guide).  
+[More context](https://fsprojects.github.io/fantomas/docs/end-users/StyleGuide.html#Default-style-guide).
 
 ## Is it safe to use the Alpha version of Fantomas?
 
