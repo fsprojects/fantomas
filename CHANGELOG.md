@@ -1,6 +1,6 @@
 # Changelog
 
-## [Unreleased]
+## [5.0.0-beta-009] - 2022-09-02
 
 ### Fixed
 * --check should fail if the number of newlines is different. [#2461](https://github.com/fsprojects/fantomas/issues/2461)
