@@ -33,6 +33,14 @@ This includes cases where Fantomas breaks one of its own formatting rules or fai
 
 Again, here: scratch your own itch. If something bothers you, the best cure is to try a take a stab at it yourself.
 
+## Good first issues
+
+If wish to solve an issue, but don't know where to start, you can take a look that [good first issue](https://github.com/fsprojects/fantomas/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22) list.  
+These issues are typically easier to pick up and might only require a few small changes to solve them.
+
+In case you want to solve any issue and would like some more guidance to start, you can also just ask this on the GitHub issue.
+They maintainer can give you an additional pointers to get you on your way.
+
 ## Adoption
 
 The dream is that every F# developer can use Fantomas at any time.
@@ -43,7 +51,7 @@ This tool will only improve by adoption.
 ### fsprojects
 
 As Fantomas is part of the [F# Community Project Incubation Space](https://github.com/fsprojects/), it would be nice to see all the sibling projects formatted as well.  
-We've put a lot of emphasis on [continued formatting](../end-users/FormattingCheck.md) using the `--check` flag. Having that CI setup in place really brings it home.
+We've put a lot of emphasis on [continued formatting](../end-users/FormattingCheck.md) using the `--check` flag. Having that **CI setup** in place **really brings it home**.
 
 ### Big fish
 
@@ -62,11 +70,11 @@ If you want to help increase adoption by providing financial support, you can re
 
 ## Keeping the grass green
 
-There are also some smaller deeds that can benefit the codebase, which would be appreciated.
+There are also some smaller deeds that can benefit the codebase.
 
-### Dead code
+### Eliminate dead code
 
-Here and there, there are piece in the code that are no longer being used. Ranging from parameters to complete functions.  
+Here and there, there are parts of code that are no longer being used. Ranging from unused parameters to complete functions.  
 A PR that cleans up these things would be appreciated as well.
 
 ### Linting
@@ -80,7 +88,7 @@ One other thing that changes your perception of code all together is knowing how
 Having a sense of the inner workings of Fantomas can be beneficial in understanding how the output was achieved.  
 
 It broadens your horizon in general, as it touched a lot of interesting concepts, and you start looking differently at your F# code.  
-Your sentiment on what really matters might change, once you realized the level of complexity to get there.
+Your sentiment on what you think matters might change, once you realized the level of complexity it involves.
 
 ## Documentation
 
@@ -106,6 +114,6 @@ Please give an alpha a spin if you are interested in submitting feedback for new
 Try both versions if you want to make sure everything still works for you.
 
 Don't feel obliged to use an alpha/beta in your day-to-day flow, just try them to see if the potential next stable version will still work.  
-We have **over 2000 unit tests**, that still doesn't tell us we will never break your specific code.
+We have **over 2000 unit tests**, that still doesn't tell us if the next release will break your code or not.
 
 <fantomas-nav previous="./Conditional%20Compilation%20Directives.html"></fantomas-nav>
