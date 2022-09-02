@@ -117,5 +117,6 @@ No matter the case, when you have a `--check` command somewhere in your continuo
 It really helps us spotting problems early on and we can more easily pinpoint the problem due to lesser recent changes.
 
 <div class="d-flex justify-content-between my-4">
-    <a href="./IgnoreFiles.html">Previous</a>
+  <a href="./IgnoreFiles.html">Previous</a>
+  <a href="./GitHooks.html">Next</a>
 </div>
