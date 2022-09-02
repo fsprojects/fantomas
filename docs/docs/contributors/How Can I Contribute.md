@@ -116,4 +116,80 @@ Try both versions if you want to make sure everything still works for you.
 Don't feel obliged to use an alpha/beta in your day-to-day flow, just try them to see if the potential next stable version will still work.  
 We have **over 2000 unit tests**, that still doesn't tell us if the next release will break your code or not.
 
+## Improve the Syntax Tree
+
+Fantomas uses the parser from the F# compiler to construct the untyped syntax tree.  
+This tree is later used to reconstruct the code. The better the tree, the better Fantomas can operate on it.  
+The tree can be improved over at [dotnet/fsharp](https://github.com/dotnet/fsharp) when a valid use-case appears.
+
+### Trivia nodes
+
+Trivia nodes in the syntax tree are nodes the compiler doesn't need to compile the code. However, for Fantomas they can be the missing link to perfectly restore the code.
+
+For example, in issue [#2360](https://github.com/fsprojects/fantomas/issues/2360), there information about the `and` keyword is missing in the syntax tree.  
+If this information was available in [SynTypeDefnTrivia](../../reference/fsharp-compiler-syntaxtrivia-syntypedefntrivia.html), the bug could be fixed.
+
+### Better representation
+
+Sometimes the existing shape of the syntax tree, didn't quite cover the syntax perfectly.
+
+For example, in issue [#2264](https://github.com/fsprojects/fantomas/issues/2264), the measure was represented as
+
+Code:
+```fsharp
+[<Measure>] type herth = / second
+```
+
+Old AST:
+```fsharp
+Types
+   ([SynTypeDefn
+       (SynComponentInfo
+          ([{ Attributes = [ ... ], None, [], [herth],
+           PreXmlDoc ((1,0), FSharp.Compiler.Xml.XmlDocCollector),
+           false, None, tmp.fsx (1,17--1,22)),
+        Simple
+          (TypeAbbrev
+             (Ok,
+              Tuple
+                (false,
+                 [(true,
+                   StaticConstant (Int32 1, tmp.fsx (1,25--1,33)));
+                  (false,
+                   LongIdent (SynLongIdent ([second], [], [None])))], ...]
+```
+
+Notice `StaticConstant (Int32 1, ...)`, the source code doesn't contain any `1` at all.
+
+After [dotnet/fsharp#13440](https://github.com/dotnet/fsharp/pull/13440),
+
+New AST:
+```fsharp
+Types
+             ([SynTypeDefn
+                 (SynComponentInfo
+                    ([{ Attributes =
+                         [{ TypeName = SynLongIdent ([Measure], [], [None])
+                            ArgExpr = Const (Unit, tmp.fsx (1,2--1,9))
+                            Target = None
+                            AppliesToGetterAndSetter = false
+                            Range = tmp.fsx (1,2--1,9) }]
+                        Range = tmp.fsx (1,0--1,11) }], None, [], [herth],
+                     PreXmlDoc ((1,0), FSharp.Compiler.Xml.XmlDocCollector),
+                     false, None, tmp.fsx (1,17--1,22)),
+                  Simple
+                    (TypeAbbrev
+                       (Ok,
+                        Tuple
+                          (false,
+                           [Slash tmp.fsx (1,25--1,26);
+                            Type
+                              (LongIdent (SynLongIdent ([second], [], [None])))],
+                           tmp.fsx (1,25--1,33)), tmp.fsx (1,25--1,33)), ... ]
+```
+
+This update to the tree made it very straightforward to fix the original bug in Fantomas.
+
+Another example of code that could benefit from a better representation is [extern](https://github.com/fsprojects/fantomas/issues?q=is%3Aissue+is%3Aopen+extern).
+
 <fantomas-nav previous="./Conditional%20Compilation%20Directives.html"></fantomas-nav>
