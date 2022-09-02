@@ -47,12 +47,12 @@ function Navigation({next, previous}) {
     return previous ?
         html`
             <div class="d-flex justify-content-between my-4">
-                <a href="${previous}">🐸 Previous</a>
+                <a href="${previous}">Previous</a>
                 ${next && html`<a href="${next}">Next</a>`}
             </div>` :
         html`
             <div class="text-end my-4">
-                <a href="${next}"> 🐨Next</a>
+                <a href="${next}">Next</a>
             </div>`;
 }
 
