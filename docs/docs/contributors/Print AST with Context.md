@@ -65,7 +65,7 @@ There are various helper functions in `CodePrinter` that create `WriterEvent`s.
 In `CodePrinter` we will typically never construct a `WriterEvent` directly.
 
 Instead we can use various helper functions that take the `Context` as parameter and return an updated `Context` with additional events.  
-Please take a moment to debug the unit tests in `CodePrinterHelperFunctionsTests.fs`.  
+Please take a moment to debug the unit tests in [CodePrinterHelperFunctionsTests.fs](https://github.com/fsprojects/fantomas/blob/master/src/Fantomas.Core.Tests/CodePrinterHelperFunctionsTests.fs).  
 This will give you a better understanding of how we capture events in `CodePrinter`.
 
 <div class="d-flex justify-content-between my-4">
