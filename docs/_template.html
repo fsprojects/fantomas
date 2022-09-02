@@ -32,7 +32,7 @@
       <div id="sidebar-logo" class="d-flex justify-content-center p-5">
       <a href="{{root}}docs/index.html" ><img id="fsdocs-logo" src="{{root}}/{{fsdocs-logo-src}}" /></a>
 </div>
-      <div id="sidebar-content" class="list-unstyled ps-0 text-white fs-6">
+      <div id="sidebar-content" class="accordion accordion-flush ps-0 text-white fs-6">
         {{fsdocs-list-of-documents}}
         {{fsdocs-list-of-namespaces}}
       </div>
@@ -85,26 +85,44 @@
     </div>
   </main>
   <script type="text/javascript">
-window.addEventListener('load', (event) => {
-    const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
-    const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))
-addEventListener('hide.bs.collapse', (e) => {
-  if (e.target && e.target.id === 'sidebar-wrapper') {
-    document.getElementById('main-container').classList.add('toggled');
-  }
+    window.addEventListener('load', (event) => {
+      const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
+      const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))
+      addEventListener('hide.bs.collapse', (e) => {
+        if (e.target && e.target.id === 'sidebar-wrapper') {
+          document.getElementById('main-container').classList.add('toggled');
+        }
   else{
     document.getElementById(e.target.id+'-wrapper').classList.remove('menu-open');
-  }
-})
-addEventListener('show.bs.collapse', (e) => {
-  if (e.target && e.target.id === 'sidebar-wrapper') {
-   document.getElementById('main-container').classList.remove('toggled');
-  }
+        }
+      })
+      addEventListener('show.bs.collapse', (e) => {
+        if (e.target && e.target.id === 'sidebar-wrapper') {
+          document.getElementById('main-container').classList.remove('toggled');
+        }
   else{
     document.getElementById(e.target.id+'-wrapper').classList.add('menu-open');
-  }
-})
-});
+        }
+      })
+      let fsdocsFileName = `{{fsdocs-source-filename}}`
+      let fsdocsSection = fsdocsFileName.substring(fsdocsFileName.indexOf('/') + 1, fsdocsFileName.lastIndexOf('/'))
+      let openMenu = (fsdocsSection) => {
+        document.getElementById(fsdocsSection + '-wrapper').classList.add('menu-open');
+        document.getElementById(fsdocsSection).classList.add('show');
+        document.getElementById(fsdocsSection + '-button').classList.remove('collapsed')
+      }
+      switch (fsdocsSection) {
+        case '/':
+          openMenu('end-users')
+          break;
+        case '':
+          openMenu('api_reference')
+          break;
+        default:
+          openMenu(fsdocsSection);
+          break;
+      }
+    });
   </script>
   <!-- BEGIN SEARCH BOX: this adds support for the search box -->
   <link rel="stylesheet"
