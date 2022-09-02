@@ -68,7 +68,4 @@ Instead we can use various helper functions that take the `Context` as parameter
 Please take a moment to debug the unit tests in [CodePrinterHelperFunctionsTests.fs](https://github.com/fsprojects/fantomas/blob/master/src/Fantomas.Core.Tests/CodePrinterHelperFunctionsTests.fs).  
 This will give you a better understanding of how we capture events in `CodePrinter`.
 
-<div class="d-flex justify-content-between my-4">
-  <a href="./Prepare%20Context.html">Previous</a>
-  <a href="./Formatted%20Code.html">Next</a>
-</div>
+<fantomas-nav previous="./Prepare%20Context.html" next="./Formatted%20Code.html"></fantomas-nav>

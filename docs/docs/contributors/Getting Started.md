@@ -74,8 +74,4 @@ dotnet fake build -t EnsureRepoConfig
 This target makes changes to the local git repository configuration to ensure
 that formatting of new code is consistent before it is pushed up to a remote repository.
 
-
-<div class="d-flex justify-content-between my-4">
-  <a href="./FSharp.html">Previous</a>
-  <a href="./Solution%20Structure.html">Next</a>
-</div>
+<fantomas-nav previous="./FSharp.html" next="./Solution%20Structure.html">

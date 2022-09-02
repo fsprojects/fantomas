@@ -24,7 +24,4 @@ git diff --cached --name-only --diff-filter=ACM -z | xargs -0 git add
 
 **Please use with caution** as [Fantomas is not without bugs](https://github.com/fsprojects/fantomas/issues?q=is%3Aissue+is%3Aopen+label%3A%22bug+%28soundness%29%22).
 
-<div class="d-flex justify-content-between my-4">
-  <a href="./FormattingCheck.html">Previous</a>
-  <a href="./Rider.html">Next</a>
-</div>
+<fantomas-nav previous="./FormattingCheck.html" next="./Rider.html"></fantomas-nav>

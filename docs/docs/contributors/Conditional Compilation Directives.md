@@ -150,6 +150,4 @@ After merging:
 [ "let a ="; "#if DEBUG"; "0"; "#else"; "1"; "#endif" ]
 ```
 
-<div class="d-flex justify-content-between my-4">
-  <a href="./Formatted%20Code.html">Previous</a>
-</div>
+<fantomas-nav previous="./Formatted%20Code.html" next="./How%20Can%20I%20Contribute.html"></fantomas-nav>

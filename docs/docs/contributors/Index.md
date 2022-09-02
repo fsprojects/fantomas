@@ -21,6 +21,4 @@ The best is yet to come!
 PS: Don't hesitate to open [an issue](https://github.com/fsprojects/fantomas/issues/new/choose) if you have any questions. 
 Or if something isn't all that clear. Our goal is to make this documentation as complete as possible🎉!
 
-<div class="text-end my-4">
-    <a href="./FSharp.html">Next</a>
-</div>
+<fantomas-nav next="./FSharp.html"></fantomas-nav>

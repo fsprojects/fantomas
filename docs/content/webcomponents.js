@@ -43,6 +43,19 @@ function FantomasSettingIconGResearch({tooltip}) {
                    data-bs-title="${safeTooltip}" data-bs-custom-class="gresearch-tooltip" src="${root}/images/gresearch.svg" alt="G-Research logo"/>`;
 }
 
+function Navigation({next, previous}) {
+    return previous ?
+        html`
+            <div class="d-flex justify-content-between my-4">
+                <a href="${previous}">🐸 Previous</a>
+                ${next && html`<a href="${next}">Next</a>`}
+            </div>` :
+        html`
+            <div class="text-end my-4">
+                <a href="${next}"> 🐨Next</a>
+            </div>`;
+}
+
 customElements.define('fantomas-setting-icon', component(FantomasSettingIcon, {
     useShadowDOM: false,
     observedAttributes: ['tooltip', 'type']
@@ -52,3 +65,5 @@ customElements.define('fantomas-setting-icon-gresearch', component(FantomasSetti
     useShadowDOM: false,
     observedAttributes: ['tooltip']
 }));
+
+customElements.define('fantomas-nav', component(Navigation, { useShadowDOM: false, observedAttributes: ['next', 'previous']}))

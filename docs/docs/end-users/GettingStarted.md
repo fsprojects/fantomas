@@ -94,7 +94,4 @@ Or usage with `find` on Unix:
 find my-project/ -type f -name "*.fs" -not -path "*obj*" | xargs dotnet fantomas --check
 ```
 
-<div class="d-flex justify-content-between my-4">
-  <a href="../index.html">Previous</a>
-  <a href="./StyleGuide.html">Next</a>
-</div>
+<fantomas-nav previous="../index.html" next="./StyleGuide.html"></fantomas-nav>
