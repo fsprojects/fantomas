@@ -1323,3 +1323,28 @@ let colWithNlnWhenItemIsMultilineUsingConfig (items: ColMultilineItem list) (ctx
         colWithNlnWhenItemIsMultiline items ctx
     else
         col sepNln items (fun (ColMultilineItem (expr, _)) -> expr) ctx
+
+/// Equivalent of calling `f +> unindent`
+/// In case `f` ends on a `WriteLineBecauseOfTrivia`, inserts the `UnIndentBy` before the `WriteLineBecauseOfTrivia`.
+let unindentAfter (f: Context -> Context) (ctx: Context) : Context =
+    let ctxAfter = f ctx
+
+    match Queue.tryHead ctxAfter.WriterEvents with
+    | Some WriterEvent.WriteLineBecauseOfTrivia ->
+        // apply new events on ctx, except the last one
+        let delta = ctxAfter.WriterEvents.Length - ctx.WriterEvents.Length
+
+        let newEvents =
+            ctxAfter.WriterEvents
+            |> Seq.skip (ctxAfter.WriterEvents.Length - delta)
+            |> Seq.take (delta - 1)
+
+        let events =
+            seq {
+                yield! newEvents
+                yield UnIndentBy ctx.Config.IndentSize
+                yield WriteLineBecauseOfTrivia
+            }
+
+        Seq.fold (fun ctx e -> writerEvent e ctx) ctx events
+    | _ -> unindent ctxAfter
