@@ -23,7 +23,4 @@ When there are any warnings or errors, we will throw an exception.
 Some warnings are are allowed as they indicate problems that were most likely already present in the input code.
 See `Validation.fs` for more details.
 
-<div class="d-flex justify-content-between my-4">
-  <a href="./Print%20AST%20with%20Context.html">Previous</a>
-  <a href="./Conditional%20Compilation%20Directives.html">Next</a> 
-</div>
+<fantomas-nav previous="./Print%20AST%20with%20Context.html" next="./Conditional%20Compilation%20Directives.html"></fantomas-nav>

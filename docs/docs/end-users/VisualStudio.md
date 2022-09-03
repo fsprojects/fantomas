@@ -19,7 +19,4 @@ Do note that the extension might not be up to date with the latest version of Fa
   
 <img src="{{root}}/images/vsmac-external-tool.png" alt="drawing" width="70%"/>
 
-<div class="d-flex justify-content-between my-4">
-  <a href="./Rider.html">Previous</a>
-  <a href="./VSCode.html">Next</a>
-</div>
+<fantomas-nav previous="./Rider.html" next="./VSCode.html"></fantomas-nav>

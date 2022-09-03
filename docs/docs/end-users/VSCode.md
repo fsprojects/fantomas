@@ -24,7 +24,4 @@ Fantomas version detection will try and find a compatible version in the followi
 2. Your global Fantomas version. If fantomas was installed with `dotnet tool install fantomas -g`. You can see your global installations with `dotnet tool list -g`.  
 3. Executable named `fantomas` found in your PATH.
 
-<div class="d-flex justify-content-between my-4">
-  <a href="./VisualStudio.html">Previous</a>
-  <a href="./Benchmarks.html">Next</a>
-</div>
+<fantomas-nav previous="./VisualStudio.html" next="./FAQ.html"></fantomas-nav>

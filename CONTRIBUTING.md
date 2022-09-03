@@ -5,46 +5,6 @@ Fantomas is a bit of a complex project and it can be overwhelming to just dive i
 In this guide, we will try to get you started and express our expectations in terms of potential contributions.<br />
 We hope to give you proper context about fixing bugs, expressing new ideas and the technical aspects.
 
-## What are we looking for?
-
-### Bug fixes
-
-The most welcome additions to the project are bug fixes. The philosophy behind this is that everyone should be able to fix their own bug.
-If we can achieve this as a community, we can share the workload and all benefit together.
-The project can move at a faster pace and improve as a whole.
-
-We strongly encourage people to embrace the reward of solving their own problems.
-We'll ask for a regression test when you fix a bug, to guarantee that you won't encounter the bug again.
-
-#### bug (soundness)
-
-Our goal is for Fantomas to be able to format all files out of the box without breaking correctness.
-It's very important to us that a new user's experience is smooth and at the very least results in correct code.
-Bugs labelled `bug (soundness)` all indicate places where a new user might bounce off Fantomas because it actually broke their code.
-We want to make sure users get a chance to explore the settings and tweak the style.
-If you can help us out by fixing a soundness bug, you can really help the project move forward.
-
-#### bug (stylistic)
-
-Besides breaking correctness another kind of bug is that the style of the output might not be what you expect.
-Bugs like this are labelled as `bug (stylistic)`.
-This includes cases where Fantomas breaks one of its own formatting rules or fails to respect one of its settings.
-
-Again, here: scratch your own itch. If something bothers you, the best cure is to try a take a stab at it yourself.
-
-### Adoption
-
-The dream is that every F# developer can use Fantomas at any time.
-This aspiration is an odyssey that might never be complete, but any step in that direction is most welcome.
-Try introducing automatic formatting in your project, at work, or in an open-source project.
-This tool will only improve by adoption.
-
-#### Sponsoring
-
-Fantomas grew significantly as a result of its first sponsorship deal with [G-Research](https://www.gresearch.co.uk/).
-It would still be in the dark ages if it weren't for this support. For that we will forever be grateful.
-If you want to help increase adoption by providing financial support, you can reach out to [sponsoring@fantomas.io](mailto:sponsoring@fantomas.io).
-
 ## What are we not looking for?
 
 ### Stylistic features
@@ -75,31 +35,6 @@ The best cure is to have a go at making the change yourself!
 Still here? Great! Sometimes you really do have a stylistic suggestion that just doesn't fit in any style guide.
 Think carefully, and perhaps do an experiment in the Fantomas codebase first, to see how difficult your suggestion is going to be.
 If a feature can help in the project's adoption and growth, we are happy to discuss it.
-
-# Getting started with Fantomas
-
-Fantomas has a fairly straightforward setup.
-
-> git clone https://github.com/yourfork/fantomas
-
-After cloning the repository, you can restore the local .NET tools:
-
-> dotnet tool restore
-
-Next, you should run a FAKE target that sets up some git repo-level configuration.
-
-> dotnet fake build -t EnsureRepoConfig
-
-This target makes changes to the local git repository configuration to ensure 
-that formatting of new code is consistent before it is pushed up to a remote repository.
-
-Finally, you can execute FAKE build targets.
-
-> dotnet fake run build.fsx --list
-
-The default target will execute the CI build.
-
-> dotnet fake build
 
 # Pull request ground rules
 
@@ -329,56 +264,6 @@ Use a helper function like `sepNlnConsideringTriviaContentBeforeForMainNode` ins
 In [CodePrinter.fs](https://github.com/fsprojects/fantomas/blob/master/src/Fantomas/CodePrinter.fs) the ASTContext record is used to indicate context aware information. This usually is an escape hatch and should be avoided at all times.
 The key issue is that flags of the ASTContext are usually not cleaned up after they served their purpose.
 Leading to very strange situations and unexpected behavior.
-
-## Rider
-
-The core contributors of this project are using JetBrains Rider. Running and debugging unit tests works out of the box and no additional plugins are needed.
-
-## Ionide
-
-When you want to contribute to this project in VSCode with Ionide, there is a trick you need to know to debug Unit tests.
-
-After checking out the repository, open a terminal and set the `VSTEST_HOST_DEBUG` environment variable to `1`.
-
-In PowerShell:
-
-> $env:VSTEST_HOST_DEBUG=1
-
-or in Bash:
-
-> export VSTEST_HOST_DEBUG=1
-
-Run a single unit test with `dotnet test --filter`.
-
-> cd .\src\Fantomas.Core.Tests\
-> dotnet test --filter 1700
-
-The output looks like:
-
-```
-Test run for C:\Temp\fantomas\src\Fantomas.Core.Tests\bin\Debug\netcoreapp3.1\Fantomas.Tests.dll(.NETCoreApp,Version=v3.1)
-Microsoft (R) Test Execution Command Line Tool Version 16.3.0
-Copyright (c) Microsoft Corporation.  All rights reserved.
-
-Starting test execution, please wait...
-
-A total of 1 test files matched the specified pattern.
-Host debugging is enabled. Please attach debugger to testhost process to continue.
-Process Id: 20312, Name: dotnet
-```
-
-And we can now attach to the unit testing process.
-
-![Run .NET Core Attach ](./docs-old/fantomas-debug-vscode-1.png)
-
-![Choose process id](./docs-old/fantomas-debug-vscode-2.png)
-
-**Press the play button once the process has been chosen!**
-This might be a bit strange but you need to press play in order for the debugger to start working.
-
-![Hit the breakpoint](./docs-old/fantomas-debug-vscode-3.png)
-
-Check out this [video fragment](https://youtu.be/axHIazqiO9E?t=65) to see this in action.
 
 # Bug reports
 

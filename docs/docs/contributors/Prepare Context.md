@@ -199,7 +199,4 @@ graph TD
     C[Assign trivia to TriviaNode and create TriviaInstructions]
  </div>
 
-<div class="d-flex justify-content-between my-4">
-  <a href="./Solution%20Structure.html">Previous</a>
-  <a href="./Print%20AST%20with%20Context.html">Next</a>
-</div>
+<fantomas-nav previous="./Solution%20Structure.html" next="./Print%20AST%20with%20Context.html"></fantomas-nav>

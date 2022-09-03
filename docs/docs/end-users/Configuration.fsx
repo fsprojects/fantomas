@@ -788,8 +788,6 @@ formatCode
     { FormatConfig.Default with StrictMode = true }
 (*** include-it ***)
 (**
-<div class="d-flex justify-content-between my-4">
-  <a href="./StyleGuide.html">Previous</a>
-  <a href="./IgnoreFiles.html">Next</a>
-</div>
+<fantomas-nav previous="./StyleGuide.html" next="./IgnoreFiles.html"></fantomas-nav>
+
 *)
