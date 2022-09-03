@@ -2612,3 +2612,32 @@ let v =
         // there is a blank line above this comment
     |]
 """
+
+[<Test>]
+let ``this really proves the point of the methodology`` () =
+    formatSourceString
+        false
+        """
+let v =
+    [
+        "thing"
+        "thing2"
+
+        // there is a blank line above this comment
+    ]
+"""
+        { config with
+            MultilineBlockBracketsOnSameColumn = true
+            IndentSize = 2 }
+    |> prepend newline
+    |> should
+        equal
+        """
+let v =
+  [
+    "thing"
+    "thing2"
+
+    // there is a blank line above this comment
+  ]
+"""
