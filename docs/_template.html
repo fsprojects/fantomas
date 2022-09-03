@@ -84,46 +84,7 @@
         <div id="push"></div>
     </div>
   </main>
-  <script type="text/javascript">
-window.addEventListener('load', (event) => {
-    const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
-    const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))
-addEventListener('hide.bs.collapse', (e) => {
-  if (e.target && e.target.id === 'sidebar-wrapper') {
-    document.getElementById('main-container').classList.add('toggled');
-  }
-  else{
-    document.getElementById(e.target.id+'-wrapper').classList.remove('menu-open');
-  }
-})
-addEventListener('show.bs.collapse', (e) => {
-  if (e.target && e.target.id === 'sidebar-wrapper') {
-   document.getElementById('main-container').classList.remove('toggled');
-  }
-  else{
-    document.getElementById(e.target.id+'-wrapper').classList.add('menu-open');
-  }
-      })
-      let fsdocsFileName = `{{fsdocs-source-filename}}`
-      let fsdocsSection = fsdocsFileName.substring(fsdocsFileName.indexOf('/') + 1, fsdocsFileName.lastIndexOf('/'))
-      let openMenu = (fsdocsSection) => {
-        document.getElementById(fsdocsSection + '-wrapper').classList.add('menu-open');
-        document.getElementById(fsdocsSection).classList.add('show');
-        document.getElementById(fsdocsSection + '-button').classList.remove('collapsed')
-      }
-      switch (fsdocsSection) {
-        case '/':
-          openMenu('end-users')
-          break;
-        case '':
-          openMenu('api_reference')
-          break;
-        default:
-          openMenu(fsdocsSection);
-          break;
-      }
-    });
-  </script>
+  <script type="module" src="{{root}}content/docs-setup.js"></script>
   <!-- BEGIN SEARCH BOX: this adds support for the search box -->
   <link rel="stylesheet"
     href="https://cdnjs.cloudflare.com/ajax/libs/JavaScript-autoComplete/1.0.4/auto-complete.css" />
