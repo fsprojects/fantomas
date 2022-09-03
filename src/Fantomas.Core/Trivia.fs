@@ -1,5 +1,6 @@
 module internal Fantomas.Core.Trivia
 
+open System.Collections.Immutable
 open Microsoft.FSharp.Core.CompilerServices
 open FSharp.Compiler.SyntaxTrivia
 open FSharp.Compiler.Text
@@ -228,16 +229,18 @@ let findNodeAfterLineAndColumn (nodes: TriviaNode seq) line column =
 
 /// The trivia is not a part of the tree
 /// Either assign it on top of below the root node
-let triviaBeforeOrAfterEntireTree (rootNode: TriviaNode) (trivia: Trivia) : TriviaInstruction =
-    let isBefore = trivia.Range.EndLine < rootNode.Range.StartLine
+let triviaBeforeOrAfterEntireTree (rootNode: TriviaNode) (triviaGroup: TriviaGroup) : TriviaInstruction =
+    let isBefore = triviaGroup.Range.EndLine < rootNode.Range.StartLine
 
     let trivia =
-        match trivia.Item with
-        | Comment (BlockComment (commentText, _, _)) ->
-            { trivia with Item = Comment(BlockComment(commentText, false, true)) }
-        | _ -> trivia
+        match Seq.tryExactlyOne triviaGroup.Trivia with
+        | Some ({ Item = Comment (BlockComment (commentText, _, _)) } as trivia) ->
+            let item = Comment(BlockComment(commentText, false, true))
+            let trivia = { trivia with Item = item }
+            { triviaGroup with Trivia = ImmutableQueue.Create(trivia) }
+        | _ -> triviaGroup
 
-    { Trivia = trivia
+    { TriviaGroup = trivia
       Type = rootNode.Type
       Range = rootNode.Range
       AddBefore = isBefore }
@@ -250,30 +253,34 @@ let (|BracketTriviaNode|_|) (node: TriviaNode) =
 
 /// Try to put the trivia on top of the closest node
 /// If that didn't work put it after the last node
-let simpleTriviaToTriviaInstruction (containerNode: TriviaNode) (trivia: Trivia) : TriviaInstruction option =
+let simpleTriviaToTriviaInstruction (containerNode: TriviaNode) (triviaGroup: TriviaGroup) : TriviaInstruction option =
     let nodeAfter =
-        Array.tryFind (fun (node: TriviaNode) -> node.Range.StartLine > trivia.Range.StartLine) containerNode.Children
+        Array.tryFind
+            (fun (node: TriviaNode) -> node.Range.StartLine > triviaGroup.Range.StartLine)
+            containerNode.Children
 
     let nodeBefore =
-        Array.tryFindBack (fun (node: TriviaNode) -> node.Range.EndLine < trivia.Range.StartLine) containerNode.Children
+        Array.tryFindBack
+            (fun (node: TriviaNode) -> node.Range.EndLine < triviaGroup.Range.StartLine)
+            containerNode.Children
 
     match nodeBefore, nodeAfter with
-    | Some nodeBefore, Some (BracketTriviaNode _) when trivia.Range.StartColumn = nodeBefore.Range.StartColumn ->
+    | Some nodeBefore, Some (BracketTriviaNode _) when triviaGroup.StartColumn = nodeBefore.Range.StartColumn ->
         Some
-            { Trivia = trivia
+            { TriviaGroup = triviaGroup
               Type = nodeBefore.Type
               Range = nodeBefore.Range
               AddBefore = false }
     | _, Some nodeAfter ->
         Some
-            { Trivia = trivia
+            { TriviaGroup = triviaGroup
               Type = nodeAfter.Type
               Range = nodeAfter.Range
               AddBefore = true }
     | _ ->
         Array.tryLast containerNode.Children
         |> Option.map (fun node ->
-            { Trivia = trivia
+            { TriviaGroup = triviaGroup
               Type = node.Type
               Range = node.Range
               AddBefore = false })
@@ -281,9 +288,9 @@ let simpleTriviaToTriviaInstruction (containerNode: TriviaNode) (trivia: Trivia)
 /// Try and find the smallest possible node
 let lineCommentAfterSourceCodeToTriviaInstruction
     (containerNode: TriviaNode)
-    (trivia: Trivia)
+    (triviaGroup: TriviaGroup)
     : TriviaInstruction option =
-    let lineNumber = trivia.Range.StartLine
+    let lineNumber = triviaGroup.Range.StartLine
 
     let result =
         containerNode.Children
@@ -295,62 +302,73 @@ let lineCommentAfterSourceCodeToTriviaInstruction
     |> Option.map (fun node ->
         let node = visitLastChildNode node
 
-        { Trivia = trivia
+        { TriviaGroup = triviaGroup
           Type = node.Type
           Range = node.Range
           AddBefore = false })
 
-let blockCommentToTriviaInstruction (containerNode: TriviaNode) (trivia: Trivia) : TriviaInstruction option =
+let blockCommentToTriviaInstruction
+    (containerNode: TriviaNode)
+    (trivia: Trivia)
+    (triviaGroup: TriviaGroup)
+    : TriviaInstruction option =
     let nodeAfter =
-        findNodeAfterLineAndColumn containerNode.Children trivia.Range.StartLine trivia.Range.StartColumn
+        findNodeAfterLineAndColumn containerNode.Children triviaGroup.Range.StartLine triviaGroup.Range.StartColumn
 
     let nodeBefore =
-        findNodeBeforeLineAndColumn containerNode.Children trivia.Range.StartLine trivia.Range.StartColumn
+        findNodeBeforeLineAndColumn containerNode.Children triviaGroup.Range.StartLine triviaGroup.Range.StartColumn
 
     let triviaWith newlineBefore newlineAfter =
         match trivia with
         | { Item = Comment (BlockComment (content, _, _)) } ->
-            { trivia with Item = Comment(BlockComment(content, newlineBefore, newlineAfter)) }
-        | _ -> trivia
+            let item = Comment(BlockComment(content, newlineBefore, newlineAfter))
+            let trivia = { trivia with Item = item }
+            { triviaGroup with Trivia = ImmutableQueue.Create(trivia) }
+        | _ -> triviaGroup
 
     match nodeBefore, nodeAfter with
-    | Some nb, None when nb.Range.EndLine = trivia.Range.StartLine ->
+    | Some nb, None when nb.Range.EndLine = triviaGroup.Range.StartLine ->
         Some
-            { Trivia = triviaWith false false
+            { TriviaGroup = triviaWith false false
               Type = nb.Type
               Range = nb.Range
               AddBefore = false }
     | Some nb, Some na when
-        (nb.Range.EndLine < trivia.Range.StartLine
-         && na.Range.StartLine > trivia.Range.EndLine)
+        (nb.Range.EndLine < triviaGroup.Range.StartLine
+         && na.Range.StartLine > triviaGroup.Range.EndLine)
         ->
         Some
-            { Trivia = triviaWith true true
+            { TriviaGroup = triviaWith true true
               Type = na.Type
               Range = na.Range
               AddBefore = true }
 
-    | Some nb, _ when nb.Range.EndLine = trivia.Range.StartLine ->
+    | Some nb, _ when nb.Range.EndLine = triviaGroup.Range.StartLine ->
         Some
-            { Trivia = triviaWith false false
+            { TriviaGroup = triviaWith false false
               Type = nb.Type
               Range = nb.Range
               AddBefore = false }
     | _ -> None
 
-let mapTriviaToTriviaInstruction (rootNode: TriviaNode) (trivia: Trivia) : TriviaInstruction option =
-    let smallestNodeThatContainsTrivia = findNodeWhereRangeFitsIn rootNode trivia.Range
+let mapTriviaToTriviaInstruction (rootNode: TriviaNode) (triviaGroup: TriviaGroup) : TriviaInstruction option =
+    let smallestNodeThatContainsTrivia =
+        findNodeWhereRangeFitsIn rootNode triviaGroup.Range
 
     match smallestNodeThatContainsTrivia with
-    | None -> Some(triviaBeforeOrAfterEntireTree rootNode trivia)
+    | None -> Some(triviaBeforeOrAfterEntireTree rootNode triviaGroup)
     | Some parentNode ->
-        match trivia.Item with
-        | TriviaContent.Comment (Comment.CommentOnSingleLine _)
-        | TriviaContent.Newline
-        | TriviaContent.Directive _ -> simpleTriviaToTriviaInstruction parentNode trivia
-        | TriviaContent.Comment (Comment.LineCommentAfterSourceCode _) ->
-            lineCommentAfterSourceCodeToTriviaInstruction parentNode trivia
-        | TriviaContent.Comment (Comment.BlockComment _) -> blockCommentToTriviaInstruction parentNode trivia
+        match Seq.tryExactlyOne triviaGroup.Trivia with
+        | Some trivia ->
+            match trivia.Item with
+            | TriviaContent.Comment (Comment.CommentOnSingleLine _)
+            | TriviaContent.Newline
+            | TriviaContent.Directive _ -> simpleTriviaToTriviaInstruction parentNode triviaGroup
+            | TriviaContent.Comment (Comment.LineCommentAfterSourceCode _) ->
+                lineCommentAfterSourceCodeToTriviaInstruction parentNode triviaGroup
+            | TriviaContent.Comment (Comment.BlockComment _) ->
+                blockCommentToTriviaInstruction parentNode trivia triviaGroup
+        | None -> simpleTriviaToTriviaInstruction parentNode triviaGroup
 
 (*
     1. Collect TriviaNodes from AST
@@ -389,10 +407,51 @@ let collectTrivia
             | None -> ast.FullRange
             | Some { Node = rootNode } -> rootNode.Range
 
+        let mkTriviaGroup (trivia: Trivia) =
+            { Trivia = ImmutableQueue.Create(trivia)
+              Range = trivia.Range
+              StartColumn = trivia.Range.StartColumn }
+
         [ yield! collectTriviaFromDirectives source directives selection
           yield! collectTriviaFromCodeComments source codeComments selection
           yield! collectTriviaFromBlankLines config source rootNode codeComments codeRange ]
         |> List.sortBy (fun n -> n.Range.Start.Line, n.Range.Start.Column)
+        |> List.fold
+            (fun groups trivia ->
+                match groups with
+                | [] ->
+                    // Start a new group
+                    [ mkTriviaGroup trivia ]
+                | currentGroup :: rest ->
+                    match trivia.Item with
+                    | Comment (Comment.BlockComment _ | Comment.LineCommentAfterSourceCode _) ->
+                        // Start a new group, these type will always have their own group
+                        mkTriviaGroup trivia :: currentGroup :: rest
+                    | Newline
+                    | Directive _ -> failwith "not implemented yet"
+                    | Comment (CommentOnSingleLine _) ->
+                        // Check if we can add the trivia to the current group
+                        if currentGroup.StartColumn = 0 && trivia.Range.StartColumn > 0 then
+                            // Update the start column of the group
+                            // The comment will have the most significant start column for the group
+                            let range =
+                                Range.mkFileIndexRange
+                                    currentGroup.Range.FileIndex
+                                    currentGroup.Range.Start
+                                    trivia.Range.End
+
+                            { currentGroup with
+                                Trivia = currentGroup.Trivia.Enqueue(trivia)
+                                Range = range
+                                StartColumn = trivia.Range.StartColumn }
+                            :: rest
+                        elif currentGroup.StartColumn = trivia.Range.StartColumn then
+                            // Append trivia to group
+                            { currentGroup with Trivia = currentGroup.Trivia.Enqueue(trivia) } :: rest
+                        else
+                            // No relationship, start a new group'
+                            mkTriviaGroup trivia :: currentGroup :: rest)
+            []
 
     let mutable instructionCollector = ListCollector<TriviaInstruction>()
 

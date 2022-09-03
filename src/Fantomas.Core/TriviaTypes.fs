@@ -1,5 +1,6 @@
 module internal Fantomas.Core.TriviaTypes
 
+open System.Collections.Immutable
 open FSharp.Compiler.Syntax
 open FSharp.Compiler.Text
 
@@ -20,19 +21,30 @@ let a = 7 // b
 // meh
 let a = 7
 
-=> LineCommentOnSingleLine("// meh", false)
+=> CommentOnSingleLine("// meh", false)
 *)
 
+// TODO: question whether this DU still makes total sense
+// Would it not be better to split this into group-able and non-group-able types?
 type TriviaContent =
     | Comment of Comment
     | Newline
     | Directive of directive: string
 
-type Trivia =
-    { Item: TriviaContent
-      Range: Range }
+type Trivia = { Item: TriviaContent; Range: Range }
 
-    static member Create item range : Trivia = { Item = item; Range = range }
+/// Potentially multiple trivia if they should below to the same trivia node.
+/// For example a Newline above a Comment(Comment.CommentOnSingleLine).
+type TriviaGroup =
+    {
+        Trivia: ImmutableQueue<Trivia>
+        /// The combined range of all trivia.
+        Range: Range
+        /// The StartColumn of the most relevant trivia.
+        /// A code comment has precedence over a Newline or Directive.
+        /// This will be used to deduce if the group is better suited to belong after a node rather than before a node.
+        StartColumn: int
+    }
 
 type TriviaIndex = TriviaIndex of int * int
 
@@ -419,7 +431,7 @@ type TriviaNode =
 /// Used in CodePrinter, to restore the assigned trivia
 type TriviaInstruction =
     {
-        Trivia: Trivia
+        TriviaGroup: TriviaGroup
         Type: FsAstType
         Range: range
         /// Should the Trivia be added before the node range or after

@@ -1077,7 +1077,8 @@ let printTriviaContent (c: TriviaContent) (ctx: Context) =
     <| ctx
 
 let printTriviaInstructions (triviaInstructions: TriviaInstruction list) =
-    col sepNone triviaInstructions (fun { Trivia = trivia } -> printTriviaContent trivia.Item)
+    let allTrivia = triviaInstructions |> Seq.collect (fun ti -> ti.TriviaGroup.Trivia)
+    col sepNone allTrivia (fun { Item = trivia } -> printTriviaContent trivia)
 
 let enterNodeFor (mainNodeName: FsAstType) (range: Range) (ctx: Context) =
     match Map.tryFind mainNodeName ctx.TriviaBefore with

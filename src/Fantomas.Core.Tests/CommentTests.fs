@@ -2482,6 +2482,9 @@ Default = 4.
 *)
 """
 
+// TODO: drop the sarcasm and give proper names
+// Consider adding a separate file for this, as it does cover a focused problem space
+
 [<Test>]
 let ``trivia above tuple parameter in function type, 2149`` () =
     formatSourceString
@@ -2581,4 +2584,31 @@ let v =
         "thing2"
         // no other things
     ]
+"""
+
+[<Test>]
+let ``how adding one blank line really complicates things`` () =
+    formatSourceString
+        false
+        """
+let v =
+    [|
+        "thing"
+        "thing2"
+
+        // there is a blank line above this comment
+    |]
+"""
+        { config with MultilineBlockBracketsOnSameColumn = true }
+    |> prepend newline
+    |> should
+        equal
+        """
+let v =
+    [|
+        "thing"
+        "thing2"
+
+        // there is a blank line above this comment
+    |]
 """

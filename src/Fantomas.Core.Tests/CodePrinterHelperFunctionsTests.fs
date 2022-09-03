@@ -1,5 +1,9 @@
 module Fantomas.Core.Tests.CodePrinterHelperFunctionsTests
 
+(*
+
+TODO: restore
+
 open FSharp.Compiler.Syntax
 open FSharp.Compiler.SyntaxTrivia
 open NUnit.Framework
@@ -245,7 +249,7 @@ let ``printing trivia instructions`` () =
                   Item = TriviaContent.Comment(Comment.CommentOnSingleLine "// code comment") }
 
             let instruction: TriviaInstruction =
-                { Trivia = trivia
+                { TriviaGroup = trivia
                   Type = Ident_
                   Range = b.idRange
                   AddBefore = true }
@@ -365,7 +369,7 @@ let b = 2
                   Item = TriviaContent.Newline }
 
             let triviaInstruction =
-                { Trivia = trivia
+                { TriviaGroup = trivia
                   Type = SynModuleDecl_Let
                   Range = rangeOfB
                   AddBefore = true }
@@ -452,3 +456,5 @@ let ``locking the indentation at a fixed column`` () =
 
 // In general, you want to avoid using `atCurrentColumn` and `atCurrentColumnIndent` as it breaks the "indentation flow".
 // "indentation flow" is a made up term to indicate that every indent is a multitude of the `indent_size`.
+
+*)

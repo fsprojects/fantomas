@@ -4,6 +4,7 @@ framework: netstandard2.0, net6.0, netcoreapp3.1
 storage: none
 
 nuget FSharp.Core >= 6.0.1 content: none
+nuget System.Collections.Immutable
 nuget FsUnit
 nuget FsCheck
 nuget Microsoft.NET.Test.Sdk
