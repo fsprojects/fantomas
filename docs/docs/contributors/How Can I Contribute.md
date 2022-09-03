@@ -35,11 +35,11 @@ Again, here: scratch your own itch. If something bothers you, the best cure is t
 
 ## Good first issues
 
-If wish to solve an issue, but don't know where to start, you can take a look that [good first issue](https://github.com/fsprojects/fantomas/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22) list.  
+If you wish to solve an issue, but don't know where to start, you can take a look that [good first issue](https://github.com/fsprojects/fantomas/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22) list.  
 These issues are typically easier to pick up and might only require a few small changes to solve them.
 
 In case you want to solve any issue and would like some more guidance to start, you can also just ask this on the GitHub issue.
-They maintainer can give you an additional pointers to get you on your way.
+The maintainer can give you additional pointers to get you on your way.
 
 ## Adoption
 
@@ -101,14 +101,14 @@ The only prerequisite to run the docs, is having a recent local dotnet sdk.
 
 ## New releases
 
-Testing out new releases is also a huge way to help us. Spotting on regressions early really helps to fix them early.
+Testing out new releases is also a huge way to help us. Spotting regressions early really helps to fix them early.
 
 ### Move to the latest
 
 Always try and stay on the latest version of Fantomas for your day-to-day projects.  
 Updating to the newer version that might only have a couple of fixes might seem insignificant, but it really helps.
 
-### Try alpha's and beta's
+### Try alphas and betas
 
 Please give an alpha a spin if you are interested in submitting feedback for new development.  
 Try both versions if you want to make sure everything still works for you.
@@ -126,12 +126,12 @@ The tree can be improved over at [dotnet/fsharp](https://github.com/dotnet/fshar
 
 Trivia nodes in the syntax tree are nodes the compiler doesn't need to compile the code. However, for Fantomas they can be the missing link to perfectly restore the code.
 
-For example, in issue [#2360](https://github.com/fsprojects/fantomas/issues/2360), there information about the `and` keyword is missing in the syntax tree.  
+For example, in issue [#2360](https://github.com/fsprojects/fantomas/issues/2360), the information about the `and` keyword is missing in the syntax tree.  
 If this information was available in [SynTypeDefnTrivia](../../reference/fsharp-compiler-syntaxtrivia-syntypedefntrivia.html), the bug could be fixed.
 
 ### Better representation
 
-Sometimes the existing shape of the syntax tree, didn't quite cover the syntax perfectly.
+Sometimes the existing shape of the syntax tree doesn't quite cover the syntax perfectly.
 
 For example, in issue [#2264](https://github.com/fsprojects/fantomas/issues/2264), the measure was represented as
 
