@@ -7,8 +7,8 @@ index: 7
 The resharper-fsharp uses fantomas under the hood to format the source code. No need for any additional plugins.  
   
 From Rider 2022.2 onwards, Rider can detect your `dotnet` fantomas installation, either globally or locally.  
-Install fantomas locally with `dotnet tool install fantomas --prerelease`   
-Manually set your fantomas version by going to Preferences -> F#, under the fantomas tab.
+Install fantomas locally with `dotnet tool install fantomas --prerelease`.
+
 <img class="mt-2" src="{{root}}/images/rider-fantomas.png" alt="drawing" width="70%"/>
 
 <fantomas-nav previous="./GitHooks.html" next="./VisualStudio.html"></fantomas-nav>
