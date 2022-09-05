@@ -32,17 +32,18 @@
       <div id="sidebar-logo" class="d-flex justify-content-center p-5">
       <a href="https://fsprojects.github.io/fantomas/docs/index.html" ><img id="fsdocs-logo" src="https://fsprojects.github.io/fantomas//images/logo-fantomas-white.svg" /></a>
 </div>
-      <div id="sidebar-content" class="list-unstyled ps-0 text-white fs-6">
-                    <div id="end-users-wrapper" class="p-2 list-wrapper menu-open">
-            <li class="docs-menu">
-                <button class="btn text-white d-flex p-1 justify-content-between align-items-center" data-bs-toggle="collapse"
-                        data-bs-target="#end-users" aria-expanded="true">
-                        End-users
-                        <i class="bi bi-chevron-down mx-2" style="-webkit-text-stroke: 2px;"></i>
-                </button>
-                <div id="end-users" class="ms-4 collapse show">
-                    <ul class="list-unstyled fw-normal mb-0">
-                        <li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/end-users/GettingStarted.html" class="nav-link mt-2 d-block" > Getting Started
+      <div id="sidebar-content" class="accordion accordion-flush ps-0 text-white fs-6">
+        <div id="end-users-wrapper" class="p-2 accordion-item">
+    <li class="docs-menu">
+        <button id="end-users-button"
+            class="accordion-button collapsed btn text-white d-flex p-1 justify-content-between align-items-center"
+            data-bs-toggle="collapse" data-bs-target="#end-users" aria-expanded="false"
+            aria-control="end-users" type="button">
+            End-users
+        </button>
+        <div id="end-users" class="ms-4 accordion-collapse collapse" data-bs-parent="#sidebar-content">
+            <ul class="list-unstyled fw-normal mb-0">
+                <li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/end-users/GettingStarted.html" class="nav-link mt-2 d-block" > Getting Started
 </a></li>
 
 <li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/end-users/StyleGuide.html" class="nav-link mt-2 d-block" > Style guide
@@ -72,21 +73,21 @@
 <li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/end-users/FAQ.html" class="nav-link mt-2 d-block" > FAQ
 </a></li>
 
-                    </ul>
-                </div>
-            </li>
-            </div>
-
-            <div id="contributors-wrapper" class="p-2 list-wrapper menu-open">
-            <li class="docs-menu">
-                <button class="btn text-white d-flex p-1 justify-content-between align-items-center" data-bs-toggle="collapse"
-                        data-bs-target="#contributors" aria-expanded="true">
-                        Contributors
-                        <i class="bi bi-chevron-down mx-2" style="-webkit-text-stroke: 2px;"></i>
-                </button>
-                <div id="contributors" class="ms-4 collapse show">
-                    <ul class="list-unstyled fw-normal mb-0">
-                        <li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/Index.html" class="nav-link mt-2 d-block" > Contributors
+            </ul>
+        </div>
+    </li>
+</div>
+<div id="contributors-wrapper" class="p-2 accordion-item">
+    <li class="docs-menu">
+        <button id="contributors-button"
+            class="accordion-button collapsed btn text-white d-flex p-1 justify-content-between align-items-center"
+            data-bs-toggle="collapse" data-bs-target="#contributors" aria-expanded="false"
+            aria-control="contributors" type="button">
+            Contributors
+        </button>
+        <div id="contributors" class="ms-4 accordion-collapse collapse" data-bs-parent="#sidebar-content">
+            <ul class="list-unstyled fw-normal mb-0">
+                <li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/Index.html" class="nav-link mt-2 d-block" > Contributors
 </a></li>
 
 <li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/FSharp.html" class="nav-link mt-2 d-block" > F#
@@ -113,27 +114,26 @@
 <li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/How Can I Contribute.html" class="nav-link mt-2 d-block" > How can I contribute?
 </a></li>
 
-                    </ul>
-                </div>
-            </li>
-            </div>
+            </ul>
+        </div>
+    </li>
+</div>
+        <div id="api_reference-wrapper" class="p-2 accordion-item">
+    <li class="docs-menu">
+        <button id="api_reference-button"
+            class="accordion-button collapsed btn text-white d-flex p-1 justify-content-between align-items-center"
+            data-bs-toggle="collapse" data-bs-target="#api_reference" aria-expanded="false"
+            aria-control="api_reference" type="button">
+            API Reference
+        </button>
+        <div id="api_reference" class="ms-4 accordion-collapse collapse" data-bs-parent="#sidebar-content">
+            <ul class="list-unstyled fw-normal mb-0">
+                <li class="nav-item"><a href="https://fsprojects.github.io/fantomas/reference/index.html" class="nav-link mt-2 d-block" > All Namespaces</a></li>
 
-                    <div id="api_reference-wrapper" class="p-2 list-wrapper menu-open">
-            <li class="docs-menu">
-                <button class="btn text-white d-flex p-1 justify-content-between align-items-center" data-bs-toggle="collapse"
-                        data-bs-target="#api_reference" aria-expanded="true">
-                        API Reference
-                        <i class="bi bi-chevron-down mx-2" style="-webkit-text-stroke: 2px;"></i>
-                </button>
-                <div id="api_reference" class="ms-4 collapse show">
-                    <ul class="list-unstyled fw-normal mb-0">
-                        <li class="nav-item"><a href="https://fsprojects.github.io/fantomas/reference/index.html" class="nav-link mt-2 d-block" > All Namespaces</a></li>
-
-                    </ul>
-                </div>
-            </li>
-            </div>
-
+            </ul>
+        </div>
+    </li>
+</div>
       </div>
     </div>
 
@@ -708,28 +708,7 @@
         <div id="push"></div>
     </div>
   </main>
-  <script type="text/javascript">
-window.addEventListener('load', (event) => {
-    const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
-    const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))
-addEventListener('hide.bs.collapse', (e) => {
-  if (e.target && e.target.id === 'sidebar-wrapper') {
-    document.getElementById('main-container').classList.add('toggled');
-  }
-  else{
-    document.getElementById(e.target.id+'-wrapper').classList.remove('menu-open');
-  }
-})
-addEventListener('show.bs.collapse', (e) => {
-  if (e.target && e.target.id === 'sidebar-wrapper') {
-   document.getElementById('main-container').classList.remove('toggled');
-  }
-  else{
-    document.getElementById(e.target.id+'-wrapper').classList.add('menu-open');
-  }
-})
-});
-  </script>
+  <script type="module" src="https://fsprojects.github.io/fantomas/content/docs-setup.js"></script>
   <!-- BEGIN SEARCH BOX: this adds support for the search box -->
   <link rel="stylesheet"
     href="https://cdnjs.cloudflare.com/ajax/libs/JavaScript-autoComplete/1.0.4/auto-complete.css" />
