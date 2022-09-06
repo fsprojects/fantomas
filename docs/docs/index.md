@@ -14,7 +14,7 @@ Fantomas follows two F# style guides: the [F# code formatting guidelines](https:
 
 ## Contributing Guidelines
 
-See the [Contribution Guidelines](https://github.com/fsprojects/fantomas/blob/dbbe2036e166a2e8846d031d2e490fef1e13e38b/CONTRIBUTING.md).
+See the [Contribution Guidelines](https://github.com/fsprojects/fantomas/blob/master/CONTRIBUTING.md).
 
 ## Credits
 We would like to gratefully thank the following persons for their contributions.
