@@ -42,3 +42,11 @@ addEventListener('load', (event) => {
             break;
     }
 });
+// Detect if mobile so we can hide the sidebar
+const boostrapSmallSize = window.matchMedia("(max-width: 576px)");
+const isMobile = boostrapSmallSize.matches;
+if (isMobile) {
+    new bootstrap.Collapse('#sidebar-wrapper', {
+        hide: true
+      })
+}
