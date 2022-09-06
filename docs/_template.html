@@ -23,9 +23,9 @@
 
 <body>
   <main id="main-container">
-     <div id="sidebar-wrapper" class="bg-primary h-100 fs-5 collapse show">
+     <div id="sidebar-wrapper" class="bg-primary h-100 fs-5 d-none d-md-block">
       <div id="sidebar-header" class="d-flex justify-content-end mt-1">
-      <button class="btn d-md-none" data-bs-toggle="collapse" data-bs-target="#sidebar-wrapper" data-bs-parent="#main-container" aria-controls="sidebar-wrapper" aria-expanded="false" aria-label="Toggle navigation">
+      <button class="btn d-md-none" id="close-mobile-menu" aria-controls="sidebar-wrapper" aria-expanded="false" aria-label="Toggle navigation">
         <i class="sidebar-toggle fs-3 bi bi-x-lg"></i>
                   </button>
               </div>
@@ -41,12 +41,12 @@
     <div class="doc-content">
      <nav class="navbar navbar-expand-sm border py-1">
         <div class="container-fluid flex-nowrap">
-          <button class="btn" data-bs-toggle="collapse" data-bs-target="#sidebar-wrapper" data-bs-parent="#main-container" aria-controls="sidebar-wrapper" aria-expanded="false" aria-label="Toggle navigation">
+          <button class="btn d-md-none" id="toggle-mobile-menu" aria-controls="sidebar-wrapper" aria-expanded="false" aria-label="Toggle navigation">
             <i class="sidebar-toggle fs-3 bi bi-list"></i>
           </button>
           <div id="mobile-navbar" class="container-fluid d-flex justify-content-between d-sm-none">
             <i class="invisible bi bi-github fs-3 align-self-end"></i>
-         <a href="./index.html" ><img id="fsdocs-logo" width="32" height="32" src="{{root}}/images/logo.png" /></a>
+         <a href="./index.html" ><img id="fsdocs-logo-mobile" width="32" height="32" src="{{root}}/images/logo.png" /></a>
             <a class="nav-link m-0 p-0" target="_blank" href="{{fsdocs-repository-link}}"> <i class="bi bi-github fs-3 align-self-end"></i>
 </a>
           </div>

@@ -5,20 +5,18 @@ addEventListener('load', (event) => {
     const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl));
 
     // Handling of sidebar open/close
-    addEventListener('hide.bs.collapse', (e) => {
-        if (e.target && e.target.id === 'sidebar-wrapper') {
-            document.getElementById('main-container').classList.add('toggled');
-        } else {
-            document.getElementById(e.target.id + '-wrapper').classList.remove('menu-open');
-        }
+    const sidebarWrapper = document.getElementById("sidebar-wrapper");
+    const mainContainer = document.getElementById("main-container");
+    document.querySelector("#toggle-mobile-menu").addEventListener("click", () => {
+        console.log("clicked")
+        mainContainer.classList.remove('toggled');
+        sidebarWrapper.classList.toggle("d-none");
     })
-    addEventListener('show.bs.collapse', (e) => {
-        if (e.target && e.target.id === 'sidebar-wrapper') {
-            document.getElementById('main-container').classList.remove('toggled');
-        } else {
-            document.getElementById(e.target.id + '-wrapper').classList.add('menu-open');
-        }
-    })
+    
+    document.querySelector("#close-mobile-menu").addEventListener("click", () => {
+        mainContainer.classList.add('toggled');
+        sidebarWrapper.classList.toggle("d-none");
+    });
 
     // Opening/collapsing menu items of sidebar depending on the current page section
     const currentPathName = window.location.pathname;
@@ -42,11 +40,3 @@ addEventListener('load', (event) => {
             break;
     }
 });
-// Detect if mobile so we can hide the sidebar
-const boostrapSmallSize = window.matchMedia("(max-width: 576px)");
-const isMobile = boostrapSmallSize.matches;
-if (isMobile) {
-    new bootstrap.Collapse('#sidebar-wrapper', {
-        hide: true
-      })
-}
