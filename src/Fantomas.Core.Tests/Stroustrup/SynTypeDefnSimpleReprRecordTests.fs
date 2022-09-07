@@ -84,7 +84,7 @@ type V =
 """
 
 [<Test>]
-let ``record definition with accessibility modifier, 2481`` () =
+let ``record definition with private accessibility modifier, 2481`` () =
     formatSourceString
         false
         """
@@ -99,6 +99,27 @@ type Person = private {
         equal
         """
 type Person = private {
+    FirstName: string
+    LastName: string
+}
+"""
+
+[<Test>]
+let ``record definition with internal accessibility modifier, 2481`` () =
+    formatSourceString
+        false
+        """
+type Person = internal {
+    FirstName: string
+    LastName: string
+}
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type Person = internal {
     FirstName: string
     LastName: string
 }
