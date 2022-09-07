@@ -82,3 +82,85 @@ type V =
     }
     member this.Coordinate = (this.X, this.Y, this.Z)
 """
+
+[<Test>]
+let ``record definition with accessibility modifier, 2481`` () =
+    formatSourceString
+        false
+        """
+type Person = private {
+    FirstName: string
+    LastName: string
+}
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type Person = private {
+    FirstName: string
+    LastName: string
+}
+"""
+
+[<Test>]
+let ``record definition without accessibility modifier, 2481`` () =
+    formatSourceString
+        false
+        """
+type Person = {
+    FirstName: string
+    LastName: string
+}
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type Person = { FirstName: string; LastName: string }
+"""
+
+[<Test>]
+let ``record definition with accessibility modifier with added whitespace, 2481`` () =
+    formatSourceString
+        false
+        """
+type Person =      private    {
+    FirstName: string
+    LastName: string
+}
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type Person = private {
+    FirstName: string
+    LastName: string
+}
+"""
+
+[<Test>]
+let ``record definition with accessibility modifier with incorrect format, 2481`` () =
+    formatSourceString
+        false
+        """
+type Person = 
+    private {
+        FirstName: string
+        LastName: string
+    }
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type Person = private {
+    FirstName: string
+    LastName: string
+}
+"""
