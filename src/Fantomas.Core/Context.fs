@@ -264,7 +264,12 @@ type internal Context =
         | [] -> false
         | triviaInstructions -> List.exists (fun ti -> RangeHelpers.rangeEq ti.Range range) triviaInstructions
 
-let writerEvent e ctx =
+/// This adds a WriterEvent to the Context.
+/// One event could potentially be split up into multiple events.
+/// The event is also being processed in the WriterModel of the Context.
+let writerEvent (e: WriterEvent) (ctx: Context) : Context =
+    // One event could contain a multiline string or code comments.
+    // These need to be split up in multiple events.
     let evs = WriterEvents.normalize e
 
     let ctx' =
