@@ -14,10 +14,14 @@ main
         z-index: 1000
 
         #sidebar-content
-            .list-wrapper
-                transition: background-color 200ms
-            .menu-open
-                background-color: $menu-open
+            .accordion-button
+                padding: 0.7rem
+            .accordion-item
+                .collapsing
+                    transition: none
+                .show
+                    background-color: $menu-open
+                    transition: background-color 200ms ease-in-out
             .btn
                 width: 100%
             li
@@ -38,7 +42,7 @@ main
         @include media-breakpoint-up(sm)
             width: $sidebar-width
             left: 0
-
+ 
     @include media-breakpoint-up(sm)
         &:not(.toggled)
             margin-left: $sidebar-width

@@ -8,6 +8,7 @@ addEventListener('load', (event) => {
     const sidebarWrapper = document.getElementById("sidebar-wrapper");
     const mainContainer = document.getElementById("main-container");
     document.querySelector("#toggle-mobile-menu").addEventListener("click", () => {
+        console.log("clicked")
         mainContainer.classList.remove('toggled');
         sidebarWrapper.classList.toggle("d-none");
     })
@@ -23,7 +24,6 @@ addEventListener('load', (event) => {
     const currenSection = currentSectionFull.substring(currentSectionFull.lastIndexOf('/') + 1);
 
     const openMenu = (fsdocsSection) => {
-        document.getElementById(fsdocsSection + '-wrapper').classList.add('menu-open');
         document.getElementById(fsdocsSection).classList.add('show');
         document.getElementById(fsdocsSection + '-button').classList.remove('collapsed');
     }
