@@ -8,7 +8,6 @@ addEventListener('load', (event) => {
     const sidebarWrapper = document.getElementById("sidebar-wrapper");
     const mainContainer = document.getElementById("main-container");
     document.querySelector("#toggle-mobile-menu").addEventListener("click", () => {
-        console.log("clicked")
         mainContainer.classList.remove('toggled');
         sidebarWrapper.classList.toggle("d-none");
     })
