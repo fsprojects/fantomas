@@ -269,7 +269,7 @@ type internal Context =
 /// The event is also being processed in the WriterModel of the Context.
 let writerEvent (e: WriterEvent) (ctx: Context) : Context =
     // One event could contain a multiline string or code comments.
-    // These need to be split up in multiple event.
+    // These need to be split up in multiple events.
     let evs = WriterEvents.normalize e
 
     let ctx' =
