@@ -13,4 +13,4 @@ Documentation is available at https://fsprojects.github.io/fantomas/docs/index.h
 
 ## Contributing Guidelines
 
-See the [Contribution Guidelines](./CONTRIBUTING.md) and our [contribution documentation](https://fsprojects.github.io/fantomas/docs/contributors/index.html)
+See the [Contribution Guidelines](./CONTRIBUTING.md) and our [contribution documentation](https://fsprojects.github.io/fantomas/docs/contributors/Index.html)
