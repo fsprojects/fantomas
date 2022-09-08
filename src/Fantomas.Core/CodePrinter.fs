@@ -3412,7 +3412,7 @@ and genMultilineSimpleRecordTypeDefn astContext openingBrace withKeyword ms ao' 
 
 and genMultilineSimpleRecordTypeDefnAlignBrackets astContext openingBrace withKeyword ms ao' fs closingBrace =
     // the typeName is already printed
-    opt (indent +> sepNln) ao' genAccess
+    ifStroustrupElse (opt (sepSpace) ao' genAccess) (opt (indent +> sepNln) ao' genAccess)
     +> enterNodeFor SynTypeDefnSimpleRepr_Record_OpeningBrace openingBrace
     +> sepOpenSFixed
     +> indentSepNlnUnindent (
