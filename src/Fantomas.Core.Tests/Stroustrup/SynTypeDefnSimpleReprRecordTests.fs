@@ -144,27 +144,6 @@ type Person = { FirstName: string; LastName: string }
 """
 
 [<Test>]
-let ``record definition with accessibility modifier with added whitespace, 2481`` () =
-    formatSourceString
-        false
-        """
-type Person =      private    {
-    FirstName: string
-    LastName: string
-}
-"""
-        config
-    |> prepend newline
-    |> should
-        equal
-        """
-type Person = private {
-    FirstName: string
-    LastName: string
-}
-"""
-
-[<Test>]
 let ``record definition with accessibility modifier with incorrect format, 2481`` () =
     formatSourceString
         false
