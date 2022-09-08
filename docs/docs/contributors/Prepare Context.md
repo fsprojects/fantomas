@@ -56,7 +56,7 @@ The Syntax tree for a signature is a little different than a regular source file
 
 - `sourceText: ISourceText`
 
-The input source code string is converted to an [ISourceText](https://fsharp.github.io/fsharp-compiler-docs/reference/fsharp-compiler-text-isourcetext.html)) internally.
+The input source code string is converted to an [ISourceText](https://fsprojects.github.io/fantomas/reference/fsharp-compiler-text-isourcetext.html)) internally.
 
 - `defines: string list`
 
@@ -88,9 +88,9 @@ These three items are labelled as `Trivia` in Fantomas. We need to restore them 
 #### Detecting trivia
 
 Trivia can however be easily detected in Fantomas. Both code comments and conditional directives are present in the AST.
-These are stored on the file level (in [ParsedImplFileInput](https://fsharp.github.io/fsharp-compiler-docs/reference/fsharp-compiler-syntax-parsedimplfileinput.html) and  [ParsedSigFileInput](https://fsharp.github.io/fsharp-compiler-docs/reference/fsharp-compiler-syntax-parsedsigfileinput.html) in the `trivia` node).
+These are stored on the file level (in [ParsedImplFileInput](https://fsprojects.github.io/fantomas/reference/fsharp-compiler-syntax-parsedimplfileinput.html) and  [ParsedSigFileInput](https://fsprojects.github.io/fantomas/reference/fsharp-compiler-syntax-parsedsigfileinput.html) in the `trivia` node).
 
-In both [ParsedImplFileInputTrivia](https://fsharp.github.io/fsharp-compiler-docs/reference/fsharp-compiler-syntaxtrivia-parsedimplfileinputtrivia.html) and [ParsedSigFileInputTrivia](https://fsharp.github.io/fsharp-compiler-docs/reference/fsharp-compiler-syntaxtrivia-parsedsigfileinputtrivia.html) we can see comments and conditional directives.
+In both [ParsedImplFileInputTrivia](https://fsprojects.github.io/fantomas/reference/fsharp-compiler-syntaxtrivia-parsedimplfileinputtrivia.html) and [ParsedSigFileInputTrivia](https://fsprojects.github.io/fantomas/reference/fsharp-compiler-syntaxtrivia-parsedsigfileinputtrivia.html) we can see comments and conditional directives.
 
 ```fsharp
 let a = 
@@ -130,7 +130,7 @@ Once we have the trivia, we can assign them to an AST node they belong to.
 This is one of the more tricky parts of the process.
 
 The syntax tree exists of numerous types of nodes. There is not one discriminated union that captures all the nodes.
-Top level nodes are [SynModuleDecl](https://fsharp.github.io/fsharp-compiler-docs/reference/fsharp-compiler-syntax-synmoduledecl.html), expressions are [SynExpr](https://fsharp.github.io/fsharp-compiler-docs/reference/fsharp-compiler-syntax-synexpr.html) and so on.   
+Top level nodes are [SynModuleDecl](https://fsprojects.github.io/fantomas/reference/fsharp-compiler-syntax-synmoduledecl.html), expressions are [SynExpr](https://fsprojects.github.io/fantomas/reference/fsharp-compiler-syntax-synexpr.html) and so on.   
 In Fantomas all these types do share a comment trait, they can (almost) all have trivia that belongs to them.
 
 Example:

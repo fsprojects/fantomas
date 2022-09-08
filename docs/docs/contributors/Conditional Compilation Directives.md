@@ -90,7 +90,7 @@ This tree is almost identical but the constant value is now `Const (Int32 0, ...
 ## Multiple trees
 
 As the combination of directives has an influence on the tree, Fantomas first parses the tree without any directives.
-This base tree is then being inspected for [ConditionalDirectiveTrivia](https://fsharp.github.io/fsharp-compiler-docs/reference/fsharp-compiler-syntaxtrivia-conditionaldirectivetrivia.html).  
+This base tree is then being inspected for [ConditionalDirectiveTrivia](https://fsprojects.github.io/fantomas/reference/fsharp-compiler-syntaxtrivia-conditionaldirectivetrivia.html).
 We determine the different combinations in the `Defines` module.
 
 <div class="mermaid text-center">

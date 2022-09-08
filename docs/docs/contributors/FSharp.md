@@ -24,7 +24,7 @@ We wish to highlight the most important ones that we use before continuing:
 - [Partial active patterns](https://docs.microsoft.com/en-us/dotnet/fsharp/language-reference/active-patterns#partial-active-patterns), these are heavily used in `SourceParser.fs`.
   In short, we use the `Untyped Abstract Syntax Tree` created by the F# parser, we don't use all the information in that tree to restore the source code.
 
-For example [SynExpr.For](https://fsharp.github.io/fsharp-compiler-docs/reference/fsharp-compiler-syntax-synexpr.html#For), the definition looks like:
+For example [SynExpr.For](https://fsprojects.github.io/fantomas/reference/fsharp-compiler-syntax-synexpr.html#For), the definition looks like:
 
 ```fsharp
 type SynExpr =

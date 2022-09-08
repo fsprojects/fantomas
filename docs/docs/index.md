@@ -4,7 +4,7 @@
 [![Build Status Github Actions](https://github.com/fsprojects/fantomas/workflows/Build%20master/badge.svg?branch=master&event=push)](https://github.com/fsprojects/fantomas/actions)
 [![Discord](https://img.shields.io/discord/940511234179096586?label=Fantomas%20Discord&style=flat-square)](https://discord.gg/D5QXvQrBVa)
 
-F# source code formatter, inspired by [scalariform](https://github.com/mdr/scalariform) for Scala, [ocp-indent](https://github.com/OCamlPro/ocp-indent) for OCaml and [PythonTidy](https://github.com/acdha/PythonTidy) for Python.
+F# source code formatter, inspired by [scalariform](https://github.com/mdr/scalariform) for Scala, [ocp-indent](https://github.com/OCamlPro/ocp-indent) for OCaml and [PythonTidy](https://pypi.org/project/PythonTidy/) for Python.
 
 ## Purpose
 This project aims at formatting F# source files based on a given configuration.
@@ -17,11 +17,10 @@ Fantomas follows two F# style guides: the [F# code formatting guidelines](https:
 See the [Contribution Guidelines](https://github.com/fsprojects/fantomas/blob/master/CONTRIBUTING.md).
 
 ## Credits
-We would like to gratefully thank the following persons for their contributions.
-https://github.com/fsprojects/fantomas/graphs/contributors
+We would like to gratefully thank the following persons for their [contributions](https://github.com/fsprojects/fantomas/graphs/contributors).
 
 ## License
 The library and tool are available under Apache 2.0 license.
-For more information see the [License file](LICENSE.md).
+For more information see the [License file](https://github.com/fsprojects/fantomas/blob/master/LICENSE.md).
 
 <fantomas-nav next="./end-users/GettingStarted.html"></fantomas-nav>
