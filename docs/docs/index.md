@@ -17,8 +17,7 @@ Fantomas follows two F# style guides: the [F# code formatting guidelines](https:
 See the [Contribution Guidelines](https://github.com/fsprojects/fantomas/blob/master/CONTRIBUTING.md).
 
 ## Credits
-We would like to gratefully thank the following persons for their contributions.
-https://github.com/fsprojects/fantomas/graphs/contributors
+We would like to gratefully thank the following persons for their [contributions](https://github.com/fsprojects/fantomas/graphs/contributors).
 
 ## License
 The library and tool are available under Apache 2.0 license.
