@@ -2481,3 +2481,36 @@ The same indentation is ensured to be consistent in a source file.
 Default = 4.
 *)
 """
+[<Test>]
+let ``trivia above tuple parameter in function type, 2149`` () =
+    formatSourceString
+        true
+        """
+namespace Foo
+
+type X =
+    static member AsBeginEnd : computation:('Arg -> Async<'T>) ->
+                                    // The 'Begin' member
+                                    ('Arg * System.AsyncCallback * obj -> System.IAsyncResult) *
+                                    // The 'End' member
+                                    (System.IAsyncResult -> 'T) *
+                                    // The 'Cancel' member
+                                    (System.IAsyncResult -> unit)
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+namespace Foo
+
+type X =
+    static member AsBeginEnd:
+        computation: ('Arg -> Async<'T>) ->
+            // The 'Begin' member
+            ('Arg * System.AsyncCallback * obj -> System.IAsyncResult) *
+            // The 'End' member
+            (System.IAsyncResult -> 'T) *
+            // The 'Cancel' member
+            (System.IAsyncResult -> unit)
+"""
