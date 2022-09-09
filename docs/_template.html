@@ -22,8 +22,7 @@
 </head>
 
 <body>
-  <main id="main-container" class="">
-     <div id="sidebar-wrapper" class="bg-primary h-100 fs-5 d-none d-md-block">
+     <aside id="sidebar-wrapper" class="bg-primary h-100 fs-5">
       <div id="sidebar-header" class="d-flex justify-content-end mt-1">
       <button class="btn d-md-none" id="close-mobile-menu" aria-controls="sidebar-wrapper" aria-expanded="false" aria-label="Toggle navigation">
         <i class="sidebar-toggle fs-3 bi bi-x-lg"></i>
@@ -36,12 +35,11 @@
         {{fsdocs-list-of-documents}}
         {{fsdocs-list-of-namespaces}}
       </div>
-    </div>
-
-    <div class="doc-content">
+    </aside>
+    <main class="doc-content">
      <nav class="navbar navbar-expand-sm border py-1">
         <div class="container-fluid flex-nowrap">
-          <button class="btn d-md-none" id="toggle-mobile-menu" aria-controls="sidebar-wrapper" aria-expanded="false" aria-label="Toggle navigation">
+          <button class="btn" id="toggle-mobile-menu" aria-controls="sidebar-wrapper" aria-expanded="false" aria-label="Toggle navigation">
             <i class="sidebar-toggle fs-3 bi bi-list"></i>
           </button>
           <div id="mobile-navbar" class="container-fluid d-flex justify-content-between d-sm-none">
@@ -82,8 +80,7 @@
         {{fsdocs-tooltips}}
       </div>
         <div id="push"></div>
-    </div>
-  </main>
+    </main>
   <script type="module" src="{{root}}content/docs-setup.js"></script>
   <!-- BEGIN SEARCH BOX: this adds support for the search box -->
   <link rel="stylesheet"

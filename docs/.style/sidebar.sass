@@ -2,15 +2,13 @@
 
 $sidebar-width: 300px
 
-main
-    margin-left: 0
+body
+    grid-template-columns: 0px auto
     transition: margin 0.3s ease-in-out
-
     #sidebar-wrapper
         width: 100%
         transition: left 0.3s ease-in-out
         overflow-y: auto
-        position: fixed
         z-index: 1000
 
         #sidebar-content
@@ -38,11 +36,13 @@ main
         #sidebar-logo
             #fsdocs-logo
                 width: 220px
+    .open-menu
+        grid-template-columns: auto 0px
 
-        @include media-breakpoint-up(sm)
-            width: $sidebar-width
-            left: 0
 
     @include media-breakpoint-up(sm)
-        &:not(.toggled)
-            margin-left: $sidebar-width
+        &:not(.open-menu)
+            background-color: red
+            grid-template-columns: $sidebar-width auto
+        background-color: blue
+        grid-template-columns: 0px auto
