@@ -2481,6 +2481,7 @@ The same indentation is ensured to be consistent in a source file.
 Default = 4.
 *)
 """
+
 [<Test>]
 let ``trivia above tuple parameter in function type, 2149`` () =
     formatSourceString
