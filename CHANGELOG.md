@@ -4,6 +4,7 @@
 
 ### Fixed
 * Record definition with accessibility modifier error using stroustrup style [#2481](https://github.com/fsprojects/fantomas/issues/2481)
+* Stack overflow on macOS with a big source-file [#2485](https://github.com/fsprojects/fantomas/issues/2485)
 
 ## [5.0.0-beta-009] - 2022-09-02
 
@@ -43,7 +44,7 @@
 
 ## [5.0.0-beta-005] - 2022-08-03
 
-### Changed 
+### Changed
 * Update FCS to 'SynType with single slash and type', commit e1f735546a907b0a511b818f10829b1d75139021
 
 ### Fixed
