@@ -3781,8 +3781,8 @@ progress {
   --bs-accordion-transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out, border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out, border-radius 0.15s ease;
   --bs-accordion-border-color: var(--bs-border-color);
   --bs-accordion-border-width: 0px;
-  --bs-accordion-border-radius: 0.375rem;
-  --bs-accordion-inner-border-radius: calc(0.375rem - 0px);
+  --bs-accordion-border-radius: 0px;
+  --bs-accordion-inner-border-radius: 0px;
   --bs-accordion-btn-padding-x: 1.25rem;
   --bs-accordion-btn-padding-y: 1rem;
   --bs-accordion-btn-color: var(--bs-body-color);
@@ -9510,55 +9510,74 @@ div.fsdocs-tip code {
   font: 0.85rem "Roboto Mono", monospace;
 }
 
-main {
-  margin-left: 0;
-  transition: margin 0.3s ease-in-out;
+body {
+  grid-template-columns: 0 auto;
 }
-main #sidebar-wrapper {
-  width: 100%;
-  transition: left 0.3s ease-in-out;
-  overflow-y: auto;
-  position: fixed;
-  z-index: 1000;
+body aside {
+  max-width: 0;
+  overflow-x: hidden;
 }
-main #sidebar-wrapper #sidebar-content .list-wrapper {
-  transition: background-color 200ms;
+body.open-menu {
+  grid-template-columns: auto 0;
 }
-main #sidebar-wrapper #sidebar-content .menu-open {
+body.open-menu aside {
+  max-width: initial;
+  overflow-x: initial;
+}
+body.open-menu main {
+  max-width: 0;
+  overflow-x: hidden;
+}
+@media (min-width: 768px) {
+  body {
+    grid-template-columns: 300px auto;
+  }
+  body aside {
+    max-width: initial;
+    overflow-x: initial;
+  }
+  body.open-menu {
+    grid-template-columns: 0 auto;
+  }
+  body.open-menu aside {
+    max-width: 0;
+    overflow-x: hidden;
+  }
+  body.open-menu main {
+    max-width: initial;
+    overflow-x: initial;
+  }
+}
+
+aside #sidebar-content .accordion-button {
+  padding: 0.7rem;
+}
+aside #sidebar-content .accordion-item .collapsing {
+  transition: none;
+}
+aside #sidebar-content .accordion-item .show {
   background-color: #347193;
+  transition: background-color 200ms ease-in-out;
 }
-main #sidebar-wrapper #sidebar-content .btn {
+aside #sidebar-content .btn {
   width: 100%;
 }
-main #sidebar-wrapper #sidebar-content li {
+aside #sidebar-content li {
   list-style: none;
 }
-main #sidebar-wrapper .btn {
+aside .btn {
   border: none;
 }
-main #sidebar-wrapper a {
+aside a.nav-link {
   color: #FFF;
   text-decoration: none;
 }
-main #sidebar-wrapper p {
-  letter-spacing: 0.1px;
-}
-main #sidebar-wrapper #sidebar-logo #fsdocs-logo {
+aside #sidebar-logo #fsdocs-logo {
   width: 220px;
 }
-main #sidebar-wrapper:not(.show) {
-  display: none;
-}
-@media (min-width: 576px) {
-  main #sidebar-wrapper {
-    width: 300px;
-    left: 0;
-  }
-}
-@media (min-width: 576px) {
-  main:not(.toggled) {
-    margin-left: 300px;
-  }
+
+body {
+  display: grid;
 }
 
 .sidebar-toggle {
@@ -9608,6 +9627,9 @@ main #sidebar-wrapper:not(.show) {
 }
 #fsdocs-content table.pre {
   background-color: #f6f7f7;
+  display: block;
+  overflow: auto;
+  width: 100%;
 }
 #fsdocs-content table.pre pre {
   background-color: #f6f7f7;
@@ -9616,6 +9638,7 @@ main #sidebar-wrapper:not(.show) {
 #fsdocs-content h1 a, #fsdocs-content .h1 a, #fsdocs-content h2 a, #fsdocs-content .h2 a, #fsdocs-content h3 a, #fsdocs-content .h3 a, #fsdocs-content h4 a, #fsdocs-content .h4 a, #fsdocs-content h5 a, #fsdocs-content .h5 a, #fsdocs-content h6 a, #fsdocs-content .h6 a {
   color: #222222;
   text-decoration: none;
+  overflow-wrap: anywhere;
 }
 #fsdocs-content h1:hover, #fsdocs-content .h1:hover, #fsdocs-content h1:focus, #fsdocs-content .h1:focus, #fsdocs-content h2:hover, #fsdocs-content .h2:hover, #fsdocs-content h2:focus, #fsdocs-content .h2:focus, #fsdocs-content h3:hover, #fsdocs-content .h3:hover, #fsdocs-content h3:focus, #fsdocs-content .h3:focus, #fsdocs-content h4:hover, #fsdocs-content .h4:hover, #fsdocs-content h4:focus, #fsdocs-content .h4:focus, #fsdocs-content h5:hover, #fsdocs-content .h5:hover, #fsdocs-content h5:focus, #fsdocs-content .h5:focus, #fsdocs-content h6:hover, #fsdocs-content .h6:hover, #fsdocs-content h6:focus, #fsdocs-content .h6:focus {
   color: #222222;
