@@ -615,20 +615,17 @@ let (|Sequentials|_|) =
 
         acc.Add(e1)
 
-        let mutable toVisit = [ e2 ]
+        let mutable current = e2
         let mutable keepGoing = true
 
         while keepGoing do
-            match toVisit with
-            | x :: xs ->
-                match x with
-                | Sequential (e1, e2, _) ->
-                    acc.Add(e1)
-                    toVisit <- e2 :: xs
-                | _ ->
-                    acc.Add(x)
-                    toVisit <- xs
-            | _ -> keepGoing <- false
+            match current with
+            | Sequential (e1, e2, _) ->
+                acc.Add(e1)
+                current <- e2
+            | _ ->
+                acc.Add(current)
+                keepGoing <- false
 
         Some(List.ofSeq acc)
     | _ -> None
