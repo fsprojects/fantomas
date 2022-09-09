@@ -22,15 +22,15 @@
 </head>
 
 <body>
-     <aside id="sidebar-wrapper" class="bg-primary h-100 fs-5">
+     <aside class="bg-primary h-100 fs-5">
       <div id="sidebar-header" class="d-flex justify-content-end mt-1">
       <button class="btn d-md-none" id="close-mobile-menu" aria-controls="sidebar-wrapper" aria-expanded="false" aria-label="Toggle navigation">
         <i class="sidebar-toggle fs-3 bi bi-x-lg"></i>
                   </button>
               </div>
       <div id="sidebar-logo" class="d-flex justify-content-center p-5">
-      <a href="{{root}}docs/index.html" ><img id="fsdocs-logo" src="{{root}}/{{fsdocs-logo-src}}" /></a>
-</div>
+        <a href="{{root}}docs/index.html" ><img id="fsdocs-logo" src="{{root}}/{{fsdocs-logo-src}}" /></a>
+      </div>
       <div id="sidebar-content" class="accordion accordion-flush ps-0 text-white fs-6">
         {{fsdocs-list-of-documents}}
         {{fsdocs-list-of-namespaces}}
@@ -39,7 +39,7 @@
     <main class="doc-content">
      <nav class="navbar navbar-expand-sm border py-1">
         <div class="container-fluid flex-nowrap">
-          <button class="btn" id="toggle-mobile-menu" aria-controls="sidebar-wrapper" aria-expanded="false" aria-label="Toggle navigation">
+          <button class="btn" id="toggle-mobile-menu" aria-expanded="false" aria-label="Toggle navigation">
             <i class="sidebar-toggle fs-3 bi bi-list"></i>
           </button>
           <div id="mobile-navbar" class="container-fluid d-flex justify-content-between d-sm-none">

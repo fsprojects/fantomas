@@ -6,9 +6,15 @@ addEventListener('load', (event) => {
 
     // get body element
     const body = document.getElementsByTagName('body')[0];
-document.querySelector("#toggle-mobile-menu").addEventListener("click", () => {
-    body.classList.toggle("open-menu");
-        });
+    
+    document
+        .querySelectorAll("#toggle-mobile-menu, #close-mobile-menu")
+        .forEach(element => {
+            element.addEventListener("click", () => {
+                body.classList.toggle("open-menu");
+            });
+        })
+
 
     // Opening/collapsing menu items of sidebar depending on the current page section
     const currentPathName = window.location.pathname;

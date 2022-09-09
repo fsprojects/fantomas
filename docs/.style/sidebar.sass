@@ -2,47 +2,74 @@
 
 $sidebar-width: 300px
 
+// General menu mechanism
+
+@mixin hide-column
+    max-width: 0
+    overflow-x: hidden
+
+@mixin reset-column
+    max-width: initial
+    overflow-x: initial
+    
 body
-    grid-template-columns: 0px auto
-    transition: margin 0.3s ease-in-out
-    #sidebar-wrapper
-        width: 100%
-        transition: left 0.3s ease-in-out
-        overflow-y: auto
-        z-index: 1000
+    grid-template-columns: 0 auto
 
-        #sidebar-content
-            .accordion-button
-                padding: 0.7rem
-            .accordion-item
-                .collapsing
-                    transition: none
-                .show
-                    background-color: $menu-open
-                    transition: background-color 200ms ease-in-out
-            .btn
-                width: 100%
-            li
-                list-style: none
+    // Remember: Mobile first, hide the menu on mobile
+    aside
+        @include hide-column
+    
+    &.open-menu
+        grid-template-columns: auto 0
+        
+        aside
+            @include reset-column
+
+        main
+            @include hide-column
+
+    // Tablet and higher, show the menu by default
+    @include media-breakpoint-up(md)
+        grid-template-columns: $sidebar-width auto
+
+        aside
+            @include reset-column
+        
+        &.open-menu
+            // We are on desktop here
+            // Toggling the menu actually means hiding it.
+            grid-template-columns: 0 auto 
+            
+            aside
+                @include hide-column
+            
+            main
+                @include reset-column 
+
+// Sidebar specific styling
+
+aside
+    #sidebar-content
+        .accordion-button
+            padding: 0.7rem
+        .accordion-item
+            .collapsing
+                transition: none
+            .show
+                background-color: $menu-open
+                transition: background-color 200ms ease-in-out
         .btn
-            border: none
+            width: 100%
+        li
+            list-style: none
 
-        a
-            color: $white
-            text-decoration: none
-        p
-            letter-spacing: 0.1px
+    .btn
+        border: none
 
-        #sidebar-logo
-            #fsdocs-logo
-                width: 220px
-    .open-menu
-        grid-template-columns: auto 0px
+    a.nav-link
+        color: $white
+        text-decoration: none
 
-
-    @include media-breakpoint-up(sm)
-        &:not(.open-menu)
-            background-color: red
-            grid-template-columns: $sidebar-width auto
-        background-color: blue
-        grid-template-columns: 0px auto
+    #sidebar-logo
+        #fsdocs-logo
+            width: 220px
