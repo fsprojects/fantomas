@@ -68,4 +68,23 @@ Instead we can use various helper functions that take the `Context` as parameter
 Please take a moment to debug the unit tests in [CodePrinterHelperFunctionsTests.fs](https://github.com/fsprojects/fantomas/blob/master/src/Fantomas.Core.Tests/CodePrinterHelperFunctionsTests.fs).  
 This will give you a better understanding of how we capture events in `CodePrinter`.
 
+### Debugging CodePrinter
+
+One thing that is a bit harder to grasp initially, is what is happening you put a breakpoint in `CodePrinter.fs`.  
+In `CodePrinter.fs` we compose a format function that takes a `Context` and returns a `Context`.
+We do this by traversing the syntax tree, and when you put a breakpoint in `genTypeDefn` for example:
+
+![Breakpoint in genTypeDefn](../../images/debugging-code-printer-1.png)
+
+we are still in the process of composing the format function.  
+**The Context has not been going through our format function yet!**
+
+If we want to debug when the `Context` is traveling through the format function, we can easily, temporarily, insert an additional function to inspect the `Context` content:
+
+![Breakpoint in Context -> Context](../../images/debugging-code-printer-2.png)
+
+The `dumpAndContinue` helper function can be used to inspect the `Context`.  
+Please remove all usages when submitting a PR 😸.
+
+
 <fantomas-nav previous="./Prepare%20Context.html" next="./Formatted%20Code.html"></fantomas-nav>
