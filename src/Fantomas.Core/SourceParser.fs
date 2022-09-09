@@ -608,10 +608,29 @@ let (|Sequential|_|) =
     | SynExpr.Sequential (_, isSeq, e1, e2, _) -> Some(e1, e2, isSeq)
     | _ -> None
 
-let rec (|Sequentials|_|) =
+let (|Sequentials|_|) =
     function
-    | Sequential (e, Sequentials es, _) -> Some(e :: es)
-    | Sequential (e1, e2, _) -> Some [ e1; e2 ]
+    | Sequential (e1, e2, _) ->
+        let acc = System.Collections.Generic.List<_>()
+
+        acc.Add(e1)
+
+        let mutable toVisit = [ e2 ]
+        let mutable keepGoing = true
+
+        while keepGoing do
+            match toVisit with
+            | x :: xs ->
+                match x with
+                | Sequential (e1, e2, _) ->
+                    acc.Add(e1)
+                    toVisit <- e2 :: xs
+                | _ ->
+                    acc.Add(x)
+                    toVisit <- xs
+            | _ -> keepGoing <- false
+
+        Some(List.ofSeq acc)
     | _ -> None
 
 let (|SimpleExpr|_|) =
