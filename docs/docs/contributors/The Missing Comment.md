@@ -5,13 +5,13 @@ index: 10
 ---
 # The Missing Comment
 
-Code comment can literally exist between every single F# token. I'm looking at you block comment `(* ... *)`.  
+Code comments can literally exist between every single F# token. I'm looking at you block comment `(* ... *)`.  
 As explained in [Detecting trivia](./Prepare%20Context.html#Detecting-trivia), we need to do quite some processing to restore code comments.  
 In this guide, we would like to give you seven tips to restore a missing comment!
 
 ## Breathe
 
-We very much understanding that losing a code comment after formatting can be extremely frustrating.  
+We understand it very well that losing a code comment after formatting can be extremely frustrating.  
 There is no easy fix that will solve all the missing comments overnight. Each case is very individual and can be complex to solve.  
 May these steps help towards fixing your problem!
 
@@ -50,7 +50,7 @@ ImplFile
         CodeComments = [BlockComment tmp.fsx (1,4--1,50)] }))
 ```
 
-If the comment is not there this means the F# lexer and parser didn't pick up the comment. In the  unlikely event this happened, this should be fixed first over at [dotnet/fsharp](https://github.com/dotnet/fsharp).
+If the comment is not there this means the F# lexer and parser didn't pick up the comment. In the unlikely event this happened, this should be fixed first over at [dotnet/fsharp](https://github.com/dotnet/fsharp).
 
 ## Was the comment detected as trivia?
 
@@ -63,7 +63,7 @@ If your comment does not show up there, it means there is a problem between gett
 
 ## Was the trivia assigned to a trivia node?
 
-The `Trivia` needs to be assigned to `TriviaNode` to be stored in the `Context`.  
+The `Trivia` needs to be assigned to a `TriviaNode` to be stored in the `Context`.  
 Using the center tab in the tool, we can see the tree structure of all available `TriviaNodes`.
 
 ![Root node in online tool](../../images/online-tool-trivia-2.png)
@@ -72,7 +72,7 @@ Choosing the best suitable node can be quite tricky, there are different strateg
 In this example `SynBindingKind_Normal` and `SynPat_Named` are good candidates as they appear right after the comment.  
 Once the `Trivia` is assigned to a `TriviaNode`, a `TriviaInstruction` will be created. This is the link between them and is what will be stored in the `Context`.
 
-The last tab in the tool show us the result of the assigment:
+The left-most tab in the tool shows us the result of the assigment:
 
 ![Trivia Instructions in online tool](../../images/online-tool-trivia-3.png)
 
@@ -86,17 +86,17 @@ In [#640](https://github.com/fsprojects/fantomas/issues/640), the `Directive` tr
 ![Wrong node assignment in online tool](../../images/online-tool-trivia-4.png)
 
 Notice that `SynBindingKind_Normal` starts at line `6`, while the `Trivia` is wrapped around the `inline` keyword on line `4`.  
-It would be ideal if we could use the `inline` keyword as `TriviaNode`, but looking at the tree, it doesn't appear to be present.
+It would be ideal if we could use the `inline` keyword as a `TriviaNode`, but looking at the tree, it doesn't appear to be present.
 Why is that? Well, the syntax tree does, at the time of writing, not provide a `range` for the keyword.  
 This would be a great addition as to [SyntaxTreeTrivia](../../reference/fsharp-compiler-syntaxtrivia.html), and can be done by submitting a pull request to [dotnet/fsharp](https://github.com/dotnet/fsharp).
 
 ## Printing the TriviaInstruction
 
 The last piece of the puzzle is printing the actual `TriviaInstruction` in `CodePrinter`.
-If the everything up to this point went well, and the comment is still missing after formatting, it means it was not printed.
+If everything up to this point went well, and the comment is still missing after formatting, it means it was not printed.
 
-Every `TriviaInstruction` has a type (`FsAstType`) and a `range`. The `range` is taking from an actual AST node, so when we encounter this `range` in `CodePrinter`, we need to act upon it.  
-We typically do this by calling `genTriviaFor`, passing down the `type`, the `range` and a function `f` that should be compose in between.
+Every `TriviaInstruction` has a type (`FsAstType`) and a `range`. The `range` is taken from an actual AST node, so when we encounter this `range` in `CodePrinter`, we need to act upon it.  
+We typically do this by calling `genTriviaFor`, passing down the `type`, the `range` and a function `f` that should be composed in between.
 
 Example:
 
@@ -111,7 +111,7 @@ and genTriviaFor (mainNodeName: FsAstType) (range: Range) f ctx =
     (enterNodeFor mainNodeName range +> f +> leaveNodeFor mainNodeName range) ctx
 ```
 
-We can derive that composition will be as followed:
+We can derive that the composition will be as follows:
 
 ```fsharp
 enterNodeFor Ident_ ident.idRange

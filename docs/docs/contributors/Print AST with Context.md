@@ -70,7 +70,7 @@ This will give you a better understanding of how we capture events in `CodePrint
 
 ### Debugging CodePrinter
 
-One thing that is a bit harder to grasp initially, is what is happening you put a breakpoint in `CodePrinter.fs`.  
+One thing that is a bit harder to grasp initially, is what is happening when you put a breakpoint in `CodePrinter.fs`.  
 In `CodePrinter.fs` we compose a format function that takes a `Context` and returns a `Context`.
 We do this by traversing the syntax tree, and when you put a breakpoint in `genTypeDefn` for example:
 
