@@ -608,10 +608,16 @@ let (|Sequential|_|) =
     | SynExpr.Sequential (_, isSeq, e1, e2, _) -> Some(e1, e2, isSeq)
     | _ -> None
 
-let rec (|Sequentials|_|) =
-    function
-    | Sequential (e, Sequentials es, _) -> Some(e :: es)
-    | Sequential (e1, e2, _) -> Some [ e1; e2 ]
+let (|Sequentials|_|) e =
+    let rec visit (e: SynExpr) (finalContinuation: SynExpr list -> SynExpr list) : SynExpr list =
+        match e with
+        | Sequential (e1, e2, _) -> visit e2 (fun xs -> e1 :: xs |> finalContinuation)
+        | e -> finalContinuation [ e ]
+
+    match e with
+    | Sequential (e1, e2, _) ->
+        let xs = visit e2 id
+        Some(e1 :: xs)
     | _ -> None
 
 let (|SimpleExpr|_|) =
