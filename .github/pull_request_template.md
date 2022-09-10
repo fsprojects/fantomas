@@ -1,0 +1,2 @@
+﻿Please verify your pull request is respecting our [Pull request ground rules](https://fsprojects.github.io/fantomas/docs/contributors/Pull%20request%20ground%20rules.html).
+You can find more information in our [Contributors documentation section](https://fsprojects.github.io/fantomas/docs/contributors/Index.html).

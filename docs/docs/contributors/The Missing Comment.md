@@ -121,4 +121,4 @@ enterNodeFor Ident_ ident.idRange
 
 `enterNodeFor` and `leaveNodeFor` will print the `TriviaInstruction` it finds for the `range` and `type` inputs in the `Context`.
 
-<fantomas-nav previous="./How%20Can%20I%20Contribute.html"></fantomas-nav>
+<fantomas-nav previous="./How%20Can%20I%20Contribute.html" next="./Pull%20request%20ground%20rules.html"></fantomas-nav>
