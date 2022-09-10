@@ -1,10 +1,11 @@
 # Changelog
 
-## [Unreleased]
+## [5.0.0-beta-010] - 2022-09-10
 
 ### Fixed
-* Record definition with accessibility modifier error using stroustrup style [#2481](https://github.com/fsprojects/fantomas/issues/2481)
-* Stack overflow on macOS with a big source-file [#2485](https://github.com/fsprojects/fantomas/issues/2485)
+* Record definition with accessibility modifier error using stroustrup style. [#2481](https://github.com/fsprojects/fantomas/issues/2481)
+* Comments between tuple type are lost. [#2149](https://github.com/fsprojects/fantomas/issues/2149)
+* Stack overflow on macOS with a big source-file. [#2485](https://github.com/fsprojects/fantomas/issues/2485)
 
 ## [5.0.0-beta-009] - 2022-09-02
 
@@ -12,7 +13,6 @@
 * --check should fail if the number of newlines is different. [#2461](https://github.com/fsprojects/fantomas/issues/2461)
 * Comment after closing brace of computation expression is lost. [#2466](https://github.com/fsprojects/fantomas/issues/2466)
 * Match statements should not be split into separate lines between parentheses. [#2044](https://github.com/fsprojects/fantomas/issues/2044)
-* Comments between tuple type are lost #2149. [#2149](https://github.com/fsprojects/fantomas/issues/2149)
 
 ## [5.0.0-beta-008] - 2022-08-30
 
