@@ -76,6 +76,7 @@ header
   //    border-top: 1px solid $white
 
   #core-title
+    display: none
     color: $white
     text-align: center
     font-size: 4rem
@@ -83,13 +84,17 @@ header
     top: 50%
     left: 50%
     transform: translate(-50%, -50%)
+    @include media-breakpoint-up(lg)
+      display: block
 
   #cta-buttons
     z-index: 1
     position: absolute
-    bottom: 9rem
+    bottom: 17rem
     left: 50%
     transform: translateX(-50%)
+    @include media-breakpoint-up(lg)
+      bottom: 9rem
 
     a.btn
       font-size: 2rem
@@ -97,6 +102,24 @@ header
       text-transform: uppercase
       margin: 0 1rem
       margin-bottom: 1rem
+
+.card
+  margin-bottom: 1.5rem
+
+.community-sponsors
+  flex-wrap: wrap
+  justify-content: space-around
+  align-items: center
+  li
+    padding: 0.3rem
+    flex: 45%
+  @include media-breakpoint-up(md)
+    justify-content: space-evenly
+    flex-direction: row
+  @include media-breakpoint-up(sm)
+    padding: 0.3rem
+    align-items: center
+    flex-direction: row
 
 .discord
   position: fixed
