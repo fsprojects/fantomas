@@ -4,21 +4,17 @@ addEventListener('load', (event) => {
     const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
     const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl));
 
-    // Handling of sidebar open/close
-    addEventListener('hide.bs.collapse', (e) => {
-        if (e.target && e.target.id === 'sidebar-wrapper') {
-            document.getElementById('main-container').classList.add('toggled');
-        } else {
-            document.getElementById(e.target.id + '-wrapper').classList.remove('menu-open');
-        }
-    })
-    addEventListener('show.bs.collapse', (e) => {
-        if (e.target && e.target.id === 'sidebar-wrapper') {
-            document.getElementById('main-container').classList.remove('toggled');
-        } else {
-            document.getElementById(e.target.id + '-wrapper').classList.add('menu-open');
-        }
-    })
+    // get body element
+    const body = document.getElementsByTagName('body')[0];
+    
+    document
+        .querySelectorAll("#toggle-mobile-menu, #close-mobile-menu")
+        .forEach(element => {
+            element.addEventListener("click", () => {
+                body.classList.toggle("open-menu");
+            });
+        })
+
 
     // Opening/collapsing menu items of sidebar depending on the current page section
     const currentPathName = window.location.pathname;
@@ -26,7 +22,6 @@ addEventListener('load', (event) => {
     const currenSection = currentSectionFull.substring(currentSectionFull.lastIndexOf('/') + 1);
 
     const openMenu = (fsdocsSection) => {
-        document.getElementById(fsdocsSection + '-wrapper').classList.add('menu-open');
         document.getElementById(fsdocsSection).classList.add('show');
         document.getElementById(fsdocsSection + '-button').classList.remove('collapsed');
     }

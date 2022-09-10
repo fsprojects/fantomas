@@ -4008,7 +4008,9 @@ and genTypeList astContext node =
 
                 let shortExpr = gt sepStar
                 let longExpr = gt (sepSpace +> sepStarFixed +> sepNln)
+
                 expressionFitsOnRestOfLine shortExpr longExpr
+                |> genTriviaFor SynType_Tuple t.Range
 
             | _, [ ArgInfo (ats, so, isOpt) ] ->
                 match t with
