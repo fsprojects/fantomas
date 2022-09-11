@@ -70,7 +70,7 @@ Updating your fork:
 [<Test>]
 let ``preserve compile directive between piped functions, 512`` () = ...
 ```
-You don't need to repeat this number for test that are a deviations for the original report problem. 
+You don't need to repeat this number for tests that are deviations from the original report problem. 
 
 ### Verify signature files
 
