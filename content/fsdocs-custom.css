@@ -9515,6 +9515,7 @@ body {
 }
 body aside {
   max-width: 0;
+  max-height: 0;
   overflow-x: hidden;
 }
 body.open-menu {
@@ -9522,10 +9523,12 @@ body.open-menu {
 }
 body.open-menu aside {
   max-width: initial;
+  max-height: initial;
   overflow-x: initial;
 }
 body.open-menu main {
   max-width: 0;
+  max-height: 0;
   overflow-x: hidden;
 }
 @media (min-width: 768px) {
@@ -9534,6 +9537,7 @@ body.open-menu main {
   }
   body aside {
     max-width: initial;
+    max-height: initial;
     overflow-x: initial;
   }
   body.open-menu {
@@ -9541,10 +9545,12 @@ body.open-menu main {
   }
   body.open-menu aside {
     max-width: 0;
+    max-height: 0;
     overflow-x: hidden;
   }
   body.open-menu main {
     max-width: initial;
+    max-height: initial;
     overflow-x: initial;
   }
 }

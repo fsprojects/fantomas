@@ -9270,9 +9270,14 @@ html, body {
 }
 
 header {
-  height: 100vh;
+  height: 500px;
   position: relative;
-  padding: 4rem 0;
+}
+@media (min-width: 768px) {
+  header {
+    padding: 4rem 0;
+    height: 100vh;
+  }
 }
 header video {
   filter: blur(0.025rem);
@@ -9331,6 +9336,7 @@ header nav .nav-item .nav-link:hover::after, header nav .nav-item .nav-link:focu
   opacity: 1;
 }
 header #core-title {
+  display: none;
   color: #FFF;
   text-align: center;
   font-size: 4rem;
@@ -9339,10 +9345,15 @@ header #core-title {
   left: 50%;
   transform: translate(-50%, -50%);
 }
+@media (min-width: 768px) {
+  header #core-title {
+    display: block;
+  }
+}
 header #cta-buttons {
   z-index: 1;
   position: absolute;
-  bottom: 9rem;
+  bottom: 2rem;
   left: 50%;
   transform: translateX(-50%);
 }
@@ -9352,6 +9363,29 @@ header #cta-buttons a.btn {
   text-transform: uppercase;
   margin: 0 1rem;
   margin-bottom: 1rem;
+}
+
+.community-sponsors {
+  flex-wrap: wrap;
+  justify-content: space-around;
+  align-items: center;
+}
+.community-sponsors li {
+  padding: 0.3rem;
+  flex: 45%;
+}
+@media (min-width: 768px) {
+  .community-sponsors {
+    justify-content: space-evenly;
+    flex-direction: row;
+  }
+}
+@media (min-width: 576px) {
+  .community-sponsors {
+    padding: 0.3rem;
+    align-items: center;
+    flex-direction: row;
+  }
 }
 
 .discord {
