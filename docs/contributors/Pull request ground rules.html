@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en" data-root="https://fsprojects.github.io/fantomas/">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="author" content="Florian Verdonck, Jindřich Ivánek, David Schaefer">
+  <title>Pull request ground rules
+</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,600;1,400&family=Reem+Kufi:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.3/font/bootstrap-icons.css">
+  <link rel="shortcut icon" type="image/x-icon" href="https://fsprojects.github.io/fantomas/images/favicon.ico">
+  <link type="text/css" rel="stylesheet" href="https://fsprojects.github.io/fantomas/content/fsdocs-custom.css" />
+  <script type="text/javascript" src="https://fsprojects.github.io/fantomas/content/fsdocs-tips.js"></script>
+  <!-- BEGIN SEARCH BOX: this adds support for the search box -->
+  <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+  <link rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/JavaScript-autoComplete/1.0.4/auto-complete.css" />
+  <!-- END SEARCH BOX: this adds support for the search box -->
+  
+</head>
+
+<body>
+     <aside class="bg-primary h-100 fs-5">
+      <div id="sidebar-header" class="d-flex justify-content-end mt-1">
+      <button class="btn d-md-none" id="close-mobile-menu" aria-controls="sidebar-wrapper" aria-expanded="false" aria-label="Toggle navigation">
+        <i class="sidebar-toggle fs-3 bi bi-x-lg"></i>
+                  </button>
+              </div>
+      <div id="sidebar-logo" class="d-flex justify-content-center p-5">
+        <a href="https://fsprojects.github.io/fantomas/docs/index.html" ><img id="fsdocs-logo" src="https://fsprojects.github.io/fantomas//images/logo-fantomas-white.svg" /></a>
+      </div>
+      <div id="sidebar-content" class="accordion accordion-flush ps-0 text-white fs-6">
+        <div id="end-users-wrapper" class="accordion-item">
+    <li class="docs-menu">
+        <button id="end-users-button"
+            class="accordion-button collapsed btn text-white d-flex justify-content-between align-items-center"
+            data-bs-toggle="collapse" data-bs-target="#end-users" aria-expanded="false"
+            aria-control="end-users" type="button">
+            End-users
+        </button>
+        <div id="end-users" class="accordion-collapse collapse ps-4 pb-2 " data-bs-parent="#sidebar-content">
+            <ul class="list-unstyled fw-normal mb-0">
+                <li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/end-users/GettingStarted.html" class="nav-link pb-2 d-block" > Getting Started
+</a></li>
+
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/end-users/StyleGuide.html" class="nav-link pb-2 d-block" > Style guide
+</a></li>
+
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/end-users/Configuration.html" class="nav-link pb-2 d-block" > Configuration
+</a></li>
+
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/end-users/IgnoreFiles.html" class="nav-link pb-2 d-block" > Ignore Files
+</a></li>
+
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/end-users/FormattingCheck.html" class="nav-link pb-2 d-block" > Formatting Check
+</a></li>
+
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/end-users/GitHooks.html" class="nav-link pb-2 d-block" > Git hooks
+</a></li>
+
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/end-users/VisualStudio.html" class="nav-link pb-2 d-block" > Visual Studio
+</a></li>
+
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/end-users/Rider.html" class="nav-link pb-2 d-block" > JetBrains Rider
+</a></li>
+
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/end-users/VSCode.html" class="nav-link pb-2 d-block" > Visual Studio Code
+</a></li>
+
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/end-users/FAQ.html" class="nav-link pb-2 d-block" > FAQ
+</a></li>
+
+            </ul>
+        </div>
+    </li>
+</div>
+<div id="contributors-wrapper" class="accordion-item">
+    <li class="docs-menu">
+        <button id="contributors-button"
+            class="accordion-button collapsed btn text-white d-flex justify-content-between align-items-center"
+            data-bs-toggle="collapse" data-bs-target="#contributors" aria-expanded="false"
+            aria-control="contributors" type="button">
+            Contributors
+        </button>
+        <div id="contributors" class="accordion-collapse collapse ps-4 pb-2 " data-bs-parent="#sidebar-content">
+            <ul class="list-unstyled fw-normal mb-0">
+                <li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/Index.html" class="nav-link pb-2 d-block" > Contributors
+</a></li>
+
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/FSharp.html" class="nav-link pb-2 d-block" > F#
+</a></li>
+
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/Getting Started.html" class="nav-link pb-2 d-block" > Getting started
+</a></li>
+
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/Solution Structure.html" class="nav-link pb-2 d-block" > Solution structure
+</a></li>
+
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/Prepare Context.html" class="nav-link pb-2 d-block" > Fantomas.Core overview (1)
+</a></li>
+
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/Print AST with Context.html" class="nav-link pb-2 d-block" > Fantomas.Core overview (2)
+</a></li>
+
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/Formatted Code.html" class="nav-link pb-2 d-block" > Fantomas.Core overview (3)
+</a></li>
+
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/Conditional Compilation Directives.html" class="nav-link pb-2 d-block" > Formatting Conditional Compilation Directives
+</a></li>
+
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/How Can I Contribute.html" class="nav-link pb-2 d-block" > How can I contribute?
+</a></li>
+
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/The Missing Comment.html" class="nav-link pb-2 d-block" > The Missing Comment
+</a></li>
+
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/Pull request ground rules.html" class="nav-link pb-2 d-block" > Pull request ground rules
+</a></li>
+
+            </ul>
+        </div>
+    </li>
+</div>
+        <div id="api_reference-wrapper" class="accordion-item">
+    <li class="docs-menu">
+        <button id="api_reference-button"
+            class="accordion-button collapsed btn text-white d-flex justify-content-between align-items-center"
+            data-bs-toggle="collapse" data-bs-target="#api_reference" aria-expanded="false"
+            aria-control="api_reference" type="button">
+            API Reference
+        </button>
+        <div id="api_reference" class="accordion-collapse collapse ps-4 pb-2 " data-bs-parent="#sidebar-content">
+            <ul class="list-unstyled fw-normal mb-0">
+                <li class="nav-item"><a href="https://fsprojects.github.io/fantomas/reference/index.html" class="nav-link pb-2 d-block" > All Namespaces</a></li>
+
+            </ul>
+        </div>
+    </li>
+</div>
+      </div>
+    </aside>
+    <main class="doc-content">
+     <nav class="navbar navbar-expand-sm border py-1">
+        <div class="container-fluid flex-nowrap">
+          <button class="btn" id="toggle-mobile-menu" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="sidebar-toggle fs-3 bi bi-list"></i>
+          </button>
+          <div id="mobile-navbar" class="container-fluid d-flex justify-content-between d-sm-none">
+            <i class="invisible bi bi-github fs-3 align-self-end"></i>
+         <a href="./index.html" ><img id="fsdocs-logo-mobile" width="32" height="32" src="https://fsprojects.github.io/fantomas//images/logo.png" /></a>
+            <a class="nav-link m-0 p-0" target="_blank" href="https://github.com/fsprojects/fantomas/"> <i class="bi bi-github fs-3 align-self-end"></i>
+</a>
+          </div>
+          <div class="collapse navbar-collapse" id="navbarText">
+            <div class="navbar-nav me-auto mb-2 mb-lg-0 fs-5">
+                <a class="nav-link active" aria-current="page" href="https://fsprojects.github.io/fantomas/docs/index.html">Docs</a>
+                <a class="nav-link" target="_blank" href="https://fsprojects.github.io/fantomas-tools/">Tools</a>
+            </div>
+            <form class="d-flex">
+              <div class="input-group me-4">
+              <label for="search-by">
+                <i class="fas fa-search"></i>
+              </label>
+                <div class="btn border-end-0 border">
+                  <i class="bi bi-search"></i>
+                </div>
+                <input aria-label="Search" class="form-control  border-start-0 border" data-search-input=""
+                  id="search-by" type="search" placeholder="Search..." />
+                <span class="input-group-append">
+                </span>
+                <span data-search-clear="">
+                  <i class="fas fa-times"></i>
+                </span>
+              </div>
+            </form>
+            <a class="nav-link m-0 p-0" target="_blank" href="https://github.com/fsprojects/fantomas/">GitHub<i
+                class="bi bi-box-arrow-up-right mx-2"></i></a>
+          </div>
+        </div>
+      </nav>
+      <div id="fsdocs-content" class="bg-white m-2 m-sm-5 p-3 p-sm-4">
+        
+<h1><a name="Pull-request-ground-rules" class="anchor" href="#Pull-request-ground-rules">Pull request ground rules</a></h1>
+<p>We expect some things from code changes.
+In general, changes should be made as consistent to the current code base as possible.
+Don't introduce unnecessary new concepts and try and change as little code as possible to achieve your goal.</p>
+<p>Always start with the mindset that you are going to introduce a change that might have an impact on how the tool behaves.
+Capture this change first in a unit test. Set your expectations in the assert part of the test before touching anything.
+This project is very well suited for <a href="https://en.wikipedia.org/wiki/Test-driven_development">Test-driven development</a> and that should be the goal.</p>
+<p>Typical unit test template:</p>
+<pre class="fssnip highlighted"><code lang="fsharp"><span class="pn">[&lt;</span><span class="id">Test</span><span class="pn">&gt;]</span>
+<span class="k">let</span> <span class="fn">``my new test``</span> <span class="pn">(</span><span class="pn">)</span> <span class="o">=</span>
+    <span class="id">formatSourceString</span> <span class="k">false</span> <span class="s">&quot;&quot;&quot;</span>
+<span class="s">let myInput =     42</span>
+<span class="s">&quot;&quot;&quot;</span>  <span class="id">config</span>
+    <span class="o">|&gt;</span> <span class="id">prepend</span> <span class="id">newline</span>
+    <span class="o">|&gt;</span> <span class="id">should</span> <span class="id">equal</span> <span class="s">&quot;&quot;&quot;</span>
+<span class="s">let myInput = 42</span>
+<span class="s">&quot;&quot;&quot;</span>
+</code></pre>
+<p>The vast majority of the tests use the template listed above. Only deviate from this when necessary.
+Try and find a suitable file in <code>Fantomas.Core.Tests</code>, or introduce a new file.</p>
+<p>A new test file should look like:</p>
+<pre class="fssnip highlighted"><code lang="fsharp"><span class="k">module</span> <span class="id">Fantomas</span><span class="pn">.</span><span class="id">Core</span><span class="pn">.</span><span class="id">Tests</span><span class="pn">.</span><span class="id">MyNewConceptTests</span>
+
+<span class="k">open</span> <span class="id">NUnit</span><span class="pn">.</span><span class="id">Framework</span>
+<span class="k">open</span> <span class="id">FsUnit</span>
+<span class="k">open</span> <span class="id">Fantomas</span><span class="pn">.</span><span class="id">Core</span><span class="pn">.</span><span class="id">Tests</span><span class="pn">.</span><span class="id">TestHelper</span>
+
+<span class="c">// add tests here...</span>
+</code></pre>
+<p>Filename: <code>MyNewConceptTests.fs</code>.</p>
+<p>When developing a new feature, add new tests to cover all code paths.</p>
+<p>If you come across an issue, which can't be reproduced with the latest version of Fantomas but is still open, please submit a regression test.
+That way, we can ensure the issue stays fixed after closing it.</p>
+<h2><a name="Guidelines" class="anchor" href="#Guidelines">Guidelines</a></h2>
+<h3><a name="Target-branch" class="anchor" href="#Target-branch">Target branch</a></h3>
+<p>Please always rebase your code on the targeted branch.
+To keep your fork up to date, run this command:</p>
+<blockquote>
+<p>git remote add upstream <a href="https://github.com/fsprojects/fantomas.git">https://github.com/fsprojects/fantomas.git</a></p>
+</blockquote>
+<p>Updating your fork:</p>
+<blockquote>
+<p>git checkout master &amp;&amp; git fetch upstream &amp;&amp; git rebase upstream/master &amp;&amp; git push</p>
+</blockquote>
+<h3><a name="Unit-test" class="anchor" href="#Unit-test">Unit test</a></h3>
+<ul>
+<li>Unit test names should start with a lowercase letter.</li>
+<li>When creating a test that is linked to a GitHub issue, add the number at the back with a comma, as in the following:</li>
+</ul>
+<pre class="fssnip highlighted"><code lang="fsharp"><span class="pn">[&lt;</span><span class="id">Test</span><span class="pn">&gt;]</span>
+<span class="k">let</span> <span class="id">``preserve compile directive between piped functions, 512``</span> <span class="pn">(</span><span class="pn">)</span> <span class="o">=</span> <span class="o">..</span><span class="pn">.</span>
+</code></pre>
+<p>You don't need to repeat this number for tests that are deviations from the original report problem.</p>
+<h3><a name="Verify-signature-files" class="anchor" href="#Verify-signature-files">Verify signature files</a></h3>
+<p>Verify if the change you are making should also apply to signature files (<code>*.fsi</code>).</p>
+<h3><a name="Verify-slight-variations" class="anchor" href="#Verify-slight-variations">Verify slight variations</a></h3>
+<ul>
+<li>Check if you need additional tests to cope with a different combination of settings.</li>
+<li>Check if you need additional tests to cope with a different combination of defines (<code>#if DEBUG</code>, ...).</li>
+</ul>
+<h3><a name="Documentation" class="anchor" href="#Documentation">Documentation</a></h3>
+<p>Write/update documentation when necessary.<br />
+You can find instructions on how to run the documentation locally in the <a href="https://github.com/fsprojects/fantomas/blob/master/docs/.README.md">docs/.README.md</a> file.</p>
+<h3><a name="Pull-request-title" class="anchor" href="#Pull-request-title">Pull request title</a></h3>
+<ul>
+<li>
+<p>Give your PR a meaningful title. Make sure it covers the change you are introducing in Fantomas.</p>
+<p>For example:
+<em>"Fix bug 1404"</em> is a poor title as it does not tell the maintainers what changed in the codebase.<br />
+<em>"Don't double unindent when record has an access modifier"</em> is better as it informs us what exactly has changed.</p>
+</li>
+<li>
+<p>Add a link to the issue you are solving by using <a href="https://docs.github.com/en/github/managing-your-work-on-github/linking-a-pull-request-to-an-issue#linking-a-pull-request-to-an-issue-using-a-keyword">a keyword</a> in the PR description.<br />
+<em>"Fixes #1404"</em> does the trick quite well. GitHub will automatically close the issue if you used the correct wording.</p>
+<p><img src="../../images/github-linked-issue.png" alt="Linked issue" /></p>
+<p>Please verify your issue is linked. (<a href="https://docs.github.com/en/github/managing-your-work-on-github/linking-a-pull-request-to-an-issue#linking-a-pull-request-to-an-issue-using-a-keyword">GitHub documentation</a>)</p>
+</li>
+<li>
+<p>Not mandatory, but when fixing a bug consider using <code>fix-&lt;issue-number&gt;</code> as the git branch name.<br />
+For example, <code>git checkout -b fix-1404</code>.</p>
+</li>
+</ul>
+<h3><a name="Format-your-changes" class="anchor" href="#Format-your-changes">Format your changes</a></h3>
+<ul>
+<li>
+Code should be formatted to our standard style, using either <code>dotnet fake run build.fsx -t Format</code> which works on all files, or
+<code>dotnet fake run build.fsx -t FormatChanged</code> to just change the files in git.
+<ul>
+<li>If you forget, there's a git <code>pre-commit</code> script that will run this for you, make sure to run <code>dotnet fake build -t EnsureRepoConfig</code> to set that hook up.</li>
+</ul>
+</li>
+</ul>
+<h3><a name="Changelog" class="anchor" href="#Changelog">Changelog</a></h3>
+<ul>
+<li>
+Add an entry to the <code>CHANGELOG.md</code> in the <code>Unreleased</code> section based on what kind of change your change is. Follow the guidelines at <a href="https://keepachangelog.com/en/1.0.0/#how">KeepAChangelog</a> to make your message relevant to future readers.
+<ul>
+<li>If you're not sure what Changelog section your change belongs to, start with <code>Changed</code> and ask for clarification in your Pull Request</li>
+<li>
+<p>If there's not an <code>Unreleased</code> section in the <code>CHANGELOG.md</code>, create one at the top above the most recent version like so:</p>
+<table class="pre"><tr><td class="snippet"><pre class="fssnip"><code lang="markdown">## [Unreleased]
+
+### Changed</code></pre></td></tr></table>
+<ul>
+<li>
+<p>Your new feature goes here</p>
+<h2><a name="2022-02-10" class="anchor" href="#2022-02-10">[4.7.4] - 2022-02-10</a></h2>
+<h3><a name="Added" class="anchor" href="#Added">Added</a></h3>
+</li>
+<li>
+<p>Awesome feature number one</p>
+<pre class="fssnip highlighted"><code lang="fsharp"></code></pre>
+</li>
+</ul>
+</li>
+<li>
+When fixing a <code>bug (soundness)</code>, add a line in the following format to <code>Fixed</code>:
+<code>* &lt;Original GitHub issue title&gt; [#issue-number](https://github.com/fsprojects/fantomas/issues/issue-number)</code>.
+For example, <code>* Spaces are lost in multi range expression. [#2071](https://github.com/fsprojects/fantomas/issues/2071)</code>.
+Do the same, if you fixed a <code>bug (stylistic)</code> that is not related to any style guide.
+</li>
+<li>
+When fixing a <code>bug (stylistic)</code>, add a line in the following format to <code>Changed</code>
+<code>Update style of xyz. [#issue-number](https://github.com/fsprojects/fantomas/issues/issue-number)</code>
+</li>
+<li>For example, <code>* Update style of lambda argument. [#1871](https://github.com/fsprojects/fantomas/issues/1871)</code>.</li>
+</ul>
+</li>
+</ul>
+<h3><a name="Run-a-local-build" class="anchor" href="#Run-a-local-build">Run a local build</a></h3>
+<p>Finally, make sure to run <code>dotnet fake build</code>. Among other things, this will check the format of the code and will tell you, if
+your changes caused any tests to fail.</p>
+<h3><a name="Small-steps" class="anchor" href="#Small-steps">Small steps</a></h3>
+<p>It is better to create a draft pull request with some initial small changes, and engage conversation, than to spend a lot of effort on a large pull request that was never discussed.
+Someone might be able to warn you in advance that your change will have wide implications for the rest of Fantomas, or might be able to point you in the right direction.
+However, this can only happen if you discuss your proposed changes early and often.
+It's often better to check <em>before</em> contributing that you're setting off on the right path.</p>
+<h2><a name="Fixing-style-guide-inconsistencies" class="anchor" href="#Fixing-style-guide-inconsistencies">Fixing style guide inconsistencies</a></h2>
+<p>Fantomas tries to keep up with the style guides, but as these are living documents, it can occur that something is listed in the style that Fantomas is not respecting.
+In this case, please create an issue using our <a href="https://fsprojects.github.io/fantomas-tools/#/">online tool</a>.
+Copy the code snippet from the guide and add a link to the section of the guide that is not being respected.
+The maintainers will then add the <code>bug (stylistic)</code> to confirm the bug is fixable in Fantomas. In most cases, it may seem obvious that the case can be fixed.
+However, in the past there have been changes to the style guide that Fantomas could not implement for technical reasons: Fantomas can only implement rules based on information entirely contained within the untyped syntax tree.</p>
+<h3><a name="Target-the-next-minor-or-major-branch" class="anchor" href="#Target-the-next-minor-or-major-branch">Target the next minor or major branch</a></h3>
+<p>When fixing a stylistic issue, please ask the maintainers what branch should be targeted. The rule of thumb is that the <code>master</code> branch is used for fixing <code>bug (soundness)</code> and will be used for revision releases.
+Strive to ensure that end users can always update to the latest patch revision of their current minor or major without fear.</p>
+<p>A user should only need to deal with style changes when they have explicitly <a href="https://github.com/fsprojects/fantomas/blob/master/docs/Documentation.md#updating-to-a-new-fantomas-version">chosen to upgrade</a> to a new minor or major version.
+In case no major or minor branch was created yet, please reach out to the maintainers.
+The maintainers will frequently rebase this branch on top of the master branch and release alpha/beta packages accordingly.</p>
+<fantomas-nav previous="./The%20Missing%20Comment.html"></fantomas-nav>
+
+        
+      </div>
+        <div id="push"></div>
+    </main>
+  <script type="module" src="https://fsprojects.github.io/fantomas/content/docs-setup.js"></script>
+  <!-- BEGIN SEARCH BOX: this adds support for the search box -->
+  <link rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/JavaScript-autoComplete/1.0.4/auto-complete.css" />
+  <script type="text/javascript">var fsdocs_search_baseurl = 'https://fsprojects.github.io/fantomas/';</script>
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/lunr.js/2.3.8/lunr.min.js"></script>
+  <script type="text/javascript"
+    src="https://cdnjs.cloudflare.com/ajax/libs/JavaScript-autoComplete/1.0.4/auto-complete.min.js"></script>
+  <script type="text/javascript" src="https://fsprojects.github.io/fantomas/content/fsdocs-search.js"></script>
+  <!-- END SEARCH BOX: this adds support for the search box -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-A3rJD856KowSb7dwlZdYEkO39Gagi7vIsF0jrRAoQmDKKtQBHUuLZ9AsSv4jD4Xa" crossorigin="anonymous"></script>
+  <script type="module" src="https://fsprojects.github.io/fantomas/content/webcomponents.js"></script>
+  <script type="module">
+      import mermaid from "https://cdn.skypack.dev/mermaid";
+      mermaid.initialize({
+          startOnLoad: true,
+          theme: "base",
+          themeVariables: {
+              primaryColor: '#eff5f7'
+          }
+      });
+  </script>
+</body>
+</html>
