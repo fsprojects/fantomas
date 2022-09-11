@@ -9,9 +9,11 @@ html, body
   border: 1px solid red
 
 header
-  height: 100vh
+  height: 70vh
   position: relative
   padding: 4rem 0
+  @include media-breakpoint-up(md)
+    height: 100vh
 
   video
     filter: blur(0.025rem)
@@ -84,17 +86,15 @@ header
     top: 50%
     left: 50%
     transform: translate(-50%, -50%)
-    @include media-breakpoint-up(lg)
+    @include media-breakpoint-up(md)
       display: block
 
   #cta-buttons
     z-index: 1
     position: absolute
-    bottom: 17rem
+    bottom: 9rem
     left: 50%
     transform: translateX(-50%)
-    @include media-breakpoint-up(lg)
-      bottom: 9rem
 
     a.btn
       font-size: 2rem
@@ -102,9 +102,6 @@ header
       text-transform: uppercase
       margin: 0 1rem
       margin-bottom: 1rem
-
-.card
-  margin-bottom: 1.5rem
 
 .community-sponsors
   flex-wrap: wrap
