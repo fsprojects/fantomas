@@ -1287,7 +1287,7 @@ and genExpr astContext synExpr ctx =
             let genMatchExpr = genMatchBangWith astContext matchRange e withRange
             atCurrentColumn (genMatchExpr +> sepNln +> genClauses astContext cs)
         | TraitCall (tps, msg, e) ->
-            genTyparList astContext tps
+            col sepSpace tps (genType astContext false) // genTyparList astContext tps
             +> sepColon
             +> sepOpenT
             +> genMemberSig astContext msg
@@ -2247,7 +2247,8 @@ and genExpr astContext synExpr ctx =
                 id
             | SynExpr.DebugPoint _ ->
                 // I don't believe the parser will ever return this node
-                id)
+                id
+            | SynExpr.Typar _ -> failwith "todo")
 
     expr ctx
 
@@ -3896,6 +3897,12 @@ and genType astContext outerBracket t =
             +> loop innerT
             +> genTriviaFor SynType_Paren_ClosingParenthesis rpr sepCloseT
             |> genTriviaFor SynType_Paren pr
+        | TSignatureParameter (attrs, isOptional, identOpt, t) ->
+            genOnelinerAttributes astContext attrs
+            +> onlyIf isOptional !- "?"
+            +> optSingle (fun id -> genIdent id +> sepColon) identOpt
+            +> loop t
+            |> genTriviaFor SynType_SignatureParameter current.Range
         | t -> failwithf "Unexpected type: %O" t
 
     and loopTTupleList ts =
@@ -4002,13 +4009,13 @@ and genTypeList astContext node =
                                 | _ -> None)
                             ts'
 
-                    if args.Length = ts'.Length then
-                        col sepBefore (Seq.zip args ts') (fun (ArgInfo (ats, so, isOpt), t) ->
-                            genOnelinerAttributes astContext ats
-                            +> opt sepColon so (fun ident -> onlyIf isOpt (!- "?") +> genIdent ident)
-                            +> genType astContext hasBracket t)
-                    else
-                        col sepBefore ts' (genType astContext hasBracket)
+                    // if args.Length = ts'.Length then
+                    //     col sepBefore (Seq.zip args ts') (fun (ArgInfo (ats, so, isOpt), t) ->
+                    //         genOnelinerAttributes astContext ats
+                    //         +> opt sepColon so (fun ident -> onlyIf isOpt (!- "?") +> genIdent ident)
+                    //         +> genType astContext hasBracket t)
+                    // else
+                    col sepBefore ts' (genType astContext hasBracket)
 
                 let shortExpr = gt sepStar
                 let longExpr = gt (sepSpace +> sepStarFixed +> sepNln)
@@ -4022,9 +4029,10 @@ and genTypeList astContext node =
                 | TFun _ -> true // Fun is grouped by brackets inside 'genType astContext true t'
                 | _ -> false
                 |> fun hasBracket ->
-                    genOnelinerAttributes astContext ats
-                    +> opt sepColon so (fun ident -> onlyIf isOpt (!- "?") +> genIdent ident)
-                    +> genType astContext hasBracket t
+                    // genOnelinerAttributes astContext ats
+                    // +> opt sepColon so (fun ident -> onlyIf isOpt (!- "?") +> genIdent ident)
+                    // +>
+                    genType astContext hasBracket t
             | _ -> genType astContext false t
 
         genType
@@ -4348,7 +4356,7 @@ and genMemberDefn astContext node =
             genTriviaForOption SynMemberDefn_Interface_With withKeyword !- " with"
             +> indentSepNlnUnindent (genMemberDefnList astContext mds))
 
-    | MDAutoProperty (ats, px, ao, mk, equalsRange, e, _withKeyword, ident, _isStatic, typeOpt, memberKindToMemberFlags) ->
+    | MDAutoProperty (ats, px, ao, mk, equalsRange, e, _withKeyword, ident, _isStatic, typeOpt, memberFlags) ->
         let isFunctionProperty =
             match typeOpt with
             | Some (TFun _) -> true
@@ -4356,7 +4364,7 @@ and genMemberDefn astContext node =
 
         genPreXmlDoc px
         +> genAttributes astContext ats
-        +> genMemberFlags (memberKindToMemberFlags mk)
+        +> genMemberFlags memberFlags
         +> str "val "
         +> opt sepSpace ao genAccess
         +> genIdent ident
@@ -4767,13 +4775,13 @@ and genSynBindingFunctionWithReturnType
         +> opt sepNone genericTypeParameters (fun (ValTyparDecls (tds, _)) -> genTypeParamPostfix astContext tds)
 
     let genReturnType isFixed =
-        let genMetadataAttributes =
-            match valInfo with
-            | SynValInfo (_, SynArgInfo (attributes, _, _)) -> genOnelinerAttributes astContext attributes
+        // let genMetadataAttributes =
+        //     match valInfo with
+        //     | SynValInfo (_, SynArgInfo (attributes, _, _)) -> genOnelinerAttributes astContext attributes
 
         enterNodeFor SynBindingReturnInfo_ returnType.Range
         +> ifElse isFixed (sepColonFixed +> sepSpace) sepColonWithSpacesFixed
-        +> genMetadataAttributes
+        // +> genMetadataAttributes
         +> genType astContext false returnType
 
     let genSignature =

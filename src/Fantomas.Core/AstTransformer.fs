@@ -800,6 +800,7 @@ and visitSynExpr (synExpr: SynExpr) : TriviaNode list =
 
             processSequence finalContinuation continuations (fun nodes ->
                 mkSynExprNode SynExpr_Dynamic synExpr range (sortChildren [| yield! nodes |]))
+        | _ -> failwith "not supported"
 
     visit synExpr id
 
@@ -975,7 +976,7 @@ and visitSynMemberDefn (mbrDef: SynMemberDefn) : TriviaNode =
     | SynMemberDefn.ValField (fld, range) -> mkNodeWithChildren SynMemberDefn_ValField range [| visitSynField fld |]
     | SynMemberDefn.NestedType (typeDefn, _, range) ->
         mkNodeWithChildren SynMemberDefn_NestedType range [| visitSynTypeDefn typeDefn |]
-    | SynMemberDefn.AutoProperty (attrs, _, _, typeOpt, _, _, _, _, equalsRange, synExpr, withKeyword, _, range) ->
+    | SynMemberDefn.AutoProperty (attrs, _, _, typeOpt, _, _, _, _, _, equalsRange, synExpr, withKeyword, _, range) ->
         mkNodeWithChildren
             SynMemberDefn_AutoProperty
             range
@@ -1517,6 +1518,16 @@ and visitSynType (st: SynType) : TriviaNode =
                         [| yield mkNode SynType_Paren_OpeningParenthesis lpr
                            yield node
                            yield mkNode SynType_Paren_ClosingParenthesis rpr |])
+                |> finalContinuation)
+        | SynType.SignatureParameter (attrs, _, identOpt, t, range) ->
+            visit t (fun node ->
+                mkNodeWithChildren
+                    SynType_SignatureParameter
+                    range
+                    (sortChildren
+                        [| yield! (List.map visitSynAttributeList attrs)
+                           yield! (Option.toList >> List.map visitIdent) identOpt
+                           yield node |])
                 |> finalContinuation)
 
     visit st id

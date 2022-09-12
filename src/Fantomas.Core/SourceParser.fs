@@ -352,7 +352,8 @@ let (|MDAutoProperty|_|) =
                                   ident,
                                   typeOpt,
                                   mk,
-                                  memberKindToMemberFlags,
+                                  memberFlags,
+                                  _memberFlagsForSet,
                                   px,
                                   ao,
                                   equalsRange,
@@ -360,7 +361,7 @@ let (|MDAutoProperty|_|) =
                                   withKeyword,
                                   _,
                                   _) ->
-        Some(ats, px, ao, mk, equalsRange, e, withKeyword, ident, isStatic, typeOpt, memberKindToMemberFlags)
+        Some(ats, px, ao, mk, equalsRange, e, withKeyword, ident, isStatic, typeOpt, memberFlags)
     | _ -> None
 
 let (|MDPropertyGetSet|_|) =
@@ -1539,6 +1540,12 @@ let (|TParen|_|) =
     function
     | SynType.Paren (innerType, StartEndRange 1 (lpr, pr, rpr)) -> Some(lpr, innerType, rpr, pr)
     | _ -> None
+
+let (|TSignatureParameter|_|) =
+    function
+    | SynType.SignatureParameter (attrs, isOptional, identOpt, t, _) -> Some(attrs, isOptional, identOpt, t)
+    | _ -> None
+
 // Type parameter
 
 type SingleTyparConstraintKind =
@@ -1580,6 +1587,7 @@ let (|TyparSingle|TyparDefaultsToType|TyparSubtypeOfType|TyparSupportsMember|Typ
         )
     | SynTypeConstraint.WhereTyparIsEnum (tp, ts, _) -> TyparIsEnum(tp, ts)
     | SynTypeConstraint.WhereTyparIsDelegate (tp, ts, _) -> TyparIsDelegate(tp, ts)
+    | SynTypeConstraint.WhereSelfConstrained _ -> failwith "not supported"
 
 let (|MSMember|MSInterface|MSInherit|MSValField|MSNestedType|) =
     function
