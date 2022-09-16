@@ -169,11 +169,8 @@ and genSigModuleOrNamespace
         match firstDecl with
         | None -> sepNone
         | Some mdl ->
-            match mdl with
-            | SynModuleSigDecl.Types _ -> sepNlnConsideringTriviaContentBeforeFor SynModuleSigDecl_Types mdl.Range
-            | SynModuleSigDecl.Val _ -> sepNlnConsideringTriviaContentBeforeFor SynModuleSigDecl_Val mdl.Range
-            | _ -> sepNone
-            +> sepNln
+            sepNln
+            +> sepNlnConsideringTriviaContentBeforeFor (synModuleSigDeclToFsAstType mdl) mdl.Range
 
     let moduleOrNamespace =
         genModuleOrNamespaceKind moduleRange namespaceRange moduleKind

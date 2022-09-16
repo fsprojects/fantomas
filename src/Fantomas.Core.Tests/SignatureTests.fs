@@ -2137,3 +2137,43 @@ type Line0 = int
 type Line0 = int
 // #endif
 """
+
+[<Test>]
+let ``add empty line after module, 2502`` () =
+    formatSourceString
+        true
+        """
+module A
+open System
+val a: DateTime
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+module A
+
+open System
+val a: DateTime
+"""
+
+[<Test>]
+let ``add empty line after namespace`` () =
+    formatSourceString
+        true
+        """
+namespace A
+exception MyFSharpError1 of string
+exception MyFSharpError2 of string * int
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+namespace A
+
+exception MyFSharpError1 of string
+exception MyFSharpError2 of string * int
+"""
