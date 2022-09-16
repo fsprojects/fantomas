@@ -800,7 +800,10 @@ and visitSynExpr (synExpr: SynExpr) : TriviaNode list =
 
             processSequence finalContinuation continuations (fun nodes ->
                 mkSynExprNode SynExpr_Dynamic synExpr range (sortChildren [| yield! nodes |]))
-        | _ -> failwith "not supported"
+        | SynExpr.Typar (typar, range) ->
+            mkSynExprNode SynExpr_Typar synExpr range [| visitSynTypar typar |]
+            |> List.singleton
+            |> finalContinuation
 
     visit synExpr id
 

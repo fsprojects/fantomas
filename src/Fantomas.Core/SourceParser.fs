@@ -686,6 +686,11 @@ let (|IndexFromEndExpr|_|) =
     | SynExpr.IndexFromEnd (e, _r) -> Some e
     | _ -> None
 
+let (|TyparExpr|_|) =
+    function
+    | SynExpr.Typar (typar, _) -> Some typar
+    | _ -> None
+
 let (|ConstNumberExpr|_|) =
     function
     | ConstExpr (SynConst.Double _, _) as e -> Some e

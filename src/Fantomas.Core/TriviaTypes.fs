@@ -175,6 +175,7 @@ type FsAstType =
     | SynExpr_IndexRange
     | SynExpr_IndexFromEnd
     | SynExpr_Dynamic
+    | SynExpr_Typar
     | SynInterpolatedStringPart_String
     | SynInterpolatedStringPart_FillExpr
     | SynExprRecordField_

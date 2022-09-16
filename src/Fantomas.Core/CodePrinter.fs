@@ -2169,6 +2169,7 @@ and genExpr astContext synExpr ctx =
             +> !- ".."
             +> optSingle (fun e -> onlyIf hasSpaces sepSpace +> genExpr astContext e) e2
         | IndexFromEndExpr e -> !- "^" +> genExpr astContext e
+        | TyparExpr typar -> genTypar astContext typar
         | e -> failwithf "Unexpected expression: %O" e
         |> (match synExpr with
             | SynExpr.App _ -> genTriviaFor SynExpr_App synExpr.Range
@@ -2234,6 +2235,7 @@ and genExpr astContext synExpr ctx =
             | SynExpr.IndexFromEnd _ -> genTriviaFor SynExpr_IndexFromEnd synExpr.Range
             | SynExpr.Dynamic _ -> genTriviaFor SynExpr_Dynamic synExpr.Range
             | SynExpr.Const _ -> genTriviaFor SynExpr_Const synExpr.Range
+            | SynExpr.Typar _ -> genTriviaFor SynExpr_Typar synExpr.Range
             | SynExpr.LetOrUse _
             | SynExpr.Sequential _
             | SynExpr.ComputationExpr _ ->
