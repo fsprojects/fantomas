@@ -189,13 +189,9 @@
 First, it starts with an "F" just like many other F# projects.
 Second, Fantomas is my favourite character in the literature.
 Finally, Fantomas has the same Greek root as "<a href="https://en.wiktionary.org/wiki/phantom">phantom</a>"; coincidentally F# ASTs and formatting rules are so <em>mysterious</em> to be handled correctly.</p>
-<h2><a name="Why-do-I-need-prerelease" class="anchor" href="#Why-do-I-need-prerelease">Why do I need prerelease?</a></h2>
-<p>Fantomas is both a tool and a library. Before Fantomas v5, the tool was called <code>fantomas-tool</code> and the library <code>Fantomas</code>.<br />
-After some user feedback, we decided to rename <code>Fantomas</code> (the library) to <code>Fantomas.Core</code> and <code>fantomas-tool</code> to <code>fantomas</code>.</p>
-<p>Once v5 is released, users will be able to install the tool using <code>dotnet tool install fantomas</code>.<br />
-Because there is no stable release yet, <code>NuGet</code> will not resolve <code>fantomas</code> as a tool but as a regular library.
-Thus, for the time being, you need to add <code>--prerelease</code> to resolve this.</p>
-<p>At the time of writing we are in <code>beta</code> and consider <strong>version five</strong> to be <strong>production ready</strong>.</p>
+<h2><a name="What-is" class="anchor" href="#What-is">What is <code>fantomas-tool</code>?</a></h2>
+<p>That is the previous name of the dotnet tool. <code>v4.7.9</code> was the last stable release under that name.<br />
+Please use <a href="https://www.nuget.org/packages/fantomas/">fantomas</a> instead and remove all traces of <code>fantomas-tool</code> in your <code>dotnet-tools.json</code> file.</p>
 <h2><a name="Why-exit-code-99-for-a-failed-format-check" class="anchor" href="#Why-exit-code-99-for-a-failed-format-check">Why exit code 99 for a failed format check?</a></h2>
 <p>No real reason, it was <a href="https://github.com/fsprojects/fantomas/pull/655#discussion_r374849907">suggested</a> by the contributor <a href="https://github.com/lpedrosa">lpedrosa</a>.<br />
 It also reminds us of a certain Jay-Z song 😉.</p>
