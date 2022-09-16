@@ -12,16 +12,10 @@ First, it starts with an "F" just like many other F# projects.
 Second, Fantomas is my favourite character in the literature.
 Finally, Fantomas has the same Greek root as "[phantom](https://en.wiktionary.org/wiki/phantom)"; coincidentally F# ASTs and formatting rules are so *mysterious* to be handled correctly.
 
-## Why do I need prerelease?
+## What is `fantomas-tool`?
 
-Fantomas is both a tool and a library. Before Fantomas v5, the tool was called `fantomas-tool` and the library `Fantomas`.  
-After some user feedback, we decided to rename `Fantomas` (the library) to `Fantomas.Core` and `fantomas-tool` to `fantomas`.
-
-Once v5 is released, users will be able to install the tool using `dotnet tool install fantomas`.  
-Because there is no stable release yet, `NuGet` will not resolve `fantomas` as a tool but as a regular library.
-Thus, for the time being, you need to add `--prerelease` to resolve this.
-
-At the time of writing we are in `beta` and consider **version five** to be **production ready**.
+That is the previous name of the dotnet tool. `v4.7.9` was the last stable release under that name.  
+Please use [fantomas](https://www.nuget.org/packages/fantomas/) instead and remove all traces of `fantomas-tool` in your `dotnet-tools.json` file.
 
 ## Why exit code 99 for a failed format check?
 

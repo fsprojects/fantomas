@@ -1,6 +1,6 @@
 # Changelog
 
-## [Unreleased]
+## [5.0.0] - 2022-09-16
 
 ### Fixed
 * Open statement after module should get a newline before it. [#2502](https://github.com/fsprojects/fantomas/issues/2502)

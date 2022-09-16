@@ -17,12 +17,10 @@ You can skip this step if you wish to install Fantomas globally.
 
 Install the command line tool with:
 
-> dotnet tool install fantomas --prerelease
+> dotnet tool install fantomas
 
 or install the tool globally with
-> dotnet tool install -g fantomas --prerelease
-
-[Why do we need that "--prerelease"?](./FAQ.html#Why-do-I-need-prerelease)
+> dotnet tool install -g fantomas
 
 ## Usage
 
