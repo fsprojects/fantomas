@@ -9,8 +9,10 @@ Fantomas
 
 F# source code formatter, inspired by [scalariform](https://github.com/mdr/scalariform) for Scala, [ocp-indent](https://github.com/OCamlPro/ocp-indent) for OCaml and [PythonTidy](https://github.com/acdha/PythonTidy) for Python.                  
 
+> dotnet tool install fantomas
+
 Documentation is available at https://fsprojects.github.io/fantomas/docs/index.html
 
 ## Contributing Guidelines
 
-See the [Contribution Guidelines](./CONTRIBUTING.md) and our [contribution documentation](https://fsprojects.github.io/fantomas/docs/contributors/Index.html)
+See the [Contribution Guidelines](./CONTRIBUTING.md) and our [contributors documentation](https://fsprojects.github.io/fantomas/docs/contributors/Index.html)
