@@ -275,3 +275,22 @@ Log.Logger <-
         .WriteTo.Console()
         .CreateLogger ()
 """
+
+[<Test>]
+let ``const in NamedIndexedPropertySet, 2498`` () =
+    formatSourceString
+        false
+        """
+let xs = [| 42 |]
+
+xs.Items.Item 0 <- 20
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let xs = [| 42 |]
+
+xs.Items.Item 0 <- 20
+"""

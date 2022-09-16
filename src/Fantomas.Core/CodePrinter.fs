@@ -2019,7 +2019,13 @@ and genExpr astContext synExpr ctx =
             +> !- "] <- "
             +> autoIndentAndNlnIfExpressionExceedsPageWidthUnlessStroustrup (genExpr astContext) valueExpr
         | NamedIndexedPropertySet (sli, e1, e2) ->
+            let e1IsConst =
+                match e1 with
+                | SynExpr.Const _ -> true
+                | _ -> false
+
             genSynLongIdent false sli
+            +> ifElse e1IsConst sepSpace id
             +> genExpr astContext e1
             +> !- " <- "
             +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e2)
