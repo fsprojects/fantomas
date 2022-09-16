@@ -4100,6 +4100,7 @@ and genTypeConstraint astContext node =
         +> !- "delegate<"
         +> col sepComma ts (genType astContext false)
         +> !- ">"
+    | TyparWhereSelfConstrained t -> genType astContext false t
 
 and genInterfaceImpl astContext (InterfaceImpl (t, withKeywordRange, bs, members, range)) =
     if bs.IsEmpty && members.IsEmpty then

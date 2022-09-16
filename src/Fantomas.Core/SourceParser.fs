@@ -1570,7 +1570,7 @@ type SingleTyparConstraintKind =
         | TyparIsComparable -> "comparison"
         | TyparIsEquatable -> "equality"
 
-let (|TyparSingle|TyparDefaultsToType|TyparSubtypeOfType|TyparSupportsMember|TyparIsEnum|TyparIsDelegate|) =
+let (|TyparSingle|TyparDefaultsToType|TyparSubtypeOfType|TyparSupportsMember|TyparIsEnum|TyparIsDelegate|TyparWhereSelfConstrained|) =
     function
     | SynTypeConstraint.WhereTyparIsValueType (tp, _) -> TyparSingle(TyparIsValueType, tp)
     | SynTypeConstraint.WhereTyparIsReferenceType (tp, _) -> TyparSingle(TyparIsReferenceType, tp)
@@ -1592,7 +1592,7 @@ let (|TyparSingle|TyparDefaultsToType|TyparSubtypeOfType|TyparSupportsMember|Typ
         )
     | SynTypeConstraint.WhereTyparIsEnum (tp, ts, _) -> TyparIsEnum(tp, ts)
     | SynTypeConstraint.WhereTyparIsDelegate (tp, ts, _) -> TyparIsDelegate(tp, ts)
-    | SynTypeConstraint.WhereSelfConstrained _ -> failwith "not supported"
+    | SynTypeConstraint.WhereSelfConstrained (t, _) -> TyparWhereSelfConstrained t
 
 let (|MSMember|MSInterface|MSInherit|MSValField|MSNestedType|) =
     function
