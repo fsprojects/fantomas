@@ -336,8 +336,8 @@ let (|MDLetBindings|_|) =
 
 let (|MDAbstractSlot|_|) =
     function
-    | SynMemberDefn.AbstractSlot (SynValSig (ats, ident, tds, t, vi, _, _, px, ao, _, _, _), mf, _) ->
-        Some(ats, px, ao, ident, t, vi, tds, mf)
+    | SynMemberDefn.AbstractSlot (SynValSig (ats, ident, tds, t, _, _, _, px, ao, _, _, _), mf, _) ->
+        Some(ats, px, ao, ident, t, tds, mf)
     | _ -> None
 
 let (|MDInterface|_|) =
@@ -489,11 +489,11 @@ let (|DoBinding|LetBinding|MemberBinding|ExplicitCtor|) b =
     match b with
     | SynBinding (ao, _, _, _, ats, px, SynValData (Some MFConstructor, _, ido), pat, _, expr, _, _, trivia) ->
         ExplicitCtor(ats, px, ao, pat, trivia.EqualsRange, expr, ido)
-    | SynBinding (ao, _, isInline, _, ats, px, SynValData (Some mf, synValInfo, _), pat, _, expr, _, _, trivia) ->
-        MemberBinding(ats, px, ao, isInline, mf, pat, trivia.EqualsRange, expr, synValInfo)
+    | SynBinding (ao, _, isInline, _, ats, px, SynValData (Some mf, _, _), pat, _, expr, _, _, trivia) ->
+        MemberBinding(ats, px, ao, isInline, mf, pat, trivia.EqualsRange, expr)
     | SynBinding (_, SynBindingKind.Do, _, _, ats, px, _, _, _, expr, _, _, _trivia) -> DoBinding(ats, px, expr)
-    | SynBinding (ao, _, isInline, isMutable, attrs, px, SynValData (_, valInfo, _), pat, _, expr, _, _, trivia) ->
-        LetBinding(attrs, px, trivia.LetKeyword, ao, isInline, isMutable, pat, trivia.EqualsRange, expr, valInfo)
+    | SynBinding (ao, _, isInline, isMutable, attrs, px, _, pat, _, expr, _, _, trivia) ->
+        LetBinding(attrs, px, trivia.LetKeyword, ao, isInline, isMutable, pat, trivia.EqualsRange, expr)
 
 // Expressions (55 cases, lacking to handle 11 cases)
 
@@ -1416,7 +1416,7 @@ let (|TCSimple|TCDelegate|) =
     | SynTypeDefnKind.Opaque -> TCSimple TCOpaque
     | SynTypeDefnKind.Augmentation withKeyword -> TCSimple(TCAugmentation withKeyword)
     | SynTypeDefnKind.IL -> TCSimple TCIL
-    | SynTypeDefnKind.Delegate (t, vi) -> TCDelegate(t, vi)
+    | SynTypeDefnKind.Delegate (t, _) -> TCDelegate t
 
 let (|TypeDef|) (SynTypeDefn (SynComponentInfo (ats, tds, tcs, lid, px, preferPostfix, ao, _), tdr, ms, _, _, trivia)) =
     (ats, px, trivia.TypeKeyword, ao, tds, tcs, trivia.EqualsRange, tdr, trivia.WithKeyword, ms, lid, preferPostfix)
@@ -1617,27 +1617,22 @@ let (|AnonRecordFieldName|) (ident: Ident, eq: range option, e: SynExpr) =
 
 let (|AnonRecordFieldType|) (ident, t: SynType) = (ident, t)
 
-let (|ValInfo|) (SynValInfo (aiss, ai)) = (aiss, ai)
-
-let (|ArgInfo|) (SynArgInfo (attribs, isOpt, ido)) = (attribs, ido, isOpt)
-
 /// Extract function arguments with their associated info
-let (|FunType|) (t, ValInfo (argTypes, returnType)) =
+let (|FunType|) t =
     // Parse arg info by attach them into relevant types.
     // The number of arg info will determine semantics of argument types.
     let rec loop =
         function
-        | TFun (t1, arrow, t2), argType :: argTypes -> (t1, argType, Some arrow) :: loop (t2, argTypes)
-        | t, [] -> [ (t, [ returnType ], None) ]
-        | _ -> []
+        | TFun (t1, arrow, t2) -> (t1, Some arrow) :: loop t2
+        | t -> [ t, None ]
 
-    loop (t, argTypes)
+    loop t
 
 /// A rudimentary recognizer for extern functions
 /// Probably we should use lexing information to improve its accuracy
 let (|Extern|_|) =
     function
-    | Let (LetBinding (ats, px, _, ao, _, _, PatLongIdent (_, s, [ _, PatTuple ps ], _), _, TypedExpr (Typed, _, t), _)) ->
+    | Let (LetBinding (ats, px, _, ao, _, _, PatLongIdent (_, s, [ _, PatTuple ps ], _), _, TypedExpr (Typed, _, t))) ->
         let hasDllImportAttr =
             ats
             |> List.exists (fun { Attributes = attrs } ->

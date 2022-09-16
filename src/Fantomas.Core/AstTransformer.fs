@@ -1076,9 +1076,8 @@ and visitSynBinding (binding: SynBinding) : TriviaNode =
 
 and visitSynValData (svd: SynValData) : TriviaNode list =
     match svd with
-    | SynValData (memberFlags, svi, _) ->
-        [ yield! (Option.map visitSynMemberFlags >> Option.defaultValue []) memberFlags
-          yield! Option.toList (visitSynValInfo svi) ]
+    | SynValData (Some memberFlags, _, _) -> visitSynMemberFlags memberFlags
+    | _ -> []
 
 and visitSynMemberFlags (memberFlags: SynMemberFlags) : TriviaNode list =
     [ yield! Option.toList (mkNodeOption SynMemberFlags_Static memberFlags.Trivia.StaticRange)
@@ -1087,7 +1086,7 @@ and visitSynMemberFlags (memberFlags: SynMemberFlags) : TriviaNode list =
 
 and visitSynValSig (svs: SynValSig) : TriviaNode =
     match svs with
-    | SynValSig (attrs, ident, explicitValDecls, synType, arity, _, _, _, _, expr, range, trivia) ->
+    | SynValSig (attrs, ident, explicitValDecls, synType, _, _, _, _, _, expr, range, trivia) ->
         mkSynValSig
             svs
             range
@@ -1097,7 +1096,6 @@ and visitSynValSig (svs: SynValSig) : TriviaNode =
                    yield! (visitSynAttributeLists attrs)
                    yield! Option.toList (visitSynValTyparDecls explicitValDecls)
                    yield visitSynType synType
-                   yield! Option.toList (visitSynValInfo arity)
                    yield! visitOptSynExpr expr
                    yield! Option.toList (mkNodeOption SynValSig_With trivia.ValKeyword) |])
 
@@ -1300,7 +1298,7 @@ and visitSynTypeDefnKind (kind: SynTypeDefnKind) : TriviaNode option =
             mkNodeWithChildren
                 SynTypeDefnKind_Delegate
                 (synTypeDefnKindDelegateFullRange typ valinfo)
-                (sortChildren [| visitSynType typ; yield! Option.toList (visitSynValInfo valinfo) |])
+                (sortChildren [| visitSynType typ |])
         )
 
 and visitSynTypeDefnSimpleRepr (arg: SynTypeDefnSimpleRepr) : TriviaNode list =
@@ -1370,8 +1368,7 @@ and visitSynUnionCase (uc: SynUnionCase) : TriviaNode =
 and visitSynUnionCaseType (uct: SynUnionCaseKind) : TriviaNode list =
     match uct with
     | SynUnionCaseKind.Fields fields -> List.map visitSynField fields
-    | SynUnionCaseKind.FullType (stype, valInfo) ->
-        [ visitSynType stype; yield! Option.toList (visitSynValInfo valInfo) ]
+    | SynUnionCaseKind.FullType (stype, _) -> [ visitSynType stype ]
 
 and visitSynEnumCase (sec: SynEnumCase) : TriviaNode =
     match sec with
@@ -1572,30 +1569,6 @@ and visitSynConst (parentRange: Range) (sc: SynConst) : TriviaNode =
                 [| mkNode SynConst_Unit_OpeningParenthesis lpr
                    mkNode SynConst_Unit_ClosingParenthesis rpr |]
     | _ -> mkNode (t sc) (sc.Range parentRange)
-
-and visitSynValInfo (svi: SynValInfo) : TriviaNode option =
-    match svi with
-    | SynValInfo (args, arg) ->
-        svi.FullRange
-        |> Option.map (fun range ->
-            mkNodeWithChildren
-                SynValInfo_
-                range
-                (sortChildren
-                    [| yield! List.collect (List.collect (visitSynArgInfo >> Option.toList)) args
-                       yield! (Option.toList (visitSynArgInfo arg)) |]))
-
-and visitSynArgInfo (sai: SynArgInfo) : TriviaNode option =
-    match sai with
-    | SynArgInfo (attrs, _, ident) ->
-        sai.FullRange
-        |> Option.map (fun range ->
-            mkNodeWithChildren
-                SynArgInfo_
-                range
-                (sortChildren
-                    [| yield! visitSynAttributeLists attrs
-                       yield! (Option.map visitIdent >> Option.toList) ident |]))
 
 and visitParsedHashDirective (hash: ParsedHashDirective) : TriviaNode =
     match hash with

@@ -370,8 +370,8 @@ type FsAstType =
     | SynMemberFlags_Static
     | SynMemberFlags_Member
     | SynMemberFlags_Abstract
-    | SynValInfo_
-    | SynArgInfo_
+    // | SynValInfo_
+    // | SynArgInfo_
     | ParsedHashDirective_
     | ParsedHashDirectiveArgument_String
     | ParsedHashDirectiveArgument_SourceIdentifier
