@@ -1776,6 +1776,7 @@ let (|StroustrupStyleExpr|_|) (isStroustrupStyleEnabled: bool) (e: SynExpr) =
     else
         match e with
         // { foo with Bar = bar }
+        | SynExpr.AnonRecd(copyInfo = Some _)
         | SynExpr.Record(copyInfo = Some _) -> None
         | SynExpr.Record _
         | SynExpr.AnonRecd _
