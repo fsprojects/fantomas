@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+### Changed
+* Update FCS to 'Introduce SynType.SignatureParameter', commit 8f59d364a0abccb04d4ec2f1cd09665dee298777
+
 ### Fixed
 * Items.Item \<index> <- value gives wrong code. [#2498](https://github.com/fsprojects/fantomas/issues/2498)
 
