@@ -2078,7 +2078,7 @@ and seekReadParamExtras (retRes, paramsRes) (idx: int) =
 """
 
 [<Test>]
-let ``Equality comparison with a `with` expression should format correctly with default alignment, 2507`` () =
+let ``equality comparison with a `with` expression should format correctly with default alignment, 2507`` () =
     formatSourceString
         false
         """
@@ -2100,7 +2100,7 @@ let compareThings (first: Thing) (second: Thing) =
 """
 
 [<Test>]
-let ``Equality comparison with a `with` expression should format correctly with Allman alignment, 2507`` () =
+let ``equality comparison with a `with` expression should format correctly with Allman alignment, 2507`` () =
     formatSourceString
         false
         """
