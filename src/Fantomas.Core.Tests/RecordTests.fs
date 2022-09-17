@@ -2076,3 +2076,48 @@ and seekReadParamExtras (retRes, paramsRes) (idx: int) =
                 Attributes = enum<ParameterAttributes> flags
                 CustomAttrs = cas }
 """
+
+[<Test>]
+let ``Equality comparison with a `with` expression should format correctly with default alignment, 2507`` () =
+    formatSourceString
+        false
+        """
+let compareThings (first: Thing) (second: Thing) =
+    first = { second with
+                Foo = first.Foo
+                Bar = first.Bar
+            }
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let compareThings (first: Thing) (second: Thing) =
+    first = { second with
+                Foo = first.Foo
+                Bar = first.Bar }
+"""
+
+[<Test>]
+let ``Equality comparison with a `with` expression should format correctly with Allman alignment, 2507`` () =
+    formatSourceString
+        false
+        """
+let compareThings (first: Thing) (second: Thing) =
+    first = { second with
+                Foo = first.Foo
+                Bar = first.Bar
+            }
+"""
+        { config with MultilineBlockBracketsOnSameColumn = true }
+    |> prepend newline
+    |> should
+        equal
+        """
+let compareThings (first: Thing) (second: Thing) =
+    first = { second with
+                Foo = first.Foo
+                Bar = first.Bar
+            }
+"""

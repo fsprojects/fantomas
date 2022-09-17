@@ -2252,6 +2252,12 @@ and genExpr astContext synExpr ctx =
     expr ctx
 
 and genOnelinerInfixExpr astContext e1 operatorSli e2 =
+    let genExpr astContext e =
+        match e with
+        | Record _
+        | AnonRecord _ -> atCurrentColumnIndent (genExpr astContext e)
+        | _ -> genExpr astContext e
+
     genExpr astContext e1
     +> sepSpace
     +> genSynLongIdent false operatorSli
