@@ -4,8 +4,9 @@
 
 ### Fixed
 * Items.Item \<index> <- value gives wrong code. [#2498](https://github.com/fsprojects/fantomas/issues/2498)
-* Fix invalid output for anonymous record & copy expression. [#2515](https://github.com/fsprojects/fantomas/pull/2515)
-* Fix equality comparison with a record with a with expression. [#2513](https://github.com/fsprojects/fantomas/pull/2513)
+* Incorrect Stroustrup indentation with let binding for anonymous record with expression. [#2508](https://github.com/fsprojects/fantomas/issues/2508)
+* Equality comparison with a record with a with expression results in broken code. [#2507](https://github.com/fsprojects/fantomas/issues/2507)
+* Stroustrup record type definition with access modifiers and members lead to invalid F# code [#2511](https://github.com/fsprojects/fantomas/issues/2511)
 
 ## [5.0.0] - 2022-09-16
 
