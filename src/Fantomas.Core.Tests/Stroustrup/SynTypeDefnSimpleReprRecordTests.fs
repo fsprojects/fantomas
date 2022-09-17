@@ -146,3 +146,32 @@ type Person = private {
     LastName: string
 }
 """
+
+[<Test>]
+let ``record definition with accessibility modifier with incorrect format, 2511`` () =
+    formatSourceString
+        false
+        """
+type NonEmptyList<'T> =
+    private
+        { List: 'T list }
+
+    member this.Head = this.List.Head
+    member this.Tail = this.List.Tail
+    member this.Length = this.List.Length
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type NonEmptyList<'T> =
+    private
+        {
+            List: 'T list
+        }
+
+    member this.Head = this.List.Head
+    member this.Tail = this.List.Tail
+    member this.Length = this.List.Length
+"""

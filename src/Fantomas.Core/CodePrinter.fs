@@ -3422,7 +3422,10 @@ and genMultilineSimpleRecordTypeDefn astContext openingBrace withKeyword ms ao' 
 
 and genMultilineSimpleRecordTypeDefnAlignBrackets astContext openingBrace withKeyword ms ao' fs closingBrace =
     // the typeName is already printed
-    ifStroustrupElse (opt (sepSpace) ao' genAccess) (opt (indent +> sepNln) ao' genAccess)
+    ifElseCtx
+        (fun ctx -> ctx.Config.ExperimentalStroustrupStyle && List.isEmpty ms)
+        (opt (sepSpace) ao' genAccess)
+        (opt (indent +> sepNln) ao' genAccess)
     +> enterNodeFor SynTypeDefnSimpleRepr_Record_OpeningBrace openingBrace
     +> sepOpenSFixed
     +> indentSepNlnUnindent (
