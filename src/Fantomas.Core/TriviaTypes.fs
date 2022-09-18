@@ -175,6 +175,7 @@ type FsAstType =
     | SynExpr_IndexRange
     | SynExpr_IndexFromEnd
     | SynExpr_Dynamic
+    | SynExpr_Typar
     | SynInterpolatedStringPart_String
     | SynInterpolatedStringPart_FillExpr
     | SynExprRecordField_
@@ -364,12 +365,13 @@ type FsAstType =
     | SynType_Paren
     | SynType_Paren_OpeningParenthesis
     | SynType_Paren_ClosingParenthesis
+    | SynType_SignatureParameter
     //    | SynValData_
     | SynMemberFlags_Static
     | SynMemberFlags_Member
     | SynMemberFlags_Abstract
-    | SynValInfo_
-    | SynArgInfo_
+    // | SynValInfo_
+    // | SynArgInfo_
     | ParsedHashDirective_
     | ParsedHashDirectiveArgument_String
     | ParsedHashDirectiveArgument_SourceIdentifier
