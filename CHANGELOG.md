@@ -4,7 +4,8 @@
 
 ### Fixed
 * Items.Item \<index> <- value gives wrong code. [#2498](https://github.com/fsprojects/fantomas/issues/2498)
-* Fix invalid output for anonymous record & copy expression. [2515](https://github.com/fsprojects/fantomas/pull/2515)
+* Fix invalid output for anonymous record & copy expression. [#2515](https://github.com/fsprojects/fantomas/pull/2515)
+* Fix equality comparison with a record with a with expression. [#2513](https://github.com/fsprojects/fantomas/pull/2513)
 
 ## [5.0.0] - 2022-09-16
 
