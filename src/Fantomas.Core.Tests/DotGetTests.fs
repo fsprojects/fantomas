@@ -3,6 +3,7 @@ module Fantomas.Core.Tests.DotGetTests
 open NUnit.Framework
 open FsUnit
 open Fantomas.Core.Tests.TestHelper
+open Fantomas.Core.FormatConfig
 
 [<Test>]
 let ``a TypeApp inside a DotGet should stay on the same line, 994`` () =
@@ -760,7 +761,7 @@ let blah =
             SpaceBeforeMember = true
             SpaceBeforeColon = true
             SpaceBeforeSemicolon = true
-            MultilineBlockBracketsOnSameColumn = true
+            BracketStyle = Aligned
             AlignFunctionSignatureToIndentation = true
             AlternativeLongMemberDefinitions = true
             MultiLineLambdaClosingNewline = true }
@@ -797,7 +798,7 @@ let blah =
             SpaceBeforeMember = true
             SpaceBeforeColon = true
             SpaceBeforeSemicolon = true
-            MultilineBlockBracketsOnSameColumn = true
+            BracketStyle = Aligned
             AlignFunctionSignatureToIndentation = true
             AlternativeLongMemberDefinitions = true
             MultiLineLambdaClosingNewline = true }
@@ -1061,7 +1062,7 @@ module Foo =
             SpaceBeforeMember = true
             SpaceBeforeColon = true
             SpaceBeforeSemicolon = true
-            MultilineBlockBracketsOnSameColumn = true
+            BracketStyle = Aligned
             AlignFunctionSignatureToIndentation = true
             MultiLineLambdaClosingNewline = true }
     |> prepend newline
@@ -1101,7 +1102,7 @@ module Foo =
             SpaceBeforeMember = true
             SpaceBeforeColon = true
             SpaceBeforeSemicolon = true
-            MultilineBlockBracketsOnSameColumn = true
+            BracketStyle = Aligned
             AlignFunctionSignatureToIndentation = true
             MultiLineLambdaClosingNewline = true }
     |> prepend newline

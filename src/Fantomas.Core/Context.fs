@@ -79,8 +79,11 @@ module WriterModel =
     let update maxPageWidth cmd m =
         let doNewline m =
             let m = { m with Indent = max m.Indent m.AtColumn }
+
             let nextLine = String.replicate m.Indent " "
+
             let currentLine = String.Concat(List.head m.Lines, m.WriteBeforeNewline).TrimEnd()
+
             let otherLines = List.tail m.Lines
 
             { m with
@@ -480,6 +483,7 @@ let col f' (c: seq<'T>) f (ctx: Context) =
 
     while e.MoveNext() do
         if tryPick then tryPick <- false else st <- f' st
+
         st <- f e.Current st
 
     st
@@ -492,6 +496,7 @@ let colEx f' (c: seq<'T>) f (ctx: Context) =
 
     while e.MoveNext() do
         if tryPick then tryPick <- false else st <- f' e.Current st
+
         st <- f e.Current st
 
     st
@@ -540,10 +545,10 @@ let ifElse b (f1: Context -> Context) f2 (ctx: Context) = if b then f1 ctx else 
 
 let ifElseCtx cond (f1: Context -> Context) f2 (ctx: Context) = if cond ctx then f1 ctx else f2 ctx
 
-let ifStroustrupElse = ifElseCtx (fun ctx -> ctx.Config.ExperimentalStroustrupStyle)
+let ifStroustrupElse = ifElseCtx (fun ctx -> ctx.Config.BracketStyle = Stroustrup)
 
 let ifStroustrup (f1: Context -> Context) =
-    ifElseCtx (fun ctx -> ctx.Config.ExperimentalStroustrupStyle) f1 id
+    ifElseCtx (fun ctx -> ctx.Config.BracketStyle = Stroustrup) f1 id
 
 /// apply f only when cond is true
 let onlyIf cond f ctx = if cond then f ctx else ctx
@@ -588,7 +593,7 @@ let sepNlnUnlessLastEventIsNewline (ctx: Context) =
     if lastWriteEventIsNewline ctx then ctx else sepNln ctx
 
 let sepNlnUnlessLastEventIsNewlineOrStroustrup (ctx: Context) =
-    if lastWriteEventIsNewline ctx || ctx.Config.ExperimentalStroustrupStyle then
+    if lastWriteEventIsNewline ctx || ctx.Config.BracketStyle = Stroustrup then
         ctx
     else
         sepNln ctx
@@ -714,6 +719,7 @@ let indentIfNeeded f (ctx: Context) =
         // of function expression being applied upon, otherwise (as known up to F# 4.7)
         // this would lead to a compile error for the function application
         let missingSpaces = (savedColumn - ctx.FinalizeModel.Column) + ctx.Config.IndentSize
+
         atIndentLevel true savedColumn (!-(String.replicate missingSpaces " ")) ctx
     else
         f ctx
@@ -824,6 +830,7 @@ let leadingExpressionLong threshold leadingExpression continuationExpression (ct
 /// The second binding b is not consider multiline.
 let leadingExpressionIsMultiline leadingExpression continuationExpression (ctx: Context) =
     let eventCountBeforeExpression = Queue.length ctx.WriterEvents
+
     let contextAfterLeading = leadingExpression ctx
 
     let hasWriteLineEventsAfterExpression =
@@ -949,10 +956,12 @@ let futureNlnCheckMem (f, ctx) =
     else
         // Create a dummy context to evaluate length of current operation
         let dummyCtx: Context = ctx.WithDummy(Queue.empty, keepPageWidth = true) |> f
+
         WriterEvents.isMultiline dummyCtx.WriterEvents, dummyCtx.Column > ctx.Config.MaxLineLength
 
 let futureNlnCheck f (ctx: Context) =
     let isMultiLine, isLong = futureNlnCheckMem (f, ctx)
+
     isMultiLine || isLong
 
 /// similar to futureNlnCheck but validates whether the expression is going over the max page width
@@ -961,9 +970,12 @@ let exceedsWidth maxWidth f (ctx: Context) =
     let dummyCtx: Context = ctx.WithDummy(Queue.empty, keepPageWidth = true)
 
     let currentLines = dummyCtx.WriterModel.Lines.Length
+
     let currentColumn = dummyCtx.Column
     let ctxAfter: Context = f dummyCtx
+
     let linesAfter = ctxAfter.WriterModel.Lines.Length
+
     let columnAfter = ctxAfter.Column
 
     linesAfter > currentLines
@@ -1027,7 +1039,14 @@ let sepSemi (ctx: Context) =
     <| ctx
 
 let ifAlignBrackets f g =
-    ifElseCtx (fun ctx -> ctx.Config.MultilineBlockBracketsOnSameColumn) f g
+    ifElseCtx
+        (fun ctx ->
+            match ctx.Config.BracketStyle with
+            | Aligned
+            | Stroustrup -> true
+            | Classic -> false)
+        f
+        g
 
 let sepNlnWhenWriteBeforeNewlineNotEmptyOr fallback (ctx: Context) =
     if hasWriteBeforeNewlineContent ctx then
@@ -1130,6 +1149,7 @@ type internal ColMultilineItemsState =
 /// Leading or trailing trivia will not be counted as such.
 let private isMultilineItem (expr: Context -> Context) (ctx: Context) : bool * Context =
     let previousEventsLength = ctx.WriterEvents.Length
+
     let nextCtx = expr ctx
 
     let isExpressionMultiline =

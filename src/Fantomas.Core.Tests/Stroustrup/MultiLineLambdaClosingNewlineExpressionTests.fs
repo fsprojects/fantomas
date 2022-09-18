@@ -3,12 +3,12 @@
 open NUnit.Framework
 open FsUnit
 open Fantomas.Core.Tests.TestHelper
+open Fantomas.Core.FormatConfig
 
 let config =
     { config with
-        MultilineBlockBracketsOnSameColumn = true
         MultiLineLambdaClosingNewline = true
-        ExperimentalStroustrupStyle = true
+        BracketStyle = Stroustrup
         MaxArrayOrListWidth = 40 }
 
 // TODO: figure out what should happen when you mix MultiLineLambdaClosingNewline and Stroustrup

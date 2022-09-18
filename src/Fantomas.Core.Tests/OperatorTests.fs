@@ -3,6 +3,7 @@ module Fantomas.Core.Tests.OperatorTests
 open NUnit.Framework
 open FsUnit
 open Fantomas.Core.Tests.TestHelper
+open Fantomas.Core.FormatConfig
 
 [<Test>]
 let ``should format prefix operators`` () =
@@ -1107,7 +1108,7 @@ module Foo =
             SpaceBeforeMember = true
             SpaceBeforeColon = true
             SpaceBeforeSemicolon = true
-            MultilineBlockBracketsOnSameColumn = true
+            BracketStyle = Aligned
             NewlineBetweenTypeDefinitionAndMembers = true
             AlignFunctionSignatureToIndentation = true
             AlternativeLongMemberDefinitions = true

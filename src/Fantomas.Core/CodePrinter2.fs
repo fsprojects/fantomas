@@ -2553,7 +2553,7 @@ let genPat (p: Pattern) =
 
         let multilineExpressionIfAlignBrackets =
             ifAlignBrackets multilineRecordExprAlignBrackets multilineRecordExpr
-
+            
         fun ctx ->
             let size = getRecordSize ctx node.Fields
             genNode node (isSmallExpression size smallRecordExpr multilineExpressionIfAlignBrackets) ctx

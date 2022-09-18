@@ -25,6 +25,24 @@ type MultilineFormatterType =
         | "number_of_items" -> Some(box MultilineFormatterType.NumberOfItems)
         | _ -> None
 
+type BracketStyle =
+    | Classic
+    | Aligned
+    | Stroustrup
+
+    static member ToConfigString(cfg: BracketStyle) =
+        match cfg with
+        | Classic -> "classic"
+        | Aligned -> "aligned"
+        | Stroustrup -> "stroustrup"
+
+    static member OfConfigString(cfgString: string) =
+        match cfgString with
+        | "classic" -> Some Classic
+        | "aligned" -> Some Aligned
+        | "stroustrup" -> Some Stroustrup
+        | _ -> None
+
 [<RequireQualifiedAccess>]
 type EndOfLineStyle =
     | LF
@@ -164,9 +182,9 @@ type FormatConfig =
       [<DisplayName("Maximum dot get expression width")>]
       MaxDotGetExpressionWidth: Num
 
-      [<Category("Boundaries")>]
-      [<DisplayName("Multiline-block brackets on same column")>]
-      MultilineBlockBracketsOnSameColumn: bool
+      // [<Category("Boundaries")>]
+      // [<DisplayName("Multiline-block brackets on same column")>]
+      // MultilineBlockBracketsOnSameColumn: bool
 
       [<Category("Convention")>]
       [<DisplayName("Newline between type definition and members")>]
@@ -197,10 +215,15 @@ type FormatConfig =
       [<DisplayName("Add a bar before Discriminated Union declarations")>]
       BarBeforeDiscriminatedUnionDeclaration: bool
 
+      // [<Category("Convention")>]
+      // [<DisplayName("Format braces using Stroustrup Style where possible.")>]
+      // [<Description("Experimental feature, use at your own risk.")>]
+      //ExperimentalStroustrupStyle: bool
+
       [<Category("Convention")>]
-      [<DisplayName("Format braces using Stroustrup Style where possible.")>]
-      [<Description("Experimental feature, use at your own risk.")>]
-      ExperimentalStroustrupStyle: bool
+      [<DisplayName("How to format brackets")>]
+      [<Description("Possible options include classic (default), aligned, and stroustrup")>]
+      BracketStyle: BracketStyle
 
       [<Category("Convention")>]
       [<DisplayName("Maximum number of consecutive blank lines to keep")>]
@@ -238,7 +261,6 @@ type FormatConfig =
           MaxValueBindingWidth = 80
           MaxFunctionBindingWidth = 40
           MaxDotGetExpressionWidth = 80
-          MultilineBlockBracketsOnSameColumn = false
           NewlineBetweenTypeDefinitionAndMembers = true
           AlignFunctionSignatureToIndentation = false
           AlternativeLongMemberDefinitions = false
@@ -246,6 +268,8 @@ type FormatConfig =
           ExperimentalKeepIndentInBranch = false
           BlankLinesAroundNestedMultilineExpressions = true
           BarBeforeDiscriminatedUnionDeclaration = false
-          ExperimentalStroustrupStyle = false
+          BracketStyle = Classic
           KeepMaxNumberOfBlankLines = 100
           StrictMode = false }
+
+    member this.ExperimentalStroustrupStyle = this.BracketStyle = Stroustrup

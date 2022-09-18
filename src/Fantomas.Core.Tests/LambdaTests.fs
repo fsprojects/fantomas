@@ -3,6 +3,7 @@ module Fantomas.Core.Tests.LambdaTests
 open NUnit.Framework
 open FsUnit
 open Fantomas.Core.Tests.TestHelper
+open Fantomas.Core.FormatConfig
 
 [<Test>]
 let ``keep comment after arrow`` () =
@@ -424,7 +425,7 @@ let projectIntoMap projection =
             SpaceAroundDelimiter = false
             MaxInfixOperatorExpression = 40
             MaxFunctionBindingWidth = 60
-            MultilineBlockBracketsOnSameColumn = true }
+            BracketStyle = Aligned }
     |> prepend newline
     |> should
         equal

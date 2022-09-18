@@ -3,6 +3,7 @@ module Fantomas.Core.Tests.LetBindingTests
 open NUnit.Framework
 open FsUnit
 open Fantomas.Core.Tests.TestHelper
+open Fantomas.Core.FormatConfig
 
 [<Test>]
 let ``let in should be preserved`` () =
@@ -1650,7 +1651,7 @@ stepLog.LogInformation (
             SpaceBeforeMember = true
             SpaceBeforeColon = true
             SpaceBeforeSemicolon = true
-            MultilineBlockBracketsOnSameColumn = true
+            BracketStyle = Aligned
             NewlineBetweenTypeDefinitionAndMembers = true
             AlignFunctionSignatureToIndentation = true
             AlternativeLongMemberDefinitions = true
@@ -1701,7 +1702,7 @@ module Foo =
             SpaceBeforeMember = true
             SpaceBeforeColon = true
             SpaceBeforeSemicolon = true
-            MultilineBlockBracketsOnSameColumn = true
+            BracketStyle = Aligned
             NewlineBetweenTypeDefinitionAndMembers = true
             AlignFunctionSignatureToIndentation = true
             AlternativeLongMemberDefinitions = true

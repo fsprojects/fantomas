@@ -464,5 +464,26 @@ fsharp_experimental_stroustrup_style = true
 
     let config = EditorConfig.readConfiguration fsharpFile.FSharpFile
 
-    Assert.IsTrue config.MultilineBlockBracketsOnSameColumn
+    Assert.AreEqual(Stroustrup, config.BracketStyle)
+    Assert.IsTrue config.ExperimentalStroustrupStyle
+
+[<Test>]
+let ``Aligned style`` () =
+    let rootDir = tempName ()
+
+    let editorConfig =
+        """
+[*.fs]
+fsharp_multiline_block_brackets_on_same_column = true
+fsharp_experimental_stroustrup_style = true
+"""
+
+    use configFixture =
+        new ConfigurationFile(defaultConfig, rootDir, content = editorConfig)
+
+    use fsharpFile = new FSharpFile(rootDir)
+
+    let config = EditorConfig.readConfiguration fsharpFile.FSharpFile
+
+    Assert.AreEqual(Aligned, config.BracketStyle)
     Assert.IsTrue config.ExperimentalStroustrupStyle

@@ -3,6 +3,7 @@ module Fantomas.Core.Tests.ComputationExpressionTests
 open NUnit.Framework
 open FsUnit
 open Fantomas.Core.Tests.TestHelper
+open Fantomas.Core.FormatConfig
 
 [<Test>]
 let ``async workflows`` () =
@@ -1587,7 +1588,7 @@ let ``new line between let and let bang, 879`` () =
             SpaceBeforeUppercaseInvocation = true
             IndentSize = 2
             SpaceAroundDelimiter = false
-            MultilineBlockBracketsOnSameColumn = true
+            BracketStyle = Aligned
             MaxInfixOperatorExpression = 50 }
     |> prepend newline
     |> should

@@ -3,6 +3,7 @@ module Fantomas.Core.Tests.CommentTests
 open NUnit.Framework
 open FsUnit
 open Fantomas.Core.Tests.TestHelper
+open Fantomas.Core.FormatConfig
 
 [<Test>]
 let ``should keep sticky-to-the-left comments after nowarn directives`` () =
@@ -1381,7 +1382,7 @@ open Something
             SpaceBeforeMember = true
             SpaceBeforeColon = true
             SpaceBeforeSemicolon = true
-            MultilineBlockBracketsOnSameColumn = true
+            BracketStyle = Aligned
             AlignFunctionSignatureToIndentation = true
             AlternativeLongMemberDefinitions = true
             MultiLineLambdaClosingNewline = true

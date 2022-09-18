@@ -3,11 +3,9 @@
 open NUnit.Framework
 open FsUnit
 open Fantomas.Core.Tests.TestHelper
+open Fantomas.Core.FormatConfig
 
-let config =
-    { config with
-        MultilineBlockBracketsOnSameColumn = true
-        ExperimentalStroustrupStyle = true }
+let config = { config with BracketStyle = Stroustrup }
 
 [<Test>]
 let ``record type definition`` () =

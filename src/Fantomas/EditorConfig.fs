@@ -66,12 +66,32 @@ let private (|Number|_|) (d: string) =
 let private (|MultilineFormatterType|_|) mft =
     MultilineFormatterType.OfConfigString mft
 
+let private (|BracketStyle|_|) bs = BracketStyle.OfConfigString bs
+
+let private (|OldBracketStyle|_|) input =
+    match input with
+    | "fsharp_experimental_stroustrup_style" -> Some input
+    | "fsharp_multiline_block_brackets_on_same_column" -> Some input
+    | _ -> None
+
 let private (|EndOfLineStyle|_|) eol = EndOfLineStyle.OfConfigString eol
 
 let private (|Boolean|_|) b =
     if b = "true" then Some(box true)
     elif b = "false" then Some(box false)
     else None
+
+// TODO: Make this backwards compatible with old alignment style
+// let private updateOldBracketStyle (values: obj[]) =
+//     let oldStrous = values |> Array.tryFindIndex (fun v -> v = box "fsharp_experimental_stroustrup_style")
+//     let oldAlign = values |> Array.tryFindIndex (fun v -> v = box "fsharp_multiline_block_brackets_on_same_column")
+//
+//     match oldAlign, oldStrous with
+//     | None, None ->
+//         values
+//     | Some i, None ->
+//         values |> Array.set i (box Aligned)
+//
 
 let parseOptionsFromEditorConfig
     (fallbackConfig: FormatConfig)
@@ -84,8 +104,11 @@ let parseOptionsFromEditorConfig
         | true, Boolean b -> b
         | true, MultilineFormatterType mft -> mft
         | true, EndOfLineStyle eol -> box eol
+        | true, BracketStyle bs -> box bs
+        | true, OldBracketStyle s -> s
         | _ -> dv)
     |> fun newValues ->
+
         let formatConfigType = FormatConfig.Default.GetType()
         Microsoft.FSharp.Reflection.FSharpValue.MakeRecord(formatConfigType, newValues) :?> FormatConfig
 

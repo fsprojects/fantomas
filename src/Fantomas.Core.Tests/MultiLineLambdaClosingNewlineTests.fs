@@ -3,6 +3,7 @@ module Fantomas.Core.Tests.MultiLineLambdaClosingNewlineTests
 open NUnit.Framework
 open FsUnit
 open Fantomas.Core.Tests.TestHelper
+open Fantomas.Core.FormatConfig
 
 let defaultConfig = config
 
@@ -576,7 +577,7 @@ module Foo =
             SpaceBeforeMember = true
             SpaceBeforeColon = true
             SpaceBeforeSemicolon = true
-            MultilineBlockBracketsOnSameColumn = true
+            BracketStyle = Aligned
             MultiLineLambdaClosingNewline = true
             ExperimentalKeepIndentInBranch = true }
     |> prepend newline
@@ -622,7 +623,7 @@ module Foo =
             SpaceBeforeMember = true
             SpaceBeforeColon = true
             SpaceBeforeSemicolon = true
-            MultilineBlockBracketsOnSameColumn = true
+            BracketStyle = Aligned
             MultiLineLambdaClosingNewline = true
             ExperimentalKeepIndentInBranch = true }
     |> prepend newline

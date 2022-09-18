@@ -2,13 +2,13 @@
 
 open NUnit.Framework
 open FsUnit
+open Fantomas.Core.FormatConfig
 open Fantomas.Core.Tests.TestHelper
 
 let config =
     { config with
         MaxLineLength = 80
-        MultilineBlockBracketsOnSameColumn = true
-        ExperimentalStroustrupStyle = true
+        BracketStyle = Stroustrup
         MaxArrayOrListWidth = 40 }
 
 // TODO: conclude on what should happen here

@@ -3,10 +3,11 @@ module Fantomas.Core.Tests.MultilineBlockBracketsOnSameColumnArrayOrListTests
 open NUnit.Framework
 open FsUnit
 open Fantomas.Core.Tests.TestHelper
+open Fantomas.Core.FormatConfig
 
 let config =
     { config with
-        MultilineBlockBracketsOnSameColumn = true
+        BracketStyle = Aligned
         SpaceBeforeColon = true
         SpaceBeforeSemicolon = true }
 
@@ -416,7 +417,7 @@ module Foo =
             SpaceBeforeMember = true
             SpaceBeforeColon = true
             SpaceBeforeSemicolon = true
-            MultilineBlockBracketsOnSameColumn = true
+            BracketStyle = Aligned
             AlignFunctionSignatureToIndentation = true
             MultiLineLambdaClosingNewline = true
             MaxArrayOrListWidth = 40 }
