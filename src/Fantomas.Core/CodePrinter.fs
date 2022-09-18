@@ -582,7 +582,7 @@ and genLetBinding astContext pref b =
     let isRecursiveLetOrUseFunction = (pref = "and ")
 
     match b with
-    | LetBinding (ats, px, letKeyword, ao, isInline, isMutable, p, equalsRange, e, valInfo) ->
+    | LetBinding (ats, px, letKeyword, ao, isInline, isMutable, p, equalsRange, e) ->
         match e, p with
         | TypedExpr (Typed, e, t), PatLongIdent (ao, sli, ps, tpso) when (List.isNotEmpty ps) ->
             genSynBindingFunctionWithReturnType
@@ -600,7 +600,6 @@ and genLetBinding astContext pref b =
                 ps
                 tpso
                 t
-                valInfo
                 equalsRange
                 e
         | e, PatLongIdent (ao, sli, ps, tpso) when (List.isNotEmpty ps) ->
@@ -731,9 +730,9 @@ and genMemberBindingList astContext ms =
 
 and genMemberBinding astContext b =
     match b with
-    | MemberBinding (ats, px, ao, isInline, mf, p, equalsRange, e, synValInfo) ->
+    | MemberBinding (ats, px, ao, isInline, mf, p, equalsRange, e) ->
         let prefix = genMemberFlags mf
-        genMemberBindingImpl astContext prefix ats px ao isInline p equalsRange e synValInfo
+        genMemberBindingImpl astContext prefix ats px ao isInline p equalsRange e
 
     | ExplicitCtor (ats, px, ao, p, equalsRange, e, io) ->
         let prefix =
@@ -784,7 +783,6 @@ and genMemberBindingImpl
     (p: SynPat)
     (equalsRange: range option)
     (e: SynExpr)
-    (synValInfo: SynValInfo)
     =
     match e, p with
     | TypedExpr (Typed, e, t), PatLongIdent (ao, s, ps, tpso) when (List.isNotEmpty ps) ->
@@ -803,7 +801,6 @@ and genMemberBindingImpl
             ps
             tpso
             t
-            synValInfo
             equalsRange
             e
     | e, PatLongIdent (ao, s, ps, tpso) when (List.isNotEmpty ps) ->
@@ -827,10 +824,8 @@ and genMemberFlags (mf: SynMemberFlags) =
     | { AbstractRange = Some a } -> genTriviaFor SynMemberFlags_Abstract a !- "abstract "
     | _ -> sepNone
 
-and genVal astContext (Val (ats, px, valKeyword, ao, si, t, vi, isInline, isMutable, tds, eo, range)) =
+and genVal astContext (Val (ats, px, valKeyword, ao, si, t, _, isInline, isMutable, tds, eo, range)) =
     let typeName = genTypeAndParam astContext (genSynIdent false si) tds []
-
-    let (FunType namedArgs) = (t, vi)
     let hasGenerics = Option.isSome tds
 
     genPreXmlDoc px
@@ -841,12 +836,14 @@ and genVal astContext (Val (ats, px, valKeyword, ao, si, t, vi, isInline, isMuta
         +> genAccessOpt ao
         +> typeName)
     +> ifElse hasGenerics sepColonWithSpacesFixed sepColon
-    +> ifElse
-        (List.isNotEmpty namedArgs)
-        (autoIndentAndNlnIfExpressionExceedsPageWidth (genTypeList astContext namedArgs))
-        (genConstraints astContext t vi)
+    +> genTypeInSignature astContext t
     +> optSingle (fun e -> sepEq +> sepSpace +> genExpr astContext e) eo
     |> genTriviaFor SynValSig_ range
+
+and genTypeInSignature astContext (FunType ts) =
+    match ts with
+    | [ TWithGlobalConstraints (t, tcs), None ] -> genConstraints astContext t tcs
+    | ts -> autoIndentAndNlnIfExpressionExceedsPageWidth (genTypeList astContext ts)
 
 and genRecordFieldName astContext (SynExprRecordField ((rfn, _), equalsRange, eo, _blockSeparator) as rf) =
     opt sepNone eo (fun e ->
@@ -1284,7 +1281,7 @@ and genExpr astContext synExpr ctx =
             let genMatchExpr = genMatchBangWith astContext matchRange e withRange
             atCurrentColumn (genMatchExpr +> sepNln +> genClauses astContext cs)
         | TraitCall (tps, msg, e) ->
-            genTyparList astContext tps
+            col sepSpace tps (genType astContext)
             +> sepColon
             +> sepOpenT
             +> genMemberSig astContext msg
@@ -2174,6 +2171,7 @@ and genExpr astContext synExpr ctx =
             +> !- ".."
             +> optSingle (fun e -> onlyIf hasSpaces sepSpace +> genExpr astContext e) e2
         | IndexFromEndExpr e -> !- "^" +> genExpr astContext e
+        | TyparExpr typar -> genTypar astContext typar
         | e -> failwithf "Unexpected expression: %O" e
         |> (match synExpr with
             | SynExpr.App _ -> genTriviaFor SynExpr_App synExpr.Range
@@ -2239,6 +2237,7 @@ and genExpr astContext synExpr ctx =
             | SynExpr.IndexFromEnd _ -> genTriviaFor SynExpr_IndexFromEnd synExpr.Range
             | SynExpr.Dynamic _ -> genTriviaFor SynExpr_Dynamic synExpr.Range
             | SynExpr.Const _ -> genTriviaFor SynExpr_Const synExpr.Range
+            | SynExpr.Typar _ -> genTriviaFor SynExpr_Typar synExpr.Range
             | SynExpr.LetOrUse _
             | SynExpr.Sequential _
             | SynExpr.ComputationExpr _ ->
@@ -3674,9 +3673,7 @@ and genMemberSig astContext node =
         | SynMemberSig.NestedType (_, r) -> r, SynMemberSig_NestedType
 
     match node with
-    | MSMember (Val (ats, px, _, ao, si, t, vi, isInline, _, tds, eo, _), mf) ->
-        let (FunType namedArgs) = (t, vi)
-
+    | MSMember (Val (ats, px, _, ao, si, t, _, isInline, _, tds, eo, _), mf) ->
         let isFunctionProperty =
             match t with
             | TFun _ -> true
@@ -3691,10 +3688,7 @@ and genMemberSig astContext node =
         +> genAccessOpt ao
         +> genTypeAndParam astContext (genSynIdent false si) tds []
         +> ifElse hasGenerics sepColonWithSpacesFixed sepColon
-        +> ifElse
-            (List.isNotEmpty namedArgs)
-            (autoIndentAndNlnIfExpressionExceedsPageWidth (genTypeList astContext namedArgs))
-            (genConstraints astContext t vi)
+        +> genTypeInSignature astContext t
         +> !-(genPropertyKind (not isFunctionProperty) mf.MemberKind)
         +> optSingle (fun e -> sepEq +> sepSpace +> genExpr astContext e) eo
 
@@ -3704,28 +3698,30 @@ and genMemberSig astContext node =
     | MSNestedType _ -> invalidArg "md" "This is not implemented in F# compiler"
     |> genTriviaFor mainNodeName range
 
-and genConstraints astContext (t: SynType) (vi: SynValInfo) =
-    match t with
-    | TWithGlobalConstraints (ti, tcs) ->
-        let genType =
-            let (FunType namedArgs) = (ti, vi)
-            genTypeList astContext namedArgs
+and genConstraints astContext ti tcs =
+    let genType =
+        let (FunType namedArgs) = ti
+        genTypeList astContext namedArgs
 
-        let genConstraints =
-            let short =
-                ifElse (List.isNotEmpty tcs) (!- "when ") sepSpace
-                +> col wordAnd tcs (genTypeConstraint astContext)
+    let genConstraints =
+        let short =
+            ifElse (List.isNotEmpty tcs) (!- "when ") sepSpace
+            +> col wordAnd tcs (genTypeConstraint astContext)
 
-            let long =
-                ifElse (List.isNotEmpty tcs) (!- "when ") sepSpace
-                +> col (sepNln +> wordAndFixed +> sepSpace) tcs (genTypeConstraint astContext)
+        let long =
+            ifElse (List.isNotEmpty tcs) (!- "when ") sepSpace
+            +> col (sepNln +> wordAndFixed +> sepSpace) tcs (genTypeConstraint astContext)
 
-            expressionFitsOnRestOfLine short long
+        expressionFitsOnRestOfLine short long
 
-        autoIndentAndNlnIfExpressionExceedsPageWidth (
-            genType +> sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth genConstraints
-        )
-    | _ -> sepNone
+    autoIndentAndNlnIfExpressionExceedsPageWidth (
+        leadingExpressionIsMultiline genType (fun isMultiline ->
+            if isMultiline then
+                indentSepNlnUnindent genConstraints
+            else
+                sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth genConstraints)
+    )
+// | _ -> sepNone
 
 and genTyparDecl astContext (TyparDecl (ats, tp, fullRange)) =
     genOnelinerAttributes astContext ats +> genTypar astContext tp
@@ -3923,6 +3919,12 @@ and genType astContext t =
         +> genType astContext innerT
         +> genTriviaFor SynType_Paren_ClosingParenthesis rpr sepCloseT
         |> genTriviaFor SynType_Paren pr
+    | TSignatureParameter (attrs, isOptional, identOpt, innerT) ->
+        genOnelinerAttributes astContext attrs
+        +> onlyIf isOptional !- "?"
+        +> optSingle (fun id -> genIdent id +> sepColon) identOpt
+        +> genType astContext innerT
+        |> genTriviaFor SynType_SignatureParameter t.Range
     | t -> failwithf "Unexpected type: %O" t
 
 and genSynTupleTypeSegments astContext ts =
@@ -3972,10 +3974,10 @@ and genPrefixTypes
             ctx
 
 and genTypeList astContext node =
-    let gt addTrailingSpace (t, args: SynArgInfo list, optArrow) =
+    let gt addTrailingSpace (t, optArrow) =
         let genType =
-            match t, args with
-            | TTuple ts', _ ->
+            match t with
+            | TTuple ts' ->
                 let gt sepBefore =
                     let ts' =
                         List.choose
@@ -3985,13 +3987,7 @@ and genTypeList astContext node =
                                 | _ -> None)
                             ts'
 
-                    if args.Length = ts'.Length then
-                        col sepBefore (Seq.zip args ts') (fun (ArgInfo (ats, so, isOpt), t) ->
-                            genOnelinerAttributes astContext ats
-                            +> opt sepColon so (fun ident -> onlyIf isOpt (!- "?") +> genIdent ident)
-                            +> genType astContext t)
-                    else
-                        col sepBefore ts' (genType astContext)
+                    col sepBefore ts' (genType astContext)
 
                 let shortExpr = gt sepStar
                 let longExpr = gt (sepSpace +> sepStarFixed +> sepNln)
@@ -3999,10 +3995,6 @@ and genTypeList astContext node =
                 expressionFitsOnRestOfLine shortExpr longExpr
                 |> genTriviaFor SynType_Tuple t.Range
 
-            | _, [ ArgInfo (ats, so, isOpt) ] ->
-                genOnelinerAttributes astContext ats
-                +> opt sepColon so (fun ident -> onlyIf isOpt (!- "?") +> genIdent ident)
-                +> genType astContext t
             | _ -> genType astContext t
 
         genType
@@ -4021,7 +4013,7 @@ and genTypeList astContext node =
         let isTupleOrLastIndex index =
             index = lastIndex
             || match List.tryItem (index - 1) node with
-               | Some (TTuple _, _, _) -> true
+               | Some (TTuple _, _) -> true
                | _ -> false
 
         let resetIndent =
@@ -4064,6 +4056,7 @@ and genTypeConstraint astContext node =
         +> !- "delegate<"
         +> col sepComma ts (genType astContext)
         +> !- ">"
+    | TyparWhereSelfConstrained t -> genType astContext t
 
 and genInterfaceImpl astContext (InterfaceImpl (t, withKeywordRange, bs, members, range)) =
     if bs.IsEmpty && members.IsEmpty then
@@ -4322,7 +4315,7 @@ and genMemberDefn astContext node =
             genTriviaForOption SynMemberDefn_Interface_With withKeyword !- " with"
             +> indentSepNlnUnindent (genMemberDefnList astContext mds))
 
-    | MDAutoProperty (ats, px, ao, mk, equalsRange, e, _withKeyword, ident, _isStatic, typeOpt, memberKindToMemberFlags) ->
+    | MDAutoProperty (ats, px, ao, mk, equalsRange, e, _withKeyword, ident, _isStatic, typeOpt, memberFlags) ->
         let isFunctionProperty =
             match typeOpt with
             | Some (TFun _) -> true
@@ -4330,7 +4323,7 @@ and genMemberDefn astContext node =
 
         genPreXmlDoc px
         +> genAttributes astContext ats
-        +> genMemberFlags (memberKindToMemberFlags mk)
+        +> genMemberFlags memberFlags
         +> str "val "
         +> genAccessOpt ao
         +> genIdent ident
@@ -4340,9 +4333,7 @@ and genMemberDefn astContext node =
             genExpr astContext e +> !-(genPropertyKind (not isFunctionProperty) mk)
         )
 
-    | MDAbstractSlot (ats, px, ao, si, t, vi, ValTyparDecls (tds, _), mf) ->
-        let (FunType namedArgs) = (t, vi)
-
+    | MDAbstractSlot (ats, px, ao, si, t, ValTyparDecls (tds, _), mf) ->
         let isFunctionProperty =
             match t with
             | TFun _ -> true
@@ -4357,13 +4348,8 @@ and genMemberDefn astContext node =
         +> genSynIdent false si
         +> genTypeParamPostfix astContext tds
         +> ifElse hasGenerics sepColonWithSpacesFixed sepColon
-        +> autoIndentAndNlnIfExpressionExceedsPageWidth (genTypeList astContext namedArgs)
+        +> genTypeInSignature astContext t
         +> !-(genPropertyKind (not isFunctionProperty) mf.MemberKind)
-        +> onlyIf
-            (match t with
-             | TWithGlobalConstraints _ -> true
-             | _ -> false)
-            (genConstraints astContext t vi)
 
     | MDPropertyGetSet (px, ats, mf, isInline, ao, memberName, withKeyword, firstBinding, andKeyword, secondBinding) ->
         genPreXmlDoc px
@@ -4392,8 +4378,8 @@ and genMemberDefn astContext node =
     | md -> failwithf "Unexpected member definition: %O" md
     |> genTriviaFor (synMemberDefnToFsAstType node) node.Range
 
-and genPropertyKind useSyntacticSugar node =
-    match node with
+and genPropertyKind useSyntacticSugar memberKind =
+    match memberKind with
     | PropertyGet ->
         // Try to use syntactic sugar on real properties (not methods in disguise)
         if useSyntacticSugar then "" else " with get"
@@ -4711,7 +4697,6 @@ and genSynBindingFunctionWithReturnType
     (parameters: ((Ident * range) option * SynPat) list)
     (genericTypeParameters: SynValTyparDecls option)
     (returnType: SynType)
-    (valInfo: SynValInfo)
     (equalsRange: range option)
     (e: SynExpr)
     (ctx: Context)
@@ -4741,13 +4726,8 @@ and genSynBindingFunctionWithReturnType
         +> genValTyparDeclsOpt astContext genericTypeParameters
 
     let genReturnType isFixed =
-        let genMetadataAttributes =
-            match valInfo with
-            | SynValInfo (_, SynArgInfo (attributes, _, _)) -> genOnelinerAttributes astContext attributes
-
         enterNodeFor SynBindingReturnInfo_ returnType.Range
         +> ifElse isFixed (sepColonFixed +> sepSpace) sepColonWithSpacesFixed
-        +> genMetadataAttributes
         +> genType astContext returnType
 
     let genSignature =
