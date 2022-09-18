@@ -369,3 +369,32 @@ type Foo() =
         itemFive
     |]
 """
+
+[<Test>]
+let ``let binding for anonymous record with expression, 2508`` () =
+    formatSourceString
+        false
+        """
+let fooDto =
+    {| otherDto with
+        TextFilters =
+            criteria.Meta.TextFilter
+            |> Option.map (fun f -> f.Filters)
+            |> Option.map (List.map (sprintf "~%s~"))
+            |> Option.toObj
+    |}
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let fooDto =
+    {| otherDto with
+        TextFilters =
+            criteria.Meta.TextFilter
+            |> Option.map (fun f -> f.Filters)
+            |> Option.map (List.map (sprintf "~%s~"))
+            |> Option.toObj
+    |}
+"""
