@@ -164,20 +164,6 @@ type SynValInfo with
             | None, Some i -> Some i.idRange
             | Some a, Some i -> Some(unionRanges a.Range i.idRange)
 
-type SynValData with
-
-    member synValData.FullRange: range option =
-        match synValData with
-        | SynValData (mf, valInfo, thisIdOpt) ->
-            let mfRange = Option.bind (fun (mf: SynMemberFlags) -> mf.FullRange) mf
-            let valInfo = valInfo.FullRange
-            let thisRange = Option.map (fun (id: Ident) -> id.idRange) thisIdOpt
-
-            RangeHelpers.mergeRanges
-                [ yield! Option.toList mfRange
-                  yield! Option.toList valInfo
-                  yield! Option.toList thisRange ]
-
 let synTypeDefnKindDelegateFullRange (signature: SynType) (signatureInfo: SynValInfo) =
     let startRange = signature.Range
 
