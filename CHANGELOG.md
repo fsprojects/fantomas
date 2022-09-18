@@ -1,6 +1,6 @@
 # Changelog
 
-## [Unreleased]
+## [5.0.1] - 2022-09-18
 
 ### Fixed
 * Items.Item \<index> <- value gives wrong code. [#2498](https://github.com/fsprojects/fantomas/issues/2498)
