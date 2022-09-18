@@ -824,14 +824,8 @@ and genMemberFlags (mf: SynMemberFlags) =
     | { AbstractRange = Some a } -> genTriviaFor SynMemberFlags_Abstract a !- "abstract "
     | _ -> sepNone
 
-and genVal astContext (Val (ats, px, valKeyword, ao, si, FunType ts, _, isInline, isMutable, tds, eo, range)) =
+and genVal astContext (Val (ats, px, valKeyword, ao, si, t, _, isInline, isMutable, tds, eo, range)) =
     let typeName = genTypeAndParam astContext (genSynIdent false si) tds []
-
-    let genType =
-        match ts with
-        | [ TWithGlobalConstraints (t, tcs), None ] -> genConstraints astContext t tcs
-        | ts -> autoIndentAndNlnIfExpressionExceedsPageWidth (genTypeList astContext ts)
-
     let hasGenerics = Option.isSome tds
 
     genPreXmlDoc px
@@ -842,9 +836,14 @@ and genVal astContext (Val (ats, px, valKeyword, ao, si, FunType ts, _, isInline
         +> opt sepSpace ao genAccess
         +> typeName)
     +> ifElse hasGenerics sepColonWithSpacesFixed sepColon
-    +> genType
+    +> genTypeInSignature astContext t
     +> optSingle (fun e -> sepEq +> sepSpace +> genExpr astContext e) eo
     |> genTriviaFor SynValSig_ range
+
+and genTypeInSignature astContext (FunType ts) =
+    match ts with
+    | [ TWithGlobalConstraints (t, tcs), None ] -> genConstraints astContext t tcs
+    | ts -> autoIndentAndNlnIfExpressionExceedsPageWidth (genTypeList astContext ts)
 
 and genRecordFieldName astContext (SynExprRecordField ((rfn, _), equalsRange, eo, _blockSeparator) as rf) =
     opt sepNone eo (fun e ->
@@ -3654,13 +3653,12 @@ and genMemberSig astContext node =
         | SynMemberSig.NestedType (_, r) -> r, SynMemberSig_NestedType
 
     match node with
-    | MSMember (Val (ats, px, _, ao, si, FunType ts, _, isInline, _, tds, eo, _), mf) ->
-        let genType =
-            match ts with
-            | [ TWithGlobalConstraints (t, tcs), None ] -> genConstraints astContext t tcs
-            | ts -> autoIndentAndNlnIfExpressionExceedsPageWidth (genTypeList astContext ts)
+    | MSMember (Val (ats, px, _, ao, si, t, _, isInline, _, tds, eo, _), mf) ->
+        let isFunctionProperty =
+            match t with
+            | TFun _ -> true
+            | _ -> false
 
-        let isFunctionProperty = ts.Length > 1
         let hasGenerics = Option.isSome tds
 
         genPreXmlDoc px
@@ -3668,9 +3666,9 @@ and genMemberSig astContext node =
         +> genMemberFlags mf
         +> ifElse isInline (!- "inline ") sepNone
         +> opt sepSpace ao genAccess
-        +> genTypeAndParam astContext (genSynIdent false si) tds [] // (if s = "``new``" then "new" else s)
+        +> genTypeAndParam astContext (genSynIdent false si) tds []
         +> ifElse hasGenerics sepColonWithSpacesFixed sepColon
-        +> genType
+        +> genTypeInSignature astContext t
         +> !-(genPropertyKind (not isFunctionProperty) mf.MemberKind)
         +> optSingle (fun e -> sepEq +> sepSpace +> genExpr astContext e) eo
 
@@ -3681,8 +3679,6 @@ and genMemberSig astContext node =
     |> genTriviaFor mainNodeName range
 
 and genConstraints astContext ti tcs =
-    // match t with
-    // | TWithGlobalConstraints (ti, tcs) ->
     let genType =
         let (FunType namedArgs) = ti
         genTypeList astContext namedArgs
@@ -4363,13 +4359,12 @@ and genMemberDefn astContext node =
             genExpr astContext e +> !-(genPropertyKind (not isFunctionProperty) mk)
         )
 
-    | MDAbstractSlot (ats, px, ao, si, FunType ts, ValTyparDecls (tds, _), mf) ->
-        let genType =
-            match ts with
-            | [ TWithGlobalConstraints (t, tcs), None ] -> genConstraints astContext t tcs
-            | ts -> autoIndentAndNlnIfExpressionExceedsPageWidth (genTypeList astContext ts)
+    | MDAbstractSlot (ats, px, ao, si, t, ValTyparDecls (tds, _), mf) ->
+        let isFunctionProperty =
+            match t with
+            | TFun _ -> true
+            | _ -> false
 
-        let isFunctionProperty = ts.Length > 1
         let hasGenerics = Option.isSome tds
 
         genPreXmlDoc px
@@ -4379,7 +4374,7 @@ and genMemberDefn astContext node =
         +> genSynIdent false si
         +> genTypeParamPostfix astContext tds
         +> ifElse hasGenerics sepColonWithSpacesFixed sepColon
-        +> genType
+        +> genTypeInSignature astContext t
         +> !-(genPropertyKind (not isFunctionProperty) mf.MemberKind)
 
     | MDPropertyGetSet (px, ats, mf, isInline, ao, memberName, withKeyword, firstBinding, andKeyword, secondBinding) ->
@@ -4409,8 +4404,8 @@ and genMemberDefn astContext node =
     | md -> failwithf "Unexpected member definition: %O" md
     |> genTriviaFor (synMemberDefnToFsAstType node) node.Range
 
-and genPropertyKind useSyntacticSugar node =
-    match node with
+and genPropertyKind useSyntacticSugar memberKind =
+    match memberKind with
     | PropertyGet ->
         // Try to use syntactic sugar on real properties (not methods in disguise)
         if useSyntacticSugar then "" else " with get"
