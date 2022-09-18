@@ -321,7 +321,7 @@ and genModuleDecl astContext (node: SynModuleDecl) =
                 let r = b'.RangeOfBindingWithRhs
 
                 sepNln +> sepNlnConsideringTriviaContentBeforeFor (synBindingToFsAstType b) r
-            | None -> id
+            | None -> sepNone
 
         genLetBinding astContext "let rec " b
         +> sepBAndBs
@@ -452,7 +452,7 @@ and genAttribute astContext (Attribute (sli, e, target)) =
     // Special treatment for function application on attributes
     | ConstUnitExpr -> !- "[<" +> opt sepColon target genIdent +> genSynLongIdent false sli +> !- ">]"
     | e ->
-        let argSpacing = if hasParenthesis e then id else sepSpace
+        let argSpacing = if hasParenthesis e then sepNone else sepSpace
 
         !- "[<"
         +> opt sepColon target genIdent
@@ -466,7 +466,7 @@ and genAttributesCore astContext (ats: SynAttribute seq) =
         match e with
         | ConstUnitExpr -> opt sepColon target genIdent +> genSynLongIdent false sli
         | e ->
-            let argSpacing = if hasParenthesis e then id else sepSpace
+            let argSpacing = if hasParenthesis e then sepNone else sepSpace
 
             opt sepColon target genIdent
             +> genSynLongIdent false sli
@@ -2019,14 +2019,14 @@ and genExpr astContext synExpr ctx =
             +> !- "] <- "
             +> autoIndentAndNlnIfExpressionExceedsPageWidthUnlessStroustrup (genExpr astContext) valueExpr
         | NamedIndexedPropertySet (sli, e1, e2) ->
-            let needsSep =
+            let sep =
                 match e1 with
                 | SynExpr.Const _
-                | SynExpr.Ident _ -> true
-                | _ -> false
+                | SynExpr.Ident _ -> sepSpace
+                | _ -> sepNone
 
             genSynLongIdent false sli
-            +> ifElse needsSep sepSpace id
+            +> sep
             +> genExpr astContext e1
             +> !- " <- "
             +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e2)
