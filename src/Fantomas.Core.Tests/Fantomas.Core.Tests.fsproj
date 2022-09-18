@@ -116,6 +116,7 @@
     <Compile Include="CodePrinterHelperFunctionsTests.fs" />
     <Compile Include="ASTTransformerTests.fs" />
     <Compile Include="DotSetTests.fs" />
+    <Compile Include="InterfaceStaticMethodTests.fs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Fantomas.Core\Fantomas.Core.fsproj" />
