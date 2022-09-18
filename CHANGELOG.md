@@ -1,6 +1,6 @@
 # Changelog
 
-## [Unreleased]
+## [5.1.0-alpha-001] - 2022-09-18
 
 ### Changed
 * Update FCS to 'Introduce SynType.SignatureParameter', commit 8f59d364a0abccb04d4ec2f1cd09665dee298777
