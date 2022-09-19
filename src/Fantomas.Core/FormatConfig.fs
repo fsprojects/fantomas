@@ -218,8 +218,7 @@ type FormatConfig =
       // [<Category("Convention")>]
       // [<DisplayName("Format braces using Stroustrup Style where possible.")>]
       // [<Description("Experimental feature, use at your own risk.")>]
-      //ExperimentalStroustrupStyle: bool
-
+ 
       [<Category("Convention")>]
       [<DisplayName("How to format brackets")>]
       [<Description("Possible options include classic (default), aligned, and experimental_stroustrup")>]
@@ -271,6 +270,3 @@ type FormatConfig =
           MultilineBracketStyle = Classic
           KeepMaxNumberOfBlankLines = 100
           StrictMode = false }
-
-    member this.ExperimentalStroustrupStyle =
-        this.MultilineBracketStyle = ExperimentalStroustrup
