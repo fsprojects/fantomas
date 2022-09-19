@@ -38,9 +38,9 @@ type MultilineBracketStyle =
 
     static member OfConfigString(cfgString: string) =
         match cfgString with
-        | "classic" -> Some Classic
-        | "aligned" -> Some Aligned
-        | "experimental_stroustrup" -> Some ExperimentalStroustrup
+        | "classic" -> Some(box Classic)
+        | "aligned" -> Some(box Aligned)
+        | "experimental_stroustrup" -> Some(box ExperimentalStroustrup)
         | _ -> None
 
 [<RequireQualifiedAccess>]

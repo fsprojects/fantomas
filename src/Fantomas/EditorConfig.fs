@@ -68,12 +68,6 @@ let private (|MultilineFormatterType|_|) mft =
 
 let private (|BracketStyle|_|) bs = MultilineBracketStyle.OfConfigString bs
 
-let private (|OldBracketStyle|_|) input =
-    match input with
-    | "fsharp_experimental_stroustrup_style" -> Some input
-    | "fsharp_multiline_block_brackets_on_same_column" -> Some input
-    | _ -> None
-
 let private (|EndOfLineStyle|_|) eol = EndOfLineStyle.OfConfigString eol
 
 let private (|Boolean|_|) b =
@@ -81,36 +75,48 @@ let private (|Boolean|_|) b =
     elif b = "false" then Some(box false)
     else None
 
-// TODO: Make this backwards compatible with old alignment style
-// let private updateOldBracketStyle (values: obj[]) =
-//     let oldStrous = values |> Array.tryFindIndex (fun v -> v = box "fsharp_experimental_stroustrup_style")
-//     let oldAlign = values |> Array.tryFindIndex (fun v -> v = box "fsharp_multiline_block_brackets_on_same_column")
-//
-//     match oldAlign, oldStrous with
-//     | None, None ->
-//         values
-//     | Some i, None ->
-//         values |> Array.set i (box Aligned)
-//
+let private (|OldStroustrup|OldAligned|Unspecified|) (input: IReadOnlyDictionary<string, string>) =
+    let toOption =
+        function
+        | true, "true" -> Some true
+        | true, "false" -> Some false
+        | _ -> None
+
+    let hasStroustrup =
+        input.TryGetValue("fsharp_experimental_stroustrup_style") |> toOption
+
+    let hasAligned =
+        input.TryGetValue("fsharp_multiline_block_brackets_on_same_column") |> toOption
+
+    match hasAligned, hasStroustrup with
+    | Some true, Some true -> OldStroustrup
+    | Some true, _ -> OldAligned
+    | _ -> Unspecified
 
 let parseOptionsFromEditorConfig
     (fallbackConfig: FormatConfig)
     (editorConfigProperties: IReadOnlyDictionary<string, string>)
     : FormatConfig =
     getFantomasFields fallbackConfig
-    |> Array.map (fun (ecn, dv) ->
-        match editorConfigProperties.TryGetValue(ecn) with
+    |> Array.map (fun (editorConfigName, defaultValue) ->
+        match editorConfigProperties.TryGetValue(editorConfigName) with
         | true, Number n -> n
         | true, Boolean b -> b
         | true, MultilineFormatterType mft -> mft
         | true, EndOfLineStyle eol -> box eol
         | true, BracketStyle bs -> box bs
-        | true, OldBracketStyle s -> s
-        | _ -> dv)
+        | _ -> defaultValue)
     |> fun newValues ->
 
         let formatConfigType = FormatConfig.Default.GetType()
-        Microsoft.FSharp.Reflection.FSharpValue.MakeRecord(formatConfigType, newValues) :?> FormatConfig
+
+        let config =
+            Microsoft.FSharp.Reflection.FSharpValue.MakeRecord(formatConfigType, newValues) :?> FormatConfig
+
+        match editorConfigProperties with
+        | Unspecified -> config
+        | OldStroustrup -> { config with MultilineBracketStyle = ExperimentalStroustrup }
+        | OldAligned -> { config with MultilineBracketStyle = Aligned }
 
 let configToEditorConfig (config: FormatConfig) : string =
     Reflection.getRecordFields config
