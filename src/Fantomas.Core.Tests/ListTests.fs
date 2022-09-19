@@ -1944,7 +1944,7 @@ let value = [
         { config with
             MaxIfThenElseShortWidth = 120
             MaxArrayOrListWidth = 120
-            BracketStyle = Aligned }
+            MultilineBracketStyle = Aligned }
     |> prepend newline
     |> should
         equal

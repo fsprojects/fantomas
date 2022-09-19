@@ -25,22 +25,22 @@ type MultilineFormatterType =
         | "number_of_items" -> Some(box MultilineFormatterType.NumberOfItems)
         | _ -> None
 
-type BracketStyle =
+type MultilineBracketStyle =
     | Classic
     | Aligned
-    | Stroustrup
+    | ExperimentalStroustrup
 
-    static member ToConfigString(cfg: BracketStyle) =
+    static member ToConfigString(cfg: MultilineBracketStyle) =
         match cfg with
         | Classic -> "classic"
         | Aligned -> "aligned"
-        | Stroustrup -> "stroustrup"
+        | ExperimentalStroustrup -> "experimental_stroustrup"
 
     static member OfConfigString(cfgString: string) =
         match cfgString with
         | "classic" -> Some Classic
         | "aligned" -> Some Aligned
-        | "stroustrup" -> Some Stroustrup
+        | "experimental_stroustrup" -> Some ExperimentalStroustrup
         | _ -> None
 
 [<RequireQualifiedAccess>]
@@ -222,8 +222,8 @@ type FormatConfig =
 
       [<Category("Convention")>]
       [<DisplayName("How to format brackets")>]
-      [<Description("Possible options include classic (default), aligned, and stroustrup")>]
-      BracketStyle: BracketStyle
+      [<Description("Possible options include classic (default), aligned, and experimental_stroustrup")>]
+      MultilineBracketStyle: MultilineBracketStyle
 
       [<Category("Convention")>]
       [<DisplayName("Maximum number of consecutive blank lines to keep")>]
@@ -268,8 +268,9 @@ type FormatConfig =
           ExperimentalKeepIndentInBranch = false
           BlankLinesAroundNestedMultilineExpressions = true
           BarBeforeDiscriminatedUnionDeclaration = false
-          BracketStyle = Classic
+          MultilineBracketStyle = Classic
           KeepMaxNumberOfBlankLines = 100
           StrictMode = false }
 
-    member this.ExperimentalStroustrupStyle = this.BracketStyle = Stroustrup
+    member this.ExperimentalStroustrupStyle =
+        this.MultilineBracketStyle = ExperimentalStroustrup

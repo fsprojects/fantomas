@@ -8,7 +8,7 @@ open Fantomas.Core.FormatConfig
 let config =
     { config with
         MultiLineLambdaClosingNewline = true
-        BracketStyle = Stroustrup
+        MultilineBracketStyle = ExperimentalStroustrup
         MaxArrayOrListWidth = 40 }
 
 // TODO: figure out what should happen when you mix MultiLineLambdaClosingNewline and Stroustrup

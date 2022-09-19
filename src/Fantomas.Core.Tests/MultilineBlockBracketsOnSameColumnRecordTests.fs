@@ -7,7 +7,7 @@ open Fantomas.Core.FormatConfig
 
 let config =
     { config with
-        BracketStyle = Aligned
+        MultilineBracketStyle = Aligned
         SpaceBeforeColon = true
         SpaceBeforeSemicolon = true }
 
@@ -1125,7 +1125,7 @@ module WatcherTests =
 """
         { config with
             MaxLineLength = 80
-            BracketStyle = Aligned }
+            MultilineBracketStyle = Aligned }
     |> prepend newline
     |> should
         equal

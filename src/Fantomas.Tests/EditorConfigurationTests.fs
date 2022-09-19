@@ -464,7 +464,7 @@ fsharp_experimental_stroustrup_style = true
 
     let config = EditorConfig.readConfiguration fsharpFile.FSharpFile
 
-    Assert.AreEqual(Stroustrup, config.BracketStyle)
+    Assert.AreEqual(ExperimentalStroustrup, config.MultilineBracketStyle)
     Assert.IsTrue config.ExperimentalStroustrupStyle
 
 [<Test>]
@@ -485,5 +485,5 @@ fsharp_experimental_stroustrup_style = true
 
     let config = EditorConfig.readConfiguration fsharpFile.FSharpFile
 
-    Assert.AreEqual(Aligned, config.BracketStyle)
+    Assert.AreEqual(Aligned, config.MultilineBracketStyle)
     Assert.IsTrue config.ExperimentalStroustrupStyle

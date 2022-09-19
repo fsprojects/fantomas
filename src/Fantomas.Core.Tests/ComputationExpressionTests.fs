@@ -1588,7 +1588,7 @@ let ``new line between let and let bang, 879`` () =
             SpaceBeforeUppercaseInvocation = true
             IndentSize = 2
             SpaceAroundDelimiter = false
-            BracketStyle = Aligned
+            MultilineBracketStyle = Aligned
             MaxInfixOperatorExpression = 50 }
     |> prepend newline
     |> should

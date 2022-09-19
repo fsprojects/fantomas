@@ -5,7 +5,7 @@ open FsUnit
 open Fantomas.Core.Tests.TestHelper
 open Fantomas.Core.FormatConfig
 
-let config = { config with BracketStyle = Stroustrup }
+let config = { config with MultilineBracketStyle = ExperimentalStroustrup }
 
 [<Test>]
 let ``record type definition`` () =

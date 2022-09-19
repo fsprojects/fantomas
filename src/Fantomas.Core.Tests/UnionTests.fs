@@ -701,7 +701,7 @@ type CardValue =
         ]
 """
         { config with
-            BracketStyle = Aligned
+            MultilineBracketStyle = Aligned
             NewlineBetweenTypeDefinitionAndMembers = false }
     |> prepend newline
     |> should

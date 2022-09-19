@@ -425,7 +425,7 @@ let projectIntoMap projection =
             SpaceAroundDelimiter = false
             MaxInfixOperatorExpression = 40
             MaxFunctionBindingWidth = 60
-            BracketStyle = Aligned }
+            MultilineBracketStyle = Aligned }
     |> prepend newline
     |> should
         equal

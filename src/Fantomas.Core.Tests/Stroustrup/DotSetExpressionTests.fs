@@ -7,7 +7,7 @@ open Fantomas.Core.FormatConfig
 
 let config =
     { config with
-        BracketStyle = Stroustrup
+        MultilineBracketStyle = ExperimentalStroustrup
         MaxArrayOrListWidth = 40 }
 
 [<Test>]

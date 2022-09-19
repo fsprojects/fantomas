@@ -307,7 +307,7 @@ type DerivedClass =
         { inherit BaseClass(str1)
           string2 = str2 }
 """
-        { spaceBeforeConfig with BracketStyle = Aligned }
+        { spaceBeforeConfig with MultilineBracketStyle = Aligned }
     |> prepend newline
     |> should
         equal

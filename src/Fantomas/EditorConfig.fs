@@ -66,7 +66,7 @@ let private (|Number|_|) (d: string) =
 let private (|MultilineFormatterType|_|) mft =
     MultilineFormatterType.OfConfigString mft
 
-let private (|BracketStyle|_|) bs = BracketStyle.OfConfigString bs
+let private (|BracketStyle|_|) bs = MultilineBracketStyle.OfConfigString bs
 
 let private (|OldBracketStyle|_|) input =
     match input with

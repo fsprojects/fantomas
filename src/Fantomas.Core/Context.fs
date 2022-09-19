@@ -545,10 +545,11 @@ let ifElse b (f1: Context -> Context) f2 (ctx: Context) = if b then f1 ctx else 
 
 let ifElseCtx cond (f1: Context -> Context) f2 (ctx: Context) = if cond ctx then f1 ctx else f2 ctx
 
-let ifStroustrupElse = ifElseCtx (fun ctx -> ctx.Config.BracketStyle = Stroustrup)
+let ifStroustrupElse =
+    ifElseCtx (fun ctx -> ctx.Config.MultilineBracketStyle = ExperimentalStroustrup)
 
 let ifStroustrup (f1: Context -> Context) =
-    ifElseCtx (fun ctx -> ctx.Config.BracketStyle = Stroustrup) f1 id
+    ifElseCtx (fun ctx -> ctx.Config.MultilineBracketStyle = ExperimentalStroustrup) f1 id
 
 /// apply f only when cond is true
 let onlyIf cond f ctx = if cond then f ctx else ctx
@@ -593,7 +594,10 @@ let sepNlnUnlessLastEventIsNewline (ctx: Context) =
     if lastWriteEventIsNewline ctx then ctx else sepNln ctx
 
 let sepNlnUnlessLastEventIsNewlineOrStroustrup (ctx: Context) =
-    if lastWriteEventIsNewline ctx || ctx.Config.BracketStyle = Stroustrup then
+    if
+        lastWriteEventIsNewline ctx
+        || ctx.Config.MultilineBracketStyle = ExperimentalStroustrup
+    then
         ctx
     else
         sepNln ctx
@@ -1041,9 +1045,9 @@ let sepSemi (ctx: Context) =
 let ifAlignBrackets f g =
     ifElseCtx
         (fun ctx ->
-            match ctx.Config.BracketStyle with
+            match ctx.Config.MultilineBracketStyle with
             | Aligned
-            | Stroustrup -> true
+            | ExperimentalStroustrup -> true
             | Classic -> false)
         f
         g

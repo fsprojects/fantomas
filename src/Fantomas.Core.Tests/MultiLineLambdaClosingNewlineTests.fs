@@ -577,7 +577,7 @@ module Foo =
             SpaceBeforeMember = true
             SpaceBeforeColon = true
             SpaceBeforeSemicolon = true
-            BracketStyle = Aligned
+            MultilineBracketStyle = Aligned
             MultiLineLambdaClosingNewline = true
             ExperimentalKeepIndentInBranch = true }
     |> prepend newline
@@ -623,7 +623,7 @@ module Foo =
             SpaceBeforeMember = true
             SpaceBeforeColon = true
             SpaceBeforeSemicolon = true
-            BracketStyle = Aligned
+            MultilineBracketStyle = Aligned
             MultiLineLambdaClosingNewline = true
             ExperimentalKeepIndentInBranch = true }
     |> prepend newline

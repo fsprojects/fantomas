@@ -7,7 +7,7 @@ open Fantomas.Core.FormatConfig
 
 let config =
     { config with
-        BracketStyle = Aligned
+        MultilineBracketStyle = Aligned
         SpaceBeforeColon = true
         SpaceBeforeSemicolon = true }
 
@@ -417,7 +417,7 @@ module Foo =
             SpaceBeforeMember = true
             SpaceBeforeColon = true
             SpaceBeforeSemicolon = true
-            BracketStyle = Aligned
+            MultilineBracketStyle = Aligned
             AlignFunctionSignatureToIndentation = true
             MultiLineLambdaClosingNewline = true
             MaxArrayOrListWidth = 40 }

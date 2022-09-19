@@ -1528,7 +1528,7 @@ and [<CustomEquality>] Bang =
         override GetHashCode : unit -> int
 """
         { config with
-            BracketStyle = Aligned
+            MultilineBracketStyle = Aligned
             NewlineBetweenTypeDefinitionAndMembers = false }
     |> prepend newline
     |> should

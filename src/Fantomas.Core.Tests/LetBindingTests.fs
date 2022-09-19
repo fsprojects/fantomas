@@ -1651,7 +1651,7 @@ stepLog.LogInformation (
             SpaceBeforeMember = true
             SpaceBeforeColon = true
             SpaceBeforeSemicolon = true
-            BracketStyle = Aligned
+            MultilineBracketStyle = Aligned
             NewlineBetweenTypeDefinitionAndMembers = true
             AlignFunctionSignatureToIndentation = true
             AlternativeLongMemberDefinitions = true
@@ -1702,7 +1702,7 @@ module Foo =
             SpaceBeforeMember = true
             SpaceBeforeColon = true
             SpaceBeforeSemicolon = true
-            BracketStyle = Aligned
+            MultilineBracketStyle = Aligned
             NewlineBetweenTypeDefinitionAndMembers = true
             AlignFunctionSignatureToIndentation = true
             AlternativeLongMemberDefinitions = true
