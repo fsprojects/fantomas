@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+*  Wrong generic constraint placement in ML-style generic definitions with multiple type parameters [#1868](https://github.com/fsprojects/fantomas/issues/1868)
+
 ## [5.0.1] - 2022-09-18
 
 ### Fixed
