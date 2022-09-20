@@ -5,6 +5,9 @@
 ### Fixed
 * Wrong generic constraint placement in ML-style generic definitions with multiple type parameters. [#1868](https://github.com/fsprojects/fantomas/issues/1868)
 
+### Documented
+* Building Fantomas in Visual Studio for dev errors. [#2447](https://github.com/fsprojects/fantomas/issues/2447)
+
 ## [5.0.1] - 2022-09-18
 
 ### Fixed
