@@ -21,4 +21,10 @@ The best is yet to come!
 PS: Don't hesitate to open [an issue](https://github.com/fsprojects/fantomas/issues/new/choose) if you have any questions. 
 Or if something isn't all that clear. Our goal is to make this documentation as complete as possible🎉!
 
+## Visual Studio Issue
+
+There is currently [a known issue](https://github.com/fsprojects/fantomas/issues/2447) when loading the `fantomas` solution in Visual Studio that prevents the solution from being able to build properly. This is due to an issue in the `Ionide.KeepAChangelog` build step (tracking the issue [here](https://github.com/ionide/KeepAChangelog/issues/8)).
+
+To workaround this in the meantime, you'll need to comment out the references to `Ionide.KeepAChangelog.Tasks` in `paket.dependencies` and all of the `paket.references` files, and then run `dotnet paket install` again. 
+
 <fantomas-nav next="./FSharp.html"></fantomas-nav>
