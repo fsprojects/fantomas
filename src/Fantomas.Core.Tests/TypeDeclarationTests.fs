@@ -3147,3 +3147,18 @@ let ``unit of measure should keep idempotency after formatting, 2264`` () =
 [<Measure>]
 type herth = / second
 """
+
+[<Test>]
+let ``generic constraint placement in ML-style generic definitions with multiple type parameters, 1868`` () =
+    formatSourceString
+        false
+        """
+type ('key, 'value) map when 'key: comparison = Map<'key, 'value>
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type ('key, 'value) map when 'key: comparison = Map<'key, 'value>
+"""

@@ -20,14 +20,29 @@ Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "Fantomas.Benchmarks", "src\
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{29F22904-C9E0-40AA-B971-9AE377C17F59}"
 	ProjectSection(SolutionItems) = preProject
-		docs\Documentation.md = docs\Documentation.md
-		docs\FormattingConventions.md = docs\FormattingConventions.md
 		docs\index.html = docs\index.html
 	EndProjectSection
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Fantomas.Client", "src\Fantomas.Client\Fantomas.Client.fsproj", "{AA895F94-CCF2-4FCF-A9BB-E16987B57535}"
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Fantomas.FCS", "src\Fantomas.FCS\Fantomas.FCS.fsproj", "{B39D50EE-0307-4C08-81F5-97418A946F63}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{965B1FF9-B438-4F74-ACCA-A78062AD606E}"
+	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
+		.fantomasignore = .fantomasignore
+		.gitattributes = .gitattributes
+		.git-blame-ignore-revs = .git-blame-ignore-revs
+		.gitignore = .gitignore
+		.gitpod.yml = .gitpod.yml
+		build.fsx = build.fsx
+		CHANGELOG.md = CHANGELOG.md
+		CODE_OF_CONDUCT.md = CODE_OF_CONDUCT.md
+		CONTRIBUTING.md = CONTRIBUTING.md
+		Directory.Build.props = Directory.Build.props
+		LICENSE.md = LICENSE.md
+		README.md = README.md
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
