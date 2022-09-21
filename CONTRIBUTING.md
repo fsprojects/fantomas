@@ -89,14 +89,14 @@ Use a helper function like `sepNlnConsideringTriviaContentBeforeForMainNode` ins
 
 ### ASTContext
 
-In [CodePrinter.fs](https://github.com/fsprojects/fantomas/blob/master/src/Fantomas/CodePrinter.fs) the ASTContext record is used to indicate context aware information. This usually is an escape hatch and should be avoided at all times.
+In [CodePrinter.fs](https://github.com/fsprojects/fantomas/blob/main/src/Fantomas/CodePrinter.fs) the ASTContext record is used to indicate context aware information. This usually is an escape hatch and should be avoided at all times.
 The key issue is that flags of the ASTContext are usually not cleaned up after they served their purpose.
 Leading to very strange situations and unexpected behavior.
 
 # Bug reports
 
 We prefer that all bugs are created using our online tool: https://fsprojects.github.io/fantomas-tools/ <br />
-Here we can easily report bugs against the code of the latest master branch.
+Here we can easily report bugs against the code of the latest main branch.
 The tool generates a report with all the technical information that is necessary to reproduce the bug in a unit test.
 
 Please try and make the bug report as small as possible. Isolate the part of your code that is causing the bug.

@@ -121,7 +121,7 @@ Performance was never the greatest motivator for these changes. But yes, a bette
 A comparison was made on 30/04:
 
 ```
-Master branch
+main branch
 
 | Method |    Mean |    Error |   StdDev | Rank |      Gen 0 |      Gen 1 |     Gen 2 | Allocated |
 |------- |--------:|---------:|---------:|-----:|-----------:|-----------:|----------:|----------:|

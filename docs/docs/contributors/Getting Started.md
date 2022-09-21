@@ -28,17 +28,17 @@ This will make management of multiple forks and your own work easier over time.
 We recommend the following commands to update your fork:
 
 ```shell
-git checkout master
+git checkout main
 git clean -xdf
 git fetch upstream
-git rebase upstream/master
+git rebase upstream/main
 git push
 ```
 
 Or more succinctly:
 
 ```shell
-git checkout master && git clean -xdf && git fetch upstream && git rebase upstream/master && git push
+git checkout main && git clean -xdf && git fetch upstream && git rebase upstream/main && git push
 ```
 
 This will update your fork with the latest from `fsprojects/fantomas` on your machine and push those updates to your remote fork.

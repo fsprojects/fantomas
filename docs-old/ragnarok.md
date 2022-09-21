@@ -523,7 +523,7 @@ The impact will be huge in CodePrinter, there are numerous locations where some 
 I do believe that not placing the newline will not be the only thing that is required to make all these examples work.
 Having an entirely new implementation for all the impacted nodes is also not recommended.
 
-Some re-use might be possible on the record side by turning on [fsharp_multiline_block_brackets_on_same_column](https://github.com/fsprojects/fantomas/blob/master/docs/Documentation.md#fsharp_multiline_block_brackets_on_same_column).
+Some re-use might be possible on the record side by turning on [fsharp_multiline_block_brackets_on_same_column](https://github.com/fsprojects/fantomas/blob/main/docs-old/Documentation.md#fsharp_multiline_block_brackets_on_same_column).
 However, by doing this, a new precedent will be introduced. Two settings need to be combined in order for a valid code to be outputted.
 This is unseen for the tool.
 

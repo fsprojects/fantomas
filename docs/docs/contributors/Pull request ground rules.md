@@ -59,7 +59,7 @@ To keep your fork up to date, run this command:
 
 Updating your fork:
 
-> git checkout master && git fetch upstream && git rebase upstream/master && git push
+> git checkout main && git fetch upstream && git rebase upstream/main && git push
 
 ### Unit test
 
@@ -84,7 +84,7 @@ Verify if the change you are making should also apply to signature files (`*.fsi
 ### Documentation
 
 Write/update documentation when necessary.  
-You can find instructions on how to run the documentation locally in the [docs/.README.md](https://github.com/fsprojects/fantomas/blob/master/docs/.README.md) file.
+You can find instructions on how to run the documentation locally in the [docs/.README.md](https://github.com/fsprojects/fantomas/blob/main/docs/.README.md) file.
 
 ### Pull request title
 
@@ -157,11 +157,11 @@ However, in the past there have been changes to the style guide that Fantomas co
 
 ### Target the next minor or major branch
 
-When fixing a stylistic issue, please ask the maintainers what branch should be targeted. The rule of thumb is that the `master` branch is used for fixing `bug (soundness)` and will be used for revision releases.
+When fixing a stylistic issue, please ask the maintainers what branch should be targeted. The rule of thumb is that the `main` branch is used for fixing `bug (soundness)` and will be used for revision releases.
 Strive to ensure that end users can always update to the latest patch revision of their current minor or major without fear.
 
-A user should only need to deal with style changes when they have explicitly [chosen to upgrade](https://github.com/fsprojects/fantomas/blob/master/docs/Documentation.md#updating-to-a-new-fantomas-version) to a new minor or major version.
+A user should only need to deal with style changes when they have explicitly [chosen to upgrade](https://github.com/fsprojects/fantomas/blob/main/docs/Documentation.md#updating-to-a-new-fantomas-version) to a new minor or major version.
 In case no major or minor branch was created yet, please reach out to the maintainers.
-The maintainers will frequently rebase this branch on top of the master branch and release alpha/beta packages accordingly.
+The maintainers will frequently rebase this branch on top of the main branch and release alpha/beta packages accordingly.
 
 <fantomas-nav previous="./The%20Missing%20Comment.html"></fantomas-nav>
