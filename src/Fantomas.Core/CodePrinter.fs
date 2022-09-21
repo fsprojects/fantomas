@@ -78,7 +78,7 @@ and addFinalNewline ctx =
     | _ -> onlyIf ctx.Config.InsertFinalNewline sepNln ctx
 
 (*
-    See https://github.com/fsharp/FSharp.Compiler.Service/blob/master/src/fsharp/ast.fs#L1518
+    See https://github.com/dotnet/fsharp/blob/main/src/Compiler/SyntaxTree/SyntaxTree.fs
     hs = hashDirectives : ParsedHashDirective list
     mns = modules : SynModuleOrNamespace list
 *)

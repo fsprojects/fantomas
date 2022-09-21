@@ -4,9 +4,7 @@ open NUnit.Framework
 open FsUnit
 open Fantomas.Core.Tests.TestHelper
 
-/// See https://github.com/fsharp/fsharp/blob/master/src/fsharp/ast.fs#L633
-/// F# syntax: expr <- expr
-/// | Set of SynExpr * SynExpr * range:range
+/// See https://fsprojects.github.io/fantomas/reference/fsharp-compiler-syntax-synexpr.html#Set
 
 [<Test>]
 let ``array indexer set`` () =

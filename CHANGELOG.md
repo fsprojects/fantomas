@@ -1053,7 +1053,7 @@
 ### Changed
 * Use FCS 33.0.0. [pull/568](https://github.com/fsprojects/fantomas/pull/568)
 * Use dotnet tools [pull/558](https://github.com/fsprojects/fantomas/pull/558)
-* Add `--maxIfThenElseShortWidth` option, see [documentation](https://github.com/fsprojects/fantomas/blob/master/docs/Documentation.md)
+* Add `--maxIfThenElseShortWidth` option, see [documentation](https://github.com/fsprojects/fantomas/blob/main/docs/Documentation.md)
 
 ## [3.0.0] - 2019-10-11
 

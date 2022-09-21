@@ -110,7 +110,7 @@ If you are using `4.7.2`, then it should be safe for you upgrade to the latest `
 
 > Life happens, so this is a best effort guarantee
 
-In case you do see a change that cannot be linked to anything in the [CHANGELOG.md](https://github.com/fsprojects/fantomas/blob/master/CHANGELOG.md) file, you may have detected a regression.  
+In case you do see a change that cannot be linked to anything in the [CHANGELOG.md](https://github.com/fsprojects/fantomas/blob/main/CHANGELOG.md) file, you may have detected a regression.  
 Or, more likely, you have something slightly different in your code base that isn't covered yet by a unit test.
 
 No matter the case, when you have a `--check` command somewhere in your continuous integration environment, please consider running a build with the latest compatible version from time to time.  

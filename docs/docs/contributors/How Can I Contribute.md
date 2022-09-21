@@ -96,7 +96,7 @@ Found a typo? Still confused about something? Do you have some knowledge that sh
 Let us know! We really value any contribution to our documentation. The more knowledge is here, the brighter the future of the project.  
 Please do no hesitate here 😊.
 
-You can find some instructions on running the documentation locally in the [.README.md](https://github.com/fsprojects/fantomas/blob/master/docs/.README.md) file in the `docs` folder.  
+You can find some instructions on running the documentation locally in the [.README.md](https://github.com/fsprojects/fantomas/blob/main/docs/.README.md) file in the `docs` folder.  
 The only prerequisite to run the docs, is having a recent local dotnet sdk.
 
 ## New releases
