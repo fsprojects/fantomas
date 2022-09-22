@@ -7,6 +7,7 @@ open Fantomas.Core
 open Fantomas.Core.ISourceTextExtensions
 open Fantomas.Core.FormatConfig
 open Fantomas.Core.TriviaTypes
+open Fantomas.Core.SourceTransformer
 
 type WriterEvent =
     | Write of string
@@ -1176,9 +1177,32 @@ let addExtraNewlineIfLeadingWasMultiline leading sepNlnConsideringTriviaContentB
     leadingExpressionIsMultiline leading (fun ml ->
         sepNln +> onlyIf ml sepNlnConsideringTriviaContentBefore +> continuation)
 
+let addParenIfAutoNln synExpr f =
+    let expr = f synExpr
+    expressionFitsOnRestOfLine expr (ifElse (hasParenthesis synExpr) (sepOpenT +> expr +> sepCloseT) expr)
+
+let addParenForTupleWhen f synExpr ctx =
+    let condition e =
+        match e with
+        | SourceParser.ElIf _
+        | SynExpr.Lambda _ -> true
+        | _ -> false // "if .. then .. else" have precedence over ","
+
+    let expr = f synExpr
+    ifElse (condition synExpr) (sepOpenT +> expr +> sepCloseT) expr ctx
+
+let private hasTriviaBeforeExpression ctx e =
+    let astType, range = synExprToFsAstType e
+
+    Map.tryFindOrEmptyList astType ctx.TriviaBefore
+    |> List.exists (fun ti -> RangeHelpers.rangeEq range ti.Range)
+
 let autoIndentAndNlnExpressUnlessStroustrup (f: SynExpr -> Context -> Context) (e: SynExpr) (ctx: Context) =
     match e with
-    | SourceParser.StroustrupStyleExpr ctx.Config.ExperimentalStroustrupStyle e -> f e ctx
+    | SourceParser.StroustrupStyleExpr ctx.Config.ExperimentalStroustrupStyle e when
+        (not (hasTriviaBeforeExpression ctx e))
+        ->
+        f e ctx
     | _ -> indentSepNlnUnindent (f e) ctx
 
 let autoIndentAndNlnIfExpressionExceedsPageWidthUnlessStroustrup
@@ -1187,7 +1211,10 @@ let autoIndentAndNlnIfExpressionExceedsPageWidthUnlessStroustrup
     (ctx: Context)
     =
     match e with
-    | SourceParser.StroustrupStyleExpr ctx.Config.ExperimentalStroustrupStyle e -> f e ctx
+    | SourceParser.StroustrupStyleExpr ctx.Config.ExperimentalStroustrupStyle e when
+        (not (hasTriviaBeforeExpression ctx e))
+        ->
+        f e ctx
     | _ -> autoIndentAndNlnIfExpressionExceedsPageWidth (f e) ctx
 
 type internal ColMultilineItem =

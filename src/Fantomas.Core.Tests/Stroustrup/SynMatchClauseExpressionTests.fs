@@ -445,3 +445,42 @@ match x with
     yield! visitSynExpr inheritArgs
   ]
 """
+
+[<Test>]
+let ``async indentation when inside of a match, 2501`` () =
+    formatSourceString
+        false
+        """
+let x =
+    match packageRegistrationUrl with
+    | Some packageRegistrationUrl ->
+
+        async {
+
+            let response = ""
+
+            return ""
+                
+        }
+
+    | None -> failwith "Package registration url not found"
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let x =
+    match packageRegistrationUrl with
+    | Some packageRegistrationUrl ->
+
+        async {
+
+            let response = ""
+
+            return ""
+
+        }
+
+    | None -> failwith "Package registration url not found"
+"""
