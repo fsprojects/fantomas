@@ -2,7 +2,6 @@ module internal Fantomas.Core.SourceTransformer
 
 open FSharp.Compiler.Syntax
 open FSharp.Compiler.Text
-open Fantomas.Core.Context
 open Fantomas.Core.SourceParser
 open Fantomas.Core.TriviaTypes
 
@@ -124,20 +123,6 @@ let (|LongGetMember|_|) =
 
         Some(SynBinding(ao, kind, isInline, isMutable, ats, px, valData, pat, ri, e, bindingRange, dp, trivia))
     | _ -> None
-
-let addParenIfAutoNln synExpr f =
-    let expr = f synExpr
-    expressionFitsOnRestOfLine expr (ifElse (hasParenthesis synExpr) (sepOpenT +> expr +> sepCloseT) expr)
-
-let addParenForTupleWhen f synExpr ctx =
-    let condition e =
-        match e with
-        | ElIf _
-        | SynExpr.Lambda _ -> true
-        | _ -> false // "if .. then .. else" have precedence over ","
-
-    let expr = f synExpr
-    ifElse (condition synExpr) (sepOpenT +> expr +> sepCloseT) expr ctx
 
 let synModuleDeclToFsAstType =
     function

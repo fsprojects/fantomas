@@ -1,9 +1,11 @@
 # Changelog
 
-## Unreleased
+## [5.0.2] - 2022-09-22
 
 ### Fixed
 * Wrong generic constraint placement in ML-style generic definitions with multiple type parameters. [#1868](https://github.com/fsprojects/fantomas/issues/1868)
+* Incorrect async indentation when inside of a match. [#2501](https://github.com/fsprojects/fantomas/issues/2501)
+* Overly aggressive de-indentation. [#2110](https://github.com/fsprojects/fantomas/issues/2110)
 
 ### Documented
 * Building Fantomas in Visual Studio for dev errors. [#2447](https://github.com/fsprojects/fantomas/issues/2447)

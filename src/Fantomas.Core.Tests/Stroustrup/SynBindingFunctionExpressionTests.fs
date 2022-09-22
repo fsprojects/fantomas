@@ -319,3 +319,64 @@ type Foo() =
         itemFive
     |]
 """
+
+[<Test>]
+let ``doesn't trigger stroustrup styling when an expression has trivia before it`` () =
+    formatSourceString
+        false
+        """
+let inline skipNoFail count (source: seq<_>) =
+//if FABLE_COMPILER
+    seq {
+      yield "Hello"
+    }
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let inline skipNoFail count (source: seq<_>) =
+    //if FABLE_COMPILER
+    seq { yield "Hello" }
+"""
+
+[<Test>]
+let ``conditional directives before expression, 2517`` () =
+    formatSourceString
+        false
+        """
+    let inline skipNoFail count (source: seq<_>) =
+#if FABLE_COMPILER
+        seq {
+          let mutable i = 0
+          let e = source.GetEnumerator ()
+          while e.MoveNext () do
+            if i < count
+            then
+              i <- i + 1
+            else
+              yield e.Current
+        }
+#else
+        Enumerable.Skip(source, count)
+#endif
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let inline skipNoFail count (source: seq<_>) =
+#if FABLE_COMPILER
+    seq {
+        let mutable i = 0
+        let e = source.GetEnumerator()
+
+        while e.MoveNext() do
+            if i < count then i <- i + 1 else yield e.Current
+    }
+#else
+    Enumerable.Skip(source, count)
+#endif
+"""

@@ -25,8 +25,8 @@
     <Compile Include="Defines.fs" />
     <Compile Include="Trivia.fsi" />
     <Compile Include="Trivia.fs" />
-    <Compile Include="Context.fs" />
     <Compile Include="SourceTransformer.fs" />
+    <Compile Include="Context.fs" />
     <Compile Include="CodePrinter.fsi" />
     <Compile Include="CodePrinter.fs" />
     <Compile Include="CodeFormatterImpl.fsi" />
