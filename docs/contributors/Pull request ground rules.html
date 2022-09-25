@@ -225,7 +225,7 @@ To keep your fork up to date, run this command:</p>
 </blockquote>
 <p>Updating your fork:</p>
 <blockquote>
-<p>git checkout master &amp;&amp; git fetch upstream &amp;&amp; git rebase upstream/master &amp;&amp; git push</p>
+<p>git checkout main &amp;&amp; git fetch upstream &amp;&amp; git rebase upstream/main &amp;&amp; git push</p>
 </blockquote>
 <h3><a name="Unit-test" class="anchor" href="#Unit-test">Unit test</a></h3>
 <ul>
@@ -245,7 +245,7 @@ To keep your fork up to date, run this command:</p>
 </ul>
 <h3><a name="Documentation" class="anchor" href="#Documentation">Documentation</a></h3>
 <p>Write/update documentation when necessary.<br />
-You can find instructions on how to run the documentation locally in the <a href="https://github.com/fsprojects/fantomas/blob/master/docs/.README.md">docs/.README.md</a> file.</p>
+You can find instructions on how to run the documentation locally in the <a href="https://github.com/fsprojects/fantomas/blob/main/docs/.README.md">docs/.README.md</a> file.</p>
 <h3><a name="Pull-request-title" class="anchor" href="#Pull-request-title">Pull request title</a></h3>
 <ul>
 <li>
@@ -327,11 +327,11 @@ Copy the code snippet from the guide and add a link to the section of the guide 
 The maintainers will then add the <code>bug (stylistic)</code> to confirm the bug is fixable in Fantomas. In most cases, it may seem obvious that the case can be fixed.
 However, in the past there have been changes to the style guide that Fantomas could not implement for technical reasons: Fantomas can only implement rules based on information entirely contained within the untyped syntax tree.</p>
 <h3><a name="Target-the-next-minor-or-major-branch" class="anchor" href="#Target-the-next-minor-or-major-branch">Target the next minor or major branch</a></h3>
-<p>When fixing a stylistic issue, please ask the maintainers what branch should be targeted. The rule of thumb is that the <code>master</code> branch is used for fixing <code>bug (soundness)</code> and will be used for revision releases.
+<p>When fixing a stylistic issue, please ask the maintainers what branch should be targeted. The rule of thumb is that the <code>main</code> branch is used for fixing <code>bug (soundness)</code> and will be used for revision releases.
 Strive to ensure that end users can always update to the latest patch revision of their current minor or major without fear.</p>
-<p>A user should only need to deal with style changes when they have explicitly <a href="https://github.com/fsprojects/fantomas/blob/master/docs/Documentation.md#updating-to-a-new-fantomas-version">chosen to upgrade</a> to a new minor or major version.
+<p>A user should only need to deal with style changes when they have explicitly <a href="https://github.com/fsprojects/fantomas/blob/main/docs/Documentation.md#updating-to-a-new-fantomas-version">chosen to upgrade</a> to a new minor or major version.
 In case no major or minor branch was created yet, please reach out to the maintainers.
-The maintainers will frequently rebase this branch on top of the master branch and release alpha/beta packages accordingly.</p>
+The maintainers will frequently rebase this branch on top of the main branch and release alpha/beta packages accordingly.</p>
 <fantomas-nav previous="./The%20Missing%20Comment.html"></fantomas-nav>
 
         

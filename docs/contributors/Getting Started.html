@@ -198,14 +198,14 @@
 <p>This will make management of multiple forks and your own work easier over time.</p>
 <h2><a name="Updating-your-fork" class="anchor" href="#Updating-your-fork">Updating your fork</a></h2>
 <p>We recommend the following commands to update your fork:</p>
-<table class="pre"><tr><td class="snippet"><pre class="fssnip"><code lang="shell">git checkout master
+<table class="pre"><tr><td class="snippet"><pre class="fssnip"><code lang="shell">git checkout main
 git clean -xdf
 git fetch upstream
-git rebase upstream/master
+git rebase upstream/main
 git push
 </code></pre></td></tr></table>
 <p>Or more succinctly:</p>
-<table class="pre"><tr><td class="snippet"><pre class="fssnip"><code lang="shell">git checkout master &amp;&amp; git clean -xdf &amp;&amp; git fetch upstream &amp;&amp; git rebase upstream/master &amp;&amp; git push
+<table class="pre"><tr><td class="snippet"><pre class="fssnip"><code lang="shell">git checkout main &amp;&amp; git clean -xdf &amp;&amp; git fetch upstream &amp;&amp; git rebase upstream/main &amp;&amp; git push
 </code></pre></td></tr></table>
 <p>This will update your fork with the latest from <code>fsprojects/fantomas</code> on your machine and push those updates to your remote fork.</p>
 <h2><a name="Initial-build" class="anchor" href="#Initial-build">Initial build</a></h2>

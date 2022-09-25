@@ -223,7 +223,7 @@ In this function, all events are captured and stored in the <code>WriterEvents</
 <p>There are various helper functions in <code>CodePrinter</code> that create <code>WriterEvent</code>s.<br />
 In <code>CodePrinter</code> we will typically never construct a <code>WriterEvent</code> directly.</p>
 <p>Instead we can use various helper functions that take the <code>Context</code> as parameter and return an updated <code>Context</code> with additional events.<br />
-Please take a moment to debug the unit tests in <a href="https://github.com/fsprojects/fantomas/blob/master/src/Fantomas.Core.Tests/CodePrinterHelperFunctionsTests.fs">CodePrinterHelperFunctionsTests.fs</a>.<br />
+Please take a moment to debug the unit tests in <a href="https://github.com/fsprojects/fantomas/blob/main/src/Fantomas.Core.Tests/CodePrinterHelperFunctionsTests.fs">CodePrinterHelperFunctionsTests.fs</a>.<br />
 This will give you a better understanding of how we capture events in <code>CodePrinter</code>.</p>
 <h3><a name="Debugging-CodePrinter" class="anchor" href="#Debugging-CodePrinter">Debugging CodePrinter</a></h3>
 <p>One thing that is a bit harder to grasp initially, is what is happening when you put a breakpoint in <code>CodePrinter.fs</code>.<br />
