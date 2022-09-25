@@ -723,7 +723,7 @@ type PostalAddress =
 #### <fantomas-setting-icon type="green"></fantomas-setting-icon>fsharp_blank_lines_around_nested_multiline_expressions
 Surround **nested** multi-line expressions with blank lines.  
 Existing blank lines are always preserved (via trivia), with exception when [fsharp_keep_max_number_of_blank_lines](#fsharp_keep_max_number_of_blank_lines) is used.  
-Top level expressions will always follow the [2020 blank lines revision](https://github.com/fsprojects/fantomas/blob/master/docs/FormattingConventions.md#2020-revision) principle.
+Top level expressions will always follow the [2020 blank lines revision](https://github.com/fsprojects/fantomas/blob/main/docs-old/FormattingConventions.md#2020-revision) principle.
 
 Default = true.
 *)
