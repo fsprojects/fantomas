@@ -1,4 +1,4 @@
-name: Build master
+name: Build main
 
 on: [push, pull_request]
 
@@ -31,10 +31,10 @@ jobs:
         CI: true
         TABLE_STORAGE_CONNECTION_STRING: ${{ secrets.TABLE_STORAGE_CONNECTION_STRING }}
     - name: "trigger fantomas-tools action"
-      if: matrix.os == 'ubuntu-latest' && github.ref == 'refs/heads/master'
-      run: "curl -H 'Accept: application/vnd.github.everest-preview+json' -H 'Authorization: token ${{secrets.FANTOMAS_TOOLS_TOKEN}}' --request POST --data '{\"event_type\": \"fantomas-commit-on-master\"}' https://api.github.com/repos/fsprojects/fantomas-tools/dispatches"
+      if: matrix.os == 'ubuntu-latest' && github.ref == 'refs/heads/main'
+      run: "curl -H 'Accept: application/vnd.github.everest-preview+json' -H 'Authorization: token ${{secrets.FANTOMAS_TOOLS_TOKEN}}' --request POST --data '{\"event_type\": \"fantomas-commit-on-main\"}' https://api.github.com/repos/fsprojects/fantomas-tools/dispatches"
     - name: "Documentation"
-      if: matrix.os == 'ubuntu-latest' && github.ref == 'refs/heads/master'
+      if: matrix.os == 'ubuntu-latest' && github.ref == 'refs/heads/main'
       uses: peaceiris/actions-gh-pages@v3
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
