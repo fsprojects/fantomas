@@ -29,6 +29,7 @@ let rec findNodeWhereRangeFitsIn (root: TriviaNode) (range: range) : TriviaNode 
         let betterChildNode =
             root.Children
             |> Array.choose (fun childNode -> findNodeWhereRangeFitsIn childNode range)
+            |> Array.sortBy (fun childNode -> childNode.Range.EndLine - childNode.Range.StartLine)
             |> Array.tryHead
 
         match betterChildNode with
@@ -267,11 +268,16 @@ let lineCommentAfterSourceCodeToTriviaInstruction
     : TriviaInstruction option =
     let lineNumber = trivia.Range.StartLine
 
+    let rec allChildren (c: TriviaNode) =
+        c
+        :: (List.collect allChildren (c.Children |> Seq.cast<TriviaNode> |> Seq.toList))
+
     let result =
-        containerNode.Children
-        |> Array.filter (fun node -> node.Range.EndLine = lineNumber)
-        |> Array.sortByDescending (fun node -> node.Range.StartColumn)
-        |> Array.tryHead
+        containerNode
+        |> allChildren
+        |> List.filter (fun node -> node.Range.EndLine = lineNumber)
+        |> List.sortByDescending (fun node -> node.Range.EndColumn)
+        |> List.tryHead
 
     result
     |> Option.map (fun node ->

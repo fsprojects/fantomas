@@ -1,5 +1,9 @@
 # Changelog
 
+## [Unreleased]
+
+### Fixed: *  Comments lost from multi-line expressions [#2525](https://github.com/fsprojects/fantomas/issues/2525)
+
 ## [5.0.2] - 2022-09-22
 
 ### Fixed
