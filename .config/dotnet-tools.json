@@ -8,12 +8,6 @@
         "paket"
       ]
     },
-    "fake-cli": {
-      "version": "5.22.0",
-      "commands": [
-        "fake"
-      ]
-    },
     "dotnet-fsharplint": {
       "version": "0.19.2",
       "commands": [
