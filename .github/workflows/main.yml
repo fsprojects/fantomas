@@ -26,7 +26,7 @@ jobs:
     - name: Paket restore
       run: dotnet paket restore
     - name: Build
-      run: dotnet fake run build.fsx
+      run: dotnet fsi build.fsx
       env:
         CI: true
         TABLE_STORAGE_CONNECTION_STRING: ${{ secrets.TABLE_STORAGE_CONNECTION_STRING }}
