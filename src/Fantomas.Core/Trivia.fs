@@ -269,8 +269,7 @@ let lineCommentAfterSourceCodeToTriviaInstruction
     let lineNumber = trivia.Range.StartLine
 
     let rec allChildren (c: TriviaNode) =
-        c
-        :: (List.collect allChildren (c.Children |> Seq.cast<TriviaNode> |> Seq.toList))
+        c :: (List.collect allChildren (c.Children |> Seq.toList))
 
     let result =
         containerNode
