@@ -104,7 +104,6 @@ let runCmd file (arguments: string) =
 
 pipeline "FormatChanged" {
     workingDir __SOURCE_DIRECTORY__
-
     stage "Format" {
         run (fun _ ->
             async {
