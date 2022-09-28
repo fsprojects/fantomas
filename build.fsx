@@ -43,6 +43,7 @@ let pushPackage nupkg =
 
 pipeline "Build" {
     workingDir __SOURCE_DIRECTORY__
+    stage "RestoreTools" { run "dotnet tool restore" }
     stage "Clean" {
         run (
             cleanFolders
@@ -145,4 +146,15 @@ pipeline "PushClient" {
                     )
             })
     }
+}
+
+pipeline "Docs" {
+    workingDir __SOURCE_DIRECTORY__
+    stage "Watch" {
+        paralle
+        run "dotnet tool restore"
+        run "dotnet fsi ./docs/.style/style.fsx --watch"
+        run "dotnet fsdocs watch --eval"
+    }
+    runIfOnlySpecified true
 }
