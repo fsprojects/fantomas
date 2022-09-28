@@ -157,3 +157,15 @@ pipeline "Docs" {
     }
     runIfOnlySpecified true
 }
+
+pipeline "FormatAll" {
+    workingDir __SOURCE_DIRECTORY__
+    stage "Fantomas" { run "dotnet fantomas src docs build.fsx --recurse" }
+    runIfOnlySpecified true
+}
+
+pipeline "EnsureRepoConfig" {
+    workingDir __SOURCE_DIRECTORY__
+    stage "Git" { run "git config core.hooksPath .githooks" }
+    runIfOnlySpecified true
+}

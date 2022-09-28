@@ -51,27 +51,19 @@ After cloning the repository, you can restore the local .NET tools:
 dotnet tool restore
 ```
 
-Next, you should run the default FAKE target.
+Next, you should run the default build script.
 This will build the solution, run all unit tests and do everything that the CI build does.
 
 ```shell
-dotnet fake build
+dotnet fsi build.fsx
 ```
 
-If you are unfamiliar with [FAKE](https://fake.build/), you can read the [FAKE getting started guide](https://fake.build/fake-gettingstarted.html).  
-To see what other targets are available, run:
+Alternately, you can also run some other pipelines using `-p`.
+Examples:
 
-```shell
-dotnet fake run build.fsx --list
-```
-
-Next, you should run a FAKE target that sets up some git repo-level configuration.
-
-```shell
-dotnet fake build -t EnsureRepoConfig
-```
-
-This target makes changes to the local git repository configuration to ensure
+- `dotnet fsi build.fsx -p FormatChanged` will format all modified files detected by `git`.
+- `dotnet fsi build.fsx -p Docs` will serve the documentation website locally.
+-  `dotnet fsi build.fsx -p EnsureRepoConfig` sets up some git repo-level configuration to ensure
 that formatting of new code is consistent before it is pushed up to a remote repository.
 
 <fantomas-nav previous="./FSharp.html" next="./Solution%20Structure.html">
