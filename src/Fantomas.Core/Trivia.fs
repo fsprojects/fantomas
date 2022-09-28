@@ -20,7 +20,15 @@ let printTriviaNode (node: TriviaNode) : unit =
     visit 0 node
 
 let rec findNodeWhereRangeFitsIn (root: TriviaNode) (range: range) : TriviaNode option =
-    let doesSelectionFitInNode = RangeHelpers.rangeContainsRange root.Range range
+    let rootRange =
+        match root.Type with
+        // hack to work around dotnet/fsharp#13998
+        | SynAttribute_ ->
+            root.Children
+            |> Array.fold (fun range child -> FSharp.Compiler.Text.Range.unionRanges range child.Range) root.Range
+        | _ -> root.Range
+
+    let doesSelectionFitInNode = RangeHelpers.rangeContainsRange rootRange range
 
     if not doesSelectionFitInNode then
         None
