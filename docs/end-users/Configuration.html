@@ -206,7 +206,7 @@ UI might be available depending on the IDE.</p>
 <h2><a name="Trying-your-settings-via-the-online-tool" class="anchor" href="#Trying-your-settings-via-the-online-tool">Trying your settings via the online tool</a></h2>
 <p>You can quickly try your settings via the <a href="https://fsprojects.github.io/fantomas-tools/#/fantomas/preview" target="_blank">online tool</a>.</p>
 <img src="https://fsprojects.github.io/fantomas//online_tool_usage.gif" alt="drawing" width="100%"/>
-<pre class="fssnip highlighted"><code lang="fsharp"><span class="pp">#r</span> <span class="s">&quot;nuget: Fantomas.Core, 5.0.0-beta-*&quot;</span>
+<pre class="fssnip highlighted"><code lang="fsharp"><span class="pp">#r</span> <span class="s">&quot;nuget: Fantomas.Core, 5.*&quot;</span>
 
 <span class="k">open</span> <span onmouseout="hideTip(event, 'fs1', 1)" onmouseover="showTip(event, 'fs1', 1)" class="id">Fantomas</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs2', 2)" onmouseover="showTip(event, 'fs2', 2)" class="id">Core</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs3', 3)" onmouseover="showTip(event, 'fs3', 3)" class="m">FormatConfig</span>
 <span class="k">open</span> <span onmouseout="hideTip(event, 'fs1', 4)" onmouseover="showTip(event, 'fs1', 4)" class="id">Fantomas</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs2', 5)" onmouseover="showTip(event, 'fs2', 5)" class="id">Core</span>
@@ -223,7 +223,7 @@ However, there are settings that we do not recommend and generally should not be
 <p><fantomas-setting-icon type="red"></fantomas-setting-icon><strong>Do not use:</strong> Settings that don't follow any guidelines.</p>
 <p><fantomas-setting-icon-gresearch></fantomas-setting-icon-gresearch><strong>G-Research:</strong> G-Research styling guide. If you use one of these, for consistency reasons you should use all of them.</p></p>
 <h2><a name="Auxiliary-settings" class="anchor" href="#Auxiliary-settings">Auxiliary settings</a></h2>
-<h4><a name="fantomas-setting-icon-type-orange-fantomas-setting-icon-indent_size" class="anchor" href="#fantomas-setting-icon-type-orange-fantomas-setting-icon-indent_size"><fantomas-setting-icon type="orange"></fantomas-setting-icon>indent_size</a></h4>
+<fantomas-setting name="indent_size" orange></fantomas-setting>
 <p><code>indent_size</code> has to be between 1 and 10.</p>
 <p>This preference sets the indentation
 The common values are 2 and 4.<br />
@@ -255,7 +255,7 @@ The same indentation is ensured to be consistent in a source file.</p>
 
   find &lt;| f.Length - 1
 "</code></pre></td></tr></table>
-<h4><a name="fantomas-setting-icon-type-green-fantomas-setting-icon-max_line_length" class="anchor" href="#fantomas-setting-icon-type-green-fantomas-setting-icon-max_line_length"><fantomas-setting-icon type="green"></fantomas-setting-icon>max_line_length</a></h4>
+<fantomas-setting name="max_line_length" green></fantomas-setting>
 <p><code>max_line_length</code> has to be an integer greater or equal to 60.<br />
 This preference sets the column where we break F# constructs into new lines.</p>
 <p>Default = 120.</p>
@@ -272,11 +272,11 @@ This preference sets the column where we break F# constructs into new lines.</p>
     someLongFunctionNameThatWillTakeFooAndReturnsUnit foo
 | None -&gt; printfn "nothing"
 "</code></pre></td></tr></table>
-<h4><a name="fantomas-setting-icon-type-green-fantomas-setting-icon-end_of_line" class="anchor" href="#fantomas-setting-icon-type-green-fantomas-setting-icon-end_of_line"><fantomas-setting-icon type="green"></fantomas-setting-icon>end_of_line</a></h4>
+<fantomas-setting name="end_of_line" green></fantomas-setting>
 <p><code>end_of_line</code> determines the newline character, <code>lf</code> will add <code>\n</code> where <code>crlf</code> will add <code>\r\n</code>.<br />
 <code>cr</code> is not supported by the F# language spec.<br />
 If not set by the user, the default value is determined by <code>System.Environment.NewLine</code>.</p>
-<h4><a name="fantomas-setting-icon-type-orange-fantomas-setting-icon-insert_final_newline" class="anchor" href="#fantomas-setting-icon-type-orange-fantomas-setting-icon-insert_final_newline"><fantomas-setting-icon type="orange"></fantomas-setting-icon>insert_final_newline</a></h4>
+<fantomas-setting name="insert_final_newline" orange></fantomas-setting>
 <p>Adds a final newline character at the end of the file.<br />
 <a href="https://stackoverflow.com/questions/729692/why-should-text-files-end-with-a-newline" target="_blank">Why should text files end with a newline?</a></p>
 <p>Default = true</p>
@@ -287,7 +287,7 @@ If not set by the user, the default value is determined by <code>System.Environm
     <span class="pn">{</span> <span onmouseout="hideTip(event, 'fs11', 22)" onmouseover="showTip(event, 'fs11', 22)" class="m">FormatConfig</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs12', 23)" onmouseover="showTip(event, 'fs12', 23)" class="id">Default</span> <span class="k">with</span> <span class="prop">InsertFinalNewline</span> <span class="o">=</span> <span class="k">false</span> <span class="pn">}</span>
 </code></pre>
 <table class="pre"><tr><td><pre><code>"let a = 42"</code></pre></td></tr></table>
-<h4><a name="fantomas-setting-icon-type-orange-fantomas-setting-icon-fsharp_space_before_parameter" class="anchor" href="#fantomas-setting-icon-type-orange-fantomas-setting-icon-fsharp_space_before_parameter"><fantomas-setting-icon type="orange"></fantomas-setting-icon>fsharp_space_before_parameter</a></h4>
+<fantomas-setting name="fsharp_space_before_parameter" orange></fantomas-setting>
 <p>Add a space after the name of a function and before the opening parenthesis of the first parameter.<br />
 This setting influences function definitions.</p>
 <p>Default = true.</p>
@@ -301,7 +301,7 @@ This setting influences function definitions.</p>
 <table class="pre"><tr><td><pre><code>"let value(a: int) = x
 let DumpTrace() = ()
 "</code></pre></td></tr></table>
-<h4><a name="fantomas-setting-icon-type-orange-fantomas-setting-icon-fsharp_space_before_lowercase_invocation" class="anchor" href="#fantomas-setting-icon-type-orange-fantomas-setting-icon-fsharp_space_before_lowercase_invocation"><fantomas-setting-icon type="orange"></fantomas-setting-icon>fsharp_space_before_lowercase_invocation</a></h4>
+<fantomas-setting name="fsharp_space_before_lowercase_invocation" orange></fantomas-setting>
 <p>Add a space after the name of a lowercased function and before the opening parenthesis of the first argument.<br />
 This setting influences function invocation.</p>
 <p>Default = true.</p>
@@ -315,7 +315,7 @@ This setting influences function invocation.</p>
 <table class="pre"><tr><td><pre><code>"value(a, b)
 startTimer()
 "</code></pre></td></tr></table>
-<h4><a name="fantomas-setting-icon-type-green-fantomas-setting-icon-fantomas-setting-icon-gresearch-fantomas-setting-icon-gresearch-fsharp_space_before_uppercase_invocation" class="anchor" href="#fantomas-setting-icon-type-green-fantomas-setting-icon-fantomas-setting-icon-gresearch-fantomas-setting-icon-gresearch-fsharp_space_before_uppercase_invocation"><fantomas-setting-icon type="green"></fantomas-setting-icon><fantomas-setting-icon-gresearch></fantomas-setting-icon-gresearch>fsharp_space_before_uppercase_invocation</a></h4>
+<fantomas-setting name="fsharp_space_before_uppercase_invocation" green gr></fantomas-setting>
 <p>Add a space after the name of a uppercase function and before the opening parenthesis of the first argument.<br />
 This setting influences function invocation.</p>
 <p>Default = false.</p>
@@ -329,7 +329,7 @@ This setting influences function invocation.</p>
 <table class="pre"><tr><td><pre><code>"Value (a, b)
 person.ToString ()
 "</code></pre></td></tr></table>
-<h4><a name="fantomas-setting-icon-type-orange-fantomas-setting-icon-fsharp_space_before_class_constructor" class="anchor" href="#fantomas-setting-icon-type-orange-fantomas-setting-icon-fsharp_space_before_class_constructor"><fantomas-setting-icon type="orange"></fantomas-setting-icon>fsharp_space_before_class_constructor</a></h4>
+<fantomas-setting name="fsharp_space_before_class_constructor" orange></fantomas-setting>
 <p>Add a space after a type name and before the class constructor.</p>
 <p>Default = false.</p>
 <pre class="fssnip highlighted"><code lang="fsharp"><span onmouseout="hideTip(event, 'fs4', 33)" onmouseover="showTip(event, 'fs4', 33)" class="fn">formatCode</span>
@@ -344,7 +344,7 @@ person.ToString ()
     class
     end
 "</code></pre></td></tr></table>
-<h4><a name="fantomas-setting-icon-type-green-fantomas-setting-icon-fantomas-setting-icon-gresearch-fantomas-setting-icon-gresearch-fsharp_space_before_member" class="anchor" href="#fantomas-setting-icon-type-green-fantomas-setting-icon-fantomas-setting-icon-gresearch-fantomas-setting-icon-gresearch-fsharp_space_before_member"><fantomas-setting-icon type="green"></fantomas-setting-icon><fantomas-setting-icon-gresearch></fantomas-setting-icon-gresearch>fsharp_space_before_member</a></h4>
+<fantomas-setting name="fsharp_space_before_member" green gr></fantomas-setting>
 <p>Add a space after a member name and before the opening parenthesis of the first parameter.</p>
 <p>Default = false.</p>
 <pre class="fssnip highlighted"><code lang="fsharp"><span onmouseout="hideTip(event, 'fs4', 36)" onmouseover="showTip(event, 'fs4', 36)" class="fn">formatCode</span>
@@ -363,7 +363,7 @@ person.ToString ()
     member __.singAlong () = ()
     member __.swim (duration: TimeSpan) = ()
 "</code></pre></td></tr></table>
-<h4><a name="fantomas-setting-icon-type-green-fantomas-setting-icon-fantomas-setting-icon-gresearch-fantomas-setting-icon-gresearch-fsharp_space_before_colon" class="anchor" href="#fantomas-setting-icon-type-green-fantomas-setting-icon-fantomas-setting-icon-gresearch-fantomas-setting-icon-gresearch-fsharp_space_before_colon"><fantomas-setting-icon type="green"></fantomas-setting-icon><fantomas-setting-icon-gresearch></fantomas-setting-icon-gresearch>fsharp_space_before_colon</a></h4>
+<fantomas-setting name="fsharp_space_before_colon" green></fantomas-setting>
 <p>Add a space before <code>:</code>. Please note that not every <code>:</code> is controlled by this setting.</p>
 <p>Default = false.</p>
 <pre class="fssnip highlighted"><code lang="fsharp"><span onmouseout="hideTip(event, 'fs4', 39)" onmouseover="showTip(event, 'fs4', 39)" class="fn">formatCode</span>
@@ -378,7 +378,7 @@ person.ToString ()
 let myValue : int = 42
 let update (msg : Msg) (model : Model) : Model = model
 "</code></pre></td></tr></table>
-<h4><a name="fantomas-setting-icon-type-orange-fantomas-setting-icon-fsharp_space_after_comma" class="anchor" href="#fantomas-setting-icon-type-orange-fantomas-setting-icon-fsharp_space_after_comma"><fantomas-setting-icon type="orange"></fantomas-setting-icon>fsharp_space_after_comma</a></h4>
+<fantomas-setting name="fsharp_space_after_comma" orange></fantomas-setting>
 <p>Adds a space after <code>,</code> in tuples.</p>
 <p>Default = true.</p>
 <pre class="fssnip highlighted"><code lang="fsharp"><span onmouseout="hideTip(event, 'fs4', 42)" onmouseover="showTip(event, 'fs4', 42)" class="fn">formatCode</span>
@@ -391,7 +391,7 @@ let update (msg : Msg) (model : Model) : Model = model
 <table class="pre"><tr><td><pre><code>"myValue.SomeFunction(foo,bar,somethingElse)
 (a,b,c)
 "</code></pre></td></tr></table>
-<h4><a name="fantomas-setting-icon-type-green-fantomas-setting-icon-fantomas-setting-icon-gresearch-fantomas-setting-icon-gresearch-fsharp_space_before_semicolon" class="anchor" href="#fantomas-setting-icon-type-green-fantomas-setting-icon-fantomas-setting-icon-gresearch-fantomas-setting-icon-gresearch-fsharp_space_before_semicolon"><fantomas-setting-icon type="green"></fantomas-setting-icon><fantomas-setting-icon-gresearch></fantomas-setting-icon-gresearch>fsharp_space_before_semicolon</a></h4>
+<fantomas-setting name="fsharp_space_before_semicolon" green gr></fantomas-setting>
 <p>Adds a space before <code>;</code> in records, arrays, lists, etc.</p>
 <p>Default = false.</p>
 <pre class="fssnip highlighted"><code lang="fsharp"><span onmouseout="hideTip(event, 'fs4', 45)" onmouseover="showTip(event, 'fs4', 45)" class="fn">formatCode</span>
@@ -406,7 +406,7 @@ let update (msg : Msg) (model : Model) : Model = model
 let b = [| foo ; bar |]
 type C = { X: int ; Y: int }
 "</code></pre></td></tr></table>
-<h4><a name="fantomas-setting-icon-type-orange-fantomas-setting-icon-fsharp_space_after_semicolon" class="anchor" href="#fantomas-setting-icon-type-orange-fantomas-setting-icon-fsharp_space_after_semicolon"><fantomas-setting-icon type="orange"></fantomas-setting-icon>fsharp_space_after_semicolon</a></h4>
+<fantomas-setting name="fsharp_space_after_semicolon" orange></fantomas-setting>
 <p>Adds a space after <code>;</code> in records, arrays, lists, etc.</p>
 <p>Default = true.</p>
 <pre class="fssnip highlighted"><code lang="fsharp"><span onmouseout="hideTip(event, 'fs4', 48)" onmouseover="showTip(event, 'fs4', 48)" class="fn">formatCode</span>
@@ -421,7 +421,7 @@ type C = { X: int ; Y: int }
 let b = [| foo;bar |]
 type C = { X: int;Y: int }
 "</code></pre></td></tr></table>
-<h4><a name="fantomas-setting-icon-type-orange-fantomas-setting-icon-fsharp_space_around_delimiter" class="anchor" href="#fantomas-setting-icon-type-orange-fantomas-setting-icon-fsharp_space_around_delimiter"><fantomas-setting-icon type="orange"></fantomas-setting-icon>fsharp_space_around_delimiter</a></h4>
+<fantomas-setting name="fsharp_space_around_delimiter" orange></fantomas-setting>
 <p>Adds a space around delimiters like <code>[</code>,<code>[|</code>,{`.</p>
 <p>Default = true.</p>
 <pre class="fssnip highlighted"><code lang="fsharp"><span onmouseout="hideTip(event, 'fs4', 51)" onmouseover="showTip(event, 'fs4', 51)" class="fn">formatCode</span>
@@ -436,7 +436,7 @@ let b = [|4; 5; 6|]
 "</code></pre></td></tr></table>
 <h2><a name="Maximum-width-constraints" class="anchor" href="#Maximum-width-constraints">Maximum width constraints</a></h2>
 <p>Settings that control the max width of certain expressions.</p>
-<h4><a name="fantomas-setting-icon-type-orange-fantomas-setting-icon-fsharp_max_if_then_short_width" class="anchor" href="#fantomas-setting-icon-type-orange-fantomas-setting-icon-fsharp_max_if_then_short_width"><fantomas-setting-icon type="orange"></fantomas-setting-icon>fsharp_max_if_then_short_width</a></h4>
+<fantomas-setting name="fsharp_max_if_then_short_width" orange></fantomas-setting>
 <p>Control the maximum length for which if/then expression without an else expression can be on one line.<br />
 The <a href="https://docs.microsoft.com/en-us/dotnet/fsharp/style-guide/formatting#formatting-if-expressions">Microsoft F# style guide</a> recommends to never write such an expression in one line.</p>
 <blockquote>
@@ -452,7 +452,7 @@ The <a href="https://docs.microsoft.com/en-us/dotnet/fsharp/style-guide/formatti
 </code></pre>
 <table class="pre"><tr><td><pre><code>"if a then ()
 "</code></pre></td></tr></table>
-<h4><a name="fantomas-setting-icon-type-green-fantomas-setting-icon-fsharp_max_if_then_else_short_width" class="anchor" href="#fantomas-setting-icon-type-green-fantomas-setting-icon-fsharp_max_if_then_else_short_width"><fantomas-setting-icon type="green"></fantomas-setting-icon>fsharp_max_if_then_else_short_width</a></h4>
+<fantomas-setting name="fsharp_max_if_then_else_short_width" green></fantomas-setting>
 <p>Fantomas by default follows the if/then/else conventions listed in the <a href="https://docs.microsoft.com/en-us/dotnet/fsharp/style-guide/formatting#formatting-if-expressions">Microsoft F# style guide</a>.<br />
 This setting facilitates this by determining the maximum character width where the if/then/else expression stays in one line.</p>
 <p>Default = 40.</p>
@@ -467,7 +467,7 @@ This setting facilitates this by determining the maximum character width where t
 else
     bogus
 "</code></pre></td></tr></table>
-<h4><a name="fantomas-setting-icon-type-green-fantomas-setting-icon-fsharp_max_infix_operator_expression" class="anchor" href="#fantomas-setting-icon-type-green-fantomas-setting-icon-fsharp_max_infix_operator_expression"><fantomas-setting-icon type="green"></fantomas-setting-icon>fsharp_max_infix_operator_expression</a></h4>
+<fantomas-setting name="fsharp_max_infix_operator_expression" green></fantomas-setting>
 <p>Control the maximum length for which infix expression can be on one line.</p>
 <p>Default = 50.</p>
 <pre class="fssnip highlighted"><code lang="fsharp"><span onmouseout="hideTip(event, 'fs4', 60)" onmouseover="showTip(event, 'fs4', 60)" class="fn">formatCode</span>
@@ -482,7 +482,7 @@ else
     &gt;=&gt; authorized
     &gt;=&gt; text "pong"
 "</code></pre></td></tr></table>
-<h4><a name="fantomas-setting-icon-type-green-fantomas-setting-icon-fsharp_max_record_width" class="anchor" href="#fantomas-setting-icon-type-green-fantomas-setting-icon-fsharp_max_record_width"><fantomas-setting-icon type="green"></fantomas-setting-icon>fsharp_max_record_width</a></h4>
+<fantomas-setting name="fsharp_max_record_width" green></fantomas-setting>
 <p>Control the maximum width for which records should be in one line.</p>
 <p>Default = 40.</p>
 <p>Requires <code>fsharp_record_multiline_formatter</code> to be <code>character_width</code> to take effect.</p>
@@ -503,7 +503,7 @@ let myInstance =
       Y = 20
       Length = 90 }
 "</code></pre></td></tr></table>
-<h4><a name="fantomas-setting-icon-type-green-fantomas-setting-icon-fsharp_max_record_number_of_items" class="anchor" href="#fantomas-setting-icon-type-green-fantomas-setting-icon-fsharp_max_record_number_of_items"><fantomas-setting-icon type="green"></fantomas-setting-icon>fsharp_max_record_number_of_items</a></h4>
+<fantomas-setting name="fsharp_max_record_number_of_items" green></fantomas-setting>
 <p>Control the maximum number of fields for which records should be in one line.</p>
 <p>Default = 1.</p>
 <p>Requires <code>fsharp_record_multiline_formatter</code> to be
@@ -549,7 +549,7 @@ let myRecord''' =
         y = "hello"
         z = 0.0 }
 "</code></pre></td></tr></table>
-<h4><a name="fantomas-setting-icon-type-green-fantomas-setting-icon-fsharp_record_multiline_formatter" class="anchor" href="#fantomas-setting-icon-type-green-fantomas-setting-icon-fsharp_record_multiline_formatter"><fantomas-setting-icon type="green"></fantomas-setting-icon>fsharp_record_multiline_formatter</a></h4>
+<fantomas-setting name="fsharp_record_multiline_formatter" green></fantomas-setting>
 <p>Split records expressions/statements into multiple lines based on the given condition.<br />
 <code>character_width</code> uses character count of the expression, controlled by <code>fsharp_max_record_width</code>.<br />
 <code>number_of_items</code> uses the number of fields in the record, controlled by <code>fsharp_max_record_number_of_items</code>.</p>
@@ -584,7 +584,7 @@ let myRecord'' =
         x = 3
         y = "hello" }
 "</code></pre></td></tr></table>
-<h4><a name="fantomas-setting-icon-type-green-fantomas-setting-icon-fsharp_max_array_or_list_width" class="anchor" href="#fantomas-setting-icon-type-green-fantomas-setting-icon-fsharp_max_array_or_list_width"><fantomas-setting-icon type="green"></fantomas-setting-icon>fsharp_max_array_or_list_width</a></h4>
+<fantomas-setting name="fsharp_max_array_or_list_width" green></fantomas-setting>
 <p>Control the maximum width for which lists and arrays can be in one line.</p>
 <p>Default= 40.</p>
 <p>Requires <code>fsharp_array_or_list_multiline_formatter</code> to be <code>character_width</code> to take effect</p>
@@ -599,7 +599,7 @@ let myRecord'' =
        two
        three |]
 "</code></pre></td></tr></table>
-<h4><a name="fantomas-setting-icon-type-green-fantomas-setting-icon-fsharp_max_array_or_list_number_of_items" class="anchor" href="#fantomas-setting-icon-type-green-fantomas-setting-icon-fsharp_max_array_or_list_number_of_items"><fantomas-setting-icon type="green"></fantomas-setting-icon>fsharp_max_array_or_list_number_of_items</a></h4>
+<fantomas-setting name="fsharp_max_array_or_list_number_of_items" green></fantomas-setting>
 <p>Control the maximum number of elements for which lists and arrays can be in one line.</p>
 <p>Default = 1.</p>
 <p>Requires <code>fsharp_array_or_list_multiline_formatter</code> to be <code>number_of_items</code> to take effect.</p>
@@ -619,7 +619,7 @@ let myArray =
        two
        three |]
 "</code></pre></td></tr></table>
-<h4><a name="fantomas-setting-icon-type-green-fantomas-setting-icon-fsharp_array_or_list_multiline_formatter" class="anchor" href="#fantomas-setting-icon-type-green-fantomas-setting-icon-fsharp_array_or_list_multiline_formatter"><fantomas-setting-icon type="green"></fantomas-setting-icon>fsharp_array_or_list_multiline_formatter</a></h4>
+<fantomas-setting name="fsharp_array_or_list_multiline_formatter" green></fantomas-setting>
 <p>Split arrays and lists into multiple lines based on the given condition.<br />
 <code>character_width</code> uses character count of the expression, controlled by <code>fsharp_max_array_or_list_width</code>.<br />
 <code>number_of_items</code> uses the number of elements in the array or list, controlled by <code>fsharp_max_array_or_list_number_of_items</code>.</p>
@@ -636,7 +636,7 @@ let myArray =
        two
        three |]
 "</code></pre></td></tr></table>
-<h4><a name="fantomas-setting-icon-type-green-fantomas-setting-icon-fsharp_max_value_binding_width" class="anchor" href="#fantomas-setting-icon-type-green-fantomas-setting-icon-fsharp_max_value_binding_width"><fantomas-setting-icon type="green"></fantomas-setting-icon>fsharp_max_value_binding_width</a></h4>
+<fantomas-setting name="fsharp_max_value_binding_width" green></fantomas-setting>
 <p>Control the maximum expression width for which let and member value/property bindings should be in one line.<br />
 The width is that of the pattern for the binding plus the right-hand expression but not the keywords (e.g. "let").</p>
 <p>Default = 80.</p>
@@ -655,7 +655,7 @@ type MyType() =
     member this.HelpText =
         "Some help text"
 "</code></pre></td></tr></table>
-<h4><a name="fantomas-setting-icon-type-green-fantomas-setting-icon-fsharp_max_function_binding_width" class="anchor" href="#fantomas-setting-icon-type-green-fantomas-setting-icon-fsharp_max_function_binding_width"><fantomas-setting-icon type="green"></fantomas-setting-icon>fsharp_max_function_binding_width</a></h4>
+<fantomas-setting name="fsharp_max_function_binding_width" green></fantomas-setting>
 <p>Control the maximum width for which function and member bindings should be in one line.<br />
 In contrast to <code>fsharp_max_value_binding_width</code>, only the right-hand side expression of the binding is measured.</p>
 <p>Default = 40</p>
@@ -672,7 +672,7 @@ In contrast to <code>fsharp_max_value_binding_width</code>, only the right-hand 
 type MyType() =
     member this.HelpText = "Some help text"
 "</code></pre></td></tr></table>
-<h4><a name="fantomas-setting-icon-type-green-fantomas-setting-icon-fsharp_max_dot_get_expression_width" class="anchor" href="#fantomas-setting-icon-type-green-fantomas-setting-icon-fsharp_max_dot_get_expression_width"><fantomas-setting-icon type="green"></fantomas-setting-icon>fsharp_max_dot_get_expression_width</a></h4>
+<fantomas-setting name="fsharp_max_dot_get_expression_width" green></fantomas-setting>
 <p>Control the maximum width for which (nested) <a href="https://fsharp.github.io/fsharp-compiler-docs/reference/fsharp-compiler-syntax-synexpr.html#DotGet">SynExpr.DotGet</a> expressions should be in one line.</p>
 <p>Default = 50.</p>
 <pre class="fssnip highlighted"><code lang="fsharp"><span onmouseout="hideTip(event, 'fs4', 95)" onmouseover="showTip(event, 'fs4', 95)" class="fn">formatCode</span>
@@ -690,7 +690,7 @@ type MyType() =
 <h2><a name="G-Research-style" class="anchor" href="#G-Research-style">G-Research style</a></h2>
 <p>A series of settings required to conform with the <a href="https://github.com/G-Research/fsharp-formatting-conventions">G-Research style guide</a>.<br />
 From a consistency point of view, it is recommend to enable all these settings instead of cherry-picking a few.</p>
-<h4><a name="fantomas-setting-icon-type-green-fantomas-setting-icon-fantomas-setting-icon-gresearch-fantomas-setting-icon-gresearch-fsharp_multiline_block_brackets_on_same_column" class="anchor" href="#fantomas-setting-icon-type-green-fantomas-setting-icon-fantomas-setting-icon-gresearch-fantomas-setting-icon-gresearch-fsharp_multiline_block_brackets_on_same_column"><fantomas-setting-icon type="green"></fantomas-setting-icon><fantomas-setting-icon-gresearch></fantomas-setting-icon-gresearch>fsharp_multiline_block_brackets_on_same_column</a></h4>
+<fantomas-setting name="fsharp_multiline_block_brackets_on_same_column" green gr></fantomas-setting>
 <p>Alternative way of formatting records, arrays and lists. This will align the braces at the same column level.</p>
 <p>Default = false.</p>
 <pre class="fssnip highlighted"><code lang="fsharp"><span onmouseout="hideTip(event, 'fs4', 98)" onmouseover="showTip(event, 'fs4', 98)" class="fn">formatCode</span>
@@ -745,7 +745,7 @@ let a =
         (19, 20, 21)
     |]
 "</code></pre></td></tr></table>
-<h4><a name="fantomas-setting-icon-type-green-fantomas-setting-icon-fantomas-setting-icon-gresearch-fantomas-setting-icon-gresearch-fsharp_newline_between_type_definition_and_members" class="anchor" href="#fantomas-setting-icon-type-green-fantomas-setting-icon-fantomas-setting-icon-gresearch-fantomas-setting-icon-gresearch-fsharp_newline_between_type_definition_and_members"><fantomas-setting-icon type="green"></fantomas-setting-icon><fantomas-setting-icon-gresearch></fantomas-setting-icon-gresearch>fsharp_newline_between_type_definition_and_members</a></h4>
+<fantomas-setting name="fsharp_newline_between_type_definition_and_members" green gr></fantomas-setting>
 <p>Adds a new line between a type definition and its first member.</p>
 <p>Default = false.</p>
 <pre class="fssnip highlighted"><code lang="fsharp"><span onmouseout="hideTip(event, 'fs4', 101)" onmouseover="showTip(event, 'fs4', 101)" class="fn">formatCode</span>
@@ -758,7 +758,7 @@ let a =
     <span class="pn">{</span> <span onmouseout="hideTip(event, 'fs11', 102)" onmouseover="showTip(event, 'fs11', 102)" class="m">FormatConfig</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs12', 103)" onmouseover="showTip(event, 'fs12', 103)" class="id">Default</span> <span class="k">with</span> <span class="prop">NewlineBetweenTypeDefinitionAndMembers</span> <span class="o">=</span> <span class="k">true</span> <span class="pn">}</span>
 </code></pre>
 <table class="pre"><tr><td><pre><code>No value returned by any evaluator</code></pre></td></tr></table>
-<h4><a name="fantomas-setting-icon-type-green-fantomas-setting-icon-fantomas-setting-icon-gresearch-fantomas-setting-icon-gresearch-fsharp_align_function_signature_to_indentation" class="anchor" href="#fantomas-setting-icon-type-green-fantomas-setting-icon-fantomas-setting-icon-gresearch-fantomas-setting-icon-gresearch-fsharp_align_function_signature_to_indentation"><fantomas-setting-icon type="green"></fantomas-setting-icon><fantomas-setting-icon-gresearch></fantomas-setting-icon-gresearch>fsharp_align_function_signature_to_indentation</a></h4>
+<fantomas-setting name="fsharp_align_function_signature_to_indentation" green gr></fantomas-setting>
 <p>When a function signature exceeds the <code>max_line_length</code>, Fantomas will put all parameters on separate lines.<br />
 This setting also places the equals sign and return type on a new line.</p>
 <p>Default = false.</p>
@@ -781,7 +781,7 @@ let run
     =
     Http.main CodeFormatter.GetVersion format FormatConfig.FormatConfig.Default log req
 "</code></pre></td></tr></table>
-<h4><a name="fantomas-setting-icon-type-green-fantomas-setting-icon-fantomas-setting-icon-gresearch-fantomas-setting-icon-gresearch-fsharp_alternative_long_member_definitions" class="anchor" href="#fantomas-setting-icon-type-green-fantomas-setting-icon-fantomas-setting-icon-gresearch-fantomas-setting-icon-gresearch-fsharp_alternative_long_member_definitions"><fantomas-setting-icon type="green"></fantomas-setting-icon><fantomas-setting-icon-gresearch></fantomas-setting-icon-gresearch>fsharp_alternative_long_member_definitions</a></h4>
+<fantomas-setting name="fsharp_alternative_long_member_definitions" green gr></fantomas-setting>
 <p>Provides an alternative way of formatting long member and constructor definitions,
 where the difference is mainly in the equal sign and returned type placement.</p>
 <p>Default = false.</p>
@@ -828,7 +828,7 @@ type D() =
         =
         42
 "</code></pre></td></tr></table>
-<h4><a name="fantomas-setting-icon-type-green-fantomas-setting-icon-fantomas-setting-icon-gresearch-fantomas-setting-icon-gresearch-fsharp_multi_line_lambda_closing_newline" class="anchor" href="#fantomas-setting-icon-type-green-fantomas-setting-icon-fantomas-setting-icon-gresearch-fantomas-setting-icon-gresearch-fsharp_multi_line_lambda_closing_newline"><fantomas-setting-icon type="green"></fantomas-setting-icon><fantomas-setting-icon-gresearch></fantomas-setting-icon-gresearch>fsharp_multi_line_lambda_closing_newline</a></h4>
+<fantomas-setting name="fsharp_multi_line_lambda_closing_newline" green gr></fantomas-setting>
 <p>Places the closing parenthesis of a multiline lambda argument on the next line.</p>
 <p>Default = false.</p>
 <pre class="fssnip highlighted"><code lang="fsharp"><span onmouseout="hideTip(event, 'fs4', 110)" onmouseover="showTip(event, 'fs4', 110)" class="fn">formatCode</span>
@@ -865,7 +865,7 @@ let printListWithOffset a list1 =
         printfn "%d" (a + elem)
     )
 "</code></pre></td></tr></table>
-<h4><a name="fantomas-setting-icon-type-orange-fantomas-setting-icon-fantomas-setting-icon-gresearch-fantomas-setting-icon-gresearch-fsharp_experimental_keep_indent_in_branch" class="anchor" href="#fantomas-setting-icon-type-orange-fantomas-setting-icon-fantomas-setting-icon-gresearch-fantomas-setting-icon-gresearch-fsharp_experimental_keep_indent_in_branch"><fantomas-setting-icon type="orange"></fantomas-setting-icon><fantomas-setting-icon-gresearch></fantomas-setting-icon-gresearch>fsharp_experimental_keep_indent_in_branch</a></h4>
+<fantomas-setting name="fsharp_experimental_keep_indent_in_branch" orange gr></fantomas-setting>
 <p>Breaks the normal indentation flow for the last branch of a pattern match or if/then/else expression.<br />
 Only when the last pattern match or else branch was already at the same level of the entire match or if expression.</p>
 <p><em>This feature is considered experimental and is subject to change.</em></p>
@@ -903,7 +903,7 @@ Only when the last pattern match or else branch was already at the same level of
     // do more stuff
     0
 "</code></pre></td></tr></table>
-<h4><a name="fantomas-setting-icon-type-green-fantomas-setting-icon-fsharp_bar_before_discriminated_union_declaration" class="anchor" href="#fantomas-setting-icon-type-green-fantomas-setting-icon-fsharp_bar_before_discriminated_union_declaration"><fantomas-setting-icon type="green"></fantomas-setting-icon>fsharp_bar_before_discriminated_union_declaration</a></h4>
+<fantomas-setting name="fsharp_bar_before_discriminated_union_declaration" green gr></fantomas-setting>
 <p>Always use a <code>|</code> before every case in the declaration of a discriminated union.<br />
 If <code>false</code>, a <code>|</code> character is used only in multiple-case discriminated unions, and is omitted in short single-case DUs.</p>
 <p>Default = false.</p>
@@ -917,7 +917,7 @@ If <code>false</code>, a <code>|</code> character is used only in multiple-case 
 "</code></pre></td></tr></table>
 <h2><a name="Other" class="anchor" href="#Other">Other</a></h2>
 <p>Some additional settings that don't fit into any style guide.</p>
-<h4><a name="fantomas-setting-icon-type-orange-fantomas-setting-icon-fsharp_experimental_stroustrup_style" class="anchor" href="#fantomas-setting-icon-type-orange-fantomas-setting-icon-fsharp_experimental_stroustrup_style"><fantomas-setting-icon type="orange"></fantomas-setting-icon>fsharp_experimental_stroustrup_style</a></h4>
+<fantomas-setting name="fsharp_experimental_stroustrup_style" orange></fantomas-setting>
 <p>Please contribute to <a href="https://github.com/fsprojects/fantomas/issues/1408">fsprojects/fantomas#1408</a> and engage in <a href="https://github.com/fsharp/fslang-design/issues/706">fsharp/fslang-design#706</a>.</p>
 <p>Default = false.</p>
 <p>Requires <code>fsharp_multiline_block_brackets_on_same_column</code> to be <code>true</code> to take effect.</p>
@@ -938,7 +938,7 @@ If <code>false</code>, a <code>|</code> character is used only in multiple-case 
     Zip: string
 }
 "</code></pre></td></tr></table>
-<h4><a name="fantomas-setting-icon-type-green-fantomas-setting-icon-fsharp_blank_lines_around_nested_multiline_expressions" class="anchor" href="#fantomas-setting-icon-type-green-fantomas-setting-icon-fsharp_blank_lines_around_nested_multiline_expressions"><fantomas-setting-icon type="green"></fantomas-setting-icon>fsharp_blank_lines_around_nested_multiline_expressions</a></h4>
+<fantomas-setting name="fsharp_blank_lines_around_nested_multiline_expressions" green></fantomas-setting>
 <p>Surround <strong>nested</strong> multi-line expressions with blank lines.<br />
 Existing blank lines are always preserved (via trivia), with exception when <a href="#fsharp_keep_max_number_of_blank_lines">fsharp_keep_max_number_of_blank_lines</a> is used.<br />
 Top level expressions will always follow the <a href="https://github.com/fsprojects/fantomas/blob/main/docs-old/FormattingConventions.md#2020-revision">2020 blank lines revision</a> principle.</p>
@@ -974,7 +974,7 @@ let secondTopLevelFunction () =
     // ...
     ()
 "</code></pre></td></tr></table>
-<h4><a name="fantomas-setting-icon-type-green-fantomas-setting-icon-fsharp_keep_max_number_of_blank_lines" class="anchor" href="#fantomas-setting-icon-type-green-fantomas-setting-icon-fsharp_keep_max_number_of_blank_lines"><fantomas-setting-icon type="green"></fantomas-setting-icon>fsharp_keep_max_number_of_blank_lines</a></h4>
+<fantomas-setting name="fsharp_keep_max_number_of_blank_lines" green></fantomas-setting>
 <p>Set maximal number of consecutive blank lines to keep from original source. It doesn't change number of new blank lines generated by Fantomas.</p>
 <p>Default=100</p>
 <pre class="fssnip highlighted"><code lang="fsharp"><span onmouseout="hideTip(event, 'fs4', 125)" onmouseover="showTip(event, 'fs4', 125)" class="fn">formatCode</span>
@@ -989,7 +989,7 @@ let secondTopLevelFunction () =
 
 let x = 42
 "</code></pre></td></tr></table>
-<h4><a name="fantomas-setting-icon-type-red-fantomas-setting-icon-fsharp_strict_mode" class="anchor" href="#fantomas-setting-icon-type-red-fantomas-setting-icon-fsharp_strict_mode"><fantomas-setting-icon type="red"></fantomas-setting-icon>fsharp_strict_mode</a></h4>
+<fantomas-setting name="fsharp_strict_mode" red></fantomas-setting>
 <p>If being set, pretty printing is only done via ASTs. Compiler directives, inline comments and block comments will be ignored.<br />
 There are numerous situations when the information in the AST alone cannot restore the original code.</p>
 <p><strong>Please do not use this setting for formatting hand written code!</strong></p>

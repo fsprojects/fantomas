@@ -9730,8 +9730,7 @@ body {
   padding: 3px;
   background-color: #00A8E2;
   border-radius: 50%;
-  vertical-align: middle;
-  line-height: 1.3rem;
+  margin-top: -1px;
 }
 
 .green-tooltip .tooltip-inner {
@@ -9759,8 +9758,4 @@ body {
   margin-left: 10px;
   width: auto;
   height: 1.4em;
-}
-
-#push {
-  height: 1px;
 }
