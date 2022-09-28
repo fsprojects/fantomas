@@ -334,8 +334,8 @@ let private ParseInput
     // Delay sending errors and warnings until after the file is parsed. This gives us a chance to scrape the
     // #nowarn declarations for the file
     let delayLogger = CapturingDiagnosticsLogger("Parsing")
-    use unwindEL = PushDiagnosticsLoggerPhaseUntilUnwind(fun _ -> delayLogger)
-    use unwindBP = PushThreadBuildPhaseUntilUnwind BuildPhase.Parse
+    use _ = UseDiagnosticsLogger delayLogger
+    use _ = UseBuildPhase BuildPhase.Parse
 
     let mutable scopedPragmas = []
 

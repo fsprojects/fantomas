@@ -215,9 +215,9 @@ let ``printing trivia instructions`` () =
     // This active pattern will return the `a` node and the `b` node.
     let (|InterestingTreeNodes|_|) (ast: ParsedInput) =
         match ast with
-        | ParsedInput.ImplFile (ParsedImplFileInput.ParsedImplFileInput(modules = [ SynModuleOrNamespace.SynModuleOrNamespace(decls = [ SynModuleDecl.Let(bindings = [ SynBinding (headPat = SynPat.Named(ident = SynIdent (aNode,
-                                                                                                                                                                                                                            _))
-                                                                                                                                                                                   expr = SynExpr.Ident bNode) ]) ]) ])) ->
+        | ParsedInput.ImplFile (ParsedImplFileInput.ParsedImplFileInput(contents = [ SynModuleOrNamespace.SynModuleOrNamespace(decls = [ SynModuleDecl.Let(bindings = [ SynBinding (headPat = SynPat.Named(ident = SynIdent (aNode,
+                                                                                                                                                                                                                             _))
+                                                                                                                                                                                    expr = SynExpr.Ident bNode) ]) ]) ])) ->
             Some(aNode, bNode)
         | _ -> None
 
@@ -317,8 +317,8 @@ let b = 2
             | _ -> None
 
         match ast with
-        | ParsedInput.ImplFile (ParsedImplFileInput.ParsedImplFileInput(modules = [ SynModuleOrNamespace.SynModuleOrNamespace(decls = [ ValueBinding a
-                                                                                                                                        ValueBinding b ]) ])) ->
+        | ParsedInput.ImplFile (ParsedImplFileInput.ParsedImplFileInput(contents = [ SynModuleOrNamespace.SynModuleOrNamespace(decls = [ ValueBinding a
+                                                                                                                                         ValueBinding b ]) ])) ->
             Some(a, b)
         | _ -> None
 
