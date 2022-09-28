@@ -268,15 +268,11 @@ let lineCommentAfterSourceCodeToTriviaInstruction
     : TriviaInstruction option =
     let lineNumber = trivia.Range.StartLine
 
-    let rec allChildren (c: TriviaNode) =
-        c :: (List.collect allChildren (c.Children |> Seq.toList))
-
     let result =
-        containerNode
-        |> allChildren
-        |> List.filter (fun node -> node.Range.EndLine = lineNumber)
-        |> List.sortByDescending (fun node -> node.Range.EndColumn)
-        |> List.tryHead
+        containerNode.Children
+        |> Array.filter (fun node -> node.Range.EndLine = lineNumber)
+        |> Array.sortByDescending (fun node -> node.Range.StartColumn)
+        |> Array.tryHead
 
     result
     |> Option.map (fun node ->
