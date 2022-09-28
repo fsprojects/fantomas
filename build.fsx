@@ -38,13 +38,11 @@ let pushPackage nupkg =
         let! result =
             Cli.Wrap("dotnet").WithArguments($"paket push {nupkg}").ExecuteAsync().Task
             |> Async.AwaitTask
-
         return result.ExitCode
     }
 
 pipeline "Build" {
     workingDir __SOURCE_DIRECTORY__
-
     stage "Clean" {
         run (
             cleanFolders
@@ -59,27 +57,19 @@ pipeline "Build" {
                    "src/Fantomas.Client/obj" |]
         )
     }
-
     stage "CheckFormat" { run "dotnet fantomas src docs build.fsx --recurse --check" }
-
     stage "Build" { run "dotnet build -c Release" }
-
     stage "UnitTests" { run "dotnet test -c Release" }
-
     stage "Benchmark" { run $"dotnet {benchmarkAssembly}" }
-
     stage "Pack" { run "dotnet pack --no-restore -c Release -o ./bin" }
-
     stage "Docs" {
+        whenNot { platformOSX }
         run "dotnet fsi ./docs/.style/style.fsx"
-
         run
             $"dotnet fsdocs build --clean --properties Configuration=Release --fscoptions \" -r:{semanticVersioning}\" --eval"
     }
-
     stage "Push" {
         whenCmdArg "--push"
-
         run (fun _ ->
             async {
                 let! exitCodes =
@@ -87,11 +77,9 @@ pipeline "Build" {
                     |> Seq.filter (fun nupkg -> not (nupkg.Contains("Fantomas.Client")))
                     |> Seq.map pushPackage
                     |> Async.Sequential
-
                 return Seq.max exitCodes
             })
     }
-
     runIfOnlySpecified false
 }
 
@@ -104,7 +92,6 @@ let runGitCommand (arguments: string) =
                 .ExecuteBufferedAsync()
                 .Task
             |> Async.AwaitTask
-
         return result.ExitCode, result.StandardOutput, result.StandardError
     }
 
@@ -121,7 +108,6 @@ pipeline "FormatChanged" {
         run (fun _ ->
             async {
                 let! exitCode, stdout, stdErr = runGitCommand "status --porcelain"
-
                 if exitCode <> 0 then
                     return exitCode
                 else
@@ -129,7 +115,6 @@ pipeline "FormatChanged" {
                         stdout.Split('\n')
                         |> Array.choose (fun line ->
                             let line = line.Trim()
-
                             if
                                 (line.StartsWith("AM") || line.StartsWith("M"))
                                 && (line.EndsWith(".fs") || line.EndsWith(".fsx") || line.EndsWith(".fsi"))
@@ -138,11 +123,9 @@ pipeline "FormatChanged" {
                             else
                                 None)
                         |> String.concat " "
-
                     return! runCmd "dotnet" $"fantomas {files}"
             })
     }
-
     runIfOnlySpecified true
 }
 
