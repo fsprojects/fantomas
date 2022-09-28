@@ -47,6 +47,10 @@ type SynField with
 
     member FullRange: range
 
+type SynAttribute with
+
+    member FullRange: range
+
 val synTypeDefnKindDelegateFullRange: signature: SynType -> signatureInfo: SynValInfo -> range
 
 val longIdentFullRange: li: LongIdent -> Range
