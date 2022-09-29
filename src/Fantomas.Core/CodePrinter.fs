@@ -2565,7 +2565,8 @@ and genMultilineAnonRecord (isStruct: bool) fields copyInfo (astContext: ASTCont
                          addFixedSpaces targetColumn
                          +> atCurrentColumn (enterNodeFor SynExpr_AnonRecd_Field range +> genIdent ident)
                          +> genEq SynExpr_AnonRecd_Field_Equals eq
-                         +> expr)
+                         +> expr
+                         +> leaveNodeFor SynExpr_AnonRecd_Field range)
                      +> sepCloseAnonRecd)
                     ctx
 
