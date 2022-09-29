@@ -48,7 +48,7 @@ let (|ImplFile|SigFile|) =
 
 let (|ParsedImplFileInput|)
     (ParsedImplFileInput.ParsedImplFileInput (hashDirectives = hs
-                                              modules = mns
+                                              contents = mns
                                               trivia = { ConditionalDirectives = directives
                                                          CodeComments = codeComments }))
     =
@@ -56,7 +56,7 @@ let (|ParsedImplFileInput|)
 
 let (|ParsedSigFileInput|)
     (ParsedSigFileInput.ParsedSigFileInput (hashDirectives = hs
-                                            modules = mns
+                                            contents = mns
                                             trivia = { ConditionalDirectives = directives
                                                        CodeComments = codeComments }))
     =
