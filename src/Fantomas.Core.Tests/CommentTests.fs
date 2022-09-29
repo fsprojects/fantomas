@@ -2515,3 +2515,22 @@ type X =
             // The 'Cancel' member
             (System.IAsyncResult -> unit)
 """
+
+[<Test>]
+let ``comments in anonymous records, 2538`` () =
+    formatSourceString
+        false
+        """
+let Anonymous =
+    {| FontFamily = 700 // font-weight
+       FontSize = 48. |} // font-weight
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let Anonymous =
+    {| FontFamily = 700 // font-weight
+       FontSize = 48. |} // font-weight
+"""
