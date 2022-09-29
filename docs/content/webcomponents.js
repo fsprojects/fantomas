@@ -1,5 +1,5 @@
 import {html} from 'https://cdn.skypack.dev/lit';
-import {component, useEffect} from 'https://cdn.skypack.dev/haunted';
+import {component} from 'https://cdn.skypack.dev/haunted';
 
 function FantomasSettingIcon(type) {
     let settingType
@@ -27,7 +27,7 @@ function FantomasSettingIcon(type) {
             const root = document.documentElement.dataset.root
             const tooltip = "If you use one of these you should use all G-Research settings for consistency reasons";
 
-            return html`<img class="gresearch-recommendation me-2" 
+            return html`<img class="gresearch-recommendation me-2"
                              data-bs-toggle="tooltip"
                              data-bs-custom-class="gresearch-tooltip"
                              data-bs-title="${tooltip}"
@@ -52,15 +52,6 @@ function Navigation({next, previous}) {
 }
 
 function FantomasSetting({name, green, orange, red, gr}) {
-    useEffect(() => {
-        if (location.hash && location.hash.endsWith(name)) {
-            const element = document.querySelector(location.hash);
-            if (element) {
-                element.scrollIntoView({behavior: 'smooth', block: 'center'});
-            }
-        }
-    }, []);
-
     return html`
         <div class="d-flex align-items-center my-2">
             ${green && FantomasSettingIcon('green')}
