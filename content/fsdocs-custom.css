@@ -9582,6 +9582,10 @@ aside #sidebar-logo #fsdocs-logo {
   width: 220px;
 }
 
+html {
+  scroll-padding-top: 70px;
+}
+
 body {
   display: grid;
 }
