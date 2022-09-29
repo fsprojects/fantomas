@@ -103,7 +103,7 @@ type ParsedInput with
 
     member this.FullRange: range =
         match this with
-        | ParsedInput.ImplFile (ParsedImplFileInput (hashDirectives = directives; modules = modules; trivia = trivia)) ->
+        | ParsedInput.ImplFile (ParsedImplFileInput (hashDirectives = directives; contents = modules; trivia = trivia)) ->
             let startPos =
                 match directives with
                 | ParsedHashDirective (range = r) :: _ -> r.Start
@@ -123,7 +123,7 @@ type ParsedInput with
             let astRange = mkRange this.Range.FileName startPos endPos
             includeTrivia astRange trivia.CodeComments trivia.ConditionalDirectives
 
-        | ParsedInput.SigFile (ParsedSigFileInput (hashDirectives = directives; modules = modules; trivia = trivia)) ->
+        | ParsedInput.SigFile (ParsedSigFileInput (hashDirectives = directives; contents = modules; trivia = trivia)) ->
             let startPos =
                 match directives with
                 | ParsedHashDirective (range = r) :: _ -> r.Start
