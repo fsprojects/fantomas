@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## [5.1.0-alpha-002] - 2022-09-29
 
 ### Changed
 * Update FCS to 'Parallel type checking for impl files with backing sig files', commit 51635bbebf36e39a86d06d96730e13cfc40a095f
