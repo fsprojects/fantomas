@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## [5.0.3] - 2022-09-29
 
 ### Fixed
 * Comments in anonymous record deleted after formatting. [#2538](https://github.com/fsprojects/fantomas/issues/2538)
