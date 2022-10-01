@@ -32,7 +32,16 @@ let ``should keep the (string * string) list type signature in records`` () =
 
 [<Test>]
 let ``should keep the (string * string) list type signature in functions`` () =
-    shouldNotChangeAfterFormat
+    formatSourceString
+        false
+        """
+let MSBuildWithProjectProperties outputPath (targets: string) (properties: string -> (string * string) list) projects =
+    doingsomstuff
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
         """
 let MSBuildWithProjectProperties outputPath (targets: string) (properties: string -> (string * string) list) projects =
     doingsomstuff
@@ -40,7 +49,16 @@ let MSBuildWithProjectProperties outputPath (targets: string) (properties: strin
 
 [<Test>]
 let ``should keep the string * string list type signature in functions`` () =
-    shouldNotChangeAfterFormat
+    formatSourceString
+        false
+        """
+let MSBuildWithProjectProperties outputPath (targets: string) (properties: (string -> string) * string list) projects =
+    doingsomstuff
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
         """
 let MSBuildWithProjectProperties outputPath (targets: string) (properties: (string -> string) * string list) projects =
     doingsomstuff

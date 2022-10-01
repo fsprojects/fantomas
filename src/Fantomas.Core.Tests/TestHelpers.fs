@@ -1,12 +1,9 @@
 module Fantomas.Core.Tests.TestHelper
 
 open System
-open System.IO
 open Fantomas.Core.TriviaTypes
 open NUnit.Framework
-open FsCheck
 open FsUnit
-open FSharp.Compiler.Text
 open Fantomas.Core.FormatConfig
 open Fantomas.Core
 
@@ -64,9 +61,6 @@ let formatSourceStringWithDefines defines (s: string) config =
 let isValidFSharpCode isFsiFile s =
     CodeFormatter.IsValidFSharpCodeAsync(isFsiFile, s) |> Async.RunSynchronously
 
-let formatAST a s c =
-    CodeFormatter.FormatASTAsync(a, s, c) |> Async.RunSynchronously
-
 let equal x =
     let x =
         match box x with
@@ -76,72 +70,7 @@ let equal x =
     equal x
 
 let inline prepend s content = s + content
-let inline append s content = content + s
-let zero = range.Zero
-
-let tryFormatAST ast sourceCode config =
-    try
-        formatAST ast sourceCode config
-    with _ ->
-        ""
-
 let formatConfig = { FormatConfig.Default with StrictMode = true }
-
-let shouldNotChangeAfterFormat source =
-    formatSourceString false source config |> prepend newline |> should equal source
-
 let (==) actual expected = Assert.AreEqual(expected, actual)
 let fail () = Assert.Fail()
 let pass () = Assert.Pass()
-
-/// An FsCheck runner which reports FsCheck test results to NUnit.
-type NUnitRunner() =
-    interface IRunner with
-        member __.OnStartFixture _ = ()
-
-        member __.OnArguments(_ntest, _args, _every) =
-            //stdout.Write(every ntest args)
-            ()
-
-        member __.OnShrink(_args, _everyShrink) =
-            //stdout.Write(everyShrink args)
-            ()
-
-        member __.OnFinished(name, result) =
-            match result with
-            | TestResult.True (_data, _) ->
-                // TODO : Log the result data.
-                Runner.onFinishedToString name result |> stdout.WriteLine
-
-            | TestResult.Exhausted _data ->
-                // TODO : Log the result data.
-                Runner.onFinishedToString name result |> Assert.Inconclusive
-
-            | TestResult.False _ ->
-                // TODO : Log more information about the test failure.
-                Runner.onFinishedToString name result |> Assert.Fail
-
-let private getTempFolder () = Path.GetTempPath()
-
-let private mkConfigPath fileName folder =
-    match folder with
-    | Some folder ->
-        let folderPath = Path.Combine(getTempFolder (), folder)
-        Directory.CreateDirectory(folderPath) |> ignore
-        Path.Combine(folderPath, fileName)
-    | None -> Path.Combine(getTempFolder (), fileName)
-
-let mkConfigFromContent fileName folder content =
-    let file = mkConfigPath fileName folder
-    File.WriteAllText(file, content)
-    file
-
-type TemporaryFileCodeSample internal (codeSnippet: string) =
-    let filename = Path.Join(Path.GetTempPath(), Guid.NewGuid().ToString() + ".fs")
-
-    do File.WriteAllText(filename, codeSnippet)
-
-    member __.Filename: string = filename
-
-    interface IDisposable with
-        member this.Dispose() : unit = File.Delete(filename)
