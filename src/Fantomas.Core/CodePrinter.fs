@@ -434,7 +434,7 @@ and genSynLongIdent (addLeadingDot: bool) (longIdent: SynLongIdent) =
 
     coli sepNone longIdent.IdentsWithTrivia (fun idx si ->
         genSynIdent (addLeadingDot || idx > 0) si
-        +> onlyIf (idx < lastIndex) (sepNlnWhenWriteBeforeNewlineNotEmpty sepNone))
+        +> onlyIf (idx < lastIndex) (sepNlnWhenWriteBeforeNewlineNotEmpty))
     |> genTriviaFor SynLongIdent_ longIdent.FullRange
 
 and genSynLongIdentMultiline (addLeadingDot: bool) (longIdent: SynLongIdent) =
@@ -497,7 +497,7 @@ and genAttributes astContext (ats: SynAttributes) =
     colPost sepNlnUnlessLastEventIsNewline sepNln ats (fun a ->
         (genAttributesCore astContext a.Attributes
          |> genTriviaFor SynAttributeList_ a.Range)
-        +> sepNlnWhenWriteBeforeNewlineNotEmpty sepNone)
+        +> sepNlnWhenWriteBeforeNewlineNotEmpty)
 
 and genPreXmlDoc (PreXmlDoc (lines, _)) =
     colPost sepNln sepNln lines (sprintf "///%s" >> (!-))
@@ -1249,7 +1249,7 @@ and genExpr astContext synExpr ctx =
                                 (fun e ->
                                     body e
                                     +> triviaOfLambda printTriviaInstructions false
-                                    +> sepNlnWhenWriteBeforeNewlineNotEmpty id
+                                    +> sepNlnWhenWriteBeforeNewlineNotEmpty
                                     +> sepCloseTFor rpr)
                                 expr
                                 arrowRange
@@ -1260,7 +1260,7 @@ and genExpr astContext synExpr ctx =
                                     (fun e ->
                                         body e
                                         +> triviaOfLambda printTriviaInstructions false
-                                        +> sepNlnWhenWriteBeforeNewlineNotEmpty id)
+                                        +> sepNlnWhenWriteBeforeNewlineNotEmpty)
                                     expr
                                     arrowRange)
                                 (fun isMultiline -> onlyIf isMultiline sepNln +> sepCloseTFor rpr)
@@ -2261,7 +2261,7 @@ and genOnelinerInfixExpr astContext e1 operatorSli e2 =
     genExpr astContext e1
     +> sepSpace
     +> genSynLongIdent false operatorSli
-    +> sepNlnWhenWriteBeforeNewlineNotEmpty sepNone
+    +> sepNlnWhenWriteBeforeNewlineNotEmpty
     +> sepSpace
     +> genExpr astContext e2
 
@@ -2297,7 +2297,7 @@ and genMultilineInfixExpr astContext e1 operatorText operatorSli e2 =
         genE1
         +> sepNln
         +> genSynLongIdent false operatorSli
-        +> sepNlnWhenWriteBeforeNewlineNotEmpty sepNone
+        +> sepNlnWhenWriteBeforeNewlineNotEmpty
         +> sepSpace
         +> genExprInMultilineInfixExpr astContext e2
     )
@@ -2455,7 +2455,7 @@ and genMultilineRecordInstance
 
                     atCurrentColumn
                         (genTriviaFor SynExpr_Record_OpeningBrace openingBrace sepOpenS
-                         +> sepNlnWhenWriteBeforeNewlineNotEmpty sepNone // comment after curly brace
+                         +> sepNlnWhenWriteBeforeNewlineNotEmpty // comment after curly brace
                          +> col sepNln xs (fun e ->
                              // Add spaces to ensure the record field (incl trivia) starts at the right column.
                              addFixedSpaces targetColumn
@@ -2464,7 +2464,7 @@ and genMultilineRecordInstance
                          +> genTriviaFor
                              SynExpr_Record_ClosingBrace
                              closingBrace
-                             (sepNlnWhenWriteBeforeNewlineNotEmpty sepNone // comment after last record field
+                             (sepNlnWhenWriteBeforeNewlineNotEmpty // comment after last record field
                               +> (fun ctx ->
                                   // Edge case scenario to make sure that the closing brace is not before the opening one
                                   // See unit test "multiline string before closing brace"
@@ -2638,7 +2638,7 @@ and genMultiLineArrayOrList
     if isArray then
         (genTriviaFor SynExpr_ArrayOrList_OpeningDelimiter openingTokenRange sepOpenA
          +> atCurrentColumnIndent (
-             sepNlnWhenWriteBeforeNewlineNotEmpty sepNone
+             sepNlnWhenWriteBeforeNewlineNotEmpty
              +> col sepNln xs (genExpr astContext)
              +> genTriviaFor
                  SynExpr_ArrayOrList_ClosingDelimiter
@@ -2649,7 +2649,7 @@ and genMultiLineArrayOrList
     else
         (genTriviaFor SynExpr_ArrayOrList_OpeningDelimiter openingTokenRange sepOpenL
          +> atCurrentColumnIndent (
-             sepNlnWhenWriteBeforeNewlineNotEmpty sepNone
+             sepNlnWhenWriteBeforeNewlineNotEmpty
              +> col sepNln xs (genExpr astContext)
              +> genTriviaFor
                  SynExpr_ArrayOrList_ClosingDelimiter
@@ -2828,7 +2828,7 @@ and genAppWithLambda astContext sep (e, es, lpr, lambda, rpr, pr) =
                     (!- "function " |> genTriviaFor SynExpr_MatchLambda_Function keywordRange)
                     +> indentSepNlnUnindent (genClauses astContext cs)
                     |> genTriviaFor SynExpr_MatchLambda range)
-            +> sepNlnWhenWriteBeforeNewlineNotEmpty sepNone
+            +> sepNlnWhenWriteBeforeNewlineNotEmpty
             +> sepCloseTFor rpr
             |> genTriviaFor SynExpr_Paren pr)
 
@@ -2905,7 +2905,7 @@ and genAppWithLambda astContext sep (e, es, lpr, lambda, rpr, pr) =
                             +> col sepSpace pats (genPat astContext)
                             +> genLambdaArrowWithTrivia (genExpr astContext) body arrowRange
                             |> genTriviaFor SynExpr_Lambda lambdaRange)
-                        +> sepNlnWhenWriteBeforeNewlineNotEmpty sepNone
+                        +> sepNlnWhenWriteBeforeNewlineNotEmpty
                         +> sepCloseTFor rpr
                         |> genTriviaFor SynExpr_Paren pr)
 
@@ -2948,7 +2948,7 @@ and genAppWithLambda astContext sep (e, es, lpr, lambda, rpr, pr) =
                         +> ((!- "function " |> genTriviaFor SynExpr_MatchLambda_Function keywordRange)
                             +> indentSepNlnUnindent (genClauses astContext cs)
                             |> genTriviaFor SynExpr_MatchLambda matchLambdaRange)
-                        +> sepNlnWhenWriteBeforeNewlineNotEmpty id
+                        +> sepNlnWhenWriteBeforeNewlineNotEmpty
                         +> sepCloseTFor rpr)
                     |> genTriviaFor SynExpr_Paren pr
 
@@ -2988,7 +2988,7 @@ and genControlExpressionStartCore
     let shortIfExpr =
         genStartKeyword
         +> leaveStartKeyword
-        +> sepNlnWhenWriteBeforeNewlineNotEmpty sepSpace
+        +> sepNlnWhenWriteBeforeNewlineNotEmptyOr sepSpace
         +> genExpr astContext innerExpr
         +> sepSpace
         +> enterEndKeyword
@@ -3059,7 +3059,7 @@ and genIfOrElseIfOrElifThen
             enterNodeFor SynExpr_IfThenElse_Else elseKw,
             !- "else"
             +> leaveNodeFor SynExpr_IfThenElse_Else elseKw
-            +> sepNlnWhenWriteBeforeNewlineNotEmpty sepSpace
+            +> sepNlnWhenWriteBeforeNewlineNotEmptyOr sepSpace
             +> enterNodeFor SynExpr_IfThenElse_If ifKw
             +> !- "if",
             leaveNodeFor SynExpr_IfThenElse_If ifKw
@@ -3412,7 +3412,7 @@ and genMultilineSimpleRecordTypeDefn astContext openingBrace withKeyword ms ao' 
     +> sepOpenS
     +> atCurrentColumn (
         leaveNodeFor SynTypeDefnSimpleRepr_Record_OpeningBrace openingBrace
-        +> sepNlnWhenWriteBeforeNewlineNotEmpty sepNone
+        +> sepNlnWhenWriteBeforeNewlineNotEmpty
         +> col sepNln fs (genField astContext "")
     )
     +> genTriviaFor SynTypeDefnSimpleRepr_Record_ClosingBrace closingBrace sepCloseS
@@ -3630,7 +3630,7 @@ and genSigSimpleRecord astContext openingBrace withKeyword ms ao' fs closingBrac
     +> sepOpenS
     +> atCurrentColumn (
         leaveNodeFor SynTypeDefnSimpleRepr_Record_OpeningBrace openingBrace
-        +> sepNlnWhenWriteBeforeNewlineNotEmpty sepNone
+        +> sepNlnWhenWriteBeforeNewlineNotEmpty
         +> col sepNln fs (genField astContext "")
     )
     +> genTriviaFor SynTypeDefnSimpleRepr_Record_ClosingBrace closingBrace sepCloseS
@@ -3770,7 +3770,7 @@ and genUnionCase astContext (hasVerticalBar: bool) (UnionCase (ats, px, barRange
     +> genTriviaForOptionOr SynUnionCase_Bar barRange (ifElse hasVerticalBar sepBar sepNone)
     +> atCurrentColumn (
         // If the bar has a comment after, add a newline and print the identifier on the same column on the next line.
-        sepNlnWhenWriteBeforeNewlineNotEmpty sepNone
+        sepNlnWhenWriteBeforeNewlineNotEmpty
         +> genOnelinerAttributes astContext ats
         +> genSynIdent false si
         +> onlyIf (List.isNotEmpty fs) wordOf
@@ -3920,7 +3920,7 @@ and genType astContext outerBracket t =
             col sepNone ts (fun (t, arrow) ->
                 loop t
                 +> genTriviaFor SynType_Fun_Arrow arrow sepArrow
-                +> sepNlnWhenWriteBeforeNewlineNotEmpty sepNone)
+                +> sepNlnWhenWriteBeforeNewlineNotEmpty)
             +> loop ret
 
         let long =

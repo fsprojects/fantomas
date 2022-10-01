@@ -33,12 +33,6 @@ let hasParenInPat =
 
 // A few active patterns for printing purpose
 
-let rec (|DeclExprAttributesL|_|) =
-    function
-    | DeclExpr _ | Attributes _ as x :: DeclExprAttributesL (xs, ys) -> Some(x :: xs, ys)
-    | DeclExpr _ | Attributes _ as x :: ys -> Some([ x ], ys)
-    | _ -> None
-
 let rec (|HashDirectiveL|_|) =
     function
     | HashDirective _ as x :: HashDirectiveL (xs, ys) -> Some(x :: xs, ys)
@@ -92,9 +86,6 @@ let rec (|SigValL|_|) =
     | SigVal _ as x :: SigValL (xs, ys) -> Some(x :: xs, ys)
     | SigVal _ as x :: ys -> Some([ x ], ys)
     | _ -> None
-
-let private (|SynLongIdentAsString|) (synLongIdent: SynLongIdent) =
-    synLongIdent.LongIdent |> List.map (fun i -> i.idText) |> String.concat "."
 
 // Provide short-hand notation `x.Member = ...` for `x.Member with get()` getters
 let (|LongGetMember|_|) =
@@ -160,31 +151,6 @@ let synMemberSigToFsAstType =
     | SynMemberSig.Member _ -> SynMemberSig_Member
     | SynMemberSig.NestedType _ -> SynMemberSig_NestedType
     | SynMemberSig.ValField _ -> SynMemberSig_ValField
-
-let synConstToFsAstType =
-    function
-    | SynConst.Bool _ -> SynConst_Bool
-    | SynConst.Unit _ -> SynConst_Unit
-    | SynConst.SByte _ -> SynConst_SByte
-    | SynConst.Byte _ -> SynConst_Byte
-    | SynConst.Int16 _ -> SynConst_Int16
-    | SynConst.UInt16 _ -> SynConst_UInt16
-    | SynConst.Int32 _ -> SynConst_Int32
-    | SynConst.UInt32 _ -> SynConst_UInt32
-    | SynConst.Int64 _ -> SynConst_Int64
-    | SynConst.UInt64 _ -> SynConst_UInt64
-    | SynConst.IntPtr _ -> SynConst_IntPtr
-    | SynConst.UIntPtr _ -> SynConst_UIntPtr
-    | SynConst.Single _ -> SynConst_Single
-    | SynConst.Double _ -> SynConst_Double
-    | SynConst.Char _ -> SynConst_Char
-    | SynConst.Decimal _ -> SynConst_Decimal
-    | SynConst.UserNum _ -> SynConst_UserNum
-    | SynConst.String _ -> SynConst_String
-    | SynConst.Bytes _ -> SynConst_Bytes
-    | SynConst.UInt16s _ -> SynConst_UInt16s
-    | SynConst.Measure _ -> SynConst_Measure
-    | SynConst.SourceIdentifier _ -> SynConst_SourceIdentifier
 
 let rec synExprToFsAstType (expr: SynExpr) : FsAstType * Range =
     match expr with
@@ -280,9 +246,3 @@ let synBindingToFsAstType (SynBinding (kind = kind)) =
     | SynBindingKind.StandaloneExpression -> SynBindingKind_StandaloneExpression
     | SynBindingKind.Normal -> SynBindingKind_Normal
     | SynBindingKind.Do -> SynBindingKind_Do
-
-let synAccessToFsAstType (vis: SynAccess) =
-    match vis with
-    | SynAccess.Internal _ -> SynAccess_Internal
-    | SynAccess.Private _ -> SynAccess_Private
-    | SynAccess.Public _ -> SynAccess_Public

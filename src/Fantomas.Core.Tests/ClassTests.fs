@@ -594,7 +594,20 @@ type A() =
 
 [<Test>]
 let ``no extra new line before nested module with attribute, 586`` () =
-    shouldNotChangeAfterFormat
+    formatSourceString
+        false
+        """
+module A =
+    let x = 0
+
+    [<RequireQualifiedAccess>]
+    module B =
+        let y = 1
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
         """
 module A =
     let x = 0
@@ -606,7 +619,20 @@ module A =
 
 [<Test>]
 let ``no extra new line before abstract member with attribute, 586`` () =
-    shouldNotChangeAfterFormat
+    formatSourceString
+        false
+        """
+type A =
+
+    [<EmitConstructor>]
+    abstract Create: Unit -> A
+
+    abstract b: Unit -> Unit
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
         """
 type A =
 
@@ -618,7 +644,21 @@ type A =
 
 [<Test>]
 let ``no extra new line between abstract members with attribute, 586`` () =
-    shouldNotChangeAfterFormat
+    formatSourceString
+        false
+        """
+type A =
+
+    [<Emit("a")>]
+    abstract a: Unit -> string
+
+    [<Emit("b")>]
+    abstract b: Unit -> string
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
         """
 type A =
 

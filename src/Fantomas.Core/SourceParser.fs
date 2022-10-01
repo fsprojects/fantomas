@@ -11,21 +11,11 @@ open Fantomas.Core.AstExtensions
 open Fantomas.Core.TriviaTypes
 open Fantomas.Core.RangePatterns
 
-/// Don't put space before and after these operators
-let internal noSpaceInfixOps = set [ "?" ]
-
 /// Always break into newlines on these operators
 let internal newLineInfixOps = set [ "|>"; "||>"; "|||>"; ">>"; ">>=" ]
 
 /// Never break into newlines on these operators
 let internal noBreakInfixOps = set [ "="; ">"; "<"; "%" ]
-
-type Composite<'a, 'b> =
-    | Pair of 'b * 'b
-    | Single of 'a
-
-[<Literal>]
-let MaxLength = 512
 
 // Type params
 
@@ -43,11 +33,6 @@ let rec (|RationalConst|) =
     | SynRationalConst.Integer i -> string i
     | SynRationalConst.Rational (numerator, denominator, _) -> sprintf "(%i/%i)" numerator denominator
     | SynRationalConst.Negate (RationalConst s) -> sprintf "-%s" s
-
-let (|String|_|) e =
-    match e with
-    | SynExpr.Const (SynConst.String (s, _, _), _) -> Some s
-    | _ -> None
 
 let (|Unit|_|) =
     function
@@ -86,36 +71,6 @@ let (|SigModuleOrNamespace|)
     (SynModuleOrNamespaceSig.SynModuleOrNamespaceSig (lids, isRecursive, kind, mds, px, ats, ao, _range, trivia) as m)
     =
     (ats, px, trivia.ModuleKeyword, trivia.NamespaceKeyword, ao, lids, mds, isRecursive, kind, m.FullRange)
-
-let (|EmptyFile|_|) (input: ParsedInput) =
-    match input with
-    | ImplFile (ParsedImplFileInput (_,
-                                     [ ModuleOrNamespace (_,
-                                                          _,
-                                                          _,
-                                                          _,
-                                                          _,
-                                                          _,
-                                                          [],
-                                                          _,
-                                                          SynModuleOrNamespaceKind.AnonModule,
-                                                          _) ],
-                                     _,
-                                     _)) -> Some input
-    | SigFile (ParsedSigFileInput (_,
-                                   [ SigModuleOrNamespace (_,
-                                                           _,
-                                                           _,
-                                                           _,
-                                                           _,
-                                                           _,
-                                                           [],
-                                                           _,
-                                                           SynModuleOrNamespaceKind.AnonModule,
-                                                           _) ],
-                                   _,
-                                   _)) -> Some input
-    | _ -> None
 
 let (|Attribute|) (a: SynAttribute) = (a.TypeName, a.ArgExpr, a.Target)
 

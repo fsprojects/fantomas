@@ -269,7 +269,19 @@ let newDocument = //somecomment
 
 [<Test>]
 let ``|> should be on the next line if preceding expression is multiline`` () =
-    shouldNotChangeAfterFormat
+    formatSourceString
+        false
+        """
+let newDocument = //somecomment
+    { program = "Loooooooooooooooooooooooooong"
+      content = "striiiiiiiiiiiiiiiiiiinnnnnnnnnnng"
+      created = document.Created.ToLocalTime() }
+    |> JsonConvert.SerializeObject
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
         """
 let newDocument = //somecomment
     { program = "Loooooooooooooooooooooooooong"
