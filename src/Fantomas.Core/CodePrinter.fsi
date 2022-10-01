@@ -7,9 +7,6 @@ type ASTContext =
         /// This pattern matters for formatting extern declarations
         IsCStylePattern: bool
 
-        /// A field is rendered as union field or not
-        IsUnionField: bool
-
         /// First type param might need extra spaces to avoid parsing errors on `<^`, `<'`, etc.
         IsFirstTypeParam: bool
     }
