@@ -1079,9 +1079,6 @@ let printTriviaContent (c: TriviaContent) (ctx: Context) =
 let printTriviaInstructions (triviaInstructions: TriviaInstruction list) =
     col sepNone triviaInstructions (fun { Trivia = trivia } -> printTriviaContent trivia.Item)
 
-let private findTriviaOnStartFromRange nodes (range: Range) =
-    nodes |> List.tryFind (fun n -> RangeHelpers.rangeStartEq n.Range range)
-
 let enterNodeFor (mainNodeName: FsAstType) (range: Range) (ctx: Context) =
     match Map.tryFind mainNodeName ctx.TriviaBefore with
     | Some triviaNodes ->
@@ -1146,11 +1143,14 @@ let sepNlnTypeAndMembers
             ctx
     | triviaInstructions -> printTriviaInstructions triviaInstructions ctx
 
-let sepNlnWhenWriteBeforeNewlineNotEmpty fallback (ctx: Context) =
+let sepNlnWhenWriteBeforeNewlineNotEmptyOr fallback (ctx: Context) =
     if hasWriteBeforeNewlineContent ctx then
         sepNln ctx
     else
         fallback ctx
+
+let sepNlnWhenWriteBeforeNewlineNotEmpty =
+    sepNlnWhenWriteBeforeNewlineNotEmptyOr sepNone
 
 let sepSpaceUnlessWriteBeforeNewlineNotEmpty (ctx: Context) =
     if hasWriteBeforeNewlineContent ctx then
@@ -1172,10 +1172,6 @@ let autoNlnConsideringTriviaIfExpressionExceedsPageWidth sepNlnConsideringTrivia
         sepNone // before and after for long expressions
         expr
         ctx
-
-let addExtraNewlineIfLeadingWasMultiline leading sepNlnConsideringTriviaContentBefore continuation =
-    leadingExpressionIsMultiline leading (fun ml ->
-        sepNln +> onlyIf ml sepNlnConsideringTriviaContentBefore +> continuation)
 
 let addParenIfAutoNln synExpr f =
     let expr = f synExpr

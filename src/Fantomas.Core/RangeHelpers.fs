@@ -9,16 +9,6 @@ module RangeHelpers =
     let rangeContainsRange (a: Range) (b: Range) =
         Position.posGeq b.Start a.Start && Position.posGeq a.End b.End
 
-    // check if b is after a
-    let ``range after`` (a: Range) (b: Range) =
-        (a.StartLine, a.StartColumn) < (b.StartLine, b.StartColumn)
-
-    let rangeStartEq (r1: Range) (r2: Range) =
-        r1.StartLine = r2.StartLine && r1.StartColumn = r2.StartColumn
-
-    let rangeEndEq (r1: Range) (r2: Range) =
-        r1.EndLine = r2.EndLine && r1.EndColumn = r2.EndColumn
-
     let rangeEq = Range.equals
 
     let isAdjacentTo (r1: Range) (r2: Range) : bool =
@@ -46,19 +36,6 @@ module RangeHelpers =
             |> List.sortBy (fun r -> r.StartLine, r.StartColumn)
             |> List.reduce Range.unionRanges
             |> Some
-
-    /// Calculate an artificial surface area based on the range.
-    let surfaceArea (maxLineLength: int) (range: range) : int =
-        // Calculate an artificial surface of positions the range consumes.
-        // Take the max_line_length as size for a blank line.
-        // This isn't totally accurate, but will do the trick.
-        let linesInBetween =
-            match [ range.StartLine + 1 .. range.EndLine - 1 ] with
-            | []
-            | [ _ ] -> 0
-            | lines -> lines.Length * maxLineLength
-
-        (maxLineLength - range.StartColumn) + linesInBetween + range.EndColumn
 
 module RangePatterns =
     let (|StartEndRange|) (size: int) (range: range) =
