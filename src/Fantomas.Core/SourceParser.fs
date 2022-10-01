@@ -1161,6 +1161,14 @@ let (|PatLongIdent|_|) =
             Some(ao, synLongIdent, List.map (fun (ident, equalsRange, p) -> (Some(ident, equalsRange), p)) nps, tpso)
     | _ -> None
 
+let (|PatCons|_|) =
+    function
+    | PatLongIdent (ao,
+                    SynLongIdent(trivia = [ Some (IdentTrivia.OriginalNotation "::") ]),
+                    [ _, PatTuple [ p1; p2 ] ],
+                    _) -> Some(ao, p1, p2)
+    | _ -> None
+
 let (|OperatorNameWithStar|PrefixedOperatorNameWithStar|NotAnOperatorNameWithStar|) (synLongIdent: SynLongIdent) =
     match synLongIdent.IdentsWithTrivia with
     | [ SynIdent(trivia = Some (ParenStarSynIdent (lpr, originalNotation, rpr))) as synIdent ] ->
