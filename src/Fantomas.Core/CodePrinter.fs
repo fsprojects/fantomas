@@ -133,7 +133,7 @@ and genModuleOrNamespace
 
     let moduleOrNamespace =
         genModuleOrNamespaceKind moduleRange namespaceRange moduleKind
-        +> opt sepSpace ao genAccess
+        +> genAccessOpt ao
         +> ifElse isRecursive (!- "rec ") sepNone
         +> genLongIdent lids
 
@@ -174,7 +174,7 @@ and genSigModuleOrNamespace
 
     let moduleOrNamespace =
         genModuleOrNamespaceKind moduleRange namespaceRange moduleKind
-        +> opt sepSpace ao genAccess
+        +> genAccessOpt ao
         +> ifElse isRecursive (!- "rec ") sepNone
         +> genLongIdent lids
 
@@ -307,7 +307,7 @@ and genModuleDecl astContext (node: SynModuleDecl) =
         +> !- "extern "
         +> genType { astContext with IsCStylePattern = true } false t
         +> sepSpace
-        +> opt sepSpace ao genAccess
+        +> genAccessOpt ao
         +> genSynLongIdent false sli
         +> sepOpenT
         +> col sepComma ps (genPat { astContext with IsCStylePattern = true })
@@ -341,7 +341,7 @@ and genModuleDecl astContext (node: SynModuleDecl) =
         genPreXmlDoc px
         +> genAttributes astContext ats
         +> genTriviaForOption SynModuleDecl_NestedModule_Module moduleKeyword (!- "module ")
-        +> opt sepSpace ao genAccess
+        +> genAccessOpt ao
         +> ifElse isRecursive (!- "rec ") sepNone
         +> genLongIdent lid
         +> genEq SynModuleDecl_NestedModule_Equals equalsRange
@@ -379,7 +379,7 @@ and genSigModuleDecl astContext node =
         genPreXmlDoc px
         +> genAttributes astContext ats
         +> genTriviaForOption SynModuleSigDecl_NestedModule_Module moduleKeyword !- "module "
-        +> opt sepSpace ao genAccess
+        +> genAccessOpt ao
         +> genLongIdent lid
         +> genEq SynModuleSigDecl_NestedModule_Equals equalsRange
         +> indent
@@ -446,6 +446,9 @@ and genAccess (vis: SynAccess) =
     | SynAccess.Public r -> genTriviaFor SynAccess_Public r !- "public"
     | SynAccess.Internal r -> genTriviaFor SynAccess_Internal r !- "internal"
     | SynAccess.Private r -> genTriviaFor SynAccess_Private r !- "private"
+
+and genAccessOpt (ao: SynAccess option) =
+    optSingle (fun ao -> genAccess ao +> sepSpace) ao
 
 and genAttribute astContext (Attribute (sli, e, target)) =
     match e with
@@ -702,7 +705,7 @@ and genProperty astContext (getOrSetType: FsAstType, getOrSetRange: range, bindi
         | [ _, PatTuple ps ] ->
             let ps, p = tuplerize ps
 
-            opt sepSpace ao genAccess
+            genAccessOpt ao
             +> genGetOrSet
             +> ifElse
                 (List.atMostOne ps)
@@ -712,7 +715,7 @@ and genProperty astContext (getOrSetType: FsAstType, getOrSetRange: range, bindi
             +> genExprSepEqPrependType astContext SynBinding_Equals equalsRange e
 
         | ps ->
-            opt sepSpace ao genAccess
+            genAccessOpt ao
             +> genGetOrSet
             +> col sepSpace ps (fun (_, pat) -> genPat astContext pat)
             +> genExprSepEqPrependType astContext SynBinding_Equals equalsRange e
@@ -740,7 +743,7 @@ and genMemberBinding astContext b =
             let genPat ctx =
                 match p with
                 | PatExplicitCtor (ao, pat) ->
-                    (opt sepSpace ao genAccess
+                    (genAccessOpt ao
                      +> !- "new"
                      +> sepSpaceBeforeClassConstructor
                      +> genPat astContext pat)
@@ -749,7 +752,7 @@ and genMemberBinding astContext b =
 
             genPreXmlDoc px
             +> genAttributes astContext ats
-            +> opt sepSpace ao genAccess
+            +> genAccessOpt ao
             +> genPat
             +> optSingle (fun ident -> !- " as " +> genIdent ident) io
 
@@ -838,7 +841,7 @@ and genVal astContext (Val (ats, px, valKeyword, ao, si, t, vi, isInline, isMuta
     +> (genTriviaForOption SynValSig_Val valKeyword !- "val "
         +> onlyIf isInline (!- "inline ")
         +> onlyIf isMutable (!- "mutable ")
-        +> opt sepSpace ao genAccess
+        +> genAccessOpt ao
         +> typeName)
     +> ifElse hasGenerics sepColonWithSpacesFixed sepColon
     +> ifElse
@@ -3187,7 +3190,7 @@ and genTypeDefn
              +> optSingle (enterNodeFor SynTypeDefn_Type) typeKeyword
              +> !- "type ")
             (!- "and " +> genOnelinerAttributes astContext ats)
-        +> opt sepSpace ao genAccess
+        +> genAccessOpt ao
         +> genTypeAndParam astContext (genLongIdent lids) tds tcs
 
     match tdr with
@@ -3470,7 +3473,7 @@ and genSigTypeDefn
              +> !- "type ")
             ((!- "and " +> genOnelinerAttributes astContext ats)
              |> genTriviaForOnelinerAttributes)
-        +> opt sepSpace ao genAccess
+        +> genAccessOpt ao
 
     let typeName =
         genXmlTypeKeywordAttrsAccess
@@ -3678,8 +3681,8 @@ and genMemberSig astContext node =
         +> genAttributes astContext ats
         +> genMemberFlags mf
         +> ifElse isInline (!- "inline ") sepNone
-        +> opt sepSpace ao genAccess
-        +> genTypeAndParam astContext (genSynIdent false si) tds [] // (if s = "``new``" then "new" else s)
+        +> genAccessOpt ao
+        +> genTypeAndParam astContext (genSynIdent false si) tds []
         +> ifElse hasGenerics sepColonWithSpacesFixed sepColon
         +> ifElse
             (List.isNotEmpty namedArgs)
@@ -3739,7 +3742,7 @@ and genExceptionBody astContext ats px ao uc =
     genPreXmlDoc px
     +> genAttributes astContext ats
     +> !- "exception "
-    +> opt sepSpace ao genAccess
+    +> genAccessOpt ao
     +> genUnionCase astContext false uc
 
 and genException astContext (ExceptionDef (ats, px, ao, uc, withKeyword, ms) as node) =
@@ -3801,7 +3804,7 @@ and genField astContext prefix (Field (ats, px, ao, isStatic, isMutable, t, so, 
     +> ifElse isStatic (!- "static ") sepNone
     +> !-prefix
     +> ifElse isMutable (!- "mutable ") sepNone
-    +> opt sepSpace ao genAccess
+    +> genAccessOpt ao
     +> (opt sepColon so genIdent +> t
         |> optSingle (genTriviaFor SynField_IdentifierAndType) innerRange)
     |> genTriviaFor SynField_ range
@@ -4368,7 +4371,7 @@ and genMemberDefn astContext node =
         +> genAttributes astContext ats
         +> genMemberFlags (memberKindToMemberFlags mk)
         +> str "val "
-        +> opt sepSpace ao genAccess
+        +> genAccessOpt ao
         +> genIdent ident
         +> optPre sepColon sepNone typeOpt (genType astContext false)
         +> genEq SynMemberDefn_AutoProperty_Equals (Some equalsRange)
@@ -4388,7 +4391,7 @@ and genMemberDefn astContext node =
 
         genPreXmlDoc px
         +> genAttributes astContext ats
-        +> opt sepSpace ao genAccess
+        +> genAccessOpt ao
         +> genMemberFlags mf
         +> genSynIdent false si
         +> genTypeParamPostfix astContext tds
@@ -4406,7 +4409,7 @@ and genMemberDefn astContext node =
         +> genAttributes astContext ats
         +> genMemberFlags mf
         +> ifElse isInline (!- "inline ") sepNone
-        +> opt sepSpace ao genAccess
+        +> genAccessOpt ao
         +> genSynLongIdent false memberName
         +> indent
         +> sepNln
@@ -4484,56 +4487,55 @@ and genPat astContext pat =
              +> atCurrentColumnIndent (genType astContext false t))
 
     | PatNamed (ao, SynIdent (_, Some (ParenStarSynIdent (lpr, op, rpr)))) ->
-        opt sepSpace ao genAccess
+        genAccessOpt ao
         +> sepOpenTFor lpr
         +> sepSpace
         +> !-op
         +> sepSpace
         +> sepCloseTFor (Some rpr)
-    | PatNamed (ao, si) -> opt sepSpace ao genAccess +> genSynIdent false si
+    | PatNamed (ao, si) -> genAccessOpt ao +> genSynIdent false si
     | PatAs (p1, p2, r) ->
         genPat astContext p1 +> !- " as " +> genPat astContext p2
         |> genTriviaFor SynPat_As r
-    | PatLongIdent (ao, sli, ps, tpso) ->
-        let aoc = opt sepSpace ao genAccess
 
-        let tpsoc =
-            opt sepNone tpso (fun (ValTyparDecls (tds, _)) -> genTypeParamPostfix astContext tds)
+    | PatCons (ao, p1, p2) -> genAccessOpt ao +> genPat astContext p1 +> !- " :: " +> genPat astContext p2
 
-        match ps, sli with
-        | [], _ -> aoc +> genSynLongIdent false sli +> tpsoc
-        | [ (_, PatTuple [ p1; p2 ]) ], SynLongIdent(trivia = [ Some (IdentTrivia.OriginalNotation "::") ]) ->
-            aoc +> genPat astContext p1 +> !- " :: " +> genPat astContext p2
-        | [ ido, p as ip ], _ ->
-            aoc
+    | PatLongIdent (ao, sli, [], vtdo) ->
+        genAccessOpt ao
+        +> genSynLongIdent false sli
+        +> genValTyparDeclsOpt astContext vtdo
+
+    | PatLongIdent (ao, sli, [ ido, p as ip ], vtdo) ->
+        genAccessOpt ao
+        +> genSynLongIdent false sli
+        +> genValTyparDeclsOpt astContext vtdo
+        +> ifElse
+            (hasParenInPat p)
+            (ifElseCtx (fun ctx -> addSpaceBeforeParensInFunDef ctx.Config.SpaceBeforeParameter sli p) sepSpace sepNone)
+            sepSpace
+        +> ifElse
+            (Option.isSome ido)
+            (sepOpenT +> genPatWithIdent astContext ip +> sepCloseT)
+            (genPatWithIdent astContext ip)
+
+    | PatLongIdent (ao, sli, ps, vtdo) ->
+        let hasBracket = ps |> Seq.map fst |> Seq.exists Option.isSome
+
+        let genName =
+            genAccessOpt ao
             +> genSynLongIdent false sli
-            +> tpsoc
-            +> ifElse
-                (hasParenInPat p || Option.isSome ido)
-                (ifElseCtx
-                    (fun ctx -> addSpaceBeforeParensInFunDef ctx.Config.SpaceBeforeParameter sli p)
-                    sepSpace
-                    sepNone)
-                sepSpace
-            +> ifElse
-                (Option.isSome ido)
-                (sepOpenT +> genPatWithIdent astContext ip +> sepCloseT)
-                (genPatWithIdent astContext ip)
-        // This pattern is potentially long
-        | ps, _ ->
-            let hasBracket = ps |> Seq.map fst |> Seq.exists Option.isSome
+            +> genValTyparDeclsOpt astContext vtdo
+            +> sepSpace
 
-            let genName = aoc +> genSynLongIdent false sli +> tpsoc +> sepSpace
+        let genParameters =
+            expressionFitsOnRestOfLine
+                (atCurrentColumn (col (ifElse hasBracket sepSemi sepSpace) ps (genPatWithIdent astContext)))
+                (atCurrentColumn (col sepNln ps (genPatWithIdent astContext)))
 
-            let genParameters =
-                expressionFitsOnRestOfLine
-                    (atCurrentColumn (col (ifElse hasBracket sepSemi sepSpace) ps (genPatWithIdent astContext)))
-                    (atCurrentColumn (col sepNln ps (genPatWithIdent astContext)))
-
-            genName
-            +> ifElse hasBracket sepOpenT sepNone
-            +> genParameters
-            +> ifElse hasBracket sepCloseT sepNone
+        genName
+        +> ifElse hasBracket sepOpenT sepNone
+        +> genParameters
+        +> ifElse hasBracket sepCloseT sepNone
 
     | PatParen (_, PatUnitConst, _) -> !- "()"
     | PatParen (lpr, p, rpr) ->
@@ -4637,6 +4639,9 @@ and genPat astContext pat =
         | SynPat.Or _ -> genTriviaFor SynPat_Or pat.Range
         | _ -> id)
 
+and genValTyparDeclsOpt (astContext: ASTContext) (vtdOpt: SynValTyparDecls option) : Context -> Context =
+    optSingle (fun (ValTyparDecls (tds, _)) -> genTypeParamPostfix astContext tds) vtdOpt
+
 and genSynBindingFunction
     (astContext: ASTContext)
     (isMemberDefinition: bool)
@@ -4673,11 +4678,11 @@ and genSynBindingFunction
     let afterLetKeyword =
         ifElse isMutable (!- "mutable ") sepNone
         +> ifElse isInline (!- "inline ") sepNone
-        +> opt sepSpace ao genAccess
+        +> genAccessOpt ao
 
     let genFunctionName =
         genSynBindingFunctionName functionName
-        +> opt sepNone genericTypeParameters (fun (ValTyparDecls (tds, _)) -> genTypeParamPostfix astContext tds)
+        +> genValTyparDeclsOpt astContext genericTypeParameters
 
     let genSignature =
         let spaceBeforeParameters =
@@ -4770,11 +4775,11 @@ and genSynBindingFunctionWithReturnType
     let afterLetKeyword =
         ifElse isMutable (!- "mutable ") sepNone
         +> ifElse isInline (!- "inline ") sepNone
-        +> opt sepSpace ao genAccess
+        +> genAccessOpt ao
 
     let genFunctionName =
         genSynBindingFunctionName functionName
-        +> opt sepNone genericTypeParameters (fun (ValTyparDecls (tds, _)) -> genTypeParamPostfix astContext tds)
+        +> genValTyparDeclsOpt astContext genericTypeParameters
 
     let genReturnType isFixed =
         let genMetadataAttributes =
@@ -4862,7 +4867,7 @@ and genLetBindingDestructedTuple
             (!-pref +> genOnelinerAttributes astContext ats)
 
     let afterLetKeyword =
-        opt sepSpace ao genAccess
+        genAccessOpt ao
         +> ifElse isMutable (!- "mutable ") sepNone
         +> ifElse isInline (!- "inline ") sepNone
 
@@ -4906,7 +4911,7 @@ and genSynBindingValue
             (pref +> genOnelinerAttributes astContext ats)
 
     let afterLetKeyword =
-        opt sepSpace ao genAccess
+        genAccessOpt ao
         +> ifElse isMutable (!- "mutable ") sepNone
         +> ifElse isInline (!- "inline ") sepNone
 
