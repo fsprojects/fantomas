@@ -479,11 +479,10 @@ let ``parenthesis around composed function expression, 1341`` () =
     |> should
         equal
         """
-(f >> g)
-    (
-        bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb,
-        c
-    )
+(f >> g) (
+    bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb,
+    c
+)
 """
 
 [<Test>]
@@ -528,11 +527,10 @@ let ``parenthesis around simple function expression`` () =
     |> should
         equal
         """
-(ignore)
-    (
-        "Tuuuuuuuuuuuuurn Tuuuuuuuuuuuuurn Tuuuuuuuuuuuuurn Tuuuuuuuuuuuuurn tooooooooooooooooooooooo stooooooooooooooooooooooooone",
-        42
-    )
+(ignore) (
+    "Tuuuuuuuuuuuuurn Tuuuuuuuuuuuuurn Tuuuuuuuuuuuuurn Tuuuuuuuuuuuuurn tooooooooooooooooooooooo stooooooooooooooooooooooooone",
+    42
+)
 """
 
 [<Test>]
@@ -547,8 +545,9 @@ let ``parenthesis around simple function expression with single parenthesis argu
     |> should
         equal
         """
-(ignore)
-    ("Tuuuuuuuuuuuuurn tooooooooooooooooooooooo stooooooooooooooooooooooooone")
+(ignore) (
+    "Tuuuuuuuuuuuuurn tooooooooooooooooooooooo stooooooooooooooooooooooooone"
+)
 """
 
 [<Test>]
@@ -565,12 +564,11 @@ stooooooooooooooooooooooooone\"\"\")
     |> should
         equal
         "
-(ignore)
-    (
-        \"\"\"Tuuuuuuuuuuuuurn
+(ignore) (
+    \"\"\"Tuuuuuuuuuuuuurn
 tooooooooooooooooooooooo
 stooooooooooooooooooooooooone\"\"\"
-    )
+)
 "
 
 [<Test>]
@@ -1074,10 +1072,10 @@ module Utils
 
 type U = A of int | B of string
 
-type C() = 
+type C() =
     member this.M (a : int, b : string) = ()
 
-let f () = 
+let f () =
     let u = A 0
     do C().M(
         match u with
@@ -1116,4 +1114,26 @@ let f () =
                   | A _ -> ""
                   | B s -> s
             )
+"""
+
+[<Test>]
+let ``function invocation wrapped in parentheses, 2382`` () =
+    formatSourceString
+        false
+        """
+(ignore)
+    (
+        "Tuuuuuuuuuuuuurn Tuuuuuuuuuuuuurn Tuuuuuuuuuuuuurn Tuuuuuuuuuuuuurn tooooooooooooooooooooooo stooooooooooooooooooooooooone",
+        42
+    )
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+(ignore) (
+    "Tuuuuuuuuuuuuurn Tuuuuuuuuuuuuurn Tuuuuuuuuuuuuurn Tuuuuuuuuuuuuurn tooooooooooooooooooooooo stooooooooooooooooooooooooone",
+    42
+)
 """
