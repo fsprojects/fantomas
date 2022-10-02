@@ -4456,7 +4456,7 @@ and genPat astContext pat =
         +> genSynLongIdent false sli
         +> genValTyparDeclsOpt astContext vtdo
         +> ifElse
-            (hasParenInPat p)
+            (hasParenInPat p || Option.isSome ido)
             (ifElseCtx (fun ctx -> addSpaceBeforeParensInFunDef ctx.Config.SpaceBeforeParameter sli p) sepSpace sepNone)
             sepSpace
         +> ifElse
