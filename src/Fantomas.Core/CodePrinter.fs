@@ -1011,23 +1011,13 @@ and genExpr astContext synExpr ctx =
         | Tuple (es, _) -> genTuple astContext es
         | StructTuple es -> !- "struct " +> sepOpenT +> genTuple astContext es +> sepCloseT
         | ArrayOrList (sr, isArray, [], er, _) ->
-            ifElse
-                isArray
-                (genTriviaFor SynExpr_ArrayOrList_OpeningDelimiter sr sepOpenAFixed
-                 +> genTriviaFor SynExpr_ArrayOrList_ClosingDelimiter er sepCloseAFixed)
-                (genTriviaFor SynExpr_ArrayOrList_OpeningDelimiter sr sepOpenLFixed
-                 +> genTriviaFor SynExpr_ArrayOrList_ClosingDelimiter er sepCloseLFixed)
+            genArrayOrListOpeningToken isArray true sr
+            +> genArrayOrListClosingToken isArray true er
         | ArrayOrList (openingTokenRange, isArray, xs, closingTokenRange, _) ->
             let smallExpression =
-                ifElse
-                    isArray
-                    (genTriviaFor SynExpr_ArrayOrList_OpeningDelimiter openingTokenRange sepOpenA)
-                    (genTriviaFor SynExpr_ArrayOrList_OpeningDelimiter openingTokenRange sepOpenL)
+                genArrayOrListOpeningToken isArray false openingTokenRange
                 +> col sepSemi xs (genExpr astContext)
-                +> ifElse
-                    isArray
-                    (genTriviaFor SynExpr_ArrayOrList_ClosingDelimiter closingTokenRange sepCloseA)
-                    (genTriviaFor SynExpr_ArrayOrList_ClosingDelimiter closingTokenRange sepCloseL)
+                +> genArrayOrListClosingToken isArray false closingTokenRange
 
             let multilineExpression =
                 ifAlignBrackets
@@ -1933,7 +1923,7 @@ and genExpr astContext synExpr ctx =
         | OptVar (isOpt, sli, _) -> ifElse isOpt (!- "?") sepNone +> genSynLongIdent false sli
         | LongIdentSet (sli, e, _) ->
             genSynLongIdent false sli
-            +> !- " <- "
+            +> sepArrowRev
             +> autoIndentAndNlnIfExpressionExceedsPageWidthUnlessStroustrup (genExpr astContext) e
         | DotIndexedGet (App (e, [ ConstExpr (SynConst.Unit, _) as ux ]), indexArgs) ->
             genExpr astContext e
@@ -2002,6 +1992,16 @@ and genExpr astContext synExpr ctx =
             +> genExpr astContext indexArgs
             +> !- "] <- "
             +> autoIndentAndNlnIfExpressionExceedsPageWidthUnlessStroustrup (genExpr astContext) valueExpr
+
+        // a.b[c] <- d
+        | NamedIndexedPropertySet (sli, ArrayOrList (sr, isArray, [ e1 ], er, range), e2) ->
+            genSynLongIdent false sli
+            +> genArrayOrListOpeningToken isArray true sr
+            +> genExpr astContext e1
+            +> genArrayOrListClosingToken isArray true er
+            +> sepArrowRev
+            +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e2)
+
         | NamedIndexedPropertySet (sli, e1, e2) ->
             let sep =
                 match e1 with
@@ -2012,14 +2012,15 @@ and genExpr astContext synExpr ctx =
             genSynLongIdent false sli
             +> sep
             +> genExpr astContext e1
-            +> !- " <- "
+            +> sepArrowRev
             +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e2)
+
         | DotNamedIndexedPropertySet (e, sli, e1, e2) ->
             genExpr astContext e
             +> sepDot
             +> genSynLongIdent false sli
             +> genExpr astContext e1
-            +> !- " <- "
+            +> sepArrowRev
             +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e2)
 
         // typeof<System.Collections.IEnumerable>.FullName
@@ -2043,12 +2044,12 @@ and genExpr astContext synExpr ctx =
             addParenIfAutoNln e1 (genExpr astContext)
             +> sepDot
             +> genSynLongIdent false sli
-            +> !- " <- "
+            +> sepArrowRev
             +> autoIndentAndNlnIfExpressionExceedsPageWidthUnlessStroustrup (genExpr astContext) e2
 
         | SynExpr.Set (e1, e2, _) ->
             addParenIfAutoNln e1 (genExpr astContext)
-            +> !- " <- "
+            +> sepArrowRev
             +> autoIndentAndNlnIfExpressionExceedsPageWidthUnlessStroustrup (genExpr astContext) e2
 
         | ParsingError r ->
@@ -2244,6 +2245,24 @@ and genExpr astContext synExpr ctx =
                 id)
 
     expr ctx
+
+and genArrayOrListOpeningToken isArray isFixed openingTokenRange =
+    if isArray then
+        genTriviaFor SynExpr_ArrayOrList_OpeningDelimiter openingTokenRange (ifElse isFixed sepOpenAFixed sepOpenA)
+    else
+        genTriviaFor SynExpr_ArrayOrList_OpeningDelimiter openingTokenRange (ifElse isFixed sepOpenLFixed sepOpenL)
+
+and genArrayOrListClosingTokenAux closingTokenRange f =
+    genTriviaFor SynExpr_ArrayOrList_ClosingDelimiter closingTokenRange f
+
+and genArrayOrListClosingToken isArray isFixed closingTokenRange =
+    let f =
+        if isArray then
+            (ifElse isFixed sepCloseAFixed sepCloseA)
+        else
+            (ifElse isFixed sepCloseLFixed sepCloseL)
+
+    genArrayOrListClosingTokenAux closingTokenRange f
 
 and genOnelinerInfixExpr astContext e1 operatorSli e2 =
     let genExpr astContext e =
@@ -2627,48 +2646,28 @@ and genMultiLineArrayOrList
     (openingTokenRange: Range)
     (closingTokenRange: Range)
     (astContext: ASTContext)
-    ctx
     =
-    if isArray then
-        (genTriviaFor SynExpr_ArrayOrList_OpeningDelimiter openingTokenRange sepOpenA
-         +> atCurrentColumnIndent (
-             sepNlnWhenWriteBeforeNewlineNotEmpty
-             +> col sepNln xs (genExpr astContext)
-             +> genTriviaFor
-                 SynExpr_ArrayOrList_ClosingDelimiter
-                 closingTokenRange
-                 (ifElseCtx lastWriteEventIsNewline sepCloseAFixed sepCloseA)
-         ))
-            ctx
-    else
-        (genTriviaFor SynExpr_ArrayOrList_OpeningDelimiter openingTokenRange sepOpenL
-         +> atCurrentColumnIndent (
-             sepNlnWhenWriteBeforeNewlineNotEmpty
-             +> col sepNln xs (genExpr astContext)
-             +> genTriviaFor
-                 SynExpr_ArrayOrList_ClosingDelimiter
-                 closingTokenRange
-                 (ifElseCtx lastWriteEventIsNewline sepCloseLFixed sepCloseL)
-         ))
-            ctx
+    genArrayOrListOpeningToken isArray false openingTokenRange
+    +> atCurrentColumnIndent (
+        sepNlnWhenWriteBeforeNewlineNotEmpty
+        +> col sepNln xs (genExpr astContext)
+        +> (genArrayOrListClosingTokenAux closingTokenRange (fun ctx ->
+            let isFixed = lastWriteEventIsNewline ctx
+
+            if isArray && isFixed then sepCloseAFixed ctx
+            elif isArray then sepCloseA ctx
+            elif isFixed then sepCloseLFixed ctx
+            else sepCloseL ctx))
+    )
 
 and genMultiLineArrayOrListAlignBrackets (isArray: bool) xs openingTokenRange closingTokenRange astContext =
-    if isArray then
-        genTriviaFor SynExpr_ArrayOrList_OpeningDelimiter openingTokenRange sepOpenAFixed
-        +> indent
-        +> sepNlnUnlessLastEventIsNewline
-        +> col sepNln xs (genExpr astContext)
-        +> unindent
-        +> sepNlnUnlessLastEventIsNewline
-        +> genTriviaFor SynExpr_ArrayOrList_ClosingDelimiter closingTokenRange sepCloseAFixed
-    else
-        genTriviaFor SynExpr_ArrayOrList_OpeningDelimiter openingTokenRange sepOpenLFixed
-        +> indent
-        +> sepNlnUnlessLastEventIsNewline
-        +> col sepNln xs (genExpr astContext)
-        +> unindent
-        +> sepNlnUnlessLastEventIsNewline
-        +> genTriviaFor SynExpr_ArrayOrList_ClosingDelimiter closingTokenRange sepCloseLFixed
+    genArrayOrListOpeningToken isArray true openingTokenRange
+    +> indent
+    +> sepNlnUnlessLastEventIsNewline
+    +> col sepNln xs (genExpr astContext)
+    +> unindent
+    +> sepNlnUnlessLastEventIsNewline
+    +> genArrayOrListClosingToken isArray true closingTokenRange
 
 and genApp astContext e es ctx =
     let shortExpression =

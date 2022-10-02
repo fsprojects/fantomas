@@ -235,3 +235,20 @@ let meh = myList[0][1][2]
         """
 let meh = myList[0][1][2]
 """
+
+[<Test>]
+let ``prefixed index syntax, 2494`` () =
+    formatSourceString
+        false
+        """
+b[c] <- d
+a.b[c] <- d
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+b[c] <- d
+a.b[c] <- d
+"""
