@@ -1933,7 +1933,7 @@ and genExpr astContext synExpr ctx =
         | OptVar (isOpt, sli, _) -> ifElse isOpt (!- "?") sepNone +> genSynLongIdent false sli
         | LongIdentSet (sli, e, _) ->
             genSynLongIdent false sli
-            +> !- " <- "
+            +> sepArrowRev
             +> autoIndentAndNlnIfExpressionExceedsPageWidthUnlessStroustrup (genExpr astContext) e
         | DotIndexedGet (App (e, [ ConstExpr (SynConst.Unit, _) as ux ]), indexArgs) ->
             genExpr astContext e
@@ -2002,6 +2002,16 @@ and genExpr astContext synExpr ctx =
             +> genExpr astContext indexArgs
             +> !- "] <- "
             +> autoIndentAndNlnIfExpressionExceedsPageWidthUnlessStroustrup (genExpr astContext) valueExpr
+
+        // a.b[c] <- d
+        | NamedIndexedPropertySet (sli, ArrayOrList (sr, isArray, [ e1 ], er, range), e2) ->
+            genSynLongIdent false sli
+            +> genArrayOrListOpeningToken isArray true sr
+            +> genExpr astContext e1
+            +> genArrayOrListClosingToken isArray true er
+            +> sepArrowRev
+            +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e2)
+
         | NamedIndexedPropertySet (sli, e1, e2) ->
             let sep =
                 match e1 with
@@ -2012,14 +2022,15 @@ and genExpr astContext synExpr ctx =
             genSynLongIdent false sli
             +> sep
             +> genExpr astContext e1
-            +> !- " <- "
+            +> sepArrowRev
             +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e2)
+
         | DotNamedIndexedPropertySet (e, sli, e1, e2) ->
             genExpr astContext e
             +> sepDot
             +> genSynLongIdent false sli
             +> genExpr astContext e1
-            +> !- " <- "
+            +> sepArrowRev
             +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e2)
 
         // typeof<System.Collections.IEnumerable>.FullName
@@ -2035,12 +2046,12 @@ and genExpr astContext synExpr ctx =
             addParenIfAutoNln e1 (genExpr astContext)
             +> sepDot
             +> genSynLongIdent false sli
-            +> !- " <- "
+            +> sepArrowRev
             +> autoIndentAndNlnIfExpressionExceedsPageWidthUnlessStroustrup (genExpr astContext) e2
 
         | SynExpr.Set (e1, e2, _) ->
             addParenIfAutoNln e1 (genExpr astContext)
-            +> !- " <- "
+            +> sepArrowRev
             +> autoIndentAndNlnIfExpressionExceedsPageWidthUnlessStroustrup (genExpr astContext) e2
 
         | ParsingError r ->
@@ -2236,6 +2247,18 @@ and genExpr astContext synExpr ctx =
                 id)
 
     expr ctx
+
+and genArrayOrListOpeningToken isArray isFixed openingTokenRange =
+    if isArray then
+        genTriviaFor SynExpr_ArrayOrList_OpeningDelimiter openingTokenRange (ifElse isFixed sepOpenAFixed sepOpenA)
+    else
+        genTriviaFor SynExpr_ArrayOrList_OpeningDelimiter openingTokenRange (ifElse isFixed sepOpenLFixed sepOpenL)
+
+and genArrayOrListClosingToken isArray isFixed closingTokenRange =
+    if isArray then
+        genTriviaFor SynExpr_ArrayOrList_ClosingDelimiter closingTokenRange (ifElse isFixed sepCloseAFixed sepCloseA)
+    else
+        genTriviaFor SynExpr_ArrayOrList_ClosingDelimiter closingTokenRange (ifElse isFixed sepCloseLFixed sepCloseL)
 
 and genOnelinerInfixExpr astContext e1 operatorSli e2 =
     let genExpr astContext e =
