@@ -2212,3 +2212,24 @@ let foo =
     | Bar (1 | 2) -> true
     | _ -> false
 """
+
+[<Test>]
+let ``long pattern with named argument`` () =
+    formatSourceString
+        false
+        """
+let addSpaceBeforeParensInFunDef (spaceBeforeSetting: bool) (functionOrMethod: SynLongIdent) args =
+    match functionOrMethod, args with
+    | SynLongIdent(id = [ newIdent ]), _ when newIdent.idText = "new" -> false
+    | _ -> true
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let addSpaceBeforeParensInFunDef (spaceBeforeSetting: bool) (functionOrMethod: SynLongIdent) args =
+    match functionOrMethod, args with
+    | SynLongIdent(id = [ newIdent ]), _ when newIdent.idText = "new" -> false
+    | _ -> true
+"""
