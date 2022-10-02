@@ -1569,16 +1569,6 @@ and genExpr astContext synExpr ctx =
 
             fun ctx -> isShortExpression ctx.Config.MaxDotGetExpressionWidth short long ctx
 
-        // (*) (60. * 1.1515 * 1.609344)
-        // function is wrapped in parenthesis
-        | AppParenArg (Choice1Of2 (Paren _, _, _, _, _, _) as app)
-        | AppParenArg (Choice2Of2 (Paren _, _, _, _, _) as app) ->
-            let short = genAppWithParenthesis app astContext
-
-            let long = genAlternativeAppWithParenthesis app astContext
-
-            expressionFitsOnRestOfLine short long
-
         // path.Replace("../../../", "....")
         | AppSingleParenArg (LongIdentExpr lids as functionOrMethod, px) ->
             let addSpace =
@@ -3107,16 +3097,6 @@ and genMatchBangWith astContext (matchKeyword: range) (matchExpr: SynExpr) (with
         withKeyword
         "with"
 
-and genAlternativeAppWithParenthesis app astContext =
-    match app with
-    | Choice1Of2 t -> genAlternativeAppWithTupledArgument t astContext
-    | Choice2Of2 s -> genAlternativeAppWithSingleParenthesisArgument s astContext
-
-and genAppWithParenthesis app astContext =
-    match app with
-    | Choice1Of2 t -> genAppWithTupledArgument t astContext
-    | Choice2Of2 s -> genAppWithSingleParenthesisArgument s astContext
-
 and collectMultilineItemForSynExpr (astContext: ASTContext) (e: SynExpr) : ColMultilineItem list =
     match e with
     | LetOrUses (bs, e) -> collectMultilineItemForLetOrUses astContext bs (collectMultilineItemForSynExpr astContext e)
@@ -4077,11 +4057,7 @@ and genClause
         +> leadingExpressionIsMultiline
             (optPre (!- " when") sepNone eo (fun e ->
                 let short = sepSpace +> genExpr astContext e
-
-                let long =
-                    match e with
-                    | AppParenArg app -> indentSepNlnUnindent (genAlternativeAppWithParenthesis app astContext)
-                    | e -> indentSepNlnUnindent (genExpr astContext e)
+                let long = indentSepNlnUnindent (genExpr astContext e)
 
                 expressionFitsOnRestOfLine short long))
             (fun isMultiline ctx ->

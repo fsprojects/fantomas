@@ -1735,22 +1735,6 @@ let isSynExprLambdaOrIfThenElse =
     | SynExpr.IfThenElse _ -> true
     | _ -> false
 
-let (|AppParenTupleArg|_|) e =
-    match e with
-    | AppSingleParenArg (a, Paren (lpr, Tuple (ts, tr), rpr, pr)) -> Some(a, lpr, ts, tr, rpr, pr)
-    | _ -> None
-
-let (|AppParenSingleArg|_|) e =
-    match e with
-    | AppSingleParenArg (a, Paren (lpr, p, rpr, pr)) -> Some(a, lpr, p, rpr, pr)
-    | _ -> None
-
-let (|AppParenArg|_|) e =
-    match e with
-    | AppParenTupleArg t -> Choice1Of2 t |> Some
-    | AppParenSingleArg s -> Choice2Of2 s |> Some
-    | _ -> None
-
 let (|StroustrupStyleExpr|_|) (isStroustrupStyleEnabled: bool) (e: SynExpr) =
     if not isStroustrupStyleEnabled then
         None

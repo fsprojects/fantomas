@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+* Function call with parenthesis around function name. [#2382](https://github.com/fsprojects/fantomas/issues/2382)
+
 ## [5.1.0-alpha-002] - 2022-09-29
 
 ### Changed
