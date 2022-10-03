@@ -3939,7 +3939,7 @@ and genType astContext t =
         genOnelinerAttributes astContext attrs
         +> onlyIf isOptional !- "?"
         +> optSingle (fun id -> genIdent id +> sepColon) identOpt
-        +> genType astContext innerT
+        +> autoIndentAndNlnIfExpressionExceedsPageWidth (genType astContext innerT)
         |> genTriviaFor SynType_SignatureParameter t.Range
     | t -> failwithf "Unexpected type: %O" t
 

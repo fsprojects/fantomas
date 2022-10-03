@@ -1605,12 +1605,13 @@ namespace Foo
 
 type Bar =
     member Hello :
-        thing : XLongLongLongLongLongLongLongLong<bool -> 'a,
-                                                  bool -> 'b,
-                                                  bool -> 'c,
-                                                  bool -> 'd,
-                                                  bool -> ('e -> 'f) -> 'g,
-                                                  ('h -> 'i) -> 'j> *
+        thing :
+            XLongLongLongLongLongLongLongLong<bool -> 'a,
+                                              bool -> 'b,
+                                              bool -> 'c,
+                                              bool -> 'd,
+                                              bool -> ('e -> 'f) -> 'g,
+                                              ('h -> 'i) -> 'j> *
         item : int list ->
             LongLongLongLongLongLongLongLongLongLongLongLongLongLongLongLong
 """
@@ -1790,11 +1791,16 @@ namespace Oslo
 
 type Meh =
     member ResolveDependencies:
-        scriptDirectory: string *
-        scriptName: string ->
-            scriptName: string *
-            scriptExt: string *
-            timeout: int ->
+        scriptDirectory:
+            string *
+        scriptName:
+            string ->
+            scriptName:
+                string *
+            scriptExt:
+                string *
+            timeout:
+                int ->
                 obj
 """
 
@@ -1820,7 +1826,8 @@ namespace Oslo
 
 type Meh =
     member ResolveDependencies:
-        scriptDirectory: string *
+        scriptDirectory:
+            string *
         scriptName: string ->
             scriptName: string ->
                 obj
@@ -1850,7 +1857,8 @@ namespace Oslo
 
 type Meh =
     member ResolveDependencies:
-        scriptDirectory: string *
+        scriptDirectory:
+            string *
         scriptName: string ->
             scriptName: string ->
                 obj
@@ -1881,7 +1889,8 @@ type Meh =
     member ResolveDependencies:
         criptName: string ->
         foo: string ->
-        scriptDirectory: string *
+        scriptDirectory:
+            string *
         scriptName: string -> // after a tuple, mixed needs an indent
             scriptName: string ->
                 obj
@@ -1905,8 +1914,10 @@ val SampleTupledFunction:
 namespace StyleGuide
 
 val SampleTupledFunction:
-    arg1: string *
-    arg2: string *
+    arg1:
+        string *
+    arg2:
+        string *
     arg3: int *
     arg4: int ->
         int list
@@ -2197,4 +2208,21 @@ namespace A
 
 exception MyFSharpError1 of string
 exception MyFSharpError2 of string * int
+"""
+
+[<Test>]
+let ``long named parameter type in signature`` () =
+    formatSourceString
+        true
+        """
+val a: b: veryLoooooooooooooooooooooooooooooooooooooooooooooongTypeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+val a:
+    b:
+        veryLoooooooooooooooooooooooooooooooooooooooooooooongTypeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
 """
