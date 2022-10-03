@@ -3938,11 +3938,14 @@ and genType astContext t =
     | t -> failwithf "Unexpected type: %O" t
 
 and genSynTupleTypeSegments astContext ts =
-    col sepSpace ts (fun t ->
-        match t with
-        | SynTupleTypeSegment.Type t -> genType astContext t
-        | SynTupleTypeSegment.Star _ -> !- "*"
-        | SynTupleTypeSegment.Slash _ -> !- "/")
+    let genTs addNewline =
+        col sepSpace ts (fun t ->
+            match t with
+            | SynTupleTypeSegment.Type t -> genType astContext t
+            | SynTupleTypeSegment.Star _ -> !- "*" +> onlyIf addNewline sepNln
+            | SynTupleTypeSegment.Slash _ -> !- "/")
+
+    expressionFitsOnRestOfLine (genTs false) (genTs true)
 
 // for example: FSharpx.Regex< @"(?<value>\d+)" >
 and addSpaceIfSynTypeStaticConstantHasAtSignBeforeString (t: SynType) (ctx: Context) =
@@ -4396,7 +4399,10 @@ and genPropertyKind useSyntacticSugar memberKind =
 and genSimplePat astContext node =
     match node with
     | SPId (ident, isOptArg, _) -> onlyIf isOptArg (!- "?") +> genIdent ident
-    | SPTyped (sp, t) -> genSimplePat astContext sp +> sepColon +> genType astContext t
+    | SPTyped (sp, t) ->
+        genSimplePat astContext sp
+        +> sepColon
+        +> autoIndentAndNlnIfExpressionExceedsPageWidth (genType astContext t)
     | SPAttrib (ats, sp) -> genOnelinerAttributes astContext ats +> genSimplePat astContext sp
 
 and genSimplePats astContext node =
@@ -4425,7 +4431,10 @@ and genPat astContext pat =
     | PatAnds ps -> col (!- " & ") ps (genPat astContext)
     | PatNullary PatNull -> !- "null"
     | PatNullary PatWild -> sepWild
-    | PatTyped (p, t) -> genPat astContext p +> sepColon +> atCurrentColumnIndent (genType astContext t)
+    | PatTyped (p, t) ->
+        genPat astContext p
+        +> sepColon
+        +> autoIndentAndNlnIfExpressionExceedsPageWidth (genType astContext t)
     | PatNamed (ao, SynIdent (_, Some (ParenStarSynIdent (lpr, op, rpr)))) ->
         genAccessOpt ao
         +> sepOpenTFor lpr

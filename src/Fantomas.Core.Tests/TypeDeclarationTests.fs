@@ -1650,7 +1650,8 @@ type SomeType =
         "b"
 
     static member Serialize
-        (loooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooong2: SomeType)
+        (loooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooong2:
+            SomeType)
         =
         Encode.string v.Meh
 
@@ -1684,7 +1685,8 @@ type INotifications<'a, 'b, 'c, 'd, 'e> =
 type DeviceNotificationHandler<'Notification, 'CallbackId, 'RegisterInputData, 'RegisterOutputData, 'UnregisterOutputData>
     private
     (
-        client: INotifications<'Notification, 'CallbackId, 'RegisterInputData, 'RegisterOutputData, 'UnregisterOutputData>,
+        client:
+            INotifications<'Notification, 'CallbackId, 'RegisterInputData, 'RegisterOutputData, 'UnregisterOutputData>,
         callbackId: 'CallbackId,
         validateUnregisterOutputData: 'UnregisterOutputData -> unit
     ) =
@@ -2848,14 +2850,18 @@ and [<CustomEquality ; NoComparison>] Bar<'context, 'a> =
                 a.Apply
                     { new ApplyEval<_, _, _> with
                         member __.Eval<'bb>
-                            (a : Foo<'innerContextLongLongLong, 'bb -> 'b> * Foo<'innerContextLongLongLong, 'bb>)
+                            (a :
+                                Foo<'innerContextLongLongLong, 'bb -> 'b> *
+                                Foo<'innerContextLongLongLong, 'bb>)
                             =
                             let (af, av) = a
 
                             b.Apply
                                 { new ApplyEval<_, _, _> with
                                     member __.Eval<'cb>
-                                        (b : Foo<'innerContextLongLongLong, 'cb -> 'b> * Foo<'innerContextLongLongLong, 'bc>)
+                                        (b :
+                                            Foo<'innerContextLongLongLong, 'cb -> 'b> *
+                                            Foo<'innerContextLongLongLong, 'bc>)
                                         =
                                         let (bf, bv) = b
 
