@@ -1,5 +1,10 @@
 # Changelog
 
+## [Unreleased]
+
+### Changed
+* Update FCS to 'Add SynArgPatsNamePatPairsTrivia to SynArgPats.NamePatPairs', commit c208e5ca8a8c9ba864f0cfcce7153fda6eb4d718
+
 ## [5.1.0-alpha-003] - 2022-10-02
 
 ### Changed

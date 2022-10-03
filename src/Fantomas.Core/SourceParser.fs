@@ -1158,21 +1158,25 @@ let (|PatAs|_|) =
     | SynPat.As (p1, p2, r) -> Some(p1, p2, r)
     | _ -> None
 
+let (|PatNamePatPairs|_|) =
+    function
+    | SynPat.LongIdent (synLongIdent,
+                        _,
+                        vtdo,
+                        SynArgPats.NamePatPairs (nps, _, { ParenRange = StartEndRange 1 (lpr, range, rpr) }),
+                        _,
+                        _) -> Some(synLongIdent, vtdo, lpr, nps, rpr, range)
+    | _ -> None
+
 let (|PatLongIdent|_|) =
     function
-    | SynPat.LongIdent (synLongIdent, _, tpso, xs, ao, _) ->
-        match xs with
-        | SynArgPats.Pats ps -> Some(ao, synLongIdent, List.map (fun p -> (None, p)) ps, tpso)
-        | SynArgPats.NamePatPairs (nps, _) ->
-            Some(ao, synLongIdent, List.map (fun (ident, equalsRange, p) -> (Some(ident, equalsRange), p)) nps, tpso)
+    | SynPat.LongIdent (synLongIdent, _, tpso, SynArgPats.Pats ps, ao, _) -> Some(ao, synLongIdent, ps, tpso)
     | _ -> None
 
 let (|PatCons|_|) =
     function
-    | PatLongIdent (ao,
-                    SynLongIdent(trivia = [ Some (IdentTrivia.OriginalNotation "::") ]),
-                    [ _, PatTuple [ p1; p2 ] ],
-                    _) -> Some(ao, p1, p2)
+    | PatLongIdent (ao, SynLongIdent(trivia = [ Some (IdentTrivia.OriginalNotation "::") ]), [ PatTuple [ p1; p2 ] ], _) ->
+        Some(ao, p1, p2)
     | _ -> None
 
 let (|OperatorNameWithStar|PrefixedOperatorNameWithStar|NotAnOperatorNameWithStar|) (synLongIdent: SynLongIdent) =
@@ -1595,7 +1599,7 @@ let (|FunType|) t =
 /// Probably we should use lexing information to improve its accuracy
 let (|Extern|_|) =
     function
-    | Let (LetBinding (ats, px, _, ao, _, _, PatLongIdent (_, s, [ _, PatTuple ps ], _), _, TypedExpr (Typed, _, t))) ->
+    | Let (LetBinding (ats, px, _, ao, _, _, PatLongIdent (_, s, [ PatTuple ps ], _), _, TypedExpr (Typed, _, t))) ->
         let hasDllImportAttr =
             ats
             |> List.exists (fun { Attributes = attrs } ->

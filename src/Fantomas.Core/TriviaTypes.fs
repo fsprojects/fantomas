@@ -299,6 +299,8 @@ type FsAstType =
     | SynConst_SourceIdentifier
     | SynArgPats_Pats
     | SynArgPats_NamePatPairs
+    | SynArgPats_NamePatPairs_OpeningParenthesis
+    | SynArgPats_NamePatPairs_ClosingParenthesis
     | SynArgPats_NamePatPair
     | SynArgPats_NamePatPairs_Equals
     // | SynComponentInfo_
