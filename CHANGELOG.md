@@ -1,5 +1,10 @@
 # Changelog
 
+## [Unreleased]
+
+### Fixed
+* Additional space before equals sign. [#2548](https://github.com/fsprojects/fantomas/issues/2548)
+
 ## [5.0.3] - 2022-09-29
 
 ### Fixed
