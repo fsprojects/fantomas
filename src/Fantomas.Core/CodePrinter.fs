@@ -1251,22 +1251,16 @@ and genExpr astContext synExpr ctx =
                 let body = genExpr astContext
 
                 let expr =
-                    let triviaOfLambda f before (ctx: Context) =
-                        (Map.tryFindOrEmptyList SynExpr_Lambda (if before then ctx.TriviaBefore else ctx.TriviaAfter)
-                         |> List.filter (fun tn -> RangeHelpers.rangeEq tn.Range lambdaRange)
-                         |> f)
-                            ctx
-
                     sepOpenTFor lpr
-                    +> triviaOfLambda printTriviaInstructions true
+                    +> enterNodeFor SynExpr_Lambda lambdaRange
                     +> !- "fun "
-                    +> col sepSpace pats (genPat astContext)
+                    +> genLambdaPats astContext pats
                     +> (fun ctx ->
                         if not ctx.Config.MultiLineLambdaClosingNewline then
                             genLambdaArrowWithTrivia
                                 (fun e ->
                                     body e
-                                    +> triviaOfLambda printTriviaInstructions false
+                                    +> leaveNodeFor SynExpr_Lambda lambdaRange
                                     +> sepNlnWhenWriteBeforeNewlineNotEmpty
                                     +> sepCloseTFor rpr)
                                 expr
@@ -1277,7 +1271,7 @@ and genExpr astContext synExpr ctx =
                                 (genLambdaArrowWithTrivia
                                     (fun e ->
                                         body e
-                                        +> triviaOfLambda printTriviaInstructions false
+                                        +> leaveNodeFor SynExpr_Lambda lambdaRange
                                         +> sepNlnWhenWriteBeforeNewlineNotEmpty)
                                     expr
                                     arrowRange)
@@ -1290,7 +1284,7 @@ and genExpr astContext synExpr ctx =
         | Lambda (pats, arrowRange, expr, _range) ->
             atCurrentColumn (
                 !- "fun "
-                +> col sepSpace pats (genPat astContext)
+                +> genLambdaPats astContext pats
                 +> optSingle (fun arrowRange -> sepArrow |> genTriviaFor SynExpr_Lambda_Arrow arrowRange) arrowRange
                 +> autoIndentAndNlnIfExpressionExceedsPageWidthUnlessStroustrup (genExpr astContext) expr
             )
@@ -2296,6 +2290,11 @@ and genArrayOrListClosingToken isArray isFixed closingTokenRange =
 
     genArrayOrListClosingTokenAux closingTokenRange f
 
+and genLambdaPats astContext pats =
+    let shortPats = col sepSpace pats (genPat astContext)
+    let longPats = indentSepNlnUnindent (col sepNln pats (genPat astContext))
+    expressionFitsOnRestOfLine shortPats longPats
+
 and genOnelinerInfixExpr astContext e1 operatorSli e2 =
     let genExpr astContext e =
         match e with
@@ -2433,9 +2432,14 @@ and genMultilineFunctionApplicationArguments astContext argExpr =
     | Paren (lpr, Lambda (pats, arrowRange, body, range), rpr, _pr) ->
         fun ctx ->
             if ctx.Config.MultiLineLambdaClosingNewline then
+                let genPats =
+                    let shortPats = col sepSpace pats (genPat astContext)
+                    let longPats = atCurrentColumn (sepNln +> col sepNln pats (genPat astContext))
+                    expressionFitsOnRestOfLine shortPats longPats
+
                 (sepOpenTFor lpr
                  +> (!- "fun "
-                     +> col sepSpace pats (genPat astContext)
+                     +> genPats
                      +> genLambdaArrowWithTrivia (genExpr astContext) body arrowRange
                      |> genTriviaFor SynExpr_Lambda range)
                  +> sepNln
@@ -2761,7 +2765,7 @@ and genApp astContext e es ctx =
 
                     match e with
                     | Paren (lpr, Lambda (pats, arrowRange, expr, _range), rpr, pr) ->
-                        genLambda (col sepSpace pats (genPat astContext)) expr lpr rpr arrowRange pr
+                        genLambda (genLambdaPats astContext pats) expr lpr rpr arrowRange pr
                     | _ -> genExpr astContext e)
 
             genExpr astContext e +> indentSepNlnUnindent argExpr

@@ -1024,3 +1024,81 @@ let a =
         | Error err -> false
         )
 """
+
+[<Test>]
+let ``lambda with long list of arguments at end of dotget`` () =
+    formatSourceString
+        false
+        """
+configuration
+    .MinimumLevel
+    .Debug()
+    .WriteTo
+    .Logger(fun (a0: int) (a1: int) (a2: int) (a3: int) (a4: int) (a5: int) (a6: int) (a7: int) (a8: int) (a9: int) (a10: int) (a11: int) ->
+        //
+        ()
+)
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+configuration
+    .MinimumLevel
+    .Debug()
+    .WriteTo
+    .Logger(fun
+                (a0: int)
+                (a1: int)
+                (a2: int)
+                (a3: int)
+                (a4: int)
+                (a5: int)
+                (a6: int)
+                (a7: int)
+                (a8: int)
+                (a9: int)
+                (a10: int)
+                (a11: int) ->
+        //
+        ()
+    )
+"""
+
+[<Test>]
+let ``parameter after multiline lambda with long list of arguments`` () =
+    formatSourceString
+        false
+        """
+let mySuperFunction a =
+    someOtherFunction (fun (a0: int) (a1: int) (a2: int) (a3: int) (a4: int) (a5: int) (a6: int) (a7: int) (a8: int) (a9: int) (a10: int) (a11: int) ->
+        // doing some stuff her
+       b * b
+    ) a
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let mySuperFunction a =
+    someOtherFunction
+        (fun
+            (a0: int)
+            (a1: int)
+            (a2: int)
+            (a3: int)
+            (a4: int)
+            (a5: int)
+            (a6: int)
+            (a7: int)
+            (a8: int)
+            (a9: int)
+            (a10: int)
+            (a11: int) ->
+            // doing some stuff her
+            b * b
+        )
+        a
+"""
