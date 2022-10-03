@@ -3162,3 +3162,35 @@ type ('key, 'value) map when 'key: comparison = Map<'key, 'value>
         """
 type ('key, 'value) map when 'key: comparison = Map<'key, 'value>
 """
+
+[<Test>]
+let ``don't add additional space before equals sign in long alternative constuctor`` () =
+    formatSourceString
+        false
+        """
+type LdapClaimsTransformation(
+                                 ldapSearcher : ILdapSearcher,
+                                 options : ILdapClaimsTransformationOptions
+                             ) =
+
+    interface IClaimsTransformation with
+        member __.TransformAsync principle =
+            3
+"""
+        { config with
+            MaxLineLength = 100
+            AlternativeLongMemberDefinitions = true }
+    |> prepend newline
+    |> should
+        equal
+        """
+type LdapClaimsTransformation
+    (
+        ldapSearcher: ILdapSearcher,
+        options: ILdapClaimsTransformationOptions
+    )
+    =
+
+    interface IClaimsTransformation with
+        member __.TransformAsync principle = 3
+"""

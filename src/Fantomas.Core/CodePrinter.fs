@@ -3394,8 +3394,13 @@ and genTypeDefn
 
     | ObjectModel (_, MemberDefnList (impCtor, others), _) ->
         typeName
-        +> opt sepNone impCtor (fun mdf -> sepSpaceBeforeClassConstructor +> genMemberDefn astContext mdf)
-        +> genEq SynTypeDefn_Equals equalsRange
+        +> leadingExpressionIsMultiline
+            (opt sepNone impCtor (fun mdf -> sepSpaceBeforeClassConstructor +> genMemberDefn astContext mdf))
+            (fun isMultiline ctx ->
+                if ctx.Config.AlternativeLongMemberDefinitions && isMultiline then
+                    genEqFixed SynTypeDefn_Equals equalsRange ctx
+                else
+                    genEq SynTypeDefn_Equals equalsRange ctx)
         +> indentSepNlnUnindent (genMemberDefnList astContext others)
 
     | ExceptionRepr (ExceptionDefRepr (ats, px, ao, uc)) -> genExceptionBody astContext ats px ao uc
