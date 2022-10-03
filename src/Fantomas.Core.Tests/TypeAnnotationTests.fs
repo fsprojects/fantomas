@@ -60,3 +60,28 @@ type Meh
     class
     end
 """
+
+[<Test>]
+let ``long multiline type application`` () =
+    formatSourceString
+        false
+        """
+type X =
+    Teq<int, list int, System.DateTime array,
+            //
+            int>
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type X =
+    Teq<
+        int,
+        list int,
+        System.DateTime array,
+        //
+        int
+    >
+"""

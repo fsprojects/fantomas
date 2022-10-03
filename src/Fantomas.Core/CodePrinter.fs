@@ -3986,14 +3986,15 @@ and genPrefixTypes
             ctx
     | t :: _ ->
         let shortTs = col sepComma ts (genType astContext)
-        let longTs = col (sepComma +> sepNln) ts (genType astContext)
+
+        let longTs =
+            indentSepNlnUnindent (col (sepComma +> sepNln) ts (genType astContext))
+            +> sepNln
 
         (genTriviaForOption lessNodeType lessRange !- "<"
-         +> atCurrentColumnIndent (
-             addSpaceIfSynTypeStaticConstantHasAtSignBeforeString t
-             +> expressionFitsOnRestOfLine shortTs longTs
-             +> addSpaceIfSynTypeStaticConstantHasAtSignBeforeString t
-         )
+         +> addSpaceIfSynTypeStaticConstantHasAtSignBeforeString t
+         +> expressionFitsOnRestOfLine shortTs longTs
+         +> addSpaceIfSynTypeStaticConstantHasAtSignBeforeString t
          +> genTriviaForOption greaterNodeType greaterRange !- ">")
             ctx
 
