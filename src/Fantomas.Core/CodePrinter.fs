@@ -4751,7 +4751,7 @@ and genSynBindingFunctionWithReturnType
     let genReturnType isFixed =
         enterNodeFor SynBindingReturnInfo_ returnType.Range
         +> ifElse isFixed (sepColonFixed +> sepSpace) sepColonWithSpacesFixed
-        +> genType astContext returnType
+        +> atCurrentColumnIndent (genType astContext returnType)
 
     let genSignature =
         let spaceBeforeParameters =
@@ -4783,8 +4783,13 @@ and genSynBindingFunctionWithReturnType
              +> sepNln
              +> genParameters
              +> onlyIf (not hasSingleTupledArg || alternativeSyntax) sepNln
-             +> genReturnType (not hasSingleTupledArg || alternativeSyntax)
-             +> ifElse alternativeSyntax (sepNln +> genEqFixed SynBinding_Equals equalsRange) sepEq
+             +> leadingExpressionIsMultiline
+                 (genReturnType (not hasSingleTupledArg || alternativeSyntax))
+                 (fun isMultiline ->
+                     ifElse
+                         (alternativeSyntax || isMultiline)
+                         (sepNln +> genEqFixed SynBinding_Equals equalsRange)
+                         sepEq)
              +> unindent)
                 ctx
 
