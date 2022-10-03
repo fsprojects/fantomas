@@ -1,5 +1,13 @@
 # Changelog
 
+## [Unreleased]
+
+### Changed
+* Control space in pattern by `fsharp_space_before_lowercase_invocation` and `fsharp_space_before_uppercase_invocation`. [fslang-design/issues/712](https://github.com/fsharp/fslang-design/issues/712)
+
+### Fixed
+* Comments in SynArgPats.NamePatPairs are lost. [#2541](https://github.com/fsprojects/fantomas/issues/2541)
+
 ## [5.1.0-alpha-004] - 2022-10-07
 
 ### Changed

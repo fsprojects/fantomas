@@ -172,7 +172,7 @@ let function1 x y =
                 raise (OuterError("outer"))
         with
         | Failure _ -> ()
-        | InnerError (str) -> printfn "Error1 %s" str
+        | InnerError(str) -> printfn "Error1 %s" str
     finally
         printfn "Always print this."
 """
@@ -629,8 +629,8 @@ let genPropertyWithGetSet astContext (b1, b2) rangeOfMember =
         """
 let genPropertyWithGetSet astContext (b1, b2) rangeOfMember =
     match b1, b2 with
-    | PropertyBinding (ats, px, ao, isInline, mf1, PatLongIdent (ao1, s1, ps1, _), e1),
-      PropertyBinding (_, _, _, _, _, PatLongIdent (ao2, _, ps2, _), e2) ->
+    | PropertyBinding(ats, px, ao, isInline, mf1, PatLongIdent(ao1, s1, ps1, _), e1),
+      PropertyBinding(_, _, _, _, _, PatLongIdent(ao2, _, ps2, _), e2) ->
         let prefix =
             genPreXmlDoc px
             +> genAttributes astContext ats

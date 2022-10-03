@@ -525,7 +525,7 @@ let rec getEndCol (r: Range) (tokenizer: FSharpLineTokenizer) lexState =
 /// Find out the end token
 let rec getEndCol (r: Range) (tokenizer: FSharpLineTokenizer) lexState =
     match tokenizer.ScanToken(!lexState) with
-    | Some (tok), state ->
+    | Some(tok), state ->
         Debug.WriteLine("End token: {0}", sprintf "%A" tok |> box)
 
         if tok.RightColumn >= r.EndColumn && isSignificantToken tok then
@@ -785,7 +785,7 @@ module Foo =
         | Error e ->
             printfn ""
             2
-        | Ok (thing, instructions) ->
+        | Ok(thing, instructions) ->
 
         log.LogInformation("")
 

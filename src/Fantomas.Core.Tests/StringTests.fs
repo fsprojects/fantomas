@@ -286,7 +286,7 @@ let ``newline in string`` () =
         |> getTriviaFromTokens
         |> List.filter (fun { Item = item } ->
             match item with
-            | StringContent ("\"\n\"") -> true
+            | StringContent("\"\n\"") -> true
             | _ -> false)
 
     List.length triviaNodes == 1

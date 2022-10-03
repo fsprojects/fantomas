@@ -263,3 +263,49 @@ let ``ignore setting when function call is the argument of prefix application, 1
 (!- System.String.Empty.PadRight(delta)) ({ ctx with RecordBraceStart = rest })
 !- Meh()
 """
+
+[<Test>]
+let ``no space before uppercase patterns`` () =
+    formatSourceString
+        false
+        """
+match x with
+| A () -> ()
+| b.C () -> ()
+| D (e = f) -> ()
+| g.H (i = j) -> ()
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+match x with
+| A() -> ()
+| b.C() -> ()
+| D(e = f) -> ()
+| g.H(i = j) -> ()
+"""
+
+[<Test>]
+let ``space before uppercase patterns`` () =
+    formatSourceString
+        false
+        """
+match x with
+| A() -> ()
+| b.C() -> ()
+| D(e = f) -> ()
+| g.H(i = j) -> ()
+"""
+        spaceBeforeConfig
+    |> prepend newline
+    |> should
+        equal
+        """
+match x with
+| A () -> ()
+| b.C () -> ()
+| D (e = f) -> ()
+| g.H (i = j) -> ()
+"""

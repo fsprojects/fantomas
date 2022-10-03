@@ -582,7 +582,7 @@ let init =
 let init =
     addDateTimeConverter
         (fun dt -> Date(dt.Year, dt.Month, dt.Day))
-        (fun (Date (y, m, d)) -> System.DateTime(y, m, d))
+        (fun (Date(y, m, d)) -> System.DateTime(y, m, d))
 """
 
 [<Test>]
@@ -787,7 +787,7 @@ let ``desugared union case, 1631`` () =
     |> should
         equal
         """
-col (fun (ArgInfo (ats, so, isOpt), t) -> sepNone)
+col (fun (ArgInfo(ats, so, isOpt), t) -> sepNone)
 """
 
 [<Test>]

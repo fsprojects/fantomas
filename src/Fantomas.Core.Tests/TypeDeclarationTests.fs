@@ -966,7 +966,7 @@ type A() =
         with set v =
             let x =
                 match _kbytes.GetAddress(8) with
-                | Some (x) -> x
+                | Some(x) -> x
                 | None -> null
 
             ignore x
@@ -1018,13 +1018,13 @@ type Bar =
     member this.Item
         with get (i: int) =
             match mo with
-            | Some (m) when m.Groups.[i].Success -> m.Groups.[i].Value
+            | Some(m) when m.Groups.[i].Success -> m.Groups.[i].Value
             | _ -> null
 
     member this.Item
         with get (i: string) =
             match mo with
-            | Some (m) when m.Groups.[i].Success -> m.Groups.[i].Value
+            | Some(m) when m.Groups.[i].Success -> m.Groups.[i].Value
             | _ -> null
 """
 

@@ -170,7 +170,7 @@ module Services =
                         initial
                     )
                     .Resolve
-            | Storage.EventStore (gateway, cache) ->
+            | Storage.EventStore(gateway, cache) ->
                 let accessStrategy = Equinox.EventStore.AccessStrategy.RollingSnapshots snapshot
 
                 let cacheStrategy =
