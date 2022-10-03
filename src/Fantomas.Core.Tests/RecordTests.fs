@@ -2135,3 +2135,47 @@ let compareThings (first: Thing) (second: Thing) =
                 Bar = first.Bar
             }
 """
+
+[<Test>]
+let ``multiline record field type annotation`` () =
+    formatSourceString
+        false
+        """
+type ExprFolder<'State> =
+    { exprIntercept: ('State -> Expr -> 'State) -> ('State -> Expr -> 'State) -> 'State -> Exp -> 'State }
+"""
+        { config with MaxLineLength = 80 }
+    |> prepend newline
+    |> should
+        equal
+        """
+type ExprFolder<'State> =
+    { exprIntercept:
+        ('State -> Expr -> 'State)
+            -> ('State -> Expr -> 'State)
+            -> 'State
+            -> Exp
+            -> 'State }
+"""
+
+[<Test>]
+let ``multiline anonymous record field type annotation`` () =
+    formatSourceString
+        false
+        """
+type ExprFolder<'State> =
+    {| exprIntercept: ('State -> Expr -> 'State) -> ('State -> Expr -> 'State) -> 'State -> Exp -> 'State |}
+"""
+        { config with MaxLineLength = 80 }
+    |> prepend newline
+    |> should
+        equal
+        """
+type ExprFolder<'State> =
+    {| exprIntercept:
+        ('State -> Expr -> 'State)
+            -> ('State -> Expr -> 'State)
+            -> 'State
+            -> Exp
+            -> 'State |}
+"""

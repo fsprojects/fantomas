@@ -3829,7 +3829,7 @@ and genField astContext prefix (Field (ats, px, ao, isStatic, isMutable, t, so, 
     +> !-prefix
     +> ifElse isMutable (!- "mutable ") sepNone
     +> genAccessOpt ao
-    +> (opt sepColon so genIdent +> t
+    +> (opt sepColon so genIdent +> autoIndentAndNlnIfExpressionExceedsPageWidth t
         |> optSingle (genTriviaFor SynField_IdentifierAndType) innerRange)
     |> genTriviaFor SynField_ range
 
@@ -3839,7 +3839,9 @@ and genType astContext t =
         let short =
             col sepNone ts (fun (t, arrow) ->
                 genType astContext t
-                +> genTriviaFor SynType_Fun_Arrow arrow sepArrow
+                +> sepSpace
+                +> genTriviaFor SynType_Fun_Arrow arrow sepArrowFixed
+                +> sepSpace
                 +> sepNlnWhenWriteBeforeNewlineNotEmpty)
             +> genType astContext ret
 
@@ -3961,7 +3963,9 @@ and addSpaceIfSynTypeStaticConstantHasAtSignBeforeString (t: SynType) (ctx: Cont
     onlyIf hasAtSign sepSpace ctx
 
 and genAnonRecordFieldType astContext (AnonRecordFieldType (ident, t)) =
-    genIdent ident +> sepColon +> (genType astContext t)
+    genIdent ident
+    +> sepColon
+    +> autoIndentAndNlnIfExpressionExceedsPageWidth (genType astContext t)
 
 and genPrefixTypes
     astContext
@@ -3981,10 +3985,13 @@ and genPrefixTypes
          +> genTriviaForOption greaterNodeType greaterRange !- " >")
             ctx
     | t :: _ ->
+        let shortTs = col sepComma ts (genType astContext)
+        let longTs = col (sepComma +> sepNln) ts (genType astContext)
+
         (genTriviaForOption lessNodeType lessRange !- "<"
          +> atCurrentColumnIndent (
              addSpaceIfSynTypeStaticConstantHasAtSignBeforeString t
-             +> col sepComma ts (genType astContext)
+             +> expressionFitsOnRestOfLine shortTs longTs
              +> addSpaceIfSynTypeStaticConstantHasAtSignBeforeString t
          )
          +> genTriviaForOption greaterNodeType greaterRange !- ">")
