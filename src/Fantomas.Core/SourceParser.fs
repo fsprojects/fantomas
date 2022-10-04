@@ -1042,10 +1042,25 @@ let rec (|ElIf|_|) =
         Some([ (None, trivia.IfKeyword, trivia.IsElif, e1, trivia.ThenKeyword, e2) ], elseInfo, range)
     | _ -> None
 
+let (|TypeOnlyInheritConstructor|UnitInheritConstructor|ParenInheritConstructor|OtherInheritConstructor|)
+    (
+        t: SynType,
+        e: SynExpr
+    ) =
+    match e with
+    | SynExpr.Const (constant = SynConst.Unit; range = unitRange) ->
+        // The unit expression could have been added artificially.
+        if unitRange.StartColumn + 2 = unitRange.EndColumn then
+            UnitInheritConstructor(t)
+        else
+            TypeOnlyInheritConstructor t
+    | SynExpr.Paren _ as px -> ParenInheritConstructor(t, px)
+    | _ -> OtherInheritConstructor(t, e)
+
 let (|Record|_|) =
     function
     | SynExpr.Record (inheritOpt, eo, xs, StartEndRange 1 (openingBrace, _, closingBrace)) ->
-        let inheritOpt = inheritOpt |> Option.map (fun (typ, expr, _, _, _) -> (typ, expr))
+        let inheritOpt = inheritOpt |> Option.map (fun (t, e, _, _, _) -> t, e)
 
         Some(openingBrace, inheritOpt, xs, Option.map fst eo, closingBrace)
     | _ -> None

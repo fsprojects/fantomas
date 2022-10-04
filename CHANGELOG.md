@@ -4,9 +4,12 @@
 
 ### Changed
 * Control space in pattern by `fsharp_space_before_lowercase_invocation` and `fsharp_space_before_uppercase_invocation`. [fslang-design/issues/712](https://github.com/fsharp/fslang-design/issues/712)
+* Style of base constructor calls. [fsharp/fslang-design#693](https://github.com/fsharp/fslang-design/issues/693)
 
 ### Fixed
 * Comments in SynArgPats.NamePatPairs are lost. [#2541](https://github.com/fsprojects/fantomas/issues/2541)
+* Vanity alignment used inside base ctor call. [#2111](https://github.com/fsprojects/fantomas/issues/2111)
+* Add line break before start of argument list. [#2335](https://github.com/fsprojects/fantomas/issues/2335)
 
 ## [5.1.0-alpha-004] - 2022-10-07
 

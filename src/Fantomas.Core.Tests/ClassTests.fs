@@ -954,8 +954,8 @@ type public DerivedExceptionWithLongNaaaaaaaaameException
         originalRequest: string,
         originalResponse: string
     ) =
-    inherit BaseExceptionWithLongNaaaameException
-        (
+    inherit
+        BaseExceptionWithLongNaaaameException(
             message,
             code,
             originalRequest,
@@ -991,8 +991,8 @@ type public DerivedExceptionWithLongNaaaaaaaaameException
         originalRequest: string,
         originalResponse: string
     ) =
-    inherit BaseExceptionWithLongNaaaameException
-        (
+    inherit
+        BaseExceptionWithLongNaaaameException(
             message,
             code,
             originalRequest,
