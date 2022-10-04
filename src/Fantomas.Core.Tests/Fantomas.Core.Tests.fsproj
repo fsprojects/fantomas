@@ -115,6 +115,7 @@
     <Compile Include="MaxIfThenShortWidthTests.fs" />
     <Compile Include="CodePrinterHelperFunctionsTests.fs" />
     <Compile Include="ASTTransformerTests.fs" />
+    <Compile Include="DotSetTests.fs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Fantomas.Core\Fantomas.Core.fsproj" />

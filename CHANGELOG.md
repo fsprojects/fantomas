@@ -1,9 +1,10 @@
 # Changelog
 
-## [Unreleased]
+## [5.0.4] - 2022-10-04
 
 ### Fixed
 * Additional space before equals sign. [#2548](https://github.com/fsprojects/fantomas/issues/2548)
+* Idempotency problem when DotSet / App / Paren. [#2549](https://github.com/fsprojects/fantomas/issues/2549)
 
 ## [5.0.3] - 2022-09-29
 

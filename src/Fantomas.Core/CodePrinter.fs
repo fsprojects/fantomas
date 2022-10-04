@@ -2040,10 +2040,18 @@ and genExpr astContext synExpr ctx =
             let shortExpr = genExpr astContext e +> genSynLongIdent true sli
 
             let longExpr =
-                //genLongIdentWithMultipleFragmentsMultiline astContext e
                 genExpr astContext e +> indentSepNlnUnindent (genSynLongIdentMultiline true sli)
 
             fun ctx -> isShortExpression ctx.Config.MaxDotGetExpressionWidth shortExpr longExpr ctx
+
+        | DotSet (AppSingleParenArg (e1, px), sli, e2) ->
+            genExpr astContext e1
+            +> genExpr astContext px
+            +> sepDot
+            +> genSynLongIdent false sli
+            +> !- " <- "
+            +> autoIndentAndNlnIfExpressionExceedsPageWidthUnlessStroustrup (genExpr astContext) e2
+
         | DotSet (e1, sli, e2) ->
             addParenIfAutoNln e1 (genExpr astContext)
             +> sepDot
