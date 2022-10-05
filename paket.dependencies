@@ -109,21 +109,6 @@ github: dotnet/fsharp:f8b56cb6db3c90348810263fd7a5d37dc5719e92 src/Compiler/Synt
 github: dotnet/fsharp:f8b56cb6db3c90348810263fd7a5d37dc5719e92 src/Compiler/SyntaxTree/LexFilter.fsi
 github: dotnet/fsharp:f8b56cb6db3c90348810263fd7a5d37dc5719e92 src/Compiler/SyntaxTree/LexFilter.fs
 
-group build
-    storage: none
-    source https://api.nuget.org/v3/index.json
-
-    nuget Microsoft.Azure.Cosmos.Table
-    nuget FSharp.Core ~> 5 content: none
-    nuget Fake.Core.ReleaseNotes
-    nuget Fake.Core.Xml
-    nuget Fake.DotNet.Cli
-    nuget Fake.DotNet.Paket
-    nuget Fake.Tools.Git
-    nuget Fake.Core.Process
-    nuget Fake.Core.Target
-    nuget MSBuild.StructuredLogger 2.1.500
-
 group tool
     storage: none
     source https://api.nuget.org/v3/index.json

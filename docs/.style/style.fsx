@@ -1,18 +1,18 @@
-﻿#r "nuget: JavaScriptEngineSwitcher.ChakraCore.Native.win-x64"
-#r "nuget: JavaScriptEngineSwitcher.ChakraCore.Native.linux-x64"
-#r "nuget: JavaScriptEngineSwitcher.ChakraCore.Native.osx-x64"
-#r "nuget: JavaScriptEngineSwitcher.ChakraCore, 3.18.2"
-#r "nuget: DartSassHost, 1.0.0-preview7"
+﻿#r "nuget: JavaScriptEngineSwitcher.V8.Native.win-x64"
+#r "nuget: JavaScriptEngineSwitcher.V8.Native.linux-x64"
+#r "nuget: JavaScriptEngineSwitcher.V8.Native.osx-x64"
+#r "nuget: JavaScriptEngineSwitcher.V8, 3.20.2"
+#r "nuget: DartSassHost, 1.0.0-preview8"
 #r "nuget: FSharp.Control.Reactive, 5.0.5"
 
 open System
 open System.IO
 open DartSassHost
 open DartSassHost.Helpers
-open JavaScriptEngineSwitcher.ChakraCore
+open JavaScriptEngineSwitcher.V8
 open FSharp.Control.Reactive
 
-let sassCompiler = new SassCompiler(new ChakraCoreJsEngineFactory())
+let sassCompiler = new SassCompiler(new V8JsEngineFactory())
 let (</>) a b = Path.Combine(a, b)
 let inputFileHomepage = __SOURCE_DIRECTORY__ </> "homepage.sass"
 let inputFileTemplate = __SOURCE_DIRECTORY__ </> "fsdocs-custom.sass"

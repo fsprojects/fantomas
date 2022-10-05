@@ -105,9 +105,9 @@ You can find instructions on how to run the documentation locally in the [docs/.
 
 ### Format your changes
 
-- Code should be formatted to our standard style, using either `dotnet fake run build.fsx -t Format` which works on all files, or
-  `dotnet fake run build.fsx -t FormatChanged` to just change the files in git.
-    - If you forget, there's a git `pre-commit` script that will run this for you, make sure to run `dotnet fake build -t EnsureRepoConfig` to set that hook up.
+- Code should be formatted to our standard style, using either `dotnet fsi build.fsx -p FormatAll` which works on all files, or
+  `dotnet fsi build.fsx -p FormatChanged` to just change the files in git.
+    - If you forget, there's a git `pre-commit` script that will run this for you, make sure to run `dotnet fsi build.fsx -p EnsureRepoConfig` to set that hook up.
 
 ### Changelog
 
@@ -137,7 +137,7 @@ You can find instructions on how to run the documentation locally in the [docs/.
 
 ### Run a local build
 
-Finally, make sure to run `dotnet fake build`. Among other things, this will check the format of the code and will tell you, if
+Finally, make sure to run `dotnet fsi build.fsx`. Among other things, this will check the format of the code and will tell you, if
 your changes caused any tests to fail.
 
 ### Small steps
