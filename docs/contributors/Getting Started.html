@@ -212,19 +212,20 @@ git push
 <p>After cloning the repository, you can restore the local .NET tools:</p>
 <table class="pre"><tr><td class="snippet"><pre class="fssnip"><code lang="shell">dotnet tool restore
 </code></pre></td></tr></table>
-<p>Next, you should run the default FAKE target.
+<p>Next, you should run the default build script.
 This will build the solution, run all unit tests and do everything that the CI build does.</p>
-<table class="pre"><tr><td class="snippet"><pre class="fssnip"><code lang="shell">dotnet fake build
+<table class="pre"><tr><td class="snippet"><pre class="fssnip"><code lang="shell">dotnet fsi build.fsx
 </code></pre></td></tr></table>
-<p>If you are unfamiliar with <a href="https://fake.build/">FAKE</a>, you can read the <a href="https://fake.build/fake-gettingstarted.html">FAKE getting started guide</a>.<br />
-To see what other targets are available, run:</p>
-<table class="pre"><tr><td class="snippet"><pre class="fssnip"><code lang="shell">dotnet fake run build.fsx --list
-</code></pre></td></tr></table>
-<p>Next, you should run a FAKE target that sets up some git repo-level configuration.</p>
-<table class="pre"><tr><td class="snippet"><pre class="fssnip"><code lang="shell">dotnet fake build -t EnsureRepoConfig
-</code></pre></td></tr></table>
-<p>This target makes changes to the local git repository configuration to ensure
-that formatting of new code is consistent before it is pushed up to a remote repository.</p>
+<p>Alternately, you can also run some other pipelines using <code>-p</code>.
+Examples:</p>
+<ul>
+<li><code>dotnet fsi build.fsx -p FormatChanged</code> will format all modified files detected by <code>git</code>.</li>
+<li><code>dotnet fsi build.fsx -p Docs</code> will serve the documentation website locally.</li>
+<li>
+<code>dotnet fsi build.fsx -p EnsureRepoConfig</code> sets up some git repo-level configuration to ensure
+that formatting of new code is consistent before it is pushed up to a remote repository.
+</li>
+</ul>
 <fantomas-nav previous="./FSharp.html" next="./Solution%20Structure.html">
 
         

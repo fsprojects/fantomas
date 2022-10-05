@@ -268,10 +268,10 @@ For example, <code>git checkout -b fix-1404</code>.</p>
 <h3><a name="Format-your-changes" class="anchor" href="#Format-your-changes">Format your changes</a></h3>
 <ul>
 <li>
-Code should be formatted to our standard style, using either <code>dotnet fake run build.fsx -t Format</code> which works on all files, or
-<code>dotnet fake run build.fsx -t FormatChanged</code> to just change the files in git.
+Code should be formatted to our standard style, using either <code>dotnet fsi build.fsx -p FormatAll</code> which works on all files, or
+<code>dotnet fsi build.fsx -p FormatChanged</code> to just change the files in git.
 <ul>
-<li>If you forget, there's a git <code>pre-commit</code> script that will run this for you, make sure to run <code>dotnet fake build -t EnsureRepoConfig</code> to set that hook up.</li>
+<li>If you forget, there's a git <code>pre-commit</code> script that will run this for you, make sure to run <code>dotnet fsi build.fsx -p EnsureRepoConfig</code> to set that hook up.</li>
 </ul>
 </li>
 </ul>
@@ -313,7 +313,7 @@ When fixing a <code>bug (stylistic)</code>, add a line in the following format t
 </li>
 </ul>
 <h3><a name="Run-a-local-build" class="anchor" href="#Run-a-local-build">Run a local build</a></h3>
-<p>Finally, make sure to run <code>dotnet fake build</code>. Among other things, this will check the format of the code and will tell you, if
+<p>Finally, make sure to run <code>dotnet fsi build.fsx</code>. Among other things, this will check the format of the code and will tell you, if
 your changes caused any tests to fail.</p>
 <h3><a name="Small-steps" class="anchor" href="#Small-steps">Small steps</a></h3>
 <p>It is better to create a draft pull request with some initial small changes, and engage conversation, than to spend a lot of effort on a large pull request that was never discussed.
