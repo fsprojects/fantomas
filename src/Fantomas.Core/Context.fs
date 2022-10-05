@@ -370,23 +370,30 @@ let private (|EmptyHashDefineBlock|_|) (events: WriterEvent array) =
 
 /// Validate if there is a complete blank line between the last write event and the last event
 let newlineBetweenLastWriteEvent ctx =
-    ctx.WriterEvents
-    |> Queue.rev
-    |> Seq.takeWhile (function
-        | Write ""
-        | WriteLine
-        | IndentBy _
-        | UnIndentBy _
-        | SetIndent _
-        | RestoreIndent _
-        | SetAtColumn _
-        | RestoreAtColumn _ -> true
-        | _ -> false)
-    |> Seq.filter (function
-        | WriteLine _ -> true
-        | _ -> false)
-    |> Seq.length
-    |> fun writeLines -> writeLines > 1
+    let newLineEvents =
+        ctx.WriterEvents
+        |> Queue.rev
+        |> Seq.takeWhile (function
+            | Write ""
+            | WriteLine
+            | WriteLineBecauseOfTrivia
+            | IndentBy _
+            | UnIndentBy _
+            | SetIndent _
+            | RestoreIndent _
+            | SetAtColumn _
+            | RestoreAtColumn _ -> true
+            | _ -> false)
+        |> Seq.filter (function
+            | WriteLine _
+            | WriteLineBecauseOfTrivia -> true
+            | _ -> false)
+        |> Seq.toList
+
+    match newLineEvents with
+    | WriteLine :: WriteLine :: _
+    | [ WriteLineBecauseOfTrivia ] -> true
+    | _ -> false
 
 let lastWriteEventOnLastLine ctx =
     writeEventsOnLastLine ctx |> Seq.tryHead
@@ -1045,41 +1052,46 @@ let sepSemi (ctx: Context) =
 let ifAlignBrackets f g =
     ifElseCtx (fun ctx -> ctx.Config.MultilineBlockBracketsOnSameColumn) f g
 
-let printTriviaContent (c: TriviaContent) (ctx: Context) = printfn "print just nix!"
-// let currentLastLine = ctx.WriterModel.Lines |> List.tryHead
-//
-// // Some items like #if or Newline should be printed on a newline
-// // It is hard to always get this right in CodePrinter, so we detect it based on the current code.
-// let addNewline =
-//     currentLastLine
-//     |> Option.map (fun line -> line.Trim().Length > 0)
-//     |> Option.defaultValue false
-//
-// let addSpace =
-//     currentLastLine
-//     |> Option.bind (fun line -> Seq.tryLast line |> Option.map (fun lastChar -> lastChar <> ' '))
-//     |> Option.defaultValue false
-//
-// match c with
-// | Comment (LineCommentAfterSourceCode s) ->
-//     let comment = sprintf "%s%s" (if addSpace then " " else String.empty) s
-//
-//     writerEvent (WriteBeforeNewline comment)
-// | Comment (BlockComment (s, before, after)) ->
-//     ifElse (before && addNewline) sepNlnForTrivia sepNone
-//     +> sepSpace
-//     +> !-s
-//     +> sepSpace
-//     +> ifElse after sepNlnForTrivia sepNone
-// | Newline -> (ifElse addNewline (sepNlnForTrivia +> sepNlnForTrivia) sepNlnForTrivia)
-// | Directive s
-// | Comment (CommentOnSingleLine s) -> (ifElse addNewline sepNlnForTrivia sepNone) +> !-s +> sepNlnForTrivia
-// <| ctx
+let printTriviaContent (c: TriviaContent) (ctx: Context) =
+    let currentLastLine = ctx.WriterModel.Lines |> List.tryHead
+
+    // Some items like #if or Newline should be printed on a newline
+    // It is hard to always get this right in CodePrinter, so we detect it based on the current code.
+    let addNewline =
+        currentLastLine
+        |> Option.map (fun line -> line.Trim().Length > 0)
+        |> Option.defaultValue false
+
+    let addSpace =
+        currentLastLine
+        |> Option.bind (fun line -> Seq.tryLast line |> Option.map (fun lastChar -> lastChar <> ' '))
+        |> Option.defaultValue false
+
+    let genContent =
+        match c with
+        | TriviaContent.NonCombinableTriviaContent (NonCombinableTriviaContent.LineCommentAfterSourceCode comment) ->
+            let comment = sprintf "%s%s" (if addSpace then " " else String.empty) comment
+
+            writerEvent (WriteBeforeNewline comment)
+
+        | TriviaContent.NonCombinableTriviaContent (NonCombinableTriviaContent.BlockComment (comment, before, after)) ->
+            ifElse (before && addNewline) sepNlnForTrivia sepNone
+            +> sepSpace
+            +> !-comment
+            +> sepSpace
+            +> ifElse after sepNlnForTrivia sepNone
+        | TriviaContent.CombinableTriviaContent (CombinableTriviaContent.FullLine FullLineTrivia.Newline) ->
+            (ifElse addNewline (sepNlnForTrivia +> sepNlnForTrivia) sepNlnForTrivia)
+
+        | TriviaContent.CombinableTriviaContent (CombinableTriviaContent.FullLine (FullLineTrivia.Directive s))
+        | TriviaContent.CombinableTriviaContent (CombinableTriviaContent.Anchored (AnchoredTrivia.CommentOnSingleLine s)) ->
+            (ifElse addNewline sepNlnForTrivia sepNone) +> !-s +> sepNlnForTrivia
+
+    genContent ctx
 
 let printTriviaInstructions (triviaInstructions: TriviaInstruction list) =
     let allTrivia = triviaInstructions |> Seq.collect (fun ti -> ti.TriviaGroup.Trivia)
-    !- "nah"
-// col sepNone allTrivia (fun { Item = trivia } -> printTriviaContent trivia)
+    col sepNone allTrivia (fun { Item = trivia } -> printTriviaContent trivia)
 
 let enterNodeFor (mainNodeName: FsAstType) (range: Range) (ctx: Context) =
     match Map.tryFind mainNodeName ctx.TriviaBefore with

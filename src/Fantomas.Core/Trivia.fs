@@ -282,18 +282,21 @@ let simpleTriviaToTriviaInstruction (containerNode: TriviaNode) (triviaGroup: Tr
                     (fun (node: TriviaNode) -> node.Range.EndLine < triviaGroup.Range.StartLine)
                     containerNode.Children
 
-            let rec findBack startColumn (current: TriviaNode) =
-                if current.Range.StartColumn = startColumn then
+            let rec findBack startColumn endLine (current: TriviaNode) =
+                if current.Range.StartColumn = startColumn && current.Range.EndLine = endLine then
                     Some current
+                elif current.Range.EndLine < endLine then
+                    // Don't bother searching in the children here.
+                    None
                 else
-                    Array.tryFindBack (findBack startColumn >> Option.isSome) current.Children
+                    Seq.rev current.Children |> Seq.tryPick (findBack startColumn endLine)
 
             nodeBefore
-            |> Option.bind (findBack triviaGroup.StartColumn)
-            |> Option.map (fun nodeBefore ->
+            |> Option.bind (fun nb -> findBack triviaGroup.StartColumn nb.Range.EndLine nb)
+            |> Option.map (fun closestNodeBefore ->
                 { TriviaGroup = triviaGroup
-                  Type = nodeBefore.Type
-                  Range = nodeBefore.Range
+                  Type = closestNodeBefore.Type
+                  Range = closestNodeBefore.Range
                   AddBefore = false })
     else
         let nodeAfter =
