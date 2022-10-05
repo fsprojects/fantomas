@@ -107,3 +107,34 @@ let v =
     // there is a blank line above this comment
   ]
 """
+
+[<Test>]
+let ``putting on my clown wig`` () =
+    formatSourceString
+        false
+        """
+module Foo =
+    [<Test>]
+    let bar () =
+        foo ()
+        foo ()
+        // thing
+
+    [<Test>]
+    let baz () = ()
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+module Foo =
+    [<Test>]
+    let bar () =
+        foo ()
+        foo ()
+        // thing
+
+    [<Test>]
+    let baz () = ()
+"""

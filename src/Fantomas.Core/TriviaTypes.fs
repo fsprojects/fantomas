@@ -6,11 +6,11 @@ open FSharp.Compiler.Text
 
 type DefineCombination = string list
 
-type Comment =
-    | LineCommentAfterSourceCode of comment: string
-    /// This can be both a BlockComment or a LineComment
-    | CommentOnSingleLine of comment: string
-    | BlockComment of string * newlineBefore: bool * newlineAfter: bool
+// type Comment =
+//     | LineCommentAfterSourceCode of comment: string
+//     /// This can be both a BlockComment or a LineComment
+//     | CommentOnSingleLine of comment: string
+//     | BlockComment of string * newlineBefore: bool * newlineAfter: bool
 
 (* LineComment Examples
 
@@ -26,17 +26,74 @@ let a = 7
 
 // TODO: question whether this DU still makes total sense
 // Would it not be better to split this into group-able and non-group-able types?
-type TriviaContent =
-    | Comment of Comment
+
+type FullLineTrivia =
+    /// A Blank line in the source code
     | Newline
+    /// #if, #else or #endif
     | Directive of directive: string
 
+type AnchoredTrivia = CommentOnSingleLine of comment: string
+
+type CombinableTriviaContent =
+    | FullLine of FullLineTrivia
+    | Anchored of AnchoredTrivia
+
+type NonCombinableTriviaContent =
+    /// A comment that was found after a token of F# code.
+    | LineCommentAfterSourceCode of comment: string
+    /// A block comment that was not on its own separate line.
+    | BlockComment of string * newlineBefore: bool * newlineAfter: bool
+
+type TriviaContent =
+    | CombinableTriviaContent of CombinableTriviaContent
+    | NonCombinableTriviaContent of NonCombinableTriviaContent
+
+    static member FromDirective text =
+        FullLineTrivia.Directive text
+        |> CombinableTriviaContent.FullLine
+        |> TriviaContent.CombinableTriviaContent
+
+    static member FromNewline =
+        FullLineTrivia.Newline
+        |> CombinableTriviaContent.FullLine
+        |> TriviaContent.CombinableTriviaContent
+
+    static member FromCommentOnSingleLine comment =
+        AnchoredTrivia.CommentOnSingleLine comment
+        |> CombinableTriviaContent.Anchored
+        |> TriviaContent.CombinableTriviaContent
+
+    static member FromBlockComment content newlineBefore newlineAfter =
+        NonCombinableTriviaContent.BlockComment(content, newlineBefore, newlineAfter)
+        |> TriviaContent.NonCombinableTriviaContent
+
+    static member FromLineCommentAfterSourceCode comment =
+        NonCombinableTriviaContent.LineCommentAfterSourceCode comment
+        |> TriviaContent.NonCombinableTriviaContent
+
 type Trivia = { Item: TriviaContent; Range: Range }
+
+[<RequireQualifiedAccess>]
+type TriviaGroupState =
+    | InitialState
+    /// The Open state can transition into a Locked state when a AnchoredTrivia is encountered.
+    | Open of ImmutableQueue<Trivia> * range
+    /// The locked state can transition into multiple groups
+    /// A typical scenario is when a comment is found, and there are newlines after it.
+    /// The newlines should be split when possible.
+    | Locked of
+        startColumn: int *
+        leadingTrivia: ImmutableQueue<Trivia> *
+        owner: Trivia *
+        trailingTrivia: ImmutableQueue<Trivia> *
+        range
 
 /// Potentially multiple trivia if they should below to the same trivia node.
 /// For example a Newline above a Comment(Comment.CommentOnSingleLine).
 type TriviaGroup =
     {
+        /// Primary trivia nodes of the group
         Trivia: ImmutableQueue<Trivia>
         /// The combined range of all trivia.
         Range: Range

@@ -1045,40 +1045,41 @@ let sepSemi (ctx: Context) =
 let ifAlignBrackets f g =
     ifElseCtx (fun ctx -> ctx.Config.MultilineBlockBracketsOnSameColumn) f g
 
-let printTriviaContent (c: TriviaContent) (ctx: Context) =
-    let currentLastLine = ctx.WriterModel.Lines |> List.tryHead
-
-    // Some items like #if or Newline should be printed on a newline
-    // It is hard to always get this right in CodePrinter, so we detect it based on the current code.
-    let addNewline =
-        currentLastLine
-        |> Option.map (fun line -> line.Trim().Length > 0)
-        |> Option.defaultValue false
-
-    let addSpace =
-        currentLastLine
-        |> Option.bind (fun line -> Seq.tryLast line |> Option.map (fun lastChar -> lastChar <> ' '))
-        |> Option.defaultValue false
-
-    match c with
-    | Comment (LineCommentAfterSourceCode s) ->
-        let comment = sprintf "%s%s" (if addSpace then " " else String.empty) s
-
-        writerEvent (WriteBeforeNewline comment)
-    | Comment (BlockComment (s, before, after)) ->
-        ifElse (before && addNewline) sepNlnForTrivia sepNone
-        +> sepSpace
-        +> !-s
-        +> sepSpace
-        +> ifElse after sepNlnForTrivia sepNone
-    | Newline -> (ifElse addNewline (sepNlnForTrivia +> sepNlnForTrivia) sepNlnForTrivia)
-    | Directive s
-    | Comment (CommentOnSingleLine s) -> (ifElse addNewline sepNlnForTrivia sepNone) +> !-s +> sepNlnForTrivia
-    <| ctx
+let printTriviaContent (c: TriviaContent) (ctx: Context) = printfn "print just nix!"
+// let currentLastLine = ctx.WriterModel.Lines |> List.tryHead
+//
+// // Some items like #if or Newline should be printed on a newline
+// // It is hard to always get this right in CodePrinter, so we detect it based on the current code.
+// let addNewline =
+//     currentLastLine
+//     |> Option.map (fun line -> line.Trim().Length > 0)
+//     |> Option.defaultValue false
+//
+// let addSpace =
+//     currentLastLine
+//     |> Option.bind (fun line -> Seq.tryLast line |> Option.map (fun lastChar -> lastChar <> ' '))
+//     |> Option.defaultValue false
+//
+// match c with
+// | Comment (LineCommentAfterSourceCode s) ->
+//     let comment = sprintf "%s%s" (if addSpace then " " else String.empty) s
+//
+//     writerEvent (WriteBeforeNewline comment)
+// | Comment (BlockComment (s, before, after)) ->
+//     ifElse (before && addNewline) sepNlnForTrivia sepNone
+//     +> sepSpace
+//     +> !-s
+//     +> sepSpace
+//     +> ifElse after sepNlnForTrivia sepNone
+// | Newline -> (ifElse addNewline (sepNlnForTrivia +> sepNlnForTrivia) sepNlnForTrivia)
+// | Directive s
+// | Comment (CommentOnSingleLine s) -> (ifElse addNewline sepNlnForTrivia sepNone) +> !-s +> sepNlnForTrivia
+// <| ctx
 
 let printTriviaInstructions (triviaInstructions: TriviaInstruction list) =
     let allTrivia = triviaInstructions |> Seq.collect (fun ti -> ti.TriviaGroup.Trivia)
-    col sepNone allTrivia (fun { Item = trivia } -> printTriviaContent trivia)
+    !- "nah"
+// col sepNone allTrivia (fun { Item = trivia } -> printTriviaContent trivia)
 
 let enterNodeFor (mainNodeName: FsAstType) (range: Range) (ctx: Context) =
     match Map.tryFind mainNodeName ctx.TriviaBefore with

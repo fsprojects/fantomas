@@ -47,7 +47,9 @@ let internal collectTriviaFromDirectives
         | ConditionalDirectiveTrivia.Else r
         | ConditionalDirectiveTrivia.EndIf r ->
             let text = (source.GetContentAt r).TrimEnd()
-            { Item = Directive text; Range = r })
+
+            { Item = TriviaContent.FromDirective text
+              Range = r })
     |> fun trivia ->
         match selection with
         | None -> trivia
@@ -72,10 +74,12 @@ let internal collectTriviaFromCodeComments
                 startLine.TrimStart(' ', ';').StartsWith("(*")
                 && endLine.TrimEnd(' ', ';').EndsWith("*)")
             then
-                { Item = Comment(CommentOnSingleLine(content))
+                { Item = TriviaContent.FromCommentOnSingleLine content
                   Range = r }
             else
-                { Item = Comment(BlockComment(source.GetContentAt r, false, false))
+                let content = source.GetContentAt r
+
+                { Item = TriviaContent.FromBlockComment content false false
                   Range = r }
 
         | CommentTrivia.LineComment r ->
@@ -86,14 +90,12 @@ let internal collectTriviaFromCodeComments
             let item =
                 let trimmedLine = line.TrimStart(' ', ';')
 
-                Comment(
-                    if index = 0 && trimmedLine.StartsWith("#!") then // shebang
-                        CommentOnSingleLine content
-                    else if trimmedLine.StartsWith("//") then
-                        CommentOnSingleLine content
-                    else
-                        LineCommentAfterSourceCode content
-                )
+                if index = 0 && trimmedLine.StartsWith("#!") then // shebang
+                    TriviaContent.FromCommentOnSingleLine content
+                else if trimmedLine.StartsWith("//") then
+                    TriviaContent.FromCommentOnSingleLine content
+                else
+                    TriviaContent.FromLineCommentAfterSourceCode content
 
             { Item = item; Range = r })
     |> fun trivia ->
@@ -173,7 +175,10 @@ let internal collectTriviaFromBlankLines
                         Range.mkFileIndexRange fileIndex p p
 
                     if count < config.KeepMaxNumberOfBlankLines then
-                        (count + 1), Some { Item = Newline; Range = range }
+                        (count + 1),
+                        Some
+                            { Item = TriviaContent.FromNewline
+                              Range = range }
                     else
                         count, None)
 
@@ -234,8 +239,10 @@ let triviaBeforeOrAfterEntireTree (rootNode: TriviaNode) (triviaGroup: TriviaGro
 
     let trivia =
         match Seq.tryExactlyOne triviaGroup.Trivia with
-        | Some ({ Item = Comment (BlockComment (commentText, _, _)) } as trivia) ->
-            let item = Comment(BlockComment(commentText, false, true))
+        | Some ({ Item = TriviaContent.NonCombinableTriviaContent (NonCombinableTriviaContent.BlockComment (commentText,
+                                                                                                            _,
+                                                                                                            _)) } as trivia) ->
+            let item = TriviaContent.FromBlockComment commentText false false
             let trivia = { trivia with Item = item }
             { triviaGroup with Trivia = ImmutableQueue.Create(trivia) }
         | _ -> triviaGroup
@@ -254,36 +261,71 @@ let (|BracketTriviaNode|_|) (node: TriviaNode) =
 /// Try to put the trivia on top of the closest node
 /// If that didn't work put it after the last node
 let simpleTriviaToTriviaInstruction (containerNode: TriviaNode) (triviaGroup: TriviaGroup) : TriviaInstruction option =
-    let nodeAfter =
-        Array.tryFind
-            (fun (node: TriviaNode) -> node.Range.StartLine > triviaGroup.Range.StartLine)
-            containerNode.Children
+    if triviaGroup.StartColumn > 0 then
+        // The group contains a code comment start starts at a certain column.
+        let nodeAfter =
+            Array.tryFind
+                (fun (node: TriviaNode) -> node.Range.StartLine > triviaGroup.Range.StartLine)
+                containerNode.Children
 
-    let nodeBefore =
-        Array.tryFindBack
-            (fun (node: TriviaNode) -> node.Range.EndLine < triviaGroup.Range.StartLine)
-            containerNode.Children
+        match nodeAfter with
+        | Some na when na.Range.StartColumn = triviaGroup.StartColumn ->
+            // The comment should be assigned to the next node underneath it.
+            Some
+                { TriviaGroup = triviaGroup
+                  Type = na.Type
+                  Range = na.Range
+                  AddBefore = true }
+        | _ ->
+            let nodeBefore =
+                Array.tryFindBack
+                    (fun (node: TriviaNode) -> node.Range.EndLine < triviaGroup.Range.StartLine)
+                    containerNode.Children
 
-    match nodeBefore, nodeAfter with
-    | Some nodeBefore, Some (BracketTriviaNode _) when triviaGroup.StartColumn = nodeBefore.Range.StartColumn ->
-        Some
-            { TriviaGroup = triviaGroup
-              Type = nodeBefore.Type
-              Range = nodeBefore.Range
-              AddBefore = false }
-    | _, Some nodeAfter ->
-        Some
-            { TriviaGroup = triviaGroup
-              Type = nodeAfter.Type
-              Range = nodeAfter.Range
-              AddBefore = true }
-    | _ ->
-        Array.tryLast containerNode.Children
-        |> Option.map (fun node ->
-            { TriviaGroup = triviaGroup
-              Type = node.Type
-              Range = node.Range
-              AddBefore = false })
+            let rec findBack startColumn (current: TriviaNode) =
+                if current.Range.StartColumn = startColumn then
+                    Some current
+                else
+                    Array.tryFindBack (findBack startColumn >> Option.isSome) current.Children
+
+            nodeBefore
+            |> Option.bind (findBack triviaGroup.StartColumn)
+            |> Option.map (fun nodeBefore ->
+                { TriviaGroup = triviaGroup
+                  Type = nodeBefore.Type
+                  Range = nodeBefore.Range
+                  AddBefore = false })
+    else
+        let nodeAfter =
+            Array.tryFind
+                (fun (node: TriviaNode) -> node.Range.StartLine > triviaGroup.Range.StartLine)
+                containerNode.Children
+
+        let nodeBefore =
+            Array.tryFindBack
+                (fun (node: TriviaNode) -> node.Range.EndLine < triviaGroup.Range.StartLine)
+                containerNode.Children
+
+        match nodeBefore, nodeAfter with
+        | Some nodeBefore, Some (BracketTriviaNode _) when triviaGroup.StartColumn = nodeBefore.Range.StartColumn ->
+            Some
+                { TriviaGroup = triviaGroup
+                  Type = nodeBefore.Type
+                  Range = nodeBefore.Range
+                  AddBefore = false }
+        | _, Some nodeAfter ->
+            Some
+                { TriviaGroup = triviaGroup
+                  Type = nodeAfter.Type
+                  Range = nodeAfter.Range
+                  AddBefore = true }
+        | _ ->
+            Array.tryLast containerNode.Children
+            |> Option.map (fun node ->
+                { TriviaGroup = triviaGroup
+                  Type = node.Type
+                  Range = node.Range
+                  AddBefore = false })
 
 /// Try and find the smallest possible node
 let lineCommentAfterSourceCodeToTriviaInstruction
@@ -320,8 +362,8 @@ let blockCommentToTriviaInstruction
 
     let triviaWith newlineBefore newlineAfter =
         match trivia with
-        | { Item = Comment (BlockComment (content, _, _)) } ->
-            let item = Comment(BlockComment(content, newlineBefore, newlineAfter))
+        | { Item = TriviaContent.NonCombinableTriviaContent (BlockComment (content, _, _)) } ->
+            let item = TriviaContent.FromBlockComment content newlineBefore newlineAfter
             let trivia = { trivia with Item = item }
             { triviaGroup with Trivia = ImmutableQueue.Create(trivia) }
         | _ -> triviaGroup
@@ -361,15 +403,158 @@ let mapTriviaToTriviaInstruction (rootNode: TriviaNode) (triviaGroup: TriviaGrou
         match Seq.tryExactlyOne triviaGroup.Trivia with
         | Some trivia ->
             match trivia.Item with
-            | TriviaContent.Comment (Comment.CommentOnSingleLine _)
-            | TriviaContent.Newline
-            | TriviaContent.Directive _ -> simpleTriviaToTriviaInstruction parentNode triviaGroup
-            | TriviaContent.Comment (Comment.LineCommentAfterSourceCode _) ->
+            | TriviaContent.NonCombinableTriviaContent (NonCombinableTriviaContent.LineCommentAfterSourceCode _) ->
                 lineCommentAfterSourceCodeToTriviaInstruction parentNode triviaGroup
-            | TriviaContent.Comment (Comment.BlockComment _) ->
+            | TriviaContent.NonCombinableTriviaContent (NonCombinableTriviaContent.BlockComment _) ->
                 blockCommentToTriviaInstruction parentNode trivia triviaGroup
+            | TriviaContent.CombinableTriviaContent _ -> simpleTriviaToTriviaInstruction parentNode triviaGroup
         | None -> simpleTriviaToTriviaInstruction parentNode triviaGroup
 
+let captureTriviaGroupOfState state =
+    match state with
+    | TriviaGroupState.InitialState -> Choice1Of3()
+    | TriviaGroupState.Open (items, range) ->
+        assert (range.StartColumn = 0)
+
+        Choice2Of3
+            { Trivia = items
+              Range = range
+              StartColumn = range.StartColumn }
+    | TriviaGroupState.Locked (startColumn, leadingTrivia, owner, trailingTrivia, range) ->
+        if trailingTrivia.IsEmpty then
+            Choice2Of3
+                { Trivia = leadingTrivia.Enqueue owner
+                  Range = range
+                  StartColumn = startColumn }
+        else
+            let secondGroupRange =
+                match Seq.tryExactlyOne trailingTrivia with
+                | Some singleTrivia -> singleTrivia.Range
+                | None -> trailingTrivia |> Seq.map (fun t -> t.Range) |> Seq.reduce Range.unionRanges
+
+            Choice3Of3(
+                { Trivia = leadingTrivia.Enqueue owner
+                  Range = range
+                  StartColumn = startColumn },
+                { Trivia = trailingTrivia
+                  Range = secondGroupRange
+                  StartColumn = 0 }
+            )
+
+let mkTriviaGroupOfSingleItem (trivia: Trivia) =
+    { Trivia = ImmutableQueue.Create(trivia)
+      Range = trivia.Range
+      StartColumn = trivia.Range.StartColumn }
+
+let mkTriviaGroupOfItems (trivia: ImmutableQueue<Trivia>) range =
+    { Trivia = trivia
+      Range = range
+      StartColumn = range.StartColumn }
+
+let rec groupTrivia (state: TriviaGroupState) (groups: TriviaGroup list) (trivia: Trivia list) =
+    match trivia with
+    | [] ->
+        // Split the last group if necessary
+        match captureTriviaGroupOfState state with
+        | Choice1Of3 _ -> groups
+        | Choice2Of3 h -> h :: groups
+        | Choice3Of3 (h2, h1) -> h1 :: h2 :: groups
+    | trivia :: rest ->
+        match state with
+        | TriviaGroupState.InitialState ->
+            match trivia.Item with
+            | NonCombinableTriviaContent _ -> groupTrivia state (mkTriviaGroupOfSingleItem trivia :: groups) rest
+            | CombinableTriviaContent (CombinableTriviaContent.FullLine _) ->
+                // start open state
+                let nextState = TriviaGroupState.Open(ImmutableQueue.Create(trivia), trivia.Range)
+                groupTrivia nextState groups rest
+            | CombinableTriviaContent (CombinableTriviaContent.Anchored _) ->
+                // start locked state
+                let nextState =
+                    TriviaGroupState.Locked(
+                        trivia.Range.StartColumn,
+                        ImmutableQueue.Empty,
+                        trivia,
+                        ImmutableQueue.Empty,
+                        trivia.Range
+                    )
+
+                groupTrivia nextState groups rest
+
+        | TriviaGroupState.Open (currentOpenItems, range) ->
+            let currentTriviaIsOnTheNextLine = range.EndLine + 1 = trivia.Range.StartLine
+
+            match trivia.Item with
+            | CombinableTriviaContent (CombinableTriviaContent.FullLine _) when currentTriviaIsOnTheNextLine ->
+                // Safe to add to the current open group
+                let nextState =
+                    TriviaGroupState.Open(currentOpenItems.Enqueue trivia, Range.unionRanges range trivia.Range)
+
+                groupTrivia nextState groups rest
+            | CombinableTriviaContent (CombinableTriviaContent.Anchored _) when currentTriviaIsOnTheNextLine ->
+                // transform the open to locked
+                let nextState =
+                    TriviaGroupState.Locked(
+                        trivia.Range.StartColumn,
+                        currentOpenItems,
+                        trivia,
+                        ImmutableQueue.Empty,
+                        Range.unionRanges range trivia.Range
+                    )
+
+                groupTrivia nextState groups rest
+
+            // Either the current trivia is not on the next line or it cannot be combined with a group.
+            | NonCombinableTriviaContent _
+            | CombinableTriviaContent _ ->
+                // Reset the state
+                groupTrivia
+                    TriviaGroupState.InitialState
+                    (mkTriviaGroupOfSingleItem trivia
+                     :: mkTriviaGroupOfItems currentOpenItems range :: groups)
+                    rest
+
+        | TriviaGroupState.Locked (startColumn, leadingTrivia, owner, trailingTrivia, range) ->
+            let currentTriviaIsOnTheNextLine = range.EndLine + 1 = trivia.Range.StartLine
+            let currentTriviaHasSameStartColumn = startColumn = trivia.Range.StartColumn
+
+            match trivia.Item with
+            | CombinableTriviaContent (CombinableTriviaContent.FullLine _) when currentTriviaIsOnTheNextLine ->
+                // Add as trailing trivia. These trailing trivia might later be chopped of.
+                let nextState =
+                    TriviaGroupState.Locked(
+                        startColumn,
+                        leadingTrivia,
+                        owner,
+                        trailingTrivia.Enqueue trivia,
+                        Range.unionRanges range trivia.Range
+                    )
+
+                groupTrivia nextState groups rest
+            | CombinableTriviaContent (CombinableTriviaContent.Anchored _) when
+                currentTriviaIsOnTheNextLine && currentTriviaHasSameStartColumn
+                ->
+                // The comment has the same start column as our owner. We consider it part of the group and make it the new owner.
+                let nextState =
+                    TriviaGroupState.Locked(
+                        startColumn,
+                        leadingTrivia.Enqueue owner,
+                        trivia,
+                        ImmutableQueue.Empty,
+                        Range.unionRanges range trivia.Range
+                    )
+
+                groupTrivia nextState groups rest
+            | NonCombinableTriviaContent _
+            | CombinableTriviaContent _ ->
+                // Reset the state, however, trailingTrivia should become there owner group.
+                let nextGroups =
+                    match captureTriviaGroupOfState state with
+                    | Choice1Of3 _ -> groups
+                    | Choice2Of3 h -> h :: groups
+                    | Choice3Of3 (h2, h1) -> h1 :: h2 :: groups
+
+                groupTrivia TriviaGroupState.InitialState nextGroups rest
 (*
     1. Collect TriviaNodes from AST
     2. Extract trivia from directives, comments and blank lines
@@ -416,42 +601,68 @@ let collectTrivia
           yield! collectTriviaFromCodeComments source codeComments selection
           yield! collectTriviaFromBlankLines config source rootNode codeComments codeRange ]
         |> List.sortBy (fun n -> n.Range.Start.Line, n.Range.Start.Column)
-        |> List.fold
-            (fun groups trivia ->
-                match groups with
-                | [] ->
-                    // Start a new group
-                    [ mkTriviaGroup trivia ]
-                | currentGroup :: rest ->
-                    match trivia.Item with
-                    | Comment (Comment.BlockComment _ | Comment.LineCommentAfterSourceCode _) ->
-                        // Start a new group, these type will always have their own group
-                        mkTriviaGroup trivia :: currentGroup :: rest
-                    | Newline
-                    | Directive _ -> failwith "not implemented yet"
-                    | Comment (CommentOnSingleLine _) ->
-                        // Check if we can add the trivia to the current group
-                        if currentGroup.StartColumn = 0 && trivia.Range.StartColumn > 0 then
-                            // Update the start column of the group
-                            // The comment will have the most significant start column for the group
-                            let range =
-                                Range.mkFileIndexRange
-                                    currentGroup.Range.FileIndex
-                                    currentGroup.Range.Start
-                                    trivia.Range.End
 
-                            { currentGroup with
-                                Trivia = currentGroup.Trivia.Enqueue(trivia)
-                                Range = range
-                                StartColumn = trivia.Range.StartColumn }
-                            :: rest
-                        elif currentGroup.StartColumn = trivia.Range.StartColumn then
-                            // Append trivia to group
-                            { currentGroup with Trivia = currentGroup.Trivia.Enqueue(trivia) } :: rest
-                        else
-                            // No relationship, start a new group'
-                            mkTriviaGroup trivia :: currentGroup :: rest)
-            []
+        // something recursive instead of folding...
+        |> groupTrivia TriviaGroupState.InitialState []
+
+    // |> List.fold
+    //     (fun groups trivia ->
+    //         match groups with
+    //         | [] ->
+    //             // Start a new group
+    //             [ mkTriviaGroup trivia ]
+    //         | currentGroup :: rest ->
+    //             match trivia.Item with
+    //             | Comment (Comment.BlockComment _ | Comment.LineCommentAfterSourceCode _) ->
+    //                 // Start a new group, these type will always have their own group
+    //                 mkTriviaGroup trivia :: currentGroup :: rest
+    //             | Newline
+    //             | Directive _ ->
+    //                 if not currentGroup.Trivia.IsEmpty then
+    //                     let range =
+    //                         Range.mkFileIndexRange
+    //                             currentGroup.Range.FileIndex
+    //                             currentGroup.Range.Start
+    //                             trivia.Range.End
+    //
+    //                     { currentGroup with
+    //                         Trivia = currentGroup.Trivia.Enqueue(trivia)
+    //                         Range = range }
+    //                     :: rest
+    //                 else
+    //                     failwith "not implemented yet"
+    //             | Comment (CommentOnSingleLine _) ->
+    //                 // Check if we can add the trivia to the current group
+    //                 if currentGroup.StartColumn = 0 && trivia.Range.StartColumn > 0 then
+    //                     // Update the start column of the group
+    //                     // The comment will have the most significant start column for the group
+    //                     let range =
+    //                         Range.mkFileIndexRange
+    //                             currentGroup.Range.FileIndex
+    //                             currentGroup.Range.Start
+    //                             trivia.Range.End
+    //
+    //                     { currentGroup with
+    //                         Trivia = currentGroup.Trivia.Enqueue(trivia)
+    //                         Range = range
+    //                         StartColumn = trivia.Range.StartColumn }
+    //                     :: rest
+    //                 elif currentGroup.StartColumn = trivia.Range.StartColumn then
+    //                     // Append trivia to group
+    //                     let range =
+    //                         Range.mkFileIndexRange
+    //                             currentGroup.Range.FileIndex
+    //                             currentGroup.Range.Start
+    //                             trivia.Range.End
+    //
+    //                     { currentGroup with
+    //                         Trivia = currentGroup.Trivia.Enqueue(trivia)
+    //                         Range = range }
+    //                     :: rest
+    //                 else
+    //                     // No relationship, start a new group'
+    //                     mkTriviaGroup trivia :: currentGroup :: rest)
+    //     []
 
     let mutable instructionCollector = ListCollector<TriviaInstruction>()
 
