@@ -218,9 +218,9 @@ and visitSynExpr (synExpr: SynExpr) : TriviaNode list =
                        yield! Option.toList (mkNodeOption SynExpr_Paren_ClosingParenthesis rpr) |]
                 |> List.singleton
                 |> finalContinuation)
-        | SynExpr.Quote (operator, _, quotedSynExpr, _, range) ->
+        | SynExpr.Quote (_, _, quotedSynExpr, _, range) ->
             let continuations: ((TriviaNode list -> TriviaNode list) -> TriviaNode list) list =
-                [ visit operator; visit quotedSynExpr ]
+                [ visit quotedSynExpr ]
 
             processSequence finalContinuation continuations (fun nodes ->
                 mkSynExprNode SynExpr_Quote synExpr range (sortChildren [| yield! nodes |]))
