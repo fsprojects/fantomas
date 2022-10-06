@@ -228,7 +228,11 @@ and visitSynExpr (synExpr: SynExpr) : TriviaNode list =
             mkSynExprNode SynExpr_Const synExpr range [| visitSynConst range constant |]
             |> List.singleton
             |> finalContinuation
-        | SynExpr.Typed (expr, _typeName, _range) -> visit expr finalContinuation
+        | SynExpr.Typed (expr, typeName, range) ->
+            visit expr (fun nodes ->
+                mkSynExprNode SynExpr_Typed synExpr range (sortChildren [| yield! nodes; yield visitSynType typeName |])
+                |> List.singleton
+                |> finalContinuation)
         | SynExpr.Tuple (_, exprs, _, range) ->
             let continuations: ((TriviaNode list -> TriviaNode list) -> TriviaNode list) list =
                 List.map visit exprs
@@ -1056,6 +1060,7 @@ and visitSynBinding (binding: SynBinding) : TriviaNode =
         let letNode =
             mkNodeForRangeAfterXmlAndAttributes SynBinding_Let preXml attrs trivia.LetKeyword
 
+        let expr = SourceParser.parseExpressionInSynBinding returnInfo expr
         let returnInfo = Option.map visitSynBindingReturnInfo returnInfo
 
         mkNodeWithChildren

@@ -582,9 +582,9 @@ and genLetBinding astContext pref b =
     let isRecursiveLetOrUseFunction = (pref = "and ")
 
     match b with
-    | LetBinding (ats, px, letKeyword, ao, isInline, isMutable, p, equalsRange, e, valInfo) ->
-        match e, p with
-        | TypedExpr (Typed, e, t), PatLongIdent (ao, sli, ps, tpso) when (List.isNotEmpty ps) ->
+    | LetBinding (ats, px, letKeyword, ao, isInline, isMutable, p, returnInfo, equalsRange, e, valInfo) ->
+        match returnInfo, p with
+        | Some t, PatLongIdent (ao, sli, ps, tpso) when (List.isNotEmpty ps) ->
             genSynBindingFunctionWithReturnType
                 astContext
                 false
@@ -603,7 +603,7 @@ and genLetBinding astContext pref b =
                 valInfo
                 equalsRange
                 e
-        | e, PatLongIdent (ao, sli, ps, tpso) when (List.isNotEmpty ps) ->
+        | None, PatLongIdent (ao, sli, ps, tpso) when (List.isNotEmpty ps) ->
             genSynBindingFunction
                 astContext
                 false
@@ -620,7 +620,7 @@ and genLetBinding astContext pref b =
                 tpso
                 equalsRange
                 e
-        | TypedExpr (Typed, e, t), pat ->
+        | Some t, pat ->
             genSynBindingValue
                 astContext
                 isRecursiveLetOrUseFunction
@@ -731,9 +731,9 @@ and genMemberBindingList astContext ms =
 
 and genMemberBinding astContext b =
     match b with
-    | MemberBinding (ats, px, ao, isInline, mf, p, equalsRange, e, synValInfo) ->
+    | MemberBinding (ats, px, ao, isInline, mf, p, rt, equalsRange, e, synValInfo) ->
         let prefix = genMemberFlags mf
-        genMemberBindingImpl astContext prefix ats px ao isInline p equalsRange e synValInfo
+        genMemberBindingImpl astContext prefix ats px ao isInline p rt equalsRange e synValInfo
 
     | ExplicitCtor (ats, px, ao, p, equalsRange, e, io) ->
         let prefix =
@@ -782,12 +782,13 @@ and genMemberBindingImpl
     (ao: SynAccess option)
     (isInline: bool)
     (p: SynPat)
+    (returnType: SynType option)
     (equalsRange: range option)
     (e: SynExpr)
     (synValInfo: SynValInfo)
     =
-    match e, p with
-    | TypedExpr (Typed, e, t), PatLongIdent (ao, s, ps, tpso) when (List.isNotEmpty ps) ->
+    match returnType, p with
+    | Some t, PatLongIdent (ao, s, ps, tpso) when (List.isNotEmpty ps) ->
         genSynBindingFunctionWithReturnType
             astContext
             true
@@ -806,10 +807,9 @@ and genMemberBindingImpl
             synValInfo
             equalsRange
             e
-    | e, PatLongIdent (ao, s, ps, tpso) when (List.isNotEmpty ps) ->
+    | None, PatLongIdent (ao, s, ps, tpso) when (List.isNotEmpty ps) ->
         genSynBindingFunction astContext true false px ats prefix ao isInline false s p.Range ps tpso equalsRange e
-    | TypedExpr (Typed, e, t), pat ->
-        genSynBindingValue astContext false px ats prefix ao isInline false pat (Some t) equalsRange e
+    | Some t, pat -> genSynBindingValue astContext false px ats prefix ao isInline false pat (Some t) equalsRange e
     | _, pat -> genSynBindingValue astContext false px ats prefix ao isInline false pat None equalsRange e
 
 and genMemberFlags (mf: SynMemberFlags) =
@@ -994,6 +994,7 @@ and genExpr astContext synExpr ctx =
             let longExpr = genExpr astContext e +> sepNln +> !- ":> " +> genType astContext t
 
             expressionFitsOnRestOfLine shortExpr longExpr
+        | TypedExpr (Typed, (Lambda _ as e), t) -> genExpr astContext e +> sepNln +> sepColon +> genType astContext t
         | TypedExpr (Typed, e, t) -> genExpr astContext e +> sepColon +> genType astContext t
         | NewTuple (t, px) ->
             let sepSpace (ctx: Context) =
@@ -2239,6 +2240,7 @@ and genExpr astContext synExpr ctx =
             | SynExpr.IndexFromEnd _ -> genTriviaFor SynExpr_IndexFromEnd synExpr.Range
             | SynExpr.Dynamic _ -> genTriviaFor SynExpr_Dynamic synExpr.Range
             | SynExpr.Const _ -> genTriviaFor SynExpr_Const synExpr.Range
+            | SynExpr.Typed _ -> genTriviaFor SynExpr_Typed synExpr.Range
             | SynExpr.LetOrUse _
             | SynExpr.Sequential _
             | SynExpr.ComputationExpr _ ->
@@ -2246,9 +2248,6 @@ and genExpr astContext synExpr ctx =
                 id
             | SynExpr.LetOrUseBang _ ->
                 // printed as part of CompBody
-                id
-            | SynExpr.Typed _ ->
-                // child nodes contain trivia
                 id
             | SynExpr.DebugPoint _ ->
                 // I don't believe the parser will ever return this node

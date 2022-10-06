@@ -68,7 +68,7 @@ type FsAstType =
     | SynExpr_Paren_ClosingParenthesis
     | SynExpr_Quote
     | SynExpr_Const
-    // | SynExpr_Typed
+    | SynExpr_Typed
     | SynExpr_Tuple
     | SynExpr_StructTuple
     | SynExpr_Record
