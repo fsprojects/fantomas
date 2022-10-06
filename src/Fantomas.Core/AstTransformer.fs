@@ -1162,6 +1162,21 @@ and visitSynPat (sp: SynPat) : TriviaNode =
                 |> finalContinuation
 
             Continuation.sequence continuations finalContinuation
+
+        | SynPat.ListCons (p1, p2, range, trivia) ->
+            let continuations: ((TriviaNode -> TriviaNode) -> TriviaNode) list =
+                [ visit p1; visit p2 ]
+
+            let finalContinuation (nodes: TriviaNode list) : TriviaNode =
+                mkNodeWithChildren
+                    SynPat_ListCons
+                    range
+                    (sortChildren
+                        [| yield! nodes
+                           yield mkNode SynPat_ListCons_ColonColon trivia.ColonColonRange |])
+                |> finalContinuation
+
+            Continuation.sequence continuations finalContinuation
         | SynPat.Ands (pats, range) ->
             let continuations: ((TriviaNode -> TriviaNode) -> TriviaNode) list =
                 pats |> List.map visit

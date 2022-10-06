@@ -256,6 +256,8 @@ type FsAstType =
     | SynPat_Attrib
     | SynPat_Or
     | SynPat_Or_Bar
+    | SynPat_ListCons
+    | SynPat_ListCons_ColonColon
     | SynPat_Ands
     | SynPat_LongIdent
     | SynPat_Tuple

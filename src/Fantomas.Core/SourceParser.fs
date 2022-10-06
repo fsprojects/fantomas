@@ -1173,10 +1173,9 @@ let (|PatLongIdent|_|) =
     | SynPat.LongIdent (synLongIdent, _, tpso, SynArgPats.Pats ps, ao, _) -> Some(ao, synLongIdent, ps, tpso)
     | _ -> None
 
-let (|PatCons|_|) =
+let (|PatListCons|_|) =
     function
-    | PatLongIdent (ao, SynLongIdent(trivia = [ Some (IdentTrivia.OriginalNotation "::") ]), [ PatTuple [ p1; p2 ] ], _) ->
-        Some(ao, p1, p2)
+    | SynPat.ListCons (p1, p2, _, trivia) -> Some(p1, trivia.ColonColonRange, p2)
     | _ -> None
 
 let (|OperatorNameWithStar|PrefixedOperatorNameWithStar|NotAnOperatorNameWithStar|) (synLongIdent: SynLongIdent) =

@@ -4414,7 +4414,10 @@ and genPat astContext pat =
         genPat astContext p1 +> !- " as " +> genPat astContext p2
         |> genTriviaFor SynPat_As r
 
-    | PatCons (ao, p1, p2) -> genAccessOpt ao +> genPat astContext p1 +> !- " :: " +> genPat astContext p2
+    | PatListCons (p1, colonColonRange, p2) ->
+        genPat astContext p1
+        +> genTriviaFor SynPat_ListCons_ColonColon colonColonRange !- " :: "
+        +> genPat astContext p2
 
     | PatNamePatPairs (sli, vtdo, lpr, nps, rpr, r) ->
         let genPatWithIdent astContext (ident, eq, p) =
@@ -4554,6 +4557,7 @@ and genPat astContext pat =
         | SynPat.Named _ -> genTriviaFor SynPat_Named pat.Range
         | SynPat.Wild _ -> genTriviaFor SynPat_Wild pat.Range
         | SynPat.LongIdent _ -> genTriviaFor SynPat_LongIdent pat.Range
+        | SynPat.ListCons _ -> genTriviaFor SynPat_ListCons pat.Range
         | SynPat.Paren _ -> genTriviaFor SynPat_Paren pat.Range
         | SynPat.Or _ -> genTriviaFor SynPat_Or pat.Range
         | _ -> id)
