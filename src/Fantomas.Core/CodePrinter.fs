@@ -691,7 +691,7 @@ and genProperty astContext (getOrSetType: FsAstType, getOrSetRange: range, bindi
             loop [] ps
 
         match ps with
-        | [ _, PatTuple ps ] ->
+        | [ PatTuple ps ] ->
             let ps, p = tuplerize ps
 
             genAccessOpt ao
@@ -706,7 +706,7 @@ and genProperty astContext (getOrSetType: FsAstType, getOrSetRange: range, bindi
         | ps ->
             genAccessOpt ao
             +> genGetOrSet
-            +> col sepSpace ps (fun (_, pat) -> genPat astContext pat)
+            +> col sepSpace ps (genPat astContext)
             +> genExprSepEqPrependType astContext SynBinding_Equals equalsRange e
     | _ -> sepNone
 
@@ -4381,10 +4381,6 @@ and genPatRecordFieldName astContext ((lid: LongIdent, ident: Ident), _: range, 
         (genLongIdent lid +> sepDot +> genIdent ident +> sepEq +> sepSpace)
     +> genPat astContext p
 
-and genPatWithIdent astContext (ido, p) =
-    optSingle (fun (ident, eqR) -> genIdent ident +> genEq SynArgPats_NamePatPairs_Equals (Some eqR) +> sepSpace) ido
-    +> genPat astContext p
-
 and genPat astContext pat =
     match pat with
     | PatOptionalVal ident -> !- "?" +> genIdent ident
@@ -4417,44 +4413,50 @@ and genPat astContext pat =
         genPat astContext p1 +> !- " as " +> genPat astContext p2
         |> genTriviaFor SynPat_As r
 
-    | PatCons (ao, p1, p2) -> genAccessOpt ao +> genPat astContext p1 +> !- " :: " +> genPat astContext p2
+    | PatListCons (p1, colonColonRange, p2) ->
+        genPat astContext p1
+        +> genTriviaFor SynPat_ListCons_ColonColon colonColonRange !- " :: "
+        +> genPat astContext p2
 
-    | PatLongIdent (ao, sli, [], vtdo) ->
+    | PatNamePatPairs (sli, vtdo, lpr, nps, rpr, r) ->
+        let genPatWithIdent astContext (ident, eq, p) =
+            genIdent ident
+            +> genEq SynArgPats_NamePatPairs_Equals (Some eq)
+            +> sepSpace
+            +> genPat astContext p
+
+        let pats =
+            expressionFitsOnRestOfLine
+                (atCurrentColumn (col sepSemi nps (genPatWithIdent astContext)))
+                (atCurrentColumn (col sepNln nps (genPatWithIdent astContext)))
+
+        genSynLongIdent false sli
+        +> genValTyparDeclsOpt astContext vtdo
+        +> ifElse (List.moreThanOne nps) sepSpace sepNone
+        +> genTriviaFor SynArgPats_NamePatPairs_OpeningParenthesis lpr sepOpenT
+        +> pats
+        +> genTriviaFor SynArgPats_NamePatPairs_ClosingParenthesis rpr sepCloseT
+        |> genTriviaFor SynArgPats_NamePatPairs r
+
+    | PatLongIdent (ao, sli, [ PatParen _ as p ], vtdo) ->
         genAccessOpt ao
         +> genSynLongIdent false sli
         +> genValTyparDeclsOpt astContext vtdo
-
-    | PatLongIdent (ao, sli, [ ido, p as ip ], vtdo) ->
-        genAccessOpt ao
-        +> genSynLongIdent false sli
-        +> genValTyparDeclsOpt astContext vtdo
-        +> ifElse
-            (hasParenInPat p || Option.isSome ido)
-            (ifElseCtx (fun ctx -> addSpaceBeforeParensInFunDef ctx.Config.SpaceBeforeParameter sli p) sepSpace sepNone)
-            sepSpace
-        +> ifElse
-            (Option.isSome ido)
-            (sepOpenT +> genPatWithIdent astContext ip +> sepCloseT)
-            (genPatWithIdent astContext ip)
+        +> ifElseCtx (fun ctx -> addSpaceBeforeParensInFunDef ctx.Config.SpaceBeforeParameter sli p) sepSpace sepNone
+        +> genPat astContext p
 
     | PatLongIdent (ao, sli, ps, vtdo) ->
-        let hasBracket = ps |> Seq.map fst |> Seq.exists Option.isSome
-
         let genName =
             genAccessOpt ao
             +> genSynLongIdent false sli
             +> genValTyparDeclsOpt astContext vtdo
-            +> sepSpace
 
         let genParameters =
-            expressionFitsOnRestOfLine
-                (atCurrentColumn (col (ifElse hasBracket sepSemi sepSpace) ps (genPatWithIdent astContext)))
-                (atCurrentColumn (col sepNln ps (genPatWithIdent astContext)))
+            match ps with
+            | [] -> sepNone
+            | ps -> sepSpace +> atCurrentColumn (col sepSpace ps (genPat astContext))
 
-        genName
-        +> ifElse hasBracket sepOpenT sepNone
-        +> genParameters
-        +> ifElse hasBracket sepCloseT sepNone
+        genName +> genParameters
 
     | PatParen (_, PatUnitConst, _) -> !- "()"
     | PatParen (lpr, p, rpr) ->
@@ -4554,6 +4556,7 @@ and genPat astContext pat =
         | SynPat.Named _ -> genTriviaFor SynPat_Named pat.Range
         | SynPat.Wild _ -> genTriviaFor SynPat_Wild pat.Range
         | SynPat.LongIdent _ -> genTriviaFor SynPat_LongIdent pat.Range
+        | SynPat.ListCons _ -> genTriviaFor SynPat_ListCons pat.Range
         | SynPat.Paren _ -> genTriviaFor SynPat_Paren pat.Range
         | SynPat.Or _ -> genTriviaFor SynPat_Or pat.Range
         | _ -> id)
@@ -4573,7 +4576,7 @@ and genSynBindingFunction
     (isMutable: bool)
     (functionName: SynLongIdent)
     (patRange: Range)
-    (parameters: ((Ident * range) option * SynPat) list)
+    (parameters: SynPat list)
     (genericTypeParameters: SynValTyparDecls option)
     (equalsRange: range option)
     (e: SynExpr)
@@ -4607,22 +4610,22 @@ and genSynBindingFunction
         let spaceBeforeParameters =
             match parameters with
             | [] -> sepNone
-            | [ (_, p) ] -> ifElse (addSpaceBeforeParensInFunDef spaceBefore functionName p) sepSpace sepNone
+            | [ p ] -> ifElse (addSpaceBeforeParensInFunDef spaceBefore functionName p) sepSpace sepNone
             | _ -> sepSpace
 
         let short =
             afterLetKeyword
             +> genFunctionName
             +> spaceBeforeParameters
-            +> col sepSpace parameters (genPatWithIdent astContext)
+            +> col sepSpace parameters (genPat astContext)
             +> genEq SynBinding_Equals equalsRange
 
         let long (ctx: Context) =
             let genParameters, hasSingleTupledArg =
                 match parameters with
-                | [ _, (PatParen (lpr, PatTuple ps, rpr) as pp) ] ->
+                | [ PatParen (lpr, PatTuple ps, rpr) as pp ] ->
                     genParenTupleWithIndentAndNewlines astContext lpr ps rpr pp.Range, true
-                | _ -> col sepNln parameters (genPatWithIdent astContext), false
+                | _ -> col sepNln parameters (genPat astContext), false
 
             (afterLetKeyword
              +> sepSpace
@@ -4668,7 +4671,7 @@ and genSynBindingFunctionWithReturnType
     (isMutable: bool)
     (functionName: SynLongIdent)
     (patRange: Range)
-    (parameters: ((Ident * range) option * SynPat) list)
+    (parameters: SynPat list)
     (genericTypeParameters: SynValTyparDecls option)
     (returnType: SynType)
     (equalsRange: range option)
@@ -4708,7 +4711,7 @@ and genSynBindingFunctionWithReturnType
         let spaceBeforeParameters =
             match parameters with
             | [] -> sepNone
-            | [ (_, p) ] -> ifElse (addSpaceBeforeParensInFunDef spaceBefore functionName p) sepSpace sepNone
+            | [ p ] -> ifElse (addSpaceBeforeParensInFunDef spaceBefore functionName p) sepSpace sepNone
             | _ -> sepSpace
 
         let short =
@@ -4716,16 +4719,16 @@ and genSynBindingFunctionWithReturnType
             +> sepSpace
             +> genFunctionName
             +> spaceBeforeParameters
-            +> col sepSpace parameters (genPatWithIdent astContext)
+            +> col sepSpace parameters (genPat astContext)
             +> genReturnType false
             +> genEq SynBinding_Equals equalsRange
 
         let long (ctx: Context) =
             let genParameters, hasSingleTupledArg =
                 match parameters with
-                | [ _, (PatParen (lpr, PatTuple ps, rpr) as pp) ] ->
+                | [ PatParen (lpr, PatTuple ps, rpr) as pp ] ->
                     genParenTupleWithIndentAndNewlines astContext lpr ps rpr pp.Range, true
-                | _ -> col sepNln parameters (genPatWithIdent astContext), false
+                | _ -> col sepNln parameters (genPat astContext), false
 
             (afterLetKeyword
              +> sepSpace

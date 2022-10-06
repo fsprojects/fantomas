@@ -1,5 +1,10 @@
 # Changelog
 
+## [Unreleased]
+
+### Changed
+* Update FCS to 'Correct SynAttribute range', commit e389d7744b7ddf81fd62cf01ce870cf92f6dcabd
+
 ## [5.1.0-alpha-003] - 2022-10-02
 
 ### Changed

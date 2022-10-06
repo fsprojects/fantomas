@@ -1166,6 +1166,21 @@ and visitSynPat (sp: SynPat) : TriviaNode =
                 |> finalContinuation
 
             Continuation.sequence continuations finalContinuation
+
+        | SynPat.ListCons (p1, p2, range, trivia) ->
+            let continuations: ((TriviaNode -> TriviaNode) -> TriviaNode) list =
+                [ visit p1; visit p2 ]
+
+            let finalContinuation (nodes: TriviaNode list) : TriviaNode =
+                mkNodeWithChildren
+                    SynPat_ListCons
+                    range
+                    (sortChildren
+                        [| yield! nodes
+                           yield mkNode SynPat_ListCons_ColonColon trivia.ColonColonRange |])
+                |> finalContinuation
+
+            Continuation.sequence continuations finalContinuation
         | SynPat.Ands (pats, range) ->
             let continuations: ((TriviaNode -> TriviaNode) -> TriviaNode) list =
                 pats |> List.map visit
@@ -1240,7 +1255,7 @@ and visitSynPat (sp: SynPat) : TriviaNode =
 and visitSynConstructorArgs (ctorArgs: SynArgPats) : TriviaNode list =
     match ctorArgs with
     | SynArgPats.Pats pats -> List.map visitSynPat pats
-    | SynArgPats.NamePatPairs (pats, range) ->
+    | SynArgPats.NamePatPairs (pats, _, { ParenRange = StartEndRange 1 (lpr, range, rpr) }) ->
         let children =
             pats
             |> List.map (fun (ident, eqRange, pat) ->
@@ -1251,7 +1266,13 @@ and visitSynConstructorArgs (ctorArgs: SynArgPats) : TriviaNode list =
                        mkNode SynArgPats_NamePatPairs_Equals eqRange
                        visitSynPat pat |])
 
-        [ mkNodeWithChildren SynArgPats_NamePatPairs range (sortChildren [| yield! children |]) ]
+        [ mkNodeWithChildren
+              SynArgPats_NamePatPairs
+              range
+              (sortChildren
+                  [| yield mkNode SynArgPats_NamePatPairs_OpeningParenthesis lpr
+                     yield! children
+                     yield mkNode SynArgPats_NamePatPairs_ClosingParenthesis rpr |]) ]
 
 and visitSynComponentInfo (sci: SynComponentInfo) : TriviaNode list =
     match sci with

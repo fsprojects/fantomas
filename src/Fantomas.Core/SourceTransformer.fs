@@ -97,7 +97,7 @@ let (|LongGetMember|_|) =
                                                     ats,
                                                     px,
                                                     valData,
-                                                    (PatLongIdent (None, _, [ _, PatParen (_, PatUnitConst, _) ], _) as p),
+                                                    (PatLongIdent (None, _, [ PatParen (_, PatUnitConst, _) ], _) as p),
                                                     ri,
                                                     e,
                                                     bindingRange,

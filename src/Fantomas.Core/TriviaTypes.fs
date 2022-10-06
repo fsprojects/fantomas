@@ -256,6 +256,8 @@ type FsAstType =
     | SynPat_Attrib
     | SynPat_Or
     | SynPat_Or_Bar
+    | SynPat_ListCons
+    | SynPat_ListCons_ColonColon
     | SynPat_Ands
     | SynPat_LongIdent
     | SynPat_Tuple
@@ -299,6 +301,8 @@ type FsAstType =
     | SynConst_SourceIdentifier
     | SynArgPats_Pats
     | SynArgPats_NamePatPairs
+    | SynArgPats_NamePatPairs_OpeningParenthesis
+    | SynArgPats_NamePatPairs_ClosingParenthesis
     | SynArgPats_NamePatPair
     | SynArgPats_NamePatPairs_Equals
     // | SynComponentInfo_

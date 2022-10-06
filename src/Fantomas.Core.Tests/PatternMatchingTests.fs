@@ -2052,6 +2052,7 @@ with
 """
 
 [<Test>]
+[<Ignore "Resolve in https://github.com/fsprojects/fantomas/pull/2551">]
 let ``single line named fields in a pattern matching should have space surrounding the '=', 1877`` () =
     formatSourceString
         false
