@@ -439,15 +439,25 @@ let (|MFMember|MFStaticMember|MFConstructor|MFOverride|) (mf: SynMemberFlags) =
         else
             MFStaticMember mk
 
+let parseExpressionInSynBinding returnInfo expr =
+    match returnInfo, expr with
+    | Some (SynBindingReturnInfo (typeName = t1)), SynExpr.Typed (e, t2, _) when RangeHelpers.rangeEq t1.Range t2.Range ->
+        e
+    | _ -> expr
+
 let (|DoBinding|LetBinding|MemberBinding|ExplicitCtor|) b =
     match b with
     | SynBinding (ao, _, _, _, ats, px, SynValData (Some MFConstructor, _, ido), pat, _, expr, _, _, trivia) ->
         ExplicitCtor(ats, px, ao, pat, trivia.EqualsRange, expr, ido)
-    | SynBinding (ao, _, isInline, _, ats, px, SynValData (Some mf, synValInfo, _), pat, _, expr, _, _, trivia) ->
-        MemberBinding(ats, px, ao, isInline, mf, pat, trivia.EqualsRange, expr, synValInfo)
+    | SynBinding (ao, _, isInline, _, ats, px, SynValData (Some mf, synValInfo, _), pat, returnInfo, expr, _, _, trivia) ->
+        let e = parseExpressionInSynBinding returnInfo expr
+        let rt = Option.map (fun (SynBindingReturnInfo (typeName = t)) -> t) returnInfo
+        MemberBinding(ats, px, ao, isInline, mf, pat, rt, trivia.EqualsRange, e, synValInfo)
     | SynBinding (_, SynBindingKind.Do, _, _, ats, px, _, _, _, expr, _, _, _trivia) -> DoBinding(ats, px, expr)
-    | SynBinding (ao, _, isInline, isMutable, attrs, px, SynValData (_, valInfo, _), pat, _, expr, _, _, trivia) ->
-        LetBinding(attrs, px, trivia.LetKeyword, ao, isInline, isMutable, pat, trivia.EqualsRange, expr, valInfo)
+    | SynBinding (ao, _, isInline, isMutable, attrs, px, SynValData (_, valInfo, _), pat, returnInfo, expr, _, _, trivia) ->
+        let e = parseExpressionInSynBinding returnInfo expr
+        let rt = Option.map (fun (SynBindingReturnInfo (typeName = t)) -> t) returnInfo
+        LetBinding(attrs, px, trivia.LetKeyword, ao, isInline, isMutable, pat, rt, trivia.EqualsRange, e, valInfo)
 
 // Expressions (55 cases, lacking to handle 11 cases)
 
@@ -1587,7 +1597,7 @@ let (|FunType|) (t, ValInfo (argTypes, returnType)) =
 /// Probably we should use lexing information to improve its accuracy
 let (|Extern|_|) =
     function
-    | Let (LetBinding (ats, px, _, ao, _, _, PatLongIdent (_, s, [ _, PatTuple ps ], _), _, TypedExpr (Typed, _, t), _)) ->
+    | Let (LetBinding (ats, px, _, ao, _, _, PatLongIdent (_, s, [ _, PatTuple ps ], _), Some t, _, _, _)) ->
         let hasDllImportAttr =
             ats
             |> List.exists (fun { Attributes = attrs } ->

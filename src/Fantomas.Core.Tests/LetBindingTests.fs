@@ -2051,3 +2051,38 @@ let inline NonStructural<'TInput
     : IComparer<'TInput> =
     ()
 """
+
+[<Test>]
+let ``don't  consider typed expression as return type of binding`` () =
+    formatSourceString
+        false
+        """
+let a =
+    0 : int
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let a = 0: int
+"""
+
+[<Test>]
+let ``typed expression with lambda should always have the type on the next line, 2295`` () =
+    formatSourceString
+        false
+        """
+let f x y : int ->  int = 
+    fun _ -> x + y
+    : int -> int
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let f x y : int -> int =
+    fun _ -> x + y
+    : int -> int
+"""

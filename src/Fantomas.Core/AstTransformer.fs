@@ -1056,6 +1056,7 @@ and visitSynBinding (binding: SynBinding) : TriviaNode =
         let letNode =
             mkNodeForRangeAfterXmlAndAttributes SynBinding_Let preXml attrs trivia.LetKeyword
 
+        let expr = SourceParser.parseExpressionInSynBinding returnInfo expr
         let returnInfo = Option.map visitSynBindingReturnInfo returnInfo
 
         mkNodeWithChildren
