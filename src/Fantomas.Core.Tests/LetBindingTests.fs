@@ -2086,3 +2086,32 @@ let f x y : int -> int =
     fun _ -> x + y
     : int -> int
 """
+
+[<Test>]
+let ``trivia around SynExpr.Typed`` () =
+    formatSourceString
+        false
+        """
+let a =
+    (
+
+    // 1
+    0 : int // 2
+    // 3
+
+    )
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let a =
+    (
+
+    // 1
+    0: int // 2
+    // 3
+
+    )
+"""

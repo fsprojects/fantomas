@@ -158,6 +158,7 @@ let rec synExprToFsAstType (expr: SynExpr) : FsAstType * Range =
     | SynExpr.IfThenElse _ -> SynExpr_IfThenElse, expr.Range
     | SynExpr.LetOrUseBang _ -> SynExpr_LetOrUseBang, expr.Range
     | SynExpr.Const _ -> SynExpr_Const, expr.Range
+    | SynExpr.Typed _ -> SynExpr_Typed, expr.Range
     | SynExpr.Lambda _ -> SynExpr_Lambda, expr.Range
     | SynExpr.Ident _ -> SynExpr_Ident, expr.Range
     | SynExpr.App _ -> SynExpr_App, expr.Range
@@ -187,7 +188,6 @@ let rec synExprToFsAstType (expr: SynExpr) : FsAstType * Range =
     | SynExpr.TryFinally _ -> SynExpr_TryFinally, expr.Range
     | SynExpr.Do _ -> SynExpr_Do, expr.Range
     | SynExpr.AddressOf _ -> SynExpr_AddressOf, expr.Range
-    | SynExpr.Typed (e, _, _) -> synExprToFsAstType e
     | SynExpr.ObjExpr _ -> SynExpr_ObjExpr, expr.Range
     | SynExpr.For _ -> SynExpr_For, expr.Range
     | SynExpr.ForEach _ -> SynExpr_ForEach, expr.Range

@@ -2240,6 +2240,7 @@ and genExpr astContext synExpr ctx =
             | SynExpr.IndexFromEnd _ -> genTriviaFor SynExpr_IndexFromEnd synExpr.Range
             | SynExpr.Dynamic _ -> genTriviaFor SynExpr_Dynamic synExpr.Range
             | SynExpr.Const _ -> genTriviaFor SynExpr_Const synExpr.Range
+            | SynExpr.Typed _ -> genTriviaFor SynExpr_Typed synExpr.Range
             | SynExpr.LetOrUse _
             | SynExpr.Sequential _
             | SynExpr.ComputationExpr _ ->
@@ -2247,9 +2248,6 @@ and genExpr astContext synExpr ctx =
                 id
             | SynExpr.LetOrUseBang _ ->
                 // printed as part of CompBody
-                id
-            | SynExpr.Typed _ ->
-                // child nodes contain trivia
                 id
             | SynExpr.DebugPoint _ ->
                 // I don't believe the parser will ever return this node
