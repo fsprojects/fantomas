@@ -6,9 +6,6 @@ type ASTContext =
     {
         /// This pattern matters for formatting extern declarations
         IsCStylePattern: bool
-
-        /// First type param might need extra spaces to avoid parsing errors on `<^`, `<'`, etc.
-        IsFirstTypeParam: bool
     }
 
     static member Default: ASTContext

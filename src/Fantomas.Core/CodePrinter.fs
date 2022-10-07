@@ -19,13 +19,9 @@ type ASTContext =
     {
         /// This pattern matters for formatting extern declarations
         IsCStylePattern: bool
-        /// First type param might need extra spaces to avoid parsing errors on `<^`, `<'`, etc.
-        IsFirstTypeParam: bool
     }
 
-    static member Default =
-        { IsCStylePattern = false
-          IsFirstTypeParam = false }
+    static member Default = { IsCStylePattern = false }
 
 let rec addSpaceBeforeParensInFunCall functionOrMethod arg (ctx: Context) =
     match functionOrMethod, arg with
@@ -533,7 +529,7 @@ and genTypeSupportMemberList astContext tps =
 and genTypeAndParam astContext (typeName: Context -> Context) (tds: SynTyparDecls option) tcs =
     let types openSep tds tcs closeSep =
         (openSep
-         +> coli sepComma tds (fun i -> genTyparDecl { astContext with IsFirstTypeParam = i = 0 })
+         +> coli sepComma tds (fun i -> genTyparDecl astContext (i = 0))
          +> genSynTypeConstraintList astContext tcs
          +> closeSep)
 
@@ -548,17 +544,14 @@ and genTypeAndParam astContext (typeName: Context -> Context) (tds: SynTyparDecl
             (genTriviaFor SynTyparDecls_PostfixList_Lesser lt !- ">")
     | Some (SynTyparDecls.PostfixList _) -> sepNone // captured above
     | Some (SynTyparDecls.PrefixList (tds, _range)) -> types (!- "(") tds [] (!- ")") +> !- " " +> typeName
-    | Some (SynTyparDecls.SinglePrefix (td, _range)) ->
-        genTyparDecl { astContext with IsFirstTypeParam = true } td
-        +> sepSpace
-        +> typeName
+    | Some (SynTyparDecls.SinglePrefix (td, _range)) -> genTyparDecl astContext true td +> sepSpace +> typeName
     +> colPre (!- " when ") wordAnd tcs (genTypeConstraint astContext)
 
 and genTypeParamPostfix astContext tds =
     match tds with
     | Some (PostfixList (gt, tds, tcs, lt, _range)) ->
         (genTriviaFor SynTyparDecls_PostfixList_Greater gt !- "<")
-        +> coli sepComma tds (fun i -> genTyparDecl { astContext with IsFirstTypeParam = i = 0 })
+        +> coli sepComma tds (fun i -> genTyparDecl astContext (i = 0))
         +> genSynTypeConstraintList astContext tcs
         +> (genTriviaFor SynTyparDecls_PostfixList_Lesser lt !- ">")
     | _ -> sepNone
@@ -2414,7 +2407,13 @@ and genGenericTypeParameters astContext lt ts gt =
     | [] -> sepNone
     | ts ->
         genTriviaFor SynExpr_TypeApp_Less lt !- "<"
-        +> coli sepComma ts (fun idx -> genType { astContext with IsFirstTypeParam = idx = 0 })
+        +> coli sepComma ts (fun idx t ->
+            let leadingSpace =
+                match t with
+                | TVar (Typar (_, true), _) when idx = 0 -> sepSpace
+                | _ -> sepNone
+
+            leadingSpace +> genType astContext t)
         +> indentIfNeeded sepNone
         +> genTriviaFor SynExpr_TypeApp_Greater gt !- ">"
 
@@ -3726,8 +3725,10 @@ and genConstraints astContext (t: SynType) (vi: SynValInfo) =
         )
     | _ -> sepNone
 
-and genTyparDecl astContext (TyparDecl (ats, tp, fullRange)) =
-    genOnelinerAttributes astContext ats +> genTypar astContext tp
+and genTyparDecl astContext (isFirstTypeParam: bool) (TyparDecl (ats, (Typar (_, isHead) as tp), fullRange)) =
+    genOnelinerAttributes astContext ats
+    +> onlyIf (isFirstTypeParam && isHead) sepSpace
+    +> genTypar astContext tp
     |> genTriviaFor SynTyparDecl_ fullRange
 
 and genTypeDefKind node =
@@ -4037,8 +4038,7 @@ and genTypeList astContext node =
     expressionFitsOnRestOfLine shortExpr longExpr
 
 and genTypar astContext (Typar (ident, isHead)) =
-    ifElse isHead (ifElse astContext.IsFirstTypeParam (!- " ^") (!- "^")) (!- "'")
-    +> genIdent ident
+    ifElse isHead (!- "^") (!- "'") +> genIdent ident
 
 and genTypeConstraint astContext node =
     match node with
