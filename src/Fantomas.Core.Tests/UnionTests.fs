@@ -83,9 +83,9 @@ type Type =
     | TyCon of string * Type list
     override this.ToString() =
         match this with
-        | TyLam (t1, t2) -> sprintf "(%s -> %s)" (t1.ToString()) (t2.ToString())
+        | TyLam(t1, t2) -> sprintf "(%s -> %s)" (t1.ToString()) (t2.ToString())
         | TyVar a -> a
-        | TyCon (s, ts) -> s
+        | TyCon(s, ts) -> s
 """
 
 [<Test>]
@@ -114,9 +114,9 @@ type Type =
 
     override this.ToString() =
         match this with
-        | TyLam (t1, t2) -> sprintf "(%s -> %s)" (t1.ToString()) (t2.ToString())
+        | TyLam(t1, t2) -> sprintf "(%s -> %s)" (t1.ToString()) (t2.ToString())
         | TyVar a -> a
-        | TyCon (s, ts) -> s
+        | TyCon(s, ts) -> s
 """
 
 [<Test>]
@@ -195,7 +195,7 @@ let main argv =
     let d = Test(B = 1, A = 2)
 
     match d with
-    | Test (A = a; B = b) -> a + b
+    | Test(A = a; B = b) -> a + b
     | _ -> 0
 """
 

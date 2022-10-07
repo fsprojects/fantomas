@@ -90,7 +90,7 @@ let s2 = seq { 0..10..100 }
 let rec inorder tree =
     seq {
         match tree with
-        | Tree (x, left, right) ->
+        | Tree(x, left, right) ->
             yield! inorder left
             yield x
             yield! inorder right
@@ -1512,10 +1512,10 @@ let private getAST log (req: HttpRequest) =
             | Result.Ok ast ->
                 let node =
                     match ast with
-                    | ParsedInput.ImplFile (ParsedImplFileInput.ParsedImplFileInput (_, _, _, _, hds, mns, _)) ->
+                    | ParsedInput.ImplFile(ParsedImplFileInput.ParsedImplFileInput(_, _, _, _, hds, mns, _)) ->
                         Fantomas.AstTransformer.astToNode hds mns
 
-                    | ParsedInput.SigFile (ParsedSigFileInput.ParsedSigFileInput (_, _, _, _, mns)) ->
+                    | ParsedInput.SigFile(ParsedSigFileInput.ParsedSigFileInput(_, _, _, _, mns)) ->
                         Fantomas.AstTransformer.sigAstToNode mns
                     |> Encoders.nodeEncoder
 
@@ -2306,7 +2306,7 @@ let generateUnionCases =
                 let! (tyRes, line, lines) = getParseResultsForFile fileName pos
 
                 match! generateCases tyRes pos lines line |> Async.map Ok with
-                | CoreResponse.Res (insertString: string, insertPosition) ->
+                | CoreResponse.Res(insertString: string, insertPosition) ->
                     return
                         [ { SourceDiagnostic = Some diagnostic
                             File = codeActionParams.TextDocument

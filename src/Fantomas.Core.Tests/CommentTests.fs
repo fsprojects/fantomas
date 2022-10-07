@@ -1940,7 +1940,7 @@ let compilerOptionUsage (CompilerOption (s, tag, spec, _, _)) =
     |> should
         equal
         """
-let compilerOptionUsage (CompilerOption (s, tag, spec, _, _)) =
+let compilerOptionUsage (CompilerOption(s, tag, spec, _, _)) =
     let s =
         if s = "--" then
             ""
@@ -2012,7 +2012,7 @@ let compilerOptionUsage (CompilerOption (s, tag, spec, _, _)) =
     |> should
         equal
         """
-let compilerOptionUsage (CompilerOption (s, tag, spec, _, _)) =
+let compilerOptionUsage (CompilerOption(s, tag, spec, _, _)) =
     let s =
         if s = "--" then
             ""
@@ -2357,7 +2357,7 @@ node {
             match builderOpt with
             | Some builder ->
                 match! bc.GetCachedCheckFileResult(builder, fileName, sourceText, options) with
-                | Some (_, checkResults) ->
+                | Some(_, checkResults) ->
                     return Some(builder, creationDiags, Some(FSharpCheckFileAnswer.Succeeded checkResults))
                 | _ -> return Some(builder, creationDiags, None)
             | _ -> return None // the builder wasn't ready

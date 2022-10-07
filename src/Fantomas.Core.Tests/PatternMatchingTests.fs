@@ -340,7 +340,7 @@ let x =
         """
 let x =
     match y with
-    | Start (-1) -> true
+    | Start(-1) -> true
     | _ -> false
 """
 
@@ -480,11 +480,11 @@ let (|OneLinerBinding|MultilineBinding|) b =
         """
 let (|OneLinerBinding|MultilineBinding|) b =
     match b with
-    | LetBinding ([], PreXmlDoc [||], _, _, _, _, OneLinerExpr _)
-    | DoBinding ([], PreXmlDoc [||], OneLinerExpr _)
-    | MemberBinding ([], PreXmlDoc [||], _, _, _, _, OneLinerExpr _)
-    | PropertyBinding ([], PreXmlDoc [||], _, _, _, _, OneLinerExpr _)
-    | ExplicitCtor ([], PreXmlDoc [||], _, _, OneLinerExpr _, _) -> OneLinerBinding b
+    | LetBinding([], PreXmlDoc [||], _, _, _, _, OneLinerExpr _)
+    | DoBinding([], PreXmlDoc [||], OneLinerExpr _)
+    | MemberBinding([], PreXmlDoc [||], _, _, _, _, OneLinerExpr _)
+    | PropertyBinding([], PreXmlDoc [||], _, _, _, _, OneLinerExpr _)
+    | ExplicitCtor([], PreXmlDoc [||], _, _, OneLinerExpr _, _) -> OneLinerBinding b
 
     | _ -> MultilineBinding b
 """
@@ -827,7 +827,7 @@ let private update onSubmit msg model =
     | UpdateName n -> ({ model with Name = n } : Model), Cmd.none
     | UpdatePrice p -> { model with Price = p }, Cmd.none
     | UpdateCurrency c -> { model with Currency = c }, Cmd.none
-    | UpdateLocation (lat, lng) ->
+    | UpdateLocation(lat, lng) ->
         { model with
             Latitude = lat
             Longitude = lng },
@@ -904,7 +904,7 @@ List.tryFind (fun { Type = t; Range = r } ->
     | MainNode SynMemberSig_Member -> // trying to get AST trivia
         RangeHelpers.``range contains`` r rangeOfBindingAndRhs
 
-    | Token (MEMBER, _) -> // trying to get token trivia
+    | Token(MEMBER, _) -> // trying to get token trivia
         r.StartLine = rangeOfBindingAndRhs.StartLine
 
     | _ -> false)
@@ -980,7 +980,7 @@ let draftToken =
             { token with
                 LeftColumn = token.LeftColumn - 1
                 FullMatchedLength = token.FullMatchedLength + 1 }
-    | Some ({ Kind = SymbolKind.ActivePattern } as ap) when token.Tag = FSharpTokenTag.RPAREN ->
+    | Some({ Kind = SymbolKind.ActivePattern } as ap) when token.Tag = FSharpTokenTag.RPAREN ->
         DraftToken.Create SymbolKind.Ident ap.Token
     | _ ->
         let kind =
@@ -1053,7 +1053,7 @@ let rec (|DoExprAttributesL|_|) =
         """
 let rec (|DoExprAttributesL|_|) =
     function
-    | DoExpr _ | Attributes _ as x :: DoExprAttributesL (xs, ys) -> Some(x :: xs, ys)
+    | DoExpr _ | Attributes _ as x :: DoExprAttributesL(xs, ys) -> Some(x :: xs, ys)
     | DoExpr _ | Attributes _ as x :: ys -> Some([ x ], ys)
     | _ -> None
 """
@@ -1174,7 +1174,7 @@ type Thing =
     | Foo of msg: string
     override this.ToString() =
         match this with
-        | Foo (ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff) ->
+        | Foo(ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff) ->
             ""
 """
 
@@ -1206,7 +1206,7 @@ type Thing =
     | Foo of msg : string
     override this.ToString() : string =
         match this with
-        | Foo (ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff) ->
+        | Foo(ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff) ->
             ""
 """
 
@@ -1253,7 +1253,7 @@ let private formatResponse<'options> () =
             Result.map (fun r -> r, mapFantomasOptionsToRecord r.Options) model
 
         match configResult with
-        | Ok ({ SourceCode = code; IsFsi = isFsi }, config) ->
+        | Ok({ SourceCode = code; IsFsi = isFsi }, config) ->
             let fileName = if isFsi then "tmp.fsi" else "tmp.fsx"
 
             try
@@ -1428,9 +1428,8 @@ let args =
         """
 let args =
     match args with
-    | [ SynPatErrorSkip (SynPat.Tuple (false, args, _))
-         | SynPatErrorSkip (SynPat.Paren (SynPatErrorSkip (SynPat.Tuple (false, args, _)), _)) ] when numArgTys > 1 ->
-        args
+    | [ SynPatErrorSkip(SynPat.Tuple(false, args, _))
+         | SynPatErrorSkip(SynPat.Paren(SynPatErrorSkip(SynPat.Tuple(false, args, _)), _)) ] when numArgTys > 1 -> args
     | _ -> failwith "meh"
 """
 
@@ -1644,22 +1643,22 @@ let GenApp (cenv: cenv) cgbuf eenv (f, fty, tyargs, curriedArgs, m) sequel =
 
     match (f, tyargs, curriedArgs) with
     // Look for tailcall to turn into branch
-    | (Expr.Val (v, _, _), _, _) when
+    | (Expr.Val(v, _, _), _, _) when
         match ListAssoc.tryFind g.valRefEq v eenv.innerVals with
-        | Some (kind, _) ->
+        | Some(kind, _) ->
             (not v.IsConstructor
              &&
              // when branch-calling methods we must have the right type parameters
              (match kind with
               | BranchCallClosure _ -> true
-              | BranchCallMethod (_, _, tps, _, _, _) ->
+              | BranchCallMethod(_, _, tps, _, _, _) ->
                   (List.lengthsEqAndForall2 (fun ty tp -> typeEquiv g ty (mkTyparTy tp)) tyargs tps))
              &&
              // must be exact #args, ignoring tupling - we untuple if needed below
              (let arityInfo =
                  match kind with
                  | BranchCallClosure arityInfo
-                 | BranchCallMethod (arityInfo, _, _, _, _, _) -> arityInfo
+                 | BranchCallMethod(arityInfo, _, _, _, _, _) -> arityInfo
 
               arityInfo.Length = curriedArgs.Length)
              &&
@@ -2052,7 +2051,6 @@ with
 """
 
 [<Test>]
-[<Ignore "Resolve in https://github.com/fsprojects/fantomas/pull/2551">]
 let ``single line named fields in a pattern matching should have space surrounding the '=', 1877`` () =
     formatSourceString
         false
@@ -2068,8 +2066,8 @@ let examineData x =
         """
 let examineData x =
     match data with
-    | OnePartData (part1 = p1) -> p1
-    | TwoPartData (part1 = p1; part2 = p2) -> p1 + p2
+    | OnePartData(part1 = p1) -> p1
+    | TwoPartData(part1 = p1; part2 = p2) -> p1 + p2
 """
 
 [<Test>]
@@ -2210,7 +2208,7 @@ type Foo =
 
 let foo =
     function
-    | Bar (1 | 2) -> true
+    | Bar(1 | 2) -> true
     | _ -> false
 """
 
@@ -2233,4 +2231,29 @@ let addSpaceBeforeParensInFunDef (spaceBeforeSetting: bool) (functionOrMethod: S
     match functionOrMethod, args with
     | SynLongIdent(id = [ newIdent ]), _ when newIdent.idText = "new" -> false
     | _ -> true
+"""
+
+[<Test>]
+let ``trivia in SynArgPats, 2541`` () =
+    formatSourceString
+        false
+        """
+let examineData x =
+    match data with
+    | OnePartData( // foo
+        part1 = p1
+      (* bar *) ) -> p1
+    | TwoPartData(part1 = p1; part2=p2) -> p1 + p2
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let examineData x =
+    match data with
+    | OnePartData( // foo
+        part1 = p1
+    (* bar *) ) -> p1
+    | TwoPartData(part1 = p1; part2 = p2) -> p1 + p2
 """

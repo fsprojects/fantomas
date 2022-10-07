@@ -318,6 +318,12 @@ let blockCommentToTriviaInstruction (containerNode: TriviaNode) (trivia: Trivia)
               Type = nb.Type
               Range = nb.Range
               AddBefore = false }
+    | None, Some na ->
+        Some
+            { Trivia = triviaWith true false
+              Type = na.Type
+              Range = na.Range
+              AddBefore = true }
     | _ -> None
 
 let mapTriviaToTriviaInstruction (rootNode: TriviaNode) (trivia: Trivia) : TriviaInstruction option =

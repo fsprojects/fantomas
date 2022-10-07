@@ -1002,8 +1002,8 @@ let MethInfosEquivByNameAndSig erasureFlag ignoreFinal g amap m minfo minfo2 =
 /// Used to hide/filter members from base classes based on signature
 let MethInfosEquivByNameAndSig erasureFlag ignoreFinal g amap m minfo minfo2 =
     MethInfosEquivByNameAndPartialSig erasureFlag ignoreFinal g amap m minfo minfo2
-    && let (CompiledSig (_, retTy, formalMethTypars, _)) = CompiledSigOfMeth g amap m minfo in
-       let (CompiledSig (_, retTy2, formalMethTypars2, _)) =
+    && let (CompiledSig(_, retTy, formalMethTypars, _)) = CompiledSigOfMeth g amap m minfo in
+       let (CompiledSig(_, retTy2, formalMethTypars2, _)) =
            CompiledSigOfMeth g amap m minfo2 in
 
        match retTy, retTy2 with
