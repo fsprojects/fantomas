@@ -236,6 +236,7 @@ type FsAstType =
     | SynBindingKind_Do
     | SynBinding_AfterAttributes_BeforeHeadPattern
     | SynBinding_Let
+    | SynBinding_Extern
     | SynBinding_Equals
     | SynBindingReturnInfo_
     | SynTyparDecls_PostfixList

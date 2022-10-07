@@ -1060,8 +1060,13 @@ and visitSynBinding (binding: SynBinding) : TriviaNode =
             | SynBindingKind.Do -> None
             | _ -> Some(visitSynPat headPat)
 
-        let letNode =
-            mkNodeForRangeAfterXmlAndAttributes SynBinding_Let preXml attrs trivia.LetKeyword
+        let keywordNode =
+            let triviaType, range =
+                match trivia.ExternKeyword with
+                | Some _ -> SynBinding_Extern, trivia.ExternKeyword
+                | None -> SynBinding_Let, trivia.LetKeyword
+
+            mkNodeForRangeAfterXmlAndAttributes triviaType preXml attrs range
 
         let expr = SourceParser.parseExpressionInSynBinding returnInfo expr
         let returnInfo = Option.map visitSynBindingReturnInfo returnInfo
@@ -1071,7 +1076,7 @@ and visitSynBinding (binding: SynBinding) : TriviaNode =
             binding.RangeOfBindingWithRhs
             (sortChildren
                 [| yield! visitSynAttributeLists attrs
-                   yield! letNode
+                   yield! keywordNode
                    yield! visitSynValData valData
                    yield! Option.toList headPatNodes
                    yield! Option.toList returnInfo

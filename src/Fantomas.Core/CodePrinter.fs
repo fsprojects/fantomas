@@ -13,15 +13,11 @@ open Fantomas.Core.SourceTransformer
 open Fantomas.Core.Context
 open Fantomas.Core.TriviaTypes
 
-/// This type consists of contextual information which is important for formatting
-/// Please avoid using this record as it can be the cause of unexpected behavior when used incorrectly
 type ASTContext =
-    {
-        /// This pattern matters for formatting extern declarations
-        IsCStylePattern: bool
-    }
+    class
+    end
 
-    static member Default = { IsCStylePattern = false }
+    static member Default = Unchecked.defaultof<ASTContext>
 
 let rec addSpaceBeforeParensInFunCall functionOrMethod arg (ctx: Context) =
     match functionOrMethod, arg with
@@ -294,17 +290,7 @@ and genModuleDecl astContext (node: SynModuleDecl) =
     | DeclExpr e -> genExpr astContext e
     | Exception ex -> genException astContext ex
     | HashDirective p -> genParsedHashDirective p
-    | Extern (ats, px, ao, t, sli, ps) ->
-        genPreXmlDoc px
-        +> genAttributes astContext ats
-        +> !- "extern "
-        +> genType { astContext with IsCStylePattern = true } t
-        +> sepSpace
-        +> genAccessOpt ao
-        +> genSynLongIdent false sli
-        +> sepOpenT
-        +> col sepComma ps (genPat { astContext with IsCStylePattern = true })
-        +> sepCloseT
+    | Let (ExternBinding eb) -> genExternBinding astContext eb
     // Add a new line after module-level let bindings
     | Let b -> genLetBinding astContext "let " b
     | LetRec (b :: bs) ->
@@ -567,6 +553,60 @@ and genSynTypeConstraintList astContext tcs =
             colPre (!- "when ") (sepNln +> wordAndFixed +> sepSpace) tcs (genTypeConstraint astContext)
 
         autoIndentAndNlnIfExpressionExceedsPageWidth (expressionFitsOnRestOfLine short long)
+
+and genExternBinding astContext (externRange, ao, attrs, px, pat, rt) =
+    let rec genTypeForExtern astContext t =
+        match t with
+        | TApp (TLongIdent (SynLongIdent ([ _ ], [], [ Some (IdentTrivia.OriginalNotation "*") ])),
+                _,
+                [ t ],
+                _,
+                true,
+                range) -> genType astContext t +> !- "*" |> genTriviaFor SynType_App range
+        | TApp (TLongIdent (SynLongIdent ([ _ ], [], [ Some (IdentTrivia.OriginalNotation "&") ])),
+                _,
+                [ t ],
+                _,
+                true,
+                range) -> genType astContext t +> !- "&" |> genTriviaFor SynType_App range
+        | TApp (TArrayInExtern arrayText, None, [ TApp (t, _, _, _, _, _) ], None, true, _) ->
+            genTypeForExtern astContext t +> !-arrayText
+        | TArrayInExtern arrayText -> !-arrayText
+        | _ -> genType astContext t
+
+    let rec genPatForExtern astContext pat =
+        match pat with
+        | PatAttrib (PatTyped (PatNullary _, t), attrs) ->
+            genOnelinerAttributes astContext attrs +> genTypeForExtern astContext t
+        | PatAttrib (PatTyped (p, t), attrs) ->
+            genOnelinerAttributes astContext attrs
+            +> genTypeForExtern astContext t
+            +> sepSpace
+            +> genPat astContext p
+        | PatLongIdent (_, sli, [ PatTuple ps ], _) ->
+            let short =
+                genSynLongIdent false sli
+                +> sepOpenT
+                +> col sepComma ps (genPatForExtern astContext)
+                +> sepCloseT
+
+            let long =
+                genSynLongIdent false sli
+                +> sepOpenT
+                +> indentSepNlnUnindent (col (sepComma +> sepNln) ps (genPatForExtern astContext))
+                +> sepNln
+                +> sepCloseT
+
+            expressionFitsOnRestOfLine short long
+        | _ -> genPat astContext pat
+
+    genPreXmlDoc px
+    +> genAttributes astContext attrs
+    +> genTriviaFor SynBinding_Extern externRange !- "extern "
+    +> optSingle (fun (a, t) -> genOnelinerAttributes astContext a +> genType astContext t +> sepSpace) rt
+    +> genAccessOpt ao
+    +> genPatForExtern astContext pat
+    +> sepSpace
 
 and genLetBinding astContext pref b =
     let genPref letKeyword =
@@ -3839,14 +3879,6 @@ and genType astContext t =
         |> genTriviaFor SynType_Array r
     | TAnon -> sepWild
     | TVar (tp, r) -> genTypar astContext tp |> genTriviaFor SynType_Var r
-    | TApp (TLongIdent (SynLongIdent ([ _ ], [], [ Some (IdentTrivia.OriginalNotation "*") ])), _, [ t ], _, true, range) when
-        astContext.IsCStylePattern
-        ->
-        genType astContext t +> !- "*" |> genTriviaFor SynType_App range
-    | TApp (TLongIdent (SynLongIdent ([ _ ], [], [ Some (IdentTrivia.OriginalNotation "&") ])), _, [ t ], _, true, range) when
-        astContext.IsCStylePattern
-        ->
-        genType astContext t +> !- "&" |> genTriviaFor SynType_App range
     | TApp (t, lessRange, ts, greaterRange, isPostfix, range) ->
         let postForm =
             match ts with
@@ -3875,7 +3907,6 @@ and genType astContext t =
     | TWithGlobalConstraints (t, tcs) ->
         genType astContext t
         +> colPre (!- " when ") wordAnd tcs (genTypeConstraint astContext)
-    | SynType.LongIdent (SynLongIdent(id = [ lid ])) when (astContext.IsCStylePattern && lid.idText = "[]") -> !- "[]"
     | TLongIdent sli -> genSynLongIdent false sli
     | TAnonRecord (isStruct, fields) ->
         let smallExpression =
@@ -4258,6 +4289,7 @@ and genMemberDefn astContext node =
 
     | MDMember b
     | LongGetMember b -> genMemberBinding astContext b
+    | MDLetBindings (_, _, [ ExternBinding eb ]) -> genExternBinding astContext eb
     | MDLetBindings (isStatic, isRec, b :: bs) ->
         let prefix =
             if isStatic && isRec then "static let rec "
@@ -4393,14 +4425,7 @@ and genPat astContext pat =
     | PatAnds ps -> col (!- " & ") ps (genPat astContext)
     | PatNullary PatNull -> !- "null"
     | PatNullary PatWild -> sepWild
-    | PatTyped (p, t) ->
-        // CStyle patterns only occur on extern declaration so it doesn't escalate to expressions
-        // We lookup sources to get extern types since it has quite many exceptions compared to normal F# types
-        ifElse
-            astContext.IsCStylePattern
-            (genType astContext t +> sepSpace +> genPat astContext p)
-            (genPat astContext p +> sepColon +> atCurrentColumnIndent (genType astContext t))
-
+    | PatTyped (p, t) -> genPat astContext p +> sepColon +> atCurrentColumnIndent (genType astContext t)
     | PatNamed (ao, SynIdent (_, Some (ParenStarSynIdent (lpr, op, rpr)))) ->
         genAccessOpt ao
         +> sepOpenTFor lpr
