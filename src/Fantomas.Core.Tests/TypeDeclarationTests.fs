@@ -1650,7 +1650,8 @@ type SomeType =
         "b"
 
     static member Serialize
-        (loooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooong2: SomeType)
+        (loooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooong2:
+            SomeType)
         =
         Encode.string v.Meh
 
@@ -1684,7 +1685,8 @@ type INotifications<'a, 'b, 'c, 'd, 'e> =
 type DeviceNotificationHandler<'Notification, 'CallbackId, 'RegisterInputData, 'RegisterOutputData, 'UnregisterOutputData>
     private
     (
-        client: INotifications<'Notification, 'CallbackId, 'RegisterInputData, 'RegisterOutputData, 'UnregisterOutputData>,
+        client:
+            INotifications<'Notification, 'CallbackId, 'RegisterInputData, 'RegisterOutputData, 'UnregisterOutputData>,
         callbackId: 'CallbackId,
         validateUnregisterOutputData: 'UnregisterOutputData -> unit
     ) =
@@ -2848,14 +2850,18 @@ and [<CustomEquality ; NoComparison>] Bar<'context, 'a> =
                 a.Apply
                     { new ApplyEval<_, _, _> with
                         member __.Eval<'bb>
-                            (a : Foo<'innerContextLongLongLong, 'bb -> 'b> * Foo<'innerContextLongLongLong, 'bb>)
+                            (a :
+                                Foo<'innerContextLongLongLong, 'bb -> 'b> *
+                                Foo<'innerContextLongLongLong, 'bb>)
                             =
                             let (af, av) = a
 
                             b.Apply
                                 { new ApplyEval<_, _, _> with
                                     member __.Eval<'cb>
-                                        (b : Foo<'innerContextLongLongLong, 'cb -> 'b> * Foo<'innerContextLongLongLong, 'bc>)
+                                        (b :
+                                            Foo<'innerContextLongLongLong, 'cb -> 'b> *
+                                            Foo<'innerContextLongLongLong, 'bc>)
                                         =
                                         let (bf, bv) = b
 
@@ -2868,8 +2874,10 @@ and [<CustomEquality ; NoComparison>] Bar<'context, 'a> =
                                                 (fun inner ->
                                                     if inner then
                                                         let bv =
-                                                            unbox<Foo<'innerContextLongLongLong, 'bb
-                                                                          -> 'b>>
+                                                            unbox<Foo<
+                                                                'innerContextLongLongLong,
+                                                                'bb -> 'b
+                                                            >>
                                                                 bf
 
                                                         this.InnerEquals af bf cont
@@ -3193,4 +3201,38 @@ type LdapClaimsTransformation
 
     interface IClaimsTransformation with
         member __.TransformAsync principle = 3
+"""
+
+[<Test>]
+let ``multiline return type`` () =
+    formatSourceString
+        false
+        """
+type Meh =
+    static member AsBeginEnd<'Arg, 'T>
+        (computation: ('Arg -> Async<'T>))
+        // The 'Begin' member
+        : ('Arg * System.AsyncCallback * obj -> System.IAsyncResult) * (System.IAsyncResult -> 'T) * (System.IAsyncResult -> unit) =
+        let beginAction =
+            fun (a1, callback, state) -> AsBeginEndHelpers.beginAction ((computation a1), callback, state)
+
+        beginAction, AsBeginEndHelpers.endAction<'T>, AsBeginEndHelpers.cancelAction<'T>
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type Meh =
+    static member AsBeginEnd<'Arg, 'T>
+        (computation: ('Arg -> Async<'T>))
+        // The 'Begin' member
+        : ('Arg * System.AsyncCallback * obj -> System.IAsyncResult) *
+          (System.IAsyncResult -> 'T) *
+          (System.IAsyncResult -> unit)
+        =
+        let beginAction =
+            fun (a1, callback, state) -> AsBeginEndHelpers.beginAction ((computation a1), callback, state)
+
+        beginAction, AsBeginEndHelpers.endAction<'T>, AsBeginEndHelpers.cancelAction<'T>
 """

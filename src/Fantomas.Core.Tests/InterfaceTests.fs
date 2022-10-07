@@ -473,7 +473,8 @@ type IFoo =
         i : int ->
         a : string *
         foo : int *
-        someReallyLongNameThatMakesTheTupleMultiLine : string ->
+        someReallyLongNameThatMakesTheTupleMultiLine :
+            string ->
             string
 """
 
