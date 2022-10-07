@@ -1129,7 +1129,8 @@ type B = {| x: AReallyLongTypeThatIsMuchLongerThan40Characters |}
         equal
         """
 let f
-    (x: {| x: int
+    (x:
+        {| x: int
            y: obj |})
     =
     x

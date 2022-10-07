@@ -2002,7 +2002,7 @@ let UpdateUI
     (theModel:
 #if NETCOREAPP2_1
 #else
-               TreeModel
+        TreeModel
 #endif
     )
     (info: FileInfo)
@@ -2045,9 +2045,9 @@ let ``compiler defines around parameter type definition, 633`` () =
 let UpdateUI
     (theModel:
 #if NETCOREAPP2_1
-               ITreeModel
+        ITreeModel
 #else
-               TreeModel
+        TreeModel
 #endif
     )
     (info: FileInfo)
