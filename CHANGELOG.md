@@ -3,7 +3,7 @@
 ## [Unreleased]
 
 ### Changed
-* Update FCS to 'Correct SynAttribute range', commit e389d7744b7ddf81fd62cf01ce870cf92f6dcabd
+* Update FCS to 'Add extern keyword to SynBindingTrivia', commit 23d93522a56e139e2fc85e6d2591d38698ae8d38
 
 ## [5.1.0-alpha-003] - 2022-10-02
 
