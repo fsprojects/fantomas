@@ -1086,11 +1086,9 @@ and genExpr astContext synExpr ctx =
             let smallRecordExpr =
                 genTriviaFor SynExpr_Record_OpeningBrace openingBrace sepOpenS
                 +> optSingle
-                    (fun (inheritType, inheritExpr) ->
+                    (fun inheritCtor ->
                         !- "inherit "
-                        +> genType astContext inheritType
-                        +> addSpaceBeforeClassConstructor inheritExpr
-                        +> genExpr astContext inheritExpr
+                        +> genInheritConstructor astContext inheritCtor
                         +> onlyIf (List.isNotEmpty xs) sepSemi)
                     inheritOpt
                 +> optSingle (fun e -> genExpr astContext e +> !- " with ") eo
@@ -2503,13 +2501,11 @@ and genMultilineRecordInstance
 
     let expr =
         match inheritOpt with
-        | Some (t, e) ->
+        | Some inheritCtor ->
             genTriviaFor SynExpr_Record_OpeningBrace openingBrace sepOpenS
             +> atCurrentColumn (
                 !- "inherit "
-                +> genType astContext t
-                +> addSpaceBeforeClassConstructor e
-                +> genExpr astContext e
+                +> autoIndentAndNlnIfExpressionExceedsPageWidth (genInheritConstructor astContext inheritCtor)
                 +> onlyIf (List.isNotEmpty xs) sepNln
                 +> fieldsExpr
                 +> genTriviaFor SynExpr_Record_ClosingBrace closingBrace sepCloseS
@@ -2568,22 +2564,16 @@ and genMultilineRecordInstanceAlignBrackets
     let hasFields = List.isNotEmpty xs
 
     match inheritOpt, eo with
-    | Some (inheritType, inheritExpr), None ->
-        genTriviaFor SynExpr_Record_OpeningBrace openingBrace sepOpenS
-        +> ifElse hasFields (indent +> sepNln) sepNone
-        +> !- "inherit "
-        +> genType astContext inheritType
-        +> addSpaceBeforeClassConstructor inheritExpr
-        +> genExpr astContext inheritExpr
-        +> ifElse
-            hasFields
-            (sepNln
-             +> fieldsExpr
-             +> unindent
-             +> sepNln
-             +> genTriviaFor SynExpr_Record_ClosingBrace closingBrace sepCloseSFixed)
-            (sepSpace +> genTriviaFor SynExpr_Record_ClosingBrace closingBrace sepCloseSFixed)
-
+    | Some inheritCtor, None ->
+        genTriviaFor SynExpr_Record_OpeningBrace openingBrace sepOpenSFixed
+        +> indentSepNlnUnindent (
+            !- "inherit "
+            +> autoIndentAndNlnIfExpressionExceedsPageWidth (genInheritConstructor astContext inheritCtor)
+            +> onlyIf hasFields sepNln
+            +> fieldsExpr
+        )
+        +> sepNln
+        +> genTriviaFor SynExpr_Record_ClosingBrace closingBrace sepCloseSFixed
     | None, Some e ->
         genTriviaFor SynExpr_Record_OpeningBrace openingBrace sepOpenS
         +> atCurrentColumnIndent (genExpr astContext e)
@@ -2602,6 +2592,18 @@ and genMultilineRecordInstanceAlignBrackets
          +> indentSepNlnUnindent fieldsExpr
          +> ifElseCtx lastWriteEventIsNewline sepNone sepNln
          +> genTriviaFor SynExpr_Record_ClosingBrace closingBrace sepCloseSFixed)
+
+and genInheritConstructor (astContext: ASTContext) (inheritCtor: SynType * SynExpr) =
+    match inheritCtor with
+    | TypeOnlyInheritConstructor t -> genType astContext t
+    | UnitInheritConstructor t -> genType astContext t +> sepSpaceBeforeClassConstructor +> sepOpenT +> sepCloseT
+    | ParenInheritConstructor (t, px) ->
+        genType astContext t
+        +> sepSpaceBeforeClassConstructor
+        +> expressionFitsOnRestOfLine (genExpr astContext px) (genMultilineFunctionApplicationArguments astContext px)
+    | OtherInheritConstructor (t, e) ->
+        genType astContext t
+        +> sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e)
 
 and genMultilineAnonRecord (isStruct: bool) fields copyInfo (astContext: ASTContext) =
     let recordExpr =
@@ -4222,32 +4224,8 @@ and genMemberDefn astContext node =
     | MDOpen lid -> !- "open " +> genSynLongIdent false lid
     // What is the role of so
     | MDImplicitInherit (t, e, _) ->
-        let genBasecall =
-            let shortExpr = genExpr astContext e
-
-            let longExpr =
-                match e with
-                | Paren (lpr, Tuple (es, tr), rpr, pr) ->
-                    indent
-                    +> sepNln
-                    +> indent
-                    +> sepOpenTFor lpr
-                    +> sepNln
-                    +> (col (sepComma +> sepNln) es (genExpr astContext)
-                        |> genTriviaFor SynExpr_Tuple tr)
-                    +> unindent
-                    +> sepNln
-                    +> unindent
-                    +> sepCloseTFor rpr
-                    |> genTriviaFor SynExpr_Paren pr
-                | _ -> genExpr astContext e
-
-            expressionFitsOnRestOfLine shortExpr longExpr
-
         !- "inherit "
-        +> genType astContext t
-        +> addSpaceBeforeClassConstructor e
-        +> genBasecall
+        +> autoIndentAndNlnIfExpressionExceedsPageWidth (genInheritConstructor astContext (t, e))
 
     | MDInherit (t, _) -> !- "inherit " +> genType astContext t
     | MDValField f -> genField astContext "val " f
