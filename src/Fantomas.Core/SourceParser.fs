@@ -446,7 +446,7 @@ let parseExpressionInSynBinding returnInfo expr =
         e
     | _ -> expr
 
-let (|DoBinding|LetBinding|MemberBinding|ExplicitCtor|) b =
+let (|DoBinding|LetBinding|MemberBinding|ExplicitCtor|ExternBinding|) b =
     match b with
     | SynBinding (ao, _, _, _, ats, px, SynValData (Some MFConstructor, _, ido), pat, _, expr, _, _, trivia) ->
         ExplicitCtor(ats, px, ao, pat, trivia.EqualsRange, expr, ido)
@@ -455,6 +455,9 @@ let (|DoBinding|LetBinding|MemberBinding|ExplicitCtor|) b =
         let rt = Option.map (fun (SynBindingReturnInfo (typeName = t)) -> t) returnInfo
         MemberBinding(ats, px, ao, isInline, mf, pat, rt, trivia.EqualsRange, e)
     | SynBinding (_, SynBindingKind.Do, _, _, ats, px, _, _, _, expr, _, _, _trivia) -> DoBinding(ats, px, expr)
+    | SynBinding (ao, _, _, _, attrs, px, _, pat, returnInfo, _, _, _, { ExternKeyword = Some externRange }) ->
+        let rt = Option.map (fun (SynBindingReturnInfo (typeName = t)) -> t) returnInfo
+        ExternBinding(externRange, ao, attrs, px, pat, rt)
     | SynBinding (ao, _, isInline, isMutable, attrs, px, _, pat, returnInfo, expr, _, _, trivia) ->
         let e = parseExpressionInSynBinding returnInfo expr
         let rt = Option.map (fun (SynBindingReturnInfo (typeName = t)) -> t) returnInfo
@@ -1603,26 +1606,6 @@ let (|FunType|) t =
         | t -> [ t, None ]
 
     loop t
-
-/// A rudimentary recognizer for extern functions
-/// Probably we should use lexing information to improve its accuracy
-let (|Extern|_|) =
-    function
-    | Let (LetBinding (ats, px, _, ao, _, _, PatLongIdent (_, s, [ PatTuple ps ], _), Some t, _, _)) ->
-        let hasDllImportAttr =
-            ats
-            |> List.exists (fun { Attributes = attrs } ->
-                attrs
-                |> List.exists (fun (Attribute (name, _, _)) ->
-                    match List.tryLast name.LongIdent with
-                    | None -> false
-                    | Some name -> name.idText.EndsWith("DllImport")))
-
-        if hasDllImportAttr then
-            Some(ats, px, ao, t, s, ps)
-        else
-            None
-    | _ -> None
 
 let private getLastPartOfSynLongIdent (synLongIdent: SynLongIdent) : string option =
     List.tryLast synLongIdent.IdentsWithTrivia

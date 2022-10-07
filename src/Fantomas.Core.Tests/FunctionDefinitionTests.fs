@@ -403,13 +403,17 @@ extern int AccessibleChildren(IAccessible paccContainer, int iChildStart, int cC
 let ``DllImport and Marshall return type, 574`` () =
     formatSourceString
         false
-        """[<DllImport("userenv.dll", SetLastError = true)>]
+        """
+[<DllImport("userenv.dll", SetLastError = true)>]
 [<MarshalAs(UnmanagedType.Bool)>]
-extern bool DestroyEnvironmentBlock(IntPtr lpEnvironment)"""
+extern bool DestroyEnvironmentBlock(IntPtr lpEnvironment)
+"""
         config
+    |> prepend newline
     |> should
         equal
-        """[<DllImport("userenv.dll", SetLastError = true)>]
+        """
+[<DllImport("userenv.dll", SetLastError = true)>]
 [<MarshalAs(UnmanagedType.Bool)>]
 extern bool DestroyEnvironmentBlock(IntPtr lpEnvironment)
 """

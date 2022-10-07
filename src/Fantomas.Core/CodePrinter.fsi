@@ -1,13 +1,9 @@
 ﻿module internal Fantomas.Core.CodePrinter
 
-/// This type consists of contextual information which is important for formatting
-/// Please avoid using this record as it can be the cause of unexpected behavior when used incorrectly
+/// This type is a relic from the past but referenced all over the place.
+/// The maintainers will remove this at a convenient time.
+[<Class>]
 type ASTContext =
-    {
-        /// This pattern matters for formatting extern declarations
-        IsCStylePattern: bool
-    }
-
     static member Default: ASTContext
 
 val genParsedInput:
