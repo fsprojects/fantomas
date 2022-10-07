@@ -4,6 +4,7 @@
 
 ### Fixed
 * Function lambda with type annotation breaks code. [#2295](https://github.com/fsprojects/fantomas/issues/2295)
+* Incorrect scope chosen for trivia, hence comments lost. [#2535](https://github.com/fsprojects/fantomas/issues/2535)
 
 ## [5.0.4] - 2022-10-04
 
