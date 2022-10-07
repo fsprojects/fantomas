@@ -1,9 +1,15 @@
 # Changelog
 
-## [Unreleased]
+## [5.1.0-alpha-004] - 2022-10-07
 
 ### Changed
 * Update FCS to 'Add extern keyword to SynBindingTrivia', commit 23d93522a56e139e2fc85e6d2591d38698ae8d38
+
+### Fixed
+* extern expression should respect page width. [#735](https://github.com/fsprojects/fantomas/issues/735)
+* extern declaration inside type declaration is converted to let binding. [#1214](https://github.com/fsprojects/fantomas/issues/1214)
+* extern with void return type is converted to let binding. [#1215](https://github.com/fsprojects/fantomas/issues/1215)
+* extern C-like parameters are not supported. [#1216](https://github.com/fsprojects/fantomas/issues/1216)
 
 ## [5.1.0-alpha-003] - 2022-10-02
 

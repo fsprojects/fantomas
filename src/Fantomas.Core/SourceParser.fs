@@ -456,7 +456,9 @@ let (|DoBinding|LetBinding|MemberBinding|ExplicitCtor|ExternBinding|) b =
         MemberBinding(ats, px, ao, isInline, mf, pat, rt, trivia.EqualsRange, e)
     | SynBinding (_, SynBindingKind.Do, _, _, ats, px, _, _, _, expr, _, _, _trivia) -> DoBinding(ats, px, expr)
     | SynBinding (ao, _, _, _, attrs, px, _, pat, returnInfo, _, _, _, { ExternKeyword = Some externRange }) ->
-        let rt = Option.map (fun (SynBindingReturnInfo (typeName = t)) -> t) returnInfo
+        let rt =
+            Option.map (fun (SynBindingReturnInfo (typeName = t; attributes = a)) -> a, t) returnInfo
+
         ExternBinding(externRange, ao, attrs, px, pat, rt)
     | SynBinding (ao, _, isInline, isMutable, attrs, px, _, pat, returnInfo, expr, _, _, trivia) ->
         let e = parseExpressionInSynBinding returnInfo expr
@@ -1528,6 +1530,11 @@ let (|TParen|_|) =
 let (|TSignatureParameter|_|) =
     function
     | SynType.SignatureParameter (attrs, isOptional, identOpt, t, _) -> Some(attrs, isOptional, identOpt, t)
+    | _ -> None
+
+let (|TArrayInExtern|_|) t =
+    match t with
+    | TLongIdent (SynLongIdent(id = [ lid ])) when (lid.idText = "[]") -> Some "[]"
     | _ -> None
 
 // Type parameter

@@ -555,7 +555,7 @@ and genSynTypeConstraintList astContext tcs =
         autoIndentAndNlnIfExpressionExceedsPageWidth (expressionFitsOnRestOfLine short long)
 
 and genExternBinding astContext (externRange, ao, attrs, px, pat, rt) =
-    let genTypeForExtern astContext t =
+    let rec genTypeForExtern astContext t =
         match t with
         | TApp (TLongIdent (SynLongIdent ([ _ ], [], [ Some (IdentTrivia.OriginalNotation "*") ])),
                 _,
@@ -568,30 +568,42 @@ and genExternBinding astContext (externRange, ao, attrs, px, pat, rt) =
                 [ t ],
                 _,
                 true,
-                range)
-
-         -> genType astContext t +> !- "&" |> genTriviaFor SynType_App range
-        | TLongIdent (SynLongIdent(id = [ lid ])) when (lid.idText = "[]") -> !- "[]"
+                range) -> genType astContext t +> !- "&" |> genTriviaFor SynType_App range
+        | TApp (TArrayInExtern arrayText, None, [ TApp (t, _, _, _, _, _) ], None, true, _) ->
+            genTypeForExtern astContext t +> !-arrayText
+        | TArrayInExtern arrayText -> !-arrayText
         | _ -> genType astContext t
 
     let rec genPatForExtern astContext pat =
         match pat with
+        | PatAttrib (PatTyped (PatNullary _, t), attrs) ->
+            genOnelinerAttributes astContext attrs +> genTypeForExtern astContext t
         | PatAttrib (PatTyped (p, t), attrs) ->
             genOnelinerAttributes astContext attrs
             +> genTypeForExtern astContext t
             +> sepSpace
             +> genPat astContext p
         | PatLongIdent (_, sli, [ PatTuple ps ], _) ->
-            genSynLongIdent false sli
-            +> sepOpenT
-            +> col sepComma ps (genPatForExtern astContext)
-            +> sepCloseT
+            let short =
+                genSynLongIdent false sli
+                +> sepOpenT
+                +> col sepComma ps (genPatForExtern astContext)
+                +> sepCloseT
+
+            let long =
+                genSynLongIdent false sli
+                +> sepOpenT
+                +> indentSepNlnUnindent (col (sepComma +> sepNln) ps (genPatForExtern astContext))
+                +> sepNln
+                +> sepCloseT
+
+            expressionFitsOnRestOfLine short long
         | _ -> genPat astContext pat
 
     genPreXmlDoc px
     +> genAttributes astContext attrs
     +> genTriviaFor SynBinding_Extern externRange !- "extern "
-    +> optSingle (fun t -> genType astContext t +> sepSpace) rt
+    +> optSingle (fun (a, t) -> genOnelinerAttributes astContext a +> genType astContext t +> sepSpace) rt
     +> genAccessOpt ao
     +> genPatForExtern astContext pat
     +> sepSpace
@@ -4277,6 +4289,7 @@ and genMemberDefn astContext node =
 
     | MDMember b
     | LongGetMember b -> genMemberBinding astContext b
+    | MDLetBindings (_, _, [ ExternBinding eb ]) -> genExternBinding astContext eb
     | MDLetBindings (isStatic, isRec, b :: bs) ->
         let prefix =
             if isStatic && isRec then "static let rec "
