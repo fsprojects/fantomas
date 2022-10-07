@@ -1,6 +1,6 @@
 # Changelog
 
-## [Unreleased]
+## [5.0.5] - 2022-10-07
 
 ### Fixed
 * Function lambda with type annotation breaks code. [#2295](https://github.com/fsprojects/fantomas/issues/2295)
