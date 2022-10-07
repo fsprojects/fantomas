@@ -600,7 +600,7 @@ let genSigModuleDeclList astContext node =
     match node with
     | [ x ] -> genSigModuleDecl astContext x
 
-    | SigOpenL (xs, ys) ->
+    | SigOpenL(xs, ys) ->
         let sepXsAndYs =
             match List.tryHead ys with
             | Some hs ->
@@ -774,14 +774,14 @@ let useEntries month year =
     let income =
         events
         |> Seq.choose (function
-            | Event.AddIncome (ai) when (filter ai.Created && isNotCancelled ai.Id) -> Some ai
+            | Event.AddIncome(ai) when (filter ai.Created && isNotCancelled ai.Id) -> Some ai
             | _ -> None)
         |> sortMapAndToArray
 
     let expenses =
         events
         |> Seq.choose (function
-            | Event.AddExpense (ae) when (filter ae.Created && isNotCancelled ae.Id) -> Some ae
+            | Event.AddExpense(ae) when (filter ae.Created && isNotCancelled ae.Id) -> Some ae
             | _ -> None)
         |> sortMapAndToArray
 
@@ -812,14 +812,14 @@ let useEntries month year =
     let income =
         events
         |> Seq.choose (function
-            | Event.AddIncome (ai) when (filter ai.Created && isNotCancelled ai.Id) -> Some ai
+            | Event.AddIncome(ai) when (filter ai.Created && isNotCancelled ai.Id) -> Some ai
             | _ -> None)
         |> sortMapAndToArray
 
     let expenses =
         events
         |> Seq.choose (function
-            | Event.AddExpense (ae) when (filter ae.Created && isNotCancelled ae.Id) -> Some ae
+            | Event.AddExpense(ae) when (filter ae.Created && isNotCancelled ae.Id) -> Some ae
             | _ -> None)
         |> sortMapAndToArray
 
@@ -925,8 +925,8 @@ let useOverviewPerMonth () =
         events
         |> List.choose (fun msg ->
             match msg with
-            | Event.AddIncome ({ Created = created })
-            | Event.AddExpense ({ Created = created }) -> Some(created.Month, created.Year)
+            | Event.AddIncome({ Created = created })
+            | Event.AddExpense({ Created = created }) -> Some(created.Month, created.Year)
             | _ -> None)
         |> List.distinct
         |> List.sort
@@ -962,8 +962,8 @@ let useOverviewPerMonth () =
         events
         |> List.choose (fun msg ->
             match msg with
-            | Event.AddIncome ({ Created = created })
-            | Event.AddExpense ({ Created = created }) -> Some(created.Month, created.Year)
+            | Event.AddIncome({ Created = created })
+            | Event.AddExpense({ Created = created }) -> Some(created.Month, created.Year)
             | _ -> None)
         |> List.distinct
         |> List.sort

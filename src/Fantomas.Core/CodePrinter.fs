@@ -31,6 +31,19 @@ let rec addSpaceBeforeParensInFunCall functionOrMethod arg (ctx: Context) =
     | LowercaseSynExpr, Paren _ -> ctx.Config.SpaceBeforeLowercaseInvocation
     | _ -> true
 
+let addSpaceBeforeParenInPattern (sli: SynLongIdent) (ctx: Context) =
+    match List.tryLast sli.LongIdent with
+    | None -> sepSpace ctx
+    | Some ident when String.IsNullOrWhiteSpace ident.idText -> sepSpace ctx
+    | Some ident ->
+        let parameterValue =
+            if Char.IsUpper ident.idText.[0] then
+                ctx.Config.SpaceBeforeUppercaseInvocation
+            else
+                ctx.Config.SpaceBeforeLowercaseInvocation
+
+        onlyIf parameterValue sepSpace ctx
+
 let addSpaceBeforeParensInFunDef (spaceBeforeSetting: bool) (functionOrMethod: SynLongIdent) args =
     match functionOrMethod, args with
     | SynLongIdent(id = [ newIdent ]), _ when newIdent.idText = "new" -> false
@@ -4478,9 +4491,9 @@ and genPat astContext pat =
 
         genSynLongIdent false sli
         +> genValTyparDeclsOpt astContext vtdo
-        +> ifElse (List.moreThanOne nps) sepSpace sepNone
+        +> addSpaceBeforeParenInPattern sli
         +> genTriviaFor SynArgPats_NamePatPairs_OpeningParenthesis lpr sepOpenT
-        +> pats
+        +> autoIndentAndNlnIfExpressionExceedsPageWidth (sepNlnWhenWriteBeforeNewlineNotEmpty +> pats)
         +> genTriviaFor SynArgPats_NamePatPairs_ClosingParenthesis rpr sepCloseT
         |> genTriviaFor SynArgPats_NamePatPairs r
 
@@ -4488,7 +4501,7 @@ and genPat astContext pat =
         genAccessOpt ao
         +> genSynLongIdent false sli
         +> genValTyparDeclsOpt astContext vtdo
-        +> ifElseCtx (fun ctx -> addSpaceBeforeParensInFunDef ctx.Config.SpaceBeforeParameter sli p) sepSpace sepNone
+        +> addSpaceBeforeParenInPattern sli
         +> genPat astContext p
 
     | PatLongIdent (ao, sli, ps, vtdo) ->

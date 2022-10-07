@@ -131,7 +131,7 @@ module Caching =
             lock cacheFiles.CachedNetworkData (fun _ ->
                 match balance with
                 | NotAvailable -> NotAvailable
-                | Cached (balance, time) ->
+                | Cached(balance, time) ->
                     if compoundBalance < 0.0m then
                         ReportProblem
                             compoundBalance
@@ -176,7 +176,7 @@ module Caching =
             lock cacheFiles.CachedNetworkData (fun _ ->
                 match balance with
                 | NotAvailable -> NotAvailable
-                | Cached (balance, time) ->
+                | Cached(balance, time) ->
                     if compoundBalance < 0.0m then
                         ReportProblem
                             looooooooooooooooooooooooooooooooooooooooooooooooooooooooooooong
@@ -214,7 +214,7 @@ module Caching =
             lock cacheFiles.CachedNetworkData (fun _ ->
                 match balance with
                 | NotAvailable -> NotAvailable
-                | Cached (balance, time) ->
+                | Cached(balance, time) ->
                     if compoundBalance < 0.0m then
                         ReportProblem compoundBalance None currency address sessionCachedNetworkData
 
@@ -251,7 +251,7 @@ module Caching =
             lock cacheFiles.CachedNetworkData (fun _ ->
                 match balance with
                 | NotAvailable -> NotAvailable
-                | Cached (balance, time) ->
+                | Cached(balance, time) ->
                     if compoundBalance < 0.0m then
                         ReportProblem compoundBalance
 
@@ -726,7 +726,7 @@ module Foo =
             thing
             |> Map.iter (fun key value ->
                 match value with
-                | Ok (TestResult.Failure f) -> failwith ""
+                | Ok(TestResult.Failure f) -> failwith ""
                 | Error e -> failwith ""
                 | _ -> () // hi!
             ))
