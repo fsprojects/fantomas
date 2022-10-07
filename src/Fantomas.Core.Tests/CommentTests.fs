@@ -2412,11 +2412,8 @@ type ExprFolder<'State> =
         """
 /// A set of function parameters (visitor) for folding over expressions
 type ExprFolder<'State> =
-    { exprIntercept: ('State -> Expr -> 'State) (* noInterceptF *)
-        -> ('State -> Expr -> 'State)
-        -> 'State
-        -> Expr
-        -> 'State (* recurseF *)
+    { exprIntercept:
+        ('State -> Expr -> 'State) (* noInterceptF *) -> ('State -> Expr -> 'State) -> 'State -> Expr -> 'State (* recurseF *)
       valBindingSiteIntercept: 'State -> bool * Val -> 'State
       nonRecBindingsIntercept: 'State -> Binding -> 'State
       recBindingsIntercept: 'State -> Bindings -> 'State
