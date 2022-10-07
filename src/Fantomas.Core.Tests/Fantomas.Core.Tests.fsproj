@@ -117,6 +117,7 @@
     <Compile Include="ASTTransformerTests.fs" />
     <Compile Include="DotSetTests.fs" />
     <Compile Include="InterfaceStaticMethodTests.fs" />
+    <Compile Include="ExternTests.fs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Fantomas.Core\Fantomas.Core.fsproj" />

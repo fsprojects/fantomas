@@ -361,25 +361,6 @@ let foo = ()
 """
 
 [<Test>]
-let ``attribute above extern keyword, 562`` () =
-    formatSourceString
-        false
-        """
-module C =
-  [<DllImport("")>]
-  extern IntPtr f()
-"""
-        { config with StrictMode = true }
-    |> prepend newline
-    |> should
-        equal
-        """
-module C =
-    [<DllImport("")>]
-    extern IntPtr f()
-"""
-
-[<Test>]
 let ``keep single newline between attribute and let binding, 611`` () =
     formatSourceString
         false
@@ -788,27 +769,6 @@ type internal Handler() =
           DefaultValue(true)>]
         val mutable mainWindow: Window
     end
-"""
-
-[<Test>]
-let ``& in extern function declaration, 1567`` () =
-    formatSourceString
-        false
-        """
-module Foo =
-    module Bar =
-        [<DllImport("Kernel32.dll", SetLastError = true)>]
-        extern bool GetFileInformationByHandleEx(IntPtr hFile, FILE_INFO_BY_HANDLE_CLASS infoClass, [<Out>] FILE_NAME_INFO& info, uint32 dwBufferSize)
-"""
-        config
-    |> prepend newline
-    |> should
-        equal
-        """
-module Foo =
-    module Bar =
-        [<DllImport("Kernel32.dll", SetLastError = true)>]
-        extern bool GetFileInformationByHandleEx(IntPtr hFile, FILE_INFO_BY_HANDLE_CLASS infoClass, [<Out>] FILE_NAME_INFO& info, uint32 dwBufferSize)
 """
 
 [<Test>]
