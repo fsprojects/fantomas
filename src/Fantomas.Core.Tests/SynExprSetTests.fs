@@ -231,7 +231,7 @@ let ``keep new line before SynExpr.DotIndexedSet, 1314`` () =
         equal
         """
 match x with
-| NotificationEvent.Lint (file, warnings) ->
+| NotificationEvent.Lint(file, warnings) ->
     let uri = Path.FilePathToUri file
 
     diagnosticCollections.AddOrUpdate((uri, "F# Linter"), [||], (fun _ _ -> [||]))

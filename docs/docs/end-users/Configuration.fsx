@@ -151,15 +151,18 @@ formatCode
 <fantomas-setting name="fsharp_space_before_lowercase_invocation" orange></fantomas-setting>
 
 Add a space after the name of a lowercased function and before the opening parenthesis of the first argument.  
-This setting influences function invocation.
+This setting influences function invocation in expressions and patterns.
 
 Default = true.
 *)
 
 formatCode
     """ 
-    value (a, b)
-    startTimer ()
+value (a, b)
+startTimer ()
+
+match x with
+| value (a, b) -> ()
     """
     { FormatConfig.Default with SpaceBeforeLowercaseInvocation = false }
 (*** include-it ***)
@@ -168,15 +171,18 @@ formatCode
 <fantomas-setting name="fsharp_space_before_uppercase_invocation" green gr></fantomas-setting>
 
 Add a space after the name of a uppercase function and before the opening parenthesis of the first argument.  
-This setting influences function invocation.
+This setting influences function invocation in expressions and patterns.
 
 Default = false.
 *)
 
 formatCode
     """ 
-    Value(a, b)
-    person.ToString()
+Value(a, b)
+person.ToString()
+
+match x with
+| Value(a, b) -> ()
     """
     { FormatConfig.Default with SpaceBeforeUppercaseInvocation = true }
 (*** include-it ***)

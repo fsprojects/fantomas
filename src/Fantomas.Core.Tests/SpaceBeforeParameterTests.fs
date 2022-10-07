@@ -61,10 +61,11 @@ let ``spaceBeforeParameter = false, should not add space before parentheses in u
 """
 
 [<Test>]
-let ``default config should add space after discrimintation union member`` () =
+let ``default config should not add space after discriminated union member`` () =
     formatSourceString
         false
-        """match x with
+        """
+match x with
 | Zero() -> ()
 | One (o) -> ()
 | Two(o,t) -> ()
@@ -75,9 +76,9 @@ let ``default config should add space after discrimintation union member`` () =
         equal
         """
 match x with
-| Zero () -> ()
-| One (o) -> ()
-| Two (o, t) -> ()
+| Zero() -> ()
+| One(o) -> ()
+| Two(o, t) -> ()
 """
 
 // Space before parentheses (a+b) in lowercase function definition
