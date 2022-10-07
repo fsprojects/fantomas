@@ -1,10 +1,11 @@
 # Changelog
 
-## [Unreleased]
+## [5.1.0-alpha-005] - 2022-10-07
 
 ### Changed
 * Control space in pattern by `fsharp_space_before_lowercase_invocation` and `fsharp_space_before_uppercase_invocation`. [fslang-design/issues/712](https://github.com/fsharp/fslang-design/issues/712)
 * Style of base constructor calls. [fsharp/fslang-design#693](https://github.com/fsharp/fslang-design/issues/693)
+* Style of multiline type annotations/ [fsharp/fslang-design#708](https://github.com/fsharp/fslang-design/issues/708)
 
 ### Fixed
 * Comments in SynArgPats.NamePatPairs are lost. [#2541](https://github.com/fsprojects/fantomas/issues/2541)
