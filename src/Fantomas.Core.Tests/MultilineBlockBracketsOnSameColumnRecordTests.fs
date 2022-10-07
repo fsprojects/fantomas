@@ -151,13 +151,21 @@ let ``record instance with inherit keyword and no fields`` () =
         """let a =
         { inherit ProjectPropertiesBase<_>(projectTypeGuids, factoryGuid, targetFrameworkIds, dotNetCoreSDK) }
 """
-        config
+        { config with MaxLineLength = 80 }
     |> prepend newline
     |> should
         equal
         """
 let a =
-    { inherit ProjectPropertiesBase<_>(projectTypeGuids, factoryGuid, targetFrameworkIds, dotNetCoreSDK) }
+    {
+        inherit
+            ProjectPropertiesBase<_>(
+                projectTypeGuids,
+                factoryGuid,
+                targetFrameworkIds,
+                dotNetCoreSDK
+            )
+    }
 """
 
 [<Test>]
@@ -177,7 +185,10 @@ let ``type with record instance with inherit keyword`` () =
 type ServerCannotBeResolvedException =
     inherit CommunicationUnsuccessfulException
 
-    new(message) = { inherit CommunicationUnsuccessfulException(message) }
+    new(message) =
+        {
+            inherit CommunicationUnsuccessfulException(message)
+        }
 """
 
 [<Test>]
@@ -1269,4 +1280,43 @@ let ``comment after equals in anonymous record field`` () =
     A = //comment
         B
 |}
+"""
+
+[<Test>]
+let ``multiple base constructors in record`` () =
+    formatSourceString
+        false
+        """
+type UnhandledWebException =
+    inherit Exception
+
+    new(status: WebExceptionStatus, innerException: Exception) =
+        { inherit Exception(SPrintF1
+                                "Backend not prepared for this WebException with Status[%i]"
+                                (int status),
+                            innerException) }
+
+    new(info: SerializationInfo, context: StreamingContext) =
+        { inherit Exception(info, context) }
+"""
+        { config with MaxLineLength = 100 }
+    |> prepend newline
+    |> should
+        equal
+        """
+type UnhandledWebException =
+    inherit Exception
+
+    new(status : WebExceptionStatus, innerException : Exception) =
+        {
+            inherit
+                Exception(
+                    SPrintF1
+                        "Backend not prepared for this WebException with Status[%i]"
+                        (int status),
+                    innerException
+                )
+        }
+
+    new(info : SerializationInfo, context : StreamingContext) = { inherit Exception(info, context) }
 """
