@@ -219,11 +219,10 @@ and visitSynExpr (synExpr: SynExpr) : TriviaNode list =
                 |> List.singleton
                 |> finalContinuation)
         | SynExpr.Quote (_, _, quotedSynExpr, _, range) ->
-            let continuations: ((TriviaNode list -> TriviaNode list) -> TriviaNode list) list =
-                [ visit quotedSynExpr ]
-
-            processSequence finalContinuation continuations (fun nodes ->
-                mkSynExprNode SynExpr_Quote synExpr range (sortChildren [| yield! nodes |]))
+            visit quotedSynExpr (fun nodes ->
+                mkSynExprNode SynExpr_Quote synExpr range (sortChildren [| yield! nodes |])
+                |> List.singleton
+                |> finalContinuation)
         | SynExpr.Const (constant, range) ->
             mkSynExprNode SynExpr_Const synExpr range [| visitSynConst range constant |]
             |> List.singleton
