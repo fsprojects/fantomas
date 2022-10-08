@@ -1064,3 +1064,56 @@ printf "%-40s %s" "" (*<--flags*) word
         """
 printf "%-40s %s" "" (*<--flags*) word
 """
+
+[<Test>]
+let ``broken comma in match expression in parameter invocation, 1869`` () =
+    formatSourceString
+        false
+        """
+module Utils
+
+type U = A of int | B of string
+
+type C() = 
+    member this.M (a : int, b : string) = ()
+
+let f () = 
+    let u = A 0
+    do C().M(
+        match u with
+             | A i -> i
+             | B _ -> 0
+             ,
+        match u with
+             | A _ -> ""
+             | B s -> s
+    )
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+module Utils
+
+type U =
+    | A of int
+    | B of string
+
+type C() =
+    member this.M(a: int, b: string) = ()
+
+let f () =
+    let u = A 0
+
+    do
+        C()
+            .M(
+                match u with
+                | A i -> i
+                | B _ -> 0
+                , match u with
+                  | A _ -> ""
+                  | B s -> s
+            )
+"""
