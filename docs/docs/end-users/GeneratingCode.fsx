@@ -19,7 +19,7 @@ In simple scenarios this can work out, but in the long run it doesn't scale well
 
 - The more code constructs you want to support, the more conditional logic you will need to ensure all edge cases.
 - A string is just a string, you cannot guarantee the output will be valid code.
-- It is easier to map you domain model to untyped syntax tree nodes and let Fantomas take care of the actual generation of code.
+- It is easier to map your domain model to untyped syntax tree nodes and let Fantomas take care of the actual generation of code.
 
 **For mercy's sake don't use string concatenation when generating F# code, use Fantomas instead. It is battle tested and proven technology!**
 *)
@@ -100,7 +100,7 @@ Let's deconstruct a couple of things:
 
   You would have multiple bindings in case of a recursive function.  
 - The `headPat` of binding contains the name and the parameters. 
-- The `expr` ([SynExpr](../../reference/fsharp-compiler-syntax-synexpr.html))  represents the F# syntax expression.
+- The `expr` ([SynExpr](../../reference/fsharp-compiler-syntax-synexpr.html)) represents the F# syntax expression.
 - Because there is no actual source code, all ranges will be `Range.Zero`.  
 
 The more you interact with AST, the easier you pick up which node represents what.
@@ -304,7 +304,7 @@ How to know which nodes to include? Take a look at `CodePrinter.fs` and `SourceP
 
 Throughout all these examples, we have duplicated a lot of code. You can typically easily refactor this into some helper functions.  
 The Fantomas maintainers are not affiliated with any projects that expose AST construction helpers.  
-Relying on these projects, is at your own risk. The constructed AST might not suitable for what Fantomas expects.
+Relying on these projects, is at your own risk. The constructed AST might not be suitable for what Fantomas expects.
 
 ### Updates
 
