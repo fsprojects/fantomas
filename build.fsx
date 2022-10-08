@@ -149,11 +149,14 @@ pipeline "PushClient" {
 
 pipeline "Docs" {
     workingDir __SOURCE_DIRECTORY__
+    stage "Prepare" {
+        run "dotnet tool restore"
+        run "dotnet build -c Release src/Fantomas/Fantomas.fsproj"
+    }
     stage "Watch" {
         paralle
-        run "dotnet tool restore"
         run "dotnet fsi ./docs/.style/style.fsx --watch"
-        run "dotnet fsdocs watch --eval"
+        run $"dotnet fsdocs watch --properties Configuration=Release --fscoptions \" -r:{semanticVersioning}\" --eval"
     }
     runIfOnlySpecified true
 }
