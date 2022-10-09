@@ -230,3 +230,7 @@ type SynField with
         match attrs with
         | [] -> r
         | head :: _ -> unionRanges head.Range r
+
+type SynAttribute with
+
+    member this.FullRange: range = unionRanges this.Range this.ArgExpr.Range

@@ -1098,3 +1098,28 @@ type StreamReaderExtensions =
     // it might still be running after recieving None!
     static member inline Meh(streamReader: StreamReader, timeout: TimeSpan) = ()
 """
+
+[<Test>]
+let ``comment in multiline attribute, 2525`` () =
+    formatSourceString
+        false
+        """
+[<assembly: SuppressMessage("Gendarme.Rules.Performance",
+                            "AvoidRepetitiveCallsToPropertiesRule",
+                            Scope = "member",  // MethodDefinition
+                            Target = "AltCover.Recorder.Instance/I/CallTrack::instance()",
+                            Justification = "Bytecode delta only")>]
+()
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+[<assembly: SuppressMessage("Gendarme.Rules.Performance",
+                            "AvoidRepetitiveCallsToPropertiesRule",
+                            Scope = "member", // MethodDefinition
+                            Target = "AltCover.Recorder.Instance/I/CallTrack::instance()",
+                            Justification = "Bytecode delta only")>]
+()
+"""

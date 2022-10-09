@@ -5,6 +5,7 @@
 ### Fixed
 * Overly aggressive de-indentation. [#2110](https://github.com/fsprojects/fantomas/issues/2110)
 * Broken comma in match expression in parameter invocation. [#1869](https://github.com/fsprojects/fantomas/issues/1869)
+* Comments lost from multi-line expressions. [#2525](https://github.com/fsprojects/fantomas/issues/2525)
 
 ## [5.0.5] - 2022-10-07
 

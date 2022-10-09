@@ -1342,7 +1342,7 @@ and visitSynExceptionDefnRepr (sedr: SynExceptionDefnRepr) : TriviaNode =
                    yield! (Option.map visitLongIdentIncludingFullRange >> Option.toList) longId |])
 
 and visitSynAttribute (attr: SynAttribute) : TriviaNode =
-    { Range = attr.Range
+    { Range = attr.FullRange
       Type = SynAttribute_
       Children = [| yield! visitSynExpr attr.ArgExpr |]
       FSharpASTNode = None }

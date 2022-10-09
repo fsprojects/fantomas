@@ -468,7 +468,7 @@ and genAttributesCore astContext (ats: SynAttribute seq) =
             +> genSynLongIdent false sli
             +> argSpacing
             +> genExpr astContext e
-        |> genTriviaFor SynAttribute_ attr.Range
+        |> genTriviaFor SynAttribute_ attr.FullRange
 
     let shortExpression =
         !- "[<"
