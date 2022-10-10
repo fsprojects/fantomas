@@ -1132,3 +1132,24 @@ type Foo =
     /// Bar
     | Thing
 """
+
+[<Test>]
+let ``disabling DU case indentation`` () =
+    formatSourceString
+        true
+        """
+type Fruit =
+| Banana
+| Apple
+| Mango
+"""
+        { config with IndentDiscriminatedUnionCases = false }
+    |> prepend newline
+    |> should
+        equal
+        """
+type Fruit =
+| Banana
+| Apple
+| Mango
+"""
