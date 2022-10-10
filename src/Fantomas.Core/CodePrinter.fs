@@ -3226,7 +3226,13 @@ and genTypeDefn
 
                 expressionFitsOnRestOfLine (indent +> sepSpace +> short) (indent +> sepNln +> long) ctx
             | xs ->
-                indent
+                let maybeIndent =
+                    if ctx.Config.IndentDiscriminatedUnionCases then
+                        indent
+                    else
+                        id
+
+                maybeIndent
                 +> sepNln
                 +> (opt sepNln ao' genAccess +> col sepNln xs (genUnionCase astContext true))
                 <| ctx

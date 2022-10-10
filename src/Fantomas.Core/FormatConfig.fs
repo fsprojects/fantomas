@@ -198,6 +198,10 @@ type FormatConfig =
       BarBeforeDiscriminatedUnionDeclaration: bool
 
       [<Category("Convention")>]
+      [<DisplayName("Indent Discriminated Union cases")>]
+      IndentDiscriminatedUnionCases: bool
+
+      [<Category("Convention")>]
       [<DisplayName("Format braces using Stroustrup Style where possible.")>]
       [<Description("Experimental feature, use at your own risk.")>]
       ExperimentalStroustrupStyle: bool
@@ -246,6 +250,7 @@ type FormatConfig =
           ExperimentalKeepIndentInBranch = false
           BlankLinesAroundNestedMultilineExpressions = true
           BarBeforeDiscriminatedUnionDeclaration = false
+          IndentDiscriminatedUnionCases = true
           ExperimentalStroustrupStyle = false
           KeepMaxNumberOfBlankLines = 100
           StrictMode = false }
