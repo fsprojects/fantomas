@@ -227,9 +227,9 @@ let (|UnionCaseType|) =
     | SynUnionCaseKind.Fields fs -> fs
     | SynUnionCaseKind.FullType _ -> failwith "UnionCaseFullType should be used internally only."
 
-let (|Field|) (SynField (ats, isStatic, ido, t, isMutable, px, ao, range)) =
+let (|Field|) (SynField (ats, isStatic, ido, t, isMutable, px, ao, range, { LeadingKeyword = lk })) =
     let innerRange = ido |> Option.map (fun i -> Range.unionRanges i.idRange t.Range)
-    (ats, px, ao, isStatic, isMutable, t, ido, innerRange, range)
+    (ats, px, lk, ao, isStatic, isMutable, t, ido, innerRange, range)
 
 let (|EnumCase|) (SynEnumCase (ats, ident, c, cr, px, r, trivia)) =
     let fullRange =
@@ -289,10 +289,29 @@ let (|MDLetBindings|_|) =
     | SynMemberDefn.LetBindings (es, isStatic, isRec, _) -> Some(isStatic, isRec, es)
     | _ -> None
 
+type WithGetSet =
+    | WithGet
+    | WithSet
+    | WithGetSet
+
 let (|MDAbstractSlot|_|) =
     function
-    | SynMemberDefn.AbstractSlot (SynValSig (ats, ident, tds, t, _, _, _, px, ao, _, _, _), mf, _) ->
-        Some(ats, px, ao, ident, t, tds, mf)
+    | SynMemberDefn.AbstractSlot (SynValSig (ats, ident, tds, t, _, _, _, px, ao, _, _, trivia), mf, _) ->
+        let optWithGetSet =
+            let isFunctionProperty =
+                match t with
+                | SynType.Fun _ -> true
+                | _ -> false
+
+            trivia.WithKeyword
+            |> Option.map (fun _ ->
+                match mf.MemberKind with
+                | SynMemberKind.PropertyGet -> if not isFunctionProperty then "" else " with get"
+                | SynMemberKind.PropertySet -> " with set"
+                | SynMemberKind.PropertyGetSet -> " with get, set"
+                | _ -> "")
+
+        Some(ats, px, ao, trivia.LeadingKeyword, ident, t, tds, optWithGetSet)
     | _ -> None
 
 let (|MDInterface|_|) =
@@ -307,16 +326,28 @@ let (|MDAutoProperty|_|) =
                                   ident,
                                   typeOpt,
                                   mk,
-                                  memberFlags,
+                                  _memberFlags,
                                   _memberFlagsForSet,
                                   px,
                                   ao,
-                                  equalsRange,
                                   e,
-                                  withKeyword,
                                   _,
-                                  _) ->
-        Some(ats, px, ao, mk, equalsRange, e, withKeyword, ident, isStatic, typeOpt, memberFlags)
+                                  { EqualsRange = equalsRange
+                                    WithKeyword = withKeyword
+                                    LeadingKeyword = lk }) ->
+        let optWithGetSet =
+            match typeOpt with
+            | Some (SynType.Fun _) -> None
+            | _ ->
+                withKeyword
+                |> Option.map (fun _ ->
+                    match mk with
+                    | SynMemberKind.PropertyGet -> " with get"
+                    | SynMemberKind.PropertySet -> " with set"
+                    | SynMemberKind.PropertyGetSet -> " with get, set"
+                    | _ -> "")
+
+        Some(ats, px, ao, lk, equalsRange, e, optWithGetSet, ident, isStatic, typeOpt)
     | _ -> None
 
 let (|MDPropertyGetSet|_|) =
@@ -326,7 +357,8 @@ let (|MDPropertyGetSet|_|) =
                                                     attributes = ats
                                                     xmlDoc = px
                                                     valData = SynValData(memberFlags = Some mf)
-                                                    headPat = SynPat.LongIdent (longDotId = memberName)) as getBinding),
+                                                    headPat = SynPat.LongIdent (longDotId = memberName)
+                                                    trivia = { LeadingKeyword = lk }) as getBinding),
                                   Some setBinding,
                                   _,
                                   { GetKeyword = Some getKeyword
@@ -341,14 +373,15 @@ let (|MDPropertyGetSet|_|) =
                 (SynMemberDefn_GetSetMember_Set, setKeyword, setBinding),
                 Some(SynMemberDefn_GetSetMember_Get, getKeyword, getBinding)
 
-        Some(px, ats, mf, isInline, ao, memberName, withKeyword, firstBinding, andKeyword, secondBinding)
+        Some(px, ats, lk, isInline, ao, memberName, withKeyword, firstBinding, andKeyword, secondBinding)
     | SynMemberDefn.GetSetMember (None,
                                   Some (SynBinding (accessibility = ao
                                                     isInline = isInline
                                                     attributes = ats
                                                     xmlDoc = px
                                                     valData = SynValData(memberFlags = Some mf)
-                                                    headPat = SynPat.LongIdent (longDotId = memberName)) as binding),
+                                                    headPat = SynPat.LongIdent (longDotId = memberName)
+                                                    trivia = { LeadingKeyword = lk }) as binding),
                                   _,
                                   { WithKeyword = withKeyword
                                     GetKeyword = getKeyword
@@ -358,7 +391,8 @@ let (|MDPropertyGetSet|_|) =
                                                     attributes = ats
                                                     xmlDoc = px
                                                     valData = SynValData(memberFlags = Some mf)
-                                                    headPat = SynPat.LongIdent (longDotId = memberName)) as binding),
+                                                    headPat = SynPat.LongIdent (longDotId = memberName)
+                                                    trivia = { LeadingKeyword = lk }) as binding),
                                   None,
                                   _,
                                   { WithKeyword = withKeyword
@@ -369,7 +403,7 @@ let (|MDPropertyGetSet|_|) =
             Some(
                 px,
                 ats,
-                mf,
+                lk,
                 isInline,
                 ao,
                 memberName,
@@ -382,7 +416,7 @@ let (|MDPropertyGetSet|_|) =
             Some(
                 px,
                 ats,
-                mf,
+                lk,
                 isInline,
                 ao,
                 memberName,
@@ -450,20 +484,34 @@ let (|DoBinding|LetBinding|MemberBinding|ExplicitCtor|ExternBinding|) b =
     match b with
     | SynBinding (ao, _, _, _, ats, px, SynValData (Some MFConstructor, _, ido), pat, _, expr, _, _, trivia) ->
         ExplicitCtor(ats, px, ao, pat, trivia.EqualsRange, expr, ido)
-    | SynBinding (ao, _, isInline, _, ats, px, SynValData (Some mf, _, _), pat, returnInfo, expr, _, _, trivia) ->
+    | SynBinding (ao, _, isInline, _, ats, px, SynValData (Some _, _, _), pat, returnInfo, expr, _, _, trivia) ->
         let e = parseExpressionInSynBinding returnInfo expr
         let rt = Option.map (fun (SynBindingReturnInfo (typeName = t)) -> t) returnInfo
-        MemberBinding(ats, px, ao, isInline, mf, pat, rt, trivia.EqualsRange, e)
-    | SynBinding (_, SynBindingKind.Do, _, _, ats, px, _, _, _, expr, _, _, _trivia) -> DoBinding(ats, px, expr)
-    | SynBinding (ao, _, _, _, attrs, px, _, pat, returnInfo, _, _, _, { ExternKeyword = Some externRange }) ->
+        MemberBinding(ats, px, ao, isInline, trivia.LeadingKeyword, pat, rt, trivia.EqualsRange, e)
+    | SynBinding (_, SynBindingKind.Do, _, _, ats, px, _, _, _, expr, _, _, trivia) ->
+        // TODO: do we still need this?
+        DoBinding(ats, px, trivia.LeadingKeyword, expr)
+    | SynBinding (ao,
+                  _,
+                  _,
+                  _,
+                  attrs,
+                  px,
+                  _,
+                  pat,
+                  returnInfo,
+                  _,
+                  _,
+                  _,
+                  { LeadingKeyword = SynLeadingKeyword.Extern _ as lk }) ->
         let rt =
             Option.map (fun (SynBindingReturnInfo (typeName = t; attributes = a)) -> a, t) returnInfo
 
-        ExternBinding(externRange, ao, attrs, px, pat, rt)
+        ExternBinding(lk, ao, attrs, px, pat, rt)
     | SynBinding (ao, _, isInline, isMutable, attrs, px, _, pat, returnInfo, expr, _, _, trivia) ->
         let e = parseExpressionInSynBinding returnInfo expr
         let rt = Option.map (fun (SynBindingReturnInfo (typeName = t)) -> t) returnInfo
-        LetBinding(attrs, px, trivia.LetKeyword, ao, isInline, isMutable, pat, rt, trivia.EqualsRange, e)
+        LetBinding(attrs, px, trivia.LeadingKeyword, ao, isInline, isMutable, pat, rt, trivia.EqualsRange, e)
 
 // Expressions (55 cases, lacking to handle 11 cases)
 
@@ -1276,7 +1324,7 @@ let (|SimplePats|SPSTyped|) =
 
 let (|RecordField|) =
     function
-    | SynField (ats, _, ido, _, _, px, ao, _) -> (ats, px, ao, ido)
+    | SynField (ats, _, ido, _, _, px, ao, _, { LeadingKeyword = lk }) -> (ats, px, lk, ao, ido)
 
 let (|Clause|) (SynMatchClause (p, eo, e, range, _, trivia)) =
     let fullRange =
@@ -1602,7 +1650,12 @@ let (|MSMember|MSInterface|MSInherit|MSValField|MSNestedType|) =
 let (|Val|)
     (SynValSig (ats, synIdent, SynValTyparDecls (typars, _), t, vi, isInline, isMutable, px, ao, eo, range, trivia))
     =
-    (ats, px, trivia.ValKeyword, ao, synIdent, t, vi, isInline, isMutable, typars, eo, range)
+    let synIdent =
+        match trivia.LeadingKeyword with
+        | SynLeadingKeyword.New _ -> None
+        | _ -> Some synIdent
+
+    (ats, px, trivia.LeadingKeyword, ao, synIdent, t, vi, isInline, isMutable, typars, eo, range)
 
 // Misc
 

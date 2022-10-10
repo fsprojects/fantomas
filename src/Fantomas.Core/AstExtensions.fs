@@ -143,16 +143,6 @@ type ParsedInput with
             let astRange = mkRange this.Range.FileName startPos endPos
             includeTrivia astRange trivia.CodeComments trivia.ConditionalDirectives
 
-type SynMemberFlags with
-
-    member memberFlags.FullRange: range option =
-        RangeHelpers.mergeRanges
-            [ yield! Option.toList memberFlags.Trivia.AbstractRange
-              yield! Option.toList memberFlags.Trivia.DefaultRange
-              yield! Option.toList memberFlags.Trivia.MemberRange
-              yield! Option.toList memberFlags.Trivia.OverrideRange
-              yield! Option.toList memberFlags.Trivia.StaticRange ]
-
 type SynInterpolatedStringPart with
 
     member this.FullRange =
