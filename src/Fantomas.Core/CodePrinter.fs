@@ -312,7 +312,7 @@ and genModuleDecl astContext (node: SynModuleDecl) =
             | Some b' ->
                 let r = b'.RangeOfBindingWithRhs
 
-                sepNln +> sepNlnConsideringTriviaContentBeforeFor (synBindingToFsAstType b) r
+                sepNln +> sepNlnConsideringTriviaContentBeforeFor SynBinding_ r
             | None -> sepNone
 
         genLetBinding astContext "let rec " b
@@ -321,10 +321,10 @@ and genModuleDecl astContext (node: SynModuleDecl) =
             (fun (b': SynBinding) ->
                 let r = b'.RangeOfBindingWithRhs
 
-                sepNln +> sepNlnConsideringTriviaContentBeforeFor (synBindingToFsAstType b) r)
+                sepNln +> sepNlnConsideringTriviaContentBeforeFor SynBinding_ r)
             bs
             (fun andBinding ->
-                enterNodeFor (synBindingToFsAstType b) andBinding.RangeOfBindingWithRhs
+                enterNodeFor SynBinding_ andBinding.RangeOfBindingWithRhs
                 +> genLetBinding astContext "and " andBinding)
 
     | ModuleAbbrev (ident, lid) -> !- "module " +> genIdent ident +> sepEq +> sepSpace +> genLongIdent lid
@@ -699,7 +699,7 @@ and genLetBinding astContext pref b =
         | _, pat -> genSynBindingValue astContext px ats leadingKeyword ao isInline isMutable pat None equalsRange e
         | _ -> sepNone
     | b -> failwithf "%O isn't a let binding" b
-    +> leaveNodeFor (synBindingToFsAstType b) b.RangeOfBindingWithRhs
+    +> leaveNodeFor SynBinding_ b.RangeOfBindingWithRhs
 
 and genProperty astContext (getOrSetType: FsAstType, getOrSetRange: range, binding: SynBinding) =
     let genGetOrSet =
@@ -748,7 +748,7 @@ and genMemberBindingList astContext ms =
         let expr = genMemberBinding astContext mb
         let r = mb.RangeOfBindingWithRhs
 
-        let sepNln = sepNlnConsideringTriviaContentBeforeFor (synBindingToFsAstType mb) r
+        let sepNln = sepNlnConsideringTriviaContentBeforeFor SynBinding_ r
 
         ColMultilineItem(expr, sepNln))
     |> colWithNlnWhenItemIsMultiline
@@ -795,7 +795,7 @@ and genMemberBinding astContext b =
             +> sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e)
 
     | b -> failwithf "%O isn't a member binding" b
-    |> genTriviaFor (synBindingToFsAstType b) b.RangeOfBindingWithRhs
+    |> genTriviaFor SynBinding_ b.RangeOfBindingWithRhs
 
 and genMemberBindingImpl
     (astContext: ASTContext)
@@ -1180,7 +1180,7 @@ and genExpr astContext synExpr ctx =
             let genCompExprStatement astContext ces =
                 match ces with
                 | LetOrUseStatement (prefix, binding, inKeyword) ->
-                    enterNodeFor (synBindingToFsAstType binding) binding.RangeOfBindingWithRhs
+                    enterNodeFor SynBinding_ binding.RangeOfBindingWithRhs
                     +> genLetBinding astContext prefix binding
                     +> genTriviaForOption SynExpr_LetOrUse_In inKeyword !- " in "
                 | LetOrUseBangStatement (isUse, pat, equalsRange, expr, r) ->
@@ -1208,7 +1208,7 @@ and genExpr astContext synExpr ctx =
 
             let getSepNln ces r =
                 match ces with
-                | LetOrUseStatement (_, b, _) -> sepNlnConsideringTriviaContentBeforeFor (synBindingToFsAstType b) r
+                | LetOrUseStatement (_, b, _) -> sepNlnConsideringTriviaContentBeforeFor SynBinding_ r
                 | LetOrUseBangStatement _ -> sepNlnConsideringTriviaContentBeforeFor SynExpr_LetOrUseBang r
                 | AndBangStatement (_, _, _, r) -> sepNlnConsideringTriviaContentBeforeFor SynExprAndBang_ r
                 | OtherStatement e ->
@@ -3136,15 +3136,15 @@ and collectMultilineItemForLetOrUses
     (itemsForExpr: ColMultilineItem list)
     : ColMultilineItem list =
 
-    let multilineBinding p x inKw =
+    let multilineBinding p (x: SynBinding) inKw =
         let expr =
-            enterNodeFor (synBindingToFsAstType x) x.RangeOfBindingWithRhs
+            enterNodeFor SynBinding_ x.RangeOfBindingWithRhs
             +> genLetBinding astContext p x
             +> genTriviaForOption SynExpr_LetOrUse_In inKw !- " in "
 
         let range = x.RangeOfBindingWithRhs
 
-        let sepNln = sepNlnConsideringTriviaContentBeforeFor (synBindingToFsAstType x) range
+        let sepNln = sepNlnConsideringTriviaContentBeforeFor SynBinding_ range
 
         ColMultilineItem(expr, sepNln)
 
@@ -3160,14 +3160,13 @@ and collectMultilineItemForLetOrUses
 
         let range = b.RangeOfBindingWithRhs
 
-        let sepNlnForBinding =
-            sepNlnConsideringTriviaContentBeforeFor (synBindingToFsAstType b) range
+        let sepNlnForBinding = sepNlnConsideringTriviaContentBeforeFor SynBinding_ range
 
         match inKeyword with
         | Some inKw ->
             // single multiline item
             let expr =
-                enterNodeFor (synBindingToFsAstType b) b.RangeOfBindingWithRhs
+                enterNodeFor SynBinding_ b.RangeOfBindingWithRhs
                 +> genLetBinding astContext p b
                 +> genTriviaFor SynExpr_LetOrUse_In inKw !- " in "
                 +> expressionFitsOnRestOfLine expr (sepNln +> sepNlnForExpr +> expr)
@@ -4279,12 +4278,12 @@ and genMemberDefn astContext node =
                 bs
                 |> List.map (fun andBinding ->
                     let expr =
-                        enterNodeFor (synBindingToFsAstType b) andBinding.RangeOfBindingWithRhs
+                        enterNodeFor SynBinding_ andBinding.RangeOfBindingWithRhs
                         +> genLetBinding astContext "and " andBinding
 
                     ColMultilineItem(
                         expr,
-                        sepNlnConsideringTriviaContentBeforeFor SynBindingKind_Normal andBinding.RangeOfBindingWithRhs
+                        sepNlnConsideringTriviaContentBeforeFor SynBinding_ andBinding.RangeOfBindingWithRhs
                     ))
 
             ColMultilineItem((genLetBinding astContext "let " b), sepNone) :: bsItems

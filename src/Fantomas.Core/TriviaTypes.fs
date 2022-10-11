@@ -1,7 +1,6 @@
 module internal Fantomas.Core.TriviaTypes
 
 open FSharp.Compiler.Syntax
-open FSharp.Compiler.SyntaxTrivia
 open FSharp.Compiler.Text
 
 type DefineCombination = string list
@@ -232,9 +231,7 @@ type FsAstType =
     | SynSimplePat_Attrib
     | SynSimplePats_SimplePats
     | SynSimplePats_Typed
-    | SynBindingKind_StandaloneExpression
-    | SynBindingKind_Normal
-    | SynBindingKind_Do
+    | SynBinding_
     | SynBinding_AfterAttributes_BeforeHeadPattern
     | SynBinding_Equals
     | SynBindingReturnInfo_

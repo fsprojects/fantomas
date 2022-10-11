@@ -177,11 +177,9 @@ let rec synExprToFsAstType (expr: SynExpr) : FsAstType * Range =
     | SynExpr.LetOrUse (bindings = bs; body = e) ->
         match bs with
         | [] -> synExprToFsAstType e
-        | SynBinding (kind = kind) as b :: _ ->
-            match kind with
-            | SynBindingKind.StandaloneExpression -> SynBindingKind_StandaloneExpression, b.RangeOfBindingWithRhs
-            | SynBindingKind.Normal -> SynBindingKind_Normal, b.RangeOfBindingWithRhs
-            | SynBindingKind.Do -> SynBindingKind_Do, b.RangeOfBindingWithRhs
+        | b :: _ ->
+            // TODO: full range?
+            SynBinding_, b.RangeOfBindingWithRhs
     | SynExpr.TryWith _ -> SynExpr_TryWith, expr.Range
     | SynExpr.YieldOrReturnFrom _ -> SynExpr_YieldOrReturnFrom, expr.Range
     | SynExpr.While _ -> SynExpr_While, expr.Range
@@ -241,9 +239,3 @@ let synModuleSigDeclToFsAstType =
     | SynModuleSigDecl.HashDirective _ -> SynModuleSigDecl_HashDirective
     | SynModuleSigDecl.NamespaceFragment _ -> SynModuleSigDecl_NamespaceFragment
     | SynModuleSigDecl.ModuleAbbrev _ -> SynModuleSigDecl_ModuleAbbrev
-
-let synBindingToFsAstType (SynBinding (kind = kind)) =
-    match kind with
-    | SynBindingKind.StandaloneExpression -> SynBindingKind_StandaloneExpression
-    | SynBindingKind.Normal -> SynBindingKind_Normal
-    | SynBindingKind.Do -> SynBindingKind_Do

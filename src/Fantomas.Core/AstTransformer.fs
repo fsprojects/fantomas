@@ -1084,12 +1084,6 @@ and visitSynSimplePats (sp: SynSimplePats) : TriviaNode =
 and visitSynBinding (binding: SynBinding) : TriviaNode =
     match binding with
     | SynBinding (_, kind, _, _, attrs, preXml, _valData, headPat, returnInfo, expr, _range, _, trivia) ->
-        let t =
-            match kind with
-            | SynBindingKind.StandaloneExpression -> SynBindingKind_StandaloneExpression
-            | SynBindingKind.Normal -> SynBindingKind_Normal
-            | SynBindingKind.Do -> SynBindingKind_Do
-
         let headPatNodes =
             match kind with
             | SynBindingKind.Do -> None
@@ -1103,7 +1097,7 @@ and visitSynBinding (binding: SynBinding) : TriviaNode =
         let returnInfo = Option.map visitSynBindingReturnInfo returnInfo
 
         mkNodeWithChildren
-            t
+            SynBinding_
             binding.RangeOfBindingWithRhs
             (sortChildren
                 [| yield! visitSynAttributeLists attrs
