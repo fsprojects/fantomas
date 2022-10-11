@@ -1323,13 +1323,8 @@ and visitSynTypeDefnKind (kind: SynTypeDefnKind) : TriviaNode option =
     | SynTypeDefnKind.IL -> None
     | SynTypeDefnKind.Augmentation withRange -> Some(mkNode SynTypeDefnKind_Augmentation_With withRange)
 
-    | SynTypeDefnKind.Delegate (typ, valinfo) ->
-        Some(
-            mkNodeWithChildren
-                SynTypeDefnKind_Delegate
-                (synTypeDefnKindDelegateFullRange typ valinfo)
-                (sortChildren [| visitSynType typ |])
-        )
+    | SynTypeDefnKind.Delegate (typ, _valInfo) ->
+        Some(mkNodeWithChildren SynTypeDefnKind_Delegate typ.Range (sortChildren [| visitSynType typ |]))
 
 and visitSynTypeDefnSimpleRepr (arg: SynTypeDefnSimpleRepr) : TriviaNode list =
     match arg with

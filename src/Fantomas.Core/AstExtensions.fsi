@@ -27,14 +27,6 @@ type SynTyparDecl with
 
     member FullRange: range
 
-type SynValInfo with
-
-    member FullRange: range option
-
-type SynArgInfo with
-
-    member FullRange: range option
-
 type SynInterpolatedStringPart with
 
     member FullRange: range
@@ -46,7 +38,5 @@ type SynExprRecordField with
 type SynField with
 
     member FullRange: range
-
-val synTypeDefnKindDelegateFullRange: signature: SynType -> signatureInfo: SynValInfo -> range
 
 val longIdentFullRange: li: LongIdent -> Range

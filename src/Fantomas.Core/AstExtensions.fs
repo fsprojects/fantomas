@@ -153,40 +153,6 @@ type SynMemberFlags with
               yield! Option.toList memberFlags.Trivia.OverrideRange
               yield! Option.toList memberFlags.Trivia.StaticRange ]
 
-type SynValInfo with
-
-    member synValInfo.FullRange: range option =
-        match synValInfo with
-        | SynValInfo (returnInfo = ri) ->
-            match List.tryHead ri.Attributes, ri.Ident with
-            | None, None -> None
-            | Some a, None -> Some a.Range
-            | None, Some i -> Some i.idRange
-            | Some a, Some i -> Some(unionRanges a.Range i.idRange)
-
-let synTypeDefnKindDelegateFullRange (signature: SynType) (signatureInfo: SynValInfo) =
-    let startRange = signature.Range
-
-    let endRange =
-        match signatureInfo.FullRange with
-        | Some r -> r
-        | None -> signature.Range
-
-    unionRanges startRange endRange
-
-type SynArgInfo with
-
-    member this.FullRange: range option =
-        let (SynArgInfo (attrs, _, ident)) = this
-        let attrRange = attrs |> List.map (fun a -> a.Range) |> RangeHelpers.mergeRanges
-        let identRange = Option.map (fun (i: Ident) -> i.idRange) ident
-
-        match attrRange, identRange with
-        | None, None -> None
-        | Some a, Some i -> Some(unionRanges a i)
-        | None, Some r
-        | Some r, None -> Some r
-
 type SynInterpolatedStringPart with
 
     member this.FullRange =
