@@ -5,7 +5,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
   <meta name="author" content="Florian Verdonck, Jindřich Ivánek, David Schaefer">
-  <title>Visual Studio Code
+  <title>Glossary
 </title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -189,23 +189,38 @@
       </nav>
       <div id="fsdocs-content" class="bg-white m-2 m-sm-5 p-3 p-sm-4">
         
-<h1><a name="Visual-Studio-Code" class="anchor" href="#Visual-Studio-Code">Visual Studio Code</a></h1>
-<p>The recommended way to use Fantomas in Visual Studio Code is by using the <a href="http://ionide.io/">Ionide plugin</a>. Fantomas is integrated in <a href="https://github.com/fsharp/FsAutoComplete/">FSAutoComplete</a> which is the language server used by Ionide.<br />
-Make sure Ionide is set to the default formatter inside <code>settings.json</code> :</p>
-<pre class="fssnip highlighted"><code lang="fsharp">  <span class="s">&quot;[fsharp]&quot;</span><span class="pn">:</span> <span class="pn">{</span>
-    <span class="s">&quot;editor.formatOnSave&quot;</span><span class="pn">:</span> <span class="k">true</span><span class="pn">,</span>
-    <span class="s">&quot;editor.defaultFormatter&quot;</span><span class="pn">:</span> <span class="s">&quot;Ionide.Ionide-fsharp&quot;</span>
-  <span class="pn">}</span>
-</code></pre>
-<h3><a name="Fantomas-version-detection-used-by-Fantomas-Client" class="anchor" href="#Fantomas-version-detection-used-by-Fantomas-Client">Fantomas version detection used by Fantomas.Client</a></h3>
-<p><em>starting version 4.6</em></p>
-<p>Fantomas version detection will try and find a compatible version in the following order:</p>
-<ol>
-<li>The version of Fantomas used by your local project. This is the fantomas version displayed when you run <code>dotnet tool list</code> inside the project folder.</li>
-<li>Your global Fantomas version. If fantomas was installed with <code>dotnet tool install fantomas -g</code>. You can see your global installations with <code>dotnet tool list -g</code>.</li>
-<li>Executable named <code>fantomas</code> found in your PATH.</li>
-</ol>
-<fantomas-nav previous="./VisualStudio.html" next="./GeneratingCode.html"></fantomas-nav>
+<h1><a name="Glossary" class="anchor" href="#Glossary">Glossary</a></h1>
+<h2><a name="AST" class="anchor" href="#AST">AST</a></h2>
+<p>The <a href="https://en.wikipedia.org/wiki/Abstract_syntax_tree">Abstract Syntax Tree</a> (AST) is a tree data <a href="https://github.com/dotnet/fsharp/blob/main/src/Compiler/SyntaxTree/SyntaxTree.fsi">structure</a> representing a piece of source code.</p>
+<h2><a name="FCS" class="anchor" href="#FCS">FCS</a></h2>
+<p><a href="https://fsharp.github.io/fsharp-compiler-docs/fcs/#FSharp-Compiler-Service">FSharp.Compiler.Service</a> (FCS) is a collection of APIs and Services derived from the F# compiler source code.</p>
+<h2><a name="PR" class="anchor" href="#PR">PR</a></h2>
+<p>A <a href="https://docs.github.com/en/pull-requests">Pull Request</a> (PR) is a unit of proposed changes to a version control repository. See <a href="./Pull%20request%20ground%20rules.html">here</a> for Fantomas-specific rules.</p>
+<h2><a name="Range" class="anchor" href="#Range">Range</a></h2>
+<p>A data structure modeling the exact place and size of a node or language construct in the source code.<br />
+A <em>range</em> has a start and end position. A position is composed of a line number and a column number.</p>
+<h2><a name="Style-Guide" class="anchor" href="#Style-Guide">Style Guide</a></h2>
+<p>The <a href="https://learn.microsoft.com/en-us/dotnet/fsharp/style-guide/formatting">F# Style Guide</a>. The set of formatting rules Fantomas implements.</p>
+<h2><a name="Syntax-Node" class="anchor" href="#Syntax-Node">Syntax Node</a></h2>
+<p>A node in the AST. A node can represent different types of syntax, e.g. a Record or a Lambda.</p>
+<h2><a name="Trivia" class="anchor" href="#Trivia">Trivia</a></h2>
+<p><em>Trivia</em> has two meanings, depending on the context it is used in.</p>
+<h3><a name="Fantomas" class="anchor" href="#Fantomas">Fantomas</a></h3>
+<p>Used to label items (blank lines, code comments, conditional directives) that are not fully captured by the F# compiler in the AST.</p>
+<h3><a name="FSharp-Compiler-Service" class="anchor" href="#FSharp-Compiler-Service">FSharp.Compiler.Service</a></h3>
+<p>Additional information captured in the <a href="https://github.com/dotnet/fsharp/blob/main/src/Compiler/SyntaxTree/SyntaxTrivia.fsi">syntax tree</a>, which the compiler does not need to compile the source code.</p>
+<h2><a name="Trivia-Node" class="anchor" href="#Trivia-Node">Trivia Node</a></h2>
+<p>A <em>trivia node</em> can contain <em>trivia</em>, either as content before or content after.
+A <em>trivia node</em> is a generalized type that serves as a common denominator for all AST node types.<br />
+<em>Trivia nodes</em> are used to construct a hierarchical tree-like structure in which every node can have multiple child nodes and each node has one parent node.</p>
+<h2><a name="Typed-Syntax-Tree" class="anchor" href="#Typed-Syntax-Tree">Typed Syntax Tree</a></h2>
+<p>The AST from the FCS carrying typed information about the processed source code. It is contructed from the <em>Untyped Syntax Tree</em>.<br />
+Fantomas does not use this AST to format the source code.</p>
+<h2><a name="Untyped-Syntax-Tree" class="anchor" href="#Untyped-Syntax-Tree">Untyped Syntax Tree</a></h2>
+<p>The AST from the FCS used by Fantomas.
+It represents the source code as it was processed by the F# compiler. The <em>Untyped Syntax Tree</em> doesn't carry any information regarding the validity of the source code or semantics.
+In a later compilation stage, the <em>Untyped Syntax Tree</em> is transformed into the <em>Typed Syntax Tree</em>.</p>
+<fantomas-nav previous="./Pull%20request%20ground%20rules.html"></fantomas-nav>
 
         
       </div>
