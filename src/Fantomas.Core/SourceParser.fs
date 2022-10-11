@@ -227,9 +227,9 @@ let (|UnionCaseType|) =
     | SynUnionCaseKind.Fields fs -> fs
     | SynUnionCaseKind.FullType _ -> failwith "UnionCaseFullType should be used internally only."
 
-let (|Field|) (SynField (ats, isStatic, ido, t, isMutable, px, ao, range, { LeadingKeyword = lk })) =
+let (|Field|) (SynField (ats, _isStatic, ido, t, isMutable, px, ao, range, { LeadingKeyword = lk })) =
     let innerRange = ido |> Option.map (fun i -> Range.unionRanges i.idRange t.Range)
-    (ats, px, lk, ao, isStatic, isMutable, t, ido, innerRange, range)
+    (ats, px, lk, ao, isMutable, t, ido, innerRange, range)
 
 let (|EnumCase|) (SynEnumCase (ats, ident, c, cr, px, r, trivia)) =
     let fullRange =
@@ -289,29 +289,24 @@ let (|MDLetBindings|_|) =
     | SynMemberDefn.LetBindings (es, isStatic, isRec, _) -> Some(isStatic, isRec, es)
     | _ -> None
 
-type WithGetSet =
-    | WithGet
-    | WithSet
-    | WithGetSet
+let mkWithGetSet t withKeyword memberKind =
+    let isFunctionProperty =
+        match t with
+        | Some (SynType.Fun _) -> true
+        | _ -> false
+
+    withKeyword
+    |> Option.map (fun _ ->
+        match memberKind with
+        | SynMemberKind.PropertyGet -> if not isFunctionProperty then "" else " with get"
+        | SynMemberKind.PropertySet -> " with set"
+        | SynMemberKind.PropertyGetSet -> " with get, set"
+        | _ -> "")
 
 let (|MDAbstractSlot|_|) =
     function
     | SynMemberDefn.AbstractSlot (SynValSig (ats, ident, tds, t, _, _, _, px, ao, _, _, trivia), mf, _) ->
-        let optWithGetSet =
-            let isFunctionProperty =
-                match t with
-                | SynType.Fun _ -> true
-                | _ -> false
-
-            trivia.WithKeyword
-            |> Option.map (fun _ ->
-                match mf.MemberKind with
-                | SynMemberKind.PropertyGet -> if not isFunctionProperty then "" else " with get"
-                | SynMemberKind.PropertySet -> " with set"
-                | SynMemberKind.PropertyGetSet -> " with get, set"
-                | _ -> "")
-
-        Some(ats, px, ao, trivia.LeadingKeyword, ident, t, tds, optWithGetSet)
+        Some(ats, px, ao, trivia.LeadingKeyword, ident, t, tds, mkWithGetSet (Some t) trivia.WithKeyword mf.MemberKind)
     | _ -> None
 
 let (|MDInterface|_|) =
@@ -321,33 +316,19 @@ let (|MDInterface|_|) =
 
 let (|MDAutoProperty|_|) =
     function
-    | SynMemberDefn.AutoProperty (ats,
-                                  isStatic,
-                                  ident,
-                                  typeOpt,
-                                  mk,
-                                  _memberFlags,
-                                  _memberFlagsForSet,
-                                  px,
-                                  ao,
-                                  e,
-                                  _,
-                                  { EqualsRange = equalsRange
-                                    WithKeyword = withKeyword
-                                    LeadingKeyword = lk }) ->
-        let optWithGetSet =
-            match typeOpt with
-            | Some (SynType.Fun _) -> None
-            | _ ->
-                withKeyword
-                |> Option.map (fun _ ->
-                    match mk with
-                    | SynMemberKind.PropertyGet -> " with get"
-                    | SynMemberKind.PropertySet -> " with set"
-                    | SynMemberKind.PropertyGetSet -> " with get, set"
-                    | _ -> "")
-
-        Some(ats, px, ao, lk, equalsRange, e, optWithGetSet, ident, isStatic, typeOpt)
+    | SynMemberDefn.AutoProperty (ats, isStatic, ident, typeOpt, mk, _, _, px, ao, e, _, trivia) ->
+        Some(
+            ats,
+            px,
+            ao,
+            trivia.LeadingKeyword,
+            trivia.EqualsRange,
+            e,
+            mkWithGetSet typeOpt trivia.WithKeyword mk,
+            ident,
+            isStatic,
+            typeOpt
+        )
     | _ -> None
 
 let (|MDPropertyGetSet|_|) =
@@ -1641,7 +1622,9 @@ let (|TyparSingle|TyparDefaultsToType|TyparSubtypeOfType|TyparSupportsMember|Typ
 
 let (|MSMember|MSInterface|MSInherit|MSValField|MSNestedType|) =
     function
-    | SynMemberSig.Member (vs, mf, _) -> MSMember(vs, mf)
+    | SynMemberSig.Member (vs, mf, _) ->
+        let (SynValSig (synType = t; trivia = trivia)) = vs
+        MSMember(vs, mkWithGetSet (Some t) trivia.WithKeyword mf.MemberKind)
     | SynMemberSig.Interface (t, _) -> MSInterface t
     | SynMemberSig.Inherit (t, _) -> MSInherit t
     | SynMemberSig.ValField (f, _) -> MSValField f

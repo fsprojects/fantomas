@@ -364,7 +364,7 @@ and genSigModuleDecl astContext node =
     match node with
     | SigException ex -> genSigException astContext ex
     | SigHashDirective p -> genParsedHashDirective p
-    | SigVal v -> genVal astContext v
+    | SigVal v -> genVal astContext v None
     | SigModuleAbbrev (ident, lid) -> !- "module " +> genIdent ident +> sepEq +> sepSpace +> genLongIdent lid
     | SigNamespaceFragment m -> failwithf "NamespaceFragment is not supported yet: %O" m
     | SigNestedModule (ats, px, moduleKeyword, ao, lid, equalsRange, mds) ->
@@ -838,7 +838,11 @@ and genMemberBindingImpl
     | Some t, pat -> genSynBindingValue astContext px ats leadingKeyword ao isInline false pat (Some t) equalsRange e
     | _, pat -> genSynBindingValue astContext px ats leadingKeyword ao isInline false pat None equalsRange e
 
-and genVal astContext (Val (ats, px, leadingKeyword, ao, si, t, _, isInline, isMutable, tds, eo, range)) =
+and genVal
+    astContext
+    (Val (ats, px, leadingKeyword, ao, si, t, _, isInline, isMutable, tds, eo, range))
+    (optGetSet: string option)
+    =
     let typeName = genTypeAndParam astContext (optSingle (genSynIdent false) si) tds []
     let hasGenerics = Option.isSome tds
 
@@ -851,6 +855,7 @@ and genVal astContext (Val (ats, px, leadingKeyword, ao, si, t, _, isInline, isM
         +> typeName)
     +> ifElse hasGenerics sepColonWithSpacesFixed sepColon
     +> genTypeInSignature astContext t
+    +> optSingle (!-) optGetSet
     +> optSingle (fun e -> sepEq +> sepSpace +> genExpr astContext e) eo
     |> genTriviaFor SynValSig_ range
 
@@ -3249,7 +3254,7 @@ and genTypeDefn
             sepSpace
             +> optSingle (fun ao -> genAccess ao +> sepSpace) ao'
             +> genTriviaFor SynTypeDefnSimpleRepr_Record_OpeningBrace openingBrace sepOpenS
-            +> col sepSemi fs (genField astContext "")
+            +> col sepSemi fs (genField astContext)
             +> genTriviaFor SynTypeDefnSimpleRepr_Record_ClosingBrace closingBrace sepCloseS
 
         let multilineExpression (ctx: Context) =
@@ -3426,7 +3431,7 @@ and genMultilineSimpleRecordTypeDefn astContext openingBrace withKeyword ms ao' 
     +> atCurrentColumn (
         leaveNodeFor SynTypeDefnSimpleRepr_Record_OpeningBrace openingBrace
         +> sepNlnWhenWriteBeforeNewlineNotEmpty
-        +> col sepNln fs (genField astContext "")
+        +> col sepNln fs (genField astContext)
     )
     +> genTriviaFor SynTypeDefnSimpleRepr_Record_ClosingBrace closingBrace sepCloseS
     +> optSingle (fun _ -> unindent) ao'
@@ -3445,7 +3450,7 @@ and genMultilineSimpleRecordTypeDefnAlignBrackets astContext openingBrace withKe
     +> indentSepNlnUnindent (
         atCurrentColumn (
             leaveNodeFor SynTypeDefnSimpleRepr_Record_OpeningBrace openingBrace
-            +> col sepNln fs (genField astContext "")
+            +> col sepNln fs (genField astContext)
         )
     )
     +> sepNln
@@ -3538,7 +3543,7 @@ and genSigTypeDefn
             sepSpace
             +> optSingle (fun ao -> genAccess ao +> sepSpace) ao'
             +> genTriviaFor SynTypeDefnSimpleRepr_Record_OpeningBrace openingBrace sepOpenS
-            +> col sepSemi fs (genField astContext "")
+            +> col sepSemi fs (genField astContext)
             +> genTriviaFor SynTypeDefnSimpleRepr_Record_ClosingBrace closingBrace sepCloseS
 
         let multilineExpression (ctx: Context) =
@@ -3644,7 +3649,7 @@ and genSigSimpleRecord astContext openingBrace withKeyword ms ao' fs closingBrac
     +> atCurrentColumn (
         leaveNodeFor SynTypeDefnSimpleRepr_Record_OpeningBrace openingBrace
         +> sepNlnWhenWriteBeforeNewlineNotEmpty
-        +> col sepNln fs (genField astContext "")
+        +> col sepNln fs (genField astContext)
     )
     +> genTriviaFor SynTypeDefnSimpleRepr_Record_ClosingBrace closingBrace sepCloseS
     +> optSingle (fun _ -> unindent) ao'
@@ -3658,7 +3663,7 @@ and genSigSimpleRecordAlignBrackets astContext openingBrace withKeyword ms ao' f
     +> sepNln
     +> atCurrentColumn (
         leaveNodeFor SynTypeDefnSimpleRepr_Record_OpeningBrace closingBrace
-        +> col sepNln fs (genField astContext "")
+        +> col sepNln fs (genField astContext)
     )
     +> unindent
     +> sepNln
@@ -3677,29 +3682,10 @@ and genMemberSig astContext node =
         | SynMemberSig.NestedType (_, r) -> r, SynMemberSig_NestedType
 
     match node with
-    | MSMember (Val (ats, px, leadingKeyword, ao, si, t, _, isInline, _, tds, eo, _), mf) ->
-        // TODO: can we not just call genVal here?
-        let isFunctionProperty =
-            match t with
-            | TFun _ -> true
-            | _ -> false
-
-        let hasGenerics = Option.isSome tds
-
-        genPreXmlDoc px
-        +> genAttributes astContext ats
-        +> genSynLeadingKeyword leadingKeyword
-        +> ifElse isInline (!- "inline ") sepNone
-        +> genAccessOpt ao
-        +> genTypeAndParam astContext (optSingle (genSynIdent false) si) tds []
-        +> ifElse hasGenerics sepColonWithSpacesFixed sepColon
-        +> genTypeInSignature astContext t
-        +> !-(genPropertyKind (not isFunctionProperty) mf.MemberKind)
-        +> optSingle (fun e -> sepEq +> sepSpace +> genExpr astContext e) eo
-
+    | MSMember (v, optGetSet) -> genVal astContext v optGetSet
     | MSInterface t -> !- "interface " +> genType astContext t
     | MSInherit t -> !- "inherit " +> genType astContext t
-    | MSValField f -> genField astContext "val " f
+    | MSValField f -> genField astContext f
     | MSNestedType _ -> invalidArg "md" "This is not implemented in F# compiler"
     |> genTriviaFor mainNodeName range
 
@@ -3772,10 +3758,10 @@ and genSigException astContext (SigExceptionDef (ats, px, ao, uc, withKeyword, m
          +> indentSepNlnUnindent (col sepNln ms (genMemberSig astContext)))
 
 and genUnionCase astContext (hasVerticalBar: bool) (UnionCase (ats, px, barRange, _, si, UnionCaseType fs, range)) =
-    let shortExpr = col sepStar fs (genField astContext "")
+    let shortExpr = col sepStar fs (genField astContext)
 
     let longExpr =
-        indentSepNlnUnindent (atCurrentColumn (col (sepStar +> sepNln) fs (genField astContext "")))
+        indentSepNlnUnindent (atCurrentColumn (col (sepStar +> sepNln) fs (genField astContext)))
 
     genPreXmlDoc px
     +> genTriviaForOptionOr SynUnionCase_Bar barRange (ifElse hasVerticalBar sepBar sepNone)
@@ -3803,14 +3789,13 @@ and genEnumCase astContext (EnumCase (ats, barRange, px, si, equalsRange, c, cr,
     +> genCase
     |> genTriviaFor SynEnumCase_ r
 
-and genField astContext prefix (Field (ats, px, leadingKeyword, ao, isStatic, isMutable, t, so, innerRange, range)) =
+and genField astContext (Field (ats, px, leadingKeyword, ao, isMutable, t, so, innerRange, range)) =
     // Being protective on union case declaration
     let t = genType astContext t
 
     genPreXmlDoc px
     +> genAttributes astContext ats
-    +> ifElse isStatic (!- "static ") sepNone
-    +> !-prefix
+    +> optSingle genSynLeadingKeyword leadingKeyword
     +> ifElse isMutable (!- "mutable ") sepNone
     +> genAccessOpt ao
     +> (opt sepColon so genIdent +> autoIndentAndNlnIfExpressionExceedsPageWidth t
@@ -4215,7 +4200,7 @@ and genMemberDefn astContext node =
         +> autoIndentAndNlnIfExpressionExceedsPageWidth (genInheritConstructor astContext (t, e))
 
     | MDInherit (t, _) -> !- "inherit " +> genType astContext t
-    | MDValField f -> genField astContext "val " f
+    | MDValField f -> genField astContext f
     | MDImplicitCtor ((PreXmlDoc (xmlDoc, _) as preXmlDoc), ats, ao, ps, so) ->
         let rec simplePats ps =
             match ps with
