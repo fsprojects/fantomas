@@ -461,6 +461,11 @@ let parseExpressionInSynBinding returnInfo expr =
         e
     | _ -> expr
 
+let (|Binding|) (SynBinding (ao, _, isInline, isMutable, attrs, px, _, pat, returnInfo, expr, _, _, trivia) as b) =
+    let e = parseExpressionInSynBinding returnInfo expr
+    let rt = Option.map (fun (SynBindingReturnInfo (typeName = t)) -> t) returnInfo
+    attrs, px, trivia.LeadingKeyword, ao, isInline, isMutable, pat, rt, trivia.EqualsRange, e, b.RangeOfBindingWithRhs
+
 let (|DoBinding|LetBinding|MemberBinding|ExplicitCtor|ExternBinding|) b =
     match b with
     | SynBinding (ao, _, _, _, ats, px, SynValData (Some MFConstructor, _, ido), pat, _, expr, _, _, trivia) ->

@@ -304,29 +304,8 @@ and genModuleDecl astContext (node: SynModuleDecl) =
     | Exception ex -> genException astContext ex
     | HashDirective p -> genParsedHashDirective p
     | Let (ExternBinding eb) -> genExternBinding astContext eb
-    // Add a new line after module-level let bindings
-    | Let b -> genLetBinding astContext "let " b
-    | LetRec (b :: bs) ->
-        let sepBAndBs =
-            match List.tryHead bs with
-            | Some b' ->
-                let r = b'.RangeOfBindingWithRhs
-
-                sepNln +> sepNlnConsideringTriviaContentBeforeFor SynBinding_ r
-            | None -> sepNone
-
-        genLetBinding astContext "let rec " b
-        +> sepBAndBs
-        +> colEx
-            (fun (b': SynBinding) ->
-                let r = b'.RangeOfBindingWithRhs
-
-                sepNln +> sepNlnConsideringTriviaContentBeforeFor SynBinding_ r)
-            bs
-            (fun andBinding ->
-                enterNodeFor SynBinding_ andBinding.RangeOfBindingWithRhs
-                +> genLetBinding astContext "and " andBinding)
-
+    | Let b -> genSynBinding astContext b
+    | LetRec bs -> genSynBindings astContext bs
     | ModuleAbbrev (ident, lid) -> !- "module " +> genIdent ident +> sepEq +> sepSpace +> genLongIdent lid
     | NamespaceFragment m -> failwithf "NamespaceFragment hasn't been implemented yet: %O" m
     | NestedModule (ats, px, moduleKeyword, ao, lid, isRecursive, equalsRange, mds) ->
@@ -4581,6 +4560,49 @@ and clean_up_is_rec_function leadingKeyword =
     match leadingKeyword with
     | SynLeadingKeyword.And _ -> true
     | _ -> false
+
+// TODO: at some point absorb the existing helper functions and streamline the whole thing
+
+and genSynBinding
+    astContext
+    (Binding (ats, px, leadingKeyword, ao, isInline, isMutable, p, returnInfo, equalsRange, e, range))
+    =
+    match returnInfo, p with
+    | Some t, PatLongIdent (ao, sli, ps, tpso) when (List.isNotEmpty ps) ->
+        genSynBindingFunctionWithReturnType
+            astContext
+            px
+            ats
+            leadingKeyword
+            ao
+            isInline
+            isMutable
+            sli
+            p.Range
+            ps
+            tpso
+            t
+            equalsRange
+            e
+    | None, PatLongIdent (ao, sli, ps, tpso) when (List.isNotEmpty ps) ->
+        genSynBindingFunction astContext px ats leadingKeyword ao isInline isMutable sli p.Range ps tpso equalsRange e
+    | Some t, pat ->
+        genSynBindingValue astContext px ats leadingKeyword ao isInline isMutable pat (Some t) equalsRange e
+    | _, PatTuple _ ->
+        genLetBindingDestructedTuple astContext px ats leadingKeyword ao isInline isMutable p equalsRange e
+    | _, pat -> genSynBindingValue astContext px ats leadingKeyword ao isInline isMutable pat None equalsRange e
+    |> genTriviaFor SynBinding_ range
+
+and genSynBindings astContext bs =
+    bs
+    |> List.map (fun (b: SynBinding) ->
+        let expr = genSynBinding astContext b
+
+        let sepNln =
+            sepNlnConsideringTriviaContentBeforeFor SynBinding_ b.RangeOfBindingWithRhs
+
+        ColMultilineItem(expr, sepNln))
+    |> colWithNlnWhenItemIsMultiline
 
 and genSynBindingFunction
     (astContext: ASTContext)
