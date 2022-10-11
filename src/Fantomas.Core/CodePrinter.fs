@@ -698,12 +698,6 @@ and genLetBinding astContext pref b =
             genLetBindingDestructedTuple astContext px ats leadingKeyword ao isInline isMutable p equalsRange e
         | _, pat -> genSynBindingValue astContext px ats leadingKeyword ao isInline isMutable pat None equalsRange e
         | _ -> sepNone
-    | DoBinding (ats, px, leadingKeyword, e) ->
-        genPreXmlDoc px
-        +> genAttributes astContext ats
-        +> genSynLeadingKeyword leadingKeyword
-        +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e)
-
     | b -> failwithf "%O isn't a let binding" b
     +> leaveNodeFor (synBindingToFsAstType b) b.RangeOfBindingWithRhs
 
@@ -4268,6 +4262,11 @@ and genMemberDefn astContext node =
     | MDMember b
     | LongGetMember b -> genMemberBinding astContext b
     | MDLetBindings (_, _, [ ExternBinding eb ]) -> genExternBinding astContext eb
+    | MDLetBindings (_, _, [ DoBinding (ats, px, leadingKeyword, e) ]) ->
+        genPreXmlDoc px
+        +> genAttributes astContext ats
+        +> genSynLeadingKeyword leadingKeyword
+        +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e)
     | MDLetBindings (isStatic, isRec, b :: bs) ->
         // let prefix =
         //     if isStatic && isRec then "static let rec "
