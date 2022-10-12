@@ -286,7 +286,7 @@ let (|MDMember|_|) =
 
 let (|MDLetBindings|_|) =
     function
-    | SynMemberDefn.LetBindings (es, isStatic, isRec, _) -> Some(isStatic, isRec, es)
+    | SynMemberDefn.LetBindings (bindings = es) -> Some es
     | _ -> None
 
 let mkWithGetSet t withKeyword memberKind =

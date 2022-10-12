@@ -305,7 +305,7 @@ and genModuleDecl astContext (node: SynModuleDecl) =
     | HashDirective p -> genParsedHashDirective p
     | Let (ExternBinding eb) -> genExternBinding astContext eb
     | Let b -> genSynBinding astContext b
-    | LetRec bs -> genSynBindings astContext bs
+    | LetRec bs -> genSynBindings astContext bs false
     | ModuleAbbrev (ident, lid) -> !- "module " +> genIdent ident +> sepEq +> sepSpace +> genLongIdent lid
     | NamespaceFragment m -> failwithf "NamespaceFragment hasn't been implemented yet: %O" m
     | NestedModule (ats, px, moduleKeyword, ao, lid, isRecursive, equalsRange, mds) ->
@@ -635,50 +635,6 @@ and genExternBinding astContext (leadingKeyword, ao, attrs, px, pat, rt) =
     +> genAccessOpt ao
     +> genPatForExtern astContext pat
     +> sepSpace
-
-and genLetBinding astContext pref b =
-    match b with
-    | LetBinding (ats, px, leadingKeyword, ao, isInline, isMutable, p, returnInfo, equalsRange, e) ->
-        match returnInfo, p with
-        | Some t, PatLongIdent (ao, sli, ps, tpso) when (List.isNotEmpty ps) ->
-            genSynBindingFunctionWithReturnType
-                astContext
-                px
-                ats
-                leadingKeyword
-                ao
-                isInline
-                isMutable
-                sli
-                p.Range
-                ps
-                tpso
-                t
-                equalsRange
-                e
-        | None, PatLongIdent (ao, sli, ps, tpso) when (List.isNotEmpty ps) ->
-            genSynBindingFunction
-                astContext
-                px
-                ats
-                leadingKeyword
-                ao
-                isInline
-                isMutable
-                sli
-                p.Range
-                ps
-                tpso
-                equalsRange
-                e
-        | Some t, pat ->
-            genSynBindingValue astContext px ats leadingKeyword ao isInline isMutable pat (Some t) equalsRange e
-        | _, PatTuple _ ->
-            genLetBindingDestructedTuple astContext px ats leadingKeyword ao isInline isMutable p equalsRange e
-        | _, pat -> genSynBindingValue astContext px ats leadingKeyword ao isInline isMutable pat None equalsRange e
-        | _ -> sepNone
-    | b -> failwithf "%O isn't a let binding" b
-    +> leaveNodeFor SynBinding_ b.RangeOfBindingWithRhs
 
 and genProperty astContext (getOrSetType: FsAstType, getOrSetRange: range, binding: SynBinding) =
     let genGetOrSet =
@@ -4235,36 +4191,13 @@ and genMemberDefn astContext node =
 
     | MDMember b
     | LongGetMember b -> genMemberBinding astContext b
-    | MDLetBindings (_, _, [ ExternBinding eb ]) -> genExternBinding astContext eb
-    | MDLetBindings (_, _, [ DoBinding (ats, px, leadingKeyword, e) ]) ->
+    | MDLetBindings ([ ExternBinding eb ]) -> genExternBinding astContext eb
+    | MDLetBindings ([ DoBinding (ats, px, leadingKeyword, e) ]) ->
         genPreXmlDoc px
         +> genAttributes astContext ats
         +> genSynLeadingKeyword leadingKeyword
         +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e)
-    | MDLetBindings (isStatic, isRec, b :: bs) ->
-        // let prefix =
-        //     if isStatic && isRec then "static let rec "
-        //     elif isStatic then "static let "
-        //     elif isRec then "let rec "
-        //     else "let "
-
-        let items =
-            let bsItems =
-                bs
-                |> List.map (fun andBinding ->
-                    let expr =
-                        enterNodeFor SynBinding_ andBinding.RangeOfBindingWithRhs
-                        +> genLetBinding astContext "and " andBinding
-
-                    ColMultilineItem(
-                        expr,
-                        sepNlnConsideringTriviaContentBeforeFor SynBinding_ andBinding.RangeOfBindingWithRhs
-                    ))
-
-            ColMultilineItem((genLetBinding astContext "let " b), sepNone) :: bsItems
-
-        colWithNlnWhenItemIsMultilineUsingConfig items
-
+    | MDLetBindings bs -> genSynBindings astContext bs true
     | MDInterface (t, withKeyword, mdo, range) ->
         !- "interface "
         +> genType astContext t
@@ -4589,7 +4522,7 @@ and genSynBinding
     | _, pat -> genSynBindingValue astContext px ats leadingKeyword ao isInline isMutable pat None equalsRange e
     |> genTriviaFor SynBinding_ range
 
-and genSynBindings astContext bs =
+and genSynBindings astContext bs withUseConfig =
     bs
     |> List.map (fun (b: SynBinding) ->
         let expr = genSynBinding astContext b
@@ -4598,7 +4531,10 @@ and genSynBindings astContext bs =
             sepNlnConsideringTriviaContentBeforeFor SynBinding_ b.RangeOfBindingWithRhs
 
         ColMultilineItem(expr, sepNln))
-    |> colWithNlnWhenItemIsMultiline
+    |> (if withUseConfig then
+            colWithNlnWhenItemIsMultilineUsingConfig
+        else
+            colWithNlnWhenItemIsMultiline)
 
 and genSynBindingFunction
     (astContext: ASTContext)
