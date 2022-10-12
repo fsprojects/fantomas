@@ -927,31 +927,11 @@ let autoIndentAndNlnIfExpressionExceedsPageWidth expr (ctx: Context) =
         expr
         ctx
 
-/// try and write the expression on the remainder of the current line
-/// add an indent if the expression is longer
-let autoIndentIfExpressionExceedsPageWidth expr (ctx: Context) =
-    expressionExceedsPageWidth
-        sepNone
-        sepNone // before and after for short expressions
-        indent
-        unindent // before and after for long expressions
-        expr
-        ctx
-
 let sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth expr (ctx: Context) =
     expressionExceedsPageWidth
         sepSpace
         sepNone // before and after for short expressions
         (indent +> sepNln)
-        unindent // before and after for long expressions
-        expr
-        ctx
-
-let sepSpaceOrIndentIfExpressionExceedsPageWidth expr (ctx: Context) =
-    expressionExceedsPageWidth
-        sepSpace
-        sepNone // before and after for short expressions
-        indent
         unindent // before and after for long expressions
         expr
         ctx

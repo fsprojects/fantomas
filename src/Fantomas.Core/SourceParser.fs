@@ -1616,7 +1616,7 @@ let (|AnonRecordFieldName|) (ident: Ident, eq: range option, e: SynExpr) =
     let range = Range.unionRanges ident.idRange e.Range
     (ident, eq, e, range)
 
-let (|AnonRecordFieldType|) (ident: Ident, ty: SynType) = (ident, ty)
+let (|AnonRecordFieldType|) (ident, t: SynType) = (ident, t)
 
 /// Extract function arguments with their associated info
 let (|FunType|) t =
