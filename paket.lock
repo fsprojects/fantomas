@@ -819,11 +819,11 @@ STORAGE: NONE
 RESTRICTION: == netstandard2.0
 NUGET
   remote: https://api.nuget.org/v3/index.json
-    FSharp.Core (6.0.1) - content: none
-    FsLexYacc (10.2)
+    FSharp.Core (6.0.6) - content: none
+    FsLexYacc (10.2) - copy_local: true
       FSharp.Core (>= 4.5.2)
       FsLexYacc.Runtime (>= 10.2 < 10.3)
-    FsLexYacc.Runtime (10.2)
+    FsLexYacc.Runtime (10.2) - copy_local: true
       FSharp.Core (>= 4.5.2)
     Ionide.KeepAChangelog.Tasks (0.1.8) - copy_local: true
     Microsoft.NETCore.Platforms (6.0.2)
