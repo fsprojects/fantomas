@@ -1158,9 +1158,8 @@ and genExpr astContext synExpr ctx =
         | CompExprBody statements ->
             let genCompExprStatement astContext ces =
                 match ces with
-                | LetOrUseStatement (prefix, binding, inKeyword) ->
-                    enterNodeFor SynBinding_ binding.RangeOfBindingWithRhs
-                    +> genLetBinding astContext prefix binding
+                | LetOrUseStatement (binding, inKeyword) ->
+                    genSynBinding astContext binding
                     +> genTriviaForOption SynExpr_LetOrUse_In inKeyword !- " in "
                 | LetOrUseBangStatement (isUse, pat, equalsRange, expr, r) ->
                     enterNodeFor SynExpr_LetOrUseBang r // print Trivia before entire LetBang expression
@@ -1180,14 +1179,14 @@ and genExpr astContext synExpr ctx =
 
             let getRangeOfCompExprStatement ces =
                 match ces with
-                | LetOrUseStatement (_, binding, _) -> binding.RangeOfBindingWithRhs
+                | LetOrUseStatement (binding, _) -> binding.RangeOfBindingWithRhs
                 | LetOrUseBangStatement (range = r) -> r
                 | AndBangStatement (range = r) -> r
                 | OtherStatement expr -> expr.Range
 
             let getSepNln ces r =
                 match ces with
-                | LetOrUseStatement (_, b, _) -> sepNlnConsideringTriviaContentBeforeFor SynBinding_ r
+                | LetOrUseStatement (b, _) -> sepNlnConsideringTriviaContentBeforeFor SynBinding_ r
                 | LetOrUseBangStatement _ -> sepNlnConsideringTriviaContentBeforeFor SynExpr_LetOrUseBang r
                 | AndBangStatement (_, _, _, r) -> sepNlnConsideringTriviaContentBeforeFor SynExprAndBang_ r
                 | OtherStatement e ->
@@ -2307,8 +2306,8 @@ and genExprInMultilineInfixExpr astContext e =
     match e with
     | LetOrUses (xs, e) ->
         atCurrentColumn (
-            col sepNln xs (fun (pref, lb, inKeyword) ->
-                genLetBinding astContext pref lb
+            col sepNln xs (fun (lb, inKeyword) ->
+                genSynBinding astContext lb
                 +> (match inKeyword with
                     | Some inKw -> genTriviaFor SynExpr_LetOrUse_In inKw !- " in"
                     | None -> !- " in"))
@@ -3111,28 +3110,26 @@ and collectMultilineItemForSynExpr (astContext: ASTContext) (e: SynExpr) : ColMu
 
 and collectMultilineItemForLetOrUses
     (astContext: ASTContext)
-    (bs: (string * SynBinding * range option) list)
+    (bs: (SynBinding * range option) list)
     (itemsForExpr: ColMultilineItem list)
     : ColMultilineItem list =
 
-    let multilineBinding p (x: SynBinding) inKw =
+    let multilineBinding (x: SynBinding) inKw =
         let expr =
-            enterNodeFor SynBinding_ x.RangeOfBindingWithRhs
-            +> genLetBinding astContext p x
+            genSynBinding astContext x
             +> genTriviaForOption SynExpr_LetOrUse_In inKw !- " in "
 
         let range = x.RangeOfBindingWithRhs
-
         let sepNln = sepNlnConsideringTriviaContentBeforeFor SynBinding_ range
 
         ColMultilineItem(expr, sepNln)
 
     let multipleOrLongBs bs =
-        bs |> List.map (fun (p, x, inKw) -> multilineBinding p x inKw)
+        bs |> List.map (fun (x, inKw) -> multilineBinding x inKw)
 
     match bs, itemsForExpr with
     | [], _ -> itemsForExpr
-    | [ p, b, inKeyword ], [ ColMultilineItem (expr, sepNlnForExpr) ] ->
+    | [ b, inKeyword ], [ ColMultilineItem (expr, sepNlnForExpr) ] ->
         // This is a trickier case
         // maybe the let binding and expression are short so they form one ColMultilineItem
         // Something like: let a = 1 in ()
@@ -3145,8 +3142,7 @@ and collectMultilineItemForLetOrUses
         | Some inKw ->
             // single multiline item
             let expr =
-                enterNodeFor SynBinding_ b.RangeOfBindingWithRhs
-                +> genLetBinding astContext p b
+                genSynBinding astContext b
                 +> genTriviaFor SynExpr_LetOrUse_In inKw !- " in "
                 +> expressionFitsOnRestOfLine expr (sepNln +> sepNlnForExpr +> expr)
 

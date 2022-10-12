@@ -898,46 +898,22 @@ let (|JoinIn|_|) =
 /// Recursive and use properties have to be determined at this point
 let rec (|LetOrUses|_|) =
     function
-    | SynExpr.LetOrUse (isRec, isUse, xs, LetOrUses (ys, e), _, trivia) ->
-        let prefix =
-            if isUse then "use "
-            elif isRec then "let rec "
-            else "let "
-
+    | SynExpr.LetOrUse (_, _, xs, LetOrUses (ys, e), _, trivia) ->
         let xs' =
             let lastIndex = xs.Length - 1
-
-            List.mapi
-                (fun i x ->
-                    if i = 0 then
-                        (prefix, x, (if i = lastIndex then trivia.InKeyword else None))
-                    else
-                        ("and ", x, (if i = lastIndex then trivia.InKeyword else None)))
-                xs
+            List.mapi (fun i x -> if i = lastIndex then x, trivia.InKeyword else x, None) xs
 
         Some(xs' @ ys, e)
-    | SynExpr.LetOrUse (isRec, isUse, xs, e, _, trivia) ->
-        let prefix =
-            if isUse then "use "
-            elif isRec then "let rec "
-            else "let "
-
+    | SynExpr.LetOrUse (_, _, xs, e, _, trivia) ->
         let xs' =
             let lastIndex = xs.Length - 1
-
-            List.mapi
-                (fun i x ->
-                    if i = 0 then
-                        (prefix, x, (if i = lastIndex then trivia.InKeyword else None))
-                    else
-                        ("and ", x, (if i = lastIndex then trivia.InKeyword else None)))
-                xs
+            List.mapi (fun i x -> if i = lastIndex then x, trivia.InKeyword else x, None) xs
 
         Some(xs', e)
     | _ -> None
 
 type ComputationExpressionStatement =
-    | LetOrUseStatement of prefix: string * binding: SynBinding * inKeyword: range option
+    | LetOrUseStatement of binding: SynBinding * inKeyword: range option
     | LetOrUseBangStatement of isUse: bool * SynPat * equalsRange: range option * SynExpr * range: range
     | AndBangStatement of SynPat * equalsRange: range * SynExpr * range: range
     | OtherStatement of SynExpr
