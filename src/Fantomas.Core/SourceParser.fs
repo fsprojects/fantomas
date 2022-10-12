@@ -479,19 +479,12 @@ let (|DoBinding|LetBinding|MemberBinding|ExplicitCtor|ExternBinding|) b =
     | SynBinding (_, SynBindingKind.Do, _, _, ats, px, _, _, _, expr, _, _, trivia) ->
         // TODO: do we still need this?
         DoBinding(ats, px, trivia.LeadingKeyword, expr)
-    | SynBinding (ao,
-                  _,
-                  _,
-                  _,
-                  attrs,
-                  px,
-                  _,
-                  pat,
-                  returnInfo,
-                  _,
-                  _,
-                  _,
-                  { LeadingKeyword = SynLeadingKeyword.Extern _ as lk }) ->
+    | SynBinding (accessibility = ao
+                  attributes = attrs
+                  xmlDoc = px
+                  headPat = pat
+                  returnInfo = returnInfo
+                  trivia = { LeadingKeyword = SynLeadingKeyword.Extern _ as lk }) ->
         let rt =
             Option.map (fun (SynBindingReturnInfo (typeName = t; attributes = a)) -> a, t) returnInfo
 

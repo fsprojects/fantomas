@@ -962,19 +962,12 @@ and visitSynMemberDefn (mbrDef: SynMemberDefn) : TriviaNode =
     | SynMemberDefn.ValField (fld, range) -> mkNodeWithChildren SynMemberDefn_ValField range [| visitSynField fld |]
     | SynMemberDefn.NestedType (typeDefn, _, range) ->
         mkNodeWithChildren SynMemberDefn_NestedType range [| visitSynTypeDefn typeDefn |]
-    | SynMemberDefn.AutoProperty (attrs,
-                                  _,
-                                  _,
-                                  typeOpt,
-                                  _,
-                                  _,
-                                  _,
-                                  _,
-                                  _,
-                                  synExpr,
-                                  range,
-                                  { EqualsRange = equalsRange
-                                    WithKeyword = withKeyword }) ->
+    | SynMemberDefn.AutoProperty (attributes = attrs
+                                  typeOpt = typeOpt
+                                  synExpr = synExpr
+                                  range = range
+                                  trivia = { EqualsRange = equalsRange
+                                             WithKeyword = withKeyword }) ->
         mkNodeWithChildren
             SynMemberDefn_AutoProperty
             range
