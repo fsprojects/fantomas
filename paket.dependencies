@@ -141,5 +141,5 @@ group compiler
     nuget FSharp.Core >= 6.0.1 content: none
     nuget System.Memory
     nuget System.Runtime
-    nuget FsLexYacc 10.2.0
+    nuget FsLexYacc 10.2.0 copy_local: true
     nuget Ionide.KeepAChangelog.Tasks copy_local: true
