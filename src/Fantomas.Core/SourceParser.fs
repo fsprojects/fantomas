@@ -466,6 +466,8 @@ let (|Binding|) (SynBinding (ao, _, isInline, isMutable, attrs, px, _, pat, retu
     let rt = Option.map (fun (SynBindingReturnInfo (typeName = t)) -> t) returnInfo
     attrs, px, trivia.LeadingKeyword, ao, isInline, isMutable, pat, rt, trivia.EqualsRange, e, b.RangeOfBindingWithRhs
 
+// TODO: split this up and remove the unused
+
 let (|DoBinding|LetBinding|MemberBinding|ExplicitCtor|ExternBinding|) b =
     match b with
     | SynBinding (ao, _, _, _, ats, px, SynValData (Some MFConstructor, _, ido), pat, _, expr, _, _, trivia) ->

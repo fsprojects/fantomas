@@ -49,38 +49,6 @@ let mkSynValSig (astNode: SynValSig) (r: range) (children: TriviaNode array) =
 
 let mkNodeOption (t: FsAstType) (r: range option) : TriviaNode option = Option.map (mkNode t) r
 
-// TODO: do we still need this when we have a clear anchor in the keyword?
-// We only need the let/type keyword anchor if there are xml docs or attributes present that have space between itself and the let/type keyword
-let mkNodeForRangeAfterXmlAndAttributes
-    (t: FsAstType)
-    (SourceParser.PreXmlDoc (xml, xmlRange))
-    (attrs: SynAttributeList list)
-    (r: range option)
-    : TriviaNode list =
-    if Array.isEmpty xml && attrs.IsEmpty then
-        []
-    else
-        match r with
-        | None -> []
-        | Some keyword ->
-            let lastLine =
-                let lastAttrLine =
-                    match List.tryLast attrs with
-                    | None -> 0
-                    | Some a -> a.Range.EndLine
-
-                System.Math.Max(xmlRange.EndLine, lastAttrLine)
-
-            if keyword.StartLine > lastLine + 1 then
-                // In this scenario there is trivia underneath the attributes or xmldoc
-                // f.ex.:
-                // [<AttributeOne()>]
-                // // some comment
-                // let a = 0
-                [ mkNode t keyword ]
-            else
-                []
-
 let rec visitSynModuleOrNamespace
     (SourceParser.ModuleOrNamespace (attrs, _, moduleKeyword, namespaceKeyword, _, longIdent, decls, _, kind, fullRange))
     =
@@ -125,11 +93,8 @@ and visitSynModuleDecl (ast: SynModuleDecl) : TriviaNode =
                 List.map visit decls
 
             let moduleNode =
-                mkNodeForRangeAfterXmlAndAttributes
-                    SynModuleDecl_NestedModule_Module
-                    preXmlDoc
-                    attrs
-                    trivia.ModuleKeyword
+                mkNodeOption SynModuleDecl_NestedModule_Module trivia.ModuleKeyword
+                |> Option.toList
 
             let finalContinuation (nodes: TriviaNode list) : TriviaNode =
                 mkSynModuleDeclNode
@@ -921,20 +886,12 @@ and visitSynInterfaceImpl (ii: SynInterfaceImpl) : TriviaNode =
 
 and visitSynTypeDefn (td: SynTypeDefn) : TriviaNode =
     match td with
-    | SynTypeDefn (SynComponentInfo (xmlDoc = preXmlDoc; attributes = attrs) as sci,
-                   stdr,
-                   members,
-                   _implicitConstructor,
-                   range,
-                   trivia) ->
-        let typeKeyword =
-            mkNodeForRangeAfterXmlAndAttributes SynTypeDefn_Type preXmlDoc attrs trivia.TypeKeyword
-
+    | SynTypeDefn (sci, stdr, members, _implicitConstructor, range, trivia) ->
         mkNodeWithChildren
             SynTypeDefn_
             range
             (sortChildren
-                [| yield! typeKeyword
+                [| yield! (Option.toList (mkNodeOption SynTypeDefn_Type trivia.TypeKeyword))
                    yield! Option.toList (mkNodeOption SynTypeDefn_Equals trivia.EqualsRange)
                    yield! visitSynComponentInfo sci
                    yield! visitSynTypeDefnRepr stdr
@@ -1089,10 +1046,7 @@ and visitSynBinding (binding: SynBinding) : TriviaNode =
             | SynBindingKind.Do -> None
             | _ -> Some(visitSynPat headPat)
 
-        let keywordNode =
-            let kwNode = visitSynLeadingKeyword trivia.LeadingKeyword
-            mkNodeForRangeAfterXmlAndAttributes kwNode.Type preXml attrs (Some kwNode.Range)
-
+        let keywordNode = visitSynLeadingKeyword trivia.LeadingKeyword
         let expr = SourceParser.parseExpressionInSynBinding returnInfo expr
         let returnInfo = Option.map visitSynBindingReturnInfo returnInfo
 
@@ -1101,7 +1055,7 @@ and visitSynBinding (binding: SynBinding) : TriviaNode =
             binding.RangeOfBindingWithRhs
             (sortChildren
                 [| yield! visitSynAttributeLists attrs
-                   yield! keywordNode
+                   yield keywordNode
                    yield! Option.toList headPatNodes
                    yield! Option.toList returnInfo
                    yield! Option.toList (mkNodeOption SynBinding_Equals trivia.EqualsRange)
@@ -1424,14 +1378,13 @@ and visitSynEnumCase (sec: SynEnumCase) : TriviaNode =
 
 and visitSynField (sfield: SynField) : TriviaNode =
     match sfield with
-    | SynField (attrs, _, ident, typ, _, preXmlDoc, _, _range, trivia) ->
+    | SynField (attrs, _, ident, typ, _, _preXmlDoc, _, _range, trivia) ->
         let innerNode =
             match ident with
-            | None -> []
+            | None -> visitSynType typ
             | Some ident ->
-                Range.unionRanges ident.idRange typ.Range
-                |> Some
-                |> mkNodeForRangeAfterXmlAndAttributes SynField_IdentifierAndType preXmlDoc attrs
+                let range = Range.unionRanges ident.idRange typ.Range
+                mkNodeWithChildren SynField_IdentifierAndType range [| visitIdent ident; visitSynType typ |]
 
         mkNodeWithChildren
             SynField_
@@ -1439,8 +1392,7 @@ and visitSynField (sfield: SynField) : TriviaNode =
             (sortChildren
                 [| yield! Option.toList (Option.map visitSynLeadingKeyword trivia.LeadingKeyword)
                    yield! (visitSynAttributeLists attrs)
-                   yield! innerNode
-                   yield visitSynType typ |])
+                   yield innerNode |])
 
 and visitSynType (st: SynType) : TriviaNode =
     let rec visit (st: SynType) (finalContinuation: TriviaNode -> TriviaNode) : TriviaNode =
@@ -1678,11 +1630,8 @@ and visitSynModuleSigDecl (ast: SynModuleSigDecl) : TriviaNode =
                 List.map visit decls
 
             let moduleKeyword =
-                mkNodeForRangeAfterXmlAndAttributes
-                    SynModuleSigDecl_NestedModule_Module
-                    preXmlDoc
-                    attrs
-                    trivia.ModuleKeyword
+                mkNodeOption SynModuleSigDecl_NestedModule_Module trivia.ModuleKeyword
+                |> Option.toList
 
             let finalContinuation (nodes: TriviaNode list) : TriviaNode =
                 mkSynModuleSigDeclNode

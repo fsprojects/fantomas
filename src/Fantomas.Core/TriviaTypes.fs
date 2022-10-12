@@ -232,7 +232,6 @@ type FsAstType =
     | SynSimplePats_SimplePats
     | SynSimplePats_Typed
     | SynBinding_
-    | SynBinding_AfterAttributes_BeforeHeadPattern
     | SynBinding_Equals
     | SynBindingReturnInfo_
     | SynTyparDecls_PostfixList
