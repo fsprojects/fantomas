@@ -690,9 +690,6 @@ and genMemberBindingList astContext ms =
 
 and genMemberBinding astContext b =
     match b with
-    | MemberBinding (ats, px, ao, isInline, leadingKeyword, p, rt, equalsRange, e) ->
-        genMemberBindingImpl astContext leadingKeyword ats px ao isInline p rt equalsRange e
-
     | ExplicitCtor (ats, px, ao, p, equalsRange, e, io) ->
         let prefix =
             let genPat ctx =
@@ -729,43 +726,7 @@ and genMemberBinding astContext b =
             +> genEq SynBinding_Equals equalsRange
             +> sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e)
 
-    | b -> failwithf "%O isn't a member binding" b
-    |> genTriviaFor SynBinding_ b.RangeOfBindingWithRhs
-
-and genMemberBindingImpl
-    (astContext: ASTContext)
-    (leadingKeyword: SynLeadingKeyword)
-    // (prefix: Context -> Context)
-    (ats: SynAttributes)
-    (px: PreXmlDoc)
-    (ao: SynAccess option)
-    (isInline: bool)
-    (p: SynPat)
-    (returnType: SynType option)
-    (equalsRange: range option)
-    (e: SynExpr)
-    =
-    match returnType, p with
-    | Some t, PatLongIdent (ao, s, ps, tpso) when (List.isNotEmpty ps) ->
-        genSynBindingFunctionWithReturnType
-            astContext
-            px
-            ats
-            leadingKeyword
-            ao
-            isInline
-            false
-            s
-            p.Range
-            ps
-            tpso
-            t
-            equalsRange
-            e
-    | None, PatLongIdent (ao, s, ps, tpso) when (List.isNotEmpty ps) ->
-        genSynBindingFunction astContext px ats leadingKeyword ao isInline false s p.Range ps tpso equalsRange e
-    | Some t, pat -> genSynBindingValue astContext px ats leadingKeyword ao isInline false pat (Some t) equalsRange e
-    | _, pat -> genSynBindingValue astContext px ats leadingKeyword ao isInline false pat None equalsRange e
+    | _ -> genSynBinding astContext b
 
 and genVal
     astContext
