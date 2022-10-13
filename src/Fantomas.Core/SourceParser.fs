@@ -310,7 +310,7 @@ let (|MDAbstractSlot|_|) =
 
 let (|MDInterface|_|) =
     function
-    | SynMemberDefn.Interface (t, withKeyword, mdo, range) -> Some(t, withKeyword, mdo, range)
+    | SynMemberDefn.Interface (t, withKeyword, mdo, _) -> Some(t, withKeyword, mdo)
     | _ -> None
 
 let (|MDAutoProperty|_|) =
@@ -408,8 +408,7 @@ let (|MDPropertyGetSet|_|) =
 
 // Interface impl
 
-let (|InterfaceImpl|) (SynInterfaceImpl (t, withKeywordRange, bs, members, range)) =
-    (t, withKeywordRange, bs, members, range)
+let (|InterfaceImpl|) (SynInterfaceImpl (t, withKeywordRange, bs, members, _range)) = (t, withKeywordRange, bs, members)
 
 // Bindings
 
@@ -1071,8 +1070,7 @@ let (|AnonRecord|_|) =
 
 let (|ObjExpr|_|) =
     function
-    | SynExpr.ObjExpr (t, eio, withKeyword, bd, members, ims, _, range) ->
-        Some(t, eio, withKeyword, bd, members, ims, range)
+    | SynExpr.ObjExpr (t, eio, withKeyword, bd, members, ims, _, _) -> Some(t, eio, withKeyword, bd, members, ims)
     | _ -> None
 
 let (|LongIdentSet|_|) =

@@ -64,9 +64,7 @@ let formatAST
     let formattedSourceCode =
         let context = Context.Context.Create config sourceText ast selection
 
-        context
-        |> genParsedInput ASTContext.Default ast
-        |> Context.dump (Option.isSome selection)
+        context |> genParsedInput ast |> Context.dump (Option.isSome selection)
 
     formattedSourceCode
 
