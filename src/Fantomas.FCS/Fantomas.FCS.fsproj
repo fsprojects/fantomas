@@ -4,7 +4,7 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <NoWarn>$(NoWarn);57</NoWarn> <!-- Experimental -->
-    <DefineConstants>$(DefineConstants);COMPILER;USE_SHIPPED_FSCORE</DefineConstants>
+    <DefineConstants>$(DefineConstants);COMPILER;FSHARPCORE_USE_PACKAGE</DefineConstants>
     <FsYaccOutputFolder>generated\$(TargetFramework)\</FsYaccOutputFolder>
     <FsLexOutputFolder>generated\$(TargetFramework)\</FsLexOutputFolder>
     <Tailcalls>true</Tailcalls>

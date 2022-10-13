@@ -107,6 +107,9 @@ let mkAnonSynModuleOrNamespaceSig decl =
 
 let mkSynModuleDecl (expr: SynExpr) : SynModuleDecl = SynModuleDecl.Expr(expr, expr.Range)
 
+let mkSynModuleDeclForBinding (binding: SynBinding) : SynModuleDecl =
+    SynModuleDecl.Let(false, [ binding ], binding.FullRange)
+
 /// Wrap the selected node inside an anonymous module.
 /// Keep the original trivia of the ParsedInput so code comments could still be restored.
 let mkTreeWithSingleNode (fullTree: ParsedInput) (astNode: FSharpASTNode) : ParsedInput =
@@ -123,6 +126,7 @@ let mkTreeWithSingleNode (fullTree: ParsedInput) (astNode: FSharpASTNode) : Pars
             match astNode with
             | FSharpASTNode.ModuleDecl synModuleDecl -> synModuleDecl
             | FSharpASTNode.Expr synExpr -> mkSynModuleDecl synExpr
+            | FSharpASTNode.Binding binding -> mkSynModuleDeclForBinding binding
             | FSharpASTNode.ModuleSigDecl _
             | FSharpASTNode.ValSig _ -> failwith "Unexpected signature ast node in implementation file"
 
@@ -149,6 +153,7 @@ let mkTreeWithSingleNode (fullTree: ParsedInput) (astNode: FSharpASTNode) : Pars
             | FSharpASTNode.ModuleSigDecl decl -> decl
             | FSharpASTNode.ValSig (SynValSig (range = range) as valSig) -> SynModuleSigDecl.Val(valSig, range)
             | FSharpASTNode.Expr _
+            | FSharpASTNode.Binding _
             | FSharpASTNode.ModuleDecl _ -> failwith "Unexpected implementation ast node in implementation file"
 
         ParsedInput.SigFile(

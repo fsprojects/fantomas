@@ -40,3 +40,7 @@ type SynField with
     member FullRange: range
 
 val longIdentFullRange: li: LongIdent -> Range
+
+type SynBinding with
+
+    member FullRange: range

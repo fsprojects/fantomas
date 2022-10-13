@@ -17,7 +17,6 @@ let ``recursive functions`` () =
         equal
         """
 let rec f x = g x
-
 and g x = x
 """
 
@@ -53,9 +52,11 @@ let rec createJArray x = createJObject
 and createJObject y = createJArray
     """
         config
+    |> prepend newline
     |> should
         equal
-        """let rec createJArray x = createJObject
+        """
+let rec createJArray x = createJObject
 
 and createJObject y = createJArray
 """

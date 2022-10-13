@@ -193,3 +193,18 @@ let y = a   +   x
 let z = ""
 """
         config
+
+[<Test>]
+let ``format second binding of recursive binding`` () =
+    formatSelectionOnly
+        false
+        (mkSelection (6, 0) (6, 23))
+        """
+module A
+
+let rec x y z = 1
+
+and a    b  c    =    2
+"""
+        config
+    |> should equal "and a b c = 2"

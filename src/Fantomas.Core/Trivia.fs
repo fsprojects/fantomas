@@ -183,7 +183,7 @@ let rec visitLastChildNode (node: TriviaNode) : TriviaNode =
     | SynExpr_App
     | SynExpr_Lambda
     | SynExpr_LetOrUseBang
-    | SynBindingKind_Normal
+    | SynBinding_
     | SynModuleOrNamespace_AnonModule
     | SynModuleDecl_Expr
     | SynModuleDecl_Let

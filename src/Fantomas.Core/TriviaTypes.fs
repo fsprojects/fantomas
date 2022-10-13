@@ -231,12 +231,7 @@ type FsAstType =
     | SynSimplePat_Attrib
     | SynSimplePats_SimplePats
     | SynSimplePats_Typed
-    | SynBindingKind_StandaloneExpression
-    | SynBindingKind_Normal
-    | SynBindingKind_Do
-    | SynBinding_AfterAttributes_BeforeHeadPattern
-    | SynBinding_Let
-    | SynBinding_Extern
+    | SynBinding_
     | SynBinding_Equals
     | SynBindingReturnInfo_
     | SynTyparDecls_PostfixList
@@ -247,7 +242,6 @@ type FsAstType =
     | SynTyparDecl_
     // | Typar_ , unused
     | SynValSig_
-    | SynValSig_Val
     | SynValSig_With
     // | SynPat_Const, use SynConst instead
     | SynPat_Wild
@@ -374,9 +368,6 @@ type FsAstType =
     | SynType_Or
     | SynType_Or_Or
     //    | SynValData_
-    | SynMemberFlags_Static
-    | SynMemberFlags_Member
-    | SynMemberFlags_Abstract
     // | SynValInfo_
     // | SynArgInfo_
     | ParsedHashDirective_
@@ -404,6 +395,32 @@ type FsAstType =
     | SynAccess_Public
     | File_
     | SigFile_
+    | SynLeadingKeyword_Let
+    | SynLeadingKeyword_LetRec
+    | SynLeadingKeyword_And
+    | SynLeadingKeyword_Use
+    | SynLeadingKeyword_UseRec
+    | SynLeadingKeyword_Extern
+    | SynLeadingKeyword_Member
+    | SynLeadingKeyword_MemberVal
+    | SynLeadingKeyword_Override
+    | SynLeadingKeyword_OverrideVal
+    | SynLeadingKeyword_Abstract
+    | SynLeadingKeyword_AbstractMember
+    | SynLeadingKeyword_StaticMember
+    | SynLeadingKeyword_StaticMemberVal
+    | SynLeadingKeyword_StaticAbstract
+    | SynLeadingKeyword_StaticAbstractMember
+    | SynLeadingKeyword_StaticVal
+    | SynLeadingKeyword_StaticLet
+    | SynLeadingKeyword_StaticLetRec
+    | SynLeadingKeyword_StaticDo
+    | SynLeadingKeyword_Default
+    | SynLeadingKeyword_DefaultVal
+    | SynLeadingKeyword_Val
+    | SynLeadingKeyword_New
+    | SynLeadingKeyword_Do
+    | SynLeadingKeyword_Synthetic
 
 [<RequireQualifiedAccess>]
 type FSharpASTNode =
@@ -411,6 +428,7 @@ type FSharpASTNode =
     | ModuleSigDecl of SynModuleSigDecl
     | Expr of SynExpr
     | ValSig of SynValSig
+    | Binding of SynBinding
 
 /// A hierarchical node structure that represents AST nodes as found in the tree.
 /// The tree structure might deviate from what the AST has, if it is a better fit for Fantomas.
