@@ -1,6 +1,6 @@
 # Changelog
 
-[Unreleased]
+## [Unreleased]
 
 ### Changed
 * Formatting of anonymous record types respects fsharp_multiline_block_brackets_on_same_column. [#1167](https://github.com/fsprojects/fantomas/issues/1167)
