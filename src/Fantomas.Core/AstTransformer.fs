@@ -1,5 +1,6 @@
 module internal Fantomas.Core.AstTransformer
 
+open FSharp.Compiler.SyntaxTrivia
 open FSharp.Compiler.Text
 open FSharp.Compiler.Syntax
 open Fantomas.Core.AstExtensions
@@ -48,37 +49,6 @@ let mkSynValSig (astNode: SynValSig) (r: range) (children: TriviaNode array) =
 
 let mkNodeOption (t: FsAstType) (r: range option) : TriviaNode option = Option.map (mkNode t) r
 
-// We only need the let/type keyword anchor if there are xml docs or attributes present that have space between itself and the let/type keyword
-let mkNodeForRangeAfterXmlAndAttributes
-    (t: FsAstType)
-    (SourceParser.PreXmlDoc (xml, xmlRange))
-    (attrs: SynAttributeList list)
-    (r: range option)
-    : TriviaNode list =
-    if Array.isEmpty xml && attrs.IsEmpty then
-        []
-    else
-        match r with
-        | None -> []
-        | Some keyword ->
-            let lastLine =
-                let lastAttrLine =
-                    match List.tryLast attrs with
-                    | None -> 0
-                    | Some a -> a.Range.EndLine
-
-                System.Math.Max(xmlRange.EndLine, lastAttrLine)
-
-            if keyword.StartLine > lastLine + 1 then
-                // In this scenario there is trivia underneath the attributes or xmldoc
-                // f.ex.:
-                // [<AttributeOne()>]
-                // // some comment
-                // let a = 0
-                [ mkNode t keyword ]
-            else
-                []
-
 let rec visitSynModuleOrNamespace
     (SourceParser.ModuleOrNamespace (attrs, _, moduleKeyword, namespaceKeyword, _, longIdent, decls, _, kind, fullRange))
     =
@@ -113,21 +83,13 @@ and visitSynModuleDecl (ast: SynModuleDecl) : TriviaNode =
         | SynModuleDecl.ModuleAbbrev (_, _, range) ->
             mkSynModuleDeclNode SynModuleDecl_ModuleAbbrev ast range Array.empty
             |> finalContinuation
-        | SynModuleDecl.NestedModule (SynComponentInfo (xmlDoc = preXmlDoc; attributes = attrs) as sci,
-                                      _,
-                                      decls,
-                                      _,
-                                      range,
-                                      trivia) ->
+        | SynModuleDecl.NestedModule (sci, _, decls, _, range, trivia) ->
             let continuations: ((TriviaNode -> TriviaNode) -> TriviaNode) list =
                 List.map visit decls
 
             let moduleNode =
-                mkNodeForRangeAfterXmlAndAttributes
-                    SynModuleDecl_NestedModule_Module
-                    preXmlDoc
-                    attrs
-                    trivia.ModuleKeyword
+                mkNodeOption SynModuleDecl_NestedModule_Module trivia.ModuleKeyword
+                |> Option.toList
 
             let finalContinuation (nodes: TriviaNode list) : TriviaNode =
                 mkSynModuleDeclNode
@@ -810,6 +772,35 @@ and visitSynExpr (synExpr: SynExpr) : TriviaNode list =
 
     visit synExpr id
 
+and visitSynLeadingKeyword (lk: SynLeadingKeyword) : TriviaNode =
+    match lk with
+    | SynLeadingKeyword.Let _ -> mkNode SynLeadingKeyword_Let lk.Range
+    | SynLeadingKeyword.LetRec _ -> mkNode SynLeadingKeyword_LetRec lk.Range
+    | SynLeadingKeyword.And _ -> mkNode SynLeadingKeyword_And lk.Range
+    | SynLeadingKeyword.Use _ -> mkNode SynLeadingKeyword_Use lk.Range
+    | SynLeadingKeyword.UseRec _ -> mkNode SynLeadingKeyword_UseRec lk.Range
+    | SynLeadingKeyword.Extern _ -> mkNode SynLeadingKeyword_Extern lk.Range
+    | SynLeadingKeyword.Member _ -> mkNode SynLeadingKeyword_Member lk.Range
+    | SynLeadingKeyword.MemberVal _ -> mkNode SynLeadingKeyword_MemberVal lk.Range
+    | SynLeadingKeyword.Override _ -> mkNode SynLeadingKeyword_Override lk.Range
+    | SynLeadingKeyword.OverrideVal _ -> mkNode SynLeadingKeyword_OverrideVal lk.Range
+    | SynLeadingKeyword.Abstract _ -> mkNode SynLeadingKeyword_Abstract lk.Range
+    | SynLeadingKeyword.AbstractMember _ -> mkNode SynLeadingKeyword_AbstractMember lk.Range
+    | SynLeadingKeyword.StaticMember _ -> mkNode SynLeadingKeyword_StaticMember lk.Range
+    | SynLeadingKeyword.StaticMemberVal _ -> mkNode SynLeadingKeyword_StaticMemberVal lk.Range
+    | SynLeadingKeyword.StaticAbstract _ -> mkNode SynLeadingKeyword_StaticAbstract lk.Range
+    | SynLeadingKeyword.StaticAbstractMember _ -> mkNode SynLeadingKeyword_StaticAbstractMember lk.Range
+    | SynLeadingKeyword.StaticVal _ -> mkNode SynLeadingKeyword_StaticVal lk.Range
+    | SynLeadingKeyword.StaticLet _ -> mkNode SynLeadingKeyword_StaticLet lk.Range
+    | SynLeadingKeyword.StaticLetRec _ -> mkNode SynLeadingKeyword_StaticLetRec lk.Range
+    | SynLeadingKeyword.StaticDo _ -> mkNode SynLeadingKeyword_StaticDo lk.Range
+    | SynLeadingKeyword.Default _ -> mkNode SynLeadingKeyword_Default lk.Range
+    | SynLeadingKeyword.DefaultVal _ -> mkNode SynLeadingKeyword_DefaultVal lk.Range
+    | SynLeadingKeyword.Val _ -> mkNode SynLeadingKeyword_Val lk.Range
+    | SynLeadingKeyword.New _ -> mkNode SynLeadingKeyword_New lk.Range
+    | SynLeadingKeyword.Do _ -> mkNode SynLeadingKeyword_Do lk.Range
+    | SynLeadingKeyword.Synthetic _ -> mkNode SynLeadingKeyword_Synthetic lk.Range
+
 and visitSynInterpolatedStringPart (synInterpolatedStringPart: SynInterpolatedStringPart) : TriviaNode =
     match synInterpolatedStringPart with
     | SynInterpolatedStringPart.String (_, range) -> mkNode SynInterpolatedStringPart_String range
@@ -843,13 +834,9 @@ and visitAnonRecordTypeField (_: Ident, t: SynType) = visitSynType t
 
 and visitSynMemberSig (ms: SynMemberSig) : TriviaNode =
     match ms with
-    | SynMemberSig.Member (valSig, mf, range) ->
+    | SynMemberSig.Member (valSig, _mf, range) ->
         let valSigNode = visitSynValSig valSig
-
-        mkNodeWithChildren
-            SynMemberSig_Member
-            range
-            (sortChildren [| yield! visitSynMemberFlags mf; yield! valSigNode.Children |])
+        mkNodeWithChildren SynMemberSig_Member range (sortChildren valSigNode.Children)
     | SynMemberSig.Interface (typeName, range) ->
         mkNodeWithChildren SynMemberSig_Interface range [| visitSynType typeName |]
     | SynMemberSig.Inherit (typeName, range) ->
@@ -894,20 +881,12 @@ and visitSynInterfaceImpl (ii: SynInterfaceImpl) : TriviaNode =
 
 and visitSynTypeDefn (td: SynTypeDefn) : TriviaNode =
     match td with
-    | SynTypeDefn (SynComponentInfo (xmlDoc = preXmlDoc; attributes = attrs) as sci,
-                   stdr,
-                   members,
-                   _implicitConstructor,
-                   range,
-                   trivia) ->
-        let typeKeyword =
-            mkNodeForRangeAfterXmlAndAttributes SynTypeDefn_Type preXmlDoc attrs trivia.TypeKeyword
-
+    | SynTypeDefn (sci, stdr, members, _implicitConstructor, range, trivia) ->
         mkNodeWithChildren
             SynTypeDefn_
             range
             (sortChildren
-                [| yield! typeKeyword
+                [| yield! (Option.toList (mkNodeOption SynTypeDefn_Type trivia.TypeKeyword))
                    yield! Option.toList (mkNodeOption SynTypeDefn_Equals trivia.EqualsRange)
                    yield! visitSynComponentInfo sci
                    yield! visitSynTypeDefnRepr stdr
@@ -959,13 +938,9 @@ and visitSynMemberDefn (mbrDef: SynMemberDefn) : TriviaNode =
             (sortChildren [| yield visitSynType inheritType; yield! visitSynExpr inheritArgs |])
     | SynMemberDefn.LetBindings (bindings, _, _, range) ->
         mkNodeWithChildren SynMemberDefn_LetBindings range (sortChildren [| yield! List.map visitSynBinding bindings |])
-    | SynMemberDefn.AbstractSlot (valSig, memberFlags, range) ->
+    | SynMemberDefn.AbstractSlot (valSig, _memberFlags, range) ->
         let valSigNode = visitSynValSig valSig
-
-        mkNodeWithChildren
-            SynMemberDefn_AbstractSlot
-            range
-            (sortChildren [| yield! visitSynMemberFlags memberFlags; yield! valSigNode.Children |])
+        mkNodeWithChildren SynMemberDefn_AbstractSlot range (sortChildren valSigNode.Children)
     | SynMemberDefn.Interface (typ, withKeyword, members, range) ->
         let ms =
             match members with
@@ -982,12 +957,17 @@ and visitSynMemberDefn (mbrDef: SynMemberDefn) : TriviaNode =
     | SynMemberDefn.ValField (fld, range) -> mkNodeWithChildren SynMemberDefn_ValField range [| visitSynField fld |]
     | SynMemberDefn.NestedType (typeDefn, _, range) ->
         mkNodeWithChildren SynMemberDefn_NestedType range [| visitSynTypeDefn typeDefn |]
-    | SynMemberDefn.AutoProperty (attrs, _, _, typeOpt, _, _, _, _, _, equalsRange, synExpr, withKeyword, _, range) ->
+    | SynMemberDefn.AutoProperty (attributes = attrs
+                                  typeOpt = typeOpt
+                                  synExpr = synExpr
+                                  range = range
+                                  trivia = { EqualsRange = equalsRange
+                                             WithKeyword = withKeyword }) ->
         mkNodeWithChildren
             SynMemberDefn_AutoProperty
             range
             (sortChildren
-                [| yield mkNode SynMemberDefn_AutoProperty_Equals equalsRange
+                [| yield! Option.toList (mkNodeOption SynMemberDefn_AutoProperty_Equals equalsRange)
                    yield! Option.toList (mkNodeOption SynMemberDefn_AutoProperty_With withKeyword)
                    yield! (visitSynAttributeLists attrs)
                    yield! (Option.map visitSynType >> Option.toList) typeOpt
@@ -1048,50 +1028,27 @@ and visitSynSimplePats (sp: SynSimplePats) : TriviaNode =
 
 and visitSynBinding (binding: SynBinding) : TriviaNode =
     match binding with
-    | SynBinding (_, kind, _, _, attrs, preXml, valData, headPat, returnInfo, expr, _range, _, trivia) ->
-        let t =
-            match kind with
-            | SynBindingKind.StandaloneExpression -> SynBindingKind_StandaloneExpression
-            | SynBindingKind.Normal -> SynBindingKind_Normal
-            | SynBindingKind.Do -> SynBindingKind_Do
-
+    | SynBinding (_, kind, _, _, attrs, _, _, headPat, returnInfo, expr, _, _, trivia) ->
         let headPatNodes =
             match kind with
             | SynBindingKind.Do -> None
             | _ -> Some(visitSynPat headPat)
 
-        let keywordNode =
-            let triviaType, range =
-                match trivia.ExternKeyword with
-                | Some _ -> SynBinding_Extern, trivia.ExternKeyword
-                | None -> SynBinding_Let, trivia.LetKeyword
-
-            mkNodeForRangeAfterXmlAndAttributes triviaType preXml attrs range
-
+        let keywordNode = visitSynLeadingKeyword trivia.LeadingKeyword
         let expr = SourceParser.parseExpressionInSynBinding returnInfo expr
         let returnInfo = Option.map visitSynBindingReturnInfo returnInfo
 
-        mkNodeWithChildren
-            t
-            binding.RangeOfBindingWithRhs
-            (sortChildren
+        { Range = binding.FullRange
+          Type = SynBinding_
+          Children =
+            sortChildren
                 [| yield! visitSynAttributeLists attrs
-                   yield! keywordNode
-                   yield! visitSynValData valData
+                   yield keywordNode
                    yield! Option.toList headPatNodes
                    yield! Option.toList returnInfo
                    yield! Option.toList (mkNodeOption SynBinding_Equals trivia.EqualsRange)
-                   yield! visitSynExpr expr |])
-
-and visitSynValData (svd: SynValData) : TriviaNode list =
-    match svd with
-    | SynValData (Some memberFlags, _, _) -> visitSynMemberFlags memberFlags
-    | _ -> []
-
-and visitSynMemberFlags (memberFlags: SynMemberFlags) : TriviaNode list =
-    [ yield! Option.toList (mkNodeOption SynMemberFlags_Static memberFlags.Trivia.StaticRange)
-      yield! Option.toList (mkNodeOption SynMemberFlags_Member memberFlags.Trivia.MemberRange)
-      yield! Option.toList (mkNodeOption SynMemberFlags_Abstract memberFlags.Trivia.AbstractRange) ]
+                   yield! visitSynExpr expr |]
+          FSharpASTNode = Some(FSharpASTNode.Binding binding) }
 
 and visitSynValSig (svs: SynValSig) : TriviaNode =
     match svs with
@@ -1100,13 +1057,13 @@ and visitSynValSig (svs: SynValSig) : TriviaNode =
             svs
             range
             (sortChildren
-                [| yield! Option.toList (mkNodeOption SynValSig_Val trivia.ValKeyword)
+                [| yield visitSynLeadingKeyword trivia.LeadingKeyword
                    yield visitSynIdent ident
                    yield! (visitSynAttributeLists attrs)
                    yield! Option.toList (visitSynValTyparDecls explicitValDecls)
                    yield visitSynType synType
                    yield! visitOptSynExpr expr
-                   yield! Option.toList (mkNodeOption SynValSig_With trivia.ValKeyword) |])
+                   yield! Option.toList (mkNodeOption SynValSig_With trivia.WithKeyword) |])
 
 and visitSynValTyparDecls (valTypeDecl: SynValTyparDecls) : TriviaNode option =
     match valTypeDecl with
@@ -1410,22 +1367,21 @@ and visitSynEnumCase (sec: SynEnumCase) : TriviaNode =
 
 and visitSynField (sfield: SynField) : TriviaNode =
     match sfield with
-    | SynField (attrs, _, ident, typ, _, preXmlDoc, _, _range) ->
+    | SynField (attrs, _, ident, typ, _, _preXmlDoc, _, _range, trivia) ->
         let innerNode =
             match ident with
-            | None -> []
+            | None -> visitSynType typ
             | Some ident ->
-                Range.unionRanges ident.idRange typ.Range
-                |> Some
-                |> mkNodeForRangeAfterXmlAndAttributes SynField_IdentifierAndType preXmlDoc attrs
+                let range = Range.unionRanges ident.idRange typ.Range
+                mkNodeWithChildren SynField_IdentifierAndType range [| visitIdent ident; visitSynType typ |]
 
         mkNodeWithChildren
             SynField_
             sfield.FullRange
             (sortChildren
-                [| yield! (visitSynAttributeLists attrs)
-                   yield! innerNode
-                   yield visitSynType typ |])
+                [| yield! Option.toList (Option.map visitSynLeadingKeyword trivia.LeadingKeyword)
+                   yield! (visitSynAttributeLists attrs)
+                   yield innerNode |])
 
 and visitSynType (st: SynType) : TriviaNode =
     let rec visit (st: SynType) (finalContinuation: TriviaNode -> TriviaNode) : TriviaNode =
@@ -1654,20 +1610,13 @@ and visitSynModuleSigDecl (ast: SynModuleSigDecl) : TriviaNode =
         | SynModuleSigDecl.ModuleAbbrev (_, _, range) ->
             mkSynModuleSigDeclNode SynModuleSigDecl_ModuleAbbrev ast range Array.empty
             |> finalContinuation
-        | SynModuleSigDecl.NestedModule (SynComponentInfo (xmlDoc = preXmlDoc; attributes = attrs) as sci,
-                                         _,
-                                         decls,
-                                         range,
-                                         trivia) ->
+        | SynModuleSigDecl.NestedModule (sci, _, decls, range, trivia) ->
             let continuations: ((TriviaNode -> TriviaNode) -> TriviaNode) list =
                 List.map visit decls
 
             let moduleKeyword =
-                mkNodeForRangeAfterXmlAndAttributes
-                    SynModuleSigDecl_NestedModule_Module
-                    preXmlDoc
-                    attrs
-                    trivia.ModuleKeyword
+                mkNodeOption SynModuleSigDecl_NestedModule_Module trivia.ModuleKeyword
+                |> Option.toList
 
             let finalContinuation (nodes: TriviaNode list) : TriviaNode =
                 mkSynModuleSigDeclNode

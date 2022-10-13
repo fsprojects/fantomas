@@ -2,6 +2,7 @@ module internal Fantomas.Core.SourceTransformer
 
 open FSharp.Compiler.Syntax
 open FSharp.Compiler.Text
+open Fantomas.Core.AstExtensions
 open Fantomas.Core.SourceParser
 open Fantomas.Core.TriviaTypes
 
@@ -177,11 +178,7 @@ let rec synExprToFsAstType (expr: SynExpr) : FsAstType * Range =
     | SynExpr.LetOrUse (bindings = bs; body = e) ->
         match bs with
         | [] -> synExprToFsAstType e
-        | SynBinding (kind = kind) as b :: _ ->
-            match kind with
-            | SynBindingKind.StandaloneExpression -> SynBindingKind_StandaloneExpression, b.RangeOfBindingWithRhs
-            | SynBindingKind.Normal -> SynBindingKind_Normal, b.RangeOfBindingWithRhs
-            | SynBindingKind.Do -> SynBindingKind_Do, b.RangeOfBindingWithRhs
+        | b :: _ -> SynBinding_, b.FullRange
     | SynExpr.TryWith _ -> SynExpr_TryWith, expr.Range
     | SynExpr.YieldOrReturnFrom _ -> SynExpr_YieldOrReturnFrom, expr.Range
     | SynExpr.While _ -> SynExpr_While, expr.Range
@@ -228,7 +225,7 @@ let rec synExprToFsAstType (expr: SynExpr) : FsAstType * Range =
     | SynExpr.IndexFromEnd _ -> SynExpr_IndexFromEnd, expr.Range
     | SynExpr.DebugPoint (innerExpr = e) -> synExprToFsAstType e
     | SynExpr.Dynamic _ -> SynExpr_Dynamic, expr.Range
-    | SynExpr.Typar _ -> failwith "todo"
+    | SynExpr.Typar _ -> SynExpr_Typar, expr.Range
 
 let synModuleSigDeclToFsAstType =
     function
@@ -241,9 +238,3 @@ let synModuleSigDeclToFsAstType =
     | SynModuleSigDecl.HashDirective _ -> SynModuleSigDecl_HashDirective
     | SynModuleSigDecl.NamespaceFragment _ -> SynModuleSigDecl_NamespaceFragment
     | SynModuleSigDecl.ModuleAbbrev _ -> SynModuleSigDecl_ModuleAbbrev
-
-let synBindingToFsAstType (SynBinding (kind = kind)) =
-    match kind with
-    | SynBindingKind.StandaloneExpression -> SynBindingKind_StandaloneExpression
-    | SynBindingKind.Normal -> SynBindingKind_Normal
-    | SynBindingKind.Do -> SynBindingKind_Do
