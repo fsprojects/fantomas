@@ -86,7 +86,6 @@ let (|Open|_|) =
 
 let (|OpenType|_|) =
     function
-    // TODO: are there other SynType causes that need to be handled here?
     | SynModuleDecl.Open (SynOpenDeclTarget.Type (SynType.LongIdent synLid, _m), _) -> Some synLid
     | _ -> None
 
@@ -466,19 +465,20 @@ let (|Binding|) (SynBinding (ao, _, isInline, isMutable, attrs, px, _, pat, retu
     let rt = Option.map (fun (SynBindingReturnInfo (typeName = t)) -> t) returnInfo
     attrs, px, trivia.LeadingKeyword, ao, isInline, isMutable, pat, rt, trivia.EqualsRange, e, b.RangeOfBindingWithRhs
 
-// TODO: split this up and remove the unused
-
-let (|DoBinding|LetBinding|MemberBinding|ExplicitCtor|ExternBinding|) b =
-    match b with
+let (|ExplicitCtor|_|) =
+    function
     | SynBinding (ao, _, _, _, ats, px, SynValData (Some MFConstructor, _, ido), pat, _, expr, _, _, trivia) ->
-        ExplicitCtor(ats, px, ao, pat, trivia.EqualsRange, expr, ido)
-    | SynBinding (ao, _, isInline, _, ats, px, SynValData (Some _, _, _), pat, returnInfo, expr, _, _, trivia) ->
-        let e = parseExpressionInSynBinding returnInfo expr
-        let rt = Option.map (fun (SynBindingReturnInfo (typeName = t)) -> t) returnInfo
-        MemberBinding(ats, px, ao, isInline, trivia.LeadingKeyword, pat, rt, trivia.EqualsRange, e)
+        Some(ats, px, ao, pat, trivia.EqualsRange, expr, ido)
+    | _ -> None
+
+let (|DoBinding|_|) =
+    function
     | SynBinding (_, SynBindingKind.Do, _, _, ats, px, _, _, _, expr, _, _, trivia) ->
-        // TODO: do we still need this?
-        DoBinding(ats, px, trivia.LeadingKeyword, expr)
+        Some(ats, px, trivia.LeadingKeyword, expr)
+    | _ -> None
+
+let (|ExternBinding|_|) =
+    function
     | SynBinding (accessibility = ao
                   attributes = attrs
                   xmlDoc = px
@@ -488,11 +488,8 @@ let (|DoBinding|LetBinding|MemberBinding|ExplicitCtor|ExternBinding|) b =
         let rt =
             Option.map (fun (SynBindingReturnInfo (typeName = t; attributes = a)) -> a, t) returnInfo
 
-        ExternBinding(lk, ao, attrs, px, pat, rt)
-    | SynBinding (ao, _, isInline, isMutable, attrs, px, _, pat, returnInfo, expr, _, _, trivia) ->
-        let e = parseExpressionInSynBinding returnInfo expr
-        let rt = Option.map (fun (SynBindingReturnInfo (typeName = t)) -> t) returnInfo
-        LetBinding(attrs, px, trivia.LeadingKeyword, ao, isInline, isMutable, pat, rt, trivia.EqualsRange, e)
+        Some(lk, ao, attrs, px, pat, rt)
+    | _ -> None
 
 // Expressions (55 cases, lacking to handle 11 cases)
 
