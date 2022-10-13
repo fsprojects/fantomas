@@ -172,3 +172,21 @@ type SynField with
         match attrs with
         | [] -> r
         | head :: _ -> unionRanges head.Range r
+
+type SynBinding with
+
+    member b.FullRange =
+        let (SynBinding (attributes = attributes; xmlDoc = xmlDoc; trivia = trivia; headPat = pat; expr = e)) =
+            b
+
+        let start =
+            if not xmlDoc.IsEmpty then
+                xmlDoc.Range
+            elif not attributes.IsEmpty then
+                attributes.Head.Range
+            else
+                match trivia.LeadingKeyword, pat with
+                | SynLeadingKeyword.Member _, SynPat.LongIdent(extraId = Some _) -> pat.Range
+                | _ -> trivia.LeadingKeyword.Range
+
+        unionRanges start e.Range

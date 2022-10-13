@@ -681,7 +681,7 @@ and genMemberBindingList astContext ms =
     ms
     |> List.map (fun (mb: SynBinding) ->
         let expr = genMemberBinding astContext mb
-        let r = mb.RangeOfBindingWithRhs
+        let r = mb.FullRange
 
         let sepNln = sepNlnConsideringTriviaContentBeforeFor SynBinding_ r
 
@@ -1103,7 +1103,7 @@ and genExpr astContext synExpr ctx =
 
             let getSepNln ces r =
                 match ces with
-                | LetOrUseStatement (b, _) -> sepNlnConsideringTriviaContentBeforeFor SynBinding_ r
+                | LetOrUseStatement (b, _) -> sepNlnConsideringTriviaContentBeforeFor SynBinding_ b.FullRange
                 | LetOrUseBangStatement _ -> sepNlnConsideringTriviaContentBeforeFor SynExpr_LetOrUseBang r
                 | AndBangStatement (_, _, _, r) -> sepNlnConsideringTriviaContentBeforeFor SynExprAndBang_ r
                 | OtherStatement e ->
@@ -3036,9 +3036,7 @@ and collectMultilineItemForLetOrUses
             genSynBinding astContext x
             +> genTriviaForOption SynExpr_LetOrUse_In inKw !- " in "
 
-        let range = x.RangeOfBindingWithRhs
-        let sepNln = sepNlnConsideringTriviaContentBeforeFor SynBinding_ range
-
+        let sepNln = sepNlnConsideringTriviaContentBeforeFor SynBinding_ x.FullRange
         ColMultilineItem(expr, sepNln)
 
     let multipleOrLongBs bs =
@@ -3050,10 +3048,8 @@ and collectMultilineItemForLetOrUses
         // This is a trickier case
         // maybe the let binding and expression are short so they form one ColMultilineItem
         // Something like: let a = 1 in ()
-
-        let range = b.RangeOfBindingWithRhs
-
-        let sepNlnForBinding = sepNlnConsideringTriviaContentBeforeFor SynBinding_ range
+        let sepNlnForBinding =
+            sepNlnConsideringTriviaContentBeforeFor SynBinding_ b.FullRange
 
         match inKeyword with
         | Some inKw ->
@@ -4488,8 +4484,7 @@ and genSynBindings astContext bs withUseConfig =
     |> List.map (fun (b: SynBinding) ->
         let expr = genSynBinding astContext b
 
-        let sepNln =
-            sepNlnConsideringTriviaContentBeforeFor SynBinding_ b.RangeOfBindingWithRhs
+        let sepNln = sepNlnConsideringTriviaContentBeforeFor SynBinding_ b.FullRange
 
         ColMultilineItem(expr, sepNln))
     |> (if withUseConfig then

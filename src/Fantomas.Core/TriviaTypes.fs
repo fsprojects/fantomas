@@ -428,6 +428,7 @@ type FSharpASTNode =
     | ModuleSigDecl of SynModuleSigDecl
     | Expr of SynExpr
     | ValSig of SynValSig
+    | Binding of SynBinding
 
 /// A hierarchical node structure that represents AST nodes as found in the tree.
 /// The tree structure might deviate from what the AST has, if it is a better fit for Fantomas.

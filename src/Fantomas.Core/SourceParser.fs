@@ -336,7 +336,6 @@ let (|MDPropertyGetSet|_|) =
                                                     isInline = isInline
                                                     attributes = ats
                                                     xmlDoc = px
-                                                    valData = SynValData(memberFlags = Some mf)
                                                     headPat = SynPat.LongIdent (longDotId = memberName)
                                                     trivia = { LeadingKeyword = lk }) as getBinding),
                                   Some setBinding,
@@ -359,7 +358,6 @@ let (|MDPropertyGetSet|_|) =
                                                     isInline = isInline
                                                     attributes = ats
                                                     xmlDoc = px
-                                                    valData = SynValData(memberFlags = Some mf)
                                                     headPat = SynPat.LongIdent (longDotId = memberName)
                                                     trivia = { LeadingKeyword = lk }) as binding),
                                   _,
@@ -370,7 +368,6 @@ let (|MDPropertyGetSet|_|) =
                                                     isInline = isInline
                                                     attributes = ats
                                                     xmlDoc = px
-                                                    valData = SynValData(memberFlags = Some mf)
                                                     headPat = SynPat.LongIdent (longDotId = memberName)
                                                     trivia = { LeadingKeyword = lk }) as binding),
                                   None,
@@ -463,7 +460,7 @@ let parseExpressionInSynBinding returnInfo expr =
 let (|Binding|) (SynBinding (ao, _, isInline, isMutable, attrs, px, _, pat, returnInfo, expr, _, _, trivia) as b) =
     let e = parseExpressionInSynBinding returnInfo expr
     let rt = Option.map (fun (SynBindingReturnInfo (typeName = t)) -> t) returnInfo
-    attrs, px, trivia.LeadingKeyword, ao, isInline, isMutable, pat, rt, trivia.EqualsRange, e, b.RangeOfBindingWithRhs
+    attrs, px, trivia.LeadingKeyword, ao, isInline, isMutable, pat, rt, trivia.EqualsRange, e, b.FullRange
 
 let (|ExplicitCtor|_|) =
     function

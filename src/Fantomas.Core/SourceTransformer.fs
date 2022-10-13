@@ -2,6 +2,7 @@ module internal Fantomas.Core.SourceTransformer
 
 open FSharp.Compiler.Syntax
 open FSharp.Compiler.Text
+open Fantomas.Core.AstExtensions
 open Fantomas.Core.SourceParser
 open Fantomas.Core.TriviaTypes
 
@@ -177,9 +178,7 @@ let rec synExprToFsAstType (expr: SynExpr) : FsAstType * Range =
     | SynExpr.LetOrUse (bindings = bs; body = e) ->
         match bs with
         | [] -> synExprToFsAstType e
-        | b :: _ ->
-            // TODO: full range?
-            SynBinding_, b.RangeOfBindingWithRhs
+        | b :: _ -> SynBinding_, b.FullRange
     | SynExpr.TryWith _ -> SynExpr_TryWith, expr.Range
     | SynExpr.YieldOrReturnFrom _ -> SynExpr_YieldOrReturnFrom, expr.Range
     | SynExpr.While _ -> SynExpr_While, expr.Range

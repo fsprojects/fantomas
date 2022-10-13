@@ -83,12 +83,7 @@ and visitSynModuleDecl (ast: SynModuleDecl) : TriviaNode =
         | SynModuleDecl.ModuleAbbrev (_, _, range) ->
             mkSynModuleDeclNode SynModuleDecl_ModuleAbbrev ast range Array.empty
             |> finalContinuation
-        | SynModuleDecl.NestedModule (SynComponentInfo (xmlDoc = preXmlDoc; attributes = attrs) as sci,
-                                      _,
-                                      decls,
-                                      _,
-                                      range,
-                                      trivia) ->
+        | SynModuleDecl.NestedModule (sci, _, decls, _, range, trivia) ->
             let continuations: ((TriviaNode -> TriviaNode) -> TriviaNode) list =
                 List.map visit decls
 
@@ -1033,7 +1028,7 @@ and visitSynSimplePats (sp: SynSimplePats) : TriviaNode =
 
 and visitSynBinding (binding: SynBinding) : TriviaNode =
     match binding with
-    | SynBinding (_, kind, _, _, attrs, preXml, _valData, headPat, returnInfo, expr, _range, _, trivia) ->
+    | SynBinding (_, kind, _, _, attrs, _, _, headPat, returnInfo, expr, _, _, trivia) ->
         let headPatNodes =
             match kind with
             | SynBindingKind.Do -> None
@@ -1043,16 +1038,17 @@ and visitSynBinding (binding: SynBinding) : TriviaNode =
         let expr = SourceParser.parseExpressionInSynBinding returnInfo expr
         let returnInfo = Option.map visitSynBindingReturnInfo returnInfo
 
-        mkNodeWithChildren
-            SynBinding_
-            binding.RangeOfBindingWithRhs
-            (sortChildren
+        { Range = binding.FullRange
+          Type = SynBinding_
+          Children =
+            sortChildren
                 [| yield! visitSynAttributeLists attrs
                    yield keywordNode
                    yield! Option.toList headPatNodes
                    yield! Option.toList returnInfo
                    yield! Option.toList (mkNodeOption SynBinding_Equals trivia.EqualsRange)
-                   yield! visitSynExpr expr |])
+                   yield! visitSynExpr expr |]
+          FSharpASTNode = Some(FSharpASTNode.Binding binding) }
 
 and visitSynValSig (svs: SynValSig) : TriviaNode =
     match svs with
@@ -1614,11 +1610,7 @@ and visitSynModuleSigDecl (ast: SynModuleSigDecl) : TriviaNode =
         | SynModuleSigDecl.ModuleAbbrev (_, _, range) ->
             mkSynModuleSigDeclNode SynModuleSigDecl_ModuleAbbrev ast range Array.empty
             |> finalContinuation
-        | SynModuleSigDecl.NestedModule (SynComponentInfo (xmlDoc = preXmlDoc; attributes = attrs) as sci,
-                                         _,
-                                         decls,
-                                         range,
-                                         trivia) ->
+        | SynModuleSigDecl.NestedModule (sci, _, decls, range, trivia) ->
             let continuations: ((TriviaNode -> TriviaNode) -> TriviaNode) list =
                 List.map visit decls
 
