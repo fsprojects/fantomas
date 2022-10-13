@@ -3973,8 +3973,10 @@ and addSpaceIfSynTypeStaticConstantHasAtSignBeforeString (t: SynType) (ctx: Cont
     onlyIf hasAtSign sepSpace ctx
 
 and genAnonRecordFieldType astContext (AnonRecordFieldType (ident, t)) =
-    genIdent ident +> sepColon +> (genType astContext t)
-    
+    genIdent ident
+    +> sepColon
+    +> autoIndentAndNlnIfExpressionExceedsPageWidth (genType astContext t)
+
 and genSingleLineAnonRecordType isStruct fields astContext =
     ifElse isStruct !- "struct " sepNone
     +> sepOpenAnonRecd
@@ -3983,13 +3985,7 @@ and genSingleLineAnonRecordType isStruct fields astContext =
 
 and genMultilineAnonRecordType isStruct fields astContext =
     let fieldsExpr = col sepNln fields (genAnonRecordFieldType astContext)
-    
-    let genRecord =
-        sepOpenAnonRecd
-        +> atCurrentColumnIndent fieldsExpr
-        +> sepCloseAnonRecd
-        +> unindent
-    
+    let genRecord = sepOpenAnonRecd +> atCurrentColumn fieldsExpr +> sepCloseAnonRecd
     ifElse isStruct !- "struct " sepNone +> genRecord
 
 and genMultilineAnonRecordTypeAlignBrackets (isStruct: bool) fields astContext =
