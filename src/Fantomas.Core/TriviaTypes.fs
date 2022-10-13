@@ -371,6 +371,8 @@ type FsAstType =
     | SynType_Paren_OpeningParenthesis
     | SynType_Paren_ClosingParenthesis
     | SynType_SignatureParameter
+    | SynType_Or
+    | SynType_Or_Or
     //    | SynValData_
     | SynMemberFlags_Static
     | SynMemberFlags_Member

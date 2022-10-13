@@ -1547,6 +1547,11 @@ let (|TSignatureParameter|_|) =
     | SynType.SignatureParameter (attrs, isOptional, identOpt, t, _) -> Some(attrs, isOptional, identOpt, t)
     | _ -> None
 
+let (|TOr|_|) =
+    function
+    | SynType.Or (lhs, rhs, _, trivia) -> Some(lhs, trivia.OrKeyword, rhs)
+    | _ -> None
+
 let (|TArrayInExtern|_|) t =
     match t with
     | TLongIdent (SynLongIdent(id = [ lid ])) when (lid.idText = "[]") -> Some "[]"
@@ -1581,16 +1586,7 @@ let (|TyparSingle|TyparDefaultsToType|TyparSubtypeOfType|TyparSupportsMember|Typ
     | SynTypeConstraint.WhereTyparIsEquatable (tp, _) -> TyparSingle(TyparIsEquatable, tp)
     | SynTypeConstraint.WhereTyparDefaultsToType (tp, t, _) -> TyparDefaultsToType(tp, t)
     | SynTypeConstraint.WhereTyparSubtypeOfType (tp, t, _) -> TyparSubtypeOfType(tp, t)
-    | SynTypeConstraint.WhereTyparSupportsMember (tps, msg, _) ->
-        TyparSupportsMember(
-            List.choose
-                (function
-                | SynType.Var _ as v -> Some v
-                | TLongIdent _ as i -> Some i
-                | _ -> None)
-                tps,
-            msg
-        )
+    | SynTypeConstraint.WhereTyparSupportsMember (tps, msg, _) -> TyparSupportsMember(tps, msg)
     | SynTypeConstraint.WhereTyparIsEnum (tp, ts, _) -> TyparIsEnum(tp, ts)
     | SynTypeConstraint.WhereTyparIsDelegate (tp, ts, _) -> TyparIsDelegate(tp, ts)
     | SynTypeConstraint.WhereSelfConstrained (t, _) -> TyparWhereSelfConstrained t
