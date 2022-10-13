@@ -513,17 +513,11 @@ and genExprSepEqPrependType
         genEq equalsAstType equalsRange
         +> sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth (genExpr astContext e)
 
-and genTyparList astContext tps =
-    colSurr sepOpenT sepCloseT wordOr tps (genTypar astContext)
-
 and genTypeSupportMember astContext st =
     match st with
     | SynType.Var (td, _) -> genTypar astContext td
     | TLongIdent sli -> genSynLongIdent false sli
     | _ -> !- ""
-
-and genTypeSupportMemberList astContext tps =
-    colSurr sepOpenT sepCloseT wordOr tps (genTypeSupportMember astContext)
 
 and genTypeAndParam astContext (typeName: Context -> Context) (tds: SynTyparDecls option) tcs =
     let types openSep tds tcs closeSep =
@@ -1310,7 +1304,7 @@ and genExpr astContext synExpr ctx =
             let genMatchExpr = genMatchBangWith astContext matchRange e withRange
             atCurrentColumn (genMatchExpr +> sepNln +> genClauses astContext cs)
         | TraitCall (tps, msg, e) ->
-            col sepSpace tps (genType astContext)
+            genType astContext tps
             +> sepColon
             +> sepOpenT
             +> genMemberSig astContext msg
@@ -3951,6 +3945,7 @@ and genType astContext t =
         +> optSingle (fun id -> genIdent id +> sepColon) identOpt
         +> autoIndentAndNlnIfExpressionExceedsPageWidth (genType astContext innerT)
         |> genTriviaFor SynType_SignatureParameter t.Range
+    | TOr (lhs, orRange, rhs) -> genType astContext lhs +> !- " or " +> genType astContext rhs
     | t -> failwithf "Unexpected type: %O" t
 
 and genSynTupleTypeSegments astContext ts =
@@ -4095,7 +4090,7 @@ and genTypeConstraint astContext node =
     | TyparDefaultsToType (tp, t) -> !- "default " +> genTypar astContext tp +> sepColon +> genType astContext t
     | TyparSubtypeOfType (tp, t) -> genTypar astContext tp +> !- " :> " +> genType astContext t
     | TyparSupportsMember (tps, msg) ->
-        genTypeSupportMemberList astContext tps
+        genType astContext tps
         +> sepColon
         +> sepOpenT
         +> genMemberSig astContext msg

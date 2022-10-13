@@ -2115,3 +2115,19 @@ let a =
 
     )
 """
+
+[<Test>]
+let ``or in TraitCall expr`` () =
+    formatSourceString
+        false
+        """
+let inline (!!) (x: ^a) : ^b = ((^a or ^b): (static member op_Implicit: ^a -> ^b) x)
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let inline (!!) (x: ^a) : ^b =
+    ((^a or ^b): (static member op_Implicit: ^a -> ^b) x)
+"""

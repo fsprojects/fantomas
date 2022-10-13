@@ -1554,6 +1554,18 @@ and visitSynType (st: SynType) : TriviaNode =
                            yield! (Option.toList >> List.map visitIdent) identOpt
                            yield node |])
                 |> finalContinuation)
+        | SynType.Or (lhs, rhs, range, trivia) ->
+            let continuations: ((TriviaNode -> TriviaNode) -> TriviaNode) list =
+                [ visit lhs; visit rhs ]
+
+            let finalContinuation (nodes: TriviaNode list) : TriviaNode =
+                mkNodeWithChildren
+                    SynType_Or
+                    range
+                    (sortChildren [| yield! nodes; yield mkNode SynType_Or_Or trivia.OrKeyword |])
+                |> finalContinuation
+
+            Continuation.sequence continuations finalContinuation
 
     visit st id
 
