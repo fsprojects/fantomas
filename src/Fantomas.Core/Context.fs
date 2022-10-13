@@ -175,6 +175,7 @@ module WriterEvents =
             | WriteLineBecauseOfTrivia -> true
             | _ -> false)
 
+[<System.Diagnostics.DebuggerDisplay("\"{Dump()}\"")>]
 type internal Context =
     { Config: FormatConfig
       WriterModel: WriterModel
@@ -320,6 +321,12 @@ type Context with
 
     member x.Column = x.WriterModel.Column
     member x.FinalizeModel = finalizeWriterModel x
+
+    member x.Dump() =
+        let m = finalizeWriterModel x
+        let lines = m.WriterModel.Lines |> List.rev
+
+        String.concat x.Config.EndOfLine.NewLineString lines
 
 let writeEventsOnLastLine ctx =
     ctx.WriterEvents

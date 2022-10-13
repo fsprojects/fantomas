@@ -1144,9 +1144,7 @@ type A =
 type B = {| x: AReallyLongTypeThatIsMuchLongerThan40Characters |}
 """
 
-// FIXME: See https://github.com/fsprojects/fantomas/issues/1167
 [<Test>]
-[<Ignore("Issue #1167")>]
 let ``number of items sized anonymous record types with multiline block brackets on same column are formatted properly``
     ()
     =
@@ -1165,18 +1163,21 @@ type B = {| x: AReallyLongTypeThatIsMuchLongerThan40Characters |}
     |> should
         equal
         """
-
-let f (x: {|
-              x : int
-              y : AReallyLongTypeThatIsMuchLongerThan40Characters
-          |}) =
+let f
+    (x:
+        {|
+            x: int
+            y: obj
+        |})
+    =
     x
+
 let g (x: {| x: AReallyLongTypeThatIsMuchLongerThan40Characters |}) = x
 
 type A =
     {|
         x: int
-        y: AReallyLongTypeThatIsMuchLongerThan40Characters
+        y: obj
     |}
 
 type B = {| x: AReallyLongTypeThatIsMuchLongerThan40Characters |}

@@ -1320,3 +1320,78 @@ type UnhandledWebException =
 
     new(info : SerializationInfo, context : StreamingContext) = { inherit Exception(info, context) }
 """
+
+[<Test>]
+let ``inline anonymous record type declaration`` () =
+    formatSourceString
+        false
+        """
+type Foo =
+    {
+        Bar : {| X : string; Y : int; A : string; B : string |}
+        Baz : int
+        Blip : string
+    }
+"""
+        config
+    |> prepend newline
+
+    |> should
+        equal
+        """
+type Foo =
+    {
+        Bar :
+            {|
+                X : string
+                Y : int
+                A : string
+                B : string
+            |}
+        Baz : int
+        Blip : string
+    }
+"""
+
+[<Test>]
+let ``anonymous type alias`` () =
+    formatSourceString
+        false
+        """
+type A = {| x: int; y: AReallyLongTypeThatIsMuchLongerThan40Characters |}
+"""
+        config
+    |> prepend newline
+
+    |> should
+        equal
+        """
+type A =
+    {|
+        x : int
+        y : AReallyLongTypeThatIsMuchLongerThan40Characters
+    |}
+"""
+
+[<Test>]
+let ``inline anonymous type in function parameter`` () =
+    formatSourceString
+        false
+        """
+let f (x: {| x: int; y:  AReallyLongTypeThatIsMuchLongerThan40Characters |}) = x
+"""
+        config
+    |> prepend newline
+
+    |> should
+        equal
+        """
+let f
+    (x :
+        {|
+            x : int
+            y : AReallyLongTypeThatIsMuchLongerThan40Characters
+        |})
+    =
+    x
+"""
