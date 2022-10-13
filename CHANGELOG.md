@@ -1,6 +1,6 @@
 # Changelog
 
-## [Unreleased]
+## [5.0.6] - 2022-10-13
 
 ### Fixed
 * Overly aggressive de-indentation. [#2110](https://github.com/fsprojects/fantomas/issues/2110)
