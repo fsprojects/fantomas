@@ -225,7 +225,7 @@ let rec synExprToFsAstType (expr: SynExpr) : FsAstType * Range =
     | SynExpr.IndexFromEnd _ -> SynExpr_IndexFromEnd, expr.Range
     | SynExpr.DebugPoint (innerExpr = e) -> synExprToFsAstType e
     | SynExpr.Dynamic _ -> SynExpr_Dynamic, expr.Range
-    | SynExpr.Typar _ -> failwith "todo"
+    | SynExpr.Typar _ -> SynExpr_Typar, expr.Range
 
 let synModuleSigDeclToFsAstType =
     function
