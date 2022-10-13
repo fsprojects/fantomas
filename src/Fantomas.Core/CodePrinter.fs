@@ -677,17 +677,6 @@ and genProperty astContext (getOrSetType: FsAstType, getOrSetRange: range, bindi
             +> genExprSepEqPrependType astContext SynBinding_Equals equalsRange e
     | _ -> sepNone
 
-and genMemberBindingList astContext ms =
-    ms
-    |> List.map (fun (mb: SynBinding) ->
-        let expr = genMemberBinding astContext mb
-        let r = mb.FullRange
-
-        let sepNln = sepNlnConsideringTriviaContentBeforeFor SynBinding_ r
-
-        ColMultilineItem(expr, sepNln))
-    |> colWithNlnWhenItemIsMultiline
-
 and genMemberBinding astContext b =
     match b with
     | ExplicitCtor (ats, px, ao, p, equalsRange, e, io) ->
@@ -2538,7 +2527,7 @@ and genObjExpr t eio withKeyword bd members ims range (astContext: ASTContext) =
         +> genType astContext t
         +> param
         +> genTriviaForOption SynExpr_ObjExpr_With withKeyword !- " with"
-        +> indentSepNlnUnindent (genMemberBindingList astContext bd +> genMemberDefnList astContext members)
+        +> indentSepNlnUnindent (genSynBindings astContext bd false +> genMemberDefnList astContext members)
         +> colPre sepNln sepNln ims (genInterfaceImpl astContext)
     )
     +> sepCloseS
@@ -2553,7 +2542,7 @@ and genObjExprAlignBrackets t eio withKeyword bd members ims range (astContext: 
             +> genType astContext t
             +> param
             +> genTriviaForOption SynExpr_ObjExpr_With withKeyword !- " with"
-            +> indentSepNlnUnindent (genMemberBindingList astContext bd +> genMemberDefnList astContext members)
+            +> indentSepNlnUnindent (genSynBindings astContext bd false +> genMemberDefnList astContext members)
             +> colPre sepNln sepNln ims (genInterfaceImpl astContext)
         )
 
@@ -3957,7 +3946,7 @@ and genInterfaceImpl astContext (InterfaceImpl (t, withKeywordRange, bs, members
         !- "interface "
         +> genType astContext t
         +> genTriviaForOption SynInterfaceImpl_With withKeywordRange !- " with"
-        +> indentSepNlnUnindent (genMemberBindingList astContext bs +> genMemberDefnList astContext members)
+        +> indentSepNlnUnindent (genSynBindings astContext bs false +> genMemberDefnList astContext members)
 
 and genClause
     (astContext: ASTContext)
