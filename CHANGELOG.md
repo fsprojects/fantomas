@@ -4,6 +4,7 @@
 
 ### Changed
 * Formatting of anonymous record types respects fsharp_multiline_block_brackets_on_same_column. [#1167](https://github.com/fsprojects/fantomas/issues/1167)
+* Update FCS to 'Add SynType.Or', commit b78ad5cd6feea006986869506f33aab84c37398a
 
 ## [5.1.0-alpha-005] - 2022-10-07
 
