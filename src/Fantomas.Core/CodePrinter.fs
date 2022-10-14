@@ -3691,12 +3691,9 @@ and genPrefixTypes
          +> genTriviaForOption greaterNodeType greaterRange !- " >")
             ctx
     | t :: _ ->
-        let shortTs = col sepComma ts genType
-        let longTs = indentSepNlnUnindent (col (sepComma +> sepNln) ts genType) +> sepNln
-
         (genTriviaForOption lessNodeType lessRange !- "<"
          +> addSpaceIfSynTypeStaticConstantHasAtSignBeforeString t
-         +> expressionFitsOnRestOfLine shortTs longTs
+         +> col sepComma ts genType
          +> addSpaceIfSynTypeStaticConstantHasAtSignBeforeString t
          +> genTriviaForOption greaterNodeType greaterRange !- ">")
             ctx

@@ -1,5 +1,10 @@
 # Changelog
 
+## [5.1.0-alpha-007] - 2022-10-14
+
+### Changed
+* Revert multiline alternative for prefix types. [#2582](https://github.com/fsprojects/fantomas/pull/2582)
+
 ## [5.1.0-alpha-006] - 2022-10-14
 
 ### Changed
