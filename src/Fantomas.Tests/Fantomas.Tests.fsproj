@@ -14,7 +14,6 @@
     <ProjectReference Include="..\Fantomas\Fantomas.fsproj" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="paket.references" />
     <Compile Include="TestHelpers.fs" />
     <Compile Include="CheckTests.fs" />
     <Compile Include="IgnoreFileTests.fs" />
@@ -29,5 +28,14 @@
     <Compile Include="Integration\DaemonTests.fs" />
     <Compile Include="Integration\ForceTests.fs" />
   </ItemGroup>
-  <Import Project="..\..\.paket\Paket.Restore.targets" />
+  <ItemGroup>
+    <PackageReference Include="FSharp.Core" Version="$(FSharpCoreVersion)" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.3.2" />
+    <PackageReference Include="NUnit" Version="3.13.3" />
+    <PackageReference Include="NUnit3TestAdapter" Version="4.2.1" />
+    <PackageReference Include="NunitXml.TestLogger" Version="3.0.127" />
+    <PackageReference Include="System.IO.Abstractions.TestingHelpers" Version="17.2.3" />
+    <PackageReference Include="FsCheck" Version="2.16.5" />
+    <PackageReference Include="FsUnit" Version="4.2.0" />
+  </ItemGroup>
 </Project>

@@ -168,8 +168,6 @@ pip-log.txt
 *.ncrunch*
 TestResults.xml
 *.xml
-paket-files/
-.fake/
 .vs/
 
 
@@ -179,7 +177,6 @@ paket-files/
 
 # external projects directory for extensive regression tests
 external-project-tests/
-.paket/
 .vscode/
 BenchmarkDotNet.Artifacts/
 FormatChanged.ps1
@@ -194,3 +191,6 @@ docs/content/sidebar.css
 docs/global-config.css
 output/
 **/.fsdocs/cache
+
+# F# Compiler files
+.deps/

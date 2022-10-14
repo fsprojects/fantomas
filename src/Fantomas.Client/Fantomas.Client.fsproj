@@ -3,12 +3,9 @@
     <ChangelogFile>$(MSBuildThisFileDirectory)CHANGELOG.md</ChangelogFile>
     <TargetFramework>netstandard2.0</TargetFramework>
     <Description>Companion library to format using fantomas tool.</Description>
-    <WarnOn>3390;$(WarnOn)</WarnOn>
-    <WarningsAsErrors>FS0025</WarningsAsErrors>
     <IsPackable>true</IsPackable>
   </PropertyGroup>
   <ItemGroup>
-    <None Include="paket.references" />
     <Compile Include="Contracts.fsi" />
     <Compile Include="Contracts.fs" />
     <Compile Include="LSPFantomasServiceTypes.fsi" />
@@ -18,5 +15,9 @@
     <Compile Include="LSPFantomasService.fsi" />
     <Compile Include="LSPFantomasService.fs" />
   </ItemGroup>
-  <Import Project="..\..\.paket\Paket.Restore.targets" />
+  <ItemGroup>
+    <PackageReference Include="FSharp.Core" Version="5.0.1" />
+    <PackageReference Include="StreamJsonRpc" Version="$(StreamJsonRpcVersion)" />
+    <PackageReference Include="SemanticVersioning" Version="2.0.2" />
+  </ItemGroup>
 </Project>

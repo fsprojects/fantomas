@@ -9,16 +9,15 @@
     <ToolCommandName>fantomas</ToolCommandName>
     <PackAsTool>True</PackAsTool>
     <AssemblyName>fantomas</AssemblyName>
-    <WarningsAsErrors>FS0025</WarningsAsErrors>
     <IsPackable>true</IsPackable>
     <RootNamespace>Fantomas</RootNamespace>
+    <ErrorOnDuplicatePublishOutputFiles>false</ErrorOnDuplicatePublishOutputFiles>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\Fantomas.Client\Fantomas.Client.fsproj" />
     <ProjectReference Include="..\Fantomas.Core\Fantomas.Core.fsproj" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="paket.references" />
     <Compile Include="AssemblyInfo.fsi" />
     <Compile Include="AssemblyInfo.fs" />
     <Compile Include="IgnoreFile.fsi" />
@@ -32,5 +31,14 @@
     <Compile Include="Program.fsi" />
     <Compile Include="Program.fs" />
   </ItemGroup>
-  <Import Project="..\..\.paket\Paket.Restore.targets" />
+  <ItemGroup>
+    <PackageReference Include="FSharp.Core" Version="$(FSharpCoreVersion)" />
+    <PackageReference Include="StreamJsonRpc" Version="$(StreamJsonRpcVersion)" />
+    <PackageReference Include="Argu" Version="6.1.1" />
+    <PackageReference Include="Thoth.Json.Net" Version="8.0.0" />
+    <PackageReference Include="SerilogTraceListener" Version="3.2.1-dev-00011" />
+    <PackageReference Include="editorconfig" Version="0.13.0" />
+    <PackageReference Include="Ignore" Version="0.1.46" />
+    <PackageReference Include="System.IO.Abstractions" Version="17.2.3" />
+  </ItemGroup>
 </Project>

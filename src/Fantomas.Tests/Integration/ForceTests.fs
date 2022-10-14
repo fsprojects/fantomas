@@ -12,21 +12,7 @@ let ``code that was invalid should be still be written`` () =
     let pwd = Path.GetDirectoryName(typeof<TemporaryFileCodeSample>.Assembly.Location)
 
     let sourceFile =
-        Path.Combine(
-            pwd,
-            "..",
-            "..",
-            "..",
-            "..",
-            "..",
-            "paket-files",
-            "dotnet",
-            "fsharp",
-            "src",
-            "Compiler",
-            "Checking",
-            "CheckDeclarations.fs"
-        )
+        Path.Combine(pwd, "..", "..", "..", "..", "..", "tests", "data", "CheckDeclarations.fs")
 
     use outputFixture = new OutputFile()
 
