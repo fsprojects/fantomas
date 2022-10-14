@@ -61,10 +61,10 @@
 <li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/end-users/GitHooks.html" class="nav-link pb-2 d-block" > Git hooks
 </a></li>
 
-<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/end-users/VisualStudio.html" class="nav-link pb-2 d-block" > Visual Studio
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/end-users/Rider.html" class="nav-link pb-2 d-block" > JetBrains Rider
 </a></li>
 
-<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/end-users/Rider.html" class="nav-link pb-2 d-block" > JetBrains Rider
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/end-users/VisualStudio.html" class="nav-link pb-2 d-block" > Visual Studio
 </a></li>
 
 <li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/end-users/VSCode.html" class="nav-link pb-2 d-block" > Visual Studio Code
@@ -215,10 +215,10 @@ git push
 </code></pre></td></tr></table>
 <p>This will update your fork with the latest from <code>fsprojects/fantomas</code> on your machine and push those updates to your remote fork.</p>
 <h2><a name="Initial-build" class="anchor" href="#Initial-build">Initial build</a></h2>
-<p>After cloning the repository, you can restore the local .NET tools:</p>
-<table class="pre"><tr><td class="snippet"><pre class="fssnip"><code lang="shell">dotnet tool restore
+<p>After cloning the repository, you should restore the local dotnet tools and download the F# compiler source code:</p>
+<table class="pre"><tr><td class="snippet"><pre class="fssnip"><code lang="shell">dotnet fsi build.fsx -p Init
 </code></pre></td></tr></table>
-<p>Next, you should run the default build script.
+<p>Afterwards, you can run the default build script.
 This will build the solution, run all unit tests and do everything that the CI build does.</p>
 <table class="pre"><tr><td class="snippet"><pre class="fssnip"><code lang="shell">dotnet fsi build.fsx
 </code></pre></td></tr></table>
@@ -232,7 +232,7 @@ Examples:</p>
 that formatting of new code is consistent before it is pushed up to a remote repository.
 </li>
 </ul>
-<fantomas-nav previous="./FSharp.html" next="./Solution%20Structure.html">
+<fantomas-nav previous="./FSharp.html" next="./Solution%20Structure.html"></fantomas-nav>
 
         
       </div>
