@@ -1,4 +1,4 @@
-#r "nuget: Fun.Build, 0.1.6"
+#r "nuget: Fun.Build, 0.1.8"
 #r "nuget: CliWrap, 3.5.0"
 #r "nuget: FSharp.Data, 5.0.2"
 
@@ -39,8 +39,13 @@ let semanticVersioning =
 
 let pushPackage nupkg =
     async {
+        let key = System.Environment.GetEnvironmentVariable("NUGET_KEY")
         let! result =
-            Cli.Wrap("dotnet").WithArguments($"paket push {nupkg}").ExecuteAsync().Task
+            Cli.Wrap("dotnet").WithArguments(
+                $"nuget push {nupkg} --api-key {key} --source https://api.nuget.org/v3/index.json"
+            )
+                .ExecuteAsync()
+                .Task
             |> Async.AwaitTask
         return result.ExitCode
     }
