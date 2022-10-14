@@ -1601,11 +1601,6 @@ let (|MSMember|MSInterface|MSInherit|MSValField|MSNestedType|) =
 let (|Val|)
     (SynValSig (ats, synIdent, SynValTyparDecls (typars, _), t, vi, isInline, isMutable, px, ao, eo, range, trivia))
     =
-    let synIdent =
-        match trivia.LeadingKeyword with
-        | SynLeadingKeyword.New _ -> None
-        | _ -> Some synIdent
-
     (ats, px, trivia.LeadingKeyword, ao, synIdent, t, vi, isInline, isMutable, typars, eo, range)
 
 // Misc

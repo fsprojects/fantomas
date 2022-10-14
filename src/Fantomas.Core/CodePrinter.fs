@@ -691,12 +691,19 @@ and genVal
     (Val (ats, px, leadingKeyword, ao, si, t, _, isInline, isMutable, tds, eo, range))
     (optGetSet: string option)
     =
-    let typeName = genTypeAndParam (optSingle (genSynIdent false) si) tds []
+    let typeName = genTypeAndParam (genSynIdent false si) tds []
     let hasGenerics = Option.isSome tds
+
+    let lk =
+        match leadingKeyword with
+        | SynLeadingKeyword.New _ ->
+            // new is also the name of the type
+            sepNone
+        | _ -> genSynLeadingKeyword leadingKeyword
 
     genPreXmlDoc px
     +> genAttributes ats
-    +> (genSynLeadingKeyword leadingKeyword
+    +> (lk
         +> onlyIf isInline (!- "inline ")
         +> onlyIf isMutable (!- "mutable ")
         +> genAccessOpt ao
