@@ -45,13 +45,13 @@ This will update your fork with the latest from `fsprojects/fantomas` on your ma
 
 ## Initial build
 
-After cloning the repository, you can restore the local .NET tools:
+After cloning the repository, you should restore the local dotnet tools and download the F# compiler source code:
 
 ```shell
-dotnet tool restore
+dotnet fsi build.fsx -p Init
 ```
 
-Next, you should run the default build script.
+Afterwards, you can run the default build script.
 This will build the solution, run all unit tests and do everything that the CI build does.
 
 ```shell
@@ -66,4 +66,4 @@ Examples:
 -  `dotnet fsi build.fsx -p EnsureRepoConfig` sets up some git repo-level configuration to ensure
 that formatting of new code is consistent before it is pushed up to a remote repository.
 
-<fantomas-nav previous="./FSharp.html" next="./Solution%20Structure.html">
+<fantomas-nav previous="./FSharp.html" next="./Solution%20Structure.html"></fantomas-nav>

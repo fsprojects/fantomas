@@ -2,12 +2,6 @@
   "version": 1,
   "isRoot": true,
   "tools": {
-    "paket": {
-      "version": "7.0.2",
-      "commands": [
-        "paket"
-      ]
-    },
     "dotnet-fsharplint": {
       "version": "0.19.2",
       "commands": [

@@ -23,6 +23,20 @@ Some common use cases include:
         <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
         <PackageReadmeFile>README.md</PackageReadmeFile>
         <PackageProjectUrl>https://fsprojects.github.io/fantomas/</PackageProjectUrl>
+        <DisableImplicitFSharpCoreReference>true</DisableImplicitFSharpCoreReference>
+        <SuppressNETCoreSdkPreviewMessage>true</SuppressNETCoreSdkPreviewMessage>
+        <WarningsAsErrors>FS0025</WarningsAsErrors>
+        <WarnOn>3390;$(WarnOn)</WarnOn>
+        <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
+        <!-- https://www.gresearch.co.uk/blog/article/improve-nuget-restores-with-static-graph-evaluation/ -->
+        <RestoreUseStaticGraphEvaluation>true</RestoreUseStaticGraphEvaluation>
+    </PropertyGroup>
+    
+    <!-- Versions -->
+    <PropertyGroup>
+        <FCSCommitHash>05201993cfaac663c72b6431d81f543e3d001dfe</FCSCommitHash>
+        <StreamJsonRpcVersion>2.12.27</StreamJsonRpcVersion>
+        <FSharpCoreVersion>6.0.1</FSharpCoreVersion>
     </PropertyGroup>
     
     <PropertyGroup>
@@ -35,5 +49,7 @@ Some common use cases include:
     <ItemGroup Condition="'$(IsPackable)' == 'true'">
         <None Include="$(MSBuildThisFileDirectory)fantomas_logo.png" Visible="false" Pack="true" PackagePath="" />
         <None Include="$(MSBuildThisFileDirectory)README.md" Visible="false" Pack="true" PackagePath="" />
+        <PackageReference Include="Ionide.KeepAChangelog.Tasks" Version="0.1.8" PrivateAssets="all" />
+        <PackageReference Include="DotNet.ReproducibleBuilds" Version="1.1.1" PrivateAssets="all" />
     </ItemGroup>
 </Project>
