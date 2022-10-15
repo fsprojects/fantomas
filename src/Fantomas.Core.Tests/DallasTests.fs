@@ -57,3 +57,24 @@ let a = 0
 // foobar
 let b = 1
 """
+
+[<Test>]
+let ``two opens`` () =
+    formatSourceString
+        false
+        """
+open  Foo
+open  Bar
+
+let a =  0
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+open Foo
+open Bar
+
+let a = 0
+"""
