@@ -68,7 +68,7 @@ let formatAST
         let context = Context.Context.Create config sourceText ast //selection
 
         let fileNode =
-            Fangorn.mkOak sourceText.Value ast |> Flowering.enrichTree sourceText.Value ast
+            Fangorn.mkOak sourceText ast |> Flowering.enrichTree config sourceText.Value ast
 
         context |> genFile fileNode |> Context.dump false // (Option.isSome selection)
 
