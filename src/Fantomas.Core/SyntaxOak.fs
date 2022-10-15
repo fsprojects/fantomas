@@ -95,6 +95,7 @@ type ModuleOrNamespace(leadingKeyword: IdentNode option, name: IdentListNode, de
            yield name
            yield! List.map ModuleDecl.Node decls |]
 
+/// Each case in this DU should have a container node
 type ModuleDecl =
     | TopLevelBinding of Binding
 
