@@ -4,8 +4,8 @@ open FSharp.Compiler.Text
 open FSharp.Compiler.Text.Range
 open FSharp.Compiler.Syntax
 open FSharp.Compiler.SyntaxTrivia
-open Fantomas.Core.SyntaxOak
 open Fantomas.Core.ISourceTextExtensions
+open Fantomas.Core.SyntaxOak
 
 type SynIdent with
 
@@ -96,7 +96,7 @@ let mkModuleOrNamespace
     ModuleOrNamespace(leadingKeyword, name, decls, range)
 
 let mkImplFile (sourceText: ISourceText) (ParsedImplFileInput (contents = contents)) =
-    FileNode(List.map (mkModuleOrNamespace sourceText) contents)
+    Oak(List.map (mkModuleOrNamespace sourceText) contents)
 
 let mkOak (sourceText: ISourceText) (ast: ParsedInput) =
     match ast with
