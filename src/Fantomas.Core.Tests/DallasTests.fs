@@ -36,3 +36,24 @@ module A.B
 
 let a = 1
 """
+
+[<Test>]
+let ``basic comment above let binding`` () =
+    formatSourceString
+        false
+        """
+let a =  0
+
+// foobar
+let b =  1
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let a = 0
+
+// foobar
+let b = 1
+"""
