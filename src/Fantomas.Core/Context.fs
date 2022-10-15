@@ -6,8 +6,8 @@ open FSharp.Compiler.Syntax
 open Fantomas.Core
 open Fantomas.Core.ISourceTextExtensions
 open Fantomas.Core.FormatConfig
-open Fantomas.Core.TriviaTypes
-open Fantomas.Core.SourceTransformer
+// open Fantomas.Core.TriviaTypes
+// open Fantomas.Core.SourceTransformer
 
 type WriterEvent =
     | Write of string
@@ -180,42 +180,44 @@ type internal Context =
     { Config: FormatConfig
       WriterModel: WriterModel
       WriterEvents: Queue<WriterEvent>
-      TriviaBefore: Map<FsAstType, TriviaInstruction list>
-      TriviaAfter: Map<FsAstType, TriviaInstruction list>
-      SourceText: ISourceText option }
+    // TriviaBefore: Map<FsAstType, TriviaInstruction list>
+    // TriviaAfter: Map<FsAstType, TriviaInstruction list>
+    // SourceText: ISourceText option
+     }
 
     /// Initialize with a string writer and use space as delimiter
     static member Default =
         { Config = FormatConfig.Default
           WriterModel = WriterModel.init
           WriterEvents = Queue.empty
-          TriviaBefore = Map.empty
-          TriviaAfter = Map.empty
-          SourceText = None }
+        // TriviaBefore = Map.empty
+        // TriviaAfter = Map.empty
+        // SourceText = None }
+        }
 
     static member Create
         config
         (source: ISourceText option)
         (ast: ParsedInput)
-        (selection: TriviaForSelection option)
+        // (selection: TriviaForSelection option)
         : Context =
-        let triviaInstructions, sourceText =
-            match source with
-            | Some source when not config.StrictMode -> Trivia.collectTrivia config source ast selection, Some source
-            | _ -> [], None
+        // let triviaInstructions, sourceText =
+        //     match source with
+        //     | Some source when not config.StrictMode -> Trivia.collectTrivia config source ast selection, Some source
+        //     | _ -> [], None
 
-        let triviaBefore, triviaAfter =
-            let triviaInstructionsBefore, triviaInstructionsAfter =
-                List.partition (fun ti -> ti.AddBefore) triviaInstructions
+        // let triviaBefore, triviaAfter =
+        //     let triviaInstructionsBefore, triviaInstructionsAfter =
+        //         List.partition (fun ti -> ti.AddBefore) triviaInstructions
+        //
+        //     let createMapByType = List.groupBy (fun t -> t.Type) >> Map.ofList
+        //     createMapByType triviaInstructionsBefore, createMapByType triviaInstructionsAfter
 
-            let createMapByType = List.groupBy (fun t -> t.Type) >> Map.ofList
-            createMapByType triviaInstructionsBefore, createMapByType triviaInstructionsAfter
-
-        { Context.Default with
-            Config = config
-            SourceText = sourceText
-            TriviaBefore = triviaBefore
-            TriviaAfter = triviaAfter }
+        { Context.Default with Config = config
+        // SourceText = sourceText
+        // TriviaBefore = triviaBefore
+        // TriviaAfter = triviaAfter
+         }
 
     member x.WithDummy(writerCommands, ?keepPageWidth) =
         let keepPageWidth = keepPageWidth |> Option.defaultValue false
@@ -253,18 +255,18 @@ type internal Context =
                 { x with WriterModel = { x.WriterModel with Mode = ShortExpression(info :: infos) } }
         | _ -> { x with WriterModel = { x.WriterModel with Mode = ShortExpression([ info ]) } }
 
-    member x.FromSourceText(range: range) : string option =
-        Option.map (fun (sourceText: ISourceText) -> sourceText.GetContentAt range) x.SourceText
+// member x.FromSourceText(range: range) : string option =
+//     Option.map (fun (sourceText: ISourceText) -> sourceText.GetContentAt range) x.SourceText
 
-    member x.HasContentAfter(``type``: FsAstType, range: range) : bool =
-        match Map.tryFindOrEmptyList ``type`` x.TriviaAfter with
-        | [] -> false
-        | triviaInstructions -> List.exists (fun ti -> RangeHelpers.rangeEq ti.Range range) triviaInstructions
-
-    member x.HasContentBefore(``type``: FsAstType, range: range) : bool =
-        match Map.tryFindOrEmptyList ``type`` x.TriviaBefore with
-        | [] -> false
-        | triviaInstructions -> List.exists (fun ti -> RangeHelpers.rangeEq ti.Range range) triviaInstructions
+// member x.HasContentAfter(``type``: FsAstType, range: range) : bool =
+//     match Map.tryFindOrEmptyList ``type`` x.TriviaAfter with
+//     | [] -> false
+//     | triviaInstructions -> List.exists (fun ti -> RangeHelpers.rangeEq ti.Range range) triviaInstructions
+//
+// member x.HasContentBefore(``type``: FsAstType, range: range) : bool =
+//     match Map.tryFindOrEmptyList ``type`` x.TriviaBefore with
+//     | [] -> false
+//     | triviaInstructions -> List.exists (fun ti -> RangeHelpers.rangeEq ti.Range range) triviaInstructions
 
 /// This adds a WriterEvent to the Context.
 /// One event could potentially be split up into multiple events.
@@ -1045,6 +1047,7 @@ let sepSemi (ctx: Context) =
 let ifAlignBrackets f g =
     ifElseCtx (fun ctx -> ctx.Config.MultilineBlockBracketsOnSameColumn) f g
 
+(*
 let printTriviaContent (c: TriviaContent) (ctx: Context) =
     let currentLastLine = ctx.WriterModel.Lines |> List.tryHead
 
@@ -1142,7 +1145,7 @@ let sepNlnTypeAndMembers
         else
             ctx
     | triviaInstructions -> printTriviaInstructions triviaInstructions ctx
-
+*)
 let sepNlnWhenWriteBeforeNewlineNotEmptyOr fallback (ctx: Context) =
     if hasWriteBeforeNewlineContent ctx then
         sepNln ctx
@@ -1173,45 +1176,45 @@ let autoNlnConsideringTriviaIfExpressionExceedsPageWidth sepNlnConsideringTrivia
         expr
         ctx
 
-let addParenIfAutoNln synExpr f =
-    let expr = f synExpr
-    expressionFitsOnRestOfLine expr (ifElse (hasParenthesis synExpr) (sepOpenT +> expr +> sepCloseT) expr)
+// let addParenIfAutoNln synExpr f =
+//     let expr = f synExpr
+//     expressionFitsOnRestOfLine expr (ifElse (hasParenthesis synExpr) (sepOpenT +> expr +> sepCloseT) expr)
+//
+// let addParenForTupleWhen f synExpr ctx =
+//     let condition e =
+//         match e with
+//         | SourceParser.ElIf _
+//         | SynExpr.Lambda _ -> true
+//         | _ -> false // "if .. then .. else" have precedence over ","
+//
+//     let expr = f synExpr
+//     ifElse (condition synExpr) (sepOpenT +> expr +> sepCloseT) expr ctx
+//
+// let private hasTriviaBeforeExpression ctx e =
+//     let astType, range = synExprToFsAstType e
+//
+//     Map.tryFindOrEmptyList astType ctx.TriviaBefore
+//     |> List.exists (fun ti -> RangeHelpers.rangeEq range ti.Range)
 
-let addParenForTupleWhen f synExpr ctx =
-    let condition e =
-        match e with
-        | SourceParser.ElIf _
-        | SynExpr.Lambda _ -> true
-        | _ -> false // "if .. then .. else" have precedence over ","
-
-    let expr = f synExpr
-    ifElse (condition synExpr) (sepOpenT +> expr +> sepCloseT) expr ctx
-
-let private hasTriviaBeforeExpression ctx e =
-    let astType, range = synExprToFsAstType e
-
-    Map.tryFindOrEmptyList astType ctx.TriviaBefore
-    |> List.exists (fun ti -> RangeHelpers.rangeEq range ti.Range)
-
-let autoIndentAndNlnExpressUnlessStroustrup (f: SynExpr -> Context -> Context) (e: SynExpr) (ctx: Context) =
-    match e with
-    | SourceParser.StroustrupStyleExpr ctx.Config.ExperimentalStroustrupStyle e when
-        (not (hasTriviaBeforeExpression ctx e))
-        ->
-        f e ctx
-    | _ -> indentSepNlnUnindent (f e) ctx
-
-let autoIndentAndNlnIfExpressionExceedsPageWidthUnlessStroustrup
-    (f: SynExpr -> Context -> Context)
-    (e: SynExpr)
-    (ctx: Context)
-    =
-    match e with
-    | SourceParser.StroustrupStyleExpr ctx.Config.ExperimentalStroustrupStyle e when
-        (not (hasTriviaBeforeExpression ctx e))
-        ->
-        f e ctx
-    | _ -> autoIndentAndNlnIfExpressionExceedsPageWidth (f e) ctx
+// let autoIndentAndNlnExpressUnlessStroustrup (f: SynExpr -> Context -> Context) (e: SynExpr) (ctx: Context) =
+//     match e with
+//     | SourceParser.StroustrupStyleExpr ctx.Config.ExperimentalStroustrupStyle e when
+//         (not (hasTriviaBeforeExpression ctx e))
+//         ->
+//         f e ctx
+//     | _ -> indentSepNlnUnindent (f e) ctx
+//
+// let autoIndentAndNlnIfExpressionExceedsPageWidthUnlessStroustrup
+//     (f: SynExpr -> Context -> Context)
+//     (e: SynExpr)
+//     (ctx: Context)
+//     =
+//     match e with
+//     | SourceParser.StroustrupStyleExpr ctx.Config.ExperimentalStroustrupStyle e when
+//         (not (hasTriviaBeforeExpression ctx e))
+//         ->
+//         f e ctx
+//     | _ -> autoIndentAndNlnIfExpressionExceedsPageWidth (f e) ctx
 
 type internal ColMultilineItem =
     | ColMultilineItem of

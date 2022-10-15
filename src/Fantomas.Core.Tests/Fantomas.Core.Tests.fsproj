@@ -10,8 +10,8 @@
     <Compile Include="TestHelpers.fs" />
     <Compile Include="UtilsTests.fs" />
     <Compile Include="QueueTests.fs" />
-    <Compile Include="DefinesTests.fs" />
-    <Compile Include="TriviaTests.fs" />
+<!--    <Compile Include="DefinesTests.fs" />-->
+<!--    <Compile Include="TriviaTests.fs" />-->
     <Compile Include="StringTests.fs" />
     <Compile Include="CommentTests.fs" />
     <Compile Include="ShebangTests.fs" />
@@ -37,10 +37,10 @@
     <Compile Include="CompilerDirectivesTests.fs" />
     <Compile Include="ComputationExpressionTests.fs" />
     <Compile Include="TypeProviderTests.fs" />
-    <Compile Include="FormattingSelectionOnlyTests.fs" />
+<!--    <Compile Include="FormattingSelectionOnlyTests.fs" />-->
     <Compile Include="ValidationTests.fs" />
     <Compile Include="SpecialConstructsTests.fs" />
-    <Compile Include="FormatAstTests.fs" />
+<!--    <Compile Include="FormatAstTests.fs" />-->
     <Compile Include="LetBindingTests.fs" />
     <Compile Include="NoTrailingSpacesTests.fs" />
     <Compile Include="LazyTests.fs" />
@@ -112,13 +112,14 @@
     <Compile Include="RecordDeclarationsWithXMLDocTests.fs" />
     <Compile Include="AstExtensionsTests.fs" />
     <Compile Include="MaxIfThenShortWidthTests.fs" />
-    <Compile Include="CodePrinterHelperFunctionsTests.fs" />
+<!--    <Compile Include="CodePrinterHelperFunctionsTests.fs" />-->
     <Compile Include="ASTTransformerTests.fs" />
     <Compile Include="DotSetTests.fs" />
     <Compile Include="InterfaceStaticMethodTests.fs" />
     <Compile Include="ExternTests.fs" />
     <Compile Include="TypeAnnotationTests.fs" />
     <Compile Include="BaseConstructorTests.fs" />
+    <Compile Include="DallasTests.fs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Fantomas.Core\Fantomas.Core.fsproj" />
