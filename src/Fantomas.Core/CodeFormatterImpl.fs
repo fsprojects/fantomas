@@ -66,7 +66,10 @@ let formatAST
     : string =
     let formattedSourceCode =
         let context = Context.Context.Create config sourceText ast //selection
-        let fileNode = Fangorn.mkOak sourceText.Value ast
+
+        let fileNode =
+            Fangorn.mkOak sourceText.Value ast |> Flowering.enrichTree sourceText.Value ast
+
         context |> genFile fileNode |> Context.dump false // (Option.isSome selection)
 
     formattedSourceCode
