@@ -18,6 +18,7 @@
 <!--    <Compile Include="SourceParser.fs" />-->
     <Compile Include="SyntaxOak.fs" />
     <Compile Include="Fangorn.fs" />
+    <Compile Include="Flowering.fs" />
 <!--    <Compile Include="AstTransformer.fsi" />-->
 <!--    <Compile Include="AstTransformer.fs" />-->
     <Compile Include="Version.fs" />
