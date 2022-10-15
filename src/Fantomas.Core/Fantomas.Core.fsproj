@@ -18,12 +18,12 @@
 <!--    <Compile Include="SourceParser.fs" />-->
     <Compile Include="SyntaxOak.fs" />
     <Compile Include="Fangorn.fs" />
-    <Compile Include="Flowering.fs" />
 <!--    <Compile Include="AstTransformer.fsi" />-->
 <!--    <Compile Include="AstTransformer.fs" />-->
     <Compile Include="Version.fs" />
     <Compile Include="Queue.fs" />
     <Compile Include="FormatConfig.fs" />
+    <Compile Include="Flowering.fs" />
 <!--    <Compile Include="Defines.fsi" />-->
 <!--    <Compile Include="Defines.fs" />-->
 <!--    <Compile Include="Trivia.fsi" />-->
