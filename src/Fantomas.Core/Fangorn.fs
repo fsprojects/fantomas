@@ -13,7 +13,7 @@ type SynIdent with
 
     member x.ToNode() =
         let (SynIdent (ident, _trivia)) = x
-        IdentNode(ident.idText, ident.idRange)
+        SingleTextNode(ident.idText, ident.idRange)
 
 type SynLongIdent with
 
@@ -36,18 +36,19 @@ type SynLongIdent with
 let mkIdentListNodeFromLongIdent (longIdent: LongIdent) : IdentListNode =
     match longIdent with
     | [] -> IdentListNode.Empty
-    | [ single ] -> IdentListNode([ IdentifierOrDot.Ident(IdentNode(single.idText, single.idRange)) ], single.idRange)
+    | [ single ] ->
+        IdentListNode([ IdentifierOrDot.Ident(SingleTextNode(single.idText, single.idRange)) ], single.idRange)
     | head :: tail ->
         let rest =
             tail
             |> List.collect (fun ident ->
                 [ IdentifierOrDot.UnknownDot
-                  IdentifierOrDot.Ident(IdentNode(ident.idText, ident.idRange)) ])
+                  IdentifierOrDot.Ident(SingleTextNode(ident.idText, ident.idRange)) ])
 
         let range =
             longIdent |> List.map (fun ident -> ident.idRange) |> List.reduce unionRanges
 
-        IdentListNode(IdentifierOrDot.Ident(IdentNode(head.idText, head.idRange)) :: rest, range)
+        IdentListNode(IdentifierOrDot.Ident(SingleTextNode(head.idText, head.idRange)) :: rest, range)
 
 let parseExpressionInSynBinding returnInfo expr =
     match returnInfo, expr with
@@ -66,8 +67,8 @@ let mkParsedHashDirective (fromSource: TextFromSource) (ParsedHashDirective (ide
                     | SynStringKind.Verbatim -> sprintf "@\"%s\"" value
                     | SynStringKind.TripleQuote -> sprintf "\"\"\"%s\"\"\"" value
 
-                IdentNode(fromSource fallback range, range)
-            | ParsedHashDirectiveArgument.SourceIdentifier (identifier, _, range) -> IdentNode(identifier, range))
+                SingleTextNode(fromSource fallback range, range)
+            | ParsedHashDirectiveArgument.SourceIdentifier (identifier, _, range) -> SingleTextNode(identifier, range))
 
     ParsedHashDirectiveNode(ident, args, range)
 
@@ -75,7 +76,7 @@ let mkExpr (fromSource: TextFromSource) (e: SynExpr) =
     match e with
     | SynExpr.Const (SynConst.Int32 i32, _) ->
         let number = fromSource (string i32) e.Range
-        IdentNode(number, e.Range) |> Expr.Constant
+        SingleTextNode(number, e.Range) |> Expr.Constant
     | _ -> failwith "todo, 693F570D-5A08-4E44-8937-FF98CE0AD8FC"
 
 let mkBinding
@@ -84,7 +85,7 @@ let mkBinding
     =
     let leadingKeyword =
         match trivia.LeadingKeyword with
-        | SynLeadingKeyword.Let m -> IdentNode("let", m)
+        | SynLeadingKeyword.Let m -> SingleTextNode("let", m)
         | _ -> failwith "todo, FF881966-836F-4425-A600-8C928DE4CDE1"
 
     let functionName =
@@ -92,7 +93,7 @@ let mkBinding
         | SynPat.Named (ident = ident) -> ident.ToNode()
         | _ -> failwith "todo, 92E86FB8-1927-4CCD-AF73-244BD6327EB1"
 
-    let equals = SingleTokenNode("=", trivia.EqualsRange.Value)
+    let equals = SingleTextNode("=", trivia.EqualsRange.Value)
 
     let e = parseExpressionInSynBinding returnInfo expr
     let _rt = Option.map (fun (SynBindingReturnInfo (typeName = t)) -> t) returnInfo
@@ -118,8 +119,29 @@ let mkModuleDecl (fromSource: TextFromSource) (decl: SynModuleDecl) =
         mkBinding fromSource singleBinding |> ModuleDecl.TopLevelBinding
     | _ -> failwith "todo, 068F312B-A840-4E14-AF82-A000652532E8"
 
-let mkType _ =
-    failwith "todo, F28E0FA1-7C39-4BFF-AFBF-0E9FD3D1D4E4"
+let mkType (fromSource: TextFromSource) (t: SynType) : Type =
+    match t with
+    // | Funs of TypeFunsNode
+    // | Tuple of TypeTupleNode
+    // | HashConstraint of TypeHashConstraintNode
+    // | MeasurePower of TypeMeasurePowerNode
+    // | MeasureDivide of TypeMeasureDivideNode
+    // | StaticConstant of TypeStaticConstantNode
+    // | StaticConstantExpr of TypeStaticConstantExprNode
+    // | StaticConstantNamed of TypeStaticConstantNamedNode
+    // | Array of TypeArrayNode
+    // | Anon of TypeAnonNode
+    // | Var of TypeVarNode
+    // | App of TypeAppNode
+    // | LongIdentApp of TypeLongIdentAppNode
+    // | StructTuple of TypeStructTupleNode
+    // | WithGlobalConstraints of TypeWithGlobalConstraintsNode
+    | SynType.LongIdent lid -> Type.LongIdent(lid.ToNode())
+    // | AnonRecord of TypeAnonRecordNode
+    // | Paren of TypeParenNode
+    // | SignatureParameter of TypeSignatureParameterNode
+    // | Or of TypeOrNode
+    | _ -> failwith "todo, F28E0FA1-7C39-4BFF-AFBF-0E9FD3D1D4E4"
 
 let rec (|OpenL|_|) =
     function
@@ -127,11 +149,54 @@ let rec (|OpenL|_|) =
     | SynModuleDecl.Open (target, range) :: ys -> Some([ target, range ], ys)
     | _ -> None
 
-let mkOpenNodeForImpl (target, range) : Open =
+let mkOpenNodeForImpl (fromSource: TextFromSource) (target, range) : Open =
     match target with
     | SynOpenDeclTarget.ModuleOrNamespace (longId, _) ->
         OpenModuleOrNamespaceNode(longId.ToNode(), range) |> Open.ModuleOrNamespace
-    | SynOpenDeclTarget.Type (typeName, range) -> OpenTargetNode(mkType typeName, range) |> Open.Target
+    | SynOpenDeclTarget.Type (typeName, range) -> OpenTargetNode(mkType fromSource typeName, range) |> Open.Target
+
+let mkTypeDefn
+    (fromSource: TextFromSource)
+    (isFirst: bool)
+    (SynTypeDefn (typeInfo, typeRepr, members, implicitConstructor, range, trivia))
+    : TypeDefn =
+
+    let typeNameNode =
+        match typeInfo, trivia.TypeKeyword with
+        | SynComponentInfo (ats, tds, tcs, lid, px, preferPostfix, ao, _), Some tk ->
+            let identifierNode = mkIdentListNodeFromLongIdent lid
+
+            TypeNameNode(
+                AttributesListNode.Empty,
+                SingleTextNode((if isFirst then "type" else "and"), tk),
+                isFirst,
+                None,
+                identifierNode,
+                None,
+                Option.map (fun eq -> SingleTextNode("=", eq)) trivia.EqualsRange,
+                None,
+                unionRanges tk identifierNode.Range
+            )
+        | _, None ->
+            // TODO: update dotnet/fsharp to add "and" keywords.
+            failwith "leading keyword should be present"
+
+    match typeRepr with
+    // | Simple (TDSREnum ecs) ->
+    // | Simple (TDSRUnion (ao', xs)) ->
+    // | Simple (TDSRRecord (openingBrace, ao', fs, closingBrace)) ->
+    // | Simple TDSRNone -> typeName
+    | SynTypeDefnRepr.Simple(simpleRepr = SynTypeDefnSimpleRepr.TypeAbbrev (rhsType = t)) ->
+        TypeDefn.Abbrev(TypeDefnAbbrevNode(typeNameNode, mkType fromSource t, range))
+    // | Simple (TDSRException (ExceptionDefRepr (ats, px, ao, uc)))
+    // | ObjectModel (TCSimple (TCInterface | TCClass) as tdk, MemberDefnList (impCtor, others), range) ->
+    // | ObjectModel (TCSimple TCStruct as tdk, MemberDefnList (impCtor, others), _) ->
+    // | ObjectModel (TCSimple (TCAugmentation withKeywordAug), _, _) ->
+    // | ObjectModel (TCDelegate (FunType ts), _, _) ->
+    // | ObjectModel (TCSimple TCUnspecified, MemberDefnList (impCtor, others), _) when not (List.isEmpty ms) ->
+    // | ObjectModel (_, MemberDefnList (impCtor, others), _) ->
+    // | ExceptionRepr (ExceptionDefRepr (ats, px, ao, uc)) -> genExceptionBody ats px ao uc
+    | _ -> failwith "not implemented, C8C6C667-6A67-46A6-9EE3-A0DF663A3A91"
 
 let rec mkModuleDecls
     (fromSource: TextFromSource)
@@ -142,9 +207,17 @@ let rec mkModuleDecls
     | [] -> finalContinuation []
     | OpenL (xs, ys) ->
         let openListNode =
-            List.map mkOpenNodeForImpl xs |> OpenListNode |> ModuleDecl.OpenList
+            List.map (mkOpenNodeForImpl fromSource) xs
+            |> OpenListNode
+            |> ModuleDecl.OpenList
 
         mkModuleDecls fromSource ys (fun nodes -> openListNode :: nodes)
+
+    | SynModuleDecl.Types (typeDefns = typeDefns) :: rest ->
+        let typeNodes =
+            List.mapi (fun idx tdn -> mkTypeDefn fromSource (idx = 0) tdn |> ModuleDecl.TypeDefn) typeDefns
+
+        mkModuleDecls fromSource rest (fun nodes -> [ yield! typeNodes; yield! nodes ])
     | head :: tail ->
         mkModuleDecls fromSource tail (fun nodes -> mkModuleDecl fromSource head :: nodes |> finalContinuation)
 
@@ -154,8 +227,10 @@ let mkModuleOrNamespace
     =
     let leadingKeyword =
         match trivia.ModuleKeyword with
-        | Some moduleKeyword -> Some(IdentNode("module", moduleKeyword))
-        | None -> trivia.NamespaceKeyword |> Option.map (fun mk -> IdentNode("namespace", mk))
+        | Some moduleKeyword -> Some(SingleTextNode("module", moduleKeyword))
+        | None ->
+            trivia.NamespaceKeyword
+            |> Option.map (fun mk -> SingleTextNode("namespace", mk))
 
     let name =
         match kind with

@@ -59,6 +59,21 @@ let b = 1
 """
 
 [<Test>]
+let ``single open`` () =
+    formatSourceString
+        false
+        """
+open  Foo
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+open Foo
+"""
+
+[<Test>]
 let ``two opens`` () =
     formatSourceString
         false
@@ -77,4 +92,19 @@ open Foo
 open Bar
 
 let a = 0
+"""
+
+[<Test>]
+let ``type alias`` () =
+    formatSourceString
+        false
+        """
+type A =   int
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type A = int
 """
