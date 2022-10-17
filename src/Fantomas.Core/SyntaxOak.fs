@@ -9,6 +9,7 @@ open Microsoft.FSharp.Collections
 
 type TriviaContent =
     | CommentOnSingleLine of string
+    | LineCommentAfterSourceCode of comment: string
     | Newline
 
 type TriviaNode(content: TriviaContent, range: range) =
@@ -120,7 +121,8 @@ type ModuleOrNamespaceNode(leadingKeyword: SingleTextNode option, name: IdentLis
 
     override this.Children =
         [| yield! noa leadingKeyword
-           yield name
+           if Option.isSome leadingKeyword then
+               yield name
            yield! List.map ModuleDecl.Node decls |]
 
 type TypeFunsNode(range) =
@@ -438,10 +440,14 @@ type ExprLazyNode(lazyWord: SingleTextNode, expr: Expr, range) =
         | :? InfixApp -> true
         | _ -> false
 
-type ExprSingleNode(range) =
+type ExprSingleNode(leading: SingleTextNode, supportsStroustrup: bool, expr: Expr, range) =
     inherit NodeBase(range)
 
-    override this.Children = failwith "todo"
+    override this.Children = [| yield leading; yield Expr.Node expr |]
+
+    member _.Leading = leading
+    member _.SupportsStroustrup = supportsStroustrup
+    member _.Expr = expr
 
 type ExprConstantNode(range) =
     inherit NodeBase(range)
@@ -960,6 +966,15 @@ type Expr =
         | IndexRange n -> n
         | IndexFromEnd n -> n
         | Typar n -> n
+
+    member e.IsStroustrupStyleExpr: bool =
+        match e with
+        // TODO: Exclude records when they have copy info.
+        | Expr.AnonRecord _
+        | Expr.Record _
+        | Expr.NamedComputation _
+        | Expr.ArrayOrList _ -> true
+        | _ -> false
 
 type OpenModuleOrNamespaceNode(identListNode: IdentListNode, range) =
     inherit NodeBase(range)
