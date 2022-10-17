@@ -83,7 +83,20 @@ let genExpr (e: Expr) =
         +> expressionFitsOnRestOfLine (genExpr node.Expr) (indent +> sepNln +> genExpr node.Expr +> unindent +> sepNln)
         +> sepSpace
         +> genSingleTextNode node.CloseToken
-    | Expr.Typed _ -> failwith "Not Implemented"
+    | Expr.Typed node ->
+        let short =
+            genExpr node.Expr
+            +> sepSpace
+            +> !-node.Operator
+            +> sepSpace
+            +> genType node.Type
+
+        let long =
+            genExpr node.Expr +> sepNln +> !-node.Operator +> sepSpace +> genType node.Type
+
+        match node.Expr with
+        | Expr.Lambda _ -> long
+        | _ -> expressionFitsOnRestOfLine short long
     | Expr.New _ -> failwith "Not Implemented"
     | Expr.Tuple _ -> failwith "Not Implemented"
     | Expr.StructTuple _ -> failwith "Not Implemented"

@@ -147,6 +147,7 @@ let ``null`` () =
 null
 <@@  x @@>
 <@  y @>
+x :>  int
 """
         config
     |> prepend newline
@@ -156,4 +157,5 @@ null
 null
 <@@ x @@>
 <@ y @>
+x :> int
 """
