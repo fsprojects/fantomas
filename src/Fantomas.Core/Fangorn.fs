@@ -5,6 +5,7 @@ open FSharp.Compiler.Text.Range
 open FSharp.Compiler.Syntax
 open FSharp.Compiler.SyntaxTrivia
 open Fantomas.Core.ISourceTextExtensions
+open Fantomas.Core.RangePatterns
 open Fantomas.Core.SyntaxOak
 
 type TextFromSource = string -> range -> string
@@ -119,10 +120,49 @@ let mkConstant (fromSource: TextFromSource) c r : Constant =
     | SynConst.Measure (c, numberRange, m) -> failwith "todo, 1BF1C723-1931-40BE-8C02-3A4BAC1D8BAD"
     | SynConst.SourceIdentifier (c, _, r) -> SingleTextNode(c, r) |> Constant.FromText
 
-let mkExpr (fromSource: TextFromSource) (e: SynExpr) =
+let rec mkExpr (fromSource: TextFromSource) (e: SynExpr) =
+    let exprRange = e.Range
+
     match e with
-    // | Expr.Lazy _ -> failwith "Not Implemented"
-    // | Expr.Single _ -> failwith "Not Implemented"
+    | SynExpr.Lazy (e, StartRange 4 (lazyKeyword, _range)) ->
+        ExprLazyNode(SingleTextNode("lazy", lazyKeyword), mkExpr fromSource e, exprRange)
+        |> Expr.Lazy
+    | SynExpr.InferredDowncast (e, StartRange 8 (downcastKeyword, _range)) ->
+        ExprSingleNode(SingleTextNode("downcast", downcastKeyword), false, mkExpr fromSource e, exprRange)
+        |> Expr.Single
+    | SynExpr.InferredUpcast (e, StartRange 6 (upcastKeyword, _range)) ->
+        ExprSingleNode(SingleTextNode("upcast", upcastKeyword), false, mkExpr fromSource e, exprRange)
+        |> Expr.Single
+    | SynExpr.Assert (e, StartRange 6 (assertKeyword, _range)) ->
+        ExprSingleNode(SingleTextNode("assert", assertKeyword), false, mkExpr fromSource e, exprRange)
+        |> Expr.Single
+    | SynExpr.AddressOf (true, e, _, StartRange 1 (ampersandToken, _range)) ->
+        ExprSingleNode(SingleTextNode("&", ampersandToken), false, mkExpr fromSource e, exprRange)
+        |> Expr.Single
+    | SynExpr.AddressOf (false, e, _, StartRange 2 (ampersandToken, _range)) ->
+        ExprSingleNode(SingleTextNode("&&", ampersandToken), false, mkExpr fromSource e, exprRange)
+        |> Expr.Single
+    | SynExpr.YieldOrReturn ((true, _), e, StartRange 5 (yieldKeyword, _range)) ->
+        ExprSingleNode(SingleTextNode("yield", yieldKeyword), true, mkExpr fromSource e, exprRange)
+        |> Expr.Single
+    | SynExpr.YieldOrReturn ((false, _), e, StartRange 6 (returnKeyword, _range)) ->
+        ExprSingleNode(SingleTextNode("return", returnKeyword), true, mkExpr fromSource e, exprRange)
+        |> Expr.Single
+    | SynExpr.YieldOrReturnFrom ((true, _), e, StartRange 6 (yieldBangKeyword, _range)) ->
+        ExprSingleNode(SingleTextNode("yield!", yieldBangKeyword), true, mkExpr fromSource e, exprRange)
+        |> Expr.Single
+    | SynExpr.YieldOrReturnFrom ((false, _), e, StartRange 7 (returnBangKeyword, _range)) ->
+        ExprSingleNode(SingleTextNode("return!", returnBangKeyword), true, mkExpr fromSource e, exprRange)
+        |> Expr.Single
+    | SynExpr.Do (e, StartRange 2 (doKeyword, _range)) ->
+        ExprSingleNode(SingleTextNode("do", doKeyword), true, mkExpr fromSource e, exprRange)
+        |> Expr.Single
+    | SynExpr.DoBang (e, StartRange 3 (doBangKeyword, _range)) ->
+        ExprSingleNode(SingleTextNode("do!", doBangKeyword), true, mkExpr fromSource e, exprRange)
+        |> Expr.Single
+    | SynExpr.Fixed (e, StartRange 5 (fixedKeyword, _range)) ->
+        ExprSingleNode(SingleTextNode("fixed", fixedKeyword), false, mkExpr fromSource e, exprRange)
+        |> Expr.Single
     | SynExpr.Const (c, r) -> mkConstant fromSource c r |> Expr.Constant
     // | Expr.Null _ -> failwith "Not Implemented"
     // | Expr.Quote _ -> failwith "Not Implemented"
@@ -260,8 +300,16 @@ let mkBinding
 
 let mkModuleDecl (fromSource: TextFromSource) (decl: SynModuleDecl) =
     match decl with
+    // | OpenList of OpenListNode
+    // | HashDirectiveList of HashDirectiveListNode
+    // | AttributesList of AttributesListNode
+    | SynModuleDecl.Expr (e, _) -> mkExpr fromSource e |> ModuleDecl.DeclExpr
+    // | ExternBinding of ExternBindingNode
     | SynModuleDecl.Let(bindings = [ singleBinding ]) ->
         mkBinding fromSource singleBinding |> ModuleDecl.TopLevelBinding
+    // | ModuleAbbrev of ModuleAbbrevNode
+    // | NestedModule of ModuleOrNamespaceNode
+    // | TypeDefn of TypeDefn
     | _ -> failwith "todo, 068F312B-A840-4E14-AF82-A000652532E8"
 
 let mkType (fromSource: TextFromSource) (t: SynType) : Type =

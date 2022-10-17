@@ -24,7 +24,7 @@ let internal collectTriviaFromCodeComments (source: ISourceText) (codeComments: 
                 else if trimmedLine.StartsWith("//") then
                     CommentOnSingleLine content
                 else
-                    failwith "todo, 220DE805-1EDF-426C-9138-91A517DF6726"
+                    LineCommentAfterSourceCode content
 
             TriviaNode(content, r))
 
@@ -125,6 +125,76 @@ let triviaBeforeOrAfterEntireTree (rootNode: Node) (trivia: TriviaNode) : unit =
     else
         rootNode.AddAfter(trivia)
 
+/// Find the last child node that will be the last node of the parent node.
+let rec visitLastChildNode (node: Node) : Node =
+    match node with
+    | :? ExprIfThenNode
+    | :? ExprAppNode
+    | :? ExprLambdaNode
+    | :? ExprLetOrUsesNode
+    | :? BindingNode
+    | :? ModuleOrNamespaceNode
+    | :? TypeDefnEnumNode
+    | :? TypeDefnUnionNode
+    | :? TypeDefnRecordNode
+    | :? TypeDefnNoneNode
+    | :? TypeDefnAbbrevNode
+    | :? TypeDefnExceptionNode
+    | :? TypeDefnExplicitClassOrInterfaceOrStructNode
+    | :? TypeDefnAugmentationNode
+    | :? TypeDefnFunNode
+    | :? TypeDefnDelegateNode
+    | :? TypeDefnUnspecifiedNode
+    | :? TypeDefnRegularTypeNode
+    // | SynModuleSigDecl_Val
+    // | SynModuleSigDecl_Types
+    // | SynModuleSigDecl_NestedModule
+    // | SynValSig_
+    | :? ExprMatchNode
+    // | SynMatchClause_
+    | :? PatTypedNode
+    | :? PatTupleNode
+    | :? TypeTupleNode
+    | :? TypeAppNode
+    | :? TypeFunsNode
+    | :? ExprTupleNode
+    // | SynUnionCase_
+    // | SynEnumCase_
+    | :? MemberDefnInheritNode
+    | :? OpenListNode
+    | :? MemberDefnImplicitInheritNode
+    | :? MemberDefnInheritNode
+    | :? MemberDefnValFieldNode
+    | :? MemberDefnImplicitCtorNode
+    | :? MemberDefnMemberNode
+    | :? MemberDefnExternBindingNode
+    | :? MemberDefnLetBindingNode
+    | :? MemberDefnExplicitCtorNode
+    | :? MemberDefnInterfaceNode
+    | :? MemberDefnAutoPropertyNode
+    | :? MemberDefnAbstractSlotNode
+    | :? MemberDefnPropertyGetSetNode -> visitLastChildNode (Array.last node.Children)
+    | :? PatLongIdentNode as pat ->
+        if Seq.isEmpty pat.Children then
+            node
+        else
+            visitLastChildNode (Seq.last node.Children)
+    | _ -> node
+
+let lineCommentAfterSourceCodeToTriviaInstruction (containerNode: Node) (trivia: TriviaNode) : unit =
+    let lineNumber = trivia.Range.StartLine
+
+    let result =
+        containerNode.Children
+        |> Array.filter (fun node -> node.Range.EndLine = lineNumber)
+        |> Array.sortByDescending (fun node -> node.Range.StartColumn)
+        |> Array.tryHead
+
+    result
+    |> Option.iter (fun node ->
+        let node = visitLastChildNode node
+        node.AddAfter(trivia))
+
 let simpleTriviaToTriviaInstruction (containerNode: Node) (trivia: TriviaNode) : unit =
     containerNode.Children
     |> Array.tryFind (fun node -> node.Range.StartLine > trivia.Range.StartLine)
@@ -138,7 +208,11 @@ let addToTree (tree: Oak) (trivia: TriviaNode seq) =
 
         match smallestNodeThatContainsTrivia with
         | None -> triviaBeforeOrAfterEntireTree tree trivia
-        | Some parentNode -> simpleTriviaToTriviaInstruction parentNode trivia
+        | Some parentNode ->
+            match trivia.Content with
+            | LineCommentAfterSourceCode _ -> lineCommentAfterSourceCodeToTriviaInstruction parentNode trivia
+            | CommentOnSingleLine _
+            | Newline -> simpleTriviaToTriviaInstruction parentNode trivia
 
 let enrichTree (config: FormatConfig) (sourceText: ISourceText) (ast: ParsedInput) (tree: Oak) : Oak =
     let _directives, codeComments =
