@@ -1,4 +1,4 @@
-﻿module Fantomas.Core.Fangorn
+﻿module rec Fantomas.Core.Fangorn
 
 open FSharp.Compiler.Text
 open FSharp.Compiler.Text.Range
@@ -175,7 +175,18 @@ let rec mkExpr (fromSource: TextFromSource) (e: SynExpr) =
 
         ExprQuoteNode(startToken, mkExpr fromSource e, endToken, exprRange)
         |> Expr.Quote
-    // | Expr.Typed _ -> failwith "Not Implemented"
+    | SynExpr.TypeTest (e, t, _) ->
+        ExprTypedNode(mkExpr fromSource e, ":?", mkType fromSource t, exprRange)
+        |> Expr.Typed
+    | SynExpr.Downcast (e, t, _) ->
+        ExprTypedNode(mkExpr fromSource e, ":?>", mkType fromSource t, exprRange)
+        |> Expr.Typed
+    | SynExpr.Upcast (e, t, _) ->
+        ExprTypedNode(mkExpr fromSource e, ":>", mkType fromSource t, exprRange)
+        |> Expr.Typed
+    | SynExpr.Typed (e, t, _) ->
+        ExprTypedNode(mkExpr fromSource e, ":", mkType fromSource t, exprRange)
+        |> Expr.Typed
     // | Expr.New _ -> failwith "Not Implemented"
     // | Expr.Tuple _ -> failwith "Not Implemented"
     // | Expr.StructTuple _ -> failwith "Not Implemented"
