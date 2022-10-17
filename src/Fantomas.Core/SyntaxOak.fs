@@ -470,6 +470,16 @@ type ExprTypedNode(expr: Expr, operator: string, t: Type, range) =
     member x.Operator = operator
     member x.Type = t
 
+type ExprNewParenNode(newKeyword: SingleTextNode, t: Type, arguments: Expr, range) =
+    inherit NodeBase(range)
+
+    override this.Children =
+        [| yield newKeyword; yield Type.Node t; yield Expr.Node arguments |]
+
+    member x.NewKeyword = newKeyword
+    member x.Type = t
+    member x.Arguments = arguments
+
 type ExprNewNode(range) =
     inherit NodeBase(range)
 
@@ -575,10 +585,15 @@ type ExprParenFunctionNameWithStarNode(range) =
 
     override this.Children = failwith "todo"
 
-type ExprParenNode(range) =
+type ExprParenNode(openingParen: SingleTextNode, expr: Expr, closingParen: SingleTextNode, range) =
     inherit NodeBase(range)
 
-    override this.Children = failwith "todo"
+    override this.Children =
+        [| yield openingParen; yield Expr.Node expr; yield closingParen |]
+
+    member x.OpeningParen = openingParen
+    member x.Expr = expr
+    member x.ClosingParen = closingParen
 
 type ExprDynamicNode(range) =
     inherit NodeBase(range)
@@ -822,6 +837,7 @@ type Expr =
     | Null of SingleTextNode
     | Quote of ExprQuoteNode
     | Typed of ExprTypedNode
+    | NewParen of ExprNewParenNode
     | New of ExprNewNode
     | Tuple of ExprTupleNode
     | StructTuple of ExprStructTupleNode
@@ -899,6 +915,7 @@ type Expr =
         | Null n -> n
         | Quote n -> n
         | Typed n -> n
+        | NewParen n -> n
         | New n -> n
         | Tuple n -> n
         | StructTuple n -> n
@@ -1342,10 +1359,18 @@ type MemberDefn =
         | AbstractSlot n -> n
         | PropertyGetSet n -> n
 
+type UnitNode(openingParen: SingleTextNode, closingParen: SingleTextNode, range) =
+    inherit NodeBase(range)
+    override x.Children = [| yield openingParen; yield closingParen |]
+    member x.OpeningParen = openingParen
+    member x.ClosingParen = closingParen
+
 [<RequireQualifiedAccess; NoEquality; NoComparison>]
 type Constant =
     | FromText of SingleTextNode
+    | Unit of UnitNode
 
     static member Node(c: Constant) : NodeBase =
         match c with
         | FromText n -> n
+        | Unit n -> n

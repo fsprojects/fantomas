@@ -92,12 +92,10 @@ let mkConstant (fromSource: TextFromSource) c r : Constant =
         SingleTextNode(fromSource fallback r, r) |> Constant.FromText
 
     match c with
-    | SynConst.Unit -> failwith "todo, 5C307887-9FF6-45F0-993F-F9EB759FE041"
-    // let lpr, rpr = RangeHelpers.mkStartEndRange 1 r
-    //
-    // genTriviaFor SynConst_Unit_OpeningParenthesis lpr sepOpenT
-    // +> genTriviaFor SynConst_Unit_ClosingParenthesis rpr sepCloseT
-    // |> genTriviaFor SynConst_Unit r
+    | SynConst.Unit ->
+        match r with
+        | StartEndRange 1 (lpr, _, rpr) ->
+            UnitNode(SingleTextNode("(", lpr), SingleTextNode(")", rpr), r) |> Constant.Unit
     | SynConst.Bool b -> SingleTextNode((if b then "true" else "false"), r) |> Constant.FromText
     | SynConst.Byte v -> orElse $"%A{v}"
     | SynConst.SByte v -> orElse $"%A{v}"
@@ -187,6 +185,10 @@ let rec mkExpr (fromSource: TextFromSource) (e: SynExpr) =
     | SynExpr.Typed (e, t, _) ->
         ExprTypedNode(mkExpr fromSource e, ":", mkType fromSource t, exprRange)
         |> Expr.Typed
+    | SynExpr.New (_, t, (SynExpr.Paren _ as px), StartRange 3 (newRange, _))
+    | SynExpr.New (_, t, (SynExpr.Const (SynConst.Unit, _) as px), StartRange 3 (newRange, _)) ->
+        ExprNewParenNode(SingleTextNode("new", newRange), mkType fromSource t, mkExpr fromSource px, exprRange)
+        |> Expr.NewParen
     // | Expr.New _ -> failwith "Not Implemented"
     // | Expr.Tuple _ -> failwith "Not Implemented"
     // | Expr.StructTuple _ -> failwith "Not Implemented"
@@ -208,6 +210,9 @@ let rec mkExpr (fromSource: TextFromSource) (e: SynExpr) =
     // | Expr.TraitCall _ -> failwith "Not Implemented"
     // | Expr.ParenILEmbedded _ -> failwith "Not Implemented"
     // | Expr.ParenFunctionNameWithStar _ -> failwith "Not Implemented"
+    | SynExpr.Paren (e, lpr, Some rpr, _) ->
+        ExprParenNode(SingleTextNode("(", lpr), mkExpr fromSource e, SingleTextNode(")", rpr), exprRange)
+        |> Expr.Paren
     // | Expr.Paren _ -> failwith "Not Implemented"
     // | Expr.Dynamic _ -> failwith "Not Implemented"
     // | Expr.PrefixApp _ -> failwith "Not Implemented"
