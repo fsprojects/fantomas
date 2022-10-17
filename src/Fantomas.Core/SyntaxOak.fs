@@ -287,10 +287,11 @@ type PatTypedNode(range) =
 
     override this.Children = failwith "todo"
 
-type PatNamedNode(range) =
+type PatNamedNode(name: SingleTextNode, range) =
     inherit NodeBase(range)
 
-    override this.Children = failwith "todo"
+    override this.Children = [| yield name |]
+    member this.Name = name
 
 type PatAsNode(range) =
     inherit NodeBase(range)
@@ -1012,7 +1013,7 @@ type BindingNode
     (
         leadingKeyword: SingleTextNode,
         functionName: SingleTextNode,
-        parameters: obj seq,
+        parameters: Pattern seq,
         equals: SingleTextNode,
         expr: Expr,
         range

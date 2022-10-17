@@ -108,3 +108,18 @@ type A =   int
         """
 type A = int
 """
+
+[<Test>]
+let ``function with parameters`` () =
+    formatSourceString
+        false
+        """
+let x y z  = 0
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let x y z = 0
+"""
