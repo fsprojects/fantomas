@@ -165,7 +165,16 @@ let rec mkExpr (fromSource: TextFromSource) (e: SynExpr) =
         |> Expr.Single
     | SynExpr.Const (c, r) -> mkConstant fromSource c r |> Expr.Constant
     | SynExpr.Null _ -> SingleTextNode("null", exprRange) |> Expr.Null
-    // | Expr.Quote _ -> failwith "Not Implemented"
+    | SynExpr.Quote (_, isRaw, e, _, range) ->
+        let startToken, endToken =
+            let sText, length, eText = if isRaw then "<@@", 3, "@@>" else "<@", 2, "@>"
+
+            match range with
+            | StartEndRange length (startRange, _, endRange) ->
+                SingleTextNode(sText, startRange), SingleTextNode(eText, endRange)
+
+        ExprQuoteNode(startToken, mkExpr fromSource e, endToken, exprRange)
+        |> Expr.Quote
     // | Expr.Typed _ -> failwith "Not Implemented"
     // | Expr.New _ -> failwith "Not Implemented"
     // | Expr.Tuple _ -> failwith "Not Implemented"

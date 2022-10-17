@@ -77,7 +77,12 @@ let genExpr (e: Expr) =
             (autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr node.Expr))
     | Expr.Constant node -> genConstant node
     | Expr.Null node -> genSingleTextNode node
-    | Expr.Quote _ -> failwith "Not Implemented"
+    | Expr.Quote node ->
+        genSingleTextNode node.OpenToken
+        +> sepSpace
+        +> expressionFitsOnRestOfLine (genExpr node.Expr) (indent +> sepNln +> genExpr node.Expr +> unindent +> sepNln)
+        +> sepSpace
+        +> genSingleTextNode node.CloseToken
     | Expr.Typed _ -> failwith "Not Implemented"
     | Expr.New _ -> failwith "Not Implemented"
     | Expr.Tuple _ -> failwith "Not Implemented"
