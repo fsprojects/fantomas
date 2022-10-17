@@ -462,10 +462,13 @@ type ExprQuoteNode(openToken: SingleTextNode, expr, closeToken: SingleTextNode, 
     member x.Expr = expr
     member x.CloseToken = closeToken
 
-type ExprTypedNode(range) =
+type ExprTypedNode(expr: Expr, operator: string, t: Type, range) =
     inherit NodeBase(range)
 
-    override this.Children = failwith "todo"
+    override this.Children = [| yield Expr.Node expr; yield Type.Node t |]
+    member x.Expr = expr
+    member x.Operator = operator
+    member x.Type = t
 
 type ExprNewNode(range) =
     inherit NodeBase(range)
