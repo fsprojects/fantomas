@@ -698,11 +698,6 @@ type ExprIfThenElifNode(range) =
 
     override this.Children = failwith "todo"
 
-type ExprIdentNode(range) =
-    inherit NodeBase(range)
-
-    override this.Children = failwith "todo"
-
 type ExprOptVarNode(range) =
     inherit NodeBase(range)
 
@@ -782,7 +777,7 @@ type ExprTyparNode(range) =
 type Expr =
     | Lazy of ExprLazyNode
     | Single of ExprSingleNode
-    | Constant of SingleTextNode
+    | Constant of Constant
     | Null of ExprNullNode
     | Quote of ExprQuoteNode
     | Typed of ExprTypedNode
@@ -837,7 +832,7 @@ type Expr =
     | IfThen of ExprIfThenNode
     | IfThenElse of ExprIfThenElseNode
     | IfThenElif of ExprIfThenElifNode
-    | Ident of ExprIdentNode
+    | Ident of SingleTextNode
     | OptVar of ExprOptVarNode
     | LongIdentSet of ExprLongIdentSetNode
     | DotIndexedGet of ExprDotIndexedGetNode
@@ -858,7 +853,7 @@ type Expr =
         match x with
         | Lazy n -> n
         | Single n -> n
-        | Constant n -> n
+        | Constant n -> Constant.Node n
         | Null n -> n
         | Quote n -> n
         | Typed n -> n
@@ -1294,3 +1289,11 @@ type MemberDefn =
         | AutoProperty n -> n
         | AbstractSlot n -> n
         | PropertyGetSet n -> n
+
+[<RequireQualifiedAccess; NoEquality; NoComparison>]
+type Constant =
+    | FromText of SingleTextNode
+
+    static member Node(c: Constant) : NodeBase =
+        match c with
+        | FromText n -> n
