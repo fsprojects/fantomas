@@ -6,6 +6,7 @@ open FSharp.Compiler.Syntax
 open Fantomas.Core
 open Fantomas.Core.ISourceTextExtensions
 open Fantomas.Core.FormatConfig
+open Fantomas.Core.SyntaxOak
 // open Fantomas.Core.TriviaTypes
 // open Fantomas.Core.SourceTransformer
 
@@ -1204,17 +1205,20 @@ let autoNlnConsideringTriviaIfExpressionExceedsPageWidth sepNlnConsideringTrivia
 //         f e ctx
 //     | _ -> indentSepNlnUnindent (f e) ctx
 //
-// let autoIndentAndNlnIfExpressionExceedsPageWidthUnlessStroustrup
-//     (f: SynExpr -> Context -> Context)
-//     (e: SynExpr)
-//     (ctx: Context)
-//     =
-//     match e with
-//     | SourceParser.StroustrupStyleExpr ctx.Config.ExperimentalStroustrupStyle e when
-//         (not (hasTriviaBeforeExpression ctx e))
-//         ->
-//         f e ctx
-//     | _ -> autoIndentAndNlnIfExpressionExceedsPageWidth (f e) ctx
+let autoIndentAndNlnIfExpressionExceedsPageWidthUnlessStroustrup
+    (f: Expr -> Context -> Context)
+    (e: Expr)
+    (ctx: Context)
+    =
+    let isStroustrup =
+        ctx.Config.ExperimentalStroustrupStyle
+        && e.IsStroustrupStyleExpr
+        && Seq.isEmpty (Expr.Node e).ContentBefore
+
+    if isStroustrup then
+        f e ctx
+    else
+        autoIndentAndNlnIfExpressionExceedsPageWidth (f e) ctx
 
 type internal ColMultilineItem =
     | ColMultilineItem of
