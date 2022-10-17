@@ -454,11 +454,6 @@ type ExprConstantNode(range) =
 
     override this.Children = failwith "todo"
 
-type ExprNullNode(range) =
-    inherit NodeBase(range)
-
-    override this.Children = failwith "todo"
-
 type ExprQuoteNode(range) =
     inherit NodeBase(range)
 
@@ -818,7 +813,7 @@ type Expr =
     | Lazy of ExprLazyNode
     | Single of ExprSingleNode
     | Constant of Constant
-    | Null of ExprNullNode
+    | Null of SingleTextNode
     | Quote of ExprQuoteNode
     | Typed of ExprTypedNode
     | New of ExprNewNode

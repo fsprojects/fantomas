@@ -138,3 +138,18 @@ let x =  ``y``
         """
 let x = ``y``
 """
+
+[<Test>]
+let ``null`` () =
+    formatSourceString
+        false
+        """
+null 
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+null
+"""

@@ -70,12 +70,13 @@ let genExpr (e: Expr) =
         +> ifElse node.ExprIsInfix genInfixExpr genNonInfixExpr
     | Expr.Single node ->
         genSingleTextNode node.Leading
+        +> sepSpace
         +> ifElse
             node.SupportsStroustrup
             (autoIndentAndNlnIfExpressionExceedsPageWidthUnlessStroustrup genExpr node.Expr)
             (autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr node.Expr))
     | Expr.Constant node -> genConstant node
-    | Expr.Null _ -> failwith "Not Implemented"
+    | Expr.Null node -> genSingleTextNode node
     | Expr.Quote _ -> failwith "Not Implemented"
     | Expr.Typed _ -> failwith "Not Implemented"
     | Expr.New _ -> failwith "Not Implemented"

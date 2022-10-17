@@ -164,7 +164,7 @@ let rec mkExpr (fromSource: TextFromSource) (e: SynExpr) =
         ExprSingleNode(SingleTextNode("fixed", fixedKeyword), false, mkExpr fromSource e, exprRange)
         |> Expr.Single
     | SynExpr.Const (c, r) -> mkConstant fromSource c r |> Expr.Constant
-    // | Expr.Null _ -> failwith "Not Implemented"
+    | SynExpr.Null _ -> SingleTextNode("null", exprRange) |> Expr.Null
     // | Expr.Quote _ -> failwith "Not Implemented"
     // | Expr.Typed _ -> failwith "Not Implemented"
     // | Expr.New _ -> failwith "Not Implemented"
