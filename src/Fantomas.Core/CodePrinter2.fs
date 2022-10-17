@@ -30,26 +30,24 @@ let genNode<'n when 'n :> NodeBase> (n: 'n) (f: Context -> Context) =
     +> f
     +> col sepNone n.ContentAfter genTrivia
 
-type SingleTextNode with
-
-    member x.AddEvent = !-x.Text |> genNode x
+let genSingleTextNode (node: SingleTextNode) = !-node.Text |> genNode node
 
 let genIdentListNode (iln: IdentListNode) =
     col sepNone iln.Content (function
-        | IdentifierOrDot.Ident ident -> ident.AddEvent
+        | IdentifierOrDot.Ident ident -> genSingleTextNode ident
         | IdentifierOrDot.KnownDot _
         | IdentifierOrDot.UnknownDot _ -> sepDot)
     |> genNode iln
 
 let genParsedHashDirective (phd: ParsedHashDirectiveNode) =
-    !- "#" +> !-phd.Ident +> sepSpace +> col sepSpace phd.Args (fun a -> a.AddEvent)
+    !- "#" +> !-phd.Ident +> sepSpace +> col sepSpace phd.Args genSingleTextNode
     |> genNode phd
 
 let genExpr (e: Expr) =
     match e with
     | Expr.Lazy _ -> failwith "Not Implemented"
     | Expr.Single _ -> failwith "Not Implemented"
-    | Expr.Constant _ -> failwith "Not Implemented"
+    | Expr.Constant node -> genSingleTextNode node
     | Expr.Null _ -> failwith "Not Implemented"
     | Expr.Quote _ -> failwith "Not Implemented"
     | Expr.Typed _ -> failwith "Not Implemented"
@@ -131,7 +129,7 @@ let genPat (p: Pattern) =
     | Pattern.Null _ -> failwith "Not Implemented"
     | Pattern.Wild _ -> failwith "Not Implemented"
     | Pattern.Typed _ -> failwith "Not Implemented"
-    | Pattern.Named _ -> failwith "Not Implemented"
+    | Pattern.Named node -> genSingleTextNode node.Name
     | Pattern.As _ -> failwith "Not Implemented"
     | Pattern.ListCons _ -> failwith "Not Implemented"
     | Pattern.NamePatPairs _ -> failwith "Not Implemented"
@@ -149,12 +147,13 @@ let genPat (p: Pattern) =
     |> genNode (Pattern.Node p)
 
 let genBinding (b: BindingNode) =
-    b.LeadingKeyword.AddEvent
+    genSingleTextNode b.LeadingKeyword
     +> sepSpace
-    +> b.FunctionName.AddEvent
+    +> genSingleTextNode b.FunctionName
     +> sepSpace
-    +> col sepSpace b.Parameters (fun _ -> sepNone)
-    +> b.Equals.AddEvent
+    +> col sepSpace b.Parameters genPat
+    +> sepSpace
+    +> genSingleTextNode b.Equals
     +> sepSpace
     +> genExpr b.Expr
     |> genNode b
@@ -191,11 +190,11 @@ let genTypeDefn (td: TypeDefn) =
     let header =
         let node = (TypeDefn.TypeDefnNode td).TypeName
 
-        node.LeadingKeyword.AddEvent
+        genSingleTextNode node.LeadingKeyword
         +> sepSpace
         +> genIdentListNode node.Identifier
         +> sepSpace
-        +> optSingle (fun (n: SingleTextNode) -> n.AddEvent) node.EqualsToken
+        +> optSingle genSingleTextNode node.EqualsToken
 
     let body =
         match td with
@@ -242,7 +241,9 @@ let colWithNlnWhenNodeIsMultiline<'n when 'n :> NodeBase> (f: 'n -> Context -> C
 let genModule (m: ModuleOrNamespaceNode) =
     onlyIf
         m.IsNamed
-        (optSingle (fun (n: SingleTextNode) -> n.AddEvent +> sepSpace +> genIdentListNode m.Name) m.LeadingKeyword
+        (optSingle
+            (fun (n: SingleTextNode) -> genSingleTextNode n +> sepSpace +> genIdentListNode m.Name)
+            m.LeadingKeyword
          +> onlyIf (not m.Declarations.IsEmpty) (sepNln +> sepNln))
     +> colWithNlnWhenMappedNodeIsMultiline ModuleDecl.Node genModuleDecl m.Declarations
     |> genNode m
