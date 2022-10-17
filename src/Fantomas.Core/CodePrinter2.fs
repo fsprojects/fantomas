@@ -43,11 +43,16 @@ let genParsedHashDirective (phd: ParsedHashDirectiveNode) =
     !- "#" +> !-phd.Ident +> sepSpace +> col sepSpace phd.Args genSingleTextNode
     |> genNode phd
 
+// genNode will should be called in the caller function.
+let genConstant (c: Constant) =
+    match c with
+    | Constant.FromText n -> genSingleTextNode n
+
 let genExpr (e: Expr) =
     match e with
     | Expr.Lazy _ -> failwith "Not Implemented"
     | Expr.Single _ -> failwith "Not Implemented"
-    | Expr.Constant node -> genSingleTextNode node
+    | Expr.Constant node -> genConstant node
     | Expr.Null _ -> failwith "Not Implemented"
     | Expr.Quote _ -> failwith "Not Implemented"
     | Expr.Typed _ -> failwith "Not Implemented"
@@ -102,7 +107,7 @@ let genExpr (e: Expr) =
     | Expr.IfThen _ -> failwith "Not Implemented"
     | Expr.IfThenElse _ -> failwith "Not Implemented"
     | Expr.IfThenElif _ -> failwith "Not Implemented"
-    | Expr.Ident _ -> failwith "Not Implemented"
+    | Expr.Ident node -> genSingleTextNode node
     | Expr.OptVar _ -> failwith "Not Implemented"
     | Expr.LongIdentSet _ -> failwith "Not Implemented"
     | Expr.DotIndexedGet _ -> failwith "Not Implemented"
