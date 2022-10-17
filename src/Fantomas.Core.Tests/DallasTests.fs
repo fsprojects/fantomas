@@ -144,7 +144,9 @@ let ``null`` () =
     formatSourceString
         false
         """
-null 
+null
+<@@  x @@>
+<@  y @>
 """
         config
     |> prepend newline
@@ -152,4 +154,6 @@ null
         equal
         """
 null
+<@@ x @@>
+<@ y @>
 """
