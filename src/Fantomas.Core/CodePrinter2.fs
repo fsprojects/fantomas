@@ -20,6 +20,9 @@ let genTrivia (trivia: TriviaNode) (ctx: Context) =
 
     let gen =
         match trivia.Content with
+        | LineCommentAfterSourceCode s ->
+            let comment = sprintf "%s%s" (if addSpace then " " else String.empty) s
+            writerEvent (WriteBeforeNewline comment)
         | CommentOnSingleLine comment -> (ifElse addNewline sepNlnForTrivia sepNone) +> !-comment +> sepNlnForTrivia
         | Newline -> (ifElse addNewline (sepNlnForTrivia +> sepNlnForTrivia) sepNlnForTrivia)
 
@@ -65,7 +68,12 @@ let genExpr (e: Expr) =
         genSingleTextNode node.LazyWord
         +> sepSpace
         +> ifElse node.ExprIsInfix genInfixExpr genNonInfixExpr
-    | Expr.Single _ -> failwith "Not Implemented"
+    | Expr.Single node ->
+        genSingleTextNode node.Leading
+        +> ifElse
+            node.SupportsStroustrup
+            (autoIndentAndNlnIfExpressionExceedsPageWidthUnlessStroustrup genExpr node.Expr)
+            (autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr node.Expr))
     | Expr.Constant node -> genConstant node
     | Expr.Null _ -> failwith "Not Implemented"
     | Expr.Quote _ -> failwith "Not Implemented"
@@ -240,7 +248,7 @@ let genModuleDecl (md: ModuleDecl) =
     | ModuleDecl.OpenList ol -> genOpenList ol
     | ModuleDecl.HashDirectiveList _ -> failwith "Not Implemented"
     | ModuleDecl.AttributesList _ -> failwith "Not Implemented"
-    | ModuleDecl.DeclExpr _ -> failwith "Not Implemented"
+    | ModuleDecl.DeclExpr e -> genExpr e
     | ModuleDecl.ExternBinding _ -> failwith "Not Implemented"
     | ModuleDecl.TopLevelBinding b -> genBinding b
     | ModuleDecl.ModuleAbbrev _ -> failwith "Not Implemented"
