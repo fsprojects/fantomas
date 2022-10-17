@@ -79,6 +79,32 @@ let mkExpr (fromSource: TextFromSource) (e: SynExpr) =
         SingleTextNode(number, e.Range) |> Expr.Constant
     | _ -> failwith "todo, 693F570D-5A08-4E44-8937-FF98CE0AD8FC"
 
+let mkPat (fromSource: TextFromSource) (p: SynPat) =
+    match p with
+    // | Pattern.OptionalVal _ -> failwith "Not Implemented"
+    // | Pattern.Attrib _ -> failwith "Not Implemented"
+    // | Pattern.Or _ -> failwith "Not Implemented"
+    // | Pattern.Ands _ -> failwith "Not Implemented"
+    // | Pattern.Null _ -> failwith "Not Implemented"
+    // | Pattern.Wild _ -> failwith "Not Implemented"
+    // | Pattern.Typed _ -> failwith "Not Implemented"
+    | SynPat.Named (ident = ident) -> PatNamedNode(ident.ToNode(), p.Range) |> Pattern.Named
+    // | Pattern.As _ -> failwith "Not Implemented"
+    // | Pattern.ListCons _ -> failwith "Not Implemented"
+    // | Pattern.NamePatPairs _ -> failwith "Not Implemented"
+    // | Pattern.LongIdentParen _ -> failwith "Not Implemented"
+    // | Pattern.LongIdent _ -> failwith "Not Implemented"
+    // | Pattern.Unit _ -> failwith "Not Implemented"
+    // | Pattern.Paren _ -> failwith "Not Implemented"
+    // | Pattern.Tuple _ -> failwith "Not Implemented"
+    // | Pattern.StructTuple _ -> failwith "Not Implemented"
+    // | Pattern.ArrayOrList _ -> failwith "Not Implemented"
+    // | Pattern.Record _ -> failwith "Not Implemented"
+    // | Pattern.Const _ -> failwith "Not Implemented"
+    // | Pattern.IsInst _ -> failwith "Not Implemented"
+    // | Pattern.QuoteExpr _ -> failwith "Not Implemented"
+    | _ -> failwith "todo, 52DBA54F-37FE-45F1-9DDC-7BF7DE2F3502"
+
 let mkBinding
     (fromSource: TextFromSource)
     (SynBinding (_ao, _, _isInline, _isMutable, _attrs, _px, _, pat, returnInfo, expr, _, _, trivia))
@@ -88,9 +114,11 @@ let mkBinding
         | SynLeadingKeyword.Let m -> SingleTextNode("let", m)
         | _ -> failwith "todo, FF881966-836F-4425-A600-8C928DE4CDE1"
 
-    let functionName =
+    let functionName, parameters =
         match pat with
-        | SynPat.Named (ident = ident) -> ident.ToNode()
+        | SynPat.Named (ident = ident) -> ident.ToNode(), []
+        | SynPat.LongIdent (longDotId = (SynLongIdent ([ _ ], _, _) as lid); argPats = SynArgPats.Pats ps) ->
+            lid.IdentsWithTrivia.[0].ToNode(), List.map (mkPat fromSource) ps
         | _ -> failwith "todo, 92E86FB8-1927-4CCD-AF73-244BD6327EB1"
 
     let equals = SingleTextNode("=", trivia.EqualsRange.Value)
@@ -111,7 +139,7 @@ let mkBinding
 
         unionRanges start e.Range
 
-    BindingNode(leadingKeyword, functionName, Seq.empty, equals, (mkExpr fromSource expr), range)
+    BindingNode(leadingKeyword, functionName, parameters, equals, (mkExpr fromSource expr), range)
 
 let mkModuleDecl (fromSource: TextFromSource) (decl: SynModuleDecl) =
     match decl with
