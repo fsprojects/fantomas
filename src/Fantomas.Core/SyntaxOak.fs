@@ -15,31 +15,43 @@ type TriviaNode(content: TriviaContent, range: range) =
     member x.Content = content
     member x.Range = range
 
+[<Interface>]
+type Node =
+    abstract ContentBefore: TriviaNode seq
+    abstract ContentAfter: TriviaNode seq
+    abstract Range: range
+    abstract Children: Node array
+    abstract AddBefore: triviaNode: TriviaNode -> unit
+    abstract AddAfter: triviaNode: TriviaNode -> unit
+
 [<AbstractClass>]
 type NodeBase(range: range) =
     let nodesBefore = Queue<TriviaNode>(0)
     let nodesAfter = Queue<TriviaNode>(0)
 
-    member _.ContentBefore: TriviaNode seq = nodesBefore
-    member _.ContentAfter: TriviaNode seq = nodesAfter
-    member _.Range = range
-    abstract member Children: NodeBase array
-    member _.AddBefore(triviaNode: TriviaNode) = nodesBefore.Enqueue triviaNode
-    member _.AddAfter(triviaNode: TriviaNode) = nodesAfter.Enqueue triviaNode
+    abstract member Children: Node array
+
+    interface Node with
+        member _.ContentBefore: TriviaNode seq = nodesBefore
+        member _.ContentAfter: TriviaNode seq = nodesAfter
+        member _.Range = range
+        member _.AddBefore(triviaNode: TriviaNode) = nodesBefore.Enqueue triviaNode
+        member _.AddAfter(triviaNode: TriviaNode) = nodesAfter.Enqueue triviaNode
+        member this.Children = this.Children
 
 type StringNode(content: string, range: range) =
     inherit NodeBase(range)
     member x.Content = content
     override this.Children = Array.empty
 
-let noa<'n when 'n :> NodeBase> (n: 'n option) =
+let noa<'n when 'n :> Node> (n: 'n option) =
     match n with
     | None -> Array.empty
-    | Some n -> [| n :> NodeBase |]
+    | Some n -> [| n :> Node |]
 
-let nodes<'n when 'n :> NodeBase> (ns: seq<'n>) = Seq.cast<NodeBase> ns
+let nodes<'n when 'n :> Node> (ns: seq<'n>) = Seq.cast<Node> ns
 
-let nodeRange (n: NodeBase) = n.Range
+let nodeRange (n: Node) = n.Range
 
 let combineRanges (ranges: range seq) =
     if Seq.isEmpty ranges then
@@ -60,8 +72,8 @@ type IdentifierOrDot =
 
     member x.Range =
         match x with
-        | Ident n -> Some n.Range
-        | KnownDot n -> Some n.Range
+        | Ident n -> Some (n :> Node).Range
+        | KnownDot n -> Some (n :> Node).Range
         | UnknownDot -> None
 
 type IdentListNode(content: IdentifierOrDot list, range) =
@@ -73,7 +85,7 @@ type IdentListNode(content: IdentifierOrDot list, range) =
     override x.Children =
         x.Content
         |> List.choose (function
-            | IdentifierOrDot.Ident n -> Some(n :> NodeBase)
+            | IdentifierOrDot.Ident n -> Some(n :> Node)
             | _ -> None)
         |> Array.ofList
 
@@ -413,10 +425,18 @@ type Pattern =
         | IsInst n -> n
         | QuoteExpr n -> n
 
-type ExprLazyNode(range) =
+type ExprLazyNode(lazyWord: SingleTextNode, expr: Expr, range) =
     inherit NodeBase(range)
 
-    override this.Children = failwith "todo"
+    override this.Children = [| yield lazyWord; yield Expr.Node expr |]
+
+    member this.LazyWord = lazyWord
+    member this.Expr = expr
+
+    member this.ExprIsInfix =
+        match Expr.Node expr with
+        | :? InfixApp -> true
+        | _ -> false
 
 type ExprSingleNode(range) =
     inherit NodeBase(range)
@@ -563,23 +583,37 @@ type ExprPrefixAppNode(range) =
 
     override this.Children = failwith "todo"
 
+type InfixApp =
+    interface
+    end
+
 type ExprNewlineInfixAppAlwaysMultilineNode(range) =
     inherit NodeBase(range)
+    interface InfixApp
 
     override this.Children = failwith "todo"
 
 type ExprNewlineInfixAppsNode(range) =
     inherit NodeBase(range)
+    interface InfixApp
 
     override this.Children = failwith "todo"
 
 type ExprSameInfixAppsNode(range) =
     inherit NodeBase(range)
+    interface InfixApp
+
+    override this.Children = failwith "todo"
+
+type ExprInfixAppNode(range) =
+    inherit NodeBase(range)
+    interface InfixApp
 
     override this.Children = failwith "todo"
 
 type ExprTernaryAppNode(range) =
     inherit NodeBase(range)
+    interface InfixApp
 
     override this.Children = failwith "todo"
 
@@ -808,6 +842,7 @@ type Expr =
     | NewlineInfixAppAlwaysMultiline of ExprNewlineInfixAppAlwaysMultilineNode
     | NewlineInfixApps of ExprNewlineInfixAppsNode
     | SameInfixApps of ExprSameInfixAppsNode
+    | InfixApp of ExprInfixAppNode
     | TernaryApp of ExprTernaryAppNode
     | IndexWithoutDot of ExprIndexWithoutDotNode
     | AppDotGetTypeApp of ExprAppDotGetTypeAppNode
@@ -849,7 +884,7 @@ type Expr =
     | IndexFromEnd of ExprIndexFromEndNode
     | Typar of ExprTyparNode
 
-    static member Node(x: Expr) : NodeBase =
+    static member Node(x: Expr) : Node =
         match x with
         | Lazy n -> n
         | Single n -> n
@@ -884,6 +919,7 @@ type Expr =
         | NewlineInfixAppAlwaysMultiline n -> n
         | NewlineInfixApps n -> n
         | SameInfixApps n -> n
+        | InfixApp n -> n
         | TernaryApp n -> n
         | IndexWithoutDot n -> n
         | AppDotGetTypeApp n -> n
@@ -942,7 +978,7 @@ type Open =
     | ModuleOrNamespace of OpenModuleOrNamespaceNode
     | Target of OpenTargetNode
 
-    static member Node(x: Open) : NodeBase =
+    static member Node(x: Open) : Node =
         match x with
         | ModuleOrNamespace n -> n
         | Target n -> n
@@ -992,7 +1028,7 @@ type ModuleDecl =
     | NestedModule of ModuleOrNamespaceNode
     | TypeDefn of TypeDefn
 
-    static member Node(x: ModuleDecl) : NodeBase =
+    static member Node(x: ModuleDecl) : Node =
         match x with
         | OpenList n -> n
         | HashDirectiveList n -> n
@@ -1168,7 +1204,7 @@ type TypeDefn =
     | Unspecified of TypeDefnUnspecifiedNode
     | RegularType of TypeDefnRegularTypeNode
 
-    static member Node(x: TypeDefn) : NodeBase =
+    static member Node(x: TypeDefn) : Node =
         match x with
         | Enum n -> n
         | Union n -> n

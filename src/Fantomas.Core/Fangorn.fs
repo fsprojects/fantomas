@@ -179,7 +179,6 @@ let mkExpr (fromSource: TextFromSource) (e: SynExpr) =
     // | Expr.IfThenElse _ -> failwith "Not Implemented"
     // | Expr.IfThenElif _ -> failwith "Not Implemented"
     | SynExpr.Ident ident -> ident.ToNode() |> Expr.Ident
-    // | Expr.Ident _ -> failwith "Not Implemented"
     // | Expr.OptVar _ -> failwith "Not Implemented"
     // | Expr.LongIdentSet _ -> failwith "Not Implemented"
     // | Expr.DotIndexedGet _ -> failwith "Not Implemented"
@@ -321,7 +320,7 @@ let mkTypeDefn
                 None,
                 Option.map (fun eq -> SingleTextNode("=", eq)) trivia.EqualsRange,
                 None,
-                unionRanges tk identifierNode.Range
+                unionRanges tk (identifierNode :> Node).Range
             )
         | _, None ->
             // TODO: update dotnet/fsharp to add "and" keywords.
