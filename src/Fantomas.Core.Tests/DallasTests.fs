@@ -140,7 +140,7 @@ let x = ``y``
 """
 
 [<Test>]
-let ``null`` () =
+let ``horsing around`` () =
     formatSourceString
         false
         """
@@ -148,6 +148,8 @@ null
 <@@  x @@>
 <@  y @>
 x :>  int
+new T()
+new T(t1)
 """
         config
     |> prepend newline
@@ -158,4 +160,6 @@ null
 <@@ x @@>
 <@ y @>
 x :> int
+new T()
+new T(t1)
 """

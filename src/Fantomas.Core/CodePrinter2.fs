@@ -3,6 +3,8 @@
 open Fantomas.Core.Context
 open Fantomas.Core.SyntaxOak
 
+let (|UppercaseType|LowercaseType|) (t: Type) : Choice<unit, unit> = UppercaseType()
+
 let genTrivia (trivia: TriviaNode) (ctx: Context) =
     let currentLastLine = ctx.WriterModel.Lines |> List.tryHead
 
@@ -50,6 +52,7 @@ let genParsedHashDirective (phd: ParsedHashDirectiveNode) =
 let genConstant (c: Constant) =
     match c with
     | Constant.FromText n -> genSingleTextNode n
+    | Constant.Unit n -> genSingleTextNode n.OpeningParen +> genSingleTextNode n.ClosingParen
 
 let genExpr (e: Expr) =
     match e with
@@ -97,6 +100,21 @@ let genExpr (e: Expr) =
         match node.Expr with
         | Expr.Lambda _ -> long
         | _ -> expressionFitsOnRestOfLine short long
+    | Expr.NewParen node ->
+        let sepSpace (ctx: Context) =
+            match node.Type with
+            | UppercaseType -> onlyIf ctx.Config.SpaceBeforeUppercaseInvocation sepSpace ctx
+            | LowercaseType -> onlyIf ctx.Config.SpaceBeforeLowercaseInvocation sepSpace ctx
+
+        let short = !- "new " +> genType node.Type +> sepSpace +> genExpr node.Arguments
+
+        let long =
+            !- "new "
+            +> genType node.Type
+            +> sepSpace
+            +> genMultilineFunctionApplicationArguments node.Arguments
+
+        expressionFitsOnRestOfLine short long
     | Expr.New _ -> failwith "Not Implemented"
     | Expr.Tuple _ -> failwith "Not Implemented"
     | Expr.StructTuple _ -> failwith "Not Implemented"
@@ -118,7 +136,10 @@ let genExpr (e: Expr) =
     | Expr.TraitCall _ -> failwith "Not Implemented"
     | Expr.ParenILEmbedded _ -> failwith "Not Implemented"
     | Expr.ParenFunctionNameWithStar _ -> failwith "Not Implemented"
-    | Expr.Paren _ -> failwith "Not Implemented"
+    | Expr.Paren node ->
+        genSingleTextNode node.OpeningParen
+        +> genExpr node.Expr
+        +> genSingleTextNode node.ClosingParen
     | Expr.Dynamic _ -> failwith "Not Implemented"
     | Expr.PrefixApp _ -> failwith "Not Implemented"
     | Expr.NewlineInfixAppAlwaysMultiline _ -> failwith "Not Implemented"
@@ -166,6 +187,41 @@ let genExpr (e: Expr) =
     | Expr.IndexFromEnd _ -> failwith "Not Implemented"
     | Expr.Typar _ -> failwith "Not Implemented"
     |> genNode (Expr.Node e)
+
+let genMultilineFunctionApplicationArguments (argExpr: Expr) = !- "todo!"
+// let argsInsideParenthesis lpr rpr pr f =
+//     sepOpenTFor lpr +> indentSepNlnUnindent f +> sepNln +> sepCloseTFor rpr
+//     |> genTriviaFor SynExpr_Paren pr
+//
+// let genExpr e =
+//     match e with
+//     | InfixApp (equal, operatorSli, e1, e2, range) when (equal = "=") ->
+//         genNamedArgumentExpr operatorSli e1 e2 range
+//     | _ -> genExpr e
+//
+// match argExpr with
+// | Paren (lpr, Lambda (pats, arrowRange, body, range), rpr, _pr) ->
+//     fun ctx ->
+//         if ctx.Config.MultiLineLambdaClosingNewline then
+//             let genPats =
+//                 let shortPats = col sepSpace pats genPat
+//                 let longPats = atCurrentColumn (sepNln +> col sepNln pats genPat)
+//                 expressionFitsOnRestOfLine shortPats longPats
+//
+//             (sepOpenTFor lpr
+//              +> (!- "fun " +> genPats +> genLambdaArrowWithTrivia genExpr body arrowRange
+//                  |> genTriviaFor SynExpr_Lambda range)
+//              +> sepNln
+//              +> sepCloseTFor rpr)
+//                 ctx
+//         else
+//             genExpr argExpr ctx
+// | Paren (lpr, Tuple (args, tupleRange), rpr, pr) ->
+//     genTupleMultiline args
+//     |> genTriviaFor SynExpr_Tuple tupleRange
+//     |> argsInsideParenthesis lpr rpr pr
+// | Paren (lpr, singleExpr, rpr, pr) -> genExpr singleExpr |> argsInsideParenthesis lpr rpr pr
+// | _ -> genExpr argExpr
 
 let genPat (p: Pattern) =
     match p with
