@@ -25,7 +25,7 @@ let genTrivia (trivia: TriviaNode) (ctx: Context) =
 
     gen ctx
 
-let genNode<'n when 'n :> NodeBase> (n: 'n) (f: Context -> Context) =
+let genNode<'n when 'n :> Node> (n: 'n) (f: Context -> Context) =
     col sepNone n.ContentBefore genTrivia
     +> f
     +> col sepNone n.ContentAfter genTrivia
@@ -50,7 +50,21 @@ let genConstant (c: Constant) =
 
 let genExpr (e: Expr) =
     match e with
-    | Expr.Lazy _ -> failwith "Not Implemented"
+    | Expr.Lazy node ->
+        let genInfixExpr (ctx: Context) =
+            isShortExpression
+                ctx.Config.MaxInfixOperatorExpression
+                // if this fits on the rest of line right after the lazy keyword, it should be wrapped in parenthesis.
+                (sepOpenT +> genExpr e +> sepCloseT)
+                // if it is multiline there is no need for parenthesis, because of the indentation
+                (indent +> sepNln +> genExpr e +> unindent)
+                ctx
+
+        let genNonInfixExpr = autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr e)
+
+        genSingleTextNode node.LazyWord
+        +> sepSpace
+        +> ifElse node.ExprIsInfix genInfixExpr genNonInfixExpr
     | Expr.Single _ -> failwith "Not Implemented"
     | Expr.Constant node -> genConstant node
     | Expr.Null _ -> failwith "Not Implemented"
@@ -83,6 +97,7 @@ let genExpr (e: Expr) =
     | Expr.NewlineInfixAppAlwaysMultiline _ -> failwith "Not Implemented"
     | Expr.NewlineInfixApps _ -> failwith "Not Implemented"
     | Expr.SameInfixApps _ -> failwith "Not Implemented"
+    | Expr.InfixApp _ -> failwith "nope"
     | Expr.TernaryApp _ -> failwith "Not Implemented"
     | Expr.IndexWithoutDot _ -> failwith "Not Implemented"
     | Expr.AppDotGetTypeApp _ -> failwith "Not Implemented"
@@ -232,16 +247,16 @@ let genModuleDecl (md: ModuleDecl) =
     | ModuleDecl.NestedModule _ -> failwith "Not Implemented"
     | ModuleDecl.TypeDefn td -> genTypeDefn td
 
-let sepNlnUnlessContentBefore (node: NodeBase) =
+let sepNlnUnlessContentBefore (node: Node) =
     if Seq.isEmpty node.ContentBefore then sepNln else sepNone
 
-let colWithNlnWhenMappedNodeIsMultiline<'n> (mapNode: 'n -> NodeBase) (f: 'n -> Context -> Context) (nodes: 'n list) =
+let colWithNlnWhenMappedNodeIsMultiline<'n> (mapNode: 'n -> Node) (f: 'n -> Context -> Context) (nodes: 'n list) =
     nodes
     |> List.map (fun n -> ColMultilineItem(f n, (mapNode >> sepNlnUnlessContentBefore) n))
     |> colWithNlnWhenItemIsMultiline
 
-let colWithNlnWhenNodeIsMultiline<'n when 'n :> NodeBase> (f: 'n -> Context -> Context) (nodes: 'n list) =
-    colWithNlnWhenMappedNodeIsMultiline<'n> (fun n -> n :> NodeBase) f nodes
+let colWithNlnWhenNodeIsMultiline<'n when 'n :> Node> (f: 'n -> Context -> Context) (nodes: 'n list) =
+    colWithNlnWhenMappedNodeIsMultiline<'n> (fun n -> n :> Node) f nodes
 
 let genModule (m: ModuleOrNamespaceNode) =
     onlyIf

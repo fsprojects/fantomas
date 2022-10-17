@@ -31,7 +31,7 @@ let internal collectTriviaFromCodeComments (source: ISourceText) (codeComments: 
 let internal collectTriviaFromBlankLines
     (config: FormatConfig)
     (source: ISourceText)
-    (rootNode: NodeBase)
+    (rootNode: Node)
     (codeComments: CommentTrivia list)
     (codeRange: range)
     : TriviaNode list =
@@ -48,13 +48,13 @@ let internal collectTriviaFromBlankLines
                 [ r.StartLine .. r.EndLine ]
 
         let multilineStringsLines =
-            let rec visit (node: NodeBase) (finalContinuation: int list -> int list) =
+            let rec visit (node: Node) (finalContinuation: int list -> int list) =
                 let continuations: ((int list -> int list) -> int list) list =
                     Array.toList node.Children |> List.map visit
 
                 let currentLines =
                     match node with
-                    | :? StringNode as node -> captureLinesIfMultiline node.Range
+                    | :? StringNode as node -> captureLinesIfMultiline (node :> Node).Range
                     | _ -> []
 
                 let finalContinuation (lines: int list list) : int list =
@@ -101,7 +101,7 @@ let internal collectTriviaFromBlankLines
                     else
                         count, None)
 
-let rec findNodeWhereRangeFitsIn (root: NodeBase) (range: range) : NodeBase option =
+let rec findNodeWhereRangeFitsIn (root: Node) (range: range) : Node option =
     let doesSelectionFitInNode = RangeHelpers.rangeContainsRange root.Range range
 
     if not doesSelectionFitInNode then
@@ -117,7 +117,7 @@ let rec findNodeWhereRangeFitsIn (root: NodeBase) (range: range) : NodeBase opti
         | Some betterChild -> Some betterChild
         | None -> Some root
 
-let triviaBeforeOrAfterEntireTree (rootNode: NodeBase) (trivia: TriviaNode) : unit =
+let triviaBeforeOrAfterEntireTree (rootNode: Node) (trivia: TriviaNode) : unit =
     let isBefore = trivia.Range.EndLine < rootNode.Range.StartLine
 
     if isBefore then
@@ -125,7 +125,7 @@ let triviaBeforeOrAfterEntireTree (rootNode: NodeBase) (trivia: TriviaNode) : un
     else
         rootNode.AddAfter(trivia)
 
-let simpleTriviaToTriviaInstruction (containerNode: NodeBase) (trivia: TriviaNode) : unit =
+let simpleTriviaToTriviaInstruction (containerNode: Node) (trivia: TriviaNode) : unit =
     containerNode.Children
     |> Array.tryFind (fun node -> node.Range.StartLine > trivia.Range.StartLine)
     |> Option.map (fun n -> n.AddBefore)
@@ -151,7 +151,7 @@ let enrichTree (config: FormatConfig) (sourceText: ISourceText) (ast: ParsedInpu
 
     let trivia =
         let newlines =
-            collectTriviaFromBlankLines config sourceText tree codeComments tree.Range
+            collectTriviaFromBlankLines config sourceText tree codeComments (tree :> Node).Range
 
         let comments =
             match ast with
