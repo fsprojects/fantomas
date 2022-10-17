@@ -9,6 +9,20 @@ open Fantomas.Core.SyntaxOak
 
 type TextFromSource = string -> range -> string
 
+type Ident with
+
+    member ident.ToNode() =
+        let width = ident.idRange.EndColumn - ident.idRange.StartColumn
+
+        let text =
+            if ident.idText.Length + 4 = width then
+                // add backticks
+                $"``{ident.idText}``"
+            else
+                ident.idText
+
+        SingleTextNode(text, ident.idRange)
+
 type SynIdent with
 
     member x.ToNode() =
@@ -72,11 +86,115 @@ let mkParsedHashDirective (fromSource: TextFromSource) (ParsedHashDirective (ide
 
     ParsedHashDirectiveNode(ident, args, range)
 
+let mkConstant (fromSource: TextFromSource) c r : Constant =
+    let orElse fallback =
+        SingleTextNode(fromSource fallback r, r) |> Constant.FromText
+
+    match c with
+    | SynConst.Unit -> failwith "todo, 5C307887-9FF6-45F0-993F-F9EB759FE041"
+    // let lpr, rpr = RangeHelpers.mkStartEndRange 1 r
+    //
+    // genTriviaFor SynConst_Unit_OpeningParenthesis lpr sepOpenT
+    // +> genTriviaFor SynConst_Unit_ClosingParenthesis rpr sepCloseT
+    // |> genTriviaFor SynConst_Unit r
+    | SynConst.Bool b -> SingleTextNode((if b then "true" else "false"), r) |> Constant.FromText
+    | SynConst.Byte v -> orElse $"%A{v}"
+    | SynConst.SByte v -> orElse $"%A{v}"
+    | SynConst.Int16 v -> orElse $"%A{v}"
+    | SynConst.Int32 v -> orElse $"%A{v}"
+    | SynConst.Int64 v -> orElse $"%A{v}"
+    | SynConst.UInt16 v -> orElse $"%A{v}"
+    | SynConst.UInt16s v -> orElse $"%A{v}"
+    | SynConst.UInt32 v -> orElse $"%A{v}"
+    | SynConst.UInt64 v -> orElse $"%A{v}"
+    | SynConst.Double v -> orElse $"%A{v}"
+    | SynConst.Single v -> orElse $"%A{v}"
+    | SynConst.Decimal v -> orElse $"%A{v}"
+    | SynConst.IntPtr v -> orElse $"%A{v}"
+    | SynConst.UIntPtr v -> orElse $"%A{v}"
+    | SynConst.UserNum _ -> failwith "todo, 90D57090-9123-4344-9B4F-9B51BB50DA31"
+    | SynConst.String (s, kind, r) -> failwith "todo, C1CDBFC9-1B5D-471C-8189-CEC3A676D386"
+    | SynConst.Char c -> failwith "todo, 9AD2DFA7-80E2-43C7-A573-777987EA941B"
+    | SynConst.Bytes (bytes, _, r) -> failwith "todo, ED679198-BED9-42FD-BE24-7E7AD959CE93"
+    | SynConst.Measure (c, numberRange, m) -> failwith "todo, 1BF1C723-1931-40BE-8C02-3A4BAC1D8BAD"
+    | SynConst.SourceIdentifier (c, _, r) -> SingleTextNode(c, r) |> Constant.FromText
+
 let mkExpr (fromSource: TextFromSource) (e: SynExpr) =
     match e with
-    | SynExpr.Const (SynConst.Int32 i32, _) ->
-        let number = fromSource (string i32) e.Range
-        SingleTextNode(number, e.Range) |> Expr.Constant
+    // | Expr.Lazy _ -> failwith "Not Implemented"
+    // | Expr.Single _ -> failwith "Not Implemented"
+    | SynExpr.Const (c, r) -> mkConstant fromSource c r |> Expr.Constant
+    // | Expr.Null _ -> failwith "Not Implemented"
+    // | Expr.Quote _ -> failwith "Not Implemented"
+    // | Expr.Typed _ -> failwith "Not Implemented"
+    // | Expr.New _ -> failwith "Not Implemented"
+    // | Expr.Tuple _ -> failwith "Not Implemented"
+    // | Expr.StructTuple _ -> failwith "Not Implemented"
+    // | Expr.ArrayOrList _ -> failwith "Not Implemented"
+    // | Expr.Record _ -> failwith "Not Implemented"
+    // | Expr.AnonRecord _ -> failwith "Not Implemented"
+    // | Expr.ObjExpr _ -> failwith "Not Implemented"
+    // | Expr.While _ -> failwith "Not Implemented"
+    // | Expr.For _ -> failwith "Not Implemented"
+    // | Expr.ForEach _ -> failwith "Not Implemented"
+    // | Expr.NamedComputation _ -> failwith "Not Implemented"
+    // | Expr.Computation _ -> failwith "Not Implemented"
+    // | Expr.CompExprBody _ -> failwith "Not Implemented"
+    // | Expr.JoinIn _ -> failwith "Not Implemented"
+    // | Expr.ParenLambda _ -> failwith "Not Implemented"
+    // | Expr.Lambda _ -> failwith "Not Implemented"
+    // | Expr.MatchLambda _ -> failwith "Not Implemented"
+    // | Expr.Match _ -> failwith "Not Implemented"
+    // | Expr.TraitCall _ -> failwith "Not Implemented"
+    // | Expr.ParenILEmbedded _ -> failwith "Not Implemented"
+    // | Expr.ParenFunctionNameWithStar _ -> failwith "Not Implemented"
+    // | Expr.Paren _ -> failwith "Not Implemented"
+    // | Expr.Dynamic _ -> failwith "Not Implemented"
+    // | Expr.PrefixApp _ -> failwith "Not Implemented"
+    // | Expr.NewlineInfixAppAlwaysMultiline _ -> failwith "Not Implemented"
+    // | Expr.NewlineInfixApps _ -> failwith "Not Implemented"
+    // | Expr.SameInfixApps _ -> failwith "Not Implemented"
+    // | Expr.TernaryApp _ -> failwith "Not Implemented"
+    // | Expr.IndexWithoutDot _ -> failwith "Not Implemented"
+    // | Expr.AppDotGetTypeApp _ -> failwith "Not Implemented"
+    // | Expr.DotGetAppDotGetAppParenLambda _ -> failwith "Not Implemented"
+    // | Expr.DotGetAppParen _ -> failwith "Not Implemented"
+    // | Expr.DotGetAppWithParenLambda _ -> failwith "Not Implemented"
+    // | Expr.DotGetApp _ -> failwith "Not Implemented"
+    // | Expr.AppLongIdentAndSingleParenArg _ -> failwith "Not Implemented"
+    // | Expr.AppSingleParenArg _ -> failwith "Not Implemented"
+    // | Expr.DotGetAppWithLambda _ -> failwith "Not Implemented"
+    // | Expr.AppWithLambda _ -> failwith "Not Implemented"
+    // | Expr.NestedIndexWithoutDot _ -> failwith "Not Implemented"
+    // | Expr.EndsWithDualListApp _ -> failwith "Not Implemented"
+    // | Expr.EndsWithSingleListApp _ -> failwith "Not Implemented"
+    // | Expr.App _ -> failwith "Not Implemented"
+    // | Expr.TypeApp _ -> failwith "Not Implemented"
+    // | Expr.LetOrUses _ -> failwith "Not Implemented"
+    // | Expr.TryWithSingleClause _ -> failwith "Not Implemented"
+    // | Expr.TryWith _ -> failwith "Not Implemented"
+    // | Expr.TryFinally _ -> failwith "Not Implemented"
+    // | Expr.Sequentials _ -> failwith "Not Implemented"
+    // | Expr.IfThen _ -> failwith "Not Implemented"
+    // | Expr.IfThenElse _ -> failwith "Not Implemented"
+    // | Expr.IfThenElif _ -> failwith "Not Implemented"
+    | SynExpr.Ident ident -> ident.ToNode() |> Expr.Ident
+    // | Expr.Ident _ -> failwith "Not Implemented"
+    // | Expr.OptVar _ -> failwith "Not Implemented"
+    // | Expr.LongIdentSet _ -> failwith "Not Implemented"
+    // | Expr.DotIndexedGet _ -> failwith "Not Implemented"
+    // | Expr.DotIndexedSet _ -> failwith "Not Implemented"
+    // | Expr.NamedIndexedPropertySet _ -> failwith "Not Implemented"
+    // | Expr.DotNamedIndexedPropertySet _ -> failwith "Not Implemented"
+    // | Expr.DotGet _ -> failwith "Not Implemented"
+    // | Expr.DotSet _ -> failwith "Not Implemented"
+    // | Expr.Set _ -> failwith "Not Implemented"
+    // | Expr.LibraryOnlyStaticOptimization _ -> failwith "Not Implemented"
+    // | Expr.InterpolatedStringExpr _ -> failwith "Not Implemented"
+    // | Expr.IndexRangeWildcard _ -> failwith "Not Implemented"
+    // | Expr.IndexRange _ -> failwith "Not Implemented"
+    // | Expr.IndexFromEnd _ -> failwith "Not Implemented"
+    // | Expr.Typar _ -> failwith "Not Implemented"
     | _ -> failwith "todo, 693F570D-5A08-4E44-8937-FF98CE0AD8FC"
 
 let mkPat (fromSource: TextFromSource) (p: SynPat) =

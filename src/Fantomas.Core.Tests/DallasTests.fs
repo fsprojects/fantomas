@@ -123,3 +123,18 @@ let x y z  = 0
         """
 let x y z = 0
 """
+
+[<Test>]
+let ``ident expr with backticks`` () =
+    formatSourceString
+        false
+        """
+let x =  ``y``
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let x = ``y``
+"""
