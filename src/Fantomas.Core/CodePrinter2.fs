@@ -235,8 +235,8 @@ let genPat (p: Pattern) =
     | Pattern.Attrib _ -> failwith "Not Implemented"
     | Pattern.Or _ -> failwith "Not Implemented"
     | Pattern.Ands _ -> failwith "Not Implemented"
-    | Pattern.Null node -> genSingleTextNode node
-    | Pattern.Wild _ -> failwith "Not Implemented"
+    | Pattern.Null node
+    | Pattern.Wild node -> genSingleTextNode node
     | Pattern.Typed _ -> failwith "Not Implemented"
     | Pattern.Named node -> genSingleTextNode node.Name
     | Pattern.As _ -> failwith "Not Implemented"
