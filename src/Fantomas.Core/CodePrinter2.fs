@@ -234,7 +234,7 @@ let genMultilineFunctionApplicationArguments (argExpr: Expr) = !- "todo!"
 
 let genPat (p: Pattern) =
     match p with
-    | Pattern.OptionalVal _ -> failwith "Not Implemented"
+    | Pattern.OptionalVal n -> genSingleTextNode n
     | Pattern.Attrib _ -> failwith "Not Implemented"
     | Pattern.Or _ -> failwith "Not Implemented"
     | Pattern.Ands _ -> failwith "Not Implemented"

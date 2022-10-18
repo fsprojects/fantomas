@@ -265,6 +265,7 @@ let mkPat (fromSource: TextFromSource) (p: SynPat) =
     let patternRange = p.Range
 
     match p with
+    | SynPat.OptionalVal (ident, _) -> SingleTextNode($"?{ident.idText}", patternRange) |> Pattern.OptionalVal
     // | Pattern.OptionalVal _ -> failwith "Not Implemented"
     // | Pattern.Attrib _ -> failwith "Not Implemented"
     // | Pattern.Or _ -> failwith "Not Implemented"
