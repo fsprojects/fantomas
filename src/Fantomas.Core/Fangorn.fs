@@ -284,7 +284,9 @@ let mkPat (fromSource: TextFromSource) (p: SynPat) =
     | SynPat.Ands (ps, _) -> PatAndsNode(List.map (mkPat fromSource) ps, patternRange) |> Pattern.Ands
     | SynPat.Null _ -> SingleTextNode("null", patternRange) |> Pattern.Null
     | SynPat.Wild _ -> SingleTextNode("_", patternRange) |> Pattern.Wild
-    // | Pattern.Typed _ -> failwith "Not Implemented"
+    | SynPat.Typed (p, t, _) ->
+        PatTypedNode(mkPat fromSource p, mkType fromSource t, patternRange)
+        |> Pattern.Typed
     | SynPat.Named (ident = ident) -> PatNamedNode(mkSynIdent ident, patternRange) |> Pattern.Named
     // | Pattern.As _ -> failwith "Not Implemented"
     // | Pattern.ListCons _ -> failwith "Not Implemented"
