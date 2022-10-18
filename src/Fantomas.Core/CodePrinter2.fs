@@ -248,7 +248,10 @@ let genPat (p: Pattern) =
     | Pattern.LongIdentParen _ -> failwith "Not Implemented"
     | Pattern.LongIdent _ -> failwith "Not Implemented"
     | Pattern.Unit n -> genUnit n
-    | Pattern.Paren _ -> failwith "Not Implemented"
+    | Pattern.Paren node ->
+        genSingleTextNode node.OpeningParen
+        +> genPat node.Pattern
+        +> genSingleTextNode node.ClosingParen
     | Pattern.Tuple _ -> failwith "Not Implemented"
     | Pattern.StructTuple _ -> failwith "Not Implemented"
     | Pattern.ArrayOrList _ -> failwith "Not Implemented"
