@@ -308,10 +308,36 @@ type PatNamedNode(name: SingleTextNode, range) =
     override this.Children = [| yield name |]
     member this.Name = name
 
-type PatNamePatPairsNode(range) =
+type NamePatPair(ident: SingleTextNode, equals: SingleTextNode, pat: Pattern, range) =
+    inherit NodeBase(range)
+    override this.Children = [| yield ident; yield equals; yield Pattern.Node pat |]
+    member x.Ident = ident
+    member x.Equals = equals
+    member x.Pattern = pat
+
+type PatNamePatPairsNode
+    (
+        identifier: IdentListNode,
+        typarDecls: TyparDecls option,
+        openingParen: SingleTextNode,
+        pairs: NamePatPair list,
+        closingParen: SingleTextNode,
+        range
+    ) =
     inherit NodeBase(range)
 
-    override this.Children = failwith "todo"
+    override this.Children =
+        [| yield identifier
+           yield! noa (Option.map TyparDecls.Node typarDecls)
+           yield openingParen
+           yield! nodes pairs
+           yield closingParen |]
+
+    member x.Identifier = identifier
+    member x.TyparDecls = typarDecls
+    member x.OpeningParen = openingParen
+    member x.Pairs = pairs
+    member x.ClosingParen = closingParen
 
 type PatLongIdentParenNode(range) =
     inherit NodeBase(range)
@@ -1381,3 +1407,27 @@ type Constant =
         match c with
         | FromText n -> n
         | Unit n -> n
+
+type TyparDeclsPostfixListNode(range) =
+    inherit NodeBase(range)
+    override this.Children = failwith "todo"
+
+type TyparDeclsPrefixListNode(range) =
+    inherit NodeBase(range)
+    override this.Children = failwith "todo"
+
+type TyparDeclsSinglePrefixNode(range) =
+    inherit NodeBase(range)
+    override this.Children = failwith "todo"
+
+[<RequireQualifiedAccess; NoEquality; NoComparison>]
+type TyparDecls =
+    | PostfixList of TyparDeclsPostfixListNode
+    | PrefixList of TyparDeclsPrefixListNode
+    | SinglePrefix of TyparDeclsSinglePrefixNode
+
+    static member Node(td: TyparDecls) : Node =
+        match td with
+        | PostfixList n -> n
+        | PrefixList n -> n
+        | SinglePrefix n -> n

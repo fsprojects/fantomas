@@ -1,5 +1,6 @@
 ﻿module internal rec Fantomas.Core.CodePrinter2
 
+open System
 open Fantomas.Core.Context
 open Fantomas.Core.SyntaxOak
 
@@ -52,6 +53,23 @@ let genIdentListNodeAux addLeadingDot (iln: IdentListNode) =
 
 let genIdentListNode iln = genIdentListNodeAux false iln
 let genIdentListNodeWithDot iln = genIdentListNodeAux true iln
+
+let addSpaceBeforeParenInPattern (node: IdentListNode) (ctx: Context) =
+    node.Content
+    |> List.tryFindBack (function
+        | IdentifierOrDot.Ident node -> not (String.IsNullOrWhiteSpace node.Text)
+        | _ -> false)
+    |> fun identOrDot ->
+        match identOrDot with
+        | Some (IdentifierOrDot.Ident node) ->
+            let parameterValue =
+                if Char.IsUpper node.Text.[0] then
+                    ctx.Config.SpaceBeforeUppercaseInvocation
+                else
+                    ctx.Config.SpaceBeforeLowercaseInvocation
+
+            onlyIf parameterValue sepSpace ctx
+        | _ -> sepSpace ctx
 
 let genParsedHashDirective (phd: ParsedHashDirectiveNode) =
     !- "#" +> !-phd.Ident +> sepSpace +> col sepSpace phd.Args genSingleTextNode
@@ -277,6 +295,8 @@ let genPatLeftMiddleRight (node: PatLeftMiddleRight) =
     +> sepSpace
     +> genPat node.RightHandSide
 
+let genTyparDecls (td: TyparDecls) = !- "todo"
+
 let genPat (p: Pattern) =
     match p with
     | Pattern.OptionalVal n -> genSingleTextNode n
@@ -292,7 +312,26 @@ let genPat (p: Pattern) =
     | Pattern.Named node -> genSingleTextNode node.Name
     | Pattern.As node
     | Pattern.ListCons node -> genPatLeftMiddleRight node
-    | Pattern.NamePatPairs _ -> failwith "Not Implemented"
+    | Pattern.NamePatPairs node ->
+        let genPatWithIdent (node: NamePatPair) =
+            genSingleTextNode node.Ident
+            +> sepSpace
+            +> genSingleTextNode node.Equals
+            +> sepSpace
+            +> genPat node.Pattern
+
+        let pats =
+            expressionFitsOnRestOfLine
+                (atCurrentColumn (col sepSemi node.Pairs genPatWithIdent))
+                (atCurrentColumn (col sepNln node.Pairs genPatWithIdent))
+
+        genIdentListNode node.Identifier
+        +> optSingle genTyparDecls node.TyparDecls
+        +> addSpaceBeforeParenInPattern node.Identifier
+        +> genSingleTextNode node.OpeningParen
+        +> autoIndentAndNlnIfExpressionExceedsPageWidth (sepNlnWhenWriteBeforeNewlineNotEmpty +> pats)
+        +> genSingleTextNode node.ClosingParen
+
     | Pattern.LongIdentParen _ -> failwith "Not Implemented"
     | Pattern.LongIdent _ -> failwith "Not Implemented"
     | Pattern.Unit n -> genUnit n
