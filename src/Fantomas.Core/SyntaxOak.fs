@@ -347,11 +347,6 @@ type PatRecordNode(range) =
 
     override this.Children = failwith "todo"
 
-type PatConstNode(range) =
-    inherit NodeBase(range)
-
-    override this.Children = failwith "todo"
-
 type PatIsInstNode(range) =
     inherit NodeBase(range)
 
@@ -383,7 +378,7 @@ type Pattern =
     | StructTuple of PatStructTupleNode
     | ArrayOrList of PatArrayOrListNode
     | Record of PatRecordNode
-    | Const of PatConstNode
+    | Const of Constant
     | IsInst of PatIsInstNode
     | QuoteExpr of PatQuoteExprNode
 
@@ -408,7 +403,7 @@ type Pattern =
         | StructTuple n -> n
         | ArrayOrList n -> n
         | Record n -> n
-        | Const n -> n
+        | Const c -> Constant.Node c
         | IsInst n -> n
         | QuoteExpr n -> n
 
