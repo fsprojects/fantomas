@@ -322,11 +322,6 @@ type PatLongIdentNode(range) =
 
     override this.Children = failwith "todo"
 
-type PatUnitNode(range) =
-    inherit NodeBase(range)
-
-    override this.Children = failwith "todo"
-
 type PatParenNode(range) =
     inherit NodeBase(range)
 
@@ -382,7 +377,7 @@ type Pattern =
     | NamePatPairs of PatNamePatPairsNode
     | LongIdentParen of PatLongIdentParenNode
     | LongIdent of PatLongIdentNode
-    | Unit of PatUnitNode
+    | Unit of UnitNode
     | Paren of PatParenNode
     | Tuple of PatTupleNode
     | StructTuple of PatStructTupleNode
