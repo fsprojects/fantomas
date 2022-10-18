@@ -154,6 +154,7 @@ let null =  0
 let _ =  0
 let () = 0
 let 4 = 1
+let a (b) = c
 """
         config
     |> prepend newline
@@ -170,4 +171,5 @@ let null = 0
 let _ = 0
 let () = 0
 let 4 = 1
+let a (b) = c
 """
