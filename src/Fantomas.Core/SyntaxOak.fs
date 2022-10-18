@@ -286,11 +286,6 @@ type PatAndsNode(range) =
 
     override this.Children = failwith "todo"
 
-type PatWildNode(range) =
-    inherit NodeBase(range)
-
-    override this.Children = failwith "todo"
-
 type PatTypedNode(range) =
     inherit NodeBase(range)
 
@@ -379,7 +374,7 @@ type Pattern =
     | Or of PatOrNode
     | Ands of PatAndsNode
     | Null of SingleTextNode
-    | Wild of PatWildNode
+    | Wild of SingleTextNode
     | Typed of PatTypedNode
     | Named of PatNamedNode
     | As of PatAsNode
