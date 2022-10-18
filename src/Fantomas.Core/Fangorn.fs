@@ -10,45 +10,38 @@ open Fantomas.Core.SyntaxOak
 
 type TextFromSource = string -> range -> string
 
-type Ident with
+let mkIdent (ident: Ident) =
+    let width = ident.idRange.EndColumn - ident.idRange.StartColumn
 
-    member ident.ToNode() =
-        let width = ident.idRange.EndColumn - ident.idRange.StartColumn
+    let text =
+        if ident.idText.Length + 4 = width then
+            // add backticks
+            $"``{ident.idText}``"
+        else
+            ident.idText
 
-        let text =
-            if ident.idText.Length + 4 = width then
-                // add backticks
-                $"``{ident.idText}``"
-            else
-                ident.idText
+    SingleTextNode(text, ident.idRange)
 
-        SingleTextNode(text, ident.idRange)
+let mkSynIdent (SynIdent (ident, _trivia)) =
+    SingleTextNode(ident.idText, ident.idRange)
 
-type SynIdent with
+let mkSynLongIdent (sli: SynLongIdent) =
+    match sli.IdentsWithTrivia with
+    | [] -> IdentListNode.Empty
+    | [ single ] -> IdentListNode([ IdentifierOrDot.Ident(mkSynIdent single) ], sli.Range)
+    | head :: tail ->
+        assert (tail.Length = sli.Dots.Length)
 
-    member x.ToNode() =
-        let (SynIdent (ident, _trivia)) = x
-        SingleTextNode(ident.idText, ident.idRange)
+        let rest =
+            (sli.Dots, tail)
+            ||> List.zip
+            |> List.collect (fun (dot, ident) ->
+                [ IdentifierOrDot.KnownDot(DotNode(dot))
+                  IdentifierOrDot.Ident(mkSynIdent ident) ])
 
-type SynLongIdent with
+        IdentListNode(IdentifierOrDot.Ident(mkSynIdent head) :: rest, sli.Range)
 
-    member x.ToNode() =
-        match x.IdentsWithTrivia with
-        | [] -> IdentListNode.Empty
-        | [ single ] -> IdentListNode([ IdentifierOrDot.Ident(single.ToNode()) ], x.Range)
-        | head :: tail ->
-            assert (tail.Length = x.Dots.Length)
-
-            let rest =
-                (x.Dots, tail)
-                ||> List.zip
-                |> List.collect (fun (dot, ident) ->
-                    [ IdentifierOrDot.KnownDot(DotNode(dot))
-                      IdentifierOrDot.Ident(ident.ToNode()) ])
-
-            IdentListNode(IdentifierOrDot.Ident(head.ToNode()) :: rest, x.Range)
-
-let mkIdentListNodeFromLongIdent (longIdent: LongIdent) : IdentListNode =
+let mkLongIdent (longIdent: LongIdent) : IdentListNode =
     match longIdent with
     | [] -> IdentListNode.Empty
     | [ single ] ->
@@ -118,7 +111,23 @@ let mkConstant (fromSource: TextFromSource) c r : Constant =
     | SynConst.Measure (c, numberRange, m) -> failwith "todo, 1BF1C723-1931-40BE-8C02-3A4BAC1D8BAD"
     | SynConst.SourceIdentifier (c, _, r) -> SingleTextNode(c, r) |> Constant.FromText
 
-let rec mkExpr (fromSource: TextFromSource) (e: SynExpr) : Expr =
+let mkAttribute (fromSource: TextFromSource) (a: SynAttribute) =
+    let expr =
+        match a.ArgExpr with
+        | SynExpr.Const (SynConst.Unit, _) -> None
+        | e -> mkExpr fromSource e |> Some
+
+    AttributeNode(mkSynLongIdent a.TypeName, expr, Option.map mkIdent a.Target, a.Range)
+
+let mkAttributes (fromSource: TextFromSource) (al: SynAttributeList) =
+    AttributesNode(List.map (mkAttribute fromSource) al.Attributes, al.Range)
+
+let mkAttributeList (fromSource: TextFromSource) (ats: SynAttributes) =
+    let attributes = List.map (mkAttributes fromSource) ats
+    let range = attributes |> List.map (fun a -> (a :> Node).Range) |> combineRanges
+    AttributesListNode(attributes, range)
+
+let mkExpr (fromSource: TextFromSource) (e: SynExpr) : Expr =
     let exprRange = e.Range
 
     match e with
@@ -243,7 +252,7 @@ let rec mkExpr (fromSource: TextFromSource) (e: SynExpr) : Expr =
     // | Expr.IfThen _ -> failwith "Not Implemented"
     // | Expr.IfThenElse _ -> failwith "Not Implemented"
     // | Expr.IfThenElif _ -> failwith "Not Implemented"
-    | SynExpr.Ident ident -> ident.ToNode() |> Expr.Ident
+    | SynExpr.Ident ident -> mkIdent ident |> Expr.Ident
     // | Expr.OptVar _ -> failwith "Not Implemented"
     // | Expr.LongIdentSet _ -> failwith "Not Implemented"
     // | Expr.DotIndexedGet _ -> failwith "Not Implemented"
@@ -266,14 +275,15 @@ let mkPat (fromSource: TextFromSource) (p: SynPat) =
 
     match p with
     | SynPat.OptionalVal (ident, _) -> SingleTextNode($"?{ident.idText}", patternRange) |> Pattern.OptionalVal
-    // | Pattern.OptionalVal _ -> failwith "Not Implemented"
-    // | Pattern.Attrib _ -> failwith "Not Implemented"
+    | SynPat.Attrib (p, ats, _) ->
+        PatAttribNode(mkAttributeList fromSource ats, mkPat fromSource p, patternRange)
+        |> Pattern.Attrib
     // | Pattern.Or _ -> failwith "Not Implemented"
     // | Pattern.Ands _ -> failwith "Not Implemented"
     | SynPat.Null _ -> SingleTextNode("null", patternRange) |> Pattern.Null
     | SynPat.Wild _ -> SingleTextNode("_", patternRange) |> Pattern.Wild
     // | Pattern.Typed _ -> failwith "Not Implemented"
-    | SynPat.Named (ident = ident) -> PatNamedNode(ident.ToNode(), patternRange) |> Pattern.Named
+    | SynPat.Named (ident = ident) -> PatNamedNode(mkSynIdent ident, patternRange) |> Pattern.Named
     // | Pattern.As _ -> failwith "Not Implemented"
     // | Pattern.ListCons _ -> failwith "Not Implemented"
     // | Pattern.NamePatPairs _ -> failwith "Not Implemented"
@@ -305,9 +315,8 @@ let mkBinding
 
     let functionName, parameters =
         match pat with
-        | SynPat.Named (ident = ident) -> Choice1Of2(ident.ToNode()), []
         | SynPat.LongIdent (longDotId = SynLongIdent ([ _ ], _, _) as lid; argPats = SynArgPats.Pats ps) ->
-            Choice1Of2(lid.IdentsWithTrivia.[0].ToNode()), List.map (mkPat fromSource) ps
+            Choice1Of2(mkSynIdent lid.IdentsWithTrivia.[0]), List.map (mkPat fromSource) ps
         | _ -> Choice2Of2(mkPat fromSource pat), []
 
     let equals = SingleTextNode("=", trivia.EqualsRange.Value)
@@ -361,7 +370,7 @@ let mkType (fromSource: TextFromSource) (t: SynType) : Type =
     // | LongIdentApp of TypeLongIdentAppNode
     // | StructTuple of TypeStructTupleNode
     // | WithGlobalConstraints of TypeWithGlobalConstraintsNode
-    | SynType.LongIdent lid -> Type.LongIdent(lid.ToNode())
+    | SynType.LongIdent lid -> Type.LongIdent(mkSynLongIdent lid)
     // | AnonRecord of TypeAnonRecordNode
     // | Paren of TypeParenNode
     // | SignatureParameter of TypeSignatureParameterNode
@@ -377,7 +386,8 @@ let rec (|OpenL|_|) =
 let mkOpenNodeForImpl (fromSource: TextFromSource) (target, range) : Open =
     match target with
     | SynOpenDeclTarget.ModuleOrNamespace (longId, _) ->
-        OpenModuleOrNamespaceNode(longId.ToNode(), range) |> Open.ModuleOrNamespace
+        OpenModuleOrNamespaceNode(mkSynLongIdent longId, range)
+        |> Open.ModuleOrNamespace
     | SynOpenDeclTarget.Type (typeName, range) -> OpenTargetNode(mkType fromSource typeName, range) |> Open.Target
 
 let mkTypeDefn
@@ -389,7 +399,7 @@ let mkTypeDefn
     let typeNameNode =
         match typeInfo, trivia.TypeKeyword with
         | SynComponentInfo (ats, tds, tcs, lid, px, preferPostfix, ao, _), Some tk ->
-            let identifierNode = mkIdentListNodeFromLongIdent lid
+            let identifierNode = mkLongIdent lid
 
             TypeNameNode(
                 AttributesListNode.Empty,
@@ -460,7 +470,7 @@ let mkModuleOrNamespace
     let name =
         match kind with
         | SynModuleOrNamespaceKind.AnonModule -> IdentListNode.Empty
-        | _ -> mkIdentListNodeFromLongIdent longId
+        | _ -> mkLongIdent longId
 
     let decls = mkModuleDecls fromSource decls id
 

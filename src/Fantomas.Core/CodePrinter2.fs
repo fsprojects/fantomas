@@ -36,13 +36,22 @@ let genNode<'n when 'n :> Node> (n: 'n) (f: Context -> Context) =
     +> col sepNone n.ContentAfter genTrivia
 
 let genSingleTextNode (node: SingleTextNode) = !-node.Text |> genNode node
+let genSingleTextNodeWithLeadingDot (node: SingleTextNode) = !- $".{node.Text}" |> genNode node
 
-let genIdentListNode (iln: IdentListNode) =
-    col sepNone iln.Content (function
-        | IdentifierOrDot.Ident ident -> genSingleTextNode ident
+let genIdentListNodeAux addLeadingDot (iln: IdentListNode) =
+    coli sepNone iln.Content (fun idx identOrDot ->
+        match identOrDot with
+        | IdentifierOrDot.Ident ident ->
+            if addLeadingDot then
+                genSingleTextNodeWithLeadingDot ident
+            else
+                genSingleTextNode ident
         | IdentifierOrDot.KnownDot _
         | IdentifierOrDot.UnknownDot _ -> sepDot)
     |> genNode iln
+
+let genIdentListNode iln = genIdentListNodeAux false iln
+let genIdentListNodeWithDot iln = genIdentListNodeAux true iln
 
 let genParsedHashDirective (phd: ParsedHashDirectiveNode) =
     !- "#" +> !-phd.Ident +> sepSpace +> col sepSpace phd.Args genSingleTextNode
@@ -56,6 +65,33 @@ let genConstant (c: Constant) =
     match c with
     | Constant.FromText n -> genSingleTextNode n
     | Constant.Unit n -> genUnit n
+
+let genAttributesCore (ats: AttributeNode list) =
+    let genAttributeExpr (attr: AttributeNode) =
+        match attr.Expr with
+        | None -> opt sepColon attr.Target genSingleTextNode +> genIdentListNode attr.TypeName
+        | Some e ->
+            let argSpacing = if e.HasParentheses then sepNone else sepSpace
+
+            opt sepColon attr.Target genSingleTextNode
+            +> genIdentListNode attr.TypeName
+            +> argSpacing
+            +> genExpr e
+        |> genNode attr
+
+    let shortExpression =
+        !- "[<" +> atCurrentColumn (col sepSemi ats genAttributeExpr) +> !- ">]"
+
+    let longExpression =
+        !- "[<"
+        +> atCurrentColumn (col (sepSemi +> sepNln) ats genAttributeExpr)
+        +> !- ">]"
+
+    ifElse ats.IsEmpty sepNone (expressionFitsOnRestOfLine shortExpression longExpression)
+
+let genOnelinerAttributes (n: AttributesListNode) =
+    let ats = n.AllAttributes
+    ifElse ats.IsEmpty sepNone (genAttributesCore ats +> sepSpace)
 
 let genExpr (e: Expr) =
     match e with
@@ -235,7 +271,7 @@ let genMultilineFunctionApplicationArguments (argExpr: Expr) = !- "todo!"
 let genPat (p: Pattern) =
     match p with
     | Pattern.OptionalVal n -> genSingleTextNode n
-    | Pattern.Attrib _ -> failwith "Not Implemented"
+    | Pattern.Attrib node -> genOnelinerAttributes node.Attributes +> genPat node.Pattern
     | Pattern.Or _ -> failwith "Not Implemented"
     | Pattern.Ands _ -> failwith "Not Implemented"
     | Pattern.Null node
