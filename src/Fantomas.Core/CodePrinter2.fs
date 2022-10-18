@@ -48,11 +48,14 @@ let genParsedHashDirective (phd: ParsedHashDirectiveNode) =
     !- "#" +> !-phd.Ident +> sepSpace +> col sepSpace phd.Args genSingleTextNode
     |> genNode phd
 
+let genUnit (n: UnitNode) =
+    genSingleTextNode n.OpeningParen +> genSingleTextNode n.ClosingParen
+
 // genNode will should be called in the caller function.
 let genConstant (c: Constant) =
     match c with
     | Constant.FromText n -> genSingleTextNode n
-    | Constant.Unit n -> genSingleTextNode n.OpeningParen +> genSingleTextNode n.ClosingParen
+    | Constant.Unit n -> genUnit n
 
 let genExpr (e: Expr) =
     match e with
@@ -244,7 +247,7 @@ let genPat (p: Pattern) =
     | Pattern.NamePatPairs _ -> failwith "Not Implemented"
     | Pattern.LongIdentParen _ -> failwith "Not Implemented"
     | Pattern.LongIdent _ -> failwith "Not Implemented"
-    | Pattern.Unit _ -> failwith "Not Implemented"
+    | Pattern.Unit n -> genUnit n
     | Pattern.Paren _ -> failwith "Not Implemented"
     | Pattern.Tuple _ -> failwith "Not Implemented"
     | Pattern.StructTuple _ -> failwith "Not Implemented"

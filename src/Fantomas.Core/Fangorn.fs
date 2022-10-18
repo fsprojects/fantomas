@@ -271,8 +271,6 @@ let mkPat (fromSource: TextFromSource) (p: SynPat) =
     // | Pattern.Ands _ -> failwith "Not Implemented"
     | SynPat.Null _ -> SingleTextNode("null", patternRange) |> Pattern.Null
     | SynPat.Wild _ -> SingleTextNode("_", patternRange) |> Pattern.Wild
-    // | Pattern.Null _ -> failwith "Not Implemented"
-    // | Pattern.Wild _ -> failwith "Not Implemented"
     // | Pattern.Typed _ -> failwith "Not Implemented"
     | SynPat.Named (ident = ident) -> PatNamedNode(ident.ToNode(), patternRange) |> Pattern.Named
     // | Pattern.As _ -> failwith "Not Implemented"
@@ -280,7 +278,9 @@ let mkPat (fromSource: TextFromSource) (p: SynPat) =
     // | Pattern.NamePatPairs _ -> failwith "Not Implemented"
     // | Pattern.LongIdentParen _ -> failwith "Not Implemented"
     // | Pattern.LongIdent _ -> failwith "Not Implemented"
-    // | Pattern.Unit _ -> failwith "Not Implemented"
+    | SynPat.Paren (SynPat.Const (SynConst.Unit, _), StartEndRange 1 (lpr, _, rpr)) ->
+        UnitNode(SingleTextNode("(", lpr), SingleTextNode(")", rpr), patternRange)
+        |> Pattern.Unit
     // | Pattern.Paren _ -> failwith "Not Implemented"
     // | Pattern.Tuple _ -> failwith "Not Implemented"
     // | Pattern.StructTuple _ -> failwith "Not Implemented"
