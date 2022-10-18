@@ -322,10 +322,15 @@ type PatLongIdentNode(range) =
 
     override this.Children = failwith "todo"
 
-type PatParenNode(range) =
+type PatParenNode(openingParen: SingleTextNode, pat: Pattern, closingParen: SingleTextNode, range) =
     inherit NodeBase(range)
 
-    override this.Children = failwith "todo"
+    override this.Children =
+        [| yield openingParen; yield Pattern.Node pat; yield closingParen |]
+
+    member x.OpeningParen = openingParen
+    member x.Pattern = pat
+    member x.ClosingParen = closingParen
 
 type PatTupleNode(range) =
     inherit NodeBase(range)

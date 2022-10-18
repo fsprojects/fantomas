@@ -281,7 +281,9 @@ let mkPat (fromSource: TextFromSource) (p: SynPat) =
     | SynPat.Paren (SynPat.Const (SynConst.Unit, _), StartEndRange 1 (lpr, _, rpr)) ->
         UnitNode(SingleTextNode("(", lpr), SingleTextNode(")", rpr), patternRange)
         |> Pattern.Unit
-    // | Pattern.Paren _ -> failwith "Not Implemented"
+    | SynPat.Paren (p, StartEndRange 1 (lpr, _, rpr)) ->
+        PatParenNode(SingleTextNode("(", lpr), mkPat fromSource p, SingleTextNode(")", rpr), patternRange)
+        |> Pattern.Paren
     // | Pattern.Tuple _ -> failwith "Not Implemented"
     // | Pattern.StructTuple _ -> failwith "Not Implemented"
     // | Pattern.ArrayOrList _ -> failwith "Not Implemented"
