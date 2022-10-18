@@ -253,7 +253,7 @@ let genPat (p: Pattern) =
     | Pattern.StructTuple _ -> failwith "Not Implemented"
     | Pattern.ArrayOrList _ -> failwith "Not Implemented"
     | Pattern.Record _ -> failwith "Not Implemented"
-    | Pattern.Const _ -> failwith "Not Implemented"
+    | Pattern.Const c -> genConstant c
     | Pattern.IsInst _ -> failwith "Not Implemented"
     | Pattern.QuoteExpr _ -> failwith "Not Implemented"
     |> genNode (Pattern.Node p)

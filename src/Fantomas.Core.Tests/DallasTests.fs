@@ -153,6 +153,7 @@ new T(t1)
 let null =  0
 let _ =  0
 let () = 0
+let 4 = 1
 """
         config
     |> prepend newline
@@ -168,4 +169,5 @@ new T(t1)
 let null = 0
 let _ = 0
 let () = 0
+let 4 = 1
 """
