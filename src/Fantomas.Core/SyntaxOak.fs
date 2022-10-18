@@ -282,10 +282,11 @@ type PatOrNode(lhs: Pattern, bar: SingleTextNode, rhs: Pattern, range) =
     member x.Bar = bar
     member x.RightHandSide = rhs
 
-type PatAndsNode(range) =
+type PatAndsNode(pats: Pattern list, range) =
     inherit NodeBase(range)
 
-    override this.Children = failwith "todo"
+    override this.Children = [| yield! List.map Pattern.Node pats |]
+    member x.Patterns = pats
 
 type PatTypedNode(range) =
     inherit NodeBase(range)
