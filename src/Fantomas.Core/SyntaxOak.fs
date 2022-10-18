@@ -339,15 +339,26 @@ type PatNamePatPairsNode
     member x.Pairs = pairs
     member x.ClosingParen = closingParen
 
-type PatLongIdentParenNode(range) =
+type PatLongIdentNode
+    (
+        ao: SingleTextNode option,
+        identifier: IdentListNode,
+        typarDecls: TyparDecls option,
+        parameters: Pattern list,
+        range
+    ) =
     inherit NodeBase(range)
 
-    override this.Children = failwith "todo"
+    override this.Children =
+        [| yield! noa ao
+           yield identifier
+           yield! noa (Option.map TyparDecls.Node typarDecls)
+           yield! List.map Pattern.Node parameters |]
 
-type PatLongIdentNode(range) =
-    inherit NodeBase(range)
-
-    override this.Children = failwith "todo"
+    member x.Accessibility = ao
+    member x.Identifier = identifier
+    member x.TyparDecls = typarDecls
+    member x.Parameters = parameters
 
 type PatParenNode(openingParen: SingleTextNode, pat: Pattern, closingParen: SingleTextNode, range) =
     inherit NodeBase(range)
@@ -403,7 +414,6 @@ type Pattern =
     | As of PatLeftMiddleRight
     | ListCons of PatLeftMiddleRight
     | NamePatPairs of PatNamePatPairsNode
-    | LongIdentParen of PatLongIdentParenNode
     | LongIdent of PatLongIdentNode
     | Unit of UnitNode
     | Paren of PatParenNode
@@ -428,7 +438,6 @@ type Pattern =
         | As n -> n
         | ListCons n -> n
         | NamePatPairs n -> n
-        | LongIdentParen n -> n
         | LongIdent n -> n
         | Unit n -> n
         | Paren n -> n

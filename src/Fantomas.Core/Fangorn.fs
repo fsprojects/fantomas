@@ -58,6 +58,12 @@ let mkLongIdent (longIdent: LongIdent) : IdentListNode =
 
         IdentListNode(IdentifierOrDot.Ident(stn head.idText head.idRange) :: rest, range)
 
+let mkSynAccess (vis: SynAccess) =
+    match vis with
+    | SynAccess.Internal range -> stn "internal" range
+    | SynAccess.Private range -> stn "private" range
+    | SynAccess.Public range -> stn "public" range
+
 let parseExpressionInSynBinding returnInfo expr =
     match returnInfo, expr with
     | Some (SynBindingReturnInfo (typeName = t1)), SynExpr.Typed (e, t2, _) when RangeHelpers.rangeEq t1.Range t2.Range ->
@@ -313,9 +319,18 @@ let mkPat (fromSource: TextFromSource) (p: SynPat) =
 
         PatNamePatPairsNode(mkSynLongIdent synLongIdent, typarDecls, stn "(" lpr, pairs, stn ")" rpr, patternRange)
         |> Pattern.NamePatPairs
-    // | Pattern.NamePatPairs _ -> failwith "Not Implemented"
-    // | Pattern.LongIdentParen _ -> failwith "Not Implemented"
-    // | Pattern.LongIdent _ -> failwith "Not Implemented"
+    | SynPat.LongIdent (synLongIdent, _, vtdo, SynArgPats.Pats pats, ao, _) ->
+        let typarDecls =
+            Option.bind (fun (SynValTyparDecls (tds, _)) -> Option.bind (mkTyparDecls fromSource) tds) vtdo
+
+        PatLongIdentNode(
+            Option.map mkSynAccess ao,
+            mkSynLongIdent synLongIdent,
+            typarDecls,
+            List.map (mkPat fromSource) pats,
+            patternRange
+        )
+        |> Pattern.LongIdent
     | SynPat.Paren (SynPat.Const (SynConst.Unit, _), StartEndRange 1 (lpr, _, rpr)) ->
         UnitNode(stn "(" lpr, stn ")" rpr, patternRange) |> Pattern.Unit
     | SynPat.Paren (p, StartEndRange 1 (lpr, _, rpr)) ->

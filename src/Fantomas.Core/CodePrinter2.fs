@@ -54,6 +54,11 @@ let genIdentListNodeAux addLeadingDot (iln: IdentListNode) =
 let genIdentListNode iln = genIdentListNodeAux false iln
 let genIdentListNodeWithDot iln = genIdentListNodeAux true iln
 
+let genAccessOpt (nodeOpt: SingleTextNode option) =
+    match nodeOpt with
+    | None -> sepNone
+    | Some node -> genSingleTextNode node
+
 let addSpaceBeforeParenInPattern (node: IdentListNode) (ctx: Context) =
     node.Content
     |> List.tryFindBack (function
@@ -332,8 +337,19 @@ let genPat (p: Pattern) =
         +> autoIndentAndNlnIfExpressionExceedsPageWidth (sepNlnWhenWriteBeforeNewlineNotEmpty +> pats)
         +> genSingleTextNode node.ClosingParen
 
-    | Pattern.LongIdentParen _ -> failwith "Not Implemented"
-    | Pattern.LongIdent _ -> failwith "Not Implemented"
+    | Pattern.LongIdent node ->
+        let genName =
+            genAccessOpt node.Accessibility
+            +> genIdentListNode node.Identifier
+            +> optSingle genTyparDecls node.TyparDecls
+
+        let genParameters =
+            match node.Parameters with
+            | [] -> sepNone
+            | [ Pattern.Paren _ as parameter ] -> addSpaceBeforeParenInPattern node.Identifier +> genPat parameter
+            | ps -> sepSpace +> atCurrentColumn (col sepSpace ps genPat)
+
+        genName +> genParameters
     | Pattern.Unit n -> genUnit n
     | Pattern.Paren node ->
         genSingleTextNode node.OpeningParen
