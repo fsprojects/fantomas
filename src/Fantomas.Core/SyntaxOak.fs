@@ -274,12 +274,19 @@ type PatAttribNode(attrs: AttributesListNode, pat: Pattern, range) =
     member x.Attributes = attrs
     member x.Pattern = pat
 
-type PatOrNode(lhs: Pattern, bar: SingleTextNode, rhs: Pattern, range) =
+/// A pattern composed from a left hand-side pattern, a single text token/operator and a right hand-side pattern.
+type PatLeftMiddleRight(lhs: Pattern, middle: Choice<SingleTextNode, string>, rhs: Pattern, range) =
     inherit NodeBase(range)
 
-    override this.Children = [| yield Pattern.Node lhs; yield bar; yield Pattern.Node rhs |]
+    override this.Children =
+        [| yield Pattern.Node lhs
+           match middle with
+           | Choice1Of2 n -> yield n
+           | _ -> ()
+           yield Pattern.Node rhs |]
+
     member x.LeftHandSide = lhs
-    member x.Bar = bar
+    member x.Middle = middle
     member x.RightHandSide = rhs
 
 type PatAndsNode(pats: Pattern list, range) =
@@ -300,16 +307,6 @@ type PatNamedNode(name: SingleTextNode, range) =
 
     override this.Children = [| yield name |]
     member this.Name = name
-
-type PatAsNode(range) =
-    inherit NodeBase(range)
-
-    override this.Children = failwith "todo"
-
-type PatListConsNode(range) =
-    inherit NodeBase(range)
-
-    override this.Children = failwith "todo"
 
 type PatNamePatPairsNode(range) =
     inherit NodeBase(range)
@@ -371,14 +368,14 @@ type PatQuoteExprNode(range) =
 type Pattern =
     | OptionalVal of SingleTextNode
     | Attrib of PatAttribNode
-    | Or of PatOrNode
+    | Or of PatLeftMiddleRight
     | Ands of PatAndsNode
     | Null of SingleTextNode
     | Wild of SingleTextNode
     | Typed of PatTypedNode
     | Named of PatNamedNode
-    | As of PatAsNode
-    | ListCons of PatListConsNode
+    | As of PatLeftMiddleRight
+    | ListCons of PatLeftMiddleRight
     | NamePatPairs of PatNamePatPairsNode
     | LongIdentParen of PatLongIdentParenNode
     | LongIdent of PatLongIdentNode

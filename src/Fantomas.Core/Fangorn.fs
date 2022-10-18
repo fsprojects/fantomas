@@ -279,7 +279,12 @@ let mkPat (fromSource: TextFromSource) (p: SynPat) =
         PatAttribNode(mkAttributeList fromSource ats, mkPat fromSource p, patternRange)
         |> Pattern.Attrib
     | SynPat.Or (p1, p2, _, trivia) ->
-        PatOrNode(mkPat fromSource p1, SingleTextNode("|", trivia.BarRange), mkPat fromSource p2, patternRange)
+        PatLeftMiddleRight(
+            mkPat fromSource p1,
+            Choice1Of2(SingleTextNode("|", trivia.BarRange)),
+            mkPat fromSource p2,
+            patternRange
+        )
         |> Pattern.Or
     | SynPat.Ands (ps, _) -> PatAndsNode(List.map (mkPat fromSource) ps, patternRange) |> Pattern.Ands
     | SynPat.Null _ -> SingleTextNode("null", patternRange) |> Pattern.Null
@@ -288,8 +293,17 @@ let mkPat (fromSource: TextFromSource) (p: SynPat) =
         PatTypedNode(mkPat fromSource p, mkType fromSource t, patternRange)
         |> Pattern.Typed
     | SynPat.Named (ident = ident) -> PatNamedNode(mkSynIdent ident, patternRange) |> Pattern.Named
-    // | Pattern.As _ -> failwith "Not Implemented"
-    // | Pattern.ListCons _ -> failwith "Not Implemented"
+    | SynPat.As (p1, p2, r) ->
+        PatLeftMiddleRight(mkPat fromSource p1, Choice2Of2 "as", mkPat fromSource p2, patternRange)
+        |> Pattern.As
+    | SynPat.ListCons (p1, p2, _, trivia) ->
+        PatLeftMiddleRight(
+            mkPat fromSource p1,
+            Choice1Of2(SingleTextNode("::", trivia.ColonColonRange)),
+            mkPat fromSource p2,
+            patternRange
+        )
+        |> Pattern.ListCons
     // | Pattern.NamePatPairs _ -> failwith "Not Implemented"
     // | Pattern.LongIdentParen _ -> failwith "Not Implemented"
     // | Pattern.LongIdent _ -> failwith "Not Implemented"

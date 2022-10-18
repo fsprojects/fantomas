@@ -268,16 +268,20 @@ let genMultilineFunctionApplicationArguments (argExpr: Expr) = !- "todo!"
 // | Paren (lpr, singleExpr, rpr, pr) -> genExpr singleExpr |> argsInsideParenthesis lpr rpr pr
 // | _ -> genExpr argExpr
 
+let genPatLeftMiddleRight (node: PatLeftMiddleRight) =
+    genPat node.LeftHandSide
+    +> sepSpace
+    +> (match node.Middle with
+        | Choice1Of2 node -> genSingleTextNode node
+        | Choice2Of2 text -> !-text)
+    +> sepSpace
+    +> genPat node.RightHandSide
+
 let genPat (p: Pattern) =
     match p with
     | Pattern.OptionalVal n -> genSingleTextNode n
     | Pattern.Attrib node -> genOnelinerAttributes node.Attributes +> genPat node.Pattern
-    | Pattern.Or node ->
-        genPat node.LeftHandSide
-        +> sepSpace
-        +> genSingleTextNode node.Bar
-        +> sepSpace
-        +> genPat node.RightHandSide
+    | Pattern.Or node -> genPatLeftMiddleRight node
     | Pattern.Ands node -> col (!- " & ") node.Patterns genPat
     | Pattern.Null node
     | Pattern.Wild node -> genSingleTextNode node
@@ -286,8 +290,8 @@ let genPat (p: Pattern) =
         +> sepColon
         +> autoIndentAndNlnIfExpressionExceedsPageWidth (atCurrentColumnIndent (genType node.Type))
     | Pattern.Named node -> genSingleTextNode node.Name
-    | Pattern.As _ -> failwith "Not Implemented"
-    | Pattern.ListCons _ -> failwith "Not Implemented"
+    | Pattern.As node
+    | Pattern.ListCons node -> genPatLeftMiddleRight node
     | Pattern.NamePatPairs _ -> failwith "Not Implemented"
     | Pattern.LongIdentParen _ -> failwith "Not Implemented"
     | Pattern.LongIdent _ -> failwith "Not Implemented"
