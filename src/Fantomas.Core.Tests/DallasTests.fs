@@ -163,6 +163,7 @@ let (a & b & c) = 0
 let x (a: int) = 0
 let (x as y) = 0
 let (x :: y) = 0
+let X(y = 0) = 0
 """
         config
     |> prepend newline
@@ -188,4 +189,5 @@ let (a & b & c) = 0
 let x (a: int) = 0
 let (x as y) = 0
 let (x :: y) = 0
+let X(y = 0) = 0
 """
