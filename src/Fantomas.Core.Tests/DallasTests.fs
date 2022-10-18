@@ -150,6 +150,7 @@ null
 x :>  int
 new T()
 new T(t1)
+let null =  0
 """
         config
     |> prepend newline
@@ -162,4 +163,5 @@ null
 x :> int
 new T()
 new T(t1)
+let null = 0
 """

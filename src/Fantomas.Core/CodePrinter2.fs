@@ -101,17 +101,23 @@ let genExpr (e: Expr) =
         | Expr.Lambda _ -> long
         | _ -> expressionFitsOnRestOfLine short long
     | Expr.NewParen node ->
-        let sepSpace (ctx: Context) =
+        let sepSpaceBeforeArgs (ctx: Context) =
             match node.Type with
             | UppercaseType -> onlyIf ctx.Config.SpaceBeforeUppercaseInvocation sepSpace ctx
             | LowercaseType -> onlyIf ctx.Config.SpaceBeforeLowercaseInvocation sepSpace ctx
 
-        let short = !- "new " +> genType node.Type +> sepSpace +> genExpr node.Arguments
+        let short =
+            genSingleTextNode node.NewKeyword
+            +> sepSpace
+            +> genType node.Type
+            +> sepSpaceBeforeArgs
+            +> genExpr node.Arguments
 
         let long =
-            !- "new "
-            +> genType node.Type
+            genSingleTextNode node.NewKeyword
             +> sepSpace
+            +> genType node.Type
+            +> sepSpaceBeforeArgs
             +> genMultilineFunctionApplicationArguments node.Arguments
 
         expressionFitsOnRestOfLine short long
@@ -229,7 +235,7 @@ let genPat (p: Pattern) =
     | Pattern.Attrib _ -> failwith "Not Implemented"
     | Pattern.Or _ -> failwith "Not Implemented"
     | Pattern.Ands _ -> failwith "Not Implemented"
-    | Pattern.Null _ -> failwith "Not Implemented"
+    | Pattern.Null node -> genSingleTextNode node
     | Pattern.Wild _ -> failwith "Not Implemented"
     | Pattern.Typed _ -> failwith "Not Implemented"
     | Pattern.Named node -> genSingleTextNode node.Name
@@ -252,7 +258,9 @@ let genPat (p: Pattern) =
 let genBinding (b: BindingNode) =
     genSingleTextNode b.LeadingKeyword
     +> sepSpace
-    +> genSingleTextNode b.FunctionName
+    +> (match b.FunctionName with
+        | Choice1Of2 n -> genSingleTextNode n
+        | Choice2Of2 pat -> genPat pat)
     +> sepSpace
     +> col sepSpace b.Parameters genPat
     +> sepSpace

@@ -118,7 +118,7 @@ let mkConstant (fromSource: TextFromSource) c r : Constant =
     | SynConst.Measure (c, numberRange, m) -> failwith "todo, 1BF1C723-1931-40BE-8C02-3A4BAC1D8BAD"
     | SynConst.SourceIdentifier (c, _, r) -> SingleTextNode(c, r) |> Constant.FromText
 
-let rec mkExpr (fromSource: TextFromSource) (e: SynExpr) =
+let rec mkExpr (fromSource: TextFromSource) (e: SynExpr) : Expr =
     let exprRange = e.Range
 
     match e with
@@ -267,6 +267,7 @@ let mkPat (fromSource: TextFromSource) (p: SynPat) =
     // | Pattern.Attrib _ -> failwith "Not Implemented"
     // | Pattern.Or _ -> failwith "Not Implemented"
     // | Pattern.Ands _ -> failwith "Not Implemented"
+    | SynPat.Null _ -> SingleTextNode("null", p.Range) |> Pattern.Null
     // | Pattern.Null _ -> failwith "Not Implemented"
     // | Pattern.Wild _ -> failwith "Not Implemented"
     // | Pattern.Typed _ -> failwith "Not Implemented"
@@ -298,10 +299,10 @@ let mkBinding
 
     let functionName, parameters =
         match pat with
-        | SynPat.Named (ident = ident) -> ident.ToNode(), []
-        | SynPat.LongIdent (longDotId = (SynLongIdent ([ _ ], _, _) as lid); argPats = SynArgPats.Pats ps) ->
-            lid.IdentsWithTrivia.[0].ToNode(), List.map (mkPat fromSource) ps
-        | _ -> failwith "todo, 92E86FB8-1927-4CCD-AF73-244BD6327EB1"
+        | SynPat.Named (ident = ident) -> Choice1Of2(ident.ToNode()), []
+        | SynPat.LongIdent (longDotId = SynLongIdent ([ _ ], _, _) as lid; argPats = SynArgPats.Pats ps) ->
+            Choice1Of2(lid.IdentsWithTrivia.[0].ToNode()), List.map (mkPat fromSource) ps
+        | _ -> Choice2Of2(mkPat fromSource pat), []
 
     let equals = SingleTextNode("=", trivia.EqualsRange.Value)
 
