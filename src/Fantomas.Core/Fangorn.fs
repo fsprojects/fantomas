@@ -286,7 +286,7 @@ let mkPat (fromSource: TextFromSource) (p: SynPat) =
     // | Pattern.StructTuple _ -> failwith "Not Implemented"
     // | Pattern.ArrayOrList _ -> failwith "Not Implemented"
     // | Pattern.Record _ -> failwith "Not Implemented"
-    // | Pattern.Const _ -> failwith "Not Implemented"
+    | SynPat.Const (c, r) -> mkConstant fromSource c r |> Pattern.Const
     // | Pattern.IsInst _ -> failwith "Not Implemented"
     // | Pattern.QuoteExpr _ -> failwith "Not Implemented"
     | _ -> failwith "todo, 52DBA54F-37FE-45F1-9DDC-7BF7DE2F3502"
