@@ -266,11 +266,6 @@ type Type =
         | SignatureParameter n -> n
         | Or n -> n
 
-type PatOptionalValNode(range) =
-    inherit NodeBase(range)
-
-    override this.Children = failwith "todo"
-
 type PatAttribNode(range) =
     inherit NodeBase(range)
 
@@ -365,7 +360,7 @@ type PatQuoteExprNode(range) =
 
 [<RequireQualifiedAccess; NoEquality; NoComparison>]
 type Pattern =
-    | OptionalVal of PatOptionalValNode
+    | OptionalVal of SingleTextNode
     | Attrib of PatAttribNode
     | Or of PatOrNode
     | Ands of PatAndsNode
