@@ -262,16 +262,19 @@ let rec mkExpr (fromSource: TextFromSource) (e: SynExpr) : Expr =
     | _ -> failwith "todo, 693F570D-5A08-4E44-8937-FF98CE0AD8FC"
 
 let mkPat (fromSource: TextFromSource) (p: SynPat) =
+    let patternRange = p.Range
+
     match p with
     // | Pattern.OptionalVal _ -> failwith "Not Implemented"
     // | Pattern.Attrib _ -> failwith "Not Implemented"
     // | Pattern.Or _ -> failwith "Not Implemented"
     // | Pattern.Ands _ -> failwith "Not Implemented"
-    | SynPat.Null _ -> SingleTextNode("null", p.Range) |> Pattern.Null
+    | SynPat.Null _ -> SingleTextNode("null", patternRange) |> Pattern.Null
+    | SynPat.Wild _ -> SingleTextNode("_", patternRange) |> Pattern.Wild
     // | Pattern.Null _ -> failwith "Not Implemented"
     // | Pattern.Wild _ -> failwith "Not Implemented"
     // | Pattern.Typed _ -> failwith "Not Implemented"
-    | SynPat.Named (ident = ident) -> PatNamedNode(ident.ToNode(), p.Range) |> Pattern.Named
+    | SynPat.Named (ident = ident) -> PatNamedNode(ident.ToNode(), patternRange) |> Pattern.Named
     // | Pattern.As _ -> failwith "Not Implemented"
     // | Pattern.ListCons _ -> failwith "Not Implemented"
     // | Pattern.NamePatPairs _ -> failwith "Not Implemented"
