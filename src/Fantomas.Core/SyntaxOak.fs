@@ -288,10 +288,12 @@ type PatAndsNode(pats: Pattern list, range) =
     override this.Children = [| yield! List.map Pattern.Node pats |]
     member x.Patterns = pats
 
-type PatTypedNode(range) =
+type PatTypedNode(pat: Pattern, t: Type, range) =
     inherit NodeBase(range)
 
-    override this.Children = failwith "todo"
+    override this.Children = [| yield Pattern.Node pat; yield Type.Node t |]
+    member x.Pattern = pat
+    member x.Type = t
 
 type PatNamedNode(name: SingleTextNode, range) =
     inherit NodeBase(range)

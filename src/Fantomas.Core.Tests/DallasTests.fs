@@ -160,6 +160,7 @@ let a ?b = c
 let a ([<Foo>] b) = 0
 let (a | b) = 0
 let (a & b & c) = 0
+let x (a: int) = 0
 """
         config
     |> prepend newline
@@ -182,4 +183,5 @@ let a ?b = c
 let a ([<Foo>] b) = 0
 let (a | b) = 0
 let (a & b & c) = 0
+let x (a: int) = 0
 """

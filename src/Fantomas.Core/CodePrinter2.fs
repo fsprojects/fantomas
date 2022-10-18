@@ -281,7 +281,10 @@ let genPat (p: Pattern) =
     | Pattern.Ands node -> col (!- " & ") node.Patterns genPat
     | Pattern.Null node
     | Pattern.Wild node -> genSingleTextNode node
-    | Pattern.Typed _ -> failwith "Not Implemented"
+    | Pattern.Typed node ->
+        genPat node.Pattern
+        +> sepColon
+        +> autoIndentAndNlnIfExpressionExceedsPageWidth (atCurrentColumnIndent (genType node.Type))
     | Pattern.Named node -> genSingleTextNode node.Name
     | Pattern.As _ -> failwith "Not Implemented"
     | Pattern.ListCons _ -> failwith "Not Implemented"
