@@ -281,7 +281,7 @@ let mkPat (fromSource: TextFromSource) (p: SynPat) =
     | SynPat.Or (p1, p2, _, trivia) ->
         PatOrNode(mkPat fromSource p1, SingleTextNode("|", trivia.BarRange), mkPat fromSource p2, patternRange)
         |> Pattern.Or
-    // | Pattern.Ands _ -> failwith "Not Implemented"
+    | SynPat.Ands (ps, _) -> PatAndsNode(List.map (mkPat fromSource) ps, patternRange) |> Pattern.Ands
     | SynPat.Null _ -> SingleTextNode("null", patternRange) |> Pattern.Null
     | SynPat.Wild _ -> SingleTextNode("_", patternRange) |> Pattern.Wild
     // | Pattern.Typed _ -> failwith "Not Implemented"

@@ -278,7 +278,7 @@ let genPat (p: Pattern) =
         +> genSingleTextNode node.Bar
         +> sepSpace
         +> genPat node.RightHandSide
-    | Pattern.Ands _ -> failwith "Not Implemented"
+    | Pattern.Ands node -> col (!- " & ") node.Patterns genPat
     | Pattern.Null node
     | Pattern.Wild node -> genSingleTextNode node
     | Pattern.Typed _ -> failwith "Not Implemented"
