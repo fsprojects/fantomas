@@ -272,7 +272,12 @@ let genPat (p: Pattern) =
     match p with
     | Pattern.OptionalVal n -> genSingleTextNode n
     | Pattern.Attrib node -> genOnelinerAttributes node.Attributes +> genPat node.Pattern
-    | Pattern.Or _ -> failwith "Not Implemented"
+    | Pattern.Or node ->
+        genPat node.LeftHandSide
+        +> sepSpace
+        +> genSingleTextNode node.Bar
+        +> sepSpace
+        +> genPat node.RightHandSide
     | Pattern.Ands _ -> failwith "Not Implemented"
     | Pattern.Null node
     | Pattern.Wild node -> genSingleTextNode node

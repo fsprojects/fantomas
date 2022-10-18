@@ -278,7 +278,9 @@ let mkPat (fromSource: TextFromSource) (p: SynPat) =
     | SynPat.Attrib (p, ats, _) ->
         PatAttribNode(mkAttributeList fromSource ats, mkPat fromSource p, patternRange)
         |> Pattern.Attrib
-    // | Pattern.Or _ -> failwith "Not Implemented"
+    | SynPat.Or (p1, p2, _, trivia) ->
+        PatOrNode(mkPat fromSource p1, SingleTextNode("|", trivia.BarRange), mkPat fromSource p2, patternRange)
+        |> Pattern.Or
     // | Pattern.Ands _ -> failwith "Not Implemented"
     | SynPat.Null _ -> SingleTextNode("null", patternRange) |> Pattern.Null
     | SynPat.Wild _ -> SingleTextNode("_", patternRange) |> Pattern.Wild
