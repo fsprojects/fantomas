@@ -286,11 +286,6 @@ type PatAndsNode(range) =
 
     override this.Children = failwith "todo"
 
-type PatNullNode(range) =
-    inherit NodeBase(range)
-
-    override this.Children = failwith "todo"
-
 type PatWildNode(range) =
     inherit NodeBase(range)
 
@@ -383,7 +378,7 @@ type Pattern =
     | Attrib of PatAttribNode
     | Or of PatOrNode
     | Ands of PatAndsNode
-    | Null of PatNullNode
+    | Null of SingleTextNode
     | Wild of PatWildNode
     | Typed of PatTypedNode
     | Named of PatNamedNode
@@ -1076,7 +1071,7 @@ type ModuleDecl =
 type BindingNode
     (
         leadingKeyword: SingleTextNode,
-        functionName: SingleTextNode,
+        functionName: Choice<SingleTextNode, Pattern>,
         parameters: Pattern seq,
         equals: SingleTextNode,
         expr: Expr,
@@ -1091,7 +1086,10 @@ type BindingNode
 
     override this.Children =
         [| yield leadingKeyword
-           yield functionName
+           yield
+               match functionName with
+               | Choice1Of2 n -> (n :> Node)
+               | Choice2Of2 p -> Pattern.Node p
            yield equals
            yield Expr.Node expr |]
 
