@@ -266,10 +266,13 @@ type Type =
         | SignatureParameter n -> n
         | Or n -> n
 
-type PatAttribNode(range) =
+type PatAttribNode(attrs: AttributesListNode, pat: Pattern, range) =
     inherit NodeBase(range)
 
-    override this.Children = failwith "todo"
+    override this.Children = [| yield attrs; yield Pattern.Node pat |]
+
+    member x.Attributes = attrs
+    member x.Pattern = pat
 
 type PatOrNode(range) =
     inherit NodeBase(range)
@@ -975,6 +978,11 @@ type Expr =
         | Expr.ArrayOrList _ -> true
         | _ -> false
 
+    member e.HasParentheses: bool =
+        match e with
+        | Expr.Paren _ -> true
+        | _ -> false
+
 type OpenModuleOrNamespaceNode(identListNode: IdentListNode, range) =
     inherit NodeBase(range)
 
@@ -1008,16 +1016,28 @@ type HashDirectiveListNode(range) =
 
     override this.Children = failwith "todo"
 
-type AttributesNode(range) =
+type AttributeNode(typeName: IdentListNode, expr: Expr option, target: SingleTextNode option, range) =
     inherit NodeBase(range)
 
-    override this.Children = failwith "todo"
+    override this.Children =
+        [| yield typeName; yield! noa (Option.map Expr.Node expr); yield! noa target |]
+
+    member x.TypeName = typeName
+    member x.Expr = expr
+    member x.Target = target
+
+type AttributesNode(attributes: AttributeNode list, range) =
+    inherit NodeBase(range)
+    override this.Children = [| yield! nodes attributes |]
+    member x.Attributes = attributes
 
 type AttributesListNode(attributesNodes: AttributesNode list, range) =
     inherit NodeBase(range)
-
     override this.Children = [| yield! nodes attributesNodes |]
     static member Empty = AttributesListNode([], Range.Zero)
+
+    member x.AllAttributes =
+        List.collect (fun (an: AttributesNode) -> an.Attributes) attributesNodes
 
 type ExternBindingNode(range) =
     inherit NodeBase(range)
