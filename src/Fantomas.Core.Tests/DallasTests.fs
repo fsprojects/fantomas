@@ -158,6 +158,7 @@ let a (b) = c
 let a,b = 0
 let a ?b = c
 let a ([<Foo>] b) = 0
+let (a | b) = 0
 """
         config
     |> prepend newline
@@ -178,19 +179,5 @@ let a (b) = c
 let a, b = 0
 let a ?b = c
 let a ([<Foo>] b) = 0
-"""
-
-[<Test>]
-let ``love stoned`` () =
-    formatSourceString
-        false
-        """
-let a ([<Foo>] b) = 0
-"""
-        config
-    |> prepend newline
-    |> should
-        equal
-        """
-let a ([<Foo>] b) = 0
+let (a | b) = 0
 """
