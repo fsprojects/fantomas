@@ -332,10 +332,11 @@ type PatParenNode(openingParen: SingleTextNode, pat: Pattern, closingParen: Sing
     member x.Pattern = pat
     member x.ClosingParen = closingParen
 
-type PatTupleNode(range) =
+type PatTupleNode(pats: Pattern list, range) =
     inherit NodeBase(range)
 
-    override this.Children = failwith "todo"
+    override this.Children = [| yield! (List.map Pattern.Node pats) |]
+    member x.Patterns = pats
 
 type PatStructTupleNode(range) =
     inherit NodeBase(range)
@@ -387,7 +388,7 @@ type Pattern =
     | IsInst of PatIsInstNode
     | QuoteExpr of PatQuoteExprNode
 
-    static member Node(x: Pattern) : NodeBase =
+    static member Node(x: Pattern) : Node =
         match x with
         | OptionalVal n -> n
         | Attrib n -> n

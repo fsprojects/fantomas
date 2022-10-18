@@ -252,7 +252,10 @@ let genPat (p: Pattern) =
         genSingleTextNode node.OpeningParen
         +> genPat node.Pattern
         +> genSingleTextNode node.ClosingParen
-    | Pattern.Tuple _ -> failwith "Not Implemented"
+    | Pattern.Tuple node ->
+        expressionFitsOnRestOfLine
+            (col sepComma node.Patterns genPat)
+            (atCurrentColumn (col (sepComma +> sepNln) node.Patterns genPat))
     | Pattern.StructTuple _ -> failwith "Not Implemented"
     | Pattern.ArrayOrList _ -> failwith "Not Implemented"
     | Pattern.Record _ -> failwith "Not Implemented"
