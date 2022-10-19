@@ -471,7 +471,10 @@ let genType (t: Type) =
     | Type.WithGlobalConstraints _ -> failwith "Not Implemented"
     | Type.LongIdent idn -> genIdentListNode idn
     | Type.AnonRecord _ -> failwith "Not Implemented"
-    | Type.Paren _ -> failwith "Not Implemented"
+    | Type.Paren node ->
+        genSingleTextNode node.OpeningParen
+        +> genType node.Type
+        +> genSingleTextNode node.ClosingParen
     | Type.SignatureParameter _ -> failwith "Not Implemented"
     | Type.Or _ -> failwith "Not Implemented"
 
