@@ -337,7 +337,9 @@ let mkPat (fromSource: TextFromSource) (p: SynPat) =
         PatParenNode(stn "(" lpr, mkPat fromSource p, stn ")" rpr, patternRange)
         |> Pattern.Paren
     | SynPat.Tuple (false, ps, _) -> PatTupleNode(List.map (mkPat fromSource) ps, patternRange) |> Pattern.Tuple
-    // | Pattern.StructTuple _ -> failwith "Not Implemented"
+    | SynPat.Tuple (true, ps, _) ->
+        PatStructTupleNode(List.map (mkPat fromSource) ps, patternRange)
+        |> Pattern.StructTuple
     // | Pattern.ArrayOrList _ -> failwith "Not Implemented"
     // | Pattern.Record _ -> failwith "Not Implemented"
     | SynPat.Const (c, r) -> mkConstant fromSource c r |> Pattern.Const

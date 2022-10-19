@@ -359,7 +359,11 @@ let genPat (p: Pattern) =
         expressionFitsOnRestOfLine
             (col sepComma node.Patterns genPat)
             (atCurrentColumn (col (sepComma +> sepNln) node.Patterns genPat))
-    | Pattern.StructTuple _ -> failwith "Not Implemented"
+    | Pattern.StructTuple node ->
+        !- "struct "
+        +> sepOpenT
+        +> atCurrentColumn (colAutoNlnSkip0 sepComma node.Patterns genPat)
+        +> sepCloseT
     | Pattern.ArrayOrList _ -> failwith "Not Implemented"
     | Pattern.Record _ -> failwith "Not Implemented"
     | Pattern.Const c -> genConstant c
