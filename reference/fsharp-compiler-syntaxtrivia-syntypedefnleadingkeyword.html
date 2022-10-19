@@ -5,8 +5,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
   <meta name="author" content="Florian Verdonck, Jindřich Ivánek, David Schaefer">
-  <title>Visual Studio Code
-</title>
+  <title>SynTypeDefnLeadingKeyword (fantomas)</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,600;1,400&family=Reem+Kufi:wght@400;500;700&display=swap" rel="stylesheet">
@@ -188,25 +187,280 @@
         </div>
       </nav>
       <div id="fsdocs-content" class="bg-white m-2 m-sm-5 p-3 p-sm-4">
+        <div>
+  <h2>
+    SynTypeDefnLeadingKeyword Type
+  </h2>
+  <dl class="fsdocs-metadata">
+    <dt>
+      Namespace: 
+      <a href="https://fsprojects.github.io/fantomas/reference/fsharp-compiler-syntaxtrivia.html">
+        FSharp.Compiler.SyntaxTrivia
+      </a>
+    </dt>
+    <dt>
+      Assembly: Fantomas.FCS.dll
+    </dt>
+    <dt>
+      Base Type: 
+      <code>obj</code>
+    </dt>
+  </dl>
+  <div class="fsdocs-xmldoc">
+    <div>
+      <p class="fsdocs-summary">
         
-<h1><a name="Visual-Studio-Code" class="anchor" href="#Visual-Studio-Code">Visual Studio Code</a></h1>
-<p>The recommended way to use Fantomas in Visual Studio Code is by using the <a href="http://ionide.io/">Ionide plugin</a>. Fantomas is integrated in <a href="https://github.com/fsharp/FsAutoComplete/">FSAutoComplete</a> which is the language server used by Ionide.<br />
-Make sure Ionide is set to the default formatter inside <code>settings.json</code> :</p>
-<pre class="fssnip highlighted"><code lang="fsharp">  <span class="s">&quot;[fsharp]&quot;</span><span class="pn">:</span> <span class="pn">{</span>
-    <span class="s">&quot;editor.formatOnSave&quot;</span><span class="pn">:</span> <span class="k">true</span><span class="pn">,</span>
-    <span class="s">&quot;editor.defaultFormatter&quot;</span><span class="pn">:</span> <span class="s">&quot;Ionide.Ionide-fsharp&quot;</span>
-  <span class="pn">}</span>
-</code></pre>
-<h3><a name="Fantomas-version-detection-used-by-Fantomas-Client" class="anchor" href="#Fantomas-version-detection-used-by-Fantomas-Client">Fantomas version detection used by Fantomas.Client</a></h3>
-<p><em>starting version 4.6</em></p>
-<p>Fantomas version detection will try and find a compatible version in the following order:</p>
-<ol>
-<li>The version of Fantomas used by your local project. This is the fantomas version displayed when you run <code>dotnet tool list</code> inside the project folder.</li>
-<li>Your global Fantomas version. If fantomas was installed with <code>dotnet tool install fantomas -g</code>. You can see your global installations with <code>dotnet tool list -g</code>.</li>
-<li>Executable named <code>fantomas</code> found in your PATH.</li>
-</ol>
-<fantomas-nav previous="./VisualStudio.html" next="./GeneratingCode.html"></fantomas-nav>
+ Represents the leading keyword in a SynTypeDefn or SynTypeDefnSig
 
+      </p>
+    </div>
+  </div>
+  <div></div>
+  <div></div>
+  <div></div>
+  <div>
+    <h3>
+      Union cases
+    </h3>
+    <table class="table outer-list fsdocs-member-list">
+      <thead>
+        <tr>
+          <td class="fsdocs-member-list-header">
+            Union case
+          </td>
+          <td class="fsdocs-member-list-header">
+            Description
+          </td>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '1244', 1244)" onmouseover="showTip(event, '1244', 1244)">
+                <p>
+                  <a id="And">
+                    <a href="#And">
+                      <code><span>And&#32;<a href="https://fsprojects.github.io/fantomas/reference/fsharp-compiler-text-range-0.html">range</a></span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="1244">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>And&#32;<a href="https://fsprojects.github.io/fantomas/reference/fsharp-compiler-text-range-0.html">range</a></span></code>
+                  <br/>
+                  <br/>
+                  Parameters: 
+                  <ul>
+                    <span>
+                      <b>
+                        Item
+                      </b>
+                      :
+                      <code><a href="https://fsprojects.github.io/fantomas/reference/fsharp-compiler-text-range-0.html">range</a></code>
+                    </span>
+                    <br/>
+                  </ul>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-summary">
+              <a href="" class="fsdocs-source-link" title="Source on GitHub">
+                <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
+              </a>
+              <p class="fsdocs-summary">
+                
+              </p>
+            </div>
+            <dl class="fsdocs-params">
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  Item
+                </span>
+                :
+                <code><a href="https://fsprojects.github.io/fantomas/reference/fsharp-compiler-text-range-0.html">range</a></code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '1245', 1245)" onmouseover="showTip(event, '1245', 1245)">
+                <p>
+                  <a id="StaticType">
+                    <a href="#StaticType">
+                      <code><span>StaticType(<span>staticRange,&#32;typeRange</span>)</span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="1245">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>StaticType(<span>staticRange,&#32;typeRange</span>)</span></code>
+                  <br/>
+                  <br/>
+                  Parameters: 
+                  <ul>
+                    <span>
+                      <b>
+                        staticRange
+                      </b>
+                      :
+                      <code><a href="https://fsprojects.github.io/fantomas/reference/fsharp-compiler-text-range-0.html">range</a></code>
+                    </span>
+                    <br/>
+                    <span>
+                      <b>
+                        typeRange
+                      </b>
+                      :
+                      <code><a href="https://fsprojects.github.io/fantomas/reference/fsharp-compiler-text-range-0.html">range</a></code>
+                    </span>
+                    <br/>
+                  </ul>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-summary">
+              <a href="" class="fsdocs-source-link" title="Source on GitHub">
+                <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
+              </a>
+              <p class="fsdocs-summary">
+                
+              </p>
+            </div>
+            <dl class="fsdocs-params">
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  staticRange
+                </span>
+                :
+                <code><a href="https://fsprojects.github.io/fantomas/reference/fsharp-compiler-text-range-0.html">range</a></code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  typeRange
+                </span>
+                :
+                <code><a href="https://fsprojects.github.io/fantomas/reference/fsharp-compiler-text-range-0.html">range</a></code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '1246', 1246)" onmouseover="showTip(event, '1246', 1246)">
+                <p>
+                  <a id="Synthetic">
+                    <a href="#Synthetic">
+                      <code><span>Synthetic</span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="1246">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>Synthetic</span></code>
+                  <br/>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-summary">
+              <a href="" class="fsdocs-source-link" title="Source on GitHub">
+                <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
+              </a>
+              <p class="fsdocs-summary">
+                
+              </p>
+            </div>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '1247', 1247)" onmouseover="showTip(event, '1247', 1247)">
+                <p>
+                  <a id="Type">
+                    <a href="#Type">
+                      <code><span>Type&#32;<a href="https://fsprojects.github.io/fantomas/reference/fsharp-compiler-text-range-0.html">range</a></span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="1247">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>Type&#32;<a href="https://fsprojects.github.io/fantomas/reference/fsharp-compiler-text-range-0.html">range</a></span></code>
+                  <br/>
+                  <br/>
+                  Parameters: 
+                  <ul>
+                    <span>
+                      <b>
+                        Item
+                      </b>
+                      :
+                      <code><a href="https://fsprojects.github.io/fantomas/reference/fsharp-compiler-text-range-0.html">range</a></code>
+                    </span>
+                    <br/>
+                  </ul>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-summary">
+              <a href="" class="fsdocs-source-link" title="Source on GitHub">
+                <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
+              </a>
+              <p class="fsdocs-summary">
+                
+              </p>
+            </div>
+            <dl class="fsdocs-params">
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  Item
+                </span>
+                :
+                <code><a href="https://fsprojects.github.io/fantomas/reference/fsharp-compiler-text-range-0.html">range</a></code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <div></div>
+  <div></div>
+  <div></div>
+  <div></div>
+  <div></div>
+</div>
         
       </div>
         <div id="push"></div>
