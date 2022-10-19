@@ -1395,3 +1395,60 @@ let f
     =
     x
 """
+
+[<Test>]
+let ``comment in last line of anonymous type, 2566`` () =
+    formatSourceString
+        false
+        """
+let x = {|
+    Y = 42
+    Z = "string"
+    Foo = "Bar"
+    // test
+    |}
+
+let y = {|
+    Y = 42
+    // test
+|}
+
+let z = {|
+    Y = 42
+|}
+
+let a = {|
+    foo with
+    Level = 7
+    Square = 9
+    // test
+|}
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let x =
+    {|
+        Y = 42
+        Z = "string"
+        Foo = "Bar"
+    // test
+    |}
+
+let y =
+    {|
+        Y = 42
+    // test
+    |}
+
+let z = {| Y = 42 |}
+
+let a =
+    {| foo with
+        Level = 7
+        Square = 9
+    // test
+    |}
+"""

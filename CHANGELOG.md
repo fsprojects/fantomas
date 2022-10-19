@@ -1,5 +1,10 @@
 # Changelog
 
+## [Unreleased]
+
+### Fixed
+* Idempotency problem when having a comment in an anonymous record and Stroustrup formatting. [#2566](https://github.com/fsprojects/fantomas/issues/2566)
+
 ## [5.1.0-beta-001] - 2022-10-19
 
 ### Fixed

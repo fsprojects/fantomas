@@ -915,17 +915,17 @@ and genExpr synExpr ctx =
                 let size = getRecordSize ctx xs
                 isSmallExpression size smallRecordExpr multilineRecordExpr ctx
 
-        | AnonRecord (isStruct, fields, copyInfo) ->
+        | AnonRecord (openingBrace, isStruct, fields, copyInfo, closingBrace) ->
             let smallExpression =
                 onlyIf isStruct !- "struct "
                 +> sepOpenAnonRecd
                 +> optSingle (fun e -> genExpr e +> !- " with ") copyInfo
                 +> col sepSemi fields genAnonRecordFieldName
-                +> sepCloseAnonRecd
+                +> genTriviaFor SynExpr_AnonRecd_ClosingBrace closingBrace (sepSpace +> sepCloseAnonRecdFixed)
 
             let longExpression =
                 ifAlignBrackets
-                    (genMultilineAnonRecordAlignBrackets isStruct fields copyInfo)
+                    (genMultilineAnonRecordAlignBrackets openingBrace isStruct fields copyInfo closingBrace)
                     (genMultilineAnonRecord isStruct fields copyInfo)
 
             fun (ctx: Context) ->
@@ -2399,7 +2399,7 @@ and genMultilineAnonRecord (isStruct: bool) fields copyInfo =
 
     onlyIf isStruct !- "struct " +> recordExpr
 
-and genMultilineAnonRecordAlignBrackets (isStruct: bool) fields copyInfo =
+and genMultilineAnonRecordAlignBrackets _ (isStruct: bool) fields copyInfo closingBrace =
     let fieldsExpr = col sepNln fields genAnonRecordFieldName
 
     let copyExpr fieldsExpr e =
@@ -2414,12 +2414,16 @@ and genMultilineAnonRecordAlignBrackets (isStruct: bool) fields copyInfo =
 
     let genAnonRecord =
         match copyInfo with
-        | Some ci -> sepOpenAnonRecd +> copyExpr fieldsExpr ci +> sepNln +> sepCloseAnonRecdFixed
+        | Some ci ->
+            sepOpenAnonRecd
+            +> copyExpr fieldsExpr ci
+            +> sepNln
+            +> genTriviaFor SynExpr_AnonRecd_ClosingBrace closingBrace sepCloseAnonRecdFixed
         | None ->
             sepOpenAnonRecdFixed
             +> indentSepNlnUnindent fieldsExpr
             +> sepNln
-            +> sepCloseAnonRecdFixed
+            +> genTriviaFor SynExpr_AnonRecd_ClosingBrace closingBrace sepCloseAnonRecdFixed
 
     ifElse isStruct !- "struct " sepNone +> genAnonRecord
 
