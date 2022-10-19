@@ -378,11 +378,58 @@ let genPat (p: Pattern) =
             (genSingleTextNode node.OpenToken
              +> atCurrentColumn genPats
              +> genSingleTextNode node.CloseToken)
-    | Pattern.Record _ -> failwith "Not Implemented"
+    | Pattern.Record node ->
+        let smallRecordExpr =
+            genSingleTextNode node.OpeningNode
+            +> ifSpaceAroundDelimiter sepSpace
+            +> col sepSemi node.Fields genPatRecordFieldName
+            +> ifSpaceAroundDelimiter sepSpace
+            +> genSingleTextNode node.ClosingNode
+
+        let multilineRecordExpr =
+            genSingleTextNode node.OpeningNode
+            +> ifSpaceAroundDelimiter sepSpace
+            +> atCurrentColumn (col sepNln node.Fields genPatRecordFieldName)
+            +> ifSpaceAroundDelimiter sepSpace
+            +> genSingleTextNode node.ClosingNode
+
+        let multilineRecordExprAlignBrackets =
+            genSingleTextNode node.OpeningNode
+            +> indent
+            +> sepNln
+            +> atCurrentColumn (col sepNln node.Fields genPatRecordFieldName)
+            +> unindent
+            +> sepNln
+            +> genSingleTextNode node.ClosingNode
+            |> atCurrentColumnIndent
+
+        let multilineExpressionIfAlignBrackets =
+            ifAlignBrackets multilineRecordExprAlignBrackets multilineRecordExpr
+
+        fun ctx ->
+            let size = getRecordSize ctx node.Fields
+            isSmallExpression size smallRecordExpr multilineExpressionIfAlignBrackets ctx
     | Pattern.Const c -> genConstant c
-    | Pattern.IsInst _ -> failwith "Not Implemented"
+    | Pattern.IsInst node -> genSingleTextNode node.Token +> sepSpace +> genType node.Type
     | Pattern.QuoteExpr node -> genQuoteExpr node
     |> genNode (Pattern.Node p)
+
+let genPatRecordFieldName (node: PatRecordField) =
+    match node.Prefix with
+    | None ->
+        genSingleTextNode node.FieldName
+        +> sepSpace
+        +> genSingleTextNode node.Equals
+        +> sepSpace
+        +> genPat node.Pattern
+    | Some prefix ->
+        genIdentListNode prefix
+        +> sepDot
+        +> genSingleTextNode node.FieldName
+        +> sepSpace
+        +> genSingleTextNode node.Equals
+        +> sepSpace
+        +> genPat node.Pattern
 
 let genBinding (b: BindingNode) =
     genSingleTextNode b.LeadingKeyword
