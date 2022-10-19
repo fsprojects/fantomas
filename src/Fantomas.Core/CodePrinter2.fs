@@ -142,12 +142,7 @@ let genExpr (e: Expr) =
             (autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr node.Expr))
     | Expr.Constant node -> genConstant node
     | Expr.Null node -> genSingleTextNode node
-    | Expr.Quote node ->
-        genSingleTextNode node.OpenToken
-        +> sepSpace
-        +> expressionFitsOnRestOfLine (genExpr node.Expr) (indent +> sepNln +> genExpr node.Expr +> unindent +> sepNln)
-        +> sepSpace
-        +> genSingleTextNode node.CloseToken
+    | Expr.Quote node -> genQuoteExpr node
     | Expr.Typed node ->
         let short =
             genExpr node.Expr
@@ -255,6 +250,13 @@ let genExpr (e: Expr) =
     | Expr.IndexFromEnd _ -> failwith "Not Implemented"
     | Expr.Typar _ -> failwith "Not Implemented"
     |> genNode (Expr.Node e)
+
+let genQuoteExpr (node: ExprQuoteNode) =
+    genSingleTextNode node.OpenToken
+    +> sepSpace
+    +> expressionFitsOnRestOfLine (genExpr node.Expr) (indent +> sepNln +> genExpr node.Expr +> unindent +> sepNln)
+    +> sepSpace
+    +> genSingleTextNode node.CloseToken
 
 let genMultilineFunctionApplicationArguments (argExpr: Expr) = !- "todo!"
 // let argsInsideParenthesis lpr rpr pr f =
@@ -379,7 +381,7 @@ let genPat (p: Pattern) =
     | Pattern.Record _ -> failwith "Not Implemented"
     | Pattern.Const c -> genConstant c
     | Pattern.IsInst _ -> failwith "Not Implemented"
-    | Pattern.QuoteExpr _ -> failwith "Not Implemented"
+    | Pattern.QuoteExpr node -> genQuoteExpr node
     |> genNode (Pattern.Node p)
 
 let genBinding (b: BindingNode) =

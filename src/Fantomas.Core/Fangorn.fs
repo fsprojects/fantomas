@@ -185,15 +185,7 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
         |> Expr.Single
     | SynExpr.Const (c, r) -> mkConstant creationAide c r |> Expr.Constant
     | SynExpr.Null _ -> stn "null" exprRange |> Expr.Null
-    | SynExpr.Quote (_, isRaw, e, _, range) ->
-        let startToken, endToken =
-            let sText, length, eText = if isRaw then "<@@", 3, "@@>" else "<@", 2, "@>"
-
-            match range with
-            | StartEndRange length (startRange, _, endRange) -> stn sText startRange, stn eText endRange
-
-        ExprQuoteNode(startToken, mkExpr creationAide e, endToken, exprRange)
-        |> Expr.Quote
+    | SynExpr.Quote (_, isRaw, e, _, range) -> mkExprQuote creationAide isRaw e range |> Expr.Quote
     | SynExpr.TypeTest (e, t, _) ->
         ExprTypedNode(mkExpr creationAide e, ":?", mkType creationAide t, exprRange)
         |> Expr.Typed
@@ -281,6 +273,15 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
     // | Expr.IndexFromEnd _ -> failwith "Not Implemented"
     // | Expr.Typar _ -> failwith "Not Implemented"
     | _ -> failwith "todo, 693F570D-5A08-4E44-8937-FF98CE0AD8FC"
+
+let mkExprQuote creationAide isRaw e range : ExprQuoteNode =
+    let startToken, endToken =
+        let sText, length, eText = if isRaw then "<@@", 3, "@@>" else "<@", 2, "@>"
+
+        match range with
+        | StartEndRange length (startRange, _, endRange) -> stn sText startRange, stn eText endRange
+
+    ExprQuoteNode(startToken, mkExpr creationAide e, endToken, range)
 
 let mkPat (creationAide: CreationAide) (p: SynPat) =
     let patternRange = p.Range
@@ -377,11 +378,11 @@ let mkPat (creationAide: CreationAide) (p: SynPat) =
 
         PatArrayOrListNode(openToken, List.map (mkPat creationAide) ps, closeToken, patternRange)
         |> Pattern.ArrayOrList
-    // | Pattern.ArrayOrList _ -> failwith "Not Implemented"
     // | Pattern.Record _ -> failwith "Not Implemented"
     | SynPat.Const (c, r) -> mkConstant creationAide c r |> Pattern.Const
     // | Pattern.IsInst _ -> failwith "Not Implemented"
-    // | Pattern.QuoteExpr _ -> failwith "Not Implemented"
+    | SynPat.QuoteExpr (SynExpr.Quote (_, isRaw, e, _, _), _) ->
+        mkExprQuote creationAide isRaw e patternRange |> Pattern.QuoteExpr
     | _ -> failwith "todo, 52DBA54F-37FE-45F1-9DDC-7BF7DE2F3502"
 
 let mkBinding
