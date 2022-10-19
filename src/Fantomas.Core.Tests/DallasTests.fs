@@ -203,3 +203,18 @@ let <@ a @> = 0
 let (:? a) = 0
 let { A = a; B.B = b } = 0
 """
+
+[<Test>]
+let ``some types`` () =
+    formatSourceString
+        false
+        """
+let a (b: (int)) = 0
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let a (b: (int)) = 0
+"""
