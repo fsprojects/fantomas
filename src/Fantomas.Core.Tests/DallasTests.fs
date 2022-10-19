@@ -166,6 +166,7 @@ let (x :: y) = 0
 let X(y = 0) = 0
 let (X(y,z)) = 0
 let (struct (a,b)) = 0
+let [ a; b ] = 0
 """
         config
     |> prepend newline
@@ -194,4 +195,5 @@ let (x :: y) = 0
 let X(y = 0) = 0
 let (X(y, z)) = 0
 let (struct (a, b)) = 0
+let [ a; b ] = 0
 """
