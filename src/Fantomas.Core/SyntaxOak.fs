@@ -382,10 +382,15 @@ type PatStructTupleNode(pats: Pattern list, range) =
     override this.Children = [| yield! (List.map Pattern.Node pats) |]
     member x.Patterns = pats
 
-type PatArrayOrListNode(range) =
+type PatArrayOrListNode(openToken: SingleTextNode, pats: Pattern list, closeToken: SingleTextNode, range) =
     inherit NodeBase(range)
 
-    override this.Children = failwith "todo"
+    override this.Children =
+        [| yield openToken; yield! List.map Pattern.Node pats; yield closeToken |]
+
+    member x.OpenToken = openToken
+    member x.Patterns = pats
+    member x.CloseToken = closeToken
 
 type PatRecordNode(range) =
     inherit NodeBase(range)
