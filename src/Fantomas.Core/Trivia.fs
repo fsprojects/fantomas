@@ -208,6 +208,7 @@ let rec visitLastChildNode (node: TriviaNode) : TriviaNode =
     | SynTypeDefnSig_
     | SynMemberDefn_Member -> visitLastChildNode (Array.last node.Children)
     | SynPat_LongIdent when not (Array.isEmpty node.Children) -> visitLastChildNode (Array.last node.Children)
+    | SynPat_Attrib when not (Array.isEmpty node.Children) -> visitLastChildNode (Array.last node.Children)
     | _ -> node
 
 let findNodeBeforeLineAndColumn (nodes: TriviaNode seq) line column =

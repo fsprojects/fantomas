@@ -2531,3 +2531,43 @@ let Anonymous =
     {| FontFamily = 700 // font-weight
        FontSize = 48. |} // font-weight
 """
+
+[<Test>]
+let ``comments on param with attribute, 2585`` () =
+    formatSourceString
+        false
+        """
+type MyType =
+    member _.MyMethod
+        (
+            [<MyAttribute>] inputA: string, // my comment 1
+            [<MyAttribute>] inputB: string // my comment 2
+        ) =
+        inputA
+
+type MyType2 =
+    member _.MyMethod
+        (
+            [<MyAttribute>] inputA: string // my comment 1
+        ) =
+        inputA
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type MyType =
+    member _.MyMethod
+        (
+            [<MyAttribute>] inputA: string,  // my comment 1
+            [<MyAttribute>] inputB: string // my comment 2
+        ) =
+        inputA
+
+type MyType2 =
+    member _.MyMethod
+        ([<MyAttribute>] inputA: string) // my comment 1
+        =
+        inputA
+"""
