@@ -360,20 +360,8 @@ let mkPat (creationAide: CreationAide) (p: SynPat) =
 
             match range with
             | StartEndRange size (o, _, c) ->
-                let isFixed = ps.IsEmpty || not creationAide.Config.SpaceAroundDelimiter
-
-                let openText =
-                    if isArray && isFixed then "[|"
-                    elif isArray then "[| "
-                    elif isFixed then "["
-                    else "[ "
-
-                let closeText =
-                    if isArray && isFixed then "|]"
-                    elif isArray then " |]"
-                    elif isFixed then "["
-                    else " ]"
-
+                let openText = if isArray then "[|" else "["
+                let closeText = if isArray then "|]" else "]"
                 stn openText o, stn closeText c
 
         PatArrayOrListNode(openToken, List.map (mkPat creationAide) ps, closeToken, patternRange)
