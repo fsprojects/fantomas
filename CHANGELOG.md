@@ -1,5 +1,10 @@
 # Changelog
 
+## [Unreleased]
+
+### Fixed
+* Comments get removed for method parameter with attribute [#2585](https://github.com/fsprojects/fantomas/issues/2585)
+
 ## [5.1.0-alpha-007] - 2022-10-14
 
 ### Changed
