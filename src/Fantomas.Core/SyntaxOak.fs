@@ -2,7 +2,6 @@
 
 open System.Collections.Generic
 open FSharp.Compiler.Text
-open Microsoft.FSharp.Collections
 
 // Open questions:
 // - Do we need to distinguish between SignatureFile and ImplementationFile?
@@ -392,15 +391,37 @@ type PatArrayOrListNode(openToken: SingleTextNode, pats: Pattern list, closeToke
     member x.Patterns = pats
     member x.CloseToken = closeToken
 
-type PatRecordNode(range) =
+type PatRecordField
+    (
+        prefix: IdentListNode option,
+        fieldName: SingleTextNode,
+        equals: SingleTextNode,
+        pat: Pattern,
+        range
+    ) =
     inherit NodeBase(range)
 
-    override this.Children = failwith "todo"
+    override this.Children =
+        [| yield! noa prefix; yield fieldName; yield equals; yield Pattern.Node pat |]
 
-type PatIsInstNode(range) =
+    member x.Prefix = prefix
+    member x.FieldName = fieldName
+    member x.Equals = equals
+    member x.Pattern = pat
+
+type PatRecordNode(openingNode: SingleTextNode, fields: PatRecordField list, closingNode: SingleTextNode, range) =
     inherit NodeBase(range)
 
-    override this.Children = failwith "todo"
+    override this.Children = [| yield openingNode; yield! nodes fields; yield closingNode |]
+    member x.OpeningNode = openingNode
+    member x.Fields = fields
+    member x.ClosingNode = closingNode
+
+type PatIsInstNode(token: SingleTextNode, t: Type, range) =
+    inherit NodeBase(range)
+    override this.Children = [| yield token; yield Type.Node t |]
+    member x.Token = token
+    member x.Type = t
 
 [<RequireQualifiedAccess; NoEquality; NoComparison>]
 type Pattern =

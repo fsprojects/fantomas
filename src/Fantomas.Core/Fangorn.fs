@@ -378,12 +378,27 @@ let mkPat (creationAide: CreationAide) (p: SynPat) =
 
         PatArrayOrListNode(openToken, List.map (mkPat creationAide) ps, closeToken, patternRange)
         |> Pattern.ArrayOrList
-    // | Pattern.Record _ -> failwith "Not Implemented"
+    | SynPat.Record (fields, StartEndRange 1 (o, _, c)) ->
+        let fields =
+            fields
+            |> List.map (fun ((lid, ident), eq, pat) ->
+                let prefix = if lid.IsEmpty then None else Some(mkLongIdent lid)
+
+                let range =
+                    match prefix with
+                    | None -> unionRanges ident.idRange pat.Range
+                    | Some prefix -> unionRanges (prefix :> Node).Range pat.Range
+
+                PatRecordField(prefix, mkIdent ident, stn "=" eq, mkPat creationAide pat, range))
+
+        PatRecordNode(stn "{" o, fields, stn "}" c, patternRange) |> Pattern.Record
     | SynPat.Const (c, r) -> mkConstant creationAide c r |> Pattern.Const
-    // | Pattern.IsInst _ -> failwith "Not Implemented"
+    | SynPat.IsInst (t, StartRange 2 (tokenRange, _)) ->
+        PatIsInstNode(stn ":?" tokenRange, mkType creationAide t, patternRange)
+        |> Pattern.IsInst
     | SynPat.QuoteExpr (SynExpr.Quote (_, isRaw, e, _, _), _) ->
         mkExprQuote creationAide isRaw e patternRange |> Pattern.QuoteExpr
-    | _ -> failwith "todo, 52DBA54F-37FE-45F1-9DDC-7BF7DE2F3502"
+    | pat -> failwith $"unexpected pattern: {pat}"
 
 let mkBinding
     (creationAide: CreationAide)
