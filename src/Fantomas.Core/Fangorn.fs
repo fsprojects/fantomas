@@ -444,6 +444,8 @@ let mkTyparDecls (creationAide: CreationAide) (tds: SynTyparDecls) : TyparDecls 
     | SynTyparDecls.SinglePrefix _ -> None
 
 let mkType (creationAide: CreationAide) (t: SynType) : Type =
+    let typeRange = t.Range
+
     match t with
     // | Funs of TypeFunsNode
     // | Tuple of TypeTupleNode
@@ -462,7 +464,9 @@ let mkType (creationAide: CreationAide) (t: SynType) : Type =
     // | WithGlobalConstraints of TypeWithGlobalConstraintsNode
     | SynType.LongIdent lid -> Type.LongIdent(mkSynLongIdent lid)
     // | AnonRecord of TypeAnonRecordNode
-    // | Paren of TypeParenNode
+    | SynType.Paren (innerType, StartEndRange 1 (lpr, _, rpr)) ->
+        TypeParenNode(stn "(" lpr, mkType creationAide innerType, stn ")" rpr, typeRange)
+        |> Type.Paren
     // | SignatureParameter of TypeSignatureParameterNode
     // | Or of TypeOrNode
     | _ -> failwith "todo, F28E0FA1-7C39-4BFF-AFBF-0E9FD3D1D4E4"
