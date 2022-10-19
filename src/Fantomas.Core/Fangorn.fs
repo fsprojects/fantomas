@@ -499,24 +499,28 @@ let mkTypeDefn
     : TypeDefn =
 
     let typeNameNode =
-        match typeInfo, trivia.TypeKeyword with
-        | SynComponentInfo (ats, tds, tcs, lid, px, preferPostfix, ao, _), Some tk ->
+        match typeInfo with
+        | SynComponentInfo (ats, tds, tcs, lid, px, preferPostfix, ao, _) ->
             let identifierNode = mkLongIdent lid
+
+            let leadingKeyword =
+                match trivia.LeadingKeyword with
+                | SynTypeDefnLeadingKeyword.Type mType -> stn "type" mType
+                | SynTypeDefnLeadingKeyword.And mAnd -> stn "and" mAnd
+                | SynTypeDefnLeadingKeyword.StaticType _
+                | SynTypeDefnLeadingKeyword.Synthetic _ -> failwithf "unexpected %A" trivia.LeadingKeyword
 
             TypeNameNode(
                 AttributesListNode.Empty,
-                stn (if isFirst then "type" else "and") tk,
+                leadingKeyword,
                 isFirst,
                 None,
                 identifierNode,
                 None,
                 Option.map (stn "=") trivia.EqualsRange,
                 None,
-                unionRanges tk (identifierNode :> Node).Range
+                unionRanges (leadingKeyword :> Node).Range (identifierNode :> Node).Range
             )
-        | _, None ->
-            // TODO: update dotnet/fsharp to add "and" keywords.
-            failwith "leading keyword should be present"
 
     match typeRepr with
     // | Simple (TDSREnum ecs) ->
@@ -563,9 +567,10 @@ let mkModuleOrNamespace
     (SynModuleOrNamespace (longId = longId; kind = kind; decls = decls; range = range; trivia = trivia))
     =
     let leadingKeyword =
-        match trivia.ModuleKeyword with
-        | Some moduleKeyword -> Some(stn "module" moduleKeyword)
-        | None -> trivia.NamespaceKeyword |> Option.map (stn "namespace")
+        match trivia.LeadingKeyword with
+        | SynModuleOrNamespaceLeadingKeyword.Module mModule -> Some(stn "module" mModule)
+        | SynModuleOrNamespaceLeadingKeyword.Namespace mNamespace -> Some(stn "namespace" mNamespace)
+        | SynModuleOrNamespaceLeadingKeyword.None -> None
 
     let name =
         match kind with
