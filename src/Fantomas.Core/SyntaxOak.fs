@@ -402,11 +402,6 @@ type PatIsInstNode(range) =
 
     override this.Children = failwith "todo"
 
-type PatQuoteExprNode(range) =
-    inherit NodeBase(range)
-
-    override this.Children = failwith "todo"
-
 [<RequireQualifiedAccess; NoEquality; NoComparison>]
 type Pattern =
     | OptionalVal of SingleTextNode
@@ -429,7 +424,7 @@ type Pattern =
     | Record of PatRecordNode
     | Const of Constant
     | IsInst of PatIsInstNode
-    | QuoteExpr of PatQuoteExprNode
+    | QuoteExpr of ExprQuoteNode
 
     static member Node(x: Pattern) : Node =
         match x with
