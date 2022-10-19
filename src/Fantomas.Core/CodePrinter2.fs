@@ -376,7 +376,9 @@ let genPat (p: Pattern) =
             node.Patterns.IsEmpty
             (genSingleTextNode node.OpenToken +> genSingleTextNode node.CloseToken)
             (genSingleTextNode node.OpenToken
+             +> ifSpaceAroundDelimiter sepSpace
              +> atCurrentColumn genPats
+             +> ifSpaceAroundDelimiter sepSpace
              +> genSingleTextNode node.CloseToken)
     | Pattern.Record node ->
         let smallRecordExpr =
