@@ -48,8 +48,7 @@ let ``avoid stack-overflow in long array/list, 2485`` () =
                   [],
                   None,
                   Range.Zero,
-                  { ModuleKeyword = None
-                    NamespaceKeyword = None }
+                  { LeadingKeyword = SynModuleOrNamespaceLeadingKeyword.None }
               ) ]
 
     Assert.Pass()

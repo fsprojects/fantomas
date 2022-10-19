@@ -386,8 +386,7 @@ let ``backticks can be added from AST only scenarios`` () =
                       [],
                       None,
                       Range.Zero,
-                      { ModuleKeyword = None
-                        NamespaceKeyword = None }
+                      { LeadingKeyword = SynModuleOrNamespaceLeadingKeyword.None }
                   ) ],
                 (true, false),
                 { ConditionalDirectives = []
