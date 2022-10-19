@@ -124,10 +124,15 @@ type ModuleOrNamespaceNode(leadingKeyword: SingleTextNode option, name: IdentLis
                yield name
            yield! List.map ModuleDecl.Node decls |]
 
-type TypeFunsNode(range) =
+type TypeFunsNode(ts: (Type * SingleTextNode) list, returnType: Type, range) =
     inherit NodeBase(range)
 
-    override this.Children = failwith "todo"
+    override this.Children =
+        [| yield! nodes (List.collect (fun (t, arrow) -> [ yield Type.Node t; yield (arrow :> Node) ]) ts)
+           yield Type.Node returnType |]
+
+    member x.Parameters = ts
+    member x.ReturnType = returnType
 
 type TypeTupleNode(range) =
     inherit NodeBase(range)
@@ -248,7 +253,7 @@ type Type =
     | SignatureParameter of TypeSignatureParameterNode
     | Or of TypeOrNode
 
-    static member Node(x: Type) : NodeBase =
+    static member Node(x: Type) : Node =
         match x with
         | Funs n -> n
         | Tuple n -> n
