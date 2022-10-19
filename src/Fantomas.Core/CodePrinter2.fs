@@ -462,7 +462,7 @@ let genType (t: Type) =
     | Type.StaticConstant _ -> failwith "Not Implemented"
     | Type.StaticConstantExpr _ -> failwith "Not Implemented"
     | Type.StaticConstantNamed _ -> failwith "Not Implemented"
-    | Type.Array _ -> failwith "Not Implemented"
+    | Type.Array node -> genType node.Type +> !- "[" +> rep (node.Rank - 1) (!- ",") +> !- "]"
     | Type.Anon _ -> failwith "Not Implemented"
     | Type.Var _ -> failwith "Not Implemented"
     | Type.App _ -> failwith "Not Implemented"
@@ -477,6 +477,7 @@ let genType (t: Type) =
         +> genSingleTextNode node.ClosingParen
     | Type.SignatureParameter _ -> failwith "Not Implemented"
     | Type.Or _ -> failwith "Not Implemented"
+    |> genNode (Type.Node t)
 
 let genTypeDefn (td: TypeDefn) =
     let header =

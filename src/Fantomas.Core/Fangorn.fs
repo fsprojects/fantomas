@@ -455,7 +455,7 @@ let mkType (creationAide: CreationAide) (t: SynType) : Type =
     // | StaticConstant of TypeStaticConstantNode
     // | StaticConstantExpr of TypeStaticConstantExprNode
     // | StaticConstantNamed of TypeStaticConstantNamedNode
-    // | Array of TypeArrayNode
+    | SynType.Array (rank, t, _) -> TypeArrayNode(mkType creationAide t, rank, typeRange) |> Type.Array
     // | Anon of TypeAnonNode
     // | Var of TypeVarNode
     // | App of TypeAppNode

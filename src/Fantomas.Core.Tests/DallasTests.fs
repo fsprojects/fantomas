@@ -210,6 +210,7 @@ let ``some types`` () =
         false
         """
 let a (b: (int)) = 0
+let x (y : int[,,]) = 0
 """
         config
     |> prepend newline
@@ -217,4 +218,5 @@ let a (b: (int)) = 0
         equal
         """
 let a (b: (int)) = 0
+let x (y: int[,,]) = 0
 """
