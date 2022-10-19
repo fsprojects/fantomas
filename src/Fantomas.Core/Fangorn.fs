@@ -443,11 +443,22 @@ let mkTyparDecls (creationAide: CreationAide) (tds: SynTyparDecls) : TyparDecls 
     | SynTyparDecls.PrefixList _
     | SynTyparDecls.SinglePrefix _ -> None
 
+// Arrow type is right-associative
+let rec (|TFuns|_|) =
+    function
+    | SynType.Fun (t1, TFuns (ts, ret), _, trivia) -> Some((t1, trivia.ArrowRange) :: ts, ret)
+    | SynType.Fun (t1, t2, _, trivia) -> Some([ t1, trivia.ArrowRange ], t2)
+    | _ -> None
+
 let mkType (creationAide: CreationAide) (t: SynType) : Type =
     let typeRange = t.Range
 
     match t with
-    // | Funs of TypeFunsNode
+    | TFuns (ts, rt) ->
+        let parameters =
+            ts |> List.map (fun (t, mArrow) -> mkType creationAide t, stn "->" mArrow)
+
+        TypeFunsNode(parameters, mkType creationAide rt, typeRange) |> Type.Funs
     // | Tuple of TypeTupleNode
     // | HashConstraint of TypeHashConstraintNode
     // | MeasurePower of TypeMeasurePowerNode
@@ -550,7 +561,7 @@ let rec mkModuleDecls
         let typeNodes =
             List.mapi (fun idx tdn -> mkTypeDefn creationAide (idx = 0) tdn |> ModuleDecl.TypeDefn) typeDefns
 
-        mkModuleDecls creationAide rest (fun nodes -> [ yield! typeNodes; yield! nodes ])
+        mkModuleDecls creationAide rest (fun nodes -> [ yield! typeNodes; yield! nodes ] |> finalContinuation)
     | head :: tail ->
         mkModuleDecls creationAide tail (fun nodes -> mkModuleDecl creationAide head :: nodes |> finalContinuation)
 

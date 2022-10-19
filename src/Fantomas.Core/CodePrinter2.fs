@@ -454,7 +454,29 @@ let genOpenList (openList: OpenListNode) =
 
 let genType (t: Type) =
     match t with
-    | Type.Funs _ -> failwith "Not Implemented"
+    | Type.Funs node ->
+        let short =
+            col sepNone node.Parameters (fun (t, arrow) ->
+                genType t
+                +> sepSpace
+                +> genSingleTextNode arrow
+                +> sepSpace
+                +> sepNlnWhenWriteBeforeNewlineNotEmpty)
+            +> genType node.ReturnType
+
+        let long =
+            match node.Parameters with
+            | [] -> genType node.ReturnType
+            | (ht, ha) :: rest ->
+                genType ht
+                +> indentSepNlnUnindent (
+                    genSingleTextNode ha
+                    +> sepSpace
+                    +> col sepNone rest (fun (t, arrow) -> genType t +> sepNln +> genSingleTextNode arrow +> sepSpace)
+                    +> genType node.ReturnType
+                )
+
+        expressionFitsOnRestOfLine short long
     | Type.Tuple _ -> failwith "Not Implemented"
     | Type.HashConstraint _ -> failwith "Not Implemented"
     | Type.MeasurePower _ -> failwith "Not Implemented"
