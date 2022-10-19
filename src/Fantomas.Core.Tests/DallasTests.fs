@@ -168,6 +168,8 @@ let (X(y,z)) = 0
 let (struct (a,b)) = 0
 let [ a; b ] = 0
 let <@ a @> = 0
+let (:? a) = 0
+let { A = a; B.B = b } = 0
 """
         config
     |> prepend newline
@@ -198,4 +200,6 @@ let (X(y, z)) = 0
 let (struct (a, b)) = 0
 let [ a; b ] = 0
 let <@ a @> = 0
+let (:? a) = 0
+let { A = a; B.B = b } = 0
 """
