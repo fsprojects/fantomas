@@ -15,6 +15,7 @@
     <Compile Include="AstExtensions.fs" />
 <!--    <Compile Include="TriviaTypes.fs" />-->
     <Compile Include="Utils.fs" />
+    <Compile Include="FormatConfig.fs" />
 <!--    <Compile Include="SourceParser.fs" />-->
     <Compile Include="SyntaxOak.fs" />
     <Compile Include="Fangorn.fs" />
@@ -22,7 +23,6 @@
 <!--    <Compile Include="AstTransformer.fs" />-->
     <Compile Include="Version.fs" />
     <Compile Include="Queue.fs" />
-    <Compile Include="FormatConfig.fs" />
     <Compile Include="Flowering.fs" />
 <!--    <Compile Include="Defines.fsi" />-->
 <!--    <Compile Include="Defines.fs" />-->
