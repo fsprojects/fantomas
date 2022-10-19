@@ -164,10 +164,12 @@ type TypeStaticConstantNamedNode(range) =
 
     override this.Children = failwith "todo"
 
-type TypeArrayNode(range) =
+type TypeArrayNode(t: Type, rank: int, range) =
     inherit NodeBase(range)
 
-    override this.Children = failwith "todo"
+    override this.Children = [| yield Type.Node t |]
+    member x.Type = t
+    member x.Rank = rank
 
 type TypeAnonNode(range) =
     inherit NodeBase(range)
