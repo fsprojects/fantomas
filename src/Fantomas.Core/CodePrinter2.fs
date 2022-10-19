@@ -364,7 +364,18 @@ let genPat (p: Pattern) =
         +> sepOpenT
         +> atCurrentColumn (colAutoNlnSkip0 sepComma node.Patterns genPat)
         +> sepCloseT
-    | Pattern.ArrayOrList _ -> failwith "Not Implemented"
+    | Pattern.ArrayOrList node ->
+        let genPats =
+            let short = colAutoNlnSkip0 sepSemi node.Patterns genPat
+            let long = col sepNln node.Patterns genPat
+            expressionFitsOnRestOfLine short long
+
+        ifElse
+            node.Patterns.IsEmpty
+            (genSingleTextNode node.OpenToken +> genSingleTextNode node.CloseToken)
+            (genSingleTextNode node.OpenToken
+             +> atCurrentColumn genPats
+             +> genSingleTextNode node.CloseToken)
     | Pattern.Record _ -> failwith "Not Implemented"
     | Pattern.Const c -> genConstant c
     | Pattern.IsInst _ -> failwith "Not Implemented"

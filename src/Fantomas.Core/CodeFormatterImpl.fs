@@ -69,9 +69,9 @@ let formatAST
 
         let fileNode =
             match sourceText with
-            | None -> Fangorn.mkOak None ast
+            | None -> Fangorn.mkOak config None ast
             | Some sourceText ->
-                Fangorn.mkOak (Some sourceText) ast
+                Fangorn.mkOak config (Some sourceText) ast
                 |> Flowering.enrichTree config sourceText ast
 
         context |> genFile fileNode |> Context.dump false // (Option.isSome selection)

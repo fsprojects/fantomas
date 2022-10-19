@@ -4,11 +4,19 @@ open FSharp.Compiler.Text
 open FSharp.Compiler.Text.Range
 open FSharp.Compiler.Syntax
 open FSharp.Compiler.SyntaxTrivia
+open Fantomas.Core.FormatConfig
 open Fantomas.Core.ISourceTextExtensions
 open Fantomas.Core.RangePatterns
 open Fantomas.Core.SyntaxOak
 
-type TextFromSource = string -> range -> string
+type CreationAide =
+    { SourceText: ISourceText option
+      Config: FormatConfig }
+
+    member x.TextFromSource fallback range =
+        match x.SourceText with
+        | None -> fallback
+        | Some sourceText -> sourceText.GetContentAt range
 
 let stn text range = SingleTextNode(text, range)
 
@@ -70,7 +78,7 @@ let parseExpressionInSynBinding returnInfo expr =
         e
     | _ -> expr
 
-let mkParsedHashDirective (fromSource: TextFromSource) (ParsedHashDirective (ident, args, range)) =
+let mkParsedHashDirective (creationAide: CreationAide) (ParsedHashDirective (ident, args, range)) =
     let args =
         args
         |> List.map (function
@@ -81,14 +89,14 @@ let mkParsedHashDirective (fromSource: TextFromSource) (ParsedHashDirective (ide
                     | SynStringKind.Verbatim -> sprintf "@\"%s\"" value
                     | SynStringKind.TripleQuote -> sprintf "\"\"\"%s\"\"\"" value
 
-                stn (fromSource fallback range) range
+                stn (creationAide.TextFromSource fallback range) range
             | ParsedHashDirectiveArgument.SourceIdentifier (identifier, _, range) -> stn identifier range)
 
     ParsedHashDirectiveNode(ident, args, range)
 
-let mkConstant (fromSource: TextFromSource) c r : Constant =
+let mkConstant (creationAide: CreationAide) c r : Constant =
     let orElse fallback =
-        stn (fromSource fallback r) r |> Constant.FromText
+        stn (creationAide.TextFromSource fallback r) r |> Constant.FromText
 
     match c with
     | SynConst.Unit ->
@@ -116,66 +124,66 @@ let mkConstant (fromSource: TextFromSource) c r : Constant =
     | SynConst.Measure (c, numberRange, m) -> failwith "todo, 1BF1C723-1931-40BE-8C02-3A4BAC1D8BAD"
     | SynConst.SourceIdentifier (c, _, r) -> stn c r |> Constant.FromText
 
-let mkAttribute (fromSource: TextFromSource) (a: SynAttribute) =
+let mkAttribute (creationAide: CreationAide) (a: SynAttribute) =
     let expr =
         match a.ArgExpr with
         | SynExpr.Const (SynConst.Unit, _) -> None
-        | e -> mkExpr fromSource e |> Some
+        | e -> mkExpr creationAide e |> Some
 
     AttributeNode(mkSynLongIdent a.TypeName, expr, Option.map mkIdent a.Target, a.Range)
 
-let mkAttributes (fromSource: TextFromSource) (al: SynAttributeList) =
-    AttributesNode(List.map (mkAttribute fromSource) al.Attributes, al.Range)
+let mkAttributes (creationAide: CreationAide) (al: SynAttributeList) =
+    AttributesNode(List.map (mkAttribute creationAide) al.Attributes, al.Range)
 
-let mkAttributeList (fromSource: TextFromSource) (ats: SynAttributes) =
-    let attributes = List.map (mkAttributes fromSource) ats
+let mkAttributeList (creationAide: CreationAide) (ats: SynAttributes) =
+    let attributes = List.map (mkAttributes creationAide) ats
     let range = attributes |> List.map (fun a -> (a :> Node).Range) |> combineRanges
     AttributesListNode(attributes, range)
 
-let mkExpr (fromSource: TextFromSource) (e: SynExpr) : Expr =
+let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
     let exprRange = e.Range
 
     match e with
     | SynExpr.Lazy (e, StartRange 4 (lazyKeyword, _range)) ->
-        ExprLazyNode(stn "lazy" lazyKeyword, mkExpr fromSource e, exprRange)
+        ExprLazyNode(stn "lazy" lazyKeyword, mkExpr creationAide e, exprRange)
         |> Expr.Lazy
     | SynExpr.InferredDowncast (e, StartRange 8 (downcastKeyword, _range)) ->
-        ExprSingleNode(stn "downcast" downcastKeyword, false, mkExpr fromSource e, exprRange)
+        ExprSingleNode(stn "downcast" downcastKeyword, false, mkExpr creationAide e, exprRange)
         |> Expr.Single
     | SynExpr.InferredUpcast (e, StartRange 6 (upcastKeyword, _range)) ->
-        ExprSingleNode(stn "upcast" upcastKeyword, false, mkExpr fromSource e, exprRange)
+        ExprSingleNode(stn "upcast" upcastKeyword, false, mkExpr creationAide e, exprRange)
         |> Expr.Single
     | SynExpr.Assert (e, StartRange 6 (assertKeyword, _range)) ->
-        ExprSingleNode(stn "assert" assertKeyword, false, mkExpr fromSource e, exprRange)
+        ExprSingleNode(stn "assert" assertKeyword, false, mkExpr creationAide e, exprRange)
         |> Expr.Single
     | SynExpr.AddressOf (true, e, _, StartRange 1 (ampersandToken, _range)) ->
-        ExprSingleNode(stn "&" ampersandToken, false, mkExpr fromSource e, exprRange)
+        ExprSingleNode(stn "&" ampersandToken, false, mkExpr creationAide e, exprRange)
         |> Expr.Single
     | SynExpr.AddressOf (false, e, _, StartRange 2 (ampersandToken, _range)) ->
-        ExprSingleNode(stn "&&" ampersandToken, false, mkExpr fromSource e, exprRange)
+        ExprSingleNode(stn "&&" ampersandToken, false, mkExpr creationAide e, exprRange)
         |> Expr.Single
     | SynExpr.YieldOrReturn ((true, _), e, StartRange 5 (yieldKeyword, _range)) ->
-        ExprSingleNode(stn "yield" yieldKeyword, true, mkExpr fromSource e, exprRange)
+        ExprSingleNode(stn "yield" yieldKeyword, true, mkExpr creationAide e, exprRange)
         |> Expr.Single
     | SynExpr.YieldOrReturn ((false, _), e, StartRange 6 (returnKeyword, _range)) ->
-        ExprSingleNode(stn "return" returnKeyword, true, mkExpr fromSource e, exprRange)
+        ExprSingleNode(stn "return" returnKeyword, true, mkExpr creationAide e, exprRange)
         |> Expr.Single
     | SynExpr.YieldOrReturnFrom ((true, _), e, StartRange 6 (yieldBangKeyword, _range)) ->
-        ExprSingleNode(stn "yield!" yieldBangKeyword, true, mkExpr fromSource e, exprRange)
+        ExprSingleNode(stn "yield!" yieldBangKeyword, true, mkExpr creationAide e, exprRange)
         |> Expr.Single
     | SynExpr.YieldOrReturnFrom ((false, _), e, StartRange 7 (returnBangKeyword, _range)) ->
-        ExprSingleNode(stn "return!" returnBangKeyword, true, mkExpr fromSource e, exprRange)
+        ExprSingleNode(stn "return!" returnBangKeyword, true, mkExpr creationAide e, exprRange)
         |> Expr.Single
     | SynExpr.Do (e, StartRange 2 (doKeyword, _range)) ->
-        ExprSingleNode(stn "do" doKeyword, true, mkExpr fromSource e, exprRange)
+        ExprSingleNode(stn "do" doKeyword, true, mkExpr creationAide e, exprRange)
         |> Expr.Single
     | SynExpr.DoBang (e, StartRange 3 (doBangKeyword, _range)) ->
-        ExprSingleNode(stn "do!" doBangKeyword, true, mkExpr fromSource e, exprRange)
+        ExprSingleNode(stn "do!" doBangKeyword, true, mkExpr creationAide e, exprRange)
         |> Expr.Single
     | SynExpr.Fixed (e, StartRange 5 (fixedKeyword, _range)) ->
-        ExprSingleNode(stn "fixed" fixedKeyword, false, mkExpr fromSource e, exprRange)
+        ExprSingleNode(stn "fixed" fixedKeyword, false, mkExpr creationAide e, exprRange)
         |> Expr.Single
-    | SynExpr.Const (c, r) -> mkConstant fromSource c r |> Expr.Constant
+    | SynExpr.Const (c, r) -> mkConstant creationAide c r |> Expr.Constant
     | SynExpr.Null _ -> stn "null" exprRange |> Expr.Null
     | SynExpr.Quote (_, isRaw, e, _, range) ->
         let startToken, endToken =
@@ -184,23 +192,23 @@ let mkExpr (fromSource: TextFromSource) (e: SynExpr) : Expr =
             match range with
             | StartEndRange length (startRange, _, endRange) -> stn sText startRange, stn eText endRange
 
-        ExprQuoteNode(startToken, mkExpr fromSource e, endToken, exprRange)
+        ExprQuoteNode(startToken, mkExpr creationAide e, endToken, exprRange)
         |> Expr.Quote
     | SynExpr.TypeTest (e, t, _) ->
-        ExprTypedNode(mkExpr fromSource e, ":?", mkType fromSource t, exprRange)
+        ExprTypedNode(mkExpr creationAide e, ":?", mkType creationAide t, exprRange)
         |> Expr.Typed
     | SynExpr.Downcast (e, t, _) ->
-        ExprTypedNode(mkExpr fromSource e, ":?>", mkType fromSource t, exprRange)
+        ExprTypedNode(mkExpr creationAide e, ":?>", mkType creationAide t, exprRange)
         |> Expr.Typed
     | SynExpr.Upcast (e, t, _) ->
-        ExprTypedNode(mkExpr fromSource e, ":>", mkType fromSource t, exprRange)
+        ExprTypedNode(mkExpr creationAide e, ":>", mkType creationAide t, exprRange)
         |> Expr.Typed
     | SynExpr.Typed (e, t, _) ->
-        ExprTypedNode(mkExpr fromSource e, ":", mkType fromSource t, exprRange)
+        ExprTypedNode(mkExpr creationAide e, ":", mkType creationAide t, exprRange)
         |> Expr.Typed
     | SynExpr.New (_, t, (SynExpr.Paren _ as px), StartRange 3 (newRange, _))
     | SynExpr.New (_, t, (SynExpr.Const (SynConst.Unit, _) as px), StartRange 3 (newRange, _)) ->
-        ExprNewParenNode(stn "new" newRange, mkType fromSource t, mkExpr fromSource px, exprRange)
+        ExprNewParenNode(stn "new" newRange, mkType creationAide t, mkExpr creationAide px, exprRange)
         |> Expr.NewParen
     // | Expr.New _ -> failwith "Not Implemented"
     // | Expr.Tuple _ -> failwith "Not Implemented"
@@ -224,7 +232,7 @@ let mkExpr (fromSource: TextFromSource) (e: SynExpr) : Expr =
     // | Expr.ParenILEmbedded _ -> failwith "Not Implemented"
     // | Expr.ParenFunctionNameWithStar _ -> failwith "Not Implemented"
     | SynExpr.Paren (e, lpr, Some rpr, _) ->
-        ExprParenNode(stn "(" lpr, mkExpr fromSource e, stn ")" rpr, exprRange)
+        ExprParenNode(stn "(" lpr, mkExpr creationAide e, stn ")" rpr, exprRange)
         |> Expr.Paren
     // | Expr.Paren _ -> failwith "Not Implemented"
     // | Expr.Dynamic _ -> failwith "Not Implemented"
@@ -274,32 +282,37 @@ let mkExpr (fromSource: TextFromSource) (e: SynExpr) : Expr =
     // | Expr.Typar _ -> failwith "Not Implemented"
     | _ -> failwith "todo, 693F570D-5A08-4E44-8937-FF98CE0AD8FC"
 
-let mkPat (fromSource: TextFromSource) (p: SynPat) =
+let mkPat (creationAide: CreationAide) (p: SynPat) =
     let patternRange = p.Range
 
     match p with
     | SynPat.OptionalVal (ident, _) -> stn $"?{ident.idText}" patternRange |> Pattern.OptionalVal
     | SynPat.Attrib (p, ats, _) ->
-        PatAttribNode(mkAttributeList fromSource ats, mkPat fromSource p, patternRange)
+        PatAttribNode(mkAttributeList creationAide ats, mkPat creationAide p, patternRange)
         |> Pattern.Attrib
     | SynPat.Or (p1, p2, _, trivia) ->
-        PatLeftMiddleRight(mkPat fromSource p1, Choice1Of2(stn "|" trivia.BarRange), mkPat fromSource p2, patternRange)
+        PatLeftMiddleRight(
+            mkPat creationAide p1,
+            Choice1Of2(stn "|" trivia.BarRange),
+            mkPat creationAide p2,
+            patternRange
+        )
         |> Pattern.Or
-    | SynPat.Ands (ps, _) -> PatAndsNode(List.map (mkPat fromSource) ps, patternRange) |> Pattern.Ands
+    | SynPat.Ands (ps, _) -> PatAndsNode(List.map (mkPat creationAide) ps, patternRange) |> Pattern.Ands
     | SynPat.Null _ -> stn "null" patternRange |> Pattern.Null
     | SynPat.Wild _ -> stn "_" patternRange |> Pattern.Wild
     | SynPat.Typed (p, t, _) ->
-        PatTypedNode(mkPat fromSource p, mkType fromSource t, patternRange)
+        PatTypedNode(mkPat creationAide p, mkType creationAide t, patternRange)
         |> Pattern.Typed
     | SynPat.Named (ident = ident) -> PatNamedNode(mkSynIdent ident, patternRange) |> Pattern.Named
     | SynPat.As (p1, p2, r) ->
-        PatLeftMiddleRight(mkPat fromSource p1, Choice2Of2 "as", mkPat fromSource p2, patternRange)
+        PatLeftMiddleRight(mkPat creationAide p1, Choice2Of2 "as", mkPat creationAide p2, patternRange)
         |> Pattern.As
     | SynPat.ListCons (p1, p2, _, trivia) ->
         PatLeftMiddleRight(
-            mkPat fromSource p1,
+            mkPat creationAide p1,
             Choice1Of2(stn "::" trivia.ColonColonRange),
-            mkPat fromSource p2,
+            mkPat creationAide p2,
             patternRange
         )
         |> Pattern.ListCons
@@ -310,45 +323,69 @@ let mkPat (fromSource: TextFromSource) (p: SynPat) =
                         _,
                         _) ->
         let typarDecls =
-            Option.bind (fun (SynValTyparDecls (tds, _)) -> Option.bind (mkTyparDecls fromSource) tds) vtdo
+            Option.bind (fun (SynValTyparDecls (tds, _)) -> Option.bind (mkTyparDecls creationAide) tds) vtdo
 
         let pairs =
             nps
             |> List.map (fun (ident, eq, pat) ->
-                NamePatPair(mkIdent ident, stn "=" eq, mkPat fromSource pat, unionRanges ident.idRange pat.Range))
+                NamePatPair(mkIdent ident, stn "=" eq, mkPat creationAide pat, unionRanges ident.idRange pat.Range))
 
         PatNamePatPairsNode(mkSynLongIdent synLongIdent, typarDecls, stn "(" lpr, pairs, stn ")" rpr, patternRange)
         |> Pattern.NamePatPairs
     | SynPat.LongIdent (synLongIdent, _, vtdo, SynArgPats.Pats pats, ao, _) ->
         let typarDecls =
-            Option.bind (fun (SynValTyparDecls (tds, _)) -> Option.bind (mkTyparDecls fromSource) tds) vtdo
+            Option.bind (fun (SynValTyparDecls (tds, _)) -> Option.bind (mkTyparDecls creationAide) tds) vtdo
 
         PatLongIdentNode(
             Option.map mkSynAccess ao,
             mkSynLongIdent synLongIdent,
             typarDecls,
-            List.map (mkPat fromSource) pats,
+            List.map (mkPat creationAide) pats,
             patternRange
         )
         |> Pattern.LongIdent
     | SynPat.Paren (SynPat.Const (SynConst.Unit, _), StartEndRange 1 (lpr, _, rpr)) ->
         UnitNode(stn "(" lpr, stn ")" rpr, patternRange) |> Pattern.Unit
     | SynPat.Paren (p, StartEndRange 1 (lpr, _, rpr)) ->
-        PatParenNode(stn "(" lpr, mkPat fromSource p, stn ")" rpr, patternRange)
+        PatParenNode(stn "(" lpr, mkPat creationAide p, stn ")" rpr, patternRange)
         |> Pattern.Paren
-    | SynPat.Tuple (false, ps, _) -> PatTupleNode(List.map (mkPat fromSource) ps, patternRange) |> Pattern.Tuple
+    | SynPat.Tuple (false, ps, _) -> PatTupleNode(List.map (mkPat creationAide) ps, patternRange) |> Pattern.Tuple
     | SynPat.Tuple (true, ps, _) ->
-        PatStructTupleNode(List.map (mkPat fromSource) ps, patternRange)
+        PatStructTupleNode(List.map (mkPat creationAide) ps, patternRange)
         |> Pattern.StructTuple
+    | SynPat.ArrayOrList (isArray, ps, range) ->
+        let openToken, closeToken =
+            let size = if isArray then 2 else 1
+
+            match range with
+            | StartEndRange size (o, _, c) ->
+                let isFixed = ps.IsEmpty || not creationAide.Config.SpaceAroundDelimiter
+
+                let openText =
+                    if isArray && isFixed then "[|"
+                    elif isArray then "[| "
+                    elif isFixed then "["
+                    else "[ "
+
+                let closeText =
+                    if isArray && isFixed then "|]"
+                    elif isArray then " |]"
+                    elif isFixed then "["
+                    else " ]"
+
+                stn openText o, stn closeText c
+
+        PatArrayOrListNode(openToken, List.map (mkPat creationAide) ps, closeToken, patternRange)
+        |> Pattern.ArrayOrList
     // | Pattern.ArrayOrList _ -> failwith "Not Implemented"
     // | Pattern.Record _ -> failwith "Not Implemented"
-    | SynPat.Const (c, r) -> mkConstant fromSource c r |> Pattern.Const
+    | SynPat.Const (c, r) -> mkConstant creationAide c r |> Pattern.Const
     // | Pattern.IsInst _ -> failwith "Not Implemented"
     // | Pattern.QuoteExpr _ -> failwith "Not Implemented"
     | _ -> failwith "todo, 52DBA54F-37FE-45F1-9DDC-7BF7DE2F3502"
 
 let mkBinding
-    (fromSource: TextFromSource)
+    (creationAide: CreationAide)
     (SynBinding (_ao, _, _isInline, _isMutable, _attrs, _px, _, pat, returnInfo, expr, _, _, trivia))
     =
     let leadingKeyword =
@@ -359,8 +396,8 @@ let mkBinding
     let functionName, parameters =
         match pat with
         | SynPat.LongIdent (longDotId = SynLongIdent ([ _ ], _, _) as lid; argPats = SynArgPats.Pats ps) ->
-            Choice1Of2(mkSynIdent lid.IdentsWithTrivia.[0]), List.map (mkPat fromSource) ps
-        | _ -> Choice2Of2(mkPat fromSource pat), []
+            Choice1Of2(mkSynIdent lid.IdentsWithTrivia.[0]), List.map (mkPat creationAide) ps
+        | _ -> Choice2Of2(mkPat creationAide pat), []
 
     let equals = stn "=" trivia.EqualsRange.Value
 
@@ -380,29 +417,29 @@ let mkBinding
 
         unionRanges start e.Range
 
-    BindingNode(leadingKeyword, functionName, parameters, equals, (mkExpr fromSource expr), range)
+    BindingNode(leadingKeyword, functionName, parameters, equals, (mkExpr creationAide expr), range)
 
-let mkModuleDecl (fromSource: TextFromSource) (decl: SynModuleDecl) =
+let mkModuleDecl (creationAide: CreationAide) (decl: SynModuleDecl) =
     match decl with
     // | OpenList of OpenListNode
     // | HashDirectiveList of HashDirectiveListNode
     // | AttributesList of AttributesListNode
-    | SynModuleDecl.Expr (e, _) -> mkExpr fromSource e |> ModuleDecl.DeclExpr
+    | SynModuleDecl.Expr (e, _) -> mkExpr creationAide e |> ModuleDecl.DeclExpr
     // | ExternBinding of ExternBindingNode
     | SynModuleDecl.Let(bindings = [ singleBinding ]) ->
-        mkBinding fromSource singleBinding |> ModuleDecl.TopLevelBinding
+        mkBinding creationAide singleBinding |> ModuleDecl.TopLevelBinding
     // | ModuleAbbrev of ModuleAbbrevNode
     // | NestedModule of ModuleOrNamespaceNode
     // | TypeDefn of TypeDefn
     | _ -> failwith "todo, 068F312B-A840-4E14-AF82-A000652532E8"
 
-let mkTyparDecls (fromSource: TextFromSource) (tds: SynTyparDecls) : TyparDecls option =
+let mkTyparDecls (creationAide: CreationAide) (tds: SynTyparDecls) : TyparDecls option =
     match tds with
     | SynTyparDecls.PostfixList _
     | SynTyparDecls.PrefixList _
     | SynTyparDecls.SinglePrefix _ -> None
 
-let mkType (fromSource: TextFromSource) (t: SynType) : Type =
+let mkType (creationAide: CreationAide) (t: SynType) : Type =
     match t with
     // | Funs of TypeFunsNode
     // | Tuple of TypeTupleNode
@@ -432,15 +469,15 @@ let rec (|OpenL|_|) =
     | SynModuleDecl.Open (target, range) :: ys -> Some([ target, range ], ys)
     | _ -> None
 
-let mkOpenNodeForImpl (fromSource: TextFromSource) (target, range) : Open =
+let mkOpenNodeForImpl (creationAide: CreationAide) (target, range) : Open =
     match target with
     | SynOpenDeclTarget.ModuleOrNamespace (longId, _) ->
         OpenModuleOrNamespaceNode(mkSynLongIdent longId, range)
         |> Open.ModuleOrNamespace
-    | SynOpenDeclTarget.Type (typeName, range) -> OpenTargetNode(mkType fromSource typeName, range) |> Open.Target
+    | SynOpenDeclTarget.Type (typeName, range) -> OpenTargetNode(mkType creationAide typeName, range) |> Open.Target
 
 let mkTypeDefn
-    (fromSource: TextFromSource)
+    (creationAide: CreationAide)
     (isFirst: bool)
     (SynTypeDefn (typeInfo, typeRepr, members, implicitConstructor, range, trivia))
     : TypeDefn =
@@ -471,7 +508,7 @@ let mkTypeDefn
     // | Simple (TDSRRecord (openingBrace, ao', fs, closingBrace)) ->
     // | Simple TDSRNone -> typeName
     | SynTypeDefnRepr.Simple(simpleRepr = SynTypeDefnSimpleRepr.TypeAbbrev (rhsType = t)) ->
-        TypeDefn.Abbrev(TypeDefnAbbrevNode(typeNameNode, mkType fromSource t, range))
+        TypeDefn.Abbrev(TypeDefnAbbrevNode(typeNameNode, mkType creationAide t, range))
     // | Simple (TDSRException (ExceptionDefRepr (ats, px, ao, uc)))
     // | ObjectModel (TCSimple (TCInterface | TCClass) as tdk, MemberDefnList (impCtor, others), range) ->
     // | ObjectModel (TCSimple TCStruct as tdk, MemberDefnList (impCtor, others), _) ->
@@ -483,7 +520,7 @@ let mkTypeDefn
     | _ -> failwith "not implemented, C8C6C667-6A67-46A6-9EE3-A0DF663A3A91"
 
 let rec mkModuleDecls
-    (fromSource: TextFromSource)
+    (creationAide: CreationAide)
     (decls: SynModuleDecl list)
     (finalContinuation: ModuleDecl list -> ModuleDecl list)
     =
@@ -491,22 +528,22 @@ let rec mkModuleDecls
     | [] -> finalContinuation []
     | OpenL (xs, ys) ->
         let openListNode =
-            List.map (mkOpenNodeForImpl fromSource) xs
+            List.map (mkOpenNodeForImpl creationAide) xs
             |> OpenListNode
             |> ModuleDecl.OpenList
 
-        mkModuleDecls fromSource ys (fun nodes -> openListNode :: nodes)
+        mkModuleDecls creationAide ys (fun nodes -> openListNode :: nodes)
 
     | SynModuleDecl.Types (typeDefns = typeDefns) :: rest ->
         let typeNodes =
-            List.mapi (fun idx tdn -> mkTypeDefn fromSource (idx = 0) tdn |> ModuleDecl.TypeDefn) typeDefns
+            List.mapi (fun idx tdn -> mkTypeDefn creationAide (idx = 0) tdn |> ModuleDecl.TypeDefn) typeDefns
 
-        mkModuleDecls fromSource rest (fun nodes -> [ yield! typeNodes; yield! nodes ])
+        mkModuleDecls creationAide rest (fun nodes -> [ yield! typeNodes; yield! nodes ])
     | head :: tail ->
-        mkModuleDecls fromSource tail (fun nodes -> mkModuleDecl fromSource head :: nodes |> finalContinuation)
+        mkModuleDecls creationAide tail (fun nodes -> mkModuleDecl creationAide head :: nodes |> finalContinuation)
 
 let mkModuleOrNamespace
-    (fromSource: TextFromSource)
+    (creationAide: CreationAide)
     (SynModuleOrNamespace (longId = longId; kind = kind; decls = decls; range = range; trivia = trivia))
     =
     let leadingKeyword =
@@ -519,24 +556,23 @@ let mkModuleOrNamespace
         | SynModuleOrNamespaceKind.AnonModule -> IdentListNode.Empty
         | _ -> mkLongIdent longId
 
-    let decls = mkModuleDecls fromSource decls id
+    let decls = mkModuleDecls creationAide decls id
 
     ModuleOrNamespaceNode(leadingKeyword, name, decls, range)
 
 let mkImplFile
-    (fromSource: TextFromSource)
+    (creationAide: CreationAide)
     (ParsedImplFileInput (hashDirectives = hashDirectives; contents = contents))
     =
-    let phds = List.map (mkParsedHashDirective fromSource) hashDirectives
-    let mds = List.map (mkModuleOrNamespace fromSource) contents
+    let phds = List.map (mkParsedHashDirective creationAide) hashDirectives
+    let mds = List.map (mkModuleOrNamespace creationAide) contents
     Oak(phds, mds)
 
-let mkOak (sourceText: ISourceText option) (ast: ParsedInput) =
-    let fromSource fallback range =
-        match sourceText with
-        | None -> fallback
-        | Some sourceText -> sourceText.GetContentAt range
+let mkOak (config: FormatConfig) (sourceText: ISourceText option) (ast: ParsedInput) =
+    let creationAide =
+        { SourceText = sourceText
+          Config = config }
 
     match ast with
-    | ParsedInput.ImplFile parsedImplFileInput -> mkImplFile fromSource parsedImplFileInput
+    | ParsedInput.ImplFile parsedImplFileInput -> mkImplFile creationAide parsedImplFileInput
     | ParsedInput.SigFile _ -> failwith "todo 75E74A3A-C84D-4150-8D49-F111F0916839"
