@@ -204,10 +204,14 @@ type TypeAnonRecordNode(range) =
 
     override this.Children = failwith "todo"
 
-type TypeParenNode(range) =
+type TypeParenNode(openingParen: SingleTextNode, t: Type, closingParen: SingleTextNode, range) =
     inherit NodeBase(range)
 
-    override this.Children = failwith "todo"
+    override this.Children = [| yield openingParen; yield Type.Node t; yield closingParen |]
+
+    member x.OpeningParen = openingParen
+    member x.Type = t
+    member x.ClosingParen = closingParen
 
 type TypeSignatureParameterNode(range) =
     inherit NodeBase(range)
