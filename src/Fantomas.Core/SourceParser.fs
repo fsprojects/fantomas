@@ -65,12 +65,12 @@ let (|ParsedSigFileInput|)
 let (|ModuleOrNamespace|)
     (SynModuleOrNamespace.SynModuleOrNamespace (lids, isRecursive, kind, mds, px, ats, ao, _range, trivia) as m)
     =
-    (ats, px, trivia.ModuleKeyword, trivia.NamespaceKeyword, ao, lids, mds, isRecursive, kind, m.FullRange)
+    (ats, px, trivia.LeadingKeyword, ao, lids, mds, isRecursive, kind, m.FullRange)
 
 let (|SigModuleOrNamespace|)
     (SynModuleOrNamespaceSig.SynModuleOrNamespaceSig (lids, isRecursive, kind, mds, px, ats, ao, _range, trivia) as m)
     =
-    (ats, px, trivia.ModuleKeyword, trivia.NamespaceKeyword, ao, lids, mds, isRecursive, kind, m.FullRange)
+    (ats, px, trivia.LeadingKeyword, ao, lids, mds, isRecursive, kind, m.FullRange)
 
 let (|Attribute|) (a: SynAttribute) = (a.TypeName, a.ArgExpr, a.Target)
 
@@ -458,7 +458,13 @@ let parseExpressionInSynBinding returnInfo expr =
 
 let (|Binding|) (SynBinding (ao, _, isInline, isMutable, attrs, px, _, pat, returnInfo, expr, _, _, trivia) as b) =
     let e = parseExpressionInSynBinding returnInfo expr
-    let rt = Option.map (fun (SynBindingReturnInfo (typeName = t)) -> t) returnInfo
+
+    let rt =
+        Option.bind
+            (fun (SynBindingReturnInfo (typeName = t; trivia = trivia)) ->
+                Option.map (fun cr -> cr, t) trivia.ColonRange)
+            returnInfo
+
     attrs, px, trivia.LeadingKeyword, ao, isInline, isMutable, pat, rt, trivia.EqualsRange, e, b.FullRange
 
 let (|ExplicitCtor|_|) =
@@ -1412,14 +1418,14 @@ let (|TCSimple|TCDelegate|) =
     | SynTypeDefnKind.Delegate (t, _) -> TCDelegate t
 
 let (|TypeDef|) (SynTypeDefn (SynComponentInfo (ats, tds, tcs, lid, px, preferPostfix, ao, _), tdr, ms, _, _, trivia)) =
-    (ats, px, trivia.TypeKeyword, ao, tds, tcs, trivia.EqualsRange, tdr, trivia.WithKeyword, ms, lid, preferPostfix)
+    (ats, px, trivia.LeadingKeyword, ao, tds, tcs, trivia.EqualsRange, tdr, trivia.WithKeyword, ms, lid, preferPostfix)
 
 let (|SigTypeDef|)
     (SynTypeDefnSig (SynComponentInfo (ats, tds, tcs, lid, px, preferPostfix, ao, _), tdr, ms, range, trivia))
     =
     (ats,
      px,
-     trivia.TypeKeyword,
+     trivia.LeadingKeyword,
      ao,
      tds,
      tcs,

@@ -197,10 +197,14 @@ type FsAstType =
     | SynInterfaceImpl_With
     | SynTypeDefn_
     | SynTypeDefn_Type
+    | SynTypeDefn_And
+    | SynTypeDefn_StaticType
     | SynTypeDefn_Equals
     | SynTypeDefn_With
     | SynTypeDefnSig_
     | SynTypeDefnSig_Type
+    | SynTypeDefnSig_And
+    | SynTypeDefnSig_StaticType
     | SynTypeDefnSig_Equals
     | SynTypeDefnSig_With
     // | SynTypeDefnSigRepr_ObjectModel
@@ -233,7 +237,8 @@ type FsAstType =
     | SynSimplePats_Typed
     | SynBinding_
     | SynBinding_Equals
-    | SynBindingReturnInfo_
+    // | SynBindingReturnInfo_
+    | SynBinding_ReturnType_Colon
     | SynTyparDecls_PostfixList
     | SynTyparDecls_PostfixList_Greater
     | SynTyparDecls_PostfixList_Lesser

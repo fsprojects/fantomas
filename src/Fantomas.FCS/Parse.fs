@@ -104,8 +104,7 @@ let private PostParseModuleImpl (_i, defaultNamespace, _isLastCompiland, filenam
             ComputeAnonModuleName (not (isNil defs)) defaultNamespace filename (trimRangeToLine m)
 
         let trivia: SynModuleOrNamespaceTrivia =
-            { ModuleKeyword = None
-              NamespaceKeyword = None }
+            { LeadingKeyword = SynModuleOrNamespaceLeadingKeyword.None }
 
         SynModuleOrNamespace(
             modname,
@@ -245,8 +244,7 @@ let private PostParseModuleSpec (_i, defaultNamespace, _isLastCompiland, filenam
             ComputeAnonModuleName (not (isNil defs)) defaultNamespace filename (trimRangeToLine m)
 
         let trivia: SynModuleOrNamespaceSigTrivia =
-            { ModuleKeyword = None
-              NamespaceKeyword = None }
+            { LeadingKeyword = SynModuleOrNamespaceLeadingKeyword.None }
 
         SynModuleOrNamespaceSig(
             modname,

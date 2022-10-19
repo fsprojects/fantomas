@@ -1,6 +1,7 @@
 ﻿module internal Fantomas.Core.Selection
 
 open FSharp.Compiler.Syntax
+open FSharp.Compiler.SyntaxTrivia
 open FSharp.Compiler.Text
 open FSharp.Compiler.Xml
 open Fantomas.Core.FormatConfig
@@ -87,8 +88,7 @@ let mkAnonSynModuleOrNamespace decl =
         [],
         None,
         Range.Zero,
-        { ModuleKeyword = None
-          NamespaceKeyword = None }
+        { LeadingKeyword = SynModuleOrNamespaceLeadingKeyword.None }
     )
 
 let mkAnonSynModuleOrNamespaceSig decl =
@@ -101,8 +101,7 @@ let mkAnonSynModuleOrNamespaceSig decl =
         [],
         None,
         Range.Zero,
-        { ModuleKeyword = None
-          NamespaceKeyword = None }
+        { LeadingKeyword = SynModuleOrNamespaceLeadingKeyword.None }
     )
 
 let mkSynModuleDecl (expr: SynExpr) : SynModuleDecl = SynModuleDecl.Expr(expr, expr.Range)

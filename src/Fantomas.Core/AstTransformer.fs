@@ -50,17 +50,21 @@ let mkSynValSig (astNode: SynValSig) (r: range) (children: TriviaNode array) =
 let mkNodeOption (t: FsAstType) (r: range option) : TriviaNode option = Option.map (mkNode t) r
 
 let rec visitSynModuleOrNamespace
-    (SourceParser.ModuleOrNamespace (attrs, _, moduleKeyword, namespaceKeyword, _, longIdent, decls, _, kind, fullRange))
+    (SourceParser.ModuleOrNamespace (attrs, _, leadingKeyword, _, longIdent, decls, _, kind, fullRange))
     =
-    let astType, moduleOrNamespace =
+    let leadingKeywordNode =
+        match leadingKeyword with
+        | SynModuleOrNamespaceLeadingKeyword.Namespace mNamespace ->
+            [| mkNode SynModuleOrNamespace_Namespace mNamespace |]
+        | SynModuleOrNamespaceLeadingKeyword.Module mModule -> [| mkNode SynModuleOrNamespace_Module mModule |]
+        | SynModuleOrNamespaceLeadingKeyword.None -> Array.empty
+
+    let astType =
         match kind with
-        | SynModuleOrNamespaceKind.DeclaredNamespace ->
-            SynModuleOrNamespace_DeclaredNamespace, mkNodeOption SynModuleOrNamespace_Namespace namespaceKeyword
-        | SynModuleOrNamespaceKind.GlobalNamespace ->
-            SynModuleOrNamespace_GlobalNamespace, mkNodeOption SynModuleOrNamespace_Namespace namespaceKeyword
-        | SynModuleOrNamespaceKind.NamedModule ->
-            SynModuleOrNamespace_NamedModule, mkNodeOption SynModuleOrNamespace_Module moduleKeyword
-        | SynModuleOrNamespaceKind.AnonModule -> SynModuleOrNamespace_AnonModule, None
+        | SynModuleOrNamespaceKind.DeclaredNamespace -> SynModuleOrNamespace_DeclaredNamespace
+        | SynModuleOrNamespaceKind.GlobalNamespace -> SynModuleOrNamespace_GlobalNamespace
+        | SynModuleOrNamespaceKind.NamedModule -> SynModuleOrNamespace_NamedModule
+        | SynModuleOrNamespaceKind.AnonModule -> SynModuleOrNamespace_AnonModule
 
     let longIdentNodes =
         match kind, decls with
@@ -72,7 +76,7 @@ let rec visitSynModuleOrNamespace
       FSharpASTNode = None
       Children =
         sortChildren
-            [| yield! Option.toList moduleOrNamespace
+            [| yield! leadingKeywordNode
                yield! Option.toList longIdentNodes
                yield! visitSynAttributeLists attrs
                yield! (List.map visitSynModuleDecl decls) |] }
@@ -882,11 +886,19 @@ and visitSynInterfaceImpl (ii: SynInterfaceImpl) : TriviaNode =
 and visitSynTypeDefn (td: SynTypeDefn) : TriviaNode =
     match td with
     | SynTypeDefn (sci, stdr, members, _implicitConstructor, range, trivia) ->
+        let leadingKeyword =
+            match trivia.LeadingKeyword with
+            | SynTypeDefnLeadingKeyword.Type mType -> [| mkNode SynTypeDefn_Type mType |]
+            | SynTypeDefnLeadingKeyword.And mAnd -> [| mkNode SynTypeDefn_And mAnd |]
+            | SynTypeDefnLeadingKeyword.StaticType (mStatic, mType) ->
+                [| mkNode SynTypeDefn_StaticType (Range.unionRanges mStatic mType) |]
+            | SynTypeDefnLeadingKeyword.Synthetic -> Array.empty
+
         mkNodeWithChildren
             SynTypeDefn_
             range
             (sortChildren
-                [| yield! (Option.toList (mkNodeOption SynTypeDefn_Type trivia.TypeKeyword))
+                [| yield! leadingKeyword
                    yield! Option.toList (mkNodeOption SynTypeDefn_Equals trivia.EqualsRange)
                    yield! visitSynComponentInfo sci
                    yield! visitSynTypeDefnRepr stdr
@@ -896,11 +908,19 @@ and visitSynTypeDefn (td: SynTypeDefn) : TriviaNode =
 and visitSynTypeDefnSig (typeDefSig: SynTypeDefnSig) : TriviaNode =
     match typeDefSig with
     | SynTypeDefnSig (sci, synTypeDefnSigReprs, memberSig, _, trivia) ->
+        let leadingKeyword =
+            match trivia.LeadingKeyword with
+            | SynTypeDefnLeadingKeyword.Type mType -> [| mkNode SynTypeDefnSig_Type mType |]
+            | SynTypeDefnLeadingKeyword.And mAnd -> [| mkNode SynTypeDefnSig_And mAnd |]
+            | SynTypeDefnLeadingKeyword.StaticType (mStatic, mType) ->
+                [| mkNode SynTypeDefnSig_StaticType (Range.unionRanges mStatic mType) |]
+            | SynTypeDefnLeadingKeyword.Synthetic -> Array.empty
+
         mkNodeWithChildren
             SynTypeDefnSig_
             typeDefSig.Range
             (sortChildren
-                [| yield! Option.toList (mkNodeOption SynTypeDefnSig_Type trivia.TypeKeyword)
+                [| yield! leadingKeyword
                    yield! visitSynComponentInfo sci
                    yield! Option.toList (mkNodeOption SynTypeDefnSig_Equals trivia.EqualsRange)
                    yield! visitSynTypeDefnSigRepr synTypeDefnSigReprs
@@ -1036,7 +1056,13 @@ and visitSynBinding (binding: SynBinding) : TriviaNode =
 
         let keywordNode = visitSynLeadingKeyword trivia.LeadingKeyword
         let expr = SourceParser.parseExpressionInSynBinding returnInfo expr
-        let returnInfo = Option.map visitSynBindingReturnInfo returnInfo
+
+        let returnInfo =
+            match returnInfo with
+            | None -> Array.empty
+            | Some (SynBindingReturnInfo (typeName = t; trivia = trivia)) ->
+                [| yield! Option.toList (mkNodeOption SynBinding_ReturnType_Colon trivia.ColonRange)
+                   yield visitSynType t |]
 
         { Range = binding.FullRange
           Type = SynBinding_
@@ -1045,7 +1071,7 @@ and visitSynBinding (binding: SynBinding) : TriviaNode =
                 [| yield! visitSynAttributeLists attrs
                    yield keywordNode
                    yield! Option.toList headPatNodes
-                   yield! Option.toList returnInfo
+                   yield! returnInfo
                    yield! Option.toList (mkNodeOption SynBinding_Equals trivia.EqualsRange)
                    yield! visitSynExpr expr |]
           FSharpASTNode = Some(FSharpASTNode.Binding binding) }
@@ -1079,14 +1105,6 @@ and visitSynTyparDecl (std: SynTyparDecl) : TriviaNode =
             (sortChildren [| yield! (visitSynAttributeLists attrs); yield visitSynTypar synTypar |])
 
 and visitSynTypar (SynTypar (ident, _typarStaticReq, _isCompGen)) = mkNode Ident_ ident.idRange
-
-and visitSynBindingReturnInfo (returnInfo: SynBindingReturnInfo) : TriviaNode =
-    match returnInfo with
-    | SynBindingReturnInfo (typeName, range, attrs) ->
-        mkNodeWithChildren
-            SynBindingReturnInfo_
-            range
-            (sortChildren [| yield visitSynType typeName; yield! (visitSynAttributeLists attrs) |])
 
 and visitSynPat (sp: SynPat) : TriviaNode =
     let rec visit (sp: SynPat) (finalContinuation: TriviaNode -> TriviaNode) : TriviaNode =
@@ -1568,26 +1586,21 @@ and visitParsedHashDirective (hash: ParsedHashDirective) : TriviaNode =
     | ParsedHashDirective (_, _, range) -> mkNode ParsedHashDirective_ range
 
 and visitSynModuleOrNamespaceSig
-    (SourceParser.SigModuleOrNamespace (attrs,
-                                        _,
-                                        moduleKeyword,
-                                        namespaceKeyword,
-                                        _,
-                                        longIdent,
-                                        decls,
-                                        _,
-                                        kind,
-                                        fullRange))
+    (SourceParser.SigModuleOrNamespace (attrs, _, leadingKeyword, _, longIdent, decls, _, kind, fullRange))
     =
-    let astType, moduleOrNamespace =
+    let leadingKeywordNode =
+        match leadingKeyword with
+        | SynModuleOrNamespaceLeadingKeyword.Namespace mNamespace ->
+            [| mkNode SynModuleOrNamespace_Namespace mNamespace |]
+        | SynModuleOrNamespaceLeadingKeyword.Module mModule -> [| mkNode SynModuleOrNamespace_Module mModule |]
+        | SynModuleOrNamespaceLeadingKeyword.None -> Array.empty
+
+    let astType =
         match kind with
-        | SynModuleOrNamespaceKind.DeclaredNamespace ->
-            SynModuleOrNamespaceSig_DeclaredNamespace, mkNodeOption SynModuleOrNamespace_Namespace namespaceKeyword
-        | SynModuleOrNamespaceKind.GlobalNamespace ->
-            SynModuleOrNamespaceSig_GlobalNamespace, mkNodeOption SynModuleOrNamespace_Namespace namespaceKeyword
-        | SynModuleOrNamespaceKind.NamedModule ->
-            SynModuleOrNamespaceSig_NamedModule, mkNodeOption SynModuleOrNamespace_Module moduleKeyword
-        | SynModuleOrNamespaceKind.AnonModule -> SynModuleOrNamespaceSig_AnonModule, None
+        | SynModuleOrNamespaceKind.DeclaredNamespace -> SynModuleOrNamespaceSig_DeclaredNamespace
+        | SynModuleOrNamespaceKind.GlobalNamespace -> SynModuleOrNamespaceSig_GlobalNamespace
+        | SynModuleOrNamespaceKind.NamedModule -> SynModuleOrNamespaceSig_NamedModule
+        | SynModuleOrNamespaceKind.AnonModule -> SynModuleOrNamespaceSig_AnonModule
 
     let longIdentNodes =
         match kind, decls with
@@ -1599,7 +1612,7 @@ and visitSynModuleOrNamespaceSig
       FSharpASTNode = None
       Children =
         sortChildren
-            [| yield! Option.toList moduleOrNamespace
+            [| yield! leadingKeywordNode
                yield! Option.toList longIdentNodes
                yield! visitSynAttributeLists attrs
                yield! (List.map visitSynModuleSigDecl decls) |] }

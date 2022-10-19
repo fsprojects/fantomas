@@ -100,23 +100,17 @@ and genParsedHashDirective (ParsedHashDirective (h, args, r)) =
     !- "#" +> !-h +> sepSpace +> col sepSpace args genArg
     |> genTriviaFor ParsedHashDirective_ r
 
-and genModuleOrNamespaceKind
-    (moduleRange: range option)
-    (namespaceRange: range option)
-    (kind: SynModuleOrNamespaceKind)
-    =
-    match kind with
-    | SynModuleOrNamespaceKind.DeclaredNamespace ->
-        genTriviaForOption SynModuleOrNamespace_Namespace namespaceRange !- "namespace "
-    | SynModuleOrNamespaceKind.NamedModule -> genTriviaForOption SynModuleOrNamespace_Module moduleRange !- "module "
-    | SynModuleOrNamespaceKind.GlobalNamespace ->
-        genTriviaForOption SynModuleOrNamespace_Namespace namespaceRange !- "namespace"
-        +> !- " global"
-    | SynModuleOrNamespaceKind.AnonModule -> sepNone
+and genModuleOrNamespaceKind (leadingKeyword: SynModuleOrNamespaceLeadingKeyword) (kind: SynModuleOrNamespaceKind) =
+    match leadingKeyword with
+    | SynModuleOrNamespaceLeadingKeyword.Namespace range ->
+        if kind = SynModuleOrNamespaceKind.GlobalNamespace then
+            genTriviaFor SynModuleOrNamespace_Namespace range !- "namespace" +> !- " global"
+        else
+            genTriviaFor SynModuleOrNamespace_Namespace range !- "namespace "
+    | SynModuleOrNamespaceLeadingKeyword.Module range -> genTriviaFor SynModuleOrNamespace_Module range !- "module "
+    | SynModuleOrNamespaceLeadingKeyword.None -> sepNone
 
-and genModuleOrNamespace
-    (ModuleOrNamespace (ats, px, moduleRange, namespaceRange, ao, lids, mds, isRecursive, moduleKind, range))
-    =
+and genModuleOrNamespace (ModuleOrNamespace (ats, px, leadingKeyword, ao, lids, mds, isRecursive, moduleKind, range)) =
     let sepModuleAndFirstDecl =
         let firstDecl = List.tryHead mds
 
@@ -127,7 +121,7 @@ and genModuleOrNamespace
             +> sepNlnConsideringTriviaContentBeforeFor (synModuleDeclToFsAstType mdl) mdl.Range
 
     let moduleOrNamespace =
-        genModuleOrNamespaceKind moduleRange namespaceRange moduleKind
+        genModuleOrNamespaceKind leadingKeyword moduleKind
         +> genAccessOpt ao
         +> ifElse isRecursive (!- "rec ") sepNone
         +> genLongIdent lids
@@ -155,7 +149,7 @@ and genModuleOrNamespace
         | SynModuleOrNamespaceKind.NamedModule -> genTriviaFor SynModuleOrNamespace_NamedModule range)
 
 and genSigModuleOrNamespace
-    (SigModuleOrNamespace (ats, px, moduleRange, namespaceRange, ao, lids, mds, isRecursive, moduleKind, range))
+    (SigModuleOrNamespace (ats, px, leadingKeyword, ao, lids, mds, isRecursive, moduleKind, range))
     =
     let sepModuleAndFirstDecl =
         let firstDecl = List.tryHead mds
@@ -167,7 +161,7 @@ and genSigModuleOrNamespace
             +> sepNlnConsideringTriviaContentBeforeFor (synModuleSigDeclToFsAstType mdl) mdl.Range
 
     let moduleOrNamespace =
-        genModuleOrNamespaceKind moduleRange namespaceRange moduleKind
+        genModuleOrNamespaceKind leadingKeyword moduleKind
         +> genAccessOpt ao
         +> ifElse isRecursive (!- "rec ") sepNone
         +> genLongIdent lids
@@ -311,16 +305,12 @@ and genModuleDecl (node: SynModuleDecl) =
     | Open lid -> !- "open " +> genSynLongIdent false lid
     | OpenType lid -> !- "open type " +> genSynLongIdent false lid
     // There is no nested types and they are recursive if there are more than one definition
-    | Types (t :: ts) ->
+    | Types ts ->
         let items =
-            ColMultilineItem(genTypeDefn true t, sepNone)
-            :: (List.map
-                    (fun t ->
-                        ColMultilineItem(
-                            genTypeDefn false t,
-                            sepNlnConsideringTriviaContentBeforeFor SynTypeDefn_ t.Range
-                        ))
-                    ts)
+            List.map
+                (fun (t: SynTypeDefn) ->
+                    ColMultilineItem(genTypeDefn t, sepNlnConsideringTriviaContentBeforeFor SynTypeDefn_ t.Range))
+                ts
 
         colWithNlnWhenItemIsMultilineUsingConfig items
     | md -> failwithf "Unexpected module declaration: %O" md
@@ -347,15 +337,13 @@ and genSigModuleDecl node =
 
     | SigOpen lid -> !- "open " +> genSynLongIdent false lid
     | SigOpenType sli -> !- "open type " +> genSynLongIdent false sli
-    | SigTypes (t :: ts) ->
+    | SigTypes ts ->
         let items =
-            ColMultilineItem(genSigTypeDefn true t, sepNone)
-            :: (List.map
-                    (fun (t: SynTypeDefnSig) ->
-                        let sepNln = sepNlnConsideringTriviaContentBeforeFor SynTypeDefnSig_ t.Range
-
-                        ColMultilineItem(genSigTypeDefn false t, sepNln))
-                    ts)
+            List.map
+                (fun (t: SynTypeDefnSig) ->
+                    let sepNln = sepNlnConsideringTriviaContentBeforeFor SynTypeDefnSig_ t.Range
+                    ColMultilineItem(genSigTypeDefn t, sepNln))
+                ts
 
         colWithNlnWhenItemIsMultilineUsingConfig items
     | md -> failwithf "Unexpected module signature declaration: %O" md
@@ -2927,18 +2915,17 @@ and sepNlnBetweenTypeAndMembers (withKeywordRange: range option) (ms: SynMemberD
     | Some m -> sepNlnTypeAndMembers SynTypeDefn_With withKeywordRange m.Range (synMemberDefnToFsAstType m)
     | None -> sepNone
 
-and genTypeDefn
-    (isFirstTypeDefn: bool)
-    (TypeDef (ats, px, typeKeyword, ao, tds, tcs, equalsRange, tdr, withKeyword, ms, lids, _) as node)
-    =
+and genTypeDefn (TypeDef (ats, px, leadingKeyword, ao, tds, tcs, equalsRange, tdr, withKeyword, ms, lids, _) as node) =
+    let genLeadingKeyword =
+        match leadingKeyword with
+        | SynTypeDefnLeadingKeyword.Type mType -> genAttributes ats +> genTriviaFor SynTypeDefn_Type mType !- "type "
+        | SynTypeDefnLeadingKeyword.And mAnd -> genTriviaFor SynTypeDefn_And mAnd !- "and " +> genOnelinerAttributes ats
+        | SynTypeDefnLeadingKeyword.StaticType _
+        | SynTypeDefnLeadingKeyword.Synthetic -> sepNone
+
     let typeName =
         genPreXmlDoc px
-        +> ifElse
-            isFirstTypeDefn
-            (genAttributes ats
-             +> optSingle (enterNodeFor SynTypeDefn_Type) typeKeyword
-             +> !- "type ")
-            (!- "and " +> genOnelinerAttributes ats)
+        +> genLeadingKeyword
         +> genAccessOpt ao
         +> genTypeAndParam (genLongIdent lids) tds tcs
 
@@ -3197,27 +3184,30 @@ and sepNlnBetweenSigTypeAndMembers (withKeyword: range option) (ms: SynMemberSig
     | None -> sepNone
 
 and genSigTypeDefn
-    (isFirstSigTypeDefn: bool)
-    (SigTypeDef (ats, px, typeKeyword, ao, tds, tcs, equalsRange, tdr, withKeyword, ms, lid, _preferPostfix, fullRange))
+    (SigTypeDef (ats,
+                 px,
+                 leadingKeyword,
+                 ao,
+                 tds,
+                 tcs,
+                 equalsRange,
+                 tdr,
+                 withKeyword,
+                 ms,
+                 lid,
+                 _preferPostfix,
+                 fullRange))
     =
-    let genTriviaForOnelinerAttributes f (ctx: Context) =
-        match ats with
-        | [] -> f ctx
-        | h :: _ ->
-            (enterNodeFor SynAttributeList_ h.Range
-             +> f
-             +> leaveNodeFor SynAttributeList_ h.Range)
-                ctx
+    let genLeadingKeyword =
+        match leadingKeyword with
+        | SynTypeDefnLeadingKeyword.Type mType -> genAttributes ats +> genTriviaFor SynTypeDefnSig_Type mType !- "type "
+        | SynTypeDefnLeadingKeyword.And mAnd ->
+            genTriviaFor SynTypeDefnSig_And mAnd !- "and " +> genOnelinerAttributes ats
+        | SynTypeDefnLeadingKeyword.StaticType _
+        | SynTypeDefnLeadingKeyword.Synthetic -> sepNone
 
     let genXmlTypeKeywordAttrsAccess =
-        genPreXmlDoc px
-        +> ifElse
-            isFirstSigTypeDefn
-            (genAttributes ats
-             +> optSingle (enterNodeFor SynTypeDefnSig_Type) typeKeyword
-             +> !- "type ")
-            ((!- "and " +> genOnelinerAttributes ats) |> genTriviaForOnelinerAttributes)
-        +> genAccessOpt ao
+        genPreXmlDoc px +> genLeadingKeyword +> genAccessOpt ao
 
     let typeName =
         genXmlTypeKeywordAttrsAccess +> genTypeAndParam (genLongIdent lid) tds tcs
@@ -4245,13 +4235,27 @@ and clean_up_is_rec_function leadingKeyword =
 
 and genSynBinding (Binding (ats, px, leadingKeyword, ao, isInline, isMutable, p, returnInfo, equalsRange, e, range)) =
     match returnInfo, p with
-    | Some t, PatLongIdent (ao, sli, ps, tpso) when (List.isNotEmpty ps) ->
-        genSynBindingFunctionWithReturnType px ats leadingKeyword ao isInline isMutable sli ps tpso t equalsRange e
+    | Some (colon, t), PatLongIdent (ao, sli, ps, tpso) when (List.isNotEmpty ps) ->
+        genSynBindingFunctionWithReturnType
+            px
+            ats
+            leadingKeyword
+            ao
+            isInline
+            isMutable
+            sli
+            ps
+            tpso
+            colon
+            t
+            equalsRange
+            e
     | None, PatLongIdent (ao, sli, ps, tpso) when (List.isNotEmpty ps) ->
         genSynBindingFunction px ats leadingKeyword ao isInline isMutable sli ps tpso equalsRange e
-    | Some t, pat -> genSynBindingValue px ats leadingKeyword ao isInline isMutable pat (Some t) equalsRange e
+    | Some (colon, t), pat ->
+        genSynBindingValue px ats leadingKeyword ao isInline isMutable pat (Some colon) (Some t) equalsRange e
     | _, PatTuple _ -> genLetBindingDestructedTuple px ats leadingKeyword ao isInline isMutable p equalsRange e
-    | _, pat -> genSynBindingValue px ats leadingKeyword ao isInline isMutable pat None equalsRange e
+    | _, pat -> genSynBindingValue px ats leadingKeyword ao isInline isMutable pat None None equalsRange e
     |> genTriviaFor SynBinding_ range
 
 and genSynBindings bs withUseConfig =
@@ -4365,6 +4369,7 @@ and genSynBindingFunctionWithReturnType
     (functionName: SynLongIdent)
     (parameters: SynPat list)
     (genericTypeParameters: SynValTyparDecls option)
+    (colonRange: range)
     (returnType: SynType)
     (equalsRange: range option)
     (e: SynExpr)
@@ -4392,8 +4397,10 @@ and genSynBindingFunctionWithReturnType
         +> genValTyparDeclsOpt genericTypeParameters
 
     let genReturnType isFixed =
-        enterNodeFor SynBindingReturnInfo_ returnType.Range
-        +> ifElse isFixed (sepColonFixed +> sepSpace) sepColonWithSpacesFixed
+        genTriviaFor
+            SynBinding_ReturnType_Colon
+            colonRange
+            (ifElse isFixed (sepColonFixed +> sepSpace) sepColonWithSpacesFixed)
         +> atCurrentColumnIndent (genType returnType)
 
     let genSignature =
@@ -4509,6 +4516,7 @@ and genSynBindingValue
     (isInline: bool)
     (isMutable: bool)
     (valueName: SynPat)
+    (colonRange: range option)
     (returnType: SynType option)
     (equalsRange: range option)
     (e: SynExpr)
@@ -4541,18 +4549,18 @@ and genSynBindingValue
             ctx
 
     let genReturnType =
-        match returnType with
-        | Some rt ->
+        match returnType, colonRange with
+        | Some rt, Some colon ->
             let hasGenerics =
                 match valueName with
                 | SynPat.LongIdent (_, _, Some _, _, _, _) -> true
                 | _ -> false
 
-            ifElse hasGenerics sepColonWithSpacesFixed sepColon
-            +> (genType rt |> genTriviaFor SynBindingReturnInfo_ rt.Range)
+            genTriviaFor SynBinding_ReturnType_Colon colon (ifElse hasGenerics sepColonWithSpacesFixed sepColon)
+            +> genType rt
             +> sepSpaceUnlessWriteBeforeNewlineNotEmpty
             +> autoIndentAndNlnWhenWriteBeforeNewlineNotEmpty genEqualsInBinding
-        | None -> sepSpace +> genEqualsInBinding
+        | _ -> sepSpace +> genEqualsInBinding
 
     genPreXmlDoc px
     +> genAttrIsFirstChild
