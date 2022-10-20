@@ -492,7 +492,11 @@ let genType (t: Type) =
     | Type.MeasurePower node -> genType node.BaseMeasure +> !- "^" +> !-node.Exponent
     | Type.StaticConstant c -> genConstant c
     | Type.StaticConstantExpr node -> genSingleTextNode node.Const +> sepSpace +> genExpr node.Expr
-    | Type.StaticConstantNamed _ -> failwith "Not Implemented"
+    | Type.StaticConstantNamed node ->
+        genType node.Identifier
+        +> !- "="
+        +> addSpaceIfSynTypeStaticConstantHasAtSignBeforeString node.Value
+        +> genType node.Value
     | Type.Array node -> genType node.Type +> !- "[" +> rep (node.Rank - 1) (!- ",") +> !- "]"
     | Type.Anon node -> genSingleTextNode node
     | Type.Var node -> genSingleTextNode node
@@ -575,6 +579,14 @@ let genAnonRecordType (node: TypeAnonRecordNode) =
     fun (ctx: Context) ->
         let size = getRecordSize ctx node.Fields
         isSmallExpression size smallExpression longExpression ctx
+
+let addSpaceIfSynTypeStaticConstantHasAtSignBeforeString (t: Type) =
+    match t with
+    | Type.StaticConstant sc ->
+        match sc with
+        | Constant.FromText node -> onlyIf (node.Text.StartsWith("@")) sepSpace
+        | _ -> sepNone
+    | _ -> sepNone
 
 let genTypeDefn (td: TypeDefn) =
     let header =

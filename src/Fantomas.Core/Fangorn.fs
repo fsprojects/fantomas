@@ -508,7 +508,9 @@ let mkType (creationAide: CreationAide) (t: SynType) : Type =
     | SynType.StaticConstantExpr (e, StartRange 5 (mConst, _)) ->
         TypeStaticConstantExprNode(stn "const" mConst, mkExpr creationAide e, typeRange)
         |> Type.StaticConstantExpr
-    // | StaticConstantNamed of TypeStaticConstantNamedNode
+    | SynType.StaticConstantNamed (t1, t2, _) ->
+        TypeStaticConstantNamedNode(mkType creationAide t1, mkType creationAide t2, typeRange)
+        |> Type.StaticConstantNamed
     | SynType.Array (rank, t, _) -> TypeArrayNode(mkType creationAide t, rank, typeRange) |> Type.Array
     | SynType.Anon _ -> stn "_" typeRange |> Type.Anon
     | SynType.Var (tp, r) -> mkSynTypar tp r |> Type.Var
