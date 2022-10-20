@@ -152,10 +152,11 @@ type TypeHashConstraintNode(range) =
 
     override this.Children = failwith "todo"
 
-type TypeMeasurePowerNode(range) =
+type TypeMeasurePowerNode(baseMeasure: Type, exponent: string, range) =
     inherit NodeBase(range)
-
-    override this.Children = failwith "todo"
+    override this.Children = [| yield Type.Node baseMeasure |]
+    member x.BaseMeasure = baseMeasure
+    member x.Exponent = exponent
 
 type TypeStaticConstantNode(range) =
     inherit NodeBase(range)
