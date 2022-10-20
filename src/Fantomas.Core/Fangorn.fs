@@ -512,7 +512,6 @@ let mkType (creationAide: CreationAide) (t: SynType) : Type =
     | SynType.Array (rank, t, _) -> TypeArrayNode(mkType creationAide t, rank, typeRange) |> Type.Array
     | SynType.Anon _ -> stn "_" typeRange |> Type.Anon
     | SynType.Var (tp, r) -> mkSynTypar tp r |> Type.Var
-    // | Var of TypeVarNode
     // | App of TypeAppNode
     // | LongIdentApp of TypeLongIdentAppNode
     // | WithGlobalConstraints of TypeWithGlobalConstraintsNode
@@ -534,7 +533,9 @@ let mkType (creationAide: CreationAide) (t: SynType) : Type =
         TypeParenNode(stn "(" lpr, mkType creationAide innerType, stn ")" rpr, typeRange)
         |> Type.Paren
     // | SignatureParameter of TypeSignatureParameterNode
-    // | Or of TypeOrNode
+    | SynType.Or (lhs, rhs, _, trivia) ->
+        TypeOrNode(mkType creationAide lhs, stn "or" trivia.OrKeyword, mkType creationAide rhs, typeRange)
+        |> Type.Or
     | _ -> failwith "todo, F28E0FA1-7C39-4BFF-AFBF-0E9FD3D1D4E4"
 
 let rec (|OpenL|_|) =

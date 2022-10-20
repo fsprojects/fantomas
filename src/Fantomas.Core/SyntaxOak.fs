@@ -252,10 +252,12 @@ type TypeSignatureParameterNode(range) =
 
     override this.Children = failwith "todo"
 
-type TypeOrNode(range) =
+type TypeOrNode(lhs: Type, orNode: SingleTextNode, rhs: Type, range) =
     inherit NodeBase(range)
-
-    override this.Children = failwith "todo"
+    override this.Children = [| yield Type.Node lhs; yield orNode; yield Type.Node rhs |]
+    member x.LeftHandSide = lhs
+    member x.Or = orNode
+    member x.RightHandSide = rhs
 
 [<RequireQualifiedAccess; NoEquality; NoComparison>]
 type Type =
