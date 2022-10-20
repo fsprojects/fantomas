@@ -497,7 +497,7 @@ let mkType (creationAide: CreationAide) (t: SynType) : Type =
     | SynType.MeasurePower (t, rc, _) ->
         TypeMeasurePowerNode(mkType creationAide t, mkSynRationalConst rc, typeRange)
         |> Type.MeasurePower
-    // | StaticConstant of TypeStaticConstantNode
+    | SynType.StaticConstant (c, r) -> mkConstant creationAide c r |> Type.StaticConstant
     // | StaticConstantExpr of TypeStaticConstantExprNode
     // | StaticConstantNamed of TypeStaticConstantNamedNode
     | SynType.Array (rank, t, _) -> TypeArrayNode(mkType creationAide t, rank, typeRange) |> Type.Array

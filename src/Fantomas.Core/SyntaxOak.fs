@@ -158,11 +158,6 @@ type TypeMeasurePowerNode(baseMeasure: Type, exponent: string, range) =
     member x.BaseMeasure = baseMeasure
     member x.Exponent = exponent
 
-type TypeStaticConstantNode(range) =
-    inherit NodeBase(range)
-
-    override this.Children = failwith "todo"
-
 type TypeStaticConstantExprNode(range) =
     inherit NodeBase(range)
 
@@ -258,7 +253,7 @@ type Type =
     | Tuple of TypeTupleNode
     | HashConstraint of TypeHashConstraintNode
     | MeasurePower of TypeMeasurePowerNode
-    | StaticConstant of TypeStaticConstantNode
+    | StaticConstant of Constant
     | StaticConstantExpr of TypeStaticConstantExprNode
     | StaticConstantNamed of TypeStaticConstantNamedNode
     | Array of TypeArrayNode
@@ -280,7 +275,7 @@ type Type =
         | Tuple n -> n
         | HashConstraint n -> n
         | MeasurePower n -> n
-        | StaticConstant n -> n
+        | StaticConstant c -> Constant.Node c
         | StaticConstantExpr n -> n
         | StaticConstantNamed n -> n
         | Array n -> n
