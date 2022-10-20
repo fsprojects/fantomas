@@ -406,7 +406,13 @@ let mkBinding
     let equals = stn "=" trivia.EqualsRange.Value
 
     let e = parseExpressionInSynBinding returnInfo expr
-    let _rt = Option.map (fun (SynBindingReturnInfo (typeName = t)) -> t) returnInfo
+
+    let returnTypeNodes =
+        Option.bind
+            (fun (SynBindingReturnInfo (typeName = t; trivia = trivia)) ->
+                trivia.ColonRange
+                |> Option.map (fun mColon -> stn ":" mColon, mkType creationAide t))
+            returnInfo
 
     let range =
         let start =
@@ -421,7 +427,7 @@ let mkBinding
 
         unionRanges start e.Range
 
-    BindingNode(leadingKeyword, functionName, parameters, equals, (mkExpr creationAide expr), range)
+    BindingNode(leadingKeyword, functionName, parameters, returnTypeNodes, equals, (mkExpr creationAide e), range)
 
 let mkModuleDecl (creationAide: CreationAide) (decl: SynModuleDecl) =
     match decl with
@@ -468,6 +474,16 @@ let mkType (creationAide: CreationAide) (t: SynType) : Type =
                 | SynTupleTypeSegment.Star m -> Choice2Of2(stn "*" m))
 
         TypeTupleNode(path, typeRange) |> Type.Tuple
+    | SynType.Tuple (true, ts, (StartRange 6 (mStruct, _) & StartEndRange 1 (_, _, closingParen))) ->
+        let path =
+            ts
+            |> List.map (function
+                | SynTupleTypeSegment.Type t -> Choice1Of2(mkType creationAide t)
+                | SynTupleTypeSegment.Slash m -> Choice2Of2(stn "/" m)
+                | SynTupleTypeSegment.Star m -> Choice2Of2(stn "*" m))
+
+        TypeStructTupleNode(stn "struct" mStruct, path, stn ")" closingParen, typeRange)
+        |> Type.StructTuple
     // | HashConstraint of TypeHashConstraintNode
     // | MeasurePower of TypeMeasurePowerNode
     // | StaticConstant of TypeStaticConstantNode

@@ -199,10 +199,28 @@ type TypeLongIdentAppNode(range) =
 
     override this.Children = failwith "todo"
 
-type TypeStructTupleNode(range) =
+type TypeStructTupleNode
+    (
+        keyword: SingleTextNode,
+        path: Choice<Type, SingleTextNode> list,
+        closingParen: SingleTextNode,
+        range
+    ) =
     inherit NodeBase(range)
 
-    override this.Children = failwith "todo"
+    override this.Children =
+        [| yield keyword
+           yield!
+               List.map
+                   (function
+                   | Choice1Of2 t -> Type.Node t
+                   | Choice2Of2 n -> n :> Node)
+                   path
+           yield closingParen |]
+
+    member x.Keyword = keyword
+    member x.Path = path
+    member x.ClosingParen = closingParen
 
 type TypeWithGlobalConstraintsNode(range) =
     inherit NodeBase(range)
@@ -1150,7 +1168,8 @@ type BindingNode
     (
         leadingKeyword: SingleTextNode,
         functionName: Choice<SingleTextNode, Pattern>,
-        parameters: Pattern seq,
+        parameters: Pattern list,
+        returnTypeNodes: (SingleTextNode * Type) option,
         equals: SingleTextNode,
         expr: Expr,
         range
@@ -1159,6 +1178,7 @@ type BindingNode
     member x.LeadingKeyword = leadingKeyword
     member x.FunctionName = functionName
     member x.Parameters = parameters
+    member x.ReturnType = returnTypeNodes
     member x.Equals = equals
     member x.Expr = expr
 
@@ -1168,6 +1188,11 @@ type BindingNode
                match functionName with
                | Choice1Of2 n -> (n :> Node)
                | Choice2Of2 p -> Pattern.Node p
+           yield! nodes (List.map Pattern.Node parameters)
+           yield!
+               match returnTypeNodes with
+               | None -> Array.empty
+               | Some (colon, t) -> [| colon :> Node; Type.Node t |]
            yield equals
            yield Expr.Node expr |]
 
