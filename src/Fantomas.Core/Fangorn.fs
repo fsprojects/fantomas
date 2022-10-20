@@ -511,7 +511,19 @@ let mkType (creationAide: CreationAide) (t: SynType) : Type =
     // | LongIdentApp of TypeLongIdentAppNode
     // | WithGlobalConstraints of TypeWithGlobalConstraintsNode
     | SynType.LongIdent lid -> Type.LongIdent(mkSynLongIdent lid)
-    // | AnonRecord of TypeAnonRecordNode
+    | SynType.AnonRecd (isStruct, fields, StartEndRange 2 (_, r, mClosing)) ->
+        let structNode, openingNode =
+            if isStruct then
+                match r with
+                | StartRange 6 (mStruct, _) -> Some(stn "struct" mStruct), None
+            else
+                match r with
+                | StartRange 2 (mOpening, _) -> None, Some(stn "{|" mOpening)
+
+        let fields = fields |> List.map (fun (i, t) -> mkIdent i, mkType creationAide t)
+
+        TypeAnonRecordNode(structNode, openingNode, fields, stn "|}" mClosing, typeRange)
+        |> Type.AnonRecord
     | SynType.Paren (innerType, StartEndRange 1 (lpr, _, rpr)) ->
         TypeParenNode(stn "(" lpr, mkType creationAide innerType, stn ")" rpr, typeRange)
         |> Type.Paren

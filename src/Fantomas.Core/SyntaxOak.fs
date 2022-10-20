@@ -222,10 +222,26 @@ type TypeWithGlobalConstraintsNode(range) =
 
     override this.Children = failwith "todo"
 
-type TypeAnonRecordNode(range) =
+type TypeAnonRecordNode
+    (
+        structNode: SingleTextNode option,
+        openingToken: SingleTextNode option,
+        fields: (SingleTextNode * Type) list,
+        closingToken: SingleTextNode,
+        range
+    ) =
     inherit NodeBase(range)
 
-    override this.Children = failwith "todo"
+    override this.Children =
+        [| yield! noa structNode
+           yield! noa openingToken
+           yield! (fields |> List.collect (fun (i, t) -> [ yield (i :> Node); yield Type.Node t ]))
+           yield closingToken |]
+
+    member x.Struct = structNode
+    member x.Opening = openingToken
+    member x.Fields = fields
+    member x.Closing = closingToken
 
 type TypeParenNode(openingParen: SingleTextNode, t: Type, closingParen: SingleTextNode, range) =
     inherit NodeBase(range)
