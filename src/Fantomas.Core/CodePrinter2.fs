@@ -495,7 +495,7 @@ let genType (t: Type) =
     | Type.StaticConstantNamed _ -> failwith "Not Implemented"
     | Type.Array node -> genType node.Type +> !- "[" +> rep (node.Rank - 1) (!- ",") +> !- "]"
     | Type.Anon node -> genSingleTextNode node
-    | Type.Var _ -> failwith "Not Implemented"
+    | Type.Var node -> genSingleTextNode node
     | Type.App _ -> failwith "Not Implemented"
     | Type.LongIdentApp _ -> failwith "Not Implemented"
     | Type.StructTuple node ->
