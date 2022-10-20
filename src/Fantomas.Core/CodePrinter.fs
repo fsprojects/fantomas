@@ -3042,18 +3042,14 @@ and genTypeDefn (TypeDef (ats, px, leadingKeyword, ao, tds, tcs, equalsRange, td
     | Simple (TDSRException (ExceptionDefRepr (ats, px, ao, uc))) -> genExceptionBody ats px ao uc
 
     | ObjectModel (TCSimple (TCInterface | TCClass | TCStruct) as tdk, MemberDefnList (impCtor, others), range) ->
-        let isClass =
-            match tdk with
-            | TCSimple TCClass -> true
-            | _ -> false
-
         typeName
-        +> onlyIf isClass sepSpaceBeforeClassConstructor
-        +> leadingExpressionIsMultiline (opt sepNone impCtor genMemberDefn) (fun isMulti ctx ->
-            if isMulti && ctx.Config.AlternativeLongMemberDefinitions then
-                sepEqFixed ctx
-            else
-                sepEq ctx)
+        +> leadingExpressionIsMultiline
+            (optSingle (fun md -> sepSpaceBeforeClassConstructor +> genMemberDefn md) impCtor)
+            (fun isMulti ctx ->
+                if isMulti && ctx.Config.AlternativeLongMemberDefinitions then
+                    sepEqFixed ctx
+                else
+                    sepEq ctx)
         +> indent
         +> sepNln
         +> genTypeDefKind tdk
