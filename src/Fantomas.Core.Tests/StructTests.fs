@@ -129,16 +129,29 @@ type TupleStruct = (struct (string * string))
 """
 
 [<Test>]
-let ``struct empty type`` () =
+let ``struct empty type, 2592`` () =
+    formatSourceString
+        false
+        """
+type NameStruct = struct end
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type NameStruct =
+    struct
+    end
+"""
+
+[<Test>]
+let ``struct empty type with ctor, 2592`` () =
     formatSourceString
         false
         """
 type NameStruct() =
-
-
     struct
-
-
     end
 """
         config
@@ -147,6 +160,28 @@ type NameStruct() =
         equal
         """
 type NameStruct() =
+    struct
+    end
+"""
+
+[<Test>]
+let ``struct empty type with empty lines, 2592`` () =
+    formatSourceString
+        false
+        """
+type NameStruct =
+
+
+    struct
+
+    end
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type NameStruct =
     struct
     end
 """
