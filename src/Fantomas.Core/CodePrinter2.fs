@@ -512,7 +512,12 @@ let genType (t: Type) =
         +> genType node.Type
         +> genSingleTextNode node.ClosingParen
     | Type.SignatureParameter _ -> failwith "Not Implemented"
-    | Type.Or _ -> failwith "Not Implemented"
+    | Type.Or node ->
+        genType node.LeftHandSide
+        +> sepSpace
+        +> genSingleTextNode node.Or
+        +> sepSpace
+        +> genType node.RightHandSide
     |> genNode (Type.Node t)
 
 let genSynTupleTypeSegments (path: Choice<Type, SingleTextNode> list) =
