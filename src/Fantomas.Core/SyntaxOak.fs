@@ -179,11 +179,6 @@ type TypeArrayNode(t: Type, rank: int, range) =
     member x.Type = t
     member x.Rank = rank
 
-type TypeVarNode(range) =
-    inherit NodeBase(range)
-
-    override this.Children = failwith "todo"
-
 type TypeAppNode(range) =
     inherit NodeBase(range)
 
@@ -273,7 +268,7 @@ type Type =
     | StaticConstantNamed of TypeStaticConstantNamedNode
     | Array of TypeArrayNode
     | Anon of SingleTextNode
-    | Var of TypeVarNode
+    | Var of SingleTextNode
     | App of TypeAppNode
     | LongIdentApp of TypeLongIdentAppNode
     | StructTuple of TypeStructTupleNode
