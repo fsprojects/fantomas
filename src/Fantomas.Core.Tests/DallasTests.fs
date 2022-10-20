@@ -216,6 +216,7 @@ type A = int * int
 type B = h / s
 let _: struct (int * int) = ()
 let a (b: #int) = 0
+let a (b: const int) = 0
 """
         config
     |> prepend newline
@@ -229,4 +230,5 @@ type A = int * int
 type B = h / s
 let _: struct (int * int) = ()
 let a (b: #int) = 0
+let a (b: const int) = 0
 """

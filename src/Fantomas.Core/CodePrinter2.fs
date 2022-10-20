@@ -491,10 +491,10 @@ let genType (t: Type) =
     | Type.HashConstraint node -> genSingleTextNode node.Hash +> genType node.Type
     | Type.MeasurePower node -> genType node.BaseMeasure +> !- "^" +> !-node.Exponent
     | Type.StaticConstant c -> genConstant c
-    | Type.StaticConstantExpr _ -> failwith "Not Implemented"
+    | Type.StaticConstantExpr node -> genSingleTextNode node.Const +> sepSpace +> genExpr node.Expr
     | Type.StaticConstantNamed _ -> failwith "Not Implemented"
     | Type.Array node -> genType node.Type +> !- "[" +> rep (node.Rank - 1) (!- ",") +> !- "]"
-    | Type.Anon _ -> failwith "Not Implemented"
+    | Type.Anon node -> genSingleTextNode node
     | Type.Var _ -> failwith "Not Implemented"
     | Type.App _ -> failwith "Not Implemented"
     | Type.LongIdentApp _ -> failwith "Not Implemented"
