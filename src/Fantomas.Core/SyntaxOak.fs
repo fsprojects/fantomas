@@ -167,10 +167,11 @@ type TypeStaticConstantExprNode(constNode: SingleTextNode, expr: Expr, range) =
     member x.Const = constNode
     member x.Expr = expr
 
-type TypeStaticConstantNamedNode(range) =
+type TypeStaticConstantNamedNode(identifier: Type, value: Type, range) =
     inherit NodeBase(range)
-
-    override this.Children = failwith "todo"
+    override this.Children = [| yield Type.Node identifier; yield Type.Node value |]
+    member x.Identifier = identifier
+    member x.Value = value
 
 type TypeArrayNode(t: Type, rank: int, range) =
     inherit NodeBase(range)
