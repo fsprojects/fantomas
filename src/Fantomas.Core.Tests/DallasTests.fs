@@ -212,6 +212,8 @@ let ``some types`` () =
 let a (b: (int)) = 0
 let x (y : int[,,]) = 0
 type t = int -> int
+type A = int * int
+type B = h / s
 """
         config
     |> prepend newline
@@ -221,4 +223,6 @@ type t = int -> int
 let a (b: (int)) = 0
 let x (y: int[,,]) = 0
 type t = int -> int
+type A = int * int
+type B = h / s
 """
