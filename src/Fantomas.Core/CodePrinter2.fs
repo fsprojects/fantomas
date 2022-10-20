@@ -506,7 +506,7 @@ let genType (t: Type) =
         +> genSingleTextNode node.ClosingParen
     | Type.WithGlobalConstraints _ -> failwith "Not Implemented"
     | Type.LongIdent idn -> genIdentListNode idn
-    | Type.AnonRecord _ -> failwith "Not Implemented"
+    | Type.AnonRecord node -> genAnonRecordType node
     | Type.Paren node ->
         genSingleTextNode node.OpeningParen
         +> genType node.Type
@@ -523,6 +523,50 @@ let genSynTupleTypeSegments (path: Choice<Type, SingleTextNode> list) =
             | Choice2Of2 node -> genSingleTextNode node +> onlyIf addNewline sepNln)
 
     expressionFitsOnRestOfLine (genTs false) (genTs true)
+
+let genAnonRecordType (node: TypeAnonRecordNode) =
+    let genStruct =
+        match node.Struct with
+        | None -> sepNone
+        | Some n -> genSingleTextNode n +> sepSpace
+
+    let genOpening =
+        match node.Opening with
+        | None -> sepOpenAnonRecdFixed
+        | Some n -> genSingleTextNode n
+
+    let genAnonRecordFieldType (i, t) =
+        genSingleTextNode i
+        +> sepColon
+        +> autoIndentAndNlnIfExpressionExceedsPageWidth (genType t)
+
+    let smallExpression =
+        genStruct
+        +> genOpening
+        +> col sepSemi node.Fields genAnonRecordFieldType
+        +> sepCloseAnonRecd
+
+    let longExpression =
+        let genFields = col sepNln node.Fields genAnonRecordFieldType
+
+        let genMultilineAnonRecordTypeAlignBrackets =
+            let genRecord =
+                sepOpenAnonRecdFixed
+                +> indentSepNlnUnindent (atCurrentColumnIndent genFields)
+                +> sepNln
+                +> sepCloseAnonRecdFixed
+
+            genStruct +> genRecord
+
+        let genMultilineAnonRecordType =
+            let genRecord = sepOpenAnonRecd +> atCurrentColumn genFields +> sepCloseAnonRecd
+            genStruct +> genRecord
+
+        ifAlignBrackets genMultilineAnonRecordTypeAlignBrackets genMultilineAnonRecordType
+
+    fun (ctx: Context) ->
+        let size = getRecordSize ctx node.Fields
+        isSmallExpression size smallExpression longExpression ctx
 
 let genTypeDefn (td: TypeDefn) =
     let header =
