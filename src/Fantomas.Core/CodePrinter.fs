@@ -3084,12 +3084,16 @@ and genTypeDefn (TypeDef (ats, px, leadingKeyword, ao, tds, tcs, equalsRange, td
 
         typeName
         +> opt sepNone impCtor genMemberDefn
-        +> genEq SynTypeDefn_Equals equalsRange
+        +> leadingExpressionIsMultiline (opt sepNone impCtor genMemberDefn) (fun isMulti ctx ->
+            if isMulti && ctx.Config.AlternativeLongMemberDefinitions then
+                sepEqFixed ctx
+            else
+                sepEq ctx)
         +> indent
         +> sepNln
         +> genTypeDefKind tdk
         +> indent
-        +> sepNln
+        +> onlyIf (List.isNotEmpty others) sepNln
         +> genMemberDefnList others
         +> unindent
         +> sepNln

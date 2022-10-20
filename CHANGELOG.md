@@ -1,5 +1,10 @@
 # Changelog
 
+## [Unreleased]
+
+### Fixed
+* Idempotency problem with `struct end`. [#2592](https://github.com/fsprojects/fantomas/issues/2592)
+
 ## [5.1.0-beta-001] - 2022-10-19
 
 ### Fixed

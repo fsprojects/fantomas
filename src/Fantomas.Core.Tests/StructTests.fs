@@ -127,3 +127,24 @@ namespace meh
 
 type TupleStruct = (struct (string * string))
 """
+
+[<Test>]
+let ``struct empty type`` () =
+    formatSourceString
+        false
+        """
+type NameStruct =
+
+    struct
+
+    end
+"""
+        { config with MaxValueBindingWidth = 120 }
+    |> prepend newline
+    |> should
+        equal
+        """
+type NameStruct =
+    struct
+    end
+"""
