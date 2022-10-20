@@ -133,9 +133,11 @@ let ``struct empty type`` () =
     formatSourceString
         false
         """
-type NameStruct =
+type NameStruct() =
+
 
     struct
+
 
     end
 """
@@ -144,7 +146,7 @@ type NameStruct =
     |> should
         equal
         """
-type NameStruct =
+type NameStruct() =
     struct
     end
 """

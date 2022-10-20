@@ -3041,13 +3041,11 @@ and genTypeDefn (TypeDef (ats, px, leadingKeyword, ao, tds, tcs, equalsRange, td
         typeName +> genEq SynTypeDefn_Equals equalsRange +> sepSpace +> genTypeBody
     | Simple (TDSRException (ExceptionDefRepr (ats, px, ao, uc))) -> genExceptionBody ats px ao uc
 
-    | ObjectModel (TCSimple (TCInterface | TCClass) as tdk, MemberDefnList (impCtor, others), range) ->
-        let interfaceRange =
+    | ObjectModel (TCSimple (TCInterface | TCClass | TCStruct) as tdk, MemberDefnList (impCtor, others), range) ->
+        let isClass =
             match tdk with
-            | TCSimple TCInterface -> Some range
-            | _ -> None
-
-        let isClass = Option.isNone interfaceRange
+            | TCSimple TCClass -> true
+            | _ -> false
 
         typeName
         +> onlyIf isClass sepSpaceBeforeClassConstructor
@@ -3074,33 +3072,6 @@ and genTypeDefn (TypeDef (ats, px, leadingKeyword, ao, tds, tcs, equalsRange, td
                  +> sepNlnConsideringTriviaContentBeforeFor (synMemberDefnToFsAstType h) h.Range
                  +> genMemberDefnList ms)
                     ctx)
-        +> unindent
-
-    | ObjectModel (TCSimple TCStruct as tdk, MemberDefnList (impCtor, others), _) ->
-        let sepMem =
-            match ms with
-            | [] -> sepNone
-            | _ -> sepNln
-
-        typeName
-        +> opt sepNone impCtor genMemberDefn
-        +> leadingExpressionIsMultiline (opt sepNone impCtor genMemberDefn) (fun isMulti ctx ->
-            if isMulti && ctx.Config.AlternativeLongMemberDefinitions then
-                sepEqFixed ctx
-            else
-                sepEq ctx)
-        +> indent
-        +> sepNln
-        +> genTypeDefKind tdk
-        +> indent
-        +> onlyIf (List.isNotEmpty others) sepNln
-        +> genMemberDefnList others
-        +> unindent
-        +> sepNln
-        +> !- "end"
-        +> sepMem
-        // Prints any members outside the struct-end construct
-        +> genMemberDefnList ms
         +> unindent
 
     | ObjectModel (TCSimple (TCAugmentation withKeywordAug), _, _) ->
