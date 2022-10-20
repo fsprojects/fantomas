@@ -477,10 +477,9 @@ let genType (t: Type) =
                 )
 
         expressionFitsOnRestOfLine short long
-    | Type.Tuple _ -> failwith "Not Implemented"
+    | Type.Tuple node -> genSynTupleTypeSegments node.Path
     | Type.HashConstraint _ -> failwith "Not Implemented"
     | Type.MeasurePower _ -> failwith "Not Implemented"
-    | Type.MeasureDivide _ -> failwith "Not Implemented"
     | Type.StaticConstant _ -> failwith "Not Implemented"
     | Type.StaticConstantExpr _ -> failwith "Not Implemented"
     | Type.StaticConstantNamed _ -> failwith "Not Implemented"
@@ -500,6 +499,15 @@ let genType (t: Type) =
     | Type.SignatureParameter _ -> failwith "Not Implemented"
     | Type.Or _ -> failwith "Not Implemented"
     |> genNode (Type.Node t)
+
+let genSynTupleTypeSegments (path: Choice<Type, SingleTextNode> list) =
+    let genTs addNewline =
+        col sepSpace path (fun t ->
+            match t with
+            | Choice1Of2 t -> genType t
+            | Choice2Of2 node -> genSingleTextNode node +> onlyIf addNewline sepNln)
+
+    expressionFitsOnRestOfLine (genTs false) (genTs true)
 
 let genTypeDefn (td: TypeDefn) =
     let header =

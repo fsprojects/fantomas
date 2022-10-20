@@ -134,10 +134,18 @@ type TypeFunsNode(ts: (Type * SingleTextNode) list, returnType: Type, range) =
     member x.Parameters = ts
     member x.ReturnType = returnType
 
-type TypeTupleNode(range) =
+type TypeTupleNode(path: Choice<Type, SingleTextNode> list, range) =
     inherit NodeBase(range)
 
-    override this.Children = failwith "todo"
+    override this.Children =
+        [| yield!
+               List.map
+                   (function
+                   | Choice1Of2 t -> Type.Node t
+                   | Choice2Of2 n -> n :> Node)
+                   path |]
+
+    member x.Path = path
 
 type TypeHashConstraintNode(range) =
     inherit NodeBase(range)
@@ -145,11 +153,6 @@ type TypeHashConstraintNode(range) =
     override this.Children = failwith "todo"
 
 type TypeMeasurePowerNode(range) =
-    inherit NodeBase(range)
-
-    override this.Children = failwith "todo"
-
-type TypeMeasureDivideNode(range) =
     inherit NodeBase(range)
 
     override this.Children = failwith "todo"
@@ -236,7 +239,6 @@ type Type =
     | Tuple of TypeTupleNode
     | HashConstraint of TypeHashConstraintNode
     | MeasurePower of TypeMeasurePowerNode
-    | MeasureDivide of TypeMeasureDivideNode
     | StaticConstant of TypeStaticConstantNode
     | StaticConstantExpr of TypeStaticConstantExprNode
     | StaticConstantNamed of TypeStaticConstantNamedNode
@@ -259,7 +261,6 @@ type Type =
         | Tuple n -> n
         | HashConstraint n -> n
         | MeasurePower n -> n
-        | MeasureDivide n -> n
         | StaticConstant n -> n
         | StaticConstantExpr n -> n
         | StaticConstantNamed n -> n
