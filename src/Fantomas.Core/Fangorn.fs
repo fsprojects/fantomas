@@ -458,6 +458,11 @@ let mkSynRationalConst rc =
 
     visit rc
 
+let mkSynTypar (SynTypar (ident, req, _)) range =
+    match req with
+    | TyparStaticReq.None -> stn $"'{ident}" range
+    | TyparStaticReq.HeadType -> stn $"^{ident.idText}" range
+
 // Arrow type is right-associative
 let rec (|TFuns|_|) =
     function
@@ -506,6 +511,7 @@ let mkType (creationAide: CreationAide) (t: SynType) : Type =
     // | StaticConstantNamed of TypeStaticConstantNamedNode
     | SynType.Array (rank, t, _) -> TypeArrayNode(mkType creationAide t, rank, typeRange) |> Type.Array
     | SynType.Anon _ -> stn "_" typeRange |> Type.Anon
+    | SynType.Var (tp, r) -> mkSynTypar tp r |> Type.Var
     // | Var of TypeVarNode
     // | App of TypeAppNode
     // | LongIdentApp of TypeLongIdentAppNode
