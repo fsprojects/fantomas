@@ -490,7 +490,7 @@ let genType (t: Type) =
     | Type.Tuple node -> genSynTupleTypeSegments node.Path
     | Type.HashConstraint _ -> failwith "Not Implemented"
     | Type.MeasurePower node -> genType node.BaseMeasure +> !- "^" +> !-node.Exponent
-    | Type.StaticConstant _ -> failwith "Not Implemented"
+    | Type.StaticConstant c -> genConstant c
     | Type.StaticConstantExpr _ -> failwith "Not Implemented"
     | Type.StaticConstantNamed _ -> failwith "Not Implemented"
     | Type.Array node -> genType node.Type +> !- "[" +> rep (node.Rank - 1) (!- ",") +> !- "]"
