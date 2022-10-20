@@ -449,6 +449,15 @@ let mkTyparDecls (creationAide: CreationAide) (tds: SynTyparDecls) : TyparDecls 
     | SynTyparDecls.PrefixList _
     | SynTyparDecls.SinglePrefix _ -> None
 
+let mkSynRationalConst rc =
+    let rec visit rc =
+        match rc with
+        | SynRationalConst.Integer i -> string i
+        | SynRationalConst.Rational (numerator, denominator, _) -> $"(%i{numerator}/%i{denominator})"
+        | SynRationalConst.Negate innerRc -> $"-{visit innerRc}"
+
+    visit rc
+
 // Arrow type is right-associative
 let rec (|TFuns|_|) =
     function
@@ -485,7 +494,9 @@ let mkType (creationAide: CreationAide) (t: SynType) : Type =
         TypeStructTupleNode(stn "struct" mStruct, path, stn ")" closingParen, typeRange)
         |> Type.StructTuple
     // | HashConstraint of TypeHashConstraintNode
-    // | MeasurePower of TypeMeasurePowerNode
+    | SynType.MeasurePower (t, rc, _) ->
+        TypeMeasurePowerNode(mkType creationAide t, mkSynRationalConst rc, typeRange)
+        |> Type.MeasurePower
     // | StaticConstant of TypeStaticConstantNode
     // | StaticConstantExpr of TypeStaticConstantExprNode
     // | StaticConstantNamed of TypeStaticConstantNamedNode
@@ -494,7 +505,6 @@ let mkType (creationAide: CreationAide) (t: SynType) : Type =
     // | Var of TypeVarNode
     // | App of TypeAppNode
     // | LongIdentApp of TypeLongIdentAppNode
-    // | StructTuple of TypeStructTupleNode
     // | WithGlobalConstraints of TypeWithGlobalConstraintsNode
     | SynType.LongIdent lid -> Type.LongIdent(mkSynLongIdent lid)
     // | AnonRecord of TypeAnonRecordNode
