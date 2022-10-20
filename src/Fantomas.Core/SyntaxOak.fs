@@ -147,10 +147,12 @@ type TypeTupleNode(path: Choice<Type, SingleTextNode> list, range) =
 
     member x.Path = path
 
-type TypeHashConstraintNode(range) =
+type TypeHashConstraintNode(hash: SingleTextNode, t: Type, range) =
     inherit NodeBase(range)
 
-    override this.Children = failwith "todo"
+    override this.Children = [| yield hash; yield Type.Node t |]
+    member x.Hash = hash
+    member x.Type = t
 
 type TypeMeasurePowerNode(baseMeasure: Type, exponent: string, range) =
     inherit NodeBase(range)

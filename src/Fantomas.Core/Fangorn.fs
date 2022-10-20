@@ -493,7 +493,9 @@ let mkType (creationAide: CreationAide) (t: SynType) : Type =
 
         TypeStructTupleNode(stn "struct" mStruct, path, stn ")" closingParen, typeRange)
         |> Type.StructTuple
-    // | HashConstraint of TypeHashConstraintNode
+    | SynType.HashConstraint (t, StartRange 1 (mHash, _)) ->
+        TypeHashConstraintNode(stn "#" mHash, mkType creationAide t, typeRange)
+        |> Type.HashConstraint
     | SynType.MeasurePower (t, rc, _) ->
         TypeMeasurePowerNode(mkType creationAide t, mkSynRationalConst rc, typeRange)
         |> Type.MeasurePower
