@@ -434,13 +434,23 @@ let genPatRecordFieldName (node: PatRecordField) =
         +> genPat node.Pattern
 
 let genBinding (b: BindingNode) =
+    let genParameters =
+        match b.Parameters with
+        | [] -> sepNone
+        | ps -> sepSpace +> col sepSpace ps genPat +> sepSpace
+
+    let genReturnType =
+        match b.ReturnType with
+        | None -> sepNone
+        | Some (colon, t) -> genSingleTextNode colon +> sepSpace +> genType t
+
     genSingleTextNode b.LeadingKeyword
     +> sepSpace
     +> (match b.FunctionName with
         | Choice1Of2 n -> genSingleTextNode n
         | Choice2Of2 pat -> genPat pat)
-    +> sepSpace
-    +> col sepSpace b.Parameters genPat
+    +> genParameters
+    +> genReturnType
     +> sepSpace
     +> genSingleTextNode b.Equals
     +> sepSpace
@@ -488,7 +498,12 @@ let genType (t: Type) =
     | Type.Var _ -> failwith "Not Implemented"
     | Type.App _ -> failwith "Not Implemented"
     | Type.LongIdentApp _ -> failwith "Not Implemented"
-    | Type.StructTuple _ -> failwith "Not Implemented"
+    | Type.StructTuple node ->
+        genSingleTextNode node.Keyword
+        +> sepSpace
+        +> sepOpenT
+        +> genSynTupleTypeSegments node.Path
+        +> genSingleTextNode node.ClosingParen
     | Type.WithGlobalConstraints _ -> failwith "Not Implemented"
     | Type.LongIdent idn -> genIdentListNode idn
     | Type.AnonRecord _ -> failwith "Not Implemented"

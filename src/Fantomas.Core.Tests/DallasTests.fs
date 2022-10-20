@@ -214,6 +214,7 @@ let x (y : int[,,]) = 0
 type t = int -> int
 type A = int * int
 type B = h / s
+let _: struct (int * int) = ()
 """
         config
     |> prepend newline
@@ -225,4 +226,5 @@ let x (y: int[,,]) = 0
 type t = int -> int
 type A = int * int
 type B = h / s
+let _: struct (int * int) = ()
 """
