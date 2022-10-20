@@ -3041,7 +3041,7 @@ and genTypeDefn (TypeDef (ats, px, leadingKeyword, ao, tds, tcs, equalsRange, td
         typeName +> genEq SynTypeDefn_Equals equalsRange +> sepSpace +> genTypeBody
     | Simple (TDSRException (ExceptionDefRepr (ats, px, ao, uc))) -> genExceptionBody ats px ao uc
 
-    | ObjectModel (TCSimple (TCInterface | TCClass | TCStruct) as tdk, MemberDefnList (impCtor, others), range) ->
+    | ObjectModel (TCSimple (TCInterface | TCClass | TCStruct) as tdk, MemberDefnList (impCtor, others), _) ->
         typeName
         +> leadingExpressionIsMultiline
             (optSingle (fun md -> sepSpaceBeforeClassConstructor +> genMemberDefn md) impCtor)
