@@ -489,7 +489,7 @@ let genType (t: Type) =
         expressionFitsOnRestOfLine short long
     | Type.Tuple node -> genSynTupleTypeSegments node.Path
     | Type.HashConstraint _ -> failwith "Not Implemented"
-    | Type.MeasurePower _ -> failwith "Not Implemented"
+    | Type.MeasurePower node -> genType node.BaseMeasure +> !- "^" +> !-node.Exponent
     | Type.StaticConstant _ -> failwith "Not Implemented"
     | Type.StaticConstantExpr _ -> failwith "Not Implemented"
     | Type.StaticConstantNamed _ -> failwith "Not Implemented"
