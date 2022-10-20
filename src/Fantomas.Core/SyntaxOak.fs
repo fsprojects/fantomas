@@ -160,10 +160,12 @@ type TypeMeasurePowerNode(baseMeasure: Type, exponent: string, range) =
     member x.BaseMeasure = baseMeasure
     member x.Exponent = exponent
 
-type TypeStaticConstantExprNode(range) =
+type TypeStaticConstantExprNode(constNode: SingleTextNode, expr: Expr, range) =
     inherit NodeBase(range)
 
-    override this.Children = failwith "todo"
+    override this.Children = [| yield constNode; yield Expr.Node expr |]
+    member x.Const = constNode
+    member x.Expr = expr
 
 type TypeStaticConstantNamedNode(range) =
     inherit NodeBase(range)
@@ -176,11 +178,6 @@ type TypeArrayNode(t: Type, rank: int, range) =
     override this.Children = [| yield Type.Node t |]
     member x.Type = t
     member x.Rank = rank
-
-type TypeAnonNode(range) =
-    inherit NodeBase(range)
-
-    override this.Children = failwith "todo"
 
 type TypeVarNode(range) =
     inherit NodeBase(range)
@@ -259,7 +256,7 @@ type Type =
     | StaticConstantExpr of TypeStaticConstantExprNode
     | StaticConstantNamed of TypeStaticConstantNamedNode
     | Array of TypeArrayNode
-    | Anon of TypeAnonNode
+    | Anon of SingleTextNode
     | Var of TypeVarNode
     | App of TypeAppNode
     | LongIdentApp of TypeLongIdentAppNode
