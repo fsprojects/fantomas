@@ -500,10 +500,12 @@ let mkType (creationAide: CreationAide) (t: SynType) : Type =
         TypeMeasurePowerNode(mkType creationAide t, mkSynRationalConst rc, typeRange)
         |> Type.MeasurePower
     | SynType.StaticConstant (c, r) -> mkConstant creationAide c r |> Type.StaticConstant
-    // | StaticConstantExpr of TypeStaticConstantExprNode
+    | SynType.StaticConstantExpr (e, StartRange 5 (mConst, _)) ->
+        TypeStaticConstantExprNode(stn "const" mConst, mkExpr creationAide e, typeRange)
+        |> Type.StaticConstantExpr
     // | StaticConstantNamed of TypeStaticConstantNamedNode
     | SynType.Array (rank, t, _) -> TypeArrayNode(mkType creationAide t, rank, typeRange) |> Type.Array
-    // | Anon of TypeAnonNode
+    | SynType.Anon _ -> stn "_" typeRange |> Type.Anon
     // | Var of TypeVarNode
     // | App of TypeAppNode
     // | LongIdentApp of TypeLongIdentAppNode
