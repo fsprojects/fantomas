@@ -514,7 +514,29 @@ let mkType (creationAide: CreationAide) (t: SynType) : Type =
     | SynType.Array (rank, t, _) -> TypeArrayNode(mkType creationAide t, rank, typeRange) |> Type.Array
     | SynType.Anon _ -> stn "_" typeRange |> Type.Anon
     | SynType.Var (tp, r) -> mkSynTypar tp r |> Type.Var
-    // | App of TypeAppNode
+    | SynType.App (t1, None, [ t2 ], _commaRanges, None, true, _) ->
+        TypeAppPostFixNode(mkType creationAide t2, mkType creationAide t1, typeRange)
+        |> Type.AppPostfix
+    | SynType.App (t, Some mLt, args, _commaRanges, Some mGt, false, _) ->
+        TypeAppPrefixNode(
+            mkType creationAide t,
+            None,
+            stn "<" mLt,
+            List.map (mkType creationAide) args,
+            stn ">" mGt,
+            typeRange
+        )
+        |> Type.AppPrefix
+    | SynType.LongIdentApp (t, lid, Some mLt, args, _, Some mGt, _) ->
+        TypeAppPrefixNode(
+            mkType creationAide t,
+            Some(mkSynLongIdent lid),
+            stn "<" mLt,
+            List.map (mkType creationAide) args,
+            stn ">" mGt,
+            typeRange
+        )
+        |> Type.AppPrefix
     // | LongIdentApp of TypeLongIdentAppNode
     // | WithGlobalConstraints of TypeWithGlobalConstraintsNode
     | SynType.LongIdent lid -> Type.LongIdent(mkSynLongIdent lid)

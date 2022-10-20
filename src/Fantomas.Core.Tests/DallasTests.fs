@@ -219,6 +219,10 @@ let a (b: #int) = 0
 let a (b: const int) = 0
 let a: 't = 0
 let b: ^t = 0
+let x : int list = 0
+let y : int list array = 0
+let z : Task<int> = 0
+let p : Prefix.Task<int> = 0
 """
         config
     |> prepend newline
@@ -235,4 +239,8 @@ let a (b: #int) = 0
 let a (b: const int) = 0
 let a: 't = 0
 let b: ^t = 0
+let x: int list = 0
+let y: int list array = 0
+let z: Task<int> = 0
+let p: Prefix.Task<int> = 0
 """

@@ -500,8 +500,21 @@ let genType (t: Type) =
     | Type.Array node -> genType node.Type +> !- "[" +> rep (node.Rank - 1) (!- ",") +> !- "]"
     | Type.Anon node -> genSingleTextNode node
     | Type.Var node -> genSingleTextNode node
-    | Type.App _ -> failwith "Not Implemented"
-    | Type.LongIdentApp _ -> failwith "Not Implemented"
+    | Type.AppPostfix node -> genType node.First +> sepSpace +> genType node.Last
+    | Type.AppPrefix node ->
+        let addExtraSpace =
+            match node.Arguments with
+            | [] -> sepNone
+            | [ Type.Var node ] when node.Text.StartsWith "^" -> sepSpace
+            | t :: _ -> addSpaceIfSynTypeStaticConstantHasAtSignBeforeString t
+
+        genType node.Identifier
+        +> optSingle genIdentListNodeWithDot node.PostIdentifier
+        +> genSingleTextNode node.LessThen
+        +> addExtraSpace
+        +> col sepComma node.Arguments genType
+        +> addExtraSpace
+        +> genSingleTextNode node.GreaterThan
     | Type.StructTuple node ->
         genSingleTextNode node.Keyword
         +> sepSpace

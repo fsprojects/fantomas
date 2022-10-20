@@ -155,7 +155,8 @@ let rec visitLastChildNode (node: Node) : Node =
     | :? PatTypedNode
     | :? PatTupleNode
     | :? TypeTupleNode
-    | :? TypeAppNode
+    | :? TypeAppPrefixNode
+    | :? TypeAppPostFixNode
     | :? TypeFunsNode
     | :? ExprTupleNode
     // | SynUnionCase_
