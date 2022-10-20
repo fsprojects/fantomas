@@ -180,15 +180,35 @@ type TypeArrayNode(t: Type, rank: int, range) =
     member x.Type = t
     member x.Rank = rank
 
-type TypeAppNode(range) =
+type TypeAppPostFixNode(first: Type, last: Type, range) =
+    inherit NodeBase(range)
+    override this.Children = [| yield Type.Node first; yield Type.Node last |]
+    member x.First = first
+    member x.Last = last
+
+type TypeAppPrefixNode
+    (
+        identifier: Type,
+        postIdentifier: IdentListNode option,
+        lessThan: SingleTextNode,
+        arguments: Type list,
+        greaterThan: SingleTextNode,
+        range
+    ) =
     inherit NodeBase(range)
 
-    override this.Children = failwith "todo"
+    override this.Children =
+        [| yield Type.Node identifier
+           yield! noa postIdentifier
+           yield lessThan
+           yield! (List.map Type.Node arguments)
+           yield greaterThan |]
 
-type TypeLongIdentAppNode(range) =
-    inherit NodeBase(range)
-
-    override this.Children = failwith "todo"
+    member x.Identifier = identifier
+    member x.PostIdentifier = postIdentifier
+    member x.GreaterThan = greaterThan
+    member x.Arguments = arguments
+    member x.LessThen = lessThan
 
 type TypeStructTupleNode
     (
@@ -280,8 +300,8 @@ type Type =
     | Array of TypeArrayNode
     | Anon of SingleTextNode
     | Var of SingleTextNode
-    | App of TypeAppNode
-    | LongIdentApp of TypeLongIdentAppNode
+    | AppPostfix of TypeAppPostFixNode
+    | AppPrefix of TypeAppPrefixNode
     | StructTuple of TypeStructTupleNode
     | WithGlobalConstraints of TypeWithGlobalConstraintsNode
     | LongIdent of IdentListNode
@@ -302,8 +322,8 @@ type Type =
         | Array n -> n
         | Anon n -> n
         | Var n -> n
-        | App n -> n
-        | LongIdentApp n -> n
+        | AppPostfix n -> n
+        | AppPrefix n -> n
         | StructTuple n -> n
         | WithGlobalConstraints n -> n
         | LongIdent n -> n
