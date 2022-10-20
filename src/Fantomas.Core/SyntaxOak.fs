@@ -247,10 +247,18 @@ type TypeParenNode(openingParen: SingleTextNode, t: Type, closingParen: SingleTe
     member x.Type = t
     member x.ClosingParen = closingParen
 
-type TypeSignatureParameterNode(range) =
+type TypeSignatureParameterNode(attributes: AttributesListNode, identifier: SingleTextNode option, t: Type, range) =
     inherit NodeBase(range)
 
-    override this.Children = failwith "todo"
+    override this.Children =
+        [| if not attributes.IsEmpty then
+               yield attributes
+           yield! noa identifier
+           yield Type.Node t |]
+
+    member x.Attributes = attributes
+    member x.Identifier = identifier
+    member x.Type = t
 
 type TypeOrNode(lhs: Type, orNode: SingleTextNode, rhs: Type, range) =
     inherit NodeBase(range)
@@ -306,7 +314,10 @@ type Type =
 type PatAttribNode(attrs: AttributesListNode, pat: Pattern, range) =
     inherit NodeBase(range)
 
-    override this.Children = [| yield attrs; yield Pattern.Node pat |]
+    override this.Children =
+        [| if not attrs.IsEmpty then
+               yield attrs
+           yield Pattern.Node pat |]
 
     member x.Attributes = attrs
     member x.Pattern = pat
@@ -1136,6 +1147,8 @@ type AttributesListNode(attributesNodes: AttributesNode list, range) =
 
     member x.AllAttributes =
         List.collect (fun (an: AttributesNode) -> an.Attributes) attributesNodes
+
+    member x.IsEmpty = attributesNodes.IsEmpty
 
 type ExternBindingNode(range) =
     inherit NodeBase(range)
