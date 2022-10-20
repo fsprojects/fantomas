@@ -127,3 +127,39 @@ namespace meh
 
 type TupleStruct = (struct (string * string))
 """
+
+[<Test>]
+let ``struct empty type, 2592`` () =
+    formatSourceString
+        false
+        """
+type NameStruct = struct end
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type NameStruct =
+    struct
+    end
+"""
+
+[<Test>]
+let ``struct empty type with ctor`` () =
+    formatSourceString
+        false
+        """
+type NameStruct() =
+    struct
+    end
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type NameStruct() =
+    struct
+    end
+"""
