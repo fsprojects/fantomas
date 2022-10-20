@@ -511,7 +511,10 @@ let genType (t: Type) =
         genSingleTextNode node.OpeningParen
         +> genType node.Type
         +> genSingleTextNode node.ClosingParen
-    | Type.SignatureParameter _ -> failwith "Not Implemented"
+    | Type.SignatureParameter node ->
+        genOnelinerAttributes node.Attributes
+        +> optSingle (fun id -> genSingleTextNode id +> sepColon) node.Identifier
+        +> autoIndentAndNlnIfExpressionExceedsPageWidth (genType node.Type)
     | Type.Or node ->
         genType node.LeftHandSide
         +> sepSpace
