@@ -532,7 +532,17 @@ let mkType (creationAide: CreationAide) (t: SynType) : Type =
     | SynType.Paren (innerType, StartEndRange 1 (lpr, _, rpr)) ->
         TypeParenNode(stn "(" lpr, mkType creationAide innerType, stn ")" rpr, typeRange)
         |> Type.Paren
-    // | SignatureParameter of TypeSignatureParameterNode
+    | SynType.SignatureParameter (attrs, isOptional, identOpt, t, _) ->
+        let identNode =
+            identOpt
+            |> Option.map (fun ident ->
+                if isOptional then
+                    stn $"?{ident.idText}" ident.idRange
+                else
+                    mkIdent ident)
+
+        TypeSignatureParameterNode(mkAttributeList creationAide attrs, identNode, mkType creationAide t, typeRange)
+        |> Type.SignatureParameter
     | SynType.Or (lhs, rhs, _, trivia) ->
         TypeOrNode(mkType creationAide lhs, stn "or" trivia.OrKeyword, mkType creationAide rhs, typeRange)
         |> Type.Or
