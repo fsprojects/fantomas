@@ -141,7 +141,7 @@ type NameStruct() =
 
     end
 """
-        { config with MaxValueBindingWidth = 120 }
+        config
     |> prepend newline
     |> should
         equal
