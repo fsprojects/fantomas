@@ -459,10 +459,17 @@ let mkType (creationAide: CreationAide) (t: SynType) : Type =
             ts |> List.map (fun (t, mArrow) -> mkType creationAide t, stn "->" mArrow)
 
         TypeFunsNode(parameters, mkType creationAide rt, typeRange) |> Type.Funs
-    // | Tuple of TypeTupleNode
+    | SynType.Tuple (false, ts, _) ->
+        let path =
+            ts
+            |> List.map (function
+                | SynTupleTypeSegment.Type t -> Choice1Of2(mkType creationAide t)
+                | SynTupleTypeSegment.Slash m -> Choice2Of2(stn "/" m)
+                | SynTupleTypeSegment.Star m -> Choice2Of2(stn "*" m))
+
+        TypeTupleNode(path, typeRange) |> Type.Tuple
     // | HashConstraint of TypeHashConstraintNode
     // | MeasurePower of TypeMeasurePowerNode
-    // | MeasureDivide of TypeMeasureDivideNode
     // | StaticConstant of TypeStaticConstantNode
     // | StaticConstantExpr of TypeStaticConstantExprNode
     // | StaticConstantNamed of TypeStaticConstantNamedNode
