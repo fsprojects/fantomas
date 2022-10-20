@@ -1071,7 +1071,7 @@ let (|Record|_|) =
 
 let (|AnonRecord|_|) =
     function
-    | SynExpr.AnonRecd (isStruct, copyInfo, fields, StartEndRange 1 (openingBrace, _, closingBrace)) ->
+    | SynExpr.AnonRecd (isStruct, copyInfo, fields, StartEndRange 2 (openingBrace, _, closingBrace)) ->
         Some(openingBrace, isStruct, fields, Option.map fst copyInfo, closingBrace)
     | _ -> None
 

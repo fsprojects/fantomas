@@ -2179,3 +2179,59 @@ type ExprFolder<'State> =
             -> Exp
             -> 'State |}
 """
+
+[<Test>]
+let ``comment in bracket ranges of anonymous type`` () =
+    formatSourceString
+        false
+        """
+let x = {| // test1
+    Y = 42
+    Z = "string"
+    Foo = "Bar"
+    // test2
+    |}
+
+let y = {|
+    Y = 42
+    // test
+|}
+
+let z = {|
+    Y = 42
+|}
+
+let a = {| // test1
+    foo with
+    Level = 7
+    Square = 9
+    // test2
+|}
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let x =
+    {| Y = // test1
+        42
+       Z = "string"
+       Foo = "Bar"
+    // test2
+     |}
+
+let y =
+    {| Y = 42
+    // test
+     |}
+
+let z = {| Y = 42 |}
+
+let a =
+    {| foo with// test1
+        Level = 7
+        Square = 9
+    // test2
+     |}
+"""

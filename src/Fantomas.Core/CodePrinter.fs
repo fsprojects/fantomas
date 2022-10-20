@@ -918,15 +918,15 @@ and genExpr synExpr ctx =
         | AnonRecord (openingBrace, isStruct, fields, copyInfo, closingBrace) ->
             let smallExpression =
                 onlyIf isStruct !- "struct "
-                +> sepOpenAnonRecd
+                +> genTriviaFor SynExpr_AnonRecd_OpeningBrace openingBrace sepOpenAnonRecd
                 +> optSingle (fun e -> genExpr e +> !- " with ") copyInfo
                 +> col sepSemi fields genAnonRecordFieldName
-                +> genTriviaFor SynExpr_AnonRecd_ClosingBrace closingBrace (sepSpace +> sepCloseAnonRecdFixed)
+                +> genTriviaFor SynExpr_AnonRecd_ClosingBrace closingBrace sepCloseAnonRecd
 
             let longExpression =
                 ifAlignBrackets
                     (genMultilineAnonRecordAlignBrackets openingBrace isStruct fields copyInfo closingBrace)
-                    (genMultilineAnonRecord isStruct fields copyInfo)
+                    (genMultilineAnonRecord openingBrace isStruct fields copyInfo closingBrace)
 
             fun (ctx: Context) ->
                 let size = getRecordSize ctx fields
@@ -2363,23 +2363,23 @@ and genInheritConstructor (inheritCtor: SynType * SynExpr) =
         +> expressionFitsOnRestOfLine (genExpr px) (genMultilineFunctionApplicationArguments px)
     | OtherInheritConstructor (t, e) -> genType t +> sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth (genExpr e)
 
-and genMultilineAnonRecord (isStruct: bool) fields copyInfo =
+and genMultilineAnonRecord openingBrace (isStruct: bool) fields copyInfo closingBrace =
     let recordExpr =
         match copyInfo with
         | Some e ->
-            sepOpenAnonRecd
+            genTriviaFor SynExpr_AnonRecd_OpeningBrace openingBrace sepOpenAnonRecd
             +> atCurrentColumn (
                 genExpr e
                 +> (!- " with" +> indentSepNlnUnindent (col sepNln fields genAnonRecordFieldName))
             )
-            +> sepCloseAnonRecd
+            +> genTriviaFor SynExpr_AnonRecd_ClosingBrace closingBrace sepCloseAnonRecd
         | None ->
             fun ctx ->
                 // position after `{| ` or `{|`
                 let targetColumn = ctx.Column + (if ctx.Config.SpaceAroundDelimiter then 3 else 2)
 
                 atCurrentColumn
-                    (sepOpenAnonRecd
+                    (genTriviaFor SynExpr_AnonRecd_OpeningBrace openingBrace sepOpenAnonRecdFixed
                      +> col sepNln fields (fun (AnonRecordFieldName (ident, eq, e, range)) ->
                          let expr =
                              if ctx.Config.IndentSize < 3 then
@@ -2394,12 +2394,12 @@ and genMultilineAnonRecord (isStruct: bool) fields copyInfo =
                          +> genEq SynExpr_AnonRecd_Field_Equals eq
                          +> expr
                          +> leaveNodeFor SynExpr_AnonRecd_Field range)
-                     +> sepCloseAnonRecd)
+                     +> genTriviaFor SynExpr_AnonRecd_ClosingBrace closingBrace sepCloseAnonRecd)
                     ctx
 
     onlyIf isStruct !- "struct " +> recordExpr
 
-and genMultilineAnonRecordAlignBrackets _ (isStruct: bool) fields copyInfo closingBrace =
+and genMultilineAnonRecordAlignBrackets openingBrace (isStruct: bool) fields copyInfo closingBrace =
     let fieldsExpr = col sepNln fields genAnonRecordFieldName
 
     let copyExpr fieldsExpr e =
@@ -2415,12 +2415,12 @@ and genMultilineAnonRecordAlignBrackets _ (isStruct: bool) fields copyInfo closi
     let genAnonRecord =
         match copyInfo with
         | Some ci ->
-            sepOpenAnonRecd
+            genTriviaFor SynExpr_AnonRecd_OpeningBrace openingBrace sepOpenAnonRecd
             +> copyExpr fieldsExpr ci
             +> sepNln
             +> genTriviaFor SynExpr_AnonRecd_ClosingBrace closingBrace sepCloseAnonRecdFixed
         | None ->
-            sepOpenAnonRecdFixed
+            genTriviaFor SynExpr_AnonRecd_OpeningBrace openingBrace sepOpenAnonRecd
             +> indentSepNlnUnindent fieldsExpr
             +> sepNln
             +> genTriviaFor SynExpr_AnonRecd_ClosingBrace closingBrace sepCloseAnonRecdFixed

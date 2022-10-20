@@ -1397,15 +1397,15 @@ let f
 """
 
 [<Test>]
-let ``comment in last line of anonymous type, 2566`` () =
+let ``comment in bracket ranges of anonymous type, 2566`` () =
     formatSourceString
         false
         """
-let x = {|
+let x = {| // test1
     Y = 42
     Z = "string"
     Foo = "Bar"
-    // test
+    // test2
     |}
 
 let y = {|
@@ -1417,11 +1417,11 @@ let z = {|
     Y = 42
 |}
 
-let a = {|
+let a = {| // test1
     foo with
     Level = 7
     Square = 9
-    // test
+    // test2
 |}
 """
         config
@@ -1430,11 +1430,11 @@ let a = {|
         equal
         """
 let x =
-    {|
+    {| // test1
         Y = 42
         Z = "string"
         Foo = "Bar"
-    // test
+    // test2
     |}
 
 let y =
@@ -1446,9 +1446,9 @@ let y =
 let z = {| Y = 42 |}
 
 let a =
-    {| foo with
+    {| foo with// test1
         Level = 7
         Square = 9
-    // test
+    // test2
     |}
 """
