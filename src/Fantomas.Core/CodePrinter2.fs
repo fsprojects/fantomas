@@ -51,10 +51,9 @@ let genTrivia (trivia: TriviaNode) (ctx: Context) =
 
     gen ctx
 
-let genNode<'n when 'n :> Node> (n: 'n) (f: Context -> Context) =
-    col sepNone n.ContentBefore genTrivia
-    +> f
-    +> col sepNone n.ContentAfter genTrivia
+let enterNode<'n when 'n :> Node> (n: 'n) = col sepNone n.ContentBefore genTrivia
+let leaveNode<'n when 'n :> Node> (n: 'n) = col sepNone n.ContentAfter genTrivia
+let genNode<'n when 'n :> Node> (n: 'n) (f: Context -> Context) = enterNode n +> f +> leaveNode n
 
 let genSingleTextNode (node: SingleTextNode) = !-node.Text |> genNode node
 let genSingleTextNodeWithLeadingDot (node: SingleTextNode) = !- $".{node.Text}" |> genNode node
@@ -222,7 +221,50 @@ let genExpr (e: Expr) =
     | Expr.New _ -> failwith "Not Implemented"
     | Expr.Tuple _ -> failwith "Not Implemented"
     | Expr.StructTuple _ -> failwith "Not Implemented"
-    | Expr.ArrayOrList _ -> failwith "Not Implemented"
+    | Expr.ArrayOrList node ->
+        if node.Elements.IsEmpty then
+            genSingleTextNode node.Opening +> genSingleTextNode node.Closing
+        else
+            let smallExpression =
+                genSingleTextNode node.Opening
+                +> ifSpaceAroundDelimiter
+                +> col sepSemi node.Elements genExpr
+                +> ifSpaceAroundDelimiter
+                +> genSingleTextNode node.Closing
+
+            let multilineExpression =
+                let genMultiLineArrayOrListAlignBrackets =
+                    genSingleTextNode node.Opening
+                    +> indent
+                    +> sepNlnUnlessLastEventIsNewline
+                    +> col sepNln node.Elements genExpr
+                    +> unindent
+                    +> sepNlnUnlessLastEventIsNewline
+                    +> genSingleTextNode node.Closing
+
+                let genMultiLineArrayOrList =
+                    genSingleTextNode node.Opening
+                    +> ifSpaceAroundDelimiter
+                    +> atCurrentColumnIndent (
+                        sepNlnWhenWriteBeforeNewlineNotEmpty
+                        +> col sepNln node.Elements genExpr
+                        +> (enterNode node.Closing
+                            +> (fun ctx ->
+                                let isFixed = lastWriteEventIsNewline ctx
+                                (onlyIfNot isFixed sepSpace +> leaveNode node.Closing) ctx))
+                    )
+
+                ifAlignBrackets genMultiLineArrayOrListAlignBrackets genMultiLineArrayOrList
+
+            fun ctx ->
+                let alwaysMultiline = false
+                // List.exists isIfThenElseWithYieldReturn xs
+                // || List.forall isSynExprLambdaOrIfThenElse xs
+                if alwaysMultiline then
+                    multilineExpression ctx
+                else
+                    let size = getListOrArrayExprSize ctx ctx.Config.MaxArrayOrListWidth node.Elements
+                    isSmallExpression size smallExpression multilineExpression ctx
     | Expr.Record _ -> failwith "Not Implemented"
     | Expr.AnonRecord _ -> failwith "Not Implemented"
     | Expr.ObjExpr _ -> failwith "Not Implemented"
@@ -417,23 +459,23 @@ let genPat (p: Pattern) =
             node.Patterns.IsEmpty
             (genSingleTextNode node.OpenToken +> genSingleTextNode node.CloseToken)
             (genSingleTextNode node.OpenToken
-             +> ifSpaceAroundDelimiter sepSpace
+             +> ifSpaceAroundDelimiter
              +> atCurrentColumn genPats
-             +> ifSpaceAroundDelimiter sepSpace
+             +> ifSpaceAroundDelimiter
              +> genSingleTextNode node.CloseToken)
     | Pattern.Record node ->
         let smallRecordExpr =
             genSingleTextNode node.OpeningNode
-            +> ifSpaceAroundDelimiter sepSpace
+            +> ifSpaceAroundDelimiter
             +> col sepSemi node.Fields genPatRecordFieldName
-            +> ifSpaceAroundDelimiter sepSpace
+            +> ifSpaceAroundDelimiter
             +> genSingleTextNode node.ClosingNode
 
         let multilineRecordExpr =
             genSingleTextNode node.OpeningNode
-            +> ifSpaceAroundDelimiter sepSpace
+            +> ifSpaceAroundDelimiter
             +> atCurrentColumn (col sepNln node.Fields genPatRecordFieldName)
-            +> ifSpaceAroundDelimiter sepSpace
+            +> ifSpaceAroundDelimiter
             +> genSingleTextNode node.ClosingNode
 
         let multilineRecordExprAlignBrackets =
