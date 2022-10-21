@@ -458,10 +458,53 @@ let mkSynRationalConst rc =
 
     visit rc
 
-let mkSynTypar (SynTypar (ident, req, _)) range =
+let mkSynTypar (SynTypar (ident, req, _)) =
+    let range =
+        mkRange
+            ident.idRange.FileName
+            (Position.mkPos ident.idRange.StartLine (ident.idRange.StartColumn - 1))
+            ident.idRange.End
+
     match req with
     | TyparStaticReq.None -> stn $"'{ident}" range
     | TyparStaticReq.HeadType -> stn $"^{ident.idText}" range
+
+let mkTypeConstraint (creationAide: CreationAide) (tc: SynTypeConstraint) : TypeConstraint =
+    match tc with
+    | SynTypeConstraint.WhereTyparIsValueType (tp, EndRange 6 (mKeyword, m)) ->
+        TypeConstraintSingleNode(mkSynTypar tp, stn "struct" mKeyword, m)
+        |> TypeConstraint.Single
+    | SynTypeConstraint.WhereTyparIsReferenceType (tp, EndRange 10 (mKeyword, m)) ->
+        TypeConstraintSingleNode(mkSynTypar tp, stn "not struct" mKeyword, m)
+        |> TypeConstraint.Single
+    | SynTypeConstraint.WhereTyparIsUnmanaged (tp, EndRange 9 (mKeyword, m)) ->
+        TypeConstraintSingleNode(mkSynTypar tp, stn "unmanaged" mKeyword, m)
+        |> TypeConstraint.Single
+    | SynTypeConstraint.WhereTyparSupportsNull (tp, EndRange 4 (mKeyword, m)) ->
+        TypeConstraintSingleNode(mkSynTypar tp, stn "null" mKeyword, m)
+        |> TypeConstraint.Single
+    | SynTypeConstraint.WhereTyparIsComparable (tp, EndRange 10 (mKeyword, m)) ->
+        TypeConstraintSingleNode(mkSynTypar tp, stn "comparison" mKeyword, m)
+        |> TypeConstraint.Single
+    | SynTypeConstraint.WhereTyparIsEquatable (tp, EndRange 8 (mKeyword, m)) ->
+        TypeConstraintSingleNode(mkSynTypar tp, stn "equality" mKeyword, m)
+        |> TypeConstraint.Single
+    | SynTypeConstraint.WhereTyparDefaultsToType (tp, t, StartRange 7 (mDefaults, m)) ->
+        TypeConstraintDefaultsToTypeNode(stn "default" mDefaults, mkSynTypar tp, mkType creationAide t, m)
+        |> TypeConstraint.DefaultsToType
+    | SynTypeConstraint.WhereTyparSubtypeOfType (tp, t, m) ->
+        TypeConstraintSubtypeOfTypeNode(mkSynTypar tp, mkType creationAide t, m)
+        |> TypeConstraint.SubtypeOfType
+    | SynTypeConstraint.WhereTyparSupportsMember (tps, msg, m) ->
+        TypeConstraintSupportsMemberNode(mkType creationAide tps, box msg, m)
+        |> TypeConstraint.SupportsMember
+    | SynTypeConstraint.WhereTyparIsEnum (tp, ts, m) ->
+        TypeConstraintEnumOrDelegateNode(mkSynTypar tp, "enum", List.map (mkType creationAide) ts, m)
+        |> TypeConstraint.EnumOrDelegate
+    | SynTypeConstraint.WhereTyparIsDelegate (tp, ts, m) ->
+        TypeConstraintEnumOrDelegateNode(mkSynTypar tp, "delegate", List.map (mkType creationAide) ts, m)
+        |> TypeConstraint.EnumOrDelegate
+    | SynTypeConstraint.WhereSelfConstrained (t, _) -> mkType creationAide t |> TypeConstraint.WhereSelfConstrained
 
 // Arrow type is right-associative
 let rec (|TFuns|_|) =
@@ -513,7 +556,7 @@ let mkType (creationAide: CreationAide) (t: SynType) : Type =
         |> Type.StaticConstantNamed
     | SynType.Array (rank, t, _) -> TypeArrayNode(mkType creationAide t, rank, typeRange) |> Type.Array
     | SynType.Anon _ -> stn "_" typeRange |> Type.Anon
-    | SynType.Var (tp, r) -> mkSynTypar tp r |> Type.Var
+    | SynType.Var (tp, _) -> mkSynTypar tp |> Type.Var
     | SynType.App (t1, None, [ t2 ], _commaRanges, None, true, _) ->
         TypeAppPostFixNode(mkType creationAide t2, mkType creationAide t1, typeRange)
         |> Type.AppPostfix
@@ -537,8 +580,11 @@ let mkType (creationAide: CreationAide) (t: SynType) : Type =
             typeRange
         )
         |> Type.AppPrefix
-    // | LongIdentApp of TypeLongIdentAppNode
-    // | WithGlobalConstraints of TypeWithGlobalConstraintsNode
+    | SynType.WithGlobalConstraints (SynType.Var _, [ SynTypeConstraint.WhereTyparSubtypeOfType _ as tc ], _) ->
+        mkTypeConstraint creationAide tc |> Type.WithSubTypeConstraint
+    | SynType.WithGlobalConstraints (t, tcs, _) ->
+        TypeWithGlobalConstraintsNode(mkType creationAide t, List.map (mkTypeConstraint creationAide) tcs, typeRange)
+        |> Type.WithGlobalConstraints
     | SynType.LongIdent lid -> Type.LongIdent(mkSynLongIdent lid)
     | SynType.AnonRecd (isStruct, fields, StartEndRange 2 (_, r, mClosing)) ->
         let structNode, openingNode =
@@ -570,7 +616,7 @@ let mkType (creationAide: CreationAide) (t: SynType) : Type =
     | SynType.Or (lhs, rhs, _, trivia) ->
         TypeOrNode(mkType creationAide lhs, stn "or" trivia.OrKeyword, mkType creationAide rhs, typeRange)
         |> Type.Or
-    | _ -> failwith "todo, F28E0FA1-7C39-4BFF-AFBF-0E9FD3D1D4E4"
+    | t -> failwith $"unexpected type: {t}"
 
 let rec (|OpenL|_|) =
     function
