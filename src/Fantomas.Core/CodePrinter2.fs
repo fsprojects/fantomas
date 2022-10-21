@@ -59,6 +59,9 @@ let genNode<'n when 'n :> Node> (n: 'n) (f: Context -> Context) =
 let genSingleTextNode (node: SingleTextNode) = !-node.Text |> genNode node
 let genSingleTextNodeWithLeadingDot (node: SingleTextNode) = !- $".{node.Text}" |> genNode node
 
+let genMultipleTextsNode (node: MultipleTextsNode) =
+    col sepSpace node.Content genSingleTextNode
+
 let genIdentListNodeAux addLeadingDot (iln: IdentListNode) =
     col sepNone iln.Content (fun identOrDot ->
         match identOrDot with
@@ -482,7 +485,7 @@ let genBinding (b: BindingNode) =
         | None -> sepNone
         | Some (colon, t) -> genSingleTextNode colon +> sepSpace +> genType t
 
-    genSingleTextNode b.LeadingKeyword
+    genMultipleTextsNode b.LeadingKeyword
     +> sepSpace
     +> (match b.FunctionName with
         | Choice1Of2 n -> genSingleTextNode n
@@ -691,13 +694,63 @@ let genTypeDefn (td: TypeDefn) =
         ifElse isMultiline (indentSepNlnUnindent body) (sepSpace +> body))
     |> genNode (TypeDefn.Node td)
 
+let genField (node: FieldNode) =
+    optSingle genSingleTextNode node.XmlDoc
+    +> genAttributes node.Attributes
+    +> optSingle genMultipleTextsNode node.LeadingKeyword
+    +> onlyIf node.IsMutable (!- "mutable ")
+    +> genAccessOpt node.Accessibility
+    +> opt sepColon node.Name genSingleTextNode
+    +> autoIndentAndNlnIfExpressionExceedsPageWidth (genType node.Type)
+    |> genNode node
+
+let genUnionCase (hasVerticalBar: bool) (node: UnionCaseNode) =
+    let shortExpr = col sepStar node.Fields genField
+
+    let longExpr =
+        indentSepNlnUnindent (atCurrentColumn (col (sepStar +> sepNln) node.Fields genField))
+
+    let genBar =
+        match node.Bar with
+        | Some bar -> ifElse hasVerticalBar (genSingleTextNode bar +> sepSpace) (genNode bar sepNone)
+        | None -> onlyIf hasVerticalBar sepBar
+
+    optSingle genSingleTextNode node.XmlDoc
+    +> genBar
+    +> atCurrentColumn (
+        // If the bar has a comment after, add a newline and print the identifier on the same column on the next line.
+        sepNlnWhenWriteBeforeNewlineNotEmpty
+        +> genOnelinerAttributes node.Attributes
+        +> genSingleTextNode node.Identifier
+        +> onlyIf (List.isNotEmpty node.Fields) wordOf
+    )
+    +> onlyIf (List.isNotEmpty node.Fields) (expressionFitsOnRestOfLine shortExpr longExpr)
+    |> genNode node
+
+let genMemberDefnList _ = !- "todo"
+
+let genExceptionBody px ats ao uc =
+    optSingle genSingleTextNode px
+    +> genAttributes ats
+    +> !- "exception "
+    +> genAccessOpt ao
+    +> genUnionCase false uc
+
+let genException (node: ExceptionDefnNode) =
+    genExceptionBody node.XmlDoc node.Attributes node.Accessibility node.UnionCase
+    +> onlyIf
+        (not node.Members.IsEmpty)
+        (sepSpace
+         +> optSingle genSingleTextNode node.WithKeyword
+         +> indentSepNlnUnindent (genMemberDefnList node.Members))
+
 let genModuleDecl (md: ModuleDecl) =
     match md with
     | ModuleDecl.OpenList ol -> genOpenList ol
     | ModuleDecl.HashDirectiveList node -> col sepNln node.HashDirectives genParsedHashDirective
     | ModuleDecl.Attributes node -> genAttributes node.Attributes +> genExpr node.Expr
     | ModuleDecl.DeclExpr e -> genExpr e
-    | ModuleDecl.Exception node -> failwith "not implemented"
+    | ModuleDecl.Exception node -> genException node
     | ModuleDecl.ExternBinding _ -> failwith "Not Implemented"
     | ModuleDecl.TopLevelBinding b -> genBinding b
     | ModuleDecl.ModuleAbbrev node ->

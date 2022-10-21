@@ -94,6 +94,11 @@ type SingleTextNode(idText: string, range: range) =
     member _.Text = idText
     override x.Children = Array.empty
 
+type MultipleTextsNode(content: SingleTextNode list, range) =
+    inherit NodeBase(range)
+    override x.Children = [| yield! nodes content |]
+    member x.Content = content
+
 type Oak(parsedHashDirectives: ParsedHashDirectiveNode list, modulesOrNamespaces: ModuleOrNamespaceNode list) =
     inherit NodeBase([| yield! nodes parsedHashDirectives; yield! nodes modulesOrNamespaces |]
                      |> Seq.map nodeRange
@@ -279,8 +284,7 @@ type TypeSignatureParameterNode
     ) =
     inherit NodeBase(range)
 
-    override this.Children =
-        [| yield! attributes.Children; yield! noa identifier; yield Type.Node t |]
+    override this.Children = [| yield attributes; yield! noa identifier; yield Type.Node t |]
 
     member x.Attributes = attributes
     member x.Identifier = identifier
@@ -342,7 +346,7 @@ type Type =
 type PatAttribNode(attrs: MultipleAttributeListNode, pat: Pattern, range) =
     inherit NodeBase(range)
 
-    override this.Children = [| yield! attrs.Children; yield Pattern.Node pat |]
+    override this.Children = [| yield attrs; yield Pattern.Node pat |]
 
     member x.Attributes = attrs
     member x.Pattern = pat
@@ -1202,7 +1206,7 @@ type ExceptionDefnNode
 
     override this.Children =
         [| yield! noa xmlDoc
-           yield! attributes.Children
+           yield attributes
            yield! noa accessibility
            yield unionCase
            yield! noa withKeyword
@@ -1212,7 +1216,7 @@ type ExceptionDefnNode
     member x.Attributes = attributes
     member x.Accessibility = accessibility
     member x.UnionCase = unionCase
-    member x.WithKeyword = ExprTryWithNode
+    member x.WithKeyword = withKeyword
     member x.Members = ms
 
 type ExternBindingNode(range) =
@@ -1242,7 +1246,7 @@ type NestedModuleNode
 
     override this.Children =
         [| yield! noa xmlDoc
-           yield! attributes.Children
+           yield attributes
            yield moduleKeyword
            yield! noa accessibility
            yield identifier
@@ -1286,7 +1290,7 @@ type ModuleDecl =
 
 type BindingNode
     (
-        leadingKeyword: SingleTextNode,
+        leadingKeyword: MultipleTextsNode,
         functionName: Choice<SingleTextNode, Pattern>,
         parameters: Pattern list,
         returnTypeNodes: (SingleTextNode * Type) option,
@@ -1316,9 +1320,58 @@ type BindingNode
            yield equals
            yield Expr.Node expr |]
 
-type UnionCaseNode(range) =
+type FieldNode
+    (
+        xmlDoc: SingleTextNode option,
+        attributes: MultipleAttributeListNode,
+        leadingKeyword: MultipleTextsNode option,
+        isMutable: bool,
+        accessibility: SingleTextNode option,
+        name: SingleTextNode option,
+        t: Type,
+        range
+    ) =
     inherit NodeBase(range)
-    override this.Children = failwith "todo"
+
+    override this.Children =
+        [| yield! noa xmlDoc
+           yield attributes
+           yield! noa leadingKeyword
+           yield! noa accessibility
+           yield! noa name
+           yield Type.Node t |]
+
+    member x.XmlDoc = xmlDoc
+    member x.Attributes = attributes
+    member x.LeadingKeyword = leadingKeyword
+    member x.IsMutable = isMutable
+    member x.Accessibility = accessibility
+    member x.Name = name
+    member x.Type = t
+
+type UnionCaseNode
+    (
+        xmlDoc: SingleTextNode option,
+        attributes: MultipleAttributeListNode,
+        bar: SingleTextNode option,
+        identifier: SingleTextNode,
+        fields: FieldNode list,
+        range
+    ) =
+    inherit NodeBase(range)
+
+    override this.Children =
+        [| yield! noa xmlDoc
+           yield attributes
+           yield! noa bar
+           yield identifier
+           yield! nodes fields |]
+
+    member x.XmlDoc = xmlDoc
+    member x.Attributes = attributes
+    member x.Bar = bar
+    member x.Identifier = identifier
+    member x.Fields = fields
 
 type TypeNameNode
     (
