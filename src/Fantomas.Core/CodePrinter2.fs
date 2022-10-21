@@ -4,7 +4,27 @@ open System
 open Fantomas.Core.Context
 open Fantomas.Core.SyntaxOak
 
-let (|UppercaseType|LowercaseType|) (t: Type) : Choice<unit, unit> = UppercaseType()
+let rec (|UppercaseType|LowercaseType|) (t: Type) : Choice<unit, unit> =
+    let upperOrLower (v: string) =
+        let isUpper = Seq.tryHead v |> Option.map Char.IsUpper |> Option.defaultValue false
+        if isUpper then UppercaseType else LowercaseType
+
+    match t with
+    | Type.LongIdent node ->
+        let lastIdent =
+            List.tryFindBack
+                (function
+                | IdentifierOrDot.Ident _ -> true
+                | _ -> false)
+                node.Content
+
+        match lastIdent with
+        | Some (IdentifierOrDot.Ident ident) -> upperOrLower ident.Text
+        | _ -> LowercaseType
+    | Type.Var node -> upperOrLower node.Text
+    | Type.AppPostfix node -> (|UppercaseType|LowercaseType|) node.First
+    | Type.AppPrefix node -> (|UppercaseType|LowercaseType|) node.Identifier
+    | _ -> failwithf $"Cannot determine if synType %A{t} is uppercase or lowercase"
 
 let genTrivia (trivia: TriviaNode) (ctx: Context) =
     let currentLastLine = ctx.WriterModel.Lines |> List.tryHead
@@ -40,7 +60,7 @@ let genSingleTextNode (node: SingleTextNode) = !-node.Text |> genNode node
 let genSingleTextNodeWithLeadingDot (node: SingleTextNode) = !- $".{node.Text}" |> genNode node
 
 let genIdentListNodeAux addLeadingDot (iln: IdentListNode) =
-    coli sepNone iln.Content (fun idx identOrDot ->
+    col sepNone iln.Content (fun identOrDot ->
         match identOrDot with
         | IdentifierOrDot.Ident ident ->
             if addLeadingDot then
@@ -462,6 +482,28 @@ let genOpenList (openList: OpenListNode) =
         | Open.ModuleOrNamespace node -> !- "open " +> genIdentListNode node.Name |> genNode node
         | Open.Target node -> !- "open type " +> genType node.Target)
 
+let genTypeConstraint (tc: TypeConstraint) =
+    match tc with
+    | TypeConstraint.Single node -> genSingleTextNode node.Typar +> sepColon +> genSingleTextNode node.Kind
+    | TypeConstraint.DefaultsToType node ->
+        genSingleTextNode node.Default
+        +> sepSpace
+        +> genSingleTextNode node.Typar
+        +> sepColon
+        +> genType node.Type
+    | TypeConstraint.SubtypeOfType node -> genSingleTextNode node.Typar +> !- " :> " +> genType node.Type
+    | TypeConstraint.SupportsMember _ -> failwith "todo!"
+    | TypeConstraint.EnumOrDelegate node ->
+        genSingleTextNode node.Typar
+        +> sepColon
+        +> !- $"{node.Verb}<"
+        +> col sepComma node.Types genType
+        +> !- ">"
+    | TypeConstraint.WhereSelfConstrained t -> genType t
+
+let genTypeConstraints (tcs: TypeConstraint list) =
+    !- "when" +> sepSpace +> col wordAnd tcs genTypeConstraint
+
 let genType (t: Type) =
     match t with
     | Type.Funs node ->
@@ -521,7 +563,8 @@ let genType (t: Type) =
         +> sepOpenT
         +> genSynTupleTypeSegments node.Path
         +> genSingleTextNode node.ClosingParen
-    | Type.WithGlobalConstraints _ -> failwith "Not Implemented"
+    | Type.WithSubTypeConstraint tc -> genTypeConstraint tc
+    | Type.WithGlobalConstraints node -> genType node.Type +> sepSpace +> genTypeConstraints node.TypeConstraints
     | Type.LongIdent idn -> genIdentListNode idn
     | Type.AnonRecord node -> genAnonRecordType node
     | Type.Paren node ->
