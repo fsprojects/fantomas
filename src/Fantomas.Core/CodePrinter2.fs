@@ -143,15 +143,16 @@ let genExpr (e: Expr) =
             isShortExpression
                 ctx.Config.MaxInfixOperatorExpression
                 // if this fits on the rest of line right after the lazy keyword, it should be wrapped in parenthesis.
-                (sepOpenT +> genExpr e +> sepCloseT)
+                (sepOpenT +> genExpr node.Expr +> sepCloseT)
                 // if it is multiline there is no need for parenthesis, because of the indentation
-                (indent +> sepNln +> genExpr e +> unindent)
+                (indent +> sepNln +> genExpr node.Expr +> unindent)
                 ctx
 
-        let genNonInfixExpr = autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr e)
+        let genNonInfixExpr =
+            autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr node.Expr)
 
         genSingleTextNode node.LazyWord
-        +> sepSpace
+        +> sepSpaceUnlessWriteBeforeNewlineNotEmpty
         +> ifElse node.ExprIsInfix genInfixExpr genNonInfixExpr
     | Expr.Single node ->
         genSingleTextNode node.Leading
