@@ -270,14 +270,17 @@ type TypeParenNode(openingParen: SingleTextNode, t: Type, closingParen: SingleTe
     member x.Type = t
     member x.ClosingParen = closingParen
 
-type TypeSignatureParameterNode(attributes: AttributesListNode, identifier: SingleTextNode option, t: Type, range) =
+type TypeSignatureParameterNode
+    (
+        attributes: MultipleAttributeListNode,
+        identifier: SingleTextNode option,
+        t: Type,
+        range
+    ) =
     inherit NodeBase(range)
 
     override this.Children =
-        [| if not attributes.IsEmpty then
-               yield attributes
-           yield! noa identifier
-           yield Type.Node t |]
+        [| yield! attributes.Children; yield! noa identifier; yield Type.Node t |]
 
     member x.Attributes = attributes
     member x.Identifier = identifier
@@ -336,13 +339,10 @@ type Type =
         | SignatureParameter n -> n
         | Or n -> n
 
-type PatAttribNode(attrs: AttributesListNode, pat: Pattern, range) =
+type PatAttribNode(attrs: MultipleAttributeListNode, pat: Pattern, range) =
     inherit NodeBase(range)
 
-    override this.Children =
-        [| if not attrs.IsEmpty then
-               yield attrs
-           yield Pattern.Node pat |]
+    override this.Children = [| yield! attrs.Children; yield Pattern.Node pat |]
 
     member x.Attributes = attrs
     member x.Pattern = pat
@@ -1145,10 +1145,10 @@ type OpenListNode(opens: Open list) =
     override this.Children = [| yield! (List.map Open.Node opens) |]
     member x.Opens = opens
 
-type HashDirectiveListNode(range) =
-    inherit NodeBase(range)
-
-    override this.Children = failwith "todo"
+type HashDirectiveListNode(hashDirectives: ParsedHashDirectiveNode list) =
+    inherit NodeBase(List.map (fun n -> (n :> Node).Range) hashDirectives |> combineRanges)
+    override this.Children = [| yield! nodes hashDirectives |]
+    member x.HashDirectives = hashDirectives
 
 type AttributeNode(typeName: IdentListNode, expr: Expr option, target: SingleTextNode option, range) =
     inherit NodeBase(range)
@@ -1160,50 +1160,124 @@ type AttributeNode(typeName: IdentListNode, expr: Expr option, target: SingleTex
     member x.Expr = expr
     member x.Target = target
 
-type AttributesNode(attributes: AttributeNode list, range) =
+/// The content from [< to >]
+type AttributeListNode
+    (
+        openingToken: SingleTextNode,
+        attributesNodes: AttributeNode list,
+        closingToken: SingleTextNode,
+        range
+    ) =
     inherit NodeBase(range)
-    override this.Children = [| yield! nodes attributes |]
+
+    override this.Children =
+        [| yield openingToken; yield! nodes attributesNodes; yield closingToken |]
+
+    member x.Opening = openingToken
+    member x.Attributes = attributesNodes
+    member x.Closing = closingToken
+
+type MultipleAttributeListNode(attributeLists: AttributeListNode list, range) =
+    inherit NodeBase(range)
+    override this.Children = [| yield! nodes attributeLists |]
+    member x.AttributeLists = attributeLists
+
+type ModuleDeclAttributesNode(attributes: MultipleAttributeListNode, doExpr: Expr, range) =
+    inherit NodeBase(range)
+    override this.Children = [| yield attributes; yield Expr.Node doExpr |]
     member x.Attributes = attributes
+    member x.Expr = doExpr
 
-type AttributesListNode(attributesNodes: AttributesNode list, range) =
+type ExceptionDefnNode
+    (
+        xmlDoc: SingleTextNode option,
+        attributes: MultipleAttributeListNode,
+        accessibility: SingleTextNode option,
+        unionCase: UnionCaseNode,
+        withKeyword: SingleTextNode option,
+        ms: MemberDefn list,
+        range
+    ) =
     inherit NodeBase(range)
-    override this.Children = [| yield! nodes attributesNodes |]
-    static member Empty = AttributesListNode([], Range.Zero)
 
-    member x.AllAttributes =
-        List.collect (fun (an: AttributesNode) -> an.Attributes) attributesNodes
+    override this.Children =
+        [| yield! noa xmlDoc
+           yield! attributes.Children
+           yield! noa accessibility
+           yield unionCase
+           yield! noa withKeyword
+           yield! nodes (List.map MemberDefn.Node ms) |]
 
-    member x.IsEmpty = attributesNodes.IsEmpty
+    member x.XmlDoc = xmlDoc
+    member x.Attributes = attributes
+    member x.Accessibility = accessibility
+    member x.UnionCase = unionCase
+    member x.WithKeyword = ExprTryWithNode
+    member x.Members = ms
 
 type ExternBindingNode(range) =
     inherit NodeBase(range)
-
     override this.Children = failwith "todo"
 
-type ModuleAbbrevNode(range) =
+type ModuleAbbrevNode(moduleNode: SingleTextNode, name: SingleTextNode, alias: IdentListNode, range) =
+    inherit NodeBase(range)
+    override this.Children = [| yield moduleNode; yield name; yield alias |]
+    member x.Module = moduleNode
+    member x.Name = name
+    member x.Alias = alias
+
+type NestedModuleNode
+    (
+        xmlDoc: SingleTextNode option,
+        attributes: MultipleAttributeListNode,
+        moduleKeyword: SingleTextNode,
+        accessibility: SingleTextNode option,
+        isRecursive: bool,
+        identifier: IdentListNode,
+        equalsNode: SingleTextNode,
+        decls: ModuleDecl list,
+        range
+    ) =
     inherit NodeBase(range)
 
-    override this.Children = failwith "todo"
+    override this.Children =
+        [| yield! noa xmlDoc
+           yield! attributes.Children
+           yield moduleKeyword
+           yield! noa accessibility
+           yield identifier
+           yield equalsNode
+           yield! List.map ModuleDecl.Node decls |]
+
+    member x.XmlDoc = xmlDoc
+    member x.Attributes = attributes
+    member x.Module = moduleKeyword
+    member x.Accessibility = accessibility
+    member x.IsRecursive = isRecursive
+    member x.Equals = equalsNode
+    member x.Decls = decls
 
 /// Each case in this DU should have a container node
 [<RequireQualifiedAccess; NoEquality; NoComparison>]
 type ModuleDecl =
     | OpenList of OpenListNode
     | HashDirectiveList of HashDirectiveListNode
-    | AttributesList of AttributesListNode
+    | Attributes of ModuleDeclAttributesNode
     | DeclExpr of Expr
+    | Exception of ExceptionDefnNode
     | ExternBinding of ExternBindingNode
     | TopLevelBinding of BindingNode
     | ModuleAbbrev of ModuleAbbrevNode
-    | NestedModule of ModuleOrNamespaceNode
+    | NestedModule of NestedModuleNode
     | TypeDefn of TypeDefn
 
     static member Node(x: ModuleDecl) : Node =
         match x with
         | OpenList n -> n
         | HashDirectiveList n -> n
-        | AttributesList n -> n
+        | Attributes n -> n
         | DeclExpr e -> Expr.Node e
+        | Exception n -> n
         | ExternBinding n -> n
         | TopLevelBinding n -> n
         | ModuleAbbrev n -> n
@@ -1242,11 +1316,14 @@ type BindingNode
            yield equals
            yield Expr.Node expr |]
 
+type UnionCaseNode(range) =
+    inherit NodeBase(range)
+    override this.Children = failwith "todo"
+
 type TypeNameNode
     (
-        attrs: AttributesListNode,
+        attrs: MultipleAttributeListNode,
         leadingKeyword: SingleTextNode,
-        isFirstType: bool,
         ao: SingleTextNode option,
         identifier: IdentListNode,
         typeParams: obj option,
@@ -1264,7 +1341,7 @@ type TypeNameNode
            yield! noa equalsToken
            yield! noa withKeyword |]
 
-    member x.IsFirstType = isFirstType
+    member x.IsFirstType = leadingKeyword.Text = "type"
     member x.LeadingKeyword = leadingKeyword
     member x.Identifier = identifier
     member x.EqualsToken = equalsToken
