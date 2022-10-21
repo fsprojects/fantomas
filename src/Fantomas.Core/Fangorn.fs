@@ -399,11 +399,6 @@ let mkBinding
     (creationAide: CreationAide)
     (SynBinding (_ao, _, _isInline, _isMutable, _attrs, _px, _, pat, returnInfo, expr, _, _, trivia))
     =
-    let leadingKeyword =
-        match trivia.LeadingKeyword with
-        | SynLeadingKeyword.Let m -> stn "let" m
-        | _ -> failwith "todo, FF881966-836F-4425-A600-8C928DE4CDE1"
-
     let functionName, parameters =
         match pat with
         | SynPat.LongIdent (longDotId = SynLongIdent ([ _ ], _, _) as lid; argPats = SynArgPats.Pats ps) ->
@@ -434,7 +429,15 @@ let mkBinding
 
         unionRanges start e.Range
 
-    BindingNode(leadingKeyword, functionName, parameters, returnTypeNodes, equals, (mkExpr creationAide e), range)
+    BindingNode(
+        mkSynLeadingKeyword trivia.LeadingKeyword,
+        functionName,
+        parameters,
+        returnTypeNodes,
+        equals,
+        (mkExpr creationAide e),
+        range
+    )
 
 let mkXmlDoc (px: PreXmlDoc) =
     if px.IsEmpty then
@@ -686,7 +689,85 @@ let rec (|HashDirectiveL|_|) =
     | SynModuleDecl.HashDirective (p, _) :: ys -> Some([ p ], ys)
     | _ -> None
 
-let mkSynUnionCase (creationAide: CreationAide) (uc: SynUnionCase) : UnionCaseNode = failwith "todo"
+let mkSynLeadingKeyword (lk: SynLeadingKeyword) =
+    let mtn v =
+        v
+        |> List.map (fun (t, r) -> stn t r)
+        |> fun nodes -> MultipleTextsNode(nodes, lk.Range)
+
+    match lk with
+    | SynLeadingKeyword.Let letRange -> mtn [ "let", letRange ]
+    | SynLeadingKeyword.LetRec (letRange, recRange) -> mtn [ "let", letRange; "rec", recRange ]
+    | SynLeadingKeyword.And andRange -> mtn [ "and", andRange ]
+    | SynLeadingKeyword.Use useRange -> mtn [ "use", useRange ]
+    | SynLeadingKeyword.UseRec (useRange, recRange) -> mtn [ "use", useRange; "rec", recRange ]
+    | SynLeadingKeyword.Extern externRange -> mtn [ "extern", externRange ]
+    | SynLeadingKeyword.Member memberRange -> mtn [ "member", memberRange ]
+    | SynLeadingKeyword.MemberVal (memberRange, valRange) -> mtn [ "member", memberRange; "val", valRange ]
+    | SynLeadingKeyword.Override overrideRange -> mtn [ "override", overrideRange ]
+    | SynLeadingKeyword.OverrideVal (overrideRange, valRange) -> mtn [ "override", overrideRange; "val", valRange ]
+    | SynLeadingKeyword.Abstract abstractRange -> mtn [ "abstract", abstractRange ]
+    | SynLeadingKeyword.AbstractMember (abstractRange, memberRange) ->
+        mtn [ "abstract", abstractRange; "memberRange", memberRange ]
+    | SynLeadingKeyword.StaticMember (staticRange, memberRange) -> mtn [ "static", staticRange; "member", memberRange ]
+    | SynLeadingKeyword.StaticMemberVal (staticRange, memberRange, valRange) ->
+        mtn [ "static", staticRange; "memberRange", memberRange; "val", valRange ]
+    | SynLeadingKeyword.StaticAbstract (staticRange, abstractRange) ->
+        mtn [ "static", staticRange; "abstract", abstractRange ]
+    | SynLeadingKeyword.StaticAbstractMember (staticRange, abstractMember, memberRange) ->
+        mtn [ "static", staticRange; "abstract", abstractMember; "member", memberRange ]
+    | SynLeadingKeyword.StaticVal (staticRange, valRange) -> mtn [ "static", staticRange; "val", valRange ]
+    | SynLeadingKeyword.StaticLet (staticRange, letRange) -> mtn [ "static", staticRange; "let", letRange ]
+    | SynLeadingKeyword.StaticLetRec (staticRange, letRange, recRange) ->
+        mtn [ "static", staticRange; "let", letRange; "rec", recRange ]
+    | SynLeadingKeyword.StaticDo (staticRange, doRange) -> mtn [ "static", staticRange; "do", doRange ]
+    | SynLeadingKeyword.Default defaultRange -> mtn [ "default", defaultRange ]
+    | SynLeadingKeyword.DefaultVal (defaultRange, valRange) -> mtn [ "default", defaultRange; "val", valRange ]
+    | SynLeadingKeyword.Val valRange -> mtn [ "val", valRange ]
+    | SynLeadingKeyword.New newRange -> mtn [ "new", newRange ]
+    | SynLeadingKeyword.Do doRange -> mtn [ "do", doRange ]
+    | SynLeadingKeyword.Synthetic -> failwith "Unexpected SynLeadingKeyword.Synthetic"
+
+let mkSynField
+    (creationAide: CreationAide)
+    (SynField (ats, _isStatic, ido, t, isMutable, px, ao, range, { LeadingKeyword = lk }))
+    =
+    FieldNode(
+        mkXmlDoc px,
+        mkAttributes creationAide ats,
+        Option.map mkSynLeadingKeyword lk,
+        isMutable,
+        Option.map mkSynAccess ao,
+        Option.map mkIdent ido,
+        mkType creationAide t,
+        range
+    )
+
+let mkSynUnionCase
+    (creationAide: CreationAide)
+    (SynUnionCase (attributes, ident, caseType, xmlDoc, vis, m, trivia))
+    : UnionCaseNode =
+    let fullRange =
+        if not xmlDoc.IsEmpty then
+            m
+        else
+            match trivia.BarRange with
+            | None -> m
+            | Some barRange -> unionRanges barRange m
+
+    let fields =
+        match caseType with
+        | SynUnionCaseKind.FullType _ -> []
+        | SynUnionCaseKind.Fields cases -> List.map (mkSynField creationAide) cases
+
+    UnionCaseNode(
+        mkXmlDoc xmlDoc,
+        mkAttributes creationAide attributes,
+        Option.map (stn "|") trivia.BarRange,
+        mkSynIdent ident,
+        fields,
+        fullRange
+    )
 
 let mkTypeDefn
     (creationAide: CreationAide)
