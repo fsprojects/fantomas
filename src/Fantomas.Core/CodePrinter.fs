@@ -2368,6 +2368,7 @@ and genMultilineAnonRecord openingBrace (isStruct: bool) fields copyInfo closing
         match copyInfo with
         | Some e ->
             genTriviaFor SynExpr_AnonRecd_OpeningBrace openingBrace sepOpenAnonRecd
+            +> sepNlnWhenWriteBeforeNewlineNotEmpty // comment after curly brace
             +> atCurrentColumn (
                 genExpr e
                 +> (!- " with" +> indentSepNlnUnindent (col sepNln fields genAnonRecordFieldName))
@@ -2380,6 +2381,7 @@ and genMultilineAnonRecord openingBrace (isStruct: bool) fields copyInfo closing
 
                 atCurrentColumn
                     (genTriviaFor SynExpr_AnonRecd_OpeningBrace openingBrace sepOpenAnonRecdFixed
+                     +> sepNlnWhenWriteBeforeNewlineNotEmpty // comment after curly brace
                      +> col sepNln fields (fun (AnonRecordFieldName (ident, eq, e, range)) ->
                          let expr =
                              if ctx.Config.IndentSize < 3 then
@@ -2416,6 +2418,7 @@ and genMultilineAnonRecordAlignBrackets openingBrace (isStruct: bool) fields cop
         match copyInfo with
         | Some ci ->
             genTriviaFor SynExpr_AnonRecd_OpeningBrace openingBrace sepOpenAnonRecd
+            +> sepNlnWhenWriteBeforeNewlineNotEmpty // comment after curly brace
             +> copyExpr fieldsExpr ci
             +> sepNln
             +> genTriviaFor SynExpr_AnonRecd_ClosingBrace closingBrace sepCloseAnonRecdFixed

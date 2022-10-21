@@ -2214,8 +2214,8 @@ let a = {| // test1
         equal
         """
 let x =
-    {| Y = // test1
-        42
+    {| // test1
+       Y = 42
        Z = "string"
        Foo = "Bar"
     // test2
@@ -2229,7 +2229,8 @@ let y =
 let z = {| Y = 42 |}
 
 let a =
-    {| foo with// test1
+    {| // test1
+    foo with
         Level = 7
         Square = 9
     // test2

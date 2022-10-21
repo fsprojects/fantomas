@@ -1446,7 +1446,8 @@ let y =
 let z = {| Y = 42 |}
 
 let a =
-    {| foo with// test1
+    {| // test1
+    foo with
         Level = 7
         Square = 9
     // test2
