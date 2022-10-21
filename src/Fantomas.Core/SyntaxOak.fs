@@ -821,15 +821,38 @@ type ExprNestedIndexWithoutDotNode(range) =
 
     override this.Children = failwith "todo"
 
-type ExprEndsWithDualListAppNode(range) =
+type ExprEndsWithDualListAppNode
+    (
+        functionExpr: Expr,
+        sequentialExprs: Expr list,
+        firstArrayOrList: Expr,
+        lastArrayOrList: Expr,
+        range
+    ) =
     inherit NodeBase(range)
 
-    override this.Children = failwith "todo"
+    override this.Children =
+        [| yield Expr.Node functionExpr
+           yield! List.map Expr.Node sequentialExprs
+           yield Expr.Node firstArrayOrList
+           yield Expr.Node lastArrayOrList |]
 
-type ExprEndsWithSingleListAppNode(range) =
+    member x.FunctionExpr = functionExpr
+    member x.SequentialExpr = sequentialExprs
+    member x.FirstArrayOrList = firstArrayOrList
+    member x.LastArrayOrList = lastArrayOrList
+
+type ExprEndsWithSingleListAppNode(functionExpr: Expr, sequentialExprs: Expr list, arrayOrList: Expr, range) =
     inherit NodeBase(range)
 
-    override this.Children = failwith "todo"
+    override this.Children =
+        [| yield Expr.Node functionExpr
+           yield! List.map Expr.Node sequentialExprs
+           yield Expr.Node arrayOrList |]
+
+    member x.FunctionExpr = functionExpr
+    member x.SequentialExpr = sequentialExprs
+    member x.ArrayOrList = arrayOrList
 
 type ExprAppNode(range) =
     inherit NodeBase(range)

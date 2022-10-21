@@ -159,6 +159,51 @@ let (|Sequentials|_|) e =
         Some(e1 :: xs)
     | _ -> None
 
+let (|EndsWithSingleListAppExpr|_|) (isStroustrup: bool) (e: SynExpr) =
+    if not isStroustrup then
+        None
+    else
+        match e with
+        | SynExpr.App (ExprAtomicFlag.NonAtomic,
+                       false,
+                       (SynExpr.App _ as funcExpr),
+                       (SynExpr.ArrayOrList _ | SynExpr.ArrayOrListComputed _ as lastArg),
+                       _) ->
+            let rec collectApplicationArgument (e: SynExpr) (continuation: SynExpr seq -> SynExpr seq) =
+                match e with
+                | SynExpr.App (ExprAtomicFlag.NonAtomic, false, (SynExpr.App _ as funcExpr), argExpr, _) ->
+                    collectApplicationArgument funcExpr (fun es ->
+                        seq {
+                            yield! es
+                            yield argExpr
+                        }
+                        |> continuation)
+                | SynExpr.App (ExprAtomicFlag.NonAtomic, false, funcNameExpr, ae, _) ->
+                    let args = Seq.toList (continuation (Seq.singleton ae))
+
+                    Some(funcNameExpr, args, lastArg)
+                | _ -> None
+
+            collectApplicationArgument funcExpr id
+        | SynExpr.App (ExprAtomicFlag.NonAtomic,
+                       false,
+                       funcExpr,
+                       (SynExpr.ArrayOrList _ | SynExpr.ArrayOrListComputed _ as lastArg),
+                       _) -> Some(funcExpr, [], lastArg)
+        | _ -> None
+
+let (|EndsWithDualListAppExpr|_|) (isStroustrup: bool) (e: SynExpr) =
+    if not isStroustrup then
+        None
+    else
+        match e with
+        | SynExpr.App (ExprAtomicFlag.NonAtomic,
+                       false,
+                       EndsWithSingleListAppExpr isStroustrup (e, es, lastButOneArg),
+                       (SynExpr.ArrayOrList _ | SynExpr.ArrayOrListComputed _ as lastArg),
+                       _) -> Some(e, es, lastButOneArg, lastArg)
+        | _ -> None
+
 let mkOpenAndCloseForArrayOrList isArray range =
     if isArray then
         let (StartEndRange 2 (mO, _, mC)) = range
@@ -281,7 +326,25 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
     // | Expr.DotGetAppWithLambda _ -> failwith "Not Implemented"
     // | Expr.AppWithLambda _ -> failwith "Not Implemented"
     // | Expr.NestedIndexWithoutDot _ -> failwith "Not Implemented"
-    // | Expr.EndsWithDualListApp _ -> failwith "Not Implemented"
+    | EndsWithDualListAppExpr creationAide.Config.ExperimentalStroustrupStyle (e, es, firstList, lastList) ->
+        ExprEndsWithDualListAppNode(
+            mkExpr creationAide e,
+            List.map (mkExpr creationAide) es,
+            mkExpr creationAide firstList,
+            mkExpr creationAide lastList,
+            exprRange
+        )
+        |> Expr.EndsWithDualListApp
+    //| Expr.EndsWithDualListApp _ -> failwith "Not Implemented"
+    | EndsWithSingleListAppExpr creationAide.Config.ExperimentalStroustrupStyle (e, es, aol) ->
+        ExprEndsWithSingleListAppNode(
+            mkExpr creationAide e,
+            List.map (mkExpr creationAide) es,
+            mkExpr creationAide aol,
+            exprRange
+        )
+        |> Expr.EndsWithSingleListApp
+
     // | Expr.EndsWithSingleListApp _ -> failwith "Not Implemented"
     // | Expr.App _ -> failwith "Not Implemented"
     // | Expr.TypeApp _ -> failwith "Not Implemented"
