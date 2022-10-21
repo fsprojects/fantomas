@@ -304,8 +304,82 @@ let genExpr (e: Expr) =
     | Expr.DotGetAppWithLambda _ -> failwith "Not Implemented"
     | Expr.AppWithLambda _ -> failwith "Not Implemented"
     | Expr.NestedIndexWithoutDot _ -> failwith "Not Implemented"
-    | Expr.EndsWithDualListApp _ -> failwith "Not Implemented"
-    | Expr.EndsWithSingleListApp _ -> failwith "Not Implemented"
+    | Expr.EndsWithDualListApp node ->
+        fun ctx ->
+            // check if everything else beside the last array/list fits on one line
+            let singleLineTestExpr =
+                genExpr node.FunctionExpr
+                +> sepSpace
+                +> col sepSpace node.SequentialExpr genExpr
+                +> sepSpace
+                +> genExpr node.FirstArrayOrList
+
+            let short =
+                genExpr node.FunctionExpr
+                +> sepSpace
+                +> col sepSpace node.SequentialExpr genExpr
+                +> onlyIfNot node.SequentialExpr.IsEmpty sepSpace
+                +> genExpr node.FirstArrayOrList
+                +> sepSpace
+                +> genExpr node.LastArrayOrList
+
+            let long =
+                // check if everything besides both lists fits on one line
+                let singleLineTestExpr =
+                    genExpr node.FunctionExpr
+                    +> sepSpace
+                    +> col sepSpace node.SequentialExpr genExpr
+
+                if futureNlnCheck singleLineTestExpr ctx then
+                    genExpr node.FunctionExpr
+                    +> indent
+                    +> sepNln
+                    +> col sepNln node.SequentialExpr genExpr
+                    +> sepSpace
+                    +> genExpr node.FirstArrayOrList
+                    +> sepSpace
+                    +> genExpr node.LastArrayOrList
+                    +> unindent
+                else
+                    genExpr node.FunctionExpr
+                    +> sepSpace
+                    +> col sepSpace node.SequentialExpr genExpr
+                    +> genExpr node.FirstArrayOrList
+                    +> sepSpace
+                    +> genExpr node.LastArrayOrList
+
+            if futureNlnCheck singleLineTestExpr ctx then
+                long ctx
+            else
+                short ctx
+    | Expr.EndsWithSingleListApp node ->
+        fun ctx ->
+            // check if everything else beside the last array/list fits on one line
+            let singleLineTestExpr =
+                genExpr node.FunctionExpr
+                +> sepSpace
+                +> col sepSpace node.SequentialExpr genExpr
+
+            let short =
+                genExpr node.FunctionExpr
+                +> sepSpace
+                +> col sepSpace node.SequentialExpr genExpr
+                +> onlyIfNot node.SequentialExpr.IsEmpty sepSpace
+                +> genExpr node.ArrayOrList
+
+            let long =
+                genExpr node.FunctionExpr
+                +> indent
+                +> sepNln
+                +> col sepNln node.SequentialExpr genExpr
+                +> onlyIfNot node.SequentialExpr.IsEmpty sepNln
+                +> genExpr node.ArrayOrList
+                +> unindent
+
+            if futureNlnCheck singleLineTestExpr ctx then
+                long ctx
+            else
+                short ctx
     | Expr.App _ -> failwith "Not Implemented"
     | Expr.TypeApp _ -> failwith "Not Implemented"
     | Expr.LetOrUses _ -> failwith "Not Implemented"
