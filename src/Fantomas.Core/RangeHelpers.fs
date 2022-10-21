@@ -47,3 +47,9 @@ module RangePatterns =
             Range.mkRange range.FileName range.Start (Position.mkPos range.StartLine (range.StartColumn + size))
 
         startRange, range
+
+    let (|EndRange|) (size: int) (range: range) =
+        let endRange =
+            Range.mkRange range.FileName (Position.mkPos range.EndLine (range.EndColumn - size)) range.End
+
+        endRange, range

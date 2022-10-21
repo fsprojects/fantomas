@@ -233,10 +233,14 @@ type TypeStructTupleNode
     member x.Path = path
     member x.ClosingParen = closingParen
 
-type TypeWithGlobalConstraintsNode(range) =
+type TypeWithGlobalConstraintsNode(t: Type, constraints: TypeConstraint list, range) =
     inherit NodeBase(range)
 
-    override this.Children = failwith "todo"
+    override this.Children =
+        [| yield Type.Node t; yield! List.map TypeConstraint.Node constraints |]
+
+    member x.Type = t
+    member x.TypeConstraints = constraints
 
 type TypeAnonRecordNode
     (
@@ -261,9 +265,7 @@ type TypeAnonRecordNode
 
 type TypeParenNode(openingParen: SingleTextNode, t: Type, closingParen: SingleTextNode, range) =
     inherit NodeBase(range)
-
     override this.Children = [| yield openingParen; yield Type.Node t; yield closingParen |]
-
     member x.OpeningParen = openingParen
     member x.Type = t
     member x.ClosingParen = closingParen
@@ -303,6 +305,7 @@ type Type =
     | AppPostfix of TypeAppPostFixNode
     | AppPrefix of TypeAppPrefixNode
     | StructTuple of TypeStructTupleNode
+    | WithSubTypeConstraint of TypeConstraint
     | WithGlobalConstraints of TypeWithGlobalConstraintsNode
     | LongIdent of IdentListNode
     | AnonRecord of TypeAnonRecordNode
@@ -325,6 +328,7 @@ type Type =
         | AppPostfix n -> n
         | AppPrefix n -> n
         | StructTuple n -> n
+        | WithSubTypeConstraint tc -> TypeConstraint.Node tc
         | WithGlobalConstraints n -> n
         | LongIdent n -> n
         | AnonRecord n -> n
@@ -1541,3 +1545,54 @@ type TyparDecls =
         | PostfixList n -> n
         | PrefixList n -> n
         | SinglePrefix n -> n
+
+type TypeConstraintSingleNode(typar: SingleTextNode, kind: SingleTextNode, range) =
+    inherit NodeBase(range)
+    override this.Children = [| yield typar; yield kind |]
+    member x.Typar = typar
+    member x.Kind = kind
+
+type TypeConstraintDefaultsToTypeNode(defaultNode: SingleTextNode, typar: SingleTextNode, t: Type, range) =
+    inherit NodeBase(range)
+    override this.Children = [| yield defaultNode; yield typar; yield Type.Node t |]
+    member x.Default = defaultNode
+    member x.Typar = typar
+    member x.Type = t
+
+type TypeConstraintSubtypeOfTypeNode(typar: SingleTextNode, t: Type, range) =
+    inherit NodeBase(range)
+    override this.Children = [| yield typar; yield Type.Node t |]
+    member x.Typar = typar
+    member x.Type = t
+
+// TODO: MemberSig
+type TypeConstraintSupportsMemberNode(t: Type, memberSig: obj, range) =
+    inherit NodeBase(range)
+    override this.Children = [| yield Type.Node t |]
+    member x.Type = t
+    member x.MemberSig = memberSig
+
+type TypeConstraintEnumOrDelegateNode(typar: SingleTextNode, verb: string, ts: Type list, range) =
+    inherit NodeBase(range)
+    override this.Children = [| yield typar; yield! List.map Type.Node ts |]
+    member x.Typar = typar
+    member x.Verb = verb
+    member x.Types = ts
+
+[<RequireQualifiedAccess; NoEquality; NoComparison>]
+type TypeConstraint =
+    | Single of TypeConstraintSingleNode
+    | DefaultsToType of TypeConstraintDefaultsToTypeNode
+    | SubtypeOfType of TypeConstraintSubtypeOfTypeNode
+    | SupportsMember of TypeConstraintSupportsMemberNode
+    | EnumOrDelegate of TypeConstraintEnumOrDelegateNode
+    | WhereSelfConstrained of Type
+
+    static member Node(tc: TypeConstraint) : Node =
+        match tc with
+        | Single n -> n
+        | DefaultsToType n -> n
+        | SubtypeOfType n -> n
+        | SupportsMember n -> n
+        | EnumOrDelegate n -> n
+        | WhereSelfConstrained t -> Type.Node t
