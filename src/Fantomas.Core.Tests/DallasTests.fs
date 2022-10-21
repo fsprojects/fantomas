@@ -244,3 +244,22 @@ let y: int list array = 0
 let z: Task<int> = 0
 let p: Prefix.Task<int> = 0
 """
+
+[<Test>]
+let ``attributes`` () =
+    formatSourceString
+        false
+        """
+[<Foo>]
+[<Bar1;Bar2>]
+do ()
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+[<Foo>]
+[<Bar1; Bar2>]
+do ()
+"""

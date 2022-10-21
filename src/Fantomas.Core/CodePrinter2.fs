@@ -122,19 +122,36 @@ let genAttributesCore (ats: AttributeNode list) =
             +> genExpr e
         |> genNode attr
 
-    let shortExpression =
-        !- "[<" +> atCurrentColumn (col sepSemi ats genAttributeExpr) +> !- ">]"
-
-    let longExpression =
-        !- "[<"
-        +> atCurrentColumn (col (sepSemi +> sepNln) ats genAttributeExpr)
-        +> !- ">]"
-
+    let shortExpression = atCurrentColumn (col sepSemi ats genAttributeExpr)
+    let longExpression = atCurrentColumn (col (sepSemi +> sepNln) ats genAttributeExpr)
     ifElse ats.IsEmpty sepNone (expressionFitsOnRestOfLine shortExpression longExpression)
 
-let genOnelinerAttributes (n: AttributesListNode) =
-    let ats = n.AllAttributes
-    ifElse ats.IsEmpty sepNone (genAttributesCore ats +> sepSpace)
+let genOnelinerAttributes (n: MultipleAttributeListNode) =
+    let ats =
+        List.collect (fun (al: AttributeListNode) -> al.Attributes) n.AttributeLists
+
+    let openingToken =
+        List.tryHead n.AttributeLists
+        |> Option.map (fun (a: AttributeListNode) -> a.Opening)
+
+    let closingToken =
+        List.tryLast n.AttributeLists
+        |> Option.map (fun (a: AttributeListNode) -> a.Closing)
+
+    let genAttrs =
+        optSingle genSingleTextNode openingToken
+        +> genAttributesCore ats
+        +> optSingle genSingleTextNode closingToken
+        |> genNode n
+
+    ifElse ats.IsEmpty sepNone (genAttrs +> sepSpace)
+
+let genAttributes (node: MultipleAttributeListNode) =
+    colPost sepNlnUnlessLastEventIsNewline sepNln node.AttributeLists (fun a ->
+        genSingleTextNode a.Opening
+        +> (genAttributesCore a.Attributes)
+        +> genSingleTextNode a.Closing
+        +> sepNlnWhenWriteBeforeNewlineNotEmpty)
 
 let genExpr (e: Expr) =
     match e with
@@ -677,13 +694,20 @@ let genTypeDefn (td: TypeDefn) =
 let genModuleDecl (md: ModuleDecl) =
     match md with
     | ModuleDecl.OpenList ol -> genOpenList ol
-    | ModuleDecl.HashDirectiveList _ -> failwith "Not Implemented"
-    | ModuleDecl.AttributesList _ -> failwith "Not Implemented"
+    | ModuleDecl.HashDirectiveList node -> col sepNln node.HashDirectives genParsedHashDirective
+    | ModuleDecl.Attributes node -> genAttributes node.Attributes +> genExpr node.Expr
     | ModuleDecl.DeclExpr e -> genExpr e
+    | ModuleDecl.Exception node -> failwith "not implemented"
     | ModuleDecl.ExternBinding _ -> failwith "Not Implemented"
     | ModuleDecl.TopLevelBinding b -> genBinding b
-    | ModuleDecl.ModuleAbbrev _ -> failwith "Not Implemented"
-    | ModuleDecl.NestedModule _ -> failwith "Not Implemented"
+    | ModuleDecl.ModuleAbbrev node ->
+        genSingleTextNode node.Module
+        +> sepSpace
+        +> genSingleTextNode node.Name
+        +> sepEqFixed
+        +> sepSpace
+        +> genIdentListNode node.Alias
+    | ModuleDecl.NestedModule node -> optSingle genSingleTextNode node.XmlDoc +> genAttributes node.Attributes
     | ModuleDecl.TypeDefn td -> genTypeDefn td
 
 let sepNlnUnlessContentBefore (node: Node) =

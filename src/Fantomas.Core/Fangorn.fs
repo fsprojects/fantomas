@@ -4,6 +4,7 @@ open FSharp.Compiler.Text
 open FSharp.Compiler.Text.Range
 open FSharp.Compiler.Syntax
 open FSharp.Compiler.SyntaxTrivia
+open FSharp.Compiler.Xml
 open Fantomas.Core.FormatConfig
 open Fantomas.Core.ISourceTextExtensions
 open Fantomas.Core.RangePatterns
@@ -132,13 +133,19 @@ let mkAttribute (creationAide: CreationAide) (a: SynAttribute) =
 
     AttributeNode(mkSynLongIdent a.TypeName, expr, Option.map mkIdent a.Target, a.Range)
 
-let mkAttributes (creationAide: CreationAide) (al: SynAttributeList) =
-    AttributesNode(List.map (mkAttribute creationAide) al.Attributes, al.Range)
+let mkAttributeList (creationAide: CreationAide) (al: SynAttributeList) : AttributeListNode =
+    let attributes = List.map (mkAttribute creationAide) al.Attributes
 
-let mkAttributeList (creationAide: CreationAide) (ats: SynAttributes) =
-    let attributes = List.map (mkAttributes creationAide) ats
-    let range = attributes |> List.map (fun a -> (a :> Node).Range) |> combineRanges
-    AttributesListNode(attributes, range)
+    let opening, closing =
+        match al.Range with
+        | StartEndRange 2 (s, _, e) -> stn "[<" s, stn ">]" e
+
+    AttributeListNode(opening, attributes, closing, al.Range)
+
+let mkAttributes (creationAide: CreationAide) (al: SynAttributeList list) : MultipleAttributeListNode =
+    let attributeLists = List.map (mkAttributeList creationAide) al
+    let range = List.map (fun al -> (al :> Node).Range) attributeLists |> combineRanges
+    MultipleAttributeListNode(attributeLists, range)
 
 let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
     let exprRange = e.Range
@@ -289,7 +296,7 @@ let mkPat (creationAide: CreationAide) (p: SynPat) =
     match p with
     | SynPat.OptionalVal (ident, _) -> stn $"?{ident.idText}" patternRange |> Pattern.OptionalVal
     | SynPat.Attrib (p, ats, _) ->
-        PatAttribNode(mkAttributeList creationAide ats, mkPat creationAide p, patternRange)
+        PatAttribNode(mkAttributes creationAide ats, mkPat creationAide p, patternRange)
         |> Pattern.Attrib
     | SynPat.Or (p1, p2, _, trivia) ->
         PatLeftMiddleRight(
@@ -429,19 +436,61 @@ let mkBinding
 
     BindingNode(leadingKeyword, functionName, parameters, returnTypeNodes, equals, (mkExpr creationAide e), range)
 
+let mkXmlDoc (px: PreXmlDoc) =
+    if px.IsEmpty then
+        None
+    else
+        let xmlDoc = px.ToXmlDoc(false, None)
+        Some(stn (String.concat "\n" xmlDoc.UnprocessedLines) xmlDoc.Range)
+
 let mkModuleDecl (creationAide: CreationAide) (decl: SynModuleDecl) =
+    let declRange = decl.Range
+
     match decl with
-    // | OpenList of OpenListNode
-    // | HashDirectiveList of HashDirectiveListNode
-    // | AttributesList of AttributesListNode
     | SynModuleDecl.Expr (e, _) -> mkExpr creationAide e |> ModuleDecl.DeclExpr
+    | SynModuleDecl.Exception (SynExceptionDefn (SynExceptionDefnRepr (attrs, caseName, _, xmlDoc, vis, _),
+                                                 withKeyword,
+                                                 ms,
+                                                 _),
+                               _) ->
+        ExceptionDefnNode(
+            mkXmlDoc xmlDoc,
+            mkAttributes creationAide attrs,
+            Option.map mkSynAccess vis,
+            mkSynUnionCase creationAide caseName,
+            Option.map (stn "with") withKeyword,
+            List.map (mkMemberDefn creationAide) ms,
+            declRange
+        )
+        |> ModuleDecl.Exception
+    | SynModuleDecl.Let (_, [ SynBinding(trivia = { LeadingKeyword = SynLeadingKeyword.Extern _ }) ], _) ->
+        failwith "todo: extern"
     // | ExternBinding of ExternBindingNode
     | SynModuleDecl.Let(bindings = [ singleBinding ]) ->
         mkBinding creationAide singleBinding |> ModuleDecl.TopLevelBinding
-    // | ModuleAbbrev of ModuleAbbrevNode
-    // | NestedModule of ModuleOrNamespaceNode
-    // | TypeDefn of TypeDefn
-    | _ -> failwith "todo, 068F312B-A840-4E14-AF82-A000652532E8"
+    | SynModuleDecl.ModuleAbbrev (ident, lid, StartRange 6 (mModule, _)) ->
+        ModuleAbbrevNode(stn "module" mModule, mkIdent ident, mkLongIdent lid, declRange)
+        |> ModuleDecl.ModuleAbbrev
+    | SynModuleDecl.NestedModule (SynComponentInfo (ats, _, _, lid, px, _, ao, _),
+                                  isRecursive,
+                                  decls,
+                                  _,
+                                  _,
+                                  { ModuleKeyword = Some mModule
+                                    EqualsRange = Some mEq }) ->
+        NestedModuleNode(
+            mkXmlDoc px,
+            mkAttributes creationAide ats,
+            stn "module" mModule,
+            Option.map mkSynAccess ao,
+            isRecursive,
+            mkLongIdent lid,
+            stn "=" mEq,
+            List.map (mkModuleDecl creationAide) decls,
+            declRange
+        )
+        |> ModuleDecl.NestedModule
+    | decl -> failwithf $"Failed to create ModuleDecl for %A{decl}"
 
 let mkTyparDecls (creationAide: CreationAide) (tds: SynTyparDecls) : TyparDecls option =
     match tds with
@@ -611,7 +660,7 @@ let mkType (creationAide: CreationAide) (t: SynType) : Type =
                 else
                     mkIdent ident)
 
-        TypeSignatureParameterNode(mkAttributeList creationAide attrs, identNode, mkType creationAide t, typeRange)
+        TypeSignatureParameterNode(mkAttributes creationAide attrs, identNode, mkType creationAide t, typeRange)
         |> Type.SignatureParameter
     | SynType.Or (lhs, rhs, _, trivia) ->
         TypeOrNode(mkType creationAide lhs, stn "or" trivia.OrKeyword, mkType creationAide rhs, typeRange)
@@ -631,9 +680,16 @@ let mkOpenNodeForImpl (creationAide: CreationAide) (target, range) : Open =
         |> Open.ModuleOrNamespace
     | SynOpenDeclTarget.Type (typeName, range) -> OpenTargetNode(mkType creationAide typeName, range) |> Open.Target
 
+let rec (|HashDirectiveL|_|) =
+    function
+    | SynModuleDecl.HashDirective (p, _) :: HashDirectiveL (xs, ys) -> Some(p :: xs, ys)
+    | SynModuleDecl.HashDirective (p, _) :: ys -> Some([ p ], ys)
+    | _ -> None
+
+let mkSynUnionCase (creationAide: CreationAide) (uc: SynUnionCase) : UnionCaseNode = failwith "todo"
+
 let mkTypeDefn
     (creationAide: CreationAide)
-    (isFirst: bool)
     (SynTypeDefn (typeInfo, typeRepr, members, implicitConstructor, range, trivia))
     : TypeDefn =
 
@@ -650,9 +706,8 @@ let mkTypeDefn
                 | SynTypeDefnLeadingKeyword.Synthetic _ -> failwithf "unexpected %A" trivia.LeadingKeyword
 
             TypeNameNode(
-                AttributesListNode.Empty,
+                mkAttributes creationAide ats,
                 leadingKeyword,
-                isFirst,
                 None,
                 identifierNode,
                 None,
@@ -670,6 +725,7 @@ let mkTypeDefn
         TypeDefn.Abbrev(TypeDefnAbbrevNode(typeNameNode, mkType creationAide t, range))
     // | Simple (TDSRException (ExceptionDefRepr (ats, px, ao, uc)))
     // | ObjectModel (TCSimple (TCInterface | TCClass) as tdk, MemberDefnList (impCtor, others), range) ->
+    // Can be combined as one!
     // | ObjectModel (TCSimple TCStruct as tdk, MemberDefnList (impCtor, others), _) ->
     // | ObjectModel (TCSimple (TCAugmentation withKeywordAug), _, _) ->
     // | ObjectModel (TCDelegate (FunType ts), _, _) ->
@@ -677,6 +733,10 @@ let mkTypeDefn
     // | ObjectModel (_, MemberDefnList (impCtor, others), _) ->
     // | ExceptionRepr (ExceptionDefRepr (ats, px, ao, uc)) -> genExceptionBody ats px ao uc
     | _ -> failwith "not implemented, C8C6C667-6A67-46A6-9EE3-A0DF663A3A91"
+
+let mkMemberDefn (creationAide: CreationAide) (md: SynMemberDefn) =
+    match md with
+    | _ -> failwith "todo"
 
 let rec mkModuleDecls
     (creationAide: CreationAide)
@@ -691,13 +751,28 @@ let rec mkModuleDecls
             |> OpenListNode
             |> ModuleDecl.OpenList
 
-        mkModuleDecls creationAide ys (fun nodes -> openListNode :: nodes)
+        mkModuleDecls creationAide ys (fun nodes -> openListNode :: nodes |> finalContinuation)
+
+    | HashDirectiveL (xs, ys) ->
+        let listNode =
+            List.map (mkParsedHashDirective creationAide) xs
+            |> HashDirectiveListNode
+            |> ModuleDecl.HashDirectiveList
+
+        mkModuleDecls creationAide ys (fun nodes -> listNode :: nodes |> finalContinuation)
 
     | SynModuleDecl.Types (typeDefns = typeDefns) :: rest ->
         let typeNodes =
-            List.mapi (fun idx tdn -> mkTypeDefn creationAide (idx = 0) tdn |> ModuleDecl.TypeDefn) typeDefns
+            List.map (fun tdn -> mkTypeDefn creationAide tdn |> ModuleDecl.TypeDefn) typeDefns
 
         mkModuleDecls creationAide rest (fun nodes -> [ yield! typeNodes; yield! nodes ] |> finalContinuation)
+
+    | SynModuleDecl.Attributes (a, _) :: SynModuleDecl.Expr (e, _) :: rest ->
+        let attributes = mkAttributes creationAide a
+        let expr = mkExpr creationAide e
+        let range = unionRanges (attributes :> Node).Range (Expr.Node expr).Range
+        let node = ModuleDeclAttributesNode(attributes, expr, range)
+        mkModuleDecls creationAide rest (fun nodes -> ModuleDecl.Attributes node :: nodes |> finalContinuation)
     | head :: tail ->
         mkModuleDecls creationAide tail (fun nodes -> mkModuleDecl creationAide head :: nodes |> finalContinuation)
 
