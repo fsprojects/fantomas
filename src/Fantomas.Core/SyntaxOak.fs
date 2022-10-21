@@ -617,10 +617,15 @@ type ExprStructTupleNode(range) =
 
     override this.Children = failwith "todo"
 
-type ExprArrayOrListNode(range) =
+type ExprArrayOrListNode(openingToken: SingleTextNode, elements: Expr list, closingToken: SingleTextNode, range) =
     inherit NodeBase(range)
 
-    override this.Children = failwith "todo"
+    override this.Children =
+        [| yield openingToken; yield! List.map Expr.Node elements; yield closingToken |]
+
+    member x.Opening = openingToken
+    member x.Elements = elements
+    member x.Closing = closingToken
 
 type ExprRecordNode(range) =
     inherit NodeBase(range)

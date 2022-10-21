@@ -263,3 +263,20 @@ do ()
 [<Bar1; Bar2>]
 do ()
 """
+
+[<Test>]
+let ``some expressions`` () =
+    formatSourceString
+        false
+        """
+let a = [| 2;3 |]
+let l = [ 4 ; 5 ;6 ]
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let a = [| 2; 3 |]
+let l = [ 4; 5; 6 ]
+"""

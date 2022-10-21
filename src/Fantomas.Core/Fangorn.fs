@@ -147,6 +147,26 @@ let mkAttributes (creationAide: CreationAide) (al: SynAttributeList list) : Mult
     let range = List.map (fun al -> (al :> Node).Range) attributeLists |> combineRanges
     MultipleAttributeListNode(attributeLists, range)
 
+let (|Sequentials|_|) e =
+    let rec visit (e: SynExpr) (finalContinuation: SynExpr list -> SynExpr list) : SynExpr list =
+        match e with
+        | SynExpr.Sequential (_, _, e1, e2, _) -> visit e2 (fun xs -> e1 :: xs |> finalContinuation)
+        | e -> finalContinuation [ e ]
+
+    match e with
+    | SynExpr.Sequential (_, _, e1, e2, _) ->
+        let xs = visit e2 id
+        Some(e1 :: xs)
+    | _ -> None
+
+let mkOpenAndCloseForArrayOrList isArray range =
+    if isArray then
+        let (StartEndRange 2 (mO, _, mC)) = range
+        stn "[|" mO, stn "|]" mC
+    else
+        let (StartEndRange 1 (mO, _, mC)) = range
+        stn "[" mO, stn "]" mC
+
 let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
     let exprRange = e.Range
 
@@ -212,7 +232,17 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
     // | Expr.New _ -> failwith "Not Implemented"
     // | Expr.Tuple _ -> failwith "Not Implemented"
     // | Expr.StructTuple _ -> failwith "Not Implemented"
-    // | Expr.ArrayOrList _ -> failwith "Not Implemented"
+    | SynExpr.ArrayOrListComputed (isArray, Sequentials xs, range)
+    | SynExpr.ArrayOrList (isArray, xs, range) ->
+        let o, c = mkOpenAndCloseForArrayOrList isArray range
+
+        ExprArrayOrListNode(o, List.map (mkExpr creationAide) xs, c, exprRange)
+        |> Expr.ArrayOrList
+    | SynExpr.ArrayOrListComputed (isArray, singleExpr, range) ->
+        let o, c = mkOpenAndCloseForArrayOrList isArray range
+
+        ExprArrayOrListNode(o, [ mkExpr creationAide singleExpr ], c, exprRange)
+        |> Expr.ArrayOrList
     // | Expr.Record _ -> failwith "Not Implemented"
     // | Expr.AnonRecord _ -> failwith "Not Implemented"
     // | Expr.ObjExpr _ -> failwith "Not Implemented"
@@ -362,14 +392,7 @@ let mkPat (creationAide: CreationAide) (p: SynPat) =
         PatStructTupleNode(List.map (mkPat creationAide) ps, patternRange)
         |> Pattern.StructTuple
     | SynPat.ArrayOrList (isArray, ps, range) ->
-        let openToken, closeToken =
-            let size = if isArray then 2 else 1
-
-            match range with
-            | StartEndRange size (o, _, c) ->
-                let openText = if isArray then "[|" else "["
-                let closeText = if isArray then "|]" else "]"
-                stn openText o, stn closeText c
+        let openToken, closeToken = mkOpenAndCloseForArrayOrList isArray range
 
         PatArrayOrListNode(openToken, List.map (mkPat creationAide) ps, closeToken, patternRange)
         |> Pattern.ArrayOrList
