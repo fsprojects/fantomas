@@ -10,7 +10,7 @@
     <Compile Include="Program.fs" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="FSharp.Core" Version="6.*" />
+    <PackageReference Include="FSharp.Core" Version="6.0.6" />
     <PackageReference Include="BenchmarkDotNet" Version="0.13.2" />
   </ItemGroup>
   <ItemGroup>
