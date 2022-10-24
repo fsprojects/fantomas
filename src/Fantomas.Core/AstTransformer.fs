@@ -231,12 +231,15 @@ and visitSynExpr (synExpr: SynExpr) : TriviaNode list =
                        yield mkNode SynExpr_Record_ClosingBrace closingBrace |])
             |> List.singleton
             |> finalContinuation
-        | SynExpr.AnonRecd (_, _, recordFields, range) ->
+        | SynExpr.AnonRecd (_, _, recordFields, StartEndRange 2 (openingBrace, range, closingBrace)) ->
             mkSynExprNode
                 SynExpr_AnonRecd
                 synExpr
                 range
-                (sortChildren [| yield! List.map visitAnonRecordField recordFields |])
+                (sortChildren
+                    [| yield mkNode SynExpr_AnonRecd_OpeningBrace openingBrace
+                       yield! List.map visitAnonRecordField recordFields
+                       yield mkNode SynExpr_AnonRecd_ClosingBrace closingBrace |])
             |> List.singleton
             |> finalContinuation
         | SynExpr.New (_, typeName, expr, range) ->

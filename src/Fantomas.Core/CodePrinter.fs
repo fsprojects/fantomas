@@ -915,18 +915,18 @@ and genExpr synExpr ctx =
                 let size = getRecordSize ctx xs
                 isSmallExpression size smallRecordExpr multilineRecordExpr ctx
 
-        | AnonRecord (isStruct, fields, copyInfo) ->
+        | AnonRecord (openingBrace, isStruct, fields, copyInfo, closingBrace) ->
             let smallExpression =
                 onlyIf isStruct !- "struct "
-                +> sepOpenAnonRecd
+                +> genTriviaFor SynExpr_AnonRecd_OpeningBrace openingBrace sepOpenAnonRecd
                 +> optSingle (fun e -> genExpr e +> !- " with ") copyInfo
                 +> col sepSemi fields genAnonRecordFieldName
-                +> sepCloseAnonRecd
+                +> genTriviaFor SynExpr_AnonRecd_ClosingBrace closingBrace sepCloseAnonRecd
 
             let longExpression =
                 ifAlignBrackets
-                    (genMultilineAnonRecordAlignBrackets isStruct fields copyInfo)
-                    (genMultilineAnonRecord isStruct fields copyInfo)
+                    (genMultilineAnonRecordAlignBrackets openingBrace isStruct fields copyInfo closingBrace)
+                    (genMultilineAnonRecord openingBrace isStruct fields copyInfo closingBrace)
 
             fun (ctx: Context) ->
                 let size = getRecordSize ctx fields
@@ -2363,23 +2363,25 @@ and genInheritConstructor (inheritCtor: SynType * SynExpr) =
         +> expressionFitsOnRestOfLine (genExpr px) (genMultilineFunctionApplicationArguments px)
     | OtherInheritConstructor (t, e) -> genType t +> sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth (genExpr e)
 
-and genMultilineAnonRecord (isStruct: bool) fields copyInfo =
+and genMultilineAnonRecord openingBrace (isStruct: bool) fields copyInfo closingBrace =
     let recordExpr =
         match copyInfo with
         | Some e ->
-            sepOpenAnonRecd
+            genTriviaFor SynExpr_AnonRecd_OpeningBrace openingBrace sepOpenAnonRecd
+            +> sepNlnWhenWriteBeforeNewlineNotEmpty // comment after curly brace
             +> atCurrentColumn (
                 genExpr e
                 +> (!- " with" +> indentSepNlnUnindent (col sepNln fields genAnonRecordFieldName))
             )
-            +> sepCloseAnonRecd
+            +> genTriviaFor SynExpr_AnonRecd_ClosingBrace closingBrace sepCloseAnonRecd
         | None ->
             fun ctx ->
                 // position after `{| ` or `{|`
                 let targetColumn = ctx.Column + (if ctx.Config.SpaceAroundDelimiter then 3 else 2)
 
                 atCurrentColumn
-                    (sepOpenAnonRecd
+                    (genTriviaFor SynExpr_AnonRecd_OpeningBrace openingBrace sepOpenAnonRecdFixed
+                     +> sepNlnWhenWriteBeforeNewlineNotEmpty // comment after curly brace
                      +> col sepNln fields (fun (AnonRecordFieldName (ident, eq, e, range)) ->
                          let expr =
                              if ctx.Config.IndentSize < 3 then
@@ -2394,12 +2396,12 @@ and genMultilineAnonRecord (isStruct: bool) fields copyInfo =
                          +> genEq SynExpr_AnonRecd_Field_Equals eq
                          +> expr
                          +> leaveNodeFor SynExpr_AnonRecd_Field range)
-                     +> sepCloseAnonRecd)
+                     +> genTriviaFor SynExpr_AnonRecd_ClosingBrace closingBrace sepCloseAnonRecd)
                     ctx
 
     onlyIf isStruct !- "struct " +> recordExpr
 
-and genMultilineAnonRecordAlignBrackets (isStruct: bool) fields copyInfo =
+and genMultilineAnonRecordAlignBrackets openingBrace (isStruct: bool) fields copyInfo closingBrace =
     let fieldsExpr = col sepNln fields genAnonRecordFieldName
 
     let copyExpr fieldsExpr e =
@@ -2414,12 +2416,17 @@ and genMultilineAnonRecordAlignBrackets (isStruct: bool) fields copyInfo =
 
     let genAnonRecord =
         match copyInfo with
-        | Some ci -> sepOpenAnonRecd +> copyExpr fieldsExpr ci +> sepNln +> sepCloseAnonRecdFixed
+        | Some ci ->
+            genTriviaFor SynExpr_AnonRecd_OpeningBrace openingBrace sepOpenAnonRecd
+            +> sepNlnWhenWriteBeforeNewlineNotEmpty // comment after curly brace
+            +> copyExpr fieldsExpr ci
+            +> sepNln
+            +> genTriviaFor SynExpr_AnonRecd_ClosingBrace closingBrace sepCloseAnonRecdFixed
         | None ->
-            sepOpenAnonRecdFixed
+            genTriviaFor SynExpr_AnonRecd_OpeningBrace openingBrace sepOpenAnonRecd
             +> indentSepNlnUnindent fieldsExpr
             +> sepNln
-            +> sepCloseAnonRecdFixed
+            +> genTriviaFor SynExpr_AnonRecd_ClosingBrace closingBrace sepCloseAnonRecdFixed
 
     ifElse isStruct !- "struct " sepNone +> genAnonRecord
 
