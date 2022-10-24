@@ -859,6 +859,7 @@ let mkTypeDefn
     (creationAide: CreationAide)
     (SynTypeDefn (typeInfo, typeRepr, members, implicitConstructor, range, trivia))
     : TypeDefn =
+    let typeDefnRange = range
 
     let typeNameNode =
         match typeInfo with
@@ -883,9 +884,30 @@ let mkTypeDefn
                 unionRanges (leadingKeyword :> Node).Range (identifierNode :> Node).Range
             )
 
+    let members = []
+
     match typeRepr with
-    // | Simple (TDSREnum ecs) ->
-    // | Simple (TDSRUnion (ao', xs)) ->
+    | SynTypeDefnRepr.Simple(simpleRepr = SynTypeDefnSimpleRepr.Enum (ecs, _)) ->
+        let enumCases =
+            ecs
+            |> List.map (fun (SynEnumCase (attributes, ident, value, valueRange, xmlDoc, range, trivia)) ->
+                EnumCaseNode(
+                    mkXmlDoc xmlDoc,
+                    Option.map (stn "|") trivia.BarRange,
+                    mkAttributes creationAide attributes,
+                    mkSynIdent ident,
+                    stn "=" trivia.EqualsRange,
+                    mkConstant creationAide value valueRange,
+                    range
+                ))
+
+        TypeDefnEnumNode(typeNameNode, enumCases, members, typeDefnRange)
+        |> TypeDefn.Enum
+    | SynTypeDefnRepr.Simple(simpleRepr = SynTypeDefnSimpleRepr.Union (ao, cases, _)) ->
+        let unionCases = cases |> List.map (mkSynUnionCase creationAide)
+
+        TypeDefnUnionNode(typeNameNode, Option.map mkSynAccess ao, unionCases, members, typeDefnRange)
+        |> TypeDefn.Union
     // | Simple (TDSRRecord (openingBrace, ao', fs, closingBrace)) ->
     // | Simple TDSRNone -> typeName
     | SynTypeDefnRepr.Simple(simpleRepr = SynTypeDefnSimpleRepr.TypeAbbrev (rhsType = t)) ->
@@ -964,7 +986,7 @@ let mkModuleOrNamespace
 
 let mkImplFile
     (creationAide: CreationAide)
-    (ParsedImplFileInput (hashDirectives = hashDirectives; contents = contents))
+    (ParsedImplFileInput (hashDirectives = hashDirectives; contents = contents): ParsedImplFileInput)
     =
     let phds = List.map (mkParsedHashDirective creationAide) hashDirectives
     let mds = List.map (mkModuleOrNamespace creationAide) contents
