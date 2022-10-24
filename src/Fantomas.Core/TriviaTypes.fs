@@ -75,6 +75,8 @@ type FsAstType =
     | SynExpr_Record_OpeningBrace
     | SynExpr_Record_ClosingBrace
     | SynExpr_AnonRecd
+    | SynExpr_AnonRecd_OpeningBrace
+    | SynExpr_AnonRecd_ClosingBrace
     | SynExpr_AnonRecd_Field
     | SynExpr_AnonRecd_Field_Equals
     | SynExpr_New
