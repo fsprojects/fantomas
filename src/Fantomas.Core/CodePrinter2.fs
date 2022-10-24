@@ -781,33 +781,90 @@ let addSpaceIfSynTypeStaticConstantHasAtSignBeforeString (t: Type) =
         | _ -> sepNone
     | _ -> sepNone
 
+let sepNlnTypeAndMembers (withKeyword: SingleTextNode option) (ms: MemberDefn list) (ctx: Context) : Context =
+    match ms with
+    | [] -> sepNone ctx
+    | firstMember :: _ ->
+        match withKeyword with
+        | Some node when (not (Seq.isEmpty (node :> Node).ContentBefore)) -> enterNode node ctx
+        | _ ->
+            if ctx.Config.NewlineBetweenTypeDefinitionAndMembers then
+                sepNlnUnlessContentBefore (MemberDefn.Node firstMember) ctx
+            else
+                ctx
+
 let genTypeDefn (td: TypeDefn) =
+    let typeName = (TypeDefn.TypeDefnNode td).TypeName
+
     let header =
-        let node = (TypeDefn.TypeDefnNode td).TypeName
-
-        genSingleTextNode node.LeadingKeyword
+        genSingleTextNode typeName.LeadingKeyword
         +> sepSpace
-        +> genIdentListNode node.Identifier
+        +> genIdentListNode typeName.Identifier
         +> sepSpace
-        +> optSingle genSingleTextNode node.EqualsToken
+        +> optSingle genSingleTextNode typeName.EqualsToken
 
-    let body =
-        match td with
-        | TypeDefn.Enum _ -> failwith "Not Implemented"
-        | TypeDefn.Union _ -> failwith "Not Implemented"
-        | TypeDefn.Record _ -> failwith "Not Implemented"
-        | TypeDefn.None _ -> failwith "Not Implemented"
-        | TypeDefn.Abbrev node -> genType node.Type
-        | TypeDefn.Exception _ -> failwith "Not Implemented"
-        | TypeDefn.ExplicitClassOrInterfaceOrStruct _ -> failwith "Not Implemented"
-        | TypeDefn.Augmentation _ -> failwith "Not Implemented"
-        | TypeDefn.Fun _ -> failwith "Not Implemented"
-        | TypeDefn.Delegate _ -> failwith "Not Implemented"
-        | TypeDefn.Unspecified _ -> failwith "Not Implemented"
-        | TypeDefn.RegularType _ -> failwith "Not Implemented"
+    match td with
+    | TypeDefn.Enum node ->
+        let genEnumCase (node: EnumCaseNode) =
+            optSingle genSingleTextNode node.XmlDoc
+            +> (match node.Bar with
+                | None -> sepBar
+                | Some bar -> genSingleTextNode bar +> sepSpace)
+            +> genOnelinerAttributes node.Attributes
+            +> genSingleTextNode node.Identifier
+            +> sepSpace
+            +> genSingleTextNode node.Equals
+            +> autoIndentAndNlnWhenWriteBeforeNewlineNotEmpty (sepSpace +> genConstant node.Constant)
 
-    leadingExpressionIsMultiline header (fun isMultiline ->
-        ifElse isMultiline (indentSepNlnUnindent body) (sepSpace +> body))
+        header
+        +> indentSepNlnUnindent (
+            col sepNln node.EnumCases genEnumCase
+            +> onlyIf (List.isNotEmpty node.Members) sepNln
+            +> sepNlnTypeAndMembers typeName.WithKeyword node.Members
+            +> genMemberDefnList node.Members
+        )
+    | TypeDefn.Union node ->
+        let unionCases (ctx: Context) =
+            match node.UnionCases with
+            | [] -> ctx
+            | [ singleCase ] when List.isEmpty node.Members ->
+                let hasVerticalBar =
+                    ctx.Config.BarBeforeDiscriminatedUnionDeclaration
+                    || List.isNotEmpty singleCase.Attributes.AttributeLists
+                    || List.isEmpty singleCase.Fields
+
+                let genCase hasVerticalBar =
+                    opt sepSpace node.Accessibility (fun vis ->
+                        genSingleTextNode vis +> onlyIfNot singleCase.XmlDoc.IsNone sepNln)
+                    +> genUnionCase hasVerticalBar singleCase
+
+                expressionFitsOnRestOfLine
+                    (sepSpace +> genCase hasVerticalBar)
+                    (indentSepNlnUnindent (genCase true))
+                    ctx
+            | xs ->
+                indentSepNlnUnindent
+                    (opt sepNln node.Accessibility genSingleTextNode
+                     +> col sepNln xs (genUnionCase true))
+                    ctx
+
+        header
+        +> unionCases
+        +> onlyIf (List.isNotEmpty node.Members) sepNln
+        +> sepNlnTypeAndMembers typeName.WithKeyword node.Members
+        +> genMemberDefnList node.Members
+        +> unindent
+
+    | TypeDefn.Record _ -> failwith "Not Implemented"
+    | TypeDefn.None _ -> failwith "Not Implemented"
+    | TypeDefn.Abbrev node -> header +> sepSpace +> genType node.Type
+    | TypeDefn.ExplicitClassOrInterfaceOrStruct _ -> failwith "Not Implemented"
+    | TypeDefn.Augmentation _ -> failwith "Not Implemented"
+    | TypeDefn.Fun _ -> failwith "Not Implemented"
+    | TypeDefn.Delegate _ -> failwith "Not Implemented"
+    | TypeDefn.Unspecified _ -> failwith "Not Implemented"
+    | TypeDefn.RegularType _ -> failwith "Not Implemented"
+
     |> genNode (TypeDefn.Node td)
 
 let genField (node: FieldNode) =
@@ -843,7 +900,10 @@ let genUnionCase (hasVerticalBar: bool) (node: UnionCaseNode) =
     +> onlyIf (List.isNotEmpty node.Fields) (expressionFitsOnRestOfLine shortExpr longExpr)
     |> genNode node
 
-let genMemberDefnList _ = !- "todo"
+let genMemberDefnList mds =
+    match mds with
+    | [] -> sepNone
+    | _ -> !- "todo"
 
 let genExceptionBody px ats ao uc =
     optSingle genSingleTextNode px

@@ -137,9 +137,8 @@ let rec visitLastChildNode (node: Node) : Node =
     | :? TypeDefnEnumNode
     | :? TypeDefnUnionNode
     | :? TypeDefnRecordNode
-    | :? TypeDefnNoneNode
+    | :? TypeNameNode
     | :? TypeDefnAbbrevNode
-    | :? TypeDefnExceptionNode
     | :? TypeDefnExplicitClassOrInterfaceOrStructNode
     | :? TypeDefnAugmentationNode
     | :? TypeDefnFunNode
