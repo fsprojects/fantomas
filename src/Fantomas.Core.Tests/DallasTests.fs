@@ -280,3 +280,23 @@ let l = [ 4 ; 5 ;6 ]
 let a = [| 2; 3 |]
 let l = [ 4; 5; 6 ]
 """
+
+[<Test>]
+let ``some type definitions`` () =
+    formatSourceString
+        false
+        """
+type A = | B = 1 | C = 2
+type D = | D of int * e:string
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type A =
+    | B = 1
+    | C = 2
+
+type D = D of int * e: string
+"""
