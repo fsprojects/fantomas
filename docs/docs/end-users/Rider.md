@@ -11,7 +11,8 @@ Install Fantomas locally with `dotnet tool install fantomas`.
 
 <img class="mt-2" src="{{root}}/images/rider-fantomas.png" alt="drawing" width="70%"/>
 
-At the time of writing, Rider overwrites the settings of Fantomas which aren't explicitly set in your editorconfig file.  
+At the time of writing, Rider [overwrites](https://youtrack.jetbrains.com/issue/RIDER-83997/Rider-doesnt-respect-Fantomas-default-settings-not-explicitly-set-in-editorconfig)
+the settings of Fantomas which aren't explicitly set in your editorconfig file.  
 As the settings chosen by Rider can lead to unwanted results, Rider users might want to also include the default settings in their editorconfig file.  
 The current default settings are the following:
 
