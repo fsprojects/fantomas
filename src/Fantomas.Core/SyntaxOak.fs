@@ -1426,41 +1426,83 @@ type TypeNameNode
     member x.LeadingKeyword = leadingKeyword
     member x.Identifier = identifier
     member x.EqualsToken = equalsToken
+    member x.WithKeyword = withKeyword
 
 type ITypeDefn =
     abstract member TypeName: TypeNameNode
 
-type TypeDefnEnumNode(range) =
+type EnumCaseNode
+    (
+        xmlDoc: SingleTextNode option,
+        bar: SingleTextNode option,
+        attributes: MultipleAttributeListNode,
+        identifier: SingleTextNode,
+        equals: SingleTextNode,
+        constant: Constant,
+        range
+    ) =
+    inherit NodeBase(range)
+
+    override this.Children =
+        [| yield! noa xmlDoc
+           yield! noa bar
+           yield identifier
+           yield equals
+           yield Constant.Node constant |]
+
+    member x.XmlDoc = xmlDoc
+    member x.Bar = bar
+    member x.Attributes = attributes
+    member x.Identifier = identifier
+    member x.Equals = equals
+    member x.Constant = constant
+
+type TypeDefnEnumNode(typeNameNode, enumCases: EnumCaseNode list, members: MemberDefn list, range) =
+    inherit NodeBase(range)
+
+    override this.Children =
+        [| yield typeNameNode
+           yield! nodes enumCases
+           yield! nodes (List.map MemberDefn.Node members) |]
+
+    member x.EnumCases = enumCases
+    member x.Members = members
+
+    interface ITypeDefn with
+        member x.TypeName = typeNameNode
+
+type TypeDefnUnionNode
+    (
+        typeNameNode,
+        accessibility: SingleTextNode option,
+        unionCases: UnionCaseNode list,
+        members: MemberDefn list,
+        range
+    )
+
+ =
+    inherit NodeBase(range)
+
+    override this.Children =
+        [| yield typeNameNode
+           yield! noa accessibility
+           yield! nodes unionCases
+           yield! nodes (List.map MemberDefn.Node members) |]
+
+    member x.Accessibility = accessibility
+    member x.UnionCases = unionCases
+    member x.Members = members
+
+    interface ITypeDefn with
+        member x.TypeName = typeNameNode
+
+type TypeDefnRecordNode(typeNameNode, range) =
     inherit NodeBase(range)
 
     override this.Children = failwith "todo"
 
     interface ITypeDefn with
-        member x.TypeName = failwith "todo"
-
-type TypeDefnUnionNode(range) =
-    inherit NodeBase(range)
-
-    override this.Children = failwith "todo"
-
-    interface ITypeDefn with
-        member x.TypeName = failwith "todo"
-
-type TypeDefnRecordNode(range) =
-    inherit NodeBase(range)
-
-    override this.Children = failwith "todo"
-
-    interface ITypeDefn with
-        member x.TypeName = failwith "todo"
-
-type TypeDefnNoneNode(range) =
-    inherit NodeBase(range)
-
-    override this.Children = failwith "todo"
-
-    interface ITypeDefn with
-        member x.TypeName = failwith "todo"
+        member x.TypeName = typeNameNode
 
 type TypeDefnAbbrevNode(typeNameNode, t: Type, range) =
     inherit NodeBase(range)
@@ -1471,70 +1513,61 @@ type TypeDefnAbbrevNode(typeNameNode, t: Type, range) =
     interface ITypeDefn with
         member x.TypeName = typeNameNode
 
-type TypeDefnExceptionNode(range) =
+type TypeDefnExplicitClassOrInterfaceOrStructNode(typeNameNode, range) =
     inherit NodeBase(range)
 
     override this.Children = failwith "todo"
 
     interface ITypeDefn with
-        member x.TypeName = failwith "todo"
+        member x.TypeName = typeNameNode
 
-type TypeDefnExplicitClassOrInterfaceOrStructNode(range) =
+type TypeDefnAugmentationNode(typeNameNode, range) =
     inherit NodeBase(range)
 
     override this.Children = failwith "todo"
 
     interface ITypeDefn with
-        member x.TypeName = failwith "todo"
+        member x.TypeName = typeNameNode
 
-type TypeDefnAugmentationNode(range) =
+type TypeDefnFunNode(typeNameNode, range) =
     inherit NodeBase(range)
 
     override this.Children = failwith "todo"
 
     interface ITypeDefn with
-        member x.TypeName = failwith "todo"
+        member x.TypeName = typeNameNode
 
-type TypeDefnFunNode(range) =
+type TypeDefnDelegateNode(typeNameNode, range) =
     inherit NodeBase(range)
 
     override this.Children = failwith "todo"
 
     interface ITypeDefn with
-        member x.TypeName = failwith "todo"
+        member x.TypeName = typeNameNode
 
-type TypeDefnDelegateNode(range) =
+type TypeDefnUnspecifiedNode(typeNameNode, range) =
     inherit NodeBase(range)
 
     override this.Children = failwith "todo"
 
     interface ITypeDefn with
-        member x.TypeName = failwith "todo"
+        member x.TypeName = typeNameNode
 
-type TypeDefnUnspecifiedNode(range) =
+type TypeDefnRegularTypeNode(typeNameNode, range) =
     inherit NodeBase(range)
 
     override this.Children = failwith "todo"
 
     interface ITypeDefn with
-        member x.TypeName = failwith "todo"
-
-type TypeDefnRegularTypeNode(range) =
-    inherit NodeBase(range)
-
-    override this.Children = failwith "todo"
-
-    interface ITypeDefn with
-        member x.TypeName = failwith "todo"
+        member x.TypeName = typeNameNode
 
 [<RequireQualifiedAccess; NoEquality; NoComparison>]
 type TypeDefn =
     | Enum of TypeDefnEnumNode
     | Union of TypeDefnUnionNode
     | Record of TypeDefnRecordNode
-    | None of TypeDefnNoneNode
+    | None of TypeNameNode
     | Abbrev of TypeDefnAbbrevNode
-    | Exception of TypeDefnExceptionNode
     | ExplicitClassOrInterfaceOrStruct of TypeDefnExplicitClassOrInterfaceOrStructNode
     | Augmentation of TypeDefnAugmentationNode
     | Fun of TypeDefnFunNode
@@ -1549,7 +1582,6 @@ type TypeDefn =
         | Record n -> n
         | None n -> n
         | Abbrev n -> n
-        | Exception n -> n
         | ExplicitClassOrInterfaceOrStruct n -> n
         | Augmentation n -> n
         | Fun n -> n
@@ -1562,9 +1594,10 @@ type TypeDefn =
         | Enum n -> n
         | Union n -> n
         | Record n -> n
-        | None n -> n
+        | None n ->
+            { new ITypeDefn with
+                member x.TypeName = n }
         | Abbrev n -> n
-        | Exception n -> n
         | ExplicitClassOrInterfaceOrStruct n -> n
         | Augmentation n -> n
         | Fun n -> n
