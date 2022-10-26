@@ -1430,6 +1430,7 @@ type TypeNameNode
 
 type ITypeDefn =
     abstract member TypeName: TypeNameNode
+    abstract member Members: MemberDefn list
 
 type EnumCaseNode
     (
@@ -1466,10 +1467,10 @@ type TypeDefnEnumNode(typeNameNode, enumCases: EnumCaseNode list, members: Membe
            yield! nodes (List.map MemberDefn.Node members) |]
 
     member x.EnumCases = enumCases
-    member x.Members = members
 
     interface ITypeDefn with
         member x.TypeName = typeNameNode
+        member x.Members = members
 
 type TypeDefnUnionNode
     (
@@ -1491,18 +1492,39 @@ type TypeDefnUnionNode
 
     member x.Accessibility = accessibility
     member x.UnionCases = unionCases
-    member x.Members = members
 
     interface ITypeDefn with
         member x.TypeName = typeNameNode
+        member x.Members = members
 
-type TypeDefnRecordNode(typeNameNode, range) =
+type TypeDefnRecordNode
+    (
+        typeNameNode,
+        accessibility: SingleTextNode option,
+        openingBrace: SingleTextNode,
+        fields: FieldNode list,
+        closingBrace: SingleTextNode,
+        members,
+        range
+    ) =
     inherit NodeBase(range)
 
-    override this.Children = failwith "todo"
+    override this.Children =
+        [| yield typeNameNode
+           yield! noa accessibility
+           yield openingBrace
+           yield! nodes fields
+           yield closingBrace
+           yield! nodes (List.map MemberDefn.Node members) |]
+
+    member x.Accessibility = accessibility
+    member x.OpeningBrace = openingBrace
+    member x.Fields = fields
+    member x.ClosingBrace = closingBrace
 
     interface ITypeDefn with
         member x.TypeName = typeNameNode
+        member x.Members = members
 
 type TypeDefnAbbrevNode(typeNameNode, t: Type, range) =
     inherit NodeBase(range)
@@ -1512,6 +1534,7 @@ type TypeDefnAbbrevNode(typeNameNode, t: Type, range) =
 
     interface ITypeDefn with
         member x.TypeName = typeNameNode
+        member x.Members = []
 
 type TypeDefnExplicitClassOrInterfaceOrStructNode(typeNameNode, range) =
     inherit NodeBase(range)
@@ -1520,6 +1543,7 @@ type TypeDefnExplicitClassOrInterfaceOrStructNode(typeNameNode, range) =
 
     interface ITypeDefn with
         member x.TypeName = typeNameNode
+        member x.Members = failwith "todo"
 
 type TypeDefnAugmentationNode(typeNameNode, range) =
     inherit NodeBase(range)
@@ -1528,6 +1552,7 @@ type TypeDefnAugmentationNode(typeNameNode, range) =
 
     interface ITypeDefn with
         member x.TypeName = typeNameNode
+        member x.Members = failwith "todo"
 
 type TypeDefnFunNode(typeNameNode, range) =
     inherit NodeBase(range)
@@ -1536,6 +1561,7 @@ type TypeDefnFunNode(typeNameNode, range) =
 
     interface ITypeDefn with
         member x.TypeName = typeNameNode
+        member x.Members = failwith "todo"
 
 type TypeDefnDelegateNode(typeNameNode, range) =
     inherit NodeBase(range)
@@ -1544,6 +1570,7 @@ type TypeDefnDelegateNode(typeNameNode, range) =
 
     interface ITypeDefn with
         member x.TypeName = typeNameNode
+        member x.Members = failwith "todo"
 
 type TypeDefnUnspecifiedNode(typeNameNode, range) =
     inherit NodeBase(range)
@@ -1552,6 +1579,7 @@ type TypeDefnUnspecifiedNode(typeNameNode, range) =
 
     interface ITypeDefn with
         member x.TypeName = typeNameNode
+        member x.Members = failwith "todo"
 
 type TypeDefnRegularTypeNode(typeNameNode, range) =
     inherit NodeBase(range)
@@ -1560,6 +1588,7 @@ type TypeDefnRegularTypeNode(typeNameNode, range) =
 
     interface ITypeDefn with
         member x.TypeName = typeNameNode
+        member x.Members = failwith "todo"
 
 [<RequireQualifiedAccess; NoEquality; NoComparison>]
 type TypeDefn =
@@ -1596,7 +1625,8 @@ type TypeDefn =
         | Record n -> n
         | None n ->
             { new ITypeDefn with
-                member x.TypeName = n }
+                member x.TypeName = n
+                member x.Members = [] }
         | Abbrev n -> n
         | ExplicitClassOrInterfaceOrStruct n -> n
         | Augmentation n -> n
