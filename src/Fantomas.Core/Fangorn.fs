@@ -903,16 +903,34 @@ let mkTypeDefn
 
         TypeDefnEnumNode(typeNameNode, enumCases, members, typeDefnRange)
         |> TypeDefn.Enum
+
     | SynTypeDefnRepr.Simple(simpleRepr = SynTypeDefnSimpleRepr.Union (ao, cases, _)) ->
         let unionCases = cases |> List.map (mkSynUnionCase creationAide)
 
         TypeDefnUnionNode(typeNameNode, Option.map mkSynAccess ao, unionCases, members, typeDefnRange)
         |> TypeDefn.Union
-    // | Simple (TDSRRecord (openingBrace, ao', fs, closingBrace)) ->
-    // | Simple TDSRNone -> typeName
+
+    | SynTypeDefnRepr.Simple(simpleRepr = SynTypeDefnSimpleRepr.Record (ao,
+                                                                        fs,
+                                                                        StartEndRange 1 (openingBrace, _, closingBrace))) ->
+        let fields = List.map (mkSynField creationAide) fs
+
+        TypeDefnRecordNode(
+            typeNameNode,
+            Option.map mkSynAccess ao,
+            stn "{" openingBrace,
+            fields,
+            stn "}" closingBrace,
+            members,
+            typeDefnRange
+        )
+        |> TypeDefn.Record
+
     | SynTypeDefnRepr.Simple(simpleRepr = SynTypeDefnSimpleRepr.TypeAbbrev (rhsType = t)) ->
         TypeDefn.Abbrev(TypeDefnAbbrevNode(typeNameNode, mkType creationAide t, range))
-    // | Simple (TDSRException (ExceptionDefRepr (ats, px, ao, uc)))
+
+    | SynTypeDefnRepr.Simple(simpleRepr = SynTypeDefnSimpleRepr.None _) -> TypeDefn.None typeNameNode
+
     // | ObjectModel (TCSimple (TCInterface | TCClass) as tdk, MemberDefnList (impCtor, others), range) ->
     // Can be combined as one!
     // | ObjectModel (TCSimple TCStruct as tdk, MemberDefnList (impCtor, others), _) ->

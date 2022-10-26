@@ -288,6 +288,8 @@ let ``some type definitions`` () =
         """
 type A = | B = 1 | C = 2
 type D = | D of int * e:string
+type X
+type Y = { a:int ; b:int }
 """
         config
     |> prepend newline
@@ -299,4 +301,6 @@ type A =
     | C = 2
 
 type D = D of int * e: string
+type X
+type Y = { a: int; b: int }
 """
