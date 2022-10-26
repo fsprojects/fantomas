@@ -1403,11 +1403,13 @@ type UnionCaseNode
 
 type TypeNameNode
     (
+        xmlDoc: SingleTextNode option,
         attrs: MultipleAttributeListNode,
         leadingKeyword: SingleTextNode,
         ao: SingleTextNode option,
         identifier: IdentListNode,
-        typeParams: obj option,
+        typeParams: TyparDecls option,
+        constraints: TypeConstraint list,
         equalsToken: SingleTextNode option,
         withKeyword: SingleTextNode option,
         range
@@ -1415,16 +1417,23 @@ type TypeNameNode
     inherit NodeBase(range)
 
     override this.Children =
-        [| yield attrs
+        [| yield! noa xmlDoc
+           yield attrs
            yield leadingKeyword
+           yield! noa (Option.map TyparDecls.Node typeParams)
+           yield! List.map TypeConstraint.Node constraints
            yield! noa ao
            yield identifier
            yield! noa equalsToken
            yield! noa withKeyword |]
 
+    member x.XmlDoc = xmlDoc
+    member x.Attributes = attrs
     member x.IsFirstType = leadingKeyword.Text = "type"
     member x.LeadingKeyword = leadingKeyword
     member x.Identifier = identifier
+    member x.TypeParameters = typeParams
+    member x.Constraints = constraints
     member x.EqualsToken = equalsToken
     member x.WithKeyword = withKeyword
 

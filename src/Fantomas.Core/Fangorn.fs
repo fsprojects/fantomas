@@ -424,7 +424,7 @@ let mkPat (creationAide: CreationAide) (p: SynPat) =
                         _,
                         _) ->
         let typarDecls =
-            Option.bind (fun (SynValTyparDecls (tds, _)) -> Option.bind (mkTyparDecls creationAide) tds) vtdo
+            Option.bind (fun (SynValTyparDecls (tds, _)) -> Option.map (mkSynTyparDecls creationAide) tds) vtdo
 
         let pairs =
             nps
@@ -435,7 +435,7 @@ let mkPat (creationAide: CreationAide) (p: SynPat) =
         |> Pattern.NamePatPairs
     | SynPat.LongIdent (synLongIdent, _, vtdo, SynArgPats.Pats pats, ao, _) ->
         let typarDecls =
-            Option.bind (fun (SynValTyparDecls (tds, _)) -> Option.bind (mkTyparDecls creationAide) tds) vtdo
+            Option.bind (fun (SynValTyparDecls (tds, _)) -> Option.map (mkSynTyparDecls creationAide) tds) vtdo
 
         PatLongIdentNode(
             Option.map mkSynAccess ao,
@@ -581,11 +581,11 @@ let mkModuleDecl (creationAide: CreationAide) (decl: SynModuleDecl) =
         |> ModuleDecl.NestedModule
     | decl -> failwithf $"Failed to create ModuleDecl for %A{decl}"
 
-let mkTyparDecls (creationAide: CreationAide) (tds: SynTyparDecls) : TyparDecls option =
+let mkSynTyparDecls (creationAide: CreationAide) (tds: SynTyparDecls) : TyparDecls =
     match tds with
     | SynTyparDecls.PostfixList _
     | SynTyparDecls.PrefixList _
-    | SynTyparDecls.SinglePrefix _ -> None
+    | SynTyparDecls.SinglePrefix _ -> failwith "todo"
 
 let mkSynRationalConst rc =
     let rec visit rc =
@@ -607,7 +607,7 @@ let mkSynTypar (SynTypar (ident, req, _)) =
     | TyparStaticReq.None -> stn $"'{ident}" range
     | TyparStaticReq.HeadType -> stn $"^{ident.idText}" range
 
-let mkTypeConstraint (creationAide: CreationAide) (tc: SynTypeConstraint) : TypeConstraint =
+let mkSynTypeConstraint (creationAide: CreationAide) (tc: SynTypeConstraint) : TypeConstraint =
     match tc with
     | SynTypeConstraint.WhereTyparIsValueType (tp, EndRange 6 (mKeyword, m)) ->
         TypeConstraintSingleNode(mkSynTypar tp, stn "struct" mKeyword, m)
@@ -719,9 +719,9 @@ let mkType (creationAide: CreationAide) (t: SynType) : Type =
         )
         |> Type.AppPrefix
     | SynType.WithGlobalConstraints (SynType.Var _, [ SynTypeConstraint.WhereTyparSubtypeOfType _ as tc ], _) ->
-        mkTypeConstraint creationAide tc |> Type.WithSubTypeConstraint
+        mkSynTypeConstraint creationAide tc |> Type.WithSubTypeConstraint
     | SynType.WithGlobalConstraints (t, tcs, _) ->
-        TypeWithGlobalConstraintsNode(mkType creationAide t, List.map (mkTypeConstraint creationAide) tcs, typeRange)
+        TypeWithGlobalConstraintsNode(mkType creationAide t, List.map (mkSynTypeConstraint creationAide) tcs, typeRange)
         |> Type.WithGlobalConstraints
     | SynType.LongIdent lid -> Type.LongIdent(mkSynLongIdent lid)
     | SynType.AnonRecd (isStruct, fields, StartEndRange 2 (_, r, mClosing)) ->
@@ -874,11 +874,13 @@ let mkTypeDefn
                 | SynTypeDefnLeadingKeyword.Synthetic _ -> failwithf "unexpected %A" trivia.LeadingKeyword
 
             TypeNameNode(
+                mkXmlDoc px,
                 mkAttributes creationAide ats,
                 leadingKeyword,
-                None,
+                Option.map mkSynAccess ao,
                 identifierNode,
-                None,
+                Option.map (mkSynTyparDecls creationAide) tds,
+                List.map (mkSynTypeConstraint creationAide) tcs,
                 Option.map (stn "=") trivia.EqualsRange,
                 None,
                 unionRanges (leadingKeyword :> Node).Range (identifierNode :> Node).Range
@@ -934,8 +936,12 @@ let mkTypeDefn
     // | ObjectModel (TCSimple (TCInterface | TCClass) as tdk, MemberDefnList (impCtor, others), range) ->
     // Can be combined as one!
     // | ObjectModel (TCSimple TCStruct as tdk, MemberDefnList (impCtor, others), _) ->
+
     // | ObjectModel (TCSimple (TCAugmentation withKeywordAug), _, _) ->
+
     // | ObjectModel (TCDelegate (FunType ts), _, _) ->
+
+    // Could be combinable as well.
     // | ObjectModel (TCSimple TCUnspecified, MemberDefnList (impCtor, others), _) when not (List.isEmpty ms) ->
     // | ObjectModel (_, MemberDefnList (impCtor, others), _) ->
     // | ExceptionRepr (ExceptionDefRepr (ats, px, ao, uc)) -> genExceptionBody ats px ao uc
