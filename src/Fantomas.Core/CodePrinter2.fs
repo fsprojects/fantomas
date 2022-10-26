@@ -79,7 +79,7 @@ let genIdentListNodeWithDot iln = genIdentListNodeAux true iln
 let genAccessOpt (nodeOpt: SingleTextNode option) =
     match nodeOpt with
     | None -> sepNone
-    | Some node -> genSingleTextNode node
+    | Some node -> genSingleTextNode node +> sepSpace
 
 let addSpaceBeforeParenInPattern (node: IdentListNode) (ctx: Context) =
     node.Content
@@ -227,9 +227,9 @@ let genExpr (e: Expr) =
         else
             let smallExpression =
                 genSingleTextNode node.Opening
-                +> ifSpaceAroundDelimiter
+                +> addSpaceIfSpaceAroundDelimiter
                 +> col sepSemi node.Elements genExpr
-                +> ifSpaceAroundDelimiter
+                +> addSpaceIfSpaceAroundDelimiter
                 +> genSingleTextNode node.Closing
 
             let multilineExpression =
@@ -244,7 +244,7 @@ let genExpr (e: Expr) =
 
                 let genMultiLineArrayOrList =
                     genSingleTextNode node.Opening
-                    +> ifSpaceAroundDelimiter
+                    +> addSpaceIfSpaceAroundDelimiter
                     +> atCurrentColumnIndent (
                         sepNlnWhenWriteBeforeNewlineNotEmpty
                         +> col sepNln node.Elements genExpr
@@ -533,23 +533,23 @@ let genPat (p: Pattern) =
             node.Patterns.IsEmpty
             (genSingleTextNode node.OpenToken +> genSingleTextNode node.CloseToken)
             (genSingleTextNode node.OpenToken
-             +> ifSpaceAroundDelimiter
+             +> addSpaceIfSpaceAroundDelimiter
              +> atCurrentColumn genPats
-             +> ifSpaceAroundDelimiter
+             +> addSpaceIfSpaceAroundDelimiter
              +> genSingleTextNode node.CloseToken)
     | Pattern.Record node ->
         let smallRecordExpr =
             genSingleTextNode node.OpeningNode
-            +> ifSpaceAroundDelimiter
+            +> addSpaceIfSpaceAroundDelimiter
             +> col sepSemi node.Fields genPatRecordFieldName
-            +> ifSpaceAroundDelimiter
+            +> addSpaceIfSpaceAroundDelimiter
             +> genSingleTextNode node.ClosingNode
 
         let multilineRecordExpr =
             genSingleTextNode node.OpeningNode
-            +> ifSpaceAroundDelimiter
+            +> addSpaceIfSpaceAroundDelimiter
             +> atCurrentColumn (col sepNln node.Fields genPatRecordFieldName)
-            +> ifSpaceAroundDelimiter
+            +> addSpaceIfSpaceAroundDelimiter
             +> genSingleTextNode node.ClosingNode
 
         let multilineRecordExprAlignBrackets =
@@ -781,11 +781,11 @@ let addSpaceIfSynTypeStaticConstantHasAtSignBeforeString (t: Type) =
         | _ -> sepNone
     | _ -> sepNone
 
-let sepNlnTypeAndMembers (withKeyword: SingleTextNode option) (ms: MemberDefn list) (ctx: Context) : Context =
-    match ms with
+let sepNlnTypeAndMembers (node: ITypeDefn) (ctx: Context) : Context =
+    match node.Members with
     | [] -> sepNone ctx
     | firstMember :: _ ->
-        match withKeyword with
+        match node.TypeName.WithKeyword with
         | Some node when (not (Seq.isEmpty (node :> Node).ContentBefore)) -> enterNode node ctx
         | _ ->
             if ctx.Config.NewlineBetweenTypeDefinitionAndMembers then
@@ -794,7 +794,9 @@ let sepNlnTypeAndMembers (withKeyword: SingleTextNode option) (ms: MemberDefn li
                 ctx
 
 let genTypeDefn (td: TypeDefn) =
-    let typeName = (TypeDefn.TypeDefnNode td).TypeName
+    let typeDefnNode = TypeDefn.TypeDefnNode td
+    let typeName = typeDefnNode.TypeName
+    let members = typeDefnNode.Members
 
     let header =
         genSingleTextNode typeName.LeadingKeyword
@@ -819,15 +821,15 @@ let genTypeDefn (td: TypeDefn) =
         header
         +> indentSepNlnUnindent (
             col sepNln node.EnumCases genEnumCase
-            +> onlyIf (List.isNotEmpty node.Members) sepNln
-            +> sepNlnTypeAndMembers typeName.WithKeyword node.Members
-            +> genMemberDefnList node.Members
+            +> onlyIf (List.isNotEmpty members) sepNln
+            +> sepNlnTypeAndMembers typeDefnNode
+            +> genMemberDefnList members
         )
     | TypeDefn.Union node ->
         let unionCases (ctx: Context) =
             match node.UnionCases with
             | [] -> ctx
-            | [ singleCase ] when List.isEmpty node.Members ->
+            | [ singleCase ] when List.isEmpty members ->
                 let hasVerticalBar =
                     ctx.Config.BarBeforeDiscriminatedUnionDeclaration
                     || List.isNotEmpty singleCase.Attributes.AttributeLists
@@ -850,13 +852,72 @@ let genTypeDefn (td: TypeDefn) =
 
         header
         +> unionCases
-        +> onlyIf (List.isNotEmpty node.Members) sepNln
-        +> sepNlnTypeAndMembers typeName.WithKeyword node.Members
-        +> genMemberDefnList node.Members
+        +> onlyIf (List.isNotEmpty members) sepNln
+        +> sepNlnTypeAndMembers typeDefnNode
+        +> genMemberDefnList members
         +> unindent
 
-    | TypeDefn.Record _ -> failwith "Not Implemented"
-    | TypeDefn.None _ -> failwith "Not Implemented"
+    | TypeDefn.Record node ->
+        let smallExpression =
+            sepSpace
+            +> genAccessOpt node.Accessibility
+            +> sepSpace
+            +> genSingleTextNode node.OpeningBrace
+            +> addSpaceIfSpaceAroundDelimiter
+            +> col sepSemi node.Fields genField
+            +> addSpaceIfSpaceAroundDelimiter
+            +> genSingleTextNode node.ClosingBrace
+
+        let multilineExpression (ctx: Context) =
+            if
+                ctx.Config.MultilineBlockBracketsOnSameColumn
+                || (List.exists (fun (fieldNode: FieldNode) -> fieldNode.XmlDoc.IsSome) node.Fields)
+            then
+                (ifElseCtx
+                    (fun ctx -> ctx.Config.ExperimentalStroustrupStyle && List.isEmpty members)
+                    (genAccessOpt node.Accessibility)
+                    (opt (indent +> sepNln) node.Accessibility genSingleTextNode)
+                 +> genSingleTextNode node.OpeningBrace
+                 +> indentSepNlnUnindent (atCurrentColumn (col sepNln node.Fields genField))
+                 +> sepNln
+                 +> genSingleTextNode node.ClosingBrace
+                 +> optSingle (fun _ -> unindent) node.Accessibility
+                 +> onlyIf (List.isNotEmpty members) sepNln
+                 +> sepNlnTypeAndMembers typeDefnNode
+                 +> genMemberDefnList members)
+                    ctx
+            else
+                (sepNlnUnlessLastEventIsNewline
+                 +> opt (indent +> sepNln) node.Accessibility genSingleTextNode
+                 +> genSingleTextNode node.OpeningBrace
+                 +> addSpaceIfSpaceAroundDelimiter
+                 +> atCurrentColumn (sepNlnWhenWriteBeforeNewlineNotEmpty +> col sepNln node.Fields genField)
+                 +> addSpaceIfSpaceAroundDelimiter
+                 +> genSingleTextNode node.ClosingBrace
+                 +> optSingle (fun _ -> unindent) node.Accessibility
+                 +> onlyIf (List.isNotEmpty members) sepNln
+                 +> sepNlnTypeAndMembers typeDefnNode
+                 +> genMemberDefnList members)
+                    ctx
+
+        let bodyExpr size ctx =
+            if (List.isEmpty members) then
+                (isSmallExpression size smallExpression multilineExpression) ctx
+            else
+                multilineExpression ctx
+
+        let genTypeDefinition (ctx: Context) =
+            let size = getRecordSize ctx node.Fields
+            let short = bodyExpr size
+
+            if ctx.Config.ExperimentalStroustrupStyle && members.IsEmpty then
+                (sepSpace +> short) ctx
+            else
+                isSmallExpression size short (indentSepNlnUnindent short) ctx
+
+        header +> genTypeDefinition
+
+    | TypeDefn.None _ -> header
     | TypeDefn.Abbrev node -> header +> sepSpace +> genType node.Type
     | TypeDefn.ExplicitClassOrInterfaceOrStruct _ -> failwith "Not Implemented"
     | TypeDefn.Augmentation _ -> failwith "Not Implemented"
