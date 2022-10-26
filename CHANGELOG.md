@@ -5,6 +5,7 @@
 ### Fixed
 * Idempotency problem with `struct end`. [#2592](https://github.com/fsprojects/fantomas/issues/2592)
 * Idempotency problem when having a comment in an anonymous record and Stroustrup formatting. [#2566](https://github.com/fsprojects/fantomas/issues/2566)
+* AlternativeLongMemberDefinitions breaks spacing around `type Blah as this`. [#2598](https://github.com/fsprojects/fantomas/issues/2598)
 
 ## [5.1.0-beta-001] - 2022-10-19
 

@@ -3110,7 +3110,7 @@ and genTypeDefn (TypeDef (ats, px, leadingKeyword, ao, tds, tcs, equalsRange, td
             (opt sepNone impCtor (fun mdf -> sepSpaceBeforeClassConstructor +> genMemberDefn mdf))
             (fun isMultiline ctx ->
                 if ctx.Config.AlternativeLongMemberDefinitions && isMultiline then
-                    genEqFixed SynTypeDefn_Equals equalsRange ctx
+                    sepSpace ctx |> genEqFixed SynTypeDefn_Equals equalsRange
                 else
                     genEq SynTypeDefn_Equals equalsRange ctx)
         +> indentSepNlnUnindent (genMemberDefnList others)
@@ -3923,7 +3923,12 @@ and genMemberDefn node =
         // In implicit constructor, attributes should come even before access qualifiers
         ifElse ats.IsEmpty sepNone (sepSpace +> genOnelinerAttributes ats)
         +> genCtor
-        +> optPre (!- " as ") sepNone so genIdent
+        +> fun ctx ->
+            ifElse
+                (lastWriteEventIsNewline ctx)
+                (optPre (!- "as ") sepNone so genIdent)
+                (optPre (!- " as ") sepNone so genIdent)
+                ctx
 
     | MDMember b
     | LongGetMember b -> genMemberBinding b

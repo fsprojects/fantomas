@@ -3234,3 +3234,33 @@ type Meh =
 
         beginAction, AsBeginEndHelpers.endAction<'T>, AsBeginEndHelpers.cancelAction<'T>
 """
+
+[<Test>]
+let ``alternativeLongMemberDefinitions breaks spacing around type Blah as this, 2598`` () =
+    formatSourceString
+        false
+        """
+type Server<'a>
+    (
+        clusterSize : int,
+        persistentState : IPersistentState<'a>,
+        messageChannel : int<ServerId> -> Message<'a> -> unit
+    ) as this =
+    let mutable i = 0
+    member this.Blah = 0
+"""
+        { config with AlternativeLongMemberDefinitions = true }
+    |> prepend newline
+    |> should
+        equal
+        """
+type Server<'a>
+    (
+        clusterSize: int,
+        persistentState: IPersistentState<'a>,
+        messageChannel: int<ServerId> -> Message<'a> -> unit
+    )
+    as this =
+    let mutable i = 0
+    member this.Blah = 0
+"""
