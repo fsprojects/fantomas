@@ -645,7 +645,7 @@ let sepWild = !- "_"
 
 let sepBar = !- "| "
 
-let ifSpaceAroundDelimiter (ctx: Context) =
+let addSpaceIfSpaceAroundDelimiter (ctx: Context) =
     onlyIf ctx.Config.SpaceAroundDelimiter sepSpace ctx
 
 /// opening token of list
