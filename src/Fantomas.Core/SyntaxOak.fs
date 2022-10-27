@@ -1213,6 +1213,7 @@ type MultipleAttributeListNode(attributeLists: AttributeListNode list, range) =
     inherit NodeBase(range)
     override this.Children = [| yield! nodes attributeLists |]
     member x.AttributeLists = attributeLists
+    member x.IsEmpty = attributeLists.IsEmpty
 
 type ModuleDeclAttributesNode(attributes: MultipleAttributeListNode, doExpr: Expr, range) =
     inherit NodeBase(range)
@@ -1545,14 +1546,86 @@ type TypeDefnAbbrevNode(typeNameNode, t: Type, range) =
         member x.TypeName = typeNameNode
         member x.Members = []
 
-type TypeDefnExplicitClassOrInterfaceOrStructNode(typeNameNode, range) =
+type SimplePatNode
+    (
+        attributes: MultipleAttributeListNode,
+        isOptional: bool,
+        identifier: SingleTextNode,
+        t: Type option,
+        range
+    ) =
     inherit NodeBase(range)
 
-    override this.Children = failwith "todo"
+    override this.Children =
+        [| yield attributes; yield identifier; yield! noa (Option.map Type.Node t) |]
+
+    member x.Attributes = attributes
+    member x.IsOptional = isOptional
+    member x.Identifier = identifier
+    member x.Type = t
+
+type ImplicitConstructorNode
+    (
+        xmlDoc: SingleTextNode option,
+        attributes: MultipleAttributeListNode,
+        accessibility: SingleTextNode option,
+        openingParen: SingleTextNode,
+        parameters: SimplePatNode list,
+        closingParen: SingleTextNode,
+        self: SingleTextNode option,
+        range
+    ) =
+    inherit NodeBase(range)
+
+    override this.Children =
+        [| yield! noa xmlDoc
+           yield attributes
+           yield! noa accessibility
+           yield openingParen
+           yield! nodes parameters
+           yield closingParen
+           yield! noa self |]
+
+    member x.XmlDoc = xmlDoc
+    member x.Attributes = attributes
+    member x.Accessibility = accessibility
+    member x.OpeningParen = openingParen
+    member x.Parameters = parameters
+    member x.ClosingParen = closingParen
+    member x.Self = self
+
+type TypeDefnExplicitBodyNode(kind: SingleTextNode, members: MemberDefn list, endNode: SingleTextNode, range) =
+    inherit NodeBase(range)
+
+    override this.Children =
+        [| yield kind; yield! nodes (List.map MemberDefn.Node members); yield endNode |]
+
+    member x.Kind = kind
+    member x.Members = members
+    member x.End = endNode
+
+type TypeDefnExplicitNode
+    (
+        typeNameNode,
+        implicitCtor: ImplicitConstructorNode option,
+        body: TypeDefnExplicitBodyNode,
+        members,
+        range
+    ) =
+    inherit NodeBase(range)
+
+    override this.Children =
+        [| yield typeNameNode
+           yield! noa implicitCtor
+           yield body
+           yield! nodes (List.map MemberDefn.Node members) |]
+
+    member x.ImplicitConstructor = implicitCtor
+    member x.Body = body
 
     interface ITypeDefn with
         member x.TypeName = typeNameNode
-        member x.Members = failwith "todo"
+        member x.Members = members
 
 type TypeDefnAugmentationNode(typeNameNode, range) =
     inherit NodeBase(range)
@@ -1606,7 +1679,7 @@ type TypeDefn =
     | Record of TypeDefnRecordNode
     | None of TypeNameNode
     | Abbrev of TypeDefnAbbrevNode
-    | ExplicitClassOrInterfaceOrStruct of TypeDefnExplicitClassOrInterfaceOrStructNode
+    | Explicit of TypeDefnExplicitNode
     | Augmentation of TypeDefnAugmentationNode
     | Fun of TypeDefnFunNode
     | Delegate of TypeDefnDelegateNode
@@ -1620,7 +1693,7 @@ type TypeDefn =
         | Record n -> n
         | None n -> n
         | Abbrev n -> n
-        | ExplicitClassOrInterfaceOrStruct n -> n
+        | Explicit n -> n
         | Augmentation n -> n
         | Fun n -> n
         | Delegate n -> n
@@ -1637,7 +1710,7 @@ type TypeDefn =
                 member x.TypeName = n
                 member x.Members = [] }
         | Abbrev n -> n
-        | ExplicitClassOrInterfaceOrStruct n -> n
+        | Explicit n -> n
         | Augmentation n -> n
         | Fun n -> n
         | Delegate n -> n
@@ -1660,11 +1733,6 @@ type MemberDefnValFieldNode(range) =
     override this.Children = failwith "todo"
 
 type MemberDefnImplicitCtorNode(range) =
-    inherit NodeBase(range)
-
-    override this.Children = failwith "todo"
-
-type MemberDefnMemberNode(range) =
     inherit NodeBase(range)
 
     override this.Children = failwith "todo"
@@ -1710,8 +1778,9 @@ type MemberDefn =
     | ImplicitInherit of MemberDefnImplicitInheritNode
     | Inherit of MemberDefnInheritNode
     | ValField of MemberDefnValFieldNode
+    // TODO: consider remove ImplicitCtor out and make it part of the corresponding TypeDefn nodes
     | ImplicitCtor of MemberDefnImplicitCtorNode
-    | Member of MemberDefnMemberNode
+    | Member of BindingNode
     | ExternBinding of MemberDefnExternBindingNode
     | LetBinding of MemberDefnLetBindingNode
     | ExplicitCtor of MemberDefnExplicitCtorNode

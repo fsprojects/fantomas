@@ -304,3 +304,130 @@ type D = D of int * e: string
 type X
 type Y = { a: int; b: int }
 """
+
+[<Test>]
+let ``explicit test`` () =
+    formatSourceString
+        false
+        """
+type Foo 
+    /// Foo
+    [<Attr>] private () =
+    class
+        member x.Bar = ()
+    end
+    member x.Foo = ()
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type Foo
+    /// Foo
+    [<Attr>]
+    private () =
+    class
+        member x.Bar = ()
+    end
+    member x.Foo = ()
+"""
+
+[<Test>]
+let ``long implicit ctor`` () =
+    formatSourceString
+        false
+        """
+type Foo 
+    /// Foo
+    [<Attr>] private (x: Looooooooooooooooong, y: Looooooooooooooooong, z: Looooooooooooooooong, a: Looooooooooooooooong, b: Looooooooooooooooong, c) =
+    class
+        member x.Bar = ()
+    end
+    member x.Foo = ()
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type Foo
+    /// Foo
+    [<Attr>]
+    private
+    (
+        x: Looooooooooooooooong,
+        y: Looooooooooooooooong,
+        z: Looooooooooooooooong,
+        a: Looooooooooooooooong,
+        b: Looooooooooooooooong,
+        c
+    ) =
+    class
+        member x.Bar = ()
+    end
+
+    member x.Foo = ()
+"""
+
+[<Test>]
+let ``long implicit ctor, alternative`` () =
+    formatSourceString
+        false
+        """
+type Foo 
+    /// Foo
+    [<Attr>] private (x: Looooooooooooooooong, y: Looooooooooooooooong, z: Looooooooooooooooong, a: Looooooooooooooooong, b: Looooooooooooooooong, c) =
+    class
+        member x.Bar = ()
+    end
+    member x.Foo = ()
+"""
+        { config with AlternativeLongMemberDefinitions = true }
+    |> prepend newline
+    |> should
+        equal
+        """
+type Foo
+    /// Foo
+    [<Attr>]
+    private
+    (
+        x: Looooooooooooooooong,
+        y: Looooooooooooooooong,
+        z: Looooooooooooooooong,
+        a: Looooooooooooooooong,
+        b: Looooooooooooooooong,
+        c
+    )
+    =
+    class
+        member x.Bar = ()
+    end
+
+    member x.Foo = ()
+"""
+
+[<Test>]
+let ``trivia inside implicit constructor`` () =
+    formatSourceString
+        false
+        """
+  type MyType
+    (
+      (* some comment *)
+    ) = 
+    class end
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type MyType
+    (
+    (* some comment *)
+    ) =
+    class
+    end
+"""

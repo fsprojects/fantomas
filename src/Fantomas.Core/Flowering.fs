@@ -10,7 +10,21 @@ open Fantomas.Core.SyntaxOak
 let internal collectTriviaFromCodeComments (source: ISourceText) (codeComments: CommentTrivia list) : TriviaNode list =
     codeComments
     |> List.map (function
-        | CommentTrivia.BlockComment _ -> failwith "todo, E75069C0-FBC0-4026-9C0D-5BF0773A606F"
+        | CommentTrivia.BlockComment r ->
+            let content = source.GetContentAt r
+            let startLine = source.GetLineString(r.StartLine - 1)
+            let endLine = source.GetLineString(r.EndLine - 1)
+
+            let content =
+                if
+                    startLine.TrimStart(' ', ';').StartsWith("(*")
+                    && endLine.TrimEnd(' ', ';').EndsWith("*)")
+                then
+                    CommentOnSingleLine content
+                else
+                    failwith "todo 4DEC9B6F-5143-475F-A78B-542E786F3E2A"
+
+            TriviaNode(content, r)
         | CommentTrivia.LineComment r ->
             let content = source.GetContentAt r
             let index = r.StartLine - 1
@@ -139,7 +153,7 @@ let rec visitLastChildNode (node: Node) : Node =
     | :? TypeDefnRecordNode
     | :? TypeNameNode
     | :? TypeDefnAbbrevNode
-    | :? TypeDefnExplicitClassOrInterfaceOrStructNode
+    | :? TypeDefnExplicitNode
     | :? TypeDefnAugmentationNode
     | :? TypeDefnFunNode
     | :? TypeDefnDelegateNode
@@ -166,7 +180,6 @@ let rec visitLastChildNode (node: Node) : Node =
     | :? MemberDefnInheritNode
     | :? MemberDefnValFieldNode
     | :? MemberDefnImplicitCtorNode
-    | :? MemberDefnMemberNode
     | :? MemberDefnExternBindingNode
     | :? MemberDefnLetBindingNode
     | :? MemberDefnExplicitCtorNode
