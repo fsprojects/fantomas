@@ -530,7 +530,8 @@ let mkXmlDoc (px: PreXmlDoc) =
         None
     else
         let xmlDoc = px.ToXmlDoc(false, None)
-        Some(stn (String.concat "\n" xmlDoc.UnprocessedLines) xmlDoc.Range)
+        let lines = Array.map (sprintf "///%s") xmlDoc.UnprocessedLines
+        Some(stn (String.concat "\n" lines) xmlDoc.Range)
 
 let mkModuleDecl (creationAide: CreationAide) (decl: SynModuleDecl) =
     let declRange = decl.Range
@@ -855,6 +856,67 @@ let mkSynUnionCase
         fullRange
     )
 
+let mkImplicitCtor creationAide vis (attrs: SynAttributeList list) pats (self: Ident option) (xmlDoc: PreXmlDoc) m =
+    let openNode, closeNode =
+        match pats with
+        | SynSimplePats.SimplePats(range = StartEndRange 1 (mOpen, _, mClose))
+        | SynSimplePats.Typed(range = StartEndRange 1 (mOpen, _, mClose)) -> stn "(" mOpen, stn ")" mClose
+
+    let pats =
+        match pats with
+        | SynSimplePats.SimplePats (pats = pats) -> pats
+        | SynSimplePats.Typed _ -> []
+        |> List.choose (function
+            | SynSimplePat.Attrib (SynSimplePat.Typed (SynSimplePat.Id (ident = ident; isOptional = isOptional), t, _),
+                                   attributes,
+                                   m) ->
+                Some(
+                    SimplePatNode(
+                        mkAttributes creationAide attributes,
+                        isOptional,
+                        mkIdent ident,
+                        Some(mkType creationAide t),
+                        m
+                    )
+                )
+            | SynSimplePat.Typed (SynSimplePat.Id (ident = ident; isOptional = isOptional), t, _) ->
+                Some(
+                    SimplePatNode(
+                        mkAttributes creationAide [],
+                        isOptional,
+                        mkIdent ident,
+                        Some(mkType creationAide t),
+                        m
+                    )
+                )
+            | SynSimplePat.Id (ident = ident; isOptional = isOptional) ->
+                Some(SimplePatNode(mkAttributes creationAide [], isOptional, mkIdent ident, None, m))
+            | _ -> None)
+
+    let range =
+        let startRange =
+            if not xmlDoc.IsEmpty then xmlDoc.Range
+            else if not attrs.IsEmpty then attrs.[0].Range
+            else (openNode :> Node).Range
+
+        let endRange =
+            match self with
+            | Some self -> self.idRange
+            | None -> (closeNode :> Node).Range
+
+        unionRanges startRange endRange
+
+    ImplicitConstructorNode(
+        mkXmlDoc xmlDoc,
+        mkAttributes creationAide attrs,
+        Option.map mkSynAccess vis,
+        openNode,
+        pats,
+        closeNode,
+        Option.map mkIdent self,
+        range
+    )
+
 let mkTypeDefn
     (creationAide: CreationAide)
     (SynTypeDefn (typeInfo, typeRepr, members, implicitConstructor, range, trivia))
@@ -886,7 +948,7 @@ let mkTypeDefn
                 unionRanges (leadingKeyword :> Node).Range (identifierNode :> Node).Range
             )
 
-    let members = []
+    let members = List.map (mkMemberDefn creationAide) members
 
     match typeRepr with
     | SynTypeDefnRepr.Simple(simpleRepr = SynTypeDefnSimpleRepr.Enum (ecs, _)) ->
@@ -933,6 +995,38 @@ let mkTypeDefn
 
     | SynTypeDefnRepr.Simple(simpleRepr = SynTypeDefnSimpleRepr.None _) -> TypeDefn.None typeNameNode
 
+    | SynTypeDefnRepr.ObjectModel (kind = SynTypeDefnKind.Class | SynTypeDefnKind.Interface | SynTypeDefnKind.Struct as tdk
+                                   members = objectMembers
+                                   range = range) ->
+        let implicitConstructorNode =
+            match implicitConstructor with
+            | Some (SynMemberDefn.ImplicitCtor (vis, attrs, pats, self, xmlDoc, m)) ->
+                mkImplicitCtor creationAide vis attrs pats self xmlDoc m |> Some
+            | _ -> None
+
+        let kindNode =
+            match tdk, range with
+            | SynTypeDefnKind.Class, StartRange 5 (mClass, _) -> stn "class" mClass
+            | SynTypeDefnKind.Interface, StartRange 9 (mInterface, _) -> stn "interface" mInterface
+            | SynTypeDefnKind.Struct, StartRange 6 (mStruct, _) -> stn "struct" mStruct
+            | _ -> failwith "unexpected kind"
+
+        let objectMembers =
+            objectMembers
+            |> List.filter (function
+                | SynMemberDefn.ImplicitCtor _ -> false
+                | _ -> true)
+            |> List.map (mkMemberDefn creationAide)
+
+        let endNode =
+            match range with
+            | EndRange 3 (mEnd, _) -> stn "end" mEnd
+
+        let body = TypeDefnExplicitBodyNode(kindNode, objectMembers, endNode, range)
+
+        TypeDefnExplicitNode(typeNameNode, implicitConstructorNode, body, members, typeDefnRange)
+        |> TypeDefn.Explicit
+
     // | ObjectModel (TCSimple (TCInterface | TCClass) as tdk, MemberDefnList (impCtor, others), range) ->
     // Can be combined as one!
     // | ObjectModel (TCSimple TCStruct as tdk, MemberDefnList (impCtor, others), _) ->
@@ -949,6 +1043,7 @@ let mkTypeDefn
 
 let mkMemberDefn (creationAide: CreationAide) (md: SynMemberDefn) =
     match md with
+    | SynMemberDefn.Member (memberDefn, _) -> mkBinding creationAide memberDefn |> MemberDefn.Member
     | _ -> failwith "todo"
 
 let rec mkModuleDecls
