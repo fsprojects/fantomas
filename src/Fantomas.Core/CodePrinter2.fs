@@ -793,6 +793,47 @@ let sepNlnTypeAndMembers (node: ITypeDefn) (ctx: Context) : Context =
             else
                 ctx
 
+let genImplicitConstructor (node: ImplicitConstructorNode) =
+    let genSimplePat (node: SimplePatNode) =
+        genOnelinerAttributes node.Attributes
+        +> onlyIf node.IsOptional (!- "?")
+        +> genSingleTextNode node.Identifier
+        +> optSingle (fun t -> sepColon +> autoIndentAndNlnIfExpressionExceedsPageWidth (genType t)) node.Type
+
+    let shortPats = col sepComma node.Parameters genSimplePat
+
+    let longPats =
+        indentSepNlnUnindent (col (sepComma +> sepNln) node.Parameters genSimplePat)
+        +> sepNln
+
+    let short =
+        optSingle (fun xml -> genSingleTextNode xml +> sepNln) node.XmlDoc
+        +> genOnelinerAttributes node.Attributes
+        +> genAccessOpt node.Accessibility
+        +> genSingleTextNode node.OpeningParen
+        +> shortPats
+        +> genSingleTextNode node.ClosingParen
+
+    let long =
+        let genPats =
+            genSingleTextNode node.OpeningParen
+            +> expressionFitsOnRestOfLine shortPats longPats
+            +> genSingleTextNode node.ClosingParen
+
+        indentSepNlnUnindent (
+            optSingle (fun xml -> genSingleTextNode xml +> sepNln) node.XmlDoc
+            +> onlyIfNot node.Attributes.IsEmpty (genOnelinerAttributes node.Attributes +> sepNln)
+            +> expressionFitsOnRestOfLine
+                (genAccessOpt node.Accessibility +> genPats)
+                (genAccessOpt node.Accessibility
+                 +> optSingle (fun _ -> sepNln) node.Accessibility
+                 +> genPats)
+            +> (fun ctx -> onlyIf ctx.Config.AlternativeLongMemberDefinitions sepNln ctx)
+        )
+
+    expressionFitsOnRestOfLine short long
+    +> optSingle (fun self -> sepSpace +> !- "as " +> genSingleTextNode self) node.Self
+
 let genTypeDefn (td: TypeDefn) =
     let typeDefnNode = TypeDefn.TypeDefnNode td
     let typeName = typeDefnNode.TypeName
@@ -919,7 +960,29 @@ let genTypeDefn (td: TypeDefn) =
 
     | TypeDefn.None _ -> header
     | TypeDefn.Abbrev node -> header +> sepSpace +> genType node.Type
-    | TypeDefn.ExplicitClassOrInterfaceOrStruct _ -> failwith "Not Implemented"
+    | TypeDefn.Explicit node ->
+        let bodyNode = node.Body
+
+        genSingleTextNode typeName.LeadingKeyword
+        +> sepSpace
+        +> genIdentListNode typeName.Identifier
+        +> leadingExpressionIsMultiline
+            (optSingle
+                (fun imCtor -> sepSpaceBeforeClassConstructor +> genImplicitConstructor imCtor)
+                node.ImplicitConstructor)
+            (fun isMulti ctx ->
+                if isMulti && ctx.Config.AlternativeLongMemberDefinitions then
+                    (optSingle genSingleTextNode typeName.EqualsToken) ctx
+                else
+                    (sepSpace +> optSingle genSingleTextNode typeName.EqualsToken) ctx)
+        +> indentSepNlnUnindent (
+            genSingleTextNode bodyNode.Kind
+            +> onlyIfNot bodyNode.Members.IsEmpty (indentSepNlnUnindent (genMemberDefnList bodyNode.Members))
+            +> sepNln
+            +> genSingleTextNode bodyNode.End
+            |> genNode bodyNode
+        )
+        +> onlyIfNot members.IsEmpty (sepNln +> indentSepNlnUnindent (genMemberDefnList members))
     | TypeDefn.Augmentation _ -> failwith "Not Implemented"
     | TypeDefn.Fun _ -> failwith "Not Implemented"
     | TypeDefn.Delegate _ -> failwith "Not Implemented"
@@ -964,7 +1027,10 @@ let genUnionCase (hasVerticalBar: bool) (node: UnionCaseNode) =
 let genMemberDefnList mds =
     match mds with
     | [] -> sepNone
-    | _ -> !- "todo"
+    | _ ->
+        col sepNln mds (function
+            | MemberDefn.Member bindingNode -> genBinding bindingNode
+            | _ -> !- "todo")
 
 let genExceptionBody px ats ao uc =
     optSingle genSingleTextNode px
