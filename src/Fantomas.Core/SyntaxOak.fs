@@ -1732,11 +1732,6 @@ type MemberDefnValFieldNode(range) =
 
     override this.Children = failwith "todo"
 
-type MemberDefnImplicitCtorNode(range) =
-    inherit NodeBase(range)
-
-    override this.Children = failwith "todo"
-
 type MemberDefnExternBindingNode(range) =
     inherit NodeBase(range)
 
@@ -1778,8 +1773,6 @@ type MemberDefn =
     | ImplicitInherit of MemberDefnImplicitInheritNode
     | Inherit of MemberDefnInheritNode
     | ValField of MemberDefnValFieldNode
-    // TODO: consider remove ImplicitCtor out and make it part of the corresponding TypeDefn nodes
-    | ImplicitCtor of MemberDefnImplicitCtorNode
     | Member of BindingNode
     | ExternBinding of MemberDefnExternBindingNode
     | LetBinding of MemberDefnLetBindingNode
@@ -1795,7 +1788,6 @@ type MemberDefn =
         | ImplicitInherit n -> n
         | Inherit n -> n
         | ValField n -> n
-        | ImplicitCtor n -> n
         | Member n -> n
         | ExternBinding n -> n
         | LetBinding n -> n
