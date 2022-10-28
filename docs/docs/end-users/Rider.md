@@ -11,9 +11,12 @@ Install Fantomas locally with `dotnet tool install fantomas`.
 
 <img class="mt-2" src="{{root}}/images/rider-fantomas.png" alt="drawing" width="70%"/>
 
-At the time of writing, Rider [overwrites](https://youtrack.jetbrains.com/issue/RIDER-83997/Rider-doesnt-respect-Fantomas-default-settings-not-explicitly-set-in-editorconfig)
+At the time of writing, Rider versions prior to the not yet released 2022.3 [overwrite](https://youtrack.jetbrains.com/issue/RIDER-83997/Rider-doesnt-respect-Fantomas-default-settings-not-explicitly-set-in-editorconfig)
 the settings of Fantomas which aren't explicitly set in your editorconfig file.  
-As the settings chosen by Rider can lead to unwanted results, Rider users might want to also include the default settings in their editorconfig file.  
+As the settings chosen by Rider can lead to unwanted results, Rider users might want to also include the default settings in their editorconfig file.
+
+Fortunately, with 2022.3 the Rider developers changed the settings chosen by Rider to be the same as the default Fantomas settings.  
+This means, as long as the Fantomas default settings don't change, the described issue should be solved with Rider 2022.3.  
 The current default settings are the following:
 
 ```
