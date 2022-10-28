@@ -715,7 +715,7 @@ let genPatRecordFieldName (node: PatRecordField) =
         +> sepSpace
         +> genPat node.Pattern
 
-let genBinding (b: BindingNode) =
+let genBinding (b: BindingNode) : Context -> Context =
     let genParameters =
         match b.Parameters with
         | [] -> sepNone
@@ -738,6 +738,9 @@ let genBinding (b: BindingNode) =
     +> sepSpace
     +> genExpr b.Expr
     |> genNode b
+
+let genBindings withUseConfig (bs: BindingNode list) : Context -> Context =
+    colWithNlnWhenNodeIsMultiline withUseConfig genBinding bs
 
 let genOpenList (openList: OpenListNode) =
     col sepNln openList.Opens (function
@@ -1204,7 +1207,7 @@ let genUnionCase (hasVerticalBar: bool) (node: UnionCaseNode) =
 let genMemberDefnList mds =
     match mds with
     | [] -> sepNone
-    | _ -> colWithNlnWhenMappedNodeIsMultiline MemberDefn.Node genMemberDefn mds
+    | _ -> colWithNlnWhenMappedNodeIsMultiline false MemberDefn.Node genMemberDefn mds
 
 let genMemberDefn (md: MemberDefn) =
     match md with
@@ -1214,7 +1217,7 @@ let genMemberDefn (md: MemberDefn) =
     | MemberDefn.Member node -> genBinding node
     | MemberDefn.ExternBinding _ -> failwithf "todo %A" md
     | MemberDefn.DoExpr node -> genExpr (Expr.Single node)
-    | MemberDefn.LetBinding _ -> failwithf "todo %A" md
+    | MemberDefn.LetBinding node -> genBindings true node.Bindings
     | MemberDefn.ExplicitCtor _ -> failwithf "todo %A" md
     | MemberDefn.Interface _ -> failwithf "todo %A" md
     | MemberDefn.AutoProperty _ -> failwithf "todo %A" md
@@ -1260,16 +1263,24 @@ let sepNlnUnlessContentBefore (node: Node) =
     if Seq.isEmpty node.ContentBefore then sepNln else sepNone
 
 let colWithNlnWhenMappedNodeIsMultiline<'n>
+    (withUseConfig: bool)
     (mapNode: 'n -> Node)
     (f: 'n -> Context -> Context)
     (nodes: 'n list)
     : Context -> Context =
     nodes
     |> List.map (fun n -> ColMultilineItem(f n, (mapNode >> sepNlnUnlessContentBefore) n))
-    |> colWithNlnWhenItemIsMultiline
+    |> (if withUseConfig then
+            colWithNlnWhenItemIsMultiline
+        else
+            colWithNlnWhenItemIsMultilineUsingConfig)
 
-let colWithNlnWhenNodeIsMultiline<'n when 'n :> Node> (f: 'n -> Context -> Context) (nodes: 'n list) =
-    colWithNlnWhenMappedNodeIsMultiline<'n> (fun n -> n :> Node) f nodes
+let colWithNlnWhenNodeIsMultiline<'n when 'n :> Node>
+    (withUseConfig: bool)
+    (f: 'n -> Context -> Context)
+    (nodes: 'n list)
+    : Context -> Context =
+    colWithNlnWhenMappedNodeIsMultiline<'n> withUseConfig (fun n -> n :> Node) f nodes
 
 let genModule (m: ModuleOrNamespaceNode) =
     onlyIf
@@ -1278,7 +1289,7 @@ let genModule (m: ModuleOrNamespaceNode) =
             (fun (n: SingleTextNode) -> genSingleTextNode n +> sepSpace +> genIdentListNode m.Name)
             m.LeadingKeyword
          +> onlyIf (not m.Declarations.IsEmpty) (sepNln +> sepNln))
-    +> colWithNlnWhenMappedNodeIsMultiline ModuleDecl.Node genModuleDecl m.Declarations
+    +> colWithNlnWhenMappedNodeIsMultiline false ModuleDecl.Node genModuleDecl m.Declarations
     |> genNode m
 
 let genFile (oak: Oak) =
