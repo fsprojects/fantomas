@@ -130,14 +130,15 @@ type ModuleOrNamespaceNode(leadingKeyword: SingleTextNode option, name: IdentLis
                yield name
            yield! List.map ModuleDecl.Node decls |]
 
-type TypeFunsNode(ts: (Type * SingleTextNode) list, returnType: Type, range) =
+type TypeFunsNode(parameters: (Type * SingleTextNode) list, returnType: Type, range) =
     inherit NodeBase(range)
 
     override this.Children =
-        [| yield! nodes (List.collect (fun (t, arrow) -> [ yield Type.Node t; yield (arrow :> Node) ]) ts)
+        [| yield! nodes (List.collect (fun (t, arrow) -> [ yield Type.Node t; yield (arrow :> Node) ]) parameters)
            yield Type.Node returnType |]
 
-    member x.Parameters = ts
+    /// Type + arrow
+    member x.Parameters = parameters
     member x.ReturnType = returnType
 
 type TypeTupleNode(path: Choice<Type, SingleTextNode> list, range) =
@@ -343,17 +344,6 @@ type Type =
         | Paren n -> n
         | SignatureParameter n -> n
         | Or n -> n
-
-type TypeListNode(parameters: (Type * SingleTextNode) list, returnType: Type, range) =
-    inherit NodeBase(range)
-
-    override this.Children =
-        [| yield! List.collect (fun (t, arrow) -> [ Type.Node t; (arrow :> Node) ]) parameters
-           yield Type.Node returnType |]
-
-    /// Type + arrow
-    member x.Parameters = parameters
-    member x.ReturnType = returnType
 
 type PatAttribNode(attrs: MultipleAttributeListNode, pat: Pattern, range) =
     inherit NodeBase(range)
@@ -1753,7 +1743,7 @@ type TypeDefnAugmentationNode(typeNameNode, members, range) =
         member x.TypeName = typeNameNode
         member x.Members = members
 
-type TypeDefnDelegateNode(typeNameNode, delegateNode: SingleTextNode, typeList: TypeListNode, range) =
+type TypeDefnDelegateNode(typeNameNode, delegateNode: SingleTextNode, typeList: TypeFunsNode, range) =
     inherit NodeBase(range)
 
     override this.Children = [| yield typeNameNode; yield delegateNode; yield typeList |]
@@ -1922,10 +1912,35 @@ type MemberDefnAutoPropertyNode
     member x.Expr = expr
     member x.WithGetSet = withGetSet
 
-type MemberDefnAbstractSlotNode(range) =
+type MemberDefnAbstractSlotNode
+    (
+        xmlDoc: SingleTextNode option,
+        attributes: MultipleAttributeListNode,
+        leadingKeyword: MultipleTextsNode,
+        identifier: SingleTextNode,
+        typeParams: TyparDecls option,
+        t: Type,
+        withGetSet: MultipleTextsNode option,
+        range
+    ) =
     inherit NodeBase(range)
 
-    override this.Children = failwith "todo"
+    override this.Children =
+        [| yield! noa xmlDoc
+           yield attributes
+           yield leadingKeyword
+           yield identifier
+           yield! noa (Option.map TyparDecls.Node typeParams)
+           yield Type.Node t
+           yield! noa withGetSet |]
+
+    member x.XmlDoc = xmlDoc
+    member x.Attributes = attributes
+    member x.LeadingKeyword = leadingKeyword
+    member x.Identifier = identifier
+    member x.TypeParams = typeParams
+    member x.Type = t
+    member x.WithGetSet = withGetSet
 
 type MemberDefnPropertyGetSetNode(range) =
     inherit NodeBase(range)
