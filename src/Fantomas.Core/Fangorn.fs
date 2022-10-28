@@ -1129,6 +1129,9 @@ let mkMemberDefn (creationAide: CreationAide) (md: SynMemberDefn) =
         MemberDefnInheritNode(stn "inherit" mInherit, mkType creationAide baseType, memberDefinitionRange)
         |> MemberDefn.Inherit
     | SynMemberDefn.ValField (f, _) -> mkSynField creationAide f |> MemberDefn.ValField
+    | SynMemberDefn.LetBindings(bindings = [ SynBinding (kind = SynBindingKind.Do; expr = expr; trivia = trivia) ]) ->
+        ExprSingleNode(stn "do" trivia.LeadingKeyword.Range, false, mkExpr creationAide expr, memberDefinitionRange)
+        |> MemberDefn.DoExpr
     | _ -> failwith "todo"
 
 let rec mkModuleDecls

@@ -592,3 +592,24 @@ type A =
 type A =
     val X: int
 """
+
+[<Test>]
+let ``do expr in member`` () =
+    formatSourceString
+        false
+        """
+type A =
+    do
+        // x
+        y
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type A =
+    do
+        // x
+        y
+"""
