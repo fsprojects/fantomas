@@ -212,6 +212,28 @@ let mkOpenAndCloseForArrayOrList isArray range =
         let (StartEndRange 1 (mO, _, mC)) = range
         stn "[" mO, stn "]" mC
 
+let mkInheritConstructor
+    (creationAide: CreationAide)
+    (t: SynType, e: SynExpr, mInherit: range, _: BlockSeparator option, m: range)
+    =
+    let inheritNode = stn "inherit" mInherit
+
+    match e with
+    | SynExpr.Const (constant = SynConst.Unit; range = StartEndRange 1 (mOpen, unitRange, mClose)) ->
+        // The unit expression could have been added artificially.
+        if unitRange.StartColumn + 2 = unitRange.EndColumn then
+            InheritConstructorUnitNode(inheritNode, mkType creationAide t, stn "(" mOpen, stn ")" mClose, m)
+            |> InheritConstructor.Unit
+        else
+            InheritConstructorTypeOnlyNode(inheritNode, mkType creationAide t, m)
+            |> InheritConstructor.TypeOnly
+    | SynExpr.Paren _ as px ->
+        InheritConstructorParenNode(inheritNode, mkType creationAide t, mkExpr creationAide px, m)
+        |> InheritConstructor.Paren
+    | _ ->
+        InheritConstructorOtherNode(inheritNode, mkType creationAide t, mkExpr creationAide e, m)
+        |> InheritConstructor.Other
+
 let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
     let exprRange = e.Range
 
@@ -288,6 +310,24 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
 
         ExprArrayOrListNode(o, [ mkExpr creationAide singleExpr ], c, exprRange)
         |> Expr.ArrayOrList
+    | SynExpr.Record (baseInfo, copyInfo, recordFields, StartEndRange 1 (mOpen, _, mClose)) ->
+        let extra =
+            match baseInfo, copyInfo with
+            | Some _, Some _ -> failwith "Unexpected that both baseInfo and copyInfo are present in SynExpr.Record"
+            | Some baseInfo, None -> mkInheritConstructor creationAide baseInfo |> RecordNodeExtra.Inherit
+            | None, Some (copyExpr, _) -> mkExpr creationAide copyExpr |> RecordNodeExtra.With
+            | None, None -> RecordNodeExtra.None
+
+        let fieldNodes =
+            recordFields
+            |> List.choose (function
+                | SynExprRecordField ((fieldName, _), Some mEq, Some expr, _) ->
+                    let m = unionRanges fieldName.Range expr.Range
+                    Some(RecordFieldNode(mkSynLongIdent fieldName, stn "=" mEq, mkExpr creationAide expr, m))
+                | _ -> None)
+
+        ExprRecordNode(stn "{" mOpen, extra, fieldNodes, stn "}" mClose, exprRange)
+        |> Expr.Record
     // | Expr.Record _ -> failwith "Not Implemented"
     // | Expr.AnonRecord _ -> failwith "Not Implemented"
     // | Expr.ObjExpr _ -> failwith "Not Implemented"

@@ -179,7 +179,6 @@ let rec visitLastChildNode (node: Node) : Node =
     | :? MemberDefnImplicitInheritNode
     | :? MemberDefnInheritNode
     | :? MemberDefnValFieldNode
-    | :? MemberDefnImplicitCtorNode
     | :? MemberDefnExternBindingNode
     | :? MemberDefnLetBindingNode
     | :? MemberDefnExplicitCtorNode
