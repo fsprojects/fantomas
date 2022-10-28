@@ -1886,10 +1886,41 @@ type MemberDefnInterfaceNode
     member x.With = withNode
     member x.Members = members
 
-type MemberDefnAutoPropertyNode(range) =
+type MemberDefnAutoPropertyNode
+    (
+        xmlDoc: SingleTextNode option,
+        attributes: MultipleAttributeListNode,
+        leadingKeyword: MultipleTextsNode,
+        accessibility: SingleTextNode option,
+        identifier: SingleTextNode,
+        t: Type option,
+        equals: SingleTextNode,
+        expr: Expr,
+        withGetSet: MultipleTextsNode option,
+        range
+    ) =
     inherit NodeBase(range)
 
-    override this.Children = failwith "todo"
+    override this.Children =
+        [| yield! noa xmlDoc
+           yield attributes
+           yield leadingKeyword
+           yield! noa accessibility
+           yield identifier
+           yield! noa (Option.map Type.Node t)
+           yield equals
+           yield Expr.Node expr
+           yield! noa withGetSet |]
+
+    member x.XmlDoc = xmlDoc
+    member x.Attributes = attributes
+    member x.LeadingKeyword = leadingKeyword
+    member x.Accessibility = accessibility
+    member x.Identifier = identifier
+    member x.Type = t
+    member x.Equals = equals
+    member x.Expr = expr
+    member x.WithGetSet = withGetSet
 
 type MemberDefnAbstractSlotNode(range) =
     inherit NodeBase(range)
