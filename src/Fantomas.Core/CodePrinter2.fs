@@ -918,6 +918,18 @@ let sepNlnTypeAndMembers (node: ITypeDefn) (ctx: Context) : Context =
             else
                 ctx
 
+let genTypeWithImplicitConstructor (typeName: TypeNameNode) (implicitConstructor: ImplicitConstructorNode option) =
+    genSingleTextNode typeName.LeadingKeyword
+    +> sepSpace
+    +> genIdentListNode typeName.Identifier
+    +> leadingExpressionIsMultiline
+        (optSingle (fun imCtor -> sepSpaceBeforeClassConstructor +> genImplicitConstructor imCtor) implicitConstructor)
+        (fun isMulti ctx ->
+            if isMulti && ctx.Config.AlternativeLongMemberDefinitions then
+                (optSingle genSingleTextNode typeName.EqualsToken) ctx
+            else
+                (sepSpace +> optSingle genSingleTextNode typeName.EqualsToken) ctx)
+
 let genImplicitConstructor (node: ImplicitConstructorNode) =
     let genSimplePat (node: SimplePatNode) =
         genOnelinerAttributes node.Attributes
@@ -1088,18 +1100,7 @@ let genTypeDefn (td: TypeDefn) =
     | TypeDefn.Explicit node ->
         let bodyNode = node.Body
 
-        genSingleTextNode typeName.LeadingKeyword
-        +> sepSpace
-        +> genIdentListNode typeName.Identifier
-        +> leadingExpressionIsMultiline
-            (optSingle
-                (fun imCtor -> sepSpaceBeforeClassConstructor +> genImplicitConstructor imCtor)
-                node.ImplicitConstructor)
-            (fun isMulti ctx ->
-                if isMulti && ctx.Config.AlternativeLongMemberDefinitions then
-                    (optSingle genSingleTextNode typeName.EqualsToken) ctx
-                else
-                    (sepSpace +> optSingle genSingleTextNode typeName.EqualsToken) ctx)
+        genTypeWithImplicitConstructor typeName node.ImplicitConstructor
         +> indentSepNlnUnindent (
             genSingleTextNode bodyNode.Kind
             +> onlyIfNot bodyNode.Members.IsEmpty (indentSepNlnUnindent (genMemberDefnList bodyNode.Members))
@@ -1110,10 +1111,9 @@ let genTypeDefn (td: TypeDefn) =
         +> onlyIfNot members.IsEmpty (sepNln +> indentSepNlnUnindent (genMemberDefnList members))
     | TypeDefn.Augmentation _ ->
         header
-        +> indentSepNlnUnindent (
-            // Remember that we use MemberDefn of parent node
-            sepNlnTypeAndMembers typeDefnNode +> genMemberDefnList members
-        )
+        +> sepSpace
+        +> optSingle genSingleTextNode typeName.WithKeyword
+        +> indentSepNlnUnindent (sepNlnTypeAndMembers typeDefnNode +> genMemberDefnList members)
     | TypeDefn.Delegate node ->
         header
         +> sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth (
@@ -1122,8 +1122,10 @@ let genTypeDefn (td: TypeDefn) =
             +> !- "of"
             +> sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth (genTypeList node.TypeList)
         )
-    | TypeDefn.Unspecified _ -> failwith "Not Implemented"
-    | TypeDefn.RegularType _ -> failwith "Not Implemented"
+
+    | TypeDefn.Regular node ->
+        genTypeWithImplicitConstructor typeName node.ImplicitConstructor
+        +> indentSepNlnUnindent (genMemberDefnList members)
 
     |> genNode (TypeDefn.Node td)
 
