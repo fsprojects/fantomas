@@ -412,7 +412,7 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
     // | Expr.IndexRange _ -> failwith "Not Implemented"
     // | Expr.IndexFromEnd _ -> failwith "Not Implemented"
     // | Expr.Typar _ -> failwith "Not Implemented"
-    | _ -> failwith "todo, 693F570D-5A08-4E44-8937-FF98CE0AD8FC"
+    | _ -> failwithf "todo for %A" e
 
 let mkExprQuote creationAide isRaw e range : ExprQuoteNode =
     let startToken, endToken =
@@ -519,6 +519,15 @@ let mkPat (creationAide: CreationAide) (p: SynPat) =
         mkExprQuote creationAide isRaw e patternRange |> Pattern.QuoteExpr
     | pat -> failwith $"unexpected pattern: {pat}"
 
+let mkBindingReturnInfo creationAide (returnInfo: SynBindingReturnInfo option) =
+    Option.bind
+        (fun (SynBindingReturnInfo (typeName = t; trivia = trivia)) ->
+            trivia.ColonRange
+            |> Option.map (fun mColon ->
+                let m = unionRanges mColon t.Range
+                BindingReturnInfoNode(stn ":" mColon, mkType creationAide t, m)))
+        returnInfo
+
 let mkBinding
     (creationAide: CreationAide)
     (SynBinding (_ao, _, _isInline, _isMutable, _attrs, _px, _, pat, returnInfo, expr, _, _, trivia))
@@ -533,12 +542,7 @@ let mkBinding
 
     let e = parseExpressionInSynBinding returnInfo expr
 
-    let returnTypeNodes =
-        Option.bind
-            (fun (SynBindingReturnInfo (typeName = t; trivia = trivia)) ->
-                trivia.ColonRange
-                |> Option.map (fun mColon -> stn ":" mColon, mkType creationAide t))
-            returnInfo
+    let returnTypeNode = mkBindingReturnInfo creationAide returnInfo
 
     let range =
         let start =
@@ -557,7 +561,7 @@ let mkBinding
         mkSynLeadingKeyword trivia.LeadingKeyword,
         functionName,
         parameters,
-        returnTypeNodes,
+        returnTypeNode,
         equals,
         (mkExpr creationAide e),
         range
@@ -1140,6 +1144,36 @@ let mkWithGetSet (t: SynType option) (withKeyword: range option) (getSet: range 
         | _ -> None
     | _ -> None
 
+let mkPropertyGetSetBinding
+    (creationAide: CreationAide)
+    (leadingKeyword: SingleTextNode)
+    (binding: SynBinding)
+    : PropertyGetSetBindingNode =
+    match binding with
+    | SynBinding (headPat = SynPat.LongIdent (accessibility = ao; argPats = SynArgPats.Pats ps)
+                  returnInfo = returnInfo
+                  expr = expr
+                  trivia = { EqualsRange = Some mEq }
+                  range = range) ->
+        let e = parseExpressionInSynBinding returnInfo expr
+        let returnTypeNode = mkBindingReturnInfo creationAide returnInfo
+
+        let pats =
+            match ps with
+            | [ SynPat.Tuple (false, [ p1; p2 ], _) ] -> [ mkPat creationAide p1; mkPat creationAide p2 ]
+            | ps -> List.map (mkPat creationAide) ps
+
+        PropertyGetSetBindingNode(
+            mkSynAccess ao,
+            leadingKeyword,
+            pats,
+            returnTypeNode,
+            stn "=" mEq,
+            mkExpr creationAide e,
+            range
+        )
+    | _ -> failwith "SynBinding does not expected information for PropertyGetSetBinding"
+
 let mkMemberDefn (creationAide: CreationAide) (md: SynMemberDefn) =
     let memberDefinitionRange = md.Range
 
@@ -1276,6 +1310,101 @@ let mkMemberDefn (creationAide: CreationAide) (md: SynMemberDefn) =
             memberDefinitionRange
         )
         |> MemberDefn.AbstractSlot
+    | SynMemberDefn.GetSetMember (Some (SynBinding (accessibility = ao
+                                                    isInline = isInline
+                                                    attributes = ats
+                                                    xmlDoc = px
+                                                    headPat = SynPat.LongIdent (longDotId = memberName)
+                                                    trivia = { LeadingKeyword = lk }) as getBinding),
+                                  Some setBinding,
+                                  _,
+                                  { GetKeyword = Some getKeyword
+                                    SetKeyword = Some setKeyword
+                                    WithKeyword = withKeyword
+                                    AndKeyword = andKeyword }) ->
+        let firstBinding, lastBinding =
+            if Position.posLt getKeyword.Start setKeyword.Start then
+                mkPropertyGetSetBinding creationAide (stn "get" getKeyword) getBinding,
+                Some(mkPropertyGetSetBinding creationAide (stn "set" setKeyword) setBinding)
+            else
+                mkPropertyGetSetBinding creationAide (stn "set" setKeyword) setBinding,
+                Some(mkPropertyGetSetBinding creationAide (stn "get" getKeyword) getBinding)
+
+        MemberDefnPropertyGetSetNode(
+            mkXmlDoc px,
+            mkAttributes creationAide ats,
+            mkSynLeadingKeyword lk,
+            isInline,
+            mkSynAccess ao,
+            mkSynLongIdent memberName,
+            stn "with" withKeyword,
+            firstBinding,
+            Option.map (stn "and") andKeyword,
+            lastBinding,
+            memberDefinitionRange
+        )
+        |> MemberDefn.PropertyGetSet
+    | SynMemberDefn.GetSetMember (None,
+                                  Some (SynBinding (accessibility = ao
+                                                    isInline = isInline
+                                                    attributes = ats
+                                                    xmlDoc = px
+                                                    headPat = SynPat.LongIdent (longDotId = memberName)
+                                                    trivia = { LeadingKeyword = lk }) as binding),
+                                  _,
+                                  { WithKeyword = withKeyword
+                                    GetKeyword = getKeyword
+                                    SetKeyword = setKeyword })
+    | SynMemberDefn.GetSetMember (Some (SynBinding (accessibility = ao
+                                                    isInline = isInline
+                                                    attributes = ats
+                                                    xmlDoc = px
+                                                    headPat = SynPat.LongIdent (longDotId = memberName)
+                                                    trivia = { LeadingKeyword = lk }) as binding),
+                                  None,
+                                  _,
+                                  { WithKeyword = withKeyword
+                                    GetKeyword = getKeyword
+                                    SetKeyword = setKeyword }) ->
+
+        match getKeyword, setKeyword with
+        | Some getKeyword, None ->
+            let bindingNode =
+                mkPropertyGetSetBinding creationAide (stn "get" getKeyword) binding
+
+            MemberDefnPropertyGetSetNode(
+                mkXmlDoc px,
+                mkAttributes creationAide ats,
+                mkSynLeadingKeyword lk,
+                isInline,
+                mkSynAccess ao,
+                mkSynLongIdent memberName,
+                stn "with" withKeyword,
+                bindingNode,
+                None,
+                None,
+                memberDefinitionRange
+            )
+            |> MemberDefn.PropertyGetSet
+        | None, Some setKeyword ->
+            let bindingNode =
+                mkPropertyGetSetBinding creationAide (stn "set" setKeyword) binding
+
+            MemberDefnPropertyGetSetNode(
+                mkXmlDoc px,
+                mkAttributes creationAide ats,
+                mkSynLeadingKeyword lk,
+                isInline,
+                mkSynAccess ao,
+                mkSynLongIdent memberName,
+                stn "with" withKeyword,
+                bindingNode,
+                None,
+                None,
+                memberDefinitionRange
+            )
+            |> MemberDefn.PropertyGetSet
+        | _ -> failwith "SynMemberDefn.GetSetMember cannot exist with get and without set"
     | _ -> failwith "todo"
 
 let rec mkModuleDecls
