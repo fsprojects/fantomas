@@ -1124,6 +1124,37 @@ let mkMemberDefn (creationAide: CreationAide) (md: SynMemberDefn) =
     | SynMemberDefn.ImplicitInherit (t, e, _, StartRange 7 (mInherit, _)) ->
         mkInheritConstructor creationAide t e mInherit memberDefinitionRange
         |> MemberDefn.ImplicitInherit
+    | SynMemberDefn.GetSetMember (Some (SynBinding (ao,
+                                                    kind,
+                                                    isInline,
+                                                    isMutable,
+                                                    ats,
+                                                    px,
+                                                    valData,
+                                                    SynPat.LongIdent (lid,
+                                                                      extraId,
+                                                                      typarDecls,
+                                                                      SynArgPats.Pats [ SynPat.Paren (SynPat.Const (SynConst.Unit,
+                                                                                                                    _),
+                                                                                                      _) ],
+                                                                      None,
+                                                                      mPat),
+                                                    ri,
+                                                    e,
+                                                    bindingRange,
+                                                    dp,
+                                                    trivia)),
+                                  None,
+                                  _,
+                                  { GetKeyword = Some _ }) ->
+
+        let pat =
+            SynPat.LongIdent(lid, extraId, typarDecls, SynArgPats.Pats([]), None, mPat)
+
+        mkBinding
+            creationAide
+            (SynBinding(ao, kind, isInline, isMutable, ats, px, valData, pat, ri, e, bindingRange, dp, trivia))
+        |> MemberDefn.Member
     | SynMemberDefn.Member(memberDefn = SynBinding (attributes = ats
                                                     xmlDoc = px
                                                     valData = SynValData (Some { MemberKind = SynMemberKind.Constructor },
