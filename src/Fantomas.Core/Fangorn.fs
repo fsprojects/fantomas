@@ -971,7 +971,7 @@ let mkTypeDefn
 
     let typeNameNode =
         match typeInfo with
-        | SynComponentInfo (ats, tds, tcs, lid, px, preferPostfix, ao, _) ->
+        | SynComponentInfo (ats, tds, tcs, lid, px, _preferPostfix, ao, _) ->
             let identifierNode = mkLongIdent lid
 
             let leadingKeyword =
@@ -1120,8 +1120,13 @@ let mkTypeDefn
     | _ -> failwithf "Could not create a TypeDefn for %A" typeRepr
 
 let mkMemberDefn (creationAide: CreationAide) (md: SynMemberDefn) =
+    let memberDefinitionRange = md.Range
+
     match md with
     | SynMemberDefn.Member (memberDefn, _) -> mkBinding creationAide memberDefn |> MemberDefn.Member
+    | SynMemberDefn.Inherit (baseType, _, StartRange 7 (mInherit, _)) ->
+        MemberDefnInheritNode(stn "inherit" mInherit, mkType creationAide baseType, memberDefinitionRange)
+        |> MemberDefn.Inherit
     | _ -> failwith "todo"
 
 let rec mkModuleDecls
