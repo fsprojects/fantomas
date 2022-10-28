@@ -1458,6 +1458,11 @@ type BindingNode
            yield equals
            yield Expr.Node expr |]
 
+type BindingListNode(bindings: BindingNode list, range) =
+    inherit NodeBase(range)
+    override x.Children = [| yield! nodes bindings |]
+    member x.Bindings = bindings
+
 type FieldNode
     (
         xmlDoc: SingleTextNode option,
@@ -1823,11 +1828,6 @@ type MemberDefnExternBindingNode(range) =
 
     override this.Children = failwith "todo"
 
-type MemberDefnLetBindingNode(range) =
-    inherit NodeBase(range)
-
-    override this.Children = failwith "todo"
-
 type MemberDefnExplicitCtorNode(range) =
     inherit NodeBase(range)
 
@@ -1861,7 +1861,7 @@ type MemberDefn =
     | Member of BindingNode
     | ExternBinding of MemberDefnExternBindingNode
     | DoExpr of ExprSingleNode
-    | LetBinding of MemberDefnLetBindingNode
+    | LetBinding of BindingListNode
     | ExplicitCtor of MemberDefnExplicitCtorNode
     | Interface of MemberDefnInterfaceNode
     | AutoProperty of MemberDefnAutoPropertyNode
