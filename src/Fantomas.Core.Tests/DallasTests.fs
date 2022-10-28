@@ -464,3 +464,21 @@ let ``moar records`` () =
 { X = y; Z = 1 }
 { x with Y = 0 }
 """
+
+[<Test>]
+let ``augmentation type`` () =
+    formatSourceString
+        false
+        """
+type Foo with
+    member x.Bar = ()
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type Foo with
+
+    member x.Bar = ()
+"""

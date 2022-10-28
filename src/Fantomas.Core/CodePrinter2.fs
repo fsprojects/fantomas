@@ -324,7 +324,7 @@ let genExpr (e: Expr) =
                     +> genSingleTextNode node.ClosingBrace
                 | RecordNodeExtra.With we ->
                     genSingleTextNode node.OpeningBrace
-                    +> atCurrentColumnIndent (genExpr e)
+                    +> atCurrentColumnIndent (genExpr we)
                     +> !- " with"
                     +> indent
                     +> whenShortIndent indent
@@ -970,6 +970,7 @@ let genTypeDefn (td: TypeDefn) =
         +> genIdentListNode typeName.Identifier
         +> sepSpace
         +> optSingle genSingleTextNode typeName.EqualsToken
+        +> optSingle genSingleTextNode typeName.WithKeyword
 
     match td with
     | TypeDefn.Enum node ->
@@ -1108,7 +1109,12 @@ let genTypeDefn (td: TypeDefn) =
             |> genNode bodyNode
         )
         +> onlyIfNot members.IsEmpty (sepNln +> indentSepNlnUnindent (genMemberDefnList members))
-    | TypeDefn.Augmentation _ -> failwith "Not Implemented"
+    | TypeDefn.Augmentation _ ->
+        header
+        +> indentSepNlnUnindent (
+            // Remember that we use MemberDefn of parent node
+            sepNlnTypeAndMembers typeDefnNode +> genMemberDefnList members
+        )
     | TypeDefn.Fun _ -> failwith "Not Implemented"
     | TypeDefn.Delegate _ -> failwith "Not Implemented"
     | TypeDefn.Unspecified _ -> failwith "Not Implemented"
