@@ -1865,10 +1865,26 @@ type MemberDefnExplicitCtorNode
     member x.Expr = expr
     member x.ThenExpr = thenExpr
 
-type MemberDefnInterfaceNode(range) =
+type MemberDefnInterfaceNode
+    (
+        interfaceNode: SingleTextNode,
+        t: Type,
+        withNode: SingleTextNode option,
+        members: MemberDefn list,
+        range
+    ) =
     inherit NodeBase(range)
 
-    override this.Children = failwith "todo"
+    override this.Children =
+        [| yield interfaceNode
+           yield Type.Node t
+           yield! noa withNode
+           yield! List.map MemberDefn.Node members |]
+
+    member x.Interface = interfaceNode
+    member x.Type = t
+    member x.With = withNode
+    member x.Members = members
 
 type MemberDefnAutoPropertyNode(range) =
     inherit NodeBase(range)
