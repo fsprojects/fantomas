@@ -1124,6 +1124,34 @@ let mkMemberDefn (creationAide: CreationAide) (md: SynMemberDefn) =
     | SynMemberDefn.ImplicitInherit (t, e, _, StartRange 7 (mInherit, _)) ->
         mkInheritConstructor creationAide t e mInherit memberDefinitionRange
         |> MemberDefn.ImplicitInherit
+    | SynMemberDefn.Member(memberDefn = SynBinding (attributes = ats
+                                                    xmlDoc = px
+                                                    valData = SynValData (Some { MemberKind = SynMemberKind.Constructor },
+                                                                          _,
+                                                                          ido)
+                                                    headPat = SynPat.LongIdent (longDotId = SynLongIdent(id = [ newIdent ])
+                                                                                argPats = SynArgPats.Pats [ SynPat.Paren _ as pat ]
+                                                                                accessibility = ao)
+                                                    expr = expr
+                                                    trivia = { EqualsRange = Some mEq })) when (newIdent.idText = "new") ->
+        let exprNode, thenExprNode =
+            match expr with
+            | SynExpr.Sequential (_, false, e1, e2, _) -> mkExpr creationAide e1, Some(mkExpr creationAide e2)
+            | e -> mkExpr creationAide e, None
+
+        MemberDefnExplicitCtorNode(
+            mkXmlDoc px,
+            mkAttributes creationAide ats,
+            Option.map mkSynAccess ao,
+            mkIdent newIdent,
+            mkPat creationAide pat,
+            Option.map mkIdent ido,
+            stn "=" mEq,
+            exprNode,
+            thenExprNode,
+            memberDefinitionRange
+        )
+        |> MemberDefn.ExplicitCtor
     | SynMemberDefn.Member (memberDefn, _) -> mkBinding creationAide memberDefn |> MemberDefn.Member
     | SynMemberDefn.Inherit (baseType, _, StartRange 7 (mInherit, _)) ->
         MemberDefnInheritNode(stn "inherit" mInherit, mkType creationAide baseType, memberDefinitionRange)
@@ -1132,6 +1160,7 @@ let mkMemberDefn (creationAide: CreationAide) (md: SynMemberDefn) =
     | SynMemberDefn.LetBindings(bindings = [ SynBinding (kind = SynBindingKind.Do; expr = expr; trivia = trivia) ]) ->
         ExprSingleNode(stn "do" trivia.LeadingKeyword.Range, false, mkExpr creationAide expr, memberDefinitionRange)
         |> MemberDefn.DoExpr
+
     | SynMemberDefn.LetBindings (bindings = bindings) ->
         BindingListNode(List.map (mkBinding creationAide) bindings, memberDefinitionRange)
         |> MemberDefn.LetBinding
