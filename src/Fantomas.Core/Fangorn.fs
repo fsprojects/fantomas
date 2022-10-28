@@ -212,10 +212,7 @@ let mkOpenAndCloseForArrayOrList isArray range =
         let (StartEndRange 1 (mO, _, mC)) = range
         stn "[" mO, stn "]" mC
 
-let mkInheritConstructor
-    (creationAide: CreationAide)
-    (t: SynType, e: SynExpr, mInherit: range, _: BlockSeparator option, m: range)
-    =
+let mkInheritConstructor (creationAide: CreationAide) (t: SynType) (e: SynExpr) (mInherit: range) (m: range) =
     let inheritNode = stn "inherit" mInherit
 
     match e with
@@ -314,7 +311,8 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
         let extra =
             match baseInfo, copyInfo with
             | Some _, Some _ -> failwith "Unexpected that both baseInfo and copyInfo are present in SynExpr.Record"
-            | Some baseInfo, None -> mkInheritConstructor creationAide baseInfo |> RecordNodeExtra.Inherit
+            | Some (t, e, mInherit, _, m), None ->
+                mkInheritConstructor creationAide t e mInherit m |> RecordNodeExtra.Inherit
             | None, Some (copyExpr, _) -> mkExpr creationAide copyExpr |> RecordNodeExtra.With
             | None, None -> RecordNodeExtra.None
 
@@ -1123,6 +1121,9 @@ let mkMemberDefn (creationAide: CreationAide) (md: SynMemberDefn) =
     let memberDefinitionRange = md.Range
 
     match md with
+    | SynMemberDefn.ImplicitInherit (t, e, _, StartRange 7 (mInherit, _)) ->
+        mkInheritConstructor creationAide t e mInherit memberDefinitionRange
+        |> MemberDefn.ImplicitInherit
     | SynMemberDefn.Member (memberDefn, _) -> mkBinding creationAide memberDefn |> MemberDefn.Member
     | SynMemberDefn.Inherit (baseType, _, StartRange 7 (mInherit, _)) ->
         MemberDefnInheritNode(stn "inherit" mInherit, mkType creationAide baseType, memberDefinitionRange)
