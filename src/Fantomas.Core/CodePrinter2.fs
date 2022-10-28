@@ -1204,10 +1204,21 @@ let genUnionCase (hasVerticalBar: bool) (node: UnionCaseNode) =
 let genMemberDefnList mds =
     match mds with
     | [] -> sepNone
-    | _ ->
-        col sepNln mds (function
-            | MemberDefn.Member bindingNode -> genBinding bindingNode
-            | _ -> !- "todo")
+    | _ -> colWithNlnWhenMappedNodeIsMultiline MemberDefn.Node genMemberDefn mds
+
+let genMemberDefn (md: MemberDefn) =
+    match md with
+    | MemberDefn.ImplicitInherit _ -> failwithf "todo %A" md
+    | MemberDefn.Inherit node -> genSingleTextNode node.Inherit +> sepSpace +> genType node.BaseType
+    | MemberDefn.ValField _ -> failwithf "todo %A" md
+    | MemberDefn.Member node -> genBinding node
+    | MemberDefn.ExternBinding _ -> failwithf "todo %A" md
+    | MemberDefn.LetBinding _ -> failwithf "todo %A" md
+    | MemberDefn.ExplicitCtor _ -> failwithf "todo %A" md
+    | MemberDefn.Interface _ -> failwithf "todo %A" md
+    | MemberDefn.AutoProperty _ -> failwithf "todo %A" md
+    | MemberDefn.AbstractSlot _ -> failwithf "todo %A" md
+    | MemberDefn.PropertyGetSet _ -> failwithf "todo %A" md
 
 let genExceptionBody px ats ao uc =
     optSingle genSingleTextNode px
@@ -1246,7 +1257,11 @@ let genModuleDecl (md: ModuleDecl) =
 let sepNlnUnlessContentBefore (node: Node) =
     if Seq.isEmpty node.ContentBefore then sepNln else sepNone
 
-let colWithNlnWhenMappedNodeIsMultiline<'n> (mapNode: 'n -> Node) (f: 'n -> Context -> Context) (nodes: 'n list) =
+let colWithNlnWhenMappedNodeIsMultiline<'n>
+    (mapNode: 'n -> Node)
+    (f: 'n -> Context -> Context)
+    (nodes: 'n list)
+    : Context -> Context =
     nodes
     |> List.map (fun n -> ColMultilineItem(f n, (mapNode >> sepNlnUnlessContentBefore) n))
     |> colWithNlnWhenItemIsMultiline

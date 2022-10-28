@@ -1812,13 +1812,15 @@ type TypeDefn =
 
 type MemberDefnImplicitInheritNode(range) =
     inherit NodeBase(range)
-
     override this.Children = failwith "todo"
 
-type MemberDefnInheritNode(range) =
+type MemberDefnInheritNode(inheritKeyword: SingleTextNode, baseType: Type, range) =
     inherit NodeBase(range)
 
-    override this.Children = failwith "todo"
+    override this.Children = [| yield inheritKeyword; yield Type.Node baseType |]
+
+    member this.Inherit = inheritKeyword
+    member this.BaseType = baseType
 
 type MemberDefnValFieldNode(range) =
     inherit NodeBase(range)
@@ -1862,7 +1864,6 @@ type MemberDefnPropertyGetSetNode(range) =
 
 [<RequireQualifiedAccess; NoEquality; NoComparison>]
 type MemberDefn =
-    | Open of OpenListNode
     | ImplicitInherit of MemberDefnImplicitInheritNode
     | Inherit of MemberDefnInheritNode
     | ValField of MemberDefnValFieldNode
@@ -1877,7 +1878,6 @@ type MemberDefn =
 
     static member Node(md: MemberDefn) : Node =
         match md with
-        | Open n -> n
         | ImplicitInherit n -> n
         | Inherit n -> n
         | ValField n -> n
