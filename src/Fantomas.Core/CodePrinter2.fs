@@ -1236,7 +1236,16 @@ let genMemberDefn (md: MemberDefn) =
                 node.ThenExpr
         )
     | MemberDefn.LetBinding node -> genBindings true node.Bindings
-    | MemberDefn.Interface _ -> failwithf "todo %A" md
+    | MemberDefn.Interface node ->
+        genSingleTextNode node.Interface
+        +> sepSpace
+        +> genType node.Type
+        +> optSingle
+            (fun withNode ->
+                sepSpace
+                +> genSingleTextNode withNode
+                +> indentSepNlnUnindent (genMemberDefnList node.Members))
+            node.With
     | MemberDefn.AutoProperty _ -> failwithf "todo %A" md
     | MemberDefn.AbstractSlot _ -> failwithf "todo %A" md
     | MemberDefn.PropertyGetSet _ -> failwithf "todo %A" md

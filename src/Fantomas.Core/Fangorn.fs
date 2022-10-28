@@ -1191,10 +1191,27 @@ let mkMemberDefn (creationAide: CreationAide) (md: SynMemberDefn) =
     | SynMemberDefn.LetBindings(bindings = [ SynBinding (kind = SynBindingKind.Do; expr = expr; trivia = trivia) ]) ->
         ExprSingleNode(stn "do" trivia.LeadingKeyword.Range, false, mkExpr creationAide expr, memberDefinitionRange)
         |> MemberDefn.DoExpr
-
     | SynMemberDefn.LetBindings (bindings = bindings) ->
         BindingListNode(List.map (mkBinding creationAide) bindings, memberDefinitionRange)
         |> MemberDefn.LetBinding
+    | SynMemberDefn.Interface (t, mWith, mdsOpt, _) ->
+        let interfaceNode =
+            match memberDefinitionRange with
+            | StartRange 9 (mInterface, _) -> stn "interface" mInterface
+
+        let members =
+            match mdsOpt with
+            | None -> []
+            | Some mds -> List.map (mkMemberDefn creationAide) mds
+
+        MemberDefnInterfaceNode(
+            interfaceNode,
+            mkType creationAide t,
+            Option.map (stn "with") mWith,
+            members,
+            memberDefinitionRange
+        )
+        |> MemberDefn.Interface
     | _ -> failwith "todo"
 
 let rec mkModuleDecls
