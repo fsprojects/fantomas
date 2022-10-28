@@ -556,3 +556,22 @@ type A() =
         member x.B () = ()
     end
 """
+
+[<Test>]
+let ``implicit inherit member`` () =
+    formatSourceString
+        false
+        """
+type A() =
+    inherit B(
+        x
+    )
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type A() =
+    inherit B(x)
+"""

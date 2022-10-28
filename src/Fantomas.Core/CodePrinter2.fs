@@ -1208,7 +1208,7 @@ let genMemberDefnList mds =
 
 let genMemberDefn (md: MemberDefn) =
     match md with
-    | MemberDefn.ImplicitInherit _ -> failwithf "todo %A" md
+    | MemberDefn.ImplicitInherit ic -> genInheritConstructor ic
     | MemberDefn.Inherit node -> genSingleTextNode node.Inherit +> sepSpace +> genType node.BaseType
     | MemberDefn.ValField _ -> failwithf "todo %A" md
     | MemberDefn.Member node -> genBinding node
