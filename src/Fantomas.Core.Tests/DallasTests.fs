@@ -575,3 +575,20 @@ type A() =
 type A() =
     inherit B(x)
 """
+
+[<Test>]
+let ``val field`` () =
+    formatSourceString
+        false
+        """
+type A =
+    val X: int
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type A =
+    val X: int
+"""
