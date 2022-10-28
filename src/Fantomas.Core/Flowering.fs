@@ -156,8 +156,7 @@ let rec visitLastChildNode (node: Node) : Node =
     | :? TypeDefnExplicitNode
     | :? TypeDefnAugmentationNode
     | :? TypeDefnDelegateNode
-    | :? TypeDefnUnspecifiedNode
-    | :? TypeDefnRegularTypeNode
+    | :? TypeDefnRegularNode
     // | SynModuleSigDecl_Val
     // | SynModuleSigDecl_Types
     // | SynModuleSigDecl_NestedModule

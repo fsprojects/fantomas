@@ -1098,11 +1098,26 @@ let mkTypeDefn
         TypeDefnDelegateNode(typeNameNode, stn "delegate" mDelegate, typeList, typeDefnRange)
         |> TypeDefn.Delegate
 
-    // Could be combinable as well.
-    // | ObjectModel (TCSimple TCUnspecified, MemberDefnList (impCtor, others), _) when not (List.isEmpty ms) ->
-    // | ObjectModel (_, MemberDefnList (impCtor, others), _) ->
-    // | ExceptionRepr (ExceptionDefRepr (ats, px, ao, uc)) -> genExceptionBody ats px ao uc
-    | _ -> failwith "not implemented, C8C6C667-6A67-46A6-9EE3-A0DF663A3A91"
+    | SynTypeDefnRepr.ObjectModel (members = objectMembers) ->
+        let implicitConstructorNode =
+            match implicitConstructor with
+            | Some (SynMemberDefn.ImplicitCtor (vis, attrs, pats, self, xmlDoc, m)) ->
+                mkImplicitCtor creationAide vis attrs pats self xmlDoc m |> Some
+            | _ -> None
+
+        let allMembers =
+            let objectMembers =
+                objectMembers
+                |> List.filter (function
+                    | SynMemberDefn.ImplicitCtor _ -> false
+                    | _ -> true)
+                |> List.map (mkMemberDefn creationAide)
+
+            [ yield! objectMembers; yield! members ]
+
+        TypeDefnRegularNode(typeNameNode, implicitConstructorNode, allMembers, typeDefnRange)
+        |> TypeDefn.Regular
+    | _ -> failwithf "Could not create a TypeDefn for %A" typeRepr
 
 let mkMemberDefn (creationAide: CreationAide) (md: SynMemberDefn) =
     match md with
