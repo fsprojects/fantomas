@@ -1128,6 +1128,7 @@ let mkMemberDefn (creationAide: CreationAide) (md: SynMemberDefn) =
     | SynMemberDefn.Inherit (baseType, _, StartRange 7 (mInherit, _)) ->
         MemberDefnInheritNode(stn "inherit" mInherit, mkType creationAide baseType, memberDefinitionRange)
         |> MemberDefn.Inherit
+    | SynMemberDefn.ValField (f, _) -> mkSynField creationAide f |> MemberDefn.ValField
     | _ -> failwith "todo"
 
 let rec mkModuleDecls
