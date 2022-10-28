@@ -654,3 +654,20 @@ type StateMachine() =
         new StateMachine()
         then ()
 """
+
+[<Test>]
+let ``long prop get`` () =
+    formatSourceString
+        false
+        """
+type StateMachine() =
+    member x.X with get() = y
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type StateMachine() =
+    member x.X = y
+"""
