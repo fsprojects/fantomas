@@ -1171,7 +1171,7 @@ let genTypeList (node: TypeListNode) =
 let genField (node: FieldNode) =
     optSingle genSingleTextNode node.XmlDoc
     +> genAttributes node.Attributes
-    +> optSingle genMultipleTextsNode node.LeadingKeyword
+    +> optSingle (fun lk -> genMultipleTextsNode lk +> sepSpace) node.LeadingKeyword
     +> onlyIf node.IsMutable (!- "mutable ")
     +> genAccessOpt node.Accessibility
     +> opt sepColon node.Name genSingleTextNode
@@ -1210,7 +1210,7 @@ let genMemberDefn (md: MemberDefn) =
     match md with
     | MemberDefn.ImplicitInherit ic -> genInheritConstructor ic
     | MemberDefn.Inherit node -> genSingleTextNode node.Inherit +> sepSpace +> genType node.BaseType
-    | MemberDefn.ValField _ -> failwithf "todo %A" md
+    | MemberDefn.ValField node -> genField node
     | MemberDefn.Member node -> genBinding node
     | MemberDefn.ExternBinding _ -> failwithf "todo %A" md
     | MemberDefn.LetBinding _ -> failwithf "todo %A" md

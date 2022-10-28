@@ -1818,11 +1818,6 @@ type MemberDefnInheritNode(inheritKeyword: SingleTextNode, baseType: Type, range
     member this.Inherit = inheritKeyword
     member this.BaseType = baseType
 
-type MemberDefnValFieldNode(range) =
-    inherit NodeBase(range)
-
-    override this.Children = failwith "todo"
-
 type MemberDefnExternBindingNode(range) =
     inherit NodeBase(range)
 
@@ -1862,7 +1857,7 @@ type MemberDefnPropertyGetSetNode(range) =
 type MemberDefn =
     | ImplicitInherit of InheritConstructor
     | Inherit of MemberDefnInheritNode
-    | ValField of MemberDefnValFieldNode
+    | ValField of FieldNode
     | Member of BindingNode
     | ExternBinding of MemberDefnExternBindingNode
     | LetBinding of MemberDefnLetBindingNode
