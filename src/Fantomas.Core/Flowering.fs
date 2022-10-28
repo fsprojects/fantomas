@@ -155,7 +155,6 @@ let rec visitLastChildNode (node: Node) : Node =
     | :? TypeDefnAbbrevNode
     | :? TypeDefnExplicitNode
     | :? TypeDefnAugmentationNode
-    | :? TypeDefnFunNode
     | :? TypeDefnDelegateNode
     | :? TypeDefnUnspecifiedNode
     | :? TypeDefnRegularTypeNode

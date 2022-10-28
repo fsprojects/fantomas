@@ -970,7 +970,6 @@ let genTypeDefn (td: TypeDefn) =
         +> genIdentListNode typeName.Identifier
         +> sepSpace
         +> optSingle genSingleTextNode typeName.EqualsToken
-        +> optSingle genSingleTextNode typeName.WithKeyword
 
     match td with
     | TypeDefn.Enum node ->
@@ -1115,12 +1114,57 @@ let genTypeDefn (td: TypeDefn) =
             // Remember that we use MemberDefn of parent node
             sepNlnTypeAndMembers typeDefnNode +> genMemberDefnList members
         )
-    | TypeDefn.Fun _ -> failwith "Not Implemented"
-    | TypeDefn.Delegate _ -> failwith "Not Implemented"
+    | TypeDefn.Delegate node ->
+        header
+        +> sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth (
+            genSingleTextNode node.DelegateNode
+            +> sepSpace
+            +> !- "of"
+            +> sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth (genTypeList node.TypeList)
+        )
     | TypeDefn.Unspecified _ -> failwith "Not Implemented"
     | TypeDefn.RegularType _ -> failwith "Not Implemented"
 
     |> genNode (TypeDefn.Node td)
+
+let genTypeList (node: TypeListNode) =
+    let shortExpr =
+        col sepSpace node.Parameters (fun (t, arrow) -> genType t +> sepSpace +> genSingleTextNode arrow)
+        +> sepSpace
+        +> genType node.ReturnType
+
+    let longExpr =
+        let rec visit parameters level (continuation: Context -> Context) =
+            match parameters with
+            | [] -> continuation
+            | [ lastType, lastArrow ] ->
+                continuation
+                +> genType lastType
+                +> sepSpace
+                +> genSingleTextNode lastArrow
+                +> indent
+                +> sepNln
+                +> genType node.ReturnType
+                +> rep (level + 1) unindent
+            | (t, arrow) :: tail ->
+                let isTuple =
+                    match t with
+                    | Type.Tuple _ -> true
+                    | _ -> false
+
+                visit
+                    tail
+                    (level + if isTuple then 1 else 0)
+                    (continuation
+                     +> genType t
+                     +> sepSpace
+                     +> genSingleTextNode arrow
+                     +> onlyIf isTuple indent
+                     +> sepNln)
+
+        visit node.Parameters 0 sepNone
+
+    expressionFitsOnRestOfLine shortExpr longExpr |> genNode node
 
 let genField (node: FieldNode) =
     optSingle genSingleTextNode node.XmlDoc
