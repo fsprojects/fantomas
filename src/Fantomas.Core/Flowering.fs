@@ -180,7 +180,7 @@ let rec visitLastChildNode (node: Node) : Node =
     | :? InheritConstructorOtherNode
     | :? FieldNode
     | :? MemberDefnExternBindingNode
-    | :? MemberDefnLetBindingNode
+    | :? BindingListNode
     | :? MemberDefnExplicitCtorNode
     | :? MemberDefnInterfaceNode
     | :? MemberDefnAutoPropertyNode
