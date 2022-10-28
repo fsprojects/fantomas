@@ -718,16 +718,16 @@ let genPatRecordFieldName (node: PatRecordField) =
         +> sepSpace
         +> genPat node.Pattern
 
+let genReturnTypeBinding (node: BindingReturnInfoNode option) =
+    match node with
+    | None -> sepNone
+    | Some node -> genSingleTextNode node.Colon +> sepSpace +> genType node.Type
+
 let genBinding (b: BindingNode) : Context -> Context =
     let genParameters =
         match b.Parameters with
         | [] -> sepNone
         | ps -> sepSpace +> col sepSpace ps genPat +> sepSpace
-
-    let genReturnType =
-        match b.ReturnType with
-        | None -> sepNone
-        | Some (colon, t) -> genSingleTextNode colon +> sepSpace +> genType t
 
     genMultipleTextsNode b.LeadingKeyword
     +> sepSpace
@@ -735,7 +735,7 @@ let genBinding (b: BindingNode) : Context -> Context =
         | Choice1Of2 n -> genSingleTextNode n
         | Choice2Of2 pat -> genPat pat)
     +> genParameters
-    +> genReturnType
+    +> genReturnTypeBinding b.ReturnType
     +> sepSpace
     +> genSingleTextNode b.Equals
     +> sepSpace
@@ -1304,7 +1304,33 @@ let genMemberDefn (md: MemberDefn) =
         +> ifElse node.TypeParams.IsSome sepColonWithSpacesFixed sepColon
         +> genTypeInSignature node.Type
         +> optSingle (fun gs -> sepSpace +> genMultipleTextsNode gs) node.WithGetSet
-    | MemberDefn.PropertyGetSet _ -> failwithf "todo %A" md
+    | MemberDefn.PropertyGetSet node ->
+        let genProperty (node: PropertyGetSetBindingNode) =
+            genAccessOpt node.Accessibility
+            +> genSingleTextNode node.LeadingKeyword
+            +> sepSpace
+            +> col sepSpace node.Parameters genPat
+            +> genReturnTypeBinding node.ReturnType
+            +> sepSpace
+            +> genSingleTextNode node.Equals
+            +> sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth (genExpr node.Expr)
+
+        genXml node.XmlDoc
+        +> genAttributes node.Attributes
+        +> genMultipleTextsNode node.LeadingKeyword
+        +> sepSpace
+        +> onlyIf node.IsInline (!- "inline ")
+        +> genAccessOpt node.Accessibility
+        +> genIdentListNode node.MemberName
+        +> indent
+        +> sepNln
+        +> genSingleTextNode node.WithKeyword
+        +> sepSpace
+        +> genProperty node.FirstBinding
+        +> optSingle (fun a -> sepNln +> genSingleTextNode a +> sepSpace) node.AndKeyword
+        +> optSingle genProperty node.LastBinding
+        +> unindent
+
     |> genNode (MemberDefn.Node md)
 
 let genExceptionBody px ats ao uc =
