@@ -1217,8 +1217,25 @@ let genMemberDefn (md: MemberDefn) =
     | MemberDefn.Member node -> genBinding node
     | MemberDefn.ExternBinding _ -> failwithf "todo %A" md
     | MemberDefn.DoExpr node -> genExpr (Expr.Single node)
+    | MemberDefn.ExplicitCtor node ->
+        optSingle (fun xml -> genSingleTextNode xml +> sepNln) node.XmlDoc
+        +> genAccessOpt node.Accessibility
+        +> genSingleTextNode node.New
+        +> sepSpaceBeforeClassConstructor
+        +> genPat node.Pattern
+        +> optSingle (fun alias -> sepSpace +> !- "as" +> sepSpace +> genSingleTextNode alias) node.Alias
+        +> sepSpace
+        +> genSingleTextNode node.Equals
+        +> sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth (
+            genExpr node.Expr
+            +> optSingle
+                (fun thenExpr ->
+                    sepNln
+                    +> !- "then"
+                    +> sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth (genExpr thenExpr))
+                node.ThenExpr
+        )
     | MemberDefn.LetBinding node -> genBindings true node.Bindings
-    | MemberDefn.ExplicitCtor _ -> failwithf "todo %A" md
     | MemberDefn.Interface _ -> failwithf "todo %A" md
     | MemberDefn.AutoProperty _ -> failwithf "todo %A" md
     | MemberDefn.AbstractSlot _ -> failwithf "todo %A" md
