@@ -1860,6 +1860,7 @@ type MemberDefn =
     | ValField of FieldNode
     | Member of BindingNode
     | ExternBinding of MemberDefnExternBindingNode
+    | DoExpr of ExprSingleNode
     | LetBinding of MemberDefnLetBindingNode
     | ExplicitCtor of MemberDefnExplicitCtorNode
     | Interface of MemberDefnInterfaceNode
@@ -1874,6 +1875,7 @@ type MemberDefn =
         | ValField n -> n
         | Member n -> n
         | ExternBinding n -> n
+        | DoExpr n -> n
         | LetBinding n -> n
         | ExplicitCtor n -> n
         | Interface n -> n
