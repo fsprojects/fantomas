@@ -1810,10 +1810,6 @@ type TypeDefn =
         | Delegate n -> n
         | Regular n -> n
 
-type MemberDefnImplicitInheritNode(range) =
-    inherit NodeBase(range)
-    override this.Children = failwith "todo"
-
 type MemberDefnInheritNode(inheritKeyword: SingleTextNode, baseType: Type, range) =
     inherit NodeBase(range)
 
@@ -1864,7 +1860,7 @@ type MemberDefnPropertyGetSetNode(range) =
 
 [<RequireQualifiedAccess; NoEquality; NoComparison>]
 type MemberDefn =
-    | ImplicitInherit of MemberDefnImplicitInheritNode
+    | ImplicitInherit of InheritConstructor
     | Inherit of MemberDefnInheritNode
     | ValField of MemberDefnValFieldNode
     | Member of BindingNode
@@ -1878,7 +1874,7 @@ type MemberDefn =
 
     static member Node(md: MemberDefn) : Node =
         match md with
-        | ImplicitInherit n -> n
+        | ImplicitInherit n -> InheritConstructor.Node n
         | Inherit n -> n
         | ValField n -> n
         | Member n -> n

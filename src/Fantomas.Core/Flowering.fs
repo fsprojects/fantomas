@@ -174,8 +174,10 @@ let rec visitLastChildNode (node: Node) : Node =
     // | SynEnumCase_
     | :? MemberDefnInheritNode
     | :? OpenListNode
-    | :? MemberDefnImplicitInheritNode
-    | :? MemberDefnInheritNode
+    | :? InheritConstructorTypeOnlyNode
+    | :? InheritConstructorUnitNode
+    | :? InheritConstructorParenNode
+    | :? InheritConstructorOtherNode
     | :? MemberDefnValFieldNode
     | :? MemberDefnExternBindingNode
     | :? MemberDefnLetBindingNode
