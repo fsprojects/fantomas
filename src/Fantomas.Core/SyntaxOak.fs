@@ -1417,12 +1417,18 @@ type ModuleDecl =
         | NestedModule n -> n
         | TypeDefn t -> TypeDefn.Node t
 
+type BindingReturnInfoNode(colon: SingleTextNode, t: Type, range) =
+    inherit NodeBase(range)
+    override x.Children = [| yield colon; yield Type.Node t |]
+    member x.Colon = colon
+    member x.Type = t
+
 type BindingNode
     (
         leadingKeyword: MultipleTextsNode,
         functionName: Choice<SingleTextNode, Pattern>,
         parameters: Pattern list,
-        returnTypeNodes: (SingleTextNode * Type) option,
+        returnType: BindingReturnInfoNode option,
         equals: SingleTextNode,
         expr: Expr,
         range
@@ -1431,7 +1437,7 @@ type BindingNode
     member x.LeadingKeyword = leadingKeyword
     member x.FunctionName = functionName
     member x.Parameters = parameters
-    member x.ReturnType = returnTypeNodes
+    member x.ReturnType = returnType
     member x.Equals = equals
     member x.Expr = expr
 
@@ -1442,10 +1448,7 @@ type BindingNode
                | Choice1Of2 n -> (n :> Node)
                | Choice2Of2 p -> Pattern.Node p
            yield! nodes (List.map Pattern.Node parameters)
-           yield!
-               match returnTypeNodes with
-               | None -> Array.empty
-               | Some (colon, t) -> [| colon :> Node; Type.Node t |]
+           yield! noa returnType
            yield equals
            yield Expr.Node expr |]
 
@@ -1942,10 +1945,70 @@ type MemberDefnAbstractSlotNode
     member x.Type = t
     member x.WithGetSet = withGetSet
 
-type MemberDefnPropertyGetSetNode(range) =
+type PropertyGetSetBindingNode
+    (
+        accessibility: SingleTextNode option,
+        leadingKeyword: SingleTextNode,
+        parameters: Pattern list,
+        returnType: BindingReturnInfoNode option,
+        equals: SingleTextNode,
+        expr: Expr,
+        range
+    ) =
     inherit NodeBase(range)
 
-    override this.Children = failwith "todo"
+    override this.Children =
+        [| yield! noa accessibility
+           yield leadingKeyword
+           yield! List.map Pattern.Node parameters
+           yield! noa returnType
+           yield equals
+           yield Expr.Node expr |]
+
+    member x.Accessibility = accessibility
+    member x.LeadingKeyword = leadingKeyword
+    member x.Parameters = parameters
+    member x.ReturnType = returnType
+    member x.Equals = equals
+    member x.Expr = expr
+
+type MemberDefnPropertyGetSetNode
+    (
+        xmlDoc: SingleTextNode option,
+        attributes: MultipleAttributeListNode,
+        leadingKeyword: MultipleTextsNode,
+        isInline: bool,
+        accessibility: SingleTextNode option,
+        memberName: IdentListNode,
+        withKeyword: SingleTextNode,
+        firstBinding: PropertyGetSetBindingNode,
+        andKeyword: SingleTextNode option,
+        lastBinding: PropertyGetSetBindingNode option,
+        range
+    ) =
+    inherit NodeBase(range)
+
+    override this.Children =
+        [| yield! noa xmlDoc
+           yield attributes
+           yield leadingKeyword
+           yield! noa accessibility
+           yield memberName
+           yield withKeyword
+           yield firstBinding
+           yield! noa andKeyword
+           yield! noa lastBinding |]
+
+    member x.XmlDoc = xmlDoc
+    member x.Attributes = attributes
+    member x.LeadingKeyword = leadingKeyword
+    member x.IsInline = isInline
+    member x.Accessibility = accessibility
+    member x.MemberName = memberName
+    member x.WithKeyword = withKeyword
+    member x.FirstBinding = firstBinding
+    member x.AndKeyword = andKeyword
+    member x.LastBinding = lastBinding
 
 [<RequireQualifiedAccess; NoEquality; NoComparison>]
 type MemberDefn =
