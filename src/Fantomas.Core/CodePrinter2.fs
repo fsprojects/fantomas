@@ -155,6 +155,28 @@ let genAttributes (node: MultipleAttributeListNode) =
         +> genSingleTextNode a.Closing
         +> sepNlnWhenWriteBeforeNewlineNotEmpty)
 
+let genInheritConstructor (ic: InheritConstructor) =
+    match ic with
+    | InheritConstructor.TypeOnly node -> genSingleTextNode node.InheritKeyword +> sepSpace +> genType node.Type
+    | InheritConstructor.Unit node ->
+        genSingleTextNode node.InheritKeyword
+        +> sepSpace
+        +> genType node.Type
+        +> sepSpaceBeforeClassConstructor
+        +> genSingleTextNode node.OpeningParen
+        +> genSingleTextNode node.ClosingParen
+    | InheritConstructor.Paren node ->
+        genSingleTextNode node.InheritKeyword
+        +> sepSpace
+        +> genType node.Type
+        +> sepSpaceBeforeClassConstructor
+        +> expressionFitsOnRestOfLine (genExpr node.Expr) (genMultilineFunctionApplicationArguments node.Expr)
+    | InheritConstructor.Other node ->
+        genSingleTextNode node.InheritKeyword
+        +> sepSpace
+        +> genType node.Type
+        +> sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth (genExpr node.Expr)
+
 let genExpr (e: Expr) =
     match e with
     | Expr.Lazy node ->
@@ -265,7 +287,110 @@ let genExpr (e: Expr) =
                 else
                     let size = getListOrArrayExprSize ctx ctx.Config.MaxArrayOrListWidth node.Elements
                     isSmallExpression size smallExpression multilineExpression ctx
-    | Expr.Record _ -> failwith "Not Implemented"
+    | Expr.Record node ->
+        let genRecordFieldName (node: RecordFieldNode) =
+            genIdentListNode node.FieldName
+            +> sepSpace
+            +> genSingleTextNode node.Equals
+            +> sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth (genExpr node.Expr)
+            |> genNode node
+
+        let fieldsExpr = col sepNln node.Fields genRecordFieldName
+        let hasFields = List.isNotEmpty node.Fields
+
+        let smallRecordExpr =
+            genSingleTextNode node.OpeningBrace
+            +> addSpaceIfSpaceAroundDelimiter
+            +> match node.Extra with
+               | RecordNodeExtra.Inherit ie -> genInheritConstructor ie +> onlyIf hasFields sepSemi
+               | RecordNodeExtra.With we -> genExpr we +> !- " with "
+               | RecordNodeExtra.None -> sepNone
+            +> col sepSemi node.Fields genRecordFieldName
+            +> addSpaceIfSpaceAroundDelimiter
+            +> genSingleTextNode node.ClosingBrace
+
+        let multilineRecordExpr =
+            let genMultilineRecordInstanceAlignBrackets =
+                match node.Extra with
+                | RecordNodeExtra.Inherit ie ->
+                    genSingleTextNode node.OpeningBrace
+                    +> indentSepNlnUnindent (
+                        !- "inherit "
+                        +> autoIndentAndNlnIfExpressionExceedsPageWidth (genInheritConstructor ie)
+                        +> onlyIf hasFields sepNln
+                        +> fieldsExpr
+                    )
+                    +> sepNln
+                    +> genSingleTextNode node.ClosingBrace
+                | RecordNodeExtra.With we ->
+                    genSingleTextNode node.OpeningBrace
+                    +> atCurrentColumnIndent (genExpr e)
+                    +> !- " with"
+                    +> indent
+                    +> whenShortIndent indent
+                    +> sepNln
+                    +> fieldsExpr
+                    +> unindent
+                    +> whenShortIndent unindent
+                    +> sepNln
+                    +> genSingleTextNode node.ClosingBrace
+                | RecordNodeExtra.None ->
+                    genSingleTextNode node.OpeningBrace
+                    +> indentSepNlnUnindent fieldsExpr
+                    +> ifElseCtx lastWriteEventIsNewline sepNone sepNln
+                    +> genSingleTextNode node.ClosingBrace
+
+            let genMultilineRecordInstance =
+                match node.Extra with
+                | RecordNodeExtra.Inherit ie ->
+                    genSingleTextNode node.OpeningBrace
+                    +> addSpaceIfSpaceAroundDelimiter
+                    +> atCurrentColumn (
+                        !- "inherit "
+                        +> autoIndentAndNlnIfExpressionExceedsPageWidth (genInheritConstructor ie)
+                        +> onlyIf hasFields sepNln
+                        +> fieldsExpr
+                        +> addSpaceIfSpaceAroundDelimiter
+                        +> genSingleTextNode node.ClosingBrace
+                    )
+                | RecordNodeExtra.With we ->
+                    genSingleTextNode node.OpeningBrace
+                    +> addSpaceIfSpaceAroundDelimiter
+                    +> atCurrentColumnIndent (genExpr we)
+                    +> !- " with"
+                    +> indent
+                    +> whenShortIndent indent
+                    +> sepNln
+                    +> fieldsExpr
+                    +> unindent
+                    +> whenShortIndent unindent
+                    +> addSpaceIfSpaceAroundDelimiter
+                    +> genSingleTextNode node.ClosingBrace
+                | RecordNodeExtra.None ->
+                    // TODO: revist when everything is ported
+                    fun (ctx: Context) ->
+                        // position after `{ ` or `{`
+                        let targetColumn = ctx.Column + (if ctx.Config.SpaceAroundDelimiter then 2 else 1)
+
+                        atCurrentColumn
+                            (genSingleTextNode node.OpeningBrace
+                             +> addSpaceIfSpaceAroundDelimiter
+                             +> sepNlnWhenWriteBeforeNewlineNotEmpty // comment after curly brace
+                             +> col sepNln node.Fields (fun e ->
+                                 // Add spaces to ensure the record field (incl trivia) starts at the right column.
+                                 addFixedSpaces targetColumn
+                                 // Lock the start of the record field, however keep potential indentations in relation to the opening curly brace
+                                 +> atCurrentColumn (genRecordFieldName e))
+                             +> sepNlnWhenWriteBeforeNewlineNotEmpty
+                             +> addSpaceIfSpaceAroundDelimiter
+                             +> genSingleTextNode node.ClosingBrace)
+                            ctx
+
+            ifAlignBrackets genMultilineRecordInstanceAlignBrackets genMultilineRecordInstance
+
+        fun ctx ->
+            let size = getRecordSize ctx node.Fields
+            isSmallExpression size smallRecordExpr multilineRecordExpr ctx
     | Expr.AnonRecord _ -> failwith "Not Implemented"
     | Expr.ObjExpr _ -> failwith "Not Implemented"
     | Expr.While _ -> failwith "Not Implemented"
