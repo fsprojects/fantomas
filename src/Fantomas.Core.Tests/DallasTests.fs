@@ -724,3 +724,22 @@ type X(y) =
 type X(y) =
     member val Y = y with get, set
 """
+
+[<Test>]
+let ``abstract slot`` () =
+    formatSourceString
+        false
+        """
+type X =
+    abstract Y : int
+    abstract member Z : int
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type X =
+    abstract Y: int
+    abstract member Z: int
+"""

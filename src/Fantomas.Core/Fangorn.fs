@@ -1,5 +1,6 @@
 ﻿module rec Fantomas.Core.Fangorn
 
+open System
 open FSharp.Compiler.Text
 open FSharp.Compiler.Text.Range
 open FSharp.Compiler.Syntax
@@ -462,8 +463,7 @@ let mkPat (creationAide: CreationAide) (p: SynPat) =
                         SynArgPats.NamePatPairs (nps, _, { ParenRange = StartEndRange 1 (lpr, range, rpr) }),
                         _,
                         _) ->
-        let typarDecls =
-            Option.bind (fun (SynValTyparDecls (tds, _)) -> Option.map (mkSynTyparDecls creationAide) tds) vtdo
+        let typarDecls = mkSynValTyparDecls creationAide vtdo
 
         let pairs =
             nps
@@ -473,8 +473,7 @@ let mkPat (creationAide: CreationAide) (p: SynPat) =
         PatNamePatPairsNode(mkSynLongIdent synLongIdent, typarDecls, stn "(" lpr, pairs, stn ")" rpr, patternRange)
         |> Pattern.NamePatPairs
     | SynPat.LongIdent (synLongIdent, _, vtdo, SynArgPats.Pats pats, ao, _) ->
-        let typarDecls =
-            Option.bind (fun (SynValTyparDecls (tds, _)) -> Option.map (mkSynTyparDecls creationAide) tds) vtdo
+        let typarDecls = mkSynValTyparDecls creationAide vtdo
 
         PatLongIdentNode(
             mkSynAccess ao,
@@ -627,6 +626,11 @@ let mkSynTyparDecls (creationAide: CreationAide) (tds: SynTyparDecls) : TyparDec
     | SynTyparDecls.PrefixList _
     | SynTyparDecls.SinglePrefix _ -> failwith "todo"
 
+let mkSynValTyparDecls (creationAide: CreationAide) (vt: SynValTyparDecls option) : TyparDecls option =
+    match vt with
+    | None -> None
+    | Some (SynValTyparDecls (tds, _)) -> Option.map (mkSynTyparDecls creationAide) tds
+
 let mkSynRationalConst rc =
     let rec visit rc =
         match rc with
@@ -695,17 +699,13 @@ let mkTypeList creationAide ts rt m =
     let parameters =
         ts |> List.map (fun (t, mArrow) -> mkType creationAide t, stn "->" mArrow)
 
-    TypeListNode(parameters, mkType creationAide rt, m)
+    TypeFunsNode(parameters, mkType creationAide rt, m)
 
 let mkType (creationAide: CreationAide) (t: SynType) : Type =
     let typeRange = t.Range
 
     match t with
-    | TFuns (ts, rt) ->
-        let parameters =
-            ts |> List.map (fun (t, mArrow) -> mkType creationAide t, stn "->" mArrow)
-
-        TypeFunsNode(parameters, mkType creationAide rt, typeRange) |> Type.Funs
+    | TFuns (ts, rt) -> mkTypeList creationAide ts rt typeRange |> Type.Funs
     | SynType.Tuple (false, ts, _) ->
         let path =
             ts
@@ -840,10 +840,10 @@ let mkSynLeadingKeyword (lk: SynLeadingKeyword) =
     | SynLeadingKeyword.OverrideVal (overrideRange, valRange) -> mtn [ "override", overrideRange; "val", valRange ]
     | SynLeadingKeyword.Abstract abstractRange -> mtn [ "abstract", abstractRange ]
     | SynLeadingKeyword.AbstractMember (abstractRange, memberRange) ->
-        mtn [ "abstract", abstractRange; "memberRange", memberRange ]
+        mtn [ "abstract", abstractRange; "member", memberRange ]
     | SynLeadingKeyword.StaticMember (staticRange, memberRange) -> mtn [ "static", staticRange; "member", memberRange ]
     | SynLeadingKeyword.StaticMemberVal (staticRange, memberRange, valRange) ->
-        mtn [ "static", staticRange; "memberRange", memberRange; "val", valRange ]
+        mtn [ "static", staticRange; "member", memberRange; "val", valRange ]
     | SynLeadingKeyword.StaticAbstract (staticRange, abstractRange) ->
         mtn [ "static", staticRange; "abstract", abstractRange ]
     | SynLeadingKeyword.StaticAbstractMember (staticRange, abstractMember, memberRange) ->
@@ -1236,7 +1236,7 @@ let mkMemberDefn (creationAide: CreationAide) (md: SynMemberDefn) =
         )
         |> MemberDefn.Interface
     | SynMemberDefn.AutoProperty (ats,
-                                  isStatic,
+                                  _isStatic,
                                   ident,
                                   typeOpt,
                                   mk,
@@ -1263,6 +1263,19 @@ let mkMemberDefn (creationAide: CreationAide) (md: SynMemberDefn) =
             memberDefinitionRange
         )
         |> MemberDefn.AutoProperty
+    | SynMemberDefn.AbstractSlot (SynValSig (ats, ident, tds, t, _, _, _, px, _ao, _, _, trivia), mf, _) ->
+        MemberDefnAbstractSlotNode(
+            mkXmlDoc px,
+            mkAttributes creationAide ats,
+            mkSynLeadingKeyword trivia.LeadingKeyword,
+            mkSynIdent ident,
+            mkSynValTyparDecls creationAide (Some tds),
+            mkType creationAide t,
+            // TODO: add to parser
+            mkWithGetSet (Some t) trivia.WithKeyword None mf.MemberKind,
+            memberDefinitionRange
+        )
+        |> MemberDefn.AbstractSlot
     | _ -> failwith "todo"
 
 let rec mkModuleDecls
