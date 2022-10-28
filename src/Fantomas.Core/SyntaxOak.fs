@@ -1530,6 +1530,7 @@ type TypeNameNode
     member x.Attributes = attrs
     member x.IsFirstType = leadingKeyword.Text = "type"
     member x.LeadingKeyword = leadingKeyword
+    member x.Accessibility = ao
     member x.Identifier = identifier
     member x.TypeParameters = typeParams
     member x.Constraints = constraints
@@ -1725,14 +1726,15 @@ type TypeDefnExplicitNode
         member x.TypeName = typeNameNode
         member x.Members = members
 
-type TypeDefnAugmentationNode(typeNameNode, range) =
+type TypeDefnAugmentationNode(typeNameNode, members, range) =
     inherit NodeBase(range)
 
-    override this.Children = failwith "todo"
+    override this.Children =
+        [| yield typeNameNode; yield! (List.map MemberDefn.Node members) |]
 
     interface ITypeDefn with
         member x.TypeName = typeNameNode
-        member x.Members = failwith "todo"
+        member x.Members = members
 
 type TypeDefnFunNode(typeNameNode, range) =
     inherit NodeBase(range)
@@ -1880,7 +1882,7 @@ type MemberDefn =
     | AbstractSlot of MemberDefnAbstractSlotNode
     | PropertyGetSet of MemberDefnPropertyGetSetNode
 
-    static member Node(md: MemberDefn) : NodeBase =
+    static member Node(md: MemberDefn) : Node =
         match md with
         | Open n -> n
         | ImplicitInherit n -> n
