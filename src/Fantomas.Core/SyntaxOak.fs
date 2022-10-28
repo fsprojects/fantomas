@@ -627,10 +627,108 @@ type ExprArrayOrListNode(openingToken: SingleTextNode, elements: Expr list, clos
     member x.Elements = elements
     member x.Closing = closingToken
 
-type ExprRecordNode(range) =
+type InheritConstructorTypeOnlyNode(inheritKeyword: SingleTextNode, t: Type, range) =
     inherit NodeBase(range)
 
-    override this.Children = failwith "todo"
+    override this.Children = [| yield inheritKeyword; yield Type.Node t |]
+    member x.InheritKeyword = inheritKeyword
+    member x.Type = t
+
+type InheritConstructorUnitNode
+    (
+        inheritKeyword: SingleTextNode,
+        t: Type,
+        openingParen: SingleTextNode,
+        closingParen: SingleTextNode,
+        range
+    ) =
+    inherit NodeBase(range)
+
+    override this.Children =
+        [| yield inheritKeyword
+           yield Type.Node t
+           yield openingParen
+           yield closingParen |]
+
+    member x.InheritKeyword = inheritKeyword
+    member x.Type = t
+    member x.OpeningParen = openingParen
+    member x.ClosingParen = closingParen
+
+type InheritConstructorParenNode(inheritKeyword: SingleTextNode, t: Type, expr: Expr, range) =
+    inherit NodeBase(range)
+
+    override this.Children =
+        [| yield inheritKeyword; yield Type.Node t; yield Expr.Node expr |]
+
+    member x.InheritKeyword = inheritKeyword
+    member x.Type = t
+    member x.Expr = expr
+
+type InheritConstructorOtherNode(inheritKeyword: SingleTextNode, t: Type, expr: Expr, range) =
+    inherit NodeBase(range)
+
+    override this.Children =
+        [| yield inheritKeyword; yield Type.Node t; yield Expr.Node expr |]
+
+    member x.InheritKeyword = inheritKeyword
+    member x.Type = t
+    member x.Expr = expr
+
+[<RequireQualifiedAccess; NoComparison>]
+type InheritConstructor =
+    | TypeOnly of InheritConstructorTypeOnlyNode
+    | Unit of InheritConstructorUnitNode
+    | Paren of InheritConstructorParenNode
+    | Other of InheritConstructorOtherNode
+
+    static member Node(ic: InheritConstructor) : Node =
+        match ic with
+        | TypeOnly n -> n
+        | Unit n -> n
+        | Paren n -> n
+        | Other n -> n
+
+[<RequireQualifiedAccess; NoComparison>]
+type RecordNodeExtra =
+    | Inherit of inheritConstructor: InheritConstructor
+    | With of expr: Expr
+    | None
+
+    static member Node(extra: RecordNodeExtra) : Node option =
+        match extra with
+        | Inherit n -> Some(InheritConstructor.Node n)
+        | With e -> Some(Expr.Node e)
+        | None -> Option.None
+
+type RecordFieldNode(fieldName: IdentListNode, equals: SingleTextNode, expr: Expr, range) =
+    inherit NodeBase(range)
+
+    override this.Children = [| yield fieldName; yield equals; yield Expr.Node expr |]
+    member x.FieldName = fieldName
+    member x.Equals = equals
+    member x.Expr = expr
+
+type ExprRecordNode
+    (
+        openingBrace: SingleTextNode,
+        extra: RecordNodeExtra,
+        fields: RecordFieldNode list,
+        closingBrace: SingleTextNode,
+        range
+    ) =
+    inherit NodeBase(range)
+
+    override this.Children =
+        [| yield openingBrace
+           yield! noa (RecordNodeExtra.Node extra)
+           yield! nodes fields
+           yield closingBrace |]
+
+    member x.OpeningBrace = openingBrace
+    member x.Extra = extra
+    member x.Fields = fields
+    member x.ClosingBrace = closingBrace
 
 type ExprAnonRecordNode(range) =
     inherit NodeBase(range)
