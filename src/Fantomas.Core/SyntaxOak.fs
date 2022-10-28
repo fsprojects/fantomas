@@ -343,6 +343,17 @@ type Type =
         | SignatureParameter n -> n
         | Or n -> n
 
+type TypeListNode(parameters: (Type * SingleTextNode) list, returnType: Type, range) =
+    inherit NodeBase(range)
+
+    override this.Children =
+        [| yield! List.collect (fun (t, arrow) -> [ Type.Node t; (arrow :> Node) ]) parameters
+           yield Type.Node returnType |]
+
+    /// Type + arrow
+    member x.Parameters = parameters
+    member x.ReturnType = returnType
+
 type PatAttribNode(attrs: MultipleAttributeListNode, pat: Pattern, range) =
     inherit NodeBase(range)
 
@@ -1736,23 +1747,17 @@ type TypeDefnAugmentationNode(typeNameNode, members, range) =
         member x.TypeName = typeNameNode
         member x.Members = members
 
-type TypeDefnFunNode(typeNameNode, range) =
+type TypeDefnDelegateNode(typeNameNode, delegateNode: SingleTextNode, typeList: TypeListNode, range) =
     inherit NodeBase(range)
 
-    override this.Children = failwith "todo"
+    override this.Children = [| yield typeNameNode; yield delegateNode; yield typeList |]
+
+    member x.DelegateNode = delegateNode
+    member x.TypeList = typeList
 
     interface ITypeDefn with
         member x.TypeName = typeNameNode
-        member x.Members = failwith "todo"
-
-type TypeDefnDelegateNode(typeNameNode, range) =
-    inherit NodeBase(range)
-
-    override this.Children = failwith "todo"
-
-    interface ITypeDefn with
-        member x.TypeName = typeNameNode
-        member x.Members = failwith "todo"
+        member x.Members = List.empty
 
 type TypeDefnUnspecifiedNode(typeNameNode, range) =
     inherit NodeBase(range)
@@ -1781,7 +1786,6 @@ type TypeDefn =
     | Abbrev of TypeDefnAbbrevNode
     | Explicit of TypeDefnExplicitNode
     | Augmentation of TypeDefnAugmentationNode
-    | Fun of TypeDefnFunNode
     | Delegate of TypeDefnDelegateNode
     | Unspecified of TypeDefnUnspecifiedNode
     | RegularType of TypeDefnRegularTypeNode
@@ -1795,7 +1799,6 @@ type TypeDefn =
         | Abbrev n -> n
         | Explicit n -> n
         | Augmentation n -> n
-        | Fun n -> n
         | Delegate n -> n
         | Unspecified n -> n
         | RegularType n -> n
@@ -1812,7 +1815,6 @@ type TypeDefn =
         | Abbrev n -> n
         | Explicit n -> n
         | Augmentation n -> n
-        | Fun n -> n
         | Delegate n -> n
         | Unspecified n -> n
         | RegularType n -> n

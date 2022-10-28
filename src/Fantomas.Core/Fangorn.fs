@@ -692,6 +692,12 @@ let rec (|TFuns|_|) =
     | SynType.Fun (t1, t2, _, trivia) -> Some([ t1, trivia.ArrowRange ], t2)
     | _ -> None
 
+let mkTypeList creationAide ts rt m =
+    let parameters =
+        ts |> List.map (fun (t, mArrow) -> mkType creationAide t, stn "->" mArrow)
+
+    TypeListNode(parameters, mkType creationAide rt, m)
+
 let mkType (creationAide: CreationAide) (t: SynType) : Type =
     let typeRange = t.Range
 
@@ -1084,9 +1090,13 @@ let mkTypeDefn
 
         TypeDefnAugmentationNode(typeNameNode, members, typeDefnRange)
         |> TypeDefn.Augmentation
-    // | ObjectModel (TCSimple (TCAugmentation withKeywordAug), _, _) ->
 
-    // | ObjectModel (TCDelegate (FunType ts), _, _) ->
+    | SynTypeDefnRepr.ObjectModel (kind = SynTypeDefnKind.Delegate(signature = (TFuns (ts, rt)) as st)
+                                   range = StartRange 8 (mDelegate, _)) ->
+        let typeList = mkTypeList creationAide ts rt st.Range
+
+        TypeDefnDelegateNode(typeNameNode, stn "delegate" mDelegate, typeList, typeDefnRange)
+        |> TypeDefn.Delegate
 
     // Could be combinable as well.
     // | ObjectModel (TCSimple TCUnspecified, MemberDefnList (impCtor, others), _) when not (List.isEmpty ms) ->
