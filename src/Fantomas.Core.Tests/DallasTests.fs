@@ -632,3 +632,25 @@ type A =
     let b x = 0
     and c y = 1
 """
+
+[<Test>]
+let ``second ctor`` () =
+    formatSourceString
+        false
+        """
+type StateMachine() =
+    new() as secondCtor =
+        new StateMachine()
+            then
+                        ()
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type StateMachine() =
+    new() as secondCtor =
+        new StateMachine()
+        then ()
+"""
