@@ -445,7 +445,7 @@ let ``inherit record`` () =
     |> should
         equal
         """
-{ inherit X  }
+{ inherit X }
 """
 
 [<Test>]
@@ -514,4 +514,45 @@ type X =
                     X
 
 type A = int
+"""
+
+[<Test>]
+let ``unspecified type with`` () =
+    formatSourceString
+        false
+        """
+type A() =
+    member x.B () = ()
+    with
+        member x.C () = ()
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type A() =
+    member x.B () = ()
+    member x.C () = ()
+"""
+
+[<Test>]
+let ``xx dfe`` () =
+    formatSourceString
+        false
+        """
+type A() =
+    class
+        member x.B () = ()
+    end
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type A() =
+    class
+        member x.B () = ()
+    end
 """
