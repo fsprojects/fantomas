@@ -515,7 +515,7 @@ let genExpr (e: Expr) =
     | Expr.IfThen _ -> failwith "Not Implemented"
     | Expr.IfThenElse _ -> failwith "Not Implemented"
     | Expr.IfThenElif _ -> failwith "Not Implemented"
-    | Expr.Ident node -> genSingleTextNode node
+    | Expr.Ident node -> !-node.Text
     | Expr.OptVar _ -> failwith "Not Implemented"
     | Expr.LongIdentSet _ -> failwith "Not Implemented"
     | Expr.DotIndexedGet _ -> failwith "Not Implemented"
@@ -1213,12 +1213,14 @@ let genMemberDefn (md: MemberDefn) =
     | MemberDefn.ValField node -> genField node
     | MemberDefn.Member node -> genBinding node
     | MemberDefn.ExternBinding _ -> failwithf "todo %A" md
+    | MemberDefn.DoExpr node -> genExpr (Expr.Single node)
     | MemberDefn.LetBinding _ -> failwithf "todo %A" md
     | MemberDefn.ExplicitCtor _ -> failwithf "todo %A" md
     | MemberDefn.Interface _ -> failwithf "todo %A" md
     | MemberDefn.AutoProperty _ -> failwithf "todo %A" md
     | MemberDefn.AbstractSlot _ -> failwithf "todo %A" md
     | MemberDefn.PropertyGetSet _ -> failwithf "todo %A" md
+    |> genNode (MemberDefn.Node md)
 
 let genExceptionBody px ats ao uc =
     optSingle genSingleTextNode px
