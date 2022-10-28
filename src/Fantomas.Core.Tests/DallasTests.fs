@@ -743,3 +743,45 @@ type X =
     abstract Y: int
     abstract member Z: int
 """
+
+[<Test>]
+let ``get / set`` () =
+    formatSourceString
+        false
+        """
+type X =
+    member this.Y 
+        with get() = y
+        and set(newY) = ()
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type X =
+    member this.Y
+        with get () = y
+        and set (newY) = ()
+"""
+
+[<Test>]
+let ``set with two parameters`` () =
+    formatSourceString
+        false
+        """
+type X =
+    member this.Item
+            with get (name: string): obj option = None
+            and set (name: string) (v: obj option): unit = ()
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type X =
+    member this.Item
+        with get (name: string): obj option = None
+        and set (name: string) (v: obj option): unit = ()
+"""
