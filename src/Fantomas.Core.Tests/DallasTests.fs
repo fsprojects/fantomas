@@ -330,6 +330,7 @@ type Foo
     class
         member x.Bar = ()
     end
+
     member x.Foo = ()
 """
 
@@ -430,4 +431,36 @@ type MyType
     ) =
     class
     end
+"""
+
+[<Test>]
+let ``inherit record`` () =
+    formatSourceString
+        false
+        """
+{ inherit   X  }
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+{ inherit X  }
+"""
+
+[<Test>]
+let ``moar records`` () =
+    formatSourceString
+        false
+        """
+{ X = y; Z = 1 }
+{ x with Y = 0 }
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+{ X = y; Z = 1 }
+{ x with Y = 0 }
 """
