@@ -2,6 +2,7 @@
 
 open System.Collections.Generic
 open FSharp.Compiler.Text
+open Microsoft.FSharp.Quotations
 
 // Open questions:
 // - Do we need to distinguish between SignatureFile and ImplementationFile?
@@ -1828,10 +1829,41 @@ type MemberDefnExternBindingNode(range) =
 
     override this.Children = failwith "todo"
 
-type MemberDefnExplicitCtorNode(range) =
+type MemberDefnExplicitCtorNode
+    (
+        xmlDoc: SingleTextNode option,
+        attributes: MultipleAttributeListNode,
+        accessibility: SingleTextNode option,
+        newKeyword: SingleTextNode,
+        pat: Pattern,
+        alias: SingleTextNode option,
+        equals: SingleTextNode,
+        expr: Expr,
+        thenExpr: Expr option,
+        range
+    ) =
     inherit NodeBase(range)
 
-    override this.Children = failwith "todo"
+    override this.Children =
+        [| yield! noa xmlDoc
+           yield attributes
+           yield! noa accessibility
+           yield newKeyword
+           yield Pattern.Node pat
+           yield! noa alias
+           yield equals
+           yield Expr.Node expr
+           yield! noa (Option.map Expr.Node thenExpr) |]
+
+    member x.XmlDoc = xmlDoc
+    member x.Attributes = attributes
+    member x.Accessibility = accessibility
+    member x.New = newKeyword
+    member x.Pattern = pat
+    member x.Alias = alias
+    member x.Equals = equals
+    member x.Expr = expr
+    member x.ThenExpr = thenExpr
 
 type MemberDefnInterfaceNode(range) =
     inherit NodeBase(range)
