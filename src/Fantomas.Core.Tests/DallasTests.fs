@@ -613,3 +613,22 @@ type A =
         // x
         y
 """
+
+[<Test>]
+let ``let bindings in type`` () =
+    formatSourceString
+        false
+        """
+type A =
+    let b x = 0
+    and c y = 1
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type A =
+    let b x = 0
+    and c y = 1
+"""

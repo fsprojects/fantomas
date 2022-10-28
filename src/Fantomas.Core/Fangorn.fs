@@ -1132,6 +1132,9 @@ let mkMemberDefn (creationAide: CreationAide) (md: SynMemberDefn) =
     | SynMemberDefn.LetBindings(bindings = [ SynBinding (kind = SynBindingKind.Do; expr = expr; trivia = trivia) ]) ->
         ExprSingleNode(stn "do" trivia.LeadingKeyword.Range, false, mkExpr creationAide expr, memberDefinitionRange)
         |> MemberDefn.DoExpr
+    | SynMemberDefn.LetBindings (bindings = bindings) ->
+        BindingListNode(List.map (mkBinding creationAide) bindings, memberDefinitionRange)
+        |> MemberDefn.LetBinding
     | _ -> failwith "todo"
 
 let rec mkModuleDecls
