@@ -1759,23 +1759,17 @@ type TypeDefnDelegateNode(typeNameNode, delegateNode: SingleTextNode, typeList: 
         member x.TypeName = typeNameNode
         member x.Members = List.empty
 
-type TypeDefnUnspecifiedNode(typeNameNode, range) =
+type TypeDefnRegularNode(typeNameNode, implicitCtor: ImplicitConstructorNode option, members, range) =
     inherit NodeBase(range)
 
-    override this.Children = failwith "todo"
+    override this.Children =
+        [| yield typeNameNode; yield! List.map MemberDefn.Node members |]
+
+    member x.ImplicitConstructor = implicitCtor
 
     interface ITypeDefn with
         member x.TypeName = typeNameNode
-        member x.Members = failwith "todo"
-
-type TypeDefnRegularTypeNode(typeNameNode, range) =
-    inherit NodeBase(range)
-
-    override this.Children = failwith "todo"
-
-    interface ITypeDefn with
-        member x.TypeName = typeNameNode
-        member x.Members = failwith "todo"
+        member x.Members = members
 
 [<RequireQualifiedAccess; NoEquality; NoComparison>]
 type TypeDefn =
@@ -1787,8 +1781,7 @@ type TypeDefn =
     | Explicit of TypeDefnExplicitNode
     | Augmentation of TypeDefnAugmentationNode
     | Delegate of TypeDefnDelegateNode
-    | Unspecified of TypeDefnUnspecifiedNode
-    | RegularType of TypeDefnRegularTypeNode
+    | Regular of TypeDefnRegularNode
 
     static member Node(x: TypeDefn) : Node =
         match x with
@@ -1800,8 +1793,7 @@ type TypeDefn =
         | Explicit n -> n
         | Augmentation n -> n
         | Delegate n -> n
-        | Unspecified n -> n
-        | RegularType n -> n
+        | Regular n -> n
 
     static member TypeDefnNode(x: TypeDefn) : ITypeDefn =
         match x with
@@ -1816,8 +1808,7 @@ type TypeDefn =
         | Explicit n -> n
         | Augmentation n -> n
         | Delegate n -> n
-        | Unspecified n -> n
-        | RegularType n -> n
+        | Regular n -> n
 
 type MemberDefnImplicitInheritNode(range) =
     inherit NodeBase(range)
