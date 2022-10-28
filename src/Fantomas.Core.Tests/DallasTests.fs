@@ -671,3 +671,22 @@ type StateMachine() =
 type StateMachine() =
     member x.X = y
 """
+
+[<Test>]
+let ``interface member`` () =
+    formatSourceString
+        false
+        """
+type Y =
+    interface Z with
+        member x.A = ()
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type Y =
+    interface Z with
+        member x.A = ()
+"""
