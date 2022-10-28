@@ -482,3 +482,36 @@ type Foo with
 
     member x.Bar = ()
 """
+
+[<Test>]
+let ``long delegate stuff`` () =
+    formatSourceString
+        false
+        """
+type X =
+    delegate of
+            VreeeeeeeeeeeeeeLaaaaaaaaaaaaaaanngggType *
+                    Fooooooooooooooooooooooooooooo ->
+                        A ->
+                        B * C ->
+                            Y ->
+                                        X
+
+type A = int
+"""
+        { config with MaxLineLength = 60 }
+    |> prepend newline
+    |> should
+        equal
+        """
+type X =
+    delegate of
+        VreeeeeeeeeeeeeeLaaaaaaaaaaaaaaanngggType *
+        Fooooooooooooooooooooooooooooo ->
+            A ->
+            B * C ->
+                Y ->
+                    X
+
+type A = int
+"""
