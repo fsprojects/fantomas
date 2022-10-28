@@ -984,7 +984,7 @@ let mkTypeDefn
                 Option.map (mkSynTyparDecls creationAide) tds,
                 List.map (mkSynTypeConstraint creationAide) tcs,
                 Option.map (stn "=") trivia.EqualsRange,
-                None,
+                Option.map (stn "with") trivia.WithKeyword,
                 unionRanges (leadingKeyword :> Node).Range (identifierNode :> Node).Range
             )
 
@@ -1067,10 +1067,23 @@ let mkTypeDefn
         TypeDefnExplicitNode(typeNameNode, implicitConstructorNode, body, members, typeDefnRange)
         |> TypeDefn.Explicit
 
-    // | ObjectModel (TCSimple (TCInterface | TCClass) as tdk, MemberDefnList (impCtor, others), range) ->
-    // Can be combined as one!
-    // | ObjectModel (TCSimple TCStruct as tdk, MemberDefnList (impCtor, others), _) ->
+    | SynTypeDefnRepr.ObjectModel(kind = SynTypeDefnKind.Augmentation mWith) ->
+        let typeNameNode =
+            TypeNameNode(
+                typeNameNode.XmlDoc,
+                typeNameNode.Attributes,
+                typeNameNode.LeadingKeyword,
+                typeNameNode.Accessibility,
+                typeNameNode.Identifier,
+                typeNameNode.TypeParameters,
+                typeNameNode.Constraints,
+                None,
+                Some(stn "with" mWith),
+                (typeNameNode :> Node).Range
+            )
 
+        TypeDefnAugmentationNode(typeNameNode, members, typeDefnRange)
+        |> TypeDefn.Augmentation
     // | ObjectModel (TCSimple (TCAugmentation withKeywordAug), _, _) ->
 
     // | ObjectModel (TCDelegate (FunType ts), _, _) ->
