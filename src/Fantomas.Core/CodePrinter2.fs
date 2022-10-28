@@ -1135,7 +1135,7 @@ let genTypeDefn (td: TypeDefn) =
 
     |> genNode (TypeDefn.Node td)
 
-let genTypeList (node: TypeListNode) =
+let genTypeList (node: TypeFunsNode) =
     let shortExpr =
         col sepSpace node.Parameters (fun (t, arrow) -> genType t +> sepSpace +> genSingleTextNode arrow)
         +> sepSpace
@@ -1173,6 +1173,37 @@ let genTypeList (node: TypeListNode) =
         visit node.Parameters 0 sepNone
 
     expressionFitsOnRestOfLine shortExpr longExpr |> genNode node
+
+let genTypeInSignature (t: Type) =
+    match t with
+    | Type.Funs node ->
+        match node.ReturnType with
+        | Type.WithGlobalConstraints node when Array.isEmpty node.Children ->
+            let genType =
+                match node.Type with
+                | Type.Funs node -> genTypeList node
+                | t -> genType t
+
+            let genConstraints =
+                let short =
+                    ifElse (List.isNotEmpty node.TypeConstraints) (!- "when ") sepSpace
+                    +> col wordAnd node.TypeConstraints genTypeConstraint
+
+                let long =
+                    ifElse (List.isNotEmpty node.TypeConstraints) (!- "when ") sepSpace
+                    +> col (sepNln +> wordAndFixed +> sepSpace) node.TypeConstraints genTypeConstraint
+
+                expressionFitsOnRestOfLine short long
+
+            autoIndentAndNlnIfExpressionExceedsPageWidth (
+                leadingExpressionIsMultiline genType (fun isMultiline ->
+                    if isMultiline then
+                        indentSepNlnUnindent genConstraints
+                    else
+                        sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth genConstraints)
+            )
+        | _ -> autoIndentAndNlnIfExpressionExceedsPageWidth (genTypeList node)
+    | _ -> genType t
 
 let genField (node: FieldNode) =
     genXml node.XmlDoc
@@ -1263,7 +1294,16 @@ let genMemberDefn (md: MemberDefn) =
             genExpr node.Expr
             +> optSingle (fun gs -> sepSpace +> genMultipleTextsNode gs) node.WithGetSet
         )
-    | MemberDefn.AbstractSlot _ -> failwithf "todo %A" md
+    | MemberDefn.AbstractSlot node ->
+        genXml node.XmlDoc
+        +> genAttributes node.Attributes
+        +> genMultipleTextsNode node.LeadingKeyword
+        +> sepSpace
+        +> genSingleTextNode node.Identifier
+        +> optSingle genTyparDecls node.TypeParams
+        +> ifElse node.TypeParams.IsSome sepColonWithSpacesFixed sepColon
+        +> genTypeInSignature node.Type
+        +> optSingle (fun gs -> sepSpace +> genMultipleTextsNode gs) node.WithGetSet
     | MemberDefn.PropertyGetSet _ -> failwithf "todo %A" md
     |> genNode (MemberDefn.Node md)
 
