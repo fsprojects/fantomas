@@ -67,11 +67,12 @@ let mkLongIdent (longIdent: LongIdent) : IdentListNode =
 
         IdentListNode(IdentifierOrDot.Ident(stn head.idText head.idRange) :: rest, range)
 
-let mkSynAccess (vis: SynAccess) =
+let mkSynAccess (vis: SynAccess option) =
     match vis with
-    | SynAccess.Internal range -> stn "internal" range
-    | SynAccess.Private range -> stn "private" range
-    | SynAccess.Public range -> stn "public" range
+    | None -> None
+    | Some (SynAccess.Internal range) -> Some(stn "internal" range)
+    | Some (SynAccess.Private range) -> Some(stn "private" range)
+    | Some (SynAccess.Public range) -> Some(stn "public" range)
 
 let parseExpressionInSynBinding returnInfo expr =
     match returnInfo, expr with
@@ -476,7 +477,7 @@ let mkPat (creationAide: CreationAide) (p: SynPat) =
             Option.bind (fun (SynValTyparDecls (tds, _)) -> Option.map (mkSynTyparDecls creationAide) tds) vtdo
 
         PatLongIdentNode(
-            Option.map mkSynAccess ao,
+            mkSynAccess ao,
             mkSynLongIdent synLongIdent,
             typarDecls,
             List.map (mkPat creationAide) pats,
@@ -584,7 +585,7 @@ let mkModuleDecl (creationAide: CreationAide) (decl: SynModuleDecl) =
         ExceptionDefnNode(
             mkXmlDoc xmlDoc,
             mkAttributes creationAide attrs,
-            Option.map mkSynAccess vis,
+            mkSynAccess vis,
             mkSynUnionCase creationAide caseName,
             Option.map (stn "with") withKeyword,
             List.map (mkMemberDefn creationAide) ms,
@@ -610,7 +611,7 @@ let mkModuleDecl (creationAide: CreationAide) (decl: SynModuleDecl) =
             mkXmlDoc px,
             mkAttributes creationAide ats,
             stn "module" mModule,
-            Option.map mkSynAccess ao,
+            mkSynAccess ao,
             isRecursive,
             mkLongIdent lid,
             stn "=" mEq,
@@ -868,7 +869,7 @@ let mkSynField
         mkAttributes creationAide ats,
         Option.map mkSynLeadingKeyword lk,
         isMutable,
-        Option.map mkSynAccess ao,
+        mkSynAccess ao,
         Option.map mkIdent ido,
         mkType creationAide t,
         range
@@ -953,7 +954,7 @@ let mkImplicitCtor creationAide vis (attrs: SynAttributeList list) pats (self: I
     ImplicitConstructorNode(
         mkXmlDoc xmlDoc,
         mkAttributes creationAide attrs,
-        Option.map mkSynAccess vis,
+        mkSynAccess vis,
         openNode,
         pats,
         closeNode,
@@ -983,7 +984,7 @@ let mkTypeDefn
                 mkXmlDoc px,
                 mkAttributes creationAide ats,
                 leadingKeyword,
-                Option.map mkSynAccess ao,
+                mkSynAccess ao,
                 identifierNode,
                 Option.map (mkSynTyparDecls creationAide) tds,
                 List.map (mkSynTypeConstraint creationAide) tcs,
@@ -1015,7 +1016,7 @@ let mkTypeDefn
     | SynTypeDefnRepr.Simple(simpleRepr = SynTypeDefnSimpleRepr.Union (ao, cases, _)) ->
         let unionCases = cases |> List.map (mkSynUnionCase creationAide)
 
-        TypeDefnUnionNode(typeNameNode, Option.map mkSynAccess ao, unionCases, members, typeDefnRange)
+        TypeDefnUnionNode(typeNameNode, mkSynAccess ao, unionCases, members, typeDefnRange)
         |> TypeDefn.Union
 
     | SynTypeDefnRepr.Simple(simpleRepr = SynTypeDefnSimpleRepr.Record (ao,
@@ -1025,7 +1026,7 @@ let mkTypeDefn
 
         TypeDefnRecordNode(
             typeNameNode,
-            Option.map mkSynAccess ao,
+            mkSynAccess ao,
             stn "{" openingBrace,
             fields,
             stn "}" closingBrace,
@@ -1117,6 +1118,28 @@ let mkTypeDefn
         |> TypeDefn.Regular
     | _ -> failwithf "Could not create a TypeDefn for %A" typeRepr
 
+let mkWithGetSet (t: SynType option) (withKeyword: range option) (getSet: range option) (memberKind: SynMemberKind) =
+    let isFunctionProperty =
+        match t with
+        | Some (SynType.Fun _) -> true
+        | _ -> false
+
+    match withKeyword, getSet with
+    | Some mWith, Some mGS ->
+        let withNode = stn "with" mWith
+        let m = unionRanges mWith mGS
+
+        match memberKind with
+        | SynMemberKind.PropertyGet ->
+            if not isFunctionProperty then
+                None
+            else
+                Some(MultipleTextsNode([ withNode; stn "get" mGS ], m))
+        | SynMemberKind.PropertySet -> Some(MultipleTextsNode([ withNode; stn "set" mGS ], m))
+        | SynMemberKind.PropertyGetSet -> Some(MultipleTextsNode([ withNode; stn "get, set" mGS ], m))
+        | _ -> None
+    | _ -> None
+
 let mkMemberDefn (creationAide: CreationAide) (md: SynMemberDefn) =
     let memberDefinitionRange = md.Range
 
@@ -1173,7 +1196,7 @@ let mkMemberDefn (creationAide: CreationAide) (md: SynMemberDefn) =
         MemberDefnExplicitCtorNode(
             mkXmlDoc px,
             mkAttributes creationAide ats,
-            Option.map mkSynAccess ao,
+            mkSynAccess ao,
             mkIdent newIdent,
             mkPat creationAide pat,
             Option.map mkIdent ido,
@@ -1212,6 +1235,34 @@ let mkMemberDefn (creationAide: CreationAide) (md: SynMemberDefn) =
             memberDefinitionRange
         )
         |> MemberDefn.Interface
+    | SynMemberDefn.AutoProperty (ats,
+                                  isStatic,
+                                  ident,
+                                  typeOpt,
+                                  mk,
+                                  _,
+                                  _,
+                                  px,
+                                  ao,
+                                  e,
+                                  _,
+                                  { LeadingKeyword = lk
+                                    EqualsRange = Some mEq
+                                    WithKeyword = mWith
+                                    GetSetKeyword = mGS }) ->
+        MemberDefnAutoPropertyNode(
+            mkXmlDoc px,
+            mkAttributes creationAide ats,
+            mkSynLeadingKeyword lk,
+            mkSynAccess ao,
+            mkIdent ident,
+            Option.map (mkType creationAide) typeOpt,
+            stn "=" mEq,
+            mkExpr creationAide e,
+            mkWithGetSet typeOpt mWith mGS mk,
+            memberDefinitionRange
+        )
+        |> MemberDefn.AutoProperty
     | _ -> failwith "todo"
 
 let rec mkModuleDecls

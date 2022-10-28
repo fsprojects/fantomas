@@ -690,3 +690,37 @@ type Y =
     interface Z with
         member x.A = ()
 """
+
+[<Test>]
+let ``auto property`` () =
+    formatSourceString
+        false
+        """
+type X =
+    member val Y: int = 0
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type X =
+    member val Y: int = 0
+"""
+
+[<Test>]
+let ``auto property get/set`` () =
+    formatSourceString
+        false
+        """
+type X(y) =
+    member val Y = y with get,set 
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type X(y) =
+    member val Y = y with get, set
+"""
