@@ -410,7 +410,33 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
             exprRange
         )
         |> Expr.For
-    // | Expr.ForEach _ -> failwith "Not Implemented"
+    | SynExpr.ForEach (_,
+                       _,
+                       SeqExprOnly true,
+                       _,
+                       pat,
+                       e1,
+                       SynExpr.YieldOrReturn ((true, _), e2, _),
+                       StartRange 3 (mFor, _)) ->
+        ExprForEachNode(
+            stn "for" mFor,
+            mkPat creationAide pat,
+            mkExpr creationAide e1,
+            true,
+            mkExpr creationAide e2,
+            exprRange
+        )
+        |> Expr.ForEach
+    | SynExpr.ForEach (_, _, SeqExprOnly isArrow, _, pat, e1, e2, StartRange 3 (mFor, _)) ->
+        ExprForEachNode(
+            stn "for" mFor,
+            mkPat creationAide pat,
+            mkExpr creationAide e1,
+            isArrow,
+            mkExpr creationAide e2,
+            exprRange
+        )
+        |> Expr.ForEach
     // | Expr.NamedComputation _ -> failwith "Not Implemented"
     // | Expr.Computation _ -> failwith "Not Implemented"
     // | Expr.CompExprBody _ -> failwith "Not Implemented"
