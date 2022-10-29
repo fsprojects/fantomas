@@ -862,3 +862,19 @@ let ``obj expr`` () =
   interface Meh with
       member x.Blur = () }
 """
+
+[<Test>]
+let ``while expr`` () =
+    formatSourceString
+        false
+        """
+while a do b
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+while a do
+    b
+"""
