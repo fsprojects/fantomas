@@ -895,3 +895,20 @@ for i = 0 to 10 do
 for i = 0 to 10 do
     y
 """
+
+[<Test>]
+let ``foreach expr`` () =
+    formatSourceString
+        false
+        """
+for x in y do 
+    ()
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+for x in y do
+    ()
+"""
