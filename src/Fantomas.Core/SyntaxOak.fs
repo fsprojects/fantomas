@@ -867,10 +867,20 @@ type ExprForNode
     member x.ToBody = toBody
     member x.DoBody = doBody
 
-type ExprForEachNode(range) =
+type ExprForEachNode(forNode: SingleTextNode, pat: Pattern, enumExpr: Expr, isArrow: bool, bodyExpr: Expr, range) =
     inherit NodeBase(range)
 
-    override this.Children = failwith "todo"
+    override this.Children =
+        [| yield forNode
+           yield Pattern.Node pat
+           yield Expr.Node enumExpr
+           yield Expr.Node bodyExpr |]
+
+    member x.For = forNode
+    member x.Pattern = pat
+    member x.EnumExpr = enumExpr
+    member x.IsArrow = isArrow
+    member x.BodyExpr = bodyExpr
 
 type ExprNamedComputationNode(range) =
     inherit NodeBase(range)
