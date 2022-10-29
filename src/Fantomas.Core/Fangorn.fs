@@ -238,6 +238,18 @@ let mkInheritConstructor (creationAide: CreationAide) (t: SynType) (e: SynExpr) 
         InheritConstructorOtherNode(inheritNode, mkType creationAide t, mkExpr creationAide e, m)
         |> InheritConstructor.Other
 
+let mkTuple (creationAide: CreationAide) (exprs: SynExpr list) (commas: range list) (m: range) =
+    match exprs with
+    | [] -> failwith "SynExpr.Tuple with no elements"
+    | head :: tail ->
+        let rest =
+            assert (tail.Length = commas.Length)
+
+            List.zip commas tail
+            |> List.collect (fun (c, e) -> [ yield Choice2Of2(stn "," c); yield Choice1Of2(mkExpr creationAide e) ])
+
+        ExprTupleNode([ yield Choice1Of2(mkExpr creationAide head); yield! rest ], m)
+
 let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
     let exprRange = e.Range
 
@@ -299,19 +311,15 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
     | SynExpr.New (_, t, e, StartRange 3 (newRange, _)) ->
         ExprNewNode(stn "new" newRange, mkType creationAide t, mkExpr creationAide e, exprRange)
         |> Expr.New
-    | SynExpr.Tuple (false, exprs, commas, _) ->
-        match exprs with
-        | [] -> failwith "SynExpr.Tuple with no elements"
-        | head :: tail ->
-            let rest =
-                assert (tail.Length = commas.Length)
+    | SynExpr.Tuple (false, exprs, commas, _) -> mkTuple creationAide exprs commas exprRange |> Expr.Tuple
+    | SynExpr.Tuple (true, exprs, commas, StartRange 6 (mStruct, _) & EndRange 1 (mClosing, _)) ->
+        let mTuple =
+            match List.tryHead exprs, List.tryLast exprs with
+            | Some e1, Some e2 -> unionRanges e1.Range e2.Range
+            | _ -> failwith "SynExpr.Tuple with no elements"
 
-                List.zip commas tail
-                |> List.collect (fun (c, e) -> [ yield Choice2Of2(stn "," c); yield Choice1Of2(mkExpr creationAide e) ])
-
-            ExprTupleNode([ yield Choice1Of2(mkExpr creationAide head); yield! rest ], exprRange)
-            |> Expr.Tuple
-    // | Expr.StructTuple _ -> failwith "Not Implemented"
+        ExprStructTupleNode(stn "struct" mStruct, mkTuple creationAide exprs commas mTuple, stn ")" mClosing, exprRange)
+        |> Expr.StructTuple
     | SynExpr.ArrayOrListComputed (isArray, Sequentials xs, range)
     | SynExpr.ArrayOrList (isArray, xs, range) ->
         let o, c = mkOpenAndCloseForArrayOrList isArray range

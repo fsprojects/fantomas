@@ -806,3 +806,18 @@ a, //
 b,
 c
 """
+
+[<Test>]
+let ``struct tuple`` () =
+    formatSourceString
+        false
+        """
+struct (x,y,z)
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+struct (x, y, z)
+"""
