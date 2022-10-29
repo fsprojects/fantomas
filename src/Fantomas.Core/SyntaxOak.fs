@@ -594,7 +594,7 @@ type ExprTypedNode(expr: Expr, operator: string, t: Type, range) =
     member x.Operator = operator
     member x.Type = t
 
-type ExprNewParenNode(newKeyword: SingleTextNode, t: Type, arguments: Expr, range) =
+type ExprNewNode(newKeyword: SingleTextNode, t: Type, arguments: Expr, range) =
     inherit NodeBase(range)
 
     override this.Children =
@@ -603,11 +603,6 @@ type ExprNewParenNode(newKeyword: SingleTextNode, t: Type, arguments: Expr, rang
     member x.NewKeyword = newKeyword
     member x.Type = t
     member x.Arguments = arguments
-
-type ExprNewNode(range) =
-    inherit NodeBase(range)
-
-    override this.Children = failwith "todo"
 
 type ExprTupleNode(range) =
     inherit NodeBase(range)
@@ -1087,7 +1082,6 @@ type Expr =
     | Null of SingleTextNode
     | Quote of ExprQuoteNode
     | Typed of ExprTypedNode
-    | NewParen of ExprNewParenNode
     | New of ExprNewNode
     | Tuple of ExprTupleNode
     | StructTuple of ExprStructTupleNode
@@ -1165,7 +1159,6 @@ type Expr =
         | Null n -> n
         | Quote n -> n
         | Typed n -> n
-        | NewParen n -> n
         | New n -> n
         | Tuple n -> n
         | StructTuple n -> n
