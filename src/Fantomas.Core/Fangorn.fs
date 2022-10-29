@@ -395,7 +395,9 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
             exprRange
         )
         |> Expr.ObjExpr
-    // | Expr.While _ -> failwith "Not Implemented"
+    | SynExpr.While (_, ew, ed, StartRange 5 (mWhile, _)) ->
+        ExprWhileNode(stn "while" mWhile, mkExpr creationAide ew, mkExpr creationAide ed, exprRange)
+        |> Expr.While
     // | Expr.For _ -> failwith "Not Implemented"
     // | Expr.ForEach _ -> failwith "Not Implemented"
     // | Expr.NamedComputation _ -> failwith "Not Implemented"
