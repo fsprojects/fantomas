@@ -574,7 +574,23 @@ let genExpr (e: Expr) =
             +> !- " do"
             +> indentSepNlnUnindent (genExpr node.DoExpr)
         )
-    | Expr.For _ -> failwith "Not Implemented"
+    | Expr.For node ->
+        atCurrentColumn (
+            genSingleTextNode node.For
+            +> sepSpace
+            +> genSingleTextNode node.Ident
+            +> sepSpace
+            +> genSingleTextNode node.Equals
+            +> sepSpace
+            +> genExpr node.IdentBody
+            +> ifElse node.Direction (!- " to ") (!- " downto ")
+            +> genExpr node.ToBody
+            +> !- " do"
+            +> indent
+            +> sepNln
+            +> genExpr node.DoBody
+            +> unindent
+        )
     | Expr.ForEach _ -> failwith "Not Implemented"
     | Expr.NamedComputation _ -> failwith "Not Implemented"
     | Expr.Computation _ -> failwith "Not Implemented"

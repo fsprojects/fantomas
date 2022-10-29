@@ -838,10 +838,34 @@ type ExprWhileNode(whileNode: SingleTextNode, whileExpr: Expr, doExpr: Expr, ran
     member x.WhileExpr = whileExpr
     member x.DoExpr = doExpr
 
-type ExprForNode(range) =
+type ExprForNode
+    (
+        forNode: SingleTextNode,
+        ident: SingleTextNode,
+        equals: SingleTextNode,
+        identBody: Expr,
+        direction: bool,
+        toBody: Expr,
+        doBody: Expr,
+        range
+    ) =
     inherit NodeBase(range)
 
-    override this.Children = failwith "todo"
+    override this.Children =
+        [| yield forNode
+           yield ident
+           yield equals
+           yield Expr.Node identBody
+           yield Expr.Node toBody
+           yield Expr.Node doBody |]
+
+    member x.For = forNode
+    member x.Ident = ident
+    member x.Equals = equals
+    member x.IdentBody = identBody
+    member x.Direction = direction
+    member x.ToBody = toBody
+    member x.DoBody = doBody
 
 type ExprForEachNode(range) =
     inherit NodeBase(range)
