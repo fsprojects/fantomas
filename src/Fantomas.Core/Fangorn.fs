@@ -398,7 +398,18 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
     | SynExpr.While (_, ew, ed, StartRange 5 (mWhile, _)) ->
         ExprWhileNode(stn "while" mWhile, mkExpr creationAide ew, mkExpr creationAide ed, exprRange)
         |> Expr.While
-    // | Expr.For _ -> failwith "Not Implemented"
+    | SynExpr.For (_, _, ident, Some equalsRange, e1, isUp, e2, e3, StartRange 3 (mFor, _)) ->
+        ExprForNode(
+            stn "for" mFor,
+            mkIdent ident,
+            stn "=" equalsRange,
+            mkExpr creationAide e1,
+            isUp,
+            mkExpr creationAide e2,
+            mkExpr creationAide e3,
+            exprRange
+        )
+        |> Expr.For
     // | Expr.ForEach _ -> failwith "Not Implemented"
     // | Expr.NamedComputation _ -> failwith "Not Implemented"
     // | Expr.Computation _ -> failwith "Not Implemented"
