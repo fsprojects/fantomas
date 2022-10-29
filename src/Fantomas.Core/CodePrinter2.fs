@@ -222,28 +222,35 @@ let genExpr (e: Expr) =
         match node.Expr with
         | Expr.Lambda _ -> long
         | _ -> expressionFitsOnRestOfLine short long
-    | Expr.NewParen node ->
-        let sepSpaceBeforeArgs (ctx: Context) =
-            match node.Type with
-            | UppercaseType -> onlyIf ctx.Config.SpaceBeforeUppercaseInvocation sepSpace ctx
-            | LowercaseType -> onlyIf ctx.Config.SpaceBeforeLowercaseInvocation sepSpace ctx
+    | Expr.New node ->
+        match node.Arguments with
+        | Expr.Paren _ ->
+            let sepSpaceBeforeArgs (ctx: Context) =
+                match node.Type with
+                | UppercaseType -> onlyIf ctx.Config.SpaceBeforeUppercaseInvocation sepSpace ctx
+                | LowercaseType -> onlyIf ctx.Config.SpaceBeforeLowercaseInvocation sepSpace ctx
 
-        let short =
+            let short =
+                genSingleTextNode node.NewKeyword
+                +> sepSpace
+                +> genType node.Type
+                +> sepSpaceBeforeArgs
+                +> genExpr node.Arguments
+
+            let long =
+                genSingleTextNode node.NewKeyword
+                +> sepSpace
+                +> genType node.Type
+                +> sepSpaceBeforeArgs
+                +> genMultilineFunctionApplicationArguments node.Arguments
+
+            expressionFitsOnRestOfLine short long
+        | _ ->
             genSingleTextNode node.NewKeyword
             +> sepSpace
             +> genType node.Type
-            +> sepSpaceBeforeArgs
+            +> sepSpace
             +> genExpr node.Arguments
-
-        let long =
-            genSingleTextNode node.NewKeyword
-            +> sepSpace
-            +> genType node.Type
-            +> sepSpaceBeforeArgs
-            +> genMultilineFunctionApplicationArguments node.Arguments
-
-        expressionFitsOnRestOfLine short long
-    | Expr.New _ -> failwith "Not Implemented"
     | Expr.Tuple _ -> failwith "Not Implemented"
     | Expr.StructTuple _ -> failwith "Not Implemented"
     | Expr.ArrayOrList node ->
