@@ -3105,11 +3105,20 @@ and genTypeDefn (TypeDef (ats, px, leadingKeyword, ao, tds, tcs, equalsRange, td
         +> unindent
 
     | ObjectModel (_, MemberDefnList (impCtor, others), _) ->
+        let hasAliasInImplicitConstructor =
+            match impCtor with
+            | Some (SynMemberDefn.ImplicitCtor(selfIdentifier = Some _)) -> true
+            | _ -> false
+
         typeName
         +> leadingExpressionIsMultiline
             (opt sepNone impCtor (fun mdf -> sepSpaceBeforeClassConstructor +> genMemberDefn mdf))
             (fun isMultiline ctx ->
-                if ctx.Config.AlternativeLongMemberDefinitions && isMultiline then
+                if
+                    ctx.Config.AlternativeLongMemberDefinitions
+                    && isMultiline
+                    && not hasAliasInImplicitConstructor
+                then
                     genEqFixed SynTypeDefn_Equals equalsRange ctx
                 else
                     genEq SynTypeDefn_Equals equalsRange ctx)
@@ -3923,7 +3932,7 @@ and genMemberDefn node =
         // In implicit constructor, attributes should come even before access qualifiers
         ifElse ats.IsEmpty sepNone (sepSpace +> genOnelinerAttributes ats)
         +> genCtor
-        +> optPre (!- " as ") sepNone so genIdent
+        +> optPre (sepSpace +> !- "as ") sepNone so genIdent
 
     | MDMember b
     | LongGetMember b -> genMemberBinding b
