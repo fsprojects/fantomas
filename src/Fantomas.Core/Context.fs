@@ -648,6 +648,9 @@ let sepBar = !- "| "
 let addSpaceIfSpaceAroundDelimiter (ctx: Context) =
     onlyIf ctx.Config.SpaceAroundDelimiter sepSpace ctx
 
+let addSpaceIfSpaceAfterComma (ctx: Context) =
+    onlyIf ctx.Config.SpaceAfterComma sepSpace ctx
+
 /// opening token of list
 let sepOpenL (ctx: Context) =
     if ctx.Config.SpaceAroundDelimiter then
@@ -1200,14 +1203,18 @@ let autoNlnConsideringTriviaIfExpressionExceedsPageWidth sepNlnConsideringTrivia
 //     Map.tryFindOrEmptyList astType ctx.TriviaBefore
 //     |> List.exists (fun ti -> RangeHelpers.rangeEq range ti.Range)
 
-// let autoIndentAndNlnExpressUnlessStroustrup (f: SynExpr -> Context -> Context) (e: SynExpr) (ctx: Context) =
-//     match e with
-//     | SourceParser.StroustrupStyleExpr ctx.Config.ExperimentalStroustrupStyle e when
-//         (not (hasTriviaBeforeExpression ctx e))
-//         ->
-//         f e ctx
-//     | _ -> indentSepNlnUnindent (f e) ctx
-//
+let autoIndentAndNlnExpressUnlessStroustrup (f: Expr -> Context -> Context) (e: Expr) (ctx: Context) =
+    let shouldUseStroustrup =
+        ctx.Config.ExperimentalStroustrupStyle
+        && e.IsStroustrupStyleExpr
+        && let node = Expr.Node e in
+           Seq.isEmpty node.ContentBefore
+
+    if shouldUseStroustrup then
+        f e ctx
+    else
+        indentSepNlnUnindent (f e) ctx
+
 let autoIndentAndNlnIfExpressionExceedsPageWidthUnlessStroustrup
     (f: Expr -> Context -> Context)
     (e: Expr)
