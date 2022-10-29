@@ -1,6 +1,6 @@
 ﻿module rec Fantomas.Core.Fangorn
 
-open System
+open System.Text.RegularExpressions
 open FSharp.Compiler.Text
 open FSharp.Compiler.Text.Range
 open FSharp.Compiler.Syntax
@@ -81,18 +81,23 @@ let parseExpressionInSynBinding returnInfo expr =
         e
     | _ -> expr
 
+let mkConstString (creationAide: CreationAide) (stringKind: SynStringKind) (value: string) (range: range) =
+    let escaped = Regex.Replace(value, "\"{1}", "\\\"")
+
+    let fallback =
+        match stringKind with
+        | SynStringKind.Regular -> sprintf "\"%s\"" escaped
+        | SynStringKind.Verbatim -> sprintf "@\"%s\"" escaped
+        | SynStringKind.TripleQuote -> sprintf "\"\"\"%s\"\"\"" escaped
+
+    stn (creationAide.TextFromSource fallback range) range
+
 let mkParsedHashDirective (creationAide: CreationAide) (ParsedHashDirective (ident, args, range)) =
     let args =
         args
         |> List.map (function
             | ParsedHashDirectiveArgument.String (value, stringKind, range) ->
-                let fallback =
-                    match stringKind with
-                    | SynStringKind.Regular -> sprintf "\"%s\"" value
-                    | SynStringKind.Verbatim -> sprintf "@\"%s\"" value
-                    | SynStringKind.TripleQuote -> sprintf "\"\"\"%s\"\"\"" value
-
-                stn (creationAide.TextFromSource fallback range) range
+                mkConstString creationAide stringKind value range
             | ParsedHashDirectiveArgument.SourceIdentifier (identifier, _, range) -> stn identifier range)
 
     ParsedHashDirectiveNode(ident, args, range)
@@ -121,7 +126,7 @@ let mkConstant (creationAide: CreationAide) c r : Constant =
     | SynConst.IntPtr v -> orElse $"%A{v}"
     | SynConst.UIntPtr v -> orElse $"%A{v}"
     | SynConst.UserNum _ -> failwith "todo, 90D57090-9123-4344-9B4F-9B51BB50DA31"
-    | SynConst.String (s, kind, r) -> failwith "todo, C1CDBFC9-1B5D-471C-8189-CEC3A676D386"
+    | SynConst.String (value, stringKind, r) -> mkConstString creationAide stringKind value r |> Constant.FromText
     | SynConst.Char c -> failwith "todo, 9AD2DFA7-80E2-43C7-A573-777987EA941B"
     | SynConst.Bytes (bytes, _, r) -> failwith "todo, ED679198-BED9-42FD-BE24-7E7AD959CE93"
     | SynConst.Measure (c, numberRange, m) -> failwith "todo, 1BF1C723-1931-40BE-8C02-3A4BAC1D8BAD"
@@ -291,11 +296,9 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
     | SynExpr.Typed (e, t, _) ->
         ExprTypedNode(mkExpr creationAide e, ":", mkType creationAide t, exprRange)
         |> Expr.Typed
-    | SynExpr.New (_, t, (SynExpr.Paren _ as px), StartRange 3 (newRange, _))
-    | SynExpr.New (_, t, (SynExpr.Const (SynConst.Unit, _) as px), StartRange 3 (newRange, _)) ->
-        ExprNewParenNode(stn "new" newRange, mkType creationAide t, mkExpr creationAide px, exprRange)
-        |> Expr.NewParen
-    // | Expr.New _ -> failwith "Not Implemented"
+    | SynExpr.New (_, t, e, StartRange 3 (newRange, _)) ->
+        ExprNewNode(stn "new" newRange, mkType creationAide t, mkExpr creationAide e, exprRange)
+        |> Expr.New
     // | Expr.Tuple _ -> failwith "Not Implemented"
     // | Expr.StructTuple _ -> failwith "Not Implemented"
     | SynExpr.ArrayOrListComputed (isArray, Sequentials xs, range)
