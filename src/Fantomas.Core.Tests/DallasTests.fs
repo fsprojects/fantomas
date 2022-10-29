@@ -821,3 +821,24 @@ struct (x,y,z)
         """
 struct (x, y, z)
 """
+
+[<Test>]
+let ``anon record expr`` () =
+    formatSourceString
+        false
+        """
+{| 
+    x = y
+    a = //
+        b
+|}
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+{| x = y
+   a = //
+    b |}
+"""
