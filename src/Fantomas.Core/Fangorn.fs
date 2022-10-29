@@ -1405,7 +1405,7 @@ let mkMemberDefn (creationAide: CreationAide) (md: SynMemberDefn) =
             )
             |> MemberDefn.PropertyGetSet
         | _ -> failwith "SynMemberDefn.GetSetMember cannot exist with get and without set"
-    | _ -> failwith "todo"
+    | _ -> failwithf "Unexpected SynMemberDefn: %A" md
 
 let rec mkModuleDecls
     (creationAide: CreationAide)
