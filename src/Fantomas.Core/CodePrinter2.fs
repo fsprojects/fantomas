@@ -501,8 +501,71 @@ let genExpr (e: Expr) =
         fun (ctx: Context) ->
             let size = getRecordSize ctx node.Fields
             isSmallExpression size smallExpression longExpression ctx
+    | Expr.ObjExpr node ->
+        let param = optSingle genExpr node.Expr
 
-    | Expr.ObjExpr _ -> failwith "Not Implemented"
+        if node.Bindings.IsEmpty && node.Members.IsEmpty && node.Interfaces.IsEmpty then
+            // See https://devblogs.microsoft.com/dotnet/announcing-f-5/#default-interface-member-consumption
+            genSingleTextNode node.OpeningBrace
+            +> addSpaceIfSpaceAroundDelimiter
+            +> genSingleTextNode node.New
+            +> sepSpace
+            +> genType node.Type
+            +> param
+            +> addSpaceIfSpaceAroundDelimiter
+            +> genSingleTextNode node.ClosingBrace
+        else
+            let genInterfaceImpl (node: InterfaceImplNode) =
+                if node.Bindings.IsEmpty && node.Members.IsEmpty then
+                    genSingleTextNode node.Interface +> sepSpace +> genType node.Type
+                else
+                    genSingleTextNode node.Interface
+                    +> sepSpace
+                    +> genType node.Type
+                    +> sepSpace
+                    +> optSingle genSingleTextNode node.With
+                    +> indentSepNlnUnindent (genBindings false node.Bindings +> genMemberDefnList node.Members)
+
+            let genBody =
+                indentSepNlnUnindent (genBindings false node.Bindings +> genMemberDefnList node.Members)
+                +> colPre sepNln sepNln node.Interfaces genInterfaceImpl
+
+            let genObjExpr =
+                genSingleTextNode node.OpeningBrace
+                +> addSpaceIfSpaceAroundDelimiter
+                +> atCurrentColumn (
+                    genSingleTextNode node.New
+                    +> sepSpace
+                    +> genType node.Type
+                    +> param
+                    +> sepSpace
+                    +> optSingle genSingleTextNode node.With
+                    +> genBody
+                )
+                +> addSpaceIfSpaceAroundDelimiter
+                +> genSingleTextNode node.ClosingBrace
+
+            let genObjExprAlignBrackets =
+                let genObjExpr =
+                    atCurrentColumn (
+                        genSingleTextNode node.New
+                        +> sepSpace
+                        +> genType node.Type
+                        +> param
+                        +> sepSpace
+                        +> optSingle genSingleTextNode node.With
+                        +> genBody
+                    )
+
+                atCurrentColumnIndent (
+                    genSingleTextNode node.OpeningBrace
+                    +> addSpaceIfSpaceAroundDelimiter
+                    +> genObjExpr
+                    +> sepNln
+                    +> genSingleTextNode node.ClosingBrace
+                )
+
+            ifAlignBrackets genObjExprAlignBrackets genObjExpr
     | Expr.While _ -> failwith "Not Implemented"
     | Expr.For _ -> failwith "Not Implemented"
     | Expr.ForEach _ -> failwith "Not Implemented"

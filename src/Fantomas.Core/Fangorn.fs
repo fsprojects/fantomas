@@ -10,6 +10,7 @@ open Fantomas.Core.FormatConfig
 open Fantomas.Core.ISourceTextExtensions
 open Fantomas.Core.RangePatterns
 open Fantomas.Core.SyntaxOak
+open Microsoft.FSharp.Core
 
 type CreationAide =
     { SourceText: ISourceText option
@@ -368,8 +369,32 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
             exprRange
         )
         |> Expr.AnonRecord
-    // | Expr.AnonRecord _ -> failwith "Not Implemented"
-    // | Expr.ObjExpr _ -> failwith "Not Implemented"
+    | SynExpr.ObjExpr (t, eio, withKeyword, bd, members, ims, StartRange 3 (mNew, _), StartEndRange 1 (mOpen, _, mClose)) ->
+        let interfaceNodes =
+            ims
+            |> List.map (fun (SynInterfaceImpl (t, mWith, bs, members, StartRange 9 (mInterface, m))) ->
+                InterfaceImplNode(
+                    stn "interface" mInterface,
+                    mkType creationAide t,
+                    Option.map (stn "with") mWith,
+                    List.map (mkBinding creationAide) bd,
+                    List.map (mkMemberDefn creationAide) members,
+                    m
+                ))
+
+        ExprObjExprNode(
+            stn "{" mOpen,
+            stn "new" mNew,
+            mkType creationAide t,
+            Option.map (fun (e, _) -> mkExpr creationAide e) eio,
+            Option.map (stn "with") withKeyword,
+            List.map (mkBinding creationAide) bd,
+            List.map (mkMemberDefn creationAide) members,
+            interfaceNodes,
+            stn "}" mClose,
+            exprRange
+        )
+        |> Expr.ObjExpr
     // | Expr.While _ -> failwith "Not Implemented"
     // | Expr.For _ -> failwith "Not Implemented"
     // | Expr.ForEach _ -> failwith "Not Implemented"
