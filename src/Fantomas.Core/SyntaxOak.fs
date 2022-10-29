@@ -615,10 +615,13 @@ type ExprTupleNode(items: Choice<Expr, SingleTextNode> list, range) =
 
     member x.Items = items
 
-type ExprStructTupleNode(range) =
+type ExprStructTupleNode(structNode: SingleTextNode, tuple: ExprTupleNode, closingParen: SingleTextNode, range) =
     inherit NodeBase(range)
 
-    override this.Children = failwith "todo"
+    override this.Children = [| yield structNode; yield tuple; yield closingParen |]
+    member x.Struct = structNode
+    member x.Tuple = tuple
+    member x.ClosingParen = closingParen
 
 type ExprArrayOrListNode(openingToken: SingleTextNode, elements: Expr list, closingToken: SingleTextNode, range) =
     inherit NodeBase(range)
