@@ -828,10 +828,15 @@ type ExprObjExprNode
     member x.Interfaces = interfaces
     member x.ClosingBrace = closingBrace
 
-type ExprWhileNode(range) =
+type ExprWhileNode(whileNode: SingleTextNode, whileExpr: Expr, doExpr: Expr, range) =
     inherit NodeBase(range)
 
-    override this.Children = failwith "todo"
+    override this.Children =
+        [| yield whileNode; yield Expr.Node whileExpr; yield Expr.Node doExpr |]
+
+    member x.While = whileNode
+    member x.WhileExpr = whileExpr
+    member x.DoExpr = doExpr
 
 type ExprForNode(range) =
     inherit NodeBase(range)

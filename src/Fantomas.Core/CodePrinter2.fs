@@ -566,7 +566,14 @@ let genExpr (e: Expr) =
                 )
 
             ifAlignBrackets genObjExprAlignBrackets genObjExpr
-    | Expr.While _ -> failwith "Not Implemented"
+    | Expr.While node ->
+        atCurrentColumn (
+            genSingleTextNode node.While
+            +> sepSpace
+            +> genExpr node.WhileExpr
+            +> !- " do"
+            +> indentSepNlnUnindent (genExpr node.DoExpr)
+        )
     | Expr.For _ -> failwith "Not Implemented"
     | Expr.ForEach _ -> failwith "Not Implemented"
     | Expr.NamedComputation _ -> failwith "Not Implemented"
