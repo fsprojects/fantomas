@@ -878,3 +878,20 @@ while a do b
 while a do
     b
 """
+
+[<Test>]
+let ``for expr`` () =
+    formatSourceString
+        false
+        """
+for i = 0 to 10 do 
+    y
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+for i = 0 to 10 do
+    y
+"""
