@@ -407,7 +407,101 @@ let genExpr (e: Expr) =
         fun ctx ->
             let size = getRecordSize ctx node.Fields
             isSmallExpression size smallRecordExpr multilineRecordExpr ctx
-    | Expr.AnonRecord _ -> failwith "Not Implemented"
+    | Expr.AnonRecord node ->
+        let genAnonRecordFieldName (node: AnonRecordFieldNode) =
+            genSingleTextNode node.Ident
+            +> sepSpace
+            +> genSingleTextNode node.Equals
+            +> sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth (genExpr node.Expr)
+            |> genNode node
+
+        let smallExpression =
+            onlyIf node.IsStruct !- "struct "
+            +> genSingleTextNode node.OpeningBrace
+            +> addSpaceIfSpaceAroundDelimiter
+            +> optSingle (fun e -> genExpr e +> !- " with ") node.CopyInfo
+            +> col sepSemi node.Fields genAnonRecordFieldName
+            +> addSpaceIfSpaceAroundDelimiter
+            +> genSingleTextNode node.ClosingBrace
+
+        let longExpression =
+            let fieldsExpr = col sepNln node.Fields genAnonRecordFieldName
+
+            let genMultilineAnonRecord =
+                let recordExpr =
+                    match node.CopyInfo with
+                    | Some e ->
+                        genSingleTextNode node.OpeningBrace
+                        +> addSpaceIfSpaceAroundDelimiter
+                        +> sepNlnWhenWriteBeforeNewlineNotEmpty // comment after curly brace
+                        +> atCurrentColumn (genExpr e +> (!- " with" +> indentSepNlnUnindent fieldsExpr))
+                        +> addSpaceIfSpaceAroundDelimiter
+                        +> genSingleTextNode node.ClosingBrace
+                    | None ->
+                        fun ctx ->
+                            // position after `{| ` or `{|`
+                            let targetColumn = ctx.Column + (if ctx.Config.SpaceAroundDelimiter then 3 else 2)
+
+                            atCurrentColumn
+                                (genSingleTextNode node.OpeningBrace
+                                 +> addSpaceIfSpaceAroundDelimiter
+                                 +> sepNlnWhenWriteBeforeNewlineNotEmpty // comment after curly brace
+                                 +> col sepNln node.Fields (fun fieldNode ->
+                                     let expr =
+                                         if ctx.Config.IndentSize < 3 then
+                                             sepSpaceOrDoubleIndentAndNlnIfExpressionExceedsPageWidth (
+                                                 genExpr fieldNode.Expr
+                                             )
+                                         else
+                                             sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth (genExpr fieldNode.Expr)
+
+                                     // Add enough spaces to start at the right column but indent from the opening curly brace.
+                                     // Use a double indent when using a small indent size to avoid offset warnings.
+                                     addFixedSpaces targetColumn
+                                     +> atCurrentColumn (enterNode fieldNode +> genSingleTextNode fieldNode.Ident)
+                                     +> sepSpace
+                                     +> genSingleTextNode fieldNode.Equals
+                                     +> expr
+                                     +> leaveNode fieldNode)
+                                 +> addSpaceIfSpaceAroundDelimiter
+                                 +> genSingleTextNode node.ClosingBrace)
+                                ctx
+
+                onlyIf node.IsStruct !- "struct " +> recordExpr
+
+            let genMultilineAnonRecordAlignBrackets =
+                let copyExpr fieldsExpr e =
+                    atCurrentColumnIndent (genExpr e)
+                    +> (!- " with"
+                        +> indent
+                        +> whenShortIndent indent
+                        +> sepNln
+                        +> fieldsExpr
+                        +> whenShortIndent unindent
+                        +> unindent)
+
+                let genAnonRecord =
+                    match node.CopyInfo with
+                    | Some ci ->
+                        genSingleTextNode node.OpeningBrace
+                        +> sepNlnWhenWriteBeforeNewlineNotEmpty // comment after curly brace
+                        +> copyExpr fieldsExpr ci
+                        +> sepNln
+                        +> genSingleTextNode node.ClosingBrace
+                    | None ->
+                        genSingleTextNode node.OpeningBrace
+                        +> indentSepNlnUnindent fieldsExpr
+                        +> sepNln
+                        +> genSingleTextNode node.ClosingBrace
+
+                ifElse node.IsStruct !- "struct " sepNone +> genAnonRecord
+
+            ifAlignBrackets genMultilineAnonRecordAlignBrackets genMultilineAnonRecord
+
+        fun (ctx: Context) ->
+            let size = getRecordSize ctx node.Fields
+            isSmallExpression size smallExpression longExpression ctx
+
     | Expr.ObjExpr _ -> failwith "Not Implemented"
     | Expr.While _ -> failwith "Not Implemented"
     | Expr.For _ -> failwith "Not Implemented"

@@ -736,10 +736,36 @@ type ExprRecordNode
     member x.Fields = fields
     member x.ClosingBrace = closingBrace
 
-type ExprAnonRecordNode(range) =
+type AnonRecordFieldNode(ident: SingleTextNode, equals: SingleTextNode, rhs: Expr, range) =
     inherit NodeBase(range)
 
-    override this.Children = failwith "todo"
+    override this.Children = [| yield ident; yield equals; yield Expr.Node rhs |]
+    member x.Ident = ident
+    member x.Equals = equals
+    member x.Expr = rhs
+
+type ExprAnonRecordNode
+    (
+        isStruct: bool,
+        openingBrace: SingleTextNode,
+        copyInfo: Expr option,
+        fields: AnonRecordFieldNode list,
+        closingBrace: SingleTextNode,
+        range
+    ) =
+    inherit NodeBase(range)
+
+    override this.Children =
+        [| yield openingBrace
+           yield! noa (Option.map Expr.Node copyInfo)
+           yield! nodes fields
+           yield closingBrace |]
+
+    member x.IsStruct = isStruct
+    member x.OpeningBrace = openingBrace
+    member x.CopyInfo = copyInfo
+    member x.Fields = fields
+    member x.ClosingBrace = closingBrace
 
 type ExprObjExprNode(range) =
     inherit NodeBase(range)

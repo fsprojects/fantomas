@@ -350,6 +350,24 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
 
         ExprRecordNode(stn "{" mOpen, extra, fieldNodes, stn "}" mClose, exprRange)
         |> Expr.Record
+    | SynExpr.AnonRecd (isStruct, copyInfo, recordFields, StartEndRange 2 (mOpen, _, mClose)) ->
+        let fields =
+            recordFields
+            |> List.choose (function
+                | ident, Some mEq, e ->
+                    let m = unionRanges ident.idRange e.Range
+                    Some(AnonRecordFieldNode(mkIdent ident, stn "=" mEq, mkExpr creationAide e, m))
+                | _ -> None)
+
+        ExprAnonRecordNode(
+            isStruct,
+            stn "{|" mOpen,
+            Option.map (fst >> mkExpr creationAide) copyInfo,
+            fields,
+            stn "|}" mClose,
+            exprRange
+        )
+        |> Expr.AnonRecord
     // | Expr.AnonRecord _ -> failwith "Not Implemented"
     // | Expr.ObjExpr _ -> failwith "Not Implemented"
     // | Expr.While _ -> failwith "Not Implemented"
