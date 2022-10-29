@@ -785,3 +785,24 @@ type X =
         with get (name: string): obj option = None
         and set (name: string) (v: obj option): unit = ()
 """
+
+[<Test>]
+let ``tuple`` () =
+    formatSourceString
+        false
+        """
+x,y,z
+a, //
+b, c
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+x, y, z
+
+a, //
+b,
+c
+"""

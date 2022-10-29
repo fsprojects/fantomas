@@ -2,7 +2,6 @@
 
 open System.Collections.Generic
 open FSharp.Compiler.Text
-open Microsoft.FSharp.Quotations
 
 // Open questions:
 // - Do we need to distinguish between SignatureFile and ImplementationFile?
@@ -604,10 +603,17 @@ type ExprNewNode(newKeyword: SingleTextNode, t: Type, arguments: Expr, range) =
     member x.Type = t
     member x.Arguments = arguments
 
-type ExprTupleNode(range) =
+type ExprTupleNode(items: Choice<Expr, SingleTextNode> list, range) =
     inherit NodeBase(range)
 
-    override this.Children = failwith "todo"
+    override this.Children =
+        items
+        |> Seq.map (function
+            | Choice1Of2 e -> Expr.Node e
+            | Choice2Of2 comma -> comma :> Node)
+        |> Seq.toArray
+
+    member x.Items = items
 
 type ExprStructTupleNode(range) =
     inherit NodeBase(range)
@@ -849,11 +855,14 @@ type ExprSameInfixAppsNode(range) =
 
     override this.Children = failwith "todo"
 
-type ExprInfixAppNode(range) =
+type ExprInfixAppNode(lhs: Expr, operator: SingleTextNode, rhs: Expr, range) =
     inherit NodeBase(range)
     interface InfixApp
 
-    override this.Children = failwith "todo"
+    override this.Children = [| yield Expr.Node lhs; yield operator; yield Expr.Node rhs |]
+    member x.LeftHandSide = lhs
+    member x.RightHandSide: Expr = rhs
+    member x.Operator = operator
 
 type ExprTernaryAppNode(range) =
     inherit NodeBase(range)
@@ -1230,9 +1239,13 @@ type Expr =
 
     member e.IsStroustrupStyleExpr: bool =
         match e with
+        | Expr.Record node ->
+            match node.Extra with
+            | RecordNodeExtra.Inherit _
+            | RecordNodeExtra.With _ -> false
+            | RecordNodeExtra.None -> true
         // TODO: Exclude records when they have copy info.
         | Expr.AnonRecord _
-        | Expr.Record _
         | Expr.NamedComputation _
         | Expr.ArrayOrList _ -> true
         | _ -> false
