@@ -591,7 +591,18 @@ let genExpr (e: Expr) =
             +> genExpr node.DoBody
             +> unindent
         )
-    | Expr.ForEach _ -> failwith "Not Implemented"
+    | Expr.ForEach node ->
+        atCurrentColumn (
+            genSingleTextNode node.For
+            +> sepSpace
+            +> genPat node.Pattern
+            +> !- " in "
+            +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr node.EnumExpr)
+            +> ifElse
+                node.IsArrow
+                (sepArrow +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr node.BodyExpr))
+                (!- " do" +> indent +> sepNln +> genExpr node.BodyExpr +> unindent)
+        )
     | Expr.NamedComputation _ -> failwith "Not Implemented"
     | Expr.Computation _ -> failwith "Not Implemented"
     | Expr.CompExprBody _ -> failwith "Not Implemented"
