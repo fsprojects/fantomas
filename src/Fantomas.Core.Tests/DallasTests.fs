@@ -842,3 +842,23 @@ let ``anon record expr`` () =
    a = //
     b |}
 """
+
+[<Test>]
+let ``obj expr`` () =
+    formatSourceString
+        false
+        """
+{   new IDisposable
+    interface Meh with
+        member x.Blur = () }
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+{ new IDisposable
+
+  interface Meh with
+      member x.Blur = () }
+"""
