@@ -251,7 +251,7 @@ let genExpr (e: Expr) =
             +> genType node.Type
             +> sepSpace
             +> genExpr node.Arguments
-    | Expr.Tuple _ -> failwith "Not Implemented"
+    | Expr.Tuple node -> genTuple node
     | Expr.StructTuple _ -> failwith "Not Implemented"
     | Expr.ArrayOrList node ->
         if node.Elements.IsEmpty then
@@ -584,6 +584,75 @@ let genMultilineFunctionApplicationArguments (argExpr: Expr) = !- "todo!"
 //     |> argsInsideParenthesis lpr rpr pr
 // | Paren (lpr, singleExpr, rpr, pr) -> genExpr singleExpr |> argsInsideParenthesis lpr rpr pr
 // | _ -> genExpr argExpr
+
+let genTuple (node: ExprTupleNode) =
+    let shortExpression =
+        col sepNone node.Items (function
+            | Choice1Of2 e ->
+                match e with
+                | Expr.IfThen _
+                | Expr.IfThenElif _
+                | Expr.IfThenElse _
+                | Expr.Lambda _ -> sepOpenT +> genExpr e +> sepCloseT
+                | e -> genExpr e
+            | Choice2Of2 comma -> genSingleTextNode comma +> addSpaceIfSpaceAfterComma)
+
+    let longExpression =
+        let containsLambdaOrMatchExpr =
+            // If the any items (expect the last) is a match/lambda
+            node.Items
+            |> List.chunkBySize 2
+            |> List.exists (fun pair ->
+                match pair with
+                | [ Choice1Of2 e; Choice2Of2 _ ] ->
+                    match e with
+                    | Expr.Match _
+                    | Expr.Lambda _ -> true
+                    | Expr.InfixApp node ->
+                        match node.RightHandSide with
+                        | Expr.Lambda _ -> true
+                        | _ -> false
+                    | _ -> false
+                | _ -> false)
+
+        let lastIndex = List.length node.Items - 1
+
+        let genItem idx =
+            function
+            | Choice1Of2 e ->
+                match e with
+                | Expr.IfThen _
+                | Expr.IfThenElif _
+                | Expr.IfThenElse _ when (idx < lastIndex) -> autoParenthesisIfExpressionExceedsPageWidth (genExpr e)
+                | Expr.InfixApp node when (node.Operator.Text = "=") -> genNamedArgumentExpr node
+                | _ -> genExpr e
+            | Choice2Of2 comma ->
+                if containsLambdaOrMatchExpr then
+                    sepNln +> genSingleTextNode comma
+                else
+                    genSingleTextNode comma +> sepNln
+
+        coli sepNone node.Items genItem
+
+    atCurrentColumn (expressionFitsOnRestOfLine shortExpression longExpression)
+
+let genNamedArgumentExpr (node: ExprInfixAppNode) =
+    let short =
+        genExpr node.LeftHandSide
+        +> sepSpace
+        +> genSingleTextNode node.Operator
+        +> sepSpace
+        +> genExpr node.RightHandSide
+
+    let long =
+        genExpr node.LeftHandSide
+        +> sepSpace
+        +> genSingleTextNode node.Operator
+        +> autoIndentAndNlnExpressUnlessStroustrup (fun e -> sepSpace +> genExpr e) node.RightHandSide
+
+    expressionFitsOnRestOfLine short long
+
+// end expressions
 
 let genPatLeftMiddleRight (node: PatLeftMiddleRight) =
     genPat node.LeftHandSide

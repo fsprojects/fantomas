@@ -299,7 +299,18 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
     | SynExpr.New (_, t, e, StartRange 3 (newRange, _)) ->
         ExprNewNode(stn "new" newRange, mkType creationAide t, mkExpr creationAide e, exprRange)
         |> Expr.New
-    // | Expr.Tuple _ -> failwith "Not Implemented"
+    | SynExpr.Tuple (false, exprs, commas, _) ->
+        match exprs with
+        | [] -> failwith "SynExpr.Tuple with no elements"
+        | head :: tail ->
+            let rest =
+                assert (tail.Length = commas.Length)
+
+                List.zip commas tail
+                |> List.collect (fun (c, e) -> [ yield Choice2Of2(stn "," c); yield Choice1Of2(mkExpr creationAide e) ])
+
+            ExprTupleNode([ yield Choice1Of2(mkExpr creationAide head); yield! rest ], exprRange)
+            |> Expr.Tuple
     // | Expr.StructTuple _ -> failwith "Not Implemented"
     | SynExpr.ArrayOrListComputed (isArray, Sequentials xs, range)
     | SynExpr.ArrayOrList (isArray, xs, range) ->
@@ -331,7 +342,6 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
 
         ExprRecordNode(stn "{" mOpen, extra, fieldNodes, stn "}" mClose, exprRange)
         |> Expr.Record
-    // | Expr.Record _ -> failwith "Not Implemented"
     // | Expr.AnonRecord _ -> failwith "Not Implemented"
     // | Expr.ObjExpr _ -> failwith "Not Implemented"
     // | Expr.While _ -> failwith "Not Implemented"
