@@ -224,7 +224,8 @@ let genExpr (e: Expr) =
         | _ -> expressionFitsOnRestOfLine short long
     | Expr.New node ->
         match node.Arguments with
-        | Expr.Paren _ ->
+        | Expr.Paren _
+        | Expr.Constant (Constant.Unit _) ->
             let sepSpaceBeforeArgs (ctx: Context) =
                 match node.Type with
                 | UppercaseType -> onlyIf ctx.Config.SpaceBeforeUppercaseInvocation sepSpace ctx
@@ -252,7 +253,12 @@ let genExpr (e: Expr) =
             +> sepSpace
             +> genExpr node.Arguments
     | Expr.Tuple node -> genTuple node
-    | Expr.StructTuple _ -> failwith "Not Implemented"
+    | Expr.StructTuple node ->
+        genSingleTextNode node.Struct
+        +> sepSpace
+        +> sepOpenT
+        +> genTuple node.Tuple
+        +> genSingleTextNode node.ClosingParen
     | Expr.ArrayOrList node ->
         if node.Elements.IsEmpty then
             genSingleTextNode node.Opening +> genSingleTextNode node.Closing
