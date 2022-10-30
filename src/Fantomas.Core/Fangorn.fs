@@ -251,6 +251,84 @@ let mkTuple (creationAide: CreationAide) (exprs: SynExpr list) (commas: range li
 
         ExprTupleNode([ yield Choice1Of2(mkExpr creationAide head); yield! rest ], m)
 
+/// Unfold a list of let bindings
+/// Recursive and use properties have to be determined at this point
+let rec (|LetOrUses|_|) =
+    function
+    | SynExpr.LetOrUse (_, _, xs, LetOrUses (ys, e), _, trivia) ->
+        let xs' = List.mapWithLast (fun b -> b, None) (fun b -> b, trivia.InKeyword) xs
+        Some(xs' @ ys, e)
+    | SynExpr.LetOrUse (_, _, xs, e, _, trivia) ->
+        let xs' = List.mapWithLast (fun b -> b, None) (fun b -> b, trivia.InKeyword) xs
+        Some(xs', e)
+    | _ -> None
+
+let rec collectComputationExpressionStatements
+    (creationAide: CreationAide)
+    (e: SynExpr)
+    (finalContinuation: ComputationExpressionStatement list -> ComputationExpressionStatement list)
+    : ComputationExpressionStatement list =
+    match e with
+    | LetOrUses (bindings, body) ->
+        let bindings =
+            bindings
+            |> List.map (fun (b, inNode) ->
+                let b = mkBinding creationAide b
+
+                let inNode, m =
+                    match inNode with
+                    | None -> None, (b :> Node).Range
+                    | Some mIn -> Some(stn "in" mIn), unionRanges (b :> Node).Range mIn
+
+                ExprLetOrUseNode(b, inNode, m)
+                |> ComputationExpressionStatement.LetOrUseStatement)
+
+        collectComputationExpressionStatements creationAide body (fun bodyStatements ->
+            [ yield! bindings; yield! bodyStatements ] |> finalContinuation)
+    | SynExpr.LetOrUseBang (_,
+                            isUse,
+                            _,
+                            pat,
+                            expr,
+                            andBangs,
+                            body,
+                            StartRange 4 (mLeading, m),
+                            { EqualsRange = Some mEq }) ->
+        let letOrUseBang =
+            ExprLetOrUseBangNode(
+                stn (if isUse then "use!" else "let!") mLeading,
+                mkPat creationAide pat,
+                stn "=" mEq,
+                mkExpr creationAide expr,
+                m
+            )
+            |> ComputationExpressionStatement.LetOrUseBangStatement
+
+        let andBangs =
+            andBangs
+            |> List.map (fun (SynExprAndBang (_, _, _, ap, ae, StartRange 4 (mAnd, m), trivia)) ->
+                ExprAndBang(
+                    stn "and!" mAnd,
+                    mkPat creationAide ap,
+                    stn "=" trivia.EqualsRange,
+                    mkExpr creationAide ae,
+                    m
+                )
+                |> ComputationExpressionStatement.AndBangStatement)
+
+        collectComputationExpressionStatements creationAide body (fun bodyStatements ->
+            [ letOrUseBang; yield! andBangs; yield! bodyStatements ] |> finalContinuation)
+    | SynExpr.Sequential (_, _, e1, e2, _) ->
+        let continuations: ((ComputationExpressionStatement list -> ComputationExpressionStatement list) -> ComputationExpressionStatement list) list =
+            [ collectComputationExpressionStatements creationAide e1
+              collectComputationExpressionStatements creationAide e2 ]
+
+        let finalContinuation (nodes: ComputationExpressionStatement list list) : ComputationExpressionStatement list =
+            List.collect id nodes |> finalContinuation
+
+        Continuation.sequence continuations finalContinuation
+    | expr -> finalContinuation [ ComputationExpressionStatement.OtherStatement(mkExpr creationAide expr) ]
+
 let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
     let exprRange = e.Range
 
@@ -454,7 +532,12 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
         ExprComputationNode(stn "{" openingBrace, mkExpr creationAide expr, stn "}" closingBrace, exprRange)
         |> Expr.Computation
 
-    // | Expr.CompExprBody _ -> failwith "Not Implemented"
+    | SynExpr.LetOrUse _
+    | SynExpr.LetOrUseBang _
+    | SynExpr.Sequential _ ->
+        ExprCompExprBodyNode(collectComputationExpressionStatements creationAide e id, exprRange)
+        |> Expr.CompExprBody
+
     // | Expr.JoinIn _ -> failwith "Not Implemented"
     // | Expr.ParenLambda _ -> failwith "Not Implemented"
     // | Expr.Lambda _ -> failwith "Not Implemented"

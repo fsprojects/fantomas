@@ -628,7 +628,39 @@ let genExpr (e: Expr) =
         +> genExpr node.Body
         +> addSpaceIfSpaceAroundDelimiter
         +> genSingleTextNode node.ClosingBrace
-    | Expr.CompExprBody _ -> failwith "Not Implemented"
+    | Expr.CompExprBody node ->
+        node.Statements
+        |> List.map (function
+            | ComputationExpressionStatement.LetOrUseStatement node ->
+                ColMultilineItem(
+                    genBinding node.Binding
+                    +> optSingle (fun inNode -> sepSpace +> genSingleTextNode inNode +> sepSpace) node.In,
+                    sepNlnUnlessContentBefore node
+                )
+            | ComputationExpressionStatement.LetOrUseBangStatement node ->
+                let expr =
+                    genSingleTextNode node.LeadingKeyword
+                    +> sepSpace
+                    +> genPat node.Pattern
+                    +> sepSpace
+                    +> genSingleTextNode node.Equals
+                    +> sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidthUnlessStroustrup genExpr node.Expression
+
+                ColMultilineItem(expr, sepNlnUnlessContentBefore node)
+            | ComputationExpressionStatement.AndBangStatement node ->
+                let expr =
+                    genSingleTextNode node.LeadingKeyword
+                    +> sepSpace
+                    +> genPat node.Pattern
+                    +> sepSpace
+                    +> genSingleTextNode node.Equals
+                    +> sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidthUnlessStroustrup genExpr node.Expression
+
+                ColMultilineItem(expr, sepNlnUnlessContentBefore node)
+            | ComputationExpressionStatement.OtherStatement e ->
+                ColMultilineItem(genExpr e, sepNlnUnlessContentBefore (Expr.Node e)))
+        |> colWithNlnWhenItemIsMultilineUsingConfig
+
     | Expr.JoinIn _ -> failwith "Not Implemented"
     | Expr.ParenLambda _ -> failwith "Not Implemented"
     | Expr.Lambda _ -> failwith "Not Implemented"
@@ -737,7 +769,6 @@ let genExpr (e: Expr) =
                 short ctx
     | Expr.App _ -> failwith "Not Implemented"
     | Expr.TypeApp _ -> failwith "Not Implemented"
-    | Expr.LetOrUses _ -> failwith "Not Implemented"
     | Expr.TryWithSingleClause _ -> failwith "Not Implemented"
     | Expr.TryWith _ -> failwith "Not Implemented"
     | Expr.TryFinally _ -> failwith "Not Implemented"

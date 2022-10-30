@@ -145,7 +145,9 @@ let rec visitLastChildNode (node: Node) : Node =
     | :? ExprIfThenNode
     | :? ExprAppNode
     | :? ExprLambdaNode
-    | :? ExprLetOrUsesNode
+    | :? ExprLetOrUseNode
+    | :? ExprLetOrUseBangNode
+    | :? ExprAndBang
     | :? BindingNode
     | :? ModuleOrNamespaceNode
     | :? TypeDefnEnumNode

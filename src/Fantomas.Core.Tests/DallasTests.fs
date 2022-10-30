@@ -927,3 +927,47 @@ async { x  }
         """
 async { x }
 """
+
+[<Test>]
+let ``let bang in comp expr`` () =
+    formatSourceString
+        false
+        """
+async {
+    let! x = 0
+    and! blah = 0
+    ()
+}
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+async {
+    let! x = 0
+    and! blah = 0
+    ()
+}
+"""
+
+[<Test>]
+let ``nested let or use`` () =
+    formatSourceString
+        false
+        """
+do
+    let x = 1
+    let y = 2
+    ()
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+do
+    let x = 1
+    let y = 2
+    ()
+"""
