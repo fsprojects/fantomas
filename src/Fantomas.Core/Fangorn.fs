@@ -450,7 +450,10 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
             exprRange
         )
         |> Expr.NamedComputation
-    // | Expr.Computation _ -> failwith "Not Implemented"
+    | SynExpr.ComputationExpr (_, expr, StartEndRange 1 (openingBrace, _range, closingBrace)) ->
+        ExprComputationNode(stn "{" openingBrace, mkExpr creationAide expr, stn "}" closingBrace, exprRange)
+        |> Expr.Computation
+
     // | Expr.CompExprBody _ -> failwith "Not Implemented"
     // | Expr.JoinIn _ -> failwith "Not Implemented"
     // | Expr.ParenLambda _ -> failwith "Not Implemented"
