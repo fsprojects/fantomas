@@ -913,10 +913,61 @@ type ExprComputationNode(openingBrace: SingleTextNode, bodyExpr: Expr, closingBr
     member x.Body = bodyExpr
     member x.ClosingBrace = closingBrace
 
-type ExprCompExprBodyNode(range) =
+type ExprLetOrUseNode(binding: BindingNode, inKeyword: SingleTextNode option, range) =
+    inherit NodeBase(range)
+    override this.Children = [| yield binding; yield! noa inKeyword |]
+    member x.Binding = binding
+    member x.In = inKeyword
+
+type ExprLetOrUseBangNode(leadingKeyword: SingleTextNode, pat: Pattern, equals: SingleTextNode, expr: Expr, range) =
     inherit NodeBase(range)
 
-    override this.Children = failwith "todo"
+    override this.Children =
+        [| yield leadingKeyword
+           yield Pattern.Node pat
+           yield equals
+           yield Expr.Node expr |]
+
+    member x.LeadingKeyword = leadingKeyword
+    member x.Pattern = pat
+    member x.Equals = equals
+    member x.Expression = expr
+
+type ExprAndBang(leadingKeyword: SingleTextNode, pat: Pattern, equals: SingleTextNode, expr: Expr, range) =
+    inherit NodeBase(range)
+
+    override this.Children =
+        [| yield leadingKeyword
+           yield Pattern.Node pat
+           yield equals
+           yield Expr.Node expr |]
+
+    member x.LeadingKeyword = leadingKeyword
+    member x.Pattern = pat
+    member x.Equals = equals
+    member x.Expression = expr
+
+[<RequireQualifiedAccess; NoEquality; NoComparison>]
+type ComputationExpressionStatement =
+    | LetOrUseStatement of ExprLetOrUseNode
+    | LetOrUseBangStatement of ExprLetOrUseBangNode
+    | AndBangStatement of ExprAndBang
+    | OtherStatement of Expr
+
+    static member Node(ces: ComputationExpressionStatement) : Node =
+        match ces with
+        | LetOrUseStatement n -> n
+        | LetOrUseBangStatement n -> n
+        | AndBangStatement n -> n
+        | OtherStatement o -> Expr.Node o
+
+type ExprCompExprBodyNode(statements: ComputationExpressionStatement list, range) =
+    inherit NodeBase(range)
+
+    override this.Children =
+        [| yield! List.map ComputationExpressionStatement.Node statements |]
+
+    member x.Statements = statements
 
 type ExprJoinInNode(range) =
     inherit NodeBase(range)
@@ -1113,11 +1164,6 @@ type ExprTypeAppNode(range) =
 
     override this.Children = failwith "todo"
 
-type ExprLetOrUsesNode(range) =
-    inherit NodeBase(range)
-
-    override this.Children = failwith "todo"
-
 type ExprTryWithSingleClauseNode(range) =
     inherit NodeBase(range)
 
@@ -1280,7 +1326,6 @@ type Expr =
     | EndsWithSingleListApp of ExprEndsWithSingleListAppNode
     | App of ExprAppNode
     | TypeApp of ExprTypeAppNode
-    | LetOrUses of ExprLetOrUsesNode
     | TryWithSingleClause of ExprTryWithSingleClauseNode
     | TryWith of ExprTryWithNode
     | TryFinally of ExprTryFinallyNode
@@ -1357,7 +1402,6 @@ type Expr =
         | EndsWithSingleListApp n -> n
         | App n -> n
         | TypeApp n -> n
-        | LetOrUses n -> n
         | TryWithSingleClause n -> n
         | TryWith n -> n
         | TryFinally n -> n
