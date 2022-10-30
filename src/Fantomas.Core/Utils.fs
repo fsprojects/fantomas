@@ -163,6 +163,15 @@ module List =
 
         go 0 [] xs
 
+    let mapWithLast (f: 'a -> 'b) (g: 'a -> 'b) (xs: 'a list) =
+        let rec visit xs continuation =
+            match xs with
+            | [] -> continuation []
+            | [ last ] -> continuation [ g last ]
+            | head :: tail -> visit tail (fun ys -> f head :: ys |> continuation)
+
+        visit xs id
+
 module Map =
     let tryFindOrDefault (defaultValue: 'g) (key: 't) (map: Map<'t, 'g>) =
         match Map.tryFind key map with
