@@ -882,10 +882,26 @@ type ExprForEachNode(forNode: SingleTextNode, pat: Pattern, enumExpr: Expr, isAr
     member x.IsArrow = isArrow
     member x.BodyExpr = bodyExpr
 
-type ExprNamedComputationNode(range) =
+type ExprNamedComputationNode
+    (
+        nameExpr: Expr,
+        openingBrace: SingleTextNode,
+        bodyExpr: Expr,
+        closingBrace: SingleTextNode,
+        range
+    ) =
     inherit NodeBase(range)
 
-    override this.Children = failwith "todo"
+    override this.Children =
+        [| yield Expr.Node nameExpr
+           yield openingBrace
+           yield Expr.Node bodyExpr
+           yield closingBrace |]
+
+    member x.Name = nameExpr
+    member x.OpeningBrace = openingBrace
+    member x.Body = bodyExpr
+    member x.ClosingBrace = closingBrace
 
 type ExprComputationNode(range) =
     inherit NodeBase(range)

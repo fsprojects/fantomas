@@ -437,7 +437,19 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
             exprRange
         )
         |> Expr.ForEach
-    // | Expr.NamedComputation _ -> failwith "Not Implemented"
+    | SynExpr.App (ExprAtomicFlag.NonAtomic,
+                   false,
+                   (SynExpr.App _ | SynExpr.TypeApp _ | SynExpr.Ident _ | SynExpr.LongIdent _ as nameExpr),
+                   (SynExpr.ComputationExpr (_, expr, StartEndRange 1 (openingBrace, _range, closingBrace))),
+                   _) ->
+        ExprNamedComputationNode(
+            mkExpr creationAide nameExpr,
+            stn "{" openingBrace,
+            mkExpr creationAide expr,
+            stn "}" closingBrace,
+            exprRange
+        )
+        |> Expr.NamedComputation
     // | Expr.Computation _ -> failwith "Not Implemented"
     // | Expr.CompExprBody _ -> failwith "Not Implemented"
     // | Expr.JoinIn _ -> failwith "Not Implemented"
