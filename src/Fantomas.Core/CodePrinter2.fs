@@ -603,7 +603,25 @@ let genExpr (e: Expr) =
                 (sepArrow +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr node.BodyExpr))
                 (!- " do" +> indent +> sepNln +> genExpr node.BodyExpr +> unindent)
         )
-    | Expr.NamedComputation _ -> failwith "Not Implemented"
+    | Expr.NamedComputation node ->
+        let short =
+            genExpr node.Name
+            +> sepSpace
+            +> genSingleTextNode node.OpeningBrace
+            +> addSpaceIfSpaceAroundDelimiter
+            +> genExpr node.Body
+            +> addSpaceIfSpaceAroundDelimiter
+            +> genSingleTextNode node.ClosingBrace
+
+        let long =
+            genExpr node.Name
+            +> sepSpace
+            +> genSingleTextNode node.OpeningBrace
+            +> indentSepNlnUnindent (genExpr node.Body)
+            +> sepNln
+            +> genSingleTextNode node.ClosingBrace
+
+        expressionFitsOnRestOfLine short long
     | Expr.Computation _ -> failwith "Not Implemented"
     | Expr.CompExprBody _ -> failwith "Not Implemented"
     | Expr.JoinIn _ -> failwith "Not Implemented"
