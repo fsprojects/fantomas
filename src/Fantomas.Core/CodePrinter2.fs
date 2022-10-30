@@ -661,7 +661,12 @@ let genExpr (e: Expr) =
                 ColMultilineItem(genExpr e, sepNlnUnlessContentBefore (Expr.Node e)))
         |> colWithNlnWhenItemIsMultilineUsingConfig
 
-    | Expr.JoinIn _ -> failwith "Not Implemented"
+    | Expr.JoinIn node ->
+        genExpr node.LeftHandSide
+        +> sepSpace
+        +> genSingleTextNode node.In
+        +> sepSpace
+        +> genExpr node.RightHandSide
     | Expr.ParenLambda _ -> failwith "Not Implemented"
     | Expr.Lambda _ -> failwith "Not Implemented"
     | Expr.MatchLambda _ -> failwith "Not Implemented"

@@ -538,6 +538,10 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
         ExprCompExprBodyNode(collectComputationExpressionStatements creationAide e id, exprRange)
         |> Expr.CompExprBody
 
+    | SynExpr.JoinIn (e1, mIn, e2, _) ->
+        ExprJoinInNode(mkExpr creationAide e1, stn "in" mIn, mkExpr creationAide e2, exprRange)
+        |> Expr.JoinIn
+
     // | Expr.JoinIn _ -> failwith "Not Implemented"
     // | Expr.ParenLambda _ -> failwith "Not Implemented"
     // | Expr.Lambda _ -> failwith "Not Implemented"

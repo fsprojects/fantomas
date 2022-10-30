@@ -969,10 +969,13 @@ type ExprCompExprBodyNode(statements: ComputationExpressionStatement list, range
 
     member x.Statements = statements
 
-type ExprJoinInNode(range) =
+type ExprJoinInNode(lhs: Expr, inNode: SingleTextNode, rhs: Expr, range) =
     inherit NodeBase(range)
 
-    override this.Children = failwith "todo"
+    override this.Children = [| yield Expr.Node lhs; yield inNode; yield Expr.Node rhs |]
+    member x.LeftHandSide = lhs
+    member x.In = inNode
+    member x.RightHandSide = rhs
 
 type ExprParenLambdaNode(range) =
     inherit NodeBase(range)
