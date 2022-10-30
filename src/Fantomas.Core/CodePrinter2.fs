@@ -622,7 +622,12 @@ let genExpr (e: Expr) =
             +> genSingleTextNode node.ClosingBrace
 
         expressionFitsOnRestOfLine short long
-    | Expr.Computation _ -> failwith "Not Implemented"
+    | Expr.Computation node ->
+        genSingleTextNode node.OpeningBrace
+        +> addSpaceIfSpaceAroundDelimiter
+        +> genExpr node.Body
+        +> addSpaceIfSpaceAroundDelimiter
+        +> genSingleTextNode node.ClosingBrace
     | Expr.CompExprBody _ -> failwith "Not Implemented"
     | Expr.JoinIn _ -> failwith "Not Implemented"
     | Expr.ParenLambda _ -> failwith "Not Implemented"
