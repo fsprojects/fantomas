@@ -971,3 +971,22 @@ do
     let y = 2
     ()
 """
+
+[<Test>]
+let ``join in`` () =
+    formatSourceString
+        false
+        """
+seq { x    
+            in //    
+                y }
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+seq {
+    x in y //
+}
+"""
