@@ -903,10 +903,15 @@ type ExprNamedComputationNode
     member x.Body = bodyExpr
     member x.ClosingBrace = closingBrace
 
-type ExprComputationNode(range) =
+type ExprComputationNode(openingBrace: SingleTextNode, bodyExpr: Expr, closingBrace: SingleTextNode, range) =
     inherit NodeBase(range)
 
-    override this.Children = failwith "todo"
+    override this.Children =
+        [| yield openingBrace; yield Expr.Node bodyExpr; yield closingBrace |]
+
+    member x.OpeningBrace = openingBrace
+    member x.Body = bodyExpr
+    member x.ClosingBrace = closingBrace
 
 type ExprCompExprBodyNode(range) =
     inherit NodeBase(range)
