@@ -912,3 +912,18 @@ for x in y do
 for x in y do
     ()
 """
+
+[<Test>]
+let ``named computation expr`` () =
+    formatSourceString
+        false
+        """
+async { x  } 
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+async { x }
+"""
