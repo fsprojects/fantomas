@@ -675,7 +675,12 @@ let genExpr (e: Expr) =
         +> genSingleTextNode node.ClosingParen
     | Expr.Lambda node -> genLambda node
     | Expr.MatchLambda node -> genSingleTextNode node.Function +> sepNln +> genClauses node.Clauses
-    | Expr.Match _ -> failwith "Not Implemented"
+    | Expr.Match node ->
+        atCurrentColumn (
+            genControlExpressionStartCore node.Match node.MatchExpr node.With
+            +> sepNln
+            +> genClauses node.Clauses
+        )
     | Expr.TraitCall _ -> failwith "Not Implemented"
     | Expr.ParenILEmbedded _ -> failwith "Not Implemented"
     | Expr.ParenFunctionNameWithStar _ -> failwith "Not Implemented"
@@ -968,6 +973,29 @@ let genClause (isLastItem: bool) (node: MatchClauseNode) =
                 genPatAndBody ctx
 
     genBar +> genPatAndBody |> genNode node
+
+let genControlExpressionStartCore (startKeyword: SingleTextNode) (innerExpr: Expr) (endKeyword: SingleTextNode) =
+    let shortIfExpr =
+        !-startKeyword.Text
+        +> leaveNode startKeyword
+        +> sepNlnWhenWriteBeforeNewlineNotEmptyOr sepSpace
+        +> genExpr innerExpr
+        +> sepSpace
+        +> enterNode endKeyword
+        +> !-endKeyword.Text
+
+    let longIfExpr =
+        !-startKeyword.Text
+        +> leaveNode startKeyword
+        +> indentSepNlnUnindent (genExpr innerExpr)
+        +> sepNln
+        +> enterNode endKeyword
+        +> !-endKeyword.Text
+
+    // A code comment before the start keyword should not make the expression long.
+    enterNode startKeyword
+    +> expressionFitsOnRestOfLine shortIfExpr longIfExpr
+    +> leaveNode endKeyword
 
 // end expressions
 

@@ -1029,10 +1029,26 @@ type ExprMatchLambdaNode(functionNode: SingleTextNode, clauses: MatchClauseNode 
     member x.Function = functionNode
     member x.Clauses = clauses
 
-type ExprMatchNode(range) =
+type ExprMatchNode
+    (
+        matchNode: SingleTextNode,
+        matchExpr: Expr,
+        withNode: SingleTextNode,
+        clauses: MatchClauseNode list,
+        range
+    ) =
     inherit NodeBase(range)
 
-    override this.Children = failwith "todo"
+    override this.Children =
+        [| yield matchNode
+           yield Expr.Node matchExpr
+           yield withNode
+           yield! nodes clauses |]
+
+    member x.Match = matchNode
+    member x.MatchExpr = matchExpr
+    member x.With = withNode
+    member x.Clauses = clauses
 
 type ExprTraitCallNode(range) =
     inherit NodeBase(range)
