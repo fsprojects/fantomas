@@ -1155,3 +1155,20 @@ function
     // comment
     ()
 """
+
+[<Test>]
+let ``match expr`` () =
+    formatSourceString
+        false
+        """
+match x with
+| Y x -> ()
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+match x with
+| Y x -> ()
+"""
