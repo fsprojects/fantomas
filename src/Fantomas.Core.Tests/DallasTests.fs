@@ -990,3 +990,86 @@ seq {
     x in y //
 }
 """
+
+[<Test>]
+let ``paren lambda`` () =
+    formatSourceString
+        false
+        """
+(fun _ -> //
+                     a)
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+(fun _ -> //
+    a)
+"""
+
+[<Test>]
+let ``paren with closing lambda`` () =
+    formatSourceString
+        false
+        """
+(fun _ -> //
+                     a)
+"""
+        { config with MultiLineLambdaClosingNewline = true }
+    |> prepend newline
+    |> should
+        equal
+        """
+(fun _ -> //
+    a
+)
+"""
+
+[<Test>]
+let ``paren lambda, long list of parameters`` () =
+    formatSourceString
+        false
+        """
+(fun a b c d e f 
+        // comment
+        g -> 
+        //
+        ()
+        //
+        )
+"""
+        { config with MultiLineLambdaClosingNewline = true }
+    |> prepend newline
+    |> should
+        equal
+        """
+(fun
+    a
+    b
+    c
+    d
+    e
+    f
+    // comment
+    g ->
+    //
+    ()
+//
+)
+"""
+
+[<Test>]
+let ``single lambda`` () =
+    formatSourceString
+        false
+        """
+fun a b c -> d
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+fun a b c -> d
+"""

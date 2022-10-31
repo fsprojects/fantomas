@@ -329,6 +329,33 @@ let rec collectComputationExpressionStatements
         Continuation.sequence continuations finalContinuation
     | expr -> finalContinuation [ ComputationExpressionStatement.OtherStatement(mkExpr creationAide expr) ]
 
+/// Process compiler-generated matches in an appropriate way
+let rec private skipGeneratedLambdas expr =
+    match expr with
+    | SynExpr.Lambda (inLambdaSeq = true; body = bodyExpr) -> skipGeneratedLambdas bodyExpr
+    | _ -> expr
+
+and skipGeneratedMatch expr =
+    match expr with
+    | SynExpr.Match (_, _, [ SynMatchClause.SynMatchClause (resultExpr = innerExpr) as clause ], matchRange, _) when
+        matchRange.Start = clause.Range.Start
+        ->
+        skipGeneratedMatch innerExpr
+    | _ -> expr
+
+let inline private getLambdaBodyExpr expr =
+    let skippedLambdas = skipGeneratedLambdas expr
+    skipGeneratedMatch skippedLambdas
+
+let mkLambda creationAide pats body (StartRange 3 (mFun, m)) (trivia: SynExprLambdaTrivia) : ExprLambdaNode =
+    ExprLambdaNode(
+        stn "fun" mFun,
+        List.map (mkPat creationAide) pats,
+        stn "->" trivia.ArrowRange.Value,
+        mkExpr creationAide body,
+        m
+    )
+
 let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
     let exprRange = e.Range
 
@@ -542,8 +569,16 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
         ExprJoinInNode(mkExpr creationAide e1, stn "in" mIn, mkExpr creationAide e2, exprRange)
         |> Expr.JoinIn
 
-    // | Expr.JoinIn _ -> failwith "Not Implemented"
-    // | Expr.ParenLambda _ -> failwith "Not Implemented"
+    | SynExpr.Paren (SynExpr.Lambda (_, _, _, _, Some (pats, body), range, trivia), lpr, Some rpr, pr) ->
+        let body = getLambdaBodyExpr body
+        let lambdaNode = mkLambda creationAide pats body range trivia
+
+        ExprParenLambdaNode(stn "(" lpr, lambdaNode, stn ")" rpr, exprRange)
+        |> Expr.ParenLambda
+
+    | SynExpr.Lambda (_, _, _, _, Some (pats, body), range, trivia) ->
+        let body = getLambdaBodyExpr body
+        mkLambda creationAide pats body range trivia |> Expr.Lambda
     // | Expr.Lambda _ -> failwith "Not Implemented"
     // | Expr.MatchLambda _ -> failwith "Not Implemented"
     // | Expr.Match _ -> failwith "Not Implemented"
