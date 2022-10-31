@@ -977,15 +977,26 @@ type ExprJoinInNode(lhs: Expr, inNode: SingleTextNode, rhs: Expr, range) =
     member x.In = inNode
     member x.RightHandSide = rhs
 
-type ExprParenLambdaNode(range) =
+type ExprParenLambdaNode(openingParen: SingleTextNode, lambda: ExprLambdaNode, closingParen: SingleTextNode, range) =
+    inherit NodeBase(range)
+    override this.Children = [| yield openingParen; yield lambda; yield closingParen |]
+    member x.OpeningParen = openingParen
+    member x.Lambda = lambda
+    member x.ClosingParen = closingParen
+
+type ExprLambdaNode(funNode: SingleTextNode, parameters: Pattern list, arrow: SingleTextNode, expr: Expr, range) =
     inherit NodeBase(range)
 
-    override this.Children = failwith "todo"
+    override this.Children =
+        [| yield funNode
+           yield! List.map Pattern.Node parameters
+           yield arrow
+           yield Expr.Node expr |]
 
-type ExprLambdaNode(range) =
-    inherit NodeBase(range)
-
-    override this.Children = failwith "todo"
+    member x.Fun = funNode
+    member x.Parameters = parameters
+    member x.Arrow = arrow
+    member x.Expr = expr
 
 type ExprMatchLambdaNode(range) =
     inherit NodeBase(range)
