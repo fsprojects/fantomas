@@ -1,17 +1,18 @@
 # Changelog
 
-## [Unreleased]
+## [5.1.0-beta-002] - 2022-10-29
 
 ### Fixed
 * Idempotency problem with `struct end`. [#2592](https://github.com/fsprojects/fantomas/issues/2592)
 * Idempotency problem when having a comment in an anonymous record and Stroustrup formatting. [#2566](https://github.com/fsprojects/fantomas/issues/2566)
 * AlternativeLongMemberDefinitions breaks spacing around `type Blah as this`. [#2598](https://github.com/fsprojects/fantomas/issues/2598)
+* Outdenting problem when specifying record with accessibility modifier. [#2597](https://github.com/fsprojects/fantomas/issues/2597)
 * Comment above single parameter in brackets breaks code due to wrong indentation. [#2594](https://github.com/fsprojects/fantomas/issues/2594)
 
 ## [5.1.0-beta-001] - 2022-10-19
 
 ### Fixed
-* Comments get removed for method parameter with attribute [#2585](https://github.com/fsprojects/fantomas/issues/2585)
+* Comments get removed for method parameter with attribute. [#2585](https://github.com/fsprojects/fantomas/issues/2585)
 
 ### Changed
 * Update FCS to 'TypeDefn and NamespaceOrModule leading trivia', commit 7d115d56cde12006dd26a3c5babd702df451b8e8

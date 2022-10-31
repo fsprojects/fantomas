@@ -3153,9 +3153,10 @@ and genMultilineSimpleRecordTypeDefn openingBrace withKeyword ms ao' fs closingB
     +> genMemberDefnList ms
 
 and genMultilineSimpleRecordTypeDefnAlignBrackets openingBrace withKeyword ms ao' fs closingBrace =
+    let msIsEmpty = List.isEmpty ms
     // the typeName is already printed
     ifElseCtx
-        (fun ctx -> ctx.Config.ExperimentalStroustrupStyle && List.isEmpty ms)
+        (fun ctx -> ctx.Config.ExperimentalStroustrupStyle && msIsEmpty)
         (opt sepSpace ao' genAccess)
         (opt (indent +> sepNln) ao' genAccess)
     +> enterNodeFor SynTypeDefnSimpleRepr_Record_OpeningBrace openingBrace
@@ -3168,8 +3169,10 @@ and genMultilineSimpleRecordTypeDefnAlignBrackets openingBrace withKeyword ms ao
     )
     +> sepNln
     +> genTriviaFor SynTypeDefnSimpleRepr_Record_ClosingBrace closingBrace sepCloseSFixed
-    +> optSingle (fun _ -> unindent) ao'
-    +> onlyIf (List.isNotEmpty ms) sepNln
+    +> onlyIfCtx
+        (fun ctx -> not (ctx.Config.ExperimentalStroustrupStyle && msIsEmpty))
+        (optSingle (fun _ -> unindent) ao')
+    +> onlyIf (not msIsEmpty) sepNln
     +> sepNlnBetweenTypeAndMembers withKeyword ms
     +> genMemberDefnList ms
 

@@ -175,3 +175,33 @@ type NonEmptyList<'T> =
     member this.Tail = this.List.Tail
     member this.Length = this.List.Length
 """
+
+[<Test>]
+let ``outdenting problem when specifying record with accessibility modifier, 2597`` () =
+    formatSourceString
+        false
+        """
+module OutdentingProblem =
+    type Configuration = private { Setting1: int; Setting2: bool }
+        
+    let withSetting1 value configuration =
+        { configuration with Setting1 = value }
+        
+    let withSetting2 value configuration =
+        { configuration with Setting2 = value }
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+module OutdentingProblem =
+    type Configuration = private {
+        Setting1: int
+        Setting2: bool
+    }
+
+    let withSetting1 value configuration = { configuration with Setting1 = value }
+
+    let withSetting2 value configuration = { configuration with Setting2 = value }
+"""
