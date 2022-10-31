@@ -598,7 +598,26 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
     | SynExpr.MatchLambda (_, mFun, cs, _, _) ->
         ExprMatchLambdaNode(stn "function" mFun, List.map (mkSynMatchClause creationAide) cs, exprRange)
         |> Expr.MatchLambda
-    // | Expr.Match _ -> failwith "Not Implemented"
+
+    | SynExpr.Match (_, e, cs, _, trivia) ->
+        ExprMatchNode(
+            stn "match" trivia.MatchKeyword,
+            mkExpr creationAide e,
+            stn "with" trivia.WithKeyword,
+            List.map (mkSynMatchClause creationAide) cs,
+            exprRange
+        )
+        |> Expr.Match
+    | SynExpr.MatchBang (_, e, cs, _, trivia) ->
+        ExprMatchNode(
+            stn "match!" trivia.MatchBangKeyword,
+            mkExpr creationAide e,
+            stn "with" trivia.WithKeyword,
+            List.map (mkSynMatchClause creationAide) cs,
+            exprRange
+        )
+        |> Expr.Match
+
     // | Expr.TraitCall _ -> failwith "Not Implemented"
     // | Expr.ParenILEmbedded _ -> failwith "Not Implemented"
     // | Expr.ParenFunctionNameWithStar _ -> failwith "Not Implemented"
@@ -632,7 +651,6 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
             exprRange
         )
         |> Expr.EndsWithDualListApp
-    //| Expr.EndsWithDualListApp _ -> failwith "Not Implemented"
     | EndsWithSingleListAppExpr creationAide.Config.ExperimentalStroustrupStyle (e, es, aol) ->
         ExprEndsWithSingleListAppNode(
             mkExpr creationAide e,
@@ -642,7 +660,6 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
         )
         |> Expr.EndsWithSingleListApp
 
-    // | Expr.EndsWithSingleListApp _ -> failwith "Not Implemented"
     // | Expr.App _ -> failwith "Not Implemented"
     // | Expr.TypeApp _ -> failwith "Not Implemented"
     // | Expr.LetOrUses _ -> failwith "Not Implemented"
