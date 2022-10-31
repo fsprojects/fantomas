@@ -660,15 +660,20 @@ let genExpr (e: Expr) =
             | ComputationExpressionStatement.OtherStatement e ->
                 ColMultilineItem(genExpr e, sepNlnUnlessContentBefore (Expr.Node e)))
         |> colWithNlnWhenItemIsMultilineUsingConfig
-
     | Expr.JoinIn node ->
         genExpr node.LeftHandSide
         +> sepSpace
         +> genSingleTextNode node.In
         +> sepSpace
         +> genExpr node.RightHandSide
-    | Expr.ParenLambda _ -> failwith "Not Implemented"
-    | Expr.Lambda _ -> failwith "Not Implemented"
+    | Expr.ParenLambda node ->
+        genSingleTextNode node.OpeningParen
+        +> leadingExpressionIsMultiline
+            ((genLambda node.Lambda |> genNode node.Lambda)
+             +> sepNlnWhenWriteBeforeNewlineNotEmpty)
+            (fun isMultiline ctx -> onlyIf (isMultiline && ctx.Config.MultiLineLambdaClosingNewline) sepNln ctx)
+        +> genSingleTextNode node.ClosingParen
+    | Expr.Lambda node -> genLambda node
     | Expr.MatchLambda _ -> failwith "Not Implemented"
     | Expr.Match _ -> failwith "Not Implemented"
     | Expr.TraitCall _ -> failwith "Not Implemented"
@@ -907,6 +912,23 @@ let genNamedArgumentExpr (node: ExprInfixAppNode) =
         +> autoIndentAndNlnExpressUnlessStroustrup (fun e -> sepSpace +> genExpr e) node.RightHandSide
 
     expressionFitsOnRestOfLine short long
+
+let genLambda (node: ExprLambdaNode) =
+    let genPats =
+        let shortPats = col sepSpace node.Parameters genPat
+        let longPats = indentSepNlnUnindent (col sepNln node.Parameters genPat)
+        expressionFitsOnRestOfLine shortPats longPats
+
+    genSingleTextNode node.Fun
+    +> sepSpace
+    +> genPats
+    +> sepSpace
+    +> genSingleTextNode node.Arrow
+    +> (fun ctx ->
+        if hasWriteBeforeNewlineContent ctx then
+            indentSepNlnUnindent (genExpr node.Expr) ctx
+        else
+            sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidthUnlessStroustrup genExpr node.Expr ctx)
 
 // end expressions
 
