@@ -1137,3 +1137,42 @@ let ``function invocation wrapped in parentheses, 2382`` () =
     42
 )
 """
+
+[<Test>]
+let ``comment above single parameter in brackets, 2594`` () =
+    formatSourceString
+        false
+        """
+let doSomething _ _ = ()
+
+let test1 param =
+    doSomething
+        // my comment
+        (param)
+
+let test2 param =
+    doSomething
+        // my comment
+        (param)
+        (param)
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let doSomething _ _ = ()
+
+let test1 param =
+    doSomething
+        // my comment
+        (
+            param
+        )
+
+let test2 param =
+    doSomething
+        // my comment
+        (param)
+        (param)
+"""

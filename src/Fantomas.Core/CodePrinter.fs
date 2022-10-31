@@ -2226,7 +2226,15 @@ and genMultilineFunctionApplicationArguments argExpr =
         genTupleMultiline args
         |> genTriviaFor SynExpr_Tuple tupleRange
         |> argsInsideParenthesis lpr rpr pr
-    | Paren (lpr, singleExpr, rpr, pr) -> genExpr singleExpr |> argsInsideParenthesis lpr rpr pr
+    | Paren (lpr, singleExpr, rpr, pr) ->
+        fun ctx ->
+            let e = genExpr singleExpr |> argsInsideParenthesis lpr rpr pr
+            let hasTriviaBeforeParen = ctx.HasContentBefore(SynExpr_Paren, pr)
+
+            if hasTriviaBeforeParen then
+                indentSepNlnUnindent e ctx
+            else
+                e ctx
     | _ -> genExpr argExpr
 
 and genGenericTypeParameters lt ts gt =
