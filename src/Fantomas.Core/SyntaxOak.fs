@@ -998,10 +998,36 @@ type ExprLambdaNode(funNode: SingleTextNode, parameters: Pattern list, arrow: Si
     member x.Arrow = arrow
     member x.Expr = expr
 
-type ExprMatchLambdaNode(range) =
+type MatchClauseNode
+    (
+        bar: SingleTextNode option,
+        pattern: Pattern,
+        whenExpr: Expr option,
+        arrow: SingleTextNode,
+        bodyExpr: Expr,
+        range
+    ) =
     inherit NodeBase(range)
 
-    override this.Children = failwith "todo"
+    override this.Children =
+        [| yield! noa bar
+           yield Pattern.Node pattern
+           yield! noa (Option.map Expr.Node whenExpr)
+           yield arrow
+           yield Expr.Node bodyExpr |]
+
+    member x.Bar = bar
+    member x.Pattern = pattern
+    member x.WhenExpr = whenExpr
+    member x.Arrow = arrow
+    member x.BodyExpr = bodyExpr
+
+type ExprMatchLambdaNode(functionNode: SingleTextNode, clauses: MatchClauseNode list, range) =
+    inherit NodeBase(range)
+
+    override this.Children = [| yield functionNode; yield! nodes clauses |]
+    member x.Function = functionNode
+    member x.Clauses = clauses
 
 type ExprMatchNode(range) =
     inherit NodeBase(range)

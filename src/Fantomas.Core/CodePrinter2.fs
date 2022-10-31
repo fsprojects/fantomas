@@ -674,7 +674,7 @@ let genExpr (e: Expr) =
             (fun isMultiline ctx -> onlyIf (isMultiline && ctx.Config.MultiLineLambdaClosingNewline) sepNln ctx)
         +> genSingleTextNode node.ClosingParen
     | Expr.Lambda node -> genLambda node
-    | Expr.MatchLambda _ -> failwith "Not Implemented"
+    | Expr.MatchLambda node -> genSingleTextNode node.Function +> sepNln +> genClauses node.Clauses
     | Expr.Match _ -> failwith "Not Implemented"
     | Expr.TraitCall _ -> failwith "Not Implemented"
     | Expr.ParenILEmbedded _ -> failwith "Not Implemented"
@@ -930,6 +930,45 @@ let genLambda (node: ExprLambdaNode) =
         else
             sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidthUnlessStroustrup genExpr node.Expr ctx)
 
+let genClauses (clauses: MatchClauseNode list) =
+    let lastIndex = clauses.Length - 1
+
+    coli sepNln clauses (fun idx clause ->
+        let isLastItem = lastIndex = idx
+
+        genClause isLastItem clause)
+
+let genClause (isLastItem: bool) (node: MatchClauseNode) =
+    let genBar =
+        match node.Bar with
+        | Some barNode -> genSingleTextNode barNode +> sepSpace
+        | None -> sepBar
+
+    let genPatAndBody =
+        let genPatAndBody =
+            genPatInClause node.Pattern
+            +> sepSpace
+            +> optSingle (fun whenExpr -> !- "when " +> genExpr whenExpr +> sepSpace) node.WhenExpr
+            +> genSingleTextNode node.Arrow
+            +> (fun ctx ->
+                if isLastItem && ctx.Config.ExperimentalKeepIndentInBranch then
+                    expressionFitsOnRestOfLine
+                        (genExpr node.BodyExpr)
+                        (sepNln
+                         +> sepNlnUnlessContentBefore (Expr.Node node.BodyExpr)
+                         +> genExpr node.BodyExpr)
+                        ctx
+                else
+                    sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidthUnlessStroustrup genExpr node.BodyExpr ctx)
+
+        fun ctx ->
+            if ctx.Config.ExperimentalStroustrupStyle && node.BodyExpr.IsStroustrupStyleExpr then
+                atCurrentColumn genPatAndBody ctx
+            else
+                genPatAndBody ctx
+
+    genBar +> genPatAndBody |> genNode node
+
 // end expressions
 
 let genPatLeftMiddleRight (node: PatLeftMiddleRight) =
@@ -1054,6 +1093,33 @@ let genPat (p: Pattern) =
     | Pattern.IsInst node -> genSingleTextNode node.Token +> sepSpace +> genType node.Type
     | Pattern.QuoteExpr node -> genQuoteExpr node
     |> genNode (Pattern.Node p)
+
+let genPatInClause (pat: Pattern) =
+    let rec genPatMultiline p =
+        match p with
+        | Pattern.Or p ->
+            let genBar =
+                match p.Middle with
+                | Choice1Of2 barNode -> genSingleTextNode barNode +> sepSpace
+                | Choice2Of2 _ -> sepBar
+
+            genPatMultiline p.LeftHandSide +> sepNln +> genBar +> genPat p.RightHandSide
+
+        | Pattern.As p ->
+            let genAs =
+                match p.Middle with
+                | Choice1Of2 asNode -> genSingleTextNode asNode
+                | Choice2Of2 _ -> !- "as"
+
+            genPatMultiline p.LeftHandSide
+            +> sepSpace
+            +> genAs
+            +> sepSpace
+            +> genPat p.RightHandSide
+
+        | p -> genPat p
+
+    genPatMultiline pat
 
 let genPatRecordFieldName (node: PatRecordField) =
     match node.Prefix with

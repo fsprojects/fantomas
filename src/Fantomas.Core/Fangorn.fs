@@ -356,6 +356,21 @@ let mkLambda creationAide pats body (StartRange 3 (mFun, m)) (trivia: SynExprLam
         m
     )
 
+let mkSynMatchClause creationAide (SynMatchClause (p, eo, e, range, _, trivia)) : MatchClauseNode =
+    let fullRange =
+        match trivia.BarRange with
+        | None -> range
+        | Some barRange -> unionRanges barRange range
+
+    MatchClauseNode(
+        Option.map (stn "|") trivia.BarRange,
+        mkPat creationAide p,
+        Option.map (mkExpr creationAide) eo,
+        stn "->" trivia.ArrowRange.Value,
+        mkExpr creationAide e,
+        fullRange
+    )
+
 let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
     let exprRange = e.Range
 
@@ -579,8 +594,10 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
     | SynExpr.Lambda (_, _, _, _, Some (pats, body), range, trivia) ->
         let body = getLambdaBodyExpr body
         mkLambda creationAide pats body range trivia |> Expr.Lambda
-    // | Expr.Lambda _ -> failwith "Not Implemented"
-    // | Expr.MatchLambda _ -> failwith "Not Implemented"
+
+    | SynExpr.MatchLambda (_, mFun, cs, _, _) ->
+        ExprMatchLambdaNode(stn "function" mFun, List.map (mkSynMatchClause creationAide) cs, exprRange)
+        |> Expr.MatchLambda
     // | Expr.Match _ -> failwith "Not Implemented"
     // | Expr.TraitCall _ -> failwith "Not Implemented"
     // | Expr.ParenILEmbedded _ -> failwith "Not Implemented"
