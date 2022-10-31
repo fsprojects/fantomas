@@ -1073,3 +1073,85 @@ fun a b c -> d
         """
 fun a b c -> d
 """
+
+[<Test>]
+let ``match lambda`` () =
+    formatSourceString
+        false
+        """
+function 
+| X -> X
+| Y -> y
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+function
+| X -> X
+| Y -> y
+"""
+
+[<Test>]
+let ``nested or pattern in clause`` () =
+    formatSourceString
+        false
+        """
+function 
+| X
+| Y
+| Z -> ()
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+function
+| X
+| Y
+| Z -> ()
+"""
+
+[<Test>]
+let ``nested or in alias pattern`` () =
+    formatSourceString
+        false
+        """
+function 
+| X _
+| Y _
+| Z _ as meh -> ()
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+function
+| X _
+| Y _
+| Z _ as meh -> ()
+"""
+
+[<Test>]
+let ``when expr in clause`` () =
+    formatSourceString
+        false
+        """
+function 
+| X _ when someBoolThing ->
+    // comment
+    ()
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+function
+| X _ when someBoolThing ->
+    // comment
+    ()
+"""
