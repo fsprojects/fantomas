@@ -4,6 +4,8 @@ open System
 open Fantomas.Core.Context
 open Fantomas.Core.SyntaxOak
 
+let noBreakInfixOps = set [| "="; ">"; "<"; "%" |]
+
 let rec (|UppercaseType|LowercaseType|) (t: Type) : Choice<unit, unit> =
     let upperOrLower (v: string) =
         let isUpper = Seq.tryHead v |> Option.map Char.IsUpper |> Option.defaultValue false
@@ -714,7 +716,16 @@ let genExpr (e: Expr) =
     | Expr.NewlineInfixAppAlwaysMultiline _ -> failwith "Not Implemented"
     | Expr.NewlineInfixApps _ -> failwith "Not Implemented"
     | Expr.SameInfixApps _ -> failwith "Not Implemented"
-    | Expr.InfixApp _ -> failwith "nope"
+    | Expr.InfixApp node ->
+        fun ctx ->
+            isShortExpression
+                ctx.Config.MaxInfixOperatorExpression
+                (genOnelinerInfixExpr node)
+                (ifElse
+                    (noBreakInfixOps.Contains(node.Operator.Text))
+                    (genOnelinerInfixExpr node)
+                    (genMultilineInfixExpr node))
+                ctx
     | Expr.TernaryApp _ -> failwith "Not Implemented"
     | Expr.IndexWithoutDot _ -> failwith "Not Implemented"
     | Expr.AppDotGetTypeApp _ -> failwith "Not Implemented"
@@ -808,7 +819,6 @@ let genExpr (e: Expr) =
     | Expr.TryWithSingleClause _ -> failwith "Not Implemented"
     | Expr.TryWith _ -> failwith "Not Implemented"
     | Expr.TryFinally _ -> failwith "Not Implemented"
-    | Expr.Sequentials _ -> failwith "Not Implemented"
     | Expr.IfThen _ -> failwith "Not Implemented"
     | Expr.IfThenElse _ -> failwith "Not Implemented"
     | Expr.IfThenElif _ -> failwith "Not Implemented"
@@ -1017,6 +1027,97 @@ let genControlExpressionStartCore (startKeyword: SingleTextNode) (innerExpr: Exp
     enterNode startKeyword
     +> expressionFitsOnRestOfLine shortIfExpr longIfExpr
     +> leaveNode endKeyword
+
+let genOnelinerInfixExpr (node: ExprInfixAppNode) =
+    let genExpr e =
+        match e with
+        | Expr.Record _
+        | Expr.AnonRecord _ -> atCurrentColumnIndent (genExpr e)
+        | _ -> genExpr e
+
+    genExpr node.LeftHandSide
+    +> sepSpace
+    +> genSingleTextNode node.Operator
+    +> sepNlnWhenWriteBeforeNewlineNotEmpty
+    +> sepSpace
+    +> genExpr node.RightHandSide
+
+let genMultilineInfixExpr (node: ExprInfixAppNode) =
+    let genLhs (ctx: Context) =
+        match node.LeftHandSide with
+        | Expr.IfThen _
+        | Expr.IfThenElse _
+        | Expr.IfThenElif _ when (ctx.Config.IndentSize - 1 <= node.Operator.Text.Length) ->
+            autoParenthesisIfExpressionExceedsPageWidth (genExpr node.LeftHandSide) ctx
+        | Expr.Match _ when (ctx.Config.IndentSize <= node.Operator.Text.Length) ->
+            let ctxAfterMatch = genExpr node.LeftHandSide ctx
+
+            let lastClauseIsSingleLine =
+                Queue.rev ctxAfterMatch.WriterEvents
+                |> Seq.skipWhile (fun e ->
+                    match e with
+                    | RestoreIndent _
+                    | RestoreAtColumn _ -> true
+                    | _ -> false)
+                // In case the last clause was multiline an UnIndent event should follow
+                |> Seq.tryHead
+                |> fun e ->
+                    match e with
+                    | Some (UnIndentBy _) -> false
+                    | _ -> true
+
+            if lastClauseIsSingleLine then
+                ctxAfterMatch
+            else
+                autoParenthesisIfExpressionExceedsPageWidth (genExpr node.LeftHandSide) ctx
+        | lhsExpr -> genExpr lhsExpr ctx
+
+    atCurrentColumn (
+        genLhs
+        +> sepNln
+        +> genSingleTextNode node.Operator
+        +> sepNlnWhenWriteBeforeNewlineNotEmpty
+        +> sepSpace
+        +> genExprInMultilineInfixExpr node.RightHandSide
+    )
+
+let genExprInMultilineInfixExpr (e: Expr) =
+    match e with
+    // | LetOrUses (xs, e) ->
+    //     atCurrentColumn (
+    //         col sepNln xs (fun (lb, inKeyword) ->
+    //             genSynBinding lb
+    //             +> (match inKeyword with
+    //                 | Some inKw -> genTriviaFor SynExpr_LetOrUse_In inKw !- " in"
+    //                 | None -> !- " in"))
+    //         +> sepNln
+    //         +> expressionFitsOnRestOfLine
+    //             (genExpr e)
+    //             (let t, r = synExprToFsAstType e in
+    //
+    //              sepNlnConsideringTriviaContentBeforeFor t r +> genExpr e)
+    //     )
+    // | Paren (lpr, (Match _ as mex), rpr, pr) ->
+    //     fun ctx ->
+    //         if ctx.Config.MultiLineLambdaClosingNewline then
+    //             (sepOpenTFor lpr
+    //              +> indentSepNlnUnindent (genExpr mex)
+    //              +> sepNln
+    //              +> sepCloseTFor rpr
+    //              |> genTriviaFor SynExpr_Paren pr)
+    //                 ctx
+    //         else
+    //             (sepOpenTFor lpr +> atCurrentColumnIndent (genExpr mex) +> sepCloseTFor rpr
+    //              |> genTriviaFor SynExpr_Paren pr)
+    //                 ctx
+    // | Paren (_, InfixApp (_, _, DotGet _, _, _), _, _)
+    // | Paren (_, DotGetApp _, _, _) -> atCurrentColumnIndent (genExpr e)
+    // | MatchLambda (keywordRange, cs) ->
+    //     (!- "function " |> genTriviaFor SynExpr_MatchLambda_Function keywordRange)
+    //     +> indentSepNlnUnindent (genClauses cs)
+    //     |> genTriviaFor SynExpr_MatchLambda e.Range
+    // | Record _ -> atCurrentColumnIndent (genExpr e)
+    | _ -> genExpr e
 
 // end expressions
 
