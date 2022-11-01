@@ -371,6 +371,21 @@ let mkSynMatchClause creationAide (SynMatchClause (p, eo, e, range, _, trivia)) 
         fullRange
     )
 
+let (|InfixApp|_|) synExpr =
+    match synExpr with
+    | SynExpr.App (isInfix = true
+                   funcExpr = SynExpr.LongIdent(longDotId = SynLongIdent ([ operatorIdent ],
+                                                                          [],
+                                                                          [ Some (IdentTrivia.OriginalNotation "::") ]))
+                   argExpr = SynExpr.Tuple(exprs = [ e1; e2 ])) -> Some(e1, stn "::" operatorIdent.idRange, e2)
+    | SynExpr.App (funcExpr = SynExpr.App (isInfix = true
+                                           funcExpr = SynExpr.LongIdent(longDotId = SynLongIdent ([ operatorIdent ],
+                                                                                                  [],
+                                                                                                  [ Some (IdentTrivia.OriginalNotation operator) ]))
+                                           argExpr = e1)
+                   argExpr = e2) -> Some(e1, stn operator operatorIdent.idRange, e2)
+    | _ -> None
+
 let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
     let exprRange = e.Range
 
@@ -648,10 +663,13 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
         ->
         ExprPrefixAppNode(stn operatorName ident.idRange, mkExpr creationAide e2, exprRange)
         |> Expr.PrefixApp
-    // | Expr.PrefixApp _ -> failwith "Not Implemented"
+
     // | Expr.NewlineInfixAppAlwaysMultiline _ -> failwith "Not Implemented"
     // | Expr.NewlineInfixApps _ -> failwith "Not Implemented"
     // | Expr.SameInfixApps _ -> failwith "Not Implemented"
+    | InfixApp (e1, operator, e2) ->
+        ExprInfixAppNode(mkExpr creationAide e1, operator, mkExpr creationAide e2, exprRange)
+        |> Expr.InfixApp
     // | Expr.TernaryApp _ -> failwith "Not Implemented"
     // | Expr.IndexWithoutDot _ -> failwith "Not Implemented"
     // | Expr.AppDotGetTypeApp _ -> failwith "Not Implemented"
@@ -684,11 +702,9 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
 
     // | Expr.App _ -> failwith "Not Implemented"
     // | Expr.TypeApp _ -> failwith "Not Implemented"
-    // | Expr.LetOrUses _ -> failwith "Not Implemented"
     // | Expr.TryWithSingleClause _ -> failwith "Not Implemented"
     // | Expr.TryWith _ -> failwith "Not Implemented"
     // | Expr.TryFinally _ -> failwith "Not Implemented"
-    // | Expr.Sequentials _ -> failwith "Not Implemented"
     // | Expr.IfThen _ -> failwith "Not Implemented"
     // | Expr.IfThenElse _ -> failwith "Not Implemented"
     // | Expr.IfThenElif _ -> failwith "Not Implemented"
