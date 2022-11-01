@@ -1114,10 +1114,11 @@ type ExprDynamicNode(funcExpr: Expr, argExpr: Expr, range) =
     member x.FuncExpr = funcExpr
     member x.ArgExpr = argExpr
 
-type ExprPrefixAppNode(range) =
+type ExprPrefixAppNode(operator: SingleTextNode, expr: Expr, range) =
     inherit NodeBase(range)
-
-    override this.Children = failwith "todo"
+    override this.Children = [| yield operator; yield Expr.Node expr |]
+    member x.Operator = operator
+    member x.Expr = expr
 
 type InfixApp =
     interface
@@ -1191,10 +1192,11 @@ type ExprAppLongIdentAndSingleParenArgNode(range) =
 
     override this.Children = failwith "todo"
 
-type ExprAppSingleParenArgNode(range) =
+type ExprAppSingleParenArgNode(functionExpr: Expr, argExpr: Expr, range) =
     inherit NodeBase(range)
-
-    override this.Children = failwith "todo"
+    override this.Children = [| yield Expr.Node functionExpr; yield Expr.Node argExpr |]
+    member x.FunctionExpr = functionExpr
+    member x.ArgExpr = argExpr
 
 type ExprDotGetAppWithLambdaNode(range) =
     inherit NodeBase(range)
