@@ -1050,10 +1050,15 @@ type ExprMatchNode
     member x.With = withNode
     member x.Clauses = clauses
 
-type ExprTraitCallNode(range) =
+type ExprTraitCallNode(t: Type, md: MemberDefn, expr: Expr, range) =
     inherit NodeBase(range)
 
-    override this.Children = failwith "todo"
+    override this.Children =
+        [| yield Type.Node t; yield MemberDefn.Node md; yield Expr.Node expr |]
+
+    member x.Type = t
+    member x.MemberDefn = md
+    member x.Expr = expr
 
 type ExprParenILEmbeddedNode(range) =
     inherit NodeBase(range)
@@ -2261,6 +2266,50 @@ type MemberDefnPropertyGetSetNode
     member x.AndKeyword = andKeyword
     member x.LastBinding = lastBinding
 
+type ValNode
+    (
+        xmlDoc: SingleTextNode option,
+        attributes: MultipleAttributeListNode,
+        leadingKeyword: MultipleTextsNode,
+        isInline,
+        isMutable,
+        accessibility: SingleTextNode option,
+        identifier: SingleTextNode,
+        typeParams: TyparDecls option,
+        t: Type,
+        equals: SingleTextNode option,
+        eo: Expr option,
+        range
+    ) =
+    inherit NodeBase(range)
+
+    override this.Children =
+        [| yield! noa xmlDoc
+           yield attributes
+           yield leadingKeyword
+           yield! noa accessibility
+           yield identifier
+           yield! noa (Option.map TyparDecls.Node typeParams)
+           yield Type.Node t
+           yield! noa equals
+           yield! noa (Option.map Expr.Node eo) |]
+
+    member x.XmlDoc = xmlDoc
+    member x.Attributes = attributes
+    member x.LeadingKeyword = leadingKeyword
+    member x.IsInline = isInline
+    member x.IsMutable = isMutable
+    member x.Accessibility = accessibility
+    member x.Identifier = identifier
+    member x.TypeParams = typeParams
+    member x.T = t
+    member x.Equals = equals
+    member x.Expr = eo
+
+type MemberDefnSigMemberNode(valNode: ValNode, withGetSet: MultipleTextsNode option, range) =
+    inherit NodeBase(range)
+    override this.Children = [| yield valNode; yield! noa withGetSet |]
+
 [<RequireQualifiedAccess; NoEquality; NoComparison>]
 type MemberDefn =
     | ImplicitInherit of InheritConstructor
@@ -2275,6 +2324,7 @@ type MemberDefn =
     | AutoProperty of MemberDefnAutoPropertyNode
     | AbstractSlot of MemberDefnAbstractSlotNode
     | PropertyGetSet of MemberDefnPropertyGetSetNode
+    | SigMember of MemberDefnSigMemberNode
 
     static member Node(md: MemberDefn) : Node =
         match md with
@@ -2290,6 +2340,7 @@ type MemberDefn =
         | AutoProperty n -> n
         | AbstractSlot n -> n
         | PropertyGetSet n -> n
+        | SigMember n -> n
 
 type UnitNode(openingParen: SingleTextNode, closingParen: SingleTextNode, range) =
     inherit NodeBase(range)
