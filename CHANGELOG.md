@@ -1,5 +1,10 @@
 # Changelog
 
+## [Unreleased]
+
+### Fixed
+* Comment above single parameter in brackets breaks code due to wrong indentation. [#2594](https://github.com/fsprojects/fantomas/issues/2594)
+
 ## [5.1.0-beta-002] - 2022-10-29
 
 ### Fixed
@@ -7,7 +12,6 @@
 * Idempotency problem when having a comment in an anonymous record and Stroustrup formatting. [#2566](https://github.com/fsprojects/fantomas/issues/2566)
 * AlternativeLongMemberDefinitions breaks spacing around `type Blah as this`. [#2598](https://github.com/fsprojects/fantomas/issues/2598)
 * Outdenting problem when specifying record with accessibility modifier. [#2597](https://github.com/fsprojects/fantomas/issues/2597)
-* Comment above single parameter in brackets breaks code due to wrong indentation. [#2594](https://github.com/fsprojects/fantomas/issues/2594)
 
 ## [5.1.0-beta-001] - 2022-10-19
 
