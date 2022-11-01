@@ -689,13 +689,18 @@ let genExpr (e: Expr) =
         +> sepCloseT
         +> sepSpace
         +> genExpr node.Expr
-    | Expr.ParenILEmbedded _ -> failwith "Not Implemented"
-    | Expr.ParenFunctionNameWithStar _ -> failwith "Not Implemented"
+    | Expr.ParenILEmbedded node -> !-node.Text
+    | Expr.ParenFunctionNameWithStar node ->
+        genSingleTextNode node.OpeningParen
+        +> sepSpace
+        +> genSingleTextNode node.FunctionName
+        +> sepSpace
+        +> genSingleTextNode node.ClosingParen
     | Expr.Paren node ->
         genSingleTextNode node.OpeningParen
         +> genExpr node.Expr
         +> genSingleTextNode node.ClosingParen
-    | Expr.Dynamic _ -> failwith "Not Implemented"
+    | Expr.Dynamic node -> genExpr node.FuncExpr +> !- "?" +> genExpr node.ArgExpr
     | Expr.PrefixApp _ -> failwith "Not Implemented"
     | Expr.NewlineInfixAppAlwaysMultiline _ -> failwith "Not Implemented"
     | Expr.NewlineInfixApps _ -> failwith "Not Implemented"
@@ -1029,7 +1034,14 @@ let genPat (p: Pattern) =
         genPat node.Pattern
         +> sepColon
         +> autoIndentAndNlnIfExpressionExceedsPageWidth (atCurrentColumnIndent (genType node.Type))
-    | Pattern.Named node -> genSingleTextNode node.Name
+    | Pattern.NamedParenStarIdent node ->
+        genAccessOpt node.Accessibility
+        +> genSingleTextNode node.OpeningParen
+        +> sepSpace
+        +> genSingleTextNode node.Name
+        +> sepSpace
+        +> genSingleTextNode node.ClosingParen
+    | Pattern.Named node -> genAccessOpt node.Accessibility +> genSingleTextNode node.Name
     | Pattern.As node
     | Pattern.ListCons node -> genPatLeftMiddleRight node
     | Pattern.NamePatPairs node ->
@@ -1693,6 +1705,31 @@ let genUnionCase (hasVerticalBar: bool) (node: UnionCaseNode) =
     +> onlyIf (List.isNotEmpty node.Fields) (expressionFitsOnRestOfLine shortExpr longExpr)
     |> genNode node
 
+let genTypeAndParam (typeName: SingleTextNode) (tds: TyparDecls option) =
+    match tds with
+    | None -> genSingleTextNode typeName
+    | Some (TyparDecls.PostfixList postfixNode) -> sepNone
+    | Some (TyparDecls.PrefixList prefixNode) -> sepNone
+    | Some (TyparDecls.SinglePrefix singlePrefixNode) -> sepNone
+
+let genVal (node: ValNode) (optGetSet: MultipleTextsNode option) =
+    let genOptExpr =
+        match node.Equals, node.Expr with
+        | Some eq, Some e -> sepSpace +> genSingleTextNode eq +> sepSpace +> genExpr e
+        | _ -> sepNone
+
+    genXml node.XmlDoc
+    +> genAttributes node.Attributes
+    +> optSingle (fun lk -> genMultipleTextsNode lk +> sepSpace) node.LeadingKeyword
+    +> onlyIf node.IsInline (!- "inline ")
+    +> onlyIf node.IsMutable (!- "mutable ")
+    +> genAccessOpt node.Accessibility
+    +> genTypeAndParam node.Identifier node.TypeParams
+    +> ifElse (Option.isSome node.TypeParams) sepColonWithSpacesFixed sepColon
+    +> genTypeInSignature node.Type
+    +> optSingle (fun gs -> sepSpace +> genMultipleTextsNode gs) optGetSet
+    +> genOptExpr
+
 let genMemberDefnList mds =
     match mds with
     | [] -> sepNone
@@ -1785,7 +1822,7 @@ let genMemberDefn (md: MemberDefn) =
         +> optSingle (fun a -> sepNln +> genSingleTextNode a +> sepSpace) node.AndKeyword
         +> optSingle genProperty node.LastBinding
         +> unindent
-
+    | MemberDefn.SigMember node -> genVal node.Val node.WithGetSet
     |> genNode (MemberDefn.Node md)
 
 let genExceptionBody px ats ao uc =
