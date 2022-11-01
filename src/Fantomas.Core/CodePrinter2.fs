@@ -701,7 +701,16 @@ let genExpr (e: Expr) =
         +> genExpr node.Expr
         +> genSingleTextNode node.ClosingParen
     | Expr.Dynamic node -> genExpr node.FuncExpr +> !- "?" +> genExpr node.ArgExpr
-    | Expr.PrefixApp _ -> failwith "Not Implemented"
+    | Expr.PrefixApp node ->
+        match node.Expr with
+        | Expr.Constant _
+        | Expr.InterpolatedStringExpr _ -> genSingleTextNode node.Operator +> sepSpace +> genExpr node.Expr
+        | Expr.AppSingleParenArg appNode ->
+            genSingleTextNode node.Operator
+            +> sepSpace
+            +> genExpr appNode.FunctionExpr
+            +> genExpr appNode.ArgExpr
+        | _ -> genSingleTextNode node.Operator +> genExpr node.Expr
     | Expr.NewlineInfixAppAlwaysMultiline _ -> failwith "Not Implemented"
     | Expr.NewlineInfixApps _ -> failwith "Not Implemented"
     | Expr.SameInfixApps _ -> failwith "Not Implemented"
