@@ -635,7 +635,19 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
     | SynExpr.Dynamic (funcExpr, _, argExpr, _) ->
         ExprDynamicNode(mkExpr creationAide funcExpr, mkExpr creationAide argExpr, exprRange)
         |> Expr.Dynamic
-
+    | SynExpr.App (_,
+                   false,
+                   SynExpr.LongIdent (_,
+                                      SynLongIdent ([ ident ], [], [ Some (IdentTrivia.OriginalNotation operatorName) ]),
+                                      _,
+                                      _),
+                   e2,
+                   _) when
+        PrettyNaming.IsValidPrefixOperatorDefinitionName
+            (PrettyNaming.ConvertValLogicalNameToDisplayNameCore ident.idText)
+        ->
+        ExprPrefixAppNode(stn operatorName ident.idRange, mkExpr creationAide e2, exprRange)
+        |> Expr.PrefixApp
     // | Expr.PrefixApp _ -> failwith "Not Implemented"
     // | Expr.NewlineInfixAppAlwaysMultiline _ -> failwith "Not Implemented"
     // | Expr.NewlineInfixApps _ -> failwith "Not Implemented"
