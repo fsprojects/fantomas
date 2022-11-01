@@ -1172,3 +1172,18 @@ match x with
 match x with
 | Y x -> ()
 """
+
+[<Test>]
+let ``short infix operator`` () =
+    formatSourceString
+        false
+        """
+1 +  1
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+1 + 1
+"""

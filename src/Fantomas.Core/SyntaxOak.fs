@@ -1136,11 +1136,18 @@ type ExprNewlineInfixAppsNode(range) =
 
     override this.Children = failwith "todo"
 
-type ExprSameInfixAppsNode(range) =
+type ExprSameInfixAppsNode(leadingExpr: Expr, subsequentExpressions: (SingleTextNode * Expr) list, range) =
     inherit NodeBase(range)
     interface InfixApp
 
-    override this.Children = failwith "todo"
+    override this.Children =
+        let xs =
+            List.collect (fun (operator, expr) -> [ (operator :> Node); Expr.Node expr ]) subsequentExpressions
+
+        [| yield Expr.Node leadingExpr; yield! xs |]
+
+    member x.LeadingExpr = leadingExpr
+    member x.SubsequentExpressions = subsequentExpressions
 
 type ExprInfixAppNode(lhs: Expr, operator: SingleTextNode, rhs: Expr, range) =
     inherit NodeBase(range)
@@ -1267,11 +1274,6 @@ type ExprTryWithNode(range) =
     override this.Children = failwith "todo"
 
 type ExprTryFinallyNode(range) =
-    inherit NodeBase(range)
-
-    override this.Children = failwith "todo"
-
-type ExprSequentialsNode(range) =
     inherit NodeBase(range)
 
     override this.Children = failwith "todo"
@@ -1421,7 +1423,6 @@ type Expr =
     | TryWithSingleClause of ExprTryWithSingleClauseNode
     | TryWith of ExprTryWithNode
     | TryFinally of ExprTryFinallyNode
-    | Sequentials of ExprSequentialsNode
     | IfThen of ExprIfThenNode
     | IfThenElse of ExprIfThenElseNode
     | IfThenElif of ExprIfThenElifNode
@@ -1497,7 +1498,6 @@ type Expr =
         | TryWithSingleClause n -> n
         | TryWith n -> n
         | TryFinally n -> n
-        | Sequentials n -> n
         | IfThen n -> n
         | IfThenElse n -> n
         | IfThenElif n -> n
