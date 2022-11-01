@@ -380,11 +380,33 @@ type PatTypedNode(pat: Pattern, t: Type, range) =
     member x.Pattern = pat
     member x.Type = t
 
-type PatNamedNode(name: SingleTextNode, range) =
+type PatNamedParenStarIdentNode
+    (
+        accessibility: SingleTextNode option,
+        openingParen: SingleTextNode,
+        name: SingleTextNode,
+        closingParen: SingleTextNode,
+        range
+    ) =
+    inherit NodeBase(range)
+
+    override this.Children =
+        [| yield! noa accessibility
+           yield openingParen
+           yield name
+           yield closingParen |]
+
+    member x.Accessibility = accessibility
+    member x.OpeningParen = openingParen
+    member this.Name = name
+    member x.ClosingParen = closingParen
+
+type PatNamedNode(accessibility: SingleTextNode option, name: SingleTextNode, range) =
     inherit NodeBase(range)
 
     override this.Children = [| yield name |]
     member this.Name = name
+    member x.Accessibility = accessibility
 
 type NamePatPair(ident: SingleTextNode, equals: SingleTextNode, pat: Pattern, range) =
     inherit NodeBase(range)
@@ -419,7 +441,7 @@ type PatNamePatPairsNode
 
 type PatLongIdentNode
     (
-        ao: SingleTextNode option,
+        accessibility: SingleTextNode option,
         identifier: IdentListNode,
         typarDecls: TyparDecls option,
         parameters: Pattern list,
@@ -428,12 +450,12 @@ type PatLongIdentNode
     inherit NodeBase(range)
 
     override this.Children =
-        [| yield! noa ao
+        [| yield! noa accessibility
            yield identifier
            yield! noa (Option.map TyparDecls.Node typarDecls)
            yield! List.map Pattern.Node parameters |]
 
-    member x.Accessibility = ao
+    member x.Accessibility = accessibility
     member x.Identifier = identifier
     member x.TyparDecls = typarDecls
     member x.Parameters = parameters
@@ -511,6 +533,7 @@ type Pattern =
     | Null of SingleTextNode
     | Wild of SingleTextNode
     | Typed of PatTypedNode
+    | NamedParenStarIdent of PatNamedParenStarIdentNode
     | Named of PatNamedNode
     | As of PatLeftMiddleRight
     | ListCons of PatLeftMiddleRight
@@ -535,6 +558,7 @@ type Pattern =
         | Null n -> n
         | Wild n -> n
         | Typed n -> n
+        | NamedParenStarIdent n -> n
         | Named n -> n
         | As n -> n
         | ListCons n -> n
@@ -1060,15 +1084,19 @@ type ExprTraitCallNode(t: Type, md: MemberDefn, expr: Expr, range) =
     member x.MemberDefn = md
     member x.Expr = expr
 
-type ExprParenILEmbeddedNode(range) =
+type ExprParenFunctionNameWithStarNode
+    (
+        openingParen: SingleTextNode,
+        functionName: SingleTextNode,
+        closingParen: SingleTextNode,
+        range
+    ) =
     inherit NodeBase(range)
 
-    override this.Children = failwith "todo"
-
-type ExprParenFunctionNameWithStarNode(range) =
-    inherit NodeBase(range)
-
-    override this.Children = failwith "todo"
+    override this.Children = [| yield openingParen; yield functionName; yield closingParen |]
+    member x.OpeningParen = openingParen
+    member x.FunctionName = functionName
+    member x.ClosingParen = closingParen
 
 type ExprParenNode(openingParen: SingleTextNode, expr: Expr, closingParen: SingleTextNode, range) =
     inherit NodeBase(range)
@@ -1080,10 +1108,11 @@ type ExprParenNode(openingParen: SingleTextNode, expr: Expr, closingParen: Singl
     member x.Expr = expr
     member x.ClosingParen = closingParen
 
-type ExprDynamicNode(range) =
+type ExprDynamicNode(funcExpr: Expr, argExpr: Expr, range) =
     inherit NodeBase(range)
-
-    override this.Children = failwith "todo"
+    override this.Children = [| yield Expr.Node funcExpr; yield Expr.Node argExpr |]
+    member x.FuncExpr = funcExpr
+    member x.ArgExpr = argExpr
 
 type ExprPrefixAppNode(range) =
     inherit NodeBase(range)
@@ -1362,7 +1391,7 @@ type Expr =
     | MatchLambda of ExprMatchLambdaNode
     | Match of ExprMatchNode
     | TraitCall of ExprTraitCallNode
-    | ParenILEmbedded of ExprParenILEmbeddedNode
+    | ParenILEmbedded of SingleTextNode
     | ParenFunctionNameWithStar of ExprParenFunctionNameWithStarNode
     | Paren of ExprParenNode
     | Dynamic of ExprDynamicNode
@@ -2270,9 +2299,9 @@ type ValNode
     (
         xmlDoc: SingleTextNode option,
         attributes: MultipleAttributeListNode,
-        leadingKeyword: MultipleTextsNode,
-        isInline,
-        isMutable,
+        leadingKeyword: MultipleTextsNode option,
+        isInline: bool,
+        isMutable: bool,
         accessibility: SingleTextNode option,
         identifier: SingleTextNode,
         typeParams: TyparDecls option,
@@ -2286,7 +2315,7 @@ type ValNode
     override this.Children =
         [| yield! noa xmlDoc
            yield attributes
-           yield leadingKeyword
+           yield! noa leadingKeyword
            yield! noa accessibility
            yield identifier
            yield! noa (Option.map TyparDecls.Node typeParams)
@@ -2302,13 +2331,15 @@ type ValNode
     member x.Accessibility = accessibility
     member x.Identifier = identifier
     member x.TypeParams = typeParams
-    member x.T = t
+    member x.Type = t
     member x.Equals = equals
     member x.Expr = eo
 
 type MemberDefnSigMemberNode(valNode: ValNode, withGetSet: MultipleTextsNode option, range) =
     inherit NodeBase(range)
     override this.Children = [| yield valNode; yield! noa withGetSet |]
+    member x.Val = valNode
+    member x.WithGetSet = withGetSet
 
 [<RequireQualifiedAccess; NoEquality; NoComparison>]
 type MemberDefn =

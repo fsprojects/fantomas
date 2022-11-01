@@ -620,13 +620,22 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
     | SynExpr.TraitCall (tps, msg, expr, _) ->
         ExprTraitCallNode(mkType creationAide tps, mkMemberSig creationAide msg, mkExpr creationAide expr, exprRange)
         |> Expr.TraitCall
-    // | Expr.ParenILEmbedded _ -> failwith "Not Implemented"
-    // | Expr.ParenFunctionNameWithStar _ -> failwith "Not Implemented"
+
+    | SynExpr.Paren(expr = SynExpr.LibraryOnlyILAssembly (range = m)) ->
+        stn (creationAide.TextFromSource "" m) m |> Expr.ParenILEmbedded
+    | SynExpr.LongIdent(longDotId = SynLongIdent ([ ident ],
+                                                  [],
+                                                  [ Some (ParenStarSynIdent (lpr, originalNotation, rpr)) ])) ->
+        ExprParenFunctionNameWithStarNode(stn "(" lpr, stn originalNotation ident.idRange, stn ")" rpr, exprRange)
+        |> Expr.ParenFunctionNameWithStar
     | SynExpr.Paren (e, lpr, Some rpr, _) ->
         ExprParenNode(stn "(" lpr, mkExpr creationAide e, stn ")" rpr, exprRange)
         |> Expr.Paren
-    // | Expr.Paren _ -> failwith "Not Implemented"
-    // | Expr.Dynamic _ -> failwith "Not Implemented"
+
+    | SynExpr.Dynamic (funcExpr, _, argExpr, _) ->
+        ExprDynamicNode(mkExpr creationAide funcExpr, mkExpr creationAide argExpr, exprRange)
+        |> Expr.Dynamic
+
     // | Expr.PrefixApp _ -> failwith "Not Implemented"
     // | Expr.NewlineInfixAppAlwaysMultiline _ -> failwith "Not Implemented"
     // | Expr.NewlineInfixApps _ -> failwith "Not Implemented"
@@ -698,6 +707,15 @@ let mkExprQuote creationAide isRaw e range : ExprQuoteNode =
 
     ExprQuoteNode(startToken, mkExpr creationAide e, endToken, range)
 
+let (|ParenStarSynIdent|_|) =
+    function
+    | IdentTrivia.OriginalNotationWithParen (lpr, originalNotation, rpr) ->
+        if originalNotation.Length > 1 && originalNotation.StartsWith("*") then
+            Some(lpr, originalNotation, rpr)
+        else
+            None
+    | _ -> None
+
 let mkPat (creationAide: CreationAide) (p: SynPat) =
     let patternRange = p.Range
 
@@ -720,7 +738,11 @@ let mkPat (creationAide: CreationAide) (p: SynPat) =
     | SynPat.Typed (p, t, _) ->
         PatTypedNode(mkPat creationAide p, mkType creationAide t, patternRange)
         |> Pattern.Typed
-    | SynPat.Named (ident = ident) -> PatNamedNode(mkSynIdent ident, patternRange) |> Pattern.Named
+    | SynPat.Named (accessibility = ao; ident = SynIdent (ident, Some (ParenStarSynIdent (lpr, op, rpr)))) ->
+        PatNamedParenStarIdentNode(mkSynAccess ao, stn "(" lpr, stn op ident.idRange, stn ")" rpr, patternRange)
+        |> Pattern.NamedParenStarIdent
+    | SynPat.Named (accessibility = ao; ident = ident) ->
+        PatNamedNode(mkSynAccess ao, mkSynIdent ident, patternRange) |> Pattern.Named
     | SynPat.As (p1, p2, r) ->
         PatLeftMiddleRight(mkPat creationAide p1, Choice2Of2 "as", mkPat creationAide p2, patternRange)
         |> Pattern.As
@@ -1686,10 +1708,15 @@ let mkVal
     (creationAide: CreationAide)
     (SynValSig (ats, synIdent, vtd, t, _vi, isInline, isMutable, px, ao, eo, range, trivia))
     : ValNode =
+    let lk =
+        match trivia.LeadingKeyword with
+        | SynLeadingKeyword.New _ -> None
+        | lk -> Some(mkSynLeadingKeyword lk)
+
     ValNode(
         mkXmlDoc px,
         mkAttributes creationAide ats,
-        mkSynLeadingKeyword trivia.LeadingKeyword,
+        lk,
         isInline,
         isMutable,
         mkSynAccess ao,
