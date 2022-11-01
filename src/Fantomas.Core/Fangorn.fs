@@ -617,8 +617,9 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
             exprRange
         )
         |> Expr.Match
-
-    // | Expr.TraitCall _ -> failwith "Not Implemented"
+    | SynExpr.TraitCall (tps, msg, expr, _) ->
+        ExprTraitCallNode(mkType creationAide tps, mkMemberSig creationAide msg, mkExpr creationAide expr, exprRange)
+        |> Expr.TraitCall
     // | Expr.ParenILEmbedded _ -> failwith "Not Implemented"
     // | Expr.ParenFunctionNameWithStar _ -> failwith "Not Implemented"
     | SynExpr.Paren (e, lpr, Some rpr, _) ->
@@ -1680,6 +1681,49 @@ let mkMemberDefn (creationAide: CreationAide) (md: SynMemberDefn) =
             |> MemberDefn.PropertyGetSet
         | _ -> failwith "SynMemberDefn.GetSetMember cannot exist with get and without set"
     | _ -> failwithf "Unexpected SynMemberDefn: %A" md
+
+let mkVal
+    (creationAide: CreationAide)
+    (SynValSig (ats, synIdent, vtd, t, _vi, isInline, isMutable, px, ao, eo, range, trivia))
+    : ValNode =
+    ValNode(
+        mkXmlDoc px,
+        mkAttributes creationAide ats,
+        mkSynLeadingKeyword trivia.LeadingKeyword,
+        isInline,
+        isMutable,
+        mkSynAccess ao,
+        mkSynIdent synIdent,
+        mkSynValTyparDecls creationAide (Some vtd),
+        mkType creationAide t,
+        Option.map (stn "=") trivia.EqualsRange,
+        Option.map (mkExpr creationAide) eo,
+        range
+    )
+
+let mkMemberSig (creationAide: CreationAide) (ms: SynMemberSig) =
+    let memberSigRange = ms.Range
+
+    match ms with
+    | SynMemberSig.Member (vs, mf, _) ->
+        let (SynValSig (synType = t; trivia = trivia)) = vs
+
+        MemberDefnSigMemberNode(
+            mkVal creationAide vs,
+            // TODO: add getSet to trivia
+            mkWithGetSet (Some t) trivia.WithKeyword None mf.MemberKind,
+            memberSigRange
+        )
+        |> MemberDefn.SigMember
+    | SynMemberSig.Interface (t, StartRange 9 (mInterface, _)) ->
+        MemberDefnInterfaceNode(stn "interface" mInterface, mkType creationAide t, None, [], memberSigRange)
+        |> MemberDefn.Interface
+
+    | SynMemberSig.Inherit (t, StartRange 7 (mInherit, _)) ->
+        MemberDefnInheritNode(stn "inherit" mInherit, mkType creationAide t, memberSigRange)
+        |> MemberDefn.Inherit
+    | SynMemberSig.ValField (f, _) -> mkSynField creationAide f |> MemberDefn.ValField
+    | _ -> failwithf "Cannot construct node for %A" ms
 
 let rec mkModuleDecls
     (creationAide: CreationAide)

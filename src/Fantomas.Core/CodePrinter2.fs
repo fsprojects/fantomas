@@ -681,7 +681,14 @@ let genExpr (e: Expr) =
             +> sepNln
             +> genClauses node.Clauses
         )
-    | Expr.TraitCall _ -> failwith "Not Implemented"
+    | Expr.TraitCall node ->
+        genType node.Type
+        +> sepColon
+        +> sepOpenT
+        +> genMemberDefn node.MemberDefn
+        +> sepCloseT
+        +> sepSpace
+        +> genExpr node.Expr
     | Expr.ParenILEmbedded _ -> failwith "Not Implemented"
     | Expr.ParenFunctionNameWithStar _ -> failwith "Not Implemented"
     | Expr.Paren node ->
