@@ -909,7 +909,14 @@ let genExpr (e: Expr) =
             +> sepNln
             +> col sepNln node.Clauses (genClause false)
         )
-    | Expr.TryFinally _ -> failwith "Not Implemented"
+    | Expr.TryFinally node ->
+        atCurrentColumn (
+            genSingleTextNode node.Try
+            +> indentSepNlnUnindent (genExpr node.TryExpr)
+            +> sepNln
+            +> genSingleTextNode node.Finally
+            +> indentSepNlnUnindent (genExpr node.FinallyExpr)
+        )
     | Expr.IfThen _ -> failwith "Not Implemented"
     | Expr.IfThenElse _ -> failwith "Not Implemented"
     | Expr.IfThenElif _ -> failwith "Not Implemented"

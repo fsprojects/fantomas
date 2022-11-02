@@ -470,13 +470,6 @@ let (+>) (ctx: Context -> Context) (f: _ -> Context) x =
 
 let (!-) (str: string) = writerEvent (Write str)
 
-let (!+~) (str: string) c =
-    let addNewline ctx =
-        not (forallCharsOnLastLine Char.IsWhiteSpace ctx)
-
-    let c = if addNewline c then writerEvent WriteLine c else c
-    writerEvent (Write str) c
-
 /// Print object converted to string
 let str (o: 'T) (ctx: Context) =
     ctx |> writerEvent (Write(o.ToString()))
