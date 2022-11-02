@@ -1187,3 +1187,24 @@ let ``short infix operator`` () =
         """
 1 + 1
 """
+
+[<Test>]
+let ``multiline same infix operator`` () =
+    formatSourceString
+        false
+        """
+x +>
+    y +>
+        z +>
+            a0
+"""
+        { config with MaxInfixOperatorExpression = 0 }
+    |> prepend newline
+    |> should
+        equal
+        """
+x
++> y
++> z
++> a0
+"""

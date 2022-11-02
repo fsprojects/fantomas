@@ -5,6 +5,7 @@ open Fantomas.Core.Context
 open Fantomas.Core.SyntaxOak
 
 let noBreakInfixOps = set [| "="; ">"; "<"; "%" |]
+let newLineInfixOps = set [ "|>"; "||>"; "|||>"; ">>"; ">>=" ]
 
 let rec (|UppercaseType|LowercaseType|) (t: Type) : Choice<unit, unit> =
     let upperOrLower (v: string) =
@@ -181,6 +182,14 @@ let genInheritConstructor (ic: InheritConstructor) =
         +> sepSpace
         +> genType node.Type
         +> sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth (genExpr node.Expr)
+
+let isSynExprLambdaOrIfThenElse (e: Expr) =
+    match e with
+    | Expr.Lambda _
+    | Expr.IfThen _
+    | Expr.IfThenElif _
+    | Expr.IfThenElse _ -> true
+    | _ -> false
 
 let genExpr (e: Expr) =
     match e with
@@ -713,19 +722,52 @@ let genExpr (e: Expr) =
             +> genExpr appNode.FunctionExpr
             +> genExpr appNode.ArgExpr
         | _ -> genSingleTextNode node.Operator +> genExpr node.Expr
-    | Expr.NewlineInfixAppAlwaysMultiline node -> genMultilineInfixExpr node
-    | Expr.NewlineInfixApps _ -> failwith "Not Implemented"
-    | Expr.SameInfixApps _ -> failwith "Not Implemented"
+
+    | Expr.SameInfixApps node ->
+        let headIsSynExprLambdaOrIfThenElse = isSynExprLambdaOrIfThenElse node.LeadingExpr
+
+        let shortExpr =
+            onlyIf headIsSynExprLambdaOrIfThenElse sepOpenT
+            +> genExpr node.LeadingExpr
+            +> onlyIf headIsSynExprLambdaOrIfThenElse sepCloseT
+            +> sepSpace
+            +> col sepSpace node.SubsequentExpressions (fun (operator, rhs) ->
+                genSingleTextNode operator
+                +> sepSpace
+                +> onlyIf headIsSynExprLambdaOrIfThenElse sepOpenT
+                +> genExpr rhs
+                +> onlyIf headIsSynExprLambdaOrIfThenElse sepCloseT)
+
+        let multilineExpr =
+            match node.SubsequentExpressions with
+            | [] -> genExpr e
+            | (operator, e2) :: es ->
+                let m =
+                    FSharp.Compiler.Text.Range.unionRanges (Expr.Node node.LeadingExpr).Range (Expr.Node e2).Range
+
+                genMultilineInfixExpr (ExprInfixAppNode(node.LeadingExpr, operator, e2, m))
+                +> sepNln
+                +> col sepNln es (fun (operator, e) ->
+                    genSingleTextNode operator +> sepSpace +> genExprInMultilineInfixExpr e)
+
+        fun ctx -> atCurrentColumn (isShortExpression ctx.Config.MaxInfixOperatorExpression shortExpr multilineExpr) ctx
+
     | Expr.InfixApp node ->
-        fun ctx ->
-            isShortExpression
-                ctx.Config.MaxInfixOperatorExpression
-                (genOnelinerInfixExpr node)
-                (ifElse
-                    (noBreakInfixOps.Contains(node.Operator.Text))
+        if
+            isSynExprLambdaOrIfThenElse node.LeftHandSide
+            && newLineInfixOps.Contains node.Operator.Text
+        then
+            genMultilineInfixExpr node
+        else
+            fun ctx ->
+                isShortExpression
+                    ctx.Config.MaxInfixOperatorExpression
                     (genOnelinerInfixExpr node)
-                    (genMultilineInfixExpr node))
-                ctx
+                    (ifElse
+                        (noBreakInfixOps.Contains(node.Operator.Text))
+                        (genOnelinerInfixExpr node)
+                        (genMultilineInfixExpr node))
+                    ctx
     | Expr.TernaryApp _ -> failwith "Not Implemented"
     | Expr.IndexWithoutDot _ -> failwith "Not Implemented"
     | Expr.AppDotGetTypeApp _ -> failwith "Not Implemented"
