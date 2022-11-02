@@ -1199,10 +1199,17 @@ type ExprAppWithLambdaNode(range) =
 
     override this.Children = failwith "todo"
 
-type ExprNestedIndexWithoutDotNode(range) =
+type ExprNestedIndexWithoutDotNode(identifierExpr: Expr, indexExpr: Expr, argumentExpr: Expr, range) =
     inherit NodeBase(range)
 
-    override this.Children = failwith "todo"
+    override this.Children =
+        [| yield Expr.Node identifierExpr
+           yield Expr.Node indexExpr
+           yield Expr.Node argumentExpr |]
+
+    member x.Identifier = identifierExpr
+    member x.Index = indexExpr
+    member x.Argument = argumentExpr
 
 type ExprEndsWithDualListAppNode
     (
