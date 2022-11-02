@@ -36,7 +36,12 @@ let mkIdent (ident: Ident) =
 
     stn text ident.idRange
 
-let mkSynIdent (SynIdent (ident, _trivia)) = stn ident.idText ident.idRange
+let mkSynIdent (SynIdent (ident, trivia)) =
+    match trivia with
+    | None -> stn ident.idText ident.idRange
+    | Some (IdentTrivia.OriginalNotation text) -> stn text ident.idRange
+    | Some (IdentTrivia.OriginalNotationWithParen (_, text, _)) -> stn $"({text})" ident.idRange
+    | Some (IdentTrivia.HasParenthesis _) -> stn $"({ident.idText})" ident.idRange
 
 let mkSynLongIdent (sli: SynLongIdent) =
     match sli.IdentsWithTrivia with
@@ -859,15 +864,16 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
                 let m = unionRanges (elifNode :> Node).Range thenExpr.Range
                 ExprIfThenNode(elifNode, mkExpr creationAide ifExpr, thenNode, mkExpr creationAide thenExpr, m))
 
-        let elseNode, elseExpr =
+        let optElse =
             match elseOpt with
-            | None -> None, None
-            | Some (elseNode, e) -> Some elseNode, Some(mkExpr creationAide e)
+            | None -> None
+            | Some (elseNode, e) -> Some(elseNode, mkExpr creationAide e)
 
-        ExprIfThenElifNode(elifs, elseNode, elseExpr, exprRange) |> Expr.IfThenElif
+        ExprIfThenElifNode(elifs, optElse, exprRange) |> Expr.IfThenElif
 
     | SynExpr.Ident ident -> mkIdent ident |> Expr.Ident
-    // | Expr.OptVar _ -> failwith "Not Implemented"
+    | SynExpr.LongIdent (isOpt, synLongIdent, _, m) ->
+        ExprOptVarNode(isOpt, mkSynLongIdent synLongIdent, m) |> Expr.OptVar
     // | Expr.LongIdentSet _ -> failwith "Not Implemented"
     // | Expr.DotIndexedGet _ -> failwith "Not Implemented"
     // | Expr.DotIndexedSet _ -> failwith "Not Implemented"
