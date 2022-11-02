@@ -1182,9 +1182,18 @@ let autoNlnConsideringTriviaIfExpressionExceedsPageWidth sepNlnConsideringTrivia
         expr
         ctx
 
-// let addParenIfAutoNln synExpr f =
-//     let expr = f synExpr
-//     expressionFitsOnRestOfLine expr (ifElse (hasParenthesis synExpr) (sepOpenT +> expr +> sepCloseT) expr)
+let addParenIfAutoNln expr f =
+    let hasParenthesis =
+        match expr with
+        | Expr.Paren _
+        | Expr.ParenLambda _
+        | Expr.ParenILEmbedded _
+        | Expr.ParenFunctionNameWithStar _
+        | Expr.Constant (Constant.Unit _) -> true
+        | _ -> false
+
+    let expr = f expr
+    expressionFitsOnRestOfLine expr (ifElse hasParenthesis (sepOpenT +> expr +> sepCloseT) expr)
 //
 // let addParenForTupleWhen f synExpr ctx =
 //     let condition e =

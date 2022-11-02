@@ -1052,7 +1052,40 @@ let genExpr (e: Expr) =
         genIdentListNode node.Identifier
         +> sepArrowRev
         +> autoIndentAndNlnIfExpressionExceedsPageWidthUnlessStroustrup genExpr node.Expr
-    | Expr.DotIndexedGet _ -> failwith "Not Implemented"
+    | Expr.DotIndexedGet node ->
+        let genDotIndexedGet =
+            let isParen =
+                match node.ObjectExpr with
+                | Expr.Paren _ -> true
+                | _ -> false
+
+            ifElse isParen (genExpr node.ObjectExpr) (addParenIfAutoNln node.ObjectExpr genExpr)
+            +> !- "."
+            +> sepOpenLFixed
+            +> genExpr node.IndexExpr
+            +> sepCloseLFixed
+
+        match node.ObjectExpr with
+        | Expr.App appNode ->
+            match appNode.Arguments with
+            | [ Expr.Constant (Constant.Unit _) ] ->
+                genExpr e
+                +> genExpr node.ObjectExpr
+                +> !- "."
+                +> sepOpenLFixed
+                +> genExpr node.IndexExpr
+                +> sepCloseLFixed
+            | _ -> genDotIndexedGet
+        | Expr.AppSingleParenArg appNode ->
+            let short = genExpr appNode.FunctionExpr +> genExpr appNode.ArgExpr
+
+            let long =
+                genExpr appNode.FunctionExpr
+                +> genMultilineFunctionApplicationArguments appNode.ArgExpr
+
+            let idx = !- "." +> sepOpenLFixed +> genExpr node.IndexExpr +> sepCloseLFixed
+            expressionFitsOnRestOfLine (short +> idx) (long +> idx)
+        | _ -> genDotIndexedGet
     | Expr.DotIndexedSet _ -> failwith "Not Implemented"
     | Expr.NamedIndexedPropertySet _ -> failwith "Not Implemented"
     | Expr.DotNamedIndexedPropertySet _ -> failwith "Not Implemented"

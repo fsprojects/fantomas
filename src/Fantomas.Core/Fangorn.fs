@@ -877,6 +877,9 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
     | SynExpr.LongIdentSet (synLongIdent, e, _) ->
         ExprLongIdentSetNode(mkSynLongIdent synLongIdent, mkExpr creationAide e, exprRange)
         |> Expr.LongIdentSet
+    | SynExpr.DotIndexedGet (objectExpr, indexArgs, _, _) ->
+        ExprDotIndexedGetNode(mkExpr creationAide objectExpr, mkExpr creationAide indexArgs, exprRange)
+        |> Expr.DotIndexedGet
     // | Expr.DotIndexedGet _ -> failwith "Not Implemented"
     // | Expr.DotIndexedSet _ -> failwith "Not Implemented"
     // | Expr.NamedIndexedPropertySet _ -> failwith "Not Implemented"
