@@ -868,8 +868,47 @@ let genExpr (e: Expr) =
                 short ctx
     | Expr.App _ -> failwith "Not Implemented"
     | Expr.TypeApp _ -> failwith "Not Implemented"
-    | Expr.TryWithSingleClause _ -> failwith "Not Implemented"
-    | Expr.TryWith _ -> failwith "Not Implemented"
+    | Expr.TryWithSingleClause node ->
+        let genClause =
+            let clauseNode = node.Clause
+
+            leadingExpressionResult
+                (enterNode clauseNode
+                 +> optSingle (fun bar -> genNode bar sepNone) clauseNode.Bar)
+                (fun ((linesBefore, _), (linesAfter, _)) ->
+                    onlyIfCtx (fun ctx -> linesAfter > linesBefore || hasWriteBeforeNewlineContent ctx) sepBar)
+            +> genPatInClause clauseNode.Pattern
+            +> optSingle
+                (fun e -> !- " when" +> sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth (genExpr e))
+                clauseNode.WhenExpr
+            +> genSingleTextNode clauseNode.Arrow
+            +> autoIndentAndNlnExpressUnlessStroustrup genExpr clauseNode.BodyExpr
+            +> leaveNode clauseNode
+
+        atCurrentColumn (
+            genSingleTextNode node.Try
+            +> indent
+            +> sepNln
+            +> genExpr node.TryExpr
+            +> unindent
+            +> sepNln
+            +> genSingleTextNode node.With
+            +> sepSpace
+            +> genClause
+        )
+
+    | Expr.TryWith node ->
+        atCurrentColumn (
+            genSingleTextNode node.Try
+            +> indent
+            +> sepNln
+            +> genExpr e
+            +> unindent
+            +> sepNln
+            +> genSingleTextNode node.With
+            +> sepNln
+            +> col sepNln node.Clauses (genClause false)
+        )
     | Expr.TryFinally _ -> failwith "Not Implemented"
     | Expr.IfThen _ -> failwith "Not Implemented"
     | Expr.IfThenElse _ -> failwith "Not Implemented"
