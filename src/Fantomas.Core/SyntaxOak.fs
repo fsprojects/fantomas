@@ -1366,10 +1366,12 @@ type ExprOptVarNode(isOptional: bool, identifier: IdentListNode, range) =
     member x.IsOptional = isOptional
     member x.Identifier = identifier
 
-type ExprLongIdentSetNode(range) =
+type ExprLongIdentSetNode(identifier: IdentListNode, rhs: Expr, range) =
     inherit NodeBase(range)
 
-    override this.Children = failwith "todo"
+    override this.Children = [| yield identifier; yield Expr.Node rhs |]
+    member x.Identifier = identifier
+    member x.Expr = rhs
 
 type ExprDotIndexedGetNode(range) =
     inherit NodeBase(range)
