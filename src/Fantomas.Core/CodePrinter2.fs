@@ -896,7 +896,6 @@ let genExpr (e: Expr) =
             +> sepSpace
             +> genClause
         )
-
     | Expr.TryWith node ->
         atCurrentColumn (
             genSingleTextNode node.Try
@@ -1048,7 +1047,7 @@ let genExpr (e: Expr) =
 
         ifElseCtx areAllShort shortExpr longExpr |> atCurrentColumnIndent
     | Expr.Ident node -> !-node.Text
-    | Expr.OptVar _ -> failwith "Not Implemented"
+    | Expr.OptVar node -> onlyIf node.IsOptional (!- "?") +> genIdentListNode node.Identifier
     | Expr.LongIdentSet _ -> failwith "Not Implemented"
     | Expr.DotIndexedGet _ -> failwith "Not Implemented"
     | Expr.DotIndexedSet _ -> failwith "Not Implemented"
@@ -1062,7 +1061,8 @@ let genExpr (e: Expr) =
     | Expr.IndexRangeWildcard _ -> failwith "Not Implemented"
     | Expr.IndexRange _ -> failwith "Not Implemented"
     | Expr.IndexFromEnd _ -> failwith "Not Implemented"
-    | Expr.Typar _ -> failwith "Not Implemented" |> genNode (Expr.Node e)
+    | Expr.Typar _ -> failwith "Not Implemented"
+    |> genNode (Expr.Node e)
 
 let genQuoteExpr (node: ExprQuoteNode) =
     genSingleTextNode node.OpenToken

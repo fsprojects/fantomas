@@ -1239,3 +1239,22 @@ if a then  b
 if a then
     b
 """
+
+[<Test>]
+let ``long ident expr`` () =
+    formatSourceString
+        false
+        """
+(++)
+?a.b
+?c
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+(++)
+?a.b
+?c
+"""
