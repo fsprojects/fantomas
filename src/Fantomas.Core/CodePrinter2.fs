@@ -1048,7 +1048,10 @@ let genExpr (e: Expr) =
         ifElseCtx areAllShort shortExpr longExpr |> atCurrentColumnIndent
     | Expr.Ident node -> !-node.Text
     | Expr.OptVar node -> onlyIf node.IsOptional (!- "?") +> genIdentListNode node.Identifier
-    | Expr.LongIdentSet _ -> failwith "Not Implemented"
+    | Expr.LongIdentSet node ->
+        genIdentListNode node.Identifier
+        +> sepArrowRev
+        +> autoIndentAndNlnIfExpressionExceedsPageWidthUnlessStroustrup genExpr node.Expr
     | Expr.DotIndexedGet _ -> failwith "Not Implemented"
     | Expr.DotIndexedSet _ -> failwith "Not Implemented"
     | Expr.NamedIndexedPropertySet _ -> failwith "Not Implemented"

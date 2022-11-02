@@ -874,7 +874,9 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
     | SynExpr.Ident ident -> mkIdent ident |> Expr.Ident
     | SynExpr.LongIdent (isOpt, synLongIdent, _, m) ->
         ExprOptVarNode(isOpt, mkSynLongIdent synLongIdent, m) |> Expr.OptVar
-    // | Expr.LongIdentSet _ -> failwith "Not Implemented"
+    | SynExpr.LongIdentSet (synLongIdent, e, _) ->
+        ExprLongIdentSetNode(mkSynLongIdent synLongIdent, mkExpr creationAide e, exprRange)
+        |> Expr.LongIdentSet
     // | Expr.DotIndexedGet _ -> failwith "Not Implemented"
     // | Expr.DotIndexedSet _ -> failwith "Not Implemented"
     // | Expr.NamedIndexedPropertySet _ -> failwith "Not Implemented"
