@@ -1307,20 +1307,58 @@ type ExprTryFinallyNode(tryNode: SingleTextNode, tryExpr: Expr, finallyNode: Sin
     member x.Finally = finallyNode
     member x.FinallyExpr = finallyExpr
 
-type ExprIfThenNode(range) =
+type ExprIfThenNode(ifNode: MultipleTextsNode, ifExpr: Expr, thenNode: SingleTextNode, thenExpr: Expr, range) =
     inherit NodeBase(range)
 
-    override this.Children = failwith "todo"
+    override this.Children =
+        [| yield ifNode
+           yield Expr.Node ifExpr
+           yield thenNode
+           yield Expr.Node thenExpr |]
 
-type ExprIfThenElseNode(range) =
+    member x.If = ifNode
+    member x.IfExpr = ifExpr
+    member x.Then = thenNode
+    member x.ThenExpr = thenExpr
+
+type ExprIfThenElseNode
+    (
+        ifNode: MultipleTextsNode,
+        ifExpr: Expr,
+        thenNode: SingleTextNode,
+        thenExpr: Expr,
+        elseNode: SingleTextNode,
+        elseExpr: Expr,
+        range
+    ) =
     inherit NodeBase(range)
 
-    override this.Children = failwith "todo"
+    override this.Children =
+        [| yield ifNode
+           yield Expr.Node ifExpr
+           yield thenNode
+           yield Expr.Node thenExpr |]
 
-type ExprIfThenElifNode(range) =
+    member x.If = ifNode
+    member x.IfExpr = ifExpr
+    member x.Then = thenNode
+    member x.ThenExpr = thenExpr
+    member x.Else = elseNode
+    member x.ElseExpr = elseExpr
+
+type ExprIfThenElifNode(branches: ExprIfThenNode list, elseBranch: (SingleTextNode * Expr) option, range) =
     inherit NodeBase(range)
 
-    override this.Children = failwith "todo"
+    override this.Children =
+        let elseNodes =
+            match elseBranch with
+            | None -> []
+            | Some (elseNode, elseExpr) -> [ yield (elseNode :> Node); yield Expr.Node elseExpr ]
+
+        [| yield! nodes branches; yield! elseNodes |]
+
+    member x.Branches = branches
+    member x.Else = elseBranch
 
 type ExprOptVarNode(range) =
     inherit NodeBase(range)
