@@ -1360,10 +1360,11 @@ type ExprIfThenElifNode(branches: ExprIfThenNode list, elseBranch: (SingleTextNo
     member x.Branches = branches
     member x.Else = elseBranch
 
-type ExprOptVarNode(range) =
+type ExprOptVarNode(isOptional: bool, identifier: IdentListNode, range) =
     inherit NodeBase(range)
-
-    override this.Children = failwith "todo"
+    override this.Children = [| yield identifier |]
+    member x.IsOptional = isOptional
+    member x.Identifier = identifier
 
 type ExprLongIdentSetNode(range) =
     inherit NodeBase(range)
