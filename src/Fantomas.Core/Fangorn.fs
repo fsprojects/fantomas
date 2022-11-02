@@ -1,5 +1,6 @@
 ﻿module rec Fantomas.Core.Fangorn
 
+open System.Collections.Generic
 open System.Text.RegularExpressions
 open FSharp.Compiler.Text
 open FSharp.Compiler.Text.Range
@@ -386,7 +387,17 @@ let (|InfixApp|_|) synExpr =
                    argExpr = e2) -> Some(e1, stn operator operatorIdent.idRange, e2)
     | _ -> None
 
-let internal newLineInfixOps = set [ "|>"; "||>"; "|||>"; ">>"; ">>=" ]
+let (|SameInfixApps|_|) expr =
+    let rec visit expr continuation =
+        match expr with
+        | InfixApp (lhs, operator, rhs) ->
+            visit lhs (fun (head, xs: Queue<SingleTextNode * SynExpr>) ->
+                xs.Enqueue(operator, rhs)
+                continuation (head, xs))
+        | e -> continuation (e, Queue())
+
+    let head, xs = visit expr id
+    if xs.Count < 2 then None else Some(head, Seq.toList xs)
 
 let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
     let exprRange = e.Range
@@ -666,14 +677,12 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
         ExprPrefixAppNode(stn operatorName ident.idRange, mkExpr creationAide e2, exprRange)
         |> Expr.PrefixApp
 
-    // | Expr.NewlineInfixAppAlwaysMultiline _ -> failwith "Not Implemented"
     // | Expr.NewlineInfixApps _ -> failwith "Not Implemented"
-    // | Expr.SameInfixApps _ -> failwith "Not Implemented"
-    | InfixApp (SynExpr.Lambda _ | SynExpr.IfThenElse _ as lhs, operator, rhs) when
-        (newLineInfixOps.Contains operator.Text)
-        ->
-        ExprInfixAppNode(mkExpr creationAide lhs, operator, mkExpr creationAide rhs, exprRange)
-        |> Expr.NewlineInfixAppAlwaysMultiline
+    | SameInfixApps (head, xs) ->
+        let rest = xs |> List.map (fun (operator, e) -> operator, mkExpr creationAide e)
+
+        ExprSameInfixAppsNode(mkExpr creationAide head, rest, exprRange)
+        |> Expr.SameInfixApps
 
     | InfixApp (e1, operator, e2) ->
         ExprInfixAppNode(mkExpr creationAide e1, operator, mkExpr creationAide e2, exprRange)
