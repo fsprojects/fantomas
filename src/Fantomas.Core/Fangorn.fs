@@ -761,8 +761,37 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
 
     // | Expr.App _ -> failwith "Not Implemented"
     // | Expr.TypeApp _ -> failwith "Not Implemented"
-    // | Expr.TryWithSingleClause _ -> failwith "Not Implemented"
-    // | Expr.TryWith _ -> failwith "Not Implemented"
+    | SynExpr.TryWith (e, [ SynMatchClause (pat = pat) as c ], _, _, _, trivia) ->
+        match pat with
+        | SynPat.Or _
+        | SynPat.As (SynPat.Or _, _, _) ->
+            ExprTryWithNode(
+                stn "try" trivia.TryKeyword,
+                mkExpr creationAide e,
+                stn "with" trivia.WithKeyword,
+                [ mkSynMatchClause creationAide c ],
+                exprRange
+            )
+            |> Expr.TryWith
+        | _ ->
+            ExprTryWithSingleClauseNode(
+                stn "try" trivia.TryKeyword,
+                mkExpr creationAide e,
+                stn "with" trivia.WithKeyword,
+                mkSynMatchClause creationAide c,
+                exprRange
+            )
+            |> Expr.TryWithSingleClause
+    | SynExpr.TryWith (e, clauses, _, _, _, trivia) ->
+        ExprTryWithNode(
+            stn "try" trivia.TryKeyword,
+            mkExpr creationAide e,
+            stn "with" trivia.WithKeyword,
+            List.map (mkSynMatchClause creationAide) clauses,
+            exprRange
+        )
+        |> Expr.TryWith
+
     // | Expr.TryFinally _ -> failwith "Not Implemented"
     // | Expr.IfThen _ -> failwith "Not Implemented"
     // | Expr.IfThenElse _ -> failwith "Not Implemented"
