@@ -1293,10 +1293,19 @@ type ExprTryWithNode
     member x.With = withNode
     member x.Clauses = clauses
 
-type ExprTryFinallyNode(range) =
+type ExprTryFinallyNode(tryNode: SingleTextNode, tryExpr: Expr, finallyNode: SingleTextNode, finallyExpr: Expr, range) =
     inherit NodeBase(range)
 
-    override this.Children = failwith "todo"
+    override this.Children =
+        [| yield tryNode
+           yield Expr.Node tryExpr
+           yield finallyNode
+           yield Expr.Node finallyExpr |]
+
+    member x.Try = tryNode
+    member x.TryExpr = tryExpr
+    member x.Finally = finallyNode
+    member x.FinallyExpr = finallyExpr
 
 type ExprIfThenNode(range) =
     inherit NodeBase(range)
