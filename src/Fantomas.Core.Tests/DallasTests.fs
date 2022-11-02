@@ -1208,3 +1208,18 @@ x
 +> z
 +> a0
 """
+
+[<Test>]
+let ``index without dot`` () =
+    formatSourceString
+        false
+        """
+a[ b ]
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+a[b]
+"""

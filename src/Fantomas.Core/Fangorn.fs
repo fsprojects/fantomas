@@ -687,8 +687,18 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
     | InfixApp (e1, operator, e2) ->
         ExprInfixAppNode(mkExpr creationAide e1, operator, mkExpr creationAide e2, exprRange)
         |> Expr.InfixApp
-    // | Expr.TernaryApp _ -> failwith "Not Implemented"
-    // | Expr.IndexWithoutDot _ -> failwith "Not Implemented"
+
+    | SynExpr.App (ExprAtomicFlag.Atomic, false, identifierExpr, SynExpr.ArrayOrListComputed (false, indexExpr, _), _) ->
+        ExprIndexWithoutDotNode(mkExpr creationAide identifierExpr, mkExpr creationAide indexExpr, exprRange)
+        |> Expr.IndexWithoutDot
+    | SynExpr.App (ExprAtomicFlag.NonAtomic,
+                   false,
+                   identifierExpr,
+                   (SynExpr.ArrayOrListComputed (isArray = false; expr = indexExpr) as argExpr),
+                   _) when (RangeHelpers.isAdjacentTo identifierExpr.Range argExpr.Range) ->
+        ExprIndexWithoutDotNode(mkExpr creationAide identifierExpr, mkExpr creationAide indexExpr, exprRange)
+        |> Expr.IndexWithoutDot
+
     // | Expr.AppDotGetTypeApp _ -> failwith "Not Implemented"
     // | Expr.DotGetAppDotGetAppParenLambda _ -> failwith "Not Implemented"
     // | Expr.DotGetAppParen _ -> failwith "Not Implemented"
