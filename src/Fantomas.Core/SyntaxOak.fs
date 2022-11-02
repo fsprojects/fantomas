@@ -1146,16 +1146,12 @@ type ExprInfixAppNode(lhs: Expr, operator: SingleTextNode, rhs: Expr, range) =
     member x.RightHandSide: Expr = rhs
     member x.Operator = operator
 
-type ExprTernaryAppNode(range) =
-    inherit NodeBase(range)
-    interface InfixApp
-
-    override this.Children = failwith "todo"
-
-type ExprIndexWithoutDotNode(range) =
+type ExprIndexWithoutDotNode(identifierExpr: Expr, indexExpr: Expr, range) =
     inherit NodeBase(range)
 
-    override this.Children = failwith "todo"
+    override this.Children = [| yield Expr.Node identifierExpr; yield Expr.Node indexExpr |]
+    member x.Identifier = identifierExpr
+    member x.Index = indexExpr
 
 type ExprAppDotGetTypeAppNode(range) =
     inherit NodeBase(range)
@@ -1390,7 +1386,6 @@ type Expr =
     | PrefixApp of ExprPrefixAppNode
     | SameInfixApps of ExprSameInfixAppsNode
     | InfixApp of ExprInfixAppNode
-    | TernaryApp of ExprTernaryAppNode
     | IndexWithoutDot of ExprIndexWithoutDotNode
     | AppDotGetTypeApp of ExprAppDotGetTypeAppNode
     | DotGetAppDotGetAppParenLambda of ExprDotGetAppDotGetAppParenLambdaNode
@@ -1463,7 +1458,6 @@ type Expr =
         | PrefixApp n -> n
         | SameInfixApps n -> n
         | InfixApp n -> n
-        | TernaryApp n -> n
         | IndexWithoutDot n -> n
         | AppDotGetTypeApp n -> n
         | DotGetAppDotGetAppParenLambda n -> n

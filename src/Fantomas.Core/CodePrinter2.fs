@@ -768,8 +768,13 @@ let genExpr (e: Expr) =
                         (genOnelinerInfixExpr node)
                         (genMultilineInfixExpr node))
                     ctx
-    | Expr.TernaryApp _ -> failwith "Not Implemented"
-    | Expr.IndexWithoutDot _ -> failwith "Not Implemented"
+    | Expr.IndexWithoutDot node ->
+        let genIndexExpr = genExpr node.Index
+
+        genExpr node.Identifier
+        +> sepOpenLFixed
+        +> expressionFitsOnRestOfLine genIndexExpr (atCurrentColumnIndent genIndexExpr)
+        +> sepCloseLFixed
     | Expr.AppDotGetTypeApp _ -> failwith "Not Implemented"
     | Expr.DotGetAppDotGetAppParenLambda _ -> failwith "Not Implemented"
     | Expr.DotGetAppParen _ -> failwith "Not Implemented"
