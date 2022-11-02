@@ -1248,6 +1248,7 @@ type ExprAppNode(range) =
     inherit NodeBase(range)
 
     override this.Children = failwith "todo"
+    member x.Arguments: Expr list = failwith ""
 
 type ExprTypeAppNode(range) =
     inherit NodeBase(range)
@@ -1373,10 +1374,11 @@ type ExprLongIdentSetNode(identifier: IdentListNode, rhs: Expr, range) =
     member x.Identifier = identifier
     member x.Expr = rhs
 
-type ExprDotIndexedGetNode(range) =
+type ExprDotIndexedGetNode(objectExpr: Expr, indexExpr: Expr, range) =
     inherit NodeBase(range)
-
-    override this.Children = failwith "todo"
+    override this.Children = [| yield Expr.Node objectExpr; yield Expr.Node indexExpr |]
+    member x.ObjectExpr = objectExpr
+    member x.IndexExpr = indexExpr
 
 type ExprDotIndexedSetNode(range) =
     inherit NodeBase(range)
