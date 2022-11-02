@@ -713,7 +713,7 @@ let genExpr (e: Expr) =
             +> genExpr appNode.FunctionExpr
             +> genExpr appNode.ArgExpr
         | _ -> genSingleTextNode node.Operator +> genExpr node.Expr
-    | Expr.NewlineInfixAppAlwaysMultiline _ -> failwith "Not Implemented"
+    | Expr.NewlineInfixAppAlwaysMultiline node -> genMultilineInfixExpr node
     | Expr.NewlineInfixApps _ -> failwith "Not Implemented"
     | Expr.SameInfixApps _ -> failwith "Not Implemented"
     | Expr.InfixApp node ->
