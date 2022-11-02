@@ -1254,15 +1254,44 @@ type ExprTypeAppNode(range) =
 
     override this.Children = failwith "todo"
 
-type ExprTryWithSingleClauseNode(range) =
+type ExprTryWithSingleClauseNode
+    (
+        tryNode: SingleTextNode,
+        tryExpr: Expr,
+        withNode: SingleTextNode,
+        clause: MatchClauseNode,
+        range
+    ) =
     inherit NodeBase(range)
 
-    override this.Children = failwith "todo"
+    override this.Children =
+        [| yield tryNode; yield Expr.Node tryExpr; yield withNode; yield clause |]
 
-type ExprTryWithNode(range) =
+    member x.Try = tryNode
+    member x.TryExpr = tryExpr
+    member x.With = withNode
+    member x.Clause = clause
+
+type ExprTryWithNode
+    (
+        tryNode: SingleTextNode,
+        tryExpr: Expr,
+        withNode: SingleTextNode,
+        clauses: MatchClauseNode list,
+        range
+    ) =
     inherit NodeBase(range)
 
-    override this.Children = failwith "todo"
+    override this.Children =
+        [| yield tryNode
+           yield Expr.Node tryExpr
+           yield withNode
+           yield! nodes clauses |]
+
+    member x.Try = tryNode
+    member x.TryExpr = tryExpr
+    member x.With = withNode
+    member x.Clauses = clauses
 
 type ExprTryFinallyNode(range) =
     inherit NodeBase(range)
