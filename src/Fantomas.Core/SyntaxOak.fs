@@ -1124,12 +1124,6 @@ type InfixApp =
     interface
     end
 
-type ExprNewlineInfixAppAlwaysMultilineNode(range) =
-    inherit NodeBase(range)
-    interface InfixApp
-
-    override this.Children = failwith "todo"
-
 type ExprNewlineInfixAppsNode(range) =
     inherit NodeBase(range)
     interface InfixApp
@@ -1400,7 +1394,7 @@ type Expr =
     | Paren of ExprParenNode
     | Dynamic of ExprDynamicNode
     | PrefixApp of ExprPrefixAppNode
-    | NewlineInfixAppAlwaysMultiline of ExprNewlineInfixAppAlwaysMultilineNode
+    | NewlineInfixAppAlwaysMultiline of ExprInfixAppNode
     | NewlineInfixApps of ExprNewlineInfixAppsNode
     | SameInfixApps of ExprSameInfixAppsNode
     | InfixApp of ExprInfixAppNode

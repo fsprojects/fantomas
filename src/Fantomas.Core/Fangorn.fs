@@ -386,6 +386,8 @@ let (|InfixApp|_|) synExpr =
                    argExpr = e2) -> Some(e1, stn operator operatorIdent.idRange, e2)
     | _ -> None
 
+let internal newLineInfixOps = set [ "|>"; "||>"; "|||>"; ">>"; ">>=" ]
+
 let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
     let exprRange = e.Range
 
@@ -667,6 +669,12 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
     // | Expr.NewlineInfixAppAlwaysMultiline _ -> failwith "Not Implemented"
     // | Expr.NewlineInfixApps _ -> failwith "Not Implemented"
     // | Expr.SameInfixApps _ -> failwith "Not Implemented"
+    | InfixApp (SynExpr.Lambda _ | SynExpr.IfThenElse _ as lhs, operator, rhs) when
+        (newLineInfixOps.Contains operator.Text)
+        ->
+        ExprInfixAppNode(mkExpr creationAide lhs, operator, mkExpr creationAide rhs, exprRange)
+        |> Expr.NewlineInfixAppAlwaysMultiline
+
     | InfixApp (e1, operator, e2) ->
         ExprInfixAppNode(mkExpr creationAide e1, operator, mkExpr creationAide e2, exprRange)
         |> Expr.InfixApp
