@@ -399,6 +399,34 @@ let (|SameInfixApps|_|) expr =
     let head, xs = visit expr id
     if xs.Count < 2 then None else Some(head, Seq.toList xs)
 
+let rec (|ElIf|_|) =
+    function
+    | SynExpr.IfThenElse (e1, e2, Some (ElIf ((elifNode, eshE1, eshThenKw, eshE2) :: es, elseInfo)), _, _, _, trivia) ->
+        let ifNode = MultipleTextsNode([ stn "if" trivia.IfKeyword ], trivia.IfKeyword)
+
+        let elifNode =
+            match trivia.ElseKeyword with
+            | None -> elifNode
+            | Some mElse ->
+                let m = unionRanges mElse (elifNode :> Node).Range
+                MultipleTextsNode([ yield stn "else" mElse; yield! elifNode.Content ], m)
+
+        Some(
+            (ifNode, e1, stn "then" trivia.ThenKeyword, e2)
+            :: (elifNode, eshE1, eshThenKw, eshE2) :: es,
+            elseInfo
+        )
+
+    | SynExpr.IfThenElse (e1, e2, e3, _, _, _, trivia) ->
+        let elseInfo =
+            match trivia.ElseKeyword, e3 with
+            | Some elseKw, Some elseExpr -> Some(stn "else" elseKw, elseExpr)
+            | _ -> None
+
+        let ifNode = MultipleTextsNode([ stn "if" trivia.IfKeyword ], trivia.IfKeyword)
+        Some([ (ifNode, e1, stn "then" trivia.ThenKeyword, e2) ], elseInfo)
+    | _ -> None
+
 let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
     let exprRange = e.Range
 
@@ -801,9 +829,43 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
             exprRange
         )
         |> Expr.TryFinally
-    // | Expr.IfThen _ -> failwith "Not Implemented"
-    // | Expr.IfThenElse _ -> failwith "Not Implemented"
-    // | Expr.IfThenElif _ -> failwith "Not Implemented"
+
+    | SynExpr.IfThenElse (ifExpr = ifExpr; thenExpr = thenExpr; elseExpr = None; trivia = trivia) ->
+        ExprIfThenNode(
+            MultipleTextsNode([ stn "if" trivia.IfKeyword ], trivia.IfKeyword),
+            mkExpr creationAide ifExpr,
+            stn "then" trivia.ThenKeyword,
+            mkExpr creationAide thenExpr,
+            exprRange
+        )
+        |> Expr.IfThen
+
+    | ElIf ([ elifKw, ifExpr, thenKw, thenExpr ], Some (elseKw, elseExpr)) ->
+        ExprIfThenElseNode(
+            elifKw,
+            mkExpr creationAide ifExpr,
+            thenKw,
+            mkExpr creationAide thenExpr,
+            elseKw,
+            mkExpr creationAide elseExpr,
+            exprRange
+        )
+        |> Expr.IfThenElse
+
+    | ElIf (elifs, elseOpt) ->
+        let elifs =
+            elifs
+            |> List.map (fun (elifNode, ifExpr, thenNode, thenExpr) ->
+                let m = unionRanges (elifNode :> Node).Range thenExpr.Range
+                ExprIfThenNode(elifNode, mkExpr creationAide ifExpr, thenNode, mkExpr creationAide thenExpr, m))
+
+        let elseNode, elseExpr =
+            match elseOpt with
+            | None -> None, None
+            | Some (elseNode, e) -> Some elseNode, Some(mkExpr creationAide e)
+
+        ExprIfThenElifNode(elifs, elseNode, elseExpr, exprRange) |> Expr.IfThenElif
+
     | SynExpr.Ident ident -> mkIdent ident |> Expr.Ident
     // | Expr.OptVar _ -> failwith "Not Implemented"
     // | Expr.LongIdentSet _ -> failwith "Not Implemented"

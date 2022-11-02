@@ -1223,3 +1223,19 @@ a[ b ]
         """
 a[b]
 """
+
+[<Test>]
+let ``if then`` () =
+    formatSourceString
+        false
+        """
+if a then  b
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+if a then
+    b
+"""
