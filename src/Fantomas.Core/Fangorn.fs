@@ -792,7 +792,15 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
         )
         |> Expr.TryWith
 
-    // | Expr.TryFinally _ -> failwith "Not Implemented"
+    | SynExpr.TryFinally (e1, e2, _, _, _, trivia) ->
+        ExprTryFinallyNode(
+            stn "try" trivia.TryKeyword,
+            mkExpr creationAide e1,
+            stn "finally" trivia.FinallyKeyword,
+            mkExpr creationAide e2,
+            exprRange
+        )
+        |> Expr.TryFinally
     // | Expr.IfThen _ -> failwith "Not Implemented"
     // | Expr.IfThenElse _ -> failwith "Not Implemented"
     // | Expr.IfThenElif _ -> failwith "Not Implemented"
