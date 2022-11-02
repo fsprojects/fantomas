@@ -708,7 +708,39 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
     // | Expr.AppSingleParenArg _ -> failwith "Not Implemented"
     // | Expr.DotGetAppWithLambda _ -> failwith "Not Implemented"
     // | Expr.AppWithLambda _ -> failwith "Not Implemented"
-    // | Expr.NestedIndexWithoutDot _ -> failwith "Not Implemented"
+    | SynExpr.App (ExprAtomicFlag.NonAtomic,
+                   false,
+                   SynExpr.App (ExprAtomicFlag.Atomic,
+                                false,
+                                identifierExpr,
+                                SynExpr.ArrayOrListComputed (false, indexExpr, _),
+                                _),
+                   argExpr,
+                   _) ->
+        ExprNestedIndexWithoutDotNode(
+            mkExpr creationAide identifierExpr,
+            mkExpr creationAide indexExpr,
+            mkExpr creationAide argExpr,
+            exprRange
+        )
+        |> Expr.NestedIndexWithoutDot
+    | SynExpr.App (ExprAtomicFlag.NonAtomic,
+                   false,
+                   SynExpr.App (ExprAtomicFlag.NonAtomic,
+                                false,
+                                identifierExpr,
+                                (SynExpr.ArrayOrListComputed (isArray = false; expr = indexExpr) as indexArgExpr),
+                                _),
+                   argExpr,
+                   _) when (RangeHelpers.isAdjacentTo identifierExpr.Range indexArgExpr.Range) ->
+        ExprNestedIndexWithoutDotNode(
+            mkExpr creationAide identifierExpr,
+            mkExpr creationAide indexExpr,
+            mkExpr creationAide argExpr,
+            exprRange
+        )
+        |> Expr.NestedIndexWithoutDot
+
     | EndsWithDualListAppExpr creationAide.Config.ExperimentalStroustrupStyle (e, es, firstList, lastList) ->
         ExprEndsWithDualListAppNode(
             mkExpr creationAide e,

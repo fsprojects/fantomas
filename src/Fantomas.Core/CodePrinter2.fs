@@ -784,7 +784,12 @@ let genExpr (e: Expr) =
     | Expr.AppSingleParenArg _ -> failwith "Not Implemented"
     | Expr.DotGetAppWithLambda _ -> failwith "Not Implemented"
     | Expr.AppWithLambda _ -> failwith "Not Implemented"
-    | Expr.NestedIndexWithoutDot _ -> failwith "Not Implemented"
+    | Expr.NestedIndexWithoutDot node ->
+        genExpr node.Identifier
+        +> sepOpenLFixed
+        +> genExpr node.Index
+        +> sepCloseLFixed
+        +> genExpr node.Argument
     | Expr.EndsWithDualListApp node ->
         fun ctx ->
             // check if everything else beside the last array/list fits on one line
