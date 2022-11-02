@@ -688,7 +688,7 @@ let genExpr (e: Expr) =
     | Expr.MatchLambda node -> genSingleTextNode node.Function +> sepNln +> genClauses node.Clauses
     | Expr.Match node ->
         atCurrentColumn (
-            genControlExpressionStartCore node.Match node.MatchExpr node.With
+            genControlExpressionStartCore (Choice1Of2 node.Match) node.MatchExpr node.With
             +> sepNln
             +> genClauses node.Clauses
         )
@@ -917,9 +917,136 @@ let genExpr (e: Expr) =
             +> genSingleTextNode node.Finally
             +> indentSepNlnUnindent (genExpr node.FinallyExpr)
         )
-    | Expr.IfThen _ -> failwith "Not Implemented"
-    | Expr.IfThenElse _ -> failwith "Not Implemented"
-    | Expr.IfThenElif _ -> failwith "Not Implemented"
+    | Expr.IfThen node ->
+        leadingExpressionResult
+            (genControlExpressionStartCore (Choice2Of2 node.If) node.IfExpr node.Then)
+            (fun ((lineCountBefore, columnBefore), (lineCountAfter, columnAfter)) ctx ->
+                // Check if the `if expr then` is already multiline or cross the max_line_length.
+                let isMultiline =
+                    lineCountAfter > lineCountBefore || columnAfter > ctx.Config.MaxLineLength
+
+                if isMultiline then
+                    indentSepNlnUnindent (genExpr node.ThenExpr) ctx
+                else
+                    // Check if the entire expression is will still fit on one line, respecting MaxIfThenShortWidth
+                    let remainingMaxLength =
+                        ctx.Config.MaxIfThenShortWidth - (columnAfter - columnBefore)
+
+                    isShortExpression
+                        remainingMaxLength
+                        (sepSpace +> genExpr node.ThenExpr)
+                        (indentSepNlnUnindent (genExpr node.ThenExpr))
+                        ctx)
+        |> atCurrentColumnIndent
+    | Expr.IfThenElse node ->
+        leadingExpressionResult
+            (genControlExpressionStartCore (Choice2Of2 node.If) node.IfExpr node.Then)
+            (fun ((lineCountBefore, columnBefore), (lineCountAfter, columnAfter)) ctx ->
+                let long =
+                    indentSepNlnUnindent (genExpr node.ThenExpr)
+                    +> sepNln
+                    +> genSingleTextNode node.Else
+                    +> genKeepIdent node.Else node.ElseExpr
+                    +> sepNln
+                    +> genExpr node.ElseExpr
+                    +> unindent
+
+                // Check if the `if expr then` is already multiline or cross the max_line_length.
+                let isMultiline =
+                    lineCountAfter > lineCountBefore || columnAfter > ctx.Config.MaxLineLength
+
+                // If the `thenExpr` is also an SynExpr.IfThenElse, it will not be valid code if put on one line.
+                // ex: if cond then if a then b else c else e2
+                let thenExprIsIfThenElse =
+                    match node.ThenExpr with
+                    | Expr.IfThen _
+                    | Expr.IfThenElse _
+                    | Expr.IfThenElif _ -> true
+                    | _ -> false
+
+                if isMultiline || thenExprIsIfThenElse then
+                    long ctx
+                else
+                    // Check if the entire expression is will still fit on one line, respecting MaxIfThenShortWidth
+                    let remainingMaxLength =
+                        ctx.Config.MaxIfThenElseShortWidth - (columnAfter - columnBefore)
+
+                    isShortExpression
+                        remainingMaxLength
+                        (sepSpace
+                         +> genExpr node.ThenExpr
+                         +> sepSpace
+                         +> genSingleTextNode node.Else
+                         +> sepSpace
+                         +> genExpr node.ElseExpr)
+                        long
+                        ctx)
+        |> atCurrentColumnIndent
+    | Expr.IfThenElif node ->
+        // multiple branches but no else expr
+        // use the same threshold check as for if-then
+        // Everything should fit on one line
+        let areAllShort ctx =
+            let anyThenExprIsIfThenElse =
+                node.Branches
+                |> List.exists (fun node ->
+                    match node.ThenExpr with
+                    | Expr.IfThen _
+                    | Expr.IfThenElif _
+                    | Expr.IfThenElse _ -> true
+                    | _ -> false)
+
+            let checkIfLine (node: ExprIfThenNode) =
+                genControlExpressionStartCore (Choice2Of2 node.If) node.IfExpr node.Then
+                +> sepSpace
+                +> genExpr node.ThenExpr
+
+            let linesToCheck =
+                match node.Else with
+                | None -> List.map checkIfLine node.Branches
+                | Some (elseNode, elseExpr) ->
+                    // This may appear a bit odd that we are adding the `else elseExpr` before the `if expr then expr` lines but purely for this check this doesn't matter.
+                    // Each lines needs to fit on one line in order for us to format the short way
+                    (genSingleTextNode elseNode +> sepSpace +> genExpr elseExpr)
+                    :: (List.map checkIfLine node.Branches)
+
+            let lineCheck () =
+                linesToCheck
+                |> List.forall (fun lineCheck ->
+                    let maxWidth =
+                        if node.Else.IsSome then
+                            ctx.Config.MaxIfThenElseShortWidth
+                        else
+                            ctx.Config.MaxIfThenShortWidth
+
+                    not (exceedsWidth maxWidth lineCheck ctx))
+
+            not anyThenExprIsIfThenElse && lineCheck ()
+
+        let shortExpr =
+            col sepNln node.Branches (fun (node: ExprIfThenNode) ->
+                genControlExpressionStartCore (Choice2Of2 node.If) node.IfExpr node.Then
+                +> sepSpace
+                +> genExpr node.ThenExpr)
+            +> optSingle
+                (fun (elseNode, elseExpr) -> sepNln +> genSingleTextNode elseNode +> sepSpace +> genExpr elseExpr)
+                node.Else
+
+        let longExpr =
+            col sepNln node.Branches (fun (node: ExprIfThenNode) ->
+                genControlExpressionStartCore (Choice2Of2 node.If) node.IfExpr node.Then
+                +> indentSepNlnUnindent (genExpr node.ThenExpr))
+            +> optSingle
+                (fun (elseNode, elseExpr) ->
+                    sepNln
+                    +> genSingleTextNode elseNode
+                    +> genKeepIdent elseNode elseExpr
+                    +> sepNln
+                    +> genExpr elseExpr
+                    +> unindent)
+                node.Else
+
+        ifElseCtx areAllShort shortExpr longExpr |> atCurrentColumnIndent
     | Expr.Ident node -> !-node.Text
     | Expr.OptVar _ -> failwith "Not Implemented"
     | Expr.LongIdentSet _ -> failwith "Not Implemented"
@@ -935,8 +1062,7 @@ let genExpr (e: Expr) =
     | Expr.IndexRangeWildcard _ -> failwith "Not Implemented"
     | Expr.IndexRange _ -> failwith "Not Implemented"
     | Expr.IndexFromEnd _ -> failwith "Not Implemented"
-    | Expr.Typar _ -> failwith "Not Implemented"
-    |> genNode (Expr.Node e)
+    | Expr.Typar _ -> failwith "Not Implemented" |> genNode (Expr.Node e)
 
 let genQuoteExpr (node: ExprQuoteNode) =
     genSingleTextNode node.OpenToken
@@ -1103,10 +1229,29 @@ let genClause (isLastItem: bool) (node: MatchClauseNode) =
 
     genBar +> genPatAndBody |> genNode node
 
-let genControlExpressionStartCore (startKeyword: SingleTextNode) (innerExpr: Expr) (endKeyword: SingleTextNode) =
+let genControlExpressionStartCore
+    (startKeyword: Choice<SingleTextNode, MultipleTextsNode>)
+    (innerExpr: Expr)
+    (endKeyword: SingleTextNode)
+    =
+    let enterStart =
+        match startKeyword with
+        | Choice1Of2 n -> enterNode (n :> Node)
+        | Choice2Of2 n -> enterNode (n :> Node) +> optSingle enterNode (List.tryHead n.Content)
+
+    let genStart =
+        match startKeyword with
+        | Choice1Of2 node -> !-node.Text
+        | Choice2Of2 mtn -> col sepSpace mtn.Content (fun node -> !-node.Text +> leaveNode node)
+
+    let leaveStart =
+        match startKeyword with
+        | Choice1Of2 n -> leaveNode (n :> Node)
+        | Choice2Of2 n -> leaveNode (n :> Node)
+
     let shortIfExpr =
-        !-startKeyword.Text
-        +> leaveNode startKeyword
+        genStart
+        +> leaveStart
         +> sepNlnWhenWriteBeforeNewlineNotEmptyOr sepSpace
         +> genExpr innerExpr
         +> sepSpace
@@ -1114,15 +1259,15 @@ let genControlExpressionStartCore (startKeyword: SingleTextNode) (innerExpr: Exp
         +> !-endKeyword.Text
 
     let longIfExpr =
-        !-startKeyword.Text
-        +> leaveNode startKeyword
+        genStart
+        +> leaveStart
         +> indentSepNlnUnindent (genExpr innerExpr)
         +> sepNln
         +> enterNode endKeyword
         +> !-endKeyword.Text
 
     // A code comment before the start keyword should not make the expression long.
-    enterNode startKeyword
+    enterStart
     +> expressionFitsOnRestOfLine shortIfExpr longIfExpr
     +> leaveNode endKeyword
 
@@ -1216,6 +1361,17 @@ let genExprInMultilineInfixExpr (e: Expr) =
     //     |> genTriviaFor SynExpr_MatchLambda e.Range
     // | Record _ -> atCurrentColumnIndent (genExpr e)
     | _ -> genExpr e
+
+let genKeepIdent (startNode: Node) (e: Expr) ctx =
+    let exprNode = Expr.Node e
+
+    if
+        ctx.Config.ExperimentalKeepIndentInBranch
+        && startNode.Range.StartColumn = exprNode.Range.StartColumn
+    then
+        sepNlnUnlessContentBefore exprNode ctx
+    else
+        indent ctx
 
 // end expressions
 
