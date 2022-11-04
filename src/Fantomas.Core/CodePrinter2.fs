@@ -1069,7 +1069,7 @@ let genExpr (e: Expr) =
         | Expr.App appNode ->
             match appNode.Arguments with
             | [ Expr.Constant(Constant.Unit _) ] ->
-                genExpr e
+                genExpr appNode.FunctionExpr
                 +> genExpr node.ObjectExpr
                 +> !- "."
                 +> sepOpenLFixed
@@ -1086,7 +1086,45 @@ let genExpr (e: Expr) =
             let idx = !- "." +> sepOpenLFixed +> genExpr node.IndexExpr +> sepCloseLFixed
             expressionFitsOnRestOfLine (short +> idx) (long +> idx)
         | _ -> genDotIndexedGet
-    | Expr.DotIndexedSet _ -> failwith "Not Implemented"
+    | Expr.DotIndexedSet node ->
+        let genDotIndexedSet =
+            addParenIfAutoNln node.ObjectExpr genExpr
+            +> !- ".["
+            +> genExpr node.Index
+            +> !- "] <- "
+            +> autoIndentAndNlnIfExpressionExceedsPageWidthUnlessStroustrup genExpr node.Value
+
+        match node.ObjectExpr with
+        | Expr.App appNode ->
+            match appNode.Arguments with
+            | [ Expr.Constant(Constant.Unit _) as ux ] ->
+                let appExpr = genExpr appNode.FunctionExpr +> genExpr ux
+
+                let idx =
+                    !- "." +> sepOpenLFixed +> genExpr node.Index +> sepCloseLFixed +> sepArrowRev
+
+                expressionFitsOnRestOfLine
+                    (appExpr +> idx +> genExpr node.Value)
+                    (appExpr
+                     +> idx
+                     +> autoIndentAndNlnIfExpressionExceedsPageWidthUnlessStroustrup genExpr node.Value)
+            | _ -> genDotIndexedSet
+        | Expr.AppSingleParenArg appNode ->
+            let short = genExpr appNode.FunctionExpr +> genExpr appNode.ArgExpr
+
+            let long =
+                genExpr appNode.FunctionExpr
+                +> genMultilineFunctionApplicationArguments appNode.ArgExpr
+
+            let idx =
+                !- "." +> sepOpenLFixed +> genExpr node.Index +> sepCloseLFixed +> sepArrowRev
+
+            expressionFitsOnRestOfLine
+                (short +> idx +> genExpr node.Value)
+                (long
+                 +> idx
+                 +> autoIndentAndNlnIfExpressionExceedsPageWidthUnlessStroustrup genExpr node.Value)
+        | _ -> genDotIndexedSet
     | Expr.NamedIndexedPropertySet _ -> failwith "Not Implemented"
     | Expr.DotNamedIndexedPropertySet _ -> failwith "Not Implemented"
     | Expr.DotGet _ -> failwith "Not Implemented"
