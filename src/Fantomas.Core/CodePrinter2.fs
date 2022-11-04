@@ -1125,7 +1125,27 @@ let genExpr (e: Expr) =
                  +> idx
                  +> autoIndentAndNlnIfExpressionExceedsPageWidthUnlessStroustrup genExpr node.Value)
         | _ -> genDotIndexedSet
-    | Expr.NamedIndexedPropertySet _ -> failwith "Not Implemented"
+    | Expr.NamedIndexedPropertySet node ->
+        match node.Index with
+        | Expr.ArrayOrList arrayNode when arrayNode.Elements.Length = 1 ->
+            genIdentListNode node.Identifier
+            +> genSingleTextNode arrayNode.Opening
+            +> col sepNone arrayNode.Elements genExpr
+            +> genSingleTextNode arrayNode.Closing
+            +> sepArrowRev
+            +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr node.Value)
+        | _ ->
+            let sep =
+                match node.Index with
+                | Expr.Constant _
+                | Expr.Ident _ -> sepSpace
+                | _ -> sepNone
+
+            genIdentListNode node.Identifier
+            +> sep
+            +> genExpr node.Index
+            +> sepArrowRev
+            +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr node.Value)
     | Expr.DotNamedIndexedPropertySet _ -> failwith "Not Implemented"
     | Expr.DotGet _ -> failwith "Not Implemented"
     | Expr.DotSet _ -> failwith "Not Implemented"

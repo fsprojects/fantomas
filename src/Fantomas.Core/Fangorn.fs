@@ -890,7 +890,14 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
             exprRange
         )
         |> Expr.DotIndexedSet
-    // | Expr.NamedIndexedPropertySet _ -> failwith "Not Implemented"
+    | SynExpr.NamedIndexedPropertySet(synLongIdent, e1, e2, _) ->
+        ExprNamedIndexedPropertySetNode(
+            mkSynLongIdent synLongIdent,
+            mkExpr creationAide e1,
+            mkExpr creationAide e2,
+            exprRange
+        )
+        |> Expr.NamedIndexedPropertySet
     // | Expr.DotNamedIndexedPropertySet _ -> failwith "Not Implemented"
     // | Expr.DotGet _ -> failwith "Not Implemented"
     // | Expr.DotSet _ -> failwith "Not Implemented"
