@@ -1189,7 +1189,7 @@ let addParenIfAutoNln expr f =
         | Expr.ParenLambda _
         | Expr.ParenILEmbedded _
         | Expr.ParenFunctionNameWithStar _
-        | Expr.Constant (Constant.Unit _) -> true
+        | Expr.Constant(Constant.Unit _) -> true
         | _ -> false
 
     let expr = f expr
