@@ -1396,10 +1396,15 @@ type ExprDotIndexedSetNode(objectExpr: Expr, indexExpr: Expr, valueExpr: Expr, r
     member x.Index = indexExpr
     member x.Value = valueExpr
 
-type ExprNamedIndexedPropertySetNode(range) =
+type ExprNamedIndexedPropertySetNode(identifier: IdentListNode, indexExpr: Expr, valueExpr: Expr, range) =
     inherit NodeBase(range)
 
-    override this.Children = failwith "todo"
+    override this.Children =
+        [| yield identifier; yield Expr.Node indexExpr; yield Expr.Node valueExpr |]
+
+    member x.Identifier = identifier
+    member x.Index = indexExpr
+    member x.Value = valueExpr
 
 type ExprDotNamedIndexedPropertySetNode(range) =
     inherit NodeBase(range)
