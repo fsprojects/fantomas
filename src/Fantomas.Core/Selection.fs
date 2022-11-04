@@ -28,7 +28,7 @@ let correctSelection (fileIndex: int) (sourceText: ISourceText) (selection: rang
                     None)
 
     match Array.tryHead lines, Array.tryLast lines with
-    | Some (startLineNumber, startLine), Some (endLineNumber, endLine) ->
+    | Some(startLineNumber, startLine), Some(endLineNumber, endLine) ->
         let startColumn =
             // The selection is on the same line as the code but appears to be inside whitespace
             if startLineNumber = selection.StartLine then
@@ -113,14 +113,14 @@ let mkSynModuleDeclForBinding (binding: SynBinding) : SynModuleDecl =
 /// Keep the original trivia of the ParsedInput so code comments could still be restored.
 let mkTreeWithSingleNode (fullTree: ParsedInput) (astNode: FSharpASTNode) : ParsedInput =
     match fullTree with
-    | ParsedInput.ImplFile (ParsedImplFileInput.ParsedImplFileInput (fileName,
-                                                                     isScript,
-                                                                     qualifiedNameOfFile,
-                                                                     scopedPragmas,
-                                                                     _hashDirectives,
-                                                                     _modules,
-                                                                     isLastCompiland,
-                                                                     trivia)) ->
+    | ParsedInput.ImplFile(ParsedImplFileInput.ParsedImplFileInput(fileName,
+                                                                   isScript,
+                                                                   qualifiedNameOfFile,
+                                                                   scopedPragmas,
+                                                                   _hashDirectives,
+                                                                   _modules,
+                                                                   isLastCompiland,
+                                                                   trivia)) ->
         let insertNode =
             match astNode with
             | FSharpASTNode.ModuleDecl synModuleDecl -> synModuleDecl
@@ -141,16 +141,16 @@ let mkTreeWithSingleNode (fullTree: ParsedInput) (astNode: FSharpASTNode) : Pars
                 trivia
             )
         )
-    | ParsedInput.SigFile (ParsedSigFileInput.ParsedSigFileInput (fileName,
-                                                                  qualifiedNameOfFile,
-                                                                  scopedPragmas,
-                                                                  _hashDirectives,
-                                                                  _sigDecls,
-                                                                  trivia)) ->
+    | ParsedInput.SigFile(ParsedSigFileInput.ParsedSigFileInput(fileName,
+                                                                qualifiedNameOfFile,
+                                                                scopedPragmas,
+                                                                _hashDirectives,
+                                                                _sigDecls,
+                                                                trivia)) ->
         let insertNode =
             match astNode with
             | FSharpASTNode.ModuleSigDecl decl -> decl
-            | FSharpASTNode.ValSig (SynValSig (range = range) as valSig) -> SynModuleSigDecl.Val(valSig, range)
+            | FSharpASTNode.ValSig(SynValSig(range = range) as valSig) -> SynModuleSigDecl.Val(valSig, range)
             | FSharpASTNode.Expr _
             | FSharpASTNode.Binding _
             | FSharpASTNode.ModuleDecl _ -> failwith "Unexpected implementation ast node in implementation file"
@@ -183,8 +183,8 @@ let formatSelection
 
         let rootNode =
             match baseUntypedTree with
-            | ImplFile (ParsedImplFileInput (hds, mns, _, _)) -> astToNode baseUntypedTree.FullRange hds mns
-            | SigFile (ParsedSigFileInput (_, mns, _, _)) -> sigAstToNode baseUntypedTree.FullRange mns
+            | ImplFile(ParsedImplFileInput(hds, mns, _, _)) -> astToNode baseUntypedTree.FullRange hds mns
+            | SigFile(ParsedSigFileInput(_, mns, _, _)) -> sigAstToNode baseUntypedTree.FullRange mns
 
 #if DEBUG
         printTriviaNode rootNode

@@ -13,8 +13,8 @@ let private getDefines (v: string) =
 
     let hashDirectives =
         match baseUntypedTree with
-        | ImplFile (ParsedImplFileInput (_, _, directives, _))
-        | SigFile (ParsedSigFileInput (_, _, directives, _)) -> directives
+        | ImplFile(ParsedImplFileInput(_, _, directives, _))
+        | SigFile(ParsedSigFileInput(_, _, directives, _)) -> directives
 
     getDefineCombination hashDirectives
     |> List.collect id

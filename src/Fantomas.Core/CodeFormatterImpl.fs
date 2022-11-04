@@ -19,8 +19,8 @@ let parse (isSignature: bool) (source: ISourceText) : Async<(ParsedInput * Defin
 
     let hashDirectives =
         match baseUntypedTree with
-        | ImplFile (ParsedImplFileInput (_, _, directives, _))
-        | SigFile (ParsedSigFileInput (_, _, directives, _)) -> directives
+        | ImplFile(ParsedImplFileInput(_, _, directives, _))
+        | SigFile(ParsedSigFileInput(_, _, directives, _)) -> directives
 
     match hashDirectives with
     | [] ->

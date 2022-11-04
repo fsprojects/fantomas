@@ -107,14 +107,14 @@ let processSourceString (force: bool) s (fileName: string) config =
         let! formatted = s |> Format.formatContentAsync config fileName
 
         match formatted with
-        | Format.FormatResult.Formatted (_, formattedContent) -> formattedContent |> writeResult
-        | Format.InvalidCode (file, formattedContent) when force ->
+        | Format.FormatResult.Formatted(_, formattedContent) -> formattedContent |> writeResult
+        | Format.InvalidCode(file, formattedContent) when force ->
             printfn $"%s{file} was not valid after formatting."
             formattedContent |> writeResult
         | Format.FormatResult.Unchanged file -> printfn $"'%s{file}' was unchanged"
         | Format.IgnoredFile file -> printfn $"'%s{file}' was ignored"
-        | Format.FormatResult.Error (_, ex) -> raise ex
-        | Format.InvalidCode (file, _) -> raise (exn $"Formatting {file} lead to invalid F# code")
+        | Format.FormatResult.Error(_, ex) -> raise ex
+        | Format.InvalidCode(file, _) -> raise (exn $"Formatting {file} lead to invalid F# code")
     }
     |> Async.RunSynchronously
 
@@ -124,14 +124,14 @@ let processSourceFile (force: bool) inFile (tw: TextWriter) =
         let! formatted = Format.formatFileAsync inFile
 
         match formatted with
-        | Format.FormatResult.Formatted (_, formattedContent) -> tw.Write(formattedContent)
-        | Format.InvalidCode (file, formattedContent) when force ->
+        | Format.FormatResult.Formatted(_, formattedContent) -> tw.Write(formattedContent)
+        | Format.InvalidCode(file, formattedContent) when force ->
             printfn $"%s{file} was not valid after formatting."
             tw.Write(formattedContent)
         | Format.FormatResult.Unchanged _ -> inFile |> File.ReadAllText |> tw.Write
         | Format.IgnoredFile file -> printfn $"'%s{file}' was ignored"
-        | Format.FormatResult.Error (_, ex) -> raise ex
-        | Format.InvalidCode (file, _) -> raise (exn $"Formatting {file} lead to invalid F# code")
+        | Format.FormatResult.Error(_, ex) -> raise ex
+        | Format.InvalidCode(file, _) -> raise (exn $"Formatting {file} lead to invalid F# code")
     }
     |> Async.RunSynchronously
 
@@ -202,7 +202,7 @@ let runCheckCommand (recurse: bool) (inputPath: InputPath) : int =
         0
     | InputPath.File path -> path |> Seq.singleton |> check |> processCheckResult
     | InputPath.Folder path -> path |> allFiles recurse |> check |> processCheckResult
-    | InputPath.Multiple (files, folders) ->
+    | InputPath.Multiple(files, folders) ->
         let allFilesToCheck =
             seq {
                 yield! files
@@ -378,7 +378,7 @@ let main argv =
             | InputPath.File p1, OutputPath.NotKnown -> processFile force p1 p1
             | InputPath.File p1, OutputPath.IO p2 -> processFile force p1 p2
             | InputPath.Folder p1, OutputPath.IO p2 -> processFolder force p1 p2
-            | InputPath.Multiple (files, folders), OutputPath.NotKnown -> filesAndFolders force files folders
+            | InputPath.Multiple(files, folders), OutputPath.NotKnown -> filesAndFolders force files folders
             | InputPath.Multiple _, OutputPath.IO _ ->
                 eprintfn "Multiple input files are not supported with the --out flag."
                 exit 1

@@ -36,80 +36,80 @@ let hasParenInPat =
 
 let rec (|HashDirectiveL|_|) =
     function
-    | HashDirective _ as x :: HashDirectiveL (xs, ys) -> Some(x :: xs, ys)
+    | HashDirective _ as x :: HashDirectiveL(xs, ys) -> Some(x :: xs, ys)
     | HashDirective _ as x :: ys -> Some([ x ], ys)
     | _ -> None
 
 let rec (|SigHashDirectiveL|_|) =
     function
-    | SigHashDirective _ as x :: SigHashDirectiveL (xs, ys) -> Some(x :: xs, ys)
+    | SigHashDirective _ as x :: SigHashDirectiveL(xs, ys) -> Some(x :: xs, ys)
     | SigHashDirective _ as x :: ys -> Some([ x ], ys)
     | _ -> None
 
 let rec (|ModuleAbbrevL|_|) =
     function
-    | ModuleAbbrev _ as x :: ModuleAbbrevL (xs, ys) -> Some(x :: xs, ys)
+    | ModuleAbbrev _ as x :: ModuleAbbrevL(xs, ys) -> Some(x :: xs, ys)
     | ModuleAbbrev _ as x :: ys -> Some([ x ], ys)
     | _ -> None
 
 let rec (|SigModuleAbbrevL|_|) =
     function
-    | SigModuleAbbrev _ as x :: SigModuleAbbrevL (xs, ys) -> Some(x :: xs, ys)
+    | SigModuleAbbrev _ as x :: SigModuleAbbrevL(xs, ys) -> Some(x :: xs, ys)
     | SigModuleAbbrev _ as x :: ys -> Some([ x ], ys)
     | _ -> None
 
 let rec (|OpenL|_|) =
     function
-    | Open _ as x :: OpenL (xs, ys) -> Some(x :: xs, ys)
+    | Open _ as x :: OpenL(xs, ys) -> Some(x :: xs, ys)
     | Open _ as x :: ys -> Some([ x ], ys)
     | _ -> None
 
 let rec (|AttributesL|_|) =
     function
-    | Attributes _ as x :: AttributesL (xs, ys) -> Some(x :: xs, ys)
+    | Attributes _ as x :: AttributesL(xs, ys) -> Some(x :: xs, ys)
     | Attributes _ as x :: ys -> Some([ x ], ys)
     | _ -> None
 
 let rec (|SigOpenL|_|) =
     function
-    | SigOpen _ as x :: SigOpenL (xs, ys) -> Some(x :: xs, ys)
+    | SigOpen _ as x :: SigOpenL(xs, ys) -> Some(x :: xs, ys)
     | SigOpen _ as x :: ys -> Some([ x ], ys)
     | _ -> None
 
 let rec (|MDOpenL|_|) =
     function
-    | MDOpen _ as x :: MDOpenL (xs, ys) -> Some(x :: xs, ys)
+    | MDOpen _ as x :: MDOpenL(xs, ys) -> Some(x :: xs, ys)
     | MDOpen _ as x :: ys -> Some([ x ], ys)
     | _ -> None
 
 let rec (|SigValL|_|) =
     function
-    | SigVal _ as x :: SigValL (xs, ys) -> Some(x :: xs, ys)
+    | SigVal _ as x :: SigValL(xs, ys) -> Some(x :: xs, ys)
     | SigVal _ as x :: ys -> Some([ x ], ys)
     | _ -> None
 
 // Provide short-hand notation `x.Member = ...` for `x.Member with get()` getters
 let (|LongGetMember|_|) =
     function
-    | SynMemberDefn.GetSetMember (Some (SynBinding (ao,
-                                                    kind,
-                                                    isInline,
-                                                    isMutable,
-                                                    ats,
-                                                    px,
-                                                    valData,
-                                                    (PatLongIdent (None, _, [ PatParen (_, PatUnitConst, _) ], _) as p),
-                                                    ri,
-                                                    e,
-                                                    bindingRange,
-                                                    dp,
-                                                    trivia)),
-                                  None,
-                                  _,
-                                  { GetKeyword = Some _ }) ->
+    | SynMemberDefn.GetSetMember(Some(SynBinding(ao,
+                                                 kind,
+                                                 isInline,
+                                                 isMutable,
+                                                 ats,
+                                                 px,
+                                                 valData,
+                                                 (PatLongIdent(None, _, [ PatParen(_, PatUnitConst, _) ], _) as p),
+                                                 ri,
+                                                 e,
+                                                 bindingRange,
+                                                 dp,
+                                                 trivia)),
+                                 None,
+                                 _,
+                                 { GetKeyword = Some _ }) ->
         let pat =
             match p with
-            | SynPat.LongIdent (lid, extraId, typarDecls, _, accessibility, range) ->
+            | SynPat.LongIdent(lid, extraId, typarDecls, _, accessibility, range) ->
                 SynPat.LongIdent(lid, extraId, typarDecls, SynArgPats.Pats([]), accessibility, range)
             | _ -> p
 
@@ -122,8 +122,8 @@ let synModuleDeclToFsAstType =
     | SynModuleDecl.Types _ -> SynModuleDecl_Types
     | SynModuleDecl.NestedModule _ -> SynModuleDecl_NestedModule
     | SynModuleDecl.Let _ -> SynModuleDecl_Let
-    | SynModuleDecl.Open (SynOpenDeclTarget.ModuleOrNamespace _, _) -> SynModuleDecl_Open
-    | SynModuleDecl.Open (SynOpenDeclTarget.Type _, _) -> SynModuleDecl_OpenType
+    | SynModuleDecl.Open(SynOpenDeclTarget.ModuleOrNamespace _, _) -> SynModuleDecl_Open
+    | SynModuleDecl.Open(SynOpenDeclTarget.Type _, _) -> SynModuleDecl_OpenType
     | SynModuleDecl.ModuleAbbrev _ -> SynModuleDecl_ModuleAbbrev
     | SynModuleDecl.Exception _ -> SynModuleDecl_Exception
     | SynModuleDecl.Attributes _ -> SynModuleDecl_Attributes
@@ -175,7 +175,7 @@ let rec synExprToFsAstType (expr: SynExpr) : FsAstType * Range =
     | SynExpr.New _ -> SynExpr_New, expr.Range
     | SynExpr.Quote _ -> SynExpr_Quote, expr.Range
     | SynExpr.DotIndexedSet _ -> SynExpr_DotIndexedSet, expr.Range
-    | SynExpr.LetOrUse (bindings = bs; body = e) ->
+    | SynExpr.LetOrUse(bindings = bs; body = e) ->
         match bs with
         | [] -> synExprToFsAstType e
         | b :: _ -> SynBinding_, b.FullRange
@@ -188,7 +188,7 @@ let rec synExprToFsAstType (expr: SynExpr) : FsAstType * Range =
     | SynExpr.ObjExpr _ -> SynExpr_ObjExpr, expr.Range
     | SynExpr.For _ -> SynExpr_For, expr.Range
     | SynExpr.ForEach _ -> SynExpr_ForEach, expr.Range
-    | SynExpr.ComputationExpr (_, e, _) -> synExprToFsAstType e
+    | SynExpr.ComputationExpr(_, e, _) -> synExprToFsAstType e
     | SynExpr.MatchLambda _ -> SynExpr_MatchLambda, expr.Range
     | SynExpr.Assert _ -> SynExpr_Assert, expr.Range
     | SynExpr.TypeApp _ -> SynExpr_TypeApp, expr.Range
@@ -220,10 +220,10 @@ let rec synExprToFsAstType (expr: SynExpr) : FsAstType * Range =
     | SynExpr.DiscardAfterMissingQualificationAfterDot _ -> SynExpr_DiscardAfterMissingQualificationAfterDot, expr.Range
     | SynExpr.Fixed _ -> SynExpr_Fixed, expr.Range
     | SynExpr.InterpolatedString _ -> SynExpr_InterpolatedString, expr.Range
-    | SynExpr.Sequential (_, _, e, _, _) -> synExprToFsAstType e
+    | SynExpr.Sequential(_, _, e, _, _) -> synExprToFsAstType e
     | SynExpr.IndexRange _ -> SynExpr_IndexRange, expr.Range
     | SynExpr.IndexFromEnd _ -> SynExpr_IndexFromEnd, expr.Range
-    | SynExpr.DebugPoint (innerExpr = e) -> synExprToFsAstType e
+    | SynExpr.DebugPoint(innerExpr = e) -> synExprToFsAstType e
     | SynExpr.Dynamic _ -> SynExpr_Dynamic, expr.Range
     | SynExpr.Typar _ -> SynExpr_Typar, expr.Range
 
@@ -233,8 +233,8 @@ let synModuleSigDeclToFsAstType =
     | SynModuleSigDecl.Exception _ -> SynModuleSigDecl_Exception
     | SynModuleSigDecl.NestedModule _ -> SynModuleSigDecl_NestedModule
     | SynModuleSigDecl.Types _ -> SynModuleSigDecl_Types
-    | SynModuleSigDecl.Open (SynOpenDeclTarget.ModuleOrNamespace _, _) -> SynModuleSigDecl_Open
-    | SynModuleSigDecl.Open (SynOpenDeclTarget.Type _, _) -> SynModuleSigDecl_OpenType
+    | SynModuleSigDecl.Open(SynOpenDeclTarget.ModuleOrNamespace _, _) -> SynModuleSigDecl_Open
+    | SynModuleSigDecl.Open(SynOpenDeclTarget.Type _, _) -> SynModuleSigDecl_OpenType
     | SynModuleSigDecl.HashDirective _ -> SynModuleSigDecl_HashDirective
     | SynModuleSigDecl.NamespaceFragment _ -> SynModuleSigDecl_NamespaceFragment
     | SynModuleSigDecl.ModuleAbbrev _ -> SynModuleSigDecl_ModuleAbbrev

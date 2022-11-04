@@ -11,25 +11,25 @@ module private DefineCombinationSolver =
         | None ->
             match e with
             | IfDirectiveExpression.Not e -> IfDirectiveExpression.Not(map f e)
-            | IfDirectiveExpression.And (e1, e2) -> IfDirectiveExpression.And(map f e1, map f e2)
-            | IfDirectiveExpression.Or (e1, e2) -> IfDirectiveExpression.Or(map f e1, map f e2)
+            | IfDirectiveExpression.And(e1, e2) -> IfDirectiveExpression.And(map f e1, map f e2)
+            | IfDirectiveExpression.Or(e1, e2) -> IfDirectiveExpression.Or(map f e1, map f e2)
             | _ -> e
 
     let rec forall f e =
         f e
         && match e with
            | IfDirectiveExpression.Not e -> forall f e
-           | IfDirectiveExpression.And (e1, e2)
-           | IfDirectiveExpression.Or (e1, e2) -> forall f e1 && forall f e2
+           | IfDirectiveExpression.And(e1, e2)
+           | IfDirectiveExpression.Or(e1, e2) -> forall f e1 && forall f e2
            | _ -> true
 
     let rec expressionsAreEquals (e1: IfDirectiveExpression) (e2: IfDirectiveExpression) : bool =
         match e1, e2 with
         | IfDirectiveExpression.Ident i1, IfDirectiveExpression.Ident i2 -> i1 = i2
         | IfDirectiveExpression.Not n1, IfDirectiveExpression.Not n2 -> expressionsAreEquals n1 n2
-        | IfDirectiveExpression.And (a1, a2), IfDirectiveExpression.And (b1, b2) ->
+        | IfDirectiveExpression.And(a1, a2), IfDirectiveExpression.And(b1, b2) ->
             expressionsAreEquals a1 b1 && expressionsAreEquals a2 b2
-        | IfDirectiveExpression.Or (a1, a2), IfDirectiveExpression.Or (b1, b2) ->
+        | IfDirectiveExpression.Or(a1, a2), IfDirectiveExpression.Or(b1, b2) ->
             expressionsAreEquals a1 b1 && expressionsAreEquals a2 b2
         | _ -> false
 
@@ -47,21 +47,21 @@ module private DefineCombinationSolver =
 
         let doubleNegative =
             function
-            | IfDirectiveExpression.Not (IfDirectiveExpression.Not e) -> Some e
+            | IfDirectiveExpression.Not(IfDirectiveExpression.Not e) -> Some e
             | _ -> None
 
         let deMorgan =
             function
-            | IfDirectiveExpression.Not (IfDirectiveExpression.And (e1, e2)) ->
+            | IfDirectiveExpression.Not(IfDirectiveExpression.And(e1, e2)) ->
                 Some(IfDirectiveExpression.Or(IfDirectiveExpression.Not e1, IfDirectiveExpression.Not e2))
-            | IfDirectiveExpression.Not (IfDirectiveExpression.Or (e1, e2)) ->
+            | IfDirectiveExpression.Not(IfDirectiveExpression.Or(e1, e2)) ->
                 Some(IfDirectiveExpression.And(IfDirectiveExpression.Not e1, IfDirectiveExpression.Not e2))
             | _ -> None
 
         let expandOr =
             function
-            | IfDirectiveExpression.Or (e1, IfDirectiveExpression.And (e2, e3))
-            | IfDirectiveExpression.Or (IfDirectiveExpression.And (e2, e3), e1) ->
+            | IfDirectiveExpression.Or(e1, IfDirectiveExpression.And(e2, e3))
+            | IfDirectiveExpression.Or(IfDirectiveExpression.And(e2, e3), e1) ->
                 Some(IfDirectiveExpression.And(IfDirectiveExpression.Or(e1, e2), IfDirectiveExpression.Or(e1, e3)))
             | _ -> None
 
@@ -81,18 +81,18 @@ module private DefineCombinationSolver =
 
         let rec toAndList =
             function
-            | IfDirectiveExpression.And (e1, e2) -> toAndList e1 @ toAndList e2
+            | IfDirectiveExpression.And(e1, e2) -> toAndList e1 @ toAndList e2
             | e -> [ e ]
 
         let rec toOrList =
             function
-            | IfDirectiveExpression.Or (e1, e2) -> toOrList e1 @ toOrList e2
+            | IfDirectiveExpression.Or(e1, e2) -> toOrList e1 @ toOrList e2
             | e -> [ e ]
 
         let splitByNeg xs =
             xs
             |> List.map (function
-                | IfDirectiveExpression.Not (IfDirectiveExpression.Ident x) -> Negative x
+                | IfDirectiveExpression.Not(IfDirectiveExpression.Ident x) -> Negative x
                 | IfDirectiveExpression.Ident x -> Positive x
                 | _ -> failwithf "Expr not in CNF: %A" e)
             |> set
@@ -198,7 +198,7 @@ module private DefineCombinationSolver =
                     pairSolve x y |> Option.map (fun r -> (i, x), (j, y), r))
             with
             | None -> exprs
-            | Some ((i, x), (j, y), r) ->
+            | Some((i, x), (j, y), r) ->
                 f (
                     (exprsIndexed
                      |> Seq.filter (fun (k, _) -> i <> k && j <> k)
@@ -217,13 +217,13 @@ let getIndividualDefine (hashDirectives: ConditionalDirectiveTrivia list) : stri
     let rec visit (expr: IfDirectiveExpression) : string list =
         match expr with
         | IfDirectiveExpression.Not expr -> visit expr
-        | IfDirectiveExpression.And (e1, e2)
-        | IfDirectiveExpression.Or (e1, e2) -> visit e1 @ visit e2
+        | IfDirectiveExpression.And(e1, e2)
+        | IfDirectiveExpression.Or(e1, e2) -> visit e1 @ visit e2
         | IfDirectiveExpression.Ident s -> List.singleton s
 
     hashDirectives
     |> List.collect (function
-        | ConditionalDirectiveTrivia.If (expr, _r) -> visit expr
+        | ConditionalDirectiveTrivia.If(expr, _r) -> visit expr
         | _ -> [])
     |> List.distinct
     |> List.map List.singleton
@@ -236,7 +236,7 @@ let getDefineExprs (hashDirectives: ConditionalDirectiveTrivia list) =
                 e :: contextExprs |> List.reduce (fun x y -> IfDirectiveExpression.And(x, y))
 
             match hashLine with
-            | ConditionalDirectiveTrivia.If (expr, _) -> expr :: contextExprs, contextExpr expr :: exprAcc
+            | ConditionalDirectiveTrivia.If(expr, _) -> expr :: contextExprs, contextExpr expr :: exprAcc
             | ConditionalDirectiveTrivia.Else _ ->
                 contextExprs,
                 IfDirectiveExpression.Not(contextExprs |> List.reduce (fun x y -> IfDirectiveExpression.And(x, y)))

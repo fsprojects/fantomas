@@ -121,15 +121,15 @@ let checkCode (filenames: seq<string>) =
             function
             | FormatResult.Unchanged _
             | FormatResult.IgnoredFile _ -> None
-            | FormatResult.Formatted (f, _)
-            | FormatResult.Error (f, _)
-            | FormatResult.InvalidCode (f, _) -> Some f
+            | FormatResult.Formatted(f, _)
+            | FormatResult.Error(f, _)
+            | FormatResult.InvalidCode(f, _) -> Some f
 
         let changes = formatted |> Seq.choose getChangedFile |> Seq.toList
 
         let getErrors =
             function
-            | FormatResult.Error (f, e) -> Some(f, e)
+            | FormatResult.Error(f, e) -> Some(f, e)
             | _ -> None
 
         let errors = formatted |> Seq.choose getErrors |> Seq.toList

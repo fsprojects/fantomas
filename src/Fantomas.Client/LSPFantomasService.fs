@@ -37,7 +37,7 @@ let private createAgent (ct: CancellationToken) =
 
                     let nextState =
                         match msg with
-                        | GetDaemon (folder, replyChannel) ->
+                        | GetDaemon(folder, replyChannel) ->
                             // get the version for that folder
                             // look in the cache first
                             let versionFromCache = Map.tryFind folder state.FolderToVersion
@@ -85,7 +85,7 @@ let private createAgent (ct: CancellationToken) =
                                     findFantomasTool folder
 
                                 match fantomasToolResult with
-                                | Ok (FantomasToolFound (version, startInfo)) ->
+                                | Ok(FantomasToolFound(version, startInfo)) ->
                                     let createDaemonResult = createFor startInfo
 
                                     match createDaemonResult with
@@ -101,7 +101,7 @@ let private createAgent (ct: CancellationToken) =
                                 | Error FantomasToolError.NoCompatibleVersionFound ->
                                     replyChannel.Reply(Error GetDaemonError.InCompatibleVersionFound)
                                     state
-                                | Error (FantomasToolError.DotNetListError dotNetToolListError) ->
+                                | Error(FantomasToolError.DotNetListError dotNetToolListError) ->
                                     replyChannel.Reply(Error(GetDaemonError.DotNetToolListError dotNetToolListError))
                                     state
                         | Reset replyChannel ->
@@ -179,34 +179,34 @@ let private fileNotAbsoluteResponse filePath : Task<FantomasResponse> =
 let private daemonNotFoundResponse filePath (error: GetDaemonError) : Task<FantomasResponse> =
     let content, code =
         match error with
-        | GetDaemonError.DotNetToolListError (DotNetToolListError.ProcessStartError (ProcessStartError.ExecutableFileNotFound (executableFile,
-                                                                                                                               arguments,
-                                                                                                                               workingDirectory,
-                                                                                                                               pathEnvironmentVariable,
-                                                                                                                               error)))
-        | GetDaemonError.FantomasProcessStart (ProcessStartError.ExecutableFileNotFound (executableFile,
-                                                                                         arguments,
-                                                                                         workingDirectory,
-                                                                                         pathEnvironmentVariable,
-                                                                                         error)) ->
+        | GetDaemonError.DotNetToolListError(DotNetToolListError.ProcessStartError(ProcessStartError.ExecutableFileNotFound(executableFile,
+                                                                                                                            arguments,
+                                                                                                                            workingDirectory,
+                                                                                                                            pathEnvironmentVariable,
+                                                                                                                            error)))
+        | GetDaemonError.FantomasProcessStart(ProcessStartError.ExecutableFileNotFound(executableFile,
+                                                                                       arguments,
+                                                                                       workingDirectory,
+                                                                                       pathEnvironmentVariable,
+                                                                                       error)) ->
             $"Fantomas.Client tried to run `%s{executableFile} %s{arguments}` inside working directory \"{workingDirectory}\" but could not find \"%s{executableFile}\" on the PATH (%s{pathEnvironmentVariable}). Error: %s{error}",
             FantomasResponseCode.DaemonCreationFailed
-        | GetDaemonError.DotNetToolListError (DotNetToolListError.ProcessStartError (ProcessStartError.UnExpectedException (executableFile,
-                                                                                                                            arguments,
-                                                                                                                            error)))
-        | GetDaemonError.FantomasProcessStart (ProcessStartError.UnExpectedException (executableFile, arguments, error)) ->
+        | GetDaemonError.DotNetToolListError(DotNetToolListError.ProcessStartError(ProcessStartError.UnExpectedException(executableFile,
+                                                                                                                         arguments,
+                                                                                                                         error)))
+        | GetDaemonError.FantomasProcessStart(ProcessStartError.UnExpectedException(executableFile, arguments, error)) ->
             $"Fantomas.Client tried to run `%s{executableFile} %s{arguments}` but failed with \"%s{error}\"",
             FantomasResponseCode.DaemonCreationFailed
-        | GetDaemonError.DotNetToolListError (DotNetToolListError.ExitCodeNonZero (executableFile,
-                                                                                   arguments,
-                                                                                   exitCode,
-                                                                                   error)) ->
+        | GetDaemonError.DotNetToolListError(DotNetToolListError.ExitCodeNonZero(executableFile,
+                                                                                 arguments,
+                                                                                 exitCode,
+                                                                                 error)) ->
             $"Fantomas.Client tried to run `%s{executableFile} %s{arguments}` but exited with code {exitCode} {error}",
             FantomasResponseCode.DaemonCreationFailed
         | GetDaemonError.InCompatibleVersionFound ->
             "Fantomas.Client did not found a compatible dotnet tool version to launch as daemon process",
             FantomasResponseCode.ToolNotFound
-        | GetDaemonError.CompatibleVersionIsKnownButNoDaemonIsRunning (FantomasVersion version) ->
+        | GetDaemonError.CompatibleVersionIsKnownButNoDaemonIsRunning(FantomasVersion version) ->
             $"Fantomas.Client found a compatible version `%s{version}` but no daemon could be launched.",
             FantomasResponseCode.DaemonCreationFailed
 
@@ -228,7 +228,7 @@ let mapResultToResponse (filePath: string) (result: Result<Task<FantomasResponse
     | Ok t -> t
     | Error FantomasServiceError.FileDoesNotExist -> fileNotFoundResponse filePath
     | Error FantomasServiceError.FilePathIsNotAbsolute -> fileNotAbsoluteResponse filePath
-    | Error (FantomasServiceError.DaemonNotFound e) -> daemonNotFoundResponse filePath e
+    | Error(FantomasServiceError.DaemonNotFound e) -> daemonNotFoundResponse filePath e
     | Error FantomasServiceError.CancellationWasRequested -> cancellationWasRequestedResponse filePath
 
 type LSPFantomasService() =
