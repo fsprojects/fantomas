@@ -1251,6 +1251,7 @@ type ExprAppNode(range) =
     inherit NodeBase(range)
 
     override this.Children = failwith "todo"
+    member x.FunctionExpr: Expr = failwith ""
     member x.Arguments: Expr list = failwith ""
 
 type ExprTypeAppNode(range) =
@@ -1383,10 +1384,17 @@ type ExprDotIndexedGetNode(objectExpr: Expr, indexExpr: Expr, range) =
     member x.ObjectExpr = objectExpr
     member x.IndexExpr = indexExpr
 
-type ExprDotIndexedSetNode(range) =
+type ExprDotIndexedSetNode(objectExpr: Expr, indexExpr: Expr, valueExpr: Expr, range) =
     inherit NodeBase(range)
 
-    override this.Children = failwith "todo"
+    override this.Children =
+        [| yield Expr.Node objectExpr
+           yield Expr.Node indexExpr
+           yield Expr.Node valueExpr |]
+
+    member x.ObjectExpr = objectExpr
+    member x.Index = indexExpr
+    member x.Value = valueExpr
 
 type ExprNamedIndexedPropertySetNode(range) =
     inherit NodeBase(range)

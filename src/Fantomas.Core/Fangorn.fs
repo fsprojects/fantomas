@@ -881,8 +881,15 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
     | SynExpr.DotIndexedGet(objectExpr, indexArgs, _, _) ->
         ExprDotIndexedGetNode(mkExpr creationAide objectExpr, mkExpr creationAide indexArgs, exprRange)
         |> Expr.DotIndexedGet
-    // | Expr.DotIndexedGet _ -> failwith "Not Implemented"
-    // | Expr.DotIndexedSet _ -> failwith "Not Implemented"
+
+    | SynExpr.DotIndexedSet(objectExpr, indexExpr, valueExpr, _, _, _) ->
+        ExprDotIndexedSetNode(
+            mkExpr creationAide objectExpr,
+            mkExpr creationAide indexExpr,
+            mkExpr creationAide valueExpr,
+            exprRange
+        )
+        |> Expr.DotIndexedSet
     // | Expr.NamedIndexedPropertySet _ -> failwith "Not Implemented"
     // | Expr.DotNamedIndexedPropertySet _ -> failwith "Not Implemented"
     // | Expr.DotGet _ -> failwith "Not Implemented"
