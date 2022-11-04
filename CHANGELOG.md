@@ -1,5 +1,10 @@
 # Changelog
 
+## [5.1.0] - 2022-11-04
+
+### Changed
+* Official release.
+
 ## [5.1.0-beta-002] - 2022-10-29
 
 ### Fixed
