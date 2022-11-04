@@ -100,9 +100,12 @@ type MultipleTextsNode(content: SingleTextNode list, range) =
     member x.Content = content
 
 type Oak(parsedHashDirectives: ParsedHashDirectiveNode list, modulesOrNamespaces: ModuleOrNamespaceNode list) =
-    inherit NodeBase([| yield! nodes parsedHashDirectives; yield! nodes modulesOrNamespaces |]
-                     |> Seq.map nodeRange
-                     |> combineRanges)
+    inherit
+        NodeBase(
+            [| yield! nodes parsedHashDirectives; yield! nodes modulesOrNamespaces |]
+            |> Seq.map nodeRange
+            |> combineRanges
+        )
 
     member x.ParsedHashDirectives = parsedHashDirectives
     member x.ModulesOrNamespaces = modulesOrNamespaces
@@ -1354,7 +1357,7 @@ type ExprIfThenElifNode(branches: ExprIfThenNode list, elseBranch: (SingleTextNo
         let elseNodes =
             match elseBranch with
             | None -> []
-            | Some (elseNode, elseExpr) -> [ yield (elseNode :> Node); yield Expr.Node elseExpr ]
+            | Some(elseNode, elseExpr) -> [ yield (elseNode :> Node); yield Expr.Node elseExpr ]
 
         [| yield! nodes branches; yield! elseNodes |]
 

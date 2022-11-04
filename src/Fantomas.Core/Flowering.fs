@@ -231,11 +231,12 @@ let addToTree (tree: Oak) (trivia: TriviaNode seq) =
 let enrichTree (config: FormatConfig) (sourceText: ISourceText) (ast: ParsedInput) (tree: Oak) : Oak =
     let _directives, codeComments =
         match ast with
-        | ParsedInput.ImplFile (ParsedImplFileInput(trivia = { ConditionalDirectives = directives
-                                                               CodeComments = codeComments })) ->
-            directives, codeComments
-        | ParsedInput.SigFile (ParsedSigFileInput(trivia = { ConditionalDirectives = directives
-                                                             CodeComments = codeComments })) -> directives, codeComments
+        | ParsedInput.ImplFile(ParsedImplFileInput(
+            trivia = { ConditionalDirectives = directives
+                       CodeComments = codeComments })) -> directives, codeComments
+        | ParsedInput.SigFile(ParsedSigFileInput(
+            trivia = { ConditionalDirectives = directives
+                       CodeComments = codeComments })) -> directives, codeComments
 
     let trivia =
         let newlines =
@@ -243,9 +244,9 @@ let enrichTree (config: FormatConfig) (sourceText: ISourceText) (ast: ParsedInpu
 
         let comments =
             match ast with
-            | ParsedInput.ImplFile (ParsedImplFileInput (trivia = trivia)) ->
+            | ParsedInput.ImplFile(ParsedImplFileInput(trivia = trivia)) ->
                 collectTriviaFromCodeComments sourceText trivia.CodeComments
-            | ParsedInput.SigFile (ParsedSigFileInput (trivia = trivia)) ->
+            | ParsedInput.SigFile(ParsedSigFileInput(trivia = trivia)) ->
                 collectTriviaFromCodeComments sourceText trivia.CodeComments
 
         [| yield! comments; yield! newlines |]

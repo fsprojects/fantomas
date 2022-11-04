@@ -22,7 +22,7 @@ let rec (|UppercaseType|LowercaseType|) (t: Type) : Choice<unit, unit> =
                 node.Content
 
         match lastIdent with
-        | Some (IdentifierOrDot.Ident ident) -> upperOrLower ident.Text
+        | Some(IdentifierOrDot.Ident ident) -> upperOrLower ident.Text
         | _ -> LowercaseType
     | Type.Var node -> upperOrLower node.Text
     | Type.AppPostfix node -> (|UppercaseType|LowercaseType|) node.First
@@ -94,7 +94,7 @@ let addSpaceBeforeParenInPattern (node: IdentListNode) (ctx: Context) =
         | _ -> false)
     |> fun identOrDot ->
         match identOrDot with
-        | Some (IdentifierOrDot.Ident node) ->
+        | Some(IdentifierOrDot.Ident node) ->
             let parameterValue =
                 if Char.IsUpper node.Text.[0] then
                     ctx.Config.SpaceBeforeUppercaseInvocation
@@ -236,7 +236,7 @@ let genExpr (e: Expr) =
     | Expr.New node ->
         match node.Arguments with
         | Expr.Paren _
-        | Expr.Constant (Constant.Unit _) ->
+        | Expr.Constant(Constant.Unit _) ->
             let sepSpaceBeforeArgs (ctx: Context) =
                 match node.Type with
                 | UppercaseType -> onlyIf ctx.Config.SpaceBeforeUppercaseInvocation sepSpace ctx
@@ -1003,7 +1003,7 @@ let genExpr (e: Expr) =
             let linesToCheck =
                 match node.Else with
                 | None -> List.map checkIfLine node.Branches
-                | Some (elseNode, elseExpr) ->
+                | Some(elseNode, elseExpr) ->
                     // This may appear a bit odd that we are adding the `else elseExpr` before the `if expr then expr` lines but purely for this check this doesn't matter.
                     // Each lines needs to fit on one line in order for us to format the short way
                     (genSingleTextNode elseNode +> sepSpace +> genExpr elseExpr)
@@ -1068,7 +1068,7 @@ let genExpr (e: Expr) =
         match node.ObjectExpr with
         | Expr.App appNode ->
             match appNode.Arguments with
-            | [ Expr.Constant (Constant.Unit _) ] ->
+            | [ Expr.Constant(Constant.Unit _) ] ->
                 genExpr e
                 +> genExpr node.ObjectExpr
                 +> !- "."
@@ -1342,7 +1342,7 @@ let genMultilineInfixExpr (node: ExprInfixAppNode) =
                 |> Seq.tryHead
                 |> fun e ->
                     match e with
-                    | Some (UnIndentBy _) -> false
+                    | Some(UnIndentBy _) -> false
                     | _ -> true
 
             if lastClauseIsSingleLine then
@@ -2108,9 +2108,9 @@ let genUnionCase (hasVerticalBar: bool) (node: UnionCaseNode) =
 let genTypeAndParam (typeName: SingleTextNode) (tds: TyparDecls option) =
     match tds with
     | None -> genSingleTextNode typeName
-    | Some (TyparDecls.PostfixList postfixNode) -> sepNone
-    | Some (TyparDecls.PrefixList prefixNode) -> sepNone
-    | Some (TyparDecls.SinglePrefix singlePrefixNode) -> sepNone
+    | Some(TyparDecls.PostfixList postfixNode) -> sepNone
+    | Some(TyparDecls.PrefixList prefixNode) -> sepNone
+    | Some(TyparDecls.SinglePrefix singlePrefixNode) -> sepNone
 
 let genVal (node: ValNode) (optGetSet: MultipleTextsNode option) =
     let genOptExpr =
