@@ -66,7 +66,7 @@ let ``format implementation file`` () =
                 |> Async.AwaitTask
 
             match response with
-            | FormatDocumentResponse.Formatted (_, formatted) ->
+            | FormatDocumentResponse.Formatted(_, formatted) ->
                 assertFormatted
                     formatted
                     "module Foobar
@@ -156,7 +156,7 @@ let ``format signature file`` () =
                 |> Async.AwaitTask
 
             match response with
-            | FormatDocumentResponse.Formatted (_, formatted) ->
+            | FormatDocumentResponse.Formatted(_, formatted) ->
                 assertFormatted
                     formatted
                     "module Foobar
@@ -185,7 +185,7 @@ let ``format document respecting .editorconfig file`` () =
                 |> Async.AwaitTask
 
             match response with
-            | FormatDocumentResponse.Formatted (_, formatted) ->
+            | FormatDocumentResponse.Formatted(_, formatted) ->
                 assertFormatted
                     formatted
                     "module Foo
@@ -215,7 +215,7 @@ let ``custom configuration has precedence over .editorconfig file`` () =
                 |> Async.AwaitTask
 
             match response with
-            | FormatDocumentResponse.Formatted (_, formatted) ->
+            | FormatDocumentResponse.Formatted(_, formatted) ->
                 assertFormatted
                     formatted
                     "module Foo
@@ -252,7 +252,7 @@ let    y     = 5
                 |> Async.AwaitTask
 
             match response with
-            | FormatSelectionResponse.Formatted (fileName, formatted, _) ->
+            | FormatSelectionResponse.Formatted(fileName, formatted, _) ->
                 fileName |> should equal codeFile.Filename
                 assertFormatted formatted "let x = 4"
             | otherResponse -> Assert.Fail $"Unexpected response %A{otherResponse}"
@@ -284,7 +284,7 @@ val    y     : string
                 |> Async.AwaitTask
 
             match response with
-            | FormatSelectionResponse.Formatted (fileName, formatted, _) ->
+            | FormatSelectionResponse.Formatted(fileName, formatted, _) ->
                 fileName |> should equal codeFile.Filename
                 assertFormatted formatted "val x: int"
             | otherResponse -> Assert.Fail $"Unexpected response %A{otherResponse}"
@@ -310,7 +310,7 @@ let ``format document with both .editorconfig file and custom config`` () =
                 |> Async.AwaitTask
 
             match response with
-            | FormatDocumentResponse.Formatted (_, formatted) ->
+            | FormatDocumentResponse.Formatted(_, formatted) ->
                 assertFormatted
                     formatted
                     "module Foo

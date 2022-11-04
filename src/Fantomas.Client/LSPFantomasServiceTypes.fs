@@ -25,12 +25,12 @@ type FormatSelectionResponse =
 
     member this.AsFormatResponse() =
         match this with
-        | FormatSelectionResponse.Formatted (name, content, formattedRange) ->
+        | FormatSelectionResponse.Formatted(name, content, formattedRange) ->
             { Code = int FantomasResponseCode.Formatted
               FilePath = name
               Content = Some content
               SelectedRange = Some formattedRange }
-        | FormatSelectionResponse.Error (name, ex) ->
+        | FormatSelectionResponse.Error(name, ex) ->
             { Code = int FantomasResponseCode.Error
               FilePath = name
               Content = Some ex
@@ -45,7 +45,7 @@ type FormatDocumentResponse =
 
     member this.AsFormatResponse() =
         match this with
-        | FormatDocumentResponse.Formatted (name, content) ->
+        | FormatDocumentResponse.Formatted(name, content) ->
             { Code = int FantomasResponseCode.Formatted
               FilePath = name
               Content = Some content
@@ -55,7 +55,7 @@ type FormatDocumentResponse =
               FilePath = name
               Content = None
               SelectedRange = None }
-        | FormatDocumentResponse.Error (name, err) ->
+        | FormatDocumentResponse.Error(name, err) ->
             { Code = int FantomasResponseCode.Error
               FilePath = name
               Content = Some(err)

@@ -167,8 +167,8 @@ let private fantomasVersionOnPath () : (FantomasExecutableFile * FantomasVersion
             |> Option.map (fun s ->
                 let version = s.ToLowerInvariant().Replace("fantomas", String.Empty).Trim()
                 FantomasExecutableFile(fantomasExecutablePath), FantomasVersion(version))
-        | Error (ProcessStartError.ExecutableFileNotFound _)
-        | Error (ProcessStartError.UnExpectedException _) -> None)
+        | Error(ProcessStartError.ExecutableFileNotFound _)
+        | Error(ProcessStartError.UnExpectedException _) -> None)
 
 let findFantomasTool (workingDir: Folder) : Result<FantomasToolFound, FantomasToolError> =
     // First try and find a local tool for the folder.
@@ -177,26 +177,26 @@ let findFantomasTool (workingDir: Folder) : Result<FantomasToolFound, FantomasTo
     let localToolsListResult = runToolListCmd workingDir false
 
     match localToolsListResult with
-    | Ok (CompatibleTool version) -> Ok(FantomasToolFound(version, FantomasToolStartInfo.LocalTool workingDir))
+    | Ok(CompatibleTool version) -> Ok(FantomasToolFound(version, FantomasToolStartInfo.LocalTool workingDir))
     | Error err -> Error(FantomasToolError.DotNetListError err)
     | Ok _localToolListResult ->
         let globalToolsListResult = runToolListCmd workingDir true
 
         match globalToolsListResult with
-        | Ok (CompatibleTool version) -> Ok(FantomasToolFound(version, FantomasToolStartInfo.GlobalTool))
+        | Ok(CompatibleTool version) -> Ok(FantomasToolFound(version, FantomasToolStartInfo.GlobalTool))
         | Error err -> Error(FantomasToolError.DotNetListError err)
         | Ok _nonCompatibleGlobalVersion ->
             let fantomasOnPathVersion = fantomasVersionOnPath ()
 
             match fantomasOnPathVersion with
-            | Some (executableFile, FantomasVersion (CompatibleVersion version)) ->
+            | Some(executableFile, FantomasVersion(CompatibleVersion version)) ->
                 Ok(FantomasToolFound((FantomasVersion(version)), FantomasToolStartInfo.ToolOnPath executableFile))
             | _ -> Error FantomasToolError.NoCompatibleVersionFound
 
 let createFor (startInfo: FantomasToolStartInfo) : Result<RunningFantomasTool, ProcessStartError> =
     let processStart =
         match startInfo with
-        | FantomasToolStartInfo.LocalTool (Folder workingDirectory) ->
+        | FantomasToolStartInfo.LocalTool(Folder workingDirectory) ->
             let ps = ProcessStartInfo("dotnet")
             ps.WorkingDirectory <- workingDirectory
             ps.Arguments <- "fantomas --daemon"
@@ -211,7 +211,7 @@ let createFor (startInfo: FantomasToolStartInfo) : Result<RunningFantomasTool, P
             let ps = ProcessStartInfo(fantomasExecutable)
             ps.Arguments <- "--daemon"
             ps
-        | FantomasToolStartInfo.ToolOnPath (FantomasExecutableFile executableFile) ->
+        | FantomasToolStartInfo.ToolOnPath(FantomasExecutableFile executableFile) ->
             let ps = ProcessStartInfo(executableFile)
             ps.Arguments <- "--daemon"
             ps
