@@ -1258,3 +1258,18 @@ let ``long ident expr`` () =
 ?a.b
 ?c
 """
+
+[<Test>]
+let ``dotNamedIndexedPropertySet`` () =
+    formatSourceString
+        false
+        """
+(a).b() <- c
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+(a).b() <- c
+"""
