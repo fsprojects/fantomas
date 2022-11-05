@@ -953,7 +953,7 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
                     |> Choice2Of2)
 
         ExprInterpolatedStringExprNode(parts, exprRange) |> Expr.InterpolatedStringExpr
-    // | Expr.IndexRangeWildcard _ -> failwith "Not Implemented"
+    | SynExpr.IndexRange(None, _, None, _, _, _) -> stn "*" exprRange |> Expr.IndexRangeWildcard
     // | Expr.IndexRange _ -> failwith "Not Implemented"
     // | Expr.IndexFromEnd _ -> failwith "Not Implemented"
     // | Expr.Typar _ -> failwith "Not Implemented"
