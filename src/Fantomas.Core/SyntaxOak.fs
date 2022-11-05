@@ -1539,10 +1539,10 @@ type ExprIndexRangeNode(fromExpr: Expr option, dots: SingleTextNode, toExpr: Exp
     member x.Dots = dots
     member x.To = toExpr
 
-type ExprIndexFromEndNode(range) =
+type ExprIndexFromEndNode(expr: Expr, range) =
     inherit NodeBase(range)
-
-    override this.Children = failwith "todo"
+    override this.Children = [| Expr.Node expr |]
+    member x.Expr = expr
 
 type ExprTyparNode(range) =
     inherit NodeBase(range)
