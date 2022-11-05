@@ -1544,11 +1544,6 @@ type ExprIndexFromEndNode(expr: Expr, range) =
     override this.Children = [| Expr.Node expr |]
     member x.Expr = expr
 
-type ExprTyparNode(range) =
-    inherit NodeBase(range)
-
-    override this.Children = failwith "todo"
-
 [<RequireQualifiedAccess; NoEquality; NoComparison>]
 type Expr =
     | Lazy of ExprLazyNode
@@ -1620,7 +1615,7 @@ type Expr =
     | TripleNumberIndexRange of ExprTripleNumberIndexRangeNode
     | IndexRange of ExprIndexRangeNode
     | IndexFromEnd of ExprIndexFromEndNode
-    | Typar of ExprTyparNode
+    | Typar of SingleTextNode
 
     static member Node(x: Expr) : Node =
         match x with
