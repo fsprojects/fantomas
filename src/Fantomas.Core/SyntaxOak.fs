@@ -1503,11 +1503,6 @@ type ExprInterpolatedStringExprNode(parts: Choice<SingleTextNode, FillExprNode> 
 
     member x.Parts = parts
 
-type ExprIndexRangeWildcardNode(range) =
-    inherit NodeBase(range)
-
-    override this.Children = failwith "todo"
-
 type ExprIndexRangeNode(range) =
     inherit NodeBase(range)
 
@@ -1590,7 +1585,7 @@ type Expr =
     | Set of ExprSetNode
     | LibraryOnlyStaticOptimization of ExprLibraryOnlyStaticOptimizationNode
     | InterpolatedStringExpr of ExprInterpolatedStringExprNode
-    | IndexRangeWildcard of ExprIndexRangeWildcardNode
+    | IndexRangeWildcard of SingleTextNode
     | IndexRange of ExprIndexRangeNode
     | IndexFromEnd of ExprIndexFromEndNode
     | Typar of ExprTyparNode
