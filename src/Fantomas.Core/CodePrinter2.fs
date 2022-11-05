@@ -1146,7 +1146,13 @@ let genExpr (e: Expr) =
             +> genExpr node.Index
             +> sepArrowRev
             +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr node.Value)
-    | Expr.DotNamedIndexedPropertySet _ -> failwith "Not Implemented"
+    | Expr.DotNamedIndexedPropertySet node ->
+        genExpr node.Identifier
+        +> sepDot
+        +> genIdentListNode node.Name
+        +> genExpr node.Property
+        +> sepArrowRev
+        +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr node.Set)
     | Expr.DotGet _ -> failwith "Not Implemented"
     | Expr.DotSet _ -> failwith "Not Implemented"
     | Expr.Set _ -> failwith "Not Implemented"
