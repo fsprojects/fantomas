@@ -1230,7 +1230,16 @@ let genExpr (e: Expr) =
                         genFill ctx)
         +> onlyIfCtx (fun ctx -> ctx.Config.StrictMode) (!- "\"")
     | Expr.IndexRangeWildcard node -> !-node.Text
-    | Expr.IndexRange _ -> failwith "Not Implemented"
+    | Expr.TripleNumberIndexRange node ->
+        genSingleTextNode node.Start
+        +> genSingleTextNode node.StartDots
+        +> genSingleTextNode node.Center
+        +> genSingleTextNode node.EndDots
+        +> genSingleTextNode node.End
+    | Expr.IndexRange node ->
+        optSingle genExpr node.From
+        +> genSingleTextNode node.Dots
+        +> optSingle genExpr node.To
     | Expr.IndexFromEnd _ -> failwith "Not Implemented"
     | Expr.Typar _ -> failwith "Not Implemented"
     |> genNode (Expr.Node e)
