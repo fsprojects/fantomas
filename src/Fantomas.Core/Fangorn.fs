@@ -907,7 +907,9 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
             exprRange
         )
         |> Expr.DotNamedIndexedPropertySet
-    // | Expr.DotGet _ -> failwith "Not Implemented"
+    | SynExpr.DotGet(e, _, synLongIdent, _) ->
+        ExprDotGetNode(mkExpr creationAide e, mkSynLongIdent synLongIdent, exprRange)
+        |> Expr.DotGet
     // | Expr.DotSet _ -> failwith "Not Implemented"
     // | Expr.Set _ -> failwith "Not Implemented"
     // | Expr.LibraryOnlyStaticOptimization _ -> failwith "Not Implemented"
