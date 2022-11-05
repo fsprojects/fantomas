@@ -910,9 +910,34 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
     | SynExpr.DotGet(e, _, synLongIdent, _) ->
         ExprDotGetNode(mkExpr creationAide e, mkSynLongIdent synLongIdent, exprRange)
         |> Expr.DotGet
-    // | Expr.DotSet _ -> failwith "Not Implemented"
-    // | Expr.Set _ -> failwith "Not Implemented"
-    // | Expr.LibraryOnlyStaticOptimization _ -> failwith "Not Implemented"
+    | SynExpr.DotSet(e1, synLongIdent, e2, _) ->
+        ExprDotSetNode(mkExpr creationAide e1, mkSynLongIdent synLongIdent, mkExpr creationAide e2, exprRange)
+        |> Expr.DotSet
+    | SynExpr.Set(e1, e2, _) ->
+        ExprSetNode(mkExpr creationAide e1, mkExpr creationAide e2, exprRange)
+        |> Expr.Set
+
+    | SynExpr.LibraryOnlyStaticOptimization(constraints, e, optExpr, _) ->
+        let constraints =
+            constraints
+            |> List.map (function
+                | SynStaticOptimizationConstraint.WhenTyparTyconEqualsTycon(t1, t2, _) ->
+                    StaticOptimizationConstraintWhenTyparTyconEqualsTyconNode(
+                        mkSynTypar t1,
+                        mkType creationAide t2,
+                        unionRanges t1.Range t2.Range
+                    )
+                    |> StaticOptimizationConstraint.WhenTyparTyconEqualsTycon
+                | SynStaticOptimizationConstraint.WhenTyparIsStruct(t, _) ->
+                    mkSynTypar t |> StaticOptimizationConstraint.WhenTyparIsStruct)
+
+        ExprLibraryOnlyStaticOptimizationNode(
+            mkExpr creationAide optExpr,
+            constraints,
+            mkExpr creationAide e,
+            exprRange
+        )
+        |> Expr.LibraryOnlyStaticOptimization
     // | Expr.InterpolatedStringExpr _ -> failwith "Not Implemented"
     // | Expr.IndexRangeWildcard _ -> failwith "Not Implemented"
     // | Expr.IndexRange _ -> failwith "Not Implemented"
