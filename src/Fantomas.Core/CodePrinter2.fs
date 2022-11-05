@@ -1229,7 +1229,7 @@ let genExpr (e: Expr) =
                     else
                         genFill ctx)
         +> onlyIfCtx (fun ctx -> ctx.Config.StrictMode) (!- "\"")
-    | Expr.IndexRangeWildcard _ -> failwith "Not Implemented"
+    | Expr.IndexRangeWildcard node -> !-node.Text
     | Expr.IndexRange _ -> failwith "Not Implemented"
     | Expr.IndexFromEnd _ -> failwith "Not Implemented"
     | Expr.Typar _ -> failwith "Not Implemented"
