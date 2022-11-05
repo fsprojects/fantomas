@@ -1018,7 +1018,7 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
         )
         |> Expr.IndexRange
     | SynExpr.IndexFromEnd(e, _) -> ExprIndexFromEndNode(mkExpr creationAide e, exprRange) |> Expr.IndexFromEnd
-    // | Expr.Typar _ -> failwith "Not Implemented"
+    | SynExpr.Typar(typar, _) -> mkSynTypar typar |> Expr.Typar
     | _ -> failwithf "todo for %A" e
 
 let mkExprQuote creationAide isRaw e range : ExprQuoteNode =
