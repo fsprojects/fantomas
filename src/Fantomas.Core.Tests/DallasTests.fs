@@ -1288,3 +1288,18 @@ $"{x}y{z}"
         """
 $"{x}y{z}"
 """
+
+[<Test>]
+let ``triple zero`` () =
+    formatSourceString
+        false
+        """
+[ 0.   ..   0. ..  0. ]
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+[ 0. .. 0. .. 0. ]
+"""

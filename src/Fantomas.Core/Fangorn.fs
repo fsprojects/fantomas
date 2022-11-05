@@ -434,6 +434,16 @@ let rec (|ElIf|_|) =
         Some([ (ifNode, e1, stn "then" trivia.ThenKeyword, e2) ], elseInfo)
     | _ -> None
 
+let (|ConstNumberExpr|_|) =
+    function
+    | SynExpr.Const(SynConst.Double v, m) as e -> Some(string v, m)
+    | SynExpr.Const(SynConst.Decimal v, m) as e -> Some(string v, m)
+    | SynExpr.Const(SynConst.Single v, m) as e -> Some(string v, m)
+    | SynExpr.Const(SynConst.Int16 v, m) as e -> Some(string v, m)
+    | SynExpr.Const(SynConst.Int32 v, m) as e -> Some(string v, m)
+    | SynExpr.Const(SynConst.Int64 v, m) as e -> Some(string v, m)
+    | _ -> None
+
 let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
     let exprRange = e.Range
 
@@ -954,6 +964,59 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
 
         ExprInterpolatedStringExprNode(parts, exprRange) |> Expr.InterpolatedStringExpr
     | SynExpr.IndexRange(None, _, None, _, _, _) -> stn "*" exprRange |> Expr.IndexRangeWildcard
+    | SynExpr.IndexRange(Some(SynExpr.IndexRange(Some(ConstNumberExpr(c1, mC1)),
+                                                 mDots1,
+                                                 Some(ConstNumberExpr(c2, mC2)),
+                                                 _,
+                                                 _,
+                                                 _)),
+                         mDots2,
+                         Some(ConstNumberExpr(c3, mC3)),
+                         _,
+                         _,
+                         _) ->
+        let c1Node = stn (creationAide.TextFromSource c1 mC1) mC1
+        let c2Node = stn (creationAide.TextFromSource c2 mC2) mC2
+        let c3Node = stn (creationAide.TextFromSource c3 mC3) mC3
+
+        let dotText =
+            if c1Node.Text.EndsWith(".") || c2Node.Text.EndsWith(".") then
+                " .. "
+            else
+                ".."
+
+        let startDots = stn dotText mDots1
+        let endDots = stn dotText mDots2
+
+        ExprTripleNumberIndexRangeNode(c1Node, startDots, c2Node, endDots, c3Node, exprRange)
+        |> Expr.TripleNumberIndexRange
+    | SynExpr.IndexRange(expr1 = e1; opm = mDots; expr2 = e2) ->
+        let dotsNode =
+            let hasSpaces =
+                let rec (|AtomicExpr|_|) e =
+                    match e with
+                    | ConstNumberExpr(v, _) when v.StartsWith("-") -> None
+                    | SynExpr.Ident _
+                    | SynExpr.Const(SynConst.Int32 _, _)
+                    | SynExpr.IndexRange(expr1 = Some(AtomicExpr _); expr2 = Some(AtomicExpr _))
+                    | SynExpr.IndexFromEnd(AtomicExpr _, _) -> Some e
+                    | _ -> None
+
+                match e1, e2 with
+                | Some(AtomicExpr _), None
+                | None, Some(AtomicExpr _)
+                | Some(AtomicExpr _), Some(AtomicExpr _) -> false
+                | _ -> true
+
+            stn (if hasSpaces then " .. " else "..") mDots
+
+        ExprIndexRangeNode(
+            Option.map (mkExpr creationAide) e1,
+            dotsNode,
+            Option.map (mkExpr creationAide) e2,
+            exprRange
+        )
+        |> Expr.IndexRange
     // | Expr.IndexRange _ -> failwith "Not Implemented"
     // | Expr.IndexFromEnd _ -> failwith "Not Implemented"
     // | Expr.Typar _ -> failwith "Not Implemented"

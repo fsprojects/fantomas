@@ -1503,10 +1503,41 @@ type ExprInterpolatedStringExprNode(parts: Choice<SingleTextNode, FillExprNode> 
 
     member x.Parts = parts
 
-type ExprIndexRangeNode(range) =
+type ExprTripleNumberIndexRangeNode
+    (
+        startNode: SingleTextNode,
+        startDots: SingleTextNode,
+        centerNode: SingleTextNode,
+        endDots: SingleTextNode,
+        endNode: SingleTextNode,
+        range
+    ) =
     inherit NodeBase(range)
 
-    override this.Children = failwith "todo"
+    override this.Children =
+        [| yield startNode
+           yield startDots
+           yield centerNode
+           yield endDots
+           yield endNode |]
+
+    member x.Start = startNode
+    member x.StartDots = startDots
+    member x.Center = centerNode
+    member x.EndDots = endDots
+    member x.End = endNode
+
+type ExprIndexRangeNode(fromExpr: Expr option, dots: SingleTextNode, toExpr: Expr option, range) =
+    inherit NodeBase(range)
+
+    override this.Children =
+        [| yield! noa (Option.map Expr.Node fromExpr)
+           yield dots
+           yield! noa (Option.map Expr.Node toExpr) |]
+
+    member x.From = fromExpr
+    member x.Dots = dots
+    member x.To = toExpr
 
 type ExprIndexFromEndNode(range) =
     inherit NodeBase(range)
@@ -1586,6 +1617,7 @@ type Expr =
     | LibraryOnlyStaticOptimization of ExprLibraryOnlyStaticOptimizationNode
     | InterpolatedStringExpr of ExprInterpolatedStringExprNode
     | IndexRangeWildcard of SingleTextNode
+    | TripleNumberIndexRange of ExprTripleNumberIndexRangeNode
     | IndexRange of ExprIndexRangeNode
     | IndexFromEnd of ExprIndexFromEndNode
     | Typar of ExprTyparNode
@@ -1658,6 +1690,7 @@ type Expr =
         | LibraryOnlyStaticOptimization n -> n
         | InterpolatedStringExpr n -> n
         | IndexRangeWildcard n -> n
+        | TripleNumberIndexRange n -> n
         | IndexRange n -> n
         | IndexFromEnd n -> n
         | Typar n -> n
