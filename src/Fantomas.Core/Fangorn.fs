@@ -938,7 +938,21 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
             exprRange
         )
         |> Expr.LibraryOnlyStaticOptimization
-    // | Expr.InterpolatedStringExpr _ -> failwith "Not Implemented"
+    | SynExpr.InterpolatedString(parts, _, _) ->
+        let parts =
+            parts
+            |> List.map (function
+                | SynInterpolatedStringPart.String(v, r) -> stn (creationAide.TextFromSource v r) r |> Choice1Of2
+                | SynInterpolatedStringPart.FillExpr(fillExpr, qualifiers) ->
+                    let m =
+                        match qualifiers with
+                        | None -> fillExpr.Range
+                        | Some ident -> unionRanges fillExpr.Range ident.idRange
+
+                    FillExprNode(mkExpr creationAide fillExpr, Option.map mkIdent qualifiers, m)
+                    |> Choice2Of2)
+
+        ExprInterpolatedStringExprNode(parts, exprRange) |> Expr.InterpolatedStringExpr
     // | Expr.IndexRangeWildcard _ -> failwith "Not Implemented"
     // | Expr.IndexRange _ -> failwith "Not Implemented"
     // | Expr.IndexFromEnd _ -> failwith "Not Implemented"

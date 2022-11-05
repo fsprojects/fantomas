@@ -1273,3 +1273,18 @@ let ``dotNamedIndexedPropertySet`` () =
         """
 (a).b() <- c
 """
+
+[<Test>]
+let ``interpolated string`` () =
+    formatSourceString
+        false
+        """
+$"{x}y{z}"
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+$"{x}y{z}"
+"""
