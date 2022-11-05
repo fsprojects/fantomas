@@ -1433,20 +1433,56 @@ type ExprDotGetNode(expr: Expr, identifier: IdentListNode, range) =
     member x.Expr = expr
     member x.Identifier = identifier
 
-type ExprDotSetNode(range) =
+type ExprDotSetNode(identifier: Expr, property: IdentListNode, setExpr: Expr, range) =
     inherit NodeBase(range)
 
-    override this.Children = failwith "todo"
+    override this.Children =
+        [| yield Expr.Node identifier; yield property; yield Expr.Node setExpr |]
 
-type ExprSetNode(range) =
+    member x.Identifier = identifier
+    member x.Property = property
+    member x.Set = setExpr
+
+type ExprSetNode(identifier: Expr, setExpr: Expr, range) =
     inherit NodeBase(range)
 
-    override this.Children = failwith "todo"
+    override this.Children = [| yield Expr.Node identifier; yield Expr.Node setExpr |]
+    member x.Identifier = identifier
+    member x.Set = setExpr
 
-type ExprLibraryOnlyStaticOptimizationNode(range) =
+type StaticOptimizationConstraintWhenTyparTyconEqualsTyconNode(typar: SingleTextNode, t: Type, range) =
     inherit NodeBase(range)
 
-    override this.Children = failwith "todo"
+    override this.Children = [| yield typar; yield Type.Node t |]
+    member x.TypeParameter = typar
+    member x.Type = t
+
+type StaticOptimizationConstraint =
+    | WhenTyparTyconEqualsTycon of StaticOptimizationConstraintWhenTyparTyconEqualsTyconNode
+    | WhenTyparIsStruct of SingleTextNode
+
+    static member Node(c: StaticOptimizationConstraint) : Node =
+        match c with
+        | WhenTyparTyconEqualsTycon n -> n
+        | WhenTyparIsStruct n -> n
+
+type ExprLibraryOnlyStaticOptimizationNode
+    (
+        optimizedExpr: Expr,
+        constraints: StaticOptimizationConstraint list,
+        expr: Expr,
+        range
+    ) =
+    inherit NodeBase(range)
+
+    override this.Children =
+        [| yield Expr.Node optimizedExpr
+           yield! List.map StaticOptimizationConstraint.Node constraints
+           yield Expr.Node expr |]
+
+    member x.OptimizedExpr = optimizedExpr
+    member x.Constraints = constraints
+    member x.Expr = expr
 
 type ExprInterpolatedStringExprNode(range) =
     inherit NodeBase(range)
