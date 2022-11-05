@@ -1783,8 +1783,6 @@ let genTypeConstraint (tc: TypeConstraint) =
 let genTypeConstraints (tcs: TypeConstraint list) =
     !- "when" +> sepSpace +> col wordAnd tcs genTypeConstraint
 
-let genTypar (tp: ExprTyparNode) = !- "todo"
-
 let genType (t: Type) =
     match t with
     | Type.Funs node ->
