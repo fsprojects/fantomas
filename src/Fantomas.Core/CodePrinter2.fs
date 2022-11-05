@@ -79,6 +79,13 @@ let genIdentListNodeAux addLeadingDot (iln: IdentListNode) =
 let genIdentListNode iln = genIdentListNodeAux false iln
 let genIdentListNodeWithDot iln = genIdentListNodeAux true iln
 
+let genIdentListNodeWithDotMultiline (iln: IdentListNode) =
+    col sepNone iln.Content (function
+        | IdentifierOrDot.Ident ident -> genSingleTextNodeWithLeadingDot ident
+        | IdentifierOrDot.KnownDot _
+        | IdentifierOrDot.UnknownDot _ -> sepNln +> sepDot)
+    |> genNode iln
+
 let genAccessOpt (nodeOpt: SingleTextNode option) =
     match nodeOpt with
     | None -> sepNone
@@ -1153,7 +1160,14 @@ let genExpr (e: Expr) =
         +> genExpr node.Property
         +> sepArrowRev
         +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr node.Set)
-    | Expr.DotGet _ -> failwith "Not Implemented"
+    | Expr.DotGet node ->
+        let shortExpr = genExpr node.Expr +> genIdentListNodeWithDot node.Identifier
+
+        let longExpr =
+            genExpr node.Expr
+            +> indentSepNlnUnindent (genIdentListNodeWithDotMultiline node.Identifier)
+
+        fun ctx -> isShortExpression ctx.Config.MaxDotGetExpressionWidth shortExpr longExpr ctx
     | Expr.DotSet _ -> failwith "Not Implemented"
     | Expr.Set _ -> failwith "Not Implemented"
     | Expr.LibraryOnlyStaticOptimization _ -> failwith "Not Implemented"
