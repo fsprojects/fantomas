@@ -1017,8 +1017,7 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
             exprRange
         )
         |> Expr.IndexRange
-    // | Expr.IndexRange _ -> failwith "Not Implemented"
-    // | Expr.IndexFromEnd _ -> failwith "Not Implemented"
+    | SynExpr.IndexFromEnd(e, _) -> ExprIndexFromEndNode(mkExpr creationAide e, exprRange) |> Expr.IndexFromEnd
     // | Expr.Typar _ -> failwith "Not Implemented"
     | _ -> failwithf "todo for %A" e
 

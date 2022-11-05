@@ -1240,7 +1240,7 @@ let genExpr (e: Expr) =
         optSingle genExpr node.From
         +> genSingleTextNode node.Dots
         +> optSingle genExpr node.To
-    | Expr.IndexFromEnd _ -> failwith "Not Implemented"
+    | Expr.IndexFromEnd node -> !- "^" +> genExpr node.Expr
     | Expr.Typar _ -> failwith "Not Implemented"
     |> genNode (Expr.Node e)
 
