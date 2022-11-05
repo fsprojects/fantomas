@@ -1196,7 +1196,39 @@ let genExpr (e: Expr) =
             | StaticOptimizationConstraint.WhenTyparIsStruct t -> genSingleTextNode t)
         +> sepEq
         +> sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth (genExpr node.Expr)
-    | Expr.InterpolatedStringExpr _ -> failwith "Not Implemented"
+    | Expr.InterpolatedStringExpr node ->
+        let genInterpolatedFillExpr expr =
+            fun ctx ->
+                let currentConfig = ctx.Config
+
+                let interpolatedConfig =
+                    { currentConfig with
+                        // override the max line length for the interpolated expression.
+                        // this is to avoid scenarios where the long / multiline format of the expression will be used
+                        // where the construct is this short
+                        // see unit test ``construct url with Fable``
+                        MaxLineLength = ctx.WriterModel.Column + ctx.Config.MaxLineLength }
+
+                genExpr expr { ctx with Config = interpolatedConfig }
+                // Restore the existing configuration after printing the interpolated expression
+                |> fun ctx -> { ctx with Config = currentConfig }
+            |> atCurrentColumnIndent
+
+        onlyIfCtx (fun ctx -> ctx.Config.StrictMode) (!- "$\"")
+        +> col sepNone node.Parts (fun part ->
+            match part with
+            | Choice1Of2 stringNode -> genSingleTextNode stringNode
+            | Choice2Of2 fillNode ->
+                fun ctx ->
+                    let genFill =
+                        genInterpolatedFillExpr fillNode.Expr
+                        +> optSingle (fun format -> sepColonFixed +> genSingleTextNode format) fillNode.Ident
+
+                    if ctx.Config.StrictMode then
+                        (!- "{" +> genFill +> !- "}") ctx
+                    else
+                        genFill ctx)
+        +> onlyIfCtx (fun ctx -> ctx.Config.StrictMode) (!- "\"")
     | Expr.IndexRangeWildcard _ -> failwith "Not Implemented"
     | Expr.IndexRange _ -> failwith "Not Implemented"
     | Expr.IndexFromEnd _ -> failwith "Not Implemented"
