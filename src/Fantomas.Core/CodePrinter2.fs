@@ -1168,9 +1168,34 @@ let genExpr (e: Expr) =
             +> indentSepNlnUnindent (genIdentListNodeWithDotMultiline node.Identifier)
 
         fun ctx -> isShortExpression ctx.Config.MaxDotGetExpressionWidth shortExpr longExpr ctx
-    | Expr.DotSet _ -> failwith "Not Implemented"
-    | Expr.Set _ -> failwith "Not Implemented"
-    | Expr.LibraryOnlyStaticOptimization _ -> failwith "Not Implemented"
+    | Expr.DotSet node ->
+        match node.Identifier with
+        | Expr.AppSingleParenArg appNode ->
+            genExpr appNode.FunctionExpr
+            +> genExpr appNode.ArgExpr
+            +> sepDot
+            +> genIdentListNode node.Property
+            +> sepArrowRev
+            +> autoIndentAndNlnIfExpressionExceedsPageWidthUnlessStroustrup genExpr node.Set
+        | _ ->
+            addParenIfAutoNln node.Identifier genExpr
+            +> sepDot
+            +> genIdentListNode node.Property
+            +> sepArrowRev
+            +> autoIndentAndNlnIfExpressionExceedsPageWidthUnlessStroustrup genExpr node.Set
+    | Expr.Set node ->
+        addParenIfAutoNln node.Identifier genExpr
+        +> sepArrowRev
+        +> autoIndentAndNlnIfExpressionExceedsPageWidthUnlessStroustrup genExpr node.Set
+    | Expr.LibraryOnlyStaticOptimization node ->
+        genExpr node.OptimizedExpr
+        +> onlyIfNot node.Constraints.IsEmpty (!- " when ")
+        +> col sepSpace node.Constraints (function
+            | StaticOptimizationConstraint.WhenTyparTyconEqualsTycon n ->
+                genSingleTextNode n.TypeParameter +> sepColon +> sepSpace +> genType n.Type
+            | StaticOptimizationConstraint.WhenTyparIsStruct t -> genSingleTextNode t)
+        +> sepEq
+        +> sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth (genExpr node.Expr)
     | Expr.InterpolatedStringExpr _ -> failwith "Not Implemented"
     | Expr.IndexRangeWildcard _ -> failwith "Not Implemented"
     | Expr.IndexRange _ -> failwith "Not Implemented"
@@ -1716,6 +1741,8 @@ let genTypeConstraint (tc: TypeConstraint) =
 
 let genTypeConstraints (tcs: TypeConstraint list) =
     !- "when" +> sepSpace +> col wordAnd tcs genTypeConstraint
+
+let genTypar (tp: ExprTyparNode) = !- "todo"
 
 let genType (t: Type) =
     match t with
