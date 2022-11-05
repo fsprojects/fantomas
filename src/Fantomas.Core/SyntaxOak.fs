@@ -1484,10 +1484,24 @@ type ExprLibraryOnlyStaticOptimizationNode
     member x.Constraints = constraints
     member x.Expr = expr
 
-type ExprInterpolatedStringExprNode(range) =
+type FillExprNode(expr: Expr, ident: SingleTextNode option, range) =
+    inherit NodeBase(range)
+    override this.Children = [| yield Expr.Node expr; yield! noa ident |]
+    member x.Expr = expr
+    member x.Ident = ident
+
+type ExprInterpolatedStringExprNode(parts: Choice<SingleTextNode, FillExprNode> list, range) =
     inherit NodeBase(range)
 
-    override this.Children = failwith "todo"
+    override this.Children =
+        [| yield!
+               List.map
+                   (function
+                   | Choice1Of2 n -> (n :> Node)
+                   | Choice2Of2 n -> (n :> Node))
+                   parts |]
+
+    member x.Parts = parts
 
 type ExprIndexRangeWildcardNode(range) =
     inherit NodeBase(range)
