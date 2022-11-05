@@ -1241,7 +1241,7 @@ let genExpr (e: Expr) =
         +> genSingleTextNode node.Dots
         +> optSingle genExpr node.To
     | Expr.IndexFromEnd node -> !- "^" +> genExpr node.Expr
-    | Expr.Typar _ -> failwith "Not Implemented"
+    | Expr.Typar node -> !-node.Text
     |> genNode (Expr.Node e)
 
 let genQuoteExpr (node: ExprQuoteNode) =
