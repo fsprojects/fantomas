@@ -1688,15 +1688,18 @@ let private (|IdentExprOrLongIdentExpr|_|) e =
 
 let rec (|IndexWithoutDotExpr|NestedIndexWithoutDotExpr|NonAppExpr|) e =
     match e with
-    | SynExpr.App(ExprAtomicFlag.Atomic, false, identifierExpr, SynExpr.ArrayOrListComputed(false, indexExpr, _), _) ->
-        IndexWithoutDotExpr(identifierExpr, indexExpr)
+    | SynExpr.App(ExprAtomicFlag.Atomic,
+                  false,
+                  identifierExpr,
+                  SynExpr.ArrayOrListComputed(false, indexExpr, arrayOrListRange),
+                  _) -> IndexWithoutDotExpr(identifierExpr, indexExpr, arrayOrListRange)
     | SynExpr.App(ExprAtomicFlag.NonAtomic,
                   false,
                   identifierExpr,
-                  (SynExpr.ArrayOrListComputed(isArray = false; expr = indexExpr) as argExpr),
+                  (SynExpr.ArrayOrListComputed(isArray = false; expr = indexExpr; range = arrayOrListRange) as argExpr),
                   _) when (RangeHelpers.isAdjacentTo identifierExpr.Range argExpr.Range) ->
-        IndexWithoutDotExpr(identifierExpr, indexExpr)
-    | SynExpr.App(ExprAtomicFlag.NonAtomic, false, IndexWithoutDotExpr(identifier, indexExpr), argExpr, _) ->
+        IndexWithoutDotExpr(identifierExpr, indexExpr, arrayOrListRange)
+    | SynExpr.App(ExprAtomicFlag.NonAtomic, false, IndexWithoutDotExpr(identifier, indexExpr, _), argExpr, _) ->
         NestedIndexWithoutDotExpr(identifier, indexExpr, argExpr)
     | _ -> NonAppExpr
 
