@@ -1,6 +1,6 @@
 # Changelog
 
-## [Unreleased]
+## [5.1.1] - 2022-11-07
 
 ### Fixed
 * Comment is removed when using array index access syntax, without a leading dot. [#2611](https://github.com/fsprojects/fantomas/issues/2611)
