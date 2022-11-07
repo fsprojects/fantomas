@@ -1221,13 +1221,14 @@ and genExpr synExpr ctx =
                 +> genExpr e3
             )
 
-        | IndexWithoutDotExpr(identifierExpr, indexExpr) ->
+        | IndexWithoutDotExpr(identifierExpr, indexExpr, arrayOrListRange) ->
             let genIndexExpr = genExpr indexExpr
 
             genExpr identifierExpr
-            +> sepOpenLFixed
-            +> expressionFitsOnRestOfLine genIndexExpr (atCurrentColumnIndent genIndexExpr)
-            +> sepCloseLFixed
+            +> (sepOpenLFixed
+                +> expressionFitsOnRestOfLine genIndexExpr (atCurrentColumnIndent genIndexExpr)
+                +> sepCloseLFixed
+                |> genTriviaFor SynExpr_ArrayOrList arrayOrListRange)
 
         // Result<int, string>.Ok 42
         | App(DotGet(TypeApp(e, lt, ts, gt), sli), es) ->
