@@ -1156,10 +1156,32 @@ type ExprIndexWithoutDotNode(identifierExpr: Expr, indexExpr: Expr, range) =
     member x.Identifier = identifierExpr
     member x.Index = indexExpr
 
-type ExprAppDotGetTypeAppNode(range) =
+type ExprAppDotGetTypeAppNode
+    (
+        identifierExpr: Expr,
+        lessThan: SingleTextNode,
+        typeParameters: Type list,
+        greaterThan: SingleTextNode,
+        property: IdentListNode,
+        arguments: Expr list,
+        range
+    ) =
     inherit NodeBase(range)
 
-    override this.Children = failwith "todo"
+    override this.Children =
+        [| yield Expr.Node identifierExpr
+           yield lessThan
+           yield! List.map Type.Node typeParameters
+           yield greaterThan
+           yield property
+           yield! List.map Expr.Node arguments |]
+
+    member x.Identifier = identifierExpr
+    member x.LessThan = lessThan
+    member x.TypeParameters = typeParameters
+    member x.GreaterThan = greaterThan
+    member x.Property = property
+    member x.Arguments = arguments
 
 type ExprDotGetAppDotGetAppParenLambdaNode(range) =
     inherit NodeBase(range)
