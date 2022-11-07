@@ -1363,3 +1363,18 @@ Hej.Barry.Foo<a,b>(fun x -> x).Bar().Meh
         """
 Hej.Barry.Foo<a, b>(fun x -> x).Bar().Meh
 """
+
+[<Test>]
+let ``DotGetAppParen`` () =
+    formatSourceString
+        false
+        """
+Foo().Bar
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+Foo().Bar
+"""
