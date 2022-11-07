@@ -1318,3 +1318,48 @@ Result<int, string>.Ok 42
         """
 Result<int, string>.Ok 42
 """
+
+[<Test>]
+let ``temp`` () =
+    formatSourceString
+        false
+        """
+A.B<string>
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+A.B<string>
+"""
+
+[<Test>]
+let ``DotGetAppDotGetAppParenLambda`` () =
+    formatSourceString
+        false
+        """
+Foo(fun x -> x).Bar().Meh
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+Foo(fun x -> x).Bar().Meh
+"""
+
+[<Test>]
+let ``DotGetAppDotGetAppParenLambda, type app`` () =
+    formatSourceString
+        false
+        """
+Hej.Barry.Foo<a,b>(fun x -> x).Bar().Meh
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+Hej.Barry.Foo<a, b>(fun x -> x).Bar().Meh
+"""

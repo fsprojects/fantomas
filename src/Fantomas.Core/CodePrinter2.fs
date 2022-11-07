@@ -785,11 +785,46 @@ let genExpr (e: Expr) =
 
     // Result<int, string>.Ok 42
     | Expr.AppDotGetTypeApp node ->
-        genExpr node.Identifier
-        +> genGenericTypeParameters node.LessThan node.TypeParameters node.GreaterThan
+        genExpr node.TypeApp.Identifier
+        +> genGenericTypeParameters node.TypeApp
         +> genIdentListNodeWithDot node.Property
         +> sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth (col sepSpace node.Arguments genExpr)
-    | Expr.DotGetAppDotGetAppParenLambda _ -> failwith "Not Implemented"
+
+    // Foo(fun x -> x).Bar().Meh
+    | Expr.DotGetAppDotGetAppParenLambda node ->
+        let short =
+            genExpr node.Identifier
+            +> genExpr node.IdentifierArg
+            +> genIdentListNodeWithDot node.AppLids
+            +> col sepComma node.Args genExpr
+            +> genIdentListNodeWithDot node.Property
+
+        let long =
+            let functionName =
+                match node.Identifier with
+                | Expr.OptVar identifierNode when List.moreThanOne identifierNode.Identifier.Content ->
+                    genFunctionNameWithMultilineLids sepNone identifierNode.Identifier identifierNode
+                | Expr.TypeApp typedAppNode ->
+                    match typedAppNode.Identifier with
+                    | Expr.OptVar identifierNode when List.moreThanOne identifierNode.Identifier.Content ->
+                        genFunctionNameWithMultilineLids
+                            (genGenericTypeParameters typedAppNode)
+                            identifierNode.Identifier
+                            typedAppNode
+                    | _ -> genExpr node.Identifier
+                | _ -> genExpr node.Identifier
+
+            functionName
+            +> indent
+            +> genExpr node.IdentifierArg
+            +> sepNln
+            +> genIdentListNodeWithDot node.AppLids
+            +> col sepComma node.Args genExpr
+            +> sepNln
+            +> genIdentListNodeWithDot node.Property
+            +> unindent
+
+        fun ctx -> isShortExpression ctx.Config.MaxDotGetExpressionWidth short long ctx
     | Expr.DotGetAppParen _ -> failwith "Not Implemented"
     | Expr.DotGetAppWithParenLambda _ -> failwith "Not Implemented"
     | Expr.DotGetApp _ -> failwith "Not Implemented"
@@ -880,7 +915,7 @@ let genExpr (e: Expr) =
             else
                 short ctx
     | Expr.App _ -> failwith "Not Implemented"
-    | Expr.TypeApp _ -> failwith "Not Implemented"
+    | Expr.TypeApp node -> genExpr node.Identifier +> genGenericTypeParameters node
     | Expr.TryWithSingleClause node ->
         let genClause =
             let clauseNode = node.Clause
@@ -1559,9 +1594,9 @@ let genKeepIdent (startNode: Node) (e: Expr) ctx =
     else
         indent ctx
 
-let genGenericTypeParameters lt ts gt =
-    genSingleTextNode lt
-    +> coli sepComma ts (fun idx t ->
+let genGenericTypeParameters (typeApp: ExprTypeAppNode) =
+    genSingleTextNode typeApp.LessThan
+    +> coli sepComma typeApp.TypeParameters (fun idx t ->
         let leadingSpace =
             match t with
             | Type.Var n when idx = 0 && n.Text.StartsWith("^") -> sepSpace
@@ -1569,7 +1604,28 @@ let genGenericTypeParameters lt ts gt =
 
         leadingSpace +> genType t)
     +> indentIfNeeded sepNone
-    +> genSingleTextNode gt
+    +> genSingleTextNode typeApp.GreaterThan
+
+let genFunctionNameWithMultilineLids (trailing: Context -> Context) (longIdent: IdentListNode) (parentNode: Node) =
+    match longIdent.Content with
+    | IdentifierOrDot.Ident identNode :: t ->
+        genSingleTextNode identNode
+        +> indent
+        +> (colEx
+                (function
+                | IdentifierOrDot.Ident _ -> sepNone
+                | IdentifierOrDot.KnownDot _
+                | IdentifierOrDot.UnknownDot _ -> sepNln)
+                t
+                (function
+                | IdentifierOrDot.Ident identNode -> genSingleTextNode identNode
+                | IdentifierOrDot.KnownDot _
+                | IdentifierOrDot.UnknownDot _ -> sepDot)
+            +> trailing)
+        +> unindent
+    | _ -> sepNone
+    |> genNode parentNode
+
 // end expressions
 
 let genPatLeftMiddleRight (node: PatLeftMiddleRight) =

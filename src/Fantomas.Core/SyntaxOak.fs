@@ -1156,37 +1156,39 @@ type ExprIndexWithoutDotNode(identifierExpr: Expr, indexExpr: Expr, range) =
     member x.Identifier = identifierExpr
     member x.Index = indexExpr
 
-type ExprAppDotGetTypeAppNode
+type ExprAppDotGetTypeAppNode(typeApp: ExprTypeAppNode, property: IdentListNode, arguments: Expr list, range) =
+    inherit NodeBase(range)
+
+    override this.Children =
+        [| yield typeApp; yield property; yield! List.map Expr.Node arguments |]
+
+    member x.TypeApp = typeApp
+    member x.Property = property
+    member x.Arguments = arguments
+
+type ExprDotGetAppDotGetAppParenLambdaNode
     (
         identifierExpr: Expr,
-        lessThan: SingleTextNode,
-        typeParameters: Type list,
-        greaterThan: SingleTextNode,
+        identifierArgExpr: Expr,
+        appLids: IdentListNode,
+        es: Expr list,
         property: IdentListNode,
-        arguments: Expr list,
         range
     ) =
     inherit NodeBase(range)
 
     override this.Children =
         [| yield Expr.Node identifierExpr
-           yield lessThan
-           yield! List.map Type.Node typeParameters
-           yield greaterThan
-           yield property
-           yield! List.map Expr.Node arguments |]
+           yield Expr.Node identifierArgExpr
+           yield appLids
+           yield! List.map Expr.Node es
+           yield property |]
 
     member x.Identifier = identifierExpr
-    member x.LessThan = lessThan
-    member x.TypeParameters = typeParameters
-    member x.GreaterThan = greaterThan
+    member x.IdentifierArg = identifierArgExpr
+    member x.AppLids = appLids
+    member x.Args = es
     member x.Property = property
-    member x.Arguments = arguments
-
-type ExprDotGetAppDotGetAppParenLambdaNode(range) =
-    inherit NodeBase(range)
-
-    override this.Children = failwith "todo"
 
 type ExprDotGetAppParenNode(range) =
     inherit NodeBase(range)
@@ -1276,10 +1278,26 @@ type ExprAppNode(range) =
     member x.FunctionExpr: Expr = failwith ""
     member x.Arguments: Expr list = failwith ""
 
-type ExprTypeAppNode(range) =
+type ExprTypeAppNode
+    (
+        identifierExpr: Expr,
+        lessThan: SingleTextNode,
+        typeParameters: Type list,
+        greaterThan: SingleTextNode,
+        range
+    ) =
     inherit NodeBase(range)
 
-    override this.Children = failwith "todo"
+    override this.Children =
+        [| yield Expr.Node identifierExpr
+           yield lessThan
+           yield! List.map Type.Node typeParameters
+           yield greaterThan |]
+
+    member x.Identifier = identifierExpr
+    member x.LessThan = lessThan
+    member x.TypeParameters = typeParameters
+    member x.GreaterThan = greaterThan
 
 type ExprTryWithSingleClauseNode
     (
