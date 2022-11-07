@@ -1303,3 +1303,18 @@ let ``triple zero`` () =
         """
 [ 0. .. 0. .. 0. ]
 """
+
+[<Test>]
+let ``AppDotGetTypeApp`` () =
+    formatSourceString
+        false
+        """
+Result<int, string>.Ok 42
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+Result<int, string>.Ok 42
+"""
