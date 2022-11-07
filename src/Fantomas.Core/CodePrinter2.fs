@@ -782,7 +782,13 @@ let genExpr (e: Expr) =
         +> sepOpenLFixed
         +> expressionFitsOnRestOfLine genIndexExpr (atCurrentColumnIndent genIndexExpr)
         +> sepCloseLFixed
-    | Expr.AppDotGetTypeApp _ -> failwith "Not Implemented"
+
+    // Result<int, string>.Ok 42
+    | Expr.AppDotGetTypeApp node ->
+        genExpr node.Identifier
+        +> genGenericTypeParameters node.LessThan node.TypeParameters node.GreaterThan
+        +> genIdentListNodeWithDot node.Property
+        +> sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth (col sepSpace node.Arguments genExpr)
     | Expr.DotGetAppDotGetAppParenLambda _ -> failwith "Not Implemented"
     | Expr.DotGetAppParen _ -> failwith "Not Implemented"
     | Expr.DotGetAppWithParenLambda _ -> failwith "Not Implemented"
@@ -1553,6 +1559,17 @@ let genKeepIdent (startNode: Node) (e: Expr) ctx =
     else
         indent ctx
 
+let genGenericTypeParameters lt ts gt =
+    genSingleTextNode lt
+    +> coli sepComma ts (fun idx t ->
+        let leadingSpace =
+            match t with
+            | Type.Var n when idx = 0 && n.Text.StartsWith("^") -> sepSpace
+            | _ -> sepNone
+
+        leadingSpace +> genType t)
+    +> indentIfNeeded sepNone
+    +> genSingleTextNode gt
 // end expressions
 
 let genPatLeftMiddleRight (node: PatLeftMiddleRight) =
