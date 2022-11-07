@@ -456,6 +456,14 @@ let (|App|_|) e =
     let head, xs = visit e id
     if xs.Count = 0 then None else Some(head, Seq.toList xs)
 
+let (|DotGetAppParenExpr|_|) e =
+    match e with
+    | SynExpr.Paren(expr = SynExpr.Lambda _)
+    | SynExpr.Paren(expr = SynExpr.MatchLambda _) -> None
+    | SynExpr.Paren _
+    | SynExpr.Const(constant = SynConst.Unit _) -> Some e
+    | _ -> None
+
 let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
     let exprRange = e.Range
 
@@ -784,7 +792,10 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
             exprRange
         )
         |> Expr.DotGetAppDotGetAppParenLambda
-    // | Expr.DotGetAppDotGetAppParenLambda _ -> failwith "Not Implemented"
+
+    | SynExpr.DotGet(expr = SynExpr.App(funcExpr = e; argExpr = DotGetAppParenExpr px); longDotId = lids) ->
+        ExprDotGetAppParenNode(mkExpr creationAide e, mkExpr creationAide px, mkSynLongIdent lids, exprRange)
+        |> Expr.DotGetAppParen
     // | Expr.DotGetAppParen _ -> failwith "Not Implemented"
     // | Expr.DotGetAppWithParenLambda _ -> failwith "Not Implemented"
     // | Expr.DotGetApp _ -> failwith "Not Implemented"
