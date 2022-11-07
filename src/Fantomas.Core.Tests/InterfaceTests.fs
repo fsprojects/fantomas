@@ -1,6 +1,5 @@
 module Fantomas.Core.Tests.InterfaceTests
 
-open Microsoft.VisualStudio.TestPlatform.ObjectModel
 open NUnit.Framework
 open FsUnit
 open Fantomas.Core.Tests.TestHelper
