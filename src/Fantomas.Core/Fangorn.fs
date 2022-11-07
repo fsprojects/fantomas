@@ -733,7 +733,6 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
         ExprPrefixAppNode(stn operatorName ident.idRange, mkExpr creationAide e2, exprRange)
         |> Expr.PrefixApp
 
-    // | Expr.NewlineInfixApps _ -> failwith "Not Implemented"
     | SameInfixApps(head, xs) ->
         let rest = xs |> List.map (fun (operator, e) -> operator, mkExpr creationAide e)
 
@@ -756,19 +755,35 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
         |> Expr.IndexWithoutDot
 
     | App(SynExpr.DotGet(
-              expr = SynExpr.TypeApp(identifier, lessRange, ts, _, Some greaterRange, _, _); longDotId = property),
+              expr = SynExpr.TypeApp(identifier, lessRange, ts, _, Some greaterRange, _, mTypeApp); longDotId = property),
           args) ->
-        ExprAppDotGetTypeAppNode(
-            mkExpr creationAide identifier,
-            stn "<" lessRange,
-            List.map (mkType creationAide) ts,
-            stn ">" greaterRange,
+        let typeAppNode =
+            ExprTypeAppNode(
+                mkExpr creationAide identifier,
+                stn "<" lessRange,
+                List.map (mkType creationAide) ts,
+                stn ">" greaterRange,
+                mTypeApp
+            )
+
+        ExprAppDotGetTypeAppNode(typeAppNode, mkSynLongIdent property, List.map (mkExpr creationAide) args, exprRange)
+        |> Expr.AppDotGetTypeApp
+
+    | SynExpr.DotGet(
+        expr = App(SynExpr.DotGet(
+                       expr = SynExpr.App(funcExpr = e; argExpr = SynExpr.Paren(expr = SynExpr.Lambda _) as px)
+                       longDotId = appLids),
+                   es)
+        longDotId = property) ->
+        ExprDotGetAppDotGetAppParenLambdaNode(
+            mkExpr creationAide e,
+            mkExpr creationAide px,
+            mkSynLongIdent appLids,
+            List.map (mkExpr creationAide) es,
             mkSynLongIdent property,
-            List.map (mkExpr creationAide) args,
             exprRange
         )
-        |> Expr.AppDotGetTypeApp
-    // | Expr.AppDotGetTypeApp _ -> failwith "Not Implemented"
+        |> Expr.DotGetAppDotGetAppParenLambda
     // | Expr.DotGetAppDotGetAppParenLambda _ -> failwith "Not Implemented"
     // | Expr.DotGetAppParen _ -> failwith "Not Implemented"
     // | Expr.DotGetAppWithParenLambda _ -> failwith "Not Implemented"
@@ -829,7 +844,15 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
         |> Expr.EndsWithSingleListApp
 
     // | Expr.App _ -> failwith "Not Implemented"
-    // | Expr.TypeApp _ -> failwith "Not Implemented"
+    | SynExpr.TypeApp(identifier, lessRange, ts, _, Some greaterRange, _, _) ->
+        ExprTypeAppNode(
+            mkExpr creationAide identifier,
+            stn "<" lessRange,
+            List.map (mkType creationAide) ts,
+            stn ">" greaterRange,
+            exprRange
+        )
+        |> Expr.TypeApp
     | SynExpr.TryWith(e, [ SynMatchClause(pat = pat) as c ], _, _, _, trivia) ->
         match pat with
         | SynPat.Or _
