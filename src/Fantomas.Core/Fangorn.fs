@@ -444,6 +444,18 @@ let (|ConstNumberExpr|_|) =
     | SynExpr.Const(SynConst.Int64 v, m) as e -> Some(string v, m)
     | _ -> None
 
+let (|App|_|) e =
+    let rec visit expr continuation =
+        match expr with
+        | SynExpr.App(funcExpr = funcExpr; argExpr = argExpr) ->
+            visit funcExpr (fun (head, xs: Queue<SynExpr>) ->
+                xs.Enqueue(argExpr)
+                continuation (head, xs))
+        | e -> continuation (e, Queue())
+
+    let head, xs = visit e id
+    if xs.Count = 0 then None else Some(head, Seq.toList xs)
+
 let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
     let exprRange = e.Range
 
@@ -743,6 +755,19 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
         ExprIndexWithoutDotNode(mkExpr creationAide identifierExpr, mkExpr creationAide indexExpr, exprRange)
         |> Expr.IndexWithoutDot
 
+    | App(SynExpr.DotGet(
+              expr = SynExpr.TypeApp(identifier, lessRange, ts, _, Some greaterRange, _, _); longDotId = property),
+          args) ->
+        ExprAppDotGetTypeAppNode(
+            mkExpr creationAide identifier,
+            stn "<" lessRange,
+            List.map (mkType creationAide) ts,
+            stn ">" greaterRange,
+            mkSynLongIdent property,
+            List.map (mkExpr creationAide) args,
+            exprRange
+        )
+        |> Expr.AppDotGetTypeApp
     // | Expr.AppDotGetTypeApp _ -> failwith "Not Implemented"
     // | Expr.DotGetAppDotGetAppParenLambda _ -> failwith "Not Implemented"
     // | Expr.DotGetAppParen _ -> failwith "Not Implemented"
