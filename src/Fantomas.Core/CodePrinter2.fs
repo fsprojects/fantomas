@@ -825,7 +825,38 @@ let genExpr (e: Expr) =
             +> unindent
 
         fun ctx -> isShortExpression ctx.Config.MaxDotGetExpressionWidth short long ctx
-    | Expr.DotGetAppParen _ -> failwith "Not Implemented"
+
+    // Foo().Bar
+    | Expr.DotGetAppParen node ->
+        let short =
+            genExpr node.Function
+            +> genExpr node.ParenArg
+            +> genIdentListNodeWithDot node.Property
+
+        let long =
+            let functionName argFn =
+                match node.Function with
+                | Expr.OptVar identifierNode when List.moreThanOne identifierNode.Identifier.Content ->
+                    genFunctionNameWithMultilineLids argFn identifierNode.Identifier identifierNode
+                | Expr.TypeApp typedAppNode ->
+                    match typedAppNode.Identifier with
+                    | Expr.OptVar identifierNode when List.moreThanOne identifierNode.Identifier.Content ->
+                        genFunctionNameWithMultilineLids
+                            (genGenericTypeParameters typedAppNode +> argFn)
+                            identifierNode.Identifier
+                            typedAppNode
+                    | _ -> genExpr node.Function
+                | Expr.DotGetAppDotGetAppParenLambda _ ->
+                    leadingExpressionIsMultiline (genExpr node.Function) (fun isMultiline ->
+                        if isMultiline then indent +> argFn +> unindent else argFn)
+                | _ -> genExpr node.Function +> argFn
+
+            let arguments = genMultilineFunctionApplicationArguments node.ParenArg
+
+            functionName arguments
+            +> indentSepNlnUnindent (genIdentListNodeWithDotMultiline node.Property)
+
+        fun ctx -> isShortExpression ctx.Config.MaxDotGetExpressionWidth short long ctx
     | Expr.DotGetAppWithParenLambda _ -> failwith "Not Implemented"
     | Expr.DotGetApp _ -> failwith "Not Implemented"
     | Expr.AppLongIdentAndSingleParenArg _ -> failwith "Not Implemented"
