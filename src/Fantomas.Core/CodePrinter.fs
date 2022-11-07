@@ -923,7 +923,7 @@ and genExpr synExpr ctx =
                 isSmallExpression size smallExpression longExpression ctx
 
         | ObjExpr(t, eio, withKeyword, bd, members, ims) ->
-            if List.isEmpty bd && List.isEmpty members then
+            if List.isEmpty bd && List.isEmpty members && List.isEmpty ims then
                 // Check the role of the second part of eio
                 let param = opt sepNone (Option.map fst eio) genExpr
 

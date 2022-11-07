@@ -4,6 +4,7 @@
 
 ### Fixed
 * Comment is removed when using array index access syntax, without a leading dot. [#2611](https://github.com/fsprojects/fantomas/issues/2611)
+* Interface in object expression is not printed. [#2604](https://github.com/fsprojects/fantomas/issues/2604)
 
 ## [5.1.0] - 2022-11-04
 
