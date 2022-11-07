@@ -1225,10 +1225,10 @@ and genExpr synExpr ctx =
             let genIndexExpr = genExpr indexExpr
 
             genExpr identifierExpr
-            +> sepOpenLFixed
-            +> expressionFitsOnRestOfLine genIndexExpr (atCurrentColumnIndent genIndexExpr)
-            +> sepCloseLFixed
-            |> genTriviaFor SynExpr_ArrayOrList arrayOrListRange
+            +> (sepOpenLFixed
+                +> expressionFitsOnRestOfLine genIndexExpr (atCurrentColumnIndent genIndexExpr)
+                +> sepCloseLFixed
+                |> genTriviaFor SynExpr_ArrayOrList arrayOrListRange)
 
         // Result<int, string>.Ok 42
         | App(DotGet(TypeApp(e, lt, ts, gt), sli), es) ->
