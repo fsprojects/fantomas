@@ -4,6 +4,8 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <IsPackable>true</IsPackable>
     <Tailcalls>true</Tailcalls>
+    <ProduceReferenceAssembly>true</ProduceReferenceAssembly>
+    <OtherFlags>--test:ParallelCheckingWithSignatureFilesOn</OtherFlags>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="AssemblyInfo.fs" />
