@@ -484,3 +484,26 @@ let x =
 
     | None -> failwith "Package registration url not found"
 """
+
+[<Test>]
+let ``clause indentation when combining clauses with OR and returning a short list, 2586`` () =
+    formatSourceString
+        false
+        """
+let y x =
+    match x with
+        | Case1
+        | Case2 -> [ "X" ]
+        | Case3 -> [ "Y" ]
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let y x =
+    match x with
+    | Case1
+    | Case2 -> [ "X" ]
+    | Case3 -> [ "Y" ]
+"""

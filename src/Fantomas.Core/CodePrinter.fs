@@ -3780,7 +3780,9 @@ and genClause
 
     (genBar
      +> (fun ctx ->
-         if hasMultipleClausesWhereOneHasStroustrup then
+         let isMultiLineExpr = e.Range.StartLine <> e.Range.EndLine
+
+         if hasMultipleClausesWhereOneHasStroustrup && isMultiLineExpr then
              // avoid edge case
              (*
                 match x with
