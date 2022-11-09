@@ -1,5 +1,10 @@
 # Changelog
 
+## [5.1.2] - 2022-11-09
+
+### Changed
+* Update to newer Fantomas.Client. [#2617](https://github.com/fsprojects/fantomas/issues/2617)
+
 ## [5.1.1] - 2022-11-07
 
 ### Fixed
