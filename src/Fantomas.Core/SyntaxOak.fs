@@ -1300,12 +1300,14 @@ type ExprEndsWithSingleListAppNode(functionExpr: Expr, sequentialExprs: Expr lis
     member x.SequentialExpr = sequentialExprs
     member x.ArrayOrList = arrayOrList
 
-type ExprAppNode(range) =
+type ExprAppNode(functionExpr: Expr, arguments: Expr list, range) =
     inherit NodeBase(range)
 
-    override this.Children = failwith "todo"
-    member x.FunctionExpr: Expr = failwith ""
-    member x.Arguments: Expr list = failwith ""
+    override this.Children =
+        [| yield Expr.Node functionExpr; yield! List.map Expr.Node arguments |]
+
+    member x.FunctionExpr: Expr = functionExpr
+    member x.Arguments: Expr list = arguments
 
 type ExprTypeAppNode
     (
