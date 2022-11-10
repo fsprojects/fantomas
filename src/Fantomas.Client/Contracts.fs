@@ -46,7 +46,7 @@ type FormatSelectionRequest =
     member this.IsSignatureFile = this.FilePath.EndsWith(".fsi")
 
 and FormatSelectionRange =
-    struct
+    class
         val StartLine: int
         val StartColumn: int
         val EndLine: int

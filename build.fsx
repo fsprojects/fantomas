@@ -25,7 +25,7 @@ let benchmarkAssembly =
     </> "Fantomas.Benchmarks"
     </> "bin"
     </> "Release"
-    </> "net6.0"
+    </> "net7.0"
     </> "Fantomas.Benchmarks.dll"
 
 let semanticVersioning =

@@ -2,6 +2,11 @@
 
 This is the changelog for the Fantomas.Client package specifically. It's distinct from that of the overall libraries and command-line tool.
 
+## 0.7.0 - 2022-11-09
+
+### Changed
+* Changed `FormatSelectionRange` to class instead of struct.
+
 ## 0.6.0 - 2022-06-27
 
 ### Changed

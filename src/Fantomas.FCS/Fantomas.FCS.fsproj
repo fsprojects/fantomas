@@ -9,6 +9,8 @@
     <FsLexOutputFolder>generated\$(TargetFramework)\</FsLexOutputFolder>
     <Tailcalls>true</Tailcalls>
     <IsPackable>true</IsPackable>
+    <ProduceReferenceAssembly>true</ProduceReferenceAssembly>
+    <OtherFlags>--test:ParallelCheckingWithSignatureFilesOn</OtherFlags>
   </PropertyGroup>
 
   <ItemGroup>
