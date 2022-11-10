@@ -139,6 +139,7 @@ pipeline "FormatChanged" {
 }
 
 pipeline "PushClient" {
+    workingDir __SOURCE_DIRECTORY__
     stage "Push" {
         run (fun _ ->
             async {
@@ -154,6 +155,7 @@ pipeline "PushClient" {
                     )
             })
     }
+    runIfOnlySpecified true
 }
 
 pipeline "Docs" {
