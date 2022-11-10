@@ -1378,3 +1378,22 @@ Foo().Bar
         """
 Foo().Bar
 """
+
+[<Test>]
+let ``app tests`` () =
+    formatSourceString
+        false
+        """
+fn a b
+UpperFn(x)
+lowerFn(y)
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+fn a b
+UpperFn(x)
+lowerFn (y)
+"""
