@@ -354,14 +354,8 @@ let inline private getLambdaBodyExpr expr =
     let skippedLambdas = skipGeneratedLambdas expr
     skipGeneratedMatch skippedLambdas
 
-let mkLambda creationAide pats body (StartRange 3 (mFun, m)) (trivia: SynExprLambdaTrivia) : ExprLambdaNode =
-    ExprLambdaNode(
-        stn "fun" mFun,
-        List.map (mkPat creationAide) pats,
-        stn "->" trivia.ArrowRange.Value,
-        mkExpr creationAide body,
-        m
-    )
+let mkLambda creationAide pats mArrow body (StartRange 3 (mFun, m)) : ExprLambdaNode =
+    ExprLambdaNode(stn "fun" mFun, List.map (mkPat creationAide) pats, stn "->" mArrow, mkExpr creationAide body, m)
 
 let mkSynMatchClause creationAide (SynMatchClause(p, eo, e, range, _, trivia)) : MatchClauseNode =
     let fullRange =
@@ -463,6 +457,23 @@ let (|DotGetAppParenExpr|_|) e =
     | SynExpr.Paren _
     | SynExpr.Const(constant = SynConst.Unit _) -> Some e
     | _ -> None
+
+let (|ParenLambda|_|) e =
+    match e with
+    | SynExpr.Paren(SynExpr.Lambda(_, _, _, _, Some(pats, body), mLambda, { ArrowRange = Some mArrow }),
+                    lpr,
+                    Some rpr,
+                    mParen) -> Some(lpr, pats, mArrow, body, mLambda, rpr)
+    | _ -> None
+
+let (|ParenMatchLambda|_|) e =
+    match e with
+    | SynExpr.Paren(SynExpr.MatchLambda(_, mFunction, clauses, _, mMatchLambda), lpr, Some rpr, mParen) ->
+        Some(lpr, mFunction, clauses, mMatchLambda, rpr)
+    | _ -> None
+
+let mkMatchLambda creationAide mFunction cs m =
+    ExprMatchLambdaNode(stn "function" mFunction, List.map (mkSynMatchClause creationAide) cs, m)
 
 let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
     let exprRange = e.Range
@@ -677,20 +688,19 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
         ExprJoinInNode(mkExpr creationAide e1, stn "in" mIn, mkExpr creationAide e2, exprRange)
         |> Expr.JoinIn
 
-    | SynExpr.Paren(SynExpr.Lambda(_, _, _, _, Some(pats, body), range, trivia), lpr, Some rpr, pr) ->
+    | ParenLambda(lpr, pats, mArrow, body, rpr, mLambda) ->
         let body = getLambdaBodyExpr body
-        let lambdaNode = mkLambda creationAide pats body range trivia
+        let lambdaNode = mkLambda creationAide pats mArrow body mLambda
 
         ExprParenLambdaNode(stn "(" lpr, lambdaNode, stn ")" rpr, exprRange)
         |> Expr.ParenLambda
 
-    | SynExpr.Lambda(_, _, _, _, Some(pats, body), range, trivia) ->
+    | SynExpr.Lambda(_, _, _, _, Some(pats, body), _, { ArrowRange = Some mArrow }) ->
         let body = getLambdaBodyExpr body
-        mkLambda creationAide pats body range trivia |> Expr.Lambda
+        mkLambda creationAide pats mArrow body exprRange |> Expr.Lambda
 
-    | SynExpr.MatchLambda(_, mFun, cs, _, _) ->
-        ExprMatchLambdaNode(stn "function" mFun, List.map (mkSynMatchClause creationAide) cs, exprRange)
-        |> Expr.MatchLambda
+    | SynExpr.MatchLambda(_, mFunction, cs, _, _) ->
+        mkMatchLambda creationAide mFunction cs exprRange |> Expr.MatchLambda
 
     | SynExpr.Match(_, e, cs, _, trivia) ->
         ExprMatchNode(
@@ -802,7 +812,42 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
     // | Expr.AppLongIdentAndSingleParenArg _ -> failwith "Not Implemented"
     // | Expr.AppSingleParenArg _ -> failwith "Not Implemented"
     // | Expr.DotGetAppWithLambda _ -> failwith "Not Implemented"
-    // | Expr.AppWithLambda _ -> failwith "Not Implemented"
+    | SynExpr.App(funcExpr = App(fe, args); argExpr = ParenLambda(lpr, pats, mArrow, body, mLambda, rpr)) ->
+        let lambdaNode = mkLambda creationAide pats mArrow body mLambda
+
+        ExprAppWithLambdaNode(
+            mkExpr creationAide fe,
+            List.map (mkExpr creationAide) args,
+            stn "(" lpr,
+            Choice1Of2 lambdaNode,
+            stn ")" rpr,
+            exprRange
+        )
+        |> Expr.AppWithLambda
+    | SynExpr.App(funcExpr = fe; argExpr = ParenLambda(lpr, pats, mArrow, body, mLambda, rpr)) ->
+        let lambdaNode = mkLambda creationAide pats mArrow body mLambda
+
+        ExprAppWithLambdaNode(mkExpr creationAide fe, [], stn "(" lpr, Choice1Of2 lambdaNode, stn ")" rpr, exprRange)
+        |> Expr.AppWithLambda
+
+    | SynExpr.App(funcExpr = App(fe, args); argExpr = ParenMatchLambda(lpr, mFunction, clauses, mMatchLambda, rpr)) ->
+        let lambdaNode = mkMatchLambda creationAide mFunction clauses mMatchLambda
+
+        ExprAppWithLambdaNode(
+            mkExpr creationAide fe,
+            List.map (mkExpr creationAide) args,
+            stn "(" lpr,
+            Choice2Of2 lambdaNode,
+            stn ")" rpr,
+            exprRange
+        )
+        |> Expr.AppWithLambda
+
+    | SynExpr.App(funcExpr = fe; argExpr = ParenMatchLambda(lpr, mFunction, clauses, mMatchLambda, rpr)) ->
+        let lambdaNode = mkMatchLambda creationAide mFunction clauses mMatchLambda
+
+        ExprAppWithLambdaNode(mkExpr creationAide fe, [], stn "(" lpr, Choice2Of2 lambdaNode, stn ")" rpr, exprRange)
+        |> Expr.AppWithLambda
     | SynExpr.App(ExprAtomicFlag.NonAtomic,
                   false,
                   SynExpr.App(ExprAtomicFlag.Atomic,
