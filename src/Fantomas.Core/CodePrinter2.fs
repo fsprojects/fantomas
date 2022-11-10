@@ -29,6 +29,27 @@ let rec (|UppercaseType|LowercaseType|) (t: Type) : Choice<unit, unit> =
     | Type.AppPrefix node -> (|UppercaseType|LowercaseType|) node.Identifier
     | _ -> failwithf $"Cannot determine if synType %A{t} is uppercase or lowercase"
 
+let rec (|UppercaseExpr|LowercaseExpr|) (expr: Expr) =
+    let upperOrLower (v: string) =
+        let isUpper = Seq.tryHead v |> Option.map Char.IsUpper |> Option.defaultValue false
+        if isUpper then UppercaseExpr else LowercaseExpr
+
+    let lastFragmentInList (identList: IdentListNode) =
+        match List.tryLast identList.Content with
+        | None
+        | Some(IdentifierOrDot.KnownDot _ | IdentifierOrDot.UnknownDot) -> LowercaseExpr
+        | Some(IdentifierOrDot.Ident node) -> upperOrLower node.Text
+
+    match expr with
+    | Expr.Ident ident -> upperOrLower ident.Text
+    | Expr.OptVar node -> lastFragmentInList node.Identifier
+    | Expr.DotGet node -> lastFragmentInList node.Identifier
+    | Expr.DotIndexedGet node -> (|UppercaseExpr|LowercaseExpr|) node.ObjectExpr
+    | Expr.TypeApp node -> (|UppercaseExpr|LowercaseExpr|) node.Identifier
+    | Expr.Dynamic node -> (|UppercaseExpr|LowercaseExpr|) node.FuncExpr
+    | Expr.DotGetAppParen node -> (|UppercaseExpr|LowercaseExpr|) node.Function
+    | _ -> failwithf "cannot determine if Expr %A is uppercase or lowercase" expr
+
 let genTrivia (trivia: TriviaNode) (ctx: Context) =
     let currentLastLine = ctx.WriterModel.Lines |> List.tryHead
 
@@ -862,7 +883,21 @@ let genExpr (e: Expr) =
     | Expr.AppLongIdentAndSingleParenArg _ -> failwith "Not Implemented"
     | Expr.AppSingleParenArg _ -> failwith "Not Implemented"
     | Expr.DotGetAppWithLambda _ -> failwith "Not Implemented"
-    | Expr.AppWithLambda _ -> failwith "Not Implemented"
+    | Expr.AppWithLambda node ->
+        let sepSpaceAfterFunctionName =
+            let sepSpaceBasedOnSetting e =
+                match e with
+                | Expr.Paren _
+                | Expr.ParenLambda _ -> sepSpace
+                | UppercaseExpr -> (fun ctx -> onlyIf ctx.Config.SpaceBeforeUppercaseInvocation sepSpace ctx)
+                | LowercaseExpr -> (fun ctx -> onlyIf ctx.Config.SpaceBeforeLowercaseInvocation sepSpace ctx)
+
+            match node.Arguments with
+            | [] -> sepSpaceBasedOnSetting node.FunctionName
+            | _ -> sepSpace
+
+        genAppWithLambda sepSpaceAfterFunctionName node
+
     | Expr.NestedIndexWithoutDot node ->
         genExpr node.Identifier
         +> sepOpenLFixed
@@ -1656,6 +1691,149 @@ let genFunctionNameWithMultilineLids (trailing: Context -> Context) (longIdent: 
         +> unindent
     | _ -> sepNone
     |> genNode parentNode
+
+let genAppWithLambda sep (node: ExprAppWithLambdaNode) =
+    let short =
+        genExpr node.FunctionName
+        +> sep
+        +> col sepSpace node.Arguments genExpr
+        +> onlyIf (List.isNotEmpty node.Arguments) sepSpace
+        +> (genSingleTextNode node.OpeningParen
+            +> (match node.Lambda with
+                | Choice1Of2 lambdaNode -> genLambda lambdaNode |> genNode lambdaNode
+                | Choice2Of2 matchLambdaNode ->
+                    genSingleTextNode matchLambdaNode.Function
+                    +> indentSepNlnUnindent (genClauses matchLambdaNode.Clauses)
+                    |> genNode matchLambdaNode)
+            +> sepNlnWhenWriteBeforeNewlineNotEmpty
+            +> genSingleTextNode node.ClosingParen)
+
+    let long (ctx: Context) : Context =
+        if ctx.Config.MultiLineLambdaClosingNewline then
+            let genArguments =
+                match node.Arguments with
+                | [] ->
+                    match node.Lambda with
+                    | Choice1Of2 lambdaNode ->
+                        genSingleTextNode node.OpeningParen
+                        +> (genLambda lambdaNode |> genNode lambdaNode)
+                        +> sepNln
+                        +> genSingleTextNode node.ClosingParen
+                    | Choice2Of2 matchLambdaNode ->
+                        genSingleTextNode node.OpeningParen
+                        +> indentSepNlnUnindent (
+                            genSingleTextNode matchLambdaNode.Function
+                            +> sepNln
+                            +> genClauses matchLambdaNode.Clauses
+                            |> genNode matchLambdaNode
+                        )
+                        +> sepNln
+                        +> genSingleTextNode node.ClosingParen
+                | es ->
+                    col sepNln es genExpr
+                    +> sepNln
+                    +> (match node.Lambda with
+                        | Choice1Of2 lambdaNode ->
+                            leadingExpressionIsMultiline
+                                (genSingleTextNode node.OpeningParen
+                                 +> (genLambda lambdaNode |> genNode lambdaNode))
+                                (fun isMultiline -> onlyIf isMultiline sepNln +> genSingleTextNode node.ClosingParen)
+                        | Choice2Of2 matchLambdaNode ->
+                            (genSingleTextNode node.OpeningParen
+                             +> (genSingleTextNode matchLambdaNode.Function
+                                 +> sepNln
+                                 +> genClauses matchLambdaNode.Clauses
+                                 |> genNode matchLambdaNode)
+                             +> sepNln
+                             +> genSingleTextNode node.ClosingParen))
+                    +> unindent
+
+            (genExpr node.FunctionName
+             +> ifElse (List.isEmpty node.Arguments) sep (indent +> sepNln)
+             +> genArguments)
+                ctx
+        else
+            match node.Lambda with
+            | Choice1Of2 lambdaNode ->
+                let singleLineTestExpr =
+                    genExpr node.FunctionName
+                    +> sep
+                    +> col sepSpace node.Arguments genExpr
+                    +> sep
+                    +> genSingleTextNode node.OpeningParen
+                    +> enterNode lambdaNode
+                    +> genSingleTextNode lambdaNode.Fun
+                    +> col sepSpace lambdaNode.Parameters genPat
+                    +> sepSpace
+                    +> genSingleTextNode lambdaNode.Arrow
+
+                let singleLine =
+                    genExpr node.FunctionName
+                    +> sep
+                    +> col sepSpace node.Arguments genExpr
+                    +> sep
+                    +> genSingleTextNode node.OpeningParen
+                    +> (genLambda lambdaNode |> genNode lambdaNode)
+                    +> sepNlnWhenWriteBeforeNewlineNotEmpty
+                    +> genSingleTextNode node.ClosingParen
+
+                let multiLine =
+                    genExpr node.FunctionName
+                    +> indentSepNlnUnindent (
+                        col sepNln node.Arguments genExpr
+                        +> onlyIfNot (List.isEmpty node.Arguments) sepNln
+                        +> genSingleTextNode node.OpeningParen
+                        +> (genLambda lambdaNode |> genNode lambdaNode)
+                        +> genSingleTextNode node.ClosingParen
+                    )
+
+                if futureNlnCheck singleLineTestExpr ctx then
+                    multiLine ctx
+                else
+                    singleLine ctx
+
+            | Choice2Of2 matchLambdaNode ->
+                let singleLineTestExpr =
+                    genExpr node.FunctionName
+                    +> sep
+                    +> col sepSpace node.Arguments genExpr
+                    +> genSingleTextNode node.OpeningParen
+                    +> enterNode matchLambdaNode
+                    +> genSingleTextNode matchLambdaNode.Function
+
+                let singleLine =
+                    genExpr node.FunctionName
+                    +> sep
+                    +> col sepSpace node.Arguments genExpr
+                    +> sepSpace
+                    +> genSingleTextNode node.OpeningParen
+                    +> (genSingleTextNode matchLambdaNode.Function
+                        +> indentSepNlnUnindent (genClauses matchLambdaNode.Clauses)
+                        |> genNode matchLambdaNode)
+                    +> sepNlnWhenWriteBeforeNewlineNotEmpty
+                    +> genSingleTextNode node.ClosingParen
+
+                let multiLine =
+                    genExpr node.FunctionName
+                    +> indentSepNlnUnindent (
+                        col sepNln node.Arguments genExpr
+                        +> sepNln
+                        +> genSingleTextNode node.OpeningParen
+                        +> atCurrentColumn (
+                            genSingleTextNode matchLambdaNode.Function
+                            +> sepNln
+                            +> genClauses matchLambdaNode.Clauses
+                            |> genNode matchLambdaNode
+                        )
+                        +> genSingleTextNode node.ClosingParen
+                    )
+
+                if futureNlnCheck singleLineTestExpr ctx then
+                    multiLine ctx
+                else
+                    singleLine ctx
+
+    expressionFitsOnRestOfLine short long
 
 // end expressions
 

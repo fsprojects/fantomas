@@ -1226,10 +1226,34 @@ type ExprDotGetAppWithLambdaNode(range) =
 
     override this.Children = failwith "todo"
 
-type ExprAppWithLambdaNode(range) =
+type ExprAppWithLambdaNode
+    (
+        functionName: Expr,
+        arguments: Expr list,
+        openingParen: SingleTextNode,
+        lambda: Choice<ExprLambdaNode, ExprMatchLambdaNode>,
+        closingParen: SingleTextNode,
+        range
+    ) =
     inherit NodeBase(range)
 
-    override this.Children = failwith "todo"
+    override this.Children =
+        let lambdaNode =
+            match lambda with
+            | Choice1Of2 n -> n :> Node
+            | Choice2Of2 n -> n
+
+        [| yield Expr.Node functionName
+           yield! List.map Expr.Node arguments
+           yield openingParen
+           yield lambdaNode
+           yield closingParen |]
+
+    member x.FunctionName = functionName
+    member x.Arguments = arguments
+    member x.OpeningParen = openingParen
+    member x.Lambda = lambda
+    member x.ClosingParen = closingParen
 
 type ExprNestedIndexWithoutDotNode(identifierExpr: Expr, indexExpr: Expr, argumentExpr: Expr, range) =
     inherit NodeBase(range)
