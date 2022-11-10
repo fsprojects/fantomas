@@ -355,6 +355,7 @@ let inline private getLambdaBodyExpr expr =
     skipGeneratedMatch skippedLambdas
 
 let mkLambda creationAide pats mArrow body (StartRange 3 (mFun, m)) : ExprLambdaNode =
+    let body = getLambdaBodyExpr body
     ExprLambdaNode(stn "fun" mFun, List.map (mkPat creationAide) pats, stn "->" mArrow, mkExpr creationAide body, m)
 
 let mkSynMatchClause creationAide (SynMatchClause(p, eo, e, range, _, trivia)) : MatchClauseNode =
@@ -688,15 +689,13 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
         ExprJoinInNode(mkExpr creationAide e1, stn "in" mIn, mkExpr creationAide e2, exprRange)
         |> Expr.JoinIn
 
-    | ParenLambda(lpr, pats, mArrow, body, rpr, mLambda) ->
-        let body = getLambdaBodyExpr body
+    | ParenLambda(lpr, pats, mArrow, body, mLambda, rpr) ->
         let lambdaNode = mkLambda creationAide pats mArrow body mLambda
 
         ExprParenLambdaNode(stn "(" lpr, lambdaNode, stn ")" rpr, exprRange)
         |> Expr.ParenLambda
 
     | SynExpr.Lambda(_, _, _, _, Some(pats, body), _, { ArrowRange = Some mArrow }) ->
-        let body = getLambdaBodyExpr body
         mkLambda creationAide pats mArrow body exprRange |> Expr.Lambda
 
     | SynExpr.MatchLambda(_, mFunction, cs, _, _) ->
@@ -900,6 +899,10 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
         |> Expr.EndsWithSingleListApp
 
     // | Expr.App _ -> failwith "Not Implemented"
+    | App(fe, args) ->
+        ExprAppNode(mkExpr creationAide fe, List.map (mkExpr creationAide) args, exprRange)
+        |> Expr.App
+
     | SynExpr.TypeApp(identifier, lessRange, ts, _, Some greaterRange, _, _) ->
         ExprTypeAppNode(
             mkExpr creationAide identifier,

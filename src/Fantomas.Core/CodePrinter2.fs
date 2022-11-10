@@ -50,6 +50,14 @@ let rec (|UppercaseExpr|LowercaseExpr|) (expr: Expr) =
     | Expr.DotGetAppParen node -> (|UppercaseExpr|LowercaseExpr|) node.Function
     | _ -> failwithf "cannot determine if Expr %A is uppercase or lowercase" expr
 
+let (|ParenExpr|_|) (e: Expr) =
+    match e with
+    | Expr.Paren _
+    | Expr.ParenLambda _
+    | Expr.ParenFunctionNameWithStar _
+    | Expr.Constant(Constant.Unit _) -> Some e
+    | _ -> None
+
 let genTrivia (trivia: TriviaNode) (ctx: Context) =
     let currentLastLine = ctx.WriterModel.Lines |> List.tryHead
 
@@ -768,7 +776,7 @@ let genExpr (e: Expr) =
 
         let multilineExpr =
             match node.SubsequentExpressions with
-            | [] -> genExpr e
+            | [] -> genExpr node.LeadingExpr
             | (operator, e2) :: es ->
                 let m =
                     FSharp.Compiler.Text.Range.unionRanges (Expr.Node node.LeadingExpr).Range (Expr.Node e2).Range
@@ -980,7 +988,29 @@ let genExpr (e: Expr) =
                 long ctx
             else
                 short ctx
-    | Expr.App _ -> failwith "Not Implemented"
+    | Expr.App node ->
+        let shortExpression =
+            let sep ctx =
+                match node.Arguments with
+                | [] -> ctx
+                | [ singleArg ] ->
+                    match node.FunctionExpr, singleArg with
+                    | ParenExpr _, _ -> sepSpace ctx
+                    | UppercaseExpr, ParenExpr _ -> onlyIf ctx.Config.SpaceBeforeUppercaseInvocation sepSpace ctx
+                    | LowercaseExpr, ParenExpr _ -> onlyIf ctx.Config.SpaceBeforeLowercaseInvocation sepSpace ctx
+                    | Expr.Ident _, Expr.Ident _ -> sepSpace ctx
+                    | _ -> sepSpace ctx
+                | _ -> sepSpace ctx
+
+            atCurrentColumn (genExpr node.FunctionExpr +> sep +> col sepSpace node.Arguments genExpr)
+
+        let longExpression =
+            atCurrentColumn (
+                genExpr node.FunctionExpr
+                +> indentSepNlnUnindent (col sepNln node.Arguments genExpr)
+            )
+
+        expressionFitsOnRestOfLine shortExpression longExpression
     | Expr.TypeApp node -> genExpr node.Identifier +> genGenericTypeParameters node
     | Expr.TryWithSingleClause node ->
         let genClause =
@@ -1015,7 +1045,7 @@ let genExpr (e: Expr) =
             genSingleTextNode node.Try
             +> indent
             +> sepNln
-            +> genExpr e
+            +> genExpr node.TryExpr
             +> unindent
             +> sepNln
             +> genSingleTextNode node.With
