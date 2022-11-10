@@ -2739,12 +2739,17 @@ let colWithNlnWhenNodeIsMultiline<'n when 'n :> Node>
     colWithNlnWhenMappedNodeIsMultiline<'n> withUseConfig (fun n -> n :> Node) f nodes
 
 let genModule (m: ModuleOrNamespaceNode) =
+    let newline =
+        match m.Declarations with
+        | [] -> sepNone
+        | h :: _ -> sepNln +> sepNlnUnlessContentBefore (ModuleDecl.Node h)
+
     onlyIf
         m.IsNamed
         (optSingle
             (fun (n: SingleTextNode) -> genSingleTextNode n +> sepSpace +> genIdentListNode m.Name)
-            m.LeadingKeyword
-         +> onlyIf (not m.Declarations.IsEmpty) (sepNln +> sepNln))
+            m.LeadingKeyword)
+    +> newline
     +> colWithNlnWhenMappedNodeIsMultiline false ModuleDecl.Node genModuleDecl m.Declarations
     |> genNode m
 
