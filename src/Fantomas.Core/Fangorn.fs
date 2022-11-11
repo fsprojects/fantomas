@@ -810,7 +810,24 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
     // | Expr.DotGetApp _ -> failwith "Not Implemented"
     // | Expr.AppLongIdentAndSingleParenArg _ -> failwith "Not Implemented"
     // | Expr.AppSingleParenArg _ -> failwith "Not Implemented"
-    // | Expr.DotGetAppWithLambda _ -> failwith "Not Implemented"
+    | SynExpr.DotGet(
+        expr = SynExpr.App(funcExpr = App(fe, args); argExpr = ParenLambda(lpr, pats, mArrow, body, mLambda, rpr))
+        longDotId = lid) ->
+        let lambdaNode = mkLambda creationAide pats mArrow body mLambda
+
+        let appWithLambdaNode =
+            ExprAppWithLambdaNode(
+                mkExpr creationAide fe,
+                List.map (mkExpr creationAide) args,
+                stn "(" lpr,
+                Choice1Of2 lambdaNode,
+                stn ")" rpr,
+                exprRange
+            )
+
+        ExprDotGetAppWithLambdaNode(appWithLambdaNode, mkSynLongIdent lid, exprRange)
+        |> Expr.DotGetAppWithLambda
+
     | SynExpr.App(funcExpr = App(fe, args); argExpr = ParenLambda(lpr, pats, mArrow, body, mLambda, rpr)) ->
         let lambdaNode = mkLambda creationAide pats mArrow body mLambda
 

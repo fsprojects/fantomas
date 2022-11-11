@@ -1235,10 +1235,12 @@ type ExprAppSingleParenArgNode(functionExpr: Expr, argExpr: Expr, range) =
     member x.FunctionExpr = functionExpr
     member x.ArgExpr = argExpr
 
-type ExprDotGetAppWithLambdaNode(range) =
+type ExprDotGetAppWithLambdaNode(appWithLambda: ExprAppWithLambdaNode, property: IdentListNode, range) =
     inherit NodeBase(range)
 
-    override this.Children = failwith "todo"
+    override this.Children = [| yield appWithLambda; yield property |]
+    member x.AppWithLambda = appWithLambda
+    member x.Property = property
 
 type ExprAppWithLambdaNode
     (
