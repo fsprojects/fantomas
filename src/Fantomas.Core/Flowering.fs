@@ -228,7 +228,101 @@ let addToTree (tree: Oak) (trivia: TriviaNode seq) =
             | CommentOnSingleLine _
             | Newline -> simpleTriviaToTriviaInstruction parentNode trivia
 
+let includeTrivia
+    (baseRange: range)
+    (comments: CommentTrivia list)
+    (conditionDirectives: ConditionalDirectiveTrivia list)
+    : range =
+    let ranges =
+        [ yield!
+              List.map
+                  (function
+                  | CommentTrivia.LineComment m
+                  | CommentTrivia.BlockComment m -> m)
+                  comments
+          yield!
+              List.map
+                  (function
+                  | ConditionalDirectiveTrivia.If(range = range)
+                  | ConditionalDirectiveTrivia.Else(range = range)
+                  | ConditionalDirectiveTrivia.EndIf(range = range) -> range)
+                  conditionDirectives ]
+
+    (baseRange, ranges)
+    ||> List.fold (fun acc triviaRange ->
+        if acc.StartLine < triviaRange.StartLine && acc.EndLine > triviaRange.EndLine then
+            acc
+        elif triviaRange.EndLine > acc.EndLine then
+            Range.unionRanges acc triviaRange
+        else
+            Range.unionRanges triviaRange acc)
+
+let mkSynModuleOrNamespaceFullRange (mn: SynModuleOrNamespace) =
+    match mn with
+    | SynModuleOrNamespace(kind = SynModuleOrNamespaceKind.AnonModule; decls = decls) ->
+        match List.tryHead decls, List.tryLast decls with
+        | None, None -> Range.Zero
+        | Some d, None
+        | None, Some d -> d.Range
+        | Some s, Some e -> Range.unionRanges s.Range e.Range
+    | _ -> mn.Range
+
+let mkSynModuleOrNamespaceSigFullRange (mn: SynModuleOrNamespaceSig) =
+    match mn with
+    | SynModuleOrNamespaceSig(kind = SynModuleOrNamespaceKind.AnonModule; decls = decls) ->
+        match List.tryHead decls, List.tryLast decls with
+        | None, None -> Range.Zero
+        | Some d, None
+        | None, Some d -> d.Range
+        | Some s, Some e -> Range.unionRanges s.Range e.Range
+
+    | _ -> mn.Range
+
+let mkFullTreeRange ast =
+    match ast with
+    | ParsedInput.ImplFile(ParsedImplFileInput(hashDirectives = directives; contents = modules; trivia = trivia)) ->
+        let startPos =
+            match directives with
+            | ParsedHashDirective(range = r) :: _ -> r
+            | [] ->
+                match modules with
+                | m :: _ -> mkSynModuleOrNamespaceFullRange m
+                | _ -> Range.Zero
+
+        let endPos =
+            match List.tryLast modules with
+            | None ->
+                match List.tryLast directives with
+                | None -> Range.Zero
+                | Some(ParsedHashDirective(range = r)) -> r
+            | Some lastModule -> mkSynModuleOrNamespaceFullRange lastModule
+
+        let astRange = Range.unionRanges startPos endPos
+        includeTrivia astRange trivia.CodeComments trivia.ConditionalDirectives
+
+    | ParsedInput.SigFile(ParsedSigFileInput(hashDirectives = directives; contents = modules; trivia = trivia)) ->
+        let startPos =
+            match directives with
+            | ParsedHashDirective(range = r) :: _ -> r
+            | [] ->
+                match modules with
+                | m :: _ -> mkSynModuleOrNamespaceSigFullRange m
+                | _ -> Range.Zero
+
+        let endPos =
+            match List.tryLast modules with
+            | None ->
+                match List.tryLast directives with
+                | None -> Range.Zero
+                | Some(ParsedHashDirective(range = r)) -> r
+            | Some lastModule -> mkSynModuleOrNamespaceSigFullRange lastModule
+
+        let astRange = Range.unionRanges startPos endPos
+        includeTrivia astRange trivia.CodeComments trivia.ConditionalDirectives
+
 let enrichTree (config: FormatConfig) (sourceText: ISourceText) (ast: ParsedInput) (tree: Oak) : Oak =
+    let fullTreeRange = mkFullTreeRange ast
+
     let _directives, codeComments =
         match ast with
         | ParsedInput.ImplFile(ParsedImplFileInput(
@@ -240,7 +334,7 @@ let enrichTree (config: FormatConfig) (sourceText: ISourceText) (ast: ParsedInpu
 
     let trivia =
         let newlines =
-            collectTriviaFromBlankLines config sourceText tree codeComments (tree :> Node).Range
+            collectTriviaFromBlankLines config sourceText tree codeComments fullTreeRange
 
         let comments =
             match ast with
