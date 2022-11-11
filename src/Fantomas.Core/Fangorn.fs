@@ -476,6 +476,16 @@ let (|ParenMatchLambda|_|) e =
 let mkMatchLambda creationAide mFunction cs m =
     ExprMatchLambdaNode(stn "function" mFunction, List.map (mkSynMatchClause creationAide) cs, m)
 
+let (|AppSingleParenArg|_|) =
+    function
+    | App(SynExpr.DotGet _, [ (SynExpr.Paren(expr = SynExpr.Tuple _)) ]) -> None
+    | App(e, [ SynExpr.Paren(expr = singleExpr) as px ]) ->
+        match singleExpr with
+        | SynExpr.Lambda _
+        | SynExpr.MatchLambda _ -> None
+        | _ -> Some(e, px)
+    | _ -> None
+
 let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
     let exprRange = e.Range
 
@@ -809,7 +819,9 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
     // | Expr.DotGetAppWithParenLambda _ -> failwith "Not Implemented"
     // | Expr.DotGetApp _ -> failwith "Not Implemented"
     // | Expr.AppLongIdentAndSingleParenArg _ -> failwith "Not Implemented"
-    // | Expr.AppSingleParenArg _ -> failwith "Not Implemented"
+    | AppSingleParenArg(e, px) ->
+        ExprAppSingleParenArgNode(mkExpr creationAide e, mkExpr creationAide px, exprRange)
+        |> Expr.AppSingleParenArg
     | SynExpr.DotGet(
         expr = SynExpr.App(funcExpr = App(fe, args); argExpr = ParenLambda(lpr, pats, mArrow, body, mLambda, rpr))
         longDotId = lid) ->

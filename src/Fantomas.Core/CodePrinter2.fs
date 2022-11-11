@@ -146,6 +146,7 @@ let genParsedHashDirective (phd: ParsedHashDirectiveNode) =
 
 let genUnit (n: UnitNode) =
     genSingleTextNode n.OpeningParen +> genSingleTextNode n.ClosingParen
+    |> genNode n
 
 // genNode will should be called in the caller function.
 let genConstant (c: Constant) =
@@ -245,6 +246,7 @@ let genExpr (e: Expr) =
         genSingleTextNode node.LazyWord
         +> sepSpaceUnlessWriteBeforeNewlineNotEmpty
         +> ifElse node.ExprIsInfix genInfixExpr genNonInfixExpr
+        |> genNode node
     | Expr.Single node ->
         genSingleTextNode node.Leading
         +> onlyIf node.AddSpace sepSpace
@@ -252,6 +254,7 @@ let genExpr (e: Expr) =
             node.SupportsStroustrup
             (autoIndentAndNlnIfExpressionExceedsPageWidthUnlessStroustrup genExpr node.Expr)
             (autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr node.Expr))
+        |> genNode node
     | Expr.Constant node -> genConstant node
     | Expr.Null node -> genSingleTextNode node
     | Expr.Quote node -> genQuoteExpr node
@@ -269,6 +272,7 @@ let genExpr (e: Expr) =
         match node.Expr with
         | Expr.Lambda _ -> long
         | _ -> expressionFitsOnRestOfLine short long
+        |> genNode node
     | Expr.New node ->
         match node.Arguments with
         | Expr.Paren _
@@ -299,6 +303,7 @@ let genExpr (e: Expr) =
             +> genType node.Type
             +> sepSpace
             +> genExpr node.Arguments
+        |> genNode node
     | Expr.Tuple node -> genTuple node
     | Expr.StructTuple node ->
         genSingleTextNode node.Struct
@@ -306,6 +311,7 @@ let genExpr (e: Expr) =
         +> sepOpenT
         +> genTuple node.Tuple
         +> genSingleTextNode node.ClosingParen
+        |> genNode node
     | Expr.ArrayOrList node ->
         if node.Elements.IsEmpty then
             genSingleTextNode node.Opening +> genSingleTextNode node.Closing
@@ -350,6 +356,7 @@ let genExpr (e: Expr) =
                 else
                     let size = getListOrArrayExprSize ctx ctx.Config.MaxArrayOrListWidth node.Elements
                     isSmallExpression size smallExpression multilineExpression ctx
+            |> genNode node
     | Expr.Record node ->
         let genRecordFieldName (node: RecordFieldNode) =
             genIdentListNode node.FieldName
@@ -454,7 +461,7 @@ let genExpr (e: Expr) =
 
         fun ctx ->
             let size = getRecordSize ctx node.Fields
-            isSmallExpression size smallRecordExpr multilineRecordExpr ctx
+            genNode node (isSmallExpression size smallRecordExpr multilineRecordExpr) ctx
     | Expr.AnonRecord node ->
         let genAnonRecordFieldName (node: AnonRecordFieldNode) =
             genSingleTextNode node.Ident
@@ -548,7 +555,7 @@ let genExpr (e: Expr) =
 
         fun (ctx: Context) ->
             let size = getRecordSize ctx node.Fields
-            isSmallExpression size smallExpression longExpression ctx
+            genNode node (isSmallExpression size smallExpression longExpression) ctx
     | Expr.ObjExpr node ->
         let param = optSingle genExpr node.Expr
 
@@ -614,6 +621,7 @@ let genExpr (e: Expr) =
                 )
 
             ifAlignBrackets genObjExprAlignBrackets genObjExpr
+        |> genNode node
     | Expr.While node ->
         atCurrentColumn (
             genSingleTextNode node.While
@@ -622,6 +630,7 @@ let genExpr (e: Expr) =
             +> !- " do"
             +> indentSepNlnUnindent (genExpr node.DoExpr)
         )
+        |> genNode node
     | Expr.For node ->
         atCurrentColumn (
             genSingleTextNode node.For
@@ -639,6 +648,7 @@ let genExpr (e: Expr) =
             +> genExpr node.DoBody
             +> unindent
         )
+        |> genNode node
     | Expr.ForEach node ->
         atCurrentColumn (
             genSingleTextNode node.For
@@ -651,6 +661,7 @@ let genExpr (e: Expr) =
                 (sepArrow +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr node.BodyExpr))
                 (!- " do" +> indent +> sepNln +> genExpr node.BodyExpr +> unindent)
         )
+        |> genNode node
     | Expr.NamedComputation node ->
         let short =
             genExpr node.Name
@@ -669,13 +680,14 @@ let genExpr (e: Expr) =
             +> sepNln
             +> genSingleTextNode node.ClosingBrace
 
-        expressionFitsOnRestOfLine short long
+        expressionFitsOnRestOfLine short long |> genNode node
     | Expr.Computation node ->
         genSingleTextNode node.OpeningBrace
         +> addSpaceIfSpaceAroundDelimiter
         +> genExpr node.Body
         +> addSpaceIfSpaceAroundDelimiter
         +> genSingleTextNode node.ClosingBrace
+        |> genNode node
     | Expr.CompExprBody node ->
         node.Statements
         |> List.map (function
@@ -708,12 +720,14 @@ let genExpr (e: Expr) =
             | ComputationExpressionStatement.OtherStatement e ->
                 ColMultilineItem(genExpr e, sepNlnUnlessContentBefore (Expr.Node e)))
         |> colWithNlnWhenItemIsMultilineUsingConfig
+        |> genNode node
     | Expr.JoinIn node ->
         genExpr node.LeftHandSide
         +> sepSpace
         +> genSingleTextNode node.In
         +> sepSpace
         +> genExpr node.RightHandSide
+        |> genNode node
     | Expr.ParenLambda node ->
         genSingleTextNode node.OpeningParen
         +> leadingExpressionIsMultiline
@@ -721,14 +735,18 @@ let genExpr (e: Expr) =
              +> sepNlnWhenWriteBeforeNewlineNotEmpty)
             (fun isMultiline ctx -> onlyIf (isMultiline && ctx.Config.MultiLineLambdaClosingNewline) sepNln ctx)
         +> genSingleTextNode node.ClosingParen
+        |> genNode node
     | Expr.Lambda node -> genLambda node
-    | Expr.MatchLambda node -> genSingleTextNode node.Function +> sepNln +> genClauses node.Clauses
+    | Expr.MatchLambda node ->
+        genSingleTextNode node.Function +> sepNln +> genClauses node.Clauses
+        |> genNode node
     | Expr.Match node ->
         atCurrentColumn (
             genControlExpressionStartCore (Choice1Of2 node.Match) node.MatchExpr node.With
             +> sepNln
             +> genClauses node.Clauses
         )
+        |> genNode node
     | Expr.TraitCall node ->
         genType node.Type
         +> sepColon
@@ -737,18 +755,21 @@ let genExpr (e: Expr) =
         +> sepCloseT
         +> sepSpace
         +> genExpr node.Expr
-    | Expr.ParenILEmbedded node -> !-node.Text
+        |> genNode node
+    | Expr.ParenILEmbedded node -> genSingleTextNode node
     | Expr.ParenFunctionNameWithStar node ->
         genSingleTextNode node.OpeningParen
         +> sepSpace
         +> genSingleTextNode node.FunctionName
         +> sepSpace
         +> genSingleTextNode node.ClosingParen
+        |> genNode node
     | Expr.Paren node ->
         genSingleTextNode node.OpeningParen
         +> genExpr node.Expr
         +> genSingleTextNode node.ClosingParen
-    | Expr.Dynamic node -> genExpr node.FuncExpr +> !- "?" +> genExpr node.ArgExpr
+        |> genNode node
+    | Expr.Dynamic node -> genExpr node.FuncExpr +> !- "?" +> genExpr node.ArgExpr |> genNode node
     | Expr.PrefixApp node ->
         match node.Expr with
         | Expr.Constant _
@@ -759,7 +780,7 @@ let genExpr (e: Expr) =
             +> genExpr appNode.FunctionExpr
             +> genExpr appNode.ArgExpr
         | _ -> genSingleTextNode node.Operator +> genExpr node.Expr
-
+        |> genNode node
     | Expr.SameInfixApps node ->
         let headIsSynExprLambdaOrIfThenElse = isSynExprLambdaOrIfThenElse node.LeadingExpr
 
@@ -787,7 +808,11 @@ let genExpr (e: Expr) =
                 +> col sepNln es (fun (operator, e) ->
                     genSingleTextNode operator +> sepSpace +> genExprInMultilineInfixExpr e)
 
-        fun ctx -> atCurrentColumn (isShortExpression ctx.Config.MaxInfixOperatorExpression shortExpr multilineExpr) ctx
+        fun ctx ->
+            genNode
+                node
+                (atCurrentColumn (isShortExpression ctx.Config.MaxInfixOperatorExpression shortExpr multilineExpr))
+                ctx
 
     | Expr.InfixApp node ->
         if
@@ -797,14 +822,17 @@ let genExpr (e: Expr) =
             genMultilineInfixExpr node
         else
             fun ctx ->
-                isShortExpression
-                    ctx.Config.MaxInfixOperatorExpression
-                    (genOnelinerInfixExpr node)
-                    (ifElse
-                        (noBreakInfixOps.Contains(node.Operator.Text))
+                genNode
+                    node
+                    (isShortExpression
+                        ctx.Config.MaxInfixOperatorExpression
                         (genOnelinerInfixExpr node)
-                        (genMultilineInfixExpr node))
+                        (ifElse
+                            (noBreakInfixOps.Contains(node.Operator.Text))
+                            (genOnelinerInfixExpr node)
+                            (genMultilineInfixExpr node)))
                     ctx
+
     | Expr.IndexWithoutDot node ->
         let genIndexExpr = genExpr node.Index
 
@@ -812,6 +840,7 @@ let genExpr (e: Expr) =
         +> sepOpenLFixed
         +> expressionFitsOnRestOfLine genIndexExpr (atCurrentColumnIndent genIndexExpr)
         +> sepCloseLFixed
+        |> genNode node
 
     // Result<int, string>.Ok 42
     | Expr.AppDotGetTypeApp node ->
@@ -819,6 +848,7 @@ let genExpr (e: Expr) =
         +> genGenericTypeParameters node.TypeApp
         +> genIdentListNodeWithDot node.Property
         +> sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth (col sepSpace node.Arguments genExpr)
+        |> genNode node
 
     // Foo(fun x -> x).Bar().Meh
     | Expr.DotGetAppDotGetAppParenLambda node ->
@@ -854,7 +884,7 @@ let genExpr (e: Expr) =
             +> genIdentListNodeWithDot node.Property
             +> unindent
 
-        fun ctx -> isShortExpression ctx.Config.MaxDotGetExpressionWidth short long ctx
+        fun ctx -> genNode node (isShortExpression ctx.Config.MaxDotGetExpressionWidth short long) ctx
 
     // Foo().Bar
     | Expr.DotGetAppParen node ->
@@ -886,17 +916,32 @@ let genExpr (e: Expr) =
             functionName arguments
             +> indentSepNlnUnindent (genIdentListNodeWithDotMultiline node.Property)
 
-        fun ctx -> isShortExpression ctx.Config.MaxDotGetExpressionWidth short long ctx
+        fun ctx -> genNode node (isShortExpression ctx.Config.MaxDotGetExpressionWidth short long) ctx
     | Expr.DotGetAppWithParenLambda _ -> failwith "Not Implemented"
     | Expr.DotGetApp _ -> failwith "Not Implemented"
     | Expr.AppLongIdentAndSingleParenArg _ -> failwith "Not Implemented"
-    | Expr.AppSingleParenArg _ -> failwith "Not Implemented"
+    | Expr.AppSingleParenArg node ->
+        let sepSpace (ctx: Context) =
+            match node.FunctionExpr with
+            | ParenExpr _ -> sepSpace ctx
+            | UppercaseExpr -> onlyIf ctx.Config.SpaceBeforeUppercaseInvocation sepSpace ctx
+            | LowercaseExpr -> onlyIf ctx.Config.SpaceBeforeLowercaseInvocation sepSpace ctx
+
+        let short = genExpr node.FunctionExpr +> sepSpace +> genExpr node.ArgExpr
+
+        let long =
+            genExpr node.FunctionExpr
+            +> sepSpace
+            +> genMultilineFunctionApplicationArguments node.ArgExpr
+
+        expressionFitsOnRestOfLine short long |> genNode node
     | Expr.DotGetAppWithLambda node ->
         leadingExpressionIsMultiline (genAppWithLambda sepNone node.AppWithLambda) (fun isMultiline ->
             if isMultiline then
                 (indent +> sepNln +> genIdentListNodeWithDotMultiline node.Property +> unindent)
             else
                 genIdentListNodeWithDot node.Property)
+        |> genNode node
     | Expr.AppWithLambda node ->
         let sepSpaceAfterFunctionName =
             let sepSpaceBasedOnSetting e =
@@ -911,13 +956,13 @@ let genExpr (e: Expr) =
             | _ -> sepSpace
 
         genAppWithLambda sepSpaceAfterFunctionName node
-
     | Expr.NestedIndexWithoutDot node ->
         genExpr node.Identifier
         +> sepOpenLFixed
         +> genExpr node.Index
         +> sepCloseLFixed
         +> genExpr node.Argument
+        |> genNode node
     | Expr.EndsWithDualListApp node ->
         fun ctx ->
             // check if everything else beside the last array/list fits on one line
@@ -966,6 +1011,7 @@ let genExpr (e: Expr) =
                 long ctx
             else
                 short ctx
+        |> genNode node
     | Expr.EndsWithSingleListApp node ->
         fun ctx ->
             // check if everything else beside the last array/list fits on one line
@@ -994,6 +1040,7 @@ let genExpr (e: Expr) =
                 long ctx
             else
                 short ctx
+        |> genNode node
     | Expr.App node ->
         let shortExpression =
             let sep ctx =
@@ -1016,8 +1063,8 @@ let genExpr (e: Expr) =
                 +> indentSepNlnUnindent (col sepNln node.Arguments genExpr)
             )
 
-        expressionFitsOnRestOfLine shortExpression longExpression
-    | Expr.TypeApp node -> genExpr node.Identifier +> genGenericTypeParameters node
+        expressionFitsOnRestOfLine shortExpression longExpression |> genNode node
+    | Expr.TypeApp node -> genExpr node.Identifier +> genGenericTypeParameters node |> genNode node
     | Expr.TryWithSingleClause node ->
         let genClause =
             let clauseNode = node.Clause
@@ -1047,6 +1094,7 @@ let genExpr (e: Expr) =
             +> sepSpace
             +> genClause
         )
+        |> genNode node
     | Expr.TryWith node ->
         atCurrentColumn (
             genSingleTextNode node.Try
@@ -1059,6 +1107,7 @@ let genExpr (e: Expr) =
             +> sepNln
             +> col sepNln node.Clauses (genClause false)
         )
+        |> genNode node
     | Expr.TryFinally node ->
         atCurrentColumn (
             genSingleTextNode node.Try
@@ -1067,6 +1116,7 @@ let genExpr (e: Expr) =
             +> genSingleTextNode node.Finally
             +> indentSepNlnUnindent (genExpr node.FinallyExpr)
         )
+        |> genNode node
     | Expr.IfThen node ->
         leadingExpressionResult
             (genControlExpressionStartCore (Choice2Of2 node.If) node.IfExpr node.Then)
@@ -1088,6 +1138,7 @@ let genExpr (e: Expr) =
                         (indentSepNlnUnindent (genExpr node.ThenExpr))
                         ctx)
         |> atCurrentColumnIndent
+        |> genNode node
     | Expr.IfThenElse node ->
         leadingExpressionResult
             (genControlExpressionStartCore (Choice2Of2 node.If) node.IfExpr node.Then)
@@ -1132,6 +1183,7 @@ let genExpr (e: Expr) =
                         long
                         ctx)
         |> atCurrentColumnIndent
+        |> genNode node
     | Expr.IfThenElif node ->
         // multiple branches but no else expr
         // use the same threshold check as for if-then
@@ -1196,13 +1248,18 @@ let genExpr (e: Expr) =
                     +> unindent)
                 node.Else
 
-        ifElseCtx areAllShort shortExpr longExpr |> atCurrentColumnIndent
-    | Expr.Ident node -> !-node.Text
-    | Expr.OptVar node -> onlyIf node.IsOptional (!- "?") +> genIdentListNode node.Identifier
+        ifElseCtx areAllShort shortExpr longExpr
+        |> atCurrentColumnIndent
+        |> genNode node
+    | Expr.Ident node -> genSingleTextNode node
+    | Expr.OptVar node ->
+        onlyIf node.IsOptional (!- "?") +> genIdentListNode node.Identifier
+        |> genNode node
     | Expr.LongIdentSet node ->
         genIdentListNode node.Identifier
         +> sepArrowRev
         +> autoIndentAndNlnIfExpressionExceedsPageWidthUnlessStroustrup genExpr node.Expr
+        |> genNode node
     | Expr.DotIndexedGet node ->
         let genDotIndexedGet =
             let isParen =
@@ -1237,6 +1294,7 @@ let genExpr (e: Expr) =
             let idx = !- "." +> sepOpenLFixed +> genExpr node.IndexExpr +> sepCloseLFixed
             expressionFitsOnRestOfLine (short +> idx) (long +> idx)
         | _ -> genDotIndexedGet
+        |> genNode node
     | Expr.DotIndexedSet node ->
         let genDotIndexedSet =
             addParenIfAutoNln node.ObjectExpr genExpr
@@ -1276,6 +1334,7 @@ let genExpr (e: Expr) =
                  +> idx
                  +> autoIndentAndNlnIfExpressionExceedsPageWidthUnlessStroustrup genExpr node.Value)
         | _ -> genDotIndexedSet
+        |> genNode node
     | Expr.NamedIndexedPropertySet node ->
         match node.Index with
         | Expr.ArrayOrList arrayNode when arrayNode.Elements.Length = 1 ->
@@ -1297,6 +1356,7 @@ let genExpr (e: Expr) =
             +> genExpr node.Index
             +> sepArrowRev
             +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr node.Value)
+        |> genNode node
     | Expr.DotNamedIndexedPropertySet node ->
         genExpr node.Identifier
         +> sepDot
@@ -1304,6 +1364,7 @@ let genExpr (e: Expr) =
         +> genExpr node.Property
         +> sepArrowRev
         +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr node.Set)
+        |> genNode node
     | Expr.DotGet node ->
         let shortExpr = genExpr node.Expr +> genIdentListNodeWithDot node.Identifier
 
@@ -1311,7 +1372,7 @@ let genExpr (e: Expr) =
             genExpr node.Expr
             +> indentSepNlnUnindent (genIdentListNodeWithDotMultiline node.Identifier)
 
-        fun ctx -> isShortExpression ctx.Config.MaxDotGetExpressionWidth shortExpr longExpr ctx
+        fun ctx -> genNode node (isShortExpression ctx.Config.MaxDotGetExpressionWidth shortExpr longExpr) ctx
     | Expr.DotSet node ->
         match node.Identifier with
         | Expr.AppSingleParenArg appNode ->
@@ -1327,10 +1388,12 @@ let genExpr (e: Expr) =
             +> genIdentListNode node.Property
             +> sepArrowRev
             +> autoIndentAndNlnIfExpressionExceedsPageWidthUnlessStroustrup genExpr node.Set
+        |> genNode node
     | Expr.Set node ->
         addParenIfAutoNln node.Identifier genExpr
         +> sepArrowRev
         +> autoIndentAndNlnIfExpressionExceedsPageWidthUnlessStroustrup genExpr node.Set
+        |> genNode node
     | Expr.LibraryOnlyStaticOptimization node ->
         genExpr node.OptimizedExpr
         +> onlyIfNot node.Constraints.IsEmpty (!- " when ")
@@ -1340,6 +1403,7 @@ let genExpr (e: Expr) =
             | StaticOptimizationConstraint.WhenTyparIsStruct t -> genSingleTextNode t)
         +> sepEq
         +> sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth (genExpr node.Expr)
+        |> genNode node
     | Expr.InterpolatedStringExpr node ->
         let genInterpolatedFillExpr expr =
             fun ctx ->
@@ -1373,20 +1437,22 @@ let genExpr (e: Expr) =
                     else
                         genFill ctx)
         +> onlyIfCtx (fun ctx -> ctx.Config.StrictMode) (!- "\"")
-    | Expr.IndexRangeWildcard node -> !-node.Text
+        |> genNode node
+    | Expr.IndexRangeWildcard node -> genSingleTextNode node
     | Expr.TripleNumberIndexRange node ->
         genSingleTextNode node.Start
         +> genSingleTextNode node.StartDots
         +> genSingleTextNode node.Center
         +> genSingleTextNode node.EndDots
         +> genSingleTextNode node.End
+        |> genNode node
     | Expr.IndexRange node ->
         optSingle genExpr node.From
         +> genSingleTextNode node.Dots
         +> optSingle genExpr node.To
-    | Expr.IndexFromEnd node -> !- "^" +> genExpr node.Expr
-    | Expr.Typar node -> !-node.Text
-    |> genNode (Expr.Node e)
+        |> genNode node
+    | Expr.IndexFromEnd node -> !- "^" +> genExpr node.Expr |> genNode node
+    | Expr.Typar node -> genSingleTextNode node
 
 let genQuoteExpr (node: ExprQuoteNode) =
     genSingleTextNode node.OpenToken
@@ -1394,41 +1460,27 @@ let genQuoteExpr (node: ExprQuoteNode) =
     +> expressionFitsOnRestOfLine (genExpr node.Expr) (indent +> sepNln +> genExpr node.Expr +> unindent +> sepNln)
     +> sepSpace
     +> genSingleTextNode node.CloseToken
+    |> genNode node
 
-let genMultilineFunctionApplicationArguments (argExpr: Expr) = !- "todo!"
-// let argsInsideParenthesis lpr rpr pr f =
-//     sepOpenTFor lpr +> indentSepNlnUnindent f +> sepNln +> sepCloseTFor rpr
-//     |> genTriviaFor SynExpr_Paren pr
-//
-// let genExpr e =
-//     match e with
-//     | InfixApp (equal, operatorSli, e1, e2, range) when (equal = "=") ->
-//         genNamedArgumentExpr operatorSli e1 e2 range
-//     | _ -> genExpr e
-//
-// match argExpr with
-// | Paren (lpr, Lambda (pats, arrowRange, body, range), rpr, _pr) ->
-//     fun ctx ->
-//         if ctx.Config.MultiLineLambdaClosingNewline then
-//             let genPats =
-//                 let shortPats = col sepSpace pats genPat
-//                 let longPats = atCurrentColumn (sepNln +> col sepNln pats genPat)
-//                 expressionFitsOnRestOfLine shortPats longPats
-//
-//             (sepOpenTFor lpr
-//              +> (!- "fun " +> genPats +> genLambdaArrowWithTrivia genExpr body arrowRange
-//                  |> genTriviaFor SynExpr_Lambda range)
-//              +> sepNln
-//              +> sepCloseTFor rpr)
-//                 ctx
-//         else
-//             genExpr argExpr ctx
-// | Paren (lpr, Tuple (args, tupleRange), rpr, pr) ->
-//     genTupleMultiline args
-//     |> genTriviaFor SynExpr_Tuple tupleRange
-//     |> argsInsideParenthesis lpr rpr pr
-// | Paren (lpr, singleExpr, rpr, pr) -> genExpr singleExpr |> argsInsideParenthesis lpr rpr pr
-// | _ -> genExpr argExpr
+let genMultilineFunctionApplicationArguments (argExpr: Expr) =
+    let argsInsideParenthesis (parenNode: ExprParenNode) f =
+        genSingleTextNode parenNode.OpeningParen
+        +> indentSepNlnUnindent f
+        +> sepNln
+        +> genSingleTextNode parenNode.ClosingParen
+        |> genNode parenNode
+
+    let genExpr e =
+        match e with
+        | Expr.InfixApp infixNode when (infixNode.Operator.Text = "=") -> genNamedArgumentExpr infixNode
+        | _ -> genExpr e
+
+    match argExpr with
+    | Expr.Paren parenNode ->
+        match parenNode.Expr with
+        | Expr.Tuple tupleNode -> genTuple tupleNode |> argsInsideParenthesis parenNode
+        | _ -> genExpr parenNode.Expr |> argsInsideParenthesis parenNode
+    | _ -> genExpr argExpr
 
 let genTuple (node: ExprTupleNode) =
     let shortExpression =
@@ -1480,6 +1532,7 @@ let genTuple (node: ExprTupleNode) =
         coli sepNone node.Items genItem
 
     atCurrentColumn (expressionFitsOnRestOfLine shortExpression longExpression)
+    |> genNode node
 
 let genNamedArgumentExpr (node: ExprInfixAppNode) =
     let short =
@@ -1513,6 +1566,7 @@ let genLambda (node: ExprLambdaNode) =
             indentSepNlnUnindent (genExpr node.Expr) ctx
         else
             sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidthUnlessStroustrup genExpr node.Expr ctx)
+    |> genNode node
 
 let genClauses (clauses: MatchClauseNode list) =
     let lastIndex = clauses.Length - 1
@@ -1647,6 +1701,7 @@ let genMultilineInfixExpr (node: ExprInfixAppNode) =
         +> sepSpace
         +> genExprInMultilineInfixExpr node.RightHandSide
     )
+    |> genNode node
 
 let genExprInMultilineInfixExpr (e: Expr) =
     match e with
