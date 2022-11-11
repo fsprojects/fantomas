@@ -387,6 +387,7 @@ let genExpr (e: Expr) =
                     +> genSingleTextNode node.ClosingBrace
                 | RecordNodeExtra.With we ->
                     genSingleTextNode node.OpeningBrace
+                    +> addSpaceIfSpaceAroundDelimiter
                     +> atCurrentColumnIndent (genExpr we)
                     +> !- " with"
                     +> indent
@@ -1025,6 +1026,7 @@ let genExpr (e: Expr) =
             +> optSingle
                 (fun e -> !- " when" +> sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth (genExpr e))
                 clauseNode.WhenExpr
+            +> sepSpace
             +> genSingleTextNode clauseNode.Arrow
             +> autoIndentAndNlnExpressUnlessStroustrup genExpr clauseNode.BodyExpr
             +> leaveNode clauseNode
