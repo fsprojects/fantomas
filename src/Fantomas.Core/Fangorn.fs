@@ -484,40 +484,40 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
         ExprLazyNode(stn "lazy" lazyKeyword, mkExpr creationAide e, exprRange)
         |> Expr.Lazy
     | SynExpr.InferredDowncast(e, StartRange 8 (downcastKeyword, _range)) ->
-        ExprSingleNode(stn "downcast" downcastKeyword, false, mkExpr creationAide e, exprRange)
+        ExprSingleNode(stn "downcast" downcastKeyword, true, false, mkExpr creationAide e, exprRange)
         |> Expr.Single
     | SynExpr.InferredUpcast(e, StartRange 6 (upcastKeyword, _range)) ->
-        ExprSingleNode(stn "upcast" upcastKeyword, false, mkExpr creationAide e, exprRange)
+        ExprSingleNode(stn "upcast" upcastKeyword, true, false, mkExpr creationAide e, exprRange)
         |> Expr.Single
     | SynExpr.Assert(e, StartRange 6 (assertKeyword, _range)) ->
-        ExprSingleNode(stn "assert" assertKeyword, false, mkExpr creationAide e, exprRange)
+        ExprSingleNode(stn "assert" assertKeyword, true, false, mkExpr creationAide e, exprRange)
         |> Expr.Single
     | SynExpr.AddressOf(true, e, _, StartRange 1 (ampersandToken, _range)) ->
-        ExprSingleNode(stn "&" ampersandToken, false, mkExpr creationAide e, exprRange)
+        ExprSingleNode(stn "&" ampersandToken, false, false, mkExpr creationAide e, exprRange)
         |> Expr.Single
     | SynExpr.AddressOf(false, e, _, StartRange 2 (ampersandToken, _range)) ->
-        ExprSingleNode(stn "&&" ampersandToken, false, mkExpr creationAide e, exprRange)
+        ExprSingleNode(stn "&&" ampersandToken, false, false, mkExpr creationAide e, exprRange)
         |> Expr.Single
     | SynExpr.YieldOrReturn((true, _), e, StartRange 5 (yieldKeyword, _range)) ->
-        ExprSingleNode(stn "yield" yieldKeyword, true, mkExpr creationAide e, exprRange)
+        ExprSingleNode(stn "yield" yieldKeyword, true, true, mkExpr creationAide e, exprRange)
         |> Expr.Single
     | SynExpr.YieldOrReturn((false, _), e, StartRange 6 (returnKeyword, _range)) ->
-        ExprSingleNode(stn "return" returnKeyword, true, mkExpr creationAide e, exprRange)
+        ExprSingleNode(stn "return" returnKeyword, true, true, mkExpr creationAide e, exprRange)
         |> Expr.Single
     | SynExpr.YieldOrReturnFrom((true, _), e, StartRange 6 (yieldBangKeyword, _range)) ->
-        ExprSingleNode(stn "yield!" yieldBangKeyword, true, mkExpr creationAide e, exprRange)
+        ExprSingleNode(stn "yield!" yieldBangKeyword, true, true, mkExpr creationAide e, exprRange)
         |> Expr.Single
     | SynExpr.YieldOrReturnFrom((false, _), e, StartRange 7 (returnBangKeyword, _range)) ->
-        ExprSingleNode(stn "return!" returnBangKeyword, true, mkExpr creationAide e, exprRange)
+        ExprSingleNode(stn "return!" returnBangKeyword, true, true, mkExpr creationAide e, exprRange)
         |> Expr.Single
     | SynExpr.Do(e, StartRange 2 (doKeyword, _range)) ->
-        ExprSingleNode(stn "do" doKeyword, true, mkExpr creationAide e, exprRange)
+        ExprSingleNode(stn "do" doKeyword, true, true, mkExpr creationAide e, exprRange)
         |> Expr.Single
     | SynExpr.DoBang(e, StartRange 3 (doBangKeyword, _range)) ->
-        ExprSingleNode(stn "do!" doBangKeyword, true, mkExpr creationAide e, exprRange)
+        ExprSingleNode(stn "do!" doBangKeyword, true, true, mkExpr creationAide e, exprRange)
         |> Expr.Single
     | SynExpr.Fixed(e, StartRange 5 (fixedKeyword, _range)) ->
-        ExprSingleNode(stn "fixed" fixedKeyword, false, mkExpr creationAide e, exprRange)
+        ExprSingleNode(stn "fixed" fixedKeyword, true, false, mkExpr creationAide e, exprRange)
         |> Expr.Single
     | SynExpr.Const(c, r) -> mkConstant creationAide c r |> Expr.Constant
     | SynExpr.Null _ -> stn "null" exprRange |> Expr.Null
@@ -1257,13 +1257,13 @@ let mkBindingReturnInfo creationAide (returnInfo: SynBindingReturnInfo option) =
 
 let mkBinding
     (creationAide: CreationAide)
-    (SynBinding(_ao, _, _isInline, _isMutable, _attrs, _px, _, pat, returnInfo, expr, _, _, trivia))
+    (SynBinding(ao, _, isInline, isMutable, attributes, xmlDoc, _, pat, returnInfo, expr, _, _, trivia))
     =
-    let functionName, parameters =
+    let functionName, genericParameters, parameters =
         match pat with
-        | SynPat.LongIdent(longDotId = SynLongIdent([ _ ], _, _) as lid; argPats = SynArgPats.Pats ps) ->
-            Choice1Of2(mkSynIdent lid.IdentsWithTrivia.[0]), List.map (mkPat creationAide) ps
-        | _ -> Choice2Of2(mkPat creationAide pat), []
+        | SynPat.LongIdent(longDotId = lid; typarDecls = typarDecls; argPats = SynArgPats.Pats ps) ->
+            Choice1Of2(mkSynLongIdent lid), mkSynValTyparDecls creationAide typarDecls, List.map (mkPat creationAide) ps
+        | _ -> Choice2Of2(mkPat creationAide pat), None, []
 
     let equals = stn "=" trivia.EqualsRange.Value
 
@@ -1273,20 +1273,26 @@ let mkBinding
 
     let range =
         let start =
-            // if not xmlDoc.IsEmpty then
-            //     xmlDoc.Range
-            // elif not attributes.IsEmpty then
-            //     attributes.Head.Range
-            // else
-            match trivia.LeadingKeyword, pat with
-            | SynLeadingKeyword.Member _, SynPat.LongIdent(extraId = Some _) -> pat.Range
-            | _ -> trivia.LeadingKeyword.Range
+            if not xmlDoc.IsEmpty then
+                xmlDoc.Range
+            elif not attributes.IsEmpty then
+                attributes.Head.Range
+            else
+                match trivia.LeadingKeyword, pat with
+                | SynLeadingKeyword.Member _, SynPat.LongIdent(extraId = Some _) -> pat.Range
+                | _ -> trivia.LeadingKeyword.Range
 
         unionRanges start e.Range
 
     BindingNode(
+        mkXmlDoc xmlDoc,
+        mkAttributes creationAide attributes,
         mkSynLeadingKeyword trivia.LeadingKeyword,
+        isMutable,
+        isInline,
+        mkSynAccess ao,
         functionName,
+        genericParameters,
         parameters,
         returnTypeNode,
         equals,
@@ -1975,7 +1981,13 @@ let mkMemberDefn (creationAide: CreationAide) (md: SynMemberDefn) =
         |> MemberDefn.Inherit
     | SynMemberDefn.ValField(f, _) -> mkSynField creationAide f |> MemberDefn.ValField
     | SynMemberDefn.LetBindings(bindings = [ SynBinding(kind = SynBindingKind.Do; expr = expr; trivia = trivia) ]) ->
-        ExprSingleNode(stn "do" trivia.LeadingKeyword.Range, false, mkExpr creationAide expr, memberDefinitionRange)
+        ExprSingleNode(
+            stn "do" trivia.LeadingKeyword.Range,
+            true,
+            false,
+            mkExpr creationAide expr,
+            memberDefinitionRange
+        )
         |> MemberDefn.DoExpr
     | SynMemberDefn.LetBindings(bindings = bindings) ->
         BindingListNode(List.map (mkBinding creationAide) bindings, memberDefinitionRange)
