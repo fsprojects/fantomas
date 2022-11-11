@@ -1970,7 +1970,21 @@ let genPatLeftMiddleRight (node: PatLeftMiddleRight) =
     +> sepSpace
     +> genPat node.RightHandSide
 
-let genTyparDecls (td: TyparDecls) = !- "todo"
+let genTyparDecl (isFirstTypeParam: bool) (td: TyparDeclNode) =
+    genOnelinerAttributes td.Attributes
+    +> onlyIf (isFirstTypeParam && td.TypeParameter.Text.StartsWith("^")) sepSpace
+    +> genSingleTextNode td.TypeParameter
+    |> genNode td
+
+let genTyparDecls (td: TyparDecls) =
+    match td with
+    | TyparDecls.PostfixList node ->
+        genSingleTextNode node.LessThan
+        +> coli sepComma node.Decls (fun i -> genTyparDecl (i = 0))
+        +> onlyIf (List.isNotEmpty node.Constraints) (sepSpace +> genTypeConstraints node.Constraints)
+        +> genSingleTextNode node.GreaterThan
+        |> genNode node
+    | _ -> !- "todo"
 
 let genPat (p: Pattern) =
     match p with
