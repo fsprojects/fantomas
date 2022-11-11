@@ -818,7 +818,9 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
     // | Expr.DotGetAppParen _ -> failwith "Not Implemented"
     // | Expr.DotGetAppWithParenLambda _ -> failwith "Not Implemented"
     // | Expr.DotGetApp _ -> failwith "Not Implemented"
-    // | Expr.AppLongIdentAndSingleParenArg _ -> failwith "Not Implemented"
+    | AppSingleParenArg(SynExpr.LongIdent(longDotId = longDotId), px) ->
+        ExprAppLongIdentAndSingleParenArgNode(mkSynLongIdent longDotId, mkExpr creationAide px, exprRange)
+        |> Expr.AppLongIdentAndSingleParenArg
     | AppSingleParenArg(e, px) ->
         ExprAppSingleParenArgNode(mkExpr creationAide e, mkExpr creationAide px, exprRange)
         |> Expr.AppSingleParenArg

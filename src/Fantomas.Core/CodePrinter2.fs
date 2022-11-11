@@ -919,19 +919,37 @@ let genExpr (e: Expr) =
         fun ctx -> genNode node (isShortExpression ctx.Config.MaxDotGetExpressionWidth short long) ctx
     | Expr.DotGetAppWithParenLambda _ -> failwith "Not Implemented"
     | Expr.DotGetApp _ -> failwith "Not Implemented"
-    | Expr.AppLongIdentAndSingleParenArg _ -> failwith "Not Implemented"
-    | Expr.AppSingleParenArg node ->
-        let sepSpace (ctx: Context) =
-            match node.FunctionExpr with
-            | ParenExpr _ -> sepSpace ctx
-            | UppercaseExpr -> onlyIf ctx.Config.SpaceBeforeUppercaseInvocation sepSpace ctx
-            | LowercaseExpr -> onlyIf ctx.Config.SpaceBeforeLowercaseInvocation sepSpace ctx
+    | Expr.AppLongIdentAndSingleParenArg node ->
+        let addSpace =
+            sepSpaceBeforeParenInFuncInvocation
+                (Expr.OptVar(ExprOptVarNode(false, node.FunctionName, (node.FunctionName :> Node).Range)))
+                node.ArgExpr
 
-        let short = genExpr node.FunctionExpr +> sepSpace +> genExpr node.ArgExpr
+        let shortLids = genIdentListNode node.FunctionName
+        let short = shortLids +> addSpace +> genExpr node.ArgExpr
+
+        let long =
+            let args =
+                addSpace
+                +> expressionFitsOnRestOfLine
+                    (genExpr node.ArgExpr)
+                    (genMultilineFunctionApplicationArguments node.ArgExpr)
+
+            ifElseCtx
+                (futureNlnCheck shortLids)
+                (genFunctionNameWithMultilineLids args node.FunctionName node)
+                (shortLids +> args)
+
+        expressionFitsOnRestOfLine short long |> genNode node
+    | Expr.AppSingleParenArg node ->
+        let short =
+            genExpr node.FunctionExpr
+            +> sepSpaceBeforeParenInFuncInvocation node.FunctionExpr node.ArgExpr
+            +> genExpr node.ArgExpr
 
         let long =
             genExpr node.FunctionExpr
-            +> sepSpace
+            +> sepSpaceBeforeParenInFuncInvocation node.FunctionExpr node.ArgExpr
             +> genMultilineFunctionApplicationArguments node.ArgExpr
 
         expressionFitsOnRestOfLine short long |> genNode node
@@ -952,7 +970,20 @@ let genExpr (e: Expr) =
                 | LowercaseExpr -> (fun ctx -> onlyIf ctx.Config.SpaceBeforeLowercaseInvocation sepSpace ctx)
 
             match node.Arguments with
-            | [] -> sepSpaceBasedOnSetting node.FunctionName
+            | [] ->
+                // We create a temporary fake paren node only for the sepSpaceBeforeParenInFuncInvocation call.
+                let parenExpr =
+                    ExprParenNode(
+                        node.OpeningParen,
+                        Expr.Null(SingleTextNode("", FSharp.Compiler.Text.Range.Zero)),
+                        node.ClosingParen,
+                        FSharp.Compiler.Text.Range.Zero
+                    )
+                    |> Expr.Paren
+
+                match node.Lambda with
+                | Choice1Of2 n -> sepSpaceBeforeParenInFuncInvocation node.FunctionName parenExpr
+                | Choice2Of2 n -> sepSpaceBeforeParenInFuncInvocation node.FunctionName parenExpr
             | _ -> sepSpace
 
         genAppWithLambda sepSpaceAfterFunctionName node
@@ -1046,13 +1077,7 @@ let genExpr (e: Expr) =
             let sep ctx =
                 match node.Arguments with
                 | [] -> ctx
-                | [ singleArg ] ->
-                    match node.FunctionExpr, singleArg with
-                    | ParenExpr _, _ -> sepSpace ctx
-                    | UppercaseExpr, ParenExpr _ -> onlyIf ctx.Config.SpaceBeforeUppercaseInvocation sepSpace ctx
-                    | LowercaseExpr, ParenExpr _ -> onlyIf ctx.Config.SpaceBeforeLowercaseInvocation sepSpace ctx
-                    | Expr.Ident _, Expr.Ident _ -> sepSpace ctx
-                    | _ -> sepSpace ctx
+                | [ singleArg ] -> sepSpaceBeforeParenInFuncInvocation node.FunctionExpr singleArg ctx
                 | _ -> sepSpace ctx
 
             atCurrentColumn (genExpr node.FunctionExpr +> sep +> col sepSpace node.Arguments genExpr)
@@ -1926,6 +1951,14 @@ let genAppWithLambda sep (node: ExprAppWithLambdaNode) =
                     singleLine ctx
 
     expressionFitsOnRestOfLine short long |> genNode node
+
+let sepSpaceBeforeParenInFuncInvocation (functionExpr: Expr) (argExpr: Expr) ctx =
+    match functionExpr, argExpr with
+    | ParenExpr _, _ -> sepSpace ctx
+    | UppercaseExpr, ParenExpr _ -> onlyIf ctx.Config.SpaceBeforeUppercaseInvocation sepSpace ctx
+    | LowercaseExpr, ParenExpr _ -> onlyIf ctx.Config.SpaceBeforeLowercaseInvocation sepSpace ctx
+    | Expr.Ident _, Expr.Ident _ -> sepSpace ctx
+    | _ -> sepSpace ctx
 // end expressions
 
 let genPatLeftMiddleRight (node: PatLeftMiddleRight) =
