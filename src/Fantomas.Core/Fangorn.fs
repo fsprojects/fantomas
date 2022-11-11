@@ -1390,7 +1390,21 @@ let mkModuleDecl (creationAide: CreationAide) (decl: SynModuleDecl) =
 
 let mkSynTyparDecls (creationAide: CreationAide) (tds: SynTyparDecls) : TyparDecls =
     match tds with
-    | SynTyparDecls.PostfixList _
+    | SynTyparDecls.PostfixList(decls, constraints, StartEndRange 1 (mOpen, m, mClose)) ->
+        let decls =
+            decls
+            |> List.map (fun (SynTyparDecl(attrs, typar)) ->
+                let m =
+                    match List.tryHead attrs with
+                    | None -> typar.Range
+                    | Some a -> unionRanges a.Range typar.Range
+
+                TyparDeclNode(mkAttributes creationAide attrs, mkSynTypar typar, m))
+
+        let constraints = List.map (mkSynTypeConstraint creationAide) constraints
+
+        TyparDeclsPostfixListNode(stn "<" mOpen, decls, constraints, stn ">" mClose, m)
+        |> TyparDecls.PostfixList
     | SynTyparDecls.PrefixList _
     | SynTyparDecls.SinglePrefix _ -> failwith "todo"
 
@@ -1499,6 +1513,9 @@ let mkType (creationAide: CreationAide) (t: SynType) : Type =
     | SynType.MeasurePower(t, rc, _) ->
         TypeMeasurePowerNode(mkType creationAide t, mkSynRationalConst rc, typeRange)
         |> Type.MeasurePower
+    | SynType.StaticConstant(SynConst.String(null, kind, mString), r) ->
+        mkConstant creationAide (SynConst.String("null", kind, mString)) r
+        |> Type.StaticConstant
     | SynType.StaticConstant(c, r) -> mkConstant creationAide c r |> Type.StaticConstant
     | SynType.StaticConstantExpr(e, StartRange 5 (mConst, _)) ->
         TypeStaticConstantExprNode(stn "const" mConst, mkExpr creationAide e, typeRange)
