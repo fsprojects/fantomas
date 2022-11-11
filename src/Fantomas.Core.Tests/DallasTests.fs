@@ -1397,3 +1397,32 @@ fn a b
 UpperFn(x)
 lowerFn (y)
 """
+
+[<Test>]
+let ``union type in signature`` () =
+    formatSourceString
+        true
+        """
+namespace X
+
+module Y =
+    type A =
+        | B of int
+        | C of string
+
+    type D = E
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+namespace X
+
+module Y =
+    type A =
+        | B of int
+        | C of string
+
+    type D = E
+"""
