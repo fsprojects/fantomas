@@ -1224,10 +1224,12 @@ type ExprDotGetAppNode(range) =
 
     override this.Children = failwith "todo"
 
-type ExprAppLongIdentAndSingleParenArgNode(range) =
+type ExprAppLongIdentAndSingleParenArgNode(functionName: IdentListNode, argExpr: Expr, range) =
     inherit NodeBase(range)
 
-    override this.Children = failwith "todo"
+    override this.Children = [| yield functionName; yield Expr.Node argExpr |]
+    member x.FunctionName = functionName
+    member x.ArgExpr = argExpr
 
 type ExprAppSingleParenArgNode(functionExpr: Expr, argExpr: Expr, range) =
     inherit NodeBase(range)
