@@ -1476,3 +1476,20 @@ fn (fun x ->
     ()
 )
 """
+
+[<Test>]
+let ``generic arg in function`` () =
+    formatSourceString
+        false
+        """
+let a<'t> b c = ()
+let x<'t when 't :> null> b c = ()
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let a<'t> b c = ()
+let x<'t when 't :> null> b c = ()
+"""
