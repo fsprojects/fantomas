@@ -590,12 +590,13 @@ type ExprLazyNode(lazyWord: SingleTextNode, expr: Expr, range) =
         | :? InfixApp -> true
         | _ -> false
 
-type ExprSingleNode(leading: SingleTextNode, supportsStroustrup: bool, expr: Expr, range) =
+type ExprSingleNode(leading: SingleTextNode, addSpace: bool, supportsStroustrup: bool, expr: Expr, range) =
     inherit NodeBase(range)
 
     override this.Children = [| yield leading; yield Expr.Node expr |]
 
     member _.Leading = leading
+    member x.AddSpace = addSpace
     member _.SupportsStroustrup = supportsStroustrup
     member _.Expr = expr
 
@@ -1955,8 +1956,14 @@ type BindingReturnInfoNode(colon: SingleTextNode, t: Type, range) =
 
 type BindingNode
     (
+        xmlDoc: SingleTextNode option,
+        attributes: MultipleAttributeListNode,
         leadingKeyword: MultipleTextsNode,
-        functionName: Choice<SingleTextNode, Pattern>,
+        isMutable: bool,
+        isInline: bool,
+        accessibility: SingleTextNode option,
+        functionName: Choice<IdentListNode, Pattern>,
+        genericTypeParameters: TyparDecls option,
         parameters: Pattern list,
         returnType: BindingReturnInfoNode option,
         equals: SingleTextNode,
@@ -1964,19 +1971,29 @@ type BindingNode
         range
     ) =
     inherit NodeBase(range)
+    member x.XmlDoc = xmlDoc
+    member x.Attributes = attributes
     member x.LeadingKeyword = leadingKeyword
+    member x.IsMutable = isMutable
+    member x.IsInline = isInline
+    member x.Accessibility = accessibility
     member x.FunctionName = functionName
+    member x.GenericTypeParameters = genericTypeParameters
     member x.Parameters = parameters
     member x.ReturnType = returnType
     member x.Equals = equals
     member x.Expr = expr
 
     override this.Children =
-        [| yield leadingKeyword
+        [| yield! noa xmlDoc
+           yield attributes
+           yield leadingKeyword
+           yield! noa accessibility
            yield
                match functionName with
                | Choice1Of2 n -> (n :> Node)
                | Choice2Of2 p -> Pattern.Node p
+           yield! noa (Option.map TyparDecls.Node genericTypeParameters)
            yield! nodes (List.map Pattern.Node parameters)
            yield! noa returnType
            yield equals
