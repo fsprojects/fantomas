@@ -1,6 +1,7 @@
 ﻿module rec Fantomas.Core.SyntaxOak
 
 open System.Collections.Generic
+open System.Data
 open FSharp.Compiler.Text
 
 // Open questions:
@@ -2671,9 +2672,32 @@ type Constant =
         | FromText n -> n
         | Unit n -> n
 
-type TyparDeclsPostfixListNode(range) =
+type TyparDeclNode(attributes: MultipleAttributeListNode, typar: SingleTextNode, range) =
     inherit NodeBase(range)
-    override this.Children = failwith "todo"
+    override this.Children = [| yield attributes; yield typar |]
+    member x.Attributes = attributes
+    member x.TypeParameter = typar
+
+type TyparDeclsPostfixListNode
+    (
+        lessThan: SingleTextNode,
+        decls: TyparDeclNode list,
+        constraints: TypeConstraint list,
+        greaterThan: SingleTextNode,
+        range
+    ) =
+    inherit NodeBase(range)
+
+    override this.Children =
+        [| yield lessThan
+           yield! nodes decls
+           yield! List.map TypeConstraint.Node constraints
+           yield greaterThan |]
+
+    member x.LessThan = lessThan
+    member x.Decls = decls
+    member x.Constraints = constraints
+    member x.GreaterThan = greaterThan
 
 type TyparDeclsPrefixListNode(range) =
     inherit NodeBase(range)
