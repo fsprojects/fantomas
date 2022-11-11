@@ -532,8 +532,8 @@ type A() =
         equal
         """
 type A() =
-    member x.B () = ()
-    member x.C () = ()
+    member x.B() = ()
+    member x.C() = ()
 """
 
 [<Test>]
@@ -553,7 +553,7 @@ type A() =
         """
 type A() =
     class
-        member x.B () = ()
+        member x.B() = ()
     end
 """
 

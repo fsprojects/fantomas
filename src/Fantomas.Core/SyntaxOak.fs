@@ -1918,8 +1918,9 @@ type NestedModuleNode
     member x.Module = moduleKeyword
     member x.Accessibility = accessibility
     member x.IsRecursive = isRecursive
+    member x.Identifier = identifier
     member x.Equals = equalsNode
-    member x.Decls = decls
+    member x.Declarations = decls
 
 /// Each case in this DU should have a container node
 [<RequireQualifiedAccess; NoEquality; NoComparison>]

@@ -2988,7 +2988,17 @@ let genModuleDecl (md: ModuleDecl) =
         +> sepEqFixed
         +> sepSpace
         +> genIdentListNode node.Alias
-    | ModuleDecl.NestedModule node -> genXml node.XmlDoc +> genAttributes node.Attributes
+    | ModuleDecl.NestedModule node ->
+        genXml node.XmlDoc
+        +> genAttributes node.Attributes
+        +> genSingleTextNode node.Module
+        +> sepSpace
+        +> genIdentListNode node.Identifier
+        +> sepSpace
+        +> genSingleTextNode node.Equals
+        +> indentSepNlnUnindent (
+            colWithNlnWhenMappedNodeIsMultiline false ModuleDecl.Node genModuleDecl node.Declarations
+        )
     | ModuleDecl.TypeDefn td -> genTypeDefn td
 
 let sepNlnUnlessContentBefore (node: Node) =
