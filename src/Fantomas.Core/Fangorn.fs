@@ -38,7 +38,7 @@ let mkIdent (ident: Ident) =
 
 let mkSynIdent (SynIdent(ident, trivia)) =
     match trivia with
-    | None -> stn ident.idText ident.idRange
+    | None -> mkIdent ident
     | Some(IdentTrivia.OriginalNotation text) -> stn text ident.idRange
     | Some(IdentTrivia.OriginalNotationWithParen(_, text, _)) -> stn $"({text})" ident.idRange
     | Some(IdentTrivia.HasParenthesis _) -> stn $"({ident.idText})" ident.idRange
@@ -1351,7 +1351,7 @@ let mkModuleDecl (creationAide: CreationAide) (decl: SynModuleDecl) =
             isRecursive,
             mkLongIdent lid,
             stn "=" mEq,
-            List.map (mkModuleDecl creationAide) decls,
+            mkModuleDecls creationAide decls id,
             declRange
         )
         |> ModuleDecl.NestedModule
@@ -2239,7 +2239,15 @@ let rec mkModuleDecls
 
 let mkModuleOrNamespace
     (creationAide: CreationAide)
-    (SynModuleOrNamespace(longId = longId; kind = kind; decls = decls; range = range; trivia = trivia))
+    (SynModuleOrNamespace(
+        xmlDoc = xmlDoc
+        attribs = attribs
+        accessibility = accessibility
+        longId = longId
+        kind = kind
+        decls = decls
+        range = range
+        trivia = trivia))
     =
     let leadingKeyword =
         match trivia.LeadingKeyword with
@@ -2254,14 +2262,301 @@ let mkModuleOrNamespace
 
     let decls = mkModuleDecls creationAide decls id
 
-    ModuleOrNamespaceNode(leadingKeyword, name, decls, range)
+    ModuleOrNamespaceNode(
+        mkXmlDoc xmlDoc,
+        mkAttributes creationAide attribs,
+        leadingKeyword,
+        mkSynAccess accessibility,
+        name,
+        decls,
+        range
+    )
 
 let mkImplFile
     (creationAide: CreationAide)
-    (ParsedImplFileInput(hashDirectives = hashDirectives; contents = contents): ParsedImplFileInput)
+    (ParsedImplFileInput(hashDirectives = hashDirectives; contents = contents))
     =
     let phds = List.map (mkParsedHashDirective creationAide) hashDirectives
     let mds = List.map (mkModuleOrNamespace creationAide) contents
+    Oak(phds, mds)
+
+// start sig file
+let rec (|OpenSigL|_|) =
+    function
+    | SynModuleSigDecl.Open(target, range) :: OpenSigL(xs, ys) -> Some((target, range) :: xs, ys)
+    | SynModuleSigDecl.Open(target, range) :: ys -> Some([ target, range ], ys)
+    | _ -> None
+
+let rec (|HashDirectiveSigL|_|) =
+    function
+    | SynModuleSigDecl.HashDirective(p, _) :: HashDirectiveSigL(xs, ys) -> Some(p :: xs, ys)
+    | SynModuleSigDecl.HashDirective(p, _) :: ys -> Some([ p ], ys)
+    | _ -> None
+
+let mkModuleSigDecl (creationAide: CreationAide) (decl: SynModuleSigDecl) =
+    let declRange = decl.Range
+
+    match decl with
+    | SynModuleSigDecl.Exception(SynExceptionSig(SynExceptionDefnRepr(attrs, caseName, _, xmlDoc, vis, _),
+                                                 withKeyword,
+                                                 ms,
+                                                 _),
+                                 _) ->
+        ExceptionDefnNode(
+            mkXmlDoc xmlDoc,
+            mkAttributes creationAide attrs,
+            mkSynAccess vis,
+            mkSynUnionCase creationAide caseName,
+            Option.map (stn "with") withKeyword,
+            List.map (mkMemberSig creationAide) ms,
+            declRange
+        )
+        |> ModuleDecl.Exception
+    | SynModuleSigDecl.ModuleAbbrev(ident, lid, StartRange 6 (mModule, _)) ->
+        ModuleAbbrevNode(stn "module" mModule, mkIdent ident, mkLongIdent lid, declRange)
+        |> ModuleDecl.ModuleAbbrev
+    | SynModuleSigDecl.NestedModule(SynComponentInfo(ats, _, _, lid, px, _, ao, _),
+                                    isRecursive,
+                                    decls,
+                                    _,
+                                    { ModuleKeyword = Some mModule
+                                      EqualsRange = Some mEq }) ->
+        NestedModuleNode(
+            mkXmlDoc px,
+            mkAttributes creationAide ats,
+            stn "module" mModule,
+            mkSynAccess ao,
+            isRecursive,
+            mkLongIdent lid,
+            stn "=" mEq,
+            mkModuleSigDecls creationAide decls id,
+            declRange
+        )
+        |> ModuleDecl.NestedModule
+    | SynModuleSigDecl.Val(valSig, _) -> mkVal creationAide valSig |> ModuleDecl.Val
+    | decl -> failwithf $"Failed to create ModuleDecl for %A{decl}"
+
+let mkTypeDefnSig (creationAide: CreationAide) (SynTypeDefnSig(typeInfo, typeRepr, members, range, trivia)) : TypeDefn =
+    let typeDefnRange = range
+
+    let typeNameNode =
+        match typeInfo with
+        | SynComponentInfo(ats, tds, tcs, lid, px, _preferPostfix, ao, _) ->
+            let identifierNode = mkLongIdent lid
+
+            let leadingKeyword =
+                match trivia.LeadingKeyword with
+                | SynTypeDefnLeadingKeyword.Type mType -> stn "type" mType
+                | SynTypeDefnLeadingKeyword.And mAnd -> stn "and" mAnd
+                | SynTypeDefnLeadingKeyword.StaticType _
+                | SynTypeDefnLeadingKeyword.Synthetic _ -> failwithf "unexpected %A" trivia.LeadingKeyword
+
+            TypeNameNode(
+                mkXmlDoc px,
+                mkAttributes creationAide ats,
+                leadingKeyword,
+                mkSynAccess ao,
+                identifierNode,
+                Option.map (mkSynTyparDecls creationAide) tds,
+                List.map (mkSynTypeConstraint creationAide) tcs,
+                Option.map (stn "=") trivia.EqualsRange,
+                Option.map (stn "with") trivia.WithKeyword,
+                unionRanges (leadingKeyword :> Node).Range (identifierNode :> Node).Range
+            )
+
+    let members = List.map (mkMemberSig creationAide) members
+
+    match typeRepr with
+    | SynTypeDefnSigRepr.Simple(repr = SynTypeDefnSimpleRepr.Enum(ecs, _)) ->
+        let enumCases =
+            ecs
+            |> List.map (fun (SynEnumCase(attributes, ident, value, valueRange, xmlDoc, range, trivia)) ->
+                EnumCaseNode(
+                    mkXmlDoc xmlDoc,
+                    Option.map (stn "|") trivia.BarRange,
+                    mkAttributes creationAide attributes,
+                    mkSynIdent ident,
+                    stn "=" trivia.EqualsRange,
+                    mkConstant creationAide value valueRange,
+                    range
+                ))
+
+        TypeDefnEnumNode(typeNameNode, enumCases, members, typeDefnRange)
+        |> TypeDefn.Enum
+
+    | SynTypeDefnSigRepr.Simple(repr = SynTypeDefnSimpleRepr.Union(ao, cases, _)) ->
+        let unionCases = cases |> List.map (mkSynUnionCase creationAide)
+
+        TypeDefnUnionNode(typeNameNode, mkSynAccess ao, unionCases, members, typeDefnRange)
+        |> TypeDefn.Union
+
+    | SynTypeDefnSigRepr.Simple(
+        repr = SynTypeDefnSimpleRepr.Record(ao, fs, StartEndRange 1 (openingBrace, _, closingBrace))) ->
+        let fields = List.map (mkSynField creationAide) fs
+
+        TypeDefnRecordNode(
+            typeNameNode,
+            mkSynAccess ao,
+            stn "{" openingBrace,
+            fields,
+            stn "}" closingBrace,
+            members,
+            typeDefnRange
+        )
+        |> TypeDefn.Record
+
+    | SynTypeDefnSigRepr.Simple(repr = SynTypeDefnSimpleRepr.TypeAbbrev(rhsType = t)) ->
+        TypeDefn.Abbrev(TypeDefnAbbrevNode(typeNameNode, mkType creationAide t, range))
+
+    | SynTypeDefnSigRepr.Simple(repr = SynTypeDefnSimpleRepr.None _) when List.isNotEmpty members ->
+        let typeNameNode =
+            TypeNameNode(
+                typeNameNode.XmlDoc,
+                typeNameNode.Attributes,
+                typeNameNode.LeadingKeyword,
+                typeNameNode.Accessibility,
+                typeNameNode.Identifier,
+                typeNameNode.TypeParameters,
+                typeNameNode.Constraints,
+                None,
+                typeNameNode.WithKeyword,
+                (typeNameNode :> Node).Range
+            )
+
+        TypeDefnAugmentationNode(typeNameNode, members, typeDefnRange)
+        |> TypeDefn.Augmentation
+
+    | SynTypeDefnSigRepr.Simple(repr = SynTypeDefnSimpleRepr.None _) -> TypeDefn.None typeNameNode
+
+    | SynTypeDefnSigRepr.ObjectModel(
+        kind = SynTypeDefnKind.Class | SynTypeDefnKind.Interface | SynTypeDefnKind.Struct as tdk
+        memberSigs = objectMembers
+        range = range) ->
+
+        let kindNode =
+            match tdk, range with
+            | SynTypeDefnKind.Class, StartRange 5 (mClass, _) -> stn "class" mClass
+            | SynTypeDefnKind.Interface, StartRange 9 (mInterface, _) -> stn "interface" mInterface
+            | SynTypeDefnKind.Struct, StartRange 6 (mStruct, _) -> stn "struct" mStruct
+            | _ -> failwith "unexpected kind"
+
+        let objectMembers = objectMembers |> List.map (mkMemberSig creationAide)
+
+        let endNode =
+            match range with
+            | EndRange 3 (mEnd, _) -> stn "end" mEnd
+
+        let body = TypeDefnExplicitBodyNode(kindNode, objectMembers, endNode, range)
+
+        TypeDefnExplicitNode(typeNameNode, None, body, members, typeDefnRange)
+        |> TypeDefn.Explicit
+
+    | SynTypeDefnSigRepr.ObjectModel(kind = SynTypeDefnKind.Augmentation mWith) ->
+        let typeNameNode =
+            TypeNameNode(
+                typeNameNode.XmlDoc,
+                typeNameNode.Attributes,
+                typeNameNode.LeadingKeyword,
+                typeNameNode.Accessibility,
+                typeNameNode.Identifier,
+                typeNameNode.TypeParameters,
+                typeNameNode.Constraints,
+                None,
+                Some(stn "with" mWith),
+                (typeNameNode :> Node).Range
+            )
+
+        TypeDefnAugmentationNode(typeNameNode, members, typeDefnRange)
+        |> TypeDefn.Augmentation
+
+    | SynTypeDefnSigRepr.ObjectModel(
+        kind = SynTypeDefnKind.Delegate(signature = (TFuns(ts, rt)) as st); range = StartRange 8 (mDelegate, _)) ->
+        let typeList = mkTypeList creationAide ts rt st.Range
+
+        TypeDefnDelegateNode(typeNameNode, stn "delegate" mDelegate, typeList, typeDefnRange)
+        |> TypeDefn.Delegate
+
+    | SynTypeDefnSigRepr.ObjectModel(memberSigs = objectMembers) ->
+        let allMembers =
+            let objectMembers = objectMembers |> List.map (mkMemberSig creationAide)
+
+            [ yield! objectMembers; yield! members ]
+
+        TypeDefnRegularNode(typeNameNode, None, allMembers, typeDefnRange)
+        |> TypeDefn.Regular
+    | _ -> failwithf "Could not create a TypeDefn for %A" typeRepr
+
+let rec mkModuleSigDecls
+    (creationAide: CreationAide)
+    (decls: SynModuleSigDecl list)
+    (finalContinuation: ModuleDecl list -> ModuleDecl list)
+    : ModuleDecl list =
+    match decls with
+    | [] -> finalContinuation []
+    | OpenSigL(xs, ys) ->
+        let openListNode =
+            List.map (mkOpenNodeForImpl creationAide) xs
+            |> OpenListNode
+            |> ModuleDecl.OpenList
+
+        mkModuleSigDecls creationAide ys (fun nodes -> openListNode :: nodes |> finalContinuation)
+
+    | HashDirectiveSigL(xs, ys) ->
+        let listNode =
+            List.map (mkParsedHashDirective creationAide) xs
+            |> HashDirectiveListNode
+            |> ModuleDecl.HashDirectiveList
+
+        mkModuleSigDecls creationAide ys (fun nodes -> listNode :: nodes |> finalContinuation)
+
+    | SynModuleSigDecl.Types(types = typeDefns) :: rest ->
+        let typeNodes =
+            List.map (fun tdn -> mkTypeDefnSig creationAide tdn |> ModuleDecl.TypeDefn) typeDefns
+
+        mkModuleSigDecls creationAide rest (fun nodes -> [ yield! typeNodes; yield! nodes ] |> finalContinuation)
+
+    | head :: tail ->
+        mkModuleSigDecls creationAide tail (fun nodes -> mkModuleSigDecl creationAide head :: nodes |> finalContinuation)
+
+let mkModuleOrNamespaceSig
+    (creationAide: CreationAide)
+    (SynModuleOrNamespaceSig(
+        xmlDoc = xmlDoc
+        attribs = attribs
+        accessibility = accessibility
+        longId = longId
+        kind = kind
+        decls = decls
+        range = range
+        trivia = trivia))
+    =
+
+    let leadingKeyword =
+        match trivia.LeadingKeyword with
+        | SynModuleOrNamespaceLeadingKeyword.Module mModule -> Some(stn "module" mModule)
+        | SynModuleOrNamespaceLeadingKeyword.Namespace mNamespace -> Some(stn "namespace" mNamespace)
+        | SynModuleOrNamespaceLeadingKeyword.None -> None
+
+    let name =
+        match kind with
+        | SynModuleOrNamespaceKind.AnonModule -> IdentListNode.Empty
+        | _ -> mkLongIdent longId
+
+    let decls = mkModuleSigDecls creationAide decls id
+
+    ModuleOrNamespaceNode(
+        mkXmlDoc xmlDoc,
+        mkAttributes creationAide attribs,
+        leadingKeyword,
+        mkSynAccess accessibility,
+        name,
+        decls,
+        range
+    )
+
+let mkSigFile (creationAide: CreationAide) (ParsedSigFileInput(hashDirectives = hashDirectives; contents = contents)) =
+    let phds = List.map (mkParsedHashDirective creationAide) hashDirectives
+    let mds = List.map (mkModuleOrNamespaceSig creationAide) contents
     Oak(phds, mds)
 
 let mkOak (config: FormatConfig) (sourceText: ISourceText option) (ast: ParsedInput) =
@@ -2271,4 +2566,4 @@ let mkOak (config: FormatConfig) (sourceText: ISourceText option) (ast: ParsedIn
 
     match ast with
     | ParsedInput.ImplFile parsedImplFileInput -> mkImplFile creationAide parsedImplFileInput
-    | ParsedInput.SigFile _ -> failwith "todo 75E74A3A-C84D-4150-8D49-F111F0916839"
+    | ParsedInput.SigFile parsedSigFileInput -> mkSigFile creationAide parsedSigFileInput
