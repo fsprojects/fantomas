@@ -486,6 +486,20 @@ let (|AppSingleParenArg|_|) =
         | _ -> Some(e, px)
     | _ -> None
 
+let rec (|DotGetApp|_|) =
+    function
+    | SynExpr.App(_, _, SynExpr.DotGet(expr = DotGetApp(e, es); longDotId = s), e', _) ->
+        Some(e, [ yield! es; yield (s, None, e') ])
+    | SynExpr.App(_, _, SynExpr.DotGet(expr = e; longDotId = s), e', _) -> Some(e, [ s, None, e' ])
+    | SynExpr.App(_,
+                  _,
+                  SynExpr.TypeApp(SynExpr.DotGet(expr = DotGetApp(e, es); longDotId = s), lt, ts, _, Some gt, _, _range),
+                  e',
+                  _) -> Some(e, [ yield! es; yield (s, Some(lt, ts, gt), e') ])
+    | SynExpr.App(_, _, SynExpr.TypeApp(SynExpr.DotGet(expr = e; longDotId = s), lt, ts, _, Some gt, _, _range), e', _) ->
+        Some(e, [ s, Some(lt, ts, gt), e' ])
+    | _ -> None
+
 let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
     let exprRange = e.Range
 
@@ -815,8 +829,25 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
     | SynExpr.DotGet(expr = SynExpr.App(funcExpr = e; argExpr = DotGetAppParenExpr px); longDotId = lids) ->
         ExprDotGetAppParenNode(mkExpr creationAide e, mkExpr creationAide px, mkSynLongIdent lids, exprRange)
         |> Expr.DotGetAppParen
-    // | Expr.DotGetAppParen _ -> failwith "Not Implemented"
-    // | Expr.DotGetAppWithParenLambda _ -> failwith "Not Implemented"
+    | DotGetApp(SynExpr.App(funcExpr = e; argExpr = ParenLambda(lpr, pats, mArrow, body, mLambda, rpr)), es) ->
+        let lambdaNode = mkLambda creationAide pats mArrow body mLambda
+
+        let parenLambdaNode =
+            ExprParenLambdaNode(stn "(" lpr, lambdaNode, stn ")" rpr, exprRange)
+
+        let args =
+            es
+            |> List.map (fun (s, t, e) ->
+                let m = unionRanges s.Range e.Range
+
+                let tpi =
+                    t
+                    |> Option.map (fun (lt, ts, gt) -> stn "<" lt, List.map (mkType creationAide) ts, stn ">" gt)
+
+                DotGetAppPartNode(mkSynLongIdent s, tpi, mkExpr creationAide e, m))
+
+        ExprDotGetAppWithParenLambdaNode(mkExpr creationAide e, parenLambdaNode, args, exprRange)
+        |> Expr.DotGetAppWithParenLambda
     // | Expr.DotGetApp _ -> failwith "Not Implemented"
     | AppSingleParenArg(SynExpr.LongIdent(longDotId = longDotId), px) ->
         ExprAppLongIdentAndSingleParenArgNode(mkSynLongIdent longDotId, mkExpr creationAide px, exprRange)

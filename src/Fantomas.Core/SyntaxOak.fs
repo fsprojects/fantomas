@@ -1215,10 +1215,42 @@ type ExprDotGetAppParenNode(funcExpr: Expr, parenExpr: Expr, property: IdentList
     member x.ParenArg = parenExpr
     member x.Property = property
 
-type ExprDotGetAppWithParenLambdaNode(range) =
+type DotGetAppPartNode
+    (
+        identifier: IdentListNode,
+        typeParameterInfo: (SingleTextNode * Type list * SingleTextNode) option,
+        expr: Expr,
+        range: range
+    ) =
     inherit NodeBase(range)
 
-    override this.Children = failwith "todo"
+    override this.Children =
+        let typeParameterInfoNodes =
+            match typeParameterInfo with
+            | None -> [||]
+            | Some(lt, ts, gt) -> [| yield (lt :> Node); yield! List.map Type.Node ts; yield gt |]
+
+        [| yield identifier; yield! typeParameterInfoNodes; yield Expr.Node expr |]
+
+    member x.Identifier = identifier
+    member x.TypeParameterInfo = typeParameterInfo
+    member x.Expr = expr
+
+type ExprDotGetAppWithParenLambdaNode
+    (
+        funcExpr: Expr,
+        parenLambda: ExprParenLambdaNode,
+        args: DotGetAppPartNode list,
+        range
+    ) =
+    inherit NodeBase(range)
+
+    override this.Children =
+        [| yield Expr.Node funcExpr; yield parenLambda; yield! nodes args |]
+
+    member x.Function = funcExpr
+    member x.ParenLambda = parenLambda
+    member x.Arguments = args
 
 type ExprDotGetAppNode(range) =
     inherit NodeBase(range)
