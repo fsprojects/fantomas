@@ -1493,3 +1493,20 @@ let x<'t when 't :> null> b c = ()
 let a<'t> b c = ()
 let x<'t when 't :> null> b c = ()
 """
+
+[<Test>]
+let ``ExprDotGetAppWithParenLambdaNode tests`` () =
+    formatSourceString
+        false
+        """
+A.B(fun x -> x).x<s>()
+Foo(fun x -> x).Bar()
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+A.B(fun x -> x).x<s> ()
+Foo(fun x -> x).Bar()
+"""
