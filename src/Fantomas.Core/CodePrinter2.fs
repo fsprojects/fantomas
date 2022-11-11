@@ -91,7 +91,7 @@ let genSingleTextNode (node: SingleTextNode) = !-node.Text |> genNode node
 let genSingleTextNodeWithLeadingDot (node: SingleTextNode) = !- $".{node.Text}" |> genNode node
 
 let genMultipleTextsNode (node: MultipleTextsNode) =
-    col sepSpace node.Content genSingleTextNode
+    col sepSpace node.Content genSingleTextNode |> genNode node
 
 let genIdentListNodeAux addLeadingDot (iln: IdentListNode) =
     col sepNone iln.Content (fun identOrDot ->
@@ -2348,6 +2348,7 @@ let genOpenList (openList: OpenListNode) =
     col sepNln openList.Opens (function
         | Open.ModuleOrNamespace node -> !- "open " +> genIdentListNode node.Name |> genNode node
         | Open.Target node -> !- "open type " +> genType node.Target)
+    |> genNode openList
 
 let genTypeConstraint (tc: TypeConstraint) =
     match tc with
@@ -2431,7 +2432,12 @@ let genType (t: Type) =
         +> genSynTupleTypeSegments node.Path
         +> genSingleTextNode node.ClosingParen
     | Type.WithSubTypeConstraint tc -> genTypeConstraint tc
-    | Type.WithGlobalConstraints node -> genType node.Type +> sepSpace +> genTypeConstraints node.TypeConstraints
+    | Type.WithGlobalConstraints node ->
+        leadingExpressionIsMultiline (genType node.Type) (fun isMultiline ->
+            if isMultiline then
+                indentSepNlnUnindent (genTypeConstraints node.TypeConstraints)
+            else
+                sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth (genTypeConstraints node.TypeConstraints))
     | Type.LongIdent idn -> genIdentListNode idn
     | Type.AnonRecord node -> genAnonRecordType node
     | Type.Paren node ->
@@ -2524,8 +2530,11 @@ let sepNlnTypeAndMembers (node: ITypeDefn) (ctx: Context) : Context =
                 ctx
 
 let genTypeWithImplicitConstructor (typeName: TypeNameNode) (implicitConstructor: ImplicitConstructorNode option) =
-    genSingleTextNode typeName.LeadingKeyword
+    genXml typeName.XmlDoc
+    +> genAttributes typeName.Attributes
+    +> genSingleTextNode typeName.LeadingKeyword
     +> sepSpace
+    +> genAccessOpt typeName.Accessibility
     +> genIdentListNode typeName.Identifier
     +> leadingExpressionIsMultiline
         (optSingle (fun imCtor -> sepSpaceBeforeClassConstructor +> genImplicitConstructor imCtor) implicitConstructor)
@@ -2582,8 +2591,11 @@ let genTypeDefn (td: TypeDefn) =
     let members = typeDefnNode.Members
 
     let header =
-        genSingleTextNode typeName.LeadingKeyword
+        genXml typeName.XmlDoc
+        +> genAttributes typeName.Attributes
+        +> genSingleTextNode typeName.LeadingKeyword
         +> sepSpace
+        +> genAccessOpt typeName.Accessibility
         +> genIdentListNode typeName.Identifier
         +> sepSpace
         +> optSingle genSingleTextNode typeName.EqualsToken
@@ -2635,10 +2647,9 @@ let genTypeDefn (td: TypeDefn) =
 
         header
         +> unionCases
-        +> onlyIf (List.isNotEmpty members) sepNln
-        +> sepNlnTypeAndMembers typeDefnNode
-        +> genMemberDefnList members
-        +> unindent
+        +> onlyIf
+            (List.isNotEmpty members)
+            (indentSepNlnUnindent (sepNlnTypeAndMembers typeDefnNode +> genMemberDefnList members))
 
     | TypeDefn.Record node ->
         let smallExpression =
@@ -2701,7 +2712,7 @@ let genTypeDefn (td: TypeDefn) =
         header +> genTypeDefinition
 
     | TypeDefn.None _ -> header
-    | TypeDefn.Abbrev node -> header +> sepSpace +> genType node.Type
+    | TypeDefn.Abbrev node -> header +> sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth (genType node.Type)
     | TypeDefn.Explicit node ->
         let bodyNode = node.Body
 
@@ -2802,7 +2813,7 @@ let genTypeInSignature (t: Type) =
                         sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth genConstraints)
             )
         | _ -> autoIndentAndNlnIfExpressionExceedsPageWidth (genTypeList node)
-    | _ -> genType t
+    | _ -> autoIndentAndNlnIfExpressionExceedsPageWidth (genType t)
 
 let genField (node: FieldNode) =
     genXml node.XmlDoc
@@ -2861,6 +2872,7 @@ let genVal (node: ValNode) (optGetSet: MultipleTextsNode option) =
     +> genTypeInSignature node.Type
     +> optSingle (fun gs -> sepSpace +> genMultipleTextsNode gs) optGetSet
     +> genOptExpr
+    |> genNode node
 
 let genMemberDefnList mds =
     match mds with
@@ -2893,7 +2905,8 @@ let genMemberDefn (md: MemberDefn) =
                     +> sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth (genExpr thenExpr))
                 node.ThenExpr
         )
-    | MemberDefn.LetBinding node -> genBindings true node.Bindings
+        |> genNode (MemberDefn.Node md)
+    | MemberDefn.LetBinding node -> genBindings true node.Bindings |> genNode (MemberDefn.Node md)
     | MemberDefn.Interface node ->
         genSingleTextNode node.Interface
         +> sepSpace
@@ -2904,6 +2917,7 @@ let genMemberDefn (md: MemberDefn) =
                 +> genSingleTextNode withNode
                 +> indentSepNlnUnindent (genMemberDefnList node.Members))
             node.With
+        |> genNode (MemberDefn.Node md)
     | MemberDefn.AutoProperty node ->
         genXml node.XmlDoc
         +> genAttributes node.Attributes
@@ -2918,6 +2932,7 @@ let genMemberDefn (md: MemberDefn) =
             genExpr node.Expr
             +> optSingle (fun gs -> sepSpace +> genMultipleTextsNode gs) node.WithGetSet
         )
+        |> genNode (MemberDefn.Node md)
     | MemberDefn.AbstractSlot node ->
         genXml node.XmlDoc
         +> genAttributes node.Attributes
@@ -2928,6 +2943,7 @@ let genMemberDefn (md: MemberDefn) =
         +> ifElse node.TypeParams.IsSome sepColonWithSpacesFixed sepColon
         +> genTypeInSignature node.Type
         +> optSingle (fun gs -> sepSpace +> genMultipleTextsNode gs) node.WithGetSet
+        |> genNode (MemberDefn.Node md)
     | MemberDefn.PropertyGetSet node ->
         let genProperty (node: PropertyGetSetBindingNode) =
             genAccessOpt node.Accessibility
@@ -2954,23 +2970,21 @@ let genMemberDefn (md: MemberDefn) =
         +> optSingle (fun a -> sepNln +> genSingleTextNode a +> sepSpace) node.AndKeyword
         +> optSingle genProperty node.LastBinding
         +> unindent
-    | MemberDefn.SigMember node -> genVal node.Val node.WithGetSet
-    |> genNode (MemberDefn.Node md)
-
-let genExceptionBody px ats ao uc =
-    genXml px
-    +> genAttributes ats
-    +> !- "exception "
-    +> genAccessOpt ao
-    +> genUnionCase false uc
+        |> genNode (MemberDefn.Node md)
+    | MemberDefn.SigMember node -> genVal node.Val node.WithGetSet |> genNode node
 
 let genException (node: ExceptionDefnNode) =
-    genExceptionBody node.XmlDoc node.Attributes node.Accessibility node.UnionCase
+    genXml node.XmlDoc
+    +> genAttributes node.Attributes
+    +> !- "exception "
+    +> genAccessOpt node.Accessibility
+    +> genUnionCase false node.UnionCase
     +> onlyIf
         (not node.Members.IsEmpty)
         (sepSpace
          +> optSingle genSingleTextNode node.WithKeyword
          +> indentSepNlnUnindent (genMemberDefnList node.Members))
+    |> genNode node
 
 let genModuleDecl (md: ModuleDecl) =
     match md with
@@ -2988,6 +3002,7 @@ let genModuleDecl (md: ModuleDecl) =
         +> sepEqFixed
         +> sepSpace
         +> genIdentListNode node.Alias
+        |> genNode (ModuleDecl.Node md)
     | ModuleDecl.NestedModule node ->
         genXml node.XmlDoc
         +> genAttributes node.Attributes
@@ -2999,7 +3014,9 @@ let genModuleDecl (md: ModuleDecl) =
         +> indentSepNlnUnindent (
             colWithNlnWhenMappedNodeIsMultiline false ModuleDecl.Node genModuleDecl node.Declarations
         )
+        |> genNode (ModuleDecl.Node md)
     | ModuleDecl.TypeDefn td -> genTypeDefn td
+    | ModuleDecl.Val node -> genVal node None
 
 let sepNlnUnlessContentBefore (node: Node) =
     if Seq.isEmpty node.ContentBefore then sepNln else sepNone
@@ -3033,15 +3050,21 @@ let genModule (m: ModuleOrNamespaceNode) =
     onlyIf
         m.IsNamed
         (optSingle
-            (fun (n: SingleTextNode) -> genSingleTextNode n +> sepSpace +> genIdentListNode m.Name)
+            (fun (n: SingleTextNode) ->
+                genXml m.XmlDoc
+                +> genAttributes m.Attributes
+                +> genSingleTextNode n
+                +> sepSpace
+                +> genAccessOpt m.Accessibility
+                +> genIdentListNode m.Name)
             m.LeadingKeyword)
     +> newline
     +> colWithNlnWhenMappedNodeIsMultiline false ModuleDecl.Node genModuleDecl m.Declarations
     |> genNode m
 
 let genFile (oak: Oak) =
-    col sepNln oak.ParsedHashDirectives genParsedHashDirective
-    +> (if oak.ParsedHashDirectives.IsEmpty then sepNone else sepNln)
-    +> col sepNln oak.ModulesOrNamespaces genModule
+    (col sepNln oak.ParsedHashDirectives genParsedHashDirective
+     +> (if oak.ParsedHashDirectives.IsEmpty then sepNone else sepNln)
+     +> col sepNln oak.ModulesOrNamespaces genModule
+     |> genNode oak)
     +> (fun ctx -> onlyIf ctx.Config.InsertFinalNewline sepNln ctx)
-    |> genNode oak

@@ -119,15 +119,28 @@ type ParsedHashDirectiveNode(ident: string, args: SingleTextNode list, range) =
     member x.Args = args
     override this.Children = [| yield! nodes args |]
 
-type ModuleOrNamespaceNode(leadingKeyword: SingleTextNode option, name: IdentListNode, decls: ModuleDecl list, range) =
+type ModuleOrNamespaceNode
+    (
+        xmlDoc: SingleTextNode option,
+        attributes: MultipleAttributeListNode,
+        leadingKeyword: SingleTextNode option,
+        accessibility: SingleTextNode option,
+        name: IdentListNode,
+        decls: ModuleDecl list,
+        range
+    ) =
     inherit NodeBase(range)
+    member x.XmlDoc = xmlDoc
+    member x.Attributes = attributes
     member x.LeadingKeyword = leadingKeyword
+    member x.Accessibility = accessibility
     member x.Name = name
     member x.Declarations = decls
     member x.IsNamed = Option.isSome x.LeadingKeyword
 
     override this.Children =
         [| yield! noa leadingKeyword
+           yield! noa accessibility
            if Option.isSome leadingKeyword then
                yield name
            yield! List.map ModuleDecl.Node decls |]
@@ -1935,6 +1948,7 @@ type ModuleDecl =
     | ModuleAbbrev of ModuleAbbrevNode
     | NestedModule of NestedModuleNode
     | TypeDefn of TypeDefn
+    | Val of ValNode
 
     static member Node(x: ModuleDecl) : Node =
         match x with
@@ -1948,6 +1962,7 @@ type ModuleDecl =
         | ModuleAbbrev n -> n
         | NestedModule n -> n
         | TypeDefn t -> TypeDefn.Node t
+        | Val n -> n
 
 type BindingReturnInfoNode(colon: SingleTextNode, t: Type, range) =
     inherit NodeBase(range)
