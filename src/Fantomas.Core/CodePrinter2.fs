@@ -891,7 +891,12 @@ let genExpr (e: Expr) =
     | Expr.DotGetApp _ -> failwith "Not Implemented"
     | Expr.AppLongIdentAndSingleParenArg _ -> failwith "Not Implemented"
     | Expr.AppSingleParenArg _ -> failwith "Not Implemented"
-    | Expr.DotGetAppWithLambda _ -> failwith "Not Implemented"
+    | Expr.DotGetAppWithLambda node ->
+        leadingExpressionIsMultiline (genAppWithLambda sepNone node.AppWithLambda) (fun isMultiline ->
+            if isMultiline then
+                (indent +> sepNln +> genIdentListNodeWithDotMultiline node.Property +> unindent)
+            else
+                genIdentListNodeWithDot node.Property)
     | Expr.AppWithLambda node ->
         let sepSpaceAfterFunctionName =
             let sepSpaceBasedOnSetting e =
@@ -1865,8 +1870,7 @@ let genAppWithLambda sep (node: ExprAppWithLambdaNode) =
                 else
                     singleLine ctx
 
-    expressionFitsOnRestOfLine short long
-
+    expressionFitsOnRestOfLine short long |> genNode node
 // end expressions
 
 let genPatLeftMiddleRight (node: PatLeftMiddleRight) =
