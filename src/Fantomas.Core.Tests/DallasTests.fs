@@ -1426,3 +1426,53 @@ module Y =
 
     type D = E
 """
+
+[<Test>]
+let ``app single paren arg`` () =
+    formatSourceString
+        false
+        """
+a(
+    //
+    b,
+    c)
+    
+fn (fun x ->
+    // foo
+    ()
+)
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+a (
+    //
+    b, c
+)
+
+fn (fun x ->
+    // foo
+    ())
+"""
+
+[<Test>]
+let ``app single paren arg + fsharp_multi_line_lambda_closing_newline `` () =
+    formatSourceString
+        false
+        """
+fn (fun x ->
+    // foo
+    ())
+"""
+        { config with MultiLineLambdaClosingNewline = true }
+    |> prepend newline
+    |> should
+        equal
+        """
+fn (fun x ->
+    // foo
+    ()
+)
+"""
