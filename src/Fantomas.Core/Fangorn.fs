@@ -1381,7 +1381,7 @@ let mkXmlDoc (px: PreXmlDoc) =
     else
         let xmlDoc = px.ToXmlDoc(false, None)
         let lines = Array.map (sprintf "///%s") xmlDoc.UnprocessedLines
-        Some(stn (String.concat "\n" lines) xmlDoc.Range)
+        Some(XmlDocNode(lines, xmlDoc.Range))
 
 let mkModuleDecl (creationAide: CreationAide) (decl: SynModuleDecl) =
     let declRange = decl.Range
@@ -1432,25 +1432,24 @@ let mkModuleDecl (creationAide: CreationAide) (decl: SynModuleDecl) =
         |> ModuleDecl.NestedModule
     | decl -> failwithf $"Failed to create ModuleDecl for %A{decl}"
 
+let mkSynTyparDecl (creationAide: CreationAide) (SynTyparDecl(attrs, typar)) =
+    let m =
+        match List.tryHead attrs with
+        | None -> typar.Range
+        | Some a -> unionRanges a.Range typar.Range
+
+    TyparDeclNode(mkAttributes creationAide attrs, mkSynTypar typar, m)
+
 let mkSynTyparDecls (creationAide: CreationAide) (tds: SynTyparDecls) : TyparDecls =
     match tds with
     | SynTyparDecls.PostfixList(decls, constraints, StartEndRange 1 (mOpen, m, mClose)) ->
-        let decls =
-            decls
-            |> List.map (fun (SynTyparDecl(attrs, typar)) ->
-                let m =
-                    match List.tryHead attrs with
-                    | None -> typar.Range
-                    | Some a -> unionRanges a.Range typar.Range
-
-                TyparDeclNode(mkAttributes creationAide attrs, mkSynTypar typar, m))
-
+        let decls = List.map (mkSynTyparDecl creationAide) decls
         let constraints = List.map (mkSynTypeConstraint creationAide) constraints
 
         TyparDeclsPostfixListNode(stn "<" mOpen, decls, constraints, stn ">" mClose, m)
         |> TyparDecls.PostfixList
-    | SynTyparDecls.PrefixList _
-    | SynTyparDecls.SinglePrefix _ -> failwith "todo"
+    | SynTyparDecls.PrefixList _ -> failwith "todo"
+    | SynTyparDecls.SinglePrefix(decl, _) -> mkSynTyparDecl creationAide decl |> TyparDecls.SinglePrefix
 
 let mkSynValTyparDecls (creationAide: CreationAide) (vt: SynValTyparDecls option) : TyparDecls option =
     match vt with
@@ -1504,7 +1503,7 @@ let mkSynTypeConstraint (creationAide: CreationAide) (tc: SynTypeConstraint) : T
         TypeConstraintSubtypeOfTypeNode(mkSynTypar tp, mkType creationAide t, m)
         |> TypeConstraint.SubtypeOfType
     | SynTypeConstraint.WhereTyparSupportsMember(tps, msg, m) ->
-        TypeConstraintSupportsMemberNode(mkType creationAide tps, box msg, m)
+        TypeConstraintSupportsMemberNode(mkType creationAide tps, mkMemberSig creationAide msg, m)
         |> TypeConstraint.SupportsMember
     | SynTypeConstraint.WhereTyparIsEnum(tp, ts, m) ->
         TypeConstraintEnumOrDelegateNode(mkSynTypar tp, "enum", List.map (mkType creationAide) ts, m)

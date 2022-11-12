@@ -120,8 +120,10 @@ let genAccessOpt (nodeOpt: SingleTextNode option) =
     | None -> sepNone
     | Some node -> genSingleTextNode node +> sepSpace
 
-let genXml (node: SingleTextNode option) =
-    optSingle (fun xml -> genSingleTextNode xml +> sepNln) node
+let genXml (node: XmlDocNode option) =
+    match node with
+    | None -> sepNone
+    | Some node -> col sepNln node.Lines (!-) +> sepNln |> genNode node
 
 let addSpaceBeforeParenInPattern (node: IdentListNode) (ctx: Context) =
     node.Content
@@ -2180,7 +2182,8 @@ let genTyparDecls (td: TyparDecls) =
         +> onlyIf (List.isNotEmpty node.Constraints) (sepSpace +> genTypeConstraints node.Constraints)
         +> genSingleTextNode node.GreaterThan
         |> genNode node
-    | _ -> !- "todo"
+    | TyparDecls.PrefixList node -> !- "todo 28FB358E-8026-4BC9-9A79-AD4150858D1D"
+    | TyparDecls.SinglePrefix node -> genTyparDecl true node
 
 let genPat (p: Pattern) =
     match p with
@@ -2656,21 +2659,32 @@ let genOpenList (openList: OpenListNode) =
 
 let genTypeConstraint (tc: TypeConstraint) =
     match tc with
-    | TypeConstraint.Single node -> genSingleTextNode node.Typar +> sepColon +> genSingleTextNode node.Kind
+    | TypeConstraint.Single node ->
+        genSingleTextNode node.Typar +> sepColon +> genSingleTextNode node.Kind
+        |> genNode node
     | TypeConstraint.DefaultsToType node ->
         genSingleTextNode node.Default
         +> sepSpace
         +> genSingleTextNode node.Typar
         +> sepColon
         +> genType node.Type
-    | TypeConstraint.SubtypeOfType node -> genSingleTextNode node.Typar +> !- " :> " +> genType node.Type
-    | TypeConstraint.SupportsMember _ -> failwith "todo!"
+        |> genNode node
+    | TypeConstraint.SubtypeOfType node ->
+        genSingleTextNode node.Typar +> !- " :> " +> genType node.Type |> genNode node
+    | TypeConstraint.SupportsMember node ->
+        genType node.Type
+        +> sepColon
+        +> sepOpenT
+        +> genMemberDefn node.MemberSig
+        +> sepCloseT
+        |> genNode node
     | TypeConstraint.EnumOrDelegate node ->
         genSingleTextNode node.Typar
         +> sepColon
         +> !- $"{node.Verb}<"
         +> col sepComma node.Types genType
         +> !- ">"
+        |> genNode node
     | TypeConstraint.WhereSelfConstrained t -> genType t
 
 let genTypeConstraints (tcs: TypeConstraint list) =
@@ -2839,7 +2853,7 @@ let genTypeWithImplicitConstructor (typeName: TypeNameNode) (implicitConstructor
     +> genSingleTextNode typeName.LeadingKeyword
     +> sepSpace
     +> genAccessOpt typeName.Accessibility
-    +> genIdentListNode typeName.Identifier
+    +> genTypeAndParam (genIdentListNode typeName.Identifier) typeName.TypeParameters
     +> leadingExpressionIsMultiline
         (optSingle (fun imCtor -> sepSpaceBeforeClassConstructor +> genImplicitConstructor imCtor) implicitConstructor)
         (fun isMulti ctx ->
@@ -2895,12 +2909,15 @@ let genTypeDefn (td: TypeDefn) =
     let members = typeDefnNode.Members
 
     let header =
+        let hasAndKeyword = typeName.LeadingKeyword.Text = "and"
+
         genXml typeName.XmlDoc
-        +> genAttributes typeName.Attributes
+        +> onlyIfNot hasAndKeyword (genAttributes typeName.Attributes)
         +> genSingleTextNode typeName.LeadingKeyword
+        +> onlyIf hasAndKeyword (sepSpace +> genOnelinerAttributes typeName.Attributes)
         +> sepSpace
         +> genAccessOpt typeName.Accessibility
-        +> genIdentListNode typeName.Identifier
+        +> genTypeAndParam (genIdentListNode typeName.Identifier) typeName.TypeParameters
         +> sepSpace
         +> optSingle genSingleTextNode typeName.EqualsToken
 
@@ -3152,12 +3169,12 @@ let genUnionCase (hasVerticalBar: bool) (node: UnionCaseNode) =
     +> onlyIf (List.isNotEmpty node.Fields) (expressionFitsOnRestOfLine shortExpr longExpr)
     |> genNode node
 
-let genTypeAndParam (typeName: SingleTextNode) (tds: TyparDecls option) =
+let genTypeAndParam (genTypeName: Context -> Context) (tds: TyparDecls option) =
     match tds with
-    | None -> genSingleTextNode typeName
-    | Some(TyparDecls.PostfixList postfixNode) -> sepNone
-    | Some(TyparDecls.PrefixList prefixNode) -> sepNone
-    | Some(TyparDecls.SinglePrefix singlePrefixNode) -> sepNone
+    | None -> genTypeName
+    | Some(TyparDecls.PostfixList _) -> genTypeName +> optSingle genTyparDecls tds
+    | Some(TyparDecls.PrefixList prefixNode) -> !- "todo!" // genTyparDecl prefixNode +> sepSpace +> genTypeName
+    | Some(TyparDecls.SinglePrefix singlePrefixNode) -> genTyparDecl true singlePrefixNode +> sepSpace +> genTypeName
 
 let genVal (node: ValNode) (optGetSet: MultipleTextsNode option) =
     let genOptExpr =
@@ -3171,7 +3188,7 @@ let genVal (node: ValNode) (optGetSet: MultipleTextsNode option) =
     +> onlyIf node.IsInline (!- "inline ")
     +> onlyIf node.IsMutable (!- "mutable ")
     +> genAccessOpt node.Accessibility
-    +> genTypeAndParam node.Identifier node.TypeParams
+    +> genTypeAndParam (genSingleTextNode node.Identifier) node.TypeParams
     +> ifElse (Option.isSome node.TypeParams) sepColonWithSpacesFixed sepColon
     +> genTypeInSignature node.Type
     +> optSingle (fun gs -> sepSpace +> genMultipleTextsNode gs) optGetSet
