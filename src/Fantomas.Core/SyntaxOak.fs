@@ -1252,10 +1252,12 @@ type ExprDotGetAppWithParenLambdaNode
     member x.ParenLambda = parenLambda
     member x.Arguments = args
 
-type ExprDotGetAppNode(range) =
+type ExprDotGetAppNode(funcExpr: Expr, args: DotGetAppPartNode list, range) =
     inherit NodeBase(range)
 
-    override this.Children = failwith "todo"
+    override this.Children = [| yield Expr.Node funcExpr; yield! nodes args |]
+    member x.FunctionExpr = funcExpr
+    member x.Arguments = args
 
 type ExprAppLongIdentAndSingleParenArgNode(functionName: IdentListNode, argExpr: Expr, range) =
     inherit NodeBase(range)
