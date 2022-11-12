@@ -848,7 +848,20 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
 
         ExprDotGetAppWithParenLambdaNode(mkExpr creationAide e, parenLambdaNode, args, exprRange)
         |> Expr.DotGetAppWithParenLambda
-    // | Expr.DotGetApp _ -> failwith "Not Implemented"
+
+    | DotGetApp(e, es) ->
+        let args =
+            es
+            |> List.map (fun (s, t, e) ->
+                let m = unionRanges s.Range e.Range
+
+                let tpi =
+                    t
+                    |> Option.map (fun (lt, ts, gt) -> stn "<" lt, List.map (mkType creationAide) ts, stn ">" gt)
+
+                DotGetAppPartNode(mkSynLongIdent s, tpi, mkExpr creationAide e, m))
+
+        ExprDotGetAppNode(mkExpr creationAide e, args, exprRange) |> Expr.DotGetApp
     | AppSingleParenArg(SynExpr.LongIdent(longDotId = longDotId), px) ->
         ExprAppLongIdentAndSingleParenArgNode(mkSynLongIdent longDotId, mkExpr creationAide px, exprRange)
         |> Expr.AppLongIdentAndSingleParenArg
