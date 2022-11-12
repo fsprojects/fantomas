@@ -1715,7 +1715,7 @@ let genTuple (node: ExprTupleNode) =
                 | _ -> genExpr e
             | Choice2Of2 comma ->
                 if containsLambdaOrMatchExpr then
-                    sepNln +> genSingleTextNode comma
+                    sepNln +> genSingleTextNode comma +> sepSpace
                 else
                     genSingleTextNode comma +> sepNln
 
