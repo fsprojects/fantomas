@@ -1510,3 +1510,18 @@ Foo(fun x -> x).Bar()
 A.B(fun x -> x).x<s> ()
 Foo(fun x -> x).Bar()
 """
+
+[<Test>]
+let ``DotGetApp test`` () =
+    formatSourceString
+        false
+        """
+ Foo().Bar().Meh()
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+Foo().Bar().Meh()
+"""
