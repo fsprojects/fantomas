@@ -1132,3 +1132,24 @@ type Foo =
     /// Bar
     | Thing
 """
+
+[<Test>]
+let ``anonymous types in a DU formatts correctly, 2621`` () =
+    formatSourceString
+        false
+        """
+type A =
+    | A of int
+    | B of {| A: int; LongerThanLengthDeclaration: string|}
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type A =
+    | A of int
+    | B of
+         {| A: int
+            LongerThanLengthDeclaration: string |}
+"""
