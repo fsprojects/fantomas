@@ -100,6 +100,12 @@ type MultipleTextsNode(content: SingleTextNode list, range) =
     override x.Children = [| yield! nodes content |]
     member x.Content = content
 
+type XmlDocNode(lines: string array, range) =
+
+    inherit NodeBase(range)
+    override x.Children = Array.empty
+    member x.Lines = lines
+
 type Oak(parsedHashDirectives: ParsedHashDirectiveNode list, modulesOrNamespaces: ModuleOrNamespaceNode list) =
     inherit
         NodeBase(
@@ -122,7 +128,7 @@ type ParsedHashDirectiveNode(ident: string, args: SingleTextNode list, range) =
 
 type ModuleOrNamespaceNode
     (
-        xmlDoc: SingleTextNode option,
+        xmlDoc: XmlDocNode option,
         attributes: MultipleAttributeListNode,
         leadingKeyword: SingleTextNode option,
         accessibility: SingleTextNode option,
@@ -1906,7 +1912,7 @@ type ModuleDeclAttributesNode(attributes: MultipleAttributeListNode, doExpr: Exp
 
 type ExceptionDefnNode
     (
-        xmlDoc: SingleTextNode option,
+        xmlDoc: XmlDocNode option,
         attributes: MultipleAttributeListNode,
         accessibility: SingleTextNode option,
         unionCase: UnionCaseNode,
@@ -1944,7 +1950,7 @@ type ModuleAbbrevNode(moduleNode: SingleTextNode, name: SingleTextNode, alias: I
 
 type NestedModuleNode
     (
-        xmlDoc: SingleTextNode option,
+        xmlDoc: XmlDocNode option,
         attributes: MultipleAttributeListNode,
         moduleKeyword: SingleTextNode,
         accessibility: SingleTextNode option,
@@ -2011,7 +2017,7 @@ type BindingReturnInfoNode(colon: SingleTextNode, t: Type, range) =
 
 type BindingNode
     (
-        xmlDoc: SingleTextNode option,
+        xmlDoc: XmlDocNode option,
         attributes: MultipleAttributeListNode,
         leadingKeyword: MultipleTextsNode,
         isMutable: bool,
@@ -2061,7 +2067,7 @@ type BindingListNode(bindings: BindingNode list, range) =
 
 type FieldNode
     (
-        xmlDoc: SingleTextNode option,
+        xmlDoc: XmlDocNode option,
         attributes: MultipleAttributeListNode,
         leadingKeyword: MultipleTextsNode option,
         isMutable: bool,
@@ -2090,7 +2096,7 @@ type FieldNode
 
 type UnionCaseNode
     (
-        xmlDoc: SingleTextNode option,
+        xmlDoc: XmlDocNode option,
         attributes: MultipleAttributeListNode,
         bar: SingleTextNode option,
         identifier: SingleTextNode,
@@ -2114,7 +2120,7 @@ type UnionCaseNode
 
 type TypeNameNode
     (
-        xmlDoc: SingleTextNode option,
+        xmlDoc: XmlDocNode option,
         attrs: MultipleAttributeListNode,
         leadingKeyword: SingleTextNode,
         ao: SingleTextNode option,
@@ -2155,7 +2161,7 @@ type ITypeDefn =
 
 type EnumCaseNode
     (
-        xmlDoc: SingleTextNode option,
+        xmlDoc: XmlDocNode option,
         bar: SingleTextNode option,
         attributes: MultipleAttributeListNode,
         identifier: SingleTextNode,
@@ -2277,7 +2283,7 @@ type SimplePatNode
 
 type ImplicitConstructorNode
     (
-        xmlDoc: SingleTextNode option,
+        xmlDoc: XmlDocNode option,
         attributes: MultipleAttributeListNode,
         accessibility: SingleTextNode option,
         openingParen: SingleTextNode,
@@ -2426,7 +2432,7 @@ type MemberDefnExternBindingNode(range) =
 
 type MemberDefnExplicitCtorNode
     (
-        xmlDoc: SingleTextNode option,
+        xmlDoc: XmlDocNode option,
         attributes: MultipleAttributeListNode,
         accessibility: SingleTextNode option,
         newKeyword: SingleTextNode,
@@ -2483,7 +2489,7 @@ type MemberDefnInterfaceNode
 
 type MemberDefnAutoPropertyNode
     (
-        xmlDoc: SingleTextNode option,
+        xmlDoc: XmlDocNode option,
         attributes: MultipleAttributeListNode,
         leadingKeyword: MultipleTextsNode,
         accessibility: SingleTextNode option,
@@ -2519,7 +2525,7 @@ type MemberDefnAutoPropertyNode
 
 type MemberDefnAbstractSlotNode
     (
-        xmlDoc: SingleTextNode option,
+        xmlDoc: XmlDocNode option,
         attributes: MultipleAttributeListNode,
         leadingKeyword: MultipleTextsNode,
         identifier: SingleTextNode,
@@ -2576,7 +2582,7 @@ type PropertyGetSetBindingNode
 
 type MemberDefnPropertyGetSetNode
     (
-        xmlDoc: SingleTextNode option,
+        xmlDoc: XmlDocNode option,
         attributes: MultipleAttributeListNode,
         leadingKeyword: MultipleTextsNode,
         isInline: bool,
@@ -2614,7 +2620,7 @@ type MemberDefnPropertyGetSetNode
 
 type ValNode
     (
-        xmlDoc: SingleTextNode option,
+        xmlDoc: XmlDocNode option,
         attributes: MultipleAttributeListNode,
         leadingKeyword: MultipleTextsNode option,
         isInline: bool,
@@ -2737,15 +2743,11 @@ type TyparDeclsPrefixListNode(range) =
     inherit NodeBase(range)
     override this.Children = failwith "todo"
 
-type TyparDeclsSinglePrefixNode(range) =
-    inherit NodeBase(range)
-    override this.Children = failwith "todo"
-
 [<RequireQualifiedAccess; NoEquality; NoComparison>]
 type TyparDecls =
     | PostfixList of TyparDeclsPostfixListNode
     | PrefixList of TyparDeclsPrefixListNode
-    | SinglePrefix of TyparDeclsSinglePrefixNode
+    | SinglePrefix of TyparDeclNode
 
     static member Node(td: TyparDecls) : Node =
         match td with
@@ -2772,8 +2774,7 @@ type TypeConstraintSubtypeOfTypeNode(typar: SingleTextNode, t: Type, range) =
     member x.Typar = typar
     member x.Type = t
 
-// TODO: MemberSig
-type TypeConstraintSupportsMemberNode(t: Type, memberSig: obj, range) =
+type TypeConstraintSupportsMemberNode(t: Type, memberSig: MemberDefn, range) =
     inherit NodeBase(range)
     override this.Children = [| yield Type.Node t |]
     member x.Type = t
