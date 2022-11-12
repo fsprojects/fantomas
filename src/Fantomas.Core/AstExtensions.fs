@@ -1,6 +1,10 @@
-﻿module internal Fantomas.Core.AstExtensions
+﻿// open Fantomas.Core
+
+module internal Fantomas.Core.AstExtensions
 
 open FSharp.Compiler.SyntaxTrivia
+// Fantomas.Core + FSharp.Compiler.SyntaxTrivia
+
 open FSharp.Compiler.Text
 open FSharp.Compiler.Text.Range
 open FSharp.Compiler.Syntax
