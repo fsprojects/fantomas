@@ -1045,7 +1045,7 @@ let sepSemi (ctx: Context) =
 let ifAlignBrackets f g =
     ifElseCtx (fun ctx -> ctx.Config.MultilineBlockBracketsOnSameColumn) f g
 
-let printTriviaContent (c: TriviaContent) (ctx: Context) =
+let printTriviaContent (c: TriviaContent) addBefore (ctx: Context) =
     let currentLastLine = ctx.WriterModel.Lines |> List.tryHead
 
     // Some items like #if or Newline should be printed on a newline
@@ -1073,11 +1073,18 @@ let printTriviaContent (c: TriviaContent) (ctx: Context) =
         +> ifElse after sepNlnForTrivia sepNone
     | Newline -> (ifElse addNewline (sepNlnForTrivia +> sepNlnForTrivia) sepNlnForTrivia)
     | Directive s
-    | Comment(CommentOnSingleLine s) -> (ifElse addNewline sepNlnForTrivia sepNone) +> !-s +> sepNlnForTrivia
+    | Comment(CommentOnSingleLine s) ->
+        (ifElse addNewline sepNlnForTrivia sepNone)
+        +> !-s
+        +> (ifElse addBefore sepNlnForTrivia sepNone)
     <| ctx
 
 let printTriviaInstructions (triviaInstructions: TriviaInstruction list) =
-    col sepNone triviaInstructions (fun { Trivia = trivia } -> printTriviaContent trivia.Item)
+    col
+        sepNone
+        triviaInstructions
+        (fun { Trivia = trivia
+               AddBefore = addBefore } -> printTriviaContent trivia.Item addBefore)
 
 let enterNodeFor (mainNodeName: FsAstType) (range: Range) (ctx: Context) =
     match Map.tryFind mainNodeName ctx.TriviaBefore with
