@@ -248,20 +248,40 @@ let triviaBeforeOrAfterEntireTree (rootNode: TriviaNode) (trivia: Trivia) : Triv
 /// Try to put the trivia on top of the closest node
 /// If that didn't work put it after the last node
 let simpleTriviaToTriviaInstruction (containerNode: TriviaNode) (trivia: Trivia) : TriviaInstruction option =
-    containerNode.Children
-    |> Array.tryFind (fun node -> node.Range.StartLine > trivia.Range.StartLine)
+    //TODO: generalize
+    let addAfterTypes = set [ FsAstType.SynAttributeList_ ]
+
+    let addAfterNode =
+        match trivia.Item with
+        | Directive _ when containerNode.Children.[0].Type = FsAstType.SynTypeDefn_And ->
+            containerNode.Children
+            |> Array.rev
+            |> Seq.tryFind (fun node ->
+                Set.contains node.Type addAfterTypes
+                && node.Range.StartLine < trivia.Range.StartLine)
+        | _ -> None
+
+    addAfterNode
     |> Option.map (fun node ->
         { Trivia = trivia
           Type = node.Type
           Range = node.Range
-          AddBefore = true })
+          AddBefore = false })
     |> Option.orElseWith (fun () ->
-        Array.tryLast containerNode.Children
+        containerNode.Children
+        |> Array.tryFind (fun node -> node.Range.StartLine > trivia.Range.StartLine)
         |> Option.map (fun node ->
             { Trivia = trivia
               Type = node.Type
               Range = node.Range
-              AddBefore = false }))
+              AddBefore = true })
+        |> Option.orElseWith (fun () ->
+            Array.tryLast containerNode.Children
+            |> Option.map (fun node ->
+                { Trivia = trivia
+                  Type = node.Type
+                  Range = node.Range
+                  AddBefore = false })))
 
 /// Try and find the smallest possible node
 let lineCommentAfterSourceCodeToTriviaInstruction
