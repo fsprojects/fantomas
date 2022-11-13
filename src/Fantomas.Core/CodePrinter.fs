@@ -2916,7 +2916,7 @@ and genTypeDefn (TypeDef(ats, px, leadingKeyword, ao, tds, tcs, equalsRange, tdr
     let genLeadingKeyword =
         match leadingKeyword with
         | SynTypeDefnLeadingKeyword.Type mType -> genAttributes ats +> genTriviaFor SynTypeDefn_Type mType !- "type "
-        | SynTypeDefnLeadingKeyword.And mAnd -> genTriviaFor SynTypeDefn_And mAnd !- "and " +> genOnelinerAttributes ats
+        | SynTypeDefnLeadingKeyword.And mAnd -> genTriviaFor SynTypeDefn_And mAnd !- "and " +> genAttributes ats
         | SynTypeDefnLeadingKeyword.StaticType _
         | SynTypeDefnLeadingKeyword.Synthetic -> sepNone
 
