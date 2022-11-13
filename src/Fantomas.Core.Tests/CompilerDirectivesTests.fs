@@ -2983,3 +2983,85 @@ let ``dead code in active block`` () =
 b
 #endif
 """
+
+[<Test>]
+let ``dont delete #if attr in "and" type, 628`` () =
+    formatSourceStringWithDefines
+        [ "NET2" ]
+        """
+#if NET2
+[<Attr1>]
+#else
+[<Attr2>]
+#endif
+[<NoComparison>]
+type internal T1 = T1
+and [<NoComparison>]
+#if NET2
+[<Attr1>]
+#else
+[<Attr2>]
+#endif
+    internal T2 = T2
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+#if NET2
+[<Attr1>]
+#else
+#endif
+[<NoComparison>]
+type internal T1 = T1
+
+and [<NoComparison>]
+#if NET2
+[<Attr1>]
+#else
+#endif
+internal T2 = T2
+"""
+
+[<Test>]
+let ``attributes in "and" type`` () =
+    formatSourceString
+        false
+        """
+#if NET2
+[<Attr1>]
+#else
+[<Attr2>]
+#endif
+[<NoComparison>]
+type internal T1 = T1
+and [<NoComparison>]
+#if NET2
+[<Attr1>]
+#else
+[<Attr2>]
+#endif
+    internal T2 = T2
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+#if NET2
+[<Attr1>]
+#else
+[<Attr2>]
+#endif
+[<NoComparison>]
+type internal T1 = T1
+
+and [<NoComparison>]
+#if NET2
+[<Attr1>]
+#else
+[<Attr2>]
+#endif
+internal T2 = T2
+"""
