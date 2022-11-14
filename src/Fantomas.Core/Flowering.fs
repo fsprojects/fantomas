@@ -22,7 +22,7 @@ let internal collectTriviaFromCodeComments (source: ISourceText) (codeComments: 
                 then
                     CommentOnSingleLine content
                 else
-                    failwith "todo 4DEC9B6F-5143-475F-A78B-542E786F3E2A"
+                    BlockComment(content, false, false)
 
             TriviaNode(content, r)
         | CommentTrivia.LineComment r ->
@@ -216,6 +216,43 @@ let simpleTriviaToTriviaInstruction (containerNode: Node) (trivia: TriviaNode) :
     |> Option.orElseWith (fun () -> Array.tryLast containerNode.Children |> Option.map (fun n -> n.AddAfter))
     |> Option.iter (fun f -> f trivia)
 
+let blockCommentToTriviaInstruction (containerNode: Node) (trivia: TriviaNode) : unit =
+    let nodeAfter =
+        containerNode.Children
+        |> Seq.tryFind (fun tn ->
+            let range = tn.Range
+
+            (range.StartLine > trivia.Range.StartLine)
+            || (range.StartLine = trivia.Range.StartLine
+                && range.StartColumn > trivia.Range.StartColumn))
+
+    let nodeBefore =
+        containerNode.Children
+        |> Seq.tryFindBack (fun tn ->
+            let range = tn.Range
+
+            range.EndLine <= trivia.Range.StartLine
+            && range.EndColumn <= trivia.Range.StartColumn)
+        |> Option.map visitLastChildNode
+
+    let triviaWith newlineBefore newlineAfter =
+        match trivia.Content with
+        | BlockComment(content, _, _) ->
+            let content = BlockComment(content, newlineBefore, newlineAfter)
+            TriviaNode(content, trivia.Range)
+        | _ -> trivia
+
+    match nodeBefore, nodeAfter with
+    | Some nb, None when nb.Range.EndLine = trivia.Range.StartLine -> nb.AddAfter(triviaWith false false)
+    | Some nb, Some na when
+        (nb.Range.EndLine < trivia.Range.StartLine
+         && na.Range.StartLine > trivia.Range.EndLine)
+        ->
+        nb.AddBefore(triviaWith true true)
+    | Some nb, _ when nb.Range.EndLine = trivia.Range.StartLine -> nb.AddAfter(triviaWith false false)
+    | None, Some na -> na.AddBefore(triviaWith true false)
+    | _ -> ()
+
 let addToTree (tree: Oak) (trivia: TriviaNode seq) =
     for trivia in trivia do
         let smallestNodeThatContainsTrivia = findNodeWhereRangeFitsIn tree trivia.Range
@@ -227,6 +264,7 @@ let addToTree (tree: Oak) (trivia: TriviaNode seq) =
             | LineCommentAfterSourceCode _ -> lineCommentAfterSourceCodeToTriviaInstruction parentNode trivia
             | CommentOnSingleLine _
             | Newline -> simpleTriviaToTriviaInstruction parentNode trivia
+            | BlockComment _ -> blockCommentToTriviaInstruction parentNode trivia
 
 let enrichTree (config: FormatConfig) (sourceText: ISourceText) (ast: ParsedInput) (tree: Oak) : Oak =
     let _directives, codeComments =
