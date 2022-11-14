@@ -756,26 +756,31 @@ let a =
 <p>Default = false.</p>
 <pre class="fssnip highlighted"><code lang="fsharp"><span onmouseout="hideTip(event, 'fs4', 101)" onmouseover="showTip(event, 'fs4', 101)" class="fn">formatCode</span>
     <span class="s">&quot;&quot;&quot; </span>
-<span class="s">    type Range =</span>
+<span class="s">type Range =</span>
 <span class="s">    { From: float</span>
 <span class="s">      To: float }</span>
 <span class="s">    member this.Length = this.To - this.From</span>
 <span class="s">    &quot;&quot;&quot;</span>
     <span class="pn">{</span> <span onmouseout="hideTip(event, 'fs11', 102)" onmouseover="showTip(event, 'fs11', 102)" class="m">FormatConfig</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs12', 103)" onmouseover="showTip(event, 'fs12', 103)" class="id">Default</span> <span class="k">with</span> <span class="prop">NewlineBetweenTypeDefinitionAndMembers</span> <span class="o">=</span> <span class="k">true</span> <span class="pn">}</span>
 </code></pre>
-<table class="pre"><tr><td><pre><code>No value returned by any evaluator</code></pre></td></tr></table>
+<table class="pre"><tr><td><pre><code>"type Range =
+    { From: float
+      To: float }
+
+    member this.Length = this.To - this.From
+"</code></pre></td></tr></table>
 <fantomas-setting name="fsharp_align_function_signature_to_indentation" green gr></fantomas-setting>
 <p>When a function signature exceeds the <code>max_line_length</code>, Fantomas will put all parameters on separate lines.<br />
 This setting also places the equals sign and return type on a new line.</p>
 <p>Default = false.</p>
 <pre class="fssnip highlighted"><code lang="fsharp"><span onmouseout="hideTip(event, 'fs4', 104)" onmouseover="showTip(event, 'fs4', 104)" class="fn">formatCode</span>
     <span class="s">&quot;&quot;&quot; </span>
-<span class="s">    [&lt;FunctionName(&quot;FormatCode&quot;)&gt;]</span>
-<span class="s">    let run </span>
-<span class="s">        ([&lt;HttpTrigger(AuthorizationLevel.Anonymous, &quot;get&quot;, &quot;post&quot;, Route = &quot;{*any}&quot;)&gt;] req: HttpRequest)</span>
-<span class="s">        (log: ILogger)</span>
-<span class="s">        : HttpResponse =</span>
-<span class="s">        Http.main CodeFormatter.GetVersion format FormatConfig.FormatConfig.Default log req</span>
+<span class="s">[&lt;FunctionName(&quot;FormatCode&quot;)&gt;]</span>
+<span class="s">let run </span>
+<span class="s">    ([&lt;HttpTrigger(AuthorizationLevel.Anonymous, &quot;get&quot;, &quot;post&quot;, Route = &quot;{*any}&quot;)&gt;] req: HttpRequest)</span>
+<span class="s">    (log: ILogger)</span>
+<span class="s">    : HttpResponse =</span>
+<span class="s">    Http.main CodeFormatter.GetVersion format FormatConfig.FormatConfig.Default log req</span>
 <span class="s">    &quot;&quot;&quot;</span>
     <span class="pn">{</span> <span onmouseout="hideTip(event, 'fs11', 105)" onmouseover="showTip(event, 'fs11', 105)" class="m">FormatConfig</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs12', 106)" onmouseover="showTip(event, 'fs12', 106)" class="id">Default</span> <span class="k">with</span> <span class="prop">AlignFunctionSignatureToIndentation</span> <span class="o">=</span> <span class="k">true</span> <span class="pn">}</span>
 </code></pre>
@@ -793,23 +798,23 @@ where the difference is mainly in the equal sign and returned type placement.</p
 <p>Default = false.</p>
 <pre class="fssnip highlighted"><code lang="fsharp"><span onmouseout="hideTip(event, 'fs4', 107)" onmouseover="showTip(event, 'fs4', 107)" class="fn">formatCode</span>
     <span class="s">&quot;&quot;&quot; </span>
-<span class="s">    type C</span>
-<span class="s">        (</span>
-<span class="s">            aVeryLongType: AVeryLongTypeThatYouNeedToUse,</span>
-<span class="s">            aSecondVeryLongType: AVeryLongTypeThatYouNeedToUse,</span>
-<span class="s">            aThirdVeryLongType: AVeryLongTypeThatYouNeedToUse</span>
-<span class="s">        ) =</span>
-<span class="s">        class</span>
-<span class="s">        end</span>
+<span class="s">type C</span>
+<span class="s">    (</span>
+<span class="s">        aVeryLongType: AVeryLongTypeThatYouNeedToUse,</span>
+<span class="s">        aSecondVeryLongType: AVeryLongTypeThatYouNeedToUse,</span>
+<span class="s">        aThirdVeryLongType: AVeryLongTypeThatYouNeedToUse</span>
+<span class="s">    ) =</span>
+<span class="s">    class</span>
+<span class="s">    end</span>
 
-<span class="s">    type D() =</span>
-<span class="s">        member _.LongMethodWithLotsOfParameters</span>
-<span class="s">            (</span>
-<span class="s">                aVeryLongParam: AVeryLongTypeThatYouNeedToUse,</span>
-<span class="s">                aSecondVeryLongParam: AVeryLongTypeThatYouNeedToUse,</span>
-<span class="s">                aThirdVeryLongParam: AVeryLongTypeThatYouNeedToUse</span>
-<span class="s">            ) : ReturnType =</span>
-<span class="s">            42</span>
+<span class="s">type D() =</span>
+<span class="s">    member _.LongMethodWithLotsOfParameters</span>
+<span class="s">        (</span>
+<span class="s">            aVeryLongParam: AVeryLongTypeThatYouNeedToUse,</span>
+<span class="s">            aSecondVeryLongParam: AVeryLongTypeThatYouNeedToUse,</span>
+<span class="s">            aThirdVeryLongParam: AVeryLongTypeThatYouNeedToUse</span>
+<span class="s">        ) : ReturnType =</span>
+<span class="s">        42</span>
 <span class="s">    &quot;&quot;&quot;</span>
     <span class="pn">{</span> <span onmouseout="hideTip(event, 'fs11', 108)" onmouseover="showTip(event, 'fs11', 108)" class="m">FormatConfig</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs12', 109)" onmouseover="showTip(event, 'fs12', 109)" class="id">Default</span> <span class="k">with</span> <span class="prop">AlternativeLongMemberDefinitions</span> <span class="o">=</span> <span class="k">true</span> <span class="pn">}</span>
 </code></pre>
@@ -839,20 +844,19 @@ type D() =
 <p>Default = false.</p>
 <pre class="fssnip highlighted"><code lang="fsharp"><span onmouseout="hideTip(event, 'fs4', 110)" onmouseover="showTip(event, 'fs4', 110)" class="fn">formatCode</span>
     <span class="s">&quot;&quot;&quot; </span>
-<span class="s">    let printListWithOffset a list1 =</span>
-<span class="s">        List.iter</span>
-<span class="s">            (fun { ItemOne = a } -&gt;</span>
-<span class="s">                // print</span>
-<span class="s">                printfn &quot;%s&quot; a)</span>
-<span class="s">            list1</span>
-
-<span class="s">    let printListWithOffset a list1 =</span>
+<span class="s">let printListWithOffset a list1 =</span>
+<span class="s">    List.iter</span>
+<span class="s">        (fun { ItemOne = a } -&gt;</span>
+<span class="s">            // print</span>
+<span class="s">            printfn &quot;%s&quot; a)</span>
 <span class="s">        list1</span>
-<span class="s">        |&gt; List.iter</span>
-<span class="s">            (fun elem -&gt;</span>
-<span class="s">                // print stuff</span>
-<span class="s">                printfn &quot;%d&quot; (a + elem))</span>
 
+<span class="s">let printListWithOffset a list1 =</span>
+<span class="s">    list1</span>
+<span class="s">    |&gt; List.iter</span>
+<span class="s">        (fun elem -&gt;</span>
+<span class="s">            // print stuff</span>
+<span class="s">            printfn &quot;%d&quot; (a + elem))</span>
 <span class="s">    &quot;&quot;&quot;</span>
     <span class="pn">{</span> <span onmouseout="hideTip(event, 'fs11', 111)" onmouseover="showTip(event, 'fs11', 111)" class="m">FormatConfig</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs12', 112)" onmouseover="showTip(event, 'fs12', 112)" class="id">Default</span> <span class="k">with</span> <span class="prop">MultiLineLambdaClosingNewline</span> <span class="o">=</span> <span class="k">true</span> <span class="pn">}</span>
 </code></pre>
@@ -877,7 +881,7 @@ Only when the last pattern match or else branch was already at the same level of
 <p><em>This feature is considered experimental and is subject to change.</em></p>
 <pre class="fssnip highlighted"><code lang="fsharp"><span onmouseout="hideTip(event, 'fs4', 113)" onmouseover="showTip(event, 'fs4', 113)" class="fn">formatCode</span>
     <span class="s">&quot;&quot;&quot; </span>
-<span class="s">    let main argv =</span>
+<span class="s">let main argv =</span>
 <span class="s">    let args = parse argv</span>
 
 <span class="s">    let instructions = Library.foo args</span>
