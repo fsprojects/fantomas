@@ -78,6 +78,12 @@ let genTrivia (trivia: TriviaNode) (ctx: Context) =
         | LineCommentAfterSourceCode s ->
             let comment = sprintf "%s%s" (if addSpace then " " else String.empty) s
             writerEvent (WriteBeforeNewline comment)
+        | BlockComment(comment, before, after) ->
+            ifElse (before && addNewline) sepNlnForTrivia sepNone
+            +> sepSpace
+            +> !-comment
+            +> sepSpace
+            +> ifElse after sepNlnForTrivia sepNone
         | CommentOnSingleLine comment -> (ifElse addNewline sepNlnForTrivia sepNone) +> !-comment +> sepNlnForTrivia
         | Newline -> (ifElse addNewline (sepNlnForTrivia +> sepNlnForTrivia) sepNlnForTrivia)
 
@@ -2714,21 +2720,24 @@ let genType (t: Type) =
                     +> genType node.ReturnType
                 )
 
-        expressionFitsOnRestOfLine short long
-    | Type.Tuple node -> genSynTupleTypeSegments node.Path
-    | Type.HashConstraint node -> genSingleTextNode node.Hash +> genType node.Type
-    | Type.MeasurePower node -> genType node.BaseMeasure +> !- "^" +> !-node.Exponent
+        expressionFitsOnRestOfLine short long |> genNode node
+    | Type.Tuple node -> genSynTupleTypeSegments node.Path |> genNode node
+    | Type.HashConstraint node -> genSingleTextNode node.Hash +> genType node.Type |> genNode node
+    | Type.MeasurePower node -> genType node.BaseMeasure +> !- "^" +> !-node.Exponent |> genNode node
     | Type.StaticConstant c -> genConstant c
-    | Type.StaticConstantExpr node -> genSingleTextNode node.Const +> sepSpace +> genExpr node.Expr
+    | Type.StaticConstantExpr node -> genSingleTextNode node.Const +> sepSpace +> genExpr node.Expr |> genNode node
     | Type.StaticConstantNamed node ->
         genType node.Identifier
         +> !- "="
         +> addSpaceIfSynTypeStaticConstantHasAtSignBeforeString node.Value
         +> genType node.Value
-    | Type.Array node -> genType node.Type +> !- "[" +> rep (node.Rank - 1) (!- ",") +> !- "]"
+        |> genNode node
+    | Type.Array node ->
+        genType node.Type +> !- "[" +> rep (node.Rank - 1) (!- ",") +> !- "]"
+        |> genNode node
     | Type.Anon node -> genSingleTextNode node
     | Type.Var node -> genSingleTextNode node
-    | Type.AppPostfix node -> genType node.First +> sepSpace +> genType node.Last
+    | Type.AppPostfix node -> genType node.First +> sepSpace +> genType node.Last |> genNode node
     | Type.AppPrefix node ->
         let addExtraSpace =
             match node.Arguments with
@@ -2743,12 +2752,14 @@ let genType (t: Type) =
         +> col sepComma node.Arguments genType
         +> addExtraSpace
         +> genSingleTextNode node.GreaterThan
+        |> genNode node
     | Type.StructTuple node ->
         genSingleTextNode node.Keyword
         +> sepSpace
         +> sepOpenT
         +> genSynTupleTypeSegments node.Path
         +> genSingleTextNode node.ClosingParen
+        |> genNode node
     | Type.WithSubTypeConstraint tc -> genTypeConstraint tc
     | Type.WithGlobalConstraints node ->
         leadingExpressionIsMultiline (genType node.Type) (fun isMultiline ->
@@ -2756,23 +2767,69 @@ let genType (t: Type) =
                 indentSepNlnUnindent (genTypeConstraints node.TypeConstraints)
             else
                 sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth (genTypeConstraints node.TypeConstraints))
+        |> genNode node
     | Type.LongIdent idn -> genIdentListNode idn
-    | Type.AnonRecord node -> genAnonRecordType node
+    | Type.AnonRecord node ->
+        let genStruct =
+            match node.Struct with
+            | None -> sepNone
+            | Some n -> genSingleTextNode n +> sepSpace
+
+        let genOpening =
+            match node.Opening with
+            | None -> sepOpenAnonRecdFixed
+            | Some n -> genSingleTextNode n
+
+        let genAnonRecordFieldType (i, t) =
+            genSingleTextNode i
+            +> sepColon
+            +> autoIndentAndNlnIfExpressionExceedsPageWidth (genType t)
+
+        let smallExpression =
+            genStruct
+            +> genOpening
+            +> col sepSemi node.Fields genAnonRecordFieldType
+            +> sepCloseAnonRecd
+
+        let longExpression =
+            let genFields = col sepNln node.Fields genAnonRecordFieldType
+
+            let genMultilineAnonRecordTypeAlignBrackets =
+                let genRecord =
+                    sepOpenAnonRecdFixed
+                    +> indentSepNlnUnindent (atCurrentColumnIndent genFields)
+                    +> sepNln
+                    +> sepCloseAnonRecdFixed
+
+                genStruct +> genRecord
+
+            let genMultilineAnonRecordType =
+                let genRecord = sepOpenAnonRecd +> atCurrentColumn genFields +> sepCloseAnonRecd
+                genStruct +> genRecord
+
+            ifAlignBrackets genMultilineAnonRecordTypeAlignBrackets genMultilineAnonRecordType
+
+        fun (ctx: Context) ->
+            let size = getRecordSize ctx node.Fields
+            genNode node (isSmallExpression size smallExpression longExpression) ctx
+
     | Type.Paren node ->
         genSingleTextNode node.OpeningParen
         +> genType node.Type
         +> genSingleTextNode node.ClosingParen
+        |> genNode node
     | Type.SignatureParameter node ->
         genOnelinerAttributes node.Attributes
         +> optSingle (fun id -> genSingleTextNode id +> sepColon) node.Identifier
         +> autoIndentAndNlnIfExpressionExceedsPageWidth (genType node.Type)
+        |> genNode node
     | Type.Or node ->
         genType node.LeftHandSide
         +> sepSpace
         +> genSingleTextNode node.Or
         +> sepSpace
         +> genType node.RightHandSide
-    |> genNode (Type.Node t)
+        |> genNode node
 
 let genSynTupleTypeSegments (path: Choice<Type, SingleTextNode> list) =
     let genTs addNewline =
@@ -2782,50 +2839,6 @@ let genSynTupleTypeSegments (path: Choice<Type, SingleTextNode> list) =
             | Choice2Of2 node -> genSingleTextNode node +> onlyIf addNewline sepNln)
 
     expressionFitsOnRestOfLine (genTs false) (genTs true)
-
-let genAnonRecordType (node: TypeAnonRecordNode) =
-    let genStruct =
-        match node.Struct with
-        | None -> sepNone
-        | Some n -> genSingleTextNode n +> sepSpace
-
-    let genOpening =
-        match node.Opening with
-        | None -> sepOpenAnonRecdFixed
-        | Some n -> genSingleTextNode n
-
-    let genAnonRecordFieldType (i, t) =
-        genSingleTextNode i
-        +> sepColon
-        +> autoIndentAndNlnIfExpressionExceedsPageWidth (genType t)
-
-    let smallExpression =
-        genStruct
-        +> genOpening
-        +> col sepSemi node.Fields genAnonRecordFieldType
-        +> sepCloseAnonRecd
-
-    let longExpression =
-        let genFields = col sepNln node.Fields genAnonRecordFieldType
-
-        let genMultilineAnonRecordTypeAlignBrackets =
-            let genRecord =
-                sepOpenAnonRecdFixed
-                +> indentSepNlnUnindent (atCurrentColumnIndent genFields)
-                +> sepNln
-                +> sepCloseAnonRecdFixed
-
-            genStruct +> genRecord
-
-        let genMultilineAnonRecordType =
-            let genRecord = sepOpenAnonRecd +> atCurrentColumn genFields +> sepCloseAnonRecd
-            genStruct +> genRecord
-
-        ifAlignBrackets genMultilineAnonRecordTypeAlignBrackets genMultilineAnonRecordType
-
-    fun (ctx: Context) ->
-        let size = getRecordSize ctx node.Fields
-        isSmallExpression size smallExpression longExpression ctx
 
 let addSpaceIfSynTypeStaticConstantHasAtSignBeforeString (t: Type) =
     match t with
