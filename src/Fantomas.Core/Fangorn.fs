@@ -1332,13 +1332,17 @@ let mkBindingReturnInfo creationAide (returnInfo: SynBindingReturnInfo option) =
 
 let mkBinding
     (creationAide: CreationAide)
-    (SynBinding(ao, _, isInline, isMutable, attributes, xmlDoc, _, pat, returnInfo, expr, _, _, trivia))
+    (SynBinding(_, _, isInline, isMutable, attributes, xmlDoc, _, pat, returnInfo, expr, _, _, trivia))
     =
-    let functionName, genericParameters, parameters =
+    let ao, functionName, genericParameters, parameters =
         match pat with
-        | SynPat.LongIdent(longDotId = lid; typarDecls = typarDecls; argPats = SynArgPats.Pats ps) ->
-            Choice1Of2(mkSynLongIdent lid), mkSynValTyparDecls creationAide typarDecls, List.map (mkPat creationAide) ps
-        | _ -> Choice2Of2(mkPat creationAide pat), None, []
+        | SynPat.LongIdent(accessibility = ao; longDotId = lid; typarDecls = typarDecls; argPats = SynArgPats.Pats ps) ->
+            ao,
+            Choice1Of2(mkSynLongIdent lid),
+            mkSynValTyparDecls creationAide typarDecls,
+            List.map (mkPat creationAide) ps
+        | SynPat.Named(accessibility = ao) -> ao, Choice2Of2(mkPat creationAide pat), None, []
+        | _ -> None, Choice2Of2(mkPat creationAide pat), None, []
 
     let equals = stn "=" trivia.EqualsRange.Value
 

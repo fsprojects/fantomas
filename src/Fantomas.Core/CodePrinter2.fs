@@ -2381,7 +2381,8 @@ let clean_up_is_rec_function (leadingKeyword: MultipleTextsNode) =
 let clean_up_addSpaceBeforeParensInFunDef (spaceBeforeSetting: bool) (functionOrMethod: IdentListNode) (arg: Pattern) =
     match functionOrMethod.Content, arg with
     | [ IdentifierOrDot.Ident newIdent ], _ when newIdent.Text = "new" -> false
-    | _, Pattern.Paren _ -> spaceBeforeSetting
+    | _, Pattern.Paren _
+    | _, Pattern.Unit _ -> spaceBeforeSetting
     | _, Pattern.Named _
     | _, Pattern.Wild _ -> true
     | content, _ ->
