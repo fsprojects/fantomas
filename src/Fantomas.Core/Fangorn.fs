@@ -1946,26 +1946,25 @@ let mkTypeDefn
         |> TypeDefn.Regular
     | _ -> failwithf "Could not create a TypeDefn for %A" typeRepr
 
-let mkWithGetSet (t: SynType option) (withKeyword: range option) (getSet: range option) (memberKind: SynMemberKind) =
+let mkWithGetSet (t: SynType option) (withKeyword: range option) (getSet: GetSetKeywords option) =
     let isFunctionProperty =
         match t with
         | Some(SynType.Fun _) -> true
         | _ -> false
 
     match withKeyword, getSet with
-    | Some mWith, Some mGS ->
+    | Some mWith, Some gs ->
         let withNode = stn "with" mWith
-        let m = unionRanges mWith mGS
+        let m = unionRanges mWith gs.Range
 
-        match memberKind with
-        | SynMemberKind.PropertyGet ->
-            if not isFunctionProperty then
-                None
+        match gs with
+        | GetSetKeywords.Get mGet -> Some(MultipleTextsNode([ withNode; stn "get" mGet ], m))
+        | GetSetKeywords.Set mSet -> Some(MultipleTextsNode([ withNode; stn "set" mSet ], m))
+        | GetSetKeywords.GetSet(mGet, mSet) ->
+            if rangeBeforePos mGet mSet.Start then
+                Some(MultipleTextsNode([ withNode; stn "get" mGet; stn "set" mSet ], m))
             else
-                Some(MultipleTextsNode([ withNode; stn "get" mGS ], m))
-        | SynMemberKind.PropertySet -> Some(MultipleTextsNode([ withNode; stn "set" mGS ], m))
-        | SynMemberKind.PropertyGetSet -> Some(MultipleTextsNode([ withNode; stn "get, set" mGS ], m))
-        | _ -> None
+                Some(MultipleTextsNode([ withNode; stn "set" mSet; stn "get" mGet ], m))
     | _ -> None
 
 let mkPropertyGetSetBinding
@@ -2115,7 +2114,7 @@ let mkMemberDefn (creationAide: CreationAide) (md: SynMemberDefn) =
                                  { LeadingKeyword = lk
                                    EqualsRange = Some mEq
                                    WithKeyword = mWith
-                                   GetSetKeyword = mGS }) ->
+                                   GetSetKeywords = mGS }) ->
         MemberDefnAutoPropertyNode(
             mkXmlDoc px,
             mkAttributes creationAide ats,
@@ -2125,11 +2124,11 @@ let mkMemberDefn (creationAide: CreationAide) (md: SynMemberDefn) =
             Option.map (mkType creationAide) typeOpt,
             stn "=" mEq,
             mkExpr creationAide e,
-            mkWithGetSet typeOpt mWith mGS mk,
+            mkWithGetSet typeOpt mWith mGS,
             memberDefinitionRange
         )
         |> MemberDefn.AutoProperty
-    | SynMemberDefn.AbstractSlot(SynValSig(ats, ident, tds, t, _, _, _, px, _ao, _, _, trivia), mf, _) ->
+    | SynMemberDefn.AbstractSlot(SynValSig(ats, ident, tds, t, _, _, _, px, _ao, _, _, trivia), _, _, abstractSlotTrivia) ->
         MemberDefnAbstractSlotNode(
             mkXmlDoc px,
             mkAttributes creationAide ats,
@@ -2137,8 +2136,7 @@ let mkMemberDefn (creationAide: CreationAide) (md: SynMemberDefn) =
             mkSynIdent ident,
             mkSynValTyparDecls creationAide (Some tds),
             mkType creationAide t,
-            // TODO: add to parser
-            mkWithGetSet (Some t) trivia.WithKeyword None mf.MemberKind,
+            mkWithGetSet (Some t) trivia.WithKeyword abstractSlotTrivia.GetSetKeywords,
             memberDefinitionRange
         )
         |> MemberDefn.AbstractSlot
@@ -2270,13 +2268,12 @@ let mkMemberSig (creationAide: CreationAide) (ms: SynMemberSig) =
     let memberSigRange = ms.Range
 
     match ms with
-    | SynMemberSig.Member(vs, mf, _) ->
+    | SynMemberSig.Member(vs, _, _, memberTrivia) ->
         let (SynValSig(synType = t; trivia = trivia)) = vs
 
         MemberDefnSigMemberNode(
             mkVal creationAide vs,
-            // TODO: add getSet to trivia
-            mkWithGetSet (Some t) trivia.WithKeyword None mf.MemberKind,
+            mkWithGetSet (Some t) trivia.WithKeyword memberTrivia.GetSetKeywords,
             memberSigRange
         )
         |> MemberDefn.SigMember
