@@ -6,6 +6,7 @@ open FSharp.Compiler.Text
 type TriviaContent =
     | CommentOnSingleLine of string
     | LineCommentAfterSourceCode of comment: string
+    | BlockComment of string * newlineBefore: bool * newlineAfter: bool
     | Newline
 
 type TriviaNode(content: TriviaContent, range: range) =
