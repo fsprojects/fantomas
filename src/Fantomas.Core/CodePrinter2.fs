@@ -257,7 +257,7 @@ let genExpr (e: Expr) =
         |> genNode node
     | Expr.Single node ->
         genSingleTextNode node.Leading
-        +> onlyIf node.AddSpace sepSpace
+        +> onlyIf node.AddSpace sepSpaceUnlessWriteBeforeNewlineNotEmpty
         +> ifElse
             node.SupportsStroustrup
             (autoIndentAndNlnIfExpressionExceedsPageWidthUnlessStroustrup genExpr node.Expr)
