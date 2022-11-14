@@ -1,11 +1,7 @@
 ﻿module rec Fantomas.Core.SyntaxOak
 
 open System.Collections.Generic
-open System.Data
 open FSharp.Compiler.Text
-
-// Open questions:
-// - Do we need to distinguish between SignatureFile and ImplementationFile?
 
 type TriviaContent =
     | CommentOnSingleLine of string
@@ -106,13 +102,8 @@ type XmlDocNode(lines: string array, range) =
     override x.Children = Array.empty
     member x.Lines = lines
 
-type Oak(parsedHashDirectives: ParsedHashDirectiveNode list, modulesOrNamespaces: ModuleOrNamespaceNode list) =
-    inherit
-        NodeBase(
-            [| yield! nodes parsedHashDirectives; yield! nodes modulesOrNamespaces |]
-            |> Seq.map nodeRange
-            |> combineRanges
-        )
+type Oak(parsedHashDirectives: ParsedHashDirectiveNode list, modulesOrNamespaces: ModuleOrNamespaceNode list, m: range) =
+    inherit NodeBase(m)
 
     member x.ParsedHashDirectives = parsedHashDirectives
     member x.ModulesOrNamespaces = modulesOrNamespaces
