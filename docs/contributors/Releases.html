@@ -5,7 +5,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
   <meta name="author" content="">
-  <title>Ignore Files
+  <title>Releases
 </title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -177,31 +177,54 @@
       </nav>
       <div id="fsdocs-content" class="bg-white m-2 m-sm-5 p-3 p-sm-4">
         
-<h1><a name="Ignore-Files" class="anchor" href="#Ignore-Files">Ignore Files</a></h1>
-<p><em>starting version 4.1</em></p>
-<p>To exclude files from formatting, create a <code>.fantomasignore</code> file in the root of your project.<br />
-<code>.fantomasignore</code> uses <a href="https://git-scm.com/docs/gitignore">gitignore</a> syntax (processed via <a href="https://github.com/goelhardik/ignore">Ignore</a>).<br />
-Ignored files will be picked up by the <a href="https://www.nuget.org/packages/fantomas/">Fantomas command line tool</a>.</p>
-<p>Exclusion applies both to formatting and the format checking.</p>
-<pre class="fssnip highlighted"><code lang="fsharp"><span class="pn">#</span><span class="id">Ignore</span> <span class="id">Fable</span> <span class="id">files</span>
-<span class="pn">.</span><span class="id">fable</span><span class="o">/</span>
+<h1><a name="Releases" class="anchor" href="#Releases">Releases</a></h1>
+<p>Releases in Fantomas are not automated and require some manual steps by the maintainers.</p>
+<h2><a name="Preparation" class="anchor" href="#Preparation">Preparation</a></h2>
+<p>The <a href="https://github.com/fsprojects/fantomas/blob/main/CHANGELOG.md">CHANGELOG.md</a> needs a new header with an official release tag:</p>
+<table class="pre"><tr><td class="snippet"><pre class="fssnip"><code lang="md">## [5.1.0] - 2022-11-04
+</code></pre></td></tr></table>
+<p>It is custom to have the next version merged into the <code>main</code> branch and locally publish from there.</p>
+<p>Verify that all recent PRs and closed issues are listed in the changelog. Normally, this should be ok as we require a changelog entry before we merge a PR.</p>
+<h2><a name="NuGet-push" class="anchor" href="#NuGet-push">NuGet push</a></h2>
+<p>To publish the new versions to NuGet:</p>
+<blockquote>
+<p>dotnet fsi build.fsx --push</p>
+</blockquote>
+<p>The <code>--push</code> will try and publish the <code>*.nupkg</code> files created by the build in the <code>bin</code> folder.
+<code>Fantomas.Client</code> will be excluded and requires a specific pipeline to publish.</p>
+<p>The pipeline does assume that the <code>NUGET_KEY</code> environment variable is set with a valid NuGet key.</p>
+<h2><a name="GitHub-release" class="anchor" href="#GitHub-release">GitHub release</a></h2>
+<p>A new GitHub release entry should be created for official versions. This will notify users who have subscribed to releases.<br />
+In the past some alpha or beta releases have had a GitHub release, it depends on the occasion.</p>
+<h3><a name="Tag" class="anchor" href="#Tag">Tag</a></h3>
+<p>Create a new tag based on the main branch. The assumption is that the <code>CHANGELOG</code> file contains the tag version you are about to create.</p>
+<h3><a name="Release-title" class="anchor" href="#Release-title">Release title</a></h3>
+<p>For a revision release you can use the current date (example: <code>October 13th Release</code>), for a minor or major releas pick the month name (example: <code>September</code>).</p>
+<h3><a name="Description" class="anchor" href="#Description">Description</a></h3>
+<p>Some parts of the description are fixed, some depend on the occasions:</p>
+<table class="pre"><tr><td class="snippet"><pre class="fssnip"><code lang="md"># Title
 
-<span class="pn">#</span><span class="id">Ignore</span> <span class="id">script</span> <span class="id">files</span>
-<span class="o">*.</span><span class="id">fsx</span>
-</code></pre>
-<p>Note that Fantomas only searches for a <code>.fantomasignore</code> file in or above its current working directory, if one exists; unlike Git, it does not traverse the filesystem for each input file to find an appropriate ignore file.
-(This is not true of the Fantomas daemon. The daemon can't rely on being invoked from the right place, and indeed there may not even be a well-defined notion of "right place" for the formatting tasks the daemon is required to perform, so it does search the filesystem for every file individually.)</p>
-<p>Also note that if you are less familiar with <code>.gitignore</code>, <code>.gitgnore</code> processes everything using Unix slashes <code>/</code>.<br />
-Windows slashes <code>\</code> will not work correctly. See <a href="https://git-scm.com/docs/gitignore#_pattern_format">official Git documentation</a> for more info.</p>
-<h2><a name="Great-for-gradual-adoption" class="anchor" href="#Great-for-gradual-adoption">Great for gradual adoption</a></h2>
-<p>It is not always possible to format all code from the moment you start using Fantomas. Your team might be working on a lot of features and the initial format can lead to a hugh set of changes in source control.<br />
-The <code>.fantomasignore</code> file can help you to introduce Fantomas <strong>bit by bit</strong> to a new code base.<br />
-A good example of this is <a href="https://github.com/dotnet/fsharp/blob/main/.fantomasignore">dotnet/fsharp</a>, the maintainers initially only formatted signature files and are formatting more code over time.</p>
-<h2><a name="A-storm-in-a-teacup" class="anchor" href="#A-storm-in-a-teacup">A storm in a teacup</a></h2>
-<p>Fantomas is not perfect, there are open issues and depending on what shenanigans you have in your code you might at some point encounter a bug 😅🙈.<br />
-Before you've decided that Fantomas is not for you, you might want to use a <code>.fantomasignore</code> file to overcome that one problem.
-In the past people have been quick to judge that the tool cannot be used, however, through a different looking glass Fantomas maybe did format <em>99%</em> of your code correctly.</p>
-<fantomas-nav previous="./Configuration.html" next="./FormattingCheck.html"></fantomas-nav>
+&lt;!-- Optional intro paragraph  --&gt;
+
+&lt;!-- Copy the sections of the changelog --&gt;
+
+&lt;!-- Optional special thanks --&gt;
+Special thanks to @x, @y and @z!
+
+&lt;!-- Link to published version on NuGet --&gt;
+[https://www.nuget.org/packages/fantomas/5.0.4](https://www.nuget.org/packages/fantomas/5.0.4)
+</code></pre></td></tr></table>
+<p>The format of the title is <code># version</code> (example: <code># 5.0.5</code>). This differs from the notation used in the changelog file!<br />
+For minors and majors a codename (inside a <code>&lt;sub&gt;</code> tag) is used. All codenames so far have been song titles by the band Ghost (example <code># 5.1.0 &lt;sub&gt;Kaisarion&lt;/sub&gt; - 11/2022</code>).<br />
+With the exception of <code>v5, "Get Back"</code>.</p>
+<p>The list of people to thank is compiled by cross referencing the changelog entries. The author of the GitHub release is omitted.<br />
+Don't be shy to include other names of people who have contributed in alternative ways when the occasion calls for it.</p>
+<h3><a name="Artifacts" class="anchor" href="#Artifacts">Artifacts</a></h3>
+<p>Upload the <code>*.nupkg</code> files to the release artifacts.</p>
+<h2><a name="Spread-the-word" class="anchor" href="#Spread-the-word">Spread the word</a></h2>
+<p>Share the newly created release on our Discord server in the <code>#announcements</code> channel.<br />
+Optionally share (minor or major) releases on other social media.</p>
+<fantomas-nav previous="./Pull%20request%20ground%20rules.html" next="./Glossary.html"></fantomas-nav>
 
         
       </div>
