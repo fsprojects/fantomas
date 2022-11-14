@@ -1946,12 +1946,7 @@ let mkTypeDefn
         |> TypeDefn.Regular
     | _ -> failwithf "Could not create a TypeDefn for %A" typeRepr
 
-let mkWithGetSet (t: SynType option) (withKeyword: range option) (getSet: GetSetKeywords option) =
-    let isFunctionProperty =
-        match t with
-        | Some(SynType.Fun _) -> true
-        | _ -> false
-
+let mkWithGetSet (withKeyword: range option) (getSet: GetSetKeywords option) =
     match withKeyword, getSet with
     | Some mWith, Some gs ->
         let withNode = stn "with" mWith
@@ -1962,9 +1957,9 @@ let mkWithGetSet (t: SynType option) (withKeyword: range option) (getSet: GetSet
         | GetSetKeywords.Set mSet -> Some(MultipleTextsNode([ withNode; stn "set" mSet ], m))
         | GetSetKeywords.GetSet(mGet, mSet) ->
             if rangeBeforePos mGet mSet.Start then
-                Some(MultipleTextsNode([ withNode; stn "get" mGet; stn "set" mSet ], m))
+                Some(MultipleTextsNode([ withNode; stn "get," mGet; stn "set" mSet ], m))
             else
-                Some(MultipleTextsNode([ withNode; stn "set" mSet; stn "get" mGet ], m))
+                Some(MultipleTextsNode([ withNode; stn "set," mSet; stn "get" mGet ], m))
     | _ -> None
 
 let mkPropertyGetSetBinding
@@ -2104,7 +2099,7 @@ let mkMemberDefn (creationAide: CreationAide) (md: SynMemberDefn) =
                                  _isStatic,
                                  ident,
                                  typeOpt,
-                                 mk,
+                                 _,
                                  _,
                                  _,
                                  px,
@@ -2124,7 +2119,7 @@ let mkMemberDefn (creationAide: CreationAide) (md: SynMemberDefn) =
             Option.map (mkType creationAide) typeOpt,
             stn "=" mEq,
             mkExpr creationAide e,
-            mkWithGetSet typeOpt mWith mGS,
+            mkWithGetSet mWith mGS,
             memberDefinitionRange
         )
         |> MemberDefn.AutoProperty
@@ -2136,7 +2131,7 @@ let mkMemberDefn (creationAide: CreationAide) (md: SynMemberDefn) =
             mkSynIdent ident,
             mkSynValTyparDecls creationAide (Some tds),
             mkType creationAide t,
-            mkWithGetSet (Some t) trivia.WithKeyword abstractSlotTrivia.GetSetKeywords,
+            mkWithGetSet trivia.WithKeyword abstractSlotTrivia.GetSetKeywords,
             memberDefinitionRange
         )
         |> MemberDefn.AbstractSlot
@@ -2269,11 +2264,11 @@ let mkMemberSig (creationAide: CreationAide) (ms: SynMemberSig) =
 
     match ms with
     | SynMemberSig.Member(vs, _, _, memberTrivia) ->
-        let (SynValSig(synType = t; trivia = trivia)) = vs
+        let (SynValSig(trivia = trivia)) = vs
 
         MemberDefnSigMemberNode(
             mkVal creationAide vs,
-            mkWithGetSet (Some t) trivia.WithKeyword memberTrivia.GetSetKeywords,
+            mkWithGetSet trivia.WithKeyword memberTrivia.GetSetKeywords,
             memberSigRange
         )
         |> MemberDefn.SigMember
