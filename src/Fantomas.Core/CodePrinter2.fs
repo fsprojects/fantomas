@@ -1748,7 +1748,7 @@ let genNamedArgumentExpr (node: ExprInfixAppNode) =
         +> genSingleTextNode node.Operator
         +> autoIndentAndNlnExpressUnlessStroustrup (fun e -> sepSpace +> genExpr e) node.RightHandSide
 
-    expressionFitsOnRestOfLine short long
+    expressionFitsOnRestOfLine short long |> genNode node
 
 let genLambda (node: ExprLambdaNode) =
     let genPats =
