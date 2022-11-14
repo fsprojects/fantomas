@@ -423,7 +423,7 @@ let ``classes and private implicit constructors`` () =
            printf \"Creating MyClass2 with Data %d\" data\"\"\" { config with
                                                                  MaxFunctionBindingWidth = 120 }
 "
-        config
+        { config with MaxRecordWidth = 50 }
     |> prepend newline
     |> should
         equal
