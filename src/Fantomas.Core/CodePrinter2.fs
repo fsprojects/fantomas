@@ -2779,8 +2779,8 @@ let genType (t: Type) =
 
         let genOpening =
             match node.Opening with
-            | None -> sepOpenAnonRecdFixed
-            | Some n -> genSingleTextNode n
+            | None -> sepOpenAnonRecdFixed +> addSpaceIfSpaceAroundDelimiter
+            | Some n -> genSingleTextNode n +> addSpaceIfSpaceAroundDelimiter
 
         let genAnonRecordFieldType (i, t) =
             genSingleTextNode i
@@ -2791,7 +2791,8 @@ let genType (t: Type) =
             genStruct
             +> genOpening
             +> col sepSemi node.Fields genAnonRecordFieldType
-            +> sepCloseAnonRecd
+            +> addSpaceIfSpaceAroundDelimiter
+            +> genSingleTextNode node.Closing
 
         let longExpression =
             let genFields = col sepNln node.Fields genAnonRecordFieldType
@@ -2801,12 +2802,17 @@ let genType (t: Type) =
                     sepOpenAnonRecdFixed
                     +> indentSepNlnUnindent (atCurrentColumnIndent genFields)
                     +> sepNln
-                    +> sepCloseAnonRecdFixed
+                    +> genSingleTextNode node.Closing
 
                 genStruct +> genRecord
 
             let genMultilineAnonRecordType =
-                let genRecord = sepOpenAnonRecd +> atCurrentColumn genFields +> sepCloseAnonRecd
+                let genRecord =
+                    genOpening
+                    +> atCurrentColumn genFields
+                    +> addSpaceIfSpaceAroundDelimiter
+                    +> genSingleTextNode node.Closing
+
                 genStruct +> genRecord
 
             ifAlignBrackets genMultilineAnonRecordTypeAlignBrackets genMultilineAnonRecordType
