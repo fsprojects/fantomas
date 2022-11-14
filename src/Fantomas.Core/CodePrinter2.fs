@@ -2861,6 +2861,7 @@ let genTypeWithImplicitConstructor (typeName: TypeNameNode) (implicitConstructor
                 (optSingle genSingleTextNode typeName.EqualsToken) ctx
             else
                 (sepSpace +> optSingle genSingleTextNode typeName.EqualsToken) ctx)
+    |> genNode typeName
 
 let genImplicitConstructor (node: ImplicitConstructorNode) =
     let genSimplePat (node: SimplePatNode) =
@@ -2920,6 +2921,7 @@ let genTypeDefn (td: TypeDefn) =
         +> genTypeAndParam (genIdentListNode typeName.Identifier) typeName.TypeParameters
         +> sepSpace
         +> optSingle genSingleTextNode typeName.EqualsToken
+        |> genNode typeName
 
     match td with
     | TypeDefn.Enum node ->
@@ -2941,6 +2943,7 @@ let genTypeDefn (td: TypeDefn) =
             +> sepNlnTypeAndMembers typeDefnNode
             +> genMemberDefnList members
         )
+        |> genNode node
     | TypeDefn.Union node ->
         let unionCases (ctx: Context) =
             match node.UnionCases with
@@ -2971,7 +2974,7 @@ let genTypeDefn (td: TypeDefn) =
         +> onlyIf
             (List.isNotEmpty members)
             (indentSepNlnUnindent (sepNlnTypeAndMembers typeDefnNode +> genMemberDefnList members))
-
+        |> genNode node
     | TypeDefn.Record node ->
         let smallExpression =
             sepSpace
@@ -3030,10 +3033,11 @@ let genTypeDefn (td: TypeDefn) =
             else
                 isSmallExpression size short (indentSepNlnUnindent short) ctx
 
-        header +> genTypeDefinition
-
+        header +> genTypeDefinition |> genNode node
     | TypeDefn.None _ -> header
-    | TypeDefn.Abbrev node -> header +> sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth (genType node.Type)
+    | TypeDefn.Abbrev node ->
+        header +> sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth (genType node.Type)
+        |> genNode node
     | TypeDefn.Explicit node ->
         let bodyNode = node.Body
 
@@ -3046,11 +3050,13 @@ let genTypeDefn (td: TypeDefn) =
             |> genNode bodyNode
         )
         +> onlyIfNot members.IsEmpty (sepNln +> indentSepNlnUnindent (genMemberDefnList members))
-    | TypeDefn.Augmentation _ ->
+        |> genNode node
+    | TypeDefn.Augmentation node ->
         header
         +> sepSpace
         +> optSingle genSingleTextNode typeName.WithKeyword
         +> indentSepNlnUnindent (sepNlnTypeAndMembers typeDefnNode +> genMemberDefnList members)
+        |> genNode node
     | TypeDefn.Delegate node ->
         header
         +> sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth (
@@ -3059,12 +3065,11 @@ let genTypeDefn (td: TypeDefn) =
             +> !- "of"
             +> sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth (genTypeList node.TypeList)
         )
-
+        |> genNode node
     | TypeDefn.Regular node ->
         genTypeWithImplicitConstructor typeName node.ImplicitConstructor
         +> indentSepNlnUnindent (genMemberDefnList members)
-
-    |> genNode (TypeDefn.Node td)
+        |> genNode (TypeDefn.Node td)
 
 let genTypeList (node: TypeFunsNode) =
     let shortExpr =
@@ -3379,9 +3384,23 @@ let genModule (m: ModuleOrNamespaceNode) =
     +> colWithNlnWhenMappedNodeIsMultiline false ModuleDecl.Node genModuleDecl m.Declarations
     |> genNode m
 
+let addFinalNewline ctx =
+    let lastEvent = ctx.WriterEvents.TryHead
+
+    match lastEvent with
+    | Some WriteLineBecauseOfTrivia ->
+        if ctx.Config.InsertFinalNewline then
+            ctx
+        else
+            // Due to trivia the last event is a newline, if insert_final_newline is false, we need to remove it.
+            { ctx with
+                WriterEvents = ctx.WriterEvents.Tail
+                WriterModel = { ctx.WriterModel with Lines = List.tail ctx.WriterModel.Lines } }
+    | _ -> onlyIf ctx.Config.InsertFinalNewline sepNln ctx
+
 let genFile (oak: Oak) =
     (col sepNln oak.ParsedHashDirectives genParsedHashDirective
      +> (if oak.ParsedHashDirectives.IsEmpty then sepNone else sepNln)
      +> col sepNln oak.ModulesOrNamespaces genModule
      |> genNode oak)
-    +> (fun ctx -> onlyIf ctx.Config.InsertFinalNewline sepNln ctx)
+    +> addFinalNewline
