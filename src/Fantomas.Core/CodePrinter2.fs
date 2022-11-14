@@ -3107,14 +3107,9 @@ let genTypeList (node: TypeFunsNode) =
 
 let genTypeInSignature (t: Type) =
     match t with
-    | Type.Funs node ->
-        match node.ReturnType with
-        | Type.WithGlobalConstraints node when Array.isEmpty node.Children ->
-            let genType =
-                match node.Type with
-                | Type.Funs node -> genTypeList node
-                | t -> genType t
-
+    | Type.WithGlobalConstraints node ->
+        match node.Type with
+        | Type.Funs funsNode ->
             let genConstraints =
                 let short =
                     ifElse (List.isNotEmpty node.TypeConstraints) (!- "when ") sepSpace
@@ -3127,13 +3122,14 @@ let genTypeInSignature (t: Type) =
                 expressionFitsOnRestOfLine short long
 
             autoIndentAndNlnIfExpressionExceedsPageWidth (
-                leadingExpressionIsMultiline genType (fun isMultiline ->
+                leadingExpressionIsMultiline (genTypeList funsNode) (fun isMultiline ->
                     if isMultiline then
                         indentSepNlnUnindent genConstraints
                     else
                         sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth genConstraints)
             )
-        | _ -> autoIndentAndNlnIfExpressionExceedsPageWidth (genTypeList node)
+        | _ -> autoIndentAndNlnIfExpressionExceedsPageWidth (genType t)
+    | Type.Funs funsNode -> autoIndentAndNlnIfExpressionExceedsPageWidth (genTypeList funsNode)
     | _ -> autoIndentAndNlnIfExpressionExceedsPageWidth (genType t)
 
 let genField (node: FieldNode) =
