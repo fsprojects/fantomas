@@ -1676,7 +1676,7 @@ let genMultilineFunctionApplicationArguments (argExpr: Expr) =
     match argExpr with
     | Expr.Paren parenNode ->
         match parenNode.Expr with
-        | Expr.Tuple tupleNode -> genTuple tupleNode |> argsInsideParenthesis parenNode
+        | Expr.Tuple tupleNode -> genTupleMultiline tupleNode |> argsInsideParenthesis parenNode
         | _ -> genExpr parenNode.Expr |> argsInsideParenthesis parenNode
     | _ -> genExpr argExpr
 
@@ -1692,45 +1692,47 @@ let genTuple (node: ExprTupleNode) =
                 | e -> genExpr e
             | Choice2Of2 comma -> genSingleTextNode comma +> addSpaceIfSpaceAfterComma)
 
-    let longExpression =
-        let containsLambdaOrMatchExpr =
-            // If the any items (expect the last) is a match/lambda
-            node.Items
-            |> List.chunkBySize 2
-            |> List.exists (fun pair ->
-                match pair with
-                | [ Choice1Of2 e; Choice2Of2 _ ] ->
-                    match e with
-                    | Expr.Match _
-                    | Expr.Lambda _ -> true
-                    | Expr.InfixApp node ->
-                        match node.RightHandSide with
-                        | Expr.Lambda _ -> true
-                        | _ -> false
-                    | _ -> false
-                | _ -> false)
-
-        let lastIndex = List.length node.Items - 1
-
-        let genItem idx =
-            function
-            | Choice1Of2 e ->
-                match e with
-                | Expr.IfThen _
-                | Expr.IfThenElif _
-                | Expr.IfThenElse _ when (idx < lastIndex) -> autoParenthesisIfExpressionExceedsPageWidth (genExpr e)
-                | Expr.InfixApp node when (node.Operator.Text = "=") -> genNamedArgumentExpr node
-                | _ -> genExpr e
-            | Choice2Of2 comma ->
-                if containsLambdaOrMatchExpr then
-                    sepNln +> genSingleTextNode comma +> sepSpace
-                else
-                    genSingleTextNode comma +> sepNln
-
-        coli sepNone node.Items genItem
+    let longExpression = genTupleMultiline node
 
     atCurrentColumn (expressionFitsOnRestOfLine shortExpression longExpression)
     |> genNode node
+
+let genTupleMultiline (node: ExprTupleNode) =
+    let containsLambdaOrMatchExpr =
+        // If the any items (expect the last) is a match/lambda
+        node.Items
+        |> List.chunkBySize 2
+        |> List.exists (fun pair ->
+            match pair with
+            | [ Choice1Of2 e; Choice2Of2 _ ] ->
+                match e with
+                | Expr.Match _
+                | Expr.Lambda _ -> true
+                | Expr.InfixApp node ->
+                    match node.RightHandSide with
+                    | Expr.Lambda _ -> true
+                    | _ -> false
+                | _ -> false
+            | _ -> false)
+
+    let lastIndex = List.length node.Items - 1
+
+    let genItem idx =
+        function
+        | Choice1Of2 e ->
+            match e with
+            | Expr.IfThen _
+            | Expr.IfThenElif _
+            | Expr.IfThenElse _ when (idx < lastIndex) -> autoParenthesisIfExpressionExceedsPageWidth (genExpr e)
+            | Expr.InfixApp node when (node.Operator.Text = "=") -> genNamedArgumentExpr node
+            | _ -> genExpr e
+        | Choice2Of2 comma ->
+            if containsLambdaOrMatchExpr then
+                sepNln +> genSingleTextNode comma +> sepSpace
+            else
+                genSingleTextNode comma +> sepNln
+
+    coli sepNone node.Items genItem
 
 let genNamedArgumentExpr (node: ExprInfixAppNode) =
     let short =
