@@ -32,7 +32,7 @@ In simple scenarios this can work out, but in the long run it doesn't scale well
 To illustrate the API, lets generate a simple value binding: `let a = 0`.
 *)
 
-#r "nuget: Fantomas.Core, 5.0.*" // Note that this will also load Fantomas.FCS, which contains the syntax tree types.
+#r "nuget: Fantomas.Core, 5.*" // Note that this will also load Fantomas.FCS, which contains the syntax tree types.
 
 open FSharp.Compiler.Text
 open FSharp.Compiler.Xml
@@ -67,7 +67,7 @@ let implementationSyntaxTree =
                               Range.Zero,
                               DebugPointAtBinding.Yes Range.Zero,
                               { EqualsRange = Some Range.Zero
-                                LetKeyword = Some Range.Zero }
+                                LeadingKeyword = SynLeadingKeyword.Let Range.Zero }
                           ) ],
                         Range.Zero
                     ) ],
@@ -75,8 +75,7 @@ let implementationSyntaxTree =
                   [],
                   None,
                   Range.Zero,
-                  { ModuleKeyword = None
-                    NamespaceKeyword = None }
+                  { LeadingKeyword = SynModuleOrNamespaceLeadingKeyword.None }
               ) ],
             (false, false),
             { ConditionalDirectives = []
@@ -167,8 +166,7 @@ let mkCodeFromExpression (e: SynExpr) : string =
                   [],
                   None,
                   Range.Zero,
-                  { ModuleKeyword = None
-                    NamespaceKeyword = None }
+                  { LeadingKeyword = SynModuleOrNamespaceLeadingKeyword.None }
               ) ],
             (false, false),
             { ConditionalDirectives = []
