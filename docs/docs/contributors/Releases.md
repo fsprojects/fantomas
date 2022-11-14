@@ -68,6 +68,10 @@ With the exception of `v5, "Get Back"`.
 The list of people to thank is compiled by cross referencing the changelog entries. The author of the GitHub release is omitted.  
 Don't be shy to include other names of people who have contributed in alternative ways when the occasion calls for it.
 
+### Artifacts
+
+Upload the `*.nupkg` files to the release artifacts.
+
 ## Spread the word
 
 Share the newly created release on our Discord server in the `#announcements` channel.  
