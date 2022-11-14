@@ -1,6 +1,6 @@
 # Changelog
 
-## [Unreleased]
+## [5.1.3] - 2022-11-14
 
 ### Fixed
 * Idempotency problem with anonymous types in discriminated unions. [#2621](https://github.com/fsprojects/fantomas/issues/2621)
