@@ -351,7 +351,7 @@ let genExpr (e: Expr) =
                         +> (enterNode node.Closing
                             +> (fun ctx ->
                                 let isFixed = lastWriteEventIsNewline ctx
-                                (onlyIfNot isFixed sepSpace +> leaveNode node.Closing) ctx))
+                                (onlyIfNot isFixed sepSpace +> !-node.Closing.Text +> leaveNode node.Closing) ctx))
                     )
 
                 ifAlignBrackets genMultiLineArrayOrListAlignBrackets genMultiLineArrayOrList
