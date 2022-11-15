@@ -2903,6 +2903,7 @@ let genImplicitConstructor (node: ImplicitConstructorNode) =
 
     let short =
         genXml node.XmlDoc
+        +> onlyIfNot node.Attributes.IsEmpty sepSpace
         +> genOnelinerAttributes node.Attributes
         +> genAccessOpt node.Accessibility
         +> genSingleTextNode node.OpeningParen
