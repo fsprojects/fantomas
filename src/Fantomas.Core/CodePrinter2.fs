@@ -205,7 +205,9 @@ let genAttributes (node: MultipleAttributeListNode) =
         genSingleTextNode a.Opening
         +> (genAttributesCore a.Attributes)
         +> genSingleTextNode a.Closing
-        +> sepNlnWhenWriteBeforeNewlineNotEmpty)
+        +> sepNlnWhenWriteBeforeNewlineNotEmpty
+        |> genNode a)
+    |> genNode node
 
 let genInheritConstructor (ic: InheritConstructor) =
     match ic with
