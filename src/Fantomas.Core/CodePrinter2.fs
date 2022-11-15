@@ -3334,8 +3334,8 @@ let genException (node: ExceptionDefnNode) =
 let genModuleDecl (md: ModuleDecl) =
     match md with
     | ModuleDecl.OpenList ol -> genOpenList ol
-    | ModuleDecl.HashDirectiveList node -> col sepNln node.HashDirectives genParsedHashDirective
-    | ModuleDecl.Attributes node -> genAttributes node.Attributes +> genExpr node.Expr
+    | ModuleDecl.HashDirectiveList node -> col sepNln node.HashDirectives genParsedHashDirective |> genNode node
+    | ModuleDecl.Attributes node -> genAttributes node.Attributes +> genExpr node.Expr |> genNode node
     | ModuleDecl.DeclExpr e -> genExpr e
     | ModuleDecl.Exception node -> genException node
     | ModuleDecl.ExternBinding _ -> failwith "Not Implemented"
