@@ -4,18 +4,13 @@ module internal Fantomas.Core.CodeFormatterImpl
 open FSharp.Compiler.Syntax
 open FSharp.Compiler.Text
 open Fantomas.Core.FormatConfig
-// open Fantomas.Core.TriviaTypes
+open Fantomas.Core.SyntaxOak
 
 val getSourceText: source: string -> ISourceText
 
 val formatAST:
-    ast: ParsedInput ->
-    sourceText: ISourceText option ->
-    config: FormatConfig ->
-        // selection: TriviaForSelection option ->
-        string
+    ast: ParsedInput -> sourceText: ISourceText option -> config: FormatConfig -> selection: obj option -> string
 
-val parse: isSignature: bool -> source: ISourceText -> Async<ParsedInput>
-// Async<(ParsedInput * DefineCombination)[]>
+val parse: isSignature: bool -> source: ISourceText -> Async<(ParsedInput * DefineCombination)[]>
 
 val formatDocument: config: FormatConfig -> isSignature: bool -> source: ISourceText -> Async<string>

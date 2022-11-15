@@ -84,7 +84,8 @@ let genTrivia (trivia: TriviaNode) (ctx: Context) =
             +> !-comment
             +> sepSpace
             +> ifElse after sepNlnForTrivia sepNone
-        | CommentOnSingleLine comment -> (ifElse addNewline sepNlnForTrivia sepNone) +> !-comment +> sepNlnForTrivia
+        | CommentOnSingleLine s
+        | Directive s -> (ifElse addNewline sepNlnForTrivia sepNone) +> !-s +> sepNlnForTrivia
         | Newline -> (ifElse addNewline (sepNlnForTrivia +> sepNlnForTrivia) sepNlnForTrivia)
 
     gen ctx

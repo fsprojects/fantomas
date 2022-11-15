@@ -115,6 +115,25 @@ let internal collectTriviaFromBlankLines
                     else
                         count, None)
 
+let internal collectTriviaFromDirectives
+    (source: ISourceText)
+    (directives: ConditionalDirectiveTrivia list)
+    (selection: obj option)
+    : TriviaNode list =
+    directives
+    |> List.map (function
+        | ConditionalDirectiveTrivia.If(_, m)
+        | ConditionalDirectiveTrivia.Else m
+        | ConditionalDirectiveTrivia.EndIf m ->
+            let text = (source.GetContentAt m).TrimEnd()
+            let content = Directive text
+            TriviaNode(content, m))
+// |> fun trivia ->
+//     match selection with
+//     | None -> trivia
+//     | Some { Node = rootNode } ->
+//         List.filter (fun t -> RangeHelpers.rangeContainsRange rootNode.Range t.Range) trivia
+
 let rec findNodeWhereRangeFitsIn (root: Node) (range: range) : Node option =
     let doesSelectionFitInNode = RangeHelpers.rangeContainsRange root.Range range
 
@@ -263,11 +282,14 @@ let addToTree (tree: Oak) (trivia: TriviaNode seq) =
             match trivia.Content with
             | LineCommentAfterSourceCode _ -> lineCommentAfterSourceCodeToTriviaInstruction parentNode trivia
             | CommentOnSingleLine _
-            | Newline -> simpleTriviaToTriviaInstruction parentNode trivia
+            | Newline
+            | Directive _ -> simpleTriviaToTriviaInstruction parentNode trivia
             | BlockComment _ -> blockCommentToTriviaInstruction parentNode trivia
 
 let enrichTree (config: FormatConfig) (sourceText: ISourceText) (ast: ParsedInput) (tree: Oak) : Oak =
-    let _directives, codeComments =
+    let fullTreeRange = (tree :> Node).Range
+
+    let directives, codeComments =
         match ast with
         | ParsedInput.ImplFile(ParsedImplFileInput(
             trivia = { ConditionalDirectives = directives
@@ -278,7 +300,7 @@ let enrichTree (config: FormatConfig) (sourceText: ISourceText) (ast: ParsedInpu
 
     let trivia =
         let newlines =
-            collectTriviaFromBlankLines config sourceText tree codeComments (tree :> Node).Range
+            collectTriviaFromBlankLines config sourceText tree codeComments fullTreeRange
 
         let comments =
             match ast with
@@ -287,7 +309,9 @@ let enrichTree (config: FormatConfig) (sourceText: ISourceText) (ast: ParsedInpu
             | ParsedInput.SigFile(ParsedSigFileInput(trivia = trivia)) ->
                 collectTriviaFromCodeComments sourceText trivia.CodeComments
 
-        [| yield! comments; yield! newlines |]
+        let directives = collectTriviaFromDirectives sourceText directives None
+
+        [| yield! comments; yield! newlines; yield! directives |]
         |> Array.sortBy (fun n -> n.Range.Start.Line, n.Range.Start.Column)
 
     addToTree tree trivia
