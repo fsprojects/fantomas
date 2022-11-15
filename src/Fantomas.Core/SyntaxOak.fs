@@ -3,11 +3,14 @@
 open System.Collections.Generic
 open FSharp.Compiler.Text
 
+type DefineCombination = string list
+
 type TriviaContent =
     | CommentOnSingleLine of string
     | LineCommentAfterSourceCode of comment: string
     | BlockComment of string * newlineBefore: bool * newlineAfter: bool
     | Newline
+    | Directive of string
 
 type TriviaNode(content: TriviaContent, range: range) =
     member x.Content = content
