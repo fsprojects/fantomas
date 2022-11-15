@@ -2,7 +2,7 @@ module internal Fantomas.Core.Defines
 
 open FSharp.Compiler.SyntaxTrivia
 open Fantomas.Core
-open Fantomas.Core.TriviaTypes
+open Fantomas.Core.SyntaxOak
 
 module private DefineCombinationSolver =
     let rec map f e =
