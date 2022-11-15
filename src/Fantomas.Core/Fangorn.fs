@@ -2330,6 +2330,13 @@ let rec mkModuleDecls
         let range = unionRanges (attributes :> Node).Range (Expr.Node expr).Range
         let node = ModuleDeclAttributesNode(attributes, expr, range)
         mkModuleDecls creationAide rest (fun nodes -> ModuleDecl.Attributes node :: nodes |> finalContinuation)
+
+    | SynModuleDecl.Let(bindings = _ :: _ as bindings) :: rest ->
+        let bindingNodes =
+            List.map (fun b -> mkBinding creationAide b |> ModuleDecl.TopLevelBinding) bindings
+
+        mkModuleDecls creationAide rest (fun nodes -> [ yield! bindingNodes; yield! nodes ] |> finalContinuation)
+
     | head :: tail ->
         mkModuleDecls creationAide tail (fun nodes -> mkModuleDecl creationAide head :: nodes |> finalContinuation)
 
