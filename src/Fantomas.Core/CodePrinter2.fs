@@ -1679,7 +1679,10 @@ let genMultilineFunctionApplicationArguments (argExpr: Expr) =
     match argExpr with
     | Expr.Paren parenNode ->
         match parenNode.Expr with
-        | Expr.Tuple tupleNode -> genTupleMultiline tupleNode |> argsInsideParenthesis parenNode
+        | Expr.Tuple tupleNode ->
+            genTupleMultiline tupleNode
+            |> genNode tupleNode
+            |> argsInsideParenthesis parenNode
         | _ -> genExpr parenNode.Expr |> argsInsideParenthesis parenNode
     | _ -> genExpr argExpr
 
