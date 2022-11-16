@@ -3408,8 +3408,8 @@ let genModule (m: ModuleOrNamespaceNode) =
                 +> sepSpace
                 +> genAccessOpt m.Accessibility
                 +> genIdentListNode m.Name)
-            m.LeadingKeyword)
-    +> newline
+            m.LeadingKeyword
+         +> newline)
     +> colWithNlnWhenMappedNodeIsMultiline false ModuleDecl.Node genModuleDecl m.Declarations
     |> genNode m
 
