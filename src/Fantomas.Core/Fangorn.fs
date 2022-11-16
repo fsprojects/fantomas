@@ -436,7 +436,9 @@ let rec (|ElIf|_|) =
             | Some elseKw, Some elseExpr -> Some(stn "else" elseKw, elseExpr)
             | _ -> None
 
-        let ifNode = MultipleTextsNode([ stn "if" trivia.IfKeyword ], trivia.IfKeyword)
+        let ifNode =
+            MultipleTextsNode([ stn (if trivia.IsElif then "elif" else "if") trivia.IfKeyword ], trivia.IfKeyword)
+
         Some([ (ifNode, e1, stn "then" trivia.ThenKeyword, e2) ], elseInfo)
     | _ -> None
 
