@@ -1467,7 +1467,9 @@ type ExprIfThenElseNode
         [| yield ifNode
            yield Expr.Node ifExpr
            yield thenNode
-           yield Expr.Node thenExpr |]
+           yield Expr.Node thenExpr
+           yield elseNode
+           yield Expr.Node elseExpr |]
 
     member x.If = ifNode
     member x.IfExpr = ifExpr
