@@ -134,7 +134,18 @@ let mkConstant (creationAide: CreationAide) c r : Constant =
     | SynConst.UIntPtr v -> orElse $"%A{v}"
     | SynConst.UserNum _ -> failwith "todo, 90D57090-9123-4344-9B4F-9B51BB50DA31"
     | SynConst.String(value, stringKind, r) -> mkConstString creationAide stringKind value r |> Constant.FromText
-    | SynConst.Char c -> failwith "todo, 9AD2DFA7-80E2-43C7-A573-777987EA941B"
+    | SynConst.Char c ->
+        let escapedChar =
+            match c with
+            | '\r' -> @"\r"
+            | '\n' -> @"\n"
+            | '\t' -> @"\t"
+            | '\\' -> @"\\"
+            | '\b' -> @"\b"
+            | '\f' -> @"\f"
+            | _ -> c.ToString()
+
+        orElse escapedChar
     | SynConst.Bytes(bytes, _, r) -> failwith "todo, ED679198-BED9-42FD-BE24-7E7AD959CE93"
     | SynConst.Measure(c, numberRange, m) -> failwith "todo, 1BF1C723-1931-40BE-8C02-3A4BAC1D8BAD"
     | SynConst.SourceIdentifier(c, _, r) -> stn c r |> Constant.FromText
@@ -1341,7 +1352,9 @@ let mkBinding
             Choice1Of2(mkSynLongIdent lid),
             mkSynValTyparDecls creationAide typarDecls,
             List.map (mkPat creationAide) ps
-        | SynPat.Named(accessibility = ao) -> ao, Choice2Of2(mkPat creationAide pat), None, []
+        | SynPat.Named(accessibility = ao; ident = si) ->
+            let name = mkSynIdent si
+            ao, Choice1Of2(IdentListNode([ IdentifierOrDot.Ident name ], (name :> Node).Range)), None, []
         | _ -> None, Choice2Of2(mkPat creationAide pat), None, []
 
     let equals = stn "=" trivia.EqualsRange.Value
