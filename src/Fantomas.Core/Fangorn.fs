@@ -1891,7 +1891,7 @@ let mkTypeDefn
         |> TypeDefn.Record
 
     | SynTypeDefnRepr.Simple(simpleRepr = SynTypeDefnSimpleRepr.TypeAbbrev(rhsType = t)) ->
-        TypeDefn.Abbrev(TypeDefnAbbrevNode(typeNameNode, mkType creationAide t, range))
+        TypeDefn.Abbrev(TypeDefnAbbrevNode(typeNameNode, mkType creationAide t, members, range))
 
     | SynTypeDefnRepr.Simple(simpleRepr = SynTypeDefnSimpleRepr.None _) -> TypeDefn.None typeNameNode
 
@@ -2540,7 +2540,7 @@ let mkTypeDefnSig (creationAide: CreationAide) (SynTypeDefnSig(typeInfo, typeRep
         |> TypeDefn.Record
 
     | SynTypeDefnSigRepr.Simple(repr = SynTypeDefnSimpleRepr.TypeAbbrev(rhsType = t)) ->
-        TypeDefn.Abbrev(TypeDefnAbbrevNode(typeNameNode, mkType creationAide t, range))
+        TypeDefn.Abbrev(TypeDefnAbbrevNode(typeNameNode, mkType creationAide t, members, range))
 
     | SynTypeDefnSigRepr.Simple(repr = SynTypeDefnSimpleRepr.None _) when List.isNotEmpty members ->
         let typeNameNode =

@@ -3067,7 +3067,16 @@ let genTypeDefn (td: TypeDefn) =
         header +> genTypeDefinition |> genNode node
     | TypeDefn.None _ -> header
     | TypeDefn.Abbrev node ->
-        header +> sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth (genType node.Type)
+        header
+        +> sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth (genType node.Type)
+        +> onlyIf
+            (List.isNotEmpty members)
+            (optSingle
+                (fun withNode ->
+                    indentSepNlnUnindent (
+                        genSingleTextNode withNode +> indentSepNlnUnindent (genMemberDefnList members)
+                    ))
+                typeName.WithKeyword)
         |> genNode node
     | TypeDefn.Explicit node ->
         let bodyNode = node.Body
