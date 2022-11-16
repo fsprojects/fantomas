@@ -125,7 +125,7 @@ type ModuleOrNamespaceNode
     (
         xmlDoc: XmlDocNode option,
         attributes: MultipleAttributeListNode,
-        leadingKeyword: SingleTextNode option,
+        leadingKeyword: MultipleTextsNode option,
         accessibility: SingleTextNode option,
         name: IdentListNode,
         decls: ModuleDecl list,
