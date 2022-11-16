@@ -2368,8 +2368,13 @@ let mkModuleOrNamespace
     =
     let leadingKeyword =
         match trivia.LeadingKeyword with
-        | SynModuleOrNamespaceLeadingKeyword.Module mModule -> Some(stn "module" mModule)
-        | SynModuleOrNamespaceLeadingKeyword.Namespace mNamespace -> Some(stn "namespace" mNamespace)
+        | SynModuleOrNamespaceLeadingKeyword.Module mModule ->
+            Some(MultipleTextsNode([ stn "module" mModule ], mModule))
+        | SynModuleOrNamespaceLeadingKeyword.Namespace mNamespace ->
+            match kind with
+            | SynModuleOrNamespaceKind.GlobalNamespace ->
+                Some(MultipleTextsNode([ stn "namespace" mNamespace; stn "global" Range.Zero ], mNamespace))
+            | _ -> Some(MultipleTextsNode([ stn "namespace" mNamespace ], mNamespace))
         | SynModuleOrNamespaceLeadingKeyword.None -> None
 
     let name =
@@ -2658,11 +2663,15 @@ let mkModuleOrNamespaceSig
         decls = decls
         trivia = trivia) as mn)
     =
-
     let leadingKeyword =
         match trivia.LeadingKeyword with
-        | SynModuleOrNamespaceLeadingKeyword.Module mModule -> Some(stn "module" mModule)
-        | SynModuleOrNamespaceLeadingKeyword.Namespace mNamespace -> Some(stn "namespace" mNamespace)
+        | SynModuleOrNamespaceLeadingKeyword.Module mModule ->
+            Some(MultipleTextsNode([ stn "module" mModule ], mModule))
+        | SynModuleOrNamespaceLeadingKeyword.Namespace mNamespace ->
+            match kind with
+            | SynModuleOrNamespaceKind.GlobalNamespace ->
+                Some(MultipleTextsNode([ stn "namespace" mNamespace; stn "global" Range.Zero ], mNamespace))
+            | _ -> Some(MultipleTextsNode([ stn "namespace" mNamespace ], mNamespace))
         | SynModuleOrNamespaceLeadingKeyword.None -> None
 
     let name =
