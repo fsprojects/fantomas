@@ -3741,24 +3741,19 @@ and genClause
     (hasMultipleClausesWhereOneHasStroustrup: bool)
     (Clause(barRange, p, eo, arrowRange, e, clauseRange))
     =
-    let patAndBody =
-        genPatInClause p
-        +> leadingExpressionIsMultiline
-            (optPre (!- " when") sepNone eo (fun e ->
-                let short = sepSpace +> genExpr e
-                let long = indentSepNlnUnindent (genExpr e)
+    let genPat = genPatInClause p
 
-                expressionFitsOnRestOfLine short long))
+    let genWhenAndBody =
+        leadingExpressionIsMultiline
+            (optPre (!- " when") sepNone eo (fun e -> sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth (genExpr e)))
             (fun isMultiline ctx ->
                 if isMultiline then
-                    (indent
-                     +> sepNln
-                     +> optSingle
-                         (fun arrowRange -> sepArrowFixed |> genTriviaFor SynMatchClause_Arrow arrowRange)
-                         arrowRange
-                     +> sepNln
-                     +> genExpr e
-                     +> unindent)
+                    indentSepNlnUnindent
+                        (optSingle
+                            (fun arrowRange -> sepArrowFixed |> genTriviaFor SynMatchClause_Arrow arrowRange)
+                            arrowRange
+                         +> sepNln
+                         +> genExpr e)
                         ctx
                 else
                     (optSingle (fun arrowRange -> sepArrow |> genTriviaFor SynMatchClause_Arrow arrowRange) arrowRange
@@ -3798,9 +3793,10 @@ and genClause
                 ]
             *)
              // ] and | cannot align, otherwise you get a parser error
-             atCurrentColumn patAndBody ctx
+             let startColumn = ctx.Column
+             (genPat +> atIndentLevel false startColumn genWhenAndBody) ctx
          else
-             patAndBody ctx)
+             (genPat +> genWhenAndBody) ctx)
      |> genTriviaFor SynMatchClause_ clauseRange)
 
 and genPatInClause (pat: SynPat) =
