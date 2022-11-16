@@ -3481,7 +3481,9 @@ and genField (Field(ats, px, leadingKeyword, ao, isMutable, t, so, innerRange, r
     +> optSingle genSynLeadingKeyword leadingKeyword
     +> ifElse isMutable (!- "mutable ") sepNone
     +> genAccessOpt ao
-    +> (opt sepColon so genIdent +> autoIndentAndNlnIfExpressionExceedsPageWidth t
+    +> (match so with
+        | None -> t
+        | Some name -> genIdent name +> sepColon +> autoIndentAndNlnIfExpressionExceedsPageWidth t
         |> optSingle (genTriviaFor SynField_IdentifierAndType) innerRange)
     |> genTriviaFor SynField_ range
 

@@ -5,6 +5,11 @@
 ### Fixed
 * Indenting problem with `match` workaround for single-line stroustrup expressions [#2586](https://github.com/fsprojects/fantomas/issues/2586)
 
+## [5.1.3] - 2022-11-14
+
+### Fixed
+* Idempotency problem with anonymous types in discriminated unions. [#2621](https://github.com/fsprojects/fantomas/issues/2621)
+
 ## [5.1.2] - 2022-11-09
 
 ### Changed
