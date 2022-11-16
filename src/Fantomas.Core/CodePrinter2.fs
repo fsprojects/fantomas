@@ -706,7 +706,7 @@ let genExpr (e: Expr) =
                 ColMultilineItem(
                     genBinding node.Binding
                     +> optSingle (fun inNode -> sepSpace +> genSingleTextNode inNode +> sepSpace) node.In,
-                    sepNlnUnlessContentBefore node
+                    sepNlnUnlessContentBefore node |> genNode node
                 )
             | ComputationExpressionStatement.LetOrUseBangStatement node ->
                 let expr =
@@ -716,6 +716,7 @@ let genExpr (e: Expr) =
                     +> sepSpace
                     +> genSingleTextNode node.Equals
                     +> sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidthUnlessStroustrup genExpr node.Expression
+                    |> genNode node
 
                 ColMultilineItem(expr, sepNlnUnlessContentBefore node)
             | ComputationExpressionStatement.AndBangStatement node ->
@@ -726,6 +727,7 @@ let genExpr (e: Expr) =
                     +> sepSpace
                     +> genSingleTextNode node.Equals
                     +> sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidthUnlessStroustrup genExpr node.Expression
+                    |> genNode node
 
                 ColMultilineItem(expr, sepNlnUnlessContentBefore node)
             | ComputationExpressionStatement.OtherStatement e ->
@@ -826,11 +828,25 @@ let genExpr (e: Expr) =
                 ctx
 
     | Expr.InfixApp node ->
+        let genOnelinerInfixExpr (node: ExprInfixAppNode) =
+            let genExpr e =
+                match e with
+                | Expr.Record _
+                | Expr.AnonRecord _ -> atCurrentColumnIndent (genExpr e)
+                | _ -> genExpr e
+
+            genExpr node.LeftHandSide
+            +> sepSpace
+            +> genSingleTextNode node.Operator
+            +> sepNlnWhenWriteBeforeNewlineNotEmpty
+            +> sepSpace
+            +> genExpr node.RightHandSide
+
         if
             isSynExprLambdaOrIfThenElse node.LeftHandSide
             && newLineInfixOps.Contains node.Operator.Text
         then
-            genMultilineInfixExpr node
+            genNode node (genMultilineInfixExpr node)
         else
             fun ctx ->
                 genNode
@@ -1855,20 +1871,7 @@ let genControlExpressionStartCore
     +> expressionFitsOnRestOfLine shortIfExpr longIfExpr
     +> leaveNode endKeyword
 
-let genOnelinerInfixExpr (node: ExprInfixAppNode) =
-    let genExpr e =
-        match e with
-        | Expr.Record _
-        | Expr.AnonRecord _ -> atCurrentColumnIndent (genExpr e)
-        | _ -> genExpr e
-
-    genExpr node.LeftHandSide
-    +> sepSpace
-    +> genSingleTextNode node.Operator
-    +> sepNlnWhenWriteBeforeNewlineNotEmpty
-    +> sepSpace
-    +> genExpr node.RightHandSide
-
+// Caller of this function is responsible for genNode!
 let genMultilineInfixExpr (node: ExprInfixAppNode) =
     let genLhs (ctx: Context) =
         match node.LeftHandSide with
@@ -1907,7 +1910,6 @@ let genMultilineInfixExpr (node: ExprInfixAppNode) =
         +> sepSpace
         +> genExprInMultilineInfixExpr node.RightHandSide
     )
-    |> genNode node
 
 let genExprInMultilineInfixExpr (e: Expr) =
     match e with
