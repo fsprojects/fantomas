@@ -1711,6 +1711,11 @@ let mkSynField
     (creationAide: CreationAide)
     (SynField(ats, _isStatic, ido, t, isMutable, px, ao, range, { LeadingKeyword = lk }))
     =
+    let m =
+        match ats with
+        | [] -> range
+        | head :: _ -> unionRanges head.Range range
+
     FieldNode(
         mkXmlDoc px,
         mkAttributes creationAide ats,
@@ -1719,7 +1724,7 @@ let mkSynField
         mkSynAccess ao,
         Option.map mkIdent ido,
         mkType creationAide t,
-        range
+        m
     )
 
 let mkSynUnionCase
