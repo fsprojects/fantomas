@@ -2250,15 +2250,19 @@ type TypeDefnRecordNode
         member x.TypeName = typeNameNode
         member x.Members = members
 
-type TypeDefnAbbrevNode(typeNameNode, t: Type, range) =
+type TypeDefnAbbrevNode(typeNameNode, t: Type, members, range) =
     inherit NodeBase(range)
 
-    override _.Children = [| yield typeNameNode; yield Type.Node t |]
+    override _.Children =
+        [| yield typeNameNode
+           yield Type.Node t
+           yield! nodes (List.map MemberDefn.Node members) |]
+
     member _.Type = t
 
     interface ITypeDefn with
         member x.TypeName = typeNameNode
-        member x.Members = []
+        member x.Members = members
 
 type SimplePatNode
     (
