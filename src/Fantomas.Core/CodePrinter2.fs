@@ -3403,10 +3403,10 @@ let genModule (m: ModuleOrNamespaceNode) =
     onlyIf
         m.IsNamed
         (optSingle
-            (fun (n: SingleTextNode) ->
+            (fun (n: MultipleTextsNode) ->
                 genXml m.XmlDoc
                 +> genAttributes m.Attributes
-                +> genSingleTextNode n
+                +> genMultipleTextsNode n
                 +> sepSpace
                 +> genAccessOpt m.Accessibility
                 +> genIdentListNode m.Name)
