@@ -4,18 +4,6 @@ open System
 open System.Text.RegularExpressions
 
 [<RequireQualifiedAccess>]
-module Char =
-    let escape c =
-        match c with
-        | '\r' -> @"\r"
-        | '\n' -> @"\n"
-        | '\t' -> @"\t"
-        | '\\' -> @"\\"
-        | '\b' -> @"\b"
-        | '\f' -> @"\f"
-        | _ -> c.ToString()
-
-[<RequireQualifiedAccess>]
 module String =
     let normalizeNewLine (str: string) =
         str.Replace("\r\n", "\n").Replace("\r", "\n")
