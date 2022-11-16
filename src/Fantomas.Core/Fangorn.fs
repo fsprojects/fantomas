@@ -298,7 +298,7 @@ let rec collectComputationExpressionStatements
                            expr,
                            andBangs,
                            body,
-                           StartRange 4 (mLeading, m),
+                           StartRange 4 (mLeading, _m),
                            { EqualsRange = Some mEq }) ->
         let letOrUseBang =
             ExprLetOrUseBangNode(
@@ -306,7 +306,7 @@ let rec collectComputationExpressionStatements
                 mkPat creationAide pat,
                 stn "=" mEq,
                 mkExpr creationAide expr,
-                m
+                unionRanges mLeading expr.Range
             )
             |> ComputationExpressionStatement.LetOrUseBangStatement
 
