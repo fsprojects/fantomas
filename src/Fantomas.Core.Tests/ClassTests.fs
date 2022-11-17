@@ -401,38 +401,42 @@ let ``member properties with type annotation`` () =
 let ``class augmentation`` () =
     formatSourceString
         false
-        """type A () =
+        """
+type A () =
     let foo = () with
     let hello = "Hello"
     member this.X = "Member"
 """
         config
+    |> prepend newline
     |> should
         equal
-        """type A() =
+        """
+type A() =
     let foo = ()
-    with
-        let hello = "Hello"
-        member this.X = "Member"
+    let hello = "Hello"
+    member this.X = "Member"
 """
 
 [<Test>]
 let ``class inherit and augmentation`` () =
     formatSourceString
         false
-        """type A () =
+        """
+type A () =
     inherit B() with
     let hello = "Hello"
     member this.X = "Member"
 """
         config
+    |> prepend newline
     |> should
         equal
-        """type A() =
+        """
+type A() =
     inherit B()
-    with
-        let hello = "Hello"
-        member this.X = "Member"
+    let hello = "Hello"
+    member this.X = "Member"
 """
 
 [<Test>]
