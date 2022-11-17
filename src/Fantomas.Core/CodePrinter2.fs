@@ -703,11 +703,12 @@ let genExpr (e: Expr) =
         node.Statements
         |> List.map (function
             | ComputationExpressionStatement.LetOrUseStatement node ->
-                ColMultilineItem(
+                let expr =
                     genBinding node.Binding
-                    +> optSingle (fun inNode -> sepSpace +> genSingleTextNode inNode +> sepSpace) node.In,
-                    sepNlnUnlessContentBefore node |> genNode node
-                )
+                    +> optSingle (fun inNode -> sepSpace +> genSingleTextNode inNode +> sepSpace) node.In
+                    |> genNode node
+
+                ColMultilineItem(expr, sepNlnUnlessContentBefore node)
             | ComputationExpressionStatement.LetOrUseBangStatement node ->
                 let expr =
                     genSingleTextNode node.LeadingKeyword
