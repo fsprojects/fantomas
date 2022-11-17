@@ -150,7 +150,7 @@ type MNIST(path:string, ?urls:seq<string>, ?train:bool, ?transform:Tensor->Tenso
             if File.Exists(filesProcessed.[3]) then target <- dsharp.load(filesProcessed.[3]) else target <- MNIST.LoadMNISTLabels(files.[3]); dsharp.save(target, filesProcessed.[3])
         data, target
 """
-        config
+        { config with MaxLineLength = 100 }
     |> prepend newline
     |> should
         equal
