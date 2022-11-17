@@ -2911,6 +2911,7 @@ let genImplicitConstructor (node: ImplicitConstructorNode) =
         genXml node.XmlDoc
         +> onlyIfNot node.Attributes.IsEmpty sepSpace
         +> genOnelinerAttributes node.Attributes
+        +> onlyIf node.Accessibility.IsSome sepSpace
         +> genAccessOpt node.Accessibility
         +> genSingleTextNode node.OpeningParen
         +> shortPats
