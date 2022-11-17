@@ -482,10 +482,14 @@ and genOnelinerAttributes ats =
 /// Try to group attributes if they are on the same line
 /// Separate same-line attributes by ';'
 /// Each bucket is printed in a different line
-and genAttributes (ats: SynAttributes) =
-    colPost sepNlnUnlessLastEventIsNewline sepNln ats (fun a ->
-        (genAttributesCore a.Attributes |> genTriviaFor SynAttributeList_ a.Range)
-        +> sepNlnWhenWriteBeforeNewlineNotEmpty)
+and genAttributes' nlnAfterOneliner (ats: SynAttributes) =
+    let addNln = nlnAfterOneliner || ats.Length > 1
+
+    colPost (ifElse addNln sepNlnUnlessLastEventIsNewline sepSpace) sepNln ats (fun a ->
+        let expr = genAttributesCore a.Attributes |> genTriviaFor SynAttributeList_ a.Range
+        expr)
+
+and genAttributes (ats: SynAttributes) = genAttributes' true ats
 
 and genPreXmlDoc (PreXmlDoc(lines, _)) =
     colPost sepNln sepNln lines (sprintf "///%s" >> (!-))
@@ -2916,7 +2920,7 @@ and genTypeDefn (TypeDef(ats, px, leadingKeyword, ao, tds, tcs, equalsRange, tdr
     let genLeadingKeyword =
         match leadingKeyword with
         | SynTypeDefnLeadingKeyword.Type mType -> genAttributes ats +> genTriviaFor SynTypeDefn_Type mType !- "type "
-        | SynTypeDefnLeadingKeyword.And mAnd -> genTriviaFor SynTypeDefn_And mAnd !- "and " +> genAttributes ats
+        | SynTypeDefnLeadingKeyword.And mAnd -> genTriviaFor SynTypeDefn_And mAnd !- "and " +> genAttributes' false ats
         | SynTypeDefnLeadingKeyword.StaticType _
         | SynTypeDefnLeadingKeyword.Synthetic -> sepNone
 
