@@ -246,42 +246,41 @@ let triviaBeforeOrAfterEntireTree (rootNode: TriviaNode) (trivia: Trivia) : Triv
       AddBefore = isBefore }
 
 /// Try to put the trivia on top of the closest node
+/// (or after closest node before in some special cases)
 /// If that didn't work put it after the last node
 let simpleTriviaToTriviaInstruction (containerNode: TriviaNode) (trivia: Trivia) : TriviaInstruction option =
-    //TODO: generalize
-    let addAfterTypes = set [ FsAstType.SynAttributeList_ ]
+    let childrenTypes = containerNode.Children |> Array.map (fun n -> n.Type)
 
-    let addAfterNode =
-        match trivia.Item with
-        | Directive _ when containerNode.Children.[0].Type = FsAstType.SynTypeDefn_And ->
-            containerNode.Children
-            |> Array.rev
-            |> Seq.tryFind (fun node ->
-                Set.contains node.Type addAfterTypes
-                && node.Range.StartLine < trivia.Range.StartLine)
-        | _ -> None
-
-    addAfterNode
-    |> Option.map (fun node ->
+    let mkTriviaNode addBefore (node: TriviaNode) =
         { Trivia = trivia
           Type = node.Type
           Range = node.Range
-          AddBefore = false })
+          AddBefore = addBefore }
+
+    let findChildNodeToAddAfter mainType prevType =
+        containerNode.Children
+        |> Array.indexed
+        |> Array.rev
+        |> Seq.tryFind (fun (i, node) ->
+            node.Type = mainType
+            && node.Range.StartLine < trivia.Range.StartLine
+            && childrenTypes[0 .. i - 1] |> Array.contains prevType)
+        |> Option.map snd
+
+    let addAfterNode =
+        match trivia.Item with
+        | Directive _ ->
+            // link directive after attribute for "... and ..." type
+            findChildNodeToAddAfter FsAstType.SynAttributeList_ FsAstType.SynTypeDefn_And
+        | _ -> None
+
+    addAfterNode
+    |> Option.map (mkTriviaNode false)
     |> Option.orElseWith (fun () ->
         containerNode.Children
         |> Array.tryFind (fun node -> node.Range.StartLine > trivia.Range.StartLine)
-        |> Option.map (fun node ->
-            { Trivia = trivia
-              Type = node.Type
-              Range = node.Range
-              AddBefore = true })
-        |> Option.orElseWith (fun () ->
-            Array.tryLast containerNode.Children
-            |> Option.map (fun node ->
-                { Trivia = trivia
-                  Type = node.Type
-                  Range = node.Range
-                  AddBefore = false })))
+        |> Option.map (mkTriviaNode true)
+        |> Option.orElseWith (fun () -> Array.tryLast containerNode.Children |> Option.map (mkTriviaNode false)))
 
 /// Try and find the smallest possible node
 let lineCommentAfterSourceCodeToTriviaInstruction
