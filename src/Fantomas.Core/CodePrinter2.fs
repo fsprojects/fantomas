@@ -2602,6 +2602,7 @@ let genBinding (b: BindingNode) (ctx: Context) : Context =
 
             genXml b.XmlDoc
             +> genAttrAndPref
+            +> sepSpace
             +> (fun ctx ->
                 let prefix =
                     afterLetKeyword
