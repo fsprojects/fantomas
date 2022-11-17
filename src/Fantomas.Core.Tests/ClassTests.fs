@@ -123,9 +123,9 @@ type Shape2D(x0: float, y0: float) =
         with get () = y
         and set yval = y <- yval
 
-    abstract Area: float
-    abstract Perimeter: float
-    abstract Name: string
+    abstract Area: float with get
+    abstract Perimeter: float with get
+    abstract Name: string with get
 
     member this.Move dx dy =
         x <- x + dx
