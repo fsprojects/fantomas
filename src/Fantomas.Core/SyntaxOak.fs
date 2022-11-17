@@ -738,6 +738,13 @@ type InheritConstructor =
         | Paren n -> n
         | Other n -> n
 
+    member x.InheritKeyword =
+        match x with
+        | TypeOnly n -> n.InheritKeyword
+        | Unit n -> n.InheritKeyword
+        | Paren n -> n.InheritKeyword
+        | Other n -> n.InheritKeyword
+
 [<RequireQualifiedAccess; NoComparison>]
 type RecordNodeExtra =
     | Inherit of inheritConstructor: InheritConstructor
