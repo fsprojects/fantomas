@@ -44,7 +44,7 @@ type FantomasDaemon(sender: Stream, reader: Stream) as this =
 
     [<JsonRpcMethod(Methods.FormatDocument, UseSingleObjectParameterDeserialization = true)>]
     member _.FormatDocumentAsync(request: FormatDocumentRequest) : Task<FormatDocumentResponse> =
-        async {
+        task {
             if
                 IgnoreFile.isIgnoredFile
                     (IgnoreFile.find fs (IgnoreFile.loadIgnoreList fs) request.FilePath)
@@ -70,11 +70,10 @@ type FantomasDaemon(sender: Stream, reader: Stream) as this =
                 with ex ->
                     return FormatDocumentResponse.Error(request.FilePath, ex.Message)
         }
-        |> Async.StartAsTask
 
     [<JsonRpcMethod(Methods.FormatSelection, UseSingleObjectParameterDeserialization = true)>]
     member _.FormatSelectionAsync(request: FormatSelectionRequest) : Task<FormatSelectionResponse> =
-        async {
+        task {
             let config =
                 match request.Config with
                 | Some configProperties ->
@@ -106,7 +105,6 @@ type FantomasDaemon(sender: Stream, reader: Stream) as this =
             with ex ->
                 return FormatSelectionResponse.Error(request.FilePath, ex.Message)
         }
-        |> Async.StartAsTask
 
     [<JsonRpcMethod(Methods.Configuration)>]
     member _.Configuration() : string =

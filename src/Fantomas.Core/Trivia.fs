@@ -42,7 +42,7 @@ let internal collectTriviaFromDirectives
     : Trivia list =
     directives
     |> List.map (function
-        | ConditionalDirectiveTrivia.If (_, r)
+        | ConditionalDirectiveTrivia.If(_, r)
         | ConditionalDirectiveTrivia.Else r
         | ConditionalDirectiveTrivia.EndIf r ->
             let text = (source.GetContentAt r).TrimEnd()
@@ -236,7 +236,7 @@ let triviaBeforeOrAfterEntireTree (rootNode: TriviaNode) (trivia: Trivia) : Triv
 
     let trivia =
         match trivia.Item with
-        | Comment (BlockComment (commentText, _, _)) ->
+        | Comment(BlockComment(commentText, _, _)) ->
             { trivia with Item = Comment(BlockComment(commentText, false, true)) }
         | _ -> trivia
 
@@ -294,7 +294,7 @@ let blockCommentToTriviaInstruction (containerNode: TriviaNode) (trivia: Trivia)
 
     let triviaWith newlineBefore newlineAfter =
         match trivia with
-        | { Item = Comment (BlockComment (content, _, _)) } ->
+        | { Item = Comment(BlockComment(content, _, _)) } ->
             { trivia with Item = Comment(BlockComment(content, newlineBefore, newlineAfter)) }
         | _ -> trivia
 
@@ -336,12 +336,12 @@ let mapTriviaToTriviaInstruction (rootNode: TriviaNode) (trivia: Trivia) : Trivi
     | None -> Some(triviaBeforeOrAfterEntireTree rootNode trivia)
     | Some parentNode ->
         match trivia.Item with
-        | TriviaContent.Comment (Comment.CommentOnSingleLine _)
+        | TriviaContent.Comment(Comment.CommentOnSingleLine _)
         | TriviaContent.Newline
         | TriviaContent.Directive _ -> simpleTriviaToTriviaInstruction parentNode trivia
-        | TriviaContent.Comment (Comment.LineCommentAfterSourceCode _) ->
+        | TriviaContent.Comment(Comment.LineCommentAfterSourceCode _) ->
             lineCommentAfterSourceCodeToTriviaInstruction parentNode trivia
-        | TriviaContent.Comment (Comment.BlockComment _) -> blockCommentToTriviaInstruction parentNode trivia
+        | TriviaContent.Comment(Comment.BlockComment _) -> blockCommentToTriviaInstruction parentNode trivia
 
 (*
     1. Collect TriviaNodes from AST
@@ -357,14 +357,14 @@ let collectTrivia
     : TriviaInstruction list =
     let rootNode, directives, codeComments =
         match ast with
-        | ParsedInput.ImplFile (ParsedImplFileInput (hds, mns, directives, codeComments)) ->
+        | ParsedInput.ImplFile(ParsedImplFileInput(hds, mns, directives, codeComments)) ->
             let rootNode =
                 match selection with
                 | None -> astToNode ast.FullRange hds mns
                 | Some { Node = rootNode } -> rootNode
 
             rootNode, directives, codeComments
-        | ParsedInput.SigFile (ParsedSigFileInput (_, mns, directives, codeComments)) ->
+        | ParsedInput.SigFile(ParsedSigFileInput(_, mns, directives, codeComments)) ->
             let rootNode =
                 match selection with
                 | None -> sigAstToNode ast.FullRange mns

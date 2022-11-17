@@ -3,7 +3,29 @@
 ## [Unreleased]
 
 ### Fixed
+* Indenting problem with `match` workaround for single-line stroustrup expressions [#2586](https://github.com/fsprojects/fantomas/issues/2586)
 * Comment above single parameter in brackets breaks code due to wrong indentation. [#2594](https://github.com/fsprojects/fantomas/issues/2594)
+
+## [5.1.3] - 2022-11-14
+
+### Fixed
+* Idempotency problem with anonymous types in discriminated unions. [#2621](https://github.com/fsprojects/fantomas/issues/2621)
+
+## [5.1.2] - 2022-11-09
+
+### Changed
+* Update to newer Fantomas.Client. [#2617](https://github.com/fsprojects/fantomas/issues/2617)
+
+## [5.1.1] - 2022-11-07
+
+### Fixed
+* Comment is removed when using array index access syntax, without a leading dot. [#2611](https://github.com/fsprojects/fantomas/issues/2611)
+* Interface in object expression is not printed. [#2604](https://github.com/fsprojects/fantomas/issues/2604)
+
+## [5.1.0] - 2022-11-04
+
+### Changed
+* Official release.
 
 ## [5.1.0-beta-002] - 2022-10-29
 

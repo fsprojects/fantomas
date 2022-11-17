@@ -252,3 +252,38 @@ a.b[c] <- d
 b[c] <- d
 a.b[c] <- d
 """
+
+[<Test>]
+let ``comment is removed when using array index access syntax, 2611`` () =
+    formatSourceString
+        false
+        """
+open System.Collections.Generic
+
+let inventory = Dictionary<string, int>()
+
+inventory.Add("Apples", 1)
+inventory.Add("Oranges", 2)
+inventory.Add("Bananas", 3)
+
+inventory["Oranges"] // raises an exception if not found
+inventory.["Apples"] // raises an exception if not found
+nestedInventory["Oranges"][23] // raises an exception if not found
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+open System.Collections.Generic
+
+let inventory = Dictionary<string, int>()
+
+inventory.Add("Apples", 1)
+inventory.Add("Oranges", 2)
+inventory.Add("Bananas", 3)
+
+inventory["Oranges"] // raises an exception if not found
+inventory.["Apples"] // raises an exception if not found
+nestedInventory["Oranges"][23] // raises an exception if not found
+"""

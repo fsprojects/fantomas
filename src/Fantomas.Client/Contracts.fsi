@@ -49,17 +49,14 @@ type FormatSelectionRequest =
 
     member IsSignatureFile: bool
 
-and [<Struct>] FormatSelectionRange =
-
-    new: startLine: int * startColumn: int * endLine: int * endColumn: int -> FormatSelectionRange
-
-    val StartLine: int
-
-    val StartColumn: int
-
-    val EndLine: int
-
-    val EndColumn: int
+and FormatSelectionRange =
+    class
+        new: startLine: int * startColumn: int * endLine: int * endColumn: int -> FormatSelectionRange
+        val StartLine: int
+        val StartColumn: int
+        val EndLine: int
+        val EndColumn: int
+    end
 
 type FantomasResponse =
     {

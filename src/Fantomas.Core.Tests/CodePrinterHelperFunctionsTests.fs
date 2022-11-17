@@ -215,10 +215,12 @@ let ``printing trivia instructions`` () =
     // This active pattern will return the `a` node and the `b` node.
     let (|InterestingTreeNodes|_|) (ast: ParsedInput) =
         match ast with
-        | ParsedInput.ImplFile (ParsedImplFileInput.ParsedImplFileInput(contents = [ SynModuleOrNamespace.SynModuleOrNamespace(decls = [ SynModuleDecl.Let(bindings = [ SynBinding (headPat = SynPat.Named(ident = SynIdent (aNode,
-                                                                                                                                                                                                                             _))
-                                                                                                                                                                                    expr = SynExpr.Ident bNode) ]) ]) ])) ->
-            Some(aNode, bNode)
+        | ParsedInput.ImplFile(ParsedImplFileInput.ParsedImplFileInput(
+            contents = [ SynModuleOrNamespace.SynModuleOrNamespace(
+                             decls = [ SynModuleDecl.Let(
+                                           bindings = [ SynBinding(
+                                                            headPat = SynPat.Named(ident = SynIdent(aNode, _))
+                                                            expr = SynExpr.Ident bNode) ]) ]) ])) -> Some(aNode, bNode)
         | _ -> None
 
     // Another active pattern to extract the code comment.
@@ -226,18 +228,18 @@ let ``printing trivia instructions`` () =
     // Grabbing all comments from the toplevel file node and to later assign them to the correct AST child node.
     let (|SingleComment|_|) (ast: ParsedInput) =
         match ast with
-        | ParsedInput.ImplFile (ParsedImplFileInput.ParsedImplFileInput(trivia = { CodeComments = [ CommentTrivia.LineComment rangeOfLineComment ] })) ->
-            Some rangeOfLineComment
+        | ParsedInput.ImplFile(ParsedImplFileInput.ParsedImplFileInput(
+            trivia = { CodeComments = [ CommentTrivia.LineComment rangeOfLineComment ] })) -> Some rangeOfLineComment
         | _ -> None
 
     let f (ast: ParsedInput) : Context -> Context =
         match ast with
-        | InterestingTreeNodes (a, b) -> !- "let " +> !-a.idText +> sepEq +> sepSpace +> !-b.idText
+        | InterestingTreeNodes(a, b) -> !- "let " +> !-a.idText +> sepEq +> sepSpace +> !-b.idText
         | _ -> !- "error"
 
     let codeCommentAsTriviaInstruction: TriviaInstruction list =
         match ast with
-        | SingleComment comment & InterestingTreeNodes (_, b) ->
+        | SingleComment comment & InterestingTreeNodes(_, b) ->
             // In `Trivia` we figured out that the comment belongs to `b`.
             // Now we will map this as `TriviaInstruction`.
             let trivia: Trivia =
@@ -268,7 +270,7 @@ let ``printing trivia instructions`` () =
     // As it is not exposed from `CodePrinter`, we need to write our own.
     let g (ast: ParsedInput) : Context -> Context =
         match ast with
-        | InterestingTreeNodes (a, b) ->
+        | InterestingTreeNodes(a, b) ->
             let genB: Context -> Context =
                 // This will write any instructions that match 'FsAstType.Ident_'
                 // and the range of `b` equals the range of the `TriviaInstruction`.
@@ -311,20 +313,22 @@ let b = 2
     let (|TwoBindingsInFile|_|) (ast: ParsedInput) =
         let (|ValueBinding|_|) (node: SynModuleDecl) =
             match node with
-            | SynModuleDecl.Let(bindings = [ SynBinding (headPat = SynPat.Named(ident = SynIdent (name, _))
-                                                         expr = SynExpr.Const (SynConst.Int32 value, _)) ]) ->
+            | SynModuleDecl.Let(
+                bindings = [ SynBinding(
+                                 headPat = SynPat.Named(ident = SynIdent(name, _))
+                                 expr = SynExpr.Const(SynConst.Int32 value, _)) ]) ->
                 Some(name.idText, value, node.Range)
             | _ -> None
 
         match ast with
-        | ParsedInput.ImplFile (ParsedImplFileInput.ParsedImplFileInput(contents = [ SynModuleOrNamespace.SynModuleOrNamespace(decls = [ ValueBinding a
-                                                                                                                                         ValueBinding b ]) ])) ->
+        | ParsedInput.ImplFile(ParsedImplFileInput.ParsedImplFileInput(
+            contents = [ SynModuleOrNamespace.SynModuleOrNamespace(decls = [ ValueBinding a; ValueBinding b ]) ])) ->
             Some(a, b)
         | _ -> None
 
     let f ast =
         match ast with
-        | TwoBindingsInFile (a, b) ->
+        | TwoBindingsInFile(a, b) ->
             let genBinding (name, value, range) =
                 // print trivia before SynModuleDecl.Let
                 enterNodeFor SynModuleDecl_Let range
@@ -355,7 +359,7 @@ let b = 2
 
     let triviaInstructions =
         match newAst with
-        | TwoBindingsInFile (_, (_, _, rangeOfB)) ->
+        | TwoBindingsInFile(_, (_, _, rangeOfB)) ->
             // Again, this trivia would be detected in `Trivia`.
             // We simplify things for this example.
             let rangeOfNewline = CodeFormatter.MakeRange(rangeOfB.FileName, 2, 0, 2, 0)
@@ -388,7 +392,7 @@ let b = 2
 
     let g ast =
         match ast with
-        | TwoBindingsInFile (a, b) ->
+        | TwoBindingsInFile(a, b) ->
             let genBinding (name, value, range) =
                 // print trivia before SynModuleDecl.Let
                 enterNodeFor SynModuleDecl_Let range

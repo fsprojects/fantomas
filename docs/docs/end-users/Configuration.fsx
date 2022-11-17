@@ -598,7 +598,7 @@ Default = false.
 
 formatCode
     """ 
-    type Range =
+type Range =
     { From: float
       To: float }
     member this.Length = this.To - this.From
@@ -617,12 +617,12 @@ Default = false.
 
 formatCode
     """ 
-    [<FunctionName("FormatCode")>]
-    let run 
-        ([<HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = "{*any}")>] req: HttpRequest)
-        (log: ILogger)
-        : HttpResponse =
-        Http.main CodeFormatter.GetVersion format FormatConfig.FormatConfig.Default log req
+[<FunctionName("FormatCode")>]
+let run 
+    ([<HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = "{*any}")>] req: HttpRequest)
+    (log: ILogger)
+    : HttpResponse =
+    Http.main CodeFormatter.GetVersion format FormatConfig.FormatConfig.Default log req
     """
     { FormatConfig.Default with AlignFunctionSignatureToIndentation = true }
 (*** include-it ***)
@@ -638,23 +638,23 @@ Default = false.
 
 formatCode
     """ 
-    type C
-        (
-            aVeryLongType: AVeryLongTypeThatYouNeedToUse,
-            aSecondVeryLongType: AVeryLongTypeThatYouNeedToUse,
-            aThirdVeryLongType: AVeryLongTypeThatYouNeedToUse
-        ) =
-        class
-        end
+type C
+    (
+        aVeryLongType: AVeryLongTypeThatYouNeedToUse,
+        aSecondVeryLongType: AVeryLongTypeThatYouNeedToUse,
+        aThirdVeryLongType: AVeryLongTypeThatYouNeedToUse
+    ) =
+    class
+    end
 
-    type D() =
-        member _.LongMethodWithLotsOfParameters
-            (
-                aVeryLongParam: AVeryLongTypeThatYouNeedToUse,
-                aSecondVeryLongParam: AVeryLongTypeThatYouNeedToUse,
-                aThirdVeryLongParam: AVeryLongTypeThatYouNeedToUse
-            ) : ReturnType =
-            42
+type D() =
+    member _.LongMethodWithLotsOfParameters
+        (
+            aVeryLongParam: AVeryLongTypeThatYouNeedToUse,
+            aSecondVeryLongParam: AVeryLongTypeThatYouNeedToUse,
+            aThirdVeryLongParam: AVeryLongTypeThatYouNeedToUse
+        ) : ReturnType =
+        42
     """
     { FormatConfig.Default with AlternativeLongMemberDefinitions = true }
 (*** include-it ***)
@@ -669,20 +669,19 @@ Default = false.
 
 formatCode
     """ 
-    let printListWithOffset a list1 =
-        List.iter
-            (fun { ItemOne = a } ->
-                // print
-                printfn "%s" a)
-            list1
-
-    let printListWithOffset a list1 =
+let printListWithOffset a list1 =
+    List.iter
+        (fun { ItemOne = a } ->
+            // print
+            printfn "%s" a)
         list1
-        |> List.iter
-            (fun elem ->
-                // print stuff
-                printfn "%d" (a + elem))
 
+let printListWithOffset a list1 =
+    list1
+    |> List.iter
+        (fun elem ->
+            // print stuff
+            printfn "%d" (a + elem))
     """
     { FormatConfig.Default with MultiLineLambdaClosingNewline = true }
 (*** include-it ***)
@@ -698,7 +697,7 @@ Only when the last pattern match or else branch was already at the same level of
 
 formatCode
     """ 
-    let main argv =
+let main argv =
     let args = parse argv
 
     let instructions = Library.foo args

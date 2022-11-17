@@ -627,3 +627,23 @@ type IInterface2 =
 type IInterface3 =
     abstract member X: unit -> unit
 """
+
+[<Test>]
+let ``interface in obj expression, 2604`` () =
+    formatSourceString
+        false
+        """
+{   new IDisposable
+    interface Meh with
+        member x.Blur = () }
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+{ new IDisposable
+
+  interface Meh with
+      member x.Blur = () }
+"""

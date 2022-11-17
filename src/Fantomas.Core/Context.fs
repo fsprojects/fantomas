@@ -358,7 +358,7 @@ let lastWriteEventIsNewline ctx =
 
 let private (|EmptyHashDefineBlock|_|) (events: WriterEvent array) =
     match Array.tryHead events, Array.tryLast events with
-    | Some (CommentOrDefineEvent _), Some (CommentOrDefineEvent _) ->
+    | Some(CommentOrDefineEvent _), Some(CommentOrDefineEvent _) ->
         // Check if there is an empty block between hash defines
         // Example:
         // #if FOO
@@ -815,7 +815,7 @@ let expressionFitsOnRestOfLine expression fallbackExpression (ctx: Context) =
 let isSmallExpression size (smallExpression: Context -> Context) fallbackExpression (ctx: Context) =
     match size with
     | CharacterWidth maxWidth -> isShortExpression maxWidth smallExpression fallbackExpression ctx
-    | NumberOfItems (items, maxItems) ->
+    | NumberOfItems(items, maxItems) ->
         if items > maxItems then
             fallbackExpression ctx
         else
@@ -1061,11 +1061,11 @@ let printTriviaContent (c: TriviaContent) (ctx: Context) =
         |> Option.defaultValue false
 
     match c with
-    | Comment (LineCommentAfterSourceCode s) ->
+    | Comment(LineCommentAfterSourceCode s) ->
         let comment = sprintf "%s%s" (if addSpace then " " else String.empty) s
 
         writerEvent (WriteBeforeNewline comment)
-    | Comment (BlockComment (s, before, after)) ->
+    | Comment(BlockComment(s, before, after)) ->
         ifElse (before && addNewline) sepNlnForTrivia sepNone
         +> sepSpace
         +> !-s
@@ -1073,7 +1073,7 @@ let printTriviaContent (c: TriviaContent) (ctx: Context) =
         +> ifElse after sepNlnForTrivia sepNone
     | Newline -> (ifElse addNewline (sepNlnForTrivia +> sepNlnForTrivia) sepNlnForTrivia)
     | Directive s
-    | Comment (CommentOnSingleLine s) -> (ifElse addNewline sepNlnForTrivia sepNone) +> !-s +> sepNlnForTrivia
+    | Comment(CommentOnSingleLine s) -> (ifElse addNewline sepNlnForTrivia sepNone) +> !-s +> sepNlnForTrivia
     <| ctx
 
 let printTriviaInstructions (triviaInstructions: TriviaInstruction list) =
@@ -1273,8 +1273,8 @@ let private isMultilineItem (expr: Context -> Context) (ctx: Context) : bool * C
 let colWithNlnWhenItemIsMultiline (items: ColMultilineItem list) (ctx: Context) : Context =
     match items with
     | [] -> ctx
-    | [ (ColMultilineItem (expr, _)) ] -> expr ctx
-    | ColMultilineItem (initialExpr, _) :: items ->
+    | [ (ColMultilineItem(expr, _)) ] -> expr ctx
+    | ColMultilineItem(initialExpr, _) :: items ->
         let result =
             // The first item can be written as is.
             let initialIsMultiline, initialCtx = isMultilineItem initialExpr ctx
@@ -1286,7 +1286,7 @@ let colWithNlnWhenItemIsMultiline (items: ColMultilineItem list) (ctx: Context) 
             let rec loop (acc: ColMultilineItemsState) (items: ColMultilineItem list) =
                 match items with
                 | [] -> acc.Context
-                | ColMultilineItem (expr, sepNlnItem) :: rest ->
+                | ColMultilineItem(expr, sepNlnItem) :: rest ->
                     // Assume the current item will be multiline or the previous was.
                     // If this is the case, we have already processed the correct stream of event (with additional newline)
                     // It is cheaper to replay the current expression if it (and its predecessor) turned out to be single lines.
@@ -1322,4 +1322,4 @@ let colWithNlnWhenItemIsMultilineUsingConfig (items: ColMultilineItem list) (ctx
     if ctx.Config.BlankLinesAroundNestedMultilineExpressions then
         colWithNlnWhenItemIsMultiline items ctx
     else
-        col sepNln items (fun (ColMultilineItem (expr, _)) -> expr) ctx
+        col sepNln items (fun (ColMultilineItem(expr, _)) -> expr) ctx

@@ -21,7 +21,7 @@ graph TD
 ## Fantomas.FCS
 
 This is a very custom fork of the F# compiler. We only expose a single parse function to construct the untyped syntax tree.
-We achieve this by taking the files necessary to compile the F# parser from source (via `paket`).
+We achieve this by taking the files necessary to compile the F# parser from source (via custom code in a `Fun.Build` pipeline).
 This limits the dependency footprint that our compiler has, compared to the official [F# compiler NuGet package](https://www.nuget.org/packages/FSharp.Compiler.Service).
 
 Note that the AST returned by `Fantomas.FCS` looks identical to what the official F# compiler returns. 

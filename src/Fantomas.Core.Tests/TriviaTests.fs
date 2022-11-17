@@ -18,8 +18,8 @@ let private toTriviaWithDefines source =
 
     let hashDirectives =
         match ast with
-        | ImplFile (ParsedImplFileInput (_, _, directives, _))
-        | SigFile (ParsedSigFileInput (_, _, directives, _)) -> directives
+        | ImplFile(ParsedImplFileInput(_, _, directives, _))
+        | SigFile(ParsedSigFileInput(_, _, directives, _)) -> directives
 
     let defineCombinations = Defines.getDefineCombination hashDirectives
 
