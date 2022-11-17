@@ -2423,9 +2423,11 @@ let genBinding (b: BindingNode) (ctx: Context) : Context =
 
             let genPref =
                 if not isRecursiveLetOrUseFunction then
-                    genMultipleTextsNode b.LeadingKeyword
+                    genMultipleTextsNode b.LeadingKeyword +> sepSpace
                 else
-                    genMultipleTextsNode b.LeadingKeyword +> genOnelinerAttributes b.Attributes
+                    genMultipleTextsNode b.LeadingKeyword
+                    +> sepSpace
+                    +> genOnelinerAttributes b.Attributes
 
             let afterLetKeyword =
                 ifElse b.IsMutable (!- "mutable ") sepNone
