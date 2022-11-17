@@ -209,26 +209,21 @@ let genAttributes (node: MultipleAttributeListNode) =
         |> genNode a)
     |> genNode node
 
+// The inherit keyword should already be printed by the caller
 let genInheritConstructor (ic: InheritConstructor) =
     match ic with
-    | InheritConstructor.TypeOnly node -> genSingleTextNode node.InheritKeyword +> sepSpace +> genType node.Type
+    | InheritConstructor.TypeOnly node -> genType node.Type
     | InheritConstructor.Unit node ->
-        genSingleTextNode node.InheritKeyword
-        +> sepSpace
-        +> genType node.Type
+        genType node.Type
         +> sepSpaceBeforeClassConstructor
         +> genSingleTextNode node.OpeningParen
         +> genSingleTextNode node.ClosingParen
     | InheritConstructor.Paren node ->
-        genSingleTextNode node.InheritKeyword
-        +> sepSpace
-        +> genType node.Type
+        genType node.Type
         +> sepSpaceBeforeClassConstructor
         +> expressionFitsOnRestOfLine (genExpr node.Expr) (genMultilineFunctionApplicationArguments node.Expr)
     | InheritConstructor.Other node ->
-        genSingleTextNode node.InheritKeyword
-        +> sepSpace
-        +> genType node.Type
+        genType node.Type
         +> sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth (genExpr node.Expr)
 
 let isSynExprLambdaOrIfThenElse (e: Expr) =
@@ -383,7 +378,10 @@ let genExpr (e: Expr) =
             genSingleTextNode node.OpeningBrace
             +> addSpaceIfSpaceAroundDelimiter
             +> match node.Extra with
-               | RecordNodeExtra.Inherit ie -> genInheritConstructor ie +> onlyIf hasFields sepSemi
+               | RecordNodeExtra.Inherit ie ->
+                   (genSingleTextNode ie.InheritKeyword +> sepSpace +> genInheritConstructor ie
+                    |> genNode (InheritConstructor.Node ie))
+                   +> onlyIf hasFields sepSemi
                | RecordNodeExtra.With we -> genExpr we +> !- " with "
                | RecordNodeExtra.None -> sepNone
             +> col sepSemi node.Fields genRecordFieldName
@@ -396,8 +394,9 @@ let genExpr (e: Expr) =
                 | RecordNodeExtra.Inherit ie ->
                     genSingleTextNode node.OpeningBrace
                     +> indentSepNlnUnindent (
-                        !- "inherit "
-                        +> autoIndentAndNlnIfExpressionExceedsPageWidth (genInheritConstructor ie)
+                        (genSingleTextNode ie.InheritKeyword
+                         +> autoIndentAndNlnIfExpressionExceedsPageWidth (genInheritConstructor ie)
+                         |> genNode (InheritConstructor.Node ie))
                         +> onlyIf hasFields sepNln
                         +> fieldsExpr
                     )
@@ -428,8 +427,9 @@ let genExpr (e: Expr) =
                     genSingleTextNode node.OpeningBrace
                     +> addSpaceIfSpaceAroundDelimiter
                     +> atCurrentColumn (
-                        !- "inherit "
-                        +> autoIndentAndNlnIfExpressionExceedsPageWidth (genInheritConstructor ie)
+                        (genSingleTextNode ie.InheritKeyword
+                         +> autoIndentAndNlnIfExpressionExceedsPageWidth (genInheritConstructor ie)
+                         |> genNode (InheritConstructor.Node ie))
                         +> onlyIf hasFields sepNln
                         +> fieldsExpr
                         +> addSpaceIfSpaceAroundDelimiter
@@ -3243,7 +3243,10 @@ let genMemberDefnList mds =
 
 let genMemberDefn (md: MemberDefn) =
     match md with
-    | MemberDefn.ImplicitInherit ic -> genInheritConstructor ic
+    | MemberDefn.ImplicitInherit ic ->
+        genSingleTextNode ic.InheritKeyword
+        +> sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth (genInheritConstructor ic)
+        |> genNode (InheritConstructor.Node ic)
     | MemberDefn.Inherit node -> genSingleTextNode node.Inherit +> sepSpace +> genType node.BaseType
     | MemberDefn.ValField node -> genField node
     | MemberDefn.Member node -> genBinding node
