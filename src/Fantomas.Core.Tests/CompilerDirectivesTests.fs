@@ -3025,7 +3025,7 @@ internal T2 = T2
 """
 
 [<Test>]
-let ``attributes in "and" type`` () =
+let ``attributes with directives in "and" type, 628`` () =
     formatSourceString
         false
         """
