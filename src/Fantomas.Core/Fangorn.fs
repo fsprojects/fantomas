@@ -154,8 +154,30 @@ let mkConstant (creationAide: CreationAide) c r : Constant =
             $"\"{content}\"B"
 
         stn (creationAide.TextFromSource fallback r) r |> Constant.FromText
-    | SynConst.Measure(c, numberRange, m) -> failwith "todo, 1BF1C723-1931-40BE-8C02-3A4BAC1D8BAD"
+    | SynConst.Measure(c, numberRange, measure) ->
+        ConstantMeasureNode(mkConstant creationAide c numberRange, mkMeasure creationAide measure, r)
+        |> Constant.Measure
     | SynConst.SourceIdentifier(c, _, r) -> stn c r |> Constant.FromText
+
+let mkMeasure (creationAide: CreationAide) (measure: SynMeasure) : Measure =
+    match measure with
+    | SynMeasure.Var(typar, _) -> mkSynTypar typar |> Measure.Single
+    | SynMeasure.Anon m -> stn "_" m |> Measure.Single
+    | SynMeasure.One -> stn "1" Range.Zero |> Measure.Single
+    | SynMeasure.Product(m1, m2, m) ->
+        MeasureOperatorNode(mkMeasure creationAide m1, stn "*" Range.Zero, mkMeasure creationAide m2, m)
+        |> Measure.Operator
+    | SynMeasure.Divide(m1, m2, m) ->
+        MeasureOperatorNode(mkMeasure creationAide m1, stn "/" Range.Zero, mkMeasure creationAide m2, m)
+        |> Measure.Operator
+    | SynMeasure.Power(ms, rat, m) ->
+        MeasurePowerNode(mkMeasure creationAide ms, stn (mkSynRationalConst rat) Range.Zero, m)
+        |> Measure.Power
+    | SynMeasure.Named(lid, _) -> mkLongIdent lid |> Measure.Multiple
+    | SynMeasure.Paren(measure, StartEndRange 1 (mOpen, m, mClose)) ->
+        MeasureParenNode(stn "(" mOpen, mkMeasure creationAide measure, stn ")" mClose, m)
+        |> Measure.Paren
+    | SynMeasure.Seq(ms, m) -> MeasureSequenceNode(List.map (mkMeasure creationAide) ms, m) |> Measure.Seq
 
 let mkAttribute (creationAide: CreationAide) (a: SynAttribute) =
     let expr =
@@ -454,12 +476,12 @@ let rec (|ElIf|_|) =
 
 let (|ConstNumberExpr|_|) =
     function
-    | SynExpr.Const(SynConst.Double v, m) as e -> Some(string v, m)
-    | SynExpr.Const(SynConst.Decimal v, m) as e -> Some(string v, m)
-    | SynExpr.Const(SynConst.Single v, m) as e -> Some(string v, m)
-    | SynExpr.Const(SynConst.Int16 v, m) as e -> Some(string v, m)
-    | SynExpr.Const(SynConst.Int32 v, m) as e -> Some(string v, m)
-    | SynExpr.Const(SynConst.Int64 v, m) as e -> Some(string v, m)
+    | SynExpr.Const(SynConst.Double v, m) -> Some(string v, m)
+    | SynExpr.Const(SynConst.Decimal v, m) -> Some(string v, m)
+    | SynExpr.Const(SynConst.Single v, m) -> Some(string v, m)
+    | SynExpr.Const(SynConst.Int16 v, m) -> Some(string v, m)
+    | SynExpr.Const(SynConst.Int32 v, m) -> Some(string v, m)
+    | SynExpr.Const(SynConst.Int64 v, m) -> Some(string v, m)
     | _ -> None
 
 let (|App|_|) e =
@@ -487,12 +509,12 @@ let (|ParenLambda|_|) e =
     | SynExpr.Paren(SynExpr.Lambda(_, _, _, _, Some(pats, body), mLambda, { ArrowRange = Some mArrow }),
                     lpr,
                     Some rpr,
-                    mParen) -> Some(lpr, pats, mArrow, body, mLambda, rpr)
+                    _) -> Some(lpr, pats, mArrow, body, mLambda, rpr)
     | _ -> None
 
 let (|ParenMatchLambda|_|) e =
     match e with
-    | SynExpr.Paren(SynExpr.MatchLambda(_, mFunction, clauses, _, mMatchLambda), lpr, Some rpr, mParen) ->
+    | SynExpr.Paren(SynExpr.MatchLambda(_, mFunction, clauses, _, mMatchLambda), lpr, Some rpr, _) ->
         Some(lpr, mFunction, clauses, mMatchLambda, rpr)
     | _ -> None
 
@@ -649,7 +671,7 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
                     stn "interface" mInterface,
                     mkType creationAide t,
                     Option.map (stn "with") mWith,
-                    List.map (mkBinding creationAide) bd,
+                    List.map (mkBinding creationAide) bs,
                     List.map (mkMemberDefn creationAide) members,
                     m
                 ))
@@ -712,7 +734,7 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
     | SynExpr.App(ExprAtomicFlag.NonAtomic,
                   false,
                   (SynExpr.App _ | SynExpr.TypeApp _ | SynExpr.Ident _ | SynExpr.LongIdent _ as nameExpr),
-                  (SynExpr.ComputationExpr(_, expr, StartEndRange 1 (openingBrace, _range, closingBrace))),
+                  SynExpr.ComputationExpr(_, expr, StartEndRange 1 (openingBrace, _range, closingBrace)),
                   _) ->
         ExprNamedComputationNode(
             mkExpr creationAide nameExpr,
@@ -1272,7 +1294,7 @@ let mkPat (creationAide: CreationAide) (p: SynPat) =
         |> Pattern.NamedParenStarIdent
     | SynPat.Named(accessibility = ao; ident = ident) ->
         PatNamedNode(mkSynAccess ao, mkSynIdent ident, patternRange) |> Pattern.Named
-    | SynPat.As(p1, p2, r) ->
+    | SynPat.As(p1, p2, _) ->
         PatLeftMiddleRight(mkPat creationAide p1, Choice2Of2 "as", mkPat creationAide p2, patternRange)
         |> Pattern.As
     | SynPat.ListCons(p1, p2, _, trivia) ->
@@ -1286,7 +1308,7 @@ let mkPat (creationAide: CreationAide) (p: SynPat) =
     | SynPat.LongIdent(synLongIdent,
                        _,
                        vtdo,
-                       SynArgPats.NamePatPairs(nps, _, { ParenRange = StartEndRange 1 (lpr, range, rpr) }),
+                       SynArgPats.NamePatPairs(nps, _, { ParenRange = StartEndRange 1 (lpr, _, rpr) }),
                        _,
                        _) ->
         let typarDecls = mkSynValTyparDecls creationAide vtdo
@@ -1740,7 +1762,7 @@ let mkSynField
 
 let mkSynUnionCase
     (creationAide: CreationAide)
-    (SynUnionCase(attributes, ident, caseType, xmlDoc, vis, m, trivia))
+    (SynUnionCase(attributes, ident, caseType, xmlDoc, _vis, m, trivia))
     : UnionCaseNode =
     let fullRange =
         if not xmlDoc.IsEmpty then
@@ -1963,7 +1985,7 @@ let mkTypeDefn
         |> TypeDefn.Augmentation
 
     | SynTypeDefnRepr.ObjectModel(
-        kind = SynTypeDefnKind.Delegate(signature = (TFuns(ts, rt)) as st); range = StartRange 8 (mDelegate, _)) ->
+        kind = SynTypeDefnKind.Delegate(signature = TFuns(ts, rt) as st); range = StartRange 8 (mDelegate, _)) ->
         let typeList = mkTypeList creationAide ts rt st.Range
 
         TypeDefnDelegateNode(typeNameNode, stn "delegate" mDelegate, typeList, typeDefnRange)
@@ -2623,7 +2645,7 @@ let mkTypeDefnSig (creationAide: CreationAide) (SynTypeDefnSig(typeInfo, typeRep
         |> TypeDefn.Augmentation
 
     | SynTypeDefnSigRepr.ObjectModel(
-        kind = SynTypeDefnKind.Delegate(signature = (TFuns(ts, rt)) as st); range = StartRange 8 (mDelegate, _)) ->
+        kind = SynTypeDefnKind.Delegate(signature = TFuns(ts, rt) as st); range = StartRange 8 (mDelegate, _)) ->
         let typeList = mkTypeList creationAide ts rt st.Range
 
         TypeDefnDelegateNode(typeNameNode, stn "delegate" mDelegate, typeList, typeDefnRange)
