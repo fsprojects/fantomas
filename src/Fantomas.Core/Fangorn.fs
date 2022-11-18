@@ -132,7 +132,9 @@ let mkConstant (creationAide: CreationAide) c r : Constant =
     | SynConst.Decimal v -> orElse $"%A{v}"
     | SynConst.IntPtr v -> orElse $"%A{v}"
     | SynConst.UIntPtr v -> orElse $"%A{v}"
-    | SynConst.UserNum _ -> failwith "todo, 90D57090-9123-4344-9B4F-9B51BB50DA31"
+    | SynConst.UserNum(v, s) ->
+        let fallback () = $"%s{v}%s{s}"
+        stn (creationAide.TextFromSource fallback r) r |> Constant.FromText
     | SynConst.String(value, stringKind, r) -> mkConstString creationAide stringKind value r |> Constant.FromText
     | SynConst.Char c ->
         let escapedChar =
