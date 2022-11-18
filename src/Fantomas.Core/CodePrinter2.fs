@@ -24,7 +24,7 @@ let rec (|UppercaseType|LowercaseType|) (t: Type) : Choice<unit, unit> =
         match lastIdent with
         | Some(IdentifierOrDot.Ident ident) -> upperOrLower ident.Text
         | _ -> LowercaseType
-    | Type.Var node -> upperOrLower node.Text
+    | Type.Var node -> upperOrLower (node.Text.Substring(1))
     | Type.AppPostfix node -> (|UppercaseType|LowercaseType|) node.First
     | Type.AppPrefix node -> (|UppercaseType|LowercaseType|) node.Identifier
     | _ -> failwithf $"Cannot determine if synType %A{t} is uppercase or lowercase"
