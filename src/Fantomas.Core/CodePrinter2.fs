@@ -162,6 +162,30 @@ let genConstant (c: Constant) =
     match c with
     | Constant.FromText n -> genSingleTextNode n
     | Constant.Unit n -> genUnit n
+    | Constant.Measure n ->
+        (genConstant n.Constant |> genNode (Constant.Node n.Constant))
+        +> !- "<"
+        +> genMeasure n.Measure
+        +> !- ">"
+
+let genMeasure (measure: Measure) =
+    match measure with
+    | Measure.Single n -> genSingleTextNode n
+    | Measure.Operator n ->
+        genMeasure n.LeftHandSide
+        +> sepSpace
+        +> genSingleTextNode n.Operator
+        +> sepSpace
+        +> genMeasure n.RightHandSide
+        |> genNode n
+    | Measure.Power n -> genMeasure n.Measure +> !- "^" +> genSingleTextNode n.Exponent |> genNode n
+    | Measure.Seq n -> col sepSpace n.Measures genMeasure
+    | Measure.Multiple n -> genIdentListNode n
+    | Measure.Paren n ->
+        genSingleTextNode n.OpeningParen
+        +> genMeasure n.Measure
+        +> genSingleTextNode n.ClosingParen
+        |> genNode n
 
 let genAttributesCore (ats: AttributeNode list) =
     let genAttributeExpr (attr: AttributeNode) =
@@ -261,7 +285,7 @@ let genExpr (e: Expr) =
             (autoIndentAndNlnIfExpressionExceedsPageWidthUnlessStroustrup genExpr node.Expr)
             (autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr node.Expr))
         |> genNode node
-    | Expr.Constant node -> genConstant node
+    | Expr.Constant node -> genConstant node |> genNode (Constant.Node node)
     | Expr.Null node -> genSingleTextNode node
     | Expr.Quote node -> genQuoteExpr node
     | Expr.Typed node ->

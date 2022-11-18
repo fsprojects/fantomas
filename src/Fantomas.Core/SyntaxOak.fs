@@ -2712,15 +2712,23 @@ type UnitNode(openingParen: SingleTextNode, closingParen: SingleTextNode, range)
     member x.OpeningParen = openingParen
     member x.ClosingParen = closingParen
 
+type ConstantMeasureNode(constant: Constant, measure: Measure, range) =
+    inherit NodeBase(range)
+    override x.Children = [| yield Constant.Node constant; yield Measure.Node measure |]
+    member x.Constant = constant
+    member x.Measure = measure
+
 [<RequireQualifiedAccess; NoEquality; NoComparison>]
 type Constant =
     | FromText of SingleTextNode
     | Unit of UnitNode
+    | Measure of ConstantMeasureNode
 
     static member Node(c: Constant) : NodeBase =
         match c with
         | FromText n -> n
         | Unit n -> n
+        | Measure n -> n
 
 type TyparDeclNode(attributes: MultipleAttributeListNode, typar: SingleTextNode, range) =
     inherit NodeBase(range)
@@ -2814,3 +2822,52 @@ type TypeConstraint =
         | SupportsMember n -> n
         | EnumOrDelegate n -> n
         | WhereSelfConstrained t -> Type.Node t
+
+type MeasureOperatorNode(lhs: Measure, operator: SingleTextNode, rhs: Measure, range) =
+    inherit NodeBase(range)
+
+    override x.Children =
+        [| yield Measure.Node lhs; yield operator; yield Measure.Node rhs |]
+
+    member x.LeftHandSide = lhs
+    member x.Operator = operator
+    member x.RightHandSide = rhs
+
+type MeasurePowerNode(measure: Measure, exponent: SingleTextNode, range) =
+    inherit NodeBase(range)
+    override x.Children = [| yield Measure.Node measure; yield exponent |]
+    member x.Measure = measure
+    member x.Exponent = exponent
+
+type MeasureSequenceNode(measures: Measure list, range) =
+    inherit NodeBase(range)
+    override x.Children = [| yield! List.map Measure.Node measures |]
+    member x.Measures = measures
+
+type MeasureParenNode(openingParen: SingleTextNode, measure: Measure, closingParen: SingleTextNode, range) =
+    inherit NodeBase(range)
+
+    override x.Children =
+        [| yield openingParen; yield Measure.Node measure; yield closingParen |]
+
+    member x.OpeningParen = openingParen
+    member x.Measure = measure
+    member x.ClosingParen = closingParen
+
+[<RequireQualifiedAccess; NoEquality; NoComparison>]
+type Measure =
+    | Single of SingleTextNode
+    | Operator of MeasureOperatorNode
+    | Power of MeasurePowerNode
+    | Multiple of IdentListNode
+    | Seq of MeasureSequenceNode
+    | Paren of MeasureParenNode
+
+    static member Node(m: Measure) : Node =
+        match m with
+        | Single n -> n
+        | Operator n -> n
+        | Power n -> n
+        | Multiple n -> n
+        | Seq n -> n
+        | Paren n -> n
