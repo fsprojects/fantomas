@@ -3433,6 +3433,7 @@ let genModule (m: ModuleOrNamespaceNode) =
                 +> genMultipleTextsNode n
                 +> sepSpace
                 +> genAccessOpt m.Accessibility
+                +> onlyIf m.IsRecursive (sepSpace +> !- "rec" +> sepSpace)
                 +> genIdentListNode m.Name)
             m.LeadingKeyword
          +> newline)
