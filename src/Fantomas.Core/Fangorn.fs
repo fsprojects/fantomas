@@ -2368,6 +2368,7 @@ let mkModuleOrNamespace
         attribs = attribs
         accessibility = accessibility
         longId = longId
+        isRecursive = isRecursive
         kind = kind
         decls = decls
         trivia = trivia) as mn)
@@ -2397,6 +2398,7 @@ let mkModuleOrNamespace
         mkAttributes creationAide attribs,
         leadingKeyword,
         mkSynAccess accessibility,
+        isRecursive,
         name,
         decls,
         range
@@ -2664,6 +2666,7 @@ let mkModuleOrNamespaceSig
         xmlDoc = xmlDoc
         attribs = attribs
         accessibility = accessibility
+        isRecursive = isRecursive
         longId = longId
         kind = kind
         decls = decls
@@ -2693,6 +2696,7 @@ let mkModuleOrNamespaceSig
         mkAttributes creationAide attribs,
         leadingKeyword,
         mkSynAccess accessibility,
+        isRecursive,
         name,
         decls,
         range

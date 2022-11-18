@@ -127,6 +127,7 @@ type ModuleOrNamespaceNode
         attributes: MultipleAttributeListNode,
         leadingKeyword: MultipleTextsNode option,
         accessibility: SingleTextNode option,
+        isRecursive: bool,
         name: IdentListNode,
         decls: ModuleDecl list,
         range
@@ -136,6 +137,7 @@ type ModuleOrNamespaceNode
     member x.Attributes = attributes
     member x.LeadingKeyword = leadingKeyword
     member x.Accessibility = accessibility
+    member x.IsRecursive = isRecursive
     member x.Name = name
     member x.Declarations = decls
     member x.IsNamed = Option.isSome x.LeadingKeyword
