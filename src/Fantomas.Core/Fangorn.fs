@@ -401,16 +401,19 @@ let (|InfixApp|_|) synExpr =
     | _ -> None
 
 let (|SameInfixApps|_|) expr =
-    let rec visit expr continuation =
+    let rec visit sameOperator expr continuation =
         match expr with
-        | InfixApp(lhs, operator, rhs) ->
-            visit lhs (fun (head, xs: Queue<SingleTextNode * SynExpr>) ->
+        | InfixApp(lhs, operator, rhs) when operator.Text = sameOperator ->
+            visit sameOperator lhs (fun (head, xs: Queue<SingleTextNode * SynExpr>) ->
                 xs.Enqueue(operator, rhs)
                 continuation (head, xs))
         | e -> continuation (e, Queue())
 
-    let head, xs = visit expr id
-    if xs.Count < 3 then None else Some(head, Seq.toList xs)
+    match expr with
+    | InfixApp(_, operator, _) ->
+        let head, xs = visit operator.Text expr id
+        if xs.Count < 2 then None else Some(head, Seq.toList xs)
+    | _ -> None
 
 let rec (|ElIf|_|) =
     function
