@@ -3086,6 +3086,13 @@ let genTypeDefn (td: TypeDefn) =
     | TypeDefn.Explicit node ->
         let bodyNode = node.Body
 
+        let additionMembers =
+            match members with
+            | [] -> sepNone
+            | h :: _ ->
+                sepNlnUnlessContentBefore (MemberDefn.Node h)
+                +> indentSepNlnUnindent (genMemberDefnList members)
+
         genTypeWithImplicitConstructor typeName node.ImplicitConstructor
         +> indentSepNlnUnindent (
             genSingleTextNode bodyNode.Kind
@@ -3094,7 +3101,7 @@ let genTypeDefn (td: TypeDefn) =
             +> genSingleTextNode bodyNode.End
             |> genNode bodyNode
         )
-        +> onlyIfNot members.IsEmpty (sepNln +> indentSepNlnUnindent (genMemberDefnList members))
+        +> additionMembers
         |> genNode node
     | TypeDefn.Augmentation node ->
         header
