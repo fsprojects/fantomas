@@ -410,7 +410,7 @@ let (|SameInfixApps|_|) expr =
         | e -> continuation (e, Queue())
 
     let head, xs = visit expr id
-    if xs.Count < 2 then None else Some(head, Seq.toList xs)
+    if xs.Count < 3 then None else Some(head, Seq.toList xs)
 
 let rec (|ElIf|_|) =
     function
