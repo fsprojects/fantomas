@@ -19,7 +19,7 @@ type CreationAide =
 
     member x.TextFromSource fallback range =
         match x.SourceText with
-        | None -> fallback
+        | None -> fallback ()
         | Some sourceText -> sourceText.GetContentAt range
 
 let stn text range = SingleTextNode(text, range)
@@ -91,7 +91,7 @@ let parseExpressionInSynBinding returnInfo expr =
 let mkConstString (creationAide: CreationAide) (stringKind: SynStringKind) (value: string) (range: range) =
     let escaped = Regex.Replace(value, "\"{1}", "\\\"")
 
-    let fallback =
+    let fallback () =
         match stringKind with
         | SynStringKind.Regular -> sprintf "\"%s\"" escaped
         | SynStringKind.Verbatim -> sprintf "@\"%s\"" escaped
@@ -111,7 +111,7 @@ let mkParsedHashDirective (creationAide: CreationAide) (ParsedHashDirective(iden
 
 let mkConstant (creationAide: CreationAide) c r : Constant =
     let orElse fallback =
-        stn (creationAide.TextFromSource fallback r) r |> Constant.FromText
+        stn (creationAide.TextFromSource (fun () -> fallback) r) r |> Constant.FromText
 
     match c with
     | SynConst.Unit ->
@@ -146,7 +146,14 @@ let mkConstant (creationAide: CreationAide) c r : Constant =
             | _ -> c.ToString()
 
         orElse escapedChar
-    | SynConst.Bytes(bytes, _, r) -> failwith "todo, ED679198-BED9-42FD-BE24-7E7AD959CE93"
+    | SynConst.Bytes(bytes, _, r) ->
+        let fallback () =
+            let content =
+                System.String(Array.map (fun (byte: byte) -> System.Convert.ToChar(byte)) bytes)
+
+            $"\"{content}\"B"
+
+        stn (creationAide.TextFromSource fallback r) r |> Constant.FromText
     | SynConst.Measure(c, numberRange, m) -> failwith "todo, 1BF1C723-1931-40BE-8C02-3A4BAC1D8BAD"
     | SynConst.SourceIdentifier(c, _, r) -> stn c r |> Constant.FromText
 
@@ -764,7 +771,7 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
         |> Expr.TraitCall
 
     | SynExpr.Paren(expr = SynExpr.LibraryOnlyILAssembly(range = m)) ->
-        stn (creationAide.TextFromSource "" m) m |> Expr.ParenILEmbedded
+        stn (creationAide.TextFromSource (fun () -> "") m) m |> Expr.ParenILEmbedded
     | SynExpr.LongIdent(longDotId = SynLongIdent([ ident ], [], [ Some(ParenStarSynIdent(lpr, originalNotation, rpr)) ])) ->
         ExprParenFunctionNameWithStarNode(stn "(" lpr, stn originalNotation ident.idRange, stn ")" rpr, exprRange)
         |> Expr.ParenFunctionNameWithStar
@@ -1150,7 +1157,8 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
         let parts =
             parts
             |> List.map (function
-                | SynInterpolatedStringPart.String(v, r) -> stn (creationAide.TextFromSource v r) r |> Choice1Of2
+                | SynInterpolatedStringPart.String(v, r) ->
+                    stn (creationAide.TextFromSource (fun () -> v) r) r |> Choice1Of2
                 | SynInterpolatedStringPart.FillExpr(fillExpr, qualifiers) ->
                     let m =
                         match qualifiers with
@@ -1173,9 +1181,9 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
                          _,
                          _,
                          _) ->
-        let c1Node = stn (creationAide.TextFromSource c1 mC1) mC1
-        let c2Node = stn (creationAide.TextFromSource c2 mC2) mC2
-        let c3Node = stn (creationAide.TextFromSource c3 mC3) mC3
+        let c1Node = stn (creationAide.TextFromSource (fun () -> c1) mC1) mC1
+        let c2Node = stn (creationAide.TextFromSource (fun () -> c2) mC2) mC2
+        let c3Node = stn (creationAide.TextFromSource (fun () -> c3) mC3) mC3
 
         let dotText =
             if c1Node.Text.EndsWith(".") || c2Node.Text.EndsWith(".") then
