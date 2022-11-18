@@ -2709,7 +2709,12 @@ let genTypeConstraint (tc: TypeConstraint) =
     | TypeConstraint.WhereSelfConstrained t -> genType t
 
 let genTypeConstraints (tcs: TypeConstraint list) =
-    !- "when" +> sepSpace +> col wordAnd tcs genTypeConstraint
+    let short = colPre (sepSpace +> !- "when ") wordAnd tcs genTypeConstraint
+
+    let long =
+        colPre (!- "when ") (sepNln +> wordAndFixed +> sepSpace) tcs genTypeConstraint
+
+    autoIndentAndNlnIfExpressionExceedsPageWidth (expressionFitsOnRestOfLine short long)
 
 let genType (t: Type) =
     match t with
