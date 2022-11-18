@@ -449,7 +449,8 @@ let (|SameInfixApps|_|) expr =
 let rec (|ElIf|_|) =
     function
     | SynExpr.IfThenElse(e1, e2, Some(ElIf((elifNode, eshE1, eshThenKw, eshE2) :: es, elseInfo)), _, _, _, trivia) ->
-        let ifNode = MultipleTextsNode([ stn "if" trivia.IfKeyword ], trivia.IfKeyword)
+        let ifNode =
+            MultipleTextsNode([ stn (if trivia.IsElif then "elif" else "if") trivia.IfKeyword ], trivia.IfKeyword)
 
         let elifNode =
             match trivia.ElseKeyword with
