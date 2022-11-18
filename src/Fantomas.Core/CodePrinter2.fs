@@ -167,6 +167,7 @@ let genConstant (c: Constant) =
         +> !- "<"
         +> genMeasure n.Measure
         +> !- ">"
+        |> genNode n
 
 let genMeasure (measure: Measure) =
     match measure with
@@ -285,7 +286,7 @@ let genExpr (e: Expr) =
             (autoIndentAndNlnIfExpressionExceedsPageWidthUnlessStroustrup genExpr node.Expr)
             (autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr node.Expr))
         |> genNode node
-    | Expr.Constant node -> genConstant node |> genNode (Constant.Node node)
+    | Expr.Constant node -> genConstant node
     | Expr.Null node -> genSingleTextNode node
     | Expr.Quote node -> genQuoteExpr node
     | Expr.Typed node ->
