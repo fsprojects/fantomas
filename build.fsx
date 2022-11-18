@@ -76,7 +76,7 @@ pipeline "Build" {
         whenNot { platformOSX }
         run "dotnet fsi ./docs/.style/style.fsx"
         run
-            $"dotnet fsdocs build --clean --properties Configuration=Release --fscoptions \" -r:{semanticVersioning}\" --eval"
+            $"dotnet fsdocs build --clean --properties Configuration=Release --fscoptions \" -r:{semanticVersioning}\" --eval --strict"
     }
     stage "Push" {
         whenCmdArg "--push"
