@@ -2002,11 +2002,10 @@ let mkPropertyGetSetBinding
     : PropertyGetSetBindingNode =
     match binding with
     | SynBinding(
-        headPat = SynPat.LongIdent(accessibility = ao; argPats = SynArgPats.Pats ps)
+        headPat = SynPat.LongIdent(extraId = Some extraIdent; accessibility = ao; argPats = SynArgPats.Pats ps)
         returnInfo = returnInfo
         expr = expr
-        trivia = { EqualsRange = Some mEq }
-        range = range) ->
+        trivia = { EqualsRange = Some mEq }) ->
         let e = parseExpressionInSynBinding returnInfo expr
         let returnTypeNode = mkBindingReturnInfo creationAide returnInfo
 
@@ -2014,6 +2013,8 @@ let mkPropertyGetSetBinding
             match ps with
             | [ SynPat.Tuple(false, [ p1; p2 ], _) ] -> [ mkPat creationAide p1; mkPat creationAide p2 ]
             | ps -> List.map (mkPat creationAide) ps
+
+        let range = unionRanges extraIdent.idRange e.Range
 
         PropertyGetSetBindingNode(
             mkSynAccess ao,
