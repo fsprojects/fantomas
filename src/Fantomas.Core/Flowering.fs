@@ -162,6 +162,8 @@ let triviaBeforeOrAfterEntireTree (rootNode: Node) (trivia: TriviaNode) : unit =
 let rec visitLastChildNode (node: Node) : Node =
     match node with
     | :? ExprIfThenNode
+    | :? ExprIfThenElseNode
+    | :? ExprIfThenElifNode
     | :? ExprAppNode
     | :? ExprLambdaNode
     | :? ExprLetOrUseNode
@@ -206,7 +208,8 @@ let rec visitLastChildNode (node: Node) : Node =
     | :? MemberDefnInterfaceNode
     | :? MemberDefnAutoPropertyNode
     | :? MemberDefnAbstractSlotNode
-    | :? MemberDefnPropertyGetSetNode -> visitLastChildNode (Array.last node.Children)
+    | :? MemberDefnPropertyGetSetNode
+    | :? MatchClauseNode -> visitLastChildNode (Array.last node.Children)
     | :? PatLongIdentNode as pat ->
         if Seq.isEmpty pat.Children then
             node
