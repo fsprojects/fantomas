@@ -209,7 +209,8 @@ let rec visitLastChildNode (node: Node) : Node =
     | :? MemberDefnAutoPropertyNode
     | :? MemberDefnAbstractSlotNode
     | :? MemberDefnPropertyGetSetNode
-    | :? MatchClauseNode -> visitLastChildNode (Array.last node.Children)
+    | :? MatchClauseNode
+    | :? ExprCompExprBodyNode -> visitLastChildNode (Array.last node.Children)
     | :? PatLongIdentNode as pat ->
         if Seq.isEmpty pat.Children then
             node
