@@ -2051,6 +2051,17 @@ let mkPropertyGetSetBinding
 
         let pats =
             match ps with
+            | [ SynPat.Tuple(false, [ p1; p2; p3 ], _) ] ->
+                let mTuple = unionRanges p1.Range p2.Range
+
+                [ PatParenNode(
+                      stn "(" Range.Zero,
+                      Pattern.Tuple(PatTupleNode([ mkPat creationAide p1; mkPat creationAide p2 ], mTuple)),
+                      stn ")" Range.Zero,
+                      mTuple
+                  )
+                  |> Pattern.Paren
+                  mkPat creationAide p3 ]
             | [ SynPat.Tuple(false, [ p1; p2 ], _) ] -> [ mkPat creationAide p1; mkPat creationAide p2 ]
             | ps -> List.map (mkPat creationAide) ps
 
