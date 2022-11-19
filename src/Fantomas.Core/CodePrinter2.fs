@@ -3007,6 +3007,7 @@ let genTypeDefn (td: TypeDefn) =
             +> sepSpace
             +> genSingleTextNode node.Equals
             +> autoIndentAndNlnWhenWriteBeforeNewlineNotEmpty (sepSpace +> genConstant node.Constant)
+            |> genNode node
 
         header
         +> indentSepNlnUnindent (
