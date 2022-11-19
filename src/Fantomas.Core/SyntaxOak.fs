@@ -2757,9 +2757,18 @@ type TyparDeclsPostfixListNode
     member x.Constraints = constraints
     member x.GreaterThan = greaterThan
 
-type TyparDeclsPrefixListNode(range) =
+type TyparDeclsPrefixListNode
+    (
+        openingParen: SingleTextNode,
+        decls: TyparDeclNode list,
+        closingParen: SingleTextNode,
+        range
+    ) =
     inherit NodeBase(range)
-    override this.Children = failwith "todo"
+    override this.Children = [| yield openingParen; yield! nodes decls; yield closingParen |]
+    member x.OpeningParen = openingParen
+    member x.Decls = decls
+    member x.ClosingParen = closingParen
 
 [<RequireQualifiedAccess; NoEquality; NoComparison>]
 type TyparDecls =
