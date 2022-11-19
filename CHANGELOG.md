@@ -4,6 +4,7 @@
 
 ### Fixed
 * Indenting problem with `match` workaround for single-line stroustrup expressions [#2586](https://github.com/fsprojects/fantomas/issues/2586)
+* System.Exception: Fantomas is trying to format the input multiple times due to the detect of multiple defines. [#628](https://github.com/fsprojects/fantomas/issues/628).
 
 ## [5.1.3] - 2022-11-14
 
