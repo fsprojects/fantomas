@@ -1503,7 +1503,11 @@ let mkSynTyparDecls (creationAide: CreationAide) (tds: SynTyparDecls) : TyparDec
 
         TyparDeclsPostfixListNode(stn "<" mOpen, decls, constraints, stn ">" mClose, m)
         |> TyparDecls.PostfixList
-    | SynTyparDecls.PrefixList _ -> failwith "todo"
+    | SynTyparDecls.PrefixList(decls, StartEndRange 1 (mOpen, m, mClose)) ->
+        let decls = List.map (mkSynTyparDecl creationAide) decls
+
+        TyparDeclsPrefixListNode(stn "(" mOpen, decls, stn ")" mClose, m)
+        |> TyparDecls.PrefixList
     | SynTyparDecls.SinglePrefix(decl, _) -> mkSynTyparDecl creationAide decl |> TyparDecls.SinglePrefix
 
 let mkSynValTyparDecls (creationAide: CreationAide) (vt: SynValTyparDecls option) : TyparDecls option =
