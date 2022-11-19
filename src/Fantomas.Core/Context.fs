@@ -949,11 +949,15 @@ let sepSpaceWhenOrIndentAndNlnIfExpressionExceedsPageWidth (addSpace: Context ->
         expr
         ctx
 
-let sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidthUnlessStroustrup (f: Expr -> Context -> Context) (expr: Expr) =
-    if expr.IsStroustrupStyleExpr then
-        sepSpace +> f expr
+let sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidthUnlessStroustrup
+    (f: Expr -> Context -> Context)
+    (expr: Expr)
+    (ctx: Context)
+    =
+    if ctx.Config.ExperimentalStroustrupStyle && expr.IsStroustrupStyleExpr then
+        (sepSpace +> f expr) ctx
     else
-        sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth (f expr)
+        sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth (f expr) ctx
 
 let autoNlnIfExpressionExceedsPageWidth expr (ctx: Context) =
     expressionExceedsPageWidth
