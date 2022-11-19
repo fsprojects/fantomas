@@ -1239,7 +1239,13 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
                 | Some(AtomicExpr _), Some(AtomicExpr _) -> false
                 | _ -> true
 
-            stn (if hasSpaces then " .. " else "..") mDots
+            let dots =
+                if hasSpaces && e1.IsSome && e2.IsSome then " .. "
+                elif hasSpaces && e1.IsNone && e2.IsSome then ".. "
+                elif hasSpaces && e1.IsSome && e2.IsNone then " .."
+                else ".."
+
+            stn dots mDots
 
         ExprIndexRangeNode(
             Option.map (mkExpr creationAide) e1,
