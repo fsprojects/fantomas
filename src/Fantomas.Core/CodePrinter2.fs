@@ -350,7 +350,7 @@ let genExpr (e: Expr) =
         |> genNode node
     | Expr.ArrayOrList node ->
         if node.Elements.IsEmpty then
-            genSingleTextNode node.Opening +> genSingleTextNode node.Closing
+            genSingleTextNode node.Opening +> genSingleTextNode node.Closing |> genNode node
         else
             let smallExpression =
                 genSingleTextNode node.Opening
