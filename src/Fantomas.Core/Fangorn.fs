@@ -2157,8 +2157,14 @@ let mkMemberDefn (creationAide: CreationAide) (md: SynMemberDefn) =
         |> MemberDefn.Inherit
     | SynMemberDefn.ValField(f, _) -> mkSynField creationAide f |> MemberDefn.ValField
     | SynMemberDefn.LetBindings(bindings = [ SynBinding(kind = SynBindingKind.Do; expr = expr; trivia = trivia) ]) ->
+        // This is a shortcut to support "static do"
+        let leadingKw =
+            (mkSynLeadingKeyword trivia.LeadingKeyword).Content
+            |> List.map (fun stn -> stn.Text)
+            |> String.concat " "
+
         ExprSingleNode(
-            stn "do" trivia.LeadingKeyword.Range,
+            stn leadingKw trivia.LeadingKeyword.Range,
             true,
             false,
             mkExpr creationAide expr,
