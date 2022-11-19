@@ -2976,7 +2976,7 @@ let genImplicitConstructor (node: ImplicitConstructorNode) =
         )
 
     expressionFitsOnRestOfLine short long
-    +> optSingle (fun self -> sepSpace +> !- "as " +> genSingleTextNode self) node.Self
+    +> optSingle (fun self -> sepSpace +> !- "as " +> genSingleTextNode self +> sepSpace) node.Self
 
 let genTypeDefn (td: TypeDefn) =
     let typeDefnNode = TypeDefn.TypeDefnNode td
