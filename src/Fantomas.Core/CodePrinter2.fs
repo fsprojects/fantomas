@@ -2224,7 +2224,11 @@ let genTyparDecls (td: TyparDecls) =
         +> onlyIf (List.isNotEmpty node.Constraints) (sepSpace +> genTypeConstraints node.Constraints)
         +> genSingleTextNode node.GreaterThan
         |> genNode node
-    | TyparDecls.PrefixList node -> !- "todo 28FB358E-8026-4BC9-9A79-AD4150858D1D"
+    | TyparDecls.PrefixList node ->
+        genSingleTextNode node.OpeningParen
+        +> coli sepComma node.Decls (fun i -> genTyparDecl (i = 0))
+        +> genSingleTextNode node.ClosingParen
+        |> genNode node
     | TyparDecls.SinglePrefix node -> genTyparDecl true node
 
 let genPat (p: Pattern) =
@@ -2986,6 +2990,8 @@ let genTypeDefn (td: TypeDefn) =
         +> genAccessOpt typeName.Accessibility
         +> genTypeAndParam (genIdentListNode typeName.Identifier) typeName.TypeParameters
         +> sepSpace
+        +> genTypeConstraints typeName.Constraints
+        +> onlyIfNot typeName.Constraints.IsEmpty sepSpace
         +> optSingle genSingleTextNode typeName.EqualsToken
         |> genNode typeName
 
@@ -3256,7 +3262,7 @@ let genTypeAndParam (genTypeName: Context -> Context) (tds: TyparDecls option) =
     match tds with
     | None -> genTypeName
     | Some(TyparDecls.PostfixList _) -> genTypeName +> optSingle genTyparDecls tds
-    | Some(TyparDecls.PrefixList prefixNode) -> !- "todo!" // genTyparDecl prefixNode +> sepSpace +> genTypeName
+    | Some(TyparDecls.PrefixList _) -> optSingle (fun tds -> genTyparDecls tds +> sepSpace) tds +> genTypeName
     | Some(TyparDecls.SinglePrefix singlePrefixNode) -> genTyparDecl true singlePrefixNode +> sepSpace +> genTypeName
 
 let genVal (node: ValNode) (optGetSet: MultipleTextsNode option) =
