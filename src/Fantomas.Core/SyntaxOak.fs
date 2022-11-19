@@ -143,7 +143,9 @@ type ModuleOrNamespaceNode
     member x.IsNamed = Option.isSome x.LeadingKeyword
 
     override this.Children =
-        [| yield! noa leadingKeyword
+        [| yield! noa xmlDoc
+           yield attributes
+           yield! noa leadingKeyword
            yield! noa accessibility
            if Option.isSome leadingKeyword then
                yield name
