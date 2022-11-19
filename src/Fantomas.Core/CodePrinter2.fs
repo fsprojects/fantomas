@@ -2476,9 +2476,10 @@ let genBinding (b: BindingNode) (ctx: Context) : Context =
 
             let genReturnType isFixed =
                 onlyIfNot isFixed sepSpace
-                +> genSingleTextNode returnTypeNode.Colon
-                +> sepSpace
-                +> atCurrentColumnIndent (genType returnTypeNode.Type)
+                +> (genSingleTextNode returnTypeNode.Colon
+                    +> sepSpace
+                    +> atCurrentColumnIndent (genType returnTypeNode.Type)
+                    |> genNode returnTypeNode)
 
             let genSignature =
                 let spaceBeforeParameters =
