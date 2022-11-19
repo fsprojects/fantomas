@@ -2170,6 +2170,7 @@ let genAppWithLambda sep (node: ExprAppWithLambdaNode) =
 
 let sepSpaceBeforeParenInFuncInvocation (functionExpr: Expr) (argExpr: Expr) ctx =
     match functionExpr, argExpr with
+    | Expr.Constant _, _ -> sepSpace ctx
     | ParenExpr _, _ -> sepSpace ctx
     | UppercaseExpr, ParenExpr _ -> onlyIf ctx.Config.SpaceBeforeUppercaseInvocation sepSpace ctx
     | LowercaseExpr, ParenExpr _ -> onlyIf ctx.Config.SpaceBeforeLowercaseInvocation sepSpace ctx
