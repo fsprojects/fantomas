@@ -95,6 +95,11 @@ let leaveNode<'n when 'n :> Node> (n: 'n) = col sepNone n.ContentAfter genTrivia
 let genNode<'n when 'n :> Node> (n: 'n) (f: Context -> Context) = enterNode n +> f +> leaveNode n
 
 let genSingleTextNode (node: SingleTextNode) = !-node.Text |> genNode node
+
+// Alternative for genSingleTextNode to avoid a double space when the node has line comment after it.
+let genSingleTextNodeSuffixDelimiter (node: SingleTextNode) =
+    (!-node.Text +> addSpaceIfSpaceAroundDelimiter) |> genNode node
+
 let genSingleTextNodeWithLeadingDot (node: SingleTextNode) = !- $".{node.Text}" |> genNode node
 
 let genMultipleTextsNode (node: MultipleTextsNode) =
@@ -480,8 +485,7 @@ let genExpr (e: Expr) =
                         let targetColumn = ctx.Column + (if ctx.Config.SpaceAroundDelimiter then 2 else 1)
 
                         atCurrentColumn
-                            (genSingleTextNode node.OpeningBrace
-                             +> addSpaceIfSpaceAroundDelimiter
+                            (genSingleTextNodeSuffixDelimiter node.OpeningBrace
                              +> sepNlnWhenWriteBeforeNewlineNotEmpty // comment after curly brace
                              +> col sepNln node.Fields (fun e ->
                                  // Add spaces to ensure the record field (incl trivia) starts at the right column.
