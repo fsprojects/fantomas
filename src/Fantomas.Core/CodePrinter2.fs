@@ -2675,6 +2675,7 @@ let genBinding (b: BindingNode) (ctx: Context) : Context =
                 match b.FunctionName with
                 | Choice1Of2 lid -> genIdentListNode lid
                 | Choice2Of2 pat -> genPat pat
+                +> optSingle genTyparDecls b.GenericTypeParameters
 
             let genEqualsInBinding (ctx: Context) =
                 (genSingleTextNode b.Equals +> sepSpaceUnlessWriteBeforeNewlineNotEmpty) ctx
@@ -3237,8 +3238,12 @@ let genField (node: FieldNode) =
     +> optSingle (fun lk -> genMultipleTextsNode lk +> sepSpace) node.LeadingKeyword
     +> onlyIf node.IsMutable (!- "mutable ")
     +> genAccessOpt node.Accessibility
-    +> opt sepColon node.Name genSingleTextNode
-    +> autoIndentAndNlnIfExpressionExceedsPageWidth (genType node.Type)
+    +> (match node.Name with
+        | None -> genType node.Type
+        | Some name ->
+            genSingleTextNode name
+            +> sepColon
+            +> autoIndentAndNlnIfExpressionExceedsPageWidth (genType node.Type))
     |> genNode node
 
 let genUnionCase (hasVerticalBar: bool) (node: UnionCaseNode) =
