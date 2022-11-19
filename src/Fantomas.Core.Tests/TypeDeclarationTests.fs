@@ -3170,7 +3170,7 @@ type ('key, 'value) map when 'key: comparison = Map<'key, 'value>
 """
 
 [<Test>]
-let ``don't add additional space before equals sign in long alternative constuctor`` () =
+let ``don't add additional space before equals sign in long alternative constructor`` () =
     formatSourceString
         false
         """
@@ -3184,7 +3184,7 @@ type LdapClaimsTransformation(
             3
 """
         { config with
-            MaxLineLength = 100
+            MaxLineLength = 60
             AlternativeLongMemberDefinitions = true }
     |> prepend newline
     |> should
