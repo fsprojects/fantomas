@@ -1256,9 +1256,7 @@ m.Property(fun p -> p.Name).IsRequired().HasColumnName("ModelName").HasMaxLength
 m
     .Property(fun p -> p.Name)
     .IsRequired()
-    .HasColumnName(
-        "ModelName"
-    )
+    .HasColumnName("ModelName")
     .HasMaxLength
 """
 
@@ -1349,9 +1347,7 @@ module Program =
 
         builder
             .Services
-            .AddRemoting(
-                builder.HostEnvironment
-            )
+            .AddRemoting(builder.HostEnvironment)
             .Services
 #if (!DEBUG)
             .RemoveAll<Microsoft.Extensions.Http.IHttpMessageHandlerBuilderFilter>()

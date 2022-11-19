@@ -1166,9 +1166,7 @@ let doSomething _ _ = ()
 let test1 param =
     doSomething
         // my comment
-        (
-            param
-        )
+        (param)
 
 let test2 param =
     doSomething

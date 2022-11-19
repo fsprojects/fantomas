@@ -499,9 +499,7 @@ let start (args: IArgs) =
                 .CreateDefaultBuilder()
                 .UseWebRoot(args.ClientPath)
 #if DEBUG
-                .UseContentRoot(
-                    args.ContentRoot
-                )
+                .UseContentRoot(args.ContentRoot)
                 .UseUrls(args.Host + ":" + string args.Port)
 #endif
                 .UseSerilog()
