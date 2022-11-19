@@ -1134,7 +1134,7 @@ type Foo =
 """
 
 [<Test>]
-let ``anonymous types in a DU formatts correctly, 2621`` () =
+let ``anonymous types in a DU formats correctly, 2621`` () =
     formatSourceString
         false
         """
