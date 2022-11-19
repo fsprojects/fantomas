@@ -182,12 +182,7 @@ let rec visitLastChildNode (node: Node) : Node =
     | :? TypeDefnAugmentationNode
     | :? TypeDefnDelegateNode
     | :? TypeDefnRegularNode
-    // | SynModuleSigDecl_Val
-    // | SynModuleSigDecl_Types
-    // | SynModuleSigDecl_NestedModule
-    // | SynValSig_
     | :? ExprMatchNode
-    // | SynMatchClause_
     | :? PatTypedNode
     | :? PatTupleNode
     | :? TypeTupleNode
@@ -195,8 +190,6 @@ let rec visitLastChildNode (node: Node) : Node =
     | :? TypeAppPostFixNode
     | :? TypeFunsNode
     | :? ExprTupleNode
-    // | SynUnionCase_
-    // | SynEnumCase_
     | :? MemberDefnInheritNode
     | :? OpenListNode
     | :? InheritConstructorTypeOnlyNode
@@ -215,6 +208,7 @@ let rec visitLastChildNode (node: Node) : Node =
     | :? ExprCompExprBodyNode
     | :? NestedModuleNode
     | :? UnionCaseNode
+    | :? EnumCaseNode
     | :? ValNode
     | :? BindingReturnInfoNode
     | :? PatLeftMiddleRight -> visitLastChildNode (Array.last node.Children)
