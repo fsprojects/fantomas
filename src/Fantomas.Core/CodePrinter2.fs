@@ -97,8 +97,11 @@ let genNode<'n when 'n :> Node> (n: 'n) (f: Context -> Context) = enterNode n +>
 let genSingleTextNode (node: SingleTextNode) = !-node.Text |> genNode node
 
 // Alternative for genSingleTextNode to avoid a double space when the node has line comment after it.
+let genSingleTextNodeWithSpaceSuffix (addSpace: Context -> Context) (node: SingleTextNode) =
+    (!-node.Text +> addSpace) |> genNode node
+
 let genSingleTextNodeSuffixDelimiter (node: SingleTextNode) =
-    (!-node.Text +> addSpaceIfSpaceAroundDelimiter) |> genNode node
+    genSingleTextNodeWithSpaceSuffix addSpaceIfSpaceAroundDelimiter node
 
 let genSingleTextNodeWithLeadingDot (node: SingleTextNode) = !- $".{node.Text}" |> genNode node
 
@@ -3254,7 +3257,7 @@ let genUnionCase (hasVerticalBar: bool) (node: UnionCaseNode) =
 
     let genBar =
         match node.Bar with
-        | Some bar -> ifElse hasVerticalBar (genSingleTextNode bar +> sepSpace) (genNode bar sepNone)
+        | Some bar -> ifElse hasVerticalBar (genSingleTextNodeWithSpaceSuffix sepSpace bar) (genNode bar sepNone)
         | None -> onlyIf hasVerticalBar sepBar
 
     genXml node.XmlDoc
