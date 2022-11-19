@@ -213,7 +213,8 @@ let rec visitLastChildNode (node: Node) : Node =
     | :? MemberDefnPropertyGetSetNode
     | :? MatchClauseNode
     | :? ExprCompExprBodyNode
-    | :? NestedModuleNode -> visitLastChildNode (Array.last node.Children)
+    | :? NestedModuleNode
+    | :? UnionCaseNode -> visitLastChildNode (Array.last node.Children)
     | :? PatLongIdentNode as pat ->
         if Seq.isEmpty pat.Children then
             node
