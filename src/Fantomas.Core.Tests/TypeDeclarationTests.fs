@@ -3249,7 +3249,9 @@ type Server<'a>
     let mutable i = 0
     member this.Blah = 0
 """
-        { config with AlternativeLongMemberDefinitions = true }
+        { config with
+            AlternativeLongMemberDefinitions = true
+            MaxLineLength = 80 }
     |> prepend newline
     |> should
         equal
