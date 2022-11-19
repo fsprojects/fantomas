@@ -216,7 +216,8 @@ let rec visitLastChildNode (node: Node) : Node =
     | :? NestedModuleNode
     | :? UnionCaseNode
     | :? ValNode
-    | :? BindingReturnInfoNode -> visitLastChildNode (Array.last node.Children)
+    | :? BindingReturnInfoNode
+    | :? PatLeftMiddleRight -> visitLastChildNode (Array.last node.Children)
     | :? PatLongIdentNode as pat ->
         if Seq.isEmpty pat.Children then
             node
