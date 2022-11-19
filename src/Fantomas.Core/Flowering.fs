@@ -211,7 +211,8 @@ let rec visitLastChildNode (node: Node) : Node =
     | :? EnumCaseNode
     | :? ValNode
     | :? BindingReturnInfoNode
-    | :? PatLeftMiddleRight -> visitLastChildNode (Array.last node.Children)
+    | :? PatLeftMiddleRight
+    | :? MultipleAttributeListNode -> visitLastChildNode (Array.last node.Children)
     | :? PatLongIdentNode as pat ->
         if Seq.isEmpty pat.Children then
             node
