@@ -2187,45 +2187,47 @@ and genFunctionNameWithMultilineLids f (synLongIdent: SynLongIdent) =
 
 and genMultilineFunctionApplicationArguments argExpr =
     let argsInsideParenthesis lpr rpr pr f =
-        sepOpenTFor lpr +> indentSepNlnUnindent f +> sepNln +> sepCloseTFor rpr
-        |> genTriviaFor SynExpr_Paren pr
+        let long = sepOpenTFor lpr +> indentSepNlnUnindent f +> sepNln +> sepCloseTFor rpr
+        let short = sepOpenTFor lpr +> f +> sepCloseTFor rpr
+        expressionFitsOnRestOfLine short long |> genTriviaFor SynExpr_Paren pr
 
     let genExpr e =
         match e with
         | InfixApp(equal, operatorSli, e1, e2, range) when (equal = "=") -> genNamedArgumentExpr operatorSli e1 e2 range
         | _ -> genExpr e
 
-    match argExpr with
-    | Paren(lpr, Lambda(pats, arrowRange, body, range), rpr, _pr) ->
-        fun ctx ->
-            if ctx.Config.MultiLineLambdaClosingNewline then
-                let genPats =
-                    let shortPats = col sepSpace pats genPat
-                    let longPats = atCurrentColumn (sepNln +> col sepNln pats genPat)
-                    expressionFitsOnRestOfLine shortPats longPats
+    let f =
+        match argExpr with
+        | Paren(lpr, Lambda(pats, arrowRange, body, range), rpr, _pr) ->
+            fun ctx ->
+                if ctx.Config.MultiLineLambdaClosingNewline then
+                    let genPats =
+                        let shortPats = col sepSpace pats genPat
+                        let longPats = atCurrentColumn (sepNln +> col sepNln pats genPat)
+                        expressionFitsOnRestOfLine shortPats longPats
 
-                (sepOpenTFor lpr
-                 +> (!- "fun " +> genPats +> genLambdaArrowWithTrivia genExpr body arrowRange
-                     |> genTriviaFor SynExpr_Lambda range)
-                 +> sepNln
-                 +> sepCloseTFor rpr)
-                    ctx
-            else
-                genExpr argExpr ctx
-    | Paren(lpr, Tuple(args, tupleRange), rpr, pr) ->
-        genTupleMultiline args
-        |> genTriviaFor SynExpr_Tuple tupleRange
-        |> argsInsideParenthesis lpr rpr pr
-    | Paren(lpr, singleExpr, rpr, pr) ->
-        fun ctx ->
-            let e = genExpr singleExpr |> argsInsideParenthesis lpr rpr pr
-            let hasTriviaBeforeParen = ctx.HasContentBefore(SynExpr_Paren, pr)
+                    (sepOpenTFor lpr
+                     +> (!- "fun " +> genPats +> genLambdaArrowWithTrivia genExpr body arrowRange
+                         |> genTriviaFor SynExpr_Lambda range)
+                     +> sepNln
+                     +> sepCloseTFor rpr)
+                        ctx
+                else
+                    genExpr argExpr ctx
+        | Paren(lpr, Tuple(args, tupleRange), rpr, pr) ->
+            genTupleMultiline args
+            |> genTriviaFor SynExpr_Tuple tupleRange
+            |> argsInsideParenthesis lpr rpr pr
+        | Paren(lpr, singleExpr, rpr, pr) -> genExpr singleExpr |> argsInsideParenthesis lpr rpr pr
+        | _ -> genExpr argExpr
 
-            if hasTriviaBeforeParen then
-                indentSepNlnUnindent e ctx
-            else
-                e ctx
-    | _ -> genExpr argExpr
+    fun ctx ->
+        let hasTriviaBeforeParen = ctx.HasContentBefore(SynExpr_Paren, argExpr.Range)
+
+        if hasTriviaBeforeParen then
+            indentSepNlnUnindent f ctx
+        else
+            f ctx
 
 and genGenericTypeParameters lt ts gt =
     match ts with
