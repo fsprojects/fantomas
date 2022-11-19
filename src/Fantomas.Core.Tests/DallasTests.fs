@@ -620,7 +620,7 @@ let ``let bindings in type`` () =
         false
         """
 type A =
-    let b x = 0
+    let rec b x = 0
     and c y = 1
 """
         config
@@ -629,7 +629,7 @@ type A =
         equal
         """
 type A =
-    let b x = 0
+    let rec b x = 0
     and c y = 1
 """
 
@@ -1449,7 +1449,8 @@ fn (fun x ->
         """
 a (
     //
-    b, c
+    b,
+    c
 )
 
 fn (fun x ->
