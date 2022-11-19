@@ -1625,8 +1625,8 @@ let genExpr (e: Expr) =
         fun ctx -> genNode node (isShortExpression ctx.Config.MaxDotGetExpressionWidth shortExpr longExpr) ctx
     | Expr.DotSet node ->
         match node.Identifier with
-        | Expr.AppSingleParenArg appNode ->
-            genExpr appNode.FunctionExpr
+        | Expr.AppLongIdentAndSingleParenArg appNode ->
+            genIdentListNode appNode.FunctionName
             +> genExpr appNode.ArgExpr
             +> sepDot
             +> genIdentListNode node.Property
