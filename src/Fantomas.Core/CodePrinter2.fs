@@ -604,7 +604,7 @@ let genExpr (e: Expr) =
                 let genAnonRecord =
                     match node.CopyInfo with
                     | Some ci ->
-                        genSingleTextNode node.OpeningBrace
+                        genSingleTextNodeSuffixDelimiter node.OpeningBrace
                         +> sepNlnWhenWriteBeforeNewlineNotEmpty // comment after curly brace
                         +> copyExpr fieldsExpr ci
                         +> sepNln
@@ -1901,7 +1901,10 @@ let genControlExpressionStartCore
         | Choice1Of2 node -> !-node.Text
         | Choice2Of2 mtn ->
             coli sepSpace mtn.Content (fun idx node ->
-                onlyIf (idx <> 0) (enterNode node) +> !-node.Text +> leaveNode node)
+                onlyIf (idx <> 0) (enterNode node)
+                +> !-node.Text
+                +> leaveNode node
+                +> sepNlnWhenWriteBeforeNewlineNotEmpty)
 
     let leaveStart =
         match startKeyword with
