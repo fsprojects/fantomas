@@ -3516,7 +3516,7 @@ let colWithNlnWhenNodeIsMultiline<'n when 'n :> Node>
 let genModule (m: ModuleOrNamespaceNode) =
     let newline =
         match m.Declarations with
-        | [] -> sepNone
+        | [] -> onlyIfNot (Seq.isEmpty (m :> Node).ContentAfter) sepNln
         | h :: _ -> sepNln +> sepNlnUnlessContentBefore (ModuleDecl.Node h)
 
     onlyIf
