@@ -1877,7 +1877,9 @@ let genControlExpressionStartCore
     let genStart =
         match startKeyword with
         | Choice1Of2 node -> !-node.Text
-        | Choice2Of2 mtn -> col sepSpace mtn.Content (fun node -> !-node.Text +> leaveNode node)
+        | Choice2Of2 mtn ->
+            coli sepSpace mtn.Content (fun idx node ->
+                onlyIf (idx <> 0) (enterNode node) +> !-node.Text +> leaveNode node)
 
     let leaveStart =
         match startKeyword with
