@@ -758,41 +758,56 @@ let genExpr (e: Expr) =
         +> genSingleTextNode node.ClosingBrace
         |> genNode node
     | Expr.CompExprBody node ->
-        node.Statements
-        |> List.map (function
-            | ComputationExpressionStatement.LetOrUseStatement node ->
-                let expr =
-                    genBinding node.Binding
-                    +> optSingle (fun inNode -> sepSpace +> genSingleTextNode inNode +> sepSpace) node.In
-                    |> genNode node
+        let genStatements =
+            node.Statements
+            |> List.map (function
+                | ComputationExpressionStatement.LetOrUseStatement node ->
+                    let expr =
+                        genBinding node.Binding
+                        +> optSingle (fun inNode -> sepSpace +> genSingleTextNode inNode +> sepSpace) node.In
+                        |> genNode node
 
-                ColMultilineItem(expr, sepNlnUnlessContentBefore node)
-            | ComputationExpressionStatement.LetOrUseBangStatement node ->
-                let expr =
-                    genSingleTextNode node.LeadingKeyword
-                    +> sepSpace
-                    +> genPat node.Pattern
-                    +> sepSpace
-                    +> genSingleTextNode node.Equals
-                    +> sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidthUnlessStroustrup genExpr node.Expression
-                    |> genNode node
+                    ColMultilineItem(expr, sepNlnUnlessContentBefore node)
+                | ComputationExpressionStatement.LetOrUseBangStatement node ->
+                    let expr =
+                        genSingleTextNode node.LeadingKeyword
+                        +> sepSpace
+                        +> genPat node.Pattern
+                        +> sepSpace
+                        +> genSingleTextNode node.Equals
+                        +> sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidthUnlessStroustrup genExpr node.Expression
+                        |> genNode node
 
-                ColMultilineItem(expr, sepNlnUnlessContentBefore node)
-            | ComputationExpressionStatement.AndBangStatement node ->
-                let expr =
-                    genSingleTextNode node.LeadingKeyword
-                    +> sepSpace
-                    +> genPat node.Pattern
-                    +> sepSpace
-                    +> genSingleTextNode node.Equals
-                    +> sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidthUnlessStroustrup genExpr node.Expression
-                    |> genNode node
+                    ColMultilineItem(expr, sepNlnUnlessContentBefore node)
+                | ComputationExpressionStatement.AndBangStatement node ->
+                    let expr =
+                        genSingleTextNode node.LeadingKeyword
+                        +> sepSpace
+                        +> genPat node.Pattern
+                        +> sepSpace
+                        +> genSingleTextNode node.Equals
+                        +> sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidthUnlessStroustrup genExpr node.Expression
+                        |> genNode node
 
-                ColMultilineItem(expr, sepNlnUnlessContentBefore node)
-            | ComputationExpressionStatement.OtherStatement e ->
-                ColMultilineItem(genExpr e, sepNlnUnlessContentBefore (Expr.Node e)))
-        |> colWithNlnWhenItemIsMultilineUsingConfig
-        |> genNode node
+                    ColMultilineItem(expr, sepNlnUnlessContentBefore node)
+                | ComputationExpressionStatement.OtherStatement e ->
+                    ColMultilineItem(genExpr e, sepNlnUnlessContentBefore (Expr.Node e)))
+            |> colWithNlnWhenItemIsMultilineUsingConfig
+            |> genNode node
+
+        match node.Statements with
+        | [ ComputationExpressionStatement.LetOrUseStatement letOrUseNode
+            ComputationExpressionStatement.OtherStatement inExpr ] when letOrUseNode.In.IsSome ->
+            let short =
+                (genBinding letOrUseNode.Binding
+                 +> optSingle (fun inNode -> sepSpace +> genSingleTextNode inNode +> sepSpace) letOrUseNode.In
+                 |> genNode letOrUseNode)
+                +> sepSpace
+                +> genExpr inExpr
+                |> genNode node
+
+            expressionFitsOnRestOfLine short genStatements
+        | _ -> genStatements
     | Expr.JoinIn node ->
         genExpr node.LeftHandSide
         +> sepSpace
@@ -2000,11 +2015,21 @@ let genExprInMultilineInfixExpr (e: Expr) =
         | [ ComputationExpressionStatement.LetOrUseStatement letOrUseNode
             ComputationExpressionStatement.OtherStatement otherNode ] ->
             let genLetOrUse =
-                genBinding letOrUseNode.Binding
-                +> optSingle (fun inNode -> sepSpace +> genSingleTextNode inNode +> sepSpace) letOrUseNode.In
+                let genIn =
+                    match letOrUseNode.In with
+                    | None -> !- "in"
+                    | Some inNode -> genSingleTextNode inNode
+
+                genBinding letOrUseNode.Binding +> sepSpace +> genIn +> sepSpace
                 |> genNode letOrUseNode
 
-            atCurrentColumn (genLetOrUse +> sepNln +> genExpr otherNode |> genNode node)
+            atCurrentColumn (
+                genLetOrUse
+                +> sepNln
+                +> sepNlnUnlessContentBefore (Expr.Node otherNode)
+                +> genExpr otherNode
+                |> genNode node
+            )
         | _ -> genExpr e
     // | Paren (lpr, (Match _ as mex), rpr, pr) ->
     //     fun ctx ->
