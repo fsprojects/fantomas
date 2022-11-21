@@ -1447,9 +1447,6 @@ let genExpr (e: Expr) =
                     +> sepNln
                     +> genSingleTextNode node.Else
                     +> genKeepIdent node.Else node.ElseExpr
-                    +> sepNln
-                    +> genExpr node.ElseExpr
-                    +> unindent
 
                 // Check if the `if expr then` is already multiline or cross the max_line_length.
                 let isMultiline =
@@ -1540,13 +1537,7 @@ let genExpr (e: Expr) =
                 +> indentSepNlnUnindent (genExpr node.ThenExpr)
                 |> genNode node)
             +> optSingle
-                (fun (elseNode, elseExpr) ->
-                    sepNln
-                    +> genSingleTextNode elseNode
-                    +> genKeepIdent elseNode elseExpr
-                    +> sepNln
-                    +> genExpr elseExpr
-                    +> unindent)
+                (fun (elseNode, elseExpr) -> sepNln +> genSingleTextNode elseNode +> genKeepIdent elseNode elseExpr)
                 node.Else
 
         ifElseCtx areAllShort shortExpr longExpr
@@ -1896,12 +1887,15 @@ let genClause (isLastItem: bool) (node: MatchClauseNode) =
             +> genSingleTextNode node.Arrow
             +> (fun ctx ->
                 if isLastItem && ctx.Config.ExperimentalKeepIndentInBranch then
-                    expressionFitsOnRestOfLine
-                        (genExpr node.BodyExpr)
-                        (sepNln
-                         +> sepNlnUnlessContentBefore (Expr.Node node.BodyExpr)
-                         +> genExpr node.BodyExpr)
-                        ctx
+                    let long =
+                        let startNode =
+                            match node.Bar with
+                            | None -> Pattern.Node node.Pattern
+                            | Some bar -> bar :> Node
+
+                        genKeepIdent startNode node.BodyExpr
+
+                    expressionFitsOnRestOfLine (sepSpace +> genExpr node.BodyExpr) long ctx
                 else
                     sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidthUnlessStroustrup genExpr node.BodyExpr ctx)
 
@@ -2045,9 +2039,9 @@ let genKeepIdent (startNode: Node) (e: Expr) ctx =
         ctx.Config.ExperimentalKeepIndentInBranch
         && startNode.Range.StartColumn = exprNode.Range.StartColumn
     then
-        sepNlnUnlessContentBefore exprNode ctx
+        (sepNln +> sepNlnUnlessContentBefore exprNode +> genExpr e) ctx
     else
-        indent ctx
+        indentSepNlnUnindent (genExpr e) ctx
 
 let genGenericTypeParametersAux lessThan typeParameters greaterThan =
     genSingleTextNode lessThan
