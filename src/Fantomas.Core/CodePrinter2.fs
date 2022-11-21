@@ -1139,6 +1139,7 @@ let genExpr (e: Expr) =
             | Expr.AppLongIdentAndSingleParenArg appNode ->
                 let m = (appNode.FunctionName :> Node).Range
                 genApp (Expr.OptVar(ExprOptVarNode(false, appNode.FunctionName, m))) [ appNode.ArgExpr ]
+            | Expr.AppSingleParenArg appNode -> genApp appNode.FunctionExpr [ appNode.ArgExpr ]
             | _ -> genExpr node.FunctionExpr
 
         let lastEsIndex = node.Arguments.Length - 1
