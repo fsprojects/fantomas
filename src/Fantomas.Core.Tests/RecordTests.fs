@@ -2219,12 +2219,12 @@ let x =
        Z = "string"
        Foo = "Bar"
     // test2
-     |}
+    |}
 
 let y =
     {| Y = 42
     // test
-     |}
+    |}
 
 let z = {| Y = 42 |}
 
@@ -2234,5 +2234,5 @@ let a =
         Level = 7
         Square = 9
     // test2
-     |}
+    |}
 """
