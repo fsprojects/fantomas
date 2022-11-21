@@ -1835,8 +1835,10 @@ type Expr =
             | RecordNodeExtra.Inherit _
             | RecordNodeExtra.With _ -> false
             | RecordNodeExtra.None -> true
-        // TODO: Exclude records when they have copy info.
-        | Expr.AnonRecord _
+        | Expr.AnonRecord node ->
+            match node.CopyInfo with
+            | Some _ -> false
+            | None -> true
         | Expr.NamedComputation _
         | Expr.ArrayOrList _ -> true
         | _ -> false
