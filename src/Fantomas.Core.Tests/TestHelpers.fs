@@ -19,7 +19,14 @@ let private safeToIgnoreWarnings =
 
 let formatSourceString isFsiFile (s: string) config =
     async {
-        let! formatted = CodeFormatter.FormatDocumentAsync(isFsiFile, s, config)
+        let! formatted =
+            if not config.StrictMode then
+                CodeFormatter.FormatDocumentAsync(isFsiFile, s, config)
+            else
+                let ast, _ =
+                    Fantomas.FCS.Parse.parseFile isFsiFile (FSharp.Compiler.Text.SourceText.ofString s) []
+
+                CodeFormatter.FormatASTAsync(ast, config = config)
 
         // let! isValid = CodeFormatter.IsValidFSharpCodeAsync(isFsiFile, formatted)
         //
