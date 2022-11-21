@@ -2873,7 +2873,7 @@ let genType (t: Type) =
         let addExtraSpace =
             match node.Arguments with
             | [] -> sepNone
-            | [ Type.Var node ] when node.Text.StartsWith "^" -> sepSpace
+            | Type.Var node :: _ when node.Text.StartsWith "^" -> sepSpace
             | t :: _ -> addSpaceIfSynTypeStaticConstantHasAtSignBeforeString t
 
         genType node.Identifier
