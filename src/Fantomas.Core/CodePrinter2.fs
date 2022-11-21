@@ -109,10 +109,10 @@ let genMultipleTextsNode (node: MultipleTextsNode) =
     col sepSpace node.Content genSingleTextNode |> genNode node
 
 let genIdentListNodeAux addLeadingDot (iln: IdentListNode) =
-    col sepNone iln.Content (fun identOrDot ->
+    coli sepNone iln.Content (fun idx identOrDot ->
         match identOrDot with
         | IdentifierOrDot.Ident ident ->
-            if addLeadingDot then
+            if addLeadingDot && idx = 0 then
                 genSingleTextNodeWithLeadingDot ident
             else
                 genSingleTextNode ident
@@ -124,8 +124,13 @@ let genIdentListNode iln = genIdentListNodeAux false iln
 let genIdentListNodeWithDot iln = genIdentListNodeAux true iln
 
 let genIdentListNodeWithDotMultiline (iln: IdentListNode) =
-    col sepNone iln.Content (function
-        | IdentifierOrDot.Ident ident -> genSingleTextNodeWithLeadingDot ident
+    coli sepNone iln.Content (fun idx iod ->
+        match iod with
+        | IdentifierOrDot.Ident ident ->
+            if idx = 0 then
+                genSingleTextNodeWithLeadingDot ident
+            else
+                genSingleTextNode ident
         | IdentifierOrDot.KnownDot _
         | IdentifierOrDot.UnknownDot _ -> sepNln +> sepDot)
     |> genNode iln
@@ -1088,25 +1093,25 @@ let genExpr (e: Expr) =
                     | _ -> genExpr node.FunctionExpr
 
                 // | AppOrTypeApp(SimpleExpr e, t, [ ConstExpr(SynConst.Unit, r) ]) ->
-                | Expr.Single _, [ Expr.Constant(Constant.Unit _) as unitExpr ] -> genExpr funcExpr +> genExpr unitExpr
+                | Expr.Ident _, [ Expr.Constant(Constant.Unit _) as unitExpr ] -> genExpr funcExpr +> genExpr unitExpr
 
                 | Expr.TypeApp typeAppNode, [ Expr.Constant(Constant.Unit _) as unitExpr ] ->
                     match typeAppNode.Identifier with
-                    | Expr.Single _ ->
+                    | Expr.Ident _ ->
                         genExpr typeAppNode.Identifier
                         +> genGenericTypeParameters typeAppNode
                         +> genExpr unitExpr
                     | _ -> genExpr node.FunctionExpr
 
                 // | AppOrTypeApp(SimpleExpr e, t, [ Paren _ as px ]) ->
-                | Expr.Single _, [ ParenExpr parenExpr ] ->
+                | Expr.Ident _, [ ParenExpr parenExpr ] ->
                     let short = genExpr funcExpr +> genExpr parenExpr
                     let long = genExpr funcExpr +> genMultilineFunctionApplicationArguments parenExpr
                     expressionFitsOnRestOfLine short long
 
                 | Expr.TypeApp typeAppNode, [ ParenExpr parenExpr ] ->
                     match typeAppNode.Identifier with
-                    | Expr.Single _ ->
+                    | Expr.Ident _ ->
                         let short =
                             genExpr typeAppNode.Identifier
                             +> genGenericTypeParameters typeAppNode
@@ -1144,7 +1149,7 @@ let genExpr (e: Expr) =
                 +> genSpaceBeforeLids idx lastEsIndex argNode.Identifier argNode.Expr
                 +> genMultilineFunctionApplicationArguments argNode.Expr
 
-            expressionFitsOnRestOfLine short long
+            expressionFitsOnRestOfLine short long |> genNode argNode
 
         let short =
             match node.FunctionExpr with
