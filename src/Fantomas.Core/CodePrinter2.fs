@@ -304,11 +304,13 @@ let genExpr (e: Expr) =
     | Expr.Quote node -> genQuoteExpr node
     | Expr.Typed node ->
         let short =
-            genExpr node.Expr
-            +> sepSpace
-            +> !-node.Operator
-            +> sepSpace
-            +> genType node.Type
+            let genOperator ctx =
+                if node.Operator.Length > 1 || ctx.Config.SpaceBeforeColon then
+                    (sepSpace +> !-node.Operator) ctx
+                else
+                    !- node.Operator ctx
+
+            genExpr node.Expr +> genOperator +> sepSpace +> genType node.Type
 
         let long =
             genExpr node.Expr +> sepNln +> !-node.Operator +> sepSpace +> genType node.Type
