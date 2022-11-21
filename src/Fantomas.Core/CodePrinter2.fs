@@ -841,9 +841,15 @@ let genExpr (e: Expr) =
         +> genSingleTextNode node.ClosingParen
         |> genNode node
     | Expr.Paren node ->
-        genSingleTextNode node.OpeningParen
-        +> genExpr node.Expr
-        +> genSingleTextNode node.ClosingParen
+        match node.Expr with
+        | Expr.CompExprBody _ ->
+            genSingleTextNode node.OpeningParen
+            +> atCurrentColumn (genExpr node.Expr)
+            +> genSingleTextNode node.ClosingParen
+        | _ ->
+            genSingleTextNode node.OpeningParen
+            +> genExpr node.Expr
+            +> genSingleTextNode node.ClosingParen
         |> genNode node
     | Expr.Dynamic node -> genExpr node.FuncExpr +> !- "?" +> genExpr node.ArgExpr |> genNode node
     | Expr.PrefixApp node ->
@@ -2011,10 +2017,10 @@ let genExprInMultilineInfixExpr (e: Expr) =
     //                 ctx
     // | Paren (_, InfixApp (_, _, DotGet _, _, _), _, _)
     // | Paren (_, DotGetApp _, _, _) -> atCurrentColumnIndent (genExpr e)
-    // | MatchLambda (keywordRange, cs) ->
-    //     (!- "function " |> genTriviaFor SynExpr_MatchLambda_Function keywordRange)
-    //     +> indentSepNlnUnindent (genClauses cs)
-    //     |> genTriviaFor SynExpr_MatchLambda e.Range
+    | Expr.MatchLambda matchLambdaNode ->
+        genSingleTextNode matchLambdaNode.Function
+        +> indentSepNlnUnindent (genClauses matchLambdaNode.Clauses)
+        |> genNode matchLambdaNode
     // | Record _ -> atCurrentColumnIndent (genExpr e)
     | _ -> genExpr e
 
