@@ -1479,7 +1479,8 @@ let genExpr (e: Expr) =
             col sepNln node.Branches (fun (node: ExprIfThenNode) ->
                 genControlExpressionStartCore (Choice2Of2 node.If) node.IfExpr node.Then
                 +> sepSpace
-                +> genExpr node.ThenExpr)
+                +> genExpr node.ThenExpr
+                |> genNode node)
             +> optSingle
                 (fun (elseNode, elseExpr) -> sepNln +> genSingleTextNode elseNode +> sepSpace +> genExpr elseExpr)
                 node.Else
@@ -1487,7 +1488,8 @@ let genExpr (e: Expr) =
         let longExpr =
             col sepNln node.Branches (fun (node: ExprIfThenNode) ->
                 genControlExpressionStartCore (Choice2Of2 node.If) node.IfExpr node.Then
-                +> indentSepNlnUnindent (genExpr node.ThenExpr))
+                +> indentSepNlnUnindent (genExpr node.ThenExpr)
+                |> genNode node)
             +> optSingle
                 (fun (elseNode, elseExpr) ->
                     sepNln
