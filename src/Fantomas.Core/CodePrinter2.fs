@@ -558,8 +558,7 @@ let genExpr (e: Expr) =
                 let recordExpr =
                     match node.CopyInfo with
                     | Some e ->
-                        genSingleTextNode node.OpeningBrace
-                        +> addSpaceIfSpaceAroundDelimiter
+                        genSingleTextNodeSuffixDelimiter node.OpeningBrace
                         +> sepNlnWhenWriteBeforeNewlineNotEmpty // comment after curly brace
                         +> atCurrentColumn (genExpr e +> (!- " with" +> indentSepNlnUnindent fieldsExpr))
                         +> addSpaceIfSpaceAroundDelimiter
@@ -570,8 +569,7 @@ let genExpr (e: Expr) =
                             let targetColumn = ctx.Column + (if ctx.Config.SpaceAroundDelimiter then 3 else 2)
 
                             atCurrentColumn
-                                (genSingleTextNode node.OpeningBrace
-                                 +> addSpaceIfSpaceAroundDelimiter
+                                (genSingleTextNodeSuffixDelimiter node.OpeningBrace
                                  +> sepNlnWhenWriteBeforeNewlineNotEmpty // comment after curly brace
                                  +> col sepNln node.Fields (fun fieldNode ->
                                      let expr =
