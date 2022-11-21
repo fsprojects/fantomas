@@ -1756,7 +1756,7 @@ type VersionMismatchDuringDeserializationException(message: string, innerExcepti
     inherit System.Exception(message, innerException)
 """
         { config with
-            MaxLineLength = 80
+            MaxLineLength = 55
             SpaceBeforeColon = true }
     |> prepend newline
     |> should
