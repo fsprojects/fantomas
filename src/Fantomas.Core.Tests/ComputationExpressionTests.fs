@@ -1317,7 +1317,7 @@ promise {
     step1ok := not !isDisposed
 }
 """
-        config
+        { config with MaxValueBindingWidth = 90 }
     |> prepend newline
     |> should
         equal
