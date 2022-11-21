@@ -807,7 +807,7 @@ let genExpr (e: Expr) =
             (fun isMultiline ctx -> onlyIf (isMultiline && ctx.Config.MultiLineLambdaClosingNewline) sepNln ctx)
         +> genSingleTextNode node.ClosingParen
         |> genNode node
-    | Expr.Lambda node -> genLambda node
+    | Expr.Lambda node -> atCurrentColumn (genLambda node)
     | Expr.MatchLambda node ->
         genSingleTextNode node.Function +> sepNln +> genClauses node.Clauses
         |> genNode node
