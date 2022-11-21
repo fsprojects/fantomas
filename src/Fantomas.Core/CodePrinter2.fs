@@ -379,8 +379,7 @@ let genExpr (e: Expr) =
                     +> genSingleTextNode node.Closing
 
                 let genMultiLineArrayOrList =
-                    genSingleTextNode node.Opening
-                    +> addSpaceIfSpaceAroundDelimiter
+                    genSingleTextNodeSuffixDelimiter node.Opening
                     +> atCurrentColumnIndent (
                         sepNlnWhenWriteBeforeNewlineNotEmpty
                         +> col sepNln node.Elements genExpr
