@@ -62,13 +62,11 @@ let mkSynLongIdent (sli: SynLongIdent) =
 let mkLongIdent (longIdent: LongIdent) : IdentListNode =
     match longIdent with
     | [] -> IdentListNode.Empty
-    | [ single ] -> IdentListNode([ IdentifierOrDot.Ident(stn single.idText single.idRange) ], single.idRange)
+    | [ single ] -> IdentListNode([ IdentifierOrDot.Ident(mkIdent single) ], single.idRange)
     | head :: tail ->
         let rest =
             tail
-            |> List.collect (fun ident ->
-                [ IdentifierOrDot.UnknownDot
-                  IdentifierOrDot.Ident(stn ident.idText ident.idRange) ])
+            |> List.collect (fun ident -> [ IdentifierOrDot.UnknownDot; IdentifierOrDot.Ident(mkIdent ident) ])
 
         let range =
             longIdent |> List.map (fun ident -> ident.idRange) |> List.reduce unionRanges
