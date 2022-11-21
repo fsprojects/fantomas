@@ -3130,8 +3130,7 @@ let genTypeDefn (td: TypeDefn) =
             else
                 (sepNlnUnlessLastEventIsNewline
                  +> opt (indent +> sepNln) node.Accessibility genSingleTextNode
-                 +> genSingleTextNode node.OpeningBrace
-                 +> addSpaceIfSpaceAroundDelimiter
+                 +> genSingleTextNodeSuffixDelimiter node.OpeningBrace
                  +> atCurrentColumn (sepNlnWhenWriteBeforeNewlineNotEmpty +> col sepNln node.Fields genField)
                  +> addSpaceIfSpaceAroundDelimiter
                  +> genSingleTextNode node.ClosingBrace
