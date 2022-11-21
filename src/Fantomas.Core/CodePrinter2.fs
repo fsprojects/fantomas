@@ -3469,6 +3469,7 @@ let genModuleDecl (md: ModuleDecl) =
         genSingleTextNode node.Module
         +> sepSpace
         +> genSingleTextNode node.Name
+        +> sepSpace
         +> sepEqFixed
         +> sepSpace
         +> genIdentListNode node.Alias
