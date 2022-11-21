@@ -1995,20 +1995,17 @@ let genMultilineInfixExpr (node: ExprInfixAppNode) =
 
 let genExprInMultilineInfixExpr (e: Expr) =
     match e with
-    // | LetOrUses (xs, e) ->
-    //     atCurrentColumn (
-    //         col sepNln xs (fun (lb, inKeyword) ->
-    //             genSynBinding lb
-    //             +> (match inKeyword with
-    //                 | Some inKw -> genTriviaFor SynExpr_LetOrUse_In inKw !- " in"
-    //                 | None -> !- " in"))
-    //         +> sepNln
-    //         +> expressionFitsOnRestOfLine
-    //             (genExpr e)
-    //             (let t, r = synExprToFsAstType e in
-    //
-    //              sepNlnConsideringTriviaContentBeforeFor t r +> genExpr e)
-    //     )
+    | Expr.CompExprBody node ->
+        match node.Statements with
+        | [ ComputationExpressionStatement.LetOrUseStatement letOrUseNode
+            ComputationExpressionStatement.OtherStatement otherNode ] ->
+            let genLetOrUse =
+                genBinding letOrUseNode.Binding
+                +> optSingle (fun inNode -> sepSpace +> genSingleTextNode inNode +> sepSpace) letOrUseNode.In
+                |> genNode letOrUseNode
+
+            atCurrentColumn (genLetOrUse +> sepNln +> genExpr otherNode |> genNode node)
+        | _ -> genExpr e
     // | Paren (lpr, (Match _ as mex), rpr, pr) ->
     //     fun ctx ->
     //         if ctx.Config.MultiLineLambdaClosingNewline then
