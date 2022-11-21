@@ -428,7 +428,7 @@ let genExpr (e: Expr) =
                     genSingleTextNode node.OpeningBrace
                     +> indentSepNlnUnindent (
                         (genSingleTextNode ie.InheritKeyword
-                         +> autoIndentAndNlnIfExpressionExceedsPageWidth (genInheritConstructor ie)
+                         +> sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth (genInheritConstructor ie)
                          |> genNode (InheritConstructor.Node ie))
                         +> onlyIf hasFields sepNln
                         +> fieldsExpr
@@ -461,7 +461,7 @@ let genExpr (e: Expr) =
                     +> addSpaceIfSpaceAroundDelimiter
                     +> atCurrentColumn (
                         (genSingleTextNode ie.InheritKeyword
-                         +> autoIndentAndNlnIfExpressionExceedsPageWidth (genInheritConstructor ie)
+                         +> sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth (genInheritConstructor ie)
                          |> genNode (InheritConstructor.Node ie))
                         +> onlyIf hasFields sepNln
                         +> fieldsExpr
