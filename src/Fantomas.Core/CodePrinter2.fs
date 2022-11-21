@@ -3478,6 +3478,8 @@ let genModuleDecl (md: ModuleDecl) =
         +> genAttributes node.Attributes
         +> genSingleTextNode node.Module
         +> sepSpace
+        +> genAccessOpt node.Accessibility
+        +> onlyIf node.IsRecursive (sepSpace +> !- "rec" +> sepSpace)
         +> genIdentListNode node.Identifier
         +> sepSpace
         +> genSingleTextNode node.Equals
