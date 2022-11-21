@@ -886,9 +886,9 @@ let genExpr (e: Expr) =
             +> col sepSpace node.SubsequentExpressions (fun (operator, rhs) ->
                 genSingleTextNode operator
                 +> sepSpace
-                +> onlyIf headIsSynExprLambdaOrIfThenElse sepOpenT
+                +> onlyIf (isSynExprLambdaOrIfThenElse rhs) sepOpenT
                 +> genExpr rhs
-                +> onlyIf headIsSynExprLambdaOrIfThenElse sepCloseT)
+                +> onlyIf (isSynExprLambdaOrIfThenElse rhs) sepCloseT)
 
         let multilineExpr =
             match node.SubsequentExpressions with
