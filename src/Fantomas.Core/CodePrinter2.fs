@@ -3146,15 +3146,19 @@ let genTypeDefn (td: TypeDefn) =
                 ctx.Config.MultilineBlockBracketsOnSameColumn
                 || (List.exists (fun (fieldNode: FieldNode) -> fieldNode.XmlDoc.IsSome) node.Fields)
             then
+                let msIsEmpty = List.isEmpty members
+
                 (ifElseCtx
-                    (fun ctx -> ctx.Config.ExperimentalStroustrupStyle && List.isEmpty members)
+                    (fun ctx -> ctx.Config.ExperimentalStroustrupStyle && msIsEmpty)
                     (genAccessOpt node.Accessibility)
                     (opt (indent +> sepNln) node.Accessibility genSingleTextNode)
                  +> genSingleTextNode node.OpeningBrace
                  +> indentSepNlnUnindent (atCurrentColumn (col sepNln node.Fields genField))
                  +> sepNln
                  +> genSingleTextNode node.ClosingBrace
-                 +> optSingle (fun _ -> unindent) node.Accessibility
+                 +> onlyIfCtx
+                     (fun ctx -> not (ctx.Config.ExperimentalStroustrupStyle && msIsEmpty))
+                     (optSingle (fun _ -> unindent) node.Accessibility)
                  +> onlyIf (List.isNotEmpty members) sepNln
                  +> sepNlnTypeAndMembers typeDefnNode
                  +> genMemberDefnList members)
