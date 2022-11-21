@@ -1161,7 +1161,7 @@ let dayOfWeekToNum (d: DayOfWeek) =
     |> fun x -> if x = 0 then 7 else x
     |> DayNum
 """
-        { config with MaxInfixOperatorExpression = 50 }
+        { config with MaxInfixOperatorExpression = 45 }
     |> prepend newline
     |> should
         equal
