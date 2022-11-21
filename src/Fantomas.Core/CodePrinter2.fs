@@ -2148,6 +2148,7 @@ let genAppWithLambda sep (node: ExprAppWithLambdaNode) =
                     +> genSingleTextNode node.OpeningParen
                     +> enterNode lambdaNode
                     +> genSingleTextNode lambdaNode.Fun
+                    +> sepSpace
                     +> col sepSpace lambdaNode.Parameters genPat
                     +> sepSpace
                     +> genSingleTextNode lambdaNode.Arrow
