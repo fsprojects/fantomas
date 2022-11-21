@@ -850,6 +850,8 @@ let genExpr (e: Expr) =
         |> genNode node
     | Expr.Dynamic node -> genExpr node.FuncExpr +> !- "?" +> genExpr node.ArgExpr |> genNode node
     | Expr.PrefixApp node ->
+        let fallback = genSingleTextNode node.Operator +> genExpr node.Expr
+
         match node.Expr with
         | Expr.Constant _
         | Expr.InterpolatedStringExpr _ -> genSingleTextNode node.Operator +> sepSpace +> genExpr node.Expr
@@ -858,7 +860,22 @@ let genExpr (e: Expr) =
             +> sepSpace
             +> genExpr appNode.FunctionExpr
             +> genExpr appNode.ArgExpr
-        | _ -> genSingleTextNode node.Operator +> genExpr node.Expr
+        | Expr.AppLongIdentAndSingleParenArg appNode ->
+            let mOptVarNode = (appNode.FunctionName :> Node).Range
+
+            genSingleTextNode node.Operator
+            +> sepSpace
+            +> genExpr (Expr.OptVar(ExprOptVarNode(false, appNode.FunctionName, mOptVarNode)))
+            +> genExpr appNode.ArgExpr
+        | Expr.App appNode ->
+            match appNode.Arguments with
+            | [ Expr.Constant(Constant.Unit _) as argExpr ] ->
+                genSingleTextNode node.Operator
+                +> sepSpace
+                +> genExpr appNode.FunctionExpr
+                +> genExpr argExpr
+            | _ -> fallback
+        | _ -> fallback
         |> genNode node
     | Expr.SameInfixApps node ->
         let headIsSynExprLambdaOrIfThenElse = isSynExprLambdaOrIfThenElse node.LeadingExpr
