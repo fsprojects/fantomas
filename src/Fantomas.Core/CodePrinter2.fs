@@ -3197,7 +3197,9 @@ let genTypeDefn (td: TypeDefn) =
             (optSingle
                 (fun withNode ->
                     indentSepNlnUnindent (
-                        genSingleTextNode withNode +> indentSepNlnUnindent (genMemberDefnList members)
+                        genSingleTextNode withNode
+                        +> onlyIfCtx (fun ctx -> ctx.Config.NewlineBetweenTypeDefinitionAndMembers) sepNln
+                        +> indentSepNlnUnindent (genMemberDefnList members)
                     ))
                 typeName.WithKeyword)
         |> genNode node
