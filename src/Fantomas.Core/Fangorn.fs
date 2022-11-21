@@ -137,12 +137,12 @@ let mkConstant (creationAide: CreationAide) c r : Constant =
     | SynConst.Char c ->
         let escapedChar =
             match c with
-            | '\r' -> @"\r"
-            | '\n' -> @"\n"
-            | '\t' -> @"\t"
-            | '\\' -> @"\\"
-            | '\b' -> @"\b"
-            | '\f' -> @"\f"
+            | '\r' -> @"'\r'"
+            | '\n' -> @"'\n'"
+            | '\t' -> @"'\t'"
+            | '\\' -> @"'\\'"
+            | '\b' -> @"'\b'"
+            | '\f' -> @"'\f'"
             | _ -> c.ToString()
 
         orElse escapedChar
