@@ -803,8 +803,7 @@ let genExpr (e: Expr) =
     | Expr.ParenLambda node ->
         genSingleTextNode node.OpeningParen
         +> leadingExpressionIsMultiline
-            ((genLambda node.Lambda |> genNode node.Lambda)
-             +> sepNlnWhenWriteBeforeNewlineNotEmpty)
+            (genLambda node.Lambda +> sepNlnWhenWriteBeforeNewlineNotEmpty)
             (fun isMultiline ctx -> onlyIf (isMultiline && ctx.Config.MultiLineLambdaClosingNewline) sepNln ctx)
         +> genSingleTextNode node.ClosingParen
         |> genNode node
