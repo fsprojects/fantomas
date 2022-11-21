@@ -387,9 +387,32 @@ let genExpr (e: Expr) =
                 ifAlignBrackets genMultiLineArrayOrListAlignBrackets genMultiLineArrayOrList
 
             fun ctx ->
-                let alwaysMultiline = false
-                // List.exists isIfThenElseWithYieldReturn xs
-                // || List.forall isSynExprLambdaOrIfThenElse xs
+                let alwaysMultiline =
+                    let isIfThenElseWithYieldReturn e =
+                        let (|YieldLikeExpr|_|) e =
+                            match e with
+                            | Expr.Single singleNode ->
+                                if singleNode.Leading.Text.StartsWith("yield") then
+                                    Some e
+                                else
+                                    None
+                            | _ -> None
+
+                        match e with
+                        | Expr.IfThen ifThenNode ->
+                            match ifThenNode.ThenExpr with
+                            | YieldLikeExpr _ -> true
+                            | _ -> false
+                        | Expr.IfThenElse ifThenElseNode ->
+                            match ifThenElseNode.IfExpr, ifThenElseNode.ElseExpr with
+                            | YieldLikeExpr _, _
+                            | _, YieldLikeExpr _ -> true
+                            | _ -> false
+                        | _ -> false
+
+                    List.exists isIfThenElseWithYieldReturn node.Elements
+                    || List.forall isSynExprLambdaOrIfThenElse node.Elements
+
                 if alwaysMultiline then
                     multilineExpression ctx
                 else
