@@ -321,8 +321,7 @@ let genExpr (e: Expr) =
         |> genNode node
     | Expr.New node ->
         match node.Arguments with
-        | Expr.Paren _
-        | Expr.Constant(Constant.Unit _) ->
+        | ParenExpr _ ->
             let sepSpaceBeforeArgs (ctx: Context) =
                 match node.Type with
                 | UppercaseType -> onlyIf ctx.Config.SpaceBeforeUppercaseInvocation sepSpace ctx
