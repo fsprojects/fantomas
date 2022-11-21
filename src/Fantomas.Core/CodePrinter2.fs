@@ -1032,9 +1032,8 @@ let genExpr (e: Expr) =
     // Foo().Bar().Meh()
     | Expr.DotGetApp node ->
         let genLongFunctionName =
-            match node.FunctionExpr with
-            | Expr.App appNode ->
-                match appNode.FunctionExpr, appNode.Arguments with
+            let genApp funcExpr argExpr =
+                match funcExpr, argExpr with
                 // | AppOrTypeApp(LongIdentExprWithMoreThanOneIdent lids, t, [ Paren _ as px ]) ->
                 | Expr.OptVar optVarNode, [ ParenExpr px ] when List.moreThanOne optVarNode.Identifier.Content ->
                     genFunctionNameWithMultilineLids
@@ -1066,8 +1065,7 @@ let genExpr (e: Expr) =
                     | _ -> genExpr node.FunctionExpr
 
                 // | AppOrTypeApp(SimpleExpr e, t, [ ConstExpr(SynConst.Unit, r) ]) ->
-                | Expr.Single _, [ Expr.Constant(Constant.Unit _) as unitExpr ] ->
-                    genExpr appNode.FunctionExpr +> genExpr unitExpr
+                | Expr.Single _, [ Expr.Constant(Constant.Unit _) as unitExpr ] -> genExpr funcExpr +> genExpr unitExpr
 
                 | Expr.TypeApp typeAppNode, [ Expr.Constant(Constant.Unit _) as unitExpr ] ->
                     match typeAppNode.Identifier with
@@ -1079,12 +1077,8 @@ let genExpr (e: Expr) =
 
                 // | AppOrTypeApp(SimpleExpr e, t, [ Paren _ as px ]) ->
                 | Expr.Single _, [ ParenExpr parenExpr ] ->
-                    let short = genExpr appNode.FunctionExpr +> genExpr parenExpr
-
-                    let long =
-                        genExpr appNode.FunctionExpr
-                        +> genMultilineFunctionApplicationArguments parenExpr
-
+                    let short = genExpr funcExpr +> genExpr parenExpr
+                    let long = genExpr funcExpr +> genMultilineFunctionApplicationArguments parenExpr
                     expressionFitsOnRestOfLine short long
 
                 | Expr.TypeApp typeAppNode, [ ParenExpr parenExpr ] ->
@@ -1105,6 +1099,11 @@ let genExpr (e: Expr) =
 
                 | _ -> genExpr node.FunctionExpr
 
+            match node.FunctionExpr with
+            | Expr.App appNode -> genApp appNode.FunctionExpr appNode.Arguments
+            | Expr.AppLongIdentAndSingleParenArg appNode ->
+                let m = (appNode.FunctionName :> Node).Range
+                genApp (Expr.OptVar(ExprOptVarNode(false, appNode.FunctionName, m))) [ appNode.ArgExpr ]
             | _ -> genExpr node.FunctionExpr
 
         let lastEsIndex = node.Arguments.Length - 1
@@ -2016,8 +2015,8 @@ let genFunctionNameWithMultilineLids (trailing: Context -> Context) (longIdent: 
     match longIdent.Content with
     | IdentifierOrDot.Ident identNode :: t ->
         genSingleTextNode identNode
-        +> indent
-        +> (colEx
+        +> indentSepNlnUnindent (
+            colEx
                 (function
                 | IdentifierOrDot.Ident _ -> sepNone
                 | IdentifierOrDot.KnownDot _
@@ -2027,8 +2026,8 @@ let genFunctionNameWithMultilineLids (trailing: Context -> Context) (longIdent: 
                 | IdentifierOrDot.Ident identNode -> genSingleTextNode identNode
                 | IdentifierOrDot.KnownDot _
                 | IdentifierOrDot.UnknownDot _ -> sepDot)
-            +> trailing)
-        +> unindent
+            +> trailing
+        )
     | _ -> sepNone
     |> genNode parentNode
 
