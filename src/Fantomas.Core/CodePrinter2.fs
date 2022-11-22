@@ -1615,27 +1615,11 @@ let genExpr (e: Expr) =
             +> !- "] <- "
             +> autoIndentAndNlnIfExpressionExceedsPageWidthUnlessStroustrup genExpr node.Value
 
-        match node.ObjectExpr with
-        | Expr.App appNode ->
-            match appNode.Arguments with
-            | [ Expr.Constant(Constant.Unit _) as ux ] ->
-                let appExpr = genExpr appNode.FunctionExpr +> genExpr ux
-
-                let idx =
-                    !- "." +> sepOpenLFixed +> genExpr node.Index +> sepCloseLFixed +> sepArrowRev
-
-                expressionFitsOnRestOfLine
-                    (appExpr +> idx +> genExpr node.Value)
-                    (appExpr
-                     +> idx
-                     +> autoIndentAndNlnIfExpressionExceedsPageWidthUnlessStroustrup genExpr node.Value)
-            | _ -> genDotIndexedSet
-        | Expr.AppSingleParenArg appNode ->
-            let short = genExpr appNode.FunctionExpr +> genExpr appNode.ArgExpr
+        let genDotIndexedSetWithApp funcExpr argExpr (appNode: Node) =
+            let short = funcExpr +> genExpr argExpr |> genNode appNode
 
             let long =
-                genExpr appNode.FunctionExpr
-                +> genMultilineFunctionApplicationArguments appNode.ArgExpr
+                funcExpr +> genMultilineFunctionApplicationArguments argExpr |> genNode appNode
 
             let idx =
                 !- "." +> sepOpenLFixed +> genExpr node.Index +> sepCloseLFixed +> sepArrowRev
@@ -1645,6 +1629,20 @@ let genExpr (e: Expr) =
                 (long
                  +> idx
                  +> autoIndentAndNlnIfExpressionExceedsPageWidthUnlessStroustrup genExpr node.Value)
+
+        match node.ObjectExpr with
+        | Expr.App appNode ->
+            match appNode.Arguments with
+            | [ Expr.Constant(Constant.Unit _) as ux ] ->
+                genDotIndexedSetWithApp (genExpr appNode.FunctionExpr) ux appNode
+            | _ -> genDotIndexedSet
+
+        | Expr.AppSingleParenArg appNode ->
+            genDotIndexedSetWithApp (genExpr appNode.FunctionExpr) appNode.ArgExpr appNode
+
+        | Expr.AppLongIdentAndSingleParenArg appNode ->
+            genDotIndexedSetWithApp (genIdentListNode appNode.FunctionName) appNode.ArgExpr appNode
+
         | _ -> genDotIndexedSet
         |> genNode node
     | Expr.NamedIndexedPropertySet node ->
