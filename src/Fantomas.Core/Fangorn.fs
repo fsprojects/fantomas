@@ -1386,20 +1386,46 @@ let mkBindingReturnInfo creationAide (returnInfo: SynBindingReturnInfo option) =
                 BindingReturnInfoNode(stn ":" mColon, mkType creationAide t, m)))
         returnInfo
 
+let (|OperatorWithStar|_|) (si: SynIdent) =
+    match si with
+    | SynIdent(ident, Some(ParenStarSynIdent(_, text, _))) ->
+        Some(IdentifierOrDot.Ident(stn $"( {text} )" ident.idRange))
+    | _ -> None
+
 let mkBinding
     (creationAide: CreationAide)
     (SynBinding(_, _, isInline, isMutable, attributes, xmlDoc, _, pat, returnInfo, expr, _, _, trivia))
     =
+    let mkFunctionName (sli: SynLongIdent) : IdentListNode =
+        match sli.IdentsWithTrivia with
+        | [ prefix; OperatorWithStar operatorNode ] ->
+            IdentListNode(
+                [ IdentifierOrDot.Ident(mkSynIdent prefix)
+                  IdentifierOrDot.UnknownDot
+                  operatorNode ],
+                sli.Range
+            )
+        | [ OperatorWithStar operatorNode ] -> IdentListNode([ operatorNode ], sli.Range)
+        | _ -> mkSynLongIdent sli
+
     let ao, functionName, genericParameters, parameters =
         match pat with
         | SynPat.LongIdent(accessibility = ao; longDotId = lid; typarDecls = typarDecls; argPats = SynArgPats.Pats ps) ->
             ao,
-            Choice1Of2(mkSynLongIdent lid),
+            Choice1Of2(mkFunctionName lid),
             mkSynValTyparDecls creationAide typarDecls,
             List.map (mkPat creationAide) ps
         | SynPat.Named(accessibility = ao; ident = si) ->
-            let name = mkSynIdent si
-            ao, Choice1Of2(IdentListNode([ IdentifierOrDot.Ident name ], (name :> Node).Range)), None, []
+            let name =
+                match si with
+                | OperatorWithStar operatorNode -> operatorNode
+                | _ -> IdentifierOrDot.Ident(mkSynIdent si)
+
+            let m =
+                let (SynIdent(ident, _)) = si
+                ident.idRange
+
+            ao, Choice1Of2(IdentListNode([ name ], m)), None, []
         | _ -> None, Choice2Of2(mkPat creationAide pat), None, []
 
     let equals = stn "=" trivia.EqualsRange.Value

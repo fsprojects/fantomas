@@ -113,7 +113,7 @@
     <Compile Include="AstExtensionsTests.fs" />
     <Compile Include="MaxIfThenShortWidthTests.fs" />
 <!--    <Compile Include="CodePrinterHelperFunctionsTests.fs" />-->
-    <Compile Include="ASTTransformerTests.fs" />
+<!--    <Compile Include="ASTTransformerTests.fs" />-->
     <Compile Include="DotSetTests.fs" />
     <Compile Include="InterfaceStaticMethodTests.fs" />
     <Compile Include="ExternTests.fs" />
