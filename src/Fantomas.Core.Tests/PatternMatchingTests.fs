@@ -491,7 +491,10 @@ let (|OneLinerBinding|MultilineBinding|) b =
 
 [<Test>]
 let ``should split constructor and function call correctly, double formatting`` () =
-    let config80 = { config with MaxLineLength = 80 }
+    let config80 =
+        { config with
+            MaxLineLength = 80
+            MaxRecordWidth = 80 }
 
     let original =
         """
