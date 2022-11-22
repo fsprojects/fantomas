@@ -1398,7 +1398,7 @@ let genExpr (e: Expr) =
                 (fun e -> !- " when" +> sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth (genExpr e))
                 clauseNode.WhenExpr
             +> sepSpace
-            +> genSingleTextNode clauseNode.Arrow
+            +> genSingleTextNodeWithSpaceSuffix sepSpace clauseNode.Arrow
             +> autoIndentAndNlnExpressUnlessStroustrup genExpr clauseNode.BodyExpr
             +> leaveNode clauseNode
 
