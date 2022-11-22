@@ -954,7 +954,13 @@ let sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidthUnlessStroustrup
     (expr: Expr)
     (ctx: Context)
     =
-    if ctx.Config.ExperimentalStroustrupStyle && expr.IsStroustrupStyleExpr then
+    let node = Expr.Node expr
+
+    if
+        ctx.Config.ExperimentalStroustrupStyle
+        && expr.IsStroustrupStyleExpr
+        && Seq.isEmpty node.ContentBefore
+    then
         (sepSpace +> f expr) ctx
     else
         sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth (f expr) ctx
