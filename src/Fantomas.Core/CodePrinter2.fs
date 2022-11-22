@@ -2035,26 +2035,36 @@ let genExprInMultilineInfixExpr (e: Expr) =
                 |> genNode node
             )
         | _ -> genExpr e
-    // | Paren (lpr, (Match _ as mex), rpr, pr) ->
-    //     fun ctx ->
-    //         if ctx.Config.MultiLineLambdaClosingNewline then
-    //             (sepOpenTFor lpr
-    //              +> indentSepNlnUnindent (genExpr mex)
-    //              +> sepNln
-    //              +> sepCloseTFor rpr
-    //              |> genTriviaFor SynExpr_Paren pr)
-    //                 ctx
-    //         else
-    //             (sepOpenTFor lpr +> atCurrentColumnIndent (genExpr mex) +> sepCloseTFor rpr
-    //              |> genTriviaFor SynExpr_Paren pr)
-    //                 ctx
-    // | Paren (_, InfixApp (_, _, DotGet _, _, _), _, _)
-    // | Paren (_, DotGetApp _, _, _) -> atCurrentColumnIndent (genExpr e)
+    | Expr.Paren parenNode ->
+        match parenNode.Expr with
+        | Expr.Match _ as mex ->
+            fun ctx ->
+                if ctx.Config.MultiLineLambdaClosingNewline then
+                    genNode
+                        parenNode
+                        (genSingleTextNode parenNode.OpeningParen
+                         +> indentSepNlnUnindent (genExpr mex)
+                         +> sepNln
+                         +> genSingleTextNode parenNode.ClosingParen)
+                        ctx
+                else
+                    genNode
+                        parenNode
+                        (genSingleTextNode parenNode.OpeningParen
+                         +> atCurrentColumnIndent (genExpr mex)
+                         +> genSingleTextNode parenNode.ClosingParen)
+                        ctx
+        | Expr.InfixApp infixNode ->
+            match infixNode.LeftHandSide with
+            | Expr.DotGet _ -> atCurrentColumnIndent (genExpr e)
+            | _ -> genExpr e
+        | Expr.DotGetApp _
+        | Expr.Record _ -> atCurrentColumnIndent (genExpr e)
+        | _ -> genExpr e
     | Expr.MatchLambda matchLambdaNode ->
         genSingleTextNode matchLambdaNode.Function
         +> indentSepNlnUnindent (genClauses matchLambdaNode.Clauses)
         |> genNode matchLambdaNode
-    // | Record _ -> atCurrentColumnIndent (genExpr e)
     | _ -> genExpr e
 
 let genKeepIdent (startNode: Node) (e: Expr) ctx =
