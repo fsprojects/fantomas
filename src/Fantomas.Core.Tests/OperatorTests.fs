@@ -951,6 +951,7 @@ let isCustomOperationProjectionParameter i (nm: Ident) =
                 | Some argInfos ->
                     i < argInfos.Length
                     && let (_, argInfo) = List.item i argInfos in
+
                        HasFSharpAttribute cenv.g cenv.g.attrib_ProjectionParameterAttribute argInfo.Attribs)
 
         if List.allEqual vs then
