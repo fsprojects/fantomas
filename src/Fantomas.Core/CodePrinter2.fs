@@ -218,34 +218,40 @@ let genAttributesCore (ats: AttributeNode list) =
     let longExpression = atCurrentColumn (col (sepSemi +> sepNln) ats genAttributeExpr)
     ifElse ats.IsEmpty sepNone (expressionFitsOnRestOfLine shortExpression longExpression)
 
-let genOnelinerAttributes (n: MultipleAttributeListNode) =
-    let ats =
-        List.collect (fun (al: AttributeListNode) -> al.Attributes) n.AttributeLists
+let genOnelinerAttributes (n: MultipleAttributeListNode option) =
+    match n with
+    | None -> sepNone
+    | Some n ->
+        let ats =
+            List.collect (fun (al: AttributeListNode) -> al.Attributes) n.AttributeLists
 
-    let openingToken =
-        List.tryHead n.AttributeLists
-        |> Option.map (fun (a: AttributeListNode) -> a.Opening)
+        let openingToken =
+            List.tryHead n.AttributeLists
+            |> Option.map (fun (a: AttributeListNode) -> a.Opening)
 
-    let closingToken =
-        List.tryLast n.AttributeLists
-        |> Option.map (fun (a: AttributeListNode) -> a.Closing)
+        let closingToken =
+            List.tryLast n.AttributeLists
+            |> Option.map (fun (a: AttributeListNode) -> a.Closing)
 
-    let genAttrs =
-        optSingle genSingleTextNode openingToken
-        +> genAttributesCore ats
-        +> optSingle genSingleTextNode closingToken
-        |> genNode n
+        let genAttrs =
+            optSingle genSingleTextNode openingToken
+            +> genAttributesCore ats
+            +> optSingle genSingleTextNode closingToken
+            |> genNode n
 
-    ifElse ats.IsEmpty sepNone (genAttrs +> sepSpace)
+        ifElse ats.IsEmpty sepNone (genAttrs +> sepSpace)
 
-let genAttributes (node: MultipleAttributeListNode) =
-    colPost sepNlnUnlessLastEventIsNewline sepNln node.AttributeLists (fun a ->
-        genSingleTextNode a.Opening
-        +> (genAttributesCore a.Attributes)
-        +> genSingleTextNode a.Closing
-        +> sepNlnWhenWriteBeforeNewlineNotEmpty
-        |> genNode a)
-    |> genNode node
+let genAttributes (node: MultipleAttributeListNode option) =
+    match node with
+    | None -> sepNone
+    | Some node ->
+        colPost sepNlnUnlessLastEventIsNewline sepNln node.AttributeLists (fun a ->
+            genSingleTextNode a.Opening
+            +> (genAttributesCore a.Attributes)
+            +> genSingleTextNode a.Closing
+            +> sepNlnWhenWriteBeforeNewlineNotEmpty
+            |> genNode a)
+        |> genNode node
 
 // The inherit keyword should already be printed by the caller
 let genInheritConstructor (ic: InheritConstructor) =
@@ -2783,6 +2789,44 @@ let genBinding (b: BindingNode) (ctx: Context) : Context =
 let genBindings withUseConfig (bs: BindingNode list) : Context -> Context =
     colWithNlnWhenNodeIsMultiline withUseConfig genBinding bs
 
+let genExternBinding (externNode: ExternBindingNode) =
+    let genParameters =
+        let short =
+            col sepComma externNode.Parameters (fun externParameter ->
+                genOnelinerAttributes externParameter.Attributes
+                +> onlyIf externParameter.Attributes.IsSome sepSpace
+                +> optSingle genType externParameter.Type
+                +> onlyIf externParameter.Pattern.IsSome sepSpace
+                +> optSingle genPat externParameter.Pattern
+                |> genNode externParameter)
+
+        let long =
+            indentSepNlnUnindent (
+                col (sepComma +> sepNln) externNode.Parameters (fun externParameter ->
+                    genOnelinerAttributes externParameter.Attributes
+                    +> onlyIf externParameter.Attributes.IsSome sepSpace
+                    +> optSingle (fun t -> genType t +> sepSpace) externParameter.Type
+                    +> optSingle genPat externParameter.Pattern
+                    |> genNode externParameter)
+            )
+            +> sepNln
+
+        expressionFitsOnRestOfLine short long
+
+    genXml externNode.XmlDoc
+    +> genAttributes externNode.Attributes
+    +> genSingleTextNode externNode.Extern
+    +> sepSpace
+    +> genOnelinerAttributes externNode.AttributesOfType
+    +> genType externNode.Type
+    +> sepSpace
+    +> genAccessOpt externNode.Accessibility
+    +> genIdentListNode externNode.Identifier
+    +> genSingleTextNode externNode.OpeningParen
+    +> genParameters
+    +> genSingleTextNode externNode.ClosingParen
+    |> genNode externNode
+
 let genOpenList (openList: OpenListNode) =
     col sepNln openList.Opens (function
         | Open.ModuleOrNamespace node -> !- "open " +> genIdentListNode node.Name |> genNode node
@@ -3028,7 +3072,7 @@ let genImplicitConstructor (node: ImplicitConstructorNode) =
 
     let short =
         genXml node.XmlDoc
-        +> onlyIfNot node.Attributes.IsEmpty sepSpace
+        +> onlyIf node.Attributes.IsSome sepSpace
         +> genOnelinerAttributes node.Attributes
         +> onlyIf node.Accessibility.IsSome sepSpace
         +> genAccessOpt node.Accessibility
@@ -3044,7 +3088,8 @@ let genImplicitConstructor (node: ImplicitConstructorNode) =
 
         indentSepNlnUnindent (
             genXml node.XmlDoc
-            +> onlyIfNot node.Attributes.IsEmpty (genOnelinerAttributes node.Attributes +> sepNln)
+            +> genOnelinerAttributes node.Attributes
+            +> onlyIf node.Attributes.IsSome sepNln
             +> expressionFitsOnRestOfLine
                 (genAccessOpt node.Accessibility +> genPats)
                 (genAccessOpt node.Accessibility
@@ -3106,7 +3151,7 @@ let genTypeDefn (td: TypeDefn) =
             | [ singleCase ] when List.isEmpty members ->
                 let hasVerticalBar =
                     ctx.Config.BarBeforeDiscriminatedUnionDeclaration
-                    || List.isNotEmpty singleCase.Attributes.AttributeLists
+                    || singleCase.Attributes.IsSome
                     || List.isEmpty singleCase.Fields
 
                 let genCase hasVerticalBar =
@@ -3390,7 +3435,7 @@ let genMemberDefn (md: MemberDefn) =
     | MemberDefn.Inherit node -> genSingleTextNode node.Inherit +> sepSpace +> genType node.BaseType
     | MemberDefn.ValField node -> genField node
     | MemberDefn.Member node -> genBinding node
-    | MemberDefn.ExternBinding _ -> failwithf "todo %A" md
+    | MemberDefn.ExternBinding node -> genExternBinding node
     | MemberDefn.DoExpr node -> genExpr (Expr.Single node)
     | MemberDefn.ExplicitCtor node ->
         genXml node.XmlDoc
@@ -3498,7 +3543,7 @@ let genModuleDecl (md: ModuleDecl) =
     | ModuleDecl.Attributes node -> genAttributes node.Attributes +> genExpr node.Expr |> genNode node
     | ModuleDecl.DeclExpr e -> genExpr e
     | ModuleDecl.Exception node -> genException node
-    | ModuleDecl.ExternBinding _ -> failwith "Not Implemented"
+    | ModuleDecl.ExternBinding node -> genExternBinding node
     | ModuleDecl.TopLevelBinding b -> genBinding b
     | ModuleDecl.ModuleAbbrev node ->
         genSingleTextNode node.Module

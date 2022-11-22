@@ -124,7 +124,7 @@ type ParsedHashDirectiveNode(ident: string, args: SingleTextNode list, range) =
 type ModuleOrNamespaceNode
     (
         xmlDoc: XmlDocNode option,
-        attributes: MultipleAttributeListNode,
+        attributes: MultipleAttributeListNode option,
         leadingKeyword: MultipleTextsNode option,
         accessibility: SingleTextNode option,
         isRecursive: bool,
@@ -144,7 +144,7 @@ type ModuleOrNamespaceNode
 
     override this.Children =
         [| yield! noa xmlDoc
-           yield attributes
+           yield! noa attributes
            yield! noa leadingKeyword
            yield! noa accessibility
            if Option.isSome leadingKeyword then
@@ -300,14 +300,15 @@ type TypeParenNode(openingParen: SingleTextNode, t: Type, closingParen: SingleTe
 
 type TypeSignatureParameterNode
     (
-        attributes: MultipleAttributeListNode,
+        attributes: MultipleAttributeListNode option,
         identifier: SingleTextNode option,
         t: Type,
         range
     ) =
     inherit NodeBase(range)
 
-    override this.Children = [| yield attributes; yield! noa identifier; yield Type.Node t |]
+    override this.Children =
+        [| yield! noa attributes; yield! noa identifier; yield Type.Node t |]
 
     member x.Attributes = attributes
     member x.Identifier = identifier
@@ -366,10 +367,10 @@ type Type =
         | SignatureParameter n -> n
         | Or n -> n
 
-type PatAttribNode(attrs: MultipleAttributeListNode, pat: Pattern, range) =
+type PatAttribNode(attrs: MultipleAttributeListNode option, pat: Pattern, range) =
     inherit NodeBase(range)
 
-    override this.Children = [| yield attrs; yield Pattern.Node pat |]
+    override this.Children = [| yield! noa attrs; yield Pattern.Node pat |]
 
     member x.Attributes = attrs
     member x.Pattern = pat
@@ -1914,16 +1915,16 @@ type MultipleAttributeListNode(attributeLists: AttributeListNode list, range) =
     member x.AttributeLists = attributeLists
     member x.IsEmpty = attributeLists.IsEmpty
 
-type ModuleDeclAttributesNode(attributes: MultipleAttributeListNode, doExpr: Expr, range) =
+type ModuleDeclAttributesNode(attributes: MultipleAttributeListNode option, doExpr: Expr, range) =
     inherit NodeBase(range)
-    override this.Children = [| yield attributes; yield Expr.Node doExpr |]
+    override this.Children = [| yield! noa attributes; yield Expr.Node doExpr |]
     member x.Attributes = attributes
     member x.Expr = doExpr
 
 type ExceptionDefnNode
     (
         xmlDoc: XmlDocNode option,
-        attributes: MultipleAttributeListNode,
+        attributes: MultipleAttributeListNode option,
         accessibility: SingleTextNode option,
         unionCase: UnionCaseNode,
         withKeyword: SingleTextNode option,
@@ -1934,7 +1935,7 @@ type ExceptionDefnNode
 
     override this.Children =
         [| yield! noa xmlDoc
-           yield attributes
+           yield! noa attributes
            yield! noa accessibility
            yield unionCase
            yield! noa withKeyword
@@ -1947,9 +1948,62 @@ type ExceptionDefnNode
     member x.WithKeyword = withKeyword
     member x.Members = ms
 
-type ExternBindingNode(range) =
+type ExternBindingPatternNode
+    (
+        attributes: MultipleAttributeListNode option,
+        t: Type option,
+        pat: Pattern option,
+        range: range
+    ) =
     inherit NodeBase(range)
-    override this.Children = failwith "todo"
+
+    override this.Children =
+        [| yield! noa attributes
+           yield! noa (Option.map Type.Node t)
+           yield! noa (Option.map Pattern.Node pat) |]
+
+    member x.Attributes = attributes
+    member x.Type = t
+    member x.Pattern = pat
+
+type ExternBindingNode
+    (
+        xmlDoc: XmlDocNode option,
+        attributes: MultipleAttributeListNode option,
+        externNode: SingleTextNode,
+        attributesOfType: MultipleAttributeListNode option,
+        t: Type,
+        accessibility: SingleTextNode option,
+        identifier: IdentListNode,
+        openingParen: SingleTextNode,
+        parameters: ExternBindingPatternNode list,
+        closingParen: SingleTextNode,
+        range
+    ) =
+    inherit NodeBase(range)
+
+    override this.Children =
+        [| yield! noa xmlDoc
+           yield! noa attributes
+           yield externNode
+           yield! noa attributesOfType
+           yield Type.Node t
+           yield! noa accessibility
+           yield identifier
+           yield openingParen
+           yield! nodes parameters
+           yield closingParen |]
+
+    member x.XmlDoc = xmlDoc
+    member x.Attributes = attributes
+    member x.Extern = externNode
+    member x.AttributesOfType = attributesOfType
+    member x.Type = t
+    member x.Accessibility = accessibility
+    member x.Identifier = identifier
+    member x.OpeningParen = openingParen
+    member x.Parameters = parameters
+    member x.ClosingParen = closingParen
 
 type ModuleAbbrevNode(moduleNode: SingleTextNode, name: SingleTextNode, alias: IdentListNode, range) =
     inherit NodeBase(range)
@@ -1961,7 +2015,7 @@ type ModuleAbbrevNode(moduleNode: SingleTextNode, name: SingleTextNode, alias: I
 type NestedModuleNode
     (
         xmlDoc: XmlDocNode option,
-        attributes: MultipleAttributeListNode,
+        attributes: MultipleAttributeListNode option,
         moduleKeyword: SingleTextNode,
         accessibility: SingleTextNode option,
         isRecursive: bool,
@@ -1974,7 +2028,7 @@ type NestedModuleNode
 
     override this.Children =
         [| yield! noa xmlDoc
-           yield attributes
+           yield! noa attributes
            yield moduleKeyword
            yield! noa accessibility
            yield identifier
@@ -2028,7 +2082,7 @@ type BindingReturnInfoNode(colon: SingleTextNode, t: Type, range) =
 type BindingNode
     (
         xmlDoc: XmlDocNode option,
-        attributes: MultipleAttributeListNode,
+        attributes: MultipleAttributeListNode option,
         leadingKeyword: MultipleTextsNode,
         isMutable: bool,
         isInline: bool,
@@ -2057,7 +2111,7 @@ type BindingNode
 
     override this.Children =
         [| yield! noa xmlDoc
-           yield attributes
+           yield! noa attributes
            yield leadingKeyword
            yield! noa accessibility
            yield
@@ -2078,7 +2132,7 @@ type BindingListNode(bindings: BindingNode list, range) =
 type FieldNode
     (
         xmlDoc: XmlDocNode option,
-        attributes: MultipleAttributeListNode,
+        attributes: MultipleAttributeListNode option,
         leadingKeyword: MultipleTextsNode option,
         isMutable: bool,
         accessibility: SingleTextNode option,
@@ -2090,7 +2144,7 @@ type FieldNode
 
     override this.Children =
         [| yield! noa xmlDoc
-           yield attributes
+           yield! noa attributes
            yield! noa leadingKeyword
            yield! noa accessibility
            yield! noa name
@@ -2107,7 +2161,7 @@ type FieldNode
 type UnionCaseNode
     (
         xmlDoc: XmlDocNode option,
-        attributes: MultipleAttributeListNode,
+        attributes: MultipleAttributeListNode option,
         bar: SingleTextNode option,
         identifier: SingleTextNode,
         fields: FieldNode list,
@@ -2117,7 +2171,7 @@ type UnionCaseNode
 
     override this.Children =
         [| yield! noa xmlDoc
-           yield attributes
+           yield! noa attributes
            yield! noa bar
            yield identifier
            yield! nodes fields |]
@@ -2131,7 +2185,7 @@ type UnionCaseNode
 type TypeNameNode
     (
         xmlDoc: XmlDocNode option,
-        attrs: MultipleAttributeListNode,
+        attributes: MultipleAttributeListNode option,
         leadingKeyword: SingleTextNode,
         ao: SingleTextNode option,
         identifier: IdentListNode,
@@ -2145,7 +2199,7 @@ type TypeNameNode
 
     override this.Children =
         [| yield! noa xmlDoc
-           yield attrs
+           yield! noa attributes
            yield leadingKeyword
            yield! noa (Option.map TyparDecls.Node typeParams)
            yield! List.map TypeConstraint.Node constraints
@@ -2155,7 +2209,7 @@ type TypeNameNode
            yield! noa withKeyword |]
 
     member x.XmlDoc = xmlDoc
-    member x.Attributes = attrs
+    member x.Attributes = attributes
     member x.IsFirstType = leadingKeyword.Text = "type"
     member x.LeadingKeyword = leadingKeyword
     member x.Accessibility = ao
@@ -2173,7 +2227,7 @@ type EnumCaseNode
     (
         xmlDoc: XmlDocNode option,
         bar: SingleTextNode option,
-        attributes: MultipleAttributeListNode,
+        attributes: MultipleAttributeListNode option,
         identifier: SingleTextNode,
         equals: SingleTextNode,
         constant: Constant,
@@ -2279,7 +2333,7 @@ type TypeDefnAbbrevNode(typeNameNode, t: Type, members, range) =
 
 type SimplePatNode
     (
-        attributes: MultipleAttributeListNode,
+        attributes: MultipleAttributeListNode option,
         isOptional: bool,
         identifier: SingleTextNode,
         t: Type option,
@@ -2288,7 +2342,9 @@ type SimplePatNode
     inherit NodeBase(range)
 
     override this.Children =
-        [| yield attributes; yield identifier; yield! noa (Option.map Type.Node t) |]
+        [| yield! noa attributes
+           yield identifier
+           yield! noa (Option.map Type.Node t) |]
 
     member x.Attributes = attributes
     member x.IsOptional = isOptional
@@ -2298,7 +2354,7 @@ type SimplePatNode
 type ImplicitConstructorNode
     (
         xmlDoc: XmlDocNode option,
-        attributes: MultipleAttributeListNode,
+        attributes: MultipleAttributeListNode option,
         accessibility: SingleTextNode option,
         openingParen: SingleTextNode,
         parameters: SimplePatNode list,
@@ -2310,7 +2366,7 @@ type ImplicitConstructorNode
 
     override this.Children =
         [| yield! noa xmlDoc
-           yield attributes
+           yield! noa attributes
            yield! noa accessibility
            yield openingParen
            yield! nodes parameters
@@ -2439,15 +2495,10 @@ type MemberDefnInheritNode(inheritKeyword: SingleTextNode, baseType: Type, range
     member this.Inherit = inheritKeyword
     member this.BaseType = baseType
 
-type MemberDefnExternBindingNode(range) =
-    inherit NodeBase(range)
-
-    override this.Children = failwith "todo"
-
 type MemberDefnExplicitCtorNode
     (
         xmlDoc: XmlDocNode option,
-        attributes: MultipleAttributeListNode,
+        attributes: MultipleAttributeListNode option,
         accessibility: SingleTextNode option,
         newKeyword: SingleTextNode,
         pat: Pattern,
@@ -2461,7 +2512,7 @@ type MemberDefnExplicitCtorNode
 
     override this.Children =
         [| yield! noa xmlDoc
-           yield attributes
+           yield! noa attributes
            yield! noa accessibility
            yield newKeyword
            yield Pattern.Node pat
@@ -2504,7 +2555,7 @@ type MemberDefnInterfaceNode
 type MemberDefnAutoPropertyNode
     (
         xmlDoc: XmlDocNode option,
-        attributes: MultipleAttributeListNode,
+        attributes: MultipleAttributeListNode option,
         leadingKeyword: MultipleTextsNode,
         accessibility: SingleTextNode option,
         identifier: SingleTextNode,
@@ -2518,7 +2569,7 @@ type MemberDefnAutoPropertyNode
 
     override this.Children =
         [| yield! noa xmlDoc
-           yield attributes
+           yield! noa attributes
            yield leadingKeyword
            yield! noa accessibility
            yield identifier
@@ -2540,7 +2591,7 @@ type MemberDefnAutoPropertyNode
 type MemberDefnAbstractSlotNode
     (
         xmlDoc: XmlDocNode option,
-        attributes: MultipleAttributeListNode,
+        attributes: MultipleAttributeListNode option,
         leadingKeyword: MultipleTextsNode,
         identifier: SingleTextNode,
         typeParams: TyparDecls option,
@@ -2552,7 +2603,7 @@ type MemberDefnAbstractSlotNode
 
     override this.Children =
         [| yield! noa xmlDoc
-           yield attributes
+           yield! noa attributes
            yield leadingKeyword
            yield identifier
            yield! noa (Option.map TyparDecls.Node typeParams)
@@ -2597,7 +2648,7 @@ type PropertyGetSetBindingNode
 type MemberDefnPropertyGetSetNode
     (
         xmlDoc: XmlDocNode option,
-        attributes: MultipleAttributeListNode,
+        attributes: MultipleAttributeListNode option,
         leadingKeyword: MultipleTextsNode,
         isInline: bool,
         accessibility: SingleTextNode option,
@@ -2612,7 +2663,7 @@ type MemberDefnPropertyGetSetNode
 
     override this.Children =
         [| yield! noa xmlDoc
-           yield attributes
+           yield! noa attributes
            yield leadingKeyword
            yield! noa accessibility
            yield memberName
@@ -2635,7 +2686,7 @@ type MemberDefnPropertyGetSetNode
 type ValNode
     (
         xmlDoc: XmlDocNode option,
-        attributes: MultipleAttributeListNode,
+        attributes: MultipleAttributeListNode option,
         leadingKeyword: MultipleTextsNode option,
         isInline: bool,
         isMutable: bool,
@@ -2651,7 +2702,7 @@ type ValNode
 
     override this.Children =
         [| yield! noa xmlDoc
-           yield attributes
+           yield! noa attributes
            yield! noa leadingKeyword
            yield! noa accessibility
            yield identifier
@@ -2684,7 +2735,7 @@ type MemberDefn =
     | Inherit of MemberDefnInheritNode
     | ValField of FieldNode
     | Member of BindingNode
-    | ExternBinding of MemberDefnExternBindingNode
+    | ExternBinding of ExternBindingNode
     | DoExpr of ExprSingleNode
     | LetBinding of BindingListNode
     | ExplicitCtor of MemberDefnExplicitCtorNode
@@ -2734,9 +2785,9 @@ type Constant =
         | Unit n -> n
         | Measure n -> n
 
-type TyparDeclNode(attributes: MultipleAttributeListNode, typar: SingleTextNode, range) =
+type TyparDeclNode(attributes: MultipleAttributeListNode option, typar: SingleTextNode, range) =
     inherit NodeBase(range)
-    override this.Children = [| yield attributes; yield typar |]
+    override this.Children = [| yield! noa attributes; yield typar |]
     member x.Attributes = attributes
     member x.TypeParameter = typar
 
