@@ -196,10 +196,13 @@ let mkAttributeList (creationAide: CreationAide) (al: SynAttributeList) : Attrib
 
     AttributeListNode(opening, attributes, closing, al.Range)
 
-let mkAttributes (creationAide: CreationAide) (al: SynAttributeList list) : MultipleAttributeListNode =
-    let attributeLists = List.map (mkAttributeList creationAide) al
-    let range = List.map (fun al -> (al :> Node).Range) attributeLists |> combineRanges
-    MultipleAttributeListNode(attributeLists, range)
+let mkAttributes (creationAide: CreationAide) (al: SynAttributeList list) : MultipleAttributeListNode option =
+    match al with
+    | [] -> None
+    | _ ->
+        let attributeLists = List.map (mkAttributeList creationAide) al
+        let range = List.map (fun al -> (al :> Node).Range) attributeLists |> combineRanges
+        Some(MultipleAttributeListNode(attributeLists, range))
 
 let (|Sequentials|_|) e =
     let rec visit (e: SynExpr) (finalContinuation: SynExpr list -> SynExpr list) : SynExpr list =
@@ -1434,6 +1437,113 @@ let mkBinding
         range
     )
 
+let mkExternBinding
+    (creationAide: CreationAide)
+    (SynBinding(accessibility, _, isInline, isMutable, attributes, xmlDoc, _, pat, returnInfo, expr, range, _, trivia))
+    : ExternBindingNode =
+    let m =
+        if not xmlDoc.IsEmpty then
+            unionRanges xmlDoc.Range pat.Range
+        else
+            match attributes with
+            | [] -> range
+            | head :: _ -> unionRanges head.Range pat.Range
+
+    let externNode =
+        match trivia.LeadingKeyword with
+        | SynLeadingKeyword.Extern mExtern -> stn "extern" mExtern
+        | _ -> failwith "Leading keyword should be extern"
+
+    let attributesOfReturnType, returnType =
+        match returnInfo with
+        | None -> failwith "return info in extern binding should be present"
+        | Some(SynBindingReturnInfo(typeName = t; attributes = a)) ->
+            let attrs = mkAttributes creationAide a
+
+            let returnType =
+                match t with
+                | SynType.App(typeName = t) -> mkType creationAide t
+                | _ -> mkType creationAide t
+
+            attrs, returnType
+
+    let (|Ampersand|_|) (it: IdentTrivia) =
+        match it with
+        | IdentTrivia.OriginalNotation "&" -> Some "&"
+        | _ -> None
+
+    let (|Star|_|) (it: IdentTrivia) =
+        match it with
+        | IdentTrivia.OriginalNotation "*" -> Some "*"
+        | _ -> None
+
+    let (|ArrayText|_|) (it: Ident) =
+        if it.idText = "[]" then Some "[]" else None
+
+    let rec mkExternType t =
+        match t with
+        | SynType.App(typeName = t; isPostfix = false; typeArgs = []) -> mkType creationAide t
+        | SynType.App(
+            typeName = SynType.LongIdent(SynLongIdent([ _ ], [], [ Some(IdentTrivia.OriginalNotation "void*") ]))
+            isPostfix = true
+            typeArgs = []) ->
+            IdentListNode([ IdentifierOrDot.Ident(stn "void*" t.Range) ], t.Range)
+            |> Type.LongIdent
+        | SynType.App(
+            typeName = SynType.LongIdent(SynLongIdent([ _ ], [], [ Some(Ampersand suffix | Star suffix) ]) | SynLongIdent(
+                id = [ ArrayText suffix ]))
+            isPostfix = true
+            typeArgs = [ SynType.App(typeName = SynType.LongIdent argLid; isPostfix = false; typeArgs = []) ]) ->
+            let lid = mkSynLongIdent argLid
+
+            let lidPieces =
+                lid.Content
+                |> List.mapWithLast id (function
+                    | IdentifierOrDot.KnownDot dot -> IdentifierOrDot.KnownDot dot
+                    | IdentifierOrDot.UnknownDot -> IdentifierOrDot.UnknownDot
+                    | IdentifierOrDot.Ident ident ->
+                        IdentifierOrDot.Ident(stn $"{ident.Text}{suffix}" (ident :> Node).Range))
+
+            Type.LongIdent(IdentListNode(lidPieces, t.Range))
+        | SynType.App(typeName = typeName; isPostfix = true; typeArgs = [ argType ]) ->
+            TypeAppPostFixNode(mkExternType argType, mkExternType typeName, t.Range)
+            |> Type.AppPostfix
+        | _ -> mkType creationAide t
+
+    let mkExternPat pat =
+        match pat with
+        | SynPat.Attrib(pat = SynPat.Typed(pat = SynPat.Null _ | SynPat.Wild _; targetType = t); attributes = attributes) ->
+            ExternBindingPatternNode(mkAttributes creationAide attributes, Some(mkExternType t), None, pat.Range)
+        | SynPat.Attrib(pat = SynPat.Typed(pat = innerPat; targetType = t); attributes = attributes) ->
+            ExternBindingPatternNode(
+                mkAttributes creationAide attributes,
+                Some(mkExternType t),
+                Some(mkPat creationAide innerPat),
+                pat.Range
+            )
+        | _ -> ExternBindingPatternNode(None, None, Some(mkPat creationAide pat), pat.Range)
+
+    let identifier, openNode, parameters, closeNode =
+        match pat with
+        | SynPat.LongIdent(
+            longDotId = longDotId; argPats = SynArgPats.Pats [ SynPat.Tuple(_, ps, StartEndRange 1 (mOpen, _, mClose)) ]) ->
+            mkSynLongIdent longDotId, stn "(" mOpen, List.map mkExternPat ps, stn ")" mClose
+        | _ -> failwith "expecting a SynPat.LongIdent for extern binding"
+
+    ExternBindingNode(
+        mkXmlDoc xmlDoc,
+        mkAttributes creationAide attributes,
+        externNode,
+        attributesOfReturnType,
+        returnType,
+        mkSynAccess accessibility,
+        identifier,
+        openNode,
+        parameters,
+        closeNode,
+        m
+    )
+
 let mkXmlDoc (px: PreXmlDoc) =
     if px.IsEmpty then
         None
@@ -1462,9 +1572,8 @@ let mkModuleDecl (creationAide: CreationAide) (decl: SynModuleDecl) =
             declRange
         )
         |> ModuleDecl.Exception
-    | SynModuleDecl.Let(_, [ SynBinding(trivia = { LeadingKeyword = SynLeadingKeyword.Extern _ }) ], _) ->
-        failwith "todo: extern"
-    // | ExternBinding of ExternBindingNode
+    | SynModuleDecl.Let(_, [ SynBinding(trivia = { LeadingKeyword = SynLeadingKeyword.Extern _ }) as binding ], _) ->
+        mkExternBinding creationAide binding |> ModuleDecl.ExternBinding
     | SynModuleDecl.Let(bindings = [ singleBinding ]) ->
         mkBinding creationAide singleBinding |> ModuleDecl.TopLevelBinding
     | SynModuleDecl.ModuleAbbrev(ident, lid, StartRange 6 (mModule, _)) ->
@@ -2154,6 +2263,9 @@ let mkMemberDefn (creationAide: CreationAide) (md: SynMemberDefn) =
         MemberDefnInheritNode(stn "inherit" mInherit, mkType creationAide baseType, memberDefinitionRange)
         |> MemberDefn.Inherit
     | SynMemberDefn.ValField(f, _) -> mkSynField creationAide f |> MemberDefn.ValField
+    | SynMemberDefn.LetBindings(
+        bindings = [ SynBinding(trivia = { LeadingKeyword = SynLeadingKeyword.Extern _ }) as binding ]) ->
+        mkExternBinding creationAide binding |> MemberDefn.ExternBinding
     | SynMemberDefn.LetBindings(bindings = [ SynBinding(kind = SynBindingKind.Do; expr = expr; trivia = trivia) ]) ->
         // This is a shortcut to support "static do"
         let leadingKw =
@@ -2409,11 +2521,11 @@ let rec mkModuleDecls
     | SynModuleDecl.Attributes(a, _) :: SynModuleDecl.Expr(e, _) :: rest ->
         let attributes = mkAttributes creationAide a
         let expr = mkExpr creationAide e
-        let range = unionRanges (attributes :> Node).Range (Expr.Node expr).Range
+        let range = unionRanges a.Head.Range (Expr.Node expr).Range
         let node = ModuleDeclAttributesNode(attributes, expr, range)
         mkModuleDecls creationAide rest (fun nodes -> ModuleDecl.Attributes node :: nodes |> finalContinuation)
 
-    | SynModuleDecl.Let(bindings = _ :: _ as bindings) :: rest ->
+    | SynModuleDecl.Let(bindings = bindings) :: rest when List.moreThanOne bindings ->
         let bindingNodes =
             List.map (fun b -> mkBinding creationAide b |> ModuleDecl.TopLevelBinding) bindings
 
