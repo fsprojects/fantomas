@@ -2087,6 +2087,7 @@ let genExprInMultilineInfixExpr (e: Expr) =
         genSingleTextNode matchLambdaNode.Function
         +> indentSepNlnUnindent (genClauses matchLambdaNode.Clauses)
         |> genNode matchLambdaNode
+    | Expr.Record _ -> atCurrentColumnIndent (genExpr e)
     | _ -> genExpr e
 
 let genKeepIdent (startNode: Node) (e: Expr) ctx =
