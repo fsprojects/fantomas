@@ -1867,12 +1867,19 @@ let genNamedArgumentExpr (node: ExprInfixAppNode) =
 
 let genLambda (node: ExprLambdaNode) =
     let genPats =
-        let shortPats = col sepSpace node.Parameters genPat
-        let longPats = indentSepNlnUnindent (col sepNln node.Parameters genPat)
+        let shortPats = sepSpace +> col sepSpace node.Parameters genPat
+
+        let longPats (ctx: Context) =
+            // If the current column already is larger than the next indent,
+            // we need to write the parameters fixed on the current columm.
+            if ctx.Column > ctx.WriterModel.Indent + ctx.Config.IndentSize then
+                (sepSpace +> atCurrentColumn (sepNln +> col sepNln node.Parameters genPat)) ctx
+            else
+                indentSepNlnUnindent (col sepNln node.Parameters genPat) ctx
+
         expressionFitsOnRestOfLine shortPats longPats
 
     genSingleTextNode node.Fun
-    +> sepSpace
     +> genPats
     +> sepSpace
     +> genSingleTextNode node.Arrow
