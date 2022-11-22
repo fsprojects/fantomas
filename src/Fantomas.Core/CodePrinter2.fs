@@ -2394,7 +2394,8 @@ let genPat (p: Pattern) =
         let genParameters =
             match node.Parameters with
             | [] -> sepNone
-            | [ Pattern.Paren _ as parameter ] -> addSpaceBeforeParenInPattern node.Identifier +> genPat parameter
+            | [ Pattern.Paren _ | Pattern.Unit _ as parameter ] ->
+                addSpaceBeforeParenInPattern node.Identifier +> genPat parameter
             | ps -> sepSpace +> atCurrentColumn (col sepSpace ps genPat)
 
         genName +> genParameters
