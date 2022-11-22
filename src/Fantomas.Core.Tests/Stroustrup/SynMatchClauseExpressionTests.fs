@@ -31,7 +31,7 @@ match x with
     A = longTypeName
     B = someOtherVariable
     C = ziggyBarX
-}
+  }
 """
 
 [<Test>]
@@ -76,7 +76,7 @@ match x with
     A = longTypeName
     B = someOtherVariable
     C = ziggyBarX
-|}
+  |}
 """
 
 [<Test>]
@@ -101,7 +101,7 @@ match x with
     A = longTypeName
     B = someOtherVariable
     C = ziggyBarX
-|}
+  |}
 """
 
 [<Test>]
@@ -125,7 +125,7 @@ match x with
 | _ -> task {
     // some computation here
     ()
-}
+  }
 """
 
 [<Test>]
@@ -153,7 +153,7 @@ match x with
     itemThree
     itemFour
     itemFive
-]
+  ]
 """
 
 [<Test>]
@@ -181,7 +181,7 @@ match x with
     itemThree
     itemFour
     itemFive
-|]
+  |]
 """
 
 // TODO: Here, I again feel this is fitting not to have stroustrup.
@@ -214,12 +214,12 @@ match x with
         true
      with ex ->
          false)
-    ->
-    {
-        A = longTypeName
-        B = someOtherVariable
-        C = ziggyBarX
-    }
+      ->
+      {
+          A = longTypeName
+          B = someOtherVariable
+          C = ziggyBarX
+      }
 """
 
 [<Test>]
