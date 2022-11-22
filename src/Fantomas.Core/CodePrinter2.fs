@@ -770,7 +770,7 @@ let genExpr (e: Expr) =
                 | ComputationExpressionStatement.LetOrUseStatement node ->
                     let expr =
                         genBinding node.Binding
-                        +> optSingle (fun inNode -> sepSpace +> genSingleTextNode inNode +> sepSpace) node.In
+                        +> optSingle (fun inNode -> sepSpace +> genSingleTextNode inNode) node.In
                         |> genNode node
 
                     ColMultilineItem(expr, sepNlnUnlessContentBefore node)
