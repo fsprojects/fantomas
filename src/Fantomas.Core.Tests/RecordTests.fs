@@ -1959,7 +1959,8 @@ let defaultTestOptions fwk common (o: DotNet.TestOptions) =
 """
         { config with
             MaxDotGetExpressionWidth = 50
-            MaxInfixOperatorExpression = 50 }
+            MaxInfixOperatorExpression = 50
+            MaxRecordWidth = 55 }
     |> prepend newline
     |> should
         equal
