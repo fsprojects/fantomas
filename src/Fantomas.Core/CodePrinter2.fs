@@ -2421,7 +2421,14 @@ let genPat (p: Pattern) =
     | Pattern.ArrayOrList node ->
         let genPats =
             let short = colAutoNlnSkip0 sepSemi node.Patterns genPat
-            let long = col sepNln node.Patterns genPat
+
+            let long (ctx: Context) =
+                match node.Patterns with
+                | [ Pattern.Or _ ] ->
+                    let column = ctx.Column + 1
+                    atIndentLevel false column (col sepNln node.Patterns genPatInClause) ctx
+                | _ -> col sepNln node.Patterns genPatInClause ctx
+
             expressionFitsOnRestOfLine short long
 
         ifElse
