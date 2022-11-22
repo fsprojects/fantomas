@@ -2927,7 +2927,13 @@ let genType (t: Type) =
     | Type.HashConstraint node -> genSingleTextNode node.Hash +> genType node.Type |> genNode node
     | Type.MeasurePower node -> genType node.BaseMeasure +> !- "^" +> !-node.Exponent |> genNode node
     | Type.StaticConstant c -> genConstant c
-    | Type.StaticConstantExpr node -> genSingleTextNode node.Const +> sepSpace +> genExpr node.Expr |> genNode node
+    | Type.StaticConstantExpr node ->
+        let addSpace =
+            match node.Expr with
+            | ParenExpr _ -> sepNone
+            | _ -> sepSpace
+
+        genSingleTextNode node.Const +> addSpace +> genExpr node.Expr |> genNode node
     | Type.StaticConstantNamed node ->
         genType node.Identifier
         +> !- "="
