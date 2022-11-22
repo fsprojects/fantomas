@@ -1118,6 +1118,10 @@ let genExpr (e: Expr) =
                              +> expressionFitsOnRestOfLine (genExpr px) (genMultilineFunctionApplicationArguments px))
                             optVarNode.Identifier
                             optVarNode
+                    | Expr.Ident _ ->
+                        genExpr typeAppNode.Identifier
+                        +> genGenericTypeParameters typeAppNode
+                        +> genExpr px
                     | _ -> genExpr node.FunctionExpr
 
                 // | AppOrTypeApp(LongIdentExprWithMoreThanOneIdent lids, t, [ e2 ]) ->
