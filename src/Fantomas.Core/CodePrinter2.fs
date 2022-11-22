@@ -1895,40 +1895,51 @@ let genClauses (clauses: MatchClauseNode list) =
 
     coli sepNln clauses (fun idx clause ->
         let isLastItem = lastIndex = idx
-
         genClause isLastItem clause)
 
 let genClause (isLastItem: bool) (node: MatchClauseNode) =
     let genBar =
         match node.Bar with
-        | Some barNode -> genSingleTextNode barNode +> sepSpace
+        | Some barNode -> genSingleTextNodeWithSpaceSuffix sepSpace barNode
         | None -> sepBar
 
-    let genPatAndBody =
-        let genPatAndBody =
-            genPatInClause node.Pattern
-            +> sepSpace
-            +> optSingle (fun whenExpr -> !- "when " +> genExpr whenExpr +> sepSpace) node.WhenExpr
-            +> genSingleTextNode node.Arrow
-            +> (fun ctx ->
-                if isLastItem && ctx.Config.ExperimentalKeepIndentInBranch then
-                    let long =
-                        let startNode =
-                            match node.Bar with
-                            | None -> Pattern.Node node.Pattern
-                            | Some bar -> bar :> Node
-
-                        genKeepIdent startNode node.BodyExpr
-
-                    expressionFitsOnRestOfLine (sepSpace +> genExpr node.BodyExpr) long ctx
+    let genWhenAndBody =
+        sepSpace
+        +> leadingExpressionIsMultiline
+            (optSingle
+                (fun e ->
+                    !- "when"
+                    +> sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth (genExpr e)
+                    +> sepSpace)
+                node.WhenExpr)
+            (fun isMultiline ctx ->
+                if isMultiline then
+                    indentSepNlnUnindent (genSingleTextNode node.Arrow +> sepNln +> genExpr node.BodyExpr) ctx
                 else
-                    sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidthUnlessStroustrup genExpr node.BodyExpr ctx)
+                    let genKeepIndentInBranch =
+                        let long =
+                            let startNode =
+                                match node.Bar with
+                                | None -> Pattern.Node node.Pattern
+                                | Some bar -> bar :> Node
 
-        fun ctx ->
-            if ctx.Config.ExperimentalStroustrupStyle && node.BodyExpr.IsStroustrupStyleExpr then
-                atCurrentColumn genPatAndBody ctx
-            else
-                genPatAndBody ctx
+                            genKeepIdent startNode node.BodyExpr
+
+                        expressionFitsOnRestOfLine (sepSpace +> genExpr node.BodyExpr) long
+
+                    (genSingleTextNodeWithSpaceSuffix sepSpace node.Arrow
+                     +> ifElse
+                         (ctx.Config.ExperimentalKeepIndentInBranch && isLastItem)
+                         genKeepIndentInBranch
+                         (autoIndentAndNlnIfExpressionExceedsPageWidthUnlessStroustrup genExpr node.BodyExpr))
+                        ctx)
+
+    let genPatAndBody ctx =
+        if ctx.Config.ExperimentalStroustrupStyle && node.BodyExpr.IsStroustrupStyleExpr then
+            let startColumn = ctx.Column
+            (genPatInClause node.Pattern +> atIndentLevel false startColumn genWhenAndBody) ctx
+        else
+            (genPatInClause node.Pattern +> genWhenAndBody) ctx
 
     genBar +> genPatAndBody |> genNode node
 
