@@ -56,14 +56,9 @@ let parse (isSignature: bool) (source: ISourceText) : Async<(ParsedInput * Defin
         |> Async.Parallel
 
 /// Format an abstract syntax tree using given config
-let formatAST
-    (ast: ParsedInput)
-    (sourceText: ISourceText option)
-    (config: FormatConfig)
-    (selection: obj option)
-    : string =
+let formatAST (ast: ParsedInput) (sourceText: ISourceText option) (config: FormatConfig) : string =
     let formattedSourceCode =
-        let context = Context.Context.Create config sourceText ast //selection
+        let context = Context.Context.Create config
 
         let fileNode =
             match sourceText with
@@ -72,7 +67,7 @@ let formatAST
                 Fangorn.mkOak config (Some sourceText) ast
                 |> Flowering.enrichTree config sourceText ast
 
-        context |> genFile fileNode |> Context.dump false // (Option.isSome selection)
+        context |> genFile fileNode |> Context.dump false
 
     formattedSourceCode
 
@@ -84,7 +79,7 @@ let format (config: FormatConfig) (isSignature: bool) (source: ISourceText) : As
             asts
             |> Array.map (fun (ast', defineCombination) ->
                 async {
-                    let formattedCode = formatAST ast' (Some source) config None
+                    let formattedCode = formatAST ast' (Some source) config
                     return (defineCombination, formattedCode)
                 })
             |> Async.Parallel
