@@ -113,9 +113,9 @@ let genIdentListNodeAux addLeadingDot (iln: IdentListNode) =
         match identOrDot with
         | IdentifierOrDot.Ident ident ->
             if addLeadingDot && idx = 0 then
-                genSingleTextNodeWithLeadingDot ident
+                genSingleTextNodeWithLeadingDot ident +> sepNlnWhenWriteBeforeNewlineNotEmpty
             else
-                genSingleTextNode ident
+                genSingleTextNode ident +> sepNlnWhenWriteBeforeNewlineNotEmpty
         | IdentifierOrDot.KnownDot dot -> genSingleTextNode dot
         | IdentifierOrDot.UnknownDot _ -> sepDot)
     |> genNode iln
