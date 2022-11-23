@@ -1589,26 +1589,23 @@ let genExpr (e: Expr) =
             +> genExpr node.IndexExpr
             +> sepCloseLFixed
 
+        let genDotIndexedGetWithApp funcExpr argExpr (appNode: Node) =
+            let short = funcExpr +> genExpr argExpr
+            let long = funcExpr +> genMultilineFunctionApplicationArguments argExpr
+            let idx = !- "." +> sepOpenLFixed +> genExpr node.IndexExpr +> sepCloseLFixed
+            expressionFitsOnRestOfLine (short +> idx) (long +> idx)
+
         match node.ObjectExpr with
         | Expr.App appNode ->
             match appNode.Arguments with
-            | [ Expr.Constant(Constant.Unit _) ] ->
-                genExpr appNode.FunctionExpr
-                +> genExpr node.ObjectExpr
-                +> !- "."
-                +> sepOpenLFixed
-                +> genExpr node.IndexExpr
-                +> sepCloseLFixed
+            | [ Expr.Constant(Constant.Unit _) as ux ] ->
+                genDotIndexedGetWithApp (genExpr appNode.FunctionExpr) ux appNode
             | _ -> genDotIndexedGet
         | Expr.AppSingleParenArg appNode ->
-            let short = genExpr appNode.FunctionExpr +> genExpr appNode.ArgExpr
+            genDotIndexedGetWithApp (genExpr appNode.FunctionExpr) appNode.ArgExpr appNode
 
-            let long =
-                genExpr appNode.FunctionExpr
-                +> genMultilineFunctionApplicationArguments appNode.ArgExpr
-
-            let idx = !- "." +> sepOpenLFixed +> genExpr node.IndexExpr +> sepCloseLFixed
-            expressionFitsOnRestOfLine (short +> idx) (long +> idx)
+        | Expr.AppLongIdentAndSingleParenArg appNode ->
+            genDotIndexedGetWithApp (genIdentListNode appNode.FunctionName) appNode.ArgExpr appNode
         | _ -> genDotIndexedGet
         |> genNode node
     | Expr.DotIndexedSet node ->
