@@ -4,6 +4,7 @@ open FSharp.Compiler.Text
 open Fantomas.Core
 open Fantomas.Core.FormatConfig
 open Fantomas.Core.SyntaxOak
+open Fantomas.Core.ISourceTextExtensions
 
 let correctSelection (fileIndex: int) (sourceText: ISourceText) (selection: range) =
     let lines =
@@ -103,13 +104,40 @@ let findNode (selection: range) (node: Node) : Node option =
 // let mkSynModuleDeclForBinding (binding: SynBinding) : SynModuleDecl =
 //     SynModuleDecl.Let(false, [ binding ], binding.FullRange)
 
-let mkOakFromModuleDecl (md: ModuleDecl) : Oak option =
+[<RequireQualifiedAccess>]
+type TreeForSelection =
+    /// Format this tree and return the entire result.
+    | Standalone of Oak
+    /// Format this tree, and extract the first node that matches this type.
+    | RequiresExtraction of tree: Oak * nodeType: System.Type
+    /// We currently don't support this type of node.
+    | Unsupported
+
+/// We can construct a tree using only the node which the user selected.
+let mkOakFromModuleDecl (md: ModuleDecl) : TreeForSelection =
     let m = (ModuleDecl.Node md).Range
-    Some(Oak([], [ ModuleOrNamespaceNode(None, [ md ], m) ], m))
+    TreeForSelection.Standalone(Oak([], [ ModuleOrNamespaceNode(None, [ md ], m) ], m))
+
+/// The selected node by the user cannot be formatted as a standalone expression.
+/// We need to format a tree that is an approximation of the selection.
+/// This is typically a combination of the selection and some parent construct.
+/// For example when formatting a type definition: `let (a: int   list) = []`
+/// If the selection is `int    list` we cannot just drop that in an empty file and format it.
+/// We can fake a binding (or type alias) and later try and select the formatted type.
+let mkExtractableOakFromModule (md: ModuleDecl) (t: System.Type) =
+    let m = (ModuleDecl.Node md).Range
+    TreeForSelection.RequiresExtraction(Oak([], [ ModuleOrNamespaceNode(None, [ md ], m) ], m), t)
+
+let dummyUnit: Expr =
+    UnitNode(SingleTextNode("(", Range.Zero), SingleTextNode(")", Range.Zero), Range.Zero)
+    |> Constant.Unit
+    |> Expr.Constant
 
 /// Wrap the selected node inside an anonymous module.
 /// Keep the original trivia of the ParsedInput so code comments could still be restored.
-let mkTreeWithSingleNode (node: Node) : Oak option =
+let mkTreeWithSingleNode (node: Node) : TreeForSelection =
+    let m = node.Range
+
     match node with
     | :? OpenListNode as node -> mkOakFromModuleDecl (ModuleDecl.OpenList node)
     | :? OpenModuleOrNamespaceNode as node ->
@@ -120,7 +148,25 @@ let mkTreeWithSingleNode (node: Node) : Oak option =
         let openT = Open.Target node
         let openList = OpenListNode([ openT ])
         mkOakFromModuleDecl (ModuleDecl.OpenList openList)
-    | _ -> failwith "todo"
+
+    | :? HashDirectiveListNode as node -> mkOakFromModuleDecl (ModuleDecl.HashDirectiveList node)
+    | :? ParsedHashDirectiveNode as node ->
+        let nodeList = HashDirectiveListNode([ node ])
+        mkOakFromModuleDecl (ModuleDecl.HashDirectiveList nodeList)
+    | :? ModuleDeclAttributesNode as node -> mkOakFromModuleDecl (ModuleDecl.Attributes node)
+    | :? AttributeListNode as node ->
+        let attributes = MultipleAttributeListNode([ node ], m)
+
+        let md =
+            ModuleDecl.Attributes(ModuleDeclAttributesNode(Some attributes, dummyUnit, m))
+
+        mkExtractableOakFromModule md (node.GetType())
+
+    | _ ->
+#if DEBUG
+        failwithf "todo for %s" (node.GetType().Name)
+#endif
+        TreeForSelection.Unsupported
 
 // match fullTree with
 // | ParsedInput.ImplFile(ParsedImplFileInput.ParsedImplFileInput(fileName,
@@ -184,6 +230,13 @@ let printTriviaNode (node: Node) : unit =
 
     visit 0 node
 
+// Find the first node that matches the type
+let rec findRangeOf (t: System.Type) (root: Node) : range option =
+    if root.GetType() = t then
+        Some root.Range
+    else
+        Array.choose (findRangeOf t) root.Children |> Array.tryHead
+
 let formatSelection
     (config: FormatConfig)
     (isSignature: bool)
@@ -211,7 +264,7 @@ let formatSelection
         let treeWithSelection =
             Flowering.findNodeWhereRangeFitsIn rootNode selection
             |> Option.bind (findNode selection)
-            |> Option.bind (mkTreeWithSingleNode)
+            |> Option.map mkTreeWithSingleNode
 
         if treeWithSelection.IsNone then
             raise (FormatException("No suitable AST node was found for the given selection."))
@@ -226,7 +279,22 @@ let formatSelection
 
         let formattedSelection =
             let context = Context.Context.Create selectionConfig
-            CodePrinter2.genFile tree context |> Context.dump true
+
+            match tree with
+            | TreeForSelection.Unsupported ->
+                raise (FormatException("The current selection is not supported right now."))
+            | TreeForSelection.Standalone tree -> CodePrinter2.genFile tree context |> Context.dump true
+            | TreeForSelection.RequiresExtraction(tree, t) ->
+                let formattedCode = CodePrinter2.genFile tree context |> Context.dump true
+                let source = SourceText.ofString formattedCode
+                let formattedAST, _ = Fantomas.FCS.Parse.parseFile isSignature source []
+                let formattedTree = Fangorn.mkOak selectionConfig (Some source) formattedAST
+                let rangeOfSelection = findRangeOf t formattedTree
+
+                match rangeOfSelection with
+                | None -> raise (FormatException("No suitable AST node could be extracted from formatted selection."))
+                | Some m -> source.GetContentAt m
+
         // CodeFormatterImpl.formatAST tree (Some sourceText) selectionConfig (Some { Node = node })
 
         return formattedSelection.TrimEnd([| '\r'; '\n' |]), selection
