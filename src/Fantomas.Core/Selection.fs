@@ -73,37 +73,6 @@ let findNode (selection: range) (node: Node) : Node option =
 
     if isExactSelection then Some node else None
 
-// let mkAnonSynModuleOrNamespace decl =
-//     SynModuleOrNamespace(
-//         [],
-//         false,
-//         SynModuleOrNamespaceKind.AnonModule,
-//         [ decl ],
-//         PreXmlDoc.Empty,
-//         [],
-//         None,
-//         Range.Zero,
-//         { LeadingKeyword = SynModuleOrNamespaceLeadingKeyword.None }
-//     )
-//
-// let mkAnonSynModuleOrNamespaceSig decl =
-//     SynModuleOrNamespaceSig(
-//         [],
-//         false,
-//         SynModuleOrNamespaceKind.AnonModule,
-//         [ decl ],
-//         PreXmlDoc.Empty,
-//         [],
-//         None,
-//         Range.Zero,
-//         { LeadingKeyword = SynModuleOrNamespaceLeadingKeyword.None }
-//     )
-//
-// let mkSynModuleDecl (expr: SynExpr) : SynModuleDecl = SynModuleDecl.Expr(expr, expr.Range)
-//
-// let mkSynModuleDeclForBinding (binding: SynBinding) : SynModuleDecl =
-//     SynModuleDecl.Let(false, [ binding ], binding.FullRange)
-
 [<RequireQualifiedAccess>]
 type TreeForSelection =
     /// Format this tree and return the entire result.
@@ -241,9 +210,6 @@ let mkTreeWithSingleNode (node: Node) : TreeForSelection =
     | :? ExprTraitCallNode as node ->
         let expr = Expr.TraitCall node
         mkOakFromModuleDecl (ModuleDecl.DeclExpr expr)
-    | :? SingleTextNode as node ->
-        let expr = Expr.ParenILEmbedded node
-        mkOakFromModuleDecl (ModuleDecl.DeclExpr expr)
     | :? ExprParenFunctionNameWithStarNode as node ->
         let expr = Expr.ParenFunctionNameWithStar node
         mkOakFromModuleDecl (ModuleDecl.DeclExpr expr)
@@ -325,9 +291,6 @@ let mkTreeWithSingleNode (node: Node) : TreeForSelection =
     | :? ExprIfThenElifNode as node ->
         let expr = Expr.IfThenElif node
         mkOakFromModuleDecl (ModuleDecl.DeclExpr expr)
-    | :? SingleTextNode as node ->
-        let expr = Expr.Ident node
-        mkOakFromModuleDecl (ModuleDecl.DeclExpr expr)
     | :? ExprOptVarNode as node ->
         let expr = Expr.OptVar node
         mkOakFromModuleDecl (ModuleDecl.DeclExpr expr)
@@ -361,9 +324,6 @@ let mkTreeWithSingleNode (node: Node) : TreeForSelection =
     | :? ExprInterpolatedStringExprNode as node ->
         let expr = Expr.InterpolatedStringExpr node
         mkOakFromModuleDecl (ModuleDecl.DeclExpr expr)
-    | :? SingleTextNode as node ->
-        let expr = Expr.IndexRangeWildcard node
-        mkOakFromModuleDecl (ModuleDecl.DeclExpr expr)
     | :? ExprTripleNumberIndexRangeNode as node ->
         let expr = Expr.TripleNumberIndexRange node
         mkOakFromModuleDecl (ModuleDecl.DeclExpr expr)
@@ -373,68 +333,45 @@ let mkTreeWithSingleNode (node: Node) : TreeForSelection =
     | :? ExprIndexFromEndNode as node ->
         let expr = Expr.IndexFromEnd node
         mkOakFromModuleDecl (ModuleDecl.DeclExpr expr)
-    | :? SingleTextNode as node ->
-        let expr = Expr.Typar node
-        mkOakFromModuleDecl (ModuleDecl.DeclExpr expr)
+    | :? ExceptionDefnNode as node -> mkOakFromModuleDecl (ModuleDecl.Exception node)
+    | :? ExternBindingNode as node -> mkOakFromModuleDecl (ModuleDecl.ExternBinding node)
+    | :? BindingNode as node -> mkOakFromModuleDecl (ModuleDecl.TopLevelBinding node)
+    | :? ModuleAbbrevNode as node -> mkOakFromModuleDecl (ModuleDecl.ModuleAbbrev node)
+    | :? NestedModuleNode as node -> mkOakFromModuleDecl (ModuleDecl.NestedModule node)
+    // TypeDefn
+    | :? TypeDefnEnumNode as node ->
+        let tdn = TypeDefn.Enum node
+        mkOakFromModuleDecl (ModuleDecl.TypeDefn tdn)
+    | :? TypeDefnUnionNode as node ->
+        let tdn = TypeDefn.Union node
+        mkOakFromModuleDecl (ModuleDecl.TypeDefn tdn)
+    | :? TypeDefnRecordNode as node ->
+        let tdn = TypeDefn.Record node
+        mkOakFromModuleDecl (ModuleDecl.TypeDefn tdn)
+    | :? TypeNameNode as node ->
+        let tdn = TypeDefn.None node
+        mkOakFromModuleDecl (ModuleDecl.TypeDefn tdn)
+    | :? TypeDefnAbbrevNode as node ->
+        let tdn = TypeDefn.Abbrev node
+        mkOakFromModuleDecl (ModuleDecl.TypeDefn tdn)
+    | :? TypeDefnExplicitNode as node ->
+        let tdn = TypeDefn.Explicit node
+        mkOakFromModuleDecl (ModuleDecl.TypeDefn tdn)
+    | :? TypeDefnAugmentationNode as node ->
+        let tdn = TypeDefn.Augmentation node
+        mkOakFromModuleDecl (ModuleDecl.TypeDefn tdn)
+    | :? TypeDefnDelegateNode as node ->
+        let tdn = TypeDefn.Delegate node
+        mkOakFromModuleDecl (ModuleDecl.TypeDefn tdn)
+    | :? TypeDefnRegularNode as node ->
+        let tdn = TypeDefn.Regular node
+        mkOakFromModuleDecl (ModuleDecl.TypeDefn tdn)
+    | :? ValNode as node -> mkOakFromModuleDecl (ModuleDecl.Val node)
     | _ ->
 #if DEBUG
-        failwithf "todo for %s" (node.GetType().Name)
+        failwithf $"%s{node.GetType().Name} is currently unsupported"
 #endif
         TreeForSelection.Unsupported
-
-// match fullTree with
-// | ParsedInput.ImplFile(ParsedImplFileInput.ParsedImplFileInput(fileName,
-//                                                                isScript,
-//                                                                qualifiedNameOfFile,
-//                                                                scopedPragmas,
-//                                                                _hashDirectives,
-//                                                                _modules,
-//                                                                isLastCompiland,
-//                                                                trivia)) ->
-//     let insertNode =
-//         match astNode with
-//         | FSharpASTNode.ModuleDecl synModuleDecl -> synModuleDecl
-//         | FSharpASTNode.Expr synExpr -> mkSynModuleDecl synExpr
-//         | FSharpASTNode.Binding binding -> mkSynModuleDeclForBinding binding
-//         | FSharpASTNode.ModuleSigDecl _
-//         | FSharpASTNode.ValSig _ -> failwith "Unexpected signature ast node in implementation file"
-//
-//     ParsedInput.ImplFile(
-//         ParsedImplFileInput.ParsedImplFileInput(
-//             fileName,
-//             isScript,
-//             qualifiedNameOfFile,
-//             scopedPragmas,
-//             [],
-//             [ mkAnonSynModuleOrNamespace insertNode ],
-//             isLastCompiland,
-//             trivia
-//         )
-//     )
-// | ParsedInput.SigFile(ParsedSigFileInput.ParsedSigFileInput(fileName,
-//                                                             qualifiedNameOfFile,
-//                                                             scopedPragmas,
-//                                                             _hashDirectives,
-//                                                             _sigDecls,
-//                                                             trivia)) ->
-//     let insertNode =
-//         match astNode with
-//         | FSharpASTNode.ModuleSigDecl decl -> decl
-//         | FSharpASTNode.ValSig(SynValSig(range = range) as valSig) -> SynModuleSigDecl.Val(valSig, range)
-//         | FSharpASTNode.Expr _
-//         | FSharpASTNode.Binding _
-//         | FSharpASTNode.ModuleDecl _ -> failwith "Unexpected implementation ast node in implementation file"
-//
-//     ParsedInput.SigFile(
-//         ParsedSigFileInput.ParsedSigFileInput(
-//             fileName,
-//             qualifiedNameOfFile,
-//             scopedPragmas,
-//             [],
-//             [ mkAnonSynModuleOrNamespaceSig insertNode ],
-//             trivia
-//         )
-//     )
 
 let printTriviaNode (node: Node) : unit =
     let rec visit (level: int) (node: Node) =
@@ -497,9 +434,16 @@ let formatSelection
             match tree with
             | TreeForSelection.Unsupported ->
                 raise (FormatException("The current selection is not supported right now."))
-            | TreeForSelection.Standalone tree -> CodePrinter2.genFile tree context |> Context.dump true
+            | TreeForSelection.Standalone tree ->
+                let enrichedTree =
+                    Flowering.enrichTree selectionConfig sourceText baseUntypedTree tree
+
+                CodePrinter2.genFile enrichedTree context |> Context.dump true
             | TreeForSelection.RequiresExtraction(tree, t) ->
-                let formattedCode = CodePrinter2.genFile tree context |> Context.dump true
+                let enrichedTree =
+                    Flowering.enrichTree selectionConfig sourceText baseUntypedTree tree
+
+                let formattedCode = CodePrinter2.genFile enrichedTree context |> Context.dump true
                 let source = SourceText.ofString formattedCode
                 let formattedAST, _ = Fantomas.FCS.Parse.parseFile isSignature source []
                 let formattedTree = Fangorn.mkOak selectionConfig (Some source) formattedAST
@@ -509,9 +453,5 @@ let formatSelection
                 | None -> raise (FormatException("No suitable AST node could be extracted from formatted selection."))
                 | Some m -> source.GetContentAt m
 
-        // CodeFormatterImpl.formatAST tree (Some sourceText) selectionConfig (Some { Node = node })
-
         return formattedSelection.TrimEnd([| '\r'; '\n' |]), selection
     }
-
-// TODO: process trivia of selection!
