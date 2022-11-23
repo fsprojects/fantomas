@@ -3671,19 +3671,19 @@ let genModule (m: ModuleOrNamespaceNode) =
         | [] -> onlyIfNot (Seq.isEmpty (m :> Node).ContentAfter) sepNln
         | h :: _ -> sepNln +> sepNlnUnlessContentBefore (ModuleDecl.Node h)
 
-    onlyIf
-        m.IsNamed
-        (optSingle
-            (fun (n: MultipleTextsNode) ->
-                genXml m.XmlDoc
-                +> genAttributes m.Attributes
-                +> genMultipleTextsNode n
-                +> sepSpace
-                +> genAccessOpt m.Accessibility
-                +> onlyIf m.IsRecursive (sepSpace +> !- "rec" +> sepSpace)
-                +> genIdentListNode m.Name)
-            m.LeadingKeyword
-         +> newline)
+    optSingle
+        (fun (header: ModuleOrNamespaceHeaderNode) ->
+            (genXml header.XmlDoc
+             +> genAttributes header.Attributes
+             +> genMultipleTextsNode header.LeadingKeyword
+             +> sepSpace
+             +> genAccessOpt header.Accessibility
+             +> onlyIf header.IsRecursive (sepSpace +> !- "rec" +> sepSpace)
+             +> genIdentListNode header.Name
+             +> dumpAndContinue
+             |> genNode header)
+            +> newline)
+        m.Header
     +> colWithNlnWhenMappedNodeIsMultiline false ModuleDecl.Node genModuleDecl m.Declarations
     |> genNode m
 
