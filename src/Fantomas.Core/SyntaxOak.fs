@@ -60,15 +60,10 @@ let combineRanges (ranges: range seq) =
     else
         Seq.reduce Range.unionRanges ranges
 
-type DotNode(range) =
-    inherit NodeBase(range)
-
-    override x.Children = Array.empty
-
 [<RequireQualifiedAccess>]
 type IdentifierOrDot =
     | Ident of SingleTextNode
-    | KnownDot of DotNode
+    | KnownDot of SingleTextNode
     | UnknownDot
 
     member x.Range =
@@ -87,6 +82,7 @@ type IdentListNode(content: IdentifierOrDot list, range) =
         x.Content
         |> List.choose (function
             | IdentifierOrDot.Ident n -> Some(n :> Node)
+            | IdentifierOrDot.KnownDot n -> Some(n :> Node)
             | _ -> None)
         |> Array.ofList
 

@@ -54,7 +54,7 @@ let mkSynLongIdent (sli: SynLongIdent) =
             (sli.Dots, tail)
             ||> List.zip
             |> List.collect (fun (dot, ident) ->
-                [ IdentifierOrDot.KnownDot(DotNode(dot))
+                [ IdentifierOrDot.KnownDot(stn "." dot)
                   IdentifierOrDot.Ident(mkSynIdent ident) ])
 
         IdentListNode(IdentifierOrDot.Ident(mkSynIdent head) :: rest, sli.Range)
