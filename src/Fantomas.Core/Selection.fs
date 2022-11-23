@@ -162,6 +162,220 @@ let mkTreeWithSingleNode (node: Node) : TreeForSelection =
 
         mkExtractableOakFromModule md (node.GetType())
 
+    // ModuleDecl.Expr
+    | :? ExprLazyNode as node ->
+        let expr = Expr.Lazy node
+        mkOakFromModuleDecl (ModuleDecl.DeclExpr expr)
+    | :? ExprSingleNode as node ->
+        let expr = Expr.Single node
+        mkOakFromModuleDecl (ModuleDecl.DeclExpr expr)
+    | :? UnitNode as node ->
+        let expr = Expr.Constant(Constant.Unit node)
+        mkOakFromModuleDecl (ModuleDecl.DeclExpr expr)
+    | :? ConstantMeasureNode as node ->
+        let expr = Expr.Constant(Constant.Measure node)
+        mkOakFromModuleDecl (ModuleDecl.DeclExpr expr)
+    | :? SingleTextNode as node ->
+        let expr = Expr.Null node
+        mkOakFromModuleDecl (ModuleDecl.DeclExpr expr)
+    | :? ExprQuoteNode as node ->
+        let expr = Expr.Quote node
+        mkOakFromModuleDecl (ModuleDecl.DeclExpr expr)
+    | :? ExprTypedNode as node ->
+        let expr = Expr.Typed node
+        mkOakFromModuleDecl (ModuleDecl.DeclExpr expr)
+    | :? ExprNewNode as node ->
+        let expr = Expr.New node
+        mkOakFromModuleDecl (ModuleDecl.DeclExpr expr)
+    | :? ExprTupleNode as node ->
+        let expr = Expr.Tuple node
+        mkOakFromModuleDecl (ModuleDecl.DeclExpr expr)
+    | :? ExprStructTupleNode as node ->
+        let expr = Expr.StructTuple node
+        mkOakFromModuleDecl (ModuleDecl.DeclExpr expr)
+    | :? ExprArrayOrListNode as node ->
+        let expr = Expr.ArrayOrList node
+        mkOakFromModuleDecl (ModuleDecl.DeclExpr expr)
+    | :? ExprRecordNode as node ->
+        let expr = Expr.Record node
+        mkOakFromModuleDecl (ModuleDecl.DeclExpr expr)
+    | :? ExprAnonRecordNode as node ->
+        let expr = Expr.AnonRecord node
+        mkOakFromModuleDecl (ModuleDecl.DeclExpr expr)
+    | :? ExprObjExprNode as node ->
+        let expr = Expr.ObjExpr node
+        mkOakFromModuleDecl (ModuleDecl.DeclExpr expr)
+    | :? ExprWhileNode as node ->
+        let expr = Expr.While node
+        mkOakFromModuleDecl (ModuleDecl.DeclExpr expr)
+    | :? ExprForNode as node ->
+        let expr = Expr.For node
+        mkOakFromModuleDecl (ModuleDecl.DeclExpr expr)
+    | :? ExprForEachNode as node ->
+        let expr = Expr.ForEach node
+        mkOakFromModuleDecl (ModuleDecl.DeclExpr expr)
+    | :? ExprNamedComputationNode as node ->
+        let expr = Expr.NamedComputation node
+        mkOakFromModuleDecl (ModuleDecl.DeclExpr expr)
+    | :? ExprComputationNode as node ->
+        let expr = Expr.Computation node
+        mkOakFromModuleDecl (ModuleDecl.DeclExpr expr)
+    | :? ExprCompExprBodyNode as node ->
+        let expr = Expr.CompExprBody node
+        mkOakFromModuleDecl (ModuleDecl.DeclExpr expr)
+    | :? ExprJoinInNode as node ->
+        let expr = Expr.JoinIn node
+        mkOakFromModuleDecl (ModuleDecl.DeclExpr expr)
+    | :? ExprParenLambdaNode as node ->
+        let expr = Expr.ParenLambda node
+        mkOakFromModuleDecl (ModuleDecl.DeclExpr expr)
+    | :? ExprLambdaNode as node ->
+        let expr = Expr.Lambda node
+        mkOakFromModuleDecl (ModuleDecl.DeclExpr expr)
+    | :? ExprMatchLambdaNode as node ->
+        let expr = Expr.MatchLambda node
+        mkOakFromModuleDecl (ModuleDecl.DeclExpr expr)
+    | :? ExprMatchNode as node ->
+        let expr = Expr.Match node
+        mkOakFromModuleDecl (ModuleDecl.DeclExpr expr)
+    | :? ExprTraitCallNode as node ->
+        let expr = Expr.TraitCall node
+        mkOakFromModuleDecl (ModuleDecl.DeclExpr expr)
+    | :? SingleTextNode as node ->
+        let expr = Expr.ParenILEmbedded node
+        mkOakFromModuleDecl (ModuleDecl.DeclExpr expr)
+    | :? ExprParenFunctionNameWithStarNode as node ->
+        let expr = Expr.ParenFunctionNameWithStar node
+        mkOakFromModuleDecl (ModuleDecl.DeclExpr expr)
+    | :? ExprParenNode as node ->
+        let expr = Expr.Paren node
+        mkOakFromModuleDecl (ModuleDecl.DeclExpr expr)
+    | :? ExprDynamicNode as node ->
+        let expr = Expr.Dynamic node
+        mkOakFromModuleDecl (ModuleDecl.DeclExpr expr)
+    | :? ExprPrefixAppNode as node ->
+        let expr = Expr.PrefixApp node
+        mkOakFromModuleDecl (ModuleDecl.DeclExpr expr)
+    | :? ExprSameInfixAppsNode as node ->
+        let expr = Expr.SameInfixApps node
+        mkOakFromModuleDecl (ModuleDecl.DeclExpr expr)
+    | :? ExprInfixAppNode as node ->
+        let expr = Expr.InfixApp node
+        mkOakFromModuleDecl (ModuleDecl.DeclExpr expr)
+    | :? ExprIndexWithoutDotNode as node ->
+        let expr = Expr.IndexWithoutDot node
+        mkOakFromModuleDecl (ModuleDecl.DeclExpr expr)
+    | :? ExprAppDotGetTypeAppNode as node ->
+        let expr = Expr.AppDotGetTypeApp node
+        mkOakFromModuleDecl (ModuleDecl.DeclExpr expr)
+    | :? ExprDotGetAppDotGetAppParenLambdaNode as node ->
+        let expr = Expr.DotGetAppDotGetAppParenLambda node
+        mkOakFromModuleDecl (ModuleDecl.DeclExpr expr)
+    | :? ExprDotGetAppParenNode as node ->
+        let expr = Expr.DotGetAppParen node
+        mkOakFromModuleDecl (ModuleDecl.DeclExpr expr)
+    | :? ExprDotGetAppWithParenLambdaNode as node ->
+        let expr = Expr.DotGetAppWithParenLambda node
+        mkOakFromModuleDecl (ModuleDecl.DeclExpr expr)
+    | :? ExprDotGetAppNode as node ->
+        let expr = Expr.DotGetApp node
+        mkOakFromModuleDecl (ModuleDecl.DeclExpr expr)
+    | :? ExprAppLongIdentAndSingleParenArgNode as node ->
+        let expr = Expr.AppLongIdentAndSingleParenArg node
+        mkOakFromModuleDecl (ModuleDecl.DeclExpr expr)
+    | :? ExprAppSingleParenArgNode as node ->
+        let expr = Expr.AppSingleParenArg node
+        mkOakFromModuleDecl (ModuleDecl.DeclExpr expr)
+    | :? ExprDotGetAppWithLambdaNode as node ->
+        let expr = Expr.DotGetAppWithLambda node
+        mkOakFromModuleDecl (ModuleDecl.DeclExpr expr)
+    | :? ExprAppWithLambdaNode as node ->
+        let expr = Expr.AppWithLambda node
+        mkOakFromModuleDecl (ModuleDecl.DeclExpr expr)
+    | :? ExprNestedIndexWithoutDotNode as node ->
+        let expr = Expr.NestedIndexWithoutDot node
+        mkOakFromModuleDecl (ModuleDecl.DeclExpr expr)
+    | :? ExprEndsWithDualListAppNode as node ->
+        let expr = Expr.EndsWithDualListApp node
+        mkOakFromModuleDecl (ModuleDecl.DeclExpr expr)
+    | :? ExprEndsWithSingleListAppNode as node ->
+        let expr = Expr.EndsWithSingleListApp node
+        mkOakFromModuleDecl (ModuleDecl.DeclExpr expr)
+    | :? ExprAppNode as node ->
+        let expr = Expr.App node
+        mkOakFromModuleDecl (ModuleDecl.DeclExpr expr)
+    | :? ExprTypeAppNode as node ->
+        let expr = Expr.TypeApp node
+        mkOakFromModuleDecl (ModuleDecl.DeclExpr expr)
+    | :? ExprTryWithSingleClauseNode as node ->
+        let expr = Expr.TryWithSingleClause node
+        mkOakFromModuleDecl (ModuleDecl.DeclExpr expr)
+    | :? ExprTryWithNode as node ->
+        let expr = Expr.TryWith node
+        mkOakFromModuleDecl (ModuleDecl.DeclExpr expr)
+    | :? ExprTryFinallyNode as node ->
+        let expr = Expr.TryFinally node
+        mkOakFromModuleDecl (ModuleDecl.DeclExpr expr)
+    | :? ExprIfThenNode as node ->
+        let expr = Expr.IfThen node
+        mkOakFromModuleDecl (ModuleDecl.DeclExpr expr)
+    | :? ExprIfThenElseNode as node ->
+        let expr = Expr.IfThenElse node
+        mkOakFromModuleDecl (ModuleDecl.DeclExpr expr)
+    | :? ExprIfThenElifNode as node ->
+        let expr = Expr.IfThenElif node
+        mkOakFromModuleDecl (ModuleDecl.DeclExpr expr)
+    | :? SingleTextNode as node ->
+        let expr = Expr.Ident node
+        mkOakFromModuleDecl (ModuleDecl.DeclExpr expr)
+    | :? ExprOptVarNode as node ->
+        let expr = Expr.OptVar node
+        mkOakFromModuleDecl (ModuleDecl.DeclExpr expr)
+    | :? ExprLongIdentSetNode as node ->
+        let expr = Expr.LongIdentSet node
+        mkOakFromModuleDecl (ModuleDecl.DeclExpr expr)
+    | :? ExprDotIndexedGetNode as node ->
+        let expr = Expr.DotIndexedGet node
+        mkOakFromModuleDecl (ModuleDecl.DeclExpr expr)
+    | :? ExprDotIndexedSetNode as node ->
+        let expr = Expr.DotIndexedSet node
+        mkOakFromModuleDecl (ModuleDecl.DeclExpr expr)
+    | :? ExprNamedIndexedPropertySetNode as node ->
+        let expr = Expr.NamedIndexedPropertySet node
+        mkOakFromModuleDecl (ModuleDecl.DeclExpr expr)
+    | :? ExprDotNamedIndexedPropertySetNode as node ->
+        let expr = Expr.DotNamedIndexedPropertySet node
+        mkOakFromModuleDecl (ModuleDecl.DeclExpr expr)
+    | :? ExprDotGetNode as node ->
+        let expr = Expr.DotGet node
+        mkOakFromModuleDecl (ModuleDecl.DeclExpr expr)
+    | :? ExprDotSetNode as node ->
+        let expr = Expr.DotSet node
+        mkOakFromModuleDecl (ModuleDecl.DeclExpr expr)
+    | :? ExprSetNode as node ->
+        let expr = Expr.Set node
+        mkOakFromModuleDecl (ModuleDecl.DeclExpr expr)
+    | :? ExprLibraryOnlyStaticOptimizationNode as node ->
+        let expr = Expr.LibraryOnlyStaticOptimization node
+        mkOakFromModuleDecl (ModuleDecl.DeclExpr expr)
+    | :? ExprInterpolatedStringExprNode as node ->
+        let expr = Expr.InterpolatedStringExpr node
+        mkOakFromModuleDecl (ModuleDecl.DeclExpr expr)
+    | :? SingleTextNode as node ->
+        let expr = Expr.IndexRangeWildcard node
+        mkOakFromModuleDecl (ModuleDecl.DeclExpr expr)
+    | :? ExprTripleNumberIndexRangeNode as node ->
+        let expr = Expr.TripleNumberIndexRange node
+        mkOakFromModuleDecl (ModuleDecl.DeclExpr expr)
+    | :? ExprIndexRangeNode as node ->
+        let expr = Expr.IndexRange node
+        mkOakFromModuleDecl (ModuleDecl.DeclExpr expr)
+    | :? ExprIndexFromEndNode as node ->
+        let expr = Expr.IndexFromEnd node
+        mkOakFromModuleDecl (ModuleDecl.DeclExpr expr)
+    | :? SingleTextNode as node ->
+        let expr = Expr.Typar node
+        mkOakFromModuleDecl (ModuleDecl.DeclExpr expr)
     | _ ->
 #if DEBUG
         failwithf "todo for %s" (node.GetType().Name)
