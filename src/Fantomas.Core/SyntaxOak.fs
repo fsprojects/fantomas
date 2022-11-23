@@ -117,35 +117,39 @@ type ParsedHashDirectiveNode(ident: string, args: SingleTextNode list, range) =
     member x.Args = args
     override this.Children = [| yield! nodes args |]
 
-type ModuleOrNamespaceNode
+type ModuleOrNamespaceHeaderNode
     (
         xmlDoc: XmlDocNode option,
         attributes: MultipleAttributeListNode option,
-        leadingKeyword: MultipleTextsNode option,
+        leadingKeyword: MultipleTextsNode,
         accessibility: SingleTextNode option,
         isRecursive: bool,
         name: IdentListNode,
-        decls: ModuleDecl list,
         range
     ) =
     inherit NodeBase(range)
+
+    override this.Children =
+        [| yield! noa xmlDoc
+           yield! noa attributes
+           yield leadingKeyword
+           yield! noa accessibility
+           yield name |]
+
     member x.XmlDoc = xmlDoc
     member x.Attributes = attributes
     member x.LeadingKeyword = leadingKeyword
     member x.Accessibility = accessibility
     member x.IsRecursive = isRecursive
     member x.Name = name
-    member x.Declarations = decls
-    member x.IsNamed = Option.isSome x.LeadingKeyword
 
-    override this.Children =
-        [| yield! noa xmlDoc
-           yield! noa attributes
-           yield! noa leadingKeyword
-           yield! noa accessibility
-           if Option.isSome leadingKeyword then
-               yield name
-           yield! List.map ModuleDecl.Node decls |]
+type ModuleOrNamespaceNode(header: ModuleOrNamespaceHeaderNode option, decls: ModuleDecl list, range) =
+    inherit NodeBase(range)
+    member x.Declarations = decls
+    member x.IsNamed = Option.isSome header
+
+    override this.Children = [| yield! noa header; yield! List.map ModuleDecl.Node decls |]
+    member x.Header = header
 
 type TypeFunsNode(parameters: (Type * SingleTextNode) list, returnType: Type, range) =
     inherit NodeBase(range)
