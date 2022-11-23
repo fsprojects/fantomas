@@ -93,7 +93,7 @@ type Foo =
     default __.foo = 1"""
 
 [<Test>]
-let ``default implementations in abstract classes with `override` keyword should be emited as it was before from AST with origin source, 742``
+let ``default implementations in abstract classes with `override` keyword should be emitted as it was before from AST with origin source, 742``
     ()
     =
     """[<AbstractClass>]
