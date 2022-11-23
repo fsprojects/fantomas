@@ -52,7 +52,7 @@ let formatSourceStringWithDefines defines (s: string) config =
                 |> Array.head
                 |> fst
 
-            return CodeFormatterImpl.formatAST ast (Some source) config None
+            return CodeFormatterImpl.formatAST ast (Some source) config
         }
         |> Async.RunSynchronously
 

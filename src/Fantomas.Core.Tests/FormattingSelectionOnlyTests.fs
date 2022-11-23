@@ -29,6 +29,32 @@ let private mkSelection (startLine, startColumn) (endLine, endColumn) =
     Range.mkRange "selection" startPos endPos
 
 [<Test>]
+let ``SynModuleDecl.Open with exact selection`` () =
+    formatSelectionOnly
+        false
+        (mkSelection (4, 0) (4, 7))
+        """
+module A
+
+open  Y
+"""
+        config
+    |> should equal "open Y"
+
+[<Test>]
+let ``SynModuleDecl.Open target with exact selection`` () =
+    formatSelectionOnly
+        false
+        (mkSelection (4, 0) (4, 19))
+        """
+module A
+
+open  type    X.Y.Z
+"""
+        config
+    |> should equal "open type X.Y.Z"
+
+[<Test>]
 let ``SynModuleDecl with exact selection`` () =
     formatSelectionOnly
         false

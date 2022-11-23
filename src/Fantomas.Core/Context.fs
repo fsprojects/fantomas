@@ -180,45 +180,16 @@ module WriterEvents =
 type internal Context =
     { Config: FormatConfig
       WriterModel: WriterModel
-      WriterEvents: Queue<WriterEvent>
-    // TriviaBefore: Map<FsAstType, TriviaInstruction list>
-    // TriviaAfter: Map<FsAstType, TriviaInstruction list>
-    // SourceText: ISourceText option
-     }
+      WriterEvents: Queue<WriterEvent> }
 
     /// Initialize with a string writer and use space as delimiter
     static member Default =
         { Config = FormatConfig.Default
           WriterModel = WriterModel.init
-          WriterEvents = Queue.empty
-        // TriviaBefore = Map.empty
-        // TriviaAfter = Map.empty
-        // SourceText = None }
-        }
+          WriterEvents = Queue.empty }
 
-    static member Create
-        config
-        (source: ISourceText option)
-        (ast: ParsedInput)
-        // (selection: TriviaForSelection option)
-        : Context =
-        // let triviaInstructions, sourceText =
-        //     match source with
-        //     | Some source when not config.StrictMode -> Trivia.collectTrivia config source ast selection, Some source
-        //     | _ -> [], None
-
-        // let triviaBefore, triviaAfter =
-        //     let triviaInstructionsBefore, triviaInstructionsAfter =
-        //         List.partition (fun ti -> ti.AddBefore) triviaInstructions
-        //
-        //     let createMapByType = List.groupBy (fun t -> t.Type) >> Map.ofList
-        //     createMapByType triviaInstructionsBefore, createMapByType triviaInstructionsAfter
-
-        { Context.Default with Config = config
-        // SourceText = sourceText
-        // TriviaBefore = triviaBefore
-        // TriviaAfter = triviaAfter
-         }
+    static member Create config : Context =
+        { Context.Default with Config = config }
 
     member x.WithDummy(writerCommands, ?keepPageWidth) =
         let keepPageWidth = keepPageWidth |> Option.defaultValue false
