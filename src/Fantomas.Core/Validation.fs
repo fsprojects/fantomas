@@ -2,8 +2,8 @@
 
 open FSharp.Compiler.Diagnostics
 open FSharp.Compiler.Text
+open FSharp.Compiler.Syntax
 open Fantomas.FCS.Parse
-open Fantomas.Core.SourceParser
 
 let private safeToIgnoreWarnings =
     set
@@ -33,8 +33,8 @@ let isValidFSharpCode (isSignature: bool) (source: string) : Async<bool> =
 
         let hashDirectives =
             match baseUntypedTree with
-            | ImplFile(ParsedImplFileInput(_, _, directives, _))
-            | SigFile(ParsedSigFileInput(_, _, directives, _)) -> directives
+            | ParsedInput.ImplFile(ParsedImplFileInput(trivia = { ConditionalDirectives = directives }))
+            | ParsedInput.SigFile(ParsedSigFileInput(trivia = { ConditionalDirectives = directives })) -> directives
 
         match hashDirectives with
         | [] -> return noWarningOrErrorDiagnostics baseDiagnostics

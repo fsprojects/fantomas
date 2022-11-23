@@ -65,8 +65,8 @@ let formatSourceStringWithDefines defines (s: string) config =
     |> String.concat config.EndOfLine.NewLineString
     |> String.normalizeNewLine
 
-let isValidFSharpCode isFsiFile s = true
-// CodeFormatter.IsValidFSharpCodeAsync(isFsiFile, s) |> Async.RunSynchronously
+let isValidFSharpCode isFsiFile s =
+    CodeFormatter.IsValidFSharpCodeAsync(isFsiFile, s) |> Async.RunSynchronously
 
 let equal x =
     let x =
