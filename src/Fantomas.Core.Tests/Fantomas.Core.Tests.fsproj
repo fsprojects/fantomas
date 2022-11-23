@@ -36,7 +36,7 @@
     <Compile Include="CompilerDirectivesTests.fs" />
     <Compile Include="ComputationExpressionTests.fs" />
     <Compile Include="TypeProviderTests.fs" />
-<!--    <Compile Include="FormattingSelectionOnlyTests.fs" />-->
+    <Compile Include="FormattingSelectionOnlyTests.fs" />
     <Compile Include="ValidationTests.fs" />
     <Compile Include="SpecialConstructsTests.fs" />
     <Compile Include="FormatAstTests.fs" />
@@ -109,7 +109,6 @@
     <Compile Include="Stroustrup\FunctionApplicationDualListTests.fs" />
     <Compile Include="IdentTests.fs" />
     <Compile Include="RecordDeclarationsWithXMLDocTests.fs" />
-    <Compile Include="AstExtensionsTests.fs" />
     <Compile Include="MaxIfThenShortWidthTests.fs" />
 <!--    <Compile Include="CodePrinterHelperFunctionsTests.fs" />-->
     <Compile Include="FangornTests.fs" />
