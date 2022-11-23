@@ -1465,7 +1465,14 @@ let mkBinding
 
 let mkExternBinding
     (creationAide: CreationAide)
-    (SynBinding(accessibility, _, isInline, isMutable, attributes, xmlDoc, _, pat, returnInfo, expr, range, _, trivia))
+    (SynBinding(
+        accessibility = accessibility
+        attributes = attributes
+        xmlDoc = xmlDoc
+        headPat = pat
+        returnInfo = returnInfo
+        range = range
+        trivia = trivia))
     : ExternBindingNode =
     let m =
         if not xmlDoc.IsEmpty then
@@ -2585,23 +2592,32 @@ let mkModuleOrNamespace
 
     let name =
         match kind with
-        | SynModuleOrNamespaceKind.AnonModule -> IdentListNode.Empty
-        | _ -> mkLongIdent longId
+        | SynModuleOrNamespaceKind.AnonModule -> None
+        | _ -> Some(mkLongIdent longId)
+
+    let range: range = mkSynModuleOrNamespaceFullRange mn
+
+    let header =
+        match leadingKeyword, name with
+        | None, _
+        | _, None -> None
+        | Some leadingKeyword, Some name ->
+            let m = mkFileIndexRange range.FileIndex range.Start (name :> Node).Range.End
+
+            ModuleOrNamespaceHeaderNode(
+                mkXmlDoc xmlDoc,
+                mkAttributes creationAide attribs,
+                leadingKeyword,
+                mkSynAccess accessibility,
+                isRecursive,
+                name,
+                m
+            )
+            |> Some
 
     let decls = mkModuleDecls creationAide decls id
 
-    let range = mkSynModuleOrNamespaceFullRange mn
-
-    ModuleOrNamespaceNode(
-        mkXmlDoc xmlDoc,
-        mkAttributes creationAide attribs,
-        leadingKeyword,
-        mkSynAccess accessibility,
-        isRecursive,
-        name,
-        decls,
-        range
-    )
+    ModuleOrNamespaceNode(header, decls, range)
 
 let mkImplFile
     (creationAide: CreationAide)
@@ -2884,22 +2900,31 @@ let mkModuleOrNamespaceSig
 
     let name =
         match kind with
-        | SynModuleOrNamespaceKind.AnonModule -> IdentListNode.Empty
-        | _ -> mkLongIdent longId
+        | SynModuleOrNamespaceKind.AnonModule -> None
+        | _ -> Some(mkLongIdent longId)
 
     let decls = mkModuleSigDecls creationAide decls id
-    let range = mkSynModuleOrNamespaceSigFullRange mn
+    let range: range = mkSynModuleOrNamespaceSigFullRange mn
 
-    ModuleOrNamespaceNode(
-        mkXmlDoc xmlDoc,
-        mkAttributes creationAide attribs,
-        leadingKeyword,
-        mkSynAccess accessibility,
-        isRecursive,
-        name,
-        decls,
-        range
-    )
+    let header =
+        match leadingKeyword, name with
+        | None, _
+        | _, None -> None
+        | Some leadingKeyword, Some name ->
+            let m = mkFileIndexRange range.FileIndex range.Start (name :> Node).Range.End
+
+            ModuleOrNamespaceHeaderNode(
+                mkXmlDoc xmlDoc,
+                mkAttributes creationAide attribs,
+                leadingKeyword,
+                mkSynAccess accessibility,
+                isRecursive,
+                name,
+                m
+            )
+            |> Some
+
+    ModuleOrNamespaceNode(header, decls, range)
 
 let mkSigFile
     (creationAide: CreationAide)
