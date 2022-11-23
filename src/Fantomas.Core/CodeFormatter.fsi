@@ -21,7 +21,7 @@ type CodeFormatter =
     //     isSignature: bool * source: string * selection: Range * ?config: FormatConfig -> Async<string * range>
 
     // /// Check whether an input string is invalid in F# by attempting to parse the code.
-    // static member IsValidFSharpCodeAsync: isSignature: bool * source: string -> Async<bool>
+    static member IsValidFSharpCodeAsync: isSignature: bool * source: string -> Async<bool>
 
     /// Returns the version of Fantomas found in the AssemblyInfo
     static member GetVersion: unit -> string
