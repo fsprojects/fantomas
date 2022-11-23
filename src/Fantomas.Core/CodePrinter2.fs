@@ -1604,8 +1604,11 @@ let genExpr (e: Expr) =
             +> sepCloseLFixed
 
         let genDotIndexedGetWithApp funcExpr argExpr (appNode: Node) =
-            let short = funcExpr +> genExpr argExpr
-            let long = funcExpr +> genMultilineFunctionApplicationArguments argExpr
+            let short = funcExpr +> genExpr argExpr |> genNode appNode
+
+            let long =
+                funcExpr +> genMultilineFunctionApplicationArguments argExpr |> genNode appNode
+
             let idx = !- "." +> sepOpenLFixed +> genExpr node.IndexExpr +> sepCloseLFixed
             expressionFitsOnRestOfLine (short +> idx) (long +> idx)
 
