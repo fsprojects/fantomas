@@ -7,7 +7,7 @@ open FSharp.Compiler.Syntax
 [<Sealed>]
 type CodeFormatter =
     // /// Parse a source string using given config
-    // static member ParseAsync: isSignature: bool * source: string -> Async<(ParsedInput * string list) array>
+    static member ParseAsync: isSignature: bool * source: string -> Async<(ParsedInput * string list) array>
 
     /// Format an abstract syntax tree using an optional source for trivia processing
     static member FormatASTAsync: ast: ParsedInput * ?source: string * ?config: FormatConfig -> Async<string>

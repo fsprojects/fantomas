@@ -39,7 +39,7 @@
 <!--    <Compile Include="FormattingSelectionOnlyTests.fs" />-->
     <Compile Include="ValidationTests.fs" />
     <Compile Include="SpecialConstructsTests.fs" />
-<!--    <Compile Include="FormatAstTests.fs" />-->
+    <Compile Include="FormatAstTests.fs" />
     <Compile Include="LetBindingTests.fs" />
     <Compile Include="NoTrailingSpacesTests.fs" />
     <Compile Include="LazyTests.fs" />
