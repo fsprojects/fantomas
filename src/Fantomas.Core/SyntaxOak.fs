@@ -124,9 +124,11 @@ type ModuleOrNamespaceHeaderNode
         leadingKeyword: MultipleTextsNode,
         accessibility: SingleTextNode option,
         isRecursive: bool,
-        name: IdentListNode,
+        name: IdentListNode option,
         range
-    ) =
+    )
+// Can be absent for a namespace global
+ =
     inherit NodeBase(range)
 
     override this.Children =
@@ -134,7 +136,7 @@ type ModuleOrNamespaceHeaderNode
            yield! noa attributes
            yield leadingKeyword
            yield! noa accessibility
-           yield name |]
+           yield! noa name |]
 
     member x.XmlDoc = xmlDoc
     member x.Attributes = attributes
