@@ -2039,7 +2039,6 @@ let mkTypeDefn
             )
 
     let members = List.map (mkMemberDefn creationAide) members
-
     let typeDefnRange = unionRanges (typeNameNode :> Node).Range range
 
     match typeRepr with
@@ -2701,8 +2700,6 @@ let mkModuleSigDecl (creationAide: CreationAide) (decl: SynModuleSigDecl) =
     | decl -> failwithf $"Failed to create ModuleDecl for %A{decl}"
 
 let mkTypeDefnSig (creationAide: CreationAide) (SynTypeDefnSig(typeInfo, typeRepr, members, range, trivia)) : TypeDefn =
-    let typeDefnRange = range
-
     let typeNameNode =
         match typeInfo with
         | SynComponentInfo(ats, tds, tcs, lid, px, _preferPostfix, ao, _) ->
@@ -2738,6 +2735,7 @@ let mkTypeDefnSig (creationAide: CreationAide) (SynTypeDefnSig(typeInfo, typeRep
             )
 
     let members = List.map (mkMemberSig creationAide) members
+    let typeDefnRange = unionRanges (typeNameNode :> Node).Range range
 
     match typeRepr with
     | SynTypeDefnSigRepr.Simple(repr = SynTypeDefnSimpleRepr.Enum(ecs, _)) ->
