@@ -1846,7 +1846,7 @@ let mkOpenNodeForImpl (creationAide: CreationAide) (target, range) : Open =
     | SynOpenDeclTarget.ModuleOrNamespace(longId, _) ->
         OpenModuleOrNamespaceNode(mkSynLongIdent longId, range)
         |> Open.ModuleOrNamespace
-    | SynOpenDeclTarget.Type(typeName, range) -> OpenTargetNode(mkType creationAide typeName, range) |> Open.Target
+    | SynOpenDeclTarget.Type(typeName, _) -> OpenTargetNode(mkType creationAide typeName, range) |> Open.Target
 
 let rec (|HashDirectiveL|_|) =
     function
