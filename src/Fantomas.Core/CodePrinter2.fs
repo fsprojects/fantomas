@@ -516,10 +516,12 @@ let genExpr (e: Expr) =
                     +> addSpaceIfSpaceAroundDelimiter
                     +> genSingleTextNode node.ClosingBrace
                 | RecordNodeExtra.None ->
-                    // TODO: revist when everything is ported
+                    // TODO: revisit when everything is ported
                     fun (ctx: Context) ->
+                        let expressionStartColumn = ctx.Column
                         // position after `{ ` or `{`
-                        let targetColumn = ctx.Column + (if ctx.Config.SpaceAroundDelimiter then 2 else 1)
+                        let targetColumn =
+                            expressionStartColumn + (if ctx.Config.SpaceAroundDelimiter then 2 else 1)
 
                         atCurrentColumn
                             (genSingleTextNodeSuffixDelimiter node.OpeningBrace
@@ -530,8 +532,20 @@ let genExpr (e: Expr) =
                                  // Lock the start of the record field, however keep potential indentations in relation to the opening curly brace
                                  +> atCurrentColumn (genRecordFieldName e))
                              +> sepNlnWhenWriteBeforeNewlineNotEmpty
-                             +> addSpaceIfSpaceAroundDelimiter
-                             +> genSingleTextNode node.ClosingBrace)
+                             +> (fun ctx ->
+                                 // Edge case scenario to make sure that the closing brace is not before the opening one
+                                 // See unit test "multiline string before closing brace"
+                                 let delta = expressionStartColumn - ctx.Column
+                                 let brace = genSingleTextNode node.ClosingBrace
+
+                                 if delta > 0 then
+                                     ((rep delta (!- " ")) +> brace) ctx
+                                 else
+                                     ifElseCtx
+                                         lastWriteEventIsNewline
+                                         brace
+                                         (addSpaceIfSpaceAroundDelimiter +> brace)
+                                         ctx))
                             ctx
 
             ifAlignBrackets genMultilineRecordInstanceAlignBrackets genMultilineRecordInstance
