@@ -10,7 +10,7 @@
     <Compile Include="TestHelpers.fs" />
     <Compile Include="UtilsTests.fs" />
     <Compile Include="QueueTests.fs" />
-<!--    <Compile Include="DefinesTests.fs" />-->
+    <Compile Include="DefinesTests.fs" />
 <!--    <Compile Include="TriviaTests.fs" />-->
     <Compile Include="StringTests.fs" />
     <Compile Include="CommentTests.fs" />

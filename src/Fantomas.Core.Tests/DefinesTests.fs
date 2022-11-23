@@ -2,8 +2,8 @@ module Fantomas.Core.Tests.TokenParserTests
 
 open NUnit.Framework
 open FsUnit
+open FSharp.Compiler.Syntax
 open Fantomas.Core
-open Fantomas.Core.SourceParser
 open Fantomas.Core.Defines
 open Fantomas.Core.Tests.TestHelper
 
@@ -13,8 +13,8 @@ let private getDefines (v: string) =
 
     let hashDirectives =
         match baseUntypedTree with
-        | ImplFile(ParsedImplFileInput(_, _, directives, _))
-        | SigFile(ParsedSigFileInput(_, _, directives, _)) -> directives
+        | ParsedInput.ImplFile(ParsedImplFileInput(trivia = { ConditionalDirectives = directives }))
+        | ParsedInput.SigFile(ParsedSigFileInput(trivia = { ConditionalDirectives = directives })) -> directives
 
     getDefineCombination hashDirectives
     |> List.collect id
