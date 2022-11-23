@@ -55,6 +55,75 @@ open  type    X.Y.Z
     |> should equal "open type X.Y.Z"
 
 [<Test>]
+let ``multiple hash directives with exact selection`` () =
+    formatSelectionOnly
+        false
+        (mkSelection (4, 0) (5, 17))
+        """
+module A
+
+#r   "nuget: Foo"
+#r "nuget: Bar"
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        "
+#r \"nuget: Foo\"
+#r \"nuget: Bar\""
+
+[<Test>]
+let ``single hash directive with exact selection`` () =
+    formatSelectionOnly
+        false
+        (mkSelection (4, 0) (4, 17))
+        """
+module A
+
+#r   "nuget: Foo"
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        "
+#r \"nuget: Foo\""
+
+[<Test>]
+let ``top level attribute with do with exact selection`` () =
+    formatSelectionOnly
+        false
+        (mkSelection (4, 0) (5, 7))
+        """
+module A
+
+[< CustomAttribute ( 1, 2, 3 ) >]
+do   ()
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+[<CustomAttribute(1, 2, 3)>]
+do ()"""
+
+[<Test>]
+let ``top level attribute with exact selection`` () =
+    formatSelectionOnly
+        false
+        (mkSelection (4, 0) (4, 33))
+        """
+module A
+
+[< CustomAttribute ( 1, 2, 3 ) >]
+do   ()
+"""
+        config
+    |> should equal "[<CustomAttribute(1, 2, 3)>]"
+
+[<Test>]
 let ``SynModuleDecl with exact selection`` () =
     formatSelectionOnly
         false
