@@ -3679,7 +3679,7 @@ let genModule (m: ModuleOrNamespaceNode) =
              +> sepSpace
              +> genAccessOpt header.Accessibility
              +> onlyIf header.IsRecursive (sepSpace +> !- "rec" +> sepSpace)
-             +> genIdentListNode header.Name
+             +> optSingle genIdentListNode header.Name
              +> dumpAndContinue
              |> genNode header)
             +> newline)

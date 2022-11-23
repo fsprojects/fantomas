@@ -2004,8 +2004,6 @@ let mkTypeDefn
     (creationAide: CreationAide)
     (SynTypeDefn(typeInfo, typeRepr, members, implicitConstructor, range, trivia))
     : TypeDefn =
-    let typeDefnRange = range
-
     let typeNameNode =
         match typeInfo with
         | SynComponentInfo(ats, tds, tcs, lid, px, _preferPostfix, ao, _) ->
@@ -2041,6 +2039,8 @@ let mkTypeDefn
             )
 
     let members = List.map (mkMemberDefn creationAide) members
+
+    let typeDefnRange = unionRanges (typeNameNode :> Node).Range range
 
     match typeRepr with
     | SynTypeDefnRepr.Simple(simpleRepr = SynTypeDefnSimpleRepr.Enum(ecs, _)) ->
@@ -2592,28 +2592,44 @@ let mkModuleOrNamespace
 
     let name =
         match kind with
-        | SynModuleOrNamespaceKind.AnonModule -> None
+        | SynModuleOrNamespaceKind.AnonModule
+        | SynModuleOrNamespaceKind.GlobalNamespace -> None
         | _ -> Some(mkLongIdent longId)
 
     let range: range = mkSynModuleOrNamespaceFullRange mn
 
     let header =
-        match leadingKeyword, name with
-        | None, _
-        | _, None -> None
-        | Some leadingKeyword, Some name ->
-            let m = mkFileIndexRange range.FileIndex range.Start (name :> Node).Range.End
+        match leadingKeyword with
+        | None -> None
+        | Some leadingKeyword ->
+            match name with
+            | None ->
+                let m =
+                    mkFileIndexRange range.FileIndex range.Start (leadingKeyword :> Node).Range.End
 
-            ModuleOrNamespaceHeaderNode(
-                mkXmlDoc xmlDoc,
-                mkAttributes creationAide attribs,
-                leadingKeyword,
-                mkSynAccess accessibility,
-                isRecursive,
-                name,
-                m
-            )
-            |> Some
+                ModuleOrNamespaceHeaderNode(
+                    mkXmlDoc xmlDoc,
+                    mkAttributes creationAide attribs,
+                    leadingKeyword,
+                    mkSynAccess accessibility,
+                    isRecursive,
+                    None,
+                    m
+                )
+                |> Some
+            | Some name ->
+                let m = mkFileIndexRange range.FileIndex range.Start (name :> Node).Range.End
+
+                ModuleOrNamespaceHeaderNode(
+                    mkXmlDoc xmlDoc,
+                    mkAttributes creationAide attribs,
+                    leadingKeyword,
+                    mkSynAccess accessibility,
+                    isRecursive,
+                    Some name,
+                    m
+                )
+                |> Some
 
     let decls = mkModuleDecls creationAide decls id
 
@@ -2900,29 +2916,45 @@ let mkModuleOrNamespaceSig
 
     let name =
         match kind with
-        | SynModuleOrNamespaceKind.AnonModule -> None
+        | SynModuleOrNamespaceKind.AnonModule
+        | SynModuleOrNamespaceKind.GlobalNamespace -> None
         | _ -> Some(mkLongIdent longId)
 
     let decls = mkModuleSigDecls creationAide decls id
     let range: range = mkSynModuleOrNamespaceSigFullRange mn
 
     let header =
-        match leadingKeyword, name with
-        | None, _
-        | _, None -> None
-        | Some leadingKeyword, Some name ->
-            let m = mkFileIndexRange range.FileIndex range.Start (name :> Node).Range.End
+        match leadingKeyword with
+        | None -> None
+        | Some leadingKeyword ->
+            match name with
+            | None ->
+                let m =
+                    mkFileIndexRange range.FileIndex range.Start (leadingKeyword :> Node).Range.End
 
-            ModuleOrNamespaceHeaderNode(
-                mkXmlDoc xmlDoc,
-                mkAttributes creationAide attribs,
-                leadingKeyword,
-                mkSynAccess accessibility,
-                isRecursive,
-                name,
-                m
-            )
-            |> Some
+                ModuleOrNamespaceHeaderNode(
+                    mkXmlDoc xmlDoc,
+                    mkAttributes creationAide attribs,
+                    leadingKeyword,
+                    mkSynAccess accessibility,
+                    isRecursive,
+                    None,
+                    m
+                )
+                |> Some
+            | Some name ->
+                let m = mkFileIndexRange range.FileIndex range.Start (name :> Node).Range.End
+
+                ModuleOrNamespaceHeaderNode(
+                    mkXmlDoc xmlDoc,
+                    mkAttributes creationAide attribs,
+                    leadingKeyword,
+                    mkSynAccess accessibility,
+                    isRecursive,
+                    Some name,
+                    m
+                )
+                |> Some
 
     ModuleOrNamespaceNode(header, decls, range)
 
