@@ -2138,7 +2138,7 @@ let genFunctionNameWithMultilineLids (trailing: Context -> Context) (longIdent: 
                 t
                 (function
                 | IdentifierOrDot.Ident identNode -> genSingleTextNode identNode
-                | IdentifierOrDot.KnownDot _
+                | IdentifierOrDot.KnownDot dot -> genSingleTextNode dot
                 | IdentifierOrDot.UnknownDot _ -> sepDot)
             +> trailing
         )
