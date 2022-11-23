@@ -116,7 +116,7 @@ let genIdentListNodeAux addLeadingDot (iln: IdentListNode) =
                 genSingleTextNodeWithLeadingDot ident
             else
                 genSingleTextNode ident
-        | IdentifierOrDot.KnownDot _
+        | IdentifierOrDot.KnownDot dot -> genSingleTextNode dot
         | IdentifierOrDot.UnknownDot _ -> sepDot)
     |> genNode iln
 
@@ -131,7 +131,7 @@ let genIdentListNodeWithDotMultiline (iln: IdentListNode) =
                 genSingleTextNodeWithLeadingDot ident
             else
                 genSingleTextNode ident
-        | IdentifierOrDot.KnownDot _
+        | IdentifierOrDot.KnownDot dot -> sepNln +> genSingleTextNode dot
         | IdentifierOrDot.UnknownDot _ -> sepNln +> sepDot)
     |> genNode iln
 
