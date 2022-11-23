@@ -1157,7 +1157,7 @@ type Class() =
         }
         |> Async.StartImmediate
 """
-        config
+        { config with MaxLineLength = 119 }
     |> prepend newline
     |> should
         equal
