@@ -11,7 +11,6 @@
     <Compile Include="UtilsTests.fs" />
     <Compile Include="QueueTests.fs" />
     <Compile Include="DefinesTests.fs" />
-<!--    <Compile Include="TriviaTests.fs" />-->
     <Compile Include="StringTests.fs" />
     <Compile Include="CommentTests.fs" />
     <Compile Include="ShebangTests.fs" />
@@ -113,7 +112,7 @@
     <Compile Include="AstExtensionsTests.fs" />
     <Compile Include="MaxIfThenShortWidthTests.fs" />
 <!--    <Compile Include="CodePrinterHelperFunctionsTests.fs" />-->
-<!--    <Compile Include="ASTTransformerTests.fs" />-->
+    <Compile Include="FangornTests.fs" />
     <Compile Include="DotSetTests.fs" />
     <Compile Include="InterfaceStaticMethodTests.fs" />
     <Compile Include="ExternTests.fs" />
