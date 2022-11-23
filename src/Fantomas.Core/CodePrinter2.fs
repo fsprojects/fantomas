@@ -2037,20 +2037,32 @@ let genMultilineInfixExpr (node: ExprInfixAppNode) =
 let genExprInMultilineInfixExpr (e: Expr) =
     match e with
     | Expr.CompExprBody node ->
+        let genLetOrUse (letOrUseNode: ExprLetOrUseNode) =
+            let genIn =
+                match letOrUseNode.In with
+                | None -> !- "in"
+                | Some inNode -> genSingleTextNode inNode
+
+            genBinding letOrUseNode.Binding +> sepSpace +> genIn +> sepSpace
+            |> genNode letOrUseNode
+
         match node.Statements with
+        | [ ComputationExpressionStatement.LetOrUseStatement letOrUseNode1
+            ComputationExpressionStatement.LetOrUseStatement letOrUseNode2
+            ComputationExpressionStatement.OtherStatement otherNode ] ->
+            atCurrentColumn (
+                genLetOrUse letOrUseNode1
+                +> sepNln
+                +> genLetOrUse letOrUseNode2
+                +> sepNln
+                +> sepNlnUnlessContentBefore (Expr.Node otherNode)
+                +> genExpr otherNode
+                |> genNode node
+            )
         | [ ComputationExpressionStatement.LetOrUseStatement letOrUseNode
             ComputationExpressionStatement.OtherStatement otherNode ] ->
-            let genLetOrUse =
-                let genIn =
-                    match letOrUseNode.In with
-                    | None -> !- "in"
-                    | Some inNode -> genSingleTextNode inNode
-
-                genBinding letOrUseNode.Binding +> sepSpace +> genIn +> sepSpace
-                |> genNode letOrUseNode
-
             atCurrentColumn (
-                genLetOrUse
+                genLetOrUse letOrUseNode
                 +> sepNln
                 +> sepNlnUnlessContentBefore (Expr.Node otherNode)
                 +> genExpr otherNode
