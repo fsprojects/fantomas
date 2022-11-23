@@ -126,9 +126,7 @@ type ModuleOrNamespaceHeaderNode
         isRecursive: bool,
         name: IdentListNode option,
         range
-    )
-// Can be absent for a namespace global
- =
+    ) =
     inherit NodeBase(range)
 
     override this.Children =
