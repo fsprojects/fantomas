@@ -447,6 +447,23 @@ let (|SameInfixApps|_|) expr =
         if xs.Count < 2 then None else Some(head, Seq.toList xs)
     | _ -> None
 
+let newLineInfixOps = set [ "|>"; "||>"; "|||>"; ">>"; ">>=" ]
+
+let (|NewlineInfixApps|_|) expr =
+    let rec visit expr continuation =
+        match expr with
+        | InfixApp(lhs, operator, rhs) when newLineInfixOps.Contains operator.Text ->
+            visit lhs (fun (head, xs: Queue<SingleTextNode * SynExpr>) ->
+                xs.Enqueue(operator, rhs)
+                continuation (head, xs))
+        | e -> continuation (e, Queue())
+
+    match expr with
+    | InfixApp _ ->
+        let head, xs = visit expr id
+        if xs.Count < 2 then None else Some(head, Seq.toList xs)
+    | _ -> None
+
 let rec (|ElIf|_|) =
     function
     | SynExpr.IfThenElse(e1, e2, Some(ElIf((elifNode, eshE1, eshThenKw, eshE2) :: es, elseInfo)), _, _, _, trivia) ->
@@ -823,6 +840,7 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
         ExprPrefixAppNode(stn operatorName ident.idRange, mkExpr creationAide e2, exprRange)
         |> Expr.PrefixApp
 
+    | NewlineInfixApps(head, xs)
     | SameInfixApps(head, xs) ->
         let rest = xs |> List.map (fun (operator, e) -> operator, mkExpr creationAide e)
 
