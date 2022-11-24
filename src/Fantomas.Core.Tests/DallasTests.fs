@@ -1552,3 +1552,26 @@ let longExpr = genExpr e +> indentSepNlnUnindent (genSynLongIdentMultiline true 
 
 fun ctx -> isShortExpression ctx.Config.MaxDotGetExpressionWidth shortExpr longExpr ctx
 """
+
+[<Test>]
+let ``multiple always break infix operators`` () =
+    formatSourceString
+        false
+        """
+(sli.Dots, tail)
+||> List.zip
+|> List.collect (fun (dot, ident) ->
+    [ IdentifierOrDot.KnownDot(stn "." dot)
+      IdentifierOrDot.Ident(mkSynIdent ident) ])
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+(sli.Dots, tail)
+||> List.zip
+|> List.collect (fun (dot, ident) ->
+    [ IdentifierOrDot.KnownDot(stn "." dot)
+      IdentifierOrDot.Ident(mkSynIdent ident) ])
+"""
