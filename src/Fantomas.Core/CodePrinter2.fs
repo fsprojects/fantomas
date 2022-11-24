@@ -842,7 +842,7 @@ let genExpr (e: Expr) =
             (fun isMultiline ctx -> onlyIf (isMultiline && ctx.Config.MultiLineLambdaClosingNewline) sepNln ctx)
         +> genSingleTextNode node.ClosingParen
         |> genNode node
-    | Expr.Lambda node -> atCurrentColumn (genLambda node)
+    | Expr.Lambda node -> genLambda node
     | Expr.MatchLambda node ->
         genSingleTextNode node.Function +> sepNln +> genClauses node.Clauses
         |> genNode node
@@ -1889,7 +1889,7 @@ let genLambda (node: ExprLambdaNode) =
 
         let longPats (ctx: Context) =
             // If the current column already is larger than the next indent,
-            // we need to write the parameters fixed on the current columm.
+            // we need to write the parameters fixed on the current column.
             if ctx.Column > ctx.WriterModel.Indent + ctx.Config.IndentSize then
                 (sepSpace +> atCurrentColumn (sepNln +> col sepNln node.Parameters genPat)) ctx
             else
@@ -2114,6 +2114,10 @@ let genExprInMultilineInfixExpr (e: Expr) =
         +> indentSepNlnUnindent (genClauses matchLambdaNode.Clauses)
         |> genNode matchLambdaNode
     | Expr.Record _ -> atCurrentColumnIndent (genExpr e)
+    | Expr.Lambda lambdaNode ->
+        match lambdaNode.Expr with
+        | Expr.InfixApp _ -> atCurrentColumnIndent (genExpr e)
+        | _ -> genExpr e
     | _ -> genExpr e
 
 let genKeepIdent (startNode: Node) (e: Expr) ctx =
@@ -3680,7 +3684,6 @@ let genModule (m: ModuleOrNamespaceNode) =
              +> genAccessOpt header.Accessibility
              +> onlyIf header.IsRecursive (sepSpace +> !- "rec" +> sepSpace)
              +> optSingle genIdentListNode header.Name
-             +> dumpAndContinue
              |> genNode header)
             +> newline)
         m.Header

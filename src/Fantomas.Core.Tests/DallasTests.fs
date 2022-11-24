@@ -1526,3 +1526,29 @@ let ``DotGetApp test`` () =
         """
 Foo().Bar().Meh()
 """
+
+[<Test>]
+let ``two let bindings followed by a lambda`` () =
+    formatSourceString
+        false
+        """
+let shortExpr = genExpr e +> genSynLongIdent true sli
+let longExpr = genExpr e +> indentSepNlnUnindent (genSynLongIdentMultiline true sli)
+
+fun ctx ->
+    isShortExpression
+        ctx.Config.MaxDotGetExpressionWidth
+        shortExpr
+        longExpr
+        ctx
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let shortExpr = genExpr e +> genSynLongIdent true sli
+let longExpr = genExpr e +> indentSepNlnUnindent (genSynLongIdentMultiline true sli)
+
+fun ctx -> isShortExpression ctx.Config.MaxDotGetExpressionWidth shortExpr longExpr ctx
+"""
