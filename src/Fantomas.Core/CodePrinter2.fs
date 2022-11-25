@@ -3516,7 +3516,9 @@ let genMemberDefn (md: MemberDefn) =
         genSingleTextNode ic.InheritKeyword
         +> sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth (genInheritConstructor ic)
         |> genNode (InheritConstructor.Node ic)
-    | MemberDefn.Inherit node -> genSingleTextNode node.Inherit +> sepSpace +> genType node.BaseType
+    | MemberDefn.Inherit node ->
+        genSingleTextNode node.Inherit +> sepSpace +> genType node.BaseType
+        |> genNode node
     | MemberDefn.ValField node -> genField node
     | MemberDefn.Member node -> genBinding node
     | MemberDefn.ExternBinding node -> genExternBinding node
