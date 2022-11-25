@@ -2836,10 +2836,12 @@ let genBinding (b: BindingNode) (ctx: Context) : Context =
                 | Some rt ->
                     let hasGenerics = b.GenericTypeParameters.IsSome
 
-                    onlyIfCtx (fun ctx -> hasGenerics || ctx.Config.SpaceBeforeColon) sepSpace
-                    +> genSingleTextNode rt.Colon
-                    +> sepSpace
-                    +> genType rt.Type
+                    autoIndentAndNlnIfExpressionExceedsPageWidth (
+                        onlyIfCtx (fun ctx -> hasGenerics || ctx.Config.SpaceBeforeColon) sepSpace
+                        +> genSingleTextNode rt.Colon
+                        +> sepSpace
+                        +> atCurrentColumnIndent (genType rt.Type)
+                    )
                     +> sepSpaceUnlessWriteBeforeNewlineNotEmpty
                     +> autoIndentAndNlnWhenWriteBeforeNewlineNotEmpty genEqualsInBinding
                 | _ -> sepSpace +> genEqualsInBinding
