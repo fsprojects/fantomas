@@ -1638,3 +1638,28 @@ let create size : ImmutableArray<'T>.Builder = ImmutableArray.CreateBuilder(size
         """
 let create size : ImmutableArray<'T>.Builder = ImmutableArray.CreateBuilder(size)
 """
+
+[<Test>]
+let ``type with implicit constructor and generic type constraints`` () =
+    formatSourceString
+        false
+        """
+[<System.Diagnostics.DebuggerDisplay "Count = {Count}">]
+[<Sealed>]
+type internal Set<'T, 'ComparerTag> when 'ComparerTag :> IComparer<'T>(comparer: IComparer<'T>, tree: SetTree<'T>) =
+
+    static let refresh (s: Set<_, _>) t =
+        Set<_, _>(comparer = s.Comparer, tree = t)
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+[<System.Diagnostics.DebuggerDisplay "Count = {Count}">]
+[<Sealed>]
+type internal Set<'T, 'ComparerTag> when 'ComparerTag :> IComparer<'T>(comparer: IComparer<'T>, tree: SetTree<'T>) =
+
+    static let refresh (s: Set<_, _>) t =
+        Set<_, _>(comparer = s.Comparer, tree = t)
+"""
