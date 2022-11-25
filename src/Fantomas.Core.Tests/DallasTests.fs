@@ -1575,3 +1575,25 @@ let ``multiple always break infix operators`` () =
     [ IdentifierOrDot.KnownDot(stn "." dot)
       IdentifierOrDot.Ident(mkSynIdent ident) ])
 """
+
+[<Test>]
+let ``value binding with multiline type annotation`` () =
+    formatSourceString
+        false
+        """
+let autoCompleteItems: cmap<DeclName, DeclarationListItem * Position * string<LocalPath> * (Position -> option<string>) * FSharp.Compiler.Syntax.ParsedInput> =
+    cmap ()
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let autoCompleteItems
+    : cmap<DeclName, DeclarationListItem *
+      Position *
+      string<LocalPath> *
+      (Position -> option<string>) *
+      FSharp.Compiler.Syntax.ParsedInput> =
+    cmap ()
+"""
