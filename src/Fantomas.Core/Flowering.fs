@@ -7,8 +7,20 @@ open Fantomas.Core.FormatConfig
 open Fantomas.Core.ISourceTextExtensions
 open Fantomas.Core.SyntaxOak
 
-let internal collectTriviaFromCodeComments (source: ISourceText) (codeComments: CommentTrivia list) : TriviaNode list =
+type CommentTrivia with
+
+    member x.Range =
+        match x with
+        | CommentTrivia.BlockComment m
+        | CommentTrivia.LineComment m -> m
+
+let internal collectTriviaFromCodeComments
+    (source: ISourceText)
+    (codeComments: CommentTrivia list)
+    (codeRange: range)
+    : TriviaNode list =
     codeComments
+    |> List.filter (fun ct -> RangeHelpers.rangeContainsRange codeRange ct.Range)
     |> List.map (function
         | CommentTrivia.BlockComment r ->
             let content = source.GetContentAt r
@@ -115,24 +127,26 @@ let internal collectTriviaFromBlankLines
                     else
                         count, None)
 
+type ConditionalDirectiveTrivia with
+
+    member x.Range =
+        match x with
+        | ConditionalDirectiveTrivia.If(_, m)
+        | ConditionalDirectiveTrivia.Else m
+        | ConditionalDirectiveTrivia.EndIf m -> m
+
 let internal collectTriviaFromDirectives
     (source: ISourceText)
     (directives: ConditionalDirectiveTrivia list)
-    (selection: obj option)
+    (codeRange: range)
     : TriviaNode list =
     directives
-    |> List.map (function
-        | ConditionalDirectiveTrivia.If(_, m)
-        | ConditionalDirectiveTrivia.Else m
-        | ConditionalDirectiveTrivia.EndIf m ->
-            let text = (source.GetContentAt m).TrimEnd()
-            let content = Directive text
-            TriviaNode(content, m))
-// |> fun trivia ->
-//     match selection with
-//     | None -> trivia
-//     | Some { Node = rootNode } ->
-//         List.filter (fun t -> RangeHelpers.rangeContainsRange rootNode.Range t.Range) trivia
+    |> List.filter (fun cdt -> RangeHelpers.rangeContainsRange codeRange cdt.Range)
+    |> List.map (fun cdt ->
+        let m = cdt.Range
+        let text = (source.GetContentAt m).TrimEnd()
+        let content = Directive text
+        TriviaNode(content, m))
 
 let rec findNodeWhereRangeFitsIn (root: Node) (range: range) : Node option =
     let doesSelectionFitInNode = RangeHelpers.rangeContainsRange root.Range range
@@ -310,11 +324,11 @@ let enrichTree (config: FormatConfig) (sourceText: ISourceText) (ast: ParsedInpu
         let comments =
             match ast with
             | ParsedInput.ImplFile(ParsedImplFileInput(trivia = trivia)) ->
-                collectTriviaFromCodeComments sourceText trivia.CodeComments
+                collectTriviaFromCodeComments sourceText trivia.CodeComments fullTreeRange
             | ParsedInput.SigFile(ParsedSigFileInput(trivia = trivia)) ->
-                collectTriviaFromCodeComments sourceText trivia.CodeComments
+                collectTriviaFromCodeComments sourceText trivia.CodeComments fullTreeRange
 
-        let directives = collectTriviaFromDirectives sourceText directives None
+        let directives = collectTriviaFromDirectives sourceText directives fullTreeRange
 
         [| yield! comments; yield! newlines; yield! directives |]
         |> Array.sortBy (fun n -> n.Range.Start.Line, n.Range.Start.Column)
