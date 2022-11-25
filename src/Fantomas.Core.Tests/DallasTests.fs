@@ -1663,3 +1663,28 @@ type internal Set<'T, 'ComparerTag> when 'ComparerTag :> IComparer<'T>(comparer:
     static let refresh (s: Set<_, _>) t =
         Set<_, _>(comparer = s.Comparer, tree = t)
 """
+
+[<Test>]
+let ``comment before inherit member definition`` () =
+    formatSourceString
+        false
+        """
+type ILModuleReader =
+    abstract ILModuleDef: ILModuleDef
+    abstract ILAssemblyRefs: ILAssemblyRef list
+
+    // ILModuleReader objects only need to be explicitly disposed if memory mapping is used, i.e. reduceMemoryUsage = false
+    inherit IDisposable
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type ILModuleReader =
+    abstract ILModuleDef: ILModuleDef
+    abstract ILAssemblyRefs: ILAssemblyRef list
+
+    // ILModuleReader objects only need to be explicitly disposed if memory mapping is used, i.e. reduceMemoryUsage = false
+    inherit IDisposable
+"""
