@@ -3119,9 +3119,12 @@ let sepNlnTypeAndMembers (node: ITypeDefn) (ctx: Context) : Context =
                 ctx
 
 let genTypeWithImplicitConstructor (typeName: TypeNameNode) (implicitConstructor: ImplicitConstructorNode option) =
+    let hasAndKeyword = typeName.LeadingKeyword.Text = "and"
+
     genXml typeName.XmlDoc
-    +> genAttributes typeName.Attributes
+    +> onlyIfNot hasAndKeyword (genAttributes typeName.Attributes)
     +> genSingleTextNode typeName.LeadingKeyword
+    +> onlyIf hasAndKeyword (sepSpace +> genOnelinerAttributes typeName.Attributes)
     +> sepSpace
     +> genAccessOpt typeName.Accessibility
     +> genTypeAndParam (genIdentListNode typeName.Identifier) typeName.TypeParameters
