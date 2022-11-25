@@ -3131,6 +3131,7 @@ let genTypeWithImplicitConstructor (typeName: TypeNameNode) (implicitConstructor
     +> sepSpace
     +> genAccessOpt typeName.Accessibility
     +> genTypeAndParam (genIdentListNode typeName.Identifier) typeName.TypeParameters
+    +> onlyIfNot typeName.Constraints.IsEmpty (sepSpace +> genTypeConstraints typeName.Constraints)
     +> leadingExpressionIsMultiline
         (optSingle (fun imCtor -> sepSpaceBeforeClassConstructor +> genImplicitConstructor imCtor) implicitConstructor)
         (fun isMulti ctx ->
