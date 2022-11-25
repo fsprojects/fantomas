@@ -1597,3 +1597,29 @@ let autoCompleteItems
       FSharp.Compiler.Syntax.ParsedInput> =
     cmap ()
 """
+
+[<Test>]
+let ``recursive type with implicit constructor and attributes`` () =
+    formatSourceString
+        false
+        """
+type x
+and [<Sealed>] MapDebugView<'Key, 'Value when 'Key: comparison>(v: Map<'Key, 'Value>) =
+
+    [<DebuggerBrowsable(DebuggerBrowsableState.RootHidden)>]
+    member x.Items =
+        v |> Seq.truncate 10000 |> Seq.map KeyValuePairDebugFriendly |> Seq.toArray
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type x
+
+and [<Sealed>] MapDebugView<'Key, 'Value when 'Key: comparison>(v: Map<'Key, 'Value>) =
+
+    [<DebuggerBrowsable(DebuggerBrowsableState.RootHidden)>]
+    member x.Items =
+        v |> Seq.truncate 10000 |> Seq.map KeyValuePairDebugFriendly |> Seq.toArray
+"""
