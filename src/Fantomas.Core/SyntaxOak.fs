@@ -321,6 +321,12 @@ type TypeOrNode(lhs: Type, orNode: SingleTextNode, rhs: Type, range) =
     member x.Or = orNode
     member x.RightHandSide = rhs
 
+type TypeLongIdentAppNode(appType: Type, longIdent: IdentListNode, range) =
+    inherit NodeBase(range)
+    override this.Children = [| yield Type.Node appType; yield longIdent |]
+    member x.AppType = appType
+    member x.LongIdent = longIdent
+
 [<RequireQualifiedAccess; NoEquality; NoComparison>]
 type Type =
     | Funs of TypeFunsNode
@@ -343,6 +349,7 @@ type Type =
     | Paren of TypeParenNode
     | SignatureParameter of TypeSignatureParameterNode
     | Or of TypeOrNode
+    | LongIdentApp of TypeLongIdentAppNode
 
     static member Node(x: Type) : Node =
         match x with
@@ -366,6 +373,7 @@ type Type =
         | Paren n -> n
         | SignatureParameter n -> n
         | Or n -> n
+        | LongIdentApp n -> n
 
 type PatAttribNode(attrs: MultipleAttributeListNode option, pat: Pattern, range) =
     inherit NodeBase(range)

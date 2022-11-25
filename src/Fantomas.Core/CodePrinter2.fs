@@ -3088,6 +3088,9 @@ let genType (t: Type) =
         +> sepSpace
         +> genType node.RightHandSide
         |> genNode node
+    | Type.LongIdentApp node ->
+        genType node.AppType +> sepDot +> genIdentListNode node.LongIdent
+        |> genNode node
 
 let genSynTupleTypeSegments (path: Choice<Type, SingleTextNode> list) =
     let genTs addNewline =

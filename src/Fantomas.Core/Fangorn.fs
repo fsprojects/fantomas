@@ -1815,6 +1815,9 @@ let mkType (creationAide: CreationAide) (t: SynType) : Type =
             typeRange
         )
         |> Type.AppPrefix
+    | SynType.LongIdentApp(t, lid, None, [], _, None, _) ->
+        TypeLongIdentAppNode(mkType creationAide t, mkSynLongIdent lid, typeRange)
+        |> Type.LongIdentApp
     | SynType.WithGlobalConstraints(SynType.Var _, [ SynTypeConstraint.WhereTyparSubtypeOfType _ as tc ], _) ->
         mkSynTypeConstraint creationAide tc |> Type.WithSubTypeConstraint
     | SynType.WithGlobalConstraints(t, tcs, _) ->
