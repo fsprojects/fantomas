@@ -1,13 +1,11 @@
 module Fantomas.Core.Tests.CodePrinterHelperFunctionsTests
 
-open FSharp.Compiler.Syntax
-open FSharp.Compiler.SyntaxTrivia
 open NUnit.Framework
 open FsUnit
 open Fantomas.Core.Context
 open Fantomas.Core.FormatConfig
 open Fantomas.Core
-open Fantomas.Core.TriviaTypes
+open Fantomas.Core.SyntaxOak
 
 // This test suite is created to illustrate the various helper functions that are being used in `CodePrinter`.
 // We encourage you to debug these when you are new to the code base.
@@ -195,98 +193,115 @@ let ``trying multiple code paths`` () =
 
 [<Test>]
 let ``printing trivia instructions`` () =
-    // As established in the documentation, `TriviaInstructions` can be added to the `Context`.
-    // In `CodePrinter` these need to be printed at the right time.
-    // A `TriviaInstruction` always has an `FsAstType` and a `range` value.
-    // This should always correspond to the range of the AST node that is being printed.
-    let sourceCode =
-        """let a =
+    // Source code will be transformed to a Oak tree.
+    // In `CodePrinter` in process this Oak and all its child nodes.
+    // A `Node` interface can store TriviaNodes in the ContentBefore or ContentAfter collection.
+    let _sourceCode =
+        """
+let a =
     // code comment
     b"""
 
-    // Parse the source code to an AST.
-    let ast =
-        CodeFormatter.ParseAsync(false, sourceCode)
-        |> Async.RunSynchronously
-        |> Array.head
-        |> fst
+    // Let's create a dummy Oak
+    // In practise, a FCS Syntax tree will be transformed to an Oak
+    let zeroRange = FSharp.Compiler.Text.Range.Zero
+    let stn text = SingleTextNode(text, zeroRange)
 
-    // Dummy active pattern, this mimics what we typically do in SourceParser.
-    // This active pattern will return the `a` node and the `b` node.
-    let (|InterestingTreeNodes|_|) (ast: ParsedInput) =
-        match ast with
-        | ParsedInput.ImplFile(ParsedImplFileInput.ParsedImplFileInput(
-            contents = [ SynModuleOrNamespace.SynModuleOrNamespace(
-                             decls = [ SynModuleDecl.Let(
-                                           bindings = [ SynBinding(
-                                                            headPat = SynPat.Named(ident = SynIdent(aNode, _))
-                                                            expr = SynExpr.Ident bNode) ]) ]) ])) -> Some(aNode, bNode)
-        | _ -> None
+    let tree =
+        Oak(
+            [],
+            [ ModuleOrNamespaceNode(
+                  None,
+                  [ ModuleDecl.TopLevelBinding(
+                        BindingNode(
+                            None,
+                            None,
+                            MultipleTextsNode([ stn "let" ], zeroRange),
+                            false,
+                            false,
+                            None,
+                            Choice1Of2(IdentListNode([ IdentifierOrDot.Ident(stn "a") ], zeroRange)),
+                            None,
+                            [],
+                            None,
+                            stn "=",
+                            Expr.Ident(stn "b"),
+                            zeroRange
+                        )
+                    ) ],
+                  zeroRange
+              ) ],
+            zeroRange
+        )
 
-    // Another active pattern to extract the code comment.
-    // This represents what is happening in `Trivia`.
-    // Grabbing all comments from the toplevel file node and to later assign them to the correct AST child node.
-    let (|SingleComment|_|) (ast: ParsedInput) =
-        match ast with
-        | ParsedInput.ImplFile(ParsedImplFileInput.ParsedImplFileInput(
-            trivia = { CodeComments = [ CommentTrivia.LineComment rangeOfLineComment ] })) -> Some rangeOfLineComment
-        | _ -> None
-
-    let f (ast: ParsedInput) : Context -> Context =
-        match ast with
-        | InterestingTreeNodes(a, b) -> !- "let " +> !-a.idText +> sepEq +> sepSpace +> !-b.idText
+    let genExpr (expr: Expr) =
+        match expr with
+        | Expr.Ident identNode -> !-identNode.Text
         | _ -> !- "error"
 
-    let codeCommentAsTriviaInstruction: TriviaInstruction list =
-        match ast with
-        | SingleComment comment & InterestingTreeNodes(_, b) ->
-            // In `Trivia` we figured out that the comment belongs to `b`.
-            // Now we will map this as `TriviaInstruction`.
-            let trivia: Trivia =
-                { Range = comment
-                  Item = TriviaContent.Comment(Comment.CommentOnSingleLine "// code comment") }
+    let f (genExpr: Expr -> Context -> Context) (tree: Oak) : Context -> Context =
+        match tree.ModulesOrNamespaces.[0].Declarations.[0] with
+        | ModuleDecl.TopLevelBinding bindingNode ->
+            let genLet = !-bindingNode.LeadingKeyword.Content.[0].Text
 
-            let instruction: TriviaInstruction =
-                { Trivia = trivia
-                  Type = Ident_
-                  Range = b.idRange
-                  AddBefore = true }
+            let genFunctionName =
+                match bindingNode.FunctionName with
+                | Choice1Of2 functionNameNode ->
+                    match functionNameNode.Content with
+                    | [ IdentifierOrDot.Ident node ] -> !-node.Text
+                    | _ -> !- "error"
+                | Choice2Of2 _ -> !- "error"
 
-            [ instruction ]
-        | _ -> []
+            let genEq = !-bindingNode.Equals.Text
 
-    // Add the trivia instructions to the context.
-    // We optimize this a bit according to trivia before/after and the FsAstType.
+            genLet
+            +> sepSpace
+            +> genFunctionName
+            +> sepSpace
+            +> genEq
+            // Try to add a space and print the expression.
+            // If the expression is multiline add indent, newline, print the expression and unindent.
+            +> sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth (genExpr bindingNode.Expr)
+        | _ -> !- "error"
+
     let ctx =
-        { Context.Default with
-            Config = { Context.Default.Config with EndOfLine = EndOfLineStyle.LF }
-            TriviaBefore = Map.ofList [ FsAstType.Ident_, codeCommentAsTriviaInstruction ] }
+        { Context.Default with Config = { Context.Default.Config with EndOfLine = EndOfLineStyle.LF } }
 
-    let codeWithoutTriviaPrinting = f ast ctx |> dump
+    let codeWithoutTriviaPrinting = f genExpr tree ctx |> dump
     Assert.AreEqual("let a = b", codeWithoutTriviaPrinting)
 
-    // We need to write a better function, where the code comment will be restored
-    // `genTriviaFor` is typically the go-to function to write a trivia instruction.
-    // As it is not exposed from `CodePrinter`, we need to write our own.
-    let g (ast: ParsedInput) : Context -> Context =
-        match ast with
-        | InterestingTreeNodes(a, b) ->
-            let genB: Context -> Context =
-                // This will write any instructions that match 'FsAstType.Ident_'
-                // and the range of `b` equals the range of the `TriviaInstruction`.
-                enterNodeFor Ident_ b.idRange +> !-b.idText
-            // We could also add `+> leaveNodeFor` here, but again we know in this example there is only one instruction before.
+    // The problem now is that our tree doesn't contain the code comment.
+    // We need to add the comment to the right node in the tree.
+    // In practise, this happens in Flowering.fs in a generic way.
+    // For our example we will add it by traversing the tree hardcoded.
+    match tree.ModulesOrNamespaces.[0].Declarations with
+    | [ ModuleDecl.TopLevelBinding bindingNode ] ->
+        let exprNode = Expr.Node bindingNode.Expr
+        exprNode.AddBefore(TriviaNode(TriviaContent.CommentOnSingleLine "// code comment", zeroRange))
+    | _ -> ()
 
-            // Since we know in this example that the body of the let binding is multiline,
-            // we are going to use `indentSepNlnUnindent`.
-            // In practise you cannot make this assumption and we should try both short and long paths.
-            // As an example this is fine.
-            !- "let " +> !-a.idText +> sepEq +> indentSepNlnUnindent genB
+    // We need to write a better function, where the code comment will be restored in the expression.
+    // `genNode` is typically the go-to function to write a trivia instruction.
+    // As it is not exposed from `CodePrinter`, we need to write our own.
+    let genExprWithTrivia (expr: Expr) : Context -> Context =
+        match expr with
+        | Expr.Ident identNode ->
+            let node = identNode :> Node
+
+            // We try and grab the first comment from the generic Node interface.
+            let firstComment =
+                match Seq.tryHead node.ContentBefore with
+                | None -> sepNone
+                | Some triviaNode ->
+                    // If found we check the content and try to print the comment text followed by a newline
+                    match triviaNode.Content with
+                    | CommentOnSingleLine comment -> !-comment +> sepNln
+                    | _ -> !- "error"
+
+            firstComment +> !-identNode.Text
         | _ -> !- "error"
 
-    // Please take a look at `genTriviaFor` to see why we used this function.
-
-    let codeWithTriviaPrinting = g ast ctx |> dump
+    let codeWithTriviaPrinting = f genExprWithTrivia tree ctx |> dump
     Assert.AreEqual("let a =\n    // code comment\n    b", codeWithTriviaPrinting)
 
 [<Test>]
@@ -294,50 +309,76 @@ let ``blank lines trivia`` () =
     // Blank lines are also printed as trivia.
     // However, in some situations they can clash with a composition that always adds a new line.
 
-    let cleanInput =
+    let _cleanInput =
         """let a = 1
 let b = 2
 """
 
     // Imagine that we always want to print a new line between let bindings.
+    let zeroRange = FSharp.Compiler.Text.Range.Zero
+    let stn text = SingleTextNode(text, zeroRange)
 
-    // Parse the source code to an AST.
-    let getAst input =
-        CodeFormatter.ParseAsync(false, input)
-        |> Async.RunSynchronously
-        |> Array.head
-        |> fst
+    let mkBinding name body =
+        BindingNode(
+            None,
+            None,
+            MultipleTextsNode([ stn "let" ], zeroRange),
+            false,
+            false,
+            None,
+            Choice1Of2(IdentListNode([ IdentifierOrDot.Ident(stn name) ], zeroRange)),
+            None,
+            [],
+            None,
+            stn "=",
+            Expr.Ident(stn body),
+            zeroRange
+        )
 
-    let ast = getAst cleanInput
+    let tree =
+        Oak(
+            [],
+            [ ModuleOrNamespaceNode(
+                  None,
+                  [ ModuleDecl.TopLevelBinding(mkBinding "a" "1")
+                    ModuleDecl.TopLevelBinding(mkBinding "b" "2") ],
+                  zeroRange
+              ) ],
+            zeroRange
+        )
 
-    let (|TwoBindingsInFile|_|) (ast: ParsedInput) =
-        let (|ValueBinding|_|) (node: SynModuleDecl) =
-            match node with
-            | SynModuleDecl.Let(
-                bindings = [ SynBinding(
-                                 headPat = SynPat.Named(ident = SynIdent(name, _))
-                                 expr = SynExpr.Const(SynConst.Int32 value, _)) ]) ->
-                Some(name.idText, value, node.Range)
-            | _ -> None
+    let enterNode (node: Node) =
+        col sepNln node.ContentBefore (fun (tn: TriviaNode) ->
+            match tn.Content with
+            | Newline -> sepNln
+            | _ -> sepNone)
 
-        match ast with
-        | ParsedInput.ImplFile(ParsedImplFileInput.ParsedImplFileInput(
-            contents = [ SynModuleOrNamespace.SynModuleOrNamespace(decls = [ ValueBinding a; ValueBinding b ]) ])) ->
-            Some(a, b)
-        | _ -> None
+    let f (tree: Oak) =
+        match tree.ModulesOrNamespaces.[0].Declarations with
+        | [ ModuleDecl.TopLevelBinding a; ModuleDecl.TopLevelBinding b ] ->
 
-    let f ast =
-        match ast with
-        | TwoBindingsInFile(a, b) ->
-            let genBinding (name, value, range) =
-                // print trivia before SynModuleDecl.Let
-                enterNodeFor SynModuleDecl_Let range
+            let genBinding (node: BindingNode) =
+                let name =
+                    match node.FunctionName with
+                    | Choice1Of2 iln ->
+                        match iln.Content with
+                        | [ IdentifierOrDot.Ident ident ] -> ident
+                        | _ -> failwith "expected single ident"
+                    | _ -> failwith "expected single ident"
+
+                let body =
+                    match node.Expr with
+                    | Expr.Ident ident -> ident
+                    | _ -> failwith "expected ident expr"
+
+                // print trivia before BindingNode
+                enterNode node
                 +> !- "let"
                 +> sepSpace
-                +> !-name
+                +> !-name.Text
                 +> sepEq
                 +> sepSpace
-                +> !-(string value)
+                +> !-body.Text
 
             genBinding a
             // One `sepNln` to move to the next line.
@@ -351,38 +392,16 @@ let b = 2
     let ctx =
         { Context.Default with Config = { Context.Default.Config with EndOfLine = EndOfLineStyle.LF } }
 
-    let formattedCode = f ast ctx |> dump
+    let formattedCode = f tree ctx |> dump
     Assert.AreEqual("let a = 1\n\nlet b = 2", formattedCode)
 
-    // This worked fine, but the next time we will format there will be a TriviaInstruction for the blank line.
-    let newAst = getAst formattedCode
+    // This worked fine, but the next time we will format there will be a TriviaNode for the blank line.
+    // The newly found newline will be added to the last top level binding node
+    match tree.ModulesOrNamespaces.[0].Declarations.[1] with
+    | ModuleDecl.TopLevelBinding binding -> (binding :> Node).AddBefore(TriviaNode(TriviaContent.Newline, zeroRange))
+    | _ -> ()
 
-    let triviaInstructions =
-        match newAst with
-        | TwoBindingsInFile(_, (_, _, rangeOfB)) ->
-            // Again, this trivia would be detected in `Trivia`.
-            // We simplify things for this example.
-            let rangeOfNewline = CodeFormatter.MakeRange(rangeOfB.FileName, 2, 0, 2, 0)
-
-            let trivia =
-                { Range = rangeOfNewline
-                  Item = TriviaContent.Newline }
-
-            let triviaInstruction =
-                { Trivia = trivia
-                  Type = SynModuleDecl_Let
-                  Range = rangeOfB
-                  AddBefore = true }
-
-            [ triviaInstruction ]
-        | _ -> []
-
-    let ctxWithTrivia =
-        { Context.Default with
-            Config = { Context.Default.Config with EndOfLine = EndOfLineStyle.LF }
-            TriviaBefore = Map.ofList [ SynModuleDecl_Let, triviaInstructions ] }
-
-    let formattedCodeWithTrivia = f newAst ctxWithTrivia |> dump
+    let formattedCodeWithTrivia = f tree ctx |> dump
     // Notice that we now have two blank lines.
     // One from the trivia, and one from the fixed sepNln inside `f`.
     Assert.AreEqual("let a = 1\n\n\nlet b = 2", formattedCodeWithTrivia)
@@ -390,33 +409,47 @@ let b = 2
     // The next time we ran this code (assuming all the trivia instructions are provided properly), we would get three newlines.
     // So, this is becoming a repeating newline bug.
 
-    let g ast =
-        match ast with
-        | TwoBindingsInFile(a, b) ->
-            let genBinding (name, value, range) =
-                // print trivia before SynModuleDecl.Let
-                enterNodeFor SynModuleDecl_Let range
+    let g (tree: Oak) =
+        match tree.ModulesOrNamespaces.[0].Declarations with
+        | [ ModuleDecl.TopLevelBinding a; ModuleDecl.TopLevelBinding b ] ->
+
+            let genBinding (node: BindingNode) =
+                let name =
+                    match node.FunctionName with
+                    | Choice1Of2 iln ->
+                        match iln.Content with
+                        | [ IdentifierOrDot.Ident ident ] -> ident
+                        | _ -> failwith "expected single ident"
+                    | _ -> failwith "expected single ident"
+
+                let body =
+                    match node.Expr with
+                    | Expr.Ident ident -> ident
+                    | _ -> failwith "expected ident expr"
+
+                // print trivia before BindingNode
+                enterNode node
                 +> !- "let"
                 +> sepSpace
-                +> !-name
+                +> !-name.Text
                 +> sepEq
                 +> sepSpace
-                +> !-(string value)
+                +> !-body.Text
 
-            // We can resolve this problem by using the helper function `sepNlnConsideringTriviaContentBeforeFor`.
-            // This will add a newline unless there is already a new line following as part of the trivia.
-            let _, _, rangeOfB = b
+            // Normally in CodePrinter2 you would use `sepNlnUnlessContentBefore` but it is not exposed.
+            let sepNlnUnlessBindingHasTrivia (node: Node) =
+                if Seq.isEmpty node.ContentBefore then sepNln else sepNone
 
             genBinding a
-            // A regular `sepNln` to go to the next line.
+            // One `sepNln` to move to the next line.
             +> sepNln
-            // Only insert a full blank line if there is no newline following the trivia.
-            +> sepNlnConsideringTriviaContentBeforeFor SynModuleDecl_Let rangeOfB
+            // Another to insert a complete blank line.
+            +> sepNlnUnlessBindingHasTrivia b
             +> genBinding b
 
         | _ -> !- "error"
 
-    let finalCode = g ast ctxWithTrivia |> dump
+    let finalCode = g tree ctx |> dump
     Assert.AreEqual("let a = 1\n\nlet b = 2", finalCode)
 
 [<Test>]

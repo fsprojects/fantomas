@@ -110,7 +110,7 @@
     <Compile Include="IdentTests.fs" />
     <Compile Include="RecordDeclarationsWithXMLDocTests.fs" />
     <Compile Include="MaxIfThenShortWidthTests.fs" />
-<!--    <Compile Include="CodePrinterHelperFunctionsTests.fs" />-->
+    <Compile Include="CodePrinterHelperFunctionsTests.fs" />
     <Compile Include="FangornTests.fs" />
     <Compile Include="DotSetTests.fs" />
     <Compile Include="InterfaceStaticMethodTests.fs" />
