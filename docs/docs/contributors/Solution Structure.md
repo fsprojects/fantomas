@@ -57,4 +57,4 @@ A suite of unit tests that target the core formatting functionalities of `Fantom
 
 A suite of end-to-end tests that run the actual `fantomas` command line application.
 
-<fantomas-nav previous="./Getting%20Started.html" next="./Prepare%20Context.html"></fantomas-nav>
+<fantomas-nav previous="./Getting%20Started.html" next="./Transforming.html"></fantomas-nav>

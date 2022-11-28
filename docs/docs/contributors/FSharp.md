@@ -29,50 +29,34 @@ For example [SynExpr.For](https://fsprojects.github.io/fantomas/reference/fsharp
 ```fsharp
 type SynExpr =
     ...
-    /// F# syntax: 'for i = ... to ... do ...'
-    | For of
-        forDebugPoint: DebugPointAtFor *
-        toDebugPoint: DebugPointAtInOrTo *
-        ident: Ident *
-        equalsRange: range option *
-        identBody: SynExpr *
-        direction: bool *
-        toBody: SynExpr *
-        doBody: SynExpr *
+    /// F# syntax: expr; expr
+    ///
+    ///  isTrueSeq: false indicates "let v = a in b; v"
+    | Sequential of
+        debugPoint: DebugPointAtSequential *
+        isTrueSeq: bool *
+        expr1: SynExpr *
+        expr2: SynExpr *
         range: range
 ```
 
   However, in Fantomas we have a partial active pattern that we use to easily grab the information we need from the AST.
+  These partial actives are mostly used and defined in `Fangorn.fs`.
 ```fsharp
-let (|For|_|) =
-    function
-    | SynExpr.For (_, _, ident, equalsRange, e1, isUp, e2, e3, _) -> Some(ident, equalsRange, e1, e2, e3, isUp)
-    | _ -> None  
+let (|Sequentials|_|) e =
+    let rec visit (e: SynExpr) (finalContinuation: SynExpr list -> SynExpr list) : SynExpr list =
+        match e with
+        | SynExpr.Sequential(_, _, e1, e2, _) -> visit e2 (fun xs -> e1 :: xs |> finalContinuation)
+        | e -> finalContinuation [ e ]
+
+    match e with
+    | SynExpr.Sequential(_, _, e1, e2, _) ->
+        let xs = visit e2 id
+        Some(e1 :: xs)
+    | _ -> None
 ```
 
-Notice the underscores, we don't use the `DebugPoint` info and `range`, so we drop that information in the result of the partial active pattern.
-We then later use this pattern to work with the AST we need.
-Example usage in `CodePrinter.fs`:
-
-```fsharp
-match expr with
-| For (ident, equalsRange, e1, e2, e3, isUp) ->
-    atCurrentColumn (
-        !- "for "
-        +> genIdent ident
-        +> genEq SynExpr_For_Equals equalsRange
-        +> sepSpace
-        +> genExpr astContext e1
-        +> ifElse isUp (!- " to ") (!- " downto ")
-        +> genExpr astContext e2
-        +> !- " do"
-        +> indent
-        +> sepNln
-        +> genExpr astContext e3
-        +> unindent
-    )
-| _ -> ...
-```
+Notice the underscores, we don't use the `DebugPointAtSequential` info and `range`, so we drop that information in the result of the partial active pattern.
 
 - [Custom operators](https://docs.microsoft.com/en-us/dotnet/fsharp/language-reference/operator-overloading#creating-new-operators). In F# there are some special operators like [|>](https://fsharp.github.io/fsharp-core-docs/reference/fsharp-core-operators.html#(|%3E)) and [>>](https://fsharp.github.io/fsharp-core-docs/reference/fsharp-core-operators.html#(%3E%3E)).  
 
@@ -90,18 +74,15 @@ You can look at a signature file to get a glimpse of what the module really does
 
 In contrast to partial active patterns, where we want to hide some AST information, it can occur that we need to extend the type of an AST node.
 We do this by adding a new type member to an existing Syntax tree type.
-Example in `AstExtensions.fs`:
+Example in `Flowering.fs`:
 
 ```fsharp
-type SynMemberFlags with
+type CommentTrivia with
 
-    member memberFlags.FullRange: range option =
-        RangeHelpers.mergeRanges
-            [ yield! Option.toList memberFlags.Trivia.AbstractRange
-              yield! Option.toList memberFlags.Trivia.DefaultRange
-              yield! Option.toList memberFlags.Trivia.MemberRange
-              yield! Option.toList memberFlags.Trivia.OverrideRange
-              yield! Option.toList memberFlags.Trivia.StaticRange ]
+    member x.Range =
+        match x with
+        | CommentTrivia.BlockComment m
+        | CommentTrivia.LineComment m -> m
 ```
 
 The type `SynMemberFlags` does not expose any range information, but we can extend it to do so.  
@@ -115,7 +96,7 @@ Fantomas is full of this kind of functions, so be sure to grasp this concept bef
 
 - [Tail recursion](https://docs.microsoft.com/en-us/dotnet/fsharp/language-reference/functions/recursive-functions-the-rec-keyword#tail-recursion)
 
-There are places in the code base where we use some more advanced recursion techniques. `AstTransformer.fs` is one of them.  
+There are places in the code base where we use some more advanced recursion techniques. `Fangorn.fs` is one of them.  
 A very good explanation of what happens here can be found in this [blogpost](https://www.gresearch.co.uk/blog/article/advanced-recursion-techniques-in-f/).
 
 - [Event Sourcing](https://medium.com/@dzoukr/event-sourcing-step-by-step-in-f-be808aa0ca18)
