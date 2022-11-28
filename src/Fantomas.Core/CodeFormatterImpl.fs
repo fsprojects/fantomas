@@ -6,9 +6,7 @@ open FSharp.Compiler.Syntax
 open FSharp.Compiler.Text
 open Fantomas.Core
 open Fantomas.Core.FormatConfig
-// open Fantomas.Core.SourceParser
 open Fantomas.Core.SyntaxOak
-// open Fantomas.Core.CodePrinter
 open Fantomas.Core.CodePrinter2
 
 let getSourceText (source: string) : ISourceText = source.TrimEnd() |> SourceText.ofString
