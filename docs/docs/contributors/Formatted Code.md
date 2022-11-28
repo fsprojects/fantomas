@@ -5,13 +5,13 @@ index: 7
 ---
 # Fantomas.Core overview (3)
 
-After the `Context` travelled throught the composed `CodePrinter` function, all events are captured.  
+After the `Context` travelled through the composed `CodePrinter` function, all events are captured.  
 These can be converted to a string of formatted code.
 
 <div class="mermaid text-center">
 graph TD
-    A[Prepare Context] --> B
-    B[Print AST with Context] --> C[Formatted code]
+    A[Transform source code to tree] --> B
+    B[Traverse Oak to get formatted code] --> C[Formatted code]
     style C stroke:#338CBB,stroke-width:2px
  </div>
 
