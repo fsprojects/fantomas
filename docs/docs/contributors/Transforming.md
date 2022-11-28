@@ -5,30 +5,30 @@ index: 5
 ---
 # Fantomas.Core overview (1)
 
-In its simplest form, Fantomas.Core works in two major phases: prepare the context and process said context.
+In its simplest form, Fantomas.Core works in two major phases: transform the raw source code to a custom tree model, traverse the tree and print the formatted code.
 
 <div class="mermaid text-center">
 graph TD
-    A[Prepare Context] --> B
-    B[Print AST with Context] --> C[Formatted code]
+    A[Transform source code to Oak] --> B
+    B[Traverse Oak to get formatted code] --> C[Formatted code]
     style A stroke:#338CBB,stroke-width:2px
  </div>
 
 Unfortunately, both phases are not always very straight forward.  
 But once you get hang of the first phase, you can easily understand the second phase.
 
-## Preparing the context
+## Processing the raw source
 
-When we need to format a source code file, we need to prepare the context based on the content of the input file and the configuration of the formatter.
-The most important aspect of this phase is transforming the source code to a syntax tree. 
-However we need to do further processing of the AST before we can simply print it out.
+To have an understanding of what the raw source code means we parse the code using the parser of the F# compiler.  
+We can parse the source code into an untyped syntax tree. This tree isn't really perfect for our use-case, so we map it to an `Oak`.  
+An `Oak` is the toplevel root node of the Fantomas tree. We use a custom tree because it better suites our needs to reconstruct the output code.
 
 
 <div class="mermaid text-center">
 graph TD
     A[Parse AST] --> B
-    B[Collect Trivia] --> C
-    C[Apply configuration]
+    B[Transfrom untyped AST to OAK] --> C
+    C[Enrich the Oak with Trivia]
 </div>
 
 ### Parse AST
@@ -73,6 +73,30 @@ let a =
 
 Depending on the defines `[]` or `["DEBUG"]`, the AST will be different.
 The tree will also be created based on a single code path.
+
+### Transform untyped AST to OAK
+
+The untyped syntax tree from the F# compiler is used as an intermediate representation of source code in the process of transforming a text file to binary.  
+The AST has is optimized for the use-case of moving the plot forward towards binary. What we try to do in Fantomas is stop at the AST level and go back to source text.
+
+The F# compiler was never designed with our use-case in mind and yet it has served us very well for years. 
+In the past we did not have our own tree and were able to pull of formatting by traversing the compiler tree.
+This of course had its limitations and we had to overcome these with some hacks.
+
+Alas, some things in the AST aren't shaped the way we would like them to be. Sometimes, there is too much information, other times to little.
+To stream line our entire process, we've decide to map the untyped tree to our own custom object model.
+This introduces a lot of flexibility and simplifies our story.
+
+> Fangorn, what drove them into that madness - Gimli
+
+In `Fangorn.fs` we map the AST to our tree model. Some of the benefit we get out of this:
+- The Oak model does not differentiate between implementation files and signature files. We use one tree model which allow for optimal code re-use in `CodePrinter2.fs`.
+- We don't map all possible combinations of AST into our model. Sometimes valid AST code can in theory be created, 
+  but will in practise never exist. For example `expection Repr` in `SynTypeDefn`. It is part of the defined in `SyntaxTree.fs` yet the parser will never create it.
+  The F# compiler uses this later in the typed tree. We will throw an exception when encountering this during the mapping as we have the foresight of what the parser doesn't create.
+- Recursive types are all consider as toplevel types. This is not the case in the AST but we map it as such.
+- Some nodes are combined into one, for example a toplevel attribute will always be linked to its sibling do expression.
+- The ranges of some nodes are being calculated when they lead to a more accurate result.
 
 ### Collect Trivia
 
@@ -120,83 +144,20 @@ The AST does contain a node for the line comment, but we cannot restore it when 
 There is no link between the line comment and the let binding.
 
 All trivia face this problem, so we need to process them separately.  
-We do this in `Trivia.collectTrivia`.
+We do this in `Flowering.collectTrivia`.
 
 Note: blank lines are detected differently, we go over all the lines via the `ISourceText`.
 
-#### Assigning trivia
+#### Inserting trivia
 
-Once we have the trivia, we can assign them to an AST node they belong to.
-This is one of the more tricky parts of the process.
-
-The syntax tree exists of numerous types of nodes. There is not one discriminated union that captures all the nodes.
-Top level nodes are [SynModuleDecl](https://fsprojects.github.io/fantomas/reference/fsharp-compiler-syntax-synmoduledecl.html), expressions are [SynExpr](https://fsprojects.github.io/fantomas/reference/fsharp-compiler-syntax-synexpr.html) and so on.   
-In Fantomas all these types do share a comment trait, they can (almost) all have trivia that belongs to them.
-
-Example:
-
-```fsharp
-// comment 1
-module Hey
-
-// comment 2
-let x y = // comment 3
-    // comment 4
-    y = 1
-```
-
-All these comments need to be assigned to the correct node. From the trivia point of view, the owner could be of any type.  
-That is why we process the AST into a more generic tree structure called `TriviaNode`.   
-A `TriviaNode` always has a type field of `FsAstType` and could have child `TriviaNode`s.  
-`FsAstType` is discriminated union that represents all the useful types of AST nodes, regardless of the concrete type they belong too.  
-You can see in `TriviaTypes` that this is a long and flat list of all the types.
-
-We construct the root tree of `TriviaNode` in `ASTTransformer`. There we go over the AST and create a tree of `TriviaNode`s.
-
-```fsharp
-let a = 
-   // comment b
-   c
-```
-
-would be transformed to
-
-```text
-ParsedInput_: tmp.fsx (2,0--4,4)
-  SynModuleOrNamespace_AnonModule: tmp.fsx (2,0--4,4)
-    SynModuleDecl_Let: tmp.fsx (2,0--4,4)
-      SynBindingKind_Normal: tmp.fsx (2,4--4,4)
-        SynPat_Named: tmp.fsx (2,4--2,5)
-          SynIdent_: tmp.fsx (2,4--2,5)
-        SynBinding_Equals: tmp.fsx (2,6--2,7)
-        SynExpr_Ident: tmp.fsx (4,3--4,4)
-          Ident_: tmp.fsx (4,3--4,4)
-```
-
-We use this custom tree to assign the trivia to the correct node.
-Take our `//comment b` for example, we will assign it to the `SynExpr_Ident` node.
-
-There are different strategies to assign the trivia to a `TriviaNode`, these can be found in the `Trivia` module.  
-Once we know that the code comment belongs to the ident, we store this information in a `TriviaInstruction`.
-
-```fsharp
-{
-    Trivia = { Item = TriviaContent.Comment (Comment.CommentOnSingleLine "// comment b")
-    Type = FsAstType.SynExpr_Ident
-    Range = [4,3--4,4]
-    AddBefore = true
-}
-```
-
-Lastly, all the instructions are stored in the `Context` record.  
-
-To summarize, the `Context` initialization:
+Once we have the trivia, we can insert them to an `Node` they belong to.
+This is one of the key reasons why we work with our own tree. We can add the trivia information to the best suitable child node in the `Oak`.
+Every `Node` can have `ContentBefore` and `ContentAfter`, this is how we try to reconstruct everything.
 
 <div class="mermaid text-center">
 graph TD
-    A[Transform AST to TriviaNode tree] --> B
-    B[Capture all trivia from AST and ISourceText] --> C
-    C[Assign trivia to TriviaNode and create TriviaInstructions]
+    A[Capture all trivia from AST and ISourceText] --> B
+    D[Insert trivia into nodes]
  </div>
 
-<fantomas-nav previous="./Solution%20Structure.html" next="./Print%20AST%20with%20Context.html"></fantomas-nav>
+<fantomas-nav previous="./Solution%20Structure.html" next="./Traverse.html"></fantomas-nav>

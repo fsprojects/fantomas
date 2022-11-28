@@ -5,16 +5,16 @@ index: 6
 ---
 # Fantomas.Core overview (2)
 
-Once the `Context` is constructed, we can traverse the syntax tree to capture all the `WriterEvent`s.
+Once the `Oak` and populated with all the found trivia, we can traverse the `Oak` to capture all the `WriterEvent`s.
 
 <div class="mermaid text-center">
 graph TD
-    A[Prepare Context] --> B
-    B[Print AST with Context] --> C[Formatted code]
+    A[Transform source code to tree] --> B
+    B[Traverse Oak to get formatted code] --> C[Formatted code]
     style B stroke:#338CBB,stroke-width:2px
  </div>
 
-We enter the module of `CodePrinter` and try and reconstruct the code based on the given configuration.
+We enter the module of `CodePrinter2` and try and reconstruct the code based on the given configuration.
 
 ## WriterEvents and WriterModel
 
@@ -44,14 +44,12 @@ These active patterns are defined in `SourceParser` and typically are used to pr
 `CodePrinter` exposes one function `genParsedInput`.
 
 ```fsharp
-val genParsedInput:
-    astContext: ASTContext -> ast: FSharp.Compiler.Syntax.ParsedInput -> (Context.Context -> Context.Context)
+val genFile: oak: Oak -> (Context -> Context)
 ```
 
-This takes an `ASTContext` and the syntax tree.  
-It returns a function that takes a `Context` and returns a new `Context`.
+This takes an `Oak` and it returns a function that takes a `Context` and returns a new `Context`.
 
-We will eventually call this function with our previously constructed `Context`.  
+We will eventually call this function with an initial `Context`. This initial `Context` will have our default config.
 In this function, all events are captured and stored in the `WriterEvents` and `WriterModel`.
 
 While we are traversing the syntax tree, we will compose the `Context -> Context` function based on the content.
@@ -74,6 +72,8 @@ One thing that is a bit harder to grasp initially, is what is happening when you
 In `CodePrinter.fs` we compose a format function that takes a `Context` and returns a `Context`.
 We do this by traversing the syntax tree, and when you put a breakpoint in `genTypeDefn` for example:
 
+<!-- TODO: update screenshot -->
+
 ![Breakpoint in genTypeDefn](../../images/debugging-code-printer-1.png)
 
 we are still in the process of composing the format function.  
@@ -87,4 +87,4 @@ The `dumpAndContinue` helper function can be used to inspect the `Context`.
 Please remove all usages when submitting a PR 😸.
 
 
-<fantomas-nav previous="./Prepare%20Context.html" next="./Formatted%20Code.html"></fantomas-nav>
+<fantomas-nav previous="./Transforming.html" next="./Formatted%20Code.html"></fantomas-nav>
