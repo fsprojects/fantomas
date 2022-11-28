@@ -1,14 +1,9 @@
 module internal Fantomas.Core.Context
 
 open System
-open FSharp.Compiler.Text
-open FSharp.Compiler.Syntax
 open Fantomas.Core
-open Fantomas.Core.ISourceTextExtensions
 open Fantomas.Core.FormatConfig
 open Fantomas.Core.SyntaxOak
-// open Fantomas.Core.TriviaTypes
-// open Fantomas.Core.SourceTransformer
 
 type WriterEvent =
     | Write of string
@@ -287,7 +282,7 @@ let dumpAndContinue (ctx: Context) =
 
     let code = String.concat ctx.Config.EndOfLine.NewLineString lines
 
-    printfn "%s" code
+    printfn $"%s{code}"
 #endif
     ctx
 
@@ -452,7 +447,7 @@ let coli f' (c: seq<'T>) f (ctx: Context) =
     let mutable i = 0
     let e = c.GetEnumerator()
 
-    while (e.MoveNext()) do
+    while e.MoveNext() do
         if tryPick then tryPick <- false else st <- f' st
 
         st <- f i e.Current st
@@ -467,7 +462,7 @@ let colii f' (c: seq<'T>) f (ctx: Context) =
     let mutable i = 0
     let e = c.GetEnumerator()
 
-    while (e.MoveNext()) do
+    while e.MoveNext() do
         if tryPick then tryPick <- false else st <- f' i st
 
         st <- f i e.Current st
@@ -483,7 +478,7 @@ let col f' (c: seq<'T>) f (ctx: Context) =
     let mutable st = ctx
     let e = c.GetEnumerator()
 
-    while (e.MoveNext()) do
+    while e.MoveNext() do
         if tryPick then tryPick <- false else st <- f' st
         st <- f e.Current st
 
@@ -495,7 +490,7 @@ let colEx f' (c: seq<'T>) f (ctx: Context) =
     let mutable st = ctx
     let e = c.GetEnumerator()
 
-    while (e.MoveNext()) do
+    while e.MoveNext() do
         if tryPick then tryPick <- false else st <- f' e.Current st
         st <- f e.Current st
 
@@ -1003,7 +998,7 @@ let sepColon (ctx: Context) =
         defaultExpr ctx
     else
         match lastWriteEventOnLastLine ctx with
-        | Some w when (w.EndsWith(" ")) -> str ": " ctx
+        | Some w when w.EndsWith(" ") -> str ": " ctx
         | None -> str ": " ctx
         | _ -> defaultExpr ctx
 
@@ -1034,105 +1029,6 @@ let sepSemi (ctx: Context) =
 let ifAlignBrackets f g =
     ifElseCtx (fun ctx -> ctx.Config.MultilineBlockBracketsOnSameColumn) f g
 
-(*
-let printTriviaContent (c: TriviaContent) (ctx: Context) =
-    let currentLastLine = ctx.WriterModel.Lines |> List.tryHead
-
-    // Some items like #if or Newline should be printed on a newline
-    // It is hard to always get this right in CodePrinter, so we detect it based on the current code.
-    let addNewline =
-        currentLastLine
-        |> Option.map (fun line -> line.Trim().Length > 0)
-        |> Option.defaultValue false
-
-    let addSpace =
-        currentLastLine
-        |> Option.bind (fun line -> Seq.tryLast line |> Option.map (fun lastChar -> lastChar <> ' '))
-        |> Option.defaultValue false
-
-    match c with
-    | Comment(LineCommentAfterSourceCode s) ->
-        let comment = sprintf "%s%s" (if addSpace then " " else String.empty) s
-
-        writerEvent (WriteBeforeNewline comment)
-    | Comment(BlockComment(s, before, after)) ->
-        ifElse (before && addNewline) sepNlnForTrivia sepNone
-        +> sepSpace
-        +> !-s
-        +> sepSpace
-        +> ifElse after sepNlnForTrivia sepNone
-    | Newline -> (ifElse addNewline (sepNlnForTrivia +> sepNlnForTrivia) sepNlnForTrivia)
-    | Directive s
-    | Comment(CommentOnSingleLine s) -> (ifElse addNewline sepNlnForTrivia sepNone) +> !-s +> sepNlnForTrivia
-    <| ctx
-
-let printTriviaInstructions (triviaInstructions: TriviaInstruction list) =
-    col sepNone triviaInstructions (fun { Trivia = trivia } -> printTriviaContent trivia.Item)
-
-let enterNodeFor (mainNodeName: FsAstType) (range: Range) (ctx: Context) =
-    match Map.tryFind mainNodeName ctx.TriviaBefore with
-    | Some triviaNodes ->
-        let triviaInstructions =
-            List.filter (fun ({ Range = r }: TriviaInstruction) -> RangeHelpers.rangeEq r range) triviaNodes
-
-        match triviaInstructions with
-        | [] -> ctx
-        | triviaInstructions -> printTriviaInstructions triviaInstructions ctx
-    | None -> ctx
-
-let leaveNodeFor (mainNodeName: FsAstType) (range: Range) (ctx: Context) =
-    match Map.tryFind mainNodeName ctx.TriviaAfter with
-    | Some triviaNodes ->
-        let triviaInstructions =
-            List.filter (fun ({ Range = r }: TriviaInstruction) -> RangeHelpers.rangeEq r range) triviaNodes
-
-        match triviaInstructions with
-        | [] -> ctx
-        | triviaInstructions -> printTriviaInstructions triviaInstructions ctx
-    | None -> ctx
-
-let private sepConsideringTriviaContentBeforeBy
-    (hasTriviaBefore: Context -> range -> bool)
-    (sepF: Context -> Context)
-    (range: Range)
-    (ctx: Context)
-    =
-    if hasTriviaBefore ctx range then ctx else sepF ctx
-
-let sepConsideringTriviaContentBeforeForMainNode sepF (mainNodeName: FsAstType) (range: Range) (ctx: Context) =
-    let findNode ctx range =
-        Map.tryFind mainNodeName ctx.TriviaBefore
-        |> Option.defaultValue []
-        |> List.exists (fun ({ Range = r }: TriviaInstruction) -> RangeHelpers.rangeEq r range)
-
-    sepConsideringTriviaContentBeforeBy findNode sepF range ctx
-
-let sepNlnConsideringTriviaContentBeforeFor (mainNode: FsAstType) (range: Range) =
-    sepConsideringTriviaContentBeforeForMainNode sepNln mainNode range
-
-let sepNlnTypeAndMembers
-    (withKeywordNodeType: FsAstType)
-    (withKeywordRange: range option)
-    (firstMemberRange: Range)
-    (mainNodeType: FsAstType)
-    (ctx: Context)
-    : Context =
-    let triviaBeforeWithKeyword: TriviaInstruction list =
-        match withKeywordRange with
-        | None -> []
-        | Some withKeywordRange ->
-            ctx.TriviaBefore
-            |> Map.tryFindOrEmptyList withKeywordNodeType
-            |> List.filter (fun tn -> RangeHelpers.rangeEq withKeywordRange tn.Range)
-
-    match triviaBeforeWithKeyword with
-    | [] ->
-        if ctx.Config.NewlineBetweenTypeDefinitionAndMembers then
-            sepNlnConsideringTriviaContentBeforeFor mainNodeType firstMemberRange ctx
-        else
-            ctx
-    | triviaInstructions -> printTriviaInstructions triviaInstructions ctx
-*)
 let sepNlnWhenWriteBeforeNewlineNotEmptyOr fallback (ctx: Context) =
     if hasWriteBeforeNewlineContent ctx then
         sepNln ctx
