@@ -1,4 +1,4 @@
-namespace System
+namespace Fantomas.Core
 
 open System.Runtime.CompilerServices
 
