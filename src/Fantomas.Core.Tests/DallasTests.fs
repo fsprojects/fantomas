@@ -1755,3 +1755,24 @@ type TypeDefnUnionNode
     =
     inherit NodeBase(range)
 """
+
+[<Test>]
+let ``comment above single parameter application, 2594`` () =
+    formatSourceString
+        false
+        """
+let test1 param =
+    doSomething
+        // my comment
+        (param)
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let test1 param =
+    doSomething
+        // my comment
+        (param)
+"""

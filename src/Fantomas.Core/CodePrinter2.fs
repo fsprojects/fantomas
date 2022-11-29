@@ -1266,10 +1266,17 @@ let genExpr (e: Expr) =
             +> sepSpaceBeforeParenInFuncInvocation node.FunctionExpr node.ArgExpr
             +> genExpr node.ArgExpr
 
-        let long =
-            genExpr node.FunctionExpr
-            +> sepSpaceBeforeParenInFuncInvocation node.FunctionExpr node.ArgExpr
-            +> genMultilineFunctionApplicationArguments node.ArgExpr
+        let long ctx =
+            if
+                (Expr.Node node.ArgExpr).HasContentBefore
+                && futureNlnCheck (genExpr node.ArgExpr) ctx
+            then
+                (genExpr node.FunctionExpr +> indentSepNlnUnindent (genExpr node.ArgExpr)) ctx
+            else
+                (genExpr node.FunctionExpr
+                 +> sepSpaceBeforeParenInFuncInvocation node.FunctionExpr node.ArgExpr
+                 +> genMultilineFunctionApplicationArguments node.ArgExpr)
+                    ctx
 
         expressionFitsOnRestOfLine short long |> genNode node
 
