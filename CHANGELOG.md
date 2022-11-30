@@ -1,5 +1,10 @@
 # Changelog
 
+## [5.2.0-alpha-001] - 2022-11-30
+
+### Changed
+* Introduce custom internal syntax tree. [#2626](https://github.com/fsprojects/fantomas/pull/2626)
+
 ## [5.1.5] - 2022-12-22
 
 ### Fixed
