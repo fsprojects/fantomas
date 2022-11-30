@@ -1,6 +1,6 @@
 # Changelog
 
-## [Unreleased]
+## [5.1.4] - 2022-11-30
 
 ### Fixed
 * Indenting problem with `match` workaround for single-line stroustrup expressions [#2586](https://github.com/fsprojects/fantomas/issues/2586)
