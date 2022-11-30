@@ -5,7 +5,7 @@ index: 6
 ---
 # Fantomas.Core overview (2)
 
-Once the `Oak` and populated with all the found trivia, we can traverse the `Oak` to capture all the `WriterEvent`s.
+Once the `Oak` is populated with all the found trivia, we can traverse the `Oak` to capture all the `WriterEvent`s.
 
 <div class="mermaid text-center">
 graph TD
