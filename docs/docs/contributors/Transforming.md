@@ -84,18 +84,18 @@ In the past we did not have our own tree and were able to pull of formatting by 
 This of course had its limitations and we had to overcome these with some hacks.
 
 Alas, some things in the AST aren't shaped the way we would like them to be. Sometimes, there is too much information, other times to little.
-To stream line our entire process, we've decide to map the untyped tree to our own custom object model.
+To stream line our entire process, we've decided to map the untyped tree to our own custom object model.
 This introduces a lot of flexibility and simplifies our story.
 
 > I thought Fangorn was dangerous - Gimli, son of Glóin
 
-In `Fangorn.fs` we map the AST to our tree model. Some of the benefit we get out of this:
+In `Fangorn.fs` we map the AST to our tree model. Some of the benefits we get out of this:
 
-- The Oak model does not differentiate between implementation files and signature files. We use one tree model which allow for optimal code re-use in `CodePrinter2.fs`.
+- The Oak model does not differentiate between implementation files and signature files. We use one tree model which allows for optimal code re-use in `CodePrinter2.fs`.
 - We don't map all possible combinations of AST into our model. Sometimes valid AST code can in theory be created, 
   but will in practise never exist. For example [SynTypeDefnRepr.Exception](../../reference/fsharp-compiler-syntax-syntypedefnrepr.html#Exception). It is defined in `SyntaxTree.fs` yet the parser (`pars.fs`) will never create it.
   The F# compiler uses this later in the typed tree. We will throw an exception when encountering this during the mapping as we have the foresight of what the parser doesn't create.
-- Recursive types are all consider as toplevel types. This is not the case in the AST but we map it as such.
+- Recursive types are all considered as toplevel types. This is not the case in the AST but we map it as such.
 - Some nodes are combined into one, for example a toplevel attribute will always be linked to its sibling do expression.
 - The ranges of some nodes are being calculated when they lead to a more accurate result.
 
@@ -151,7 +151,7 @@ Note: blank lines are detected differently, we go over all the lines via the `IS
 
 #### Inserting trivia
 
-Once we have the trivia, we can insert them to an `Node` they belong to.
+Once we have the trivia, we can insert them to a `Node` they belong to.
 This is one of the key reasons why we work with our own tree. We can add the trivia information to the best suitable child node in the `Oak`.
 Every `Node` can have `ContentBefore` and `ContentAfter`, this is how we try to reconstruct everything.
 
