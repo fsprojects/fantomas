@@ -2051,38 +2051,38 @@ let genMultilineInfixExpr (node: ExprInfixAppNode) =
 let genExprInMultilineInfixExpr (e: Expr) =
     match e with
     | Expr.CompExprBody node ->
-        let genLetOrUse (letOrUseNode: ExprLetOrUseNode) =
-            let genIn =
-                match letOrUseNode.In with
-                | None -> !- "in"
-                | Some inNode -> genSingleTextNode inNode
+        let areLetOrUseStatementsEndingWithOtherStatement =
+            node.Statements
+            |> List.mapWithLast
+                (function
+                | ComputationExpressionStatement.LetOrUseStatement _ -> true
+                | _ -> false)
+                (function
+                | ComputationExpressionStatement.OtherStatement _ -> true
+                | _ -> false)
+            |> List.reduce (&&)
 
-            genBinding letOrUseNode.Binding +> sepSpace +> genIn +> sepSpace
-            |> genNode letOrUseNode
+        if not areLetOrUseStatementsEndingWithOtherStatement then
+            genExpr e
+        else
+            colWithNlnWhenMappedNodeIsMultiline
+                true
+                ComputationExpressionStatement.Node
+                (fun ces ->
+                    match ces with
+                    | ComputationExpressionStatement.LetOrUseStatement letOrUseNode ->
+                        let genIn =
+                            match letOrUseNode.In with
+                            | None -> !- "in"
+                            | Some inNode -> genSingleTextNode inNode
 
-        match node.Statements with
-        | [ ComputationExpressionStatement.LetOrUseStatement letOrUseNode1
-            ComputationExpressionStatement.LetOrUseStatement letOrUseNode2
-            ComputationExpressionStatement.OtherStatement otherNode ] ->
-            atCurrentColumn (
-                genLetOrUse letOrUseNode1
-                +> sepNln
-                +> genLetOrUse letOrUseNode2
-                +> sepNln
-                +> sepNlnUnlessContentBefore (Expr.Node otherNode)
-                +> genExpr otherNode
-                |> genNode node
-            )
-        | [ ComputationExpressionStatement.LetOrUseStatement letOrUseNode
-            ComputationExpressionStatement.OtherStatement otherNode ] ->
-            atCurrentColumn (
-                genLetOrUse letOrUseNode
-                +> sepNln
-                +> sepNlnUnlessContentBefore (Expr.Node otherNode)
-                +> genExpr otherNode
-                |> genNode node
-            )
-        | _ -> genExpr e
+                        genBinding letOrUseNode.Binding +> sepSpace +> genIn +> sepSpace
+                        |> genNode letOrUseNode
+                    | ComputationExpressionStatement.OtherStatement otherNode -> genExpr otherNode
+                    | _ -> failwith "unexpected ComputationExpressionStatement")
+                node.Statements
+            |> atCurrentColumn
+            |> genNode node
     | Expr.Paren parenNode ->
         match parenNode.Expr with
         | Expr.Match _ as mex ->
