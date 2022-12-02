@@ -1688,3 +1688,26 @@ type ILModuleReader =
     // ILModuleReader objects only need to be explicitly disposed if memory mapping is used, i.e. reduceMemoryUsage = false
     inherit IDisposable
 """
+
+[<Test>]
+let ``multiline infix operator with three let in bindings`` () =
+    formatSourceString
+        false
+        """
+Ok
+<| let a = 1 in
+   let b = 2 in
+   let c = 3 in
+   ()
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+Ok
+<| let a = 1 in
+   let b = 2 in
+   let c = 3 in
+   ()
+"""

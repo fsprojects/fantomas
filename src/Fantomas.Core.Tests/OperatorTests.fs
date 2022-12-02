@@ -951,7 +951,6 @@ let isCustomOperationProjectionParameter i (nm: Ident) =
                 | Some argInfos ->
                     i < argInfos.Length
                     && let (_, argInfo) = List.item i argInfos in
-
                        HasFSharpAttribute cenv.g cenv.g.attrib_ProjectionParameterAttribute argInfo.Attribs)
 
         if List.allEqual vs then
@@ -1004,6 +1003,7 @@ let MethInfosEquivByNameAndSig erasureFlag ignoreFinal g amap m minfo minfo2 =
 let MethInfosEquivByNameAndSig erasureFlag ignoreFinal g amap m minfo minfo2 =
     MethInfosEquivByNameAndPartialSig erasureFlag ignoreFinal g amap m minfo minfo2
     && let (CompiledSig(_, retTy, formalMethTypars, _)) = CompiledSigOfMeth g amap m minfo in
+
        let (CompiledSig(_, retTy2, formalMethTypars2, _)) =
            CompiledSigOfMeth g amap m minfo2 in
 
