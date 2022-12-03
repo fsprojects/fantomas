@@ -314,4 +314,8 @@
     <PackageReference Include="System.Runtime" Version="4.3.1" />
     <PackageReference Include="FsLexYacc" Version="10.2.0" PrivateAssets="all" />
   </ItemGroup>
+
+  <Target Name="AcquireCompilerFiles" Condition="!Exists('../../.deps/$(FCSCommitHash)')" BeforeTargets="CollectPackageReferences">
+    <Exec Command="dotnet fsi ../../build.fsx -p Init" />
+  </Target>
 </Project>

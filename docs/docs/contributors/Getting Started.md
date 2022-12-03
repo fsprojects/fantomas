@@ -45,11 +45,14 @@ This will update your fork with the latest from `fsprojects/fantomas` on your ma
 
 ## Initial build
 
-After cloning the repository, you should restore the local dotnet tools and download the F# compiler source code:
+After cloning the repository, you should restore the local dotnet tools and the solution:
 
 ```shell
-dotnet fsi build.fsx -p Init
+dotnet tool restore
+dotnet restore
 ```
+
+The restore of project `Fantomas.FCS` (via the solution restore) will download the F# compiler source code.
 
 Afterwards, you can run the default build script.
 This will build the solution, run all unit tests and do everything that the CI build does.
