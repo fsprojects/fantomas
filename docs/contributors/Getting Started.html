@@ -218,9 +218,11 @@ git push
 </code></pre></td></tr></table>
 <p>This will update your fork with the latest from <code>fsprojects/fantomas</code> on your machine and push those updates to your remote fork.</p>
 <h2><a name="Initial-build" class="anchor" href="#Initial-build">Initial build</a></h2>
-<p>After cloning the repository, you should restore the local dotnet tools and download the F# compiler source code:</p>
-<table class="pre"><tr><td class="snippet"><pre class="fssnip"><code lang="shell">dotnet fsi build.fsx -p Init
+<p>After cloning the repository, you should restore the local dotnet tools and the solution:</p>
+<table class="pre"><tr><td class="snippet"><pre class="fssnip"><code lang="shell">dotnet tool restore
+dotnet restore
 </code></pre></td></tr></table>
+<p>The restore of project <code>Fantomas.FCS</code> (via the solution restore) will download the F# compiler source code.</p>
 <p>Afterwards, you can run the default build script.
 This will build the solution, run all unit tests and do everything that the CI build does.</p>
 <table class="pre"><tr><td class="snippet"><pre class="fssnip"><code lang="shell">dotnet fsi build.fsx
