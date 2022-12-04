@@ -1779,7 +1779,7 @@ type Meh =
         * timeout: int ->
         obj
 """
-        { config with MaxLineLength = 5 }
+        { config with MaxLineLength = 12 }
     |> prepend newline
     |> should
         equal
