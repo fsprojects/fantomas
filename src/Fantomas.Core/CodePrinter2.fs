@@ -3121,27 +3121,6 @@ let sepNlnTypeAndMembers (node: ITypeDefn) (ctx: Context) : Context =
             else
                 ctx
 
-let genTypeWithImplicitConstructor (typeName: TypeNameNode) =
-    let implicitConstructor = typeName.ImplicitConstructor
-    let hasAndKeyword = typeName.LeadingKeyword.Text = "and"
-
-    genXml typeName.XmlDoc
-    +> onlyIfNot hasAndKeyword (genAttributes typeName.Attributes)
-    +> genSingleTextNode typeName.LeadingKeyword
-    +> onlyIf hasAndKeyword (sepSpace +> genOnelinerAttributes typeName.Attributes)
-    +> sepSpace
-    +> genAccessOpt typeName.Accessibility
-    +> genTypeAndParam (genIdentListNode typeName.Identifier) typeName.TypeParameters
-    +> onlyIfNot typeName.Constraints.IsEmpty (sepSpace +> genTypeConstraints typeName.Constraints)
-    +> leadingExpressionIsMultiline
-        (optSingle (fun imCtor -> sepSpaceBeforeClassConstructor +> genImplicitConstructor imCtor) implicitConstructor)
-        (fun isMulti ctx ->
-            if isMulti && ctx.Config.AlternativeLongMemberDefinitions then
-                (optSingle genSingleTextNode typeName.EqualsToken) ctx
-            else
-                (sepSpace +> optSingle genSingleTextNode typeName.EqualsToken) ctx)
-    |> genNode typeName
-
 let genImplicitConstructor (node: ImplicitConstructorNode) =
     let genSimplePat (node: SimplePatNode) =
         genOnelinerAttributes node.Attributes
@@ -3189,9 +3168,9 @@ let genImplicitConstructor (node: ImplicitConstructorNode) =
 let genTypeDefn (td: TypeDefn) =
     let typeDefnNode = TypeDefn.TypeDefnNode td
     let typeName = typeDefnNode.TypeName
-    let members = typeDefnNode.Members
 
     let header =
+        let implicitConstructor = typeName.ImplicitConstructor
         let hasAndKeyword = typeName.LeadingKeyword.Text = "and"
 
         genXml typeName.XmlDoc
@@ -3201,11 +3180,19 @@ let genTypeDefn (td: TypeDefn) =
         +> sepSpace
         +> genAccessOpt typeName.Accessibility
         +> genTypeAndParam (genIdentListNode typeName.Identifier) typeName.TypeParameters
-        +> sepSpace
-        +> genTypeConstraints typeName.Constraints
-        +> onlyIfNot typeName.Constraints.IsEmpty sepSpace
-        +> optSingle genSingleTextNode typeName.EqualsToken
+        +> onlyIfNot typeName.Constraints.IsEmpty (sepSpace +> genTypeConstraints typeName.Constraints)
+        +> leadingExpressionIsMultiline
+            (optSingle
+                (fun imCtor -> sepSpaceBeforeClassConstructor +> genImplicitConstructor imCtor)
+                implicitConstructor)
+            (fun isMulti ctx ->
+                if isMulti && ctx.Config.AlternativeLongMemberDefinitions then
+                    (optSingle genSingleTextNode typeName.EqualsToken) ctx
+                else
+                    (sepSpace +> optSingle genSingleTextNode typeName.EqualsToken) ctx)
         |> genNode typeName
+
+    let members = typeDefnNode.Members
 
     match td with
     | TypeDefn.Enum node ->
@@ -3347,7 +3334,7 @@ let genTypeDefn (td: TypeDefn) =
                 sepNlnUnlessContentBefore (MemberDefn.Node h)
                 +> indentSepNlnUnindent (genMemberDefnList members)
 
-        genTypeWithImplicitConstructor typeName
+        header
         +> indentSepNlnUnindent (
             genSingleTextNode bodyNode.Kind
             +> onlyIfNot bodyNode.Members.IsEmpty (indentSepNlnUnindent (genMemberDefnList bodyNode.Members))
@@ -3372,10 +3359,7 @@ let genTypeDefn (td: TypeDefn) =
             +> sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth (genTypeList node.TypeList)
         )
         |> genNode node
-    | TypeDefn.Regular node ->
-        genTypeWithImplicitConstructor typeName
-        +> indentSepNlnUnindent (genMemberDefnList members)
-        |> genNode node
+    | TypeDefn.Regular node -> header +> indentSepNlnUnindent (genMemberDefnList members) |> genNode node
 
 let genTypeList (node: TypeFunsNode) =
     let shortExpr =
