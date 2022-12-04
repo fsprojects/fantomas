@@ -1278,3 +1278,35 @@ type Foo =
     // Baz
     abstract Quux: int
 """
+
+[<Test>]
+let ``attribute on ExplicitCtor is lost, 2638`` () =
+    formatSourceString
+        false
+        """
+open System
+
+type MyClass (a: int, b: int) =
+
+    member val PropA = a with get, set
+    member val PropB = b with get, set
+
+    [<Obsolete("Do not use")>]
+    new(x: int) =
+        MyClass(x, x)
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+open System
+
+type MyClass(a: int, b: int) =
+
+    member val PropA = a with get, set
+    member val PropB = b with get, set
+
+    [<Obsolete("Do not use")>]
+    new(x: int) = MyClass(x, x)
+"""
