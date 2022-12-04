@@ -5,6 +5,7 @@
 ### Fixed
 * Regression around `let ...  in` in multiline infix application. [#2633](https://github.com/fsprojects/fantomas/pull/2633)
 * Improve TypeDefn. [#2636](https://github.com/fsprojects/fantomas/pull/2636)
+* Trivia before equals in multiline implicit type constructor. [#2637](https://github.com/fsprojects/fantomas/pull/2637)
 
 ## [5.2.0-alpha-001] - 2022-11-30
 
