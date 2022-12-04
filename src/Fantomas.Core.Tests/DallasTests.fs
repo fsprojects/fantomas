@@ -1726,3 +1726,32 @@ let ``type alias with trivia`` () =
         """
 (* 1 *) type (* 2 *) A (* 3 *) = (* 4 *) int (* 5 *)
 """
+
+[<Test>]
+let ``trivia before equals in multiline implicit constructor`` () =
+    formatSourceString
+        false
+        """
+type TypeDefnUnionNode
+    (
+        typeNameNode,
+        accessibility: SingleTextNode option,
+        unionCases: UnionCaseNode list,
+        members: MemberDefn list,
+        range
+    )
+
+ =
+    inherit NodeBase(range)
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type TypeDefnUnionNode
+    (typeNameNode, accessibility: SingleTextNode option, unionCases: UnionCaseNode list, members: MemberDefn list, range)
+
+    =
+    inherit NodeBase(range)
+"""
