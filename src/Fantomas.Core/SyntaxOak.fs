@@ -2281,9 +2281,7 @@ type TypeDefnUnionNode
         unionCases: UnionCaseNode list,
         members: MemberDefn list,
         range
-    )
-
- =
+    ) =
     inherit NodeBase(range)
 
     override this.Children =
