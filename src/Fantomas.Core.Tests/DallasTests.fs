@@ -1755,3 +1755,35 @@ type TypeDefnUnionNode
     =
     inherit NodeBase(range)
 """
+
+[<Test>]
+let ``attributes in explicit constructor`` () =
+    formatSourceString
+        false
+        """
+open System
+
+type MyClass (a: int, b: int) = 
+    
+    member val PropA = a with get, set
+    member val PropB = b with get, set
+
+    [<Obsolete("Do not use")>]
+    new(x: int) =
+        MyClass(x, x)
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+open System
+
+type MyClass(a: int, b: int) =
+
+    member val PropA = a with get, set
+    member val PropB = b with get, set
+
+    [<Obsolete("Do not use")>]
+    new(x: int) = MyClass(x, x)
+"""

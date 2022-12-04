@@ -3513,6 +3513,7 @@ let genMemberDefn (md: MemberDefn) =
     | MemberDefn.DoExpr node -> genExpr (Expr.Single node)
     | MemberDefn.ExplicitCtor node ->
         genXml node.XmlDoc
+        +> genAttributes node.Attributes
         +> genAccessOpt node.Accessibility
         +> genSingleTextNode node.New
         +> sepSpaceBeforeClassConstructor
