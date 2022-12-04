@@ -2199,6 +2199,7 @@ type TypeNameNode
         identifier: IdentListNode,
         typeParams: TyparDecls option,
         constraints: TypeConstraint list,
+        implicitConstructor: ImplicitConstructorNode option,
         equalsToken: SingleTextNode option,
         withKeyword: SingleTextNode option,
         range
@@ -2209,10 +2210,11 @@ type TypeNameNode
         [| yield! noa xmlDoc
            yield! noa attributes
            yield leadingKeyword
-           yield! noa (Option.map TyparDecls.Node typeParams)
-           yield! List.map TypeConstraint.Node constraints
            yield! noa ao
            yield identifier
+           yield! noa (Option.map TyparDecls.Node typeParams)
+           yield! List.map TypeConstraint.Node constraints
+           yield! noa implicitConstructor
            yield! noa equalsToken
            yield! noa withKeyword |]
 
@@ -2224,6 +2226,7 @@ type TypeNameNode
     member x.Identifier = identifier
     member x.TypeParameters = typeParams
     member x.Constraints = constraints
+    member x.ImplicitConstructor = implicitConstructor
     member x.EqualsToken = equalsToken
     member x.WithKeyword = withKeyword
 
@@ -2444,13 +2447,11 @@ type TypeDefnDelegateNode(typeNameNode, delegateNode: SingleTextNode, typeList: 
         member x.TypeName = typeNameNode
         member x.Members = List.empty
 
-type TypeDefnRegularNode(typeNameNode, implicitCtor: ImplicitConstructorNode option, members, range) =
+type TypeDefnRegularNode(typeNameNode, members, range) =
     inherit NodeBase(range)
 
     override this.Children =
         [| yield typeNameNode; yield! List.map MemberDefn.Node members |]
-
-    member x.ImplicitConstructor = implicitCtor
 
     interface ITypeDefn with
         member x.TypeName = typeNameNode

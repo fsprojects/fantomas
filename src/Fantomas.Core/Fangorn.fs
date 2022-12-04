@@ -2038,13 +2038,27 @@ let mkTypeDefn
                 | SynTypeDefnLeadingKeyword.StaticType _
                 | SynTypeDefnLeadingKeyword.Synthetic _ -> failwithf "unexpected %A" trivia.LeadingKeyword
 
+            let implicitConstructorNode =
+                match implicitConstructor with
+                | Some(SynMemberDefn.ImplicitCtor(vis, attrs, pats, self, xmlDoc, m)) ->
+                    mkImplicitCtor creationAide vis attrs pats self xmlDoc m |> Some
+                | _ -> None
+
             let m =
-                if not px.IsEmpty then
-                    unionRanges px.Range mIdentifierNode
-                else
-                    match ats with
-                    | [] -> unionRanges (leadingKeyword :> Node).Range mIdentifierNode
-                    | firstAttr :: _ -> unionRanges firstAttr.Range mIdentifierNode
+                let startRange =
+                    if not px.IsEmpty then
+                        px.Range
+                    else
+                        match ats with
+                        | [] -> (leadingKeyword :> Node).Range
+                        | firstAttr :: _ -> firstAttr.Range
+
+                let endRange =
+                    match trivia.EqualsRange with
+                    | None -> mIdentifierNode
+                    | Some mEq -> mEq
+
+                unionRanges startRange endRange
 
             TypeNameNode(
                 mkXmlDoc px,
@@ -2054,6 +2068,7 @@ let mkTypeDefn
                 identifierNode,
                 Option.map (mkSynTyparDecls creationAide) tds,
                 List.map (mkSynTypeConstraint creationAide) tcs,
+                implicitConstructorNode,
                 Option.map (stn "=") trivia.EqualsRange,
                 Option.map (stn "with") trivia.WithKeyword,
                 m
@@ -2102,7 +2117,7 @@ let mkTypeDefn
         |> TypeDefn.Record
 
     | SynTypeDefnRepr.Simple(simpleRepr = SynTypeDefnSimpleRepr.TypeAbbrev(rhsType = t)) ->
-        TypeDefn.Abbrev(TypeDefnAbbrevNode(typeNameNode, mkType creationAide t, members, range))
+        TypeDefn.Abbrev(TypeDefnAbbrevNode(typeNameNode, mkType creationAide t, members, typeDefnRange))
 
     | SynTypeDefnRepr.Simple(simpleRepr = SynTypeDefnSimpleRepr.None _) -> TypeDefn.None typeNameNode
 
@@ -2150,6 +2165,7 @@ let mkTypeDefn
                 typeNameNode.TypeParameters,
                 typeNameNode.Constraints,
                 None,
+                None,
                 Some(stn "with" mWith),
                 (typeNameNode :> Node).Range
             )
@@ -2165,11 +2181,6 @@ let mkTypeDefn
         |> TypeDefn.Delegate
 
     | SynTypeDefnRepr.ObjectModel(members = objectMembers) ->
-        let implicitConstructorNode =
-            match implicitConstructor with
-            | Some(SynMemberDefn.ImplicitCtor(vis, attrs, pats, self, xmlDoc, m)) ->
-                mkImplicitCtor creationAide vis attrs pats self xmlDoc m |> Some
-            | _ -> None
 
         let allMembers =
             let objectMembers =
@@ -2181,8 +2192,7 @@ let mkTypeDefn
 
             [ yield! objectMembers; yield! members ]
 
-        TypeDefnRegularNode(typeNameNode, implicitConstructorNode, allMembers, typeDefnRange)
-        |> TypeDefn.Regular
+        TypeDefnRegularNode(typeNameNode, allMembers, typeDefnRange) |> TypeDefn.Regular
     | _ -> failwithf "Could not create a TypeDefn for %A" typeRepr
 
 let mkWithGetSet (withKeyword: range option) (getSet: GetSetKeywords option) =
@@ -2750,6 +2760,7 @@ let mkTypeDefnSig (creationAide: CreationAide) (SynTypeDefnSig(typeInfo, typeRep
                 identifierNode,
                 Option.map (mkSynTyparDecls creationAide) tds,
                 List.map (mkSynTypeConstraint creationAide) tcs,
+                None,
                 Option.map (stn "=") trivia.EqualsRange,
                 Option.map (stn "with") trivia.WithKeyword,
                 m
@@ -2811,6 +2822,7 @@ let mkTypeDefnSig (creationAide: CreationAide) (SynTypeDefnSig(typeInfo, typeRep
                 typeNameNode.TypeParameters,
                 typeNameNode.Constraints,
                 None,
+                None,
                 typeNameNode.WithKeyword,
                 (typeNameNode :> Node).Range
             )
@@ -2854,6 +2866,7 @@ let mkTypeDefnSig (creationAide: CreationAide) (SynTypeDefnSig(typeInfo, typeRep
                 typeNameNode.TypeParameters,
                 typeNameNode.Constraints,
                 None,
+                None,
                 Some(stn "with" mWith),
                 (typeNameNode :> Node).Range
             )
@@ -2874,8 +2887,7 @@ let mkTypeDefnSig (creationAide: CreationAide) (SynTypeDefnSig(typeInfo, typeRep
 
             [ yield! objectMembers; yield! members ]
 
-        TypeDefnRegularNode(typeNameNode, None, allMembers, typeDefnRange)
-        |> TypeDefn.Regular
+        TypeDefnRegularNode(typeNameNode, allMembers, typeDefnRange) |> TypeDefn.Regular
     | _ -> failwithf "Could not create a TypeDefn for %A" typeRepr
 
 let rec mkModuleSigDecls
