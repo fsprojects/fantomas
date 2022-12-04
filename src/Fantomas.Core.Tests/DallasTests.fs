@@ -1711,3 +1711,18 @@ Ok
    let c = 3 in
    ()
 """
+
+[<Test>]
+let ``type alias with trivia`` () =
+    formatSourceString
+        false
+        """
+(* 1 *) type (* 2 *) A (* 3 *) = (* 4 *) int (* 5 *)
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+(* 1 *) type (* 2 *) A (* 3 *) = (* 4 *) int (* 5 *)
+"""
