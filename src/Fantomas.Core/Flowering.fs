@@ -27,11 +27,13 @@ let internal collectTriviaFromCodeComments
             let startLine = source.GetLineString(r.StartLine - 1)
             let endLine = source.GetLineString(r.EndLine - 1)
 
+            let contentBeforeComment =
+                startLine.Substring(0, r.StartColumn).TrimStart(' ', ';').Length
+
+            let contentAfterComment = endLine.Substring(r.EndColumn).TrimEnd(' ', ';').Length
+
             let content =
-                if
-                    startLine.TrimStart(' ', ';').StartsWith("(*")
-                    && endLine.TrimEnd(' ', ';').EndsWith("*)")
-                then
+                if contentBeforeComment = 0 && contentAfterComment = 0 then
                     CommentOnSingleLine content
                 else
                     BlockComment(content, false, false)
