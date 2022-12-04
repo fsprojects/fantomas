@@ -3121,7 +3121,8 @@ let sepNlnTypeAndMembers (node: ITypeDefn) (ctx: Context) : Context =
             else
                 ctx
 
-let genTypeWithImplicitConstructor (typeName: TypeNameNode) (implicitConstructor: ImplicitConstructorNode option) =
+let genTypeWithImplicitConstructor (typeName: TypeNameNode) =
+    let implicitConstructor = typeName.ImplicitConstructor
     let hasAndKeyword = typeName.LeadingKeyword.Text = "and"
 
     genXml typeName.XmlDoc
@@ -3346,7 +3347,7 @@ let genTypeDefn (td: TypeDefn) =
                 sepNlnUnlessContentBefore (MemberDefn.Node h)
                 +> indentSepNlnUnindent (genMemberDefnList members)
 
-        genTypeWithImplicitConstructor typeName node.ImplicitConstructor
+        genTypeWithImplicitConstructor typeName
         +> indentSepNlnUnindent (
             genSingleTextNode bodyNode.Kind
             +> onlyIfNot bodyNode.Members.IsEmpty (indentSepNlnUnindent (genMemberDefnList bodyNode.Members))
@@ -3372,9 +3373,9 @@ let genTypeDefn (td: TypeDefn) =
         )
         |> genNode node
     | TypeDefn.Regular node ->
-        genTypeWithImplicitConstructor typeName node.ImplicitConstructor
+        genTypeWithImplicitConstructor typeName
         +> indentSepNlnUnindent (genMemberDefnList members)
-        |> genNode (TypeDefn.Node td)
+        |> genNode node
 
 let genTypeList (node: TypeFunsNode) =
     let shortExpr =
