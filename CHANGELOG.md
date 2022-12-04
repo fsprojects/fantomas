@@ -1,10 +1,5 @@
 # Changelog
 
-## [Unreleased]
-
-### Fixed
-* Regression: Attribute on ExplicitCtor is lost. [#2638](https://github.com/fsprojects/fantomas/pull/2638)
-
 ## [5.2.0-alpha-002] - 2022-12-04
 
 ### Fixed
