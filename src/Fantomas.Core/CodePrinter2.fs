@@ -3138,7 +3138,7 @@ let sepNlnTypeAndMembers (node: ITypeDefn) (ctx: Context) : Context =
     | [] -> sepNone ctx
     | firstMember :: _ ->
         match node.TypeName.WithKeyword with
-        | Some node when (not (Seq.isEmpty (node :> Node).ContentBefore)) -> enterNode node ctx
+        | Some node when (node :> Node).HasContentBefore -> enterNode node ctx
         | _ ->
             if ctx.Config.NewlineBetweenTypeDefinitionAndMembers then
                 sepNlnUnlessContentBefore (MemberDefn.Node firstMember) ctx
@@ -3671,7 +3671,7 @@ let genModuleDecl (md: ModuleDecl) =
     | ModuleDecl.Val node -> genVal node None
 
 let sepNlnUnlessContentBefore (node: Node) =
-    if Seq.isEmpty node.ContentBefore then sepNln else sepNone
+    if not node.HasContentBefore then sepNln else sepNone
 
 let colWithNlnWhenMappedNodeIsMultiline<'n>
     (withUseConfig: bool)
@@ -3696,7 +3696,7 @@ let colWithNlnWhenNodeIsMultiline<'n when 'n :> Node>
 let genModule (m: ModuleOrNamespaceNode) =
     let newline =
         match m.Declarations with
-        | [] -> onlyIfNot (Seq.isEmpty (m :> Node).ContentAfter) sepNln
+        | [] -> onlyIf (m :> Node).HasContentAfter sepNln
         | h :: _ -> sepNln +> sepNlnUnlessContentBefore (ModuleDecl.Node h)
 
     optSingle
