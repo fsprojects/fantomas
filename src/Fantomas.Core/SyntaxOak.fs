@@ -19,7 +19,9 @@ type TriviaNode(content: TriviaContent, range: range) =
 [<Interface>]
 type Node =
     abstract ContentBefore: TriviaNode seq
+    abstract HasContentBefore: bool
     abstract ContentAfter: TriviaNode seq
+    abstract HasContentAfter: bool
     abstract Range: range
     abstract Children: Node array
     abstract AddBefore: triviaNode: TriviaNode -> unit
@@ -34,7 +36,9 @@ type NodeBase(range: range) =
 
     interface Node with
         member _.ContentBefore: TriviaNode seq = nodesBefore
+        member x.HasContentBefore: bool = not (Seq.isEmpty nodesBefore)
         member _.ContentAfter: TriviaNode seq = nodesAfter
+        member x.HasContentAfter: bool = not (Seq.isEmpty nodesAfter)
         member _.Range = range
         member _.AddBefore(triviaNode: TriviaNode) = nodesBefore.Enqueue triviaNode
         member _.AddAfter(triviaNode: TriviaNode) = nodesAfter.Enqueue triviaNode

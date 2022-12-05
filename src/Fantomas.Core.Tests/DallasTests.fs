@@ -1755,3 +1755,51 @@ type TypeDefnUnionNode
     =
     inherit NodeBase(range)
 """
+
+[<Test>]
+let ``comment above single parameter application, 2594`` () =
+    formatSourceString
+        false
+        """
+let test1 param =
+    doSomething
+        // my comment
+        (param)
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let test1 param =
+    doSomething
+        // my comment
+        (param)
+"""
+
+[<Test>]
+let ``comment above multiline single parentheses application`` () =
+    formatSourceString
+        false
+        """
+myFunction
+    // my comment
+    (arg1,
+     arg2,
+     // another comment
+     arg3)
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+myFunction
+    // my comment
+    (
+        arg1,
+        arg2,
+        // another comment
+        arg3
+    )
+"""
