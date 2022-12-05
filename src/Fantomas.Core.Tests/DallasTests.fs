@@ -1776,3 +1776,30 @@ let test1 param =
         // my comment
         (param)
 """
+
+[<Test>]
+let ``comment above multiline single parentheses application`` () =
+    formatSourceString
+        false
+        """
+myFunction
+    // my comment
+    (arg1,
+     arg2,
+     // another comment
+     arg3)
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+myFunction
+    // my comment
+    (
+        arg1,
+        arg2,
+        // another comment
+        arg3
+    )
+"""

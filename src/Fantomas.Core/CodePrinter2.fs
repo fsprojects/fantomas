@@ -1267,16 +1267,33 @@ let genExpr (e: Expr) =
             +> genExpr node.ArgExpr
 
         let long ctx =
-            if
-                (Expr.Node node.ArgExpr).HasContentBefore
-                && futureNlnCheck (genExpr node.ArgExpr) ctx
-            then
-                (genExpr node.FunctionExpr +> indentSepNlnUnindent (genExpr node.ArgExpr)) ctx
-            else
-                (genExpr node.FunctionExpr
-                 +> sepSpaceBeforeParenInFuncInvocation node.FunctionExpr node.ArgExpr
-                 +> genMultilineFunctionApplicationArguments node.ArgExpr)
-                    ctx
+            let genDefaultLong =
+                genExpr node.FunctionExpr
+                +> sepSpaceBeforeParenInFuncInvocation node.FunctionExpr node.ArgExpr
+                +> genMultilineFunctionApplicationArguments node.ArgExpr
+
+            match node.ArgExpr with
+            | Expr.Paren parenNode when (parenNode :> Node).HasContentBefore ->
+                // We make a copy of the parenthesis argument (without the trivia being copied).
+                // Then we check if that is was multiline or not.
+                let parenNode' =
+                    ExprParenNode(
+                        parenNode.OpeningParen,
+                        parenNode.Expr,
+                        parenNode.ClosingParen,
+                        (parenNode :> Node).Range
+                    )
+                    |> Expr.Paren
+
+                let isSingleLineWithoutTriviaBefore = futureNlnCheck (genExpr parenNode') ctx
+
+                if not isSingleLineWithoutTriviaBefore then
+                    (genExpr node.FunctionExpr +> indentSepNlnUnindent (genExpr node.ArgExpr)) ctx
+                else
+                    (genExpr node.FunctionExpr
+                     +> indentSepNlnUnindent (genMultilineFunctionApplicationArguments node.ArgExpr))
+                        ctx
+            | _ -> genDefaultLong ctx
 
         expressionFitsOnRestOfLine short long |> genNode node
 
