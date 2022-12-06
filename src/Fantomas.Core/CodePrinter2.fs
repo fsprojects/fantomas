@@ -838,7 +838,7 @@ let genExpr (e: Expr) =
     | Expr.ParenLambda node ->
         genSingleTextNode node.OpeningParen
         +> leadingExpressionIsMultiline
-            (genLambda node.Lambda +> sepNlnWhenWriteBeforeNewlineNotEmpty)
+            (genLambdaWithParen node.Lambda +> sepNlnWhenWriteBeforeNewlineNotEmpty)
             (fun isMultiline ctx -> onlyIf (isMultiline && ctx.Config.MultiLineLambdaClosingNewline) sepNln ctx)
         +> genSingleTextNode node.ClosingParen
         |> genNode node
@@ -1907,7 +1907,7 @@ let genNamedArgumentExpr (node: ExprInfixAppNode) =
 
     expressionFitsOnRestOfLine short long |> genNode node
 
-let genLambda (node: ExprLambdaNode) =
+let genLambdaAux (includeClosingParen: bool) (node: ExprLambdaNode) =
     let genPats =
         let shortPats = sepSpace +> col sepSpace node.Parameters genPat
 
@@ -1926,11 +1926,29 @@ let genLambda (node: ExprLambdaNode) =
     +> sepSpace
     +> genSingleTextNode node.Arrow
     +> (fun ctx ->
+        let maxLineLength = ctx.Config.MaxLineLength
+
+        let ctx =
+            // In this check we want to write the lambda body in one line.
+            // Depending on `includeClosingParen` we want to check if the closing parenthesis also still fits on the remainder of the current line.
+            // ...fun a -> expr)
+            // This is to prevent the edge case where the lambda fits on one line but the closing parenthesis would go over the max_line_length.
+            if includeClosingParen then
+                { ctx with Config = { ctx.Config with MaxLineLength = maxLineLength - 1 } }
+            else
+                ctx
+
         if hasWriteBeforeNewlineContent ctx then
             indentSepNlnUnindent (genExpr node.Expr) ctx
         else
-            sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidthUnlessStroustrup genExpr node.Expr ctx)
+            sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidthUnlessStroustrup genExpr node.Expr ctx
+        |> fun ctx ->
+            // Afterwards we do need to reset the max_line_length to the original value.
+            { ctx with Config = { ctx.Config with MaxLineLength = maxLineLength } })
     |> genNode node
+
+let genLambda = genLambdaAux false
+let genLambdaWithParen = genLambdaAux true
 
 let genClauses (clauses: MatchClauseNode list) =
     let lastIndex = clauses.Length - 1
@@ -2198,7 +2216,7 @@ let genAppWithLambda sep (node: ExprAppWithLambdaNode) =
         +> onlyIf (List.isNotEmpty node.Arguments) sepSpace
         +> (genSingleTextNode node.OpeningParen
             +> (match node.Lambda with
-                | Choice1Of2 lambdaNode -> genLambda lambdaNode |> genNode lambdaNode
+                | Choice1Of2 lambdaNode -> genLambdaWithParen lambdaNode |> genNode lambdaNode
                 | Choice2Of2 matchLambdaNode ->
                     genSingleTextNode matchLambdaNode.Function
                     +> indentSepNlnUnindent (genClauses matchLambdaNode.Clauses)
@@ -2214,7 +2232,7 @@ let genAppWithLambda sep (node: ExprAppWithLambdaNode) =
                     match node.Lambda with
                     | Choice1Of2 lambdaNode ->
                         genSingleTextNode node.OpeningParen
-                        +> (genLambda lambdaNode |> genNode lambdaNode)
+                        +> (genLambdaWithParen lambdaNode |> genNode lambdaNode)
                         +> sepNln
                         +> genSingleTextNode node.ClosingParen
                     | Choice2Of2 matchLambdaNode ->
@@ -2234,7 +2252,7 @@ let genAppWithLambda sep (node: ExprAppWithLambdaNode) =
                         | Choice1Of2 lambdaNode ->
                             leadingExpressionIsMultiline
                                 (genSingleTextNode node.OpeningParen
-                                 +> (genLambda lambdaNode |> genNode lambdaNode))
+                                 +> (genLambdaWithParen lambdaNode |> genNode lambdaNode))
                                 (fun isMultiline -> onlyIf isMultiline sepNln +> genSingleTextNode node.ClosingParen)
                         | Choice2Of2 matchLambdaNode ->
                             (genSingleTextNode node.OpeningParen
@@ -2272,7 +2290,7 @@ let genAppWithLambda sep (node: ExprAppWithLambdaNode) =
                     +> col sepSpace node.Arguments genExpr
                     +> sep
                     +> genSingleTextNode node.OpeningParen
-                    +> (genLambda lambdaNode |> genNode lambdaNode)
+                    +> (genLambdaWithParen lambdaNode |> genNode lambdaNode)
                     +> sepNlnWhenWriteBeforeNewlineNotEmpty
                     +> genSingleTextNode node.ClosingParen
 
@@ -2282,7 +2300,7 @@ let genAppWithLambda sep (node: ExprAppWithLambdaNode) =
                         col sepNln node.Arguments genExpr
                         +> onlyIfNot (List.isEmpty node.Arguments) sepNln
                         +> genSingleTextNode node.OpeningParen
-                        +> (genLambda lambdaNode |> genNode lambdaNode)
+                        +> (genLambdaWithParen lambdaNode |> genNode lambdaNode)
                         +> genSingleTextNode node.ClosingParen
                     )
 
