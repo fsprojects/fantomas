@@ -1,5 +1,11 @@
 # Changelog
 
+## [5.2.0-alpha-003] - 2022-12-05
+
+### Fixed
+* Attribute on ExplicitCtor is lost. [#2638](https://github.com/fsprojects/fantomas/issues/2638)
+* Comment above single parameter in brackets breaks code due to wrong indentation. [#2594](https://github.com/fsprojects/fantomas/issues/2594)
+
 ## [5.2.0-alpha-002] - 2022-12-04
 
 ### Fixed
