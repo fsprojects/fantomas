@@ -1803,3 +1803,24 @@ myFunction
         arg3
     )
 """
+
+[<Test>]
+let ``block comment after pattern constant`` () =
+    formatSourceString
+        false
+        """
+match tag with
+            | 0 (* None *)  -> getInstancePropertyInfos (typ, [||], bindingFlags)
+            | 1 (* Some *)  -> getInstancePropertyInfos (typ, [| "Value" |], bindingFlags)
+            | _ -> failwith "fieldsPropsOfUnionCase"
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+match tag with
+| 0 (* None *) -> getInstancePropertyInfos (typ, [||], bindingFlags)
+| 1 (* Some *) -> getInstancePropertyInfos (typ, [| "Value" |], bindingFlags)
+| _ -> failwith "fieldsPropsOfUnionCase"
+"""
