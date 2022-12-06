@@ -2380,6 +2380,7 @@ let genPatLeftMiddleRight (node: PatLeftMiddleRight) =
         | Choice2Of2 text -> !-text)
     +> sepSpace
     +> genPat node.RightHandSide
+    |> genNode node
 
 let genTyparDecl (isFirstTypeParam: bool) (td: TyparDeclNode) =
     genOnelinerAttributes td.Attributes
@@ -2405,15 +2406,16 @@ let genTyparDecls (td: TyparDecls) =
 let genPat (p: Pattern) =
     match p with
     | Pattern.OptionalVal n -> genSingleTextNode n
-    | Pattern.Attrib node -> genOnelinerAttributes node.Attributes +> genPat node.Pattern
+    | Pattern.Attrib node -> genOnelinerAttributes node.Attributes +> genPat node.Pattern |> genNode node
     | Pattern.Or node -> genPatLeftMiddleRight node
-    | Pattern.Ands node -> col (!- " & ") node.Patterns genPat
+    | Pattern.Ands node -> col (!- " & ") node.Patterns genPat |> genNode node
     | Pattern.Null node
     | Pattern.Wild node -> genSingleTextNode node
     | Pattern.Typed node ->
         genPat node.Pattern
         +> sepColon
         +> autoIndentAndNlnIfExpressionExceedsPageWidth (atCurrentColumnIndent (genType node.Type))
+        |> genNode node
     | Pattern.NamedParenStarIdent node ->
         genAccessOpt node.Accessibility
         +> genSingleTextNode node.OpeningParen
@@ -2421,7 +2423,8 @@ let genPat (p: Pattern) =
         +> genSingleTextNode node.Name
         +> sepSpace
         +> genSingleTextNode node.ClosingParen
-    | Pattern.Named node -> genAccessOpt node.Accessibility +> genSingleTextNode node.Name
+        |> genNode node
+    | Pattern.Named node -> genAccessOpt node.Accessibility +> genSingleTextNode node.Name |> genNode node
     | Pattern.As node
     | Pattern.ListCons node -> genPatLeftMiddleRight node
     | Pattern.NamePatPairs node ->
@@ -2443,6 +2446,7 @@ let genPat (p: Pattern) =
         +> genSingleTextNode node.OpeningParen
         +> autoIndentAndNlnIfExpressionExceedsPageWidth (sepNlnWhenWriteBeforeNewlineNotEmpty +> pats)
         +> genSingleTextNode node.ClosingParen
+        |> genNode node
 
     | Pattern.LongIdent node ->
         let genName =
@@ -2457,21 +2461,24 @@ let genPat (p: Pattern) =
                 addSpaceBeforeParenInPattern node.Identifier +> genPat parameter
             | ps -> sepSpace +> atCurrentColumn (col sepSpace ps genPat)
 
-        genName +> genParameters
+        genName +> genParameters |> genNode node
     | Pattern.Unit n -> genUnit n
     | Pattern.Paren node ->
         genSingleTextNode node.OpeningParen
         +> genPat node.Pattern
         +> genSingleTextNode node.ClosingParen
+        |> genNode node
     | Pattern.Tuple node ->
         expressionFitsOnRestOfLine
             (col sepComma node.Patterns genPat)
             (atCurrentColumn (col (sepComma +> sepNln) node.Patterns genPat))
+        |> genNode node
     | Pattern.StructTuple node ->
         !- "struct "
         +> sepOpenT
         +> atCurrentColumn (colAutoNlnSkip0 sepComma node.Patterns genPat)
         +> sepCloseT
+        |> genNode node
     | Pattern.ArrayOrList node ->
         let genPats =
             let short = colAutoNlnSkip0 sepSemi node.Patterns genPat
@@ -2493,6 +2500,7 @@ let genPat (p: Pattern) =
              +> atCurrentColumn genPats
              +> addSpaceIfSpaceAroundDelimiter
              +> genSingleTextNode node.CloseToken)
+        |> genNode node
     | Pattern.Record node ->
         let smallRecordExpr =
             genSingleTextNode node.OpeningNode
@@ -2523,11 +2531,10 @@ let genPat (p: Pattern) =
 
         fun ctx ->
             let size = getRecordSize ctx node.Fields
-            isSmallExpression size smallRecordExpr multilineExpressionIfAlignBrackets ctx
+            genNode node (isSmallExpression size smallRecordExpr multilineExpressionIfAlignBrackets) ctx
     | Pattern.Const c -> genConstant c
-    | Pattern.IsInst node -> genSingleTextNode node.Token +> sepSpace +> genType node.Type
+    | Pattern.IsInst node -> genSingleTextNode node.Token +> sepSpace +> genType node.Type |> genNode node
     | Pattern.QuoteExpr node -> genQuoteExpr node
-    |> genNode (Pattern.Node p)
 
 let genPatInClause (pat: Pattern) =
     let rec genPatMultiline p =
