@@ -1179,8 +1179,9 @@ type Thing =
     | Foo of msg: string
     override this.ToString() =
         match this with
-        | Foo(ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff) ->
-            ""
+        | Foo(
+            ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
+          ) -> ""
 """
 
 [<Test>]
@@ -1211,8 +1212,9 @@ type Thing =
     | Foo of msg : string
     override this.ToString() : string =
         match this with
-        | Foo(ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff) ->
-            ""
+        | Foo(
+            ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
+          ) -> ""
 """
 
 [<Test>]

@@ -2524,19 +2524,32 @@ let genPat (p: Pattern) =
             genSingleTextNode node.Ident
             +> sepSpace
             +> genSingleTextNode node.Equals
-            +> sepSpace
-            +> genPat node.Pattern
+            +> sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth (genPat node.Pattern)
+            |> genNode node
 
         let pats =
-            expressionFitsOnRestOfLine
-                (atCurrentColumn (col sepSemi node.Pairs genPatWithIdent))
-                (atCurrentColumn (col sepNln node.Pairs genPatWithIdent))
+            match node.Pairs with
+            | [ singlePair ] ->
+                expressionFitsOnRestOfLine
+                    (genPatWithIdent singlePair)
+                    (genSingleTextNode singlePair.Ident
+                     +> sepSpace
+                     +> genSingleTextNode singlePair.Equals
+                     +> sepNln
+                     +> genPat singlePair.Pattern)
+            | _ ->
+                expressionFitsOnRestOfLine
+                    (col sepSemi node.Pairs genPatWithIdent)
+                    (col sepNln node.Pairs genPatWithIdent)
+                |> autoNlnIfExpressionExceedsPageWidth
 
         genIdentListNode node.Identifier
         +> optSingle genTyparDecls node.TyparDecls
         +> addSpaceBeforeParenInPattern node.Identifier
         +> genSingleTextNode node.OpeningParen
-        +> autoIndentAndNlnIfExpressionExceedsPageWidth (sepNlnWhenWriteBeforeNewlineNotEmpty +> pats)
+        +> leadingExpressionIsMultiline
+            (indent +> sepNlnWhenWriteBeforeNewlineNotEmpty +> pats +> unindent)
+            (fun isMultiline -> onlyIf isMultiline sepNln)
         +> genSingleTextNode node.ClosingParen
         |> genNode node
 
@@ -2549,8 +2562,21 @@ let genPat (p: Pattern) =
         let genParameters =
             match node.Parameters with
             | [] -> sepNone
-            | [ Pattern.Paren _ | Pattern.Unit _ as parameter ] ->
-                addSpaceBeforeParenInPattern node.Identifier +> genPat parameter
+            | [ Pattern.Unit _ as parameter ] -> addSpaceBeforeParenInPattern node.Identifier +> genPat parameter
+            | [ Pattern.Paren parenNode as parameter ] ->
+
+                let short = genPat parameter
+
+                let long =
+                    genSingleTextNode parenNode.OpeningParen
+                    +> indentSepNlnUnindent (genPat parenNode.Pattern)
+                    +> sepNln
+                    +> genSingleTextNode parenNode.ClosingParen
+                    |> genNode parenNode
+
+                addSpaceBeforeParenInPattern node.Identifier
+                +> expressionFitsOnRestOfLine short long
+
             | ps -> sepSpace +> atCurrentColumn (col sepSpace ps genPat)
 
         genName +> genParameters |> genNode node
@@ -2633,7 +2659,10 @@ let genPatInClause (pat: Pattern) =
                 | Choice1Of2 barNode -> genSingleTextNode barNode +> sepSpace
                 | Choice2Of2 _ -> sepBar
 
-            genPatMultiline p.LeftHandSide +> sepNln +> genBar +> genPat p.RightHandSide
+            genPatMultiline p.LeftHandSide
+            +> sepNln
+            +> genBar
+            +> atCurrentColumn (genPat p.RightHandSide)
 
         | Pattern.As p ->
             let genAs =
