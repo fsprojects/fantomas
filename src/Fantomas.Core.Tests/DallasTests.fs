@@ -1862,3 +1862,34 @@ let someTest input1 input2 =
         Expect.equal input1 input2 "didn't equal"
     }
 """
+
+[<Test>]
+let ``comments after chained dotgetapp, 2649`` () =
+    formatSourceString
+        false
+        """
+app
+    .UseX("X") // Comment.
+    .UseY("X") // Comment.
+    .UseZ("X") // Comment.
+
+app
+    .UseX(x) // Comment.
+    .UseY() // Comment.
+    .UseZ() // Comment.
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+app
+    .UseX("X") // Comment.
+    .UseY("X") // Comment.
+    .UseZ("X") // Comment.
+
+app
+    .UseX(x) // Comment.
+    .UseY() // Comment.
+    .UseZ() // Comment.
+"""
