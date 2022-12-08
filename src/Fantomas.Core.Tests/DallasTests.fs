@@ -1839,3 +1839,26 @@ let mutable private myMutable = 5
         """
 let mutable private myMutable = 5
 """
+
+[<Test>]
+let ``named computation expression with an argument and stroustrup, 2648`` () =
+    formatSourceString
+        false
+        """
+let someTest input1 input2 =
+    test "This can contain a quite long description of what the test exactly does and why it exists" {
+        Expect.equal input1 input2 "didn't equal"
+    }
+"""
+        { config with
+            ExperimentalStroustrupStyle = true
+            MultilineBlockBracketsOnSameColumn = true }
+    |> prepend newline
+    |> should
+        equal
+        """
+let someTest input1 input2 =
+    test "This can contain a quite long description of what the test exactly does and why it exists" {
+        Expect.equal input1 input2 "didn't equal"
+    }
+"""
