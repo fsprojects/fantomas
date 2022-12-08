@@ -935,7 +935,17 @@ let genExpr (e: Expr) =
                 genMultilineInfixExpr (ExprInfixAppNode(node.LeadingExpr, operator, e2, m))
                 +> sepNln
                 +> col sepNln es (fun (operator, e) ->
-                    genSingleTextNode operator +> sepSpace +> genExprInMultilineInfixExpr e)
+                    genSingleTextNode operator
+                    +> sepSpace
+                    +> (fun ctx ->
+                        match e with
+                        | Expr.Lambda _ when
+                            newLineInfixOps.Contains operator.Text
+                            && ctx.Config.IndentSize <= operator.Text.Length
+                            ->
+                            // Special measure to account for https://github.com/fsprojects/fantomas/issues/870
+                            (indent +> genExprInMultilineInfixExpr e +> unindent) ctx
+                        | _ -> genExprInMultilineInfixExpr e ctx))
 
         fun ctx ->
             genNode
@@ -2157,10 +2167,6 @@ let genExprInMultilineInfixExpr (e: Expr) =
         +> indentSepNlnUnindent (genClauses matchLambdaNode.Clauses)
         |> genNode matchLambdaNode
     | Expr.Record _ -> atCurrentColumnIndent (genExpr e)
-    | Expr.Lambda lambdaNode ->
-        match lambdaNode.Expr with
-        | Expr.InfixApp _ -> atCurrentColumnIndent (genExpr e)
-        | _ -> genExpr e
     | _ -> genExpr e
 
 let genKeepIdent (startNode: Node) (e: Expr) ctx =
