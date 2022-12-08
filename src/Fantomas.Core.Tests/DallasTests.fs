@@ -1824,3 +1824,18 @@ match tag with
 | 1 (* Some *) -> getInstancePropertyInfos (typ, [| "Value" |], bindingFlags)
 | _ -> failwith "fieldsPropsOfUnionCase"
 """
+
+[<Test>]
+let ``mutable private value, 2646`` () =
+    formatSourceString
+        false
+        """
+let mutable private myMutable = 5
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let mutable private myMutable = 5
+"""

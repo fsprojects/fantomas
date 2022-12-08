@@ -2867,9 +2867,9 @@ let genBinding (b: BindingNode) (ctx: Context) : Context =
                      +> genOnelinerAttributes b.Attributes)
 
             let afterLetKeyword =
-                genAccessOpt b.Accessibility
-                +> ifElse b.IsMutable (!- "mutable ") sepNone
+                ifElse b.IsMutable (!- "mutable ") sepNone
                 +> ifElse b.IsInline (!- "inline ") sepNone
+                +> genAccessOpt b.Accessibility
 
             let genValueName =
                 match b.FunctionName with
