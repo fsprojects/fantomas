@@ -395,7 +395,8 @@ List.tryFind (fun { Type = t; Range = r } -> // foo
 let ``lambda body should be indented far enough, 870`` () =
     formatSourceString
         false
-        """  let projectIntoMap projection =
+        """
+let projectIntoMap projection =
     fun state eventEnvelope ->
       state
       |> Map.tryFind eventEnvelope.Metadata.Source
@@ -434,11 +435,11 @@ let projectIntoMap projection =
     |> Map.tryFind eventEnvelope.Metadata.Source
     |> Option.defaultValue projection.Init
     |> fun projectionState ->
-         eventEnvelope.Event
-         |> projection.Update projectionState
+        eventEnvelope.Event
+        |> projection.Update projectionState
     |> fun newState ->
-         state
-         |> Map.add eventEnvelope.Metadata.Source newState
+        state
+        |> Map.add eventEnvelope.Metadata.Source newState
 
 let projectIntoMap projection =
   fun state eventEnvelope ->
@@ -446,11 +447,44 @@ let projectIntoMap projection =
     |> Map.tryFind eventEnvelope.Metadata.Source
     |> Option.defaultValue projection.Init
     |> fun projectionState ->
-         eventEnvelope.Event
-         |> projection.Update projectionState
+        eventEnvelope.Event
+        |> projection.Update projectionState
     |> fun newState ->
-         state
-         |> Map.add eventEnvelope.Metadata.Source newState
+        state
+        |> Map.add eventEnvelope.Metadata.Source newState
+"""
+
+[<Test>]
+let ``lambda body should not get an additional indent when the indent_size is large enough`` () =
+    formatSourceString
+        false
+        """
+let projectIntoMap projection =
+  fun state eventEnvelope ->
+    state
+    |> Map.tryFind eventEnvelope.Metadata.Source
+    |> Option.defaultValue projection.Init
+    |> fun projectionState -> eventEnvelope.Event |> projection.Update projectionState
+    |> fun newState -> state |> Map.add eventEnvelope.Metadata.Source newState
+"""
+        { config with MaxLineLength = 60 }
+    |> prepend newline
+    |> should
+        equal
+        """
+let projectIntoMap projection =
+    fun state eventEnvelope ->
+        state
+        |> Map.tryFind eventEnvelope.Metadata.Source
+        |> Option.defaultValue projection.Init
+        |> fun projectionState ->
+            eventEnvelope.Event
+            |> projection.Update projectionState
+        |> fun newState ->
+            state
+            |> Map.add
+                eventEnvelope.Metadata.Source
+                newState
 """
 
 [<Test>]

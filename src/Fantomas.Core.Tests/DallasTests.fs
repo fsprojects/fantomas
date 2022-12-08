@@ -1893,3 +1893,26 @@ app
     .UseY() // Comment.
     .UseZ() // Comment.
 """
+
+[<Test>]
+let ``lambda as right-hand-side of infix application, 2650`` () =
+    formatSourceString
+        false
+        """
+let answerToUniverse =
+    question
+    |> fun value ->
+        TransformersModule.tryTransformToAnswerToUniverse value
+        |> Option.defaultValue 42
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let answerToUniverse =
+    question
+    |> fun value ->
+        TransformersModule.tryTransformToAnswerToUniverse value
+        |> Option.defaultValue 42
+"""
