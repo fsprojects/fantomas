@@ -2606,15 +2606,27 @@ let genPat (p: Pattern) =
 
             expressionFitsOnRestOfLine short long
 
-        ifElse
-            node.Patterns.IsEmpty
-            (genSingleTextNode node.OpenToken +> genSingleTextNode node.CloseToken)
-            (genSingleTextNode node.OpenToken
-             +> addSpaceIfSpaceAroundDelimiter
-             +> atCurrentColumn genPats
-             +> addSpaceIfSpaceAroundDelimiter
-             +> genSingleTextNode node.CloseToken)
-        |> genNode node
+        let emptyPattern =
+            genSingleTextNode node.OpenToken +> genSingleTextNode node.CloseToken
+
+        let small =
+            genSingleTextNode node.OpenToken
+            +> addSpaceIfSpaceAroundDelimiter
+            +> atCurrentColumn genPats
+            +> addSpaceIfSpaceAroundDelimiter
+            +> genSingleTextNode node.CloseToken
+
+        let multilineAlignBrackets =
+            genSingleTextNode node.OpenToken
+            +> indentSepNlnUnindent genPats
+            +> sepNln
+            +> genSingleTextNode node.CloseToken
+
+        let nonEmpty ctx =
+            let size = getRecordSize ctx node.Patterns
+            isSmallExpression size small (ifAlignBrackets multilineAlignBrackets small) ctx
+
+        ifElse node.Patterns.IsEmpty emptyPattern nonEmpty |> genNode node
     | Pattern.Record node ->
         let smallRecordExpr =
             genSingleTextNode node.OpeningNode

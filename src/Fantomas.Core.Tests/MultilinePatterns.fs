@@ -386,3 +386,233 @@ match parseResults with
     )
   ) -> ()
 """
+
+[<Test>]
+let ``as pattern`` () =
+    formatSourceString
+        false
+        """
+match x with
+| ABC(Y(
+    itemOne = OhSomeActivePatternThing(a,
+                                       b) as foo)) ->
+    ()
+"""
+        { config with MaxLineLength = 30 }
+    |> prepend newline
+    |> should
+        equal
+        """
+match x with
+| ABC(
+    Y(itemOne =
+        OhSomeActivePatternThing(
+            a, b
+        ) as foo
+    )
+  ) -> ()
+"""
+
+[<Test>]
+let ``or pattern`` () =
+    formatSourceString
+        false
+        """
+match x with
+| ABC( Y(itemOne = OhSomeActivePatternThing(a,b) | S(one, two, three, four)))  -> ()
+"""
+        { config with MaxLineLength = 30 }
+    |> prepend newline
+    |> should
+        equal
+        """
+match x with
+| ABC(
+    Y(itemOne =
+        OhSomeActivePatternThing(
+            a, b
+        ) | S(
+            one,
+            two,
+            three,
+            four
+        )
+    )
+  ) -> ()
+"""
+
+[<Test>]
+let ``cons pattern`` () =
+    formatSourceString
+        false
+        """
+match x with
+| ABC( Y(itemOne = OhSomeActivePatternThing(a,b) :: S(one, two, three, four)))  -> ()
+"""
+        { config with MaxLineLength = 30 }
+    |> prepend newline
+    |> should
+        equal
+        """
+match x with
+| ABC(
+    Y(itemOne =
+        OhSomeActivePatternThing(
+            a, b
+        ) :: S(
+            one,
+            two,
+            three,
+            four
+        )
+    )
+  ) -> ()
+"""
+
+[<Test>]
+let ``array pattern`` () =
+    formatSourceString
+        false
+        """
+match x with
+| [| Y(
+         itemOne = OhSomeActivePatternThing(a,
+                                            b))
+     S(one,
+       two,
+       three,
+       four,
+       five) |] -> ()
+"""
+        { config with MaxLineLength = 30 }
+    |> prepend newline
+    |> should
+        equal
+        """
+match x with
+| [| Y(itemOne =
+         OhSomeActivePatternThing(
+             a, b
+         )
+     )
+     S(
+         one,
+         two,
+         three,
+         four,
+         five
+     ) |] -> ()
+"""
+
+[<Test>]
+let ``array pattern, alt`` () =
+    formatSourceString
+        false
+        """
+match x with
+| [| Y(
+         itemOne = OhSomeActivePatternThing(a,
+                                            b))
+     S(one,
+       two,
+       three,
+       four,
+       five) |] -> ()
+"""
+        { config with
+            MaxLineLength = 30
+            MultilineBlockBracketsOnSameColumn = true }
+    |> prepend newline
+    |> should
+        equal
+        """
+match x with
+| [|
+    Y(itemOne =
+        OhSomeActivePatternThing(
+            a, b
+        )
+    )
+    S(
+        one,
+        two,
+        three,
+        four,
+        five
+    )
+  |] -> ()
+"""
+
+[<Test>]
+let ``record pattern`` () =
+    formatSourceString
+        false
+        """
+match x with
+| { Y = Y(
+        itemOne = OhSomeActivePatternThing(a,
+                                           b))
+    V = S(one,
+          two,
+          three,
+          four,
+          five) } -> ()
+"""
+        { config with MaxLineLength = 30 }
+    |> prepend newline
+    |> should
+        equal
+        """
+match x with
+| { Y = Y(itemOne =
+        OhSomeActivePatternThing(
+            a, b
+        )
+    )
+    V = S(
+        one,
+        two,
+        three,
+        four,
+        five
+    ) } -> ()
+"""
+
+[<Test>]
+let ``record pattern, alt`` () =
+    formatSourceString
+        false
+        """
+match x with
+| { Y = Y(
+        itemOne = OhSomeActivePatternThing(a,
+                                           b))
+    V = S(one,
+          two,
+          three,
+          four,
+          five) } -> ()
+"""
+        { config with
+            MaxLineLength = 30
+            MultilineBlockBracketsOnSameColumn = true }
+    |> prepend newline
+    |> should
+        equal
+        """
+match x with
+| {
+      Y = Y(itemOne =
+          OhSomeActivePatternThing(
+              a, b
+          )
+      )
+      V = S(
+          one,
+          two,
+          three,
+          four,
+          five
+      )
+  } -> ()
+"""
