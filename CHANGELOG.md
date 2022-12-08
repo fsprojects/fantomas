@@ -1,5 +1,14 @@
 # Changelog
 
+## [5.2.0-alpha-004] - 2022-12-07
+
+### Fixed
+* genNode for patterns case by case. [#2644](https://github.com/fsprojects/fantomas/pull/2644)
+* Mutable and private keywords are swapped. [#2646](https://github.com/fsprojects/fantomas/issues/2646)
+* Stroustrup results in heavily indented second argument. [#2648](https://github.com/fsprojects/fantomas/issues/2648)
+* Comment on first chained function call gets lost. [#2649](https://github.com/fsprojects/fantomas/issues/2649)
+* Double indents in piped function call. [#2650](https://github.com/fsprojects/fantomas/issues/2650)
+
 ## [5.2.0-alpha-003] - 2022-12-05
 
 ### Fixed
