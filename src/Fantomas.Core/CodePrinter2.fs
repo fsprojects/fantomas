@@ -1115,7 +1115,7 @@ let genExpr (e: Expr) =
     // Foo().Bar().Meh()
     | Expr.DotGetApp node ->
         let genLongFunctionName =
-            let genApp funcExpr argExpr =
+            let genApp funcExpr argExpr appNode =
                 match funcExpr, argExpr with
                 // | AppOrTypeApp(LongIdentExprWithMoreThanOneIdent lids, t, [ Paren _ as px ]) ->
                 | Expr.OptVar optVarNode, [ ParenExpr px ] when List.moreThanOne optVarNode.Identifier.Content ->
@@ -1185,13 +1185,14 @@ let genExpr (e: Expr) =
                     | _ -> genExpr node.FunctionExpr
 
                 | _ -> genExpr node.FunctionExpr
+                |> genNode appNode
 
             match node.FunctionExpr with
-            | Expr.App appNode -> genApp appNode.FunctionExpr appNode.Arguments
+            | Expr.App appNode -> genApp appNode.FunctionExpr appNode.Arguments appNode
             | Expr.AppLongIdentAndSingleParenArg appNode ->
                 let m = (appNode.FunctionName :> Node).Range
-                genApp (Expr.OptVar(ExprOptVarNode(false, appNode.FunctionName, m))) [ appNode.ArgExpr ]
-            | Expr.AppSingleParenArg appNode -> genApp appNode.FunctionExpr [ appNode.ArgExpr ]
+                genApp (Expr.OptVar(ExprOptVarNode(false, appNode.FunctionName, m))) [ appNode.ArgExpr ] appNode
+            | Expr.AppSingleParenArg appNode -> genApp appNode.FunctionExpr [ appNode.ArgExpr ] appNode
             | _ -> genExpr node.FunctionExpr
 
         let lastEsIndex = node.Arguments.Length - 1
