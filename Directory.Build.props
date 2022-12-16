@@ -33,6 +33,7 @@ Some common use cases include:
         <DisableImplicitNuGetFallbackFolder>true</DisableImplicitNuGetFallbackFolder>
         <!-- https://www.gresearch.co.uk/blog/article/improve-nuget-restores-with-static-graph-evaluation/ -->
         <RestoreUseStaticGraphEvaluation>true</RestoreUseStaticGraphEvaluation>
+        <ServerGarbageCollection>true</ServerGarbageCollection>
     </PropertyGroup>
     
     <!-- Versions -->
