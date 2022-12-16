@@ -1,5 +1,13 @@
 # Changelog
 
+## [5.2.0-alpha-005] - 2022-12-16
+
+### Fixes
+* MultiLineLambdaClosingNewline didn't trigger correctly on line which was one character too long. [#2642](https://github.com/fsprojects/fantomas/issues/2642)
+
+### Changed
+* Enable ServerGarbageCollection. [#2655](https://github.com/fsprojects/fantomas/pull/2655)
+
 ## [5.2.0-alpha-004] - 2022-12-07
 
 ### Fixed
