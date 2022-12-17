@@ -4,6 +4,10 @@ open NUnit.Framework
 open FsUnit
 open Fantomas.Core.Tests.TestHelper
 
+let tap s =
+    printfn "%s" s
+    s
+
 [<Test>]
 let ``long ident tuple pattern`` () =
     formatSourceString
@@ -615,4 +619,47 @@ match x with
           five
       )
   } -> ()
+"""
+
+[<Test>]
+let ``keep array on one line`` () =
+    formatSourceString
+        false
+        """
+match ast with
+| ParsedInput.ImplFile(ParsedImplFileInput(
+    contents = [ SynModuleOrNamespace.SynModuleOrNamespace(
+                     decls = [ SynModuleDecl.Types([ SynTypeDefn.SynTypeDefn(
+                                                         typeRepr = SynTypeDefnRepr.Simple(
+                                                             simpleRepr = SynTypeDefnSimpleRepr.Enum(
+                                                                 cases = [ SynEnumCase.SynEnumCase(
+                                                                               trivia = { BarRange = None
+                                                                                          EqualsRange = mEquals }) ]))) ],
+                                                   _) ]) ])) -> assertRange (2, 15) (2, 16) mEquals
+| _ -> Assert.Fail "Could not get valid AST"
+"""
+        config
+    |> tap
+    |> prepend newline
+    |> should
+        equal
+        """
+match ast with
+| ParsedInput.ImplFile(
+    ParsedImplFileInput(contents =
+        [ SynModuleOrNamespace.SynModuleOrNamespace(decls =
+            [ SynModuleDecl.Types(
+                [ SynTypeDefn.SynTypeDefn(typeRepr =
+                    SynTypeDefnRepr.Simple(simpleRepr =
+                        SynTypeDefnSimpleRepr.Enum(cases =
+                            [ SynEnumCase.SynEnumCase(trivia = { BarRange = None; EqualsRange = mEquals }) ]
+                        )
+                    )
+                  ) ],
+                _
+              ) ]
+          ) ]
+    )
+  ) -> assertRange (2, 15) (2, 16) mEquals
+| _ -> Assert.Fail "Could not get valid AST"
 """

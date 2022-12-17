@@ -2622,9 +2622,8 @@ let genPat (p: Pattern) =
             +> sepNln
             +> genSingleTextNode node.CloseToken
 
-        let nonEmpty ctx =
-            let size = getRecordSize ctx node.Patterns
-            isSmallExpression size small (ifAlignBrackets multilineAlignBrackets small) ctx
+        let nonEmpty =
+            expressionFitsOnRestOfLine small (ifAlignBrackets multilineAlignBrackets small)
 
         ifElse node.Patterns.IsEmpty emptyPattern nonEmpty |> genNode node
     | Pattern.Record node ->
@@ -2655,9 +2654,7 @@ let genPat (p: Pattern) =
         let multilineExpressionIfAlignBrackets =
             ifAlignOrStroustrupBrackets multilineRecordExprAlignBrackets multilineRecordExpr
 
-        fun ctx ->
-            let size = getRecordSize ctx node.Fields
-            genNode node (isSmallExpression size smallRecordExpr multilineExpressionIfAlignBrackets) ctx
+        genNode node (expressionFitsOnRestOfLine smallRecordExpr multilineExpressionIfAlignBrackets)
     | Pattern.Const c -> genConstant c
     | Pattern.IsInst node -> genSingleTextNode node.Token +> sepSpace +> genType node.Type |> genNode node
     | Pattern.QuoteExpr node -> genQuoteExpr node
