@@ -1453,7 +1453,7 @@ let internal sepSemi (ctx: Context) =
     | true, true -> str " ; "
     <| ctx
 """
-        config
+        { config with MaxLineLength = 80 }
     |> prepend newline
     |> should
         equal
@@ -1578,7 +1578,7 @@ match entities with
       Type = Elephant } ] -> ()
 | _ -> ()
 """
-        config
+        { config with MaxLineLength = 40 }
     |> prepend newline
     |> should
         equal
@@ -1607,7 +1607,7 @@ match entities with
       Type = Elephant } ] -> ()
 | _ -> ()
 """
-        config
+        { config with MaxLineLength = 40 }
     |> prepend newline
     |> should
         equal
@@ -1636,7 +1636,7 @@ match entities with
        Type = Elephant } |] -> ()
 | _ -> ()
 """
-        config
+        { config with MaxLineLength = 40 }
     |> prepend newline
     |> should
         equal
@@ -1644,10 +1644,10 @@ match entities with
 match entities with
 | [| { Key = "0031ff53-e59b-49e3-8e0f-53f72a3890d1"
        Type = Elephant }
-     { Key = "0031ff53-e59b-49e3-8e0f-53f72a3890d2"
-       Type = Elephant }
-     { Key = "0031ff53-e59b-49e3-8e0f-53f72a3890d3"
-       Type = Elephant } |] -> ()
+    { Key = "0031ff53-e59b-49e3-8e0f-53f72a3890d2"
+      Type = Elephant }
+    { Key = "0031ff53-e59b-49e3-8e0f-53f72a3890d3"
+      Type = Elephant } |] -> ()
 | _ -> ()
 """
 

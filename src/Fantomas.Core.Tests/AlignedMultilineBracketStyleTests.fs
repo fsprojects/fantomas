@@ -1009,7 +1009,7 @@ let ``record destructuring in let binding`` () =
               printfn "Last Name: %s" ln
               printfn "Age: %i" age
 """
-        config
+        { config with MaxLineLength = 50 }
     |> prepend newline
     |> should
         equal

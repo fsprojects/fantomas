@@ -4,9 +4,10 @@ open NUnit.Framework
 open FsUnit
 open Fantomas.Core.Tests.TestHelper
 
-let tap s =
-    printfn "%s" s
-    s
+let formatSourceString isFsi input config =
+    let formatted = formatSourceString isFsi input config
+    printfn "%s" formatted
+    formatted
 
 [<Test>]
 let ``long ident tuple pattern`` () =
@@ -69,11 +70,11 @@ match a with
   ) ->
     do ()
     1
-| Z(
-    [| 1
-       2 // comment
-       3 |]
-  ) ->
+| Z([|
+    1
+    2 // comment
+    3
+  |]) ->
     do ()
     2
 """
@@ -106,11 +107,11 @@ match a with
     // other comment
     z
   )
-| Z(
-    [| 1
-       2 // comment
-       3 |]
-  ) ->
+| Z([|
+    1
+    2 // comment
+    3
+  |]) ->
     do ()
     2
 """
@@ -310,25 +311,23 @@ match parseResults with
 """
         config
     |> prepend newline
-    |> fun output ->
-        printfn $"%s{output}"
-        output
     |> should
         equal
         """
 match parseResults with
 | ParsedInput.ImplFile(
-    ParsedImplFileInput(contents =
-        [ SynModuleOrNamespace.SynModuleOrNamespace(decls =
-            [ SynModuleDecl.Types(typeDefns =
-                [ SynTypeDefn(typeRepr =
-                    SynTypeDefnRepr.ObjectModel(members =
-                        [ _; SynMemberDefn.Member(memberDefn = SynBinding(trivia = { EqualsRange = Some mEquals })) ]
-                    )
-                  ) ]
-              ) ]
-          ) ]
-    )
+    ParsedImplFileInput(contents = [
+        SynModuleOrNamespace.SynModuleOrNamespace(decls = [
+            SynModuleDecl.Types(typeDefns = [
+                SynTypeDefn(typeRepr =
+                    SynTypeDefnRepr.ObjectModel(members = [
+                        _
+                        SynMemberDefn.Member(memberDefn = SynBinding(trivia = { EqualsRange = Some mEquals }))
+                    ])
+                )
+            ])
+        ])
+    ])
   ) -> assertRange (3, 18) (3, 19) mEquals
 | _ -> Assert.Fail "Could not get valid AST"
 """
@@ -360,34 +359,31 @@ match parseResults with
 """
         config
     |> prepend newline
-    |> fun output ->
-        printfn $"%s{output}"
-        output
     |> should
         equal
         """
 match parseResults with
 | ParsedInput.ImplFile(
-    ParsedImplFileInput(modules =
-        [ SynModuleOrNamespace.SynModuleOrNamespace(decls =
-            [ SynModuleDecl.Types(typeDefns =
-                [ SynTypeDefn(typeRepr =
-                    SynTypeDefnRepr.ObjectModel(members =
-                        [ SynMemberDefn.ImplicitCtor _
-                          SynMemberDefn.GetSetMember(
-                              Some(SynBinding(headPat = SynPat.LongIdent(extraId = Some getIdent))),
-                              Some(SynBinding(headPat = SynPat.LongIdent(extraId = Some setIdent))),
-                              m,
-                              { WithKeyword = mWith
-                                GetKeyword = Some mGet
-                                AndKeyword = Some mAnd
-                                SetKeyword = Some mSet }
-                          ) ]
-                    )
-                  ) ]
-              ) ]
-          ) ]
-    )
+    ParsedImplFileInput(modules = [
+        SynModuleOrNamespace.SynModuleOrNamespace(decls = [
+            SynModuleDecl.Types(typeDefns = [
+                SynTypeDefn(typeRepr =
+                    SynTypeDefnRepr.ObjectModel(members = [
+                        SynMemberDefn.ImplicitCtor _
+                        SynMemberDefn.GetSetMember(
+                            Some(SynBinding(headPat = SynPat.LongIdent(extraId = Some getIdent))),
+                            Some(SynBinding(headPat = SynPat.LongIdent(extraId = Some setIdent))),
+                            m,
+                            { WithKeyword = mWith
+                              GetKeyword = Some mGet
+                              AndKeyword = Some mAnd
+                              SetKeyword = Some mSet }
+                        )
+                    ])
+                )
+            ])
+        ])
+    ])
   ) -> ()
 """
 
@@ -495,17 +491,17 @@ match x with
         """
 match x with
 | [| Y(itemOne =
-         OhSomeActivePatternThing(
-             a, b
-         )
-     )
-     S(
-         one,
-         two,
-         three,
-         four,
-         five
-     ) |] -> ()
+        OhSomeActivePatternThing(
+            a, b
+        )
+    )
+    S(
+        one,
+        two,
+        three,
+        four,
+        five
+    ) |] -> ()
 """
 
 [<Test>]
@@ -639,27 +635,158 @@ match ast with
 | _ -> Assert.Fail "Could not get valid AST"
 """
         config
-    |> tap
     |> prepend newline
     |> should
         equal
         """
 match ast with
 | ParsedInput.ImplFile(
-    ParsedImplFileInput(contents =
-        [ SynModuleOrNamespace.SynModuleOrNamespace(decls =
-            [ SynModuleDecl.Types(
+    ParsedImplFileInput(contents = [
+        SynModuleOrNamespace.SynModuleOrNamespace(decls = [
+            SynModuleDecl.Types(
                 [ SynTypeDefn.SynTypeDefn(typeRepr =
-                    SynTypeDefnRepr.Simple(simpleRepr =
-                        SynTypeDefnSimpleRepr.Enum(cases =
-                            [ SynEnumCase.SynEnumCase(trivia = { BarRange = None; EqualsRange = mEquals }) ]
+                        SynTypeDefnRepr.Simple(simpleRepr =
+                            SynTypeDefnSimpleRepr.Enum(cases = [
+                                SynEnumCase.SynEnumCase(trivia = { BarRange = None; EqualsRange = mEquals })
+                            ])
                         )
-                    )
-                  ) ],
+                    ) ],
                 _
-              ) ]
-          ) ]
-    )
+            )
+        ])
+    ])
   ) -> assertRange (2, 15) (2, 16) mEquals
 | _ -> Assert.Fail "Could not get valid AST"
+"""
+
+[<Test>]
+let ``single named identifier with array could go stroustrup??`` () =
+    formatSourceString
+        false
+        """
+match parseResults with
+| ModuleName.PatternName(
+    identifier = [ SomethingElse(a,
+                                 // comment
+                                 b,
+                                 c) ]) ->
+    assertRange (2, 21) (2, 22) mSlash
+    assertRange (2, 21) (2, 29) mTuple
+| _ -> Assert.Fail $"Could not get valid AST, got {parseResults}"
+
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+match parseResults with
+| ModuleName.PatternName(identifier = [
+    SomethingElse(
+        a,
+        // comment
+        b,
+        c
+    )
+  ]) ->
+    assertRange (2, 21) (2, 22) mSlash
+    assertRange (2, 21) (2, 29) mTuple
+| _ -> Assert.Fail $"Could not get valid AST, got {parseResults}"
+"""
+
+[<Test>]
+let ``single named identifier with records could go stroustrup??`` () =
+    formatSourceString
+        false
+        """
+match parseResults with
+| ModuleName.PatternName(
+    identifier = { FieldName1 = 9
+                   SomethingElse = fooBar
+                   LastField = "some string"
+                   VeryLastFieldWithQuiteTheLongIdentifierName = "and also quite the lengthy string value" }) ->
+    assertRange (2, 21) (2, 22) mSlash
+    assertRange (2, 21) (2, 29) mTuple
+| _ -> Assert.Fail $"Could not get valid AST, got {parseResults}"
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+match parseResults with
+| ModuleName.PatternName(identifier = {
+    FieldName1 = 9
+    SomethingElse = fooBar
+    LastField = "some string"
+    VeryLastFieldWithQuiteTheLongIdentifierName = "and also quite the lengthy string value" }) ->
+    assertRange (2, 21) (2, 22) mSlash
+    assertRange (2, 21) (2, 29) mTuple
+| _ -> Assert.Fail $"Could not get valid AST, got {parseResults}"
+"""
+
+[<Test>]
+let ``application pattern with single array could go stroustrup??`` () =
+    formatSourceString
+        false
+        """
+match parseResults with
+| ModuleName.PatternName(
+                 [ SomethingElse(a,
+                                 // comment
+                                 b,
+                                 c) ]) ->
+    assertRange (2, 21) (2, 22) mSlash
+    assertRange (2, 21) (2, 29) mTuple
+| _ -> Assert.Fail $"Could not get valid AST, got {parseResults}"
+
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+match parseResults with
+| ModuleName.PatternName([
+    SomethingElse(
+        a,
+        // comment
+        b,
+        c
+    )
+  ]) ->
+    assertRange (2, 21) (2, 22) mSlash
+    assertRange (2, 21) (2, 29) mTuple
+| _ -> Assert.Fail $"Could not get valid AST, got {parseResults}"
+"""
+
+[<Test>]
+let ``application pattern with single record could go stroustrup??`` () =
+    formatSourceString
+        false
+        """
+match parseResults with
+| ModuleName.PatternName(
+                 { FieldName1 = 9
+                   SomethingElse = fooBar
+                   LastField = "some string"
+                   VeryLastFieldWithQuiteTheLongIdentifierName = "and also quite the lengthy string value" }) ->
+    assertRange (2, 21) (2, 22) mSlash
+    assertRange (2, 21) (2, 29) mTuple
+| _ -> Assert.Fail $"Could not get valid AST, got {parseResults}"
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+match parseResults with
+| ModuleName.PatternName({
+    FieldName1 = 9
+    SomethingElse = fooBar
+    LastField = "some string"
+    VeryLastFieldWithQuiteTheLongIdentifierName = "and also quite the lengthy string value" }) ->
+    assertRange (2, 21) (2, 22) mSlash
+    assertRange (2, 21) (2, 29) mTuple
+| _ -> Assert.Fail $"Could not get valid AST, got {parseResults}"
 """

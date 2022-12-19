@@ -2520,36 +2520,49 @@ let genPat (p: Pattern) =
     | Pattern.As node
     | Pattern.ListCons node -> genPatLeftMiddleRight node
     | Pattern.NamePatPairs node ->
+        let genName (node: NamePatPair) =
+            genSingleTextNode node.Ident +> sepSpace +> genSingleTextNode node.Equals
+
         let genPatWithIdent (node: NamePatPair) =
-            genSingleTextNode node.Ident
-            +> sepSpace
-            +> genSingleTextNode node.Equals
+            genName node
             +> sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth (genPat node.Pattern)
             |> genNode node
 
         let pats =
+            let noContentAfterOpeningParen = (node.OpeningParen :> Node).HasContentAfter |> not
+
             match node.Pairs with
-            | [ singlePair ] ->
-                expressionFitsOnRestOfLine
-                    (genPatWithIdent singlePair)
-                    (genSingleTextNode singlePair.Ident
-                     +> sepSpace
-                     +> genSingleTextNode singlePair.Equals
-                     +> sepNln
-                     +> genPat singlePair.Pattern)
+            | [ singlePair ] when noContentAfterOpeningParen ->
+                match singlePair.Pattern with
+                | Pattern.ArrayOrList arrayOrListNode ->
+                    expressionFitsOnRestOfLine
+                        (genPatWithIdent singlePair)
+                        (genName singlePair
+                         +> sepSpace
+                         +> genMultilineArrayOrListPatternInApplication arrayOrListNode)
+                | Pattern.Record recordNode ->
+                    expressionFitsOnRestOfLine
+                        (genPatWithIdent singlePair)
+                        (genName singlePair
+                         +> sepSpace
+                         +> genMultilineRecordPatternInApplication recordNode)
+                | _ ->
+                    expressionFitsOnRestOfLine
+                        (genPatWithIdent singlePair)
+                        (genName singlePair +> indentSepNlnUnindent (genPat singlePair.Pattern) +> sepNln)
             | _ ->
                 expressionFitsOnRestOfLine
                     (col sepSemi node.Pairs genPatWithIdent)
-                    (col sepNln node.Pairs genPatWithIdent)
-                |> autoNlnIfExpressionExceedsPageWidth
+                    (indentSepNlnUnindent (col sepNln node.Pairs genPatWithIdent) +> sepNln)
 
         genIdentListNode node.Identifier
         +> optSingle genTyparDecls node.TyparDecls
         +> addSpaceBeforeParenInPattern node.Identifier
         +> genSingleTextNode node.OpeningParen
-        +> leadingExpressionIsMultiline
-            (indent +> sepNlnWhenWriteBeforeNewlineNotEmpty +> pats +> unindent)
-            (fun isMultiline -> onlyIf isMultiline sepNln)
+        +> pats
+        // +> leadingExpressionIsMultiline
+        //     pats // (indent +> sepNlnWhenWriteBeforeNewlineNotEmpty +> pats +> unindent)
+        //     (fun isMultiline -> onlyIf isMultiline sepNln)
         +> genSingleTextNode node.ClosingParen
         |> genNode node
 
@@ -2568,9 +2581,15 @@ let genPat (p: Pattern) =
                 let short = genPat parameter
 
                 let long =
+                    let body =
+                        match parenNode.Pattern with
+                        | Pattern.ArrayOrList arrayOrListNode ->
+                            genMultilineArrayOrListPatternInApplication arrayOrListNode
+                        | Pattern.Record recordNode -> genMultilineRecordPatternInApplication recordNode
+                        | _ -> indentSepNlnUnindent (genPat parenNode.Pattern) +> sepNln
+
                     genSingleTextNode parenNode.OpeningParen
-                    +> indentSepNlnUnindent (genPat parenNode.Pattern)
-                    +> sepNln
+                    +> body
                     +> genSingleTextNode parenNode.ClosingParen
                     |> genNode parenNode
 
@@ -2602,20 +2621,23 @@ let genPat (p: Pattern) =
                 | [ Pattern.Or _ ] ->
                     let column = ctx.Column + 1
                     atIndentLevel false column (col sepNln node.Patterns genPatInClause) ctx
-                | _ -> col sepNln node.Patterns genPatInClause ctx
+                | _ -> col sepNln node.Patterns genPat ctx
 
             expressionFitsOnRestOfLine short long
 
         let emptyPattern =
             genSingleTextNode node.OpenToken +> genSingleTextNode node.CloseToken
 
-        let small =
+        let short =
             genSingleTextNode node.OpenToken
             +> addSpaceIfSpaceAroundDelimiter
-            +> atCurrentColumn genPats
+            +> indent
+            +> genPats
+            +> unindent
             +> addSpaceIfSpaceAroundDelimiter
             +> genSingleTextNode node.CloseToken
 
+        // Note that we deliberately are not take the setting fsharp_multiline_block_brackets_on_same_column into account.
         let multilineAlignBrackets =
             genSingleTextNode node.OpenToken
             +> indentSepNlnUnindent genPats
@@ -2623,7 +2645,7 @@ let genPat (p: Pattern) =
             +> genSingleTextNode node.CloseToken
 
         let nonEmpty =
-            expressionFitsOnRestOfLine small (ifAlignBrackets multilineAlignBrackets small)
+            expressionFitsOnRestOfLine short (ifAlignBrackets multilineAlignBrackets short)
 
         ifElse node.Patterns.IsEmpty emptyPattern nonEmpty |> genNode node
     | Pattern.Record node ->
@@ -2658,6 +2680,20 @@ let genPat (p: Pattern) =
     | Pattern.Const c -> genConstant c
     | Pattern.IsInst node -> genSingleTextNode node.Token +> sepSpace +> genType node.Type |> genNode node
     | Pattern.QuoteExpr node -> genQuoteExpr node
+
+let genMultilineRecordPatternInApplication (node: PatRecordNode) =
+    genSingleTextNode node.OpeningNode
+    +> indentSepNlnUnindent (col sepNln node.Fields genPatRecordFieldName)
+    +> addSpaceIfSpaceAroundDelimiter
+    +> genSingleTextNode node.ClosingNode
+    |> genNode node
+
+let genMultilineArrayOrListPatternInApplication (node: PatArrayOrListNode) =
+    genSingleTextNode node.OpenToken
+    +> indentSepNlnUnindent (col sepNln node.Patterns genPat)
+    +> sepNln
+    +> genSingleTextNode node.CloseToken
+    |> genNode node
 
 let genPatInClause (pat: Pattern) =
     let rec genPatMultiline p =

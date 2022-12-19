@@ -1108,7 +1108,7 @@ let g =
                revisionNumber = r
                processName = pn } -> p, r, pn)
 """
-        config
+        { config with MaxLineLength = 60 }
     |> prepend newline
     |> should
         equal
