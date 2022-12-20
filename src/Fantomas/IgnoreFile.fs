@@ -77,16 +77,7 @@ module IgnoreFile =
             let fullPath = fs.Path.GetFullPath(file)
 
             try
-                let path =
-                    if fullPath.StartsWith ignoreFile.Location.Directory.FullName then
-                        fullPath.[ignoreFile.Location.Directory.FullName.Length + 1 ..]
-                    else
-                        // This scenario is a bit unexpected - it suggests that we are
-                        // trying to ask an ignorefile whether a file that is outside
-                        // its dependency tree is ignored.
-                        fullPath
-
-                ignoreFile.IsIgnored path
+                ignoreFile.IsIgnored fullPath
             with ex ->
                 printfn "%A" ex
                 false

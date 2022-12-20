@@ -320,3 +320,32 @@ let add (a : int) (b : int) = //
 "
             | otherResponse -> Assert.Fail $"Unexpected response %A{otherResponse}"
         })
+
+[<Test>]
+let ``format nested ignored file`` () =
+    runWithDaemon (fun client ->
+        async {
+            let sourceCode = "let foo = 4"
+
+            use codeFile =
+                new TemporaryFileCodeSample(
+                    sourceCode,
+                    fileName = "NicePrint",
+                    subFolders = [| "src"; "Compiler"; "Checking" |]
+                )
+
+            use _ignoreFixture = new FantomasIgnoreFile("src/Compiler/Checking/NicePrint.fs")
+
+            let request =
+                { SourceCode = sourceCode
+                  FilePath = codeFile.Filename
+                  Config = None }
+
+            let! response =
+                client.InvokeAsync<FormatDocumentResponse>(Methods.FormatDocument, request)
+                |> Async.AwaitTask
+
+            match response with
+            | FormatDocumentResponse.IgnoredFile _ -> Assert.Pass()
+            | otherResponse -> Assert.Fail $"Unexpected response %A{otherResponse}"
+        })
