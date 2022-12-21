@@ -3,6 +3,7 @@
 open System
 open Fantomas.Core.Context
 open Fantomas.Core.SyntaxOak
+open Fantomas.Core.FormatConfig
 
 let noBreakInfixOps = set [| "="; ">"; "<"; "%" |]
 let newLineInfixOps = set [ "|>"; "||>"; "|||>"; ">>"; ">>=" ]
@@ -2553,7 +2554,7 @@ let genPat (p: Pattern) =
 
         let multilineExpressionIfAlignBrackets =
             ifAlignBrackets multilineRecordExprAlignBrackets multilineRecordExpr
-            
+
         fun ctx ->
             let size = getRecordSize ctx node.Fields
             genNode node (isSmallExpression size smallRecordExpr multilineExpressionIfAlignBrackets) ctx
@@ -3330,10 +3331,7 @@ let genTypeDefn (td: TypeDefn) =
             +> genSingleTextNode node.ClosingBrace
 
         let multilineExpression (ctx: Context) =
-            if
-                ctx.Config.MultilineBlockBracketsOnSameColumn
-                || (List.exists (fun (fieldNode: FieldNode) -> fieldNode.XmlDoc.IsSome) node.Fields)
-            then
+            let aligned =
                 let msIsEmpty = List.isEmpty members
 
                 (ifElseCtx
@@ -3351,7 +3349,12 @@ let genTypeDefn (td: TypeDefn) =
                  +> sepNlnTypeAndMembers typeDefnNode
                  +> genMemberDefnList members)
                     ctx
-            else
+
+            match ctx.Config.MultilineBracketStyle with
+            | Aligned
+            | ExperimentalStroustrup -> aligned
+            | Classic when (List.exists (fun (fieldNode: FieldNode) -> fieldNode.XmlDoc.IsSome) node.Fields) -> aligned
+            | Classic ->
                 (sepNlnUnlessLastEventIsNewline
                  +> opt (indent +> sepNln) node.Accessibility genSingleTextNode
                  +> genSingleTextNodeSuffixDelimiter node.OpeningBrace

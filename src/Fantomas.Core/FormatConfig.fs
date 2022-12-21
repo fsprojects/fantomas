@@ -218,7 +218,7 @@ type FormatConfig =
       // [<Category("Convention")>]
       // [<DisplayName("Format braces using Stroustrup Style where possible.")>]
       // [<Description("Experimental feature, use at your own risk.")>]
- 
+
       [<Category("Convention")>]
       [<DisplayName("How to format brackets")>]
       [<Description("Possible options include classic (default), aligned, and experimental_stroustrup")>]
@@ -232,6 +232,9 @@ type FormatConfig =
       [<DisplayName("Strict mode")>]
       [<Description("Pretty printing based on ASTs only.\nPlease do not use this setting for formatting hand written code!")>]
       StrictMode: bool }
+
+    member this.ExperimentalStroustrupStyle =
+        this.MultilineBracketStyle = ExperimentalStroustrup
 
     static member Default =
         { IndentSize = 4

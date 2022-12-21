@@ -20,11 +20,6 @@
     <Compile Include="Queue.fs" />
     <Compile Include="Flowering.fsi" />
     <Compile Include="Flowering.fs" />
-    <Compile Include="SourceParser.fs" />
-    <Compile Include="AstTransformer.fsi" />
-    <Compile Include="AstTransformer.fs" />
-    <Compile Include="Version.fs" />
-    <Compile Include="Queue.fs" />
     <Compile Include="Defines.fsi" />
     <Compile Include="Defines.fs" />
     <Compile Include="Context.fs" />
