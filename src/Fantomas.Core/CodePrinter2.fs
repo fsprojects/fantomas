@@ -3229,14 +3229,26 @@ let genTypeDefn (td: TypeDefn) =
         let implicitConstructor = typeName.ImplicitConstructor
         let hasAndKeyword = typeName.LeadingKeyword.Text = "and"
 
+        // Workaround for https://github.com/fsprojects/fantomas/issues/628
+        let hasTriviaAfterLeadingKeyword =
+            let beforeAccess =
+                match typeName.Accessibility with
+                | Some n -> (n :> Node).HasContentBefore
+                | _ -> false
+
+            let beforeIdentifier = (typeName.Identifier :> Node).HasContentBefore
+            beforeAccess || beforeIdentifier
+
         genXml typeName.XmlDoc
         +> onlyIfNot hasAndKeyword (genAttributes typeName.Attributes)
         +> genSingleTextNode typeName.LeadingKeyword
         +> onlyIf hasAndKeyword (sepSpace +> genOnelinerAttributes typeName.Attributes)
         +> sepSpace
+        +> onlyIf hasTriviaAfterLeadingKeyword indent
         +> genAccessOpt typeName.Accessibility
         +> genTypeAndParam (genIdentListNode typeName.Identifier) typeName.TypeParameters
         +> onlyIfNot typeName.Constraints.IsEmpty (sepSpace +> genTypeConstraints typeName.Constraints)
+        +> onlyIf hasTriviaAfterLeadingKeyword unindent
         +> leadingExpressionIsMultiline
             (optSingle
                 (fun imCtor -> sepSpaceBeforeClassConstructor +> genImplicitConstructor imCtor)
