@@ -447,7 +447,7 @@ insert_final_newline = false
     Assert.IsFalse config.InsertFinalNewline
 
 [<Test>]
-let fsharp_experimental_stroustrup_style () =
+let ``fsharp_experimental_stroustrup_style = true`` () =
     let rootDir = tempName ()
 
     let editorConfig =
@@ -505,7 +505,7 @@ fsharp_multiline_bracket_style = aligned
     Assert.AreEqual(Aligned, config.MultilineBracketStyle)
 
 [<Test>]
-let fsharp_multiline_block_brackets_on_same_column () =
+let ``fsharp_multiline_block_brackets_on_same_column = true`` () =
     let rootDir = tempName ()
 
     let editorConfig =
