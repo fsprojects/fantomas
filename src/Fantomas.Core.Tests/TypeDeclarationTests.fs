@@ -3266,3 +3266,49 @@ type Server<'a>
     let mutable i = 0
     member this.Blah = 0
 """
+
+[<Test>]
+let ``conditional directive around access modifier, 628`` () =
+    formatSourceString
+        false
+        """
+type
+#if DEBUG
+#else
+     internal
+#endif
+              ReportFormat =
+  | NCover = 0
+  | OpenCover = 1
+  | OpenCoverWithTracking = 2
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type
+#if DEBUG
+#else
+    internal
+#endif
+    ReportFormat =
+    | NCover = 0
+    | OpenCover = 1
+    | OpenCoverWithTracking = 2
+"""
+
+[<Test>]
+let ``block comment between type and identifier`` () =
+    formatSourceString
+        false
+        """
+type (* foo *)  Bar = int
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type (* foo *) Bar = int
+"""
