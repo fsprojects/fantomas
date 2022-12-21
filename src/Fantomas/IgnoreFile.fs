@@ -3,9 +3,20 @@ namespace Fantomas
 open System.IO.Abstractions
 open Ignore
 
+type AbsoluteFilePath =
+    private
+    | AbsoluteFilePath of string
+
+    member x.Path =
+        let (AbsoluteFilePath(path)) = x
+        path
+
+    static member Create (fs: IFileSystem) (filePath: string) =
+        fs.Path.GetFullPath filePath |> AbsoluteFilePath
+
 /// The string argument is taken relative to the location
 /// of the ignore-file.
-type IsPathIgnored = string -> bool
+type IsPathIgnored = AbsoluteFilePath -> bool
 
 type IgnoreFile =
     { Location: IFileInfo
@@ -46,7 +57,7 @@ module IgnoreFile =
             (Ignore(), lines)
             ||> Array.fold (fun (ig: Ignore) (line: string) -> ig.Add(line))
 
-        fun path ->
+        fun (absoluteFilePath: AbsoluteFilePath) ->
             // See https://git-scm.com/docs/gitignore
             // We transform the incoming path relative to the .ignoreFilePath folder.
             // In a cli scenario that is the current directory, for the daemon it is the first found ignore file.
@@ -54,7 +65,7 @@ module IgnoreFile =
             let relativePath =
                 fs
                     .Path
-                    .GetRelativePath(fs.Directory.GetParent(ignoreFilePath).FullName, path)
+                    .GetRelativePath(fs.Directory.GetParent(ignoreFilePath).FullName, absoluteFilePath.Path)
                     .Replace("\\", "/")
 
             fantomasIgnore.IsIgnored(relativePath)
@@ -74,7 +85,7 @@ module IgnoreFile =
         | None -> false
         | Some ignoreFile ->
             let fs = ignoreFile.Location.FileSystem
-            let fullPath = fs.Path.GetFullPath(file)
+            let fullPath = AbsoluteFilePath.Create fs file
 
             try
                 ignoreFile.IsIgnored fullPath
