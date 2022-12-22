@@ -3350,10 +3350,13 @@ let genTypeDefn (td: TypeDefn) =
                  +> genMemberDefnList members)
                     ctx
 
+            let anyFieldHasXmlDoc =
+                List.exists (fun (fieldNode: FieldNode) -> fieldNode.XmlDoc.IsSome) node.Fields
+
             match ctx.Config.MultilineBracketStyle with
             | Aligned
             | ExperimentalStroustrup -> aligned
-            | Cramped when (List.exists (fun (fieldNode: FieldNode) -> fieldNode.XmlDoc.IsSome) node.Fields) -> aligned
+            | Cramped when anyFieldHasXmlDoc -> aligned
             | Cramped ->
                 (sepNlnUnlessLastEventIsNewline
                  +> opt (indent +> sepNln) node.Accessibility genSingleTextNode
@@ -3368,7 +3371,7 @@ let genTypeDefn (td: TypeDefn) =
                     ctx
 
         let bodyExpr size ctx =
-            if (List.isEmpty members) then
+            if List.isEmpty members then
                 (isSmallExpression size smallExpression multilineExpression) ctx
             else
                 multilineExpression ctx
