@@ -1,5 +1,10 @@
 # Changelog
 
+## [5.2.0-alpha-006] - 2022-12-22
+
+### Fixes
+* Conditional directives around internal keyword. [#628](https://github.com/fsprojects/fantomas/issues/628)
+
 ## [5.2.0-alpha-005] - 2022-12-16
 
 ### Fixes
