@@ -1048,7 +1048,7 @@ let ifAlignBrackets f g =
             match ctx.Config.MultilineBracketStyle with
             | Aligned
             | ExperimentalStroustrup -> true
-            | Classic -> false)
+            | Cramped -> false)
         f
         g
 

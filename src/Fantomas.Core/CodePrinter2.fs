@@ -3353,8 +3353,8 @@ let genTypeDefn (td: TypeDefn) =
             match ctx.Config.MultilineBracketStyle with
             | Aligned
             | ExperimentalStroustrup -> aligned
-            | Classic when (List.exists (fun (fieldNode: FieldNode) -> fieldNode.XmlDoc.IsSome) node.Fields) -> aligned
-            | Classic ->
+            | Cramped when (List.exists (fun (fieldNode: FieldNode) -> fieldNode.XmlDoc.IsSome) node.Fields) -> aligned
+            | Cramped ->
                 (sepNlnUnlessLastEventIsNewline
                  +> opt (indent +> sepNln) node.Accessibility genSingleTextNode
                  +> genSingleTextNodeSuffixDelimiter node.OpeningBrace

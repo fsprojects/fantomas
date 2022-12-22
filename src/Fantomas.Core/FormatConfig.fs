@@ -26,19 +26,19 @@ type MultilineFormatterType =
         | _ -> None
 
 type MultilineBracketStyle =
-    | Classic
+    | Cramped
     | Aligned
     | ExperimentalStroustrup
 
     static member ToConfigString(cfg: MultilineBracketStyle) =
         match cfg with
-        | Classic -> "classic"
+        | Cramped -> "cramped"
         | Aligned -> "aligned"
         | ExperimentalStroustrup -> "experimental_stroustrup"
 
     static member OfConfigString(cfgString: string) =
         match cfgString with
-        | "classic" -> Some Classic
+        | "cramped" -> Some Cramped
         | "aligned" -> Some Aligned
         | "experimental_stroustrup" -> Some ExperimentalStroustrup
         | _ -> None
@@ -182,10 +182,6 @@ type FormatConfig =
       [<DisplayName("Maximum dot get expression width")>]
       MaxDotGetExpressionWidth: Num
 
-      // [<Category("Boundaries")>]
-      // [<DisplayName("Multiline-block brackets on same column")>]
-      // MultilineBlockBracketsOnSameColumn: bool
-
       [<Category("Convention")>]
       [<DisplayName("Newline between type definition and members")>]
       NewlineBetweenTypeDefinitionAndMembers: bool
@@ -215,13 +211,9 @@ type FormatConfig =
       [<DisplayName("Add a bar before Discriminated Union declarations")>]
       BarBeforeDiscriminatedUnionDeclaration: bool
 
-      // [<Category("Convention")>]
-      // [<DisplayName("Format braces using Stroustrup Style where possible.")>]
-      // [<Description("Experimental feature, use at your own risk.")>]
-
       [<Category("Convention")>]
       [<DisplayName("How to format brackets")>]
-      [<Description("Possible options include classic (default), aligned, and experimental_stroustrup")>]
+      [<Description("Possible options include cramped (default), aligned, and experimental_stroustrup")>]
       MultilineBracketStyle: MultilineBracketStyle
 
       [<Category("Convention")>]
@@ -270,6 +262,6 @@ type FormatConfig =
           ExperimentalKeepIndentInBranch = false
           BlankLinesAroundNestedMultilineExpressions = true
           BarBeforeDiscriminatedUnionDeclaration = false
-          MultilineBracketStyle = Classic
+          MultilineBracketStyle = Cramped
           KeepMaxNumberOfBlankLines = 100
           StrictMode = false }
