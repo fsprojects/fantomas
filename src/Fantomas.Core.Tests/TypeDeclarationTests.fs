@@ -3312,3 +3312,26 @@ type (* foo *)  Bar = int
         """
 type (* foo *) Bar = int
 """
+
+[<Test>]
+let ``comment between empty implicit constructor, 1872`` () =
+    formatSourceString
+        false
+        """
+  type MyType
+    (
+      (* some comment *)
+    ) = 
+    let x = 5
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type MyType
+    (
+    (* some comment *)
+    ) =
+    let x = 5
+"""
