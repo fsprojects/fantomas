@@ -396,7 +396,7 @@ let genExpr (e: Expr) =
                                 (onlyIfNot isFixed sepSpace +> !-node.Closing.Text +> leaveNode node.Closing) ctx))
                     )
 
-                ifAlignBrackets genMultiLineArrayOrListAlignBrackets genMultiLineArrayOrList
+                ifAlignOrStroustrupBrackets genMultiLineArrayOrListAlignBrackets genMultiLineArrayOrList
 
             fun ctx ->
                 let alwaysMultiline =
@@ -549,7 +549,7 @@ let genExpr (e: Expr) =
                                          ctx))
                             ctx
 
-            ifAlignBrackets genMultilineRecordInstanceAlignBrackets genMultilineRecordInstance
+            ifAlignOrStroustrupBrackets genMultilineRecordInstanceAlignBrackets genMultilineRecordInstance
 
         fun ctx ->
             let size = getRecordSize ctx node.Fields
@@ -641,7 +641,7 @@ let genExpr (e: Expr) =
 
                 ifElse node.IsStruct !- "struct " sepNone +> genAnonRecord
 
-            ifAlignBrackets genMultilineAnonRecordAlignBrackets genMultilineAnonRecord
+            ifAlignOrStroustrupBrackets genMultilineAnonRecordAlignBrackets genMultilineAnonRecord
 
         fun (ctx: Context) ->
             let size = getRecordSize ctx node.Fields
@@ -710,7 +710,7 @@ let genExpr (e: Expr) =
                     +> genSingleTextNode node.ClosingBrace
                 )
 
-            ifAlignBrackets genObjExprAlignBrackets genObjExpr
+            ifAlignOrStroustrupBrackets genObjExprAlignBrackets genObjExpr
         |> genNode node
     | Expr.While node ->
         atCurrentColumn (
@@ -2553,7 +2553,7 @@ let genPat (p: Pattern) =
             |> atCurrentColumnIndent
 
         let multilineExpressionIfAlignBrackets =
-            ifAlignBrackets multilineRecordExprAlignBrackets multilineRecordExpr
+            ifAlignOrStroustrupBrackets multilineRecordExprAlignBrackets multilineRecordExpr
 
         fun ctx ->
             let size = getRecordSize ctx node.Fields
@@ -3122,7 +3122,7 @@ let genType (t: Type) =
 
                 genStruct +> genRecord
 
-            ifAlignBrackets genMultilineAnonRecordTypeAlignBrackets genMultilineAnonRecordType
+            ifAlignOrStroustrupBrackets genMultilineAnonRecordTypeAlignBrackets genMultilineAnonRecordType
 
         fun (ctx: Context) ->
             let size = getRecordSize ctx node.Fields

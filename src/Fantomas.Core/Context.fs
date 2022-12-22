@@ -1023,7 +1023,7 @@ let sepSemi (ctx: Context) =
     | true, true -> str " ; "
     <| ctx
 
-let ifAlignBrackets f g =
+let ifAlignOrStroustrupBrackets f g =
     ifElseCtx
         (fun ctx ->
             match ctx.Config.MultilineBracketStyle with
