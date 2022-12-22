@@ -1,5 +1,10 @@
 # Changelog
 
+## [5.1.5] - 2022-12-22
+
+### Fixed
+* Call ignoreFile.IsIgnored with absolute path. [#2656](https://github.com/fsprojects/fantomas/pull/2656)
+
 ## [5.1.4] - 2022-11-30
 
 ### Fixed
