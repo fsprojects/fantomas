@@ -3,8 +3,6 @@ module Fantomas.Core.FormatConfig
 open System
 open System.ComponentModel
 
-let satSolveMaxStepsMaxSteps = 100
-
 type FormatException(msg: string) =
     inherit Exception(msg)
 
