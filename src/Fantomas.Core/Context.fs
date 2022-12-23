@@ -79,7 +79,6 @@ module WriterModel =
     let update maxPageWidth cmd m =
         let doNewline m =
             let m = { m with Indent = max m.Indent m.AtColumn }
-
             let nextLine = String.replicate m.Indent " "
             let currentLine = String.Concat(List.head m.Lines, m.WriteBeforeNewline).TrimEnd()
             let otherLines = List.tail m.Lines
