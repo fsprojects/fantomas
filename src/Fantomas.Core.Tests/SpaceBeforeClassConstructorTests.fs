@@ -3,6 +3,7 @@ module Fantomas.Core.Tests.SpaceBeforeClassConstructorTests
 open NUnit.Framework
 open FsUnit
 open Fantomas.Core.Tests.TestHelper
+open Fantomas.Core.FormatConfig
 
 let spaceBeforeConfig = { config with SpaceBeforeClassConstructor = true }
 
@@ -306,7 +307,7 @@ type DerivedClass =
         { inherit BaseClass(str1)
           string2 = str2 }
 """
-        { spaceBeforeConfig with MultilineBlockBracketsOnSameColumn = true }
+        { spaceBeforeConfig with MultilineBracketStyle = Aligned }
     |> prepend newline
     |> should
         equal

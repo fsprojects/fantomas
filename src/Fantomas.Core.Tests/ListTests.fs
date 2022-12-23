@@ -3,6 +3,7 @@ module Fantomas.Core.Tests.ListTests
 open NUnit.Framework
 open FsUnit
 open Fantomas.Core.Tests.TestHelper
+open Fantomas.Core.FormatConfig
 
 [<Test>]
 let ``array indices`` () =
@@ -1943,7 +1944,7 @@ let value = [
         { config with
             MaxIfThenElseShortWidth = 120
             MaxArrayOrListWidth = 120
-            MultilineBlockBracketsOnSameColumn = true }
+            MultilineBracketStyle = Aligned }
     |> prepend newline
     |> should
         equal

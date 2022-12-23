@@ -3,6 +3,7 @@
 open NUnit.Framework
 open FsUnit
 open Fantomas.Core.Tests.TestHelper
+open Fantomas.Core.FormatConfig
 
 [<Test>]
 let ``proof of concept`` () =
@@ -1850,9 +1851,7 @@ let someTest input1 input2 =
         Expect.equal input1 input2 "didn't equal"
     }
 """
-        { config with
-            ExperimentalStroustrupStyle = true
-            MultilineBlockBracketsOnSameColumn = true }
+        { config with MultilineBracketStyle = ExperimentalStroustrup }
     |> prepend newline
     |> should
         equal

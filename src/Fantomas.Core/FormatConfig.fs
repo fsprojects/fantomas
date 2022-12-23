@@ -25,6 +25,24 @@ type MultilineFormatterType =
         | "number_of_items" -> Some(box MultilineFormatterType.NumberOfItems)
         | _ -> None
 
+type MultilineBracketStyle =
+    | Cramped
+    | Aligned
+    | ExperimentalStroustrup
+
+    static member ToConfigString(cfg: MultilineBracketStyle) =
+        match cfg with
+        | Cramped -> "cramped"
+        | Aligned -> "aligned"
+        | ExperimentalStroustrup -> "experimental_stroustrup"
+
+    static member OfConfigString(cfgString: string) =
+        match cfgString with
+        | "cramped" -> Some Cramped
+        | "aligned" -> Some Aligned
+        | "experimental_stroustrup" -> Some ExperimentalStroustrup
+        | _ -> None
+
 [<RequireQualifiedAccess>]
 type EndOfLineStyle =
     | LF
@@ -164,10 +182,6 @@ type FormatConfig =
       [<DisplayName("Maximum dot get expression width")>]
       MaxDotGetExpressionWidth: Num
 
-      [<Category("Boundaries")>]
-      [<DisplayName("Multiline-block brackets on same column")>]
-      MultilineBlockBracketsOnSameColumn: bool
-
       [<Category("Convention")>]
       [<DisplayName("Newline between type definition and members")>]
       NewlineBetweenTypeDefinitionAndMembers: bool
@@ -198,9 +212,9 @@ type FormatConfig =
       BarBeforeDiscriminatedUnionDeclaration: bool
 
       [<Category("Convention")>]
-      [<DisplayName("Format braces using Stroustrup Style where possible.")>]
-      [<Description("Experimental feature, use at your own risk.")>]
-      ExperimentalStroustrupStyle: bool
+      [<DisplayName("How to format brackets")>]
+      [<Description("Possible options include cramped (default), aligned, and experimental_stroustrup")>]
+      MultilineBracketStyle: MultilineBracketStyle
 
       [<Category("Convention")>]
       [<DisplayName("Maximum number of consecutive blank lines to keep")>]
@@ -210,6 +224,9 @@ type FormatConfig =
       [<DisplayName("Strict mode")>]
       [<Description("Pretty printing based on ASTs only.\nPlease do not use this setting for formatting hand written code!")>]
       StrictMode: bool }
+
+    member this.ExperimentalStroustrupStyle =
+        this.MultilineBracketStyle = ExperimentalStroustrup
 
     static member Default =
         { IndentSize = 4
@@ -238,7 +255,6 @@ type FormatConfig =
           MaxValueBindingWidth = 80
           MaxFunctionBindingWidth = 40
           MaxDotGetExpressionWidth = 80
-          MultilineBlockBracketsOnSameColumn = false
           NewlineBetweenTypeDefinitionAndMembers = true
           AlignFunctionSignatureToIndentation = false
           AlternativeLongMemberDefinitions = false
@@ -246,6 +262,6 @@ type FormatConfig =
           ExperimentalKeepIndentInBranch = false
           BlankLinesAroundNestedMultilineExpressions = true
           BarBeforeDiscriminatedUnionDeclaration = false
-          ExperimentalStroustrupStyle = false
+          MultilineBracketStyle = Cramped
           KeepMaxNumberOfBlankLines = 100
           StrictMode = false }

@@ -3,6 +3,7 @@ module Fantomas.Core.Tests.RecordTests
 open NUnit.Framework
 open FsUnit
 open Fantomas.Core.Tests.TestHelper
+open Fantomas.Core.FormatConfig
 
 [<Test>]
 let ``record declaration`` () =
@@ -2127,7 +2128,7 @@ let compareThings (first: Thing) (second: Thing) =
                 Bar = first.Bar
             }
 """
-        { config with MultilineBlockBracketsOnSameColumn = true }
+        { config with MultilineBracketStyle = Aligned }
     |> prepend newline
     |> should
         equal
