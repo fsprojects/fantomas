@@ -284,13 +284,26 @@ let blockCommentToTriviaInstruction (containerNode: Node) (trivia: TriviaNode) :
 
     match nodeBefore, nodeAfter with
     | Some nb, None when nb.Range.EndLine = trivia.Range.StartLine -> nb.AddAfter(triviaWith false false)
-    | Some nb, Some na when
-        (nb.Range.EndLine < trivia.Range.StartLine
-         && na.Range.StartLine > trivia.Range.EndLine)
-        ->
-        nb.AddBefore(triviaWith true true)
-    | Some nb, _ when nb.Range.EndLine = trivia.Range.StartLine -> nb.AddAfter(triviaWith false false)
     | None, Some na -> na.AddBefore(triviaWith true false)
+    | Some nb, Some na ->
+        if
+            (nb.Range.EndLine < trivia.Range.StartLine
+             && na.Range.StartLine > trivia.Range.EndLine)
+        then
+            // before
+            // (* comment *)
+            // after
+            nb.AddBefore(triviaWith true true)
+        elif
+            (nb.Range.EndLine < trivia.Range.StartLine
+             && trivia.Range.EndLine = na.Range.StartLine)
+        then
+            // before
+            // (* comment *) after
+            na.AddBefore(triviaWith false false)
+        elif nb.Range.EndLine = trivia.Range.StartLine then
+            // before (* comment *) after
+            nb.AddAfter(triviaWith false false)
     | _ -> ()
 
 let addToTree (tree: Oak) (trivia: TriviaNode seq) =

@@ -2576,3 +2576,19 @@ type MyType2 =
         =
         inputA
 """
+
+[<Test>]
+let ``block comment before unit in binding, 2660`` () =
+    formatSourceString
+        false
+        """
+let run (log: ILogger) =
+    (* foo *)  ()
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let run (log: ILogger) = (* foo *) ()
+"""
