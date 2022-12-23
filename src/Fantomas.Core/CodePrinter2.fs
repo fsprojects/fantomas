@@ -2611,54 +2611,27 @@ let genReturnTypeBinding (node: BindingReturnInfoNode option) =
     | None -> sepNone
     | Some node -> genSingleTextNode node.Colon +> sepSpace +> genType node.Type
 
-let clean_up_space_settings (leadingKeyword: MultipleTextsNode) ctx =
-    let (|Keywords|) (mt: MultipleTextsNode) =
-        List.map (fun (st: SingleTextNode) -> st.Text) mt.Content
-
-    match leadingKeyword with
-    | Keywords [ "member" ]
-    | Keywords [ "override" ]
-    | Keywords [ "static"; "member" ]
-    | Keywords [ "abstract"; "member" ]
-    | Keywords [ "default" ] -> ctx.Config.SpaceBeforeMember, ctx.Config.AlternativeLongMemberDefinitions
-    | _ -> ctx.Config.SpaceBeforeParameter, ctx.Config.AlignFunctionSignatureToIndentation
-
-let clean_up_is_rec_function (leadingKeyword: MultipleTextsNode) =
-    match leadingKeyword.Content with
-    | [ singleText ] -> singleText.Text = "and"
-    | _ -> false
-
-let clean_up_addSpaceBeforeParensInFunDef (spaceBeforeSetting: bool) (functionOrMethod: IdentListNode) (arg: Pattern) =
-    match functionOrMethod.Content, arg with
-    | [ IdentifierOrDot.Ident newIdent ], _ when newIdent.Text = "new" -> false
-    | _, Pattern.Paren _
-    | _, Pattern.Unit _ -> spaceBeforeSetting
-    | _, Pattern.Named _
-    | _, Pattern.Wild _ -> true
-    | content, _ ->
-        match List.tryLast content with
-        | None -> false
-        | Some(IdentifierOrDot.KnownDot _)
-        | Some IdentifierOrDot.UnknownDot -> true
-        | Some(IdentifierOrDot.Ident ident) -> not (Char.IsUpper ident.Text.[0])
-
-let clean_up_genParenTupleWithIndentAndNewlines
-    (parenNode: PatParenNode)
-    (tupleNode: PatTupleNode)
-    : Context -> Context =
-    genSingleTextNode parenNode.OpeningParen
-    +> indentSepNlnUnindent ((col (sepComma +> sepNln) tupleNode.Patterns genPat) |> genNode tupleNode)
-    +> sepNln
-    +> genSingleTextNode parenNode.ClosingParen
-    |> genNode parenNode
-
 let genBinding (b: BindingNode) (ctx: Context) : Context =
-    let binding =
-        match b.ReturnType, b.FunctionName with
-        | Some returnTypeNode, Choice1Of2 functionName when List.isNotEmpty b.Parameters ->
-            let spaceBefore, alternativeSyntax = clean_up_space_settings b.LeadingKeyword ctx
-            let isRecursiveLetOrUseFunction = clean_up_is_rec_function b.LeadingKeyword
+    let spaceBefore, alternativeSyntax =
+        let (|Keywords|) (mt: MultipleTextsNode) =
+            List.map (fun (st: SingleTextNode) -> st.Text) mt.Content
 
+        match b.LeadingKeyword with
+        | Keywords [ "member" ]
+        | Keywords [ "override" ]
+        | Keywords [ "static"; "member" ]
+        | Keywords [ "abstract"; "member" ]
+        | Keywords [ "default" ] -> ctx.Config.SpaceBeforeMember, ctx.Config.AlternativeLongMemberDefinitions
+        | _ -> ctx.Config.SpaceBeforeParameter, ctx.Config.AlignFunctionSignatureToIndentation
+
+    let isRecursiveLetOrUseFunction =
+        match b.LeadingKeyword.Content with
+        | [ singleText ] -> singleText.Text = "and"
+        | _ -> false
+
+    let binding =
+        match b.FunctionName with
+        | Choice1Of2 functionName when List.isNotEmpty b.Parameters ->
             let genAttrIsFirstChild =
                 onlyIf (not isRecursiveLetOrUseFunction) (genAttributes b.Attributes)
 
@@ -2679,18 +2652,35 @@ let genBinding (b: BindingNode) (ctx: Context) : Context =
                 genIdentListNode functionName +> optSingle genTyparDecls b.GenericTypeParameters
 
             let genReturnType isFixed =
-                onlyIfNot isFixed sepSpace
-                +> (genSingleTextNode returnTypeNode.Colon
-                    +> sepSpace
-                    +> atCurrentColumnIndent (genType returnTypeNode.Type)
-                    |> genNode returnTypeNode)
+                match b.ReturnType with
+                | None -> sepNone
+                | Some returnTypeNode ->
+                    onlyIfNot isFixed sepSpace
+                    +> (genSingleTextNode returnTypeNode.Colon
+                        +> sepSpace
+                        +> atCurrentColumnIndent (genType returnTypeNode.Type)
+                        |> genNode returnTypeNode)
 
             let genSignature =
                 let spaceBeforeParameters =
                     match b.Parameters with
                     | [] -> sepNone
                     | [ p ] ->
-                        ifElse (clean_up_addSpaceBeforeParensInFunDef spaceBefore functionName p) sepSpace sepNone
+                        let addSpaceBeforeParensInFunDef =
+                            match functionName.Content, p with
+                            | [ IdentifierOrDot.Ident newIdent ], _ when newIdent.Text = "new" -> false
+                            | _, Pattern.Paren _
+                            | _, Pattern.Unit _ -> spaceBefore
+                            | _, Pattern.Named _
+                            | _, Pattern.Wild _ -> true
+                            | content, _ ->
+                                match List.tryLast content with
+                                | None -> false
+                                | Some(IdentifierOrDot.KnownDot _)
+                                | Some IdentifierOrDot.UnknownDot -> true
+                                | Some(IdentifierOrDot.Ident ident) -> not (Char.IsUpper ident.Text.[0])
+
+                        ifElse addSpaceBeforeParensInFunDef sepSpace sepNone
                     | _ -> sepSpace
 
                 let short =
@@ -2709,7 +2699,14 @@ let genBinding (b: BindingNode) (ctx: Context) : Context =
                         | [ Pattern.Paren parenNode ] ->
                             match parenNode.Pattern with
                             | Pattern.Tuple tupleNode ->
-                                clean_up_genParenTupleWithIndentAndNewlines parenNode tupleNode, true
+                                (genSingleTextNode parenNode.OpeningParen
+                                 +> indentSepNlnUnindent (
+                                     (col (sepComma +> sepNln) tupleNode.Patterns genPat) |> genNode tupleNode
+                                 )
+                                 +> sepNln
+                                 +> genSingleTextNode parenNode.ClosingParen
+                                 |> genNode parenNode),
+                                true
                             | _ -> col sepNln b.Parameters genPat, false
                         | _ -> col sepNln b.Parameters genPat, false
 
@@ -2723,7 +2720,10 @@ let genBinding (b: BindingNode) (ctx: Context) : Context =
                      +> leadingExpressionIsMultiline
                          (genReturnType (not hasSingleTupledArg || alternativeSyntax))
                          (fun isMultiline ->
-                             ifElse (alternativeSyntax || isMultiline) (sepNln +> genSingleTextNode b.Equals) sepEq)
+                             if (alternativeSyntax && Option.isSome b.ReturnType) || isMultiline then
+                                 sepNln +> genSingleTextNode b.Equals
+                             else
+                                 sepSpace +> genSingleTextNode b.Equals)
                      +> unindent)
                         ctx
 
@@ -2746,88 +2746,8 @@ let genBinding (b: BindingNode) (ctx: Context) : Context =
              +> genAttrIsFirstChild
              +> genPref
              +> leadingExpressionIsMultiline genSignature genExpr)
-        | None, Choice1Of2 functionName when List.isNotEmpty b.Parameters ->
-            let spaceBefore, alternativeSyntax = clean_up_space_settings b.LeadingKeyword ctx
-            let isRecursiveLetOrUseFunction = clean_up_is_rec_function b.LeadingKeyword
 
-            let genAttrIsFirstChild =
-                onlyIf (not isRecursiveLetOrUseFunction) (genAttributes b.Attributes)
-
-            let genPref =
-                if not isRecursiveLetOrUseFunction then
-                    genMultipleTextsNode b.LeadingKeyword +> sepSpace
-                else
-                    genMultipleTextsNode b.LeadingKeyword
-                    +> sepSpace
-                    +> genOnelinerAttributes b.Attributes
-
-            let afterLetKeyword =
-                ifElse b.IsMutable (!- "mutable ") sepNone
-                +> ifElse b.IsInline (!- "inline ") sepNone
-                +> genAccessOpt b.Accessibility
-
-            let genFunctionName =
-                genIdentListNode functionName +> optSingle genTyparDecls b.GenericTypeParameters
-
-            let genSignature =
-                let spaceBeforeParameters =
-                    match b.Parameters with
-                    | [] -> sepNone
-                    | [ p ] ->
-                        ifElse (clean_up_addSpaceBeforeParensInFunDef spaceBefore functionName p) sepSpace sepNone
-                    | _ -> sepSpace
-
-                let short =
-                    afterLetKeyword
-                    +> genFunctionName
-                    +> spaceBeforeParameters
-                    +> col sepSpace b.Parameters genPat
-                    +> sepSpace
-                    +> genSingleTextNode b.Equals
-
-                let long (ctx: Context) =
-                    let genParameters, hasSingleTupledArg =
-                        match b.Parameters with
-                        | [ Pattern.Paren parenNode ] ->
-                            match parenNode.Pattern with
-                            | Pattern.Tuple tupleNode ->
-                                clean_up_genParenTupleWithIndentAndNewlines parenNode tupleNode, true
-                            | _ -> col sepNln b.Parameters genPat, false
-                        | _ -> col sepNln b.Parameters genPat, false
-
-                    (afterLetKeyword
-                     +> sepSpace
-                     +> genFunctionName
-                     +> indent
-                     +> sepNln
-                     +> genParameters
-                     +> ifElse (hasSingleTupledArg && not alternativeSyntax) sepSpace sepNln
-                     +> genSingleTextNode b.Equals
-                     +> unindent)
-                        ctx
-
-                expressionFitsOnRestOfLine short long
-
-            let body (ctx: Context) = genExpr b.Expr ctx
-
-            let genExpr isMultiline =
-                if isMultiline then
-                    indentSepNlnUnindent body
-                else
-                    let short = sepSpace +> body
-
-                    let long =
-                        autoIndentAndNlnExpressUnlessStroustrup (fun e -> sepSpace +> genExpr e) b.Expr
-
-                    isShortExpression ctx.Config.MaxFunctionBindingWidth short long
-
-            (genXml b.XmlDoc
-             +> genAttrIsFirstChild
-             +> genPref
-             +> leadingExpressionIsMultiline genSignature genExpr)
-        | None, Choice2Of2(Pattern.Tuple _ as pat) ->
-            let isRecursiveLetOrUseFunction = clean_up_is_rec_function b.LeadingKeyword
-
+        | Choice2Of2(Pattern.Tuple _ as pat) ->
             let genAttrAndPref =
                 if not isRecursiveLetOrUseFunction then
                     (genAttributes b.Attributes +> genMultipleTextsNode b.LeadingKeyword)
@@ -2858,11 +2778,9 @@ let genBinding (b: BindingNode) (ctx: Context) : Context =
                 let long = prefix +> indentSepNlnUnindent (genExpr b.Expr)
                 let short = prefix +> sepSpace +> genExpr b.Expr
                 isShortExpression ctx.Config.MaxValueBindingWidth short long ctx)
+
         | _ ->
             // old code of genSynBindingValue
-
-            let isRecursiveLetOrUseFunction = clean_up_is_rec_function b.LeadingKeyword
-
             let genAttrIsFirstChild =
                 onlyIf (not isRecursiveLetOrUseFunction) (genAttributes b.Attributes)
 
