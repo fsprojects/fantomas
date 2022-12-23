@@ -3,14 +3,14 @@
 open NUnit.Framework
 open FsUnit
 open Fantomas.Core.Tests.TestHelper
+open Fantomas.Core.FormatConfig
 
 // ExperimentalKeepIndentInBranch has precedence over ExperimentalStroustrupStyle
 
 let config =
     { config with
-        MultilineBlockBracketsOnSameColumn = true
         ExperimentalKeepIndentInBranch = true
-        ExperimentalStroustrupStyle = true
+        MultilineBracketStyle = ExperimentalStroustrup
         MaxArrayOrListWidth = 40 }
 
 // There currently is no conflict with this setting, but I'm guessing the case was never brought up.

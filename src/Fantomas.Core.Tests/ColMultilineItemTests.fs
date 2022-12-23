@@ -3,6 +3,7 @@ module Fantomas.Core.Tests.ColMultilineItemTests
 open NUnit.Framework
 open FsUnit
 open Fantomas.Core.Tests.TestHelper
+open Fantomas.Core.FormatConfig
 
 [<Test>]
 let ``two short let binding should not have extra newline`` () =
@@ -388,7 +389,7 @@ let blah<'a> config : Type =
             SpaceBeforeMember = true
             SpaceBeforeColon = true
             SpaceBeforeSemicolon = true
-            MultilineBlockBracketsOnSameColumn = true
+            MultilineBracketStyle = Aligned
             AlignFunctionSignatureToIndentation = true
             AlternativeLongMemberDefinitions = true
             MultiLineLambdaClosingNewline = true }

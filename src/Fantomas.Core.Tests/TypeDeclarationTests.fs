@@ -3,6 +3,7 @@ module Fantomas.Core.Tests.TypeDeclarationTests
 open NUnit.Framework
 open FsUnit
 open Fantomas.Core.Tests.TestHelper
+open Fantomas.Core.FormatConfig
 
 [<Test>]
 let ``exception declarations`` () =
@@ -2818,7 +2819,7 @@ and [<CustomEquality ; NoComparison>] Bar<'context, 'a> =
             SpaceBeforeMember = true
             SpaceBeforeColon = true
             SpaceBeforeSemicolon = true
-            MultilineBlockBracketsOnSameColumn = true
+            MultilineBracketStyle = Aligned
             AlignFunctionSignatureToIndentation = true
             AlternativeLongMemberDefinitions = true
             MultiLineLambdaClosingNewline = true

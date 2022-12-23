@@ -858,7 +858,7 @@ type S = { AReallyLongExpressionThatIsMuchLongerThan50Characters: int }
     """
         { config with
             RecordMultilineFormatter = NumberOfItems
-            MultilineBlockBracketsOnSameColumn = true }
+            MultilineBracketStyle = Aligned }
     |> prepend newline
     |> should
         equal
@@ -949,7 +949,7 @@ g s' { s with AReallyLongExpressionThatIsMuchLongerThan50Characters = 1 }
     """
         { config with
             RecordMultilineFormatter = NumberOfItems
-            MultilineBlockBracketsOnSameColumn = true }
+            MultilineBracketStyle = Aligned }
     |> prepend newline
     |> should
         equal
@@ -1069,7 +1069,7 @@ g s' {| s with AReallyLongExpressionThatIsMuchLongerThan50Characters = 1 |}
     """
         { config with
             RecordMultilineFormatter = NumberOfItems
-            MultilineBlockBracketsOnSameColumn = true }
+            MultilineBracketStyle = Aligned }
     |> prepend newline
     |> should
         equal
@@ -1158,7 +1158,7 @@ type B = {| x: AReallyLongTypeThatIsMuchLongerThan40Characters |}
 """
         { config with
             RecordMultilineFormatter = NumberOfItems
-            MultilineBlockBracketsOnSameColumn = true }
+            MultilineBracketStyle = Aligned }
     |> prepend newline
     |> should
         equal

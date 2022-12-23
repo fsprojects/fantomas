@@ -3,6 +3,7 @@ module Fantomas.Core.Tests.SignatureTests
 open NUnit.Framework
 open FsUnit
 open Fantomas.Core.Tests.TestHelper
+open Fantomas.Core.FormatConfig
 
 // the current behavior results in a compile error since "(string * string) list" is converted to "string * string list"
 [<Test>]
@@ -1527,7 +1528,7 @@ and [<CustomEquality>] Bang =
         override GetHashCode : unit -> int
 """
         { config with
-            MultilineBlockBracketsOnSameColumn = true
+            MultilineBracketStyle = Aligned
             NewlineBetweenTypeDefinitionAndMembers = false }
     |> prepend newline
     |> should

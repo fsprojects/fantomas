@@ -79,6 +79,7 @@ module WriterModel =
     let update maxPageWidth cmd m =
         let doNewline m =
             let m = { m with Indent = max m.Indent m.AtColumn }
+
             let nextLine = String.replicate m.Indent " "
             let currentLine = String.Concat(List.head m.Lines, m.WriteBeforeNewline).TrimEnd()
             let otherLines = List.tail m.Lines
@@ -540,11 +541,6 @@ let ifElse b (f1: Context -> Context) f2 (ctx: Context) = if b then f1 ctx else 
 
 let ifElseCtx cond (f1: Context -> Context) f2 (ctx: Context) = if cond ctx then f1 ctx else f2 ctx
 
-let ifStroustrupElse = ifElseCtx (fun ctx -> ctx.Config.ExperimentalStroustrupStyle)
-
-let ifStroustrup (f1: Context -> Context) =
-    ifElseCtx (fun ctx -> ctx.Config.ExperimentalStroustrupStyle) f1 id
-
 /// apply f only when cond is true
 let onlyIf cond f ctx = if cond then f ctx else ctx
 
@@ -824,6 +820,7 @@ let leadingExpressionLong threshold leadingExpression continuationExpression (ct
 /// The second binding b is not consider multiline.
 let leadingExpressionIsMultiline leadingExpression continuationExpression (ctx: Context) =
     let eventCountBeforeExpression = Queue.length ctx.WriterEvents
+
     let contextAfterLeading = leadingExpression ctx
 
     let hasWriteLineEventsAfterExpression =
@@ -1026,8 +1023,15 @@ let sepSemi (ctx: Context) =
     | true, true -> str " ; "
     <| ctx
 
-let ifAlignBrackets f g =
-    ifElseCtx (fun ctx -> ctx.Config.MultilineBlockBracketsOnSameColumn) f g
+let ifAlignOrStroustrupBrackets f g =
+    ifElseCtx
+        (fun ctx ->
+            match ctx.Config.MultilineBracketStyle with
+            | Aligned
+            | ExperimentalStroustrup -> true
+            | Cramped -> false)
+        f
+        g
 
 let sepNlnWhenWriteBeforeNewlineNotEmptyOr fallback (ctx: Context) =
     if hasWriteBeforeNewlineContent ctx then

@@ -86,8 +86,7 @@ h [ longValueThatIsALotOfCharactersSoooooLong; longValueThatIsALotOfCharactersSo
     """
         { config with
             ArrayOrListMultilineFormatter = NumberOfItems
-            MultilineBlockBracketsOnSameColumn = true
-            ExperimentalStroustrupStyle = true }
+            MultilineBracketStyle = ExperimentalStroustrup }
     |> prepend newline
     |> should
         equal
@@ -122,7 +121,7 @@ List.map (fun x -> x * x) [1;2;]
     """
         { config with
             ArrayOrListMultilineFormatter = NumberOfItems
-            MultilineBlockBracketsOnSameColumn = true }
+            MultilineBracketStyle = Aligned }
     |> prepend newline
     |> should
         equal
@@ -164,7 +163,7 @@ List.map (fun x -> x * x) [|1;2;|]
     """
         { config with
             ArrayOrListMultilineFormatter = NumberOfItems
-            MultilineBlockBracketsOnSameColumn = true }
+            MultilineBracketStyle = Aligned }
     |> prepend newline
     |> should
         equal
@@ -205,8 +204,7 @@ h [ longValueThatIsALotOfCharactersSoooooLong; longValueThatIsALotOfCharactersSo
     """
         { config with
             ArrayOrListMultilineFormatter = NumberOfItems
-            MultilineBlockBracketsOnSameColumn = true
-            ExperimentalStroustrupStyle = true }
+            MultilineBracketStyle = ExperimentalStroustrup }
     |> prepend newline
     |> should
         equal
@@ -240,8 +238,7 @@ h [ longValueThatIsALotOfCharactersSoooooLong; longValueThatIsALotOfCharactersSo
     """
         { config with
             ArrayOrListMultilineFormatter = NumberOfItems
-            MultilineBlockBracketsOnSameColumn = true
-            ExperimentalStroustrupStyle = true }
+            MultilineBracketStyle = ExperimentalStroustrup }
     |> prepend newline
     |> should
         equal
@@ -273,8 +270,7 @@ h [ longValueThatIsALotOfCharactersSoooooLong; longValueThatIsALotOfCharactersSo
     """
         { config with
             ArrayOrListMultilineFormatter = NumberOfItems
-            MultilineBlockBracketsOnSameColumn = true
-            ExperimentalStroustrupStyle = true }
+            MultilineBracketStyle = ExperimentalStroustrup }
     |> prepend newline
     |> should
         equal
