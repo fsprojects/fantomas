@@ -2613,15 +2613,15 @@ let genReturnTypeBinding (node: BindingReturnInfoNode option) =
 
 let genBinding (b: BindingNode) (ctx: Context) : Context =
     let spaceBefore, alternativeSyntax =
-        let (|Keywords|) (mt: MultipleTextsNode) =
-            List.map (fun (st: SingleTextNode) -> st.Text) mt.Content
+        let keywords =
+            List.map (fun (st: SingleTextNode) -> st.Text) b.LeadingKeyword.Content
 
-        match b.LeadingKeyword with
-        | Keywords [ "member" ]
-        | Keywords [ "override" ]
-        | Keywords [ "static"; "member" ]
-        | Keywords [ "abstract"; "member" ]
-        | Keywords [ "default" ] -> ctx.Config.SpaceBeforeMember, ctx.Config.AlternativeLongMemberDefinitions
+        match keywords with
+        | [ "member" ]
+        | [ "override" ]
+        | [ "static"; "member" ]
+        | [ "abstract"; "member" ]
+        | [ "default" ] -> ctx.Config.SpaceBeforeMember, ctx.Config.AlternativeLongMemberDefinitions
         | _ -> ctx.Config.SpaceBeforeParameter, ctx.Config.AlignFunctionSignatureToIndentation
 
     let isRecursiveLetOrUseFunction =
