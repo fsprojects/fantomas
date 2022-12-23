@@ -2008,29 +2008,27 @@ let genClause (isLastItem: bool) (node: MatchClauseNode) =
     genBar +> genPatAndBody |> genNode node
 
 let genControlExpressionStartCore
-    (startKeyword: Choice<SingleTextNode, MultipleTextsNode>)
+    (startKeyword: Choice<SingleTextNode, IfKeywordNode>)
     (innerExpr: Expr)
     (endKeyword: SingleTextNode)
     =
     let enterStart =
         match startKeyword with
         | Choice1Of2 n -> enterNode (n :> Node)
-        | Choice2Of2 n -> enterNode (n :> Node) +> optSingle enterNode (List.tryHead n.Content)
+        | Choice2Of2 n -> enterNode n.Node
 
     let genStart =
         match startKeyword with
         | Choice1Of2 node -> !-node.Text
-        | Choice2Of2 mtn ->
-            coli sepSpace mtn.Content (fun idx node ->
-                onlyIf (idx <> 0) (enterNode node)
-                +> !-node.Text
-                +> leaveNode node
-                +> sepNlnWhenWriteBeforeNewlineNotEmpty)
+        | Choice2Of2 ifKw ->
+            match ifKw with
+            | IfKeywordNode.SingleWord node -> !-node.Text
+            | IfKeywordNode.ElseIf _ -> !- "else if"
 
     let leaveStart =
         match startKeyword with
         | Choice1Of2 n -> leaveNode (n :> Node)
-        | Choice2Of2 n -> leaveNode (n :> Node)
+        | Choice2Of2 n -> leaveNode n.Node
 
     let shortIfExpr =
         genStart

@@ -494,9 +494,8 @@ else
         """
 if a then
     ()
-else
-// Comment 1
-if
+else if
+    // Comment 1
     b
 then
     ()
