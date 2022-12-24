@@ -517,7 +517,6 @@ let genExpr (e: Expr) =
                     +> addSpaceIfSpaceAroundDelimiter
                     +> genSingleTextNode node.ClosingBrace
                 | RecordNodeExtra.None ->
-                    // TODO: revisit when everything is ported
                     fun (ctx: Context) ->
                         let expressionStartColumn = ctx.Column
                         // position after `{ ` or `{`
@@ -536,17 +535,10 @@ let genExpr (e: Expr) =
                              +> (fun ctx ->
                                  // Edge case scenario to make sure that the closing brace is not before the opening one
                                  // See unit test "multiline string before closing brace"
-                                 let delta = expressionStartColumn - ctx.Column
-                                 let brace = genSingleTextNode node.ClosingBrace
+                                 let brace =
+                                     addFixedSpaces expressionStartColumn +> genSingleTextNode node.ClosingBrace
 
-                                 if delta > 0 then
-                                     ((rep delta (!- " ")) +> brace) ctx
-                                 else
-                                     ifElseCtx
-                                         lastWriteEventIsNewline
-                                         brace
-                                         (addSpaceIfSpaceAroundDelimiter +> brace)
-                                         ctx))
+                                 ifElseCtx lastWriteEventIsNewline brace (addSpaceIfSpaceAroundDelimiter +> brace) ctx))
                             ctx
 
             ifAlignOrStroustrupBrackets genMultilineRecordInstanceAlignBrackets genMultilineRecordInstance
@@ -2495,9 +2487,12 @@ let genPat (p: Pattern) =
         +> genSingleTextNode node.ClosingParen
         |> genNode node
     | Pattern.Tuple node ->
+        let padUntilAtCurrentColumn ctx =
+            addFixedSpaces ctx.WriterModel.AtColumn ctx
+
         expressionFitsOnRestOfLine
             (col sepComma node.Patterns genPat)
-            (atCurrentColumn (col (sepComma +> sepNln) node.Patterns genPat))
+            (atCurrentColumn (col (padUntilAtCurrentColumn +> sepComma +> sepNln) node.Patterns genPat))
         |> genNode node
     | Pattern.StructTuple node ->
         !- "struct "
