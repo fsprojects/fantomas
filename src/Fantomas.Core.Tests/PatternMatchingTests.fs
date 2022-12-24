@@ -2260,3 +2260,35 @@ let examineData x =
     (* bar *) ) -> p1
     | TwoPartData(part1 = p1; part2 = p2) -> p1 + p2
 """
+
+[<Test>]
+let ``comma in tuple pattern should start at current column, 2584`` () =
+    formatSourceString
+        false
+        "
+let existingCount
+    inputA
+    inputB
+    =
+    match (inputA, inputB) with
+    | \"\"\"line1
+line2
+line3
+\"\"\"
+        , inputB -> \"InputB=\" + inputB
+    | _ -> failwith \"Invalid query\"
+"
+        config
+    |> prepend newline
+    |> should
+        equal
+        "
+let existingCount inputA inputB =
+    match (inputA, inputB) with
+    | \"\"\"line1
+line2
+line3
+\"\"\"   ,
+      inputB -> \"InputB=\" + inputB
+    | _ -> failwith \"Invalid query\"
+"
