@@ -1,5 +1,14 @@
 # Changelog
 
+## [5.2.0-alpha-007] - 2022-12-26
+
+### Fixes
+* Comment dropped in constructor parameter list. [#1872](https://github.com/fsprojects/fantomas/issues/1872)
+* Block comment before unit is missing. [#2660](https://github.com/fsprojects/fantomas/issues/2660)
+
+### Changed
+* Update config to accept a single option for multiline_bracket_style. [#2425](https://github.com/fsprojects/fantomas/issues/2425)
+
 ## [5.2.0-alpha-006] - 2022-12-22
 
 ### Fixes
