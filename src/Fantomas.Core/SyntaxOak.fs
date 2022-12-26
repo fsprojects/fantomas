@@ -1469,9 +1469,9 @@ type ElseIfNode(mElse: range, mIf: range, condition: Node, range) as elseIfNode 
     let elseNode =
         { new Node with
             member _.ContentBefore: TriviaNode seq = Seq.empty
-            member x.HasContentBefore: bool = false
+            member _.HasContentBefore: bool = false
             member _.ContentAfter: TriviaNode seq = Seq.empty
-            member x.HasContentAfter: bool = false
+            member _.HasContentAfter: bool = false
             member _.Range = mElse
 
             member _.AddBefore(triviaNode: TriviaNode) =
@@ -1485,9 +1485,9 @@ type ElseIfNode(mElse: range, mIf: range, condition: Node, range) as elseIfNode 
     let ifNode =
         { new Node with
             member _.ContentBefore: TriviaNode seq = Seq.empty
-            member x.HasContentBefore: bool = false
+            member _.HasContentBefore: bool = false
             member _.ContentAfter: TriviaNode seq = Seq.empty
-            member x.HasContentAfter: bool = false
+            member _.HasContentAfter: bool = false
             member _.Range = mIf
 
             member _.AddBefore(triviaNode: TriviaNode) =
