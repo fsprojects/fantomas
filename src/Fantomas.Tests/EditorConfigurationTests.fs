@@ -505,6 +505,25 @@ fsharp_multiline_bracket_style = aligned
     Assert.AreEqual(Aligned, config.MultilineBracketStyle)
 
 [<Test>]
+let ``fsharp_multiline_bracket_style = cramped`` () =
+    let rootDir = tempName ()
+
+    let editorConfig =
+        """
+[*.fs]
+fsharp_multiline_bracket_style = cramped
+"""
+
+    use configFixture =
+        new ConfigurationFile(defaultConfig, rootDir, content = editorConfig)
+
+    use fsharpFile = new FSharpFile(rootDir)
+
+    let config = EditorConfig.readConfiguration fsharpFile.FSharpFile
+
+    Assert.AreEqual(Cramped, config.MultilineBracketStyle)
+
+[<Test>]
 let ``fsharp_multiline_block_brackets_on_same_column = true`` () =
     let rootDir = tempName ()
 
