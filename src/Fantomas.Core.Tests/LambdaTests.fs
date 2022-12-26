@@ -1441,3 +1441,49 @@ let ``lambda with long list of arguments, wrapped in parentheses`` () =
     (a19: int)
     (a20: int) -> ())
 """
+
+[<Test>]
+let ``indent closing parenthesis far enough in lambda application, 1299`` () =
+    formatSourceString
+        false
+        "
+let _ =
+    [] |> List.map (fun _ -> @\"a
+b\"     )
+       |> List.length
+"
+        config
+    |> prepend newline
+    |> should
+        equal
+        "
+let _ =
+    []
+    |> List.map (fun _ ->
+        @\"a
+b\"  )
+    |> List.length
+"
+
+[<Test>]
+let ``indent closing parenthesis far enough in multiline lambda application`` () =
+    formatSourceString
+        false
+        "
+let _ =
+    List.maaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaap (fun _ -> @\"a
+b\"     )
+       |> List.length
+"
+        { config with MaxLineLength = 40 }
+    |> prepend newline
+    |> should
+        equal
+        "
+let _ =
+    List.maaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaap
+        (fun _ ->
+            @\"a
+b\"      )
+    |> List.length
+"
