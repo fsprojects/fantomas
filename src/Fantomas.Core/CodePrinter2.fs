@@ -3156,9 +3156,9 @@ let genTypeDefn (td: TypeDefn) =
         genXml typeName.XmlDoc
         +> onlyIfNot hasAndKeyword (genAttributes typeName.Attributes)
         +> genSingleTextNode typeName.LeadingKeyword
+        +> onlyIf hasTriviaAfterLeadingKeyword indent
         +> onlyIf hasAndKeyword (sepSpace +> genOnelinerAttributes typeName.Attributes)
         +> sepSpace
-        +> onlyIf hasTriviaAfterLeadingKeyword indent
         +> genAccessOpt typeName.Accessibility
         +> genTypeAndParam (genIdentListNode typeName.Identifier) typeName.TypeParameters
         +> onlyIfNot typeName.Constraints.IsEmpty (sepSpace +> genTypeConstraints typeName.Constraints)

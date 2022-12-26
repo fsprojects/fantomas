@@ -3336,3 +3336,35 @@ type MyType
     ) =
     let x = 5
 """
+
+[<Test>]
+let ``trivia before attributes in recursive type, 2361 `` () =
+    formatSourceString
+        false
+        """
+module Primitives =
+    type BlockHeight =
+        | BlockHeight of uint32 
+
+    and
+#if !NoDUsAsStructs
+        [<Struct>]
+#endif
+        BlockHeightOffset16 =
+            | BlockHeightOffset16 of uint16
+
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+module Primitives =
+    type BlockHeight = BlockHeight of uint32
+
+    and
+#if !NoDUsAsStructs
+        [<Struct>]
+#endif
+        BlockHeightOffset16 = BlockHeightOffset16 of uint16
+"""
