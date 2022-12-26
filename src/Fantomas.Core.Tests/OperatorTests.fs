@@ -1455,3 +1455,110 @@ id
     | 0 -> 0 // second comment
     | _ -> 1 // third comment
 """
+
+[<Test>]
+let ``multiple list concat operators, 2472`` () =
+    formatSourceString
+        false
+        """
+let allDecls = inheritsL @ iimplsLs @ ctorLs @ instanceValLs @ methLs @ ilFieldsL @ propLs @ eventLs @ staticValLs @ nestedTypeLs
+"""
+        { config with MaxInfixOperatorExpression = 0 }
+    |> prepend newline
+    |> should
+        equal
+        """
+let allDecls =
+    inheritsL
+    @ iimplsLs
+    @ ctorLs
+    @ instanceValLs
+    @ methLs
+    @ ilFieldsL
+    @ propLs
+    @ eventLs
+    @ staticValLs
+    @ nestedTypeLs
+"""
+
+[<Test>]
+let ``multiple cons operators`` () =
+    formatSourceString
+        false
+        """
+let allDecls = inheritsL :: iimplsLs :: ctorLs :: foo ::blah
+"""
+        { config with MaxInfixOperatorExpression = 0 }
+    |> prepend newline
+    |> should
+        equal
+        """
+let allDecls =
+    inheritsL
+    :: iimplsLs
+    :: ctorLs
+    :: foo
+    :: blah
+"""
+
+[<Test>]
+let ``right placed operators`` () =
+    formatSourceString
+        false
+        """
+  // right: @, ::, **, ^, := or starts with combinations
+  let allDecls = inheritsL @ iimplsLs @ ctorLs 
+  let allDecls = inheritsL :: iimplsLs :: ctorLs
+  let allDecls = inheritsL ** iimplsLs ** ctorLs
+  let allDecls = inheritsL ^ iimplsLs ^ ctorLs
+  let allDecls = inheritsL ^^ iimplsLs ^^ ctorLs
+  let allDecls = inheritsL := iimplsLs := ctorLs
+  let allDecls = inheritsL @- iimplsLs @- ctorLs 
+  let allDecls = inheritsL @+ iimplsLs @+ ctorLs 
+"""
+        { config with MaxInfixOperatorExpression = 0 }
+    |> prepend newline
+    |> should
+        equal
+        """
+// right: @, ::, **, ^, := or starts with combinations
+let allDecls =
+    inheritsL
+    @ iimplsLs
+    @ ctorLs
+
+let allDecls =
+    inheritsL
+    :: iimplsLs
+    :: ctorLs
+
+let allDecls =
+    inheritsL
+    ** iimplsLs
+    ** ctorLs
+
+let allDecls =
+    inheritsL
+    ^ iimplsLs
+    ^ ctorLs
+
+let allDecls =
+    inheritsL
+    ^^ iimplsLs
+    ^^ ctorLs
+
+let allDecls =
+    inheritsL
+    := iimplsLs
+    := ctorLs
+
+let allDecls =
+    inheritsL
+    @- iimplsLs
+    @- ctorLs
+
+let allDecls =
+    inheritsL
+    @+ iimplsLs
+    @+ ctorLs
+"""

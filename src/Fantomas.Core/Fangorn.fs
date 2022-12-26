@@ -416,13 +416,18 @@ let mkSynMatchClause creationAide (SynMatchClause(p, eo, e, range, _, trivia)) :
         fullRange
     )
 
-let (|InfixApp|_|) synExpr =
-    match synExpr with
+let (|ColonColonInfixApp|_|) =
+    function
     | SynExpr.App(
         isInfix = true
         funcExpr = SynExpr.LongIdent(
             longDotId = SynLongIdent([ operatorIdent ], [], [ Some(IdentTrivia.OriginalNotation "::") ]))
         argExpr = SynExpr.Tuple(exprs = [ e1; e2 ])) -> Some(e1, stn "::" operatorIdent.idRange, e2)
+    | _ -> None
+
+let (|InfixApp|_|) synExpr =
+    match synExpr with
+    | ColonColonInfixApp(lhs, operator, rhs) -> Some(lhs, operator, rhs)
     | SynExpr.App(
         funcExpr = SynExpr.App(
             isInfix = true
@@ -432,18 +437,83 @@ let (|InfixApp|_|) synExpr =
         argExpr = e2) -> Some(e1, stn operator operatorIdent.idRange, e2)
     | _ -> None
 
+let (|MultipleConsInfixApps|_|) expr =
+    let rec visit expr (headAndLastOperator: (SynExpr * SingleTextNode) option) (xs: Queue<SingleTextNode * SynExpr>) =
+        match expr with
+        | ColonColonInfixApp(lhs, operator, rhs) ->
+            match headAndLastOperator with
+            | None -> visit rhs (Some(lhs, operator)) xs
+            | Some(head, lastOperator) ->
+                xs.Enqueue(lastOperator, lhs)
+                visit rhs (Some(head, operator)) xs
+        | e ->
+            match headAndLastOperator with
+            | None -> e, xs
+            | Some(head, lastOperator) ->
+                xs.Enqueue(lastOperator, e)
+                head, xs
+
+    match expr with
+    | ColonColonInfixApp _ ->
+        let head, xs = visit expr None (Queue())
+        if xs.Count < 2 then None else Some(head, Seq.toList xs)
+    | _ -> None
+
+let rightOperators = set [| "@"; "**"; "^"; ":=" |]
+
 let (|SameInfixApps|_|) expr =
-    let rec visit sameOperator expr continuation =
+    let rec visitLeft sameOperator expr continuation =
         match expr with
         | InfixApp(lhs, operator, rhs) when operator.Text = sameOperator ->
-            visit sameOperator lhs (fun (head, xs: Queue<SingleTextNode * SynExpr>) ->
+            visitLeft sameOperator lhs (fun (head, xs: Queue<SingleTextNode * SynExpr>) ->
                 xs.Enqueue(operator, rhs)
                 continuation (head, xs))
         | e -> continuation (e, Queue())
 
+    let rec visitRight
+        (sameOperator: string)
+        (expr: SynExpr)
+        (headAndLastOperator: (SynExpr * SingleTextNode) option)
+        (xs: Queue<SingleTextNode * SynExpr>)
+        : SynExpr * Queue<SingleTextNode * SynExpr> =
+        match expr with
+        | SynExpr.App(ExprAtomicFlag.NonAtomic,
+                      false,
+                      SynExpr.App(
+                          isInfix = true
+                          funcExpr = SynExpr.LongIdent(
+                              longDotId = SynLongIdent(
+                                  id = [ operatorIdent ]; trivia = [ Some(IdentTrivia.OriginalNotation lhsOperator) ]))
+                          argExpr = leftExpr),
+                      rhs,
+                      _) when (lhsOperator = sameOperator) ->
+            let operator = stn lhsOperator operatorIdent.idRange
+
+            match headAndLastOperator with
+            | None ->
+                // Start of the infix chain, the leftExpr is the utmost left
+                visitRight sameOperator rhs (Some(leftExpr, operator)) xs
+            | Some(head, lastOperator) ->
+                // Continue collecting
+                xs.Enqueue(lastOperator, leftExpr)
+                visitRight sameOperator rhs (Some(head, operator)) xs
+        | e ->
+            match headAndLastOperator with
+            | None -> e, xs
+            | Some(head, lastOperator) ->
+                xs.Enqueue(lastOperator, e)
+                head, xs
+
     match expr with
     | InfixApp(_, operator, _) ->
-        let head, xs = visit operator.Text expr id
+        let isRight = Set.exists (fun rOp -> operator.Text.StartsWith(rOp)) rightOperators
+
+        let head, xs =
+            if isRight then
+                visitRight operator.Text expr None (Queue())
+            else
+                visitLeft operator.Text expr id
+
         if xs.Count < 2 then None else Some(head, Seq.toList xs)
     | _ -> None
 
@@ -841,6 +911,7 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
         |> Expr.PrefixApp
 
     | NewlineInfixApps(head, xs)
+    | MultipleConsInfixApps(head, xs)
     | SameInfixApps(head, xs) ->
         let rest = xs |> List.map (fun (operator, e) -> operator, mkExpr creationAide e)
 
