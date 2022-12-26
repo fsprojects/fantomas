@@ -247,11 +247,15 @@ let getDefineExprs (hashDirectives: ConditionalDirectiveTrivia list) =
 
     result
 
+let satSolveMaxStepsMaxSteps = 100
+
 let getOptimizedDefinesSets (hashDirectives: ConditionalDirectiveTrivia list) =
-    let maxSteps = FormatConfig.satSolveMaxStepsMaxSteps
     let defineExprs = getDefineExprs hashDirectives
 
-    match DefineCombinationSolver.mergeBoolExprs maxSteps defineExprs |> List.map snd with
+    match
+        DefineCombinationSolver.mergeBoolExprs satSolveMaxStepsMaxSteps defineExprs
+        |> List.map snd
+    with
     | [] -> [ [] ]
     | xs -> xs
 
