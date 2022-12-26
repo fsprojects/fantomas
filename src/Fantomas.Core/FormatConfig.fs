@@ -19,8 +19,8 @@ type MultilineFormatterType =
 
     static member OfConfigString(cfgString: string) =
         match cfgString with
-        | "character_width" -> Some(box MultilineFormatterType.CharacterWidth)
-        | "number_of_items" -> Some(box MultilineFormatterType.NumberOfItems)
+        | "character_width" -> Some MultilineFormatterType.CharacterWidth
+        | "number_of_items" -> Some MultilineFormatterType.NumberOfItems
         | _ -> None
 
 type MultilineBracketStyle =
@@ -67,9 +67,9 @@ type EndOfLineStyle =
 
     static member OfConfigString(eolString: string) =
         match eolString with
-        | "lf" -> Some(EndOfLineStyle.LF)
+        | "lf" -> Some EndOfLineStyle.LF
         | "cr" -> failwith "Carriage returns are not valid for F# code, please use one of 'lf' or 'crlf'"
-        | "crlf" -> Some(EndOfLineStyle.CRLF)
+        | "crlf" -> Some EndOfLineStyle.CRLF
         | _ -> None
 
 // NOTE: try to keep this list below in sync with the docs (e.g. Documentation.md)

@@ -102,7 +102,7 @@ let parseOptionsFromEditorConfig
         match editorConfigProperties.TryGetValue(editorConfigName) with
         | true, Number n -> n
         | true, Boolean b -> b
-        | true, MultilineFormatterType mft -> mft
+        | true, MultilineFormatterType mft -> box mft
         | true, EndOfLineStyle eol -> box eol
         | true, BracketStyle bs -> box bs
         | _ -> defaultValue)
