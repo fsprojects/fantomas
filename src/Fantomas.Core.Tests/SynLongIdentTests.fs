@@ -388,7 +388,8 @@ let ``backticks can be added from AST only scenarios`` () =
                   ) ],
                 (true, false),
                 { ConditionalDirectives = []
-                  CodeComments = [] }
+                  CodeComments = [] },
+                Set.empty
             )
         )
 

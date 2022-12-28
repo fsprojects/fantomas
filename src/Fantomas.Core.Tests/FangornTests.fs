@@ -54,7 +54,8 @@ let ``avoid stack-overflow in long array/list, 2485`` () =
                   ) ],
                 (false, false),
                 { ConditionalDirectives = []
-                  CodeComments = [] }
+                  CodeComments = [] },
+                Set.empty
             )
         )
 

@@ -2178,7 +2178,7 @@ type BindingNode
         attributes: MultipleAttributeListNode option,
         leadingKeyword: MultipleTextsNode,
         isMutable: bool,
-        isInline: bool,
+        inlineNode: SingleTextNode option,
         accessibility: SingleTextNode option,
         functionName: Choice<IdentListNode, Pattern>,
         genericTypeParameters: TyparDecls option,
@@ -2193,7 +2193,7 @@ type BindingNode
     member x.Attributes = attributes
     member x.LeadingKeyword = leadingKeyword
     member x.IsMutable = isMutable
-    member x.IsInline = isInline
+    member x.Inline = inlineNode
     member x.Accessibility = accessibility
     member x.FunctionName = functionName
     member x.GenericTypeParameters = genericTypeParameters
@@ -2206,6 +2206,7 @@ type BindingNode
         [| yield! noa xmlDoc
            yield! noa attributes
            yield leadingKeyword
+           yield! noa inlineNode
            yield! noa accessibility
            yield
                match functionName with
