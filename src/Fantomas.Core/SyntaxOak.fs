@@ -2713,6 +2713,7 @@ type MemberDefnAbstractSlotNode
 
 type PropertyGetSetBindingNode
     (
+        inlineNode: SingleTextNode option,
         accessibility: SingleTextNode option,
         leadingKeyword: SingleTextNode,
         parameters: Pattern list,
@@ -2724,13 +2725,15 @@ type PropertyGetSetBindingNode
     inherit NodeBase(range)
 
     override this.Children =
-        [| yield! noa accessibility
+        [| yield! noa inlineNode
+           yield! noa accessibility
            yield leadingKeyword
            yield! List.map Pattern.Node parameters
            yield! noa returnType
            yield equals
            yield Expr.Node expr |]
 
+    member x.Inline = inlineNode
     member x.Accessibility = accessibility
     member x.LeadingKeyword = leadingKeyword
     member x.Parameters = parameters
@@ -2743,7 +2746,7 @@ type MemberDefnPropertyGetSetNode
         xmlDoc: XmlDocNode option,
         attributes: MultipleAttributeListNode option,
         leadingKeyword: MultipleTextsNode,
-        isInline: bool,
+        inlineNode: SingleTextNode option,
         accessibility: SingleTextNode option,
         memberName: IdentListNode,
         withKeyword: SingleTextNode,
@@ -2768,7 +2771,7 @@ type MemberDefnPropertyGetSetNode
     member x.XmlDoc = xmlDoc
     member x.Attributes = attributes
     member x.LeadingKeyword = leadingKeyword
-    member x.IsInline = isInline
+    member x.Inline = inlineNode
     member x.Accessibility = accessibility
     member x.MemberName = memberName
     member x.WithKeyword = withKeyword
@@ -2781,7 +2784,7 @@ type ValNode
         xmlDoc: XmlDocNode option,
         attributes: MultipleAttributeListNode option,
         leadingKeyword: MultipleTextsNode option,
-        isInline: bool,
+        inlineNode: SingleTextNode option,
         isMutable: bool,
         accessibility: SingleTextNode option,
         identifier: SingleTextNode,
@@ -2807,7 +2810,7 @@ type ValNode
     member x.XmlDoc = xmlDoc
     member x.Attributes = attributes
     member x.LeadingKeyword = leadingKeyword
-    member x.IsInline = isInline
+    member x.Inline = inlineNode
     member x.IsMutable = isMutable
     member x.Accessibility = accessibility
     member x.Identifier = identifier

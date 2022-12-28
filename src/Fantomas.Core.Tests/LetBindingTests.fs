@@ -2133,30 +2133,3 @@ let inline (!!) (x: ^a) : ^b = ((^a or ^b): (static member op_Implicit: ^a -> ^b
 let inline (!!) (x: ^a) : ^b =
     ((^a or ^b): (static member op_Implicit: ^a -> ^b) x)
 """
-
-[<Test>]
-let ``trivia around inline keyword, 2017`` () =
-    formatSourceString
-        false
-        """
-    let 
-#if !DEBUG
-        inline
-#endif
-        map f ar = Async.map (Result.map f) ar
-"""
-        config
-    |> prepend newline
-    |> should
-        equal
-        """
-let
-#if !DEBUG
-    inline
-#endif
-    map
-        f
-        ar
-        =
-    Async.map (Result.map f) ar
-"""

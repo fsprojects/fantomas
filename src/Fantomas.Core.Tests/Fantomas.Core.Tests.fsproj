@@ -118,6 +118,7 @@
     <Compile Include="TypeAnnotationTests.fs" />
     <Compile Include="BaseConstructorTests.fs" />
     <Compile Include="DallasTests.fs" />
+    <Compile Include="InlineTests.fs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Fantomas.Core\Fantomas.Core.fsproj" />
