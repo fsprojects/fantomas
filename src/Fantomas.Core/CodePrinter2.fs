@@ -2645,7 +2645,7 @@ let genBinding (b: BindingNode) (ctx: Context) : Context =
 
             let afterLetKeyword =
                 ifElse b.IsMutable (!- "mutable ") sepNone
-                +> ifElse b.IsInline (!- "inline ") sepNone
+                +> genInline b.Inline
                 +> genAccessOpt b.Accessibility
 
             let genFunctionName =
@@ -2710,7 +2710,17 @@ let genBinding (b: BindingNode) (ctx: Context) : Context =
                             | _ -> col sepNln b.Parameters genPat, false
                         | _ -> col sepNln b.Parameters genPat, false
 
-                    (afterLetKeyword
+                    let hasTriviaAfterLeadingKeyword =
+                        let beforeInline =
+                            match b.Inline with
+                            | None -> false
+                            | Some n -> (n :> Node).HasContentBefore
+
+                        let beforeIdentifier = (functionName :> Node).HasContentBefore
+                        beforeInline || beforeIdentifier
+
+                    (onlyIf hasTriviaAfterLeadingKeyword indent
+                     +> afterLetKeyword
                      +> sepSpace
                      +> genFunctionName
                      +> indent
@@ -2724,7 +2734,8 @@ let genBinding (b: BindingNode) (ctx: Context) : Context =
                                  sepNln +> genSingleTextNode b.Equals
                              else
                                  sepSpace +> genSingleTextNode b.Equals)
-                     +> unindent)
+                     +> unindent
+                     +> onlyIf hasTriviaAfterLeadingKeyword unindent)
                         ctx
 
                 expressionFitsOnRestOfLine short long
@@ -2759,7 +2770,7 @@ let genBinding (b: BindingNode) (ctx: Context) : Context =
             let afterLetKeyword =
                 genAccessOpt b.Accessibility
                 +> ifElse b.IsMutable (!- "mutable ") sepNone
-                +> ifElse b.IsInline (!- "inline ") sepNone
+                +> genInline b.Inline
 
             let genDestructedTuples =
                 expressionFitsOnRestOfLine (genPat pat) (sepOpenT +> genPat pat +> sepCloseT)
@@ -2794,7 +2805,7 @@ let genBinding (b: BindingNode) (ctx: Context) : Context =
 
             let afterLetKeyword =
                 ifElse b.IsMutable (!- "mutable ") sepNone
-                +> ifElse b.IsInline (!- "inline ") sepNone
+                +> genInline b.Inline
                 +> genAccessOpt b.Accessibility
 
             let genValueName =
@@ -3465,6 +3476,11 @@ let genTypeAndParam (genTypeName: Context -> Context) (tds: TyparDecls option) =
     | Some(TyparDecls.PostfixList _) -> genTypeName +> optSingle genTyparDecls tds
     | Some(TyparDecls.PrefixList _) -> optSingle (fun tds -> genTyparDecls tds +> sepSpace) tds +> genTypeName
     | Some(TyparDecls.SinglePrefix singlePrefixNode) -> genTyparDecl true singlePrefixNode +> sepSpace +> genTypeName
+
+let genInline (inlineNode: SingleTextNode option) =
+    match inlineNode with
+    | None -> sepNone
+    | Some inlineNode -> genSingleTextNodeWithSpaceSuffix sepSpace inlineNode
 
 let genVal (node: ValNode) (optGetSet: MultipleTextsNode option) =
     let genOptExpr =

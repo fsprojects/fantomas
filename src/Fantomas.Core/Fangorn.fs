@@ -1512,7 +1512,7 @@ let (|OperatorWithStar|_|) (si: SynIdent) =
 
 let mkBinding
     (creationAide: CreationAide)
-    (SynBinding(_, _, isInline, isMutable, attributes, xmlDoc, _, pat, returnInfo, expr, _, _, trivia))
+    (SynBinding(_, _, _, isMutable, attributes, xmlDoc, _, pat, returnInfo, expr, _, _, trivia))
     =
     let mkFunctionName (sli: SynLongIdent) : IdentListNode =
         match sli.IdentsWithTrivia with
@@ -1570,7 +1570,7 @@ let mkBinding
         mkAttributes creationAide attributes,
         mkSynLeadingKeyword trivia.LeadingKeyword,
         isMutable,
-        isInline,
+        Option.map (stn "inline") trivia.InlineKeyword,
         mkSynAccess ao,
         functionName,
         genericParameters,
