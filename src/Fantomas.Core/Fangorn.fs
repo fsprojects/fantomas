@@ -506,7 +506,8 @@ let (|SameInfixApps|_|) expr =
 
     match expr with
     | InfixApp(_, operator, _) ->
-        let isRight = Set.exists (fun rOp -> operator.Text.StartsWith(rOp)) rightOperators
+        let isRight =
+            Set.exists (fun (rOp: string) -> operator.Text.StartsWith(rOp)) rightOperators
 
         let head, xs =
             if isRight then
