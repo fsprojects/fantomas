@@ -2147,6 +2147,8 @@ let mkTypeDefn
                 let startRange =
                     if not px.IsEmpty then
                         px.Range
+                    elif leadingKeyword.Text = "and" then
+                        (leadingKeyword :> Node).Range
                     else
                         match ats with
                         | [] -> (leadingKeyword :> Node).Range
