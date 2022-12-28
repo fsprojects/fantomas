@@ -466,16 +466,26 @@ let (|NewlineInfixApps|_|) expr =
 
 let rec (|ElIf|_|) =
     function
-    | SynExpr.IfThenElse(e1, e2, Some(ElIf((elifNode, eshE1, eshThenKw, eshE2) :: es, elseInfo)), _, _, _, trivia) ->
+    | SynExpr.IfThenElse(e1,
+                         e2,
+                         Some(ElIf((elifNode: Choice<SingleTextNode, range * range>, eshE1, eshThenKw, eshE2) :: es,
+                                   elseInfo)),
+                         _,
+                         _,
+                         _,
+                         trivia) ->
         let ifNode =
-            MultipleTextsNode([ stn (if trivia.IsElif then "elif" else "if") trivia.IfKeyword ], trivia.IfKeyword)
+            stn (if trivia.IsElif then "elif" else "if") trivia.IfKeyword |> Choice1Of2
 
         let elifNode =
             match trivia.ElseKeyword with
             | None -> elifNode
             | Some mElse ->
-                let m = unionRanges mElse (elifNode :> Node).Range
-                MultipleTextsNode([ yield stn "else" mElse; yield! elifNode.Content ], m)
+                match elifNode with
+                | Choice1Of2 ifNode ->
+                    let ifNode = ifNode :> Node
+                    Choice2Of2(mElse, ifNode.Range)
+                | Choice2Of2 _ -> failwith "Cannot merge a second else keyword into existing else if"
 
         Some(
             (ifNode, e1, stn "then" trivia.ThenKeyword, e2)
@@ -490,7 +500,7 @@ let rec (|ElIf|_|) =
             | _ -> None
 
         let ifNode =
-            MultipleTextsNode([ stn (if trivia.IsElif then "elif" else "if") trivia.IfKeyword ], trivia.IfKeyword)
+            stn (if trivia.IsElif then "elif" else "if") trivia.IfKeyword |> Choice1Of2
 
         Some([ (ifNode, e1, stn "then" trivia.ThenKeyword, e2) ], elseInfo)
     | _ -> None
@@ -1097,7 +1107,7 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
 
     | SynExpr.IfThenElse(ifExpr = ifExpr; thenExpr = thenExpr; elseExpr = None; trivia = trivia) ->
         ExprIfThenNode(
-            MultipleTextsNode([ stn "if" trivia.IfKeyword ], trivia.IfKeyword),
+            IfKeywordNode.SingleWord(stn "if" trivia.IfKeyword),
             mkExpr creationAide ifExpr,
             stn "then" trivia.ThenKeyword,
             mkExpr creationAide thenExpr,
@@ -1106,9 +1116,18 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
         |> Expr.IfThen
 
     | ElIf([ elifKw, ifExpr, thenKw, thenExpr ], Some(elseKw, elseExpr)) ->
+        let ifExprNode = mkExpr creationAide ifExpr
+
+        let ifKwNode: IfKeywordNode =
+            match elifKw with
+            | Choice1Of2 stn -> IfKeywordNode.SingleWord stn
+            | Choice2Of2(mElse, mIf) ->
+                ElseIfNode(mElse, mIf, Expr.Node ifExprNode, unionRanges mElse mIf)
+                |> IfKeywordNode.ElseIf
+
         ExprIfThenElseNode(
-            elifKw,
-            mkExpr creationAide ifExpr,
+            ifKwNode,
+            ifExprNode,
             thenKw,
             mkExpr creationAide thenExpr,
             elseKw,
@@ -1120,9 +1139,18 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
     | ElIf(elifs, elseOpt) ->
         let elifs =
             elifs
-            |> List.map (fun (elifNode, ifExpr, thenNode, thenExpr) ->
-                let m = unionRanges (elifNode :> Node).Range thenExpr.Range
-                ExprIfThenNode(elifNode, mkExpr creationAide ifExpr, thenNode, mkExpr creationAide thenExpr, m))
+            |> List.map (fun (elifKw, ifExpr, thenNode, thenExpr) ->
+                let ifExprNode = mkExpr creationAide ifExpr
+
+                let ifKwNode: IfKeywordNode =
+                    match elifKw with
+                    | Choice1Of2 stn -> IfKeywordNode.SingleWord stn
+                    | Choice2Of2(mElse, mIf) ->
+                        ElseIfNode(mElse, mIf, Expr.Node ifExprNode, unionRanges mElse mIf)
+                        |> IfKeywordNode.ElseIf
+
+                let m = unionRanges ifKwNode.Range thenExpr.Range
+                ExprIfThenNode(ifKwNode, ifExprNode, thenNode, mkExpr creationAide thenExpr, m))
 
         let optElse =
             match elseOpt with

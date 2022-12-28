@@ -1461,11 +1461,89 @@ type ExprTryFinallyNode(tryNode: SingleTextNode, tryExpr: Expr, finallyNode: Sin
     member x.Finally = finallyNode
     member x.FinallyExpr = finallyExpr
 
-type ExprIfThenNode(ifNode: MultipleTextsNode, ifExpr: Expr, thenNode: SingleTextNode, thenExpr: Expr, range) =
+type ElseIfNode(mElse: range, mIf: range, condition: Node, range) as elseIfNode =
+    let nodesBefore = Queue<TriviaNode>(0)
+    let nodesAfter = Queue<TriviaNode>(0)
+    let mutable lastNodeAfterIsLineCommentAfterSource = false
+
+    let elseNode =
+        { new Node with
+            member _.ContentBefore: TriviaNode seq = Seq.empty
+            member _.HasContentBefore: bool = false
+            member _.ContentAfter: TriviaNode seq = Seq.empty
+            member _.HasContentAfter: bool = false
+            member _.Range = mElse
+
+            member _.AddBefore(triviaNode: TriviaNode) =
+                (elseIfNode :> Node).AddBefore triviaNode
+
+            member _.AddAfter(triviaNode: TriviaNode) =
+                (elseIfNode :> Node).AddAfter triviaNode
+
+            member _.Children = Array.empty }
+
+    let ifNode =
+        { new Node with
+            member _.ContentBefore: TriviaNode seq = Seq.empty
+            member _.HasContentBefore: bool = false
+            member _.ContentAfter: TriviaNode seq = Seq.empty
+            member _.HasContentAfter: bool = false
+            member _.Range = mIf
+
+            member _.AddBefore(triviaNode: TriviaNode) =
+                match triviaNode.Content with
+                | CommentOnSingleLine _ -> condition.AddBefore triviaNode
+                | _ -> (elseIfNode :> Node).AddAfter triviaNode
+
+            member _.AddAfter(triviaNode: TriviaNode) =
+                (elseIfNode :> Node).AddAfter triviaNode
+
+            member _.Children = Array.empty }
+
+    interface Node with
+        member _.ContentBefore: TriviaNode seq = nodesBefore
+        member x.HasContentBefore: bool = not (Seq.isEmpty nodesBefore)
+        member _.ContentAfter: TriviaNode seq = nodesAfter
+        member x.HasContentAfter: bool = not (Seq.isEmpty nodesAfter)
+        member _.Range = range
+        member _.AddBefore(triviaNode: TriviaNode) = nodesBefore.Enqueue triviaNode
+
+        member _.AddAfter(triviaNode: TriviaNode) =
+            match triviaNode.Content with
+            | TriviaContent.LineCommentAfterSourceCode comment when lastNodeAfterIsLineCommentAfterSource ->
+                // If we already have a line comment after the `else if`, we cannot add another one.
+                // The next best thing would be to add it on the next line as content before of the condition.
+                let triviaNode =
+                    TriviaNode(TriviaContent.CommentOnSingleLine comment, triviaNode.Range)
+
+                condition.AddBefore triviaNode
+            | _ ->
+                lastNodeAfterIsLineCommentAfterSource <-
+                    match triviaNode.Content with
+                    | LineCommentAfterSourceCode _ -> true
+                    | _ -> false
+
+                nodesAfter.Enqueue triviaNode
+
+        member this.Children = [| elseNode; ifNode |]
+
+[<RequireQualifiedAccess>]
+type IfKeywordNode =
+    | SingleWord of SingleTextNode
+    | ElseIf of ElseIfNode
+
+    member x.Node =
+        match x with
+        | SingleWord n -> n :> Node
+        | ElseIf n -> n :> Node
+
+    member x.Range = x.Node.Range
+
+type ExprIfThenNode(ifNode: IfKeywordNode, ifExpr: Expr, thenNode: SingleTextNode, thenExpr: Expr, range) =
     inherit NodeBase(range)
 
     override this.Children =
-        [| yield ifNode
+        [| yield ifNode.Node
            yield Expr.Node ifExpr
            yield thenNode
            yield Expr.Node thenExpr |]
@@ -1477,7 +1555,7 @@ type ExprIfThenNode(ifNode: MultipleTextsNode, ifExpr: Expr, thenNode: SingleTex
 
 type ExprIfThenElseNode
     (
-        ifNode: MultipleTextsNode,
+        ifNode: IfKeywordNode,
         ifExpr: Expr,
         thenNode: SingleTextNode,
         thenExpr: Expr,
@@ -1488,7 +1566,7 @@ type ExprIfThenElseNode
     inherit NodeBase(range)
 
     override this.Children =
-        [| yield ifNode
+        [| yield ifNode.Node
            yield Expr.Node ifExpr
            yield thenNode
            yield Expr.Node thenExpr
