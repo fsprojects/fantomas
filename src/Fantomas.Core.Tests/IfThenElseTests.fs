@@ -456,8 +456,7 @@ let ``comment after else keyword before if keyword`` () =
         """
 if a then
     b
-else // meh
-if
+else if // meh
     c
 then
     d
@@ -704,8 +703,8 @@ if // bar
         """
 if a then
     b
-else // foo
-if // bar
+else if // foo
+    // bar
     c
 then
     d
@@ -824,7 +823,7 @@ else     e
         equal
         """
 if a then b
-else (* meh *) if c then d
+else if (* meh *) c then d
 else e
 """
 
@@ -930,8 +929,8 @@ if // c1
     a // c2
 then // c3
     b // c4
-else // c5
-if // c6
+else if // c5
+    // c6
     c // c7
 then // c8
     d // c9
@@ -2591,4 +2590,38 @@ then
     error (Error(FSComp.SR.tcKindOfTypeSpecifiedDoesNotMatchDefinition (), m))
 
 k
+"""
+
+[<Test>]
+let ``trivia after else in else if in multiline condition, 2449 `` () =
+    formatSourceString
+        false
+        """
+if true then
+    printfn "a"
+else // this is a comment
+    if
+        false
+    then
+        printfn "b"
+    else
+        printfn "c"
+
+printfn "d"
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+if true then
+    printfn "a"
+else if // this is a comment
+    false
+then
+    printfn "b"
+else
+    printfn "c"
+
+printfn "d"
 """
