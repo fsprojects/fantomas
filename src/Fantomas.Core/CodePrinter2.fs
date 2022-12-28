@@ -2282,25 +2282,32 @@ let genAppWithLambda sep (node: ExprAppWithLambdaNode) =
                     +> sepSpace
                     +> genSingleTextNode lambdaNode.Arrow
 
-                let singleLine =
-                    genExpr node.FunctionName
-                    +> sep
-                    +> col sepSpace node.Arguments genExpr
-                    +> sep
-                    +> genSingleTextNode node.OpeningParen
-                    +> (genLambdaWithParen lambdaNode |> genNode lambdaNode)
-                    +> sepNlnWhenWriteBeforeNewlineNotEmpty
-                    +> genSingleTextNode node.ClosingParen
+                let singleLine (ctx: Context) =
+                    let startColumn = ctx.WriterModel.Indent
+
+                    (genExpr node.FunctionName
+                     +> sep
+                     +> col sepSpace node.Arguments genExpr
+                     +> sep
+                     +> genSingleTextNode node.OpeningParen
+                     +> (genLambdaWithParen lambdaNode |> genNode lambdaNode)
+                     +> sepNlnWhenWriteBeforeNewlineNotEmpty
+                     +> addFixedSpaces startColumn
+                     +> genSingleTextNode node.ClosingParen)
+                        ctx
 
                 let multiLine =
                     genExpr node.FunctionName
-                    +> indentSepNlnUnindent (
-                        col sepNln node.Arguments genExpr
-                        +> onlyIfNot (List.isEmpty node.Arguments) sepNln
-                        +> genSingleTextNode node.OpeningParen
-                        +> (genLambdaWithParen lambdaNode |> genNode lambdaNode)
-                        +> genSingleTextNode node.ClosingParen
-                    )
+                    +> indentSepNlnUnindent (fun ctx ->
+                        let startColumn = ctx.WriterModel.Indent
+
+                        (col sepNln node.Arguments genExpr
+                         +> onlyIfNot (List.isEmpty node.Arguments) sepNln
+                         +> genSingleTextNode node.OpeningParen
+                         +> (genLambdaWithParen lambdaNode |> genNode lambdaNode)
+                         +> addFixedSpaces startColumn
+                         +> genSingleTextNode node.ClosingParen)
+                            ctx)
 
                 if futureNlnCheck singleLineTestExpr ctx then
                     multiLine ctx
