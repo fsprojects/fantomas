@@ -2257,7 +2257,7 @@ let examineData x =
     match data with
     | OnePartData( // foo
         part1 = p1
-    (* bar *) ) -> p1
+      (* bar *) ) -> p1
     | TwoPartData(part1 = p1; part2 = p2) -> p1 + p2
 """
 
@@ -2292,3 +2292,28 @@ line3
       inputB -> \"InputB=\" + inputB
     | _ -> failwith \"Invalid query\"
 "
+
+[<Test>]
+let ``trivia in list cons pattern, 1939`` () =
+    formatSourceString
+        false
+        """
+let f () =
+  match lines with
+  | head ::
+      // Comment
+      tail -> 1
+  | _ -> None
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let f () =
+    match lines with
+    | head ::
+      // Comment
+      tail -> 1
+    | _ -> None
+"""
