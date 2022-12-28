@@ -256,8 +256,6 @@ pipeline "Init" {
                "src/Compiler/Utilities/range.fsi"
                "src/Compiler/Utilities/range.fs"
                "src/Compiler/Facilities/UtilsStrings.txt"
-               "src/Compiler/Facilities/Logger.fsi"
-               "src/Compiler/Facilities/Logger.fs"
                "src/Compiler/Facilities/LanguageFeatures.fsi"
                "src/Compiler/Facilities/LanguageFeatures.fs"
                "src/Compiler/Facilities/DiagnosticOptions.fsi"

@@ -131,12 +131,6 @@
       <Link>Utilities\range.fs</Link>
     </Compile>
     <EmbeddedText Include="..\..\.deps\$(FCSCommitHash)\src\Compiler\Facilities\UtilsStrings.txt" />
-    <Compile Include="..\..\.deps\$(FCSCommitHash)\src\Compiler\Facilities\Logger.fsi">
-      <Link>Facilities\Logger.fsi</Link>
-    </Compile>
-    <Compile Include="..\..\.deps\$(FCSCommitHash)\src\Compiler\Facilities\Logger.fs">
-      <Link>Facilities\Logger.fs</Link>
-    </Compile>
     <Compile Include="..\..\.deps\$(FCSCommitHash)\src\Compiler\Facilities\LanguageFeatures.fsi">
       <Link>Facilities\LanguageFeatures.fsi</Link>
     </Compile>

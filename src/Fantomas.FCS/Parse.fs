@@ -205,7 +205,8 @@ let private PostParseModuleImpls
             impls,
             isLastCompiland,
             { ConditionalDirectives = conditionalDirectives
-              CodeComments = codeComments }
+              CodeComments = codeComments },
+            Set.empty
         )
     )
 
@@ -308,7 +309,8 @@ let private PostParseModuleSpecs
             hashDirectives,
             specs,
             { ConditionalDirectives = conditionalDirectives
-              CodeComments = codeComments }
+              CodeComments = codeComments },
+            Set.empty
         )
     )
 
@@ -384,7 +386,8 @@ let private EmptyParsedInput (filename, isLastCompiland) =
                 [],
                 [],
                 { ConditionalDirectives = []
-                  CodeComments = [] }
+                  CodeComments = [] },
+                Set.empty
             )
         )
     else
@@ -398,7 +401,8 @@ let private EmptyParsedInput (filename, isLastCompiland) =
                 [],
                 isLastCompiland,
                 { ConditionalDirectives = []
-                  CodeComments = [] }
+                  CodeComments = [] },
+                Set.empty
             )
         )
 
