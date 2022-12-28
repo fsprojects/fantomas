@@ -1,5 +1,15 @@
 # Changelog
 
+## [5.2.0-alpha-008] - 2022-12-28
+
+### Fixes
+* else followed by //comment and then if has incorrect indention. [#2449](https://github.com/fsprojects/fantomas/issues/2449)
+* Multiple List concat operators are not seen as the same operator. [#2472](https://github.com/fsprojects/fantomas/issues/2472)
+* Multiline string inside lambda expression fails to format. [#1299](https://github.com/fsprojects/fantomas/issues/1299)
+* Can't format fragment of source code with #if element, and keyword, and triple-slash comment. [#2360](https://github.com/fsprojects/fantomas/issues/2360)
+* Wrong formatting applied to fragment of code with #if clause. [#2361](https://github.com/fsprojects/fantomas/issues/2361)
+* Comment in middle of pattern fail formatting. [#1939](https://github.com/fsprojects/fantomas/issues/1939)
+
 ## [5.2.0-alpha-007] - 2022-12-26
 
 ### Fixes
