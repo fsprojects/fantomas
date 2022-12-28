@@ -2645,7 +2645,7 @@ let genBinding (b: BindingNode) (ctx: Context) : Context =
 
             let afterLetKeyword =
                 ifElse b.IsMutable (!- "mutable ") sepNone
-                +> genInline b.Inline
+                +> genInlineOpt b.Inline
                 +> genAccessOpt b.Accessibility
 
             let genFunctionName =
@@ -2770,7 +2770,7 @@ let genBinding (b: BindingNode) (ctx: Context) : Context =
             let afterLetKeyword =
                 genAccessOpt b.Accessibility
                 +> ifElse b.IsMutable (!- "mutable ") sepNone
-                +> genInline b.Inline
+                +> genInlineOpt b.Inline
 
             let genDestructedTuples =
                 expressionFitsOnRestOfLine (genPat pat) (sepOpenT +> genPat pat +> sepCloseT)
@@ -2805,7 +2805,7 @@ let genBinding (b: BindingNode) (ctx: Context) : Context =
 
             let afterLetKeyword =
                 ifElse b.IsMutable (!- "mutable ") sepNone
-                +> genInline b.Inline
+                +> genInlineOpt b.Inline
                 +> genAccessOpt b.Accessibility
 
             let genValueName =
@@ -3477,7 +3477,7 @@ let genTypeAndParam (genTypeName: Context -> Context) (tds: TyparDecls option) =
     | Some(TyparDecls.PrefixList _) -> optSingle (fun tds -> genTyparDecls tds +> sepSpace) tds +> genTypeName
     | Some(TyparDecls.SinglePrefix singlePrefixNode) -> genTyparDecl true singlePrefixNode +> sepSpace +> genTypeName
 
-let genInline (inlineNode: SingleTextNode option) =
+let genInlineOpt (inlineNode: SingleTextNode option) =
     match inlineNode with
     | None -> sepNone
     | Some inlineNode -> genSingleTextNodeWithSpaceSuffix sepSpace inlineNode
@@ -3491,7 +3491,7 @@ let genVal (node: ValNode) (optGetSet: MultipleTextsNode option) =
     genXml node.XmlDoc
     +> genAttributes node.Attributes
     +> optSingle (fun lk -> genMultipleTextsNode lk +> sepSpace) node.LeadingKeyword
-    +> onlyIf node.IsInline (!- "inline ")
+    +> genInlineOpt node.Inline
     +> onlyIf node.IsMutable (!- "mutable ")
     +> genAccessOpt node.Accessibility
     +> genTypeAndParam (genSingleTextNode node.Identifier) node.TypeParams
@@ -3579,7 +3579,8 @@ let genMemberDefn (md: MemberDefn) =
         |> genNode (MemberDefn.Node md)
     | MemberDefn.PropertyGetSet node ->
         let genProperty (node: PropertyGetSetBindingNode) =
-            genAccessOpt node.Accessibility
+            genInlineOpt node.Inline
+            +> genAccessOpt node.Accessibility
             +> genSingleTextNode node.LeadingKeyword
             +> sepSpace
             +> col sepSpace node.Parameters genPat
@@ -3592,7 +3593,7 @@ let genMemberDefn (md: MemberDefn) =
         +> genAttributes node.Attributes
         +> genMultipleTextsNode node.LeadingKeyword
         +> sepSpace
-        +> onlyIf node.IsInline (!- "inline ")
+        +> genInlineOpt node.Inline
         +> genAccessOpt node.Accessibility
         +> genIdentListNode node.MemberName
         +> indent
