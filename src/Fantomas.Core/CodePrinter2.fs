@@ -2585,7 +2585,7 @@ let genPatInClause (pat: Pattern) =
             +> sepSpace
             +> genPat p.RightHandSide
 
-        | p -> genPat p
+        | p -> atCurrentColumn (genPat p)
 
     genPatMultiline pat
 
