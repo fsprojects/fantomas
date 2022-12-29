@@ -1,5 +1,13 @@
 # Changelog
 
+## [5.2.0-alpha-009] - 2022-12-29
+
+### Fixes
+* ifdef removed when used on inline keyword in function. [#2017](https://github.com/fsprojects/fantomas/issues/2017)
+
+### Changed
+* Update FCS to 'Include inline in trivia', commit e30d14cb46f290050ac8e2bbea5e9b804b97bdde
+
 ## [5.2.0-alpha-008] - 2022-12-28
 
 ### Fixes
