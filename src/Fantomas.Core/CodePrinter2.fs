@@ -2717,7 +2717,13 @@ let genBinding (b: BindingNode) (ctx: Context) : Context =
                             | Some n -> (n :> Node).HasContentBefore
 
                         let beforeIdentifier = (functionName :> Node).HasContentBefore
-                        beforeInline || beforeIdentifier
+
+                        let beforeAccessibility =
+                            match b.Accessibility with
+                            | None -> false
+                            | Some n -> (n :> Node).HasContentBefore
+
+                        beforeInline || beforeIdentifier || beforeAccessibility
 
                     (onlyIf hasTriviaAfterLeadingKeyword indent
                      +> afterLetKeyword
