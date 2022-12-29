@@ -83,3 +83,51 @@ val inline meh: int -> int
         """
 val inline meh: int -> int
 """
+
+[<Test>]
+let ``trivia around inline keyword with access modifier, 640`` () =
+    formatSourceString
+        false
+        """
+  let
+#if DEBUG
+#else
+      inline
+#endif
+             internal Issue71Wrapper visits moduleId hitPointId context handler add =
+    try
+      add visits moduleId hitPointId context
+    with x ->
+      match x with
+      | :? KeyNotFoundException
+      | :? NullReferenceException
+      | :? ArgumentNullException -> handler moduleId hitPointId context x
+      | _ -> reraise()
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let
+#if DEBUG
+#else
+    inline
+#endif
+    internal Issue71Wrapper
+        visits
+        moduleId
+        hitPointId
+        context
+        handler
+        add
+        =
+    try
+        add visits moduleId hitPointId context
+    with x ->
+        match x with
+        | :? KeyNotFoundException
+        | :? NullReferenceException
+        | :? ArgumentNullException -> handler moduleId hitPointId context x
+        | _ -> reraise ()
+"""

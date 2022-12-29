@@ -52,73 +52,54 @@ ImplFile
 
 If the comment is not there this means the F# lexer and parser didn't pick up the comment. In the unlikely event this happened, this should be fixed first over at [dotnet/fsharp](https://github.com/dotnet/fsharp).
 
-## Was the comment detected as trivia?
+## Was the comment detected as TriviaNode?
 
-Fantomas grabs the comments straight from the syntax tree, and transforms them as `Trivia`.  
+Fantomas grabs the comments straight from the syntax tree, and transforms them as [TriviaNode](../../reference/fantomas-core-syntaxoak-trivianode.html).  
+These `TriviaNode` are inserted into our custom [Oak](../../reference/fantomas-core-syntaxoak-oak.html) tree.  
 This is a fairly straightforward process, and you can easily visually inspect this using the [online tool](https://fsprojects.github.io/fantomas-tools/#/trivia).
 
-![Trivia in online tool](../../images/online-tool-trivia-1.png)
+![TriviaNode in online tool](../../images/online-tool-trivia-1.png)
 
-If your comment does not show up there, it means there is a problem between getting the information from the syntax tree and constructing the `Trivia` in `Trivia.fs`.
+If your comment does not show up there, it means there is a problem between getting the information from the syntax tree and constructing the `Trivia` in `Flowering.fs`.  
+You can put a breakpoint on `addToTree tree trivia` to see if all `Trivia` are constructed as expected.
 
-## Was the trivia assigned to a trivia node?
+## Was the TriviaNode inserted into a Node?
 
-The `Trivia` needs to be assigned to a `TriviaNode` to be stored in the `Context`.  
-Using the center tab in the tool, we can see the tree structure of all available `TriviaNodes`.
+The `TriviaNode` needs to be inserted into a [Node](../../reference/fantomas-core-syntaxoak-node.html) inside the `Oak`.  
+Choosing the best suitable node can be quite tricky, there are different strategies for different [TriviaContent](../../reference/fantomas-core-syntaxoak-triviacontent.html).  
+In this example [MultipleTextsNode](../../reference/fantomas-core-syntaxoak-multipletextsnode.html) (`let` keyword) and [SingleTextNode](../../reference/fantomas-core-syntaxoak-singletextnode.html) (`a` identifier) are good candidates as they appear right before and after the comment.  
+We insert the `TriviaNode` into the best suitable `Node` using the `AddBefore` or `AddAfter` methods.
 
-![Root node in online tool](../../images/online-tool-trivia-2.png)
+In this example, at the time of writing, the block comment was added as `ContentAfter` for the `Node` representing the `let` keyword.
 
-Choosing the best suitable node can be quite tricky, there are different strategies for different `TriviaTypes`.  
-In this example `SynBindingKind_Normal` and `SynPat_Named` are good candidates as they appear right after the comment.  
-Once the `Trivia` is assigned to a `TriviaNode`, a `TriviaInstruction` will be created. This is the link between them and is what will be stored in the `Context`.
+## Was the TriviaNode inserted into the best possible Node?
 
-The left-most tab in the tool shows us the result of the assigment:
+Sometimes the selected `Node` isn't really the best possible candidate.  
+In [#640](https://github.com/fsprojects/fantomas/issues/640), the [Directive](../../reference/fantomas-core-syntaxoak-triviacontent.html#Directive) trivia should be inserted into the `internal` node.
 
-![Trivia Instructions in online tool](../../images/online-tool-trivia-3.png)
+![Wrong node assignment in online tool](../../images/online-tool-trivia-2.png)
 
-In this example, at the time of writing, there are no `TriviaInstructions`. This means the assignment in `Trivia.fs` failed and we would need to investigate why.
+In order to do this, we need to know the [range](../../reference/fsharp-compiler-text-range.html) of that `internal` keyword.  
+The F# parser should capture this in order for us to be able to transform it into a `Node`.  
+This was done in [dotnet/fsharp#14503](https://github.com/dotnet/fsharp/pull/14503). Before that change in the syntax tree, another `Node` was selected and that lead to imperfect results.
 
-## Was the trivia assigned to the best possible node?
+## Printing the TriviaNode
 
-Sometimes the selected `TriviaNode` isn't really the best possible candidate.
-In [#640](https://github.com/fsprojects/fantomas/issues/640), the `Directive` trivia are assigned to `SynBindingKind_Normal`.
-
-![Wrong node assignment in online tool](../../images/online-tool-trivia-4.png)
-
-Notice that `SynBindingKind_Normal` starts at line `6`, while the `Trivia` is wrapped around the `inline` keyword on line `4`.  
-It would be ideal if we could use the `inline` keyword as a `TriviaNode`, but looking at the tree, it doesn't appear to be present.
-Why is that? Well, the syntax tree does, at the time of writing, not provide a `range` for the keyword.  
-This would be a great addition as to [SyntaxTreeTrivia](../../reference/fsharp-compiler-syntaxtrivia.html), and can be done by submitting a pull request to [dotnet/fsharp](https://github.com/dotnet/fsharp).
-
-## Printing the TriviaInstruction
-
-The last piece of the puzzle is printing the actual `TriviaInstruction` in `CodePrinter`.
+The last piece of the puzzle is printing the actual `TriviaNode` in `CodePrinter2`.
 If everything up to this point went well, and the comment is still missing after formatting, it means it was not printed.
 
-Every `TriviaInstruction` has a type (`FsAstType`) and a `range`. The `range` is taken from an actual AST node, so when we encounter this `range` in `CodePrinter`, we need to act upon it.  
-We typically do this by calling `genTriviaFor`, passing down the `type`, the `range` and a function `f` that should be composed in between.
-
-Example:
+Every `Node` potentially has `ContentBefore` and/or `ContentAfter`. We need to process this using the generic `genNode` function.
 
 ```fsharp
-genTriviaFor Ident_ (* : FsAstType *) ident.idRange (* range : *) genIdent (* : Context -> Context *) 
+let genTrivia (trivia: TriviaNode) (ctx: Context) = // process the TriviaContent
+let enterNode<'n when 'n :> Node> (n: 'n) = col sepNone n.ContentBefore genTrivia
+let leaveNode<'n when 'n :> Node> (n: 'n) = col sepNone n.ContentAfter genTrivia
+let genNode<'n when 'n :> Node> (n: 'n) (f: Context -> Context) = enterNode n +> f +> leaveNode n
+
+// Pipe `!- node.Text` (`f`) into `genNode`
+let genSingleTextNode (node: SingleTextNode) = !-node.Text |> genNode node
 ```
 
-If we look at the definition of `genTriviaFor`:
-
-```fsharp
-and genTriviaFor (mainNodeName: FsAstType) (range: Range) f ctx =
-    (enterNodeFor mainNodeName range +> f +> leaveNodeFor mainNodeName range) ctx
-```
-
-We can derive that the composition will be as follows:
-
-```fsharp
-enterNodeFor Ident_ ident.idRange
-+> genIdent
-+> leaveNodeFor Ident_ ident.idRange
-```
-
-`enterNodeFor` and `leaveNodeFor` will print the `TriviaInstruction` it finds for the `range` and `type` inputs in the `Context`.
+`enterNode` and `leaveNode` will print the `TriviaNodes` using `genTrivia`. 
 
 <fantomas-nav previous="./How%20Can%20I%20Contribute.html" next="./Pull%20request%20ground%20rules.html"></fantomas-nav>
