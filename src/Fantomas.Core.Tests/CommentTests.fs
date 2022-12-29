@@ -2591,3 +2591,18 @@ let run (log: ILogger) =
         """
 let run (log: ILogger) = (* foo *) ()
 """
+
+[<Test>]
+let ``block comment between let and value name, 2490`` () =
+    formatSourceString
+        false
+        """
+let (* this comment disappears after formatting *) a = []
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let (* this comment disappears after formatting *) a = []
+"""
