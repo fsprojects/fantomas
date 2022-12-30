@@ -1,5 +1,11 @@
 # Changelog
 
+## [5.2.0-alpha-010] - 2022-12-30
+
+### Fixes
+* Conditional compilation of a declaration is lost. [#640](https://github.com/fsprojects/fantomas/issues/640)
+* Block comment is not assigned to trivia node. [#2490](https://github.com/fsprojects/fantomas/issues/2490)
+
 ## [5.2.0-alpha-009] - 2022-12-29
 
 ### Fixes
