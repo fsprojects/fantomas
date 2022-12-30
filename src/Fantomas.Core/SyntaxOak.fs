@@ -1,4 +1,4 @@
-﻿module rec Fantomas.Core.SyntaxOak
+﻿module internal rec Fantomas.Core.SyntaxOak
 
 open System.Collections.Generic
 open FSharp.Compiler.Text
