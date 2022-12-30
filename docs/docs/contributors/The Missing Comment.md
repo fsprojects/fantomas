@@ -67,7 +67,7 @@ You can put a breakpoint on `addToTree tree trivia` to see if all `Trivia` are c
 
 The `TriviaNode` needs to be inserted into a [Node](../../reference/fantomas-core-syntaxoak-node.html) inside the `Oak`.  
 Choosing the best suitable node can be quite tricky, there are different strategies for different [TriviaContent](../../reference/fantomas-core-syntaxoak-triviacontent.html).  
-In this example [MultipleTextsNode](../../reference/fantomas-core-syntaxoak-multipletextsnode.html) (`let` keyword) and [SingleTextNode](../../reference/fantomas-core-syntaxoak-singletextnode.html) (`a` identifier) are good candidates as they appear right before and after the comment.  
+In this example [MultipleTextsNode](../../reference/fantomas-core-syntaxoak-multipletextsnode.html) (`let` keyword) and [IdentListNode](../../reference/fantomas-core-syntaxoak-identlistnode.html) (`a` identifier) are good candidates as they appear right before and after the comment.  
 We insert the `TriviaNode` into the best suitable `Node` using the `AddBefore` or `AddAfter` methods.
 
 In this example, at the time of writing, the block comment was added as `ContentAfter` for the `Node` representing the `let` keyword.
