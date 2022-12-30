@@ -76,7 +76,7 @@ pipeline "Build" {
         whenNot { platformOSX }
         run "dotnet fsi ./docs/.style/style.fsx"
         run
-            $"dotnet fsdocs build --clean --properties Configuration=Release --fscoptions \" -r:{semanticVersioning}\" --eval --strict"
+            $"dotnet fsdocs build --clean --properties Configuration=Release --fscoptions \" -r:{semanticVersioning}\" --eval --strict --nonpublic"
     }
     stage "Push" {
         whenCmdArg "--push"
@@ -167,7 +167,8 @@ pipeline "Docs" {
     stage "Watch" {
         paralle
         run "dotnet fsi ./docs/.style/style.fsx --watch"
-        run $"dotnet fsdocs watch --properties Configuration=Release --fscoptions \" -r:{semanticVersioning}\" --eval"
+        run
+            $"dotnet fsdocs watch --properties Configuration=Release --fscoptions \" -r:{semanticVersioning}\" --eval --nonpublic"
     }
     runIfOnlySpecified true
 }
