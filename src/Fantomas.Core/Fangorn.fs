@@ -1,4 +1,4 @@
-﻿module rec Fantomas.Core.Fangorn
+﻿module internal rec Fantomas.Core.Fangorn
 
 open System.Collections.Generic
 open System.Text.RegularExpressions
