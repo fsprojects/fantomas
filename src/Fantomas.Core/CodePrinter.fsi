@@ -1,4 +1,4 @@
-module internal Fantomas.Core.CodePrinter2
+module internal Fantomas.Core.CodePrinter
 
 open Fantomas.Core.Context
 open Fantomas.Core.SyntaxOak

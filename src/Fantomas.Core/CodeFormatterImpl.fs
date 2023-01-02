@@ -7,7 +7,6 @@ open FSharp.Compiler.Text
 open Fantomas.Core
 open Fantomas.Core.FormatConfig
 open Fantomas.Core.SyntaxOak
-open Fantomas.Core.CodePrinter2
 
 let getSourceText (source: string) : ISourceText = source.TrimEnd() |> SourceText.ofString
 
@@ -60,12 +59,12 @@ let formatAST (ast: ParsedInput) (sourceText: ISourceText option) (config: Forma
 
         let fileNode =
             match sourceText with
-            | None -> Fangorn.mkOak config None ast
+            | None -> ASTTransformer.mkOak config None ast
             | Some sourceText ->
-                Fangorn.mkOak config (Some sourceText) ast
-                |> Flowering.enrichTree config sourceText ast
+                ASTTransformer.mkOak config (Some sourceText) ast
+                |> Trivia.enrichTree config sourceText ast
 
-        context |> genFile fileNode |> Context.dump false
+        context |> CodePrinter.genFile fileNode |> Context.dump false
 
     formattedSourceCode
 

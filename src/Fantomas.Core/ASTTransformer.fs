@@ -1,4 +1,4 @@
-﻿module internal rec Fantomas.Core.Fangorn
+﻿module internal rec Fantomas.Core.ASTTransformer
 
 open System.Collections.Generic
 open System.Text.RegularExpressions

@@ -1,4 +1,4 @@
-﻿module internal rec Fantomas.Core.CodePrinter2
+﻿module internal rec Fantomas.Core.CodePrinter
 
 open System
 open Fantomas.Core.Context

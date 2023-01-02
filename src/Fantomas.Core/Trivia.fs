@@ -1,4 +1,4 @@
-﻿module internal Fantomas.Core.Flowering
+﻿module internal Fantomas.Core.Trivia
 
 open FSharp.Compiler.Syntax
 open FSharp.Compiler.SyntaxTrivia
