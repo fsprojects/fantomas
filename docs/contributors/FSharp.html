@@ -102,10 +102,10 @@
 <li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/Solution Structure.html" class="nav-link pb-2 d-block" > Solution structure
 </a></li>
 
-<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/Prepare Context.html" class="nav-link pb-2 d-block" > Fantomas.Core overview (1)
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/Transforming.html" class="nav-link pb-2 d-block" > Fantomas.Core overview (1)
 </a></li>
 
-<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/Print AST with Context.html" class="nav-link pb-2 d-block" > Fantomas.Core overview (2)
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/Traverse.html" class="nav-link pb-2 d-block" > Fantomas.Core overview (2)
 </a></li>
 
 <li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/Formatted Code.html" class="nav-link pb-2 d-block" > Fantomas.Core overview (3)
@@ -215,45 +215,31 @@ In short, we use the <code>Untyped Abstract Syntax Tree</code> created by the F#
 <p>For example <a href="https://fsprojects.github.io/fantomas/reference/fsharp-compiler-syntax-synexpr.html#For">SynExpr.For</a>, the definition looks like:</p>
 <pre class="fssnip highlighted"><code lang="fsharp"><span class="k">type</span> <span class="rt">SynExpr</span> <span class="o">=</span>
     <span class="o">..</span><span class="pn">.</span>
-    <span class="c">/// F# syntax: &#39;for i = ... to ... do ...&#39;</span>
-    <span class="pn">|</span> <span onmouseout="hideTip(event, 'fs1', 1)" onmouseover="showTip(event, 'fs1', 1)" class="id">For</span> <span class="k">of</span>
-        <span class="id">forDebugPoint</span><span class="pn">:</span> <span class="id">DebugPointAtFor</span> <span class="pn">*</span>
-        <span class="id">toDebugPoint</span><span class="pn">:</span> <span class="id">DebugPointAtInOrTo</span> <span class="pn">*</span>
-        <span class="id">ident</span><span class="pn">:</span> <span class="id">Ident</span> <span class="pn">*</span>
-        <span class="id">equalsRange</span><span class="pn">:</span> <span class="id">range</span> <span onmouseout="hideTip(event, 'fs2', 2)" onmouseover="showTip(event, 'fs2', 2)" class="id">option</span> <span class="pn">*</span>
-        <span class="id">identBody</span><span class="pn">:</span> <span class="id">SynExpr</span> <span class="pn">*</span>
-        <span class="id">direction</span><span class="pn">:</span> <span onmouseout="hideTip(event, 'fs3', 3)" onmouseover="showTip(event, 'fs3', 3)" class="id">bool</span> <span class="pn">*</span>
-        <span class="id">toBody</span><span class="pn">:</span> <span class="id">SynExpr</span> <span class="pn">*</span>
-        <span class="id">doBody</span><span class="pn">:</span> <span class="id">SynExpr</span> <span class="pn">*</span>
+    <span class="c">/// F# syntax: expr; expr</span>
+    <span class="c">///</span>
+    <span class="c">///  isTrueSeq: false indicates &quot;let v = a in b; v&quot;</span>
+    <span class="pn">|</span> <span class="id">Sequential</span> <span class="k">of</span>
+        <span class="id">debugPoint</span><span class="pn">:</span> <span class="id">DebugPointAtSequential</span> <span class="pn">*</span>
+        <span class="id">isTrueSeq</span><span class="pn">:</span> <span onmouseout="hideTip(event, 'fs1', 1)" onmouseover="showTip(event, 'fs1', 1)" class="id">bool</span> <span class="pn">*</span>
+        <span class="id">expr1</span><span class="pn">:</span> <span class="id">SynExpr</span> <span class="pn">*</span>
+        <span class="id">expr2</span><span class="pn">:</span> <span class="id">SynExpr</span> <span class="pn">*</span>
         <span class="id">range</span><span class="pn">:</span> <span class="id">range</span>
 </code></pre>
-<p>However, in Fantomas we have a partial active pattern that we use to easily grab the information we need from the AST.</p>
-<pre class="fssnip highlighted"><code lang="fsharp"><span class="k">let</span> <span class="pn">(</span><span class="fn">|</span><span class="uc">For</span><span class="pn">|</span><span class="id">_</span><span class="pn">|</span><span class="pn">)</span> <span class="o">=</span>
-    <span class="k">function</span>
-    <span class="pn">|</span> <span onmouseout="hideTip(event, 'fs4', 4)" onmouseover="showTip(event, 'fs4', 4)" class="id">SynExpr</span><span class="pn">.</span><span class="id">For</span> <span class="pn">(</span><span class="id">_</span><span class="pn">,</span> <span class="id">_</span><span class="pn">,</span> <span class="id">ident</span><span class="pn">,</span> <span class="id">equalsRange</span><span class="pn">,</span> <span class="id">e1</span><span class="pn">,</span> <span class="id">isUp</span><span class="pn">,</span> <span class="id">e2</span><span class="pn">,</span> <span class="id">e3</span><span class="pn">,</span> <span class="id">_</span><span class="pn">)</span> <span class="k">-&gt;</span> <span onmouseout="hideTip(event, 'fs5', 5)" onmouseover="showTip(event, 'fs5', 5)" class="id">Some</span><span class="pn">(</span><span class="id">ident</span><span class="pn">,</span> <span class="id">equalsRange</span><span class="pn">,</span> <span class="id">e1</span><span class="pn">,</span> <span class="id">e2</span><span class="pn">,</span> <span class="id">e3</span><span class="pn">,</span> <span class="id">isUp</span><span class="pn">)</span>
-    <span class="pn">|</span> <span class="id">_</span> <span class="k">-&gt;</span> <span onmouseout="hideTip(event, 'fs6', 6)" onmouseover="showTip(event, 'fs6', 6)" class="id">None</span>  
+<p>However, in Fantomas we have a partial active pattern that we use to easily grab the information we need from the AST.
+These partial actives are mostly used and defined in <code>Fangorn.fs</code>.</p>
+<pre class="fssnip highlighted"><code lang="fsharp"><span class="k">let</span> <span class="pn">(</span><span class="fn">|</span><span class="uc">Sequentials</span><span class="pn">|</span><span class="id">_</span><span class="pn">|</span><span class="pn">)</span> <span onmouseout="hideTip(event, 'fs2', 2)" onmouseover="showTip(event, 'fs2', 2)" class="fn">e</span> <span class="o">=</span>
+    <span class="k">let</span> <span class="k">rec</span> <span onmouseout="hideTip(event, 'fs3', 3)" onmouseover="showTip(event, 'fs3', 3)" class="fn">visit</span> <span class="pn">(</span><span onmouseout="hideTip(event, 'fs4', 4)" onmouseover="showTip(event, 'fs4', 4)" class="fn">e</span><span class="pn">:</span> <span onmouseout="hideTip(event, 'fs5', 5)" onmouseover="showTip(event, 'fs5', 5)" class="rt">SynExpr</span><span class="pn">)</span> <span class="pn">(</span><span onmouseout="hideTip(event, 'fs6', 6)" onmouseover="showTip(event, 'fs6', 6)" class="fn">finalContinuation</span><span class="pn">:</span> <span onmouseout="hideTip(event, 'fs5', 7)" onmouseover="showTip(event, 'fs5', 7)" class="rt">SynExpr</span> <span onmouseout="hideTip(event, 'fs7', 8)" onmouseover="showTip(event, 'fs7', 8)" class="rt">list</span> <span class="k">-&gt;</span> <span onmouseout="hideTip(event, 'fs5', 9)" onmouseover="showTip(event, 'fs5', 9)" class="rt">SynExpr</span> <span onmouseout="hideTip(event, 'fs7', 10)" onmouseover="showTip(event, 'fs7', 10)" class="rt">list</span><span class="pn">)</span> <span class="pn">:</span> <span onmouseout="hideTip(event, 'fs5', 11)" onmouseover="showTip(event, 'fs5', 11)" class="rt">SynExpr</span> <span onmouseout="hideTip(event, 'fs7', 12)" onmouseover="showTip(event, 'fs7', 12)" class="rt">list</span> <span class="o">=</span>
+        <span class="k">match</span> <span onmouseout="hideTip(event, 'fs4', 13)" onmouseover="showTip(event, 'fs4', 13)" class="fn">e</span> <span class="k">with</span>
+        <span class="pn">|</span> <span onmouseout="hideTip(event, 'fs5', 14)" onmouseover="showTip(event, 'fs5', 14)" class="id">SynExpr</span><span class="pn">.</span><span class="id">Sequential</span><span class="pn">(</span><span class="id">_</span><span class="pn">,</span> <span class="id">_</span><span class="pn">,</span> <span class="id">e1</span><span class="pn">,</span> <span class="id">e2</span><span class="pn">,</span> <span class="id">_</span><span class="pn">)</span> <span class="k">-&gt;</span> <span onmouseout="hideTip(event, 'fs3', 15)" onmouseover="showTip(event, 'fs3', 15)" class="id">visit</span> <span class="id">e2</span> <span class="pn">(</span><span class="k">fun</span> <span class="id">xs</span> <span class="k">-&gt;</span> <span class="id">e1</span> <span class="o">::</span> <span class="id">xs</span> <span class="o">|&gt;</span> <span onmouseout="hideTip(event, 'fs6', 16)" onmouseover="showTip(event, 'fs6', 16)" class="id">finalContinuation</span><span class="pn">)</span>
+        <span class="pn">|</span> <span onmouseout="hideTip(event, 'fs4', 17)" onmouseover="showTip(event, 'fs4', 17)" class="id">e</span> <span class="k">-&gt;</span> <span onmouseout="hideTip(event, 'fs6', 18)" onmouseover="showTip(event, 'fs6', 18)" class="id">finalContinuation</span> <span class="pn">[</span> <span onmouseout="hideTip(event, 'fs4', 19)" onmouseover="showTip(event, 'fs4', 19)" class="id">e</span> <span class="pn">]</span>
+
+    <span class="k">match</span> <span onmouseout="hideTip(event, 'fs2', 20)" onmouseover="showTip(event, 'fs2', 20)" class="fn">e</span> <span class="k">with</span>
+    <span class="pn">|</span> <span onmouseout="hideTip(event, 'fs5', 21)" onmouseover="showTip(event, 'fs5', 21)" class="id">SynExpr</span><span class="pn">.</span><span class="id">Sequential</span><span class="pn">(</span><span class="id">_</span><span class="pn">,</span> <span class="id">_</span><span class="pn">,</span> <span class="id">e1</span><span class="pn">,</span> <span class="id">e2</span><span class="pn">,</span> <span class="id">_</span><span class="pn">)</span> <span class="k">-&gt;</span>
+        <span class="k">let</span> <span class="id">xs</span> <span class="o">=</span> <span onmouseout="hideTip(event, 'fs3', 22)" onmouseover="showTip(event, 'fs3', 22)" class="id">visit</span> <span class="id">e2</span> <span onmouseout="hideTip(event, 'fs8', 23)" onmouseover="showTip(event, 'fs8', 23)" class="id">id</span>
+        <span onmouseout="hideTip(event, 'fs9', 24)" onmouseover="showTip(event, 'fs9', 24)" class="id">Some</span><span class="pn">(</span><span class="id">e1</span> <span class="o">::</span> <span class="id">xs</span><span class="pn">)</span>
+    <span class="pn">|</span> <span class="id">_</span> <span class="k">-&gt;</span> <span onmouseout="hideTip(event, 'fs10', 25)" onmouseover="showTip(event, 'fs10', 25)" class="id">None</span>
 </code></pre>
-<p>Notice the underscores, we don't use the <code>DebugPoint</code> info and <code>range</code>, so we drop that information in the result of the partial active pattern.
-We then later use this pattern to work with the AST we need.
-Example usage in <code>CodePrinter.fs</code>:</p>
-<pre class="fssnip highlighted"><code lang="fsharp"><span class="k">match</span> <span class="id">expr</span> <span class="k">with</span>
-<span class="pn">|</span> <span class="id">For</span> <span class="pn">(</span><span class="id">ident</span><span class="pn">,</span> <span class="id">equalsRange</span><span class="pn">,</span> <span class="id">e1</span><span class="pn">,</span> <span class="id">e2</span><span class="pn">,</span> <span class="id">e3</span><span class="pn">,</span> <span class="id">isUp</span><span class="pn">)</span> <span class="k">-&gt;</span>
-    <span class="id">atCurrentColumn</span> <span class="pn">(</span>
-        <span class="o">!-</span> <span class="s">&quot;for &quot;</span>
-        <span class="o">+&gt;</span> <span class="id">genIdent</span> <span class="id">ident</span>
-        <span class="o">+&gt;</span> <span class="id">genEq</span> <span class="id">SynExpr_For_Equals</span> <span class="id">equalsRange</span>
-        <span class="o">+&gt;</span> <span class="id">sepSpace</span>
-        <span class="o">+&gt;</span> <span class="id">genExpr</span> <span class="id">astContext</span> <span class="id">e1</span>
-        <span class="o">+&gt;</span> <span class="id">ifElse</span> <span class="id">isUp</span> <span class="pn">(</span><span class="o">!-</span> <span class="s">&quot; to &quot;</span><span class="pn">)</span> <span class="pn">(</span><span class="o">!-</span> <span class="s">&quot; downto &quot;</span><span class="pn">)</span>
-        <span class="o">+&gt;</span> <span class="id">genExpr</span> <span class="id">astContext</span> <span class="id">e2</span>
-        <span class="o">+&gt;</span> <span class="o">!-</span> <span class="s">&quot; do&quot;</span>
-        <span class="o">+&gt;</span> <span class="id">indent</span>
-        <span class="o">+&gt;</span> <span class="id">sepNln</span>
-        <span class="o">+&gt;</span> <span class="id">genExpr</span> <span class="id">astContext</span> <span class="id">e3</span>
-        <span class="o">+&gt;</span> <span class="id">unindent</span>
-    <span class="pn">)</span>
-<span class="pn">|</span> <span class="id">_</span> <span class="k">-&gt;</span> <span class="o">..</span><span class="pn">.</span>
-</code></pre>
+<p>Notice the underscores, we don't use the <code>DebugPointAtSequential</code> info and <code>range</code>, so we drop that information in the result of the partial active pattern.</p>
 <ul>
 <li><a href="https://docs.microsoft.com/en-us/dotnet/fsharp/language-reference/operator-overloading#creating-new-operators">Custom operators</a>. In F# there are some special operators like <a href="https://fsharp.github.io/fsharp-core-docs/reference/fsharp-core-operators.html#(|%3E)">|&gt;</a> and <a href="https://fsharp.github.io/fsharp-core-docs/reference/fsharp-core-operators.html#(%3E%3E)">&gt;&gt;</a>.</li>
 </ul>
@@ -270,16 +256,13 @@ You can look at a signature file to get a glimpse of what the module really does
 </ul>
 <p>In contrast to partial active patterns, where we want to hide some AST information, it can occur that we need to extend the type of an AST node.
 We do this by adding a new type member to an existing Syntax tree type.
-Example in <code>AstExtensions.fs</code>:</p>
-<pre class="fssnip highlighted"><code lang="fsharp"><span class="k">type</span> <span class="id">SynMemberFlags</span> <span class="k">with</span>
+Example in <code>Flowering.fs</code>:</p>
+<pre class="fssnip highlighted"><code lang="fsharp"><span class="k">type</span> <span class="id">CommentTrivia</span> <span class="k">with</span>
 
-    <span class="k">member</span> <span onmouseout="hideTip(event, 'fs7', 7)" onmouseover="showTip(event, 'fs7', 7)" class="fn">memberFlags</span><span class="pn">.</span><span class="prop">FullRange</span><span class="pn">:</span> <span class="id">range</span> <span onmouseout="hideTip(event, 'fs2', 8)" onmouseover="showTip(event, 'fs2', 8)" class="rt">option</span> <span class="o">=</span>
-        <span class="id">RangeHelpers</span><span class="pn">.</span><span class="id">mergeRanges</span>
-            <span class="pn">[</span> <span class="k">yield!</span> <span onmouseout="hideTip(event, 'fs8', 9)" onmouseover="showTip(event, 'fs8', 9)" class="id">Option</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs9', 10)" onmouseover="showTip(event, 'fs9', 10)" class="id">toList</span> <span onmouseout="hideTip(event, 'fs7', 11)" onmouseover="showTip(event, 'fs7', 11)" class="id">memberFlags</span><span class="pn">.</span><span class="id">Trivia</span><span class="pn">.</span><span class="id">AbstractRange</span>
-              <span class="k">yield!</span> <span onmouseout="hideTip(event, 'fs8', 12)" onmouseover="showTip(event, 'fs8', 12)" class="id">Option</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs9', 13)" onmouseover="showTip(event, 'fs9', 13)" class="id">toList</span> <span onmouseout="hideTip(event, 'fs7', 14)" onmouseover="showTip(event, 'fs7', 14)" class="id">memberFlags</span><span class="pn">.</span><span class="id">Trivia</span><span class="pn">.</span><span class="id">DefaultRange</span>
-              <span class="k">yield!</span> <span onmouseout="hideTip(event, 'fs8', 15)" onmouseover="showTip(event, 'fs8', 15)" class="id">Option</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs9', 16)" onmouseover="showTip(event, 'fs9', 16)" class="id">toList</span> <span onmouseout="hideTip(event, 'fs7', 17)" onmouseover="showTip(event, 'fs7', 17)" class="id">memberFlags</span><span class="pn">.</span><span class="id">Trivia</span><span class="pn">.</span><span class="id">MemberRange</span>
-              <span class="k">yield!</span> <span onmouseout="hideTip(event, 'fs8', 18)" onmouseover="showTip(event, 'fs8', 18)" class="id">Option</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs9', 19)" onmouseover="showTip(event, 'fs9', 19)" class="id">toList</span> <span onmouseout="hideTip(event, 'fs7', 20)" onmouseover="showTip(event, 'fs7', 20)" class="id">memberFlags</span><span class="pn">.</span><span class="id">Trivia</span><span class="pn">.</span><span class="id">OverrideRange</span>
-              <span class="k">yield!</span> <span onmouseout="hideTip(event, 'fs8', 21)" onmouseover="showTip(event, 'fs8', 21)" class="id">Option</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs9', 22)" onmouseover="showTip(event, 'fs9', 22)" class="id">toList</span> <span onmouseout="hideTip(event, 'fs7', 23)" onmouseover="showTip(event, 'fs7', 23)" class="id">memberFlags</span><span class="pn">.</span><span class="id">Trivia</span><span class="pn">.</span><span class="id">StaticRange</span> <span class="pn">]</span>
+    <span class="k">member</span> <span onmouseout="hideTip(event, 'fs11', 26)" onmouseover="showTip(event, 'fs11', 26)" class="fn">x</span><span class="pn">.</span><span class="prop">Range</span> <span class="o">=</span>
+        <span class="k">match</span> <span onmouseout="hideTip(event, 'fs11', 27)" onmouseover="showTip(event, 'fs11', 27)" class="fn">x</span> <span class="k">with</span>
+        <span class="pn">|</span> <span class="id">CommentTrivia</span><span class="pn">.</span><span class="id">BlockComment</span> <span class="id">m</span>
+        <span class="pn">|</span> <span class="id">CommentTrivia</span><span class="pn">.</span><span class="id">LineComment</span> <span class="id">m</span> <span class="k">-&gt;</span> <span class="id">m</span>
 </code></pre>
 <p>The type <code>SynMemberFlags</code> does not expose any range information, but we can extend it to do so.<br />
 The <code>.FullRange</code> naming convention is used to indicate that we are not satisfied by the original range or it is lacking all together.<br />
@@ -292,7 +275,7 @@ Fantomas is full of this kind of functions, so be sure to grasp this concept bef
 <ul>
 <li><a href="https://docs.microsoft.com/en-us/dotnet/fsharp/language-reference/functions/recursive-functions-the-rec-keyword#tail-recursion">Tail recursion</a></li>
 </ul>
-<p>There are places in the code base where we use some more advanced recursion techniques. <code>AstTransformer.fs</code> is one of them.<br />
+<p>There are places in the code base where we use some more advanced recursion techniques. <code>Fangorn.fs</code> is one of them.<br />
 A very good explanation of what happens here can be found in this <a href="https://www.gresearch.co.uk/blog/article/advanced-recursion-techniques-in-f/">blogpost</a>.</p>
 <ul>
 <li><a href="https://medium.com/@dzoukr/event-sourcing-step-by-step-in-f-be808aa0ca18">Event Sourcing</a></li>
@@ -304,18 +287,18 @@ We first rehearse what we want to say, then we write the letter. Not write evey 
 These events are used to achieve this.</p>
 <fantomas-nav previous="./index.html" next="./Getting%20Started.html"></fantomas-nav>
 
-        <div class="fsdocs-tip" id="fs1">active recognizer For: &#39;a -&gt; &#39;b option</div>
-<div class="fsdocs-tip" id="fs2">type &#39;T option = Option&lt;&#39;T&gt;</div>
-<div class="fsdocs-tip" id="fs3">type bool = System.Boolean</div>
-<div class="fsdocs-tip" id="fs4">type SynExpr =
-  member FullRange: obj</div>
-<div class="fsdocs-tip" id="fs5">union case Option.Some: Value: &#39;T -&gt; Option&lt;&#39;T&gt;</div>
-<div class="fsdocs-tip" id="fs6">union case Option.None: Option&lt;&#39;T&gt;</div>
-<div class="fsdocs-tip" id="fs7">val memberFlags: SynExpr</div>
-<div class="fsdocs-tip" id="fs8">module Option
-
-from Microsoft.FSharp.Core</div>
-<div class="fsdocs-tip" id="fs9">val toList: option: &#39;T option -&gt; &#39;T list</div>
+        <div class="fsdocs-tip" id="fs1">type bool = System.Boolean</div>
+<div class="fsdocs-tip" id="fs2">val e: &#39;a</div>
+<div class="fsdocs-tip" id="fs3">val visit: e: SynExpr -&gt; finalContinuation: (SynExpr list -&gt; SynExpr list) -&gt; SynExpr list</div>
+<div class="fsdocs-tip" id="fs4">val e: SynExpr</div>
+<div class="fsdocs-tip" id="fs5">type SynExpr =
+  member Range: obj</div>
+<div class="fsdocs-tip" id="fs6">val finalContinuation: (SynExpr list -&gt; SynExpr list)</div>
+<div class="fsdocs-tip" id="fs7">type &#39;T list = List&lt;&#39;T&gt;</div>
+<div class="fsdocs-tip" id="fs8">val id: x: &#39;T -&gt; &#39;T</div>
+<div class="fsdocs-tip" id="fs9">union case Option.Some: Value: &#39;T -&gt; Option&lt;&#39;T&gt;</div>
+<div class="fsdocs-tip" id="fs10">union case Option.None: Option&lt;&#39;T&gt;</div>
+<div class="fsdocs-tip" id="fs11">val x: SynExpr</div>
 
       </div>
         <div id="push"></div>

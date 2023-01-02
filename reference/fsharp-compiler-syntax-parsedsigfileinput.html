@@ -101,10 +101,10 @@
 <li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/Solution Structure.html" class="nav-link pb-2 d-block" > Solution structure
 </a></li>
 
-<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/Prepare Context.html" class="nav-link pb-2 d-block" > Fantomas.Core overview (1)
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/Transforming.html" class="nav-link pb-2 d-block" > Fantomas.Core overview (1)
 </a></li>
 
-<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/Print AST with Context.html" class="nav-link pb-2 d-block" > Fantomas.Core overview (2)
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/Traverse.html" class="nav-link pb-2 d-block" > Fantomas.Core overview (2)
 </a></li>
 
 <li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/Formatted Code.html" class="nav-link pb-2 d-block" > Fantomas.Core overview (3)
@@ -240,19 +240,19 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code onmouseout="hideTip(event, '762', 762)" onmouseover="showTip(event, '762', 762)">
+              <code onmouseout="hideTip(event, '5616', 5616)" onmouseover="showTip(event, '5616', 5616)">
                 <p>
                   <a id="ParsedSigFileInput">
                     <a href="#ParsedSigFileInput">
-                      <code><span>ParsedSigFileInput(<span>fileName,&#32;qualifiedNameOfFile,&#32;scopedPragmas,&#32;hashDirectives,&#32;contents,&#32;trivia</span>)</span></code>
+                      <code><span>ParsedSigFileInput(<span>fileName,&#32;qualifiedNameOfFile,&#32;scopedPragmas,&#32;hashDirectives,&#32;contents,&#32;trivia,&#32;identifiers</span>)</span></code>
                     </a>
                   </a>
                 </p>
               </code>
-              <div class="fsdocs-tip" id="762">
+              <div class="fsdocs-tip" id="5616">
                 <div class="member-tooltip">
                   Full Usage: 
-                  <code><span>ParsedSigFileInput(<span>fileName,&#32;qualifiedNameOfFile,&#32;scopedPragmas,&#32;hashDirectives,&#32;contents,&#32;trivia</span>)</span></code>
+                  <code><span>ParsedSigFileInput(<span>fileName,&#32;qualifiedNameOfFile,&#32;scopedPragmas,&#32;hashDirectives,&#32;contents,&#32;trivia,&#32;identifiers</span>)</span></code>
                   <br/>
                   <br/>
                   Parameters: 
@@ -303,6 +303,14 @@
                       </b>
                       :
                       <code><a href="https://fsprojects.github.io/fantomas/reference/fsharp-compiler-syntaxtrivia-parsedsigfileinputtrivia.html">ParsedSigFileInputTrivia</a></code>
+                    </span>
+                    <br/>
+                    <span>
+                      <b>
+                        identifiers
+                      </b>
+                      :
+                      <code><span><a href="https://fsharp.github.io/fsharp-core-docs/reference/fsharp-collections-fsharpset-1">Set</a>&lt;string&gt;</span></code>
                     </span>
                     <br/>
                   </ul>
@@ -370,6 +378,14 @@
                 <code><a href="https://fsprojects.github.io/fantomas/reference/fsharp-compiler-syntaxtrivia-parsedsigfileinputtrivia.html">ParsedSigFileInputTrivia</a></code>
               </dt>
               <dd class="fsdocs-param-docs"></dd>
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  identifiers
+                </span>
+                :
+                <code><span><a href="https://fsharp.github.io/fsharp-core-docs/reference/fsharp-collections-fsharpset-1">Set</a>&lt;string&gt;</span></code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
             </dl>
           </td>
         </tr>
@@ -398,7 +414,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code onmouseout="hideTip(event, '763', 763)" onmouseover="showTip(event, '763', 763)">
+              <code onmouseout="hideTip(event, '5617', 5617)" onmouseover="showTip(event, '5617', 5617)">
                 <p>
                   <a id="Contents">
                     <a href="#Contents">
@@ -407,7 +423,7 @@
                   </a>
                 </p>
               </code>
-              <div class="fsdocs-tip" id="763">
+              <div class="fsdocs-tip" id="5617">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>this.Contents</span></code>
@@ -454,7 +470,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code onmouseout="hideTip(event, '764', 764)" onmouseover="showTip(event, '764', 764)">
+              <code onmouseout="hideTip(event, '5618', 5618)" onmouseover="showTip(event, '5618', 5618)">
                 <p>
                   <a id="FileName">
                     <a href="#FileName">
@@ -463,7 +479,7 @@
                   </a>
                 </p>
               </code>
-              <div class="fsdocs-tip" id="764">
+              <div class="fsdocs-tip" id="5618">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>this.FileName</span></code>
@@ -510,7 +526,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code onmouseout="hideTip(event, '765', 765)" onmouseover="showTip(event, '765', 765)">
+              <code onmouseout="hideTip(event, '5619', 5619)" onmouseover="showTip(event, '5619', 5619)">
                 <p>
                   <a id="HashDirectives">
                     <a href="#HashDirectives">
@@ -519,7 +535,7 @@
                   </a>
                 </p>
               </code>
-              <div class="fsdocs-tip" id="765">
+              <div class="fsdocs-tip" id="5619">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>this.HashDirectives</span></code>
@@ -566,7 +582,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code onmouseout="hideTip(event, '766', 766)" onmouseover="showTip(event, '766', 766)">
+              <code onmouseout="hideTip(event, '5620', 5620)" onmouseover="showTip(event, '5620', 5620)">
                 <p>
                   <a id="QualifiedName">
                     <a href="#QualifiedName">
@@ -575,7 +591,7 @@
                   </a>
                 </p>
               </code>
-              <div class="fsdocs-tip" id="766">
+              <div class="fsdocs-tip" id="5620">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>this.QualifiedName</span></code>
@@ -622,7 +638,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code onmouseout="hideTip(event, '767', 767)" onmouseover="showTip(event, '767', 767)">
+              <code onmouseout="hideTip(event, '5621', 5621)" onmouseover="showTip(event, '5621', 5621)">
                 <p>
                   <a id="ScopedPragmas">
                     <a href="#ScopedPragmas">
@@ -631,7 +647,7 @@
                   </a>
                 </p>
               </code>
-              <div class="fsdocs-tip" id="767">
+              <div class="fsdocs-tip" id="5621">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>this.ScopedPragmas</span></code>
@@ -678,7 +694,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code onmouseout="hideTip(event, '768', 768)" onmouseover="showTip(event, '768', 768)">
+              <code onmouseout="hideTip(event, '5622', 5622)" onmouseover="showTip(event, '5622', 5622)">
                 <p>
                   <a id="Trivia">
                     <a href="#Trivia">
@@ -687,7 +703,7 @@
                   </a>
                 </p>
               </code>
-              <div class="fsdocs-tip" id="768">
+              <div class="fsdocs-tip" id="5622">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>this.Trivia</span></code>

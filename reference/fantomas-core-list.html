@@ -101,10 +101,10 @@
 <li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/Solution Structure.html" class="nav-link pb-2 d-block" > Solution structure
 </a></li>
 
-<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/Prepare Context.html" class="nav-link pb-2 d-block" > Fantomas.Core overview (1)
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/Transforming.html" class="nav-link pb-2 d-block" > Fantomas.Core overview (1)
 </a></li>
 
-<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/Print AST with Context.html" class="nav-link pb-2 d-block" > Fantomas.Core overview (2)
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/Traverse.html" class="nav-link pb-2 d-block" > Fantomas.Core overview (2)
 </a></li>
 
 <li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/Formatted Code.html" class="nav-link pb-2 d-block" > Fantomas.Core overview (3)
@@ -231,7 +231,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code onmouseout="hideTip(event, '124', 124)" onmouseover="showTip(event, '124', 124)">
+              <code onmouseout="hideTip(event, '1145', 1145)" onmouseover="showTip(event, '1145', 1145)">
                 <p>
                   <a id="appendItem">
                     <a href="#appendItem">
@@ -240,7 +240,7 @@
                   </a>
                 </p>
               </code>
-              <div class="fsdocs-tip" id="124">
+              <div class="fsdocs-tip" id="1145">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>appendItem&#32;<span>l&#32;i</span></span></code>
@@ -325,7 +325,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code onmouseout="hideTip(event, '125', 125)" onmouseover="showTip(event, '125', 125)">
+              <code onmouseout="hideTip(event, '1146', 1146)" onmouseover="showTip(event, '1146', 1146)">
                 <p>
                   <a id="chooseState">
                     <a href="#chooseState">
@@ -334,7 +334,7 @@
                   </a>
                 </p>
               </code>
-              <div class="fsdocs-tip" id="125">
+              <div class="fsdocs-tip" id="1146">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>chooseState&#32;<span>f&#32;state&#32;l</span></span></code>
@@ -435,7 +435,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code onmouseout="hideTip(event, '126', 126)" onmouseover="showTip(event, '126', 126)">
+              <code onmouseout="hideTip(event, '1147', 1147)" onmouseover="showTip(event, '1147', 1147)">
                 <p>
                   <a id="isNotEmpty">
                     <a href="#isNotEmpty">
@@ -444,7 +444,7 @@
                   </a>
                 </p>
               </code>
-              <div class="fsdocs-tip" id="126">
+              <div class="fsdocs-tip" id="1147">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>isNotEmpty&#32;<span>l</span></span></code>
@@ -457,7 +457,7 @@
                         l
                       </b>
                       :
-                      <code><span>'e&#32;list</span></code>
+                      <code><span>'a&#32;list</span></code>
                     </span>
                     <br/>
                   </ul>
@@ -495,7 +495,7 @@
                   l
                 </span>
                 :
-                <code><span>'e&#32;list</span></code>
+                <code><span>'a&#32;list</span></code>
               </dt>
               <dd class="fsdocs-param-docs"></dd>
             </dl>
@@ -513,7 +513,117 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code onmouseout="hideTip(event, '127', 127)" onmouseover="showTip(event, '127', 127)">
+              <code onmouseout="hideTip(event, '1148', 1148)" onmouseover="showTip(event, '1148', 1148)">
+                <p>
+                  <a id="mapWithLast">
+                    <a href="#mapWithLast">
+                      <code><span>mapWithLast&#32;<span>f&#32;g&#32;xs</span></span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="1148">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>mapWithLast&#32;<span>f&#32;g&#32;xs</span></span></code>
+                  <br/>
+                  <br/>
+                  Parameters: 
+                  <ul>
+                    <span>
+                      <b>
+                        f
+                      </b>
+                      :
+                      <code><span>'a&#32;->&#32;'b</span></code>
+                    </span>
+                    <br/>
+                    <span>
+                      <b>
+                        g
+                      </b>
+                      :
+                      <code><span>'a&#32;->&#32;'b</span></code>
+                    </span>
+                    <br/>
+                    <span>
+                      <b>
+                        xs
+                      </b>
+                      :
+                      <code><span>'a&#32;list</span></code>
+                    </span>
+                    <br/>
+                  </ul>
+                  <br/>
+                  <span>
+                    Returns: 
+                    <code><span>'b&#32;list</span></code>
+                  </span>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-summary">
+              <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('```cref:M:Fantomas.Core.List.mapWithLast``2```')">
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-md.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-md-hover.png" class="hover"/>
+              </div>
+              <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'M:Fantomas.Core.List.mapWithLast``2\'/>')">
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+              </div>
+              <a href="" class="fsdocs-source-link" title="Source on GitHub">
+                <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
+              </a>
+              <p class="fsdocs-summary">
+                
+              </p>
+            </div>
+            <dl class="fsdocs-params">
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  f
+                </span>
+                :
+                <code><span>'a&#32;->&#32;'b</span></code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  g
+                </span>
+                :
+                <code><span>'a&#32;->&#32;'b</span></code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  xs
+                </span>
+                :
+                <code><span>'a&#32;list</span></code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+            </dl>
+            <dl class="fsdocs-returns">
+              <dt>
+                <span class="fsdocs-return-name">
+                  Returns: 
+                </span>
+                <code><span>'b&#32;list</span></code>
+              </dt>
+              <dd class="fsdocs-return-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '1149', 1149)" onmouseover="showTip(event, '1149', 1149)">
                 <p>
                   <a id="moreThanOne">
                     <a href="#moreThanOne">
@@ -522,7 +632,7 @@
                   </a>
                 </p>
               </code>
-              <div class="fsdocs-tip" id="127">
+              <div class="fsdocs-tip" id="1149">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>moreThanOne&#32;<span>_arg1</span></span></code>
@@ -591,7 +701,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code onmouseout="hideTip(event, '128', 128)" onmouseover="showTip(event, '128', 128)">
+              <code onmouseout="hideTip(event, '1150', 1150)" onmouseover="showTip(event, '1150', 1150)">
                 <p>
                   <a id="partitionWhile">
                     <a href="#partitionWhile">
@@ -600,7 +710,7 @@
                   </a>
                 </p>
               </code>
-              <div class="fsdocs-tip" id="128">
+              <div class="fsdocs-tip" id="1150">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>partitionWhile&#32;<span>f&#32;xs</span></span></code>
@@ -685,7 +795,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code onmouseout="hideTip(event, '129', 129)" onmouseover="showTip(event, '129', 129)">
+              <code onmouseout="hideTip(event, '1151', 1151)" onmouseover="showTip(event, '1151', 1151)">
                 <p>
                   <a id="prependItem">
                     <a href="#prependItem">
@@ -694,7 +804,7 @@
                   </a>
                 </p>
               </code>
-              <div class="fsdocs-tip" id="129">
+              <div class="fsdocs-tip" id="1151">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>prependItem&#32;<span>l&#32;i</span></span></code>
@@ -779,7 +889,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code onmouseout="hideTip(event, '130', 130)" onmouseover="showTip(event, '130', 130)">
+              <code onmouseout="hideTip(event, '1152', 1152)" onmouseover="showTip(event, '1152', 1152)">
                 <p>
                   <a id="takeWhileState">
                     <a href="#takeWhileState">
@@ -788,7 +898,7 @@
                   </a>
                 </p>
               </code>
-              <div class="fsdocs-tip" id="130">
+              <div class="fsdocs-tip" id="1152">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>takeWhileState&#32;<span>f&#32;state&#32;l</span></span></code>

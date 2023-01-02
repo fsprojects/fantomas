@@ -1,0 +1,4426 @@
+<!DOCTYPE html>
+<html lang="en" data-root="https://fsprojects.github.io/fantomas/">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="author" content="Florian Verdonck, Jindřich Ivánek, David Schaefer">
+  <title>Expr (fantomas)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,600;1,400&family=Reem+Kufi:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.3/font/bootstrap-icons.css">
+  <link rel="shortcut icon" type="image/x-icon" href="https://fsprojects.github.io/fantomas/images/favicon.ico">
+  <link type="text/css" rel="stylesheet" href="https://fsprojects.github.io/fantomas/content/fsdocs-custom.css" />
+  <script type="text/javascript" src="https://fsprojects.github.io/fantomas/content/fsdocs-tips.js"></script>
+  <!-- BEGIN SEARCH BOX: this adds support for the search box -->
+  <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+  <link rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/JavaScript-autoComplete/1.0.4/auto-complete.css" />
+  <!-- END SEARCH BOX: this adds support for the search box -->
+  
+</head>
+
+<body>
+     <aside class="bg-primary h-100 fs-5">
+      <div id="sidebar-header" class="d-flex justify-content-end mt-1">
+      <button class="btn d-md-none" id="close-mobile-menu" aria-controls="sidebar-wrapper" aria-expanded="false" aria-label="Toggle navigation">
+        <i class="sidebar-toggle fs-3 bi bi-x-lg"></i>
+                  </button>
+              </div>
+      <div id="sidebar-logo" class="d-flex justify-content-center p-5">
+        <a href="https://fsprojects.github.io/fantomas/docs/index.html" ><img id="fsdocs-logo" src="https://fsprojects.github.io/fantomas//images/logo-fantomas-white.svg" /></a>
+      </div>
+      <div id="sidebar-content" class="accordion accordion-flush ps-0 text-white fs-6">
+        <div id="end-users-wrapper" class="accordion-item">
+    <li class="docs-menu">
+        <button id="end-users-button"
+            class="accordion-button collapsed btn text-white d-flex justify-content-between align-items-center"
+            data-bs-toggle="collapse" data-bs-target="#end-users" aria-expanded="false"
+            aria-control="end-users" type="button">
+            End-users
+        </button>
+        <div id="end-users" class="accordion-collapse collapse ps-4 pb-2 " data-bs-parent="#sidebar-content">
+            <ul class="list-unstyled fw-normal mb-0">
+                <li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/end-users/GettingStarted.html" class="nav-link pb-2 d-block" > Getting Started
+</a></li>
+
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/end-users/StyleGuide.html" class="nav-link pb-2 d-block" > Style guide
+</a></li>
+
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/end-users/Configuration.html" class="nav-link pb-2 d-block" > Configuration
+</a></li>
+
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/end-users/IgnoreFiles.html" class="nav-link pb-2 d-block" > Ignore Files
+</a></li>
+
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/end-users/FormattingCheck.html" class="nav-link pb-2 d-block" > Formatting Check
+</a></li>
+
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/end-users/GitHooks.html" class="nav-link pb-2 d-block" > Git hooks
+</a></li>
+
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/end-users/VisualStudio.html" class="nav-link pb-2 d-block" > Visual Studio
+</a></li>
+
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/end-users/Rider.html" class="nav-link pb-2 d-block" > JetBrains Rider
+</a></li>
+
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/end-users/VSCode.html" class="nav-link pb-2 d-block" > Visual Studio Code
+</a></li>
+
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/end-users/GeneratingCode.html" class="nav-link pb-2 d-block" > Generating source code
+</a></li>
+
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/end-users/FAQ.html" class="nav-link pb-2 d-block" > FAQ
+</a></li>
+
+            </ul>
+        </div>
+    </li>
+</div>
+<div id="contributors-wrapper" class="accordion-item">
+    <li class="docs-menu">
+        <button id="contributors-button"
+            class="accordion-button collapsed btn text-white d-flex justify-content-between align-items-center"
+            data-bs-toggle="collapse" data-bs-target="#contributors" aria-expanded="false"
+            aria-control="contributors" type="button">
+            Contributors
+        </button>
+        <div id="contributors" class="accordion-collapse collapse ps-4 pb-2 " data-bs-parent="#sidebar-content">
+            <ul class="list-unstyled fw-normal mb-0">
+                <li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/Index.html" class="nav-link pb-2 d-block" > Contributors
+</a></li>
+
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/FSharp.html" class="nav-link pb-2 d-block" > F#
+</a></li>
+
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/Getting Started.html" class="nav-link pb-2 d-block" > Getting started
+</a></li>
+
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/Solution Structure.html" class="nav-link pb-2 d-block" > Solution structure
+</a></li>
+
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/Transforming.html" class="nav-link pb-2 d-block" > Fantomas.Core overview (1)
+</a></li>
+
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/Traverse.html" class="nav-link pb-2 d-block" > Fantomas.Core overview (2)
+</a></li>
+
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/Formatted Code.html" class="nav-link pb-2 d-block" > Fantomas.Core overview (3)
+</a></li>
+
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/Conditional Compilation Directives.html" class="nav-link pb-2 d-block" > Formatting Conditional Compilation Directives
+</a></li>
+
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/How Can I Contribute.html" class="nav-link pb-2 d-block" > How can I contribute?
+</a></li>
+
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/The Missing Comment.html" class="nav-link pb-2 d-block" > The Missing Comment
+</a></li>
+
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/Pull request ground rules.html" class="nav-link pb-2 d-block" > Pull request ground rules
+</a></li>
+
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/Releases.html" class="nav-link pb-2 d-block" > Releases
+</a></li>
+
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/Glossary.html" class="nav-link pb-2 d-block" > Glossary
+</a></li>
+
+            </ul>
+        </div>
+    </li>
+</div>
+        <div id="api_reference-wrapper" class="accordion-item">
+    <li class="docs-menu">
+        <button id="api_reference-button"
+            class="accordion-button collapsed btn text-white d-flex justify-content-between align-items-center"
+            data-bs-toggle="collapse" data-bs-target="#api_reference" aria-expanded="false"
+            aria-control="api_reference" type="button">
+            API Reference
+        </button>
+        <div id="api_reference" class="accordion-collapse collapse ps-4 pb-2 " data-bs-parent="#sidebar-content">
+            <ul class="list-unstyled fw-normal mb-0">
+                <li class="nav-item"><a href="https://fsprojects.github.io/fantomas/reference/index.html" class="nav-link pb-2 d-block" > All Namespaces</a></li>
+
+            </ul>
+        </div>
+    </li>
+</div>
+      </div>
+    </aside>
+    <main class="doc-content">
+     <nav class="navbar navbar-expand-sm border py-1">
+        <div class="container-fluid flex-nowrap">
+          <button class="btn" id="toggle-mobile-menu" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="sidebar-toggle fs-3 bi bi-list"></i>
+          </button>
+          <div id="mobile-navbar" class="container-fluid d-flex justify-content-between d-sm-none">
+            <i class="invisible bi bi-github fs-3 align-self-end"></i>
+         <a href="./index.html" ><img id="fsdocs-logo-mobile" width="32" height="32" src="https://fsprojects.github.io/fantomas//images/logo.png" /></a>
+            <a class="nav-link m-0 p-0" target="_blank" href="https://github.com/fsprojects/fantomas/"> <i class="bi bi-github fs-3 align-self-end"></i>
+</a>
+          </div>
+          <div class="collapse navbar-collapse" id="navbarText">
+            <div class="navbar-nav me-auto mb-2 mb-lg-0 fs-5">
+                <a class="nav-link active" aria-current="page" href="https://fsprojects.github.io/fantomas/docs/index.html">Docs</a>
+                <a class="nav-link" target="_blank" href="https://fsprojects.github.io/fantomas-tools/">Tools</a>
+            </div>
+            <form class="d-flex">
+              <div class="input-group me-4">
+              <label for="search-by">
+                <i class="fas fa-search"></i>
+              </label>
+                <div class="btn border-end-0 border">
+                  <i class="bi bi-search"></i>
+                </div>
+                <input aria-label="Search" class="form-control  border-start-0 border" data-search-input=""
+                  id="search-by" type="search" placeholder="Search..." />
+                <span class="input-group-append">
+                </span>
+                <span data-search-clear="">
+                  <i class="fas fa-times"></i>
+                </span>
+              </div>
+            </form>
+            <a class="nav-link m-0 p-0" target="_blank" href="https://github.com/fsprojects/fantomas/">GitHub<i
+                class="bi bi-box-arrow-up-right mx-2"></i></a>
+          </div>
+        </div>
+      </nav>
+      <div id="fsdocs-content" class="bg-white m-2 m-sm-5 p-3 p-sm-4">
+        <div>
+  <h2>
+    Expr Type
+  </h2>
+  <dl class="fsdocs-metadata">
+    <dt>
+      Namespace: 
+      <a href="https://fsprojects.github.io/fantomas/reference/fantomas-core.html">
+        Fantomas.Core
+      </a>
+    </dt>
+    <dt>
+      Assembly: Fantomas.Core.dll
+    </dt>
+    <dt>
+      Parent Module: 
+      <a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak.html">
+        SyntaxOak
+      </a>
+    </dt>
+    <dt>
+      Base Type: 
+      <code>obj</code>
+    </dt>
+  </dl>
+  <div class="fsdocs-xmldoc">
+    <div>
+      <p class="fsdocs-summary">
+        
+      </p>
+    </div>
+  </div>
+  <div></div>
+  <div></div>
+  <div></div>
+  <div>
+    <h3>
+      Union cases
+    </h3>
+    <table class="table outer-list fsdocs-member-list">
+      <thead>
+        <tr>
+          <td class="fsdocs-member-list-header">
+            Union case
+          </td>
+          <td class="fsdocs-member-list-header">
+            Description
+          </td>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '6513', 6513)" onmouseover="showTip(event, '6513', 6513)">
+                <p>
+                  <a id="AnonRecord">
+                    <a href="#AnonRecord">
+                      <code><span>AnonRecord&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-expranonrecordnode.html">ExprAnonRecordNode</a></span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="6513">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>AnonRecord&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-expranonrecordnode.html">ExprAnonRecordNode</a></span></code>
+                  <br/>
+                  <br/>
+                  Parameters: 
+                  <ul>
+                    <span>
+                      <b>
+                        Item
+                      </b>
+                      :
+                      <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-expranonrecordnode.html">ExprAnonRecordNode</a></code>
+                    </span>
+                    <br/>
+                  </ul>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-summary">
+              <a href="" class="fsdocs-source-link" title="Source on GitHub">
+                <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
+              </a>
+              <p class="fsdocs-summary">
+                
+              </p>
+            </div>
+            <dl class="fsdocs-params">
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  Item
+                </span>
+                :
+                <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-expranonrecordnode.html">ExprAnonRecordNode</a></code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '6514', 6514)" onmouseover="showTip(event, '6514', 6514)">
+                <p>
+                  <a id="App">
+                    <a href="#App">
+                      <code><span>App&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprappnode.html">ExprAppNode</a></span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="6514">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>App&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprappnode.html">ExprAppNode</a></span></code>
+                  <br/>
+                  <br/>
+                  Parameters: 
+                  <ul>
+                    <span>
+                      <b>
+                        Item
+                      </b>
+                      :
+                      <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprappnode.html">ExprAppNode</a></code>
+                    </span>
+                    <br/>
+                  </ul>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-summary">
+              <a href="" class="fsdocs-source-link" title="Source on GitHub">
+                <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
+              </a>
+              <p class="fsdocs-summary">
+                
+              </p>
+            </div>
+            <dl class="fsdocs-params">
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  Item
+                </span>
+                :
+                <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprappnode.html">ExprAppNode</a></code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '6515', 6515)" onmouseover="showTip(event, '6515', 6515)">
+                <p>
+                  <a id="AppDotGetTypeApp">
+                    <a href="#AppDotGetTypeApp">
+                      <code><span>AppDotGetTypeApp&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprappdotgettypeappnode.html">ExprAppDotGetTypeAppNode</a></span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="6515">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>AppDotGetTypeApp&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprappdotgettypeappnode.html">ExprAppDotGetTypeAppNode</a></span></code>
+                  <br/>
+                  <br/>
+                  Parameters: 
+                  <ul>
+                    <span>
+                      <b>
+                        Item
+                      </b>
+                      :
+                      <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprappdotgettypeappnode.html">ExprAppDotGetTypeAppNode</a></code>
+                    </span>
+                    <br/>
+                  </ul>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-summary">
+              <a href="" class="fsdocs-source-link" title="Source on GitHub">
+                <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
+              </a>
+              <p class="fsdocs-summary">
+                
+              </p>
+            </div>
+            <dl class="fsdocs-params">
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  Item
+                </span>
+                :
+                <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprappdotgettypeappnode.html">ExprAppDotGetTypeAppNode</a></code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '6516', 6516)" onmouseover="showTip(event, '6516', 6516)">
+                <p>
+                  <a id="AppLongIdentAndSingleParenArg">
+                    <a href="#AppLongIdentAndSingleParenArg">
+                      <code><span>AppLongIdentAndSingleParenArg&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprapplongidentandsingleparenargnode.html">ExprAppLongIdentAndSingleParenArgNode</a></span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="6516">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>AppLongIdentAndSingleParenArg&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprapplongidentandsingleparenargnode.html">ExprAppLongIdentAndSingleParenArgNode</a></span></code>
+                  <br/>
+                  <br/>
+                  Parameters: 
+                  <ul>
+                    <span>
+                      <b>
+                        Item
+                      </b>
+                      :
+                      <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprapplongidentandsingleparenargnode.html">ExprAppLongIdentAndSingleParenArgNode</a></code>
+                    </span>
+                    <br/>
+                  </ul>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-summary">
+              <a href="" class="fsdocs-source-link" title="Source on GitHub">
+                <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
+              </a>
+              <p class="fsdocs-summary">
+                
+              </p>
+            </div>
+            <dl class="fsdocs-params">
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  Item
+                </span>
+                :
+                <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprapplongidentandsingleparenargnode.html">ExprAppLongIdentAndSingleParenArgNode</a></code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '6517', 6517)" onmouseover="showTip(event, '6517', 6517)">
+                <p>
+                  <a id="AppSingleParenArg">
+                    <a href="#AppSingleParenArg">
+                      <code><span>AppSingleParenArg&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprappsingleparenargnode.html">ExprAppSingleParenArgNode</a></span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="6517">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>AppSingleParenArg&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprappsingleparenargnode.html">ExprAppSingleParenArgNode</a></span></code>
+                  <br/>
+                  <br/>
+                  Parameters: 
+                  <ul>
+                    <span>
+                      <b>
+                        Item
+                      </b>
+                      :
+                      <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprappsingleparenargnode.html">ExprAppSingleParenArgNode</a></code>
+                    </span>
+                    <br/>
+                  </ul>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-summary">
+              <a href="" class="fsdocs-source-link" title="Source on GitHub">
+                <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
+              </a>
+              <p class="fsdocs-summary">
+                
+              </p>
+            </div>
+            <dl class="fsdocs-params">
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  Item
+                </span>
+                :
+                <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprappsingleparenargnode.html">ExprAppSingleParenArgNode</a></code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '6518', 6518)" onmouseover="showTip(event, '6518', 6518)">
+                <p>
+                  <a id="AppWithLambda">
+                    <a href="#AppWithLambda">
+                      <code><span>AppWithLambda&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprappwithlambdanode.html">ExprAppWithLambdaNode</a></span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="6518">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>AppWithLambda&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprappwithlambdanode.html">ExprAppWithLambdaNode</a></span></code>
+                  <br/>
+                  <br/>
+                  Parameters: 
+                  <ul>
+                    <span>
+                      <b>
+                        Item
+                      </b>
+                      :
+                      <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprappwithlambdanode.html">ExprAppWithLambdaNode</a></code>
+                    </span>
+                    <br/>
+                  </ul>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-summary">
+              <a href="" class="fsdocs-source-link" title="Source on GitHub">
+                <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
+              </a>
+              <p class="fsdocs-summary">
+                
+              </p>
+            </div>
+            <dl class="fsdocs-params">
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  Item
+                </span>
+                :
+                <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprappwithlambdanode.html">ExprAppWithLambdaNode</a></code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '6519', 6519)" onmouseover="showTip(event, '6519', 6519)">
+                <p>
+                  <a id="ArrayOrList">
+                    <a href="#ArrayOrList">
+                      <code><span>ArrayOrList&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprarrayorlistnode.html">ExprArrayOrListNode</a></span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="6519">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>ArrayOrList&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprarrayorlistnode.html">ExprArrayOrListNode</a></span></code>
+                  <br/>
+                  <br/>
+                  Parameters: 
+                  <ul>
+                    <span>
+                      <b>
+                        Item
+                      </b>
+                      :
+                      <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprarrayorlistnode.html">ExprArrayOrListNode</a></code>
+                    </span>
+                    <br/>
+                  </ul>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-summary">
+              <a href="" class="fsdocs-source-link" title="Source on GitHub">
+                <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
+              </a>
+              <p class="fsdocs-summary">
+                
+              </p>
+            </div>
+            <dl class="fsdocs-params">
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  Item
+                </span>
+                :
+                <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprarrayorlistnode.html">ExprArrayOrListNode</a></code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '6520', 6520)" onmouseover="showTip(event, '6520', 6520)">
+                <p>
+                  <a id="CompExprBody">
+                    <a href="#CompExprBody">
+                      <code><span>CompExprBody&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprcompexprbodynode.html">ExprCompExprBodyNode</a></span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="6520">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>CompExprBody&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprcompexprbodynode.html">ExprCompExprBodyNode</a></span></code>
+                  <br/>
+                  <br/>
+                  Parameters: 
+                  <ul>
+                    <span>
+                      <b>
+                        Item
+                      </b>
+                      :
+                      <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprcompexprbodynode.html">ExprCompExprBodyNode</a></code>
+                    </span>
+                    <br/>
+                  </ul>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-summary">
+              <a href="" class="fsdocs-source-link" title="Source on GitHub">
+                <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
+              </a>
+              <p class="fsdocs-summary">
+                
+              </p>
+            </div>
+            <dl class="fsdocs-params">
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  Item
+                </span>
+                :
+                <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprcompexprbodynode.html">ExprCompExprBodyNode</a></code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '6521', 6521)" onmouseover="showTip(event, '6521', 6521)">
+                <p>
+                  <a id="Computation">
+                    <a href="#Computation">
+                      <code><span>Computation&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprcomputationnode.html">ExprComputationNode</a></span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="6521">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>Computation&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprcomputationnode.html">ExprComputationNode</a></span></code>
+                  <br/>
+                  <br/>
+                  Parameters: 
+                  <ul>
+                    <span>
+                      <b>
+                        Item
+                      </b>
+                      :
+                      <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprcomputationnode.html">ExprComputationNode</a></code>
+                    </span>
+                    <br/>
+                  </ul>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-summary">
+              <a href="" class="fsdocs-source-link" title="Source on GitHub">
+                <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
+              </a>
+              <p class="fsdocs-summary">
+                
+              </p>
+            </div>
+            <dl class="fsdocs-params">
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  Item
+                </span>
+                :
+                <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprcomputationnode.html">ExprComputationNode</a></code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '6522', 6522)" onmouseover="showTip(event, '6522', 6522)">
+                <p>
+                  <a id="Constant">
+                    <a href="#Constant">
+                      <code><span>Constant&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-constant.html">Constant</a></span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="6522">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>Constant&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-constant.html">Constant</a></span></code>
+                  <br/>
+                  <br/>
+                  Parameters: 
+                  <ul>
+                    <span>
+                      <b>
+                        Item
+                      </b>
+                      :
+                      <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-constant.html">Constant</a></code>
+                    </span>
+                    <br/>
+                  </ul>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-summary">
+              <a href="" class="fsdocs-source-link" title="Source on GitHub">
+                <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
+              </a>
+              <p class="fsdocs-summary">
+                
+              </p>
+            </div>
+            <dl class="fsdocs-params">
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  Item
+                </span>
+                :
+                <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-constant.html">Constant</a></code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '6523', 6523)" onmouseover="showTip(event, '6523', 6523)">
+                <p>
+                  <a id="DotGet">
+                    <a href="#DotGet">
+                      <code><span>DotGet&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprdotgetnode.html">ExprDotGetNode</a></span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="6523">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>DotGet&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprdotgetnode.html">ExprDotGetNode</a></span></code>
+                  <br/>
+                  <br/>
+                  Parameters: 
+                  <ul>
+                    <span>
+                      <b>
+                        Item
+                      </b>
+                      :
+                      <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprdotgetnode.html">ExprDotGetNode</a></code>
+                    </span>
+                    <br/>
+                  </ul>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-summary">
+              <a href="" class="fsdocs-source-link" title="Source on GitHub">
+                <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
+              </a>
+              <p class="fsdocs-summary">
+                
+              </p>
+            </div>
+            <dl class="fsdocs-params">
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  Item
+                </span>
+                :
+                <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprdotgetnode.html">ExprDotGetNode</a></code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '6524', 6524)" onmouseover="showTip(event, '6524', 6524)">
+                <p>
+                  <a id="DotGetApp">
+                    <a href="#DotGetApp">
+                      <code><span>DotGetApp&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprdotgetappnode.html">ExprDotGetAppNode</a></span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="6524">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>DotGetApp&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprdotgetappnode.html">ExprDotGetAppNode</a></span></code>
+                  <br/>
+                  <br/>
+                  Parameters: 
+                  <ul>
+                    <span>
+                      <b>
+                        Item
+                      </b>
+                      :
+                      <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprdotgetappnode.html">ExprDotGetAppNode</a></code>
+                    </span>
+                    <br/>
+                  </ul>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-summary">
+              <a href="" class="fsdocs-source-link" title="Source on GitHub">
+                <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
+              </a>
+              <p class="fsdocs-summary">
+                
+              </p>
+            </div>
+            <dl class="fsdocs-params">
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  Item
+                </span>
+                :
+                <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprdotgetappnode.html">ExprDotGetAppNode</a></code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '6525', 6525)" onmouseover="showTip(event, '6525', 6525)">
+                <p>
+                  <a id="DotGetAppDotGetAppParenLambda">
+                    <a href="#DotGetAppDotGetAppParenLambda">
+                      <code><span>DotGetAppDotGetAppParenLambda&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprdotgetappdotgetappparenlambdanode.html">ExprDotGetAppDotGetAppParenLambdaNode</a></span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="6525">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>DotGetAppDotGetAppParenLambda&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprdotgetappdotgetappparenlambdanode.html">ExprDotGetAppDotGetAppParenLambdaNode</a></span></code>
+                  <br/>
+                  <br/>
+                  Parameters: 
+                  <ul>
+                    <span>
+                      <b>
+                        Item
+                      </b>
+                      :
+                      <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprdotgetappdotgetappparenlambdanode.html">ExprDotGetAppDotGetAppParenLambdaNode</a></code>
+                    </span>
+                    <br/>
+                  </ul>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-summary">
+              <a href="" class="fsdocs-source-link" title="Source on GitHub">
+                <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
+              </a>
+              <p class="fsdocs-summary">
+                
+              </p>
+            </div>
+            <dl class="fsdocs-params">
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  Item
+                </span>
+                :
+                <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprdotgetappdotgetappparenlambdanode.html">ExprDotGetAppDotGetAppParenLambdaNode</a></code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '6526', 6526)" onmouseover="showTip(event, '6526', 6526)">
+                <p>
+                  <a id="DotGetAppParen">
+                    <a href="#DotGetAppParen">
+                      <code><span>DotGetAppParen&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprdotgetappparennode.html">ExprDotGetAppParenNode</a></span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="6526">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>DotGetAppParen&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprdotgetappparennode.html">ExprDotGetAppParenNode</a></span></code>
+                  <br/>
+                  <br/>
+                  Parameters: 
+                  <ul>
+                    <span>
+                      <b>
+                        Item
+                      </b>
+                      :
+                      <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprdotgetappparennode.html">ExprDotGetAppParenNode</a></code>
+                    </span>
+                    <br/>
+                  </ul>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-summary">
+              <a href="" class="fsdocs-source-link" title="Source on GitHub">
+                <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
+              </a>
+              <p class="fsdocs-summary">
+                
+              </p>
+            </div>
+            <dl class="fsdocs-params">
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  Item
+                </span>
+                :
+                <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprdotgetappparennode.html">ExprDotGetAppParenNode</a></code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '6527', 6527)" onmouseover="showTip(event, '6527', 6527)">
+                <p>
+                  <a id="DotGetAppWithLambda">
+                    <a href="#DotGetAppWithLambda">
+                      <code><span>DotGetAppWithLambda&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprdotgetappwithlambdanode.html">ExprDotGetAppWithLambdaNode</a></span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="6527">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>DotGetAppWithLambda&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprdotgetappwithlambdanode.html">ExprDotGetAppWithLambdaNode</a></span></code>
+                  <br/>
+                  <br/>
+                  Parameters: 
+                  <ul>
+                    <span>
+                      <b>
+                        Item
+                      </b>
+                      :
+                      <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprdotgetappwithlambdanode.html">ExprDotGetAppWithLambdaNode</a></code>
+                    </span>
+                    <br/>
+                  </ul>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-summary">
+              <a href="" class="fsdocs-source-link" title="Source on GitHub">
+                <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
+              </a>
+              <p class="fsdocs-summary">
+                
+              </p>
+            </div>
+            <dl class="fsdocs-params">
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  Item
+                </span>
+                :
+                <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprdotgetappwithlambdanode.html">ExprDotGetAppWithLambdaNode</a></code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '6528', 6528)" onmouseover="showTip(event, '6528', 6528)">
+                <p>
+                  <a id="DotGetAppWithParenLambda">
+                    <a href="#DotGetAppWithParenLambda">
+                      <code><span>DotGetAppWithParenLambda&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprdotgetappwithparenlambdanode.html">ExprDotGetAppWithParenLambdaNode</a></span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="6528">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>DotGetAppWithParenLambda&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprdotgetappwithparenlambdanode.html">ExprDotGetAppWithParenLambdaNode</a></span></code>
+                  <br/>
+                  <br/>
+                  Parameters: 
+                  <ul>
+                    <span>
+                      <b>
+                        Item
+                      </b>
+                      :
+                      <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprdotgetappwithparenlambdanode.html">ExprDotGetAppWithParenLambdaNode</a></code>
+                    </span>
+                    <br/>
+                  </ul>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-summary">
+              <a href="" class="fsdocs-source-link" title="Source on GitHub">
+                <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
+              </a>
+              <p class="fsdocs-summary">
+                
+              </p>
+            </div>
+            <dl class="fsdocs-params">
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  Item
+                </span>
+                :
+                <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprdotgetappwithparenlambdanode.html">ExprDotGetAppWithParenLambdaNode</a></code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '6529', 6529)" onmouseover="showTip(event, '6529', 6529)">
+                <p>
+                  <a id="DotIndexedGet">
+                    <a href="#DotIndexedGet">
+                      <code><span>DotIndexedGet&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprdotindexedgetnode.html">ExprDotIndexedGetNode</a></span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="6529">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>DotIndexedGet&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprdotindexedgetnode.html">ExprDotIndexedGetNode</a></span></code>
+                  <br/>
+                  <br/>
+                  Parameters: 
+                  <ul>
+                    <span>
+                      <b>
+                        Item
+                      </b>
+                      :
+                      <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprdotindexedgetnode.html">ExprDotIndexedGetNode</a></code>
+                    </span>
+                    <br/>
+                  </ul>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-summary">
+              <a href="" class="fsdocs-source-link" title="Source on GitHub">
+                <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
+              </a>
+              <p class="fsdocs-summary">
+                
+              </p>
+            </div>
+            <dl class="fsdocs-params">
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  Item
+                </span>
+                :
+                <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprdotindexedgetnode.html">ExprDotIndexedGetNode</a></code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '6530', 6530)" onmouseover="showTip(event, '6530', 6530)">
+                <p>
+                  <a id="DotIndexedSet">
+                    <a href="#DotIndexedSet">
+                      <code><span>DotIndexedSet&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprdotindexedsetnode.html">ExprDotIndexedSetNode</a></span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="6530">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>DotIndexedSet&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprdotindexedsetnode.html">ExprDotIndexedSetNode</a></span></code>
+                  <br/>
+                  <br/>
+                  Parameters: 
+                  <ul>
+                    <span>
+                      <b>
+                        Item
+                      </b>
+                      :
+                      <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprdotindexedsetnode.html">ExprDotIndexedSetNode</a></code>
+                    </span>
+                    <br/>
+                  </ul>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-summary">
+              <a href="" class="fsdocs-source-link" title="Source on GitHub">
+                <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
+              </a>
+              <p class="fsdocs-summary">
+                
+              </p>
+            </div>
+            <dl class="fsdocs-params">
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  Item
+                </span>
+                :
+                <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprdotindexedsetnode.html">ExprDotIndexedSetNode</a></code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '6531', 6531)" onmouseover="showTip(event, '6531', 6531)">
+                <p>
+                  <a id="DotNamedIndexedPropertySet">
+                    <a href="#DotNamedIndexedPropertySet">
+                      <code><span>DotNamedIndexedPropertySet&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprdotnamedindexedpropertysetnode.html">ExprDotNamedIndexedPropertySetNode</a></span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="6531">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>DotNamedIndexedPropertySet&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprdotnamedindexedpropertysetnode.html">ExprDotNamedIndexedPropertySetNode</a></span></code>
+                  <br/>
+                  <br/>
+                  Parameters: 
+                  <ul>
+                    <span>
+                      <b>
+                        Item
+                      </b>
+                      :
+                      <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprdotnamedindexedpropertysetnode.html">ExprDotNamedIndexedPropertySetNode</a></code>
+                    </span>
+                    <br/>
+                  </ul>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-summary">
+              <a href="" class="fsdocs-source-link" title="Source on GitHub">
+                <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
+              </a>
+              <p class="fsdocs-summary">
+                
+              </p>
+            </div>
+            <dl class="fsdocs-params">
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  Item
+                </span>
+                :
+                <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprdotnamedindexedpropertysetnode.html">ExprDotNamedIndexedPropertySetNode</a></code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '6532', 6532)" onmouseover="showTip(event, '6532', 6532)">
+                <p>
+                  <a id="DotSet">
+                    <a href="#DotSet">
+                      <code><span>DotSet&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprdotsetnode.html">ExprDotSetNode</a></span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="6532">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>DotSet&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprdotsetnode.html">ExprDotSetNode</a></span></code>
+                  <br/>
+                  <br/>
+                  Parameters: 
+                  <ul>
+                    <span>
+                      <b>
+                        Item
+                      </b>
+                      :
+                      <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprdotsetnode.html">ExprDotSetNode</a></code>
+                    </span>
+                    <br/>
+                  </ul>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-summary">
+              <a href="" class="fsdocs-source-link" title="Source on GitHub">
+                <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
+              </a>
+              <p class="fsdocs-summary">
+                
+              </p>
+            </div>
+            <dl class="fsdocs-params">
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  Item
+                </span>
+                :
+                <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprdotsetnode.html">ExprDotSetNode</a></code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '6533', 6533)" onmouseover="showTip(event, '6533', 6533)">
+                <p>
+                  <a id="Dynamic">
+                    <a href="#Dynamic">
+                      <code><span>Dynamic&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprdynamicnode.html">ExprDynamicNode</a></span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="6533">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>Dynamic&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprdynamicnode.html">ExprDynamicNode</a></span></code>
+                  <br/>
+                  <br/>
+                  Parameters: 
+                  <ul>
+                    <span>
+                      <b>
+                        Item
+                      </b>
+                      :
+                      <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprdynamicnode.html">ExprDynamicNode</a></code>
+                    </span>
+                    <br/>
+                  </ul>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-summary">
+              <a href="" class="fsdocs-source-link" title="Source on GitHub">
+                <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
+              </a>
+              <p class="fsdocs-summary">
+                
+              </p>
+            </div>
+            <dl class="fsdocs-params">
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  Item
+                </span>
+                :
+                <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprdynamicnode.html">ExprDynamicNode</a></code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '6534', 6534)" onmouseover="showTip(event, '6534', 6534)">
+                <p>
+                  <a id="EndsWithDualListApp">
+                    <a href="#EndsWithDualListApp">
+                      <code><span>EndsWithDualListApp&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprendswithduallistappnode.html">ExprEndsWithDualListAppNode</a></span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="6534">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>EndsWithDualListApp&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprendswithduallistappnode.html">ExprEndsWithDualListAppNode</a></span></code>
+                  <br/>
+                  <br/>
+                  Parameters: 
+                  <ul>
+                    <span>
+                      <b>
+                        Item
+                      </b>
+                      :
+                      <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprendswithduallistappnode.html">ExprEndsWithDualListAppNode</a></code>
+                    </span>
+                    <br/>
+                  </ul>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-summary">
+              <a href="" class="fsdocs-source-link" title="Source on GitHub">
+                <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
+              </a>
+              <p class="fsdocs-summary">
+                
+              </p>
+            </div>
+            <dl class="fsdocs-params">
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  Item
+                </span>
+                :
+                <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprendswithduallistappnode.html">ExprEndsWithDualListAppNode</a></code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '6535', 6535)" onmouseover="showTip(event, '6535', 6535)">
+                <p>
+                  <a id="EndsWithSingleListApp">
+                    <a href="#EndsWithSingleListApp">
+                      <code><span>EndsWithSingleListApp&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprendswithsinglelistappnode.html">ExprEndsWithSingleListAppNode</a></span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="6535">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>EndsWithSingleListApp&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprendswithsinglelistappnode.html">ExprEndsWithSingleListAppNode</a></span></code>
+                  <br/>
+                  <br/>
+                  Parameters: 
+                  <ul>
+                    <span>
+                      <b>
+                        Item
+                      </b>
+                      :
+                      <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprendswithsinglelistappnode.html">ExprEndsWithSingleListAppNode</a></code>
+                    </span>
+                    <br/>
+                  </ul>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-summary">
+              <a href="" class="fsdocs-source-link" title="Source on GitHub">
+                <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
+              </a>
+              <p class="fsdocs-summary">
+                
+              </p>
+            </div>
+            <dl class="fsdocs-params">
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  Item
+                </span>
+                :
+                <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprendswithsinglelistappnode.html">ExprEndsWithSingleListAppNode</a></code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '6536', 6536)" onmouseover="showTip(event, '6536', 6536)">
+                <p>
+                  <a id="For">
+                    <a href="#For">
+                      <code><span>For&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprfornode.html">ExprForNode</a></span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="6536">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>For&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprfornode.html">ExprForNode</a></span></code>
+                  <br/>
+                  <br/>
+                  Parameters: 
+                  <ul>
+                    <span>
+                      <b>
+                        Item
+                      </b>
+                      :
+                      <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprfornode.html">ExprForNode</a></code>
+                    </span>
+                    <br/>
+                  </ul>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-summary">
+              <a href="" class="fsdocs-source-link" title="Source on GitHub">
+                <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
+              </a>
+              <p class="fsdocs-summary">
+                
+              </p>
+            </div>
+            <dl class="fsdocs-params">
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  Item
+                </span>
+                :
+                <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprfornode.html">ExprForNode</a></code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '6537', 6537)" onmouseover="showTip(event, '6537', 6537)">
+                <p>
+                  <a id="ForEach">
+                    <a href="#ForEach">
+                      <code><span>ForEach&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprforeachnode.html">ExprForEachNode</a></span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="6537">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>ForEach&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprforeachnode.html">ExprForEachNode</a></span></code>
+                  <br/>
+                  <br/>
+                  Parameters: 
+                  <ul>
+                    <span>
+                      <b>
+                        Item
+                      </b>
+                      :
+                      <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprforeachnode.html">ExprForEachNode</a></code>
+                    </span>
+                    <br/>
+                  </ul>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-summary">
+              <a href="" class="fsdocs-source-link" title="Source on GitHub">
+                <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
+              </a>
+              <p class="fsdocs-summary">
+                
+              </p>
+            </div>
+            <dl class="fsdocs-params">
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  Item
+                </span>
+                :
+                <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprforeachnode.html">ExprForEachNode</a></code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '6538', 6538)" onmouseover="showTip(event, '6538', 6538)">
+                <p>
+                  <a id="Ident">
+                    <a href="#Ident">
+                      <code><span>Ident&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-singletextnode.html">SingleTextNode</a></span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="6538">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>Ident&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-singletextnode.html">SingleTextNode</a></span></code>
+                  <br/>
+                  <br/>
+                  Parameters: 
+                  <ul>
+                    <span>
+                      <b>
+                        Item
+                      </b>
+                      :
+                      <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-singletextnode.html">SingleTextNode</a></code>
+                    </span>
+                    <br/>
+                  </ul>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-summary">
+              <a href="" class="fsdocs-source-link" title="Source on GitHub">
+                <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
+              </a>
+              <p class="fsdocs-summary">
+                
+              </p>
+            </div>
+            <dl class="fsdocs-params">
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  Item
+                </span>
+                :
+                <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-singletextnode.html">SingleTextNode</a></code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '6539', 6539)" onmouseover="showTip(event, '6539', 6539)">
+                <p>
+                  <a id="IfThen">
+                    <a href="#IfThen">
+                      <code><span>IfThen&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprifthennode.html">ExprIfThenNode</a></span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="6539">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>IfThen&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprifthennode.html">ExprIfThenNode</a></span></code>
+                  <br/>
+                  <br/>
+                  Parameters: 
+                  <ul>
+                    <span>
+                      <b>
+                        Item
+                      </b>
+                      :
+                      <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprifthennode.html">ExprIfThenNode</a></code>
+                    </span>
+                    <br/>
+                  </ul>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-summary">
+              <a href="" class="fsdocs-source-link" title="Source on GitHub">
+                <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
+              </a>
+              <p class="fsdocs-summary">
+                
+              </p>
+            </div>
+            <dl class="fsdocs-params">
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  Item
+                </span>
+                :
+                <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprifthennode.html">ExprIfThenNode</a></code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '6540', 6540)" onmouseover="showTip(event, '6540', 6540)">
+                <p>
+                  <a id="IfThenElif">
+                    <a href="#IfThenElif">
+                      <code><span>IfThenElif&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprifthenelifnode.html">ExprIfThenElifNode</a></span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="6540">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>IfThenElif&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprifthenelifnode.html">ExprIfThenElifNode</a></span></code>
+                  <br/>
+                  <br/>
+                  Parameters: 
+                  <ul>
+                    <span>
+                      <b>
+                        Item
+                      </b>
+                      :
+                      <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprifthenelifnode.html">ExprIfThenElifNode</a></code>
+                    </span>
+                    <br/>
+                  </ul>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-summary">
+              <a href="" class="fsdocs-source-link" title="Source on GitHub">
+                <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
+              </a>
+              <p class="fsdocs-summary">
+                
+              </p>
+            </div>
+            <dl class="fsdocs-params">
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  Item
+                </span>
+                :
+                <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprifthenelifnode.html">ExprIfThenElifNode</a></code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '6541', 6541)" onmouseover="showTip(event, '6541', 6541)">
+                <p>
+                  <a id="IfThenElse">
+                    <a href="#IfThenElse">
+                      <code><span>IfThenElse&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprifthenelsenode.html">ExprIfThenElseNode</a></span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="6541">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>IfThenElse&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprifthenelsenode.html">ExprIfThenElseNode</a></span></code>
+                  <br/>
+                  <br/>
+                  Parameters: 
+                  <ul>
+                    <span>
+                      <b>
+                        Item
+                      </b>
+                      :
+                      <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprifthenelsenode.html">ExprIfThenElseNode</a></code>
+                    </span>
+                    <br/>
+                  </ul>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-summary">
+              <a href="" class="fsdocs-source-link" title="Source on GitHub">
+                <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
+              </a>
+              <p class="fsdocs-summary">
+                
+              </p>
+            </div>
+            <dl class="fsdocs-params">
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  Item
+                </span>
+                :
+                <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprifthenelsenode.html">ExprIfThenElseNode</a></code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '6542', 6542)" onmouseover="showTip(event, '6542', 6542)">
+                <p>
+                  <a id="IndexFromEnd">
+                    <a href="#IndexFromEnd">
+                      <code><span>IndexFromEnd&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprindexfromendnode.html">ExprIndexFromEndNode</a></span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="6542">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>IndexFromEnd&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprindexfromendnode.html">ExprIndexFromEndNode</a></span></code>
+                  <br/>
+                  <br/>
+                  Parameters: 
+                  <ul>
+                    <span>
+                      <b>
+                        Item
+                      </b>
+                      :
+                      <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprindexfromendnode.html">ExprIndexFromEndNode</a></code>
+                    </span>
+                    <br/>
+                  </ul>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-summary">
+              <a href="" class="fsdocs-source-link" title="Source on GitHub">
+                <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
+              </a>
+              <p class="fsdocs-summary">
+                
+              </p>
+            </div>
+            <dl class="fsdocs-params">
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  Item
+                </span>
+                :
+                <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprindexfromendnode.html">ExprIndexFromEndNode</a></code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '6543', 6543)" onmouseover="showTip(event, '6543', 6543)">
+                <p>
+                  <a id="IndexRange">
+                    <a href="#IndexRange">
+                      <code><span>IndexRange&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprindexrangenode.html">ExprIndexRangeNode</a></span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="6543">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>IndexRange&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprindexrangenode.html">ExprIndexRangeNode</a></span></code>
+                  <br/>
+                  <br/>
+                  Parameters: 
+                  <ul>
+                    <span>
+                      <b>
+                        Item
+                      </b>
+                      :
+                      <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprindexrangenode.html">ExprIndexRangeNode</a></code>
+                    </span>
+                    <br/>
+                  </ul>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-summary">
+              <a href="" class="fsdocs-source-link" title="Source on GitHub">
+                <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
+              </a>
+              <p class="fsdocs-summary">
+                
+              </p>
+            </div>
+            <dl class="fsdocs-params">
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  Item
+                </span>
+                :
+                <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprindexrangenode.html">ExprIndexRangeNode</a></code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '6544', 6544)" onmouseover="showTip(event, '6544', 6544)">
+                <p>
+                  <a id="IndexRangeWildcard">
+                    <a href="#IndexRangeWildcard">
+                      <code><span>IndexRangeWildcard&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-singletextnode.html">SingleTextNode</a></span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="6544">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>IndexRangeWildcard&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-singletextnode.html">SingleTextNode</a></span></code>
+                  <br/>
+                  <br/>
+                  Parameters: 
+                  <ul>
+                    <span>
+                      <b>
+                        Item
+                      </b>
+                      :
+                      <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-singletextnode.html">SingleTextNode</a></code>
+                    </span>
+                    <br/>
+                  </ul>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-summary">
+              <a href="" class="fsdocs-source-link" title="Source on GitHub">
+                <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
+              </a>
+              <p class="fsdocs-summary">
+                
+              </p>
+            </div>
+            <dl class="fsdocs-params">
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  Item
+                </span>
+                :
+                <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-singletextnode.html">SingleTextNode</a></code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '6545', 6545)" onmouseover="showTip(event, '6545', 6545)">
+                <p>
+                  <a id="IndexWithoutDot">
+                    <a href="#IndexWithoutDot">
+                      <code><span>IndexWithoutDot&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprindexwithoutdotnode.html">ExprIndexWithoutDotNode</a></span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="6545">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>IndexWithoutDot&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprindexwithoutdotnode.html">ExprIndexWithoutDotNode</a></span></code>
+                  <br/>
+                  <br/>
+                  Parameters: 
+                  <ul>
+                    <span>
+                      <b>
+                        Item
+                      </b>
+                      :
+                      <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprindexwithoutdotnode.html">ExprIndexWithoutDotNode</a></code>
+                    </span>
+                    <br/>
+                  </ul>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-summary">
+              <a href="" class="fsdocs-source-link" title="Source on GitHub">
+                <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
+              </a>
+              <p class="fsdocs-summary">
+                
+              </p>
+            </div>
+            <dl class="fsdocs-params">
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  Item
+                </span>
+                :
+                <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprindexwithoutdotnode.html">ExprIndexWithoutDotNode</a></code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '6546', 6546)" onmouseover="showTip(event, '6546', 6546)">
+                <p>
+                  <a id="InfixApp">
+                    <a href="#InfixApp">
+                      <code><span>InfixApp&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprinfixappnode.html">ExprInfixAppNode</a></span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="6546">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>InfixApp&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprinfixappnode.html">ExprInfixAppNode</a></span></code>
+                  <br/>
+                  <br/>
+                  Parameters: 
+                  <ul>
+                    <span>
+                      <b>
+                        Item
+                      </b>
+                      :
+                      <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprinfixappnode.html">ExprInfixAppNode</a></code>
+                    </span>
+                    <br/>
+                  </ul>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-summary">
+              <a href="" class="fsdocs-source-link" title="Source on GitHub">
+                <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
+              </a>
+              <p class="fsdocs-summary">
+                
+              </p>
+            </div>
+            <dl class="fsdocs-params">
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  Item
+                </span>
+                :
+                <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprinfixappnode.html">ExprInfixAppNode</a></code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '6547', 6547)" onmouseover="showTip(event, '6547', 6547)">
+                <p>
+                  <a id="InterpolatedStringExpr">
+                    <a href="#InterpolatedStringExpr">
+                      <code><span>InterpolatedStringExpr&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprinterpolatedstringexprnode.html">ExprInterpolatedStringExprNode</a></span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="6547">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>InterpolatedStringExpr&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprinterpolatedstringexprnode.html">ExprInterpolatedStringExprNode</a></span></code>
+                  <br/>
+                  <br/>
+                  Parameters: 
+                  <ul>
+                    <span>
+                      <b>
+                        Item
+                      </b>
+                      :
+                      <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprinterpolatedstringexprnode.html">ExprInterpolatedStringExprNode</a></code>
+                    </span>
+                    <br/>
+                  </ul>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-summary">
+              <a href="" class="fsdocs-source-link" title="Source on GitHub">
+                <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
+              </a>
+              <p class="fsdocs-summary">
+                
+              </p>
+            </div>
+            <dl class="fsdocs-params">
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  Item
+                </span>
+                :
+                <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprinterpolatedstringexprnode.html">ExprInterpolatedStringExprNode</a></code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '6548', 6548)" onmouseover="showTip(event, '6548', 6548)">
+                <p>
+                  <a id="JoinIn">
+                    <a href="#JoinIn">
+                      <code><span>JoinIn&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprjoininnode.html">ExprJoinInNode</a></span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="6548">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>JoinIn&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprjoininnode.html">ExprJoinInNode</a></span></code>
+                  <br/>
+                  <br/>
+                  Parameters: 
+                  <ul>
+                    <span>
+                      <b>
+                        Item
+                      </b>
+                      :
+                      <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprjoininnode.html">ExprJoinInNode</a></code>
+                    </span>
+                    <br/>
+                  </ul>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-summary">
+              <a href="" class="fsdocs-source-link" title="Source on GitHub">
+                <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
+              </a>
+              <p class="fsdocs-summary">
+                
+              </p>
+            </div>
+            <dl class="fsdocs-params">
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  Item
+                </span>
+                :
+                <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprjoininnode.html">ExprJoinInNode</a></code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '6549', 6549)" onmouseover="showTip(event, '6549', 6549)">
+                <p>
+                  <a id="Lambda">
+                    <a href="#Lambda">
+                      <code><span>Lambda&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprlambdanode.html">ExprLambdaNode</a></span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="6549">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>Lambda&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprlambdanode.html">ExprLambdaNode</a></span></code>
+                  <br/>
+                  <br/>
+                  Parameters: 
+                  <ul>
+                    <span>
+                      <b>
+                        Item
+                      </b>
+                      :
+                      <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprlambdanode.html">ExprLambdaNode</a></code>
+                    </span>
+                    <br/>
+                  </ul>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-summary">
+              <a href="" class="fsdocs-source-link" title="Source on GitHub">
+                <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
+              </a>
+              <p class="fsdocs-summary">
+                
+              </p>
+            </div>
+            <dl class="fsdocs-params">
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  Item
+                </span>
+                :
+                <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprlambdanode.html">ExprLambdaNode</a></code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '6550', 6550)" onmouseover="showTip(event, '6550', 6550)">
+                <p>
+                  <a id="Lazy">
+                    <a href="#Lazy">
+                      <code><span>Lazy&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprlazynode.html">ExprLazyNode</a></span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="6550">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>Lazy&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprlazynode.html">ExprLazyNode</a></span></code>
+                  <br/>
+                  <br/>
+                  Parameters: 
+                  <ul>
+                    <span>
+                      <b>
+                        Item
+                      </b>
+                      :
+                      <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprlazynode.html">ExprLazyNode</a></code>
+                    </span>
+                    <br/>
+                  </ul>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-summary">
+              <a href="" class="fsdocs-source-link" title="Source on GitHub">
+                <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
+              </a>
+              <p class="fsdocs-summary">
+                
+              </p>
+            </div>
+            <dl class="fsdocs-params">
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  Item
+                </span>
+                :
+                <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprlazynode.html">ExprLazyNode</a></code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '6551', 6551)" onmouseover="showTip(event, '6551', 6551)">
+                <p>
+                  <a id="LibraryOnlyStaticOptimization">
+                    <a href="#LibraryOnlyStaticOptimization">
+                      <code><span>LibraryOnlyStaticOptimization&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprlibraryonlystaticoptimizationnode.html">ExprLibraryOnlyStaticOptimizationNode</a></span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="6551">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>LibraryOnlyStaticOptimization&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprlibraryonlystaticoptimizationnode.html">ExprLibraryOnlyStaticOptimizationNode</a></span></code>
+                  <br/>
+                  <br/>
+                  Parameters: 
+                  <ul>
+                    <span>
+                      <b>
+                        Item
+                      </b>
+                      :
+                      <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprlibraryonlystaticoptimizationnode.html">ExprLibraryOnlyStaticOptimizationNode</a></code>
+                    </span>
+                    <br/>
+                  </ul>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-summary">
+              <a href="" class="fsdocs-source-link" title="Source on GitHub">
+                <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
+              </a>
+              <p class="fsdocs-summary">
+                
+              </p>
+            </div>
+            <dl class="fsdocs-params">
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  Item
+                </span>
+                :
+                <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprlibraryonlystaticoptimizationnode.html">ExprLibraryOnlyStaticOptimizationNode</a></code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '6552', 6552)" onmouseover="showTip(event, '6552', 6552)">
+                <p>
+                  <a id="LongIdentSet">
+                    <a href="#LongIdentSet">
+                      <code><span>LongIdentSet&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprlongidentsetnode.html">ExprLongIdentSetNode</a></span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="6552">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>LongIdentSet&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprlongidentsetnode.html">ExprLongIdentSetNode</a></span></code>
+                  <br/>
+                  <br/>
+                  Parameters: 
+                  <ul>
+                    <span>
+                      <b>
+                        Item
+                      </b>
+                      :
+                      <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprlongidentsetnode.html">ExprLongIdentSetNode</a></code>
+                    </span>
+                    <br/>
+                  </ul>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-summary">
+              <a href="" class="fsdocs-source-link" title="Source on GitHub">
+                <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
+              </a>
+              <p class="fsdocs-summary">
+                
+              </p>
+            </div>
+            <dl class="fsdocs-params">
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  Item
+                </span>
+                :
+                <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprlongidentsetnode.html">ExprLongIdentSetNode</a></code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '6553', 6553)" onmouseover="showTip(event, '6553', 6553)">
+                <p>
+                  <a id="Match">
+                    <a href="#Match">
+                      <code><span>Match&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprmatchnode.html">ExprMatchNode</a></span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="6553">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>Match&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprmatchnode.html">ExprMatchNode</a></span></code>
+                  <br/>
+                  <br/>
+                  Parameters: 
+                  <ul>
+                    <span>
+                      <b>
+                        Item
+                      </b>
+                      :
+                      <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprmatchnode.html">ExprMatchNode</a></code>
+                    </span>
+                    <br/>
+                  </ul>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-summary">
+              <a href="" class="fsdocs-source-link" title="Source on GitHub">
+                <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
+              </a>
+              <p class="fsdocs-summary">
+                
+              </p>
+            </div>
+            <dl class="fsdocs-params">
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  Item
+                </span>
+                :
+                <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprmatchnode.html">ExprMatchNode</a></code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '6554', 6554)" onmouseover="showTip(event, '6554', 6554)">
+                <p>
+                  <a id="MatchLambda">
+                    <a href="#MatchLambda">
+                      <code><span>MatchLambda&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprmatchlambdanode.html">ExprMatchLambdaNode</a></span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="6554">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>MatchLambda&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprmatchlambdanode.html">ExprMatchLambdaNode</a></span></code>
+                  <br/>
+                  <br/>
+                  Parameters: 
+                  <ul>
+                    <span>
+                      <b>
+                        Item
+                      </b>
+                      :
+                      <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprmatchlambdanode.html">ExprMatchLambdaNode</a></code>
+                    </span>
+                    <br/>
+                  </ul>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-summary">
+              <a href="" class="fsdocs-source-link" title="Source on GitHub">
+                <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
+              </a>
+              <p class="fsdocs-summary">
+                
+              </p>
+            </div>
+            <dl class="fsdocs-params">
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  Item
+                </span>
+                :
+                <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprmatchlambdanode.html">ExprMatchLambdaNode</a></code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '6555', 6555)" onmouseover="showTip(event, '6555', 6555)">
+                <p>
+                  <a id="NamedComputation">
+                    <a href="#NamedComputation">
+                      <code><span>NamedComputation&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprnamedcomputationnode.html">ExprNamedComputationNode</a></span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="6555">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>NamedComputation&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprnamedcomputationnode.html">ExprNamedComputationNode</a></span></code>
+                  <br/>
+                  <br/>
+                  Parameters: 
+                  <ul>
+                    <span>
+                      <b>
+                        Item
+                      </b>
+                      :
+                      <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprnamedcomputationnode.html">ExprNamedComputationNode</a></code>
+                    </span>
+                    <br/>
+                  </ul>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-summary">
+              <a href="" class="fsdocs-source-link" title="Source on GitHub">
+                <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
+              </a>
+              <p class="fsdocs-summary">
+                
+              </p>
+            </div>
+            <dl class="fsdocs-params">
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  Item
+                </span>
+                :
+                <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprnamedcomputationnode.html">ExprNamedComputationNode</a></code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '6556', 6556)" onmouseover="showTip(event, '6556', 6556)">
+                <p>
+                  <a id="NamedIndexedPropertySet">
+                    <a href="#NamedIndexedPropertySet">
+                      <code><span>NamedIndexedPropertySet&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprnamedindexedpropertysetnode.html">ExprNamedIndexedPropertySetNode</a></span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="6556">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>NamedIndexedPropertySet&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprnamedindexedpropertysetnode.html">ExprNamedIndexedPropertySetNode</a></span></code>
+                  <br/>
+                  <br/>
+                  Parameters: 
+                  <ul>
+                    <span>
+                      <b>
+                        Item
+                      </b>
+                      :
+                      <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprnamedindexedpropertysetnode.html">ExprNamedIndexedPropertySetNode</a></code>
+                    </span>
+                    <br/>
+                  </ul>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-summary">
+              <a href="" class="fsdocs-source-link" title="Source on GitHub">
+                <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
+              </a>
+              <p class="fsdocs-summary">
+                
+              </p>
+            </div>
+            <dl class="fsdocs-params">
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  Item
+                </span>
+                :
+                <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprnamedindexedpropertysetnode.html">ExprNamedIndexedPropertySetNode</a></code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '6557', 6557)" onmouseover="showTip(event, '6557', 6557)">
+                <p>
+                  <a id="NestedIndexWithoutDot">
+                    <a href="#NestedIndexWithoutDot">
+                      <code><span>NestedIndexWithoutDot&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprnestedindexwithoutdotnode.html">ExprNestedIndexWithoutDotNode</a></span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="6557">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>NestedIndexWithoutDot&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprnestedindexwithoutdotnode.html">ExprNestedIndexWithoutDotNode</a></span></code>
+                  <br/>
+                  <br/>
+                  Parameters: 
+                  <ul>
+                    <span>
+                      <b>
+                        Item
+                      </b>
+                      :
+                      <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprnestedindexwithoutdotnode.html">ExprNestedIndexWithoutDotNode</a></code>
+                    </span>
+                    <br/>
+                  </ul>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-summary">
+              <a href="" class="fsdocs-source-link" title="Source on GitHub">
+                <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
+              </a>
+              <p class="fsdocs-summary">
+                
+              </p>
+            </div>
+            <dl class="fsdocs-params">
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  Item
+                </span>
+                :
+                <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprnestedindexwithoutdotnode.html">ExprNestedIndexWithoutDotNode</a></code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '6558', 6558)" onmouseover="showTip(event, '6558', 6558)">
+                <p>
+                  <a id="New">
+                    <a href="#New">
+                      <code><span>New&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprnewnode.html">ExprNewNode</a></span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="6558">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>New&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprnewnode.html">ExprNewNode</a></span></code>
+                  <br/>
+                  <br/>
+                  Parameters: 
+                  <ul>
+                    <span>
+                      <b>
+                        Item
+                      </b>
+                      :
+                      <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprnewnode.html">ExprNewNode</a></code>
+                    </span>
+                    <br/>
+                  </ul>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-summary">
+              <a href="" class="fsdocs-source-link" title="Source on GitHub">
+                <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
+              </a>
+              <p class="fsdocs-summary">
+                
+              </p>
+            </div>
+            <dl class="fsdocs-params">
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  Item
+                </span>
+                :
+                <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprnewnode.html">ExprNewNode</a></code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '6559', 6559)" onmouseover="showTip(event, '6559', 6559)">
+                <p>
+                  <a id="Null">
+                    <a href="#Null">
+                      <code><span>Null&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-singletextnode.html">SingleTextNode</a></span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="6559">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>Null&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-singletextnode.html">SingleTextNode</a></span></code>
+                  <br/>
+                  <br/>
+                  Parameters: 
+                  <ul>
+                    <span>
+                      <b>
+                        Item
+                      </b>
+                      :
+                      <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-singletextnode.html">SingleTextNode</a></code>
+                    </span>
+                    <br/>
+                  </ul>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-summary">
+              <a href="" class="fsdocs-source-link" title="Source on GitHub">
+                <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
+              </a>
+              <p class="fsdocs-summary">
+                
+              </p>
+            </div>
+            <dl class="fsdocs-params">
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  Item
+                </span>
+                :
+                <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-singletextnode.html">SingleTextNode</a></code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '6560', 6560)" onmouseover="showTip(event, '6560', 6560)">
+                <p>
+                  <a id="ObjExpr">
+                    <a href="#ObjExpr">
+                      <code><span>ObjExpr&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprobjexprnode.html">ExprObjExprNode</a></span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="6560">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>ObjExpr&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprobjexprnode.html">ExprObjExprNode</a></span></code>
+                  <br/>
+                  <br/>
+                  Parameters: 
+                  <ul>
+                    <span>
+                      <b>
+                        Item
+                      </b>
+                      :
+                      <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprobjexprnode.html">ExprObjExprNode</a></code>
+                    </span>
+                    <br/>
+                  </ul>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-summary">
+              <a href="" class="fsdocs-source-link" title="Source on GitHub">
+                <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
+              </a>
+              <p class="fsdocs-summary">
+                
+              </p>
+            </div>
+            <dl class="fsdocs-params">
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  Item
+                </span>
+                :
+                <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprobjexprnode.html">ExprObjExprNode</a></code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '6561', 6561)" onmouseover="showTip(event, '6561', 6561)">
+                <p>
+                  <a id="OptVar">
+                    <a href="#OptVar">
+                      <code><span>OptVar&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exproptvarnode.html">ExprOptVarNode</a></span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="6561">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>OptVar&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exproptvarnode.html">ExprOptVarNode</a></span></code>
+                  <br/>
+                  <br/>
+                  Parameters: 
+                  <ul>
+                    <span>
+                      <b>
+                        Item
+                      </b>
+                      :
+                      <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exproptvarnode.html">ExprOptVarNode</a></code>
+                    </span>
+                    <br/>
+                  </ul>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-summary">
+              <a href="" class="fsdocs-source-link" title="Source on GitHub">
+                <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
+              </a>
+              <p class="fsdocs-summary">
+                
+              </p>
+            </div>
+            <dl class="fsdocs-params">
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  Item
+                </span>
+                :
+                <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exproptvarnode.html">ExprOptVarNode</a></code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '6562', 6562)" onmouseover="showTip(event, '6562', 6562)">
+                <p>
+                  <a id="Paren">
+                    <a href="#Paren">
+                      <code><span>Paren&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprparennode.html">ExprParenNode</a></span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="6562">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>Paren&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprparennode.html">ExprParenNode</a></span></code>
+                  <br/>
+                  <br/>
+                  Parameters: 
+                  <ul>
+                    <span>
+                      <b>
+                        Item
+                      </b>
+                      :
+                      <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprparennode.html">ExprParenNode</a></code>
+                    </span>
+                    <br/>
+                  </ul>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-summary">
+              <a href="" class="fsdocs-source-link" title="Source on GitHub">
+                <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
+              </a>
+              <p class="fsdocs-summary">
+                
+              </p>
+            </div>
+            <dl class="fsdocs-params">
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  Item
+                </span>
+                :
+                <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprparennode.html">ExprParenNode</a></code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '6563', 6563)" onmouseover="showTip(event, '6563', 6563)">
+                <p>
+                  <a id="ParenFunctionNameWithStar">
+                    <a href="#ParenFunctionNameWithStar">
+                      <code><span>ParenFunctionNameWithStar&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprparenfunctionnamewithstarnode.html">ExprParenFunctionNameWithStarNode</a></span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="6563">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>ParenFunctionNameWithStar&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprparenfunctionnamewithstarnode.html">ExprParenFunctionNameWithStarNode</a></span></code>
+                  <br/>
+                  <br/>
+                  Parameters: 
+                  <ul>
+                    <span>
+                      <b>
+                        Item
+                      </b>
+                      :
+                      <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprparenfunctionnamewithstarnode.html">ExprParenFunctionNameWithStarNode</a></code>
+                    </span>
+                    <br/>
+                  </ul>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-summary">
+              <a href="" class="fsdocs-source-link" title="Source on GitHub">
+                <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
+              </a>
+              <p class="fsdocs-summary">
+                
+              </p>
+            </div>
+            <dl class="fsdocs-params">
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  Item
+                </span>
+                :
+                <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprparenfunctionnamewithstarnode.html">ExprParenFunctionNameWithStarNode</a></code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '6564', 6564)" onmouseover="showTip(event, '6564', 6564)">
+                <p>
+                  <a id="ParenILEmbedded">
+                    <a href="#ParenILEmbedded">
+                      <code><span>ParenILEmbedded&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-singletextnode.html">SingleTextNode</a></span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="6564">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>ParenILEmbedded&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-singletextnode.html">SingleTextNode</a></span></code>
+                  <br/>
+                  <br/>
+                  Parameters: 
+                  <ul>
+                    <span>
+                      <b>
+                        Item
+                      </b>
+                      :
+                      <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-singletextnode.html">SingleTextNode</a></code>
+                    </span>
+                    <br/>
+                  </ul>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-summary">
+              <a href="" class="fsdocs-source-link" title="Source on GitHub">
+                <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
+              </a>
+              <p class="fsdocs-summary">
+                
+              </p>
+            </div>
+            <dl class="fsdocs-params">
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  Item
+                </span>
+                :
+                <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-singletextnode.html">SingleTextNode</a></code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '6565', 6565)" onmouseover="showTip(event, '6565', 6565)">
+                <p>
+                  <a id="ParenLambda">
+                    <a href="#ParenLambda">
+                      <code><span>ParenLambda&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprparenlambdanode.html">ExprParenLambdaNode</a></span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="6565">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>ParenLambda&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprparenlambdanode.html">ExprParenLambdaNode</a></span></code>
+                  <br/>
+                  <br/>
+                  Parameters: 
+                  <ul>
+                    <span>
+                      <b>
+                        Item
+                      </b>
+                      :
+                      <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprparenlambdanode.html">ExprParenLambdaNode</a></code>
+                    </span>
+                    <br/>
+                  </ul>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-summary">
+              <a href="" class="fsdocs-source-link" title="Source on GitHub">
+                <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
+              </a>
+              <p class="fsdocs-summary">
+                
+              </p>
+            </div>
+            <dl class="fsdocs-params">
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  Item
+                </span>
+                :
+                <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprparenlambdanode.html">ExprParenLambdaNode</a></code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '6566', 6566)" onmouseover="showTip(event, '6566', 6566)">
+                <p>
+                  <a id="PrefixApp">
+                    <a href="#PrefixApp">
+                      <code><span>PrefixApp&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprprefixappnode.html">ExprPrefixAppNode</a></span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="6566">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>PrefixApp&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprprefixappnode.html">ExprPrefixAppNode</a></span></code>
+                  <br/>
+                  <br/>
+                  Parameters: 
+                  <ul>
+                    <span>
+                      <b>
+                        Item
+                      </b>
+                      :
+                      <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprprefixappnode.html">ExprPrefixAppNode</a></code>
+                    </span>
+                    <br/>
+                  </ul>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-summary">
+              <a href="" class="fsdocs-source-link" title="Source on GitHub">
+                <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
+              </a>
+              <p class="fsdocs-summary">
+                
+              </p>
+            </div>
+            <dl class="fsdocs-params">
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  Item
+                </span>
+                :
+                <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprprefixappnode.html">ExprPrefixAppNode</a></code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '6567', 6567)" onmouseover="showTip(event, '6567', 6567)">
+                <p>
+                  <a id="Quote">
+                    <a href="#Quote">
+                      <code><span>Quote&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprquotenode.html">ExprQuoteNode</a></span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="6567">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>Quote&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprquotenode.html">ExprQuoteNode</a></span></code>
+                  <br/>
+                  <br/>
+                  Parameters: 
+                  <ul>
+                    <span>
+                      <b>
+                        Item
+                      </b>
+                      :
+                      <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprquotenode.html">ExprQuoteNode</a></code>
+                    </span>
+                    <br/>
+                  </ul>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-summary">
+              <a href="" class="fsdocs-source-link" title="Source on GitHub">
+                <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
+              </a>
+              <p class="fsdocs-summary">
+                
+              </p>
+            </div>
+            <dl class="fsdocs-params">
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  Item
+                </span>
+                :
+                <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprquotenode.html">ExprQuoteNode</a></code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '6568', 6568)" onmouseover="showTip(event, '6568', 6568)">
+                <p>
+                  <a id="Record">
+                    <a href="#Record">
+                      <code><span>Record&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprrecordnode.html">ExprRecordNode</a></span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="6568">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>Record&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprrecordnode.html">ExprRecordNode</a></span></code>
+                  <br/>
+                  <br/>
+                  Parameters: 
+                  <ul>
+                    <span>
+                      <b>
+                        Item
+                      </b>
+                      :
+                      <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprrecordnode.html">ExprRecordNode</a></code>
+                    </span>
+                    <br/>
+                  </ul>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-summary">
+              <a href="" class="fsdocs-source-link" title="Source on GitHub">
+                <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
+              </a>
+              <p class="fsdocs-summary">
+                
+              </p>
+            </div>
+            <dl class="fsdocs-params">
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  Item
+                </span>
+                :
+                <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprrecordnode.html">ExprRecordNode</a></code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '6569', 6569)" onmouseover="showTip(event, '6569', 6569)">
+                <p>
+                  <a id="SameInfixApps">
+                    <a href="#SameInfixApps">
+                      <code><span>SameInfixApps&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprsameinfixappsnode.html">ExprSameInfixAppsNode</a></span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="6569">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>SameInfixApps&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprsameinfixappsnode.html">ExprSameInfixAppsNode</a></span></code>
+                  <br/>
+                  <br/>
+                  Parameters: 
+                  <ul>
+                    <span>
+                      <b>
+                        Item
+                      </b>
+                      :
+                      <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprsameinfixappsnode.html">ExprSameInfixAppsNode</a></code>
+                    </span>
+                    <br/>
+                  </ul>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-summary">
+              <a href="" class="fsdocs-source-link" title="Source on GitHub">
+                <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
+              </a>
+              <p class="fsdocs-summary">
+                
+              </p>
+            </div>
+            <dl class="fsdocs-params">
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  Item
+                </span>
+                :
+                <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprsameinfixappsnode.html">ExprSameInfixAppsNode</a></code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '6570', 6570)" onmouseover="showTip(event, '6570', 6570)">
+                <p>
+                  <a id="Set">
+                    <a href="#Set">
+                      <code><span>Set&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprsetnode.html">ExprSetNode</a></span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="6570">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>Set&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprsetnode.html">ExprSetNode</a></span></code>
+                  <br/>
+                  <br/>
+                  Parameters: 
+                  <ul>
+                    <span>
+                      <b>
+                        Item
+                      </b>
+                      :
+                      <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprsetnode.html">ExprSetNode</a></code>
+                    </span>
+                    <br/>
+                  </ul>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-summary">
+              <a href="" class="fsdocs-source-link" title="Source on GitHub">
+                <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
+              </a>
+              <p class="fsdocs-summary">
+                
+              </p>
+            </div>
+            <dl class="fsdocs-params">
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  Item
+                </span>
+                :
+                <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprsetnode.html">ExprSetNode</a></code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '6571', 6571)" onmouseover="showTip(event, '6571', 6571)">
+                <p>
+                  <a id="Single">
+                    <a href="#Single">
+                      <code><span>Single&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprsinglenode.html">ExprSingleNode</a></span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="6571">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>Single&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprsinglenode.html">ExprSingleNode</a></span></code>
+                  <br/>
+                  <br/>
+                  Parameters: 
+                  <ul>
+                    <span>
+                      <b>
+                        Item
+                      </b>
+                      :
+                      <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprsinglenode.html">ExprSingleNode</a></code>
+                    </span>
+                    <br/>
+                  </ul>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-summary">
+              <a href="" class="fsdocs-source-link" title="Source on GitHub">
+                <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
+              </a>
+              <p class="fsdocs-summary">
+                
+              </p>
+            </div>
+            <dl class="fsdocs-params">
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  Item
+                </span>
+                :
+                <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprsinglenode.html">ExprSingleNode</a></code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '6572', 6572)" onmouseover="showTip(event, '6572', 6572)">
+                <p>
+                  <a id="StructTuple">
+                    <a href="#StructTuple">
+                      <code><span>StructTuple&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprstructtuplenode.html">ExprStructTupleNode</a></span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="6572">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>StructTuple&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprstructtuplenode.html">ExprStructTupleNode</a></span></code>
+                  <br/>
+                  <br/>
+                  Parameters: 
+                  <ul>
+                    <span>
+                      <b>
+                        Item
+                      </b>
+                      :
+                      <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprstructtuplenode.html">ExprStructTupleNode</a></code>
+                    </span>
+                    <br/>
+                  </ul>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-summary">
+              <a href="" class="fsdocs-source-link" title="Source on GitHub">
+                <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
+              </a>
+              <p class="fsdocs-summary">
+                
+              </p>
+            </div>
+            <dl class="fsdocs-params">
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  Item
+                </span>
+                :
+                <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprstructtuplenode.html">ExprStructTupleNode</a></code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '6573', 6573)" onmouseover="showTip(event, '6573', 6573)">
+                <p>
+                  <a id="TraitCall">
+                    <a href="#TraitCall">
+                      <code><span>TraitCall&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprtraitcallnode.html">ExprTraitCallNode</a></span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="6573">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>TraitCall&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprtraitcallnode.html">ExprTraitCallNode</a></span></code>
+                  <br/>
+                  <br/>
+                  Parameters: 
+                  <ul>
+                    <span>
+                      <b>
+                        Item
+                      </b>
+                      :
+                      <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprtraitcallnode.html">ExprTraitCallNode</a></code>
+                    </span>
+                    <br/>
+                  </ul>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-summary">
+              <a href="" class="fsdocs-source-link" title="Source on GitHub">
+                <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
+              </a>
+              <p class="fsdocs-summary">
+                
+              </p>
+            </div>
+            <dl class="fsdocs-params">
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  Item
+                </span>
+                :
+                <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprtraitcallnode.html">ExprTraitCallNode</a></code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '6574', 6574)" onmouseover="showTip(event, '6574', 6574)">
+                <p>
+                  <a id="TripleNumberIndexRange">
+                    <a href="#TripleNumberIndexRange">
+                      <code><span>TripleNumberIndexRange&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprtriplenumberindexrangenode.html">ExprTripleNumberIndexRangeNode</a></span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="6574">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>TripleNumberIndexRange&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprtriplenumberindexrangenode.html">ExprTripleNumberIndexRangeNode</a></span></code>
+                  <br/>
+                  <br/>
+                  Parameters: 
+                  <ul>
+                    <span>
+                      <b>
+                        Item
+                      </b>
+                      :
+                      <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprtriplenumberindexrangenode.html">ExprTripleNumberIndexRangeNode</a></code>
+                    </span>
+                    <br/>
+                  </ul>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-summary">
+              <a href="" class="fsdocs-source-link" title="Source on GitHub">
+                <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
+              </a>
+              <p class="fsdocs-summary">
+                
+              </p>
+            </div>
+            <dl class="fsdocs-params">
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  Item
+                </span>
+                :
+                <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprtriplenumberindexrangenode.html">ExprTripleNumberIndexRangeNode</a></code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '6575', 6575)" onmouseover="showTip(event, '6575', 6575)">
+                <p>
+                  <a id="TryFinally">
+                    <a href="#TryFinally">
+                      <code><span>TryFinally&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprtryfinallynode.html">ExprTryFinallyNode</a></span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="6575">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>TryFinally&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprtryfinallynode.html">ExprTryFinallyNode</a></span></code>
+                  <br/>
+                  <br/>
+                  Parameters: 
+                  <ul>
+                    <span>
+                      <b>
+                        Item
+                      </b>
+                      :
+                      <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprtryfinallynode.html">ExprTryFinallyNode</a></code>
+                    </span>
+                    <br/>
+                  </ul>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-summary">
+              <a href="" class="fsdocs-source-link" title="Source on GitHub">
+                <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
+              </a>
+              <p class="fsdocs-summary">
+                
+              </p>
+            </div>
+            <dl class="fsdocs-params">
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  Item
+                </span>
+                :
+                <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprtryfinallynode.html">ExprTryFinallyNode</a></code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '6576', 6576)" onmouseover="showTip(event, '6576', 6576)">
+                <p>
+                  <a id="TryWith">
+                    <a href="#TryWith">
+                      <code><span>TryWith&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprtrywithnode.html">ExprTryWithNode</a></span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="6576">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>TryWith&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprtrywithnode.html">ExprTryWithNode</a></span></code>
+                  <br/>
+                  <br/>
+                  Parameters: 
+                  <ul>
+                    <span>
+                      <b>
+                        Item
+                      </b>
+                      :
+                      <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprtrywithnode.html">ExprTryWithNode</a></code>
+                    </span>
+                    <br/>
+                  </ul>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-summary">
+              <a href="" class="fsdocs-source-link" title="Source on GitHub">
+                <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
+              </a>
+              <p class="fsdocs-summary">
+                
+              </p>
+            </div>
+            <dl class="fsdocs-params">
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  Item
+                </span>
+                :
+                <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprtrywithnode.html">ExprTryWithNode</a></code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '6577', 6577)" onmouseover="showTip(event, '6577', 6577)">
+                <p>
+                  <a id="TryWithSingleClause">
+                    <a href="#TryWithSingleClause">
+                      <code><span>TryWithSingleClause&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprtrywithsingleclausenode.html">ExprTryWithSingleClauseNode</a></span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="6577">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>TryWithSingleClause&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprtrywithsingleclausenode.html">ExprTryWithSingleClauseNode</a></span></code>
+                  <br/>
+                  <br/>
+                  Parameters: 
+                  <ul>
+                    <span>
+                      <b>
+                        Item
+                      </b>
+                      :
+                      <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprtrywithsingleclausenode.html">ExprTryWithSingleClauseNode</a></code>
+                    </span>
+                    <br/>
+                  </ul>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-summary">
+              <a href="" class="fsdocs-source-link" title="Source on GitHub">
+                <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
+              </a>
+              <p class="fsdocs-summary">
+                
+              </p>
+            </div>
+            <dl class="fsdocs-params">
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  Item
+                </span>
+                :
+                <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprtrywithsingleclausenode.html">ExprTryWithSingleClauseNode</a></code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '6578', 6578)" onmouseover="showTip(event, '6578', 6578)">
+                <p>
+                  <a id="Tuple">
+                    <a href="#Tuple">
+                      <code><span>Tuple&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprtuplenode.html">ExprTupleNode</a></span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="6578">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>Tuple&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprtuplenode.html">ExprTupleNode</a></span></code>
+                  <br/>
+                  <br/>
+                  Parameters: 
+                  <ul>
+                    <span>
+                      <b>
+                        Item
+                      </b>
+                      :
+                      <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprtuplenode.html">ExprTupleNode</a></code>
+                    </span>
+                    <br/>
+                  </ul>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-summary">
+              <a href="" class="fsdocs-source-link" title="Source on GitHub">
+                <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
+              </a>
+              <p class="fsdocs-summary">
+                
+              </p>
+            </div>
+            <dl class="fsdocs-params">
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  Item
+                </span>
+                :
+                <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprtuplenode.html">ExprTupleNode</a></code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '6579', 6579)" onmouseover="showTip(event, '6579', 6579)">
+                <p>
+                  <a id="Typar">
+                    <a href="#Typar">
+                      <code><span>Typar&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-singletextnode.html">SingleTextNode</a></span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="6579">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>Typar&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-singletextnode.html">SingleTextNode</a></span></code>
+                  <br/>
+                  <br/>
+                  Parameters: 
+                  <ul>
+                    <span>
+                      <b>
+                        Item
+                      </b>
+                      :
+                      <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-singletextnode.html">SingleTextNode</a></code>
+                    </span>
+                    <br/>
+                  </ul>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-summary">
+              <a href="" class="fsdocs-source-link" title="Source on GitHub">
+                <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
+              </a>
+              <p class="fsdocs-summary">
+                
+              </p>
+            </div>
+            <dl class="fsdocs-params">
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  Item
+                </span>
+                :
+                <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-singletextnode.html">SingleTextNode</a></code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '6580', 6580)" onmouseover="showTip(event, '6580', 6580)">
+                <p>
+                  <a id="TypeApp">
+                    <a href="#TypeApp">
+                      <code><span>TypeApp&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprtypeappnode.html">ExprTypeAppNode</a></span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="6580">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>TypeApp&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprtypeappnode.html">ExprTypeAppNode</a></span></code>
+                  <br/>
+                  <br/>
+                  Parameters: 
+                  <ul>
+                    <span>
+                      <b>
+                        Item
+                      </b>
+                      :
+                      <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprtypeappnode.html">ExprTypeAppNode</a></code>
+                    </span>
+                    <br/>
+                  </ul>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-summary">
+              <a href="" class="fsdocs-source-link" title="Source on GitHub">
+                <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
+              </a>
+              <p class="fsdocs-summary">
+                
+              </p>
+            </div>
+            <dl class="fsdocs-params">
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  Item
+                </span>
+                :
+                <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprtypeappnode.html">ExprTypeAppNode</a></code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '6581', 6581)" onmouseover="showTip(event, '6581', 6581)">
+                <p>
+                  <a id="Typed">
+                    <a href="#Typed">
+                      <code><span>Typed&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprtypednode.html">ExprTypedNode</a></span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="6581">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>Typed&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprtypednode.html">ExprTypedNode</a></span></code>
+                  <br/>
+                  <br/>
+                  Parameters: 
+                  <ul>
+                    <span>
+                      <b>
+                        Item
+                      </b>
+                      :
+                      <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprtypednode.html">ExprTypedNode</a></code>
+                    </span>
+                    <br/>
+                  </ul>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-summary">
+              <a href="" class="fsdocs-source-link" title="Source on GitHub">
+                <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
+              </a>
+              <p class="fsdocs-summary">
+                
+              </p>
+            </div>
+            <dl class="fsdocs-params">
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  Item
+                </span>
+                :
+                <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprtypednode.html">ExprTypedNode</a></code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '6582', 6582)" onmouseover="showTip(event, '6582', 6582)">
+                <p>
+                  <a id="While">
+                    <a href="#While">
+                      <code><span>While&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprwhilenode.html">ExprWhileNode</a></span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="6582">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>While&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprwhilenode.html">ExprWhileNode</a></span></code>
+                  <br/>
+                  <br/>
+                  Parameters: 
+                  <ul>
+                    <span>
+                      <b>
+                        Item
+                      </b>
+                      :
+                      <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprwhilenode.html">ExprWhileNode</a></code>
+                    </span>
+                    <br/>
+                  </ul>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-summary">
+              <a href="" class="fsdocs-source-link" title="Source on GitHub">
+                <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
+              </a>
+              <p class="fsdocs-summary">
+                
+              </p>
+            </div>
+            <dl class="fsdocs-params">
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  Item
+                </span>
+                :
+                <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprwhilenode.html">ExprWhileNode</a></code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <div></div>
+  <div></div>
+  <div></div>
+  <div>
+    <h3>
+      Instance members
+    </h3>
+    <table class="table outer-list fsdocs-member-list">
+      <thead>
+        <tr>
+          <td class="fsdocs-member-list-header">
+            Instance member
+          </td>
+          <td class="fsdocs-member-list-header">
+            Description
+          </td>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '6583', 6583)" onmouseover="showTip(event, '6583', 6583)">
+                <p>
+                  <a id="HasParentheses">
+                    <a href="#HasParentheses">
+                      <code><span>this.HasParentheses</span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="6583">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>this.HasParentheses</span></code>
+                  <br/>
+                  <br/>
+                  <span>
+                    Returns: 
+                    <code>bool</code>
+                  </span>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-summary">
+              <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:P:Fantomas.Core.SyntaxOak.Expr.HasParentheses`')">
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-md.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-md-hover.png" class="hover"/>
+              </div>
+              <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'P:Fantomas.Core.SyntaxOak.Expr.HasParentheses\'/>')">
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+              </div>
+              <a href="" class="fsdocs-source-link" title="Source on GitHub">
+                <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
+              </a>
+              <p class="fsdocs-summary">
+                
+              </p>
+            </div>
+            <dl class="fsdocs-returns">
+              <dt>
+                <span class="fsdocs-return-name">
+                  Returns: 
+                </span>
+                <code>bool</code>
+              </dt>
+              <dd class="fsdocs-return-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '6584', 6584)" onmouseover="showTip(event, '6584', 6584)">
+                <p>
+                  <a id="IsStroustrupStyleExpr">
+                    <a href="#IsStroustrupStyleExpr">
+                      <code><span>this.IsStroustrupStyleExpr</span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="6584">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>this.IsStroustrupStyleExpr</span></code>
+                  <br/>
+                  <br/>
+                  <span>
+                    Returns: 
+                    <code>bool</code>
+                  </span>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-summary">
+              <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:P:Fantomas.Core.SyntaxOak.Expr.IsStroustrupStyleExpr`')">
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-md.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-md-hover.png" class="hover"/>
+              </div>
+              <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'P:Fantomas.Core.SyntaxOak.Expr.IsStroustrupStyleExpr\'/>')">
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+              </div>
+              <a href="" class="fsdocs-source-link" title="Source on GitHub">
+                <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
+              </a>
+              <p class="fsdocs-summary">
+                
+              </p>
+            </div>
+            <dl class="fsdocs-returns">
+              <dt>
+                <span class="fsdocs-return-name">
+                  Returns: 
+                </span>
+                <code>bool</code>
+              </dt>
+              <dd class="fsdocs-return-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <div>
+    <h3>
+      Static members
+    </h3>
+    <table class="table outer-list fsdocs-member-list">
+      <thead>
+        <tr>
+          <td class="fsdocs-member-list-header">
+            Static member
+          </td>
+          <td class="fsdocs-member-list-header">
+            Description
+          </td>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '6585', 6585)" onmouseover="showTip(event, '6585', 6585)">
+                <p>
+                  <a id="Node">
+                    <a href="#Node">
+                      <code><span>Expr.Node<span><span>(<span>x</span>)</span></span></span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="6585">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>Expr.Node<span><span>(<span>x</span>)</span></span></span></code>
+                  <br/>
+                  <br/>
+                  Parameters: 
+                  <ul>
+                    <span>
+                      <b>
+                        x
+                      </b>
+                      :
+                      <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-expr.html">Expr</a></code>
+                    </span>
+                    <br/>
+                  </ul>
+                  <br/>
+                  <span>
+                    Returns: 
+                    <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-node.html">Node</a></code>
+                  </span>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-summary">
+              <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:M:Fantomas.Core.SyntaxOak.Expr.Node`')">
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-md.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-md-hover.png" class="hover"/>
+              </div>
+              <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'M:Fantomas.Core.SyntaxOak.Expr.Node\'/>')">
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+              </div>
+              <a href="" class="fsdocs-source-link" title="Source on GitHub">
+                <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
+              </a>
+              <p class="fsdocs-summary">
+                
+              </p>
+            </div>
+            <dl class="fsdocs-params">
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  x
+                </span>
+                :
+                <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-expr.html">Expr</a></code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+            </dl>
+            <dl class="fsdocs-returns">
+              <dt>
+                <span class="fsdocs-return-name">
+                  Returns: 
+                </span>
+                <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-node.html">Node</a></code>
+              </dt>
+              <dd class="fsdocs-return-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+        
+      </div>
+        <div id="push"></div>
+    </main>
+  <script type="module" src="https://fsprojects.github.io/fantomas/content/docs-setup.js"></script>
+  <!-- BEGIN SEARCH BOX: this adds support for the search box -->
+  <link rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/JavaScript-autoComplete/1.0.4/auto-complete.css" />
+  <script type="text/javascript">var fsdocs_search_baseurl = 'https://fsprojects.github.io/fantomas/';</script>
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/lunr.js/2.3.8/lunr.min.js"></script>
+  <script type="text/javascript"
+    src="https://cdnjs.cloudflare.com/ajax/libs/JavaScript-autoComplete/1.0.4/auto-complete.min.js"></script>
+  <script type="text/javascript" src="https://fsprojects.github.io/fantomas/content/fsdocs-search.js"></script>
+  <!-- END SEARCH BOX: this adds support for the search box -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-A3rJD856KowSb7dwlZdYEkO39Gagi7vIsF0jrRAoQmDKKtQBHUuLZ9AsSv4jD4Xa" crossorigin="anonymous"></script>
+  <script type="module" src="https://fsprojects.github.io/fantomas/content/webcomponents.js"></script>
+  <script type="module">
+      import mermaid from "https://cdn.skypack.dev/mermaid";
+      mermaid.initialize({
+          startOnLoad: true,
+          theme: "base",
+          themeVariables: {
+              primaryColor: '#eff5f7'
+          }
+      });
+  </script>
+</body>
+</html>

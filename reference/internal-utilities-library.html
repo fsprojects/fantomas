@@ -1,0 +1,1597 @@
+<!DOCTYPE html>
+<html lang="en" data-root="https://fsprojects.github.io/fantomas/">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="author" content="Florian Verdonck, Jindřich Ivánek, David Schaefer">
+  <title>Internal.Utilities.Library</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,600;1,400&family=Reem+Kufi:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.3/font/bootstrap-icons.css">
+  <link rel="shortcut icon" type="image/x-icon" href="https://fsprojects.github.io/fantomas/images/favicon.ico">
+  <link type="text/css" rel="stylesheet" href="https://fsprojects.github.io/fantomas/content/fsdocs-custom.css" />
+  <script type="text/javascript" src="https://fsprojects.github.io/fantomas/content/fsdocs-tips.js"></script>
+  <!-- BEGIN SEARCH BOX: this adds support for the search box -->
+  <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+  <link rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/JavaScript-autoComplete/1.0.4/auto-complete.css" />
+  <!-- END SEARCH BOX: this adds support for the search box -->
+  
+</head>
+
+<body>
+     <aside class="bg-primary h-100 fs-5">
+      <div id="sidebar-header" class="d-flex justify-content-end mt-1">
+      <button class="btn d-md-none" id="close-mobile-menu" aria-controls="sidebar-wrapper" aria-expanded="false" aria-label="Toggle navigation">
+        <i class="sidebar-toggle fs-3 bi bi-x-lg"></i>
+                  </button>
+              </div>
+      <div id="sidebar-logo" class="d-flex justify-content-center p-5">
+        <a href="https://fsprojects.github.io/fantomas/docs/index.html" ><img id="fsdocs-logo" src="https://fsprojects.github.io/fantomas//images/logo-fantomas-white.svg" /></a>
+      </div>
+      <div id="sidebar-content" class="accordion accordion-flush ps-0 text-white fs-6">
+        <div id="end-users-wrapper" class="accordion-item">
+    <li class="docs-menu">
+        <button id="end-users-button"
+            class="accordion-button collapsed btn text-white d-flex justify-content-between align-items-center"
+            data-bs-toggle="collapse" data-bs-target="#end-users" aria-expanded="false"
+            aria-control="end-users" type="button">
+            End-users
+        </button>
+        <div id="end-users" class="accordion-collapse collapse ps-4 pb-2 " data-bs-parent="#sidebar-content">
+            <ul class="list-unstyled fw-normal mb-0">
+                <li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/end-users/GettingStarted.html" class="nav-link pb-2 d-block" > Getting Started
+</a></li>
+
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/end-users/StyleGuide.html" class="nav-link pb-2 d-block" > Style guide
+</a></li>
+
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/end-users/Configuration.html" class="nav-link pb-2 d-block" > Configuration
+</a></li>
+
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/end-users/IgnoreFiles.html" class="nav-link pb-2 d-block" > Ignore Files
+</a></li>
+
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/end-users/FormattingCheck.html" class="nav-link pb-2 d-block" > Formatting Check
+</a></li>
+
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/end-users/GitHooks.html" class="nav-link pb-2 d-block" > Git hooks
+</a></li>
+
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/end-users/VisualStudio.html" class="nav-link pb-2 d-block" > Visual Studio
+</a></li>
+
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/end-users/Rider.html" class="nav-link pb-2 d-block" > JetBrains Rider
+</a></li>
+
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/end-users/VSCode.html" class="nav-link pb-2 d-block" > Visual Studio Code
+</a></li>
+
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/end-users/GeneratingCode.html" class="nav-link pb-2 d-block" > Generating source code
+</a></li>
+
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/end-users/FAQ.html" class="nav-link pb-2 d-block" > FAQ
+</a></li>
+
+            </ul>
+        </div>
+    </li>
+</div>
+<div id="contributors-wrapper" class="accordion-item">
+    <li class="docs-menu">
+        <button id="contributors-button"
+            class="accordion-button collapsed btn text-white d-flex justify-content-between align-items-center"
+            data-bs-toggle="collapse" data-bs-target="#contributors" aria-expanded="false"
+            aria-control="contributors" type="button">
+            Contributors
+        </button>
+        <div id="contributors" class="accordion-collapse collapse ps-4 pb-2 " data-bs-parent="#sidebar-content">
+            <ul class="list-unstyled fw-normal mb-0">
+                <li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/Index.html" class="nav-link pb-2 d-block" > Contributors
+</a></li>
+
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/FSharp.html" class="nav-link pb-2 d-block" > F#
+</a></li>
+
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/Getting Started.html" class="nav-link pb-2 d-block" > Getting started
+</a></li>
+
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/Solution Structure.html" class="nav-link pb-2 d-block" > Solution structure
+</a></li>
+
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/Transforming.html" class="nav-link pb-2 d-block" > Fantomas.Core overview (1)
+</a></li>
+
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/Traverse.html" class="nav-link pb-2 d-block" > Fantomas.Core overview (2)
+</a></li>
+
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/Formatted Code.html" class="nav-link pb-2 d-block" > Fantomas.Core overview (3)
+</a></li>
+
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/Conditional Compilation Directives.html" class="nav-link pb-2 d-block" > Formatting Conditional Compilation Directives
+</a></li>
+
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/How Can I Contribute.html" class="nav-link pb-2 d-block" > How can I contribute?
+</a></li>
+
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/The Missing Comment.html" class="nav-link pb-2 d-block" > The Missing Comment
+</a></li>
+
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/Pull request ground rules.html" class="nav-link pb-2 d-block" > Pull request ground rules
+</a></li>
+
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/Releases.html" class="nav-link pb-2 d-block" > Releases
+</a></li>
+
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/Glossary.html" class="nav-link pb-2 d-block" > Glossary
+</a></li>
+
+            </ul>
+        </div>
+    </li>
+</div>
+        <div id="api_reference-wrapper" class="accordion-item">
+    <li class="docs-menu">
+        <button id="api_reference-button"
+            class="accordion-button collapsed btn text-white d-flex justify-content-between align-items-center"
+            data-bs-toggle="collapse" data-bs-target="#api_reference" aria-expanded="false"
+            aria-control="api_reference" type="button">
+            API Reference
+        </button>
+        <div id="api_reference" class="accordion-collapse collapse ps-4 pb-2 " data-bs-parent="#sidebar-content">
+            <ul class="list-unstyled fw-normal mb-0">
+                <li class="nav-item"><a href="https://fsprojects.github.io/fantomas/reference/index.html" class="nav-link pb-2 d-block" > All Namespaces</a></li>
+
+            </ul>
+        </div>
+    </li>
+</div>
+      </div>
+    </aside>
+    <main class="doc-content">
+     <nav class="navbar navbar-expand-sm border py-1">
+        <div class="container-fluid flex-nowrap">
+          <button class="btn" id="toggle-mobile-menu" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="sidebar-toggle fs-3 bi bi-list"></i>
+          </button>
+          <div id="mobile-navbar" class="container-fluid d-flex justify-content-between d-sm-none">
+            <i class="invisible bi bi-github fs-3 align-self-end"></i>
+         <a href="./index.html" ><img id="fsdocs-logo-mobile" width="32" height="32" src="https://fsprojects.github.io/fantomas//images/logo.png" /></a>
+            <a class="nav-link m-0 p-0" target="_blank" href="https://github.com/fsprojects/fantomas/"> <i class="bi bi-github fs-3 align-self-end"></i>
+</a>
+          </div>
+          <div class="collapse navbar-collapse" id="navbarText">
+            <div class="navbar-nav me-auto mb-2 mb-lg-0 fs-5">
+                <a class="nav-link active" aria-current="page" href="https://fsprojects.github.io/fantomas/docs/index.html">Docs</a>
+                <a class="nav-link" target="_blank" href="https://fsprojects.github.io/fantomas-tools/">Tools</a>
+            </div>
+            <form class="d-flex">
+              <div class="input-group me-4">
+              <label for="search-by">
+                <i class="fas fa-search"></i>
+              </label>
+                <div class="btn border-end-0 border">
+                  <i class="bi bi-search"></i>
+                </div>
+                <input aria-label="Search" class="form-control  border-start-0 border" data-search-input=""
+                  id="search-by" type="search" placeholder="Search..." />
+                <span class="input-group-append">
+                </span>
+                <span data-search-clear="">
+                  <i class="fas fa-times"></i>
+                </span>
+              </div>
+            </form>
+            <a class="nav-link m-0 p-0" target="_blank" href="https://github.com/fsprojects/fantomas/">GitHub<i
+                class="bi bi-box-arrow-up-right mx-2"></i></a>
+          </div>
+        </div>
+      </nav>
+      <div id="fsdocs-content" class="bg-white m-2 m-sm-5 p-3 p-sm-4">
+        <div>
+  <h2 id="internal-utilities-library">
+    Internal.Utilities.Library Namespace
+  </h2>
+  <div class="fsdocs-xmldoc"></div>
+  <table class="table outer-list fsdocs-entity-list">
+    <thead>
+      <tr>
+        <td>
+          Type/Module
+        </td>
+        <td>
+          Description
+        </td>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="fsdocs-entity-name">
+          <p>
+            <a name="AnyCallerThreadToken">
+              <a href="https://fsprojects.github.io/fantomas/reference/internal-utilities-library-anycallerthreadtoken.html">
+                AnyCallerThreadToken
+              </a>
+            </a>
+          </p>
+        </td>
+        <td class="fsdocs-entity-xmldoc">
+          <div>
+            <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:T:Internal.Utilities.Library.AnyCallerThreadToken`')">
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-md.png" class="normal"/>
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-md-hover.png" class="hover"/>
+            </div>
+            <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:Internal.Utilities.Library.AnyCallerThreadToken\'/>')">
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml.png" class="normal"/>
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+            </div>
+            <a href="" class="fsdocs-source-link" title="Source on GitHub">
+              <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
+              <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
+            </a>
+            <p class="fsdocs-summary">
+              
+ Represents a token that indicates execution on any of several potential user threads calling the F# compiler services.
+
+            </p>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td class="fsdocs-entity-name">
+          <p>
+            <a name="Array">
+              <a href="https://fsprojects.github.io/fantomas/reference/internal-utilities-library-array.html">
+                Array
+              </a>
+            </a>
+          </p>
+        </td>
+        <td class="fsdocs-entity-xmldoc">
+          <div>
+            <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:T:Internal.Utilities.Library.Array`')">
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-md.png" class="normal"/>
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-md-hover.png" class="hover"/>
+            </div>
+            <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:Internal.Utilities.Library.Array\'/>')">
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml.png" class="normal"/>
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+            </div>
+            <a href="" class="fsdocs-source-link" title="Source on GitHub">
+              <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
+              <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
+            </a>
+            <p class="fsdocs-summary">
+              
+            </p>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td class="fsdocs-entity-name">
+          <p>
+            <a name="Cancellable">
+              <a href="https://fsprojects.github.io/fantomas/reference/internal-utilities-library-cancellable.html">
+                Cancellable
+              </a>
+            </a>
+          </p>
+        </td>
+        <td class="fsdocs-entity-xmldoc">
+          <div>
+            <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:T:Internal.Utilities.Library.Cancellable`')">
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-md.png" class="normal"/>
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-md-hover.png" class="hover"/>
+            </div>
+            <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:Internal.Utilities.Library.Cancellable\'/>')">
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml.png" class="normal"/>
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+            </div>
+            <a href="" class="fsdocs-source-link" title="Source on GitHub">
+              <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
+              <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
+            </a>
+            <p class="fsdocs-summary">
+              
+            </p>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td class="fsdocs-entity-name">
+          <p>
+            <a name="Cancellable<'T>">
+              <a href="https://fsprojects.github.io/fantomas/reference/internal-utilities-library-cancellable-1.html">
+                Cancellable<'T>
+              </a>
+            </a>
+          </p>
+        </td>
+        <td class="fsdocs-entity-xmldoc">
+          <div>
+            <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('``cref:T:Internal.Utilities.Library.Cancellable`1``')">
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-md.png" class="normal"/>
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-md-hover.png" class="hover"/>
+            </div>
+            <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:Internal.Utilities.Library.Cancellable`1\'/>')">
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml.png" class="normal"/>
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+            </div>
+            <a href="" class="fsdocs-source-link" title="Source on GitHub">
+              <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
+              <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
+            </a>
+            <p class="fsdocs-summary">
+              
+ Represents a synchronous, cold-start, cancellable computation with explicit representation of a cancelled result.
+
+ A cancellable computation may be cancelled via a CancellationToken, which is propagated implicitly.
+ If cancellation occurs, it is propagated as data rather than by raising an OperationCanceledException.
+
+            </p>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td class="fsdocs-entity-name">
+          <p>
+            <a name="CancellableAutoOpens">
+              <a href="https://fsprojects.github.io/fantomas/reference/internal-utilities-library-cancellableautoopens.html">
+                CancellableAutoOpens
+              </a>
+            </a>
+          </p>
+        </td>
+        <td class="fsdocs-entity-xmldoc">
+          <div>
+            <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:T:Internal.Utilities.Library.CancellableAutoOpens`')">
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-md.png" class="normal"/>
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-md-hover.png" class="hover"/>
+            </div>
+            <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:Internal.Utilities.Library.CancellableAutoOpens\'/>')">
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml.png" class="normal"/>
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+            </div>
+            <a href="" class="fsdocs-source-link" title="Source on GitHub">
+              <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
+              <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
+            </a>
+            <p class="fsdocs-summary">
+              
+            </p>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td class="fsdocs-entity-name">
+          <p>
+            <a name="CancellableBuilder">
+              <a href="https://fsprojects.github.io/fantomas/reference/internal-utilities-library-cancellablebuilder.html">
+                CancellableBuilder
+              </a>
+            </a>
+          </p>
+        </td>
+        <td class="fsdocs-entity-xmldoc">
+          <div>
+            <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:T:Internal.Utilities.Library.CancellableBuilder`')">
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-md.png" class="normal"/>
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-md-hover.png" class="hover"/>
+            </div>
+            <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:Internal.Utilities.Library.CancellableBuilder\'/>')">
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml.png" class="normal"/>
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+            </div>
+            <a href="" class="fsdocs-source-link" title="Source on GitHub">
+              <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
+              <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
+            </a>
+            <p class="fsdocs-summary">
+              
+            </p>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td class="fsdocs-entity-name">
+          <p>
+            <a name="CompilationThreadToken">
+              <a href="https://fsprojects.github.io/fantomas/reference/internal-utilities-library-compilationthreadtoken.html">
+                CompilationThreadToken
+              </a>
+            </a>
+          </p>
+        </td>
+        <td class="fsdocs-entity-xmldoc">
+          <div>
+            <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:T:Internal.Utilities.Library.CompilationThreadToken`')">
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-md.png" class="normal"/>
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-md-hover.png" class="hover"/>
+            </div>
+            <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:Internal.Utilities.Library.CompilationThreadToken\'/>')">
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml.png" class="normal"/>
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+            </div>
+            <a href="" class="fsdocs-source-link" title="Source on GitHub">
+              <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
+              <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
+            </a>
+            <p class="fsdocs-summary">
+              
+ Represents a token that indicates execution on the compilation thread, i.e.
+   - we have full access to the (partially mutable) TAST and TcImports data structures
+   - compiler execution may result in type provider invocations when resolving types and members
+   - we can access various caches in the SourceCodeServices
+
+ Like other execution tokens this should be passed via argument passing and not captured/stored beyond
+ the lifetime of stack-based calls. This is not checked, it is a discipline within the compiler code.
+
+            </p>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td class="fsdocs-entity-name">
+          <p>
+            <a name="Dictionary">
+              <a href="https://fsprojects.github.io/fantomas/reference/internal-utilities-library-dictionary.html">
+                Dictionary
+              </a>
+            </a>
+          </p>
+        </td>
+        <td class="fsdocs-entity-xmldoc">
+          <div>
+            <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:T:Internal.Utilities.Library.Dictionary`')">
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-md.png" class="normal"/>
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-md-hover.png" class="hover"/>
+            </div>
+            <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:Internal.Utilities.Library.Dictionary\'/>')">
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml.png" class="normal"/>
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+            </div>
+            <a href="" class="fsdocs-source-link" title="Source on GitHub">
+              <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
+              <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
+            </a>
+            <p class="fsdocs-summary">
+              
+            </p>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td class="fsdocs-entity-name">
+          <p>
+            <a name="DictionaryExtensions">
+              <a href="https://fsprojects.github.io/fantomas/reference/internal-utilities-library-dictionaryextensions.html">
+                DictionaryExtensions
+              </a>
+            </a>
+          </p>
+        </td>
+        <td class="fsdocs-entity-xmldoc">
+          <div>
+            <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:T:Internal.Utilities.Library.DictionaryExtensions`')">
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-md.png" class="normal"/>
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-md-hover.png" class="hover"/>
+            </div>
+            <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:Internal.Utilities.Library.DictionaryExtensions\'/>')">
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml.png" class="normal"/>
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+            </div>
+            <a href="" class="fsdocs-source-link" title="Source on GitHub">
+              <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
+              <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
+            </a>
+            <p class="fsdocs-summary">
+              
+            </p>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td class="fsdocs-entity-name">
+          <p>
+            <a name="ExecutionToken">
+              <a href="https://fsprojects.github.io/fantomas/reference/internal-utilities-library-executiontoken.html">
+                ExecutionToken
+              </a>
+            </a>
+          </p>
+        </td>
+        <td class="fsdocs-entity-xmldoc">
+          <div>
+            <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:T:Internal.Utilities.Library.ExecutionToken`')">
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-md.png" class="normal"/>
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-md-hover.png" class="hover"/>
+            </div>
+            <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:Internal.Utilities.Library.ExecutionToken\'/>')">
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml.png" class="normal"/>
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+            </div>
+            <a href="" class="fsdocs-source-link" title="Source on GitHub">
+              <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
+              <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
+            </a>
+            <p class="fsdocs-summary">
+              
+ Represents a permission active at this point in execution
+
+            </p>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td class="fsdocs-entity-name">
+          <p>
+            <a name="Extras">
+              <a href="https://fsprojects.github.io/fantomas/reference/internal-utilities-library-extras.html">
+                Extras
+              </a>
+            </a>
+          </p>
+        </td>
+        <td class="fsdocs-entity-xmldoc">
+          <div>
+            <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:T:Internal.Utilities.Library.Extras`')">
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-md.png" class="normal"/>
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-md-hover.png" class="hover"/>
+            </div>
+            <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:Internal.Utilities.Library.Extras\'/>')">
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml.png" class="normal"/>
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+            </div>
+            <a href="" class="fsdocs-source-link" title="Source on GitHub">
+              <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
+              <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
+            </a>
+            <p class="fsdocs-summary">
+              
+            </p>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td class="fsdocs-entity-name">
+          <p>
+            <a name="InlineDelayInit<'T>">
+              <a href="https://fsprojects.github.io/fantomas/reference/internal-utilities-library-inlinedelayinit-1.html">
+                InlineDelayInit<'T>
+              </a>
+            </a>
+          </p>
+        </td>
+        <td class="fsdocs-entity-xmldoc">
+          <div>
+            <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('``cref:T:Internal.Utilities.Library.InlineDelayInit`1``')">
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-md.png" class="normal"/>
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-md-hover.png" class="hover"/>
+            </div>
+            <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:Internal.Utilities.Library.InlineDelayInit`1\'/>')">
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml.png" class="normal"/>
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+            </div>
+            <a href="" class="fsdocs-source-link" title="Source on GitHub">
+              <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
+              <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
+            </a>
+            <p class="fsdocs-summary">
+              
+            </p>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td class="fsdocs-entity-name">
+          <p>
+            <a name="IPartialEqualityComparer">
+              <a href="https://fsprojects.github.io/fantomas/reference/internal-utilities-library-ipartialequalitycomparer.html">
+                IPartialEqualityComparer
+              </a>
+            </a>
+          </p>
+        </td>
+        <td class="fsdocs-entity-xmldoc">
+          <div>
+            <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:T:Internal.Utilities.Library.IPartialEqualityComparer`')">
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-md.png" class="normal"/>
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-md-hover.png" class="hover"/>
+            </div>
+            <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:Internal.Utilities.Library.IPartialEqualityComparer\'/>')">
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml.png" class="normal"/>
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+            </div>
+            <a href="" class="fsdocs-source-link" title="Source on GitHub">
+              <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
+              <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
+            </a>
+            <p class="fsdocs-summary">
+              
+ Interface that defines methods for comparing objects using partial equality relation
+
+            </p>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td class="fsdocs-entity-name">
+          <p>
+            <a name="IPartialEqualityComparer<'T>">
+              <a href="https://fsprojects.github.io/fantomas/reference/internal-utilities-library-ipartialequalitycomparer-1.html">
+                IPartialEqualityComparer<'T>
+              </a>
+            </a>
+          </p>
+        </td>
+        <td class="fsdocs-entity-xmldoc">
+          <div>
+            <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('``cref:T:Internal.Utilities.Library.IPartialEqualityComparer`1``')">
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-md.png" class="normal"/>
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-md-hover.png" class="hover"/>
+            </div>
+            <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:Internal.Utilities.Library.IPartialEqualityComparer`1\'/>')">
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml.png" class="normal"/>
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+            </div>
+            <a href="" class="fsdocs-source-link" title="Source on GitHub">
+              <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
+              <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
+            </a>
+            <p class="fsdocs-summary">
+              
+ Interface that defines methods for comparing objects using partial equality relation
+
+            </p>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td class="fsdocs-entity-name">
+          <p>
+            <a name="LayeredMap<'Key, 'Value>">
+              <a href="https://fsprojects.github.io/fantomas/reference/internal-utilities-library-layeredmap-2.html">
+                LayeredMap<'Key, 'Value>
+              </a>
+            </a>
+          </p>
+        </td>
+        <td class="fsdocs-entity-xmldoc">
+          <div>
+            <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('``cref:T:Internal.Utilities.Library.LayeredMap`2``')">
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-md.png" class="normal"/>
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-md-hover.png" class="hover"/>
+            </div>
+            <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:Internal.Utilities.Library.LayeredMap`2\'/>')">
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml.png" class="normal"/>
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+            </div>
+            <a href="" class="fsdocs-source-link" title="Source on GitHub">
+              <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
+              <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
+            </a>
+            <p class="fsdocs-summary">
+              
+            </p>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td class="fsdocs-entity-name">
+          <p>
+            <a name="LayeredMultiMap<'Key, 'Value>">
+              <a href="https://fsprojects.github.io/fantomas/reference/internal-utilities-library-layeredmultimap-2.html">
+                LayeredMultiMap<'Key, 'Value>
+              </a>
+            </a>
+          </p>
+        </td>
+        <td class="fsdocs-entity-xmldoc">
+          <div>
+            <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('``cref:T:Internal.Utilities.Library.LayeredMultiMap`2``')">
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-md.png" class="normal"/>
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-md-hover.png" class="hover"/>
+            </div>
+            <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:Internal.Utilities.Library.LayeredMultiMap`2\'/>')">
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml.png" class="normal"/>
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+            </div>
+            <a href="" class="fsdocs-source-link" title="Source on GitHub">
+              <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
+              <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
+            </a>
+            <p class="fsdocs-summary">
+              
+ Immutable map collection, with explicit flattening to a backing dictionary
+
+            </p>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td class="fsdocs-entity-name">
+          <p>
+            <a name="Lazy">
+              <a href="https://fsprojects.github.io/fantomas/reference/internal-utilities-library-lazy.html">
+                Lazy
+              </a>
+            </a>
+          </p>
+        </td>
+        <td class="fsdocs-entity-xmldoc">
+          <div>
+            <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:T:Internal.Utilities.Library.Lazy`')">
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-md.png" class="normal"/>
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-md-hover.png" class="hover"/>
+            </div>
+            <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:Internal.Utilities.Library.Lazy\'/>')">
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml.png" class="normal"/>
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+            </div>
+            <a href="" class="fsdocs-source-link" title="Source on GitHub">
+              <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
+              <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
+            </a>
+            <p class="fsdocs-summary">
+              
+            </p>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td class="fsdocs-entity-name">
+          <p>
+            <a name="LazyWithContext<'T, 'ctxt>">
+              <a href="https://fsprojects.github.io/fantomas/reference/internal-utilities-library-lazywithcontext-2.html">
+                LazyWithContext<'T, 'ctxt>
+              </a>
+            </a>
+          </p>
+        </td>
+        <td class="fsdocs-entity-xmldoc">
+          <div>
+            <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('``cref:T:Internal.Utilities.Library.LazyWithContext`2``')">
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-md.png" class="normal"/>
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-md-hover.png" class="hover"/>
+            </div>
+            <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:Internal.Utilities.Library.LazyWithContext`2\'/>')">
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml.png" class="normal"/>
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+            </div>
+            <a href="" class="fsdocs-source-link" title="Source on GitHub">
+              <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
+              <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
+            </a>
+            <p class="fsdocs-summary">
+              
+ Just like "Lazy" but EVERY forcer must provide an instance of "ctxt", e.g. to help track errors
+ on forcing back to at least one sensible user location
+
+            </p>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td class="fsdocs-entity-name">
+          <p>
+            <a name="LazyWithContextFailure">
+              <a href="https://fsprojects.github.io/fantomas/reference/internal-utilities-library-lazywithcontextfailure.html">
+                LazyWithContextFailure
+              </a>
+            </a>
+          </p>
+        </td>
+        <td class="fsdocs-entity-xmldoc">
+          <div>
+            <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:T:Internal.Utilities.Library.LazyWithContextFailure`')">
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-md.png" class="normal"/>
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-md-hover.png" class="hover"/>
+            </div>
+            <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:Internal.Utilities.Library.LazyWithContextFailure\'/>')">
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml.png" class="normal"/>
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+            </div>
+            <a href="" class="fsdocs-source-link" title="Source on GitHub">
+              <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
+              <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
+            </a>
+            <p class="fsdocs-summary">
+              
+            </p>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td class="fsdocs-entity-name">
+          <p>
+            <a name="List">
+              <a href="https://fsprojects.github.io/fantomas/reference/internal-utilities-library-list.html">
+                List
+              </a>
+            </a>
+          </p>
+        </td>
+        <td class="fsdocs-entity-xmldoc">
+          <div>
+            <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:T:Internal.Utilities.Library.List`')">
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-md.png" class="normal"/>
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-md-hover.png" class="hover"/>
+            </div>
+            <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:Internal.Utilities.Library.List\'/>')">
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml.png" class="normal"/>
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+            </div>
+            <a href="" class="fsdocs-source-link" title="Source on GitHub">
+              <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
+              <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
+            </a>
+            <p class="fsdocs-summary">
+              
+            </p>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td class="fsdocs-entity-name">
+          <p>
+            <a name="Lock<'LockTokenType>">
+              <a href="https://fsprojects.github.io/fantomas/reference/internal-utilities-library-lock-1.html">
+                Lock<'LockTokenType>
+              </a>
+            </a>
+          </p>
+        </td>
+        <td class="fsdocs-entity-xmldoc">
+          <div>
+            <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('``cref:T:Internal.Utilities.Library.Lock`1``')">
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-md.png" class="normal"/>
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-md-hover.png" class="hover"/>
+            </div>
+            <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:Internal.Utilities.Library.Lock`1\'/>')">
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml.png" class="normal"/>
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+            </div>
+            <a href="" class="fsdocs-source-link" title="Source on GitHub">
+              <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
+              <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
+            </a>
+            <p class="fsdocs-summary">
+              
+ Encapsulates a lock associated with a particular token-type representing the acquisition of that lock.
+
+            </p>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td class="fsdocs-entity-name">
+          <p>
+            <a name="LockAutoOpens">
+              <a href="https://fsprojects.github.io/fantomas/reference/internal-utilities-library-lockautoopens.html">
+                LockAutoOpens
+              </a>
+            </a>
+          </p>
+        </td>
+        <td class="fsdocs-entity-xmldoc">
+          <div>
+            <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:T:Internal.Utilities.Library.LockAutoOpens`')">
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-md.png" class="normal"/>
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-md-hover.png" class="hover"/>
+            </div>
+            <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:Internal.Utilities.Library.LockAutoOpens\'/>')">
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml.png" class="normal"/>
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+            </div>
+            <a href="" class="fsdocs-source-link" title="Source on GitHub">
+              <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
+              <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
+            </a>
+            <p class="fsdocs-summary">
+              
+            </p>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td class="fsdocs-entity-name">
+          <p>
+            <a name="LockToken">
+              <a href="https://fsprojects.github.io/fantomas/reference/internal-utilities-library-locktoken.html">
+                LockToken
+              </a>
+            </a>
+          </p>
+        </td>
+        <td class="fsdocs-entity-xmldoc">
+          <div>
+            <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:T:Internal.Utilities.Library.LockToken`')">
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-md.png" class="normal"/>
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-md-hover.png" class="hover"/>
+            </div>
+            <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:Internal.Utilities.Library.LockToken\'/>')">
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml.png" class="normal"/>
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+            </div>
+            <a href="" class="fsdocs-source-link" title="Source on GitHub">
+              <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
+              <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
+            </a>
+            <p class="fsdocs-summary">
+              
+ A base type for various types of tokens that must be passed when a lock is taken.
+ Each different static lock should declare a new subtype of this type.
+
+            </p>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td class="fsdocs-entity-name">
+          <p>
+            <a name="Map">
+              <a href="https://fsprojects.github.io/fantomas/reference/internal-utilities-library-map.html">
+                Map
+              </a>
+            </a>
+          </p>
+        </td>
+        <td class="fsdocs-entity-xmldoc">
+          <div>
+            <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:T:Internal.Utilities.Library.Map`')">
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-md.png" class="normal"/>
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-md-hover.png" class="hover"/>
+            </div>
+            <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:Internal.Utilities.Library.Map\'/>')">
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml.png" class="normal"/>
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+            </div>
+            <a href="" class="fsdocs-source-link" title="Source on GitHub">
+              <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
+              <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
+            </a>
+            <p class="fsdocs-summary">
+              
+            </p>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td class="fsdocs-entity-name">
+          <p>
+            <a name="MapAutoOpens">
+              <a href="https://fsprojects.github.io/fantomas/reference/internal-utilities-library-mapautoopens.html">
+                MapAutoOpens
+              </a>
+            </a>
+          </p>
+        </td>
+        <td class="fsdocs-entity-xmldoc">
+          <div>
+            <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:T:Internal.Utilities.Library.MapAutoOpens`')">
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-md.png" class="normal"/>
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-md-hover.png" class="hover"/>
+            </div>
+            <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:Internal.Utilities.Library.MapAutoOpens\'/>')">
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml.png" class="normal"/>
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+            </div>
+            <a href="" class="fsdocs-source-link" title="Source on GitHub">
+              <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
+              <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
+            </a>
+            <p class="fsdocs-summary">
+              
+            </p>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td class="fsdocs-entity-name">
+          <p>
+            <a name="MemoizationTable<'T, 'U>">
+              <a href="https://fsprojects.github.io/fantomas/reference/internal-utilities-library-memoizationtable-2.html">
+                MemoizationTable<'T, 'U>
+              </a>
+            </a>
+          </p>
+        </td>
+        <td class="fsdocs-entity-xmldoc">
+          <div>
+            <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('``cref:T:Internal.Utilities.Library.MemoizationTable`2``')">
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-md.png" class="normal"/>
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-md-hover.png" class="hover"/>
+            </div>
+            <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:Internal.Utilities.Library.MemoizationTable`2\'/>')">
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml.png" class="normal"/>
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+            </div>
+            <a href="" class="fsdocs-source-link" title="Source on GitHub">
+              <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
+              <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
+            </a>
+            <p class="fsdocs-summary">
+              
+ Memoize tables (all entries cached, never collected unless whole table is collected)
+
+            </p>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td class="fsdocs-entity-name">
+          <p>
+            <a name="MultiMap">
+              <a href="https://fsprojects.github.io/fantomas/reference/internal-utilities-library-multimap.html">
+                MultiMap
+              </a>
+            </a>
+          </p>
+        </td>
+        <td class="fsdocs-entity-xmldoc">
+          <div>
+            <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:T:Internal.Utilities.Library.MultiMap`')">
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-md.png" class="normal"/>
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-md-hover.png" class="hover"/>
+            </div>
+            <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:Internal.Utilities.Library.MultiMap\'/>')">
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml.png" class="normal"/>
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+            </div>
+            <a href="" class="fsdocs-source-link" title="Source on GitHub">
+              <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
+              <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
+            </a>
+            <p class="fsdocs-summary">
+              
+            </p>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td class="fsdocs-entity-name">
+          <p>
+            <a name="MultiMap<'T, 'U>">
+              <a href="https://fsprojects.github.io/fantomas/reference/internal-utilities-library-multimap-2.html">
+                MultiMap<'T, 'U>
+              </a>
+            </a>
+          </p>
+        </td>
+        <td class="fsdocs-entity-xmldoc">
+          <div>
+            <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('``cref:T:Internal.Utilities.Library.MultiMap`2``')">
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-md.png" class="normal"/>
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-md-hover.png" class="hover"/>
+            </div>
+            <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:Internal.Utilities.Library.MultiMap`2\'/>')">
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml.png" class="normal"/>
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+            </div>
+            <a href="" class="fsdocs-source-link" title="Source on GitHub">
+              <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
+              <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
+            </a>
+            <p class="fsdocs-summary">
+              
+            </p>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td class="fsdocs-entity-name">
+          <p>
+            <a name="NameMap">
+              <a href="https://fsprojects.github.io/fantomas/reference/internal-utilities-library-namemap.html">
+                NameMap
+              </a>
+            </a>
+          </p>
+        </td>
+        <td class="fsdocs-entity-xmldoc">
+          <div>
+            <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:T:Internal.Utilities.Library.NameMap`')">
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-md.png" class="normal"/>
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-md-hover.png" class="hover"/>
+            </div>
+            <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:Internal.Utilities.Library.NameMap\'/>')">
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml.png" class="normal"/>
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+            </div>
+            <a href="" class="fsdocs-source-link" title="Source on GitHub">
+              <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
+              <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
+            </a>
+            <p class="fsdocs-summary">
+              
+            </p>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td class="fsdocs-entity-name">
+          <p>
+            <a name="NameMap<'T>">
+              <a href="https://fsprojects.github.io/fantomas/reference/internal-utilities-library-namemap-1.html">
+                NameMap<'T>
+              </a>
+            </a>
+          </p>
+        </td>
+        <td class="fsdocs-entity-xmldoc">
+          <div>
+            <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('``cref:T:Internal.Utilities.Library.NameMap`1``')">
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-md.png" class="normal"/>
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-md-hover.png" class="hover"/>
+            </div>
+            <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:Internal.Utilities.Library.NameMap`1\'/>')">
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml.png" class="normal"/>
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+            </div>
+            <a href="" class="fsdocs-source-link" title="Source on GitHub">
+              <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
+              <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
+            </a>
+            <p class="fsdocs-summary">
+              
+            </p>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td class="fsdocs-entity-name">
+          <p>
+            <a name="NameMultiMap">
+              <a href="https://fsprojects.github.io/fantomas/reference/internal-utilities-library-namemultimap.html">
+                NameMultiMap
+              </a>
+            </a>
+          </p>
+        </td>
+        <td class="fsdocs-entity-xmldoc">
+          <div>
+            <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:T:Internal.Utilities.Library.NameMultiMap`')">
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-md.png" class="normal"/>
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-md-hover.png" class="hover"/>
+            </div>
+            <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:Internal.Utilities.Library.NameMultiMap\'/>')">
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml.png" class="normal"/>
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+            </div>
+            <a href="" class="fsdocs-source-link" title="Source on GitHub">
+              <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
+              <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
+            </a>
+            <p class="fsdocs-summary">
+              
+            </p>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td class="fsdocs-entity-name">
+          <p>
+            <a name="NameMultiMap<'T>">
+              <a href="https://fsprojects.github.io/fantomas/reference/internal-utilities-library-namemultimap-1.html">
+                NameMultiMap<'T>
+              </a>
+            </a>
+          </p>
+        </td>
+        <td class="fsdocs-entity-xmldoc">
+          <div>
+            <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('``cref:T:Internal.Utilities.Library.NameMultiMap`1``')">
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-md.png" class="normal"/>
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-md-hover.png" class="hover"/>
+            </div>
+            <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:Internal.Utilities.Library.NameMultiMap`1\'/>')">
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml.png" class="normal"/>
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+            </div>
+            <a href="" class="fsdocs-source-link" title="Source on GitHub">
+              <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
+              <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
+            </a>
+            <p class="fsdocs-summary">
+              
+            </p>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td class="fsdocs-entity-name">
+          <p>
+            <a name="Option">
+              <a href="https://fsprojects.github.io/fantomas/reference/internal-utilities-library-option.html">
+                Option
+              </a>
+            </a>
+          </p>
+        </td>
+        <td class="fsdocs-entity-xmldoc">
+          <div>
+            <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:T:Internal.Utilities.Library.Option`')">
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-md.png" class="normal"/>
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-md-hover.png" class="hover"/>
+            </div>
+            <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:Internal.Utilities.Library.Option\'/>')">
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml.png" class="normal"/>
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+            </div>
+            <a href="" class="fsdocs-source-link" title="Source on GitHub">
+              <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
+              <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
+            </a>
+            <p class="fsdocs-summary">
+              
+            </p>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td class="fsdocs-entity-name">
+          <p>
+            <a name="Order">
+              <a href="https://fsprojects.github.io/fantomas/reference/internal-utilities-library-order.html">
+                Order
+              </a>
+            </a>
+          </p>
+        </td>
+        <td class="fsdocs-entity-xmldoc">
+          <div>
+            <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:T:Internal.Utilities.Library.Order`')">
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-md.png" class="normal"/>
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-md-hover.png" class="hover"/>
+            </div>
+            <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:Internal.Utilities.Library.Order\'/>')">
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml.png" class="normal"/>
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+            </div>
+            <a href="" class="fsdocs-source-link" title="Source on GitHub">
+              <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
+              <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
+            </a>
+            <p class="fsdocs-summary">
+              
+            </p>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td class="fsdocs-entity-name">
+          <p>
+            <a name="PervasiveAutoOpens">
+              <a href="https://fsprojects.github.io/fantomas/reference/internal-utilities-library-pervasiveautoopens.html">
+                PervasiveAutoOpens
+              </a>
+            </a>
+          </p>
+        </td>
+        <td class="fsdocs-entity-xmldoc">
+          <div>
+            <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:T:Internal.Utilities.Library.PervasiveAutoOpens`')">
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-md.png" class="normal"/>
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-md-hover.png" class="hover"/>
+            </div>
+            <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:Internal.Utilities.Library.PervasiveAutoOpens\'/>')">
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml.png" class="normal"/>
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+            </div>
+            <a href="" class="fsdocs-source-link" title="Source on GitHub">
+              <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
+              <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
+            </a>
+            <p class="fsdocs-summary">
+              
+            </p>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td class="fsdocs-entity-name">
+          <p>
+            <a name="ResizeArray">
+              <a href="https://fsprojects.github.io/fantomas/reference/internal-utilities-library-resizearray.html">
+                ResizeArray
+              </a>
+            </a>
+          </p>
+        </td>
+        <td class="fsdocs-entity-xmldoc">
+          <div>
+            <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:T:Internal.Utilities.Library.ResizeArray`')">
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-md.png" class="normal"/>
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-md-hover.png" class="hover"/>
+            </div>
+            <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:Internal.Utilities.Library.ResizeArray\'/>')">
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml.png" class="normal"/>
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+            </div>
+            <a href="" class="fsdocs-source-link" title="Source on GitHub">
+              <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
+              <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
+            </a>
+            <p class="fsdocs-summary">
+              
+            </p>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td class="fsdocs-entity-name">
+          <p>
+            <a name="ResultOrException">
+              <a href="https://fsprojects.github.io/fantomas/reference/internal-utilities-library-resultorexception.html">
+                ResultOrException
+              </a>
+            </a>
+          </p>
+        </td>
+        <td class="fsdocs-entity-xmldoc">
+          <div>
+            <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:T:Internal.Utilities.Library.ResultOrException`')">
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-md.png" class="normal"/>
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-md-hover.png" class="hover"/>
+            </div>
+            <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:Internal.Utilities.Library.ResultOrException\'/>')">
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml.png" class="normal"/>
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+            </div>
+            <a href="" class="fsdocs-source-link" title="Source on GitHub">
+              <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
+              <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
+            </a>
+            <p class="fsdocs-summary">
+              
+            </p>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td class="fsdocs-entity-name">
+          <p>
+            <a name="ResultOrException<'TResult>">
+              <a href="https://fsprojects.github.io/fantomas/reference/internal-utilities-library-resultorexception-1.html">
+                ResultOrException<'TResult>
+              </a>
+            </a>
+          </p>
+        </td>
+        <td class="fsdocs-entity-xmldoc">
+          <div>
+            <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('``cref:T:Internal.Utilities.Library.ResultOrException`1``')">
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-md.png" class="normal"/>
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-md-hover.png" class="hover"/>
+            </div>
+            <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:Internal.Utilities.Library.ResultOrException`1\'/>')">
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml.png" class="normal"/>
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+            </div>
+            <a href="" class="fsdocs-source-link" title="Source on GitHub">
+              <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
+              <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
+            </a>
+            <p class="fsdocs-summary">
+              
+            </p>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td class="fsdocs-entity-name">
+          <p>
+            <a name="String">
+              <a href="https://fsprojects.github.io/fantomas/reference/internal-utilities-library-string.html">
+                String
+              </a>
+            </a>
+          </p>
+        </td>
+        <td class="fsdocs-entity-xmldoc">
+          <div>
+            <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:T:Internal.Utilities.Library.String`')">
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-md.png" class="normal"/>
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-md-hover.png" class="hover"/>
+            </div>
+            <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:Internal.Utilities.Library.String\'/>')">
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml.png" class="normal"/>
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+            </div>
+            <a href="" class="fsdocs-source-link" title="Source on GitHub">
+              <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
+              <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
+            </a>
+            <p class="fsdocs-summary">
+              
+            </p>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td class="fsdocs-entity-name">
+          <p>
+            <a name="Tables">
+              <a href="https://fsprojects.github.io/fantomas/reference/internal-utilities-library-tables.html">
+                Tables
+              </a>
+            </a>
+          </p>
+        </td>
+        <td class="fsdocs-entity-xmldoc">
+          <div>
+            <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:T:Internal.Utilities.Library.Tables`')">
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-md.png" class="normal"/>
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-md-hover.png" class="hover"/>
+            </div>
+            <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:Internal.Utilities.Library.Tables\'/>')">
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml.png" class="normal"/>
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+            </div>
+            <a href="" class="fsdocs-source-link" title="Source on GitHub">
+              <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
+              <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
+            </a>
+            <p class="fsdocs-summary">
+              
+ Intern tables to save space.
+
+            </p>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td class="fsdocs-entity-name">
+          <p>
+            <a name="UndefinedException">
+              <a href="https://fsprojects.github.io/fantomas/reference/internal-utilities-library-undefinedexception.html">
+                UndefinedException
+              </a>
+            </a>
+          </p>
+        </td>
+        <td class="fsdocs-entity-xmldoc">
+          <div>
+            <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:T:Internal.Utilities.Library.UndefinedException`')">
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-md.png" class="normal"/>
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-md-hover.png" class="hover"/>
+            </div>
+            <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:Internal.Utilities.Library.UndefinedException\'/>')">
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml.png" class="normal"/>
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+            </div>
+            <a href="" class="fsdocs-source-link" title="Source on GitHub">
+              <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
+              <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
+            </a>
+            <p class="fsdocs-summary">
+              
+            </p>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td class="fsdocs-entity-name">
+          <p>
+            <a name="UniqueStampGenerator<'T>">
+              <a href="https://fsprojects.github.io/fantomas/reference/internal-utilities-library-uniquestampgenerator-1.html">
+                UniqueStampGenerator<'T>
+              </a>
+            </a>
+          </p>
+        </td>
+        <td class="fsdocs-entity-xmldoc">
+          <div>
+            <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('``cref:T:Internal.Utilities.Library.UniqueStampGenerator`1``')">
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-md.png" class="normal"/>
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-md-hover.png" class="hover"/>
+            </div>
+            <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:Internal.Utilities.Library.UniqueStampGenerator`1\'/>')">
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml.png" class="normal"/>
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+            </div>
+            <a href="" class="fsdocs-source-link" title="Source on GitHub">
+              <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
+              <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
+            </a>
+            <p class="fsdocs-summary">
+              
+ Generates unique stamps
+
+            </p>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td class="fsdocs-entity-name">
+          <p>
+            <a name="ValueOptionInternal">
+              <a href="https://fsprojects.github.io/fantomas/reference/internal-utilities-library-valueoptioninternal.html">
+                ValueOptionInternal
+              </a>
+            </a>
+          </p>
+        </td>
+        <td class="fsdocs-entity-xmldoc">
+          <div>
+            <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:T:Internal.Utilities.Library.ValueOptionInternal`')">
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-md.png" class="normal"/>
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-md-hover.png" class="hover"/>
+            </div>
+            <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:Internal.Utilities.Library.ValueOptionInternal\'/>')">
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml.png" class="normal"/>
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+            </div>
+            <a href="" class="fsdocs-source-link" title="Source on GitHub">
+              <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
+              <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
+            </a>
+            <p class="fsdocs-summary">
+              
+            </p>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td class="fsdocs-entity-name">
+          <p>
+            <a name="ValueOrCancelled<'TResult>">
+              <a href="https://fsprojects.github.io/fantomas/reference/internal-utilities-library-valueorcancelled-1.html">
+                ValueOrCancelled<'TResult>
+              </a>
+            </a>
+          </p>
+        </td>
+        <td class="fsdocs-entity-xmldoc">
+          <div>
+            <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('``cref:T:Internal.Utilities.Library.ValueOrCancelled`1``')">
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-md.png" class="normal"/>
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-md-hover.png" class="hover"/>
+            </div>
+            <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:Internal.Utilities.Library.ValueOrCancelled`1\'/>')">
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml.png" class="normal"/>
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+            </div>
+            <a href="" class="fsdocs-source-link" title="Source on GitHub">
+              <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
+              <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
+            </a>
+            <p class="fsdocs-summary">
+              
+            </p>
+          </div>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+        
+      </div>
+        <div id="push"></div>
+    </main>
+  <script type="module" src="https://fsprojects.github.io/fantomas/content/docs-setup.js"></script>
+  <!-- BEGIN SEARCH BOX: this adds support for the search box -->
+  <link rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/JavaScript-autoComplete/1.0.4/auto-complete.css" />
+  <script type="text/javascript">var fsdocs_search_baseurl = 'https://fsprojects.github.io/fantomas/';</script>
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/lunr.js/2.3.8/lunr.min.js"></script>
+  <script type="text/javascript"
+    src="https://cdnjs.cloudflare.com/ajax/libs/JavaScript-autoComplete/1.0.4/auto-complete.min.js"></script>
+  <script type="text/javascript" src="https://fsprojects.github.io/fantomas/content/fsdocs-search.js"></script>
+  <!-- END SEARCH BOX: this adds support for the search box -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-A3rJD856KowSb7dwlZdYEkO39Gagi7vIsF0jrRAoQmDKKtQBHUuLZ9AsSv4jD4Xa" crossorigin="anonymous"></script>
+  <script type="module" src="https://fsprojects.github.io/fantomas/content/webcomponents.js"></script>
+  <script type="module">
+      import mermaid from "https://cdn.skypack.dev/mermaid";
+      mermaid.initialize({
+          startOnLoad: true,
+          theme: "base",
+          themeVariables: {
+              primaryColor: '#eff5f7'
+          }
+      });
+  </script>
+</body>
+</html>

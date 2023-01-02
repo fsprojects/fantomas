@@ -102,10 +102,10 @@
 <li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/Solution Structure.html" class="nav-link pb-2 d-block" > Solution structure
 </a></li>
 
-<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/Prepare Context.html" class="nav-link pb-2 d-block" > Fantomas.Core overview (1)
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/Transforming.html" class="nav-link pb-2 d-block" > Fantomas.Core overview (1)
 </a></li>
 
-<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/Print AST with Context.html" class="nav-link pb-2 d-block" > Fantomas.Core overview (2)
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/Traverse.html" class="nav-link pb-2 d-block" > Fantomas.Core overview (2)
 </a></li>
 
 <li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/Formatted Code.html" class="nav-link pb-2 d-block" > Fantomas.Core overview (3)
@@ -226,47 +226,39 @@ The <code>type</code> and <code>while</code> code can be trimmed and the problem
         <span class="id">CodeComments</span> <span class="o">=</span> <span class="pn">[</span><span class="id">BlockComment</span> <span class="id">tmp</span><span class="pn">.</span><span class="id">fsx</span> <span class="pn">(</span><span class="n">1</span><span class="pn">,</span><span class="n">4</span><span class="o">--</span><span class="n">1</span><span class="pn">,</span><span class="n">50</span><span class="pn">)</span><span class="pn">]</span> <span class="pn">}</span><span class="pn">)</span><span class="pn">)</span>
 </code></pre>
 <p>If the comment is not there this means the F# lexer and parser didn't pick up the comment. In the unlikely event this happened, this should be fixed first over at <a href="https://github.com/dotnet/fsharp">dotnet/fsharp</a>.</p>
-<h2><a name="Was-the-comment-detected-as-trivia" class="anchor" href="#Was-the-comment-detected-as-trivia">Was the comment detected as trivia?</a></h2>
-<p>Fantomas grabs the comments straight from the syntax tree, and transforms them as <code>Trivia</code>.<br />
+<h2><a name="Was-the-comment-detected-as-TriviaNode" class="anchor" href="#Was-the-comment-detected-as-TriviaNode">Was the comment detected as TriviaNode?</a></h2>
+<p>Fantomas grabs the comments straight from the syntax tree, and transforms them as <a href="../../reference/fantomas-core-syntaxoak-trivianode.html">TriviaNode</a>.<br />
+These <code>TriviaNode</code> are inserted into our custom <a href="../../reference/fantomas-core-syntaxoak-oak.html">Oak</a> tree.<br />
 This is a fairly straightforward process, and you can easily visually inspect this using the <a href="https://fsprojects.github.io/fantomas-tools/#/trivia">online tool</a>.</p>
-<p><img src="../../images/online-tool-trivia-1.png" alt="Trivia in online tool" /></p>
-<p>If your comment does not show up there, it means there is a problem between getting the information from the syntax tree and constructing the <code>Trivia</code> in <code>Trivia.fs</code>.</p>
-<h2><a name="Was-the-trivia-assigned-to-a-trivia-node" class="anchor" href="#Was-the-trivia-assigned-to-a-trivia-node">Was the trivia assigned to a trivia node?</a></h2>
-<p>The <code>Trivia</code> needs to be assigned to a <code>TriviaNode</code> to be stored in the <code>Context</code>.<br />
-Using the center tab in the tool, we can see the tree structure of all available <code>TriviaNodes</code>.</p>
-<p><img src="../../images/online-tool-trivia-2.png" alt="Root node in online tool" /></p>
-<p>Choosing the best suitable node can be quite tricky, there are different strategies for different <code>TriviaTypes</code>.<br />
-In this example <code>SynBindingKind_Normal</code> and <code>SynPat_Named</code> are good candidates as they appear right after the comment.<br />
-Once the <code>Trivia</code> is assigned to a <code>TriviaNode</code>, a <code>TriviaInstruction</code> will be created. This is the link between them and is what will be stored in the <code>Context</code>.</p>
-<p>The left-most tab in the tool shows us the result of the assigment:</p>
-<p><img src="../../images/online-tool-trivia-3.png" alt="Trivia Instructions in online tool" /></p>
-<p>In this example, at the time of writing, there are no <code>TriviaInstructions</code>. This means the assignment in <code>Trivia.fs</code> failed and we would need to investigate why.</p>
-<h2><a name="Was-the-trivia-assigned-to-the-best-possible-node" class="anchor" href="#Was-the-trivia-assigned-to-the-best-possible-node">Was the trivia assigned to the best possible node?</a></h2>
-<p>Sometimes the selected <code>TriviaNode</code> isn't really the best possible candidate.
-In <a href="https://github.com/fsprojects/fantomas/issues/640">#640</a>, the <code>Directive</code> trivia are assigned to <code>SynBindingKind_Normal</code>.</p>
-<p><img src="../../images/online-tool-trivia-4.png" alt="Wrong node assignment in online tool" /></p>
-<p>Notice that <code>SynBindingKind_Normal</code> starts at line <code>6</code>, while the <code>Trivia</code> is wrapped around the <code>inline</code> keyword on line <code>4</code>.<br />
-It would be ideal if we could use the <code>inline</code> keyword as a <code>TriviaNode</code>, but looking at the tree, it doesn't appear to be present.
-Why is that? Well, the syntax tree does, at the time of writing, not provide a <code>range</code> for the keyword.<br />
-This would be a great addition as to <a href="../../reference/fsharp-compiler-syntaxtrivia.html">SyntaxTreeTrivia</a>, and can be done by submitting a pull request to <a href="https://github.com/dotnet/fsharp">dotnet/fsharp</a>.</p>
-<h2><a name="Printing-the-TriviaInstruction" class="anchor" href="#Printing-the-TriviaInstruction">Printing the TriviaInstruction</a></h2>
-<p>The last piece of the puzzle is printing the actual <code>TriviaInstruction</code> in <code>CodePrinter</code>.
+<p><img src="../../images/online-tool-trivia-1.png" alt="TriviaNode in online tool" /></p>
+<p>If your comment does not show up there, it means there is a problem between getting the information from the syntax tree and constructing the <code>Trivia</code> in <code>Flowering.fs</code>.<br />
+You can put a breakpoint on <code>addToTree tree trivia</code> to see if all <code>Trivia</code> are constructed as expected.</p>
+<h2><a name="Was-the-TriviaNode-inserted-into-a-Node" class="anchor" href="#Was-the-TriviaNode-inserted-into-a-Node">Was the TriviaNode inserted into a Node?</a></h2>
+<p>The <code>TriviaNode</code> needs to be inserted into a <a href="../../reference/fantomas-core-syntaxoak-node.html">Node</a> inside the <code>Oak</code>.<br />
+Choosing the best suitable node can be quite tricky, there are different strategies for different <a href="../../reference/fantomas-core-syntaxoak-triviacontent.html">TriviaContent</a>.<br />
+In this example <a href="../../reference/fantomas-core-syntaxoak-multipletextsnode.html">MultipleTextsNode</a> (<code>let</code> keyword) and <a href="../../reference/fantomas-core-syntaxoak-identlistnode.html">IdentListNode</a> (<code>a</code> identifier) are good candidates as they appear right before and after the comment.<br />
+We insert the <code>TriviaNode</code> into the best suitable <code>Node</code> using the <code>AddBefore</code> or <code>AddAfter</code> methods.</p>
+<p>In this example, at the time of writing, the block comment was added as <code>ContentAfter</code> for the <code>Node</code> representing the <code>let</code> keyword.</p>
+<h2><a name="Was-the-TriviaNode-inserted-into-the-best-possible-Node" class="anchor" href="#Was-the-TriviaNode-inserted-into-the-best-possible-Node">Was the TriviaNode inserted into the best possible Node?</a></h2>
+<p>Sometimes the selected <code>Node</code> isn't really the best possible candidate.<br />
+In <a href="https://github.com/fsprojects/fantomas/issues/640">#640</a>, the <a href="../../reference/fantomas-core-syntaxoak-triviacontent.html#Directive">Directive</a> trivia should be inserted into the <code>internal</code> node.</p>
+<p><img src="../../images/online-tool-trivia-2.png" alt="Wrong node assignment in online tool" /></p>
+<p>In order to do this, we need to know the <a href="../../reference/fsharp-compiler-text-range.html">range</a> of that <code>internal</code> keyword.<br />
+The F# parser should capture this in order for us to be able to transform it into a <code>Node</code>.<br />
+This was done in <a href="https://github.com/dotnet/fsharp/pull/14503">dotnet/fsharp#14503</a>. Before that change in the syntax tree, another <code>Node</code> was selected and that lead to imperfect results.</p>
+<h2><a name="Printing-the-TriviaNode" class="anchor" href="#Printing-the-TriviaNode">Printing the TriviaNode</a></h2>
+<p>The last piece of the puzzle is printing the actual <code>TriviaNode</code> in <code>CodePrinter2</code>.
 If everything up to this point went well, and the comment is still missing after formatting, it means it was not printed.</p>
-<p>Every <code>TriviaInstruction</code> has a type (<code>FsAstType</code>) and a <code>range</code>. The <code>range</code> is taken from an actual AST node, so when we encounter this <code>range</code> in <code>CodePrinter</code>, we need to act upon it.<br />
-We typically do this by calling <code>genTriviaFor</code>, passing down the <code>type</code>, the <code>range</code> and a function <code>f</code> that should be composed in between.</p>
-<p>Example:</p>
-<pre class="fssnip highlighted"><code lang="fsharp"><span class="id">genTriviaFor</span> <span class="id">Ident_</span> <span class="c">(* : FsAstType *)</span> <span class="id">ident</span><span class="pn">.</span><span class="id">idRange</span> <span class="c">(* range : *)</span> <span class="id">genIdent</span> <span class="c">(* : Context -&gt; Context *)</span> 
+<p>Every <code>Node</code> potentially has <code>ContentBefore</code> and/or <code>ContentAfter</code>. We need to process this using the generic <code>genNode</code> function.</p>
+<pre class="fssnip highlighted"><code lang="fsharp"><span class="k">let</span> <span class="id">genTrivia</span> <span class="pn">(</span><span class="id">trivia</span><span class="pn">:</span> <span class="id">TriviaNode</span><span class="pn">)</span> <span class="pn">(</span><span class="id">ctx</span><span class="pn">:</span> <span class="id">Context</span><span class="pn">)</span> <span class="o">=</span> <span class="c">// process the TriviaContent</span>
+<span class="k">let</span> <span class="id">enterNode</span><span class="pn">&lt;</span><span class="id">&#39;</span><span class="id">n</span> <span class="k">when</span> <span class="id">&#39;</span><span class="id">n</span> <span class="o">:&gt;</span> <span class="id">Node</span><span class="pn">&gt;</span> <span class="pn">(</span><span class="id">n</span><span class="pn">:</span> <span class="id">&#39;</span><span class="id">n</span><span class="pn">)</span> <span class="o">=</span> <span class="id">col</span> <span class="id">sepNone</span> <span class="id">n</span><span class="pn">.</span><span class="id">ContentBefore</span> <span class="id">genTrivia</span>
+<span class="k">let</span> <span class="id">leaveNode</span><span class="pn">&lt;</span><span class="id">&#39;</span><span class="id">n</span> <span class="k">when</span> <span class="id">&#39;</span><span class="id">n</span> <span class="o">:&gt;</span> <span class="id">Node</span><span class="pn">&gt;</span> <span class="pn">(</span><span class="id">n</span><span class="pn">:</span> <span class="id">&#39;</span><span class="id">n</span><span class="pn">)</span> <span class="o">=</span> <span class="id">col</span> <span class="id">sepNone</span> <span class="id">n</span><span class="pn">.</span><span class="id">ContentAfter</span> <span class="id">genTrivia</span>
+<span class="k">let</span> <span class="id">genNode</span><span class="pn">&lt;</span><span class="id">&#39;</span><span class="id">n</span> <span class="k">when</span> <span class="id">&#39;</span><span class="id">n</span> <span class="o">:&gt;</span> <span class="id">Node</span><span class="pn">&gt;</span> <span class="pn">(</span><span class="id">n</span><span class="pn">:</span> <span class="id">&#39;</span><span class="id">n</span><span class="pn">)</span> <span class="pn">(</span><span class="id">f</span><span class="pn">:</span> <span class="id">Context</span> <span class="k">-&gt;</span> <span class="id">Context</span><span class="pn">)</span> <span class="o">=</span> <span class="id">enterNode</span> <span class="id">n</span> <span class="o">+&gt;</span> <span class="id">f</span> <span class="o">+&gt;</span> <span class="id">leaveNode</span> <span class="id">n</span>
+
+<span class="c">// Pipe `!- node.Text` (`f`) into `genNode`</span>
+<span class="k">let</span> <span class="id">genSingleTextNode</span> <span class="pn">(</span><span class="id">node</span><span class="pn">:</span> <span class="id">SingleTextNode</span><span class="pn">)</span> <span class="o">=</span> <span class="o">!-</span><span class="id">node</span><span class="pn">.</span><span class="id">Text</span> <span class="o">|&gt;</span> <span class="id">genNode</span> <span class="id">node</span>
 </code></pre>
-<p>If we look at the definition of <code>genTriviaFor</code>:</p>
-<pre class="fssnip highlighted"><code lang="fsharp"><span class="k">and</span> <span class="id">genTriviaFor</span> <span class="pn">(</span><span class="id">mainNodeName</span><span class="pn">:</span> <span class="id">FsAstType</span><span class="pn">)</span> <span class="pn">(</span><span class="id">range</span><span class="pn">:</span> <span class="id">Range</span><span class="pn">)</span> <span class="id">f</span> <span class="id">ctx</span> <span class="o">=</span>
-    <span class="pn">(</span><span class="id">enterNodeFor</span> <span class="id">mainNodeName</span> <span class="id">range</span> <span class="o">+&gt;</span> <span class="id">f</span> <span class="o">+&gt;</span> <span class="id">leaveNodeFor</span> <span class="id">mainNodeName</span> <span class="id">range</span><span class="pn">)</span> <span class="id">ctx</span>
-</code></pre>
-<p>We can derive that the composition will be as follows:</p>
-<pre class="fssnip highlighted"><code lang="fsharp"><span class="id">enterNodeFor</span> <span class="id">Ident_</span> <span class="id">ident</span><span class="pn">.</span><span class="id">idRange</span>
-<span class="o">+&gt;</span> <span class="id">genIdent</span>
-<span class="o">+&gt;</span> <span class="id">leaveNodeFor</span> <span class="id">Ident_</span> <span class="id">ident</span><span class="pn">.</span><span class="id">idRange</span>
-</code></pre>
-<p><code>enterNodeFor</code> and <code>leaveNodeFor</code> will print the <code>TriviaInstruction</code> it finds for the <code>range</code> and <code>type</code> inputs in the <code>Context</code>.</p>
+<p><code>enterNode</code> and <code>leaveNode</code> will print the <code>TriviaNodes</code> using <code>genTrivia</code>.</p>
 <fantomas-nav previous="./How%20Can%20I%20Contribute.html" next="./Pull%20request%20ground%20rules.html"></fantomas-nav>
 
         <div class="fsdocs-tip" id="fs1">val a: &#39;a list</div>
