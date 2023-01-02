@@ -1,5 +1,10 @@
 # Changelog
 
+## [5.2.0-beta-001] - 2023-01-02
+
+### Changed
+* Consider v5.2 to be stable and production ready.
+
 ## [5.2.0-alpha-010] - 2022-12-30
 
 ### Fixes
