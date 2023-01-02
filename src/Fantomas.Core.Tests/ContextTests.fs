@@ -90,17 +90,14 @@ let ``nested exceedsMultiline expression should bubble up to parent check`` () =
     let expression =
         !- "let a ="
         +> autoIndentAndNlnIfExpressionExceedsPageWidth (
-            sepOpenA
-            +> expressionFitsOnRestOfLine
+            expressionFitsOnRestOfLine
                 // short expression, should cross the max page width of 50
                 (!- "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" +> !- "BBBBBBBBBBBBBBBBBBBBBBBBBBBBBB")
                 // fallback expression
-                (sepNln
-                 +> !- "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+                (!- "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
                  +> sepNln
                  +> !- "BBBBBBBBBBBBBBBBBBBBBBBBBBBBBB"
                  +> sepNln)
-            +> sepCloseA
         )
 
     let config =
@@ -119,7 +116,6 @@ let ``nested exceedsMultiline expression should bubble up to parent check`` () =
         equal
         """
 let a =
-    [|
     AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
     BBBBBBBBBBBBBBBBBBBBBBBBBBBBBB
-    |]"""
+"""
