@@ -27,16 +27,6 @@ module RangeHelpers =
 
         startRange, endRange
 
-    let mergeRanges (ranges: range list) : range option =
-        match ranges with
-        | [] -> None
-        | [ h ] -> Some h
-        | all ->
-            all
-            |> List.sortBy (fun r -> r.StartLine, r.StartColumn)
-            |> List.reduce Range.unionRanges
-            |> Some
-
 module RangePatterns =
     let (|StartEndRange|) (size: int) (range: range) =
         let o, c = RangeHelpers.mkStartEndRange size range
