@@ -251,7 +251,8 @@ The same indentation is ensured to be consistent in a source file.</p>
 
 <span class="s">      find &lt;| f.Length - 1</span>
 <span class="s">    &quot;&quot;&quot;</span>
-    <span class="pn">{</span> <span onmouseout="hideTip(event, 'fs11', 16)" onmouseover="showTip(event, 'fs11', 16)" class="m">FormatConfig</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs12', 17)" onmouseover="showTip(event, 'fs12', 17)" class="id">Default</span> <span class="k">with</span> <span class="prop">IndentSize</span> <span class="o">=</span> <span class="n">2</span> <span class="pn">}</span>
+    <span class="pn">{</span> <span onmouseout="hideTip(event, 'fs11', 16)" onmouseover="showTip(event, 'fs11', 16)" class="m">FormatConfig</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs12', 17)" onmouseover="showTip(event, 'fs12', 17)" class="id">Default</span> <span class="k">with</span>
+        <span class="prop">IndentSize</span> <span class="o">=</span> <span class="n">2</span> <span class="pn">}</span>
 </code></pre>
 <table class="pre"><tr><td><pre><code>"let inline selectRandom (f: _[]) =
   let r = random 1.0
@@ -274,7 +275,8 @@ This preference sets the column where we break F# constructs into new lines.</p>
 <span class="s">    | Some foo -&gt; someLongFunctionNameThatWillTakeFooAndReturnsUnit foo</span>
 <span class="s">    | None -&gt; printfn &quot;nothing&quot;</span>
 <span class="s">    &quot;&quot;&quot;</span>
-    <span class="pn">{</span> <span onmouseout="hideTip(event, 'fs11', 19)" onmouseover="showTip(event, 'fs11', 19)" class="m">FormatConfig</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs12', 20)" onmouseover="showTip(event, 'fs12', 20)" class="id">Default</span> <span class="k">with</span> <span class="prop">MaxLineLength</span> <span class="o">=</span> <span class="n">60</span> <span class="pn">}</span>
+    <span class="pn">{</span> <span onmouseout="hideTip(event, 'fs11', 19)" onmouseover="showTip(event, 'fs11', 19)" class="m">FormatConfig</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs12', 20)" onmouseover="showTip(event, 'fs12', 20)" class="id">Default</span> <span class="k">with</span>
+        <span class="prop">MaxLineLength</span> <span class="o">=</span> <span class="n">60</span> <span class="pn">}</span>
 </code></pre>
 <table class="pre"><tr><td><pre><code>"match myValue with
 | Some foo -&gt;
@@ -293,7 +295,8 @@ If not set by the user, the default value is determined by <code>System.Environm
     <span class="s">&quot;&quot;&quot; </span>
 <span class="s">    let a = 42</span>
 <span class="s">    &quot;&quot;&quot;</span>
-    <span class="pn">{</span> <span onmouseout="hideTip(event, 'fs11', 22)" onmouseover="showTip(event, 'fs11', 22)" class="m">FormatConfig</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs12', 23)" onmouseover="showTip(event, 'fs12', 23)" class="id">Default</span> <span class="k">with</span> <span class="prop">InsertFinalNewline</span> <span class="o">=</span> <span class="k">false</span> <span class="pn">}</span>
+    <span class="pn">{</span> <span onmouseout="hideTip(event, 'fs11', 22)" onmouseover="showTip(event, 'fs11', 22)" class="m">FormatConfig</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs12', 23)" onmouseover="showTip(event, 'fs12', 23)" class="id">Default</span> <span class="k">with</span>
+        <span class="prop">InsertFinalNewline</span> <span class="o">=</span> <span class="k">false</span> <span class="pn">}</span>
 </code></pre>
 <table class="pre"><tr><td><pre><code>"let a = 42"</code></pre></td></tr></table>
 <fantomas-setting name="fsharp_space_before_parameter" orange></fantomas-setting>
@@ -305,7 +308,8 @@ This setting influences function definitions.</p>
 <span class="s">   let value (a: int) = x</span>
 <span class="s">   let DumpTrace() = ()</span>
 <span class="s">    &quot;&quot;&quot;</span>
-    <span class="pn">{</span> <span onmouseout="hideTip(event, 'fs11', 25)" onmouseover="showTip(event, 'fs11', 25)" class="m">FormatConfig</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs12', 26)" onmouseover="showTip(event, 'fs12', 26)" class="id">Default</span> <span class="k">with</span> <span class="prop">SpaceBeforeParameter</span> <span class="o">=</span> <span class="k">false</span> <span class="pn">}</span>
+    <span class="pn">{</span> <span onmouseout="hideTip(event, 'fs11', 25)" onmouseover="showTip(event, 'fs11', 25)" class="m">FormatConfig</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs12', 26)" onmouseover="showTip(event, 'fs12', 26)" class="id">Default</span> <span class="k">with</span>
+        <span class="prop">SpaceBeforeParameter</span> <span class="o">=</span> <span class="k">false</span> <span class="pn">}</span>
 </code></pre>
 <table class="pre"><tr><td><pre><code>"let value(a: int) = x
 let DumpTrace() = ()
@@ -322,7 +326,8 @@ This setting influences function invocation in expressions and patterns.</p>
 <span class="s">match x with</span>
 <span class="s">| value (a, b) -&gt; ()</span>
 <span class="s">    &quot;&quot;&quot;</span>
-    <span class="pn">{</span> <span onmouseout="hideTip(event, 'fs11', 28)" onmouseover="showTip(event, 'fs11', 28)" class="m">FormatConfig</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs12', 29)" onmouseover="showTip(event, 'fs12', 29)" class="id">Default</span> <span class="k">with</span> <span class="prop">SpaceBeforeLowercaseInvocation</span> <span class="o">=</span> <span class="k">false</span> <span class="pn">}</span>
+    <span class="pn">{</span> <span onmouseout="hideTip(event, 'fs11', 28)" onmouseover="showTip(event, 'fs11', 28)" class="m">FormatConfig</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs12', 29)" onmouseover="showTip(event, 'fs12', 29)" class="id">Default</span> <span class="k">with</span>
+        <span class="prop">SpaceBeforeLowercaseInvocation</span> <span class="o">=</span> <span class="k">false</span> <span class="pn">}</span>
 </code></pre>
 <table class="pre"><tr><td><pre><code>"value(a, b)
 startTimer()
@@ -342,7 +347,8 @@ This setting influences function invocation in expressions and patterns.</p>
 <span class="s">match x with</span>
 <span class="s">| Value(a, b) -&gt; ()</span>
 <span class="s">    &quot;&quot;&quot;</span>
-    <span class="pn">{</span> <span onmouseout="hideTip(event, 'fs11', 31)" onmouseover="showTip(event, 'fs11', 31)" class="m">FormatConfig</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs12', 32)" onmouseover="showTip(event, 'fs12', 32)" class="id">Default</span> <span class="k">with</span> <span class="prop">SpaceBeforeUppercaseInvocation</span> <span class="o">=</span> <span class="k">true</span> <span class="pn">}</span>
+    <span class="pn">{</span> <span onmouseout="hideTip(event, 'fs11', 31)" onmouseover="showTip(event, 'fs11', 31)" class="m">FormatConfig</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs12', 32)" onmouseover="showTip(event, 'fs12', 32)" class="id">Default</span> <span class="k">with</span>
+        <span class="prop">SpaceBeforeUppercaseInvocation</span> <span class="o">=</span> <span class="k">true</span> <span class="pn">}</span>
 </code></pre>
 <table class="pre"><tr><td><pre><code>"Value (a, b)
 person.ToString ()
@@ -359,7 +365,8 @@ match x with
 <span class="s">        class</span>
 <span class="s">        end</span>
 <span class="s">    &quot;&quot;&quot;</span>
-    <span class="pn">{</span> <span onmouseout="hideTip(event, 'fs11', 34)" onmouseover="showTip(event, 'fs11', 34)" class="m">FormatConfig</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs12', 35)" onmouseover="showTip(event, 'fs12', 35)" class="id">Default</span> <span class="k">with</span> <span class="prop">SpaceBeforeClassConstructor</span> <span class="o">=</span> <span class="k">true</span> <span class="pn">}</span>
+    <span class="pn">{</span> <span onmouseout="hideTip(event, 'fs11', 34)" onmouseover="showTip(event, 'fs11', 34)" class="m">FormatConfig</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs12', 35)" onmouseover="showTip(event, 'fs12', 35)" class="id">Default</span> <span class="k">with</span>
+        <span class="prop">SpaceBeforeClassConstructor</span> <span class="o">=</span> <span class="k">true</span> <span class="pn">}</span>
 </code></pre>
 <table class="pre"><tr><td><pre><code>"type Person () =
     class
@@ -376,7 +383,8 @@ match x with
 <span class="s">        member __.singAlong() = ()</span>
 <span class="s">        member __.swim(duration: TimeSpan) = ()</span>
 <span class="s">    &quot;&quot;&quot;</span>
-    <span class="pn">{</span> <span onmouseout="hideTip(event, 'fs11', 37)" onmouseover="showTip(event, 'fs11', 37)" class="m">FormatConfig</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs12', 38)" onmouseover="showTip(event, 'fs12', 38)" class="id">Default</span> <span class="k">with</span> <span class="prop">SpaceBeforeMember</span> <span class="o">=</span> <span class="k">true</span> <span class="pn">}</span>
+    <span class="pn">{</span> <span onmouseout="hideTip(event, 'fs11', 37)" onmouseover="showTip(event, 'fs11', 37)" class="m">FormatConfig</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs12', 38)" onmouseover="showTip(event, 'fs12', 38)" class="id">Default</span> <span class="k">with</span>
+        <span class="prop">SpaceBeforeMember</span> <span class="o">=</span> <span class="k">true</span> <span class="pn">}</span>
 </code></pre>
 <table class="pre"><tr><td><pre><code>"type Person() =
     member this.Walk (distance: int) = ()
@@ -393,7 +401,8 @@ match x with
 <span class="s">   let myValue: int = 42</span>
 <span class="s">   let update (msg: Msg) (model: Model) : Model = model</span>
 <span class="s">    &quot;&quot;&quot;</span>
-    <span class="pn">{</span> <span onmouseout="hideTip(event, 'fs11', 40)" onmouseover="showTip(event, 'fs11', 40)" class="m">FormatConfig</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs12', 41)" onmouseover="showTip(event, 'fs12', 41)" class="id">Default</span> <span class="k">with</span> <span class="prop">SpaceBeforeColon</span> <span class="o">=</span> <span class="k">true</span> <span class="pn">}</span>
+    <span class="pn">{</span> <span onmouseout="hideTip(event, 'fs11', 40)" onmouseover="showTip(event, 'fs11', 40)" class="m">FormatConfig</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs12', 41)" onmouseover="showTip(event, 'fs12', 41)" class="id">Default</span> <span class="k">with</span>
+        <span class="prop">SpaceBeforeColon</span> <span class="o">=</span> <span class="k">true</span> <span class="pn">}</span>
 </code></pre>
 <table class="pre"><tr><td><pre><code>"type Point = { x : int; y : int }
 let myValue : int = 42
@@ -407,7 +416,8 @@ let update (msg : Msg) (model : Model) : Model = model
 <span class="s">    myValue.SomeFunction(foo, bar, somethingElse)</span>
 <span class="s">    (a, b, c)</span>
 <span class="s">    &quot;&quot;&quot;</span>
-    <span class="pn">{</span> <span onmouseout="hideTip(event, 'fs11', 43)" onmouseover="showTip(event, 'fs11', 43)" class="m">FormatConfig</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs12', 44)" onmouseover="showTip(event, 'fs12', 44)" class="id">Default</span> <span class="k">with</span> <span class="prop">SpaceAfterComma</span> <span class="o">=</span> <span class="k">false</span> <span class="pn">}</span>
+    <span class="pn">{</span> <span onmouseout="hideTip(event, 'fs11', 43)" onmouseover="showTip(event, 'fs11', 43)" class="m">FormatConfig</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs12', 44)" onmouseover="showTip(event, 'fs12', 44)" class="id">Default</span> <span class="k">with</span>
+        <span class="prop">SpaceAfterComma</span> <span class="o">=</span> <span class="k">false</span> <span class="pn">}</span>
 </code></pre>
 <table class="pre"><tr><td><pre><code>"myValue.SomeFunction(foo,bar,somethingElse)
 (a,b,c)
@@ -421,7 +431,8 @@ let update (msg : Msg) (model : Model) : Model = model
 <span class="s">    let b = [| foo ; bar |]</span>
 <span class="s">    type C = { X: int ; Y: int }</span>
 <span class="s">    &quot;&quot;&quot;</span>
-    <span class="pn">{</span> <span onmouseout="hideTip(event, 'fs11', 46)" onmouseover="showTip(event, 'fs11', 46)" class="m">FormatConfig</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs12', 47)" onmouseover="showTip(event, 'fs12', 47)" class="id">Default</span> <span class="k">with</span> <span class="prop">SpaceBeforeSemicolon</span> <span class="o">=</span> <span class="k">true</span> <span class="pn">}</span>
+    <span class="pn">{</span> <span onmouseout="hideTip(event, 'fs11', 46)" onmouseover="showTip(event, 'fs11', 46)" class="m">FormatConfig</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs12', 47)" onmouseover="showTip(event, 'fs12', 47)" class="id">Default</span> <span class="k">with</span>
+        <span class="prop">SpaceBeforeSemicolon</span> <span class="o">=</span> <span class="k">true</span> <span class="pn">}</span>
 </code></pre>
 <table class="pre"><tr><td><pre><code>"let a = [ 1 ; 2 ; 3 ]
 let b = [| foo ; bar |]
@@ -436,7 +447,8 @@ type C = { X: int ; Y: int }
 <span class="s">    let b = [| foo; bar |]</span>
 <span class="s">    type C = { X: int; Y: int }</span>
 <span class="s">    &quot;&quot;&quot;</span>
-    <span class="pn">{</span> <span onmouseout="hideTip(event, 'fs11', 49)" onmouseover="showTip(event, 'fs11', 49)" class="m">FormatConfig</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs12', 50)" onmouseover="showTip(event, 'fs12', 50)" class="id">Default</span> <span class="k">with</span> <span class="prop">SpaceAfterSemicolon</span> <span class="o">=</span> <span class="k">false</span> <span class="pn">}</span>
+    <span class="pn">{</span> <span onmouseout="hideTip(event, 'fs11', 49)" onmouseover="showTip(event, 'fs11', 49)" class="m">FormatConfig</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs12', 50)" onmouseover="showTip(event, 'fs12', 50)" class="id">Default</span> <span class="k">with</span>
+        <span class="prop">SpaceAfterSemicolon</span> <span class="o">=</span> <span class="k">false</span> <span class="pn">}</span>
 </code></pre>
 <table class="pre"><tr><td><pre><code>"let a = [ 1;2;3 ]
 let b = [| foo;bar |]
@@ -450,7 +462,8 @@ type C = { X: int;Y: int }
 <span class="s">    let a = [ 1;2;3 ]</span>
 <span class="s">    let b = [| 4;5;6 |]</span>
 <span class="s">    &quot;&quot;&quot;</span>
-    <span class="pn">{</span> <span onmouseout="hideTip(event, 'fs11', 52)" onmouseover="showTip(event, 'fs11', 52)" class="m">FormatConfig</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs12', 53)" onmouseover="showTip(event, 'fs12', 53)" class="id">Default</span> <span class="k">with</span> <span class="prop">SpaceAroundDelimiter</span> <span class="o">=</span> <span class="k">false</span> <span class="pn">}</span>
+    <span class="pn">{</span> <span onmouseout="hideTip(event, 'fs11', 52)" onmouseover="showTip(event, 'fs11', 52)" class="m">FormatConfig</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs12', 53)" onmouseover="showTip(event, 'fs12', 53)" class="id">Default</span> <span class="k">with</span>
+        <span class="prop">SpaceAroundDelimiter</span> <span class="o">=</span> <span class="k">false</span> <span class="pn">}</span>
 </code></pre>
 <table class="pre"><tr><td><pre><code>"let a = [1; 2; 3]
 let b = [|4; 5; 6|]
@@ -469,7 +482,8 @@ The <a href="https://docs.microsoft.com/en-us/dotnet/fsharp/style-guide/formatti
 <span class="s">    if a then </span>
 <span class="s">        ()</span>
 <span class="s">    &quot;&quot;&quot;</span>
-    <span class="pn">{</span> <span onmouseout="hideTip(event, 'fs11', 55)" onmouseover="showTip(event, 'fs11', 55)" class="m">FormatConfig</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs12', 56)" onmouseover="showTip(event, 'fs12', 56)" class="id">Default</span> <span class="k">with</span> <span class="prop">MaxIfThenShortWidth</span> <span class="o">=</span> <span class="n">15</span> <span class="pn">}</span>
+    <span class="pn">{</span> <span onmouseout="hideTip(event, 'fs11', 55)" onmouseover="showTip(event, 'fs11', 55)" class="m">FormatConfig</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs12', 56)" onmouseover="showTip(event, 'fs12', 56)" class="id">Default</span> <span class="k">with</span>
+        <span class="prop">MaxIfThenShortWidth</span> <span class="o">=</span> <span class="n">15</span> <span class="pn">}</span>
 </code></pre>
 <table class="pre"><tr><td><pre><code>"if a then ()
 "</code></pre></td></tr></table>
@@ -481,7 +495,8 @@ This setting facilitates this by determining the maximum character width where t
     <span class="s">&quot;&quot;&quot; </span>
 <span class="s">    if myCheck then truth else bogus</span>
 <span class="s">    &quot;&quot;&quot;</span>
-    <span class="pn">{</span> <span onmouseout="hideTip(event, 'fs11', 58)" onmouseover="showTip(event, 'fs11', 58)" class="m">FormatConfig</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs12', 59)" onmouseover="showTip(event, 'fs12', 59)" class="id">Default</span> <span class="k">with</span> <span class="prop">MaxIfThenElseShortWidth</span> <span class="o">=</span> <span class="n">10</span> <span class="pn">}</span>
+    <span class="pn">{</span> <span onmouseout="hideTip(event, 'fs11', 58)" onmouseover="showTip(event, 'fs11', 58)" class="m">FormatConfig</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs12', 59)" onmouseover="showTip(event, 'fs12', 59)" class="id">Default</span> <span class="k">with</span>
+        <span class="prop">MaxIfThenElseShortWidth</span> <span class="o">=</span> <span class="n">10</span> <span class="pn">}</span>
 </code></pre>
 <table class="pre"><tr><td><pre><code>"if myCheck then
     truth
@@ -496,7 +511,8 @@ else
 <span class="s">    let WebApp =</span>
 <span class="s">        route &quot;/ping&quot; &gt;=&gt; authorized &gt;=&gt; text &quot;pong&quot;</span>
 <span class="s">    &quot;&quot;&quot;</span>
-    <span class="pn">{</span> <span onmouseout="hideTip(event, 'fs11', 61)" onmouseover="showTip(event, 'fs11', 61)" class="m">FormatConfig</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs12', 62)" onmouseover="showTip(event, 'fs12', 62)" class="id">Default</span> <span class="k">with</span> <span class="prop">MaxInfixOperatorExpression</span> <span class="o">=</span> <span class="n">20</span> <span class="pn">}</span>
+    <span class="pn">{</span> <span onmouseout="hideTip(event, 'fs11', 61)" onmouseover="showTip(event, 'fs11', 61)" class="m">FormatConfig</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs12', 62)" onmouseover="showTip(event, 'fs12', 62)" class="id">Default</span> <span class="k">with</span>
+        <span class="prop">MaxInfixOperatorExpression</span> <span class="o">=</span> <span class="n">20</span> <span class="pn">}</span>
 </code></pre>
 <table class="pre"><tr><td><pre><code>"let WebApp =
     route "/ping"
@@ -512,7 +528,8 @@ else
 <span class="s">    type MyRecord = { X: int; Y: int; Length: int }</span>
 <span class="s">    let myInstance = { X = 10; Y = 20; Length = 90 }</span>
 <span class="s">    &quot;&quot;&quot;</span>
-    <span class="pn">{</span> <span onmouseout="hideTip(event, 'fs11', 64)" onmouseover="showTip(event, 'fs11', 64)" class="m">FormatConfig</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs12', 65)" onmouseover="showTip(event, 'fs12', 65)" class="id">Default</span> <span class="k">with</span> <span class="prop">MaxRecordWidth</span> <span class="o">=</span> <span class="n">20</span> <span class="pn">}</span>
+    <span class="pn">{</span> <span onmouseout="hideTip(event, 'fs11', 64)" onmouseover="showTip(event, 'fs11', 64)" class="m">FormatConfig</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs12', 65)" onmouseover="showTip(event, 'fs12', 65)" class="id">Default</span> <span class="k">with</span>
+        <span class="prop">MaxRecordWidth</span> <span class="o">=</span> <span class="n">20</span> <span class="pn">}</span>
 </code></pre>
 <table class="pre"><tr><td><pre><code>"type MyRecord =
     { X: int
@@ -588,7 +605,8 @@ let myRecord''' =
 
 <span class="s">    let myRecord&#39;&#39; = { r with x = 3; y = &quot;hello&quot; }</span>
 <span class="s">    &quot;&quot;&quot;</span>
-    <span class="pn">{</span> <span onmouseout="hideTip(event, 'fs11', 72)" onmouseover="showTip(event, 'fs11', 72)" class="m">FormatConfig</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs12', 73)" onmouseover="showTip(event, 'fs12', 73)" class="id">Default</span> <span class="k">with</span> <span class="prop">RecordMultilineFormatter</span> <span class="o">=</span> <span onmouseout="hideTip(event, 'fs13', 74)" onmouseover="showTip(event, 'fs13', 74)" class="rt">MultilineFormatterType</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs14', 75)" onmouseover="showTip(event, 'fs14', 75)" class="id">NumberOfItems</span> <span class="pn">}</span>
+    <span class="pn">{</span> <span onmouseout="hideTip(event, 'fs11', 72)" onmouseover="showTip(event, 'fs11', 72)" class="m">FormatConfig</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs12', 73)" onmouseover="showTip(event, 'fs12', 73)" class="id">Default</span> <span class="k">with</span>
+        <span class="prop">RecordMultilineFormatter</span> <span class="o">=</span> <span onmouseout="hideTip(event, 'fs13', 74)" onmouseover="showTip(event, 'fs13', 74)" class="rt">MultilineFormatterType</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs14', 75)" onmouseover="showTip(event, 'fs14', 75)" class="id">NumberOfItems</span> <span class="pn">}</span>
 </code></pre>
 <table class="pre"><tr><td><pre><code>"type R = { x: int }
 
@@ -613,7 +631,8 @@ let myRecord'' =
     <span class="s">&quot;&quot;&quot; </span>
 <span class="s">    let myArray = [| one; two; three |]</span>
 <span class="s">    &quot;&quot;&quot;</span>
-    <span class="pn">{</span> <span onmouseout="hideTip(event, 'fs11', 77)" onmouseover="showTip(event, 'fs11', 77)" class="m">FormatConfig</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs12', 78)" onmouseover="showTip(event, 'fs12', 78)" class="id">Default</span> <span class="k">with</span> <span class="prop">MaxArrayOrListWidth</span> <span class="o">=</span> <span class="n">20</span> <span class="pn">}</span>
+    <span class="pn">{</span> <span onmouseout="hideTip(event, 'fs11', 77)" onmouseover="showTip(event, 'fs11', 77)" class="m">FormatConfig</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs12', 78)" onmouseover="showTip(event, 'fs12', 78)" class="id">Default</span> <span class="k">with</span>
+        <span class="prop">MaxArrayOrListWidth</span> <span class="o">=</span> <span class="n">20</span> <span class="pn">}</span>
 </code></pre>
 <table class="pre"><tr><td><pre><code>"let myArray =
     [| one
@@ -650,7 +669,8 @@ let myArray =
     <span class="s">&quot;&quot;&quot; </span>
 <span class="s">    let myArray = [| one; two; three |]</span>
 <span class="s">    &quot;&quot;&quot;</span>
-    <span class="pn">{</span> <span onmouseout="hideTip(event, 'fs11', 85)" onmouseover="showTip(event, 'fs11', 85)" class="m">FormatConfig</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs12', 86)" onmouseover="showTip(event, 'fs12', 86)" class="id">Default</span> <span class="k">with</span> <span class="prop">ArrayOrListMultilineFormatter</span> <span class="o">=</span> <span onmouseout="hideTip(event, 'fs13', 87)" onmouseover="showTip(event, 'fs13', 87)" class="rt">MultilineFormatterType</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs14', 88)" onmouseover="showTip(event, 'fs14', 88)" class="id">NumberOfItems</span> <span class="pn">}</span>
+    <span class="pn">{</span> <span onmouseout="hideTip(event, 'fs11', 85)" onmouseover="showTip(event, 'fs11', 85)" class="m">FormatConfig</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs12', 86)" onmouseover="showTip(event, 'fs12', 86)" class="id">Default</span> <span class="k">with</span>
+        <span class="prop">ArrayOrListMultilineFormatter</span> <span class="o">=</span> <span onmouseout="hideTip(event, 'fs13', 87)" onmouseover="showTip(event, 'fs13', 87)" class="rt">MultilineFormatterType</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs14', 88)" onmouseover="showTip(event, 'fs14', 88)" class="id">NumberOfItems</span> <span class="pn">}</span>
 </code></pre>
 <table class="pre"><tr><td><pre><code>"let myArray =
     [| one
@@ -667,7 +687,8 @@ The width is that of the pattern for the binding plus the right-hand expression 
 <span class="s">    type MyType() =</span>
 <span class="s">        member this.HelpText = &quot;Some help text&quot;</span>
 <span class="s">    &quot;&quot;&quot;</span>
-    <span class="pn">{</span> <span onmouseout="hideTip(event, 'fs11', 90)" onmouseover="showTip(event, 'fs11', 90)" class="m">FormatConfig</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs12', 91)" onmouseover="showTip(event, 'fs12', 91)" class="id">Default</span> <span class="k">with</span> <span class="prop">MaxValueBindingWidth</span> <span class="o">=</span> <span class="n">10</span> <span class="pn">}</span>
+    <span class="pn">{</span> <span onmouseout="hideTip(event, 'fs11', 90)" onmouseover="showTip(event, 'fs11', 90)" class="m">FormatConfig</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs12', 91)" onmouseover="showTip(event, 'fs12', 91)" class="id">Default</span> <span class="k">with</span>
+        <span class="prop">MaxValueBindingWidth</span> <span class="o">=</span> <span class="n">10</span> <span class="pn">}</span>
 </code></pre>
 <table class="pre"><tr><td><pre><code>"let title =
     "Great title of project"
@@ -686,7 +707,8 @@ In contrast to <code>fsharp_max_value_binding_width</code>, only the right-hand 
 <span class="s">    type MyType() =</span>
 <span class="s">        member this.HelpText = &quot;Some help text&quot;</span>
 <span class="s">    &quot;&quot;&quot;</span>
-    <span class="pn">{</span> <span onmouseout="hideTip(event, 'fs11', 93)" onmouseover="showTip(event, 'fs11', 93)" class="m">FormatConfig</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs12', 94)" onmouseover="showTip(event, 'fs12', 94)" class="id">Default</span> <span class="k">with</span> <span class="prop">MaxFunctionBindingWidth</span> <span class="o">=</span> <span class="n">10</span> <span class="pn">}</span>
+    <span class="pn">{</span> <span onmouseout="hideTip(event, 'fs11', 93)" onmouseover="showTip(event, 'fs11', 93)" class="m">FormatConfig</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs12', 94)" onmouseover="showTip(event, 'fs12', 94)" class="id">Default</span> <span class="k">with</span>
+        <span class="prop">MaxFunctionBindingWidth</span> <span class="o">=</span> <span class="n">10</span> <span class="pn">}</span>
 </code></pre>
 <table class="pre"><tr><td><pre><code>"let title = "Great title of project"
 
@@ -704,7 +726,8 @@ type MyType() =
 <span class="s">        .Create&lt;WrapperJob&gt;()</span>
 <span class="s">        .Build()</span>
 <span class="s">    &quot;&quot;&quot;</span>
-    <span class="pn">{</span> <span onmouseout="hideTip(event, 'fs11', 96)" onmouseover="showTip(event, 'fs11', 96)" class="m">FormatConfig</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs12', 97)" onmouseover="showTip(event, 'fs12', 97)" class="id">Default</span> <span class="k">with</span> <span class="prop">MaxDotGetExpressionWidth</span> <span class="o">=</span> <span class="n">100</span> <span class="pn">}</span>
+    <span class="pn">{</span> <span onmouseout="hideTip(event, 'fs11', 96)" onmouseover="showTip(event, 'fs11', 96)" class="m">FormatConfig</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs12', 97)" onmouseover="showTip(event, 'fs12', 97)" class="id">Default</span> <span class="k">with</span>
+        <span class="prop">MaxDotGetExpressionWidth</span> <span class="o">=</span> <span class="n">100</span> <span class="pn">}</span>
 </code></pre>
 <table class="pre"><tr><td><pre><code>"let job = JobBuilder.UsingJobData(jobDataMap).Create&lt;WrapperJob&gt;().Build()
 "</code></pre></td></tr></table>
@@ -737,7 +760,8 @@ From a consistency point of view, it is recommend to enable all these settings i
 <span class="s">           (16, 17,18)</span>
 <span class="s">           (19, 20, 21) |]</span>
 <span class="s">    &quot;&quot;&quot;</span>
-    <span class="pn">{</span> <span onmouseout="hideTip(event, 'fs11', 99)" onmouseover="showTip(event, 'fs11', 99)" class="m">FormatConfig</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs12', 100)" onmouseover="showTip(event, 'fs12', 100)" class="id">Default</span> <span class="k">with</span> <span class="prop">MultilineBlockBracketsOnSameColumn</span> <span class="o">=</span> <span class="k">true</span> <span class="pn">}</span>
+    <span class="pn">{</span> <span onmouseout="hideTip(event, 'fs11', 99)" onmouseover="showTip(event, 'fs11', 99)" class="m">FormatConfig</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs12', 100)" onmouseover="showTip(event, 'fs12', 100)" class="id">Default</span> <span class="k">with</span>
+        <span class="prop">MultilineBlockBracketsOnSameColumn</span> <span class="o">=</span> <span class="k">true</span> <span class="pn">}</span>
 </code></pre>
 <table class="pre"><tr><td><pre><code>"let myRecord =
     {
@@ -776,7 +800,8 @@ let a =
 <span class="s">      To: float }</span>
 <span class="s">    member this.Length = this.To - this.From</span>
 <span class="s">    &quot;&quot;&quot;</span>
-    <span class="pn">{</span> <span onmouseout="hideTip(event, 'fs11', 102)" onmouseover="showTip(event, 'fs11', 102)" class="m">FormatConfig</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs12', 103)" onmouseover="showTip(event, 'fs12', 103)" class="id">Default</span> <span class="k">with</span> <span class="prop">NewlineBetweenTypeDefinitionAndMembers</span> <span class="o">=</span> <span class="k">true</span> <span class="pn">}</span>
+    <span class="pn">{</span> <span onmouseout="hideTip(event, 'fs11', 102)" onmouseover="showTip(event, 'fs11', 102)" class="m">FormatConfig</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs12', 103)" onmouseover="showTip(event, 'fs12', 103)" class="id">Default</span> <span class="k">with</span>
+        <span class="prop">NewlineBetweenTypeDefinitionAndMembers</span> <span class="o">=</span> <span class="k">true</span> <span class="pn">}</span>
 </code></pre>
 <table class="pre"><tr><td><pre><code>"type Range =
     { From: float
@@ -797,7 +822,8 @@ This setting also places the equals sign and return type on a new line.</p>
 <span class="s">    : HttpResponse =</span>
 <span class="s">    Http.main CodeFormatter.GetVersion format FormatConfig.FormatConfig.Default log req</span>
 <span class="s">    &quot;&quot;&quot;</span>
-    <span class="pn">{</span> <span onmouseout="hideTip(event, 'fs11', 105)" onmouseover="showTip(event, 'fs11', 105)" class="m">FormatConfig</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs12', 106)" onmouseover="showTip(event, 'fs12', 106)" class="id">Default</span> <span class="k">with</span> <span class="prop">AlignFunctionSignatureToIndentation</span> <span class="o">=</span> <span class="k">true</span> <span class="pn">}</span>
+    <span class="pn">{</span> <span onmouseout="hideTip(event, 'fs11', 105)" onmouseover="showTip(event, 'fs11', 105)" class="m">FormatConfig</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs12', 106)" onmouseover="showTip(event, 'fs12', 106)" class="id">Default</span> <span class="k">with</span>
+        <span class="prop">AlignFunctionSignatureToIndentation</span> <span class="o">=</span> <span class="k">true</span> <span class="pn">}</span>
 </code></pre>
 <table class="pre"><tr><td><pre><code>"[&lt;FunctionName("FormatCode")&gt;]
 let run
@@ -831,7 +857,8 @@ where the difference is mainly in the equal sign and returned type placement.</p
 <span class="s">        ) : ReturnType =</span>
 <span class="s">        42</span>
 <span class="s">    &quot;&quot;&quot;</span>
-    <span class="pn">{</span> <span onmouseout="hideTip(event, 'fs11', 108)" onmouseover="showTip(event, 'fs11', 108)" class="m">FormatConfig</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs12', 109)" onmouseover="showTip(event, 'fs12', 109)" class="id">Default</span> <span class="k">with</span> <span class="prop">AlternativeLongMemberDefinitions</span> <span class="o">=</span> <span class="k">true</span> <span class="pn">}</span>
+    <span class="pn">{</span> <span onmouseout="hideTip(event, 'fs11', 108)" onmouseover="showTip(event, 'fs11', 108)" class="m">FormatConfig</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs12', 109)" onmouseover="showTip(event, 'fs12', 109)" class="id">Default</span> <span class="k">with</span>
+        <span class="prop">AlternativeLongMemberDefinitions</span> <span class="o">=</span> <span class="k">true</span> <span class="pn">}</span>
 </code></pre>
 <table class="pre"><tr><td><pre><code>"type C
     (
@@ -873,7 +900,8 @@ type D() =
 <span class="s">            // print stuff</span>
 <span class="s">            printfn &quot;%d&quot; (a + elem))</span>
 <span class="s">    &quot;&quot;&quot;</span>
-    <span class="pn">{</span> <span onmouseout="hideTip(event, 'fs11', 111)" onmouseover="showTip(event, 'fs11', 111)" class="m">FormatConfig</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs12', 112)" onmouseover="showTip(event, 'fs12', 112)" class="id">Default</span> <span class="k">with</span> <span class="prop">MultiLineLambdaClosingNewline</span> <span class="o">=</span> <span class="k">true</span> <span class="pn">}</span>
+    <span class="pn">{</span> <span onmouseout="hideTip(event, 'fs11', 111)" onmouseover="showTip(event, 'fs11', 111)" class="m">FormatConfig</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs12', 112)" onmouseover="showTip(event, 'fs12', 112)" class="id">Default</span> <span class="k">with</span>
+        <span class="prop">MultiLineLambdaClosingNewline</span> <span class="o">=</span> <span class="k">true</span> <span class="pn">}</span>
 </code></pre>
 <table class="pre"><tr><td><pre><code>"let printListWithOffset a list1 =
     List.iter
@@ -911,7 +939,8 @@ Only when the last pattern match or else branch was already at the same level of
 <span class="s">    // do more stuff</span>
 <span class="s">    0</span>
 <span class="s">    &quot;&quot;&quot;</span>
-    <span class="pn">{</span> <span onmouseout="hideTip(event, 'fs11', 114)" onmouseover="showTip(event, 'fs11', 114)" class="m">FormatConfig</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs12', 115)" onmouseover="showTip(event, 'fs12', 115)" class="id">Default</span> <span class="k">with</span> <span class="prop">ExperimentalKeepIndentInBranch</span> <span class="o">=</span> <span class="k">true</span> <span class="pn">}</span>
+    <span class="pn">{</span> <span onmouseout="hideTip(event, 'fs11', 114)" onmouseover="showTip(event, 'fs11', 114)" class="m">FormatConfig</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs12', 115)" onmouseover="showTip(event, 'fs12', 115)" class="id">Default</span> <span class="k">with</span>
+        <span class="prop">ExperimentalKeepIndentInBranch</span> <span class="o">=</span> <span class="k">true</span> <span class="pn">}</span>
 </code></pre>
 <table class="pre"><tr><td><pre><code>"let main argv =
     let args = parse argv
@@ -936,7 +965,8 @@ If <code>false</code>, a <code>|</code> character is used only in multiple-case 
     <span class="s">&quot;&quot;&quot; </span>
 <span class="s">    type MyDU = Short of int</span>
 <span class="s">    &quot;&quot;&quot;</span>
-    <span class="pn">{</span> <span onmouseout="hideTip(event, 'fs11', 117)" onmouseover="showTip(event, 'fs11', 117)" class="m">FormatConfig</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs12', 118)" onmouseover="showTip(event, 'fs12', 118)" class="id">Default</span> <span class="k">with</span> <span class="prop">BarBeforeDiscriminatedUnionDeclaration</span> <span class="o">=</span> <span class="k">true</span> <span class="pn">}</span>
+    <span class="pn">{</span> <span onmouseout="hideTip(event, 'fs11', 117)" onmouseover="showTip(event, 'fs11', 117)" class="m">FormatConfig</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs12', 118)" onmouseover="showTip(event, 'fs12', 118)" class="id">Default</span> <span class="k">with</span>
+        <span class="prop">BarBeforeDiscriminatedUnionDeclaration</span> <span class="o">=</span> <span class="k">true</span> <span class="pn">}</span>
 </code></pre>
 <table class="pre"><tr><td><pre><code>"type MyDU = | Short of int
 "</code></pre></td></tr></table>
@@ -984,7 +1014,8 @@ Top level expressions will always follow the <a href="https://github.com/fsproje
 <span class="s">        // ...</span>
 <span class="s">        ()</span>
 <span class="s">    &quot;&quot;&quot;</span>
-    <span class="pn">{</span> <span onmouseout="hideTip(event, 'fs11', 123)" onmouseover="showTip(event, 'fs11', 123)" class="m">FormatConfig</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs12', 124)" onmouseover="showTip(event, 'fs12', 124)" class="id">Default</span> <span class="k">with</span> <span class="prop">BlankLinesAroundNestedMultilineExpressions</span> <span class="o">=</span> <span class="k">false</span> <span class="pn">}</span>
+    <span class="pn">{</span> <span onmouseout="hideTip(event, 'fs11', 123)" onmouseover="showTip(event, 'fs11', 123)" class="m">FormatConfig</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs12', 124)" onmouseover="showTip(event, 'fs12', 124)" class="id">Default</span> <span class="k">with</span>
+        <span class="prop">BlankLinesAroundNestedMultilineExpressions</span> <span class="o">=</span> <span class="k">false</span> <span class="pn">}</span>
 </code></pre>
 <table class="pre"><tr><td><pre><code>"let topLevelFunction () =
     printfn "Something to print"
@@ -1008,7 +1039,8 @@ let secondTopLevelFunction () =
 
 <span class="s">    let x = 42</span>
 <span class="s">    &quot;&quot;&quot;</span>
-    <span class="pn">{</span> <span onmouseout="hideTip(event, 'fs11', 126)" onmouseover="showTip(event, 'fs11', 126)" class="m">FormatConfig</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs12', 127)" onmouseover="showTip(event, 'fs12', 127)" class="id">Default</span> <span class="k">with</span> <span class="prop">KeepMaxNumberOfBlankLines</span> <span class="o">=</span> <span class="n">1</span> <span class="pn">}</span>
+    <span class="pn">{</span> <span onmouseout="hideTip(event, 'fs11', 126)" onmouseover="showTip(event, 'fs11', 126)" class="m">FormatConfig</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs12', 127)" onmouseover="showTip(event, 'fs12', 127)" class="id">Default</span> <span class="k">with</span>
+        <span class="prop">KeepMaxNumberOfBlankLines</span> <span class="o">=</span> <span class="n">1</span> <span class="pn">}</span>
 </code></pre>
 <table class="pre"><tr><td><pre><code>"open Foo
 
@@ -1030,7 +1062,8 @@ There are numerous situations when the information in the AST alone cannot resto
 <span class="s">        a + b</span>
 <span class="s">    #endif</span>
 <span class="s">    &quot;&quot;&quot;</span>
-    <span class="pn">{</span> <span onmouseout="hideTip(event, 'fs11', 129)" onmouseover="showTip(event, 'fs11', 129)" class="m">FormatConfig</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs12', 130)" onmouseover="showTip(event, 'fs12', 130)" class="id">Default</span> <span class="k">with</span> <span class="prop">StrictMode</span> <span class="o">=</span> <span class="k">true</span> <span class="pn">}</span>
+    <span class="pn">{</span> <span onmouseout="hideTip(event, 'fs11', 129)" onmouseover="showTip(event, 'fs11', 129)" class="m">FormatConfig</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs12', 130)" onmouseover="showTip(event, 'fs12', 130)" class="id">Default</span> <span class="k">with</span>
+        <span class="prop">StrictMode</span> <span class="o">=</span> <span class="k">true</span> <span class="pn">}</span>
 </code></pre>
 <table class="pre"><tr><td><pre><code>"let add a b = a + b
 "</code></pre></td></tr></table>
