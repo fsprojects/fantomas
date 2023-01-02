@@ -272,7 +272,7 @@ let a =
 
     // The problem now is that our tree doesn't contain the code comment.
     // We need to add the comment to the right node in the tree.
-    // In practise, this happens in Flowering.fs in a generic way.
+    // In practise, this happens in Trivia.fs in a generic way.
     // For our example we will add it by traversing the tree hardcoded.
     match tree.ModulesOrNamespaces.[0].Declarations with
     | [ ModuleDecl.TopLevelBinding bindingNode ] ->
@@ -436,7 +436,7 @@ let b = 2
                 +> sepSpace
                 +> !-body.Text
 
-            // Normally in CodePrinter2 you would use `sepNlnUnlessContentBefore` but it is not exposed.
+            // Normally in CodePrinter you would use `sepNlnUnlessContentBefore` but it is not exposed.
             let sepNlnUnlessBindingHasTrivia (node: Node) =
                 if Seq.isEmpty node.ContentBefore then sepNln else sepNone
 
