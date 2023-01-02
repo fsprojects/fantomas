@@ -436,7 +436,7 @@ let b = 2
                 +> sepSpace
                 +> !-body.Text
 
-            // Normally in CodePrinter2 you would use `sepNlnUnlessContentBefore` but it is not exposed.
+            // Normally in CodePrinter you would use `sepNlnUnlessContentBefore` but it is not exposed.
             let sepNlnUnlessBindingHasTrivia (node: Node) =
                 if Seq.isEmpty node.ContentBefore then sepNln else sepNone
 
