@@ -78,7 +78,10 @@ module WriterModel =
 
     let update maxPageWidth cmd m =
         let doNewline m =
-            let m = { m with Indent = max m.Indent m.AtColumn }
+            let m =
+                { m with
+                    Indent = max m.Indent m.AtColumn }
+
             let nextLine = String.replicate m.Indent " "
             let currentLine = String.Concat(List.head m.Lines, m.WriteBeforeNewline).TrimEnd()
             let otherLines = List.tail m.Lines
@@ -115,7 +118,9 @@ module WriterModel =
                             m.AtColumn + x
                         else
                             m.Indent + x }
-            | UnIndentBy x -> { m with Indent = max m.AtColumn <| m.Indent - x }
+            | UnIndentBy x ->
+                { m with
+                    Indent = max m.AtColumn <| m.Indent - x }
             | SetAtColumn c -> { m with AtColumn = c }
             | RestoreAtColumn c -> { m with AtColumn = c }
             | SetIndent c -> { m with Indent = c }
@@ -139,10 +144,12 @@ module WriterModel =
                 |> List.map (fun info ->
                     let tooLong = info.IsTooLong maxPageWidth m.Column
 
-                    { info with ConfirmedMultiline = tooLong || nextCmdCausesMultiline })
+                    { info with
+                        ConfirmedMultiline = tooLong || nextCmdCausesMultiline })
 
             if List.exists (fun i -> i.ConfirmedMultiline) updatedInfos then
-                { m with Mode = ShortExpression(updatedInfos) }
+                { m with
+                    Mode = ShortExpression(updatedInfos) }
             else
                 updateCmd cmd
 
@@ -219,8 +226,15 @@ type internal Context =
             if List.exists (fun i -> i = info) infos then
                 x
             else
-                { x with WriterModel = { x.WriterModel with Mode = ShortExpression(info :: infos) } }
-        | _ -> { x with WriterModel = { x.WriterModel with Mode = ShortExpression([ info ]) } }
+                { x with
+                    WriterModel =
+                        { x.WriterModel with
+                            Mode = ShortExpression(info :: infos) } }
+        | _ ->
+            { x with
+                WriterModel =
+                    { x.WriterModel with
+                        Mode = ShortExpression([ info ]) } }
 
 // member x.FromSourceText(range: range) : string option =
 //     Option.map (fun (sourceText: ISourceText) -> sourceText.GetContentAt range) x.SourceText
@@ -758,7 +772,10 @@ let private shortExpressionWithFallback
             then
                 fallbackExpression ctx
             else
-                { resultContext with WriterModel = { resultContext.WriterModel with Mode = ctx.WriterModel.Mode } }
+                { resultContext with
+                    WriterModel =
+                        { resultContext.WriterModel with
+                            Mode = ctx.WriterModel.Mode } }
         | _ ->
             // you should never hit this branch
             fallbackExpression ctx
@@ -868,7 +885,10 @@ let private expressionExceedsPageWidth beforeShort afterShort beforeLong afterLo
             then
                 fallbackExpression ctx
             else
-                { resultContext with WriterModel = { resultContext.WriterModel with Mode = ctx.WriterModel.Mode } }
+                { resultContext with
+                    WriterModel =
+                        { resultContext.WriterModel with
+                            Mode = ctx.WriterModel.Mode } }
         | _ ->
             // you should never hit this branch
             fallbackExpression ctx

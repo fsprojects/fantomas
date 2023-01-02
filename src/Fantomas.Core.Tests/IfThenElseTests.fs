@@ -69,7 +69,8 @@ let ``multiline if without else`` () =
         """
 if foo && bar && meh then aha
 """
-        { config with MaxInfixOperatorExpression = 5 }
+        { config with
+            MaxInfixOperatorExpression = 5 }
     |> prepend newline
     |> should
         equal
@@ -953,7 +954,8 @@ elif strA.String == strB.String && strA.Offset = strB.Offset then
 else
     -1
 """
-        { config with MaxInfixOperatorExpression = 55 }
+        { config with
+            MaxInfixOperatorExpression = 55 }
     |> prepend newline
     |> should
         equal
@@ -1018,7 +1020,8 @@ let (|Integer|_|) (str: string) =
    if System.Int32.TryParse(str, &intvalue) then Some(intvalue)
    else None
 """
-        { config with MaxIfThenElseShortWidth = 70 }
+        { config with
+            MaxIfThenElseShortWidth = 70 }
     |> prepend newline
     |> should
         equal
@@ -1034,7 +1037,8 @@ let ``longer elif condition`` () =
         false
         """if a then b elif somethingABitLongerToForceDifferentStyle then c else d
 """
-        { config with MaxIfThenElseShortWidth = 53 }
+        { config with
+            MaxIfThenElseShortWidth = 53 }
     |> prepend newline
     |> should
         equal
@@ -1048,7 +1052,11 @@ else d
 let ``impact of MaxIfThenElseShortWidth setting, longer bool expression`` () =
     let source = """if (tare + netWeight) = 10000 then a else b"""
 
-    formatSourceString false source { config with MaxIfThenElseShortWidth = 10 }
+    formatSourceString
+        false
+        source
+        { config with
+            MaxIfThenElseShortWidth = 10 }
     |> prepend newline
     |> should
         equal
@@ -1079,7 +1087,11 @@ let ``impact of MaxIfThenElseShortWidth setting, longer if branch`` () =
 if a then (tare + netWeight) + 10000 else 0
 """
 
-    formatSourceString false source { config with MaxIfThenElseShortWidth = 40 }
+    formatSourceString
+        false
+        source
+        { config with
+            MaxIfThenElseShortWidth = 40 }
     |> prepend newline
     |> should
         equal
@@ -1102,7 +1114,11 @@ let ``impact of MaxIfThenElseShortWidth setting, longer else branch`` () =
 if a then 0 else (tare + netWeight) + 10
 """
 
-    formatSourceString false source { config with MaxIfThenElseShortWidth = 20 }
+    formatSourceString
+        false
+        source
+        { config with
+            MaxIfThenElseShortWidth = 20 }
     |> prepend newline
     |> should
         equal
@@ -1126,7 +1142,8 @@ module String =
             else
                 if String.length a' < String.length b' then a' else b'
 """
-        { config with MaxIfThenElseShortWidth = 100 }
+        { config with
+            MaxIfThenElseShortWidth = 100 }
     |> prepend newline
     |> should
         equal
@@ -1596,7 +1613,8 @@ if a then
 elif cccccccccccccccccccccccc then d
 else f
 """
-        { config with MaxIfThenElseShortWidth = 20 }
+        { config with
+            MaxIfThenElseShortWidth = 20 }
     |> prepend newline
     |> should
         equal
@@ -1892,7 +1910,8 @@ module Configuration =
            true
     then config.Save file
 """
-        { config with MaxInfixOperatorExpression = 50 }
+        { config with
+            MaxInfixOperatorExpression = 50 }
     |> prepend newline
     |> should
         equal
@@ -1970,7 +1989,8 @@ module Configuration =
            true
     then config.Save file
 """
-        { config with MaxInfixOperatorExpression = 50 }
+        { config with
+            MaxInfixOperatorExpression = 50 }
     |> prepend newline
     |> should
         equal
@@ -2094,7 +2114,8 @@ let ``multiline infix expression in if expression, 1584`` () =
             else
                 return formattedSourceCode
 """
-        { config with MaxInfixOperatorExpression = 50 }
+        { config with
+            MaxInfixOperatorExpression = 50 }
     |> prepend newline
     |> should
         equal
@@ -2249,7 +2270,8 @@ else if result.ExitCode = 1 then
 else
     failwith ""
 """
-        { config with MaxInfixOperatorExpression = 50 }
+        { config with
+            MaxInfixOperatorExpression = 50 }
     |> prepend newline
     |> should
         equal
@@ -2309,7 +2331,8 @@ elif result.ExitCode = 1 then
 else
     failwith ""
 """
-        { config with MaxInfixOperatorExpression = 50 }
+        { config with
+            MaxInfixOperatorExpression = 50 }
     |> prepend newline
     |> should
         equal
@@ -2359,7 +2382,8 @@ let ``multiple multiline elifs`` () =
         else
             failAndExit ()
 """
-        { config with MaxInfixOperatorExpression = 50 }
+        { config with
+            MaxInfixOperatorExpression = 50 }
     |> prepend newline
     |> should
         equal
@@ -2424,7 +2448,8 @@ module Foo =
             None
         else Some "hi"
 """
-        { config with MaxDotGetExpressionWidth = 50 }
+        { config with
+            MaxDotGetExpressionWidth = 50 }
     |> prepend newline
     |> should
         equal
@@ -2500,7 +2525,8 @@ if
       else
         None
 """
-        { config with MaxInfixOperatorExpression = 50 }
+        { config with
+            MaxInfixOperatorExpression = 50 }
     |> prepend newline
     |> should
         equal
@@ -2526,7 +2552,8 @@ if
       else
         None
 """
-        { config with MaxInfixOperatorExpression = 50 }
+        { config with
+            MaxInfixOperatorExpression = 50 }
     |> prepend newline
     |> should
         equal

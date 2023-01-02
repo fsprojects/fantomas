@@ -9,7 +9,8 @@ let ``triple-quoted strings`` () =
     formatSourceString
         false
         "let xmlFragment2 = \"\"\"<book author=\"Milton, John\" title=\"Paradise Lost\">\"\"\""
-        { config with MaxValueBindingWidth = 80 }
+        { config with
+            MaxValueBindingWidth = 80 }
     |> should
         equal
         "let xmlFragment2 = \"\"\"<book author=\"Milton, John\" title=\"Paradise Lost\">\"\"\"
@@ -23,7 +24,8 @@ let ``string literals`` () =
 let xmlFragment1 = @"<book author=""Milton, John"" title=""Paradise Lost"">"
 let str1 = "abc"
     """
-        { config with MaxValueBindingWidth = 60 }
+        { config with
+            MaxValueBindingWidth = 60 }
     |> prepend newline
     |> should
         equal
@@ -147,7 +149,8 @@ let ``should preserve triple-quote strings`` () =
             </request>\"\"\"
 
         member self.X = switchvox_users_voicemail_getList_response"
-        { config with MaxValueBindingWidth = 120 }
+        { config with
+            MaxValueBindingWidth = 120 }
     |> prepend newline
     |> should
         equal

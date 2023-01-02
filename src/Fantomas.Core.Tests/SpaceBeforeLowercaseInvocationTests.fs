@@ -4,7 +4,9 @@ open NUnit.Framework
 open FsUnit
 open Fantomas.Core.Tests.TestHelper
 
-let noSpaceBefore = { config with SpaceBeforeLowercaseInvocation = false }
+let noSpaceBefore =
+    { config with
+        SpaceBeforeLowercaseInvocation = false }
 
 /// Space before () in lowercase function call
 
@@ -162,7 +164,8 @@ let untypedRes = checker.parseFile(file, source, opts)
 let untypedResLong =
     checker.parseFile(fileName, sourceText, parsingOptionsWithDefines, somethingElseWithARatherLongVariableName)
 """
-        { noSpaceBefore with MaxLineLength = 60 }
+        { noSpaceBefore with
+            MaxLineLength = 60 }
     |> prepend newline
     |> should
         equal

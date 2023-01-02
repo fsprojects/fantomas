@@ -15,7 +15,8 @@ let ys = [ AReallyLongExpressionThatIsMuchLongerMuchLongerMuchLongerMuchLongerMu
 f xs [ x; y; z ]
 List.map (fun x -> x * x) [1;2;]
     """
-        { config with ArrayOrListMultilineFormatter = NumberOfItems }
+        { config with
+            ArrayOrListMultilineFormatter = NumberOfItems }
     |> prepend newline
     |> should
         equal
@@ -50,7 +51,8 @@ let ys = [| AReallyLongExpressionThatIsMuchLongerMuchLongerMuchLongerMuchLongerM
 f xs [| x; y; z |]
 List.map (fun x -> x * x) [|1;2;|]
     """
-        { config with ArrayOrListMultilineFormatter = NumberOfItems }
+        { config with
+            ArrayOrListMultilineFormatter = NumberOfItems }
     |> prepend newline
     |> should
         equal

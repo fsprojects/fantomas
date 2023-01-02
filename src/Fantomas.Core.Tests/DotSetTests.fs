@@ -11,7 +11,8 @@ let ``function application with parentheses should not respect SpaceBeforeUpperc
         """
 c.P.Add(x).Value <- v
 """
-        { config with SpaceBeforeUppercaseInvocation = true }
+        { config with
+            SpaceBeforeUppercaseInvocation = true }
     |> prepend newline
     |> should
         equal
@@ -28,8 +29,14 @@ let foo =
     c.P.Add(NpgsqlParameter ("day", NpgsqlTypes.NpgsqlDbType.Date)).Value <- query.Day.Date
     "fooo"
 """
-        { config with SpaceBeforeUppercaseInvocation = true }
-    |> fun formatted -> formatSourceString false formatted { config with SpaceBeforeUppercaseInvocation = true }
+        { config with
+            SpaceBeforeUppercaseInvocation = true }
+    |> fun formatted ->
+        formatSourceString
+            false
+            formatted
+            { config with
+                SpaceBeforeUppercaseInvocation = true }
     |> prepend newline
     |> should
         equal

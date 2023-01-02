@@ -31,7 +31,8 @@ let ``keep () when dynamic operator inside boolean expr, #476`` () =
         NoColor
     |> Input.Color
 """
-        { config with MaxIfThenElseShortWidth = 5 }
+        { config with
+            MaxIfThenElseShortWidth = 5 }
     |> prepend newline
     |> should
         equal

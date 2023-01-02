@@ -154,7 +154,8 @@ type Test() =
     abstract AbstractMethod<'a, 'b> : 'a * 'b -> unit
     override this.AbstractMethod<'a, 'b>(x:'a, y:'b) =
          printfn "%A, %A" x y"""
-        { config with MaxFunctionBindingWidth = 120 }
+        { config with
+            MaxFunctionBindingWidth = 120 }
     |> prepend newline
     |> should
         equal
@@ -204,7 +205,8 @@ type public MyClass<'a> public (x, y) as this =
     member self.Prop2 with get() = z
                       and set(a) = z <- a
     member self.Method(a,b) = x + y + z + a + b"""
-        { config with MaxFunctionBindingWidth = 120 }
+        { config with
+            MaxFunctionBindingWidth = 120 }
     |> prepend newline
     |> should
         equal
@@ -295,7 +297,8 @@ type MyClass() =
 
 type MyClass with
     member this.G() = 200"""
-        { config with NewlineBetweenTypeDefinitionAndMembers = false }
+        { config with
+            NewlineBetweenTypeDefinitionAndMembers = false }
     |> prepend newline
     |> should
         equal
@@ -453,7 +456,8 @@ type SpeedingTicket() =
 let CalculateFine (ticket : SpeedingTicket) =
     let delta = ticket.GetMPHOver(limit = 55, speed = 70)
     if delta < 20 then 50.0 else 100.0"""
-        { config with MaxValueBindingWidth = 120 }
+        { config with
+            MaxValueBindingWidth = 120 }
     |> prepend newline
     |> should
         equal
@@ -717,7 +721,8 @@ let ``should keep the ? in optional parameters`` () =
         shellExec(Shell.GetParams(cmd, ?args = args))
 
     """
-        { config with MaxFunctionBindingWidth = 120 }
+        { config with
+            MaxFunctionBindingWidth = 120 }
     |> should
         equal
         """type Shell() =
@@ -756,7 +761,8 @@ let ``should keep brackets around type signatures`` () =
 let user_printers = ref([] : (string * (term -> unit)) list)
 let the_interface = ref([] : (string * (string * hol_type)) list)
     """
-        { config with MaxValueBindingWidth = 50 }
+        { config with
+            MaxValueBindingWidth = 50 }
     |> prepend newline
     |> should
         equal
@@ -1133,7 +1139,8 @@ let ``type abbreviation augmentation`` () =
         """type T2 = T2 with
     member __.X = ()
 """
-        { config with NewlineBetweenTypeDefinitionAndMembers = false }
+        { config with
+            NewlineBetweenTypeDefinitionAndMembers = false }
     |> should
         equal
         """type T2 = T2
@@ -1170,7 +1177,8 @@ let ``operator in words in member`` () =
         false
         """type A() =
     member this.B(op_Inequality : string) = ()"""
-        { config with MaxFunctionBindingWidth = 120 }
+        { config with
+            MaxFunctionBindingWidth = 120 }
     |> should
         equal
         """type A() =
@@ -1191,7 +1199,8 @@ type TestExtensions =
     [<Extension>]
     static member SomeOtherExtension(x) = ""
 """
-        { config with MaxValueBindingWidth = 120 }
+        { config with
+            MaxValueBindingWidth = 120 }
     |> prepend newline
     |> should
         equal
@@ -1392,7 +1401,8 @@ let ``long type members should have parameters on separate lines, 719`` () =
         """type C () =
     member __.LongMethodWithLotsOfParameters(aVeryLongType: AVeryLongTypeThatYouNeedToUse, aSecondVeryLongType: AVeryLongTypeThatYouNeedToUse, aThirdVeryLongType: AVeryLongTypeThatYouNeedToUse) =  aVeryLongType aSecondVeryLongType aThirdVeryLongType
 """
-        { config with SpaceBeforeClassConstructor = true }
+        { config with
+            SpaceBeforeClassConstructor = true }
     |> prepend newline
     |> should
         equal
@@ -1414,7 +1424,8 @@ let ``long type member with return type should have parameters on separate lines
         """type C () =
     member __.LongMethodWithLotsOfParameters(aVeryLongType: AVeryLongTypeThatYouNeedToUse, aSecondVeryLongType: AVeryLongTypeThatYouNeedToUse, aThirdVeryLongType: AVeryLongTypeThatYouNeedToUse) : int =  aVeryLongType aSecondVeryLongType aThirdVeryLongType
 """
-        { config with SpaceBeforeClassConstructor = true }
+        { config with
+            SpaceBeforeClassConstructor = true }
     |> prepend newline
     |> should
         equal
@@ -1436,7 +1447,8 @@ let ``long constructors should have parameters on separate lines`` () =
         """type C (aVeryLongType : AVeryLongTypeThatYouNeedToUse, aSecondVeryLongType : AVeryLongTypeThatYouNeedToUse, aThirdVeryLongType : AVeryLongTypeThatYouNeedToUse) =
     member this.X = 42
 """
-        { config with SpaceBeforeClassConstructor = true }
+        { config with
+            SpaceBeforeClassConstructor = true }
     |> prepend newline
     |> should
         equal
@@ -1566,7 +1578,8 @@ let ``split multiple parameters over multiple lines and have correct indentation
 
     static member SomeOtherMember () = printfn "c"
 """
-        { config with MaxFunctionBindingWidth = 120 }
+        { config with
+            MaxFunctionBindingWidth = 120 }
     |> prepend newline
     |> should
         equal

@@ -168,7 +168,8 @@ let ``multi line NamedIndexedPropertySet`` () =
                                    |> string
                                    |> StringValues
 """
-        { config with MaxInfixOperatorExpression = 10 }
+        { config with
+            MaxInfixOperatorExpression = 10 }
     |> prepend newline
     |> should
         equal
@@ -188,7 +189,8 @@ let ``multi line DotNamedIndexedPropertySet`` () =
                                     |> string
                                     |> StringValues
 """
-        { config with MaxInfixOperatorExpression = 10 }
+        { config with
+            MaxInfixOperatorExpression = 10 }
     |> prepend newline
     |> should
         equal
@@ -225,7 +227,8 @@ let ``keep new line before SynExpr.DotIndexedSet, 1314`` () =
 
               lintFixes.[uri] <- fs
 """
-        { config with MaxInfixOperatorExpression = 50 }
+        { config with
+            MaxInfixOperatorExpression = 50 }
     |> prepend newline
     |> should
         equal
@@ -262,7 +265,8 @@ Log.Logger <-
         .WriteTo.Console()
         .CreateLogger()
 """
-        { config with SpaceBeforeUppercaseInvocation = true }
+        { config with
+            SpaceBeforeUppercaseInvocation = true }
     |> prepend newline
     |> should
         equal

@@ -70,7 +70,8 @@ let private createAgent (ct: CancellationToken) =
                                         // return running client
                                         replyChannel.Reply(Ok daemon.RpcClient)
 
-                                        { state with FolderToVersion = Map.add folder version state.FolderToVersion }
+                                        { state with
+                                            FolderToVersion = Map.add folder version state.FolderToVersion }
                                 | None ->
                                     // This is a strange situation, we know what version is linked to that folder but there is no daemon
                                     // The moment a version is added, is also the moment a daemon is re-used or created

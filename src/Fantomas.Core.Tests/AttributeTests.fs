@@ -15,7 +15,8 @@ type Funcs =
     static member ToFunc (f: Action<_,_,_>) =
         Func<_,_,_,_>(fun a b c -> f.Invoke(a,b,c))
     """
-        { config with MaxFunctionBindingWidth = 120 }
+        { config with
+            MaxFunctionBindingWidth = 120 }
     |> should
         equal
         """[<Extension>]
@@ -782,7 +783,8 @@ and Y = B
         [<ExcludeFromCodeCoverage>]
         member  this.M() = true
 """
-        { config with NewlineBetweenTypeDefinitionAndMembers = false }
+        { config with
+            NewlineBetweenTypeDefinitionAndMembers = false }
     |> prepend newline
     |> should
         equal
@@ -914,7 +916,8 @@ module Foo =
         static member doThing person =
             ()
 """
-        { config with NewlineBetweenTypeDefinitionAndMembers = false }
+        { config with
+            NewlineBetweenTypeDefinitionAndMembers = false }
     |> prepend newline
     |> should
         equal
@@ -989,7 +992,8 @@ module AsyncOptionCEExtensions =
     type AsyncOptionBuilder with
         member inline __.Source(s: #seq<_>) = s
 """
-        { config with NewlineBetweenTypeDefinitionAndMembers = false }
+        { config with
+            NewlineBetweenTypeDefinitionAndMembers = false }
     |> prepend newline
     |> should
         equal
@@ -1017,7 +1021,8 @@ module AsyncOptionCEExtensions =
         member inline Source : string -> string
 
 """
-        { config with NewlineBetweenTypeDefinitionAndMembers = false }
+        { config with
+            NewlineBetweenTypeDefinitionAndMembers = false }
     |> prepend newline
     |> should
         equal

@@ -5,7 +5,9 @@ open FsUnit
 open Fantomas.Core.Tests.TestHelper
 open Fantomas.Core.FormatConfig
 
-let config = { config with ExperimentalKeepIndentInBranch = true }
+let config =
+    { config with
+        ExperimentalKeepIndentInBranch = true }
 
 [<Test>]
 let ``single expression in if branch, multiple expressions in else branch`` () =
@@ -878,7 +880,8 @@ module Foo =
         Thing.execute bar baz (thing, instructions)
         0
 """
-        { config with BlankLinesAroundNestedMultilineExpressions = false }
+        { config with
+            BlankLinesAroundNestedMultilineExpressions = false }
     |> prepend newline
     |> should
         equal
@@ -2083,7 +2086,8 @@ module TestThing =
         longName
         |> Map.map (fun _ -> TypedTerm.force<int>)
 """
-        { config with MaxInfixOperatorExpression = 50 }
+        { config with
+            MaxInfixOperatorExpression = 50 }
     |> prepend newline
     |> should
         equal
@@ -2158,7 +2162,8 @@ match  // comment
 longName
 |> Map.map (fun _ -> TypedTerm.force<int>)
 """
-        { config with MaxInfixOperatorExpression = 50 }
+        { config with
+            MaxInfixOperatorExpression = 50 }
     |> prepend newline
     |> should
         equal
@@ -2186,7 +2191,8 @@ match!  // comment
 longName
 |> Map.map (fun _ -> TypedTerm.force<int>)
 """
-        { config with MaxInfixOperatorExpression = 50 }
+        { config with
+            MaxInfixOperatorExpression = 50 }
     |> prepend newline
     |> should
         equal

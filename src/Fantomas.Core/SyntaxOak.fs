@@ -106,7 +106,8 @@ type XmlDocNode(lines: string array, range) =
     override x.Children = Array.empty
     member x.Lines = lines
 
-type Oak(parsedHashDirectives: ParsedHashDirectiveNode list, modulesOrNamespaces: ModuleOrNamespaceNode list, m: range) =
+type Oak(parsedHashDirectives: ParsedHashDirectiveNode list, modulesOrNamespaces: ModuleOrNamespaceNode list, m: range)
+    =
     inherit NodeBase(m)
 
     member x.ParsedHashDirectives = parsedHashDirectives
@@ -243,12 +244,7 @@ type TypeAppPrefixNode
     member x.LessThen = lessThan
 
 type TypeStructTupleNode
-    (
-        keyword: SingleTextNode,
-        path: Choice<Type, SingleTextNode> list,
-        closingParen: SingleTextNode,
-        range
-    ) =
+    (keyword: SingleTextNode, path: Choice<Type, SingleTextNode> list, closingParen: SingleTextNode, range) =
     inherit NodeBase(range)
 
     override this.Children =
@@ -303,12 +299,7 @@ type TypeParenNode(openingParen: SingleTextNode, t: Type, closingParen: SingleTe
     member x.ClosingParen = closingParen
 
 type TypeSignatureParameterNode
-    (
-        attributes: MultipleAttributeListNode option,
-        identifier: SingleTextNode option,
-        t: Type,
-        range
-    ) =
+    (attributes: MultipleAttributeListNode option, identifier: SingleTextNode option, t: Type, range) =
     inherit NodeBase(range)
 
     override this.Children =
@@ -528,13 +519,7 @@ type PatArrayOrListNode(openToken: SingleTextNode, pats: Pattern list, closeToke
     member x.CloseToken = closeToken
 
 type PatRecordField
-    (
-        prefix: IdentListNode option,
-        fieldName: SingleTextNode,
-        equals: SingleTextNode,
-        pat: Pattern,
-        range
-    ) =
+    (prefix: IdentListNode option, fieldName: SingleTextNode, equals: SingleTextNode, pat: Pattern, range) =
     inherit NodeBase(range)
 
     override this.Children =
@@ -701,13 +686,7 @@ type InheritConstructorTypeOnlyNode(inheritKeyword: SingleTextNode, t: Type, ran
     member x.Type = t
 
 type InheritConstructorUnitNode
-    (
-        inheritKeyword: SingleTextNode,
-        t: Type,
-        openingParen: SingleTextNode,
-        closingParen: SingleTextNode,
-        range
-    ) =
+    (inheritKeyword: SingleTextNode, t: Type, openingParen: SingleTextNode, closingParen: SingleTextNode, range) =
     inherit NodeBase(range)
 
     override this.Children =
@@ -950,13 +929,7 @@ type ExprForEachNode(forNode: SingleTextNode, pat: Pattern, enumExpr: Expr, isAr
     member x.BodyExpr = bodyExpr
 
 type ExprNamedComputationNode
-    (
-        nameExpr: Expr,
-        openingBrace: SingleTextNode,
-        bodyExpr: Expr,
-        closingBrace: SingleTextNode,
-        range
-    ) =
+    (nameExpr: Expr, openingBrace: SingleTextNode, bodyExpr: Expr, closingBrace: SingleTextNode, range) =
     inherit NodeBase(range)
 
     override this.Children =
@@ -1066,14 +1039,8 @@ type ExprLambdaNode(funNode: SingleTextNode, parameters: Pattern list, arrow: Si
     member x.Expr = expr
 
 type MatchClauseNode
-    (
-        bar: SingleTextNode option,
-        pattern: Pattern,
-        whenExpr: Expr option,
-        arrow: SingleTextNode,
-        bodyExpr: Expr,
-        range
-    ) =
+    (bar: SingleTextNode option, pattern: Pattern, whenExpr: Expr option, arrow: SingleTextNode, bodyExpr: Expr, range)
+    =
     inherit NodeBase(range)
 
     override this.Children =
@@ -1097,13 +1064,7 @@ type ExprMatchLambdaNode(functionNode: SingleTextNode, clauses: MatchClauseNode 
     member x.Clauses = clauses
 
 type ExprMatchNode
-    (
-        matchNode: SingleTextNode,
-        matchExpr: Expr,
-        withNode: SingleTextNode,
-        clauses: MatchClauseNode list,
-        range
-    ) =
+    (matchNode: SingleTextNode, matchExpr: Expr, withNode: SingleTextNode, clauses: MatchClauseNode list, range) =
     inherit NodeBase(range)
 
     override this.Children =
@@ -1128,12 +1089,7 @@ type ExprTraitCallNode(t: Type, md: MemberDefn, expr: Expr, range) =
     member x.Expr = expr
 
 type ExprParenFunctionNameWithStarNode
-    (
-        openingParen: SingleTextNode,
-        functionName: SingleTextNode,
-        closingParen: SingleTextNode,
-        range
-    ) =
+    (openingParen: SingleTextNode, functionName: SingleTextNode, closingParen: SingleTextNode, range) =
     inherit NodeBase(range)
 
     override this.Children = [| yield openingParen; yield functionName; yield closingParen |]
@@ -1262,12 +1218,7 @@ type DotGetAppPartNode
     member x.Expr = expr
 
 type ExprDotGetAppWithParenLambdaNode
-    (
-        funcExpr: Expr,
-        parenLambda: ExprParenLambdaNode,
-        args: DotGetAppPartNode list,
-        range
-    ) =
+    (funcExpr: Expr, parenLambda: ExprParenLambdaNode, args: DotGetAppPartNode list, range) =
     inherit NodeBase(range)
 
     override this.Children =
@@ -1346,13 +1297,7 @@ type ExprNestedIndexWithoutDotNode(identifierExpr: Expr, indexExpr: Expr, argume
     member x.Argument = argumentExpr
 
 type ExprEndsWithDualListAppNode
-    (
-        functionExpr: Expr,
-        sequentialExprs: Expr list,
-        firstArrayOrList: Expr,
-        lastArrayOrList: Expr,
-        range
-    ) =
+    (functionExpr: Expr, sequentialExprs: Expr list, firstArrayOrList: Expr, lastArrayOrList: Expr, range) =
     inherit NodeBase(range)
 
     override this.Children =
@@ -1388,13 +1333,7 @@ type ExprAppNode(functionExpr: Expr, arguments: Expr list, range) =
     member x.Arguments: Expr list = arguments
 
 type ExprTypeAppNode
-    (
-        identifierExpr: Expr,
-        lessThan: SingleTextNode,
-        typeParameters: Type list,
-        greaterThan: SingleTextNode,
-        range
-    ) =
+    (identifierExpr: Expr, lessThan: SingleTextNode, typeParameters: Type list, greaterThan: SingleTextNode, range) =
     inherit NodeBase(range)
 
     override this.Children =
@@ -1409,13 +1348,7 @@ type ExprTypeAppNode
     member x.GreaterThan = greaterThan
 
 type ExprTryWithSingleClauseNode
-    (
-        tryNode: SingleTextNode,
-        tryExpr: Expr,
-        withNode: SingleTextNode,
-        clause: MatchClauseNode,
-        range
-    ) =
+    (tryNode: SingleTextNode, tryExpr: Expr, withNode: SingleTextNode, clause: MatchClauseNode, range) =
     inherit NodeBase(range)
 
     override this.Children =
@@ -1427,13 +1360,7 @@ type ExprTryWithSingleClauseNode
     member x.Clause = clause
 
 type ExprTryWithNode
-    (
-        tryNode: SingleTextNode,
-        tryExpr: Expr,
-        withNode: SingleTextNode,
-        clauses: MatchClauseNode list,
-        range
-    ) =
+    (tryNode: SingleTextNode, tryExpr: Expr, withNode: SingleTextNode, clauses: MatchClauseNode list, range) =
     inherit NodeBase(range)
 
     override this.Children =
@@ -1636,13 +1563,7 @@ type ExprNamedIndexedPropertySetNode(identifier: IdentListNode, indexExpr: Expr,
     member x.Value = valueExpr
 
 type ExprDotNamedIndexedPropertySetNode
-    (
-        identifierExpr: Expr,
-        name: IdentListNode,
-        propertyExpr: Expr,
-        setExpr: Expr,
-        range
-    ) =
+    (identifierExpr: Expr, name: IdentListNode, propertyExpr: Expr, setExpr: Expr, range) =
     inherit NodeBase(range)
 
     override this.Children =
@@ -1696,12 +1617,7 @@ type StaticOptimizationConstraint =
         | WhenTyparIsStruct n -> n
 
 type ExprLibraryOnlyStaticOptimizationNode
-    (
-        optimizedExpr: Expr,
-        constraints: StaticOptimizationConstraint list,
-        expr: Expr,
-        range
-    ) =
+    (optimizedExpr: Expr, constraints: StaticOptimizationConstraint list, expr: Expr, range) =
     inherit NodeBase(range)
 
     override this.Children =
@@ -1987,12 +1903,7 @@ type AttributeNode(typeName: IdentListNode, expr: Expr option, target: SingleTex
 
 /// The content from [< to >]
 type AttributeListNode
-    (
-        openingToken: SingleTextNode,
-        attributesNodes: AttributeNode list,
-        closingToken: SingleTextNode,
-        range
-    ) =
+    (openingToken: SingleTextNode, attributesNodes: AttributeNode list, closingToken: SingleTextNode, range) =
     inherit NodeBase(range)
 
     override this.Children =
@@ -2042,12 +1953,7 @@ type ExceptionDefnNode
     member x.Members = ms
 
 type ExternBindingPatternNode
-    (
-        attributes: MultipleAttributeListNode option,
-        t: Type option,
-        pat: Pattern option,
-        range: range
-    ) =
+    (attributes: MultipleAttributeListNode option, t: Type option, pat: Pattern option, range: range) =
     inherit NodeBase(range)
 
     override this.Children =
@@ -2361,13 +2267,8 @@ type TypeDefnEnumNode(typeNameNode, enumCases: EnumCaseNode list, members: Membe
         member x.Members = members
 
 type TypeDefnUnionNode
-    (
-        typeNameNode,
-        accessibility: SingleTextNode option,
-        unionCases: UnionCaseNode list,
-        members: MemberDefn list,
-        range
-    ) =
+    (typeNameNode, accessibility: SingleTextNode option, unionCases: UnionCaseNode list, members: MemberDefn list, range)
+    =
     inherit NodeBase(range)
 
     override this.Children =
@@ -2427,13 +2328,8 @@ type TypeDefnAbbrevNode(typeNameNode, t: Type, members, range) =
         member x.Members = members
 
 type SimplePatNode
-    (
-        attributes: MultipleAttributeListNode option,
-        isOptional: bool,
-        identifier: SingleTextNode,
-        t: Type option,
-        range
-    ) =
+    (attributes: MultipleAttributeListNode option, isOptional: bool, identifier: SingleTextNode, t: Type option, range)
+    =
     inherit NodeBase(range)
 
     override this.Children =
@@ -2487,13 +2383,7 @@ type TypeDefnExplicitBodyNode(kind: SingleTextNode, members: MemberDefn list, en
     member x.End = endNode
 
 type TypeDefnExplicitNode
-    (
-        typeNameNode,
-        implicitCtor: ImplicitConstructorNode option,
-        body: TypeDefnExplicitBodyNode,
-        members,
-        range
-    ) =
+    (typeNameNode, implicitCtor: ImplicitConstructorNode option, body: TypeDefnExplicitBodyNode, members, range) =
     inherit NodeBase(range)
 
     override this.Children =
@@ -2625,13 +2515,7 @@ type MemberDefnExplicitCtorNode
     member x.ThenExpr = thenExpr
 
 type MemberDefnInterfaceNode
-    (
-        interfaceNode: SingleTextNode,
-        t: Type,
-        withNode: SingleTextNode option,
-        members: MemberDefn list,
-        range
-    ) =
+    (interfaceNode: SingleTextNode, t: Type, withNode: SingleTextNode option, members: MemberDefn list, range) =
     inherit NodeBase(range)
 
     override this.Children =
@@ -2909,12 +2793,7 @@ type TyparDeclsPostfixListNode
     member x.GreaterThan = greaterThan
 
 type TyparDeclsPrefixListNode
-    (
-        openingParen: SingleTextNode,
-        decls: TyparDeclNode list,
-        closingParen: SingleTextNode,
-        range
-    ) =
+    (openingParen: SingleTextNode, decls: TyparDeclNode list, closingParen: SingleTextNode, range) =
     inherit NodeBase(range)
     override this.Children = [| yield openingParen; yield! nodes decls; yield closingParen |]
     member x.OpeningParen = openingParen

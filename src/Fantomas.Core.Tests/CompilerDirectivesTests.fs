@@ -539,7 +539,8 @@ let ``some spacing is still lost in and around #if blocks, 303`` () =
                    assemblyName.PublicKey <- key'.PublicKey // sets token implicitly
 #endif
 """
-        { config with MaxInfixOperatorExpression = 75 }
+        { config with
+            MaxInfixOperatorExpression = 75 }
     |> prepend newline
     |> should
         equal
@@ -587,7 +588,8 @@ let ``some spacing is still lost in and around #if blocks, no defines`` () =
                    assemblyName.PublicKey <- key'.PublicKey // sets token implicitly
 #endif
 """
-        { config with MaxInfixOperatorExpression = 75 }
+        { config with
+            MaxInfixOperatorExpression = 75 }
     |> prepend newline
     |> should
         equal
@@ -634,7 +636,8 @@ let ``some spacing is still lost in and around #if blocks, NETCOREAPP2_0`` () =
                    assemblyName.PublicKey <- key'.PublicKey // sets token implicitly
 #endif
 """
-        { config with MaxInfixOperatorExpression = 75 }
+        { config with
+            MaxInfixOperatorExpression = 75 }
     |> prepend newline
     |> should
         equal
@@ -691,7 +694,8 @@ type FunctionComponent =
 
     static member Foo = ()
 """
-        { config with MaxDotGetExpressionWidth = 50 }
+        { config with
+            MaxDotGetExpressionWidth = 50 }
     |> should
         equal
         """namespace Fable.React
@@ -885,7 +889,8 @@ type FunctionComponent =
 
     static member Foo = ()
 """
-        { config with MaxDotGetExpressionWidth = 50 }
+        { config with
+            MaxDotGetExpressionWidth = 50 }
     |> should
         equal
         """namespace Fable.React
@@ -2210,7 +2215,8 @@ let getDefaultProxyFor =
             | Some p -> if p.GetProxy uri <> uri then p else getDefault()
             | None -> getDefault())
 """
-        { config with MaxIfThenElseShortWidth = 50 }
+        { config with
+            MaxIfThenElseShortWidth = 50 }
     |> prepend newline
     |> should
         equal
@@ -2330,7 +2336,8 @@ module ReactHookExtensions =
 
             deferred
 """
-        { config with NewlineBetweenTypeDefinitionAndMembers = false }
+        { config with
+            NewlineBetweenTypeDefinitionAndMembers = false }
     |> prepend newline
     |> should
         equal
@@ -2478,7 +2485,8 @@ let ``empty hash directive block should not make expression multiline`` () =
         assemblyName.PublicKey <- null
         assemblyName.PublicKeyToken <- null
 """
-        { config with MaxInfixOperatorExpression = 75 }
+        { config with
+            MaxInfixOperatorExpression = 75 }
     |> prepend newline
     |> should
         equal
@@ -2504,7 +2512,8 @@ let ``comment after compiler define`` () =
     let tcrefObjTy, enclosingDeclaredTypars, renaming, objTy = FreshenTyconRef m rigid tcref declaredTyconTypars
 #endif
 """
-        { config with MaxIfThenElseShortWidth = 20 }
+        { config with
+            MaxIfThenElseShortWidth = 20 }
     |> prepend newline
     |> should
         equal
@@ -2684,7 +2693,8 @@ let isUnix =
     int Environment.OSVersion.Platform |> fun p -> (p = 4) || (p = 6) || (p = 128)
 #endif
 """
-        { config with MaxInfixOperatorExpression = 40 }
+        { config with
+            MaxInfixOperatorExpression = 40 }
     |> prepend newline
     |> should
         equal
@@ -2879,7 +2889,8 @@ let Run(message: string, executionContext: ExecutionContext, log: TraceWriter) =
 
     message |> Out.Dialout.DialoutFunction.Accept logInfo getSetting
 """
-        { config with MaxInfixOperatorExpression = 50 }
+        { config with
+            MaxInfixOperatorExpression = 50 }
     |> prepend newline
     |> should
         equal

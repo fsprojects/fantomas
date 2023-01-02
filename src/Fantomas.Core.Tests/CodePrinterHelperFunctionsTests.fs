@@ -107,7 +107,10 @@ let ``other helper function respect configuration settings`` () =
     let defaultConfig: Context = Context.Default
     // The `FormatConfig` is present in the `Context`.
     let configWithSpaceBeforeTrue =
-        { Context.Default with Config = { Context.Default.Config with SpaceBeforeColon = true } }
+        { Context.Default with
+            Config =
+                { Context.Default.Config with
+                    SpaceBeforeColon = true } }
 
     let codeWithDefaultSettings: string = f defaultConfig |> dump
 
@@ -143,7 +146,10 @@ let ``newlines and indentation`` () =
     // The dump function will respect the newline from the configuration.
     // For this test we will set it to `EndOfLineStyle.LF`
     let ctx =
-        { Context.Default with Config = { Context.Default.Config with EndOfLine = EndOfLineStyle.LF } }
+        { Context.Default with
+            Config =
+                { Context.Default.Config with
+                    EndOfLine = EndOfLineStyle.LF } }
 
     let code = f ctx |> dump
     Assert.AreEqual("first line\nsecond line", code)
@@ -265,7 +271,10 @@ let a =
         | _ -> !- "error"
 
     let ctx =
-        { Context.Default with Config = { Context.Default.Config with EndOfLine = EndOfLineStyle.LF } }
+        { Context.Default with
+            Config =
+                { Context.Default.Config with
+                    EndOfLine = EndOfLineStyle.LF } }
 
     let codeWithoutTriviaPrinting = f genExpr tree ctx |> dump
     Assert.AreEqual("let a = b", codeWithoutTriviaPrinting)
@@ -390,7 +399,10 @@ let b = 2
         | _ -> !- "error"
 
     let ctx =
-        { Context.Default with Config = { Context.Default.Config with EndOfLine = EndOfLineStyle.LF } }
+        { Context.Default with
+            Config =
+                { Context.Default.Config with
+                    EndOfLine = EndOfLineStyle.LF } }
 
     let formattedCode = f tree ctx |> dump
     Assert.AreEqual("let a = 1\n\nlet b = 2", formattedCode)
@@ -462,7 +474,10 @@ let ``locking the indentation at a fixed column`` () =
         +> sepCloseT
 
     let ctxBefore =
-        { Context.Default with Config = { Context.Default.Config with EndOfLine = EndOfLineStyle.LF } }
+        { Context.Default with
+            Config =
+                { Context.Default.Config with
+                    EndOfLine = EndOfLineStyle.LF } }
 
     let ctxAfter = f ctxBefore
     let code = dump ctxAfter

@@ -43,7 +43,8 @@ let logger =
         .Returns(())
         .Create()
 """
-        { config with MaxDotGetExpressionWidth = 50 }
+        { config with
+            MaxDotGetExpressionWidth = 50 }
     |> prepend newline
     |> should
         equal

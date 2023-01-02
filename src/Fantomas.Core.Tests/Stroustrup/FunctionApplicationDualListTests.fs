@@ -5,7 +5,9 @@ open FsUnit
 open Fantomas.Core.Tests.TestHelper
 open Fantomas.Core.FormatConfig
 
-let config = { config with MultilineBracketStyle = ExperimentalStroustrup }
+let config =
+    { config with
+        MultilineBracketStyle = ExperimentalStroustrup }
 
 [<Test>]
 let ``two short lists`` () =

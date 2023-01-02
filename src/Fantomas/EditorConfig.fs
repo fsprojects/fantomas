@@ -115,8 +115,12 @@ let parseOptionsFromEditorConfig
 
         match editorConfigProperties with
         | Unspecified -> config
-        | OldStroustrup -> { config with MultilineBracketStyle = ExperimentalStroustrup }
-        | OldAligned -> { config with MultilineBracketStyle = Aligned }
+        | OldStroustrup ->
+            { config with
+                MultilineBracketStyle = ExperimentalStroustrup }
+        | OldAligned ->
+            { config with
+                MultilineBracketStyle = Aligned }
 
 let configToEditorConfig (config: FormatConfig) : string =
     Reflection.getRecordFields config

@@ -42,7 +42,11 @@ let f () =
       x + y
 """
 
-    formatSourceString false codeSnippet { config with MaxValueBindingWidth = 50 }
+    formatSourceString
+        false
+        codeSnippet
+        { config with
+            MaxValueBindingWidth = 50 }
     |> should
         equal
         """let f () =
@@ -263,7 +267,8 @@ let ``newlines inside let binding should be not duplicated`` () =
 
     ()
 """
-        { config with MaxInfixOperatorExpression = 60 }
+        { config with
+            MaxInfixOperatorExpression = 60 }
     |> should
         equal
         """let foo =
@@ -456,7 +461,8 @@ let ``line comment before return type with AlignFunctionSignatureToIndentation``
     =
     0
 """
-        { config with AlignFunctionSignatureToIndentation = true }
+        { config with
+            AlignFunctionSignatureToIndentation = true }
     |> prepend newline
     |> should
         equal
@@ -867,7 +873,8 @@ let private authenticateRequest (logger: ILogger) header =
         logger.LogError(sprintf "Could not authenticate token %s\n%A" token exn)
         task { return None }
 """
-        { config with MaxDotGetExpressionWidth = 50 }
+        { config with
+            MaxDotGetExpressionWidth = 50 }
     |> prepend newline
     |> should
         equal
@@ -1063,7 +1070,8 @@ let ``don't add additional newline before SynExpr.New, 1049`` () =
         new HttpResponseMessage(HttpStatusCode.OK,
                                 Content = new StringContent(version, System.Text.Encoding.UTF8, "application/text"))
 """
-        { config with MaxDotGetExpressionWidth = 50 }
+        { config with
+            MaxDotGetExpressionWidth = 50 }
     |> prepend newline
     |> should
         equal
@@ -1218,7 +1226,8 @@ let x =
            else
                false
 """
-        { config with MaxDotGetExpressionWidth = 50 }
+        { config with
+            MaxDotGetExpressionWidth = 50 }
     |> prepend newline
     |> should
         equal
@@ -1280,7 +1289,8 @@ let x =
            else
                false
 """
-        { config with MaxDotGetExpressionWidth = 50 }
+        { config with
+            MaxDotGetExpressionWidth = 50 }
     |> prepend newline
     |> should
         equal
@@ -1350,7 +1360,8 @@ let internal sepSpace =
         if (not ctx.WriterInitModel.IsDummy && let s = dump ctx in s = "" || s.EndsWith " " || s.EndsWith Environment.NewLine) then ctx
         else (!- " ") ctx
 """
-        { config with MaxInfixOperatorExpression = 50 }
+        { config with
+            MaxInfixOperatorExpression = 50 }
     |> prepend newline
     |> should
         equal

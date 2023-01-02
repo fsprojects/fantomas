@@ -86,7 +86,8 @@ formatCode
 
       find <| f.Length - 1
     """
-    { FormatConfig.Default with IndentSize = 2 }
+    { FormatConfig.Default with
+        IndentSize = 2 }
 (*** include-it ***)
 (**
 <fantomas-setting name="max_line_length" green></fantomas-setting>
@@ -103,7 +104,8 @@ formatCode
     | Some foo -> someLongFunctionNameThatWillTakeFooAndReturnsUnit foo
     | None -> printfn "nothing"
     """
-    { FormatConfig.Default with MaxLineLength = 60 }
+    { FormatConfig.Default with
+        MaxLineLength = 60 }
 (*** include-it ***)
 
 (**
@@ -127,7 +129,8 @@ formatCode
     """ 
     let a = 42
     """
-    { FormatConfig.Default with InsertFinalNewline = false }
+    { FormatConfig.Default with
+        InsertFinalNewline = false }
 (*** include-it ***)
 
 (**
@@ -144,7 +147,8 @@ formatCode
    let value (a: int) = x
    let DumpTrace() = ()
     """
-    { FormatConfig.Default with SpaceBeforeParameter = false }
+    { FormatConfig.Default with
+        SpaceBeforeParameter = false }
 (*** include-it ***)
 
 (**
@@ -164,7 +168,8 @@ startTimer ()
 match x with
 | value (a, b) -> ()
     """
-    { FormatConfig.Default with SpaceBeforeLowercaseInvocation = false }
+    { FormatConfig.Default with
+        SpaceBeforeLowercaseInvocation = false }
 (*** include-it ***)
 
 (**
@@ -184,7 +189,8 @@ person.ToString()
 match x with
 | Value(a, b) -> ()
     """
-    { FormatConfig.Default with SpaceBeforeUppercaseInvocation = true }
+    { FormatConfig.Default with
+        SpaceBeforeUppercaseInvocation = true }
 (*** include-it ***)
 
 (**
@@ -201,7 +207,8 @@ formatCode
         class
         end
     """
-    { FormatConfig.Default with SpaceBeforeClassConstructor = true }
+    { FormatConfig.Default with
+        SpaceBeforeClassConstructor = true }
 
 (*** include-it ***)
 
@@ -221,7 +228,8 @@ formatCode
         member __.singAlong() = ()
         member __.swim(duration: TimeSpan) = ()
     """
-    { FormatConfig.Default with SpaceBeforeMember = true }
+    { FormatConfig.Default with
+        SpaceBeforeMember = true }
 (*** include-it ***)
 
 (**
@@ -238,7 +246,8 @@ formatCode
    let myValue: int = 42
    let update (msg: Msg) (model: Model) : Model = model
     """
-    { FormatConfig.Default with SpaceBeforeColon = true }
+    { FormatConfig.Default with
+        SpaceBeforeColon = true }
 (*** include-it ***)
 
 (**
@@ -254,7 +263,8 @@ formatCode
     myValue.SomeFunction(foo, bar, somethingElse)
     (a, b, c)
     """
-    { FormatConfig.Default with SpaceAfterComma = false }
+    { FormatConfig.Default with
+        SpaceAfterComma = false }
 (*** include-it ***)
 
 (**
@@ -271,7 +281,8 @@ formatCode
     let b = [| foo ; bar |]
     type C = { X: int ; Y: int }
     """
-    { FormatConfig.Default with SpaceBeforeSemicolon = true }
+    { FormatConfig.Default with
+        SpaceBeforeSemicolon = true }
 (*** include-it ***)
 
 (**
@@ -288,7 +299,8 @@ formatCode
     let b = [| foo; bar |]
     type C = { X: int; Y: int }
     """
-    { FormatConfig.Default with SpaceAfterSemicolon = false }
+    { FormatConfig.Default with
+        SpaceAfterSemicolon = false }
 (*** include-it ***)
 
 (**
@@ -304,7 +316,8 @@ formatCode
     let a = [ 1;2;3 ]
     let b = [| 4;5;6 |]
     """
-    { FormatConfig.Default with SpaceAroundDelimiter = false }
+    { FormatConfig.Default with
+        SpaceAroundDelimiter = false }
 (*** include-it ***)
 
 (**
@@ -327,7 +340,8 @@ formatCode
     if a then 
         ()
     """
-    { FormatConfig.Default with MaxIfThenShortWidth = 15 }
+    { FormatConfig.Default with
+        MaxIfThenShortWidth = 15 }
 (*** include-it ***)
 
 (**
@@ -343,7 +357,8 @@ formatCode
     """ 
     if myCheck then truth else bogus
     """
-    { FormatConfig.Default with MaxIfThenElseShortWidth = 10 }
+    { FormatConfig.Default with
+        MaxIfThenElseShortWidth = 10 }
 (*** include-it ***)
 
 (**
@@ -358,7 +373,8 @@ formatCode
     let WebApp =
         route "/ping" >=> authorized >=> text "pong"
     """
-    { FormatConfig.Default with MaxInfixOperatorExpression = 20 }
+    { FormatConfig.Default with
+        MaxInfixOperatorExpression = 20 }
 (*** include-it ***)
 
 (**
@@ -376,7 +392,8 @@ formatCode
     type MyRecord = { X: int; Y: int; Length: int }
     let myInstance = { X = 10; Y = 20; Length = 90 }
     """
-    { FormatConfig.Default with MaxRecordWidth = 20 }
+    { FormatConfig.Default with
+        MaxRecordWidth = 20 }
 (*** include-it ***)
 
 (**
@@ -435,7 +452,8 @@ formatCode
 
     let myRecord'' = { r with x = 3; y = "hello" }
     """
-    { FormatConfig.Default with RecordMultilineFormatter = MultilineFormatterType.NumberOfItems }
+    { FormatConfig.Default with
+        RecordMultilineFormatter = MultilineFormatterType.NumberOfItems }
 (*** include-it ***)
 
 (**
@@ -452,7 +470,8 @@ formatCode
     """ 
     let myArray = [| one; two; three |]
     """
-    { FormatConfig.Default with MaxArrayOrListWidth = 20 }
+    { FormatConfig.Default with
+        MaxArrayOrListWidth = 20 }
 (*** include-it ***)
 
 (**
@@ -491,7 +510,8 @@ formatCode
     """ 
     let myArray = [| one; two; three |]
     """
-    { FormatConfig.Default with ArrayOrListMultilineFormatter = MultilineFormatterType.NumberOfItems }
+    { FormatConfig.Default with
+        ArrayOrListMultilineFormatter = MultilineFormatterType.NumberOfItems }
 (*** include-it ***)
 
 (**
@@ -509,7 +529,8 @@ formatCode
     type MyType() =
         member this.HelpText = "Some help text"
     """
-    { FormatConfig.Default with MaxValueBindingWidth = 10 }
+    { FormatConfig.Default with
+        MaxValueBindingWidth = 10 }
 (*** include-it ***)
 
 (**
@@ -527,7 +548,8 @@ formatCode
     type MyType() =
         member this.HelpText = "Some help text"
     """
-    { FormatConfig.Default with MaxFunctionBindingWidth = 10 }
+    { FormatConfig.Default with
+        MaxFunctionBindingWidth = 10 }
 (*** include-it ***)
 
 (**
@@ -546,7 +568,8 @@ formatCode
         .Create<WrapperJob>()
         .Build()
     """
-    { FormatConfig.Default with MaxDotGetExpressionWidth = 100 }
+    { FormatConfig.Default with
+        MaxDotGetExpressionWidth = 100 }
 (*** include-it ***)
 
 (**
@@ -585,7 +608,8 @@ formatCode
            (16, 17,18)
            (19, 20, 21) |]
     """
-    { FormatConfig.Default with MultilineBlockBracketsOnSameColumn = true }
+    { FormatConfig.Default with
+        MultilineBlockBracketsOnSameColumn = true }
 (*** include-it ***)
 
 (**
@@ -603,7 +627,8 @@ type Range =
       To: float }
     member this.Length = this.To - this.From
     """
-    { FormatConfig.Default with NewlineBetweenTypeDefinitionAndMembers = true }
+    { FormatConfig.Default with
+        NewlineBetweenTypeDefinitionAndMembers = true }
 (*** include-it ***)
 
 (**
@@ -624,7 +649,8 @@ let run
     : HttpResponse =
     Http.main CodeFormatter.GetVersion format FormatConfig.FormatConfig.Default log req
     """
-    { FormatConfig.Default with AlignFunctionSignatureToIndentation = true }
+    { FormatConfig.Default with
+        AlignFunctionSignatureToIndentation = true }
 (*** include-it ***)
 
 (**
@@ -656,7 +682,8 @@ type D() =
         ) : ReturnType =
         42
     """
-    { FormatConfig.Default with AlternativeLongMemberDefinitions = true }
+    { FormatConfig.Default with
+        AlternativeLongMemberDefinitions = true }
 (*** include-it ***)
 
 (**
@@ -683,7 +710,8 @@ let printListWithOffset a list1 =
             // print stuff
             printfn "%d" (a + elem))
     """
-    { FormatConfig.Default with MultiLineLambdaClosingNewline = true }
+    { FormatConfig.Default with
+        MultiLineLambdaClosingNewline = true }
 (*** include-it ***)
 
 (**
@@ -712,7 +740,8 @@ let main argv =
     // do more stuff
     0
     """
-    { FormatConfig.Default with ExperimentalKeepIndentInBranch = true }
+    { FormatConfig.Default with
+        ExperimentalKeepIndentInBranch = true }
 (*** include-it ***)
 
 (**
@@ -728,7 +757,8 @@ formatCode
     """ 
     type MyDU = Short of int
     """
-    { FormatConfig.Default with BarBeforeDiscriminatedUnionDeclaration = true }
+    { FormatConfig.Default with
+        BarBeforeDiscriminatedUnionDeclaration = true }
 
 (*** include-it ***)
 
@@ -784,7 +814,8 @@ formatCode
         // ...
         ()
     """
-    { FormatConfig.Default with BlankLinesAroundNestedMultilineExpressions = false }
+    { FormatConfig.Default with
+        BlankLinesAroundNestedMultilineExpressions = false }
 (*** include-it ***)
 
 (**
@@ -801,7 +832,8 @@ formatCode
 
     let x = 42
     """
-    { FormatConfig.Default with KeepMaxNumberOfBlankLines = 1 }
+    { FormatConfig.Default with
+        KeepMaxNumberOfBlankLines = 1 }
 (*** include-it ***)
 
 (**
@@ -827,7 +859,8 @@ formatCode
         a + b
     #endif
     """
-    { FormatConfig.Default with StrictMode = true }
+    { FormatConfig.Default with
+        StrictMode = true }
 (*** include-it ***)
 (**
 <fantomas-nav previous="./StyleGuide.html" next="./IgnoreFiles.html"></fantomas-nav>

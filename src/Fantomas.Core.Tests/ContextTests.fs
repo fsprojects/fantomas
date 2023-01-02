@@ -30,7 +30,9 @@ let ``sepColon should not add a space when nothing proceeds it`` () =
         +> unindent
         +> sepNln
 
-    let config = { FormatConfig.Default with SpaceBeforeColon = true }
+    let config =
+        { FormatConfig.Default with
+            SpaceBeforeColon = true }
 
     let ctx = { Context.Default with Config = config }
     let result = dump (expr ctx)
@@ -50,7 +52,9 @@ let add a b
 let ``sepColon should not add a space when space proceeds it`` () =
     let expr = !- "let a " +> sepNone +> sepColon
 
-    let config = { FormatConfig.Default with SpaceBeforeColon = true }
+    let config =
+        { FormatConfig.Default with
+            SpaceBeforeColon = true }
 
     let ctx = { Context.Default with Config = config }
     let result = dump (expr ctx)

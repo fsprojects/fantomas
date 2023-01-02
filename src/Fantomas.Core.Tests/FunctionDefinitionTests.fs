@@ -1236,7 +1236,8 @@ let longFunctionWithLongTupleParameterAndReturnType (aVeryLongParam: AVeryLongTy
         // ... the body of the method follows
         ()
 """
-        { config with AlignFunctionSignatureToIndentation = true }
+        { config with
+            AlignFunctionSignatureToIndentation = true }
     |> prepend newline
     |> should
         equal

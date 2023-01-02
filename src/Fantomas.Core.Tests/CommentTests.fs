@@ -364,7 +364,8 @@ let a =
       // bar
       B = 7 }
 """
-        { config with SpaceAroundDelimiter = false }
+        { config with
+            SpaceAroundDelimiter = false }
     |> prepend newline
     |> should
         equal
@@ -845,7 +846,8 @@ type substring =
                 min strA.Length strB.Length)
 #endif
 """
-        { config with MaxInfixOperatorExpression = 60 }
+        { config with
+            MaxInfixOperatorExpression = 60 }
     |> should
         equal
         """(*
@@ -1644,7 +1646,8 @@ Host
 
 //
 """
-        { config with MaxDotGetExpressionWidth = 40 }
+        { config with
+            MaxDotGetExpressionWidth = 40 }
     |> prepend newline
     |> should
         equal
@@ -1935,7 +1938,8 @@ let compilerOptionUsage (CompilerOption (s, tag, spec, _, _)) =
     
     s
 """
-        { config with MaxIfThenElseShortWidth = 60 }
+        { config with
+            MaxIfThenElseShortWidth = 60 }
     |> prepend newline
     |> should
         equal
@@ -1962,7 +1966,8 @@ match meh with
     else
         sprintf "%s:%s" s tag (* still being decided *)
 """
-        { config with MaxIfThenElseShortWidth = 60 }
+        { config with
+            MaxIfThenElseShortWidth = 60 }
     |> prepend newline
     |> should
         equal
@@ -2007,7 +2012,8 @@ let compilerOptionUsage (CompilerOption (s, tag, spec, _, _)) =
         else
             sprintf "%s:%s" s tag (* still being decided *)
 """
-        { config with MaxIfThenElseShortWidth = 60 }
+        { config with
+            MaxIfThenElseShortWidth = 60 }
     |> prepend newline
     |> should
         equal

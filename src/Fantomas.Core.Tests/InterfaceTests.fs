@@ -19,7 +19,8 @@ type Interface3 =
     inherit Interface1
     inherit Interface2
     abstract member Method3 : int -> int"""
-        { config with MaxFunctionBindingWidth = 120 }
+        { config with
+            MaxFunctionBindingWidth = 120 }
     |> prepend newline
     |> should
         equal
@@ -48,7 +49,8 @@ let ``should not add with to interface definitions with no members`` () =
         member this.Serialize sb = sb.AppendFormat("\"{0}\"", escape v)
         member this.ToXml() = v :> obj
     """
-        { config with MaxValueBindingWidth = 120 }
+        { config with
+            MaxValueBindingWidth = 120 }
     |> should
         equal
         """type Text(text: string) =
@@ -108,7 +110,8 @@ let f () =
       interface INotifyEnumerableInternal<'T>
       interface IEnumerable<_> with
         member x.GetEnumerator() = null }"""
-        { config with MaxValueBindingWidth = 120 }
+        { config with
+            MaxValueBindingWidth = 120 }
     |> prepend newline
     |> should
         equal
@@ -610,7 +613,8 @@ type IInterface2 =
 type IInterface3 =
     abstract member X: unit -> unit
 """
-        { config with SpaceBeforeClassConstructor = true }
+        { config with
+            SpaceBeforeClassConstructor = true }
     |> prepend newline
     |> should
         equal

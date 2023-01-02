@@ -60,13 +60,7 @@ type ConfigurationFile
 
 type FSharpFile
     internal
-    (
-        rootFolderName: string,
-        ?fsharpFileExtension: string,
-        ?subFolder: string,
-        ?content: string,
-        ?fileName: string
-    ) =
+    (rootFolderName: string, ?fsharpFileExtension: string, ?subFolder: string, ?content: string, ?fileName: string) =
     let rootDir = Path.Join(Path.GetTempPath(), rootFolderName)
 
     do
@@ -134,7 +128,11 @@ let ``parent config should not be taking into account when child is root`` () =
     let subFolder = tempName ()
 
     use parentConfig =
-        new ConfigurationFile({ defaultConfig with MaxRecordWidth = 10 }, rootFolder)
+        new ConfigurationFile(
+            { defaultConfig with
+                MaxRecordWidth = 10 },
+            rootFolder
+        )
 
     use childConfig =
         new ConfigurationFile({ defaultConfig with IndentSize = 2 }, rootFolder, subFolder = subFolder, isRoot = true)
@@ -150,7 +148,11 @@ let ``configuration file should not affect file extension`` () =
     let rootFolder = tempName ()
 
     use configFixture =
-        new ConfigurationFile({ defaultConfig with MaxLineLength = 90 }, rootFolder)
+        new ConfigurationFile(
+            { defaultConfig with
+                MaxLineLength = 90 },
+            rootFolder
+        )
 
     use fsharpFile = new FSharpFile(rootFolder, fsharpFileExtension = ".fsx")
     let config = EditorConfig.readConfiguration fsharpFile.FSharpFile

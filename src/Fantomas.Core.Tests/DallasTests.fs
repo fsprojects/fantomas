@@ -385,7 +385,8 @@ type Foo
     end
     member x.Foo = ()
 """
-        { config with AlternativeLongMemberDefinitions = true }
+        { config with
+            AlternativeLongMemberDefinitions = true }
     |> prepend newline
     |> should
         equal
@@ -1017,7 +1018,8 @@ let ``paren with closing lambda`` () =
 (fun _ -> //
                      a)
 """
-        { config with MultiLineLambdaClosingNewline = true }
+        { config with
+            MultiLineLambdaClosingNewline = true }
     |> prepend newline
     |> should
         equal
@@ -1040,7 +1042,8 @@ let ``paren lambda, long list of parameters`` () =
         //
         )
 """
-        { config with MultiLineLambdaClosingNewline = true }
+        { config with
+            MultiLineLambdaClosingNewline = true }
     |> prepend newline
     |> should
         equal
@@ -1199,7 +1202,8 @@ x +>
         z +>
             a0
 """
-        { config with MaxInfixOperatorExpression = 0 }
+        { config with
+            MaxInfixOperatorExpression = 0 }
     |> prepend newline
     |> should
         equal
@@ -1468,7 +1472,8 @@ fn (fun x ->
     // foo
     ())
 """
-        { config with MultiLineLambdaClosingNewline = true }
+        { config with
+            MultiLineLambdaClosingNewline = true }
     |> prepend newline
     |> should
         equal
@@ -1851,7 +1856,8 @@ let someTest input1 input2 =
         Expect.equal input1 input2 "didn't equal"
     }
 """
-        { config with MultilineBracketStyle = ExperimentalStroustrup }
+        { config with
+            MultilineBracketStyle = ExperimentalStroustrup }
     |> prepend newline
     |> should
         equal

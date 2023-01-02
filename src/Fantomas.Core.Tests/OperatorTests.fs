@@ -287,7 +287,11 @@ let output = 2 >>.~ 3
 
 [<Test>]
 let ``should not add newline before = operator after |>`` () =
-    formatSourceString false """1 |> max 0 = 1""" { config with MaxInfixOperatorExpression = 15 }
+    formatSourceString
+        false
+        """1 |> max 0 = 1"""
+        { config with
+            MaxInfixOperatorExpression = 15 }
     |> should
         equal
         """1 |> max 0 = 1
@@ -328,7 +332,8 @@ let ``line comment after infix function with parenthesis, 559`` () =
             ()
         }
 """
-        { config with MaxInfixOperatorExpression = 50 }
+        { config with
+            MaxInfixOperatorExpression = 50 }
     |> prepend newline
     |> should
         equal
@@ -403,7 +408,8 @@ let ``long expression with pipe should be multiline`` () =
     formatSourceString
         false
         "let a = List.init 40 (fun i -> generateThing i a) |> List.map mapThingToOtherThing"
-        { config with MaxInfixOperatorExpression = 50 }
+        { config with
+            MaxInfixOperatorExpression = 50 }
     |> prepend newline
     |> should
         equal
@@ -420,7 +426,8 @@ let ``giraffe sample`` () =
         """
 let WebApp = route "/ping" >=> authorized >=> text "pong"
 """
-        { config with MaxInfixOperatorExpression = 20 }
+        { config with
+            MaxInfixOperatorExpression = 20 }
     |> prepend newline
     |> should
         equal
@@ -451,7 +458,8 @@ let ``pipe boolean expression`` () =
         false
         """b && c |> someLongExpressionThatShouldMoveThePipeToTheNextLine
 """
-        { config with MaxInfixOperatorExpression = 50 }
+        { config with
+            MaxInfixOperatorExpression = 50 }
     |> prepend newline
     |> should
         equal
@@ -562,7 +570,8 @@ let ``modulo operator on same line, 780`` () =
         false
         """let hasUnEvenAmount regex line = (Regex.Matches(line, regex).Count - Regex.Matches(line, "\\\\" + regex).Count) % 2 = 1
 """
-        { config with MaxInfixOperatorExpression = 50 }
+        { config with
+            MaxInfixOperatorExpression = 50 }
     |> prepend newline
     |> should
         equal
@@ -693,7 +702,8 @@ let private distanceBetweenTwoPoints (latA, lngA) (latB, lngB) =
 
         dist
 """
-        { config with MaxInfixOperatorExpression = 50 }
+        { config with
+            MaxInfixOperatorExpression = 50 }
     |> prepend newline
     |> should
         equal
@@ -778,7 +788,8 @@ let ``simple math`` () =
         false
         """let myValue = a + b * c
 """
-        { config with MaxInfixOperatorExpression = 5 }
+        { config with
+            MaxInfixOperatorExpression = 5 }
     |> prepend newline
     |> should
         equal
@@ -794,7 +805,8 @@ let ``simple math in one line`` () =
         false
         """let myValue = a + b * c
 """
-        { config with MaxInfixOperatorExpression = 50 }
+        { config with
+            MaxInfixOperatorExpression = 50 }
     |> prepend newline
     |> should
         equal
@@ -808,7 +820,8 @@ let ``simple math reversed`` () =
         false
         """let myValue = a * b + c
 """
-        { config with MaxInfixOperatorExpression = 5 }
+        { config with
+            MaxInfixOperatorExpression = 5 }
     |> prepend newline
     |> should
         equal
@@ -824,7 +837,8 @@ let ``multiple sum operators`` () =
         false
         """let myValue = a + b * c + d
 """
-        { config with MaxInfixOperatorExpression = 5 }
+        { config with
+            MaxInfixOperatorExpression = 5 }
     |> prepend newline
     |> should
         equal
@@ -847,7 +861,8 @@ let ``nested math sample`` () =
                * ddddddddddddddddddddddd
                * eeeeeeeeeeeeeeeeeeeeeee)
 """
-        { config with MaxInfixOperatorExpression = 50 }
+        { config with
+            MaxInfixOperatorExpression = 50 }
     |> prepend newline
     |> should
         equal
@@ -1304,7 +1319,8 @@ module TopLevelOpIsolation3 =
     let ``issue 91: op_RangeStep first class syntax for seq return type but arg mismatch`` () =
         <@ (.. ..) 1 2 3 4 @> |> decompile =! "TopLevelOpIsolation3.(.. ..) 1 2 3 4"
 """
-        { config with MaxInfixOperatorExpression = 50 }
+        { config with
+            MaxInfixOperatorExpression = 50 }
     |> prepend newline
     |> should
         equal
@@ -1341,7 +1357,8 @@ type Test =
     static member create =
     { WorkHoursPerWeek = 40u<hr*(staff weeks)> }
 """
-        { config with NewlineBetweenTypeDefinitionAndMembers = false }
+        { config with
+            NewlineBetweenTypeDefinitionAndMembers = false }
     |> prepend newline
     |> should
         equal
@@ -1463,7 +1480,8 @@ let ``multiple list concat operators, 2472`` () =
         """
 let allDecls = inheritsL @ iimplsLs @ ctorLs @ instanceValLs @ methLs @ ilFieldsL @ propLs @ eventLs @ staticValLs @ nestedTypeLs
 """
-        { config with MaxInfixOperatorExpression = 0 }
+        { config with
+            MaxInfixOperatorExpression = 0 }
     |> prepend newline
     |> should
         equal
@@ -1488,7 +1506,8 @@ let ``multiple cons operators`` () =
         """
 let allDecls = inheritsL :: iimplsLs :: ctorLs :: foo ::blah
 """
-        { config with MaxInfixOperatorExpression = 0 }
+        { config with
+            MaxInfixOperatorExpression = 0 }
     |> prepend newline
     |> should
         equal
@@ -1516,7 +1535,8 @@ let ``right placed operators`` () =
   let allDecls = inheritsL @- iimplsLs @- ctorLs 
   let allDecls = inheritsL @+ iimplsLs @+ ctorLs 
 """
-        { config with MaxInfixOperatorExpression = 0 }
+        { config with
+            MaxInfixOperatorExpression = 0 }
     |> prepend newline
     |> should
         equal
