@@ -19,7 +19,7 @@ type WriterEvent =
     | SetAtColumn of int
     | RestoreAtColumn of int
 
-let private (|CommentOrDefineEvent|_|) we =
+let (|CommentOrDefineEvent|_|) we =
     match we with
     | Write w when (String.startsWithOrdinal "//" w) -> Some we
     | Write w when (String.startsWithOrdinal "#if" w) -> Some we
@@ -236,18 +236,7 @@ type internal Context =
                     { x.WriterModel with
                         Mode = ShortExpression([ info ]) } }
 
-// member x.FromSourceText(range: range) : string option =
-//     Option.map (fun (sourceText: ISourceText) -> sourceText.GetContentAt range) x.SourceText
-
-// member x.HasContentAfter(``type``: FsAstType, range: range) : bool =
-//     match Map.tryFindOrEmptyList ``type`` x.TriviaAfter with
-//     | [] -> false
-//     | triviaInstructions -> List.exists (fun ti -> RangeHelpers.rangeEq ti.Range range) triviaInstructions
-//
-// member x.HasContentBefore(``type``: FsAstType, range: range) : bool =
-//     match Map.tryFindOrEmptyList ``type`` x.TriviaBefore with
-//     | [] -> false
-//     | triviaInstructions -> List.exists (fun ti -> RangeHelpers.rangeEq ti.Range range) triviaInstructions
+    member x.Column = x.WriterModel.Column
 
 /// This adds a WriterEvent to the Context.
 /// One event could potentially be split up into multiple events.
@@ -302,7 +291,6 @@ let dumpAndContinue (ctx: Context) =
 
 type Context with
 
-    member x.Column = x.WriterModel.Column
     member x.FinalizeModel = finalizeWriterModel x
 
     member x.Dump() =
@@ -339,7 +327,7 @@ let lastWriteEventIsNewline ctx =
         | _ -> false)
     |> Option.defaultValue false
 
-let private (|EmptyHashDefineBlock|_|) (events: WriterEvent array) =
+let (|EmptyHashDefineBlock|_|) (events: WriterEvent array) =
     match Array.tryHead events, Array.tryLast events with
     | Some(CommentOrDefineEvent _), Some(CommentOrDefineEvent _) ->
         // Check if there is an empty block between hash defines
@@ -381,9 +369,6 @@ let newlineBetweenLastWriteEvent ctx =
 let lastWriteEventOnLastLine ctx =
     writeEventsOnLastLine ctx |> Seq.tryHead
 
-let forallCharsOnLastLine f ctx =
-    writeEventsOnLastLine ctx |> Seq.collect id |> Seq.forall f
-
 // A few utility functions from https://github.com/fsharp/powerpack/blob/master/src/FSharp.Compiler.CodeDom/generator.fs
 
 /// Indent one more level based on configuration
@@ -394,12 +379,6 @@ let indent (ctx: Context) =
 /// Unindent one more level based on configuration
 let unindent (ctx: Context) =
     writerEvent (UnIndentBy ctx.Config.IndentSize) ctx
-
-/// Increase indent by i spaces
-let incrIndent i (ctx: Context) = writerEvent (IndentBy i) ctx
-
-/// Decrease indent by i spaces
-let decrIndent i (ctx: Context) = writerEvent (UnIndentBy i) ctx
 
 /// Apply function f at an absolute indent level (use with care)
 let atIndentLevel alsoSetIndent level (f: Context -> Context) (ctx: Context) =
@@ -426,11 +405,6 @@ let atIndentLevel alsoSetIndent level (f: Context -> Context) (ctx: Context) =
 /// `atCurrentColumn` was called on `X`, then `indent` was called, but "some long string" have indent only 4, because it is bigger than `atColumn` (2).
 let atCurrentColumn (f: _ -> Context) (ctx: Context) = atIndentLevel false ctx.Column f ctx
 
-/// Like atCurrentColumn, but use current column after applying prependF
-let atCurrentColumnWithPrepend (prependF: _ -> Context) (f: _ -> Context) (ctx: Context) =
-    let col = ctx.Column
-    (prependF >> atIndentLevel false col f) ctx
-
 /// Write everything at current column indentation, set `indent` and `atColumn` on current column position
 /// /// Example (same as above):
 /// { X = // indent=2, atColumn=2
@@ -450,10 +424,6 @@ let (+>) (ctx: Context -> Context) (f: _ -> Context) x =
 
 let (!-) (str: string) = writerEvent (Write str)
 
-/// Print object converted to string
-let str (o: 'T) (ctx: Context) =
-    ctx |> writerEvent (Write(o.ToString()))
-
 /// Similar to col, and supply index as well
 let coli f' (c: seq<'T>) f (ctx: Context) =
     let mutable tryPick = true
@@ -463,21 +433,6 @@ let coli f' (c: seq<'T>) f (ctx: Context) =
 
     while e.MoveNext() do
         if tryPick then tryPick <- false else st <- f' st
-
-        st <- f i e.Current st
-        i <- i + 1
-
-    st
-
-/// Similar to coli, and supply index as well to f'
-let colii f' (c: seq<'T>) f (ctx: Context) =
-    let mutable tryPick = true
-    let mutable st = ctx
-    let mutable i = 0
-    let e = c.GetEnumerator()
-
-    while e.MoveNext() do
-        if tryPick then tryPick <- false else st <- f' i st
 
         st <- f i e.Current st
         i <- i + 1
@@ -517,9 +472,6 @@ let colPost f2 f1 (c: seq<'T>) f (ctx: Context) =
 /// Similar to col, apply one more function f2 at the beginning if the input sequence is not empty
 let colPre f2 f1 (c: seq<'T>) f (ctx: Context) =
     if Seq.isEmpty c then ctx else col f1 c f (f2 ctx)
-
-let colPreEx f2 f1 (c: seq<'T>) f (ctx: Context) =
-    if Seq.isEmpty c then ctx else colEx f1 c f (f2 ctx)
 
 /// If there is a value, apply f and f' accordingly, otherwise do nothing
 let opt (f': Context -> _) o f (ctx: Context) =
@@ -596,21 +548,11 @@ let sepNlnForTrivia = writerEvent WriteLineBecauseOfTrivia
 let sepNlnUnlessLastEventIsNewline (ctx: Context) =
     if lastWriteEventIsNewline ctx then ctx else sepNln ctx
 
-let sepNlnUnlessLastEventIsNewlineOrStroustrup (ctx: Context) =
-    if lastWriteEventIsNewline ctx || ctx.Config.ExperimentalStroustrupStyle then
-        ctx
-    else
-        sepNln ctx
-
 let sepStar = sepSpace +> !- "* "
-let sepStarFixed = !- "* "
 let sepEq = !- " ="
 let sepEqFixed = !- "="
 let sepArrow = !- " -> "
-let sepArrowFixed = !- "->"
 let sepArrowRev = !- " <- "
-let sepWild = !- "_"
-
 let sepBar = !- "| "
 
 let addSpaceIfSpaceAroundDelimiter (ctx: Context) =
@@ -620,84 +562,13 @@ let addSpaceIfSpaceAfterComma (ctx: Context) =
     onlyIf ctx.Config.SpaceAfterComma sepSpace ctx
 
 /// opening token of list
-let sepOpenL (ctx: Context) =
-    if ctx.Config.SpaceAroundDelimiter then
-        str "[ " ctx
-    else
-        str "[" ctx
-
-/// closing token of list
-let sepCloseL (ctx: Context) =
-    if ctx.Config.SpaceAroundDelimiter then
-        str " ]" ctx
-    else
-        str "]" ctx
-
-/// opening token of list
 let sepOpenLFixed = !- "["
 
 /// closing token of list
 let sepCloseLFixed = !- "]"
 
-/// opening token of array
-let sepOpenA (ctx: Context) =
-    if ctx.Config.SpaceAroundDelimiter then
-        str "[| " ctx
-    else
-        str "[|" ctx
-
-/// closing token of array
-let sepCloseA (ctx: Context) =
-    if ctx.Config.SpaceAroundDelimiter then
-        str " |]" ctx
-    else
-        str "|]" ctx
-
-/// opening token of list
-let sepOpenAFixed = !- "[|"
-/// closing token of list
-let sepCloseAFixed = !- "|]"
-
-/// opening token of sequence or record
-let sepOpenS (ctx: Context) =
-    if ctx.Config.SpaceAroundDelimiter then
-        str "{ " ctx
-    else
-        str "{" ctx
-
-/// closing token of sequence or record
-let sepCloseS (ctx: Context) =
-    if ctx.Config.SpaceAroundDelimiter then
-        str " }" ctx
-    else
-        str "}" ctx
-
-/// opening token of anon record
-let sepOpenAnonRecd (ctx: Context) =
-    if ctx.Config.SpaceAroundDelimiter then
-        str "{| " ctx
-    else
-        str "{|" ctx
-
-/// closing token of anon record
-let sepCloseAnonRecd (ctx: Context) =
-    if ctx.Config.SpaceAroundDelimiter then
-        str " |}" ctx
-    else
-        str "|}" ctx
-
 /// opening token of anon record
 let sepOpenAnonRecdFixed = !- "{|"
-
-/// closing token of anon record
-let sepCloseAnonRecdFixed = !- "|}"
-
-/// opening token of sequence
-let sepOpenSFixed = !- "{"
-
-/// closing token of sequence
-let sepCloseSFixed = !- "}"
-
 /// opening token of tuple
 let sepOpenT = !- "("
 
@@ -706,7 +577,6 @@ let sepCloseT = !- ")"
 
 let wordAnd = sepSpace +> !- "and "
 let wordAndFixed = !- "and"
-let wordOr = sepSpace +> !- "or "
 let wordOf = sepSpace +> !- "of "
 
 let indentSepNlnUnindent f = indent +> sepNln +> f +> unindent
@@ -727,17 +597,7 @@ let indentIfNeeded f (ctx: Context) =
     else
         f ctx
 
-let eventsWithoutMultilineWrite ctx =
-    { ctx with
-        WriterEvents =
-            ctx.WriterEvents
-            |> Queue.toSeq
-            |> Seq.filter (function
-                | Write s when s.Contains("\n") -> false
-                | _ -> true)
-            |> Queue.ofSeq }
-
-let private shortExpressionWithFallback
+let shortExpressionWithFallback
     (shortExpression: Context -> Context)
     fallbackExpression
     maxWidth
@@ -783,12 +643,6 @@ let private shortExpressionWithFallback
 let isShortExpression maxWidth (shortExpression: Context -> Context) fallbackExpression (ctx: Context) =
     shortExpressionWithFallback shortExpression fallbackExpression maxWidth None ctx
 
-let isShortExpressionOrAddIndentAndNewline maxWidth expr (ctx: Context) =
-    shortExpressionWithFallback expr (indentSepNlnUnindent expr) maxWidth None ctx
-
-let sepSpaceIfShortExpressionOrAddIndentAndNewline maxWidth expr (ctx: Context) =
-    shortExpressionWithFallback (sepSpace +> expr) (indentSepNlnUnindent expr) maxWidth None ctx
-
 let expressionFitsOnRestOfLine expression fallbackExpression (ctx: Context) =
     shortExpressionWithFallback expression fallbackExpression ctx.Config.MaxLineLength (Some 0) ctx
 
@@ -812,20 +666,6 @@ let leadingExpressionResult leadingExpression continuationExpression (ctx: Conte
         List.length contextAfterLeading.WriterModel.Lines, contextAfterLeading.WriterModel.Column
 
     continuationExpression ((lineCountBefore, columnBefore), (lineCountAfter, columnAfter)) contextAfterLeading
-
-/// combines two expression and let the second expression know if the first expression was longer than a given threshold.
-let leadingExpressionLong threshold leadingExpression continuationExpression (ctx: Context) =
-    let lineCountBefore, columnBefore =
-        List.length ctx.WriterModel.Lines, ctx.WriterModel.Column
-
-    let contextAfterLeading = leadingExpression ctx
-
-    let lineCountAfter, columnAfter =
-        List.length contextAfterLeading.WriterModel.Lines, contextAfterLeading.WriterModel.Column
-
-    continuationExpression
-        (lineCountAfter > lineCountBefore || (columnAfter - columnBefore > threshold))
-        contextAfterLeading
 
 /// A leading expression is not consider multiline if it has a comment before it.
 /// For example
@@ -856,7 +696,7 @@ let leadingExpressionIsMultiline leadingExpression continuationExpression (ctx: 
 
     continuationExpression hasWriteLineEventsAfterExpression contextAfterLeading
 
-let private expressionExceedsPageWidth beforeShort afterShort beforeLong afterLong expr (ctx: Context) =
+let expressionExceedsPageWidth beforeShort afterShort beforeLong afterLong expr (ctx: Context) =
     // if the context is already inside a ShortExpression mode, we should try the shortExpression in this case.
     match ctx.WriterModel.Mode with
     | ShortExpression infos when
@@ -919,15 +759,6 @@ let sepSpaceOrDoubleIndentAndNlnIfExpressionExceedsPageWidth expr (ctx: Context)
         sepNone // before and after for short expressions
         (indent +> indent +> sepNln)
         (unindent +> unindent) // before and after for long expressions
-        expr
-        ctx
-
-let sepSpaceWhenOrIndentAndNlnIfExpressionExceedsPageWidth (addSpace: Context -> bool) expr (ctx: Context) =
-    expressionExceedsPageWidth
-        (ifElseCtx addSpace sepSpace sepNone)
-        sepNone // before and after for short expressions
-        (indent +> sepNln)
-        unindent // before and after for long expressions
         expr
         ctx
 
@@ -1008,14 +839,14 @@ let sepSpaceBeforeClassConstructor ctx =
         ctx
 
 let sepColon (ctx: Context) =
-    let defaultExpr = if ctx.Config.SpaceBeforeColon then str " : " else str ": "
+    let defaultExpr = if ctx.Config.SpaceBeforeColon then !- " : " else !- ": "
 
     if ctx.WriterModel.IsDummy then
         defaultExpr ctx
     else
         match lastWriteEventOnLastLine ctx with
-        | Some w when w.EndsWith(" ") -> str ": " ctx
-        | None -> str ": " ctx
+        | Some w when w.EndsWith(" ") -> !- ": " ctx
+        | None -> !- ": " ctx
         | _ -> defaultExpr ctx
 
 let sepColonFixed = !- ":"
@@ -1024,11 +855,9 @@ let sepColonWithSpacesFixed = !- " : "
 
 let sepComma (ctx: Context) =
     if ctx.Config.SpaceAfterComma then
-        str ", " ctx
+        !- ", " ctx
     else
-        str "," ctx
-
-let sepCommaFixed = str ","
+        !- "," ctx
 
 let sepSemi (ctx: Context) =
     let { Config = { SpaceBeforeSemicolon = before
@@ -1036,10 +865,10 @@ let sepSemi (ctx: Context) =
         ctx
 
     match before, after with
-    | false, false -> str ";"
-    | true, false -> str " ;"
-    | false, true -> str "; "
-    | true, true -> str " ; "
+    | false, false -> !- ";"
+    | true, false -> !- " ;"
+    | false, true -> !- "; "
+    | true, true -> !- " ; "
     <| ctx
 
 let ifAlignOrStroustrupBrackets f g =
@@ -1073,15 +902,6 @@ let autoIndentAndNlnWhenWriteBeforeNewlineNotEmpty (f: Context -> Context) (ctx:
     else
         f ctx
 
-let autoNlnConsideringTriviaIfExpressionExceedsPageWidth sepNlnConsideringTriviaContentBefore expr (ctx: Context) =
-    expressionExceedsPageWidth
-        sepNone
-        sepNone // before and after for short expressions
-        sepNlnConsideringTriviaContentBefore
-        sepNone // before and after for long expressions
-        expr
-        ctx
-
 let addParenIfAutoNln expr f =
     let hasParenthesis =
         match expr with
@@ -1094,22 +914,6 @@ let addParenIfAutoNln expr f =
 
     let expr = f expr
     expressionFitsOnRestOfLine expr (ifElse hasParenthesis (sepOpenT +> expr +> sepCloseT) expr)
-//
-// let addParenForTupleWhen f synExpr ctx =
-//     let condition e =
-//         match e with
-//         | SourceParser.ElIf _
-//         | SynExpr.Lambda _ -> true
-//         | _ -> false // "if .. then .. else" have precedence over ","
-//
-//     let expr = f synExpr
-//     ifElse (condition synExpr) (sepOpenT +> expr +> sepCloseT) expr ctx
-//
-// let private hasTriviaBeforeExpression ctx e =
-//     let astType, range = synExprToFsAstType e
-//
-//     Map.tryFindOrEmptyList astType ctx.TriviaBefore
-//     |> List.exists (fun ti -> RangeHelpers.rangeEq range ti.Range)
 
 let autoIndentAndNlnExpressUnlessStroustrup (f: Expr -> Context -> Context) (e: Expr) (ctx: Context) =
     let shouldUseStroustrup =
@@ -1151,7 +955,7 @@ type internal ColMultilineItemsState =
 
 /// Checks if the events of an expression produces multiple lines of by user code.
 /// Leading or trailing trivia will not be counted as such.
-let private isMultilineItem (expr: Context -> Context) (ctx: Context) : bool * Context =
+let isMultilineItem (expr: Context -> Context) (ctx: Context) : bool * Context =
     let previousEventsLength = ctx.WriterEvents.Length
     let nextCtx = expr ctx
 

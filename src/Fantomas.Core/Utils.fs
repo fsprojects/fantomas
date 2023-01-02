@@ -5,17 +5,12 @@ open System.Text.RegularExpressions
 
 [<RequireQualifiedAccess>]
 module String =
-    let normalizeNewLine (str: string) =
-        str.Replace("\r\n", "\n").Replace("\r", "\n")
-
-    let normalizeThenSplitNewLine (str: string) = (normalizeNewLine str).Split('\n')
-
     let startsWithOrdinal (prefix: string) (str: string) =
         str.StartsWith(prefix, StringComparison.Ordinal)
 
-    let private lengthWithoutSpaces (str: string) = str.Replace(" ", String.Empty).Length
+    let lengthWithoutSpaces (str: string) = str.Replace(" ", String.Empty).Length
 
-    let private hashRegex = @"^\s*#(if|elseif|else|endif).*"
+    let hashRegex = @"^\s*#(if|elseif|else|endif).*"
 
     let private splitWhenHash (newline: string) (source: string) : string list =
         let lines = source.Split([| newline |], options = StringSplitOptions.None)
@@ -66,63 +61,10 @@ module String =
                 b')
 
     let empty = String.Empty
-
     let isNotNullOrEmpty = String.IsNullOrEmpty >> not
     let isNotNullOrWhitespace = String.IsNullOrWhiteSpace >> not
 
-    let isMultiline s =
-        normalizeNewLine s |> String.exists ((=) '\n')
-
-module Cache =
-    let alreadyVisited<'key when 'key: not struct> () =
-        let cache = System.Collections.Generic.HashSet<'key>([], HashIdentity.Reference)
-
-        fun key ->
-            if cache.Contains key then
-                true
-            else
-                cache.Add key |> ignore
-                false
-
-    let memoizeBy (g: 'a -> 'c) (f: 'a -> 'b) =
-        let cache =
-            System.Collections.Concurrent.ConcurrentDictionary<_, _>(HashIdentity.Structural)
-
-        fun x -> cache.GetOrAdd(Some(g x), lazy (f x)).Force()
-
-    [<CustomEquality; NoComparison>]
-    type LambdaEqByRef<'a, 'b> =
-        | LambdaEqByRef of ('a -> 'b)
-
-        override this.Equals(obj) =
-            match obj with
-            | :? LambdaEqByRef<'a, 'b> as y ->
-                let (LambdaEqByRef f) = this
-                let (LambdaEqByRef g) = y
-                Object.ReferenceEquals(f, g)
-            | _ -> false
-
-        override this.GetHashCode() = 0
-
-module Dict =
-    let tryGet k (d: System.Collections.Generic.IDictionary<_, _>) =
-        let r, x = d.TryGetValue k
-        if r then Some x else None
-
 module List =
-    let appendItem l i = l @ [ i ]
-
-    let prependItem l i = i :: l
-
-    let takeWhileState f state l =
-        let mutable s = state
-
-        l
-        |> List.takeWhile (fun x ->
-            let s', r = f s x
-            s <- s'
-            r)
-
     let chooseState f state l =
         let mutable s = state
 
@@ -159,14 +101,6 @@ module List =
             | head :: tail -> visit tail (fun ys -> f head :: ys |> continuation)
 
         visit xs id
-
-module Map =
-    let tryFindOrDefault (defaultValue: 'g) (key: 't) (map: Map<'t, 'g>) =
-        match Map.tryFind key map with
-        | Some v -> v
-        | None -> defaultValue
-
-    let tryFindOrEmptyList (key: 't) (map: Map<'t, 'g list>) = tryFindOrDefault [] key map
 
 module Async =
     let map f computation =

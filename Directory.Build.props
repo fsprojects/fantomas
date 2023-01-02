@@ -25,8 +25,8 @@ Some common use cases include:
         <PackageProjectUrl>https://fsprojects.github.io/fantomas/</PackageProjectUrl>
         <DisableImplicitFSharpCoreReference>true</DisableImplicitFSharpCoreReference>
         <SuppressNETCoreSdkPreviewMessage>true</SuppressNETCoreSdkPreviewMessage>
-        <WarningsAsErrors>FS0025</WarningsAsErrors>
-        <WarnOn>3390;$(WarnOn)</WarnOn>
+        <WarningsAsErrors>FS0025;FS1182</WarningsAsErrors>
+        <WarnOn>1182;3390;$(WarnOn)</WarnOn>
         <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
         <RestoreLockedMode>true</RestoreLockedMode>
         <NoWarn>NU1603</NoWarn>

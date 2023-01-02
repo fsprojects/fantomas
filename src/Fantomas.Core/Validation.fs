@@ -12,7 +12,7 @@ let private safeToIgnoreWarnings =
 
 // Exception of type 'FSharp.Compiler.DiagnosticsLogger+LibraryUseOnly' was thrown.
 
-let internal noWarningOrErrorDiagnostics diagnostics =
+let noWarningOrErrorDiagnostics diagnostics =
     let errors =
         diagnostics
         |> List.filter (fun e ->

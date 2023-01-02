@@ -9,8 +9,11 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="AssemblyInfo.fs" />
+    <Compile Include="ISourceTextExtensions.fsi" />
     <Compile Include="ISourceTextExtensions.fs" />
+    <Compile Include="RangeHelpers.fsi" />
     <Compile Include="RangeHelpers.fs" />
+    <Compile Include="Utils.fsi" />
     <Compile Include="Utils.fs" />
     <Compile Include="FormatConfig.fs" />
     <Compile Include="SyntaxOak.fs" />
@@ -22,11 +25,13 @@
     <Compile Include="Trivia.fs" />
     <Compile Include="Defines.fsi" />
     <Compile Include="Defines.fs" />
+    <Compile Include="Context.fsi" />
     <Compile Include="Context.fs" />
     <Compile Include="CodePrinter.fsi" />
     <Compile Include="CodePrinter.fs" />
     <Compile Include="CodeFormatterImpl.fsi" />
     <Compile Include="CodeFormatterImpl.fs" />
+    <Compile Include="Validation.fsi" />
     <Compile Include="Validation.fs" />
     <Compile Include="Selection.fsi" />
     <Compile Include="Selection.fs" />
