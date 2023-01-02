@@ -11,6 +11,7 @@
     <Compile Include="AssemblyInfo.fs" />
     <Compile Include="ISourceTextExtensions.fs" />
     <Compile Include="RangeHelpers.fs" />
+    <Compile Include="Utils.fsi" />
     <Compile Include="Utils.fs" />
     <Compile Include="FormatConfig.fs" />
     <Compile Include="SyntaxOak.fs" />
