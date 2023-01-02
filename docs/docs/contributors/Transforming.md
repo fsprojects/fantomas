@@ -74,7 +74,7 @@ let a =
 Depending on the defines `[]` or `["DEBUG"]`, the AST will be different.
 The tree will also be created based on a single code path.
 
-### Transform untyped AST to OAK
+### Transform untyped AST to Oak
 
 The untyped syntax tree from the F# compiler is used as an intermediate representation of source code in the process of transforming a text file to binary.  
 The AST is optimized for the use-case of generating binary. What we try to do in Fantomas is stop at the first AST level and go back to source text.
@@ -89,9 +89,9 @@ This introduces a lot of flexibility and simplifies our story.
 
 > I thought Fangorn was dangerous - Gimli, son of Glóin
 
-In `Fangorn.fs` we map the AST to our tree model. Some of the benefits we get out of this:
+In `ASTTransformer.fs` we map the AST to our tree model. Some of the benefits we get out of this:
 
-- The Oak model does not differentiate between implementation files and signature files. We use one tree model which allows for optimal code re-use in `CodePrinter2.fs`.
+- The Oak model does not differentiate between implementation files and signature files. We use one tree model which allows for optimal code re-use in `CodePrinter.fs`.
 - We don't map all possible combinations of AST into our model. Sometimes valid AST code can in theory be created, 
   but will in practise never exist. For example [SynTypeDefnRepr.Exception](../../reference/fsharp-compiler-syntax-syntypedefnrepr.html#Exception). It is defined in `SyntaxTree.fs` yet the parser (`pars.fs`) will never create it.
   The F# compiler uses this later in the typed tree. We will throw an exception when encountering this during the mapping as we have the foresight of what the parser doesn't create.
@@ -145,7 +145,7 @@ The AST does contain a node for the line comment, but we cannot restore it when 
 There is no link between the line comment and the let binding.
 
 All trivia face this problem, so we need to process them separately.  
-We do this in `Flowering.collectTrivia`.
+We do this in `Trivia.collectTrivia`.
 
 Note: blank lines are detected differently, we go over all the lines via the `ISourceText`.
 

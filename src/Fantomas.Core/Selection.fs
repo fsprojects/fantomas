@@ -403,7 +403,7 @@ let formatSelection
         if not isValid then
             raise (FormatException $"Parsing failed with errors: %A{baseDiagnostics}")
 
-        let rootNode = Fangorn.mkOak config (Some sourceText) baseUntypedTree
+        let rootNode = ASTTransformer.mkOak config (Some sourceText) baseUntypedTree
 
 #if DEBUG
         printTriviaNode rootNode
@@ -413,7 +413,7 @@ let formatSelection
             correctSelection (rootNode :> Node).Range.FileIndex sourceText selection
 
         let treeWithSelection =
-            Flowering.findNodeWhereRangeFitsIn rootNode selection
+            Trivia.findNodeWhereRangeFitsIn rootNode selection
             |> Option.bind (findNode selection)
             |> Option.map mkTreeWithSingleNode
 
@@ -435,18 +435,16 @@ let formatSelection
             | TreeForSelection.Unsupported ->
                 raise (FormatException("The current selection is not supported right now."))
             | TreeForSelection.Standalone tree ->
-                let enrichedTree =
-                    Flowering.enrichTree selectionConfig sourceText baseUntypedTree tree
+                let enrichedTree = Trivia.enrichTree selectionConfig sourceText baseUntypedTree tree
 
-                CodePrinter2.genFile enrichedTree context |> Context.dump true
+                CodePrinter.genFile enrichedTree context |> Context.dump true
             | TreeForSelection.RequiresExtraction(tree, t) ->
-                let enrichedTree =
-                    Flowering.enrichTree selectionConfig sourceText baseUntypedTree tree
+                let enrichedTree = Trivia.enrichTree selectionConfig sourceText baseUntypedTree tree
 
-                let formattedCode = CodePrinter2.genFile enrichedTree context |> Context.dump true
+                let formattedCode = CodePrinter.genFile enrichedTree context |> Context.dump true
                 let source = SourceText.ofString formattedCode
                 let formattedAST, _ = Fantomas.FCS.Parse.parseFile isSignature source []
-                let formattedTree = Fangorn.mkOak selectionConfig (Some source) formattedAST
+                let formattedTree = ASTTransformer.mkOak selectionConfig (Some source) formattedAST
                 let rangeOfSelection = findRangeOf t formattedTree
 
                 match rangeOfSelection with

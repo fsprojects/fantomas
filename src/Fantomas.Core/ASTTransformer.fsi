@@ -1,4 +1,4 @@
-module internal Fantomas.Core.Fangorn
+module internal Fantomas.Core.ASTTransformer
 
 open FSharp.Compiler.Text
 open FSharp.Compiler.Syntax

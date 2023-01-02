@@ -1,12 +1,12 @@
-module Fantomas.Core.Tests.FangornTests
+module Fantomas.Core.Tests.ASTTransformerTests
 
-open Fantomas.Core
-open Fantomas.Core.FormatConfig
 open NUnit.Framework
 open FSharp.Compiler.Text
 open FSharp.Compiler.Xml
 open FSharp.Compiler.Syntax
 open FSharp.Compiler.SyntaxTrivia
+open Fantomas.Core
+open Fantomas.Core.FormatConfig
 
 [<Test>]
 let ``avoid stack-overflow in long array/list, 2485`` () =
@@ -59,5 +59,5 @@ let ``avoid stack-overflow in long array/list, 2485`` () =
             )
         )
 
-    let _rootNode = Fangorn.mkOak FormatConfig.Default None ast
+    let _rootNode = ASTTransformer.mkOak FormatConfig.Default None ast
     Assert.Pass()

@@ -14,7 +14,7 @@ graph TD
     style B stroke:#338CBB,stroke-width:2px
  </div>
 
-We enter the module of `CodePrinter2` and try and reconstruct the code based on the given configuration.
+We enter the module of `CodePrinter` and try and reconstruct the code based on the given configuration.
 
 ## WriterEvents and WriterModel
 
