@@ -200,7 +200,7 @@ graph TD
     B[Traverse Oak to get formatted code] --> C[Formatted code]
     style B stroke:#338CBB,stroke-width:2px
  </div>
-<p>We enter the module of <code>CodePrinter2</code> and try and reconstruct the code based on the given configuration.</p>
+<p>We enter the module of <code>CodePrinter</code> and try and reconstruct the code based on the given configuration.</p>
 <h2><a name="WriterEvents-and-WriterModel" class="anchor" href="#WriterEvents-and-WriterModel">WriterEvents and WriterModel</a></h2>
 <p>In previous versions of Fantomas, <code>Context</code> had a <a href="https://docs.microsoft.com/en-us/dotnet/api/system.io.textwriter?view=net-6.0">TextWriter</a> that was used to write the output.
 This is a more advanced version of a <code>StringBuilder</code> and we wrote the formatted code directly to the buffer.</p>
@@ -263,7 +263,7 @@ Please remove all usages when submitting a PR 😸.</p>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-A3rJD856KowSb7dwlZdYEkO39Gagi7vIsF0jrRAoQmDKKtQBHUuLZ9AsSv4jD4Xa" crossorigin="anonymous"></script>
   <script type="module" src="https://fsprojects.github.io/fantomas/content/webcomponents.js"></script>
   <script type="module">
-      import mermaid from "https://cdn.skypack.dev/mermaid";
+      import mermaid from "https://cdn.skypack.dev/mermaid@9.2.2";
       mermaid.initialize({
           startOnLoad: true,
           theme: "base",

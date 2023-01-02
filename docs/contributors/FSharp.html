@@ -226,7 +226,7 @@ In short, we use the <code>Untyped Abstract Syntax Tree</code> created by the F#
         <span class="id">range</span><span class="pn">:</span> <span class="id">range</span>
 </code></pre>
 <p>However, in Fantomas we have a partial active pattern that we use to easily grab the information we need from the AST.
-These partial actives are mostly used and defined in <code>Fangorn.fs</code>.</p>
+These partial actives are mostly used and defined in <code>ASTTransformer.fs</code>.</p>
 <pre class="fssnip highlighted"><code lang="fsharp"><span class="k">let</span> <span class="pn">(</span><span class="fn">|</span><span class="uc">Sequentials</span><span class="pn">|</span><span class="id">_</span><span class="pn">|</span><span class="pn">)</span> <span onmouseout="hideTip(event, 'fs2', 2)" onmouseover="showTip(event, 'fs2', 2)" class="fn">e</span> <span class="o">=</span>
     <span class="k">let</span> <span class="k">rec</span> <span onmouseout="hideTip(event, 'fs3', 3)" onmouseover="showTip(event, 'fs3', 3)" class="fn">visit</span> <span class="pn">(</span><span onmouseout="hideTip(event, 'fs4', 4)" onmouseover="showTip(event, 'fs4', 4)" class="fn">e</span><span class="pn">:</span> <span onmouseout="hideTip(event, 'fs5', 5)" onmouseover="showTip(event, 'fs5', 5)" class="rt">SynExpr</span><span class="pn">)</span> <span class="pn">(</span><span onmouseout="hideTip(event, 'fs6', 6)" onmouseover="showTip(event, 'fs6', 6)" class="fn">finalContinuation</span><span class="pn">:</span> <span onmouseout="hideTip(event, 'fs5', 7)" onmouseover="showTip(event, 'fs5', 7)" class="rt">SynExpr</span> <span onmouseout="hideTip(event, 'fs7', 8)" onmouseover="showTip(event, 'fs7', 8)" class="rt">list</span> <span class="k">-&gt;</span> <span onmouseout="hideTip(event, 'fs5', 9)" onmouseover="showTip(event, 'fs5', 9)" class="rt">SynExpr</span> <span onmouseout="hideTip(event, 'fs7', 10)" onmouseover="showTip(event, 'fs7', 10)" class="rt">list</span><span class="pn">)</span> <span class="pn">:</span> <span onmouseout="hideTip(event, 'fs5', 11)" onmouseover="showTip(event, 'fs5', 11)" class="rt">SynExpr</span> <span onmouseout="hideTip(event, 'fs7', 12)" onmouseover="showTip(event, 'fs7', 12)" class="rt">list</span> <span class="o">=</span>
         <span class="k">match</span> <span onmouseout="hideTip(event, 'fs4', 13)" onmouseover="showTip(event, 'fs4', 13)" class="fn">e</span> <span class="k">with</span>
@@ -256,7 +256,7 @@ You can look at a signature file to get a glimpse of what the module really does
 </ul>
 <p>In contrast to partial active patterns, where we want to hide some AST information, it can occur that we need to extend the type of an AST node.
 We do this by adding a new type member to an existing Syntax tree type.
-Example in <code>Flowering.fs</code>:</p>
+Example in <code>Trivia.fs</code>:</p>
 <pre class="fssnip highlighted"><code lang="fsharp"><span class="k">type</span> <span class="id">CommentTrivia</span> <span class="k">with</span>
 
     <span class="k">member</span> <span onmouseout="hideTip(event, 'fs11', 26)" onmouseover="showTip(event, 'fs11', 26)" class="fn">x</span><span class="pn">.</span><span class="prop">Range</span> <span class="o">=</span>
@@ -275,7 +275,7 @@ Fantomas is full of this kind of functions, so be sure to grasp this concept bef
 <ul>
 <li><a href="https://docs.microsoft.com/en-us/dotnet/fsharp/language-reference/functions/recursive-functions-the-rec-keyword#tail-recursion">Tail recursion</a></li>
 </ul>
-<p>There are places in the code base where we use some more advanced recursion techniques. <code>Fangorn.fs</code> is one of them.<br />
+<p>There are places in the code base where we use some more advanced recursion techniques. <code>ASTTransformer.fs</code> is one of them.<br />
 A very good explanation of what happens here can be found in this <a href="https://www.gresearch.co.uk/blog/article/advanced-recursion-techniques-in-f/">blogpost</a>.</p>
 <ul>
 <li><a href="https://medium.com/@dzoukr/event-sourcing-step-by-step-in-f-be808aa0ca18">Event Sourcing</a></li>
@@ -316,7 +316,7 @@ These events are used to achieve this.</p>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-A3rJD856KowSb7dwlZdYEkO39Gagi7vIsF0jrRAoQmDKKtQBHUuLZ9AsSv4jD4Xa" crossorigin="anonymous"></script>
   <script type="module" src="https://fsprojects.github.io/fantomas/content/webcomponents.js"></script>
   <script type="module">
-      import mermaid from "https://cdn.skypack.dev/mermaid";
+      import mermaid from "https://cdn.skypack.dev/mermaid@9.2.2";
       mermaid.initialize({
           startOnLoad: true,
           theme: "base",

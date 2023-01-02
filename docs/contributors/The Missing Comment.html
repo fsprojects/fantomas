@@ -231,7 +231,7 @@ The <code>type</code> and <code>while</code> code can be trimmed and the problem
 These <code>TriviaNode</code> are inserted into our custom <a href="../../reference/fantomas-core-syntaxoak-oak.html">Oak</a> tree.<br />
 This is a fairly straightforward process, and you can easily visually inspect this using the <a href="https://fsprojects.github.io/fantomas-tools/#/trivia">online tool</a>.</p>
 <p><img src="../../images/online-tool-trivia-1.png" alt="TriviaNode in online tool" /></p>
-<p>If your comment does not show up there, it means there is a problem between getting the information from the syntax tree and constructing the <code>Trivia</code> in <code>Flowering.fs</code>.<br />
+<p>If your comment does not show up there, it means there is a problem between getting the information from the syntax tree and constructing the <code>Trivia</code> in <code>Trivia.fs</code>.<br />
 You can put a breakpoint on <code>addToTree tree trivia</code> to see if all <code>Trivia</code> are constructed as expected.</p>
 <h2><a name="Was-the-TriviaNode-inserted-into-a-Node" class="anchor" href="#Was-the-TriviaNode-inserted-into-a-Node">Was the TriviaNode inserted into a Node?</a></h2>
 <p>The <code>TriviaNode</code> needs to be inserted into a <a href="../../reference/fantomas-core-syntaxoak-node.html">Node</a> inside the <code>Oak</code>.<br />
@@ -247,7 +247,7 @@ In <a href="https://github.com/fsprojects/fantomas/issues/640">#640</a>, the <a 
 The F# parser should capture this in order for us to be able to transform it into a <code>Node</code>.<br />
 This was done in <a href="https://github.com/dotnet/fsharp/pull/14503">dotnet/fsharp#14503</a>. Before that change in the syntax tree, another <code>Node</code> was selected and that lead to imperfect results.</p>
 <h2><a name="Printing-the-TriviaNode" class="anchor" href="#Printing-the-TriviaNode">Printing the TriviaNode</a></h2>
-<p>The last piece of the puzzle is printing the actual <code>TriviaNode</code> in <code>CodePrinter2</code>.
+<p>The last piece of the puzzle is printing the actual <code>TriviaNode</code> in <code>CodePrinter</code>.
 If everything up to this point went well, and the comment is still missing after formatting, it means it was not printed.</p>
 <p>Every <code>Node</code> potentially has <code>ContentBefore</code> and/or <code>ContentAfter</code>. We need to process this using the generic <code>genNode</code> function.</p>
 <pre class="fssnip highlighted"><code lang="fsharp"><span class="k">let</span> <span class="id">genTrivia</span> <span class="pn">(</span><span class="id">trivia</span><span class="pn">:</span> <span class="id">TriviaNode</span><span class="pn">)</span> <span class="pn">(</span><span class="id">ctx</span><span class="pn">:</span> <span class="id">Context</span><span class="pn">)</span> <span class="o">=</span> <span class="c">// process the TriviaContent</span>
@@ -283,7 +283,7 @@ If everything up to this point went well, and the comment is still missing after
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-A3rJD856KowSb7dwlZdYEkO39Gagi7vIsF0jrRAoQmDKKtQBHUuLZ9AsSv4jD4Xa" crossorigin="anonymous"></script>
   <script type="module" src="https://fsprojects.github.io/fantomas/content/webcomponents.js"></script>
   <script type="module">
-      import mermaid from "https://cdn.skypack.dev/mermaid";
+      import mermaid from "https://cdn.skypack.dev/mermaid@9.2.2";
       mermaid.initialize({
           startOnLoad: true,
           theme: "base",

@@ -242,7 +242,7 @@ This has <code>FSharpDiagnosticSeverity.Error</code> and Fantomas will not proce
 </code></pre>
 <p>Depending on the defines <code>[]</code> or <code>["DEBUG"]</code>, the AST will be different.
 The tree will also be created based on a single code path.</p>
-<h3><a name="Transform-untyped-AST-to-OAK" class="anchor" href="#Transform-untyped-AST-to-OAK">Transform untyped AST to OAK</a></h3>
+<h3><a name="Transform-untyped-AST-to-Oak" class="anchor" href="#Transform-untyped-AST-to-Oak">Transform untyped AST to Oak</a></h3>
 <p>The untyped syntax tree from the F# compiler is used as an intermediate representation of source code in the process of transforming a text file to binary.<br />
 The AST is optimized for the use-case of generating binary. What we try to do in Fantomas is stop at the first AST level and go back to source text.</p>
 <p>The F# compiler was never designed with our use-case in mind and yet it has served us very well for years.
@@ -254,9 +254,9 @@ This introduces a lot of flexibility and simplifies our story.</p>
 <blockquote>
 <p>I thought Fangorn was dangerous - Gimli, son of Glóin</p>
 </blockquote>
-<p>In <code>Fangorn.fs</code> we map the AST to our tree model. Some of the benefits we get out of this:</p>
+<p>In <code>ASTTransformer.fs</code> we map the AST to our tree model. Some of the benefits we get out of this:</p>
 <ul>
-<li>The Oak model does not differentiate between implementation files and signature files. We use one tree model which allows for optimal code re-use in <code>CodePrinter2.fs</code>.</li>
+<li>The Oak model does not differentiate between implementation files and signature files. We use one tree model which allows for optimal code re-use in <code>CodePrinter.fs</code>.</li>
 <li>
 We don't map all possible combinations of AST into our model. Sometimes valid AST code can in theory be created, 
 but will in practise never exist. For example <a href="../../reference/fsharp-compiler-syntax-syntypedefnrepr.html#Exception">SynTypeDefnRepr.Exception</a>. It is defined in <code>SyntaxTree.fs</code> yet the parser (<code>pars.fs</code>) will never create it.
@@ -301,7 +301,7 @@ These are stored on the file level (in <a href="https://fsprojects.github.io/fan
 <p>The AST does contain a node for the line comment, but we cannot restore it when we are processing the let binding.<br />
 There is no link between the line comment and the let binding.</p>
 <p>All trivia face this problem, so we need to process them separately.<br />
-We do this in <code>Flowering.collectTrivia</code>.</p>
+We do this in <code>Trivia.collectTrivia</code>.</p>
 <p>Note: blank lines are detected differently, we go over all the lines via the <code>ISourceText</code>.</p>
 <h4><a name="Inserting-trivia" class="anchor" href="#Inserting-trivia">Inserting trivia</a></h4>
 <p>Once we have the trivia, we can insert them to a <code>Node</code> they belong to.
@@ -334,7 +334,7 @@ graph TD
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-A3rJD856KowSb7dwlZdYEkO39Gagi7vIsF0jrRAoQmDKKtQBHUuLZ9AsSv4jD4Xa" crossorigin="anonymous"></script>
   <script type="module" src="https://fsprojects.github.io/fantomas/content/webcomponents.js"></script>
   <script type="module">
-      import mermaid from "https://cdn.skypack.dev/mermaid";
+      import mermaid from "https://cdn.skypack.dev/mermaid@9.2.2";
       mermaid.initialize({
           startOnLoad: true,
           theme: "base",
