@@ -1111,7 +1111,8 @@ let ``maintain indent if when condition is multiline`` () =
 
           getTriviaFromTokensThemSelves allTokens rest info
 """
-        { config with MaxInfixOperatorExpression = 50 }
+        { config with
+            MaxInfixOperatorExpression = 50 }
     |> prepend newline
     |> should
         equal
@@ -1138,7 +1139,8 @@ let ``multiline application call in match expression, 1352`` () =
 match x (Map.tryFind somelongidentifier a + Option.defaultValue longidentifier) with
 | _ -> ()
 """
-        { config with MaxInfixOperatorExpression = 50 }
+        { config with
+            MaxInfixOperatorExpression = 50 }
     |> prepend newline
     |> should
         equal
@@ -1585,7 +1587,8 @@ match x with
                 ""
 |||> Some
 """
-        { config with MaxInfixOperatorExpression = 50 }
+        { config with
+            MaxInfixOperatorExpression = 50 }
     |> prepend newline
     |> should
         equal
@@ -1896,7 +1899,8 @@ let ``multiline infix expression in match, 1774`` () =
 match structuralTypes |> List.tryFind (fst >> checkIfFieldTypeSupportsComparison tycon >> not) with
 | _ -> ()
 """
-        { config with MaxInfixOperatorExpression = 50 }
+        { config with
+            MaxInfixOperatorExpression = 50 }
     |> prepend newline
     |> should
         equal

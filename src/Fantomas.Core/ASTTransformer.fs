@@ -368,8 +368,9 @@ let rec collectComputationExpressionStatements
         collectComputationExpressionStatements creationAide body (fun bodyStatements ->
             [ letOrUseBang; yield! andBangs; yield! bodyStatements ] |> finalContinuation)
     | SynExpr.Sequential(_, _, e1, e2, _) ->
-        let continuations: ((ComputationExpressionStatement list -> ComputationExpressionStatement list)
-            -> ComputationExpressionStatement list) list =
+        let continuations
+            : ((ComputationExpressionStatement list -> ComputationExpressionStatement list)
+                  -> ComputationExpressionStatement list) list =
             [ collectComputationExpressionStatements creationAide e1
               collectComputationExpressionStatements creationAide e2 ]
 
@@ -560,7 +561,8 @@ let rec (|ElIf|_|) =
 
         Some(
             (ifNode, e1, stn "then" trivia.ThenKeyword, e2)
-            :: (elifNode, eshE1, eshThenKw, eshE2) :: es,
+            :: (elifNode, eshE1, eshThenKw, eshE2)
+            :: es,
             elseInfo
         )
 
@@ -3024,7 +3026,8 @@ let rec mkModuleSigDecls
         mkModuleSigDecls creationAide rest (fun nodes -> [ yield! typeNodes; yield! nodes ] |> finalContinuation)
 
     | head :: tail ->
-        mkModuleSigDecls creationAide tail (fun nodes -> mkModuleSigDecl creationAide head :: nodes |> finalContinuation)
+        mkModuleSigDecls creationAide tail (fun nodes ->
+            mkModuleSigDecl creationAide head :: nodes |> finalContinuation)
 
 let mkModuleOrNamespaceSig
     (creationAide: CreationAide)

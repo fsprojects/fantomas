@@ -5,7 +5,9 @@ open FsUnit
 open Fantomas.Core.Tests.TestHelper
 open Fantomas.Core.FormatConfig
 
-let config = { config with MultilineBracketStyle = ExperimentalStroustrup }
+let config =
+    { config with
+        MultilineBracketStyle = ExperimentalStroustrup }
 
 [<Test>]
 let ``long named arguments should go on newline`` () =
@@ -369,7 +371,8 @@ let ``div with long children but a long setting`` () =
         p [] [ str "baaaaaaaar" ]
     ]
 """
-        { config with MaxArrayOrListWidth = 150 }
+        { config with
+            MaxArrayOrListWidth = 150 }
     |> prepend newline
     |> should
         equal

@@ -12,7 +12,8 @@ let ``a TypeApp inside a DotGet should stay on the same line, 994`` () =
         """
 Microsoft.FSharp.Reflection.FSharpType.GetUnionCases(typeof<option<option<unit>>>.GetGenericTypeDefinition().MakeGenericType(t)).Assembly
 """
-        { config with MaxDotGetExpressionWidth = 50 }
+        { config with
+            MaxDotGetExpressionWidth = 50 }
     |> prepend newline
     |> should
         equal
@@ -620,7 +621,8 @@ SomeFunction(name = SearchForName(
     "baaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaar"
 )).ChainedFunctionCall()
 """
-        { config with SpaceBeforeUppercaseInvocation = true }
+        { config with
+            SpaceBeforeUppercaseInvocation = true }
     |> prepend newline
     |> should
         equal
@@ -707,7 +709,8 @@ Log.Logger <-
         .WriteTo.Console()
         .CreateLogger()
 """
-        { config with SpaceBeforeUppercaseInvocation = true }
+        { config with
+            SpaceBeforeUppercaseInvocation = true }
     |> prepend newline
     |> should
         equal
@@ -730,7 +733,8 @@ Log.Logger <-
         .WriteTo.Console()
         .CreateLogger()
 """
-        { config with SpaceBeforeUppercaseInvocation = true }
+        { config with
+            SpaceBeforeUppercaseInvocation = true }
     |> prepend newline
     |> should
         equal
@@ -944,7 +948,8 @@ let PublishValueDefn cenv env declKind (vspec: Val) =
 
     ()
 """
-        { config with MaxDotGetExpressionWidth = 50 }
+        { config with
+            MaxDotGetExpressionWidth = 50 }
     |> prepend newline
     |> should
         equal
@@ -1035,7 +1040,8 @@ services
     .AddIdentityCore(fun options -> ())
     .AddUserManager<UserManager<web.ApplicationUser>>()
 """
-        { config with MaxDotGetExpressionWidth = 200 }
+        { config with
+            MaxDotGetExpressionWidth = 200 }
     |> prepend newline
     |> should
         equal
@@ -1249,7 +1255,8 @@ let ``dotget lambda multiline application`` () =
         """
 m.Property(fun p -> p.Name).IsRequired().HasColumnName("ModelName").HasMaxLength
 """
-        { config with MaxDotGetExpressionWidth = 50 }
+        { config with
+            MaxDotGetExpressionWidth = 50 }
     |> prepend newline
     |> should
         equal
@@ -1330,7 +1337,8 @@ module Program =
         builder.Build().RunAsync() |> ignore
         0
 """
-        { config with MaxDotGetExpressionWidth = 50 }
+        { config with
+            MaxDotGetExpressionWidth = 50 }
     |> prepend newline
     |> should
         equal
@@ -1370,7 +1378,8 @@ let ``dotget inside a quotation, 2154`` () =
         """
 (fun (Singleton arg) -> <@@ ((%%arg: Indicators) :> IIndicators).AsyncGetIndicator(indicatorIdVal) @@>)
 """
-        { config with MaxDotGetExpressionWidth = 50 }
+        { config with
+            MaxDotGetExpressionWidth = 50 }
     |> prepend newline
     |> should
         equal

@@ -571,7 +571,8 @@ type T =
 type T with
     member Foo: int
 """
-        { config with NewlineBetweenTypeDefinitionAndMembers = false }
+        { config with
+            NewlineBetweenTypeDefinitionAndMembers = false }
     |> prepend newline
     |> should
         equal
@@ -1629,7 +1630,8 @@ type Foo =
         }
     static member Baz : int
 """
-        { config with NewlineBetweenTypeDefinitionAndMembers = false }
+        { config with
+            NewlineBetweenTypeDefinitionAndMembers = false }
     |> prepend newline
     |> should
         equal

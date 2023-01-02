@@ -5,7 +5,9 @@ open FsUnit
 open Fantomas.Core.Tests.TestHelper
 open Fantomas.Core.FormatConfig
 
-let config = { config with MultilineBracketStyle = ExperimentalStroustrup }
+let config =
+    { config with
+        MultilineBracketStyle = ExperimentalStroustrup }
 
 [<Test>]
 let ``record type definition`` () =
@@ -67,7 +69,8 @@ type V =
       Z: ALongTypeName }
     member this.Coordinate = (this.X, this.Y, this.Z)
 """
-        { config with NewlineBetweenTypeDefinitionAndMembers = false }
+        { config with
+            NewlineBetweenTypeDefinitionAndMembers = false }
     |> prepend newline
     |> should
         equal

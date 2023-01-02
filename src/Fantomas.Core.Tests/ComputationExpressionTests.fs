@@ -435,7 +435,8 @@ let z =
         |> Array.countBy id
     bar
 """
-        { config with MaxInfixOperatorExpression = 40 }
+        { config with
+            MaxInfixOperatorExpression = 40 }
     |> prepend newline
     |> should
         equal
@@ -959,7 +960,8 @@ let ``let + let + let bang + if/then/else in ce`` () =
             return ()
     }
 """
-        { config with MaxIfThenElseShortWidth = 75 }
+        { config with
+            MaxIfThenElseShortWidth = 75 }
     |> prepend newline
     |> should
         equal
@@ -1036,7 +1038,8 @@ let ``let bang + do expression + let + return in ce`` () =
         return Ok(user.Identity.Name, collectClaims user)
     }
 """
-        { config with MaxDotGetExpressionWidth = 50 }
+        { config with
+            MaxDotGetExpressionWidth = 50 }
     |> prepend newline
     |> should
         equal
@@ -1318,7 +1321,8 @@ promise {
     step1ok := not !isDisposed
 }
 """
-        { config with MaxValueBindingWidth = 90 }
+        { config with
+            MaxValueBindingWidth = 90 }
     |> prepend newline
     |> should
         equal
@@ -1787,7 +1791,8 @@ let f () =
     return some rather long |> stuff that |> uses piping |> to' demonstrate |> the issue
   }
 """
-        { config with MaxInfixOperatorExpression = 50 }
+        { config with
+            MaxInfixOperatorExpression = 50 }
     |> prepend newline
     |> should
         equal
@@ -1816,7 +1821,8 @@ let f () =
     return! some rather long |> stuff that |> uses piping |> to' demonstrate |> the issue
   }
 """
-        { config with MaxInfixOperatorExpression = 50 }
+        { config with
+            MaxInfixOperatorExpression = 50 }
     |> prepend newline
     |> should
         equal

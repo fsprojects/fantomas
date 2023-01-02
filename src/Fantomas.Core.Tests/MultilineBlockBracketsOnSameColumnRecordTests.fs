@@ -520,7 +520,8 @@ type Range =
       To: float }
     member this.Length = this.To - this.From
 """
-        { config with MaxValueBindingWidth = 120 }
+        { config with
+            MaxValueBindingWidth = 120 }
     |> prepend newline
     |> should
         equal
@@ -681,7 +682,8 @@ type ShortExpressionInfo =
         || (currentColumn > maxPageWidth) // expression at current position is not going over the page width
     member x.Foo() = ()
 """
-        { config with NewlineBetweenTypeDefinitionAndMembers = false }
+        { config with
+            NewlineBetweenTypeDefinitionAndMembers = false }
     |> prepend newline
     |> should
         equal
@@ -1076,7 +1078,8 @@ type RequestParser<'ctx, 'a> =
               prohibited = [] }
 
 """
-        { config with AlternativeLongMemberDefinitions = true }
+        { config with
+            AlternativeLongMemberDefinitions = true }
     |> prepend newline
     |> should
         equal

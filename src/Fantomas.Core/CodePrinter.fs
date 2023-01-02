@@ -590,7 +590,9 @@ let genExpr (e: Expr) =
                                                  genExpr fieldNode.Expr
                                              )
                                          else
-                                             sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth (genExpr fieldNode.Expr)
+                                             sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth (
+                                                 genExpr fieldNode.Expr
+                                             )
 
                                      // Add enough spaces to start at the right column but indent from the opening curly brace.
                                      // Use a double indent when using a small indent size to avoid offset warnings.
@@ -1938,7 +1940,10 @@ let genLambdaAux (includeClosingParen: bool) (node: ExprLambdaNode) =
             // ...fun a -> expr)
             // This is to prevent the edge case where the lambda fits on one line but the closing parenthesis would go over the max_line_length.
             if includeClosingParen then
-                { ctx with Config = { ctx.Config with MaxLineLength = maxLineLength - 1 } }
+                { ctx with
+                    Config =
+                        { ctx.Config with
+                            MaxLineLength = maxLineLength - 1 } }
             else
                 ctx
 
@@ -1948,7 +1953,10 @@ let genLambdaAux (includeClosingParen: bool) (node: ExprLambdaNode) =
             sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidthUnlessStroustrup genExpr node.Expr ctx
         |> fun ctx ->
             // Afterwards we do need to reset the max_line_length to the original value.
-            { ctx with Config = { ctx.Config with MaxLineLength = maxLineLength } })
+            { ctx with
+                Config =
+                    { ctx.Config with
+                        MaxLineLength = maxLineLength } })
     |> genNode node
 
 let genLambda = genLambdaAux false
@@ -2102,8 +2110,8 @@ let genExprInMultilineInfixExpr (e: Expr) =
                 | ComputationExpressionStatement.LetOrUseStatement _ -> true
                 | _ -> false)
                 (function
-                | ComputationExpressionStatement.OtherStatement _ -> true
-                | _ -> false)
+                 | ComputationExpressionStatement.OtherStatement _ -> true
+                 | _ -> false)
             |> List.reduce (&&)
 
         if not areLetOrUseStatementsEndingWithOtherStatement then
@@ -2198,9 +2206,9 @@ let genFunctionNameWithMultilineLids (trailing: Context -> Context) (longIdent: 
                 | IdentifierOrDot.UnknownDot _ -> sepNln)
                 t
                 (function
-                | IdentifierOrDot.Ident identNode -> genSingleTextNode identNode
-                | IdentifierOrDot.KnownDot dot -> genSingleTextNode dot
-                | IdentifierOrDot.UnknownDot _ -> sepDot)
+                 | IdentifierOrDot.Ident identNode -> genSingleTextNode identNode
+                 | IdentifierOrDot.KnownDot dot -> genSingleTextNode dot
+                 | IdentifierOrDot.UnknownDot _ -> sepDot)
             +> trailing
         )
     | _ -> sepNone
@@ -3716,7 +3724,9 @@ let addFinalNewline ctx =
             // Due to trivia the last event is a newline, if insert_final_newline is false, we need to remove it.
             { ctx with
                 WriterEvents = ctx.WriterEvents.Tail
-                WriterModel = { ctx.WriterModel with Lines = List.tail ctx.WriterModel.Lines } }
+                WriterModel =
+                    { ctx.WriterModel with
+                        Lines = List.tail ctx.WriterModel.Lines } }
     | _ -> onlyIf ctx.Config.InsertFinalNewline sepNln ctx
 
 let genFile (oak: Oak) =

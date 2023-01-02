@@ -65,7 +65,8 @@ open Fantomas.SourceTransformer
 let sortAndDedup by l =
     // comment2
     l |> Seq.distinctBy by |> Seq.sortBy by |> List.ofSeq"""
-        { config with MaxInfixOperatorExpression = 50 }
+        { config with
+            MaxInfixOperatorExpression = 50 }
     |> prepend newline
     |> should
         equal
@@ -271,7 +272,8 @@ type SomeType() =
     member this.Print() =
         global.System.Console.WriteLine("Hello World!")
     """
-        { config with MaxFunctionBindingWidth = 120 }
+        { config with
+            MaxFunctionBindingWidth = 120 }
     |> prepend newline
     |> should
         equal
@@ -295,7 +297,8 @@ type SomeType() =
     member this.``new``() =
         System.Console.WriteLine("Hello World!")
     """
-        { config with MaxFunctionBindingWidth = 120 }
+        { config with
+            MaxFunctionBindingWidth = 120 }
     |> prepend newline
     |> should
         equal

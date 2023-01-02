@@ -6,7 +6,9 @@ open Fantomas.Core.Tests.TestHelper
 
 let defaultConfig = config
 
-let config = { config with BarBeforeDiscriminatedUnionDeclaration = true }
+let config =
+    { config with
+        BarBeforeDiscriminatedUnionDeclaration = true }
 
 [<Test>]
 let ``single DU without fields`` () =

@@ -15,7 +15,8 @@ let private carouselSample =
         fragment [] []
     ,"CarouselSample")
 """
-        { config with MaxValueBindingWidth = 75 }
+        { config with
+            MaxValueBindingWidth = 75 }
     |> should
         equal
         """let private carouselSample =
@@ -209,7 +210,8 @@ let f =
     |> fun i -> i + 1
     , 6
 """
-        { config with MaxInfixOperatorExpression = 5 }
+        { config with
+            MaxInfixOperatorExpression = 5 }
     |> prepend newline
     |> should
         equal
@@ -250,7 +252,8 @@ let y =
     else sprintf "(%s)" args
     , namesWithIndices
 """
-        { config with MaxInfixOperatorExpression = 50 }
+        { config with
+            MaxInfixOperatorExpression = 50 }
     |> prepend newline
     |> should
         equal
@@ -376,7 +379,8 @@ let f x =
 
     ()
 """
-        { config with MaxIfThenElseShortWidth = 40 }
+        { config with
+            MaxIfThenElseShortWidth = 40 }
     |> prepend newline
     |> should
         equal

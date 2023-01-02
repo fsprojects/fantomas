@@ -487,7 +487,11 @@ let ``parenthesis around composed function expression, 1341`` () =
 
 [<Test>]
 let ``parenthesis around short composed function expression, tuple, 1700`` () =
-    formatSourceString false "((=) (ownerName, username))" { config with InsertFinalNewline = false }
+    formatSourceString
+        false
+        "((=) (ownerName, username))"
+        { config with
+            InsertFinalNewline = false }
     |> should equal "((=) (ownerName, username))"
 
 [<Test>]
@@ -502,7 +506,11 @@ let ``parenthesis around short composed function expression, tuple in if, 1700``
 
 [<Test>]
 let ``parenthesis around short composed function expression, no tuple, 1700`` () =
-    formatSourceString false """((=) ownerName)""" { config with InsertFinalNewline = false }
+    formatSourceString
+        false
+        """((=) ownerName)"""
+        { config with
+            InsertFinalNewline = false }
     |> should equal """((=) ownerName)"""
 
 [<Test>]

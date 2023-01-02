@@ -25,7 +25,8 @@ let test x y =
 
 if age < 10
 then printfn "You are only %d years old and already learning F#? Wow!" age"""
-        { config with MaxIfThenElseShortWidth = 60 }
+        { config with
+            MaxIfThenElseShortWidth = 60 }
     |> prepend newline
     |> should
         equal
@@ -674,7 +675,8 @@ let internal coli f' (c: seq<'T>) f (ctx: Context) =
 
     st
 """
-        { config with MaxIfThenElseShortWidth = 50 }
+        { config with
+            MaxIfThenElseShortWidth = 50 }
     |> prepend newline
     |> should
         equal
@@ -716,7 +718,8 @@ let ``keep new line before for loop, 1317`` () =
 
       state
 """
-        { config with MaxDotGetExpressionWidth = 60 }
+        { config with
+            MaxDotGetExpressionWidth = 60 }
     |> prepend newline
     |> should
         equal

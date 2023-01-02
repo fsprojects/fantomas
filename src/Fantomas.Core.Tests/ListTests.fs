@@ -374,7 +374,8 @@ let prismCli commando =
         |]
     ()
 """
-        { config with SpaceAroundDelimiter = false }
+        { config with
+            SpaceAroundDelimiter = false }
     |> prepend newline
     |> should
         equal
@@ -397,7 +398,8 @@ let ``line comment inside list`` () =
 // foo
 ]
 """
-        { config with SpaceAroundDelimiter = false }
+        { config with
+            SpaceAroundDelimiter = false }
     |> prepend newline
     |> should
         equal
@@ -1847,7 +1849,8 @@ let run () =
 
 run() // Prints the same thing twice
 """
-        { config with NewlineBetweenTypeDefinitionAndMembers = false }
+        { config with
+            NewlineBetweenTypeDefinitionAndMembers = false }
     |> prepend newline
     |> should
         equal
@@ -2206,7 +2209,8 @@ let ``multiline function application inside list`` () =
     uioooooooooooooooooooooooo)
 ]
 """
-        { config with SpaceBeforeLowercaseInvocation = true }
+        { config with
+            SpaceBeforeLowercaseInvocation = true }
     |> prepend newline
     |> should
         equal

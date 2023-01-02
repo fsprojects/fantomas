@@ -105,7 +105,8 @@ type Shape2D(x0 : float, y0 : float) =
     abstract member Rotate: float -> unit
     default this.Rotate(angle) = rotAngle <- rotAngle + angle
     """
-        { config with MaxValueBindingWidth = 120 }
+        { config with
+            MaxValueBindingWidth = 120 }
     |> prepend newline
     |> should
         equal
@@ -209,7 +210,8 @@ let ``classes and implicit constructors`` () =
        do self.PrintMessage()
        member this.PrintMessage() =
            printf "Creating MyClass2 with Data %d" data"""
-        { config with MaxFunctionBindingWidth = 120 }
+        { config with
+            MaxFunctionBindingWidth = 120 }
     |> prepend newline
     |> should
         equal
@@ -230,7 +232,8 @@ let ``classes and private implicit constructors`` () =
        do self.PrintMessage()
        member this.PrintMessage() =
            printf "Creating MyClass2 with Data %d" data"""
-        { config with MaxFunctionBindingWidth = 120 }
+        { config with
+            MaxFunctionBindingWidth = 120 }
     |> prepend newline
     |> should
         equal
@@ -254,7 +257,8 @@ type Folder(pathIn: string) =
 and File(filename: string, containingFolder: Folder) =
    member __.Name = filename
    member __.ContainingFolder = containingFolder"""
-        { config with MaxValueBindingWidth = 120 }
+        { config with
+            MaxValueBindingWidth = 120 }
     |> prepend newline
     |> should
         equal
@@ -531,7 +535,8 @@ module Logging =
 
     let SetQuartzLogger l = LogProvider.SetCurrentLogProvider(l)
 """
-        { config with MaxFunctionBindingWidth = 80 }
+        { config with
+            MaxFunctionBindingWidth = 80 }
     |> prepend newline
     |> should
         equal
@@ -582,7 +587,8 @@ type A() =
     member this.MemberB = if true then 2 else 3
 
     member this.MemberC = 0"""
-        { config with MaxValueBindingWidth = 120 }
+        { config with
+            MaxValueBindingWidth = 120 }
     |> prepend newline
     |> should
         equal
@@ -757,7 +763,8 @@ indent_size=2
   9
 \"\"\"
 "
-        { config with MaxInfixOperatorExpression = 40 }
+        { config with
+            MaxInfixOperatorExpression = 40 }
     |> prepend newline
     |> should
         equal
@@ -1020,7 +1027,8 @@ type C() =
   with
     member _.Run() = 1
 """
-        { config with NewlineBetweenTypeDefinitionAndMembers = false }
+        { config with
+            NewlineBetweenTypeDefinitionAndMembers = false }
     |> prepend newline
     |> should
         equal

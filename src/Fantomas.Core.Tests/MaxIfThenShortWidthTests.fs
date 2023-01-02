@@ -43,7 +43,8 @@ let ``always put then on next line if the ifExpr is multiline`` () =
 if // comment makes expr multiline
    a then b
 """
-        { config with MaxIfThenShortWidth = 100 }
+        { config with
+            MaxIfThenShortWidth = 100 }
     |> prepend newline
     |> should
         equal

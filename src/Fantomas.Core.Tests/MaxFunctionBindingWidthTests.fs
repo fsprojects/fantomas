@@ -4,7 +4,9 @@ open NUnit.Framework
 open FsUnit
 open Fantomas.Core.Tests.TestHelper
 
-let config = { config with MaxFunctionBindingWidth = 20 }
+let config =
+    { config with
+        MaxFunctionBindingWidth = 20 }
 
 [<Test>]
 let ``should apply to function definition`` () =
@@ -67,7 +69,8 @@ let ``should not apply to short member function definition`` () =
     let a b = b + 1
     member this.c d = d + 2
     """
-        { config with MaxFunctionBindingWidth = 30 }
+        { config with
+            MaxFunctionBindingWidth = 30 }
     |> should
         equal
         """type T =

@@ -161,7 +161,8 @@ let ``should not break inside of if statements in records`` () =
     }
 
     """
-        { config with MaxIfThenElseShortWidth = 52 }
+        { config with
+            MaxIfThenElseShortWidth = 52 }
     |> should
         equal
         """let XpkgDefaults () =
@@ -256,7 +257,8 @@ let newDocument = //somecomment
       created = document.Created.ToLocalTime() }
     |> JsonConvert.SerializeObject
 """
-        { config with MaxInfixOperatorExpression = 75 }
+        { config with
+            MaxInfixOperatorExpression = 75 }
     |> prepend newline
     |> should
         equal
@@ -1027,7 +1029,8 @@ let ``short record type with member definitions should be multi line`` () =
     formatSourceString
         false
         "type Foo = { A: int; B:   string } with member this.Foo () = ()"
-        { config with NewlineBetweenTypeDefinitionAndMembers = false }
+        { config with
+            NewlineBetweenTypeDefinitionAndMembers = false }
     |> prepend newline
     |> should
         equal
@@ -1207,7 +1210,8 @@ type ShortExpressionInfo =
         || (currentColumn > maxPageWidth) // expression at current position is not going over the page width
     member x.Foo() = ()
 """
-        { config with NewlineBetweenTypeDefinitionAndMembers = false }
+        { config with
+            NewlineBetweenTypeDefinitionAndMembers = false }
     |> prepend newline
     |> should
         equal
@@ -1233,7 +1237,8 @@ type XX =
    b:int}
   static member foo = 30
 """
-        { config with NewlineBetweenTypeDefinitionAndMembers = false }
+        { config with
+            NewlineBetweenTypeDefinitionAndMembers = false }
     |> prepend newline
     |> should
         equal
@@ -1254,7 +1259,8 @@ type XX =
    b:int}
   static member foo : int = 30
 """
-        { config with NewlineBetweenTypeDefinitionAndMembers = false }
+        { config with
+            NewlineBetweenTypeDefinitionAndMembers = false }
     |> prepend newline
     |> should
         equal
@@ -1275,7 +1281,8 @@ type XX =
       b: int }
     static member private foo: int = 30
 """
-        { config with NewlineBetweenTypeDefinitionAndMembers = true }
+        { config with
+            NewlineBetweenTypeDefinitionAndMembers = true }
     |> prepend newline
     |> should
         equal
@@ -2128,7 +2135,8 @@ let compareThings (first: Thing) (second: Thing) =
                 Bar = first.Bar
             }
 """
-        { config with MultilineBracketStyle = Aligned }
+        { config with
+            MultilineBracketStyle = Aligned }
     |> prepend newline
     |> should
         equal

@@ -287,7 +287,8 @@ let ``line comment after lambda should not necessary make it multiline`` () =
         false
         """let a = fun _ -> div [] [] // React.lazy is not compatible with SSR, so just use an empty div
 """
-        { config with MaxFunctionBindingWidth = 150 }
+        { config with
+            MaxFunctionBindingWidth = 150 }
     |> prepend newline
     |> should
         equal
@@ -911,7 +912,8 @@ let elifs =
     es
     |> List.collect (fun (e1, e2, _, _, _) -> [ visit e1; visit e2 ])
 """
-        { config with MaxInfixOperatorExpression = 50 }
+        { config with
+            MaxInfixOperatorExpression = 50 }
     |> prepend newline
     |> should
         equal
@@ -949,7 +951,8 @@ module Foo =
                 |> Struct.map (fun _ (a, _, _) -> filterBackings a)
         }
 """
-        { config with MaxInfixOperatorExpression = 50 }
+        { config with
+            MaxInfixOperatorExpression = 50 }
     |> prepend newline
     |> should
         equal
@@ -1042,7 +1045,8 @@ let argExpr =
         ()
     )
 """
-        { config with MaxInfixOperatorExpression = 50 }
+        { config with
+            MaxInfixOperatorExpression = 50 }
     |> prepend newline
     |> should
         equal
@@ -1176,7 +1180,8 @@ let ``function expression and argument expression with parenthesis, 1998`` () =
         """
 (SomeModule.doSomething << SomeModule.doSomethingElse) (fun x -> x)
 """
-        { config with MaxInfixOperatorExpression = 50 }
+        { config with
+            MaxInfixOperatorExpression = 50 }
     |> prepend newline
     |> should
         equal
@@ -1196,7 +1201,8 @@ let dayOfWeekToNum (d: DayOfWeek) =
     |> fun x -> if x = 0 then 7 else x
     |> DayNum
 """
-        { config with MaxInfixOperatorExpression = 45 }
+        { config with
+            MaxInfixOperatorExpression = 45 }
     |> prepend newline
     |> should
         equal
@@ -1240,7 +1246,8 @@ Task.Run<CommandResult>(fun () ->
 Task.Run<CommandResult> (task)
 |> ignore<Task<CommandResult>>
 """
-        { config with MaxInfixOperatorExpression = 50 }
+        { config with
+            MaxInfixOperatorExpression = 50 }
     |> prepend newline
     |> should
         equal
@@ -1271,7 +1278,8 @@ let items = [ Item(); Item(); Item() ]
 let firstOrDef = items.FirstOrDefault(fun x ->
     x.ValidFrom <= DateTime.Now || x.ValidFrom > DateTime.Now).Value
 """
-        { config with MaxInfixOperatorExpression = 50 }
+        { config with
+            MaxInfixOperatorExpression = 50 }
     |> prepend newline
     |> should
         equal

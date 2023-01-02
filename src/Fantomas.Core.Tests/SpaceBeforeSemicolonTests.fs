@@ -86,7 +86,9 @@ let IsMatchByName record1 (name: string) =
     | _ -> false
 """
 
-let beforeAndAfterConfig = { config with SpaceBeforeSemicolon = true }
+let beforeAndAfterConfig =
+    { config with
+        SpaceBeforeSemicolon = true }
 
 [<Test>]
 let ``space before and after attributelist`` () =
