@@ -6,6 +6,11 @@ open System.IO
 open System.Text
 open Fantomas
 
+[<RequireQualifiedAccess>]
+module String =
+    let normalizeNewLine (str: string) =
+        str.Replace("\r\n", "\n").Replace("\r", "\n")
+
 type TemporaryFileCodeSample
     internal
     (
