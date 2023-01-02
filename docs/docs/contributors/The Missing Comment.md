@@ -60,7 +60,7 @@ This is a fairly straightforward process, and you can easily visually inspect th
 
 ![TriviaNode in online tool](../../images/online-tool-trivia-1.png)
 
-If your comment does not show up there, it means there is a problem between getting the information from the syntax tree and constructing the `Trivia` in `Flowering.fs`.  
+If your comment does not show up there, it means there is a problem between getting the information from the syntax tree and constructing the `Trivia` in `Trivia.fs`.  
 You can put a breakpoint on `addToTree tree trivia` to see if all `Trivia` are constructed as expected.
 
 ## Was the TriviaNode inserted into a Node?
@@ -85,7 +85,7 @@ This was done in [dotnet/fsharp#14503](https://github.com/dotnet/fsharp/pull/145
 
 ## Printing the TriviaNode
 
-The last piece of the puzzle is printing the actual `TriviaNode` in `CodePrinter2`.
+The last piece of the puzzle is printing the actual `TriviaNode` in `CodePrinter`.
 If everything up to this point went well, and the comment is still missing after formatting, it means it was not printed.
 
 Every `Node` potentially has `ContentBefore` and/or `ContentAfter`. We need to process this using the generic `genNode` function.

@@ -41,7 +41,7 @@ type SynExpr =
 ```
 
   However, in Fantomas we have a partial active pattern that we use to easily grab the information we need from the AST.
-  These partial actives are mostly used and defined in `Fangorn.fs`.
+  These partial actives are mostly used and defined in `ASTTransformer.fs`.
 ```fsharp
 let (|Sequentials|_|) e =
     let rec visit (e: SynExpr) (finalContinuation: SynExpr list -> SynExpr list) : SynExpr list =
@@ -74,7 +74,7 @@ You can look at a signature file to get a glimpse of what the module really does
 
 In contrast to partial active patterns, where we want to hide some AST information, it can occur that we need to extend the type of an AST node.
 We do this by adding a new type member to an existing Syntax tree type.
-Example in `Flowering.fs`:
+Example in `Trivia.fs`:
 
 ```fsharp
 type CommentTrivia with
@@ -96,7 +96,7 @@ Fantomas is full of this kind of functions, so be sure to grasp this concept bef
 
 - [Tail recursion](https://docs.microsoft.com/en-us/dotnet/fsharp/language-reference/functions/recursive-functions-the-rec-keyword#tail-recursion)
 
-There are places in the code base where we use some more advanced recursion techniques. `Fangorn.fs` is one of them.  
+There are places in the code base where we use some more advanced recursion techniques. `ASTTransformer.fs` is one of them.  
 A very good explanation of what happens here can be found in this [blogpost](https://www.gresearch.co.uk/blog/article/advanced-recursion-techniques-in-f/).
 
 - [Event Sourcing](https://medium.com/@dzoukr/event-sourcing-step-by-step-in-f-be808aa0ca18)
