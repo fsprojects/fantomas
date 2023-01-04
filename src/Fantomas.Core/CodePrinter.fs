@@ -551,7 +551,7 @@ let genExpr (e: Expr) =
             genSingleTextNode node.Ident
             +> sepSpace
             +> genSingleTextNode node.Equals
-            +> sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth (genExpr node.Expr)
+            +> sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidthUnlessStroustrup genExpr node.Expr
             |> genNode node
 
         let smallExpression =
@@ -609,19 +609,19 @@ let genExpr (e: Expr) =
                 onlyIf node.IsStruct !- "struct " +> recordExpr
 
             let genMultilineAnonRecordAlignBrackets =
-                let copyExpr fieldsExpr e =
-                    atCurrentColumnIndent (genExpr e)
-                    +> (!- " with"
-                        +> indent
-                        +> whenShortIndent indent
-                        +> sepNln
-                        +> fieldsExpr
-                        +> whenShortIndent unindent
-                        +> unindent)
-
                 let genAnonRecord =
                     match node.CopyInfo with
                     | Some ci ->
+                        let copyExpr fieldsExpr e =
+                            atCurrentColumnIndent (genExpr e)
+                            +> (!- " with"
+                                +> indent
+                                +> whenShortIndent indent
+                                +> sepNln
+                                +> fieldsExpr
+                                +> whenShortIndent unindent
+                                +> unindent)
+
                         genSingleTextNodeSuffixDelimiter node.OpeningBrace
                         +> sepNlnWhenWriteBeforeNewlineNotEmpty // comment after curly brace
                         +> copyExpr fieldsExpr ci

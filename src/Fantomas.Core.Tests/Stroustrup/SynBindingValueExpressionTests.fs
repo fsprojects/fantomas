@@ -398,3 +398,30 @@ let fooDto =
             |> Option.toObj
     |}
 """
+
+[<Test>]
+let ``let binding with nested anonymous records, 2413`` () =
+    formatSourceString
+        false
+        """
+let foo =
+    {| Data =
+        {| Name = "Isaac"
+           Age = 43
+           Day = "Monday"
+           Colour = "Blue" |} |}
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let foo = {|
+    Data = {|
+        Name = "Isaac"
+        Age = 43
+        Day = "Monday"
+        Colour = "Blue"
+    |}
+|}
+"""
