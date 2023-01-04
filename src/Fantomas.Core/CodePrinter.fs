@@ -2437,15 +2437,18 @@ let genTyparDecls (td: TyparDecls) =
 let genPat (p: Pattern) =
     match p with
     | Pattern.OptionalVal n -> genSingleTextNode n
-    | Pattern.Attrib node -> genOnelinerAttributes node.Attributes +> genPat node.Pattern |> genNode node
     | Pattern.Or node -> genPatLeftMiddleRight node
     | Pattern.Ands node -> col (!- " & ") node.Patterns genPat |> genNode node
     | Pattern.Null node
     | Pattern.Wild node -> genSingleTextNode node
-    | Pattern.Typed node ->
-        genPat node.Pattern
-        +> sepColon
-        +> autoIndentAndNlnIfExpressionExceedsPageWidth (atCurrentColumnIndent (genType node.Type))
+    | Pattern.Parameter node ->
+        genOnelinerAttributes node.Attributes
+        +> genPat node.Pattern
+        +> optSingle
+            (fun t ->
+                sepColon
+                +> autoIndentAndNlnIfExpressionExceedsPageWidth (atCurrentColumnIndent (genType t)))
+            node.Type
         |> genNode node
     | Pattern.NamedParenStarIdent node ->
         genAccessOpt node.Accessibility

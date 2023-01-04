@@ -370,14 +370,6 @@ type Type =
         | Or n -> n
         | LongIdentApp n -> n
 
-type PatAttribNode(attrs: MultipleAttributeListNode option, pat: Pattern, range) =
-    inherit NodeBase(range)
-
-    override this.Children = [| yield! noa attrs; yield Pattern.Node pat |]
-
-    member x.Attributes = attrs
-    member x.Pattern = pat
-
 /// A pattern composed from a left hand-side pattern, a single text token/operator and a right hand-side pattern.
 type PatLeftMiddleRight(lhs: Pattern, middle: Choice<SingleTextNode, string>, rhs: Pattern, range) =
     inherit NodeBase(range)
@@ -399,10 +391,15 @@ type PatAndsNode(pats: Pattern list, range) =
     override this.Children = [| yield! List.map Pattern.Node pats |]
     member x.Patterns = pats
 
-type PatTypedNode(pat: Pattern, t: Type, range) =
+type PatParameterNode(attributes: MultipleAttributeListNode option, pat: Pattern, t: Type option, range) =
     inherit NodeBase(range)
 
-    override this.Children = [| yield Pattern.Node pat; yield Type.Node t |]
+    override this.Children =
+        [| yield! noa attributes
+           yield Pattern.Node pat
+           yield! noa (Option.map Type.Node t) |]
+
+    member x.Attributes = attributes
     member x.Pattern = pat
     member x.Type = t
 
@@ -547,12 +544,11 @@ type PatIsInstNode(token: SingleTextNode, t: Type, range) =
 [<RequireQualifiedAccess; NoEquality; NoComparison>]
 type Pattern =
     | OptionalVal of SingleTextNode
-    | Attrib of PatAttribNode
     | Or of PatLeftMiddleRight
     | Ands of PatAndsNode
     | Null of SingleTextNode
     | Wild of SingleTextNode
-    | Typed of PatTypedNode
+    | Parameter of PatParameterNode
     | NamedParenStarIdent of PatNamedParenStarIdentNode
     | Named of PatNamedNode
     | As of PatLeftMiddleRight
@@ -572,12 +568,11 @@ type Pattern =
     static member Node(x: Pattern) : Node =
         match x with
         | OptionalVal n -> n
-        | Attrib n -> n
+        | Parameter n -> n
         | Or n -> n
         | Ands n -> n
         | Null n -> n
         | Wild n -> n
-        | Typed n -> n
         | NamedParenStarIdent n -> n
         | Named n -> n
         | As n -> n
