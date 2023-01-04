@@ -2229,12 +2229,6 @@ let mkTypeDefn
         kind = SynTypeDefnKind.Class | SynTypeDefnKind.Interface | SynTypeDefnKind.Struct as tdk
         members = objectMembers
         range = range) ->
-        let implicitConstructorNode =
-            match implicitConstructor with
-            | Some(SynMemberDefn.ImplicitCtor(vis, attrs, pats, self, xmlDoc, m)) ->
-                mkImplicitCtor creationAide vis attrs pats self xmlDoc m |> Some
-            | _ -> None
-
         let kindNode =
             match tdk, range with
             | SynTypeDefnKind.Class, StartRange 5 (mClass, _) -> stn "class" mClass
@@ -2255,7 +2249,7 @@ let mkTypeDefn
 
         let body = TypeDefnExplicitBodyNode(kindNode, objectMembers, endNode, range)
 
-        TypeDefnExplicitNode(typeNameNode, implicitConstructorNode, body, members, typeDefnRange)
+        TypeDefnExplicitNode(typeNameNode, body, members, typeDefnRange)
         |> TypeDefn.Explicit
 
     | SynTypeDefnRepr.ObjectModel(kind = SynTypeDefnKind.Augmentation mWith) ->
@@ -2958,7 +2952,7 @@ let mkTypeDefnSig (creationAide: CreationAide) (SynTypeDefnSig(typeInfo, typeRep
 
         let body = TypeDefnExplicitBodyNode(kindNode, objectMembers, endNode, range)
 
-        TypeDefnExplicitNode(typeNameNode, None, body, members, typeDefnRange)
+        TypeDefnExplicitNode(typeNameNode, body, members, typeDefnRange)
         |> TypeDefn.Explicit
 
     | SynTypeDefnSigRepr.ObjectModel(kind = SynTypeDefnKind.Augmentation mWith) ->

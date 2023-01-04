@@ -2382,17 +2382,14 @@ type TypeDefnExplicitBodyNode(kind: SingleTextNode, members: MemberDefn list, en
     member x.Members = members
     member x.End = endNode
 
-type TypeDefnExplicitNode
-    (typeNameNode, implicitCtor: ImplicitConstructorNode option, body: TypeDefnExplicitBodyNode, members, range) =
+type TypeDefnExplicitNode(typeNameNode, body: TypeDefnExplicitBodyNode, members, range) =
     inherit NodeBase(range)
 
     override this.Children =
         [| yield typeNameNode
-           yield! noa implicitCtor
            yield body
            yield! nodes (List.map MemberDefn.Node members) |]
 
-    member x.ImplicitConstructor = implicitCtor
     member x.Body = body
 
     interface ITypeDefn with
