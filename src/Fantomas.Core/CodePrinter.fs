@@ -3212,6 +3212,8 @@ let genTypeDefn (td: TypeDefn) =
         |> genNode typeName
 
     let members = typeDefnNode.Members
+    let hasMembers = List.isNotEmpty members
+    let hasNoMembers = not hasMembers
 
     match td with
     | TypeDefn.Enum node ->
@@ -3230,7 +3232,7 @@ let genTypeDefn (td: TypeDefn) =
         header
         +> indentSepNlnUnindent (
             col sepNln node.EnumCases genEnumCase
-            +> onlyIf (List.isNotEmpty members) sepNln
+            +> onlyIf hasMembers sepNln
             +> sepNlnTypeAndMembers typeDefnNode
             +> genMemberDefnList members
         )
@@ -3239,7 +3241,7 @@ let genTypeDefn (td: TypeDefn) =
         let unionCases (ctx: Context) =
             match node.UnionCases with
             | [] -> ctx
-            | [ singleCase ] when List.isEmpty members ->
+            | [ singleCase ] when hasNoMembers ->
                 let hasVerticalBar =
                     ctx.Config.BarBeforeDiscriminatedUnionDeclaration
                     || singleCase.Attributes.IsSome
@@ -3262,14 +3264,10 @@ let genTypeDefn (td: TypeDefn) =
 
         header
         +> unionCases
-        +> onlyIf
-            (List.isNotEmpty members)
-            (indentSepNlnUnindent (sepNlnTypeAndMembers typeDefnNode +> genMemberDefnList members))
+        +> onlyIf hasMembers (indentSepNlnUnindent (sepNlnTypeAndMembers typeDefnNode +> genMemberDefnList members))
         |> genNode node
     | TypeDefn.Record node ->
         let multilineExpression (ctx: Context) =
-            let noMembers = List.isEmpty members
-
             let genRecordFields =
                 genSingleTextNode node.OpeningBrace
                 +> indentSepNlnUnindent (atCurrentColumn (col sepNln node.Fields genField))
@@ -3277,7 +3275,7 @@ let genTypeDefn (td: TypeDefn) =
                 +> genSingleTextNode node.ClosingBrace
 
             let genMembers =
-                onlyIf (not noMembers) sepNln
+                onlyIf hasMembers sepNln
                 +> sepNlnTypeAndMembers typeDefnNode
                 +> genMemberDefnList members
 
@@ -3288,11 +3286,11 @@ let genTypeDefn (td: TypeDefn) =
                 +> genMembers
 
             let anyFieldHasXmlDoc =
-                List.exists (fun (fieldNode: FieldNode) -> fieldNode.XmlDoc.IsSome) node.Fields
+                node.Fields |> List.exists (fun fieldNode -> fieldNode.XmlDoc.IsSome)
 
             let genMultilineExpression =
                 match ctx.Config.MultilineBracketStyle with
-                | ExperimentalStroustrup when noMembers ->
+                | ExperimentalStroustrup when hasNoMembers ->
                     genAccessOpt node.Accessibility +> genRecordFields +> genMembers
                 | Aligned
                 | ExperimentalStroustrup -> aligned
@@ -3305,14 +3303,14 @@ let genTypeDefn (td: TypeDefn) =
                      +> addSpaceIfSpaceAroundDelimiter
                      +> genSingleTextNode node.ClosingBrace
                      +> optSingle (fun _ -> unindent) node.Accessibility
-                     +> onlyIf (List.isNotEmpty members) sepNln
+                     +> onlyIf hasMembers sepNln
                      +> sepNlnTypeAndMembers typeDefnNode
                      +> genMemberDefnList members)
 
             genMultilineExpression ctx
 
         let bodyExpr size =
-            if List.isEmpty members then
+            if hasNoMembers then
                 let smallExpression =
                     sepSpace
                     +> genAccessOpt node.Accessibility
@@ -3331,7 +3329,7 @@ let genTypeDefn (td: TypeDefn) =
             let size = getRecordSize ctx node.Fields
             let short = bodyExpr size
 
-            if ctx.Config.ExperimentalStroustrupStyle && members.IsEmpty then
+            if ctx.Config.ExperimentalStroustrupStyle && hasNoMembers then
                 (sepSpace +> short) ctx
             else
                 isSmallExpression size short (indentSepNlnUnindent short) ctx
@@ -3342,7 +3340,7 @@ let genTypeDefn (td: TypeDefn) =
         header
         +> sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth (genType node.Type)
         +> onlyIf
-            (List.isNotEmpty members)
+            hasMembers
             (optSingle
                 (fun withNode ->
                     indentSepNlnUnindent (
