@@ -881,8 +881,6 @@ let ifAlignOrStroustrupBrackets f g =
         f
         g
 
-let handleBracketStyle f (ctx: Context) : Context = f ctx.Config.MultilineBracketStyle ctx
-
 let sepNlnWhenWriteBeforeNewlineNotEmptyOr fallback (ctx: Context) =
     if hasWriteBeforeNewlineContent ctx then
         sepNln ctx
