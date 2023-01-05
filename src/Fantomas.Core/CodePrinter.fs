@@ -3051,24 +3051,20 @@ let genType (t: Type) =
         let longExpression =
             let genAnonRecordFields = col sepNln node.Fields genAnonRecordFieldType
 
-            handleBracketStyle (function
-                | Aligned
-                | ExperimentalStroustrup ->
-                    genStruct
-                    +> sepOpenAnonRecdFixed
-                    +> indentSepNlnUnindent (atCurrentColumnIndent genAnonRecordFields)
-                    +> sepNln
-                    +> genSingleTextNode node.Closing
-                | Cramped ->
-                    genStruct
-                    +> genOpening
-                    +> atCurrentColumn genAnonRecordFields
-                    +> addSpaceIfSpaceAroundDelimiter
-                    +> genSingleTextNode node.Closing)
+            ifAlignOrStroustrupBrackets
+                (genStruct
+                 +> sepOpenAnonRecdFixed
+                 +> indentSepNlnUnindent (atCurrentColumnIndent genAnonRecordFields)
+                 +> sepNln
+                 +> genSingleTextNode node.Closing)
+                (genStruct
+                 +> genOpening
+                 +> atCurrentColumn genAnonRecordFields
+                 +> addSpaceIfSpaceAroundDelimiter
+                 +> genSingleTextNode node.Closing)
 
         fun (ctx: Context) ->
             let size = getRecordSize ctx node.Fields
-
             genNode node (isSmallExpression size smallExpression longExpression) ctx
 
     | Type.Paren node ->
@@ -3462,10 +3458,7 @@ let genField (node: FieldNode) =
         | Some name ->
             genSingleTextNode name
             +> sepColon
-            +> ifElseCtx
-                (fun ctx -> ctx.Config.ExperimentalStroustrupStyle)
-                (genType node.Type)
-                (autoIndentAndNlnIfExpressionExceedsPageWidth (genType node.Type)))
+            +> autoIndentAndNlnTypeUnlessStroustrup genType node.Type)
     |> genNode node
 
 let genUnionCase (hasVerticalBar: bool) (node: UnionCaseNode) =
