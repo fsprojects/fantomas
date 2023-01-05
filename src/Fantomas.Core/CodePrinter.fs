@@ -3267,61 +3267,65 @@ let genTypeDefn (td: TypeDefn) =
             (indentSepNlnUnindent (sepNlnTypeAndMembers typeDefnNode +> genMemberDefnList members))
         |> genNode node
     | TypeDefn.Record node ->
-        let smallExpression =
-            sepSpace
-            +> genAccessOpt node.Accessibility
-            +> sepSpace
-            +> genSingleTextNode node.OpeningBrace
-            +> addSpaceIfSpaceAroundDelimiter
-            +> col sepSemi node.Fields genField
-            +> addSpaceIfSpaceAroundDelimiter
-            +> genSingleTextNode node.ClosingBrace
-
         let multilineExpression (ctx: Context) =
-            let aligned =
-                let msIsEmpty = List.isEmpty members
+            let noMembers = List.isEmpty members
 
-                (ifElseCtx
-                    (fun ctx -> ctx.Config.ExperimentalStroustrupStyle && msIsEmpty)
-                    (genAccessOpt node.Accessibility)
-                    (opt (indent +> sepNln) node.Accessibility genSingleTextNode)
-                 +> genSingleTextNode node.OpeningBrace
-                 +> indentSepNlnUnindent (atCurrentColumn (col sepNln node.Fields genField))
-                 +> sepNln
-                 +> genSingleTextNode node.ClosingBrace
-                 +> onlyIfCtx
-                     (fun ctx -> not (ctx.Config.ExperimentalStroustrupStyle && msIsEmpty))
-                     (optSingle (fun _ -> unindent) node.Accessibility)
-                 +> onlyIf (List.isNotEmpty members) sepNln
-                 +> sepNlnTypeAndMembers typeDefnNode
-                 +> genMemberDefnList members)
-                    ctx
+            let genRecordFields =
+                genSingleTextNode node.OpeningBrace
+                +> indentSepNlnUnindent (atCurrentColumn (col sepNln node.Fields genField))
+                +> sepNln
+                +> genSingleTextNode node.ClosingBrace
+
+            let genMembers =
+                onlyIf (not noMembers) sepNln
+                +> sepNlnTypeAndMembers typeDefnNode
+                +> genMemberDefnList members
+
+            let aligned =
+                opt (indent +> sepNln) node.Accessibility genSingleTextNode
+                +> genRecordFields
+                +> optSingle (fun _ -> unindent) node.Accessibility
+                +> genMembers
 
             let anyFieldHasXmlDoc =
                 List.exists (fun (fieldNode: FieldNode) -> fieldNode.XmlDoc.IsSome) node.Fields
 
-            match ctx.Config.MultilineBracketStyle with
-            | Aligned
-            | ExperimentalStroustrup -> aligned
-            | Cramped when anyFieldHasXmlDoc -> aligned
-            | Cramped ->
-                (sepNlnUnlessLastEventIsNewline
-                 +> opt (indent +> sepNln) node.Accessibility genSingleTextNode
-                 +> genSingleTextNodeSuffixDelimiter node.OpeningBrace
-                 +> atCurrentColumn (sepNlnWhenWriteBeforeNewlineNotEmpty +> col sepNln node.Fields genField)
-                 +> addSpaceIfSpaceAroundDelimiter
-                 +> genSingleTextNode node.ClosingBrace
-                 +> optSingle (fun _ -> unindent) node.Accessibility
-                 +> onlyIf (List.isNotEmpty members) sepNln
-                 +> sepNlnTypeAndMembers typeDefnNode
-                 +> genMemberDefnList members)
-                    ctx
+            let genMultilineExpression =
+                match ctx.Config.MultilineBracketStyle with
+                | ExperimentalStroustrup when noMembers ->
+                    genAccessOpt node.Accessibility +> genRecordFields +> genMembers
+                | Aligned
+                | ExperimentalStroustrup -> aligned
+                | Cramped when anyFieldHasXmlDoc -> aligned
+                | Cramped ->
+                    (sepNlnUnlessLastEventIsNewline
+                     +> opt (indent +> sepNln) node.Accessibility genSingleTextNode
+                     +> genSingleTextNodeSuffixDelimiter node.OpeningBrace
+                     +> atCurrentColumn (sepNlnWhenWriteBeforeNewlineNotEmpty +> col sepNln node.Fields genField)
+                     +> addSpaceIfSpaceAroundDelimiter
+                     +> genSingleTextNode node.ClosingBrace
+                     +> optSingle (fun _ -> unindent) node.Accessibility
+                     +> onlyIf (List.isNotEmpty members) sepNln
+                     +> sepNlnTypeAndMembers typeDefnNode
+                     +> genMemberDefnList members)
 
-        let bodyExpr size ctx =
+            genMultilineExpression ctx
+
+        let bodyExpr size =
             if List.isEmpty members then
-                (isSmallExpression size smallExpression multilineExpression) ctx
+                let smallExpression =
+                    sepSpace
+                    +> genAccessOpt node.Accessibility
+                    +> sepSpace
+                    +> genSingleTextNode node.OpeningBrace
+                    +> addSpaceIfSpaceAroundDelimiter
+                    +> col sepSemi node.Fields genField
+                    +> addSpaceIfSpaceAroundDelimiter
+                    +> genSingleTextNode node.ClosingBrace
+
+                isSmallExpression size smallExpression multilineExpression
             else
-                multilineExpression ctx
+                multilineExpression
 
         let genTypeDefinition (ctx: Context) =
             let size = getRecordSize ctx node.Fields
