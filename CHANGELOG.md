@@ -4,6 +4,7 @@
 
 ### Fixes 
 *  Stroustrup: Two lists given directly as parameters, break code [#2681](https://github.com/fsprojects/fantomas/issues/2681)
+*  fsharp_experimental_stroustrup_style=true breaks on types with nested anonymous records. [#2413](https://github.com/fsprojects/fantomas/issues/2413)
 
 ## [5.2.0-beta-001] - 2023-01-02
 

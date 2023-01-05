@@ -425,3 +425,68 @@ let foo = {|
     |}
 |}
 """
+
+[<Test>]
+let ``list expression inside anonymous record, 2413`` () =
+    formatSourceString
+        false
+        """
+let foo = {|
+    Data =
+        {|
+            Name = "Isaac"
+            Age = 43
+            Day = "Monday"
+            Colours =
+                [
+                    "Red"
+                    "Blue"
+                    "White"
+                    "Orange"
+                    "Red"
+                    "Blue"
+                    "White"
+                    "Orange"
+                    "Red"
+                    "Blue"
+                    "White"
+                    "Orange"
+                    "Red"
+                    "Blue"
+                    "White"
+                    "Orange"
+                ]
+        |}
+|}
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let foo = {|
+    Data = {|
+        Name = "Isaac"
+        Age = 43
+        Day = "Monday"
+        Colours = [
+            "Red"
+            "Blue"
+            "White"
+            "Orange"
+            "Red"
+            "Blue"
+            "White"
+            "Orange"
+            "Red"
+            "Blue"
+            "White"
+            "Orange"
+            "Red"
+            "Blue"
+            "White"
+            "Orange"
+        ]
+    |}
+|}
+"""

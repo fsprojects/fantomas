@@ -248,6 +248,7 @@ val sepColonWithSpacesFixed: (Context -> Context)
 val sepComma: ctx: Context -> Context
 val sepSemi: ctx: Context -> Context
 val ifAlignOrStroustrupBrackets: f: (Context -> Context) -> g: (Context -> Context) -> (Context -> Context)
+val handleBracketStyle: f: (MultilineBracketStyle -> Context -> Context) -> ctx: Context -> Context
 val sepNlnWhenWriteBeforeNewlineNotEmptyOr: fallback: (Context -> Context) -> ctx: Context -> Context
 val sepNlnWhenWriteBeforeNewlineNotEmpty: (Context -> Context)
 val sepSpaceUnlessWriteBeforeNewlineNotEmpty: ctx: Context -> Context

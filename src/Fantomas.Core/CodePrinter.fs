@@ -1,4 +1,4 @@
-﻿module internal rec Fantomas.Core.CodePrinter
+module internal rec Fantomas.Core.CodePrinter
 
 open System
 open Fantomas.Core.Context
@@ -3036,8 +3036,8 @@ let genType (t: Type) =
             | None -> sepOpenAnonRecdFixed +> addSpaceIfSpaceAroundDelimiter
             | Some n -> genSingleTextNode n +> addSpaceIfSpaceAroundDelimiter
 
-        let genAnonRecordFieldType (i, t) =
-            genSingleTextNode i
+        let genAnonRecordFieldType (textNode, t) =
+            genSingleTextNode textNode
             +> sepColon
             +> autoIndentAndNlnIfExpressionExceedsPageWidth (genType t)
 
@@ -3049,30 +3049,26 @@ let genType (t: Type) =
             +> genSingleTextNode node.Closing
 
         let longExpression =
-            let genFields = col sepNln node.Fields genAnonRecordFieldType
+            let genAnonRecordFields = col sepNln node.Fields genAnonRecordFieldType
 
-            let genMultilineAnonRecordTypeAlignBrackets =
-                let genRecord =
-                    sepOpenAnonRecdFixed
-                    +> indentSepNlnUnindent (atCurrentColumnIndent genFields)
+            handleBracketStyle (function
+                | Aligned
+                | ExperimentalStroustrup ->
+                    genStruct
+                    +> sepOpenAnonRecdFixed
+                    +> indentSepNlnUnindent (atCurrentColumnIndent genAnonRecordFields)
                     +> sepNln
                     +> genSingleTextNode node.Closing
-
-                genStruct +> genRecord
-
-            let genMultilineAnonRecordType =
-                let genRecord =
-                    genOpening
-                    +> atCurrentColumn genFields
+                | Cramped ->
+                    genStruct
+                    +> genOpening
+                    +> atCurrentColumn genAnonRecordFields
                     +> addSpaceIfSpaceAroundDelimiter
-                    +> genSingleTextNode node.Closing
-
-                genStruct +> genRecord
-
-            ifAlignOrStroustrupBrackets genMultilineAnonRecordTypeAlignBrackets genMultilineAnonRecordType
+                    +> genSingleTextNode node.Closing)
 
         fun (ctx: Context) ->
             let size = getRecordSize ctx node.Fields
+
             genNode node (isSmallExpression size smallExpression longExpression) ctx
 
     | Type.Paren node ->
@@ -3267,61 +3263,65 @@ let genTypeDefn (td: TypeDefn) =
             (indentSepNlnUnindent (sepNlnTypeAndMembers typeDefnNode +> genMemberDefnList members))
         |> genNode node
     | TypeDefn.Record node ->
-        let smallExpression =
-            sepSpace
-            +> genAccessOpt node.Accessibility
-            +> sepSpace
-            +> genSingleTextNode node.OpeningBrace
-            +> addSpaceIfSpaceAroundDelimiter
-            +> col sepSemi node.Fields genField
-            +> addSpaceIfSpaceAroundDelimiter
-            +> genSingleTextNode node.ClosingBrace
-
         let multilineExpression (ctx: Context) =
-            let aligned =
-                let msIsEmpty = List.isEmpty members
+            let noMembers = List.isEmpty members
 
-                (ifElseCtx
-                    (fun ctx -> ctx.Config.ExperimentalStroustrupStyle && msIsEmpty)
-                    (genAccessOpt node.Accessibility)
-                    (opt (indent +> sepNln) node.Accessibility genSingleTextNode)
-                 +> genSingleTextNode node.OpeningBrace
-                 +> indentSepNlnUnindent (atCurrentColumn (col sepNln node.Fields genField))
-                 +> sepNln
-                 +> genSingleTextNode node.ClosingBrace
-                 +> onlyIfCtx
-                     (fun ctx -> not (ctx.Config.ExperimentalStroustrupStyle && msIsEmpty))
-                     (optSingle (fun _ -> unindent) node.Accessibility)
-                 +> onlyIf (List.isNotEmpty members) sepNln
-                 +> sepNlnTypeAndMembers typeDefnNode
-                 +> genMemberDefnList members)
-                    ctx
+            let genRecordFields =
+                genSingleTextNode node.OpeningBrace
+                +> indentSepNlnUnindent (atCurrentColumn (col sepNln node.Fields genField))
+                +> sepNln
+                +> genSingleTextNode node.ClosingBrace
+
+            let genMembers =
+                onlyIf (not noMembers) sepNln
+                +> sepNlnTypeAndMembers typeDefnNode
+                +> genMemberDefnList members
+
+            let aligned =
+                opt (indent +> sepNln) node.Accessibility genSingleTextNode
+                +> genRecordFields
+                +> optSingle (fun _ -> unindent) node.Accessibility
+                +> genMembers
 
             let anyFieldHasXmlDoc =
                 List.exists (fun (fieldNode: FieldNode) -> fieldNode.XmlDoc.IsSome) node.Fields
 
-            match ctx.Config.MultilineBracketStyle with
-            | Aligned
-            | ExperimentalStroustrup -> aligned
-            | Cramped when anyFieldHasXmlDoc -> aligned
-            | Cramped ->
-                (sepNlnUnlessLastEventIsNewline
-                 +> opt (indent +> sepNln) node.Accessibility genSingleTextNode
-                 +> genSingleTextNodeSuffixDelimiter node.OpeningBrace
-                 +> atCurrentColumn (sepNlnWhenWriteBeforeNewlineNotEmpty +> col sepNln node.Fields genField)
-                 +> addSpaceIfSpaceAroundDelimiter
-                 +> genSingleTextNode node.ClosingBrace
-                 +> optSingle (fun _ -> unindent) node.Accessibility
-                 +> onlyIf (List.isNotEmpty members) sepNln
-                 +> sepNlnTypeAndMembers typeDefnNode
-                 +> genMemberDefnList members)
-                    ctx
+            let genMultilineExpression =
+                match ctx.Config.MultilineBracketStyle with
+                | ExperimentalStroustrup when noMembers ->
+                    genAccessOpt node.Accessibility +> genRecordFields +> genMembers
+                | Aligned
+                | ExperimentalStroustrup -> aligned
+                | Cramped when anyFieldHasXmlDoc -> aligned
+                | Cramped ->
+                    (sepNlnUnlessLastEventIsNewline
+                     +> opt (indent +> sepNln) node.Accessibility genSingleTextNode
+                     +> genSingleTextNodeSuffixDelimiter node.OpeningBrace
+                     +> atCurrentColumn (sepNlnWhenWriteBeforeNewlineNotEmpty +> col sepNln node.Fields genField)
+                     +> addSpaceIfSpaceAroundDelimiter
+                     +> genSingleTextNode node.ClosingBrace
+                     +> optSingle (fun _ -> unindent) node.Accessibility
+                     +> onlyIf (List.isNotEmpty members) sepNln
+                     +> sepNlnTypeAndMembers typeDefnNode
+                     +> genMemberDefnList members)
 
-        let bodyExpr size ctx =
+            genMultilineExpression ctx
+
+        let bodyExpr size =
             if List.isEmpty members then
-                (isSmallExpression size smallExpression multilineExpression) ctx
+                let smallExpression =
+                    sepSpace
+                    +> genAccessOpt node.Accessibility
+                    +> sepSpace
+                    +> genSingleTextNode node.OpeningBrace
+                    +> addSpaceIfSpaceAroundDelimiter
+                    +> col sepSemi node.Fields genField
+                    +> addSpaceIfSpaceAroundDelimiter
+                    +> genSingleTextNode node.ClosingBrace
+
+                isSmallExpression size smallExpression multilineExpression
             else
-                multilineExpression ctx
+                multilineExpression
 
         let genTypeDefinition (ctx: Context) =
             let size = getRecordSize ctx node.Fields
@@ -3462,7 +3462,10 @@ let genField (node: FieldNode) =
         | Some name ->
             genSingleTextNode name
             +> sepColon
-            +> autoIndentAndNlnIfExpressionExceedsPageWidth (genType node.Type))
+            +> ifElseCtx
+                (fun ctx -> ctx.Config.ExperimentalStroustrupStyle)
+                (genType node.Type)
+                (autoIndentAndNlnIfExpressionExceedsPageWidth (genType node.Type)))
     |> genNode node
 
 let genUnionCase (hasVerticalBar: bool) (node: UnionCaseNode) =
