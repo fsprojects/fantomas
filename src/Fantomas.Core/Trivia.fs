@@ -199,7 +199,7 @@ let rec visitLastChildNode (node: Node) : Node =
     | :? TypeDefnDelegateNode
     | :? TypeDefnRegularNode
     | :? ExprMatchNode
-    | :? PatTypedNode
+    | :? PatParameterNode
     | :? PatTupleNode
     | :? TypeTupleNode
     | :? TypeAppPrefixNode

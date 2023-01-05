@@ -1397,14 +1397,27 @@ let (|ParenStarSynIdent|_|) =
             None
     | _ -> None
 
+let (|PatParameter|_|) (p: SynPat) =
+    match p with
+    | SynPat.Typed(pat = pat; targetType = t) -> Some([], pat, Some t)
+    | SynPat.Attrib(pat = SynPat.Typed(pat = pat; targetType = t); attributes = attributes) ->
+        Some(attributes, pat, Some t)
+    | SynPat.Attrib(pat = pat; attributes = attributes) -> Some(attributes, pat, None)
+    | _ -> None
+
 let mkPat (creationAide: CreationAide) (p: SynPat) =
     let patternRange = p.Range
 
     match p with
     | SynPat.OptionalVal(ident, _) -> stn $"?{ident.idText}" patternRange |> Pattern.OptionalVal
-    | SynPat.Attrib(p, ats, _) ->
-        PatAttribNode(mkAttributes creationAide ats, mkPat creationAide p, patternRange)
-        |> Pattern.Attrib
+    | PatParameter(ats, pat, t) ->
+        PatParameterNode(
+            mkAttributes creationAide ats,
+            mkPat creationAide pat,
+            Option.map (mkType creationAide) t,
+            patternRange
+        )
+        |> Pattern.Parameter
     | SynPat.Or(p1, p2, _, trivia) ->
         PatLeftMiddleRight(
             mkPat creationAide p1,
@@ -1416,9 +1429,6 @@ let mkPat (creationAide: CreationAide) (p: SynPat) =
     | SynPat.Ands(ps, _) -> PatAndsNode(List.map (mkPat creationAide) ps, patternRange) |> Pattern.Ands
     | SynPat.Null _ -> stn "null" patternRange |> Pattern.Null
     | SynPat.Wild _ -> stn "_" patternRange |> Pattern.Wild
-    | SynPat.Typed(p, t, _) ->
-        PatTypedNode(mkPat creationAide p, mkType creationAide t, patternRange)
-        |> Pattern.Typed
     | SynPat.Named(accessibility = ao; ident = SynIdent(ident, Some(ParenStarSynIdent(lpr, op, rpr)))) ->
         PatNamedParenStarIdentNode(mkSynAccess ao, stn "(" lpr, stn op ident.idRange, stn ")" rpr, patternRange)
         |> Pattern.NamedParenStarIdent
