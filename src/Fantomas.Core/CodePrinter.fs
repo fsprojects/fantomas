@@ -436,7 +436,7 @@ let genExpr (e: Expr) =
             genIdentListNode node.FieldName
             +> sepSpace
             +> genSingleTextNode node.Equals
-            +> sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth (genExpr node.Expr)
+            +> sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidthUnlessStroustrup genExpr node.Expr
             |> genNode node
 
         let fieldsExpr = col sepNln node.Fields genRecordFieldName
