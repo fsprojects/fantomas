@@ -5,7 +5,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
   <meta name="author" content="Florian Verdonck, Jindřich Ivánek, David Schaefer">
-  <title>PatAttribNode (fantomas)</title>
+  <title>PatParameterNode (fantomas)</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,600;1,400&family=Reem+Kufi:wght@400;500;700&display=swap" rel="stylesheet">
@@ -192,7 +192,7 @@
       <div id="fsdocs-content" class="bg-white m-2 m-sm-5 p-3 p-sm-4">
         <div>
   <h2>
-    PatAttribNode Type
+    PatParameterNode Type
   </h2>
   <dl class="fsdocs-metadata">
     <dt>
@@ -251,26 +251,26 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code onmouseout="hideTip(event, '7043', 7043)" onmouseover="showTip(event, '7043', 7043)">
+              <code onmouseout="hideTip(event, '7069', 7069)" onmouseover="showTip(event, '7069', 7069)">
                 <p>
                   <a id="``.ctor``">
                     <a href="#``.ctor``">
-                      <code><span>PatAttribNode<span><span>(<span>attrs,&#32;pat,&#32;range</span>)</span></span></span></code>
+                      <code><span>PatParameterNode<span><span>(<span>attributes,&#32;pat,&#32;t,&#32;range</span>)</span></span></span></code>
                     </a>
                   </a>
                 </p>
               </code>
-              <div class="fsdocs-tip" id="7043">
+              <div class="fsdocs-tip" id="7069">
                 <div class="member-tooltip">
                   Full Usage: 
-                  <code><span>PatAttribNode<span><span>(<span>attrs,&#32;pat,&#32;range</span>)</span></span></span></code>
+                  <code><span>PatParameterNode<span><span>(<span>attributes,&#32;pat,&#32;t,&#32;range</span>)</span></span></span></code>
                   <br/>
                   <br/>
                   Parameters: 
                   <ul>
                     <span>
                       <b>
-                        attrs
+                        attributes
                       </b>
                       :
                       <code><span><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-multipleattributelistnode.html">MultipleAttributeListNode</a>&#32;option</span></code>
@@ -286,6 +286,14 @@
                     <br/>
                     <span>
                       <b>
+                        t
+                      </b>
+                      :
+                      <code><span><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-type.html">Type</a>&#32;option</span></code>
+                    </span>
+                    <br/>
+                    <span>
+                      <b>
                         range
                       </b>
                       :
@@ -296,7 +304,7 @@
                   <br/>
                   <span>
                     Returns: 
-                    <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-patattribnode.html">PatAttribNode</a></code>
+                    <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-patparameternode.html">PatParameterNode</a></code>
                   </span>
                   <br/>
                 </div>
@@ -305,11 +313,11 @@
           </td>
           <td class="fsdocs-member-xmldoc">
             <div class="fsdocs-summary">
-              <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:M:Fantomas.Core.SyntaxOak.PatAttribNode.#ctor`')">
+              <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:M:Fantomas.Core.SyntaxOak.PatParameterNode.#ctor`')">
                 <img src="https://fsprojects.github.io/fantomas/content/img/copy-md.png" class="normal"/>
                 <img src="https://fsprojects.github.io/fantomas/content/img/copy-md-hover.png" class="hover"/>
               </div>
-              <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'M:Fantomas.Core.SyntaxOak.PatAttribNode.#ctor\'/>')">
+              <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'M:Fantomas.Core.SyntaxOak.PatParameterNode.#ctor\'/>')">
                 <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml.png" class="normal"/>
                 <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml-hover.png" class="hover"/>
               </div>
@@ -324,7 +332,7 @@
             <dl class="fsdocs-params">
               <dt class="fsdocs-param">
                 <span class="fsdocs-param-name">
-                  attrs
+                  attributes
                 </span>
                 :
                 <code><span><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-multipleattributelistnode.html">MultipleAttributeListNode</a>&#32;option</span></code>
@@ -336,6 +344,14 @@
                 </span>
                 :
                 <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-pattern.html">Pattern</a></code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  t
+                </span>
+                :
+                <code><span><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-type.html">Type</a>&#32;option</span></code>
               </dt>
               <dd class="fsdocs-param-docs"></dd>
               <dt class="fsdocs-param">
@@ -352,7 +368,7 @@
                 <span class="fsdocs-return-name">
                   Returns: 
                 </span>
-                <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-patattribnode.html">PatAttribNode</a></code>
+                <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-patparameternode.html">PatParameterNode</a></code>
               </dt>
               <dd class="fsdocs-return-docs"></dd>
             </dl>
@@ -380,7 +396,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code onmouseout="hideTip(event, '7044', 7044)" onmouseover="showTip(event, '7044', 7044)">
+              <code onmouseout="hideTip(event, '7070', 7070)" onmouseover="showTip(event, '7070', 7070)">
                 <p>
                   <a id="Attributes">
                     <a href="#Attributes">
@@ -389,7 +405,7 @@
                   </a>
                 </p>
               </code>
-              <div class="fsdocs-tip" id="7044">
+              <div class="fsdocs-tip" id="7070">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>this.Attributes</span></code>
@@ -406,11 +422,11 @@
           </td>
           <td class="fsdocs-member-xmldoc">
             <div class="fsdocs-summary">
-              <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:P:Fantomas.Core.SyntaxOak.PatAttribNode.Attributes`')">
+              <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:P:Fantomas.Core.SyntaxOak.PatParameterNode.Attributes`')">
                 <img src="https://fsprojects.github.io/fantomas/content/img/copy-md.png" class="normal"/>
                 <img src="https://fsprojects.github.io/fantomas/content/img/copy-md-hover.png" class="hover"/>
               </div>
-              <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'P:Fantomas.Core.SyntaxOak.PatAttribNode.Attributes\'/>')">
+              <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'P:Fantomas.Core.SyntaxOak.PatParameterNode.Attributes\'/>')">
                 <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml.png" class="normal"/>
                 <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml-hover.png" class="hover"/>
               </div>
@@ -436,7 +452,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code onmouseout="hideTip(event, '7045', 7045)" onmouseover="showTip(event, '7045', 7045)">
+              <code onmouseout="hideTip(event, '7071', 7071)" onmouseover="showTip(event, '7071', 7071)">
                 <p>
                   <a id="Pattern">
                     <a href="#Pattern">
@@ -445,7 +461,7 @@
                   </a>
                 </p>
               </code>
-              <div class="fsdocs-tip" id="7045">
+              <div class="fsdocs-tip" id="7071">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>this.Pattern</span></code>
@@ -462,11 +478,11 @@
           </td>
           <td class="fsdocs-member-xmldoc">
             <div class="fsdocs-summary">
-              <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:P:Fantomas.Core.SyntaxOak.PatAttribNode.Pattern`')">
+              <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:P:Fantomas.Core.SyntaxOak.PatParameterNode.Pattern`')">
                 <img src="https://fsprojects.github.io/fantomas/content/img/copy-md.png" class="normal"/>
                 <img src="https://fsprojects.github.io/fantomas/content/img/copy-md-hover.png" class="hover"/>
               </div>
-              <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'P:Fantomas.Core.SyntaxOak.PatAttribNode.Pattern\'/>')">
+              <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'P:Fantomas.Core.SyntaxOak.PatParameterNode.Pattern\'/>')">
                 <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml.png" class="normal"/>
                 <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml-hover.png" class="hover"/>
               </div>
@@ -484,6 +500,62 @@
                   Returns: 
                 </span>
                 <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-pattern.html">Pattern</a></code>
+              </dt>
+              <dd class="fsdocs-return-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '7072', 7072)" onmouseover="showTip(event, '7072', 7072)">
+                <p>
+                  <a id="Type">
+                    <a href="#Type">
+                      <code><span>this.Type</span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="7072">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>this.Type</span></code>
+                  <br/>
+                  <br/>
+                  <span>
+                    Returns: 
+                    <code><span><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-type.html">Type</a>&#32;option</span></code>
+                  </span>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-summary">
+              <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:P:Fantomas.Core.SyntaxOak.PatParameterNode.Type`')">
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-md.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-md-hover.png" class="hover"/>
+              </div>
+              <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'P:Fantomas.Core.SyntaxOak.PatParameterNode.Type\'/>')">
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+              </div>
+              <a href="" class="fsdocs-source-link" title="Source on GitHub">
+                <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
+              </a>
+              <p class="fsdocs-summary">
+                
+              </p>
+            </div>
+            <dl class="fsdocs-returns">
+              <dt>
+                <span class="fsdocs-return-name">
+                  Returns: 
+                </span>
+                <code><span><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-type.html">Type</a>&#32;option</span></code>
               </dt>
               <dd class="fsdocs-return-docs"></dd>
             </dl>
