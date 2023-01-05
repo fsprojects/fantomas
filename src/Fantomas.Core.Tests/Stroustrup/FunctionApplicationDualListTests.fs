@@ -102,3 +102,33 @@ fn
         b2
     ]
 """
+
+[<Test>]
+let ``two long lists as parameters, 2681`` () =
+    formatSourceString
+        false
+        """
+Layout.twoColumnLayoutWithStyles
+    styles
+    [
+        element1 longParameterName1 param2 param3
+        element1 longParameterName1 param2 param3
+    ] 
+    [
+        element1 longParameterName1 param2 param3
+        element1 longParameterName1 param2 param3
+    ]
+"""
+        { config with MaxArrayOrListWidth = 0 }
+    |> prepend newline
+    |> should
+        equal
+        """
+Layout.twoColumnLayoutWithStyles styles [
+    element1 longParameterName1 param2 param3
+    element1 longParameterName1 param2 param3
+] [
+    element1 longParameterName1 param2 param3
+    element1 longParameterName1 param2 param3
+]
+"""

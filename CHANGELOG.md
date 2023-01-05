@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+### Fixes 
+*  Stroustrup: Two lists given directly as parameters, break code [#2681](https://github.com/fsprojects/fantomas/issues/2681)
+
 ## [5.2.0-beta-001] - 2023-01-02
 
 ### Changed
