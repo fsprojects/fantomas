@@ -398,3 +398,197 @@ let fooDto =
             |> Option.toObj
     |}
 """
+
+[<Test>]
+let ``let binding with nested anonymous records, 2413`` () =
+    formatSourceString
+        false
+        """
+let foo =
+    {| Data =
+        {| Name = "Isaac"
+           Age = 43
+           Day = "Monday"
+           Colour = "Blue" |} |}
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let foo = {|
+    Data = {|
+        Name = "Isaac"
+        Age = 43
+        Day = "Monday"
+        Colour = "Blue"
+    |}
+|}
+"""
+
+[<Test>]
+let ``list expression inside anonymous record, 2413`` () =
+    formatSourceString
+        false
+        """
+let foo = {|
+    Data =
+        {|
+            Name = "Isaac"
+            Age = 43
+            Day = "Monday"
+            Colours =
+                [
+                    "Red"
+                    "Blue"
+                    "White"
+                    "Orange"
+                    "Red"
+                    "Blue"
+                    "White"
+                    "Orange"
+                    "Red"
+                    "Blue"
+                    "White"
+                    "Orange"
+                    "Red"
+                    "Blue"
+                    "White"
+                    "Orange"
+                ]
+        |}
+|}
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let foo = {|
+    Data = {|
+        Name = "Isaac"
+        Age = 43
+        Day = "Monday"
+        Colours = [
+            "Red"
+            "Blue"
+            "White"
+            "Orange"
+            "Red"
+            "Blue"
+            "White"
+            "Orange"
+            "Red"
+            "Blue"
+            "White"
+            "Orange"
+            "Red"
+            "Blue"
+            "White"
+            "Orange"
+        ]
+    |}
+|}
+"""
+
+[<Test>]
+let ``list expression inside regular record, 2413`` () =
+    formatSourceString
+        false
+        """
+let foo = {
+    Data =
+        {
+            Name = "Isaac"
+            Age = 43
+            Day = "Monday"
+            Colours =
+                [
+                    "Red"
+                    "Blue"
+                    "White"
+                    "Orange"
+                    "Red"
+                    "Blue"
+                    "White"
+                    "Orange"
+                    "Red"
+                    "Blue"
+                    "White"
+                    "Orange"
+                    "Red"
+                    "Blue"
+                    "White"
+                    "Orange"
+                ]
+        }
+}
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let foo = {
+    Data = {
+        Name = "Isaac"
+        Age = 43
+        Day = "Monday"
+        Colours = [
+            "Red"
+            "Blue"
+            "White"
+            "Orange"
+            "Red"
+            "Blue"
+            "White"
+            "Orange"
+            "Red"
+            "Blue"
+            "White"
+            "Orange"
+            "Red"
+            "Blue"
+            "White"
+            "Orange"
+        ]
+    }
+}
+"""
+
+[<Test>]
+let ``nested records, 2587`` () =
+    formatSourceString
+        false
+        """
+let myRecord = {
+    Property1 = {
+        Value1 = 20
+        Value2 = 30
+        Value3 = 40
+    }
+    Property2 = {
+        Value1 = 20
+        Value2 = 30
+        Value3 = 40
+    }
+}
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let myRecord = {
+    Property1 = {
+        Value1 = 20
+        Value2 = 30
+        Value3 = 40
+    }
+    Property2 = {
+        Value1 = 20
+        Value2 = 30
+        Value3 = 40
+    }
+}
+"""

@@ -927,6 +927,18 @@ let autoIndentAndNlnExpressUnlessStroustrup (f: Expr -> Context -> Context) (e: 
     else
         indentSepNlnUnindent (f e) ctx
 
+let autoIndentAndNlnTypeUnlessStroustrup (f: Type -> Context -> Context) (t: Type) (ctx: Context) =
+    let shouldUseStroustrup =
+        ctx.Config.ExperimentalStroustrupStyle
+        && t.IsStroustrupStyleType
+        && let node = Type.Node t in
+           Seq.isEmpty node.ContentBefore
+
+    if shouldUseStroustrup then
+        f t ctx
+    else
+        autoIndentAndNlnIfExpressionExceedsPageWidth (f t) ctx
+
 let autoIndentAndNlnIfExpressionExceedsPageWidthUnlessStroustrup
     (f: Expr -> Context -> Context)
     (e: Expr)

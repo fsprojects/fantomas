@@ -206,3 +206,32 @@ module OutdentingProblem =
 
     let withSetting2 value configuration = { configuration with Setting2 = value }
 """
+
+[<Test>]
+let ``nested anonymous record in type definition, 2413`` () =
+    formatSourceString
+        false
+        """
+type MangaDexAtHomeResponse = {
+    baseUrl: string
+    chapter: {|
+        hash: string
+        data: string[]
+        otherThing: int
+    |}
+}
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type MangaDexAtHomeResponse = {
+    baseUrl: string
+    chapter: {|
+        hash: string
+        data: string[]
+        otherThing: int
+    |}
+}
+"""

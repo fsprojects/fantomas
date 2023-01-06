@@ -370,6 +370,11 @@ type Type =
         | Or n -> n
         | LongIdentApp n -> n
 
+    member e.IsStroustrupStyleType: bool =
+        match e with
+        | AnonRecord _ -> true
+        | _ -> false
+
 /// A pattern composed from a left hand-side pattern, a single text token/operator and a right hand-side pattern.
 type PatLeftMiddleRight(lhs: Pattern, middle: Choice<SingleTextNode, string>, rhs: Pattern, range) =
     inherit NodeBase(range)
