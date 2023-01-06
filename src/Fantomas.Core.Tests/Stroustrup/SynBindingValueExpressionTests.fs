@@ -555,3 +555,40 @@ let foo = {
     }
 }
 """
+
+[<Test>]
+let ``nested records, 2587`` () =
+    formatSourceString
+        false
+        """
+let myRecord = {
+    Property1 = {
+        Value1 = 20
+        Value2 = 30
+        Value3 = 40
+    }
+    Property2 = {
+        Value1 = 20
+        Value2 = 30
+        Value3 = 40
+    }
+}
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let myRecord = {
+    Property1 = {
+        Value1 = 20
+        Value2 = 30
+        Value3 = 40
+    }
+    Property2 = {
+        Value1 = 20
+        Value2 = 30
+        Value3 = 40
+    }
+}
+"""
