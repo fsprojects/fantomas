@@ -1053,7 +1053,7 @@ let genExpr (e: Expr) =
                             (genGenericTypeParameters typedAppNode +> argFn)
                             identifierNode.Identifier
                             typedAppNode
-                    | _ -> genExpr node.Function
+                    | _ -> genExpr node.Function +> argFn
                 | Expr.DotGetAppDotGetAppParenLambda _ ->
                     leadingExpressionIsMultiline (genExpr node.Function) (fun isMultiline ->
                         if isMultiline then indent +> argFn +> unindent else argFn)
