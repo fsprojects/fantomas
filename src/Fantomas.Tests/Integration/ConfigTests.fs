@@ -5,6 +5,9 @@ open NUnit.Framework
 open FsUnit
 open Fantomas.Tests.TestHelpers
 
+[<Literal>]
+let Verbosity = "--verbosity d"
+
 [<Test>]
 let ``config file in working directory should not require relative prefix, 821`` () =
     use fileFixture =
@@ -21,7 +24,8 @@ indent_size=2
 """
         )
 
-    let { ExitCode = exitCode; Output = output } = runFantomasTool fileFixture.Filename
+    let args = sprintf "%s %s" Verbosity fileFixture.Filename
+    let { ExitCode = exitCode; Output = output } = runFantomasTool args
     exitCode |> should equal 0
     output |> should startWith (sprintf "Processing %s" fileFixture.Filename)
     let result = System.IO.File.ReadAllText(fileFixture.Filename)
@@ -45,7 +49,8 @@ end_of_line=cr
 """
         )
 
-    let { ExitCode = exitCode; Output = output } = runFantomasTool fileFixture.Filename
+    let args = sprintf "%s %s" Verbosity fileFixture.Filename
+    let { ExitCode = exitCode; Output = output } = runFantomasTool args
     exitCode |> should equal 1
     StringAssert.Contains("Carriage returns are not valid for F# code, please use one of 'lf' or 'crlf'", output)
 
