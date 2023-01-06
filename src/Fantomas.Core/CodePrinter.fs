@@ -3036,8 +3036,8 @@ let genType (t: Type) =
             | None -> sepOpenAnonRecdFixed +> addSpaceIfSpaceAroundDelimiter
             | Some n -> genSingleTextNode n +> addSpaceIfSpaceAroundDelimiter
 
-        let genAnonRecordFieldType (textNode, t) =
-            genSingleTextNode textNode
+        let genAnonRecordFieldType (identifier, t) =
+            genSingleTextNode identifier
             +> sepColon
             +> autoIndentAndNlnIfExpressionExceedsPageWidth (genType t)
 
