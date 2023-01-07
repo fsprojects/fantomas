@@ -135,12 +135,6 @@ let processSourceFile (force: bool) inFile (tw: TextWriter) =
     }
     |> Async.RunSynchronously
 
-let private writeInColor consoleColor (content: string) =
-    let currentColor = Console.ForegroundColor
-    Console.ForegroundColor <- consoleColor
-    Console.WriteLine(content)
-    Console.ForegroundColor <- currentColor
-
 [<Literal>]
 let StdInLineLimit = 2000
 
