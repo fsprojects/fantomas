@@ -27,7 +27,7 @@ indent_size=2
     let args = sprintf "%s %s" Verbosity fileFixture.Filename
     let { ExitCode = exitCode; Output = output } = runFantomasTool args
     exitCode |> should equal 0
-    output |> should startWith (sprintf "Processing %s" fileFixture.Filename)
+    output |> should contain (sprintf "Processing %s" fileFixture.Filename)
     let result = System.IO.File.ReadAllText(fileFixture.Filename)
 
     result

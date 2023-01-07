@@ -43,7 +43,7 @@ let time f =
     let sw = Diagnostics.Stopwatch.StartNew()
     let res = f ()
     sw.Stop()
-    stdlog "Time taken: %O s" sw.Elapsed
+    sprintf "Time taken: %O s" sw.Elapsed |> stdlog
     res
 
 [<RequireQualifiedAccess>]
@@ -169,14 +169,14 @@ let readFromStdin (lineLimit: int) =
         else
             Some(input)
 
-let private reportCheckResults (output: TextWriter) (checkResult: Format.CheckResult) =
+let private reportCheckResults (checkResult: Format.CheckResult) =
     checkResult.Errors
     |> List.map (fun (filename, exn) -> sprintf "error: Failed to format %s: %s" filename (exn.ToString()))
-    |> Seq.iter output.WriteLine
+    |> Seq.iter stdlog
 
     checkResult.Formatted
     |> List.map (sprintf "%s needs formatting")
-    |> Seq.iter output.WriteLine
+    |> Seq.iter stdlog
 
 let runCheckCommand (verbosity: VerbosityLevel) (recurse: bool) (inputPath: InputPath) : int =
     let check files =
@@ -187,15 +187,15 @@ let runCheckCommand (verbosity: VerbosityLevel) (recurse: bool) (inputPath: Inpu
             logGrEqDetailed verbosity "No changes required."
             0
         else
-            reportCheckResults stdout checkResult
+            reportCheckResults checkResult
             if checkResult.HasErrors then 1 else 99
 
     match inputPath with
     | InputPath.NoFSharpFile s ->
-        elog "Input path '%s' is unsupported file type" s
+        sprintf "Input path '%s' is unsupported file type" s |> elog
         1
     | InputPath.NotFound s ->
-        elog "Input path '%s' not found" s
+        sprintf "Input path '%s' not found" s |> elog
         1
     | InputPath.Unspecified _ ->
         elog "No input path provided. Call with --help for usage information."
@@ -275,17 +275,21 @@ let main argv =
     let version = results.TryGetResult <@ Arguments.Version @>
 
     let verbosity =
-        let maybeVerbosity = results.TryGetResult <@ Arguments.Verbosity @>
+        let maybeVerbosity =
+            results.TryGetResult <@ Arguments.Verbosity @>
+            |> Option.map (fun v -> v.ToLowerInvariant())
 
         match maybeVerbosity with
-        | None -> VerbosityLevel.Normal
+        | None
         | Some "n"
         | Some "normal" -> VerbosityLevel.Normal
         | Some "d"
         | Some "detailed" -> VerbosityLevel.Detailed
         | Some _ ->
-            elog "Invalid verbosity level, using normal"
-            VerbosityLevel.Normal
+            elog "Invalid verbosity level"
+            exit 1
+
+    AppDomain.CurrentDomain.ProcessExit.Add(fun _ -> closeAndFlushLog ())
 
     let fileToFile (force: bool) (inFile: string) (outFile: string) =
         try
@@ -302,7 +306,9 @@ let main argv =
                     new StreamWriter(outFile)
 
             if profile then
-                File.ReadLines(inFile) |> Seq.length |> stdlog "Line count: %i"
+                File.ReadLines(inFile)
+                |> Seq.length
+                |> fun l -> sprintf "Line count: %i" l |> stdlog
 
                 time (fun () -> processSourceFile verbosity force inFile buffer)
             else
@@ -316,7 +322,8 @@ let main argv =
     let stringToFile (force: bool) (s: string) (outFile: string) config =
         try
             if profile then
-                stdlog "Line count: %i" (s.Length - s.Replace(Environment.NewLine, "").Length)
+                sprintf "Line count: %i" (s.Length - s.Replace(Environment.NewLine, "").Length)
+                |> stdlog
 
                 time (fun () -> processSourceString verbosity force s outFile config)
             else
@@ -380,10 +387,10 @@ let main argv =
         try
             match inputPath, outputPath with
             | InputPath.NoFSharpFile s, _ ->
-                elog "Input path '%s' is unsupported file type." s
+                sprintf "Input path '%s' is unsupported file type." s |> elog
                 exit 1
             | InputPath.NotFound s, _ ->
-                elog "Input path '%s' not found." s
+                sprintf "Input path '%s' not found." s |> elog
                 exit 1
             | InputPath.Unspecified, _ ->
                 elog "Input path is missing. Call with --help for usage information."
@@ -399,7 +406,7 @@ let main argv =
                 elog "Multiple input files are not supported with the --out flag."
                 exit 1
         with exn ->
-            stdlog "%s" exn.Message
+            stdlog exn.Message
             exit 1
 
     0
