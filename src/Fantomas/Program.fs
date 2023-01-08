@@ -135,31 +135,6 @@ let processSourceFile (force: bool) inFile (tw: TextWriter) =
     }
     |> Async.RunSynchronously
 
-[<Literal>]
-let StdInLineLimit = 2000
-
-/// Read input from stdin, with a given line limit until EOF occurs.
-///
-/// Returns **None** if no lines were read or the stdin was not redirected through a pipe
-let readFromStdin (lineLimit: int) =
-    // The original functionality of the stdin flag, only accepted redirected input
-    if not <| Console.IsInputRedirected then
-        None
-    else
-        let isNotEof line = not <| isNull line
-        let appendWithNewline acc next = acc + "\n" + next
-
-        let input =
-            Seq.initInfinite (fun _ -> Console.ReadLine())
-            |> Seq.truncate lineLimit
-            |> Seq.takeWhile isNotEof
-            |> Seq.reduce appendWithNewline
-
-        if String.IsNullOrWhiteSpace input then
-            None
-        else
-            Some(input)
-
 let private reportCheckResults (output: TextWriter) (checkResult: Format.CheckResult) =
     checkResult.Errors
     |> List.map (fun (filename, exn) -> sprintf "error: Failed to format %s: %s" filename (exn.ToString()))
