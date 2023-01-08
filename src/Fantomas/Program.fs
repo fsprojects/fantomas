@@ -344,7 +344,9 @@ let main argv =
         if not <| Directory.Exists(outputFolder) then
             Directory.CreateDirectory(outputFolder) |> ignore
 
-        allFiles recurse inputFolder
+        let files = allFiles recurse inputFolder
+
+        files
         |> Seq.iter (fun i ->
             // s supposes to have form s1/suffix
             let suffix = i.Substring(inputFolder.Length + 1)
@@ -357,15 +359,23 @@ let main argv =
 
             processFile force i o)
 
-    let filesAndFolders force (files: string list) (folders: string list) : unit =
-        files
-        |> List.iter (fun file ->
-            if (IgnoreFile.isIgnoredFile (IgnoreFile.current.Force()) file) then
-                logGrEqDetailed verbosity (sprintf "'%s' was ignored" file)
-            else
-                processFile force file file)
+        Seq.length files
 
-        folders |> List.iter (fun folder -> processFolder force folder folder)
+    let filesAndFolders force (files: string list) (folders: string list) : int =
+        let singleFilesProcessed =
+            files
+            |> List.sumBy (fun file ->
+                if (IgnoreFile.isIgnoredFile (IgnoreFile.current.Force()) file) then
+                    logGrEqDetailed verbosity (sprintf "'%s' was ignored" file)
+                    0
+                else
+                    processFile force file file
+                    1)
+
+        let filesInFoldersProcessed =
+            folders |> List.sumBy (fun folder -> processFolder force folder folder)
+
+        singleFilesProcessed + filesInFoldersProcessed
 
     let check = results.Contains <@ Arguments.Check @>
     let isDaemon = results.Contains <@ Arguments.Daemon @>
@@ -397,11 +407,17 @@ let main argv =
                 exit 1
             | InputPath.File f, _ when (IgnoreFile.isIgnoredFile (IgnoreFile.current.Force()) f) ->
                 logGrEqDetailed verbosity (sprintf "'%s' was ignored" f)
-            | InputPath.Folder p1, OutputPath.NotKnown -> processFolder force p1 p1
+            | InputPath.Folder p1, OutputPath.NotKnown ->
+                let n = processFolder force p1 p1
+                logGrEqDetailed verbosity (sprintf "Processed files: %d" n)
             | InputPath.File p1, OutputPath.NotKnown -> processFile force p1 p1
             | InputPath.File p1, OutputPath.IO p2 -> processFile force p1 p2
-            | InputPath.Folder p1, OutputPath.IO p2 -> processFolder force p1 p2
-            | InputPath.Multiple(files, folders), OutputPath.NotKnown -> filesAndFolders force files folders
+            | InputPath.Folder p1, OutputPath.IO p2 ->
+                let n = processFolder force p1 p2
+                logGrEqDetailed verbosity (sprintf "Processed files: %d" n)
+            | InputPath.Multiple(files, folders), OutputPath.NotKnown ->
+                let n = filesAndFolders force files folders
+                logGrEqDetailed verbosity (sprintf "Processed files: %d" n)
             | InputPath.Multiple _, OutputPath.IO _ ->
                 elog "Multiple input files are not supported with the --out flag."
                 exit 1
