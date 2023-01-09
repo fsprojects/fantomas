@@ -112,9 +112,7 @@ let mkConstant (creationAide: CreationAide) c r : Constant =
         stn (creationAide.TextFromSource (fun () -> fallback) r) r |> Constant.FromText
 
     match c with
-    | SynConst.Unit ->
-        match r with
-        | StartEndRange 1 (lpr, _, rpr) -> UnitNode(stn "(" lpr, stn ")" rpr, r) |> Constant.Unit
+    | SynConst.Unit -> mkUnit r |> Constant.Unit
     | SynConst.Bool b -> stn (if b then "true" else "false") r |> Constant.FromText
     | SynConst.Byte v -> orElse $"%A{v}"
     | SynConst.SByte v -> orElse $"%A{v}"
@@ -182,7 +180,7 @@ let mkMeasure (creationAide: CreationAide) (measure: SynMeasure) : Measure =
 let mkAttribute (creationAide: CreationAide) (a: SynAttribute) =
     let expr =
         match a.ArgExpr with
-        | SynExpr.Const(SynConst.Unit, _) -> None
+        | UnitExpr _ -> None
         | e -> mkExpr creationAide e |> Some
 
     AttributeNode(mkSynLongIdent a.TypeName, expr, Option.map mkIdent a.Target, a.Range)
@@ -600,30 +598,257 @@ let (|App|_|) e =
     let head, xs = visit e id
     if xs.Count = 0 then None else Some(head, Seq.toList xs)
 
-let (|DotGetAppParenExpr|_|) e =
-    match e with
-    | SynExpr.Paren(expr = SynExpr.Lambda _)
-    | SynExpr.Paren(expr = SynExpr.MatchLambda _) -> None
-    | SynExpr.Paren _
-    | SynExpr.Const(constant = SynConst.Unit _) -> Some e
-    | _ -> None
-
 let (|ParenLambda|_|) e =
     match e with
-    | SynExpr.Paren(SynExpr.Lambda(_, _, _, _, Some(pats, body), mLambda, { ArrowRange = Some mArrow }),
-                    lpr,
-                    Some rpr,
-                    _) -> Some(lpr, pats, mArrow, body, mLambda, rpr)
+    | ParenExpr(lpr, SynExpr.Lambda(_, _, _, _, Some(pats, body), mLambda, { ArrowRange = Some mArrow }), rpr, _) ->
+        Some(lpr, pats, mArrow, body, mLambda, rpr)
     | _ -> None
 
 let (|ParenMatchLambda|_|) e =
     match e with
-    | SynExpr.Paren(SynExpr.MatchLambda(_, mFunction, clauses, _, mMatchLambda), lpr, Some rpr, _) ->
+    | ParenExpr(lpr, SynExpr.MatchLambda(_, mFunction, clauses, _, mMatchLambda), rpr, _) ->
         Some(lpr, mFunction, clauses, mMatchLambda, rpr)
     | _ -> None
 
 let mkMatchLambda creationAide mFunction cs m =
     ExprMatchLambdaNode(stn "function" mFunction, List.map (mkSynMatchClause creationAide) cs, m)
+
+[<RequireQualifiedAccess>]
+type LinkExpr =
+    | Identifier of
+        // Could be SynExpr.LongIdent or SynExpr.TypeApp(LongIdent)
+        SynExpr
+    | Dot of range
+    | Expr of SynExpr
+    | AppParenLambda of functionName: SynExpr * parenLambda: SynExpr
+    | AppParen of functionName: SynExpr * lpr: range * e: SynExpr * rpr: range * pr: range
+    | AppUnit of functionName: SynExpr * unit: range
+    | IndexExpr of indexExpr: SynExpr
+
+let mkLinksFromSynLongIdent (sli: SynLongIdent) : LinkExpr list =
+    let idents =
+        List.map (mkLongIdentExprFromSynIdent >> LinkExpr.Identifier) sli.IdentsWithTrivia
+
+    let dots = List.map LinkExpr.Dot sli.Dots
+
+    [ yield! idents; yield! dots ]
+    |> List.sortBy (function
+        | LinkExpr.Identifier identifierExpr -> identifierExpr.Range.StartLine, identifierExpr.Range.StartColumn
+        | LinkExpr.Dot m -> m.StartLine, m.StartColumn
+        | LinkExpr.Expr _
+        | LinkExpr.AppParenLambda _
+        | LinkExpr.AppParen _
+        | LinkExpr.AppUnit _
+        | LinkExpr.IndexExpr _ -> -1, -1)
+
+let (|UnitExpr|_|) e =
+    match e with
+    | SynExpr.Const(constant = SynConst.Unit _) -> Some e.Range
+    | _ -> None
+
+let (|ParenExpr|_|) e =
+    match e with
+    | SynExpr.Paren(e, lpr, Some rpr, pr) -> Some(lpr, e, rpr, pr)
+    | _ -> None
+
+let mkLongIdentExprFromSynIdent (SynIdent(ident, identTrivia)) =
+    SynExpr.LongIdent(false, SynLongIdent([ ident ], [], [ identTrivia ]), None, ident.idRange)
+
+let mkLinksFromFunctionName (mkLinkFromExpr: SynExpr -> LinkExpr) (functionName: SynExpr) : LinkExpr list =
+    match functionName with
+    | SynExpr.TypeApp(SynExpr.LongIdent(longDotId = sli),
+                      lessRange,
+                      typeArgs,
+                      commaRanges,
+                      Some greaterRange,
+                      typeArgsRange,
+                      _) ->
+        match sli.IdentsWithTrivia with
+        | []
+        | [ _ ] -> [ mkLinkFromExpr functionName ]
+        | synIdents ->
+            let leftLinks = mkLinksFromSynLongIdent sli
+            let lastSynIdent = List.last synIdents
+
+            let m =
+                let (SynIdent(ident, _)) = lastSynIdent
+                unionRanges ident.idRange greaterRange
+
+            let typeAppExpr =
+                SynExpr.TypeApp(
+                    mkLongIdentExprFromSynIdent lastSynIdent,
+                    lessRange,
+                    typeArgs,
+                    commaRanges,
+                    Some greaterRange,
+                    typeArgsRange,
+                    m
+                )
+
+            [ yield! List.take (leftLinks.Length - 1) leftLinks
+              yield mkLinkFromExpr typeAppExpr ]
+
+    | SynExpr.LongIdent(longDotId = sli) ->
+        match sli.IdentsWithTrivia with
+        | []
+        | [ _ ] -> [ mkLinkFromExpr functionName ]
+        | synIdents ->
+            let leftLinks = mkLinksFromSynLongIdent sli
+            let lastSynIdent = List.last synIdents
+
+            [ yield! List.take (leftLinks.Length - 1) leftLinks
+              yield (mkLongIdentExprFromSynIdent lastSynIdent |> mkLinkFromExpr) ]
+    | e -> [ mkLinkFromExpr e ]
+
+let (|ChainExpr|_|) (e: SynExpr) : LinkExpr list option =
+    let rec visit (e: SynExpr) (continuation: LinkExpr list -> LinkExpr list) =
+        match e with
+        | SynExpr.App(
+            isInfix = false
+            funcExpr = SynExpr.TypeApp(SynExpr.DotGet _ as funcExpr,
+                                       lessRange,
+                                       typeArgs,
+                                       commaRanges,
+                                       Some greaterRange,
+                                       typeArgsRange,
+                                       _)
+            argExpr = ParenExpr _ | UnitExpr _ as argExpr) ->
+            visit funcExpr (fun leftLinks ->
+                let lastLink =
+                    match List.tryLast leftLinks with
+                    | Some(LinkExpr.Identifier identifierExpr) ->
+                        let typeApp =
+                            SynExpr.TypeApp(
+                                identifierExpr,
+                                lessRange,
+                                typeArgs,
+                                commaRanges,
+                                Some greaterRange,
+                                typeArgsRange,
+                                unionRanges identifierExpr.Range greaterRange
+                            )
+
+                        match argExpr with
+                        | UnitExpr mUnit -> [ LinkExpr.AppUnit(typeApp, mUnit) ]
+                        | ParenExpr(lpr, innerExpr, rpr, pr) -> [ LinkExpr.AppParen(typeApp, lpr, innerExpr, rpr, pr) ]
+                        | _ -> []
+                    | _ -> []
+
+                let leftLinks = List.take (leftLinks.Length - 1) leftLinks
+
+                continuation [ yield! leftLinks; yield! lastLink ])
+
+        | SynExpr.TypeApp(SynExpr.DotGet _ as dotGet,
+                          lessRange,
+                          typeArgs,
+                          commaRanges,
+                          Some greaterRange,
+                          typeArgsRange,
+                          _) ->
+            visit dotGet (fun leftLinks ->
+                let lastLink =
+                    match List.tryLast leftLinks with
+                    | Some(LinkExpr.Identifier property) ->
+                        [ SynExpr.TypeApp(
+                              property,
+                              lessRange,
+                              typeArgs,
+                              commaRanges,
+                              Some greaterRange,
+                              typeArgsRange,
+                              unionRanges property.Range greaterRange
+                          )
+                          |> LinkExpr.Identifier ]
+                    | _ -> []
+
+                let leftLinks = List.take (leftLinks.Length - 1) leftLinks
+                continuation [ yield! leftLinks; yield! lastLink ])
+        | SynExpr.App(isInfix = false; funcExpr = SynExpr.DotGet _ as funcExpr; argExpr = argExpr) ->
+            visit funcExpr (fun leftLinks ->
+                match List.tryLast leftLinks with
+                | Some(LinkExpr.Identifier(identifierExpr)) ->
+                    match argExpr with
+                    | UnitExpr mUnit ->
+                        let leftLinks = List.take (leftLinks.Length - 1) leftLinks
+
+                        // Compose a function application by taking the last identifier of the SynExpr.DotGet
+                        // and the following argument expression.
+                        // Example: X().Y() -> Take `Y` as function name and `()` as argument.
+                        let rightLink = LinkExpr.AppUnit(identifierExpr, mUnit)
+
+                        continuation [ yield! leftLinks; yield rightLink ]
+
+                    | ParenExpr(lpr, e, rpr, pr) ->
+                        let leftLinks = List.take (leftLinks.Length - 1) leftLinks
+                        // Example: A().B(fun b -> b)
+                        let rightLink = LinkExpr.AppParen(identifierExpr, lpr, e, rpr, pr)
+                        continuation [ yield! leftLinks; yield rightLink ]
+
+                    | _ -> visit argExpr (fun rightLinks -> continuation [ yield! leftLinks; yield! rightLinks ])
+                | _ -> visit argExpr (fun rightLinks -> continuation [ yield! leftLinks; yield! rightLinks ]))
+
+        | SynExpr.DotGet(expr, rangeOfDot, longDotId, _) ->
+            visit expr (fun links ->
+                continuation
+                    [ yield! links
+                      yield LinkExpr.Dot rangeOfDot
+                      yield! mkLinksFromSynLongIdent longDotId ])
+
+        | SynExpr.App(isInfix = false; funcExpr = funcExpr; argExpr = UnitExpr mUnit) ->
+            mkLinksFromFunctionName (fun e -> LinkExpr.AppUnit(e, mUnit)) funcExpr
+            |> continuation
+
+        | SynExpr.App(isInfix = false; funcExpr = funcExpr; argExpr = ParenExpr(lpr, e, rpr, pr)) ->
+            mkLinksFromFunctionName (fun f -> LinkExpr.AppParen(f, lpr, e, rpr, pr)) funcExpr
+            |> continuation
+
+        | SynExpr.App(ExprAtomicFlag.Atomic,
+                      false,
+                      (SynExpr.LongIdent _ as funcExpr),
+                      (SynExpr.ArrayOrList _ as argExpr),
+                      _) ->
+            visit funcExpr (fun leftLinks ->
+                let app =
+                    match List.tryLast leftLinks with
+                    | Some(LinkExpr.Identifier identifier) ->
+                        [ SynExpr.App(
+                              ExprAtomicFlag.Atomic,
+                              false,
+                              identifier,
+                              argExpr,
+                              unionRanges identifier.Range argExpr.Range
+                          )
+                          |> LinkExpr.Expr ]
+                    | _ -> []
+
+                let leftLinks = List.take (leftLinks.Length - 1) leftLinks
+                continuation [ yield! leftLinks; yield! app ])
+
+        | SynExpr.TypeApp _ as typeApp -> mkLinksFromFunctionName LinkExpr.Expr typeApp |> continuation
+
+        | SynExpr.LongIdent(longDotId = sli) -> continuation (mkLinksFromSynLongIdent sli)
+
+        | SynExpr.Ident _ -> continuation [ LinkExpr.Identifier e ]
+
+        | SynExpr.DotIndexedGet(objectExpr, indexArgs, dotRange, _) ->
+            visit objectExpr (fun leftLinks ->
+                continuation
+                    [ yield! leftLinks
+                      yield LinkExpr.Dot dotRange
+                      yield LinkExpr.IndexExpr indexArgs ])
+
+        | other -> continuation [ LinkExpr.Expr other ]
+
+    match e with
+    | SynExpr.App(
+        isInfix = false
+        funcExpr = SynExpr.DotGet _ | SynExpr.TypeApp(expr = SynExpr.DotGet _)
+        argExpr = UnitExpr _ | ParenExpr _)
+    | SynExpr.DotGet _
+    | SynExpr.TypeApp(expr = SynExpr.DotGet _)
+    | SynExpr.DotIndexedGet(objectExpr = SynExpr.App(funcExpr = SynExpr.DotGet _) | SynExpr.DotGet _) ->
+        Some(visit e id)
+    | _ -> None
 
 let (|AppSingleParenArg|_|) =
     function
@@ -635,19 +860,8 @@ let (|AppSingleParenArg|_|) =
         | _ -> Some(e, px)
     | _ -> None
 
-let rec (|DotGetApp|_|) =
-    function
-    | SynExpr.App(_, _, SynExpr.DotGet(expr = DotGetApp(e, es); longDotId = s), e', _) ->
-        Some(e, [ yield! es; yield (s, None, e') ])
-    | SynExpr.App(_, _, SynExpr.DotGet(expr = e; longDotId = s), e', _) -> Some(e, [ s, None, e' ])
-    | SynExpr.App(_,
-                  _,
-                  SynExpr.TypeApp(SynExpr.DotGet(expr = DotGetApp(e, es); longDotId = s), lt, ts, _, Some gt, _, _range),
-                  e',
-                  _) -> Some(e, [ yield! es; yield (s, Some(lt, ts, gt), e') ])
-    | SynExpr.App(_, _, SynExpr.TypeApp(SynExpr.DotGet(expr = e; longDotId = s), lt, ts, _, Some gt, _, _range), e', _) ->
-        Some(e, [ s, Some(lt, ts, gt), e' ])
-    | _ -> None
+let mkParenExpr creationAide lpr e rpr m =
+    ExprParenNode(stn "(" lpr, mkExpr creationAide e, stn ")" rpr, m)
 
 let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
     let exprRange = e.Range
@@ -901,10 +1115,7 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
     | SynExpr.LongIdent(longDotId = SynLongIdent([ ident ], [], [ Some(ParenStarSynIdent(lpr, originalNotation, rpr)) ])) ->
         ExprParenFunctionNameWithStarNode(stn "(" lpr, stn originalNotation ident.idRange, stn ")" rpr, exprRange)
         |> Expr.ParenFunctionNameWithStar
-    | SynExpr.Paren(e, lpr, Some rpr, _) ->
-        ExprParenNode(stn "(" lpr, mkExpr creationAide e, stn ")" rpr, exprRange)
-        |> Expr.Paren
-
+    | ParenExpr(lpr, e, rpr, pr) -> mkParenExpr creationAide lpr e rpr pr |> Expr.Paren
     | SynExpr.Dynamic(funcExpr, _, argExpr, _) ->
         ExprDynamicNode(mkExpr creationAide funcExpr, mkExpr creationAide argExpr, exprRange)
         |> Expr.Dynamic
@@ -946,73 +1157,27 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
         ExprIndexWithoutDotNode(mkExpr creationAide identifierExpr, mkExpr creationAide indexExpr, exprRange)
         |> Expr.IndexWithoutDot
 
-    | App(SynExpr.DotGet(
-              expr = SynExpr.TypeApp(identifier, lessRange, ts, _, Some greaterRange, _, mTypeApp); longDotId = property),
-          args) ->
-        let typeAppNode =
-            ExprTypeAppNode(
-                mkExpr creationAide identifier,
-                stn "<" lessRange,
-                List.map (mkType creationAide) ts,
-                stn ">" greaterRange,
-                mTypeApp
-            )
+    | ChainExpr links ->
+        let chainLinks =
+            links
+            |> List.map (function
+                | LinkExpr.Identifier identifierExpr -> mkExpr creationAide identifierExpr |> ChainLink.Identifier
+                | LinkExpr.Dot mDot -> stn "." mDot |> ChainLink.Dot
+                | LinkExpr.Expr e -> mkExpr creationAide e |> ChainLink.Expr
+                | LinkExpr.AppUnit(f, mUnit) ->
+                    LinkSingleAppUnit(mkExpr creationAide f, mkUnit mUnit, unionRanges f.Range mUnit)
+                    |> ChainLink.AppUnit
+                | LinkExpr.AppParen(f, lpr, e, rpr, pr) ->
+                    LinkSingleAppParen(
+                        mkExpr creationAide f,
+                        mkParenExpr creationAide lpr e rpr pr,
+                        unionRanges f.Range pr
+                    )
+                    |> ChainLink.AppParen
+                | LinkExpr.IndexExpr e -> mkExpr creationAide e |> ChainLink.IndexExpr
+                | link -> failwithf "cannot map %A" link)
 
-        ExprAppDotGetTypeAppNode(typeAppNode, mkSynLongIdent property, List.map (mkExpr creationAide) args, exprRange)
-        |> Expr.AppDotGetTypeApp
-
-    | SynExpr.DotGet(
-        expr = App(SynExpr.DotGet(
-                       expr = SynExpr.App(funcExpr = e; argExpr = SynExpr.Paren(expr = SynExpr.Lambda _) as px)
-                       longDotId = appLids),
-                   es)
-        longDotId = property) ->
-        ExprDotGetAppDotGetAppParenLambdaNode(
-            mkExpr creationAide e,
-            mkExpr creationAide px,
-            mkSynLongIdent appLids,
-            List.map (mkExpr creationAide) es,
-            mkSynLongIdent property,
-            exprRange
-        )
-        |> Expr.DotGetAppDotGetAppParenLambda
-
-    | SynExpr.DotGet(expr = SynExpr.App(funcExpr = e; argExpr = DotGetAppParenExpr px); longDotId = lids) ->
-        ExprDotGetAppParenNode(mkExpr creationAide e, mkExpr creationAide px, mkSynLongIdent lids, exprRange)
-        |> Expr.DotGetAppParen
-    | DotGetApp(SynExpr.App(funcExpr = e; argExpr = ParenLambda(lpr, pats, mArrow, body, mLambda, rpr)), es) ->
-        let lambdaNode = mkLambda creationAide pats mArrow body mLambda
-
-        let parenLambdaNode =
-            ExprParenLambdaNode(stn "(" lpr, lambdaNode, stn ")" rpr, exprRange)
-
-        let args =
-            es
-            |> List.map (fun (s, t, e) ->
-                let m = unionRanges s.Range e.Range
-
-                let tpi =
-                    t
-                    |> Option.map (fun (lt, ts, gt) -> stn "<" lt, List.map (mkType creationAide) ts, stn ">" gt)
-
-                DotGetAppPartNode(mkSynLongIdent s, tpi, mkExpr creationAide e, m))
-
-        ExprDotGetAppWithParenLambdaNode(mkExpr creationAide e, parenLambdaNode, args, exprRange)
-        |> Expr.DotGetAppWithParenLambda
-
-    | DotGetApp(e, es) ->
-        let args =
-            es
-            |> List.map (fun (s, t, e) ->
-                let m = unionRanges s.Range e.Range
-
-                let tpi =
-                    t
-                    |> Option.map (fun (lt, ts, gt) -> stn "<" lt, List.map (mkType creationAide) ts, stn ">" gt)
-
-                DotGetAppPartNode(mkSynLongIdent s, tpi, mkExpr creationAide e, m))
-
-        ExprDotGetAppNode(mkExpr creationAide e, args, exprRange) |> Expr.DotGetApp
+        ExprChain(chainLinks, exprRange) |> Expr.Chain
     | AppSingleParenArg(SynExpr.LongIdent(longDotId = longDotId), px) ->
         ExprAppLongIdentAndSingleParenArgNode(mkSynLongIdent longDotId, mkExpr creationAide px, exprRange)
         |> Expr.AppLongIdentAndSingleParenArg
@@ -1268,9 +1433,6 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
             exprRange
         )
         |> Expr.DotNamedIndexedPropertySet
-    | SynExpr.DotGet(e, _, synLongIdent, _) ->
-        ExprDotGetNode(mkExpr creationAide e, mkSynLongIdent synLongIdent, exprRange)
-        |> Expr.DotGet
     | SynExpr.DotSet(e1, synLongIdent, e2, _) ->
         ExprDotSetNode(mkExpr creationAide e1, mkSynLongIdent synLongIdent, mkExpr creationAide e2, exprRange)
         |> Expr.DotSet
@@ -1405,6 +1567,8 @@ let (|PatParameter|_|) (p: SynPat) =
     | SynPat.Attrib(pat = pat; attributes = attributes) -> Some(attributes, pat, None)
     | _ -> None
 
+let mkUnit (StartEndRange 1 (lpr, m, rpr)) = UnitNode(stn "(" lpr, stn ")" rpr, m)
+
 let mkPat (creationAide: CreationAide) (p: SynPat) =
     let patternRange = p.Range
 
@@ -1471,8 +1635,7 @@ let mkPat (creationAide: CreationAide) (p: SynPat) =
             patternRange
         )
         |> Pattern.LongIdent
-    | SynPat.Paren(SynPat.Const(SynConst.Unit, _), StartEndRange 1 (lpr, _, rpr)) ->
-        UnitNode(stn "(" lpr, stn ")" rpr, patternRange) |> Pattern.Unit
+    | SynPat.Paren(SynPat.Const(SynConst.Unit, _), mUnit) -> mkUnit mUnit |> Pattern.Unit
     | SynPat.Paren(p, StartEndRange 1 (lpr, _, rpr)) ->
         PatParenNode(stn "(" lpr, mkPat creationAide p, stn ")" rpr, patternRange)
         |> Pattern.Paren

@@ -2287,9 +2287,7 @@ let loader (projectRoot: string) (siteContent: SiteContents) =
         """
 let loadFile n =
     let file =
-        System
-            .IO
-            .Path
+        System.IO.Path
             .Combine(
                 contentDir,
                 (n |> System.IO.Path.GetFileNameWithoutExtension)

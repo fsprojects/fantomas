@@ -120,14 +120,14 @@ a.Some.Thing(
     |> should
         equal
         """
-a
-    .Some
+a.Some
     .Thing(
         "aaa",
         "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
         "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
     )
-    .Meh().[0]
+    .Meh()
+    .[0]
 """
 
 [<Test>]

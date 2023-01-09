@@ -824,7 +824,8 @@ type BlobHelper(Account: CloudStorageAccount) =
                 if hostedService then
                     RoleEnvironment.GetConfigurationSettingValue(configName)
                 else
-                    ConfigurationManager.ConnectionStrings.[configName]
+                    ConfigurationManager
+                        .ConnectionStrings.[configName]
                         .ConnectionString
 
             configSettingPublisher.Invoke(connectionString)

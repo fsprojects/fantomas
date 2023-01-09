@@ -2457,12 +2457,8 @@ module Foo =
 module Foo =
     let bar =
         if
-            Regex(
-                "long long long long long long long long long"
-            )
-                .Match(
-                s
-            )
+            Regex("long long long long long long long long long")
+                .Match(s)
                 .Success
         then
             None

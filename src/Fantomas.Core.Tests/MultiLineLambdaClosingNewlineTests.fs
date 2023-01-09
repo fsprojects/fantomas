@@ -975,13 +975,10 @@ configuration
     |> should
         equal
         """
-configuration
-    .MinimumLevel
+configuration.MinimumLevel
     .Debug()
-    .WriteTo
-    .Logger(fun loggerConfiguration ->
-        loggerConfiguration
-            .Enrich
+    .WriteTo.Logger(fun loggerConfiguration ->
+        loggerConfiguration.Enrich
             .WithProperty("host", Environment.MachineName)
             .Enrich.WithProperty("user", Environment.UserName)
             .Enrich.WithProperty("application", context.HostingEnvironment.ApplicationName)
@@ -1006,8 +1003,7 @@ configuration
     |> should
         equal
         """
-configuration
-    .MinimumLevel
+configuration.MinimumLevel
     .Debug()
     .WriteTo.Logger(fun x -> x * x)
 """
@@ -1057,23 +1053,21 @@ configuration
     |> should
         equal
         """
-configuration
-    .MinimumLevel
+configuration.MinimumLevel
     .Debug()
-    .WriteTo
-    .Logger(fun
-                (a0: int)
-                (a1: int)
-                (a2: int)
-                (a3: int)
-                (a4: int)
-                (a5: int)
-                (a6: int)
-                (a7: int)
-                (a8: int)
-                (a9: int)
-                (a10: int)
-                (a11: int) ->
+    .WriteTo.Logger(fun
+                        (a0: int)
+                        (a1: int)
+                        (a2: int)
+                        (a3: int)
+                        (a4: int)
+                        (a5: int)
+                        (a6: int)
+                        (a7: int)
+                        (a8: int)
+                        (a9: int)
+                        (a10: int)
+                        (a11: int) ->
         //
         ()
     )

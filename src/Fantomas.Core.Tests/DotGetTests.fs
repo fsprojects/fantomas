@@ -18,10 +18,7 @@ Microsoft.FSharp.Reflection.FSharpType.GetUnionCases(typeof<option<option<unit>>
     |> should
         equal
         """
-Microsoft
-    .FSharp
-    .Reflection
-    .FSharpType
+Microsoft.FSharp.Reflection.FSharpType
     .GetUnionCases(
         typeof<option<option<unit>>>
             .GetGenericTypeDefinition()
@@ -45,13 +42,9 @@ System.Diagnostics.FileVersionInfo.GetVersionInfo(
     |> should
         equal
         """
-System
-    .Diagnostics
-    .FileVersionInfo
+System.Diagnostics.FileVersionInfo
     .GetVersionInfo(
-        System
-            .Reflection
-            .Assembly
+        System.Reflection.Assembly
             .GetExecutingAssembly()
             .Location
     )
@@ -79,13 +72,9 @@ let ``split chained method call expression, 246`` () =
 root.SetAttribute(
     "driverVersion",
     "AltCover.Recorder "
-    + System
-        .Diagnostics
-        .FileVersionInfo
+    + System.Diagnostics.FileVersionInfo
         .GetVersionInfo(
-            System
-                .Reflection
-                .Assembly
+            System.Reflection.Assembly
                 .GetExecutingAssembly()
                 .Location
         )
@@ -105,16 +94,8 @@ Equinox.EventStore.Resolver<'event, 'state, _>(gateway, codec, fold, initial, ca
     |> should
         equal
         """
-Equinox
-    .EventStore
-    .Resolver<'event, 'state, _>(
-        gateway,
-        codec,
-        fold,
-        initial,
-        cacheStrategy,
-        accessStrategy
-    )
+Equinox.EventStore
+    .Resolver<'event, 'state, _>(gateway, codec, fold, initial, cacheStrategy, accessStrategy)
     .Resolve
 """
 
@@ -163,14 +144,8 @@ module Services =
             ) =
             match storage with
             | Storage.MemoryStore store ->
-                Equinox
-                    .MemoryStore
-                    .Resolver(
-                        store,
-                        FsCodec.Box.Codec.Create(),
-                        fold,
-                        initial
-                    )
+                Equinox.MemoryStore
+                    .Resolver(store, FsCodec.Box.Codec.Create(), fold, initial)
                     .Resolve
             | Storage.EventStore(gateway, cache) ->
                 let accessStrategy = Equinox.EventStore.AccessStrategy.RollingSnapshots snapshot
@@ -178,16 +153,8 @@ module Services =
                 let cacheStrategy =
                     Equinox.EventStore.CachingStrategy.SlidingWindow(cache, TimeSpan.FromMinutes 20.)
 
-                Equinox
-                    .EventStore
-                    .Resolver<'event, 'state, _>(
-                        gateway,
-                        codec,
-                        fold,
-                        initial,
-                        cacheStrategy,
-                        accessStrategy
-                    )
+                Equinox.EventStore
+                    .Resolver<'event, 'state, _>(gateway, codec, fold, initial, cacheStrategy, accessStrategy)
                     .Resolve
 """
 
@@ -312,8 +279,7 @@ let firstName =
         equal
         """
 let firstName =
-    define
-        .Attribute
+    define.Attribute
         .ParsedRes(FirstName.value, FirstName.create)
         .Get(fun u -> u.FirstName)
         .SetRes(userSetter User.setFirstName)
@@ -332,14 +298,8 @@ Equinox.MemoryStore.Resolver(store, FsCodec.Box.Codec.Create(), fold, initial)
     |> should
         equal
         """
-Equinox
-    .MemoryStore
-    .Resolver(
-        store,
-        FsCodec.Box.Codec.Create(),
-        fold,
-        initial
-    )
+Equinox.MemoryStore
+    .Resolver(store, FsCodec.Box.Codec.Create(), fold, initial)
     .Resolve
 """
 
@@ -361,16 +321,8 @@ let ``long ident with dots inside type app inside dotget`` () =
     |> should
         equal
         """
-Equinox
-    .EventStore
-    .Resolver<'event, 'state, _>(
-        gateway,
-        codec,
-        fold,
-        initial,
-        cacheStrategy,
-        accessStrategy
-    )
+Equinox.EventStore
+    .Resolver<'event, 'state, _>(gateway, codec, fold, initial, cacheStrategy, accessStrategy)
     .Resolve
 """
 
@@ -393,8 +345,7 @@ let getColl =
         equal
         """
 let getColl =
-    define
-        .Operation
+    define.Operation
         .ForContext(Context.toAuthenticatedContext)
         .GetCollection(fun _ parser ->
             let x = 2
@@ -678,17 +629,13 @@ type IWebHostBuilderExtensions() =
     [<Extension>]
     static member UseSerilog(webHostBuilder: IWebHostBuilder, index: Index) =
         webHostBuilder.UseSerilog (fun context configuration ->
-            configuration
-                .MinimumLevel
+            configuration.MinimumLevel
                 .Debug()
-                .WriteTo
-                .Logger (fun loggerConfiguration ->
-                    loggerConfiguration
-                        .Enrich
+                .WriteTo.Logger (fun loggerConfiguration ->
+                    loggerConfiguration.Enrich
                         .WithProperty("host", Environment.MachineName)
                         .Enrich.WithProperty("user", Environment.UserName)
-                        .Enrich
-                        .WithProperty (
+                        .Enrich.WithProperty (
                             "application",
                             context.HostingEnvironment.ApplicationName
                         )
@@ -999,8 +946,7 @@ type Foobar =
             FileSystem.SafeExists filename
             && ((tcConfig.GetTargetFrameworkDirectories()
                  |> List.exists (fun clrRoot -> clrRoot = Path.GetDirectoryName filename))
-                || (tcConfig
-                       .FxResolver
+                || (tcConfig.FxResolver
                        .GetSystemAssemblies()
                        .Contains(fileNameWithoutExtension filename))
                 || tcConfig.FxResolver.IsInReferenceAssemblyPackDirectory filename)
@@ -1078,8 +1024,7 @@ module Foo =
 module Foo =
     let bar () =
         let saveDir =
-            fs
-                .DirectoryInfo
+            fs.DirectoryInfo
                 .FromDirectoryName(
                     fs.Path.Combine ((ThingThing.rootRoot fs thingThing).FullName, "tada!")
                 )
@@ -1118,8 +1063,7 @@ module Foo =
 module Foo =
     let bar () =
         let saveDir =
-            fs
-                .DirectoryInfo
+            fs.DirectoryInfo
                 .FromDirectoryName(
                     fs.Path.Combine (
                         (ThingThing.rootRoot fs thingThing).FullName,
@@ -1236,7 +1180,8 @@ let ``dotget function application should add space before argument, long`` () =
         """
 m.Property(fun p -> p.Name).IsRequired().HasColumnName("ModelName").HasMaxLength 64
 """
-        config
+        { config with
+            MaxDotGetExpressionWidth = 70 }
     |> prepend newline
     |> should
         equal
@@ -1245,7 +1190,8 @@ m
     .Property(fun p -> p.Name)
     .IsRequired()
     .HasColumnName("ModelName")
-    .HasMaxLength 64
+    .HasMaxLength
+    64
 """
 
 [<Test>]
@@ -1264,9 +1210,7 @@ m.Property(fun p -> p.Name).IsRequired().HasColumnName("ModelName").HasMaxLength
 m
     .Property(fun p -> p.Name)
     .IsRequired()
-    .HasColumnName(
-        "ModelName"
-    )
+    .HasColumnName("ModelName")
     .HasMaxLength
 """
 
@@ -1289,10 +1233,7 @@ db.Schema.Users.Query
     |> should
         equal
         """
-db
-    .Schema
-    .Users
-    .Query
+db.Schema.Users.Query
     .Where(fun x -> x.Role)
     .Matches(
         function
@@ -1300,10 +1241,7 @@ db
         | _ -> __
     )
     .In(
-        db
-            .Schema
-            .Companies
-            .Query
+        db.Schema.Companies.Query
             .Where(fun x -> x.LicenceId)
             .Equals(licenceId)
             .Select(fun x -> x.Id)
@@ -1356,11 +1294,8 @@ module Program =
         let builder = WebAssemblyHostBuilder.CreateDefault(args)
         builder.RootComponents.Add<Pages.Main.MyApp>("#main")
 
-        builder
-            .Services
-            .AddRemoting(
-                builder.HostEnvironment
-            )
+        builder.Services
+            .AddRemoting(builder.HostEnvironment)
             .Services
 #if (!DEBUG)
             .RemoveAll<Microsoft.Extensions.Http.IHttpMessageHandlerBuilderFilter>()

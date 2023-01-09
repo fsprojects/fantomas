@@ -44,11 +44,19 @@ let rec (|UppercaseExpr|LowercaseExpr|) (expr: Expr) =
     match expr with
     | Expr.Ident ident -> upperOrLower ident.Text
     | Expr.OptVar node -> lastFragmentInList node.Identifier
-    | Expr.DotGet node -> lastFragmentInList node.Identifier
+    | Expr.Chain node ->
+        match List.tryLast node.Links with
+        | None
+        | Some(ChainLink.Dot _) -> LowercaseExpr
+        | Some(ChainLink.Identifier e)
+        | Some(ChainLink.Expr e) -> (|UppercaseExpr|LowercaseExpr|) e
+        | Some(ChainLink.AppParen appParen) -> (|UppercaseExpr|LowercaseExpr|) appParen.FunctionName
+        | Some(ChainLink.AppUnit appUnit) -> (|UppercaseExpr|LowercaseExpr|) appUnit.FunctionName
+        // Questionable
+        | Some(ChainLink.IndexExpr _) -> LowercaseExpr
     | Expr.DotIndexedGet node -> (|UppercaseExpr|LowercaseExpr|) node.ObjectExpr
     | Expr.TypeApp node -> (|UppercaseExpr|LowercaseExpr|) node.Identifier
     | Expr.Dynamic node -> (|UppercaseExpr|LowercaseExpr|) node.FuncExpr
-    | Expr.DotGetAppParen node -> (|UppercaseExpr|LowercaseExpr|) node.Function
     | _ -> failwithf "cannot determine if Expr %A is uppercase or lowercase" expr
 
 let (|ParenExpr|_|) (e: Expr) =
@@ -990,257 +998,145 @@ let genExpr (e: Expr) =
         +> sepCloseLFixed
         |> genNode node
 
-    // Result<int, string>.Ok 42
-    | Expr.AppDotGetTypeApp node ->
-        genExpr node.TypeApp.Identifier
-        +> genGenericTypeParameters node.TypeApp
-        +> genIdentListNodeWithDot node.Property
-        +> sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth (col sepSpace node.Arguments genExpr)
+    | Expr.Chain node ->
+        let genLink (isLastLink: bool) (link: ChainLink) =
+            match link with
+            | ChainLink.Identifier expr -> genExpr expr
+            | ChainLink.Dot stn -> genSingleTextNode stn
+            | ChainLink.Expr expr ->
+                match expr with
+                | Expr.App appNode ->
+                    match appNode.Arguments with
+                    | [ Expr.ArrayOrList _ as arrayOrList ] ->
+                        // Edge case for something like .G[].
+                        genExpr appNode.FunctionExpr +> genExpr arrayOrList
+                    | _ -> genExpr expr
+                | _ -> genExpr expr
+            | ChainLink.AppUnit appUnitNode ->
+                genExpr appUnitNode.FunctionName
+                +> onlyIf
+                    isLastLink
+                    (sepSpaceBeforeParenInFuncInvocation
+                        appUnitNode.FunctionName
+                        (Expr.Constant(Constant.Unit appUnitNode.Unit)))
+                +> genUnit appUnitNode.Unit
+                |> genNode appUnitNode
+            | ChainLink.AppParen appParen ->
+                let short =
+                    genExpr appParen.FunctionName
+                    +> onlyIf
+                        isLastLink
+                        (sepSpaceBeforeParenInFuncInvocation appParen.FunctionName (Expr.Paren appParen.Paren))
+                    +> genExpr (Expr.Paren appParen.Paren)
+
+                let long =
+                    match appParen.Paren.Expr with
+                    | Expr.Lambda lambdaNode ->
+                        genExpr appParen.FunctionName
+                        +> onlyIf
+                            isLastLink
+                            (sepSpaceBeforeParenInFuncInvocation appParen.FunctionName (Expr.Paren appParen.Paren))
+                        +> genSingleTextNode appParen.Paren.OpeningParen
+                        +> genLambdaWithParen lambdaNode
+                        +> onlyIfCtx (fun ctx -> ctx.Config.MultiLineLambdaClosingNewline) sepNln
+                        +> genSingleTextNode appParen.Paren.ClosingParen
+                    | _ ->
+                        genExpr appParen.FunctionName
+                        +> onlyIf
+                            isLastLink
+                            (sepSpaceBeforeParenInFuncInvocation appParen.FunctionName (Expr.Paren appParen.Paren))
+                        +> genMultilineFunctionApplicationArguments (Expr.Paren appParen.Paren)
+
+                expressionFitsOnRestOfLine short long |> genNode appParen
+            | ChainLink.IndexExpr e -> sepOpenLFixed +> genExpr e +> sepCloseLFixed
+
+        let lastIndex = node.Links.Length - 1
+        let short = coli sepNone node.Links (fun idx -> genLink (idx = lastIndex))
+
+        let long =
+            let (|SimpleChain|_|) (link: ChainLink) =
+                match link with
+                | ChainLink.Identifier _
+                | ChainLink.IndexExpr _ -> Some link
+                | _ -> None
+
+            let (|LeadingSimpleChain|_|) (links: ChainLink list) =
+                let leading = System.Collections.Generic.Queue(links.Length)
+                let rest = System.Collections.Generic.Queue(links.Length)
+
+                (None, links)
+                ||> List.fold (fun lastDot link ->
+                    if not (Seq.isEmpty rest) then
+                        rest.Enqueue link
+                        None
+                    else
+                        match link with
+                        | SimpleChain _ ->
+                            Option.iter leading.Enqueue lastDot
+                            leading.Enqueue link
+                            None
+                        | ChainLink.Dot _ as dot -> Some dot
+                        | _ ->
+                            Option.iter rest.Enqueue lastDot
+                            rest.Enqueue link
+                            None)
+                |> (fun _ ->
+                    if Seq.isEmpty leading then
+                        None
+                    else
+                        Some(Seq.toList leading, Seq.toList rest))
+
+            let rec genIndentedLinks (lastLinkWasSimple: bool) (links: ChainLink list) (ctx: Context) : Context =
+                match links with
+                | [] -> ctx
+                | ChainLink.Dot dot :: link :: rest ->
+                    let isLast = List.isEmpty rest
+                    let genDotAndLink = genSingleTextNode dot +> genLink isLast link
+                    let currentIsSimple = ((|SimpleChain|_|) >> Option.isSome) link
+
+                    if lastLinkWasSimple && not (futureNlnCheck genDotAndLink ctx) then
+                        // The last link was an identifier and the current link fits on the remainder of the current line.
+                        genIndentedLinks currentIsSimple rest ((genDotAndLink +> onlyIfNot isLast sepNln) ctx)
+                    else
+                        genIndentedLinks
+                            currentIsSimple
+                            rest
+                            // Print the current link
+                            ((genDotAndLink
+                              // Don't suffix with a newline if we are at the end of the chain,
+                              // or if the current link is an identifier.
+                              +> onlyIfNot (isLast || currentIsSimple) sepNln)
+                                ctx)
+                | _ -> failwith "Expected dot in chain at this point"
+
+            let genFirstLinkAndIndentOther (firstLink: ChainLink) (others: ChainLink list) =
+                genLink false firstLink +> indentSepNlnUnindent (genIndentedLinks false others)
+
+            match node.Links with
+            | [] -> sepNone
+            | LeadingSimpleChain(leadingChain, links) ->
+                match links with
+                | [] ->
+                    fun ctx ->
+                        isShortExpression
+                            ctx.Config.MaxDotGetExpressionWidth
+                            short
+                            (match leadingChain with
+                             | [] -> sepNone
+                             | head :: links -> genFirstLinkAndIndentOther head links)
+                            ctx
+                | _ ->
+                    expressionFitsOnRestOfLine
+                        (coli sepNone leadingChain (fun idx -> genLink (idx = lastIndex)))
+                        (match leadingChain with
+                         | [] -> sepNone
+                         | head :: rest -> genLink false head +> indentSepNlnUnindent (genIndentedLinks false rest))
+                    +> indentSepNlnUnindent (genIndentedLinks false links)
+
+            | head :: links -> genFirstLinkAndIndentOther head links
+
+        (fun ctx -> isShortExpression ctx.Config.MaxDotGetExpressionWidth short long ctx)
         |> genNode node
-
-    // Foo(fun x -> x).Bar().Meh
-    | Expr.DotGetAppDotGetAppParenLambda node ->
-        let short =
-            genExpr node.Identifier
-            +> genExpr node.IdentifierArg
-            +> genIdentListNodeWithDot node.AppLids
-            +> col sepComma node.Args genExpr
-            +> genIdentListNodeWithDot node.Property
-
-        let long =
-            let functionName =
-                match node.Identifier with
-                | Expr.OptVar identifierNode when List.moreThanOne identifierNode.Identifier.Content ->
-                    genFunctionNameWithMultilineLids sepNone identifierNode.Identifier identifierNode
-                | Expr.TypeApp typedAppNode ->
-                    match typedAppNode.Identifier with
-                    | Expr.OptVar identifierNode when List.moreThanOne identifierNode.Identifier.Content ->
-                        genFunctionNameWithMultilineLids
-                            (genGenericTypeParameters typedAppNode)
-                            identifierNode.Identifier
-                            typedAppNode
-                    | _ -> genExpr node.Identifier
-                | _ -> genExpr node.Identifier
-
-            functionName
-            +> indent
-            +> genExpr node.IdentifierArg
-            +> sepNln
-            +> genIdentListNodeWithDot node.AppLids
-            +> col sepComma node.Args genExpr
-            +> sepNln
-            +> genIdentListNodeWithDot node.Property
-            +> unindent
-
-        fun ctx -> genNode node (isShortExpression ctx.Config.MaxDotGetExpressionWidth short long) ctx
-
-    // Foo().Bar
-    | Expr.DotGetAppParen node ->
-        let short =
-            genExpr node.Function
-            +> genExpr node.ParenArg
-            +> genIdentListNodeWithDot node.Property
-
-        let long =
-            let functionName argFn =
-                match node.Function with
-                | Expr.OptVar identifierNode when List.moreThanOne identifierNode.Identifier.Content ->
-                    genFunctionNameWithMultilineLids argFn identifierNode.Identifier identifierNode
-                | Expr.TypeApp typedAppNode ->
-                    match typedAppNode.Identifier with
-                    | Expr.OptVar identifierNode when List.moreThanOne identifierNode.Identifier.Content ->
-                        genFunctionNameWithMultilineLids
-                            (genGenericTypeParameters typedAppNode +> argFn)
-                            identifierNode.Identifier
-                            typedAppNode
-                    | _ -> genExpr node.Function +> argFn
-                | Expr.DotGetAppDotGetAppParenLambda _ ->
-                    leadingExpressionIsMultiline (genExpr node.Function) (fun isMultiline ->
-                        if isMultiline then indent +> argFn +> unindent else argFn)
-                | _ -> genExpr node.Function +> argFn
-
-            let arguments = genMultilineFunctionApplicationArguments node.ParenArg
-
-            functionName arguments
-            +> indentSepNlnUnindent (genIdentListNodeWithDotMultiline node.Property)
-
-        fun ctx -> genNode node (isShortExpression ctx.Config.MaxDotGetExpressionWidth short long) ctx
-
-    // Foo(fun x -> x).Bar()
-    | Expr.DotGetAppWithParenLambda node ->
-        let genLongFunctionName f =
-            match node.Function with
-            | Expr.OptVar identifierNode when List.moreThanOne identifierNode.Identifier.Content ->
-                genFunctionNameWithMultilineLids f identifierNode.Identifier identifierNode
-            | Expr.TypeApp typedAppNode ->
-                match typedAppNode.Identifier with
-                | Expr.OptVar identifierNode when List.moreThanOne identifierNode.Identifier.Content ->
-                    genFunctionNameWithMultilineLids
-                        (genGenericTypeParameters typedAppNode +> f)
-                        identifierNode.Identifier
-                        typedAppNode
-                | _ -> genExpr node.Function
-            | _ -> genExpr node.Function +> f
-
-        let lastEsIndex = node.Arguments.Length - 1
-
-        let genApp (idx: int) (argNode: DotGetAppPartNode) : Context -> Context =
-            let short =
-                genIdentListNodeWithDot argNode.Identifier
-                +> optSingle (fun (lt, ts, gt) -> genGenericTypeParametersAux lt ts gt) argNode.TypeParameterInfo
-                +> genSpaceBeforeLids idx lastEsIndex argNode.Identifier argNode.Expr
-                +> genExpr argNode.Expr
-
-            let long =
-                genIdentListNodeWithDotMultiline argNode.Identifier
-                +> optSingle (fun (lt, ts, gt) -> genGenericTypeParametersAux lt ts gt) argNode.TypeParameterInfo
-                +> genSpaceBeforeLids idx lastEsIndex argNode.Identifier argNode.Expr
-                +> genMultilineFunctionApplicationArguments argNode.Expr
-
-            expressionFitsOnRestOfLine short long
-
-        let short =
-            genExpr node.Function
-            +> genExpr (Expr.ParenLambda node.ParenLambda)
-            +> coli sepNone node.Arguments (fun idx (argNode: DotGetAppPartNode) ->
-                genIdentListNodeWithDot argNode.Identifier
-                +> optSingle (fun (lt, ts, gt) -> genGenericTypeParametersAux lt ts gt) argNode.TypeParameterInfo
-                +> genSpaceBeforeLids idx lastEsIndex argNode.Identifier argNode.Expr
-                +> genExpr argNode.Expr)
-
-        let long =
-            genLongFunctionName (genExpr (Expr.ParenLambda node.ParenLambda))
-            +> indent
-            +> sepNln
-            +> coli sepNln node.Arguments genApp
-            +> unindent
-
-        fun ctx -> genNode node (isShortExpression ctx.Config.MaxDotGetExpressionWidth short long) ctx
-
-    // Foo().Bar().Meh()
-    | Expr.DotGetApp node ->
-        let genLongFunctionName =
-            let genApp funcExpr argExpr appNode =
-                match funcExpr, argExpr with
-                // | AppOrTypeApp(LongIdentExprWithMoreThanOneIdent lids, t, [ Paren _ as px ]) ->
-                | Expr.OptVar optVarNode, [ ParenExpr px ] when List.moreThanOne optVarNode.Identifier.Content ->
-                    genFunctionNameWithMultilineLids
-                        (expressionFitsOnRestOfLine (genExpr px) (genMultilineFunctionApplicationArguments px))
-                        optVarNode.Identifier
-                        optVarNode
-
-                | Expr.TypeApp typeAppNode, [ ParenExpr px ] ->
-                    match typeAppNode.Identifier with
-                    | Expr.OptVar optVarNode when List.moreThanOne optVarNode.Identifier.Content ->
-                        genFunctionNameWithMultilineLids
-                            (genGenericTypeParameters typeAppNode
-                             +> expressionFitsOnRestOfLine (genExpr px) (genMultilineFunctionApplicationArguments px))
-                            optVarNode.Identifier
-                            optVarNode
-                    | Expr.Ident _ ->
-                        genExpr typeAppNode.Identifier
-                        +> genGenericTypeParameters typeAppNode
-                        +> genExpr px
-                    | _ -> genExpr node.FunctionExpr
-
-                // | AppOrTypeApp(LongIdentExprWithMoreThanOneIdent lids, t, [ e2 ]) ->
-                | Expr.OptVar optVarNode, [ e2 ] when List.moreThanOne optVarNode.Identifier.Content ->
-                    genFunctionNameWithMultilineLids (genExpr e2) optVarNode.Identifier optVarNode
-
-                | Expr.TypeApp typeAppNode, [ e2 ] ->
-                    match typeAppNode.Identifier with
-                    | Expr.OptVar optVarNode when List.moreThanOne optVarNode.Identifier.Content ->
-                        genFunctionNameWithMultilineLids
-                            (genGenericTypeParameters typeAppNode +> genExpr e2)
-                            optVarNode.Identifier
-                            optVarNode
-                    | _ -> genExpr node.FunctionExpr
-
-                // | AppOrTypeApp(SimpleExpr e, t, [ ConstExpr(SynConst.Unit, r) ]) ->
-                | Expr.Ident _, [ Expr.Constant(Constant.Unit _) as unitExpr ] -> genExpr funcExpr +> genExpr unitExpr
-
-                | Expr.TypeApp typeAppNode, [ Expr.Constant(Constant.Unit _) as unitExpr ] ->
-                    match typeAppNode.Identifier with
-                    | Expr.Ident _ ->
-                        genExpr typeAppNode.Identifier
-                        +> genGenericTypeParameters typeAppNode
-                        +> genExpr unitExpr
-                    | _ -> genExpr node.FunctionExpr
-
-                // | AppOrTypeApp(SimpleExpr e, t, [ Paren _ as px ]) ->
-                | Expr.Ident _, [ ParenExpr parenExpr ] ->
-                    let short = genExpr funcExpr +> genExpr parenExpr
-                    let long = genExpr funcExpr +> genMultilineFunctionApplicationArguments parenExpr
-                    expressionFitsOnRestOfLine short long
-
-                | Expr.TypeApp typeAppNode, [ ParenExpr parenExpr ] ->
-                    match typeAppNode.Identifier with
-                    | Expr.Ident _ ->
-                        let short =
-                            genExpr typeAppNode.Identifier
-                            +> genGenericTypeParameters typeAppNode
-                            +> genExpr parenExpr
-
-                        let long =
-                            genExpr typeAppNode.Identifier
-                            +> genGenericTypeParameters typeAppNode
-                            +> genMultilineFunctionApplicationArguments parenExpr
-
-                        expressionFitsOnRestOfLine short long
-                    | _ -> genExpr node.FunctionExpr
-
-                | _ -> genExpr node.FunctionExpr
-                |> genNode appNode
-
-            match node.FunctionExpr with
-            | Expr.App appNode -> genApp appNode.FunctionExpr appNode.Arguments appNode
-            | Expr.AppLongIdentAndSingleParenArg appNode ->
-                let m = (appNode.FunctionName :> Node).Range
-                genApp (Expr.OptVar(ExprOptVarNode(false, appNode.FunctionName, m))) [ appNode.ArgExpr ] appNode
-            | Expr.AppSingleParenArg appNode -> genApp appNode.FunctionExpr [ appNode.ArgExpr ] appNode
-            | _ -> genExpr node.FunctionExpr
-
-        let lastEsIndex = node.Arguments.Length - 1
-
-        let genApp (idx: int) (argNode: DotGetAppPartNode) : Context -> Context =
-            let short =
-                genIdentListNodeWithDot argNode.Identifier
-                +> optSingle (fun (lt, ts, gt) -> genGenericTypeParametersAux lt ts gt) argNode.TypeParameterInfo
-                +> genSpaceBeforeLids idx lastEsIndex argNode.Identifier argNode.Expr
-                +> genExpr argNode.Expr
-
-            let long =
-                genIdentListNodeWithDotMultiline argNode.Identifier
-                +> optSingle (fun (lt, ts, gt) -> genGenericTypeParametersAux lt ts gt) argNode.TypeParameterInfo
-                +> genSpaceBeforeLids idx lastEsIndex argNode.Identifier argNode.Expr
-                +> genMultilineFunctionApplicationArguments argNode.Expr
-
-            expressionFitsOnRestOfLine short long |> genNode argNode
-
-        let short =
-            match node.FunctionExpr with
-            | Expr.AppLongIdentAndSingleParenArg appNode ->
-                genIdentListNode appNode.FunctionName +> genExpr appNode.ArgExpr
-            | Expr.AppSingleParenArg appNode -> genExpr appNode.FunctionExpr +> genExpr appNode.ArgExpr
-            | Expr.App appNode ->
-                if appNode.Arguments.Length = 1 then
-                    match appNode.Arguments.[0] with
-                    | ParenExpr parenExpr -> genExpr appNode.FunctionExpr +> genExpr parenExpr
-                    | Expr.ArrayOrList _ -> genExpr appNode.FunctionExpr +> genExpr appNode.Arguments.[0]
-                    | _ -> genExpr node.FunctionExpr
-                else
-                    genExpr node.FunctionExpr
-            | _ -> genExpr node.FunctionExpr
-            +> coli sepNone node.Arguments genApp
-
-        let long =
-            genLongFunctionName
-            +> indent
-            +> sepNln
-            +> coli sepNln node.Arguments genApp
-            +> unindent
-
-        fun ctx -> genNode node (isShortExpression ctx.Config.MaxDotGetExpressionWidth short long) ctx
 
     // path.Replace("../../../", "....")
     | Expr.AppLongIdentAndSingleParenArg node ->
@@ -1735,14 +1631,6 @@ let genExpr (e: Expr) =
         +> sepArrowRev
         +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr node.Set)
         |> genNode node
-    | Expr.DotGet node ->
-        let shortExpr = genExpr node.Expr +> genIdentListNodeWithDot node.Identifier
-
-        let longExpr =
-            genExpr node.Expr
-            +> indentSepNlnUnindent (genIdentListNodeWithDotMultiline node.Identifier)
-
-        fun ctx -> genNode node (isShortExpression ctx.Config.MaxDotGetExpressionWidth shortExpr longExpr) ctx
     | Expr.DotSet node ->
         match node.Identifier with
         | Expr.AppLongIdentAndSingleParenArg appNode ->
@@ -2168,9 +2056,9 @@ let genExprInMultilineInfixExpr (e: Expr) =
                         ctx
         | Expr.InfixApp infixNode ->
             match infixNode.LeftHandSide with
-            | Expr.DotGet _ -> atCurrentColumnIndent (genExpr e)
+            | Expr.Chain _ -> atCurrentColumnIndent (genExpr e)
             | _ -> genExpr e
-        | Expr.DotGetApp _
+        | Expr.Chain _
         | Expr.Record _ -> atCurrentColumnIndent (genExpr e)
         | _ -> genExpr e
     | Expr.MatchLambda matchLambdaNode ->
@@ -2388,33 +2276,6 @@ let sepSpaceBeforeParenInFuncInvocation (functionExpr: Expr) (argExpr: Expr) ctx
     | Expr.Ident _, Expr.Ident _ -> sepSpace ctx
     | _ -> sepSpace ctx
 
-let genSpaceBeforeLids
-    (currentIndex: int)
-    (lastEsIndex: int)
-    (lids: IdentListNode)
-    (arg: Expr)
-    (ctx: Context)
-    : Context =
-    let config =
-        match lids.Content with
-        | IdentifierOrDot.Ident h :: _ ->
-            let s = h.Text
-
-            if Char.IsUpper(s.[0]) then
-                ctx.Config.SpaceBeforeUppercaseInvocation
-            else
-                ctx.Config.SpaceBeforeLowercaseInvocation
-        | _ -> ctx.Config.SpaceBeforeUppercaseInvocation
-
-    let hasParenthesis =
-        match arg with
-        | ParenExpr _ -> true
-        | _ -> false
-
-    if (lastEsIndex = currentIndex) && (not hasParenthesis || config) then
-        sepSpace ctx
-    else
-        ctx
 // end expressions
 
 let genPatLeftMiddleRight (node: PatLeftMiddleRight) =
