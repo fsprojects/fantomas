@@ -828,7 +828,7 @@ let genExpr (e: Expr) =
         +> sepSpace
         +> genSingleTextNode node.In
         +> sepSpace
-        +> genExpr node.RightHandSide
+        +> atCurrentColumn (genExpr node.RightHandSide)
         |> genNode node
     | Expr.ParenLambda node ->
         genSingleTextNode node.OpeningParen
@@ -1423,16 +1423,27 @@ let genExpr (e: Expr) =
                 | [ singleArg ] -> sepSpaceBeforeParenInFuncInvocation node.FunctionExpr singleArg ctx
                 | _ -> sepSpace ctx
 
-            atCurrentColumn (genExpr node.FunctionExpr +> sep +> col sepSpace node.Arguments genExpr)
+            genExpr node.FunctionExpr +> sep +> col sepSpace node.Arguments genExpr
 
         let longExpression =
-            atCurrentColumn (
-                genExpr node.FunctionExpr
-                +> indentSepNlnUnindent (col sepNln node.Arguments genExpr)
-            )
+            genExpr node.FunctionExpr
+            +> indentSepNlnUnindent (col sepNln node.Arguments genExpr)
 
         expressionFitsOnRestOfLine shortExpression longExpression |> genNode node
-    | Expr.TypeApp node -> genExpr node.Identifier +> genGenericTypeParameters node |> genNode node
+    | Expr.TypeApp node ->
+        fun ctx ->
+            let startColum = ctx.Column
+
+            genNode
+                node
+                (genExpr node.Identifier
+                 +> genSingleTextNode node.LessThan
+                 +> colGenericTypeParameters node.TypeParameters
+                 // we need to make sure each expression in the function application has offset at least greater than
+                 // See: https://github.com/fsprojects/fantomas/issues/1611
+                 +> addFixedSpaces startColum
+                 +> genSingleTextNode node.GreaterThan)
+                ctx
     | Expr.TryWithSingleClause node ->
         let genClause =
             let clauseNode = node.Clause
@@ -2180,16 +2191,18 @@ let genKeepIdent (startNode: Node) (e: Expr) ctx =
     else
         indentSepNlnUnindent (genExpr e) ctx
 
-let genGenericTypeParametersAux lessThan typeParameters greaterThan =
-    genSingleTextNode lessThan
-    +> coli sepComma typeParameters (fun idx t ->
+let colGenericTypeParameters typeParameters =
+    coli sepComma typeParameters (fun idx t ->
         let leadingSpace =
             match t with
             | Type.Var n when idx = 0 && n.Text.StartsWith("^") -> sepSpace
             | _ -> sepNone
 
         leadingSpace +> genType t)
-    +> indentIfNeeded sepNone
+
+let genGenericTypeParametersAux lessThan typeParameters greaterThan =
+    genSingleTextNode lessThan
+    +> colGenericTypeParameters typeParameters
     +> genSingleTextNode greaterThan
 
 let genGenericTypeParameters (typeApp: ExprTypeAppNode) =

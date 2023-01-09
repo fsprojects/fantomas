@@ -188,7 +188,6 @@ val wordAnd: (Context -> Context)
 val wordAndFixed: (Context -> Context)
 val wordOf: (Context -> Context)
 val indentSepNlnUnindent: f: (Context -> Context) -> (Context -> Context)
-val indentIfNeeded: f: (Context -> Context) -> ctx: Context -> Context
 
 val isShortExpression:
     maxWidth: int ->

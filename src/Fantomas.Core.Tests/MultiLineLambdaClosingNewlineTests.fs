@@ -1144,3 +1144,50 @@ module Foo =
         )
         |> Seq.length
 """
+
+[<Test>]
+let ``double pipe with application with two lambdas, 2682`` () =
+    formatSourceString
+        false
+        """
+(someLongItemOne, someLongItemTwo)
+||> Prefix.fnName
+    (fun delta echo -> delta, echo)
+    (fun (k: One * Two * Three) ->
+        // multiline
+        ()
+    )
+    lastArgument
+
+(someLongItemOne, someLongItemTwo)
+|> Prefix.fnName
+    (fun delta echo -> delta, echo)
+    (fun (k: One * Two * Three) ->
+        // multiline
+        ()
+    )
+    lastArgument
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+(someLongItemOne, someLongItemTwo)
+||> Prefix.fnName
+    (fun delta echo -> delta, echo)
+    (fun (k: One * Two * Three) ->
+        // multiline
+        ()
+    )
+    lastArgument
+
+(someLongItemOne, someLongItemTwo)
+|> Prefix.fnName
+    (fun delta echo -> delta, echo)
+    (fun (k: One * Two * Three) ->
+        // multiline
+        ()
+    )
+    lastArgument
+"""
