@@ -1338,6 +1338,8 @@ Assembly.GetExecutingAssembly().GetCustomAttribute<MyCustomAttribute>().SomeProp
     |> should
         equal
         """
-Assembly.GetExecutingAssembly().GetCustomAttribute<MyCustomAttribute>()
+Assembly
+    .GetExecutingAssembly()
+    .GetCustomAttribute<MyCustomAttribute>()
     .SomeProperty
 """
