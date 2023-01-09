@@ -275,3 +275,40 @@ A.B
     .C(D)
     .E.[0]
 """
+
+[<Test>]
+let ``trivia inside chain, 2686`` () =
+    formatSourceString
+        false
+        """
+builder.
+    FirstThing<X>(fun lambda ->
+        // aaaaaa
+        ()
+    )
+    .SecondThing<Y>(fun next ->
+        // bbbbb
+        next
+    )
+    // ccccc
+    .ThirdThing<Z>().X
+"""
+        { config with
+            MultiLineLambdaClosingNewline = true }
+    |> prepend newline
+    |> should
+        equal
+        """
+builder
+    .FirstThing<X>(fun lambda ->
+        // aaaaaa
+        ()
+    )
+    .SecondThing<Y>(fun next ->
+        // bbbbb
+        next
+    )
+    // ccccc
+    .ThirdThing<Z>()
+    .X
+"""
