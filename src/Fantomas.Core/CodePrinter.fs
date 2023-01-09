@@ -3136,6 +3136,7 @@ let genImplicitConstructor (node: ImplicitConstructorNode) =
         +> onlyIf node.IsOptional (!- "?")
         +> genSingleTextNode node.Identifier
         +> optSingle (fun t -> sepColon +> autoIndentAndNlnIfExpressionExceedsPageWidth (genType t)) node.Type
+        |> genNode node
 
     let shortPats = col sepComma node.Parameters genSimplePat
 
