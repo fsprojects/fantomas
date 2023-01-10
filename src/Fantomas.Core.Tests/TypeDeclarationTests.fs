@@ -3422,3 +3422,36 @@ module Primitives =
 #endif
         BlockHeightOffset16 = BlockHeightOffset16 of uint16
 """
+
+[<Test>]
+let ``trivia before constructor parameter, 2692`` () =
+    formatSourceString
+        false
+        """
+type SingleAppParenLambda
+    (
+        // Expr could be a single identifier or TypeApp
+        functionName: Expr, parenLambda: ExprParenLambdaNode, range
+    ) =
+    inherit NodeBase(range)
+    override this.Children = [| yield Expr.Node functionName; yield parenLambda |]
+    member x.FunctionName = functionName
+    member x.ParenLambda = parenLambda
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type SingleAppParenLambda
+    (
+        // Expr could be a single identifier or TypeApp
+        functionName: Expr,
+        parenLambda: ExprParenLambdaNode,
+        range
+    ) =
+    inherit NodeBase(range)
+    override this.Children = [| yield Expr.Node functionName; yield parenLambda |]
+    member x.FunctionName = functionName
+    member x.ParenLambda = parenLambda
+"""
