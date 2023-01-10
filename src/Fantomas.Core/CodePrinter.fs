@@ -1200,13 +1200,6 @@ let genExpr (e: Expr) =
         expressionFitsOnRestOfLine short long |> genNode node
 
     // functionName arg1 arg2 (fun x y z -> ...)
-    | Expr.DotGetAppWithLambda node ->
-        leadingExpressionIsMultiline (genAppWithLambda sepNone node.AppWithLambda) (fun isMultiline ->
-            if isMultiline then
-                (indent +> sepNln +> genIdentListNodeWithDotMultiline node.Property +> unindent)
-            else
-                genIdentListNodeWithDot node.Property)
-        |> genNode node
     | Expr.AppWithLambda node ->
         let sepSpaceAfterFunctionName =
             match node.Arguments with

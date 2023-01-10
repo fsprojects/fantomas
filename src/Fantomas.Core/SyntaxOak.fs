@@ -1203,13 +1203,6 @@ type ExprAppSingleParenArgNode(functionExpr: Expr, argExpr: Expr, range) =
     member x.FunctionExpr = functionExpr
     member x.ArgExpr = argExpr
 
-type ExprDotGetAppWithLambdaNode(appWithLambda: ExprAppWithLambdaNode, property: IdentListNode, range) =
-    inherit NodeBase(range)
-
-    override this.Children = [| yield appWithLambda; yield property |]
-    member x.AppWithLambda = appWithLambda
-    member x.Property = property
-
 type ExprAppWithLambdaNode
     (
         functionName: Expr,
@@ -1675,7 +1668,6 @@ type Expr =
     | IndexWithoutDot of ExprIndexWithoutDotNode
     | AppLongIdentAndSingleParenArg of ExprAppLongIdentAndSingleParenArgNode
     | AppSingleParenArg of ExprAppSingleParenArgNode
-    | DotGetAppWithLambda of ExprDotGetAppWithLambdaNode
     | AppWithLambda of ExprAppWithLambdaNode
     | NestedIndexWithoutDot of ExprNestedIndexWithoutDotNode
     | EndsWithDualListApp of ExprEndsWithDualListAppNode
@@ -1743,7 +1735,6 @@ type Expr =
         | IndexWithoutDot n -> n
         | AppLongIdentAndSingleParenArg n -> n
         | AppSingleParenArg n -> n
-        | DotGetAppWithLambda n -> n
         | AppWithLambda n -> n
         | NestedIndexWithoutDot n -> n
         | EndsWithDualListApp n -> n

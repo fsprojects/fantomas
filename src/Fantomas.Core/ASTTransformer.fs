@@ -1184,23 +1184,6 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
     | AppSingleParenArg(e, px) ->
         ExprAppSingleParenArgNode(mkExpr creationAide e, mkExpr creationAide px, exprRange)
         |> Expr.AppSingleParenArg
-    | SynExpr.DotGet(
-        expr = SynExpr.App(funcExpr = App(fe, args); argExpr = ParenLambda(lpr, pats, mArrow, body, mLambda, rpr))
-        longDotId = lid) ->
-        let lambdaNode = mkLambda creationAide pats mArrow body mLambda
-
-        let appWithLambdaNode =
-            ExprAppWithLambdaNode(
-                mkExpr creationAide fe,
-                List.map (mkExpr creationAide) args,
-                stn "(" lpr,
-                Choice1Of2 lambdaNode,
-                stn ")" rpr,
-                exprRange
-            )
-
-        ExprDotGetAppWithLambdaNode(appWithLambdaNode, mkSynLongIdent lid, exprRange)
-        |> Expr.DotGetAppWithLambda
 
     | SynExpr.App(funcExpr = App(fe, args); argExpr = ParenLambda(lpr, pats, mArrow, body, mLambda, rpr)) ->
         let lambdaNode = mkLambda creationAide pats mArrow body mLambda

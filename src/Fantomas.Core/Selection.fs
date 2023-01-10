@@ -240,9 +240,6 @@ let mkTreeWithSingleNode (node: Node) : TreeForSelection =
     | :? ExprAppSingleParenArgNode as node ->
         let expr = Expr.AppSingleParenArg node
         mkOakFromModuleDecl (ModuleDecl.DeclExpr expr)
-    | :? ExprDotGetAppWithLambdaNode as node ->
-        let expr = Expr.DotGetAppWithLambda node
-        mkOakFromModuleDecl (ModuleDecl.DeclExpr expr)
     | :? ExprAppWithLambdaNode as node ->
         let expr = Expr.AppWithLambda node
         mkOakFromModuleDecl (ModuleDecl.DeclExpr expr)
