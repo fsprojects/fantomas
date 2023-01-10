@@ -1497,3 +1497,29 @@ let _ =
 b\"      )
     |> List.length
 "
+
+[<Test>]
+let ``lambda with generic argument in function identifier, 2699`` () =
+    formatSourceString
+        false
+        """
+MailboxProcessor<string>.Start
+    (fun inbox ->
+        async {
+            while true do
+                let! msg = inbox.Receive()
+                do! sw.WriteLineAsync(msg) |> Async.AwaitTask
+        })
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+MailboxProcessor<string>.Start(fun inbox ->
+    async {
+        while true do
+            let! msg = inbox.Receive()
+            do! sw.WriteLineAsync(msg) |> Async.AwaitTask
+    })
+"""

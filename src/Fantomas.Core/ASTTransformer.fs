@@ -840,6 +840,13 @@ let (|ChainExpr|_|) (e: SynExpr) : LinkExpr list option =
         | other -> continuation [ LinkExpr.Expr other ]
 
     match e with
+    // An identifier only application with a parenthesis lambda expression.
+    // ex: `List.map (fun n -> n)` or `MailboxProcessor<string>.Start (fun n -> n)
+    // Because the identifier is not complex we don't consider it a chain.
+    | SynExpr.App(
+        isInfix = false
+        funcExpr = SynExpr.LongIdent _ | SynExpr.Ident _ | SynExpr.DotGet(expr = SynExpr.TypeApp(expr = SynExpr.Ident _))
+        argExpr = ParenExpr(_, SynExpr.Lambda _, _, _)) -> None
     | SynExpr.App(
         isInfix = false
         funcExpr = SynExpr.DotGet _ | SynExpr.TypeApp(expr = SynExpr.DotGet _)
