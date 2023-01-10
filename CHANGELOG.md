@@ -3,7 +3,12 @@
 ## Unreleased
 
 ### Fixes 
-*  Stroustrup: Two lists given directly as parameters, break code [#2681](https://github.com/fsprojects/fantomas/issues/2681)
+* Stroustrup: Two lists given directly as parameters, break code [#2681](https://github.com/fsprojects/fantomas/issues/2681)
+* fsharp_experimental_stroustrup_style=true breaks on types with nested anonymous records. [#2413](https://github.com/fsprojects/fantomas/issues/2413)
+* Stroustrup style breaks on nested records. [#2587](https://github.com/fsprojects/fantomas/issues/2587)
+* Unit is lost inside dot get chain. [#2683](https://github.com/fsprojects/fantomas/issues/2683)
+* Piped multiline application is indented too far. [#2682](https://github.com/fsprojects/fantomas/issues/2682)
+* Comment not assigned to first parameter in constructor. [#2692](https://github.com/fsprojects/fantomas/issues/2692)
 
 ## [5.2.0-beta-001] - 2023-01-02
 

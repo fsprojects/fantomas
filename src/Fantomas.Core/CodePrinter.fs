@@ -1,4 +1,4 @@
-﻿module internal rec Fantomas.Core.CodePrinter
+module internal rec Fantomas.Core.CodePrinter
 
 open System
 open Fantomas.Core.Context
@@ -436,7 +436,7 @@ let genExpr (e: Expr) =
             genIdentListNode node.FieldName
             +> sepSpace
             +> genSingleTextNode node.Equals
-            +> sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth (genExpr node.Expr)
+            +> sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidthUnlessStroustrup genExpr node.Expr
             |> genNode node
 
         let fieldsExpr = col sepNln node.Fields genRecordFieldName
@@ -551,7 +551,7 @@ let genExpr (e: Expr) =
             genSingleTextNode node.Ident
             +> sepSpace
             +> genSingleTextNode node.Equals
-            +> sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth (genExpr node.Expr)
+            +> sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidthUnlessStroustrup genExpr node.Expr
             |> genNode node
 
         let smallExpression =
@@ -609,19 +609,19 @@ let genExpr (e: Expr) =
                 onlyIf node.IsStruct !- "struct " +> recordExpr
 
             let genMultilineAnonRecordAlignBrackets =
-                let copyExpr fieldsExpr e =
-                    atCurrentColumnIndent (genExpr e)
-                    +> (!- " with"
-                        +> indent
-                        +> whenShortIndent indent
-                        +> sepNln
-                        +> fieldsExpr
-                        +> whenShortIndent unindent
-                        +> unindent)
-
                 let genAnonRecord =
                     match node.CopyInfo with
                     | Some ci ->
+                        let copyExpr fieldsExpr e =
+                            atCurrentColumnIndent (genExpr e)
+                            +> (!- " with"
+                                +> indent
+                                +> whenShortIndent indent
+                                +> sepNln
+                                +> fieldsExpr
+                                +> whenShortIndent unindent
+                                +> unindent)
+
                         genSingleTextNodeSuffixDelimiter node.OpeningBrace
                         +> sepNlnWhenWriteBeforeNewlineNotEmpty // comment after curly brace
                         +> copyExpr fieldsExpr ci
@@ -828,7 +828,7 @@ let genExpr (e: Expr) =
         +> sepSpace
         +> genSingleTextNode node.In
         +> sepSpace
-        +> genExpr node.RightHandSide
+        +> atCurrentColumn (genExpr node.RightHandSide)
         |> genNode node
     | Expr.ParenLambda node ->
         genSingleTextNode node.OpeningParen
@@ -1053,7 +1053,7 @@ let genExpr (e: Expr) =
                             (genGenericTypeParameters typedAppNode +> argFn)
                             identifierNode.Identifier
                             typedAppNode
-                    | _ -> genExpr node.Function
+                    | _ -> genExpr node.Function +> argFn
                 | Expr.DotGetAppDotGetAppParenLambda _ ->
                     leadingExpressionIsMultiline (genExpr node.Function) (fun isMultiline ->
                         if isMultiline then indent +> argFn +> unindent else argFn)
@@ -1423,16 +1423,27 @@ let genExpr (e: Expr) =
                 | [ singleArg ] -> sepSpaceBeforeParenInFuncInvocation node.FunctionExpr singleArg ctx
                 | _ -> sepSpace ctx
 
-            atCurrentColumn (genExpr node.FunctionExpr +> sep +> col sepSpace node.Arguments genExpr)
+            genExpr node.FunctionExpr +> sep +> col sepSpace node.Arguments genExpr
 
         let longExpression =
-            atCurrentColumn (
-                genExpr node.FunctionExpr
-                +> indentSepNlnUnindent (col sepNln node.Arguments genExpr)
-            )
+            genExpr node.FunctionExpr
+            +> indentSepNlnUnindent (col sepNln node.Arguments genExpr)
 
         expressionFitsOnRestOfLine shortExpression longExpression |> genNode node
-    | Expr.TypeApp node -> genExpr node.Identifier +> genGenericTypeParameters node |> genNode node
+    | Expr.TypeApp node ->
+        fun ctx ->
+            let startColum = ctx.Column
+
+            genNode
+                node
+                (genExpr node.Identifier
+                 +> genSingleTextNode node.LessThan
+                 +> colGenericTypeParameters node.TypeParameters
+                 // we need to make sure each expression in the function application has offset at least greater than
+                 // See: https://github.com/fsprojects/fantomas/issues/1611
+                 +> addFixedSpaces startColum
+                 +> genSingleTextNode node.GreaterThan)
+                ctx
     | Expr.TryWithSingleClause node ->
         let genClause =
             let clauseNode = node.Clause
@@ -2180,16 +2191,18 @@ let genKeepIdent (startNode: Node) (e: Expr) ctx =
     else
         indentSepNlnUnindent (genExpr e) ctx
 
-let genGenericTypeParametersAux lessThan typeParameters greaterThan =
-    genSingleTextNode lessThan
-    +> coli sepComma typeParameters (fun idx t ->
+let colGenericTypeParameters typeParameters =
+    coli sepComma typeParameters (fun idx t ->
         let leadingSpace =
             match t with
             | Type.Var n when idx = 0 && n.Text.StartsWith("^") -> sepSpace
             | _ -> sepNone
 
         leadingSpace +> genType t)
-    +> indentIfNeeded sepNone
+
+let genGenericTypeParametersAux lessThan typeParameters greaterThan =
+    genSingleTextNode lessThan
+    +> colGenericTypeParameters typeParameters
     +> genSingleTextNode greaterThan
 
 let genGenericTypeParameters (typeApp: ExprTypeAppNode) =
@@ -3036,8 +3049,8 @@ let genType (t: Type) =
             | None -> sepOpenAnonRecdFixed +> addSpaceIfSpaceAroundDelimiter
             | Some n -> genSingleTextNode n +> addSpaceIfSpaceAroundDelimiter
 
-        let genAnonRecordFieldType (i, t) =
-            genSingleTextNode i
+        let genAnonRecordFieldType (identifier, t) =
+            genSingleTextNode identifier
             +> sepColon
             +> autoIndentAndNlnIfExpressionExceedsPageWidth (genType t)
 
@@ -3049,27 +3062,19 @@ let genType (t: Type) =
             +> genSingleTextNode node.Closing
 
         let longExpression =
-            let genFields = col sepNln node.Fields genAnonRecordFieldType
+            let genAnonRecordFields = col sepNln node.Fields genAnonRecordFieldType
 
-            let genMultilineAnonRecordTypeAlignBrackets =
-                let genRecord =
-                    sepOpenAnonRecdFixed
-                    +> indentSepNlnUnindent (atCurrentColumnIndent genFields)
-                    +> sepNln
-                    +> genSingleTextNode node.Closing
-
-                genStruct +> genRecord
-
-            let genMultilineAnonRecordType =
-                let genRecord =
-                    genOpening
-                    +> atCurrentColumn genFields
-                    +> addSpaceIfSpaceAroundDelimiter
-                    +> genSingleTextNode node.Closing
-
-                genStruct +> genRecord
-
-            ifAlignOrStroustrupBrackets genMultilineAnonRecordTypeAlignBrackets genMultilineAnonRecordType
+            ifAlignOrStroustrupBrackets
+                (genStruct
+                 +> sepOpenAnonRecdFixed
+                 +> indentSepNlnUnindent (atCurrentColumnIndent genAnonRecordFields)
+                 +> sepNln
+                 +> genSingleTextNode node.Closing)
+                (genStruct
+                 +> genOpening
+                 +> atCurrentColumn genAnonRecordFields
+                 +> addSpaceIfSpaceAroundDelimiter
+                 +> genSingleTextNode node.Closing)
 
         fun (ctx: Context) ->
             let size = getRecordSize ctx node.Fields
@@ -3131,6 +3136,7 @@ let genImplicitConstructor (node: ImplicitConstructorNode) =
         +> onlyIf node.IsOptional (!- "?")
         +> genSingleTextNode node.Identifier
         +> optSingle (fun t -> sepColon +> autoIndentAndNlnIfExpressionExceedsPageWidth (genType t)) node.Type
+        |> genNode node
 
     let shortPats = col sepComma node.Parameters genSimplePat
 
@@ -3472,7 +3478,7 @@ let genField (node: FieldNode) =
         | Some name ->
             genSingleTextNode name
             +> sepColon
-            +> autoIndentAndNlnIfExpressionExceedsPageWidth (genType node.Type))
+            +> autoIndentAndNlnTypeUnlessStroustrup genType node.Type)
     |> genNode node
 
 let genUnionCase (hasVerticalBar: bool) (node: UnionCaseNode) =

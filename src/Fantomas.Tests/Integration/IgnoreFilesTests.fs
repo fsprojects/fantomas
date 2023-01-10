@@ -35,8 +35,6 @@ let ``ignore specific file`` () =
     let { ExitCode = exitCode; Output = output } = runFantomasTool inputFixture.Filename
     exitCode |> should equal 0
 
-    printfn "%s" output
-
     output |> should contain "was ignored"
 
 [<Test>]
