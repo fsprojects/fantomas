@@ -32,6 +32,28 @@ type V = {
 """
 
 [<Test>]
+let ``anonymous record type alias`` () =
+    formatSourceString
+        false
+        """
+type V =
+    {| X: SomeFieldType
+       Y: OhSomethingElse
+       Z: ALongTypeName |}
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type V = {|
+    X: SomeFieldType
+    Y: OhSomethingElse
+    Z: ALongTypeName
+|}
+"""
+
+[<Test>]
 [<Ignore("See https://github.com/fsprojects/fantomas/issues/2001, this will be easier to fix in future FCS version")>]
 let ``record type definition with comment after equals`` () =
     formatSourceString
