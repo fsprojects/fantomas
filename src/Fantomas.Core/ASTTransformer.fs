@@ -2072,7 +2072,7 @@ let mkSynUnionCase
         fullRange
     )
 
-let mkImplicitCtor creationAide vis (attrs: SynAttributeList list) pats (self: Ident option) (xmlDoc: PreXmlDoc) m =
+let mkImplicitCtor creationAide vis (attrs: SynAttributeList list) pats (self: Ident option) (xmlDoc: PreXmlDoc) =
     let openNode, closeNode =
         match pats with
         | SynSimplePats.SimplePats(range = StartEndRange 1 (mOpen, _, mClose))
@@ -2095,7 +2095,7 @@ let mkImplicitCtor creationAide vis (attrs: SynAttributeList list) pats (self: I
                         m
                     )
                 )
-            | SynSimplePat.Typed(SynSimplePat.Id(ident = ident; isOptional = isOptional), t, _) ->
+            | SynSimplePat.Typed(SynSimplePat.Id(ident = ident; isOptional = isOptional), t, m) ->
                 Some(
                     SimplePatNode(
                         mkAttributes creationAide [],
@@ -2105,7 +2105,7 @@ let mkImplicitCtor creationAide vis (attrs: SynAttributeList list) pats (self: I
                         m
                     )
                 )
-            | SynSimplePat.Id(ident = ident; isOptional = isOptional) ->
+            | SynSimplePat.Id(ident = ident; isOptional = isOptional; range = m) ->
                 Some(SimplePatNode(mkAttributes creationAide [], isOptional, mkIdent ident, None, m))
             | _ -> None)
 
@@ -2152,8 +2152,8 @@ let mkTypeDefn
 
             let implicitConstructorNode =
                 match implicitConstructor with
-                | Some(SynMemberDefn.ImplicitCtor(vis, attrs, pats, self, xmlDoc, m)) ->
-                    mkImplicitCtor creationAide vis attrs pats self xmlDoc m |> Some
+                | Some(SynMemberDefn.ImplicitCtor(vis, attrs, pats, self, xmlDoc, _)) ->
+                    mkImplicitCtor creationAide vis attrs pats self xmlDoc |> Some
                 | _ -> None
 
             let m =

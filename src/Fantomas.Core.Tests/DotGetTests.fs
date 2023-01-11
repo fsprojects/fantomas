@@ -1390,3 +1390,19 @@ let ``dotget inside a quotation, 2154`` () =
             .AsyncGetIndicator(indicatorIdVal)
     @@>)
 """
+
+[<Test>]
+let ``argument in short type app as function name, 2683`` () =
+    formatSourceString
+        false
+        """
+Assembly.GetExecutingAssembly().GetCustomAttribute<MyCustomAttribute>().SomeProperty
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+Assembly.GetExecutingAssembly().GetCustomAttribute<MyCustomAttribute>()
+    .SomeProperty
+"""

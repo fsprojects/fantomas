@@ -38,8 +38,6 @@ let ``ignore specific file`` () =
     let { ExitCode = exitCode; Output = output } = runFantomasTool args
     exitCode |> should equal 0
 
-    printfn "%s" output
-
     output |> should contain "was ignored"
 
 [<Test>]

@@ -581,22 +581,6 @@ let wordOf = sepSpace +> !- "of "
 
 let indentSepNlnUnindent f = indent +> sepNln +> f +> unindent
 
-// we need to make sure each expression in the function application has offset at least greater than
-// indentation of the function expression itself
-// we replace sepSpace in such case
-// remarks: https://github.com/fsprojects/fantomas/issues/1611
-let indentIfNeeded f (ctx: Context) =
-    let savedColumn = ctx.WriterModel.AtColumn
-
-    if savedColumn >= ctx.Column then
-        // missingSpaces needs to be at least one more than the column
-        // of function expression being applied upon, otherwise (as known up to F# 4.7)
-        // this would lead to a compile error for the function application
-        let missingSpaces = (savedColumn - ctx.FinalizeModel.Column) + ctx.Config.IndentSize
-        atIndentLevel true savedColumn (!-(String.replicate missingSpaces " ")) ctx
-    else
-        f ctx
-
 let shortExpressionWithFallback
     (shortExpression: Context -> Context)
     fallbackExpression
