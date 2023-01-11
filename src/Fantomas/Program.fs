@@ -43,7 +43,7 @@ let time f =
     let sw = Diagnostics.Stopwatch.StartNew()
     let res = f ()
     sw.Stop()
-    sprintf "Time taken: %O s" sw.Elapsed |> stdlog
+    stdlog $"Time taken: %O{sw.Elapsed} s"
     res
 
 [<RequireQualifiedAccess>]
@@ -171,11 +171,11 @@ let readFromStdin (lineLimit: int) =
 
 let private reportCheckResults (checkResult: Format.CheckResult) =
     checkResult.Errors
-    |> List.map (fun (filename, exn) -> sprintf "error: Failed to format %s: %s" filename (exn.ToString()))
-    |> Seq.iter stdlog
+    |> List.map (fun (filename, exn) -> $"error: Failed to format %s{filename}: %s{exn.ToString()}")
+    |> Seq.iter elog
 
     checkResult.Formatted
-    |> List.map (sprintf "%s needs formatting")
+    |> List.map (fun filename -> $"%s{filename} needs formatting")
     |> Seq.iter stdlog
 
 let runCheckCommand (verbosity: VerbosityLevel) (recurse: bool) (inputPath: InputPath) : int =
@@ -192,16 +192,16 @@ let runCheckCommand (verbosity: VerbosityLevel) (recurse: bool) (inputPath: Inpu
 
     match inputPath with
     | InputPath.NoFSharpFile s ->
-        sprintf "Input path '%s' is unsupported file type" s |> elog
+        elog $"Input path '%s{s}' is unsupported file type"
         1
     | InputPath.NotFound s ->
-        sprintf "Input path '%s' not found" s |> elog
+        elog $"Input path '%s{s}' not found"
         1
     | InputPath.Unspecified _ ->
         elog "No input path provided. Call with --help for usage information."
         1
     | InputPath.File f when (IgnoreFile.isIgnoredFile (IgnoreFile.current.Force()) f) ->
-        logGrEqDetailed verbosity (sprintf "'%s' was ignored" f)
+        logGrEqDetailed verbosity $"'%s{f}' was ignored"
         0
     | InputPath.File path -> path |> Seq.singleton |> check |> processCheckResult
     | InputPath.Folder path -> path |> allFiles recurse |> check |> processCheckResult
@@ -306,24 +306,21 @@ let main argv =
                     new StreamWriter(outFile)
 
             if profile then
-                File.ReadLines(inFile)
-                |> Seq.length
-                |> fun l -> sprintf "Line count: %i" l |> stdlog
+                File.ReadLines(inFile) |> Seq.length |> (fun l -> stdlog $"Line count: %i{l}")
 
                 time (fun () -> processSourceFile verbosity force inFile buffer)
             else
                 processSourceFile verbosity force inFile buffer
 
             buffer.Flush()
-            logGrEqDetailed verbosity (sprintf "%s has been written." outFile)
+            logGrEqDetailed verbosity $"%s{outFile} has been written."
         with exn ->
             reraise ()
 
     let stringToFile (force: bool) (s: string) (outFile: string) config =
         try
             if profile then
-                sprintf "Line count: %i" (s.Length - s.Replace(Environment.NewLine, "").Length)
-                |> stdlog
+                stdlog $"""Line count: %i{s.Length - s.Replace(Environment.NewLine, "").Length}"""
 
                 time (fun () -> processSourceString verbosity force s outFile config)
             else
@@ -335,7 +332,7 @@ let main argv =
         if inputFile <> outputFile then
             fileToFile force inputFile outputFile
         else
-            logGrEqDetailed verbosity (sprintf "Processing %s" inputFile)
+            logGrEqDetailed verbosity $"Processing %s{inputFile}"
             let content = File.ReadAllText inputFile
             let config = EditorConfig.readConfiguration inputFile
             stringToFile force content inputFile config
@@ -366,7 +363,7 @@ let main argv =
             files
             |> List.sumBy (fun file ->
                 if (IgnoreFile.isIgnoredFile (IgnoreFile.current.Force()) file) then
-                    logGrEqDetailed verbosity (sprintf "'%s' was ignored" file)
+                    logGrEqDetailed verbosity $"'%s{file}' was ignored"
                     0
                 else
                     processFile force file file
@@ -397,32 +394,32 @@ let main argv =
         try
             match inputPath, outputPath with
             | InputPath.NoFSharpFile s, _ ->
-                sprintf "Input path '%s' is unsupported file type." s |> elog
+                elog $"Input path '%s{s}' is unsupported file type."
                 exit 1
             | InputPath.NotFound s, _ ->
-                sprintf "Input path '%s' not found." s |> elog
+                elog $"Input path '%s{s}' not found."
                 exit 1
             | InputPath.Unspecified, _ ->
                 elog "Input path is missing. Call with --help for usage information."
                 exit 1
             | InputPath.File f, _ when (IgnoreFile.isIgnoredFile (IgnoreFile.current.Force()) f) ->
-                logGrEqDetailed verbosity (sprintf "'%s' was ignored" f)
+                logGrEqDetailed verbosity $"'%s{f}' was ignored"
             | InputPath.Folder p1, OutputPath.NotKnown ->
                 let n = processFolder force p1 p1
-                logGrEqDetailed verbosity (sprintf "Processed files: %d" n)
+                logGrEqDetailed verbosity $"Processed files: %d{n}"
             | InputPath.File p1, OutputPath.NotKnown -> processFile force p1 p1
             | InputPath.File p1, OutputPath.IO p2 -> processFile force p1 p2
             | InputPath.Folder p1, OutputPath.IO p2 ->
                 let n = processFolder force p1 p2
-                logGrEqDetailed verbosity (sprintf "Processed files: %d" n)
+                logGrEqDetailed verbosity $"Processed files: %d{n}"
             | InputPath.Multiple(files, folders), OutputPath.NotKnown ->
                 let n = filesAndFolders force files folders
-                logGrEqDetailed verbosity (sprintf "Processed files: %d" n)
+                logGrEqDetailed verbosity $"Processed files: %d{n}"
             | InputPath.Multiple _, OutputPath.IO _ ->
                 elog "Multiple input files are not supported with the --out flag."
                 exit 1
         with exn ->
-            stdlog exn.Message
+            elog $"%s{exn.Message}"
             exit 1
 
     0

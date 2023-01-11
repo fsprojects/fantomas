@@ -91,5 +91,5 @@ module IgnoreFile =
             try
                 ignoreFile.IsIgnored fullPath
             with ex ->
-                sprintf "%A" ex |> stdlog
+                elog $"%A{ex}"
                 false
