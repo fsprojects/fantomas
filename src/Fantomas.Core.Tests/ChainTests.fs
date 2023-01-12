@@ -172,7 +172,7 @@ A().B(fun b -> b)
 """
 
 [<Test>]
-let ``2685 `` () =
+let ``space before lambda should not occur in chain, 2685 `` () =
     formatSourceString
         false
         """
