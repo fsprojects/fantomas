@@ -5,7 +5,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
   <meta name="author" content="Florian Verdonck, Jindřich Ivánek, David Schaefer">
-  <title>ExprDotGetNode (fantomas)</title>
+  <title>ExprChain (fantomas)</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,600;1,400&family=Reem+Kufi:wght@400;500;700&display=swap" rel="stylesheet">
@@ -60,10 +60,10 @@
 <li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/end-users/GitHooks.html" class="nav-link pb-2 d-block" > Git hooks
 </a></li>
 
-<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/end-users/VisualStudio.html" class="nav-link pb-2 d-block" > Visual Studio
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/end-users/Rider.html" class="nav-link pb-2 d-block" > JetBrains Rider
 </a></li>
 
-<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/end-users/Rider.html" class="nav-link pb-2 d-block" > JetBrains Rider
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/end-users/VisualStudio.html" class="nav-link pb-2 d-block" > Visual Studio
 </a></li>
 
 <li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/end-users/VSCode.html" class="nav-link pb-2 d-block" > Visual Studio Code
@@ -192,7 +192,7 @@
       <div id="fsdocs-content" class="bg-white m-2 m-sm-5 p-3 p-sm-4">
         <div>
   <h2>
-    ExprDotGetNode Type
+    ExprChain Type
   </h2>
   <dl class="fsdocs-metadata">
     <dt>
@@ -251,37 +251,29 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code onmouseout="hideTip(event, '6577', 6577)" onmouseover="showTip(event, '6577', 6577)">
+              <code onmouseout="hideTip(event, '6543', 6543)" onmouseover="showTip(event, '6543', 6543)">
                 <p>
                   <a id="``.ctor``">
                     <a href="#``.ctor``">
-                      <code><span>ExprDotGetNode<span><span>(<span>expr,&#32;identifier,&#32;range</span>)</span></span></span></code>
+                      <code><span>ExprChain<span><span>(<span>links,&#32;range</span>)</span></span></span></code>
                     </a>
                   </a>
                 </p>
               </code>
-              <div class="fsdocs-tip" id="6577">
+              <div class="fsdocs-tip" id="6543">
                 <div class="member-tooltip">
                   Full Usage: 
-                  <code><span>ExprDotGetNode<span><span>(<span>expr,&#32;identifier,&#32;range</span>)</span></span></span></code>
+                  <code><span>ExprChain<span><span>(<span>links,&#32;range</span>)</span></span></span></code>
                   <br/>
                   <br/>
                   Parameters: 
                   <ul>
                     <span>
                       <b>
-                        expr
+                        links
                       </b>
                       :
-                      <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-expr.html">Expr</a></code>
-                    </span>
-                    <br/>
-                    <span>
-                      <b>
-                        identifier
-                      </b>
-                      :
-                      <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-identlistnode.html">IdentListNode</a></code>
+                      <code><span><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-chainlink.html">ChainLink</a>&#32;list</span></code>
                     </span>
                     <br/>
                     <span>
@@ -296,7 +288,7 @@
                   <br/>
                   <span>
                     Returns: 
-                    <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprdotgetnode.html">ExprDotGetNode</a></code>
+                    <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprchain.html">ExprChain</a></code>
                   </span>
                   <br/>
                 </div>
@@ -305,11 +297,11 @@
           </td>
           <td class="fsdocs-member-xmldoc">
             <div class="fsdocs-summary">
-              <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:M:Fantomas.Core.SyntaxOak.ExprDotGetNode.#ctor`')">
+              <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:M:Fantomas.Core.SyntaxOak.ExprChain.#ctor`')">
                 <img src="https://fsprojects.github.io/fantomas/content/img/copy-md.png" class="normal"/>
                 <img src="https://fsprojects.github.io/fantomas/content/img/copy-md-hover.png" class="hover"/>
               </div>
-              <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'M:Fantomas.Core.SyntaxOak.ExprDotGetNode.#ctor\'/>')">
+              <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'M:Fantomas.Core.SyntaxOak.ExprChain.#ctor\'/>')">
                 <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml.png" class="normal"/>
                 <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml-hover.png" class="hover"/>
               </div>
@@ -324,18 +316,10 @@
             <dl class="fsdocs-params">
               <dt class="fsdocs-param">
                 <span class="fsdocs-param-name">
-                  expr
+                  links
                 </span>
                 :
-                <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-expr.html">Expr</a></code>
-              </dt>
-              <dd class="fsdocs-param-docs"></dd>
-              <dt class="fsdocs-param">
-                <span class="fsdocs-param-name">
-                  identifier
-                </span>
-                :
-                <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-identlistnode.html">IdentListNode</a></code>
+                <code><span><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-chainlink.html">ChainLink</a>&#32;list</span></code>
               </dt>
               <dd class="fsdocs-param-docs"></dd>
               <dt class="fsdocs-param">
@@ -352,7 +336,7 @@
                 <span class="fsdocs-return-name">
                   Returns: 
                 </span>
-                <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprdotgetnode.html">ExprDotGetNode</a></code>
+                <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-exprchain.html">ExprChain</a></code>
               </dt>
               <dd class="fsdocs-return-docs"></dd>
             </dl>
@@ -380,24 +364,24 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code onmouseout="hideTip(event, '6578', 6578)" onmouseover="showTip(event, '6578', 6578)">
+              <code onmouseout="hideTip(event, '6544', 6544)" onmouseover="showTip(event, '6544', 6544)">
                 <p>
-                  <a id="Expr">
-                    <a href="#Expr">
-                      <code><span>this.Expr</span></code>
+                  <a id="Links">
+                    <a href="#Links">
+                      <code><span>this.Links</span></code>
                     </a>
                   </a>
                 </p>
               </code>
-              <div class="fsdocs-tip" id="6578">
+              <div class="fsdocs-tip" id="6544">
                 <div class="member-tooltip">
                   Full Usage: 
-                  <code><span>this.Expr</span></code>
+                  <code><span>this.Links</span></code>
                   <br/>
                   <br/>
                   <span>
                     Returns: 
-                    <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-expr.html">Expr</a></code>
+                    <code><span><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-chainlink.html">ChainLink</a>&#32;list</span></code>
                   </span>
                   <br/>
                 </div>
@@ -406,11 +390,11 @@
           </td>
           <td class="fsdocs-member-xmldoc">
             <div class="fsdocs-summary">
-              <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:P:Fantomas.Core.SyntaxOak.ExprDotGetNode.Expr`')">
+              <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:P:Fantomas.Core.SyntaxOak.ExprChain.Links`')">
                 <img src="https://fsprojects.github.io/fantomas/content/img/copy-md.png" class="normal"/>
                 <img src="https://fsprojects.github.io/fantomas/content/img/copy-md-hover.png" class="hover"/>
               </div>
-              <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'P:Fantomas.Core.SyntaxOak.ExprDotGetNode.Expr\'/>')">
+              <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'P:Fantomas.Core.SyntaxOak.ExprChain.Links\'/>')">
                 <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml.png" class="normal"/>
                 <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml-hover.png" class="hover"/>
               </div>
@@ -427,63 +411,7 @@
                 <span class="fsdocs-return-name">
                   Returns: 
                 </span>
-                <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-expr.html">Expr</a></code>
-              </dt>
-              <dd class="fsdocs-return-docs"></dd>
-            </dl>
-          </td>
-        </tr>
-        <tr>
-          <td class="fsdocs-member-usage">
-            <div>
-              <code onmouseout="hideTip(event, '6579', 6579)" onmouseover="showTip(event, '6579', 6579)">
-                <p>
-                  <a id="Identifier">
-                    <a href="#Identifier">
-                      <code><span>this.Identifier</span></code>
-                    </a>
-                  </a>
-                </p>
-              </code>
-              <div class="fsdocs-tip" id="6579">
-                <div class="member-tooltip">
-                  Full Usage: 
-                  <code><span>this.Identifier</span></code>
-                  <br/>
-                  <br/>
-                  <span>
-                    Returns: 
-                    <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-identlistnode.html">IdentListNode</a></code>
-                  </span>
-                  <br/>
-                </div>
-              </div>
-            </div>
-          </td>
-          <td class="fsdocs-member-xmldoc">
-            <div class="fsdocs-summary">
-              <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:P:Fantomas.Core.SyntaxOak.ExprDotGetNode.Identifier`')">
-                <img src="https://fsprojects.github.io/fantomas/content/img/copy-md.png" class="normal"/>
-                <img src="https://fsprojects.github.io/fantomas/content/img/copy-md-hover.png" class="hover"/>
-              </div>
-              <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'P:Fantomas.Core.SyntaxOak.ExprDotGetNode.Identifier\'/>')">
-                <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml.png" class="normal"/>
-                <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml-hover.png" class="hover"/>
-              </div>
-              <a href="" class="fsdocs-source-link" title="Source on GitHub">
-                <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
-                <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
-              </a>
-              <p class="fsdocs-summary">
-                
-              </p>
-            </div>
-            <dl class="fsdocs-returns">
-              <dt>
-                <span class="fsdocs-return-name">
-                  Returns: 
-                </span>
-                <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-identlistnode.html">IdentListNode</a></code>
+                <code><span><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-chainlink.html">ChainLink</a>&#32;list</span></code>
               </dt>
               <dd class="fsdocs-return-docs"></dd>
             </dl>
