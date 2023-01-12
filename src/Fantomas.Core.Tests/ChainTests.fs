@@ -172,38 +172,6 @@ A().B(fun b -> b)
 """
 
 [<Test>]
-let ``space before lambda should not occur in chain, 2685 `` () =
-    formatSourceString
-        false
-        """
-module A =
-    let foo =
-        Foai.SomeLongTextYikes().ConfigureBarry(fun alpha beta gamma ->
-            context.AddSomething ("a string") |> ignore
-        ).MoreContext(fun builder ->
-            // also good stuff
-            ()
-        ).ABC().XYZ
-"""
-        { config with
-            SpaceBeforeUppercaseInvocation = true }
-    |> prepend newline
-    |> should
-        equal
-        """
-module A =
-    let foo =
-        Foai
-            .SomeLongTextYikes()
-            .ConfigureBarry(fun alpha beta gamma -> context.AddSomething ("a string") |> ignore)
-            .MoreContext(fun builder ->
-                // also good stuff
-                ())
-            .ABC()
-            .XYZ
-"""
-
-[<Test>]
 let ``identifier dot appUnit dot typed appUnit `` () =
     formatSourceString
         false

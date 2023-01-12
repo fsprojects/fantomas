@@ -342,3 +342,18 @@ module A =
             .ABC()
             .XYZ
 """
+
+[<Test>]
+let ``typeApp with dotGet and paren expr, 2700`` () =
+    formatSourceString
+        false
+        """
+let f = OptimizedClosures.FSharpFunc<_, _, _>.Adapt (mapping)
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let f = OptimizedClosures.FSharpFunc<_, _, _>.Adapt(mapping)
+"""

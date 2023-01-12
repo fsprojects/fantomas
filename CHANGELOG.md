@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## [5.2.0-alpha-011] - 2023-01-12
 
 ### Fixes 
 * Stroustrup: Two lists given directly as parameters, break code [#2681](https://github.com/fsprojects/fantomas/issues/2681)
@@ -10,11 +10,9 @@
 * Piped multiline application is indented too far. [#2682](https://github.com/fsprojects/fantomas/issues/2682)
 * Comment not assigned to first parameter in constructor. [#2692](https://github.com/fsprojects/fantomas/issues/2692)
 * Stroustrup: Type alias for anonymous record type. [#2179](https://github.com/fsprojects/fantomas/issues/2179)
-
-## [5.2.0-beta-001] - 2023-01-02
-
-### Changed
-* Consider v5.2 to be stable and production ready.
+* Space before lambda should not occur in chain. [#2685](https://github.com/fsprojects/fantomas/issues/2685)
+* Trivia inside chained lambda is not restored correctly. [#2686](https://github.com/fsprojects/fantomas/issues/2686)
+* SpaceBeforeUppercaseInvocation not respected in TypeApp DotGet. [#2700](https://github.com/fsprojects/fantomas/issues/2700)
 
 ## [5.2.0-alpha-010] - 2022-12-30
 
