@@ -442,10 +442,11 @@ let ``meaningful space should be preserved, 353`` () =
     |> should
         equal
         """
-to'.WithCommon(fun o' ->
-    { dotnetOptions o' with
-        WorkingDirectory = Path.getFullName "RegressionTesting/issue29"
-        Verbosity = Some DotNet.Verbosity.Minimal })
+to'
+    .WithCommon(fun o' ->
+        { dotnetOptions o' with
+            WorkingDirectory = Path.getFullName "RegressionTesting/issue29"
+            Verbosity = Some DotNet.Verbosity.Minimal })
     .WithParameters
 """
 
@@ -543,8 +544,7 @@ I wanted to know why you created Fable. Did you always plan to use F#? Or were y
 type Database =
 
     static member Default() =
-        Database
-            .Lowdb
+        Database.Lowdb
             .defaults(
                 { Version = CurrentVersion
                   Questions =

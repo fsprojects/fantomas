@@ -22,7 +22,8 @@ let inline private retype<'T, 'U> (x: 'T) : 'U = (# "" x : 'U #)
 let ``don't add whitespace in chained accessors, 566`` () =
     formatSourceString
         false
-        """type F =
+        """
+type F =
   abstract G : int list -> Map<int, int>
 
 let x : F = { new F with member __.G _ = Map.empty }

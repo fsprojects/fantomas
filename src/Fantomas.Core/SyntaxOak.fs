@@ -1152,88 +1152,43 @@ type ExprIndexWithoutDotNode(identifierExpr: Expr, indexExpr: Expr, range) =
     member x.Identifier = identifierExpr
     member x.Index = indexExpr
 
-type ExprAppDotGetTypeAppNode(typeApp: ExprTypeAppNode, property: IdentListNode, arguments: Expr list, range) =
+type LinkSingleAppParen(functionName: Expr, parenExpr: ExprParenNode, range) =
     inherit NodeBase(range)
+    override this.Children = [| yield Expr.Node functionName; yield parenExpr |]
+    member x.FunctionName = functionName
+    member x.Paren = parenExpr
 
-    override this.Children =
-        [| yield typeApp; yield property; yield! List.map Expr.Node arguments |]
-
-    member x.TypeApp = typeApp
-    member x.Property = property
-    member x.Arguments = arguments
-
-type ExprDotGetAppDotGetAppParenLambdaNode
-    (
-        identifierExpr: Expr,
-        identifierArgExpr: Expr,
-        appLids: IdentListNode,
-        es: Expr list,
-        property: IdentListNode,
-        range
-    ) =
+type LinkSingleAppUnit(functionName: Expr, unit: UnitNode, range) =
     inherit NodeBase(range)
+    override this.Children = [| yield Expr.Node functionName; yield unit |]
+    member x.FunctionName = functionName
+    member x.Unit = unit
 
-    override this.Children =
-        [| yield Expr.Node identifierExpr
-           yield Expr.Node identifierArgExpr
-           yield appLids
-           yield! List.map Expr.Node es
-           yield property |]
+[<RequireQualifiedAccess>]
+type ChainLink =
+    | Identifier of Expr
+    | Dot of SingleTextNode
+    | Expr of Expr
+    | AppParen of
+        // There should only be one argument
+        LinkSingleAppParen
+    | AppUnit of LinkSingleAppUnit
+    // [ expr ] from DotIndexedGet
+    | IndexExpr of Expr // e.[f]
 
-    member x.Identifier = identifierExpr
-    member x.IdentifierArg = identifierArgExpr
-    member x.AppLids = appLids
-    member x.Args = es
-    member x.Property = property
+    static member Node(link: ChainLink) : Node =
+        match link with
+        | Identifier e -> Expr.Node e
+        | Dot n -> n
+        | Expr e -> Expr.Node e
+        | AppParen n -> n
+        | AppUnit n -> n
+        | IndexExpr e -> Expr.Node e
 
-type ExprDotGetAppParenNode(funcExpr: Expr, parenExpr: Expr, property: IdentListNode, range) =
+type ExprChain(links: ChainLink list, range) =
     inherit NodeBase(range)
-
-    override this.Children =
-        [| yield Expr.Node funcExpr; yield Expr.Node parenExpr; yield property |]
-
-    member x.Function = funcExpr
-    member x.ParenArg = parenExpr
-    member x.Property = property
-
-type DotGetAppPartNode
-    (
-        identifier: IdentListNode,
-        typeParameterInfo: (SingleTextNode * Type list * SingleTextNode) option,
-        expr: Expr,
-        range: range
-    ) =
-    inherit NodeBase(range)
-
-    override this.Children =
-        let typeParameterInfoNodes =
-            match typeParameterInfo with
-            | None -> [||]
-            | Some(lt, ts, gt) -> [| yield (lt :> Node); yield! List.map Type.Node ts; yield gt |]
-
-        [| yield identifier; yield! typeParameterInfoNodes; yield Expr.Node expr |]
-
-    member x.Identifier = identifier
-    member x.TypeParameterInfo = typeParameterInfo
-    member x.Expr = expr
-
-type ExprDotGetAppWithParenLambdaNode
-    (funcExpr: Expr, parenLambda: ExprParenLambdaNode, args: DotGetAppPartNode list, range) =
-    inherit NodeBase(range)
-
-    override this.Children =
-        [| yield Expr.Node funcExpr; yield parenLambda; yield! nodes args |]
-
-    member x.Function = funcExpr
-    member x.ParenLambda = parenLambda
-    member x.Arguments = args
-
-type ExprDotGetAppNode(funcExpr: Expr, args: DotGetAppPartNode list, range) =
-    inherit NodeBase(range)
-
-    override this.Children = [| yield Expr.Node funcExpr; yield! nodes args |]
-    member x.FunctionExpr = funcExpr
-    member x.Arguments = args
+    override this.Children = List.map ChainLink.Node links |> List.toArray
+    member x.Links = links
 
 type ExprAppLongIdentAndSingleParenArgNode(functionName: IdentListNode, argExpr: Expr, range) =
     inherit NodeBase(range)
@@ -1247,13 +1202,6 @@ type ExprAppSingleParenArgNode(functionExpr: Expr, argExpr: Expr, range) =
     override this.Children = [| yield Expr.Node functionExpr; yield Expr.Node argExpr |]
     member x.FunctionExpr = functionExpr
     member x.ArgExpr = argExpr
-
-type ExprDotGetAppWithLambdaNode(appWithLambda: ExprAppWithLambdaNode, property: IdentListNode, range) =
-    inherit NodeBase(range)
-
-    override this.Children = [| yield appWithLambda; yield property |]
-    member x.AppWithLambda = appWithLambda
-    member x.Property = property
 
 type ExprAppWithLambdaNode
     (
@@ -1577,12 +1525,6 @@ type ExprDotNamedIndexedPropertySetNode
     member x.Property = propertyExpr
     member x.Set = setExpr
 
-type ExprDotGetNode(expr: Expr, identifier: IdentListNode, range) =
-    inherit NodeBase(range)
-    override this.Children = [| yield Expr.Node expr; yield identifier |]
-    member x.Expr = expr
-    member x.Identifier = identifier
-
 type ExprDotSetNode(identifier: Expr, property: IdentListNode, setExpr: Expr, range) =
     inherit NodeBase(range)
 
@@ -1724,14 +1666,8 @@ type Expr =
     | SameInfixApps of ExprSameInfixAppsNode
     | InfixApp of ExprInfixAppNode
     | IndexWithoutDot of ExprIndexWithoutDotNode
-    | AppDotGetTypeApp of ExprAppDotGetTypeAppNode
-    | DotGetAppDotGetAppParenLambda of ExprDotGetAppDotGetAppParenLambdaNode
-    | DotGetAppParen of ExprDotGetAppParenNode
-    | DotGetAppWithParenLambda of ExprDotGetAppWithParenLambdaNode
-    | DotGetApp of ExprDotGetAppNode
     | AppLongIdentAndSingleParenArg of ExprAppLongIdentAndSingleParenArgNode
     | AppSingleParenArg of ExprAppSingleParenArgNode
-    | DotGetAppWithLambda of ExprDotGetAppWithLambdaNode
     | AppWithLambda of ExprAppWithLambdaNode
     | NestedIndexWithoutDot of ExprNestedIndexWithoutDotNode
     | EndsWithDualListApp of ExprEndsWithDualListAppNode
@@ -1751,7 +1687,6 @@ type Expr =
     | DotIndexedSet of ExprDotIndexedSetNode
     | NamedIndexedPropertySet of ExprNamedIndexedPropertySetNode
     | DotNamedIndexedPropertySet of ExprDotNamedIndexedPropertySetNode
-    | DotGet of ExprDotGetNode
     | DotSet of ExprDotSetNode
     | Set of ExprSetNode
     | LibraryOnlyStaticOptimization of ExprLibraryOnlyStaticOptimizationNode
@@ -1761,6 +1696,7 @@ type Expr =
     | IndexRange of ExprIndexRangeNode
     | IndexFromEnd of ExprIndexFromEndNode
     | Typar of SingleTextNode
+    | Chain of ExprChain
 
     static member Node(x: Expr) : Node =
         match x with
@@ -1797,14 +1733,8 @@ type Expr =
         | SameInfixApps n -> n
         | InfixApp n -> n
         | IndexWithoutDot n -> n
-        | AppDotGetTypeApp n -> n
-        | DotGetAppDotGetAppParenLambda n -> n
-        | DotGetAppParen n -> n
-        | DotGetAppWithParenLambda n -> n
-        | DotGetApp n -> n
         | AppLongIdentAndSingleParenArg n -> n
         | AppSingleParenArg n -> n
-        | DotGetAppWithLambda n -> n
         | AppWithLambda n -> n
         | NestedIndexWithoutDot n -> n
         | EndsWithDualListApp n -> n
@@ -1824,7 +1754,6 @@ type Expr =
         | DotIndexedSet n -> n
         | NamedIndexedPropertySet n -> n
         | DotNamedIndexedPropertySet n -> n
-        | DotGet n -> n
         | DotSet n -> n
         | Set n -> n
         | LibraryOnlyStaticOptimization n -> n
@@ -1834,6 +1763,7 @@ type Expr =
         | IndexRange n -> n
         | IndexFromEnd n -> n
         | Typar n -> n
+        | Chain n -> n
 
     member e.IsStroustrupStyleExpr: bool =
         match e with

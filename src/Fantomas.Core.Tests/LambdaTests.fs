@@ -319,7 +319,8 @@ CloudStorageAccount.SetConfigurationSettingPublisher(fun configName configSettin
         if hostedService then
             RoleEnvironment.GetConfigurationSettingValue(configName)
         else
-            ConfigurationManager.ConnectionStrings.[configName]
+            ConfigurationManager
+                .ConnectionStrings.[configName]
                 .ConnectionString
 
     configSettingPublisher.Invoke(connectionString)
@@ -1293,9 +1294,10 @@ type Item() =
 let items = [ Item(); Item(); Item() ]
 
 let firstOrDef =
-    items.FirstOrDefault(fun x ->
-        x.ValidFrom <= DateTime.Now
-        || x.ValidFrom > DateTime.Now)
+    items
+        .FirstOrDefault(fun x ->
+            x.ValidFrom <= DateTime.Now
+            || x.ValidFrom > DateTime.Now)
         .Value
 """
 
@@ -1495,3 +1497,29 @@ let _ =
 b\"      )
     |> List.length
 "
+
+[<Test>]
+let ``lambda with generic argument in function identifier, 2699`` () =
+    formatSourceString
+        false
+        """
+MailboxProcessor<string>.Start
+    (fun inbox ->
+        async {
+            while true do
+                let! msg = inbox.Receive()
+                do! sw.WriteLineAsync(msg) |> Async.AwaitTask
+        })
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+MailboxProcessor<string>.Start(fun inbox ->
+    async {
+        while true do
+            let! msg = inbox.Receive()
+            do! sw.WriteLineAsync(msg) |> Async.AwaitTask
+    })
+"""

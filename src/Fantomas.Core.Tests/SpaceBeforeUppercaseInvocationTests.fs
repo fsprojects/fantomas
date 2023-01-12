@@ -62,15 +62,7 @@ let x = DateTimeOffset(2017,6,1,10,3,14,TimeSpan(1,30,0)).LocalDateTime
         equal
         """
 let x =
-    DateTimeOffset(
-        2017,
-        6,
-        1,
-        10,
-        3,
-        14,
-        TimeSpan (1, 30, 0)
-    )
+    DateTimeOffset(2017, 6, 1, 10, 3, 14, TimeSpan (1, 30, 0))
         .LocalDateTime
 """
 
@@ -317,4 +309,51 @@ match x with
 | b.C () -> ()
 | D (e = f) -> ()
 | g.H (i = j) -> ()
+"""
+
+[<Test>]
+let ``never add a space before paren lambda in chain, 2685`` () =
+    formatSourceString
+        false
+        """
+module A =
+    let foo =
+        Foai.SomeLongTextYikes().ConfigureBarry(fun alpha beta gamma ->
+            context.AddSomething ("a string") |> ignore
+        ).MoreContext(fun builder ->
+            // also good stuff
+            ()
+        ).ABC().XYZ
+
+"""
+        spaceBeforeConfig
+    |> prepend newline
+    |> should
+        equal
+        """
+module A =
+    let foo =
+        Foai
+            .SomeLongTextYikes()
+            .ConfigureBarry(fun alpha beta gamma -> context.AddSomething ("a string") |> ignore)
+            .MoreContext(fun builder ->
+                // also good stuff
+                ())
+            .ABC()
+            .XYZ
+"""
+
+[<Test>]
+let ``typeApp with dotGet and paren expr, 2700`` () =
+    formatSourceString
+        false
+        """
+let f = OptimizedClosures.FSharpFunc<_, _, _>.Adapt (mapping)
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let f = OptimizedClosures.FSharpFunc<_, _, _>.Adapt(mapping)
 """

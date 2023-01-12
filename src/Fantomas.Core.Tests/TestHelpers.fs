@@ -35,10 +35,10 @@ let formatSourceString isFsiFile (s: string) config =
 
                 CodeFormatter.FormatASTAsync(ast, config = config)
 
-        // let! isValid = CodeFormatter.IsValidFSharpCodeAsync(isFsiFile, formatted)
-        //
-        // if not isValid then
-        //     failwithf $"The formatted result is not valid F# code or contains warnings\n%s{formatted}"
+        let! isValid = CodeFormatter.IsValidFSharpCodeAsync(isFsiFile, formatted)
+
+        if not isValid then
+            failwithf $"The formatted result is not valid F# code or contains warnings\n%s{formatted}"
 
         return formatted.Replace("\r\n", "\n")
     }

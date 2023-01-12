@@ -231,29 +231,14 @@ let mkTreeWithSingleNode (node: Node) : TreeForSelection =
     | :? ExprIndexWithoutDotNode as node ->
         let expr = Expr.IndexWithoutDot node
         mkOakFromModuleDecl (ModuleDecl.DeclExpr expr)
-    | :? ExprAppDotGetTypeAppNode as node ->
-        let expr = Expr.AppDotGetTypeApp node
-        mkOakFromModuleDecl (ModuleDecl.DeclExpr expr)
-    | :? ExprDotGetAppDotGetAppParenLambdaNode as node ->
-        let expr = Expr.DotGetAppDotGetAppParenLambda node
-        mkOakFromModuleDecl (ModuleDecl.DeclExpr expr)
-    | :? ExprDotGetAppParenNode as node ->
-        let expr = Expr.DotGetAppParen node
-        mkOakFromModuleDecl (ModuleDecl.DeclExpr expr)
-    | :? ExprDotGetAppWithParenLambdaNode as node ->
-        let expr = Expr.DotGetAppWithParenLambda node
-        mkOakFromModuleDecl (ModuleDecl.DeclExpr expr)
-    | :? ExprDotGetAppNode as node ->
-        let expr = Expr.DotGetApp node
+    | :? ExprChain as node ->
+        let expr = Expr.Chain node
         mkOakFromModuleDecl (ModuleDecl.DeclExpr expr)
     | :? ExprAppLongIdentAndSingleParenArgNode as node ->
         let expr = Expr.AppLongIdentAndSingleParenArg node
         mkOakFromModuleDecl (ModuleDecl.DeclExpr expr)
     | :? ExprAppSingleParenArgNode as node ->
         let expr = Expr.AppSingleParenArg node
-        mkOakFromModuleDecl (ModuleDecl.DeclExpr expr)
-    | :? ExprDotGetAppWithLambdaNode as node ->
-        let expr = Expr.DotGetAppWithLambda node
         mkOakFromModuleDecl (ModuleDecl.DeclExpr expr)
     | :? ExprAppWithLambdaNode as node ->
         let expr = Expr.AppWithLambda node
@@ -308,9 +293,6 @@ let mkTreeWithSingleNode (node: Node) : TreeForSelection =
         mkOakFromModuleDecl (ModuleDecl.DeclExpr expr)
     | :? ExprDotNamedIndexedPropertySetNode as node ->
         let expr = Expr.DotNamedIndexedPropertySet node
-        mkOakFromModuleDecl (ModuleDecl.DeclExpr expr)
-    | :? ExprDotGetNode as node ->
-        let expr = Expr.DotGet node
         mkOakFromModuleDecl (ModuleDecl.DeclExpr expr)
     | :? ExprDotSetNode as node ->
         let expr = Expr.DotSet node
