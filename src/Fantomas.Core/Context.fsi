@@ -230,7 +230,10 @@ val sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth: expr: (Context -> Contex
 val sepSpaceOrDoubleIndentAndNlnIfExpressionExceedsPageWidth: expr: (Context -> Context) -> ctx: Context -> Context
 
 val sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidthUnlessStroustrup:
-    f: (Expr -> Context -> Context) -> expr: Expr -> ctx: Context -> Context
+    f: (Expr -> Context -> Context) -> expr: Expr -> (Context -> Context)
+
+val sepSpaceOrIndentAndNlnIfTypeExceedsPageWidthUnlessStroustrup:
+    f: (Type -> Context -> Context) -> t: Type -> (Context -> Context)
 
 val autoParenthesisIfExpressionExceedsPageWidth: expr: (Context -> Context) -> ctx: Context -> Context
 val futureNlnCheck: f: (Context -> Context) -> ctx: Context -> bool

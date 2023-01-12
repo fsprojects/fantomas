@@ -3351,19 +3351,27 @@ let genTypeDefn (td: TypeDefn) =
     | TypeDefn.Abbrev node ->
         let hasMembers = List.isNotEmpty members
 
-        header
-        +> sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth (genType node.Type)
-        +> onlyIf
-            hasMembers
-            (optSingle
-                (fun withNode ->
-                    indentSepNlnUnindent (
-                        genSingleTextNode withNode
-                        +> onlyIfCtx (fun ctx -> ctx.Config.NewlineBetweenTypeDefinitionAndMembers) sepNln
-                        +> indentSepNlnUnindent (genMemberDefnList members)
-                    ))
-                typeName.WithKeyword)
-        |> genNode node
+        fun (ctx: Context) ->
+            (match node.Type with
+             | Type.AnonRecord _ when not hasMembers && ctx.Config.ExperimentalStroustrupStyle ->
+                 header
+                 +> sepSpaceOrIndentAndNlnIfTypeExceedsPageWidthUnlessStroustrup genType node.Type
+                 |> genNode node
+             | _ ->
+                 header
+                 +> sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth (genType node.Type)
+                 +> onlyIf
+                     hasMembers
+                     (optSingle
+                         (fun withNode ->
+                             indentSepNlnUnindent (
+                                 genSingleTextNode withNode
+                                 +> onlyIfCtx (fun ctx -> ctx.Config.NewlineBetweenTypeDefinitionAndMembers) sepNln
+                                 +> indentSepNlnUnindent (genMemberDefnList members)
+                             ))
+                         typeName.WithKeyword)
+                 |> genNode node)
+                ctx
     | TypeDefn.Explicit node ->
         let bodyNode = node.Body
 

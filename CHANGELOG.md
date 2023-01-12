@@ -9,6 +9,7 @@
 * Unit is lost inside dot get chain. [#2683](https://github.com/fsprojects/fantomas/issues/2683)
 * Piped multiline application is indented too far. [#2682](https://github.com/fsprojects/fantomas/issues/2682)
 * Comment not assigned to first parameter in constructor. [#2692](https://github.com/fsprojects/fantomas/issues/2692)
+* Stroustrup: Type alias for anonymous record type. [#2179](https://github.com/fsprojects/fantomas/issues/2179)
 
 ## [5.2.0-beta-001] - 2023-01-02
 

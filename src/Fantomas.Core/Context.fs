@@ -746,21 +746,21 @@ let sepSpaceOrDoubleIndentAndNlnIfExpressionExceedsPageWidth expr (ctx: Context)
         expr
         ctx
 
-let sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidthUnlessStroustrup
-    (f: Expr -> Context -> Context)
-    (expr: Expr)
-    (ctx: Context)
-    =
-    let node = Expr.Node expr
-
+let sepSpaceOrIndentAndNlnIfExceedsPageWidthUnlessStroustrup isStroustrup f (node: Node) (ctx: Context) =
     if
         ctx.Config.ExperimentalStroustrupStyle
-        && expr.IsStroustrupStyleExpr
+        && isStroustrup
         && Seq.isEmpty node.ContentBefore
     then
-        (sepSpace +> f expr) ctx
+        (sepSpace +> f) ctx
     else
-        sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth (f expr) ctx
+        sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth f ctx
+
+let sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidthUnlessStroustrup f (expr: Expr) =
+    sepSpaceOrIndentAndNlnIfExceedsPageWidthUnlessStroustrup expr.IsStroustrupStyleExpr (f expr) (Expr.Node expr)
+
+let sepSpaceOrIndentAndNlnIfTypeExceedsPageWidthUnlessStroustrup f (t: Type) =
+    sepSpaceOrIndentAndNlnIfExceedsPageWidthUnlessStroustrup t.IsStroustrupStyleType (f t) (Type.Node t)
 
 let autoNlnIfExpressionExceedsPageWidth expr (ctx: Context) =
     expressionExceedsPageWidth
