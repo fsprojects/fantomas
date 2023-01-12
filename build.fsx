@@ -41,9 +41,9 @@ let pushPackage nupkg =
     async {
         let key = System.Environment.GetEnvironmentVariable("NUGET_KEY")
         let! result =
-            Cli.Wrap("dotnet").WithArguments(
-                $"nuget push {nupkg} --api-key {key} --source https://api.nuget.org/v3/index.json"
-            )
+            Cli
+                .Wrap("dotnet")
+                .WithArguments($"nuget push {nupkg} --api-key {key} --source https://api.nuget.org/v3/index.json")
                 .ExecuteAsync()
                 .Task
             |> Async.AwaitTask
@@ -96,9 +96,10 @@ pipeline "Build" {
 let runGitCommand (arguments: string) =
     async {
         let! result =
-            Cli.Wrap("git").WithArguments(arguments).WithWorkingDirectory(
-                __SOURCE_DIRECTORY__
-            )
+            Cli
+                .Wrap("git")
+                .WithArguments(arguments)
+                .WithWorkingDirectory(__SOURCE_DIRECTORY__)
                 .ExecuteBufferedAsync()
                 .Task
             |> Async.AwaitTask

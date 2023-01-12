@@ -2,7 +2,7 @@
 
 ## [5.2.0-alpha-011] - 2023-01-12
 
-### Fixes 
+### Fixed 
 * Stroustrup: Two lists given directly as parameters, break code [#2681](https://github.com/fsprojects/fantomas/issues/2681)
 * fsharp_experimental_stroustrup_style=true breaks on types with nested anonymous records. [#2413](https://github.com/fsprojects/fantomas/issues/2413)
 * Stroustrup style breaks on nested records. [#2587](https://github.com/fsprojects/fantomas/issues/2587)
@@ -16,13 +16,13 @@
 
 ## [5.2.0-alpha-010] - 2022-12-30
 
-### Fixes
+### Fixed
 * Conditional compilation of a declaration is lost. [#640](https://github.com/fsprojects/fantomas/issues/640)
 * Block comment is not assigned to trivia node. [#2490](https://github.com/fsprojects/fantomas/issues/2490)
 
 ## [5.2.0-alpha-009] - 2022-12-29
 
-### Fixes
+### Fixed
 * ifdef removed when used on inline keyword in function. [#2017](https://github.com/fsprojects/fantomas/issues/2017)
 
 ### Changed
@@ -30,7 +30,7 @@
 
 ## [5.2.0-alpha-008] - 2022-12-28
 
-### Fixes
+### Fixed
 * else followed by //comment and then if has incorrect indention. [#2449](https://github.com/fsprojects/fantomas/issues/2449)
 * Multiple List concat operators are not seen as the same operator. [#2472](https://github.com/fsprojects/fantomas/issues/2472)
 * Multiline string inside lambda expression fails to format. [#1299](https://github.com/fsprojects/fantomas/issues/1299)
@@ -40,7 +40,7 @@
 
 ## [5.2.0-alpha-007] - 2022-12-26
 
-### Fixes
+### Fixed
 * Comment dropped in constructor parameter list. [#1872](https://github.com/fsprojects/fantomas/issues/1872)
 * Block comment before unit is missing. [#2660](https://github.com/fsprojects/fantomas/issues/2660)
 
@@ -49,12 +49,12 @@
 
 ## [5.2.0-alpha-006] - 2022-12-22
 
-### Fixes
+### Fixed
 * Conditional directives around internal keyword. [#628](https://github.com/fsprojects/fantomas/issues/628)
 
 ## [5.2.0-alpha-005] - 2022-12-16
 
-### Fixes
+### Fixed
 * MultiLineLambdaClosingNewline didn't trigger correctly on line which was one character too long. [#2642](https://github.com/fsprojects/fantomas/issues/2642)
 
 ### Changed

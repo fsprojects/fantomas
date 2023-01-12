@@ -63,8 +63,7 @@ module IgnoreFile =
             // In a cli scenario that is the current directory, for the daemon it is the first found ignore file.
             // .gitignore uses forward slashes to path separators
             let relativePath =
-                fs
-                    .Path
+                fs.Path
                     .GetRelativePath(fs.Directory.GetParent(ignoreFilePath).FullName, absoluteFilePath.Path)
                     .Replace("\\", "/")
 
