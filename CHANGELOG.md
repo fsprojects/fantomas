@@ -4,6 +4,7 @@
 
 ### Fixed
 * Trivia before open statement is not preserved. [#2704](https://github.com/fsprojects/fantomas/issues/2704)
+* Type app identifier is considered as an expression. [#2705](https://github.com/fsprojects/fantomas/issues/2705)
 
 ## [5.2.0-alpha-011] - 2023-01-12
 
