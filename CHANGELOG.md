@@ -5,6 +5,7 @@
 ### Fixed
 * Trivia before open statement is not preserved. [#2704](https://github.com/fsprojects/fantomas/issues/2704)
 * Type app identifier is considered as an expression. [#2705](https://github.com/fsprojects/fantomas/issues/2705)
+* MultiLineLambdaClosingNewline + ExperimentalStroustrupStyle is not displaying very well for some use cases. [#2378](https://github.com/fsprojects/fantomas/issues/2378)
 
 ## [5.2.0-alpha-011] - 2023-01-12
 

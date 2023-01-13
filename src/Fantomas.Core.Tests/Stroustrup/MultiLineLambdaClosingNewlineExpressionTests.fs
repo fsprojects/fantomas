@@ -11,9 +11,6 @@ let config =
         MultilineBracketStyle = ExperimentalStroustrup
         MaxArrayOrListWidth = 40 }
 
-// TODO: figure out what should happen when you mix MultiLineLambdaClosingNewline and Stroustrup
-// From a technical point of view, this is correct behavior but having `})` at the end seems sensible as well.
-
 [<Test>]
 let ``paren lambda with record instance`` () =
     formatSourceString
@@ -33,8 +30,7 @@ let ``paren lambda with record instance`` () =
     A = longTypeName
     B = someOtherVariable
     C = ziggyBarX
-}
-)
+})
 """
 
 [<Test>]
@@ -53,8 +49,7 @@ let ``paren lambda with update record`` () =
 (fun x ->
     { astContext with
         IsInsideMatchClausePattern = true
-    }
-)
+    })
 """
 
 [<Test>]
@@ -76,8 +71,7 @@ let ``paren lambda with anonymous record instance`` () =
     A = longTypeName
     B = someOtherVariable
     C = ziggyBarX
-|}
-)
+|})
 """
 
 [<Test>]
@@ -100,8 +94,7 @@ let ``paren lambda with anonymous record instance struct`` () =
     A = longTypeName
     B = someOtherVariable
     C = ziggyBarX
-|}
-)
+|})
 """
 
 [<Test>]
@@ -123,8 +116,7 @@ let ``paren lambda with computation expression`` () =
 (fun x -> task {
     // some computation here
     ()
-}
-)
+})
 """
 
 [<Test>]
@@ -150,8 +142,7 @@ let ``paren lambda with list`` () =
     itemThree
     itemFour
     itemFive
-]
-)
+])
 """
 
 [<Test>]
@@ -177,8 +168,7 @@ let ``paren lambda with array`` () =
     itemThree
     itemFour
     itemFive
-|]
-)
+|])
 """
 
 [<Test>]
@@ -200,8 +190,7 @@ List.map (fun x -> {
     A = longTypeName
     B = someOtherVariable
     C = ziggyBarX
-}
-)
+})
 """
 
 [<Test>]
@@ -220,8 +209,7 @@ List.map (fun x ->
 List.map (fun x ->
     { astContext with
         IsInsideMatchClausePattern = true
-    }
-)
+    })
 """
 
 [<Test>]
@@ -243,8 +231,7 @@ List.map (fun x -> {|
     A = longTypeName
     B = someOtherVariable
     C = ziggyBarX
-|}
-)
+|})
 """
 
 [<Test>]
@@ -267,8 +254,7 @@ List.map (fun x -> struct {|
     A = longTypeName
     B = someOtherVariable
     C = ziggyBarX
-|}
-)
+|})
 """
 
 [<Test>]
@@ -290,8 +276,7 @@ List.map (fun x ->
 List.map (fun x -> task {
     // some computation here
     ()
-}
-)
+})
 """
 
 [<Test>]
@@ -317,8 +302,7 @@ List.map (fun x -> [
     itemThree
     itemFour
     itemFive
-]
-)
+])
 """
 
 [<Test>]
@@ -344,8 +328,7 @@ List.map (fun x -> [|
     itemThree
     itemFour
     itemFive
-|]
-)
+|])
 """
 
 [<Test>]
@@ -368,8 +351,7 @@ List.map
         A = longTypeName
         B = someOtherVariable
         C = ziggyBarX
-    }
-    )
+    })
     b
     c
 """
@@ -391,8 +373,7 @@ List.map
     (fun x ->
         { astContext with
             IsInsideMatchClausePattern = true
-        }
-    )
+        })
     b
     c
 """
@@ -417,8 +398,7 @@ List.map
         A = longTypeName
         B = someOtherVariable
         C = ziggyBarX
-    |}
-    )
+    |})
     b
     c
 """
@@ -444,8 +424,7 @@ List.map
         A = longTypeName
         B = someOtherVariable
         C = ziggyBarX
-    |}
-    )
+    |})
     b
     c
 """
@@ -470,8 +449,7 @@ List.map
     (fun x -> task {
         // some computation here
         ()
-    }
-    )
+    })
     b
     c
 """
@@ -500,8 +478,7 @@ List.map
         itemThree
         itemFour
         itemFive
-    ]
-    )
+    ])
     b
     c
 """
@@ -530,8 +507,7 @@ List.map
         itemThree
         itemFour
         itemFive
-    |]
-    )
+    |])
     b
     c
 """
@@ -557,8 +533,7 @@ Bar
         B = someOtherVariable
         C = ziggyBarX
         D = evenMoreZigBarry
-    }
-    )
+    })
     .Bar()
 """
 
@@ -585,8 +560,7 @@ Bar
             B = someOtherVariable
             C = ziggyBarX
             D = evenMoreZigBarry
-        }
-    )
+        })
     .Bar()
 """
 
@@ -610,8 +584,7 @@ Bar
         A = longTypeName
         B = someOtherVariable
         C = ziggyBarX
-    |}
-    )
+    |})
     .Bar()
 """
 
@@ -637,8 +610,7 @@ Bar
         A = longTypeName
         B = someOtherVariable
         C = ziggyBarX
-    |}
-    )
+    |})
     .Bar()
 """
 
@@ -663,8 +635,7 @@ Bar
     .Foo(fun x -> task {
         // some computation here
         ()
-    }
-    )
+    })
     .Bar()
 """
 
@@ -693,8 +664,7 @@ Bar
         itemThree
         itemFour
         itemFive
-    ]
-    )
+    ])
     .Bar()
 """
 
@@ -723,7 +693,6 @@ Bar
         itemThree
         itemFour
         itemFive
-    |]
-    )
+    |])
     .Bar()
 """
