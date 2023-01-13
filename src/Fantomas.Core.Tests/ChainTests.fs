@@ -340,11 +340,34 @@ let ``very long chain with a some index expressions`` () =
 Universe.Galaxy.SolarSystem.Planet.[3].Countries.[9].People.Count
 """
         { config with
-            MaxDotGetExpressionWidth = 0 }
+            MaxDotGetExpressionWidth = 0
+            MaxLineLength = 50 }
     |> prepend newline
     |> should
         equal
         """
-Universe
-    .Galaxy.SolarSystem.Planet.[3].Countries.[9].People.Count
+Universe.Galaxy.SolarSystem.Planet.[3].Countries
+    .[9].People.Count
+"""
+
+[<Test>]
+let ``Even longer chain with only simple links`` () =
+    formatSourceString
+        false
+        """
+Fooooooooooo.Baaaaaaaaaaaaaaaaar.Foooooooooooooooooo.Baaaaaaaar.Basssss.Baazzzzzzzzzzzzzzzzzz.[0].Meeeeeeeeeeeeeeeeeh
+    .Moooooooooooooooo.Booooooooooooooooooooh.Yooooooooooooooou.Meeeeeeh.Meh2
+"""
+        { config with
+            MaxDotGetExpressionWidth = 0
+            MaxLineLength = 50 }
+    |> prepend newline
+    |> should
+        equal
+        """
+Fooooooooooo.Baaaaaaaaaaaaaaaaar
+    .Foooooooooooooooooo.Baaaaaaaar.Basssss
+    .Baazzzzzzzzzzzzzzzzzz.[0].Meeeeeeeeeeeeeeeeeh
+    .Moooooooooooooooo.Booooooooooooooooooooh
+    .Yooooooooooooooou.Meeeeeeh.Meh2
 """

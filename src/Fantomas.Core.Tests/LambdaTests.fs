@@ -319,8 +319,7 @@ CloudStorageAccount.SetConfigurationSettingPublisher(fun configName configSettin
         if hostedService then
             RoleEnvironment.GetConfigurationSettingValue(configName)
         else
-            ConfigurationManager
-                .ConnectionStrings.[configName].ConnectionString
+            ConfigurationManager.ConnectionStrings.[configName].ConnectionString
 
     configSettingPublisher.Invoke(connectionString)
     |> ignore)
