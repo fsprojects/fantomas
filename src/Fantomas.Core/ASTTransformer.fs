@@ -824,7 +824,7 @@ let (|ChainExpr|_|) (e: SynExpr) : LinkExpr list option =
                 let leftLinks = List.take (leftLinks.Length - 1) leftLinks
                 continuation [ yield! leftLinks; yield! app ])
 
-        | SynExpr.TypeApp _ as typeApp -> mkLinksFromFunctionName LinkExpr.Expr typeApp |> continuation
+        | SynExpr.TypeApp _ as typeApp -> mkLinksFromFunctionName LinkExpr.Identifier typeApp |> continuation
 
         | SynExpr.LongIdent(longDotId = sli) -> continuation (mkLinksFromSynLongIdent sli)
 

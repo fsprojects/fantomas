@@ -280,3 +280,22 @@ builder
     .ThirdThing<Z>()
     .X
 """
+
+[<Test>]
+let ``leading type app with two identifiers, 2705`` () =
+    formatSourceString
+        false
+        """
+Map
+    .empty<_, obj>
+    .Add("headerAction", modifyHeader.Action.ArmValue)
+"""
+        { config with
+            MaxDotGetExpressionWidth = 0 }
+    |> prepend newline
+    |> should
+        equal
+        """
+Map.empty<_, obj>
+    .Add("headerAction", modifyHeader.Action.ArmValue)
+"""
