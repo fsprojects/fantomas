@@ -299,3 +299,52 @@ Map
 Map.empty<_, obj>
     .Add("headerAction", modifyHeader.Action.ArmValue)
 """
+
+[<Test>]
+let ``all simple links should be on the same line, 2712`` () =
+    formatSourceString
+        false
+        """
+type Duck() =
+    member this.Duck  = Duck ()
+    member this.Goose() = Duck()
+    
+let d = Duck()
+
+d.Duck.Duck.Duck.Goose().Duck.Goose().Duck.Duck.Goose().Duck.Duck.Duck.Goose().Duck.Duck.Duck.Duck.Goose()
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type Duck() =
+    member this.Duck = Duck()
+    member this.Goose() = Duck()
+
+let d = Duck()
+
+d.Duck.Duck.Duck
+    .Goose()
+    .Duck.Goose()
+    .Duck.Duck.Goose()
+    .Duck.Duck.Duck.Goose()
+    .Duck.Duck.Duck.Duck.Goose()
+"""
+
+[<Test>]
+let ``very long chain with a some index expressions`` () =
+    formatSourceString
+        false
+        """
+Universe.Galaxy.SolarSystem.Planet.[3].Countries.[9].People.Count
+"""
+        { config with
+            MaxDotGetExpressionWidth = 0 }
+    |> prepend newline
+    |> should
+        equal
+        """
+Universe
+    .Galaxy.SolarSystem.Planet.[3].Countries.[9].People.Count
+"""

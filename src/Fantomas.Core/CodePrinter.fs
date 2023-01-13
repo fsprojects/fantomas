@@ -1096,8 +1096,10 @@ let genExpr (e: Expr) =
 
                     if lastLinkWasSimple && not (futureNlnCheck genDotAndLink ctx) then
                         // The last link was an identifier and the current link fits on the remainder of the current line.
-                        genIndentedLinks currentIsSimple rest ((genDotAndLink +> onlyIfNot isLast sepNln) ctx)
+                        genIndentedLinks currentIsSimple rest (genDotAndLink ctx)
                     else
+                        let ctx' = onlyIfNot lastLinkWasSimple sepNlnUnlessLastEventIsNewline ctx
+
                         genIndentedLinks
                             currentIsSimple
                             rest
@@ -1106,7 +1108,7 @@ let genExpr (e: Expr) =
                               // Don't suffix with a newline if we are at the end of the chain,
                               // or if the current link is an identifier.
                               +> onlyIfNot (isLast || currentIsSimple) sepNln)
-                                ctx)
+                                ctx')
                 | _ -> failwith "Expected dot in chain at this point"
 
             let genFirstLinkAndIndentOther (firstLink: ChainLink) (others: ChainLink list) =

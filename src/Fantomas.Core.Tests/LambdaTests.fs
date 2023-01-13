@@ -320,8 +320,7 @@ CloudStorageAccount.SetConfigurationSettingPublisher(fun configName configSettin
             RoleEnvironment.GetConfigurationSettingValue(configName)
         else
             ConfigurationManager
-                .ConnectionStrings.[configName]
-                .ConnectionString
+                .ConnectionStrings.[configName].ConnectionString
 
     configSettingPublisher.Invoke(connectionString)
     |> ignore)
