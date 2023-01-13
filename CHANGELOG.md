@@ -1,5 +1,10 @@
 # Changelog
 
+## [Unreleased]
+
+### Fixed
+* Trivia before open statement is not preserved. [#2704](https://github.com/fsprojects/fantomas/issues/2704)
+
 ## [5.2.0-alpha-011] - 2023-01-12
 
 ### Fixed 
