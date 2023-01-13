@@ -65,3 +65,28 @@ namespace MySigFile
 
 open type System.Math
 """
+
+[<Test>]
+let ``trivia before open type inside open list, 2704`` () =
+    formatSourceString
+        false
+        """
+namespace CounterApp
+
+open Fabulous
+open Fabulous.XamarinForms
+
+open type Fabulous.XamarinForms.View
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+namespace CounterApp
+
+open Fabulous
+open Fabulous.XamarinForms
+
+open type Fabulous.XamarinForms.View
+"""
