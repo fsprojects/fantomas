@@ -1,5 +1,10 @@
 # Changelog
 
+## [Unreleased]
+
+### Fixed
+* Type app identifier is considered as an expression. [#2705](https://github.com/fsprojects/fantomas/issues/2705)
+
 ## [5.2.0-alpha-011] - 2023-01-12
 
 ### Fixed 
