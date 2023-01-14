@@ -1244,33 +1244,6 @@ type ExprNestedIndexWithoutDotNode(identifierExpr: Expr, indexExpr: Expr, argume
     member x.Index = indexExpr
     member x.Argument = argumentExpr
 
-type ExprEndsWithDualListAppNode
-    (functionExpr: Expr, sequentialExprs: Expr list, firstArrayOrList: Expr, lastArrayOrList: Expr, range) =
-    inherit NodeBase(range)
-
-    override this.Children =
-        [| yield Expr.Node functionExpr
-           yield! List.map Expr.Node sequentialExprs
-           yield Expr.Node firstArrayOrList
-           yield Expr.Node lastArrayOrList |]
-
-    member x.FunctionExpr = functionExpr
-    member x.SequentialExpr = sequentialExprs
-    member x.FirstArrayOrList = firstArrayOrList
-    member x.LastArrayOrList = lastArrayOrList
-
-type ExprEndsWithSingleListAppNode(functionExpr: Expr, sequentialExprs: Expr list, arrayOrList: Expr, range) =
-    inherit NodeBase(range)
-
-    override this.Children =
-        [| yield Expr.Node functionExpr
-           yield! List.map Expr.Node sequentialExprs
-           yield Expr.Node arrayOrList |]
-
-    member x.FunctionExpr = functionExpr
-    member x.SequentialExpr = sequentialExprs
-    member x.ArrayOrList = arrayOrList
-
 type ExprAppNode(functionExpr: Expr, arguments: Expr list, range) =
     inherit NodeBase(range)
 
@@ -1670,8 +1643,6 @@ type Expr =
     | AppSingleParenArg of ExprAppSingleParenArgNode
     | AppWithLambda of ExprAppWithLambdaNode
     | NestedIndexWithoutDot of ExprNestedIndexWithoutDotNode
-    | EndsWithDualListApp of ExprEndsWithDualListAppNode
-    | EndsWithSingleListApp of ExprEndsWithSingleListAppNode
     | App of ExprAppNode
     | TypeApp of ExprTypeAppNode
     | TryWithSingleClause of ExprTryWithSingleClauseNode
@@ -1737,8 +1708,6 @@ type Expr =
         | AppSingleParenArg n -> n
         | AppWithLambda n -> n
         | NestedIndexWithoutDot n -> n
-        | EndsWithDualListApp n -> n
-        | EndsWithSingleListApp n -> n
         | App n -> n
         | TypeApp n -> n
         | TryWithSingleClause n -> n

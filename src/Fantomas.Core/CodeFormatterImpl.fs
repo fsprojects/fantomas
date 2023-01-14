@@ -59,9 +59,9 @@ let formatAST (ast: ParsedInput) (sourceText: ISourceText option) (config: Forma
 
         let fileNode =
             match sourceText with
-            | None -> ASTTransformer.mkOak config None ast
+            | None -> ASTTransformer.mkOak None ast
             | Some sourceText ->
-                ASTTransformer.mkOak config (Some sourceText) ast
+                ASTTransformer.mkOak (Some sourceText) ast
                 |> Trivia.enrichTree config sourceText ast
 
         context |> CodePrinter.genFile fileNode |> Context.dump false

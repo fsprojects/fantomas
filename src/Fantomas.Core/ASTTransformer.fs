@@ -7,15 +7,13 @@ open FSharp.Compiler.Text.Range
 open FSharp.Compiler.Syntax
 open FSharp.Compiler.SyntaxTrivia
 open FSharp.Compiler.Xml
-open Fantomas.Core.FormatConfig
 open Fantomas.Core.ISourceTextExtensions
 open Fantomas.Core.RangePatterns
 open Fantomas.Core.SyntaxOak
 open Microsoft.FSharp.Core
 
 type CreationAide =
-    { SourceText: ISourceText option
-      Config: FormatConfig }
+    { SourceText: ISourceText option }
 
     member x.TextFromSource fallback range =
         match x.SourceText with
@@ -213,51 +211,6 @@ let (|Sequentials|_|) e =
         let xs = visit e2 id
         Some(e1 :: xs)
     | _ -> None
-
-let (|EndsWithSingleListAppExpr|_|) (isStroustrup: bool) (e: SynExpr) =
-    if not isStroustrup then
-        None
-    else
-        match e with
-        | SynExpr.App(ExprAtomicFlag.NonAtomic,
-                      false,
-                      (SynExpr.App _ as funcExpr),
-                      (SynExpr.ArrayOrList _ | SynExpr.ArrayOrListComputed _ as lastArg),
-                      _) ->
-            let rec collectApplicationArgument (e: SynExpr) (continuation: SynExpr seq -> SynExpr seq) =
-                match e with
-                | SynExpr.App(ExprAtomicFlag.NonAtomic, false, (SynExpr.App _ as funcExpr), argExpr, _) ->
-                    collectApplicationArgument funcExpr (fun es ->
-                        seq {
-                            yield! es
-                            yield argExpr
-                        }
-                        |> continuation)
-                | SynExpr.App(ExprAtomicFlag.NonAtomic, false, funcNameExpr, ae, _) ->
-                    let args = Seq.toList (continuation (Seq.singleton ae))
-
-                    Some(funcNameExpr, args, lastArg)
-                | _ -> None
-
-            collectApplicationArgument funcExpr id
-        | SynExpr.App(ExprAtomicFlag.NonAtomic,
-                      false,
-                      funcExpr,
-                      (SynExpr.ArrayOrList _ | SynExpr.ArrayOrListComputed _ as lastArg),
-                      _) -> Some(funcExpr, [], lastArg)
-        | _ -> None
-
-let (|EndsWithDualListAppExpr|_|) (isStroustrup: bool) (e: SynExpr) =
-    if not isStroustrup then
-        None
-    else
-        match e with
-        | SynExpr.App(ExprAtomicFlag.NonAtomic,
-                      false,
-                      EndsWithSingleListAppExpr isStroustrup (e, es, lastButOneArg),
-                      (SynExpr.ArrayOrList _ | SynExpr.ArrayOrListComputed _ as lastArg),
-                      _) -> Some(e, es, lastButOneArg, lastArg)
-        | _ -> None
 
 let mkOpenAndCloseForArrayOrList isArray range =
     if isArray then
@@ -1261,25 +1214,6 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
         )
         |> Expr.NestedIndexWithoutDot
 
-    | EndsWithDualListAppExpr creationAide.Config.ExperimentalStroustrupStyle (e, es, firstList, lastList) ->
-        ExprEndsWithDualListAppNode(
-            mkExpr creationAide e,
-            List.map (mkExpr creationAide) es,
-            mkExpr creationAide firstList,
-            mkExpr creationAide lastList,
-            exprRange
-        )
-        |> Expr.EndsWithDualListApp
-    | EndsWithSingleListAppExpr creationAide.Config.ExperimentalStroustrupStyle (e, es, aol) ->
-        ExprEndsWithSingleListAppNode(
-            mkExpr creationAide e,
-            List.map (mkExpr creationAide) es,
-            mkExpr creationAide aol,
-            exprRange
-        )
-        |> Expr.EndsWithSingleListApp
-
-    // | Expr.App _ -> failwith "Not Implemented"
     | App(fe, args) ->
         ExprAppNode(mkExpr creationAide fe, List.map (mkExpr creationAide) args, exprRange)
         |> Expr.App
@@ -3354,10 +3288,8 @@ let mkFullTreeRange ast =
         let astRange = unionRanges startPos endPos
         includeTrivia astRange trivia.CodeComments trivia.ConditionalDirectives
 
-let mkOak (config: FormatConfig) (sourceText: ISourceText option) (ast: ParsedInput) =
-    let creationAide =
-        { SourceText = sourceText
-          Config = config }
+let mkOak (sourceText: ISourceText option) (ast: ParsedInput) =
+    let creationAide = { SourceText = sourceText }
 
     let fullRange = mkFullTreeRange ast
 
