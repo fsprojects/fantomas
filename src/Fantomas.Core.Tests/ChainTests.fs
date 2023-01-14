@@ -351,7 +351,7 @@ Universe.Galaxy.SolarSystem.Planet.[3].Countries
 """
 
 [<Test>]
-let ``Even longer chain with only simple links`` () =
+let ``even longer chain with only simple links`` () =
     formatSourceString
         false
         """
