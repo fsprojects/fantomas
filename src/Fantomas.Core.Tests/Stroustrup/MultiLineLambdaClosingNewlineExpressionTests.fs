@@ -11,9 +11,6 @@ let config =
         MultilineBracketStyle = ExperimentalStroustrup
         MaxArrayOrListWidth = 40 }
 
-// TODO: figure out what should happen when you mix MultiLineLambdaClosingNewline and Stroustrup
-// From a technical point of view, this is correct behavior but having `})` at the end seems sensible as well.
-
 [<Test>]
 let ``paren lambda with record instance`` () =
     formatSourceString
@@ -33,8 +30,7 @@ let ``paren lambda with record instance`` () =
     A = longTypeName
     B = someOtherVariable
     C = ziggyBarX
-}
-)
+})
 """
 
 [<Test>]
@@ -76,8 +72,7 @@ let ``paren lambda with anonymous record instance`` () =
     A = longTypeName
     B = someOtherVariable
     C = ziggyBarX
-|}
-)
+|})
 """
 
 [<Test>]
@@ -100,8 +95,7 @@ let ``paren lambda with anonymous record instance struct`` () =
     A = longTypeName
     B = someOtherVariable
     C = ziggyBarX
-|}
-)
+|})
 """
 
 [<Test>]
@@ -123,8 +117,7 @@ let ``paren lambda with computation expression`` () =
 (fun x -> task {
     // some computation here
     ()
-}
-)
+})
 """
 
 [<Test>]
@@ -150,8 +143,7 @@ let ``paren lambda with list`` () =
     itemThree
     itemFour
     itemFive
-]
-)
+])
 """
 
 [<Test>]
@@ -177,8 +169,7 @@ let ``paren lambda with array`` () =
     itemThree
     itemFour
     itemFive
-|]
-)
+|])
 """
 
 [<Test>]
@@ -200,8 +191,7 @@ List.map (fun x -> {
     A = longTypeName
     B = someOtherVariable
     C = ziggyBarX
-}
-)
+})
 """
 
 [<Test>]
@@ -243,8 +233,7 @@ List.map (fun x -> {|
     A = longTypeName
     B = someOtherVariable
     C = ziggyBarX
-|}
-)
+|})
 """
 
 [<Test>]
@@ -267,8 +256,7 @@ List.map (fun x -> struct {|
     A = longTypeName
     B = someOtherVariable
     C = ziggyBarX
-|}
-)
+|})
 """
 
 [<Test>]
@@ -290,8 +278,7 @@ List.map (fun x ->
 List.map (fun x -> task {
     // some computation here
     ()
-}
-)
+})
 """
 
 [<Test>]
@@ -317,8 +304,7 @@ List.map (fun x -> [
     itemThree
     itemFour
     itemFive
-]
-)
+])
 """
 
 [<Test>]
@@ -344,8 +330,7 @@ List.map (fun x -> [|
     itemThree
     itemFour
     itemFive
-|]
-)
+|])
 """
 
 [<Test>]
@@ -368,8 +353,7 @@ List.map
         A = longTypeName
         B = someOtherVariable
         C = ziggyBarX
-    }
-    )
+    })
     b
     c
 """
@@ -417,8 +401,7 @@ List.map
         A = longTypeName
         B = someOtherVariable
         C = ziggyBarX
-    |}
-    )
+    |})
     b
     c
 """
@@ -444,8 +427,7 @@ List.map
         A = longTypeName
         B = someOtherVariable
         C = ziggyBarX
-    |}
-    )
+    |})
     b
     c
 """
@@ -470,8 +452,7 @@ List.map
     (fun x -> task {
         // some computation here
         ()
-    }
-    )
+    })
     b
     c
 """
@@ -500,8 +481,7 @@ List.map
         itemThree
         itemFour
         itemFive
-    ]
-    )
+    ])
     b
     c
 """
@@ -530,8 +510,7 @@ List.map
         itemThree
         itemFour
         itemFive
-    |]
-    )
+    |])
     b
     c
 """
@@ -557,8 +536,7 @@ Bar
         B = someOtherVariable
         C = ziggyBarX
         D = evenMoreZigBarry
-    }
-    )
+    })
     .Bar()
 """
 
@@ -610,8 +588,7 @@ Bar
         A = longTypeName
         B = someOtherVariable
         C = ziggyBarX
-    |}
-    )
+    |})
     .Bar()
 """
 
@@ -637,8 +614,7 @@ Bar
         A = longTypeName
         B = someOtherVariable
         C = ziggyBarX
-    |}
-    )
+    |})
     .Bar()
 """
 
@@ -663,8 +639,7 @@ Bar
     .Foo(fun x -> task {
         // some computation here
         ()
-    }
-    )
+    })
     .Bar()
 """
 
@@ -693,8 +668,7 @@ Bar
         itemThree
         itemFour
         itemFive
-    ]
-    )
+    ])
     .Bar()
 """
 
@@ -723,7 +697,133 @@ Bar
         itemThree
         itemFour
         itemFive
-    |]
-    )
+    |])
     .Bar()
+"""
+
+[<Test>]
+let ``non stroustrup expression lambda body expression stills adds newline`` () =
+    formatSourceString
+        false
+        """
+List.map (fun e ->
+    try
+        f e
+    with
+    | ex -> "meh")
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+List.map (fun e ->
+    try
+        f e
+    with ex ->
+        "meh"
+)
+"""
+
+[<Test>]
+let ``non stroustrup expression lambda body expression stills adds newline, multiple arguments in function application``
+    ()
+    =
+    formatSourceString
+        false
+        """
+fn a b c (fun e ->
+    try
+        f e
+    with
+    | ex -> "meh")
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+fn
+    a
+    b
+    c
+    (fun e ->
+        try
+            f e
+        with ex ->
+            "meh"
+    )
+"""
+
+[<Test>]
+let ``application with match lambda should not be affected by stroustrup`` () =
+    formatSourceString
+        false
+        """
+List.map (function
+    | X x -> ()
+    | Y y -> ())
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+List.map (
+    function
+    | X x -> ()
+    | Y y -> ()
+)
+"""
+
+[<Test>]
+let ``non stroustrup argument in application in chain`` () =
+    formatSourceString
+        false
+        """
+Foo.Bar().Meh(fun m -> 
+        try
+            f e
+        with ex ->
+            "meh"
+    )
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+Foo
+    .Bar()
+    .Meh(fun m ->
+        try
+            f e
+        with ex ->
+            "meh"
+    )
+"""
+
+[<Test>]
+let ``non stroustrup body in paren lambda`` () =
+    formatSourceString
+        false
+        """
+(fun m ->
+        try
+            f e
+        with ex ->
+            "meh"
+    )
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+(fun m ->
+    try
+        f e
+    with ex ->
+        "meh"
+)
 """
