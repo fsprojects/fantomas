@@ -712,6 +712,64 @@ type U = U of (int * int)
 """
 
 [<Test>]
+let ``very long delegate type alias, 1514`` () =
+    formatSourceString
+        false
+        """
+type SomeWin32Callback = delegate of NastyWinApi32Type * int * int * int * NastyWinApi32Type * int * int * int * int * NastyWinApi32Type * int * int -> bool
+    """
+        { config with MaxLineLength = 60 }
+    |> prepend newline
+    |> should
+        equal
+        """
+type SomeWin32Callback =
+    delegate of
+        NastyWinApi32Type *
+        int *
+        int *
+        int *
+        NastyWinApi32Type *
+        int *
+        int *
+        int *
+        int *
+        NastyWinApi32Type *
+        int *
+        int ->
+            bool
+"""
+
+[<Test>]
+let ``very long delegate type alias wrapped in parens, 1514`` () =
+    formatSourceString
+        false
+        """
+type SomeWin32Callback = delegate of (NastyWinApi32Type * int * int * int * NastyWinApi32Type * int * int * int * int * NastyWinApi32Type * int * int) -> bool
+    """
+        { config with MaxLineLength = 60 }
+    |> prepend newline
+    |> should
+        equal
+        """
+type SomeWin32Callback =
+    delegate of
+        (NastyWinApi32Type *
+        int *
+        int *
+        int *
+        NastyWinApi32Type *
+        int *
+        int *
+        int *
+        int *
+        NastyWinApi32Type *
+        int *
+        int) ->
+            bool
+"""
+
+[<Test>]
 let ``should keep the ? in optional parameters`` () =
     formatSourceString
         false
@@ -824,9 +882,7 @@ type BlobHelper(Account: CloudStorageAccount) =
                 if hostedService then
                     RoleEnvironment.GetConfigurationSettingValue(configName)
                 else
-                    ConfigurationManager
-                        .ConnectionStrings.[configName]
-                        .ConnectionString
+                    ConfigurationManager.ConnectionStrings.[configName].ConnectionString
 
             configSettingPublisher.Invoke(connectionString)
             |> ignore)

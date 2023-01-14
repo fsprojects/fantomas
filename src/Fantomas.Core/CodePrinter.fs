@@ -1103,20 +1103,26 @@ let genExpr (e: Expr) =
                     let isLast = List.isEmpty rest
                     let genDotAndLink = genSingleTextNode dot +> genLink isLast link
                     let currentIsSimple = ((|SimpleChain|_|) >> Option.isSome) link
+                    let currentLinkFitsOnRestOfLine = not (futureNlnCheck genDotAndLink ctx)
 
-                    if lastLinkWasSimple && not (futureNlnCheck genDotAndLink ctx) then
+                    if lastLinkWasSimple && currentLinkFitsOnRestOfLine then
                         // The last link was an identifier and the current link fits on the remainder of the current line.
-                        genIndentedLinks currentIsSimple rest ((genDotAndLink +> onlyIfNot isLast sepNln) ctx)
+                        genIndentedLinks currentIsSimple rest (genDotAndLink ctx)
                     else
+                        let ctx' =
+                            onlyIf
+                                (not // Last link was `.Foo()`
+                                    lastLinkWasSimple
+                                 // `.Foo.Bar` but `Bar` crossed the max_line_length
+                                 || (lastLinkWasSimple && currentIsSimple && not currentLinkFitsOnRestOfLine))
+                                sepNlnUnlessLastEventIsNewline
+                                ctx
+
                         genIndentedLinks
                             currentIsSimple
                             rest
                             // Print the current link
-                            ((genDotAndLink
-                              // Don't suffix with a newline if we are at the end of the chain,
-                              // or if the current link is an identifier.
-                              +> onlyIfNot (isLast || currentIsSimple) sepNln)
-                                ctx)
+                            (genDotAndLink ctx')
                 | _ -> failwith "Expected dot in chain at this point"
 
             let genFirstLinkAndIndentOther (firstLink: ChainLink) (others: ChainLink list) =
@@ -1133,7 +1139,7 @@ let genExpr (e: Expr) =
                             short
                             (match leadingChain with
                              | [] -> sepNone
-                             | head :: links -> genFirstLinkAndIndentOther head links)
+                             | head :: links -> genLink false head +> indent +> genIndentedLinks true links +> unindent)
                             ctx
                 | _ ->
                     expressionFitsOnRestOfLine

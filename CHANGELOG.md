@@ -1,10 +1,12 @@
 # Changelog
 
-## [Unreleased]
+## [5.2.0-alpha-012] - 2023-01-14
 
 ### Fixed
 * Trivia before open statement is not preserved. [#2704](https://github.com/fsprojects/fantomas/issues/2704)
 * Type app identifier is considered as an expression. [#2705](https://github.com/fsprojects/fantomas/issues/2705)
+* Subsequent identifier links in chain should be on the same line. [#2712](https://github.com/fsprojects/fantomas/issues/2712)
+* Delegate with many parameters result in a compilation error. [#1514](https://github.com/fsprojects/fantomas/issues/1514)
 * MultiLineLambdaClosingNewline + ExperimentalStroustrupStyle is not displaying very well for some use cases. [#2378](https://github.com/fsprojects/fantomas/issues/2378)
 
 ## [5.2.0-alpha-011] - 2023-01-12
