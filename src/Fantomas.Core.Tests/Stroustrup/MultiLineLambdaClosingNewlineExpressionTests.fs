@@ -49,7 +49,8 @@ let ``paren lambda with update record`` () =
 (fun x ->
     { astContext with
         IsInsideMatchClausePattern = true
-    })
+    }
+)
 """
 
 [<Test>]
@@ -209,7 +210,8 @@ List.map (fun x ->
 List.map (fun x ->
     { astContext with
         IsInsideMatchClausePattern = true
-    })
+    }
+)
 """
 
 [<Test>]
@@ -373,7 +375,8 @@ List.map
     (fun x ->
         { astContext with
             IsInsideMatchClausePattern = true
-        })
+        }
+    )
     b
     c
 """
@@ -560,7 +563,8 @@ Bar
             B = someOtherVariable
             C = ziggyBarX
             D = evenMoreZigBarry
-        })
+        }
+    )
     .Bar()
 """
 
@@ -695,4 +699,131 @@ Bar
         itemFive
     |])
     .Bar()
+"""
+
+[<Test>]
+let ``non stroustrup expression lambda body expression stills adds newline`` () =
+    formatSourceString
+        false
+        """
+List.map (fun e ->
+    try
+        f e
+    with
+    | ex -> "meh")
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+List.map (fun e ->
+    try
+        f e
+    with ex ->
+        "meh"
+)
+"""
+
+[<Test>]
+let ``non stroustrup expression lambda body expression stills adds newline, multiple arguments in function application``
+    ()
+    =
+    formatSourceString
+        false
+        """
+fn a b c (fun e ->
+    try
+        f e
+    with
+    | ex -> "meh")
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+fn
+    a
+    b
+    c
+    (fun e ->
+        try
+            f e
+        with ex ->
+            "meh"
+    )
+"""
+
+[<Test>]
+let ``application with match lambda should not be affected by stroustrup`` () =
+    formatSourceString
+        false
+        """
+List.map (function
+    | X x -> ()
+    | Y y -> ())
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+List.map (
+    function
+    | X x -> ()
+    | Y y -> ()
+)
+"""
+
+[<Test>]
+let ``non stroustrup argument in application in chain`` () =
+    formatSourceString
+        false
+        """
+Foo.Bar().Meh(fun m -> 
+        try
+            f e
+        with ex ->
+            "meh"
+    )
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+Foo
+    .Bar()
+    .Meh(fun m ->
+        try
+            f e
+        with ex ->
+            "meh"
+    )
+"""
+
+[<Test>]
+let ``non stroustrup body in paren lambda`` () =
+    formatSourceString
+        false
+        """
+(fun m ->
+        try
+            f e
+        with ex ->
+            "meh"
+    )
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+(fun m ->
+    try
+        f e
+    with ex ->
+        "meh"
+)
 """
