@@ -1078,9 +1078,7 @@ let ``don't add additional newline before SynExpr.New, 1049`` () =
         """
 let getVersion () =
     let version =
-        let assembly =
-            typeof<FSharp.Compiler.SourceCodeServices.FSharpChecker>
-                .Assembly
+        let assembly = typeof<FSharp.Compiler.SourceCodeServices.FSharpChecker>.Assembly
 
         let version = assembly.GetName().Version
         sprintf "%i.%i.%i" version.Major version.Minor version.Revision
@@ -1252,8 +1250,7 @@ let x =
            if tcref.IsILTycon then
                tcref.ILTyconRawMetadata.CustomAttrs.AsArray
                |> Array.exists (fun attr ->
-                   attr.Method.DeclaringType.TypeSpec.Name = typeof<TypeProviderEditorHideMethodsAttribute>
-                       .FullName)
+                   attr.Method.DeclaringType.TypeSpec.Name = typeof<TypeProviderEditorHideMethodsAttribute>.FullName)
            else
                false
 """
@@ -1315,8 +1312,7 @@ let x =
            if tcref.IsILTycon then
                tcref.ILTyconRawMetadata.CustomAttrs.AsArray
                |> Array.exists (fun attr ->
-                   attr.Method.DeclaringType.TypeSpec.Name = typeof<TypeProviderEditorHideMethodsAttribute>
-                       .FullName)
+                   attr.Method.DeclaringType.TypeSpec.Name = typeof<TypeProviderEditorHideMethodsAttribute>.FullName)
            else
                false
 """
