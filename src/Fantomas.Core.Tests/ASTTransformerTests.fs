@@ -59,5 +59,5 @@ let ``avoid stack-overflow in long array/list, 2485`` () =
             )
         )
 
-    let _rootNode = ASTTransformer.mkOak FormatConfig.Default None ast
+    let _rootNode = ASTTransformer.mkOak None ast
     Assert.Pass()

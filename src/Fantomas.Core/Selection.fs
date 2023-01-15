@@ -246,12 +246,6 @@ let mkTreeWithSingleNode (node: Node) : TreeForSelection =
     | :? ExprNestedIndexWithoutDotNode as node ->
         let expr = Expr.NestedIndexWithoutDot node
         mkOakFromModuleDecl (ModuleDecl.DeclExpr expr)
-    | :? ExprEndsWithDualListAppNode as node ->
-        let expr = Expr.EndsWithDualListApp node
-        mkOakFromModuleDecl (ModuleDecl.DeclExpr expr)
-    | :? ExprEndsWithSingleListAppNode as node ->
-        let expr = Expr.EndsWithSingleListApp node
-        mkOakFromModuleDecl (ModuleDecl.DeclExpr expr)
     | :? ExprAppNode as node ->
         let expr = Expr.App node
         mkOakFromModuleDecl (ModuleDecl.DeclExpr expr)
@@ -385,7 +379,7 @@ let formatSelection
         if not isValid then
             raise (FormatException $"Parsing failed with errors: %A{baseDiagnostics}")
 
-        let rootNode = ASTTransformer.mkOak config (Some sourceText) baseUntypedTree
+        let rootNode = ASTTransformer.mkOak (Some sourceText) baseUntypedTree
 
 #if DEBUG
         printTriviaNode rootNode
@@ -426,7 +420,7 @@ let formatSelection
                 let formattedCode = CodePrinter.genFile enrichedTree context |> Context.dump true
                 let source = SourceText.ofString formattedCode
                 let formattedAST, _ = Fantomas.FCS.Parse.parseFile isSignature source []
-                let formattedTree = ASTTransformer.mkOak selectionConfig (Some source) formattedAST
+                let formattedTree = ASTTransformer.mkOak (Some source) formattedAST
                 let rangeOfSelection = findRangeOf t formattedTree
 
                 match rangeOfSelection with
