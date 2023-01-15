@@ -20,6 +20,7 @@
   <ItemGroup>
     <Compile Include="AssemblyInfo.fsi" />
     <Compile Include="AssemblyInfo.fs" />
+    <Compile Include="Logging.fs" />
     <Compile Include="IgnoreFile.fsi" />
     <Compile Include="IgnoreFile.fs" />
     <Compile Include="EditorConfig.fsi" />
@@ -33,6 +34,8 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="FSharp.Core" Version="$(FSharpCoreVersion)" />
+    <PackageReference Include="Serilog" Version="2.12.0" />
+    <PackageReference Include="Serilog.Sinks.Console" Version="4.1.0" />
     <PackageReference Include="StreamJsonRpc" Version="$(StreamJsonRpcVersion)" />
     <PackageReference Include="Argu" Version="6.1.1" />
     <PackageReference Include="Thoth.Json.Net" Version="8.0.0" />
