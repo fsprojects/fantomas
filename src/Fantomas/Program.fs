@@ -3,6 +3,7 @@ open System.IO
 open Fantomas.Core
 open Fantomas
 open Fantomas.Daemon
+open Fantomas.Logging
 open Argu
 open System.Text
 open Fantomas.Format
@@ -17,6 +18,7 @@ type Arguments =
     | [<Unique>] Check
     | [<Unique>] Daemon
     | [<Unique; AltCommandLine("-v")>] Version
+    | [<Unique>] Verbosity of string
     | [<MainCommand>] Input of string list
 
     interface IArgParserTemplate with
@@ -35,12 +37,13 @@ type Arguments =
                 sprintf
                     "Input paths: can be multiple folders or files with %s extension."
                     (Seq.map (fun s -> "*" + s) extensions |> String.concat ",")
+            | Verbosity _ -> "Set the verbosity level. Allowed values are n[ormal] and d[etailed]."
 
 let time f =
     let sw = Diagnostics.Stopwatch.StartNew()
     let res = f ()
     sw.Stop()
-    printfn "Time taken: %O s" sw.Elapsed
+    stdlog $"Time taken: %O{sw.Elapsed} s"
     res
 
 [<RequireQualifiedAccess>]
@@ -94,14 +97,14 @@ let private hasByteOrderMark file =
         false
 
 /// Format a source string using given config and write to a text writer
-let processSourceString (force: bool) s (fileName: string) config =
+let processSourceString verbosity (force: bool) s (fileName: string) config =
     let writeResult (formatted: string) =
         if hasByteOrderMark fileName then
             File.WriteAllText(fileName, formatted, Encoding.UTF8)
         else
             File.WriteAllText(fileName, formatted)
 
-        printfn $"%s{fileName} has been written."
+        logGrEqDetailed verbosity $"%s{fileName} has been written."
 
     async {
         let! formatted = s |> Format.formatContentAsync config fileName
@@ -109,65 +112,65 @@ let processSourceString (force: bool) s (fileName: string) config =
         match formatted with
         | Format.FormatResult.Formatted(_, formattedContent) -> formattedContent |> writeResult
         | Format.InvalidCode(file, formattedContent) when force ->
-            printfn $"%s{file} was not valid after formatting."
+            stdlog $"%s{file} was not valid after formatting."
             formattedContent |> writeResult
-        | Format.FormatResult.Unchanged file -> printfn $"'%s{file}' was unchanged"
-        | Format.IgnoredFile file -> printfn $"'%s{file}' was ignored"
+        | Format.FormatResult.Unchanged file -> logGrEqDetailed verbosity $"'%s{file}' was unchanged"
+        | Format.IgnoredFile file -> logGrEqDetailed verbosity $"'%s{file}' was ignored"
         | Format.FormatResult.Error(_, ex) -> raise ex
         | Format.InvalidCode(file, _) -> raise (exn $"Formatting {file} lead to invalid F# code")
     }
     |> Async.RunSynchronously
 
 /// Format inFile and write to text writer
-let processSourceFile (force: bool) inFile (tw: TextWriter) =
+let processSourceFile verbosity (force: bool) inFile (tw: TextWriter) =
     async {
         let! formatted = Format.formatFileAsync inFile
 
         match formatted with
         | Format.FormatResult.Formatted(_, formattedContent) -> tw.Write(formattedContent)
         | Format.InvalidCode(file, formattedContent) when force ->
-            printfn $"%s{file} was not valid after formatting."
+            stdlog $"%s{file} was not valid after formatting."
             tw.Write(formattedContent)
         | Format.FormatResult.Unchanged _ -> inFile |> File.ReadAllText |> tw.Write
-        | Format.IgnoredFile file -> printfn $"'%s{file}' was ignored"
+        | Format.IgnoredFile file -> logGrEqDetailed verbosity $"'%s{file}' was ignored"
         | Format.FormatResult.Error(_, ex) -> raise ex
         | Format.InvalidCode(file, _) -> raise (exn $"Formatting {file} lead to invalid F# code")
     }
     |> Async.RunSynchronously
 
-let private reportCheckResults (output: TextWriter) (checkResult: Format.CheckResult) =
+let private reportCheckResults (checkResult: Format.CheckResult) =
     checkResult.Errors
-    |> List.map (fun (filename, exn) -> sprintf "error: Failed to format %s: %s" filename (exn.ToString()))
-    |> Seq.iter output.WriteLine
+    |> List.map (fun (filename, exn) -> $"error: Failed to format %s{filename}: %s{exn.ToString()}")
+    |> Seq.iter elog
 
     checkResult.Formatted
-    |> List.map (sprintf "%s needs formatting")
-    |> Seq.iter output.WriteLine
+    |> List.map (fun filename -> $"%s{filename} needs formatting")
+    |> Seq.iter stdlog
 
-let runCheckCommand (recurse: bool) (inputPath: InputPath) : int =
+let runCheckCommand (verbosity: VerbosityLevel) (recurse: bool) (inputPath: InputPath) : int =
     let check files =
         Async.RunSynchronously(Format.checkCode files)
 
     let processCheckResult (checkResult: Format.CheckResult) =
         if checkResult.IsValid then
-            stdout.WriteLine "No changes required."
+            logGrEqDetailed verbosity "No changes required."
             0
         else
-            reportCheckResults stdout checkResult
+            reportCheckResults checkResult
             if checkResult.HasErrors then 1 else 99
 
     match inputPath with
     | InputPath.NoFSharpFile s ->
-        eprintfn "Input path '%s' is unsupported file type" s
+        elog $"Input path '%s{s}' is unsupported file type"
         1
     | InputPath.NotFound s ->
-        eprintfn "Input path '%s' not found" s
+        elog $"Input path '%s{s}' not found"
         1
     | InputPath.Unspecified _ ->
-        eprintfn "No input path provided. Call with --help for usage information."
+        elog "No input path provided. Call with --help for usage information."
         1
     | InputPath.File f when (IgnoreFile.isIgnoredFile (IgnoreFile.current.Force()) f) ->
-        printfn "'%s' was ignored" f
+        logGrEqDetailed verbosity $"'%s{f}' was ignored"
         0
     | InputPath.File path -> path |> Seq.singleton |> check |> processCheckResult
     | InputPath.Folder path -> path |> allFiles recurse |> check |> processCheckResult
@@ -240,9 +243,26 @@ let main argv =
 
     let version = results.TryGetResult <@ Arguments.Version @>
 
+    let verbosity =
+        let maybeVerbosity =
+            results.TryGetResult <@ Arguments.Verbosity @>
+            |> Option.map (fun v -> v.ToLowerInvariant())
+
+        match maybeVerbosity with
+        | None
+        | Some "n"
+        | Some "normal" -> VerbosityLevel.Normal
+        | Some "d"
+        | Some "detailed" -> VerbosityLevel.Detailed
+        | Some _ ->
+            elog "Invalid verbosity level"
+            exit 1
+
+    AppDomain.CurrentDomain.ProcessExit.Add(fun _ -> closeAndFlushLog ())
+
     let fileToFile (force: bool) (inFile: string) (outFile: string) =
         try
-            printfn $"Processing %s{inFile}"
+            logGrEqDetailed verbosity $"Processing %s{inFile}"
             let hasByteOrderMark = hasByteOrderMark inFile
 
             use buffer =
@@ -255,25 +275,25 @@ let main argv =
                     new StreamWriter(outFile)
 
             if profile then
-                File.ReadLines(inFile) |> Seq.length |> printfn "Line count: %i"
+                File.ReadLines(inFile) |> Seq.length |> (fun l -> stdlog $"Line count: %i{l}")
 
-                time (fun () -> processSourceFile force inFile buffer)
+                time (fun () -> processSourceFile verbosity force inFile buffer)
             else
-                processSourceFile force inFile buffer
+                processSourceFile verbosity force inFile buffer
 
             buffer.Flush()
-            printfn "%s has been written." outFile
+            logGrEqDetailed verbosity $"%s{outFile} has been written."
         with exn ->
             reraise ()
 
     let stringToFile (force: bool) (s: string) (outFile: string) config =
         try
             if profile then
-                printfn "Line count: %i" (s.Length - s.Replace(Environment.NewLine, "").Length)
+                stdlog $"""Line count: %i{s.Length - s.Replace(Environment.NewLine, "").Length}"""
 
-                time (fun () -> processSourceString force s outFile config)
+                time (fun () -> processSourceString verbosity force s outFile config)
             else
-                processSourceString force s outFile config
+                processSourceString verbosity force s outFile config
         with exn ->
             reraise ()
 
@@ -281,7 +301,7 @@ let main argv =
         if inputFile <> outputFile then
             fileToFile force inputFile outputFile
         else
-            printfn "Processing %s" inputFile
+            logGrEqDetailed verbosity $"Processing %s{inputFile}"
             let content = File.ReadAllText inputFile
             let config = EditorConfig.readConfiguration inputFile
             stringToFile force content inputFile config
@@ -290,7 +310,9 @@ let main argv =
         if not <| Directory.Exists(outputFolder) then
             Directory.CreateDirectory(outputFolder) |> ignore
 
-        allFiles recurse inputFolder
+        let files = allFiles recurse inputFolder
+
+        files
         |> Seq.iter (fun i ->
             // s supposes to have form s1/suffix
             let suffix = i.Substring(inputFolder.Length + 1)
@@ -303,22 +325,30 @@ let main argv =
 
             processFile force i o)
 
-    let filesAndFolders force (files: string list) (folders: string list) : unit =
-        files
-        |> List.iter (fun file ->
-            if (IgnoreFile.isIgnoredFile (IgnoreFile.current.Force()) file) then
-                printfn "'%s' was ignored" file
-            else
-                processFile force file file)
+        Seq.length files
 
-        folders |> List.iter (fun folder -> processFolder force folder folder)
+    let filesAndFolders force (files: string list) (folders: string list) : int =
+        let singleFilesProcessed =
+            files
+            |> List.sumBy (fun file ->
+                if (IgnoreFile.isIgnoredFile (IgnoreFile.current.Force()) file) then
+                    logGrEqDetailed verbosity $"'%s{file}' was ignored"
+                    0
+                else
+                    processFile force file file
+                    1)
+
+        let filesInFoldersProcessed =
+            folders |> List.sumBy (fun folder -> processFolder force folder folder)
+
+        singleFilesProcessed + filesInFoldersProcessed
 
     let check = results.Contains <@ Arguments.Check @>
     let isDaemon = results.Contains <@ Arguments.Daemon @>
 
     if Option.isSome version then
         let version = CodeFormatter.GetVersion()
-        printfn $"Fantomas v%s{version}"
+        stdlog $"Fantomas v%s{version}"
     elif isDaemon then
         let daemon =
             new FantomasDaemon(Console.OpenStandardOutput(), Console.OpenStandardInput())
@@ -328,31 +358,37 @@ let main argv =
         daemon.WaitForClose.GetAwaiter().GetResult()
         exit 0
     elif check then
-        inputPath |> runCheckCommand recurse |> exit
+        inputPath |> runCheckCommand verbosity recurse |> exit
     else
         try
             match inputPath, outputPath with
             | InputPath.NoFSharpFile s, _ ->
-                eprintfn "Input path '%s' is unsupported file type." s
+                elog $"Input path '%s{s}' is unsupported file type."
                 exit 1
             | InputPath.NotFound s, _ ->
-                eprintfn "Input path '%s' not found." s
+                elog $"Input path '%s{s}' not found."
                 exit 1
             | InputPath.Unspecified, _ ->
-                eprintfn "Input path is missing. Call with --help for usage information."
+                elog "Input path is missing. Call with --help for usage information."
                 exit 1
             | InputPath.File f, _ when (IgnoreFile.isIgnoredFile (IgnoreFile.current.Force()) f) ->
-                printfn "'%s' was ignored" f
-            | InputPath.Folder p1, OutputPath.NotKnown -> processFolder force p1 p1
+                logGrEqDetailed verbosity $"'%s{f}' was ignored"
+            | InputPath.Folder p1, OutputPath.NotKnown ->
+                let n = processFolder force p1 p1
+                logGrEqDetailed verbosity $"Processed files: %d{n}"
             | InputPath.File p1, OutputPath.NotKnown -> processFile force p1 p1
             | InputPath.File p1, OutputPath.IO p2 -> processFile force p1 p2
-            | InputPath.Folder p1, OutputPath.IO p2 -> processFolder force p1 p2
-            | InputPath.Multiple(files, folders), OutputPath.NotKnown -> filesAndFolders force files folders
+            | InputPath.Folder p1, OutputPath.IO p2 ->
+                let n = processFolder force p1 p2
+                logGrEqDetailed verbosity $"Processed files: %d{n}"
+            | InputPath.Multiple(files, folders), OutputPath.NotKnown ->
+                let n = filesAndFolders force files folders
+                logGrEqDetailed verbosity $"Processed files: %d{n}"
             | InputPath.Multiple _, OutputPath.IO _ ->
-                eprintfn "Multiple input files are not supported with the --out flag."
+                elog "Multiple input files are not supported with the --out flag."
                 exit 1
         with exn ->
-            printfn "%s" exn.Message
+            elog $"%s{exn.Message}"
             exit 1
 
     0
