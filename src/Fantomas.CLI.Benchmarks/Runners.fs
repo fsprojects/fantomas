@@ -30,6 +30,11 @@ type ColdStart() =
         Directory.SetCurrentDirectory(projectDir)
 
         let args =
-            Array.append (if not this.processInParallel then [| "--sequential" |] else [||]) [| "-r"; projectDir |]
+            Array.append
+                (if not this.processInParallel then
+                     [| "--sequential" |]
+                 else
+                     [||])
+                [| "-r"; projectDir |]
 
         Program.main args |> ignore
