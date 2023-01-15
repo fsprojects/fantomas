@@ -7,5 +7,4 @@ open Fantomas.CLI.Benchmarks.Runners
 [<EntryPoint>]
 let main _ =
     BenchmarkRunner.Run(Assembly.GetAssembly(typeof<ColdStart>)) |> ignore
-    //ColdStart().CheckInParallelServerGc()
     0
