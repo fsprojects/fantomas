@@ -330,10 +330,15 @@
       },
       "Serilog": {
         "type": "Transitive",
-        "resolved": "2.8.0",
-        "contentHash": "zjuKXW5IQws43IHX7VY9nURsaCiBYh2kyJCWLJRSWrTsx/syBKHV8MibWe2A+QH3Er0AiwA+OJmO3DhFJDY1+A==",
+        "resolved": "2.12.0",
+        "contentHash": "xaiJLIdu6rYMKfQMYUZgTy8YK7SMZjB4Yk50C/u//Z4OsvxkUfSPJy4nknfvwAC34yr13q7kcyh4grbwhSxyZg=="
+      },
+      "Serilog.Sinks.Console": {
+        "type": "Transitive",
+        "resolved": "4.1.0",
+        "contentHash": "K6N5q+5fetjnJPvCmkWOpJ/V8IEIoMIB1s86OzBrbxwTyHxdx3pmz4H+8+O/Dc/ftUX12DM1aynx/dDowkwzqg==",
         "dependencies": {
-          "System.Collections.NonGeneric": "4.3.0"
+          "Serilog": "2.10.0"
         }
       },
       "SerilogTraceListener": {
@@ -396,19 +401,6 @@
         "type": "Transitive",
         "resolved": "5.0.0",
         "contentHash": "FXkLXiK0sVVewcso0imKQoOxjoPAj42R8HtjjbSjVPAzwDfzoyoznWxgA3c38LDbN9SJux1xXoXYAhz98j7r2g=="
-      },
-      "System.Collections.NonGeneric": {
-        "type": "Transitive",
-        "resolved": "4.3.0",
-        "contentHash": "prtjIEMhGUnQq6RnPEYLpFt8AtLbp9yq2zxOSrY7KJJZrw25Fi97IzBqY7iqssbM61Ek5b8f3MG/sG1N2sN5KA==",
-        "dependencies": {
-          "System.Diagnostics.Debug": "4.3.0",
-          "System.Globalization": "4.3.0",
-          "System.Resources.ResourceManager": "4.3.0",
-          "System.Runtime": "4.3.0",
-          "System.Runtime.Extensions": "4.3.0",
-          "System.Threading": "4.3.0"
-        }
       },
       "System.Configuration.ConfigurationManager": {
         "type": "Transitive",
@@ -921,6 +913,8 @@
           "Fantomas.Client": "[1.0.0, )",
           "Fantomas.Core": "[1.0.0, )",
           "Ignore": "[0.1.46, )",
+          "Serilog": "[2.12.0, )",
+          "Serilog.Sinks.Console": "[4.1.0, )",
           "SerilogTraceListener": "[3.2.1-dev-00011, )",
           "StreamJsonRpc": "[2.8.28, )",
           "System.IO.Abstractions": "[17.2.3, )",

@@ -2,6 +2,7 @@ namespace Fantomas
 
 open System.IO.Abstractions
 open Ignore
+open Fantomas.Logging
 
 type AbsoluteFilePath =
     private
@@ -89,5 +90,5 @@ module IgnoreFile =
             try
                 ignoreFile.IsIgnored fullPath
             with ex ->
-                printfn "%A" ex
+                elog $"%A{ex}"
                 false

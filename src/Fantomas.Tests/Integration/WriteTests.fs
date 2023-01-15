@@ -12,13 +12,16 @@ let FormattedCode =
 [<Literal>]
 let UnformattedCode = "let a =   9"
 
+[<Literal>]
+let Verbosity = "--verbosity d"
+
 [<Test>]
 let ``correctly formatted file should not be written, 1984`` () =
     let fileName = "A"
 
     use inputFixture = new TemporaryFileCodeSample(FormattedCode, fileName = fileName)
-
-    let { ExitCode = exitCode; Output = output } = runFantomasTool inputFixture.Filename
+    let args = sprintf "%s %s" Verbosity inputFixture.Filename
+    let { ExitCode = exitCode; Output = output } = runFantomasTool args
     exitCode |> should equal 0
 
     output |> should contain "was unchanged"
@@ -28,8 +31,8 @@ let ``incorrectly formatted file should be written`` () =
     let fileName = "A"
 
     use inputFixture = new TemporaryFileCodeSample(UnformattedCode, fileName = fileName)
-
-    let { ExitCode = exitCode; Output = output } = runFantomasTool inputFixture.Filename
+    let args = sprintf "%s %s" Verbosity inputFixture.Filename
+    let { ExitCode = exitCode; Output = output } = runFantomasTool args
     exitCode |> should equal 0
 
     output |> should contain "has been written"
