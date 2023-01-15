@@ -11,6 +11,9 @@ let UserCode = "let a  =   9"
 [<Literal>]
 let FormattedCode = "let a = 9\n"
 
+[<Literal>]
+let Verbosity = "--verbosity d"
+
 let private fileContentMatches (expectedContent: string) (actualPath: string) : unit =
     if File.Exists(actualPath) then
         let actualContent = File.ReadAllText(actualPath)
@@ -45,7 +48,7 @@ let ``format multiple paths with recursive flag`` () =
     use fileFixtureThree = new TemporaryFileCodeSample(UserCode, subFolder = "sub")
 
     let arguments =
-        sprintf "\"%s\" \"%s\" \"sub\" -r" fileFixtureOne.Filename fileFixtureTwo.Filename
+        sprintf "%s \"%s\" \"%s\" \"sub\" -r" Verbosity fileFixtureOne.Filename fileFixtureTwo.Filename
 
     let { ExitCode = exitCode; Output = output } = runFantomasTool arguments
 
