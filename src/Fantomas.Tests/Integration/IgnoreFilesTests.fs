@@ -8,6 +8,9 @@ open Fantomas.Tests.TestHelpers
 [<Literal>]
 let Source = "let  foo =   47"
 
+[<Literal>]
+let Verbosity = "--verbosity d"
+
 [<Test>]
 let ``ignore all fs files`` () =
     let fileName = "ToBeIgnored"
@@ -31,8 +34,8 @@ let ``ignore specific file`` () =
     use inputFixture = new TemporaryFileCodeSample(Source, fileName = fileName)
 
     use ignoreFixture = new FantomasIgnoreFile("A.fs")
-
-    let { ExitCode = exitCode; Output = output } = runFantomasTool inputFixture.Filename
+    let args = sprintf "%s %s" Verbosity inputFixture.Filename
+    let { ExitCode = exitCode; Output = output } = runFantomasTool args
     exitCode |> should equal 0
 
     output |> should contain "was ignored"
@@ -61,8 +64,8 @@ let ``don't ignore other files`` () =
     use inputFixture = new TemporaryFileCodeSample(Source, fileName = fileName)
 
     use ignoreFixture = new FantomasIgnoreFile("A.fs")
-
-    let { ExitCode = exitCode; Output = output } = runFantomasTool inputFixture.Filename
+    let args = sprintf "%s %s" Verbosity inputFixture.Filename
+    let { ExitCode = exitCode; Output = output } = runFantomasTool args
     exitCode |> should equal 0
 
     output |> should contain "Processing"
@@ -79,11 +82,13 @@ let ``ignore file in folder`` () =
 
     use ignoreFixture = new FantomasIgnoreFile("A.fs")
 
-    let { ExitCode = exitCode } =
-        runFantomasTool (sprintf ".%c%s" Path.DirectorySeparatorChar subFolder)
+    let { ExitCode = exitCode; Output = output } =
+        runFantomasTool (sprintf "%s .%c%s" Verbosity Path.DirectorySeparatorChar subFolder)
 
     exitCode |> should equal 0
     File.ReadAllText inputFixture.Filename |> should equal Source
+
+    output |> should contain "Processed files: 0"
 
 [<Test>]
 let ``ignore file while checking`` () =
@@ -94,7 +99,7 @@ let ``ignore file while checking`` () =
     use ignoreFixture = new FantomasIgnoreFile("A.fs")
 
     let { ExitCode = exitCode; Output = output } =
-        sprintf "%s --check" inputFixture.Filename |> runFantomasTool
+        sprintf "%s %s --check" Verbosity inputFixture.Filename |> runFantomasTool
 
     exitCode |> should equal 0
 
@@ -127,6 +132,7 @@ let ``honor ignore file when processing a folder`` () =
     use inputFixture = new FantomasIgnoreFile("*.fsx")
 
     let { Output = output } =
-        runFantomasTool (sprintf ".%c%s" Path.DirectorySeparatorChar subFolder)
+        runFantomasTool (sprintf "%s .%c%s" Verbosity Path.DirectorySeparatorChar subFolder)
 
     output |> should not' (contain "ignored")
+    output |> should contain "Processed files: 1"
