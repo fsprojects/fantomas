@@ -11,7 +11,7 @@ let config =
         MaxArrayOrListWidth = 40 }
 
 [<Test>]
-let ``dotSet with record instance `` () =
+let ``dotSet with record instance`` () =
     formatSourceString
         false
         """
@@ -21,6 +21,61 @@ App().foo <-
       C = ziggyBarX }
 """
         config
+    |> prepend newline
+    |> should
+        equal
+        """
+App().foo <- {
+    A = longTypeName
+    B = someOtherVariable
+    C = ziggyBarX
+}
+"""
+
+[<Test>]
+let ``dotSet with unit param on lhs`` () =
+    formatSourceString
+        false
+        """
+app().foo <- thing
+"""
+        { config with
+            SpaceBeforeLowercaseInvocation = true }
+    |> prepend newline
+    |> should
+        equal
+        """
+app().foo <- thing
+"""
+
+[<Test>]
+let ``dotSet with unit param on lhs with another thing before`` () =
+    formatSourceString
+        false
+        """
+app.last().foo <- foo().thing.other().thing
+"""
+        { config with
+            SpaceBeforeLowercaseInvocation = true }
+    |> prepend newline
+    |> should
+        equal
+        """
+app.last().foo <- foo().thing.other().thing
+"""
+
+[<Test>]
+let ``dotSet with record instance when SpaceBeforeUppercaseInvocation = true`` () =
+    formatSourceString
+        false
+        """
+App().foo <-
+    { A = longTypeName
+      B = someOtherVariable
+      C = ziggyBarX }
+"""
+        { config with
+            SpaceBeforeUppercaseInvocation = true }
     |> prepend newline
     |> should
         equal

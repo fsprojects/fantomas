@@ -653,7 +653,7 @@ let mkLinksFromFunctionName (mkLinkFromExpr: SynExpr -> LinkExpr) (functionName:
               yield (mkLongIdentExprFromSynIdent lastSynIdent |> mkLinkFromExpr) ]
     | e -> [ mkLinkFromExpr e ]
 
-let (|ChainExpr|_|) (e: SynExpr) : LinkExpr list option =
+let (|ChainExpr|_|) (e: SynExpr) : (LinkExpr list * SynExpr) option =
     let rec visit (e: SynExpr) (continuation: LinkExpr list -> LinkExpr list) =
         match e with
         | SynExpr.App(
@@ -747,6 +747,16 @@ let (|ChainExpr|_|) (e: SynExpr) : LinkExpr list option =
                       yield LinkExpr.Dot rangeOfDot
                       yield! mkLinksFromSynLongIdent longDotId ])
 
+        | SynExpr.DotSet(targetExpr, longDotId, _, _) ->
+            visit targetExpr (fun links ->
+                continuation
+                    [ yield! links
+                      let dotRange =
+                          mkRange targetExpr.Range.FileName targetExpr.Range.End longDotId.Range.Start
+
+                      yield LinkExpr.Dot dotRange
+                      yield! mkLinksFromSynLongIdent longDotId ])
+
         | SynExpr.App(isInfix = false; funcExpr = funcExpr; argExpr = UnitExpr mUnit) ->
             mkLinksFromFunctionName (fun e -> LinkExpr.AppUnit(e, mUnit)) funcExpr
             |> continuation
@@ -805,9 +815,10 @@ let (|ChainExpr|_|) (e: SynExpr) : LinkExpr list option =
         funcExpr = SynExpr.DotGet _ | SynExpr.TypeApp(expr = SynExpr.DotGet _)
         argExpr = UnitExpr _ | ParenExpr _)
     | SynExpr.DotGet _
+    | SynExpr.DotSet _
     | SynExpr.TypeApp(expr = SynExpr.DotGet _)
     | SynExpr.DotIndexedGet(objectExpr = SynExpr.App(funcExpr = SynExpr.DotGet _) | SynExpr.DotGet _) ->
-        Some(visit e id)
+        Some(visit e id, e)
     | _ -> None
 
 let (|AppSingleParenArg|_|) =
@@ -1117,27 +1128,14 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
         ExprIndexWithoutDotNode(mkExpr creationAide identifierExpr, mkExpr creationAide indexExpr, exprRange)
         |> Expr.IndexWithoutDot
 
-    | ChainExpr links ->
-        let chainLinks =
-            links
-            |> List.map (function
-                | LinkExpr.Identifier identifierExpr -> mkExpr creationAide identifierExpr |> ChainLink.Identifier
-                | LinkExpr.Dot mDot -> stn "." mDot |> ChainLink.Dot
-                | LinkExpr.Expr e -> mkExpr creationAide e |> ChainLink.Expr
-                | LinkExpr.AppUnit(f, mUnit) ->
-                    LinkSingleAppUnit(mkExpr creationAide f, mkUnit mUnit, unionRanges f.Range mUnit)
-                    |> ChainLink.AppUnit
-                | LinkExpr.AppParen(f, lpr, e, rpr, pr) ->
-                    LinkSingleAppParen(
-                        mkExpr creationAide f,
-                        mkParenExpr creationAide lpr e rpr pr,
-                        unionRanges f.Range pr
-                    )
-                    |> ChainLink.AppParen
-                | LinkExpr.IndexExpr e -> mkExpr creationAide e |> ChainLink.IndexExpr
-                | link -> failwithf "cannot map %A" link)
+    | ChainExpr(links, SynExpr.DotSet(e1, synLongIdent, e2, _)) ->
+        let chainRange = unionRanges e1.Range synLongIdent.Range
 
-        ExprChain(chainLinks, exprRange) |> Expr.Chain
+        ExprDotSetNode(mkChainExpr links creationAide chainRange, mkExpr creationAide e2, exprRange)
+        |> Expr.DotSet
+
+    | ChainExpr(links, _) -> mkChainExpr links creationAide exprRange |> Expr.Chain
+
     | AppSingleParenArg(SynExpr.LongIdent(longDotId = longDotId), px) ->
         ExprAppLongIdentAndSingleParenArgNode(mkSynLongIdent longDotId, mkExpr creationAide px, exprRange)
         |> Expr.AppLongIdentAndSingleParenArg
@@ -1357,9 +1355,6 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
             exprRange
         )
         |> Expr.DotNamedIndexedPropertySet
-    | SynExpr.DotSet(e1, synLongIdent, e2, _) ->
-        ExprDotSetNode(mkExpr creationAide e1, mkSynLongIdent synLongIdent, mkExpr creationAide e2, exprRange)
-        |> Expr.DotSet
     | SynExpr.Set(e1, e2, _) ->
         ExprSetNode(mkExpr creationAide e1, mkExpr creationAide e2, exprRange)
         |> Expr.Set
@@ -1464,6 +1459,24 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
     | SynExpr.IndexFromEnd(e, _) -> ExprIndexFromEndNode(mkExpr creationAide e, exprRange) |> Expr.IndexFromEnd
     | SynExpr.Typar(typar, _) -> mkSynTypar typar |> Expr.Typar
     | _ -> failwithf "todo for %A" e
+
+let mkChainExpr links creationAide exprRange =
+    let chainLinks =
+        links
+        |> List.map (function
+            | LinkExpr.Identifier identifierExpr -> mkExpr creationAide identifierExpr |> ChainLink.Identifier
+            | LinkExpr.Dot mDot -> stn "." mDot |> ChainLink.Dot
+            | LinkExpr.Expr e -> mkExpr creationAide e |> ChainLink.Expr
+            | LinkExpr.AppUnit(f, mUnit) ->
+                LinkSingleAppUnit(mkExpr creationAide f, mkUnit mUnit, unionRanges f.Range mUnit)
+                |> ChainLink.AppUnit
+            | LinkExpr.AppParen(f, lpr, e, rpr, pr) ->
+                LinkSingleAppParen(mkExpr creationAide f, mkParenExpr creationAide lpr e rpr pr, unionRanges f.Range pr)
+                |> ChainLink.AppParen
+            | LinkExpr.IndexExpr e -> mkExpr creationAide e |> ChainLink.IndexExpr
+            | link -> failwithf "cannot map %A" link)
+
+    ExprChain(chainLinks, exprRange)
 
 let mkExprQuote creationAide isRaw e range : ExprQuoteNode =
     let startToken, endToken =

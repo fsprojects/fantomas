@@ -1,4 +1,4 @@
-﻿module internal rec Fantomas.Core.SyntaxOak
+module internal rec Fantomas.Core.SyntaxOak
 
 open System.Collections.Generic
 open FSharp.Compiler.Text
@@ -1498,14 +1498,12 @@ type ExprDotNamedIndexedPropertySetNode
     member x.Property = propertyExpr
     member x.Set = setExpr
 
-type ExprDotSetNode(identifier: Expr, property: IdentListNode, setExpr: Expr, range) =
+type ExprDotSetNode(identifier: ExprChain, setExpr: Expr, range) =
     inherit NodeBase(range)
 
-    override this.Children =
-        [| yield Expr.Node identifier; yield property; yield Expr.Node setExpr |]
+    override this.Children = [| yield identifier; yield Expr.Node setExpr |]
 
     member x.Identifier = identifier
-    member x.Property = property
     member x.Set = setExpr
 
 type ExprSetNode(identifier: Expr, setExpr: Expr, range) =
