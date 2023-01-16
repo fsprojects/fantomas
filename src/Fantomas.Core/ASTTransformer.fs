@@ -2192,6 +2192,8 @@ let mkImplicitCtor creationAide vis (attrs: SynAttributeList list) pats (self: I
                         m
                     )
                 )
+            | SynSimplePat.Attrib(SynSimplePat.Id(ident = ident; isOptional = isOptional), attributes, m) ->
+                Some(SimplePatNode(mkAttributes creationAide attributes, isOptional, mkIdent ident, None, m))
             | SynSimplePat.Id(ident = ident; isOptional = isOptional; range = m) ->
                 Some(SimplePatNode(mkAttributes creationAide [], isOptional, mkIdent ident, None, m))
             | _ -> None)
