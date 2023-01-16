@@ -296,63 +296,49 @@ let main argv =
 
     AppDomain.CurrentDomain.ProcessExit.Add(fun _ -> closeAndFlushLog ())
 
-    let inline reraiseAsync (e: exn) =
-        let edi = ExceptionDispatchInfo.Capture e
-        edi.Throw()
-        Unchecked.defaultof<_>
-
     let fileToFile (force: bool) (inFile: string) (outFile: string) =
         async {
-            try
-                logGrEqDetailed verbosity $"Processing %s{inFile}"
-                let! hasByteOrderMark = hasByteOrderMark inFile
+            logGrEqDetailed verbosity $"Processing %s{inFile}"
+            let! hasByteOrderMark = hasByteOrderMark inFile
 
-                use buffer =
-                    if hasByteOrderMark then
-                        new StreamWriter(
-                            new FileStream(outFile, FileMode.OpenOrCreate, FileAccess.ReadWrite),
-                            Encoding.UTF8
-                        )
-                    else
-                        new StreamWriter(outFile)
+            use buffer =
+                if hasByteOrderMark then
+                    new StreamWriter(
+                        new FileStream(outFile, FileMode.OpenOrCreate, FileAccess.ReadWrite),
+                        Encoding.UTF8
+                    )
+                else
+                    new StreamWriter(outFile)
 
-                let! _ =
-                    if profile then
-                        async {
-                            let! length = File.ReadAllLinesAsync(inFile) |> Async.AwaitTask
-                            length |> Seq.length |> (fun l -> stdlog $"Line count: %i{l}")
+            let! processResult =
+                if profile then
+                    async {
+                        let! length = File.ReadAllLinesAsync(inFile) |> Async.AwaitTask
+                        length |> Seq.length |> (fun l -> stdlog $"Line count: %i{l}")
+                        return! timeAsync (fun () -> processSourceFile verbosity force inFile buffer)
+                    }
+                else
+                    processSourceFile verbosity force inFile buffer
 
-                            return! timeAsync (fun () -> processSourceFile verbosity force inFile buffer)
-                        }
-                    else
-                        processSourceFile verbosity force inFile buffer
-
-                buffer.Flush()
-                logGrEqDetailed verbosity $"%s{outFile} has been written."
-            with exn ->
-                return reraiseAsync exn
+            do! buffer.FlushAsync() |> Async.AwaitTask
+            logGrEqDetailed verbosity $"%s{outFile} has been written."
+            return processResult
         }
 
     let stringToFile (force: bool) (s: string) (outFile: string) config =
         async {
-            try
-                if profile then
-                    stdlog $"""Line count: %i{s.Length - s.Replace(Environment.NewLine, "").Length}"""
-
-                    return! timeAsync (fun () -> processSourceString verbosity force s outFile config)
-                else
-                    return! processSourceString verbosity force s outFile config
-            with exn ->
-                return reraiseAsync exn
+            if profile then
+                stdlog $"""Line count: %i{s.Length - s.Replace(Environment.NewLine, "").Length}"""
+                return! timeAsync (fun () -> processSourceString verbosity force s outFile config)
+            else
+                return! processSourceString verbosity force s outFile config
         }
 
     let processFile force inputFile outputFile =
         async {
-
             try
                 if inputFile <> outputFile then
-                    do! fileToFile force inputFile outputFile
-                    return ProcessResult.Formatted inputFile
+                    return! fileToFile force inputFile outputFile
                 else
                     logGrEqDetailed verbosity $"Processing %s{inputFile}"
                     let! content = File.ReadAllTextAsync inputFile |> Async.AwaitTask
