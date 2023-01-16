@@ -393,7 +393,7 @@ let main argv =
             | ProcessResult.Unchanged u -> (oks, ignores, u :: unchanged, errors)
             | ProcessResult.Error(file, e) -> (oks, ignores, unchanged, (file, e) :: errors))
 
-    let reportOnResults (results: #seq<ProcessResult>) =
+    let reportFormatResults (results: #seq<ProcessResult>) =
         let oks, ignored, unchanged, errored = partitionResults results
 
         let summaryMessage =
@@ -402,15 +402,15 @@ let main argv =
         stdlog summaryMessage
 
         errored
-        |> Seq.iter (fun (file, error) ->
+        |> Seq.iter (fun (file, ex) ->
             let message =
                 match verbosity with
                 | VerbosityLevel.Normal ->
-                    match error with
+                    match ex with
                     | :? FormatConfig.FormatException as fe -> fe.Message
                     | :? CodeFormatException as fe -> fe.Message
                     | _ -> ""
-                | VerbosityLevel.Detailed -> sprintf "%A" error
+                | VerbosityLevel.Detailed -> sprintf "%A" ex
 
             elog $"Failed to format file: {file} : {message}")
 
@@ -450,16 +450,16 @@ let main argv =
                 elog "Input path is missing. Call with --help for usage information."
                 exit 1
             | InputPath.File f, _ when (IgnoreFile.isIgnoredFile (IgnoreFile.current.Force()) f) ->
-
                 logGrEqDetailed verbosity $"'%s{f}' was ignored"
-            | InputPath.Folder p1, OutputPath.NotKnown -> processFolder force p1 p1 |> asyncRunner |> reportOnResults
+            | InputPath.Folder p1, OutputPath.NotKnown ->
+                processFolder force p1 p1 |> asyncRunner |> reportFormatResults
             | InputPath.File p1, OutputPath.NotKnown ->
-                processFile force p1 p1 |> List.singleton |> asyncRunner |> reportOnResults
+                processFile force p1 p1 |> List.singleton |> asyncRunner |> reportFormatResults
             | InputPath.File p1, OutputPath.IO p2 ->
-                processFile force p1 p2 |> List.singleton |> asyncRunner |> reportOnResults
-            | InputPath.Folder p1, OutputPath.IO p2 -> processFolder force p1 p2 |> asyncRunner |> reportOnResults
+                processFile force p1 p2 |> List.singleton |> asyncRunner |> reportFormatResults
+            | InputPath.Folder p1, OutputPath.IO p2 -> processFolder force p1 p2 |> asyncRunner |> reportFormatResults
             | InputPath.Multiple(files, folders), OutputPath.NotKnown ->
-                filesAndFolders force files folders |> asyncRunner |> reportOnResults
+                filesAndFolders force files folders |> asyncRunner |> reportFormatResults
             | InputPath.Multiple _, OutputPath.IO _ ->
                 elog "Multiple input files are not supported with the --out flag."
                 exit 1
