@@ -402,7 +402,17 @@ let main argv =
         stdlog summaryMessage
 
         errored
-        |> Seq.iter (fun (file, error) -> elog $"Failed to format file: {file} : {error}")
+        |> Seq.iter (fun (file, error) ->
+            let message =
+                match verbosity with
+                | VerbosityLevel.Normal ->
+                    match error with
+                    | :? FormatConfig.FormatException as fe -> fe.Message
+                    | :? CodeFormatException as fe -> fe.Message
+                    | _ -> ""
+                | VerbosityLevel.Detailed -> sprintf "%A" error
+
+            elog $"Failed to format file: {file} : {message}")
 
         if errored.Length > 0 then
             exit 1
