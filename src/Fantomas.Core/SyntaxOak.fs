@@ -1498,14 +1498,6 @@ type ExprDotNamedIndexedPropertySetNode
     member x.Property = propertyExpr
     member x.Set = setExpr
 
-type ExprDotSetNode(identifier: ExprChain, setExpr: Expr, range) =
-    inherit NodeBase(range)
-
-    override this.Children = [| yield identifier; yield Expr.Node setExpr |]
-
-    member x.Identifier = identifier
-    member x.Set = setExpr
-
 type ExprSetNode(identifier: Expr, setExpr: Expr, range) =
     inherit NodeBase(range)
 
@@ -1656,7 +1648,6 @@ type Expr =
     | DotIndexedSet of ExprDotIndexedSetNode
     | NamedIndexedPropertySet of ExprNamedIndexedPropertySetNode
     | DotNamedIndexedPropertySet of ExprDotNamedIndexedPropertySetNode
-    | DotSet of ExprDotSetNode
     | Set of ExprSetNode
     | LibraryOnlyStaticOptimization of ExprLibraryOnlyStaticOptimizationNode
     | InterpolatedStringExpr of ExprInterpolatedStringExprNode
@@ -1721,7 +1712,6 @@ type Expr =
         | DotIndexedSet n -> n
         | NamedIndexedPropertySet n -> n
         | DotNamedIndexedPropertySet n -> n
-        | DotSet n -> n
         | Set n -> n
         | LibraryOnlyStaticOptimization n -> n
         | InterpolatedStringExpr n -> n

@@ -1493,11 +1493,6 @@ let genExpr (e: Expr) =
         +> sepArrowRev
         +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr node.Set)
         |> genNode node
-    | Expr.DotSet node ->
-        genChain node.Identifier
-        +> sepArrowRev
-        +> autoIndentAndNlnIfExpressionExceedsPageWidthUnlessStroustrup genExpr node.Set
-        |> genNode node
     | Expr.Set node ->
         addParenIfAutoNln node.Identifier genExpr
         +> sepArrowRev
