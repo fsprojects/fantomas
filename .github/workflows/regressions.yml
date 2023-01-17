@@ -3,7 +3,7 @@ name: regressions
 on: workflow_dispatch
 
 jobs:
-  Run regression tests:
+  Regressions:
     runs-on: windows-latest
 
     steps:
