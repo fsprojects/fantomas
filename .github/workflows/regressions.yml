@@ -1,0 +1,14 @@
+name: regressions
+
+on: workflow_dispatch
+
+jobs:
+  run:
+    runs-on: windows-latest
+
+  steps:
+    - uses: actions/checkout@v3
+    - name: Setup .NET Core
+      uses: actions/setup-dotnet@v3
+    - name: Regressions
+      run: dotnet fsi tests/regressions.fsx
