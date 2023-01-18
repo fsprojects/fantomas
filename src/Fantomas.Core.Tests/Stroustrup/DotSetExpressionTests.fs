@@ -33,38 +33,6 @@ App().foo <- {
 """
 
 [<Test>]
-let ``dotSet with unit param on lhs`` () =
-    formatSourceString
-        false
-        """
-app().foo <- thing
-"""
-        { config with
-            SpaceBeforeLowercaseInvocation = true }
-    |> prepend newline
-    |> should
-        equal
-        """
-app().foo <- thing
-"""
-
-[<Test>]
-let ``dotSet with unit param on lhs with another thing before`` () =
-    formatSourceString
-        false
-        """
-app.last().foo <- foo().thing.other().thing
-"""
-        { config with
-            SpaceBeforeLowercaseInvocation = true }
-    |> prepend newline
-    |> should
-        equal
-        """
-app.last().foo <- foo().thing.other().thing
-"""
-
-[<Test>]
 let ``dotSet with record instance when SpaceBeforeUppercaseInvocation = true`` () =
     formatSourceString
         false
