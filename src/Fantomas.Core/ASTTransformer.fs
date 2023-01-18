@@ -653,7 +653,7 @@ let mkLinksFromFunctionName (mkLinkFromExpr: SynExpr -> LinkExpr) (functionName:
               yield (mkLongIdentExprFromSynIdent lastSynIdent |> mkLinkFromExpr) ]
     | e -> [ mkLinkFromExpr e ]
 
-let (|ChainExpr|_|) (e: SynExpr) : (LinkExpr list * SynExpr) option =
+let (|ChainExpr|_|) (e: SynExpr) : LinkExpr list option =
     let rec visit (e: SynExpr) (continuation: LinkExpr list -> LinkExpr list) =
         match e with
         | SynExpr.App(
@@ -807,7 +807,7 @@ let (|ChainExpr|_|) (e: SynExpr) : (LinkExpr list * SynExpr) option =
     | SynExpr.DotGet _
     | SynExpr.TypeApp(expr = SynExpr.DotGet _)
     | SynExpr.DotIndexedGet(objectExpr = SynExpr.App(funcExpr = SynExpr.DotGet _) | SynExpr.DotGet _) ->
-        Some(visit e id, e)
+        Some(visit e id)
     | _ -> None
 
 let (|AppSingleParenArg|_|) =
@@ -1117,7 +1117,7 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
         ExprIndexWithoutDotNode(mkExpr creationAide identifierExpr, mkExpr creationAide indexExpr, exprRange)
         |> Expr.IndexWithoutDot
 
-    | ChainExpr(links, _) ->
+    | ChainExpr links ->
         let chainLinks =
             links
             |> List.map (function

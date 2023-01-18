@@ -1005,7 +1005,157 @@ let genExpr (e: Expr) =
         +> sepCloseLFixed
         |> genNode node
 
-    | Expr.Chain node -> genChain node
+    | Expr.Chain node ->
+        let genLink (isLastLink: bool) (link: ChainLink) =
+            match link with
+            | ChainLink.Identifier expr -> genExpr expr
+            | ChainLink.Dot stn -> genSingleTextNode stn
+            | ChainLink.Expr expr ->
+                match expr with
+                | Expr.App appNode ->
+                    match appNode.Arguments with
+                    | [ Expr.ArrayOrList _ as arrayOrList ] ->
+                        // Edge case for something like .G[].
+                        genExpr appNode.FunctionExpr +> genExpr arrayOrList
+                    | _ -> genExpr expr
+                | _ -> genExpr expr
+            | ChainLink.AppUnit appUnitNode ->
+                genExpr appUnitNode.FunctionName
+                +> onlyIf
+                    isLastLink
+                    (sepSpaceBeforeParenInFuncInvocation
+                        appUnitNode.FunctionName
+                        (Expr.Constant(Constant.Unit appUnitNode.Unit)))
+                +> genUnit appUnitNode.Unit
+                |> genNode appUnitNode
+            | ChainLink.AppParen appParen ->
+                let short =
+                    genExpr appParen.FunctionName
+                    +> onlyIf
+                        isLastLink
+                        (sepSpaceBeforeParenInFuncInvocation appParen.FunctionName (Expr.Paren appParen.Paren))
+                    +> genExpr (Expr.Paren appParen.Paren)
+
+                let long =
+                    match appParen.Paren.Expr with
+                    | Expr.Lambda lambdaNode ->
+                        genExpr appParen.FunctionName
+                        +> onlyIf
+                            isLastLink
+                            (sepSpaceBeforeParenInFuncInvocation appParen.FunctionName (Expr.Paren appParen.Paren))
+                        +> genSingleTextNode appParen.Paren.OpeningParen
+                        +> genLambdaWithParen lambdaNode
+                        +> onlyIfCtx
+                            (fun ctx ->
+                                ctx.Config.MultiLineLambdaClosingNewline
+                                && (not (
+                                    ctx.Config.ExperimentalStroustrupStyle && lambdaNode.Expr.IsStroustrupStyleExpr
+                                )))
+                            sepNln
+                        +> genSingleTextNode appParen.Paren.ClosingParen
+                    | _ ->
+                        genExpr appParen.FunctionName
+                        +> onlyIf
+                            isLastLink
+                            (sepSpaceBeforeParenInFuncInvocation appParen.FunctionName (Expr.Paren appParen.Paren))
+                        +> genMultilineFunctionApplicationArguments (Expr.Paren appParen.Paren)
+
+                expressionFitsOnRestOfLine short long |> genNode appParen
+            | ChainLink.IndexExpr e -> sepOpenLFixed +> genExpr e +> sepCloseLFixed
+
+        let lastIndex = node.Links.Length - 1
+        let short = coli sepNone node.Links (fun idx -> genLink (idx = lastIndex))
+
+        let long =
+            let (|SimpleChain|_|) (link: ChainLink) =
+                match link with
+                | ChainLink.Identifier _
+                | ChainLink.IndexExpr _ -> Some link
+                | _ -> None
+
+            let (|LeadingSimpleChain|_|) (links: ChainLink list) =
+                let leading = System.Collections.Generic.Queue(links.Length)
+                let rest = System.Collections.Generic.Queue(links.Length)
+
+                (None, links)
+                ||> List.fold (fun lastDot link ->
+                    if not (Seq.isEmpty rest) then
+                        rest.Enqueue link
+                        None
+                    else
+                        match link with
+                        | SimpleChain _ ->
+                            Option.iter leading.Enqueue lastDot
+                            leading.Enqueue link
+                            None
+                        | ChainLink.Dot _ as dot -> Some dot
+                        | _ ->
+                            Option.iter rest.Enqueue lastDot
+                            rest.Enqueue link
+                            None)
+                |> (fun _ ->
+                    if Seq.isEmpty leading then
+                        None
+                    else
+                        Some(Seq.toList leading, Seq.toList rest))
+
+            let rec genIndentedLinks (lastLinkWasSimple: bool) (links: ChainLink list) (ctx: Context) : Context =
+                match links with
+                | [] -> ctx
+                | ChainLink.Dot dot :: link :: rest ->
+                    let isLast = List.isEmpty rest
+                    let genDotAndLink = genSingleTextNode dot +> genLink isLast link
+                    let currentIsSimple = ((|SimpleChain|_|) >> Option.isSome) link
+                    let currentLinkFitsOnRestOfLine = not (futureNlnCheck genDotAndLink ctx)
+
+                    if lastLinkWasSimple && currentLinkFitsOnRestOfLine then
+                        // The last link was an identifier and the current link fits on the remainder of the current line.
+                        genIndentedLinks currentIsSimple rest (genDotAndLink ctx)
+                    else
+                        let ctx' =
+                            onlyIf
+                                (not // Last link was `.Foo()`
+                                    lastLinkWasSimple
+                                 // `.Foo.Bar` but `Bar` crossed the max_line_length
+                                 || (lastLinkWasSimple && currentIsSimple && not currentLinkFitsOnRestOfLine))
+                                sepNlnUnlessLastEventIsNewline
+                                ctx
+
+                        genIndentedLinks
+                            currentIsSimple
+                            rest
+                            // Print the current link
+                            (genDotAndLink ctx')
+                | _ -> failwith "Expected dot in chain at this point"
+
+            let genFirstLinkAndIndentOther (firstLink: ChainLink) (others: ChainLink list) =
+                genLink false firstLink +> indentSepNlnUnindent (genIndentedLinks false others)
+
+            match node.Links with
+            | [] -> sepNone
+            | LeadingSimpleChain(leadingChain, links) ->
+                match links with
+                | [] ->
+                    fun ctx ->
+                        isShortExpression
+                            ctx.Config.MaxDotGetExpressionWidth
+                            short
+                            (match leadingChain with
+                             | [] -> sepNone
+                             | head :: links -> genLink false head +> indent +> genIndentedLinks true links +> unindent)
+                            ctx
+                | _ ->
+                    expressionFitsOnRestOfLine
+                        (coli sepNone leadingChain (fun idx -> genLink (idx = lastIndex)))
+                        (match leadingChain with
+                         | [] -> sepNone
+                         | head :: rest -> genLink false head +> indentSepNlnUnindent (genIndentedLinks false rest))
+                    +> indentSepNlnUnindent (genIndentedLinks false links)
+
+            | head :: links -> genFirstLinkAndIndentOther head links
+
+        (fun ctx -> isShortExpression ctx.Config.MaxDotGetExpressionWidth short long ctx)
+        |> genNode node
 
     // path.Replace("../../../", "....")
     | Expr.AppLongIdentAndSingleParenArg node ->
@@ -1557,156 +1707,6 @@ let genExpr (e: Expr) =
         |> genNode node
     | Expr.IndexFromEnd node -> !- "^" +> genExpr node.Expr |> genNode node
     | Expr.Typar node -> genSingleTextNode node
-
-let genChain node =
-    let genLink (isLastLink: bool) (link: ChainLink) =
-        match link with
-        | ChainLink.Identifier expr -> genExpr expr
-        | ChainLink.Dot stn -> genSingleTextNode stn
-        | ChainLink.Expr expr ->
-            match expr with
-            | Expr.App appNode ->
-                match appNode.Arguments with
-                | [ Expr.ArrayOrList _ as arrayOrList ] ->
-                    // Edge case for something like .G[].
-                    genExpr appNode.FunctionExpr +> genExpr arrayOrList
-                | _ -> genExpr expr
-            | _ -> genExpr expr
-        | ChainLink.AppUnit appUnitNode ->
-            genExpr appUnitNode.FunctionName
-            +> onlyIf
-                isLastLink
-                (sepSpaceBeforeParenInFuncInvocation
-                    appUnitNode.FunctionName
-                    (Expr.Constant(Constant.Unit appUnitNode.Unit)))
-            +> genUnit appUnitNode.Unit
-            |> genNode appUnitNode
-        | ChainLink.AppParen appParen ->
-            let short =
-                genExpr appParen.FunctionName
-                +> onlyIf
-                    isLastLink
-                    (sepSpaceBeforeParenInFuncInvocation appParen.FunctionName (Expr.Paren appParen.Paren))
-                +> genExpr (Expr.Paren appParen.Paren)
-
-            let long =
-                match appParen.Paren.Expr with
-                | Expr.Lambda lambdaNode ->
-                    genExpr appParen.FunctionName
-                    +> onlyIf
-                        isLastLink
-                        (sepSpaceBeforeParenInFuncInvocation appParen.FunctionName (Expr.Paren appParen.Paren))
-                    +> genSingleTextNode appParen.Paren.OpeningParen
-                    +> genLambdaWithParen lambdaNode
-                    +> onlyIfCtx
-                        (fun ctx ->
-                            ctx.Config.MultiLineLambdaClosingNewline
-                            && (not (ctx.Config.ExperimentalStroustrupStyle && lambdaNode.Expr.IsStroustrupStyleExpr)))
-                        sepNln
-                    +> genSingleTextNode appParen.Paren.ClosingParen
-                | _ ->
-                    genExpr appParen.FunctionName
-                    +> onlyIf
-                        isLastLink
-                        (sepSpaceBeforeParenInFuncInvocation appParen.FunctionName (Expr.Paren appParen.Paren))
-                    +> genMultilineFunctionApplicationArguments (Expr.Paren appParen.Paren)
-
-            expressionFitsOnRestOfLine short long |> genNode appParen
-        | ChainLink.IndexExpr e -> sepOpenLFixed +> genExpr e +> sepCloseLFixed
-
-    let lastIndex = node.Links.Length - 1
-    let short = coli sepNone node.Links (fun idx -> genLink (idx = lastIndex))
-
-    let long =
-        let (|SimpleChain|_|) (link: ChainLink) =
-            match link with
-            | ChainLink.Identifier _
-            | ChainLink.IndexExpr _ -> Some link
-            | _ -> None
-
-        let (|LeadingSimpleChain|_|) (links: ChainLink list) =
-            let leading = System.Collections.Generic.Queue(links.Length)
-            let rest = System.Collections.Generic.Queue(links.Length)
-
-            (None, links)
-            ||> List.fold (fun lastDot link ->
-                if not (Seq.isEmpty rest) then
-                    rest.Enqueue link
-                    None
-                else
-                    match link with
-                    | SimpleChain _ ->
-                        Option.iter leading.Enqueue lastDot
-                        leading.Enqueue link
-                        None
-                    | ChainLink.Dot _ as dot -> Some dot
-                    | _ ->
-                        Option.iter rest.Enqueue lastDot
-                        rest.Enqueue link
-                        None)
-            |> (fun _ ->
-                if Seq.isEmpty leading then
-                    None
-                else
-                    Some(Seq.toList leading, Seq.toList rest))
-
-        let rec genIndentedLinks (lastLinkWasSimple: bool) (links: ChainLink list) (ctx: Context) : Context =
-            match links with
-            | [] -> ctx
-            | ChainLink.Dot dot :: link :: rest ->
-                let isLast = List.isEmpty rest
-                let genDotAndLink = genSingleTextNode dot +> genLink isLast link
-                let currentIsSimple = ((|SimpleChain|_|) >> Option.isSome) link
-                let currentLinkFitsOnRestOfLine = not (futureNlnCheck genDotAndLink ctx)
-
-                if lastLinkWasSimple && currentLinkFitsOnRestOfLine then
-                    // The last link was an identifier and the current link fits on the remainder of the current line.
-                    genIndentedLinks currentIsSimple rest (genDotAndLink ctx)
-                else
-                    let ctx' =
-                        onlyIf
-                            (not // Last link was `.Foo()`
-                                lastLinkWasSimple
-                             // `.Foo.Bar` but `Bar` crossed the max_line_length
-                             || (lastLinkWasSimple && currentIsSimple && not currentLinkFitsOnRestOfLine))
-                            sepNlnUnlessLastEventIsNewline
-                            ctx
-
-                    genIndentedLinks
-                        currentIsSimple
-                        rest
-                        // Print the current link
-                        (genDotAndLink ctx')
-            | _ -> failwith "Expected dot in chain at this point"
-
-        let genFirstLinkAndIndentOther (firstLink: ChainLink) (others: ChainLink list) =
-            genLink false firstLink +> indentSepNlnUnindent (genIndentedLinks false others)
-
-        match node.Links with
-        | [] -> sepNone
-        | LeadingSimpleChain(leadingChain, links) ->
-            match links with
-            | [] ->
-                fun ctx ->
-                    isShortExpression
-                        ctx.Config.MaxDotGetExpressionWidth
-                        short
-                        (match leadingChain with
-                         | [] -> sepNone
-                         | head :: links -> genLink false head +> indent +> genIndentedLinks true links +> unindent)
-                        ctx
-            | _ ->
-                expressionFitsOnRestOfLine
-                    (coli sepNone leadingChain (fun idx -> genLink (idx = lastIndex)))
-                    (match leadingChain with
-                     | [] -> sepNone
-                     | head :: rest -> genLink false head +> indentSepNlnUnindent (genIndentedLinks false rest))
-                +> indentSepNlnUnindent (genIndentedLinks false links)
-
-        | head :: links -> genFirstLinkAndIndentOther head links
-
-    (fun ctx -> isShortExpression ctx.Config.MaxDotGetExpressionWidth short long ctx)
-    |> genNode node
 
 let genQuoteExpr (node: ExprQuoteNode) =
     genSingleTextNode node.OpenToken
