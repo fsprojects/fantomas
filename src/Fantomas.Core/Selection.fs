@@ -288,9 +288,6 @@ let mkTreeWithSingleNode (node: Node) : TreeForSelection =
     | :? ExprDotNamedIndexedPropertySetNode as node ->
         let expr = Expr.DotNamedIndexedPropertySet node
         mkOakFromModuleDecl (ModuleDecl.DeclExpr expr)
-    | :? ExprDotSetNode as node ->
-        let expr = Expr.DotSet node
-        mkOakFromModuleDecl (ModuleDecl.DeclExpr expr)
     | :? ExprSetNode as node ->
         let expr = Expr.Set node
         mkOakFromModuleDecl (ModuleDecl.DeclExpr expr)

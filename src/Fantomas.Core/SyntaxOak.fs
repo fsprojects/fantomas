@@ -1,4 +1,4 @@
-﻿module internal rec Fantomas.Core.SyntaxOak
+module internal rec Fantomas.Core.SyntaxOak
 
 open System.Collections.Generic
 open FSharp.Compiler.Text
@@ -1498,16 +1498,6 @@ type ExprDotNamedIndexedPropertySetNode
     member x.Property = propertyExpr
     member x.Set = setExpr
 
-type ExprDotSetNode(identifier: Expr, property: IdentListNode, setExpr: Expr, range) =
-    inherit NodeBase(range)
-
-    override this.Children =
-        [| yield Expr.Node identifier; yield property; yield Expr.Node setExpr |]
-
-    member x.Identifier = identifier
-    member x.Property = property
-    member x.Set = setExpr
-
 type ExprSetNode(identifier: Expr, setExpr: Expr, range) =
     inherit NodeBase(range)
 
@@ -1658,7 +1648,6 @@ type Expr =
     | DotIndexedSet of ExprDotIndexedSetNode
     | NamedIndexedPropertySet of ExprNamedIndexedPropertySetNode
     | DotNamedIndexedPropertySet of ExprDotNamedIndexedPropertySetNode
-    | DotSet of ExprDotSetNode
     | Set of ExprSetNode
     | LibraryOnlyStaticOptimization of ExprLibraryOnlyStaticOptimizationNode
     | InterpolatedStringExpr of ExprInterpolatedStringExprNode
@@ -1723,7 +1712,6 @@ type Expr =
         | DotIndexedSet n -> n
         | NamedIndexedPropertySet n -> n
         | DotNamedIndexedPropertySet n -> n
-        | DotSet n -> n
         | Set n -> n
         | LibraryOnlyStaticOptimization n -> n
         | InterpolatedStringExpr n -> n

@@ -1643,22 +1643,6 @@ let genExpr (e: Expr) =
         +> sepArrowRev
         +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr node.Set)
         |> genNode node
-    | Expr.DotSet node ->
-        match node.Identifier with
-        | Expr.AppLongIdentAndSingleParenArg appNode ->
-            genIdentListNode appNode.FunctionName
-            +> genExpr appNode.ArgExpr
-            +> sepDot
-            +> genIdentListNode node.Property
-            +> sepArrowRev
-            +> autoIndentAndNlnIfExpressionExceedsPageWidthUnlessStroustrup genExpr node.Set
-        | _ ->
-            addParenIfAutoNln node.Identifier genExpr
-            +> sepDot
-            +> genIdentListNode node.Property
-            +> sepArrowRev
-            +> autoIndentAndNlnIfExpressionExceedsPageWidthUnlessStroustrup genExpr node.Set
-        |> genNode node
     | Expr.Set node ->
         addParenIfAutoNln node.Identifier genExpr
         +> sepArrowRev

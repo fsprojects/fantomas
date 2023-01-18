@@ -1138,6 +1138,7 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
                 | link -> failwithf "cannot map %A" link)
 
         ExprChain(chainLinks, exprRange) |> Expr.Chain
+
     | AppSingleParenArg(SynExpr.LongIdent(longDotId = longDotId), px) ->
         ExprAppLongIdentAndSingleParenArgNode(mkSynLongIdent longDotId, mkExpr creationAide px, exprRange)
         |> Expr.AppLongIdentAndSingleParenArg
@@ -1358,8 +1359,17 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
         )
         |> Expr.DotNamedIndexedPropertySet
     | SynExpr.DotSet(e1, synLongIdent, e2, _) ->
-        ExprDotSetNode(mkExpr creationAide e1, mkSynLongIdent synLongIdent, mkExpr creationAide e2, exprRange)
-        |> Expr.DotSet
+        let mDot =
+            mkRange
+                e1.Range.FileName
+                (Position.mkPos e1.Range.EndLine (e1.Range.EndColumn + 1))
+                (Position.mkPos synLongIdent.Range.StartLine (synLongIdent.Range.StartColumn - 1))
+
+        let dotGet =
+            SynExpr.DotGet(e1, mDot, synLongIdent, unionRanges e1.Range synLongIdent.Range)
+
+        ExprSetNode(mkExpr creationAide dotGet, mkExpr creationAide e2, exprRange)
+        |> Expr.Set
     | SynExpr.Set(e1, e2, _) ->
         ExprSetNode(mkExpr creationAide e1, mkExpr creationAide e2, exprRange)
         |> Expr.Set

@@ -20,6 +20,22 @@ X().Y
 """
 
 [<Test>]
+let ``appUnit DotSet identifier`` () =
+    formatSourceString
+        false
+        """
+X().Y <- true
+"""
+        { config with
+            SpaceBeforeUppercaseInvocation = true }
+    |> prepend newline
+    |> should
+        equal
+        """
+X().Y <- true
+"""
+
+[<Test>]
 let ``appParen dot identifier`` () =
     formatSourceString
         false
