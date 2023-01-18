@@ -194,3 +194,7 @@ output/
 
 # F# Compiler files
 .deps/
+
+# Regression testing
+tests/.repositories/**
+!tests/.repositories/Directory.Build.props
