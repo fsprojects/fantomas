@@ -609,7 +609,7 @@ formatCode
            (19, 20, 21) |]
     """
     { FormatConfig.Default with
-        MultilineBlockBracketsOnSameColumn = true }
+        MultilineBracketStyle = Aligned }
 (*** include-it ***)
 
 (**
@@ -784,8 +784,7 @@ type PostalAddress =
       Zip: string }
 """
     { FormatConfig.Default with
-        MultilineBlockBracketsOnSameColumn = true
-        ExperimentalStroustrupStyle = true }
+        MultilineBracketStyle = MultilineBracketStyle.ExperimentalStroustrup }
 (*** include-it ***)
 
 (**
