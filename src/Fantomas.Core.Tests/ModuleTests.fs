@@ -1052,3 +1052,20 @@ module Ionide.VSCode.FSharp
 
 open global.Node.ChildProcess
 """
+
+[<Test>]
+let ``empty nested module, 2721`` () =
+    formatSourceString
+        true
+        """
+module Graph =
+    begin end
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+module Graph =
+    begin end
+"""

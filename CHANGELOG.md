@@ -4,6 +4,7 @@
 
 ### Fixed
 * Optional constructor arguments are lost. [#2718](https://github.com/fsprojects/fantomas/issues/2718)
+* Empty nested module. [#2721](https://github.com/fsprojects/fantomas/issues/2721~~~~)
 
 ## [5.2.0-alpha-012] - 2023-01-14
 
