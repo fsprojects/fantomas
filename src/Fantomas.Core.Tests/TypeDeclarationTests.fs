@@ -3512,3 +3512,78 @@ type SingleAppParenLambda
     member x.FunctionName = functionName
     member x.ParenLambda = parenLambda
 """
+
+[<Test>]
+let ``optional constructor arguments with attributes, 2718`` () =
+    formatSourceString
+        false
+        """
+type CsvFile
+    private
+    (
+        readerFunc: Func<TextReader>,
+        [<Optional>] ?separators,
+        [<Optional>] ?quote,
+        [<Optional>] ?hasHeaders,
+        [<Optional>] ?ignoreErrors,
+        [<Optional>] ?skipRows
+    ) as this =
+    inherit CsvFile<CsvRow>
+        (
+            Func<_, _, _>(fun this columns -> CsvRow(this :?> CsvFile, columns)),
+            Func<_, _>(fun row -> row.Columns),
+            readerFunc,
+            defaultArg separators "",
+            defaultArg quote '"',
+            defaultArg hasHeaders true,
+            defaultArg ignoreErrors false,
+            defaultArg skipRows 0
+        )
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type CsvFile
+    private
+    (
+        readerFunc: Func<TextReader>,
+        [<Optional>] ?separators,
+        [<Optional>] ?quote,
+        [<Optional>] ?hasHeaders,
+        [<Optional>] ?ignoreErrors,
+        [<Optional>] ?skipRows
+    ) as this =
+    inherit
+        CsvFile<CsvRow>(
+            Func<_, _, _>(fun this columns -> CsvRow(this :?> CsvFile, columns)),
+            Func<_, _>(fun row -> row.Columns),
+            readerFunc,
+            defaultArg separators "",
+            defaultArg quote '"',
+            defaultArg hasHeaders true,
+            defaultArg ignoreErrors false,
+            defaultArg skipRows 0
+        )
+"""
+
+[<Test>]
+let ``optional parameter with ticks, 2731`` () =
+    formatSourceString
+        false
+        """
+type [<AllowNullLiteral>] ArrayBuffer =
+    abstract byteLength: int
+    abstract slice: ``begin``: int * ?``end``: int -> ArrayBuffer
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+[<AllowNullLiteral>]
+type ArrayBuffer =
+    abstract byteLength: int
+    abstract slice: ``begin``: int * ?``end``: int -> ArrayBuffer
+"""

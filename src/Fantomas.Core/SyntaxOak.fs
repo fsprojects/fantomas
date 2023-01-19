@@ -1,4 +1,4 @@
-﻿module internal rec Fantomas.Core.SyntaxOak
+module internal rec Fantomas.Core.SyntaxOak
 
 open System.Collections.Generic
 open FSharp.Compiler.Text
@@ -1244,33 +1244,6 @@ type ExprNestedIndexWithoutDotNode(identifierExpr: Expr, indexExpr: Expr, argume
     member x.Index = indexExpr
     member x.Argument = argumentExpr
 
-type ExprEndsWithDualListAppNode
-    (functionExpr: Expr, sequentialExprs: Expr list, firstArrayOrList: Expr, lastArrayOrList: Expr, range) =
-    inherit NodeBase(range)
-
-    override this.Children =
-        [| yield Expr.Node functionExpr
-           yield! List.map Expr.Node sequentialExprs
-           yield Expr.Node firstArrayOrList
-           yield Expr.Node lastArrayOrList |]
-
-    member x.FunctionExpr = functionExpr
-    member x.SequentialExpr = sequentialExprs
-    member x.FirstArrayOrList = firstArrayOrList
-    member x.LastArrayOrList = lastArrayOrList
-
-type ExprEndsWithSingleListAppNode(functionExpr: Expr, sequentialExprs: Expr list, arrayOrList: Expr, range) =
-    inherit NodeBase(range)
-
-    override this.Children =
-        [| yield Expr.Node functionExpr
-           yield! List.map Expr.Node sequentialExprs
-           yield Expr.Node arrayOrList |]
-
-    member x.FunctionExpr = functionExpr
-    member x.SequentialExpr = sequentialExprs
-    member x.ArrayOrList = arrayOrList
-
 type ExprAppNode(functionExpr: Expr, arguments: Expr list, range) =
     inherit NodeBase(range)
 
@@ -1525,16 +1498,6 @@ type ExprDotNamedIndexedPropertySetNode
     member x.Property = propertyExpr
     member x.Set = setExpr
 
-type ExprDotSetNode(identifier: Expr, property: IdentListNode, setExpr: Expr, range) =
-    inherit NodeBase(range)
-
-    override this.Children =
-        [| yield Expr.Node identifier; yield property; yield Expr.Node setExpr |]
-
-    member x.Identifier = identifier
-    member x.Property = property
-    member x.Set = setExpr
-
 type ExprSetNode(identifier: Expr, setExpr: Expr, range) =
     inherit NodeBase(range)
 
@@ -1670,8 +1633,6 @@ type Expr =
     | AppSingleParenArg of ExprAppSingleParenArgNode
     | AppWithLambda of ExprAppWithLambdaNode
     | NestedIndexWithoutDot of ExprNestedIndexWithoutDotNode
-    | EndsWithDualListApp of ExprEndsWithDualListAppNode
-    | EndsWithSingleListApp of ExprEndsWithSingleListAppNode
     | App of ExprAppNode
     | TypeApp of ExprTypeAppNode
     | TryWithSingleClause of ExprTryWithSingleClauseNode
@@ -1687,7 +1648,6 @@ type Expr =
     | DotIndexedSet of ExprDotIndexedSetNode
     | NamedIndexedPropertySet of ExprNamedIndexedPropertySetNode
     | DotNamedIndexedPropertySet of ExprDotNamedIndexedPropertySetNode
-    | DotSet of ExprDotSetNode
     | Set of ExprSetNode
     | LibraryOnlyStaticOptimization of ExprLibraryOnlyStaticOptimizationNode
     | InterpolatedStringExpr of ExprInterpolatedStringExprNode
@@ -1737,8 +1697,6 @@ type Expr =
         | AppSingleParenArg n -> n
         | AppWithLambda n -> n
         | NestedIndexWithoutDot n -> n
-        | EndsWithDualListApp n -> n
-        | EndsWithSingleListApp n -> n
         | App n -> n
         | TypeApp n -> n
         | TryWithSingleClause n -> n
@@ -1754,7 +1712,6 @@ type Expr =
         | DotIndexedSet n -> n
         | NamedIndexedPropertySet n -> n
         | DotNamedIndexedPropertySet n -> n
-        | DotSet n -> n
         | Set n -> n
         | LibraryOnlyStaticOptimization n -> n
         | InterpolatedStringExpr n -> n

@@ -4,6 +4,7 @@ open System
 open Fantomas.Core.Context
 open Fantomas.Core.SyntaxOak
 open Fantomas.Core.FormatConfig
+open Microsoft.FSharp.Core.CompilerServices
 
 let noBreakInfixOps = set [| "="; ">"; "<"; "%" |]
 let newLineInfixOps = set [ "|>"; "||>"; "|||>"; ">>"; ">>=" ]
@@ -1243,100 +1244,100 @@ let genExpr (e: Expr) =
         +> sepCloseLFixed
         +> genExpr node.Argument
         |> genNode node
-    | Expr.EndsWithDualListApp node ->
+
+    | Expr.App node ->
         fun ctx ->
-            // check if everything else beside the last array/list fits on one line
-            let singleLineTestExpr =
-                genExpr node.FunctionExpr
-                +> sepSpace
-                +> col sepSpace node.SequentialExpr genExpr
-                +> sepSpace
-                +> genExpr node.FirstArrayOrList
-
-            let short =
-                genExpr node.FunctionExpr
-                +> sepSpace
-                +> col sepSpace node.SequentialExpr genExpr
-                +> onlyIfNot node.SequentialExpr.IsEmpty sepSpace
-                +> genExpr node.FirstArrayOrList
-                +> sepSpace
-                +> genExpr node.LastArrayOrList
-
-            let long =
-                // check if everything besides both lists fits on one line
+            match node with
+            | EndsWithDualListApp ctx.Config (sequentialArgs: Expr list, firstList, lastList) ->
+                // check if everything else beside the last array/list fits on one line
                 let singleLineTestExpr =
                     genExpr node.FunctionExpr
                     +> sepSpace
-                    +> col sepSpace node.SequentialExpr genExpr
+                    +> col sepSpace sequentialArgs genExpr
+                    +> sepSpace
+                    +> genExpr firstList
+
+                let short =
+                    genExpr node.FunctionExpr
+                    +> sepSpace
+                    +> col sepSpace sequentialArgs genExpr
+                    +> onlyIfNot sequentialArgs.IsEmpty sepSpace
+                    +> genExpr firstList
+                    +> sepSpace
+                    +> genExpr lastList
+
+                let long =
+                    // check if everything besides both lists fits on one line
+                    let singleLineTestExpr =
+                        genExpr node.FunctionExpr +> sepSpace +> col sepSpace sequentialArgs genExpr
+
+                    if futureNlnCheck singleLineTestExpr ctx then
+                        genExpr node.FunctionExpr
+                        +> indent
+                        +> sepNln
+                        +> col sepNln sequentialArgs genExpr
+                        +> sepSpace
+                        +> genExpr firstList
+                        +> sepSpace
+                        +> genExpr lastList
+                        +> unindent
+                    else
+                        genExpr node.FunctionExpr
+                        +> sepSpace
+                        +> col sepSpace sequentialArgs genExpr
+                        +> onlyIfNot sequentialArgs.IsEmpty sepSpace
+                        +> genExpr firstList
+                        +> sepSpace
+                        +> genExpr lastList
 
                 if futureNlnCheck singleLineTestExpr ctx then
+                    long ctx
+                else
+                    short ctx
+
+            | EndsWithSingleListApp ctx.Config (sequentialArgs: Expr list, arrayOrList) ->
+                // check if everything else beside the last array/list fits on one line
+                let singleLineTestExpr =
+                    genExpr node.FunctionExpr +> sepSpace +> col sepSpace sequentialArgs genExpr
+
+                let short =
+                    genExpr node.FunctionExpr
+                    +> sepSpace
+                    +> col sepSpace sequentialArgs genExpr
+                    +> onlyIfNot sequentialArgs.IsEmpty sepSpace
+                    +> genExpr arrayOrList
+
+                let long =
                     genExpr node.FunctionExpr
                     +> indent
                     +> sepNln
-                    +> col sepNln node.SequentialExpr genExpr
-                    +> sepSpace
-                    +> genExpr node.FirstArrayOrList
-                    +> sepSpace
-                    +> genExpr node.LastArrayOrList
+                    +> col sepNln sequentialArgs genExpr
+                    +> onlyIfNot sequentialArgs.IsEmpty sepNln
+                    +> genExpr arrayOrList
                     +> unindent
+
+                if futureNlnCheck singleLineTestExpr ctx then
+                    long ctx
                 else
+                    short ctx
+
+            | _ ->
+                let shortExpression =
+                    let sep ctx =
+                        match node.Arguments with
+                        | [] -> ctx
+                        | [ singleArg ] -> sepSpaceBeforeParenInFuncInvocation node.FunctionExpr singleArg ctx
+                        | _ -> sepSpace ctx
+
+                    genExpr node.FunctionExpr +> sep +> col sepSpace node.Arguments genExpr
+
+                let longExpression =
                     genExpr node.FunctionExpr
-                    +> sepSpace
-                    +> col sepSpace node.SequentialExpr genExpr
-                    +> onlyIfNot node.SequentialExpr.IsEmpty sepSpace
-                    +> genExpr node.FirstArrayOrList
-                    +> sepSpace
-                    +> genExpr node.LastArrayOrList
+                    +> indentSepNlnUnindent (col sepNln node.Arguments genExpr)
 
-            if futureNlnCheck singleLineTestExpr ctx then
-                long ctx
-            else
-                short ctx
+                expressionFitsOnRestOfLine shortExpression longExpression ctx
+
         |> genNode node
-    | Expr.EndsWithSingleListApp node ->
-        fun ctx ->
-            // check if everything else beside the last array/list fits on one line
-            let singleLineTestExpr =
-                genExpr node.FunctionExpr
-                +> sepSpace
-                +> col sepSpace node.SequentialExpr genExpr
-
-            let short =
-                genExpr node.FunctionExpr
-                +> sepSpace
-                +> col sepSpace node.SequentialExpr genExpr
-                +> onlyIfNot node.SequentialExpr.IsEmpty sepSpace
-                +> genExpr node.ArrayOrList
-
-            let long =
-                genExpr node.FunctionExpr
-                +> indent
-                +> sepNln
-                +> col sepNln node.SequentialExpr genExpr
-                +> onlyIfNot node.SequentialExpr.IsEmpty sepNln
-                +> genExpr node.ArrayOrList
-                +> unindent
-
-            if futureNlnCheck singleLineTestExpr ctx then
-                long ctx
-            else
-                short ctx
-        |> genNode node
-    | Expr.App node ->
-        let shortExpression =
-            let sep ctx =
-                match node.Arguments with
-                | [] -> ctx
-                | [ singleArg ] -> sepSpaceBeforeParenInFuncInvocation node.FunctionExpr singleArg ctx
-                | _ -> sepSpace ctx
-
-            genExpr node.FunctionExpr +> sep +> col sepSpace node.Arguments genExpr
-
-        let longExpression =
-            genExpr node.FunctionExpr
-            +> indentSepNlnUnindent (col sepNln node.Arguments genExpr)
-
-        expressionFitsOnRestOfLine shortExpression longExpression |> genNode node
     | Expr.TypeApp node ->
         fun ctx ->
             let startColum = ctx.Column
@@ -1641,22 +1642,6 @@ let genExpr (e: Expr) =
         +> genExpr node.Property
         +> sepArrowRev
         +> autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr node.Set)
-        |> genNode node
-    | Expr.DotSet node ->
-        match node.Identifier with
-        | Expr.AppLongIdentAndSingleParenArg appNode ->
-            genIdentListNode appNode.FunctionName
-            +> genExpr appNode.ArgExpr
-            +> sepDot
-            +> genIdentListNode node.Property
-            +> sepArrowRev
-            +> autoIndentAndNlnIfExpressionExceedsPageWidthUnlessStroustrup genExpr node.Set
-        | _ ->
-            addParenIfAutoNln node.Identifier genExpr
-            +> sepDot
-            +> genIdentListNode node.Property
-            +> sepArrowRev
-            +> autoIndentAndNlnIfExpressionExceedsPageWidthUnlessStroustrup genExpr node.Set
         |> genNode node
     | Expr.Set node ->
         addParenIfAutoNln node.Identifier genExpr
@@ -2126,6 +2111,39 @@ let genFunctionNameWithMultilineLids (trailing: Context -> Context) (longIdent: 
         )
     | _ -> sepNone
     |> genNode parentNode
+
+let (|EndsWithDualListApp|_|) (config: FormatConfig) (appNode: ExprAppNode) =
+    if not config.ExperimentalStroustrupStyle then
+        None
+    else
+        let mutable otherArgs = ListCollector<Expr>()
+
+        let rec visit (args: Expr list) =
+            match args with
+            | [] -> None
+            | [ Expr.ArrayOrList _ as firstList; Expr.ArrayOrList _ as lastList ] ->
+                Some(otherArgs.Close(), firstList, lastList)
+            | arg :: args ->
+                otherArgs.Add(arg)
+                visit args
+
+        visit appNode.Arguments
+
+let (|EndsWithSingleListApp|_|) (config: FormatConfig) (appNode: ExprAppNode) =
+    if not config.ExperimentalStroustrupStyle then
+        None
+    else
+        let mutable otherArgs = ListCollector<Expr>()
+
+        let rec visit (args: Expr list) =
+            match args with
+            | [] -> None
+            | [ Expr.ArrayOrList _ as singleList ] -> Some(otherArgs.Close(), singleList)
+            | arg :: args ->
+                otherArgs.Add(arg)
+                visit args
+
+        visit appNode.Arguments
 
 let genAppWithLambda sep (node: ExprAppWithLambdaNode) =
     let short =
@@ -3573,8 +3591,12 @@ let genModuleDecl (md: ModuleDecl) =
         +> sepSpace
         +> genSingleTextNode node.Equals
         +> indentSepNlnUnindent (
-            colWithNlnWhenMappedNodeIsMultiline false ModuleDecl.Node genModuleDecl node.Declarations
+            ifElse
+                (List.isEmpty node.Declarations)
+                (!- "begin end")
+                (colWithNlnWhenMappedNodeIsMultiline false ModuleDecl.Node genModuleDecl node.Declarations)
         )
+
         |> genNode (ModuleDecl.Node md)
     | ModuleDecl.TypeDefn td -> genTypeDefn td
     | ModuleDecl.Val node -> genVal node None
