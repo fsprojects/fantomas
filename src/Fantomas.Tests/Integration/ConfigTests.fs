@@ -61,8 +61,7 @@ let valid_eol_settings = [ "lf"; "crlf" ]
 
 [<TestCaseSource("valid_eol_settings")>]
 let ``uses end_of_line setting to write user newlines`` setting =
-    let newline =
-        (FormatConfig.EndOfLineStyle.OfConfigString setting).Value.NewLineString
+    let newline = (EndOfLineStyle.OfConfigString setting).Value.NewLineString
 
     let sampleCode nln =
         sprintf "let a = 9%s%slet b = 7%s" nln nln nln
@@ -95,8 +94,7 @@ let ``end_of_line should be respected for ifdef`` () =
 
     use configFixture =
         new ConfigurationFile(
-            sprintf
-                """
+            """
 [*.fs]
 end_of_line = lf
 """

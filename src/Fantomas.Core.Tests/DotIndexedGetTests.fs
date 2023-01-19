@@ -3,7 +3,7 @@ module Fantomas.Core.Tests.DotIndexedGetTests
 open NUnit.Framework
 open FsUnit
 open Fantomas.Core.Tests.TestHelper
-open Fantomas.Core.FormatConfig
+open Fantomas.Core
 
 [<Test>]
 let ``multiline function application inside DotIndexedGet`` () =

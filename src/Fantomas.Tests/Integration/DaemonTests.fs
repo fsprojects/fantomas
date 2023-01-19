@@ -42,7 +42,7 @@ let ``config request`` () =
         async {
             let! config = client.InvokeAsync<string>(Methods.Configuration) |> Async.AwaitTask
 
-            FormatConfig.FormatConfig.Default
+            FormatConfig.Default
             |> Fantomas.EditorConfig.configToEditorConfig
             |> fun s -> s.Split('\n')
             |> Seq.map (fun line -> line.Split('=').[0])

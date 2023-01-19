@@ -2,7 +2,6 @@ module Fantomas.Tests.EditorConfigurationTests
 
 open System
 open Fantomas.Core
-open Fantomas.Core.FormatConfig
 open Fantomas
 open NUnit.Framework
 open System.IO
@@ -14,7 +13,7 @@ let tempName () = Guid.NewGuid().ToString("N")
 type ConfigurationFile
     internal
     (
-        config: FormatConfig.FormatConfig,
+        config: FormatConfig,
         rootFolderName: string,
         ?editorConfigHeader: string,
         ?subFolder: string,

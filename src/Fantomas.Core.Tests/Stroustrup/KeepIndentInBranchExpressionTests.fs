@@ -3,7 +3,7 @@
 open NUnit.Framework
 open FsUnit
 open Fantomas.Core.Tests.TestHelper
-open Fantomas.Core.FormatConfig
+open Fantomas.Core
 
 // ExperimentalKeepIndentInBranch has precedence over ExperimentalStroustrupStyle
 

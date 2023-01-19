@@ -1,4 +1,4 @@
-module Fantomas.Core.FormatConfig
+namespace Fantomas.Core
 
 open System
 open System.ComponentModel

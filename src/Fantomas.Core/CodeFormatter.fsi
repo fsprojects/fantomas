@@ -1,6 +1,5 @@
 namespace Fantomas.Core
 
-open Fantomas.Core.FormatConfig
 open FSharp.Compiler.Text
 open FSharp.Compiler.Syntax
 

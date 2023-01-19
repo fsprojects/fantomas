@@ -3,7 +3,7 @@ module Fantomas.Core.Tests.ElmishTests
 open NUnit.Framework
 open FsUnit
 open Fantomas.Core.Tests.TestHelper
-open Fantomas.Core.FormatConfig
+open Fantomas.Core
 
 let config =
     { config with
@@ -1355,7 +1355,7 @@ let Dashboard () =
     ]
 """
         { config with
-            RecordMultilineFormatter = Fantomas.Core.FormatConfig.MultilineFormatterType.NumberOfItems
+            RecordMultilineFormatter = MultilineFormatterType.NumberOfItems
             MaxArrayOrListWidth = 20
             // MaxElmishWidth = 10
             MultiLineLambdaClosingNewline = true }

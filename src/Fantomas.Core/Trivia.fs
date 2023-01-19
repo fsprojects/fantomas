@@ -3,7 +3,6 @@
 open FSharp.Compiler.Syntax
 open FSharp.Compiler.SyntaxTrivia
 open FSharp.Compiler.Text
-open Fantomas.Core.FormatConfig
 open Fantomas.Core.ISourceTextExtensions
 open Fantomas.Core.SyntaxOak
 
