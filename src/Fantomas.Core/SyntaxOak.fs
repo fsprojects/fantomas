@@ -97,7 +97,7 @@ type SingleTextNode(idText: string, range: range) =
 
 type MultipleTextsNode(content: SingleTextNode list, range) =
     inherit NodeBase(range)
-    override val Children = [| yield! nodes content |]
+    override val Children: Node array = [| yield! nodes content |]
     member val Content = content
 
 type XmlDocNode(lines: string array, range) =
@@ -113,14 +113,13 @@ type Oak(parsedHashDirectives: ParsedHashDirectiveNode list, modulesOrNamespaces
     member val ParsedHashDirectives = parsedHashDirectives
     member val ModulesOrNamespaces = modulesOrNamespaces
 
-    override _.Children =
-        [| yield! nodes parsedHashDirectives; yield! nodes modulesOrNamespaces |]
+    override val Children: Node array = [| yield! nodes parsedHashDirectives; yield! nodes modulesOrNamespaces |]
 
 type ParsedHashDirectiveNode(ident: string, args: SingleTextNode list, range) =
     inherit NodeBase(range)
     member val Ident = ident
     member val Args = args
-    override _.Children = [| yield! nodes args |]
+    override val Children: Node array = [| yield! nodes args |]
 
 type ModuleOrNamespaceHeaderNode
     (
@@ -134,7 +133,7 @@ type ModuleOrNamespaceHeaderNode
     ) =
     inherit NodeBase(range)
 
-    override _.Children =
+    override val Children: Node array =
         [| yield! noa xmlDoc
            yield! noa attributes
            yield leadingKeyword
@@ -153,13 +152,13 @@ type ModuleOrNamespaceNode(header: ModuleOrNamespaceHeaderNode option, decls: Mo
     member val Declarations = decls
     member val IsNamed = Option.isSome header
 
-    override _.Children = [| yield! noa header; yield! List.map ModuleDecl.Node decls |]
+    override val Children: Node array = [| yield! noa header; yield! List.map ModuleDecl.Node decls |]
     member val Header = header
 
 type TypeFunsNode(parameters: (Type * SingleTextNode) list, returnType: Type, range) =
     inherit NodeBase(range)
 
-    override _.Children =
+    override val Children: Node array =
         [| yield! nodes (List.collect (fun (t, arrow) -> [ yield Type.Node t; yield (arrow :> Node) ]) parameters)
            yield Type.Node returnType |]
 
@@ -170,7 +169,7 @@ type TypeFunsNode(parameters: (Type * SingleTextNode) list, returnType: Type, ra
 type TypeTupleNode(path: Choice<Type, SingleTextNode> list, range) =
     inherit NodeBase(range)
 
-    override _.Children =
+    override val Children: Node array =
         [| yield!
                List.map
                    (function
@@ -183,39 +182,39 @@ type TypeTupleNode(path: Choice<Type, SingleTextNode> list, range) =
 type TypeHashConstraintNode(hash: SingleTextNode, t: Type, range) =
     inherit NodeBase(range)
 
-    override _.Children = [| yield hash; yield Type.Node t |]
+    override val Children: Node array = [| yield hash; yield Type.Node t |]
     member val Hash = hash
     member val Type = t
 
 type TypeMeasurePowerNode(baseMeasure: Type, exponent: string, range) =
     inherit NodeBase(range)
-    override _.Children = [| yield Type.Node baseMeasure |]
+    override val Children: Node array = [| yield Type.Node baseMeasure |]
     member val BaseMeasure = baseMeasure
     member val Exponent = exponent
 
 type TypeStaticConstantExprNode(constNode: SingleTextNode, expr: Expr, range) =
     inherit NodeBase(range)
 
-    override _.Children = [| yield constNode; yield Expr.Node expr |]
+    override val Children: Node array = [| yield constNode; yield Expr.Node expr |]
     member val Const = constNode
     member val Expr = expr
 
 type TypeStaticConstantNamedNode(identifier: Type, value: Type, range) =
     inherit NodeBase(range)
-    override _.Children = [| yield Type.Node identifier; yield Type.Node value |]
+    override val Children: Node array = [| yield Type.Node identifier; yield Type.Node value |]
     member val Identifier = identifier
     member val Value = value
 
 type TypeArrayNode(t: Type, rank: int, range) =
     inherit NodeBase(range)
 
-    override _.Children = [| yield Type.Node t |]
+    override val Children: Node array = [| yield Type.Node t |]
     member val Type = t
     member val Rank = rank
 
 type TypeAppPostFixNode(first: Type, last: Type, range) =
     inherit NodeBase(range)
-    override _.Children = [| yield Type.Node first; yield Type.Node last |]
+    override val Children: Node array = [| yield Type.Node first; yield Type.Node last |]
     member val First = first
     member val Last = last
 
@@ -230,7 +229,7 @@ type TypeAppPrefixNode
     ) =
     inherit NodeBase(range)
 
-    override _.Children =
+    override val Children: Node array =
         [| yield Type.Node identifier
            yield! noa postIdentifier
            yield lessThan
@@ -247,7 +246,7 @@ type TypeStructTupleNode
     (keyword: SingleTextNode, path: Choice<Type, SingleTextNode> list, closingParen: SingleTextNode, range) =
     inherit NodeBase(range)
 
-    override _.Children =
+    override val Children: Node array =
         [| yield keyword
            yield!
                List.map
@@ -264,8 +263,7 @@ type TypeStructTupleNode
 type TypeWithGlobalConstraintsNode(t: Type, constraints: TypeConstraint list, range) =
     inherit NodeBase(range)
 
-    override _.Children =
-        [| yield Type.Node t; yield! List.map TypeConstraint.Node constraints |]
+    override val Children: Node array = [| yield Type.Node t; yield! List.map TypeConstraint.Node constraints |]
 
     member val Type = t
     member val TypeConstraints = constraints
@@ -280,7 +278,7 @@ type TypeAnonRecordNode
     ) =
     inherit NodeBase(range)
 
-    override _.Children =
+    override val Children: Node array =
         [| yield! noa structNode
            yield! noa openingToken
            yield! (fields |> List.collect (fun (i, t) -> [ yield (i :> Node); yield Type.Node t ]))
@@ -293,7 +291,7 @@ type TypeAnonRecordNode
 
 type TypeParenNode(openingParen: SingleTextNode, t: Type, closingParen: SingleTextNode, range) =
     inherit NodeBase(range)
-    override _.Children = [| yield openingParen; yield Type.Node t; yield closingParen |]
+    override val Children: Node array = [| yield openingParen; yield Type.Node t; yield closingParen |]
     member val OpeningParen = openingParen
     member val Type = t
     member val ClosingParen = closingParen
@@ -302,8 +300,7 @@ type TypeSignatureParameterNode
     (attributes: MultipleAttributeListNode option, identifier: SingleTextNode option, t: Type, range) =
     inherit NodeBase(range)
 
-    override _.Children =
-        [| yield! noa attributes; yield! noa identifier; yield Type.Node t |]
+    override val Children: Node array = [| yield! noa attributes; yield! noa identifier; yield Type.Node t |]
 
     member val Attributes = attributes
     member val Identifier = identifier
@@ -311,14 +308,14 @@ type TypeSignatureParameterNode
 
 type TypeOrNode(lhs: Type, orNode: SingleTextNode, rhs: Type, range) =
     inherit NodeBase(range)
-    override _.Children = [| yield Type.Node lhs; yield orNode; yield Type.Node rhs |]
+    override val Children: Node array = [| yield Type.Node lhs; yield orNode; yield Type.Node rhs |]
     member val LeftHandSide = lhs
     member val Or = orNode
     member val RightHandSide = rhs
 
 type TypeLongIdentAppNode(appType: Type, longIdent: IdentListNode, range) =
     inherit NodeBase(range)
-    override _.Children = [| yield Type.Node appType; yield longIdent |]
+    override val Children: Node array = [| yield Type.Node appType; yield longIdent |]
     member val AppType = appType
     member val LongIdent = longIdent
 
@@ -379,7 +376,7 @@ type Type =
 type PatLeftMiddleRight(lhs: Pattern, middle: Choice<SingleTextNode, string>, rhs: Pattern, range) =
     inherit NodeBase(range)
 
-    override _.Children =
+    override val Children: Node array =
         [| yield Pattern.Node lhs
            match middle with
            | Choice1Of2 n -> yield n
@@ -393,13 +390,13 @@ type PatLeftMiddleRight(lhs: Pattern, middle: Choice<SingleTextNode, string>, rh
 type PatAndsNode(pats: Pattern list, range) =
     inherit NodeBase(range)
 
-    override _.Children = [| yield! List.map Pattern.Node pats |]
+    override val Children: Node array = [| yield! List.map Pattern.Node pats |]
     member val Patterns = pats
 
 type PatParameterNode(attributes: MultipleAttributeListNode option, pat: Pattern, t: Type option, range) =
     inherit NodeBase(range)
 
-    override _.Children =
+    override val Children: Node array =
         [| yield! noa attributes
            yield Pattern.Node pat
            yield! noa (Option.map Type.Node t) |]
@@ -418,7 +415,7 @@ type PatNamedParenStarIdentNode
     ) =
     inherit NodeBase(range)
 
-    override _.Children =
+    override val Children: Node array =
         [| yield! noa accessibility
            yield openingParen
            yield name
@@ -426,19 +423,19 @@ type PatNamedParenStarIdentNode
 
     member val Accessibility = accessibility
     member val OpeningParen = openingParen
-    member this.Name = name
+    member val Name = name
     member val ClosingParen = closingParen
 
 type PatNamedNode(accessibility: SingleTextNode option, name: SingleTextNode, range) =
     inherit NodeBase(range)
 
-    override _.Children = [| yield name |]
-    member this.Name = name
+    override val Children: Node array = [| yield name |]
+    member val Name = name
     member val Accessibility = accessibility
 
 type NamePatPair(ident: SingleTextNode, equals: SingleTextNode, pat: Pattern, range) =
     inherit NodeBase(range)
-    override _.Children = [| yield ident; yield equals; yield Pattern.Node pat |]
+    override val Children: Node array = [| yield ident; yield equals; yield Pattern.Node pat |]
     member val Ident = ident
     member val Equals = equals
     member val Pattern = pat
@@ -454,7 +451,7 @@ type PatNamePatPairsNode
     ) =
     inherit NodeBase(range)
 
-    override _.Children =
+    override val Children: Node array =
         [| yield identifier
            yield! noa (Option.map TyparDecls.Node typarDecls)
            yield openingParen
@@ -477,7 +474,7 @@ type PatLongIdentNode
     ) =
     inherit NodeBase(range)
 
-    override _.Children =
+    override val Children: Node array =
         [| yield! noa accessibility
            yield identifier
            yield! noa (Option.map TyparDecls.Node typarDecls)
@@ -491,8 +488,7 @@ type PatLongIdentNode
 type PatParenNode(openingParen: SingleTextNode, pat: Pattern, closingParen: SingleTextNode, range) =
     inherit NodeBase(range)
 
-    override _.Children =
-        [| yield openingParen; yield Pattern.Node pat; yield closingParen |]
+    override val Children: Node array = [| yield openingParen; yield Pattern.Node pat; yield closingParen |]
 
     member val OpeningParen = openingParen
     member val Pattern = pat
@@ -501,20 +497,19 @@ type PatParenNode(openingParen: SingleTextNode, pat: Pattern, closingParen: Sing
 type PatTupleNode(pats: Pattern list, range) =
     inherit NodeBase(range)
 
-    override _.Children = [| yield! (List.map Pattern.Node pats) |]
+    override val Children: Node array = [| yield! (List.map Pattern.Node pats) |]
     member val Patterns = pats
 
 type PatStructTupleNode(pats: Pattern list, range) =
     inherit NodeBase(range)
 
-    override _.Children = [| yield! (List.map Pattern.Node pats) |]
+    override val Children: Node array = [| yield! (List.map Pattern.Node pats) |]
     member val Patterns = pats
 
 type PatArrayOrListNode(openToken: SingleTextNode, pats: Pattern list, closeToken: SingleTextNode, range) =
     inherit NodeBase(range)
 
-    override _.Children =
-        [| yield openToken; yield! List.map Pattern.Node pats; yield closeToken |]
+    override val Children: Node array = [| yield openToken; yield! List.map Pattern.Node pats; yield closeToken |]
 
     member val OpenToken = openToken
     member val Patterns = pats
@@ -524,8 +519,7 @@ type PatRecordField
     (prefix: IdentListNode option, fieldName: SingleTextNode, equals: SingleTextNode, pat: Pattern, range) =
     inherit NodeBase(range)
 
-    override _.Children =
-        [| yield! noa prefix; yield fieldName; yield equals; yield Pattern.Node pat |]
+    override val Children: Node array = [| yield! noa prefix; yield fieldName; yield equals; yield Pattern.Node pat |]
 
     member val Prefix = prefix
     member val FieldName = fieldName
@@ -535,14 +529,14 @@ type PatRecordField
 type PatRecordNode(openingNode: SingleTextNode, fields: PatRecordField list, closingNode: SingleTextNode, range) =
     inherit NodeBase(range)
 
-    override _.Children = [| yield openingNode; yield! nodes fields; yield closingNode |]
+    override val Children: Node array = [| yield openingNode; yield! nodes fields; yield closingNode |]
     member val OpeningNode = openingNode
     member val Fields = fields
     member val ClosingNode = closingNode
 
 type PatIsInstNode(token: SingleTextNode, t: Type, range) =
     inherit NodeBase(range)
-    override _.Children = [| yield token; yield Type.Node t |]
+    override val Children: Node array = [| yield token; yield Type.Node t |]
     member val Token = token
     member val Type = t
 
@@ -597,12 +591,12 @@ type Pattern =
 type ExprLazyNode(lazyWord: SingleTextNode, expr: Expr, range) =
     inherit NodeBase(range)
 
-    override _.Children = [| yield lazyWord; yield Expr.Node expr |]
+    override val Children: Node array = [| yield lazyWord; yield Expr.Node expr |]
 
-    member this.LazyWord = lazyWord
-    member this.Expr = expr
+    member val LazyWord = lazyWord
+    member val Expr = expr
 
-    member this.ExprIsInfix =
+    member val ExprIsInfix =
         match Expr.Node expr with
         | :? InfixApp -> true
         | _ -> false
@@ -610,22 +604,22 @@ type ExprLazyNode(lazyWord: SingleTextNode, expr: Expr, range) =
 type ExprSingleNode(leading: SingleTextNode, addSpace: bool, supportsStroustrup: bool, expr: Expr, range) =
     inherit NodeBase(range)
 
-    override _.Children = [| yield leading; yield Expr.Node expr |]
+    override val Children: Node array = [| yield leading; yield Expr.Node expr |]
 
-    member _.Leading = leading
+    member val Leading = leading
     member val AddSpace = addSpace
-    member _.SupportsStroustrup = supportsStroustrup
-    member _.Expr = expr
+    member val SupportsStroustrup = supportsStroustrup
+    member val Expr = expr
 
 type ExprConstantNode(range) =
     inherit NodeBase(range)
 
-    override _.Children = failwith "todo"
+    override val Children: Node array = failwith "todo"
 
 type ExprQuoteNode(openToken: SingleTextNode, expr, closeToken: SingleTextNode, range) =
     inherit NodeBase(range)
 
-    override _.Children = [| yield openToken; yield Expr.Node expr; yield closeToken |]
+    override val Children: Node array = [| yield openToken; yield Expr.Node expr; yield closeToken |]
     member val OpenToken = openToken
     member val Expr = expr
     member val CloseToken = closeToken
@@ -633,7 +627,7 @@ type ExprQuoteNode(openToken: SingleTextNode, expr, closeToken: SingleTextNode, 
 type ExprTypedNode(expr: Expr, operator: string, t: Type, range) =
     inherit NodeBase(range)
 
-    override _.Children = [| yield Expr.Node expr; yield Type.Node t |]
+    override val Children: Node array = [| yield Expr.Node expr; yield Type.Node t |]
     member val Expr = expr
     member val Operator = operator
     member val Type = t
@@ -641,8 +635,7 @@ type ExprTypedNode(expr: Expr, operator: string, t: Type, range) =
 type ExprNewNode(newKeyword: SingleTextNode, t: Type, arguments: Expr, range) =
     inherit NodeBase(range)
 
-    override _.Children =
-        [| yield newKeyword; yield Type.Node t; yield Expr.Node arguments |]
+    override val Children: Node array = [| yield newKeyword; yield Type.Node t; yield Expr.Node arguments |]
 
     member val NewKeyword = newKeyword
     member val Type = t
@@ -651,7 +644,7 @@ type ExprNewNode(newKeyword: SingleTextNode, t: Type, arguments: Expr, range) =
 type ExprTupleNode(items: Choice<Expr, SingleTextNode> list, range) =
     inherit NodeBase(range)
 
-    override _.Children =
+    override val Children: Node array =
         items
         |> Seq.map (function
             | Choice1Of2 e -> Expr.Node e
@@ -663,7 +656,7 @@ type ExprTupleNode(items: Choice<Expr, SingleTextNode> list, range) =
 type ExprStructTupleNode(structNode: SingleTextNode, tuple: ExprTupleNode, closingParen: SingleTextNode, range) =
     inherit NodeBase(range)
 
-    override _.Children = [| yield structNode; yield tuple; yield closingParen |]
+    override val Children: Node array = [| yield structNode; yield tuple; yield closingParen |]
     member val Struct = structNode
     member val Tuple = tuple
     member val ClosingParen = closingParen
@@ -671,8 +664,7 @@ type ExprStructTupleNode(structNode: SingleTextNode, tuple: ExprTupleNode, closi
 type ExprArrayOrListNode(openingToken: SingleTextNode, elements: Expr list, closingToken: SingleTextNode, range) =
     inherit NodeBase(range)
 
-    override _.Children =
-        [| yield openingToken; yield! List.map Expr.Node elements; yield closingToken |]
+    override val Children: Node array = [| yield openingToken; yield! List.map Expr.Node elements; yield closingToken |]
 
     member val Opening = openingToken
     member val Elements = elements
@@ -681,7 +673,7 @@ type ExprArrayOrListNode(openingToken: SingleTextNode, elements: Expr list, clos
 type InheritConstructorTypeOnlyNode(inheritKeyword: SingleTextNode, t: Type, range) =
     inherit NodeBase(range)
 
-    override _.Children = [| yield inheritKeyword; yield Type.Node t |]
+    override val Children: Node array = [| yield inheritKeyword; yield Type.Node t |]
     member val InheritKeyword = inheritKeyword
     member val Type = t
 
@@ -689,7 +681,7 @@ type InheritConstructorUnitNode
     (inheritKeyword: SingleTextNode, t: Type, openingParen: SingleTextNode, closingParen: SingleTextNode, range) =
     inherit NodeBase(range)
 
-    override _.Children =
+    override val Children: Node array =
         [| yield inheritKeyword
            yield Type.Node t
            yield openingParen
@@ -703,8 +695,7 @@ type InheritConstructorUnitNode
 type InheritConstructorParenNode(inheritKeyword: SingleTextNode, t: Type, expr: Expr, range) =
     inherit NodeBase(range)
 
-    override _.Children =
-        [| yield inheritKeyword; yield Type.Node t; yield Expr.Node expr |]
+    override val Children: Node array = [| yield inheritKeyword; yield Type.Node t; yield Expr.Node expr |]
 
     member val InheritKeyword = inheritKeyword
     member val Type = t
@@ -713,8 +704,7 @@ type InheritConstructorParenNode(inheritKeyword: SingleTextNode, t: Type, expr: 
 type InheritConstructorOtherNode(inheritKeyword: SingleTextNode, t: Type, expr: Expr, range) =
     inherit NodeBase(range)
 
-    override _.Children =
-        [| yield inheritKeyword; yield Type.Node t; yield Expr.Node expr |]
+    override val Children: Node array = [| yield inheritKeyword; yield Type.Node t; yield Expr.Node expr |]
 
     member val InheritKeyword = inheritKeyword
     member val Type = t
@@ -756,7 +746,7 @@ type RecordNodeExtra =
 type RecordFieldNode(fieldName: IdentListNode, equals: SingleTextNode, expr: Expr, range) =
     inherit NodeBase(range)
 
-    override _.Children = [| yield fieldName; yield equals; yield Expr.Node expr |]
+    override val Children: Node array = [| yield fieldName; yield equals; yield Expr.Node expr |]
     member val FieldName = fieldName
     member val Equals = equals
     member val Expr = expr
@@ -771,7 +761,7 @@ type ExprRecordNode
     ) =
     inherit NodeBase(range)
 
-    override _.Children =
+    override val Children: Node array =
         [| yield openingBrace
            yield! noa (RecordNodeExtra.Node extra)
            yield! nodes fields
@@ -785,7 +775,7 @@ type ExprRecordNode
 type AnonRecordFieldNode(ident: SingleTextNode, equals: SingleTextNode, rhs: Expr, range) =
     inherit NodeBase(range)
 
-    override _.Children = [| yield ident; yield equals; yield Expr.Node rhs |]
+    override val Children: Node array = [| yield ident; yield equals; yield Expr.Node rhs |]
     member val Ident = ident
     member val Equals = equals
     member val Expr = rhs
@@ -801,7 +791,7 @@ type ExprAnonRecordNode
     ) =
     inherit NodeBase(range)
 
-    override _.Children =
+    override val Children: Node array =
         [| yield openingBrace
            yield! noa (Option.map Expr.Node copyInfo)
            yield! nodes fields
@@ -825,7 +815,7 @@ type InterfaceImplNode
 
     inherit NodeBase(range)
 
-    override _.Children =
+    override val Children: Node array =
         [| yield interfaceNode
            yield Type.Node t
            yield! noa withNode
@@ -853,7 +843,7 @@ type ExprObjExprNode
     ) =
     inherit NodeBase(range)
 
-    override _.Children =
+    override val Children: Node array =
         [| yield openingBrace
            yield newNode
            yield Type.Node t
@@ -877,8 +867,7 @@ type ExprObjExprNode
 type ExprWhileNode(whileNode: SingleTextNode, whileExpr: Expr, doExpr: Expr, range) =
     inherit NodeBase(range)
 
-    override _.Children =
-        [| yield whileNode; yield Expr.Node whileExpr; yield Expr.Node doExpr |]
+    override val Children: Node array = [| yield whileNode; yield Expr.Node whileExpr; yield Expr.Node doExpr |]
 
     member val While = whileNode
     member val WhileExpr = whileExpr
@@ -897,7 +886,7 @@ type ExprForNode
     ) =
     inherit NodeBase(range)
 
-    override _.Children =
+    override val Children: Node array =
         [| yield forNode
            yield ident
            yield equals
@@ -916,7 +905,7 @@ type ExprForNode
 type ExprForEachNode(forNode: SingleTextNode, pat: Pattern, enumExpr: Expr, isArrow: bool, bodyExpr: Expr, range) =
     inherit NodeBase(range)
 
-    override _.Children =
+    override val Children: Node array =
         [| yield forNode
            yield Pattern.Node pat
            yield Expr.Node enumExpr
@@ -932,7 +921,7 @@ type ExprNamedComputationNode
     (nameExpr: Expr, openingBrace: SingleTextNode, bodyExpr: Expr, closingBrace: SingleTextNode, range) =
     inherit NodeBase(range)
 
-    override _.Children =
+    override val Children: Node array =
         [| yield Expr.Node nameExpr
            yield openingBrace
            yield Expr.Node bodyExpr
@@ -946,8 +935,7 @@ type ExprNamedComputationNode
 type ExprComputationNode(openingBrace: SingleTextNode, bodyExpr: Expr, closingBrace: SingleTextNode, range) =
     inherit NodeBase(range)
 
-    override _.Children =
-        [| yield openingBrace; yield Expr.Node bodyExpr; yield closingBrace |]
+    override val Children: Node array = [| yield openingBrace; yield Expr.Node bodyExpr; yield closingBrace |]
 
     member val OpeningBrace = openingBrace
     member val Body = bodyExpr
@@ -955,14 +943,14 @@ type ExprComputationNode(openingBrace: SingleTextNode, bodyExpr: Expr, closingBr
 
 type ExprLetOrUseNode(binding: BindingNode, inKeyword: SingleTextNode option, range) =
     inherit NodeBase(range)
-    override _.Children = [| yield binding; yield! noa inKeyword |]
+    override val Children: Node array = [| yield binding; yield! noa inKeyword |]
     member val Binding = binding
     member val In = inKeyword
 
 type ExprLetOrUseBangNode(leadingKeyword: SingleTextNode, pat: Pattern, equals: SingleTextNode, expr: Expr, range) =
     inherit NodeBase(range)
 
-    override _.Children =
+    override val Children: Node array =
         [| yield leadingKeyword
            yield Pattern.Node pat
            yield equals
@@ -976,7 +964,7 @@ type ExprLetOrUseBangNode(leadingKeyword: SingleTextNode, pat: Pattern, equals: 
 type ExprAndBang(leadingKeyword: SingleTextNode, pat: Pattern, equals: SingleTextNode, expr: Expr, range) =
     inherit NodeBase(range)
 
-    override _.Children =
+    override val Children: Node array =
         [| yield leadingKeyword
            yield Pattern.Node pat
            yield equals
@@ -1004,22 +992,21 @@ type ComputationExpressionStatement =
 type ExprCompExprBodyNode(statements: ComputationExpressionStatement list, range) =
     inherit NodeBase(range)
 
-    override _.Children =
-        [| yield! List.map ComputationExpressionStatement.Node statements |]
+    override val Children: Node array = [| yield! List.map ComputationExpressionStatement.Node statements |]
 
     member val Statements = statements
 
 type ExprJoinInNode(lhs: Expr, inNode: SingleTextNode, rhs: Expr, range) =
     inherit NodeBase(range)
 
-    override _.Children = [| yield Expr.Node lhs; yield inNode; yield Expr.Node rhs |]
+    override val Children: Node array = [| yield Expr.Node lhs; yield inNode; yield Expr.Node rhs |]
     member val LeftHandSide = lhs
     member val In = inNode
     member val RightHandSide = rhs
 
 type ExprParenLambdaNode(openingParen: SingleTextNode, lambda: ExprLambdaNode, closingParen: SingleTextNode, range) =
     inherit NodeBase(range)
-    override _.Children = [| yield openingParen; yield lambda; yield closingParen |]
+    override val Children: Node array = [| yield openingParen; yield lambda; yield closingParen |]
     member val OpeningParen = openingParen
     member val Lambda = lambda
     member val ClosingParen = closingParen
@@ -1027,7 +1014,7 @@ type ExprParenLambdaNode(openingParen: SingleTextNode, lambda: ExprLambdaNode, c
 type ExprLambdaNode(funNode: SingleTextNode, parameters: Pattern list, arrow: SingleTextNode, expr: Expr, range) =
     inherit NodeBase(range)
 
-    override _.Children =
+    override val Children: Node array =
         [| yield funNode
            yield! List.map Pattern.Node parameters
            yield arrow
@@ -1043,7 +1030,7 @@ type MatchClauseNode
     =
     inherit NodeBase(range)
 
-    override _.Children =
+    override val Children: Node array =
         [| yield! noa bar
            yield Pattern.Node pattern
            yield! noa (Option.map Expr.Node whenExpr)
@@ -1059,7 +1046,7 @@ type MatchClauseNode
 type ExprMatchLambdaNode(functionNode: SingleTextNode, clauses: MatchClauseNode list, range) =
     inherit NodeBase(range)
 
-    override _.Children = [| yield functionNode; yield! nodes clauses |]
+    override val Children: Node array = [| yield functionNode; yield! nodes clauses |]
     member val Function = functionNode
     member val Clauses = clauses
 
@@ -1067,7 +1054,7 @@ type ExprMatchNode
     (matchNode: SingleTextNode, matchExpr: Expr, withNode: SingleTextNode, clauses: MatchClauseNode list, range) =
     inherit NodeBase(range)
 
-    override _.Children =
+    override val Children: Node array =
         [| yield matchNode
            yield Expr.Node matchExpr
            yield withNode
@@ -1081,8 +1068,7 @@ type ExprMatchNode
 type ExprTraitCallNode(t: Type, md: MemberDefn, expr: Expr, range) =
     inherit NodeBase(range)
 
-    override _.Children =
-        [| yield Type.Node t; yield MemberDefn.Node md; yield Expr.Node expr |]
+    override val Children: Node array = [| yield Type.Node t; yield MemberDefn.Node md; yield Expr.Node expr |]
 
     member val Type = t
     member val MemberDefn = md
@@ -1092,7 +1078,7 @@ type ExprParenFunctionNameWithStarNode
     (openingParen: SingleTextNode, functionName: SingleTextNode, closingParen: SingleTextNode, range) =
     inherit NodeBase(range)
 
-    override _.Children = [| yield openingParen; yield functionName; yield closingParen |]
+    override val Children: Node array = [| yield openingParen; yield functionName; yield closingParen |]
     member val OpeningParen = openingParen
     member val FunctionName = functionName
     member val ClosingParen = closingParen
@@ -1100,8 +1086,7 @@ type ExprParenFunctionNameWithStarNode
 type ExprParenNode(openingParen: SingleTextNode, expr: Expr, closingParen: SingleTextNode, range) =
     inherit NodeBase(range)
 
-    override _.Children =
-        [| yield openingParen; yield Expr.Node expr; yield closingParen |]
+    override val Children: Node array = [| yield openingParen; yield Expr.Node expr; yield closingParen |]
 
     member val OpeningParen = openingParen
     member val Expr = expr
@@ -1109,13 +1094,13 @@ type ExprParenNode(openingParen: SingleTextNode, expr: Expr, closingParen: Singl
 
 type ExprDynamicNode(funcExpr: Expr, argExpr: Expr, range) =
     inherit NodeBase(range)
-    override _.Children = [| yield Expr.Node funcExpr; yield Expr.Node argExpr |]
+    override val Children: Node array = [| yield Expr.Node funcExpr; yield Expr.Node argExpr |]
     member val FuncExpr = funcExpr
     member val ArgExpr = argExpr
 
 type ExprPrefixAppNode(operator: SingleTextNode, expr: Expr, range) =
     inherit NodeBase(range)
-    override _.Children = [| yield operator; yield Expr.Node expr |]
+    override val Children: Node array = [| yield operator; yield Expr.Node expr |]
     member val Operator = operator
     member val Expr = expr
 
@@ -1127,7 +1112,7 @@ type ExprSameInfixAppsNode(leadingExpr: Expr, subsequentExpressions: (SingleText
     inherit NodeBase(range)
     interface InfixApp
 
-    override _.Children =
+    override val Children: Node array =
         let xs =
             List.collect (fun (operator, expr) -> [ (operator :> Node); Expr.Node expr ]) subsequentExpressions
 
@@ -1140,7 +1125,7 @@ type ExprInfixAppNode(lhs: Expr, operator: SingleTextNode, rhs: Expr, range) =
     inherit NodeBase(range)
     interface InfixApp
 
-    override _.Children = [| yield Expr.Node lhs; yield operator; yield Expr.Node rhs |]
+    override val Children: Node array = [| yield Expr.Node lhs; yield operator; yield Expr.Node rhs |]
     member val LeftHandSide = lhs
     member val RightHandSide: Expr = rhs
     member val Operator = operator
@@ -1148,19 +1133,19 @@ type ExprInfixAppNode(lhs: Expr, operator: SingleTextNode, rhs: Expr, range) =
 type ExprIndexWithoutDotNode(identifierExpr: Expr, indexExpr: Expr, range) =
     inherit NodeBase(range)
 
-    override _.Children = [| yield Expr.Node identifierExpr; yield Expr.Node indexExpr |]
+    override val Children: Node array = [| yield Expr.Node identifierExpr; yield Expr.Node indexExpr |]
     member val Identifier = identifierExpr
     member val Index = indexExpr
 
 type LinkSingleAppParen(functionName: Expr, parenExpr: ExprParenNode, range) =
     inherit NodeBase(range)
-    override _.Children = [| yield Expr.Node functionName; yield parenExpr |]
+    override val Children: Node array = [| yield Expr.Node functionName; yield parenExpr |]
     member val FunctionName = functionName
     member val Paren = parenExpr
 
 type LinkSingleAppUnit(functionName: Expr, unit: UnitNode, range) =
     inherit NodeBase(range)
-    override _.Children = [| yield Expr.Node functionName; yield unit |]
+    override val Children: Node array = [| yield Expr.Node functionName; yield unit |]
     member val FunctionName = functionName
     member val Unit = unit
 
@@ -1187,19 +1172,19 @@ type ChainLink =
 
 type ExprChain(links: ChainLink list, range) =
     inherit NodeBase(range)
-    override _.Children = List.map ChainLink.Node links |> List.toArray
+    override val Children: Node array = List.map ChainLink.Node links |> List.toArray
     member val Links = links
 
 type ExprAppLongIdentAndSingleParenArgNode(functionName: IdentListNode, argExpr: Expr, range) =
     inherit NodeBase(range)
 
-    override _.Children = [| yield functionName; yield Expr.Node argExpr |]
+    override val Children: Node array = [| yield functionName; yield Expr.Node argExpr |]
     member val FunctionName = functionName
     member val ArgExpr = argExpr
 
 type ExprAppSingleParenArgNode(functionExpr: Expr, argExpr: Expr, range) =
     inherit NodeBase(range)
-    override _.Children = [| yield Expr.Node functionExpr; yield Expr.Node argExpr |]
+    override val Children: Node array = [| yield Expr.Node functionExpr; yield Expr.Node argExpr |]
     member val FunctionExpr = functionExpr
     member val ArgExpr = argExpr
 
@@ -1214,7 +1199,7 @@ type ExprAppWithLambdaNode
     ) =
     inherit NodeBase(range)
 
-    override _.Children =
+    override val Children: Node array =
         let lambdaNode =
             match lambda with
             | Choice1Of2 n -> n :> Node
@@ -1235,7 +1220,7 @@ type ExprAppWithLambdaNode
 type ExprNestedIndexWithoutDotNode(identifierExpr: Expr, indexExpr: Expr, argumentExpr: Expr, range) =
     inherit NodeBase(range)
 
-    override _.Children =
+    override val Children: Node array =
         [| yield Expr.Node identifierExpr
            yield Expr.Node indexExpr
            yield Expr.Node argumentExpr |]
@@ -1247,8 +1232,7 @@ type ExprNestedIndexWithoutDotNode(identifierExpr: Expr, indexExpr: Expr, argume
 type ExprAppNode(functionExpr: Expr, arguments: Expr list, range) =
     inherit NodeBase(range)
 
-    override _.Children =
-        [| yield Expr.Node functionExpr; yield! List.map Expr.Node arguments |]
+    override val Children: Node array = [| yield Expr.Node functionExpr; yield! List.map Expr.Node arguments |]
 
     member val FunctionExpr: Expr = functionExpr
     member val Arguments: Expr list = arguments
@@ -1257,7 +1241,7 @@ type ExprTypeAppNode
     (identifierExpr: Expr, lessThan: SingleTextNode, typeParameters: Type list, greaterThan: SingleTextNode, range) =
     inherit NodeBase(range)
 
-    override _.Children =
+    override val Children: Node array =
         [| yield Expr.Node identifierExpr
            yield lessThan
            yield! List.map Type.Node typeParameters
@@ -1272,8 +1256,7 @@ type ExprTryWithSingleClauseNode
     (tryNode: SingleTextNode, tryExpr: Expr, withNode: SingleTextNode, clause: MatchClauseNode, range) =
     inherit NodeBase(range)
 
-    override _.Children =
-        [| yield tryNode; yield Expr.Node tryExpr; yield withNode; yield clause |]
+    override val Children: Node array = [| yield tryNode; yield Expr.Node tryExpr; yield withNode; yield clause |]
 
     member val Try = tryNode
     member val TryExpr = tryExpr
@@ -1284,7 +1267,7 @@ type ExprTryWithNode
     (tryNode: SingleTextNode, tryExpr: Expr, withNode: SingleTextNode, clauses: MatchClauseNode list, range) =
     inherit NodeBase(range)
 
-    override _.Children =
+    override val Children: Node array =
         [| yield tryNode
            yield Expr.Node tryExpr
            yield withNode
@@ -1298,7 +1281,7 @@ type ExprTryWithNode
 type ExprTryFinallyNode(tryNode: SingleTextNode, tryExpr: Expr, finallyNode: SingleTextNode, finallyExpr: Expr, range) =
     inherit NodeBase(range)
 
-    override _.Children =
+    override val Children: Node array =
         [| yield tryNode
            yield Expr.Node tryExpr
            yield finallyNode
@@ -1373,7 +1356,7 @@ type ElseIfNode(mElse: range, mIf: range, condition: Node, range) as elseIfNode 
 
                 nodesAfter.Enqueue triviaNode
 
-        member this.Children = [| elseNode; ifNode |]
+        member val Children = [| elseNode; ifNode |]
 
 [<RequireQualifiedAccess>]
 type IfKeywordNode =
@@ -1390,7 +1373,7 @@ type IfKeywordNode =
 type ExprIfThenNode(ifNode: IfKeywordNode, ifExpr: Expr, thenNode: SingleTextNode, thenExpr: Expr, range) =
     inherit NodeBase(range)
 
-    override _.Children =
+    override val Children: Node array =
         [| yield ifNode.Node
            yield Expr.Node ifExpr
            yield thenNode
@@ -1413,7 +1396,7 @@ type ExprIfThenElseNode
     ) =
     inherit NodeBase(range)
 
-    override _.Children =
+    override val Children: Node array =
         [| yield ifNode.Node
            yield Expr.Node ifExpr
            yield thenNode
@@ -1431,7 +1414,7 @@ type ExprIfThenElseNode
 type ExprIfThenElifNode(branches: ExprIfThenNode list, elseBranch: (SingleTextNode * Expr) option, range) =
     inherit NodeBase(range)
 
-    override _.Children =
+    override val Children: Node array =
         let elseNodes =
             match elseBranch with
             | None -> []
@@ -1444,27 +1427,27 @@ type ExprIfThenElifNode(branches: ExprIfThenNode list, elseBranch: (SingleTextNo
 
 type ExprOptVarNode(isOptional: bool, identifier: IdentListNode, range) =
     inherit NodeBase(range)
-    override _.Children = [| yield identifier |]
+    override val Children: Node array = [| yield identifier |]
     member val IsOptional = isOptional
     member val Identifier = identifier
 
 type ExprLongIdentSetNode(identifier: IdentListNode, rhs: Expr, range) =
     inherit NodeBase(range)
 
-    override _.Children = [| yield identifier; yield Expr.Node rhs |]
+    override val Children: Node array = [| yield identifier; yield Expr.Node rhs |]
     member val Identifier = identifier
     member val Expr = rhs
 
 type ExprDotIndexedGetNode(objectExpr: Expr, indexExpr: Expr, range) =
     inherit NodeBase(range)
-    override _.Children = [| yield Expr.Node objectExpr; yield Expr.Node indexExpr |]
+    override val Children: Node array = [| yield Expr.Node objectExpr; yield Expr.Node indexExpr |]
     member val ObjectExpr = objectExpr
     member val IndexExpr = indexExpr
 
 type ExprDotIndexedSetNode(objectExpr: Expr, indexExpr: Expr, valueExpr: Expr, range) =
     inherit NodeBase(range)
 
-    override _.Children =
+    override val Children: Node array =
         [| yield Expr.Node objectExpr
            yield Expr.Node indexExpr
            yield Expr.Node valueExpr |]
@@ -1476,8 +1459,7 @@ type ExprDotIndexedSetNode(objectExpr: Expr, indexExpr: Expr, valueExpr: Expr, r
 type ExprNamedIndexedPropertySetNode(identifier: IdentListNode, indexExpr: Expr, valueExpr: Expr, range) =
     inherit NodeBase(range)
 
-    override _.Children =
-        [| yield identifier; yield Expr.Node indexExpr; yield Expr.Node valueExpr |]
+    override val Children: Node array = [| yield identifier; yield Expr.Node indexExpr; yield Expr.Node valueExpr |]
 
     member val Identifier = identifier
     member val Index = indexExpr
@@ -1487,7 +1469,7 @@ type ExprDotNamedIndexedPropertySetNode
     (identifierExpr: Expr, name: IdentListNode, propertyExpr: Expr, setExpr: Expr, range) =
     inherit NodeBase(range)
 
-    override _.Children =
+    override val Children: Node array =
         [| yield Expr.Node identifierExpr
            yield name
            yield Expr.Node propertyExpr
@@ -1501,14 +1483,14 @@ type ExprDotNamedIndexedPropertySetNode
 type ExprSetNode(identifier: Expr, setExpr: Expr, range) =
     inherit NodeBase(range)
 
-    override _.Children = [| yield Expr.Node identifier; yield Expr.Node setExpr |]
+    override val Children: Node array = [| yield Expr.Node identifier; yield Expr.Node setExpr |]
     member val Identifier = identifier
     member val Set = setExpr
 
 type StaticOptimizationConstraintWhenTyparTyconEqualsTyconNode(typar: SingleTextNode, t: Type, range) =
     inherit NodeBase(range)
 
-    override _.Children = [| yield typar; yield Type.Node t |]
+    override val Children: Node array = [| yield typar; yield Type.Node t |]
     member val TypeParameter = typar
     member val Type = t
 
@@ -1525,7 +1507,7 @@ type ExprLibraryOnlyStaticOptimizationNode
     (optimizedExpr: Expr, constraints: StaticOptimizationConstraint list, expr: Expr, range) =
     inherit NodeBase(range)
 
-    override _.Children =
+    override val Children: Node array =
         [| yield Expr.Node optimizedExpr
            yield! List.map StaticOptimizationConstraint.Node constraints
            yield Expr.Node expr |]
@@ -1536,14 +1518,14 @@ type ExprLibraryOnlyStaticOptimizationNode
 
 type FillExprNode(expr: Expr, ident: SingleTextNode option, range) =
     inherit NodeBase(range)
-    override _.Children = [| yield Expr.Node expr; yield! noa ident |]
+    override val Children: Node array = [| yield Expr.Node expr; yield! noa ident |]
     member val Expr = expr
     member val Ident = ident
 
 type ExprInterpolatedStringExprNode(parts: Choice<SingleTextNode, FillExprNode> list, range) =
     inherit NodeBase(range)
 
-    override _.Children =
+    override val Children: Node array =
         [| yield!
                List.map
                    (function
@@ -1564,7 +1546,7 @@ type ExprTripleNumberIndexRangeNode
     ) =
     inherit NodeBase(range)
 
-    override _.Children =
+    override val Children: Node array =
         [| yield startNode
            yield startDots
            yield centerNode
@@ -1580,7 +1562,7 @@ type ExprTripleNumberIndexRangeNode
 type ExprIndexRangeNode(fromExpr: Expr option, dots: SingleTextNode, toExpr: Expr option, range) =
     inherit NodeBase(range)
 
-    override _.Children =
+    override val Children: Node array =
         [| yield! noa (Option.map Expr.Node fromExpr)
            yield dots
            yield! noa (Option.map Expr.Node toExpr) |]
@@ -1591,7 +1573,7 @@ type ExprIndexRangeNode(fromExpr: Expr option, dots: SingleTextNode, toExpr: Exp
 
 type ExprIndexFromEndNode(expr: Expr, range) =
     inherit NodeBase(range)
-    override _.Children = [| Expr.Node expr |]
+    override val Children: Node array = [| Expr.Node expr |]
     member val Expr = expr
 
 [<RequireQualifiedAccess; NoEquality; NoComparison>]
@@ -1748,14 +1730,14 @@ type Expr =
 type OpenModuleOrNamespaceNode(identListNode: IdentListNode, range) =
     inherit NodeBase(range)
 
-    override _.Children = Array.empty
+    override val Children = Array.empty
     member val Name = identListNode
 
 type OpenTargetNode(target: Type, range) =
     inherit NodeBase(range)
 
-    override _.Children = [| yield Type.Node target |]
-    member _.Target = target
+    override val Children: Node array = [| yield Type.Node target |]
+    member val Target = target
 
 [<RequireQualifiedAccess; NoEquality; NoComparison>]
 type Open =
@@ -1770,19 +1752,18 @@ type Open =
 type OpenListNode(opens: Open list) =
     inherit NodeBase(List.map (Open.Node >> nodeRange) opens |> combineRanges)
 
-    override _.Children = [| yield! (List.map Open.Node opens) |]
+    override val Children: Node array = [| yield! (List.map Open.Node opens) |]
     member val Opens = opens
 
 type HashDirectiveListNode(hashDirectives: ParsedHashDirectiveNode list) =
     inherit NodeBase(List.map (fun n -> (n :> Node).Range) hashDirectives |> combineRanges)
-    override _.Children = [| yield! nodes hashDirectives |]
+    override val Children: Node array = [| yield! nodes hashDirectives |]
     member val HashDirectives = hashDirectives
 
 type AttributeNode(typeName: IdentListNode, expr: Expr option, target: SingleTextNode option, range) =
     inherit NodeBase(range)
 
-    override _.Children =
-        [| yield typeName; yield! noa (Option.map Expr.Node expr); yield! noa target |]
+    override val Children: Node array = [| yield typeName; yield! noa (Option.map Expr.Node expr); yield! noa target |]
 
     member val TypeName = typeName
     member val Expr = expr
@@ -1793,8 +1774,7 @@ type AttributeListNode
     (openingToken: SingleTextNode, attributesNodes: AttributeNode list, closingToken: SingleTextNode, range) =
     inherit NodeBase(range)
 
-    override _.Children =
-        [| yield openingToken; yield! nodes attributesNodes; yield closingToken |]
+    override val Children: Node array = [| yield openingToken; yield! nodes attributesNodes; yield closingToken |]
 
     member val Opening = openingToken
     member val Attributes = attributesNodes
@@ -1802,13 +1782,13 @@ type AttributeListNode
 
 type MultipleAttributeListNode(attributeLists: AttributeListNode list, range) =
     inherit NodeBase(range)
-    override _.Children = [| yield! nodes attributeLists |]
+    override val Children: Node array = [| yield! nodes attributeLists |]
     member val AttributeLists = attributeLists
     member val IsEmpty = attributeLists.IsEmpty
 
 type ModuleDeclAttributesNode(attributes: MultipleAttributeListNode option, doExpr: Expr, range) =
     inherit NodeBase(range)
-    override _.Children = [| yield! noa attributes; yield Expr.Node doExpr |]
+    override val Children: Node array = [| yield! noa attributes; yield Expr.Node doExpr |]
     member val Attributes = attributes
     member val Expr = doExpr
 
@@ -1824,7 +1804,7 @@ type ExceptionDefnNode
     ) =
     inherit NodeBase(range)
 
-    override _.Children =
+    override val Children: Node array =
         [| yield! noa xmlDoc
            yield! noa attributes
            yield! noa accessibility
@@ -1843,7 +1823,7 @@ type ExternBindingPatternNode
     (attributes: MultipleAttributeListNode option, t: Type option, pat: Pattern option, range: range) =
     inherit NodeBase(range)
 
-    override _.Children =
+    override val Children: Node array =
         [| yield! noa attributes
            yield! noa (Option.map Type.Node t)
            yield! noa (Option.map Pattern.Node pat) |]
@@ -1868,7 +1848,7 @@ type ExternBindingNode
     ) =
     inherit NodeBase(range)
 
-    override _.Children =
+    override val Children: Node array =
         [| yield! noa xmlDoc
            yield! noa attributes
            yield externNode
@@ -1893,7 +1873,7 @@ type ExternBindingNode
 
 type ModuleAbbrevNode(moduleNode: SingleTextNode, name: SingleTextNode, alias: IdentListNode, range) =
     inherit NodeBase(range)
-    override _.Children = [| yield moduleNode; yield name; yield alias |]
+    override val Children: Node array = [| yield moduleNode; yield name; yield alias |]
     member val Module = moduleNode
     member val Name = name
     member val Alias = alias
@@ -1912,7 +1892,7 @@ type NestedModuleNode
     ) =
     inherit NodeBase(range)
 
-    override _.Children =
+    override val Children: Node array =
         [| yield! noa xmlDoc
            yield! noa attributes
            yield moduleKeyword
@@ -1961,7 +1941,7 @@ type ModuleDecl =
 
 type BindingReturnInfoNode(colon: SingleTextNode, t: Type, range) =
     inherit NodeBase(range)
-    override x.Children = [| yield colon; yield Type.Node t |]
+    override val Children: Node array = [| yield colon; yield Type.Node t |]
     member val Colon = colon
     member val Type = t
 
@@ -1995,7 +1975,7 @@ type BindingNode
     member val Equals = equals
     member val Expr = expr
 
-    override _.Children =
+    override val Children: Node array =
         [| yield! noa xmlDoc
            yield! noa attributes
            yield leadingKeyword
@@ -2013,7 +1993,7 @@ type BindingNode
 
 type BindingListNode(bindings: BindingNode list, range) =
     inherit NodeBase(range)
-    override x.Children = [| yield! nodes bindings |]
+    override val Children: Node array = [| yield! nodes bindings |]
     member val Bindings = bindings
 
 type FieldNode
@@ -2029,7 +2009,7 @@ type FieldNode
     ) =
     inherit NodeBase(range)
 
-    override _.Children =
+    override val Children: Node array =
         [| yield! noa xmlDoc
            yield! noa attributes
            yield! noa leadingKeyword
@@ -2056,7 +2036,7 @@ type UnionCaseNode
     ) =
     inherit NodeBase(range)
 
-    override _.Children =
+    override val Children: Node array =
         [| yield! noa xmlDoc
            yield! noa attributes
            yield! noa bar
@@ -2085,7 +2065,7 @@ type TypeNameNode
     ) =
     inherit NodeBase(range)
 
-    override _.Children =
+    override val Children: Node array =
         [| yield! noa xmlDoc
            yield! noa attributes
            yield leadingKeyword
@@ -2125,7 +2105,7 @@ type EnumCaseNode
     ) =
     inherit NodeBase(range)
 
-    override _.Children =
+    override val Children: Node array =
         [| yield! noa xmlDoc
            yield! noa bar
            yield identifier
@@ -2142,7 +2122,7 @@ type EnumCaseNode
 type TypeDefnEnumNode(typeNameNode, enumCases: EnumCaseNode list, members: MemberDefn list, range) =
     inherit NodeBase(range)
 
-    override _.Children =
+    override val Children: Node array =
         [| yield typeNameNode
            yield! nodes enumCases
            yield! nodes (List.map MemberDefn.Node members) |]
@@ -2150,15 +2130,15 @@ type TypeDefnEnumNode(typeNameNode, enumCases: EnumCaseNode list, members: Membe
     member val EnumCases = enumCases
 
     interface ITypeDefn with
-        member _.TypeName = typeNameNode
-        member _.Members = members
+        member val TypeName = typeNameNode
+        member val Members = members
 
 type TypeDefnUnionNode
     (typeNameNode, accessibility: SingleTextNode option, unionCases: UnionCaseNode list, members: MemberDefn list, range)
     =
     inherit NodeBase(range)
 
-    override _.Children =
+    override val Children: Node array =
         [| yield typeNameNode
            yield! noa accessibility
            yield! nodes unionCases
@@ -2168,8 +2148,8 @@ type TypeDefnUnionNode
     member val UnionCases = unionCases
 
     interface ITypeDefn with
-        member _.TypeName = typeNameNode
-        member _.Members = members
+        member val TypeName = typeNameNode
+        member val Members = members
 
 type TypeDefnRecordNode
     (
@@ -2183,7 +2163,7 @@ type TypeDefnRecordNode
     ) =
     inherit NodeBase(range)
 
-    override _.Children =
+    override val Children: Node array =
         [| yield typeNameNode
            yield! noa accessibility
            yield openingBrace
@@ -2197,29 +2177,29 @@ type TypeDefnRecordNode
     member val ClosingBrace = closingBrace
 
     interface ITypeDefn with
-        member _.TypeName = typeNameNode
-        member _.Members = members
+        member val TypeName = typeNameNode
+        member val Members = members
 
 type TypeDefnAbbrevNode(typeNameNode, t: Type, members, range) =
     inherit NodeBase(range)
 
-    override _.Children =
+    override val Children: Node array =
         [| yield typeNameNode
            yield Type.Node t
            yield! nodes (List.map MemberDefn.Node members) |]
 
-    member _.Type = t
+    member val Type = t
 
     interface ITypeDefn with
-        member _.TypeName = typeNameNode
-        member _.Members = members
+        member val TypeName = typeNameNode
+        member val Members = members
 
 type SimplePatNode
     (attributes: MultipleAttributeListNode option, isOptional: bool, identifier: SingleTextNode, t: Type option, range)
     =
     inherit NodeBase(range)
 
-    override _.Children =
+    override val Children: Node array =
         [| yield! noa attributes
            yield identifier
            yield! noa (Option.map Type.Node t) |]
@@ -2242,7 +2222,7 @@ type ImplicitConstructorNode
     ) =
     inherit NodeBase(range)
 
-    override _.Children =
+    override val Children: Node array =
         [| yield! noa xmlDoc
            yield! noa attributes
            yield! noa accessibility
@@ -2262,8 +2242,7 @@ type ImplicitConstructorNode
 type TypeDefnExplicitBodyNode(kind: SingleTextNode, members: MemberDefn list, endNode: SingleTextNode, range) =
     inherit NodeBase(range)
 
-    override _.Children =
-        [| yield kind; yield! nodes (List.map MemberDefn.Node members); yield endNode |]
+    override val Children: Node array = [| yield kind; yield! nodes (List.map MemberDefn.Node members); yield endNode |]
 
     member val Kind = kind
     member val Members = members
@@ -2272,7 +2251,7 @@ type TypeDefnExplicitBodyNode(kind: SingleTextNode, members: MemberDefn list, en
 type TypeDefnExplicitNode(typeNameNode, body: TypeDefnExplicitBodyNode, members, range) =
     inherit NodeBase(range)
 
-    override _.Children =
+    override val Children: Node array =
         [| yield typeNameNode
            yield body
            yield! nodes (List.map MemberDefn.Node members) |]
@@ -2280,40 +2259,38 @@ type TypeDefnExplicitNode(typeNameNode, body: TypeDefnExplicitBodyNode, members,
     member val Body = body
 
     interface ITypeDefn with
-        member _.TypeName = typeNameNode
-        member _.Members = members
+        member val TypeName = typeNameNode
+        member val Members = members
 
 type TypeDefnAugmentationNode(typeNameNode, members, range) =
     inherit NodeBase(range)
 
-    override _.Children =
-        [| yield typeNameNode; yield! (List.map MemberDefn.Node members) |]
+    override val Children: Node array = [| yield typeNameNode; yield! (List.map MemberDefn.Node members) |]
 
     interface ITypeDefn with
-        member _.TypeName = typeNameNode
-        member _.Members = members
+        member val TypeName = typeNameNode
+        member val Members = members
 
 type TypeDefnDelegateNode(typeNameNode, delegateNode: SingleTextNode, typeList: TypeFunsNode, range) =
     inherit NodeBase(range)
 
-    override _.Children = [| yield typeNameNode; yield delegateNode; yield typeList |]
+    override val Children: Node array = [| yield typeNameNode; yield delegateNode; yield typeList |]
 
     member val DelegateNode = delegateNode
     member val TypeList = typeList
 
     interface ITypeDefn with
-        member _.TypeName = typeNameNode
-        member _.Members = List.empty
+        member val TypeName = typeNameNode
+        member val Members = List.empty
 
 type TypeDefnRegularNode(typeNameNode, members, range) =
     inherit NodeBase(range)
 
-    override _.Children =
-        [| yield typeNameNode; yield! List.map MemberDefn.Node members |]
+    override val Children: Node array = [| yield typeNameNode; yield! List.map MemberDefn.Node members |]
 
     interface ITypeDefn with
-        member _.TypeName = typeNameNode
-        member _.Members = members
+        member val TypeName = typeNameNode
+        member val Members = members
 
 [<RequireQualifiedAccess; NoEquality; NoComparison>]
 type TypeDefn =
@@ -2357,10 +2334,10 @@ type TypeDefn =
 type MemberDefnInheritNode(inheritKeyword: SingleTextNode, baseType: Type, range) =
     inherit NodeBase(range)
 
-    override _.Children = [| yield inheritKeyword; yield Type.Node baseType |]
+    override val Children: Node array = [| yield inheritKeyword; yield Type.Node baseType |]
 
-    member this.Inherit = inheritKeyword
-    member this.BaseType = baseType
+    member val Inherit = inheritKeyword
+    member val BaseType = baseType
 
 type MemberDefnExplicitCtorNode
     (
@@ -2377,7 +2354,7 @@ type MemberDefnExplicitCtorNode
     ) =
     inherit NodeBase(range)
 
-    override _.Children =
+    override val Children: Node array =
         [| yield! noa xmlDoc
            yield! noa attributes
            yield! noa accessibility
@@ -2402,7 +2379,7 @@ type MemberDefnInterfaceNode
     (interfaceNode: SingleTextNode, t: Type, withNode: SingleTextNode option, members: MemberDefn list, range) =
     inherit NodeBase(range)
 
-    override _.Children =
+    override val Children: Node array =
         [| yield interfaceNode
            yield Type.Node t
            yield! noa withNode
@@ -2428,7 +2405,7 @@ type MemberDefnAutoPropertyNode
     ) =
     inherit NodeBase(range)
 
-    override _.Children =
+    override val Children: Node array =
         [| yield! noa xmlDoc
            yield! noa attributes
            yield leadingKeyword
@@ -2462,7 +2439,7 @@ type MemberDefnAbstractSlotNode
     ) =
     inherit NodeBase(range)
 
-    override _.Children =
+    override val Children: Node array =
         [| yield! noa xmlDoc
            yield! noa attributes
            yield leadingKeyword
@@ -2492,7 +2469,7 @@ type PropertyGetSetBindingNode
     ) =
     inherit NodeBase(range)
 
-    override _.Children =
+    override val Children: Node array =
         [| yield! noa inlineNode
            yield! noa accessibility
            yield leadingKeyword
@@ -2525,7 +2502,7 @@ type MemberDefnPropertyGetSetNode
     ) =
     inherit NodeBase(range)
 
-    override _.Children =
+    override val Children: Node array =
         [| yield! noa xmlDoc
            yield! noa attributes
            yield leadingKeyword
@@ -2564,7 +2541,7 @@ type ValNode
     ) =
     inherit NodeBase(range)
 
-    override _.Children =
+    override val Children: Node array =
         [| yield! noa xmlDoc
            yield! noa attributes
            yield! noa leadingKeyword
@@ -2589,7 +2566,7 @@ type ValNode
 
 type MemberDefnSigMemberNode(valNode: ValNode, withGetSet: MultipleTextsNode option, range) =
     inherit NodeBase(range)
-    override _.Children = [| yield valNode; yield! noa withGetSet |]
+    override val Children: Node array = [| yield valNode; yield! noa withGetSet |]
     member val Val = valNode
     member val WithGetSet = withGetSet
 
@@ -2627,13 +2604,13 @@ type MemberDefn =
 
 type UnitNode(openingParen: SingleTextNode, closingParen: SingleTextNode, range) =
     inherit NodeBase(range)
-    override x.Children = [| yield openingParen; yield closingParen |]
+    override val Children: Node array = [| yield openingParen; yield closingParen |]
     member val OpeningParen = openingParen
     member val ClosingParen = closingParen
 
 type ConstantMeasureNode(constant: Constant, measure: Measure, range) =
     inherit NodeBase(range)
-    override x.Children = [| yield Constant.Node constant; yield Measure.Node measure |]
+    override val Children: Node array = [| yield Constant.Node constant; yield Measure.Node measure |]
     member val Constant = constant
     member val Measure = measure
 
@@ -2651,7 +2628,7 @@ type Constant =
 
 type TyparDeclNode(attributes: MultipleAttributeListNode option, typar: SingleTextNode, range) =
     inherit NodeBase(range)
-    override _.Children = [| yield! noa attributes; yield typar |]
+    override val Children: Node array = [| yield! noa attributes; yield typar |]
     member val Attributes = attributes
     member val TypeParameter = typar
 
@@ -2665,7 +2642,7 @@ type TyparDeclsPostfixListNode
     ) =
     inherit NodeBase(range)
 
-    override _.Children =
+    override val Children: Node array =
         [| yield lessThan
            yield! nodes decls
            yield! List.map TypeConstraint.Node constraints
@@ -2679,7 +2656,7 @@ type TyparDeclsPostfixListNode
 type TyparDeclsPrefixListNode
     (openingParen: SingleTextNode, decls: TyparDeclNode list, closingParen: SingleTextNode, range) =
     inherit NodeBase(range)
-    override _.Children = [| yield openingParen; yield! nodes decls; yield closingParen |]
+    override val Children: Node array = [| yield openingParen; yield! nodes decls; yield closingParen |]
     member val OpeningParen = openingParen
     member val Decls = decls
     member val ClosingParen = closingParen
@@ -2698,32 +2675,32 @@ type TyparDecls =
 
 type TypeConstraintSingleNode(typar: SingleTextNode, kind: SingleTextNode, range) =
     inherit NodeBase(range)
-    override _.Children = [| yield typar; yield kind |]
+    override val Children: Node array = [| yield typar; yield kind |]
     member val Typar = typar
     member val Kind = kind
 
 type TypeConstraintDefaultsToTypeNode(defaultNode: SingleTextNode, typar: SingleTextNode, t: Type, range) =
     inherit NodeBase(range)
-    override _.Children = [| yield defaultNode; yield typar; yield Type.Node t |]
+    override val Children: Node array = [| yield defaultNode; yield typar; yield Type.Node t |]
     member val Default = defaultNode
     member val Typar = typar
     member val Type = t
 
 type TypeConstraintSubtypeOfTypeNode(typar: SingleTextNode, t: Type, range) =
     inherit NodeBase(range)
-    override _.Children = [| yield typar; yield Type.Node t |]
+    override val Children: Node array = [| yield typar; yield Type.Node t |]
     member val Typar = typar
     member val Type = t
 
 type TypeConstraintSupportsMemberNode(t: Type, memberSig: MemberDefn, range) =
     inherit NodeBase(range)
-    override _.Children = [| yield Type.Node t |]
+    override val Children: Node array = [| yield Type.Node t |]
     member val Type = t
     member val MemberSig = memberSig
 
 type TypeConstraintEnumOrDelegateNode(typar: SingleTextNode, verb: string, ts: Type list, range) =
     inherit NodeBase(range)
-    override _.Children = [| yield typar; yield! List.map Type.Node ts |]
+    override val Children: Node array = [| yield typar; yield! List.map Type.Node ts |]
     member val Typar = typar
     member val Verb = verb
     member val Types = ts
@@ -2749,8 +2726,7 @@ type TypeConstraint =
 type MeasureOperatorNode(lhs: Measure, operator: SingleTextNode, rhs: Measure, range) =
     inherit NodeBase(range)
 
-    override x.Children =
-        [| yield Measure.Node lhs; yield operator; yield Measure.Node rhs |]
+    override val Children: Node array = [| yield Measure.Node lhs; yield operator; yield Measure.Node rhs |]
 
     member val LeftHandSide = lhs
     member val Operator = operator
@@ -2758,20 +2734,19 @@ type MeasureOperatorNode(lhs: Measure, operator: SingleTextNode, rhs: Measure, r
 
 type MeasurePowerNode(measure: Measure, exponent: SingleTextNode, range) =
     inherit NodeBase(range)
-    override x.Children = [| yield Measure.Node measure; yield exponent |]
+    override val Children: Node array = [| yield Measure.Node measure; yield exponent |]
     member val Measure = measure
     member val Exponent = exponent
 
 type MeasureSequenceNode(measures: Measure list, range) =
     inherit NodeBase(range)
-    override x.Children = [| yield! List.map Measure.Node measures |]
+    override val Children: Node array = [| yield! List.map Measure.Node measures |]
     member val Measures = measures
 
 type MeasureParenNode(openingParen: SingleTextNode, measure: Measure, closingParen: SingleTextNode, range) =
     inherit NodeBase(range)
 
-    override x.Children =
-        [| yield openingParen; yield Measure.Node measure; yield closingParen |]
+    override val Children: Node array = [| yield openingParen; yield Measure.Node measure; yield closingParen |]
 
     member val OpeningParen = openingParen
     member val Measure = measure
