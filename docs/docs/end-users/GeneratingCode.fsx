@@ -67,6 +67,7 @@ let implementationSyntaxTree =
                               Range.Zero,
                               DebugPointAtBinding.Yes Range.Zero,
                               { EqualsRange = Some Range.Zero
+                                InlineKeyword = None
                                 LeadingKeyword = SynLeadingKeyword.Let Range.Zero }
                           ) ],
                         Range.Zero
@@ -79,7 +80,8 @@ let implementationSyntaxTree =
               ) ],
             (false, false),
             { ConditionalDirectives = []
-              CodeComments = [] }
+              CodeComments = [] },
+            Set.empty
         )
     )
 
@@ -170,7 +172,8 @@ let mkCodeFromExpression (e: SynExpr) : string =
               ) ],
             (false, false),
             { ConditionalDirectives = []
-              CodeComments = [] }
+              CodeComments = [] },
+            Set.empty
         )
     )
     |> CodeFormatter.FormatASTAsync
@@ -178,7 +181,13 @@ let mkCodeFromExpression (e: SynExpr) : string =
 
 let numberExpr = SynExpr.Const(SynConst.Int32(7), Range.Zero)
 let wrappedNumber = SynExpr.Paren(numberExpr, Range.Zero, None, Range.Zero)
-mkCodeFromExpression wrappedNumber
+
+try
+    mkCodeFromExpression wrappedNumber
+with _ex ->
+    // Fantomas.Core will make assumptions about certain constructs.
+    // Just because you can instantiate the AST, does not mean it will be lead to valid code.
+    "Code could not be transformed internally"
 (*** include-it ***)
 
 (**
