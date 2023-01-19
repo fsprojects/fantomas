@@ -572,7 +572,7 @@ formatCode
 (*** include-it ***)
 
 (**
-<fantomas-setting name="fsharp_multiline_bracket_style" green orange gr></fantomas-setting>
+<fantomas-setting name="fsharp_multiline_bracket_style" green gr></fantomas-setting>
 
 `Cramped` The default way in F# to format brackets.  
 `Aligned` Alternative way of formatting records, arrays and lists. This will align the braces at the same column level.  
