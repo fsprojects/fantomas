@@ -3567,3 +3567,23 @@ type CsvFile
             defaultArg skipRows 0
         )
 """
+
+[<Test>]
+let ``optional parameter with ticks, 2731`` () =
+    formatSourceString
+        false
+        """
+type [<AllowNullLiteral>] ArrayBuffer =
+    abstract byteLength: int
+    abstract slice: ``begin``: int * ?``end``: int -> ArrayBuffer
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+[<AllowNullLiteral>]
+type ArrayBuffer =
+    abstract byteLength: int
+    abstract slice: ``begin``: int * ?``end``: int -> ArrayBuffer
+"""

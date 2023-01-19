@@ -2053,10 +2053,12 @@ let mkType (creationAide: CreationAide) (t: SynType) : Type =
         let identNode =
             identOpt
             |> Option.map (fun ident ->
-                if isOptional then
-                    stn $"?{ident.idText}" ident.idRange
+                let identNode = mkIdent ident
+
+                if not isOptional then
+                    identNode
                 else
-                    mkIdent ident)
+                    SingleTextNode($"?{identNode.Text}", ident.idRange))
 
         TypeSignatureParameterNode(mkAttributes creationAide attrs, identNode, mkType creationAide t, typeRange)
         |> Type.SignatureParameter
