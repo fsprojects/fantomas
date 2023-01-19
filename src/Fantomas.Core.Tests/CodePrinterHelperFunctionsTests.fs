@@ -4,7 +4,6 @@ open NUnit.Framework
 open FsUnit
 open Fantomas.Core.Context
 open Fantomas.Core
-open Fantomas.Core
 open Fantomas.Core.SyntaxOak
 
 // This test suite is created to illustrate the various helper functions that are being used in `CodePrinter`.

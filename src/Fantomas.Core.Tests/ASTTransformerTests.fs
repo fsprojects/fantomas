@@ -6,7 +6,6 @@ open FSharp.Compiler.Xml
 open FSharp.Compiler.Syntax
 open FSharp.Compiler.SyntaxTrivia
 open Fantomas.Core
-open Fantomas.Core
 
 [<Test>]
 let ``avoid stack-overflow in long array/list, 2485`` () =
