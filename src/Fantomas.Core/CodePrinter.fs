@@ -3591,8 +3591,12 @@ let genModuleDecl (md: ModuleDecl) =
         +> sepSpace
         +> genSingleTextNode node.Equals
         +> indentSepNlnUnindent (
-            colWithNlnWhenMappedNodeIsMultiline false ModuleDecl.Node genModuleDecl node.Declarations
+            ifElse
+                (List.isEmpty node.Declarations)
+                (!- "begin end")
+                (colWithNlnWhenMappedNodeIsMultiline false ModuleDecl.Node genModuleDecl node.Declarations)
         )
+
         |> genNode (ModuleDecl.Node md)
     | ModuleDecl.TypeDefn td -> genTypeDefn td
     | ModuleDecl.Val node -> genVal node None
