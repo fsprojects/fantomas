@@ -503,3 +503,22 @@ fsharp_multiline_bracket_style = cramped
     let config = EditorConfig.readConfiguration fsharpFile.FSharpFile
 
     Assert.AreEqual(Cramped, config.MultilineBracketStyle)
+
+[<Test>]
+let fsharp_prefer_computation_expression_name_on_same_line () =
+    let rootDir = tempName ()
+
+    let editorConfig =
+        """
+[*.fs]
+fsharp_prefer_computation_expression_name_on_same_line = true
+"""
+
+    use configFixture =
+        new ConfigurationFile(defaultConfig, rootDir, content = editorConfig)
+
+    use fsharpFile = new FSharpFile(rootDir)
+
+    let config = EditorConfig.readConfiguration fsharpFile.FSharpFile
+
+    Assert.AreEqual(true, config.PreferComputationExpressionNameOnSameLine)
