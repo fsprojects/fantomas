@@ -3,7 +3,6 @@ module Fantomas.Core.Tests.CodePrinterHelperFunctionsTests
 open NUnit.Framework
 open FsUnit
 open Fantomas.Core.Context
-open Fantomas.Core.FormatConfig
 open Fantomas.Core
 open Fantomas.Core.SyntaxOak
 

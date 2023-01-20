@@ -4,7 +4,7 @@ open System.IO
 open BenchmarkDotNet.Attributes
 open Fantomas.Core
 
-let config = FormatConfig.FormatConfig.Default
+let config = FormatConfig.Default
 
 [<MemoryDiagnoser>]
 [<RankColumn>]

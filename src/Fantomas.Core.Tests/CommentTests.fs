@@ -3,7 +3,7 @@ module Fantomas.Core.Tests.CommentTests
 open NUnit.Framework
 open FsUnit
 open Fantomas.Core.Tests.TestHelper
-open Fantomas.Core.FormatConfig
+open Fantomas.Core
 
 [<Test>]
 let ``should keep sticky-to-the-left comments after nowarn directives`` () =
