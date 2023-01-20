@@ -905,12 +905,14 @@ let addParenIfAutoNln expr f =
     let expr = f expr
     expressionFitsOnRestOfLine expr (ifElse hasParenthesis (sepOpenT +> expr +> sepCloseT) expr)
 
+let isStroustrupApplicable isStroustrupContext (node: Node) (ctx: Context) =
+    ctx.Config.ExperimentalStroustrupStyle
+    && isStroustrupContext
+    && Seq.isEmpty node.ContentBefore
+
 let autoIndentAndNlnExpressUnlessStroustrup (f: Expr -> Context -> Context) (e: Expr) (ctx: Context) =
     let shouldUseStroustrup =
-        ctx.Config.ExperimentalStroustrupStyle
-        && e.IsStroustrupStyleExpr
-        && let node = Expr.Node e in
-           Seq.isEmpty node.ContentBefore
+        isStroustrupApplicable e.IsStroustrupStyleExpr (Expr.Node e) ctx
 
     if shouldUseStroustrup then
         f e ctx
@@ -919,10 +921,7 @@ let autoIndentAndNlnExpressUnlessStroustrup (f: Expr -> Context -> Context) (e: 
 
 let autoIndentAndNlnTypeUnlessStroustrup (f: Type -> Context -> Context) (t: Type) (ctx: Context) =
     let shouldUseStroustrup =
-        ctx.Config.ExperimentalStroustrupStyle
-        && t.IsStroustrupStyleType
-        && let node = Type.Node t in
-           Seq.isEmpty node.ContentBefore
+        isStroustrupApplicable t.IsStroustrupStyleType (Type.Node t) ctx
 
     if shouldUseStroustrup then
         f t ctx
@@ -934,10 +933,7 @@ let autoIndentAndNlnIfExpressionExceedsPageWidthUnlessStroustrup
     (e: Expr)
     (ctx: Context)
     =
-    let isStroustrup =
-        ctx.Config.ExperimentalStroustrupStyle
-        && e.IsStroustrupStyleExpr
-        && Seq.isEmpty (Expr.Node e).ContentBefore
+    let isStroustrup = isStroustrupApplicable e.IsStroustrupStyleExpr (Expr.Node e) ctx
 
     if isStroustrup then
         f e ctx

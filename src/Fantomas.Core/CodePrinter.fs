@@ -2776,7 +2776,22 @@ let genBinding (b: BindingNode) (ctx: Context) : Context =
             +> (fun ctx ->
                 let prefix = afterLetKeyword +> sepSpace +> genValueName +> genReturnType
                 let short = prefix +> genExpr b.Expr
-                let long = prefix +> autoIndentAndNlnExpressUnlessStroustrup genExpr b.Expr
+
+                let long =
+                    prefix
+                    +> let shouldUseStroustrup =
+                        isStroustrupApplicable b.Expr.IsStroustrupStyleExpr (Expr.Node b.Expr) ctx in
+
+                       let isNamedComputationPreferNewLine =
+                           match b.Expr with
+                           | Expr.NamedComputation _ when ctx.Config.PreferComputationExpressionNameOnSameLine -> true
+                           | _ -> false in
+
+                       if shouldUseStroustrup || isNamedComputationPreferNewLine then
+                           genExpr b.Expr
+                       else
+                           indentSepNlnUnindent (genExpr b.Expr)
+
                 isShortExpression ctx.Config.MaxValueBindingWidth short long ctx)
 
     genNode b binding ctx

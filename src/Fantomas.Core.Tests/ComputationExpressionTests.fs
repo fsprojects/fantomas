@@ -2536,7 +2536,7 @@ let ``prefer computation expression name on same line`` () =
         """
 let t =
     task {
-        let! thing = otherThing()
+        let! thing = otherThing ()
         return 5
     }
 """
@@ -2547,7 +2547,26 @@ let t =
         equal
         """
 let t = task {
-    let! thing = otherThing()
+    let! thing = otherThing ()
     return 5
 }
+"""
+
+[<Test>]
+let ``prefer computation expression name on same line handling short expression`` () =
+    formatSourceString
+        false
+        """
+let t =
+    task {
+        return ()
+    }
+"""
+        { config with
+            PreferComputationExpressionNameOnSameLine = true }
+    |> prepend newline
+    |> should
+        equal
+        """
+let t = task { return () }
 """
