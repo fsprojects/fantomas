@@ -167,14 +167,16 @@ let private fileNotFoundResponse filePath : Task<FantomasResponse> =
     { Code = int FantomasResponseCode.FileNotFound
       FilePath = filePath
       Content = Some $"File \"%s{filePath}\" does not exist."
-      SelectedRange = None }
+      SelectedRange = None
+      Cursor = None }
     |> Task.FromResult
 
 let private fileNotAbsoluteResponse filePath : Task<FantomasResponse> =
     { Code = int FantomasResponseCode.FilePathIsNotAbsolute
       FilePath = filePath
       Content = Some $"\"%s{filePath}\" is not an absolute file path. Relative paths are not supported."
-      SelectedRange = None }
+      SelectedRange = None
+      Cursor = None }
     |> Task.FromResult
 
 let private daemonNotFoundResponse filePath (error: GetDaemonError) : Task<FantomasResponse> =
@@ -214,14 +216,16 @@ let private daemonNotFoundResponse filePath (error: GetDaemonError) : Task<Fanto
     { Code = int code
       FilePath = filePath
       Content = Some content
-      SelectedRange = None }
+      SelectedRange = None
+      Cursor = None }
     |> Task.FromResult
 
 let private cancellationWasRequestedResponse filePath : Task<FantomasResponse> =
     { Code = int FantomasResponseCode.CancellationWasRequested
       FilePath = filePath
       Content = Some "FantomasService is being or has been disposed."
-      SelectedRange = None }
+      SelectedRange = None
+      Cursor = None }
     |> Task.FromResult
 
 let mapResultToResponse (filePath: string) (result: Result<Task<FantomasResponse>, FantomasServiceError>) =
@@ -256,7 +260,8 @@ type LSPFantomasService() =
                         { Code = int FantomasResponseCode.Version
                           Content = Some t.Result
                           FilePath = filePath
-                          SelectedRange = None }))
+                          SelectedRange = None
+                          Cursor = None }))
             |> mapResultToResponse filePath
 
         member _.FormatDocumentAsync
@@ -310,7 +315,8 @@ type LSPFantomasService() =
                         { Code = int FantomasResponseCode.Configuration
                           FilePath = filePath
                           Content = Some t.Result
-                          SelectedRange = None }))
+                          SelectedRange = None
+                          Cursor = None }))
             |> mapResultToResponse filePath
 
         member _.ClearCache() = agent.PostAndReply Reset

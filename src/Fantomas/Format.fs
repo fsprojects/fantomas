@@ -48,7 +48,8 @@ let private formatContentInternalAsync
             try
                 let isSignatureFile = Path.GetExtension(file) = ".fsi"
 
-                let! formattedContent = CodeFormatter.FormatDocumentAsync(isSignatureFile, originalContent, config)
+                let! { Code = formattedContent } =
+                    CodeFormatter.FormatDocumentAsync(isSignatureFile, originalContent, config)
 
                 let contentChanged =
                     if compareWithoutLineEndings then
