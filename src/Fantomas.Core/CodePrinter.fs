@@ -3,7 +3,6 @@ module internal rec Fantomas.Core.CodePrinter
 open System
 open Fantomas.Core.Context
 open Fantomas.Core.SyntaxOak
-open Fantomas.Core.FormatConfig
 open Microsoft.FSharp.Core.CompilerServices
 
 let noBreakInfixOps = set [| "="; ">"; "<"; "%" |]

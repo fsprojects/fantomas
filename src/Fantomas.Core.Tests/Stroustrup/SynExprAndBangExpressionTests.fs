@@ -2,7 +2,7 @@
 
 open NUnit.Framework
 open FsUnit
-open Fantomas.Core.FormatConfig
+open Fantomas.Core
 open Fantomas.Core.Tests.TestHelper
 
 let config =
