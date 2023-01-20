@@ -12,7 +12,6 @@ open FSharp.Compiler.Text
 open Fantomas.Client.Contracts
 open Fantomas.Client.LSPFantomasServiceTypes
 open Fantomas.Core
-open Fantomas.Core.FormatConfig
 open Fantomas.EditorConfig
 
 type FantomasDaemon(sender: Stream, reader: Stream) as this =
@@ -109,7 +108,7 @@ type FantomasDaemon(sender: Stream, reader: Stream) as this =
     [<JsonRpcMethod(Methods.Configuration)>]
     member _.Configuration() : string =
         let settings =
-            Reflection.getRecordFields FormatConfig.FormatConfig.Default
+            Reflection.getRecordFields FormatConfig.Default
             |> Array.toList
             |> List.choose (fun (recordField, defaultValue) ->
                 let optionalField key value =
