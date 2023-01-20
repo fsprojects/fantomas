@@ -32,16 +32,23 @@ type NodeBase(range: range) =
     let nodesBefore = Queue<TriviaNode>(0)
     let nodesAfter = Queue<TriviaNode>(0)
 
+    member _.ContentBefore: TriviaNode seq = nodesBefore
+    member _.HasContentBefore = not (Seq.isEmpty nodesBefore)
+    member _.ContentAfter: TriviaNode seq = nodesAfter
+    member _.HasContentAfter = not (Seq.isEmpty nodesAfter)
+    member _.Range = range
+    member _.AddBefore triviaNode = nodesBefore.Enqueue triviaNode
+    member _.AddAfter triviaNode = nodesAfter.Enqueue triviaNode
     abstract member Children: Node array
 
     interface Node with
-        member _.ContentBefore: TriviaNode seq = nodesBefore
-        member _.HasContentBefore = not (Seq.isEmpty nodesBefore)
-        member _.ContentAfter: TriviaNode seq = nodesAfter
-        member _.HasContentAfter = not (Seq.isEmpty nodesAfter)
-        member _.Range = range
-        member _.AddBefore triviaNode = nodesBefore.Enqueue triviaNode
-        member _.AddAfter triviaNode = nodesAfter.Enqueue triviaNode
+        member x.ContentBefore = x.ContentBefore
+        member x.HasContentBefore = x.HasContentBefore
+        member x.ContentAfter = x.ContentAfter
+        member x.HasContentAfter = x.HasContentAfter
+        member x.Range = x.Range
+        member x.AddBefore triviaNode = x.AddBefore triviaNode
+        member x.AddAfter triviaNode = x.AddAfter triviaNode
         member x.Children = x.Children
 
 type StringNode(content: string, range: range) =
