@@ -97,6 +97,10 @@ let formatDocument
             | [] -> failwith "not possible"
             | [ (_, x) ] -> x
             | all ->
+                // TODO: we currently ignore the cursor here.
+                // We would need to know which defines provided the code for each fragment.
+                // If we have a cursor, we need to find the fragment that contains it and matches the defines of the cursor.
+
                 let allInFragments =
                     all
                     |> List.map (fun (dc, { Code = code }) -> dc, code)
