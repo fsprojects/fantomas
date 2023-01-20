@@ -11,16 +11,22 @@ type CodeFormatter =
     /// Format an abstract syntax tree using an optional source for trivia processing
     static member FormatASTAsync: ast: ParsedInput * ?source: string * ?config: FormatConfig -> Async<FormatResult>
 
-    /// Format a source string using an optional config
+    /// <summary>
+    /// Format a source string using an optional config.
+    /// </summary>
+    /// <param name="isSignature">Determines whether the F# parser will process the source as signature file.</param>
+    /// <param name="source">F# source code</param>
+    /// <param name="config">Fantomas configuration</param>
+    /// <param name="cursor">The location of a cursor, zero-based.</param>
     static member FormatDocumentAsync:
         isSignature: bool * source: string * ?config: FormatConfig * ?cursor: Position -> Async<FormatResult>
 
-    // /// Format a part of source string using given config, and return the (formatted) selected part only.
-    // /// Beware that the range argument is inclusive. The closest expression inside the selection will be formatted if possible.
+    /// Format a part of source string using given config, and return the (formatted) selected part only.
+    /// Beware that the range argument is inclusive. The closest expression inside the selection will be formatted if possible.
     static member FormatSelectionAsync:
         isSignature: bool * source: string * selection: Range * ?config: FormatConfig -> Async<string * range>
 
-    // /// Check whether an input string is invalid in F# by attempting to parse the code.
+    /// Check whether an input string is invalid in F# by attempting to parse the code.
     static member IsValidFSharpCodeAsync: isSignature: bool * source: string -> Async<bool>
 
     /// Returns the version of Fantomas found in the AssemblyInfo

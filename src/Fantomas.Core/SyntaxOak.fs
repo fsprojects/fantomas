@@ -11,6 +11,7 @@ type TriviaContent =
     | BlockComment of string * newlineBefore: bool * newlineAfter: bool
     | Newline
     | Directive of string
+    | Cursor
 
 type TriviaNode(content: TriviaContent, range: range) =
     member x.Content = content
