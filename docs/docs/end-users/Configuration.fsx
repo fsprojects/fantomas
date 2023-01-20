@@ -39,7 +39,7 @@ You can quickly try your settings via the <a href="https://fsprojects.github.io/
 <img src="{{root}}/online_tool_usage.gif" alt="drawing" width="100%"/>
 *)
 
-#r "nuget: Fantomas.Core, 5.*"
+#r "nuget: Fantomas.Core, 5.2.0-alpha-012"
 
 open Fantomas.Core.FormatConfig
 open Fantomas.Core
@@ -55,7 +55,7 @@ However, there are settings that we do not recommend and generally should not be
 <p><fantomas-setting-icon type="green"></fantomas-setting-icon><strong>Safe to change:</strong> Settings that aren't attached to any guidelines. Depending on your team or your own preferences, feel free to change these as it's been agreed on the codebase, however, you can always use it's defaults.</p>
 <p><fantomas-setting-icon type="orange"></fantomas-setting-icon><strong>Use with caution:</strong> Settings where it is not recommended to change the default value. They might lead to incomplete results.</p>
 <p><fantomas-setting-icon type="red"></fantomas-setting-icon><strong>Do not use:</strong> Settings that don't follow any guidelines.</p>
-<p><fantomas-setting-icon type="gr"></fantomas-setting-icon><strong>G-Research:</strong> G-Research styling guide. If you use one of these, for consistency reasons you should use all of them.</p>
+<p><fantomas-setting-icon-gresearch></fantomas-setting-icon-gresearch><strong>G-Research:</strong> G-Research styling guide. If you use one of these, for consistency reasons you should use all of them.</p>
 *)
 
 (**
@@ -63,7 +63,7 @@ However, there are settings that we do not recommend and generally should not be
 
 <fantomas-setting name="indent_size" orange></fantomas-setting>
 
-`indent_size` has to be between 1 and 10.
+` indent_size` has to be between 1 and 10.
 
 This preference sets the indentation
 The common values are 2 and 4.  
@@ -572,56 +572,64 @@ formatCode
 (*** include-it ***)
 
 (**
-<fantomas-setting name="fsharp_multiline_bracket_style" green></fantomas-setting>
+<fantomas-setting name="fsharp_multiline_bracket_style" green gr></fantomas-setting>
 
-How to format bracketted expressions (e.g. records, arrays, lists, etc.) that span multiple lines. 
+`Cramped` The default way in F# to format brackets.  
+`Aligned` Alternative way of formatting records, arrays and lists. This will align the braces at the same column level.  
+`ExperimentalStroustrup` Please contribute to [fsprojects/fantomas#1408](https://github.com/fsprojects/fantomas/issues/1408) and engage in [fsharp/fslang-design#706](https://github.com/fsharp/fslang-design/issues/706).
 
-_This setting replaces the deprecated settings `fsharp_multiline_block_brackets_on_same_column` and `fsharp_experimental_stroustrup_style`._
-
-Possible values:
-
-* `cramped`
-* `aligned`
-* `experimental_stroustrup`
-
-Default = `cramped`.
-*)
-
-(**
-**Cramped** - The default way in F# to format brackets.  
-*)
-formatCode
-    """ 
-    let band = { Vocals = "John"; Bass = "Paul"; Guitar = "George"; Drums = "Ringo" }
-    let songs = [ "Come Together"; "Hey Jude"; "Yesterday"; "Yellow Submarine"; "Here Comes the Sun" ]
-    """
-    { FormatConfig.Default with
-        MultilineBracketStyle = Cramped }
-(*** include-it ***)
-
-(**
-**Aligned** - Alternative way of formatting brackets. This will align the braces at the same column level.
+Default = Cramped.
 *)
 
 formatCode
     """ 
-    let band = { Vocals = "John"; Bass = "Paul"; Guitar = "George"; Drums = "Ringo" }
-    let songs = [ "Come Together"; "Hey Jude"; "Yesterday"; "Yellow Submarine"; "Here Comes the Sun" ]
+    let myRecord =
+        { Level = 1
+          Progress = "foo"
+          Bar = "bar"
+          Street = "Bakerstreet"
+          Number = 42 }
+
+    type Range =
+        { From: float
+          To: float
+          FileName: string }
+
+    let a =
+        [| (1, 2, 3)
+           (4, 5, 6)
+           (7, 8, 9)
+           (10, 11, 12)
+           (13, 14, 15)
+           (16, 17,18)
+           (19, 20, 21) |]
     """
     { FormatConfig.Default with
         MultilineBracketStyle = Aligned }
 (*** include-it ***)
 
-(**
-**ExperimentalStroustrup** - Experimental setting. Places the opening brace on the same line as the binding, and the closing brace on its own line.
-
-_Please contribute to [fsprojects/fantomas#1408](https://github.com/fsprojects/fantomas/issues/1408) and engage in [fsharp/fslang-design#706](https://github.com/fsharp/fslang-design/issues/706)._
-*)
-
 formatCode
     """ 
-    let band = { Vocals = "John"; Bass = "Paul"; Guitar = "George"; Drums = "Ringo" }
-    let songs = [ "Come Together"; "Hey Jude"; "Yesterday"; "Yellow Submarine"; "Here Comes the Sun" ]
+    let myRecord =
+        { Level = 1
+          Progress = "foo"
+          Bar = "bar"
+          Street = "Bakerstreet"
+          Number = 42 }
+
+    type Range =
+        { From: float
+          To: float
+          FileName: string }
+
+    let a =
+        [| (1, 2, 3)
+           (4, 5, 6)
+           (7, 8, 9)
+           (10, 11, 12)
+           (13, 14, 15)
+           (16, 17,18)
+           (19, 20, 21) |]
     """
     { FormatConfig.Default with
         MultilineBracketStyle = ExperimentalStroustrup }
