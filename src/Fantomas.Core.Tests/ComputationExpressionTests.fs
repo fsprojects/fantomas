@@ -2528,3 +2528,26 @@ let zero =
     async { () } // foo
     |> ignore
 """
+
+[<Test>]
+let ``prefer computation expression name on same line`` () =
+    formatSourceString
+        false
+        """
+let t =
+    task {
+        let! thing = otherThing()
+        return 5
+    }
+"""
+        { config with
+            PreferComputationExpressionNameOnSameLine = true }
+    |> prepend newline
+    |> should
+        equal
+        """
+let t = task {
+    let! thing = otherThing()
+    return 5
+}
+"""
