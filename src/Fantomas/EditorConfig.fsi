@@ -1,5 +1,7 @@
 module Fantomas.EditorConfig
 
+open Fantomas.Core
+
 module Reflection =
 
     type FSharpRecordField =
@@ -15,12 +17,12 @@ val supportedProperties: string list
 val toEditorConfigName: value: seq<char> -> string
 
 val parseOptionsFromEditorConfig:
-    fallbackConfig: Core.FormatConfig.FormatConfig ->
+    fallbackConfig: FormatConfig ->
     editorConfigProperties: System.Collections.Generic.IReadOnlyDictionary<string, string> ->
-        Core.FormatConfig.FormatConfig
+        FormatConfig
 
-val configToEditorConfig: config: Core.FormatConfig.FormatConfig -> string
+val configToEditorConfig: config: FormatConfig -> string
 
-val tryReadConfiguration: fsharpFile: string -> Core.FormatConfig.FormatConfig option
+val tryReadConfiguration: fsharpFile: string -> FormatConfig option
 
-val readConfiguration: fsharpFile: string -> Core.FormatConfig.FormatConfig
+val readConfiguration: fsharpFile: string -> FormatConfig

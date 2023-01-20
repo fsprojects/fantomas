@@ -1,11 +1,10 @@
 module Fantomas.Core.Tests.TestHelper
 
 open System
+open Fantomas.Core
 open Fantomas.Core.SyntaxOak
 open NUnit.Framework
 open FsUnit
-open Fantomas.Core.FormatConfig
-open Fantomas.Core
 
 [<assembly: Parallelizable(ParallelScope.All)>]
 do ()
