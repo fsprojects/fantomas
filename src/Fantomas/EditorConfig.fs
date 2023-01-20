@@ -75,24 +75,6 @@ let private (|Boolean|_|) b =
     elif b = "false" then Some(box false)
     else None
 
-let private (|OldStroustrup|OldAligned|Unspecified|) (input: IReadOnlyDictionary<string, string>) =
-    let toOption =
-        function
-        | true, "true" -> Some true
-        | true, "false" -> Some false
-        | _ -> None
-
-    let hasStroustrup =
-        input.TryGetValue("fsharp_experimental_stroustrup_style") |> toOption
-
-    let hasAligned =
-        input.TryGetValue("fsharp_multiline_block_brackets_on_same_column") |> toOption
-
-    match hasAligned, hasStroustrup with
-    | Some true, Some true -> OldStroustrup
-    | Some true, _ -> OldAligned
-    | _ -> Unspecified
-
 let parseOptionsFromEditorConfig
     (fallbackConfig: FormatConfig)
     (editorConfigProperties: IReadOnlyDictionary<string, string>)
@@ -109,18 +91,7 @@ let parseOptionsFromEditorConfig
     |> fun newValues ->
 
         let formatConfigType = FormatConfig.Default.GetType()
-
-        let config =
-            Microsoft.FSharp.Reflection.FSharpValue.MakeRecord(formatConfigType, newValues) :?> FormatConfig
-
-        match editorConfigProperties with
-        | Unspecified -> config
-        | OldStroustrup ->
-            { config with
-                MultilineBracketStyle = ExperimentalStroustrup }
-        | OldAligned ->
-            { config with
-                MultilineBracketStyle = Aligned }
+        Microsoft.FSharp.Reflection.FSharpValue.MakeRecord(formatConfigType, newValues) :?> FormatConfig
 
 let configToEditorConfig (config: FormatConfig) : string =
     Reflection.getRecordFields config
