@@ -4,7 +4,6 @@ open NUnit.Framework
 open FsUnit
 open Fantomas.Core.Context
 open Fantomas.Core.Tests.TestHelper
-open Fantomas.Core.FormatConfig
 open Fantomas.Core
 
 let private dump = dump false

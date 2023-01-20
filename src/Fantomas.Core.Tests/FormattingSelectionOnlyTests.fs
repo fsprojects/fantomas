@@ -6,7 +6,7 @@ open NUnit.Framework
 open FsUnit
 open Fantomas.Core.Tests.TestHelper
 
-let private config = FormatConfig.FormatConfig.Default
+let private config = FormatConfig.Default
 
 let private formatSelectionOnly isFsiFile selection (source: string) config =
     let formattedSelection, _ =

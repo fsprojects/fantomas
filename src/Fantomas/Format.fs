@@ -3,7 +3,6 @@ module Fantomas.Format
 open System
 open System.IO
 open Fantomas.Core
-open Fantomas.Core.FormatConfig
 
 exception CodeFormatException of (string * Option<Exception>) array with
     override x.ToString() =

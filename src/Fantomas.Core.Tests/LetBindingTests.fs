@@ -3,7 +3,7 @@ module Fantomas.Core.Tests.LetBindingTests
 open NUnit.Framework
 open FsUnit
 open Fantomas.Core.Tests.TestHelper
-open Fantomas.Core.FormatConfig
+open Fantomas.Core
 
 [<Test>]
 let ``let in should be preserved`` () =
