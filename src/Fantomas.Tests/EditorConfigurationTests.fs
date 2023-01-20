@@ -449,26 +449,6 @@ insert_final_newline = false
     Assert.IsFalse config.InsertFinalNewline
 
 [<Test>]
-let ``fsharp_experimental_stroustrup_style = true`` () =
-    let rootDir = tempName ()
-
-    let editorConfig =
-        """
-[*.fs]
-fsharp_multiline_block_brackets_on_same_column = true
-fsharp_experimental_stroustrup_style = true
-"""
-
-    use configFixture =
-        new ConfigurationFile(defaultConfig, rootDir, content = editorConfig)
-
-    use fsharpFile = new FSharpFile(rootDir)
-
-    let config = EditorConfig.readConfiguration fsharpFile.FSharpFile
-
-    Assert.AreEqual(ExperimentalStroustrup, config.MultilineBracketStyle)
-
-[<Test>]
 let ``fsharp_multiline_bracket_style = experimental_stroustrup`` () =
     let rootDir = tempName ()
 
@@ -524,22 +504,3 @@ fsharp_multiline_bracket_style = cramped
     let config = EditorConfig.readConfiguration fsharpFile.FSharpFile
 
     Assert.AreEqual(Cramped, config.MultilineBracketStyle)
-
-[<Test>]
-let ``fsharp_multiline_block_brackets_on_same_column = true`` () =
-    let rootDir = tempName ()
-
-    let editorConfig =
-        """
-[*.fs]
-fsharp_multiline_block_brackets_on_same_column = true
-"""
-
-    use configFixture =
-        new ConfigurationFile(defaultConfig, rootDir, content = editorConfig)
-
-    use fsharpFile = new FSharpFile(rootDir)
-
-    let config = EditorConfig.readConfiguration fsharpFile.FSharpFile
-
-    Assert.AreEqual(Aligned, config.MultilineBracketStyle)
