@@ -1,7 +1,5 @@
 module internal Fantomas.Core.Context
 
-open Fantomas.Core
-open Fantomas.Core.FormatConfig
 open Fantomas.Core.SyntaxOak
 
 type WriterEvent =
