@@ -99,9 +99,29 @@ let genTrivia (trivia: TriviaNode) (ctx: Context) =
 
     gen ctx
 
+let recordCursorNode f (node: Node) (ctx: Context) =
+    match node.TryGetCursor with
+    | None -> f ctx
+    | Some cursor ->
+        // TODO: this currently assume the node fits on a single line.
+        // This won't be accurate in case of a multiline string.
+        let currentStartLine = ctx.WriterModel.Lines.Length
+        let currentStartColumn = ctx.Column
+
+        let ctxAfter = f ctx
+
+        let formattedCursor =
+            let columnOffsetInSource = cursor.Column - node.Range.StartColumn
+            FSharp.Compiler.Text.Position.mkPos currentStartLine (currentStartColumn + columnOffsetInSource)
+
+        { ctxAfter with
+            FormattedCursor = Some formattedCursor }
+
 let enterNode<'n when 'n :> Node> (n: 'n) = col sepNone n.ContentBefore genTrivia
 let leaveNode<'n when 'n :> Node> (n: 'n) = col sepNone n.ContentAfter genTrivia
-let genNode<'n when 'n :> Node> (n: 'n) (f: Context -> Context) = enterNode n +> f +> leaveNode n
+
+let genNode<'n when 'n :> Node> (n: 'n) (f: Context -> Context) =
+    enterNode n +> recordCursorNode f n +> leaveNode n
 
 let genSingleTextNode (node: SingleTextNode) = !-node.Text |> genNode node
 

@@ -341,3 +341,13 @@ let enrichTree (config: FormatConfig) (sourceText: ISourceText) (ast: ParsedInpu
 
     addToTree tree trivia
     tree
+
+let insertCursor (tree: Oak) (cursor: pos) =
+    let cursorRange = Range.mkRange (tree :> Node).Range.FileName cursor cursor
+    let nodeWithCursor = findNodeWhereRangeFitsIn tree cursorRange
+
+    match nodeWithCursor with
+    | None -> ()
+    | Some node -> node.AddCursor cursor
+
+    tree

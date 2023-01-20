@@ -26,9 +26,12 @@ type Node =
     abstract Children: Node array
     abstract AddBefore: triviaNode: TriviaNode -> unit
     abstract AddAfter: triviaNode: TriviaNode -> unit
+    abstract AddCursor: pos -> unit
+    abstract TryGetCursor: pos option
 
 [<AbstractClass>]
 type NodeBase(range: range) =
+    let mutable potentialCursor = None
     let nodesBefore = Queue<TriviaNode>(0)
     let nodesAfter = Queue<TriviaNode>(0)
 
@@ -43,6 +46,8 @@ type NodeBase(range: range) =
         member _.AddBefore(triviaNode: TriviaNode) = nodesBefore.Enqueue triviaNode
         member _.AddAfter(triviaNode: TriviaNode) = nodesAfter.Enqueue triviaNode
         member this.Children = this.Children
+        member _.AddCursor cursor = potentialCursor <- Some cursor
+        member _.TryGetCursor = potentialCursor
 
 type StringNode(content: string, range: range) =
     inherit NodeBase(range)
@@ -1310,6 +1315,8 @@ type ExprTryFinallyNode(tryNode: SingleTextNode, tryExpr: Expr, finallyNode: Sin
     member x.FinallyExpr = finallyExpr
 
 type ElseIfNode(mElse: range, mIf: range, condition: Node, range) as elseIfNode =
+    let mutable elseCursor = None
+    let mutable ifCursor = None
     let nodesBefore = Queue<TriviaNode>(0)
     let nodesAfter = Queue<TriviaNode>(0)
     let mutable lastNodeAfterIsLineCommentAfterSource = false
@@ -1328,7 +1335,9 @@ type ElseIfNode(mElse: range, mIf: range, condition: Node, range) as elseIfNode 
             member _.AddAfter(triviaNode: TriviaNode) =
                 (elseIfNode :> Node).AddAfter triviaNode
 
-            member _.Children = Array.empty }
+            member _.Children = Array.empty
+            member _.AddCursor cursor = elseCursor <- Some cursor
+            member _.TryGetCursor = elseCursor }
 
     let ifNode =
         { new Node with
@@ -1346,7 +1355,9 @@ type ElseIfNode(mElse: range, mIf: range, condition: Node, range) as elseIfNode 
             member _.AddAfter(triviaNode: TriviaNode) =
                 (elseIfNode :> Node).AddAfter triviaNode
 
-            member _.Children = Array.empty }
+            member _.Children = Array.empty
+            member _.AddCursor cursor = ifCursor <- Some cursor
+            member _.TryGetCursor = ifCursor }
 
     interface Node with
         member _.ContentBefore: TriviaNode seq = nodesBefore
@@ -1374,6 +1385,8 @@ type ElseIfNode(mElse: range, mIf: range, condition: Node, range) as elseIfNode 
                 nodesAfter.Enqueue triviaNode
 
         member this.Children = [| elseNode; ifNode |]
+        member _.AddCursor _ = ()
+        member _.TryGetCursor = None
 
 [<RequireQualifiedAccess>]
 type IfKeywordNode =

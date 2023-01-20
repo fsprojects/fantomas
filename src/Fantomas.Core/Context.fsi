@@ -1,5 +1,6 @@
 module internal Fantomas.Core.Context
 
+open FSharp.Compiler.Text
 open Fantomas.Core.SyntaxOak
 
 type WriterEvent =
@@ -51,10 +52,11 @@ type WriterModel =
     member IsDummy: bool
 
 [<System.Diagnostics.DebuggerDisplay("\"{Dump()}\"")>]
-type internal Context =
+type Context =
     { Config: FormatConfig
       WriterModel: WriterModel
-      WriterEvents: Queue<WriterEvent> }
+      WriterEvents: Queue<WriterEvent>
+      FormattedCursor: pos option }
 
     /// Initialize with a string writer and use space as delimiter
     static member Default: Context
@@ -68,8 +70,7 @@ type internal Context =
 /// The event is also being processed in the WriterModel of the Context.
 val writerEvent: e: WriterEvent -> ctx: Context -> Context
 val hasWriteBeforeNewlineContent: ctx: Context -> bool
-// val finalizeWriterModel: ctx: Context -> Context
-val dump: isSelection: bool -> ctx: Context -> string
+val dump: isSelection: bool -> ctx: Context -> FormatResult
 val dumpAndContinue: ctx: Context -> Context
 val lastWriteEventIsNewline: ctx: Context -> bool
 
@@ -259,7 +260,7 @@ val autoIndentAndNlnTypeUnlessStroustrup: f: (Type -> Context -> Context) -> t: 
 val autoIndentAndNlnIfExpressionExceedsPageWidthUnlessStroustrup:
     f: (Expr -> Context -> Context) -> e: Expr -> ctx: Context -> Context
 
-type internal ColMultilineItem = ColMultilineItem of expr: (Context -> Context) * sepNln: (Context -> Context)
+type ColMultilineItem = ColMultilineItem of expr: (Context -> Context) * sepNln: (Context -> Context)
 
 /// This helper function takes a list of expressions and ranges.
 /// If the expression is multiline it will add a newline before and after the expression.
