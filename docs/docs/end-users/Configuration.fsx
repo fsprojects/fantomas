@@ -28,8 +28,7 @@ fsharp_bar_before_discriminated_union_declaration = true
 
 #\ Apply specific settings for a targeted subfolder
 [src/Elmish/View.fs]
-fsharp_multiline_block_brackets_on_same_column = true
-fsharp_experimental_stroustrup_style = true
+fsharp_multiline_bracket_style = experimental_stroustrup
 ```
 *)
 
@@ -40,7 +39,7 @@ You can quickly try your settings via the <a href="https://fsprojects.github.io/
 <img src="{{root}}/online_tool_usage.gif" alt="drawing" width="100%"/>
 *)
 
-#r "nuget: Fantomas.Core, 5.*"
+#r "nuget: Fantomas.Core, 5.2.0-alpha-012"
 
 open Fantomas.Core.FormatConfig
 open Fantomas.Core
@@ -573,16 +572,13 @@ formatCode
 (*** include-it ***)
 
 (**
-## G-Research style
+<fantomas-setting name="fsharp_multiline_bracket_style" green gr></fantomas-setting>
 
-A series of settings required to conform with the [G-Research style guide](https://github.com/G-Research/fsharp-formatting-conventions).  
-From a consistency point of view, it is recommend to enable all these settings instead of cherry-picking a few.
+`Cramped` The default way in F# to format brackets.  
+`Aligned` Alternative way of formatting records, arrays and lists. This will align the braces at the same column level.  
+`ExperimentalStroustrup` Please contribute to [fsprojects/fantomas#1408](https://github.com/fsprojects/fantomas/issues/1408) and engage in [fsharp/fslang-design#706](https://github.com/fsharp/fslang-design/issues/706).
 
-<fantomas-setting name="fsharp_multiline_block_brackets_on_same_column" green gr></fantomas-setting>
-
-Alternative way of formatting records, arrays and lists. This will align the braces at the same column level.
-
-Default = false.
+Default = Cramped.
 *)
 
 formatCode
@@ -612,7 +608,39 @@ formatCode
         MultilineBracketStyle = Aligned }
 (*** include-it ***)
 
+formatCode
+    """ 
+    let myRecord =
+        { Level = 1
+          Progress = "foo"
+          Bar = "bar"
+          Street = "Bakerstreet"
+          Number = 42 }
+
+    type Range =
+        { From: float
+          To: float
+          FileName: string }
+
+    let a =
+        [| (1, 2, 3)
+           (4, 5, 6)
+           (7, 8, 9)
+           (10, 11, 12)
+           (13, 14, 15)
+           (16, 17,18)
+           (19, 20, 21) |]
+    """
+    { FormatConfig.Default with
+        MultilineBracketStyle = ExperimentalStroustrup }
+(*** include-it ***)
+
 (**
+## G-Research style
+
+A series of settings required to conform with the [G-Research style guide](https://github.com/G-Research/fsharp-formatting-conventions).  
+From a consistency point of view, it is recommend to enable all these settings instead of cherry-picking a few.
+
 <fantomas-setting name="fsharp_newline_between_type_definition_and_members" green gr></fantomas-setting>
 
 Adds a new line between a type definition and its first member.
@@ -767,27 +795,6 @@ formatCode
 
 Some additional settings that don't fit into any style guide.
 
-<fantomas-setting name="fsharp_experimental_stroustrup_style" orange></fantomas-setting>
-
-Please contribute to [fsprojects/fantomas#1408](https://github.com/fsprojects/fantomas/issues/1408) and engage in [fsharp/fslang-design#706](https://github.com/fsharp/fslang-design/issues/706).
-
-Default = false.
-
-Requires `fsharp_multiline_block_brackets_on_same_column` to be `true` to take effect.
-*)
-
-formatCode
-    """
-type PostalAddress =
-    { Address: string
-      City: string
-      Zip: string }
-"""
-    { FormatConfig.Default with
-        MultilineBracketStyle = MultilineBracketStyle.ExperimentalStroustrup }
-(*** include-it ***)
-
-(**
 <fantomas-setting name="fsharp_blank_lines_around_nested_multiline_expressions" green></fantomas-setting>
 
 Surround **nested** multi-line expressions with blank lines.  
