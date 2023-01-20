@@ -1,8 +1,6 @@
 ﻿module internal Fantomas.Core.Selection
 
 open FSharp.Compiler.Text
-open Fantomas.Core
-open Fantomas.Core.FormatConfig
 open Fantomas.Core.SyntaxOak
 open Fantomas.Core.ISourceTextExtensions
 

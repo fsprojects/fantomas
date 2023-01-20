@@ -49,7 +49,7 @@ type Graphml = XmlProvider<Schema= @"http://graphml.graphdrawing.org/xmlns/1.0/g
 
 [<Test>]
 let ``should throw FormatException on unparsed input`` () =
-    Assert.Throws<Fantomas.Core.FormatConfig.FormatException>(fun () ->
+    Assert.Throws<Fantomas.Core.FormatException>(fun () ->
         formatSourceString
             false
             """

@@ -3,7 +3,7 @@ module Fantomas.Core.Tests.ColMultilineItemTests
 open NUnit.Framework
 open FsUnit
 open Fantomas.Core.Tests.TestHelper
-open Fantomas.Core.FormatConfig
+open Fantomas.Core
 
 [<Test>]
 let ``two short let binding should not have extra newline`` () =

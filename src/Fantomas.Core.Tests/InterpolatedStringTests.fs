@@ -1,6 +1,5 @@
 module Fantomas.Core.Tests.InterpolatedStringTests
 
-open FSharp.Compiler.Text
 open NUnit.Framework
 open FsUnit
 open Fantomas.Core.Tests.TestHelper

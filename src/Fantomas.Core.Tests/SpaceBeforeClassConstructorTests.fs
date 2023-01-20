@@ -3,7 +3,7 @@ module Fantomas.Core.Tests.SpaceBeforeClassConstructorTests
 open NUnit.Framework
 open FsUnit
 open Fantomas.Core.Tests.TestHelper
-open Fantomas.Core.FormatConfig
+open Fantomas.Core
 
 let spaceBeforeConfig =
     { config with

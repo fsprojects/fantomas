@@ -1,6 +1,7 @@
 module Fantomas.Format
 
 open System
+open Fantomas.Core
 
 exception CodeFormatException of (string * Option<Exception>) array
 
@@ -11,7 +12,7 @@ type FormatResult =
     | Error of filename: string * formattingError: Exception
     | IgnoredFile of filename: string
 
-val formatContentAsync: (Core.FormatConfig.FormatConfig -> string -> string -> Async<FormatResult>)
+val formatContentAsync: (FormatConfig -> string -> string -> Async<FormatResult>)
 
 val formatFileAsync: (string -> Async<FormatResult>)
 

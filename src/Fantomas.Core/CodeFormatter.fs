@@ -10,18 +10,18 @@ type CodeFormatter =
 
     static member FormatASTAsync(ast: ParsedInput, ?source, ?config) : Async<string> =
         let sourceText = Option.map CodeFormatterImpl.getSourceText source
-        let config = Option.defaultValue FormatConfig.FormatConfig.Default config
+        let config = Option.defaultValue FormatConfig.Default config
 
         CodeFormatterImpl.formatAST ast sourceText config |> async.Return
 
     static member FormatDocumentAsync(isSignature, source, config) =
-        let config = Option.defaultValue FormatConfig.FormatConfig.Default config
+        let config = Option.defaultValue FormatConfig.Default config
 
         CodeFormatterImpl.getSourceText source
         |> CodeFormatterImpl.formatDocument config isSignature
 
     static member FormatSelectionAsync(isSignature, source, selection, config) =
-        let config = Option.defaultValue FormatConfig.FormatConfig.Default config
+        let config = Option.defaultValue FormatConfig.Default config
 
         CodeFormatterImpl.getSourceText source
         |> Selection.formatSelection config isSignature selection
