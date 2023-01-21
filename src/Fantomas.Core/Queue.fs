@@ -5,40 +5,40 @@ namespace Fantomas.Core
 type Queue<'T>(data: list<'T[]>, length: int) =
     let mutable hashCode = None
 
-    override this.GetHashCode() =
+    override x.GetHashCode() =
         match hashCode with
         | None ->
             let mutable hash = 1
 
-            for x in this do
-                hash <- 31 * hash + Unchecked.hash x
+            for x' in x do
+                hash <- 31 * hash + Unchecked.hash x'
 
             hashCode <- Some hash
             hash
         | Some hash -> hash
 
-    override this.Equals(other) =
+    override x.Equals(other) =
         match other with
         | :? Queue<'T> as y ->
-            if this.Length <> y.Length then false
-            else if this.GetHashCode() <> y.GetHashCode() then false
-            else Seq.forall2 Unchecked.equals this y
+            if x.Length <> y.Length then false
+            else if x.GetHashCode() <> y.GetHashCode() then false
+            else Seq.forall2 Unchecked.equals x y
         | _ -> false
 
-    member this.Head =
+    member x.Head =
         if length > 0 then
             (List.head data).[0]
         else
             raise (System.Exception("Queue is empty"))
 
-    member this.TryHead = if length > 0 then Some((List.head data).[0]) else None
+    member x.TryHead = if length > 0 then Some((List.head data).[0]) else None
 
-    member this.Tail =
+    member x.Tail =
         match data with
-        | [] -> this
+        | [] -> x
         | head :: tail ->
             if Array.isEmpty head then
-                this
+                x
             else
                 let newHead = Array.skip 1 head
 
@@ -47,19 +47,19 @@ type Queue<'T>(data: list<'T[]>, length: int) =
                 else
                     Queue(newHead :: tail, length - 1)
 
-    member this.IsEmpty = length = 0
+    member x.IsEmpty = length = 0
 
-    member this.Length = length
+    member x.Length = length
 
-    member this.Rev() =
+    member x.Rev() =
         data
         |> Seq.collect (fun arr -> seq { arr.Length - 1 .. -1 .. 0 } |> Seq.map (fun i -> arr.[i]))
 
-    member this.Append xs =
+    member x.Append xs =
         Queue(Array.ofList xs :: data, length + List.length xs)
 
     /// Equivalent of q |> Queue.toSeq |> Seq.skip n |> Seq.skipWhile p |> Seq.exists f, optimized for speed
-    member this.SkipExists n f p =
+    member x.SkipExists n f p =
         if n >= length then
             false
         else
@@ -94,14 +94,14 @@ type Queue<'T>(data: list<'T[]>, length: int) =
             d |> List.skipWhile p |> exists
 
     interface System.Collections.Generic.IReadOnlyCollection<'T> with
-        member this.Count = this.Length
+        member x.Count = x.Length
 
-        member this.GetEnumerator() =
+        member x.GetEnumerator() =
             let e = data |> Seq.rev |> Seq.collect id
             e.GetEnumerator()
 
-        member this.GetEnumerator() =
-            (this :> _ seq).GetEnumerator() :> System.Collections.IEnumerator
+        member x.GetEnumerator() =
+            (x :> _ seq).GetEnumerator() :> System.Collections.IEnumerator
 
 [<RequireQualifiedAccess>]
 module Queue =

@@ -147,6 +147,37 @@ Someone might be able to warn you in advance that your change will have wide imp
 However, this can only happen if you discuss your proposed changes early and often.
 It's often better to check *before* contributing that you're setting off on the right path.
 
+## Coding conventions
+
+For consistency sake we have a few coding conventions. Please respect those to keep everything as streamlined as possible.
+
+### Member declaration
+
+- Use `x` as the the `self-identifier` if you need it.
+
+```fsharp
+type Foo() =
+    member _.Children = []
+    
+    // ✔️ OK
+    member x.Length = x.Children.Length
+    
+    // ❌ Not preferred, we use `x`
+    member this.WrongLength = this.Children.Length - 1
+```
+
+- Use `_` when you don't need the `self-identifier`.
+- Use `member val` when possible.
+
+```fsharp
+type Foo(v: Value) =
+    // ✔️ OK
+    member val Value = v
+    
+        // ❌ Not preferred.
+    member _.WrongValue = v
+```
+
 ## Fixing style guide inconsistencies
 
 Fantomas tries to keep up with the style guides, but as these are living documents, it can occur that something is listed in the style that Fantomas is not respecting.

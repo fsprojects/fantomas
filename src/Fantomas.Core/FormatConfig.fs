@@ -223,8 +223,7 @@ type FormatConfig =
       [<Description("Pretty printing based on ASTs only.\nPlease do not use this setting for formatting hand written code!")>]
       StrictMode: bool }
 
-    member this.ExperimentalStroustrupStyle =
-        this.MultilineBracketStyle = ExperimentalStroustrup
+    member x.ExperimentalStroustrupStyle = x.MultilineBracketStyle = ExperimentalStroustrup
 
     static member Default =
         { IndentSize = 4

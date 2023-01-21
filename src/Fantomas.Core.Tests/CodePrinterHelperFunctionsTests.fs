@@ -295,11 +295,9 @@ let a =
     let genExprWithTrivia (expr: Expr) : Context -> Context =
         match expr with
         | Expr.Ident identNode ->
-            let node = identNode :> Node
-
             // We try and grab the first comment from the generic Node interface.
             let firstComment =
-                match Seq.tryHead node.ContentBefore with
+                match Seq.tryHead identNode.ContentBefore with
                 | None -> sepNone
                 | Some triviaNode ->
                     // If found we check the content and try to print the comment text followed by a newline
@@ -410,7 +408,7 @@ let b = 2
     // This worked fine, but the next time we will format there will be a TriviaNode for the blank line.
     // The newly found newline will be added to the last top level binding node
     match tree.ModulesOrNamespaces.[0].Declarations.[1] with
-    | ModuleDecl.TopLevelBinding binding -> (binding :> Node).AddBefore(TriviaNode(TriviaContent.Newline, zeroRange))
+    | ModuleDecl.TopLevelBinding binding -> binding.AddBefore(TriviaNode(TriviaContent.Newline, zeroRange))
     | _ -> ()
 
     let formattedCodeWithTrivia = f tree ctx |> dump
