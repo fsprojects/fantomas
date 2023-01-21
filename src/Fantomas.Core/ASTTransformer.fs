@@ -505,9 +505,7 @@ let rec (|ElIf|_|) =
             | None -> elifNode
             | Some mElse ->
                 match elifNode with
-                | Choice1Of2 ifNode ->
-                    let ifNode = ifNode
-                    Choice2Of2(mElse, ifNode.Range)
+                | Choice1Of2 ifNode -> Choice2Of2(mElse, ifNode.Range)
                 | Choice2Of2 _ -> failwith "Cannot merge a second else keyword into existing else if"
 
         Some(
