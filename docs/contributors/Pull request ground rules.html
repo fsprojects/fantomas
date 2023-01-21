@@ -329,6 +329,32 @@ your changes caused any tests to fail.</p>
 Someone might be able to warn you in advance that your change will have wide implications for the rest of Fantomas, or might be able to point you in the right direction.
 However, this can only happen if you discuss your proposed changes early and often.
 It's often better to check <em>before</em> contributing that you're setting off on the right path.</p>
+<h2><a name="Coding-conventions" class="anchor" href="#Coding-conventions">Coding conventions</a></h2>
+<p>For consistency sake we have a few coding conventions. Please respect those to keep everything as streamlined as possible.</p>
+<h3><a name="Member-declaration" class="anchor" href="#Member-declaration">Member declaration</a></h3>
+<ul>
+<li>Use <code>x</code> as the the <code>self-identifier</code> if you need it.</li>
+</ul>
+<pre class="fssnip highlighted"><code lang="fsharp"><span class="k">type</span> <span class="id">Foo</span><span class="pn">(</span><span class="pn">)</span> <span class="o">=</span>
+    <span class="k">member</span> <span class="id">_</span><span class="pn">.</span><span class="id">Children</span> <span class="o">=</span> <span class="pn">[</span><span class="pn">]</span>
+    
+    <span class="c">// ✔️ OK</span>
+    <span class="k">member</span> <span class="id">x</span><span class="pn">.</span><span class="id">Length</span> <span class="o">=</span> <span class="id">x</span><span class="pn">.</span><span class="id">Children</span><span class="pn">.</span><span class="id">Length</span>
+    
+    <span class="c">// ❌ Not preferred, we use `x`</span>
+    <span class="k">member</span> <span class="id">this</span><span class="pn">.</span><span class="id">WrongLength</span> <span class="o">=</span> <span class="id">this</span><span class="pn">.</span><span class="id">Children</span><span class="pn">.</span><span class="id">Length</span> <span class="o">-</span> <span class="n">1</span>
+</code></pre>
+<ul>
+<li>Use <code>_</code> when you don't need the <code>self-identifier</code>.</li>
+<li>Use <code>member val</code> when possible.</li>
+</ul>
+<pre class="fssnip highlighted"><code lang="fsharp"><span class="k">type</span> <span class="id">Foo</span><span class="pn">(</span><span class="id">v</span><span class="pn">:</span> <span class="id">Value</span><span class="pn">)</span> <span class="o">=</span>
+    <span class="c">// ✔️ OK</span>
+    <span class="k">member</span> <span class="k">val</span> <span class="id">Value</span> <span class="o">=</span> <span class="id">v</span>
+    
+        <span class="c">// ❌ Not preferred.</span>
+    <span class="k">member</span> <span class="id">_</span><span class="pn">.</span><span class="id">WrongValue</span> <span class="o">=</span> <span class="id">v</span>
+</code></pre>
 <h2><a name="Fixing-style-guide-inconsistencies" class="anchor" href="#Fixing-style-guide-inconsistencies">Fixing style guide inconsistencies</a></h2>
 <p>Fantomas tries to keep up with the style guides, but as these are living documents, it can occur that something is listed in the style that Fantomas is not respecting.
 In this case, please create an issue using our <a href="https://fsprojects.github.io/fantomas-tools/#/">online tool</a>.
