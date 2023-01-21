@@ -5,9 +5,9 @@ open FSharp.Compiler.Text
 
 type ISourceText with
 
-    member this.GetContentAt(range: range) : string =
+    member x.GetContentAt(range: range) : string =
         let startLine = range.StartLine - 1
-        let line = this.GetLineString startLine
+        let line = x.GetLineString startLine
 
         if range.StartLine = range.EndLine then
             let length = range.EndColumn - range.StartColumn
@@ -17,8 +17,8 @@ type ISourceText with
             let sb = StringBuilder().AppendLine(firstLineContent)
 
             (sb, [ range.StartLine .. range.EndLine - 2 ])
-            ||> List.fold (fun sb lineNumber -> sb.AppendLine(this.GetLineString lineNumber))
+            ||> List.fold (fun sb lineNumber -> sb.AppendLine(x.GetLineString lineNumber))
             |> fun sb ->
-                let lastLine = this.GetLineString(range.EndLine - 1)
+                let lastLine = x.GetLineString(range.EndLine - 1)
 
                 sb.Append(lastLine.Substring(0, range.EndColumn)).ToString()
