@@ -82,7 +82,7 @@ let internal collectTriviaFromBlankLines
 
                 let currentLines =
                     match node with
-                    | :? StringNode as node -> captureLinesIfMultiline (node :> Node).Range
+                    | :? StringNode as node -> captureLinesIfMultiline node.Range
                     | _ -> []
 
                 let finalContinuation (lines: int list list) : int list =
@@ -313,7 +313,7 @@ let addToTree (tree: Oak) (trivia: TriviaNode seq) =
             | BlockComment _ -> blockCommentToTriviaInstruction parentNode trivia
 
 let enrichTree (config: FormatConfig) (sourceText: ISourceText) (ast: ParsedInput) (tree: Oak) : Oak =
-    let fullTreeRange = (tree :> Node).Range
+    let fullTreeRange = tree.Range
 
     let directives, codeComments =
         match ast with

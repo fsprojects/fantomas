@@ -197,7 +197,7 @@ let mkAttributes (creationAide: CreationAide) (al: SynAttributeList list) : Mult
     | [] -> None
     | _ ->
         let attributeLists = List.map (mkAttributeList creationAide) al
-        let range = List.map (fun al -> (al :> Node).Range) attributeLists |> combineRanges
+        let range = attributeLists |> List.map (fun al -> al.Range) |> combineRanges
         Some(MultipleAttributeListNode(attributeLists, range))
 
 let (|Sequentials|_|) e =
@@ -273,12 +273,12 @@ let rec collectComputationExpressionStatements
         let bindings =
             bindings
             |> List.map (fun (b, inNode) ->
-                let b = mkBinding creationAide b
+                let b: BindingNode = mkBinding creationAide b
 
                 let inNode, m =
                     match inNode with
-                    | None -> None, (b :> Node).Range
-                    | Some mIn -> Some(stn "in" mIn), unionRanges (b :> Node).Range mIn
+                    | None -> None, b.Range
+                    | Some mIn -> Some(stn "in" mIn), unionRanges b.Range mIn
 
                 ExprLetOrUseNode(b, inNode, m)
                 |> ComputationExpressionStatement.LetOrUseStatement)
@@ -506,7 +506,7 @@ let rec (|ElIf|_|) =
             | Some mElse ->
                 match elifNode with
                 | Choice1Of2 ifNode ->
-                    let ifNode = ifNode :> Node
+                    let ifNode = ifNode
                     Choice2Of2(mElse, ifNode.Range)
                 | Choice2Of2 _ -> failwith "Cannot merge a second else keyword into existing else if"
 
@@ -1591,7 +1591,7 @@ let mkPat (creationAide: CreationAide) (p: SynPat) =
                 let range =
                     match prefix with
                     | None -> unionRanges ident.idRange pat.Range
-                    | Some prefix -> unionRanges (prefix :> Node).Range pat.Range
+                    | Some prefix -> unionRanges prefix.Range pat.Range
 
                 PatRecordField(prefix, mkIdent ident, stn "=" eq, mkPat creationAide pat, range))
 
@@ -1761,8 +1761,7 @@ let mkExternBinding
                 |> List.mapWithLast id (function
                     | IdentifierOrDot.KnownDot dot -> IdentifierOrDot.KnownDot dot
                     | IdentifierOrDot.UnknownDot -> IdentifierOrDot.UnknownDot
-                    | IdentifierOrDot.Ident ident ->
-                        IdentifierOrDot.Ident(stn $"{ident.Text}{suffix}" (ident :> Node).Range))
+                    | IdentifierOrDot.Ident ident -> IdentifierOrDot.Ident(stn $"{ident.Text}{suffix}" ident.Range))
 
             Type.LongIdent(IdentListNode(lidPieces, t.Range))
         | SynType.App(typeName = typeName; isPostfix = true; typeArgs = [ argType ]) ->
@@ -2214,12 +2213,12 @@ let mkImplicitCtor creationAide vis (attrs: SynAttributeList list) pats (self: I
         let startRange =
             if not xmlDoc.IsEmpty then xmlDoc.Range
             else if not attrs.IsEmpty then attrs.[0].Range
-            else (openNode :> Node).Range
+            else openNode.Range
 
         let endRange =
             match self with
             | Some self -> self.idRange
-            | None -> (closeNode :> Node).Range
+            | None -> closeNode.Range
 
         unionRanges startRange endRange
 
@@ -2242,7 +2241,7 @@ let mkTypeDefn
         match typeInfo with
         | SynComponentInfo(ats, tds, tcs, lid, px, _preferPostfix, ao, _) ->
             let identifierNode = mkLongIdent lid
-            let mIdentifierNode = (identifierNode :> Node).Range
+            let mIdentifierNode = identifierNode.Range
 
             let leadingKeyword =
                 match trivia.LeadingKeyword with
@@ -2262,10 +2261,10 @@ let mkTypeDefn
                     if not px.IsEmpty then
                         px.Range
                     elif leadingKeyword.Text = "and" then
-                        (leadingKeyword :> Node).Range
+                        leadingKeyword.Range
                     else
                         match ats with
-                        | [] -> (leadingKeyword :> Node).Range
+                        | [] -> leadingKeyword.Range
                         | firstAttr :: _ -> firstAttr.Range
 
                 let endRange =
@@ -2290,7 +2289,7 @@ let mkTypeDefn
             )
 
     let members = List.map (mkMemberDefn creationAide) members
-    let typeDefnRange = unionRanges (typeNameNode :> Node).Range range
+    let typeDefnRange = unionRanges typeNameNode.Range range
 
     match typeRepr with
     | SynTypeDefnRepr.Simple(simpleRepr = SynTypeDefnSimpleRepr.Enum(ecs, _)) ->
@@ -2376,7 +2375,7 @@ let mkTypeDefn
                 None,
                 None,
                 Some(stn "with" mWith),
-                (typeNameNode :> Node).Range
+                typeNameNode.Range
             )
 
         TypeDefnAugmentationNode(typeNameNode, members, typeDefnRange)
@@ -2845,8 +2844,7 @@ let mkModuleOrNamespace
         | Some leadingKeyword ->
             match name with
             | None ->
-                let m =
-                    mkFileIndexRange range.FileIndex range.Start (leadingKeyword :> Node).Range.End
+                let m = mkFileIndexRange range.FileIndex range.Start leadingKeyword.Range.End
 
                 ModuleOrNamespaceHeaderNode(
                     mkXmlDoc xmlDoc,
@@ -2859,7 +2857,7 @@ let mkModuleOrNamespace
                 )
                 |> Some
             | Some name ->
-                let m = mkFileIndexRange range.FileIndex range.Start (name :> Node).Range.End
+                let m = mkFileIndexRange range.FileIndex range.Start name.Range.End
 
                 ModuleOrNamespaceHeaderNode(
                     mkXmlDoc xmlDoc,
@@ -2946,7 +2944,7 @@ let mkTypeDefnSig (creationAide: CreationAide) (SynTypeDefnSig(typeInfo, typeRep
         match typeInfo with
         | SynComponentInfo(ats, tds, tcs, lid, px, _preferPostfix, ao, _) ->
             let identifierNode = mkLongIdent lid
-            let mIdentifierNode = (identifierNode :> Node).Range
+            let mIdentifierNode = identifierNode.Range
 
             let leadingKeyword =
                 match trivia.LeadingKeyword with
@@ -2960,7 +2958,7 @@ let mkTypeDefnSig (creationAide: CreationAide) (SynTypeDefnSig(typeInfo, typeRep
                     unionRanges px.Range mIdentifierNode
                 else
                     match ats with
-                    | [] -> unionRanges (leadingKeyword :> Node).Range mIdentifierNode
+                    | [] -> unionRanges leadingKeyword.Range mIdentifierNode
                     | firstAttr :: _ -> unionRanges firstAttr.Range mIdentifierNode
 
             TypeNameNode(
@@ -2978,7 +2976,7 @@ let mkTypeDefnSig (creationAide: CreationAide) (SynTypeDefnSig(typeInfo, typeRep
             )
 
     let members = List.map (mkMemberSig creationAide) members
-    let typeDefnRange = unionRanges (typeNameNode :> Node).Range range
+    let typeDefnRange = unionRanges typeNameNode.Range range
 
     match typeRepr with
     | SynTypeDefnSigRepr.Simple(repr = SynTypeDefnSimpleRepr.Enum(ecs, _)) ->
@@ -3035,7 +3033,7 @@ let mkTypeDefnSig (creationAide: CreationAide) (SynTypeDefnSig(typeInfo, typeRep
                 None,
                 None,
                 typeNameNode.WithKeyword,
-                (typeNameNode :> Node).Range
+                typeNameNode.Range
             )
 
         TypeDefnAugmentationNode(typeNameNode, members, typeDefnRange)
@@ -3079,7 +3077,7 @@ let mkTypeDefnSig (creationAide: CreationAide) (SynTypeDefnSig(typeInfo, typeRep
                 None,
                 None,
                 Some(stn "with" mWith),
-                (typeNameNode :> Node).Range
+                typeNameNode.Range
             )
 
         TypeDefnAugmentationNode(typeNameNode, members, typeDefnRange)
@@ -3172,8 +3170,7 @@ let mkModuleOrNamespaceSig
         | Some leadingKeyword ->
             match name with
             | None ->
-                let m =
-                    mkFileIndexRange range.FileIndex range.Start (leadingKeyword :> Node).Range.End
+                let m = mkFileIndexRange range.FileIndex range.Start leadingKeyword.Range.End
 
                 ModuleOrNamespaceHeaderNode(
                     mkXmlDoc xmlDoc,
@@ -3186,7 +3183,7 @@ let mkModuleOrNamespaceSig
                 )
                 |> Some
             | Some name ->
-                let m = mkFileIndexRange range.FileIndex range.Start (name :> Node).Range.End
+                let m = mkFileIndexRange range.FileIndex range.Start name.Range.End
 
                 ModuleOrNamespaceHeaderNode(
                     mkXmlDoc xmlDoc,

@@ -904,7 +904,7 @@ let genExpr (e: Expr) =
             +> genExpr appNode.FunctionExpr
             +> genExpr appNode.ArgExpr
         | Expr.AppLongIdentAndSingleParenArg appNode ->
-            let mOptVarNode = (appNode.FunctionName :> Node).Range
+            let mOptVarNode = appNode.FunctionName.Range
 
             genSingleTextNode node.Operator
             +> sepSpace
@@ -1161,7 +1161,7 @@ let genExpr (e: Expr) =
     | Expr.AppLongIdentAndSingleParenArg node ->
         let addSpace =
             sepSpaceBeforeParenInFuncInvocation
-                (Expr.OptVar(ExprOptVarNode(false, node.FunctionName, (node.FunctionName :> Node).Range)))
+                (Expr.OptVar(ExprOptVarNode(false, node.FunctionName, node.FunctionName.Range)))
                 node.ArgExpr
 
         let shortLids = genIdentListNode node.FunctionName
@@ -1194,16 +1194,11 @@ let genExpr (e: Expr) =
                 +> genMultilineFunctionApplicationArguments node.ArgExpr
 
             match node.ArgExpr with
-            | Expr.Paren parenNode when (parenNode :> Node).HasContentBefore ->
+            | Expr.Paren parenNode when parenNode.HasContentBefore ->
                 // We make a copy of the parenthesis argument (without the trivia being copied).
                 // Then we check if that is was multiline or not.
                 let parenNode' =
-                    ExprParenNode(
-                        parenNode.OpeningParen,
-                        parenNode.Expr,
-                        parenNode.ClosingParen,
-                        (parenNode :> Node).Range
-                    )
+                    ExprParenNode(parenNode.OpeningParen, parenNode.Expr, parenNode.ClosingParen, parenNode.Range)
                     |> Expr.Paren
 
                 let isSingleLineWithoutTriviaBefore = futureNlnCheck (genExpr parenNode') ctx
@@ -1889,7 +1884,7 @@ let genClause (isLastItem: bool) (node: MatchClauseNode) =
                             let startNode =
                                 match node.Bar with
                                 | None -> Pattern.Node node.Pattern
-                                | Some bar -> bar :> Node
+                                | Some bar -> bar
 
                             genKeepIdent startNode node.BodyExpr
 
@@ -1918,7 +1913,7 @@ let genControlExpressionStartCore
     =
     let enterStart =
         match startKeyword with
-        | Choice1Of2 n -> enterNode (n :> Node)
+        | Choice1Of2 n -> enterNode n
         | Choice2Of2 n -> enterNode n.Node
 
     let genStart =
@@ -1931,7 +1926,7 @@ let genControlExpressionStartCore
 
     let leaveStart =
         match startKeyword with
-        | Choice1Of2 n -> leaveNode (n :> Node)
+        | Choice1Of2 n -> leaveNode n
         | Choice2Of2 n -> leaveNode n.Node
 
     let shortIfExpr =
@@ -2639,14 +2634,14 @@ let genBinding (b: BindingNode) (ctx: Context) : Context =
                         let beforeInline =
                             match b.Inline with
                             | None -> false
-                            | Some n -> (n :> Node).HasContentBefore
+                            | Some n -> n.HasContentBefore
 
-                        let beforeIdentifier = (functionName :> Node).HasContentBefore
+                        let beforeIdentifier = functionName.HasContentBefore
 
                         let beforeAccessibility =
                             match b.Accessibility with
                             | None -> false
-                            | Some n -> (n :> Node).HasContentBefore
+                            | Some n -> n.HasContentBefore
 
                         beforeInline || beforeIdentifier || beforeAccessibility
 
@@ -3023,7 +3018,7 @@ let sepNlnTypeAndMembers (node: ITypeDefn) (ctx: Context) : Context =
     | [] -> sepNone ctx
     | firstMember :: _ ->
         match node.TypeName.WithKeyword with
-        | Some node when (node :> Node).HasContentBefore -> enterNode node ctx
+        | Some node when node.HasContentBefore -> enterNode node ctx
         | _ ->
             if ctx.Config.NewlineBetweenTypeDefinitionAndMembers then
                 sepNlnUnlessContentBefore (MemberDefn.Node firstMember) ctx
@@ -3087,10 +3082,10 @@ let genTypeDefn (td: TypeDefn) =
         let hasTriviaAfterLeadingKeyword =
             let beforeAccess =
                 match typeName.Accessibility with
-                | Some n -> (n :> Node).HasContentBefore
+                | Some n -> n.HasContentBefore
                 | _ -> false
 
-            let beforeIdentifier = (typeName.Identifier :> Node).HasContentBefore
+            let beforeIdentifier = typeName.Identifier.HasContentBefore
             beforeAccess || beforeIdentifier
 
         genXml typeName.XmlDoc
@@ -3627,7 +3622,7 @@ let colWithNlnWhenNodeIsMultiline<'n when 'n :> Node>
 let genModule (m: ModuleOrNamespaceNode) =
     let newline =
         match m.Declarations with
-        | [] -> onlyIf (m :> Node).HasContentAfter sepNln
+        | [] -> onlyIf m.HasContentAfter sepNln
         | h :: _ -> sepNln +> sepNlnUnlessContentBefore (ModuleDecl.Node h)
 
     optSingle

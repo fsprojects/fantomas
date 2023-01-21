@@ -382,8 +382,7 @@ let formatSelection
         printTriviaNode rootNode
 #endif
 
-        let selection =
-            correctSelection (rootNode :> Node).Range.FileIndex sourceText selection
+        let selection = correctSelection rootNode.Range.FileIndex sourceText selection
 
         let treeWithSelection =
             Trivia.findNodeWhereRangeFitsIn rootNode selection

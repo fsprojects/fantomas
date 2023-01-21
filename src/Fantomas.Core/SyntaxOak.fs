@@ -79,8 +79,8 @@ type IdentifierOrDot =
 
     member x.Range =
         match x with
-        | Ident n -> Some (n :> Node).Range
-        | KnownDot n -> Some (n :> Node).Range
+        | Ident n -> Some n.Range
+        | KnownDot n -> Some n.Range
         | UnknownDot -> None
 
 type IdentListNode(content: IdentifierOrDot list, range) =
@@ -1763,7 +1763,8 @@ type OpenListNode(opens: Open list) =
     member val Opens = opens
 
 type HashDirectiveListNode(hashDirectives: ParsedHashDirectiveNode list) =
-    inherit NodeBase(List.map (fun n -> (n :> Node).Range) hashDirectives |> combineRanges)
+    inherit NodeBase(hashDirectives |> List.map (fun n -> n.Range) |> combineRanges)
+
     override val Children: Node array = [| yield! nodes hashDirectives |]
     member val HashDirectives = hashDirectives
 
