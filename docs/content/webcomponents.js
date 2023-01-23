@@ -18,6 +18,13 @@ function FantomasSettingIcon({type}) {
                 tooltip: "Changing the default of this setting is not recommended."
             }
             break;
+        case 'deprecated':
+            settingType = {
+                icon: "bi-exclamation-triangle-fill",
+                color: "orange-recommendation",
+                tooltip: "This setting is deprecated and will be removed in a future version."
+            }
+            break;
         case 'red':
             settingType = {
                 icon: "bi-x-circle-fill", 
@@ -53,7 +60,7 @@ function Navigation({next, previous}) {
         </div>`;
 }
 
-function FantomasSetting({name, green, orange, red, gr}) {
+function FantomasSetting({name, green, orange, red, gr, deprecated}) {
     return html`
         <div class="d-flex align-items-center my-2">
             ${green && html`<fantomas-setting-icon type="green"></fantomas-setting-icon>`}
@@ -61,6 +68,7 @@ function FantomasSetting({name, green, orange, red, gr}) {
             ${red && html`<fantomas-setting-icon type="red"></fantomas-setting-icon>`}
             ${gr && html`<fantomas-setting-icon type="gr"></fantomas-setting-icon>`}
             ${red && html`<fantomas-setting-icon type="red"></fantomas-setting-icon>`}
+            ${deprecated && html`<fantomas-setting-icon type="deprecated"></fantomas-setting-icon>`}
             <h4 id="${name}" class="m-0">
                 <a href="#${name}">${name}</a>
             </h4>
@@ -71,7 +79,7 @@ customElements.define('fantomas-setting-icon', component(FantomasSettingIcon, {
     useShadowDOM: false, observedAttributes: ['type']
 }));
 customElements.define('fantomas-setting', component(FantomasSetting, {
-    useShadowDOM: false, observedAttributes: ['name', 'green', 'orange', 'red', 'gr']
+    useShadowDOM: false, observedAttributes: ['name', 'green', 'orange', 'red', 'gr', 'deprecated']
 }));
 
 customElements.define('fantomas-nav', component(Navigation, {

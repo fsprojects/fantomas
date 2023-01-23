@@ -28,8 +28,7 @@ fsharp_bar_before_discriminated_union_declaration = true
 
 #\ Apply specific settings for a targeted subfolder
 [src/Elmish/View.fs]
-fsharp_multiline_block_brackets_on_same_column = true
-fsharp_experimental_stroustrup_style = true
+fsharp_multiline_bracket_style = experimental_stroustrup
 ```
 *)
 
@@ -55,6 +54,7 @@ Fantomas ships with a series of settings that you can use freely depending  on y
 However, there are settings that we do not recommend and generally should not be used.
 <p><fantomas-setting-icon type="green"></fantomas-setting-icon><strong>Safe to change:</strong> Settings that aren't attached to any guidelines. Depending on your team or your own preferences, feel free to change these as it's been agreed on the codebase, however, you can always use it's defaults.</p>
 <p><fantomas-setting-icon type="orange"></fantomas-setting-icon><strong>Use with caution:</strong> Settings where it is not recommended to change the default value. They might lead to incomplete results.</p>
+<p><fantomas-setting-icon type="deprecated"></fantomas-setting-icon><strong>Deprecated:</strong> Settings which are deprecated and planned to be removed in the future.</p>
 <p><fantomas-setting-icon type="red"></fantomas-setting-icon><strong>Do not use:</strong> Settings that don't follow any guidelines.</p>
 <p><fantomas-setting-icon type="gr"></fantomas-setting-icon><strong>G-Research:</strong> G-Research styling guide. If you use one of these, for consistency reasons you should use all of them.</p>
 *)
@@ -573,14 +573,70 @@ formatCode
 (*** include-it ***)
 
 (**
+<fantomas-setting name="fsharp_multiline_bracket_style" green></fantomas-setting>
+
+How to format bracketted expressions (e.g. records, arrays, lists, etc.) that span multiple lines. 
+
+Possible values:
+
+* `cramped`
+* `aligned`
+* `experimental_stroustrup`
+
+Default = `cramped`.
+*)
+
+(**
+**Cramped** - The default way in F# to format brackets.  
+*)
+formatCode
+    """ 
+    let band = { Vocals = "John"; Bass = "Paul"; Guitar = "George"; Drums = "Ringo" }
+    let songs = [ "Come Together"; "Hey Jude"; "Yesterday"; "Yellow Submarine"; "Here Comes the Sun" ]
+    """
+    { FormatConfig.Default with
+        MultilineBracketStyle = Cramped }
+(*** include-it ***)
+
+(**
+**Aligned** - Alternative way of formatting brackets. This will align the braces at the same column level.
+*)
+
+formatCode
+    """ 
+    let band = { Vocals = "John"; Bass = "Paul"; Guitar = "George"; Drums = "Ringo" }
+    let songs = [ "Come Together"; "Hey Jude"; "Yesterday"; "Yellow Submarine"; "Here Comes the Sun" ]
+    """
+    { FormatConfig.Default with
+        MultilineBracketStyle = Aligned }
+(*** include-it ***)
+
+(**
+**ExperimentalStroustrup** - Experimental setting. Places the opening brace on the same line as the binding, and the closing brace on its own line.
+
+Please contribute to [fsprojects/fantomas#1408](https://github.com/fsprojects/fantomas/issues/1408) and engage in [fsharp/fslang-design#706](https://github.com/fsharp/fslang-design/issues/706).
+*)
+
+formatCode
+    """ 
+    let band = { Vocals = "John"; Bass = "Paul"; Guitar = "George"; Drums = "Ringo" }
+    let songs = [ "Come Together"; "Hey Jude"; "Yesterday"; "Yellow Submarine"; "Here Comes the Sun" ]
+    """
+    { FormatConfig.Default with
+        MultilineBracketStyle = ExperimentalStroustrup }
+(*** include-it ***)
+
+(**
 ## G-Research style
 
 A series of settings required to conform with the [G-Research style guide](https://github.com/G-Research/fsharp-formatting-conventions).  
 From a consistency point of view, it is recommend to enable all these settings instead of cherry-picking a few.
 
-<fantomas-setting name="fsharp_multiline_block_brackets_on_same_column" green gr></fantomas-setting>
+<fantomas-setting name="fsharp_multiline_block_brackets_on_same_column" deprecated gr></fantomas-setting>
 
 Alternative way of formatting records, arrays and lists. This will align the braces at the same column level.
+
+_This setting is deprecated and will be removed in a future version. Use `fsharp_multiline_bracket_style=aligned` instead._
 
 Default = false.
 *)
@@ -767,9 +823,11 @@ formatCode
 
 Some additional settings that don't fit into any style guide.
 
-<fantomas-setting name="fsharp_experimental_stroustrup_style" orange></fantomas-setting>
+<fantomas-setting name="fsharp_experimental_stroustrup_style" deprecated></fantomas-setting>
 
 Please contribute to [fsprojects/fantomas#1408](https://github.com/fsprojects/fantomas/issues/1408) and engage in [fsharp/fslang-design#706](https://github.com/fsharp/fslang-design/issues/706).
+
+_This setting is deprecated and will be removed in a future version. Use `fsharp_multiline_bracket_style=experimental_stroustrup` instead._
 
 Default = false.
 
@@ -784,7 +842,7 @@ type PostalAddress =
       Zip: string }
 """
     { FormatConfig.Default with
-        MultilineBracketStyle = MultilineBracketStyle.ExperimentalStroustrup }
+        MultilineBracketStyle = ExperimentalStroustrup }
 (*** include-it ***)
 
 (**
