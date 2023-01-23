@@ -5,7 +5,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
   <meta name="author" content="Florian Verdonck, Jindřich Ivánek, David Schaefer">
-  <title>AsyncResult<'T> (fantomas)</title>
+  <title>Activity (fantomas)</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,600;1,400&family=Reem+Kufi:wght@400;500;700&display=swap" rel="stylesheet">
@@ -192,93 +192,65 @@
       <div id="fsdocs-content" class="bg-white m-2 m-sm-5 p-3 p-sm-4">
         <div>
   <h2>
-    AsyncResult<'T> Type
+    Activity Module
   </h2>
   <dl class="fsdocs-metadata">
     <dt>
       Namespace: 
-      <a href="https://fsprojects.github.io/fantomas/reference/internal-utilities-library.html">
-        Internal.Utilities.Library
+      <a href="https://fsprojects.github.io/fantomas/reference/fsharp-compiler-diagnostics.html">
+        FSharp.Compiler.Diagnostics
       </a>
     </dt>
     <dt>
       Assembly: Fantomas.FCS.dll
-    </dt>
-    <dt>
-      Parent Module: 
-      <a href="https://fsprojects.github.io/fantomas/reference/internal-utilities-library-extras-asyncutil.html">
-        AsyncUtil
-      </a>
-    </dt>
-    <dt>
-      Base Type: 
-      <code>obj</code>
     </dt>
   </dl>
   <div class="fsdocs-xmldoc">
     <div>
       <p class="fsdocs-summary">
         
- Represents the reified result of an asynchronous computation.
+ For activities following the dotnet distributed tracing concept
+ https://learn.microsoft.com/en-us/dotnet/core/diagnostics/distributed-tracing-concepts?source=recommendations
 
       </p>
     </div>
   </div>
-  <div></div>
-  <div></div>
-  <div></div>
   <div>
     <h3>
-      Union cases
+      Nested modules
     </h3>
-    <table class="table outer-list fsdocs-member-list">
+    <table class="table outer-list fsdocs-entity-list">
       <thead>
         <tr>
-          <td class="fsdocs-member-list-header">
-            Union case
+          <td>
+            Modules
           </td>
-          <td class="fsdocs-member-list-header">
+          <td>
             Description
           </td>
         </tr>
       </thead>
       <tbody>
         <tr>
-          <td class="fsdocs-member-usage">
-            <div>
-              <code onmouseout="hideTip(event, '7456', 7456)" onmouseover="showTip(event, '7456', 7456)">
-                <p>
-                  <a id="AsyncCanceled">
-                    <a href="#AsyncCanceled">
-                      <code><span>AsyncCanceled&#32;<a href="https://docs.microsoft.com/dotnet/api/system.operationcanceledexception">OperationCanceledException</a></span></code>
-                    </a>
-                  </a>
-                </p>
-              </code>
-              <div class="fsdocs-tip" id="7456">
-                <div class="member-tooltip">
-                  Full Usage: 
-                  <code><span>AsyncCanceled&#32;<a href="https://docs.microsoft.com/dotnet/api/system.operationcanceledexception">OperationCanceledException</a></span></code>
-                  <br/>
-                  <br/>
-                  Parameters: 
-                  <ul>
-                    <span>
-                      <b>
-                        Item
-                      </b>
-                      :
-                      <code><a href="https://docs.microsoft.com/dotnet/api/system.operationcanceledexception">OperationCanceledException</a></code>
-                    </span>
-                    <br/>
-                  </ul>
-                  <br/>
-                </div>
-              </div>
-            </div>
+          <td class="fsdocs-entity-name">
+            <p>
+              <a name="CsvExport">
+                <a href="https://fsprojects.github.io/fantomas/reference/fsharp-compiler-diagnostics-activity-csvexport.html">
+                  CsvExport
+                </a>
+              </a>
+            </p>
           </td>
-          <td class="fsdocs-member-xmldoc">
-            <div class="fsdocs-summary">
+          <td class="fsdocs-entity-xmldoc">
+            <div>
+              <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:T:FSharp.Compiler.Diagnostics.Activity.CsvExport`')">
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-md.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-md-hover.png" class="hover"/>
+              </div>
+              <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:FSharp.Compiler.Diagnostics.Activity.CsvExport\'/>')">
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+              </div>
               <a href="" class="fsdocs-source-link" title="Source on GitHub">
                 <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
                 <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
@@ -287,54 +259,28 @@
                 
               </p>
             </div>
-            <dl class="fsdocs-params">
-              <dt class="fsdocs-param">
-                <span class="fsdocs-param-name">
-                  Item
-                </span>
-                :
-                <code><a href="https://docs.microsoft.com/dotnet/api/system.operationcanceledexception">OperationCanceledException</a></code>
-              </dt>
-              <dd class="fsdocs-param-docs"></dd>
-            </dl>
           </td>
         </tr>
         <tr>
-          <td class="fsdocs-member-usage">
-            <div>
-              <code onmouseout="hideTip(event, '7457', 7457)" onmouseover="showTip(event, '7457', 7457)">
-                <p>
-                  <a id="AsyncException">
-                    <a href="#AsyncException">
-                      <code><span>AsyncException&#32;exn</span></code>
-                    </a>
-                  </a>
-                </p>
-              </code>
-              <div class="fsdocs-tip" id="7457">
-                <div class="member-tooltip">
-                  Full Usage: 
-                  <code><span>AsyncException&#32;exn</span></code>
-                  <br/>
-                  <br/>
-                  Parameters: 
-                  <ul>
-                    <span>
-                      <b>
-                        Item
-                      </b>
-                      :
-                      <code>exn</code>
-                    </span>
-                    <br/>
-                  </ul>
-                  <br/>
-                </div>
-              </div>
-            </div>
+          <td class="fsdocs-entity-name">
+            <p>
+              <a name="Profiling">
+                <a href="https://fsprojects.github.io/fantomas/reference/fsharp-compiler-diagnostics-activity-profiling.html">
+                  Profiling
+                </a>
+              </a>
+            </p>
           </td>
-          <td class="fsdocs-member-xmldoc">
-            <div class="fsdocs-summary">
+          <td class="fsdocs-entity-xmldoc">
+            <div>
+              <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:T:FSharp.Compiler.Diagnostics.Activity.Profiling`')">
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-md.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-md-hover.png" class="hover"/>
+              </div>
+              <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:FSharp.Compiler.Diagnostics.Activity.Profiling\'/>')">
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+              </div>
               <a href="" class="fsdocs-source-link" title="Source on GitHub">
                 <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
                 <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
@@ -343,54 +289,28 @@
                 
               </p>
             </div>
-            <dl class="fsdocs-params">
-              <dt class="fsdocs-param">
-                <span class="fsdocs-param-name">
-                  Item
-                </span>
-                :
-                <code>exn</code>
-              </dt>
-              <dd class="fsdocs-param-docs"></dd>
-            </dl>
           </td>
         </tr>
         <tr>
-          <td class="fsdocs-member-usage">
-            <div>
-              <code onmouseout="hideTip(event, '7458', 7458)" onmouseover="showTip(event, '7458', 7458)">
-                <p>
-                  <a id="AsyncOk">
-                    <a href="#AsyncOk">
-                      <code><span>AsyncOk&#32;'T</span></code>
-                    </a>
-                  </a>
-                </p>
-              </code>
-              <div class="fsdocs-tip" id="7458">
-                <div class="member-tooltip">
-                  Full Usage: 
-                  <code><span>AsyncOk&#32;'T</span></code>
-                  <br/>
-                  <br/>
-                  Parameters: 
-                  <ul>
-                    <span>
-                      <b>
-                        Item
-                      </b>
-                      :
-                      <code>'T</code>
-                    </span>
-                    <br/>
-                  </ul>
-                  <br/>
-                </div>
-              </div>
-            </div>
+          <td class="fsdocs-entity-name">
+            <p>
+              <a name="Tags">
+                <a href="https://fsprojects.github.io/fantomas/reference/fsharp-compiler-diagnostics-activity-tags.html">
+                  Tags
+                </a>
+              </a>
+            </p>
           </td>
-          <td class="fsdocs-member-xmldoc">
-            <div class="fsdocs-summary">
+          <td class="fsdocs-entity-xmldoc">
+            <div>
+              <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:T:FSharp.Compiler.Diagnostics.Activity.Tags`')">
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-md.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-md-hover.png" class="hover"/>
+              </div>
+              <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:FSharp.Compiler.Diagnostics.Activity.Tags\'/>')">
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+              </div>
               <a href="" class="fsdocs-source-link" title="Source on GitHub">
                 <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
                 <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
@@ -399,34 +319,20 @@
                 
               </p>
             </div>
-            <dl class="fsdocs-params">
-              <dt class="fsdocs-param">
-                <span class="fsdocs-param-name">
-                  Item
-                </span>
-                :
-                <code>'T</code>
-              </dt>
-              <dd class="fsdocs-param-docs"></dd>
-            </dl>
           </td>
         </tr>
       </tbody>
     </table>
   </div>
-  <div></div>
-  <div></div>
-  <div></div>
-  <div></div>
   <div>
     <h3>
-      Static members
+      Functions and values
     </h3>
     <table class="table outer-list fsdocs-member-list">
       <thead>
         <tr>
           <td class="fsdocs-member-list-header">
-            Static member
+            Function or value
           </td>
           <td class="fsdocs-member-list-header">
             Description
@@ -437,36 +343,44 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code onmouseout="hideTip(event, '7459', 7459)" onmouseover="showTip(event, '7459', 7459)">
+              <code onmouseout="hideTip(event, '656', 656)" onmouseover="showTip(event, '656', 656)">
                 <p>
-                  <a id="Commit">
-                    <a href="#Commit">
-                      <code><span>AsyncResult.Commit<span><span>(<span>res</span>)</span></span></span></code>
+                  <a id="start">
+                    <a href="#start">
+                      <code><span>Activity.start&#32;<span>name&#32;tags</span></span></code>
                     </a>
                   </a>
                 </p>
               </code>
-              <div class="fsdocs-tip" id="7459">
+              <div class="fsdocs-tip" id="656">
                 <div class="member-tooltip">
                   Full Usage: 
-                  <code><span>AsyncResult.Commit<span><span>(<span>res</span>)</span></span></span></code>
+                  <code><span>Activity.start&#32;<span>name&#32;tags</span></span></code>
                   <br/>
                   <br/>
                   Parameters: 
                   <ul>
                     <span>
                       <b>
-                        res
+                        name
                       </b>
                       :
-                      <code><span><a href="https://fsprojects.github.io/fantomas/reference/internal-utilities-library-extras-asyncutil-asyncresult-1.html">AsyncResult</a>&lt;'T&gt;</span></code>
+                      <code>string</code>
+                    </span>
+                    <br/>
+                    <span>
+                      <b>
+                        tags
+                      </b>
+                      :
+                      <code><span>seq&lt;<span>string&#32;*&#32;string</span>&gt;</span></code>
                     </span>
                     <br/>
                   </ul>
                   <br/>
                   <span>
                     Returns: 
-                    <code><span><a href="https://fsharp.github.io/fsharp-core-docs/reference/fsharp-control-fsharpasync-1">Async</a>&lt;'T&gt;</span></code>
+                    <code><a href="https://docs.microsoft.com/dotnet/api/system.idisposable">IDisposable</a></code>
                   </span>
                   <br/>
                 </div>
@@ -475,11 +389,11 @@
           </td>
           <td class="fsdocs-member-xmldoc">
             <div class="fsdocs-summary">
-              <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('``cref:M:Internal.Utilities.Library.Extras.AsyncUtil.AsyncResult`1.Commit``')">
+              <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:M:FSharp.Compiler.Diagnostics.Activity.start`')">
                 <img src="https://fsprojects.github.io/fantomas/content/img/copy-md.png" class="normal"/>
                 <img src="https://fsprojects.github.io/fantomas/content/img/copy-md-hover.png" class="hover"/>
               </div>
-              <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'M:Internal.Utilities.Library.Extras.AsyncUtil.AsyncResult`1.Commit\'/>')">
+              <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'M:FSharp.Compiler.Diagnostics.Activity.start\'/>')">
                 <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml.png" class="normal"/>
                 <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml-hover.png" class="hover"/>
               </div>
@@ -494,10 +408,18 @@
             <dl class="fsdocs-params">
               <dt class="fsdocs-param">
                 <span class="fsdocs-param-name">
-                  res
+                  name
                 </span>
                 :
-                <code><span><a href="https://fsprojects.github.io/fantomas/reference/internal-utilities-library-extras-asyncutil-asyncresult-1.html">AsyncResult</a>&lt;'T&gt;</span></code>
+                <code>string</code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  tags
+                </span>
+                :
+                <code><span>seq&lt;<span>string&#32;*&#32;string</span>&gt;</span></code>
               </dt>
               <dd class="fsdocs-param-docs"></dd>
             </dl>
@@ -506,7 +428,85 @@
                 <span class="fsdocs-return-name">
                   Returns: 
                 </span>
-                <code><span><a href="https://fsharp.github.io/fsharp-core-docs/reference/fsharp-control-fsharpasync-1">Async</a>&lt;'T&gt;</span></code>
+                <code><a href="https://docs.microsoft.com/dotnet/api/system.idisposable">IDisposable</a></code>
+              </dt>
+              <dd class="fsdocs-return-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '657', 657)" onmouseover="showTip(event, '657', 657)">
+                <p>
+                  <a id="startNoTags">
+                    <a href="#startNoTags">
+                      <code><span>Activity.startNoTags&#32;<span>name</span></span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="657">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>Activity.startNoTags&#32;<span>name</span></span></code>
+                  <br/>
+                  <br/>
+                  Parameters: 
+                  <ul>
+                    <span>
+                      <b>
+                        name
+                      </b>
+                      :
+                      <code>string</code>
+                    </span>
+                    <br/>
+                  </ul>
+                  <br/>
+                  <span>
+                    Returns: 
+                    <code><a href="https://docs.microsoft.com/dotnet/api/system.idisposable">IDisposable</a></code>
+                  </span>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-summary">
+              <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:M:FSharp.Compiler.Diagnostics.Activity.startNoTags`')">
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-md.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-md-hover.png" class="hover"/>
+              </div>
+              <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'M:FSharp.Compiler.Diagnostics.Activity.startNoTags\'/>')">
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+              </div>
+              <a href="" class="fsdocs-source-link" title="Source on GitHub">
+                <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
+              </a>
+              <p class="fsdocs-summary">
+                
+              </p>
+            </div>
+            <dl class="fsdocs-params">
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  name
+                </span>
+                :
+                <code>string</code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+            </dl>
+            <dl class="fsdocs-returns">
+              <dt>
+                <span class="fsdocs-return-name">
+                  Returns: 
+                </span>
+                <code><a href="https://docs.microsoft.com/dotnet/api/system.idisposable">IDisposable</a></code>
               </dt>
               <dd class="fsdocs-return-docs"></dd>
             </dl>
@@ -515,6 +515,14 @@
       </tbody>
     </table>
   </div>
+  <div></div>
+  <div></div>
+  <div></div>
+  <div></div>
+  <div></div>
+  <div></div>
+  <div></div>
+  <div></div>
 </div>
         
       </div>
