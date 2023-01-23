@@ -1,5 +1,10 @@
 # Changelog
 
+## [Unreleased]
+
+### Changed
+* Update FCS to 'Remove unused code', commit cb106cf3182ff218f0a0e42780815dba94b60013
+
 ## [5.2.0] - 2023-01-19
 
 ### Fixed
