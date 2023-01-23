@@ -1,7 +1,7 @@
 import {html} from 'https://cdn.skypack.dev/lit';
 import {component} from 'https://cdn.skypack.dev/haunted';
 
-function FantomasSettingIcon(type) {
+function FantomasSettingIconCore(type) {
     let settingType
     switch (type) {
         case 'green':
@@ -54,15 +54,28 @@ function Navigation({next, previous}) {
 function FantomasSetting({name, green, orange, red, gr}) {
     return html`
         <div class="d-flex align-items-center my-2">
-            ${green && FantomasSettingIcon('green')}
-            ${orange && FantomasSettingIcon('orange')}
-            ${red && FantomasSettingIcon('red')}
-            ${gr && FantomasSettingIcon('gr')}
+            ${green && FantomasSettingIconCore('green')}
+            ${orange && FantomasSettingIconCore('orange')}
+            ${red && FantomasSettingIconCore('red')}
+            ${gr && FantomasSettingIconCore('gr')}
             <h4 id="${name}" class="m-0">
                 <a href="#${name}">${name}</a>
             </h4>
         </div>`
 }
+
+function FantomasSettingIcon({green, orange, red, gr}) {
+    return html`
+            ${green && FantomasSettingIconCore('green')}
+            ${orange && FantomasSettingIconCore('orange')}
+            ${red && FantomasSettingIconCore('red')}
+            ${gr && FantomasSettingIconCore('gr')}
+            `
+}
+
+customElements.define('fantomas-setting-icon', component(FantomasSettingIcon, {
+    useShadowDOM: false, observedAttributes: ['green', 'orange', 'red', 'gr']
+}));
 
 customElements.define('fantomas-setting', component(FantomasSetting, {
     useShadowDOM: false, observedAttributes: ['name', 'green', 'orange', 'red', 'gr']
