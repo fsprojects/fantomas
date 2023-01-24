@@ -11,7 +11,7 @@ open Fantomas.Core.SyntaxOak
 // It might help for some things to "click".
 
 /// Transform the WriterEvents in a Context to a string
-let private dump (context: Context) : string = dump false context
+let private dump (context: Context) : string = (dump false context).Code
 
 [<Test>]
 let ``!- add a single WriterEvent.Write`` () =

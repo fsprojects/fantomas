@@ -67,7 +67,7 @@ let (|ParenExpr|_|) (e: Expr) =
     | Expr.Constant(Constant.Unit _) -> Some e
     | _ -> None
 
-let genTrivia (trivia: TriviaNode) (ctx: Context) =
+let genTrivia (node: Node) (trivia: TriviaNode) (ctx: Context) =
     let currentLastLine = ctx.WriterModel.Lines |> List.tryHead
 
     // Some items like #if or Newline should be printed on a newline
@@ -96,12 +96,45 @@ let genTrivia (trivia: TriviaNode) (ctx: Context) =
         | CommentOnSingleLine s
         | Directive s -> (ifElse addNewline sepNlnForTrivia sepNone) +> !-s +> sepNlnForTrivia
         | Newline -> (ifElse addNewline (sepNlnForTrivia +> sepNlnForTrivia) sepNlnForTrivia)
+        | Cursor ->
+            fun ctx ->
+                // TODO: this assumes the cursor is placed on the same line as the EndLine of the Node.
+                let originalColumnOffset = trivia.Range.EndColumn - node.Range.EndColumn
+
+                let formattedCursor =
+                    FSharp.Compiler.Text.Position.mkPos ctx.WriterModel.Lines.Length (ctx.Column + originalColumnOffset)
+
+                { ctx with
+                    FormattedCursor = Some formattedCursor }
 
     gen ctx
 
-let enterNode<'n when 'n :> Node> (n: 'n) = col sepNone n.ContentBefore genTrivia
-let leaveNode<'n when 'n :> Node> (n: 'n) = col sepNone n.ContentAfter genTrivia
-let genNode<'n when 'n :> Node> (n: 'n) (f: Context -> Context) = enterNode n +> f +> leaveNode n
+let recordCursorNode f (node: Node) (ctx: Context) =
+    match node.TryGetCursor with
+    | None -> f ctx
+    | Some cursor ->
+        // TODO: this currently assume the node fits on a single line.
+        // This won't be accurate in case of a multiline string.
+        let currentStartLine = ctx.WriterModel.Lines.Length
+        let currentStartColumn = ctx.Column
+
+        let ctxAfter = f ctx
+
+        let formattedCursor =
+            let columnOffsetInSource = cursor.Column - node.Range.StartColumn
+            FSharp.Compiler.Text.Position.mkPos currentStartLine (currentStartColumn + columnOffsetInSource)
+
+        { ctxAfter with
+            FormattedCursor = Some formattedCursor }
+
+let enterNode<'n when 'n :> Node> (n: 'n) =
+    col sepNone n.ContentBefore (genTrivia n)
+
+let leaveNode<'n when 'n :> Node> (n: 'n) =
+    col sepNone n.ContentAfter (genTrivia n)
+
+let genNode<'n when 'n :> Node> (n: 'n) (f: Context -> Context) =
+    enterNode n +> recordCursorNode f n +> leaveNode n
 
 let genSingleTextNode (node: SingleTextNode) = !-node.Text |> genNode node
 

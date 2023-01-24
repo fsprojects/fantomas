@@ -24,7 +24,7 @@ type FormatSelectionResponse =
 
 [<RequireQualifiedAccess>]
 type FormatDocumentResponse =
-    | Formatted of filename: string * formattedContent: string
+    | Formatted of filename: string * formattedContent: string * cursor: FormatCursorPosition option
     | Unchanged of filename: string
     | Error of filename: string * formattingError: string
     | IgnoredFile of filename: string

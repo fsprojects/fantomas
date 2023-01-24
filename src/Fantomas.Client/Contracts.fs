@@ -20,16 +20,20 @@ module Methods =
     let Configuration = "fantomas/configuration"
 
 type FormatDocumentRequest =
-    {
-        SourceCode: string
-        /// File path will be used to identify the .editorconfig options
-        /// Unless the configuration is passed
-        FilePath: string
-        /// Overrides the found .editorconfig.
-        Config: IReadOnlyDictionary<string, string> option
-    }
+    { SourceCode: string
+      FilePath: string
+      Config: IReadOnlyDictionary<string, string> option
+      Cursor: FormatCursorPosition option }
 
     member this.IsSignatureFile = this.FilePath.EndsWith(".fsi")
+
+and FormatCursorPosition =
+    class
+        val Line: int
+        val Column: int
+
+        new(line: int, column: int) = { Line = line; Column = column }
+    end
 
 type FormatSelectionRequest =
     {
@@ -60,14 +64,11 @@ and FormatSelectionRange =
     end
 
 type FantomasResponse =
-    {
-        Code: int
-        FilePath: string
-        Content: string option
-        /// The actual range that was used to format a selection.
-        /// This can differ from the input selection range if the selection had leading or trailing whitespace.
-        SelectedRange: FormatSelectionRange option
-    }
+    { Code: int
+      FilePath: string
+      Content: string option
+      SelectedRange: FormatSelectionRange option
+      Cursor: FormatCursorPosition option }
 
 type FantomasService =
     interface
