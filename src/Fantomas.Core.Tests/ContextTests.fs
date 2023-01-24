@@ -6,7 +6,7 @@ open Fantomas.Core.Context
 open Fantomas.Core.Tests.TestHelper
 open Fantomas.Core
 
-let private dump = dump false
+let private dump ctx = (dump false ctx).Code
 
 [<Test>]
 let ``sepSpace should not add an additional space if the line ends with a space`` () =

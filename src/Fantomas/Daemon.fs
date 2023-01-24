@@ -58,14 +58,27 @@ type FantomasDaemon(sender: Stream, reader: Stream) as this =
                         parseOptionsFromEditorConfig config configProperties
                     | None -> readConfiguration request.FilePath
 
-                try
-                    let! formatted =
-                        CodeFormatter.FormatDocumentAsync(request.IsSignatureFile, request.SourceCode, config)
+                let cursor =
+                    request.Cursor
+                    |> Option.map (fun cursor -> CodeFormatter.MakePosition(cursor.Line, cursor.Column))
 
-                    if formatted = request.SourceCode then
+                try
+                    let! formatResponse =
+                        CodeFormatter.FormatDocumentAsync(
+                            request.IsSignatureFile,
+                            request.SourceCode,
+                            config,
+                            ?cursor = cursor
+                        )
+
+                    if formatResponse.Code = request.SourceCode then
                         return FormatDocumentResponse.Unchanged request.FilePath
                     else
-                        return FormatDocumentResponse.Formatted(request.FilePath, formatted)
+                        let cursor =
+                            formatResponse.Cursor
+                            |> Option.map (fun cursorPos -> FormatCursorPosition(cursorPos.Line, cursorPos.Column))
+
+                        return FormatDocumentResponse.Formatted(request.FilePath, formatResponse.Code, cursor)
                 with ex ->
                     return FormatDocumentResponse.Error(request.FilePath, ex.Message)
         }

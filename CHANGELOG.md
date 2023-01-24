@@ -1,12 +1,12 @@
 # Changelog
 
-## [Unreleased]
-
-### Fixed
-* Conditional defines around selfIdentifier in implicit type constructor. [#2733](https://github.com/fsprojects/fantomas/issues/2733)
+## [6.0.0-alpha-001] - 2023-01-24
 
 ### Changed
-* Update FCS to 'Add SynMemberDefnImplicitCtorTrivia', commit 924a64e8e40c840f05fbe7113796f267dd603282
+* Add `--verbosity` flag. [#2693](https://github.com/fsprojects/fantomas/pull/2693)
+* Sunset MultilineBlockBracketsOnSameColumn & ExperimentalStroustrupStyle. [#2710](https://github.com/fsprojects/fantomas/issues/2710)
+* Move FormatConfig into Fantomas.Core namespace. [#2736](https://github.com/fsprojects/fantomas/pull/2736)
+* Initial cursor API. [#2739](https://github.com/fsprojects/fantomas/pull/2739)
 
 ## [5.2.0] - 2023-01-19
 
