@@ -11,6 +11,7 @@ type TriviaContent =
     | BlockComment of string * newlineBefore: bool * newlineAfter: bool
     | Newline
     | Directive of string
+    | Cursor
 
 type TriviaNode(content: TriviaContent, range: range) =
     member val Content = content
@@ -26,9 +27,12 @@ type Node =
     abstract Children: Node array
     abstract AddBefore: triviaNode: TriviaNode -> unit
     abstract AddAfter: triviaNode: TriviaNode -> unit
+    abstract AddCursor: pos -> unit
+    abstract TryGetCursor: pos option
 
 [<AbstractClass>]
 type NodeBase(range: range) =
+    let mutable potentialCursor = None
     let nodesBefore = Queue<TriviaNode>(0)
     let nodesAfter = Queue<TriviaNode>(0)
 
@@ -40,6 +44,8 @@ type NodeBase(range: range) =
     member _.AddBefore triviaNode = nodesBefore.Enqueue triviaNode
     member _.AddAfter triviaNode = nodesAfter.Enqueue triviaNode
     abstract member Children: Node array
+    member _.AddCursor cursor = potentialCursor <- Some cursor
+    member _.TryGetCursor = potentialCursor
 
     interface Node with
         member x.ContentBefore = x.ContentBefore
@@ -50,6 +56,8 @@ type NodeBase(range: range) =
         member x.AddBefore triviaNode = x.AddBefore triviaNode
         member x.AddAfter triviaNode = x.AddAfter triviaNode
         member x.Children = x.Children
+        member x.AddCursor cursor = x.AddCursor cursor
+        member x.TryGetCursor = x.TryGetCursor
 
 type StringNode(content: string, range: range) =
     inherit NodeBase(range)
@@ -1300,6 +1308,8 @@ type ExprTryFinallyNode(tryNode: SingleTextNode, tryExpr: Expr, finallyNode: Sin
     member val FinallyExpr = finallyExpr
 
 type ElseIfNode(mElse: range, mIf: range, condition: Node, range) as elseIfNode =
+    let mutable elseCursor = None
+    let mutable ifCursor = None
     let nodesBefore = Queue<TriviaNode>(0)
     let nodesAfter = Queue<TriviaNode>(0)
     let mutable lastNodeAfterIsLineCommentAfterSource = false
@@ -1318,7 +1328,9 @@ type ElseIfNode(mElse: range, mIf: range, condition: Node, range) as elseIfNode 
             member _.AddAfter(triviaNode: TriviaNode) =
                 (elseIfNode :> Node).AddAfter triviaNode
 
-            member _.Children = Array.empty }
+            member _.Children = Array.empty
+            member _.AddCursor cursor = elseCursor <- Some cursor
+            member _.TryGetCursor = elseCursor }
 
     let ifNode =
         { new Node with
@@ -1337,7 +1349,9 @@ type ElseIfNode(mElse: range, mIf: range, condition: Node, range) as elseIfNode 
             member _.AddAfter(triviaNode: TriviaNode) =
                 (elseIfNode :> Node).AddAfter triviaNode
 
-            member _.Children = Array.empty }
+            member _.Children = Array.empty
+            member _.AddCursor cursor = ifCursor <- Some cursor
+            member _.TryGetCursor = ifCursor }
 
     interface Node with
         member _.ContentBefore: TriviaNode seq = nodesBefore
@@ -1365,6 +1379,8 @@ type ElseIfNode(mElse: range, mIf: range, condition: Node, range) as elseIfNode 
                 nodesAfter.Enqueue triviaNode
 
         member val Children = [| elseNode; ifNode |]
+        member _.AddCursor _ = ()
+        member _.TryGetCursor = None
 
 [<RequireQualifiedAccess>]
 type IfKeywordNode =

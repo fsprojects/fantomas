@@ -1,6 +1,7 @@
 module internal Fantomas.Core.Context
 
 open System
+open FSharp.Compiler.Text
 open Fantomas.Core
 open Fantomas.Core.SyntaxOak
 
@@ -178,16 +179,18 @@ module WriterEvents =
             | _ -> false)
 
 [<System.Diagnostics.DebuggerDisplay("\"{Dump()}\"")>]
-type internal Context =
+type Context =
     { Config: FormatConfig
       WriterModel: WriterModel
-      WriterEvents: Queue<WriterEvent> }
+      WriterEvents: Queue<WriterEvent>
+      FormattedCursor: pos option }
 
     /// Initialize with a string writer and use space as delimiter
     static member Default =
         { Config = FormatConfig.Default
           WriterModel = WriterModel.init
-          WriterEvents = Queue.empty }
+          WriterEvents = Queue.empty
+          FormattedCursor = None }
 
     static member Create config : Context =
         { Context.Default with Config = config }
@@ -266,16 +269,20 @@ let finalizeWriterModel (ctx: Context) =
 let dump (isSelection: bool) (ctx: Context) =
     let ctx = finalizeWriterModel ctx
 
-    match ctx.WriterModel.Lines with
-    | [] -> []
-    | h :: tail ->
-        // Always trim the last line
-        h.TrimEnd() :: tail
-    |> List.rev
-    |> fun lines ->
-        // Don't skip leading newlines when formatting a selection.
-        if isSelection then lines else List.skipWhile ((=) "") lines
-    |> String.concat ctx.Config.EndOfLine.NewLineString
+    let code =
+        match ctx.WriterModel.Lines with
+        | [] -> []
+        | h :: tail ->
+            // Always trim the last line
+            h.TrimEnd() :: tail
+        |> List.rev
+        |> fun lines ->
+            // Don't skip leading newlines when formatting a selection.
+            if isSelection then lines else List.skipWhile ((=) "") lines
+        |> String.concat ctx.Config.EndOfLine.NewLineString
+
+    { Code = code
+      Cursor = ctx.FormattedCursor }
 
 let dumpAndContinue (ctx: Context) =
 #if DEBUG
@@ -937,14 +944,14 @@ let autoIndentAndNlnIfExpressionExceedsPageWidthUnlessStroustrup
     else
         autoIndentAndNlnIfExpressionExceedsPageWidth (f e) ctx
 
-type internal ColMultilineItem =
+type ColMultilineItem =
     | ColMultilineItem of
         // current expression
         expr: (Context -> Context) *
         // sepNln of current item
         sepNln: (Context -> Context)
 
-type internal ColMultilineItemsState =
+type ColMultilineItemsState =
     { LastBlockMultiline: bool
       Context: Context }
 

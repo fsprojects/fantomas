@@ -59,14 +59,15 @@ let ``format implementation file`` () =
             let request =
                 { SourceCode = sourceCode
                   FilePath = codeFile.Filename
-                  Config = None }
+                  Config = None
+                  Cursor = None }
 
             let! response =
                 client.InvokeAsync<FormatDocumentResponse>(Methods.FormatDocument, request)
                 |> Async.AwaitTask
 
             match response with
-            | FormatDocumentResponse.Formatted(_, formatted) ->
+            | FormatDocumentResponse.Formatted(formattedContent = formatted) ->
                 assertFormatted
                     formatted
                     "module Foobar
@@ -84,7 +85,8 @@ let ``format implementation file, unchanged`` () =
             let request =
                 { SourceCode = sourceCode
                   FilePath = codeFile.Filename
-                  Config = Some(readOnlyDict [ "end_of_line", "lf" ]) }
+                  Config = Some(readOnlyDict [ "end_of_line", "lf" ])
+                  Cursor = None }
 
             let! response =
                 client.InvokeAsync<FormatDocumentResponse>(Methods.FormatDocument, request)
@@ -105,7 +107,8 @@ let ``format implementation file, error`` () =
             let request =
                 { SourceCode = sourceCode
                   FilePath = codeFile.Filename
-                  Config = None }
+                  Config = None
+                  Cursor = None }
 
             let! response =
                 client.InvokeAsync<FormatDocumentResponse>(Methods.FormatDocument, request)
@@ -127,7 +130,8 @@ let ``format implementation file, ignored file`` () =
             let request =
                 { SourceCode = sourceCode
                   FilePath = codeFile.Filename
-                  Config = None }
+                  Config = None
+                  Cursor = None }
 
             let! response =
                 client.InvokeAsync<FormatDocumentResponse>(Methods.FormatDocument, request)
@@ -149,14 +153,15 @@ let ``format signature file`` () =
             let request =
                 { SourceCode = sourceCode
                   FilePath = codeFile.Filename
-                  Config = None }
+                  Config = None
+                  Cursor = None }
 
             let! response =
                 client.InvokeAsync<FormatDocumentResponse>(Methods.FormatDocument, request)
                 |> Async.AwaitTask
 
             match response with
-            | FormatDocumentResponse.Formatted(_, formatted) ->
+            | FormatDocumentResponse.Formatted(formattedContent = formatted) ->
                 assertFormatted
                     formatted
                     "module Foobar
@@ -178,14 +183,15 @@ let ``format document respecting .editorconfig file`` () =
             let request =
                 { SourceCode = sourceCode
                   FilePath = codeFile.Filename
-                  Config = None }
+                  Config = None
+                  Cursor = None }
 
             let! response =
                 client.InvokeAsync<FormatDocumentResponse>(Methods.FormatDocument, request)
                 |> Async.AwaitTask
 
             match response with
-            | FormatDocumentResponse.Formatted(_, formatted) ->
+            | FormatDocumentResponse.Formatted(formattedContent = formatted) ->
                 assertFormatted
                     formatted
                     "module Foo
@@ -208,14 +214,15 @@ let ``custom configuration has precedence over .editorconfig file`` () =
             let request =
                 { SourceCode = sourceCode
                   FilePath = codeFile.Filename
-                  Config = Some(readOnlyDict [ "indent_size", "4" ]) }
+                  Config = Some(readOnlyDict [ "indent_size", "4" ])
+                  Cursor = None }
 
             let! response =
                 client.InvokeAsync<FormatDocumentResponse>(Methods.FormatDocument, request)
                 |> Async.AwaitTask
 
             match response with
-            | FormatDocumentResponse.Formatted(_, formatted) ->
+            | FormatDocumentResponse.Formatted(formattedContent = formatted) ->
                 assertFormatted
                     formatted
                     "module Foo
@@ -303,14 +310,15 @@ let ``format document with both .editorconfig file and custom config`` () =
             let request =
                 { SourceCode = sourceCode
                   FilePath = codeFile.Filename
-                  Config = Some(readOnlyDict [ "fsharp_space_before_colon", "true" ]) }
+                  Config = Some(readOnlyDict [ "fsharp_space_before_colon", "true" ])
+                  Cursor = None }
 
             let! response =
                 client.InvokeAsync<FormatDocumentResponse>(Methods.FormatDocument, request)
                 |> Async.AwaitTask
 
             match response with
-            | FormatDocumentResponse.Formatted(_, formatted) ->
+            | FormatDocumentResponse.Formatted(formattedContent = formatted) ->
                 assertFormatted
                     formatted
                     "module Foo
@@ -339,7 +347,8 @@ let ``format nested ignored file`` () =
             let request =
                 { SourceCode = sourceCode
                   FilePath = codeFile.Filename
-                  Config = None }
+                  Config = None
+                  Cursor = None }
 
             let! response =
                 client.InvokeAsync<FormatDocumentResponse>(Methods.FormatDocument, request)
@@ -347,5 +356,34 @@ let ``format nested ignored file`` () =
 
             match response with
             | FormatDocumentResponse.IgnoredFile _ -> Assert.Pass()
+            | otherResponse -> Assert.Fail $"Unexpected response %A{otherResponse}"
+        })
+
+[<Test>]
+let ``format cursor`` () =
+    runWithDaemon (fun client ->
+        async {
+            let sourceCode =
+                """
+let a =
+    "foobar"
+"""
+
+            use codeFile = new TemporaryFileCodeSample(sourceCode)
+
+            let request =
+                { SourceCode = sourceCode
+                  FilePath = codeFile.Filename
+                  Config = None
+                  Cursor = Some(FormatCursorPosition(3, 8)) }
+
+            let! response =
+                client.InvokeAsync<FormatDocumentResponse>(Methods.FormatDocument, request)
+                |> Async.AwaitTask
+
+            match response with
+            | FormatDocumentResponse.Formatted(cursor = Some cursor) ->
+                Assert.AreEqual(1, cursor.Line)
+                Assert.AreEqual(12, cursor.Column)
             | otherResponse -> Assert.Fail $"Unexpected response %A{otherResponse}"
         })

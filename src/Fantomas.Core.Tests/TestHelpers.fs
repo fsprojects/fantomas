@@ -34,12 +34,12 @@ let formatSourceString isFsiFile (s: string) config =
 
                 CodeFormatter.FormatASTAsync(ast, config = config)
 
-        let! isValid = CodeFormatter.IsValidFSharpCodeAsync(isFsiFile, formatted)
+        let! isValid = CodeFormatter.IsValidFSharpCodeAsync(isFsiFile, formatted.Code)
 
         if not isValid then
-            failwithf $"The formatted result is not valid F# code or contains warnings\n%s{formatted}"
+            failwithf $"The formatted result is not valid F# code or contains warnings\n%s{formatted.Code}"
 
-        return formatted.Replace("\r\n", "\n")
+        return formatted.Code.Replace("\r\n", "\n")
     }
 
     |> Async.RunSynchronously
@@ -58,13 +58,13 @@ let formatSourceStringWithDefines defines (s: string) config =
                 |> Array.head
                 |> fst
 
-            return CodeFormatterImpl.formatAST ast (Some source) config
+            return CodeFormatterImpl.formatAST ast (Some source) config None
         }
         |> Async.RunSynchronously
 
     // merge with itself to make #if go on beginning of line
     let _, fragments =
-        String.splitInFragments config.EndOfLine.NewLineString [ (defines, result) ]
+        String.splitInFragments config.EndOfLine.NewLineString [ defines, result.Code ]
         |> List.head
 
     String.merge fragments fragments

@@ -1,5 +1,13 @@
 # Changelog
 
+## [6.0.0-alpha-001] - 2023-01-24
+
+### Changed
+* Add `--verbosity` flag. [#2693](https://github.com/fsprojects/fantomas/pull/2693)
+* Sunset MultilineBlockBracketsOnSameColumn & ExperimentalStroustrupStyle. [#2710](https://github.com/fsprojects/fantomas/issues/2710)
+* Move FormatConfig into Fantomas.Core namespace. [#2736](https://github.com/fsprojects/fantomas/pull/2736)
+* Initial cursor API. [#2739](https://github.com/fsprojects/fantomas/pull/2739)
+
 ## [5.2.4] - 2023-03-17
 
 ### Fixed

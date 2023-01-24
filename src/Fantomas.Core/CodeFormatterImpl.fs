@@ -51,22 +51,34 @@ let parse (isSignature: bool) (source: ISourceText) : Async<(ParsedInput * Defin
         |> Async.Parallel
 
 /// Format an abstract syntax tree using given config
-let formatAST (ast: ParsedInput) (sourceText: ISourceText option) (config: FormatConfig) : string =
-    let formattedSourceCode =
-        let context = Context.Context.Create config
+let formatAST
+    (ast: ParsedInput)
+    (sourceText: ISourceText option)
+    (config: FormatConfig)
+    (cursor: pos option)
+    : FormatResult =
+    let context = Context.Context.Create config
 
-        let fileNode =
-            match sourceText with
-            | None -> ASTTransformer.mkOak None ast
-            | Some sourceText ->
-                ASTTransformer.mkOak (Some sourceText) ast
-                |> Trivia.enrichTree config sourceText ast
+    let oak =
+        match sourceText with
+        | None -> ASTTransformer.mkOak None ast
+        | Some sourceText ->
+            ASTTransformer.mkOak (Some sourceText) ast
+            |> Trivia.enrichTree config sourceText ast
 
-        context |> CodePrinter.genFile fileNode |> Context.dump false
+    let oak =
+        match cursor with
+        | None -> oak
+        | Some cursor -> Trivia.insertCursor oak cursor
 
-    formattedSourceCode
+    context |> CodePrinter.genFile oak |> Context.dump false
 
-let format (config: FormatConfig) (isSignature: bool) (source: ISourceText) : Async<string> =
+let formatDocument
+    (config: FormatConfig)
+    (isSignature: bool)
+    (source: ISourceText)
+    (cursor: pos option)
+    : Async<FormatResult> =
     async {
         let! asts = parse isSignature source
 
@@ -74,7 +86,7 @@ let format (config: FormatConfig) (isSignature: bool) (source: ISourceText) : As
             asts
             |> Array.map (fun (ast', defineCombination) ->
                 async {
-                    let formattedCode = formatAST ast' (Some source) config
+                    let formattedCode = formatAST ast' (Some source) config cursor
                     return (defineCombination, formattedCode)
                 })
             |> Async.Parallel
@@ -85,7 +97,14 @@ let format (config: FormatConfig) (isSignature: bool) (source: ISourceText) : As
             | [] -> failwith "not possible"
             | [ (_, x) ] -> x
             | all ->
-                let allInFragments = all |> String.splitInFragments config.EndOfLine.NewLineString
+                // TODO: we currently ignore the cursor here.
+                // We would need to know which defines provided the code for each fragment.
+                // If we have a cursor, we need to find the fragment that contains it and matches the defines of the cursor.
+
+                let allInFragments =
+                    all
+                    |> List.map (fun (dc, { Code = code }) -> dc, code)
+                    |> String.splitInFragments config.EndOfLine.NewLineString
 
                 let allHaveSameFragmentCount =
                     let allWithCount = List.map (fun (_, f: string list) -> f.Length) allInFragments
@@ -108,12 +127,12 @@ Please raise an issue at https://fsprojects.github.io/fantomas-tools/#/fantomas/
                         )
                     )
 
-                List.map snd allInFragments
-                |> List.reduce String.merge
-                |> String.concat config.EndOfLine.NewLineString
+                let mergedCode =
+                    List.map snd allInFragments
+                    |> List.reduce String.merge
+                    |> String.concat config.EndOfLine.NewLineString
+
+                { Code = mergedCode; Cursor = None }
 
         return merged
     }
-
-/// Format a source string using given config
-let formatDocument config isSignature source = format config isSignature source

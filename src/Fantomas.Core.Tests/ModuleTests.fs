@@ -393,7 +393,7 @@ type T() =
 
     CodeFormatter.FormatDocumentAsync(false, sourceCode, config)
     |> Async.RunSynchronously
-    |> fun s -> s.Replace("\r\n", "\n")
+    |> fun s -> s.Code.Replace("\r\n", "\n")
     |> should
         equal
         """open System

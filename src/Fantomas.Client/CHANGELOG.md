@@ -2,6 +2,9 @@
 
 This is the changelog for the Fantomas.Client package specifically. It's distinct from that of the overall libraries and command-line tool.
 
+## 0.8.0 - 2023-01-24
+* Initial cursor API. [#2739](https://github.com/fsprojects/fantomas/pull/2739)
+
 ## 0.7.0 - 2022-11-09
 
 ### Changed

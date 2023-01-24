@@ -28,9 +28,20 @@ type FormatDocumentRequest =
 
         /// Overrides the found .editorconfig.
         Config: IReadOnlyDictionary<string, string> option
+
+        /// The current position of the cursor.
+        /// Zero-based
+        Cursor: FormatCursorPosition option
     }
 
     member IsSignatureFile: bool
+
+and FormatCursorPosition =
+    class
+        new: line: int * column: int -> FormatCursorPosition
+        val Line: int
+        val Column: int
+    end
 
 type FormatSelectionRequest =
     {
@@ -67,6 +78,10 @@ type FantomasResponse =
         /// The actual range that was used to format a selection.
         /// This can differ from the input selection range if the selection had leading or trailing whitespace.
         SelectedRange: FormatSelectionRange option
+
+        /// Cursor position after formatting.
+        /// Zero-based.
+        Cursor: FormatCursorPosition option
     }
 
 type FantomasService =

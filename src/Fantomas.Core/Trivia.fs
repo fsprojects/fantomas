@@ -309,7 +309,8 @@ let addToTree (tree: Oak) (trivia: TriviaNode seq) =
             | CommentOnSingleLine _
             | Newline
             | Directive _ -> simpleTriviaToTriviaInstruction parentNode trivia
-            | BlockComment _ -> blockCommentToTriviaInstruction parentNode trivia
+            | BlockComment _
+            | Cursor _ -> blockCommentToTriviaInstruction parentNode trivia
 
 let enrichTree (config: FormatConfig) (sourceText: ISourceText) (ast: ParsedInput) (tree: Oak) : Oak =
     let fullTreeRange = tree.Range
@@ -340,4 +341,14 @@ let enrichTree (config: FormatConfig) (sourceText: ISourceText) (ast: ParsedInpu
         |> Array.sortBy (fun n -> n.Range.Start.Line, n.Range.Start.Column)
 
     addToTree tree trivia
+    tree
+
+let insertCursor (tree: Oak) (cursor: pos) =
+    let cursorRange = Range.mkRange (tree :> Node).Range.FileName cursor cursor
+    let nodeWithCursor = findNodeWhereRangeFitsIn tree cursorRange
+
+    match nodeWithCursor with
+    | Some((:? SingleTextNode) as node) -> node.AddCursor cursor
+    | _ -> addToTree tree [| TriviaNode(TriviaContent.Cursor, cursorRange) |]
+
     tree

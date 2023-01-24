@@ -8,17 +8,15 @@ type CodeFormatter =
     static member ParseAsync(isSignature, source) : Async<(ParsedInput * string list) array> =
         CodeFormatterImpl.getSourceText source |> CodeFormatterImpl.parse isSignature
 
-    static member FormatASTAsync(ast: ParsedInput, ?source, ?config) : Async<string> =
+    static member FormatASTAsync(ast: ParsedInput, ?source, ?config) : Async<FormatResult> =
         let sourceText = Option.map CodeFormatterImpl.getSourceText source
         let config = Option.defaultValue FormatConfig.Default config
 
-        CodeFormatterImpl.formatAST ast sourceText config |> async.Return
+        CodeFormatterImpl.formatAST ast sourceText config None |> async.Return
 
-    static member FormatDocumentAsync(isSignature, source, config) =
+    static member FormatDocumentAsync(isSignature, source, ?config, ?cursor: Position) =
         let config = Option.defaultValue FormatConfig.Default config
-
-        CodeFormatterImpl.getSourceText source
-        |> CodeFormatterImpl.formatDocument config isSignature
+        CodeFormatterImpl.formatDocument config isSignature (CodeFormatterImpl.getSourceText source) cursor
 
     static member FormatSelectionAsync(isSignature, source, selection, config) =
         let config = Option.defaultValue FormatConfig.Default config
@@ -33,3 +31,5 @@ type CodeFormatter =
 
     static member MakeRange(fileName, startLine, startCol, endLine, endCol) =
         Range.mkRange fileName (Position.mkPos startLine startCol) (Position.mkPos endLine endCol)
+
+    static member MakePosition(line, column) = Position.mkPos line column
