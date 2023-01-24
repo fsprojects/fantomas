@@ -1,9 +1,12 @@
 # Changelog
 
-## [Unreleased]
+## [6.0.0-alpha-001] - 2023-01-24
 
 ### Changed
-* Update FCS to 'Remove unused code', commit cb106cf3182ff218f0a0e42780815dba94b60013
+* Add `--verbosity` flag. [#2693](https://github.com/fsprojects/fantomas/pull/2693)
+* Sunset MultilineBlockBracketsOnSameColumn & ExperimentalStroustrupStyle. [#2710](https://github.com/fsprojects/fantomas/issues/2710)
+* Move FormatConfig into Fantomas.Core namespace. [#2736](https://github.com/fsprojects/fantomas/pull/2736)
+* Initial cursor API. [#2739](https://github.com/fsprojects/fantomas/pull/2739)
 
 ## [5.2.0] - 2023-01-19
 
