@@ -70,9 +70,6 @@
 <li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/end-users/VSCode.html" class="nav-link pb-2 d-block" > Visual Studio Code
 </a></li>
 
-<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/end-users/GeneratingCode.html" class="nav-link pb-2 d-block" > Generating source code
-</a></li>
-
 <li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/end-users/FAQ.html" class="nav-link pb-2 d-block" > FAQ
 </a></li>
 
@@ -102,10 +99,10 @@
 <li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/Solution Structure.html" class="nav-link pb-2 d-block" > Solution structure
 </a></li>
 
-<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/Transforming.html" class="nav-link pb-2 d-block" > Fantomas.Core overview (1)
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/Prepare Context.html" class="nav-link pb-2 d-block" > Fantomas.Core overview (1)
 </a></li>
 
-<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/Traverse.html" class="nav-link pb-2 d-block" > Fantomas.Core overview (2)
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/Print AST with Context.html" class="nav-link pb-2 d-block" > Fantomas.Core overview (2)
 </a></li>
 
 <li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/Formatted Code.html" class="nav-link pb-2 d-block" > Fantomas.Core overview (3)
@@ -121,12 +118,6 @@
 </a></li>
 
 <li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/Pull request ground rules.html" class="nav-link pb-2 d-block" > Pull request ground rules
-</a></li>
-
-<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/Releases.html" class="nav-link pb-2 d-block" > Releases
-</a></li>
-
-<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/Glossary.html" class="nav-link pb-2 d-block" > Glossary
 </a></li>
 
             </ul>
@@ -263,11 +254,20 @@ function Format-Changed(){
 </code></pre></td></tr></table>
 <fantomas-nav previous="../index.html" next="./StyleGuide.html"></fantomas-nav>
 
-        <div class="fsdocs-tip" id="fs1">Multiple items<br />val string: value: &#39;T -&gt; string<br /><br />--------------------<br />type string = System.String</div>
-<div class="fsdocs-tip" id="fs2">val stdin&lt;&#39;T&gt; : System.IO.TextReader</div>
-<div class="fsdocs-tip" id="fs3">val stdout&lt;&#39;T&gt; : System.IO.TextWriter</div>
-<div class="fsdocs-tip" id="fs4">type &#39;T list = List&lt;&#39;T&gt;</div>
-<div class="fsdocs-tip" id="fs5">type &#39;T array = &#39;T array</div>
+        <div class="fsdocs-tip" id="fs1">Multiple items<br />val string: value: &#39;T -&gt; string<br /><em>&lt;summary&gt;Converts the argument to a string using &lt;c&gt;ToString&lt;/c&gt;.&lt;/summary&gt;<br />&lt;remarks&gt;For standard integer and floating point values the and any type that implements &lt;c&gt;IFormattable&lt;/c&gt;&lt;c&gt;ToString&lt;/c&gt; conversion uses &lt;c&gt;CultureInfo.InvariantCulture&lt;/c&gt;. &lt;/remarks&gt;<br />&lt;param name=&quot;value&quot;&gt;The input value.&lt;/param&gt;<br />&lt;returns&gt;The converted string.&lt;/returns&gt;<br />&lt;example id=&quot;string-example&quot;&gt;&lt;code lang=&quot;fsharp&quot;&gt;&lt;/code&gt;&lt;/example&gt;</em><br /><br />--------------------<br />type string = System.String<br /><em>&lt;summary&gt;An abbreviation for the CLI type &lt;see cref=&quot;T:System.String&quot; /&gt;.&lt;/summary&gt;<br />&lt;category&gt;Basic Types&lt;/category&gt;</em></div>
+<div class="fsdocs-tip" id="fs2">val stdin&lt;&#39;T&gt; : System.IO.TextReader<br /><em>&lt;summary&gt;Reads the value of the property &lt;see cref=&quot;P:System.Console.In&quot; /&gt;. &lt;/summary&gt;</em></div>
+<div class="fsdocs-tip" id="fs3">val stdout&lt;&#39;T&gt; : System.IO.TextWriter<br /><em>&lt;summary&gt;Reads the value of the property &lt;see cref=&quot;P:System.Console.Out&quot; /&gt;.&lt;/summary&gt;</em></div>
+<div class="fsdocs-tip" id="fs4">type &#39;T list = List&lt;&#39;T&gt;<br /><em>&lt;summary&gt;The type of immutable singly-linked lists. &lt;/summary&gt;<br />&lt;remarks&gt;See the &lt;see cref=&quot;T:Microsoft.FSharp.Collections.ListModule&quot; /&gt; module for further operations related to lists.
+
+ Use the constructors &lt;c&gt;[]&lt;/c&gt; and &lt;c&gt;::&lt;/c&gt; (infix) to create values of this type, or
+ the notation &lt;c&gt;[1; 2; 3]&lt;/c&gt;. Use the values in the &lt;c&gt;List&lt;/c&gt; module to manipulate 
+ values of this type, or pattern match against the values directly.
+
+  See also &lt;a href=&quot;https://docs.microsoft.com/dotnet/fsharp/language-reference/lists&quot;&gt;F# Language Guide - Lists&lt;/a&gt;.
+ &lt;/remarks&gt;</em></div>
+<div class="fsdocs-tip" id="fs5">type &#39;T array = &#39;T[]<br /><em>&lt;summary&gt;Single dimensional, zero-based arrays, written &lt;c&gt;int[]&lt;/c&gt;, &lt;c&gt;string[]&lt;/c&gt; etc.&lt;/summary&gt;<br />&lt;remarks&gt;Use the values in the &lt;see cref=&quot;T:Microsoft.FSharp.Collections.ArrayModule&quot; /&gt; module to manipulate values 
+ of this type, or the notation &lt;c&gt;arr.[x]&lt;/c&gt; to get/set array
+ values.&lt;/remarks&gt;<br />&lt;category&gt;Basic Types&lt;/category&gt;</em></div>
 
       </div>
         <div id="push"></div>
@@ -285,7 +285,7 @@ function Format-Changed(){
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-A3rJD856KowSb7dwlZdYEkO39Gagi7vIsF0jrRAoQmDKKtQBHUuLZ9AsSv4jD4Xa" crossorigin="anonymous"></script>
   <script type="module" src="https://fsprojects.github.io/fantomas/content/webcomponents.js"></script>
   <script type="module">
-      import mermaid from "https://cdn.skypack.dev/mermaid@9.2.2";
+      import mermaid from "https://cdn.skypack.dev/mermaid";
       mermaid.initialize({
           startOnLoad: true,
           theme: "base",

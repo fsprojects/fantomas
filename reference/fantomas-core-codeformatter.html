@@ -69,9 +69,6 @@
 <li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/end-users/VSCode.html" class="nav-link pb-2 d-block" > Visual Studio Code
 </a></li>
 
-<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/end-users/GeneratingCode.html" class="nav-link pb-2 d-block" > Generating source code
-</a></li>
-
 <li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/end-users/FAQ.html" class="nav-link pb-2 d-block" > FAQ
 </a></li>
 
@@ -101,10 +98,10 @@
 <li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/Solution Structure.html" class="nav-link pb-2 d-block" > Solution structure
 </a></li>
 
-<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/Transforming.html" class="nav-link pb-2 d-block" > Fantomas.Core overview (1)
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/Prepare Context.html" class="nav-link pb-2 d-block" > Fantomas.Core overview (1)
 </a></li>
 
-<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/Traverse.html" class="nav-link pb-2 d-block" > Fantomas.Core overview (2)
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/Print AST with Context.html" class="nav-link pb-2 d-block" > Fantomas.Core overview (2)
 </a></li>
 
 <li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/Formatted Code.html" class="nav-link pb-2 d-block" > Fantomas.Core overview (3)
@@ -120,12 +117,6 @@
 </a></li>
 
 <li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/Pull request ground rules.html" class="nav-link pb-2 d-block" > Pull request ground rules
-</a></li>
-
-<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/Releases.html" class="nav-link pb-2 d-block" > Releases
-</a></li>
-
-<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/Glossary.html" class="nav-link pb-2 d-block" > Glossary
 </a></li>
 
             </ul>
@@ -243,7 +234,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code onmouseout="hideTip(event, '7319', 7319)" onmouseover="showTip(event, '7319', 7319)">
+              <code onmouseout="hideTip(event, '1412', 1412)" onmouseover="showTip(event, '1412', 1412)">
                 <p>
                   <a id="FormatASTAsync">
                     <a href="#FormatASTAsync">
@@ -252,7 +243,7 @@
                   </a>
                 </p>
               </code>
-              <div class="fsdocs-tip" id="7319">
+              <div class="fsdocs-tip" id="1412">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>CodeFormatter.FormatASTAsync<span><span>(<span>ast,&#32;?source,&#32;?config</span>)</span></span></span></code>
@@ -355,7 +346,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code onmouseout="hideTip(event, '7320', 7320)" onmouseover="showTip(event, '7320', 7320)">
+              <code onmouseout="hideTip(event, '1413', 1413)" onmouseover="showTip(event, '1413', 1413)">
                 <p>
                   <a id="FormatDocumentAsync">
                     <a href="#FormatDocumentAsync">
@@ -364,7 +355,7 @@
                   </a>
                 </p>
               </code>
-              <div class="fsdocs-tip" id="7320">
+              <div class="fsdocs-tip" id="1413">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>CodeFormatter.FormatDocumentAsync<span><span>(<span>isSignature,&#32;source,&#32;?config</span>)</span></span></span></code>
@@ -467,7 +458,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code onmouseout="hideTip(event, '7321', 7321)" onmouseover="showTip(event, '7321', 7321)">
+              <code onmouseout="hideTip(event, '1414', 1414)" onmouseover="showTip(event, '1414', 1414)">
                 <p>
                   <a id="FormatSelectionAsync">
                     <a href="#FormatSelectionAsync">
@@ -476,7 +467,7 @@
                   </a>
                 </p>
               </code>
-              <div class="fsdocs-tip" id="7321">
+              <div class="fsdocs-tip" id="1414">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>CodeFormatter.FormatSelectionAsync<span><span>(<span>isSignature,&#32;source,&#32;selection,&#32;?config</span>)</span></span></span></code>
@@ -543,6 +534,9 @@
               </a>
               <p class="fsdocs-summary">
                 
+ Format a part of source string using given config, and return the (formatted) selected part only.
+ Beware that the range argument is inclusive. The closest expression inside the selection will be formatted if possible.
+
               </p>
             </div>
             <dl class="fsdocs-params">
@@ -593,7 +587,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code onmouseout="hideTip(event, '7322', 7322)" onmouseover="showTip(event, '7322', 7322)">
+              <code onmouseout="hideTip(event, '1415', 1415)" onmouseover="showTip(event, '1415', 1415)">
                 <p>
                   <a id="GetVersion">
                     <a href="#GetVersion">
@@ -602,7 +596,7 @@
                   </a>
                 </p>
               </code>
-              <div class="fsdocs-tip" id="7322">
+              <div class="fsdocs-tip" id="1415">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>CodeFormatter.GetVersion<span>()</span></span></code>
@@ -651,7 +645,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code onmouseout="hideTip(event, '7323', 7323)" onmouseover="showTip(event, '7323', 7323)">
+              <code onmouseout="hideTip(event, '1416', 1416)" onmouseover="showTip(event, '1416', 1416)">
                 <p>
                   <a id="IsValidFSharpCodeAsync">
                     <a href="#IsValidFSharpCodeAsync">
@@ -660,7 +654,7 @@
                   </a>
                 </p>
               </code>
-              <div class="fsdocs-tip" id="7323">
+              <div class="fsdocs-tip" id="1416">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>CodeFormatter.IsValidFSharpCodeAsync<span><span>(<span>isSignature,&#32;source</span>)</span></span></span></code>
@@ -711,6 +705,8 @@
               </a>
               <p class="fsdocs-summary">
                 
+ Check whether an input string is invalid in F# by attempting to parse the code.
+
               </p>
             </div>
             <dl class="fsdocs-params">
@@ -745,7 +741,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code onmouseout="hideTip(event, '7324', 7324)" onmouseover="showTip(event, '7324', 7324)">
+              <code onmouseout="hideTip(event, '1417', 1417)" onmouseover="showTip(event, '1417', 1417)">
                 <p>
                   <a id="MakeRange">
                     <a href="#MakeRange">
@@ -754,7 +750,7 @@
                   </a>
                 </p>
               </code>
-              <div class="fsdocs-tip" id="7324">
+              <div class="fsdocs-tip" id="1417">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>CodeFormatter.MakeRange<span><span>(<span>fileName,&#32;startLine,&#32;startCol,&#32;endLine,&#32;endCol</span>)</span></span></span></code>
@@ -889,7 +885,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code onmouseout="hideTip(event, '7325', 7325)" onmouseover="showTip(event, '7325', 7325)">
+              <code onmouseout="hideTip(event, '1418', 1418)" onmouseover="showTip(event, '1418', 1418)">
                 <p>
                   <a id="ParseAsync">
                     <a href="#ParseAsync">
@@ -898,7 +894,7 @@
                   </a>
                 </p>
               </code>
-              <div class="fsdocs-tip" id="7325">
+              <div class="fsdocs-tip" id="1418">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>CodeFormatter.ParseAsync<span><span>(<span>isSignature,&#32;source</span>)</span></span></span></code>
@@ -949,6 +945,8 @@
               </a>
               <p class="fsdocs-summary">
                 
+ Parse a source string using given config
+
               </p>
             </div>
             <dl class="fsdocs-params">
@@ -1001,7 +999,7 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-A3rJD856KowSb7dwlZdYEkO39Gagi7vIsF0jrRAoQmDKKtQBHUuLZ9AsSv4jD4Xa" crossorigin="anonymous"></script>
   <script type="module" src="https://fsprojects.github.io/fantomas/content/webcomponents.js"></script>
   <script type="module">
-      import mermaid from "https://cdn.skypack.dev/mermaid@9.2.2";
+      import mermaid from "https://cdn.skypack.dev/mermaid";
       mermaid.initialize({
           startOnLoad: true,
           theme: "base",
