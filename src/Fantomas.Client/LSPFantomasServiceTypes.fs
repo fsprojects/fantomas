@@ -29,42 +29,48 @@ type FormatSelectionResponse =
             { Code = int FantomasResponseCode.Formatted
               FilePath = name
               Content = Some content
-              SelectedRange = Some formattedRange }
+              SelectedRange = Some formattedRange
+              Cursor = None }
         | FormatSelectionResponse.Error(name, ex) ->
             { Code = int FantomasResponseCode.Error
               FilePath = name
               Content = Some ex
-              SelectedRange = None }
+              SelectedRange = None
+              Cursor = None }
 
 [<RequireQualifiedAccess>]
 type FormatDocumentResponse =
-    | Formatted of filename: string * formattedContent: string
+    | Formatted of filename: string * formattedContent: string * cursor: FormatCursorPosition option
     | Unchanged of filename: string
     | Error of filename: string * formattingError: string
     | IgnoredFile of filename: string
 
     member this.AsFormatResponse() =
         match this with
-        | FormatDocumentResponse.Formatted(name, content) ->
+        | FormatDocumentResponse.Formatted(name, content, cursor) ->
             { Code = int FantomasResponseCode.Formatted
               FilePath = name
               Content = Some content
-              SelectedRange = None }
+              SelectedRange = None
+              Cursor = cursor }
         | FormatDocumentResponse.Unchanged name ->
             { Code = int FantomasResponseCode.UnChanged
               FilePath = name
               Content = None
-              SelectedRange = None }
+              SelectedRange = None
+              Cursor = None }
         | FormatDocumentResponse.Error(name, err) ->
             { Code = int FantomasResponseCode.Error
               FilePath = name
               Content = Some(err)
-              SelectedRange = None }
+              SelectedRange = None
+              Cursor = None }
         | FormatDocumentResponse.IgnoredFile name ->
             { Code = int FantomasResponseCode.Ignored
               FilePath = name
               Content = None
-              SelectedRange = None }
+              SelectedRange = None
+              Cursor = None }
 
 type FantomasVersion = FantomasVersion of string
 type FantomasExecutableFile = FantomasExecutableFile of string

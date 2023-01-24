@@ -407,11 +407,15 @@ let formatSelection
             | TreeForSelection.Standalone tree ->
                 let enrichedTree = Trivia.enrichTree selectionConfig sourceText baseUntypedTree tree
 
-                CodePrinter.genFile enrichedTree context |> Context.dump true
+                CodePrinter.genFile enrichedTree context
+                |> Context.dump true
+                |> fun result -> result.Code
             | TreeForSelection.RequiresExtraction(tree, t) ->
                 let enrichedTree = Trivia.enrichTree selectionConfig sourceText baseUntypedTree tree
 
-                let formattedCode = CodePrinter.genFile enrichedTree context |> Context.dump true
+                let { Code = formattedCode } =
+                    CodePrinter.genFile enrichedTree context |> Context.dump true
+
                 let source = SourceText.ofString formattedCode
                 let formattedAST, _ = Fantomas.FCS.Parse.parseFile isSignature source []
                 let formattedTree = ASTTransformer.mkOak (Some source) formattedAST
