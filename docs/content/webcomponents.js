@@ -18,13 +18,6 @@ function FantomasSettingIcon({type}) {
                 tooltip: "Changing the default of this setting is not recommended."
             }
             break;
-        case 'deprecated':
-            settingType = {
-                icon: "bi-exclamation-triangle-fill",
-                color: "orange-recommendation",
-                tooltip: "This setting is deprecated and will be removed in a future version."
-            }
-            break;
         case 'red':
             settingType = {
                 icon: "bi-x-circle-fill", 
@@ -68,7 +61,6 @@ function FantomasSetting({name, green, orange, red, gr, deprecated}) {
             ${red && FantomasSettingIcon({type: "red"})}
             ${gr && FantomasSettingIcon({type: "gr"})}
             ${red && FantomasSettingIcon({type: "red"})}
-            ${deprecated && FantomasSettingIcon({type: "deprecated"})}
             <h4 id="${name}" class="m-0">
                 <a href="#${name}">${name}</a>
             </h4>
