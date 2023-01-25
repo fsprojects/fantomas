@@ -234,7 +234,7 @@ val sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidthUnlessStroustrup:
 val sepSpaceOrIndentAndNlnIfTypeExceedsPageWidthUnlessStroustrup:
     f: (Type -> Context -> Context) -> t: Type -> (Context -> Context)
 
-val sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidthUnlessStroustrupOrCompExprSameLine:
+val sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidthUnlessSameLinePreferred:
     f: (Expr -> Context -> Context) -> expr: Expr -> (Context -> Context)
 
 val autoParenthesisIfExpressionExceedsPageWidth: expr: (Context -> Context) -> ctx: Context -> Context
@@ -259,12 +259,12 @@ val autoIndentAndNlnWhenWriteBeforeNewlineNotEmpty: f: (Context -> Context) -> c
 val addParenIfAutoNln: expr: Expr -> f: (Expr -> Context -> Context) -> (Context -> Context)
 val isStroustrupApplicable: isStroustrupContext: bool -> node: Node -> ctx: Context -> bool
 
-val autoIndentAndNlnExpressUnlessStroustrupOrCompExprSameLine:
+val autoIndentAndNlnExpressUnlessSameLinePreferred:
     f: (Expr -> Context -> Context) -> e: Expr -> ctx: Context -> Context
 
 val autoIndentAndNlnTypeUnlessStroustrup: f: (Type -> Context -> Context) -> t: Type -> ctx: Context -> Context
 
-val autoIndentAndNlnIfExpressionExceedsPageWidthUnlessStroustrupOrCompExprSameLine:
+val autoIndentAndNlnIfExpressionExceedsPageWidthUnlessSameLinePreferred:
     f: (Expr -> Context -> Context) -> e: Expr -> ctx: Context -> Context
 
 type ColMultilineItem = ColMultilineItem of expr: (Context -> Context) * sepNln: (Context -> Context)

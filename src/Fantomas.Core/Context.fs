@@ -777,7 +777,7 @@ let sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidthUnlessStroustrup f (expr: 
 let sepSpaceOrIndentAndNlnIfTypeExceedsPageWidthUnlessStroustrup f (t: Type) =
     sepSpaceOrIndentAndNlnIfExceedsPageWidthUnlessStroustrup t.IsStroustrupStyleType (f t) (Type.Node t)
 
-let sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidthUnlessStroustrupOrCompExprSameLine f (expr: Expr) (ctx: Context) =
+let sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidthUnlessSameLinePreferred f (expr: Expr) (ctx: Context) =
     let isStroustrup =
         isStroustrupApplicable expr.IsStroustrupStyleExpr (Expr.Node expr) ctx
 
@@ -923,7 +923,7 @@ let addParenIfAutoNln expr f =
     let expr = f expr
     expressionFitsOnRestOfLine expr (ifElse hasParenthesis (sepOpenT +> expr +> sepCloseT) expr)
 
-let autoIndentAndNlnExpressUnlessStroustrupOrCompExprSameLine f (e: Expr) (ctx: Context) =
+let autoIndentAndNlnExpressUnlessSameLinePreferred f (e: Expr) (ctx: Context) =
     let shouldUseStroustrup =
         isStroustrupApplicable e.IsStroustrupStyleExpr (Expr.Node e) ctx
 
@@ -941,7 +941,7 @@ let autoIndentAndNlnTypeUnlessStroustrup f (t: Type) (ctx: Context) =
     else
         autoIndentAndNlnIfExpressionExceedsPageWidth (f t) ctx
 
-let autoIndentAndNlnIfExpressionExceedsPageWidthUnlessStroustrupOrCompExprSameLine f (e: Expr) (ctx: Context) =
+let autoIndentAndNlnIfExpressionExceedsPageWidthUnlessSameLinePreferred f (e: Expr) (ctx: Context) =
     let isStroustrup = isStroustrupApplicable e.IsStroustrupStyleExpr (Expr.Node e) ctx
 
     if isNamedComputationAndPreferSameLine e ctx || isStroustrup then
