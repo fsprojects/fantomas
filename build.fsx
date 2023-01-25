@@ -222,6 +222,8 @@ pipeline "Init" {
             [| "src/Compiler/FSComp.txt"
                "src/Compiler/Interactive/FSIstrings.txt"
                "src/Compiler/FSStrings.resx"
+               "src/Compiler/Utilities/Activity.fsi"
+               "src/Compiler/Utilities/Activity.fs"
                "src/Compiler/Utilities/sformat.fsi"
                "src/Compiler/Utilities/sformat.fs"
                "src/Compiler/Utilities/sr.fsi"

@@ -3,7 +3,8 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <NoWarn>$(NoWarn);57</NoWarn> <!-- Experimental -->
+    <NoWarn>$(NoWarn);57;</NoWarn> <!-- Experimental -->
+    <NoWarn>$(NoWarn);1204</NoWarn> <!-- This construct is for use in the FSharp.Core library and should not be used directly -->
     <DefineConstants>$(DefineConstants);COMPILER;FSHARPCORE_USE_PACKAGE</DefineConstants>
     <FsYaccOutputFolder>generated\$(TargetFramework)\</FsYaccOutputFolder>
     <FsLexOutputFolder>generated\$(TargetFramework)\</FsLexOutputFolder>
@@ -25,6 +26,12 @@
       <Link>FSStrings.resx</Link>
       <LogicalName>FSStrings.resources</LogicalName>
     </EmbeddedResource>
+    <Compile Include="..\..\.deps\$(FCSCommitHash)\src\Compiler\Utilities\Activity.fsi">
+      <Link>Utilities\Activity.fsi</Link>
+    </Compile>
+    <Compile Include="..\..\.deps\$(FCSCommitHash)\src\Compiler\Utilities\Activity.fs">
+      <Link>Utilities\Activity.fs</Link>
+    </Compile>
     <Compile Include="..\..\.deps\$(FCSCommitHash)\src\Compiler\Utilities\sformat.fsi">
       <Link>Utilities\sformat.fsi</Link>
     </Compile>
@@ -304,7 +311,8 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="FSharp.Core" Version="$(FSharpCoreVersion)" />
-    <PackageReference Include="System.Memory" Version="4.5.4" />
+    <PackageReference Include="System.Diagnostics.DiagnosticSource" Version="7.0.0" />
+    <PackageReference Include="System.Memory" Version="4.5.5" />
     <PackageReference Include="System.Runtime" Version="4.3.1" />
     <PackageReference Include="FsLexYacc" Version="11.0.1" PrivateAssets="all" />
   </ItemGroup>

@@ -133,18 +133,6 @@ let genIdentListNodeAux addLeadingDot (iln: IdentListNode) =
 let genIdentListNode iln = genIdentListNodeAux false iln
 let genIdentListNodeWithDot iln = genIdentListNodeAux true iln
 
-let genIdentListNodeWithDotMultiline (iln: IdentListNode) =
-    coli sepNone iln.Content (fun idx iod ->
-        match iod with
-        | IdentifierOrDot.Ident ident ->
-            if idx = 0 then
-                genSingleTextNodeWithLeadingDot ident
-            else
-                genSingleTextNode ident
-        | IdentifierOrDot.KnownDot dot -> sepNln +> genSingleTextNode dot
-        | IdentifierOrDot.UnknownDot _ -> sepNln +> sepDot)
-    |> genNode iln
-
 let genAccessOpt (nodeOpt: SingleTextNode option) =
     match nodeOpt with
     | None -> sepNone
@@ -2078,14 +2066,6 @@ let colGenericTypeParameters typeParameters =
             | _ -> sepNone
 
         leadingSpace +> genType t)
-
-let genGenericTypeParametersAux lessThan typeParameters greaterThan =
-    genSingleTextNode lessThan
-    +> colGenericTypeParameters typeParameters
-    +> genSingleTextNode greaterThan
-
-let genGenericTypeParameters (typeApp: ExprTypeAppNode) =
-    genGenericTypeParametersAux typeApp.LessThan typeApp.TypeParameters typeApp.GreaterThan
 
 let genFunctionNameWithMultilineLids (trailing: Context -> Context) (longIdent: IdentListNode) (parentNode: Node) =
     match longIdent.Content with
