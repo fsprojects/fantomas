@@ -70,6 +70,9 @@
 <li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/end-users/VSCode.html" class="nav-link pb-2 d-block" > Visual Studio Code
 </a></li>
 
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/end-users/GeneratingCode.html" class="nav-link pb-2 d-block" > Generating source code
+</a></li>
+
 <li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/end-users/FAQ.html" class="nav-link pb-2 d-block" > FAQ
 </a></li>
 
@@ -99,10 +102,10 @@
 <li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/Solution Structure.html" class="nav-link pb-2 d-block" > Solution structure
 </a></li>
 
-<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/Prepare Context.html" class="nav-link pb-2 d-block" > Fantomas.Core overview (1)
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/Transforming.html" class="nav-link pb-2 d-block" > Fantomas.Core overview (1)
 </a></li>
 
-<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/Print AST with Context.html" class="nav-link pb-2 d-block" > Fantomas.Core overview (2)
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/Traverse.html" class="nav-link pb-2 d-block" > Fantomas.Core overview (2)
 </a></li>
 
 <li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/Formatted Code.html" class="nav-link pb-2 d-block" > Fantomas.Core overview (3)
@@ -118,6 +121,12 @@
 </a></li>
 
 <li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/Pull request ground rules.html" class="nav-link pb-2 d-block" > Pull request ground rules
+</a></li>
+
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/Releases.html" class="nav-link pb-2 d-block" > Releases
+</a></li>
+
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/Glossary.html" class="nav-link pb-2 d-block" > Glossary
 </a></li>
 
             </ul>
@@ -225,7 +234,7 @@ To keep your fork up to date, run this command:</p>
 </blockquote>
 <p>Updating your fork:</p>
 <blockquote>
-<p>git checkout master &amp;&amp; git fetch upstream &amp;&amp; git rebase upstream/master &amp;&amp; git push</p>
+<p>git checkout main &amp;&amp; git fetch upstream &amp;&amp; git rebase upstream/main &amp;&amp; git push</p>
 </blockquote>
 <h3><a name="Unit-test" class="anchor" href="#Unit-test">Unit test</a></h3>
 <ul>
@@ -245,7 +254,7 @@ To keep your fork up to date, run this command:</p>
 </ul>
 <h3><a name="Documentation" class="anchor" href="#Documentation">Documentation</a></h3>
 <p>Write/update documentation when necessary.<br />
-You can find instructions on how to run the documentation locally in the <a href="https://github.com/fsprojects/fantomas/blob/master/docs/.README.md">docs/.README.md</a> file.</p>
+You can find instructions on how to run the documentation locally in the <a href="https://github.com/fsprojects/fantomas/blob/main/docs/.README.md">docs/.README.md</a> file.</p>
 <h3><a name="Pull-request-title" class="anchor" href="#Pull-request-title">Pull request title</a></h3>
 <ul>
 <li>
@@ -268,10 +277,10 @@ For example, <code>git checkout -b fix-1404</code>.</p>
 <h3><a name="Format-your-changes" class="anchor" href="#Format-your-changes">Format your changes</a></h3>
 <ul>
 <li>
-Code should be formatted to our standard style, using either <code>dotnet fake run build.fsx -t Format</code> which works on all files, or
-<code>dotnet fake run build.fsx -t FormatChanged</code> to just change the files in git.
+Code should be formatted to our standard style, using either <code>dotnet fsi build.fsx -p FormatAll</code> which works on all files, or
+<code>dotnet fsi build.fsx -p FormatChanged</code> to just change the files in git.
 <ul>
-<li>If you forget, there's a git <code>pre-commit</code> script that will run this for you, make sure to run <code>dotnet fake build -t EnsureRepoConfig</code> to set that hook up.</li>
+<li>If you forget, there's a git <code>pre-commit</code> script that will run this for you, make sure to run <code>dotnet fsi build.fsx -p EnsureRepoConfig</code> to set that hook up.</li>
 </ul>
 </li>
 </ul>
@@ -313,13 +322,39 @@ When fixing a <code>bug (stylistic)</code>, add a line in the following format t
 </li>
 </ul>
 <h3><a name="Run-a-local-build" class="anchor" href="#Run-a-local-build">Run a local build</a></h3>
-<p>Finally, make sure to run <code>dotnet fake build</code>. Among other things, this will check the format of the code and will tell you, if
+<p>Finally, make sure to run <code>dotnet fsi build.fsx</code>. Among other things, this will check the format of the code and will tell you, if
 your changes caused any tests to fail.</p>
 <h3><a name="Small-steps" class="anchor" href="#Small-steps">Small steps</a></h3>
 <p>It is better to create a draft pull request with some initial small changes, and engage conversation, than to spend a lot of effort on a large pull request that was never discussed.
 Someone might be able to warn you in advance that your change will have wide implications for the rest of Fantomas, or might be able to point you in the right direction.
 However, this can only happen if you discuss your proposed changes early and often.
 It's often better to check <em>before</em> contributing that you're setting off on the right path.</p>
+<h2><a name="Coding-conventions" class="anchor" href="#Coding-conventions">Coding conventions</a></h2>
+<p>For consistency sake we have a few coding conventions. Please respect those to keep everything as streamlined as possible.</p>
+<h3><a name="Member-declaration" class="anchor" href="#Member-declaration">Member declaration</a></h3>
+<ul>
+<li>Use <code>x</code> as the the <code>self-identifier</code> if you need it.</li>
+</ul>
+<pre class="fssnip highlighted"><code lang="fsharp"><span class="k">type</span> <span class="id">Foo</span><span class="pn">(</span><span class="pn">)</span> <span class="o">=</span>
+    <span class="k">member</span> <span class="id">_</span><span class="pn">.</span><span class="id">Children</span> <span class="o">=</span> <span class="pn">[</span><span class="pn">]</span>
+    
+    <span class="c">// ✔️ OK</span>
+    <span class="k">member</span> <span class="id">x</span><span class="pn">.</span><span class="id">Length</span> <span class="o">=</span> <span class="id">x</span><span class="pn">.</span><span class="id">Children</span><span class="pn">.</span><span class="id">Length</span>
+    
+    <span class="c">// ❌ Not preferred, we use `x`</span>
+    <span class="k">member</span> <span class="id">this</span><span class="pn">.</span><span class="id">WrongLength</span> <span class="o">=</span> <span class="id">this</span><span class="pn">.</span><span class="id">Children</span><span class="pn">.</span><span class="id">Length</span> <span class="o">-</span> <span class="n">1</span>
+</code></pre>
+<ul>
+<li>Use <code>_</code> when you don't need the <code>self-identifier</code>.</li>
+<li>Use <code>member val</code> when possible.</li>
+</ul>
+<pre class="fssnip highlighted"><code lang="fsharp"><span class="k">type</span> <span class="id">Foo</span><span class="pn">(</span><span class="id">v</span><span class="pn">:</span> <span class="id">Value</span><span class="pn">)</span> <span class="o">=</span>
+    <span class="c">// ✔️ OK</span>
+    <span class="k">member</span> <span class="k">val</span> <span class="id">Value</span> <span class="o">=</span> <span class="id">v</span>
+    
+        <span class="c">// ❌ Not preferred.</span>
+    <span class="k">member</span> <span class="id">_</span><span class="pn">.</span><span class="id">WrongValue</span> <span class="o">=</span> <span class="id">v</span>
+</code></pre>
 <h2><a name="Fixing-style-guide-inconsistencies" class="anchor" href="#Fixing-style-guide-inconsistencies">Fixing style guide inconsistencies</a></h2>
 <p>Fantomas tries to keep up with the style guides, but as these are living documents, it can occur that something is listed in the style that Fantomas is not respecting.
 In this case, please create an issue using our <a href="https://fsprojects.github.io/fantomas-tools/#/">online tool</a>.
@@ -327,12 +362,12 @@ Copy the code snippet from the guide and add a link to the section of the guide 
 The maintainers will then add the <code>bug (stylistic)</code> to confirm the bug is fixable in Fantomas. In most cases, it may seem obvious that the case can be fixed.
 However, in the past there have been changes to the style guide that Fantomas could not implement for technical reasons: Fantomas can only implement rules based on information entirely contained within the untyped syntax tree.</p>
 <h3><a name="Target-the-next-minor-or-major-branch" class="anchor" href="#Target-the-next-minor-or-major-branch">Target the next minor or major branch</a></h3>
-<p>When fixing a stylistic issue, please ask the maintainers what branch should be targeted. The rule of thumb is that the <code>master</code> branch is used for fixing <code>bug (soundness)</code> and will be used for revision releases.
+<p>When fixing a stylistic issue, please ask the maintainers what branch should be targeted. The rule of thumb is that the <code>main</code> branch is used for fixing <code>bug (soundness)</code> and will be used for revision releases.
 Strive to ensure that end users can always update to the latest patch revision of their current minor or major without fear.</p>
-<p>A user should only need to deal with style changes when they have explicitly <a href="https://github.com/fsprojects/fantomas/blob/master/docs/Documentation.md#updating-to-a-new-fantomas-version">chosen to upgrade</a> to a new minor or major version.
+<p>A user should only need to deal with style changes when they have explicitly <a href="https://github.com/fsprojects/fantomas/blob/main/docs/Documentation.md#updating-to-a-new-fantomas-version">chosen to upgrade</a> to a new minor or major version.
 In case no major or minor branch was created yet, please reach out to the maintainers.
-The maintainers will frequently rebase this branch on top of the master branch and release alpha/beta packages accordingly.</p>
-<fantomas-nav previous="./The%20Missing%20Comment.html"></fantomas-nav>
+The maintainers will frequently rebase this branch on top of the main branch and release alpha/beta packages accordingly.</p>
+<fantomas-nav previous="./The%20Missing%20Comment.html" next="./Releases.html"></fantomas-nav>
 
         
       </div>
@@ -351,7 +386,7 @@ The maintainers will frequently rebase this branch on top of the master branch a
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-A3rJD856KowSb7dwlZdYEkO39Gagi7vIsF0jrRAoQmDKKtQBHUuLZ9AsSv4jD4Xa" crossorigin="anonymous"></script>
   <script type="module" src="https://fsprojects.github.io/fantomas/content/webcomponents.js"></script>
   <script type="module">
-      import mermaid from "https://cdn.skypack.dev/mermaid";
+      import mermaid from "https://cdn.skypack.dev/mermaid@9.2.2";
       mermaid.initialize({
           startOnLoad: true,
           theme: "base",

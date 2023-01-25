@@ -70,6 +70,9 @@
 <li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/end-users/VSCode.html" class="nav-link pb-2 d-block" > Visual Studio Code
 </a></li>
 
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/end-users/GeneratingCode.html" class="nav-link pb-2 d-block" > Generating source code
+</a></li>
+
 <li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/end-users/FAQ.html" class="nav-link pb-2 d-block" > FAQ
 </a></li>
 
@@ -99,10 +102,10 @@
 <li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/Solution Structure.html" class="nav-link pb-2 d-block" > Solution structure
 </a></li>
 
-<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/Prepare Context.html" class="nav-link pb-2 d-block" > Fantomas.Core overview (1)
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/Transforming.html" class="nav-link pb-2 d-block" > Fantomas.Core overview (1)
 </a></li>
 
-<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/Print AST with Context.html" class="nav-link pb-2 d-block" > Fantomas.Core overview (2)
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/Traverse.html" class="nav-link pb-2 d-block" > Fantomas.Core overview (2)
 </a></li>
 
 <li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/Formatted Code.html" class="nav-link pb-2 d-block" > Fantomas.Core overview (3)
@@ -118,6 +121,12 @@
 </a></li>
 
 <li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/Pull request ground rules.html" class="nav-link pb-2 d-block" > Pull request ground rules
+</a></li>
+
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/Releases.html" class="nav-link pb-2 d-block" > Releases
+</a></li>
+
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/Glossary.html" class="nav-link pb-2 d-block" > Glossary
 </a></li>
 
             </ul>
@@ -184,12 +193,12 @@
       <div id="fsdocs-content" class="bg-white m-2 m-sm-5 p-3 p-sm-4">
         
 <h1><a name="Fantomas-Core-overview-3" class="anchor" href="#Fantomas-Core-overview-3">Fantomas.Core overview (3)</a></h1>
-<p>After the <code>Context</code> travelled throught the composed <code>CodePrinter</code> function, all events are captured.<br />
+<p>After the <code>Context</code> travelled through the composed <code>CodePrinter</code> function, all events are captured.<br />
 These can be converted to a string of formatted code.</p>
 <div class="mermaid text-center">
 graph TD
-    A[Prepare Context] --> B
-    B[Print AST with Context] --> C[Formatted code]
+    A[Transform source code to tree] --> B
+    B[Traverse Oak to get formatted code] --> C[Formatted code]
     style C stroke:#338CBB,stroke-width:2px
  </div>
 <h2><a name="Post-processing" class="anchor" href="#Post-processing">Post processing</a></h2>
@@ -217,7 +226,7 @@ See <code>Validation.fs</code> for more details.</p>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-A3rJD856KowSb7dwlZdYEkO39Gagi7vIsF0jrRAoQmDKKtQBHUuLZ9AsSv4jD4Xa" crossorigin="anonymous"></script>
   <script type="module" src="https://fsprojects.github.io/fantomas/content/webcomponents.js"></script>
   <script type="module">
-      import mermaid from "https://cdn.skypack.dev/mermaid";
+      import mermaid from "https://cdn.skypack.dev/mermaid@9.2.2";
       mermaid.initialize({
           startOnLoad: true,
           theme: "base",

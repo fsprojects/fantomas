@@ -69,6 +69,9 @@
 <li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/end-users/VSCode.html" class="nav-link pb-2 d-block" > Visual Studio Code
 </a></li>
 
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/end-users/GeneratingCode.html" class="nav-link pb-2 d-block" > Generating source code
+</a></li>
+
 <li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/end-users/FAQ.html" class="nav-link pb-2 d-block" > FAQ
 </a></li>
 
@@ -98,10 +101,10 @@
 <li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/Solution Structure.html" class="nav-link pb-2 d-block" > Solution structure
 </a></li>
 
-<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/Prepare Context.html" class="nav-link pb-2 d-block" > Fantomas.Core overview (1)
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/Transforming.html" class="nav-link pb-2 d-block" > Fantomas.Core overview (1)
 </a></li>
 
-<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/Print AST with Context.html" class="nav-link pb-2 d-block" > Fantomas.Core overview (2)
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/Traverse.html" class="nav-link pb-2 d-block" > Fantomas.Core overview (2)
 </a></li>
 
 <li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/Formatted Code.html" class="nav-link pb-2 d-block" > Fantomas.Core overview (3)
@@ -117,6 +120,12 @@
 </a></li>
 
 <li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/Pull request ground rules.html" class="nav-link pb-2 d-block" > Pull request ground rules
+</a></li>
+
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/Releases.html" class="nav-link pb-2 d-block" > Releases
+</a></li>
+
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/Glossary.html" class="nav-link pb-2 d-block" > Glossary
 </a></li>
 
             </ul>
@@ -222,101 +231,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code onmouseout="hideTip(event, '124', 124)" onmouseover="showTip(event, '124', 124)">
-                <p>
-                  <a id="appendItem">
-                    <a href="#appendItem">
-                      <code><span>appendItem&#32;<span>l&#32;i</span></span></code>
-                    </a>
-                  </a>
-                </p>
-              </code>
-              <div class="fsdocs-tip" id="124">
-                <div class="member-tooltip">
-                  Full Usage: 
-                  <code><span>appendItem&#32;<span>l&#32;i</span></span></code>
-                  <br/>
-                  <br/>
-                  Parameters: 
-                  <ul>
-                    <span>
-                      <b>
-                        l
-                      </b>
-                      :
-                      <code><span>'a&#32;list</span></code>
-                    </span>
-                    <br/>
-                    <span>
-                      <b>
-                        i
-                      </b>
-                      :
-                      <code>'a</code>
-                    </span>
-                    <br/>
-                  </ul>
-                  <br/>
-                  <span>
-                    Returns: 
-                    <code><span>'a&#32;list</span></code>
-                  </span>
-                  <br/>
-                </div>
-              </div>
-            </div>
-          </td>
-          <td class="fsdocs-member-xmldoc">
-            <div class="fsdocs-summary">
-              <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('```cref:M:Fantomas.Core.List.appendItem``1```')">
-                <img src="https://fsprojects.github.io/fantomas/content/img/copy-md.png" class="normal"/>
-                <img src="https://fsprojects.github.io/fantomas/content/img/copy-md-hover.png" class="hover"/>
-              </div>
-              <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'M:Fantomas.Core.List.appendItem``1\'/>')">
-                <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml.png" class="normal"/>
-                <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml-hover.png" class="hover"/>
-              </div>
-              <a href="" class="fsdocs-source-link" title="Source on GitHub">
-                <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
-                <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
-              </a>
-              <p class="fsdocs-summary">
-                
-              </p>
-            </div>
-            <dl class="fsdocs-params">
-              <dt class="fsdocs-param">
-                <span class="fsdocs-param-name">
-                  l
-                </span>
-                :
-                <code><span>'a&#32;list</span></code>
-              </dt>
-              <dd class="fsdocs-param-docs"></dd>
-              <dt class="fsdocs-param">
-                <span class="fsdocs-param-name">
-                  i
-                </span>
-                :
-                <code>'a</code>
-              </dt>
-              <dd class="fsdocs-param-docs"></dd>
-            </dl>
-            <dl class="fsdocs-returns">
-              <dt>
-                <span class="fsdocs-return-name">
-                  Returns: 
-                </span>
-                <code><span>'a&#32;list</span></code>
-              </dt>
-              <dd class="fsdocs-return-docs"></dd>
-            </dl>
-          </td>
-        </tr>
-        <tr>
-          <td class="fsdocs-member-usage">
-            <div>
-              <code onmouseout="hideTip(event, '125', 125)" onmouseover="showTip(event, '125', 125)">
+              <code onmouseout="hideTip(event, '1102', 1102)" onmouseover="showTip(event, '1102', 1102)">
                 <p>
                   <a id="chooseState">
                     <a href="#chooseState">
@@ -325,7 +240,7 @@
                   </a>
                 </p>
               </code>
-              <div class="fsdocs-tip" id="125">
+              <div class="fsdocs-tip" id="1102">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>chooseState&#32;<span>f&#32;state&#32;l</span></span></code>
@@ -426,7 +341,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code onmouseout="hideTip(event, '126', 126)" onmouseover="showTip(event, '126', 126)">
+              <code onmouseout="hideTip(event, '1103', 1103)" onmouseover="showTip(event, '1103', 1103)">
                 <p>
                   <a id="isNotEmpty">
                     <a href="#isNotEmpty">
@@ -435,7 +350,7 @@
                   </a>
                 </p>
               </code>
-              <div class="fsdocs-tip" id="126">
+              <div class="fsdocs-tip" id="1103">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>isNotEmpty&#32;<span>l</span></span></code>
@@ -448,7 +363,7 @@
                         l
                       </b>
                       :
-                      <code><span>'e&#32;list</span></code>
+                      <code><span>'a&#32;list</span></code>
                     </span>
                     <br/>
                   </ul>
@@ -486,7 +401,7 @@
                   l
                 </span>
                 :
-                <code><span>'e&#32;list</span></code>
+                <code><span>'a&#32;list</span></code>
               </dt>
               <dd class="fsdocs-param-docs"></dd>
             </dl>
@@ -504,26 +419,42 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code onmouseout="hideTip(event, '127', 127)" onmouseover="showTip(event, '127', 127)">
+              <code onmouseout="hideTip(event, '1104', 1104)" onmouseover="showTip(event, '1104', 1104)">
                 <p>
-                  <a id="moreThanOne">
-                    <a href="#moreThanOne">
-                      <code><span>moreThanOne&#32;<span>_arg1</span></span></code>
+                  <a id="mapWithLast">
+                    <a href="#mapWithLast">
+                      <code><span>mapWithLast&#32;<span>f&#32;g&#32;xs</span></span></code>
                     </a>
                   </a>
                 </p>
               </code>
-              <div class="fsdocs-tip" id="127">
+              <div class="fsdocs-tip" id="1104">
                 <div class="member-tooltip">
                   Full Usage: 
-                  <code><span>moreThanOne&#32;<span>_arg1</span></span></code>
+                  <code><span>mapWithLast&#32;<span>f&#32;g&#32;xs</span></span></code>
                   <br/>
                   <br/>
                   Parameters: 
                   <ul>
                     <span>
                       <b>
-                        _arg1
+                        f
+                      </b>
+                      :
+                      <code><span>'a&#32;->&#32;'b</span></code>
+                    </span>
+                    <br/>
+                    <span>
+                      <b>
+                        g
+                      </b>
+                      :
+                      <code><span>'a&#32;->&#32;'b</span></code>
+                    </span>
+                    <br/>
+                    <span>
+                      <b>
+                        xs
                       </b>
                       :
                       <code><span>'a&#32;list</span></code>
@@ -533,7 +464,89 @@
                   <br/>
                   <span>
                     Returns: 
-                    <code>bool</code>
+                    <code><span>'b&#32;list</span></code>
+                  </span>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-summary">
+              <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('```cref:M:Fantomas.Core.List.mapWithLast``2```')">
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-md.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-md-hover.png" class="hover"/>
+              </div>
+              <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'M:Fantomas.Core.List.mapWithLast``2\'/>')">
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+              </div>
+              <a href="" class="fsdocs-source-link" title="Source on GitHub">
+                <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
+              </a>
+              <p class="fsdocs-summary">
+                
+              </p>
+            </div>
+            <dl class="fsdocs-params">
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  f
+                </span>
+                :
+                <code><span>'a&#32;->&#32;'b</span></code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  g
+                </span>
+                :
+                <code><span>'a&#32;->&#32;'b</span></code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  xs
+                </span>
+                :
+                <code><span>'a&#32;list</span></code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+            </dl>
+            <dl class="fsdocs-returns">
+              <dt>
+                <span class="fsdocs-return-name">
+                  Returns: 
+                </span>
+                <code><span>'b&#32;list</span></code>
+              </dt>
+              <dd class="fsdocs-return-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '1105', 1105)" onmouseover="showTip(event, '1105', 1105)">
+                <p>
+                  <a id="moreThanOne">
+                    <a href="#moreThanOne">
+                      <code><span>moreThanOne&#32;<span></span></span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="1105">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>moreThanOne&#32;<span></span></span></code>
+                  <br/>
+                  <br/>
+                  <span>
+                    Returns: 
+                    <code><span><span>'a&#32;list</span>&#32;->&#32;bool</span></code>
                   </span>
                   <br/>
                 </div>
@@ -558,22 +571,12 @@
                 
               </p>
             </div>
-            <dl class="fsdocs-params">
-              <dt class="fsdocs-param">
-                <span class="fsdocs-param-name">
-                  _arg1
-                </span>
-                :
-                <code><span>'a&#32;list</span></code>
-              </dt>
-              <dd class="fsdocs-param-docs"></dd>
-            </dl>
             <dl class="fsdocs-returns">
               <dt>
                 <span class="fsdocs-return-name">
                   Returns: 
                 </span>
-                <code>bool</code>
+                <code><span><span>'a&#32;list</span>&#32;->&#32;bool</span></code>
               </dt>
               <dd class="fsdocs-return-docs"></dd>
             </dl>
@@ -582,7 +585,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code onmouseout="hideTip(event, '128', 128)" onmouseover="showTip(event, '128', 128)">
+              <code onmouseout="hideTip(event, '1106', 1106)" onmouseover="showTip(event, '1106', 1106)">
                 <p>
                   <a id="partitionWhile">
                     <a href="#partitionWhile">
@@ -591,7 +594,7 @@
                   </a>
                 </p>
               </code>
-              <div class="fsdocs-tip" id="128">
+              <div class="fsdocs-tip" id="1106">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>partitionWhile&#32;<span>f&#32;xs</span></span></code>
@@ -673,210 +676,6 @@
             </dl>
           </td>
         </tr>
-        <tr>
-          <td class="fsdocs-member-usage">
-            <div>
-              <code onmouseout="hideTip(event, '129', 129)" onmouseover="showTip(event, '129', 129)">
-                <p>
-                  <a id="prependItem">
-                    <a href="#prependItem">
-                      <code><span>prependItem&#32;<span>l&#32;i</span></span></code>
-                    </a>
-                  </a>
-                </p>
-              </code>
-              <div class="fsdocs-tip" id="129">
-                <div class="member-tooltip">
-                  Full Usage: 
-                  <code><span>prependItem&#32;<span>l&#32;i</span></span></code>
-                  <br/>
-                  <br/>
-                  Parameters: 
-                  <ul>
-                    <span>
-                      <b>
-                        l
-                      </b>
-                      :
-                      <code><span>'a&#32;list</span></code>
-                    </span>
-                    <br/>
-                    <span>
-                      <b>
-                        i
-                      </b>
-                      :
-                      <code>'a</code>
-                    </span>
-                    <br/>
-                  </ul>
-                  <br/>
-                  <span>
-                    Returns: 
-                    <code><span>'a&#32;list</span></code>
-                  </span>
-                  <br/>
-                </div>
-              </div>
-            </div>
-          </td>
-          <td class="fsdocs-member-xmldoc">
-            <div class="fsdocs-summary">
-              <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('```cref:M:Fantomas.Core.List.prependItem``1```')">
-                <img src="https://fsprojects.github.io/fantomas/content/img/copy-md.png" class="normal"/>
-                <img src="https://fsprojects.github.io/fantomas/content/img/copy-md-hover.png" class="hover"/>
-              </div>
-              <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'M:Fantomas.Core.List.prependItem``1\'/>')">
-                <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml.png" class="normal"/>
-                <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml-hover.png" class="hover"/>
-              </div>
-              <a href="" class="fsdocs-source-link" title="Source on GitHub">
-                <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
-                <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
-              </a>
-              <p class="fsdocs-summary">
-                
-              </p>
-            </div>
-            <dl class="fsdocs-params">
-              <dt class="fsdocs-param">
-                <span class="fsdocs-param-name">
-                  l
-                </span>
-                :
-                <code><span>'a&#32;list</span></code>
-              </dt>
-              <dd class="fsdocs-param-docs"></dd>
-              <dt class="fsdocs-param">
-                <span class="fsdocs-param-name">
-                  i
-                </span>
-                :
-                <code>'a</code>
-              </dt>
-              <dd class="fsdocs-param-docs"></dd>
-            </dl>
-            <dl class="fsdocs-returns">
-              <dt>
-                <span class="fsdocs-return-name">
-                  Returns: 
-                </span>
-                <code><span>'a&#32;list</span></code>
-              </dt>
-              <dd class="fsdocs-return-docs"></dd>
-            </dl>
-          </td>
-        </tr>
-        <tr>
-          <td class="fsdocs-member-usage">
-            <div>
-              <code onmouseout="hideTip(event, '130', 130)" onmouseover="showTip(event, '130', 130)">
-                <p>
-                  <a id="takeWhileState">
-                    <a href="#takeWhileState">
-                      <code><span>takeWhileState&#32;<span>f&#32;state&#32;l</span></span></code>
-                    </a>
-                  </a>
-                </p>
-              </code>
-              <div class="fsdocs-tip" id="130">
-                <div class="member-tooltip">
-                  Full Usage: 
-                  <code><span>takeWhileState&#32;<span>f&#32;state&#32;l</span></span></code>
-                  <br/>
-                  <br/>
-                  Parameters: 
-                  <ul>
-                    <span>
-                      <b>
-                        f
-                      </b>
-                      :
-                      <code><span>'a&#32;->&#32;'b&#32;->&#32;<span>'a&#32;*&#32;bool</span></span></code>
-                    </span>
-                    <br/>
-                    <span>
-                      <b>
-                        state
-                      </b>
-                      :
-                      <code>'a</code>
-                    </span>
-                    <br/>
-                    <span>
-                      <b>
-                        l
-                      </b>
-                      :
-                      <code><span>'b&#32;list</span></code>
-                    </span>
-                    <br/>
-                  </ul>
-                  <br/>
-                  <span>
-                    Returns: 
-                    <code><span>'b&#32;list</span></code>
-                  </span>
-                  <br/>
-                </div>
-              </div>
-            </div>
-          </td>
-          <td class="fsdocs-member-xmldoc">
-            <div class="fsdocs-summary">
-              <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('```cref:M:Fantomas.Core.List.takeWhileState``2```')">
-                <img src="https://fsprojects.github.io/fantomas/content/img/copy-md.png" class="normal"/>
-                <img src="https://fsprojects.github.io/fantomas/content/img/copy-md-hover.png" class="hover"/>
-              </div>
-              <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'M:Fantomas.Core.List.takeWhileState``2\'/>')">
-                <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml.png" class="normal"/>
-                <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml-hover.png" class="hover"/>
-              </div>
-              <a href="" class="fsdocs-source-link" title="Source on GitHub">
-                <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
-                <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
-              </a>
-              <p class="fsdocs-summary">
-                
-              </p>
-            </div>
-            <dl class="fsdocs-params">
-              <dt class="fsdocs-param">
-                <span class="fsdocs-param-name">
-                  f
-                </span>
-                :
-                <code><span>'a&#32;->&#32;'b&#32;->&#32;<span>'a&#32;*&#32;bool</span></span></code>
-              </dt>
-              <dd class="fsdocs-param-docs"></dd>
-              <dt class="fsdocs-param">
-                <span class="fsdocs-param-name">
-                  state
-                </span>
-                :
-                <code>'a</code>
-              </dt>
-              <dd class="fsdocs-param-docs"></dd>
-              <dt class="fsdocs-param">
-                <span class="fsdocs-param-name">
-                  l
-                </span>
-                :
-                <code><span>'b&#32;list</span></code>
-              </dt>
-              <dd class="fsdocs-param-docs"></dd>
-            </dl>
-            <dl class="fsdocs-returns">
-              <dt>
-                <span class="fsdocs-return-name">
-                  Returns: 
-                </span>
-                <code><span>'b&#32;list</span></code>
-              </dt>
-              <dd class="fsdocs-return-docs"></dd>
-            </dl>
-          </td>
-        </tr>
       </tbody>
     </table>
   </div>
@@ -906,7 +705,7 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-A3rJD856KowSb7dwlZdYEkO39Gagi7vIsF0jrRAoQmDKKtQBHUuLZ9AsSv4jD4Xa" crossorigin="anonymous"></script>
   <script type="module" src="https://fsprojects.github.io/fantomas/content/webcomponents.js"></script>
   <script type="module">
-      import mermaid from "https://cdn.skypack.dev/mermaid";
+      import mermaid from "https://cdn.skypack.dev/mermaid@9.2.2";
       mermaid.initialize({
           startOnLoad: true,
           theme: "base",

@@ -1,0 +1,2191 @@
+<!DOCTYPE html>
+<html lang="en" data-root="https://fsprojects.github.io/fantomas/">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="author" content="Florian Verdonck, Jindřich Ivánek, David Schaefer">
+  <title>Parser (fantomas)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,600;1,400&family=Reem+Kufi:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.3/font/bootstrap-icons.css">
+  <link rel="shortcut icon" type="image/x-icon" href="https://fsprojects.github.io/fantomas/images/favicon.ico">
+  <link type="text/css" rel="stylesheet" href="https://fsprojects.github.io/fantomas/content/fsdocs-custom.css" />
+  <script type="text/javascript" src="https://fsprojects.github.io/fantomas/content/fsdocs-tips.js"></script>
+  <!-- BEGIN SEARCH BOX: this adds support for the search box -->
+  <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+  <link rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/JavaScript-autoComplete/1.0.4/auto-complete.css" />
+  <!-- END SEARCH BOX: this adds support for the search box -->
+  
+</head>
+
+<body>
+     <aside class="bg-primary h-100 fs-5">
+      <div id="sidebar-header" class="d-flex justify-content-end mt-1">
+      <button class="btn d-md-none" id="close-mobile-menu" aria-controls="sidebar-wrapper" aria-expanded="false" aria-label="Toggle navigation">
+        <i class="sidebar-toggle fs-3 bi bi-x-lg"></i>
+                  </button>
+              </div>
+      <div id="sidebar-logo" class="d-flex justify-content-center p-5">
+        <a href="https://fsprojects.github.io/fantomas/docs/index.html" ><img id="fsdocs-logo" src="https://fsprojects.github.io/fantomas//images/logo-fantomas-white.svg" /></a>
+      </div>
+      <div id="sidebar-content" class="accordion accordion-flush ps-0 text-white fs-6">
+        <div id="end-users-wrapper" class="accordion-item">
+    <li class="docs-menu">
+        <button id="end-users-button"
+            class="accordion-button collapsed btn text-white d-flex justify-content-between align-items-center"
+            data-bs-toggle="collapse" data-bs-target="#end-users" aria-expanded="false"
+            aria-control="end-users" type="button">
+            End-users
+        </button>
+        <div id="end-users" class="accordion-collapse collapse ps-4 pb-2 " data-bs-parent="#sidebar-content">
+            <ul class="list-unstyled fw-normal mb-0">
+                <li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/end-users/GettingStarted.html" class="nav-link pb-2 d-block" > Getting Started
+</a></li>
+
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/end-users/StyleGuide.html" class="nav-link pb-2 d-block" > Style guide
+</a></li>
+
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/end-users/Configuration.html" class="nav-link pb-2 d-block" > Configuration
+</a></li>
+
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/end-users/IgnoreFiles.html" class="nav-link pb-2 d-block" > Ignore Files
+</a></li>
+
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/end-users/FormattingCheck.html" class="nav-link pb-2 d-block" > Formatting Check
+</a></li>
+
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/end-users/GitHooks.html" class="nav-link pb-2 d-block" > Git hooks
+</a></li>
+
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/end-users/Rider.html" class="nav-link pb-2 d-block" > JetBrains Rider
+</a></li>
+
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/end-users/VisualStudio.html" class="nav-link pb-2 d-block" > Visual Studio
+</a></li>
+
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/end-users/VSCode.html" class="nav-link pb-2 d-block" > Visual Studio Code
+</a></li>
+
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/end-users/GeneratingCode.html" class="nav-link pb-2 d-block" > Generating source code
+</a></li>
+
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/end-users/FAQ.html" class="nav-link pb-2 d-block" > FAQ
+</a></li>
+
+            </ul>
+        </div>
+    </li>
+</div>
+<div id="contributors-wrapper" class="accordion-item">
+    <li class="docs-menu">
+        <button id="contributors-button"
+            class="accordion-button collapsed btn text-white d-flex justify-content-between align-items-center"
+            data-bs-toggle="collapse" data-bs-target="#contributors" aria-expanded="false"
+            aria-control="contributors" type="button">
+            Contributors
+        </button>
+        <div id="contributors" class="accordion-collapse collapse ps-4 pb-2 " data-bs-parent="#sidebar-content">
+            <ul class="list-unstyled fw-normal mb-0">
+                <li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/Index.html" class="nav-link pb-2 d-block" > Contributors
+</a></li>
+
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/FSharp.html" class="nav-link pb-2 d-block" > F#
+</a></li>
+
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/Getting Started.html" class="nav-link pb-2 d-block" > Getting started
+</a></li>
+
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/Solution Structure.html" class="nav-link pb-2 d-block" > Solution structure
+</a></li>
+
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/Transforming.html" class="nav-link pb-2 d-block" > Fantomas.Core overview (1)
+</a></li>
+
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/Traverse.html" class="nav-link pb-2 d-block" > Fantomas.Core overview (2)
+</a></li>
+
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/Formatted Code.html" class="nav-link pb-2 d-block" > Fantomas.Core overview (3)
+</a></li>
+
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/Conditional Compilation Directives.html" class="nav-link pb-2 d-block" > Formatting Conditional Compilation Directives
+</a></li>
+
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/How Can I Contribute.html" class="nav-link pb-2 d-block" > How can I contribute?
+</a></li>
+
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/The Missing Comment.html" class="nav-link pb-2 d-block" > The Missing Comment
+</a></li>
+
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/Pull request ground rules.html" class="nav-link pb-2 d-block" > Pull request ground rules
+</a></li>
+
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/Releases.html" class="nav-link pb-2 d-block" > Releases
+</a></li>
+
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/Glossary.html" class="nav-link pb-2 d-block" > Glossary
+</a></li>
+
+            </ul>
+        </div>
+    </li>
+</div>
+        <div id="api_reference-wrapper" class="accordion-item">
+    <li class="docs-menu">
+        <button id="api_reference-button"
+            class="accordion-button collapsed btn text-white d-flex justify-content-between align-items-center"
+            data-bs-toggle="collapse" data-bs-target="#api_reference" aria-expanded="false"
+            aria-control="api_reference" type="button">
+            API Reference
+        </button>
+        <div id="api_reference" class="accordion-collapse collapse ps-4 pb-2 " data-bs-parent="#sidebar-content">
+            <ul class="list-unstyled fw-normal mb-0">
+                <li class="nav-item"><a href="https://fsprojects.github.io/fantomas/reference/index.html" class="nav-link pb-2 d-block" > All Namespaces</a></li>
+
+            </ul>
+        </div>
+    </li>
+</div>
+      </div>
+    </aside>
+    <main class="doc-content">
+     <nav class="navbar navbar-expand-sm border py-1">
+        <div class="container-fluid flex-nowrap">
+          <button class="btn" id="toggle-mobile-menu" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="sidebar-toggle fs-3 bi bi-list"></i>
+          </button>
+          <div id="mobile-navbar" class="container-fluid d-flex justify-content-between d-sm-none">
+            <i class="invisible bi bi-github fs-3 align-self-end"></i>
+         <a href="./index.html" ><img id="fsdocs-logo-mobile" width="32" height="32" src="https://fsprojects.github.io/fantomas//images/logo.png" /></a>
+            <a class="nav-link m-0 p-0" target="_blank" href="https://github.com/fsprojects/fantomas/"> <i class="bi bi-github fs-3 align-self-end"></i>
+</a>
+          </div>
+          <div class="collapse navbar-collapse" id="navbarText">
+            <div class="navbar-nav me-auto mb-2 mb-lg-0 fs-5">
+                <a class="nav-link active" aria-current="page" href="https://fsprojects.github.io/fantomas/docs/index.html">Docs</a>
+                <a class="nav-link" target="_blank" href="https://fsprojects.github.io/fantomas-tools/">Tools</a>
+            </div>
+            <form class="d-flex">
+              <div class="input-group me-4">
+              <label for="search-by">
+                <i class="fas fa-search"></i>
+              </label>
+                <div class="btn border-end-0 border">
+                  <i class="bi bi-search"></i>
+                </div>
+                <input aria-label="Search" class="form-control  border-start-0 border" data-search-input=""
+                  id="search-by" type="search" placeholder="Search..." />
+                <span class="input-group-append">
+                </span>
+                <span data-search-clear="">
+                  <i class="fas fa-times"></i>
+                </span>
+              </div>
+            </form>
+            <a class="nav-link m-0 p-0" target="_blank" href="https://github.com/fsprojects/fantomas/">GitHub<i
+                class="bi bi-box-arrow-up-right mx-2"></i></a>
+          </div>
+        </div>
+      </nav>
+      <div id="fsdocs-content" class="bg-white m-2 m-sm-5 p-3 p-sm-4">
+        <div>
+  <h2>
+    Parser Module
+  </h2>
+  <dl class="fsdocs-metadata">
+    <dt>
+      Namespace: 
+      <a href="https://fsprojects.github.io/fantomas/reference/fsharp-compiler.html">
+        FSharp.Compiler
+      </a>
+    </dt>
+    <dt>
+      Assembly: Fantomas.FCS.dll
+    </dt>
+  </dl>
+  <div class="fsdocs-xmldoc">
+    <div>
+      <p class="fsdocs-summary">
+        
+      </p>
+    </div>
+  </div>
+  <div>
+    <h3>
+      Types
+    </h3>
+    <table class="table outer-list fsdocs-entity-list">
+      <thead>
+        <tr>
+          <td>
+            Type
+          </td>
+          <td>
+            Description
+          </td>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="fsdocs-entity-name">
+            <p>
+              <a name="nonTerminalId">
+                <a href="https://fsprojects.github.io/fantomas/reference/fsharp-compiler-parser-nonterminalid.html">
+                  nonTerminalId
+                </a>
+              </a>
+            </p>
+          </td>
+          <td class="fsdocs-entity-xmldoc">
+            <div>
+              <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:T:FSharp.Compiler.Parser.nonTerminalId`')">
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-md.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-md-hover.png" class="hover"/>
+              </div>
+              <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:FSharp.Compiler.Parser.nonTerminalId\'/>')">
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+              </div>
+              <a href="https://github.com/fsprojects/fantomas/generated/netstandard2.0/pars.fs#L453-453" class="fsdocs-source-link" title="Source on GitHub">
+                <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
+              </a>
+              <p class="fsdocs-summary">
+                
+              </p>
+            </div>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-entity-name">
+            <p>
+              <a name="token">
+                <a href="https://fsprojects.github.io/fantomas/reference/fsharp-compiler-parser-token.html">
+                  token
+                </a>
+              </a>
+            </p>
+          </td>
+          <td class="fsdocs-entity-xmldoc">
+            <div>
+              <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:T:FSharp.Compiler.Parser.token`')">
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-md.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-md-hover.png" class="hover"/>
+              </div>
+              <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:FSharp.Compiler.Parser.token\'/>')">
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+              </div>
+              <a href="https://github.com/fsprojects/fantomas/generated/netstandard2.0/pars.fs#L43-43" class="fsdocs-source-link" title="Source on GitHub">
+                <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
+              </a>
+              <p class="fsdocs-summary">
+                
+              </p>
+            </div>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-entity-name">
+            <p>
+              <a name="tokenId">
+                <a href="https://fsprojects.github.io/fantomas/reference/fsharp-compiler-parser-tokenid.html">
+                  tokenId
+                </a>
+              </a>
+            </p>
+          </td>
+          <td class="fsdocs-entity-xmldoc">
+            <div>
+              <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:T:FSharp.Compiler.Parser.tokenId`')">
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-md.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-md-hover.png" class="hover"/>
+              </div>
+              <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:FSharp.Compiler.Parser.tokenId\'/>')">
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+              </div>
+              <a href="https://github.com/fsprojects/fantomas/generated/netstandard2.0/pars.fs#L247-247" class="fsdocs-source-link" title="Source on GitHub">
+                <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
+              </a>
+              <p class="fsdocs-summary">
+                
+              </p>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <div>
+    <h3>
+      Functions and values
+    </h3>
+    <table class="table outer-list fsdocs-member-list">
+      <thead>
+        <tr>
+          <td class="fsdocs-member-list-header">
+            Function or value
+          </td>
+          <td class="fsdocs-member-list-header">
+            Description
+          </td>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '246', 246)" onmouseover="showTip(event, '246', 246)">
+                <p>
+                  <a id="_fsyacc_actionTableElements">
+                    <a href="#_fsyacc_actionTableElements">
+                      <code><span>_fsyacc_actionTableElements&#32;<span></span></span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="246">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>_fsyacc_actionTableElements&#32;<span></span></span></code>
+                  <br/>
+                  <br/>
+                  <span>
+                    Returns: 
+                    <code><span>uint16[]</span></code>
+                  </span>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-summary">
+              <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:P:FSharp.Compiler.Parser._fsyacc_actionTableElements`')">
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-md.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-md-hover.png" class="hover"/>
+              </div>
+              <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'P:FSharp.Compiler.Parser._fsyacc_actionTableElements\'/>')">
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+              </div>
+              <a href="https://github.com/fsprojects/fantomas/generated/netstandard2.0/pars.fs#L2740-2740" class="fsdocs-source-link" title="Source on GitHub">
+                <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
+              </a>
+              <p class="fsdocs-summary">
+                
+              </p>
+            </div>
+            <dl class="fsdocs-returns">
+              <dt>
+                <span class="fsdocs-return-name">
+                  Returns: 
+                </span>
+                <code><span>uint16[]</span></code>
+              </dt>
+              <dd class="fsdocs-return-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '247', 247)" onmouseover="showTip(event, '247', 247)">
+                <p>
+                  <a id="_fsyacc_actionTableRowOffsets">
+                    <a href="#_fsyacc_actionTableRowOffsets">
+                      <code><span>_fsyacc_actionTableRowOffsets&#32;<span></span></span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="247">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>_fsyacc_actionTableRowOffsets&#32;<span></span></span></code>
+                  <br/>
+                  <br/>
+                  <span>
+                    Returns: 
+                    <code><span>uint16[]</span></code>
+                  </span>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-summary">
+              <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:P:FSharp.Compiler.Parser._fsyacc_actionTableRowOffsets`')">
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-md.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-md-hover.png" class="hover"/>
+              </div>
+              <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'P:FSharp.Compiler.Parser._fsyacc_actionTableRowOffsets\'/>')">
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+              </div>
+              <a href="https://github.com/fsprojects/fantomas/generated/netstandard2.0/pars.fs#L2741-2741" class="fsdocs-source-link" title="Source on GitHub">
+                <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
+              </a>
+              <p class="fsdocs-summary">
+                
+              </p>
+            </div>
+            <dl class="fsdocs-returns">
+              <dt>
+                <span class="fsdocs-return-name">
+                  Returns: 
+                </span>
+                <code><span>uint16[]</span></code>
+              </dt>
+              <dd class="fsdocs-return-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '248', 248)" onmouseover="showTip(event, '248', 248)">
+                <p>
+                  <a id="_fsyacc_action_rows">
+                    <a href="#_fsyacc_action_rows">
+                      <code><span>_fsyacc_action_rows&#32;<span></span></span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="248">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>_fsyacc_action_rows&#32;<span></span></span></code>
+                  <br/>
+                  <br/>
+                  <span>
+                    Returns: 
+                    <code>int</code>
+                  </span>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-summary">
+              <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:P:FSharp.Compiler.Parser._fsyacc_action_rows`')">
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-md.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-md-hover.png" class="hover"/>
+              </div>
+              <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'P:FSharp.Compiler.Parser._fsyacc_action_rows\'/>')">
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+              </div>
+              <a href="https://github.com/fsprojects/fantomas/generated/netstandard2.0/pars.fs#L2739-2739" class="fsdocs-source-link" title="Source on GitHub">
+                <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
+              </a>
+              <p class="fsdocs-summary">
+                
+              </p>
+            </div>
+            <dl class="fsdocs-returns">
+              <dt>
+                <span class="fsdocs-return-name">
+                  Returns: 
+                </span>
+                <code>int</code>
+              </dt>
+              <dd class="fsdocs-return-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '249', 249)" onmouseover="showTip(event, '249', 249)">
+                <p>
+                  <a id="_fsyacc_dataOfToken">
+                    <a href="#_fsyacc_dataOfToken">
+                      <code><span>_fsyacc_dataOfToken&#32;<span>t</span></span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="249">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>_fsyacc_dataOfToken&#32;<span>t</span></span></code>
+                  <br/>
+                  <br/>
+                  Parameters: 
+                  <ul>
+                    <span>
+                      <b>
+                        t
+                      </b>
+                      :
+                      <code><a href="https://fsprojects.github.io/fantomas/reference/fsharp-compiler-parser-token.html">token</a></code>
+                    </span>
+                    <br/>
+                  </ul>
+                  <br/>
+                  <span>
+                    Returns: 
+                    <code>obj</code>
+                  </span>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-summary">
+              <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:M:FSharp.Compiler.Parser._fsyacc_dataOfToken`')">
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-md.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-md-hover.png" class="hover"/>
+              </div>
+              <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'M:FSharp.Compiler.Parser._fsyacc_dataOfToken\'/>')">
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+              </div>
+              <a href="https://github.com/fsprojects/fantomas/generated/netstandard2.0/pars.fs#L2531-2531" class="fsdocs-source-link" title="Source on GitHub">
+                <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
+              </a>
+              <p class="fsdocs-summary">
+                
+              </p>
+            </div>
+            <dl class="fsdocs-params">
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  t
+                </span>
+                :
+                <code><a href="https://fsprojects.github.io/fantomas/reference/fsharp-compiler-parser-token.html">token</a></code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+            </dl>
+            <dl class="fsdocs-returns">
+              <dt>
+                <span class="fsdocs-return-name">
+                  Returns: 
+                </span>
+                <code>obj</code>
+              </dt>
+              <dd class="fsdocs-return-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '250', 250)" onmouseover="showTip(event, '250', 250)">
+                <p>
+                  <a id="_fsyacc_endOfInputTag">
+                    <a href="#_fsyacc_endOfInputTag">
+                      <code><span>_fsyacc_endOfInputTag&#32;<span></span></span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="250">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>_fsyacc_endOfInputTag&#32;<span></span></span></code>
+                  <br/>
+                  <br/>
+                  <span>
+                    Returns: 
+                    <code>int</code>
+                  </span>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-summary">
+              <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:P:FSharp.Compiler.Parser._fsyacc_endOfInputTag`')">
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-md.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-md-hover.png" class="hover"/>
+              </div>
+              <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'P:FSharp.Compiler.Parser._fsyacc_endOfInputTag\'/>')">
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+              </div>
+              <a href="https://github.com/fsprojects/fantomas/generated/netstandard2.0/pars.fs#L2321-2321" class="fsdocs-source-link" title="Source on GitHub">
+                <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
+              </a>
+              <p class="fsdocs-summary">
+                
+              </p>
+            </div>
+            <dl class="fsdocs-returns">
+              <dt>
+                <span class="fsdocs-return-name">
+                  Returns: 
+                </span>
+                <code>int</code>
+              </dt>
+              <dd class="fsdocs-return-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '251', 251)" onmouseover="showTip(event, '251', 251)">
+                <p>
+                  <a id="_fsyacc_gotos">
+                    <a href="#_fsyacc_gotos">
+                      <code><span>_fsyacc_gotos&#32;<span></span></span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="251">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>_fsyacc_gotos&#32;<span></span></span></code>
+                  <br/>
+                  <br/>
+                  <span>
+                    Returns: 
+                    <code><span>uint16[]</span></code>
+                  </span>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-summary">
+              <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:P:FSharp.Compiler.Parser._fsyacc_gotos`')">
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-md.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-md-hover.png" class="hover"/>
+              </div>
+              <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'P:FSharp.Compiler.Parser._fsyacc_gotos\'/>')">
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+              </div>
+              <a href="https://github.com/fsprojects/fantomas/generated/netstandard2.0/pars.fs#L2735-2735" class="fsdocs-source-link" title="Source on GitHub">
+                <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
+              </a>
+              <p class="fsdocs-summary">
+                
+              </p>
+            </div>
+            <dl class="fsdocs-returns">
+              <dt>
+                <span class="fsdocs-return-name">
+                  Returns: 
+                </span>
+                <code><span>uint16[]</span></code>
+              </dt>
+              <dd class="fsdocs-return-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '252', 252)" onmouseover="showTip(event, '252', 252)">
+                <p>
+                  <a id="_fsyacc_immediateActions">
+                    <a href="#_fsyacc_immediateActions">
+                      <code><span>_fsyacc_immediateActions&#32;<span></span></span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="252">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>_fsyacc_immediateActions&#32;<span></span></span></code>
+                  <br/>
+                  <br/>
+                  <span>
+                    Returns: 
+                    <code><span>uint16[]</span></code>
+                  </span>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-summary">
+              <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:P:FSharp.Compiler.Parser._fsyacc_immediateActions`')">
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-md.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-md-hover.png" class="hover"/>
+              </div>
+              <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'P:FSharp.Compiler.Parser._fsyacc_immediateActions\'/>')">
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+              </div>
+              <a href="https://github.com/fsprojects/fantomas/generated/netstandard2.0/pars.fs#L2744-2744" class="fsdocs-source-link" title="Source on GitHub">
+                <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
+              </a>
+              <p class="fsdocs-summary">
+                
+              </p>
+            </div>
+            <dl class="fsdocs-returns">
+              <dt>
+                <span class="fsdocs-return-name">
+                  Returns: 
+                </span>
+                <code><span>uint16[]</span></code>
+              </dt>
+              <dd class="fsdocs-return-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '253', 253)" onmouseover="showTip(event, '253', 253)">
+                <p>
+                  <a id="_fsyacc_productionToNonTerminalTable">
+                    <a href="#_fsyacc_productionToNonTerminalTable">
+                      <code><span>_fsyacc_productionToNonTerminalTable&#32;<span></span></span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="253">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>_fsyacc_productionToNonTerminalTable&#32;<span></span></span></code>
+                  <br/>
+                  <br/>
+                  <span>
+                    Returns: 
+                    <code><span>uint16[]</span></code>
+                  </span>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-summary">
+              <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:P:FSharp.Compiler.Parser._fsyacc_productionToNonTerminalTable`')">
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-md.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-md-hover.png" class="hover"/>
+              </div>
+              <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'P:FSharp.Compiler.Parser._fsyacc_productionToNonTerminalTable\'/>')">
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+              </div>
+              <a href="https://github.com/fsprojects/fantomas/generated/netstandard2.0/pars.fs#L2743-2743" class="fsdocs-source-link" title="Source on GitHub">
+                <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
+              </a>
+              <p class="fsdocs-summary">
+                
+              </p>
+            </div>
+            <dl class="fsdocs-returns">
+              <dt>
+                <span class="fsdocs-return-name">
+                  Returns: 
+                </span>
+                <code><span>uint16[]</span></code>
+              </dt>
+              <dd class="fsdocs-return-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '254', 254)" onmouseover="showTip(event, '254', 254)">
+                <p>
+                  <a id="_fsyacc_reductionSymbolCounts">
+                    <a href="#_fsyacc_reductionSymbolCounts">
+                      <code><span>_fsyacc_reductionSymbolCounts&#32;<span></span></span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="254">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>_fsyacc_reductionSymbolCounts&#32;<span></span></span></code>
+                  <br/>
+                  <br/>
+                  <span>
+                    Returns: 
+                    <code><span>uint16[]</span></code>
+                  </span>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-summary">
+              <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:P:FSharp.Compiler.Parser._fsyacc_reductionSymbolCounts`')">
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-md.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-md-hover.png" class="hover"/>
+              </div>
+              <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'P:FSharp.Compiler.Parser._fsyacc_reductionSymbolCounts\'/>')">
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+              </div>
+              <a href="https://github.com/fsprojects/fantomas/generated/netstandard2.0/pars.fs#L2742-2742" class="fsdocs-source-link" title="Source on GitHub">
+                <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
+              </a>
+              <p class="fsdocs-summary">
+                
+              </p>
+            </div>
+            <dl class="fsdocs-returns">
+              <dt>
+                <span class="fsdocs-return-name">
+                  Returns: 
+                </span>
+                <code><span>uint16[]</span></code>
+              </dt>
+              <dd class="fsdocs-return-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '255', 255)" onmouseover="showTip(event, '255', 255)">
+                <p>
+                  <a id="_fsyacc_reductions">
+                    <a href="#_fsyacc_reductions">
+                      <code><span>_fsyacc_reductions&#32;<span></span></span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="255">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>_fsyacc_reductions&#32;<span></span></span></code>
+                  <br/>
+                  <br/>
+                  <span>
+                    Returns: 
+                    <code><span>Lazy&lt;<span><span>(<span><a href="https://fsprojects.github.io/fantomas/reference/internal-utilities-text-parsing-iparsestate.html">IParseState</a>&#32;->&#32;obj</span>)</span>[]</span>&gt;</span></code>
+                  </span>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-summary">
+              <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:P:FSharp.Compiler.Parser._fsyacc_reductions`')">
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-md.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-md-hover.png" class="hover"/>
+              </div>
+              <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'P:FSharp.Compiler.Parser._fsyacc_reductions\'/>')">
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+              </div>
+              <a href="https://github.com/fsprojects/fantomas/generated/netstandard2.0/pars.fs#L2745-2745" class="fsdocs-source-link" title="Source on GitHub">
+                <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
+              </a>
+              <p class="fsdocs-summary">
+                
+              </p>
+            </div>
+            <dl class="fsdocs-returns">
+              <dt>
+                <span class="fsdocs-return-name">
+                  Returns: 
+                </span>
+                <code><span>Lazy&lt;<span><span>(<span><a href="https://fsprojects.github.io/fantomas/reference/internal-utilities-text-parsing-iparsestate.html">IParseState</a>&#32;->&#32;obj</span>)</span>[]</span>&gt;</span></code>
+              </dt>
+              <dd class="fsdocs-return-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '256', 256)" onmouseover="showTip(event, '256', 256)">
+                <p>
+                  <a id="_fsyacc_sparseGotoTableRowOffsets">
+                    <a href="#_fsyacc_sparseGotoTableRowOffsets">
+                      <code><span>_fsyacc_sparseGotoTableRowOffsets&#32;<span></span></span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="256">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>_fsyacc_sparseGotoTableRowOffsets&#32;<span></span></span></code>
+                  <br/>
+                  <br/>
+                  <span>
+                    Returns: 
+                    <code><span>uint16[]</span></code>
+                  </span>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-summary">
+              <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:P:FSharp.Compiler.Parser._fsyacc_sparseGotoTableRowOffsets`')">
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-md.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-md-hover.png" class="hover"/>
+              </div>
+              <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'P:FSharp.Compiler.Parser._fsyacc_sparseGotoTableRowOffsets\'/>')">
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+              </div>
+              <a href="https://github.com/fsprojects/fantomas/generated/netstandard2.0/pars.fs#L2736-2736" class="fsdocs-source-link" title="Source on GitHub">
+                <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
+              </a>
+              <p class="fsdocs-summary">
+                
+              </p>
+            </div>
+            <dl class="fsdocs-returns">
+              <dt>
+                <span class="fsdocs-return-name">
+                  Returns: 
+                </span>
+                <code><span>uint16[]</span></code>
+              </dt>
+              <dd class="fsdocs-return-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '257', 257)" onmouseover="showTip(event, '257', 257)">
+                <p>
+                  <a id="_fsyacc_stateToProdIdxsTableElements">
+                    <a href="#_fsyacc_stateToProdIdxsTableElements">
+                      <code><span>_fsyacc_stateToProdIdxsTableElements&#32;<span></span></span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="257">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>_fsyacc_stateToProdIdxsTableElements&#32;<span></span></span></code>
+                  <br/>
+                  <br/>
+                  <span>
+                    Returns: 
+                    <code><span>uint16[]</span></code>
+                  </span>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-summary">
+              <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:P:FSharp.Compiler.Parser._fsyacc_stateToProdIdxsTableElements`')">
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-md.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-md-hover.png" class="hover"/>
+              </div>
+              <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'P:FSharp.Compiler.Parser._fsyacc_stateToProdIdxsTableElements\'/>')">
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+              </div>
+              <a href="https://github.com/fsprojects/fantomas/generated/netstandard2.0/pars.fs#L2737-2737" class="fsdocs-source-link" title="Source on GitHub">
+                <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
+              </a>
+              <p class="fsdocs-summary">
+                
+              </p>
+            </div>
+            <dl class="fsdocs-returns">
+              <dt>
+                <span class="fsdocs-return-name">
+                  Returns: 
+                </span>
+                <code><span>uint16[]</span></code>
+              </dt>
+              <dd class="fsdocs-return-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '258', 258)" onmouseover="showTip(event, '258', 258)">
+                <p>
+                  <a id="_fsyacc_stateToProdIdxsTableRowOffsets">
+                    <a href="#_fsyacc_stateToProdIdxsTableRowOffsets">
+                      <code><span>_fsyacc_stateToProdIdxsTableRowOffsets&#32;<span></span></span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="258">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>_fsyacc_stateToProdIdxsTableRowOffsets&#32;<span></span></span></code>
+                  <br/>
+                  <br/>
+                  <span>
+                    Returns: 
+                    <code><span>uint16[]</span></code>
+                  </span>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-summary">
+              <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:P:FSharp.Compiler.Parser._fsyacc_stateToProdIdxsTableRowOffsets`')">
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-md.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-md-hover.png" class="hover"/>
+              </div>
+              <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'P:FSharp.Compiler.Parser._fsyacc_stateToProdIdxsTableRowOffsets\'/>')">
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+              </div>
+              <a href="https://github.com/fsprojects/fantomas/generated/netstandard2.0/pars.fs#L2738-2738" class="fsdocs-source-link" title="Source on GitHub">
+                <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
+              </a>
+              <p class="fsdocs-summary">
+                
+              </p>
+            </div>
+            <dl class="fsdocs-returns">
+              <dt>
+                <span class="fsdocs-return-name">
+                  Returns: 
+                </span>
+                <code><span>uint16[]</span></code>
+              </dt>
+              <dd class="fsdocs-return-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '259', 259)" onmouseover="showTip(event, '259', 259)">
+                <p>
+                  <a id="_fsyacc_tagOfErrorTerminal">
+                    <a href="#_fsyacc_tagOfErrorTerminal">
+                      <code><span>_fsyacc_tagOfErrorTerminal&#32;<span></span></span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="259">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>_fsyacc_tagOfErrorTerminal&#32;<span></span></span></code>
+                  <br/>
+                  <br/>
+                  <span>
+                    Returns: 
+                    <code>int</code>
+                  </span>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-summary">
+              <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:P:FSharp.Compiler.Parser._fsyacc_tagOfErrorTerminal`')">
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-md.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-md-hover.png" class="hover"/>
+              </div>
+              <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'P:FSharp.Compiler.Parser._fsyacc_tagOfErrorTerminal\'/>')">
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+              </div>
+              <a href="https://github.com/fsprojects/fantomas/generated/netstandard2.0/pars.fs#L2322-2322" class="fsdocs-source-link" title="Source on GitHub">
+                <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
+              </a>
+              <p class="fsdocs-summary">
+                
+              </p>
+            </div>
+            <dl class="fsdocs-returns">
+              <dt>
+                <span class="fsdocs-return-name">
+                  Returns: 
+                </span>
+                <code>int</code>
+              </dt>
+              <dd class="fsdocs-return-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '260', 260)" onmouseover="showTip(event, '260', 260)">
+                <p>
+                  <a id="engine">
+                    <a href="#engine">
+                      <code><span>engine&#32;<span>lexer&#32;lexbuf&#32;startState</span></span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="260">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>engine&#32;<span>lexer&#32;lexbuf&#32;startState</span></span></code>
+                  <br/>
+                  <br/>
+                  Parameters: 
+                  <ul>
+                    <span>
+                      <b>
+                        lexer
+                      </b>
+                      :
+                      <code><span><span><a href="https://fsprojects.github.io/fantomas/reference/internal-utilities-text-lexing-lexbuffer-1.html">LexBuffer</a>&lt;char&gt;</span>&#32;->&#32;<a href="https://fsprojects.github.io/fantomas/reference/fsharp-compiler-parser-token.html">token</a></span></code>
+                    </span>
+                    <br/>
+                    <span>
+                      <b>
+                        lexbuf
+                      </b>
+                      :
+                      <code><span><a href="https://fsprojects.github.io/fantomas/reference/internal-utilities-text-lexing-lexbuffer-1.html">LexBuffer</a>&lt;char&gt;</span></code>
+                    </span>
+                    <br/>
+                    <span>
+                      <b>
+                        startState
+                      </b>
+                      :
+                      <code>int</code>
+                    </span>
+                    <br/>
+                  </ul>
+                  <br/>
+                  <span>
+                    Returns: 
+                    <code>obj</code>
+                  </span>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-summary">
+              <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:M:FSharp.Compiler.Parser.engine`')">
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-md.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-md-hover.png" class="hover"/>
+              </div>
+              <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'M:FSharp.Compiler.Parser.engine\'/>')">
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+              </div>
+              <a href="https://github.com/fsprojects/fantomas/generated/netstandard2.0/pars.fs#L17397-17397" class="fsdocs-source-link" title="Source on GitHub">
+                <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
+              </a>
+              <p class="fsdocs-summary">
+                
+              </p>
+            </div>
+            <dl class="fsdocs-params">
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  lexer
+                </span>
+                :
+                <code><span><span><a href="https://fsprojects.github.io/fantomas/reference/internal-utilities-text-lexing-lexbuffer-1.html">LexBuffer</a>&lt;char&gt;</span>&#32;->&#32;<a href="https://fsprojects.github.io/fantomas/reference/fsharp-compiler-parser-token.html">token</a></span></code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  lexbuf
+                </span>
+                :
+                <code><span><a href="https://fsprojects.github.io/fantomas/reference/internal-utilities-text-lexing-lexbuffer-1.html">LexBuffer</a>&lt;char&gt;</span></code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  startState
+                </span>
+                :
+                <code>int</code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+            </dl>
+            <dl class="fsdocs-returns">
+              <dt>
+                <span class="fsdocs-return-name">
+                  Returns: 
+                </span>
+                <code>obj</code>
+              </dt>
+              <dd class="fsdocs-return-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '261', 261)" onmouseover="showTip(event, '261', 261)">
+                <p>
+                  <a id="implementationFile">
+                    <a href="#implementationFile">
+                      <code><span>implementationFile&#32;<span>lexer&#32;lexbuf</span></span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="261">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>implementationFile&#32;<span>lexer&#32;lexbuf</span></span></code>
+                  <br/>
+                  <br/>
+                  Parameters: 
+                  <ul>
+                    <span>
+                      <b>
+                        lexer
+                      </b>
+                      :
+                      <code><span><span><a href="https://fsprojects.github.io/fantomas/reference/internal-utilities-text-lexing-lexbuffer-1.html">LexBuffer</a>&lt;char&gt;</span>&#32;->&#32;<a href="https://fsprojects.github.io/fantomas/reference/fsharp-compiler-parser-token.html">token</a></span></code>
+                    </span>
+                    <br/>
+                    <span>
+                      <b>
+                        lexbuf
+                      </b>
+                      :
+                      <code><span><a href="https://fsprojects.github.io/fantomas/reference/internal-utilities-text-lexing-lexbuffer-1.html">LexBuffer</a>&lt;char&gt;</span></code>
+                    </span>
+                    <br/>
+                  </ul>
+                  <br/>
+                  <span>
+                    Returns: 
+                    <code><a href="https://fsprojects.github.io/fantomas/reference/fsharp-compiler-syntax-parsedimplfile.html">ParsedImplFile</a></code>
+                  </span>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-summary">
+              <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:M:FSharp.Compiler.Parser.implementationFile`')">
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-md.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-md-hover.png" class="hover"/>
+              </div>
+              <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'M:FSharp.Compiler.Parser.implementationFile\'/>')">
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+              </div>
+              <a href="https://github.com/fsprojects/fantomas/generated/netstandard2.0/pars.fs#L17400-17400" class="fsdocs-source-link" title="Source on GitHub">
+                <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
+              </a>
+              <p class="fsdocs-summary">
+                
+              </p>
+            </div>
+            <dl class="fsdocs-params">
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  lexer
+                </span>
+                :
+                <code><span><span><a href="https://fsprojects.github.io/fantomas/reference/internal-utilities-text-lexing-lexbuffer-1.html">LexBuffer</a>&lt;char&gt;</span>&#32;->&#32;<a href="https://fsprojects.github.io/fantomas/reference/fsharp-compiler-parser-token.html">token</a></span></code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  lexbuf
+                </span>
+                :
+                <code><span><a href="https://fsprojects.github.io/fantomas/reference/internal-utilities-text-lexing-lexbuffer-1.html">LexBuffer</a>&lt;char&gt;</span></code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+            </dl>
+            <dl class="fsdocs-returns">
+              <dt>
+                <span class="fsdocs-return-name">
+                  Returns: 
+                </span>
+                <code><a href="https://fsprojects.github.io/fantomas/reference/fsharp-compiler-syntax-parsedimplfile.html">ParsedImplFile</a></code>
+              </dt>
+              <dd class="fsdocs-return-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '262', 262)" onmouseover="showTip(event, '262', 262)">
+                <p>
+                  <a id="interaction">
+                    <a href="#interaction">
+                      <code><span>interaction&#32;<span>lexer&#32;lexbuf</span></span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="262">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>interaction&#32;<span>lexer&#32;lexbuf</span></span></code>
+                  <br/>
+                  <br/>
+                  Parameters: 
+                  <ul>
+                    <span>
+                      <b>
+                        lexer
+                      </b>
+                      :
+                      <code><span><span><a href="https://fsprojects.github.io/fantomas/reference/internal-utilities-text-lexing-lexbuffer-1.html">LexBuffer</a>&lt;char&gt;</span>&#32;->&#32;<a href="https://fsprojects.github.io/fantomas/reference/fsharp-compiler-parser-token.html">token</a></span></code>
+                    </span>
+                    <br/>
+                    <span>
+                      <b>
+                        lexbuf
+                      </b>
+                      :
+                      <code><span><a href="https://fsprojects.github.io/fantomas/reference/internal-utilities-text-lexing-lexbuffer-1.html">LexBuffer</a>&lt;char&gt;</span></code>
+                    </span>
+                    <br/>
+                  </ul>
+                  <br/>
+                  <span>
+                    Returns: 
+                    <code><a href="https://fsprojects.github.io/fantomas/reference/fsharp-compiler-syntax-parsedscriptinteraction.html">ParsedScriptInteraction</a></code>
+                  </span>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-summary">
+              <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:M:FSharp.Compiler.Parser.interaction`')">
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-md.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-md-hover.png" class="hover"/>
+              </div>
+              <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'M:FSharp.Compiler.Parser.interaction\'/>')">
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+              </div>
+              <a href="https://github.com/fsprojects/fantomas/generated/netstandard2.0/pars.fs#L17402-17402" class="fsdocs-source-link" title="Source on GitHub">
+                <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
+              </a>
+              <p class="fsdocs-summary">
+                
+              </p>
+            </div>
+            <dl class="fsdocs-params">
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  lexer
+                </span>
+                :
+                <code><span><span><a href="https://fsprojects.github.io/fantomas/reference/internal-utilities-text-lexing-lexbuffer-1.html">LexBuffer</a>&lt;char&gt;</span>&#32;->&#32;<a href="https://fsprojects.github.io/fantomas/reference/fsharp-compiler-parser-token.html">token</a></span></code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  lexbuf
+                </span>
+                :
+                <code><span><a href="https://fsprojects.github.io/fantomas/reference/internal-utilities-text-lexing-lexbuffer-1.html">LexBuffer</a>&lt;char&gt;</span></code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+            </dl>
+            <dl class="fsdocs-returns">
+              <dt>
+                <span class="fsdocs-return-name">
+                  Returns: 
+                </span>
+                <code><a href="https://fsprojects.github.io/fantomas/reference/fsharp-compiler-syntax-parsedscriptinteraction.html">ParsedScriptInteraction</a></code>
+              </dt>
+              <dd class="fsdocs-return-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '263', 263)" onmouseover="showTip(event, '263', 263)">
+                <p>
+                  <a id="parse_error_rich">
+                    <a href="#parse_error_rich">
+                      <code><span>parse_error_rich&#32;<span></span></span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="263">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>parse_error_rich&#32;<span></span></span></code>
+                  <br/>
+                  <br/>
+                  <span>
+                    Returns: 
+                    <code><span><span>(<span><span><a href="https://fsprojects.github.io/fantomas/reference/internal-utilities-text-parsing-parseerrorcontext-1.html">ParseErrorContext</a>&lt;'a&gt;</span>&#32;->&#32;unit</span>)</span>&#32;option</span></code>
+                  </span>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-summary">
+              <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('```cref:M:FSharp.Compiler.Parser.parse_error_rich``1```')">
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-md.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-md-hover.png" class="hover"/>
+              </div>
+              <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'M:FSharp.Compiler.Parser.parse_error_rich``1\'/>')">
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+              </div>
+              <a href="" class="fsdocs-source-link" title="Source on GitHub">
+                <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
+              </a>
+              <p class="fsdocs-summary">
+                
+              </p>
+            </div>
+            <dl class="fsdocs-returns">
+              <dt>
+                <span class="fsdocs-return-name">
+                  Returns: 
+                </span>
+                <code><span><span>(<span><span><a href="https://fsprojects.github.io/fantomas/reference/internal-utilities-text-parsing-parseerrorcontext-1.html">ParseErrorContext</a>&lt;'a&gt;</span>&#32;->&#32;unit</span>)</span>&#32;option</span></code>
+              </dt>
+              <dd class="fsdocs-return-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '264', 264)" onmouseover="showTip(event, '264', 264)">
+                <p>
+                  <a id="prodIdxToNonTerminal">
+                    <a href="#prodIdxToNonTerminal">
+                      <code><span>prodIdxToNonTerminal&#32;<span>prodIdx</span></span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="264">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>prodIdxToNonTerminal&#32;<span>prodIdx</span></span></code>
+                  <br/>
+                  <br/>
+                  Parameters: 
+                  <ul>
+                    <span>
+                      <b>
+                        prodIdx
+                      </b>
+                      :
+                      <code>int</code>
+                    </span>
+                    <br/>
+                  </ul>
+                  <br/>
+                  <span>
+                    Returns: 
+                    <code><a href="https://fsprojects.github.io/fantomas/reference/fsharp-compiler-parser-nonterminalid.html">nonTerminalId</a></code>
+                  </span>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-summary">
+              <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:M:FSharp.Compiler.Parser.prodIdxToNonTerminal`')">
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-md.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-md-hover.png" class="hover"/>
+              </div>
+              <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'M:FSharp.Compiler.Parser.prodIdxToNonTerminal\'/>')">
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+              </div>
+              <a href="https://github.com/fsprojects/fantomas/generated/netstandard2.0/pars.fs#L1196-1196" class="fsdocs-source-link" title="Source on GitHub">
+                <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
+              </a>
+              <p class="fsdocs-summary">
+                
+ This function maps production indexes returned in syntax errors to strings representing the non terminal that would be produced by that production
+
+              </p>
+            </div>
+            <dl class="fsdocs-params">
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  prodIdx
+                </span>
+                :
+                <code>int</code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+            </dl>
+            <dl class="fsdocs-returns">
+              <dt>
+                <span class="fsdocs-return-name">
+                  Returns: 
+                </span>
+                <code><a href="https://fsprojects.github.io/fantomas/reference/fsharp-compiler-parser-nonterminalid.html">nonTerminalId</a></code>
+              </dt>
+              <dd class="fsdocs-return-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '265', 265)" onmouseover="showTip(event, '265', 265)">
+                <p>
+                  <a id="signatureFile">
+                    <a href="#signatureFile">
+                      <code><span>signatureFile&#32;<span>lexer&#32;lexbuf</span></span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="265">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>signatureFile&#32;<span>lexer&#32;lexbuf</span></span></code>
+                  <br/>
+                  <br/>
+                  Parameters: 
+                  <ul>
+                    <span>
+                      <b>
+                        lexer
+                      </b>
+                      :
+                      <code><span><span><a href="https://fsprojects.github.io/fantomas/reference/internal-utilities-text-lexing-lexbuffer-1.html">LexBuffer</a>&lt;char&gt;</span>&#32;->&#32;<a href="https://fsprojects.github.io/fantomas/reference/fsharp-compiler-parser-token.html">token</a></span></code>
+                    </span>
+                    <br/>
+                    <span>
+                      <b>
+                        lexbuf
+                      </b>
+                      :
+                      <code><span><a href="https://fsprojects.github.io/fantomas/reference/internal-utilities-text-lexing-lexbuffer-1.html">LexBuffer</a>&lt;char&gt;</span></code>
+                    </span>
+                    <br/>
+                  </ul>
+                  <br/>
+                  <span>
+                    Returns: 
+                    <code><a href="https://fsprojects.github.io/fantomas/reference/fsharp-compiler-syntax-parsedsigfile.html">ParsedSigFile</a></code>
+                  </span>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-summary">
+              <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:M:FSharp.Compiler.Parser.signatureFile`')">
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-md.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-md-hover.png" class="hover"/>
+              </div>
+              <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'M:FSharp.Compiler.Parser.signatureFile\'/>')">
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+              </div>
+              <a href="https://github.com/fsprojects/fantomas/generated/netstandard2.0/pars.fs#L17398-17398" class="fsdocs-source-link" title="Source on GitHub">
+                <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
+              </a>
+              <p class="fsdocs-summary">
+                
+              </p>
+            </div>
+            <dl class="fsdocs-params">
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  lexer
+                </span>
+                :
+                <code><span><span><a href="https://fsprojects.github.io/fantomas/reference/internal-utilities-text-lexing-lexbuffer-1.html">LexBuffer</a>&lt;char&gt;</span>&#32;->&#32;<a href="https://fsprojects.github.io/fantomas/reference/fsharp-compiler-parser-token.html">token</a></span></code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  lexbuf
+                </span>
+                :
+                <code><span><a href="https://fsprojects.github.io/fantomas/reference/internal-utilities-text-lexing-lexbuffer-1.html">LexBuffer</a>&lt;char&gt;</span></code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+            </dl>
+            <dl class="fsdocs-returns">
+              <dt>
+                <span class="fsdocs-return-name">
+                  Returns: 
+                </span>
+                <code><a href="https://fsprojects.github.io/fantomas/reference/fsharp-compiler-syntax-parsedsigfile.html">ParsedSigFile</a></code>
+              </dt>
+              <dd class="fsdocs-return-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '266', 266)" onmouseover="showTip(event, '266', 266)">
+                <p>
+                  <a id="tables">
+                    <a href="#tables">
+                      <code><span>tables&#32;<span></span></span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="266">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>tables&#32;<span></span></span></code>
+                  <br/>
+                  <br/>
+                  <span>
+                    Returns: 
+                    <code><span><a href="https://fsprojects.github.io/fantomas/reference/internal-utilities-text-parsing-tables-1.html">Tables</a>&lt;<a href="https://fsprojects.github.io/fantomas/reference/fsharp-compiler-parser-token.html">token</a>&gt;</span></code>
+                  </span>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-summary">
+              <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:P:FSharp.Compiler.Parser.tables`')">
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-md.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-md-hover.png" class="hover"/>
+              </div>
+              <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'P:FSharp.Compiler.Parser.tables\'/>')">
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+              </div>
+              <a href="https://github.com/fsprojects/fantomas/generated/netstandard2.0/pars.fs#L17377-17377" class="fsdocs-source-link" title="Source on GitHub">
+                <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
+              </a>
+              <p class="fsdocs-summary">
+                
+              </p>
+            </div>
+            <dl class="fsdocs-returns">
+              <dt>
+                <span class="fsdocs-return-name">
+                  Returns: 
+                </span>
+                <code><span><a href="https://fsprojects.github.io/fantomas/reference/internal-utilities-text-parsing-tables-1.html">Tables</a>&lt;<a href="https://fsprojects.github.io/fantomas/reference/fsharp-compiler-parser-token.html">token</a>&gt;</span></code>
+              </dt>
+              <dd class="fsdocs-return-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '267', 267)" onmouseover="showTip(event, '267', 267)">
+                <p>
+                  <a id="tagOfToken">
+                    <a href="#tagOfToken">
+                      <code><span>tagOfToken&#32;<span>t</span></span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="267">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>tagOfToken&#32;<span>t</span></span></code>
+                  <br/>
+                  <br/>
+                  Parameters: 
+                  <ul>
+                    <span>
+                      <b>
+                        t
+                      </b>
+                      :
+                      <code><a href="https://fsprojects.github.io/fantomas/reference/fsharp-compiler-parser-token.html">token</a></code>
+                    </span>
+                    <br/>
+                  </ul>
+                  <br/>
+                  <span>
+                    Returns: 
+                    <code>int</code>
+                  </span>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-summary">
+              <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:M:FSharp.Compiler.Parser.tagOfToken`')">
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-md.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-md-hover.png" class="hover"/>
+              </div>
+              <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'M:FSharp.Compiler.Parser.tagOfToken\'/>')">
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+              </div>
+              <a href="https://github.com/fsprojects/fantomas/generated/netstandard2.0/pars.fs#L781-781" class="fsdocs-source-link" title="Source on GitHub">
+                <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
+              </a>
+              <p class="fsdocs-summary">
+                
+              </p>
+            </div>
+            <dl class="fsdocs-params">
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  t
+                </span>
+                :
+                <code><a href="https://fsprojects.github.io/fantomas/reference/fsharp-compiler-parser-token.html">token</a></code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+            </dl>
+            <dl class="fsdocs-returns">
+              <dt>
+                <span class="fsdocs-return-name">
+                  Returns: 
+                </span>
+                <code>int</code>
+              </dt>
+              <dd class="fsdocs-return-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '268', 268)" onmouseover="showTip(event, '268', 268)">
+                <p>
+                  <a id="tokenTagToTokenId">
+                    <a href="#tokenTagToTokenId">
+                      <code><span>tokenTagToTokenId&#32;<span>tokenIdx</span></span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="268">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>tokenTagToTokenId&#32;<span>tokenIdx</span></span></code>
+                  <br/>
+                  <br/>
+                  Parameters: 
+                  <ul>
+                    <span>
+                      <b>
+                        tokenIdx
+                      </b>
+                      :
+                      <code>int</code>
+                    </span>
+                    <br/>
+                  </ul>
+                  <br/>
+                  <span>
+                    Returns: 
+                    <code><a href="https://fsprojects.github.io/fantomas/reference/fsharp-compiler-parser-tokenid.html">tokenId</a></code>
+                  </span>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-summary">
+              <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:M:FSharp.Compiler.Parser.tokenTagToTokenId`')">
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-md.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-md-hover.png" class="hover"/>
+              </div>
+              <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'M:FSharp.Compiler.Parser.tokenTagToTokenId\'/>')">
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+              </div>
+              <a href="https://github.com/fsprojects/fantomas/generated/netstandard2.0/pars.fs#L987-987" class="fsdocs-source-link" title="Source on GitHub">
+                <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
+              </a>
+              <p class="fsdocs-summary">
+                
+              </p>
+            </div>
+            <dl class="fsdocs-params">
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  tokenIdx
+                </span>
+                :
+                <code>int</code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+            </dl>
+            <dl class="fsdocs-returns">
+              <dt>
+                <span class="fsdocs-return-name">
+                  Returns: 
+                </span>
+                <code><a href="https://fsprojects.github.io/fantomas/reference/fsharp-compiler-parser-tokenid.html">tokenId</a></code>
+              </dt>
+              <dd class="fsdocs-return-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '269', 269)" onmouseover="showTip(event, '269', 269)">
+                <p>
+                  <a id="token_to_string">
+                    <a href="#token_to_string">
+                      <code><span>token_to_string&#32;<span>t</span></span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="269">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>token_to_string&#32;<span>t</span></span></code>
+                  <br/>
+                  <br/>
+                  Parameters: 
+                  <ul>
+                    <span>
+                      <b>
+                        t
+                      </b>
+                      :
+                      <code><a href="https://fsprojects.github.io/fantomas/reference/fsharp-compiler-parser-token.html">token</a></code>
+                    </span>
+                    <br/>
+                  </ul>
+                  <br/>
+                  <span>
+                    Returns: 
+                    <code>string</code>
+                  </span>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-summary">
+              <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:M:FSharp.Compiler.Parser.token_to_string`')">
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-md.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-md-hover.png" class="hover"/>
+              </div>
+              <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'M:FSharp.Compiler.Parser.token_to_string\'/>')">
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+              </div>
+              <a href="https://github.com/fsprojects/fantomas/generated/netstandard2.0/pars.fs#L2325-2325" class="fsdocs-source-link" title="Source on GitHub">
+                <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
+              </a>
+              <p class="fsdocs-summary">
+                
+              </p>
+            </div>
+            <dl class="fsdocs-params">
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  t
+                </span>
+                :
+                <code><a href="https://fsprojects.github.io/fantomas/reference/fsharp-compiler-parser-token.html">token</a></code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+            </dl>
+            <dl class="fsdocs-returns">
+              <dt>
+                <span class="fsdocs-return-name">
+                  Returns: 
+                </span>
+                <code>string</code>
+              </dt>
+              <dd class="fsdocs-return-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '270', 270)" onmouseover="showTip(event, '270', 270)">
+                <p>
+                  <a id="typEOF">
+                    <a href="#typEOF">
+                      <code><span>typEOF&#32;<span>lexer&#32;lexbuf</span></span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="270">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>typEOF&#32;<span>lexer&#32;lexbuf</span></span></code>
+                  <br/>
+                  <br/>
+                  Parameters: 
+                  <ul>
+                    <span>
+                      <b>
+                        lexer
+                      </b>
+                      :
+                      <code><span><span><a href="https://fsprojects.github.io/fantomas/reference/internal-utilities-text-lexing-lexbuffer-1.html">LexBuffer</a>&lt;char&gt;</span>&#32;->&#32;<a href="https://fsprojects.github.io/fantomas/reference/fsharp-compiler-parser-token.html">token</a></span></code>
+                    </span>
+                    <br/>
+                    <span>
+                      <b>
+                        lexbuf
+                      </b>
+                      :
+                      <code><span><a href="https://fsprojects.github.io/fantomas/reference/internal-utilities-text-lexing-lexbuffer-1.html">LexBuffer</a>&lt;char&gt;</span></code>
+                    </span>
+                    <br/>
+                  </ul>
+                  <br/>
+                  <span>
+                    Returns: 
+                    <code><a href="https://fsprojects.github.io/fantomas/reference/fsharp-compiler-syntax-syntype.html">SynType</a></code>
+                  </span>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-summary">
+              <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:M:FSharp.Compiler.Parser.typEOF`')">
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-md.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-md-hover.png" class="hover"/>
+              </div>
+              <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'M:FSharp.Compiler.Parser.typEOF\'/>')">
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+              </div>
+              <a href="https://github.com/fsprojects/fantomas/generated/netstandard2.0/pars.fs#L17406-17406" class="fsdocs-source-link" title="Source on GitHub">
+                <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
+              </a>
+              <p class="fsdocs-summary">
+                
+              </p>
+            </div>
+            <dl class="fsdocs-params">
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  lexer
+                </span>
+                :
+                <code><span><span><a href="https://fsprojects.github.io/fantomas/reference/internal-utilities-text-lexing-lexbuffer-1.html">LexBuffer</a>&lt;char&gt;</span>&#32;->&#32;<a href="https://fsprojects.github.io/fantomas/reference/fsharp-compiler-parser-token.html">token</a></span></code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  lexbuf
+                </span>
+                :
+                <code><span><a href="https://fsprojects.github.io/fantomas/reference/internal-utilities-text-lexing-lexbuffer-1.html">LexBuffer</a>&lt;char&gt;</span></code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+            </dl>
+            <dl class="fsdocs-returns">
+              <dt>
+                <span class="fsdocs-return-name">
+                  Returns: 
+                </span>
+                <code><a href="https://fsprojects.github.io/fantomas/reference/fsharp-compiler-syntax-syntype.html">SynType</a></code>
+              </dt>
+              <dd class="fsdocs-return-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '271', 271)" onmouseover="showTip(event, '271', 271)">
+                <p>
+                  <a id="typedSequentialExprEOF">
+                    <a href="#typedSequentialExprEOF">
+                      <code><span>typedSequentialExprEOF&#32;<span>lexer&#32;lexbuf</span></span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="271">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>typedSequentialExprEOF&#32;<span>lexer&#32;lexbuf</span></span></code>
+                  <br/>
+                  <br/>
+                  Parameters: 
+                  <ul>
+                    <span>
+                      <b>
+                        lexer
+                      </b>
+                      :
+                      <code><span><span><a href="https://fsprojects.github.io/fantomas/reference/internal-utilities-text-lexing-lexbuffer-1.html">LexBuffer</a>&lt;char&gt;</span>&#32;->&#32;<a href="https://fsprojects.github.io/fantomas/reference/fsharp-compiler-parser-token.html">token</a></span></code>
+                    </span>
+                    <br/>
+                    <span>
+                      <b>
+                        lexbuf
+                      </b>
+                      :
+                      <code><span><a href="https://fsprojects.github.io/fantomas/reference/internal-utilities-text-lexing-lexbuffer-1.html">LexBuffer</a>&lt;char&gt;</span></code>
+                    </span>
+                    <br/>
+                  </ul>
+                  <br/>
+                  <span>
+                    Returns: 
+                    <code><a href="https://fsprojects.github.io/fantomas/reference/fsharp-compiler-syntax-synexpr.html">SynExpr</a></code>
+                  </span>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-summary">
+              <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:M:FSharp.Compiler.Parser.typedSequentialExprEOF`')">
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-md.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-md-hover.png" class="hover"/>
+              </div>
+              <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'M:FSharp.Compiler.Parser.typedSequentialExprEOF\'/>')">
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+              </div>
+              <a href="https://github.com/fsprojects/fantomas/generated/netstandard2.0/pars.fs#L17404-17404" class="fsdocs-source-link" title="Source on GitHub">
+                <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
+              </a>
+              <p class="fsdocs-summary">
+                
+              </p>
+            </div>
+            <dl class="fsdocs-params">
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  lexer
+                </span>
+                :
+                <code><span><span><a href="https://fsprojects.github.io/fantomas/reference/internal-utilities-text-lexing-lexbuffer-1.html">LexBuffer</a>&lt;char&gt;</span>&#32;->&#32;<a href="https://fsprojects.github.io/fantomas/reference/fsharp-compiler-parser-token.html">token</a></span></code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  lexbuf
+                </span>
+                :
+                <code><span><a href="https://fsprojects.github.io/fantomas/reference/internal-utilities-text-lexing-lexbuffer-1.html">LexBuffer</a>&lt;char&gt;</span></code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+            </dl>
+            <dl class="fsdocs-returns">
+              <dt>
+                <span class="fsdocs-return-name">
+                  Returns: 
+                </span>
+                <code><a href="https://fsprojects.github.io/fantomas/reference/fsharp-compiler-syntax-synexpr.html">SynExpr</a></code>
+              </dt>
+              <dd class="fsdocs-return-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <div></div>
+  <div></div>
+  <div></div>
+  <div></div>
+  <div></div>
+  <div></div>
+  <div></div>
+  <div></div>
+</div>
+        
+      </div>
+        <div id="push"></div>
+    </main>
+  <script type="module" src="https://fsprojects.github.io/fantomas/content/docs-setup.js"></script>
+  <!-- BEGIN SEARCH BOX: this adds support for the search box -->
+  <link rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/JavaScript-autoComplete/1.0.4/auto-complete.css" />
+  <script type="text/javascript">var fsdocs_search_baseurl = 'https://fsprojects.github.io/fantomas/';</script>
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/lunr.js/2.3.8/lunr.min.js"></script>
+  <script type="text/javascript"
+    src="https://cdnjs.cloudflare.com/ajax/libs/JavaScript-autoComplete/1.0.4/auto-complete.min.js"></script>
+  <script type="text/javascript" src="https://fsprojects.github.io/fantomas/content/fsdocs-search.js"></script>
+  <!-- END SEARCH BOX: this adds support for the search box -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-A3rJD856KowSb7dwlZdYEkO39Gagi7vIsF0jrRAoQmDKKtQBHUuLZ9AsSv4jD4Xa" crossorigin="anonymous"></script>
+  <script type="module" src="https://fsprojects.github.io/fantomas/content/webcomponents.js"></script>
+  <script type="module">
+      import mermaid from "https://cdn.skypack.dev/mermaid@9.2.2";
+      mermaid.initialize({
+          startOnLoad: true,
+          theme: "base",
+          themeVariables: {
+              primaryColor: '#eff5f7'
+          }
+      });
+  </script>
+</body>
+</html>

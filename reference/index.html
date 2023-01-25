@@ -69,6 +69,9 @@
 <li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/end-users/VSCode.html" class="nav-link pb-2 d-block" > Visual Studio Code
 </a></li>
 
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/end-users/GeneratingCode.html" class="nav-link pb-2 d-block" > Generating source code
+</a></li>
+
 <li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/end-users/FAQ.html" class="nav-link pb-2 d-block" > FAQ
 </a></li>
 
@@ -98,10 +101,10 @@
 <li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/Solution Structure.html" class="nav-link pb-2 d-block" > Solution structure
 </a></li>
 
-<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/Prepare Context.html" class="nav-link pb-2 d-block" > Fantomas.Core overview (1)
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/Transforming.html" class="nav-link pb-2 d-block" > Fantomas.Core overview (1)
 </a></li>
 
-<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/Print AST with Context.html" class="nav-link pb-2 d-block" > Fantomas.Core overview (2)
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/Traverse.html" class="nav-link pb-2 d-block" > Fantomas.Core overview (2)
 </a></li>
 
 <li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/Formatted Code.html" class="nav-link pb-2 d-block" > Fantomas.Core overview (3)
@@ -117,6 +120,12 @@
 </a></li>
 
 <li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/Pull request ground rules.html" class="nav-link pb-2 d-block" > Pull request ground rules
+</a></li>
+
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/Releases.html" class="nav-link pb-2 d-block" > Releases
+</a></li>
+
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/Glossary.html" class="nav-link pb-2 d-block" > Glossary
 </a></li>
 
             </ul>
@@ -202,8 +211,40 @@
     <tbody>
       <tr>
         <td>
+          <a href="https://fsprojects.github.io/fantomas/reference/fscomp.html">
+            FSComp
+          </a>
+        </td>
+        <td></td>
+      </tr>
+      <tr>
+        <td>
+          <a href="https://fsprojects.github.io/fantomas/reference/fsistrings.html">
+            FSIstrings
+          </a>
+        </td>
+        <td></td>
+      </tr>
+      <tr>
+        <td>
+          <a href="https://fsprojects.github.io/fantomas/reference/fsharp-compiler.html">
+            FSharp.Compiler
+          </a>
+        </td>
+        <td></td>
+      </tr>
+      <tr>
+        <td>
           <a href="https://fsprojects.github.io/fantomas/reference/fsharp-compiler-abstractil.html">
             FSharp.Compiler.AbstractIL
+          </a>
+        </td>
+        <td></td>
+      </tr>
+      <tr>
+        <td>
+          <a href="https://fsprojects.github.io/fantomas/reference/fsharp-compiler-abstractil-ilx.html">
+            FSharp.Compiler.AbstractIL.ILX
           </a>
         </td>
         <td></td>
@@ -280,6 +321,62 @@
         </td>
         <td></td>
       </tr>
+      <tr>
+        <td>
+          <a href="https://fsprojects.github.io/fantomas/reference/internal-utilities.html">
+            Internal.Utilities
+          </a>
+        </td>
+        <td></td>
+      </tr>
+      <tr>
+        <td>
+          <a href="https://fsprojects.github.io/fantomas/reference/internal-utilities-collections.html">
+            Internal.Utilities.Collections
+          </a>
+        </td>
+        <td></td>
+      </tr>
+      <tr>
+        <td>
+          <a href="https://fsprojects.github.io/fantomas/reference/internal-utilities-collections-tagged.html">
+            Internal.Utilities.Collections.Tagged
+          </a>
+        </td>
+        <td></td>
+      </tr>
+      <tr>
+        <td>
+          <a href="https://fsprojects.github.io/fantomas/reference/internal-utilities-library.html">
+            Internal.Utilities.Library
+          </a>
+        </td>
+        <td></td>
+      </tr>
+      <tr>
+        <td>
+          <a href="https://fsprojects.github.io/fantomas/reference/internal-utilities-text-lexing.html">
+            Internal.Utilities.Text.Lexing
+          </a>
+        </td>
+        <td></td>
+      </tr>
+      <tr>
+        <td>
+          <a href="https://fsprojects.github.io/fantomas/reference/internal-utilities-text-parsing.html">
+            Internal.Utilities.Text.Parsing
+          </a>
+        </td>
+        <td></td>
+      </tr>
+      <tr>
+        <td>
+          <a href="https://fsprojects.github.io/fantomas/reference/utilsstrings.html">
+            UtilsStrings
+          </a>
+        </td>
+        <td></td>
+      </tr>
     </tbody>
   </table>
 </div>
@@ -300,7 +397,7 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-A3rJD856KowSb7dwlZdYEkO39Gagi7vIsF0jrRAoQmDKKtQBHUuLZ9AsSv4jD4Xa" crossorigin="anonymous"></script>
   <script type="module" src="https://fsprojects.github.io/fantomas/content/webcomponents.js"></script>
   <script type="module">
-      import mermaid from "https://cdn.skypack.dev/mermaid";
+      import mermaid from "https://cdn.skypack.dev/mermaid@9.2.2";
       mermaid.initialize({
           startOnLoad: true,
           theme: "base",

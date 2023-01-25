@@ -70,6 +70,9 @@
 <li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/end-users/VSCode.html" class="nav-link pb-2 d-block" > Visual Studio Code
 </a></li>
 
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/end-users/GeneratingCode.html" class="nav-link pb-2 d-block" > Generating source code
+</a></li>
+
 <li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/end-users/FAQ.html" class="nav-link pb-2 d-block" > FAQ
 </a></li>
 
@@ -99,10 +102,10 @@
 <li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/Solution Structure.html" class="nav-link pb-2 d-block" > Solution structure
 </a></li>
 
-<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/Prepare Context.html" class="nav-link pb-2 d-block" > Fantomas.Core overview (1)
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/Transforming.html" class="nav-link pb-2 d-block" > Fantomas.Core overview (1)
 </a></li>
 
-<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/Print AST with Context.html" class="nav-link pb-2 d-block" > Fantomas.Core overview (2)
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/Traverse.html" class="nav-link pb-2 d-block" > Fantomas.Core overview (2)
 </a></li>
 
 <li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/Formatted Code.html" class="nav-link pb-2 d-block" > Fantomas.Core overview (3)
@@ -118,6 +121,12 @@
 </a></li>
 
 <li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/Pull request ground rules.html" class="nav-link pb-2 d-block" > Pull request ground rules
+</a></li>
+
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/Releases.html" class="nav-link pb-2 d-block" > Releases
+</a></li>
+
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/Glossary.html" class="nav-link pb-2 d-block" > Glossary
 </a></li>
 
             </ul>
@@ -198,34 +207,37 @@
 <p>This will make management of multiple forks and your own work easier over time.</p>
 <h2><a name="Updating-your-fork" class="anchor" href="#Updating-your-fork">Updating your fork</a></h2>
 <p>We recommend the following commands to update your fork:</p>
-<table class="pre"><tr><td class="snippet"><pre class="fssnip"><code lang="shell">git checkout master
+<table class="pre"><tr><td class="snippet"><pre class="fssnip"><code lang="shell">git checkout main
 git clean -xdf
 git fetch upstream
-git rebase upstream/master
+git rebase upstream/main
 git push
 </code></pre></td></tr></table>
 <p>Or more succinctly:</p>
-<table class="pre"><tr><td class="snippet"><pre class="fssnip"><code lang="shell">git checkout master &amp;&amp; git clean -xdf &amp;&amp; git fetch upstream &amp;&amp; git rebase upstream/master &amp;&amp; git push
+<table class="pre"><tr><td class="snippet"><pre class="fssnip"><code lang="shell">git checkout main &amp;&amp; git clean -xdf &amp;&amp; git fetch upstream &amp;&amp; git rebase upstream/main &amp;&amp; git push
 </code></pre></td></tr></table>
 <p>This will update your fork with the latest from <code>fsprojects/fantomas</code> on your machine and push those updates to your remote fork.</p>
 <h2><a name="Initial-build" class="anchor" href="#Initial-build">Initial build</a></h2>
-<p>After cloning the repository, you can restore the local .NET tools:</p>
+<p>After cloning the repository, you should restore the local dotnet tools and the solution:</p>
 <table class="pre"><tr><td class="snippet"><pre class="fssnip"><code lang="shell">dotnet tool restore
+dotnet restore
 </code></pre></td></tr></table>
-<p>Next, you should run the default FAKE target.
+<p>The restore of project <code>Fantomas.FCS</code> (via the solution restore) will download the F# compiler source code.</p>
+<p>Afterwards, you can run the default build script.
 This will build the solution, run all unit tests and do everything that the CI build does.</p>
-<table class="pre"><tr><td class="snippet"><pre class="fssnip"><code lang="shell">dotnet fake build
+<table class="pre"><tr><td class="snippet"><pre class="fssnip"><code lang="shell">dotnet fsi build.fsx
 </code></pre></td></tr></table>
-<p>If you are unfamiliar with <a href="https://fake.build/">FAKE</a>, you can read the <a href="https://fake.build/fake-gettingstarted.html">FAKE getting started guide</a>.<br />
-To see what other targets are available, run:</p>
-<table class="pre"><tr><td class="snippet"><pre class="fssnip"><code lang="shell">dotnet fake run build.fsx --list
-</code></pre></td></tr></table>
-<p>Next, you should run a FAKE target that sets up some git repo-level configuration.</p>
-<table class="pre"><tr><td class="snippet"><pre class="fssnip"><code lang="shell">dotnet fake build -t EnsureRepoConfig
-</code></pre></td></tr></table>
-<p>This target makes changes to the local git repository configuration to ensure
-that formatting of new code is consistent before it is pushed up to a remote repository.</p>
-<fantomas-nav previous="./FSharp.html" next="./Solution%20Structure.html">
+<p>Alternately, you can also run some other pipelines using <code>-p</code>.
+Examples:</p>
+<ul>
+<li><code>dotnet fsi build.fsx -p FormatChanged</code> will format all modified files detected by <code>git</code>.</li>
+<li><code>dotnet fsi build.fsx -p Docs</code> will serve the documentation website locally.</li>
+<li>
+<code>dotnet fsi build.fsx -p EnsureRepoConfig</code> sets up some git repo-level configuration to ensure
+that formatting of new code is consistent before it is pushed up to a remote repository.
+</li>
+</ul>
+<fantomas-nav previous="./FSharp.html" next="./Solution%20Structure.html"></fantomas-nav>
 
         
       </div>
@@ -244,7 +256,7 @@ that formatting of new code is consistent before it is pushed up to a remote rep
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-A3rJD856KowSb7dwlZdYEkO39Gagi7vIsF0jrRAoQmDKKtQBHUuLZ9AsSv4jD4Xa" crossorigin="anonymous"></script>
   <script type="module" src="https://fsprojects.github.io/fantomas/content/webcomponents.js"></script>
   <script type="module">
-      import mermaid from "https://cdn.skypack.dev/mermaid";
+      import mermaid from "https://cdn.skypack.dev/mermaid@9.2.2";
       mermaid.initialize({
           startOnLoad: true,
           theme: "base",

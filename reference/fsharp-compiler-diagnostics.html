@@ -69,6 +69,9 @@
 <li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/end-users/VSCode.html" class="nav-link pb-2 d-block" > Visual Studio Code
 </a></li>
 
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/end-users/GeneratingCode.html" class="nav-link pb-2 d-block" > Generating source code
+</a></li>
+
 <li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/end-users/FAQ.html" class="nav-link pb-2 d-block" > FAQ
 </a></li>
 
@@ -98,10 +101,10 @@
 <li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/Solution Structure.html" class="nav-link pb-2 d-block" > Solution structure
 </a></li>
 
-<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/Prepare Context.html" class="nav-link pb-2 d-block" > Fantomas.Core overview (1)
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/Transforming.html" class="nav-link pb-2 d-block" > Fantomas.Core overview (1)
 </a></li>
 
-<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/Print AST with Context.html" class="nav-link pb-2 d-block" > Fantomas.Core overview (2)
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/Traverse.html" class="nav-link pb-2 d-block" > Fantomas.Core overview (2)
 </a></li>
 
 <li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/Formatted Code.html" class="nav-link pb-2 d-block" > Fantomas.Core overview (3)
@@ -117,6 +120,12 @@
 </a></li>
 
 <li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/Pull request ground rules.html" class="nav-link pb-2 d-block" > Pull request ground rules
+</a></li>
+
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/Releases.html" class="nav-link pb-2 d-block" > Releases
+</a></li>
+
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/Glossary.html" class="nav-link pb-2 d-block" > Glossary
 </a></li>
 
             </ul>
@@ -190,7 +199,7 @@
     <thead>
       <tr>
         <td>
-          Type
+          Type/Module
         </td>
         <td>
           Description
@@ -198,6 +207,39 @@
       </tr>
     </thead>
     <tbody>
+      <tr>
+        <td class="fsdocs-entity-name">
+          <p>
+            <a name="Activity">
+              <a href="https://fsprojects.github.io/fantomas/reference/fsharp-compiler-diagnostics-activity.html">
+                Activity
+              </a>
+            </a>
+          </p>
+        </td>
+        <td class="fsdocs-entity-xmldoc">
+          <div>
+            <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:T:FSharp.Compiler.Diagnostics.Activity`')">
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-md.png" class="normal"/>
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-md-hover.png" class="hover"/>
+            </div>
+            <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'T:FSharp.Compiler.Diagnostics.Activity\'/>')">
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml.png" class="normal"/>
+              <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+            </div>
+            <a href="" class="fsdocs-source-link" title="Source on GitHub">
+              <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
+              <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
+            </a>
+            <p class="fsdocs-summary">
+              
+ For activities following the dotnet distributed tracing concept
+ https://learn.microsoft.com/en-us/dotnet/core/diagnostics/distributed-tracing-concepts?source=recommendations
+
+            </p>
+          </div>
+        </td>
+      </tr>
       <tr>
         <td class="fsdocs-entity-name">
           <p>
@@ -218,7 +260,7 @@
               <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml.png" class="normal"/>
               <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml-hover.png" class="hover"/>
             </div>
-            <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/Facilities/DiagnosticOptions.fsi#L16-16" class="fsdocs-source-link" title="Source on GitHub">
+            <a href="" class="fsdocs-source-link" title="Source on GitHub">
               <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
               <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
             </a>
@@ -248,7 +290,7 @@
               <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml.png" class="normal"/>
               <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml-hover.png" class="hover"/>
             </div>
-            <a href="https://github.com/fsprojects/fantomas/paket-files/dotnet/fsharp/src/Compiler/Facilities/DiagnosticOptions.fsi#L10-10" class="fsdocs-source-link" title="Source on GitHub">
+            <a href="" class="fsdocs-source-link" title="Source on GitHub">
               <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
               <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
             </a>
@@ -278,7 +320,7 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-A3rJD856KowSb7dwlZdYEkO39Gagi7vIsF0jrRAoQmDKKtQBHUuLZ9AsSv4jD4Xa" crossorigin="anonymous"></script>
   <script type="module" src="https://fsprojects.github.io/fantomas/content/webcomponents.js"></script>
   <script type="module">
-      import mermaid from "https://cdn.skypack.dev/mermaid";
+      import mermaid from "https://cdn.skypack.dev/mermaid@9.2.2";
       mermaid.initialize({
           startOnLoad: true,
           theme: "base",

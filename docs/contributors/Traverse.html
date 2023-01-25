@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en" data-root="https://fsprojects.github.io/fantomas/">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="author" content="Florian Verdonck, Jindřich Ivánek, David Schaefer">
+  <title>Fantomas.Core overview (2)
+</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,600;1,400&family=Reem+Kufi:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.3/font/bootstrap-icons.css">
+  <link rel="shortcut icon" type="image/x-icon" href="https://fsprojects.github.io/fantomas/images/favicon.ico">
+  <link type="text/css" rel="stylesheet" href="https://fsprojects.github.io/fantomas/content/fsdocs-custom.css" />
+  <script type="text/javascript" src="https://fsprojects.github.io/fantomas/content/fsdocs-tips.js"></script>
+  <!-- BEGIN SEARCH BOX: this adds support for the search box -->
+  <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+  <link rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/JavaScript-autoComplete/1.0.4/auto-complete.css" />
+  <!-- END SEARCH BOX: this adds support for the search box -->
+  
+</head>
+
+<body>
+     <aside class="bg-primary h-100 fs-5">
+      <div id="sidebar-header" class="d-flex justify-content-end mt-1">
+      <button class="btn d-md-none" id="close-mobile-menu" aria-controls="sidebar-wrapper" aria-expanded="false" aria-label="Toggle navigation">
+        <i class="sidebar-toggle fs-3 bi bi-x-lg"></i>
+                  </button>
+              </div>
+      <div id="sidebar-logo" class="d-flex justify-content-center p-5">
+        <a href="https://fsprojects.github.io/fantomas/docs/index.html" ><img id="fsdocs-logo" src="https://fsprojects.github.io/fantomas//images/logo-fantomas-white.svg" /></a>
+      </div>
+      <div id="sidebar-content" class="accordion accordion-flush ps-0 text-white fs-6">
+        <div id="end-users-wrapper" class="accordion-item">
+    <li class="docs-menu">
+        <button id="end-users-button"
+            class="accordion-button collapsed btn text-white d-flex justify-content-between align-items-center"
+            data-bs-toggle="collapse" data-bs-target="#end-users" aria-expanded="false"
+            aria-control="end-users" type="button">
+            End-users
+        </button>
+        <div id="end-users" class="accordion-collapse collapse ps-4 pb-2 " data-bs-parent="#sidebar-content">
+            <ul class="list-unstyled fw-normal mb-0">
+                <li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/end-users/GettingStarted.html" class="nav-link pb-2 d-block" > Getting Started
+</a></li>
+
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/end-users/StyleGuide.html" class="nav-link pb-2 d-block" > Style guide
+</a></li>
+
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/end-users/Configuration.html" class="nav-link pb-2 d-block" > Configuration
+</a></li>
+
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/end-users/IgnoreFiles.html" class="nav-link pb-2 d-block" > Ignore Files
+</a></li>
+
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/end-users/FormattingCheck.html" class="nav-link pb-2 d-block" > Formatting Check
+</a></li>
+
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/end-users/GitHooks.html" class="nav-link pb-2 d-block" > Git hooks
+</a></li>
+
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/end-users/Rider.html" class="nav-link pb-2 d-block" > JetBrains Rider
+</a></li>
+
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/end-users/VisualStudio.html" class="nav-link pb-2 d-block" > Visual Studio
+</a></li>
+
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/end-users/VSCode.html" class="nav-link pb-2 d-block" > Visual Studio Code
+</a></li>
+
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/end-users/GeneratingCode.html" class="nav-link pb-2 d-block" > Generating source code
+</a></li>
+
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/end-users/FAQ.html" class="nav-link pb-2 d-block" > FAQ
+</a></li>
+
+            </ul>
+        </div>
+    </li>
+</div>
+<div id="contributors-wrapper" class="accordion-item">
+    <li class="docs-menu">
+        <button id="contributors-button"
+            class="accordion-button collapsed btn text-white d-flex justify-content-between align-items-center"
+            data-bs-toggle="collapse" data-bs-target="#contributors" aria-expanded="false"
+            aria-control="contributors" type="button">
+            Contributors
+        </button>
+        <div id="contributors" class="accordion-collapse collapse ps-4 pb-2 " data-bs-parent="#sidebar-content">
+            <ul class="list-unstyled fw-normal mb-0">
+                <li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/Index.html" class="nav-link pb-2 d-block" > Contributors
+</a></li>
+
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/FSharp.html" class="nav-link pb-2 d-block" > F#
+</a></li>
+
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/Getting Started.html" class="nav-link pb-2 d-block" > Getting started
+</a></li>
+
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/Solution Structure.html" class="nav-link pb-2 d-block" > Solution structure
+</a></li>
+
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/Transforming.html" class="nav-link pb-2 d-block" > Fantomas.Core overview (1)
+</a></li>
+
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/Traverse.html" class="nav-link pb-2 d-block" > Fantomas.Core overview (2)
+</a></li>
+
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/Formatted Code.html" class="nav-link pb-2 d-block" > Fantomas.Core overview (3)
+</a></li>
+
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/Conditional Compilation Directives.html" class="nav-link pb-2 d-block" > Formatting Conditional Compilation Directives
+</a></li>
+
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/How Can I Contribute.html" class="nav-link pb-2 d-block" > How can I contribute?
+</a></li>
+
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/The Missing Comment.html" class="nav-link pb-2 d-block" > The Missing Comment
+</a></li>
+
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/Pull request ground rules.html" class="nav-link pb-2 d-block" > Pull request ground rules
+</a></li>
+
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/Releases.html" class="nav-link pb-2 d-block" > Releases
+</a></li>
+
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/Glossary.html" class="nav-link pb-2 d-block" > Glossary
+</a></li>
+
+            </ul>
+        </div>
+    </li>
+</div>
+        <div id="api_reference-wrapper" class="accordion-item">
+    <li class="docs-menu">
+        <button id="api_reference-button"
+            class="accordion-button collapsed btn text-white d-flex justify-content-between align-items-center"
+            data-bs-toggle="collapse" data-bs-target="#api_reference" aria-expanded="false"
+            aria-control="api_reference" type="button">
+            API Reference
+        </button>
+        <div id="api_reference" class="accordion-collapse collapse ps-4 pb-2 " data-bs-parent="#sidebar-content">
+            <ul class="list-unstyled fw-normal mb-0">
+                <li class="nav-item"><a href="https://fsprojects.github.io/fantomas/reference/index.html" class="nav-link pb-2 d-block" > All Namespaces</a></li>
+
+            </ul>
+        </div>
+    </li>
+</div>
+      </div>
+    </aside>
+    <main class="doc-content">
+     <nav class="navbar navbar-expand-sm border py-1">
+        <div class="container-fluid flex-nowrap">
+          <button class="btn" id="toggle-mobile-menu" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="sidebar-toggle fs-3 bi bi-list"></i>
+          </button>
+          <div id="mobile-navbar" class="container-fluid d-flex justify-content-between d-sm-none">
+            <i class="invisible bi bi-github fs-3 align-self-end"></i>
+         <a href="./index.html" ><img id="fsdocs-logo-mobile" width="32" height="32" src="https://fsprojects.github.io/fantomas//images/logo.png" /></a>
+            <a class="nav-link m-0 p-0" target="_blank" href="https://github.com/fsprojects/fantomas/"> <i class="bi bi-github fs-3 align-self-end"></i>
+</a>
+          </div>
+          <div class="collapse navbar-collapse" id="navbarText">
+            <div class="navbar-nav me-auto mb-2 mb-lg-0 fs-5">
+                <a class="nav-link active" aria-current="page" href="https://fsprojects.github.io/fantomas/docs/index.html">Docs</a>
+                <a class="nav-link" target="_blank" href="https://fsprojects.github.io/fantomas-tools/">Tools</a>
+            </div>
+            <form class="d-flex">
+              <div class="input-group me-4">
+              <label for="search-by">
+                <i class="fas fa-search"></i>
+              </label>
+                <div class="btn border-end-0 border">
+                  <i class="bi bi-search"></i>
+                </div>
+                <input aria-label="Search" class="form-control  border-start-0 border" data-search-input=""
+                  id="search-by" type="search" placeholder="Search..." />
+                <span class="input-group-append">
+                </span>
+                <span data-search-clear="">
+                  <i class="fas fa-times"></i>
+                </span>
+              </div>
+            </form>
+            <a class="nav-link m-0 p-0" target="_blank" href="https://github.com/fsprojects/fantomas/">GitHub<i
+                class="bi bi-box-arrow-up-right mx-2"></i></a>
+          </div>
+        </div>
+      </nav>
+      <div id="fsdocs-content" class="bg-white m-2 m-sm-5 p-3 p-sm-4">
+        
+<h1><a name="Fantomas-Core-overview-2" class="anchor" href="#Fantomas-Core-overview-2">Fantomas.Core overview (2)</a></h1>
+<p>Once the <code>Oak</code> is populated with all the found trivia, we can traverse the <code>Oak</code> to capture all the <code>WriterEvent</code>s.</p>
+<div class="mermaid text-center">
+graph TD
+    A[Transform source code to tree] --> B
+    B[Traverse Oak to get formatted code] --> C[Formatted code]
+    style B stroke:#338CBB,stroke-width:2px
+ </div>
+<p>We enter the module of <code>CodePrinter</code> and try and reconstruct the code based on the given configuration.</p>
+<h2><a name="WriterEvents-and-WriterModel" class="anchor" href="#WriterEvents-and-WriterModel">WriterEvents and WriterModel</a></h2>
+<p>In previous versions of Fantomas, <code>Context</code> had a <a href="https://docs.microsoft.com/en-us/dotnet/api/system.io.textwriter?view=net-6.0">TextWriter</a> that was used to write the output.
+This is a more advanced version of a <code>StringBuilder</code> and we wrote the formatted code directly to the buffer.</p>
+<p>The key problem with this approach was that we couldn't easily revert code that was written to the buffer.<br />
+For example, if the formatted code was crossing the <code>max_line_length</code>, we couldn't easily revert the code and try an alternative.</p>
+<p>That is why we first capture a collection of <code>WriterEvent</code>s and then reconstruct the formatted code.<br />
+If the code is too long, we can drop the last events and try an alternative.</p>
+<h3><a name="WriterModel" class="anchor" href="#WriterModel">WriterModel</a></h3>
+<p>When we capture new events we also want to capture the current state of the result.<br />
+This happens in the <code>WriterModel</code> record. There we store the result of each event as if it were finalized.<br />
+By doing this, we can assert the result of the output. For example if our code is too long or not.</p>
+<p><code>WriterEvents</code> and <code>WriterModel</code> are very stable in the code base.<br />
+When solving a bug, you typically need to change the collected series of events by using a different helper function inside <code>CodePrinter</code>.</p>
+<h3><a name="CodePrinter" class="anchor" href="#CodePrinter">CodePrinter</a></h3>
+<p>In <code>CodePrinter</code> the syntax tree is being traversed with the help of various (partial) active patterns.<br />
+These active patterns are defined in <code>SourceParser</code> and typically are used to present the information we are interested in, in a different shape.</p>
+<p><code>CodePrinter</code> exposes one function <code>genParsedInput</code>.</p>
+<pre class="fssnip highlighted"><code lang="fsharp"><span class="k">val</span> <span class="id">genFile</span><span class="pn">:</span> <span class="id">oak</span><span class="pn">:</span> <span class="id">Oak</span> <span class="k">-&gt;</span> <span class="pn">(</span><span class="id">Context</span> <span class="k">-&gt;</span> <span class="id">Context</span><span class="pn">)</span>
+</code></pre>
+<p>This takes an <code>Oak</code> and it returns a function that takes a <code>Context</code> and returns a new <code>Context</code>.</p>
+<p>We will eventually call this function with an initial <code>Context</code>. This initial <code>Context</code> will have our default config.
+In this function, all events are captured and stored in the <code>WriterEvents</code> and <code>WriterModel</code>.</p>
+<p>While we are traversing the syntax tree, we will compose the <code>Context -&gt; Context</code> function based on the content.
+<code>Context.dump</code> then eventually takes the <code>Context</code> and returns a <code>string</code> of formatted code.</p>
+<p>This may seem a bit complicated, but you typically can see this as an implementation detail and can abstract this when working in <code>CodePrinter</code>.</p>
+<h3><a name="Creating-WriterEvents" class="anchor" href="#Creating-WriterEvents">Creating WriterEvents</a></h3>
+<p>There are various helper functions in <code>CodePrinter</code> that create <code>WriterEvent</code>s.<br />
+In <code>CodePrinter</code> we will typically never construct a <code>WriterEvent</code> directly.</p>
+<p>Instead we can use various helper functions that take the <code>Context</code> as parameter and return an updated <code>Context</code> with additional events.<br />
+Please take a moment to debug the unit tests in <a href="https://github.com/fsprojects/fantomas/blob/main/src/Fantomas.Core.Tests/CodePrinterHelperFunctionsTests.fs">CodePrinterHelperFunctionsTests.fs</a>.<br />
+This will give you a better understanding of how we capture events in <code>CodePrinter</code>.</p>
+<h3><a name="Debugging-CodePrinter" class="anchor" href="#Debugging-CodePrinter">Debugging CodePrinter</a></h3>
+<p>One thing that is a bit harder to grasp initially, is what is happening when you put a breakpoint in <code>CodePrinter.fs</code>.<br />
+In <code>CodePrinter.fs</code> we compose a format function that takes a <code>Context</code> and returns a <code>Context</code>.
+We do this by traversing the syntax tree, and when you put a breakpoint in <code>genTypeDefn</code> for example:</p>
+<!-- TODO: update screenshot -->
+<p><img src="../../images/debugging-code-printer-1.png" alt="Breakpoint in genTypeDefn" /></p>
+<p>we are still in the process of composing the format function.<br />
+<strong>The Context has not been going through our format function yet!</strong></p>
+<p>If we want to debug when the <code>Context</code> is traveling through the format function, we can easily, temporarily, insert an additional function to inspect the <code>Context</code> content:</p>
+<p><img src="../../images/debugging-code-printer-2.png" alt="Breakpoint in Context -&gt; Context" /></p>
+<p>The <code>dumpAndContinue</code> helper function can be used to inspect the <code>Context</code>.<br />
+Please remove all usages when submitting a PR 😸.</p>
+<fantomas-nav previous="./Transforming.html" next="./Formatted%20Code.html"></fantomas-nav>
+
+        
+      </div>
+        <div id="push"></div>
+    </main>
+  <script type="module" src="https://fsprojects.github.io/fantomas/content/docs-setup.js"></script>
+  <!-- BEGIN SEARCH BOX: this adds support for the search box -->
+  <link rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/JavaScript-autoComplete/1.0.4/auto-complete.css" />
+  <script type="text/javascript">var fsdocs_search_baseurl = 'https://fsprojects.github.io/fantomas/';</script>
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/lunr.js/2.3.8/lunr.min.js"></script>
+  <script type="text/javascript"
+    src="https://cdnjs.cloudflare.com/ajax/libs/JavaScript-autoComplete/1.0.4/auto-complete.min.js"></script>
+  <script type="text/javascript" src="https://fsprojects.github.io/fantomas/content/fsdocs-search.js"></script>
+  <!-- END SEARCH BOX: this adds support for the search box -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-A3rJD856KowSb7dwlZdYEkO39Gagi7vIsF0jrRAoQmDKKtQBHUuLZ9AsSv4jD4Xa" crossorigin="anonymous"></script>
+  <script type="module" src="https://fsprojects.github.io/fantomas/content/webcomponents.js"></script>
+  <script type="module">
+      import mermaid from "https://cdn.skypack.dev/mermaid@9.2.2";
+      mermaid.initialize({
+          startOnLoad: true,
+          theme: "base",
+          themeVariables: {
+              primaryColor: '#eff5f7'
+          }
+      });
+  </script>
+</body>
+</html>

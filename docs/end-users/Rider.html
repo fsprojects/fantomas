@@ -70,6 +70,9 @@
 <li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/end-users/VSCode.html" class="nav-link pb-2 d-block" > Visual Studio Code
 </a></li>
 
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/end-users/GeneratingCode.html" class="nav-link pb-2 d-block" > Generating source code
+</a></li>
+
 <li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/end-users/FAQ.html" class="nav-link pb-2 d-block" > FAQ
 </a></li>
 
@@ -99,10 +102,10 @@
 <li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/Solution Structure.html" class="nav-link pb-2 d-block" > Solution structure
 </a></li>
 
-<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/Prepare Context.html" class="nav-link pb-2 d-block" > Fantomas.Core overview (1)
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/Transforming.html" class="nav-link pb-2 d-block" > Fantomas.Core overview (1)
 </a></li>
 
-<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/Print AST with Context.html" class="nav-link pb-2 d-block" > Fantomas.Core overview (2)
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/Traverse.html" class="nav-link pb-2 d-block" > Fantomas.Core overview (2)
 </a></li>
 
 <li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/Formatted Code.html" class="nav-link pb-2 d-block" > Fantomas.Core overview (3)
@@ -118,6 +121,12 @@
 </a></li>
 
 <li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/Pull request ground rules.html" class="nav-link pb-2 d-block" > Pull request ground rules
+</a></li>
+
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/Releases.html" class="nav-link pb-2 d-block" > Releases
+</a></li>
+
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/Glossary.html" class="nav-link pb-2 d-block" > Glossary
 </a></li>
 
             </ul>
@@ -184,10 +193,54 @@
       <div id="fsdocs-content" class="bg-white m-2 m-sm-5 p-3 p-sm-4">
         
 <h1><a name="JetBrains-Rider" class="anchor" href="#JetBrains-Rider">JetBrains Rider</a></h1>
-<p>The resharper-fsharp uses fantomas under the hood to format the source code. No need for any additional plugins.</p>
-<p>From Rider 2022.2 onwards, Rider can detect your <code>dotnet</code> fantomas installation, either globally or locally.<br />
-Install fantomas locally with <code>dotnet tool install fantomas</code>.</p>
+<p>The resharper-fsharp uses Fantomas under the hood to format the source code. No need for any additional plugins.</p>
+<p>From Rider 2022.2 onwards, Rider can detect your <code>dotnet</code> Fantomas installation, either globally or locally.<br />
+Install Fantomas locally with <code>dotnet tool install fantomas</code>.</p>
 <img class="mt-2" src="https://fsprojects.github.io/fantomas//images/rider-fantomas.png" alt="drawing" width="70%"/>
+<p>At the time of writing, Rider versions prior to the not yet released 2022.3 <a href="https://youtrack.jetbrains.com/issue/RIDER-83997/Rider-doesnt-respect-Fantomas-default-settings-not-explicitly-set-in-editorconfig">overwrite</a>
+the settings of Fantomas which aren't explicitly set in your editorconfig file.<br />
+As the settings chosen by Rider can lead to unwanted results, Rider users might want to also include the default settings in their editorconfig file.</p>
+<p>Fortunately, with 2022.3 the Rider developers changed the settings chosen by Rider to be the same as the default Fantomas settings.<br />
+This means, as long as the Fantomas default settings don't change, the described issue should be solved with Rider 2022.3.<br />
+The current default settings are the following:</p>
+<pre class="fssnip highlighted"><code lang="fsharp"><span class="id">indent_size</span><span class="o">=</span><span class="n">4</span>
+<span class="id">max_line_length</span><span class="o">=</span><span class="n">120</span>
+<span class="id">end_of_line</span><span class="o">=</span><span class="id">crlf</span>
+<span class="id">insert_final_newline</span><span class="o">=</span><span class="k">true</span> 
+<span class="id">fsharp_space_before_parameter</span><span class="o">=</span><span class="k">true</span> 
+<span class="id">fsharp_space_before_lowercase_invocation</span><span class="o">=</span><span class="k">true</span> 
+<span class="id">fsharp_space_before_uppercase_invocation</span><span class="o">=</span><span class="k">false</span>
+<span class="id">fsharp_space_before_class_constructor</span><span class="o">=</span><span class="k">false</span>
+<span class="id">fsharp_space_before_member</span><span class="o">=</span><span class="k">false</span>
+<span class="id">fsharp_space_before_colon</span><span class="o">=</span><span class="k">false</span>
+<span class="id">fsharp_space_after_comma</span><span class="o">=</span><span class="k">true</span> 
+<span class="id">fsharp_space_before_semicolon</span><span class="o">=</span><span class="k">false</span>
+<span class="id">fsharp_space_after_semicolon</span><span class="o">=</span><span class="k">true</span> 
+<span class="id">fsharp_space_around_delimiter</span><span class="o">=</span><span class="k">true</span> 
+<span class="id">fsharp_max_if_then_short_width</span><span class="o">=</span><span class="n">0</span>
+<span class="id">fsharp_max_if_then_else_short_width</span><span class="o">=</span><span class="n">60</span>
+<span class="id">fsharp_max_infix_operator_expression</span><span class="o">=</span><span class="n">80</span>
+<span class="id">fsharp_max_record_width</span><span class="o">=</span><span class="n">40</span>
+<span class="id">fsharp_max_record_number_of_items</span><span class="o">=</span><span class="n">1</span>
+<span class="id">fsharp_record_multiline_formatter</span><span class="o">=</span><span class="id">character_width</span>
+<span class="id">fsharp_max_array_or_list_width</span><span class="o">=</span><span class="n">80</span>
+<span class="id">fsharp_max_array_or_list_number_of_items</span><span class="o">=</span><span class="n">1</span>
+<span class="id">fsharp_array_or_list_multiline_formatter</span><span class="o">=</span><span class="id">character_width</span>
+<span class="id">fsharp_max_value_binding_width</span><span class="o">=</span><span class="n">80</span>
+<span class="id">fsharp_max_function_binding_width</span><span class="o">=</span><span class="n">40</span>
+<span class="id">fsharp_max_dot_get_expression_width</span><span class="o">=</span><span class="n">80</span>
+<span class="id">fsharp_multiline_block_brackets_on_same_column</span><span class="o">=</span><span class="k">false</span>
+<span class="id">fsharp_newline_between_type_definition_and_members</span><span class="o">=</span><span class="k">true</span> 
+<span class="id">fsharp_align_function_signature_to_indentation</span><span class="o">=</span><span class="k">false</span>
+<span class="id">fsharp_alternative_long_member_definitions</span><span class="o">=</span><span class="k">false</span>
+<span class="id">fsharp_multi_line_lambda_closing_newline</span><span class="o">=</span><span class="k">false</span>
+<span class="id">fsharp_experimental_keep_indent_in_branch</span><span class="o">=</span><span class="k">false</span>
+<span class="id">fsharp_blank_lines_around_nested_multiline_expressions</span><span class="o">=</span><span class="k">true</span> 
+<span class="id">fsharp_bar_before_discriminated_union_declaration</span><span class="o">=</span><span class="k">false</span>
+<span class="id">fsharp_experimental_stroustrup_style</span><span class="o">=</span><span class="k">false</span>
+<span class="id">fsharp_keep_max_number_of_blank_lines</span><span class="o">=</span><span class="n">100</span>
+<span class="id">fsharp_strict_mode</span><span class="o">=</span><span class="k">false</span>
+</code></pre>
 <fantomas-nav previous="./GitHooks.html" next="./VisualStudio.html"></fantomas-nav>
 
         
@@ -207,7 +260,7 @@ Install fantomas locally with <code>dotnet tool install fantomas</code>.</p>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-A3rJD856KowSb7dwlZdYEkO39Gagi7vIsF0jrRAoQmDKKtQBHUuLZ9AsSv4jD4Xa" crossorigin="anonymous"></script>
   <script type="module" src="https://fsprojects.github.io/fantomas/content/webcomponents.js"></script>
   <script type="module">
-      import mermaid from "https://cdn.skypack.dev/mermaid";
+      import mermaid from "https://cdn.skypack.dev/mermaid@9.2.2";
       mermaid.initialize({
           startOnLoad: true,
           theme: "base",
