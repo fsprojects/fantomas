@@ -819,7 +819,9 @@ let genExpr (e: Expr) =
                         +> genPat node.Pattern
                         +> sepSpace
                         +> genSingleTextNode node.Equals
-                        +> sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidthUnlessStroustrup genExpr node.Expression
+                        +> sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidthUnlessStroustrupOrCompExprSameLine
+                            genExpr
+                            node.Expression
                         |> genNode node
 
                     ColMultilineItem(expr, sepNlnUnlessContentBefore node)
@@ -830,7 +832,9 @@ let genExpr (e: Expr) =
                         +> genPat node.Pattern
                         +> sepSpace
                         +> genSingleTextNode node.Equals
-                        +> sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidthUnlessStroustrup genExpr node.Expression
+                        +> sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidthUnlessStroustrupOrCompExprSameLine
+                            genExpr
+                            node.Expression
                         |> genNode node
 
                     ColMultilineItem(expr, sepNlnUnlessContentBefore node)
