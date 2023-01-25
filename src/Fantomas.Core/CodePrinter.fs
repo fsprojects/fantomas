@@ -1861,7 +1861,7 @@ let genLambdaAux (includeClosingParen: bool) (node: ExprLambdaNode) =
         if hasWriteBeforeNewlineContent ctx then
             indentSepNlnUnindent (genExpr node.Expr) ctx
         else
-            sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidthUnlessStroustrup genExpr node.Expr ctx
+            sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidthUnlessStroustrupOrCompExprSameLine genExpr node.Expr ctx
         |> fun ctx ->
             // Afterwards we do need to reset the max_line_length to the original value.
             { ctx with
