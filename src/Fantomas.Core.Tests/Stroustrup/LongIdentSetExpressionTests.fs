@@ -97,28 +97,6 @@ myMutable <- struct {|
 """
 
 [<Test>]
-let ``longIdentSet with computation expression`` () =
-    formatSourceString
-        false
-        """
-myMutable <-
-    task {
-        // some computation here
-        ()
-    }
-"""
-        config
-    |> prepend newline
-    |> should
-        equal
-        """
-myMutable <- task {
-    // some computation here
-    ()
-}
-"""
-
-[<Test>]
 let ``longIdentSet with list`` () =
     formatSourceString
         false

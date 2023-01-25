@@ -1738,10 +1738,6 @@ type Expr =
             match node.CopyInfo with
             | Some _ -> false
             | None -> true
-        | Expr.NamedComputation node ->
-            match node.Name with
-            | Expr.Ident _ -> true
-            | _ -> false
         | Expr.ArrayOrList _ -> true
         | _ -> false
 

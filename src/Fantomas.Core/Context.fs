@@ -1,4 +1,4 @@
-module internal rec Fantomas.Core.Context
+module internal Fantomas.Core.Context
 
 open System
 open FSharp.Compiler.Text
@@ -752,6 +752,16 @@ let sepSpaceOrDoubleIndentAndNlnIfExpressionExceedsPageWidth expr (ctx: Context)
         expr
         ctx
 
+let isStroustrupApplicable isStroustrupContext (node: Node) (ctx: Context) =
+    ctx.Config.ExperimentalStroustrupStyle
+    && isStroustrupContext
+    && Seq.isEmpty node.ContentBefore
+
+let isNamedComputationAndPreferSameLine expr (ctx: Context) =
+    match expr with
+    | Expr.NamedComputation _ when ctx.Config.PreferComputationExpressionNameOnSameLine -> true
+    | _ -> false
+
 let sepSpaceOrIndentAndNlnIfExceedsPageWidthUnless condition f (ctx: Context) =
     if condition then
         (sepSpace +> f) ctx
@@ -912,16 +922,6 @@ let addParenIfAutoNln expr f =
 
     let expr = f expr
     expressionFitsOnRestOfLine expr (ifElse hasParenthesis (sepOpenT +> expr +> sepCloseT) expr)
-
-let isNamedComputationAndPreferSameLine expr (ctx: Context) =
-    match expr with
-    | Expr.NamedComputation _ when ctx.Config.PreferComputationExpressionNameOnSameLine -> true
-    | _ -> false
-
-let isStroustrupApplicable isStroustrupContext (node: Node) (ctx: Context) =
-    ctx.Config.ExperimentalStroustrupStyle
-    && isStroustrupContext
-    && Seq.isEmpty node.ContentBefore
 
 let autoIndentAndNlnExpressUnlessStroustrupOrCompExprSameLine f (e: Expr) (ctx: Context) =
     let shouldUseStroustrup =

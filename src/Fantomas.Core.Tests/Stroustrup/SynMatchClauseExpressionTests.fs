@@ -105,30 +105,6 @@ match x with
 """
 
 [<Test>]
-let ``synMatchClause in match expression with computation expression`` () =
-    formatSourceString
-        false
-        """
-match x with
-| _ ->
-    task {
-        // some computation here
-        ()
-    }
-"""
-        config
-    |> prepend newline
-    |> should
-        equal
-        """
-match x with
-| _ -> task {
-    // some computation here
-    ()
-  }
-"""
-
-[<Test>]
 let ``synMatchClause in match expression with list`` () =
     formatSourceString
         false
@@ -322,33 +298,6 @@ with ex -> struct {|
     B = someOtherVariable
     C = ziggyBarX
 |}
-"""
-
-[<Test>]
-let ``synMatchClause in try/with expression with computation expression`` () =
-    formatSourceString
-        false
-        """
-try
-    foo()
-with
-| ex ->
-    task {
-        // some computation here
-        ()
-    }
-"""
-        config
-    |> prepend newline
-    |> should
-        equal
-        """
-try
-    foo ()
-with ex -> task {
-    // some computation here
-    ()
-}
 """
 
 [<Test>]

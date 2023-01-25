@@ -97,28 +97,6 @@ let x = struct {|
 """
 
 [<Test>]
-let ``synbinding value with computation expression`` () =
-    formatSourceString
-        false
-        """
-let t =
-    task {
-        // some computation here
-        ()
-    }
-"""
-        config
-    |> prepend newline
-    |> should
-        equal
-        """
-let t = task {
-    // some computation here
-    ()
-}
-"""
-
-[<Test>]
 let ``synbinding value with list`` () =
     formatSourceString
         false
@@ -288,30 +266,6 @@ type Foo() =
         B = someOtherVariable
         C = ziggyBarX
     |}
-"""
-
-[<Test>]
-let ``type member value with computation expression`` () =
-    formatSourceString
-        false
-        """
-type Foo() =
-    member this.Bar =
-        task {
-            // some computation here
-            ()
-        }
-"""
-        config
-    |> prepend newline
-    |> should
-        equal
-        """
-type Foo() =
-    member this.Bar = task {
-        // some computation here
-        ()
-    }
 """
 
 [<Test>]

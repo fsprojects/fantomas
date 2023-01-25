@@ -6,8 +6,9 @@ open Fantomas.Core.Tests.TestHelper
 open Fantomas.Core
 
 let config =
-    { FormatConfig.Default with
-        PreferComputationExpressionNameOnSameLine = true }
+    { config with
+        PreferComputationExpressionNameOnSameLine = true
+        MaxArrayOrListWidth = 40 }
 
 [<Test>]
 let ``prefer computation expression name on same line`` () =

@@ -132,35 +132,6 @@ opt {
 """
 
 [<Test>]
-let ``letOrUseBang with computation expression`` () =
-    formatSourceString
-        false
-        """
-task {
-    let! meh =
-        task {
-            // comment
-            return 42
-        }
-    ()
-}
-"""
-        config
-    |> prepend newline
-    |> should
-        equal
-        """
-task {
-    let! meh = task {
-        // comment
-        return 42
-    }
-
-    ()
-}
-"""
-
-[<Test>]
 let ``letOrUseBang with list`` () =
     formatSourceString
         false
