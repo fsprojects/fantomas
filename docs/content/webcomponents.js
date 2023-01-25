@@ -53,14 +53,13 @@ function Navigation({next, previous}) {
         </div>`;
 }
 
-function FantomasSetting({name, green, orange, red, gr, deprecated}) {
+function FantomasSetting({name, green, orange, red, gr}) {
     return html`
         <div class="d-flex align-items-center my-2">
             ${green && FantomasSettingIcon({type: "green"})}
             ${orange && FantomasSettingIcon({type: "orange"})}
             ${red && FantomasSettingIcon({type: "red"})}
             ${gr && FantomasSettingIcon({type: "gr"})}
-            ${red && FantomasSettingIcon({type: "red"})}
             <h4 id="${name}" class="m-0">
                 <a href="#${name}">${name}</a>
             </h4>
@@ -71,7 +70,7 @@ customElements.define('fantomas-setting-icon', component(FantomasSettingIcon, {
     useShadowDOM: false, observedAttributes: ['type']
 }));
 customElements.define('fantomas-setting', component(FantomasSetting, {
-    useShadowDOM: false, observedAttributes: ['name', 'green', 'orange', 'red', 'gr', 'deprecated']
+    useShadowDOM: false, observedAttributes: ['name', 'green', 'orange', 'red', 'gr']
 }));
 
 customElements.define('fantomas-nav', component(Navigation, {
