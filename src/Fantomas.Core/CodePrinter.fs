@@ -332,7 +332,7 @@ let genExpr (e: Expr) =
         +> onlyIf node.AddSpace sepSpaceUnlessWriteBeforeNewlineNotEmpty
         +> ifElse
             node.SupportsStroustrup
-            (autoIndentAndNlnIfExpressionExceedsPageWidthUnlessStroustrup genExpr node.Expr)
+            (autoIndentAndNlnIfExpressionExceedsPageWidthUnlessStroustrupOrCompExprSameLine genExpr node.Expr)
             (autoIndentAndNlnIfExpressionExceedsPageWidth (genExpr node.Expr))
         |> genNode node
     | Expr.Constant node -> genConstant node
@@ -1386,7 +1386,7 @@ let genExpr (e: Expr) =
                 clauseNode.WhenExpr
             +> sepSpace
             +> genSingleTextNodeWithSpaceSuffix sepSpace clauseNode.Arrow
-            +> autoIndentAndNlnExpressUnlessStroustrup genExpr clauseNode.BodyExpr
+            +> autoIndentAndNlnExpressUnlessStroustrupOrCompExprSameLine genExpr clauseNode.BodyExpr
             +> leaveNode clauseNode
 
         atCurrentColumn (
@@ -1557,7 +1557,7 @@ let genExpr (e: Expr) =
     | Expr.LongIdentSet node ->
         genIdentListNode node.Identifier
         +> sepArrowRev
-        +> autoIndentAndNlnIfExpressionExceedsPageWidthUnlessStroustrup genExpr node.Expr
+        +> autoIndentAndNlnIfExpressionExceedsPageWidthUnlessStroustrupOrCompExprSameLine genExpr node.Expr
         |> genNode node
     | Expr.DotIndexedGet node ->
         let genDotIndexedGet =
@@ -1600,7 +1600,7 @@ let genExpr (e: Expr) =
             +> !- ".["
             +> genExpr node.Index
             +> !- "] <- "
-            +> autoIndentAndNlnIfExpressionExceedsPageWidthUnlessStroustrup genExpr node.Value
+            +> autoIndentAndNlnIfExpressionExceedsPageWidthUnlessStroustrupOrCompExprSameLine genExpr node.Value
 
         let genDotIndexedSetWithApp funcExpr argExpr (appNode: Node) =
             let short = funcExpr +> genExpr argExpr |> genNode appNode
@@ -1615,7 +1615,7 @@ let genExpr (e: Expr) =
                 (short +> idx +> genExpr node.Value)
                 (long
                  +> idx
-                 +> autoIndentAndNlnIfExpressionExceedsPageWidthUnlessStroustrup genExpr node.Value)
+                 +> autoIndentAndNlnIfExpressionExceedsPageWidthUnlessStroustrupOrCompExprSameLine genExpr node.Value)
 
         match node.ObjectExpr with
         | Expr.App appNode ->
@@ -1665,7 +1665,7 @@ let genExpr (e: Expr) =
     | Expr.Set node ->
         addParenIfAutoNln node.Identifier genExpr
         +> sepArrowRev
-        +> autoIndentAndNlnIfExpressionExceedsPageWidthUnlessStroustrup genExpr node.Set
+        +> autoIndentAndNlnIfExpressionExceedsPageWidthUnlessStroustrupOrCompExprSameLine genExpr node.Set
         |> genNode node
     | Expr.LibraryOnlyStaticOptimization node ->
         genExpr node.OptimizedExpr
@@ -1824,7 +1824,7 @@ let genNamedArgumentExpr (node: ExprInfixAppNode) =
         genExpr node.LeftHandSide
         +> sepSpace
         +> genSingleTextNode node.Operator
-        +> autoIndentAndNlnExpressUnlessStroustrup (fun e -> sepSpace +> genExpr e) node.RightHandSide
+        +> autoIndentAndNlnExpressUnlessStroustrupOrCompExprSameLine (fun e -> sepSpace +> genExpr e) node.RightHandSide
 
     expressionFitsOnRestOfLine short long |> genNode node
 
@@ -1918,7 +1918,9 @@ let genClause (isLastItem: bool) (node: MatchClauseNode) =
                      +> ifElse
                          (ctx.Config.ExperimentalKeepIndentInBranch && isLastItem)
                          genKeepIndentInBranch
-                         (autoIndentAndNlnIfExpressionExceedsPageWidthUnlessStroustrup genExpr node.BodyExpr))
+                         (autoIndentAndNlnIfExpressionExceedsPageWidthUnlessStroustrupOrCompExprSameLine
+                             genExpr
+                             node.BodyExpr))
                         ctx)
 
     let genPatAndBody ctx =
@@ -2691,7 +2693,9 @@ let genBinding (b: BindingNode) (ctx: Context) : Context =
                     let short = sepSpace +> body
 
                     let long =
-                        autoIndentAndNlnExpressUnlessStroustrup (fun e -> sepSpace +> genExpr e) b.Expr
+                        autoIndentAndNlnExpressUnlessStroustrupOrCompExprSameLine
+                            (fun e -> sepSpace +> genExpr e)
+                            b.Expr
 
                     isShortExpression ctx.Config.MaxFunctionBindingWidth short long
 
@@ -2783,18 +2787,7 @@ let genBinding (b: BindingNode) (ctx: Context) : Context =
 
                 let long =
                     prefix
-                    +> let shouldUseStroustrup =
-                        isStroustrupApplicable b.Expr.IsStroustrupStyleExpr (Expr.Node b.Expr) ctx in
-
-                       let isNamedComputationPreferNewLine =
-                           match b.Expr with
-                           | Expr.NamedComputation _ when ctx.Config.PreferComputationExpressionNameOnSameLine -> true
-                           | _ -> false in
-
-                       if shouldUseStroustrup || isNamedComputationPreferNewLine then
-                           genExpr b.Expr
-                       else
-                           indentSepNlnUnindent (genExpr b.Expr)
+                    +> autoIndentAndNlnExpressUnlessStroustrupOrCompExprSameLine genExpr b.Expr
 
                 isShortExpression ctx.Config.MaxValueBindingWidth short long ctx)
 

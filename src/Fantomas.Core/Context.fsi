@@ -233,9 +233,10 @@ val sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidthUnlessStroustrup:
 
 val sepSpaceOrIndentAndNlnIfTypeExceedsPageWidthUnlessStroustrup:
     f: (Type -> Context -> Context) -> t: Type -> (Context -> Context)
-    
+
 val sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidthUnlessStroustrupOrCompExprSameLine:
     f: (Expr -> Context -> Context) -> expr: Expr -> (Context -> Context)
+
 val autoParenthesisIfExpressionExceedsPageWidth: expr: (Context -> Context) -> ctx: Context -> Context
 val futureNlnCheck: f: (Context -> Context) -> ctx: Context -> bool
 /// similar to futureNlnCheck but validates whether the expression is going over the max page width
@@ -257,10 +258,13 @@ val sepSpaceUnlessWriteBeforeNewlineNotEmpty: ctx: Context -> Context
 val autoIndentAndNlnWhenWriteBeforeNewlineNotEmpty: f: (Context -> Context) -> ctx: Context -> Context
 val addParenIfAutoNln: expr: Expr -> f: (Expr -> Context -> Context) -> (Context -> Context)
 val isStroustrupApplicable: isStroustrupContext: bool -> node: Node -> ctx: Context -> bool
-val autoIndentAndNlnExpressUnlessStroustrup: f: (Expr -> Context -> Context) -> e: Expr -> ctx: Context -> Context
+
+val autoIndentAndNlnExpressUnlessStroustrupOrCompExprSameLine:
+    f: (Expr -> Context -> Context) -> e: Expr -> ctx: Context -> Context
+
 val autoIndentAndNlnTypeUnlessStroustrup: f: (Type -> Context -> Context) -> t: Type -> ctx: Context -> Context
 
-val autoIndentAndNlnIfExpressionExceedsPageWidthUnlessStroustrup:
+val autoIndentAndNlnIfExpressionExceedsPageWidthUnlessStroustrupOrCompExprSameLine:
     f: (Expr -> Context -> Context) -> e: Expr -> ctx: Context -> Context
 
 type ColMultilineItem = ColMultilineItem of expr: (Context -> Context) * sepNln: (Context -> Context)
