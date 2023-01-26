@@ -461,13 +461,6 @@ let genExpr (e: Expr) =
                     isSmallExpression size smallExpression multilineExpression ctx
             |> genNode node
     | Expr.Record node ->
-        let genRecordFieldName (node: RecordFieldNode) =
-            genIdentListNode node.FieldName
-            +> sepSpace
-            +> genSingleTextNode node.Equals
-            +> sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidthUnlessStroustrup genExpr node.Expr
-            |> genNode node
-
         let fieldsExpr = col sepNln node.Fields genRecordFieldName
         let hasFields = List.isNotEmpty node.Fields
 
@@ -566,24 +559,17 @@ let genExpr (e: Expr) =
             let size = getRecordSize ctx node.Fields
             genNode node (isSmallExpression size smallRecordExpr multilineRecordExpr) ctx
     | Expr.AnonRecord node ->
-        let genAnonRecordFieldName (node: AnonRecordFieldNode) =
-            genSingleTextNode node.Ident
-            +> sepSpace
-            +> genSingleTextNode node.Equals
-            +> sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidthUnlessStroustrup genExpr node.Expr
-            |> genNode node
-
         let smallExpression =
             onlyIf node.IsStruct !- "struct "
             +> genSingleTextNode node.OpeningBrace
             +> addSpaceIfSpaceAroundDelimiter
             +> optSingle (fun e -> genExpr e +> !- " with ") node.CopyInfo
-            +> col sepSemi node.Fields genAnonRecordFieldName
+            +> col sepSemi node.Fields genRecordFieldName
             +> addSpaceIfSpaceAroundDelimiter
             +> genSingleTextNode node.ClosingBrace
 
         let longExpression =
-            let fieldsExpr = col sepNln node.Fields genAnonRecordFieldName
+            let fieldsExpr = col sepNln node.Fields genRecordFieldName
 
             let genMultilineAnonRecord =
                 let recordExpr =
@@ -616,7 +602,7 @@ let genExpr (e: Expr) =
                                      // Add enough spaces to start at the right column but indent from the opening curly brace.
                                      // Use a double indent when using a small indent size to avoid offset warnings.
                                      addFixedSpaces targetColumn
-                                     +> atCurrentColumn (enterNode fieldNode +> genSingleTextNode fieldNode.Ident)
+                                     +> atCurrentColumn (enterNode fieldNode +> genIdentListNode fieldNode.FieldName)
                                      +> sepSpace
                                      +> genSingleTextNode fieldNode.Equals
                                      +> expr
@@ -1714,6 +1700,13 @@ let genCopyExpr fieldsExpr ci =
     +> fieldsExpr
     +> whenShortIndent unindent
     +> unindent
+
+let genRecordFieldName (node: RecordFieldNode) =
+    genIdentListNode node.FieldName
+    +> sepSpace
+    +> genSingleTextNode node.Equals
+    +> sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidthUnlessStroustrup genExpr node.Expr
+    |> genNode node
 
 let genQuoteExpr (node: ExprQuoteNode) =
     genSingleTextNode node.OpenToken

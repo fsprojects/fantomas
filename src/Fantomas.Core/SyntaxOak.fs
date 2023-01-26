@@ -782,20 +782,12 @@ type ExprRecordNode
     member val Fields = fields
     member val ClosingBrace = closingBrace
 
-type AnonRecordFieldNode(ident: SingleTextNode, equals: SingleTextNode, rhs: Expr, range) =
-    inherit NodeBase(range)
-
-    override val Children: Node array = [| yield ident; yield equals; yield Expr.Node rhs |]
-    member val Ident = ident
-    member val Equals = equals
-    member val Expr = rhs
-
 type ExprAnonRecordNode
     (
         isStruct: bool,
         openingBrace: SingleTextNode,
         copyInfo: Expr option,
-        fields: AnonRecordFieldNode list,
+        fields: RecordFieldNode list,
         closingBrace: SingleTextNode,
         range
     ) =

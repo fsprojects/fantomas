@@ -976,7 +976,11 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
             |> List.choose (function
                 | ident, Some mEq, e ->
                     let m = unionRanges ident.idRange e.Range
-                    Some(AnonRecordFieldNode(mkIdent ident, stn "=" mEq, mkExpr creationAide e, m))
+
+                    let longIdent =
+                        IdentListNode([ IdentifierOrDot.Ident(mkIdent ident) ], ident.idRange)
+
+                    Some(RecordFieldNode(longIdent, stn "=" mEq, mkExpr creationAide e, m))
                 | _ -> None)
 
         ExprAnonRecordNode(
