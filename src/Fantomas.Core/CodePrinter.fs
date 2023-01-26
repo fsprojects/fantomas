@@ -501,7 +501,10 @@ let genExpr (e: Expr) =
                     +> genSingleTextNode node.ClosingBrace
                 | RecordNodeExtra.With we ->
                     genSingleTextNode node.OpeningBrace
-                    +> addSpaceIfSpaceAroundDelimiter
+                    +> ifElseCtx
+                        (fun ctx -> ctx.Config.ExperimentalStroustrupStyle)
+                        (indent +> sepNln)
+                        addSpaceIfSpaceAroundDelimiter
                     +> atCurrentColumnIndent (genExpr we)
                     +> !- " with"
                     +> indent
@@ -510,6 +513,7 @@ let genExpr (e: Expr) =
                     +> fieldsExpr
                     +> unindent
                     +> whenShortIndent unindent
+                    +> onlyIfCtx (fun ctx -> ctx.Config.ExperimentalStroustrupStyle) unindent
                     +> sepNln
                     +> genSingleTextNode node.ClosingBrace
                 | RecordNodeExtra.None ->

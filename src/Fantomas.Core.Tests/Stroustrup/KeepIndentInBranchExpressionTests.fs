@@ -57,8 +57,9 @@ match x with
         """
 match x with
 | _ ->
-    { astContext with
-        IsInsideMatchClausePattern = true
+    {
+        astContext with
+            IsInsideMatchClausePattern = true
     }
 """
 

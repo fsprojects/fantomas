@@ -1731,8 +1731,8 @@ type Expr =
         match e with
         | Expr.Record node ->
             match node.Extra with
-            | RecordNodeExtra.Inherit _
-            | RecordNodeExtra.With _ -> false
+            | RecordNodeExtra.Inherit _ -> false
+            | RecordNodeExtra.With _
             | RecordNodeExtra.None -> true
         | Expr.AnonRecord node ->
             match node.CopyInfo with

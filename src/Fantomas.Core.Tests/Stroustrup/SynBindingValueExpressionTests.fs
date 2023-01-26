@@ -38,17 +38,40 @@ let ``synbinding value with update record`` () =
         false
         """
 let astCtx =
-    { astContext with IsInsideMatchClausePattern = true }
+    { astContext with IsInsideMatchClausePattern = true; OtherThing = "YOLO" }
 """
-        config
+        { config with
+            RecordMultilineFormatter = NumberOfItems }
     |> prepend newline
     |> should
         equal
         """
-let astCtx =
-    { astContext with
+let astCtx = {
+    astContext with
         IsInsideMatchClausePattern = true
-    }
+        OtherThing = "YOLO"
+}
+"""
+
+[<Test>]
+let ``synbinding value with update anonymous record`` () =
+    formatSourceString
+        false
+        """
+let astCtx =
+    {| astContext with IsInsideMatchClausePattern = true; OtherThing = "YOLO" |}
+"""
+        { config with
+            RecordMultilineFormatter = NumberOfItems }
+    |> prepend newline
+    |> should
+        equal
+        """
+let astCtx = {|
+    astContext with
+        IsInsideMatchClausePattern = true
+        OtherThing = "YOLO"
+|}
 """
 
 [<Test>]
@@ -235,10 +258,10 @@ type Foo() =
         equal
         """
 type Foo() =
-    member this.Bar =
-        { astContext with
+    member this.Bar = {
+        astContext with
             IsInsideMatchClausePattern = true
-        }
+    }
 """
 
 [<Test>]
