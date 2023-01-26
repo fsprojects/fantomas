@@ -598,3 +598,82 @@ let newState = {
         }
 }
 """
+
+[<Test>]
+let ``app node with single anonymous record member`` () =
+    formatSourceString
+        false
+        """
+let newState = {|
+    Foo =
+        Some
+            {|
+                F1 = 0
+                F2 = ""
+            |}
+|}
+"""
+        { config with
+            RecordMultilineFormatter = NumberOfItems }
+    |> prepend newline
+    |> should
+        equal
+        """
+let newState = {|
+    Foo =
+        Some {|
+            F1 = 0
+            F2 = ""
+        |}
+|}
+"""
+
+[<Test>]
+let ``app node with single record arg`` () =
+    formatSourceString
+        false
+        """
+let newState = 
+    Some
+        {
+            F1 = 0
+            F2 = ""
+        }
+"""
+        { config with
+            RecordMultilineFormatter = NumberOfItems }
+    |> prepend newline
+    |> should
+        equal
+        """
+let newState =
+    Some {
+        F1 = 0
+        F2 = ""
+    }
+"""
+
+[<Test>]
+let ``lowercase app node with single record arg`` () =
+    formatSourceString
+        false
+        """
+let newState = 
+    someFunc
+        {
+            F1 = 0
+            F2 = ""
+        }
+"""
+        { config with
+            RecordMultilineFormatter = NumberOfItems }
+    |> prepend newline
+    |> should
+        equal
+        """
+let newState =
+    someFunc {
+        F1 = 0
+        F2 = ""
+    }
+"""
