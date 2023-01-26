@@ -928,7 +928,7 @@ let addParenIfAutoNln expr f =
     let expr = f expr
     expressionFitsOnRestOfLine expr (ifElse hasParenthesis (sepOpenT +> expr +> sepCloseT) expr)
 
-let indentSepNlnUnindentExprUnlessStroustrup f (e: Expr) (ctx: Context) =
+let indentSepNlnUnindentUnlessStroustrup f (e: Expr) (ctx: Context) =
     let shouldUseStroustrup =
         isStroustrupStyleExpr ctx.Config e && canSafelyUseStroustrup (Expr.Node e)
 

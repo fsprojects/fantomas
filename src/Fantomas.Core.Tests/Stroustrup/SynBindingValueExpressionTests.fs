@@ -1,4 +1,4 @@
-﻿module Fantomas.Core.Tests.Stroustrup.SynBindingValueExpressionTests
+module Fantomas.Core.Tests.Stroustrup.SynBindingValueExpressionTests
 
 open NUnit.Framework
 open FsUnit
@@ -567,5 +567,34 @@ let myRecord = {
         Value2 = 30
         Value3 = 40
     }
+}
+"""
+
+[<Test>]
+let ``app node with single record member`` () =
+    formatSourceString
+        false
+        """
+let newState = {
+    Foo =
+        Some
+            {
+                F1 = 0
+                F2 = ""
+            }
+}
+"""
+        { config with
+            RecordMultilineFormatter = NumberOfItems }
+    |> prepend newline
+    |> should
+        equal
+        """
+let newState = {
+    Foo =
+        Some {
+            F1 = 0
+            F2 = ""
+        }
 }
 """
