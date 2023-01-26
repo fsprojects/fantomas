@@ -394,7 +394,7 @@ type Foo() =
 """
 
 [<Test>]
-let ``let binding for anonymous record with expression, 2508`` () =
+let ``let binding for anonymous record with copy expression, 2508`` () =
     formatSourceString
         false
         """
@@ -412,14 +412,14 @@ let fooDto =
     |> should
         equal
         """
-let fooDto =
-    {| otherDto with
+let fooDto = {|
+    otherDto with
         TextFilters =
             criteria.Meta.TextFilter
             |> Option.map (fun f -> f.Filters)
             |> Option.map (List.map (sprintf "~%s~"))
             |> Option.toObj
-    |}
+|}
 """
 
 [<Test>]

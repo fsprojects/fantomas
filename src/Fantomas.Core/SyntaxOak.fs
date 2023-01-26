@@ -1734,10 +1734,7 @@ type Expr =
             | RecordNodeExtra.Inherit _ -> false
             | RecordNodeExtra.With _
             | RecordNodeExtra.None -> true
-        | Expr.AnonRecord node ->
-            match node.CopyInfo with
-            | Some _ -> false
-            | None -> true
+        | Expr.AnonRecord _ -> true
         | Expr.NamedComputation node ->
             match node.Name with
             | Expr.Ident _ -> true
