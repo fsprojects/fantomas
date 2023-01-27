@@ -36,4 +36,4 @@ type CodeFormatter =
     static member MakeRange: fileName: string * startLine: int * startCol: int * endLine: int * endCol: int -> range
 
     /// Make a pos from line and column
-    static member MakePosition: line: int * column: int -> pos
+    static member MakeSomePosition: line: int * column: int -> pos option

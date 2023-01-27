@@ -1,5 +1,10 @@
 # Changelog
 
+## [Unreleased]
+
+### Changed
+* Rename public API `CodeFormatter.MakePosition -> CodeFormatter.MakeSomePosition` and change its return type to `pos option`. [#2749](https://github.com/fsprojects/fantomas/pull/2749)
+
 ## [6.0.0-alpha-001] - 2023-01-24
 
 ### Changed

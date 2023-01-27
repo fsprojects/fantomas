@@ -32,4 +32,4 @@ type CodeFormatter =
     static member MakeRange(fileName, startLine, startCol, endLine, endCol) =
         Range.mkRange fileName (Position.mkPos startLine startCol) (Position.mkPos endLine endCol)
 
-    static member MakePosition(line, column) = Position.mkPos line column
+    static member MakeSomePosition(line, column) = Position.mkPos line column |> Some

@@ -60,7 +60,7 @@ type FantomasDaemon(sender: Stream, reader: Stream) as this =
 
                 let cursor =
                     request.Cursor
-                    |> Option.map (fun cursor -> CodeFormatter.MakePosition(cursor.Line, cursor.Column))
+                    |> Option.bind (fun cursor -> CodeFormatter.MakeSomePosition(cursor.Line, cursor.Column))
 
                 try
                     let! formatResponse =

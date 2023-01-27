@@ -17,7 +17,7 @@ let a =
 """
 
     let formattedResult =
-        CodeFormatter.FormatDocumentAsync(false, source, cursor = CodeFormatter.MakePosition(3, 8))
+        CodeFormatter.FormatDocumentAsync(false, source, ?cursor = CodeFormatter.MakeSomePosition(3, 8))
         |> Async.RunSynchronously
 
     // After formatting the let binding will be on one line
@@ -35,7 +35,7 @@ let a =
 """
 
     let formattedResult =
-        CodeFormatter.FormatDocumentAsync(false, source, cursor = CodeFormatter.MakePosition(3, 7))
+        CodeFormatter.FormatDocumentAsync(false, source, ?cursor = CodeFormatter.MakeSomePosition(3, 7))
         |> Async.RunSynchronously
 
     match formattedResult.Cursor with
