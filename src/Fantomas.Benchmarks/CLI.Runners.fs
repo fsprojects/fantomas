@@ -6,7 +6,7 @@ open Fantomas.Core
 open System.IO
 open BenchmarkDotNet.Configs
 
-let config = FormatConfig.FormatConfig.Default
+let config = FormatConfig.Default
 
 let (</>) x y = Path.Combine(x, y)
 

@@ -407,7 +407,7 @@ let main argv =
                 match verbosity with
                 | VerbosityLevel.Normal ->
                     match ex with
-                    | :? FormatConfig.FormatException as fe -> fe.Message
+                    | :? Fantomas.Core.FormatException as fe -> fe.Message
                     | :? CodeFormatException as fe -> fe.Message
                     | _ -> ""
                 | VerbosityLevel.Detailed -> sprintf "%A" ex
