@@ -13,8 +13,8 @@ let (</>) x y = Path.Combine(x, y)
 [<MemoryDiagnoser>]
 [<RankColumn>]
 [<GroupBenchmarksBy(BenchmarkLogicalGroupRule.ByParams)>]
-[<SimpleJob(runStrategy = RunStrategy.ColdStart, targetCount = 3)>]
-type ColdStart() =
+[<SimpleJob(runStrategy = RunStrategy.ColdStart, targetCount = 20)>]
+type ParallelVsSequentialFormatting() =
 
     let tmpDir = __SOURCE_DIRECTORY__ </> ".." </> ".." </> "tmp"
 
@@ -28,19 +28,26 @@ type ColdStart() =
 
         Program.main args |> ignore
 
-    //? Should we download these repositories automatically?
+    // Currently have to manually pull these repositories
     [<Params("FsToolkit.ErrorHandling", "FAKE", "fsharp", "Plotly.NET")>]
     member val projects = "" with get, set
 
     [<IterationSetup>]
     member this.Setup() =
         let projectDir = tmpDir </> this.projects
+        printfn $"git reset --hard  {projectDir}"
 
         let psi =
-            System.Diagnostics.ProcessStartInfo("git", "--reset HARD", WorkingDirectory = projectDir)
+            System.Diagnostics.ProcessStartInfo("git", "reset --hard", WorkingDirectory = projectDir)
 
+        psi.RedirectStandardError <- true
+        psi.RedirectStandardOutput <- true
         let p = System.Diagnostics.Process.Start(psi)
         p.WaitForExit()
+        let output = p.StandardOutput.ReadToEnd()
+        let err = p.StandardError.ReadToEnd()
+        printfn "%s" (output)
+        printfn "%s" (err)
 
     [<Benchmark(Baseline = true)>]
     member this.FormatCode_Sequentially() = formatCode false this.projects

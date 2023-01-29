@@ -41,10 +41,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		README.md = README.md
 	EndProjectSection
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{D55FCBF0-2648-43B3-B55F-853DD0A91085}"
-EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Fantomas.CLI.Benchmarks", "src\Fantomas.CLI.Benchmarks\Fantomas.CLI.Benchmarks.fsproj", "{717DBF5B-9BE2-47EC-88E9-23BFE96441CE}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -139,26 +135,11 @@ Global
 		{B39D50EE-0307-4C08-81F5-97418A946F63}.Release|x64.Build.0 = Release|Any CPU
 		{B39D50EE-0307-4C08-81F5-97418A946F63}.Release|x86.ActiveCfg = Release|Any CPU
 		{B39D50EE-0307-4C08-81F5-97418A946F63}.Release|x86.Build.0 = Release|Any CPU
-		{717DBF5B-9BE2-47EC-88E9-23BFE96441CE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{717DBF5B-9BE2-47EC-88E9-23BFE96441CE}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{717DBF5B-9BE2-47EC-88E9-23BFE96441CE}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{717DBF5B-9BE2-47EC-88E9-23BFE96441CE}.Debug|x64.Build.0 = Debug|Any CPU
-		{717DBF5B-9BE2-47EC-88E9-23BFE96441CE}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{717DBF5B-9BE2-47EC-88E9-23BFE96441CE}.Debug|x86.Build.0 = Debug|Any CPU
-		{717DBF5B-9BE2-47EC-88E9-23BFE96441CE}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{717DBF5B-9BE2-47EC-88E9-23BFE96441CE}.Release|Any CPU.Build.0 = Release|Any CPU
-		{717DBF5B-9BE2-47EC-88E9-23BFE96441CE}.Release|x64.ActiveCfg = Release|Any CPU
-		{717DBF5B-9BE2-47EC-88E9-23BFE96441CE}.Release|x64.Build.0 = Release|Any CPU
-		{717DBF5B-9BE2-47EC-88E9-23BFE96441CE}.Release|x86.ActiveCfg = Release|Any CPU
-		{717DBF5B-9BE2-47EC-88E9-23BFE96441CE}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {DEBFC920-A647-4859-890D-B59793D27594}
-	EndGlobalSection
-	GlobalSection(NestedProjects) = preSolution
-		{717DBF5B-9BE2-47EC-88E9-23BFE96441CE} = {D55FCBF0-2648-43B3-B55F-853DD0A91085}
 	EndGlobalSection
 EndGlobal
