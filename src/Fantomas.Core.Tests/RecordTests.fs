@@ -1652,6 +1652,49 @@ let rainbow2 =
       Lackeys = [ "Zippy"; "George"; "Bungle" ] }
 """
 
+// `Aligned` copy-and-update expression keeps label on first line to match G-Research style guide
+[<Test>]
+let ``update record in aligned style`` () =
+    formatSourceString
+        false
+        """
+let rainbow2 =
+   { rainbow with Boss = "Jeffrey" ; Lackeys = [ "Zippy"; "George"; "Bungle" ] }
+"""
+        { config with
+            MultilineBracketStyle = Aligned }
+    |> prepend newline
+    |> should
+        equal
+        """
+let rainbow2 =
+    { rainbow with
+        Boss = "Jeffrey"
+        Lackeys = [ "Zippy"; "George"; "Bungle" ]
+    }
+"""
+
+[<Test>]
+let ``update record in stroustrup style`` () =
+    formatSourceString
+        false
+        """
+let rainbow2 =
+   { rainbow with Boss = "Jeffrey" ; Lackeys = [ "Zippy"; "George"; "Bungle" ] }
+"""
+        { config with
+            MultilineBracketStyle = ExperimentalStroustrup }
+    |> prepend newline
+    |> should
+        equal
+        """
+let rainbow2 = {
+    rainbow with
+        Boss = "Jeffrey"
+        Lackeys = [ "Zippy"; "George"; "Bungle" ]
+}
+"""
+
 [<Test>]
 let ``record with comments above field`` () =
     formatSourceString
