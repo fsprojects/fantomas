@@ -2,8 +2,11 @@
 
 ## [Unreleased]
 
+### Fixed
+* Conditional defines around selfIdentifier in implicit type constructor. [#2733](https://github.com/fsprojects/fantomas/issues/2733)
+
 ### Changed
-* Update FCS to 'Remove unused code', commit cb106cf3182ff218f0a0e42780815dba94b60013
+* Update FCS to 'Add SynMemberDefnImplicitCtorTrivia', commit 924a64e8e40c840f05fbe7113796f267dd603282
 
 ## [5.2.0] - 2023-01-19
 

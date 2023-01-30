@@ -2990,3 +2990,31 @@ let ``dead code in active block`` () =
 b
 #endif
 """
+
+[<Test>]
+let ``defines around selfIdentifier in implicit type constructor, 2733`` () =
+    formatSourceString
+        false
+        """
+type internal CompilerStateCache(readAllBytes: string -> byte[], projectOptions: FSharpProjectOptions)
+#if !NO_TYPEPROVIDERS
+    as this =
+#else
+    =
+#endif
+    class end
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type internal CompilerStateCache(readAllBytes: string -> byte[], projectOptions: FSharpProjectOptions)
+#if !NO_TYPEPROVIDERS
+    as this =
+#else
+    =
+#endif
+    class
+    end
+"""

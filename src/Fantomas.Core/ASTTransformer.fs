@@ -2168,7 +2168,14 @@ let mkSynUnionCase
         fullRange
     )
 
-let mkImplicitCtor creationAide vis (attrs: SynAttributeList list) pats (self: Ident option) (xmlDoc: PreXmlDoc) =
+let mkImplicitCtor
+    creationAide
+    vis
+    (attrs: SynAttributeList list)
+    pats
+    (self: (range * Ident) option)
+    (xmlDoc: PreXmlDoc)
+    =
     let openNode, closeNode =
         match pats with
         | SynSimplePats.SimplePats(range = StartEndRange 1 (mOpen, _, mClose))
@@ -2215,10 +2222,17 @@ let mkImplicitCtor creationAide vis (attrs: SynAttributeList list) pats (self: I
 
         let endRange =
             match self with
-            | Some self -> self.idRange
+            | Some(_, self) -> self.idRange
             | None -> closeNode.Range
 
         unionRanges startRange endRange
+
+    let asSelfNode =
+        match self with
+        | None -> None
+        | Some(mAs, self) ->
+            let m = unionRanges mAs self.idRange
+            Some(AsSelfIdentifierNode(stn "as" mAs, mkIdent self, m))
 
     ImplicitConstructorNode(
         mkXmlDoc xmlDoc,
@@ -2227,7 +2241,7 @@ let mkImplicitCtor creationAide vis (attrs: SynAttributeList list) pats (self: I
         openNode,
         pats,
         closeNode,
-        Option.map mkIdent self,
+        asSelfNode,
         range
     )
 
@@ -2250,7 +2264,12 @@ let mkTypeDefn
 
             let implicitConstructorNode =
                 match implicitConstructor with
-                | Some(SynMemberDefn.ImplicitCtor(vis, attrs, pats, self, xmlDoc, _)) ->
+                | Some(SynMemberDefn.ImplicitCtor(vis, attrs, pats, self, xmlDoc, _, trivia)) ->
+                    let self =
+                        match self, trivia.AsKeyword with
+                        | Some self, Some mAs -> Some(mAs, self)
+                        | _ -> None
+
                     mkImplicitCtor creationAide vis attrs pats self xmlDoc |> Some
                 | _ -> None
 
@@ -2293,14 +2312,14 @@ let mkTypeDefn
     | SynTypeDefnRepr.Simple(simpleRepr = SynTypeDefnSimpleRepr.Enum(ecs, _)) ->
         let enumCases =
             ecs
-            |> List.map (fun (SynEnumCase(attributes, ident, value, valueRange, xmlDoc, range, trivia)) ->
+            |> List.map (fun (SynEnumCase(attributes, ident, valueExpr, xmlDoc, range, trivia)) ->
                 EnumCaseNode(
                     mkXmlDoc xmlDoc,
                     Option.map (stn "|") trivia.BarRange,
                     mkAttributes creationAide attributes,
                     mkSynIdent ident,
                     stn "=" trivia.EqualsRange,
-                    mkConstant creationAide value valueRange,
+                    mkExpr creationAide valueExpr,
                     range
                 ))
 
@@ -2980,14 +2999,14 @@ let mkTypeDefnSig (creationAide: CreationAide) (SynTypeDefnSig(typeInfo, typeRep
     | SynTypeDefnSigRepr.Simple(repr = SynTypeDefnSimpleRepr.Enum(ecs, _)) ->
         let enumCases =
             ecs
-            |> List.map (fun (SynEnumCase(attributes, ident, value, valueRange, xmlDoc, range, trivia)) ->
+            |> List.map (fun (SynEnumCase(attributes, ident, valueExpr, xmlDoc, range, trivia)) ->
                 EnumCaseNode(
                     mkXmlDoc xmlDoc,
                     Option.map (stn "|") trivia.BarRange,
                     mkAttributes creationAide attributes,
                     mkSynIdent ident,
                     stn "=" trivia.EqualsRange,
-                    mkConstant creationAide value valueRange,
+                    mkExpr creationAide valueExpr,
                     range
                 ))
 

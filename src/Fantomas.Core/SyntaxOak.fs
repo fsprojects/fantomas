@@ -2108,7 +2108,7 @@ type EnumCaseNode
         attributes: MultipleAttributeListNode option,
         identifier: SingleTextNode,
         equals: SingleTextNode,
-        constant: Constant,
+        constant: Expr,
         range
     ) =
     inherit NodeBase(range)
@@ -2118,7 +2118,7 @@ type EnumCaseNode
            yield! noa bar
            yield identifier
            yield equals
-           yield Constant.Node constant |]
+           yield Expr.Node constant |]
 
     member val XmlDoc = xmlDoc
     member val Bar = bar
@@ -2217,6 +2217,12 @@ type SimplePatNode
     member val Identifier = identifier
     member val Type = t
 
+type AsSelfIdentifierNode(asNode: SingleTextNode, self: SingleTextNode, range) =
+    inherit NodeBase(range)
+    override val Children = [| yield (asNode :> Node); yield self |]
+    member val As = asNode
+    member val Self = self
+
 type ImplicitConstructorNode
     (
         xmlDoc: XmlDocNode option,
@@ -2225,7 +2231,7 @@ type ImplicitConstructorNode
         openingParen: SingleTextNode,
         parameters: SimplePatNode list,
         closingParen: SingleTextNode,
-        self: SingleTextNode option,
+        self: AsSelfIdentifierNode option,
         range
     ) =
     inherit NodeBase(range)
