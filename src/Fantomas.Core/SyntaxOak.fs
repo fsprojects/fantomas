@@ -764,23 +764,43 @@ type RecordFieldNode(fieldName: IdentListNode, equals: SingleTextNode, expr: Exp
 type ExprRecordNode
     (
         openingBrace: SingleTextNode,
-        extra: RecordNodeExtra,
+        copyInfo: Expr option,
         fields: RecordFieldNode list,
         closingBrace: SingleTextNode,
         range
     ) =
     inherit NodeBase(range)
 
+    member val OpeningBrace = openingBrace
+    member val Fields = fields
+    member val CopyInfo = copyInfo
+    member val ClosingBrace = closingBrace
+
     override val Children: Node array =
         [| yield openingBrace
-           yield! noa (RecordNodeExtra.Node extra)
+           yield! copyInfo |> Option.map Expr.Node |> noa
            yield! nodes fields
            yield closingBrace |]
 
-    member val OpeningBrace = openingBrace
-    member val Extra = extra
-    member val Fields = fields
-    member val ClosingBrace = closingBrace
+    member x.HasFields = List.isNotEmpty x.Fields
+
+type ExprInheritRecordNode
+    (
+        openingBrace: SingleTextNode,
+        inheritConstructor: InheritConstructor,
+        fields: RecordFieldNode list,
+        closingBrace: SingleTextNode,
+        range
+    ) =
+    inherit ExprRecordNode(openingBrace, None, fields, closingBrace, range)
+
+    override val Children: Node array =
+        [| yield openingBrace
+           yield InheritConstructor.Node inheritConstructor
+           yield! nodes fields
+           yield closingBrace |]
+
+    member val InheritConstructor = inheritConstructor
 
 type ExprAnonRecordNode
     (
@@ -791,19 +811,8 @@ type ExprAnonRecordNode
         closingBrace: SingleTextNode,
         range
     ) =
-    inherit NodeBase(range)
-
-    override val Children: Node array =
-        [| yield openingBrace
-           yield! noa (Option.map Expr.Node copyInfo)
-           yield! nodes fields
-           yield closingBrace |]
-
+    inherit ExprRecordNode(openingBrace, copyInfo, fields, closingBrace, range)
     member val IsStruct = isStruct
-    member val OpeningBrace = openingBrace
-    member val CopyInfo = copyInfo
-    member val Fields = fields
-    member val ClosingBrace = closingBrace
 
 type InterfaceImplNode
     (
@@ -1599,6 +1608,7 @@ type Expr =
     | StructTuple of ExprStructTupleNode
     | ArrayOrList of ExprArrayOrListNode
     | Record of ExprRecordNode
+    | InheritRecord of ExprInheritRecordNode
     | AnonRecord of ExprAnonRecordNode
     | ObjExpr of ExprObjExprNode
     | While of ExprWhileNode
@@ -1663,6 +1673,7 @@ type Expr =
         | StructTuple n -> n
         | ArrayOrList n -> n
         | Record n -> n
+        | InheritRecord n -> n
         | AnonRecord n -> n
         | ObjExpr n -> n
         | While n -> n

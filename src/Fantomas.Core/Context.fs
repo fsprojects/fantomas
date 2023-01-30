@@ -756,11 +756,7 @@ let isStroustrupStyleExpr (config: FormatConfig) (e: Expr) =
     let isStroustrupEnabled = config.MultilineBracketStyle = Stroustrup
 
     match e with
-    | Expr.Record node ->
-        match node.Extra with
-        | RecordNodeExtra.Inherit _ -> false
-        | RecordNodeExtra.With _
-        | RecordNodeExtra.None -> isStroustrupEnabled
+    | Expr.Record _
     | Expr.AnonRecord _
     | Expr.ArrayOrList _ -> isStroustrupEnabled
     | Expr.NamedComputation _ -> not config.NewlineBeforeMultilineComputationExpression
