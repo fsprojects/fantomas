@@ -761,7 +761,16 @@ type RecordFieldNode(fieldName: IdentListNode, equals: SingleTextNode, expr: Exp
     member val Equals = equals
     member val Expr = expr
 
-type ExprRecordNode
+[<AbstractClass>]
+type ExprRecordNode(openingBrace: SingleTextNode, fields: RecordFieldNode list, closingBrace: SingleTextNode, range) =
+    inherit NodeBase(range)
+
+    member val OpeningBrace = openingBrace
+    member val Fields = fields
+    member val ClosingBrace = closingBrace
+    member x.HasFields = List.isNotEmpty x.Fields
+
+type ExprCopyableRecordNode
     (
         openingBrace: SingleTextNode,
         copyInfo: Expr option,
@@ -769,12 +778,9 @@ type ExprRecordNode
         closingBrace: SingleTextNode,
         range
     ) =
-    inherit NodeBase(range)
+    inherit ExprRecordNode(openingBrace, fields, closingBrace, range)
 
-    member val OpeningBrace = openingBrace
-    member val Fields = fields
     member val CopyInfo = copyInfo
-    member val ClosingBrace = closingBrace
 
     override val Children: Node array =
         [| yield openingBrace
@@ -792,15 +798,15 @@ type ExprInheritRecordNode
         closingBrace: SingleTextNode,
         range
     ) =
-    inherit ExprRecordNode(openingBrace, None, fields, closingBrace, range)
+    inherit ExprRecordNode(openingBrace, fields, closingBrace, range)
+
+    member val InheritConstructor = inheritConstructor
 
     override val Children: Node array =
         [| yield openingBrace
            yield InheritConstructor.Node inheritConstructor
            yield! nodes fields
            yield closingBrace |]
-
-    member val InheritConstructor = inheritConstructor
 
 type ExprAnonRecordNode
     (
@@ -811,7 +817,7 @@ type ExprAnonRecordNode
         closingBrace: SingleTextNode,
         range
     ) =
-    inherit ExprRecordNode(openingBrace, copyInfo, fields, closingBrace, range)
+    inherit ExprCopyableRecordNode(openingBrace, copyInfo, fields, closingBrace, range)
     member val IsStruct = isStruct
 
 type InterfaceImplNode
@@ -1607,7 +1613,7 @@ type Expr =
     | Tuple of ExprTupleNode
     | StructTuple of ExprStructTupleNode
     | ArrayOrList of ExprArrayOrListNode
-    | Record of ExprRecordNode
+    | Record of ExprCopyableRecordNode
     | InheritRecord of ExprInheritRecordNode
     | AnonRecord of ExprAnonRecordNode
     | ObjExpr of ExprObjExprNode
