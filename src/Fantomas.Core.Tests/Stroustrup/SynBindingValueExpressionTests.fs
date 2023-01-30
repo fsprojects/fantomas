@@ -677,3 +677,45 @@ let newState =
         F2 = ""
     }
 """
+
+[<Test>]
+let ``lowercase app node with multiple args ending in a single record arg`` () =
+    formatSourceString
+        false
+        """
+let newState = 
+    myFn a b c { D = d; E = e }
+"""
+        { config with
+            RecordMultilineFormatter = NumberOfItems }
+    |> prepend newline
+    |> should
+        equal
+        """
+let newState =
+    myFn a b c {
+        D = d
+        E = e
+    }
+"""
+
+[<Test>]
+let ``lowercase app node with multiple args ending in a single anonymous record arg`` () =
+    formatSourceString
+        false
+        """
+let newState = 
+    myFn a b c {| D = d; E = e |}
+"""
+        { config with
+            RecordMultilineFormatter = NumberOfItems }
+    |> prepend newline
+    |> should
+        equal
+        """
+let newState =
+    myFn a b c {|
+        D = d
+        E = e
+    |}
+"""

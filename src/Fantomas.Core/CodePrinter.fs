@@ -1178,6 +1178,31 @@ let genExpr (e: Expr) =
                 else
                     short ctx
 
+            | EndsWithSingleRecordApp ctx.Config (sequentialArgs: Expr list, recordOrAnonRecord) ->
+                // check if everything else beside the last array/list fits on one line
+                let singleLineTestExpr =
+                    genExpr node.FunctionExpr +> sepSpace +> col sepSpace sequentialArgs genExpr
+
+                let short =
+                    genExpr node.FunctionExpr
+                    +> sepSpace
+                    +> col sepSpace sequentialArgs genExpr
+                    +> onlyIfNot sequentialArgs.IsEmpty sepSpace
+                    +> genExpr recordOrAnonRecord
+
+                let long =
+                    genExpr node.FunctionExpr
+                    +> indent
+                    +> sepNln
+                    +> col sepNln sequentialArgs genExpr
+                    +> onlyIfNot sequentialArgs.IsEmpty sepNln
+                    +> genExpr recordOrAnonRecord
+                    +> unindent
+
+                if futureNlnCheck singleLineTestExpr ctx then
+                    long ctx
+                else
+                    short ctx
             | _ ->
                 let shortExpression =
                     let sep ctx =
@@ -1190,9 +1215,7 @@ let genExpr (e: Expr) =
 
                 let longExpression =
                     genExpr node.FunctionExpr
-                    +> match node.Arguments with
-                       | [ singleArg ] -> sepSpace +> indentSepNlnUnindentUnlessStroustrup genExpr singleArg
-                       | multiple -> indentSepNlnUnindent (col sepNln multiple genExpr)
+                    +> indentSepNlnUnindent (col sepNln node.Arguments genExpr)
 
                 expressionFitsOnRestOfLine shortExpression longExpression ctx
 
@@ -2138,6 +2161,22 @@ let (|EndsWithSingleListApp|_|) (config: FormatConfig) (appNode: ExprAppNode) =
             match args with
             | [] -> None
             | [ Expr.ArrayOrList _ as singleList ] -> Some(otherArgs.Close(), singleList)
+            | arg :: args ->
+                otherArgs.Add(arg)
+                visit args
+
+        visit appNode.Arguments
+
+let (|EndsWithSingleRecordApp|_|) (config: FormatConfig) (appNode: ExprAppNode) =
+    if not config.ExperimentalStroustrupStyle then
+        None
+    else
+        let mutable otherArgs = ListCollector<Expr>()
+
+        let rec visit (args: Expr list) =
+            match args with
+            | [] -> None
+            | [ Expr.Record _ | Expr.AnonRecord _ as singleList ] -> Some(otherArgs.Close(), singleList)
             | arg :: args ->
                 otherArgs.Add(arg)
                 visit args
