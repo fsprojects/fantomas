@@ -463,34 +463,21 @@ let genExpr (e: Expr) =
     | Expr.Record node ->
         let smallRecordExpr = genSmallCopyableRecordNode node
         let genCrampedFields = genMultilineStandardRecordExprCrampedFields node
-
-        let multilineRecordExpr =
-            ifAlignOrStroustrupBrackets
-                (genMultilineRecordAlignBrackets node)
-                (genMultilineRecordCramped genCrampedFields node)
-
+        let multilineRecordExpr = genMultilineRecord genCrampedFields node
         genRecord smallRecordExpr multilineRecordExpr node
     | Expr.AnonRecord node ->
         let genStructPrefix = onlyIf node.IsStruct !- "struct "
-
         let smallRecordExpr = genStructPrefix +> genSmallCopyableRecordNode node
-
         let genCrampedFields = genMultilineAnonRecordCrampedFields node
 
         let multilineRecordExpr =
-            genStructPrefix
-            +> ifAlignOrStroustrupBrackets
-                (genMultilineRecordAlignBrackets node)
-                (genMultilineRecordCramped genCrampedFields node)
+            genStructPrefix +> genMultilineRecord genCrampedFields node
 
         genRecord smallRecordExpr multilineRecordExpr node
-
     | Expr.InheritRecord node ->
         let smallRecordExpr = genSmallInheritRecordExpr node
         let multilineRecordExpr = genMultilineInheritRecordInstance node
-
         genRecord smallRecordExpr multilineRecordExpr node
-
     | Expr.ObjExpr node ->
         let param = optSingle genExpr node.Expr
 
@@ -1686,7 +1673,7 @@ let genMultilineStandardRecordExprCrampedFields (node: ExprCopyableRecordNode) t
                     +> atCurrentColumn (genRecordFieldName e))
                 ctx
 
-let genMultilineRecordCramped genFields (node: ExprCopyableRecordNode) (ctx: Context) =
+let genMultilineRecord genCrampedFields (node: ExprCopyableRecordNode) (ctx: Context) =
     let expressionStartColumn = ctx.Column
 
     let targetColumn =
@@ -1698,19 +1685,19 @@ let genMultilineRecordCramped genFields (node: ExprCopyableRecordNode) (ctx: Con
            else
                openBracketLength)
 
-    let genMultiline =
+    let genMultilineCramped =
         match node.CopyInfo with
         | Some _ ->
             genSingleTextNode node.OpeningBrace
             +> sepNlnWhenWriteBeforeNewlineNotEmptyOr addSpaceIfSpaceAroundDelimiter // comment after curly brace
-            +> genFields targetColumn
+            +> genCrampedFields targetColumn
             +> addSpaceIfSpaceAroundDelimiter
             +> genSingleTextNode node.ClosingBrace
         | None ->
             atCurrentColumn (
                 genSingleTextNodeSuffixDelimiter node.OpeningBrace
                 +> sepNlnWhenWriteBeforeNewlineNotEmpty // comment after curly brace
-                +> genFields targetColumn
+                +> genCrampedFields targetColumn
                 +> sepNlnWhenWriteBeforeNewlineNotEmpty
                 +> (fun ctx ->
                     // Edge case scenario to make sure that the closing brace is not before the opening one
@@ -1721,7 +1708,7 @@ let genMultilineRecordCramped genFields (node: ExprCopyableRecordNode) (ctx: Con
                     ifElseCtx lastWriteEventIsNewline brace (addSpaceIfSpaceAroundDelimiter +> brace) ctx)
             )
 
-    ifAlignOrStroustrupBrackets (genMultilineRecordAlignBrackets node) genMultiline ctx
+    ifAlignOrStroustrupBrackets (genMultilineRecordAlignBrackets node) genMultilineCramped ctx
 
 let genRecord smallRecordExpr multilineRecordExpr (node: ExprRecordNode) =
     fun ctx ->
