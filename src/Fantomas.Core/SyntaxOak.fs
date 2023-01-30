@@ -382,11 +382,6 @@ type Type =
         | Or n -> n
         | LongIdentApp n -> n
 
-    member e.IsStroustrupStyleType: bool =
-        match e with
-        | AnonRecord _ -> true
-        | _ -> false
-
 /// A pattern composed from a left hand-side pattern, a single text token/operator and a right hand-side pattern.
 type PatLeftMiddleRight(lhs: Pattern, middle: Choice<SingleTextNode, string>, rhs: Pattern, range) =
     inherit NodeBase(range)
@@ -1727,25 +1722,11 @@ type Expr =
         | Typar n -> n
         | Chain n -> n
 
-    member e.IsStroustrupStyleExpr: bool =
-        match e with
-        | Expr.Record node ->
-            match node.Extra with
-            | RecordNodeExtra.Inherit _
-            | RecordNodeExtra.With _ -> false
-            | RecordNodeExtra.None -> true
-        | Expr.AnonRecord node ->
-            match node.CopyInfo with
-            | Some _ -> false
-            | None -> true
-        | Expr.ArrayOrList _ -> true
-        | _ -> false
-
     member e.HasParentheses: bool =
         match e with
         | Expr.Paren _ -> true
         | _ -> false
-
+        
 type OpenModuleOrNamespaceNode(identListNode: IdentListNode, range) =
     inherit NodeBase(range)
 

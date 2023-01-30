@@ -871,7 +871,7 @@ let genExpr (e: Expr) =
                 onlyIf
                     (isMultiline
                      && ctx.Config.MultiLineLambdaClosingNewline
-                     && not (ctx.Config.ExperimentalStroustrupStyle && node.Lambda.Expr.IsStroustrupStyleExpr))
+                     && not (isStroustrupExpr ctx.Config node.Lambda.Expr))
                     sepNln
                     ctx)
         +> genSingleTextNode node.ClosingParen
@@ -1073,7 +1073,7 @@ let genExpr (e: Expr) =
                             (fun ctx ->
                                 ctx.Config.MultiLineLambdaClosingNewline
                                 && (not (
-                                    ctx.Config.ExperimentalStroustrupStyle && lambdaNode.Expr.IsStroustrupStyleExpr
+                                    (isStroustrupExpr ctx.Config lambdaNode.Expr)
                                 )))
                             sepNln
                         +> genSingleTextNode appParen.Paren.ClosingParen
@@ -1922,7 +1922,7 @@ let genClause (isLastItem: bool) (node: MatchClauseNode) =
                         ctx)
 
     let genPatAndBody ctx =
-        if ctx.Config.ExperimentalStroustrupStyle && node.BodyExpr.IsStroustrupStyleExpr then
+        if (isStroustrupExpr ctx.Config node.BodyExpr)then
             let startColumn = ctx.Column
             (genPatInClause node.Pattern +> atIndentLevel false startColumn genWhenAndBody) ctx
         else
@@ -2182,7 +2182,7 @@ let genAppWithLambda sep (node: ExprAppWithLambdaNode) =
                         genSingleTextNode node.OpeningParen
                         +> (genLambdaWithParen lambdaNode |> genNode lambdaNode)
                         +> onlyIf
-                            (not (ctx.Config.ExperimentalStroustrupStyle && lambdaNode.Expr.IsStroustrupStyleExpr))
+                            (not (isStroustrupExpr ctx.Config lambdaNode.Expr))
                             sepNln
                         +> genSingleTextNode node.ClosingParen
                     | Choice2Of2 matchLambdaNode ->
@@ -2207,8 +2207,7 @@ let genAppWithLambda sep (node: ExprAppWithLambdaNode) =
                                     onlyIf
                                         (isMultiline
                                          && not (
-                                             ctx.Config.ExperimentalStroustrupStyle
-                                             && lambdaNode.Expr.IsStroustrupStyleExpr
+                                             isStroustrupExpr ctx.Config lambdaNode.Expr
                                          ))
                                         sepNln
                                     +> genSingleTextNode node.ClosingParen)
