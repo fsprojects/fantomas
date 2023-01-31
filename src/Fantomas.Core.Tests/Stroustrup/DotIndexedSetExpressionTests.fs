@@ -45,10 +45,10 @@ myMutable.[x] <-
     |> should
         equal
         """
-myMutable.[x] <-
-    { astContext with
+myMutable.[x] <- {
+    astContext with
         IsInsideMatchClausePattern = true
-    }
+}
 """
 
 [<Test>]
@@ -205,10 +205,10 @@ app().[x] <-
     |> should
         equal
         """
-app().[x] <-
-    { astContext with
+app().[x] <- {
+    astContext with
         IsInsideMatchClausePattern = true
-    }
+}
 """
 
 [<Test>]
@@ -371,10 +371,10 @@ app(meh).[x] <-
         """
 app(
     meh
-).[x] <-
-    { astContext with
+).[x] <- {
+    astContext with
         IsInsideMatchClausePattern = true
-    }
+}
 """
 
 [<Test>]

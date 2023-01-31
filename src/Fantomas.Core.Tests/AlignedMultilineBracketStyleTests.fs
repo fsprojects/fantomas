@@ -1,4 +1,4 @@
-module Fantomas.Core.Tests.MultilineBlockBracketsOnSameColumnRecordTests
+module Fantomas.Core.Tests.AlignedMultilineBracketStyleTests
 
 open NUnit.Framework
 open FsUnit
@@ -1455,4 +1455,93 @@ let a =
         Square = 9
     // test2
     |}
+"""
+
+[<Test>]
+let ``equality comparison with a `with` expression should format correctly with Allman alignment, 2507`` () =
+    formatSourceString
+        false
+        """
+let compareThings (first: Thing) (second: Thing) =
+    first = { second with
+                Foo = first.Foo
+                Bar = first.Bar
+            }
+"""
+        { config with
+            MultilineBracketStyle = Aligned }
+    |> prepend newline
+    |> should
+        equal
+        """
+let compareThings (first : Thing) (second : Thing) =
+    first = { second with
+                Foo = first.Foo
+                Bar = first.Bar
+            }
+"""
+
+// `Aligned` copy-and-update expression keeps label on first line to match G-Research style guide.
+// See https://github.com/G-Research/fsharp-formatting-conventions#formatting-copy-and-update-record-expressions
+[<Test>]
+let ``update record in aligned style`` () =
+    formatSourceString
+        false
+        """
+// standalone
+{ rainbow with Boss = "Jeffrey" ; Lackeys = [ "Zippy"; "George"; "Bungle" ] }
+
+// binding expression
+let v = { rainbow with Boss = "Jeffrey" ; Lackeys = [ "Zippy"; "George"; "Bungle" ] }
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+// standalone
+{ rainbow with
+    Boss = "Jeffrey"
+    Lackeys = [ "Zippy" ; "George" ; "Bungle" ]
+}
+
+// binding expression
+let v =
+    { rainbow with
+        Boss = "Jeffrey"
+        Lackeys = [ "Zippy" ; "George" ; "Bungle" ]
+    }
+"""
+
+// In contrast, Stroustrup will indent the entire record body when the record is placed standalone.
+[<Test>]
+let ``update record in stroustrup style`` () =
+    formatSourceString
+        false
+        """
+// standalone
+{ rainbow with Boss = "Jeffrey" ; Lackeys = [ "Zippy"; "George"; "Bungle" ] }
+
+// binding expression
+let v = { rainbow with Boss = "Jeffrey" ; Lackeys = [ "Zippy"; "George"; "Bungle" ] }
+"""
+        { config with
+            MultilineBracketStyle = ExperimentalStroustrup }
+    |> prepend newline
+    |> should
+        equal
+        """
+// standalone
+{
+    rainbow with
+        Boss = "Jeffrey"
+        Lackeys = [ "Zippy" ; "George" ; "Bungle" ]
+}
+
+// binding expression
+let v = {
+    rainbow with
+        Boss = "Jeffrey"
+        Lackeys = [ "Zippy" ; "George" ; "Bungle" ]
+}
 """
