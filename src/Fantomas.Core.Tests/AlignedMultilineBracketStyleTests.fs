@@ -1526,7 +1526,7 @@ let ``update record in stroustrup style`` () =
 let v = { rainbow with Boss = "Jeffrey" ; Lackeys = [ "Zippy"; "George"; "Bungle" ] }
 """
         { config with
-            MultilineBracketStyle = ExperimentalStroustrup }
+            MultilineBracketStyle = Stroustrup }
     |> prepend newline
     |> should
         equal

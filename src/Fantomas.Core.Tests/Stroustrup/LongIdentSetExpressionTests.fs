@@ -7,7 +7,7 @@ open Fantomas.Core.Tests.TestHelper
 
 let config =
     { config with
-        MultilineBracketStyle = ExperimentalStroustrup
+        MultilineBracketStyle = Stroustrup
         MaxArrayOrListWidth = 40 }
 
 [<Test>]

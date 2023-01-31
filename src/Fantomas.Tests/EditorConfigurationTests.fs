@@ -464,7 +464,7 @@ fsharp_multiline_bracket_style = experimental_stroustrup
 
     let config = EditorConfig.readConfiguration fsharpFile.FSharpFile
 
-    Assert.AreEqual(ExperimentalStroustrup, config.MultilineBracketStyle)
+    Assert.AreEqual(Stroustrup, config.MultilineBracketStyle)
 
 [<Test>]
 let ``fsharp_multiline_bracket_style = aligned`` () =

@@ -8,7 +8,7 @@ open Fantomas.Core
 let config =
     { config with
         MultiLineLambdaClosingNewline = true
-        MultilineBracketStyle = ExperimentalStroustrup
+        MultilineBracketStyle = Stroustrup
         MaxArrayOrListWidth = 40 }
 
 [<Test>]

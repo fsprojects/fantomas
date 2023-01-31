@@ -26,19 +26,20 @@ type MultilineFormatterType =
 type MultilineBracketStyle =
     | Cramped
     | Aligned
-    | ExperimentalStroustrup
+    | Stroustrup
 
     static member ToConfigString(cfg: MultilineBracketStyle) =
         match cfg with
         | Cramped -> "cramped"
         | Aligned -> "aligned"
-        | ExperimentalStroustrup -> "experimental_stroustrup"
+        | Stroustrup -> "stroustrup"
 
     static member OfConfigString(cfgString: string) =
         match cfgString with
         | "cramped" -> Some Cramped
         | "aligned" -> Some Aligned
-        | "experimental_stroustrup" -> Some ExperimentalStroustrup
+        | "experimental_stroustrup" -> Some Stroustrup // TODO: Should we keep this working or just drop this altogether
+        | "stroustrup" -> Some Stroustrup
         | _ -> None
 
 [<RequireQualifiedAccess>]
@@ -210,8 +211,8 @@ type FormatConfig =
       BarBeforeDiscriminatedUnionDeclaration: bool
 
       [<Category("Convention")>]
-      [<DisplayName("How to format brackets")>]
-      [<Description("Possible options include cramped (default), aligned, and experimental_stroustrup")>]
+      [<DisplayName("How to format bracket expressions (arrays, objects, etc.) that span multiple lines")>]
+      [<Description("Possible options include cramped (default), aligned, and stroustrup")>]
       MultilineBracketStyle: MultilineBracketStyle
 
       [<Category("Convention")>]
@@ -223,7 +224,7 @@ type FormatConfig =
       [<Description("Pretty printing based on ASTs only.\nPlease do not use this setting for formatting hand written code!")>]
       StrictMode: bool }
 
-    member x.ExperimentalStroustrupStyle = x.MultilineBracketStyle = ExperimentalStroustrup
+    member x.IsStroustrupStyle = x.MultilineBracketStyle = Stroustrup
 
     static member Default =
         { IndentSize = 4
