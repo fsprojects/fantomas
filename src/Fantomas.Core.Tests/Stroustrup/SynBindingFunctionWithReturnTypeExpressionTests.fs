@@ -45,10 +45,10 @@ let x y : MyRecord =
     |> should
         equal
         """
-let x y : MyRecord =
-    { astContext with
+let x y : MyRecord = {
+    astContext with
         IsInsideMatchClausePattern = true
-    }
+}
 """
 
 [<Test>]
@@ -185,10 +185,10 @@ type Foo() =
         equal
         """
 type Foo() =
-    member this.Bar x : MyRecord =
-        { astContext with
+    member this.Bar x : MyRecord = {
+        astContext with
             IsInsideMatchClausePattern = true
-        }
+    }
 """
 
 [<Test>]
