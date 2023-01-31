@@ -78,8 +78,9 @@ let private addTaskToScheduler
     (task: unit -> unit)
     groupName
     =
-    { astContext with
-        IsInsideMatchClausePattern = true
+    {
+        astContext with
+            IsInsideMatchClausePattern = true
     }
 """
 
@@ -307,8 +308,9 @@ type Foo() =
         (task: unit -> unit)
         groupName
         =
-        { astContext with
-            IsInsideMatchClausePattern = true
+        {
+            astContext with
+                IsInsideMatchClausePattern = true
         }
 """
 
