@@ -28,7 +28,7 @@ fsharp_bar_before_discriminated_union_declaration = true
 
 #\ Apply specific settings for a targeted subfolder
 [src/Elmish/View.fs]
-fsharp_multiline_bracket_style = experimental_stroustrup
+fsharp_multiline_bracket_style = stroustrup
 ```
 *)
 
@@ -39,9 +39,9 @@ You can quickly try your settings via the <a href="https://fsprojects.github.io/
 <img src="{{root}}/online_tool_usage.gif" alt="drawing" width="100%"/>
 *)
 
-#r "nuget: Fantomas.Core, 5.2.0-alpha-012"
+#r "../../../src/Fantomas.Core/bin/Release/netstandard2.0/Fantomas.FCS.dll"
+#r "../../../src/Fantomas.Core/bin/Release/netstandard2.0/Fantomas.Core.dll"
 
-open Fantomas.Core.FormatConfig
 open Fantomas.Core
 
 let formatCode input configIndent =
@@ -63,7 +63,7 @@ However, there are settings that we do not recommend and generally should not be
 
 <fantomas-setting name="indent_size" orange></fantomas-setting>
 
-` indent_size` has to be between 1 and 10.
+`indent_size` has to be between 1 and 10.
 
 This preference sets the indentation
 The common values are 2 and 4.  
@@ -576,7 +576,7 @@ formatCode
 
 `Cramped` The default way in F# to format brackets.  
 `Aligned` Alternative way of formatting records, arrays and lists. This will align the braces at the same column level.  
-`ExperimentalStroustrup` Please contribute to [fsprojects/fantomas#1408](https://github.com/fsprojects/fantomas/issues/1408) and engage in [fsharp/fslang-design#706](https://github.com/fsharp/fslang-design/issues/706).
+`Stroustrup` Please contribute to [fsprojects/fantomas#1408](https://github.com/fsprojects/fantomas/issues/1408) and engage in [fsharp/fslang-design#706](https://github.com/fsharp/fslang-design/issues/706).
 
 Default = Cramped.
 *)
@@ -632,7 +632,7 @@ formatCode
            (19, 20, 21) |]
     """
     { FormatConfig.Default with
-        MultilineBracketStyle = ExperimentalStroustrup }
+        MultilineBracketStyle = Stroustrup }
 (*** include-it ***)
 
 (**
