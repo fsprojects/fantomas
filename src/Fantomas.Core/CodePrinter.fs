@@ -3048,7 +3048,15 @@ let genImplicitConstructor (node: ImplicitConstructorNode) =
         )
 
     expressionFitsOnRestOfLine short long
-    +> optSingle (fun self -> sepSpace +> !- "as " +> genSingleTextNode self +> sepSpace) node.Self
+    +> optSingle
+        (fun (selfNode: AsSelfIdentifierNode) ->
+            sepSpace
+            +> onlyIf selfNode.HasContentBefore indent
+            +> (genSingleTextNode selfNode.As +> sepSpace +> genSingleTextNode selfNode.Self
+                |> genNode selfNode)
+            +> onlyIf selfNode.HasContentBefore unindent
+            +> sepSpace)
+        node.Self
 
 let genTypeDefn (td: TypeDefn) =
     let typeDefnNode = TypeDefn.TypeDefnNode td
@@ -3107,7 +3115,7 @@ let genTypeDefn (td: TypeDefn) =
             +> genSingleTextNode node.Identifier
             +> sepSpace
             +> genSingleTextNode node.Equals
-            +> autoIndentAndNlnWhenWriteBeforeNewlineNotEmpty (sepSpace +> genConstant node.Constant)
+            +> autoIndentAndNlnWhenWriteBeforeNewlineNotEmpty (sepSpace +> genExpr node.Constant)
             |> genNode node
 
         header
