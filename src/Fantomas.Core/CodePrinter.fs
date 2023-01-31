@@ -1072,9 +1072,7 @@ let genExpr (e: Expr) =
                         +> onlyIfCtx
                             (fun ctx ->
                                 ctx.Config.MultiLineLambdaClosingNewline
-                                && (not (
-                                    (isStroustrupExpr ctx.Config lambdaNode.Expr)
-                                )))
+                                && (not ((isStroustrupExpr ctx.Config lambdaNode.Expr))))
                             sepNln
                         +> genSingleTextNode appParen.Paren.ClosingParen
                     | _ ->
@@ -1922,7 +1920,7 @@ let genClause (isLastItem: bool) (node: MatchClauseNode) =
                         ctx)
 
     let genPatAndBody ctx =
-        if (isStroustrupExpr ctx.Config node.BodyExpr)then
+        if (isStroustrupExpr ctx.Config node.BodyExpr) then
             let startColumn = ctx.Column
             (genPatInClause node.Pattern +> atIndentLevel false startColumn genWhenAndBody) ctx
         else
@@ -2181,9 +2179,7 @@ let genAppWithLambda sep (node: ExprAppWithLambdaNode) =
                     | Choice1Of2 lambdaNode ->
                         genSingleTextNode node.OpeningParen
                         +> (genLambdaWithParen lambdaNode |> genNode lambdaNode)
-                        +> onlyIf
-                            (not (isStroustrupExpr ctx.Config lambdaNode.Expr))
-                            sepNln
+                        +> onlyIf (not (isStroustrupExpr ctx.Config lambdaNode.Expr)) sepNln
                         +> genSingleTextNode node.ClosingParen
                     | Choice2Of2 matchLambdaNode ->
                         genSingleTextNode node.OpeningParen
@@ -2204,12 +2200,7 @@ let genAppWithLambda sep (node: ExprAppWithLambdaNode) =
                                 (genSingleTextNode node.OpeningParen
                                  +> (genLambdaWithParen lambdaNode |> genNode lambdaNode))
                                 (fun isMultiline ->
-                                    onlyIf
-                                        (isMultiline
-                                         && not (
-                                             isStroustrupExpr ctx.Config lambdaNode.Expr
-                                         ))
-                                        sepNln
+                                    onlyIf (isMultiline && not (isStroustrupExpr ctx.Config lambdaNode.Expr)) sepNln
                                     +> genSingleTextNode node.ClosingParen)
                         | Choice2Of2 matchLambdaNode ->
                             (genSingleTextNode node.OpeningParen

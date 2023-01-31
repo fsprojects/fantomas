@@ -1726,7 +1726,7 @@ type Expr =
         match e with
         | Expr.Paren _ -> true
         | _ -> false
-        
+
 type OpenModuleOrNamespaceNode(identListNode: IdentListNode, range) =
     inherit NodeBase(range)
 

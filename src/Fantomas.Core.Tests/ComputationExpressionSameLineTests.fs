@@ -576,7 +576,7 @@ match x with
 | _ -> task {
     // some computation here
     ()
-}
+  }
 """
 
 [<Test>]
@@ -676,4 +676,29 @@ myComp {
         return 0..2
     }
 }
+"""
+
+[<Test>]
+let ``prefer computation expression name on same line, with trivia`` () =
+    formatSourceString
+        false
+        """
+let t =
+    //
+    task {
+        let! thing = otherThing ()
+        return 5
+    }
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let t =
+    //
+    task {
+        let! thing = otherThing ()
+        return 5
+    }
 """
