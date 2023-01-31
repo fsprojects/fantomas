@@ -511,7 +511,7 @@ let fsharp_prefer_computation_expression_name_on_same_line () =
     let editorConfig =
         """
 [*.fs]
-fsharp_prefer_computation_expression_name_on_same_line = true
+fsharp_newline_before_multiline_computation_expression = false
 """
 
     use configFixture =
@@ -521,4 +521,4 @@ fsharp_prefer_computation_expression_name_on_same_line = true
 
     let config = EditorConfig.readConfiguration fsharpFile.FSharpFile
 
-    Assert.AreEqual(true, config.PreferComputationExpressionNameOnSameLine)
+    Assert.AreEqual(false, config.NewlineBeforeMultilineComputationExpression)

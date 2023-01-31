@@ -766,7 +766,7 @@ let isStroustrupExpr (config: FormatConfig) (e: Expr) =
         | Some _ -> false
         | None -> true
     | Expr.ArrayOrList _ when isStroustrupEnabled -> true
-    | Expr.NamedComputation _ when config.PreferComputationExpressionNameOnSameLine -> true
+    | Expr.NamedComputation _ when not config.NewlineBeforeMultilineComputationExpression -> true
     | _ -> false
 
 let isStroustrupApplicable isStroustrupContext (node: Node) =

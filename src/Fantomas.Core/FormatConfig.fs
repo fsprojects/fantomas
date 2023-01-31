@@ -219,8 +219,8 @@ type FormatConfig =
       KeepMaxNumberOfBlankLines: Num
 
       [<Category("Convention")>]
-      [<DisplayName("Prefer keeping the name of a computation expression on the same line as the binding.")>]
-      PreferComputationExpressionNameOnSameLine: bool
+      [<DisplayName("Insert a newline before a computation expression that spans multiple lines.")>]
+      NewlineBeforeMultilineComputationExpression: bool
 
       [<Category("Convention")>]
       [<DisplayName("Strict mode")>]
@@ -265,5 +265,5 @@ type FormatConfig =
           BarBeforeDiscriminatedUnionDeclaration = false
           MultilineBracketStyle = Cramped
           KeepMaxNumberOfBlankLines = 100
-          PreferComputationExpressionNameOnSameLine = false
+          NewlineBeforeMultilineComputationExpression = true
           StrictMode = false }

@@ -7,7 +7,7 @@ open Fantomas.Core
 
 let config =
     { config with
-        PreferComputationExpressionNameOnSameLine = true
+        NewlineBeforeMultilineComputationExpression = false
         MaxArrayOrListWidth = 40 }
 
 [<Test>]
