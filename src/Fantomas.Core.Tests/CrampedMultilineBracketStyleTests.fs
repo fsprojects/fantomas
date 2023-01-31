@@ -1,4 +1,4 @@
-module Fantomas.Core.Tests.RecordTests
+module Fantomas.Core.Tests.CrampedMultilineBracketStyleTests
 
 open NUnit.Framework
 open FsUnit
@@ -1652,49 +1652,6 @@ let rainbow2 =
       Lackeys = [ "Zippy"; "George"; "Bungle" ] }
 """
 
-// `Aligned` copy-and-update expression keeps label on first line to match G-Research style guide
-[<Test>]
-let ``update record in aligned style`` () =
-    formatSourceString
-        false
-        """
-let rainbow2 =
-   { rainbow with Boss = "Jeffrey" ; Lackeys = [ "Zippy"; "George"; "Bungle" ] }
-"""
-        { config with
-            MultilineBracketStyle = Aligned }
-    |> prepend newline
-    |> should
-        equal
-        """
-let rainbow2 =
-    { rainbow with
-        Boss = "Jeffrey"
-        Lackeys = [ "Zippy"; "George"; "Bungle" ]
-    }
-"""
-
-[<Test>]
-let ``update record in stroustrup style`` () =
-    formatSourceString
-        false
-        """
-let rainbow2 =
-   { rainbow with Boss = "Jeffrey" ; Lackeys = [ "Zippy"; "George"; "Bungle" ] }
-"""
-        { config with
-            MultilineBracketStyle = ExperimentalStroustrup }
-    |> prepend newline
-    |> should
-        equal
-        """
-let rainbow2 = {
-    rainbow with
-        Boss = "Jeffrey"
-        Lackeys = [ "Zippy"; "George"; "Bungle" ]
-}
-"""
-
 [<Test>]
 let ``record with comments above field`` () =
     formatSourceString
@@ -2165,30 +2122,6 @@ let compareThings (first: Thing) (second: Thing) =
     first = { second with
                 Foo = first.Foo
                 Bar = first.Bar }
-"""
-
-[<Test>]
-let ``equality comparison with a `with` expression should format correctly with Allman alignment, 2507`` () =
-    formatSourceString
-        false
-        """
-let compareThings (first: Thing) (second: Thing) =
-    first = { second with
-                Foo = first.Foo
-                Bar = first.Bar
-            }
-"""
-        { config with
-            MultilineBracketStyle = Aligned }
-    |> prepend newline
-    |> should
-        equal
-        """
-let compareThings (first: Thing) (second: Thing) =
-    first = { second with
-                Foo = first.Foo
-                Bar = first.Bar
-            }
 """
 
 [<Test>]
