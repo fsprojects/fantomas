@@ -68,10 +68,10 @@ App().foo <-
     |> should
         equal
         """
-App().foo <-
-    { astContext with
+App().foo <- {
+    astContext with
         IsInsideMatchClausePattern = true
-    }
+}
 """
 
 [<Test>]

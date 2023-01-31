@@ -501,15 +501,12 @@ let genExpr (e: Expr) =
                     +> genSingleTextNode node.ClosingBrace
                 | RecordNodeExtra.With we ->
                     genSingleTextNode node.OpeningBrace
-                    +> addSpaceIfSpaceAroundDelimiter
-                    +> atCurrentColumnIndent (genExpr we)
-                    +> !- " with"
-                    +> indent
-                    +> whenShortIndent indent
-                    +> sepNln
-                    +> fieldsExpr
-                    +> unindent
-                    +> whenShortIndent unindent
+                    +> ifElseCtx
+                        (fun ctx -> ctx.Config.ExperimentalStroustrupStyle)
+                        (indent +> sepNln)
+                        addSpaceIfSpaceAroundDelimiter
+                    +> genCopyExpr fieldsExpr we
+                    +> onlyIfCtx (fun ctx -> ctx.Config.ExperimentalStroustrupStyle) unindent
                     +> sepNln
                     +> genSingleTextNode node.ClosingBrace
                 | RecordNodeExtra.None ->
@@ -535,14 +532,7 @@ let genExpr (e: Expr) =
                 | RecordNodeExtra.With we ->
                     genSingleTextNode node.OpeningBrace
                     +> addSpaceIfSpaceAroundDelimiter
-                    +> atCurrentColumnIndent (genExpr we)
-                    +> !- " with"
-                    +> indent
-                    +> whenShortIndent indent
-                    +> sepNln
-                    +> fieldsExpr
-                    +> unindent
-                    +> whenShortIndent unindent
+                    +> genCopyExpr fieldsExpr we
                     +> addSpaceIfSpaceAroundDelimiter
                     +> genSingleTextNode node.ClosingBrace
                 | RecordNodeExtra.None ->
@@ -641,19 +631,13 @@ let genExpr (e: Expr) =
                 let genAnonRecord =
                     match node.CopyInfo with
                     | Some ci ->
-                        let copyExpr fieldsExpr e =
-                            atCurrentColumnIndent (genExpr e)
-                            +> (!- " with"
-                                +> indent
-                                +> whenShortIndent indent
-                                +> sepNln
-                                +> fieldsExpr
-                                +> whenShortIndent unindent
-                                +> unindent)
-
                         genSingleTextNodeSuffixDelimiter node.OpeningBrace
-                        +> sepNlnWhenWriteBeforeNewlineNotEmpty // comment after curly brace
-                        +> copyExpr fieldsExpr ci
+                        +> ifElseCtx
+                            (fun ctx -> ctx.Config.ExperimentalStroustrupStyle)
+                            (indent +> sepNln)
+                            sepNlnWhenWriteBeforeNewlineNotEmpty // comment after curly brace
+                        +> genCopyExpr fieldsExpr ci
+                        +> onlyIfCtx (fun ctx -> ctx.Config.ExperimentalStroustrupStyle) unindent
                         +> sepNln
                         +> genSingleTextNode node.ClosingBrace
                     | None ->
@@ -1722,6 +1706,16 @@ let genExpr (e: Expr) =
         |> genNode node
     | Expr.IndexFromEnd node -> !- "^" +> genExpr node.Expr |> genNode node
     | Expr.Typar node -> genSingleTextNode node
+
+let genCopyExpr fieldsExpr ci =
+    atCurrentColumnIndent (genExpr ci)
+    +> !- " with"
+    +> indent
+    +> whenShortIndent indent
+    +> sepNln
+    +> fieldsExpr
+    +> whenShortIndent unindent
+    +> unindent
 
 let genQuoteExpr (node: ExprQuoteNode) =
     genSingleTextNode node.OpenToken

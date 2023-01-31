@@ -45,10 +45,10 @@ myMutable[x] <-
     |> should
         equal
         """
-myMutable[x] <-
-    { astContext with
+myMutable[x] <- {
+    astContext with
         IsInsideMatchClausePattern = true
-    }
+}
 """
 
 [<Test>]
