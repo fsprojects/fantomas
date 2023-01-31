@@ -59,13 +59,13 @@ let v =
         """
 let v =
     SomeConstructor(
-        v =
-            { astContext with
+        v = {
+            astContext with
                 IsInsideMatchClausePattern = true
                 A = longTypeName
                 B = someOtherVariable
                 C = ziggyBarX
-            }
+        }
     )
 """
 
@@ -313,13 +313,13 @@ let v =
         """
 let v =
     new FooBar(
-        v =
-            { astContext with
+        v = {
+            astContext with
                 IsInsideMatchClausePattern = true
                 A = longTypeName
                 B = someOtherVariable
                 C = ziggyBarX
-            }
+        }
     )
 """
 
