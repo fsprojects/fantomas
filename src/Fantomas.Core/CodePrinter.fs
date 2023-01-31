@@ -851,7 +851,7 @@ let genExpr (e: Expr) =
                 onlyIf
                     (isMultiline
                      && ctx.Config.MultiLineLambdaClosingNewline
-                     && not (ctx.Config.ExperimentalStroustrupStyle && node.Lambda.Expr.IsStroustrupStyleExpr))
+                     && not (isStroustrupStyleExpr ctx.Config node.Lambda.Expr))
                     sepNln
                     ctx)
         +> genSingleTextNode node.ClosingParen
@@ -1052,9 +1052,7 @@ let genExpr (e: Expr) =
                         +> onlyIfCtx
                             (fun ctx ->
                                 ctx.Config.MultiLineLambdaClosingNewline
-                                && (not (
-                                    ctx.Config.ExperimentalStroustrupStyle && lambdaNode.Expr.IsStroustrupStyleExpr
-                                )))
+                                && (not (isStroustrupStyleExpr ctx.Config lambdaNode.Expr)))
                             sepNln
                         +> genSingleTextNode appParen.Paren.ClosingParen
                     | _ ->
@@ -1912,7 +1910,7 @@ let genClause (isLastItem: bool) (node: MatchClauseNode) =
                         ctx)
 
     let genPatAndBody ctx =
-        if ctx.Config.ExperimentalStroustrupStyle && node.BodyExpr.IsStroustrupStyleExpr then
+        if isStroustrupStyleExpr ctx.Config node.BodyExpr then
             let startColumn = ctx.Column
             (genPatInClause node.Pattern +> atIndentLevel false startColumn genWhenAndBody) ctx
         else
@@ -2171,9 +2169,7 @@ let genAppWithLambda sep (node: ExprAppWithLambdaNode) =
                     | Choice1Of2 lambdaNode ->
                         genSingleTextNode node.OpeningParen
                         +> (genLambdaWithParen lambdaNode |> genNode lambdaNode)
-                        +> onlyIf
-                            (not (ctx.Config.ExperimentalStroustrupStyle && lambdaNode.Expr.IsStroustrupStyleExpr))
-                            sepNln
+                        +> onlyIf (not (isStroustrupStyleExpr ctx.Config lambdaNode.Expr)) sepNln
                         +> genSingleTextNode node.ClosingParen
                     | Choice2Of2 matchLambdaNode ->
                         genSingleTextNode node.OpeningParen
@@ -2195,11 +2191,7 @@ let genAppWithLambda sep (node: ExprAppWithLambdaNode) =
                                  +> (genLambdaWithParen lambdaNode |> genNode lambdaNode))
                                 (fun isMultiline ->
                                     onlyIf
-                                        (isMultiline
-                                         && not (
-                                             ctx.Config.ExperimentalStroustrupStyle
-                                             && lambdaNode.Expr.IsStroustrupStyleExpr
-                                         ))
+                                        (isMultiline && not (isStroustrupStyleExpr ctx.Config lambdaNode.Expr))
                                         sepNln
                                     +> genSingleTextNode node.ClosingParen)
                         | Choice2Of2 matchLambdaNode ->
