@@ -970,10 +970,10 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
         | None, Some(copyExpr, _) ->
             let copyExpr = mkExpr creationAide copyExpr
 
-            ExprCopyableRecordNode(stn "{" mOpen, Some copyExpr, fieldNodes, stn "}" mClose, exprRange)
+            ExprRecordNode(stn "{" mOpen, Some copyExpr, fieldNodes, stn "}" mClose, exprRange)
             |> Expr.Record
         | None, None ->
-            ExprCopyableRecordNode(stn "{" mOpen, None, fieldNodes, stn "}" mClose, exprRange)
+            ExprRecordNode(stn "{" mOpen, None, fieldNodes, stn "}" mClose, exprRange)
             |> Expr.Record
     | SynExpr.AnonRecd(isStruct, copyInfo, recordFields, StartEndRange 2 (mOpen, _, mClose)) ->
         let fields =

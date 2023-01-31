@@ -1555,10 +1555,10 @@ let genQuoteExpr (node: ExprQuoteNode) =
     +> genSingleTextNode node.CloseToken
     |> genNode node
 
-let genFieldsExpr (node: ExprRecordNode) =
+let genFieldsExpr (node: ExprRecordBaseNode) =
     col sepNln node.Fields genRecordFieldName
 
-let private genSmallRecordExpr genExtra (node: ExprRecordNode) =
+let private genSmallRecordExpr genExtra (node: ExprRecordBaseNode) =
     genSingleTextNode node.OpeningBrace
     +> addSpaceIfSpaceAroundDelimiter
     +> genExtra
@@ -1566,7 +1566,7 @@ let private genSmallRecordExpr genExtra (node: ExprRecordNode) =
     +> addSpaceIfSpaceAroundDelimiter
     +> genSingleTextNode node.ClosingBrace
 
-let genSmallCopyableRecordNode (node: ExprCopyableRecordNode) =
+let genSmallCopyableRecordNode (node: ExprRecordNode) =
     genSmallRecordExpr
         (match node.CopyInfo with
          | Some we -> genExpr we +> !- " with "
@@ -1609,7 +1609,7 @@ let genMultilineInheritRecordInstance (node: ExprInheritRecordNode) =
 
     ifAlignOrStroustrupBrackets genMultilineAlignBrackets genMultilineCramped
 
-let genMultilineRecordAlignBrackets (node: ExprCopyableRecordNode) =
+let genMultilineRecordAlignBrackets (node: ExprRecordNode) =
     let fieldsExpr = genFieldsExpr node
 
     match node.CopyInfo with
@@ -1658,7 +1658,7 @@ let genMultilineAnonRecordCrampedFields (node: ExprAnonRecordNode) targetColumn 
                     +> leaveNode fieldNode)
                 ctx
 
-let genMultilineStandardRecordExprCrampedFields (node: ExprCopyableRecordNode) targetColumn =
+let genMultilineStandardRecordExprCrampedFields (node: ExprRecordNode) targetColumn =
     match node.CopyInfo with
     | Some we -> genCopyExpr (genFieldsExpr node) we
     | None ->
@@ -1673,7 +1673,7 @@ let genMultilineStandardRecordExprCrampedFields (node: ExprCopyableRecordNode) t
                     +> atCurrentColumn (genRecordFieldName e))
                 ctx
 
-let genMultilineRecord genCrampedFields (node: ExprCopyableRecordNode) (ctx: Context) =
+let genMultilineRecord genCrampedFields (node: ExprRecordNode) (ctx: Context) =
     let expressionStartColumn = ctx.Column
 
     let targetColumn =
@@ -1710,7 +1710,7 @@ let genMultilineRecord genCrampedFields (node: ExprCopyableRecordNode) (ctx: Con
 
     ifAlignOrStroustrupBrackets (genMultilineRecordAlignBrackets node) genMultilineCramped ctx
 
-let genRecord smallRecordExpr multilineRecordExpr (node: ExprRecordNode) =
+let genRecord smallRecordExpr multilineRecordExpr (node: ExprRecordBaseNode) =
     fun ctx ->
         let size = getRecordSize ctx node.Fields
         genNode node (isSmallExpression size smallRecordExpr multilineRecordExpr) ctx

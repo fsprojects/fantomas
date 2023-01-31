@@ -169,7 +169,7 @@ let mkTreeWithSingleNode (node: Node) : TreeForSelection =
     | :? ExprInheritRecordNode as node ->
         let expr = Expr.InheritRecord node
         mkOakFromModuleDecl (ModuleDecl.DeclExpr expr)
-    | :? ExprCopyableRecordNode as node ->
+    | :? ExprRecordNode as node ->
         let expr = Expr.Record node
         mkOakFromModuleDecl (ModuleDecl.DeclExpr expr)
     | :? ExprObjExprNode as node ->

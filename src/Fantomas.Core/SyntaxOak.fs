@@ -741,18 +741,6 @@ type InheritConstructor =
         | Paren n -> n.InheritKeyword
         | Other n -> n.InheritKeyword
 
-[<RequireQualifiedAccess; NoComparison>]
-type RecordNodeExtra =
-    | Inherit of inheritConstructor: InheritConstructor
-    | With of expr: Expr
-    | None
-
-    static member Node(extra: RecordNodeExtra) : Node option =
-        match extra with
-        | Inherit n -> Some(InheritConstructor.Node n)
-        | With e -> Some(Expr.Node e)
-        | None -> Option.None
-
 type RecordFieldNode(fieldName: IdentListNode, equals: SingleTextNode, expr: Expr, range) =
     inherit NodeBase(range)
 
@@ -762,7 +750,8 @@ type RecordFieldNode(fieldName: IdentListNode, equals: SingleTextNode, expr: Exp
     member val Expr = expr
 
 [<AbstractClass>]
-type ExprRecordNode(openingBrace: SingleTextNode, fields: RecordFieldNode list, closingBrace: SingleTextNode, range) =
+type ExprRecordBaseNode(openingBrace: SingleTextNode, fields: RecordFieldNode list, closingBrace: SingleTextNode, range)
+    =
     inherit NodeBase(range)
 
     member val OpeningBrace = openingBrace
@@ -770,7 +759,7 @@ type ExprRecordNode(openingBrace: SingleTextNode, fields: RecordFieldNode list, 
     member val ClosingBrace = closingBrace
     member x.HasFields = List.isNotEmpty x.Fields
 
-type ExprCopyableRecordNode
+type ExprRecordNode
     (
         openingBrace: SingleTextNode,
         copyInfo: Expr option,
@@ -778,7 +767,7 @@ type ExprCopyableRecordNode
         closingBrace: SingleTextNode,
         range
     ) =
-    inherit ExprRecordNode(openingBrace, fields, closingBrace, range)
+    inherit ExprRecordBaseNode(openingBrace, fields, closingBrace, range)
 
     member val CopyInfo = copyInfo
 
@@ -798,7 +787,7 @@ type ExprInheritRecordNode
         closingBrace: SingleTextNode,
         range
     ) =
-    inherit ExprRecordNode(openingBrace, fields, closingBrace, range)
+    inherit ExprRecordBaseNode(openingBrace, fields, closingBrace, range)
 
     member val InheritConstructor = inheritConstructor
 
@@ -817,7 +806,7 @@ type ExprAnonRecordNode
         closingBrace: SingleTextNode,
         range
     ) =
-    inherit ExprCopyableRecordNode(openingBrace, copyInfo, fields, closingBrace, range)
+    inherit ExprRecordNode(openingBrace, copyInfo, fields, closingBrace, range)
     member val IsStruct = isStruct
 
 type InterfaceImplNode
@@ -1613,7 +1602,7 @@ type Expr =
     | Tuple of ExprTupleNode
     | StructTuple of ExprStructTupleNode
     | ArrayOrList of ExprArrayOrListNode
-    | Record of ExprCopyableRecordNode
+    | Record of ExprRecordNode
     | InheritRecord of ExprInheritRecordNode
     | AnonRecord of ExprAnonRecordNode
     | ObjExpr of ExprObjExprNode
