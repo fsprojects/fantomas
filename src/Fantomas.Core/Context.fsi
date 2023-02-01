@@ -234,6 +234,8 @@ val sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidthUnlessStroustrup:
 val sepSpaceOrIndentAndNlnIfTypeExceedsPageWidthUnlessStroustrup:
     f: (Type -> Context -> Context) -> t: Type -> (Context -> Context)
 
+val isStroustrupStyleExpr: config: FormatConfig -> e: Expr -> bool
+
 val autoParenthesisIfExpressionExceedsPageWidth: expr: (Context -> Context) -> ctx: Context -> Context
 val futureNlnCheck: f: (Context -> Context) -> ctx: Context -> bool
 /// similar to futureNlnCheck but validates whether the expression is going over the max page width
