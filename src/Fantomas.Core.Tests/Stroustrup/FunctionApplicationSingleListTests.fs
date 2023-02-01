@@ -7,7 +7,7 @@ open Fantomas.Core
 
 let config =
     { config with
-        MultilineBracketStyle = ExperimentalStroustrup }
+        MultilineBracketStyle = Stroustrup }
 
 [<Test>]
 let ``short function application`` () =

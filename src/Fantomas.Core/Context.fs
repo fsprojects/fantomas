@@ -753,7 +753,7 @@ let sepSpaceOrDoubleIndentAndNlnIfExpressionExceedsPageWidth expr (ctx: Context)
         ctx
 
 let isStroustrupStyleExpr (config: FormatConfig) (e: Expr) =
-    let isStroustrupEnabled = config.MultilineBracketStyle = ExperimentalStroustrup
+    let isStroustrupEnabled = config.MultilineBracketStyle = Stroustrup
 
     match e with
     | Expr.Record node when isStroustrupEnabled ->
@@ -770,7 +770,7 @@ let isStroustrupStyleExpr (config: FormatConfig) (e: Expr) =
     | _ -> false
 
 let isStroustrupStyleType (config: FormatConfig) (t: Type) =
-    let isStroustrupEnabled = config.MultilineBracketStyle = ExperimentalStroustrup
+    let isStroustrupEnabled = config.MultilineBracketStyle = Stroustrup
 
     match t with
     | Type.AnonRecord _ when isStroustrupEnabled -> true
@@ -896,7 +896,7 @@ let ifAlignOrStroustrupBrackets f g =
         (fun ctx ->
             match ctx.Config.MultilineBracketStyle with
             | Aligned
-            | ExperimentalStroustrup -> true
+            | Stroustrup -> true
             | Cramped -> false)
         f
         g
