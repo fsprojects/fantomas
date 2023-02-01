@@ -15,6 +15,12 @@ Your IDE should respect your settings, however the implementation of that is edi
 UI might be available depending on the IDE.
 *)
 
+#r "../../../src/Fantomas/bin/Release/net6.0/Fantomas.FCS.dll"
+#r "../../../src/Fantomas/bin/Release/net6.0/Fantomas.Core.dll"
+
+printf $"version: {Fantomas.Core.CodeFormatter.GetVersion()}"
+(*** include-output  ***)
+
 (**
 ## Usage
 Inside .editorconfig you can specify the file extension and code location to be use per config:
@@ -39,13 +45,13 @@ You can quickly try your settings via the <a href="https://fsprojects.github.io/
 <img src="{{root}}/online_tool_usage.gif" alt="drawing" width="100%"/>
 *)
 
-#r "../../../src/Fantomas.Core/bin/Release/netstandard2.0/Fantomas.FCS.dll"
-#r "../../../src/Fantomas.Core/bin/Release/netstandard2.0/Fantomas.Core.dll"
-
 open Fantomas.Core
 
 let formatCode input configIndent =
-    CodeFormatter.FormatDocumentAsync(false, input, configIndent)
+    async {
+        let! result = CodeFormatter.FormatDocumentAsync(false, input, configIndent)
+        printf $"%s{result.Code}"
+    }
     |> Async.RunSynchronously
 
 (**
@@ -87,7 +93,7 @@ formatCode
     """
     { FormatConfig.Default with
         IndentSize = 2 }
-(*** include-it ***)
+(*** include-output ***)
 (**
 <fantomas-setting name="max_line_length" green></fantomas-setting>
 
@@ -105,7 +111,7 @@ formatCode
     """
     { FormatConfig.Default with
         MaxLineLength = 60 }
-(*** include-it ***)
+(*** include-output ***)
 
 (**
 <fantomas-setting name="end_of_line" green></fantomas-setting>
@@ -130,7 +136,7 @@ formatCode
     """
     { FormatConfig.Default with
         InsertFinalNewline = false }
-(*** include-it ***)
+(*** include-output ***)
 
 (**
 <fantomas-setting name="fsharp_space_before_parameter" orange></fantomas-setting>
@@ -148,7 +154,7 @@ formatCode
     """
     { FormatConfig.Default with
         SpaceBeforeParameter = false }
-(*** include-it ***)
+(*** include-output ***)
 
 (**
 <fantomas-setting name="fsharp_space_before_lowercase_invocation" orange></fantomas-setting>
@@ -169,7 +175,7 @@ match x with
     """
     { FormatConfig.Default with
         SpaceBeforeLowercaseInvocation = false }
-(*** include-it ***)
+(*** include-output ***)
 
 (**
 <fantomas-setting name="fsharp_space_before_uppercase_invocation" green gr></fantomas-setting>
@@ -190,7 +196,7 @@ match x with
     """
     { FormatConfig.Default with
         SpaceBeforeUppercaseInvocation = true }
-(*** include-it ***)
+(*** include-output ***)
 
 (**
 <fantomas-setting name="fsharp_space_before_class_constructor" orange></fantomas-setting>
@@ -209,7 +215,7 @@ formatCode
     { FormatConfig.Default with
         SpaceBeforeClassConstructor = true }
 
-(*** include-it ***)
+(*** include-output ***)
 
 (**
 <fantomas-setting name="fsharp_space_before_member" green gr></fantomas-setting>
@@ -229,7 +235,7 @@ formatCode
     """
     { FormatConfig.Default with
         SpaceBeforeMember = true }
-(*** include-it ***)
+(*** include-output ***)
 
 (**
 <fantomas-setting name="fsharp_space_before_colon" green></fantomas-setting>
@@ -247,7 +253,7 @@ formatCode
     """
     { FormatConfig.Default with
         SpaceBeforeColon = true }
-(*** include-it ***)
+(*** include-output ***)
 
 (**
 <fantomas-setting name="fsharp_space_after_comma" orange></fantomas-setting>
@@ -264,7 +270,7 @@ formatCode
     """
     { FormatConfig.Default with
         SpaceAfterComma = false }
-(*** include-it ***)
+(*** include-output ***)
 
 (**
 <fantomas-setting name="fsharp_space_before_semicolon" green gr></fantomas-setting>
@@ -282,7 +288,7 @@ formatCode
     """
     { FormatConfig.Default with
         SpaceBeforeSemicolon = true }
-(*** include-it ***)
+(*** include-output ***)
 
 (**
 <fantomas-setting name="fsharp_space_after_semicolon" orange></fantomas-setting>
@@ -300,7 +306,7 @@ formatCode
     """
     { FormatConfig.Default with
         SpaceAfterSemicolon = false }
-(*** include-it ***)
+(*** include-output ***)
 
 (**
 <fantomas-setting name="fsharp_space_around_delimiter" orange></fantomas-setting>
@@ -317,7 +323,7 @@ formatCode
     """
     { FormatConfig.Default with
         SpaceAroundDelimiter = false }
-(*** include-it ***)
+(*** include-output ***)
 
 (**
 ## Maximum width constraints
@@ -341,7 +347,7 @@ formatCode
     """
     { FormatConfig.Default with
         MaxIfThenShortWidth = 15 }
-(*** include-it ***)
+(*** include-output ***)
 
 (**
 <fantomas-setting name="fsharp_max_if_then_else_short_width" green></fantomas-setting>
@@ -358,7 +364,7 @@ formatCode
     """
     { FormatConfig.Default with
         MaxIfThenElseShortWidth = 10 }
-(*** include-it ***)
+(*** include-output ***)
 
 (**
 <fantomas-setting name="fsharp_max_infix_operator_expression" green></fantomas-setting>
@@ -374,7 +380,7 @@ formatCode
     """
     { FormatConfig.Default with
         MaxInfixOperatorExpression = 20 }
-(*** include-it ***)
+(*** include-output ***)
 
 (**
 <fantomas-setting name="fsharp_max_record_width" green></fantomas-setting>
@@ -393,7 +399,7 @@ formatCode
     """
     { FormatConfig.Default with
         MaxRecordWidth = 20 }
-(*** include-it ***)
+(*** include-output ***)
 
 (**
 <fantomas-setting name="fsharp_max_record_number_of_items" green></fantomas-setting>
@@ -425,7 +431,7 @@ formatCode
     { FormatConfig.Default with
         MaxRecordNumberOfItems = 2
         RecordMultilineFormatter = MultilineFormatterType.NumberOfItems }
-(*** include-it ***)
+(*** include-output ***)
 
 (**
 <fantomas-setting name="fsharp_record_multiline_formatter" green></fantomas-setting>
@@ -453,7 +459,7 @@ formatCode
     """
     { FormatConfig.Default with
         RecordMultilineFormatter = MultilineFormatterType.NumberOfItems }
-(*** include-it ***)
+(*** include-output ***)
 
 (**
 <fantomas-setting name="fsharp_max_array_or_list_width" green></fantomas-setting>
@@ -471,7 +477,7 @@ formatCode
     """
     { FormatConfig.Default with
         MaxArrayOrListWidth = 20 }
-(*** include-it ***)
+(*** include-output ***)
 
 (**
 <fantomas-setting name="fsharp_max_array_or_list_number_of_items" green></fantomas-setting>
@@ -491,7 +497,7 @@ formatCode
     { FormatConfig.Default with
         MaxArrayOrListNumberOfItems = 2
         ArrayOrListMultilineFormatter = MultilineFormatterType.NumberOfItems }
-(*** include-it ***)
+(*** include-output ***)
 
 (**
 <fantomas-setting name="fsharp_array_or_list_multiline_formatter" green></fantomas-setting>
@@ -511,7 +517,7 @@ formatCode
     """
     { FormatConfig.Default with
         ArrayOrListMultilineFormatter = MultilineFormatterType.NumberOfItems }
-(*** include-it ***)
+(*** include-output ***)
 
 (**
 <fantomas-setting name="fsharp_max_value_binding_width" green></fantomas-setting>
@@ -530,7 +536,7 @@ formatCode
     """
     { FormatConfig.Default with
         MaxValueBindingWidth = 10 }
-(*** include-it ***)
+(*** include-output ***)
 
 (**
 <fantomas-setting name="fsharp_max_function_binding_width" green></fantomas-setting>
@@ -549,7 +555,7 @@ formatCode
     """
     { FormatConfig.Default with
         MaxFunctionBindingWidth = 10 }
-(*** include-it ***)
+(*** include-output ***)
 
 (**
 <fantomas-setting name="fsharp_max_dot_get_expression_width" green></fantomas-setting>
@@ -569,14 +575,14 @@ formatCode
     """
     { FormatConfig.Default with
         MaxDotGetExpressionWidth = 100 }
-(*** include-it ***)
+(*** include-output ***)
 
 (**
 <fantomas-setting name="fsharp_multiline_bracket_style" green gr></fantomas-setting>
 
 `Cramped` The default way in F# to format brackets.  
 `Aligned` Alternative way of formatting records, arrays and lists. This will align the braces at the same column level.  
-`Stroustrup` Please contribute to [fsprojects/fantomas#1408](https://github.com/fsprojects/fantomas/issues/1408) and engage in [fsharp/fslang-design#706](https://github.com/fsharp/fslang-design/issues/706).
+`Stroustrup` Allow for easier reordering of members and keeping the code succinct. 
 
 Default = Cramped.
 *)
@@ -606,7 +612,7 @@ formatCode
     """
     { FormatConfig.Default with
         MultilineBracketStyle = Aligned }
-(*** include-it ***)
+(*** include-output ***)
 
 formatCode
     """ 
@@ -633,7 +639,7 @@ formatCode
     """
     { FormatConfig.Default with
         MultilineBracketStyle = Stroustrup }
-(*** include-it ***)
+(*** include-output ***)
 
 (**
 ## G-Research style
@@ -657,7 +663,7 @@ type Range =
     """
     { FormatConfig.Default with
         NewlineBetweenTypeDefinitionAndMembers = true }
-(*** include-it ***)
+(*** include-output ***)
 
 (**
 <fantomas-setting name="fsharp_align_function_signature_to_indentation" green gr></fantomas-setting>
@@ -679,7 +685,7 @@ let run
     """
     { FormatConfig.Default with
         AlignFunctionSignatureToIndentation = true }
-(*** include-it ***)
+(*** include-output ***)
 
 (**
 <fantomas-setting name="fsharp_alternative_long_member_definitions" green gr></fantomas-setting>
@@ -712,7 +718,7 @@ type D() =
     """
     { FormatConfig.Default with
         AlternativeLongMemberDefinitions = true }
-(*** include-it ***)
+(*** include-output ***)
 
 (**
 <fantomas-setting name="fsharp_multi_line_lambda_closing_newline" green gr></fantomas-setting>
@@ -740,7 +746,7 @@ let printListWithOffset a list1 =
     """
     { FormatConfig.Default with
         MultiLineLambdaClosingNewline = true }
-(*** include-it ***)
+(*** include-output ***)
 
 (**
 <fantomas-setting name="fsharp_experimental_keep_indent_in_branch" orange gr></fantomas-setting>
@@ -770,7 +776,7 @@ let main argv =
     """
     { FormatConfig.Default with
         ExperimentalKeepIndentInBranch = true }
-(*** include-it ***)
+(*** include-output ***)
 
 (**
 <fantomas-setting name="fsharp_bar_before_discriminated_union_declaration" green gr></fantomas-setting>
@@ -788,7 +794,7 @@ formatCode
     { FormatConfig.Default with
         BarBeforeDiscriminatedUnionDeclaration = true }
 
-(*** include-it ***)
+(*** include-output ***)
 
 (**
 ## Other
@@ -822,7 +828,7 @@ formatCode
     """
     { FormatConfig.Default with
         BlankLinesAroundNestedMultilineExpressions = false }
-(*** include-it ***)
+(*** include-output ***)
 
 (**
 <fantomas-setting name="fsharp_keep_max_number_of_blank_lines" green></fantomas-setting>
@@ -840,7 +846,7 @@ formatCode
     """
     { FormatConfig.Default with
         KeepMaxNumberOfBlankLines = 1 }
-(*** include-it ***)
+(*** include-output ***)
 
 (**
 <fantomas-setting name="fsharp_strict_mode" red></fantomas-setting>
@@ -867,7 +873,7 @@ formatCode
     """
     { FormatConfig.Default with
         StrictMode = true }
-(*** include-it ***)
+(*** include-output ***)
 (**
 <fantomas-nav previous="./StyleGuide.html" next="./IgnoreFiles.html"></fantomas-nav>
 

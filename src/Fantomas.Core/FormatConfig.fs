@@ -38,7 +38,6 @@ type MultilineBracketStyle =
         match cfgString with
         | "cramped" -> Some Cramped
         | "aligned" -> Some Aligned
-        | "experimental_stroustrup" -> Some Stroustrup // TODO: Should we keep this working or just drop this altogether
         | "stroustrup" -> Some Stroustrup
         | _ -> None
 

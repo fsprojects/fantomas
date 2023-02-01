@@ -448,13 +448,13 @@ insert_final_newline = false
     Assert.IsFalse config.InsertFinalNewline
 
 [<Test>]
-let ``fsharp_multiline_bracket_style = experimental_stroustrup`` () =
+let ``fsharp_multiline_bracket_style = stroustrup`` () =
     let rootDir = tempName ()
 
     let editorConfig =
         """
 [*.fs]
-fsharp_multiline_bracket_style = experimental_stroustrup
+fsharp_multiline_bracket_style = stroustrup
 """
 
     use configFixture =
