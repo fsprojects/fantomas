@@ -2,6 +2,7 @@ namespace Fantomas.Core
 
 open FSharp.Compiler.Text
 open FSharp.Compiler.Syntax
+open Fantomas.Core.SyntaxOak
 
 [<Sealed>]
 type CodeFormatter =
@@ -37,3 +38,12 @@ type CodeFormatter =
 
     /// Make a pos from line and column
     static member MakePosition: line: int * column: int -> pos
+
+    /// Parse a source string to SyntaxOak
+    static member ParseOakAsync: isSignature: bool * source: string -> Async<(Oak * string list) array>
+
+    /// Format SyntaxOak to string
+    static member FormatOakAsync: oak: Oak -> Async<string>
+
+    /// Format SyntaxOak to string using given config
+    static member FormatOakAsync: oak: Oak * config: FormatConfig -> Async<string>

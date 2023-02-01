@@ -7,7 +7,7 @@ open Fantomas.Core.Tests.TestHelper
 
 let config =
     { config with
-        MultilineBracketStyle = ExperimentalStroustrup
+        MultilineBracketStyle = Stroustrup
         MaxArrayOrListWidth = 40 }
 
 [<Test>]
@@ -68,19 +68,19 @@ myComp {
         equal
         """
 myComp {
-    yield!
-        { bar with
+    yield! {
+        bar with
             X = xFieldValueOne
             Y = yFieldValueTwo
             Z = zFieldValueThree
-        }
+    }
 
-    return!
-        { bar with
+    return! {
+        bar with
             X = xFieldValueOne
             Y = yFieldValueTwo
             Z = zFieldValueThree
-        }
+    }
 }
 """
 

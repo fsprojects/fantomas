@@ -21,7 +21,7 @@
     <Compile Include="AppTests.fs" />
     <Compile Include="ModuleTests.fs" />
     <Compile Include="UnionTests.fs" />
-    <Compile Include="RecordTests.fs" />
+    <Compile Include="CrampedMultilineBracketStyleTests.fs" />
     <Compile Include="TypeDeclarationTests.fs" />
     <Compile Include="InterfaceTests.fs" />
     <Compile Include="ClassTests.fs" />
@@ -58,7 +58,7 @@
     <Compile Include="SpaceBeforeUppercaseInvocationTests.fs" />
     <Compile Include="SpaceBeforeClassConstructorTests.fs" />
     <Compile Include="SpaceBeforeMemberTests.fs" />
-    <Compile Include="MultilineBlockBracketsOnSameColumnRecordTests.fs" />
+    <Compile Include="AlignedMultilineBracketStyleTests.fs" />
     <Compile Include="MultilineBlockBracketsOnSameColumnArrayOrListTests.fs" />
     <Compile Include="NewlineBetweenTypeDefinitionAndMembersTests.fs" />
     <Compile Include="MaxValueBindingWidthTests.fs" />

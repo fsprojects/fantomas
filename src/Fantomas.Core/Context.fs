@@ -752,57 +752,59 @@ let sepSpaceOrDoubleIndentAndNlnIfExpressionExceedsPageWidth expr (ctx: Context)
         expr
         ctx
 
-let isStroustrupExpr (config: FormatConfig) (e: Expr) =
-    let isStroustrupEnabled = config.MultilineBracketStyle = ExperimentalStroustrup
+let isStroustrupStyleExpr (config: FormatConfig) (e: Expr) =
+    let isStroustrupEnabled = config.MultilineBracketStyle = Stroustrup
 
     match e with
     | Expr.Record node when isStroustrupEnabled ->
         match node.Extra with
-        | RecordNodeExtra.Inherit _
-        | RecordNodeExtra.With _ -> false
+        | RecordNodeExtra.Inherit _ -> false
+        | RecordNodeExtra.With _
         | RecordNodeExtra.None -> true
-    | Expr.AnonRecord node when isStroustrupEnabled ->
-        match node.CopyInfo with
-        | Some _ -> false
-        | None -> true
+    | Expr.AnonRecord _ when isStroustrupEnabled -> true
+    | Expr.NamedComputation node when isStroustrupEnabled ->
+        match node.Name with
+        | Expr.Ident _ -> true
+        | _ -> false
     | Expr.ArrayOrList _ when isStroustrupEnabled -> true
     | Expr.NamedComputation _ when not config.NewlineBeforeMultilineComputationExpression -> true
     | _ -> false
 
-let isStroustrupApplicable isStroustrupContext (node: Node) =
-    isStroustrupContext && not node.HasContentBefore
-
-let isStroustrupType (config: FormatConfig) (t: Type) =
-    let isStroustrupEnabled = config.MultilineBracketStyle = ExperimentalStroustrup
+let isStroustrupStyleType (config: FormatConfig) (t: Type) =
+    let isStroustrupEnabled = config.MultilineBracketStyle = Stroustrup
 
     match t with
     | Type.AnonRecord _ when isStroustrupEnabled -> true
     | _ -> false
 
-let sepSpaceOrIndentAndNlnIfExceedsPageWidthUnless condition f (ctx: Context) =
-    if condition then
+let canSafelyUseStroustrup (node: Node) = not node.HasContentBefore
+
+let sepSpaceOrIndentAndNlnIfExceedsPageWidthUnlessStroustrup isStroustrup f (node: Node) (ctx: Context) =
+    if isStroustrup && canSafelyUseStroustrup node then
         (sepSpace +> f) ctx
     else
         sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth f ctx
 
-let sepSpaceOrIndentAndNlnIfExceedsPageWidthUnlessStroustrup isStroustrup f (node: Node) (ctx: Context) =
-    sepSpaceOrIndentAndNlnIfExceedsPageWidthUnless (isStroustrupApplicable isStroustrup node) f ctx
-
 let sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidthUnlessStroustrup f (expr: Expr) (ctx: Context) =
     sepSpaceOrIndentAndNlnIfExceedsPageWidthUnlessStroustrup
-        (isStroustrupExpr ctx.Config expr)
+        (isStroustrupStyleExpr ctx.Config expr)
         (f expr)
         (Expr.Node expr)
         ctx
 
 let sepSpaceOrIndentAndNlnIfTypeExceedsPageWidthUnlessStroustrup f (t: Type) (ctx: Context) =
-    sepSpaceOrIndentAndNlnIfExceedsPageWidthUnlessStroustrup (isStroustrupType ctx.Config t) (f t) (Type.Node t) ctx
+    sepSpaceOrIndentAndNlnIfExceedsPageWidthUnlessStroustrup
+        (isStroustrupStyleType ctx.Config t)
+        (f t)
+        (Type.Node t)
+        ctx
 
 let sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidthUnlessSameLinePreferred f (expr: Expr) (ctx: Context) =
-    let isStroustrup =
-        isStroustrupApplicable (isStroustrupExpr ctx.Config expr) (Expr.Node expr)
-
-    sepSpaceOrIndentAndNlnIfExceedsPageWidthUnless isStroustrup (f expr) ctx
+    sepSpaceOrIndentAndNlnIfExceedsPageWidthUnlessStroustrup
+        (isStroustrupStyleExpr ctx.Config expr)
+        (f expr)
+        (Expr.Node expr)
+        ctx
 
 let autoNlnIfExpressionExceedsPageWidth expr (ctx: Context) =
     expressionExceedsPageWidth
@@ -902,7 +904,7 @@ let ifAlignOrStroustrupBrackets f g =
         (fun ctx ->
             match ctx.Config.MultilineBracketStyle with
             | Aligned
-            | ExperimentalStroustrup -> true
+            | Stroustrup -> true
             | Cramped -> false)
         f
         g
@@ -943,7 +945,7 @@ let addParenIfAutoNln expr f =
 
 let autoIndentAndNlnExpressUnlessSameLinePreferred f (e: Expr) (ctx: Context) =
     let shouldUseStroustrup =
-        isStroustrupApplicable (isStroustrupExpr ctx.Config e) (Expr.Node e)
+        isStroustrupStyleExpr ctx.Config e && canSafelyUseStroustrup (Expr.Node e)
 
     if shouldUseStroustrup then
         f e ctx
@@ -952,7 +954,7 @@ let autoIndentAndNlnExpressUnlessSameLinePreferred f (e: Expr) (ctx: Context) =
 
 let autoIndentAndNlnTypeUnlessStroustrup f (t: Type) (ctx: Context) =
     let shouldUseStroustrup =
-        isStroustrupApplicable (isStroustrupType ctx.Config t) (Type.Node t)
+        isStroustrupStyleType ctx.Config t && canSafelyUseStroustrup (Type.Node t)
 
     if shouldUseStroustrup then
         f t ctx
@@ -961,7 +963,7 @@ let autoIndentAndNlnTypeUnlessStroustrup f (t: Type) (ctx: Context) =
 
 let autoIndentAndNlnIfExpressionExceedsPageWidthUnlessSameLinePreferred f (e: Expr) (ctx: Context) =
     let isStroustrup =
-        isStroustrupApplicable (isStroustrupExpr ctx.Config e) (Expr.Node e)
+        isStroustrupStyleExpr ctx.Config e && canSafelyUseStroustrup (Expr.Node e)
 
     if isStroustrup then
         f e ctx

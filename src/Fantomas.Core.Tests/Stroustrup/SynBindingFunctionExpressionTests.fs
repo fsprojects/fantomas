@@ -7,7 +7,7 @@ open Fantomas.Core.Tests.TestHelper
 
 let config =
     { config with
-        MultilineBracketStyle = ExperimentalStroustrup
+        MultilineBracketStyle = Stroustrup
         MaxArrayOrListWidth = 40 }
 
 [<Test>]
@@ -45,10 +45,10 @@ let x y =
     |> should
         equal
         """
-let x y =
-    { astContext with
+let x y = {
+    astContext with
         IsInsideMatchClausePattern = true
-    }
+}
 """
 
 [<Test>]
@@ -163,10 +163,10 @@ type Foo() =
         equal
         """
 type Foo() =
-    member this.Bar x =
-        { astContext with
+    member this.Bar x = {
+        astContext with
             IsInsideMatchClausePattern = true
-        }
+    }
 """
 
 [<Test>]

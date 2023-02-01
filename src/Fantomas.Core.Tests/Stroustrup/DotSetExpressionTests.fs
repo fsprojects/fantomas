@@ -7,7 +7,7 @@ open Fantomas.Core
 
 let config =
     { config with
-        MultilineBracketStyle = ExperimentalStroustrup
+        MultilineBracketStyle = Stroustrup
         MaxArrayOrListWidth = 40 }
 
 [<Test>]
@@ -68,10 +68,10 @@ App().foo <-
     |> should
         equal
         """
-App().foo <-
-    { astContext with
+App().foo <- {
+    astContext with
         IsInsideMatchClausePattern = true
-    }
+}
 """
 
 [<Test>]

@@ -8,7 +8,7 @@ open Fantomas.Core.Tests.TestHelper
 let config =
     { config with
         MaxLineLength = 80
-        MultilineBracketStyle = ExperimentalStroustrup
+        MultilineBracketStyle = Stroustrup
         MaxArrayOrListWidth = 40 }
 
 // TODO: conclude on what should happen here
@@ -78,8 +78,9 @@ let private addTaskToScheduler
     (task: unit -> unit)
     groupName
     =
-    { astContext with
-        IsInsideMatchClausePattern = true
+    {
+        astContext with
+            IsInsideMatchClausePattern = true
     }
 """
 
@@ -307,8 +308,9 @@ type Foo() =
         (task: unit -> unit)
         groupName
         =
-        { astContext with
-            IsInsideMatchClausePattern = true
+        {
+            astContext with
+                IsInsideMatchClausePattern = true
         }
 """
 

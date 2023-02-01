@@ -501,15 +501,12 @@ let genExpr (e: Expr) =
                     +> genSingleTextNode node.ClosingBrace
                 | RecordNodeExtra.With we ->
                     genSingleTextNode node.OpeningBrace
-                    +> addSpaceIfSpaceAroundDelimiter
-                    +> atCurrentColumnIndent (genExpr we)
-                    +> !- " with"
-                    +> indent
-                    +> whenShortIndent indent
-                    +> sepNln
-                    +> fieldsExpr
-                    +> unindent
-                    +> whenShortIndent unindent
+                    +> ifElseCtx
+                        (fun ctx -> ctx.Config.IsStroustrupStyle)
+                        (indent +> sepNln)
+                        addSpaceIfSpaceAroundDelimiter
+                    +> genCopyExpr fieldsExpr we
+                    +> onlyIfCtx (fun ctx -> ctx.Config.IsStroustrupStyle) unindent
                     +> sepNln
                     +> genSingleTextNode node.ClosingBrace
                 | RecordNodeExtra.None ->
@@ -535,14 +532,7 @@ let genExpr (e: Expr) =
                 | RecordNodeExtra.With we ->
                     genSingleTextNode node.OpeningBrace
                     +> addSpaceIfSpaceAroundDelimiter
-                    +> atCurrentColumnIndent (genExpr we)
-                    +> !- " with"
-                    +> indent
-                    +> whenShortIndent indent
-                    +> sepNln
-                    +> fieldsExpr
-                    +> unindent
-                    +> whenShortIndent unindent
+                    +> genCopyExpr fieldsExpr we
                     +> addSpaceIfSpaceAroundDelimiter
                     +> genSingleTextNode node.ClosingBrace
                 | RecordNodeExtra.None ->
@@ -641,19 +631,13 @@ let genExpr (e: Expr) =
                 let genAnonRecord =
                     match node.CopyInfo with
                     | Some ci ->
-                        let copyExpr fieldsExpr e =
-                            atCurrentColumnIndent (genExpr e)
-                            +> (!- " with"
-                                +> indent
-                                +> whenShortIndent indent
-                                +> sepNln
-                                +> fieldsExpr
-                                +> whenShortIndent unindent
-                                +> unindent)
-
                         genSingleTextNodeSuffixDelimiter node.OpeningBrace
-                        +> sepNlnWhenWriteBeforeNewlineNotEmpty // comment after curly brace
-                        +> copyExpr fieldsExpr ci
+                        +> ifElseCtx
+                            (fun ctx -> ctx.Config.IsStroustrupStyle)
+                            (indent +> sepNln)
+                            sepNlnWhenWriteBeforeNewlineNotEmpty // comment after curly brace
+                        +> genCopyExpr fieldsExpr ci
+                        +> onlyIfCtx (fun ctx -> ctx.Config.IsStroustrupStyle) unindent
                         +> sepNln
                         +> genSingleTextNode node.ClosingBrace
                     | None ->
@@ -871,7 +855,7 @@ let genExpr (e: Expr) =
                 onlyIf
                     (isMultiline
                      && ctx.Config.MultiLineLambdaClosingNewline
-                     && not (isStroustrupExpr ctx.Config node.Lambda.Expr))
+                     && not (isStroustrupStyleExpr ctx.Config node.Lambda.Expr))
                     sepNln
                     ctx)
         +> genSingleTextNode node.ClosingParen
@@ -1072,7 +1056,7 @@ let genExpr (e: Expr) =
                         +> onlyIfCtx
                             (fun ctx ->
                                 ctx.Config.MultiLineLambdaClosingNewline
-                                && (not ((isStroustrupExpr ctx.Config lambdaNode.Expr))))
+                                && (not (isStroustrupStyleExpr ctx.Config lambdaNode.Expr)))
                             sepNln
                         +> genSingleTextNode appParen.Paren.ClosingParen
                     | _ ->
@@ -1725,6 +1709,16 @@ let genExpr (e: Expr) =
     | Expr.IndexFromEnd node -> !- "^" +> genExpr node.Expr |> genNode node
     | Expr.Typar node -> genSingleTextNode node
 
+let genCopyExpr fieldsExpr ci =
+    atCurrentColumnIndent (genExpr ci)
+    +> !- " with"
+    +> indent
+    +> whenShortIndent indent
+    +> sepNln
+    +> fieldsExpr
+    +> whenShortIndent unindent
+    +> unindent
+
 let genQuoteExpr (node: ExprQuoteNode) =
     genSingleTextNode node.OpenToken
     +> sepSpace
@@ -1920,7 +1914,7 @@ let genClause (isLastItem: bool) (node: MatchClauseNode) =
                         ctx)
 
     let genPatAndBody ctx =
-        if (isStroustrupExpr ctx.Config node.BodyExpr) then
+        if isStroustrupStyleExpr ctx.Config node.BodyExpr then
             let startColumn = ctx.Column
             (genPatInClause node.Pattern +> atIndentLevel false startColumn genWhenAndBody) ctx
         else
@@ -2122,7 +2116,7 @@ let genFunctionNameWithMultilineLids (trailing: Context -> Context) (longIdent: 
     |> genNode parentNode
 
 let (|EndsWithDualListApp|_|) (config: FormatConfig) (appNode: ExprAppNode) =
-    if not config.ExperimentalStroustrupStyle then
+    if not config.IsStroustrupStyle then
         None
     else
         let mutable otherArgs = ListCollector<Expr>()
@@ -2139,7 +2133,7 @@ let (|EndsWithDualListApp|_|) (config: FormatConfig) (appNode: ExprAppNode) =
         visit appNode.Arguments
 
 let (|EndsWithSingleListApp|_|) (config: FormatConfig) (appNode: ExprAppNode) =
-    if not config.ExperimentalStroustrupStyle then
+    if not config.IsStroustrupStyle then
         None
     else
         let mutable otherArgs = ListCollector<Expr>()
@@ -2179,7 +2173,7 @@ let genAppWithLambda sep (node: ExprAppWithLambdaNode) =
                     | Choice1Of2 lambdaNode ->
                         genSingleTextNode node.OpeningParen
                         +> (genLambdaWithParen lambdaNode |> genNode lambdaNode)
-                        +> onlyIf (not (isStroustrupExpr ctx.Config lambdaNode.Expr)) sepNln
+                        +> onlyIf (not (isStroustrupStyleExpr ctx.Config lambdaNode.Expr)) sepNln
                         +> genSingleTextNode node.ClosingParen
                     | Choice2Of2 matchLambdaNode ->
                         genSingleTextNode node.OpeningParen
@@ -2200,7 +2194,9 @@ let genAppWithLambda sep (node: ExprAppWithLambdaNode) =
                                 (genSingleTextNode node.OpeningParen
                                  +> (genLambdaWithParen lambdaNode |> genNode lambdaNode))
                                 (fun isMultiline ->
-                                    onlyIf (isMultiline && not (isStroustrupExpr ctx.Config lambdaNode.Expr)) sepNln
+                                    onlyIf
+                                        (isMultiline && not (isStroustrupStyleExpr ctx.Config lambdaNode.Expr))
+                                        sepNln
                                     +> genSingleTextNode node.ClosingParen)
                         | Choice2Of2 matchLambdaNode ->
                             (genSingleTextNode node.OpeningParen
@@ -3218,9 +3214,9 @@ let genTypeDefn (td: TypeDefn) =
                 +> genMemberDefnList members
 
             match ctx.Config.MultilineBracketStyle with
-            | ExperimentalStroustrup when hasNoMembers -> stroustrupWithoutMembers ctx
+            | Stroustrup when hasNoMembers -> stroustrupWithoutMembers ctx
             | Aligned
-            | ExperimentalStroustrup -> aligned ctx
+            | Stroustrup -> aligned ctx
             | Cramped when anyFieldHasXmlDoc -> aligned ctx
             | Cramped -> cramped ctx
 
@@ -3244,7 +3240,7 @@ let genTypeDefn (td: TypeDefn) =
             let size = getRecordSize ctx node.Fields
             let short = bodyExpr size
 
-            if ctx.Config.ExperimentalStroustrupStyle && hasNoMembers then
+            if ctx.Config.IsStroustrupStyle && hasNoMembers then
                 (sepSpace +> short) ctx
             else
                 isSmallExpression size short (indentSepNlnUnindent short) ctx
@@ -3256,7 +3252,7 @@ let genTypeDefn (td: TypeDefn) =
 
         fun (ctx: Context) ->
             (match node.Type with
-             | Type.AnonRecord _ when not hasMembers && ctx.Config.ExperimentalStroustrupStyle ->
+             | Type.AnonRecord _ when not hasMembers && ctx.Config.IsStroustrupStyle ->
                  header
                  +> sepSpaceOrIndentAndNlnIfTypeExceedsPageWidthUnlessStroustrup genType node.Type
                  |> genNode node

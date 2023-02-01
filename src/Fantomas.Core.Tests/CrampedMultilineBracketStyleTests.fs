@@ -1,4 +1,4 @@
-module Fantomas.Core.Tests.RecordTests
+module Fantomas.Core.Tests.CrampedMultilineBracketStyleTests
 
 open NUnit.Framework
 open FsUnit
@@ -2122,30 +2122,6 @@ let compareThings (first: Thing) (second: Thing) =
     first = { second with
                 Foo = first.Foo
                 Bar = first.Bar }
-"""
-
-[<Test>]
-let ``equality comparison with a `with` expression should format correctly with Allman alignment, 2507`` () =
-    formatSourceString
-        false
-        """
-let compareThings (first: Thing) (second: Thing) =
-    first = { second with
-                Foo = first.Foo
-                Bar = first.Bar
-            }
-"""
-        { config with
-            MultilineBracketStyle = Aligned }
-    |> prepend newline
-    |> should
-        equal
-        """
-let compareThings (first: Thing) (second: Thing) =
-    first = { second with
-                Foo = first.Foo
-                Bar = first.Bar
-            }
 """
 
 [<Test>]

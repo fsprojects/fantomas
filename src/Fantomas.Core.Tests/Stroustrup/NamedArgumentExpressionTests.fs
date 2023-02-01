@@ -7,7 +7,7 @@ open Fantomas.Core
 
 let config =
     { config with
-        MultilineBracketStyle = ExperimentalStroustrup
+        MultilineBracketStyle = Stroustrup
         MaxArrayOrListWidth = 40 }
 
 [<Test>]
@@ -59,13 +59,13 @@ let v =
         """
 let v =
     SomeConstructor(
-        v =
-            { astContext with
+        v = {
+            astContext with
                 IsInsideMatchClausePattern = true
                 A = longTypeName
                 B = someOtherVariable
                 C = ziggyBarX
-            }
+        }
     )
 """
 
@@ -285,13 +285,13 @@ let v =
         """
 let v =
     new FooBar(
-        v =
-            { astContext with
+        v = {
+            astContext with
                 IsInsideMatchClausePattern = true
                 A = longTypeName
                 B = someOtherVariable
                 C = ziggyBarX
-            }
+        }
     )
 """
 

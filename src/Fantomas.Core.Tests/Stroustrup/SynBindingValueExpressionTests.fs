@@ -7,7 +7,7 @@ open Fantomas.Core
 
 let config =
     { config with
-        MultilineBracketStyle = ExperimentalStroustrup
+        MultilineBracketStyle = Stroustrup
         MaxArrayOrListWidth = 40 }
 
 [<Test>]
@@ -38,17 +38,40 @@ let ``synbinding value with update record`` () =
         false
         """
 let astCtx =
-    { astContext with IsInsideMatchClausePattern = true }
+    { astContext with IsInsideMatchClausePattern = true; OtherThing = "YOLO" }
 """
-        config
+        { config with
+            RecordMultilineFormatter = NumberOfItems }
     |> prepend newline
     |> should
         equal
         """
-let astCtx =
-    { astContext with
+let astCtx = {
+    astContext with
         IsInsideMatchClausePattern = true
-    }
+        OtherThing = "YOLO"
+}
+"""
+
+[<Test>]
+let ``synbinding value with update anonymous record`` () =
+    formatSourceString
+        false
+        """
+let astCtx =
+    {| astContext with IsInsideMatchClausePattern = true; OtherThing = "YOLO" |}
+"""
+        { config with
+            RecordMultilineFormatter = NumberOfItems }
+    |> prepend newline
+    |> should
+        equal
+        """
+let astCtx = {|
+    astContext with
+        IsInsideMatchClausePattern = true
+        OtherThing = "YOLO"
+|}
 """
 
 [<Test>]
@@ -213,10 +236,10 @@ type Foo() =
         equal
         """
 type Foo() =
-    member this.Bar =
-        { astContext with
+    member this.Bar = {
+        astContext with
             IsInsideMatchClausePattern = true
-        }
+    }
 """
 
 [<Test>]
@@ -325,7 +348,7 @@ type Foo() =
 """
 
 [<Test>]
-let ``let binding for anonymous record with expression, 2508`` () =
+let ``let binding for anonymous record with copy expression, 2508`` () =
     formatSourceString
         false
         """
@@ -343,14 +366,14 @@ let fooDto =
     |> should
         equal
         """
-let fooDto =
-    {| otherDto with
+let fooDto = {|
+    otherDto with
         TextFilters =
             criteria.Meta.TextFilter
             |> Option.map (fun f -> f.Filters)
             |> Option.map (List.map (sprintf "~%s~"))
             |> Option.toObj
-    |}
+|}
 """
 
 [<Test>]

@@ -8,7 +8,7 @@ open Fantomas.Core
 let config =
     { config with
         MultiLineLambdaClosingNewline = true
-        MultilineBracketStyle = ExperimentalStroustrup
+        MultilineBracketStyle = Stroustrup
         MaxArrayOrListWidth = 40 }
 
 [<Test>]
@@ -46,11 +46,10 @@ let ``paren lambda with update record`` () =
     |> should
         equal
         """
-(fun x ->
-    { astContext with
+(fun x -> {
+    astContext with
         IsInsideMatchClausePattern = true
-    }
-)
+})
 """
 
 [<Test>]
@@ -185,11 +184,10 @@ List.map (fun x ->
     |> should
         equal
         """
-List.map (fun x ->
-    { astContext with
+List.map (fun x -> {
+    astContext with
         IsInsideMatchClausePattern = true
-    }
-)
+})
 """
 
 [<Test>]
@@ -328,11 +326,10 @@ List.map (fun x ->
         equal
         """
 List.map
-    (fun x ->
-        { astContext with
+    (fun x -> {
+        astContext with
             IsInsideMatchClausePattern = true
-        }
-    )
+    })
     b
     c
 """
@@ -488,14 +485,13 @@ Bar.Foo(fun x -> {  other with
         equal
         """
 Bar
-    .Foo(fun x ->
-        { other with
+    .Foo(fun x -> {
+        other with
             A = longTypeName
             B = someOtherVariable
             C = ziggyBarX
             D = evenMoreZigBarry
-        }
-    )
+    })
     .Bar()
 """
 

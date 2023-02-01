@@ -222,8 +222,6 @@ val leadingExpressionResult:
 val leadingExpressionIsMultiline:
     leadingExpression: (Context -> Context) -> continuationExpression: (bool -> Context -> 'a) -> ctx: Context -> 'a
 
-val isStroustrupExpr: config: FormatConfig -> e: Expr -> bool
-
 /// try and write the expression on the remainder of the current line
 /// add an indent and newline if the expression is longer
 val autoIndentAndNlnIfExpressionExceedsPageWidth: expr: (Context -> Context) -> ctx: Context -> Context
@@ -235,6 +233,8 @@ val sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidthUnlessStroustrup:
 
 val sepSpaceOrIndentAndNlnIfTypeExceedsPageWidthUnlessStroustrup:
     f: (Type -> Context -> Context) -> t: Type -> (Context -> Context)
+
+val isStroustrupStyleExpr: config: FormatConfig -> e: Expr -> bool
 
 val sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidthUnlessSameLinePreferred:
     f: (Expr -> Context -> Context) -> expr: Expr -> (Context -> Context)
