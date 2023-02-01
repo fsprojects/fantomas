@@ -1857,7 +1857,7 @@ let someTest input1 input2 =
     }
 """
         { config with
-            MultilineBracketStyle = ExperimentalStroustrup }
+            MultilineBracketStyle = Stroustrup }
     |> prepend newline
     |> should
         equal
