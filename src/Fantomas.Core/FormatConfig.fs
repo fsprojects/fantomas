@@ -219,7 +219,7 @@ type FormatConfig =
       KeepMaxNumberOfBlankLines: Num
 
       [<Category("Convention")>]
-      [<DisplayName("Insert a newline before a computation expression that spans multiple lines.")>]
+      [<DisplayName("Insert a newline before a computation expression that spans multiple lines")>]
       NewlineBeforeMultilineComputationExpression: bool
 
       [<Category("Convention")>]
