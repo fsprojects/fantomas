@@ -2,6 +2,7 @@ namespace Fantomas.Core
 
 open FSharp.Compiler.Syntax
 open FSharp.Compiler.Text
+open Fantomas.Core.SyntaxOak
 
 [<Sealed>]
 type CodeFormatter =
@@ -33,3 +34,30 @@ type CodeFormatter =
         Range.mkRange fileName (Position.mkPos startLine startCol) (Position.mkPos endLine endCol)
 
     static member MakePosition(line, column) = Position.mkPos line column
+
+    [<Experimental "Only for local development">]
+    static member ParseOakAsync(isSignature: bool, source: string) : Async<(Oak * string list) array> =
+        async {
+            let sourceText = CodeFormatterImpl.getSourceText source
+            let! ast = CodeFormatterImpl.parse isSignature sourceText
+
+            return
+                ast
+                |> Array.map (fun (ast, defines) ->
+                    let oak = ASTTransformer.mkOak (Some sourceText) ast
+                    oak, defines)
+        }
+
+    static member FormatOakAsync(oak: Oak) : Async<string> =
+        async {
+            let context = Context.Context.Create FormatConfig.Default
+            let result = context |> CodePrinter.genFile oak |> Context.dump false
+            return result.Code
+        }
+
+    static member FormatOakAsync(oak: Oak, config: FormatConfig) : Async<string> =
+        async {
+            let context = Context.Context.Create config
+            let result = context |> CodePrinter.genFile oak |> Context.dump false
+            return result.Code
+        }

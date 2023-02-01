@@ -1,5 +1,12 @@
 # Changelog
 
+## [6.0.0-alpha-002] - 2023-02-01
+
+### Changed
+* Update output for copy-and-update expression for Stroustrup. [#2748](https://github.com/fsprojects/fantomas/pull/2748)
+* Drop Experimental prefix from ExperimentalStroustrup. [#2755](https://github.com/fsprojects/fantomas/pull/2755)
+* Expose initial Oak API. [#2758](https://github.com/fsprojects/fantomas/pull/2758)
+
 ## [6.0.0-alpha-001] - 2023-01-24
 
 ### Changed
