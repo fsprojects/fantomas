@@ -17,6 +17,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{29F22904-C
 	ProjectSection(SolutionItems) = preProject
 		docs\index.html = docs\index.html
 		docs\.README.md = docs\.README.md
+		docs\docs\end-users\Configuration.fsx = docs\docs\end-users\Configuration.fsx
 	EndProjectSection
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Fantomas.Client", "src\Fantomas.Client\Fantomas.Client.fsproj", "{AA895F94-CCF2-4FCF-A9BB-E16987B57535}"

@@ -10,7 +10,7 @@ open Fantomas.Core
 let config =
     { config with
         ExperimentalKeepIndentInBranch = true
-        MultilineBracketStyle = ExperimentalStroustrup
+        MultilineBracketStyle = Stroustrup
         MaxArrayOrListWidth = 40 }
 
 // There currently is no conflict with this setting, but I'm guessing the case was never brought up.

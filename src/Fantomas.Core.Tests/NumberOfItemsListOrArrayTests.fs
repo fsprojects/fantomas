@@ -88,7 +88,7 @@ h [ longValueThatIsALotOfCharactersSoooooLong; longValueThatIsALotOfCharactersSo
     """
         { config with
             ArrayOrListMultilineFormatter = NumberOfItems
-            MultilineBracketStyle = ExperimentalStroustrup }
+            MultilineBracketStyle = Stroustrup }
     |> prepend newline
     |> should
         equal
@@ -206,7 +206,7 @@ h [ longValueThatIsALotOfCharactersSoooooLong; longValueThatIsALotOfCharactersSo
     """
         { config with
             ArrayOrListMultilineFormatter = NumberOfItems
-            MultilineBracketStyle = ExperimentalStroustrup }
+            MultilineBracketStyle = Stroustrup }
     |> prepend newline
     |> should
         equal
@@ -240,7 +240,7 @@ h [ longValueThatIsALotOfCharactersSoooooLong; longValueThatIsALotOfCharactersSo
     """
         { config with
             ArrayOrListMultilineFormatter = NumberOfItems
-            MultilineBracketStyle = ExperimentalStroustrup }
+            MultilineBracketStyle = Stroustrup }
     |> prepend newline
     |> should
         equal
@@ -272,7 +272,7 @@ h [ longValueThatIsALotOfCharactersSoooooLong; longValueThatIsALotOfCharactersSo
     """
         { config with
             ArrayOrListMultilineFormatter = NumberOfItems
-            MultilineBracketStyle = ExperimentalStroustrup }
+            MultilineBracketStyle = Stroustrup }
     |> prepend newline
     |> should
         equal
