@@ -521,4 +521,4 @@ fsharp_newline_before_multiline_computation_expression = false
 
     let config = EditorConfig.readConfiguration fsharpFile.FSharpFile
 
-    Assert.AreEqual(false, config.NewlineBeforeMultilineComputationExpression)
+    Assert.IsFalse config.NewlineBeforeMultilineComputationExpression
