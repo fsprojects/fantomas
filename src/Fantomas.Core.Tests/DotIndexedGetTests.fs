@@ -168,3 +168,24 @@ module Unix =
                     )).[0]
         }
 """
+
+[<Test>]
+let ``extra spaces around index between method calling and member variable accessing, 2760`` () =
+    formatSourceString
+        false
+        """
+x().y[0].z // spaces inserted around index
+x().y.[0].z // no spaces inserted
+x().y[0] // no spaces inserted
+x.y[0].z // no spaces inserted
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+x().y[0].z // spaces inserted around index
+x().y.[0].z // no spaces inserted
+x().y[0] // no spaces inserted
+x.y[0].z // no spaces inserted
+"""

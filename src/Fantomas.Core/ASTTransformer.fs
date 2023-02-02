@@ -788,6 +788,8 @@ let (|ChainExpr|_|) (e: SynExpr) : LinkExpr list option =
                       yield LinkExpr.Dot dotRange
                       yield LinkExpr.IndexExpr indexArgs ])
 
+        | SynExpr.ArrayOrListComputed(false, synExpr, _) -> continuation [ LinkExpr.IndexExpr synExpr ]
+
         | other -> continuation [ LinkExpr.Expr other ]
 
     match e with

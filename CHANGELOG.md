@@ -4,6 +4,7 @@
 
 ### Fixed
 * Conditional defines around selfIdentifier in implicit type constructor. [#2733](https://github.com/fsprojects/fantomas/issues/2733)
+* Insert extra spaces around index between method calling and member variable accessing. [#2760](https://github.com/fsprojects/fantomas/issues/2760)
 
 ### Changed
 * Update FCS to 'Add SynMemberDefnImplicitCtorTrivia', commit 924a64e8e40c840f05fbe7113796f267dd603282
