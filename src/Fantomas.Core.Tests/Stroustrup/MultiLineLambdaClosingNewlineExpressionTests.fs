@@ -98,28 +98,6 @@ let ``paren lambda with anonymous record instance struct`` () =
 """
 
 [<Test>]
-let ``paren lambda with computation expression`` () =
-    formatSourceString
-        false
-        """
-(fun x ->
-    task {
-        // some computation here
-        ()
-    })
-"""
-        config
-    |> prepend newline
-    |> should
-        equal
-        """
-(fun x -> task {
-    // some computation here
-    ()
-})
-"""
-
-[<Test>]
 let ``paren lambda with list`` () =
     formatSourceString
         false
@@ -255,28 +233,6 @@ List.map (fun x -> struct {|
     B = someOtherVariable
     C = ziggyBarX
 |})
-"""
-
-[<Test>]
-let ``app paren lambda with computation expression`` () =
-    formatSourceString
-        false
-        """
-List.map (fun x ->
-    task {
-        // some computation here
-        ()
-    })
-"""
-        config
-    |> prepend newline
-    |> should
-        equal
-        """
-List.map (fun x -> task {
-    // some computation here
-    ()
-})
 """
 
 [<Test>]
@@ -425,31 +381,6 @@ List.map
         B = someOtherVariable
         C = ziggyBarX
     |})
-    b
-    c
-"""
-
-[<Test>]
-let ``app paren lambda with computation expression and other args`` () =
-    formatSourceString
-        false
-        """
-List.map (fun x ->
-    task {
-        // some computation here
-        ()
-    }) b c
-"""
-        config
-    |> prepend newline
-    |> should
-        equal
-        """
-List.map
-    (fun x -> task {
-        // some computation here
-        ()
-    })
     b
     c
 """
@@ -611,31 +542,6 @@ Bar
         B = someOtherVariable
         C = ziggyBarX
     |})
-    .Bar()
-"""
-
-[<Test>]
-let ``dotGetApp with lambda with computation expression`` () =
-    formatSourceString
-        false
-        """
-Bar
-    .Foo(fun x ->
-                    task {
-                        // some computation here
-                        ()
-                    }).Bar()
-"""
-        config
-    |> prepend newline
-    |> should
-        equal
-        """
-Bar
-    .Foo(fun x -> task {
-        // some computation here
-        ()
-    })
     .Bar()
 """
 

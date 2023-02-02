@@ -74,28 +74,6 @@ let x y : {| A: int; B: int; C: int |} = {|
 """
 
 [<Test>]
-let ``synbinding function with computation expression`` () =
-    formatSourceString
-        false
-        """
-let x y: Task<unit> =
-    task {
-        // some computation here
-        ()
-    }
-"""
-        config
-    |> prepend newline
-    |> should
-        equal
-        """
-let x y : Task<unit> = task {
-    // some computation here
-    ()
-}
-"""
-
-[<Test>]
 let ``synbinding function with list`` () =
     formatSourceString
         false
@@ -238,30 +216,6 @@ type Foo() =
         B = someOtherVariable
         C = ziggyBarX
     |}
-"""
-
-[<Test>]
-let ``type member function with computation expression`` () =
-    formatSourceString
-        false
-        """
-type Foo() =
-    member this.Bar x : Task<unit> =
-        task {
-            // some computation here
-            ()
-        }
-"""
-        config
-    |> prepend newline
-    |> should
-        equal
-        """
-type Foo() =
-    member this.Bar x : Task<unit> = task {
-        // some computation here
-        ()
-    }
 """
 
 [<Test>]

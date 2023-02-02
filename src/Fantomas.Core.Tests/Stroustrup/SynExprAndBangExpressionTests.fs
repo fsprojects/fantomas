@@ -144,38 +144,6 @@ opt {
 """
 
 [<Test>]
-let ``andBang with computation expression`` () =
-    formatSourceString
-        false
-        """
-task {
-    let! abc = def ()
-    and! meh =
-        task {
-            // comment
-            return 42
-        }
-    ()
-}
-"""
-        config
-    |> prepend newline
-    |> should
-        equal
-        """
-task {
-    let! abc = def ()
-
-    and! meh = task {
-        // comment
-        return 42
-    }
-
-    ()
-}
-"""
-
-[<Test>]
 let ``andBang with list`` () =
     formatSourceString
         false

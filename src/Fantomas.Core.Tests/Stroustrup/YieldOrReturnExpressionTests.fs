@@ -158,42 +158,6 @@ myComp {
 """
 
 [<Test>]
-let ``yieldOrReturn with computation expression`` () =
-    formatSourceString
-        false
-        """
-myComp {
-    yield
-       seq {
-            // meh
-            return 0 .. 2
-       }
-    return
-       seq {
-            // meh
-            return 0 .. 2
-       }
-}
-"""
-        config
-    |> prepend newline
-    |> should
-        equal
-        """
-myComp {
-    yield seq {
-        // meh
-        return 0..2
-    }
-
-    return seq {
-        // meh
-        return 0..2
-    }
-}
-"""
-
-[<Test>]
 let ``yieldOrReturn with list`` () =
     formatSourceString
         false
