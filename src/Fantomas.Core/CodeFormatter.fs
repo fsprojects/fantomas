@@ -9,19 +9,28 @@ type CodeFormatter =
     static member ParseAsync(isSignature, source) : Async<(ParsedInput * string list) array> =
         CodeFormatterImpl.getSourceText source |> CodeFormatterImpl.parse isSignature
 
-    static member FormatASTAsync(ast: ParsedInput, ?source, ?config) : Async<FormatResult> =
-        let sourceText = Option.map CodeFormatterImpl.getSourceText source
-        let config = Option.defaultValue FormatConfig.Default config
+    static member FormatASTAsync(ast: ParsedInput) : Async<FormatResult> =
+        CodeFormatterImpl.formatAST ast None FormatConfig.Default None |> async.Return
 
+    static member FormatASTAsync(ast: ParsedInput, source) : Async<FormatResult> =
+        let sourceText = Some(CodeFormatterImpl.getSourceText source)
+
+        CodeFormatterImpl.formatAST ast sourceText FormatConfig.Default None
+        |> async.Return
+
+    static member FormatASTAsync(ast: ParsedInput, source, config) : Async<FormatResult> =
+        let sourceText = Some(CodeFormatterImpl.getSourceText source)
         CodeFormatterImpl.formatAST ast sourceText config None |> async.Return
 
     static member FormatDocumentAsync(isSignature, source, ?config, ?cursor: Position) =
         let config = Option.defaultValue FormatConfig.Default config
         CodeFormatterImpl.formatDocument config isSignature (CodeFormatterImpl.getSourceText source) cursor
 
-    static member FormatSelectionAsync(isSignature, source, selection, config) =
-        let config = Option.defaultValue FormatConfig.Default config
+    static member FormatSelectionAsync(isSignature, source, selection) =
+        CodeFormatterImpl.getSourceText source
+        |> Selection.formatSelection FormatConfig.Default isSignature selection
 
+    static member FormatSelectionAsync(isSignature, source, selection, config) =
         CodeFormatterImpl.getSourceText source
         |> Selection.formatSelection config isSignature selection
 
@@ -35,7 +44,6 @@ type CodeFormatter =
 
     static member MakePosition(line, column) = Position.mkPos line column
 
-    [<Experimental "Only for local development">]
     static member ParseOakAsync(isSignature: bool, source: string) : Async<(Oak * string list) array> =
         async {
             let sourceText = CodeFormatterImpl.getSourceText source
