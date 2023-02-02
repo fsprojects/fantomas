@@ -702,3 +702,23 @@ let t =
         return 5
     }
 """
+
+[<Test>]
+let ``fsharp_multiline_bracket_style = stroustrup has not influence`` () =
+    formatSourceString
+        false
+        """
+fun _ -> task { // foo
+                () }
+"""
+        { FormatConfig.Default with
+            MultilineBracketStyle = Stroustrup }
+    |> prepend newline
+    |> should
+        equal
+        """
+fun _ ->
+    task { // foo
+        ()
+    }
+"""
