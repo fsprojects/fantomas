@@ -1,4 +1,4 @@
-module Fantomas.Core.Tests.ComputationExpressionSameLineTests
+module Fantomas.Core.Tests.NewlineBeforeMultilineComputationExpressionTests
 
 open NUnit.Framework
 open FsUnit
