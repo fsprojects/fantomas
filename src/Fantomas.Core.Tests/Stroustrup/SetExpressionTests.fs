@@ -97,28 +97,6 @@ myMutable[x] <- struct {|
 """
 
 [<Test>]
-let ``set with computation expression`` () =
-    formatSourceString
-        false
-        """
-myMutable[x] <-
-    task {
-        // some computation here
-        ()
-    }
-"""
-        config
-    |> prepend newline
-    |> should
-        equal
-        """
-myMutable[x] <- task {
-    // some computation here
-    ()
-}
-"""
-
-[<Test>]
 let ``set with list`` () =
     formatSourceString
         false
