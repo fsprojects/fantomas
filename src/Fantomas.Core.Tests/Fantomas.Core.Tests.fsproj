@@ -35,6 +35,7 @@
     <Compile Include="ListTests.fs" />
     <Compile Include="CompilerDirectivesTests.fs" />
     <Compile Include="ComputationExpressionTests.fs" />
+    <Compile Include="NewlineBeforeMultilineComputationExpressionTests.fs" />
     <Compile Include="TypeProviderTests.fs" />
     <Compile Include="FormattingSelectionOnlyTests.fs" />
     <Compile Include="ValidationTests.fs" />

@@ -120,28 +120,6 @@ App().foo <- struct {|
 """
 
 [<Test>]
-let ``dotSet with computation expression`` () =
-    formatSourceString
-        false
-        """
-App().foo <-
-    task {
-        // some computation here
-        ()
-    }
-"""
-        config
-    |> prepend newline
-    |> should
-        equal
-        """
-App().foo <- task {
-    // some computation here
-    ()
-}
-"""
-
-[<Test>]
 let ``dotSet with list`` () =
     formatSourceString
         false

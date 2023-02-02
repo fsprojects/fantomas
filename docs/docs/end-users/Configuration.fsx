@@ -642,6 +642,26 @@ formatCode
 (*** include-output ***)
 
 (**
+<fantomas-setting name="fsharp_newline_before_multiline_computation_expression" green></fantomas-setting>
+
+Insert a newline before a computation expression that spans multiple lines
+
+Default = true
+*)
+
+formatCode
+    """ 
+    let something =
+        task {
+            let! thing = otherThing ()
+            return 5
+        }
+    """
+    { FormatConfig.Default with
+        NewlineBeforeMultilineComputationExpression = false }
+(*** include-output ***)
+
+(**
 ## G-Research style
 
 A series of settings required to conform with the [G-Research style guide](https://github.com/G-Research/fsharp-formatting-conventions).  

@@ -126,34 +126,6 @@ let v =
 """
 
 [<Test>]
-let ``synExprApp with named argument with computation expression`` () =
-    formatSourceString
-        false
-        """
-let v =
-    SomeConstructor(
-        v =
-                task {
-                    // some computation here
-                    ()
-                }
-    )
-"""
-        config
-    |> prepend newline
-    |> should
-        equal
-        """
-let v =
-    SomeConstructor(
-        v = task {
-            // some computation here
-            ()
-        }
-    )
-"""
-
-[<Test>]
 let ``synExprApp with named argument with list`` () =
     formatSourceString
         false
@@ -376,34 +348,6 @@ let v =
             B = someOtherVariable
             C = ziggyBarX
         |}
-    )
-"""
-
-[<Test>]
-let ``synExprNew with named argument with computation expression`` () =
-    formatSourceString
-        false
-        """
-let v =
-    new FooBar(
-        v =
-                task {
-                    // some computation here
-                    ()
-                }
-    )
-"""
-        config
-    |> prepend newline
-    |> should
-        equal
-        """
-let v =
-    new FooBar(
-        v = task {
-            // some computation here
-            ()
-        }
     )
 """
 

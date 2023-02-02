@@ -97,28 +97,6 @@ myMutable.[x] <- struct {|
 """
 
 [<Test>]
-let ``dotIndexedSet with computation expression`` () =
-    formatSourceString
-        false
-        """
-myMutable.[x] <-
-    task {
-        // some computation here
-        ()
-    }
-"""
-        config
-    |> prepend newline
-    |> should
-        equal
-        """
-myMutable.[x] <- task {
-    // some computation here
-    ()
-}
-"""
-
-[<Test>]
 let ``dotIndexedSet with list`` () =
     formatSourceString
         false
@@ -254,28 +232,6 @@ app().[x] <- struct {|
     B = someOtherVariable
     C = ziggyBarX
 |}
-"""
-
-[<Test>]
-let ``application unit dotIndexedSet with computation expression`` () =
-    formatSourceString
-        false
-        """
-app().[x] <-
-    task {
-        // some computation here
-        ()
-    }
-"""
-        config
-    |> prepend newline
-    |> should
-        equal
-        """
-app().[x] <- task {
-    // some computation here
-    ()
-}
 """
 
 [<Test>]
@@ -424,30 +380,6 @@ app(
     B = someOtherVariable
     C = ziggyBarX
 |}
-"""
-
-[<Test>]
-let ``application parenthesis expr dotIndexedSet with computation expression`` () =
-    formatSourceString
-        false
-        """
-app(meh).[x] <-
-    task {
-        // some computation here
-        ()
-    }
-"""
-        config
-    |> prepend newline
-    |> should
-        equal
-        """
-app(
-    meh
-).[x] <- task {
-    // some computation here
-    ()
-}
 """
 
 [<Test>]
