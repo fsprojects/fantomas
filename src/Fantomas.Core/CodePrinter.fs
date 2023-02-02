@@ -1364,7 +1364,7 @@ let genExpr (e: Expr) =
                 clauseNode.WhenExpr
             +> sepSpace
             +> genSingleTextNodeWithSpaceSuffix sepSpace clauseNode.Arrow
-            +> autoIndentAndNlnExpressUnlessStroustrup genExpr clauseNode.BodyExpr
+            +> indentSepNlnUnindentExprUnlessStroustrup genExpr clauseNode.BodyExpr
             +> leaveNode clauseNode
 
         atCurrentColumn (
@@ -1816,7 +1816,7 @@ let genNamedArgumentExpr (node: ExprInfixAppNode) =
         genExpr node.LeftHandSide
         +> sepSpace
         +> genSingleTextNode node.Operator
-        +> autoIndentAndNlnExpressUnlessStroustrup (fun e -> sepSpace +> genExpr e) node.RightHandSide
+        +> indentSepNlnUnindentExprUnlessStroustrup (fun e -> sepSpace +> genExpr e) node.RightHandSide
 
     expressionFitsOnRestOfLine short long |> genNode node
 
@@ -2677,7 +2677,7 @@ let genBinding (b: BindingNode) (ctx: Context) : Context =
                     let short = sepSpace +> body
 
                     let long =
-                        autoIndentAndNlnExpressUnlessStroustrup (fun e -> sepSpace +> genExpr e) b.Expr
+                        indentSepNlnUnindentExprUnlessStroustrup (fun e -> sepSpace +> genExpr e) b.Expr
 
                     isShortExpression ctx.Config.MaxFunctionBindingWidth short long
 
@@ -2766,7 +2766,9 @@ let genBinding (b: BindingNode) (ctx: Context) : Context =
             +> (fun ctx ->
                 let prefix = afterLetKeyword +> sepSpace +> genValueName +> genReturnType
                 let short = prefix +> genExpr b.Expr
-                let long = prefix +> autoIndentAndNlnExpressUnlessStroustrup genExpr b.Expr
+
+                let long = prefix +> indentSepNlnUnindentExprUnlessStroustrup genExpr b.Expr
+
                 isShortExpression ctx.Config.MaxValueBindingWidth short long ctx)
 
     genNode b binding ctx
