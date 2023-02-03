@@ -12,6 +12,9 @@ type CodeFormatter =
     /// Format an abstract syntax tree
     static member FormatASTAsync: ast: ParsedInput -> Async<FormatResult>
 
+    /// Format an abstract syntax tree using a given config
+    static member FormatASTAsync: ast: ParsedInput * config: FormatConfig -> Async<FormatResult>
+
     /// Format an abstract syntax tree with the original source for trivia processing
     static member FormatASTAsync: ast: ParsedInput * source: string -> Async<FormatResult>
 

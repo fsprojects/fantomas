@@ -12,6 +12,9 @@ type CodeFormatter =
     static member FormatASTAsync(ast: ParsedInput) : Async<FormatResult> =
         CodeFormatterImpl.formatAST ast None FormatConfig.Default None |> async.Return
 
+    static member FormatASTAsync(ast: ParsedInput, config) : Async<FormatResult> =
+        CodeFormatterImpl.formatAST ast None config None |> async.Return
+
     static member FormatASTAsync(ast: ParsedInput, source) : Async<FormatResult> =
         let sourceText = Some(CodeFormatterImpl.getSourceText source)
 
