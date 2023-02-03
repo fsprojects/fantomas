@@ -9,8 +9,17 @@ type CodeFormatter =
     /// Parse a source string using given config
     static member ParseAsync: isSignature: bool * source: string -> Async<(ParsedInput * string list) array>
 
-    /// Format an abstract syntax tree using an optional source for trivia processing
-    static member FormatASTAsync: ast: ParsedInput * ?source: string * ?config: FormatConfig -> Async<FormatResult>
+    /// Format an abstract syntax tree
+    static member FormatASTAsync: ast: ParsedInput -> Async<FormatResult>
+
+    /// Format an abstract syntax tree using a given config
+    static member FormatASTAsync: ast: ParsedInput * config: FormatConfig -> Async<FormatResult>
+
+    /// Format an abstract syntax tree with the original source for trivia processing
+    static member FormatASTAsync: ast: ParsedInput * source: string -> Async<FormatResult>
+
+    /// Format an abstract syntax tree with the original source for trivia processing using a given config
+    static member FormatASTAsync: ast: ParsedInput * source: string * config: FormatConfig -> Async<FormatResult>
 
     /// <summary>
     /// Format a source string using an optional config.
@@ -22,10 +31,14 @@ type CodeFormatter =
     static member FormatDocumentAsync:
         isSignature: bool * source: string * ?config: FormatConfig * ?cursor: pos -> Async<FormatResult>
 
+    /// Format a part of a source string and return the (formatted) selected part only.
+    /// Beware that the range argument is inclusive. The closest expression inside the selection will be formatted if possible.
+    static member FormatSelectionAsync: isSignature: bool * source: string * selection: range -> Async<string * range>
+
     /// Format a part of source string using given config, and return the (formatted) selected part only.
     /// Beware that the range argument is inclusive. The closest expression inside the selection will be formatted if possible.
     static member FormatSelectionAsync:
-        isSignature: bool * source: string * selection: range * ?config: FormatConfig -> Async<string * range>
+        isSignature: bool * source: string * selection: range * config: FormatConfig -> Async<string * range>
 
     /// Check whether an input string is invalid in F# by attempting to parse the code.
     static member IsValidFSharpCodeAsync: isSignature: bool * source: string -> Async<bool>
