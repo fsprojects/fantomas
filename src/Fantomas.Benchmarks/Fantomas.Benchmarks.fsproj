@@ -6,7 +6,6 @@
     <IsPackable>false</IsPackable>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="CLI.Runners.fs" />
     <Compile Include="Runners.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
@@ -15,7 +14,6 @@
     <PackageReference Include="BenchmarkDotNet" Version="0.13.2" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Fantomas\Fantomas.fsproj" />
     <ProjectReference Include="..\Fantomas.Core\Fantomas.Core.fsproj" />
   </ItemGroup>
 </Project>

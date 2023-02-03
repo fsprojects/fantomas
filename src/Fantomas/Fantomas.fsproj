@@ -12,6 +12,7 @@
     <IsPackable>true</IsPackable>
     <RootNamespace>Fantomas</RootNamespace>
     <ErrorOnDuplicatePublishOutputFiles>false</ErrorOnDuplicatePublishOutputFiles>
+    <OtherFlags>--test:ParallelCheckingWithSignatureFilesOn</OtherFlags>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\Fantomas.Client\Fantomas.Client.fsproj" />

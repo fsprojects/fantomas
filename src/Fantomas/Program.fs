@@ -6,9 +6,6 @@ open Fantomas.Daemon
 open Fantomas.Logging
 open Argu
 open System.Text
-open Fantomas.Format
-open System.Threading.Tasks
-open System.Runtime.ExceptionServices
 
 let extensions = set [| ".fs"; ".fsx"; ".fsi"; ".ml"; ".mli" |]
 
@@ -19,7 +16,6 @@ type Arguments =
     | [<Unique>] Out of string
     | [<Unique>] Check
     | [<Unique>] Daemon
-    | [<Unique>] Sequential
     | [<Unique; AltCommandLine("-v")>] Version
     | [<Unique>] Verbosity of string
     | [<MainCommand>] Input of string list
@@ -40,7 +36,6 @@ type Arguments =
                 sprintf
                     "Input paths: can be multiple folders or files with %s extension."
                     (Seq.map (fun s -> "*" + s) extensions |> String.concat ",")
-            | Sequential -> "Process and format files in sequennce."
             | Verbosity _ -> "Set the verbosity level. Allowed values are n[ormal] and d[etailed]."
 
 let timeAsync f =
@@ -407,8 +402,7 @@ let main argv =
                 match verbosity with
                 | VerbosityLevel.Normal ->
                     match ex with
-                    | :? Fantomas.Core.FormatException as fe -> fe.Message
-                    | :? CodeFormatException as fe -> fe.Message
+                    | :? FormatException as fe -> fe.Message
                     | _ -> ""
                 | VerbosityLevel.Detailed -> sprintf "%A" ex
 
@@ -417,12 +411,7 @@ let main argv =
         if errored.Length > 0 then
             exit 1
 
-    let asyncRunner =
-        if results.Contains <@ Arguments.Sequential @> then
-            Async.Sequential
-        else
-            Async.Parallel
-        >> Async.RunSynchronously
+    let asyncRunner = Async.Parallel >> Async.RunSynchronously
 
     if Option.isSome version then
         let version = CodeFormatter.GetVersion()
