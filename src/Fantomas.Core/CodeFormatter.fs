@@ -25,9 +25,21 @@ type CodeFormatter =
         let sourceText = Some(CodeFormatterImpl.getSourceText source)
         CodeFormatterImpl.formatAST ast sourceText config None |> async.Return
 
-    static member FormatDocumentAsync(isSignature, source, ?config, ?cursor: Position) =
-        let config = Option.defaultValue FormatConfig.Default config
-        CodeFormatterImpl.formatDocument config isSignature (CodeFormatterImpl.getSourceText source) cursor
+    static member FormatDocumentAsync(isSignature, source) =
+        CodeFormatterImpl.formatDocument FormatConfig.Default isSignature (CodeFormatterImpl.getSourceText source) None
+
+    static member FormatDocumentAsync(isSignature, source, config) =
+        CodeFormatterImpl.formatDocument config isSignature (CodeFormatterImpl.getSourceText source) None
+
+    static member FormatDocumentAsync(isSignature, source, cursor) =
+        CodeFormatterImpl.formatDocument
+            FormatConfig.Default
+            isSignature
+            (CodeFormatterImpl.getSourceText source)
+            (Some cursor)
+
+    static member FormatDocumentAsync(isSignature, source, cursor, config) =
+        CodeFormatterImpl.formatDocument config isSignature (CodeFormatterImpl.getSourceText source) (Some cursor)
 
     static member FormatSelectionAsync(isSignature, source, selection) =
         CodeFormatterImpl.getSourceText source
