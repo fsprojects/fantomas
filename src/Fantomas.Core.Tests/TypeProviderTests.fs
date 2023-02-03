@@ -1,5 +1,6 @@
 module Fantomas.Core.Tests.TypeProviderTests
 
+open Fantomas.Core
 open NUnit.Framework
 open FsUnit
 open Fantomas.Core.Tests.TestHelper
@@ -49,7 +50,7 @@ type Graphml = XmlProvider<Schema= @"http://graphml.graphdrawing.org/xmlns/1.0/g
 
 [<Test>]
 let ``should throw FormatException on unparsed input`` () =
-    Assert.Throws<Fantomas.Core.FormatException>(fun () ->
+    Assert.Throws<ParseException>(fun () ->
         formatSourceString
             false
             """

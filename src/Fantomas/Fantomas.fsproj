@@ -21,6 +21,7 @@
   <ItemGroup>
     <Compile Include="AssemblyInfo.fsi" />
     <Compile Include="AssemblyInfo.fs" />
+    <Compile Include="Logging.fsi" />
     <Compile Include="Logging.fs" />
     <Compile Include="IgnoreFile.fsi" />
     <Compile Include="IgnoreFile.fs" />
