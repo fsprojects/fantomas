@@ -81,9 +81,10 @@ let private formatFileInternalAsync (compareWithoutLineEndings: bool) (file: str
     if IgnoreFile.isIgnoredFile (IgnoreFile.current.Force()) file then
         async { return IgnoredFile file }
     else
-        let originalContent = File.ReadAllText file
 
         async {
+            let! originalContent = File.ReadAllTextAsync file |> Async.AwaitTask
+
             let! formatted =
                 originalContent
                 |> formatContentInternalAsync compareWithoutLineEndings config file
