@@ -26,7 +26,7 @@ let parse (isSignature: bool) (source: ISourceText) : Async<(ParsedInput * Defin
                 |> List.filter (fun d -> d.Severity = FSharpDiagnosticSeverity.Error)
 
             if not errors.IsEmpty then
-                raise (FormatException $"Parsing failed with errors: %A{baseDiagnostics}")
+                raise (ParseException baseDiagnostics)
 
             return [| (baseUntypedTree, []) |]
         }
@@ -44,7 +44,7 @@ let parse (isSignature: bool) (source: ISourceText) : Async<(ParsedInput * Defin
                     |> List.filter (fun d -> d.Severity = FSharpDiagnosticSeverity.Error)
 
                 if not errors.IsEmpty then
-                    raise (FormatException $"Parsing failed with errors: %A{diagnostics}")
+                    raise (ParseException diagnostics)
 
                 return (untypedTree, defineCombination)
             })
