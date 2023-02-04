@@ -65,6 +65,7 @@ type FantomasDaemon(sender: Stream, reader: Stream) as this =
                 try
                     let! formatResponse =
                         match cursor with
+                        | None -> CodeFormatter.FormatDocumentAsync(request.IsSignatureFile, request.SourceCode, config)
                         | Some cursor ->
                             CodeFormatter.FormatDocumentAsync(
                                 request.IsSignatureFile,
@@ -72,7 +73,6 @@ type FantomasDaemon(sender: Stream, reader: Stream) as this =
                                 cursor,
                                 config
                             )
-                        | None -> CodeFormatter.FormatDocumentAsync(request.IsSignatureFile, request.SourceCode, config)
 
                     if formatResponse.Code = request.SourceCode then
                         return FormatDocumentResponse.Unchanged request.FilePath

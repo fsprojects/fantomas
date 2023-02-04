@@ -31,13 +31,6 @@ type CodeFormatter =
     static member FormatDocumentAsync(isSignature, source, config) =
         CodeFormatterImpl.formatDocument config isSignature (CodeFormatterImpl.getSourceText source) None
 
-    static member FormatDocumentAsync(isSignature, source, cursor) =
-        CodeFormatterImpl.formatDocument
-            FormatConfig.Default
-            isSignature
-            (CodeFormatterImpl.getSourceText source)
-            (Some cursor)
-
     static member FormatDocumentAsync(isSignature, source, cursor, config) =
         CodeFormatterImpl.formatDocument config isSignature (CodeFormatterImpl.getSourceText source) (Some cursor)
 

@@ -26,8 +26,7 @@ type CodeFormatter =
     /// </summary>
     /// <param name="isSignature">Determines whether the F# parser will process the source as signature file.</param>
     /// <param name="source">F# source code</param>
-    static member FormatDocumentAsync:
-        isSignature: bool * source: string -> Async<FormatResult>
+    static member FormatDocumentAsync: isSignature: bool * source: string -> Async<FormatResult>
 
     /// <summary>
     /// Format a source string using an optional config.
@@ -35,17 +34,7 @@ type CodeFormatter =
     /// <param name="isSignature">Determines whether the F# parser will process the source as signature file.</param>
     /// <param name="source">F# source code</param>
     /// <param name="config">Fantomas configuration</param>
-    static member FormatDocumentAsync:
-        isSignature: bool * source: string * config: FormatConfig -> Async<FormatResult>
-
-    /// <summary>
-    /// Format a source string using an optional config.
-    /// </summary>
-    /// <param name="isSignature">Determines whether the F# parser will process the source as signature file.</param>
-    /// <param name="source">F# source code</param>
-    /// <param name="cursor">The location of a cursor, zero-based.</param>
-    static member FormatDocumentAsync:
-        isSignature: bool * source: string * cursor: pos -> Async<FormatResult>
+    static member FormatDocumentAsync: isSignature: bool * source: string * config: FormatConfig -> Async<FormatResult>
 
     /// <summary>
     /// Format a source string using an optional config.
