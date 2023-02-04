@@ -1,10 +1,5 @@
 # Changelog
 
-## [Unreleased]
-
-### Changed
-* Add separate `CodeFormatter.FormatDocumentAsync` overloads with cursor and config. [#2763](https://github.com/fsprojects/fantomas/pull/2763)
-
 ## [6.0.0-alpha-002] - 2023-02-01
 
 ### Changed
