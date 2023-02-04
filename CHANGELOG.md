@@ -1,5 +1,13 @@
 # Changelog
 
+## [6.0.0-alpha-003] - 2023-02-04
+
+### Changed
+* Splitting ExperimentalStroustrupStyle to separate settings. [#2276](https://github.com/fsprojects/fantomas/issues/2276)
+* Remove F# option from public API. [#2759](https://github.com/fsprojects/fantomas/pull/2759)
+* Naive parallel formatting implementation. [#2717](https://github.com/fsprojects/fantomas/pull/2717)
+* Add separate CodeFormatter.FormatDocumentAsync overloads with cursor and config. [#2763](https://github.com/fsprojects/fantomas/pull/2763)
+
 ## [6.0.0-alpha-002] - 2023-02-01
 
 ### Changed
