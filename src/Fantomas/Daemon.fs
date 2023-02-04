@@ -70,8 +70,8 @@ type FantomasDaemon(sender: Stream, reader: Stream) as this =
                             CodeFormatter.FormatDocumentAsync(
                                 request.IsSignatureFile,
                                 request.SourceCode,
-                                cursor,
-                                config
+                                config,
+                                cursor
                             )
 
                     if formatResponse.Code = request.SourceCode then
