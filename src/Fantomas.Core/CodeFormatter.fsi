@@ -18,8 +18,20 @@ type CodeFormatter =
     /// Format an abstract syntax tree with the original source for trivia processing
     static member FormatASTAsync: ast: ParsedInput * source: string -> Async<FormatResult>
 
-    /// Format an abstract syntax tree with the original source for trivia processing using a given config
-    static member FormatASTAsync: ast: ParsedInput * source: string * config: FormatConfig -> Async<FormatResult>
+    /// <summary>
+    /// Format a source string using an optional config.
+    /// </summary>
+    /// <param name="isSignature">Determines whether the F# parser will process the source as signature file.</param>
+    /// <param name="source">F# source code</param>
+    static member FormatDocumentAsync: isSignature: bool * source: string -> Async<FormatResult>
+
+    /// <summary>
+    /// Format a source string using an optional config.
+    /// </summary>
+    /// <param name="isSignature">Determines whether the F# parser will process the source as signature file.</param>
+    /// <param name="source">F# source code</param>
+    /// <param name="config">Fantomas configuration</param>
+    static member FormatDocumentAsync: isSignature: bool * source: string * config: FormatConfig -> Async<FormatResult>
 
     /// <summary>
     /// Format a source string using an optional config.
@@ -29,7 +41,7 @@ type CodeFormatter =
     /// <param name="config">Fantomas configuration</param>
     /// <param name="cursor">The location of a cursor, zero-based.</param>
     static member FormatDocumentAsync:
-        isSignature: bool * source: string * ?config: FormatConfig * ?cursor: pos -> Async<FormatResult>
+        isSignature: bool * source: string * config: FormatConfig * cursor: pos -> Async<FormatResult>
 
     /// Format a part of a source string and return the (formatted) selected part only.
     /// Beware that the range argument is inclusive. The closest expression inside the selection will be formatted if possible.
