@@ -387,3 +387,54 @@ Fooooooooooo.Baaaaaaaaaaaaaaaaar
     .Moooooooooooooooo.Booooooooooooooooooooh
     .Yooooooooooooooou.Meeeeeeh.Meh2
 """
+
+[<Test>]
+let ``dot get with index without dot expression , 2761`` () =
+    formatSourceString
+        false
+        """
+x().y[0].zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+x().y[0].zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz
+"""
+
+[<Test>]
+let ``don't add extra space in index without dot expression, 2760`` () =
+    formatSourceString
+        false
+        """
+x().y[0].z // spaces inserted around index
+x().y.[0].z // no spaces inserted
+x().y[0] // no spaces inserted
+x.y[0].z // no spaces inserted
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+x().y[0].z // spaces inserted around index
+x().y.[0].z // no spaces inserted
+x().y[0] // no spaces inserted
+x.y[0].z // no spaces inserted
+"""
+
+[<Test>]
+let ``multiple idents in dotget with index without dot`` () =
+    formatSourceString
+        false
+        """
+v().w.x.y.z['a'].b
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+v().w.x.y.z['a'].b
+"""

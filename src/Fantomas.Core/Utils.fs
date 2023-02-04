@@ -2,6 +2,7 @@ namespace Fantomas.Core
 
 open System
 open System.Text.RegularExpressions
+open Microsoft.FSharp.Core.CompilerServices
 
 [<RequireQualifiedAccess>]
 module String =
@@ -101,6 +102,20 @@ module List =
             | head :: tail -> visit tail (fun ys -> f head :: ys |> continuation)
 
         visit xs id
+
+    let cutOffLast list =
+        let mutable headList = ListCollector<'a>()
+
+        let rec visit list =
+            match list with
+            | []
+            | [ _ ] -> ()
+            | head :: tail ->
+                headList.Add(head)
+                visit tail
+
+        visit list
+        headList.Close()
 
 module Async =
     let map f computation =

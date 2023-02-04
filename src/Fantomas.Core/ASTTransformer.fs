@@ -389,6 +389,18 @@ let (|InfixApp|_|) synExpr =
         argExpr = e2) -> Some(e1, stn operator operatorIdent.idRange, e2)
     | _ -> None
 
+let (|IndexWithoutDot|_|) expr =
+    match expr with
+    | SynExpr.App(ExprAtomicFlag.Atomic, false, identifierExpr, SynExpr.ArrayOrListComputed(false, indexExpr, _), _) ->
+        Some(identifierExpr, indexExpr)
+    | SynExpr.App(ExprAtomicFlag.NonAtomic,
+                  false,
+                  identifierExpr,
+                  (SynExpr.ArrayOrListComputed(isArray = false; expr = indexExpr) as argExpr),
+                  _) when (RangeHelpers.isAdjacentTo identifierExpr.Range argExpr.Range) ->
+        Some(identifierExpr, indexExpr)
+    | _ -> None
+
 let (|MultipleConsInfixApps|_|) expr =
     let rec visit expr (headAndLastOperator: (SynExpr * SingleTextNode) option) (xs: Queue<SingleTextNode * SynExpr>) =
         match expr with
@@ -636,8 +648,7 @@ let mkLinksFromFunctionName (mkLinkFromExpr: SynExpr -> LinkExpr) (functionName:
                     m
                 )
 
-            [ yield! List.take (leftLinks.Length - 1) leftLinks
-              yield mkLinkFromExpr typeAppExpr ]
+            [ yield! List.cutOffLast leftLinks; yield mkLinkFromExpr typeAppExpr ]
 
     | SynExpr.LongIdent(longDotId = sli) ->
         match sli.IdentsWithTrivia with
@@ -647,7 +658,7 @@ let mkLinksFromFunctionName (mkLinkFromExpr: SynExpr -> LinkExpr) (functionName:
             let leftLinks = mkLinksFromSynLongIdent sli
             let lastSynIdent = List.last synIdents
 
-            [ yield! List.take (leftLinks.Length - 1) leftLinks
+            [ yield! List.cutOffLast leftLinks
               yield (mkLongIdentExprFromSynIdent lastSynIdent |> mkLinkFromExpr) ]
     | e -> [ mkLinkFromExpr e ]
 
@@ -685,7 +696,7 @@ let (|ChainExpr|_|) (e: SynExpr) : LinkExpr list option =
                         | _ -> []
                     | _ -> []
 
-                let leftLinks = List.take (leftLinks.Length - 1) leftLinks
+                let leftLinks = List.cutOffLast leftLinks
 
                 continuation [ yield! leftLinks; yield! lastLink ])
 
@@ -712,15 +723,53 @@ let (|ChainExpr|_|) (e: SynExpr) : LinkExpr list option =
                           |> LinkExpr.Identifier ]
                     | _ -> []
 
-                let leftLinks = List.take (leftLinks.Length - 1) leftLinks
+                let leftLinks = List.cutOffLast leftLinks
                 continuation [ yield! leftLinks; yield! lastLink ])
+
+        // Transform `x().y[0]` into `x()` , `dot`, `y[0]`
+        | IndexWithoutDot(SynExpr.DotGet(expr, mDot, sli, _), indexExpr) ->
+            visit expr (fun leftLinks ->
+                let middleLinks, lastExpr =
+                    match List.tryLast sli.IdentsWithTrivia with
+                    | None -> [], indexExpr
+                    | Some lastMiddleLink ->
+                        let middleLinks = mkLinksFromSynLongIdent sli |> List.cutOffLast
+
+                        let indexWithDotExpr =
+                            let identifierExpr = mkLongIdentExprFromSynIdent lastMiddleLink
+
+                            // Create an adjacent range for the `[`,`]` in the index expression.
+                            let adjacentRange =
+                                mkRange
+                                    indexExpr.Range.FileName
+                                    (Position.mkPos
+                                        identifierExpr.Range.StartLine
+                                        (identifierExpr.Range.StartColumn + 1))
+                                    (Position.mkPos indexExpr.Range.EndLine (indexExpr.Range.EndColumn - 1))
+
+                            SynExpr.App(
+                                ExprAtomicFlag.Atomic,
+                                false,
+                                identifierExpr,
+                                SynExpr.ArrayOrListComputed(false, indexExpr, adjacentRange),
+                                unionRanges identifierExpr.Range indexExpr.Range
+                            )
+
+                        middleLinks, indexWithDotExpr
+
+                continuation
+                    [ yield! leftLinks
+                      yield LinkExpr.Dot mDot
+                      yield! middleLinks
+                      yield LinkExpr.Expr lastExpr ])
+
         | SynExpr.App(isInfix = false; funcExpr = SynExpr.DotGet _ as funcExpr; argExpr = argExpr) ->
             visit funcExpr (fun leftLinks ->
                 match List.tryLast leftLinks with
                 | Some(LinkExpr.Identifier(identifierExpr)) ->
                     match argExpr with
                     | UnitExpr mUnit ->
-                        let leftLinks = List.take (leftLinks.Length - 1) leftLinks
+                        let leftLinks = List.cutOffLast leftLinks
 
                         // Compose a function application by taking the last identifier of the SynExpr.DotGet
                         // and the following argument expression.
@@ -730,7 +779,7 @@ let (|ChainExpr|_|) (e: SynExpr) : LinkExpr list option =
                         continuation [ yield! leftLinks; yield rightLink ]
 
                     | ParenExpr(lpr, e, rpr, pr) ->
-                        let leftLinks = List.take (leftLinks.Length - 1) leftLinks
+                        let leftLinks = List.cutOffLast leftLinks
                         // Example: A().B(fun b -> b)
                         let rightLink = LinkExpr.AppParen(identifierExpr, lpr, e, rpr, pr)
                         continuation [ yield! leftLinks; yield rightLink ]
@@ -772,7 +821,7 @@ let (|ChainExpr|_|) (e: SynExpr) : LinkExpr list option =
                           |> LinkExpr.Expr ]
                     | _ -> []
 
-                let leftLinks = List.take (leftLinks.Length - 1) leftLinks
+                let leftLinks = List.cutOffLast leftLinks
                 continuation [ yield! leftLinks; yield! app ])
 
         | SynExpr.TypeApp _ as typeApp -> mkLinksFromFunctionName LinkExpr.Identifier typeApp |> continuation
@@ -1104,14 +1153,7 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
         ExprInfixAppNode(mkExpr creationAide e1, operator, mkExpr creationAide e2, exprRange)
         |> Expr.InfixApp
 
-    | SynExpr.App(ExprAtomicFlag.Atomic, false, identifierExpr, SynExpr.ArrayOrListComputed(false, indexExpr, _), _) ->
-        ExprIndexWithoutDotNode(mkExpr creationAide identifierExpr, mkExpr creationAide indexExpr, exprRange)
-        |> Expr.IndexWithoutDot
-    | SynExpr.App(ExprAtomicFlag.NonAtomic,
-                  false,
-                  identifierExpr,
-                  (SynExpr.ArrayOrListComputed(isArray = false; expr = indexExpr) as argExpr),
-                  _) when (RangeHelpers.isAdjacentTo identifierExpr.Range argExpr.Range) ->
+    | IndexWithoutDot(identifierExpr, indexExpr) ->
         ExprIndexWithoutDotNode(mkExpr creationAide identifierExpr, mkExpr creationAide indexExpr, exprRange)
         |> Expr.IndexWithoutDot
 

@@ -15,6 +15,8 @@ module List =
     val moreThanOne: ('a list -> bool)
     val partitionWhile: f: (int -> 'a -> bool) -> xs: 'a list -> 'a list * 'a list
     val mapWithLast: f: ('a -> 'b) -> g: ('a -> 'b) -> xs: 'a list -> 'b list
+    /// Removes the last element of a list
+    val cutOffLast: 'a list -> 'a list
 
 module Async =
     val map: f: ('a -> 'b) -> computation: Async<'a> -> Async<'b>
