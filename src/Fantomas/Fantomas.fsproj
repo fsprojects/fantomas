@@ -45,5 +45,6 @@
     <PackageReference Include="editorconfig" Version="0.13.0" />
     <PackageReference Include="Ignore" Version="0.1.46" />
     <PackageReference Include="System.IO.Abstractions" Version="17.2.3" />
+    <PackageReference Include="Spectre.Console" Version="0.46.1-preview.0.6" />
   </ItemGroup>
 </Project>

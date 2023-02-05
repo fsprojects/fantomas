@@ -6,6 +6,7 @@ open Fantomas.Daemon
 open Fantomas.Logging
 open Argu
 open System.Text
+open Spectre.Console
 
 let extensions = set [| ".fs"; ".fsx"; ".fsi"; ".ml"; ".mli" |]
 
@@ -67,6 +68,12 @@ type ProcessResult =
     | Ignored of string
     | Unchanged of string
     | Error of string * exn
+
+type Table with
+
+    member x.SetBorder(border: TableBorder) =
+        x.Border <- border
+        x
 
 let isInExcludedDir (fullPath: string) =
     set [| "obj"; ".fable"; "fable_modules"; "node_modules" |]
@@ -390,11 +397,22 @@ let main argv =
 
     let reportFormatResults (results: #seq<ProcessResult>) =
         let oks, ignored, unchanged, errored = partitionResults results
+        let centeredColumn (v: string) = TableColumn(v).Centered()
 
-        let summaryMessage =
-            $"Formatted: %d{oks.Length}, Ignored : %d{ignored.Length}, Unchanged : %d{unchanged.Length}, Errored: %d{errored.Length}"
-
-        stdlog summaryMessage
+        Table()
+            .AddColumns(
+                [| "[green]Formatted[/]"
+                   string oks.Length
+                   "Ignored"
+                   string ignored.Length
+                   "[blue]Unchanged[/]"
+                   string unchanged.Length
+                   "[red]Errored[/]"
+                   string errored.Length |]
+                |> Array.map centeredColumn
+            )
+            .SetBorder(TableBorder.MinimalDoubleHead)
+        |> AnsiConsole.Write
 
         errored
         |> Seq.iter (fun (file, ex) ->
