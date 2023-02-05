@@ -88,7 +88,7 @@ let ``ignore file in folder`` () =
     exitCode |> should equal 0
     File.ReadAllText inputFixture.Filename |> should equal Source
 
-    output |> should contain "Formatted: 0, Ignored : 0, Unchanged : 0, Errored: 0"
+    output |> should contain "│ 0 │ Ignored │ 0 │ Unchanged │ 0 │ Errored │ 0"
 
 [<Test>]
 let ``ignore file while checking`` () =
@@ -135,4 +135,6 @@ let ``honor ignore file when processing a folder`` () =
         runFantomasTool (sprintf "%s .%c%s" Verbosity Path.DirectorySeparatorChar subFolder)
 
     output |> should not' (contain "ignored")
-    output |> should contain "Formatted: 1, Ignored : 0, Unchanged : 0, Errored: 0"
+
+    output
+    |> should contain "Formatted │ 1 │ Ignored │ 0 │ Unchanged │ 0 │ Errored │ 0"
