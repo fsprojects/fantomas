@@ -11,6 +11,12 @@ let Source = "let  foo =   47"
 [<Literal>]
 let Verbosity = "--verbosity d"
 
+let assertResult formatted ignored unchanged errored (output: string) =
+    System.Text.RegularExpressions
+        .Regex(@$"Formatted\W+{formatted}\W+Ignored\W+{ignored}\W+Unchanged\W+{unchanged}\W+Errored\W+{errored}")
+        .IsMatch(output)
+    |> Assert.True
+
 [<Test>]
 let ``ignore all fs files`` () =
     let fileName = "ToBeIgnored"
@@ -88,7 +94,7 @@ let ``ignore file in folder`` () =
     exitCode |> should equal 0
     File.ReadAllText inputFixture.Filename |> should equal Source
 
-    output |> should contain "│ 0 │ Ignored │ 0 │ Unchanged │ 0 │ Errored │ 0"
+    output |> assertResult 0 0 0 0
 
 [<Test>]
 let ``ignore file while checking`` () =
@@ -136,5 +142,4 @@ let ``honor ignore file when processing a folder`` () =
 
     output |> should not' (contain "ignored")
 
-    output
-    |> should contain "Formatted │ 1 │ Ignored │ 0 │ Unchanged │ 0 │ Errored │ 0"
+    output |> assertResult 1 0 0 0
