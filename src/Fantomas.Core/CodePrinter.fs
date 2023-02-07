@@ -2178,7 +2178,7 @@ let (|EndsWithSingleRecordApp|_|) (config: FormatConfig) (appNode: ExprAppNode) 
             otherArgs.Add(arg)
             visit args
 
-    if config.ExperimentalStroustrupStyle then
+    if config.IsStroustrupStyle then
         visit appNode.Arguments
     else
         match appNode.FunctionExpr with
