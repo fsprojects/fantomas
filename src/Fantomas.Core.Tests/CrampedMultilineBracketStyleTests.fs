@@ -657,6 +657,41 @@ let person =
 "
 
 [<Test>]
+let ``multiline string before closing brace with anonymous record`` () =
+    formatSourceString
+        false
+        "
+let person =
+    let y =
+        let x =
+            {| Story = \"\"\"
+            foo
+            bar
+\"\"\"
+            |}
+        ()
+    ()
+"
+        config
+    |> prepend newline
+    |> should
+        equal
+        "
+let person =
+    let y =
+        let x =
+            {| Story =
+                \"\"\"
+            foo
+            bar
+\"\"\"         |}
+
+        ()
+
+    ()
+"
+
+[<Test>]
 let ``issue 457`` () =
     formatSourceString
         false

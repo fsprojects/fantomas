@@ -741,18 +741,6 @@ type InheritConstructor =
         | Paren n -> n.InheritKeyword
         | Other n -> n.InheritKeyword
 
-[<RequireQualifiedAccess; NoComparison>]
-type RecordNodeExtra =
-    | Inherit of inheritConstructor: InheritConstructor
-    | With of expr: Expr
-    | None
-
-    static member Node(extra: RecordNodeExtra) : Node option =
-        match extra with
-        | Inherit n -> Some(InheritConstructor.Node n)
-        | With e -> Some(Expr.Node e)
-        | None -> Option.None
-
 type RecordFieldNode(fieldName: IdentListNode, equals: SingleTextNode, expr: Expr, range) =
     inherit NodeBase(range)
 
@@ -761,57 +749,65 @@ type RecordFieldNode(fieldName: IdentListNode, equals: SingleTextNode, expr: Exp
     member val Equals = equals
     member val Expr = expr
 
+[<AbstractClass>]
+type ExprRecordBaseNode(openingBrace: SingleTextNode, fields: RecordFieldNode list, closingBrace: SingleTextNode, range)
+    =
+    inherit NodeBase(range)
+
+    member val OpeningBrace = openingBrace
+    member val Fields = fields
+    member val ClosingBrace = closingBrace
+    member x.HasFields = List.isNotEmpty x.Fields
+
 type ExprRecordNode
     (
         openingBrace: SingleTextNode,
-        extra: RecordNodeExtra,
+        copyInfo: Expr option,
         fields: RecordFieldNode list,
         closingBrace: SingleTextNode,
         range
     ) =
-    inherit NodeBase(range)
+    inherit ExprRecordBaseNode(openingBrace, fields, closingBrace, range)
+
+    member val CopyInfo = copyInfo
 
     override val Children: Node array =
         [| yield openingBrace
-           yield! noa (RecordNodeExtra.Node extra)
+           yield! copyInfo |> Option.map Expr.Node |> noa
            yield! nodes fields
            yield closingBrace |]
 
-    member val OpeningBrace = openingBrace
-    member val Extra = extra
-    member val Fields = fields
-    member val ClosingBrace = closingBrace
+    member x.HasFields = List.isNotEmpty x.Fields
 
-type AnonRecordFieldNode(ident: SingleTextNode, equals: SingleTextNode, rhs: Expr, range) =
-    inherit NodeBase(range)
+type ExprInheritRecordNode
+    (
+        openingBrace: SingleTextNode,
+        inheritConstructor: InheritConstructor,
+        fields: RecordFieldNode list,
+        closingBrace: SingleTextNode,
+        range
+    ) =
+    inherit ExprRecordBaseNode(openingBrace, fields, closingBrace, range)
 
-    override val Children: Node array = [| yield ident; yield equals; yield Expr.Node rhs |]
-    member val Ident = ident
-    member val Equals = equals
-    member val Expr = rhs
+    member val InheritConstructor = inheritConstructor
+
+    override val Children: Node array =
+        [| yield openingBrace
+           yield InheritConstructor.Node inheritConstructor
+           yield! nodes fields
+           yield closingBrace |]
 
 type ExprAnonRecordNode
     (
         isStruct: bool,
         openingBrace: SingleTextNode,
         copyInfo: Expr option,
-        fields: AnonRecordFieldNode list,
+        fields: RecordFieldNode list,
         closingBrace: SingleTextNode,
         range
     ) =
-    inherit NodeBase(range)
-
-    override val Children: Node array =
-        [| yield openingBrace
-           yield! noa (Option.map Expr.Node copyInfo)
-           yield! nodes fields
-           yield closingBrace |]
-
+    inherit ExprRecordNode(openingBrace, copyInfo, fields, closingBrace, range)
     member val IsStruct = isStruct
-    member val OpeningBrace = openingBrace
-    member val CopyInfo = copyInfo
-    member val Fields = fields
-    member val ClosingBrace = closingBrace
 
 type InterfaceImplNode
     (
@@ -1607,6 +1603,7 @@ type Expr =
     | StructTuple of ExprStructTupleNode
     | ArrayOrList of ExprArrayOrListNode
     | Record of ExprRecordNode
+    | InheritRecord of ExprInheritRecordNode
     | AnonRecord of ExprAnonRecordNode
     | ObjExpr of ExprObjExprNode
     | While of ExprWhileNode
@@ -1671,6 +1668,7 @@ type Expr =
         | StructTuple n -> n
         | ArrayOrList n -> n
         | Record n -> n
+        | InheritRecord n -> n
         | AnonRecord n -> n
         | ObjExpr n -> n
         | While n -> n
