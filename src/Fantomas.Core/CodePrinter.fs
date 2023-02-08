@@ -1649,7 +1649,6 @@ let genSmallRecordNode (node: ExprRecordNode) =
          | None -> sepNone)
         node
 
-
 let genMultilineRecord genCrampedFields (node: ExprRecordNode) (ctx: Context) =
     let expressionStartColumn = ctx.Column
 
