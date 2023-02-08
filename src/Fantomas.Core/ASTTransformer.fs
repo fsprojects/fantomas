@@ -988,15 +988,19 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
                     Some(RecordFieldNode(longIdent, stn "=" mEq, mkExpr creationAide e, m))
                 | _ -> None)
 
-        ExprAnonRecordNode(
-            isStruct,
-            stn "{|" mOpen,
-            Option.map (fst >> mkExpr creationAide) copyInfo,
-            fields,
-            stn "|}" mClose,
-            exprRange
-        )
-        |> Expr.AnonRecord
+        let recordNode =
+            ExprRecordNode(
+                stn "{|" mOpen,
+                Option.map (fst >> mkExpr creationAide) copyInfo,
+                fields,
+                stn "|}" mClose,
+                exprRange
+            )
+
+        if isStruct then
+            Expr.AnonStructRecord recordNode
+        else
+            Expr.Record recordNode
     | SynExpr.ObjExpr(t, eio, withKeyword, bd, members, ims, StartRange 3 (mNew, _), StartEndRange 1 (mOpen, _, mClose)) ->
         let interfaceNodes =
             ims

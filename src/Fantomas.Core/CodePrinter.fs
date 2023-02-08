@@ -464,8 +464,8 @@ let genExpr (e: Expr) =
         let smallRecordExpr = genSmallRecordNode node
         let multilineRecordExpr = genMultilineRecord node
         genRecord smallRecordExpr multilineRecordExpr node
-    | Expr.AnonRecord node ->
-        let genStructPrefix = onlyIf node.IsStruct !- "struct "
+    | Expr.AnonStructRecord node ->
+        let genStructPrefix = !- "struct "
         let smallRecordExpr = genStructPrefix +> genSmallRecordNode node
         let multilineRecordExpr = genStructPrefix +> genMultilineRecord node
         genRecord smallRecordExpr multilineRecordExpr node
@@ -826,7 +826,7 @@ let genExpr (e: Expr) =
             let genExpr e =
                 match e with
                 | Expr.Record _
-                | Expr.AnonRecord _ -> atCurrentColumnIndent (genExpr e)
+                | Expr.AnonStructRecord _ -> atCurrentColumnIndent (genExpr e)
                 | _ -> genExpr e
 
             genExpr node.LeftHandSide

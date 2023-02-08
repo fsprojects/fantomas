@@ -759,6 +759,9 @@ type ExprRecordBaseNode(openingBrace: SingleTextNode, fields: RecordFieldNode li
     member val ClosingBrace = closingBrace
     member x.HasFields = List.isNotEmpty x.Fields
 
+/// <summary>
+/// Represents a record instance in, parsed from both `SynExpr.Record` and `SynExpr.AnonRecd`.
+/// </summary>
 type ExprRecordNode
     (
         openingBrace: SingleTextNode,
@@ -796,18 +799,6 @@ type ExprInheritRecordNode
            yield InheritConstructor.Node inheritConstructor
            yield! nodes fields
            yield closingBrace |]
-
-type ExprAnonRecordNode
-    (
-        isStruct: bool,
-        openingBrace: SingleTextNode,
-        copyInfo: Expr option,
-        fields: RecordFieldNode list,
-        closingBrace: SingleTextNode,
-        range
-    ) =
-    inherit ExprRecordNode(openingBrace, copyInfo, fields, closingBrace, range)
-    member val IsStruct = isStruct
 
 type InterfaceImplNode
     (
@@ -1604,7 +1595,7 @@ type Expr =
     | ArrayOrList of ExprArrayOrListNode
     | Record of ExprRecordNode
     | InheritRecord of ExprInheritRecordNode
-    | AnonRecord of ExprAnonRecordNode
+    | AnonStructRecord of ExprRecordNode
     | ObjExpr of ExprObjExprNode
     | While of ExprWhileNode
     | For of ExprForNode
@@ -1669,7 +1660,7 @@ type Expr =
         | ArrayOrList n -> n
         | Record n -> n
         | InheritRecord n -> n
-        | AnonRecord n -> n
+        | AnonStructRecord n -> n
         | ObjExpr n -> n
         | While n -> n
         | For n -> n
