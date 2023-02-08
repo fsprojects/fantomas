@@ -952,14 +952,6 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
         ExprArrayOrListNode(o, [ mkExpr creationAide singleExpr ], c, exprRange)
         |> Expr.ArrayOrList
     | SynExpr.Record(baseInfo, copyInfo, recordFields, StartEndRange 1 (mOpen, _, mClose)) ->
-        let extra =
-            match baseInfo, copyInfo with
-            | Some _, Some _ -> failwith "Unexpected that both baseInfo and copyInfo are present in SynExpr.Record"
-            | Some(t, e, mInherit, _, m), None ->
-                mkInheritConstructor creationAide t e mInherit m |> RecordNodeExtra.Inherit
-            | None, Some(copyExpr, _) -> mkExpr creationAide copyExpr |> RecordNodeExtra.With
-            | None, None -> RecordNodeExtra.None
-
         let fieldNodes =
             recordFields
             |> List.choose (function
@@ -968,20 +960,37 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
                     Some(RecordFieldNode(mkSynLongIdent fieldName, stn "=" mEq, mkExpr creationAide expr, m))
                 | _ -> None)
 
-        ExprRecordNode(stn "{" mOpen, extra, fieldNodes, stn "}" mClose, exprRange)
-        |> Expr.Record
-    | SynExpr.AnonRecd(isStruct, copyInfo, recordFields, EndRange 2 (mClose, _), trivia) ->
+        match baseInfo, copyInfo with
+        | Some _, Some _ -> failwith "Unexpected that both baseInfo and copyInfo are present in SynExpr.Record"
+        | Some(t, e, mInherit, _, m), None ->
+            let inheritCtor = mkInheritConstructor creationAide t e mInherit m
+
+            ExprInheritRecordNode(stn "{" mOpen, inheritCtor, fieldNodes, stn "}" mClose, exprRange)
+            |> Expr.InheritRecord
+        | None, Some(copyExpr, _) ->
+            let copyExpr = mkExpr creationAide copyExpr
+
+            ExprRecordNode(stn "{" mOpen, Some copyExpr, fieldNodes, stn "}" mClose, exprRange)
+            |> Expr.Record
+        | None, None ->
+            ExprRecordNode(stn "{" mOpen, None, fieldNodes, stn "}" mClose, exprRange)
+            |> Expr.Record
+    | SynExpr.AnonRecd(isStruct, copyInfo, recordFields, StartEndRange 2 (mOpen, _, mClose)) ->
         let fields =
             recordFields
             |> List.choose (function
                 | ident, Some mEq, e ->
                     let m = unionRanges ident.idRange e.Range
-                    Some(AnonRecordFieldNode(mkIdent ident, stn "=" mEq, mkExpr creationAide e, m))
+
+                    let longIdent =
+                        IdentListNode([ IdentifierOrDot.Ident(mkIdent ident) ], ident.idRange)
+
+                    Some(RecordFieldNode(longIdent, stn "=" mEq, mkExpr creationAide e, m))
                 | _ -> None)
 
         ExprAnonRecordNode(
             isStruct,
-            stn "{|" trivia.OpeningBraceRange,
+            stn "{|" mOpen,
             Option.map (fst >> mkExpr creationAide) copyInfo,
             fields,
             stn "|}" mClose,
