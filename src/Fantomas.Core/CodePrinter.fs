@@ -465,7 +465,7 @@ let genExpr (e: Expr) =
 
         let genCrampedFields targetColumn =
             match node.CopyInfo with
-            | Some we -> genRecordCopyExpr (genMultilineRecordFieldsExpr node) we
+            | Some we -> genMultilineRecordCopyExpr (genMultilineRecordFieldsExpr node) we
             | None ->
                 fun (ctx: Context) ->
                     col
@@ -1614,8 +1614,14 @@ let genQuoteExpr (node: ExprQuoteNode) =
     +> genSingleTextNode node.CloseToken
     |> genNode node
 
-let genRecordCopyExpr fieldsExpr ci =
-    atCurrentColumnIndent (genExpr ci)
+/// <summary>
+/// Prints the inside of an update record expression.
+/// This function does not print the opening and closing braces.
+/// </summary>
+/// <param name="fieldsExpr">Record fields.</param>
+/// <param name="copyExpr">Expression before the `with` keyword.</param>
+let genMultilineRecordCopyExpr fieldsExpr copyExpr =
+    atCurrentColumnIndent (genExpr copyExpr)
     +> !- " with"
     +> indent
     +> whenShortIndent indent
@@ -1634,6 +1640,11 @@ let genRecordFieldName (node: RecordFieldNode) =
 let genMultilineRecordFieldsExpr (node: ExprRecordBaseNode) =
     col sepNln node.Fields genRecordFieldName
 
+/// <summary>
+/// Print a (anonymous) record with additional information as a single line.
+/// </summary>
+/// <param name="genExtra">Either the `expr with` or `inherit T`.</param>
+/// <param name="node">ExprRecordBaseNode</param>
 let genSmallRecordBaseExpr genExtra (node: ExprRecordBaseNode) =
     genSingleTextNode node.OpeningBrace
     +> addSpaceIfSpaceAroundDelimiter
@@ -1649,17 +1660,36 @@ let genSmallRecordNode (node: ExprRecordNode) =
          | None -> sepNone)
         node
 
+/// <summary>
+/// Print a multiline ExprRecordNode.
+/// <para>
+/// Depending on the actual record, either regular or anonymous,
+/// a different strategy needs to be provided to deal with the record fields in the Cramped style.
+/// This is too avoid offset errors when using a smaller `indent_size`.
+/// </para>
+/// </summary>
+/// <param name="genCrampedFields">
+///<para>
+/// Takes a targetColumn that indicates the column
+/// after the opening brace `{ ` with respect to the `SpaceAroundDelimiter` setting.
+/// </para>
+/// <para>
+/// In `Cramped` style we try to ensure that all record fields are starting at that column.
+/// </para>
+/// </param>
+/// <param name="node">The ExprRecordNode</param>
+/// <param name="ctx">Context</param>
 let genMultilineRecord genCrampedFields (node: ExprRecordNode) (ctx: Context) =
     let expressionStartColumn = ctx.Column
 
     let targetColumn =
-        let openBracketLength = node.OpeningBrace.Text.Length
+        let openBraceLength = node.OpeningBrace.Text.Length
 
         expressionStartColumn
         + (if ctx.Config.SpaceAroundDelimiter then
-               openBracketLength + 1
+               openBraceLength + 1
            else
-               openBracketLength)
+               openBraceLength)
 
     let genMultilineAlignBrackets =
         let fieldsExpr = genMultilineRecordFieldsExpr node
@@ -1671,7 +1701,7 @@ let genMultilineRecord genCrampedFields (node: ExprRecordNode) (ctx: Context) =
                 (fun ctx -> ctx.Config.IsStroustrupStyle)
                 (indent +> sepNln)
                 sepNlnWhenWriteBeforeNewlineNotEmpty // comment after curly brace
-            +> genRecordCopyExpr fieldsExpr ci
+            +> genMultilineRecordCopyExpr fieldsExpr ci
             +> onlyIfCtx (fun ctx -> ctx.Config.IsStroustrupStyle) unindent
             +> sepNln
             +> genSingleTextNode node.ClosingBrace
