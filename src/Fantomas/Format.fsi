@@ -3,8 +3,6 @@ module Fantomas.Format
 open System
 open Fantomas.Core
 
-exception CodeFormatException of (string * Option<Exception>) array
-
 type FormatResult =
     | Formatted of filename: string * formattedContent: string
     | Unchanged of filename: string
