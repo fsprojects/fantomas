@@ -4,30 +4,6 @@ open System
 open System.IO
 open Fantomas.Core
 
-exception CodeFormatException of (string * Option<Exception>) array with
-    override x.ToString() =
-        let errors =
-            x.Data0
-            |> Array.choose (fun z ->
-                match z with
-                | file, Some ex -> Some(file, ex)
-                | _ -> None)
-            |> Array.map (fun z ->
-                let file, ex = z
-                file + ":\r\n" + ex.Message + "\r\n\r\n")
-
-        let files =
-            x.Data0
-            |> Array.map (fun z ->
-                match z with
-                | file, Some _ -> file + " !"
-                | file, None -> file)
-
-        String.Join(String.Empty, errors)
-        + "The following files aren't formatted properly:"
-        + "\r\n- "
-        + String.Join("\r\n- ", files)
-
 type FormatResult =
     | Formatted of filename: string * formattedContent: string
     | Unchanged of filename: string

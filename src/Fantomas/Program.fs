@@ -6,6 +6,7 @@ open Fantomas.Daemon
 open Fantomas.Logging
 open Argu
 open System.Text
+open Spectre.Console
 
 let extensions = set [| ".fs"; ".fsx"; ".fsi"; ".ml"; ".mli" |]
 
@@ -68,6 +69,12 @@ type ProcessResult =
     | Unchanged of string
     | Error of string * exn
 
+type Table with
+
+    member x.SetBorder(border: TableBorder) =
+        x.Border <- border
+        x
+
 let isInExcludedDir (fullPath: string) =
     set [| "obj"; ".fable"; "fable_modules"; "node_modules" |]
     |> Set.map (fun dir -> sprintf "%c%s%c" Path.DirectorySeparatorChar dir Path.DirectorySeparatorChar)
@@ -77,7 +84,7 @@ let isFSharpFile (s: string) =
     Set.contains (Path.GetExtension s) extensions
 
 /// Get all appropriate files, either recursively or non-recursively
-let rec allFiles isRec path =
+let allFiles isRec path =
     let searchOption =
         (if isRec then
              SearchOption.AllDirectories
@@ -85,10 +92,7 @@ let rec allFiles isRec path =
              SearchOption.TopDirectoryOnly)
 
     Directory.GetFiles(path, "*.*", searchOption)
-    |> Seq.filter (fun f ->
-        isFSharpFile f
-        && not (isInExcludedDir f)
-        && not (IgnoreFile.isIgnoredFile (IgnoreFile.current.Force()) f))
+    |> Seq.filter (fun f -> isFSharpFile f && not (isInExcludedDir f))
 
 /// Fantomas assumes the input files are UTF-8
 /// As is stated in F# language spec: https://fsharp.org/specs/language-spec/4.1/FSharpSpec-4.1-latest.pdf#page=25
@@ -389,23 +393,15 @@ let main argv =
             | ProcessResult.Error(file, e) -> (oks, ignores, unchanged, (file, e) :: errors))
 
     let reportFormatResults (results: #seq<ProcessResult>) =
-        let oks, ignored, unchanged, errored = partitionResults results
-
-        let summaryMessage =
-            $"Formatted: %d{oks.Length}, Ignored : %d{ignored.Length}, Unchanged : %d{unchanged.Length}, Errored: %d{errored.Length}"
-
-        stdlog summaryMessage
-
-        errored
-        |> Seq.iter (fun (file, ex) ->
+        let reportError (file, exn: Exception) =
             let message =
                 match verbosity with
                 | VerbosityLevel.Normal ->
-                    match ex with
+                    match exn with
                     | :? ParseException -> "Could not parse file."
                     | :? FormatException as fe -> fe.Message
                     | _ -> ""
-                | VerbosityLevel.Detailed -> $"%A{ex}"
+                | VerbosityLevel.Detailed -> $"%A{exn}"
 
             let message =
                 if String.IsNullOrEmpty message then
@@ -413,10 +409,43 @@ let main argv =
                 else
                     $" : {message}"
 
-            elog $"Failed to format file: {file}{message}")
+            elog $"Failed to format file: {file}{message}"
 
-        if errored.Length > 0 then
-            exit 1
+        match Seq.tryExactlyOne results with
+        | Some singleResult ->
+            let fileName f = FileInfo(f).Name
+
+            match singleResult with
+            | ProcessResult.Formatted f -> stdlog $"{fileName f} was formatted."
+            | ProcessResult.Ignored f -> stdlog $"{fileName f} was ignored."
+            | ProcessResult.Unchanged f -> stdlog $"{fileName f} was unchanged."
+            | ProcessResult.Error(f, e) ->
+                reportError (fileName f, e)
+                exit 1
+        | None ->
+            let oks, ignored, unchanged, errored = partitionResults results
+            let centeredColumn (v: string) = TableColumn(v).Centered()
+
+            Table()
+                .AddColumns(
+                    [| "[green]Formatted[/]"
+                       string oks.Length
+                       "Ignored"
+                       string ignored.Length
+                       "[blue]Unchanged[/]"
+                       string unchanged.Length
+                       "[red]Errored[/]"
+                       string errored.Length |]
+                    |> Array.map centeredColumn
+                )
+                .SetBorder(TableBorder.MinimalDoubleHead)
+            |> AnsiConsole.Write
+
+            for e in errored do
+                reportError e
+
+            if errored.Length > 0 then
+                exit 1
 
     let asyncRunner = Async.Parallel >> Async.RunSynchronously
 
