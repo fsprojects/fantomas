@@ -2637,15 +2637,29 @@ let genPat (p: Pattern) =
             +> addSpaceIfSpaceAroundDelimiter
             +> genSingleTextNode node.CloseToken
 
-        // Note that we deliberately are not take the setting fsharp_multiline_block_brackets_on_same_column into account.
-        let multilineAlignBrackets =
-            genSingleTextNode node.OpenToken
-            +> indentSepNlnUnindent genPats
-            +> sepNln
-            +> genSingleTextNode node.CloseToken
+        let multiline =
+            let cramped =
+                if node.OpenToken.Text.Length = 1 then
+                    short
+                else
+                    // pattern is an array, which can lead to some offset problems.
+                    // It is better to play it safe and indent the patterns on the next line.
+                    genSingleTextNode node.OpenToken
+                    +> addSpaceIfSpaceAroundDelimiter
+                    +> indentSepNlnUnindent genPats
+                    +> addSpaceIfSpaceAroundDelimiter
+                    +> genSingleTextNode node.CloseToken
 
-        let nonEmpty =
-            expressionFitsOnRestOfLine short (ifAlignBrackets multilineAlignBrackets short)
+            // Note that we deliberately are not take the setting fsharp_multiline_block_brackets_on_same_column into account.
+            let multilineAlignBrackets =
+                genSingleTextNode node.OpenToken
+                +> indentSepNlnUnindent genPats
+                +> sepNln
+                +> genSingleTextNode node.CloseToken
+
+            ifAlignOrStroustrupBrackets multilineAlignBrackets cramped
+
+        let nonEmpty = expressionFitsOnRestOfLine short multiline
 
         ifElse node.Patterns.IsEmpty emptyPattern nonEmpty |> genNode node
     | Pattern.Record node ->

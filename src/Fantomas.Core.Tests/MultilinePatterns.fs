@@ -2,12 +2,8 @@
 
 open NUnit.Framework
 open FsUnit
+open Fantomas.Core
 open Fantomas.Core.Tests.TestHelper
-
-let formatSourceString isFsi input config =
-    let formatted = formatSourceString isFsi input config
-    printfn "%s" formatted
-    formatted
 
 [<Test>]
 let ``long ident tuple pattern`` () =
@@ -490,7 +486,8 @@ match x with
         equal
         """
 match x with
-| [| Y(itemOne =
+| [|
+    Y(itemOne =
         OhSomeActivePatternThing(
             a, b
         )
@@ -521,7 +518,7 @@ match x with
 """
         { config with
             MaxLineLength = 30
-            MultilineBlockBracketsOnSameColumn = true }
+            MultilineBracketStyle = Aligned }
     |> prepend newline
     |> should
         equal
@@ -595,7 +592,7 @@ match x with
 """
         { config with
             MaxLineLength = 30
-            MultilineBlockBracketsOnSameColumn = true }
+            MultilineBracketStyle = Aligned }
     |> prepend newline
     |> should
         equal

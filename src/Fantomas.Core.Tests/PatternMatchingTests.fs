@@ -1530,9 +1530,10 @@ let args =
         """
 let args =
     match args with
-    | [| LongPatIndentifierOne
-          | LongPatIndentifierTwo
-          | LongPatIndentifierThree |] -> args
+    | [|
+        LongPatIndentifierOne
+         | LongPatIndentifierTwo
+         | LongPatIndentifierThree |] -> args
     | _ -> failwith "meh"
 """
 
