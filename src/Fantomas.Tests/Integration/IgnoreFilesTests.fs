@@ -11,12 +11,6 @@ let Source = "let  foo =   47"
 [<Literal>]
 let Verbosity = "--verbosity d"
 
-let assertResult formatted ignored unchanged errored (output: string) =
-    System.Text.RegularExpressions
-        .Regex(@$"Formatted\W+{formatted}\W+Ignored\W+{ignored}\W+Unchanged\W+{unchanged}\W+Errored\W+{errored}")
-        .IsMatch(output)
-    |> Assert.True
-
 [<Test>]
 let ``ignore all fs files`` () =
     let fileName = "ToBeIgnored"
@@ -89,12 +83,12 @@ let ``ignore file in folder`` () =
     use ignoreFixture = new FantomasIgnoreFile("A.fs")
 
     let { ExitCode = exitCode; Output = output } =
-        runFantomasTool (sprintf "%s .%c%s" Verbosity Path.DirectorySeparatorChar subFolder)
+        runFantomasTool $"%s{Verbosity} .%c{Path.DirectorySeparatorChar}%s{subFolder}"
 
     exitCode |> should equal 0
     File.ReadAllText inputFixture.Filename |> should equal Source
 
-    output |> assertResult 0 0 0 0
+    output |> should contain "A.fs was ignored"
 
 [<Test>]
 let ``ignore file while checking`` () =
@@ -141,5 +135,4 @@ let ``honor ignore file when processing a folder`` () =
         runFantomasTool (sprintf "%s .%c%s" Verbosity Path.DirectorySeparatorChar subFolder)
 
     output |> should not' (contain "ignored")
-
-    output |> assertResult 1 0 0 0
+    output |> should contain "A.fs was formatted"
