@@ -72,6 +72,15 @@
           "Serilog": "2.8.0"
         }
       },
+      "Spectre.Console": {
+        "type": "Direct",
+        "requested": "[0.46.1-preview.0.6, )",
+        "resolved": "0.46.1-preview.0.6",
+        "contentHash": "hJRBORvRHxxD3SjhnV7h0E6SY22iJVoP7oLtKz/YhVlNarMVOWe62qjQrk6+IF8M4D16Y+PC+D7C4W1rRLUCIg==",
+        "dependencies": {
+          "System.Memory": "4.5.5"
+        }
+      },
       "StreamJsonRpc": {
         "type": "Direct",
         "requested": "[2.8.28, )",
