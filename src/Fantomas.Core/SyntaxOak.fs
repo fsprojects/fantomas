@@ -759,6 +759,9 @@ type ExprRecordBaseNode(openingBrace: SingleTextNode, fields: RecordFieldNode li
     member val ClosingBrace = closingBrace
     member x.HasFields = List.isNotEmpty x.Fields
 
+/// <summary>
+/// Represents a record instance, parsed from both `SynExpr.Record` and `SynExpr.AnonRecd`.
+/// </summary>
 type ExprRecordNode
     (
         openingBrace: SingleTextNode,
@@ -779,6 +782,25 @@ type ExprRecordNode
 
     member x.HasFields = List.isNotEmpty x.Fields
 
+type ExprAnonStructRecordNode
+    (
+        structNode: SingleTextNode,
+        openingBrace: SingleTextNode,
+        copyInfo: Expr option,
+        fields: RecordFieldNode list,
+        closingBrace: SingleTextNode,
+        range
+    ) =
+    inherit ExprRecordNode(openingBrace, copyInfo, fields, closingBrace, range)
+    member val Struct = structNode
+
+    override val Children: Node array =
+        [| yield structNode
+           yield openingBrace
+           yield! copyInfo |> Option.map Expr.Node |> noa
+           yield! nodes fields
+           yield closingBrace |]
+
 type ExprInheritRecordNode
     (
         openingBrace: SingleTextNode,
@@ -796,18 +818,6 @@ type ExprInheritRecordNode
            yield InheritConstructor.Node inheritConstructor
            yield! nodes fields
            yield closingBrace |]
-
-type ExprAnonRecordNode
-    (
-        isStruct: bool,
-        openingBrace: SingleTextNode,
-        copyInfo: Expr option,
-        fields: RecordFieldNode list,
-        closingBrace: SingleTextNode,
-        range
-    ) =
-    inherit ExprRecordNode(openingBrace, copyInfo, fields, closingBrace, range)
-    member val IsStruct = isStruct
 
 type InterfaceImplNode
     (
@@ -1604,7 +1614,7 @@ type Expr =
     | ArrayOrList of ExprArrayOrListNode
     | Record of ExprRecordNode
     | InheritRecord of ExprInheritRecordNode
-    | AnonRecord of ExprAnonRecordNode
+    | AnonStructRecord of ExprAnonStructRecordNode
     | ObjExpr of ExprObjExprNode
     | While of ExprWhileNode
     | For of ExprForNode
@@ -1669,7 +1679,7 @@ type Expr =
         | ArrayOrList n -> n
         | Record n -> n
         | InheritRecord n -> n
-        | AnonRecord n -> n
+        | AnonStructRecord n -> n
         | ObjExpr n -> n
         | While n -> n
         | For n -> n
