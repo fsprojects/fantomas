@@ -975,7 +975,11 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
         | None, None ->
             ExprRecordNode(stn "{" mOpen, None, fieldNodes, stn "}" mClose, exprRange)
             |> Expr.Record
-    | SynExpr.AnonRecd(isStruct, copyInfo, recordFields, StartEndRange 2 (mOpen, _, mClose)) ->
+    | SynExpr.AnonRecd(true,
+                       copyInfo,
+                       recordFields,
+                       (StartRange 6 (mStruct, _) & EndRange 2 (mClose, _)),
+                       { OpeningBraceRange = mOpen }) ->
         let fields =
             recordFields
             |> List.choose (function
@@ -988,15 +992,36 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
                     Some(RecordFieldNode(longIdent, stn "=" mEq, mkExpr creationAide e, m))
                 | _ -> None)
 
-        ExprAnonRecordNode(
-            isStruct,
+        ExprAnonStructRecordNode(
+            stn "struct" mStruct,
             stn "{|" mOpen,
             Option.map (fst >> mkExpr creationAide) copyInfo,
             fields,
             stn "|}" mClose,
             exprRange
         )
-        |> Expr.AnonRecord
+        |> Expr.AnonStructRecord
+    | SynExpr.AnonRecd(false, copyInfo, recordFields, EndRange 2 (mClose, _), { OpeningBraceRange = mOpen }) ->
+        let fields =
+            recordFields
+            |> List.choose (function
+                | ident, Some mEq, e ->
+                    let m = unionRanges ident.idRange e.Range
+
+                    let longIdent =
+                        IdentListNode([ IdentifierOrDot.Ident(mkIdent ident) ], ident.idRange)
+
+                    Some(RecordFieldNode(longIdent, stn "=" mEq, mkExpr creationAide e, m))
+                | _ -> None)
+
+        ExprRecordNode(
+            stn "{|" mOpen,
+            Option.map (fst >> mkExpr creationAide) copyInfo,
+            fields,
+            stn "|}" mClose,
+            exprRange
+        )
+        |> Expr.Record
     | SynExpr.ObjExpr(t, eio, withKeyword, bd, members, ims, StartRange 3 (mNew, _), StartEndRange 1 (mOpen, _, mClose)) ->
         let interfaceNodes =
             ims

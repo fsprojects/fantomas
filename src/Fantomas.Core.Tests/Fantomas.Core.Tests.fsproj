@@ -59,7 +59,7 @@
     <Compile Include="SpaceBeforeClassConstructorTests.fs" />
     <Compile Include="SpaceBeforeMemberTests.fs" />
     <Compile Include="AlignedMultilineBracketStyleTests.fs" />
-    <Compile Include="MultilineBlockBracketsOnSameColumnArrayOrListTests.fs" />
+    <Compile Include="AlignedMultilineBracketStyleArrayOrListTests.fs" />
     <Compile Include="NewlineBetweenTypeDefinitionAndMembersTests.fs" />
     <Compile Include="MaxValueBindingWidthTests.fs" />
     <Compile Include="MaxFunctionBindingWidthTests.fs" />
@@ -108,6 +108,7 @@
     <Compile Include="Stroustrup\ElmishTests.fs" />
     <Compile Include="Stroustrup\FunctionApplicationSingleListTests.fs" />
     <Compile Include="Stroustrup\FunctionApplicationDualListTests.fs" />
+    <Compile Include="Stroustrup\SynExprAnonRecdStructTests.fs" />
     <Compile Include="IdentTests.fs" />
     <Compile Include="RecordDeclarationsWithXMLDocTests.fs" />
     <Compile Include="MaxIfThenShortWidthTests.fs" />

@@ -1,4 +1,4 @@
-module Fantomas.Core.Tests.MultilineBlockBracketsOnSameColumnArrayOrListTests
+module Fantomas.Core.Tests.AlignedMultilineBracketStyleArrayOrListTests
 
 open NUnit.Framework
 open FsUnit
