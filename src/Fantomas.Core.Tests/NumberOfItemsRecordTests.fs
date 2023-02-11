@@ -697,8 +697,8 @@ let ``indent update anonymous record fields far enough`` () =
         """
 let expected =
   {| ThisIsAThing.Empty with
-       TheNewValue = 1
-       ThatValue = 2 |}
+      TheNewValue = 1
+      ThatValue = 2 |}
 """
 
 [<Test>]
