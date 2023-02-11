@@ -465,9 +465,15 @@ let genExpr (e: Expr) =
         let multilineRecordExpr = genMultilineRecord node
         genRecord smallRecordExpr multilineRecordExpr node
     | Expr.AnonStructRecord node ->
-        let genStructPrefix = !- "struct "
+        let genStructPrefix = genSingleTextNodeWithSpaceSuffix sepSpace node.Struct
         let smallRecordExpr = genStructPrefix +> genSmallRecordNode node
-        let multilineRecordExpr = genStructPrefix +> genMultilineRecord node
+
+        let multilineRecordExpr =
+            if node.Struct.HasContentAfter then
+                genStructPrefix +> indentSepNlnUnindent (genMultilineRecord node)
+            else
+                genStructPrefix +> genMultilineRecord node
+
         genRecord smallRecordExpr multilineRecordExpr node
     | Expr.InheritRecord node ->
         let genSmallInheritRecordExpr =
