@@ -1721,8 +1721,8 @@ let ``record with comments above field, indent 2`` () =
         equal
         """
 { Foo =
-    // bar
-    someValue }
+  // bar
+  someValue }
 """
 
 [<Test>]
@@ -1778,8 +1778,8 @@ let ``anonymous record with multiline field, indent 2`` () =
         equal
         """
 {| Foo =
-    //  meh
-    someValue |}
+  //  meh
+  someValue |}
 """
 
 [<Test>]

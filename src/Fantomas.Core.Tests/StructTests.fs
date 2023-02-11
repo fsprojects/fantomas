@@ -164,3 +164,28 @@ type NameStruct() =
     struct
     end
 """
+
+[<Test>]
+let ``anonymous struct record with trivia`` () =
+    formatSourceString
+        false
+        """
+struct // 1
+    {| // 2
+        // 3
+        X = 4
+    // 5       
+    |} // 6 
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+struct // 1
+    {| // 2
+       // 3
+       X = 4
+    // 5
+    |} // 6
+"""
