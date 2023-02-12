@@ -6,7 +6,7 @@ index: 12
 # Upgrade guide
 
 We wish to capture all changes required to upgrade to a new version. Please note that the focus of this document is about how to upgrade.  
-New features are not covered in detail here, for those please refered to our [changelog](https://github.com/fsprojects/fantomas/blob/main/CHANGELOG.md).  
+New features are not covered in detail here, for those please refer to our [changelog](https://github.com/fsprojects/fantomas/blob/main/CHANGELOG.md).  
 If you find something to be missing from this guide, please consider opening a PR to mend the gap instead of opening an issue.
 
 
