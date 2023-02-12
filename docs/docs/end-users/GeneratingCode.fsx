@@ -101,9 +101,6 @@ Example usage:
 
 *)
 
-#r "nuget: Fantomas.FCS"
-
-open FSharp.Compiler.Text
 open Fantomas.FCS
 
 Parse.parseFile false (SourceText.ofString "let a = 1") []
