@@ -1,4 +1,4 @@
-#r "nuget: Fun.Build, 0.1.8"
+#r "nuget: Fun.Build, 0.3.1"
 #r "nuget: CliWrap, 3.5.0"
 #r "nuget: FSharp.Data, 5.0.2"
 
