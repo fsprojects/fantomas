@@ -318,5 +318,5 @@ Relying on these projects, is at your own risk. The constructed AST might not be
 Since code generation is considered to be a nice to have functionality, there is no compatibility between any `Fantomas.FCS`.  
 We do not apply any semantic versioning to `Fantomas.FCS`. Breaking changes can be expected at any given point.
 
-<fantomas-nav previous="./VSCode.html" next="./FAQ.html"></fantomas-nav>
+<fantomas-nav previous="./VSCode.html" next="./UpgradeGuide.html"></fantomas-nav>
 *)

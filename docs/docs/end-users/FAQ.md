@@ -33,4 +33,4 @@ For any style related suggestion, please head over to [fsharp/fslang-design](htt
 Preview alpha versions are generally safe to use but there is no guarantee that the style wouldn't change due to ongoing development.  
 You should check the [changelog](https://github.com/fsprojects/fantomas/blob/main/CONTRIBUTING.md) to see if there's any relevant change to try out in the Alpha.
 
-<fantomas-nav previous="./VSCode.html"></fantomas-nav>
+<fantomas-nav previous="./UpgradeGuide.html"></fantomas-nav>
