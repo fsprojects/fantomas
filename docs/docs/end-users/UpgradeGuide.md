@@ -73,3 +73,5 @@ fsharp_experimental_stroustrup_style = true
 
 ### Miscellaneous
 - The public API of CodeFormatter no longer uses `FSharpOption<'T>`, instead overloads are now used.
+
+<fantomas-nav previous="./VSCode.html" next="./FAQ.html"></fantomas-nav>
