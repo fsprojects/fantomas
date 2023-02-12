@@ -44,4 +44,4 @@ without the compiler nagging you about the missing space between the callee (`Pr
 Since F# 6.0, Fantomas interprets the list as an index expression and formats it accordingly.  
 In such a case, just add a space between the callee and the list and you should be good to go.
 
-<fantomas-nav previous="./VSCode.html"></fantomas-nav>
+<fantomas-nav previous="./UpgradeGuide.html"></fantomas-nav>
