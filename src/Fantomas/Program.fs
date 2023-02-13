@@ -37,15 +37,6 @@ type Arguments =
                     (Seq.map (fun s -> "*" + s) extensions |> String.concat ",")
             | Verbosity _ -> "Set the verbosity level. Allowed values are n[ormal] and d[etailed]."
 
-let timeAsync f =
-    async {
-        let sw = Diagnostics.Stopwatch.StartNew()
-        let! res = f ()
-        sw.Stop()
-        stdlog $"Time taken: %O{sw.Elapsed} s"
-        return res
-    }
-
 [<RequireQualifiedAccess>]
 type InputPath =
     | File of string
@@ -62,9 +53,9 @@ type OutputPath =
 
 [<RequireQualifiedAccess>]
 type ProcessResult =
-    | Formatted of string
+    | Formatted of string * ProfileInfos option
     | Ignored of string
-    | Unchanged of string
+    | Unchanged of string * ProfileInfos option
     | Error of string * exn
 
 type Table with
@@ -105,7 +96,7 @@ let private hasByteOrderMark file =
     }
 
 /// Format a source string using given config and write to a text writer
-let processSourceString (force: bool) s (fileName: string) config =
+let processSourceString (force: bool) (profile: bool) s (fileName: string) config =
     let writeResult (formatted: string) =
         async {
             let! hasBom = hasByteOrderMark fileName
@@ -119,19 +110,19 @@ let processSourceString (force: bool) s (fileName: string) config =
         }
 
     async {
-        let! formatted = s |> Format.formatContentAsync config fileName
+        let! formatted = s |> Format.formatContentAsync config profile fileName
 
         match formatted with
-        | Format.FormatResult.Formatted(_, formattedContent) ->
+        | Format.FormatResult.Formatted(_, formattedContent, profileInfos) ->
             do! formattedContent |> writeResult
-            return ProcessResult.Formatted(fileName)
+            return ProcessResult.Formatted(fileName, profileInfos)
         | Format.InvalidCode(file, formattedContent) when force ->
             stdlog $"%s{file} was not valid after formatting."
             do! formattedContent |> writeResult
-            return ProcessResult.Formatted(fileName)
-        | Format.FormatResult.Unchanged file ->
+            return ProcessResult.Formatted(fileName, None)
+        | Format.FormatResult.Unchanged(file, profileInfos) ->
             logGrEqDetailed $"'%s{file}' was unchanged"
-            return ProcessResult.Unchanged(fileName)
+            return ProcessResult.Unchanged(fileName, profileInfos)
         | Format.IgnoredFile file ->
             logGrEqDetailed $"'%s{file}' was ignored"
             return ProcessResult.Ignored fileName
@@ -142,22 +133,22 @@ let processSourceString (force: bool) s (fileName: string) config =
     }
 
 /// Format inFile and write to text writer
-let processSourceFile (force: bool) inFile (tw: TextWriter) =
+let processSourceFile (force: bool) (profile: bool) inFile (tw: TextWriter) =
     async {
-        let! formatted = Format.formatFileAsync inFile
+        let! formatted = Format.formatFileAsync profile inFile
 
         match formatted with
-        | Format.FormatResult.Formatted(_, formattedContent) ->
+        | Format.FormatResult.Formatted(_, formattedContent, profileInfos) ->
             do! tw.WriteAsync(formattedContent) |> Async.AwaitTask
-            return ProcessResult.Formatted(inFile)
+            return ProcessResult.Formatted(inFile, profileInfos)
         | Format.InvalidCode(file, formattedContent) when force ->
             stdlog $"%s{file} was not valid after formatting."
             do! tw.WriteAsync(formattedContent) |> Async.AwaitTask
-            return ProcessResult.Formatted(inFile)
-        | Format.FormatResult.Unchanged _ ->
+            return ProcessResult.Formatted(inFile, None)
+        | Format.FormatResult.Unchanged(_, profileInfos) ->
             let! input = inFile |> File.ReadAllTextAsync |> Async.AwaitTask
             do! input |> tw.WriteAsync |> Async.AwaitTask
-            return ProcessResult.Unchanged inFile
+            return ProcessResult.Unchanged(inFile, profileInfos)
         | Format.IgnoredFile file ->
             logGrEqDetailed $"'%s{file}' was ignored"
             return ProcessResult.Ignored inFile
@@ -301,15 +292,7 @@ let main argv =
                 else
                     new StreamWriter(outFile)
 
-            let! processResult =
-                if profile then
-                    async {
-                        let! length = File.ReadAllLinesAsync(inFile) |> Async.AwaitTask
-                        length |> Seq.length |> (fun l -> stdlog $"Line count: %i{l}")
-                        return! timeAsync (fun () -> processSourceFile force inFile buffer)
-                    }
-                else
-                    processSourceFile force inFile buffer
+            let! processResult = processSourceFile force profile inFile buffer
 
             do! buffer.FlushAsync() |> Async.AwaitTask
             logGrEqDetailed $"%s{outFile} has been written."
@@ -317,13 +300,7 @@ let main argv =
         }
 
     let stringToFile (force: bool) (s: string) (outFile: string) config =
-        async {
-            if profile then
-                stdlog $"""Line count: %i{s.Length - s.Replace(Environment.NewLine, "").Length}"""
-                return! timeAsync (fun () -> processSourceString force s outFile config)
-            else
-                return! processSourceString force s outFile config
-        }
+        async { return! processSourceString force profile s outFile config }
 
     let processFile force inputFile outputFile =
         async {
@@ -379,9 +356,9 @@ let main argv =
         (([], [], [], []), results)
         ||> Seq.fold (fun (oks, ignores, unchanged, errors) next ->
             match next with
-            | ProcessResult.Formatted x -> (x :: oks, ignores, unchanged, errors)
+            | ProcessResult.Formatted(x, _) -> (x :: oks, ignores, unchanged, errors)
             | ProcessResult.Ignored i -> (oks, i :: ignores, unchanged, errors)
-            | ProcessResult.Unchanged u -> (oks, ignores, u :: unchanged, errors)
+            | ProcessResult.Unchanged(u, _) -> (oks, ignores, u :: unchanged, errors)
             | ProcessResult.Error(file, e) -> (oks, ignores, unchanged, (file, e) :: errors))
 
     let reportFormatResults (results: #seq<ProcessResult>) =
@@ -403,14 +380,40 @@ let main argv =
 
             elog $"Failed to format file: {file}{message}"
 
+        let reportProfileInfos results =
+            if profile && not (Seq.isEmpty results) then
+                let profileInfos =
+                    seq {
+                        for r in results do
+                            match r with
+                            | ProcessResult.Formatted(f, Some p) -> yield (f, p)
+                            | ProcessResult.Unchanged(f, Some p) -> yield (f, p)
+                            | _ -> ()
+                    }
+
+                let table = Table().AddColumns([| "File"; "Line count"; "Time taken" |])
+
+                profileInfos
+                |> Seq.fold (fun (t: Table) (f, p) -> t.AddRow([| f; string p.LineCount; string p.TimeTaken |])) table
+                |> AnsiConsole.Write
+
         match Seq.tryExactlyOne results with
         | Some singleResult ->
             let fileName f = FileInfo(f).Name
 
+            let reportProfileInfo (f, p) =
+                match profile, p with
+                | true, Some pI -> stdlog $"%s{f} Line count: %d{pI.LineCount} Time taken {pI.TimeTaken}"
+                | _ -> ()
+
             match singleResult with
-            | ProcessResult.Formatted f -> stdlog $"{fileName f} was formatted."
+            | ProcessResult.Formatted(f, p) ->
+                stdlog $"{fileName f} was formatted."
+                reportProfileInfo (f, p)
             | ProcessResult.Ignored f -> stdlog $"{fileName f} was ignored."
-            | ProcessResult.Unchanged f -> stdlog $"{fileName f} was unchanged."
+            | ProcessResult.Unchanged(f, p) ->
+                stdlog $"{fileName f} was unchanged."
+                reportProfileInfo (f, p)
             | ProcessResult.Error(f, e) ->
                 reportError (fileName f, e)
                 exit 1
@@ -435,6 +438,8 @@ let main argv =
 
             for e in errored do
                 reportError e
+
+            reportProfileInfos results
 
             if errored.Length > 0 then
                 exit 1

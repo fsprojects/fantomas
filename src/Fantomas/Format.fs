@@ -5,8 +5,8 @@ open System.IO
 open Fantomas.Core
 
 type FormatResult =
-    | Formatted of filename: string * formattedContent: string
-    | Unchanged of filename: string
+    | Formatted of filename: string * formattedContent: string * profileInfos: ProfileInfos option
+    | Unchanged of filename: string * profileInfos: ProfileInfos option
     | InvalidCode of filename: string * formattedContent: string
     | Error of filename: string * formattingError: Exception
     | IgnoredFile of filename: string
@@ -14,6 +14,7 @@ type FormatResult =
 let private formatContentInternalAsync
     (compareWithoutLineEndings: bool)
     (config: FormatConfig)
+    (profile: bool)
     (file: string)
     (originalContent: string)
     : Async<FormatResult> =
@@ -24,8 +25,27 @@ let private formatContentInternalAsync
             try
                 let isSignatureFile = Path.GetExtension(file) = ".fsi"
 
-                let! { Code = formattedContent } =
-                    CodeFormatter.FormatDocumentAsync(isSignatureFile, originalContent, config)
+                let! { Code = formattedContent
+                       ProfileInfos = profileInfos } =
+                    if profile then
+                        async {
+                            let sw = Diagnostics.Stopwatch.StartNew()
+                            let! res = CodeFormatter.FormatDocumentAsync(isSignatureFile, originalContent, config)
+                            sw.Stop()
+
+                            let count =
+                                originalContent.Length - originalContent.Replace(Environment.NewLine, "").Length
+
+                            let profileInfos =
+                                { LineCount = count
+                                  TimeTaken = sw.Elapsed }
+
+                            return
+                                { res with
+                                    ProfileInfos = Some profileInfos }
+                        }
+                    else
+                        CodeFormatter.FormatDocumentAsync(isSignatureFile, originalContent, config)
 
                 let contentChanged =
                     if compareWithoutLineEndings then
@@ -42,16 +62,17 @@ let private formatContentInternalAsync
                     if not isValid then
                         return InvalidCode(filename = file, formattedContent = formattedContent)
                     else
-                        return Formatted(filename = file, formattedContent = formattedContent)
+                        return
+                            Formatted(filename = file, formattedContent = formattedContent, profileInfos = profileInfos)
                 else
-                    return Unchanged(filename = file)
+                    return Unchanged(filename = file, profileInfos = profileInfos)
             with ex ->
                 return Error(file, ex)
         }
 
 let formatContentAsync = formatContentInternalAsync false
 
-let private formatFileInternalAsync (compareWithoutLineEndings: bool) (file: string) =
+let private formatFileInternalAsync (compareWithoutLineEndings: bool) (profile: bool) (file: string) =
     let config = EditorConfig.readConfiguration file
 
     if IgnoreFile.isIgnoredFile (IgnoreFile.current.Force()) file then
@@ -63,7 +84,7 @@ let private formatFileInternalAsync (compareWithoutLineEndings: bool) (file: str
 
             let! formatted =
                 originalContent
-                |> formatContentInternalAsync compareWithoutLineEndings config file
+                |> formatContentInternalAsync compareWithoutLineEndings config profile file
 
             return formatted
         }
@@ -91,14 +112,14 @@ let checkCode (filenames: seq<string>) =
         let! formatted =
             filenames
             |> Seq.filter (IgnoreFile.isIgnoredFile (IgnoreFile.current.Force()) >> not)
-            |> Seq.map (formatFileInternalAsync true)
+            |> Seq.map (formatFileInternalAsync true false)
             |> Async.Parallel
 
         let getChangedFile =
             function
             | FormatResult.Unchanged _
             | FormatResult.IgnoredFile _ -> None
-            | FormatResult.Formatted(f, _)
+            | FormatResult.Formatted(f, _, _)
             | FormatResult.Error(f, _)
             | FormatResult.InvalidCode(f, _) -> Some f
 

@@ -282,7 +282,8 @@ let dump (isSelection: bool) (ctx: Context) =
         |> String.concat ctx.Config.EndOfLine.NewLineString
 
     { Code = code
-      Cursor = ctx.FormattedCursor }
+      Cursor = ctx.FormattedCursor
+      ProfileInfos = None }
 
 let dumpAndContinue (ctx: Context) =
 #if DEBUG
