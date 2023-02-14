@@ -84,7 +84,7 @@ Let's deconstruct a couple of things:
 - The `expr` ([Expr](../../reference/fantomas-core-syntaxoak-expr.html)) represents the F# syntax expression.
 - Because there is no actual source code, all ranges will be `Range.Zero`.  
 
-The more you interact with AST, the easier you pick up which node represents what.
+The more you interact with AST/Oak, the easier you pick up which node represents what.
 
 ### Fantomas.FCS
 
@@ -122,7 +122,7 @@ We wholeheartedly recommend to use our **[online tool](https://fsprojects.github
 
 ![F# AST Viewer](../../images/oak-viewer.png)
 
-This shows you what AST nodes the parser created for a given input text.  
+This shows you what Oak nodes the parser created for a given input text.  
 From there on you can use our search bar to find the corresponding documentation:
 
 ![Search bar](../../images/searchbar-ast.png)
