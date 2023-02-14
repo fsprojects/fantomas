@@ -32,83 +32,63 @@ In simple scenarios this can work out, but in the long run it doesn't scale well
 To illustrate the API, lets generate a simple value binding: `let a = 0`.
 *)
 
-#r "nuget: Fantomas.Core, 5.*" // Note that this will also load Fantomas.FCS, which contains the syntax tree types.
+#r "../../../src/Fantomas/bin/Release/net6.0/Fantomas.FCS.dll"
+#r "../../../src/Fantomas/bin/Release/net6.0/Fantomas.Core.dll" // In production use #r "nuget: Fantomas.Core, 6.0-alpha-*"
 
 open FSharp.Compiler.Text
-open FSharp.Compiler.Xml
-open FSharp.Compiler.Syntax
-open FSharp.Compiler.SyntaxTrivia
+open Fantomas.Core.SyntaxOak
 
 let implementationSyntaxTree =
-    ParsedInput.ImplFile(
-        ParsedImplFileInput(
-            "filename.fsx",
-            true,
-            QualifiedNameOfFile(Ident("", Range.Zero)),
-            [],
-            [],
-            [ SynModuleOrNamespace(
-                  [],
-                  false,
-                  SynModuleOrNamespaceKind.AnonModule,
-                  [ SynModuleDecl.Let(
-                        false,
-                        [ SynBinding(
-                              None,
-                              SynBindingKind.Normal,
-                              false,
-                              false,
-                              [],
-                              PreXmlDoc.Empty,
-                              SynValData(None, SynValInfo([], SynArgInfo([], false, None)), None),
-                              SynPat.Named(SynIdent(Ident("a", Range.Zero), None), false, None, Range.Zero),
-                              None,
-                              SynExpr.Const(SynConst.Int32(0), Range.Zero),
-                              Range.Zero,
-                              DebugPointAtBinding.Yes Range.Zero,
-                              { EqualsRange = Some Range.Zero
-                                InlineKeyword = None
-                                LeadingKeyword = SynLeadingKeyword.Let Range.Zero }
-                          ) ],
-                        Range.Zero
-                    ) ],
-                  PreXmlDoc.Empty,
-                  [],
-                  None,
-                  Range.Zero,
-                  { LeadingKeyword = SynModuleOrNamespaceLeadingKeyword.None }
-              ) ],
-            (false, false),
-            { ConditionalDirectives = []
-              CodeComments = [] },
-            Set.empty
-        )
+    Oak(
+        [],
+        [ ModuleOrNamespaceNode(
+              None,
+              [ BindingNode(
+                    None,
+                    None,
+                    MultipleTextsNode([ SingleTextNode("let", Range.Zero) ], Range.Zero),
+                    false,
+                    None,
+                    None,
+                    Choice1Of2(IdentListNode([], Range.Zero)),
+                    None,
+                    [],
+                    None,
+                    SingleTextNode("=", Range.Zero),
+                    Expr.Constant(Constant.FromText(SingleTextNode("0", Range.Zero))),
+                    Range.Zero
+                )
+                |> ModuleDecl.TopLevelBinding ],
+              Range.Zero
+          ) ],
+        Range.Zero
     )
 
 open Fantomas.Core
 
-CodeFormatter.FormatASTAsync(implementationSyntaxTree) |> Async.RunSynchronously
-(*** include-it ***)
+CodeFormatter.FormatOakAsync(implementationSyntaxTree)
+|> Async.RunSynchronously
+|> printfn "%s"
+(*** include-output  ***)
 
 (**
 Constructing the entire syntax tree can be a bit overwhelming at first. There is a lot of information to provide and a lot to unpack if you have never seen any of this before.
 
 Let's deconstruct a couple of things:
 
-- Every file has one or more [SynModuleOrNamespace](../../reference/fsharp-compiler-syntax-synmoduleornamespace.html). In this case the module was anonymous and thus invisible.
-- Every `SynModuleOrNamespace` has top level [SynModuleDecl](../../https://fsprojects.github.io/fantomas/reference/fsharp-compiler-syntax-synmoduledecl.html).
-- [SynModuleDecl.Let](../../https://fsprojects.github.io/fantomas/reference/fsharp-compiler-syntax-synmoduledecl.html#Let) takes one or more [SynBinding](../../reference/fsharp-compiler-syntax-synbinding.html).  
+- Every file has one or more [ModuleOrNamespaceNode](../../reference/fantomas-core-syntaxoak-moduleornamespacenode.html). In this case the module was anonymous and thus invisible.
+- Every `ModuleOrNamespaceNode` has top level [ModuleDecl](../../reference/fantomas-core-syntaxoak-moduledecl.html).
+- [ModuleDecl.TopLevelBinding](../../https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-moduledecl.html#TopLevelBinding) takes a [BindingNode ](../../reference/fantomas-core-syntaxoak-bindingnode.html).  
 
-  You would have multiple bindings in case of a recursive function.  
-- The `headPat` of binding contains the name and the parameters. 
-- The `expr` ([SynExpr](../../reference/fsharp-compiler-syntax-synexpr.html)) represents the F# syntax expression.
+- The `functionName ` of binding contains the name or is a pattern. 
+- The `expr` ([Expr](../../reference/fantomas-core-syntaxoak-expr.html)) represents the F# syntax expression.
 - Because there is no actual source code, all ranges will be `Range.Zero`.  
 
-The more you interact with AST, the easier you pick up which node represents what.
+The more you interact with AST/Oak, the easier you pick up which node represents what.
 
 ### Fantomas.FCS
 
-When looking at the example, we notice that we've opened a couple of `FSharp.Compiler.*` namespaces.   
+When looking at the example, we notice that we've opened `FSharp.Compiler.Text`.   
 Don't be fooled by this, `Fantomas.Core` and `Fantomas.FCS` **do not reference [FSharp.Compiler.Service](https://www.nuget.org/packages/FSharp.Compiler.Service)**!  
 Instead, `Fantomas.FCS` is a custom version of the F# compiler (built from source) that only exposes the F# parser and the syntax tree.
 
@@ -121,13 +101,16 @@ Example usage:
 
 *)
 
-#r "nuget: Fantomas.FCS"
-
-open FSharp.Compiler.Text
 open Fantomas.FCS
 
 Parse.parseFile false (SourceText.ofString "let a = 1") []
 (*** include-it ***)
+
+(**
+You can format untyped AST created from `Fantomas.FCS` using the `CodeFormatter` API.  
+However, we recommend to use the new `Oak` model (as in the example) instead.  
+The `Oak` model is easier to reason with as it structures certain concepts differently than the untyped AST.
+*)
 
 (**
 ## Tips and tricks
@@ -137,77 +120,39 @@ Parse.parseFile false (SourceText.ofString "let a = 1") []
 The syntax tree can have an overwhelming type hierarchy.  
 We wholeheartedly recommend to use our **[online tool](https://fsprojects.github.io/fantomas-tools/#/ast)** when working with AST.
 
-![F# AST Viewer](../../images/ast-viewer.png)
+![F# AST Viewer](../../images/oak-viewer.png)
 
-This shows you what AST nodes the parser created for a given input text.  
+This shows you what Oak nodes the parser created for a given input text.  
 From there on you can use our search bar to find the corresponding documentation:
 
 ![Search bar](../../images/searchbar-ast.png)
 
 ### Match the AST the parser would produce
 
-Fantomas will very selectively use information from the AST.  
-Please make sure you construct the same AST as the parser would.
+Fantomas will very selectively use information from the AST to construct the Oak.
+Please make sure you construct the same Oak as Fantomas would.
 *)
 
 // You typically make some helper functions along the way
-let mkCodeFromExpression (e: SynExpr) : string =
-    ParsedInput.ImplFile(
-        ParsedImplFileInput(
-            "filename.fsx",
-            true,
-            QualifiedNameOfFile(Ident("", Range.Zero)),
-            [],
-            [],
-            [ SynModuleOrNamespace(
-                  [],
-                  false,
-                  SynModuleOrNamespaceKind.AnonModule,
-                  [ SynModuleDecl.Expr(e, Range.Zero) ],
-                  PreXmlDoc.Empty,
-                  [],
-                  None,
-                  Range.Zero,
-                  { LeadingKeyword = SynModuleOrNamespaceLeadingKeyword.None }
-              ) ],
-            (false, false),
-            { ConditionalDirectives = []
-              CodeComments = [] },
-            Set.empty
-        )
-    )
-    |> CodeFormatter.FormatASTAsync
+let text v = SingleTextNode(v, Range.Zero)
+
+let mkCodeFromExpression (e: Expr) =
+    Oak([], [ ModuleOrNamespaceNode(None, [ ModuleDecl.DeclExpr e ], Range.Zero) ], Range.Zero)
+    |> CodeFormatter.FormatOakAsync
     |> Async.RunSynchronously
+    |> printfn "%s"
 
-let numberExpr = SynExpr.Const(SynConst.Int32(7), Range.Zero)
-let wrappedNumber = SynExpr.Paren(numberExpr, Range.Zero, None, Range.Zero)
+let numberExpr = Expr.Constant(Constant.FromText(text "7"))
 
-try
-    mkCodeFromExpression wrappedNumber
-with _ex ->
-    // Fantomas.Core will make assumptions about certain constructs.
-    // Just because you can instantiate the AST, does not mean it will be lead to valid code.
-    "Code could not be transformed internally"
-(*** include-it ***)
+let wrappedNumber =
+    Expr.Paren(ExprParenNode(text "(", numberExpr, text ")", Range.Zero))
 
-(**
-Notice that last but one argument `None`, it represents the range of the closing `)`.  
-The F# parser would include `Some range` when it parses code, so you need to provide a `Some range` value as well.  
-Even though the range is empty. Fantomas is designed to work with AST created by the parser.  
-Creating a `SynExpr.Paren` node is not enough to get both parentheses!  
-The `CodeFormatter.FormatASTAsync` API is really a side-effect and not a first class citizen.  
-It will work when you play ball with the exact shape of the parser.
-*)
-
-let betterWrappedNumber =
-    SynExpr.Paren(numberExpr, Range.Zero, Some Range.Zero, Range.Zero)
-
-mkCodeFromExpression betterWrappedNumber
-(*** include-it ***)
+mkCodeFromExpression wrappedNumber
+(*** include-output  ***)
 
 (**
 As a rule of thumb: **create what the parser creates, use the online tool!**  
-Just because you can create AST nodes, does not mean Fantomas will do the right thing.
+Just because you can create Oak nodes, does not mean Fantomas will do the right thing.
 
 ### Look at the Fantomas code base
 
@@ -216,107 +161,55 @@ For example creating [SynExpr.Lambda](../../reference/fsharp-compiler-syntax-syn
 
 When you want to construct `fun a b -> a + b`, the AST the online tool produces looks like:
 ```fsharp
-Lambda
-  (false, false,
-    SimplePats
-    ([Id (a, None, false, false, false, tmp.fsx (1,4--1,5))],
-    tmp.fsx (1,4--1,5)),
-    Lambda
-    (false, true,
-    SimplePats
-        ([Id (b, None, false, false, false, tmp.fsx (1,6--1,7))],
-        tmp.fsx (1,6--1,7)),
-    App
-        (NonAtomic, false,
-        App
-            (NonAtomic, true,
-            LongIdent
-            (false,
-                SynLongIdent
-                ([op_Addition], [], [Some (OriginalNotation "+")]),
-                None, tmp.fsx (1,13--1,14)), Ident a,
-            tmp.fsx (1,11--1,14)), Ident b, tmp.fsx (1,11--1,16)),
-    None, tmp.fsx (1,0--1,16),
-    { ArrowRange = Some tmp.fsx (1,8--1,10) }),
-    Some
-    ([Named (SynIdent (a, None), false, None, tmp.fsx (1,4--1,5));
-        Named (SynIdent (b, None), false, None, tmp.fsx (1,6--1,7))],
-    App
-        (NonAtomic, false,
-        App
-            (NonAtomic, true,
-            LongIdent
-            (false,
-                SynLongIdent
-                ([op_Addition], [], [Some (OriginalNotation "+")]),
-                None, tmp.fsx (1,13--1,14)), Ident a,
-            tmp.fsx (1,11--1,14)), Ident b, tmp.fsx (1,11--1,16))),
-    tmp.fsx (1,0--1,16), { ArrowRange = Some tmp.fsx (1,8--1,10) })
+Oak (1,0-1,16)
+  ModuleOrNamespaceNode (1,0-1,16)
+    ExprLambdaNode (1,0-1,16)
+      "fun" (1,0-1,3)
+      PatNamedNode (1,4-1,5)
+        "a" (1,4-1,5)
+      PatNamedNode (1,6-1,7)
+        "b" (1,6-1,7)
+      "->" (1,8-1,10)
+      ExprInfixAppNode (1,11-1,16)
+        "a" (1,11-1,12)
+        "+" (1,13-1,14)
+        "b" (1,15-1,16)
 ```
 
-but the Fantomas `CodePrinter` does not use all this data.
-We can easily create a `Lambda` without the nested body structure, as Fantomas will use the `parsedData` information.
 *)
-// this dummy expr will never be used!
-let dummyExpr = SynExpr.Const(SynConst.Unit, Range.Zero)
 
 let lambdaExpr =
-    let args =
-        [ SynPat.Named(SynIdent(Ident("a", Range.Zero), None), false, None, Range.Zero)
-          SynPat.Named(SynIdent(Ident("b", Range.Zero), None), false, None, Range.Zero) ]
+    let body: Expr =
+        ExprInfixAppNode(Expr.Ident(text "a"), text "+", Expr.Ident(text "b"), Range.Zero)
+        |> Expr.InfixApp
 
-    let expr =
-        SynExpr.App(
-            ExprAtomicFlag.NonAtomic,
-            false,
-            SynExpr.App(
-                ExprAtomicFlag.NonAtomic,
-                true,
-                SynExpr.LongIdent(
-                    false,
-                    SynLongIdent(
-                        [ Ident("_actually_not_used_", Range.Zero) ],
-                        [],
-                        [ Some(IdentTrivia.OriginalNotation("+")) ]
-                    ),
-                    None,
-                    Range.Zero
-
-                ),
-                SynExpr.Ident(Ident("a", Range.Zero)),
-                Range.Zero
-            ),
-            SynExpr.Ident(Ident("b", Range.Zero)),
-            Range.Zero
-        )
-
-    SynExpr.Lambda(
-        false,
-        false,
-        SynSimplePats.SimplePats([], Range.Zero), // not used
-        dummyExpr, // not used
-        Some(args, expr), // The good stuff is in here!
-        Range.Zero,
-        { ArrowRange = Some Range.Zero }
+    ExprLambdaNode(
+        text "fun",
+        [ Pattern.Named(PatNamedNode(None, text "a", Range.Zero))
+          Pattern.Named(PatNamedNode(None, text "b", Range.Zero)) ],
+        text "->",
+        body,
+        Range.Zero
     )
+    |> Expr.Lambda
 
 mkCodeFromExpression lambdaExpr
-(*** include-it ***)
+(*** include-output  ***)
 
-(**
-Notice how minimal the AST is, versus to what the parser produced. A subset of the data was enough.  
-How to know which nodes to include? Take a look at `CodePrinter.fs` and `SourceParser.fs`!
+(**  
+How to know which nodes to include? Take a look at `CodePrinter.fs`!
 
 ### Create your own set of helper functions
 
 Throughout all these examples, we have duplicated a lot of code. You can typically easily refactor this into some helper functions.  
 The Fantomas maintainers are not affiliated with any projects that expose AST construction helpers.  
-Relying on these projects, is at your own risk. The constructed AST might not be suitable for what Fantomas expects.
 
 ### Updates
 
-Since code generation is considered to be a nice to have functionality, there is no compatibility between any `Fantomas.FCS`.  
-We do not apply any semantic versioning to `Fantomas.FCS`. Breaking changes can be expected at any given point.
+Since code generation is considered to be a nice to have functionality, there is no compatibility between any `Fantomas.Core` version when it comes to the `SyntaxOak` module.  
+We do not apply any semantic versioning to `Fantomas.FCS` or `Fantomas.Core.SyntaxOak`. Breaking changes can be expected at any given point.  
+Our recommendation is that you include a set of regression tests  to meet your own expectations when upgrading.  
+As none of our versions are compatible it is advised to take a very strict dependency on `Fantomas.Core`. Using constraints like `(>= 6.0.0)` will inevitably lead to unexpected problems. 
 
 <fantomas-nav previous="./VSCode.html" next="./UpgradeGuide.html"></fantomas-nav>
 *)
