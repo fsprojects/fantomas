@@ -4,9 +4,11 @@ open System
 open System.IO
 open Fantomas.Core
 
+type ProfileInfo = { LineCount: int; TimeTaken: TimeSpan }
+
 type FormatResult =
-    | Formatted of filename: string * formattedContent: string * profileInfos: ProfileInfos option
-    | Unchanged of filename: string * profileInfos: ProfileInfos option
+    | Formatted of filename: string * formattedContent: string * profileInfo: ProfileInfo option
+    | Unchanged of filename: string * profileInfo: ProfileInfo option
     | InvalidCode of filename: string * formattedContent: string
     | Error of filename: string * formattingError: Exception
     | IgnoredFile of filename: string
@@ -25,8 +27,7 @@ let private formatContentInternalAsync
             try
                 let isSignatureFile = Path.GetExtension(file) = ".fsi"
 
-                let! { Code = formattedContent
-                       ProfileInfos = profileInfos } =
+                let! { Code = formattedContent }, profileInfo =
                     if profile then
                         async {
                             let sw = Diagnostics.Stopwatch.StartNew()
@@ -36,16 +37,17 @@ let private formatContentInternalAsync
                             let count =
                                 originalContent.Length - originalContent.Replace(Environment.NewLine, "").Length
 
-                            let profileInfos =
+                            let profileInfo =
                                 { LineCount = count
                                   TimeTaken = sw.Elapsed }
 
-                            return
-                                { res with
-                                    ProfileInfos = Some profileInfos }
+                            return res, Some profileInfo
                         }
                     else
-                        CodeFormatter.FormatDocumentAsync(isSignatureFile, originalContent, config)
+                        async {
+                            let! res = CodeFormatter.FormatDocumentAsync(isSignatureFile, originalContent, config)
+                            return res, None
+                        }
 
                 let contentChanged =
                     if compareWithoutLineEndings then
@@ -63,9 +65,9 @@ let private formatContentInternalAsync
                         return InvalidCode(filename = file, formattedContent = formattedContent)
                     else
                         return
-                            Formatted(filename = file, formattedContent = formattedContent, profileInfos = profileInfos)
+                            Formatted(filename = file, formattedContent = formattedContent, profileInfo = profileInfo)
                 else
-                    return Unchanged(filename = file, profileInfos = profileInfos)
+                    return Unchanged(filename = file, profileInfo = profileInfo)
             with ex ->
                 return Error(file, ex)
         }

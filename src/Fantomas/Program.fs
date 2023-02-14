@@ -53,9 +53,9 @@ type OutputPath =
 
 [<RequireQualifiedAccess>]
 type ProcessResult =
-    | Formatted of string * ProfileInfos option
+    | Formatted of string * Format.ProfileInfo option
     | Ignored of string
-    | Unchanged of string * ProfileInfos option
+    | Unchanged of string * Format.ProfileInfo option
     | Error of string * exn
 
 type Table with
@@ -401,7 +401,7 @@ let main argv =
         | Some singleResult ->
             let fileName f = FileInfo(f).Name
 
-            let reportProfileInfo (f, p) =
+            let reportProfileInfo (f, p: Format.ProfileInfo option) =
                 match profile, p with
                 | true, Some pI -> stdlog $"%s{f} Line count: %d{pI.LineCount} Time taken {pI.TimeTaken}"
                 | _ -> ()

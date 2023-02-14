@@ -3,9 +3,11 @@ module Fantomas.Format
 open System
 open Fantomas.Core
 
+type ProfileInfo = { LineCount: int; TimeTaken: TimeSpan }
+
 type FormatResult =
-    | Formatted of filename: string * formattedContent: string * profileInfos: ProfileInfos option
-    | Unchanged of filename: string * profileInfos: ProfileInfos option
+    | Formatted of filename: string * formattedContent: string * profileInfo: ProfileInfo option
+    | Unchanged of filename: string * profileInfo: ProfileInfo option
     | InvalidCode of filename: string * formattedContent: string
     | Error of filename: string * formattingError: Exception
     | IgnoredFile of filename: string

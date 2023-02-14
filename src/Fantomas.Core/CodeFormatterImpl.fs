@@ -132,9 +132,7 @@ Please raise an issue at https://fsprojects.github.io/fantomas-tools/#/fantomas/
                     |> List.reduce String.merge
                     |> String.concat config.EndOfLine.NewLineString
 
-                { Code = mergedCode
-                  Cursor = None
-                  ProfileInfos = None }
+                { Code = mergedCode; Cursor = None }
 
         return merged
     }
