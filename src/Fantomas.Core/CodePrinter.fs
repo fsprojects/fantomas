@@ -2181,12 +2181,7 @@ let (|EndsWithSingleRecordApp|_|) (config: FormatConfig) (appNode: ExprAppNode) 
     if config.IsStroustrupStyle then
         visit appNode.Arguments
     else
-        match appNode.FunctionExpr with
-        | Expr.Constant _ -> None
-        | ParenExpr _ -> None
-        | UppercaseExpr when config.StroustrupForMultilineRecordAsUppercaseInvocationFinalArg -> visit appNode.Arguments
-        | LowercaseExpr when config.StroustrupForMultilineRecordAsLowercaseInvocationFinalArg -> visit appNode.Arguments
-        | _ -> None
+        None
 
 let genAppWithLambda sep (node: ExprAppWithLambdaNode) =
     let short =

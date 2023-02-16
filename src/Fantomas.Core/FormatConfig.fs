@@ -221,14 +221,6 @@ type FormatConfig =
       [<DisplayName("Maximum number of consecutive blank lines to keep")>]
       KeepMaxNumberOfBlankLines: Num
 
-      [<Category("Boundaries")>]
-      [<DisplayName("Use stroustrup style for multiline record that is the last arg of an uppercase invocation")>]
-      StroustrupForMultilineRecordAsUppercaseInvocationFinalArg: bool
-
-      [<Category("Boundaries")>]
-      [<DisplayName("Use stroustrup style for multiline record that is the last arg of an lowercase invocation")>]
-      StroustrupForMultilineRecordAsLowercaseInvocationFinalArg: bool
-
       [<Category("Convention")>]
       [<DisplayName("Insert a newline before a computation expression that spans multiple lines")>]
       NewlineBeforeMultilineComputationExpression: bool
@@ -277,6 +269,4 @@ type FormatConfig =
           MultilineBracketStyle = Cramped
           KeepMaxNumberOfBlankLines = 100
           NewlineBeforeMultilineComputationExpression = true
-          StroustrupForMultilineRecordAsUppercaseInvocationFinalArg = false
-          StroustrupForMultilineRecordAsLowercaseInvocationFinalArg = false
           StrictMode = false }
