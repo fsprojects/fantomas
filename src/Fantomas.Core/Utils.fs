@@ -1,65 +1,12 @@
 namespace Fantomas.Core
 
 open System
-open System.Text.RegularExpressions
 open Microsoft.FSharp.Core.CompilerServices
 
 [<RequireQualifiedAccess>]
 module String =
     let startsWithOrdinal (prefix: string) (str: string) =
         str.StartsWith(prefix, StringComparison.Ordinal)
-
-    let lengthWithoutSpaces (str: string) = str.Replace(" ", String.Empty).Length
-
-    let hashRegex = @"^\s*#(if|elseif|else|endif).*"
-
-    let private splitWhenHash (newline: string) (source: string) : string list =
-        let lines = source.Split([| newline |], options = StringSplitOptions.None)
-
-        let hashLineIndexes =
-            lines
-            |> Array.mapi (fun idx line -> Regex.IsMatch(line, hashRegex), idx)
-            |> Array.choose (fun (isMatch, idx) -> if isMatch then Some idx else None)
-            |> Array.toList
-
-        let hashLineIndexesWithStart =
-            match List.tryHead hashLineIndexes with
-            | Some 0 -> hashLineIndexes
-            | _ -> 0 :: hashLineIndexes
-
-        let rec loop (indexes: int list) (finalContinuation: string[] list -> string[] list) =
-            match indexes with
-            | [] -> finalContinuation []
-            | i1 :: i2 :: rest ->
-                let chunk = lines.[i1 .. (i2 - 1)]
-                chunk.[0] <- chunk.[0].TrimStart()
-                loop (i2 :: rest) (fun otherChunks -> chunk :: otherChunks |> finalContinuation)
-            | [ lastIndex ] ->
-                let chunk = lines.[lastIndex..]
-                chunk.[0] <- chunk.[0].TrimStart()
-                finalContinuation [ chunk ]
-
-        loop hashLineIndexesWithStart id |> List.map (String.concat newline)
-
-    let splitInFragments (newline: string) (items: (string list * string) list) : (string list * string list) list =
-        List.map
-            (fun (defines, code) ->
-                let fragments = splitWhenHash newline code
-                defines, fragments)
-            items
-
-    let merge (aChunks: string list) (bChunks: string list) : string list =
-        List.zip aChunks bChunks
-        |> List.map (fun (a', b') ->
-            let la = lengthWithoutSpaces a'
-            let lb = lengthWithoutSpaces b'
-
-            if la <> lb then
-                if la > lb then a' else b'
-            else if String.length a' < String.length b' then
-                a'
-            else
-                b')
 
     let empty = String.Empty
     let isNotNullOrEmpty = String.IsNullOrEmpty >> not

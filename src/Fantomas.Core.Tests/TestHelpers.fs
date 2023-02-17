@@ -62,7 +62,7 @@ let formatSourceStringWithDefines defines (s: string) config =
             let! asts = CodeFormatterImpl.parse false source
 
             let ast =
-                Array.filter (fun (_, d: DefineCombination) -> List.sort d = List.sort defines) asts
+                Array.filter (fun (_, DefineCombination(d)) -> List.sort d = List.sort defines) asts
                 |> Array.head
                 |> fst
 
@@ -70,14 +70,13 @@ let formatSourceStringWithDefines defines (s: string) config =
         }
         |> Async.RunSynchronously
 
-    // merge with itself to make #if go on beginning of line
-    let _, fragments =
-        String.splitInFragments config.EndOfLine.NewLineString [ defines, result.Code ]
-        |> List.head
+    let defines = DefineCombination(defines)
 
-    String.merge fragments fragments
-    |> String.concat config.EndOfLine.NewLineString
-    |> String.normalizeNewLine
+    // merge with itself to make #if go on beginning of line
+    let mergedFormatResult =
+        MultipleDefineCombinations.mergeMultipleFormatResults config [ (defines, result); (defines, result) ]
+
+    String.normalizeNewLine mergedFormatResult.Code
 
 let isValidFSharpCode isFsiFile s =
     CodeFormatter.IsValidFSharpCodeAsync(isFsiFile, s) |> Async.RunSynchronously

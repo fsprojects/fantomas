@@ -6,19 +6,19 @@ open Fantomas.Core
 open Fantomas.Core.Tests.TestHelper
 open FsCheck
 
-let private mergeAndCompare a b expected =
-    let result =
-        let getFragments code =
-            String.splitInFragments config.EndOfLine.NewLineString [ code ]
-            |> List.head
-            |> snd
-
-        String.merge (getFragments a) (getFragments b)
-        |> String.concat Environment.NewLine
-        |> String.normalizeNewLine
-
-    let normalizedExpected = String.normalizeNewLine expected
-    normalizedExpected == result
+let private mergeAndCompare a b expected = failwith "TODO"
+// let result =
+//     let getFragments code =
+//         String.splitInFragments config.EndOfLine.NewLineString [ code ]
+//         |> List.head
+//         |> snd
+//
+//     String.merge (getFragments a) (getFragments b)
+//     |> String.concat Environment.NewLine
+//     |> String.normalizeNewLine
+//
+// let normalizedExpected = String.normalizeNewLine expected
+// normalizedExpected == result
 
 [<Test>]
 let ``merging of source code that starts with a hash`` () =

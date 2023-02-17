@@ -30,6 +30,8 @@
     <Compile Include="Context.fs" />
     <Compile Include="CodePrinter.fsi" />
     <Compile Include="CodePrinter.fs" />
+    <Compile Include="MultipleDefineCombinations.fsi" />
+    <Compile Include="MultipleDefineCombinations.fs" />
     <Compile Include="CodeFormatterImpl.fsi" />
     <Compile Include="CodeFormatterImpl.fs" />
     <Compile Include="Validation.fsi" />

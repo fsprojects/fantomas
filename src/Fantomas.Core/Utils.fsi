@@ -3,8 +3,6 @@ namespace Fantomas.Core
 [<RequireQualifiedAccess>]
 module String =
     val startsWithOrdinal: prefix: string -> str: string -> bool
-    val splitInFragments: newline: string -> items: (string list * string) list -> (string list * string list) list
-    val merge: aChunks: string list -> bChunks: string list -> string list
     val empty: string
     val isNotNullOrEmpty: (string -> bool)
     val isNotNullOrWhitespace: (string -> bool)

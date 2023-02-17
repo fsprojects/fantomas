@@ -4,7 +4,8 @@ module internal Fantomas.Core.CodeFormatterImpl
 open FSharp.Compiler.Diagnostics
 open FSharp.Compiler.Syntax
 open FSharp.Compiler.Text
-open Fantomas.Core.SyntaxOak
+open SyntaxOak
+open MultipleDefineCombinations
 
 let getSourceText (source: string) : ISourceText = source.TrimEnd() |> SourceText.ofString
 
@@ -28,7 +29,7 @@ let parse (isSignature: bool) (source: ISourceText) : Async<(ParsedInput * Defin
             if not errors.IsEmpty then
                 raise (ParseException baseDiagnostics)
 
-            return [| (baseUntypedTree, []) |]
+            return [| (baseUntypedTree, DefineCombination.Empty) |]
         }
     | hashDirectives ->
         let defineCombinations = Defines.getDefineCombination hashDirectives
@@ -37,7 +38,7 @@ let parse (isSignature: bool) (source: ISourceText) : Async<(ParsedInput * Defin
         |> List.map (fun defineCombination ->
             async {
                 let untypedTree, diagnostics =
-                    Fantomas.FCS.Parse.parseFile isSignature source defineCombination
+                    Fantomas.FCS.Parse.parseFile isSignature source defineCombination.Value
 
                 let errors =
                     diagnostics
@@ -96,43 +97,7 @@ let formatDocument
             match results with
             | [] -> failwith "not possible"
             | [ (_, x) ] -> x
-            | all ->
-                // TODO: we currently ignore the cursor here.
-                // We would need to know which defines provided the code for each fragment.
-                // If we have a cursor, we need to find the fragment that contains it and matches the defines of the cursor.
-
-                let allInFragments =
-                    all
-                    |> List.map (fun (dc, { Code = code }) -> dc, code)
-                    |> String.splitInFragments config.EndOfLine.NewLineString
-
-                let allHaveSameFragmentCount =
-                    let allWithCount = List.map (fun (_, f: string list) -> f.Length) allInFragments
-
-                    (Set allWithCount).Count = 1
-
-                if not allHaveSameFragmentCount then
-                    let chunkReport =
-                        allInFragments
-                        |> List.map (fun (defines, fragments) ->
-                            sprintf "[%s] has %i fragments" (String.concat ", " defines) fragments.Length)
-                        |> String.concat config.EndOfLine.NewLineString
-
-                    raise (
-                        FormatException(
-                            $"""Fantomas is trying to format the input multiple times due to the detect of multiple defines.
-There is a problem with merging all the code back together.
-{chunkReport}
-Please raise an issue at https://fsprojects.github.io/fantomas-tools/#/fantomas/preview."""
-                        )
-                    )
-
-                let mergedCode =
-                    List.map snd allInFragments
-                    |> List.reduce String.merge
-                    |> String.concat config.EndOfLine.NewLineString
-
-                { Code = mergedCode; Cursor = None }
+            | all -> mergeMultipleFormatResults config all
 
         return merged
     }

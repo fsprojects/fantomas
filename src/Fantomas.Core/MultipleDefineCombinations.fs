@@ -1,0 +1,207 @@
+﻿module internal Fantomas.Core.MultipleDefineCombinations
+
+open System
+open System.Linq
+open System.Text
+open System.Text.RegularExpressions
+open Microsoft.FSharp.Core.CompilerServices
+open FSharp.Compiler.Text
+
+[<RequireQualifiedAccess>]
+[<CustomEquality; CustomComparison>]
+type CodeFragment =
+    /// Any line that starts with `#if`, `#else` or `#endif`
+    | HashLine of line: string * defines: DefineCombination
+    /// Content found between two HashLines
+    | Content of code: string * lineCount: int * defines: DefineCombination
+    /// When two HashLine follow each other without any content in between.
+    | NoContent of defines: DefineCombination
+
+    member x.Defines =
+        match x with
+        | HashLine(defines = defines)
+        | Content(defines = defines)
+        | NoContent(defines = defines) -> defines
+
+    member x.LineCount =
+        match x with
+        | HashLine _ -> 1
+        | Content(lineCount = lineCount) -> lineCount
+        | NoContent _ -> 0
+
+    override this.Equals _ = false
+    override this.GetHashCode() = Int32.MinValue
+
+    interface IComparable with
+        member x.CompareTo other =
+            match other with
+            | :? CodeFragment as other -> (x :> IComparable<_>).CompareTo other
+            | _ -> -1
+
+    interface IComparable<CodeFragment> with
+        member x.CompareTo y =
+            match x, y with
+            | CodeFragment.HashLine(line = lineX), CodeFragment.HashLine(line = lineY) ->
+                assert (lineX = lineY)
+                0
+            | CodeFragment.NoContent _, CodeFragment.Content _ -> -1
+            | CodeFragment.Content _, CodeFragment.NoContent _ -> 1
+            | CodeFragment.NoContent _, CodeFragment.NoContent _ -> 0
+            | CodeFragment.Content(lineCount = ownLineCount; code = ownContent),
+              CodeFragment.Content(lineCount = otherLineCount; code = otherContent) ->
+                if ownLineCount > otherLineCount then
+                    1
+                elif ownLineCount < otherLineCount then
+                    -1
+                else
+                    ignore (ownContent, otherContent)
+                    failwith "TODO: compare content, pick largest"
+            | x, other ->
+                // TODO: throw custom exception?
+                failwith $"Cannot compare %A{x} with %A{other}"
+
+type FormatResultForDefines =
+    { Result: FormatResult
+      Defines: DefineCombination
+      Fragments: CodeFragment list }
+
+type SplitHashState =
+    { CurrentBuilder: StringBuilder
+      LinesCollected: int
+      LastLineWasHash: bool }
+
+    static member Zero =
+        { CurrentBuilder = StringBuilder()
+          LastLineWasHash = false
+          LinesCollected = 0 }
+
+/// Accumulator type used when folding over the selected CodeFragments.
+type FragmentWeaverState =
+    { LastLine: int
+      Cursors: Map<DefineCombination, pos>
+      ContentBuilder: StringBuilder
+      FoundCursor: (DefineCombination * pos) option }
+
+let hashRegex = @"^\s*#(if|elseif|else|endif).*"
+
+/// Split the given `source` into the matching `CodeFragments`.
+let splitWhenHash (defines: DefineCombination) (newline: string) (source: string) : CodeFragment list =
+    let lines = source.Split([| newline |], options = StringSplitOptions.None)
+    let mutable fragmentsBuilder = ListCollector<CodeFragment>()
+
+    (SplitHashState.Zero, lines)
+    ||> Array.fold (fun acc line ->
+        if Regex.IsMatch(line, hashRegex) then
+            // Only add the previous fragment if it had content
+            if acc.LastLineWasHash then
+                fragmentsBuilder.Add(CodeFragment.NoContent defines)
+            else
+                // Close the previous fragment builder
+                let lastFragment = acc.CurrentBuilder.ToString()
+
+                // Check if there is content, the first line of the code could be a hash directive
+                if not (String.IsNullOrWhiteSpace(lastFragment)) then
+                    fragmentsBuilder.Add(CodeFragment.Content(lastFragment, acc.LinesCollected, defines))
+
+            // Add the hashLine
+            fragmentsBuilder.Add(CodeFragment.HashLine(line.TrimStart(), defines))
+
+            // Reset the state
+            { CurrentBuilder = StringBuilder()
+              LinesCollected = 0
+              LastLineWasHash = true }
+        else
+            let nextBuilder = acc.CurrentBuilder.Append line
+            let nextBuilder = nextBuilder.Append(newline)
+
+            { CurrentBuilder = nextBuilder
+              LinesCollected = acc.LinesCollected + 1
+              LastLineWasHash = false })
+    |> ignore
+
+    fragmentsBuilder.Close()
+
+let mergeMultipleFormatResults config (results: (DefineCombination * FormatResult) list) : FormatResult =
+    let allInFragments: FormatResultForDefines list =
+        results
+            .AsParallel()
+            .Select(fun (dc, result) ->
+                let fragments = splitWhenHash dc config.EndOfLine.NewLineString result.Code
+
+                { Result = result
+                  Defines = dc
+                  Fragments = fragments })
+        |> Seq.toList
+
+    let allHaveSameFragmentCount =
+        let allWithCount = List.map (fun { Fragments = f } -> f.Length) allInFragments
+        (Set allWithCount).Count = 1
+
+    if not allHaveSameFragmentCount then
+        let chunkReport =
+            allInFragments
+            |> List.map (fun result ->
+                sprintf "[%s] has %i fragments" (String.concat ", " result.Defines.Value) result.Fragments.Length)
+            |> String.concat config.EndOfLine.NewLineString
+
+        raise (
+            FormatException(
+                $"""Fantomas is trying to format the input multiple times due to the detect of multiple defines.
+There is a problem with merging all the code back together.
+{chunkReport}
+Please raise an issue at https://fsprojects.github.io/fantomas-tools/#/fantomas/preview."""
+            )
+        )
+
+    // Go over each fragment of all results.
+    // Compare the fragments one by one and pick the one with most content.
+    // See custom comparison for CodeFragment.
+    let rec traverseFragments
+        (input: CodeFragment list list)
+        (continuation: CodeFragment list -> CodeFragment list)
+        : CodeFragment list =
+        let headItems = List.choose List.tryHead input
+
+        if List.isEmpty headItems then
+            continuation []
+        else
+            let max = List.max headItems
+            traverseFragments (List.map List.tail input) (fun xs -> max :: xs |> continuation)
+
+    let selectedFragments: CodeFragment list =
+        traverseFragments (allInFragments |> List.map (fun r -> r.Fragments)) id
+
+    let weaver =
+        { LastLine = 1
+          FoundCursor = None
+          ContentBuilder = StringBuilder()
+          Cursors =
+            results
+            |> List.choose (fun (dc, formatResult) -> formatResult.Cursor |> Option.map (fun cursor -> dc, cursor))
+            |> Map.ofList }
+
+    let appendContent (builder: StringBuilder) (newline: string) (fragment: CodeFragment) : StringBuilder =
+        match fragment with
+        | CodeFragment.NoContent _ -> builder
+        | CodeFragment.HashLine(line = line) -> (builder.Append line).Append newline
+        | CodeFragment.Content(code = code) -> (builder.Append code).Append newline
+
+    let finalResult =
+        (weaver, selectedFragments)
+        ||> List.fold (fun acc fragment ->
+            let nextLastLine = acc.LastLine + fragment.LineCount
+
+            match Map.tryFind fragment.Defines acc.Cursors with
+            | Some cursor when (acc.LastLine <= cursor.Line && cursor.Line <= nextLastLine) ->
+                { acc with
+                    LastLine = acc.LastLine + fragment.LineCount
+                    ContentBuilder = appendContent acc.ContentBuilder config.EndOfLine.NewLineString fragment
+                    FoundCursor = Some(fragment.Defines, cursor) }
+            | Some _
+            | None ->
+                { acc with
+                    LastLine = acc.LastLine + fragment.LineCount
+                    ContentBuilder = appendContent acc.ContentBuilder config.EndOfLine.NewLineString fragment })
+
+    { Code = finalResult.ToString()
+      Cursor = Option.map snd finalResult.FoundCursor }
