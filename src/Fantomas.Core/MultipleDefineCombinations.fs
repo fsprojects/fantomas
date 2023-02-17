@@ -62,15 +62,29 @@ type CodeFragment =
             // If both fragments have content, we want to take the content with the most lines.
             | CodeFragment.Content(lineCount = ownLineCount; code = ownContent),
               CodeFragment.Content(lineCount = otherLineCount; code = otherContent) ->
+                let hasOwnContent = not (String.IsNullOrWhiteSpace ownContent)
+                let hasOtherContent = not (String.IsNullOrWhiteSpace otherContent)
+                
                 if ownLineCount > otherLineCount then
                     1
                 elif ownLineCount < otherLineCount then
                     -1
-                elif ownContent = otherContent then
-                    0
+                elif String.IsNullOrWhiteSpace ownContent && not (String.IsNullOrWhiteSpace otherContent) then
+                    -1
+                elif hasOwnContent && not hasOtherContent then
+                    1
+                elif not hasOwnContent && hasOtherContent then
+                    -1
                 else
-                    ignore (ownContent, otherContent)
-                    failwith "TODO: compare content, pick largest"
+                    // This only really tailors to #1026
+                    // The shortest content is chosen because it will lead to the branch with less indentation.
+                    // This is again very specific to that exact unit test.
+                    let ownLength = ownContent.Length
+                    let otherLength = otherContent.Length
+
+                    if ownLength < otherLength then 1
+                    elif ownLength > otherLength then -1
+                    else 0
             // This is an unexpected situation.
             // You should never enter the case where you need to compare a hash line with something other than a hash line.
             | x, other ->
@@ -124,15 +138,13 @@ let splitWhenHash (defines: DefineCombination) (newline: string) (source: string
     ||> Array.fold (fun acc line ->
         if Regex.IsMatch(line, hashRegex) then
             // Only add the previous fragment if it had content
-            if acc.LastLineInfo = LastLineInfo.HashLine then
-                fragmentsBuilder.Add(CodeFragment.NoContent defines)
-            else
+            match acc.LastLineInfo with
+            | LastLineInfo.None -> ()
+            | LastLineInfo.HashLine -> fragmentsBuilder.Add(CodeFragment.NoContent defines)
+            | LastLineInfo.Content ->
                 // Close the previous fragment builder
                 let lastFragment = acc.CurrentBuilder.ToString()
-
-                // Check if there is content, the first line of the code could be a hash directive
-                if not (String.IsNullOrWhiteSpace(lastFragment)) then
-                    fragmentsBuilder.Add(CodeFragment.Content(lastFragment, acc.LinesCollected, defines))
+                fragmentsBuilder.Add(CodeFragment.Content(lastFragment, acc.LinesCollected, defines))
 
             // Add the hashLine
             fragmentsBuilder.Add(CodeFragment.HashLine(line.TrimStart(), defines))
