@@ -64,12 +64,15 @@ type CodeFragment =
               CodeFragment.Content(lineCount = otherLineCount; code = otherContent) ->
                 let hasOwnContent = not (String.IsNullOrWhiteSpace ownContent)
                 let hasOtherContent = not (String.IsNullOrWhiteSpace otherContent)
-                
+
                 if ownLineCount > otherLineCount then
                     1
                 elif ownLineCount < otherLineCount then
                     -1
-                elif String.IsNullOrWhiteSpace ownContent && not (String.IsNullOrWhiteSpace otherContent) then
+                elif
+                    String.IsNullOrWhiteSpace ownContent
+                    && not (String.IsNullOrWhiteSpace otherContent)
+                then
                     -1
                 elif hasOwnContent && not hasOtherContent then
                     1
