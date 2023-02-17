@@ -356,9 +356,9 @@ let main argv =
         (([], [], [], []), results)
         ||> Seq.fold (fun (oks, ignores, unchanged, errors) next ->
             match next with
-            | ProcessResult.Formatted(x, _) -> (x :: oks, ignores, unchanged, errors)
+            | ProcessResult.Formatted(file, p) -> ((file, p) :: oks, ignores, unchanged, errors)
             | ProcessResult.Ignored i -> (oks, i :: ignores, unchanged, errors)
-            | ProcessResult.Unchanged(u, _) -> (oks, ignores, u :: unchanged, errors)
+            | ProcessResult.Unchanged(file, p) -> (oks, ignores, (file, p) :: unchanged, errors)
             | ProcessResult.Error(file, e) -> (oks, ignores, unchanged, (file, e) :: errors))
 
     let reportFormatResults (results: #seq<ProcessResult>) =
@@ -380,16 +380,16 @@ let main argv =
 
             elog $"Failed to format file: {file}{message}"
 
-        let reportProfileInfos results =
-            if profile && not (Seq.isEmpty results) then
+        let reportProfileInfos (results: (string * Format.ProfileInfo option) list) =
+            if profile && not (List.isEmpty results) then
                 let profileInfos =
                     seq {
                         for r in results do
                             match r with
-                            | ProcessResult.Formatted(f, Some p) -> yield (f, p)
-                            | ProcessResult.Unchanged(f, Some p) -> yield (f, p)
+                            | f, Some p -> yield (f, p)
                             | _ -> ()
                     }
+                    |> Seq.sortBy fst
 
                 let table = Table().AddColumns([| "File"; "Line count"; "Time taken" |])
 
@@ -439,7 +439,7 @@ let main argv =
             for e in errored do
                 reportError e
 
-            reportProfileInfos results
+            reportProfileInfos (oks @ unchanged)
 
             if errored.Length > 0 then
                 exit 1
