@@ -7,6 +7,12 @@ open System.Text.RegularExpressions
 open Microsoft.FSharp.Core.CompilerServices
 open FSharp.Compiler.Text
 
+/// A CodeFragment represents a chunk of code that is either
+///     a single conditional hash directive line,
+///     non existing content (for a specific combination of defines) or
+///     active content.
+///
+/// When the code need to be compared, a CustomComparison is used to determine which fragment we are interested in.
 [<RequireQualifiedAccess>]
 [<CustomEquality; CustomComparison>]
 type CodeFragment =
@@ -41,21 +47,32 @@ type CodeFragment =
     interface IComparable<CodeFragment> with
         member x.CompareTo y =
             match x, y with
+            // When comparing the different results of each format result, the single constant is that all hash lines
+            // should exactly match.
             | CodeFragment.HashLine(line = lineX), CodeFragment.HashLine(line = lineY) ->
                 assert (lineX = lineY)
                 0
+            // Pick the other fragment is it has content you don't
             | CodeFragment.NoContent _, CodeFragment.Content _ -> -1
+            // Pick our fragment is the other fragment has no code
             | CodeFragment.Content _, CodeFragment.NoContent _ -> 1
+            // If both fragments are empty they are equivalent.
+            // Keep in mind that we could be comparing more the two fragments at the same time in `traverseFragments`
             | CodeFragment.NoContent _, CodeFragment.NoContent _ -> 0
+            // If both fragments have content, we want to take the content with the most lines.
             | CodeFragment.Content(lineCount = ownLineCount; code = ownContent),
               CodeFragment.Content(lineCount = otherLineCount; code = otherContent) ->
                 if ownLineCount > otherLineCount then
                     1
                 elif ownLineCount < otherLineCount then
                     -1
+                elif ownContent = otherContent then
+                    0
                 else
                     ignore (ownContent, otherContent)
                     failwith "TODO: compare content, pick largest"
+            // This is an unexpected situation.
+            // You should never enter the case where you need to compare a hash line with something other than a hash line.
             | x, other ->
                 // TODO: throw custom exception?
                 failwith $"Cannot compare %A{x} with %A{other}"
@@ -65,15 +82,21 @@ type FormatResultForDefines =
       Defines: DefineCombination
       Fragments: CodeFragment list }
 
+/// Accumulator type used when building up the fragments.
 type SplitHashState =
     { CurrentBuilder: StringBuilder
       LinesCollected: int
-      LastLineWasHash: bool }
+      LastLineInfo: LastLineInfo }
 
     static member Zero =
         { CurrentBuilder = StringBuilder()
-          LastLineWasHash = false
+          LastLineInfo = LastLineInfo.None
           LinesCollected = 0 }
+
+and [<RequireQualifiedAccess>] LastLineInfo =
+    | None
+    | HashLine
+    | Content
 
 /// Accumulator type used when folding over the selected CodeFragments.
 type FragmentWeaverState =
@@ -82,6 +105,8 @@ type FragmentWeaverState =
       ContentBuilder: StringBuilder
       FoundCursor: (DefineCombination * pos) option }
 
+let stringBuilderResult (builder: StringBuilder) = builder.ToString()
+
 let hashRegex = @"^\s*#(if|elseif|else|endif).*"
 
 /// Split the given `source` into the matching `CodeFragments`.
@@ -89,11 +114,17 @@ let splitWhenHash (defines: DefineCombination) (newline: string) (source: string
     let lines = source.Split([| newline |], options = StringSplitOptions.None)
     let mutable fragmentsBuilder = ListCollector<CodeFragment>()
 
+    let closeState (acc: SplitHashState) =
+        if acc.LastLineInfo = LastLineInfo.Content then
+            let lastFragment = acc.CurrentBuilder.ToString()
+            // The last fragment could be a newline after the the last #endif
+            fragmentsBuilder.Add(CodeFragment.Content(lastFragment, acc.LinesCollected, defines))
+
     (SplitHashState.Zero, lines)
     ||> Array.fold (fun acc line ->
         if Regex.IsMatch(line, hashRegex) then
             // Only add the previous fragment if it had content
-            if acc.LastLineWasHash then
+            if acc.LastLineInfo = LastLineInfo.HashLine then
                 fragmentsBuilder.Add(CodeFragment.NoContent defines)
             else
                 // Close the previous fragment builder
@@ -109,15 +140,20 @@ let splitWhenHash (defines: DefineCombination) (newline: string) (source: string
             // Reset the state
             { CurrentBuilder = StringBuilder()
               LinesCollected = 0
-              LastLineWasHash = true }
+              LastLineInfo = LastLineInfo.HashLine }
         else
-            let nextBuilder = acc.CurrentBuilder.Append line
-            let nextBuilder = nextBuilder.Append(newline)
+            let nextBuilder =
+                if acc.LastLineInfo = LastLineInfo.Content then
+                    acc.CurrentBuilder.Append(newline)
+                else
+                    acc.CurrentBuilder
+
+            let nextBuilder = nextBuilder.Append line
 
             { CurrentBuilder = nextBuilder
               LinesCollected = acc.LinesCollected + 1
-              LastLineWasHash = false })
-    |> ignore
+              LastLineInfo = LastLineInfo.Content })
+    |> closeState
 
     fragmentsBuilder.Close()
 
@@ -171,37 +207,63 @@ Please raise an issue at https://fsprojects.github.io/fantomas-tools/#/fantomas/
     let selectedFragments: CodeFragment list =
         traverseFragments (allInFragments |> List.map (fun r -> r.Fragments)) id
 
-    let weaver =
-        { LastLine = 1
-          FoundCursor = None
-          ContentBuilder = StringBuilder()
-          Cursors =
-            results
-            |> List.choose (fun (dc, formatResult) -> formatResult.Cursor |> Option.map (fun cursor -> dc, cursor))
-            |> Map.ofList }
-
-    let appendContent (builder: StringBuilder) (newline: string) (fragment: CodeFragment) : StringBuilder =
+    let appendNewline (fragment: CodeFragment) (builder: StringBuilder) : StringBuilder =
         match fragment with
         | CodeFragment.NoContent _ -> builder
-        | CodeFragment.HashLine(line = line) -> (builder.Append line).Append newline
-        | CodeFragment.Content(code = code) -> (builder.Append code).Append newline
+        | CodeFragment.HashLine _
+        | CodeFragment.Content _ -> builder.Append config.EndOfLine.NewLineString
 
-    let finalResult =
-        (weaver, selectedFragments)
-        ||> List.fold (fun acc fragment ->
-            let nextLastLine = acc.LastLine + fragment.LineCount
+    let appendContent (fragment: CodeFragment) (builder: StringBuilder) : StringBuilder =
+        match fragment with
+        | CodeFragment.NoContent _ -> builder
+        | CodeFragment.HashLine(line = content)
+        | CodeFragment.Content(code = content) -> builder.Append content
 
-            match Map.tryFind fragment.Defines acc.Cursors with
-            | Some cursor when (acc.LastLine <= cursor.Line && cursor.Line <= nextLastLine) ->
-                { acc with
-                    LastLine = acc.LastLine + fragment.LineCount
-                    ContentBuilder = appendContent acc.ContentBuilder config.EndOfLine.NewLineString fragment
-                    FoundCursor = Some(fragment.Defines, cursor) }
-            | Some _
-            | None ->
-                { acc with
-                    LastLine = acc.LastLine + fragment.LineCount
-                    ContentBuilder = appendContent acc.ContentBuilder config.EndOfLine.NewLineString fragment })
+    let areThereNotCursors =
+        results |> List.forall (fun (_, result) -> Option.isNone result.Cursor)
 
-    { Code = finalResult.ToString()
-      Cursor = Option.map snd finalResult.FoundCursor }
+    if areThereNotCursors then
+        let code =
+            (StringBuilder(), selectedFragments)
+            ||> List.foldWithLast
+                (fun acc fragment -> (appendContent fragment >> appendNewline fragment) acc)
+                (fun acc fragment -> appendContent fragment acc)
+            |> stringBuilderResult
+
+        { Code = code; Cursor = None }
+    else
+        let weaver =
+            { LastLine = 1
+              FoundCursor = None
+              ContentBuilder = StringBuilder()
+              Cursors =
+                results
+                |> List.choose (fun (dc, formatResult) -> formatResult.Cursor |> Option.map (fun cursor -> dc, cursor))
+                |> Map.ofList }
+
+        let finalResult =
+            let processFragment
+                (postContent: CodeFragment -> StringBuilder -> StringBuilder)
+                (acc: FragmentWeaverState)
+                (fragment: CodeFragment)
+                : FragmentWeaverState =
+                let nextLastLine = acc.LastLine + fragment.LineCount
+
+                // Try and find a cursor for the current set of defines that falls within the range of the current block.
+                match Map.tryFind fragment.Defines acc.Cursors with
+                | Some cursor when (acc.LastLine <= cursor.Line && cursor.Line <= nextLastLine) ->
+                    { acc with
+                        LastLine = acc.LastLine + fragment.LineCount
+                        ContentBuilder = (appendContent fragment >> postContent fragment) acc.ContentBuilder
+                        FoundCursor = Some(fragment.Defines, cursor) }
+                | Some _
+                | None ->
+                    { acc with
+                        LastLine = acc.LastLine + fragment.LineCount
+                        ContentBuilder = (appendContent fragment >> postContent fragment) acc.ContentBuilder }
+
+            (weaver, selectedFragments)
+            ||> List.foldWithLast (processFragment appendNewline) (processFragment (fun _ sb -> sb))
+
+        { Code = finalResult.ContentBuilder.ToString()
+          Cursor = Option.map snd finalResult.FoundCursor }

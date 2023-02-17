@@ -64,6 +64,20 @@ module List =
         visit list
         headList.Close()
 
+    let foldWithLast
+        (f: 'state -> 'item -> 'state)
+        (g: 'state -> 'item -> 'state)
+        (initialState: 'state)
+        (items: 'item list)
+        : 'state =
+        let rec visit acc xs =
+            match xs with
+            | [] -> acc
+            | [ last ] -> g acc last
+            | head :: tail -> visit (f acc head) tail
+
+        visit initialState items
+
 module Async =
     let map f computation =
         async.Bind(computation, f >> async.Return)

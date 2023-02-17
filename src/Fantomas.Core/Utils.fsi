@@ -16,6 +16,14 @@ module List =
     /// Removes the last element of a list
     val cutOffLast: 'a list -> 'a list
 
+    /// Similar to a List.fold but pass in another fold function for when the last item is reached.
+    val foldWithLast:
+        f: ('state -> 'item -> 'state) ->
+        g: ('state -> 'item -> 'state) ->
+        initialState: 'state ->
+        items: 'item list ->
+            'state
+
 module Async =
     val map: f: ('a -> 'b) -> computation: Async<'a> -> Async<'b>
 
