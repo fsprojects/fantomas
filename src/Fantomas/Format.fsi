@@ -12,9 +12,18 @@ type FormatResult =
     | Error of filename: string * formattingError: Exception
     | IgnoredFile of filename: string
 
-val formatContentAsync: (FormatConfig -> bool -> string -> string -> Async<FormatResult>)
+type FormatParams =
+    { Config: FormatConfig
+      CompareWithoutLineEndings: bool
+      Profile: bool
+      File: string }
 
-val formatFileAsync: (bool -> string -> Async<FormatResult>)
+    static member Create: bool * bool * string -> FormatParams
+    static member Create: FormatConfig * bool * bool * string -> FormatParams
+
+val formatContentAsync: (FormatParams -> string -> Async<FormatResult>)
+
+val formatFileAsync: (FormatParams -> Async<FormatResult>)
 
 type CheckResult =
     { Errors: (string * exn) list

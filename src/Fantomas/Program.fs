@@ -110,7 +110,8 @@ let processSourceString (force: bool) (profile: bool) s (fileName: string) confi
         }
 
     async {
-        let! formatted = s |> Format.formatContentAsync config profile fileName
+        let parms = Format.FormatParams.Create(config, false, profile, fileName)
+        let! formatted = s |> Format.formatContentAsync parms
 
         match formatted with
         | Format.FormatResult.Formatted(_, formattedContent, profileInfos) ->
@@ -135,7 +136,7 @@ let processSourceString (force: bool) (profile: bool) s (fileName: string) confi
 /// Format inFile and write to text writer
 let processSourceFile (force: bool) (profile: bool) inFile (tw: TextWriter) =
     async {
-        let! formatted = Format.formatFileAsync profile inFile
+        let! formatted = Format.FormatParams.Create(false, profile, inFile) |> Format.formatFileAsync
 
         match formatted with
         | Format.FormatResult.Formatted(_, formattedContent, profileInfos) ->

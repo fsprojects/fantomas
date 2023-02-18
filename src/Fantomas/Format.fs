@@ -13,25 +13,37 @@ type FormatResult =
     | Error of filename: string * formattingError: Exception
     | IgnoredFile of filename: string
 
-let private formatContentInternalAsync
-    (compareWithoutLineEndings: bool)
-    (config: FormatConfig)
-    (profile: bool)
-    (file: string)
-    (originalContent: string)
-    : Async<FormatResult> =
-    if IgnoreFile.isIgnoredFile (IgnoreFile.current.Force()) file then
-        async { return IgnoredFile file }
+type FormatParams =
+    { Config: FormatConfig
+      CompareWithoutLineEndings: bool
+      Profile: bool
+      File: string }
+
+    static member Create(config: FormatConfig, compareWithoutLineEndings: bool, profile: bool, file: string) =
+        { Config = config
+          CompareWithoutLineEndings = compareWithoutLineEndings
+          Profile = profile
+          File = file }
+
+    static member Create(compareWithoutLineEndings: bool, profile: bool, file: string) =
+        { Config = EditorConfig.readConfiguration file
+          CompareWithoutLineEndings = compareWithoutLineEndings
+          Profile = profile
+          File = file }
+
+let private formatContentInternalAsync (parms: FormatParams) (originalContent: string) : Async<FormatResult> =
+    if IgnoreFile.isIgnoredFile (IgnoreFile.current.Force()) parms.File then
+        async { return IgnoredFile parms.File }
     else
         async {
             try
-                let isSignatureFile = Path.GetExtension(file) = ".fsi"
+                let isSignatureFile = Path.GetExtension(parms.File) = ".fsi"
 
                 let! { Code = formattedContent }, profileInfo =
-                    if profile then
+                    if parms.Profile then
                         async {
                             let sw = Diagnostics.Stopwatch.StartNew()
-                            let! res = CodeFormatter.FormatDocumentAsync(isSignatureFile, originalContent, config)
+                            let! res = CodeFormatter.FormatDocumentAsync(isSignatureFile, originalContent, parms.Config)
                             sw.Stop()
 
                             let count =
@@ -45,12 +57,12 @@ let private formatContentInternalAsync
                         }
                     else
                         async {
-                            let! res = CodeFormatter.FormatDocumentAsync(isSignatureFile, originalContent, config)
+                            let! res = CodeFormatter.FormatDocumentAsync(isSignatureFile, originalContent, parms.Config)
                             return res, None
                         }
 
                 let contentChanged =
-                    if compareWithoutLineEndings then
+                    if parms.CompareWithoutLineEndings then
                         let stripNewlines (s: string) =
                             System.Text.RegularExpressions.Regex.Replace(s, @"\r", String.Empty)
 
@@ -62,36 +74,36 @@ let private formatContentInternalAsync
                     let! isValid = CodeFormatter.IsValidFSharpCodeAsync(isSignatureFile, formattedContent)
 
                     if not isValid then
-                        return InvalidCode(filename = file, formattedContent = formattedContent)
+                        return InvalidCode(filename = parms.File, formattedContent = formattedContent)
                     else
                         return
-                            Formatted(filename = file, formattedContent = formattedContent, profileInfo = profileInfo)
+                            Formatted(
+                                filename = parms.File,
+                                formattedContent = formattedContent,
+                                profileInfo = profileInfo
+                            )
                 else
-                    return Unchanged(filename = file, profileInfo = profileInfo)
+                    return Unchanged(filename = parms.File, profileInfo = profileInfo)
             with ex ->
-                return Error(file, ex)
+                return Error(parms.File, ex)
         }
 
-let formatContentAsync = formatContentInternalAsync false
+let formatContentAsync = formatContentInternalAsync
 
-let private formatFileInternalAsync (compareWithoutLineEndings: bool) (profile: bool) (file: string) =
-    let config = EditorConfig.readConfiguration file
-
-    if IgnoreFile.isIgnoredFile (IgnoreFile.current.Force()) file then
-        async { return IgnoredFile file }
+let private formatFileInternalAsync (parms: FormatParams) =
+    if IgnoreFile.isIgnoredFile (IgnoreFile.current.Force()) parms.File then
+        async { return IgnoredFile parms.File }
     else
 
         async {
-            let! originalContent = File.ReadAllTextAsync file |> Async.AwaitTask
+            let! originalContent = File.ReadAllTextAsync parms.File |> Async.AwaitTask
 
-            let! formatted =
-                originalContent
-                |> formatContentInternalAsync compareWithoutLineEndings config profile file
+            let! formatted = originalContent |> formatContentInternalAsync parms
 
             return formatted
         }
 
-let formatFileAsync = formatFileInternalAsync false
+let formatFileAsync = formatFileInternalAsync
 
 type CheckResult =
     { Errors: (string * exn) list
@@ -114,7 +126,7 @@ let checkCode (filenames: seq<string>) =
         let! formatted =
             filenames
             |> Seq.filter (IgnoreFile.isIgnoredFile (IgnoreFile.current.Force()) >> not)
-            |> Seq.map (formatFileInternalAsync true false)
+            |> Seq.map (fun f -> formatFileInternalAsync (FormatParams.Create(true, false, f)))
             |> Async.Parallel
 
         let getChangedFile =
