@@ -88,6 +88,9 @@ let private hasByteOrderMark file =
             return false
     }
 
+let private invalidResultException file =
+    FormatException($"Formatting {file} leads to invalid F# code")
+
 /// Format a source string using given config and write to a text writer
 let processSourceString (force: bool) (profile: bool) s (fileName: string) config =
     let writeResult (formatted: string) =
@@ -122,7 +125,7 @@ let processSourceString (force: bool) (profile: bool) s (fileName: string) confi
             return r
         | Format.FormatResult.Error _ as r -> return r
         | Format.InvalidCode(file, _) ->
-            let ex = FormatException($"Formatting {file} lead to invalid F# code")
+            let ex = invalidResultException file
             return Format.FormatResult.Error(file, ex)
     }
 
@@ -148,7 +151,7 @@ let processSourceFile (force: bool) (profile: bool) inFile (tw: TextWriter) =
             return r
         | Format.FormatResult.Error _ as r -> return r
         | Format.InvalidCode(file, _) ->
-            let ex = FormatException($"Formatting {file} lead to invalid F# code")
+            let ex = invalidResultException file
             return Format.FormatResult.Error(file, ex)
     }
 
@@ -355,7 +358,7 @@ let main argv =
             | Format.FormatResult.Unchanged(file, p) -> (oks, ignores, (file, p) :: unchanged, errors)
             | Format.FormatResult.Error(file, e) -> (oks, ignores, unchanged, (file, e) :: errors)
             | Format.FormatResult.InvalidCode(file, _) ->
-                let ex = FormatException($"Formatting {file} lead to invalid F# code")
+                let ex = invalidResultException file
                 (oks, ignores, unchanged, (file, ex) :: errors))
 
     let reportFormatResults (results: #seq<Format.FormatResult>) =
@@ -411,7 +414,7 @@ let main argv =
                 reportError (fileName f, e)
                 exit 1
             | Format.FormatResult.InvalidCode(f, _) ->
-                let ex = FormatException($"Formatting {f} lead to invalid F# code")
+                let ex = invalidResultException f
                 reportError (fileName f, ex)
                 exit 1
 
