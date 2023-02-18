@@ -1,5 +1,10 @@
 # Changelog
 
+## [5.2.2] - 2023-02-18
+
+### Fixed
+* Fixes comma breaking with lambda in tuple. [#2771](https://github.com/fsprojects/fantomas/issues/2771)
+
 ## [5.2.1] - 2023-02-04
 
 ### Fixed

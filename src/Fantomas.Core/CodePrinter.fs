@@ -1754,6 +1754,10 @@ let genTupleMultiline (node: ExprTupleNode) =
                     match node.RightHandSide with
                     | Expr.Lambda _ -> true
                     | _ -> false
+                | Expr.SameInfixApps node ->
+                    match List.last node.SubsequentExpressions with
+                    | _, Expr.Lambda _ -> true
+                    | _ -> false
                 | _ -> false
             | _ -> false)
 
