@@ -382,19 +382,15 @@ let main argv =
 
         let reportProfileInfos (results: (string * Format.ProfileInfo option) list) =
             if profile && not (List.isEmpty results) then
-                let profileInfos =
-                    seq {
-                        for r in results do
-                            match r with
-                            | f, Some p -> yield (f, p)
-                            | _ -> ()
-                    }
-                    |> Seq.sortBy fst
-
                 let table = Table().AddColumns([| "File"; "Line count"; "Time taken" |])
 
-                profileInfos
-                |> Seq.fold (fun (t: Table) (f, p) -> t.AddRow([| f; string p.LineCount; string p.TimeTaken |])) table
+                results
+                |> List.choose (fun (f, p) -> p |> Option.map (fun p -> f, p))
+                |> List.sortBy fst
+                |> List.fold
+                    (fun (t: Table) (f, p) ->
+                        t.AddRow([| f; string p.LineCount; p.TimeTaken.ToString("mm\:ss\.fff") |]))
+                    table
                 |> AnsiConsole.Write
 
         match Seq.tryExactlyOne results with
