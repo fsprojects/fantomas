@@ -38,7 +38,7 @@ let ``format multiple paths`` () =
     fileContentMatches FormattedCode fileFixtureTwo.Filename
 
 [<Test>]
-let ``format multiple paths with recursive flag`` () =
+let ``format multiple paths recursively`` () =
     use config = new ConfigurationFile("[*]\nend_of_line = lf")
 
     use fileFixtureOne = new TemporaryFileCodeSample(UserCode)
@@ -48,7 +48,7 @@ let ``format multiple paths with recursive flag`` () =
     use fileFixtureThree = new TemporaryFileCodeSample(UserCode, subFolder = "sub")
 
     let arguments =
-        sprintf "%s \"%s\" \"%s\" \"sub\" -r" Verbosity fileFixtureOne.Filename fileFixtureTwo.Filename
+        sprintf "%s \"%s\" \"%s\" \"sub\"" Verbosity fileFixtureOne.Filename fileFixtureTwo.Filename
 
     let { ExitCode = exitCode; Output = output } = runFantomasTool arguments
 
