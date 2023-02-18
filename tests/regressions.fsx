@@ -43,7 +43,7 @@ let git (workingDirectory: string) (arguments: string) = wrap workingDirectory "
 
 let format (workingDirectory: string) (input: string list) =
     let input = String.concat " " input
-    wrap workingDirectory "dotnet" $"{fantomasBinary} {input} --recurse"
+    wrap workingDirectory "dotnet" $"{fantomasBinary} {input}"
 
 let runCommands (workingDirectory: string) (commands: Command list) =
     task {
