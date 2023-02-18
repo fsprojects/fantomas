@@ -51,13 +51,6 @@ type OutputPath =
     | IO of string
     | NotKnown
 
-[<RequireQualifiedAccess>]
-type ProcessResult =
-    | Formatted of string * Format.ProfileInfo option
-    | Ignored of string
-    | Unchanged of string * Format.ProfileInfo option
-    | Error of string * exn
-
 type Table with
 
     member x.SetBorder(border: TableBorder) =
@@ -114,23 +107,23 @@ let processSourceString (force: bool) (profile: bool) s (fileName: string) confi
         let! formatted = s |> Format.formatContentAsync parms
 
         match formatted with
-        | Format.FormatResult.Formatted(_, formattedContent, profileInfos) ->
+        | Format.FormatResult.Formatted(_, formattedContent, _) as r ->
             do! formattedContent |> writeResult
-            return ProcessResult.Formatted(fileName, profileInfos)
+            return r
         | Format.InvalidCode(file, formattedContent) when force ->
             stdlog $"%s{file} was not valid after formatting."
             do! formattedContent |> writeResult
-            return ProcessResult.Formatted(fileName, None)
-        | Format.FormatResult.Unchanged(file, profileInfos) ->
+            return Format.FormatResult.Formatted(fileName, formattedContent, None)
+        | Format.FormatResult.Unchanged(file, _) as r ->
             logGrEqDetailed $"'%s{file}' was unchanged"
-            return ProcessResult.Unchanged(fileName, profileInfos)
-        | Format.IgnoredFile file ->
+            return r
+        | Format.IgnoredFile file as r ->
             logGrEqDetailed $"'%s{file}' was ignored"
-            return ProcessResult.Ignored fileName
-        | Format.FormatResult.Error(file, ex) -> return ProcessResult.Error(file, ex)
+            return r
+        | Format.FormatResult.Error _ as r -> return r
         | Format.InvalidCode(file, _) ->
             let ex = FormatException($"Formatting {file} lead to invalid F# code")
-            return ProcessResult.Error(file, ex)
+            return Format.FormatResult.Error(file, ex)
     }
 
 /// Format inFile and write to text writer
@@ -139,24 +132,24 @@ let processSourceFile (force: bool) (profile: bool) inFile (tw: TextWriter) =
         let! formatted = Format.FormatParams.Create(false, profile, inFile) |> Format.formatFileAsync
 
         match formatted with
-        | Format.FormatResult.Formatted(_, formattedContent, profileInfos) ->
+        | Format.FormatResult.Formatted(_, formattedContent, _) as r ->
             do! tw.WriteAsync(formattedContent) |> Async.AwaitTask
-            return ProcessResult.Formatted(inFile, profileInfos)
+            return r
         | Format.InvalidCode(file, formattedContent) when force ->
             stdlog $"%s{file} was not valid after formatting."
             do! tw.WriteAsync(formattedContent) |> Async.AwaitTask
-            return ProcessResult.Formatted(inFile, None)
-        | Format.FormatResult.Unchanged(_, profileInfos) ->
+            return Format.FormatResult.Formatted(inFile, formattedContent, None)
+        | Format.FormatResult.Unchanged _ as r ->
             let! input = inFile |> File.ReadAllTextAsync |> Async.AwaitTask
             do! input |> tw.WriteAsync |> Async.AwaitTask
-            return ProcessResult.Unchanged(inFile, profileInfos)
-        | Format.IgnoredFile file ->
+            return r
+        | Format.IgnoredFile file as r ->
             logGrEqDetailed $"'%s{file}' was ignored"
-            return ProcessResult.Ignored inFile
-        | Format.FormatResult.Error(file, ex) -> return ProcessResult.Error(file, ex)
+            return r
+        | Format.FormatResult.Error _ as r -> return r
         | Format.InvalidCode(file, _) ->
             let ex = FormatException($"Formatting {file} lead to invalid F# code")
-            return ProcessResult.Error(file, ex)
+            return Format.FormatResult.Error(file, ex)
     }
 
 let private reportCheckResults (checkResult: Format.CheckResult) =
@@ -314,7 +307,7 @@ let main argv =
                     let config = EditorConfig.readConfiguration inputFile
                     return! stringToFile force content inputFile config
             with e ->
-                return ProcessResult.Error(inputFile, e)
+                return Format.FormatResult.Error(inputFile, e)
         }
 
     let processFolder force inputFolder outputFolder =
@@ -341,7 +334,7 @@ let main argv =
             |> List.map (fun file ->
                 if (IgnoreFile.isIgnoredFile (IgnoreFile.current.Force()) file) then
                     logGrEqDetailed $"'%s{file}' was ignored"
-                    async.Return(ProcessResult.Ignored(file))
+                    async.Return(Format.FormatResult.IgnoredFile(file))
                 else
                     processFile force file file)
 
@@ -353,16 +346,19 @@ let main argv =
     let check = results.Contains <@ Arguments.Check @>
     let isDaemon = results.Contains <@ Arguments.Daemon @>
 
-    let partitionResults (results: #seq<ProcessResult>) =
+    let partitionResults (results: #seq<Format.FormatResult>) =
         (([], [], [], []), results)
         ||> Seq.fold (fun (oks, ignores, unchanged, errors) next ->
             match next with
-            | ProcessResult.Formatted(file, p) -> ((file, p) :: oks, ignores, unchanged, errors)
-            | ProcessResult.Ignored i -> (oks, i :: ignores, unchanged, errors)
-            | ProcessResult.Unchanged(file, p) -> (oks, ignores, (file, p) :: unchanged, errors)
-            | ProcessResult.Error(file, e) -> (oks, ignores, unchanged, (file, e) :: errors))
+            | Format.FormatResult.Formatted(file, _, p) -> ((file, p) :: oks, ignores, unchanged, errors)
+            | Format.FormatResult.IgnoredFile i -> (oks, i :: ignores, unchanged, errors)
+            | Format.FormatResult.Unchanged(file, p) -> (oks, ignores, (file, p) :: unchanged, errors)
+            | Format.FormatResult.Error(file, e) -> (oks, ignores, unchanged, (file, e) :: errors)
+            | Format.FormatResult.InvalidCode(file, _) ->
+                let ex = FormatException($"Formatting {file} lead to invalid F# code")
+                (oks, ignores, unchanged, (file, ex) :: errors))
 
-    let reportFormatResults (results: #seq<ProcessResult>) =
+    let reportFormatResults (results: #seq<Format.FormatResult>) =
         let reportError (file, exn: Exception) =
             let message =
                 match verbosity with
@@ -404,16 +400,21 @@ let main argv =
                 | _ -> ()
 
             match singleResult with
-            | ProcessResult.Formatted(f, p) ->
+            | Format.FormatResult.Formatted(f, _, p) ->
                 stdlog $"{fileName f} was formatted."
                 reportProfileInfo (f, p)
-            | ProcessResult.Ignored f -> stdlog $"{fileName f} was ignored."
-            | ProcessResult.Unchanged(f, p) ->
+            | Format.FormatResult.IgnoredFile f -> stdlog $"{fileName f} was ignored."
+            | Format.FormatResult.Unchanged(f, p) ->
                 stdlog $"{fileName f} was unchanged."
                 reportProfileInfo (f, p)
-            | ProcessResult.Error(f, e) ->
+            | Format.FormatResult.Error(f, e) ->
                 reportError (fileName f, e)
                 exit 1
+            | Format.FormatResult.InvalidCode(f, _) ->
+                let ex = FormatException($"Formatting {f} lead to invalid F# code")
+                reportError (fileName f, ex)
+                exit 1
+
         | None ->
             let oks, ignored, unchanged, errored = partitionResults results
             let centeredColumn (v: string) = TableColumn(v).Centered()
