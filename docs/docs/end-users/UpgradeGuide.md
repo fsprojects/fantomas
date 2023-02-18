@@ -70,6 +70,7 @@ fsharp_experimental_stroustrup_style = true
 ### console application
 - `-v` is now short for `--verbosity` instead of `--version`
 - The console output was revamped.
+- `--recurse` was removed. Please use [.fantomasignore](./IgnoreFiles.html) file if you wish to ignore certain files.
 
 ### Miscellaneous
 - The public API of CodeFormatter no longer uses `FSharpOption<'T>`, instead overloads are now used.

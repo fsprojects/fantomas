@@ -11,7 +11,6 @@ open Spectre.Console
 let extensions = set [| ".fs"; ".fsx"; ".fsi"; ".ml"; ".mli" |]
 
 type Arguments =
-    | [<Unique; AltCommandLine("-r")>] Recurse
     | [<Unique>] Force
     | [<Unique>] Profile
     | [<Unique>] Out of string
@@ -24,7 +23,6 @@ type Arguments =
     interface IArgParserTemplate with
         member s.Usage =
             match s with
-            | Recurse -> "Process the input folder recursively."
             | Force -> "Print the output even if it is not valid F# code. For debugging purposes only."
             | Out _ ->
                 "Give a valid path for files/folders. Files should have .fs, .fsx, .fsi, .ml or .mli extension only. Multiple files/folders are not supported."
@@ -83,13 +81,9 @@ let isInExcludedDir (fullPath: string) =
 let isFSharpFile (s: string) =
     Set.contains (Path.GetExtension s) extensions
 
-/// Get all appropriate files, either recursively or non-recursively
-let allFiles isRec path =
-    let searchOption =
-        (if isRec then
-             SearchOption.AllDirectories
-         else
-             SearchOption.TopDirectoryOnly)
+/// Get all appropriate files, recursively.
+let findAllFilesRecursively path =
+    let searchOption = SearchOption.AllDirectories
 
     Directory.GetFiles(path, "*.*", searchOption)
     |> Seq.filter (fun f -> isFSharpFile f && not (isInExcludedDir f))
@@ -182,7 +176,7 @@ let private reportCheckResults (checkResult: Format.CheckResult) =
     |> List.map (fun filename -> $"%s{filename} needs formatting")
     |> Seq.iter stdlog
 
-let runCheckCommand (recurse: bool) (inputPath: InputPath) : int =
+let runCheckCommand (inputPath: InputPath) : int =
     let check files =
         Async.RunSynchronously(Format.checkCode files)
 
@@ -208,12 +202,12 @@ let runCheckCommand (recurse: bool) (inputPath: InputPath) : int =
         logGrEqDetailed $"'%s{f}' was ignored"
         0
     | InputPath.File path -> path |> Seq.singleton |> check |> processCheckResult
-    | InputPath.Folder path -> path |> allFiles recurse |> check |> processCheckResult
+    | InputPath.Folder path -> path |> findAllFilesRecursively |> check |> processCheckResult
     | InputPath.Multiple(files, folders) ->
         let allFilesToCheck =
             seq {
                 yield! files
-                yield! (Seq.collect (allFiles recurse) folders)
+                yield! (Seq.collect findAllFilesRecursively folders)
             }
 
         allFilesToCheck |> check |> processCheckResult
@@ -274,8 +268,6 @@ let main argv =
 
     let force = results.Contains <@ Arguments.Force @>
     let profile = results.Contains <@ Arguments.Profile @>
-    let recurse = results.Contains <@ Arguments.Recurse @>
-
     let version = results.TryGetResult <@ Arguments.Version @>
 
     let maybeVerbosity =
@@ -351,7 +343,7 @@ let main argv =
         if not <| Directory.Exists(outputFolder) then
             Directory.CreateDirectory(outputFolder) |> ignore
 
-        allFiles recurse inputFolder
+        findAllFilesRecursively inputFolder
         |> Seq.toList
         |> List.map (fun i ->
             // s supposes to have form s1/suffix
@@ -461,7 +453,7 @@ let main argv =
         daemon.WaitForClose.GetAwaiter().GetResult()
         exit 0
     elif check then
-        inputPath |> runCheckCommand recurse |> exit
+        inputPath |> runCheckCommand |> exit
     else
         try
             match inputPath, outputPath with
