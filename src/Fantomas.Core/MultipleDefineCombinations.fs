@@ -69,11 +69,6 @@ type CodeFragment =
                     1
                 elif ownLineCount < otherLineCount then
                     -1
-                elif
-                    String.IsNullOrWhiteSpace ownContent
-                    && not (String.IsNullOrWhiteSpace otherContent)
-                then
-                    -1
                 elif hasOwnContent && not hasOtherContent then
                     1
                 elif not hasOwnContent && hasOtherContent then
@@ -90,9 +85,7 @@ type CodeFragment =
                     else 0
             // This is an unexpected situation.
             // You should never enter the case where you need to compare a hash line with something other than a hash line.
-            | x, other ->
-                // TODO: throw custom exception?
-                failwith $"Cannot compare %A{x} with %A{other}"
+            | x, other -> failwith $"Cannot compare %A{x} with %A{other}"
 
 type FormatResultForDefines =
     { Result: FormatResult
