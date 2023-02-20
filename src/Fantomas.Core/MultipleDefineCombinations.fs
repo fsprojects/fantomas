@@ -12,7 +12,7 @@ open FSharp.Compiler.Text
 ///     non existing content (for a specific combination of defines) or
 ///     active content.
 ///
-/// When the code need to be compared, a CustomComparison is used to determine which fragment we are interested in.
+/// When the code needs to be compared, a CustomComparison is used to determine which fragment we are interested in.
 [<RequireQualifiedAccess>]
 [<CustomEquality; CustomComparison>]
 type CodeFragment =
@@ -20,7 +20,7 @@ type CodeFragment =
     | HashLine of line: string * defines: DefineCombination
     /// Content found between two HashLines
     | Content of code: string * lineCount: int * defines: DefineCombination
-    /// When two HashLine follow each other without any content in between.
+    /// When two HashLines follow each other without any content in between.
     | NoContent of defines: DefineCombination
 
     member x.Defines =
@@ -52,12 +52,12 @@ type CodeFragment =
             | CodeFragment.HashLine(line = lineX), CodeFragment.HashLine(line = lineY) ->
                 assert (lineX = lineY)
                 0
-            // Pick the other fragment is it has content you don't
+            // Pick the other fragment if it has content you don't
             | CodeFragment.NoContent _, CodeFragment.Content _ -> -1
-            // Pick our fragment is the other fragment has no code
+            // Pick our fragment if the other fragment has no code
             | CodeFragment.Content _, CodeFragment.NoContent _ -> 1
             // If both fragments are empty they are equivalent.
-            // Keep in mind that we could be comparing more the two fragments at the same time in `traverseFragments`
+            // Keep in mind that we could be comparing more than the two fragments at the same time in `traverseFragments`
             | CodeFragment.NoContent _, CodeFragment.NoContent _ -> 0
             // If both fragments have content, we want to take the content with the most lines.
             | CodeFragment.Content(lineCount = ownLineCount; code = ownContent),
@@ -134,7 +134,7 @@ let splitWhenHash (defines: DefineCombination) (newline: string) (source: string
     let closeState (acc: SplitHashState) =
         if acc.LastLineInfo = LastLineInfo.Content then
             let lastFragment = acc.CurrentBuilder.ToString()
-            // The last fragment could be a newline after the the last #endif
+            // The last fragment could be a newline after the last #endif
             fragmentsBuilder.Add(CodeFragment.Content(lastFragment, acc.LinesCollected, defines))
 
     (SplitHashState.Zero, lines)
@@ -197,7 +197,7 @@ let mergeMultipleFormatResults config (results: (DefineCombination * FormatResul
 
         raise (
             FormatException(
-                $"""Fantomas is trying to format the input multiple times due to the detect of multiple defines.
+                $"""Fantomas is trying to format the input multiple times due to the detection of multiple defines.
 There is a problem with merging all the code back together.
 {chunkReport}
 Please raise an issue at https://fsprojects.github.io/fantomas-tools/#/fantomas/preview."""
