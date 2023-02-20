@@ -1,18 +1,25 @@
-module Fantomas.Format
+namespace Fantomas
 
 open System
 open Fantomas.Core
 
+type ProfileInfo = { LineCount: int; TimeTaken: TimeSpan }
+
 type FormatResult =
-    | Formatted of filename: string * formattedContent: string
-    | Unchanged of filename: string
+    | Formatted of filename: string * formattedContent: string * profileInfo: ProfileInfo option
+    | Unchanged of filename: string * profileInfo: ProfileInfo option
     | InvalidCode of filename: string * formattedContent: string
     | Error of filename: string * formattingError: Exception
     | IgnoredFile of filename: string
 
-val formatContentAsync: (FormatConfig -> string -> string -> Async<FormatResult>)
+type FormatParams =
+    { Config: FormatConfig
+      CompareWithoutLineEndings: bool
+      Profile: bool
+      File: string }
 
-val formatFileAsync: (string -> Async<FormatResult>)
+    static member Create: bool * bool * string -> FormatParams
+    static member Create: FormatConfig * bool * bool * string -> FormatParams
 
 type CheckResult =
     { Errors: (string * exn) list
@@ -24,12 +31,17 @@ type CheckResult =
 
     member NeedsFormatting: bool
 
-/// Runs a check on the given files and reports the result to the given output:
-///
-/// * It shows the paths of the files that need formatting
-/// * It shows the path and the error message of files that failed the format check
-///
-/// Returns:
-///
-/// A record with the file names that were formatted and the files that encounter problems while formatting.
-val checkCode: filenames: seq<string> -> Async<CheckResult>
+module Format =
+    val formatContentAsync: (FormatParams -> string -> Async<FormatResult>)
+
+    val formatFileAsync: (FormatParams -> Async<FormatResult>)
+
+    /// Runs a check on the given files and reports the result to the given output:
+    ///
+    /// * It shows the paths of the files that need formatting
+    /// * It shows the path and the error message of files that failed the format check
+    ///
+    /// Returns:
+    ///
+    /// A record with the file names that were formatted and the files that encounter problems while formatting.
+    val checkCode: filenames: seq<string> -> Async<CheckResult>
