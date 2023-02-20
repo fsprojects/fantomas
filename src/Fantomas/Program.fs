@@ -37,15 +37,6 @@ type Arguments =
                     (Seq.map (fun s -> "*" + s) extensions |> String.concat ",")
             | Verbosity _ -> "Set the verbosity level. Allowed values are n[ormal] and d[etailed]."
 
-let timeAsync f =
-    async {
-        let sw = Diagnostics.Stopwatch.StartNew()
-        let! res = f ()
-        sw.Stop()
-        stdlog $"Time taken: %O{sw.Elapsed} s"
-        return res
-    }
-
 [<RequireQualifiedAccess>]
 type InputPath =
     | File of string
@@ -59,13 +50,6 @@ type InputPath =
 type OutputPath =
     | IO of string
     | NotKnown
-
-[<RequireQualifiedAccess>]
-type ProcessResult =
-    | Formatted of string
-    | Ignored of string
-    | Unchanged of string
-    | Error of string * exn
 
 type Table with
 
@@ -104,8 +88,11 @@ let private hasByteOrderMark file =
             return false
     }
 
+let private invalidResultException file =
+    FormatException($"Formatting {file} leads to invalid F# code")
+
 /// Format a source string using given config and write to a text writer
-let processSourceString (force: bool) s (fileName: string) config =
+let processSourceString (force: bool) (profile: bool) s (fileName: string) config =
     let writeResult (formatted: string) =
         async {
             let! hasBom = hasByteOrderMark fileName
@@ -119,55 +106,56 @@ let processSourceString (force: bool) s (fileName: string) config =
         }
 
     async {
-        let! formatted = s |> Format.formatContentAsync config fileName
+        let formatParams = FormatParams.Create(config, false, profile, fileName)
+        let! formatted = s |> Format.formatContentAsync formatParams
 
         match formatted with
-        | Format.FormatResult.Formatted(_, formattedContent) ->
+        | FormatResult.Formatted(_, formattedContent, _) as r ->
             do! formattedContent |> writeResult
-            return ProcessResult.Formatted(fileName)
-        | Format.InvalidCode(file, formattedContent) when force ->
+            return r
+        | FormatResult.InvalidCode(file, formattedContent) when force ->
             stdlog $"%s{file} was not valid after formatting."
             do! formattedContent |> writeResult
-            return ProcessResult.Formatted(fileName)
-        | Format.FormatResult.Unchanged file ->
+            return FormatResult.Formatted(fileName, formattedContent, None)
+        | FormatResult.Unchanged(file, _) as r ->
             logGrEqDetailed $"'%s{file}' was unchanged"
-            return ProcessResult.Unchanged(fileName)
-        | Format.IgnoredFile file ->
+            return r
+        | FormatResult.IgnoredFile file as r ->
             logGrEqDetailed $"'%s{file}' was ignored"
-            return ProcessResult.Ignored fileName
-        | Format.FormatResult.Error(file, ex) -> return ProcessResult.Error(file, ex)
-        | Format.InvalidCode(file, _) ->
-            let ex = FormatException($"Formatting {file} lead to invalid F# code")
-            return ProcessResult.Error(file, ex)
+            return r
+        | FormatResult.Error _ as r -> return r
+        | FormatResult.InvalidCode(file, _) ->
+            let ex = invalidResultException file
+            return FormatResult.Error(file, ex)
     }
 
 /// Format inFile and write to text writer
-let processSourceFile (force: bool) inFile (tw: TextWriter) =
+let processSourceFile (force: bool) (profile: bool) inFile (tw: TextWriter) =
     async {
-        let! formatted = Format.formatFileAsync inFile
+        let! formatted = FormatParams.Create(false, profile, inFile) |> Format.formatFileAsync
 
         match formatted with
-        | Format.FormatResult.Formatted(_, formattedContent) ->
+        | FormatResult.Formatted(_, formattedContent, _) as r ->
             do! tw.WriteAsync(formattedContent) |> Async.AwaitTask
-            return ProcessResult.Formatted(inFile)
-        | Format.InvalidCode(file, formattedContent) when force ->
+            return r
+        | FormatResult.InvalidCode(file, formattedContent) when force ->
             stdlog $"%s{file} was not valid after formatting."
             do! tw.WriteAsync(formattedContent) |> Async.AwaitTask
-            return ProcessResult.Formatted(inFile)
-        | Format.FormatResult.Unchanged _ ->
+            return FormatResult.Formatted(inFile, formattedContent, None)
+        | FormatResult.Unchanged _ as r ->
             let! input = inFile |> File.ReadAllTextAsync |> Async.AwaitTask
             do! input |> tw.WriteAsync |> Async.AwaitTask
-            return ProcessResult.Unchanged inFile
-        | Format.IgnoredFile file ->
+            return r
+        | FormatResult.IgnoredFile file as r ->
             logGrEqDetailed $"'%s{file}' was ignored"
-            return ProcessResult.Ignored inFile
-        | Format.FormatResult.Error(file, ex) -> return ProcessResult.Error(file, ex)
-        | Format.InvalidCode(file, _) ->
-            let ex = FormatException($"Formatting {file} lead to invalid F# code")
-            return ProcessResult.Error(file, ex)
+            return r
+        | FormatResult.Error _ as r -> return r
+        | FormatResult.InvalidCode(file, _) ->
+            let ex = invalidResultException file
+            return FormatResult.Error(file, ex)
     }
 
-let private reportCheckResults (checkResult: Format.CheckResult) =
+let private reportCheckResults (checkResult: CheckResult) =
     checkResult.Errors
     |> List.map (fun (filename, exn) -> $"error: Failed to format %s{filename}: %s{exn.ToString()}")
     |> Seq.iter elog
@@ -180,7 +168,7 @@ let runCheckCommand (inputPath: InputPath) : int =
     let check files =
         Async.RunSynchronously(Format.checkCode files)
 
-    let processCheckResult (checkResult: Format.CheckResult) =
+    let processCheckResult (checkResult: CheckResult) =
         if checkResult.IsValid then
             logGrEqDetailed "No changes required."
             0
@@ -301,15 +289,7 @@ let main argv =
                 else
                     new StreamWriter(outFile)
 
-            let! processResult =
-                if profile then
-                    async {
-                        let! length = File.ReadAllLinesAsync(inFile) |> Async.AwaitTask
-                        length |> Seq.length |> (fun l -> stdlog $"Line count: %i{l}")
-                        return! timeAsync (fun () -> processSourceFile force inFile buffer)
-                    }
-                else
-                    processSourceFile force inFile buffer
+            let! processResult = processSourceFile force profile inFile buffer
 
             do! buffer.FlushAsync() |> Async.AwaitTask
             logGrEqDetailed $"%s{outFile} has been written."
@@ -317,13 +297,7 @@ let main argv =
         }
 
     let stringToFile (force: bool) (s: string) (outFile: string) config =
-        async {
-            if profile then
-                stdlog $"""Line count: %i{s.Length - s.Replace(Environment.NewLine, "").Length}"""
-                return! timeAsync (fun () -> processSourceString force s outFile config)
-            else
-                return! processSourceString force s outFile config
-        }
+        async { return! processSourceString force profile s outFile config }
 
     let processFile force inputFile outputFile =
         async {
@@ -336,7 +310,7 @@ let main argv =
                     let config = EditorConfig.readConfiguration inputFile
                     return! stringToFile force content inputFile config
             with e ->
-                return ProcessResult.Error(inputFile, e)
+                return FormatResult.Error(inputFile, e)
         }
 
     let processFolder force inputFolder outputFolder =
@@ -363,7 +337,7 @@ let main argv =
             |> List.map (fun file ->
                 if (IgnoreFile.isIgnoredFile (IgnoreFile.current.Force()) file) then
                     logGrEqDetailed $"'%s{file}' was ignored"
-                    async.Return(ProcessResult.Ignored(file))
+                    async.Return(FormatResult.IgnoredFile(file))
                 else
                     processFile force file file)
 
@@ -375,16 +349,19 @@ let main argv =
     let check = results.Contains <@ Arguments.Check @>
     let isDaemon = results.Contains <@ Arguments.Daemon @>
 
-    let partitionResults (results: #seq<ProcessResult>) =
+    let partitionResults (results: #seq<FormatResult>) =
         (([], [], [], []), results)
         ||> Seq.fold (fun (oks, ignores, unchanged, errors) next ->
             match next with
-            | ProcessResult.Formatted x -> (x :: oks, ignores, unchanged, errors)
-            | ProcessResult.Ignored i -> (oks, i :: ignores, unchanged, errors)
-            | ProcessResult.Unchanged u -> (oks, ignores, u :: unchanged, errors)
-            | ProcessResult.Error(file, e) -> (oks, ignores, unchanged, (file, e) :: errors))
+            | FormatResult.Formatted(file, _, p) -> ((file, p) :: oks, ignores, unchanged, errors)
+            | FormatResult.IgnoredFile i -> (oks, i :: ignores, unchanged, errors)
+            | FormatResult.Unchanged(file, p) -> (oks, ignores, (file, p) :: unchanged, errors)
+            | FormatResult.Error(file, e) -> (oks, ignores, unchanged, (file, e) :: errors)
+            | FormatResult.InvalidCode(file, _) ->
+                let ex = invalidResultException file
+                (oks, ignores, unchanged, (file, ex) :: errors))
 
-    let reportFormatResults (results: #seq<ProcessResult>) =
+    let reportFormatResults (results: #seq<FormatResult>) =
         let reportError (file, exn: Exception) =
             let message =
                 match verbosity with
@@ -403,17 +380,44 @@ let main argv =
 
             elog $"Failed to format file: {file}{message}"
 
+        let reportProfileInfos (results: (string * ProfileInfo option) list) =
+            if profile && not (List.isEmpty results) then
+                let table = Table().AddColumns([| "File"; "Line count"; "Time taken" |])
+
+                results
+                |> List.choose (fun (f, p) -> p |> Option.map (fun p -> f, p))
+                |> List.sortBy fst
+                |> List.fold
+                    (fun (t: Table) (f, p) ->
+                        t.AddRow([| f; string p.LineCount; p.TimeTaken.ToString("mm\:ss\.fff") |]))
+                    table
+                |> AnsiConsole.Write
+
         match Seq.tryExactlyOne results with
         | Some singleResult ->
             let fileName f = FileInfo(f).Name
 
+            let reportProfileInfo (f, p: ProfileInfo option) =
+                match profile, p with
+                | true, Some pI -> stdlog $"%s{f} Line count: %d{pI.LineCount} Time taken {pI.TimeTaken}"
+                | _ -> ()
+
             match singleResult with
-            | ProcessResult.Formatted f -> stdlog $"{fileName f} was formatted."
-            | ProcessResult.Ignored f -> stdlog $"{fileName f} was ignored."
-            | ProcessResult.Unchanged f -> stdlog $"{fileName f} was unchanged."
-            | ProcessResult.Error(f, e) ->
+            | FormatResult.Formatted(f, _, p) ->
+                stdlog $"{fileName f} was formatted."
+                reportProfileInfo (f, p)
+            | FormatResult.IgnoredFile f -> stdlog $"{fileName f} was ignored."
+            | FormatResult.Unchanged(f, p) ->
+                stdlog $"{fileName f} was unchanged."
+                reportProfileInfo (f, p)
+            | FormatResult.Error(f, e) ->
                 reportError (fileName f, e)
                 exit 1
+            | FormatResult.InvalidCode(f, _) ->
+                let ex = invalidResultException f
+                reportError (fileName f, ex)
+                exit 1
+
         | None ->
             let oks, ignored, unchanged, errored = partitionResults results
             let centeredColumn (v: string) = TableColumn(v).Centered()
@@ -435,6 +439,8 @@ let main argv =
 
             for e in errored do
                 reportError e
+
+            reportProfileInfos (oks @ unchanged)
 
             if errored.Length > 0 then
                 exit 1
