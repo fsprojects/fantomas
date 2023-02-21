@@ -397,3 +397,26 @@ let f x =
 
     ()
 """
+
+[<Test>]
+let ``comma should not break with lambda as tuple, 2771`` () =
+    formatSourceString
+        false
+        """
+let shiftTimes localDate (start: Utc, duration) =
+    ZonedDate.create TimeZone.current localDate
+    |> Time.ZonedDate.startOf
+    |> fun dayStart -> start + dayStart.Duration - refDay.StartTime.Duration
+    , duration
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let shiftTimes localDate (start: Utc, duration) =
+    ZonedDate.create TimeZone.current localDate
+    |> Time.ZonedDate.startOf
+    |> fun dayStart -> start + dayStart.Duration - refDay.StartTime.Duration
+    , duration
+"""
