@@ -103,6 +103,28 @@ type V = {
 """
 
 [<Test>]
+let ``record type definition with members and trivia`` () =
+    formatSourceString
+        false
+        """
+type X = {
+    Y: int
+} with // foo
+    member x.Z = ()
+"""
+        { config with
+            NewlineBetweenTypeDefinitionAndMembers = false }
+    |> prepend newline
+    |> should
+        equal
+        """
+type X = {
+    Y: int
+} with // foo
+    member x.Z = ()
+"""
+
+[<Test>]
 let ``record definition with private accessibility modifier, 2481`` () =
     formatSourceString
         false

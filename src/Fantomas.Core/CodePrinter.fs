@@ -3202,9 +3202,14 @@ let genTypeDefn (td: TypeDefn) =
                 +> genMembers
 
             let stroustrup =
+                let withKw =
+                    match typeName.WithKeyword with
+                    | None -> !- "with"
+                    | Some withNode -> genSingleTextNode withNode
+
                 genAccessOpt node.Accessibility
                 +> genRecordFields
-                +> onlyIf hasMembers (!- " with" +> indent)
+                +> onlyIf hasMembers (sepSpace +> withKw +> indent)
                 +> genMembers
 
             let cramped =
