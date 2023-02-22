@@ -1,5 +1,14 @@
 # Changelog
 
+## [6.0.0-alpha-004] - 2023-02-22
+
+### Changed
+* Always process folder recursive. [#2768](https://github.com/fsprojects/fantomas/issues/2768)
+* Revisit --profile flag. [#2751](https://github.com/fsprojects/fantomas/issues/2751)
+
+### Fixed
+* Don't hook up SerilogTraceListener in FantomasDaemon. [#2777](https://github.com/fsprojects/fantomas/pull/2777)
+
 ## [6.0.0-alpha-003] - 2023-02-04
 
 ### Changed
