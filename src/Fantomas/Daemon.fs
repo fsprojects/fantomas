@@ -16,13 +16,12 @@ open Fantomas.EditorConfig
 
 type FantomasDaemon(sender: Stream, reader: Stream) as this =
     let rpc: JsonRpc = JsonRpc.Attach(sender, reader, this)
+    let traceListener = new DefaultTraceListener()
 
     do
         // hook up request/response logging for debugging
         rpc.TraceSource <- TraceSource(typeof<FantomasDaemon>.Name, SourceLevels.Verbose)
-
-        rpc.TraceSource.Listeners.Add(new SerilogTraceListener.SerilogTraceListener(typeof<FantomasDaemon>.Name))
-        |> ignore<int>
+        rpc.TraceSource.Listeners.Add traceListener |> ignore<int>
 
     let disconnectEvent = new ManualResetEvent(false)
 
@@ -33,7 +32,9 @@ type FantomasDaemon(sender: Stream, reader: Stream) as this =
     do rpc.Disconnected.Add(fun _ -> exit ())
 
     interface IDisposable with
-        member this.Dispose() = disconnectEvent.Dispose()
+        member this.Dispose() =
+            traceListener.Dispose()
+            disconnectEvent.Dispose()
 
     /// returns a hot task that resolves when the stream has terminated
     member this.WaitForClose = rpc.Completion
