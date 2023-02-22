@@ -2168,20 +2168,20 @@ let (|EndsWithSingleListApp|_|) (config: FormatConfig) (appNode: ExprAppNode) =
         visit appNode.Arguments
 
 let (|EndsWithSingleRecordApp|_|) (config: FormatConfig) (appNode: ExprAppNode) =
-    let mutable otherArgs = ListCollector<Expr>()
-
-    let rec visit (args: Expr list) =
-        match args with
-        | [] -> None
-        | [ Expr.Record _ | Expr.AnonRecord _ as singleRecord ] -> Some(otherArgs.Close(), singleRecord)
-        | arg :: args ->
-            otherArgs.Add(arg)
-            visit args
-
-    if config.IsStroustrupStyle then
-        visit appNode.Arguments
-    else
+    if not config.IsStroustrupStyle then
         None
+    else
+        let mutable otherArgs = ListCollector<Expr>()
+
+        let rec visit (args: Expr list) =
+            match args with
+            | [] -> None
+            | [ Expr.Record _ | Expr.AnonStructRecord _ as singleRecord ] -> Some(otherArgs.Close(), singleRecord)
+            | arg :: args ->
+                otherArgs.Add(arg)
+                visit args
+
+        visit appNode.Arguments
 
 let genAppWithLambda sep (node: ExprAppWithLambdaNode) =
     let short =

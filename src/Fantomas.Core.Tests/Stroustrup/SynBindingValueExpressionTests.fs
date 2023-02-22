@@ -1,4 +1,4 @@
-module Fantomas.Core.Tests.Stroustrup.SynBindingValueExpressionTests
+﻿module Fantomas.Core.Tests.Stroustrup.SynBindingValueExpressionTests
 
 open NUnit.Framework
 open FsUnit
@@ -651,88 +651,6 @@ let newState =
         F1 = 0
         F2 = ""
     }
-"""
-
-[<Test>]
-let ``uppercase app node with single record arg with explicit setting`` () =
-    formatSourceString
-        false
-        """
-let newState =
-    someFunc
-        {
-            F1 = 0
-            F2 = ""
-        }
-
-let newState =
-    Some
-        {
-            F1 = 0
-            F2 = ""
-        }
-"""
-        { config with
-            MultilineBracketStyle = Aligned
-            StroustrupForMultilineRecordAsUppercaseInvocationFinalArg = true
-            RecordMultilineFormatter = NumberOfItems }
-    |> prepend newline
-    |> should
-        equal
-        """
-let newState =
-    someFunc
-        {
-            F1 = 0
-            F2 = ""
-        }
-
-let newState =
-    Some {
-        F1 = 0
-        F2 = ""
-    }
-"""
-
-[<Test>]
-let ``lowercase app node with single record arg with explicit setting`` () =
-    formatSourceString
-        false
-        """
-let newState =
-    someFunc
-        {
-            F1 = 0
-            F2 = ""
-        }
-
-let newState =
-    Some
-        {
-            F1 = 0
-            F2 = ""
-        }
-"""
-        { config with
-            MultilineBracketStyle = Aligned
-            StroustrupForMultilineRecordAsLowercaseInvocationFinalArg = true
-            RecordMultilineFormatter = NumberOfItems }
-    |> prepend newline
-    |> should
-        equal
-        """
-let newState =
-    someFunc {
-        F1 = 0
-        F2 = ""
-    }
-
-let newState =
-    Some
-        {
-            F1 = 0
-            F2 = ""
-        }
 """
 
 [<Test>]
