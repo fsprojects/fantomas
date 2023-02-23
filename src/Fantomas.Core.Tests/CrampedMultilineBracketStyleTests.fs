@@ -1077,6 +1077,27 @@ type Foo =
 """
 
 [<Test>]
+let ``record type definition with members and trivia`` () =
+    formatSourceString
+        false
+        """
+type X = {
+    Y: int
+} with // foo
+    member x.Z = ()
+"""
+        { config with
+            NewlineBetweenTypeDefinitionAndMembers = false }
+    |> prepend newline
+    |> should
+        equal
+        """
+type X =
+    { Y: int } // foo
+    member x.Z = ()
+"""
+
+[<Test>]
 let ``short anonymous record with two members`` () =
     formatSourceString
         false
