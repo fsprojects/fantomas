@@ -63,9 +63,6 @@ type V = // comment
     }
 """
 
-// TODO: I feel like stroustrup should not work when there are members involved
-// Having members would require the `with` keyword which is not recommended by the style guide: https://docs.microsoft.com/en-us/dotnet/fsharp/style-guide/formatting#formatting-record-declarations
-
 [<Test>]
 let ``record type definition with members`` () =
     formatSourceString
@@ -87,11 +84,10 @@ type V =
         """
 namespace Foo
 
-type V =
-    {
-        X: SomeFieldType
-        Y: OhSomethingElse
-        Z: ALongTypeName
-    }
+type V = {
+    X: SomeFieldType
+    Y: OhSomethingElse
+    Z: ALongTypeName
+} with
     member Coordinate: SomeFieldType * OhSomethingElse * ALongTypeName
 """
