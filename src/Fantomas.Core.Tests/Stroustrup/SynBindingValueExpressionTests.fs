@@ -569,3 +569,153 @@ let myRecord = {
     }
 }
 """
+
+[<Test>]
+let ``app node with single record member`` () =
+    formatSourceString
+        false
+        """
+let newState = {
+    Foo =
+        Some
+            {
+                F1 = 0
+                F2 = ""
+            }
+}
+"""
+        { config with
+            RecordMultilineFormatter = NumberOfItems }
+    |> prepend newline
+    |> should
+        equal
+        """
+let newState = {
+    Foo =
+        Some {
+            F1 = 0
+            F2 = ""
+        }
+}
+"""
+
+[<Test>]
+let ``app node with single anonymous record member`` () =
+    formatSourceString
+        false
+        """
+let newState = {|
+    Foo =
+        Some
+            {|
+                F1 = 0
+                F2 = ""
+            |}
+|}
+"""
+        { config with
+            RecordMultilineFormatter = NumberOfItems }
+    |> prepend newline
+    |> should
+        equal
+        """
+let newState = {|
+    Foo =
+        Some {|
+            F1 = 0
+            F2 = ""
+        |}
+|}
+"""
+
+[<Test>]
+let ``app node with single record arg`` () =
+    formatSourceString
+        false
+        """
+let newState = 
+    Some
+        {
+            F1 = 0
+            F2 = ""
+        }
+"""
+        { config with
+            RecordMultilineFormatter = NumberOfItems }
+    |> prepend newline
+    |> should
+        equal
+        """
+let newState =
+    Some {
+        F1 = 0
+        F2 = ""
+    }
+"""
+
+[<Test>]
+let ``lowercase app node with single record arg`` () =
+    formatSourceString
+        false
+        """
+let newState = 
+    someFunc
+        {
+            F1 = 0
+            F2 = ""
+        }
+"""
+        { config with
+            RecordMultilineFormatter = NumberOfItems }
+    |> prepend newline
+    |> should
+        equal
+        """
+let newState =
+    someFunc {
+        F1 = 0
+        F2 = ""
+    }
+"""
+
+[<Test>]
+let ``lowercase app node with multiple args ending in a single record arg`` () =
+    formatSourceString
+        false
+        """
+let newState = 
+    myFn a b c { D = d; E = e }
+"""
+        { config with
+            RecordMultilineFormatter = NumberOfItems }
+    |> prepend newline
+    |> should
+        equal
+        """
+let newState =
+    myFn a b c {
+        D = d
+        E = e
+    }
+"""
+
+[<Test>]
+let ``lowercase app node with multiple args ending in a single anonymous record arg`` () =
+    formatSourceString
+        false
+        """
+let newState = 
+    myFn a b c {| D = d; E = e |}
+"""
+        { config with
+            RecordMultilineFormatter = NumberOfItems }
+    |> prepend newline
+    |> should
+        equal
+        """
+let newState =
+    myFn a b c {|
+        D = d
+        E = e
+    |}
+"""
