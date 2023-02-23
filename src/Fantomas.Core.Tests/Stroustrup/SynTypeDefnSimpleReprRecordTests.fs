@@ -77,9 +77,6 @@ type V = // comment
     }
 """
 
-// TODO: I feel like stroustrup should not work when there are members involved
-// Having members would require the `with` keyword which is not recommended by the style guide: https://docs.microsoft.com/en-us/dotnet/fsharp/style-guide/formatting#formatting-record-declarations
-
 [<Test>]
 let ``record type definition with members`` () =
     formatSourceString
@@ -97,13 +94,34 @@ type V =
     |> should
         equal
         """
-type V =
-    {
-        X: SomeFieldType
-        Y: OhSomethingElse
-        Z: ALongTypeName
-    }
+type V = {
+    X: SomeFieldType
+    Y: OhSomethingElse
+    Z: ALongTypeName
+} with
     member this.Coordinate = (this.X, this.Y, this.Z)
+"""
+
+[<Test>]
+let ``record type definition with members and trivia`` () =
+    formatSourceString
+        false
+        """
+type X = {
+    Y: int
+} with // foo
+    member x.Z = ()
+"""
+        { config with
+            NewlineBetweenTypeDefinitionAndMembers = false }
+    |> prepend newline
+    |> should
+        equal
+        """
+type X = {
+    Y: int
+} with // foo
+    member x.Z = ()
 """
 
 [<Test>]
@@ -188,15 +206,34 @@ type NonEmptyList<'T> =
     |> should
         equal
         """
-type NonEmptyList<'T> =
-    private
-        {
-            List: 'T list
-        }
+type NonEmptyList<'T> = private {
+    List: 'T list
+} with
 
     member this.Head = this.List.Head
     member this.Tail = this.List.Tail
     member this.Length = this.List.Length
+"""
+
+[<Test>]
+let ``record definition with accessibility modifier without members`` () =
+    formatSourceString
+        false
+        """
+type NonEmptyList<'T> =
+    private
+        { List: 'T list; Value: 'T; Third: string}
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type NonEmptyList<'T> = private {
+    List: 'T list
+    Value: 'T
+    Third: string
+}
 """
 
 [<Test>]

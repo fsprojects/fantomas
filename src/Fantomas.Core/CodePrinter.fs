@@ -3011,7 +3011,7 @@ let addSpaceIfSynTypeStaticConstantHasAtSignBeforeString (t: Type) =
         | _ -> sepNone
     | _ -> sepNone
 
-let sepNlnTypeAndMembers (node: ITypeDefn) (ctx: Context) : Context =
+let sepNlnBetweenTypeAndMembers (node: ITypeDefn) (ctx: Context) : Context =
     match node.Members with
     | [] -> sepNone ctx
     | firstMember :: _ ->
@@ -3140,7 +3140,7 @@ let genTypeDefn (td: TypeDefn) =
         +> indentSepNlnUnindent (
             col sepNln node.EnumCases genEnumCase
             +> onlyIf hasMembers sepNln
-            +> sepNlnTypeAndMembers typeDefnNode
+            +> sepNlnBetweenTypeAndMembers typeDefnNode
             +> genMemberDefnList members
         )
         |> genNode node
@@ -3173,11 +3173,12 @@ let genTypeDefn (td: TypeDefn) =
 
         header
         +> unionCases
-        +> onlyIf hasMembers (indentSepNlnUnindent (sepNlnTypeAndMembers typeDefnNode +> genMemberDefnList members))
+        +> onlyIf
+            hasMembers
+            (indentSepNlnUnindent (sepNlnBetweenTypeAndMembers typeDefnNode +> genMemberDefnList members))
         |> genNode node
     | TypeDefn.Record node ->
         let hasMembers = List.isNotEmpty members
-        let hasNoMembers = not hasMembers
 
         let multilineExpression (ctx: Context) =
             let genRecordFields =
@@ -3188,7 +3189,7 @@ let genTypeDefn (td: TypeDefn) =
 
             let genMembers =
                 onlyIf hasMembers sepNln
-                +> sepNlnTypeAndMembers typeDefnNode
+                +> sepNlnBetweenTypeAndMembers typeDefnNode
                 +> genMemberDefnList members
 
             let anyFieldHasXmlDoc =
@@ -3200,8 +3201,16 @@ let genTypeDefn (td: TypeDefn) =
                 +> optSingle (fun _ -> unindent) node.Accessibility
                 +> genMembers
 
-            let stroustrupWithoutMembers =
-                genAccessOpt node.Accessibility +> genRecordFields +> genMembers
+            let stroustrup =
+                let withKw =
+                    match typeName.WithKeyword with
+                    | None -> !- "with"
+                    | Some withNode -> genSingleTextNode withNode
+
+                genAccessOpt node.Accessibility
+                +> genRecordFields
+                +> onlyIf hasMembers (sepSpace +> withKw +> indent)
+                +> genMembers
 
             let cramped =
                 sepNlnUnlessLastEventIsNewline
@@ -3211,19 +3220,18 @@ let genTypeDefn (td: TypeDefn) =
                 +> addSpaceIfSpaceAroundDelimiter
                 +> genSingleTextNode node.ClosingBrace
                 +> optSingle (fun _ -> unindent) node.Accessibility
-                +> onlyIf hasMembers sepNln
-                +> sepNlnTypeAndMembers typeDefnNode
-                +> genMemberDefnList members
+                +> genMembers
 
             match ctx.Config.MultilineBracketStyle with
-            | Stroustrup when hasNoMembers -> stroustrupWithoutMembers ctx
-            | Aligned
-            | Stroustrup -> aligned ctx
+            | Stroustrup -> stroustrup ctx
+            | Aligned -> aligned ctx
             | Cramped when anyFieldHasXmlDoc -> aligned ctx
             | Cramped -> cramped ctx
 
         let bodyExpr size =
-            if hasNoMembers then
+            if hasMembers then
+                multilineExpression
+            else
                 let smallExpression =
                     sepSpace
                     +> genAccessOpt node.Accessibility
@@ -3235,14 +3243,12 @@ let genTypeDefn (td: TypeDefn) =
                     +> genSingleTextNode node.ClosingBrace
 
                 isSmallExpression size smallExpression multilineExpression
-            else
-                multilineExpression
 
         let genTypeDefinition (ctx: Context) =
             let size = getRecordSize ctx node.Fields
             let short = bodyExpr size
 
-            if ctx.Config.IsStroustrupStyle && hasNoMembers then
+            if ctx.Config.IsStroustrupStyle then
                 (sepSpace +> short) ctx
             else
                 isSmallExpression size short (indentSepNlnUnindent short) ctx
@@ -3297,7 +3303,7 @@ let genTypeDefn (td: TypeDefn) =
         header
         +> sepSpace
         +> optSingle genSingleTextNode typeName.WithKeyword
-        +> indentSepNlnUnindent (sepNlnTypeAndMembers typeDefnNode +> genMemberDefnList members)
+        +> indentSepNlnUnindent (sepNlnBetweenTypeAndMembers typeDefnNode +> genMemberDefnList members)
         |> genNode node
     | TypeDefn.Delegate node ->
         header
