@@ -1,5 +1,11 @@
 # Changelog
 
+## [6.0.0-alpha-005] - 2023-02-24
+
+### Changed
+* Fix handling of AppExpr with a single stroustrup record. [#2747](https://github.com/fsprojects/fantomas/pull/2747)
+* Inconsistent styling when using Stroustrup with or without member attach to record creation. [#2652](https://github.com/fsprojects/fantomas/issues/2652)
+
 ## [6.0.0-alpha-004] - 2023-02-22
 
 ### Changed
