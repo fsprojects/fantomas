@@ -239,12 +239,12 @@ let mapResultToResponse (filePath: string) (result: Result<Task<FantomasResponse
 
 /// <summary>
 /// <para>
-/// The Fantomas daemon is currently send a Fantomas.Client.LSPFantomasServiceTypes.FormatDocumentResponse back to Fantomas.Client.
+/// The Fantomas daemon currently sends a Fantomas.Client.LSPFantomasServiceTypes.FormatDocumentResponse back to Fantomas.Client.
 /// This was a poor choice as the serialization of a DU case breaks when you add a new field to it. Even though that field is optional.
 /// To overcome this, we deserialize the FormatDocumentResponse ourselves to construct the matching FantomasResponse.
 /// </para>
 /// <para>
-/// In v6.0 we introduced an additional to FormatDocumentResponse.Formatted being the cursor position.
+/// In v6.0 we introduced an additional option field to FormatDocumentResponse.Formatted being the cursor position.
 /// That is why we currently have two match cases that try to deserialize "Formatted".
 /// </para>
 /// </summary>

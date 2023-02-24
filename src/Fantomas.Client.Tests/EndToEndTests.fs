@@ -39,7 +39,7 @@ type EndToEndTests() =
                     :> Task
 
                 // This sdk version must match the version used in this repository.
-                // It will the version which the CI/CD pipeline has access to.
+                // It will be the version which the CI/CD pipeline has access to.
                 do! dotnet "new globaljson --sdk-version 7.0.100 --roll-forward latestPatch"
                 do! dotnet "new tool-manifest"
 
