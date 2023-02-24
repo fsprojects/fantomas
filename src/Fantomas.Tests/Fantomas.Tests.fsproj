@@ -27,7 +27,7 @@
     <Compile Include="Integration\WriteTests.fs" />
     <Compile Include="Integration\DaemonTests.fs" />
     <Compile Include="Integration\ForceTests.fs" />
-    <Compile Include="ToolLocatorTests.fs" />
+    <Compile Include="FantomasServiceTests.fs" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="FSharp.Core" Version="$(FSharpCoreVersion)" />
