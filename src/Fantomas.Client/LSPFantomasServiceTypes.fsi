@@ -29,8 +29,6 @@ type FormatDocumentResponse =
     | Error of filename: string * formattingError: string
     | IgnoredFile of filename: string
 
-    member AsFormatResponse: unit -> FantomasResponse
-
 type FantomasVersion = FantomasVersion of string
 
 type FantomasExecutableFile = FantomasExecutableFile of string

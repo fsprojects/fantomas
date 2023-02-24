@@ -15,7 +15,7 @@ graph TD
     B --> D[Fantomas.Benchmarks]
     B --> E[Fantomas.Core.Tests]
     C --> F[Fantomas.Tests]
-    G[Fantomas.Client]
+    G[Fantomas.Client] --> H[Fantomas.Client.Tests]
  </div>
 
 ## Fantomas.FCS
@@ -56,5 +56,9 @@ A suite of unit tests that target the core formatting functionalities of `Fantom
 ## Fantomas.Tests
 
 A suite of end-to-end tests that run the actual `fantomas` command line application.
+
+## Fantomas.Client.Tests
+
+A suite of end-to-end tests that will verify the `Fantomas.Client` code against released versions of `fantomas`.
 
 <fantomas-nav previous="./Getting%20Started.html" next="./Transforming.html"></fantomas-nav>

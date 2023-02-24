@@ -4,6 +4,7 @@ open System
 open System.IO
 open System.Threading
 open System.Threading.Tasks
+open Newtonsoft.Json.Linq
 open StreamJsonRpc
 open Fantomas.Client.Contracts
 open Fantomas.Client.LSPFantomasServiceTypes
@@ -236,6 +237,102 @@ let mapResultToResponse (filePath: string) (result: Result<Task<FantomasResponse
     | Error(FantomasServiceError.DaemonNotFound e) -> daemonNotFoundResponse filePath e
     | Error FantomasServiceError.CancellationWasRequested -> cancellationWasRequestedResponse filePath
 
+/// <summary>
+/// <para>
+/// The Fantomas daemon is currently send a Fantomas.Client.LSPFantomasServiceTypes.FormatDocumentResponse back to Fantomas.Client.
+/// This was a poor choice as the serialization of a DU case breaks when you add a new field to it. Even though that field is optional.
+/// To overcome this, we deserialize the FormatDocumentResponse ourselves to construct the matching FantomasResponse.
+/// </para>
+/// <para>
+/// In v6.0 we introduced an additional to FormatDocumentResponse.Formatted being the cursor position.
+/// That is why we currently have two match cases that try to deserialize "Formatted".
+/// </para>
+/// </summary>
+/// <param name="inputFilePath">When serialization fails, we re-use the input file path from the request information.</param>
+/// <param name="json">The raw JObject that send sent over the wire.</param>
+let decodeFormatResult (inputFilePath: string) (json: JObject) : FantomasResponse =
+    let mkError msg =
+        { Code = int FantomasResponseCode.Error
+          FilePath = inputFilePath
+          Content = Some msg
+          SelectedRange = None
+          Cursor = None }
+
+    try
+        if not (json.ContainsKey("Case")) || not (json.ContainsKey("Fields")) then
+            mkError "Expected \"Case\" and \"Fields\" to be present in the response json"
+        else
+            let caseName = json.["Case"].Value<string>()
+            let fields = json.["Fields"].Value<JArray>()
+
+            match caseName with
+            | "Formatted" when fields.Count = 2 ->
+                let fileName = fields.[0].Value<string>()
+                let formattedContent = fields.[1].Value<string>()
+
+                { Code = int FantomasResponseCode.Formatted
+                  FilePath = fileName
+                  Content = Some formattedContent
+                  SelectedRange = None
+                  Cursor = None }
+            | "Formatted" when fields.Count = 3 ->
+                let fileName = fields.[0].Value<string>()
+                let formattedContent = fields.[1].Value<string>()
+
+                let cursor =
+                    if fields.[2].Type = JTokenType.Null then
+                        None
+                    else
+                        // This is wrapped as an option, the Case is "Some" here.
+                        // We need to extract the Line and Column from the first item in Fields
+                        let cursorObject = fields.[2].Value<JObject>()
+                        let cursorObject = cursorObject.["Fields"].[0].Value<JObject>()
+
+                        Some(
+                            FormatCursorPosition(
+                                cursorObject.["Line"].Value<int>(),
+                                cursorObject.["Column"].Value<int>()
+                            )
+                        )
+
+                { Code = int FantomasResponseCode.Formatted
+                  FilePath = fileName
+                  Content = Some formattedContent
+                  SelectedRange = None
+                  Cursor = cursor }
+
+            | "Unchanged" when fields.Count = 1 ->
+                let fileName = fields.[0].Value<string>()
+
+                { Code = int FantomasResponseCode.UnChanged
+                  FilePath = fileName
+                  Content = None
+                  SelectedRange = None
+                  Cursor = None }
+            | "Error" when fields.Count = 2 ->
+                let fileName = fields.[0].Value<string>()
+                let formattingError = fields.[1].Value<string>()
+
+                { Code = int FantomasResponseCode.Error
+                  FilePath = fileName
+                  Content = Some formattingError
+                  SelectedRange = None
+                  Cursor = None }
+            | "IgnoredFile" when fields.Count = 1 ->
+                let fileName = fields.[0].Value<string>()
+
+                { Code = int FantomasResponseCode.Ignored
+                  FilePath = fileName
+                  Content = None
+                  SelectedRange = None
+                  Cursor = None }
+            | _ ->
+                mkError
+                    $"Could not deserialize the message from the daemon, got unexpected case name %s{caseName} with %i{fields.Count} fields."
+
+    with ex ->
+        mkError $"Could not deserialize the message from the daemon, %s{ex.Message}"
+
 type LSPFantomasService() =
     let cts = new CancellationTokenSource()
     let agent = createAgent cts.Token
@@ -243,7 +340,7 @@ type LSPFantomasService() =
     interface FantomasService with
         member this.Dispose() =
             if not cts.IsCancellationRequested then
-                agent.PostAndReply Reset
+                let _ = agent.PostAndReply Reset
                 cts.Cancel()
 
         member _.VersionAsync(filePath, ?cancellationToken: CancellationToken) : Task<FantomasResponse> =
@@ -274,12 +371,12 @@ type LSPFantomasService() =
             |> Result.bind (getDaemon agent)
             |> Result.map (fun client ->
                 client
-                    .InvokeWithParameterObjectAsync<FormatDocumentResponse>(
+                    .InvokeWithParameterObjectAsync<JObject>(
                         Methods.FormatDocument,
                         argument = formatDocumentOptions,
                         cancellationToken = Option.defaultValue cts.Token cancellationToken
                     )
-                    .ContinueWith(fun (t: Task<FormatDocumentResponse>) -> t.Result.AsFormatResponse()))
+                    .ContinueWith(fun (t: Task<JObject>) -> decodeFormatResult formatDocumentOptions.FilePath t.Result))
             |> mapResultToResponse formatDocumentOptions.FilePath
 
         member _.FormatSelectionAsync
