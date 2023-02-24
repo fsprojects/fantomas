@@ -45,33 +45,6 @@ type FormatDocumentResponse =
     | Error of filename: string * formattingError: string
     | IgnoredFile of filename: string
 
-    member this.AsFormatResponse() =
-        match this with
-        | FormatDocumentResponse.Formatted(name, content, cursor) ->
-            { Code = int FantomasResponseCode.Formatted
-              FilePath = name
-              Content = Some content
-              SelectedRange = None
-              Cursor = cursor }
-        | FormatDocumentResponse.Unchanged name ->
-            { Code = int FantomasResponseCode.UnChanged
-              FilePath = name
-              Content = None
-              SelectedRange = None
-              Cursor = None }
-        | FormatDocumentResponse.Error(name, err) ->
-            { Code = int FantomasResponseCode.Error
-              FilePath = name
-              Content = Some(err)
-              SelectedRange = None
-              Cursor = None }
-        | FormatDocumentResponse.IgnoredFile name ->
-            { Code = int FantomasResponseCode.Ignored
-              FilePath = name
-              Content = None
-              SelectedRange = None
-              Cursor = None }
-
 type FantomasVersion = FantomasVersion of string
 type FantomasExecutableFile = FantomasExecutableFile of string
 type Folder = Folder of path: string
