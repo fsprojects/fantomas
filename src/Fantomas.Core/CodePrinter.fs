@@ -1042,7 +1042,7 @@ let genExpr (e: Expr) =
             | EndsWithDualListApp ctx.Config (sequentialArgs: Expr list,
                                               firstList: ExprArrayOrListNode,
                                               lastList: ExprArrayOrListNode) ->
-                let genArray = genArrayOrList false
+                let genArrayOrList = genArrayOrList false
 
                 // check if everything else beside the last array/list fits on one line
                 let singleLineTestExpr =
@@ -1050,16 +1050,16 @@ let genExpr (e: Expr) =
                     +> sepSpace
                     +> col sepSpace sequentialArgs genExpr
                     +> sepSpace
-                    +> genArray firstList
+                    +> genArrayOrList firstList
 
                 let short =
                     genExpr node.FunctionExpr
                     +> sepSpace
                     +> col sepSpace sequentialArgs genExpr
                     +> onlyIfNot sequentialArgs.IsEmpty sepSpace
-                    +> genArray firstList
+                    +> genArrayOrList firstList
                     +> sepSpace
-                    +> genArray lastList
+                    +> genArrayOrList lastList
 
                 let long =
                     // check if everything besides both lists fits on one line
@@ -1072,18 +1072,18 @@ let genExpr (e: Expr) =
                         +> sepNln
                         +> col sepNln sequentialArgs genExpr
                         +> sepSpace
-                        +> genArray firstList
+                        +> genArrayOrList firstList
                         +> sepSpace
-                        +> genArray lastList
+                        +> genArrayOrList lastList
                         +> unindent
                     else
                         genExpr node.FunctionExpr
                         +> sepSpace
                         +> col sepSpace sequentialArgs genExpr
                         +> onlyIfNot sequentialArgs.IsEmpty sepSpace
-                        +> genArray firstList
+                        +> genArrayOrList firstList
                         +> sepSpace
-                        +> genArray lastList
+                        +> genArrayOrList lastList
 
                 if futureNlnCheck singleLineTestExpr ctx then
                     long ctx
