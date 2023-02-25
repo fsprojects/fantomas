@@ -105,10 +105,11 @@
     <Compile Include="Stroustrup\SynTypeDefnSimpleReprRecordTests.fs" />
     <Compile Include="Stroustrup\SynTypeDefnSigReprSimpleTests.fs" />
     <Compile Include="Stroustrup\NamedArgumentExpressionTests.fs" />
-    <Compile Include="Stroustrup\ElmishTests.fs" />
+    <Compile Include="Stroustrup\NamedParameterTests.fs" />
     <Compile Include="Stroustrup\FunctionApplicationSingleListTests.fs" />
     <Compile Include="Stroustrup\FunctionApplicationDualListTests.fs" />
     <Compile Include="Stroustrup\SynExprAnonRecdStructTests.fs" />
+    <Compile Include="Stroustrup\FinalListArgumentsTests.fs" />
     <Compile Include="IdentTests.fs" />
     <Compile Include="RecordDeclarationsWithXMLDocTests.fs" />
     <Compile Include="MaxIfThenShortWidthTests.fs" />

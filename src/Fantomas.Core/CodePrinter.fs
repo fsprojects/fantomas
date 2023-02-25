@@ -393,73 +393,7 @@ let genExpr (e: Expr) =
         +> genTuple node.Tuple
         +> genSingleTextNode node.ClosingParen
         |> genNode node
-    | Expr.ArrayOrList node ->
-        if node.Elements.IsEmpty then
-            genSingleTextNode node.Opening +> genSingleTextNode node.Closing |> genNode node
-        else
-            let smallExpression =
-                genSingleTextNode node.Opening
-                +> addSpaceIfSpaceAroundDelimiter
-                +> col sepSemi node.Elements genExpr
-                +> addSpaceIfSpaceAroundDelimiter
-                +> genSingleTextNode node.Closing
-
-            let multilineExpression =
-                let genMultiLineArrayOrListAlignBrackets =
-                    genSingleTextNode node.Opening
-                    +> indent
-                    +> sepNlnUnlessLastEventIsNewline
-                    +> col sepNln node.Elements genExpr
-                    +> unindent
-                    +> sepNlnUnlessLastEventIsNewline
-                    +> genSingleTextNode node.Closing
-
-                let genMultiLineArrayOrList =
-                    genSingleTextNodeSuffixDelimiter node.Opening
-                    +> atCurrentColumnIndent (
-                        sepNlnWhenWriteBeforeNewlineNotEmpty
-                        +> col sepNln node.Elements genExpr
-                        +> (enterNode node.Closing
-                            +> (fun ctx ->
-                                let isFixed = lastWriteEventIsNewline ctx
-                                (onlyIfNot isFixed sepSpace +> !-node.Closing.Text +> leaveNode node.Closing) ctx))
-                    )
-
-                ifAlignOrStroustrupBrackets genMultiLineArrayOrListAlignBrackets genMultiLineArrayOrList
-
-            fun ctx ->
-                let alwaysMultiline =
-                    let isIfThenElseWithYieldReturn e =
-                        let (|YieldLikeExpr|_|) e =
-                            match e with
-                            | Expr.Single singleNode ->
-                                if singleNode.Leading.Text.StartsWith("yield") then
-                                    Some e
-                                else
-                                    None
-                            | _ -> None
-
-                        match e with
-                        | Expr.IfThen ifThenNode ->
-                            match ifThenNode.ThenExpr with
-                            | YieldLikeExpr _ -> true
-                            | _ -> false
-                        | Expr.IfThenElse ifThenElseNode ->
-                            match ifThenElseNode.IfExpr, ifThenElseNode.ElseExpr with
-                            | YieldLikeExpr _, _
-                            | _, YieldLikeExpr _ -> true
-                            | _ -> false
-                        | _ -> false
-
-                    List.exists isIfThenElseWithYieldReturn node.Elements
-                    || List.forall isSynExprLambdaOrIfThenElse node.Elements
-
-                if alwaysMultiline then
-                    multilineExpression ctx
-                else
-                    let size = getListOrArrayExprSize ctx ctx.Config.MaxArrayOrListWidth node.Elements
-                    isSmallExpression size smallExpression multilineExpression ctx
-            |> genNode node
+    | Expr.ArrayOrList node -> fun ctx -> genArrayOrList (ctx.Config.MultilineBracketStyle = Cramped) node ctx
     | Expr.Record node ->
         let smallRecordExpr = genSmallRecordNode node
         let multilineRecordExpr = genMultilineRecord node
@@ -1105,23 +1039,27 @@ let genExpr (e: Expr) =
     | Expr.App node ->
         fun ctx ->
             match node with
-            | EndsWithDualListApp ctx.Config (sequentialArgs: Expr list, firstList, lastList) ->
+            | EndsWithDualListApp ctx.Config (sequentialArgs: Expr list,
+                                              firstList: ExprArrayOrListNode,
+                                              lastList: ExprArrayOrListNode) ->
+                let genArray = genArrayOrList false
+
                 // check if everything else beside the last array/list fits on one line
                 let singleLineTestExpr =
                     genExpr node.FunctionExpr
                     +> sepSpace
                     +> col sepSpace sequentialArgs genExpr
                     +> sepSpace
-                    +> genExpr firstList
+                    +> genArray firstList
 
                 let short =
                     genExpr node.FunctionExpr
                     +> sepSpace
                     +> col sepSpace sequentialArgs genExpr
                     +> onlyIfNot sequentialArgs.IsEmpty sepSpace
-                    +> genExpr firstList
+                    +> genArray firstList
                     +> sepSpace
-                    +> genExpr lastList
+                    +> genArray lastList
 
                 let long =
                     // check if everything besides both lists fits on one line
@@ -1134,25 +1072,27 @@ let genExpr (e: Expr) =
                         +> sepNln
                         +> col sepNln sequentialArgs genExpr
                         +> sepSpace
-                        +> genExpr firstList
+                        +> genArray firstList
                         +> sepSpace
-                        +> genExpr lastList
+                        +> genArray lastList
                         +> unindent
                     else
                         genExpr node.FunctionExpr
                         +> sepSpace
                         +> col sepSpace sequentialArgs genExpr
                         +> onlyIfNot sequentialArgs.IsEmpty sepSpace
-                        +> genExpr firstList
+                        +> genArray firstList
                         +> sepSpace
-                        +> genExpr lastList
+                        +> genArray lastList
 
                 if futureNlnCheck singleLineTestExpr ctx then
                     long ctx
                 else
                     short ctx
 
-            | EndsWithSingleListApp ctx.Config (sequentialArgs: Expr list, arrayOrList) ->
+            | EndsWithSingleListApp ctx.Config (sequentialArgs: Expr list, arrayOrList: ExprArrayOrListNode) ->
+                let genArrayOrList = genArrayOrList false
+
                 // check if everything else beside the last array/list fits on one line
                 let singleLineTestExpr =
                     genExpr node.FunctionExpr +> sepSpace +> col sepSpace sequentialArgs genExpr
@@ -1162,7 +1102,7 @@ let genExpr (e: Expr) =
                     +> sepSpace
                     +> col sepSpace sequentialArgs genExpr
                     +> onlyIfNot sequentialArgs.IsEmpty sepSpace
-                    +> genExpr arrayOrList
+                    +> genArrayOrList arrayOrList
 
                 let long =
                     genExpr node.FunctionExpr
@@ -1170,7 +1110,7 @@ let genExpr (e: Expr) =
                     +> sepNln
                     +> col sepNln sequentialArgs genExpr
                     +> onlyIfNot sequentialArgs.IsEmpty sepNln
-                    +> genExpr arrayOrList
+                    +> genArrayOrList arrayOrList
                     +> unindent
 
                 if futureNlnCheck singleLineTestExpr ctx then
@@ -1742,6 +1682,74 @@ let genRecord smallRecordExpr multilineRecordExpr (node: ExprRecordBaseNode) ctx
     let size = getRecordSize ctx node.Fields
     genNode node (isSmallExpression size smallRecordExpr multilineRecordExpr) ctx
 
+let genArrayOrList (preferMultilineCramped: bool) (node: ExprArrayOrListNode) =
+    if node.Elements.IsEmpty then
+        genSingleTextNode node.Opening +> genSingleTextNode node.Closing |> genNode node
+    else
+        let smallExpression =
+            genSingleTextNode node.Opening
+            +> addSpaceIfSpaceAroundDelimiter
+            +> col sepSemi node.Elements genExpr
+            +> addSpaceIfSpaceAroundDelimiter
+            +> genSingleTextNode node.Closing
+
+        let multilineExpression =
+            let genMultiLineArrayOrListAlignBrackets =
+                genSingleTextNode node.Opening
+                +> indent
+                +> sepNlnUnlessLastEventIsNewline
+                +> col sepNln node.Elements genExpr
+                +> unindent
+                +> sepNlnUnlessLastEventIsNewline
+                +> genSingleTextNode node.Closing
+
+            let genMultiLineArrayOrListCramped =
+                genSingleTextNodeSuffixDelimiter node.Opening
+                +> atCurrentColumnIndent (
+                    sepNlnWhenWriteBeforeNewlineNotEmpty
+                    +> col sepNln node.Elements genExpr
+                    +> (enterNode node.Closing
+                        +> (fun ctx ->
+                            let isFixed = lastWriteEventIsNewline ctx
+                            (onlyIfNot isFixed sepSpace +> !-node.Closing.Text +> leaveNode node.Closing) ctx))
+                )
+
+            ifElse preferMultilineCramped genMultiLineArrayOrListCramped genMultiLineArrayOrListAlignBrackets
+
+        fun ctx ->
+            let alwaysMultiline =
+                let isIfThenElseWithYieldReturn e =
+                    let (|YieldLikeExpr|_|) e =
+                        match e with
+                        | Expr.Single singleNode ->
+                            if singleNode.Leading.Text.StartsWith("yield") then
+                                Some e
+                            else
+                                None
+                        | _ -> None
+
+                    match e with
+                    | Expr.IfThen ifThenNode ->
+                        match ifThenNode.ThenExpr with
+                        | YieldLikeExpr _ -> true
+                        | _ -> false
+                    | Expr.IfThenElse ifThenElseNode ->
+                        match ifThenElseNode.IfExpr, ifThenElseNode.ElseExpr with
+                        | YieldLikeExpr _, _
+                        | _, YieldLikeExpr _ -> true
+                        | _ -> false
+                    | _ -> false
+
+                List.exists isIfThenElseWithYieldReturn node.Elements
+                || List.forall isSynExprLambdaOrIfThenElse node.Elements
+
+            if alwaysMultiline then
+                multilineExpression ctx
+            else
+                let size = getListOrArrayExprSize ctx ctx.Config.MaxArrayOrListWidth node.Elements
+                isSmallExpression size smallExpression multilineExpression ctx
+        |> genNode node
+
 let genMultilineFunctionApplicationArguments (argExpr: Expr) =
     let argsInsideParenthesis (parenNode: ExprParenNode) f =
         genSingleTextNode parenNode.OpeningParen
@@ -2135,7 +2143,7 @@ let genFunctionNameWithMultilineLids (trailing: Context -> Context) (longIdent: 
     |> genNode parentNode
 
 let (|EndsWithDualListApp|_|) (config: FormatConfig) (appNode: ExprAppNode) =
-    if not config.IsStroustrupStyle then
+    if not config.StroustrupFinalListArguments then
         None
     else
         let mutable otherArgs = ListCollector<Expr>()
@@ -2143,8 +2151,7 @@ let (|EndsWithDualListApp|_|) (config: FormatConfig) (appNode: ExprAppNode) =
         let rec visit (args: Expr list) =
             match args with
             | [] -> None
-            | [ Expr.ArrayOrList _ as firstList; Expr.ArrayOrList _ as lastList ] ->
-                Some(otherArgs.Close(), firstList, lastList)
+            | [ Expr.ArrayOrList firstList; Expr.ArrayOrList lastList ] -> Some(otherArgs.Close(), firstList, lastList)
             | arg :: args ->
                 otherArgs.Add(arg)
                 visit args
@@ -2152,7 +2159,7 @@ let (|EndsWithDualListApp|_|) (config: FormatConfig) (appNode: ExprAppNode) =
         visit appNode.Arguments
 
 let (|EndsWithSingleListApp|_|) (config: FormatConfig) (appNode: ExprAppNode) =
-    if not config.IsStroustrupStyle then
+    if not config.StroustrupFinalListArguments then
         None
     else
         let mutable otherArgs = ListCollector<Expr>()
@@ -2160,7 +2167,7 @@ let (|EndsWithSingleListApp|_|) (config: FormatConfig) (appNode: ExprAppNode) =
         let rec visit (args: Expr list) =
             match args with
             | [] -> None
-            | [ Expr.ArrayOrList _ as singleList ] -> Some(otherArgs.Close(), singleList)
+            | [ Expr.ArrayOrList singleList ] -> Some(otherArgs.Close(), singleList)
             | arg :: args ->
                 otherArgs.Add(arg)
                 visit args
