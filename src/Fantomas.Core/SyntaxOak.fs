@@ -1316,7 +1316,7 @@ type ElseIfNode(mElse: range, mIf: range, condition: Node, range) as elseIfNode 
                 (elseIfNode :> Node).AddBefore triviaNode
 
             member _.AddAfter(triviaNode: TriviaNode) =
-                (elseIfNode :> Node).AddAfter triviaNode
+                    (elseIfNode :> Node).AddAfter triviaNode
 
             member _.Children = Array.empty }
 
@@ -1348,6 +1348,8 @@ type ElseIfNode(mElse: range, mIf: range, condition: Node, range) as elseIfNode 
 
         member _.AddAfter(triviaNode: TriviaNode) =
             match triviaNode.Content with
+            | TriviaContent.Newline ->
+                condition.AddBefore triviaNode
             | TriviaContent.LineCommentAfterSourceCode comment when lastNodeAfterIsLineCommentAfterSource ->
                 // If we already have a line comment after the `else if`, we cannot add another one.
                 // The next best thing would be to add it on the next line as content before of the condition.

@@ -2648,3 +2648,28 @@ else
 
 printfn "d"
 """
+
+[<Test>]
+let ``duplicate newline after shifting trivia between else if, 2752`` () =
+    formatSourceString
+        false
+        """
+if a then
+    b 
+else
+
+    if c then d
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+if a then
+    b
+else if
+
+    c
+then
+    d
+"""

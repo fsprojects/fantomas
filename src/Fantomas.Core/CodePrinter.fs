@@ -73,6 +73,8 @@ let genTrivia (trivia: TriviaNode) (ctx: Context) =
 
     // Some items like #if or Newline should be printed on a newline
     // It is hard to always get this right in CodePrinter, so we detect it based on the current code.
+    // However this may cause duplicate newlines in case of content-after trivia of a node 
+    // for which we emit a Writeline event next.
     let addNewline =
         currentLastLine
         |> Option.map (fun line -> line.Trim().Length > 0)
@@ -96,7 +98,7 @@ let genTrivia (trivia: TriviaNode) (ctx: Context) =
             +> ifElse after sepNlnForTrivia sepNone
         | CommentOnSingleLine s
         | Directive s -> (ifElse addNewline sepNlnForTrivia sepNone) +> !-s +> sepNlnForTrivia
-        | Newline -> (ifElse addNewline (sepNlnForTrivia +> sepNlnForTrivia) sepNlnForTrivia)
+        | Newline -> ifElse addNewline (sepNlnForTrivia +> sepNlnForTrivia) sepNlnForTrivia
 
     gen ctx
 
