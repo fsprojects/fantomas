@@ -35,7 +35,13 @@ You should check the [changelog](https://github.com/fsprojects/fantomas/blob/mai
 
 ## Why does Fantomas format my lists strangely when I pass them as arguments?
 
-If your original code misses a space between the callee and the list, then it's most likely a consequence of the new [indexing syntax](https://devblogs.microsoft.com/dotnet/whats-new-in-fsharp-6/#making-f-simpler-to-learn-indexing-with-expridx) which was introduced in F# 6.0. Fantomas interprets the list as an index expression and formats it accordingly.
-Just add a space between the callee and the list and you should be good to go.
+Prior to the new [indexing syntax](https://devblogs.microsoft.com/dotnet/whats-new-in-fsharp-6/#making-f-simpler-to-learn-indexing-with-expridx), introduced in F# 6.0, you could write code like
+```fsharp
+Radio.Input.Props[Checked false
+                  OnChange(fun _ -> settings |> updateSettings)]
+```
+without the compiler nagging you about the missing space between the callee (`Props`) and the argument (`[Checked false ...]`). See issue [2754](https://github.com/fsprojects/fantomas/issues/2754) for another example.  
+Since F# 6.0, Fantomas interprets the list as an index expression and formats it accordingly.  
+In such a case, just add a space between the callee and the list and you should be good to go.
 
 <fantomas-nav previous="./VSCode.html"></fantomas-nav>
