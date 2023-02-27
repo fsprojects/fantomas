@@ -33,4 +33,9 @@ For any style related suggestion, please head over to [fsharp/fslang-design](htt
 Preview alpha versions are generally safe to use but there is no guarantee that the style wouldn't change due to ongoing development.  
 You should check the [changelog](https://github.com/fsprojects/fantomas/blob/main/CONTRIBUTING.md) to see if there's any relevant change to try out in the Alpha.
 
+## Why does Fantomas format my lists strangely when I pass them as arguments?
+
+If your original code misses a space between the callee and the list, then it's most likely a consequence of the new [indexing syntax](https://devblogs.microsoft.com/dotnet/whats-new-in-fsharp-6/#making-f-simpler-to-learn-indexing-with-expridx) which was introduced in F# 6.0. Fantomas interprets the list as an index expression and formats it accordingly.
+Just add a space between the callee and the list and you should be good to go.
+
 <fantomas-nav previous="./VSCode.html"></fantomas-nav>
