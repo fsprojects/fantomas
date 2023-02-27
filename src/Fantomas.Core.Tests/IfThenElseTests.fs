@@ -2654,22 +2654,42 @@ let ``duplicate newline after shifting trivia between else if, 2752`` () =
     formatSourceString
         false
         """
-if a then
-    b 
+// check for match
+if nargTs <> haveArgTs.Length then
+    false (* method argument length mismatch *)
 else
 
-    if c then d
+// If a known-number-of-arguments-including-object-argument has been given then check that
+if
+    (match knownArgCount with
+        | ValueNone -> false
+        | ValueSome n -> n <> (if methInfo.IsStatic then 0 else 1) + nargTs)
+then
+    false
+else
+
+    let res = typesEqual (resT :: argTs) (haveResT :: haveArgTs)
+    res
 """
         config
     |> prepend newline
     |> should
         equal
         """
-if a then
-    b
+// check for match
+if nargTs <> haveArgTs.Length then
+    false (* method argument length mismatch *)
 else if
 
-    c
+
+    // If a known-number-of-arguments-including-object-argument has been given then check that
+    (match knownArgCount with
+     | ValueNone -> false
+     | ValueSome n -> n <> (if methInfo.IsStatic then 0 else 1) + nargTs)
 then
-    d
+    false
+else
+
+    let res = typesEqual (resT :: argTs) (haveResT :: haveArgTs)
+    res
 """
