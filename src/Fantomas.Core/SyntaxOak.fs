@@ -1330,7 +1330,8 @@ type ElseIfNode(mElse: range, mIf: range, condition: Node, range) as elseIfNode 
 
             member _.AddBefore(triviaNode: TriviaNode) =
                 match triviaNode.Content with
-                | CommentOnSingleLine _ -> condition.AddBefore triviaNode
+                | CommentOnSingleLine _
+                | Newline -> condition.AddBefore triviaNode
                 | _ -> (elseIfNode :> Node).AddAfter triviaNode
 
             member _.AddAfter(triviaNode: TriviaNode) =
