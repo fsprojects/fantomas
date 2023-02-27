@@ -2681,7 +2681,6 @@ if nargTs <> haveArgTs.Length then
     false (* method argument length mismatch *)
 else if
 
-
     // If a known-number-of-arguments-including-object-argument has been given then check that
     (match knownArgCount with
      | ValueNone -> false
