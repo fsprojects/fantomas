@@ -2671,7 +2671,8 @@ else
     let res = typesEqual (resT :: argTs) (haveResT :: haveArgTs)
     res
 """
-        config
+        { config with
+            KeepMaxNumberOfBlankLines = 1 }
     |> prepend newline
     |> should
         equal
