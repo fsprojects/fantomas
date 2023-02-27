@@ -211,9 +211,22 @@ For any style related suggestion, please head over to <a href="https://github.co
 <h2><a name="Is-it-safe-to-use-the-Alpha-version-of-Fantomas" class="anchor" href="#Is-it-safe-to-use-the-Alpha-version-of-Fantomas">Is it safe to use the Alpha version of Fantomas?</a></h2>
 <p>Preview alpha versions are generally safe to use but there is no guarantee that the style wouldn't change due to ongoing development.<br />
 You should check the <a href="https://github.com/fsprojects/fantomas/blob/main/CONTRIBUTING.md">changelog</a> to see if there's any relevant change to try out in the Alpha.</p>
+<h2><a name="Why-does-Fantomas-format-my-lists-strangely-when-I-pass-them-as-arguments" class="anchor" href="#Why-does-Fantomas-format-my-lists-strangely-when-I-pass-them-as-arguments">Why does Fantomas format my lists strangely when I pass them as arguments?</a></h2>
+<p>Prior to the new <a href="https://devblogs.microsoft.com/dotnet/whats-new-in-fsharp-6/#making-f-simpler-to-learn-indexing-with-expridx">indexing syntax</a>, introduced in F# 6.0, you could write code like</p>
+<pre class="fssnip highlighted"><code lang="fsharp"><span class="id">Radio</span><span class="pn">.</span><span class="id">Input</span><span class="pn">.</span><span class="id">Props</span><span class="pn">[</span><span onmouseout="hideTip(event, 'fs1', 1)" onmouseover="showTip(event, 'fs1', 1)" class="id">Checked</span> <span class="k">false</span>
+                  <span class="id">OnChange</span><span class="pn">(</span><span class="k">fun</span> <span class="id">_</span> <span class="k">-&gt;</span> <span class="id">settings</span> <span class="o">|&gt;</span> <span class="id">updateSettings</span><span class="pn">)</span><span class="pn">]</span>
+</code></pre>
+<p>without the compiler nagging you about the missing space between the callee (<code>Props</code>) and the argument (<code>[Checked false ...]</code>). See issue <a href="https://github.com/fsprojects/fantomas/issues/2754">2754</a> for another example.<br />
+Since F# 6.0, Fantomas interprets the list as an index expression and formats it accordingly.<br />
+In such a case, just add a space between the callee and the list and you should be good to go.</p>
 <fantomas-nav previous="./VSCode.html"></fantomas-nav>
 
-        
+        <div class="fsdocs-tip" id="fs1">Multiple items<br />module Checked
+
+from Microsoft.FSharp.Core.Operators<br /><br />--------------------<br />module Checked
+
+from Microsoft.FSharp.Core.ExtraTopLevelOperators</div>
+
       </div>
         <div id="push"></div>
     </main>
