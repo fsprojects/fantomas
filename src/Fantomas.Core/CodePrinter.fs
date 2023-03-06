@@ -3234,9 +3234,12 @@ let genTypeDefn (td: TypeDefn) =
                 +> genSingleTextNode node.ClosingBrace
 
             let genMembers =
-                onlyIf hasMembers sepNln
-                +> sepNlnBetweenTypeAndMembers typeDefnNode
-                +> genMemberDefnList members
+                onlyIf
+                    hasMembers
+                    (sepNln
+                     +> sepNlnBetweenTypeAndMembers typeDefnNode
+                     +> genMemberDefnList members
+                     +> onlyIfCtx (fun ctx -> ctx.Config.IsStroustrupStyle) unindent)
 
             let anyFieldHasXmlDoc =
                 List.exists (fun (fieldNode: FieldNode) -> fieldNode.XmlDoc.IsSome) node.Fields

@@ -294,3 +294,63 @@ type MangaDexAtHomeResponse = {
     |}
 }
 """
+
+[<Test>]
+let ``record interface declarations can break with Stroustrup enabled, 2787 `` () =
+    formatSourceString
+        false
+        """
+type IEvent = interface end
+
+type SomeEvent =
+    { Id: string
+      Name: string }
+    interface IEvent
+
+type UpdatedName = { PreviousName: string }
+"""
+        { config with
+            NewlineBetweenTypeDefinitionAndMembers = false }
+    |> prepend newline
+    |> should
+        equal
+        """
+type IEvent =
+    interface
+    end
+
+type SomeEvent = {
+    Id: string
+    Name: string
+} with
+    interface IEvent
+
+type UpdatedName = { PreviousName: string }
+"""
+
+[<Test>]
+let ``record member declarations can break with Stroustrup enabled, 2787 `` () =
+    formatSourceString
+        false
+        """
+type SomeEvent =
+    { Id: string
+      Name: string }
+    member x.BreakWithOtherStuffAs well = ()
+
+type UpdatedName = { PreviousName: string }
+"""
+        { config with
+            NewlineBetweenTypeDefinitionAndMembers = false }
+    |> prepend newline
+    |> should
+        equal
+        """
+type SomeEvent = {
+    Id: string
+    Name: string
+} with
+    member x.BreakWithOtherStuffAs well = ()
+
+type UpdatedName = { PreviousName: string }
+"""
