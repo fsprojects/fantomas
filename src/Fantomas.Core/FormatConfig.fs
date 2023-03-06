@@ -226,6 +226,10 @@ type FormatConfig =
       NewlineBeforeMultilineComputationExpression: bool
 
       [<Category("Convention")>]
+      [<DisplayName("Applies the Stroustrup style to the final (two) array or list argument(s) in a function application")>]
+      StroustrupFinalListArguments: bool
+
+      [<Category("Convention")>]
       [<DisplayName("Strict mode")>]
       [<Description("Pretty printing based on ASTs only.\nPlease do not use this setting for formatting hand written code!")>]
       StrictMode: bool }
@@ -269,4 +273,5 @@ type FormatConfig =
           MultilineBracketStyle = Cramped
           KeepMaxNumberOfBlankLines = 100
           NewlineBeforeMultilineComputationExpression = true
+          StroustrupFinalListArguments = false
           StrictMode = false }

@@ -869,6 +869,45 @@ formatCode
 (*** include-output ***)
 
 (**
+<fantomas-setting name="fsharp_stroustrup_final_list_arguments" orange></fantomas-setting>
+
+Applies the Stroustrup style to the final (two) array or list argument(s) in a function application.
+
+Default = false
+*)
+
+formatCode
+    """ 
+let dualList =
+    div
+        []
+        [
+            h1 [] [ str "Some title" ]
+            ul
+                []
+                [
+                    for p in model.Points do
+                        li [] [ str $"%i{p.X}, %i{p.Y}" ]
+                ]
+            hr []
+        ]
+
+let singleList =
+    Html.div
+        [
+            Html.h1 [ str "Some title" ]
+            Html.ul
+                [
+                    for p in model.Points do
+                        Html.li [ str $"%i{p.X}, %i{p.Y}" ]
+                ]
+        ]
+    """
+    { FormatConfig.Default with
+        StroustrupFinalListArguments = true }
+(*** include-output ***)
+
+(**
 <fantomas-setting name="fsharp_strict_mode" red></fantomas-setting>
 
 If being set, pretty printing is only done via ASTs. Compiler directives, inline comments and block comments will be ignored.  
