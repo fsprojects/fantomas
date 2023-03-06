@@ -1,6 +1,6 @@
 # Changelog
 
-## [Unreleased]
+## [5.2.3] - 2023-03-06
 
 ### Fixed
 * Duplicate newline in else if. [#2752](https://github.com/fsprojects/fantomas/issues/2752)
