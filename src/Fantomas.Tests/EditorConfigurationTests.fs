@@ -522,3 +522,22 @@ fsharp_newline_before_multiline_computation_expression = false
     let config = EditorConfig.readConfiguration fsharpFile.FSharpFile
 
     Assert.IsFalse config.NewlineBeforeMultilineComputationExpression
+
+[<Test>]
+let fsharp_stroustrup_final_list_arguments () =
+    let rootDir = tempName ()
+
+    let editorConfig =
+        """
+[*.fs]
+fsharp_stroustrup_final_list_arguments = true
+"""
+
+    use configFixture =
+        new ConfigurationFile(defaultConfig, rootDir, content = editorConfig)
+
+    use fsharpFile = new FSharpFile(rootDir)
+
+    let config = EditorConfig.readConfiguration fsharpFile.FSharpFile
+
+    Assert.IsTrue config.StroustrupFinalListArguments

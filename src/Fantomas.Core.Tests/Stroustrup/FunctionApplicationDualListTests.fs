@@ -7,7 +7,7 @@ open Fantomas.Core
 
 let config =
     { config with
-        MultilineBracketStyle = Stroustrup }
+        StroustrupFinalListArguments = true }
 
 [<Test>]
 let ``two short lists`` () =
