@@ -4,6 +4,7 @@
 
 ### Fixed
 * Duplicate newline in else if. [#2752](https://github.com/fsprojects/fantomas/issues/2752)
+* Try-with expression with long when guard - when breaking line, add a double indent when the indent_size is lower than the default 4 spaces. [#2784](https://github.com/fsprojects/fantomas/issues/2784)
 
 ## [5.2.2] - 2023-02-18
 

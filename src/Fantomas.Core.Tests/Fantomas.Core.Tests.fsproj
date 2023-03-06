@@ -120,6 +120,7 @@
     <Compile Include="DallasTests.fs" />
     <Compile Include="InlineTests.fs" />
     <Compile Include="ChainTests.fs" />
+    <Compile Include="TryWithTests.fs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Fantomas.Core\Fantomas.Core.fsproj" />

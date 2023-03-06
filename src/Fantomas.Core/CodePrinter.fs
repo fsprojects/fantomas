@@ -1346,7 +1346,19 @@ let genExpr (e: Expr) =
                     onlyIfCtx (fun ctx -> linesAfter > linesBefore || hasWriteBeforeNewlineContent ctx) sepBar)
             +> genPatInClause clauseNode.Pattern
             +> optSingle
-                (fun e -> !- " when" +> sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth (genExpr e))
+                (fun e ->
+                    !- " when"
+                    +> expressionFitsOnRestOfLine (sepSpace +> genExpr e) (fun ctx ->
+                        // See https://github.com/fsprojects/fantomas/issues/2784
+                        let doubleIndent = ctx.Config.IndentSize < 4
+
+                        (indent
+                         +> onlyIf doubleIndent indent
+                         +> sepNln
+                         +> genExpr e
+                         +> unindent
+                         +> onlyIf doubleIndent unindent)
+                            ctx))
                 clauseNode.WhenExpr
             +> sepSpace
             +> genSingleTextNodeWithSpaceSuffix sepSpace clauseNode.Arrow
