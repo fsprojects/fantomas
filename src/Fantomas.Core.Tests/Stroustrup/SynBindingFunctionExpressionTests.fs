@@ -334,3 +334,32 @@ let inline skipNoFail count (source: seq<_>) =
     Enumerable.Skip(source, count)
 #endif
 """
+
+[<Test>]
+let ``should use stroustrup style for list application when stroustrup is enabled`` () =
+    formatSourceString
+        false
+        """
+module internal Plan =
+    let canDoSomething =
+        Validation.any
+            [
+                Validation.someValidationLogicHere
+                Validation.someMoreValidationLogicHere
+                Validation.evenMoreLomethingOrOther
+            ]
+
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+module internal Plan =
+    let canDoSomething =
+        Validation.any [
+            Validation.someValidationLogicHere
+            Validation.someMoreValidationLogicHere
+            Validation.evenMoreLomethingOrOther
+        ]
+"""
