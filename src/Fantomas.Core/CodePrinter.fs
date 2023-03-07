@@ -3246,9 +3246,7 @@ let genTypeDefn (td: TypeDefn) =
                 +> genSingleTextNode node.ClosingBrace
 
             let genMembers =
-                onlyIf hasMembers sepNln
-                +> sepNlnBetweenTypeAndMembers typeDefnNode
-                +> genMemberDefnList members
+                onlyIf hasMembers (sepNln +> sepNlnBetweenTypeAndMembers typeDefnNode +> genMemberDefnList members)
 
             let anyFieldHasXmlDoc =
                 List.exists (fun (fieldNode: FieldNode) -> fieldNode.XmlDoc.IsSome) node.Fields
@@ -3267,8 +3265,7 @@ let genTypeDefn (td: TypeDefn) =
 
                 genAccessOpt node.Accessibility
                 +> genRecordFields
-                +> onlyIf hasMembers (sepSpace +> withKw +> indent)
-                +> genMembers
+                +> onlyIf hasMembers (sepSpace +> withKw +> indent +> genMembers +> unindent)
 
             let cramped =
                 sepNlnUnlessLastEventIsNewline
