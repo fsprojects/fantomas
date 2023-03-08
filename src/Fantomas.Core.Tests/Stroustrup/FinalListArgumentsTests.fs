@@ -7,7 +7,7 @@ open Fantomas.Core
 
 let config =
     { config with
-        StroustrupFinalListArguments = true }
+        StroustrupFinalListArguments = Some true }
 
 [<Test>]
 let ``input without attributes`` () =
@@ -1447,4 +1447,68 @@ let stillCramped =
       x
       y
       z ]
+"""
+
+[<Test>]
+let ``can opt out of stroustrup list arguments when stroustrup is enabled globally`` () =
+    formatSourceString
+        false
+        """
+type Point =
+    {
+        /// Great comment
+        X: int
+        Y: int
+    }
+
+type Model = {
+    Points: Point list
+}
+
+let doSomething model =
+    foo
+        [
+            bar
+                [
+                    for p in model.Points do
+                        sprintf $"%i{p.X}, %i{p.Y}"
+                ]
+        ]
+
+let stillStroustrup = [
+    // yow
+    x ; y ; z
+]
+"""
+        { config with
+            MultilineBracketStyle = Stroustrup
+            StroustrupFinalListArguments = Some false }
+    |> prepend newline
+    |> should
+        equal
+        """
+type Point = {
+    /// Great comment
+    X: int
+    Y: int
+}
+
+type Model = { Points: Point list }
+
+let doSomething model =
+    foo
+        [
+            bar
+                [
+                    for p in model.Points do
+                        sprintf $"%i{p.X}, %i{p.Y}"
+                ]
+        ]
+
+let stillStroustrup = [
+    // yow
+    x
+    y
+    z
+]
 """

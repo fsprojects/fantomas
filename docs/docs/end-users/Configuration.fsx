@@ -904,7 +904,7 @@ let singleList =
         ]
     """
     { FormatConfig.Default with
-        StroustrupFinalListArguments = true }
+        StroustrupFinalListArguments = Some true }
 (*** include-output ***)
 
 (**

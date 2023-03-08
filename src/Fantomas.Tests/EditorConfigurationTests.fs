@@ -540,4 +540,4 @@ fsharp_stroustrup_final_list_arguments = true
 
     let config = EditorConfig.readConfiguration fsharpFile.FSharpFile
 
-    Assert.IsTrue config.StroustrupFinalListArguments
+    config.StroustrupFinalListArguments == Some true

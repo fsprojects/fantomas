@@ -227,7 +227,7 @@ type FormatConfig =
 
       [<Category("Convention")>]
       [<DisplayName("Applies the Stroustrup style to the final (two) array or list argument(s) in a function application")>]
-      StroustrupFinalListArguments: bool
+      StroustrupFinalListArguments: bool option
 
       [<Category("Convention")>]
       [<DisplayName("Strict mode")>]
@@ -235,6 +235,13 @@ type FormatConfig =
       StrictMode: bool }
 
     member x.IsStroustrupStyle = x.MultilineBracketStyle = Stroustrup
+
+    member x.UseStroustrupListArguments =
+        match x.IsStroustrupStyle, x.StroustrupFinalListArguments with
+        | false, None
+        | _, Some false -> false
+        | _, Some true
+        | true, None -> true
 
     static member Default =
         { IndentSize = 4
@@ -273,5 +280,5 @@ type FormatConfig =
           MultilineBracketStyle = Cramped
           KeepMaxNumberOfBlankLines = 100
           NewlineBeforeMultilineComputationExpression = true
-          StroustrupFinalListArguments = false
+          StroustrupFinalListArguments = None
           StrictMode = false }

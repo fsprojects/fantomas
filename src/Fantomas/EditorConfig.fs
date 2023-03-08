@@ -70,10 +70,19 @@ let private (|BracketStyle|_|) bs = MultilineBracketStyle.OfConfigString bs
 
 let private (|EndOfLineStyle|_|) eol = EndOfLineStyle.OfConfigString eol
 
-let private (|Boolean|_|) b =
-    if b = "true" then Some(box true)
-    elif b = "false" then Some(box false)
-    else None
+let private (|Boolean|_|) editorConfigName b =
+    let isOptional = editorConfigName = "fsharp_stroustrup_final_list_arguments"
+
+    if isOptional then
+        match b with
+        | "true" -> Some(box (Some true))
+        | "false" -> Some(box (Some false))
+        | _ -> None
+    else
+        match b with
+        | "true" -> Some(box true)
+        | "false" -> Some(box false)
+        | _ -> None
 
 let parseOptionsFromEditorConfig
     (fallbackConfig: FormatConfig)
@@ -83,7 +92,7 @@ let parseOptionsFromEditorConfig
     |> Array.map (fun (editorConfigName, defaultValue) ->
         match editorConfigProperties.TryGetValue(editorConfigName) with
         | true, Number n -> n
-        | true, Boolean b -> b
+        | true, Boolean editorConfigName b -> b
         | true, MultilineFormatterType mft -> box mft
         | true, EndOfLineStyle eol -> box eol
         | true, BracketStyle bs -> box bs

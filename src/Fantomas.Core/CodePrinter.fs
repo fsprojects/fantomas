@@ -2143,9 +2143,9 @@ let genFunctionNameWithMultilineLids (trailing: Context -> Context) (longIdent: 
     |> genNode parentNode
 
 let (|EndsWithDualListApp|_|) (config: FormatConfig) (appNode: ExprAppNode) =
-    match config.IsStroustrupStyle, config.StroustrupFinalListArguments with
-    | false, false -> None
-    | _ ->
+    if not config.UseStroustrupListArguments then
+        None
+    else
         let mutable otherArgs = ListCollector<Expr>()
 
         let rec visit (args: Expr list) =
@@ -2159,9 +2159,9 @@ let (|EndsWithDualListApp|_|) (config: FormatConfig) (appNode: ExprAppNode) =
         visit appNode.Arguments
 
 let (|EndsWithSingleListApp|_|) (config: FormatConfig) (appNode: ExprAppNode) =
-    match config.IsStroustrupStyle, config.StroustrupFinalListArguments with
-    | false, false -> None
-    | _ ->
+    if not config.UseStroustrupListArguments then
+        None
+    else
         let mutable otherArgs = ListCollector<Expr>()
 
         let rec visit (args: Expr list) =
