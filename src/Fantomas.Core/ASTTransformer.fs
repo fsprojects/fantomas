@@ -2975,7 +2975,10 @@ let mkModuleSigDecl (creationAide: CreationAide) (decl: SynModuleSigDecl) =
         )
         |> ModuleDecl.Exception
     | SynModuleSigDecl.ModuleAbbrev(ident, lid, StartRange 6 (mModule, _)) ->
-        ModuleAbbrevNode(stn "module" mModule, mkIdent ident, mkLongIdent lid, declRange)
+        let alias = mkLongIdent lid
+        let m = unionRanges mModule alias.Range
+
+        ModuleAbbrevNode(stn "module" mModule, mkIdent ident, alias, m)
         |> ModuleDecl.ModuleAbbrev
     | SynModuleSigDecl.NestedModule(SynComponentInfo(ats, _, _, lid, px, _, ao, _),
                                     isRecursive,

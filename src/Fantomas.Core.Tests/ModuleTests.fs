@@ -1069,3 +1069,40 @@ module Graph =
 module Graph =
     begin end
 """
+
+[<Test>]
+let ``module abbreviation followed by nested module, 2792`` () =
+    formatSourceString
+        true
+        """
+module Foo
+
+open System
+open System.Text
+
+module A = B
+
+module Bar =
+    type a =
+        | Ex
+        | Why
+        | Zed
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+module Foo
+
+open System
+open System.Text
+
+module A = B
+
+module Bar =
+    type a =
+        | Ex
+        | Why
+        | Zed
+"""

@@ -1,5 +1,10 @@
 # Changelog
 
+## [Unreleased]
+
+### Fixed
+* Idempotency problem with module abbreviation in signature file. [#2792](https://github.com/fsprojects/fantomas/issues/2792)
+
 ## [5.2.3] - 2023-03-06
 
 ### Fixed
