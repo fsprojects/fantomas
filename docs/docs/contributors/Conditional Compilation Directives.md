@@ -136,7 +136,7 @@ Each result should have the same amount of fragments before we can merge them to
 If this is not the case, it means that somewhere a trivia was not properly restored.
 
 If the number of fragments add up in each tree, then we merge two trees by reducing both lists and comparing each fragment.  
-We always take the longest fragment and thus picking the actual code as seen by the programmer.
+We always take the longest fragment and thus picking the active code.
 
 ```fsharp
 // fragments of []
