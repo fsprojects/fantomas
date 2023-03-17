@@ -1,9 +1,12 @@
 # Changelog
 
-## [Unreleased]
+## [5.2.4] - 2023-03-17
 
 ### Fixed
 * Idempotency problem with module abbreviation in signature file. [#2792](https://github.com/fsprojects/fantomas/issues/2792)
+
+### Changed
+* Update FCS to 'Fix range for ModuleAbbrev...', commit 62dfce601573f44779b9c890e8944826f5ccfef0
 
 ## [5.2.3] - 2023-03-06
 
