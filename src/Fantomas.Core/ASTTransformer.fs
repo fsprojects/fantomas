@@ -970,7 +970,7 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
 
         ExprRecordNode(stn "{" mOpen, extra, fieldNodes, stn "}" mClose, exprRange)
         |> Expr.Record
-    | SynExpr.AnonRecd(isStruct, copyInfo, recordFields, StartEndRange 2 (mOpen, _, mClose)) ->
+    | SynExpr.AnonRecd(isStruct, copyInfo, recordFields, EndRange 2 (mClose, _), trivia) ->
         let fields =
             recordFields
             |> List.choose (function
@@ -981,7 +981,7 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
 
         ExprAnonRecordNode(
             isStruct,
-            stn "{|" mOpen,
+            stn "{|" trivia.OpeningBraceRange,
             Option.map (fst >> mkExpr creationAide) copyInfo,
             fields,
             stn "|}" mClose,
