@@ -298,6 +298,7 @@ graph TD
 <h2><a name="Merging-the-trees" class="anchor" href="#Merging-the-trees">Merging the trees</a></h2>
 <p>Once every tree is formatted, we chop each file into fragments.
 A fragment is everything between a conditional directive <code>#if | #else | #endif</code> or an actual directive.<br />
+This means fragments can also be empty strings.
 Each result should have the same amount of fragments before we can merge them together.
 If this is not the case, it means that somewhere a trivia was not properly restored.</p>
 <p>If the number of fragments add up in each tree, then we merge two trees by reducing both lists and comparing each fragment.<br />
