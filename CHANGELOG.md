@@ -1,5 +1,13 @@
 # Changelog
 
+## [6.0.0-alpha-006] - 2023-03-17
+
+### Fixed
+* Record member declarations can break with Stroustrup enabled. [#2787](https://github.com/fsprojects/fantomas/issues/2787)
+
+### Changed
+* Add `fsharp_experimental_elmish` setting. [#2795](https://github.com/fsprojects/fantomas/pull/2795)
+
 ## [6.0.0-alpha-005] - 2023-02-24
 
 ### Changed
