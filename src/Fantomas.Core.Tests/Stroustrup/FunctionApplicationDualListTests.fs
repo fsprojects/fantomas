@@ -7,7 +7,7 @@ open Fantomas.Core
 
 let config =
     { config with
-        StroustrupFinalListArguments = true }
+        ExperimentalElmish = true }
 
 [<Test>]
 let ``two short lists`` () =

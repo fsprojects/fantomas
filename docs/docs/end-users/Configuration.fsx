@@ -869,9 +869,10 @@ formatCode
 (*** include-output ***)
 
 (**
-<fantomas-setting name="fsharp_stroustrup_final_list_arguments" orange></fantomas-setting>
+<fantomas-setting name="fsharp_experimental_elmish" orange></fantomas-setting>
 
-Applies the Stroustrup style to the final (two) array or list argument(s) in a function application.
+Applies the Stroustrup style to the final (two) array or list argument(s) in a function application.  
+Note that this behaviour is also active when `fsharp_multiline_bracket_style = stroustrup`.
 
 Default = false
 *)
@@ -904,7 +905,7 @@ let singleList =
         ]
     """
     { FormatConfig.Default with
-        StroustrupFinalListArguments = true }
+        ExperimentalElmish = true }
 (*** include-output ***)
 
 (**

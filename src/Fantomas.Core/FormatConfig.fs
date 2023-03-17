@@ -227,7 +227,7 @@ type FormatConfig =
 
       [<Category("Convention")>]
       [<DisplayName("Applies the Stroustrup style to the final (two) array or list argument(s) in a function application")>]
-      StroustrupFinalListArguments: bool
+      ExperimentalElmish: bool
 
       [<Category("Convention")>]
       [<DisplayName("Strict mode")>]
@@ -273,5 +273,5 @@ type FormatConfig =
           MultilineBracketStyle = Cramped
           KeepMaxNumberOfBlankLines = 100
           NewlineBeforeMultilineComputationExpression = true
-          StroustrupFinalListArguments = false
+          ExperimentalElmish = false
           StrictMode = false }

@@ -1,4 +1,4 @@
-﻿module Fantomas.Core.Tests.Stroustrup.FinalListArgumentsTests
+﻿module Fantomas.Core.Tests.Stroustrup.ExperimentalElmish
 
 open NUnit.Framework
 open FsUnit
@@ -7,7 +7,7 @@ open Fantomas.Core
 
 let config =
     { config with
-        StroustrupFinalListArguments = true }
+        ExperimentalElmish = true }
 
 [<Test>]
 let ``input without attributes`` () =
@@ -1447,4 +1447,71 @@ let stillCramped =
       x
       y
       z ]
+"""
+
+[<Test>]
+let ``fsharp_multiline_bracket_style = stroustrup also applies for applications that ends with list arguments`` () =
+    formatSourceString
+        false
+        """
+type Point =
+    {
+        /// Great comment
+        X: int
+        Y: int
+    }
+
+type Model = {
+    Points: Point list
+}
+    
+let view dispatch model =
+    div
+        []
+        [
+            h1 [] [ str "Some title" ]
+            ul
+                []
+                [
+                    for p in model.Points do
+                        li [] [ str $"%i{p.X}, %i{p.Y}" ]
+                ]
+            hr []
+        ]
+        
+let alsoStroup = [
+    // yow
+    x ; y ; z
+]
+"""
+        { FormatConfig.Default with
+            MultilineBracketStyle = Stroustrup }
+    |> prepend newline
+    |> should
+        equal
+        """
+type Point = {
+    /// Great comment
+    X: int
+    Y: int
+}
+
+type Model = { Points: Point list }
+
+let view dispatch model =
+    div [] [
+        h1 [] [ str "Some title" ]
+        ul [] [
+            for p in model.Points do
+                li [] [ str $"%i{p.X}, %i{p.Y}" ]
+        ]
+        hr []
+    ]
+
+let alsoStroup = [
+    // yow
+    x
+    y
+    z
+]
 """

@@ -2143,7 +2143,7 @@ let genFunctionNameWithMultilineLids (trailing: Context -> Context) (longIdent: 
     |> genNode parentNode
 
 let (|EndsWithDualListApp|_|) (config: FormatConfig) (appNode: ExprAppNode) =
-    if not config.StroustrupFinalListArguments then
+    if not (config.ExperimentalElmish || config.IsStroustrupStyle) then
         None
     else
         let mutable otherArgs = ListCollector<Expr>()
@@ -2159,7 +2159,7 @@ let (|EndsWithDualListApp|_|) (config: FormatConfig) (appNode: ExprAppNode) =
         visit appNode.Arguments
 
 let (|EndsWithSingleListApp|_|) (config: FormatConfig) (appNode: ExprAppNode) =
-    if not config.StroustrupFinalListArguments then
+    if not (config.ExperimentalElmish || config.IsStroustrupStyle) then
         None
     else
         let mutable otherArgs = ListCollector<Expr>()
