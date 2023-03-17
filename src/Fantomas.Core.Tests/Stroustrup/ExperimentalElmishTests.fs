@@ -1,4 +1,4 @@
-﻿module Fantomas.Core.Tests.Stroustrup.ExperimentalElmish
+﻿module Fantomas.Core.Tests.Stroustrup.ExperimentalElmishTests
 
 open NUnit.Framework
 open FsUnit
