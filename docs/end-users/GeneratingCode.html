@@ -123,6 +123,9 @@
 <li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/Pull request ground rules.html" class="nav-link pb-2 d-block" > Pull request ground rules
 </a></li>
 
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/Updating the compiler.html" class="nav-link pb-2 d-block" > Updating the compiler sources
+</a></li>
+
 <li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/contributors/Releases.html" class="nav-link pb-2 d-block" > Releases
 </a></li>
 
@@ -309,16 +312,14 @@ Example usage:</p>
                    PreXmlDoc ((1,0), FSharp.Compiler.Xml.XmlDocCollector),
                    SynValData
                      (None, SynValInfo ([], SynArgInfo ([], false, None)), None),
-                   Named (SynIdent (a, None), false, None, tmp.fsx (1,4--1,5)),
-                   None, Const (Int32 1, tmp.fsx (1,8--1,9)), tmp.fsx (1,4--1,5),
-                   Yes tmp.fsx (1,0--1,9),
-                   { LeadingKeyword = Let tmp.fsx (1,0--1,3)
+                   Named (SynIdent (a, None), false, None, (1,4--1,5)), None,
+                   Const (Int32 1, (1,8--1,9)), (1,4--1,5), Yes (1,0--1,9),
+                   { LeadingKeyword = Let (1,0--1,3)
                      InlineKeyword = None
-                     EqualsRange = Some tmp.fsx (1,6--1,7) })],
-               tmp.fsx (1,0--1,9))], PreXmlDocEmpty, [], None,
-           tmp.fsx (1,0--1,9), { LeadingKeyword = None })], (false, false),
-       { ConditionalDirectives = []
-         CodeComments = [] }, set [])), [])</code></pre></td></tr></table>
+                     EqualsRange = Some (1,6--1,7) })], (1,0--1,9))],
+           PreXmlDocEmpty, [], None, (1,0--1,9), { LeadingKeyword = None })],
+       (false, false), { ConditionalDirectives = []
+                         CodeComments = [] }, set [])), [])</code></pre></td></tr></table>
 <h2><a name="Tips-and-tricks" class="anchor" href="#Tips-and-tricks">Tips and tricks</a></h2>
 <h3><a name="Online-tool" class="anchor" href="#Online-tool">Online tool</a></h3>
 <p>The syntax tree can have an overwhelming type hierarchy.<br />
@@ -661,7 +662,7 @@ type SynModuleOrNamespaceKind =
   | Const of constant: SynConst * range: range
   | Typed of expr: SynExpr * targetType: SynType * range: range
   | Tuple of isStruct: bool * exprs: SynExpr list * commaRanges: range list * range: range
-  | AnonRecd of isStruct: bool * copyInfo: (SynExpr * BlockSeparator) option * recordFields: (Ident * range option * SynExpr) list * range: range
+  | AnonRecd of isStruct: bool * copyInfo: (SynExpr * BlockSeparator) option * recordFields: (Ident * range option * SynExpr) list * range: range * trivia: SynExprAnonRecdTrivia
   | ArrayOrList of isArray: bool * exprs: SynExpr list * range: range
   | Record of baseInfo: (SynType * SynExpr * range * BlockSeparator option * range) option * copyInfo: (SynExpr * BlockSeparator) option * recordFields: SynExprRecordField list * range: range
   | New of isProtected: bool * targetType: SynType * expr: SynExpr * range: range

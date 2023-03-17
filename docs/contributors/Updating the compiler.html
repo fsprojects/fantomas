@@ -5,7 +5,8 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
   <meta name="author" content="Florian Verdonck, Jindřich Ivánek, David Schaefer">
-  <title>DiagnosticStyle (fantomas)</title>
+  <title>Updating the compiler sources
+</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,600;1,400&family=Reem+Kufi:wght@400;500;700&display=swap" rel="stylesheet">
@@ -193,248 +194,31 @@
         </div>
       </nav>
       <div id="fsdocs-content" class="bg-white m-2 m-sm-5 p-3 p-sm-4">
-        <div>
-  <h2>
-    DiagnosticStyle Type
-  </h2>
-  <dl class="fsdocs-metadata">
-    <dt>
-      Namespace: 
-      <a href="https://fsprojects.github.io/fantomas/reference/fsharp-compiler.html">
-        FSharp.Compiler
-      </a>
-    </dt>
-    <dt>
-      Assembly: Fantomas.FCS.dll
-    </dt>
-    <dt>
-      Parent Module: 
-      <a href="https://fsprojects.github.io/fantomas/reference/fsharp-compiler-diagnosticslogger.html">
-        DiagnosticsLogger
-      </a>
-    </dt>
-    <dt>
-      Base Type: 
-      <code>obj</code>
-    </dt>
-    <dt>
-      All Interfaces: 
-      <code><a href="https://docs.microsoft.com/dotnet/api/system.collections.istructuralequatable">IStructuralEquatable</a></code>
-      , 
-      <code><span><a href="https://docs.microsoft.com/dotnet/api/system.icomparable-1">IComparable</a>&lt;<a href="https://fsprojects.github.io/fantomas/reference/fsharp-compiler-diagnosticslogger-diagnosticstyle.html">DiagnosticStyle</a>&gt;</span></code>
-      , 
-      <code><a href="https://docs.microsoft.com/dotnet/api/system.icomparable">IComparable</a></code>
-      , 
-      <code><a href="https://docs.microsoft.com/dotnet/api/system.collections.istructuralcomparable">IStructuralComparable</a></code>
-    </dt>
-  </dl>
-  <div class="fsdocs-xmldoc">
-    <div>
-      <p class="fsdocs-summary">
         
- Represents the style being used to format errors
+<h1><a name="Updating-the-compiler-sources" class="anchor" href="#Updating-the-compiler-sources">Updating the compiler sources</a></h1>
+<p>From time to time we want to update the sources of the F# compiler we use for our own parser (Fantomas.FCS).<br />
+Reasons can be bugfixes or new features we want to use.
+Examples are range fixes or newly added information in the AST we want to make use of.</p>
+<p>To do this, first remove the old compiler sources by running:</p>
+<table class="pre"><tr><td class="snippet"><pre class="fssnip"><code lang="shell">git clean -xdf
+</code></pre></td></tr></table>
+<p>Make sure, that this removes your <code>.deps</code> folder.<br />
+Next update the hash of the source version to use. Edit the <code>FCSCommitHash</code> value in the <code>Directory.Build.props</code> file.
+Run</p>
+<table class="pre"><tr><td class="snippet"><pre class="fssnip"><code lang="shell">dotnet fsi .\build.fsx -p Init
+</code></pre></td></tr></table>
+<p>to download the new sources into the <code>.deps</code> folder. Make sure there's one directory in <code>.deps</code> named like the configured hash afterwards.</p>
+<p>You can now run a build to see if there is any obvious breakage:</p>
+<table class="pre"><tr><td class="snippet"><pre class="fssnip"><code lang="shell">dotnet build
+</code></pre></td></tr></table>
+<p>If not, you can run the <code>Fantomas.Core</code> tests next</p>
+<table class="pre"><tr><td class="snippet"><pre class="fssnip"><code lang="shell">cd ./src/Fantomas.Core.Tests
+dotnet test
+</code></pre></td></tr></table>
+<p>Even if the tests are all green you should take a look at all the changes made to the <a href="https://github.com/dotnet/fsharp/commits/main/src/Compiler/SyntaxTree">SyntaxTree</a> and make sure these changes don't need further adjustments in Fantomas.</p>
+<p>Think about tests to catch any regressions caused by the update and it's effects on Fantomas.</p>
+<fantomas-nav previous="./Pull%20request%20ground%20rules.html" next="./Releases.html"></fantomas-nav>
 
-      </p>
-    </div>
-  </div>
-  <div></div>
-  <div></div>
-  <div></div>
-  <div>
-    <h3>
-      Union cases
-    </h3>
-    <table class="table outer-list fsdocs-member-list">
-      <thead>
-        <tr>
-          <td class="fsdocs-member-list-header">
-            Union case
-          </td>
-          <td class="fsdocs-member-list-header">
-            Description
-          </td>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td class="fsdocs-member-usage">
-            <div>
-              <code onmouseout="hideTip(event, '3308', 3308)" onmouseover="showTip(event, '3308', 3308)">
-                <p>
-                  <a id="Default">
-                    <a href="#Default">
-                      <code><span>Default</span></code>
-                    </a>
-                  </a>
-                </p>
-              </code>
-              <div class="fsdocs-tip" id="3308">
-                <div class="member-tooltip">
-                  Full Usage: 
-                  <code><span>Default</span></code>
-                  <br/>
-                  <br/>
-                </div>
-              </div>
-            </div>
-          </td>
-          <td class="fsdocs-member-xmldoc">
-            <div class="fsdocs-summary">
-              <a href="" class="fsdocs-source-link" title="Source on GitHub">
-                <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
-                <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
-              </a>
-              <p class="fsdocs-summary">
-                
-              </p>
-            </div>
-          </td>
-        </tr>
-        <tr>
-          <td class="fsdocs-member-usage">
-            <div>
-              <code onmouseout="hideTip(event, '3309', 3309)" onmouseover="showTip(event, '3309', 3309)">
-                <p>
-                  <a id="Emacs">
-                    <a href="#Emacs">
-                      <code><span>Emacs</span></code>
-                    </a>
-                  </a>
-                </p>
-              </code>
-              <div class="fsdocs-tip" id="3309">
-                <div class="member-tooltip">
-                  Full Usage: 
-                  <code><span>Emacs</span></code>
-                  <br/>
-                  <br/>
-                </div>
-              </div>
-            </div>
-          </td>
-          <td class="fsdocs-member-xmldoc">
-            <div class="fsdocs-summary">
-              <a href="" class="fsdocs-source-link" title="Source on GitHub">
-                <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
-                <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
-              </a>
-              <p class="fsdocs-summary">
-                
-              </p>
-            </div>
-          </td>
-        </tr>
-        <tr>
-          <td class="fsdocs-member-usage">
-            <div>
-              <code onmouseout="hideTip(event, '3310', 3310)" onmouseover="showTip(event, '3310', 3310)">
-                <p>
-                  <a id="Gcc">
-                    <a href="#Gcc">
-                      <code><span>Gcc</span></code>
-                    </a>
-                  </a>
-                </p>
-              </code>
-              <div class="fsdocs-tip" id="3310">
-                <div class="member-tooltip">
-                  Full Usage: 
-                  <code><span>Gcc</span></code>
-                  <br/>
-                  <br/>
-                </div>
-              </div>
-            </div>
-          </td>
-          <td class="fsdocs-member-xmldoc">
-            <div class="fsdocs-summary">
-              <a href="" class="fsdocs-source-link" title="Source on GitHub">
-                <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
-                <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
-              </a>
-              <p class="fsdocs-summary">
-                
-              </p>
-            </div>
-          </td>
-        </tr>
-        <tr>
-          <td class="fsdocs-member-usage">
-            <div>
-              <code onmouseout="hideTip(event, '3311', 3311)" onmouseover="showTip(event, '3311', 3311)">
-                <p>
-                  <a id="Test">
-                    <a href="#Test">
-                      <code><span>Test</span></code>
-                    </a>
-                  </a>
-                </p>
-              </code>
-              <div class="fsdocs-tip" id="3311">
-                <div class="member-tooltip">
-                  Full Usage: 
-                  <code><span>Test</span></code>
-                  <br/>
-                  <br/>
-                </div>
-              </div>
-            </div>
-          </td>
-          <td class="fsdocs-member-xmldoc">
-            <div class="fsdocs-summary">
-              <a href="" class="fsdocs-source-link" title="Source on GitHub">
-                <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
-                <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
-              </a>
-              <p class="fsdocs-summary">
-                
-              </p>
-            </div>
-          </td>
-        </tr>
-        <tr>
-          <td class="fsdocs-member-usage">
-            <div>
-              <code onmouseout="hideTip(event, '3312', 3312)" onmouseover="showTip(event, '3312', 3312)">
-                <p>
-                  <a id="VisualStudio">
-                    <a href="#VisualStudio">
-                      <code><span>VisualStudio</span></code>
-                    </a>
-                  </a>
-                </p>
-              </code>
-              <div class="fsdocs-tip" id="3312">
-                <div class="member-tooltip">
-                  Full Usage: 
-                  <code><span>VisualStudio</span></code>
-                  <br/>
-                  <br/>
-                </div>
-              </div>
-            </div>
-          </td>
-          <td class="fsdocs-member-xmldoc">
-            <div class="fsdocs-summary">
-              <a href="" class="fsdocs-source-link" title="Source on GitHub">
-                <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
-                <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
-              </a>
-              <p class="fsdocs-summary">
-                
-              </p>
-            </div>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-  <div></div>
-  <div></div>
-  <div></div>
-  <div></div>
-  <div></div>
-</div>
         
       </div>
         <div id="push"></div>
