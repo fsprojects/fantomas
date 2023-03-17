@@ -6,14 +6,14 @@ open Fantomas.Core.Tests.TestHelper
 
 [<Test>]
 let ``attribute above extern keyword, 562`` () =
-    formatSourceString
+    formatAST
         false
         """
 module C =
   [<DllImport("")>]
   extern IntPtr f()
 """
-        { config with StrictMode = true }
+        config
     |> prepend newline
     |> should
         equal

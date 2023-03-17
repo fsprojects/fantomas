@@ -227,12 +227,7 @@ type FormatConfig =
 
       [<Category("Convention")>]
       [<DisplayName("Applies the Stroustrup style to the final (two) array or list argument(s) in a function application")>]
-      ExperimentalElmish: bool
-
-      [<Category("Convention")>]
-      [<DisplayName("Strict mode")>]
-      [<Description("Pretty printing based on ASTs only.\nPlease do not use this setting for formatting hand written code!")>]
-      StrictMode: bool }
+      ExperimentalElmish: bool }
 
     member x.IsStroustrupStyle = x.MultilineBracketStyle = Stroustrup
 
@@ -273,5 +268,4 @@ type FormatConfig =
           MultilineBracketStyle = Cramped
           KeepMaxNumberOfBlankLines = 100
           NewlineBeforeMultilineComputationExpression = true
-          ExperimentalElmish = false
-          StrictMode = false }
+          ExperimentalElmish = false }

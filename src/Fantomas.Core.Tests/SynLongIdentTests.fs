@@ -401,7 +401,6 @@ let ``backticks can be added from AST only scenarios`` () =
         tree,
         config =
             { config with
-                StrictMode = true
                 InsertFinalNewline = false }
     )
     |> Async.RunSynchronously

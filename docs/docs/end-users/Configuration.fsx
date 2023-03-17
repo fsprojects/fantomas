@@ -909,32 +909,6 @@ let singleList =
 (*** include-output ***)
 
 (**
-<fantomas-setting name="fsharp_strict_mode" red></fantomas-setting>
-
-If being set, pretty printing is only done via ASTs. Compiler directives, inline comments and block comments will be ignored.  
-There are numerous situations when the information in the AST alone cannot restore the original code.
-
-**Please do not use this setting for formatting hand written code!**
-
-Valid use-case of this settings is code generation in projects like [FsAst](https://github.com/ionide/FsAst) and [Myriad](https://github.com/MoiraeSoftware/myriad).
-
-Default = false.
-*)
-
-formatCode
-    """ 
-    // some great comment
-    let add a b =
-    #if INTERACTIVE
-        42
-    #else
-        a + b
-    #endif
-    """
-    { FormatConfig.Default with
-        StrictMode = true }
-(*** include-output ***)
-(**
 <fantomas-nav previous="./StyleGuide.html" next="./IgnoreFiles.html"></fantomas-nav>
 
 *)

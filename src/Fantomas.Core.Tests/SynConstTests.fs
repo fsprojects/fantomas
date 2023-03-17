@@ -705,12 +705,12 @@ a:hover {color: #ecc;}
 
 [<Test>]
 let ``verbatim string in AST is preserved, 560`` () =
-    formatSourceString
+    formatAST
         false
         """
 let s = @"\"
 """
-        { config with StrictMode = true }
+        config
     |> prepend newline
     |> should
         equal
