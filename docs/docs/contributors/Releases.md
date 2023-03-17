@@ -1,7 +1,7 @@
 ---
 category: Contributors
 categoryindex: 2
-index: 12
+index: 13
 ---
 # Releases
 
@@ -77,4 +77,4 @@ Upload the `*.nupkg` files to the release artifacts.
 Share the newly created release on our Discord server in the `#announcements` channel.  
 Optionally share (minor or major) releases on other social media. 
 
-<fantomas-nav previous="./Pull%20request%20ground%20rules.html" next="./Glossary.html"></fantomas-nav>
+<fantomas-nav previous="./Updating%20the%20compiler.html" next="./Glossary.html"></fantomas-nav>
