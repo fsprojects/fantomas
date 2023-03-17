@@ -530,7 +530,7 @@ let fsharp_stroustrup_final_list_arguments () =
     let editorConfig =
         """
 [*.fs]
-fsharp_stroustrup_final_list_arguments = true
+fsharp_experimental_elmish = true
 """
 
     use configFixture =
@@ -540,4 +540,4 @@ fsharp_stroustrup_final_list_arguments = true
 
     let config = EditorConfig.readConfiguration fsharpFile.FSharpFile
 
-    Assert.IsTrue config.StroustrupFinalListArguments
+    Assert.IsTrue config.ExperimentalElmish

@@ -109,7 +109,7 @@
     <Compile Include="Stroustrup\FunctionApplicationSingleListTests.fs" />
     <Compile Include="Stroustrup\FunctionApplicationDualListTests.fs" />
     <Compile Include="Stroustrup\SynExprAnonRecdStructTests.fs" />
-    <Compile Include="Stroustrup\FinalListArgumentsTests.fs" />
+    <Compile Include="Stroustrup\ExperimentalElmishTests.fs" />
     <Compile Include="IdentTests.fs" />
     <Compile Include="RecordDeclarationsWithXMLDocTests.fs" />
     <Compile Include="MaxIfThenShortWidthTests.fs" />
