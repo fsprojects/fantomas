@@ -131,6 +131,7 @@ let a =
 
 Once every tree is formatted, we chop each file into fragments.
 A fragment is everything between a conditional directive `#if | #else | #endif` or an actual directive.  
+This means fragments can also be empty strings.
 Each result should have the same amount of fragments before we can merge them together.
 If this is not the case, it means that somewhere a trivia was not properly restored.
 
