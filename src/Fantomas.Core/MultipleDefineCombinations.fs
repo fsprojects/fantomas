@@ -35,8 +35,28 @@ type CodeFragment =
         | Content(lineCount = lineCount) -> lineCount
         | NoContent _ -> 0
 
-    override this.Equals _ = false
-    override this.GetHashCode() = Int32.MinValue
+    override x.Equals(other: obj) =
+        match other with
+        | :? CodeFragment as other ->
+            match x, other with
+            | HashLine _ as x, (HashLine _ as other) -> x = other
+            | Content _ as x, (Content _ as other) -> x = other
+            | NoContent _ as x, (NoContent _ as other) -> x = other
+            | _ -> false
+        | _ -> false
+
+    override x.GetHashCode() =
+        match x with
+        | HashLine(line, defineCombination) ->
+            {| line = line
+               defineCombination = defineCombination |}
+                .GetHashCode()
+        | Content(code, lineCount, defines) ->
+            {| code = code
+               lineCount = lineCount
+               defines = defines |}
+                .GetHashCode()
+        | NoContent defines -> {| defines = defines |}.GetHashCode()
 
     interface IComparable with
         member x.CompareTo other =
