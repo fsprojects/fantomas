@@ -57,14 +57,14 @@ pipeline "Build" {
         run (
             cleanFolders
                 [| "bin"
-                   "src/Fantomas.FCS/bin"
-                   "src/Fantomas.FCS/obj"
-                   "src/Fantomas.Core/bin"
-                   "src/Fantomas.Core/obj"
-                   "src/Fantomas/bin"
-                   "src/Fantomas/obj"
-                   "src/Fantomas.Client/bin"
-                   "src/Fantomas.Client/obj" |]
+                   "src/Fantomas.FCS/bin/Release"
+                   "src/Fantomas.FCS/obj/Release"
+                   "src/Fantomas.Core/bin/Release"
+                   "src/Fantomas.Core/obj/Release"
+                   "src/Fantomas/bin/Release"
+                   "src/Fantomas/obj/Release"
+                   "src/Fantomas.Client/bin/Release"
+                   "src/Fantomas.Client/obj/Release" |]
         )
     }
     stage "CheckFormat" { run "dotnet fantomas src docs build.fsx --recurse --check" }

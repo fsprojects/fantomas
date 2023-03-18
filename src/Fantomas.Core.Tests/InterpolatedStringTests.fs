@@ -63,13 +63,13 @@ let s = $\"\"\"%s{text} bar\"\"\"
 
 [<Test>]
 let ``interpolation in strict mode`` () =
-    formatSourceString
+    formatAST
         false
         """
 let text = "foo"
 let s = $"%s{text} bar"
 """
-        { config with StrictMode = true }
+        config
     |> prepend newline
     |> should
         equal
