@@ -75,6 +75,6 @@ fsharp_experimental_stroustrup_style = true
 
 ### Miscellaneous
 - The public API of CodeFormatter no longer uses `FSharpOption<'T>`, instead overloads are now used.
-- `StrictMode` was removed from `FormatConfig`, not passing the source text will in the public API will have the same effect.
+- `StrictMode` was removed from `FormatConfig`, not passing the source text in the public API will have the same effect.
 
 <fantomas-nav previous="./VSCode.html" next="./FAQ.html"></fantomas-nav>
