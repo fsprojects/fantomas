@@ -113,7 +113,7 @@ let g = '\n'
 
 [<Test>]
 let ``uncommon literals strict mode`` () =
-    formatSourceString
+    formatAST
         false
         """
 let a = 0xFFy
@@ -123,7 +123,7 @@ let e = 1.40e10f
 let f = 23.4M
 let g = '\n'
     """
-        { config with StrictMode = true }
+        config
     |> prepend newline
     |> should
         equal
@@ -219,14 +219,14 @@ let ``chars should be properly escaped`` () =
 
 [<Test>]
 let ``quotes should be escaped in strict mode`` () =
-    formatSourceString
+    formatAST
         false
         """
     let formatter =
         // escape commas left in invalid entries
         sprintf "%i,\"%s\""
 """
-        { config with StrictMode = true }
+        config
     |> should
         equal
         """let formatter = sprintf "%i,\"%s\""

@@ -25,15 +25,7 @@ let private safeToIgnoreWarnings =
 
 let formatSourceString isFsiFile (s: string) config =
     async {
-        let! formatted =
-            if not config.StrictMode then
-                CodeFormatter.FormatDocumentAsync(isFsiFile, s, config)
-            else
-                let ast, _ =
-                    Fantomas.FCS.Parse.parseFile isFsiFile (FSharp.Compiler.Text.SourceText.ofString s) []
-
-                CodeFormatter.FormatASTAsync(ast, config = config)
-
+        let! formatted = CodeFormatter.FormatDocumentAsync(isFsiFile, s, config)
         let! isValid = CodeFormatter.IsValidFSharpCodeAsync(isFsiFile, formatted.Code)
 
         if not isValid then
@@ -42,6 +34,22 @@ let formatSourceString isFsiFile (s: string) config =
         return formatted.Code.Replace("\r\n", "\n")
     }
 
+    |> Async.RunSynchronously
+
+/// The `source` will first be parsed to AST.
+let formatAST isFsiFile (source: string) config =
+    async {
+        let ast, _ =
+            Fantomas.FCS.Parse.parseFile isFsiFile (FSharp.Compiler.Text.SourceText.ofString source) []
+
+        let! formatted = CodeFormatter.FormatASTAsync(ast, config = config)
+        let! isValid = CodeFormatter.IsValidFSharpCodeAsync(isFsiFile, formatted.Code)
+
+        if not isValid then
+            failwithf $"The formatted result is not valid F# code or contains warnings\n%s{formatted.Code}"
+
+        return formatted.Code.Replace("\r\n", "\n")
+    }
     |> Async.RunSynchronously
 
 let formatSourceStringWithDefines defines (s: string) config =
@@ -83,11 +91,6 @@ let equal x =
     equal x
 
 let inline prepend s content = s + content
-
-let formatConfig =
-    { FormatConfig.Default with
-        StrictMode = true }
-
 let (==) actual expected = Assert.AreEqual(expected, actual)
 let fail () = Assert.Fail()
 let pass () = Assert.Pass()

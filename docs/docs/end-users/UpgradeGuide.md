@@ -66,6 +66,7 @@ fsharp_experimental_stroustrup_style = true
 - `fsharp_multiline_block_brackets_on_same_column` and `fsharp_experimental_stroustrup_style` are replaced with `fsharp_multiline_bracket_style`
 - `experimental_stroustrup` for `fsharp_multiline_bracket_style` is now `stroustrup`
 - `fsharp_newline_before_multiline_computation_expression` was extracted from `fsharp_multiline_bracket_style = stroustrup` and now controls how computation expression behave.
+- `fsharp_strict_mode` was removed and can no longer be used.
 
 ### console application
 - `-v` is now short for `--verbosity` instead of `--version`
@@ -74,5 +75,6 @@ fsharp_experimental_stroustrup_style = true
 
 ### Miscellaneous
 - The public API of CodeFormatter no longer uses `FSharpOption<'T>`, instead overloads are now used.
+- `StrictMode` was removed from `FormatConfig`, not passing the source text in the public API will have the same effect.
 
 <fantomas-nav previous="./VSCode.html" next="./FAQ.html"></fantomas-nav>

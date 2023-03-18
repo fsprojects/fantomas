@@ -53,14 +53,19 @@ type WriterModel =
 
 [<System.Diagnostics.DebuggerDisplay("\"{Dump()}\"")>]
 type Context =
-    { Config: FormatConfig
-      WriterModel: WriterModel
-      WriterEvents: Queue<WriterEvent>
-      FormattedCursor: pos option }
+    {
+        Config: FormatConfig
+        /// Indicates the presence of source code.
+        /// This could be absent in the case we are formatting from AST.
+        HasSource: bool
+        WriterModel: WriterModel
+        WriterEvents: Queue<WriterEvent>
+        FormattedCursor: pos option
+    }
 
     /// Initialize with a string writer and use space as delimiter
     static member Default: Context
-    static member Create: config: FormatConfig -> Context
+    static member Create: hasSource: bool -> config: FormatConfig -> Context
     member WithDummy: writerCommands: Queue<WriterEvent> * ?keepPageWidth: bool -> Context
     member WithShortExpression: maxWidth: int * ?startColumn: int -> Context
     member Column: int
