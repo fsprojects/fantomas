@@ -33,3 +33,14 @@ let a =
 """
         (3, 7)
     |> assertCursor (1, 11)
+
+[<Test>]
+let ``cursor inside a node between defines`` () =
+    formatWithCursor
+        """
+#if FOO
+    ()
+#endif
+"""
+        (3, 4)
+    |> assertCursor (2, 0)

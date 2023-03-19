@@ -1,6 +1,13 @@
-﻿module internal Fantomas.Core.Defines
+﻿namespace Fantomas.Core
 
-open FSharp.Compiler.SyntaxTrivia
-open Fantomas.Core.SyntaxOak
+type internal DefineCombination =
+    | DefineCombination of defines: string list
 
-val getDefineCombination: hashDirectives: ConditionalDirectiveTrivia list -> DefineCombination list
+    member Value: string list
+
+    static member Empty: DefineCombination
+
+module internal Defines =
+    open FSharp.Compiler.SyntaxTrivia
+
+    val getDefineCombination: hashDirectives: ConditionalDirectiveTrivia list -> DefineCombination list

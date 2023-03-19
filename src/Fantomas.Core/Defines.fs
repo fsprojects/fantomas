@@ -1,8 +1,16 @@
-module internal Fantomas.Core.Defines
+namespace Fantomas.Core
 
 open FSharp.Compiler.SyntaxTrivia
 open Fantomas.Core
-open Fantomas.Core.SyntaxOak
+
+type internal DefineCombination =
+    | DefineCombination of defines: string list
+
+    member x.Value =
+        match x with
+        | DefineCombination defines -> defines
+
+    static member Empty = DefineCombination([])
 
 module private DefineCombinationSolver =
     let rec map f e =
@@ -213,54 +221,57 @@ module private DefineCombinationSolver =
 
         r
 
-let getIndividualDefine (hashDirectives: ConditionalDirectiveTrivia list) : string list list =
-    let rec visit (expr: IfDirectiveExpression) : string list =
-        match expr with
-        | IfDirectiveExpression.Not expr -> visit expr
-        | IfDirectiveExpression.And(e1, e2)
-        | IfDirectiveExpression.Or(e1, e2) -> visit e1 @ visit e2
-        | IfDirectiveExpression.Ident s -> List.singleton s
+module Defines =
 
-    hashDirectives
-    |> List.collect (function
-        | ConditionalDirectiveTrivia.If(expr, _r) -> visit expr
-        | _ -> [])
-    |> List.distinct
-    |> List.map List.singleton
+    let getIndividualDefine (hashDirectives: ConditionalDirectiveTrivia list) : string list list =
+        let rec visit (expr: IfDirectiveExpression) : string list =
+            match expr with
+            | IfDirectiveExpression.Not expr -> visit expr
+            | IfDirectiveExpression.And(e1, e2)
+            | IfDirectiveExpression.Or(e1, e2) -> visit e1 @ visit e2
+            | IfDirectiveExpression.Ident s -> List.singleton s
 
-let getDefineExprs (hashDirectives: ConditionalDirectiveTrivia list) =
-    let result =
-        (([], []), hashDirectives)
-        ||> List.fold (fun (contextExprs, exprAcc) hashLine ->
-            let contextExpr e =
-                e :: contextExprs |> List.reduce (fun x y -> IfDirectiveExpression.And(x, y))
+        hashDirectives
+        |> List.collect (function
+            | ConditionalDirectiveTrivia.If(expr, _r) -> visit expr
+            | _ -> [])
+        |> List.distinct
+        |> List.map List.singleton
 
-            match hashLine with
-            | ConditionalDirectiveTrivia.If(expr, _) -> expr :: contextExprs, contextExpr expr :: exprAcc
-            | ConditionalDirectiveTrivia.Else _ ->
-                contextExprs,
-                IfDirectiveExpression.Not(contextExprs |> List.reduce (fun x y -> IfDirectiveExpression.And(x, y)))
-                :: exprAcc
-            | ConditionalDirectiveTrivia.EndIf _ -> List.tail contextExprs, exprAcc)
-        |> snd
-        |> List.rev
+    let getDefineExprs (hashDirectives: ConditionalDirectiveTrivia list) =
+        let result =
+            (([], []), hashDirectives)
+            ||> List.fold (fun (contextExprs, exprAcc) hashLine ->
+                let contextExpr e =
+                    e :: contextExprs |> List.reduce (fun x y -> IfDirectiveExpression.And(x, y))
 
-    result
+                match hashLine with
+                | ConditionalDirectiveTrivia.If(expr, _) -> expr :: contextExprs, contextExpr expr :: exprAcc
+                | ConditionalDirectiveTrivia.Else _ ->
+                    contextExprs,
+                    IfDirectiveExpression.Not(contextExprs |> List.reduce (fun x y -> IfDirectiveExpression.And(x, y)))
+                    :: exprAcc
+                | ConditionalDirectiveTrivia.EndIf _ -> List.tail contextExprs, exprAcc)
+            |> snd
+            |> List.rev
 
-let satSolveMaxStepsMaxSteps = 100
+        result
 
-let getOptimizedDefinesSets (hashDirectives: ConditionalDirectiveTrivia list) =
-    let defineExprs = getDefineExprs hashDirectives
+    let satSolveMaxStepsMaxSteps = 100
 
-    match
-        DefineCombinationSolver.mergeBoolExprs satSolveMaxStepsMaxSteps defineExprs
-        |> List.map snd
-    with
-    | [] -> [ [] ]
-    | xs -> xs
+    let getOptimizedDefinesSets (hashDirectives: ConditionalDirectiveTrivia list) =
+        let defineExprs = getDefineExprs hashDirectives
 
-let getDefineCombination (hashDirectives: ConditionalDirectiveTrivia list) : DefineCombination list =
-    [ yield [] // always include the empty defines set
-      yield! getOptimizedDefinesSets hashDirectives
-      yield! getIndividualDefine hashDirectives ]
-    |> List.distinct
+        match
+            DefineCombinationSolver.mergeBoolExprs satSolveMaxStepsMaxSteps defineExprs
+            |> List.map snd
+        with
+        | [] -> [ [] ]
+        | xs -> xs
+
+    let getDefineCombination (hashDirectives: ConditionalDirectiveTrivia list) : DefineCombination list =
+        [ yield [] // always include the empty defines set
+          yield! getOptimizedDefinesSets hashDirectives
+          yield! getIndividualDefine hashDirectives ]
+        |> List.distinct
+        |> List.map DefineCombination

@@ -17,7 +17,7 @@ let private getDefines (v: string) =
         | ParsedInput.SigFile(ParsedSigFileInput(trivia = { ConditionalDirectives = directives })) -> directives
 
     getDefineCombination hashDirectives
-    |> List.collect id
+    |> List.collect (fun (DefineCombination(defines)) -> defines)
     |> List.distinct
     |> List.sort
 

@@ -7,7 +7,10 @@ open Fantomas.Core.SyntaxOak
 [<Sealed>]
 type CodeFormatter =
     static member ParseAsync(isSignature, source) : Async<(ParsedInput * string list) array> =
-        CodeFormatterImpl.getSourceText source |> CodeFormatterImpl.parse isSignature
+        async {
+            let! results = CodeFormatterImpl.getSourceText source |> CodeFormatterImpl.parse isSignature
+            return results |> Array.map (fun (ast, DefineCombination(defines)) -> ast, defines)
+        }
 
     static member FormatASTAsync(ast: ParsedInput) : Async<FormatResult> =
         CodeFormatterImpl.formatAST ast None FormatConfig.Default None |> async.Return
@@ -61,7 +64,7 @@ type CodeFormatter =
                 ast
                 |> Array.map (fun (ast, defines) ->
                     let oak = ASTTransformer.mkOak (Some sourceText) ast
-                    oak, defines)
+                    oak, defines.Value)
         }
 
     static member FormatOakAsync(oak: Oak) : Async<string> =

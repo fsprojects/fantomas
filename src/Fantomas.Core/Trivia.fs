@@ -187,7 +187,6 @@ let rec visitLastChildNode (node: Node) : Node =
     | :? ExprLetOrUseBangNode
     | :? ExprAndBang
     | :? BindingNode
-    | :? ModuleOrNamespaceNode
     | :? TypeDefnEnumNode
     | :? TypeDefnUnionNode
     | :? TypeDefnRecordNode
@@ -227,8 +226,9 @@ let rec visitLastChildNode (node: Node) : Node =
     | :? BindingReturnInfoNode
     | :? PatLeftMiddleRight
     | :? MultipleAttributeListNode -> visitLastChildNode (Array.last node.Children)
-    | :? PatLongIdentNode as pat ->
-        if Seq.isEmpty pat.Children then
+    | :? PatLongIdentNode
+    | :? ModuleOrNamespaceNode ->
+        if Array.isEmpty node.Children then
             node
         else
             visitLastChildNode (Seq.last node.Children)

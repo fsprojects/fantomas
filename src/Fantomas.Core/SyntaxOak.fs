@@ -3,8 +3,6 @@ module rec Fantomas.Core.SyntaxOak
 open System.Collections.Generic
 open FSharp.Compiler.Text
 
-type DefineCombination = string list
-
 type TriviaContent =
     | CommentOnSingleLine of string
     | LineCommentAfterSourceCode of comment: string
