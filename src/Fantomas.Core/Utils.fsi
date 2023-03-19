@@ -3,8 +3,6 @@ namespace Fantomas.Core
 [<RequireQualifiedAccess>]
 module String =
     val startsWithOrdinal: prefix: string -> str: string -> bool
-    val splitInFragments: newline: string -> items: (string list * string) list -> (string list * string list) list
-    val merge: aChunks: string list -> bChunks: string list -> string list
     val empty: string
     val isNotNullOrEmpty: (string -> bool)
     val isNotNullOrWhitespace: (string -> bool)
@@ -17,6 +15,14 @@ module List =
     val mapWithLast: f: ('a -> 'b) -> g: ('a -> 'b) -> xs: 'a list -> 'b list
     /// Removes the last element of a list
     val cutOffLast: 'a list -> 'a list
+
+    /// Similar to a List.fold but pass in another fold function for when the last item is reached.
+    val foldWithLast:
+        f: ('state -> 'item -> 'state) ->
+        g: ('state -> 'item -> 'state) ->
+        initialState: 'state ->
+        items: 'item list ->
+            'state
 
 module Async =
     val map: f: ('a -> 'b) -> computation: Async<'a> -> Async<'b>

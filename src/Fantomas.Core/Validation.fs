@@ -46,7 +46,7 @@ let isValidFSharpCode (isSignature: bool) (source: string) : Async<bool> =
             let isValidForCombinations =
                 defineCombinations
                 |> List.map (fun defineCombination ->
-                    let _, diagnostics = parseFile isSignature sourceText defineCombination
+                    let _, diagnostics = parseFile isSignature sourceText defineCombination.Value
                     noWarningOrErrorDiagnostics diagnostics)
 
             return Seq.forall id isValidForCombinations
