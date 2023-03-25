@@ -4,7 +4,6 @@ module internal Fantomas.Core.CodeFormatterImpl
 open FSharp.Compiler.Diagnostics
 open FSharp.Compiler.Syntax
 open FSharp.Compiler.Text
-open SyntaxOak
 open MultipleDefineCombinations
 
 let getSourceText (source: string) : ISourceText = source.TrimEnd() |> SourceText.ofString

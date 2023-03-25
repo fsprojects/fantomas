@@ -404,5 +404,4 @@ let ``backticks can be added from AST only scenarios`` () =
                 InsertFinalNewline = false }
     )
     |> Async.RunSynchronously
-    |> fun result -> result.Code
     |> should equal "``new``"

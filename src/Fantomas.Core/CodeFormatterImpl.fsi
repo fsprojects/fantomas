@@ -3,7 +3,6 @@ module internal Fantomas.Core.CodeFormatterImpl
 
 open FSharp.Compiler.Syntax
 open FSharp.Compiler.Text
-open Fantomas.Core.SyntaxOak
 
 val getSourceText: source: string -> ISourceText
 

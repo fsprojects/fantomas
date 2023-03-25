@@ -12,21 +12,31 @@ type CodeFormatter =
             return results |> Array.map (fun (ast, DefineCombination(defines)) -> ast, defines)
         }
 
-    static member FormatASTAsync(ast: ParsedInput) : Async<FormatResult> =
-        CodeFormatterImpl.formatAST ast None FormatConfig.Default None |> async.Return
+    static member FormatASTAsync(ast: ParsedInput) : Async<string> =
+        async {
+            let result = CodeFormatterImpl.formatAST ast None FormatConfig.Default None
+            return result.Code
+        }
 
-    static member FormatASTAsync(ast: ParsedInput, config) : Async<FormatResult> =
-        CodeFormatterImpl.formatAST ast None config None |> async.Return
+    static member FormatASTAsync(ast: ParsedInput, config) : Async<string> =
+        async {
+            let result = CodeFormatterImpl.formatAST ast None config None
+            return result.Code
+        }
 
-    static member FormatASTAsync(ast: ParsedInput, source) : Async<FormatResult> =
-        let sourceText = Some(CodeFormatterImpl.getSourceText source)
-
-        CodeFormatterImpl.formatAST ast sourceText FormatConfig.Default None
-        |> async.Return
+    static member FormatASTAsync(ast: ParsedInput, source) : Async<string> =
+        async {
+            let sourceText = Some(CodeFormatterImpl.getSourceText source)
+            let result = CodeFormatterImpl.formatAST ast sourceText FormatConfig.Default None
+            return result.Code
+        }
 
     static member FormatASTAsync(ast: ParsedInput, source, config) : Async<FormatResult> =
-        let sourceText = Some(CodeFormatterImpl.getSourceText source)
-        CodeFormatterImpl.formatAST ast sourceText config None |> async.Return
+        async {
+            let sourceText = Some(CodeFormatterImpl.getSourceText source)
+            let result = CodeFormatterImpl.formatAST ast sourceText config None
+            return result
+        }
 
     static member FormatDocumentAsync(isSignature, source) =
         CodeFormatterImpl.formatDocument FormatConfig.Default isSignature (CodeFormatterImpl.getSourceText source) None
