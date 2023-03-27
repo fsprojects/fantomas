@@ -10,13 +10,13 @@ type CodeFormatter =
     static member ParseAsync: isSignature: bool * source: string -> Async<(ParsedInput * string list) array>
 
     /// Format an abstract syntax tree
-    static member FormatASTAsync: ast: ParsedInput -> Async<FormatResult>
+    static member FormatASTAsync: ast: ParsedInput -> Async<string>
 
     /// Format an abstract syntax tree using a given config
-    static member FormatASTAsync: ast: ParsedInput * config: FormatConfig -> Async<FormatResult>
+    static member FormatASTAsync: ast: ParsedInput * config: FormatConfig -> Async<string>
 
     /// Format an abstract syntax tree with the original source for trivia processing
-    static member FormatASTAsync: ast: ParsedInput * source: string -> Async<FormatResult>
+    static member FormatASTAsync: ast: ParsedInput * source: string -> Async<string>
 
     /// <summary>
     /// Format a source string using an optional config.

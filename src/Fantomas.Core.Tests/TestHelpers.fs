@@ -2,7 +2,6 @@ module Fantomas.Core.Tests.TestHelper
 
 open System
 open Fantomas.Core
-open Fantomas.Core.SyntaxOak
 open NUnit.Framework
 open FsUnit
 
@@ -42,13 +41,13 @@ let formatAST isFsiFile (source: string) config =
         let ast, _ =
             Fantomas.FCS.Parse.parseFile isFsiFile (FSharp.Compiler.Text.SourceText.ofString source) []
 
-        let! formatted = CodeFormatter.FormatASTAsync(ast, config = config)
-        let! isValid = CodeFormatter.IsValidFSharpCodeAsync(isFsiFile, formatted.Code)
+        let! formattedCode = CodeFormatter.FormatASTAsync(ast, config = config)
+        let! isValid = CodeFormatter.IsValidFSharpCodeAsync(isFsiFile, formattedCode)
 
         if not isValid then
-            failwithf $"The formatted result is not valid F# code or contains warnings\n%s{formatted.Code}"
+            failwithf $"The formatted result is not valid F# code or contains warnings\n%s{formattedCode}"
 
-        return formatted.Code.Replace("\r\n", "\n")
+        return formattedCode.Replace("\r\n", "\n")
     }
     |> Async.RunSynchronously
 

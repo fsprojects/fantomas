@@ -50,7 +50,7 @@ let implementationSyntaxTree =
                     false,
                     None,
                     None,
-                    Choice1Of2(IdentListNode([], Range.Zero)),
+                    Choice1Of2(IdentListNode([ IdentifierOrDot.Ident(SingleTextNode("a", Range.Zero)) ], Range.Zero)),
                     None,
                     [],
                     None,
