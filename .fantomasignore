@@ -1,2 +1,5 @@
 obj/**/*.fs
 src/Fantomas.FCS/generated
+.deps
+fake-sample/source.fs
+tests/data

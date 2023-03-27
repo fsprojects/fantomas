@@ -1,4 +1,4 @@
-#r "nuget: Fun.Build, 0.3.1"
+#r "nuget: Fun.Build, 0.3.8"
 #r "nuget: CliWrap, 3.5.0"
 #r "nuget: FSharp.Data, 5.0.2"
 
@@ -67,7 +67,7 @@ pipeline "Build" {
                    "src/Fantomas.Client/obj/Release" |]
         )
     }
-    stage "CheckFormat" { run "dotnet fantomas src docs build.fsx --recurse --check" }
+    stage "CheckFormat" { run "dotnet fantomas src docs build.fsx --check" }
     stage "Build" { run "dotnet build -c Release" }
     stage "UnitTests" { run "dotnet test -c Release" }
     stage "Benchmark" { run $"dotnet {benchmarkAssembly}" }
@@ -176,7 +176,7 @@ pipeline "Docs" {
 
 pipeline "FormatAll" {
     workingDir __SOURCE_DIRECTORY__
-    stage "Fantomas" { run "dotnet fantomas src docs build.fsx --recurse" }
+    stage "Fantomas" { run "dotnet fantomas src docs build.fsx" }
     runIfOnlySpecified true
 }
 
