@@ -436,10 +436,10 @@ let genExpr (e: Expr) =
                 +> genSingleTextNode node.ClosingBrace
 
             let genMultilineCramped =
-                genSingleTextNode node.OpeningBrace
-                +> addSpaceIfSpaceAroundDelimiter
+                genSingleTextNodeSuffixDelimiter node.OpeningBrace
                 +> atCurrentColumn (
-                    genInheritInfo
+                    sepNlnWhenWriteBeforeNewlineNotEmpty
+                    +> genInheritInfo
                     +> fieldsExpr genRecordFieldNameAligned
                     +> addSpaceIfSpaceAroundDelimiter
                     +> genSingleTextNode node.ClosingBrace

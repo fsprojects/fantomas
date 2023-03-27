@@ -2414,3 +2414,40 @@ let handlerFormattedRangeDoc (lines: NamedText, formatted: string, range: Format
 
   [| { Range = range; NewText = formatted } |]
 """
+
+[<Test>]
+let ``trivia after opening brace in inherit expression, 2803`` () =
+    formatSourceString
+        false
+        """
+let range =
+    { // foo
+      // bar
+      inherit // reason
+        Foo()
+      X = y
+      Z =
+        someReallyLongExpressionThatIsLongerThanTheLineLength
+            aLongArgument
+            //
+            anotherLongArgument
+            fooBar }
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let range =
+    { // foo
+      // bar
+      inherit // reason
+          Foo()
+      X = y
+      Z =
+        someReallyLongExpressionThatIsLongerThanTheLineLength
+            aLongArgument
+            //
+            anotherLongArgument
+            fooBar }
+"""
