@@ -9,4 +9,4 @@ fsharp_blank_lines_around_nested_multiline_expressions=false
 fsharp_keep_max_number_of_blank_lines=1
 
 [tests/*.fsx]
-fsharp_multiline_block_brackets_on_same_column = true
+fsharp_multiline_bracket_style = aligned
