@@ -222,6 +222,7 @@ let mkOpenAndCloseForArrayOrList isArray range =
 
 let mkInheritConstructor (creationAide: CreationAide) (t: SynType) (e: SynExpr) (mInherit: range) (m: range) =
     let inheritNode = stn "inherit" mInherit
+    let m = unionRanges mInherit m
 
     match e with
     | SynExpr.Const(constant = SynConst.Unit; range = StartEndRange 1 (mOpen, unitRange, mClose)) ->
@@ -962,7 +963,7 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
 
         match baseInfo, copyInfo with
         | Some _, Some _ -> failwith "Unexpected that both baseInfo and copyInfo are present in SynExpr.Record"
-        | Some(t, e, mInherit, _, m), None ->
+        | Some(t, e, m, _, mInherit), None ->
             let inheritCtor = mkInheritConstructor creationAide t e mInherit m
 
             ExprInheritRecordNode(stn "{" mOpen, inheritCtor, fieldNodes, stn "}" mClose, exprRange)
