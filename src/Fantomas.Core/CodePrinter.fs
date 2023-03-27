@@ -435,15 +435,27 @@ let genExpr (e: Expr) =
                 +> sepNln
                 +> genSingleTextNode node.ClosingBrace
 
-            let genMultilineCramped =
-                genSingleTextNodeSuffixDelimiter node.OpeningBrace
-                +> atCurrentColumn (
-                    sepNlnWhenWriteBeforeNewlineNotEmpty
-                    +> genInheritInfo
-                    +> fieldsExpr genRecordFieldNameAligned
-                    +> addSpaceIfSpaceAroundDelimiter
-                    +> genSingleTextNode node.ClosingBrace
-                )
+            let genMultilineCramped (ctx: Context) =
+                // This is the column each field should start on.
+                let targetColumn =
+                    let openBraceLength = node.OpeningBrace.Text.Length
+
+                    ctx.Column
+                    + (if ctx.Config.SpaceAroundDelimiter then
+                           openBraceLength + 1
+                       else
+                           openBraceLength)
+
+                (genSingleTextNodeSuffixDelimiter node.OpeningBrace
+                 +> atCurrentColumn genInheritInfo
+                 +> col sepNln node.Fields (fun e ->
+                     // Add spaces to ensure the record field (incl trivia) starts at the right column.
+                     addFixedSpaces targetColumn
+                     // Potential indentations will be in relation to the opening curly brace.
+                     +> genRecordFieldNameCramped false e)
+                 +> addSpaceIfSpaceAroundDelimiter
+                 +> genSingleTextNode node.ClosingBrace)
+                    ctx
 
             ifAlignOrStroustrupBrackets genMultilineAlignBrackets genMultilineCramped
 
