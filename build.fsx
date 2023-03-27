@@ -70,7 +70,6 @@ pipeline "Build" {
     stage "CheckFormat" { run "dotnet fantomas src docs build.fsx --check" }
     stage "Build" { run "dotnet build -c Release" }
     stage "UnitTests" { run "dotnet test -c Release" }
-    stage "Benchmark" { run $"dotnet {benchmarkAssembly}" }
     stage "Pack" { run "dotnet pack --no-restore -c Release -o ./bin" }
     stage "Docs" {
         whenNot { platformOSX }
@@ -91,6 +90,13 @@ pipeline "Build" {
             })
     }
     runIfOnlySpecified false
+}
+
+pipeline "Benchmark" {
+    workingDir __SOURCE_DIRECTORY__
+    stage "Prepare" { run "dotnet build -c Release src/Fantomas.Benchmarks" }
+    stage "Benchmark" { run $"dotnet {benchmarkAssembly}" }
+    runIfOnlySpecified true
 }
 
 let runGitCommand (arguments: string) =
@@ -117,7 +123,7 @@ pipeline "FormatChanged" {
     stage "Format" {
         run (fun _ ->
             async {
-                let! exitCode, stdout, stdErr = runGitCommand "status --porcelain"
+                let! exitCode, stdout, _stdErr = runGitCommand "status --porcelain"
                 if exitCode <> 0 then
                     return exitCode
                 else
@@ -209,7 +215,7 @@ let downloadCompilerFile commitHash relativePath =
                     headers = [| "Content-Disposition", $"attachment; filename=\"{fileName}\"" |]
                 )
             if response.StatusCode <> 200 then
-                printfn "Could not download %s" relativePath
+                printfn $"Could not download %s{relativePath}"
             do! Async.AwaitTask(response.ResponseStream.CopyToAsync(fs))
             fs.Close()
     }
