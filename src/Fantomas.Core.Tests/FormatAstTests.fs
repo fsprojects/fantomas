@@ -15,7 +15,6 @@ let parseAndFormat sourceCode =
     let formattedCode =
         CodeFormatter.FormatASTAsync(ast, source = sourceCode)
         |> Async.RunSynchronously
-        |> fun formatResult -> formatResult.Code
         |> String.normalizeNewLine
         |> fun s -> s.TrimEnd('\n')
 
