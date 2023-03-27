@@ -1742,8 +1742,8 @@ let ``record with comments above field, indent 2`` () =
         equal
         """
 { Foo =
-  // bar
-  someValue }
+    // bar
+    someValue }
 """
 
 [<Test>]
@@ -1799,8 +1799,8 @@ let ``anonymous record with multiline field, indent 2`` () =
         equal
         """
 {| Foo =
-  //  meh
-  someValue |}
+    //  meh
+    someValue |}
 """
 
 [<Test>]
@@ -2279,4 +2279,138 @@ let a =
         Square = 9
     // test2
     |}
+"""
+
+[<Test>]
+let ``multiline field body expression where indent_size = 2, 2801`` () =
+    formatSourceString
+        false
+        """
+let handlerFormattedRangeDoc (lines: NamedText, formatted: string, range: FormatSelectionRange) =
+    let range =
+      { Start =
+          { Line = range.StartLine - 1
+            Character = range.StartColumn }
+        End =
+          { Line = range.EndLine - 1
+            Character = range.EndColumn } }
+
+    [| { Range = range; NewText = formatted } |]
+"""
+        { config with IndentSize = 2 }
+    |> prepend newline
+    |> should
+        equal
+        """
+let handlerFormattedRangeDoc (lines: NamedText, formatted: string, range: FormatSelectionRange) =
+  let range =
+    { Start =
+        { Line = range.StartLine - 1
+          Character = range.StartColumn }
+      End =
+        { Line = range.EndLine - 1
+          Character = range.EndColumn } }
+
+  [| { Range = range; NewText = formatted } |]
+"""
+
+[<Test>]
+let ``multiline field body expression where indent_size = 2, anonymous record`` () =
+    formatSourceString
+        false
+        """
+let handlerFormattedRangeDoc (lines: NamedText, formatted: string, range: FormatSelectionRange) =
+    let range =
+      {| Start =
+           { Line = range.StartLine - 1
+             Character = range.StartColumn }
+         End =
+           { Line = range.EndLine - 1
+             Character = range.EndColumn } |}
+
+    [| { Range = range; NewText = formatted } |]
+"""
+        { config with IndentSize = 2 }
+    |> prepend newline
+    |> should
+        equal
+        """
+let handlerFormattedRangeDoc (lines: NamedText, formatted: string, range: FormatSelectionRange) =
+  let range =
+    {| Start =
+        { Line = range.StartLine - 1
+          Character = range.StartColumn }
+       End =
+        { Line = range.EndLine - 1
+          Character = range.EndColumn } |}
+
+  [| { Range = range; NewText = formatted } |]
+"""
+
+[<Test>]
+let ``multiline field body expression where indent_size = 2, update record`` () =
+    formatSourceString
+        false
+        """
+let handlerFormattedRangeDoc (lines: NamedText, formatted: string, range: FormatSelectionRange) =
+    let range =
+      { x with 
+        Start =
+          { Line = range.StartLine - 1
+            Character = range.StartColumn }
+        End =
+          { Line = range.EndLine - 1
+            Character = range.EndColumn } }
+
+    [| { Range = range; NewText = formatted } |]
+"""
+        { config with IndentSize = 2 }
+    |> prepend newline
+    |> should
+        equal
+        """
+let handlerFormattedRangeDoc (lines: NamedText, formatted: string, range: FormatSelectionRange) =
+  let range =
+    { x with
+        Start =
+          { Line = range.StartLine - 1
+            Character = range.StartColumn }
+        End =
+          { Line = range.EndLine - 1
+            Character = range.EndColumn } }
+
+  [| { Range = range; NewText = formatted } |]
+"""
+
+let ``multiline field body expression where indent_size = 2, inherit record`` () =
+    formatSourceString
+        false
+        """
+let handlerFormattedRangeDoc (lines: NamedText, formatted: string, range: FormatSelectionRange) =
+  let range =
+    { inherit Foo()
+      Start =
+        { Line = range.StartLine - 1
+          Character = range.StartColumn }
+      End =
+        { Line = range.EndLine - 1
+          Character = range.EndColumn } }
+  [| { Range = range; NewText = formatted } |]
+"""
+        { config with IndentSize = 2 }
+    |> prepend newline
+    |> should
+        equal
+        """
+let handlerFormattedRangeDoc (lines: NamedText, formatted: string, range: FormatSelectionRange) =
+  let range =
+    { inherit Foo()
+      Start =
+        { Line = range.StartLine - 1
+          Character = range.StartColumn }
+      End =
+        { Line = range.EndLine - 1
+          Character = range.EndColumn } }
+
+  [| { Range = range; NewText = formatted } |]
 """

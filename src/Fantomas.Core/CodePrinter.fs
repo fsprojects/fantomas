@@ -420,7 +420,8 @@ let genExpr (e: Expr) =
                 node
 
         let genMultilineInheritRecordExpr =
-            let fieldsExpr = genMultilineRecordFieldsExpr node
+            let fieldsExpr genRecordField =
+                genMultilineRecordFieldsExpr genRecordField node
 
             let genInheritInfo =
                 (genSingleTextNode node.InheritConstructor.InheritKeyword
@@ -430,7 +431,7 @@ let genExpr (e: Expr) =
 
             let genMultilineAlignBrackets =
                 genSingleTextNode node.OpeningBrace
-                +> indentSepNlnUnindent (genInheritInfo +> fieldsExpr)
+                +> indentSepNlnUnindent (genInheritInfo +> fieldsExpr genRecordFieldNameAligned)
                 +> sepNln
                 +> genSingleTextNode node.ClosingBrace
 
@@ -439,7 +440,7 @@ let genExpr (e: Expr) =
                 +> addSpaceIfSpaceAroundDelimiter
                 +> atCurrentColumn (
                     genInheritInfo
-                    +> fieldsExpr
+                    +> fieldsExpr genRecordFieldNameAligned
                     +> addSpaceIfSpaceAroundDelimiter
                     +> genSingleTextNode node.ClosingBrace
                 )
@@ -1567,7 +1568,29 @@ let genMultilineRecordCopyExpr (addAdditionalIndent: bool) fieldsExpr copyExpr =
     +> onlyIf addAdditionalIndent unindent
     +> unindent
 
-let genRecordFieldName (node: RecordFieldNode) =
+/// Special case for record fields in Cramped mode.
+/// The caller should have already verified that the settings do indeed specify Cramped.
+let genRecordFieldNameCramped (alreadyIndentedFurther: bool) (node: RecordFieldNode) =
+    atCurrentColumn (
+        enterNode node
+        +> genIdentListNode node.FieldName
+        +> sepSpace
+        +> genSingleTextNode node.Equals
+    )
+    +> (fun ctx ->
+        // See: https://github.com/fsprojects/fantomas/issues/2801
+        let addAdditionIndent = not alreadyIndentedFurther && ctx.Config.IndentSize < 3
+
+        let genBodyExpr e =
+            if addAdditionIndent then
+                sepSpaceOrDoubleIndentAndNlnIfExpressionExceedsPageWidth (genExpr e)
+            else
+                sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth (genExpr e)
+
+        genBodyExpr node.Expr ctx)
+    +> leaveNode node
+
+let genRecordFieldNameAligned (node: RecordFieldNode) =
     atCurrentColumn (
         enterNode node
         +> genIdentListNode node.FieldName
@@ -1577,8 +1600,11 @@ let genRecordFieldName (node: RecordFieldNode) =
     +> sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidthUnlessStroustrup genExpr node.Expr
     +> leaveNode node
 
-let genMultilineRecordFieldsExpr (node: ExprRecordBaseNode) =
-    col sepNln node.Fields genRecordFieldName
+let genMultilineRecordFieldsExpr
+    (genRecordField: RecordFieldNode -> Context -> Context)
+    (node: ExprRecordBaseNode)
+    : Context -> Context =
+    col sepNln node.Fields genRecordField
 
 /// <summary>
 /// Print a (anonymous) record with additional information as a single line.
@@ -1589,7 +1615,13 @@ let genSmallRecordBaseExpr genExtra (node: ExprRecordBaseNode) =
     genSingleTextNode node.OpeningBrace
     +> addSpaceIfSpaceAroundDelimiter
     +> genExtra
-    +> col sepSemi node.Fields genRecordFieldName
+    +> col sepSemi node.Fields (fun rf ->
+        genIdentListNode rf.FieldName
+        +> sepSpace
+        +> genSingleTextNode rf.Equals
+        +> sepSpace
+        +> genExpr rf.Expr
+        |> genNode rf) //genRecordFieldNameAligned
     +> addSpaceIfSpaceAroundDelimiter
     +> genSingleTextNode node.ClosingBrace
 
@@ -1622,7 +1654,7 @@ let genMultilineRecord (node: ExprRecordNode) (ctx: Context) =
                openBraceLength)
 
     let genMultilineAlignBrackets =
-        let fieldsExpr = genMultilineRecordFieldsExpr node
+        let fieldsExpr = genMultilineRecordFieldsExpr genRecordFieldNameAligned node
 
         match node.CopyInfo with
         | Some ci ->
@@ -1653,7 +1685,10 @@ let genMultilineRecord (node: ExprRecordNode) (ctx: Context) =
                     // Regular record
                     || ctx.Config.IndentSize < 3
 
-                genMultilineRecordCopyExpr additionalIndent (genMultilineRecordFieldsExpr node) we
+                genMultilineRecordCopyExpr
+                    additionalIndent
+                    (genMultilineRecordFieldsExpr (genRecordFieldNameCramped additionalIndent) node)
+                    we
             | None ->
                 fun (ctx: Context) ->
                     col
@@ -1663,7 +1698,7 @@ let genMultilineRecord (node: ExprRecordNode) (ctx: Context) =
                             // Add spaces to ensure the record field (incl trivia) starts at the right column.
                             addFixedSpaces targetColumn
                             // Potential indentations will be in relation to the opening curly brace.
-                            +> genRecordFieldName e)
+                            +> genRecordFieldNameCramped false e)
                         ctx
 
         match node.CopyInfo with
