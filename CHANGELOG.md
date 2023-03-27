@@ -1,5 +1,16 @@
 # Changelog
 
+## [6.0.0-alpha-007] - 2023-03-27
+
+### Changed
+
+* `CodeFormatter.FormatASTAsync` returns a string. [#2799](https://github.com/fsprojects/fantomas/pull/2799)
+* Cursor with defines. [#2774](https://github.com/fsprojects/fantomas/pull/2774)
+
+### Removed
+
+* Strict mode. [#2798](https://github.com/fsprojects/fantomas/pull/2798)
+
 ## [6.0.0-alpha-006] - 2023-03-17
 
 ### Fixed
