@@ -73,6 +73,9 @@
 <li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/end-users/GeneratingCode.html" class="nav-link pb-2 d-block" > Generating source code
 </a></li>
 
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/end-users/UpgradeGuide.html" class="nav-link pb-2 d-block" > Upgrade guide
+</a></li>
+
 <li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/end-users/FAQ.html" class="nav-link pb-2 d-block" > FAQ
 </a></li>
 
@@ -205,7 +208,7 @@ graph TD
     B --> D[Fantomas.Benchmarks]
     B --> E[Fantomas.Core.Tests]
     C --> F[Fantomas.Tests]
-    G[Fantomas.Client]
+    G[Fantomas.Client] --> H[Fantomas.Client.Tests]
  </div>
 <h2><a name="Fantomas-FCS" class="anchor" href="#Fantomas-FCS">Fantomas.FCS</a></h2>
 <p>This is a very custom fork of the F# compiler. We only expose a single parse function to construct the untyped syntax tree.
@@ -231,6 +234,8 @@ This selected version could then later be re-used to verify if all files were fo
 <p>A suite of unit tests that target the core formatting functionalities of <code>Fantomas.Core</code>.</p>
 <h2><a name="Fantomas-Tests" class="anchor" href="#Fantomas-Tests">Fantomas.Tests</a></h2>
 <p>A suite of end-to-end tests that run the actual <code>fantomas</code> command line application.</p>
+<h2><a name="Fantomas-Client-Tests" class="anchor" href="#Fantomas-Client-Tests">Fantomas.Client.Tests</a></h2>
+<p>A suite of end-to-end tests that will verify the <code>Fantomas.Client</code> code against released versions of <code>fantomas</code>.</p>
 <fantomas-nav previous="./Getting%20Started.html" next="./Transforming.html"></fantomas-nav>
 
         

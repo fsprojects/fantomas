@@ -1,7 +1,7 @@
 import {html} from 'https://cdn.skypack.dev/lit';
 import {component} from 'https://cdn.skypack.dev/haunted';
 
-function FantomasSettingIcon({type}) {
+function FantomasSettingIconCore(type) {
     let settingType
     switch (type) {
         case 'green':
@@ -20,9 +20,7 @@ function FantomasSettingIcon({type}) {
             break;
         case 'red':
             settingType = {
-                icon: "bi-x-circle-fill", 
-                color: "red-recommendation", 
-                tooltip: "You shouldn't use this setting."
+                icon: "bi-x-circle-fill", color: "red-recommendation", tooltip: "You shouldn't use this setting."
             }
             break;
         case 'gr':
@@ -35,7 +33,7 @@ function FantomasSettingIcon({type}) {
                              data-bs-title="${tooltip}"
                              src="${root}/images/gresearch.svg" alt="G-Research logo"/>`;
         default:
-            throw `The "type" can only be "green", "orange", "red" or "gr". Found "${type}"`;
+            throw "The \"type\" can only be \"green\", \"orange\", \"red\" or \"gr\"";
     }
     return html`<i class="bi ${settingType.icon} ${settingType.color} me-2"
                    data-bs-toggle="tooltip" data-bs-custom-class="${type}-tooltip"
@@ -56,19 +54,29 @@ function Navigation({next, previous}) {
 function FantomasSetting({name, green, orange, red, gr}) {
     return html`
         <div class="d-flex align-items-center my-2">
-            ${green && FantomasSettingIcon({type: "green"})}
-            ${orange && FantomasSettingIcon({type: "orange"})}
-            ${red && FantomasSettingIcon({type: "red"})}
-            ${gr && FantomasSettingIcon({type: "gr"})}
+            ${green && FantomasSettingIconCore('green')}
+            ${orange && FantomasSettingIconCore('orange')}
+            ${red && FantomasSettingIconCore('red')}
+            ${gr && FantomasSettingIconCore('gr')}
             <h4 id="${name}" class="m-0">
                 <a href="#${name}">${name}</a>
             </h4>
         </div>`
 }
 
+function FantomasSettingIcon({green, orange, red, gr}) {
+    return html`
+            ${green && FantomasSettingIconCore('green')}
+            ${orange && FantomasSettingIconCore('orange')}
+            ${red && FantomasSettingIconCore('red')}
+            ${gr && FantomasSettingIconCore('gr')}
+            `
+}
+
 customElements.define('fantomas-setting-icon', component(FantomasSettingIcon, {
-    useShadowDOM: false, observedAttributes: ['type']
+    useShadowDOM: false, observedAttributes: ['green', 'orange', 'red', 'gr']
 }));
+
 customElements.define('fantomas-setting', component(FantomasSetting, {
     useShadowDOM: false, observedAttributes: ['name', 'green', 'orange', 'red', 'gr']
 }));

@@ -72,6 +72,9 @@
 <li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/end-users/GeneratingCode.html" class="nav-link pb-2 d-block" > Generating source code
 </a></li>
 
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/end-users/UpgradeGuide.html" class="nav-link pb-2 d-block" > Upgrade guide
+</a></li>
+
 <li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/end-users/FAQ.html" class="nav-link pb-2 d-block" > FAQ
 </a></li>
 
@@ -246,19 +249,19 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code onmouseout="hideTip(event, '7351', 7351)" onmouseover="showTip(event, '7351', 7351)">
+              <code onmouseout="hideTip(event, '7295', 7295)" onmouseover="showTip(event, '7295', 7295)">
                 <p>
                   <a id="FormatASTAsync">
                     <a href="#FormatASTAsync">
-                      <code><span>CodeFormatter.FormatASTAsync<span><span>(<span>ast,&#32;?source,&#32;?config</span>)</span></span></span></code>
+                      <code><span>CodeFormatter.FormatASTAsync<span><span>(<span>ast,&#32;source</span>)</span></span></span></code>
                     </a>
                   </a>
                 </p>
               </code>
-              <div class="fsdocs-tip" id="7351">
+              <div class="fsdocs-tip" id="7295">
                 <div class="member-tooltip">
                   Full Usage: 
-                  <code><span>CodeFormatter.FormatASTAsync<span><span>(<span>ast,&#32;?source,&#32;?config</span>)</span></span></span></code>
+                  <code><span>CodeFormatter.FormatASTAsync<span><span>(<span>ast,&#32;source</span>)</span></span></span></code>
                   <br/>
                   <br/>
                   Parameters: 
@@ -273,18 +276,10 @@
                     <br/>
                     <span>
                       <b>
-                        ?source
+                        source
                       </b>
                       :
                       <code>string</code>
-                    </span>
-                    <br/>
-                    <span>
-                      <b>
-                        ?config
-                      </b>
-                      :
-                      <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-formatconfig-formatconfig.html">FormatConfig</a></code>
                     </span>
                     <br/>
                   </ul>
@@ -314,7 +309,7 @@
               </a>
               <p class="fsdocs-summary">
                 
- Format an abstract syntax tree using an optional source for trivia processing
+ Format an abstract syntax tree with the original source for trivia processing
 
               </p>
             </div>
@@ -329,18 +324,10 @@
               <dd class="fsdocs-param-docs"></dd>
               <dt class="fsdocs-param">
                 <span class="fsdocs-param-name">
-                  ?source
+                  source
                 </span>
                 :
                 <code>string</code>
-              </dt>
-              <dd class="fsdocs-param-docs"></dd>
-              <dt class="fsdocs-param">
-                <span class="fsdocs-param-name">
-                  ?config
-                </span>
-                :
-                <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-formatconfig-formatconfig.html">FormatConfig</a></code>
               </dt>
               <dd class="fsdocs-param-docs"></dd>
             </dl>
@@ -358,19 +345,195 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code onmouseout="hideTip(event, '7352', 7352)" onmouseover="showTip(event, '7352', 7352)">
+              <code onmouseout="hideTip(event, '7296', 7296)" onmouseover="showTip(event, '7296', 7296)">
                 <p>
-                  <a id="FormatDocumentAsync">
-                    <a href="#FormatDocumentAsync">
-                      <code><span>CodeFormatter.FormatDocumentAsync<span><span>(<span>isSignature,&#32;source,&#32;?config</span>)</span></span></span></code>
+                  <a id="FormatASTAsync">
+                    <a href="#FormatASTAsync">
+                      <code><span>CodeFormatter.FormatASTAsync<span><span>(<span>ast,&#32;config</span>)</span></span></span></code>
                     </a>
                   </a>
                 </p>
               </code>
-              <div class="fsdocs-tip" id="7352">
+              <div class="fsdocs-tip" id="7296">
                 <div class="member-tooltip">
                   Full Usage: 
-                  <code><span>CodeFormatter.FormatDocumentAsync<span><span>(<span>isSignature,&#32;source,&#32;?config</span>)</span></span></span></code>
+                  <code><span>CodeFormatter.FormatASTAsync<span><span>(<span>ast,&#32;config</span>)</span></span></span></code>
+                  <br/>
+                  <br/>
+                  Parameters: 
+                  <ul>
+                    <span>
+                      <b>
+                        ast
+                      </b>
+                      :
+                      <code><a href="https://fsprojects.github.io/fantomas/reference/fsharp-compiler-syntax-parsedinput.html">ParsedInput</a></code>
+                    </span>
+                    <br/>
+                    <span>
+                      <b>
+                        config
+                      </b>
+                      :
+                      <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-formatconfig.html">FormatConfig</a></code>
+                    </span>
+                    <br/>
+                  </ul>
+                  <br/>
+                  <span>
+                    Returns: 
+                    <code><span><a href="https://fsharp.github.io/fsharp-core-docs/reference/fsharp-control-fsharpasync-1">Async</a>&lt;string&gt;</span></code>
+                  </span>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-summary">
+              <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:M:Fantomas.Core.CodeFormatter.FormatASTAsync`')">
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-md.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-md-hover.png" class="hover"/>
+              </div>
+              <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'M:Fantomas.Core.CodeFormatter.FormatASTAsync\'/>')">
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+              </div>
+              <a href="" class="fsdocs-source-link" title="Source on GitHub">
+                <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
+              </a>
+              <p class="fsdocs-summary">
+                
+ Format an abstract syntax tree using a given config
+
+              </p>
+            </div>
+            <dl class="fsdocs-params">
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  ast
+                </span>
+                :
+                <code><a href="https://fsprojects.github.io/fantomas/reference/fsharp-compiler-syntax-parsedinput.html">ParsedInput</a></code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  config
+                </span>
+                :
+                <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-formatconfig.html">FormatConfig</a></code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+            </dl>
+            <dl class="fsdocs-returns">
+              <dt>
+                <span class="fsdocs-return-name">
+                  Returns: 
+                </span>
+                <code><span><a href="https://fsharp.github.io/fsharp-core-docs/reference/fsharp-control-fsharpasync-1">Async</a>&lt;string&gt;</span></code>
+              </dt>
+              <dd class="fsdocs-return-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '7297', 7297)" onmouseover="showTip(event, '7297', 7297)">
+                <p>
+                  <a id="FormatASTAsync">
+                    <a href="#FormatASTAsync">
+                      <code><span>CodeFormatter.FormatASTAsync<span><span>(<span>ast</span>)</span></span></span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="7297">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>CodeFormatter.FormatASTAsync<span><span>(<span>ast</span>)</span></span></span></code>
+                  <br/>
+                  <br/>
+                  Parameters: 
+                  <ul>
+                    <span>
+                      <b>
+                        ast
+                      </b>
+                      :
+                      <code><a href="https://fsprojects.github.io/fantomas/reference/fsharp-compiler-syntax-parsedinput.html">ParsedInput</a></code>
+                    </span>
+                    <br/>
+                  </ul>
+                  <br/>
+                  <span>
+                    Returns: 
+                    <code><span><a href="https://fsharp.github.io/fsharp-core-docs/reference/fsharp-control-fsharpasync-1">Async</a>&lt;string&gt;</span></code>
+                  </span>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-summary">
+              <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:M:Fantomas.Core.CodeFormatter.FormatASTAsync`')">
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-md.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-md-hover.png" class="hover"/>
+              </div>
+              <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'M:Fantomas.Core.CodeFormatter.FormatASTAsync\'/>')">
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+              </div>
+              <a href="" class="fsdocs-source-link" title="Source on GitHub">
+                <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
+              </a>
+              <p class="fsdocs-summary">
+                
+ Format an abstract syntax tree
+
+              </p>
+            </div>
+            <dl class="fsdocs-params">
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  ast
+                </span>
+                :
+                <code><a href="https://fsprojects.github.io/fantomas/reference/fsharp-compiler-syntax-parsedinput.html">ParsedInput</a></code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+            </dl>
+            <dl class="fsdocs-returns">
+              <dt>
+                <span class="fsdocs-return-name">
+                  Returns: 
+                </span>
+                <code><span><a href="https://fsharp.github.io/fsharp-core-docs/reference/fsharp-control-fsharpasync-1">Async</a>&lt;string&gt;</span></code>
+              </dt>
+              <dd class="fsdocs-return-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '7298', 7298)" onmouseover="showTip(event, '7298', 7298)">
+                <p>
+                  <a id="FormatDocumentAsync">
+                    <a href="#FormatDocumentAsync">
+                      <code><span>CodeFormatter.FormatDocumentAsync<span><span>(<span>isSignature,&#32;source,&#32;config,&#32;cursor</span>)</span></span></span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="7298">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>CodeFormatter.FormatDocumentAsync<span><span>(<span>isSignature,&#32;source,&#32;config,&#32;cursor</span>)</span></span></span></code>
                   <br/>
                   <br/>
                   Parameters: 
@@ -381,6 +544,8 @@
                       </b>
                       :
                       <code>bool</code>
+                       - 
+                      Determines whether the F# parser will process the source as signature file.
                     </span>
                     <br/>
                     <span>
@@ -389,21 +554,35 @@
                       </b>
                       :
                       <code>string</code>
+                       - 
+                      F# source code
                     </span>
                     <br/>
                     <span>
                       <b>
-                        ?config
+                        config
                       </b>
                       :
-                      <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-formatconfig-formatconfig.html">FormatConfig</a></code>
+                      <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-formatconfig.html">FormatConfig</a></code>
+                       - 
+                      Fantomas configuration
+                    </span>
+                    <br/>
+                    <span>
+                      <b>
+                        cursor
+                      </b>
+                      :
+                      <code><a href="https://fsprojects.github.io/fantomas/reference/fsharp-compiler-text-pos.html">pos</a></code>
+                       - 
+                      The location of a cursor, zero-based.
                     </span>
                     <br/>
                   </ul>
                   <br/>
                   <span>
                     Returns: 
-                    <code><span><a href="https://fsharp.github.io/fsharp-core-docs/reference/fsharp-control-fsharpasync-1">Async</a>&lt;string&gt;</span></code>
+                    <code><span><a href="https://fsharp.github.io/fsharp-core-docs/reference/fsharp-control-fsharpasync-1">Async</a>&lt;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-formatresult.html">FormatResult</a>&gt;</span></code>
                   </span>
                   <br/>
                 </div>
@@ -426,8 +605,8 @@
               </a>
               <p class="fsdocs-summary">
                 
- Format a source string using an optional config
-
+ Format a source string using an optional config.
+ 
               </p>
             </div>
             <dl class="fsdocs-params">
@@ -438,7 +617,11 @@
                 :
                 <code>bool</code>
               </dt>
-              <dd class="fsdocs-param-docs"></dd>
+              <dd class="fsdocs-param-docs">
+                <p>
+                  Determines whether the F# parser will process the source as signature file.
+                </p>
+              </dd>
               <dt class="fsdocs-param">
                 <span class="fsdocs-param-name">
                   source
@@ -446,13 +629,367 @@
                 :
                 <code>string</code>
               </dt>
+              <dd class="fsdocs-param-docs">
+                <p>
+                  F# source code
+                </p>
+              </dd>
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  config
+                </span>
+                :
+                <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-formatconfig.html">FormatConfig</a></code>
+              </dt>
+              <dd class="fsdocs-param-docs">
+                <p>
+                  Fantomas configuration
+                </p>
+              </dd>
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  cursor
+                </span>
+                :
+                <code><a href="https://fsprojects.github.io/fantomas/reference/fsharp-compiler-text-pos.html">pos</a></code>
+              </dt>
+              <dd class="fsdocs-param-docs">
+                <p>
+                  The location of a cursor, zero-based.
+                </p>
+              </dd>
+            </dl>
+            <dl class="fsdocs-returns">
+              <dt>
+                <span class="fsdocs-return-name">
+                  Returns: 
+                </span>
+                <code><span><a href="https://fsharp.github.io/fsharp-core-docs/reference/fsharp-control-fsharpasync-1">Async</a>&lt;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-formatresult.html">FormatResult</a>&gt;</span></code>
+              </dt>
+              <dd class="fsdocs-return-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '7299', 7299)" onmouseover="showTip(event, '7299', 7299)">
+                <p>
+                  <a id="FormatDocumentAsync">
+                    <a href="#FormatDocumentAsync">
+                      <code><span>CodeFormatter.FormatDocumentAsync<span><span>(<span>isSignature,&#32;source,&#32;config</span>)</span></span></span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="7299">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>CodeFormatter.FormatDocumentAsync<span><span>(<span>isSignature,&#32;source,&#32;config</span>)</span></span></span></code>
+                  <br/>
+                  <br/>
+                  Parameters: 
+                  <ul>
+                    <span>
+                      <b>
+                        isSignature
+                      </b>
+                      :
+                      <code>bool</code>
+                       - 
+                      Determines whether the F# parser will process the source as signature file.
+                    </span>
+                    <br/>
+                    <span>
+                      <b>
+                        source
+                      </b>
+                      :
+                      <code>string</code>
+                       - 
+                      F# source code
+                    </span>
+                    <br/>
+                    <span>
+                      <b>
+                        config
+                      </b>
+                      :
+                      <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-formatconfig.html">FormatConfig</a></code>
+                       - 
+                      Fantomas configuration
+                    </span>
+                    <br/>
+                  </ul>
+                  <br/>
+                  <span>
+                    Returns: 
+                    <code><span><a href="https://fsharp.github.io/fsharp-core-docs/reference/fsharp-control-fsharpasync-1">Async</a>&lt;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-formatresult.html">FormatResult</a>&gt;</span></code>
+                  </span>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-summary">
+              <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:M:Fantomas.Core.CodeFormatter.FormatDocumentAsync`')">
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-md.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-md-hover.png" class="hover"/>
+              </div>
+              <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'M:Fantomas.Core.CodeFormatter.FormatDocumentAsync\'/>')">
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+              </div>
+              <a href="" class="fsdocs-source-link" title="Source on GitHub">
+                <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
+              </a>
+              <p class="fsdocs-summary">
+                
+ Format a source string using an optional config.
+ 
+              </p>
+            </div>
+            <dl class="fsdocs-params">
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  isSignature
+                </span>
+                :
+                <code>bool</code>
+              </dt>
+              <dd class="fsdocs-param-docs">
+                <p>
+                  Determines whether the F# parser will process the source as signature file.
+                </p>
+              </dd>
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  source
+                </span>
+                :
+                <code>string</code>
+              </dt>
+              <dd class="fsdocs-param-docs">
+                <p>
+                  F# source code
+                </p>
+              </dd>
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  config
+                </span>
+                :
+                <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-formatconfig.html">FormatConfig</a></code>
+              </dt>
+              <dd class="fsdocs-param-docs">
+                <p>
+                  Fantomas configuration
+                </p>
+              </dd>
+            </dl>
+            <dl class="fsdocs-returns">
+              <dt>
+                <span class="fsdocs-return-name">
+                  Returns: 
+                </span>
+                <code><span><a href="https://fsharp.github.io/fsharp-core-docs/reference/fsharp-control-fsharpasync-1">Async</a>&lt;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-formatresult.html">FormatResult</a>&gt;</span></code>
+              </dt>
+              <dd class="fsdocs-return-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '7300', 7300)" onmouseover="showTip(event, '7300', 7300)">
+                <p>
+                  <a id="FormatDocumentAsync">
+                    <a href="#FormatDocumentAsync">
+                      <code><span>CodeFormatter.FormatDocumentAsync<span><span>(<span>isSignature,&#32;source</span>)</span></span></span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="7300">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>CodeFormatter.FormatDocumentAsync<span><span>(<span>isSignature,&#32;source</span>)</span></span></span></code>
+                  <br/>
+                  <br/>
+                  Parameters: 
+                  <ul>
+                    <span>
+                      <b>
+                        isSignature
+                      </b>
+                      :
+                      <code>bool</code>
+                       - 
+                      Determines whether the F# parser will process the source as signature file.
+                    </span>
+                    <br/>
+                    <span>
+                      <b>
+                        source
+                      </b>
+                      :
+                      <code>string</code>
+                       - 
+                      F# source code
+                    </span>
+                    <br/>
+                  </ul>
+                  <br/>
+                  <span>
+                    Returns: 
+                    <code><span><a href="https://fsharp.github.io/fsharp-core-docs/reference/fsharp-control-fsharpasync-1">Async</a>&lt;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-formatresult.html">FormatResult</a>&gt;</span></code>
+                  </span>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-summary">
+              <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:M:Fantomas.Core.CodeFormatter.FormatDocumentAsync`')">
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-md.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-md-hover.png" class="hover"/>
+              </div>
+              <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'M:Fantomas.Core.CodeFormatter.FormatDocumentAsync\'/>')">
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+              </div>
+              <a href="" class="fsdocs-source-link" title="Source on GitHub">
+                <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
+              </a>
+              <p class="fsdocs-summary">
+                
+ Format a source string using an optional config.
+ 
+              </p>
+            </div>
+            <dl class="fsdocs-params">
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  isSignature
+                </span>
+                :
+                <code>bool</code>
+              </dt>
+              <dd class="fsdocs-param-docs">
+                <p>
+                  Determines whether the F# parser will process the source as signature file.
+                </p>
+              </dd>
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  source
+                </span>
+                :
+                <code>string</code>
+              </dt>
+              <dd class="fsdocs-param-docs">
+                <p>
+                  F# source code
+                </p>
+              </dd>
+            </dl>
+            <dl class="fsdocs-returns">
+              <dt>
+                <span class="fsdocs-return-name">
+                  Returns: 
+                </span>
+                <code><span><a href="https://fsharp.github.io/fsharp-core-docs/reference/fsharp-control-fsharpasync-1">Async</a>&lt;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-formatresult.html">FormatResult</a>&gt;</span></code>
+              </dt>
+              <dd class="fsdocs-return-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '7301', 7301)" onmouseover="showTip(event, '7301', 7301)">
+                <p>
+                  <a id="FormatOakAsync">
+                    <a href="#FormatOakAsync">
+                      <code><span>CodeFormatter.FormatOakAsync<span><span>(<span>oak,&#32;config</span>)</span></span></span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="7301">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>CodeFormatter.FormatOakAsync<span><span>(<span>oak,&#32;config</span>)</span></span></span></code>
+                  <br/>
+                  <br/>
+                  Parameters: 
+                  <ul>
+                    <span>
+                      <b>
+                        oak
+                      </b>
+                      :
+                      <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-oak.html">Oak</a></code>
+                    </span>
+                    <br/>
+                    <span>
+                      <b>
+                        config
+                      </b>
+                      :
+                      <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-formatconfig.html">FormatConfig</a></code>
+                    </span>
+                    <br/>
+                  </ul>
+                  <br/>
+                  <span>
+                    Returns: 
+                    <code><span><a href="https://fsharp.github.io/fsharp-core-docs/reference/fsharp-control-fsharpasync-1">Async</a>&lt;string&gt;</span></code>
+                  </span>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-summary">
+              <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:M:Fantomas.Core.CodeFormatter.FormatOakAsync`')">
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-md.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-md-hover.png" class="hover"/>
+              </div>
+              <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'M:Fantomas.Core.CodeFormatter.FormatOakAsync\'/>')">
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+              </div>
+              <a href="" class="fsdocs-source-link" title="Source on GitHub">
+                <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
+              </a>
+              <p class="fsdocs-summary">
+                
+ Format SyntaxOak to string using given config
+
+              </p>
+            </div>
+            <dl class="fsdocs-params">
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  oak
+                </span>
+                :
+                <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-oak.html">Oak</a></code>
+              </dt>
               <dd class="fsdocs-param-docs"></dd>
               <dt class="fsdocs-param">
                 <span class="fsdocs-param-name">
-                  ?config
+                  config
                 </span>
                 :
-                <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-formatconfig-formatconfig.html">FormatConfig</a></code>
+                <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-formatconfig.html">FormatConfig</a></code>
               </dt>
               <dd class="fsdocs-param-docs"></dd>
             </dl>
@@ -470,19 +1007,99 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code onmouseout="hideTip(event, '7353', 7353)" onmouseover="showTip(event, '7353', 7353)">
+              <code onmouseout="hideTip(event, '7302', 7302)" onmouseover="showTip(event, '7302', 7302)">
                 <p>
-                  <a id="FormatSelectionAsync">
-                    <a href="#FormatSelectionAsync">
-                      <code><span>CodeFormatter.FormatSelectionAsync<span><span>(<span>isSignature,&#32;source,&#32;selection,&#32;?config</span>)</span></span></span></code>
+                  <a id="FormatOakAsync">
+                    <a href="#FormatOakAsync">
+                      <code><span>CodeFormatter.FormatOakAsync<span><span>(<span>oak</span>)</span></span></span></code>
                     </a>
                   </a>
                 </p>
               </code>
-              <div class="fsdocs-tip" id="7353">
+              <div class="fsdocs-tip" id="7302">
                 <div class="member-tooltip">
                   Full Usage: 
-                  <code><span>CodeFormatter.FormatSelectionAsync<span><span>(<span>isSignature,&#32;source,&#32;selection,&#32;?config</span>)</span></span></span></code>
+                  <code><span>CodeFormatter.FormatOakAsync<span><span>(<span>oak</span>)</span></span></span></code>
+                  <br/>
+                  <br/>
+                  Parameters: 
+                  <ul>
+                    <span>
+                      <b>
+                        oak
+                      </b>
+                      :
+                      <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-oak.html">Oak</a></code>
+                    </span>
+                    <br/>
+                  </ul>
+                  <br/>
+                  <span>
+                    Returns: 
+                    <code><span><a href="https://fsharp.github.io/fsharp-core-docs/reference/fsharp-control-fsharpasync-1">Async</a>&lt;string&gt;</span></code>
+                  </span>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-summary">
+              <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:M:Fantomas.Core.CodeFormatter.FormatOakAsync`')">
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-md.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-md-hover.png" class="hover"/>
+              </div>
+              <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'M:Fantomas.Core.CodeFormatter.FormatOakAsync\'/>')">
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+              </div>
+              <a href="" class="fsdocs-source-link" title="Source on GitHub">
+                <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
+              </a>
+              <p class="fsdocs-summary">
+                
+ Format SyntaxOak to string
+
+              </p>
+            </div>
+            <dl class="fsdocs-params">
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  oak
+                </span>
+                :
+                <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-oak.html">Oak</a></code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+            </dl>
+            <dl class="fsdocs-returns">
+              <dt>
+                <span class="fsdocs-return-name">
+                  Returns: 
+                </span>
+                <code><span><a href="https://fsharp.github.io/fsharp-core-docs/reference/fsharp-control-fsharpasync-1">Async</a>&lt;string&gt;</span></code>
+              </dt>
+              <dd class="fsdocs-return-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '7303', 7303)" onmouseover="showTip(event, '7303', 7303)">
+                <p>
+                  <a id="FormatSelectionAsync">
+                    <a href="#FormatSelectionAsync">
+                      <code><span>CodeFormatter.FormatSelectionAsync<span><span>(<span>isSignature,&#32;source,&#32;selection,&#32;config</span>)</span></span></span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="7303">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>CodeFormatter.FormatSelectionAsync<span><span>(<span>isSignature,&#32;source,&#32;selection,&#32;config</span>)</span></span></span></code>
                   <br/>
                   <br/>
                   Parameters: 
@@ -508,15 +1125,15 @@
                         selection
                       </b>
                       :
-                      <code><a href="https://fsprojects.github.io/fantomas/reference/fsharp-compiler-text-range.html">Range</a></code>
+                      <code><a href="https://fsprojects.github.io/fantomas/reference/fsharp-compiler-text-range-0.html">range</a></code>
                     </span>
                     <br/>
                     <span>
                       <b>
-                        ?config
+                        config
                       </b>
                       :
-                      <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-formatconfig-formatconfig.html">FormatConfig</a></code>
+                      <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-formatconfig.html">FormatConfig</a></code>
                     </span>
                     <br/>
                   </ul>
@@ -546,6 +1163,9 @@
               </a>
               <p class="fsdocs-summary">
                 
+ Format a part of source string using given config, and return the (formatted) selected part only.
+ Beware that the range argument is inclusive. The closest expression inside the selection will be formatted if possible.
+
               </p>
             </div>
             <dl class="fsdocs-params">
@@ -570,15 +1190,15 @@
                   selection
                 </span>
                 :
-                <code><a href="https://fsprojects.github.io/fantomas/reference/fsharp-compiler-text-range.html">Range</a></code>
+                <code><a href="https://fsprojects.github.io/fantomas/reference/fsharp-compiler-text-range-0.html">range</a></code>
               </dt>
               <dd class="fsdocs-param-docs"></dd>
               <dt class="fsdocs-param">
                 <span class="fsdocs-param-name">
-                  ?config
+                  config
                 </span>
                 :
-                <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-formatconfig-formatconfig.html">FormatConfig</a></code>
+                <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-formatconfig.html">FormatConfig</a></code>
               </dt>
               <dd class="fsdocs-param-docs"></dd>
             </dl>
@@ -596,7 +1216,120 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code onmouseout="hideTip(event, '7354', 7354)" onmouseover="showTip(event, '7354', 7354)">
+              <code onmouseout="hideTip(event, '7304', 7304)" onmouseover="showTip(event, '7304', 7304)">
+                <p>
+                  <a id="FormatSelectionAsync">
+                    <a href="#FormatSelectionAsync">
+                      <code><span>CodeFormatter.FormatSelectionAsync<span><span>(<span>isSignature,&#32;source,&#32;selection</span>)</span></span></span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="7304">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>CodeFormatter.FormatSelectionAsync<span><span>(<span>isSignature,&#32;source,&#32;selection</span>)</span></span></span></code>
+                  <br/>
+                  <br/>
+                  Parameters: 
+                  <ul>
+                    <span>
+                      <b>
+                        isSignature
+                      </b>
+                      :
+                      <code>bool</code>
+                    </span>
+                    <br/>
+                    <span>
+                      <b>
+                        source
+                      </b>
+                      :
+                      <code>string</code>
+                    </span>
+                    <br/>
+                    <span>
+                      <b>
+                        selection
+                      </b>
+                      :
+                      <code><a href="https://fsprojects.github.io/fantomas/reference/fsharp-compiler-text-range-0.html">range</a></code>
+                    </span>
+                    <br/>
+                  </ul>
+                  <br/>
+                  <span>
+                    Returns: 
+                    <code><span><a href="https://fsharp.github.io/fsharp-core-docs/reference/fsharp-control-fsharpasync-1">Async</a>&lt;<span>string&#32;*&#32;<a href="https://fsprojects.github.io/fantomas/reference/fsharp-compiler-text-range-0.html">range</a></span>&gt;</span></code>
+                  </span>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-summary">
+              <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:M:Fantomas.Core.CodeFormatter.FormatSelectionAsync`')">
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-md.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-md-hover.png" class="hover"/>
+              </div>
+              <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'M:Fantomas.Core.CodeFormatter.FormatSelectionAsync\'/>')">
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+              </div>
+              <a href="" class="fsdocs-source-link" title="Source on GitHub">
+                <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
+              </a>
+              <p class="fsdocs-summary">
+                
+ Format a part of a source string and return the (formatted) selected part only.
+ Beware that the range argument is inclusive. The closest expression inside the selection will be formatted if possible.
+
+              </p>
+            </div>
+            <dl class="fsdocs-params">
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  isSignature
+                </span>
+                :
+                <code>bool</code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  source
+                </span>
+                :
+                <code>string</code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  selection
+                </span>
+                :
+                <code><a href="https://fsprojects.github.io/fantomas/reference/fsharp-compiler-text-range-0.html">range</a></code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+            </dl>
+            <dl class="fsdocs-returns">
+              <dt>
+                <span class="fsdocs-return-name">
+                  Returns: 
+                </span>
+                <code><span><a href="https://fsharp.github.io/fsharp-core-docs/reference/fsharp-control-fsharpasync-1">Async</a>&lt;<span>string&#32;*&#32;<a href="https://fsprojects.github.io/fantomas/reference/fsharp-compiler-text-range-0.html">range</a></span>&gt;</span></code>
+              </dt>
+              <dd class="fsdocs-return-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '7305', 7305)" onmouseover="showTip(event, '7305', 7305)">
                 <p>
                   <a id="GetVersion">
                     <a href="#GetVersion">
@@ -605,7 +1338,7 @@
                   </a>
                 </p>
               </code>
-              <div class="fsdocs-tip" id="7354">
+              <div class="fsdocs-tip" id="7305">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>CodeFormatter.GetVersion<span>()</span></span></code>
@@ -654,7 +1387,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code onmouseout="hideTip(event, '7355', 7355)" onmouseover="showTip(event, '7355', 7355)">
+              <code onmouseout="hideTip(event, '7306', 7306)" onmouseover="showTip(event, '7306', 7306)">
                 <p>
                   <a id="IsValidFSharpCodeAsync">
                     <a href="#IsValidFSharpCodeAsync">
@@ -663,7 +1396,7 @@
                   </a>
                 </p>
               </code>
-              <div class="fsdocs-tip" id="7355">
+              <div class="fsdocs-tip" id="7306">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>CodeFormatter.IsValidFSharpCodeAsync<span><span>(<span>isSignature,&#32;source</span>)</span></span></span></code>
@@ -714,6 +1447,8 @@
               </a>
               <p class="fsdocs-summary">
                 
+ Check whether an input string is invalid in F# by attempting to parse the code.
+
               </p>
             </div>
             <dl class="fsdocs-params">
@@ -748,7 +1483,103 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code onmouseout="hideTip(event, '7356', 7356)" onmouseover="showTip(event, '7356', 7356)">
+              <code onmouseout="hideTip(event, '7307', 7307)" onmouseover="showTip(event, '7307', 7307)">
+                <p>
+                  <a id="MakePosition">
+                    <a href="#MakePosition">
+                      <code><span>CodeFormatter.MakePosition<span><span>(<span>line,&#32;column</span>)</span></span></span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="7307">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>CodeFormatter.MakePosition<span><span>(<span>line,&#32;column</span>)</span></span></span></code>
+                  <br/>
+                  <br/>
+                  Parameters: 
+                  <ul>
+                    <span>
+                      <b>
+                        line
+                      </b>
+                      :
+                      <code>int</code>
+                    </span>
+                    <br/>
+                    <span>
+                      <b>
+                        column
+                      </b>
+                      :
+                      <code>int</code>
+                    </span>
+                    <br/>
+                  </ul>
+                  <br/>
+                  <span>
+                    Returns: 
+                    <code><a href="https://fsprojects.github.io/fantomas/reference/fsharp-compiler-text-pos.html">pos</a></code>
+                  </span>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-summary">
+              <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:M:Fantomas.Core.CodeFormatter.MakePosition`')">
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-md.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-md-hover.png" class="hover"/>
+              </div>
+              <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'M:Fantomas.Core.CodeFormatter.MakePosition\'/>')">
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+              </div>
+              <a href="" class="fsdocs-source-link" title="Source on GitHub">
+                <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
+              </a>
+              <p class="fsdocs-summary">
+                
+ Make a pos from line and column
+
+              </p>
+            </div>
+            <dl class="fsdocs-params">
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  line
+                </span>
+                :
+                <code>int</code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  column
+                </span>
+                :
+                <code>int</code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+            </dl>
+            <dl class="fsdocs-returns">
+              <dt>
+                <span class="fsdocs-return-name">
+                  Returns: 
+                </span>
+                <code><a href="https://fsprojects.github.io/fantomas/reference/fsharp-compiler-text-pos.html">pos</a></code>
+              </dt>
+              <dd class="fsdocs-return-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '7308', 7308)" onmouseover="showTip(event, '7308', 7308)">
                 <p>
                   <a id="MakeRange">
                     <a href="#MakeRange">
@@ -757,7 +1588,7 @@
                   </a>
                 </p>
               </code>
-              <div class="fsdocs-tip" id="7356">
+              <div class="fsdocs-tip" id="7308">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>CodeFormatter.MakeRange<span><span>(<span>fileName,&#32;startLine,&#32;startCol,&#32;endLine,&#32;endCol</span>)</span></span></span></code>
@@ -892,7 +1723,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code onmouseout="hideTip(event, '7357', 7357)" onmouseover="showTip(event, '7357', 7357)">
+              <code onmouseout="hideTip(event, '7309', 7309)" onmouseover="showTip(event, '7309', 7309)">
                 <p>
                   <a id="ParseAsync">
                     <a href="#ParseAsync">
@@ -901,7 +1732,7 @@
                   </a>
                 </p>
               </code>
-              <div class="fsdocs-tip" id="7357">
+              <div class="fsdocs-tip" id="7309">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>CodeFormatter.ParseAsync<span><span>(<span>isSignature,&#32;source</span>)</span></span></span></code>
@@ -952,6 +1783,8 @@
               </a>
               <p class="fsdocs-summary">
                 
+ Parse a source string using given config
+
               </p>
             </div>
             <dl class="fsdocs-params">
@@ -978,6 +1811,102 @@
                   Returns: 
                 </span>
                 <code><span><a href="https://fsharp.github.io/fsharp-core-docs/reference/fsharp-control-fsharpasync-1">Async</a>&lt;<span><span>(<span><a href="https://fsprojects.github.io/fantomas/reference/fsharp-compiler-syntax-parsedinput.html">ParsedInput</a>&#32;*&#32;<span>string&#32;list</span></span>)</span>&#32;array</span>&gt;</span></code>
+              </dt>
+              <dd class="fsdocs-return-docs"></dd>
+            </dl>
+          </td>
+        </tr>
+        <tr>
+          <td class="fsdocs-member-usage">
+            <div>
+              <code onmouseout="hideTip(event, '7310', 7310)" onmouseover="showTip(event, '7310', 7310)">
+                <p>
+                  <a id="ParseOakAsync">
+                    <a href="#ParseOakAsync">
+                      <code><span>CodeFormatter.ParseOakAsync<span><span>(<span>isSignature,&#32;source</span>)</span></span></span></code>
+                    </a>
+                  </a>
+                </p>
+              </code>
+              <div class="fsdocs-tip" id="7310">
+                <div class="member-tooltip">
+                  Full Usage: 
+                  <code><span>CodeFormatter.ParseOakAsync<span><span>(<span>isSignature,&#32;source</span>)</span></span></span></code>
+                  <br/>
+                  <br/>
+                  Parameters: 
+                  <ul>
+                    <span>
+                      <b>
+                        isSignature
+                      </b>
+                      :
+                      <code>bool</code>
+                    </span>
+                    <br/>
+                    <span>
+                      <b>
+                        source
+                      </b>
+                      :
+                      <code>string</code>
+                    </span>
+                    <br/>
+                  </ul>
+                  <br/>
+                  <span>
+                    Returns: 
+                    <code><span><a href="https://fsharp.github.io/fsharp-core-docs/reference/fsharp-control-fsharpasync-1">Async</a>&lt;<span><span>(<span><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-oak.html">Oak</a>&#32;*&#32;<span>string&#32;list</span></span>)</span>&#32;array</span>&gt;</span></code>
+                  </span>
+                  <br/>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="fsdocs-member-xmldoc">
+            <div class="fsdocs-summary">
+              <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:M:Fantomas.Core.CodeFormatter.ParseOakAsync`')">
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-md.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-md-hover.png" class="hover"/>
+              </div>
+              <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'M:Fantomas.Core.CodeFormatter.ParseOakAsync\'/>')">
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml-hover.png" class="hover"/>
+              </div>
+              <a href="" class="fsdocs-source-link" title="Source on GitHub">
+                <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
+                <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
+              </a>
+              <p class="fsdocs-summary">
+                
+ Parse a source string to SyntaxOak
+
+              </p>
+            </div>
+            <dl class="fsdocs-params">
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  isSignature
+                </span>
+                :
+                <code>bool</code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  source
+                </span>
+                :
+                <code>string</code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+            </dl>
+            <dl class="fsdocs-returns">
+              <dt>
+                <span class="fsdocs-return-name">
+                  Returns: 
+                </span>
+                <code><span><a href="https://fsharp.github.io/fsharp-core-docs/reference/fsharp-control-fsharpasync-1">Async</a>&lt;<span><span>(<span><a href="https://fsprojects.github.io/fantomas/reference/fantomas-core-syntaxoak-oak.html">Oak</a>&#32;*&#32;<span>string&#32;list</span></span>)</span>&#32;array</span>&gt;</span></code>
               </dt>
               <dd class="fsdocs-return-docs"></dd>
             </dl>

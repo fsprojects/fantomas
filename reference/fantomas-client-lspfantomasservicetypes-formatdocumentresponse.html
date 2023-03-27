@@ -72,6 +72,9 @@
 <li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/end-users/GeneratingCode.html" class="nav-link pb-2 d-block" > Generating source code
 </a></li>
 
+<li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/end-users/UpgradeGuide.html" class="nav-link pb-2 d-block" > Upgrade guide
+</a></li>
+
 <li class="nav-item"><a href="https://fsprojects.github.io/fantomas/docs/end-users/FAQ.html" class="nav-link pb-2 d-block" > FAQ
 </a></li>
 
@@ -220,12 +223,6 @@
     <dt>
       All Interfaces: 
       <code><a href="https://docs.microsoft.com/dotnet/api/system.collections.istructuralequatable">IStructuralEquatable</a></code>
-      , 
-      <code><span><a href="https://docs.microsoft.com/dotnet/api/system.icomparable-1">IComparable</a>&lt;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-client-lspfantomasservicetypes-formatdocumentresponse.html">FormatDocumentResponse</a>&gt;</span></code>
-      , 
-      <code><a href="https://docs.microsoft.com/dotnet/api/system.icomparable">IComparable</a></code>
-      , 
-      <code><a href="https://docs.microsoft.com/dotnet/api/system.collections.istructuralcomparable">IStructuralComparable</a></code>
     </dt>
   </dl>
   <div class="fsdocs-xmldoc">
@@ -257,7 +254,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code onmouseout="hideTip(event, '6310', 6310)" onmouseover="showTip(event, '6310', 6310)">
+              <code onmouseout="hideTip(event, '6317', 6317)" onmouseover="showTip(event, '6317', 6317)">
                 <p>
                   <a id="Error">
                     <a href="#Error">
@@ -266,7 +263,7 @@
                   </a>
                 </p>
               </code>
-              <div class="fsdocs-tip" id="6310">
+              <div class="fsdocs-tip" id="6317">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>Error(<span>filename,&#32;formattingError</span>)</span></code>
@@ -329,19 +326,19 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code onmouseout="hideTip(event, '6311', 6311)" onmouseover="showTip(event, '6311', 6311)">
+              <code onmouseout="hideTip(event, '6318', 6318)" onmouseover="showTip(event, '6318', 6318)">
                 <p>
                   <a id="Formatted">
                     <a href="#Formatted">
-                      <code><span>Formatted(<span>filename,&#32;formattedContent</span>)</span></code>
+                      <code><span>Formatted(<span>filename,&#32;formattedContent,&#32;cursor</span>)</span></code>
                     </a>
                   </a>
                 </p>
               </code>
-              <div class="fsdocs-tip" id="6311">
+              <div class="fsdocs-tip" id="6318">
                 <div class="member-tooltip">
                   Full Usage: 
-                  <code><span>Formatted(<span>filename,&#32;formattedContent</span>)</span></code>
+                  <code><span>Formatted(<span>filename,&#32;formattedContent,&#32;cursor</span>)</span></code>
                   <br/>
                   <br/>
                   Parameters: 
@@ -360,6 +357,14 @@
                       </b>
                       :
                       <code>string</code>
+                    </span>
+                    <br/>
+                    <span>
+                      <b>
+                        cursor
+                      </b>
+                      :
+                      <code><span><a href="https://fsprojects.github.io/fantomas/reference/fantomas-client-contracts-formatcursorposition.html">FormatCursorPosition</a>&#32;option</span></code>
                     </span>
                     <br/>
                   </ul>
@@ -395,13 +400,21 @@
                 <code>string</code>
               </dt>
               <dd class="fsdocs-param-docs"></dd>
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  cursor
+                </span>
+                :
+                <code><span><a href="https://fsprojects.github.io/fantomas/reference/fantomas-client-contracts-formatcursorposition.html">FormatCursorPosition</a>&#32;option</span></code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
             </dl>
           </td>
         </tr>
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code onmouseout="hideTip(event, '6312', 6312)" onmouseover="showTip(event, '6312', 6312)">
+              <code onmouseout="hideTip(event, '6319', 6319)" onmouseover="showTip(event, '6319', 6319)">
                 <p>
                   <a id="IgnoredFile">
                     <a href="#IgnoredFile">
@@ -410,7 +423,7 @@
                   </a>
                 </p>
               </code>
-              <div class="fsdocs-tip" id="6312">
+              <div class="fsdocs-tip" id="6319">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>IgnoredFile&#32;filename</span></code>
@@ -457,7 +470,7 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code onmouseout="hideTip(event, '6313', 6313)" onmouseover="showTip(event, '6313', 6313)">
+              <code onmouseout="hideTip(event, '6320', 6320)" onmouseover="showTip(event, '6320', 6320)">
                 <p>
                   <a id="Unchanged">
                     <a href="#Unchanged">
@@ -466,7 +479,7 @@
                   </a>
                 </p>
               </code>
-              <div class="fsdocs-tip" id="6313">
+              <div class="fsdocs-tip" id="6320">
                 <div class="member-tooltip">
                   Full Usage: 
                   <code><span>Unchanged&#32;filename</span></code>
@@ -516,81 +529,7 @@
   <div></div>
   <div></div>
   <div></div>
-  <div>
-    <h3>
-      Instance members
-    </h3>
-    <table class="table outer-list fsdocs-member-list">
-      <thead>
-        <tr>
-          <td class="fsdocs-member-list-header">
-            Instance member
-          </td>
-          <td class="fsdocs-member-list-header">
-            Description
-          </td>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td class="fsdocs-member-usage">
-            <div>
-              <code onmouseout="hideTip(event, '6314', 6314)" onmouseover="showTip(event, '6314', 6314)">
-                <p>
-                  <a id="AsFormatResponse">
-                    <a href="#AsFormatResponse">
-                      <code><span>this.AsFormatResponse</span></code>
-                    </a>
-                  </a>
-                </p>
-              </code>
-              <div class="fsdocs-tip" id="6314">
-                <div class="member-tooltip">
-                  Full Usage: 
-                  <code><span>this.AsFormatResponse</span></code>
-                  <br/>
-                  <br/>
-                  <span>
-                    Returns: 
-                    <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-client-contracts-fantomasresponse.html">FantomasResponse</a></code>
-                  </span>
-                  <br/>
-                </div>
-              </div>
-            </div>
-          </td>
-          <td class="fsdocs-member-xmldoc">
-            <div class="fsdocs-summary">
-              <div class="fsdocs-source-link" title="Copy signature (Markdown)" onclick="Clipboard_CopyTo('`cref:M:Fantomas.Client.LSPFantomasServiceTypes.FormatDocumentResponse.AsFormatResponse`')">
-                <img src="https://fsprojects.github.io/fantomas/content/img/copy-md.png" class="normal"/>
-                <img src="https://fsprojects.github.io/fantomas/content/img/copy-md-hover.png" class="hover"/>
-              </div>
-              <div class="fsdocs-source-link" title="Copy signature (XML)" onclick="Clipboard_CopyTo('<see cref=\'M:Fantomas.Client.LSPFantomasServiceTypes.FormatDocumentResponse.AsFormatResponse\'/>')">
-                <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml.png" class="normal"/>
-                <img src="https://fsprojects.github.io/fantomas/content/img/copy-xml-hover.png" class="hover"/>
-              </div>
-              <a href="" class="fsdocs-source-link" title="Source on GitHub">
-                <img src="https://fsprojects.github.io/fantomas/content/img/github.png" class="normal"/>
-                <img src="https://fsprojects.github.io/fantomas/content/img/github-hover.png" class="hover"/>
-              </a>
-              <p class="fsdocs-summary">
-                
-              </p>
-            </div>
-            <dl class="fsdocs-returns">
-              <dt>
-                <span class="fsdocs-return-name">
-                  Returns: 
-                </span>
-                <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-client-contracts-fantomasresponse.html">FantomasResponse</a></code>
-              </dt>
-              <dd class="fsdocs-return-docs"></dd>
-            </dl>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
+  <div></div>
   <div></div>
 </div>
         
