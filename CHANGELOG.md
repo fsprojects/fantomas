@@ -1,6 +1,6 @@
 # Changelog
 
-## [Unreleased]
+## [6.0.0-alpha-008] - 2023-03-27
 
 ### Fixed
 * Nested multiline record with indent_size = 2. [#2801](https://github.com/fsprojects/fantomas/issues/2801)
