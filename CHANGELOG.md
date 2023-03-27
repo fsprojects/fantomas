@@ -4,6 +4,7 @@
 
 ### Fixed
 * Nested multiline record with indent_size = 2. [#2801](https://github.com/fsprojects/fantomas/issues/2801)
+* Idempotency problem when comment after opening brace in inherit record. [#2803](https://github.com/fsprojects/fantomas/issues/2803)
 
 ## [6.0.0-alpha-007] - 2023-03-27
 
