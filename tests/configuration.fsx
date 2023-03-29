@@ -65,13 +65,13 @@ let repositories =
         {
             Name = "fsharp"
             GitUrl = "https://github.com/dotnet/fsharp"
-            Commit = "0677fc2f7d0612388351d035480005af4d90ad49"
+            Commit = "56123ad2bb053984d3d58e882f78e478e798af44"
             Prepare = []
             Build =
                 [
                     {
-                        File = "Build.cmd"
-                        Arguments = "-noVisualStudio"
+                        File = "dotnet"
+                        Arguments = "build FSharp.Compiler.Service.sln"
                     }
                 ]
             Format = [ "src" ]
