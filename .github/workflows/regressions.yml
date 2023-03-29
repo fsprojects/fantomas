@@ -10,6 +10,12 @@ jobs:
     - uses: actions/checkout@v3
     - name: Setup .NET Core
       uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: |
+          # fantomas
+          7.0.104
+          # dotnet/fsharp
+          7.0.202
     - name: Download FCS
       run: dotnet fsi build.fsx -p Init
     - name: Restore
