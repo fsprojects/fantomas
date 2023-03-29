@@ -12,8 +12,8 @@ jobs:
       uses: actions/setup-dotnet@v3
       with:
         dotnet-version: |
-          7.0.104 # fantomas
-          7.0.202 # dotnet/fsharp
+          7.0.104
+          7.0.202
     - name: Download FCS
       run: dotnet fsi build.fsx -p Init
     - name: Restore
