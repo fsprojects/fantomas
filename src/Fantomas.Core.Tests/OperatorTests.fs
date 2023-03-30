@@ -1582,3 +1582,26 @@ let allDecls =
     @+ iimplsLs
     @+ ctorLs
 """
+
+[<Test>]
+let ``adding space after prefix operator breaks code, 2796`` () =
+    formatSourceString
+        false
+        """
+let inline (~%%) id = int id
+
+let f a b = a + b
+
+let foo () = f %%"17" %%"42"
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let inline (~%%) id = int id
+
+let f a b = a + b
+
+let foo () = f %%"17" %%"42"
+"""
