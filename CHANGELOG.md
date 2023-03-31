@@ -4,6 +4,7 @@
 
 ### Fixed
 * Adding space after prefix operator breaks code. [#2796](https://github.com/fsprojects/fantomas/issues/2796)
+* Idempotency problem when comment after pattern match arrow and Stroustrup. [#2806](https://github.com/fsprojects/fantomas/issues/2806)
 
 ## [6.0.0-alpha-008] - 2023-03-27
 
