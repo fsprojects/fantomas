@@ -708,7 +708,8 @@ let genExpr (e: Expr) =
 
         match node.Expr with
         | Expr.Constant _
-        | Expr.InterpolatedStringExpr _ -> genSingleTextNode node.Operator +> sepSpace +> genExpr node.Expr
+        | Expr.InterpolatedStringExpr _ when not (node.Operator.Text.StartsWith("%")) ->
+            genSingleTextNode node.Operator +> sepSpace +> genExpr node.Expr
         | Expr.AppSingleParenArg appNode ->
             genSingleTextNode node.Operator
             +> sepSpace
