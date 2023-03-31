@@ -456,3 +456,50 @@ let y x =
     | Case2 -> [ "X" ]
     | Case3 -> [ "Y" ]
 """
+
+[<Test>]
+let ``don't apply stroustrup when the token has trivia after it, 2806`` () =
+    formatSourceString
+        false
+        """
+match this.InboundSubnetName with
+| None -> ()
+| Some subnet -> // Build an inbound for the specified subnet.
+    {
+        Name = subnet
+        Location = location
+        DnsResolverId = Managed(dnsResolvers.resourceId this.Name)
+        SubnetId =
+            Unmanaged
+                { vnetId.ResourceId with
+                    Type = Arm.Network.subnets
+                    Segments = [ subnet ]
+                }
+        PrivateIpAllocations = [ DynamicPrivateIp ]
+        Dependencies = Set.empty
+        Tags = Map.empty
+    }
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+match this.InboundSubnetName with
+| None -> ()
+| Some subnet -> // Build an inbound for the specified subnet.
+    {
+        Name = subnet
+        Location = location
+        DnsResolverId = Managed(dnsResolvers.resourceId this.Name)
+        SubnetId =
+            Unmanaged {
+                vnetId.ResourceId with
+                    Type = Arm.Network.subnets
+                    Segments = [ subnet ]
+            }
+        PrivateIpAllocations = [ DynamicPrivateIp ]
+        Dependencies = Set.empty
+        Tags = Map.empty
+    }
+"""

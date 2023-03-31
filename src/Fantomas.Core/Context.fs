@@ -773,10 +773,11 @@ let isStroustrupStyleType (config: FormatConfig) (t: Type) =
     | Type.AnonRecord _ when isStroustrupEnabled -> true
     | _ -> false
 
-let canSafelyUseStroustrup (node: Node) = not node.HasContentBefore
+let canSafelyUseStroustrup (node: Node) (ctx: Context) =
+    not node.HasContentBefore && not (hasWriteBeforeNewlineContent ctx)
 
 let sepSpaceOrIndentAndNlnIfExceedsPageWidthUnlessStroustrup isStroustrup f (node: Node) (ctx: Context) =
-    if isStroustrup && canSafelyUseStroustrup node then
+    if isStroustrup && canSafelyUseStroustrup node ctx then
         (sepSpace +> f) ctx
     else
         sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth f ctx
@@ -934,7 +935,7 @@ let addParenIfAutoNln expr f =
 
 let indentSepNlnUnindentUnlessStroustrup f (e: Expr) (ctx: Context) =
     let shouldUseStroustrup =
-        isStroustrupStyleExpr ctx.Config e && canSafelyUseStroustrup (Expr.Node e)
+        isStroustrupStyleExpr ctx.Config e && canSafelyUseStroustrup (Expr.Node e) ctx
 
     if shouldUseStroustrup then
         f e ctx
@@ -943,7 +944,7 @@ let indentSepNlnUnindentUnlessStroustrup f (e: Expr) (ctx: Context) =
 
 let autoIndentAndNlnTypeUnlessStroustrup f (t: Type) (ctx: Context) =
     let shouldUseStroustrup =
-        isStroustrupStyleType ctx.Config t && canSafelyUseStroustrup (Type.Node t)
+        isStroustrupStyleType ctx.Config t && canSafelyUseStroustrup (Type.Node t) ctx
 
     if shouldUseStroustrup then
         f t ctx
@@ -952,7 +953,7 @@ let autoIndentAndNlnTypeUnlessStroustrup f (t: Type) (ctx: Context) =
 
 let autoIndentAndNlnIfExpressionExceedsPageWidthUnlessStroustrup f (e: Expr) (ctx: Context) =
     let isStroustrup =
-        isStroustrupStyleExpr ctx.Config e && canSafelyUseStroustrup (Expr.Node e)
+        isStroustrupStyleExpr ctx.Config e && canSafelyUseStroustrup (Expr.Node e) ctx
 
     if isStroustrup then
         f e ctx
