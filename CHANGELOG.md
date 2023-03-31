@@ -1,6 +1,6 @@
 # Changelog
 
-## [Unreleased]
+## [6.0.0-alpha-009] - 2023-03-31
 
 ### Fixed
 * Adding space after prefix operator breaks code. [#2796](https://github.com/fsprojects/fantomas/issues/2796)
