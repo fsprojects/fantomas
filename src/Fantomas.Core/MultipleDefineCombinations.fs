@@ -188,14 +188,12 @@ let splitWhenHash (defines: DefineCombination) (newline: string) (source: string
 let mergeMultipleFormatResults config (results: (DefineCombination * FormatResult) list) : FormatResult =
     let allInFragments: FormatResultForDefines list =
         results
-            .AsParallel()
-            .Select(fun (dc, result) ->
-                let fragments = splitWhenHash dc config.EndOfLine.NewLineString result.Code
+        |> List.map (fun (dc, result) ->
+            let fragments = splitWhenHash dc config.EndOfLine.NewLineString result.Code
 
-                { Result = result
-                  Defines = dc
-                  Fragments = fragments })
-        |> Seq.toList
+            { Result = result
+              Defines = dc
+              Fragments = fragments })
 
     let allHaveSameFragmentCount =
         let allWithCount = List.map (fun { Fragments = f } -> f.Length) allInFragments
