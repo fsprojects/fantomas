@@ -1,5 +1,10 @@
 # Changelog
 
+## [6.0.0-alpha-010] - 2023-04-03
+
+### Fixed
+* Fix a performance regression. [#2820](https://github.com/fsprojects/fantomas/pull/2820)
+
 ## [6.0.0-alpha-009] - 2023-03-31
 
 ### Fixed
