@@ -1,5 +1,10 @@
 # Changelog
 
+## [Unreleased]
+
+### Changed
+* Update FCS to 'Add parser recovery for incomplete named pat pair', commit ba6647ebf5b94823c4d6fafd1e7d5f806d915ee0
+
 ## [6.0.0-alpha-010] - 2023-04-03
 
 ### Fixed

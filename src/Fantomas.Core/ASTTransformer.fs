@@ -984,11 +984,9 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
         let fields =
             recordFields
             |> List.choose (function
-                | ident, Some mEq, e ->
-                    let m = unionRanges ident.idRange e.Range
-
-                    let longIdent =
-                        IdentListNode([ IdentifierOrDot.Ident(mkIdent ident) ], ident.idRange)
+                | sli, Some mEq, e ->
+                    let m = unionRanges sli.Range e.Range
+                    let longIdent = mkSynLongIdent sli
 
                     Some(RecordFieldNode(longIdent, stn "=" mEq, mkExpr creationAide e, m))
                 | _ -> None)
@@ -1006,12 +1004,9 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
         let fields =
             recordFields
             |> List.choose (function
-                | ident, Some mEq, e ->
-                    let m = unionRanges ident.idRange e.Range
-
-                    let longIdent =
-                        IdentListNode([ IdentifierOrDot.Ident(mkIdent ident) ], ident.idRange)
-
+                | sli, Some mEq, e ->
+                    let m = unionRanges sli.Range e.Range
+                    let longIdent = mkSynLongIdent sli
                     Some(RecordFieldNode(longIdent, stn "=" mEq, mkExpr creationAide e, m))
                 | _ -> None)
 
@@ -1628,8 +1623,15 @@ let mkPat (creationAide: CreationAide) (p: SynPat) =
 
         let pairs =
             nps
-            |> List.map (fun (ident, eq, pat) ->
-                NamePatPair(mkIdent ident, stn "=" eq, mkPat creationAide pat, unionRanges ident.idRange pat.Range))
+            |> List.choose (fun (ident, eq, pat) ->
+                eq
+                |> Option.map (fun eq ->
+                    NamePatPair(
+                        mkIdent ident,
+                        stn "=" eq,
+                        mkPat creationAide pat,
+                        unionRanges ident.idRange pat.Range
+                    )))
 
         PatNamePatPairsNode(mkSynLongIdent synLongIdent, typarDecls, stn "(" lpr, pairs, stn ")" rpr, patternRange)
         |> Pattern.NamePatPairs
