@@ -1834,15 +1834,36 @@ let genMultilineFunctionApplicationArguments (argExpr: Expr) =
     | _ -> genExpr argExpr
 
 let genTuple (node: ExprTupleNode) =
+    let wrapInfixAppRhsInParenIfNeeded expr =
+        match expr with
+        | Expr.InfixApp exprInfixAppNode ->
+            match exprInfixAppNode.RightHandSide with
+            | e when isSynExprLambdaOrIfThenElse e ->
+                let parenNode =
+                    ExprParenNode(
+                        SingleTextNode("(", FSharp.Compiler.Text.Range.Zero),
+                        e,
+                        SingleTextNode(")", FSharp.Compiler.Text.Range.Zero),
+                        FSharp.Compiler.Text.Range.Zero
+                    )
+                    |> Expr.Paren
+
+                ExprInfixAppNode(
+                    exprInfixAppNode.LeftHandSide,
+                    exprInfixAppNode.Operator,
+                    parenNode,
+                    FSharp.Compiler.Text.range.Zero
+                )
+                |> Expr.InfixApp
+            | _ -> expr
+        | _ -> expr
+
     let shortExpression =
         col sepNone node.Items (function
             | Choice1Of2 e ->
                 match e with
-                | Expr.IfThen _
-                | Expr.IfThenElif _
-                | Expr.IfThenElse _
-                | Expr.Lambda _ -> sepOpenT +> genExpr e +> sepCloseT
-                | e -> genExpr e
+                | e when isSynExprLambdaOrIfThenElse e -> sepOpenT +> genExpr e +> sepCloseT
+                | e -> genExpr (wrapInfixAppRhsInParenIfNeeded e)
             | Choice2Of2 comma -> genSingleTextNode comma +> addSpaceIfSpaceAfterComma)
 
     let longExpression = genTupleMultiline node

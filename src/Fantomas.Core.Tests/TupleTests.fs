@@ -420,3 +420,118 @@ let shiftTimes localDate (start: Utc, duration) =
     |> fun dayStart -> start + dayStart.Duration - refDay.StartTime.Duration
     , duration
 """
+
+[<Test>]
+let ``if then expression inside object instantiation breaks when formatted, 2819`` () =
+    formatSourceString
+        false
+        """
+type Chapter() =
+    member val Title: string option = Unchecked.defaultof<_> with get, set
+    member val Url: string = Unchecked.defaultof<_> with get, set
+
+let c =
+    Chapter(
+        Title =
+            if true then
+                Some ""
+            else
+                None
+            ,
+        Url = ""
+    )
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type Chapter() =
+    member val Title: string option = Unchecked.defaultof<_> with get, set
+    member val Url: string = Unchecked.defaultof<_> with get, set
+
+let c = Chapter(Title = (if true then Some "" else None), Url = "")
+"""
+
+[<Test>]
+let ``object instantiation with ifthenelse in tuple`` () =
+    formatSourceString
+        false
+        """
+type Chapter() =
+    member val Title: string option = Unchecked.defaultof<_> with get, set
+    member val Url: string = Unchecked.defaultof<_> with get, set
+
+let c =
+    Chapter(
+        if true then
+            Some ""
+        else
+            None
+        ,
+        ""
+    )
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type Chapter() =
+    member val Title: string option = Unchecked.defaultof<_> with get, set
+    member val Url: string = Unchecked.defaultof<_> with get, set
+
+let c = Chapter((if true then Some "" else None), "")
+"""
+
+[<Test>]
+let ``infixapp with ifthen rhs in tuple`` () =
+    formatSourceString
+        false
+        """
+let a = 0
+let b = true
+let c = 1
+let d = 2
+
+let _ =
+    try
+        a <> if b then c else d
+        ,
+        b
+    with ex ->
+        false, false
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let a = 0
+let b = true
+let c = 1
+let d = 2
+
+let _ =
+    try
+        a <> (if b then c else d), b
+    with ex ->
+        false, false
+"""
+
+[<Test>]
+let ``infixapp with lambda rhs in tuple`` () =
+    formatSourceString
+        false
+        """
+a |> fun b -> if b then 0 else 1
+,
+2
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+a |> (fun b -> if b then 0 else 1), 2
+"""
