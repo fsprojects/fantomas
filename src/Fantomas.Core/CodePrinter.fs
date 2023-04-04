@@ -300,12 +300,17 @@ let genInheritConstructor (ic: InheritConstructor) =
         genType node.Type
         +> sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth (genExpr node.Expr)
 
-let isSynExprLambdaOrIfThenElse (e: Expr) =
+let isSynExprIfThenElse (e: Expr) =
     match e with
-    | Expr.Lambda _
     | Expr.IfThen _
     | Expr.IfThenElif _
     | Expr.IfThenElse _ -> true
+    | _ -> false
+
+let isSynExprLambdaOrIfThenElse (e: Expr) =
+    match e with
+    | Expr.Lambda _ -> true
+    | _ when isSynExprIfThenElse e -> true
     | _ -> false
 
 let genExpr (e: Expr) =
@@ -1290,12 +1295,7 @@ let genExpr (e: Expr) =
 
                 // If the `thenExpr` is also an SynExpr.IfThenElse, it will not be valid code if put on one line.
                 // ex: if cond then if a then b else c else e2
-                let thenExprIsIfThenElse =
-                    match node.ThenExpr with
-                    | Expr.IfThen _
-                    | Expr.IfThenElse _
-                    | Expr.IfThenElif _ -> true
-                    | _ -> false
+                let thenExprIsIfThenElse = isSynExprIfThenElse node.ThenExpr
 
                 if isMultiline || thenExprIsIfThenElse then
                     long ctx
@@ -1322,13 +1322,7 @@ let genExpr (e: Expr) =
         // Everything should fit on one line
         let areAllShort ctx =
             let anyThenExprIsIfThenElse =
-                node.Branches
-                |> List.exists (fun node ->
-                    match node.ThenExpr with
-                    | Expr.IfThen _
-                    | Expr.IfThenElif _
-                    | Expr.IfThenElse _ -> true
-                    | _ -> false)
+                node.Branches |> List.exists (fun node -> isSynExprIfThenElse node.ThenExpr)
 
             let checkIfLine (node: ExprIfThenNode) =
                 genControlExpressionStartCore (Choice2Of2 node.If) node.IfExpr node.Then
@@ -1899,9 +1893,8 @@ let genTupleMultiline (node: ExprTupleNode) =
         function
         | Choice1Of2 e ->
             match e with
-            | Expr.IfThen _
-            | Expr.IfThenElif _
-            | Expr.IfThenElse _ when (idx < lastIndex) -> autoParenthesisIfExpressionExceedsPageWidth (genExpr e)
+            | _ when isSynExprIfThenElse e && (idx < lastIndex) ->
+                autoParenthesisIfExpressionExceedsPageWidth (genExpr e)
             | Expr.InfixApp node when (node.Operator.Text = "=") -> genNamedArgumentExpr node
             | _ -> genExpr e
         | Choice2Of2 comma ->
@@ -2079,9 +2072,10 @@ let genControlExpressionStartCore
 let genMultilineInfixExpr (node: ExprInfixAppNode) =
     let genLhs (ctx: Context) =
         match node.LeftHandSide with
-        | Expr.IfThen _
-        | Expr.IfThenElse _
-        | Expr.IfThenElif _ when (ctx.Config.IndentSize - 1 <= node.Operator.Text.Length) ->
+        | _ when
+            isSynExprIfThenElse node.LeftHandSide
+            && (ctx.Config.IndentSize - 1 <= node.Operator.Text.Length)
+            ->
             autoParenthesisIfExpressionExceedsPageWidth (genExpr node.LeftHandSide) ctx
         | Expr.Match _ when (ctx.Config.IndentSize <= node.Operator.Text.Length) ->
             let ctxAfterMatch = genExpr node.LeftHandSide ctx
