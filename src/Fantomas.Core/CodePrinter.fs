@@ -1833,6 +1833,9 @@ let genMultilineFunctionApplicationArguments (argExpr: Expr) =
     | _ -> genExpr argExpr
 
 let genTuple (node: ExprTupleNode) =
+    // if a tuple element is an InfixApp with a lambda or if-then-else expression on the rhs, 
+    // we need to wrap the rhs in parenthesis to avoid a parse error caused by the higher precedence of "," over the rhs expression.
+    // see 2819
     let wrapInfixAppRhsInParenIfNeeded expr =
         match expr with
         | Expr.InfixApp exprInfixAppNode ->
