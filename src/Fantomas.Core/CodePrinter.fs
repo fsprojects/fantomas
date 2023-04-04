@@ -2630,10 +2630,12 @@ let genPatRecordFieldName (node: PatRecordField) =
         +> sepSpace
         +> genPat node.Pattern
 
-let genReturnTypeBinding (node: BindingReturnInfoNode option) =
+let genReturnTypeBinding (node: BindingReturnInfoNode option) (ctx: Context) =
     match node with
     | None -> sepNone
-    | Some node -> genSingleTextNode node.Colon +> sepSpace +> genType node.Type
+    | Some node ->
+        let sep = if ctx.Config.SpaceBeforeColon then sepSpace else sepNone
+        sep +> genSingleTextNode node.Colon +> sepSpace +> genType node.Type
 
 let genBinding (b: BindingNode) (ctx: Context) : Context =
     let spaceBefore, alternativeSyntax =
@@ -3630,33 +3632,36 @@ let genMemberDefn (md: MemberDefn) =
         +> optSingle (fun gs -> sepSpace +> genMultipleTextsNode gs) node.WithGetSet
         |> genNode (MemberDefn.Node md)
     | MemberDefn.PropertyGetSet node ->
-        let genProperty (node: PropertyGetSetBindingNode) =
-            genInlineOpt node.Inline
-            +> genAccessOpt node.Accessibility
-            +> genSingleTextNode node.LeadingKeyword
-            +> sepSpace
-            +> col sepSpace node.Parameters genPat
-            +> genReturnTypeBinding node.ReturnType
-            +> sepSpace
-            +> genSingleTextNode node.Equals
-            +> sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth (genExpr node.Expr)
+        fun ctx ->
+            let genProperty (node: PropertyGetSetBindingNode) =
+                genInlineOpt node.Inline
+                +> genAccessOpt node.Accessibility
+                +> genSingleTextNode node.LeadingKeyword
+                +> sepSpace
+                +> col sepSpace node.Parameters genPat
+                +> genReturnTypeBinding node.ReturnType ctx
+                +> sepSpace
+                +> genSingleTextNode node.Equals
+                +> sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth (genExpr node.Expr)
 
-        genXml node.XmlDoc
-        +> genAttributes node.Attributes
-        +> genMultipleTextsNode node.LeadingKeyword
-        +> sepSpace
-        +> genInlineOpt node.Inline
-        +> genAccessOpt node.Accessibility
-        +> genIdentListNode node.MemberName
-        +> indent
-        +> sepNln
-        +> genSingleTextNode node.WithKeyword
-        +> sepSpace
-        +> genProperty node.FirstBinding
-        +> optSingle (fun a -> sepNln +> genSingleTextNode a +> sepSpace) node.AndKeyword
-        +> optSingle genProperty node.LastBinding
-        +> unindent
-        |> genNode (MemberDefn.Node md)
+            let f =
+                genXml node.XmlDoc
+                +> genAttributes node.Attributes
+                +> genMultipleTextsNode node.LeadingKeyword
+                +> sepSpace
+                +> genInlineOpt node.Inline
+                +> genAccessOpt node.Accessibility
+                +> genIdentListNode node.MemberName
+                +> indent
+                +> sepNln
+                +> genSingleTextNode node.WithKeyword
+                +> sepSpace
+                +> genProperty node.FirstBinding
+                +> optSingle (fun a -> sepNln +> genSingleTextNode a +> sepSpace) node.AndKeyword
+                +> optSingle genProperty node.LastBinding
+                +> unindent
+
+            genNode (MemberDefn.Node md) f ctx
     | MemberDefn.SigMember node -> genVal node.Val node.WithGetSet |> genNode node
 
 let genException (node: ExceptionDefnNode) =
