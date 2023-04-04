@@ -300,6 +300,9 @@ let genInheritConstructor (ic: InheritConstructor) =
         genType node.Type
         +> sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth (genExpr node.Expr)
 
+let genParenExpr openingParen e closingParen r =
+    ExprParenNode(openingParen, e, closingParen, r) |> Expr.Paren
+
 let isIfThenElse (e: Expr) =
     match e with
     | Expr.IfThen _
@@ -1018,8 +1021,7 @@ let genExpr (e: Expr) =
                 // We make a copy of the parenthesis argument (without the trivia being copied).
                 // Then we check if that is was multiline or not.
                 let parenNode' =
-                    ExprParenNode(parenNode.OpeningParen, parenNode.Expr, parenNode.ClosingParen, parenNode.Range)
-                    |> Expr.Paren
+                    genParenExpr parenNode.OpeningParen parenNode.Expr parenNode.ClosingParen parenNode.Range
 
                 let isSingleLineWithoutTriviaBefore = futureNlnCheck (genExpr parenNode') ctx
 
@@ -1040,13 +1042,11 @@ let genExpr (e: Expr) =
             | [] ->
                 // We create a temporary fake paren node only for the sepSpaceBeforeParenInFuncInvocation call.
                 let parenExpr =
-                    ExprParenNode(
-                        node.OpeningParen,
-                        Expr.Null(SingleTextNode("", FSharp.Compiler.Text.Range.Zero)),
-                        node.ClosingParen,
+                    genParenExpr
+                        node.OpeningParen
+                        (Expr.Null(SingleTextNode("", FSharp.Compiler.Text.Range.Zero)))
+                        node.ClosingParen
                         FSharp.Compiler.Text.Range.Zero
-                    )
-                    |> Expr.Paren
 
                 sepSpaceBeforeParenInFuncInvocation node.FunctionName parenExpr
             | _ -> sepSpace
@@ -1833,7 +1833,7 @@ let genMultilineFunctionApplicationArguments (argExpr: Expr) =
     | _ -> genExpr argExpr
 
 let genTuple (node: ExprTupleNode) =
-    // if a tuple element is an InfixApp with a lambda or if-then-else expression on the rhs, 
+    // if a tuple element is an InfixApp with a lambda or if-then-else expression on the rhs,
     // we need to wrap the rhs in parenthesis to avoid a parse error caused by the higher precedence of "," over the rhs expression.
     // see 2819
     let wrapInfixAppRhsInParenIfNeeded expr =
@@ -1842,13 +1842,11 @@ let genTuple (node: ExprTupleNode) =
             match exprInfixAppNode.RightHandSide with
             | IsLambdaOrIfThenElse e ->
                 let parenNode =
-                    ExprParenNode(
-                        SingleTextNode("(", FSharp.Compiler.Text.Range.Zero),
-                        e,
-                        SingleTextNode(")", FSharp.Compiler.Text.Range.Zero),
+                    genParenExpr
+                        (SingleTextNode("(", FSharp.Compiler.Text.Range.Zero))
+                        e
+                        (SingleTextNode(")", FSharp.Compiler.Text.Range.Zero))
                         FSharp.Compiler.Text.Range.Zero
-                    )
-                    |> Expr.Paren
 
                 ExprInfixAppNode(
                     exprInfixAppNode.LeftHandSide,
