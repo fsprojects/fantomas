@@ -28,7 +28,7 @@ jobs:
       if: matrix.os == 'ubuntu-latest' && github.ref == 'refs/heads/main'
       run: "curl -H 'Accept: application/vnd.github.everest-preview+json' -H 'Authorization: token ${{secrets.FANTOMAS_TOOLS_TOKEN}}' --request POST --data '{\"event_type\": \"fantomas-commit-on-main\"}' https://api.github.com/repos/fsprojects/fantomas-tools/dispatches"
     - name: "Documentation"
-      if: matrix.os == 'ubuntu-latest' && github.ref == 'refs/heads/main'
+      if: matrix.os == 'windows-latest' && github.ref == 'refs/heads/main'
       uses: peaceiris/actions-gh-pages@v3
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
