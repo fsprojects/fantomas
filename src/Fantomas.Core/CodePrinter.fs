@@ -300,7 +300,7 @@ let genInheritConstructor (ic: InheritConstructor) =
         genType node.Type
         +> sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth (genExpr node.Expr)
 
-let genParenExpr openingParen e closingParen r =
+let mkExprParenNode openingParen e closingParen r =
     ExprParenNode(openingParen, e, closingParen, r) |> Expr.Paren
 
 let isIfThenElse (e: Expr) =
@@ -314,7 +314,7 @@ let (|IsIfThenElse|_|) (e: Expr) = if isIfThenElse e then Some e else None
 
 let isLambdaOrIfThenElse (e: Expr) =
     match e with
-    | Expr.Lambda _ -> true
+    | Expr.Lambda _
     | IsIfThenElse _ -> true
     | _ -> false
 
@@ -1021,7 +1021,7 @@ let genExpr (e: Expr) =
                 // We make a copy of the parenthesis argument (without the trivia being copied).
                 // Then we check if that is was multiline or not.
                 let parenNode' =
-                    genParenExpr parenNode.OpeningParen parenNode.Expr parenNode.ClosingParen parenNode.Range
+                    mkExprParenNode parenNode.OpeningParen parenNode.Expr parenNode.ClosingParen parenNode.Range
 
                 let isSingleLineWithoutTriviaBefore = futureNlnCheck (genExpr parenNode') ctx
 
@@ -1042,7 +1042,7 @@ let genExpr (e: Expr) =
             | [] ->
                 // We create a temporary fake paren node only for the sepSpaceBeforeParenInFuncInvocation call.
                 let parenExpr =
-                    genParenExpr
+                    mkExprParenNode
                         node.OpeningParen
                         (Expr.Null(SingleTextNode("", FSharp.Compiler.Text.Range.Zero)))
                         node.ClosingParen
@@ -1842,7 +1842,7 @@ let genTuple (node: ExprTupleNode) =
             match exprInfixAppNode.RightHandSide with
             | IsLambdaOrIfThenElse e ->
                 let parenNode =
-                    genParenExpr
+                    mkExprParenNode
                         (SingleTextNode("(", FSharp.Compiler.Text.Range.Zero))
                         e
                         (SingleTextNode(")", FSharp.Compiler.Text.Range.Zero))
