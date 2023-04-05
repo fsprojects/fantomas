@@ -3018,3 +3018,191 @@ type internal CompilerStateCache(readAllBytes: string -> byte[], projectOptions:
     class
     end
 """
+
+[<Test>]
+let ``duplicated trivia printing in ExprAppLongIdentAndSingleParenArgNode, 2822`` () =
+    formatSourceString
+        false
+        """
+fun config ->
+#if LOGGING_DEBUG || LOGGING_LOCAL
+            let template =
+                "[{Timestamp:HH:mm:ss.fff} {Level:u3} {SourceContext:l}] {Message:lj} | {Properties}{NewLine}{Exception}"
+#endif
+
+            config
+#if LOGGING_DEBUG
+                .WriteTo
+                .Debug(outputTemplate = template)
+#endif
+#if LOGGING_LOCAL
+                .WriteTo
+                .AnsiConsoleLog(
+                    outputTemplate = template
+                )
+#endif
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+fun config ->
+#if LOGGING_DEBUG || LOGGING_LOCAL
+    let template =
+        "[{Timestamp:HH:mm:ss.fff} {Level:u3} {SourceContext:l}] {Message:lj} | {Properties}{NewLine}{Exception}"
+#endif
+
+    config
+#if LOGGING_DEBUG
+        .WriteTo
+        .Debug(outputTemplate = template)
+#endif
+#if LOGGING_LOCAL
+        .WriteTo
+        .AnsiConsoleLog(outputTemplate = template)
+#endif
+"""
+
+[<Test>]
+let ``duplicated trivia printing in ExprAppLongIdentAndSingleParenArgNode, LOGGING_DEBUG LOGGING_LOCAL`` () =
+    formatSourceStringWithDefines
+        [ "LOGGING_DEBUG"; "LOGGING_LOCAL" ]
+        """
+fun config ->
+#if LOGGING_DEBUG || LOGGING_LOCAL
+            let template =
+                "[{Timestamp:HH:mm:ss.fff} {Level:u3} {SourceContext:l}] {Message:lj} | {Properties}{NewLine}{Exception}"
+#endif
+
+            config
+#if LOGGING_DEBUG
+                .WriteTo
+                .Debug(outputTemplate = template)
+#endif
+#if LOGGING_LOCAL
+                .WriteTo
+                .AnsiConsoleLog(
+                    outputTemplate = template
+                )
+#endif
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+fun config ->
+#if LOGGING_DEBUG || LOGGING_LOCAL
+    let template =
+        "[{Timestamp:HH:mm:ss.fff} {Level:u3} {SourceContext:l}] {Message:lj} | {Properties}{NewLine}{Exception}"
+#endif
+
+    config
+#if LOGGING_DEBUG
+        .WriteTo
+        .Debug(outputTemplate = template)
+#endif
+#if LOGGING_LOCAL
+        .WriteTo.AnsiConsoleLog(outputTemplate = template)
+#endif
+"""
+
+[<Test>]
+let ``duplicated trivia printing in ExprAppLongIdentAndSingleParenArgNode, LOGGING_DEBUG`` () =
+    formatSourceStringWithDefines
+        [ "LOGGING_DEBUG" ]
+        """
+fun config ->
+#if LOGGING_DEBUG || LOGGING_LOCAL
+            let template =
+                "[{Timestamp:HH:mm:ss.fff} {Level:u3} {SourceContext:l}] {Message:lj} | {Properties}{NewLine}{Exception}"
+#endif
+
+            config
+#if LOGGING_DEBUG
+                .WriteTo
+                .Debug(outputTemplate = template)
+#endif
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+fun config ->
+#if LOGGING_DEBUG || LOGGING_LOCAL
+    let template =
+        "[{Timestamp:HH:mm:ss.fff} {Level:u3} {SourceContext:l}] {Message:lj} | {Properties}{NewLine}{Exception}"
+#endif
+
+    config
+#if LOGGING_DEBUG
+        .WriteTo
+        .Debug(outputTemplate = template)
+#endif
+"""
+
+[<Test>]
+let ``duplicated trivia printing in ExprAppLongIdentAndSingleParenArgNode, LOGGING_LOCAL`` () =
+    formatSourceStringWithDefines
+        [ "LOGGING_LOCAL" ]
+        """
+fun config ->
+#if LOGGING_DEBUG || LOGGING_LOCAL
+            let template =
+                "[{Timestamp:HH:mm:ss.fff} {Level:u3} {SourceContext:l}] {Message:lj} | {Properties}{NewLine}{Exception}"
+#endif
+
+            config
+#if LOGGING_DEBUG
+                .WriteTo
+                .Debug(outputTemplate = template)
+#endif
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+fun config ->
+#if LOGGING_DEBUG || LOGGING_LOCAL
+    let template =
+        "[{Timestamp:HH:mm:ss.fff} {Level:u3} {SourceContext:l}] {Message:lj} | {Properties}{NewLine}{Exception}"
+#endif
+
+    config
+#if LOGGING_DEBUG
+#endif
+"""
+
+[<Test>]
+let ``duplicated trivia printing in ExprAppLongIdentAndSingleParenArgNode, no defines`` () =
+    formatSourceStringWithDefines
+        []
+        """
+fun config ->
+#if LOGGING_DEBUG || LOGGING_LOCAL
+            let template =
+                "[{Timestamp:HH:mm:ss.fff} {Level:u3} {SourceContext:l}] {Message:lj} | {Properties}{NewLine}{Exception}"
+#endif
+
+            config
+#if LOGGING_DEBUG
+                .WriteTo
+                .Debug(outputTemplate = template)
+#endif
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+fun config ->
+#if LOGGING_DEBUG || LOGGING_LOCAL
+#endif
+
+    config
+#if LOGGING_DEBUG
+#endif
+"""

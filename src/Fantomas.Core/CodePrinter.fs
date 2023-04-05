@@ -999,7 +999,7 @@ let genExpr (e: Expr) =
 
             ifElseCtx
                 (futureNlnCheck shortLids)
-                (genFunctionNameWithMultilineLids args node.FunctionName node)
+                (genFunctionNameWithMultilineLids args node.FunctionName)
                 (shortLids +> args)
 
         expressionFitsOnRestOfLine short long |> genNode node
@@ -2199,7 +2199,7 @@ let colGenericTypeParameters typeParameters =
 
         leadingSpace +> genType t)
 
-let genFunctionNameWithMultilineLids (trailing: Context -> Context) (longIdent: IdentListNode) (parentNode: Node) =
+let genFunctionNameWithMultilineLids (trailing: Context -> Context) (longIdent: IdentListNode) =
     match longIdent.Content with
     | IdentifierOrDot.Ident identNode :: t ->
         genSingleTextNode identNode
@@ -2217,7 +2217,6 @@ let genFunctionNameWithMultilineLids (trailing: Context -> Context) (longIdent: 
             +> trailing
         )
     | _ -> sepNone
-    |> genNode parentNode
 
 let (|EndsWithDualListApp|_|) (config: FormatConfig) (appNode: ExprAppNode) =
     if not (config.ExperimentalElmish || config.IsStroustrupStyle) then
