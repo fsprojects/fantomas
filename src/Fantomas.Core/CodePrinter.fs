@@ -2650,7 +2650,11 @@ let genPatRecordFieldName (node: PatRecordField) =
 let genReturnTypeBinding (node: BindingReturnInfoNode option) =
     match node with
     | None -> sepNone
-    | Some node -> genSingleTextNode node.Colon +> sepSpace +> genType node.Type
+    | Some node ->
+        onlyIfCtx (fun ctx -> ctx.Config.SpaceBeforeColon) sepSpace
+        +> genSingleTextNode node.Colon
+        +> sepSpace
+        +> genType node.Type
 
 let genBinding (b: BindingNode) (ctx: Context) : Context =
     let spaceBefore, alternativeSyntax =

@@ -81,3 +81,34 @@ let expensiveToComputeBad1 : int = 1
 let expensiveToComputeBad2 : int = 2
 let myFunBad (a : decimal) b c : decimal = a + b + c
 """
+
+[<Test>]
+let ``fsharp_space_before_colon not honored for return type info of explicit get, set, 2825`` () =
+    formatSourceString
+        false
+        """
+type SomeType() =
+
+    let mutable v: string = ""
+
+    member val SomeAutoProp: float = 23.42 with get, set
+    
+    member this.MyProperty
+        with get (): string = v
+        and set (value: string): unit = v <- value
+"""
+        { config with SpaceBeforeColon = true }
+    |> prepend newline
+    |> should
+        equal
+        """
+type SomeType() =
+
+    let mutable v : string = ""
+
+    member val SomeAutoProp : float = 23.42 with get, set
+
+    member this.MyProperty
+        with get () : string = v
+        and set (value : string) : unit = v <- value
+"""
