@@ -2634,7 +2634,7 @@ let genReturnTypeBinding (node: BindingReturnInfoNode option) =
     match node with
     | None -> sepNone
     | Some node ->
-        fun ctx -> onlyIf ctx.Config.SpaceBeforeColon sepSpace ctx
+        onlyIfCtx (fun ctx -> ctx.Config.SpaceBeforeColon) sepSpace
         +> genSingleTextNode node.Colon
         +> sepSpace
         +> genType node.Type
