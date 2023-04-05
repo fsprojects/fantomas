@@ -3018,3 +3018,115 @@ type internal CompilerStateCache(readAllBytes: string -> byte[], projectOptions:
     class
     end
 """
+
+[<Test>]
+let ``fantomas is trying to format the input multiple times due to the detection of multiple defines, 2822`` () =
+    formatSourceStringWithDefines
+        ["LOGGING_DEBUG"; "LOGGING_LOCAL"]
+        """
+fun config ->
+#if LOGGING_DEBUG || LOGGING_LOCAL
+            let template =
+                "[{Timestamp:HH:mm:ss.fff} {Level:u3} {SourceContext:l}] {Message:lj} | {Properties}{NewLine}{Exception}"
+#endif
+
+            config
+#if LOGGING_DEBUG
+                .WriteTo
+                .Debug(outputTemplate = template)
+#endif
+#if LOGGING_LOCAL
+                .WriteTo
+                .AnsiConsoleLog(
+                    outputTemplate = template
+                )
+#endif
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+fun config ->
+#if LOGGING_DEBUG || LOGGING_LOCAL
+    let template =
+        "[{Timestamp:HH:mm:ss.fff} {Level:u3} {SourceContext:l}] {Message:lj} | {Properties}{NewLine}{Exception}"
+#endif
+
+    config
+#if LOGGING_DEBUG
+        .WriteTo
+        .Debug(outputTemplate = template)
+#endif
+#if LOGGING_LOCAL
+        .WriteTo.AnsiConsoleLog(outputTemplate = template)
+#endif
+"""
+
+[<Test>]
+let ``fantomas is trying to format the input multiple times due to the detection of multiple defines, 2822b`` () =
+    formatSourceStringWithDefines
+        ["LOGGING_DEBUG"]
+        """
+fun config ->
+#if LOGGING_DEBUG || LOGGING_LOCAL
+            let template =
+                "[{Timestamp:HH:mm:ss.fff} {Level:u3} {SourceContext:l}] {Message:lj} | {Properties}{NewLine}{Exception}"
+#endif
+
+            config
+#if LOGGING_DEBUG
+                .WriteTo
+                .Debug(outputTemplate = template)
+#endif
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+fun config ->
+#if LOGGING_DEBUG || LOGGING_LOCAL
+    let template =
+        "[{Timestamp:HH:mm:ss.fff} {Level:u3} {SourceContext:l}] {Message:lj} | {Properties}{NewLine}{Exception}"
+#endif
+
+    config
+#if LOGGING_DEBUG
+        .WriteTo
+        .Debug(outputTemplate = template)
+#endif
+"""
+
+
+
+[<Test>]
+let ``foo`` () =
+    formatSourceString
+        false
+        """
+fun config ->
+            let template =
+                "[{Timestamp:HH:mm:ss.fff} {Level:u3} {SourceContext:l}] {Message:lj} | {Properties}{NewLine}{Exception}"
+// #endif
+
+            config
+                // newline comment
+                .WriteTo
+                .Debug(outputTemplate = template)
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+fun config ->
+    let template =
+        "[{Timestamp:HH:mm:ss.fff} {Level:u3} {SourceContext:l}] {Message:lj} | {Properties}{NewLine}{Exception}"
+    // #endif
+
+    config
+        // newline comment
+        .WriteTo
+        .Debug(outputTemplate = template)
+"""
