@@ -5,6 +5,7 @@
 ### Fixed
 * If then expression inside object instantiation breaks when formatted. [#2819](https://github.com/fsprojects/fantomas/pull/2819)
 * fsharp_space_before_colon not honored for return type info of explicit get, set. [#2825](https://github.com/fsprojects/fantomas/pull/2825)
+* Fantomas is trying to format the input multiple times due to the detection of multiple defines. [#2822](https://github.com/fsprojects/fantomas/pull/2822)
 
 ### Changed
 * Update FCS to 'Add parser recovery for incomplete named pat pair', commit ba6647ebf5b94823c4d6fafd1e7d5f806d915ee0
