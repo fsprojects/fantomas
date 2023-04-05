@@ -1,6 +1,6 @@
 # Changelog
 
-## [Unreleased]
+## [6.0.0-beta-001] - 2023-04-05
 
 ### Fixed
 * If then expression inside object instantiation breaks when formatted. [#2819](https://github.com/fsprojects/fantomas/pull/2819)
