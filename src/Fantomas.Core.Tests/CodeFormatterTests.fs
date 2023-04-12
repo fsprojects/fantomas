@@ -2,7 +2,7 @@ module Fantomas.Core.Tests.CodeFormatterTests
 
 open NUnit.Framework
 open Fantomas.Core
-open Fantomas.Core.Tests.TestHelper
+open Fantomas.Core.Tests.TestHelpers
 
 [<Test>]
 let ``sanitize filename if Program.fs`` () =

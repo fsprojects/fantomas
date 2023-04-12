@@ -2,7 +2,7 @@ module Fantomas.Core.Tests.InterpolatedStringTests
 
 open NUnit.Framework
 open FsUnit
-open Fantomas.Core.Tests.TestHelper
+open Fantomas.Core.Tests.TestHelpers
 
 [<Test>]
 let ``basic string interpolation`` () =

@@ -1,4 +1,4 @@
-module Fantomas.Core.Tests.TestHelper
+module Fantomas.Core.Tests.TestHelpers
 
 open Fantomas.Core
 open NUnit.Framework

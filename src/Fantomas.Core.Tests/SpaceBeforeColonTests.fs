@@ -2,7 +2,7 @@ module Fantomas.Core.Tests.SpaceBeforeColonTests
 
 open NUnit.Framework
 open FsUnit
-open Fantomas.Core.Tests.TestHelper
+open Fantomas.Core.Tests.TestHelpers
 
 // ref: https://docs.microsoft.com/en-us/dotnet/fsharp/style-guide/formatting#right-pad-value-and-function-argument-type-annotations
 

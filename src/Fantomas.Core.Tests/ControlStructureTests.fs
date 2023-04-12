@@ -2,7 +2,7 @@ module Fantomas.Core.Tests.ControlStructureTests
 
 open NUnit.Framework
 open FsUnit
-open Fantomas.Core.Tests.TestHelper
+open Fantomas.Core.Tests.TestHelpers
 open Fantomas.Core
 
 [<Test>]

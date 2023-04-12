@@ -3,7 +3,7 @@ module Fantomas.Core.Tests.ContextTests
 open NUnit.Framework
 open FsUnit
 open Fantomas.Core.Context
-open Fantomas.Core.Tests.TestHelper
+open Fantomas.Core.Tests.TestHelpers
 open Fantomas.Core
 
 let private dump ctx = (dump false ctx).Code
