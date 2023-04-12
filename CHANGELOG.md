@@ -1,5 +1,10 @@
 # Changelog
 
+## [Unreleased]
+
+### Fixed
+* Trivia of ParseOak is not processed. [#2834](https://github.com/fsprojects/fantomas/issues/2834)
+
 ## [6.0.0-beta-001] - 2023-04-05
 
 ### Fixed
