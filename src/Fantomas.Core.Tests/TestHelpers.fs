@@ -13,14 +13,8 @@ module String =
     let normalizeNewLine (str: string) =
         str.Replace("\r\n", "\n").Replace("\r", "\n")
 
-    let normalizeThenSplitNewLine (str: string) = (normalizeNewLine str).Split('\n')
-
 let config = FormatConfig.Default
 let newline = "\n"
-
-let private safeToIgnoreWarnings =
-    [ "This construct is deprecated: it is only for use in the F# library"
-      "Identifiers containing '@' are reserved for use in F# code generation" ]
 
 let formatSourceString isFsiFile (s: string) config =
     async {

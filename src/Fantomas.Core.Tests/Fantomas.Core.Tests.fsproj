@@ -6,7 +6,7 @@
     <IsPackable>false</IsPackable>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="FsUnit.fs" />
+    <Compile Include="TestHelpers.fsi" />
     <Compile Include="TestHelpers.fs" />
     <Compile Include="UtilsTests.fs" />
     <Compile Include="QueueTests.fs" />
