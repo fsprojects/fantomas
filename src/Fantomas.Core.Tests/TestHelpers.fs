@@ -84,5 +84,3 @@ let equal x =
 
 let inline prepend s content = s + content
 let (==) actual expected = Assert.AreEqual(expected, actual)
-let fail () = Assert.Fail()
-let pass () = Assert.Pass()

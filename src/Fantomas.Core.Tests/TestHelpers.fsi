@@ -18,5 +18,3 @@ val isValidFSharpCode: isFsiFile: bool -> s: string -> bool
 val equal: x: 'a -> Constraints.EqualConstraint
 val inline prepend: s: ^a -> content: ^b -> 'c when (^a or ^b): (static member (+): ^a * ^b -> 'c)
 val (==): actual: 'a -> expected: 'a -> unit when 'a: equality
-val fail: unit -> unit
-val pass: unit -> unit
