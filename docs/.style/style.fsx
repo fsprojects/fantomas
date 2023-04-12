@@ -1,7 +1,7 @@
-﻿#r "nuget: JavaScriptEngineSwitcher.V8.Native.win-x64"
-#r "nuget: JavaScriptEngineSwitcher.V8.Native.linux-x64"
-#r "nuget: JavaScriptEngineSwitcher.V8.Native.osx-x64"
-#r "nuget: JavaScriptEngineSwitcher.V8, 3.20.2"
+﻿#r "nuget: Microsoft.ClearScript.V8.Native.win-x64"
+#r "nuget: Microsoft.ClearScript.V8.Native.linux-x64"
+#r "nuget: Microsoft.ClearScript.V8.Native.osx-x64"
+#r "nuget: JavaScriptEngineSwitcher.V8, 3.21.1"
 #r "nuget: DartSassHost, 1.0.0-preview8"
 #r "nuget: FSharp.Control.Reactive, 5.0.5"
 
