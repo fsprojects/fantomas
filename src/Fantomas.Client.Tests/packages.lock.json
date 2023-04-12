@@ -39,12 +39,6 @@
         "resolved": "4.4.2",
         "contentHash": "vA/iHYcR+LYw+pRWQugckC/zW2fXHaqMr2uA82NOBt8v4YK4wMJrQ7QC8XLc7PjetEZ96cPbBTWsDDtmQiRZTA=="
       },
-      "NunitXml.TestLogger": {
-        "type": "Direct",
-        "requested": "[3.0.127, )",
-        "resolved": "3.0.127",
-        "contentHash": "v8cEbYVSZGwCD6290yKeRCsRpOwYcgnng1YRrQKGgP79mHuxj1b1lpb6kA02QoLUM5/Qv9aDSLmS0U05m6HlJg=="
-      },
       "MessagePack": {
         "type": "Transitive",
         "resolved": "2.2.85",
