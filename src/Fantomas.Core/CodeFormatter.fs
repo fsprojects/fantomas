@@ -74,6 +74,7 @@ type CodeFormatter =
                 ast
                 |> Array.map (fun (ast, defines) ->
                     let oak = ASTTransformer.mkOak (Some sourceText) ast
+                    let oak = Trivia.enrichTree FormatConfig.Default sourceText ast oak
                     oak, defines.Value)
         }
 

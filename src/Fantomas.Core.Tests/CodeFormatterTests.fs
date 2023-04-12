@@ -37,3 +37,13 @@ let main _ =
     CodeFormatter.FormatDocumentAsync(false, source, config)
     |> Async.RunSynchronously
     |> ignore
+
+[<Test>]
+let ``trivia is parsed for Oak`` () =
+    let oak =
+        CodeFormatter.ParseOakAsync(false, "let a = 0\n // foo")
+        |> Async.RunSynchronously
+        |> Array.head
+        |> fst
+
+    Assert.True(oak.ModulesOrNamespaces.[0].HasContentAfter)
