@@ -2,7 +2,7 @@ module Fantomas.Core.Tests.ValidationTests
 
 open NUnit.Framework
 open FsUnit
-open Fantomas.Core.Tests.TestHelper
+open Fantomas.Core.Tests.TestHelpers
 
 [<Test>]
 let ``naked ranges are valid outside for..in.do`` () =

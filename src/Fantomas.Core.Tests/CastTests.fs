@@ -2,7 +2,7 @@ module Fantomas.Core.Tests.CastTests
 
 open NUnit.Framework
 open FsUnit
-open Fantomas.Core.Tests.TestHelper
+open Fantomas.Core.Tests.TestHelpers
 
 [<Test>]
 let ``multiline downcast expression, `` () =

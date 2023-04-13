@@ -2,7 +2,7 @@ module Fantomas.Core.Tests.SynExprNewTests
 
 open NUnit.Framework
 open FsUnit
-open Fantomas.Core.Tests.TestHelper
+open Fantomas.Core.Tests.TestHelpers
 
 [<Test>]
 let ``combination of named and non named arguments, 1158`` () =

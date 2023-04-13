@@ -2,7 +2,7 @@ module Fantomas.Core.Tests.BaseConstructorTests
 
 open NUnit.Framework
 open FsUnit
-open Fantomas.Core.Tests.TestHelper
+open Fantomas.Core.Tests.TestHelpers
 
 [<Test>]
 let ``multiple base constructors in record, 2111`` () =

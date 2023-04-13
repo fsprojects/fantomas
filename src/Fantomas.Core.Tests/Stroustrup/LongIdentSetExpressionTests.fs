@@ -3,7 +3,7 @@
 open NUnit.Framework
 open FsUnit
 open Fantomas.Core
-open Fantomas.Core.Tests.TestHelper
+open Fantomas.Core.Tests.TestHelpers
 
 let config =
     { config with

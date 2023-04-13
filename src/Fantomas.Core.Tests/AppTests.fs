@@ -2,7 +2,7 @@ module Fantomas.Core.Tests.AppTests
 
 open NUnit.Framework
 open FsUnit
-open Fantomas.Core.Tests.TestHelper
+open Fantomas.Core.Tests.TestHelpers
 
 // the current behavior results in a compile error since the |> is merged to the last line
 [<Test>]

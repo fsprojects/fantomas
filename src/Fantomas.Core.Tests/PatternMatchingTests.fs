@@ -2,7 +2,7 @@ module Fantomas.Core.Tests.PatternMatchingTests
 
 open NUnit.Framework
 open FsUnit
-open Fantomas.Core.Tests.TestHelper
+open Fantomas.Core.Tests.TestHelpers
 
 [<Test>]
 let ``match expressions`` () =

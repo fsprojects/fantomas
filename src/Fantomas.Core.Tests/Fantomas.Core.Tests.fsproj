@@ -6,7 +6,7 @@
     <IsPackable>false</IsPackable>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="FsUnit.fs" />
+    <Compile Include="TestHelpers.fsi" />
     <Compile Include="TestHelpers.fs" />
     <Compile Include="UtilsTests.fs" />
     <Compile Include="QueueTests.fs" />
@@ -133,10 +133,9 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="FSharp.Core" Version="$(FSharpCoreVersion)" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.3.2" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.5.0" />
     <PackageReference Include="NUnit" Version="3.13.3" />
-    <PackageReference Include="NUnit3TestAdapter" Version="4.2.1" />
-    <PackageReference Include="NunitXml.TestLogger" Version="3.0.127" />
+    <PackageReference Include="NUnit3TestAdapter" Version="4.4.2" />
     <PackageReference Include="FsCheck" Version="2.16.5" />
     <PackageReference Include="FsUnit" Version="4.2.0" />
     <PackageReference Include="System.IO.Abstractions.TestingHelpers" Version="17.2.3" />

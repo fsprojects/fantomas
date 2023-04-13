@@ -2,7 +2,7 @@ module Fantomas.Core.Tests.SynExprSetTests
 
 open NUnit.Framework
 open FsUnit
-open Fantomas.Core.Tests.TestHelper
+open Fantomas.Core.Tests.TestHelpers
 
 /// See https://fsprojects.github.io/fantomas/reference/fsharp-compiler-syntax-synexpr.html#Set
 
