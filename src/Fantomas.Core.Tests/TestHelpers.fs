@@ -1,4 +1,4 @@
-module Fantomas.Core.Tests.TestHelper
+module Fantomas.Core.Tests.TestHelpers
 
 open System
 open Fantomas.Core
@@ -13,14 +13,8 @@ module String =
     let normalizeNewLine (str: string) =
         str.Replace("\r\n", "\n").Replace("\r", "\n")
 
-    let normalizeThenSplitNewLine (str: string) = (normalizeNewLine str).Split('\n')
-
 let config = FormatConfig.Default
 let newline = "\n"
-
-let private safeToIgnoreWarnings =
-    [ "This construct is deprecated: it is only for use in the F# library"
-      "Identifiers containing '@' are reserved for use in F# code generation" ]
 
 let formatSourceString isFsiFile (s: string) config =
     async {
@@ -90,5 +84,3 @@ let equal x =
 
 let inline prepend s content = s + content
 let (==) actual expected = Assert.AreEqual(expected, actual)
-let fail () = Assert.Fail()
-let pass () = Assert.Pass()

@@ -7,7 +7,7 @@ open FSharp.Compiler.Xml
 open NUnit.Framework
 open FsUnit
 open Fantomas.Core
-open Fantomas.Core.Tests.TestHelper
+open Fantomas.Core.Tests.TestHelpers
 
 [<Test>]
 let ``fluent api should not remain on the same lines`` () =

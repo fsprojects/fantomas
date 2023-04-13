@@ -2,7 +2,7 @@
 
 open NUnit.Framework
 open Fantomas.Core
-open Fantomas.Core.Tests.TestHelper
+open Fantomas.Core.Tests.TestHelpers
 
 let private mergeAndCompare (aDefines, aCode) (bDefines, bCode) expected =
     let result =

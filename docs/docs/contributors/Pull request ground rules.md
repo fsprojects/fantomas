@@ -37,7 +37,7 @@ module Fantomas.Core.Tests.MyNewConceptTests
 
 open NUnit.Framework
 open FsUnit
-open Fantomas.Core.Tests.TestHelper
+open Fantomas.Core.Tests.TestHelpers
 
 // add tests here...
 ```

@@ -2,7 +2,7 @@ module Fantomas.Core.Tests.SpaceBeforeMemberTests
 
 open NUnit.Framework
 open FsUnit
-open Fantomas.Core.Tests.TestHelper
+open Fantomas.Core.Tests.TestHelpers
 
 let spaceBeforeConfig = { config with SpaceBeforeMember = true }
 

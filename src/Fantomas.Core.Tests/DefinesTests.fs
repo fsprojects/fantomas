@@ -5,7 +5,7 @@ open FsUnit
 open FSharp.Compiler.Syntax
 open Fantomas.Core
 open Fantomas.Core.Defines
-open Fantomas.Core.Tests.TestHelper
+open Fantomas.Core.Tests.TestHelpers
 
 let private getDefines (v: string) =
     let sourceText = CodeFormatterImpl.getSourceText v

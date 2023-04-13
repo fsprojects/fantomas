@@ -4,7 +4,7 @@ open FSharp.Compiler.Text
 open Fantomas.Core
 open NUnit.Framework
 open FsUnit
-open Fantomas.Core.Tests.TestHelper
+open Fantomas.Core.Tests.TestHelpers
 
 let private config = FormatConfig.Default
 

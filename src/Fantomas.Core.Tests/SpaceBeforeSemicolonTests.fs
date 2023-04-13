@@ -2,7 +2,7 @@ module Fantomas.Core.Tests.SpaceBeforeSemicolonTests
 
 open NUnit.Framework
 open FsUnit
-open Fantomas.Core.Tests.TestHelper
+open Fantomas.Core.Tests.TestHelpers
 
 let beforeConfig =
     { config with

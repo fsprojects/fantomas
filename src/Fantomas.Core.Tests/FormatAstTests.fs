@@ -3,7 +3,7 @@ module Fantomas.Core.Tests.FormatAstTests
 open NUnit.Framework
 open FsUnit
 open Fantomas.Core
-open Fantomas.Core.Tests.TestHelper
+open Fantomas.Core.Tests.TestHelpers
 
 let parseAndFormat sourceCode =
     let ast =

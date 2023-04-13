@@ -2,7 +2,7 @@ module Fantomas.Core.Tests.ShebangTests
 
 open NUnit.Framework
 open FsUnit
-open Fantomas.Core.Tests.TestHelper
+open Fantomas.Core.Tests.TestHelpers
 
 [<Test>]
 let ``should keep a shebang, 2367`` () =
