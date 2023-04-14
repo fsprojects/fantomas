@@ -222,7 +222,6 @@ let downloadCompilerFile commitHash relativePath =
 
 pipeline "Init" {
     workingDir __SOURCE_DIRECTORY__
-    stage "RestoreTools" { run "dotnet tool restore" }
     stage "Download FCS files" {
         run (fun _ ->
             [| "src/Compiler/FSComp.txt"
