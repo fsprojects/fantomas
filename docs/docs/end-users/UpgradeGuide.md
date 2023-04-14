@@ -59,7 +59,7 @@ fsharp_experimental_stroustrup_style = true
   The accepted values for `fsharp_multiline_bracket_style` are `cramped`, `aligned` and `experimental_stroustrup`.  <br />
   Note that `fsharp_multiline_block_brackets_on_same_column` and `fsharp_experimental_stroustrup_style` will continue to work until the next major version.
 
-## v6.0 (latest alpha)
+## v6.0
 
 ### .editorconfig
 

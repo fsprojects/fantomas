@@ -347,6 +347,7 @@ let mkTreeWithSingleNode (node: Node) : TreeForSelection =
 #endif
         TreeForSelection.Unsupported
 
+#if DEBUG
 let printTriviaNode (node: Node) : unit =
     let rec visit (level: int) (node: Node) =
         let name = node.GetType().Name
@@ -354,6 +355,7 @@ let printTriviaNode (node: Node) : unit =
         Array.iter (visit (level + 1)) node.Children
 
     visit 0 node
+#endif
 
 // Find the first node that matches the type
 let rec findRangeOf (t: System.Type) (root: Node) : range option =
