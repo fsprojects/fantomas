@@ -58,6 +58,7 @@ if isWatch then
     let fsw = new FileSystemWatcher(inputFolder)
     fsw.IncludeSubdirectories <- true
     fsw.Filters.Add("*.sass")
+    fsw.Filters.Add("fsdocs-default.css")
     fsw.NotifyFilter <- NotifyFilters.FileName ||| NotifyFilters.Size
     fsw.EnableRaisingEvents <- true
 
