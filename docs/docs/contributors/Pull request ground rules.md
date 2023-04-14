@@ -1,7 +1,7 @@
 ﻿---
 category: Contributors
 categoryindex: 2
-index: 11
+index: 12
 ---
 # Pull request ground rules
 
@@ -195,4 +195,4 @@ A user should only need to deal with style changes when they have explicitly [ch
 In case no major or minor branch was created yet, please reach out to the maintainers.
 The maintainers will frequently rebase this branch on top of the main branch and release alpha/beta packages accordingly.
 
-<fantomas-nav previous="./The%20Missing%20Comment.html" next="./Updating%20the%20compiler.html"></fantomas-nav>
+<fantomas-nav previous="Multiple%20Times.html" next="./Updating%20the%20compiler.html"></fantomas-nav>
