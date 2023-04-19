@@ -5,7 +5,6 @@
     <Description>Companion library to format using fantomas tool.</Description>
     <IsPackable>true</IsPackable>
     <ProduceReferenceAssembly>true</ProduceReferenceAssembly>
-    <OtherFlags>--test:ParallelCheckingWithSignatureFilesOn</OtherFlags>
   </PropertyGroup>
   <ItemGroup>
     <None Include="CHANGELOG.md" />
