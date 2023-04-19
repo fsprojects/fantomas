@@ -1,6 +1,6 @@
 # Changelog
 
-## [Unreleased]
+## [6.0.1] - 2023-04-19
 
 ### Fixed
 * Invalid code: moved line comment. [#2847](https://github.com/fsprojects/fantomas/issues/2847)
