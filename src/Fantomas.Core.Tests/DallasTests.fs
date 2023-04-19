@@ -1515,11 +1515,14 @@ let autoCompleteItems: cmap<DeclName, DeclarationListItem * Position * string<Lo
         equal
         """
 let autoCompleteItems
-    : cmap<DeclName, DeclarationListItem *
-      Position *
-      string<LocalPath> *
-      (Position -> option<string>) *
-      FSharp.Compiler.Syntax.ParsedInput> =
+    : cmap<
+          DeclName,
+          DeclarationListItem *
+          Position *
+          string<LocalPath> *
+          (Position -> option<string>) *
+          FSharp.Compiler.Syntax.ParsedInput
+       > =
     cmap ()
 """
 

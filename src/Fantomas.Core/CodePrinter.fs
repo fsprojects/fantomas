@@ -2267,13 +2267,21 @@ let genKeepIdentMatchClause (startNode: Node) (e: Expr) ctx =
         indentSepNlnUnindent (genExpr e) ctx
 
 let colGenericTypeParameters typeParameters =
-    coli sepComma typeParameters (fun idx t ->
-        let leadingSpace =
-            match t with
-            | Type.Var n when idx = 0 && String.startsWithOrdinal "^" n.Text -> sepSpace
-            | _ -> sepNone
+    let short sep =
+        coli sep typeParameters (fun idx t ->
+            let leadingSpace =
+                match t with
+                | Type.Var n when idx = 0 && String.startsWithOrdinal "^" n.Text -> sepSpace
+                | _ -> sepNone
 
-        leadingSpace +> genType t)
+            leadingSpace +> genType t)
+
+    let long = indentSepNlnUnindent (short (sepComma +> sepNln)) +> sepNln
+
+    // Multiline text type params should be unmodified
+    match typeParameters with
+    | [ Type.StaticConstant(Constant.FromText textNode) ] when textNode.Text.Contains("\n") -> (short sepComma)
+    | _ -> expressionFitsOnRestOfLine (short sepComma) long
 
 let genFunctionNameWithMultilineLids (trailing: Context -> Context) (longIdent: IdentListNode) =
     match longIdent.Content with
@@ -3130,7 +3138,8 @@ let genType (t: Type) =
         +> optSingle genIdentListNodeWithDot node.PostIdentifier
         +> genSingleTextNode node.LessThen
         +> addExtraSpace
-        +> col sepComma node.Arguments genType
+        +> leadingExpressionIsMultiline (colGenericTypeParameters node.Arguments) (fun isMultiline ->
+            if isMultiline then !- " " else sepNone)
         +> addExtraSpace
         +> genSingleTextNode node.GreaterThan
         |> genNode node

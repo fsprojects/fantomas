@@ -2,6 +2,7 @@ module Fantomas.Core.Tests.TypeAnnotationTests
 
 open NUnit.Framework
 open FsUnit
+open Fantomas.Core
 open Fantomas.Core.Tests.TestHelpers
 
 [<Test>]
@@ -72,9 +73,13 @@ type X =
         equal
         """
 type X =
-    Teq<int, list int, System.DateTime array,
-    //
-    int>
+    Teq<
+        int,
+        list int,
+        System.DateTime array,
+        //
+        int
+     >
 """
 
 [<Test>]
@@ -116,11 +121,79 @@ type CancellableTaskResultBuilderBase with
         and ^Awaiter: (member GetResult: unit -> Result<'TResult1, 'Error>)>
         (
             sm:
-                byref<ResumableStateMachine<CancellableTaskResultStateMachineData<'TOverall, 'Error>>>,
+                byref<
+                    ResumableStateMachine<
+                        CancellableTaskResultStateMachineData<'TOverall, 'Error>
+                     >
+                 >,
             task: CancellationToken -> ^TaskLike,
             continuation:
                 ('TResult1
                     -> CancellableTaskResultCode<'TOverall, 'Error, 'TResult2>)
         ) : bool =
         true
+"""
+
+[<Test>]
+let `` Aligned bracket style in anonymous record is respected, #2706`` () =
+    formatSourceString
+        false
+        """
+let private asJson (arm: IArmResource) =
+    arm.JsonModel
+    |> convertTo<{|
+        kind: string
+        properties: {| statisticsEnabled: bool |}
+    |}>
+"""
+        { config with
+            MultilineBracketStyle = Aligned }
+    |> prepend newline
+    |> should
+        equal
+        """
+let private asJson (arm: IArmResource) =
+    arm.JsonModel
+    |> convertTo<
+        {|
+            kind: string
+            properties: {| statisticsEnabled: bool |}
+        |}
+       >
+"""
+
+[<Test>]
+let `` Aligned bracket style in anonymous record is respected for multiple types, #2706`` () =
+    formatSourceString
+        false
+        """
+let private asJson (arm: IArmResource) =
+    arm.JsonModel
+    |> convertTo<{|
+        kind: string
+        properties: {| statisticsEnabled: bool |}
+    |},{|
+        kind: string
+        properties: {| statisticsEnabled: bool |}
+    |}
+    >
+"""
+        { config with
+            MultilineBracketStyle = Aligned }
+    |> prepend newline
+    |> should
+        equal
+        """
+let private asJson (arm: IArmResource) =
+    arm.JsonModel
+    |> convertTo<
+        {|
+            kind: string
+            properties: {| statisticsEnabled: bool |}
+        |},
+        {|
+            kind: string
+            properties: {| statisticsEnabled: bool |}
+        |}
+       >
 """

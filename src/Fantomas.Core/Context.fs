@@ -662,7 +662,7 @@ let leadingExpressionResult leadingExpression continuationExpression (ctx: Conte
 
     continuationExpression ((lineCountBefore, columnBefore), (lineCountAfter, columnAfter)) contextAfterLeading
 
-/// A leading expression is not consider multiline if it has a comment before it.
+/// A leading expression is not considered multiline if it has a comment before it.
 /// For example
 /// let a = 7
 /// // foo
