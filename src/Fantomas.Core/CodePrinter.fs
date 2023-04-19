@@ -712,6 +712,7 @@ let genExpr (e: Expr) =
             +> genSingleTextNode node.ClosingParen
         | _ ->
             genSingleTextNode node.OpeningParen
+            +> sepNlnWhenWriteBeforeNewlineNotEmpty
             +> genExpr node.Expr
             +> genSingleTextNode node.ClosingParen
         |> genNode node
