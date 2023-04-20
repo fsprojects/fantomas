@@ -8619,6 +8619,14 @@ body.open-menu main {
   }
 }
 
+aside #sidebar-logo {
+  position: sticky;
+  top: 0;
+}
+aside #sidebar-content {
+  position: sticky;
+  top: 233px;
+}
 aside #sidebar-content .accordion-button {
   padding: 0.7rem;
 }
