@@ -51,7 +51,14 @@ body
 // Sidebar specific styling
 
 aside
+    #sidebar-logo
+        position: sticky
+        top: 0
+    
     #sidebar-content
+        position: sticky
+        top: calc($sidebar-width - 67px)
+    
         .accordion-button
             padding: 0.7rem
         .accordion-item
