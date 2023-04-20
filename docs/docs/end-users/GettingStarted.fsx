@@ -1,3 +1,4 @@
+(**
 ---
 category: End-users
 categoryindex: 1
@@ -27,30 +28,27 @@ or install the tool globally with
 For the overview how to use the tool, you can type the command
 
 	dotnet fantomas --help
+*)
+(*** hide ***)
+open System.Diagnostics
 
-```
-USAGE: dotnet fantomas [--help] [--recurse] [--force] [--profile] [--fsi <string>] [--stdin] [--stdout] [--out <string>] [--check] [--daemon] [--version] [<string>...]
+let fantomasDll =
+    System.IO.Path.Combine(__SOURCE_DIRECTORY__, "../../../src/Fantomas/bin/Release/net6.0/fantomas.dll")
 
-INPUT:
+let output =
+    let psi = ProcessStartInfo("dotnet", $"{fantomasDll} --help")
+    psi.RedirectStandardOutput <- true
+    psi.UseShellExecute <- false
+    let p = Process.Start(psi)
+    let reader = p.StandardOutput
+    let result = reader.ReadToEnd()
+    p.WaitForExit()
+    result
 
-    <string>...           Input paths: can be multiple folders or files with *.fs,*.fsi,*.fsx,*.ml,*.mli extension.
+printfn $"%s{output}"
+(*** include-output  ***)
 
-OPTIONS:
-
-    --recurse, -r         Process the input folder recursively.
-    --force               Print the source unchanged if it cannot be parsed correctly.
-    --profile             Print performance profiling information.
-    --fsi <string>        Read F# source from stdin as F# signatures.
-    --stdin               Read F# source from standard input.
-    --stdout              Write the formatted source code to standard output.
-    --out <string>        Give a valid path for files/folders. Files should have .fs, .fsx, .fsi, .ml or .mli extension only.
-    --check               Don't format files, just check if they have changed. Exits with 0 if it's formatted correctly, with 1 if some files need formatting and 99 if there was an internal error
-    --daemon              Daemon mode, launches an LSP-like server to can be used by editor tooling.
-    --version, -v         Displays the version of Fantomas
-    --help                display this list of options.
-
-```
-
+(**
 You have to specify an input path and optionally an output path. 
 The output path is prompted by `--out` e.g.
 
@@ -93,3 +91,4 @@ find my-project/ -type f -name "*.fs" -not -path "*obj*" | xargs dotnet fantomas
 ```
 
 <fantomas-nav previous="../index.html" next="./StyleGuide.html"></fantomas-nav>
+*)
