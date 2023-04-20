@@ -222,29 +222,37 @@ You can skip this step if you wish to install Fantomas globally.</p>
 <p>For the overview how to use the tool, you can type the command</p>
 <pre class="fssnip highlighted"><code lang="fsharp"><span class="id">dotnet</span> <span class="id">fantomas</span> <span class="pn">--</span><span class="id">help</span>
 </code></pre>
-<pre class="fssnip highlighted"><code lang="fsharp"><span class="id">USAGE</span><span class="pn">:</span> <span class="id">dotnet</span> <span class="id">fantomas</span> <span class="pn">[</span><span class="o">--</span><span class="id">help</span><span class="pn">]</span> <span class="pn">[</span><span class="o">--</span><span class="id">recurse</span><span class="pn">]</span> <span class="pn">[</span><span class="o">--</span><span class="id">force</span><span class="pn">]</span> <span class="pn">[</span><span class="o">--</span><span class="id">profile</span><span class="pn">]</span> <span class="pn">[</span><span class="o">--</span><span class="id">fsi</span> <span class="pn">&lt;</span><span onmouseout="hideTip(event, 'fs1', 1)" onmouseover="showTip(event, 'fs1', 1)" class="id">string</span><span class="pn">&gt;]</span> <span class="pn">[</span><span class="o">--</span><span onmouseout="hideTip(event, 'fs2', 2)" onmouseover="showTip(event, 'fs2', 2)" class="id">stdin</span><span class="pn">]</span> <span class="pn">[</span><span class="o">--</span><span onmouseout="hideTip(event, 'fs3', 3)" onmouseover="showTip(event, 'fs3', 3)" class="id">stdout</span><span class="pn">]</span> <span class="pn">[</span><span class="o">--</span><span class="id">out</span> <span class="pn">&lt;</span><span onmouseout="hideTip(event, 'fs1', 4)" onmouseover="showTip(event, 'fs1', 4)" class="id">string</span><span class="pn">&gt;]</span> <span class="pn">[</span><span class="o">--</span><span class="id">check</span><span class="pn">]</span> <span class="pn">[</span><span class="o">--</span><span class="id">daemon</span><span class="pn">]</span> <span class="pn">[</span><span class="o">--</span><span class="id">version</span><span class="pn">]</span> <span class="pn">[&lt;</span><span onmouseout="hideTip(event, 'fs1', 5)" onmouseover="showTip(event, 'fs1', 5)" class="id">string</span><span class="pn">&gt;</span><span class="pn">]</span>
+<table class="pre"><tr><td><pre><code>USAGE: dotnet fantomas [--help] [--force] [--profile] [--out &lt;string&gt;] [--check]
+                       [--daemon] [--version] [--verbosity &lt;string&gt;]
+                       [&lt;string&gt;...]
 
-<span class="id">INPUT</span><span class="pn">:</span>
+INPUT:
 
-    <span class="pn">&lt;</span><span onmouseout="hideTip(event, 'fs1', 6)" onmouseover="showTip(event, 'fs1', 6)" class="id">string</span><span class="pn">&gt;</span>           <span class="id">Input</span> <span class="id">paths</span><span class="pn">:</span> <span class="id">can</span> <span class="id">be</span> <span class="id">multiple</span> <span class="id">folders</span> <span class="k">or</span> <span class="id">files</span> <span class="k">with</span> <span class="o">*.</span><span class="id">fs</span><span class="pn">,</span><span class="o">*.</span><span class="id">fsi</span><span class="pn">,</span><span class="o">*.</span><span class="id">fsx</span><span class="pn">,</span><span class="o">*.</span><span class="id">ml</span><span class="pn">,</span><span class="o">*.</span><span class="id">mli</span> <span class="id">extension</span><span class="pn">.</span>
+    &lt;string&gt;...           Input paths: can be multiple folders or files with
+                          *.fs,*.fsi,*.fsx,*.ml,*.mli extension.
 
-<span class="id">OPTIONS</span><span class="pn">:</span>
+OPTIONS:
 
-    <span class="o">--</span><span class="id">recurse</span><span class="pn">,</span> <span class="o">-</span><span class="id">r</span>         <span class="id">Process</span> <span class="id">the</span> <span class="id">input</span> <span class="id">folder</span> <span class="id">recursively</span><span class="pn">.</span>
-    <span class="o">--</span><span class="id">force</span>               <span class="id">Print</span> <span class="id">the</span> <span class="id">source</span> <span class="id">unchanged</span> <span class="k">if</span> <span class="id">it</span> <span class="id">cannot</span> <span class="id">be</span> <span class="id">parsed</span> <span class="id">correctly</span><span class="pn">.</span>
-    <span class="o">--</span><span class="id">profile</span>             <span class="id">Print</span> <span class="id">performance</span> <span class="id">profiling</span> <span class="id">information</span><span class="pn">.</span>
-    <span class="o">--</span><span class="id">fsi</span> <span class="pn">&lt;</span><span onmouseout="hideTip(event, 'fs1', 7)" onmouseover="showTip(event, 'fs1', 7)" class="id">string</span><span class="pn">&gt;</span>        <span class="id">Read</span> <span class="id">F#</span> <span class="id">source</span> <span class="id">from</span> <span onmouseout="hideTip(event, 'fs2', 8)" onmouseover="showTip(event, 'fs2', 8)" class="id">stdin</span> <span class="k">as</span> <span class="id">F#</span> <span class="id">signatures</span><span class="pn">.</span>
-    <span class="o">--</span><span onmouseout="hideTip(event, 'fs2', 9)" onmouseover="showTip(event, 'fs2', 9)" class="id">stdin</span>               <span class="id">Read</span> <span class="id">F#</span> <span class="id">source</span> <span class="id">from</span> <span class="id">standard</span> <span class="id">input</span><span class="pn">.</span>
-    <span class="o">--</span><span onmouseout="hideTip(event, 'fs3', 10)" onmouseover="showTip(event, 'fs3', 10)" class="id">stdout</span>              <span class="id">Write</span> <span class="id">the</span> <span class="id">formatted</span> <span class="id">source</span> <span class="id">code</span> <span class="k">to</span> <span class="id">standard</span> <span class="id">output</span><span class="pn">.</span>
-    <span class="o">--</span><span class="id">out</span> <span class="pn">&lt;</span><span onmouseout="hideTip(event, 'fs1', 11)" onmouseover="showTip(event, 'fs1', 11)" class="id">string</span><span class="pn">&gt;</span>        <span class="id">Give</span> <span class="id">a</span> <span class="id">valid</span> <span class="id">path</span> <span class="k">for</span> <span class="id">files</span><span class="o">/</span><span class="id">folders</span><span class="pn">.</span> <span class="id">Files</span> <span class="id">should</span> <span class="id">have</span> <span class="pn">.</span><span class="id">fs</span><span class="pn">,</span> <span class="pn">.</span><span class="id">fsx</span><span class="pn">,</span> <span class="pn">.</span><span class="id">fsi</span><span class="pn">,</span> <span class="pn">.</span><span class="id">ml</span> <span class="k">or</span> <span class="pn">.</span><span class="id">mli</span> <span class="id">extension</span> <span class="id">only</span><span class="pn">.</span>
-    <span class="o">--</span><span class="id">check</span>               <span class="id">Don&#39;t</span> <span class="id">format</span> <span class="id">files</span><span class="pn">,</span> <span class="id">just</span> <span class="id">check</span> <span class="k">if</span> <span class="id">they</span> <span class="id">have</span> <span class="id">changed</span><span class="pn">.</span> <span class="id">Exits</span> <span class="k">with</span> <span class="n">0</span> <span class="k">if</span> <span class="id">it&#39;s</span> <span class="id">formatted</span> <span class="id">correctly</span><span class="pn">,</span> <span class="k">with</span> <span class="n">1</span> <span class="k">if</span> <span class="id">some</span> <span class="id">files</span> <span class="id">need</span> <span class="id">formatting</span> <span class="k">and</span> <span class="n">99</span> <span class="k">if</span> <span class="id">there</span> <span class="id">was</span> <span class="id">an</span> <span class="k">internal</span> <span class="id">error</span>
-    <span class="o">--</span><span class="id">daemon</span>              <span class="id">Daemon</span> <span class="id">mode</span><span class="pn">,</span> <span class="id">launches</span> <span class="id">an</span> <span class="id">LSP</span><span class="o">-</span><span class="id">like</span> <span class="id">server</span> <span class="k">to</span> <span class="id">can</span> <span class="id">be</span> <span class="id">used</span> <span class="id">by</span> <span class="id">editor</span> <span class="id">tooling</span><span class="pn">.</span>
-    <span class="o">--</span><span class="id">version</span><span class="pn">,</span> <span class="o">-</span><span class="id">v</span>         <span class="id">Displays</span> <span class="id">the</span> <span class="id">version</span> <span class="k">of</span> <span class="id">Fantomas</span>
-    <span class="o">--</span><span class="id">help</span>                <span class="id">display</span> <span class="id">this</span> <span onmouseout="hideTip(event, 'fs4', 12)" onmouseover="showTip(event, 'fs4', 12)" class="id">list</span> <span class="k">of</span> <span class="id">options</span><span class="pn">.</span>
-</code></pre>
+    --force               Print the output even if it is not valid F# code. For
+                          debugging purposes only.
+    --profile             Print performance profiling information.
+    --out &lt;string&gt;        Give a valid path for files/folders. Files should
+                          have .fs, .fsx, .fsi, .ml or .mli extension only.
+                          Multiple files/folders are not supported.
+    --check               Don't format files, just check if they have changed.
+                          Exits with 0 if it's formatted correctly, with 1 if
+                          some files need formatting and 99 if there was an
+                          internal error
+    --daemon              Daemon mode, launches an LSP-like server to can be
+                          used by editor tooling.
+    --version             Displays the version of Fantomas
+    --verbosity, -v &lt;string&gt;
+                          Set the verbosity level. Allowed values are n[ormal]
+                          and d[etailed].
+    --help                display this list of options.</code></pre></td></tr></table>
 <p>You have to specify an input path and optionally an output path.
 The output path is prompted by <code>--out</code> e.g.</p>
-<pre class="fssnip highlighted"><code lang="fsharp"><span class="id">dotnet</span> <span class="id">fantomas</span> <span class="pn">.</span><span class="o">/</span><span class="id">input</span><span class="o">/</span><span onmouseout="hideTip(event, 'fs5', 13)" onmouseover="showTip(event, 'fs5', 13)" class="id">array</span><span class="pn">.</span><span class="id">fs</span> <span class="o">--</span><span class="id">out</span> <span class="pn">.</span><span class="o">/</span><span class="id">output</span><span class="o">/</span><span onmouseout="hideTip(event, 'fs5', 14)" onmouseover="showTip(event, 'fs5', 14)" class="id">array</span><span class="pn">.</span><span class="id">fs</span> 
+<pre class="fssnip highlighted"><code lang="fsharp"><span class="id">dotnet</span> <span class="id">fantomas</span> <span class="pn">.</span><span class="o">/</span><span class="id">input</span><span class="o">/</span><span onmouseout="hideTip(event, 'fs21', 31)" onmouseover="showTip(event, 'fs21', 31)" class="id">array</span><span class="pn">.</span><span class="id">fs</span> <span class="pn">--</span><span class="id">out</span> <span class="pn">.</span><span class="o">/</span><span class="id">output</span><span class="o">/</span><span onmouseout="hideTip(event, 'fs21', 32)" onmouseover="showTip(event, 'fs21', 32)" class="id">array</span><span class="pn">.</span><span class="id">fs</span> 
 </code></pre>
 <p>Both paths have to be files or folders at the same time.
 If they are folders, the structure of input folder will be reflected in the output one.
@@ -272,11 +280,64 @@ function Format-Changed(){
 </code></pre></td></tr></table>
 <fantomas-nav previous="../index.html" next="./StyleGuide.html"></fantomas-nav>
 
-        <div class="fsdocs-tip" id="fs1">Multiple items<br />val string: value: &#39;T -&gt; string<br /><br />--------------------<br />type string = System.String</div>
-<div class="fsdocs-tip" id="fs2">val stdin&lt;&#39;T&gt; : System.IO.TextReader</div>
-<div class="fsdocs-tip" id="fs3">val stdout&lt;&#39;T&gt; : System.IO.TextWriter</div>
-<div class="fsdocs-tip" id="fs4">type &#39;T list = List&lt;&#39;T&gt;</div>
-<div class="fsdocs-tip" id="fs5">type &#39;T array = &#39;T array</div>
+        <div class="fsdocs-tip" id="fs1">namespace System</div>
+<div class="fsdocs-tip" id="fs2">namespace System.Diagnostics</div>
+<div class="fsdocs-tip" id="fs3">val fantomasDll: string</div>
+<div class="fsdocs-tip" id="fs4">namespace System.IO</div>
+<div class="fsdocs-tip" id="fs5">type Path =
+  static member ChangeExtension: path: string * extension: string -&gt; string
+  static member Combine: path1: string * path2: string -&gt; string + 3 overloads
+  static member EndsInDirectorySeparator: path: ReadOnlySpan&lt;char&gt; -&gt; bool + 1 overload
+  static member Exists: path: string -&gt; bool
+  static member GetDirectoryName: path: ReadOnlySpan&lt;char&gt; -&gt; ReadOnlySpan&lt;char&gt; + 1 overload
+  static member GetExtension: path: ReadOnlySpan&lt;char&gt; -&gt; ReadOnlySpan&lt;char&gt; + 1 overload
+  static member GetFileName: path: ReadOnlySpan&lt;char&gt; -&gt; ReadOnlySpan&lt;char&gt; + 1 overload
+  static member GetFileNameWithoutExtension: path: ReadOnlySpan&lt;char&gt; -&gt; ReadOnlySpan&lt;char&gt; + 1 overload
+  static member GetFullPath: path: string -&gt; string + 1 overload
+  static member GetInvalidFileNameChars: unit -&gt; char array
+  ...<br /><em>&lt;summary&gt;Performs operations on &lt;see cref=&quot;T:System.String&quot; /&gt; instances that contain file or directory path information. These operations are performed in a cross-platform manner.&lt;/summary&gt;</em></div>
+<div class="fsdocs-tip" id="fs6">System.IO.Path.Combine([&lt;System.ParamArray&gt;] paths: string array) : string<br />System.IO.Path.Combine(path1: string, path2: string) : string<br />System.IO.Path.Combine(path1: string, path2: string, path3: string) : string<br />System.IO.Path.Combine(path1: string, path2: string, path3: string, path4: string) : string</div>
+<div class="fsdocs-tip" id="fs7">val output: string</div>
+<div class="fsdocs-tip" id="fs8">val psi: ProcessStartInfo</div>
+<div class="fsdocs-tip" id="fs9">Multiple items<br />type ProcessStartInfo =
+  new: unit -&gt; unit + 2 overloads
+  member ArgumentList: Collection&lt;string&gt;
+  member Arguments: string
+  member CreateNoWindow: bool
+  member Domain: string
+  member Environment: IDictionary&lt;string,string&gt;
+  member EnvironmentVariables: StringDictionary
+  member ErrorDialog: bool
+  member ErrorDialogParentHandle: nativeint
+  member FileName: string
+  ...<br /><em>&lt;summary&gt;Specifies a set of values that are used when you start a process.&lt;/summary&gt;</em><br /><br />--------------------<br />ProcessStartInfo() : ProcessStartInfo<br />ProcessStartInfo(fileName: string) : ProcessStartInfo<br />ProcessStartInfo(fileName: string, arguments: string) : ProcessStartInfo</div>
+<div class="fsdocs-tip" id="fs10">property ProcessStartInfo.RedirectStandardOutput: bool with get, set<br /><em>&lt;summary&gt;Gets or sets a value that indicates whether the textual output of an application is written to the &lt;see cref=&quot;P:System.Diagnostics.Process.StandardOutput&quot; /&gt; stream.&lt;/summary&gt;<br />&lt;returns&gt;&lt;see langword=&quot;true&quot; /&gt; if output should be written to &lt;see cref=&quot;P:System.Diagnostics.Process.StandardOutput&quot; /&gt;; otherwise, &lt;see langword=&quot;false&quot; /&gt;. The default is &lt;see langword=&quot;false&quot; /&gt;.&lt;/returns&gt;</em></div>
+<div class="fsdocs-tip" id="fs11">property ProcessStartInfo.UseShellExecute: bool with get, set<br /><em>&lt;summary&gt;Gets or sets a value indicating whether to use the operating system shell to start the process.&lt;/summary&gt;<br />&lt;exception cref=&quot;T:System.PlatformNotSupportedException&quot;&gt;An attempt to set the value to &lt;see langword=&quot;true&quot; /&gt; on Universal Windows Platform (UWP) apps occurs.&lt;/exception&gt;<br />&lt;returns&gt;&lt;see langword=&quot;true&quot; /&gt; if the shell should be used when starting the process; &lt;see langword=&quot;false&quot; /&gt; if the process should be created directly from the executable file. The default is &lt;see langword=&quot;true&quot; /&gt; on .NET Framework apps and &lt;see langword=&quot;false&quot; /&gt; on .NET Core apps.&lt;/returns&gt;</em></div>
+<div class="fsdocs-tip" id="fs12">val p: Process</div>
+<div class="fsdocs-tip" id="fs13">Multiple items<br />type Process =
+  inherit Component
+  interface IDisposable
+  new: unit -&gt; unit
+  member BeginErrorReadLine: unit -&gt; unit
+  member BeginOutputReadLine: unit -&gt; unit
+  member CancelErrorRead: unit -&gt; unit
+  member CancelOutputRead: unit -&gt; unit
+  member Close: unit -&gt; unit
+  member CloseMainWindow: unit -&gt; bool
+  member Kill: unit -&gt; unit + 1 overload
+  ...<br /><em>&lt;summary&gt;Provides access to local and remote processes and enables you to start and stop local system processes.&lt;/summary&gt;</em><br /><br />--------------------<br />Process() : Process</div>
+<div class="fsdocs-tip" id="fs14">Process.Start(fileName: string) : Process<br />Process.Start(startInfo: ProcessStartInfo) : Process<br />Process.Start(fileName: string, arguments: System.Collections.Generic.IEnumerable&lt;string&gt;) : Process<br />Process.Start(fileName: string, arguments: string) : Process<br />Process.Start(fileName: string, userName: string, password: System.Security.SecureString, domain: string) : Process<br />Process.Start(fileName: string, arguments: string, userName: string, password: System.Security.SecureString, domain: string) : Process</div>
+<div class="fsdocs-tip" id="fs15">val reader: System.IO.StreamReader</div>
+<div class="fsdocs-tip" id="fs16">property Process.StandardOutput: System.IO.StreamReader with get<br /><em>&lt;summary&gt;Gets a stream used to read the textual output of the application.&lt;/summary&gt;<br />&lt;exception cref=&quot;T:System.InvalidOperationException&quot;&gt;The &lt;see cref=&quot;P:System.Diagnostics.Process.StandardOutput&quot; /&gt; stream has not been defined for redirection; ensure &lt;see cref=&quot;P:System.Diagnostics.ProcessStartInfo.RedirectStandardOutput&quot; /&gt; is set to &lt;see langword=&quot;true&quot; /&gt; and &lt;see cref=&quot;P:System.Diagnostics.ProcessStartInfo.UseShellExecute&quot; /&gt; is set to &lt;see langword=&quot;false&quot; /&gt;.
+
+-or-
+
+ The &lt;see cref=&quot;P:System.Diagnostics.Process.StandardOutput&quot; /&gt; stream has been opened for asynchronous read operations with &lt;see cref=&quot;M:System.Diagnostics.Process.BeginOutputReadLine&quot; /&gt;.&lt;/exception&gt;<br />&lt;returns&gt;A &lt;see cref=&quot;T:System.IO.StreamReader&quot; /&gt; that can be used to read the standard output stream of the application.&lt;/returns&gt;</em></div>
+<div class="fsdocs-tip" id="fs17">val result: string</div>
+<div class="fsdocs-tip" id="fs18">System.IO.StreamReader.ReadToEnd() : string</div>
+<div class="fsdocs-tip" id="fs19">Process.WaitForExit() : unit<br />Process.WaitForExit(timeout: System.TimeSpan) : bool<br />Process.WaitForExit(milliseconds: int) : bool</div>
+<div class="fsdocs-tip" id="fs20">val printfn: format: Printf.TextWriterFormat&lt;&#39;T&gt; -&gt; &#39;T</div>
+<div class="fsdocs-tip" id="fs21">type &#39;T array = &#39;T array</div>
 
       </div>
         <div id="push"></div>
