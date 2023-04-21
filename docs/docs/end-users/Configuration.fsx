@@ -355,7 +355,7 @@ formatCode
 Fantomas by default follows the if/then/else conventions listed in the [Microsoft F# style guide](https://docs.microsoft.com/en-us/dotnet/fsharp/style-guide/formatting#formatting-if-expressions).  
 This setting facilitates this by determining the maximum character width where the if/then/else expression stays in one line.
 
-Default = 40.
+Default = 60.
 *)
 
 formatCode
@@ -371,7 +371,7 @@ formatCode
 
 Control the maximum length for which infix expression can be on one line.
 
-Default = 50.
+Default = 80.
 *)
 formatCode
     """ 
@@ -466,7 +466,7 @@ formatCode
 
 Control the maximum width for which lists and arrays can be in one line. 
 
-Default= 40. 
+Default= 80. 
 
 Requires `fsharp_array_or_list_multiline_formatter` to be `character_width` to take effect
 *)
@@ -562,19 +562,15 @@ formatCode
 
 Control the maximum width for which (nested) [SynExpr.DotGet](https://fsharp.github.io/fsharp-compiler-docs/reference/fsharp-compiler-syntax-synexpr.html#DotGet) expressions should be in one line.
 
-Default = 50.
+Default = 80.
 *)
 
 formatCode
     """ 
-   let job =
-    JobBuilder
-        .UsingJobData(jobDataMap)
-        .Create<WrapperJob>()
-        .Build()
+   let job = JobBuilder.UsingJobData(jobDataMap).Create<WrapperJob>().Build()
     """
     { FormatConfig.Default with
-        MaxDotGetExpressionWidth = 100 }
+        MaxDotGetExpressionWidth = 60 }
 (*** include-output ***)
 
 (**
@@ -671,7 +667,7 @@ From a consistency point of view, it is recommend to enable all these settings i
 
 Adds a new line between a type definition and its first member.
 
-Default = false.
+Default = true.
 *)
 
 formatCode
@@ -679,10 +675,11 @@ formatCode
 type Range =
     { From: float
       To: float }
+
     member this.Length = this.To - this.From
     """
     { FormatConfig.Default with
-        NewlineBetweenTypeDefinitionAndMembers = true }
+        NewlineBetweenTypeDefinitionAndMembers = false }
 (*** include-output ***)
 
 (**
