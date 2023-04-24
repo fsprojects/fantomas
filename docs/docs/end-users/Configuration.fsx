@@ -697,7 +697,10 @@ Insert a newline before a computation expression that spans multiple lines
 *)
 
 (*** hide ***)
-printfn $"Default = {FormatConfig.Default.NewlineBeforeMultilineComputationExpression.ToString().ToLower()}"
+printfn
+    $"Default = {FormatConfig.Default.NewlineBeforeMultilineComputationExpression
+                     .ToString()
+                     .ToLower()}"
 (*** include-output ***)
 
 formatCode
@@ -891,7 +894,10 @@ Top level expressions will always follow the [2020 blank lines revision](https:/
 *)
 
 (*** hide ***)
-printfn $"Default = {FormatConfig.Default.BlankLinesAroundNestedMultilineExpressions.ToString().ToLower()}"
+printfn
+    $"Default = {FormatConfig.Default.BlankLinesAroundNestedMultilineExpressions
+                     .ToString()
+                     .ToLower()}"
 (*** include-output ***)
 
 formatCode
