@@ -74,9 +74,11 @@ However, there are settings that we do not recommend and generally should not be
 This preference sets the indentation
 The common values are 2 and 4.  
 The same indentation is ensured to be consistent in a source file.
-
-Default = 4.
 *)
+
+(*** hide ***)
+printfn $"Default = {FormatConfig.Default.IndentSize}"
+(*** include-output ***)
 
 formatCode
     """ 
@@ -99,9 +101,11 @@ formatCode
 
 `max_line_length` has to be an integer greater or equal to 60.  
 This preference sets the column where we break F# constructs into new lines.
-
-Default = 120.
 *)
+
+(*** hide ***)
+printfn $"Default = {FormatConfig.Default.MaxLineLength}"
+(*** include-output ***)
 
 formatCode
     """ 
@@ -126,9 +130,11 @@ If not set by the user, the default value is determined by `System.Environment.N
 
 Adds a final newline character at the end of the file.  
 <a href="https://stackoverflow.com/questions/729692/why-should-text-files-end-with-a-newline" target="_blank">Why should text files end with a newline?</a>
-
-Default = true
 *)
+
+(*** hide ***)
+printfn $"Default = {FormatConfig.Default.InsertFinalNewline.ToString().ToLower()}"
+(*** include-output ***)
 
 formatCode
     """ 
@@ -143,9 +149,11 @@ formatCode
 
 Add a space after the name of a function and before the opening parenthesis of the first parameter.  
 This setting influences function definitions.
-
-Default = true.
 *)
+
+(*** hide ***)
+printfn $"Default = {FormatConfig.Default.SpaceBeforeParameter.ToString().ToLower()}"
+(*** include-output ***)
 
 formatCode
     """ 
@@ -161,9 +169,11 @@ formatCode
 
 Add a space after the name of a lowercased function and before the opening parenthesis of the first argument.  
 This setting influences function invocation in expressions and patterns.
-
-Default = true.
 *)
+
+(*** hide ***)
+printfn $"Default = {FormatConfig.Default.SpaceBeforeLowercaseInvocation.ToString().ToLower()}"
+(*** include-output ***)
 
 formatCode
     """ 
@@ -182,9 +192,11 @@ match x with
 
 Add a space after the name of a uppercase function and before the opening parenthesis of the first argument.  
 This setting influences function invocation in expressions and patterns.
-
-Default = false.
 *)
+
+(*** hide ***)
+printfn $"Default = {FormatConfig.Default.SpaceBeforeUppercaseInvocation.ToString().ToLower()}"
+(*** include-output ***)
 
 formatCode
     """ 
@@ -202,9 +214,11 @@ match x with
 <fantomas-setting name="fsharp_space_before_class_constructor" orange></fantomas-setting>
 
 Add a space after a type name and before the class constructor.
-
-Default = false.
 *)
+
+(*** hide ***)
+printfn $"Default = {FormatConfig.Default.SpaceBeforeClassConstructor.ToString().ToLower()}"
+(*** include-output ***)
 
 formatCode
     """ 
@@ -221,9 +235,11 @@ formatCode
 <fantomas-setting name="fsharp_space_before_member" green gr></fantomas-setting>
 
 Add a space after a member name and before the opening parenthesis of the first parameter.
-
-Default = false.
 *)
+
+(*** hide ***)
+printfn $"Default = {FormatConfig.Default.SpaceBeforeMember.ToString().ToLower()}"
+(*** include-output ***)
 
 formatCode
     """ 
@@ -241,9 +257,11 @@ formatCode
 <fantomas-setting name="fsharp_space_before_colon" green></fantomas-setting>
 
 Add a space before `:`. Please note that not every `:` is controlled by this setting.
-
-Default = false.
 *)
+
+(*** hide ***)
+printfn $"Default = {FormatConfig.Default.SpaceBeforeColon.ToString().ToLower()}"
+(*** include-output ***)
 
 formatCode
     """ 
@@ -259,9 +277,11 @@ formatCode
 <fantomas-setting name="fsharp_space_after_comma" orange></fantomas-setting>
 
 Adds a space after `,` in tuples.
-
-Default = true.
 *)
+
+(*** hide ***)
+printfn $"Default = {FormatConfig.Default.SpaceAfterComma.ToString().ToLower()}"
+(*** include-output ***)
 
 formatCode
     """ 
@@ -276,9 +296,11 @@ formatCode
 <fantomas-setting name="fsharp_space_before_semicolon" green gr></fantomas-setting>
 
 Adds a space before `;` in records, arrays, lists, etc.
-
-Default = false.
 *)
+
+(*** hide ***)
+printfn $"Default = {FormatConfig.Default.SpaceBeforeSemicolon.ToString().ToLower()}"
+(*** include-output ***)
 
 formatCode
     """ 
@@ -294,9 +316,11 @@ formatCode
 <fantomas-setting name="fsharp_space_after_semicolon" orange></fantomas-setting>
 
 Adds a space after `;` in records, arrays, lists, etc.
-
-Default = true.
 *)
+
+(*** hide ***)
+printfn $"Default = {FormatConfig.Default.SpaceAfterSemicolon.ToString().ToLower()}"
+(*** include-output ***)
 
 formatCode
     """ 
@@ -312,9 +336,11 @@ formatCode
 <fantomas-setting name="fsharp_space_around_delimiter" orange></fantomas-setting>
 
 Adds a space around delimiters like `[`,`[|`,{`.
-
-Default = true.
 *)
+
+(*** hide ***)
+printfn $"Default = {FormatConfig.Default.SpaceAroundDelimiter.ToString().ToLower()}"
+(*** include-output ***)
 
 formatCode
     """ 
@@ -336,9 +362,11 @@ Control the maximum length for which if/then expression without an else expressi
 The [Microsoft F# style guide](https://docs.microsoft.com/en-us/dotnet/fsharp/style-guide/formatting#formatting-if-expressions) recommends to never write such an expression in one line.
 
 > If the else expression is absent, it is recommended to never to write the entire expression in one line.
-
-Default = 0.
 *)
+
+(*** hide ***)
+printfn $"Default = {FormatConfig.Default.MaxIfThenShortWidth}"
+(*** include-output ***)
 
 formatCode
     """ 
@@ -354,9 +382,11 @@ formatCode
 
 Fantomas by default follows the if/then/else conventions listed in the [Microsoft F# style guide](https://docs.microsoft.com/en-us/dotnet/fsharp/style-guide/formatting#formatting-if-expressions).  
 This setting facilitates this by determining the maximum character width where the if/then/else expression stays in one line.
-
-Default = 60.
 *)
+
+(*** hide ***)
+printfn $"Default = {FormatConfig.Default.MaxIfThenElseShortWidth}"
+(*** include-output ***)
 
 formatCode
     """ 
@@ -370,9 +400,12 @@ formatCode
 <fantomas-setting name="fsharp_max_infix_operator_expression" green></fantomas-setting>
 
 Control the maximum length for which infix expression can be on one line.
-
-Default = 80.
 *)
+
+(*** hide ***)
+printfn $"Default = {FormatConfig.Default.MaxInfixOperatorExpression}"
+(*** include-output ***)
+
 formatCode
     """ 
     let WebApp =
@@ -387,10 +420,12 @@ formatCode
 
 Control the maximum width for which records should be in one line.
 
-Default = 40.
-
 Requires `fsharp_record_multiline_formatter` to be `character_width` to take effect.
 *)
+
+(*** hide ***)
+printfn $"Default = {FormatConfig.Default.MaxRecordWidth}"
+(*** include-output ***)
 
 formatCode
     """ 
@@ -406,11 +441,13 @@ formatCode
 
 Control the maximum number of fields for which records should be in one line.
 
-Default = 1.
-
 Requires `fsharp_record_multiline_formatter` to be
 `number_of_items` to take effect.
 *)
+
+(*** hide ***)
+printfn $"Default = {FormatConfig.Default.MaxRecordNumberOfItems}"
+(*** include-output ***)
 
 formatCode
     """ 
@@ -440,10 +477,12 @@ Split records expressions/statements into multiple lines based on the given cond
 `character_width` uses character count of the expression, controlled by `fsharp_max_record_width`.  
 `number_of_items` uses the number of fields in the record, controlled by `fsharp_max_record_number_of_items`.
 
-Default = `character_width`. 
-
 Note that in either case, record expressions/statements are still governed by `max_line_length`.
 *)
+
+(*** hide ***)
+printfn $"Default = {MultilineFormatterType.ToConfigString FormatConfig.Default.RecordMultilineFormatter}"
+(*** include-output ***)
 
 formatCode
     """ 
@@ -466,10 +505,12 @@ formatCode
 
 Control the maximum width for which lists and arrays can be in one line. 
 
-Default= 80. 
-
 Requires `fsharp_array_or_list_multiline_formatter` to be `character_width` to take effect
 *)
+
+(*** hide ***)
+printfn $"Default = {FormatConfig.Default.MaxArrayOrListWidth}"
+(*** include-output ***)
 
 formatCode
     """ 
@@ -484,10 +525,12 @@ formatCode
 
 Control the maximum number of elements for which lists and arrays can be in one line.
 
-Default = 1.
-
 Requires `fsharp_array_or_list_multiline_formatter` to be `number_of_items` to take effect.
 *)
+
+(*** hide ***)
+printfn $"Default = {FormatConfig.Default.MaxArrayOrListNumberOfItems}"
+(*** include-output ***)
 
 formatCode
     """ 
@@ -506,10 +549,12 @@ Split arrays and lists into multiple lines based on the given condition.
 `character_width` uses character count of the expression, controlled by `fsharp_max_array_or_list_width`.  
 `number_of_items` uses the number of elements in the array or list, controlled by `fsharp_max_array_or_list_number_of_items`.
 
-Default = `character_width`.
-
 Note that in either case, list expressions are still governed by `max_line_length`.
 *)
+
+(*** hide ***)
+printfn $"Default = {MultilineFormatterType.ToConfigString FormatConfig.Default.ArrayOrListMultilineFormatter}"
+(*** include-output ***)
 
 formatCode
     """ 
@@ -524,9 +569,11 @@ formatCode
 
 Control the maximum expression width for which let and member value/property bindings should be in one line.  
 The width is that of the pattern for the binding plus the right-hand expression but not the keywords (e.g. "let").
-
-Default = 80.
 *)
+
+(*** hide ***)
+printfn $"Default = {FormatConfig.Default.MaxValueBindingWidth}"
+(*** include-output ***)
 
 formatCode
     """ 
@@ -543,9 +590,11 @@ formatCode
 
 Control the maximum width for which function and member bindings should be in one line.  
 In contrast to `fsharp_max_value_binding_width`, only the right-hand side expression of the binding is measured.
-
-Default = 40
 *)
+
+(*** hide ***)
+printfn $"Default = {FormatConfig.Default.MaxFunctionBindingWidth}"
+(*** include-output ***)
 
 formatCode
     """ 
@@ -561,9 +610,11 @@ formatCode
 <fantomas-setting name="fsharp_max_dot_get_expression_width" green></fantomas-setting>
 
 Control the maximum width for which (nested) [SynExpr.DotGet](https://fsharp.github.io/fsharp-compiler-docs/reference/fsharp-compiler-syntax-synexpr.html#DotGet) expressions should be in one line.
-
-Default = 80.
 *)
+
+(*** hide ***)
+printfn $"Default = {FormatConfig.Default.MaxDotGetExpressionWidth}"
+(*** include-output ***)
 
 formatCode
     """ 
@@ -579,9 +630,11 @@ formatCode
 `Cramped` The default way in F# to format brackets.  
 `Aligned` Alternative way of formatting records, arrays and lists. This will align the braces at the same column level.  
 `Stroustrup` Allow for easier reordering of members and keeping the code succinct. 
-
-Default = Cramped.
 *)
+
+(*** hide ***)
+printfn $"Default = {MultilineBracketStyle.ToConfigString FormatConfig.Default.MultilineBracketStyle}"
+(*** include-output ***)
 
 formatCode
     """ 
@@ -641,9 +694,11 @@ formatCode
 <fantomas-setting name="fsharp_newline_before_multiline_computation_expression" green></fantomas-setting>
 
 Insert a newline before a computation expression that spans multiple lines
-
-Default = true
 *)
+
+(*** hide ***)
+printfn $"Default = {FormatConfig.Default.NewlineBeforeMultilineComputationExpression.ToString().ToLower()}"
+(*** include-output ***)
 
 formatCode
     """ 
@@ -666,9 +721,11 @@ From a consistency point of view, it is recommend to enable all these settings i
 <fantomas-setting name="fsharp_newline_between_type_definition_and_members" green gr></fantomas-setting>
 
 Adds a new line between a type definition and its first member.
-
-Default = true.
 *)
+
+(*** hide ***)
+printfn $"Default = {FormatConfig.Default.NewlineBetweenTypeDefinitionAndMembers.ToString().ToLower()}"
+(*** include-output ***)
 
 formatCode
     """ 
@@ -687,9 +744,11 @@ type Range =
 
 When a function signature exceeds the `max_line_length`, Fantomas will put all parameters on separate lines.  
 This setting also places the equals sign and return type on a new line.
-
-Default = false.
 *)
+
+(*** hide ***)
+printfn $"Default = {FormatConfig.Default.AlignFunctionSignatureToIndentation.ToString().ToLower()}"
+(*** include-output ***)
 
 formatCode
     """ 
@@ -709,9 +768,11 @@ let run
 
 Provides an alternative way of formatting long member and constructor definitions,
 where the difference is mainly in the equal sign and returned type placement.
-
-Default = false.
 *)
+
+(*** hide ***)
+printfn $"Default = {FormatConfig.Default.AlternativeLongMemberDefinitions.ToString().ToLower()}"
+(*** include-output ***)
 
 formatCode
     """ 
@@ -741,9 +802,11 @@ type D() =
 <fantomas-setting name="fsharp_multi_line_lambda_closing_newline" green gr></fantomas-setting>
 
 Places the closing parenthesis of a multiline lambda argument on the next line.
-
-Default = false.
 *)
+
+(*** hide ***)
+printfn $"Default = {FormatConfig.Default.MultiLineLambdaClosingNewline.ToString().ToLower()}"
+(*** include-output ***)
 
 formatCode
     """ 
@@ -800,9 +863,11 @@ let main argv =
 
 Always use a `|` before every case in the declaration of a discriminated union.  
 If `false`, a `|` character is used only in multiple-case discriminated unions, and is omitted in short single-case DUs.
-
-Default = false.
 *)
+
+(*** hide ***)
+printfn $"Default = {FormatConfig.Default.BarBeforeDiscriminatedUnionDeclaration.ToString().ToLower()}"
+(*** include-output ***)
 
 formatCode
     """ 
@@ -823,9 +888,11 @@ Some additional settings that don't fit into any style guide.
 Surround **nested** multi-line expressions with blank lines.  
 Existing blank lines are always preserved (via trivia), with exception when [fsharp_keep_max_number_of_blank_lines](#fsharp_keep_max_number_of_blank_lines) is used.  
 Top level expressions will always follow the [2020 blank lines revision](https://github.com/fsprojects/fantomas/blob/main/docs-old/FormattingConventions.md#2020-revision) principle.
-
-Default = true.
 *)
+
+(*** hide ***)
+printfn $"Default = {FormatConfig.Default.BlankLinesAroundNestedMultilineExpressions.ToString().ToLower()}"
+(*** include-output ***)
 
 formatCode
     """ 
@@ -851,9 +918,11 @@ formatCode
 <fantomas-setting name="fsharp_keep_max_number_of_blank_lines" green></fantomas-setting>
 
 Set maximal number of consecutive blank lines to keep from original source. It doesn't change number of new blank lines generated by Fantomas.
-
-Default=100
 *)
+
+(*** hide ***)
+printfn $"Default = {FormatConfig.Default.KeepMaxNumberOfBlankLines}"
+(*** include-output ***)
 
 formatCode
     """ 
@@ -870,9 +939,11 @@ formatCode
 
 Applies the Stroustrup style to the final (two) array or list argument(s) in a function application.  
 Note that this behaviour is also active when `fsharp_multiline_bracket_style = stroustrup`.
-
-Default = false
 *)
+
+(*** hide ***)
+printfn $"Default = {FormatConfig.Default.ExperimentalElmish.ToString().ToLower()}"
+(*** include-output ***)
 
 formatCode
     """ 
