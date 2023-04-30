@@ -68,3 +68,23 @@ let b = 0
     match oak.ModulesOrNamespaces.[0].Declarations.[0] with
     | ModuleDecl.TopLevelBinding _ -> Assert.Pass()
     | _ -> Assert.Fail()
+
+[<Test>]
+let ``transform parsedInput created with additional defines to Oak`` () =
+    let source =
+        """
+module A
+
+#if DEBUG
+let b = 0
+#endif
+"""
+
+    let ast, _ =
+        Fantomas.FCS.Parse.parseFile false (FSharp.Compiler.Text.SourceText.ofString source) [ "DEBUG"; "FOO"; "BAR" ]
+
+    let oak = CodeFormatter.TransformAST ast
+
+    match oak.ModulesOrNamespaces.[0].Declarations.[0] with
+    | ModuleDecl.TopLevelBinding _ -> Assert.Pass()
+    | _ -> Assert.Fail()
