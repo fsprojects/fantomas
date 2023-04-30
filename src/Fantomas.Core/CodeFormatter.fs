@@ -78,6 +78,11 @@ type CodeFormatter =
                     oak, defines.Value)
         }
 
+    static member TransformAST ast = ASTTransformer.mkOak None ast
+
+    static member TransformAST(ast, source) =
+        ASTTransformer.mkOak (Some(SourceText.ofString source)) ast
+
     static member FormatOakAsync(oak: Oak) : Async<string> =
         async {
             let context = Context.Context.Create false FormatConfig.Default

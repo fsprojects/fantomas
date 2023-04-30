@@ -1,5 +1,10 @@
 # Changelog
 
+## [Unreleased]
+
+### Added
+* Add TransformAST to public API.
+
 ## [6.0.1] - 2023-04-19
 
 ### Fixed

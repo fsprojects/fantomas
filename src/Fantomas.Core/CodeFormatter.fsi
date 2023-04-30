@@ -67,6 +67,12 @@ type CodeFormatter =
     /// Parse a source string to SyntaxOak
     static member ParseOakAsync: isSignature: bool * source: string -> Async<(Oak * string list) array>
 
+    /// Transform a ParsedInput to an Oak
+    static member TransformAST: ast: ParsedInput -> Oak
+
+    /// Transform a ParsedInput to an Oak
+    static member TransformAST: ast: ParsedInput * source: string -> Oak
+
     /// Format SyntaxOak to string
     static member FormatOakAsync: oak: Oak -> Async<string>
 
