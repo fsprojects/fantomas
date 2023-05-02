@@ -108,3 +108,22 @@ let b = 0
     match oak.ModulesOrNamespaces.[0].Declarations.[0] with
     | ModuleDecl.TopLevelBinding _ -> Assert.Pass()
     | _ -> Assert.Fail()
+
+[<Test>]
+let ``transform parsedInput contains trivia in Oak`` () =
+    let source =
+        """
+module A
+
+// foo
+let b = 0
+"""
+
+    let ast, _ =
+        Fantomas.FCS.Parse.parseFile false (FSharp.Compiler.Text.SourceText.ofString source) []
+
+    let oak = CodeFormatter.TransformAST(ast, source)
+
+    match oak.ModulesOrNamespaces.[0].Declarations.[0] with
+    | ModuleDecl.TopLevelBinding node -> Assert.True node.HasContentBefore
+    | _ -> Assert.Fail()
