@@ -1,5 +1,6 @@
 module Fantomas.Core.Tests.CodeFormatterTests
 
+open Fantomas.Core.SyntaxOak
 open NUnit.Framework
 open Fantomas.FCS.Text
 open Fantomas.Core
