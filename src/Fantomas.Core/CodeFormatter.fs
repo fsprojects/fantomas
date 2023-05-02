@@ -81,7 +81,9 @@ type CodeFormatter =
     static member TransformAST ast = ASTTransformer.mkOak None ast
 
     static member TransformAST(ast, source) =
-        ASTTransformer.mkOak (Some(SourceText.ofString source)) ast
+        let sourceText = SourceText.ofString source
+        let oak = ASTTransformer.mkOak (Some sourceText) ast
+        Trivia.enrichTree FormatConfig.Default sourceText ast oak
 
     static member FormatOakAsync(oak: Oak) : Async<string> =
         async {
