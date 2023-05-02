@@ -1,5 +1,10 @@
 # Changelog
 
+## 6.1.0-alpha-001 - 2023-05-02
+
+### Added
+* TransformAST in CodeFormatter. [#2868](https://github.com/fsprojects/fantomas/pull/2868)
+
 ## [6.0.8] - 2023-06-20
 
 ### Fixed
