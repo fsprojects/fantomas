@@ -1,5 +1,10 @@
 # Changelog
 
+## 6.1.0-alpha-002 - 2023-05-02
+
+### Changed
+* Enrich transformed Oak. [#2869](https://github.com/fsprojects/fantomas/pull/2869)
+
 ## 6.1.0-alpha-001 - 2023-05-02
 
 ### Added
