@@ -3206,3 +3206,30 @@ fun config ->
 #if LOGGING_DEBUG
 #endif
 """
+
+[<Test>]
+let ``incorrect indentation of compiler-conditional accessibility modifier for module definition, 2867`` () =
+    formatSourceString
+        false
+        """
+module
+#if DEBUG
+#else
+    internal
+#endif
+    A =
+        let f x = x + x
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+module
+#if DEBUG
+#else
+    internal
+#endif
+    A =
+    let f x = x + x
+"""
