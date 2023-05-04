@@ -3372,7 +3372,7 @@ let genTypeDefn (td: TypeDefn) =
             let size = getRecordSize ctx node.Fields
             let short = bodyExpr size
 
-            if ctx.Config.IsStroustrupStyle then
+            if ctx.Config.IsStroustrupStyle && not node.OpeningBrace.HasContentBefore then
                 (sepSpace +> short) ctx
             else
                 isSmallExpression size short (indentSepNlnUnindent short) ctx
