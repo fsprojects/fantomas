@@ -1,5 +1,10 @@
 # Changelog
 
+## [Unreleased]
+
+### Fixed
+* Comment above the record bracket beaks formatting when MultilineBracketStyle is Stroustrup. [#2871](https://github.com/fsprojects/fantomas/issues/2871)
+
 ## [6.0.1] - 2023-04-19
 
 ### Fixed
