@@ -1,7 +1,10 @@
 #r "nuget: Fun.Build, 0.3.8"
 #r "nuget: CliWrap, 3.5.0"
 #r "nuget: FSharp.Data, 5.0.2"
+#r "nuget: Ionide.KeepAChangelog, 0.1.8"
+#r "nuget: Humanizer.Core, 2.14.1"
 
+open System
 open System.IO
 open Fun.Build
 open CliWrap
@@ -9,6 +12,10 @@ open CliWrap.Buffered
 open FSharp.Data
 open System.Xml.Linq
 open System.Xml.XPath
+open Ionide.KeepAChangelog
+open Ionide.KeepAChangelog.Domain
+open SemVersion
+open Humanizer
 
 let (</>) a b = Path.Combine(a, b)
 
@@ -39,7 +46,7 @@ let semanticVersioning =
 
 let pushPackage nupkg =
     async {
-        let key = System.Environment.GetEnvironmentVariable("NUGET_KEY")
+        let key = Environment.GetEnvironmentVariable("NUGET_KEY")
         let! result =
             Cli
                 .Wrap("dotnet")
@@ -49,6 +56,10 @@ let pushPackage nupkg =
             |> Async.AwaitTask
         return result.ExitCode
     }
+
+let getNuGetPackages () =
+    Directory.EnumerateFiles("bin", "*.nupkg", SearchOption.TopDirectoryOnly)
+    |> Seq.filter (fun nupkg -> not (nupkg.Contains("Fantomas.Client")))
 
 pipeline "Build" {
     workingDir __SOURCE_DIRECTORY__
@@ -76,18 +87,6 @@ pipeline "Build" {
         run "dotnet fsi ./docs/.style/style.fsx"
         run
             $"dotnet fsdocs build --clean --properties Configuration=Release --fscoptions \" -r:{semanticVersioning}\" --eval --strict --nonpublic"
-    }
-    stage "Push" {
-        whenCmdArg "--push"
-        run (fun _ ->
-            async {
-                let! exitCodes =
-                    Directory.EnumerateFiles("bin", "*.nupkg", SearchOption.TopDirectoryOnly)
-                    |> Seq.filter (fun nupkg -> not (nupkg.Contains("Fantomas.Client")))
-                    |> Seq.map pushPackage
-                    |> Async.Sequential
-                return Seq.max exitCodes
-            })
     }
     runIfOnlySpecified false
 }
@@ -313,3 +312,149 @@ pipeline "Init" {
     }
     runIfOnlySpecified true
 }
+
+type GithubRelease =
+    { Version: string
+      Title: string
+      Date: DateTime
+      Exists: bool
+      Draft: string }
+
+let mkGithubRelease (v: SemanticVersion, d: DateTime, cd: ChangelogData option) =
+    match cd with
+    | None -> failwith "Each Fantomas release is expected to have at least one section."
+    | Some cd ->
+        let version = $"{v.Major}.{v.Minor}.{v.Patch}"
+        let title =
+            let month = d.ToString("MMMM")
+            let day = d.Day.Ordinalize()
+            $"{month} {day} Release"
+
+        let prefixedVersion = $"v{version}"
+        let exists =
+            let cmdResult =
+                Cli
+                    .Wrap("gh")
+                    .WithArguments($"release view {prefixedVersion}")
+                    .WithValidation(CommandResultValidation.None)
+                    .ExecuteAsync()
+                    .Task.Result
+            cmdResult.ExitCode = 0
+
+        let sections =
+            [ "Added", cd.Added
+              "Changed", cd.Changed
+              "Fixed", cd.Fixed
+              "Deprecated", cd.Deprecated
+              "Removed", cd.Removed
+              "Security", cd.Security
+              yield! (Map.toList cd.Custom) ]
+            |> List.choose (fun (header, lines) ->
+                if lines.IsEmpty then
+                    None
+                else
+                    lines
+                    |> List.map (fun line -> line.TrimStart())
+                    |> String.concat "\n"
+                    |> sprintf "### %s\n%s" header
+                    |> Some)
+            |> String.concat "\n\n"
+
+        let draft =
+            $"""# {version}
+
+{sections}"""
+
+        { Version = version
+          Title = title
+          Date = d
+          Exists = exists
+          Draft = draft }
+
+let getReleaseNotes currentRelease lastRelease =
+    let date = lastRelease.Date.ToString("yyyy-MM-dd")
+    let authorMsg =
+        let authors =
+            Cli
+                .Wrap("gh")
+                .WithArguments(
+                    $"pr list -S \"state:closed base:main closed:>{date} -author:app/robot\" --json author --jq \".[].author.login\""
+                )
+                .ExecuteBufferedAsync()
+                .Task.Result.StandardOutput.Split([| '\n' |], StringSplitOptions.RemoveEmptyEntries)
+            |> Array.distinct
+            |> Array.sort
+
+        if authors.Length = 1 then
+            $"Special thanks to %s{authors.[0]}!"
+        else
+            let lastAuthor = Array.last authors
+            let otherAuthors =
+                if authors.Length = 2 then
+                    $"@{authors.[0]}"
+                else
+                    authors
+                    |> Array.take (authors.Length - 1)
+                    |> Array.map (sprintf "@%s")
+                    |> String.concat ", "
+            $"Special thanks to %s{otherAuthors} and @%s{lastAuthor}!"
+
+    $"""{currentRelease.Draft}
+
+{authorMsg}
+
+[https://www.nuget.org/packages/fantomas/{currentRelease.Version}](https://www.nuget.org/packages/fantomas/{currentRelease.Version})
+    """
+
+pipeline "Release" {
+    workingDir __SOURCE_DIRECTORY__
+    // stage "Push to NuGet" {
+    //     run (fun _ ->
+    //         async {
+    //             let! exitCodes =
+    //                 getNuGetPackages ()
+    //                 |> Seq.map pushPackage
+    //                 |> Async.Sequential
+    //             return Seq.max exitCodes
+    //         })
+    // }
+    stage "GitHub Release" {
+        run (fun _ ->
+            async {
+                // Get the current and last release from the Changelog
+                let changelog = FileInfo(__SOURCE_DIRECTORY__ </> "CHANGELOG.md")
+                let changeLogResult =
+                    match Parser.parseChangeLog changelog with
+                    | Error error -> failwithf "%A" error
+                    | Ok result -> result
+
+                let currentRelease, lastRelease =
+                    let lastReleases =
+                        changeLogResult.Releases
+                        |> List.filter (fun (v, _, _) -> String.IsNullOrEmpty v.Prerelease)
+                        |> List.sortByDescending (fun (_, d, _) -> d)
+                        |> List.take 2
+
+                    match lastReleases with
+                    | [ current; last ] -> mkGithubRelease current, mkGithubRelease last
+                    | _ -> failwith "Could not find the current and last release from CHANGELOG.md"
+
+                // We create a draft release that requires a manual publish.
+                // This is to allow us to add additional release notes when it makes sense.
+                if not currentRelease.Exists then
+                    let notes = getReleaseNotes currentRelease lastRelease
+                    let files = getNuGetPackages () |> String.concat " "
+                    printfn "%s\nfiles:%s" notes files
+            // Cli
+            //     .Wrap("gh")
+            //     .WithArguments(
+            //         $"release create v{currentRelease.Version} {files} --draft --title {currentRelease.Title} -n \"%s{notes}\""
+            //     )
+            //     .ExecuteAsync()
+            //     .Task.Wait()
+            })
+    }
+    runIfOnlySpecified true
+}
+
+// TODO: add GITHUB_TOKEN as env to GitHub Action
