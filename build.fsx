@@ -406,55 +406,60 @@ let getReleaseNotes currentRelease lastRelease =
 [https://www.nuget.org/packages/fantomas/{currentRelease.Version}](https://www.nuget.org/packages/fantomas/{currentRelease.Version})
     """
 
+let getCurrentAndLastReleaseFromChangelog () =
+    let changelog = FileInfo(__SOURCE_DIRECTORY__ </> "CHANGELOG.md")
+    let changeLogResult =
+        match Parser.parseChangeLog changelog with
+        | Error error -> failwithf "%A" error
+        | Ok result -> result
+
+    let lastReleases =
+        changeLogResult.Releases
+        |> List.filter (fun (v, _, _) -> String.IsNullOrEmpty v.Prerelease)
+        |> List.sortByDescending (fun (_, d, _) -> d)
+        |> List.take 2
+
+    match lastReleases with
+    | [ current; last ] -> mkGithubRelease current, mkGithubRelease last
+    | _ -> failwith "Could not find the current and last release from CHANGELOG.md"
+
 pipeline "Release" {
     workingDir __SOURCE_DIRECTORY__
-    // stage "Push to NuGet" {
-    //     run (fun _ ->
-    //         async {
-    //             let! exitCodes =
-    //                 getNuGetPackages ()
-    //                 |> Seq.map pushPackage
-    //                 |> Async.Sequential
-    //             return Seq.max exitCodes
-    //         })
-    // }
+    stage "Push to NuGet" {
+        run (fun _ ->
+            async {
+                let! exitCodes = getNuGetPackages () |> Seq.map pushPackage |> Async.Sequential
+                return Seq.max exitCodes
+            })
+    }
     stage "GitHub Release" {
         run (fun _ ->
             async {
-                // Get the current and last release from the Changelog
-                let changelog = FileInfo(__SOURCE_DIRECTORY__ </> "CHANGELOG.md")
-                let changeLogResult =
-                    match Parser.parseChangeLog changelog with
-                    | Error error -> failwithf "%A" error
-                    | Ok result -> result
-
-                let currentRelease, lastRelease =
-                    let lastReleases =
-                        changeLogResult.Releases
-                        |> List.filter (fun (v, _, _) -> String.IsNullOrEmpty v.Prerelease)
-                        |> List.sortByDescending (fun (_, d, _) -> d)
-                        |> List.take 2
-
-                    match lastReleases with
-                    | [ current; last ] -> mkGithubRelease current, mkGithubRelease last
-                    | _ -> failwith "Could not find the current and last release from CHANGELOG.md"
+                let currentRelease, lastRelease = getCurrentAndLastReleaseFromChangelog ()
 
                 // We create a draft release that requires a manual publish.
                 // This is to allow us to add additional release notes when it makes sense.
                 if not currentRelease.Exists then
                     let notes = getReleaseNotes currentRelease lastRelease
+                    let noteFile = Path.GetTempFileName()
+                    File.WriteAllText(noteFile, notes)
                     let files = getNuGetPackages () |> String.concat " "
-                    printfn "%s\nfiles:%s" notes files
-            // Cli
-            //     .Wrap("gh")
-            //     .WithArguments(
-            //         $"release create v{currentRelease.Version} {files} --draft --title {currentRelease.Title} -n \"%s{notes}\""
-            //     )
-            //     .ExecuteAsync()
-            //     .Task.Wait()
+
+                    let! _ =
+                        Cli
+                            .Wrap("gh")
+                            .WithArguments(
+                                $"release create v{currentRelease.Version} {files} --draft --title \"{currentRelease.Title}\" --notes-file \"{noteFile}\""
+                            )
+                            .ExecuteAsync()
+                            .Task
+                        |> Async.AwaitTask
+
+                    if File.Exists noteFile then
+                        File.Delete(noteFile)
+
+                return 0
             })
     }
     runIfOnlySpecified true
 }
-
-// TODO: add GITHUB_TOKEN as env to GitHub Action
