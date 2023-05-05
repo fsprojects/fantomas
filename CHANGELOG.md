@@ -1,8 +1,9 @@
 # Changelog
 
-## [Unreleased]
+## [6.0.2] - 2023-05-05
 
 ### Fixed
+*  Incorrect indentation of compiler-conditional accessibility modifier for module definition. [#2867](https://github.com/fsprojects/fantomas/issues/2867)
 * Comment above the record bracket beaks formatting when MultilineBracketStyle is Stroustrup. [#2871](https://github.com/fsprojects/fantomas/issues/2871)
 
 ## [6.0.1] - 2023-04-19

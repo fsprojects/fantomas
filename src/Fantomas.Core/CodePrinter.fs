@@ -3203,6 +3203,15 @@ let genImplicitConstructor (node: ImplicitConstructorNode) =
             +> sepSpace)
         node.Self
 
+let hasTriviaAfterLeadingKeyword (identifier: IdentListNode) (accessibility: SingleTextNode option) =
+    let beforeAccess =
+        match accessibility with
+        | Some n -> n.HasContentBefore
+        | _ -> false
+
+    let beforeIdentifier = identifier.HasContentBefore
+    beforeAccess || beforeIdentifier
+
 let genTypeDefn (td: TypeDefn) =
     let typeDefnNode = TypeDefn.TypeDefnNode td
     let typeName = typeDefnNode.TypeName
@@ -3213,13 +3222,7 @@ let genTypeDefn (td: TypeDefn) =
 
         // Workaround for https://github.com/fsprojects/fantomas/issues/628
         let hasTriviaAfterLeadingKeyword =
-            let beforeAccess =
-                match typeName.Accessibility with
-                | Some n -> n.HasContentBefore
-                | _ -> false
-
-            let beforeIdentifier = typeName.Identifier.HasContentBefore
-            beforeAccess || beforeIdentifier
+            hasTriviaAfterLeadingKeyword typeName.Identifier typeName.Accessibility
 
         genXml typeName.XmlDoc
         +> onlyIfNot hasAndKeyword (genAttributes typeName.Attributes)
@@ -3712,13 +3715,19 @@ let genModuleDecl (md: ModuleDecl) =
         +> genIdentListNode node.Alias
         |> genNode (ModuleDecl.Node md)
     | ModuleDecl.NestedModule node ->
+        // Workaround for https://github.com/fsprojects/fantomas/issues/2867
+        let hasTriviaAfterLeadingKeyword =
+            hasTriviaAfterLeadingKeyword node.Identifier node.Accessibility
+
         genXml node.XmlDoc
         +> genAttributes node.Attributes
         +> genSingleTextNode node.Module
         +> sepSpace
+        +> onlyIf hasTriviaAfterLeadingKeyword indent
         +> genAccessOpt node.Accessibility
         +> onlyIf node.IsRecursive (sepSpace +> !- "rec" +> sepSpace)
         +> genIdentListNode node.Identifier
+        +> onlyIf hasTriviaAfterLeadingKeyword unindent
         +> sepSpace
         +> genSingleTextNode node.Equals
         +> indentSepNlnUnindent (
