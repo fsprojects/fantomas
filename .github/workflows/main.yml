@@ -33,3 +33,9 @@ jobs:
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
         publish_dir: ./output
+    - name: "Publish"
+      if: matrix.os == 'windows-latest' && github.ref == 'refs/heads/main'
+      env:
+        NUGET_KEY: ${{ secrets.NUGET_KEY }}
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: dotnet fsi build.fsx -p Release
