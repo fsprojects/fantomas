@@ -447,13 +447,17 @@ pipeline "Release" {
                     File.WriteAllText(noteFile, notes)
                     let files = nugetPackages |> String.concat " "
 
-                    // We create a draft release that requires a manual publish.
+                    // We create a draft release for minor and majors. Those that requires a manual publish.
                     // This is to allow us to add additional release notes when it makes sense.
                     let! draftResult =
+                        let isDraft =
+                            let isRevision = lastRelease.Version.Split('.') |> Array.last |> int |> (<>) 0
+                            if isRevision then String.Empty else "--draft"
+
                         Cli
                             .Wrap("gh")
                             .WithArguments(
-                                $"release create v{currentRelease.Version} {files} --draft --title \"{currentRelease.Title}\" --notes-file \"{noteFile}\""
+                                $"release create v{currentRelease.Version} {files} {isDraft} --title \"{currentRelease.Title}\" --notes-file \"{noteFile}\""
                             )
                             .WithValidation(CommandResultValidation.None)
                             .ExecuteAsync()
