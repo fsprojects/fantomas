@@ -57,10 +57,6 @@ let pushPackage nupkg =
         return result.ExitCode
     }
 
-let getNuGetPackages () =
-    Directory.EnumerateFiles("bin", "*.nupkg", SearchOption.TopDirectoryOnly)
-    |> Seq.filter (fun nupkg -> not (nupkg.Contains("Fantomas.Client")))
-
 pipeline "Build" {
     workingDir __SOURCE_DIRECTORY__
     stage "RestoreTools" { run "dotnet tool restore" }
@@ -434,12 +430,17 @@ pipeline "Release" {
                     return 0
                 else
                     // Push packages to NuGet
-                    let! nugetExitCodes = getNuGetPackages () |> Seq.map pushPackage |> Async.Sequential
+                    let nugetPackages =
+                        Directory.EnumerateFiles("bin", "*.nupkg", SearchOption.TopDirectoryOnly)
+                        |> Seq.filter (fun nupkg -> not (nupkg.Contains("Fantomas.Client")))
+                        |> Seq.toArray
+
+                    let! nugetExitCodes = nugetPackages |> Array.map pushPackage |> Async.Sequential
 
                     let notes = getReleaseNotes currentRelease lastRelease
                     let noteFile = Path.GetTempFileName()
                     File.WriteAllText(noteFile, notes)
-                    let files = getNuGetPackages () |> String.concat " "
+                    let files = nugetPackages |> String.concat " "
 
                     // We create a draft release that requires a manual publish.
                     // This is to allow us to add additional release notes when it makes sense.
