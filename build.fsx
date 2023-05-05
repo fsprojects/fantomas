@@ -313,7 +313,7 @@ type GithubRelease =
     { Version: string
       Title: string
       Date: DateTime
-      Exists: bool
+      PublishedDate: string option
       Draft: string }
 
 let mkGithubRelease (v: SemanticVersion, d: DateTime, cd: ChangelogData option) =
@@ -327,15 +327,20 @@ let mkGithubRelease (v: SemanticVersion, d: DateTime, cd: ChangelogData option) 
             $"{month} {day} Release"
 
         let prefixedVersion = $"v{version}"
-        let exists =
+        let publishDate =
             let cmdResult =
                 Cli
                     .Wrap("gh")
-                    .WithArguments($"release view {prefixedVersion}")
+                    .WithArguments($"release view {prefixedVersion} --json publishedAt -t \"{{{{.publishedAt}}}}\"")
                     .WithValidation(CommandResultValidation.None)
-                    .ExecuteAsync()
+                    .ExecuteBufferedAsync()
                     .Task.Result
-            cmdResult.ExitCode = 0
+            if cmdResult.ExitCode <> 0 then
+                None
+            else
+                let output = cmdResult.StandardOutput.Trim()
+                let lastIdx = output.LastIndexOf("Z")
+                Some(output.Substring(0, lastIdx))
 
         let sections =
             [ "Added", cd.Added
@@ -364,11 +369,11 @@ let mkGithubRelease (v: SemanticVersion, d: DateTime, cd: ChangelogData option) 
         { Version = version
           Title = title
           Date = d
-          Exists = exists
+          PublishedDate = publishDate
           Draft = draft }
 
-let getReleaseNotes currentRelease lastRelease =
-    let date = lastRelease.Date.ToString("yyyy-MM-dd")
+let getReleaseNotes currentRelease (lastRelease: GithubRelease) =
+    let date = lastRelease.PublishedDate.Value
     let authorMsg =
         let authors =
             Cli
@@ -426,7 +431,7 @@ pipeline "Release" {
             async {
                 let currentRelease, lastRelease = getCurrentAndLastReleaseFromChangelog ()
 
-                if currentRelease.Exists then
+                if Option.isSome currentRelease.PublishedDate then
                     return 0
                 else
                     // Push packages to NuGet
