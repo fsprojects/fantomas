@@ -425,32 +425,31 @@ let getCurrentAndLastReleaseFromChangelog () =
 
 pipeline "Release" {
     workingDir __SOURCE_DIRECTORY__
-    stage "Push to NuGet" {
-        run (fun _ ->
-            async {
-                let! exitCodes = getNuGetPackages () |> Seq.map pushPackage |> Async.Sequential
-                return Seq.max exitCodes
-            })
-    }
-    stage "GitHub Release" {
+    stage "Release" {
         run (fun _ ->
             async {
                 let currentRelease, lastRelease = getCurrentAndLastReleaseFromChangelog ()
 
-                // We create a draft release that requires a manual publish.
-                // This is to allow us to add additional release notes when it makes sense.
-                if not currentRelease.Exists then
+                if currentRelease.Exists then
+                    return 0
+                else
+                    // Push packages to NuGet
+                    let! nugetExitCodes = getNuGetPackages () |> Seq.map pushPackage |> Async.Sequential
+
                     let notes = getReleaseNotes currentRelease lastRelease
                     let noteFile = Path.GetTempFileName()
                     File.WriteAllText(noteFile, notes)
                     let files = getNuGetPackages () |> String.concat " "
 
-                    let! _ =
+                    // We create a draft release that requires a manual publish.
+                    // This is to allow us to add additional release notes when it makes sense.
+                    let! draftResult =
                         Cli
                             .Wrap("gh")
                             .WithArguments(
                                 $"release create v{currentRelease.Version} {files} --draft --title \"{currentRelease.Title}\" --notes-file \"{noteFile}\""
                             )
+                            .WithValidation(CommandResultValidation.None)
                             .ExecuteAsync()
                             .Task
                         |> Async.AwaitTask
@@ -458,7 +457,7 @@ pipeline "Release" {
                     if File.Exists noteFile then
                         File.Delete(noteFile)
 
-                return 0
+                    return Seq.max [| yield! nugetExitCodes; yield draftResult.ExitCode |]
             })
     }
     runIfOnlySpecified true
