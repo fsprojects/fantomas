@@ -296,7 +296,7 @@ type MangaDexAtHomeResponse = {
 """
 
 [<Test>]
-let ``record interface declarations can break with Stroustrup enabled, 2787 `` () =
+let ``record interface declarations can break with Stroustrup enabled, 2787`` () =
     formatSourceString
         false
         """
@@ -329,7 +329,7 @@ type UpdatedName = { PreviousName: string }
 """
 
 [<Test>]
-let ``record member declarations can break with Stroustrup enabled, 2787 `` () =
+let ``record member declarations can break with Stroustrup enabled, 2787`` () =
     formatSourceString
         false
         """
@@ -353,4 +353,27 @@ type SomeEvent = {
     member x.BreakWithOtherStuffAs well = ()
 
 type UpdatedName = { PreviousName: string }
+"""
+
+[<Test>]
+let ``comment above record bracket breaks formatting when Stroustrup enabled, 2871`` () =
+    formatSourceString
+        false
+        """
+type Event =
+    // TODO: Add LulaSafe conclusion and scores per assessment
+    {
+        Metadata: AssessmentMetadata
+    }
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type Event =
+    // TODO: Add LulaSafe conclusion and scores per assessment
+    {
+        Metadata: AssessmentMetadata
+    }
 """
