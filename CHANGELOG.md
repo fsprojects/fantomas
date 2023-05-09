@@ -1,5 +1,10 @@
 # Changelog
 
+## [Unreleased]
+
+### Fixed
+* Preserves quotes around type parameter names. [#2875](https://github.com/fsprojects/fantomas/issues/2875)
+
 ## [6.0.2] - 2023-05-05
 
 ### Fixed

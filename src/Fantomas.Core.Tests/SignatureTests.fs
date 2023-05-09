@@ -2277,3 +2277,17 @@ type ILMethodDef =
         metadataIndex: int32 ->
             ILMethodDef
 """
+
+let ``should preserve quotes around type parameters, 2875`` () =
+    formatSourceString
+        true
+        """
+val repro: '``QuotedWithIllegalChar<'T>`` -> unit
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+val repro: '``QuotedWithIllegalChar<'T>`` -> unit
+"""
