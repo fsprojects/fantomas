@@ -1323,3 +1323,33 @@ let a : int * string * bool = 1, "", false
         """
 let a: int * string * bool = 1, "", false
 """
+
+[<Test>]
+let ``should preserve quotes around type parameters, 2875`` () =
+    formatSourceString
+        false
+        """
+let repro (a: '``QuotedWithIllegalChar<'T>``) = ()
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let repro (a: '``QuotedWithIllegalChar<'T>``) = ()
+"""
+
+[<Test>]
+let ``should preserve quotes around statically resolved type parameters`` () =
+    formatSourceString
+        false
+        """
+let inline repro (a: ^``QuotedWithIllegalChar<'T>``) = ()
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let inline repro (a: ^``QuotedWithIllegalChar<'T>``) = ()
+"""

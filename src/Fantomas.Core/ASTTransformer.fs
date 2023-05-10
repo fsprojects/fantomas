@@ -1980,9 +1980,17 @@ let mkSynTypar (SynTypar(ident, req, _)) =
             (Position.mkPos ident.idRange.StartLine (ident.idRange.StartColumn - 1))
             ident.idRange.End
 
+    let identText =
+        let width = ident.idRange.EndColumn - ident.idRange.StartColumn
+        // 5 because of ^ or ' and `` on each side
+        if ident.idText.Length + 5 = width then
+            $"``{ident.idText}``"
+        else
+            ident.idText
+
     match req with
-    | TyparStaticReq.None -> stn $"'{ident}" range
-    | TyparStaticReq.HeadType -> stn $"^{ident.idText}" range
+    | TyparStaticReq.None -> stn $"'{identText}" range
+    | TyparStaticReq.HeadType -> stn $"^{identText}" range
 
 let mkSynTypeConstraint (creationAide: CreationAide) (tc: SynTypeConstraint) : TypeConstraint =
     match tc with
