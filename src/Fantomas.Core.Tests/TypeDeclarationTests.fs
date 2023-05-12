@@ -3587,3 +3587,36 @@ type ArrayBuffer =
     abstract byteLength: int
     abstract slice: ``begin``: int * ?``end``: int -> ArrayBuffer
 """
+
+[<Test>]
+let ``trivia before comma in primary constructor `` () =
+    formatSourceString
+        false
+        """
+type Meh
+    (
+        a,
+        b
+#if !NO_TYPEPROVIDERS
+        , c
+#endif
+    ) =
+        class end
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type Meh
+    (
+        a,
+        b
+#if !NO_TYPEPROVIDERS
+        ,
+        c
+#endif
+    ) =
+    class
+    end
+"""

@@ -2268,6 +2268,28 @@ let mkSynUnionCase
         fullRange
     )
 
+let mkSynSimplePat creationAide (pat: SynSimplePat) =
+    match pat with
+    | SynSimplePat.Attrib(SynSimplePat.Typed(SynSimplePat.Id(ident = ident; isOptional = isOptional), t, _),
+                          attributes,
+                          m) ->
+        Some(
+            SimplePatNode(
+                mkAttributes creationAide attributes,
+                isOptional,
+                mkIdent ident,
+                Some(mkType creationAide t),
+                m
+            )
+        )
+    | SynSimplePat.Typed(SynSimplePat.Id(ident = ident; isOptional = isOptional), t, m) ->
+        Some(SimplePatNode(mkAttributes creationAide [], isOptional, mkIdent ident, Some(mkType creationAide t), m))
+    | SynSimplePat.Attrib(SynSimplePat.Id(ident = ident; isOptional = isOptional), attributes, m) ->
+        Some(SimplePatNode(mkAttributes creationAide attributes, isOptional, mkIdent ident, None, m))
+    | SynSimplePat.Id(ident = ident; isOptional = isOptional; range = m) ->
+        Some(SimplePatNode(mkAttributes creationAide [], isOptional, mkIdent ident, None, m))
+    | _ -> None
+
 let mkImplicitCtor
     creationAide
     vis
@@ -2276,41 +2298,30 @@ let mkImplicitCtor
     (self: (range * Ident) option)
     (xmlDoc: PreXmlDoc)
     =
-    let openNode, closeNode =
+    let openNode, pats, commas, closeNode =
         match pats with
-        | SynSimplePats.SimplePats(range = StartEndRange 1 (mOpen, _, mClose)) -> stn "(" mOpen, stn ")" mClose
+        | SynSimplePats.SimplePats(pats = pats; commaRanges = commas; range = StartEndRange 1 (mOpen, _, mClose)) ->
+            stn "(" mOpen, pats, commas, stn ")" mClose
 
     let pats =
         match pats with
-        | SynSimplePats.SimplePats(pats = pats) -> pats
-        |> List.choose (function
-            | SynSimplePat.Attrib(SynSimplePat.Typed(SynSimplePat.Id(ident = ident; isOptional = isOptional), t, _),
-                                  attributes,
-                                  m) ->
-                Some(
-                    SimplePatNode(
-                        mkAttributes creationAide attributes,
-                        isOptional,
-                        mkIdent ident,
-                        Some(mkType creationAide t),
-                        m
-                    )
-                )
-            | SynSimplePat.Typed(SynSimplePat.Id(ident = ident; isOptional = isOptional), t, m) ->
-                Some(
-                    SimplePatNode(
-                        mkAttributes creationAide [],
-                        isOptional,
-                        mkIdent ident,
-                        Some(mkType creationAide t),
-                        m
-                    )
-                )
-            | SynSimplePat.Attrib(SynSimplePat.Id(ident = ident; isOptional = isOptional), attributes, m) ->
-                Some(SimplePatNode(mkAttributes creationAide attributes, isOptional, mkIdent ident, None, m))
-            | SynSimplePat.Id(ident = ident; isOptional = isOptional; range = m) ->
-                Some(SimplePatNode(mkAttributes creationAide [], isOptional, mkIdent ident, None, m))
-            | _ -> None)
+        | [] ->
+            // Unit pattern
+            []
+        | head :: tail ->
+            let rest =
+                assert (tail.Length = commas.Length)
+
+                List.zip commas tail
+                |> List.collect (fun (c, p) ->
+                    match mkSynSimplePat creationAide p with
+                    | None -> []
+                    | Some simplePat -> [ Choice2Of2(stn "," c); Choice1Of2 simplePat ])
+
+            [ match mkSynSimplePat creationAide head with
+              | None -> ()
+              | Some simplePat -> yield Choice1Of2 simplePat
+              yield! rest ]
 
     let range =
         let startRange =

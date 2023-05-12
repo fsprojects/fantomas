@@ -3166,11 +3166,18 @@ let genImplicitConstructor (node: ImplicitConstructorNode) =
         +> optSingle (fun t -> sepColon +> autoIndentAndNlnIfExpressionExceedsPageWidth (genType t)) node.Type
         |> genNode node
 
-    let shortPats = col sepComma node.Parameters genSimplePat
+    let shortPats =
+        col sepNone node.Items (function
+            | Choice1Of2 p -> genSimplePat p
+            | Choice2Of2 comma -> genSingleTextNode comma +> addSpaceIfSpaceAfterComma)
 
     let longPats =
-        indentSepNlnUnindent (col (sepComma +> sepNln) node.Parameters genSimplePat)
-        +> sepNln
+        let genPats =
+            col sepNone node.Items (function
+                | Choice1Of2 p -> genSimplePat p
+                | Choice2Of2 comma -> genSingleTextNode comma +> sepNln)
+
+        indentSepNlnUnindent genPats +> sepNln
 
     let short =
         genXml node.XmlDoc

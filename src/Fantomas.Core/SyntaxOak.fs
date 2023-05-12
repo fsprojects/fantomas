@@ -2234,7 +2234,7 @@ type ImplicitConstructorNode
         attributes: MultipleAttributeListNode option,
         accessibility: SingleTextNode option,
         openingParen: SingleTextNode,
-        parameters: SimplePatNode list,
+        items: Choice<SimplePatNode, SingleTextNode> list,
         closingParen: SingleTextNode,
         self: AsSelfIdentifierNode option,
         range
@@ -2246,7 +2246,10 @@ type ImplicitConstructorNode
            yield! noa attributes
            yield! noa accessibility
            yield openingParen
-           yield! nodes parameters
+           for item in items do
+               match item with
+               | Choice1Of2 node -> yield node
+               | Choice2Of2 comma -> yield comma
            yield closingParen
            yield! noa self |]
 
@@ -2254,7 +2257,7 @@ type ImplicitConstructorNode
     member val Attributes = attributes
     member val Accessibility = accessibility
     member val OpeningParen = openingParen
-    member val Parameters = parameters
+    member val Items = items
     member val ClosingParen = closingParen
     member val Self = self
 
