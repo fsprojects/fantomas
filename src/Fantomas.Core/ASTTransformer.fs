@@ -1650,8 +1650,8 @@ let mkPat (creationAide: CreationAide) (p: SynPat) =
     | SynPat.Paren(p, StartEndRange 1 (lpr, _, rpr)) ->
         PatParenNode(stn "(" lpr, mkPat creationAide p, stn ")" rpr, patternRange)
         |> Pattern.Paren
-    | SynPat.Tuple(false, ps, _) -> PatTupleNode(List.map (mkPat creationAide) ps, patternRange) |> Pattern.Tuple
-    | SynPat.Tuple(true, ps, _) ->
+    | SynPat.Tuple(false, ps, _, _) -> PatTupleNode(List.map (mkPat creationAide) ps, patternRange) |> Pattern.Tuple
+    | SynPat.Tuple(true, ps, _, _) ->
         PatStructTupleNode(List.map (mkPat creationAide) ps, patternRange)
         |> Pattern.StructTuple
     | SynPat.ArrayOrList(isArray, ps, range) ->
@@ -1862,7 +1862,8 @@ let mkExternBinding
     let identifier, openNode, parameters, closeNode =
         match pat with
         | SynPat.LongIdent(
-            longDotId = longDotId; argPats = SynArgPats.Pats [ SynPat.Tuple(_, ps, StartEndRange 1 (mOpen, _, mClose)) ]) ->
+            longDotId = longDotId
+            argPats = SynArgPats.Pats [ SynPat.Tuple(_, ps, _, StartEndRange 1 (mOpen, _, mClose)) ]) ->
             mkSynLongIdent longDotId, stn "(" mOpen, List.map mkExternPat ps, stn ")" mClose
         | _ -> failwith "expecting a SynPat.LongIdent for extern binding"
 
@@ -2265,13 +2266,11 @@ let mkImplicitCtor
     =
     let openNode, closeNode =
         match pats with
-        | SynSimplePats.SimplePats(range = StartEndRange 1 (mOpen, _, mClose))
-        | SynSimplePats.Typed(range = StartEndRange 1 (mOpen, _, mClose)) -> stn "(" mOpen, stn ")" mClose
+        | SynSimplePats.SimplePats(range = StartEndRange 1 (mOpen, _, mClose)) -> stn "(" mOpen, stn ")" mClose
 
     let pats =
         match pats with
         | SynSimplePats.SimplePats(pats = pats) -> pats
-        | SynSimplePats.Typed _ -> []
         |> List.choose (function
             | SynSimplePat.Attrib(SynSimplePat.Typed(SynSimplePat.Id(ident = ident; isOptional = isOptional), t, _),
                                   attributes,
@@ -2540,7 +2539,7 @@ let mkPropertyGetSetBinding
 
         let pats =
             match ps with
-            | [ SynPat.Tuple(false, [ p1; p2; p3 ], _) ] ->
+            | [ SynPat.Tuple(false, [ p1; p2; p3 ], _, _) ] ->
                 let mTuple = unionRanges p1.Range p2.Range
 
                 [ PatParenNode(
@@ -2551,7 +2550,7 @@ let mkPropertyGetSetBinding
                   )
                   |> Pattern.Paren
                   mkPat creationAide p3 ]
-            | [ SynPat.Tuple(false, [ p1; p2 ], _) ] -> [ mkPat creationAide p1; mkPat creationAide p2 ]
+            | [ SynPat.Tuple(false, [ p1; p2 ], _, _) ] -> [ mkPat creationAide p1; mkPat creationAide p2 ]
             | ps -> List.map (mkPat creationAide) ps
 
         let range = unionRanges extraIdent.idRange e.Range

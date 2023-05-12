@@ -5,6 +5,9 @@
 ### Fixed
 * Preserves quotes around type parameter names. [#2875](https://github.com/fsprojects/fantomas/issues/2875)
 
+### Changed
+* Update FCS to 'Add commas to tuple pat and simple pats', commit e267bb9f8d590feed1b94b469d78cfce61afecad
+
 ## [6.0.2] - 2023-05-05
 
 ### Fixed
