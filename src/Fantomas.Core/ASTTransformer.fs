@@ -2562,9 +2562,8 @@ let mkPropertyGetSetBinding
 
         let pats =
             match ps with
-            | [ SynPat.Tuple(false, [ p1; p2; p3 ], commas, _) ] ->
+            | [ SynPat.Tuple(false, [ p1; p2; p3 ], [ comma ], _) ] ->
                 let mTuple = unionRanges p1.Range p2.Range
-                let comma = commas.[0]
 
                 [ PatParenNode(
                       stn "(" Range.Zero,
