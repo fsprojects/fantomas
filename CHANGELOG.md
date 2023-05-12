@@ -4,6 +4,8 @@
 
 ### Fixed
 * Preserves quotes around type parameter names. [#2875](https://github.com/fsprojects/fantomas/issues/2875)
+* Additional whitespace for LineCommentAfterSourceCode when last character is a `,`. [#2589](https://github.com/fsprojects/fantomas/issues/2589)
+* Tupled parameter wrapped in conditional directive. [#2877](https://github.com/fsprojects/fantomas/issues/2877)
 
 ### Changed
 * Update FCS to 'Add commas to tuple pat and simple pats', commit e267bb9f8d590feed1b94b469d78cfce61afecad

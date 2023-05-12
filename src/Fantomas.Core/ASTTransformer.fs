@@ -1573,6 +1573,18 @@ let (|PatParameter|_|) (p: SynPat) =
 
 let mkUnit (StartEndRange 1 (lpr, m, rpr)) = UnitNode(stn "(" lpr, stn ")" rpr, m)
 
+let mkTuplePat (creationAide: CreationAide) (pats: SynPat list) (commas: range list) (m: range) =
+    match pats with
+    | [] -> failwith "SynPat.Tuple with no elements"
+    | head :: tail ->
+        let rest =
+            assert (tail.Length = commas.Length)
+
+            List.zip commas tail
+            |> List.collect (fun (c, e) -> [ yield Choice2Of2(stn "," c); yield Choice1Of2(mkPat creationAide e) ])
+
+        PatTupleNode([ yield Choice1Of2(mkPat creationAide head); yield! rest ], m)
+
 let mkPat (creationAide: CreationAide) (p: SynPat) =
     let patternRange = p.Range
 
@@ -1650,7 +1662,7 @@ let mkPat (creationAide: CreationAide) (p: SynPat) =
     | SynPat.Paren(p, StartEndRange 1 (lpr, _, rpr)) ->
         PatParenNode(stn "(" lpr, mkPat creationAide p, stn ")" rpr, patternRange)
         |> Pattern.Paren
-    | SynPat.Tuple(false, ps, _, _) -> PatTupleNode(List.map (mkPat creationAide) ps, patternRange) |> Pattern.Tuple
+    | SynPat.Tuple(false, ps, commas, _) -> mkTuplePat creationAide ps commas patternRange |> Pattern.Tuple
     | SynPat.Tuple(true, ps, _, _) ->
         PatStructTupleNode(List.map (mkPat creationAide) ps, patternRange)
         |> Pattern.StructTuple
@@ -2539,12 +2551,20 @@ let mkPropertyGetSetBinding
 
         let pats =
             match ps with
-            | [ SynPat.Tuple(false, [ p1; p2; p3 ], _, _) ] ->
+            | [ SynPat.Tuple(false, [ p1; p2; p3 ], commas, _) ] ->
                 let mTuple = unionRanges p1.Range p2.Range
+                let comma = commas.[0]
 
                 [ PatParenNode(
                       stn "(" Range.Zero,
-                      Pattern.Tuple(PatTupleNode([ mkPat creationAide p1; mkPat creationAide p2 ], mTuple)),
+                      Pattern.Tuple(
+                          PatTupleNode(
+                              [ Choice1Of2(mkPat creationAide p1)
+                                Choice2Of2(stn "," comma)
+                                Choice1Of2(mkPat creationAide p2) ],
+                              mTuple
+                          )
+                      ),
                       stn ")" Range.Zero,
                       mTuple
                   )

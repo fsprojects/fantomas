@@ -398,12 +398,12 @@ let genExpr (e: Expr) =
             +> sepSpace
             +> genExpr node.Arguments
         |> genNode node
-    | Expr.Tuple node -> genTuple node
+    | Expr.Tuple node -> genTupleExpr node
     | Expr.StructTuple node ->
         genSingleTextNode node.Struct
         +> sepSpace
         +> sepOpenT
-        +> genTuple node.Tuple
+        +> genTupleExpr node.Tuple
         +> genSingleTextNode node.ClosingParen
         |> genNode node
     | Expr.ArrayOrList node -> fun ctx -> genArrayOrList (ctx.Config.MultilineBracketStyle = Cramped) node ctx
@@ -1833,7 +1833,7 @@ let genMultilineFunctionApplicationArguments (argExpr: Expr) =
         | _ -> genExpr parenNode.Expr |> argsInsideParenthesis parenNode
     | _ -> genExpr argExpr
 
-let genTuple (node: ExprTupleNode) =
+let genTupleExpr (node: ExprTupleNode) =
     // if a tuple element is an InfixApp with a lambda or if-then-else expression on the rhs,
     // we need to wrap the rhs in parenthesis to avoid a parse error caused by the higher precedence of "," over the rhs expression.
     // see 2819
@@ -2464,6 +2464,23 @@ let genTyparDecls (td: TyparDecls) =
         |> genNode node
     | TyparDecls.SinglePrefix node -> genTyparDecl true node
 
+let genTuplePatLong (node: PatTupleNode) =
+    let padUntilAtCurrentColumn ctx =
+        addFixedSpaces ctx.WriterModel.AtColumn ctx
+
+    col padUntilAtCurrentColumn node.Items (function
+        | Choice1Of2 p -> genPat p
+        | Choice2Of2 comma -> genSingleTextNode comma +> sepNln)
+
+let genTuplePat (node: PatTupleNode) =
+    let short =
+        col sepNone node.Items (function
+            | Choice1Of2 p -> genPat p
+            | Choice2Of2 comma -> genSingleTextNode comma +> addSpaceIfSpaceAfterComma)
+
+    atCurrentColumn (expressionFitsOnRestOfLine short (atCurrentColumn (genTuplePatLong node)))
+    |> genNode node
+
 let genPat (p: Pattern) =
     match p with
     | Pattern.OptionalVal n -> genSingleTextNode n
@@ -2532,14 +2549,7 @@ let genPat (p: Pattern) =
         +> genPat node.Pattern
         +> genSingleTextNode node.ClosingParen
         |> genNode node
-    | Pattern.Tuple node ->
-        let padUntilAtCurrentColumn ctx =
-            addFixedSpaces ctx.WriterModel.AtColumn ctx
-
-        expressionFitsOnRestOfLine
-            (col sepComma node.Patterns genPat)
-            (atCurrentColumn (col (padUntilAtCurrentColumn +> sepComma +> sepNln) node.Patterns genPat))
-        |> genNode node
+    | Pattern.Tuple node -> genTuplePat node
     | Pattern.StructTuple node ->
         !- "struct "
         +> sepOpenT
@@ -2745,9 +2755,7 @@ let genBinding (b: BindingNode) (ctx: Context) : Context =
                             match parenNode.Pattern with
                             | Pattern.Tuple tupleNode ->
                                 (genSingleTextNode parenNode.OpeningParen
-                                 +> indentSepNlnUnindent (
-                                     (col (sepComma +> sepNln) tupleNode.Patterns genPat) |> genNode tupleNode
-                                 )
+                                 +> indentSepNlnUnindent (genTuplePatLong tupleNode |> genNode tupleNode)
                                  +> sepNln
                                  +> genSingleTextNode parenNode.ClosingParen
                                  |> genNode parenNode),

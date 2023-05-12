@@ -2140,3 +2140,28 @@ let inline (!!) (x: ^a) : ^b = ((^a or ^b): (static member op_Implicit: ^a -> ^b
 let inline (!!) (x: ^a) : ^b =
     ((^a or ^b): (static member op_Implicit: ^a -> ^b) x)
 """
+
+[<Test>]
+let ``avoid additional whitespace after comma, 2589`` () =
+    formatSourceString
+        false
+        """
+let x
+    (
+        a: string, // test
+        b: string // test
+    ) =
+    print "hello"
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let x
+    (
+        a: string, // test
+        b: string // test
+    ) =
+    print "hello"
+"""

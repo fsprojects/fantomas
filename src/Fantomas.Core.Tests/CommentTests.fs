@@ -2080,8 +2080,8 @@ type CreateFSharpManifestResourceName public () =
         (
             fileName: string,
             linkFileName: string,
-            rootNamespace: string,  // may be null
-            dependentUponFileName: string,  // may be null
+            rootNamespace: string, // may be null
+            dependentUponFileName: string, // may be null
             binaryStream: Stream // may be null
         ) : string =
         ()
@@ -2570,7 +2570,7 @@ type MyType2 =
 type MyType =
     member _.MyMethod
         (
-            [<MyAttribute>] inputA: string,  // my comment 1
+            [<MyAttribute>] inputA: string, // my comment 1
             [<MyAttribute>] inputB: string // my comment 2
         ) =
         inputA
