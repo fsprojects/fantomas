@@ -3589,7 +3589,7 @@ type ArrayBuffer =
 """
 
 [<Test>]
-let ``trivia before comma in primary constructor `` () =
+let ``trivia before comma in primary constructor`` () =
     formatSourceString
         false
         """
