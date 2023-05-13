@@ -181,7 +181,7 @@
       <Link>AbstractIL\illex.fsl</Link>
     </None>
     <FsYacc Include="..\..\.deps\$(FCSCommitHash)\src\Compiler\AbstractIL\ilpars.fsy">
-      <OtherFlags>--module FSharp.Compiler.AbstractIL.AsciiParser --open FSharp.Compiler.AbstractIL --internal --lexlib Internal.Utilities.Text.Lexing --parslib Internal.Utilities.Text.Parsing</OtherFlags>
+      <OtherFlags>--module FSharp.Compiler.AbstractIL.AsciiParser --open FSharp.Compiler.AbstractIL --open FSharp.Compiler.AbstractIL.AsciiConstants --open FSharp.Compiler.AbstractIL.IL --internal --lexlib Internal.Utilities.Text.Lexing --parslib Internal.Utilities.Text.Parsing --buffer-type-argument char</OtherFlags>
       <Link>AbstractIL\ilpars.fsy</Link>
     </FsYacc>
     <None Include="..\..\.deps\$(FCSCommitHash)\src\Compiler\AbstractIL\ilpars.fsy">
@@ -205,6 +205,9 @@
     <Compile Include="..\..\.deps\$(FCSCommitHash)\src\Compiler\AbstractIL\ilascii.fs">
       <Link>AbstractIL\ilascii.fs</Link>
     </Compile>
+    <Compile Include="$(FsYaccOutputFolder)ilpars.fsi">
+      <Link>AbstractIL\FsYaccOut\ilpars.fsi</Link>
+    </Compile>
     <Compile Include="$(FsYaccOutputFolder)ilpars.fs">
       <Link>AbstractIL\FsYaccOut\ilpars.fs</Link>
     </Compile>
@@ -222,7 +225,7 @@
       <Link>SyntaxTree\pplex.fsl</Link>
     </FsLex>
     <FsYacc Include="..\..\.deps\$(FCSCommitHash)\src\Compiler\pppars.fsy">
-      <OtherFlags>--module FSharp.Compiler.PPParser --open FSharp.Compiler --open FSharp.Compiler.Syntax --internal --lexlib Internal.Utilities.Text.Lexing --parslib Internal.Utilities.Text.Parsing</OtherFlags>
+      <OtherFlags>--module FSharp.Compiler.PPParser --open FSharp.Compiler --open FSharp.Compiler.Syntax --open FSharp.Compiler.ParseHelpers --internal --lexlib Internal.Utilities.Text.Lexing --parslib Internal.Utilities.Text.Parsing --buffer-type-argument char</OtherFlags>
       <Link>SyntaxTree\pppars.fsy</Link>
     </FsYacc>
     <FsLex Include="..\..\.deps\$(FCSCommitHash)\src\Compiler\lex.fsl">
@@ -230,7 +233,7 @@
       <Link>SyntaxTree\lex.fsl</Link>
     </FsLex>
     <FsYacc Include="..\..\.deps\$(FCSCommitHash)\src\Compiler\pars.fsy">
-      <OtherFlags>-v --module FSharp.Compiler.Parser --open FSharp.Compiler --open FSharp.Compiler.Syntax --internal --lexlib Internal.Utilities.Text.Lexing --parslib Internal.Utilities.Text.Parsing</OtherFlags>
+      <OtherFlags>-v --module FSharp.Compiler.Parser --open FSharp.Compiler --open FSharp.Compiler.Syntax --open FSharp.Compiler.Text --internal --lexlib Internal.Utilities.Text.Lexing --parslib Internal.Utilities.Text.Parsing --buffer-type-argument char</OtherFlags>
       <Link>SyntaxTree\pars.fsy</Link>
     </FsYacc>
     <None Include="..\..\.deps\$(FCSCommitHash)\src\Compiler\pplex.fsl">
@@ -281,8 +284,14 @@
     <Compile Include="..\..\.deps\$(FCSCommitHash)\src\Compiler\SyntaxTree\ParseHelpers.fs">
       <Link>SyntaxTree\ParseHelpers.fs</Link>
     </Compile>
+    <Compile Include="$(FsYaccOutputFolder)pppars.fsi">
+      <Link>SyntaxTree\FsYaccOutput\pppars.fsi</Link>
+    </Compile>
     <Compile Include="$(FsYaccOutputFolder)pppars.fs">
       <Link>SyntaxTree\FsYaccOutput\pppars.fs</Link>
+    </Compile>
+    <Compile Include="$(FsYaccOutputFolder)pars.fsi">
+      <Link>SyntaxTree\FsYaccOutput\pars.fsi</Link>
     </Compile>
     <Compile Include="$(FsYaccOutputFolder)pars.fs">
       <Link>SyntaxTree\FsYaccOutput\pars.fs</Link>
@@ -313,7 +322,7 @@
     <PackageReference Include="System.Diagnostics.DiagnosticSource" Version="7.0.0" />
     <PackageReference Include="System.Memory" Version="4.5.5" />
     <PackageReference Include="System.Runtime" Version="4.3.1" />
-    <PackageReference Include="FsLexYacc" Version="11.0.1" PrivateAssets="all" />
+    <PackageReference Include="FsLexYacc" Version="11.1.0" PrivateAssets="all" />
   </ItemGroup>
 
   <Target Name="AcquireCompilerFiles" Condition="!Exists('../../.deps/$(FCSCommitHash)')" BeforeTargets="CollectPackageReferences">
