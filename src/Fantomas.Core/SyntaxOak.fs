@@ -502,11 +502,16 @@ type PatParenNode(openingParen: SingleTextNode, pat: Pattern, closingParen: Sing
     member val Pattern = pat
     member val ClosingParen = closingParen
 
-type PatTupleNode(pats: Pattern list, range) =
+type PatTupleNode(items: Choice<Pattern, SingleTextNode> list, range) =
     inherit NodeBase(range)
 
-    override val Children: Node array = [| yield! (List.map Pattern.Node pats) |]
-    member val Patterns = pats
+    override val Children: Node array =
+        [| for item in items do
+               match item with
+               | Choice1Of2 p -> Pattern.Node p
+               | Choice2Of2 comma -> comma |]
+
+    member val Items = items
 
 type PatStructTupleNode(pats: Pattern list, range) =
     inherit NodeBase(range)
@@ -2229,7 +2234,7 @@ type ImplicitConstructorNode
         attributes: MultipleAttributeListNode option,
         accessibility: SingleTextNode option,
         openingParen: SingleTextNode,
-        parameters: SimplePatNode list,
+        items: Choice<SimplePatNode, SingleTextNode> list,
         closingParen: SingleTextNode,
         self: AsSelfIdentifierNode option,
         range
@@ -2241,7 +2246,10 @@ type ImplicitConstructorNode
            yield! noa attributes
            yield! noa accessibility
            yield openingParen
-           yield! nodes parameters
+           for item in items do
+               match item with
+               | Choice1Of2 node -> yield node
+               | Choice2Of2 comma -> yield comma
            yield closingParen
            yield! noa self |]
 
@@ -2249,7 +2257,7 @@ type ImplicitConstructorNode
     member val Attributes = attributes
     member val Accessibility = accessibility
     member val OpeningParen = openingParen
-    member val Parameters = parameters
+    member val Items = items
     member val ClosingParen = closingParen
     member val Self = self
 

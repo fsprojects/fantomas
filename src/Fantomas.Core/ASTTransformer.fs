@@ -1573,6 +1573,18 @@ let (|PatParameter|_|) (p: SynPat) =
 
 let mkUnit (StartEndRange 1 (lpr, m, rpr)) = UnitNode(stn "(" lpr, stn ")" rpr, m)
 
+let mkTuplePat (creationAide: CreationAide) (pats: SynPat list) (commas: range list) (m: range) =
+    match pats with
+    | [] -> failwith "SynPat.Tuple with no elements"
+    | head :: tail ->
+        let rest =
+            assert (tail.Length = commas.Length)
+
+            List.zip commas tail
+            |> List.collect (fun (c, e) -> [ yield Choice2Of2(stn "," c); yield Choice1Of2(mkPat creationAide e) ])
+
+        PatTupleNode([ yield Choice1Of2(mkPat creationAide head); yield! rest ], m)
+
 let mkPat (creationAide: CreationAide) (p: SynPat) =
     let patternRange = p.Range
 
@@ -1650,8 +1662,8 @@ let mkPat (creationAide: CreationAide) (p: SynPat) =
     | SynPat.Paren(p, StartEndRange 1 (lpr, _, rpr)) ->
         PatParenNode(stn "(" lpr, mkPat creationAide p, stn ")" rpr, patternRange)
         |> Pattern.Paren
-    | SynPat.Tuple(false, ps, _) -> PatTupleNode(List.map (mkPat creationAide) ps, patternRange) |> Pattern.Tuple
-    | SynPat.Tuple(true, ps, _) ->
+    | SynPat.Tuple(false, ps, commas, _) -> mkTuplePat creationAide ps commas patternRange |> Pattern.Tuple
+    | SynPat.Tuple(true, ps, _, _) ->
         PatStructTupleNode(List.map (mkPat creationAide) ps, patternRange)
         |> Pattern.StructTuple
     | SynPat.ArrayOrList(isArray, ps, range) ->
@@ -1862,7 +1874,8 @@ let mkExternBinding
     let identifier, openNode, parameters, closeNode =
         match pat with
         | SynPat.LongIdent(
-            longDotId = longDotId; argPats = SynArgPats.Pats [ SynPat.Tuple(_, ps, StartEndRange 1 (mOpen, _, mClose)) ]) ->
+            longDotId = longDotId
+            argPats = SynArgPats.Pats [ SynPat.Tuple(_, ps, _, StartEndRange 1 (mOpen, _, mClose)) ]) ->
             mkSynLongIdent longDotId, stn "(" mOpen, List.map mkExternPat ps, stn ")" mClose
         | _ -> failwith "expecting a SynPat.LongIdent for extern binding"
 
@@ -2255,6 +2268,28 @@ let mkSynUnionCase
         fullRange
     )
 
+let mkSynSimplePat creationAide (pat: SynSimplePat) =
+    match pat with
+    | SynSimplePat.Attrib(SynSimplePat.Typed(SynSimplePat.Id(ident = ident; isOptional = isOptional), t, _),
+                          attributes,
+                          m) ->
+        Some(
+            SimplePatNode(
+                mkAttributes creationAide attributes,
+                isOptional,
+                mkIdent ident,
+                Some(mkType creationAide t),
+                m
+            )
+        )
+    | SynSimplePat.Typed(SynSimplePat.Id(ident = ident; isOptional = isOptional), t, m) ->
+        Some(SimplePatNode(mkAttributes creationAide [], isOptional, mkIdent ident, Some(mkType creationAide t), m))
+    | SynSimplePat.Attrib(SynSimplePat.Id(ident = ident; isOptional = isOptional), attributes, m) ->
+        Some(SimplePatNode(mkAttributes creationAide attributes, isOptional, mkIdent ident, None, m))
+    | SynSimplePat.Id(ident = ident; isOptional = isOptional; range = m) ->
+        Some(SimplePatNode(mkAttributes creationAide [], isOptional, mkIdent ident, None, m))
+    | _ -> None
+
 let mkImplicitCtor
     creationAide
     vis
@@ -2263,43 +2298,30 @@ let mkImplicitCtor
     (self: (range * Ident) option)
     (xmlDoc: PreXmlDoc)
     =
-    let openNode, closeNode =
+    let openNode, pats, commas, closeNode =
         match pats with
-        | SynSimplePats.SimplePats(range = StartEndRange 1 (mOpen, _, mClose))
-        | SynSimplePats.Typed(range = StartEndRange 1 (mOpen, _, mClose)) -> stn "(" mOpen, stn ")" mClose
+        | SynSimplePats.SimplePats(pats = pats; commaRanges = commas; range = StartEndRange 1 (mOpen, _, mClose)) ->
+            stn "(" mOpen, pats, commas, stn ")" mClose
 
     let pats =
         match pats with
-        | SynSimplePats.SimplePats(pats = pats) -> pats
-        | SynSimplePats.Typed _ -> []
-        |> List.choose (function
-            | SynSimplePat.Attrib(SynSimplePat.Typed(SynSimplePat.Id(ident = ident; isOptional = isOptional), t, _),
-                                  attributes,
-                                  m) ->
-                Some(
-                    SimplePatNode(
-                        mkAttributes creationAide attributes,
-                        isOptional,
-                        mkIdent ident,
-                        Some(mkType creationAide t),
-                        m
-                    )
-                )
-            | SynSimplePat.Typed(SynSimplePat.Id(ident = ident; isOptional = isOptional), t, m) ->
-                Some(
-                    SimplePatNode(
-                        mkAttributes creationAide [],
-                        isOptional,
-                        mkIdent ident,
-                        Some(mkType creationAide t),
-                        m
-                    )
-                )
-            | SynSimplePat.Attrib(SynSimplePat.Id(ident = ident; isOptional = isOptional), attributes, m) ->
-                Some(SimplePatNode(mkAttributes creationAide attributes, isOptional, mkIdent ident, None, m))
-            | SynSimplePat.Id(ident = ident; isOptional = isOptional; range = m) ->
-                Some(SimplePatNode(mkAttributes creationAide [], isOptional, mkIdent ident, None, m))
-            | _ -> None)
+        | [] ->
+            // Unit pattern
+            []
+        | head :: tail ->
+            let rest =
+                assert (tail.Length = commas.Length)
+
+                List.zip commas tail
+                |> List.collect (fun (c, p) ->
+                    match mkSynSimplePat creationAide p with
+                    | None -> []
+                    | Some simplePat -> [ Choice2Of2(stn "," c); Choice1Of2 simplePat ])
+
+            [ match mkSynSimplePat creationAide head with
+              | None -> ()
+              | Some simplePat -> yield Choice1Of2 simplePat
+              yield! rest ]
 
     let range =
         let startRange =
@@ -2540,18 +2562,25 @@ let mkPropertyGetSetBinding
 
         let pats =
             match ps with
-            | [ SynPat.Tuple(false, [ p1; p2; p3 ], _) ] ->
+            | [ SynPat.Tuple(false, [ p1; p2; p3 ], [ comma ], _) ] ->
                 let mTuple = unionRanges p1.Range p2.Range
 
                 [ PatParenNode(
                       stn "(" Range.Zero,
-                      Pattern.Tuple(PatTupleNode([ mkPat creationAide p1; mkPat creationAide p2 ], mTuple)),
+                      Pattern.Tuple(
+                          PatTupleNode(
+                              [ Choice1Of2(mkPat creationAide p1)
+                                Choice2Of2(stn "," comma)
+                                Choice1Of2(mkPat creationAide p2) ],
+                              mTuple
+                          )
+                      ),
                       stn ")" Range.Zero,
                       mTuple
                   )
                   |> Pattern.Paren
                   mkPat creationAide p3 ]
-            | [ SynPat.Tuple(false, [ p1; p2 ], _) ] -> [ mkPat creationAide p1; mkPat creationAide p2 ]
+            | [ SynPat.Tuple(false, [ p1; p2 ], _, _) ] -> [ mkPat creationAide p1; mkPat creationAide p2 ]
             | ps -> List.map (mkPat creationAide) ps
 
         let range = unionRanges extraIdent.idRange e.Range

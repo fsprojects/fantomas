@@ -3286,3 +3286,39 @@ module
     A =
     let f x = x + x
 """
+
+[<Test>]
+let ``conditional directives around last tuple pattern, 2877`` () =
+    formatSourceString
+        false
+        """
+// Link all the assemblies together and produce the input typecheck accumulator
+let CombineImportedAssembliesTask
+    (
+        a,
+        b
+#if !NO_TYPEPROVIDERS
+        , c
+#endif
+    ) =
+
+        ()
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+// Link all the assemblies together and produce the input typecheck accumulator
+let CombineImportedAssembliesTask
+    (
+        a,
+        b
+#if !NO_TYPEPROVIDERS
+        ,
+        c
+#endif
+    ) =
+
+    ()
+"""
