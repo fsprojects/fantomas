@@ -5,7 +5,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
   <meta name="author" content="Florian Verdonck, Jindřich Ivánek, David Schaefer">
-  <title>LexArgs (fantomas)</title>
+  <title>ActivityNames (fantomas)</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,600;1,400&family=Reem+Kufi:wght@400;500;700&display=swap" rel="stylesheet">
@@ -201,55 +201,38 @@
       <div id="fsdocs-content" class="bg-white m-2 m-sm-5 p-3 p-sm-4">
         <div>
   <h2>
-    LexArgs Type
+    ActivityNames Module
   </h2>
   <dl class="fsdocs-metadata">
     <dt>
       Namespace: 
-      <a href="https://fsprojects.github.io/fantomas/reference/fsharp-compiler.html">
-        FSharp.Compiler
+      <a href="https://fsprojects.github.io/fantomas/reference/fsharp-compiler-diagnostics.html">
+        FSharp.Compiler.Diagnostics
       </a>
     </dt>
     <dt>
       Assembly: Fantomas.FCS.dll
-    </dt>
-    <dt>
-      Parent Module: 
-      <a href="https://fsprojects.github.io/fantomas/reference/fsharp-compiler-lexhelp.html">
-        Lexhelp
-      </a>
-    </dt>
-    <dt>
-      Base Type: 
-      <code>obj</code>
-    </dt>
-    <dt>
-      All Interfaces: 
-      <code><a href="https://learn.microsoft.com/dotnet/api/system.collections.istructuralequatable">IStructuralEquatable</a></code>
     </dt>
   </dl>
   <div class="fsdocs-xmldoc">
     <div>
       <p class="fsdocs-summary">
         
- The context applicable to all lexing functions (tokens, strings etc.)
+ For activities following the dotnet distributed tracing concept
+ https://learn.microsoft.com/dotnet/core/diagnostics/distributed-tracing-concepts?source=recommendations
 
       </p>
     </div>
   </div>
-  <div></div>
-  <div></div>
-  <div></div>
-  <div></div>
   <div>
     <h3>
-      Record fields
+      Functions and values
     </h3>
     <table class="table outer-list fsdocs-member-list">
       <thead>
         <tr>
           <td class="fsdocs-member-list-header">
-            Record Field
+            Function or value
           </td>
           <td class="fsdocs-member-list-header">
             Description
@@ -260,24 +243,24 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code onmouseout="hideTip(event, '3409', 3409)" onmouseover="showTip(event, '3409', 3409)">
+              <code onmouseout="hideTip(event, '616', 616)" onmouseover="showTip(event, '616', 616)">
                 <p>
-                  <a id="applyLineDirectives">
-                    <a href="#applyLineDirectives">
-                      <code>applyLineDirectives</code>
+                  <a id="AllRelevantNames">
+                    <a href="#AllRelevantNames">
+                      <code><span>ActivityNames.AllRelevantNames&#32;<span></span></span></code>
                     </a>
                   </a>
                 </p>
               </code>
-              <div class="fsdocs-tip" id="3409">
+              <div class="fsdocs-tip" id="616">
                 <div class="member-tooltip">
                   Full Usage: 
-                  <code>applyLineDirectives</code>
+                  <code><span>ActivityNames.AllRelevantNames&#32;<span></span></span></code>
                   <br/>
                   <br/>
                   <span>
-                    Field type: 
-                    <code>bool</code>
+                    Returns: 
+                    <code><span>string[]</span></code>
                   </span>
                   <br/>
                 </div>
@@ -288,9 +271,9 @@
             <dl class="fsdocs-returns">
               <dt>
                 <span class="fsdocs-return-name">
-                  Field type: 
+                  Returns: 
                 </span>
-                <code>bool</code>
+                <code><span>string[]</span></code>
               </dt>
               <dd class="fsdocs-return-docs"></dd>
             </dl>
@@ -299,24 +282,24 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code onmouseout="hideTip(event, '3410', 3410)" onmouseover="showTip(event, '3410', 3410)">
+              <code onmouseout="hideTip(event, '617', 617)" onmouseover="showTip(event, '617', 617)">
                 <p>
-                  <a id="conditionalDefines">
-                    <a href="#conditionalDefines">
-                      <code>conditionalDefines</code>
+                  <a id="FscSourceName">
+                    <a href="#FscSourceName">
+                      <code><span>ActivityNames.FscSourceName&#32;<span></span></span></code>
                     </a>
                   </a>
                 </p>
               </code>
-              <div class="fsdocs-tip" id="3410">
+              <div class="fsdocs-tip" id="617">
                 <div class="member-tooltip">
                   Full Usage: 
-                  <code>conditionalDefines</code>
+                  <code><span>ActivityNames.FscSourceName&#32;<span></span></span></code>
                   <br/>
                   <br/>
                   <span>
-                    Field type: 
-                    <code><span>string&#32;list</span></code>
+                    Returns: 
+                    <code>string</code>
                   </span>
                   <br/>
                 </div>
@@ -327,9 +310,9 @@
             <dl class="fsdocs-returns">
               <dt>
                 <span class="fsdocs-return-name">
-                  Field type: 
+                  Returns: 
                 </span>
-                <code><span>string&#32;list</span></code>
+                <code>string</code>
               </dt>
               <dd class="fsdocs-return-docs"></dd>
             </dl>
@@ -338,24 +321,24 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code onmouseout="hideTip(event, '3411', 3411)" onmouseover="showTip(event, '3411', 3411)">
+              <code onmouseout="hideTip(event, '618', 618)" onmouseover="showTip(event, '618', 618)">
                 <p>
-                  <a id="diagnosticsLogger">
-                    <a href="#diagnosticsLogger">
-                      <code>diagnosticsLogger</code>
+                  <a id="ProfiledSourceName">
+                    <a href="#ProfiledSourceName">
+                      <code><span>ActivityNames.ProfiledSourceName&#32;<span></span></span></code>
                     </a>
                   </a>
                 </p>
               </code>
-              <div class="fsdocs-tip" id="3411">
+              <div class="fsdocs-tip" id="618">
                 <div class="member-tooltip">
                   Full Usage: 
-                  <code>diagnosticsLogger</code>
+                  <code><span>ActivityNames.ProfiledSourceName&#32;<span></span></span></code>
                   <br/>
                   <br/>
                   <span>
-                    Field type: 
-                    <code><a href="https://fsprojects.github.io/fantomas/reference/fsharp-compiler-diagnosticslogger-diagnosticslogger.html">DiagnosticsLogger</a></code>
+                    Returns: 
+                    <code>string</code>
                   </span>
                   <br/>
                 </div>
@@ -366,255 +349,9 @@
             <dl class="fsdocs-returns">
               <dt>
                 <span class="fsdocs-return-name">
-                  Field type: 
+                  Returns: 
                 </span>
-                <code><a href="https://fsprojects.github.io/fantomas/reference/fsharp-compiler-diagnosticslogger-diagnosticslogger.html">DiagnosticsLogger</a></code>
-              </dt>
-              <dd class="fsdocs-return-docs"></dd>
-            </dl>
-          </td>
-        </tr>
-        <tr>
-          <td class="fsdocs-member-usage">
-            <div>
-              <code onmouseout="hideTip(event, '3412', 3412)" onmouseover="showTip(event, '3412', 3412)">
-                <p>
-                  <a id="ifdefStack">
-                    <a href="#ifdefStack">
-                      <code>ifdefStack</code>
-                    </a>
-                  </a>
-                </p>
-              </code>
-              <div class="fsdocs-tip" id="3412">
-                <div class="member-tooltip">
-                  Full Usage: 
-                  <code>ifdefStack</code>
-                  <br/>
-                  <br/>
-                  <span>
-                    Field type: 
-                    <code><a href="https://fsprojects.github.io/fantomas/reference/fsharp-compiler-parsehelpers-lexerifdefstack.html">LexerIfdefStack</a></code>
-                  </span>
-                  <br/>
-                  Modifiers: 
-                  mutable
-                  <br/>
-                </div>
-              </div>
-            </div>
-          </td>
-          <td class="fsdocs-member-xmldoc">
-            <dl class="fsdocs-returns">
-              <dt>
-                <span class="fsdocs-return-name">
-                  Field type: 
-                </span>
-                <code><a href="https://fsprojects.github.io/fantomas/reference/fsharp-compiler-parsehelpers-lexerifdefstack.html">LexerIfdefStack</a></code>
-              </dt>
-              <dd class="fsdocs-return-docs"></dd>
-            </dl>
-          </td>
-        </tr>
-        <tr>
-          <td class="fsdocs-member-usage">
-            <div>
-              <code onmouseout="hideTip(event, '3413', 3413)" onmouseover="showTip(event, '3413', 3413)">
-                <p>
-                  <a id="indentationSyntaxStatus">
-                    <a href="#indentationSyntaxStatus">
-                      <code>indentationSyntaxStatus</code>
-                    </a>
-                  </a>
-                </p>
-              </code>
-              <div class="fsdocs-tip" id="3413">
-                <div class="member-tooltip">
-                  Full Usage: 
-                  <code>indentationSyntaxStatus</code>
-                  <br/>
-                  <br/>
-                  <span>
-                    Field type: 
-                    <code><a href="https://fsprojects.github.io/fantomas/reference/fsharp-compiler-lexhelp-indentationawaresyntaxstatus.html">IndentationAwareSyntaxStatus</a></code>
-                  </span>
-                  <br/>
-                  Modifiers: 
-                  mutable
-                  <br/>
-                </div>
-              </div>
-            </div>
-          </td>
-          <td class="fsdocs-member-xmldoc">
-            <dl class="fsdocs-returns">
-              <dt>
-                <span class="fsdocs-return-name">
-                  Field type: 
-                </span>
-                <code><a href="https://fsprojects.github.io/fantomas/reference/fsharp-compiler-lexhelp-indentationawaresyntaxstatus.html">IndentationAwareSyntaxStatus</a></code>
-              </dt>
-              <dd class="fsdocs-return-docs"></dd>
-            </dl>
-          </td>
-        </tr>
-        <tr>
-          <td class="fsdocs-member-usage">
-            <div>
-              <code onmouseout="hideTip(event, '3414', 3414)" onmouseover="showTip(event, '3414', 3414)">
-                <p>
-                  <a id="interpolationDelimiterLength">
-                    <a href="#interpolationDelimiterLength">
-                      <code>interpolationDelimiterLength</code>
-                    </a>
-                  </a>
-                </p>
-              </code>
-              <div class="fsdocs-tip" id="3414">
-                <div class="member-tooltip">
-                  Full Usage: 
-                  <code>interpolationDelimiterLength</code>
-                  <br/>
-                  <br/>
-                  <span>
-                    Field type: 
-                    <code>int</code>
-                  </span>
-                  <br/>
-                  Modifiers: 
-                  mutable
-                  <br/>
-                </div>
-              </div>
-            </div>
-          </td>
-          <td class="fsdocs-member-xmldoc">
-            <dl class="fsdocs-returns">
-              <dt>
-                <span class="fsdocs-return-name">
-                  Field type: 
-                </span>
-                <code>int</code>
-              </dt>
-              <dd class="fsdocs-return-docs"></dd>
-            </dl>
-          </td>
-        </tr>
-        <tr>
-          <td class="fsdocs-member-usage">
-            <div>
-              <code onmouseout="hideTip(event, '3415', 3415)" onmouseover="showTip(event, '3415', 3415)">
-                <p>
-                  <a id="pathMap">
-                    <a href="#pathMap">
-                      <code>pathMap</code>
-                    </a>
-                  </a>
-                </p>
-              </code>
-              <div class="fsdocs-tip" id="3415">
-                <div class="member-tooltip">
-                  Full Usage: 
-                  <code>pathMap</code>
-                  <br/>
-                  <br/>
-                  <span>
-                    Field type: 
-                    <code><a href="https://fsprojects.github.io/fantomas/reference/internal-utilities-pathmap.html">PathMap</a></code>
-                  </span>
-                  <br/>
-                </div>
-              </div>
-            </div>
-          </td>
-          <td class="fsdocs-member-xmldoc">
-            <dl class="fsdocs-returns">
-              <dt>
-                <span class="fsdocs-return-name">
-                  Field type: 
-                </span>
-                <code><a href="https://fsprojects.github.io/fantomas/reference/internal-utilities-pathmap.html">PathMap</a></code>
-              </dt>
-              <dd class="fsdocs-return-docs"></dd>
-            </dl>
-          </td>
-        </tr>
-        <tr>
-          <td class="fsdocs-member-usage">
-            <div>
-              <code onmouseout="hideTip(event, '3416', 3416)" onmouseover="showTip(event, '3416', 3416)">
-                <p>
-                  <a id="resourceManager">
-                    <a href="#resourceManager">
-                      <code>resourceManager</code>
-                    </a>
-                  </a>
-                </p>
-              </code>
-              <div class="fsdocs-tip" id="3416">
-                <div class="member-tooltip">
-                  Full Usage: 
-                  <code>resourceManager</code>
-                  <br/>
-                  <br/>
-                  <span>
-                    Field type: 
-                    <code><a href="https://fsprojects.github.io/fantomas/reference/fsharp-compiler-lexhelp-lexresourcemanager.html">LexResourceManager</a></code>
-                  </span>
-                  <br/>
-                </div>
-              </div>
-            </div>
-          </td>
-          <td class="fsdocs-member-xmldoc">
-            <dl class="fsdocs-returns">
-              <dt>
-                <span class="fsdocs-return-name">
-                  Field type: 
-                </span>
-                <code><a href="https://fsprojects.github.io/fantomas/reference/fsharp-compiler-lexhelp-lexresourcemanager.html">LexResourceManager</a></code>
-              </dt>
-              <dd class="fsdocs-return-docs"></dd>
-            </dl>
-          </td>
-        </tr>
-        <tr>
-          <td class="fsdocs-member-usage">
-            <div>
-              <code onmouseout="hideTip(event, '3417', 3417)" onmouseover="showTip(event, '3417', 3417)">
-                <p>
-                  <a id="stringNest">
-                    <a href="#stringNest">
-                      <code>stringNest</code>
-                    </a>
-                  </a>
-                </p>
-              </code>
-              <div class="fsdocs-tip" id="3417">
-                <div class="member-tooltip">
-                  Full Usage: 
-                  <code>stringNest</code>
-                  <br/>
-                  <br/>
-                  <span>
-                    Field type: 
-                    <code><a href="https://fsprojects.github.io/fantomas/reference/fsharp-compiler-parsehelpers-lexerinterpolatedstringnesting.html">LexerInterpolatedStringNesting</a></code>
-                  </span>
-                  <br/>
-                  Modifiers: 
-                  mutable
-                  <br/>
-                </div>
-              </div>
-            </div>
-          </td>
-          <td class="fsdocs-member-xmldoc">
-            <dl class="fsdocs-returns">
-              <dt>
-                <span class="fsdocs-return-name">
-                  Field type: 
-                </span>
-                <code><a href="https://fsprojects.github.io/fantomas/reference/fsharp-compiler-parsehelpers-lexerinterpolatedstringnesting.html">LexerInterpolatedStringNesting</a></code>
+                <code>string</code>
               </dt>
               <dd class="fsdocs-return-docs"></dd>
             </dl>
@@ -623,6 +360,10 @@
       </tbody>
     </table>
   </div>
+  <div></div>
+  <div></div>
+  <div></div>
+  <div></div>
   <div></div>
   <div></div>
   <div></div>
