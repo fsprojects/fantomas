@@ -22,12 +22,12 @@
       },
       "FsLexYacc": {
         "type": "Direct",
-        "requested": "[11.1.0, )",
-        "resolved": "11.1.0",
-        "contentHash": "JoGbIVZVuJs4CsCED0Wi7Winhf6isw0qrblm4hNAdpaZX3Sp5EmPZa07Nhv6SVmoDNPP/HfjCBVtFbaxyzOD2w==",
+        "requested": "[11.2.0, )",
+        "resolved": "11.2.0",
+        "contentHash": "YfCWpEr1z34mtfBLINYLndmsUTLgADnwY1j1WibS1EbuGVVX9r6pkdqmN8/vWqBi5qvY/s7pBjdq51Ks1Dk5MQ==",
         "dependencies": {
           "FSharp.Core": "4.6.2",
-          "FsLexYacc.Runtime": "11.1.0"
+          "FsLexYacc.Runtime": "11.2.0"
         }
       },
       "Ionide.KeepAChangelog.Tasks": {
@@ -78,8 +78,8 @@
       },
       "FsLexYacc.Runtime": {
         "type": "Transitive",
-        "resolved": "11.1.0",
-        "contentHash": "NtCnm45VhoJKyz2Ie8OzSSUgrUYQ0TKp2LbgEBeEOr7j6+/0om3lf7NmmoDZDjuNx/KRXb95ZMDjGZRZD92ZfA==",
+        "resolved": "11.2.0",
+        "contentHash": "psv1xPIm2NOEdd1RfaBSnN7y6M7XRS69QYB2kP2hD8LKaepGIGM5qAC7xHNpqO1v7QfyMFmuZ5/KqyWhfAfKJg==",
         "dependencies": {
           "FSharp.Core": "4.6.2"
         }
