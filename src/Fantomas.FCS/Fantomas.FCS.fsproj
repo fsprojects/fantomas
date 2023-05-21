@@ -174,7 +174,7 @@
       <Link>Facilities\prim-parsing.fs</Link>
     </Compile>
     <FsLex Include="..\..\.deps\$(FCSCommitHash)\src\Compiler\AbstractIL\illex.fsl">
-      <OtherFlags>--unicode --lexlib Internal.Utilities.Text.Lexing</OtherFlags>
+      <OtherFlags>--module FSharp.Compiler.AbstractIL.AsciiLexer --internal --open Internal.Utilities.Text.Lexing --open FSharp.Compiler.AbstractIL.AsciiParser --unicode --lexlib Internal.Utilities.Text.Lexing</OtherFlags>
       <Link>AbstractIL\illex.fsl</Link>
     </FsLex>
     <None Include="..\..\.deps\$(FCSCommitHash)\src\Compiler\AbstractIL\illex.fsl">
@@ -211,6 +211,9 @@
     <Compile Include="$(FsYaccOutputFolder)ilpars.fs">
       <Link>AbstractIL\FsYaccOut\ilpars.fs</Link>
     </Compile>
+    <Compile Include="$(FsLexOutputFolder)illex.fsi">
+      <Link>AbstractIL\FsLexOut\illex.fsi</Link>
+    </Compile>
     <Compile Include="$(FsLexOutputFolder)illex.fs">
       <Link>AbstractIL\FsLexOut\illex.fs</Link>
     </Compile>
@@ -221,7 +224,7 @@
       <Link>SyntaxTree\PrettyNaming.fs</Link>
     </Compile>
     <FsLex Include="..\..\.deps\$(FCSCommitHash)\src\Compiler\pplex.fsl">
-      <OtherFlags>--unicode --lexlib Internal.Utilities.Text.Lexing</OtherFlags>
+      <OtherFlags>--module FSharp.Compiler.PPLexer --internal --open FSharp.Compiler.Lexhelp --open Internal.Utilities.Text.Lexing --open FSharp.Compiler.PPParser --unicode --lexlib Internal.Utilities.Text.Lexing</OtherFlags>
       <Link>SyntaxTree\pplex.fsl</Link>
     </FsLex>
     <FsYacc Include="..\..\.deps\$(FCSCommitHash)\src\Compiler\pppars.fsy">
@@ -229,7 +232,7 @@
       <Link>SyntaxTree\pppars.fsy</Link>
     </FsYacc>
     <FsLex Include="..\..\.deps\$(FCSCommitHash)\src\Compiler\lex.fsl">
-      <OtherFlags>--unicode --lexlib Internal.Utilities.Text.Lexing</OtherFlags>
+      <OtherFlags>--module FSharp.Compiler.Lexer --open FSharp.Compiler.Lexhelp --open Internal.Utilities.Text.Lexing --open FSharp.Compiler.Parser --open FSharp.Compiler.Text --open FSharp.Compiler.ParseHelpers --internal --unicode --lexlib Internal.Utilities.Text.Lexing</OtherFlags>
       <Link>SyntaxTree\lex.fsl</Link>
     </FsLex>
     <FsYacc Include="..\..\.deps\$(FCSCommitHash)\src\Compiler\pars.fsy">
@@ -302,8 +305,14 @@
     <Compile Include="..\..\.deps\$(FCSCommitHash)\src\Compiler\SyntaxTree\LexHelpers.fs">
       <Link>SyntaxTree\LexHelpers.fs</Link>
     </Compile>
+    <Compile Include="$(FsYaccOutputFolder)pplex.fsi">
+      <Link>SyntaxTree\FsLexOutput\pplex.fsi</Link>
+    </Compile>
     <Compile Include="$(FsYaccOutputFolder)pplex.fs">
       <Link>SyntaxTree\FsLexOutput\pplex.fs</Link>
+    </Compile>
+    <Compile Include="$(FsYaccOutputFolder)\lex.fsi">
+      <Link>SyntaxTree\FsLexOutput\lex.fsi</Link>
     </Compile>
     <Compile Include="$(FsYaccOutputFolder)\lex.fs">
       <Link>SyntaxTree\FsLexOutput\lex.fs</Link>
@@ -322,7 +331,7 @@
     <PackageReference Include="System.Diagnostics.DiagnosticSource" Version="7.0.0" />
     <PackageReference Include="System.Memory" Version="4.5.5" />
     <PackageReference Include="System.Runtime" Version="4.3.1" />
-    <PackageReference Include="FsLexYacc" Version="11.1.0" PrivateAssets="all" />
+    <PackageReference Include="FsLexYacc" Version="11.2.0" PrivateAssets="all" />
   </ItemGroup>
 
   <Target Name="AcquireCompilerFiles" Condition="!Exists('../../.deps/$(FCSCommitHash)')" BeforeTargets="CollectPackageReferences">
