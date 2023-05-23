@@ -34,7 +34,7 @@ Some common use cases include:
         <!-- https://www.gresearch.co.uk/blog/article/improve-nuget-restores-with-static-graph-evaluation/ -->
         <RestoreUseStaticGraphEvaluation>true</RestoreUseStaticGraphEvaluation>
         <ServerGarbageCollection>true</ServerGarbageCollection>
-        <OtherFlags>$(OtherFlags) --test:GraphBasedChecking</OtherFlags>
+        <OtherFlags>$(OtherFlags) --test:GraphBasedChecking --test:ParallelOptimization --test:ParallelIlxGen</OtherFlags>
     </PropertyGroup>
     
     <!-- Versions -->
