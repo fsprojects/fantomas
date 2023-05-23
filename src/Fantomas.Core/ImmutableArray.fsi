@@ -25,9 +25,7 @@ type ImmutableArrayViaBuilder<'T> =
     member inline YieldFrom: IEnumerable<'T> -> ImmutableArrayBuilderCode<'T>
     member inline Run: ImmutableArrayBuilderCode<'T> -> ImmutableArray<'T>
 
-val immarray<'T> : ImmutableArrayViaBuilder<'T>
-
-val fixedImmarray<'T> : capacity: int -> ImmutableArrayViaBuilder<'T>
+val immarray<'T> : capacity: int -> ImmutableArrayViaBuilder<'T>
 
 type immarray<'T> = ImmutableArray<'T>
 

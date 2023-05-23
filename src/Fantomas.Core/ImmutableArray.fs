@@ -92,9 +92,7 @@ type ImmutableArrayViaBuilder<'T>(builder: ImmutableArray<'T>.Builder) =
         code.Invoke &builder
         builder.ToImmutableArray()
 
-let immarray<'T> = ImmutableArrayViaBuilder<'T>(ImmutableArray.CreateBuilder<'T>())
-
-let fixedImmarray<'T> capacity =
+let immarray<'T> capacity =
     ImmutableArrayViaBuilder(ImmutableArray.CreateBuilder<'T>(initialCapacity = capacity))
 
 type immarray<'T> = ImmutableArray<'T>
