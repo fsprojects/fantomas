@@ -7,10 +7,10 @@ open FSharp.Compiler.Text.Range
 open FSharp.Compiler.Syntax
 open FSharp.Compiler.SyntaxTrivia
 open FSharp.Compiler.Xml
+open Fantomas.Core.ImmutableArray
 open Fantomas.Core.ISourceTextExtensions
 open Fantomas.Core.RangePatterns
 open Fantomas.Core.SyntaxOak
-open Microsoft.FSharp.Core
 
 type CreationAide =
     { SourceText: ISourceText option }
@@ -44,32 +44,39 @@ let mkSynIdent (SynIdent(ident, trivia)) =
 let mkSynLongIdent (sli: SynLongIdent) =
     match sli.IdentsWithTrivia with
     | [] -> IdentListNode.Empty
-    | [ single ] -> IdentListNode([ IdentifierOrDot.Ident(mkSynIdent single) ], sli.Range)
+    | [ single ] -> IdentListNode(IdentifierOrDot.Ident(mkSynIdent single) |> ImmutableArray.singleton, sli.Range)
     | head :: tail ->
         assert (tail.Length = sli.Dots.Length)
 
-        let rest =
-            (sli.Dots, tail)
-            ||> List.zip
-            |> List.collect (fun (dot, ident) ->
-                [ IdentifierOrDot.KnownDot(stn "." dot)
-                  IdentifierOrDot.Ident(mkSynIdent ident) ])
+        let content =
+            immarray {
+                yield IdentifierOrDot.Ident(mkSynIdent head)
 
-        IdentListNode(IdentifierOrDot.Ident(mkSynIdent head) :: rest, sli.Range)
+                for dot, ident in List.zip sli.Dots tail do
+                    yield IdentifierOrDot.KnownDot(stn "." dot)
+                    yield IdentifierOrDot.Ident(mkSynIdent ident)
+            }
+
+        IdentListNode(content, sli.Range)
 
 let mkLongIdent (longIdent: LongIdent) : IdentListNode =
     match longIdent with
     | [] -> IdentListNode.Empty
-    | [ single ] -> IdentListNode([ IdentifierOrDot.Ident(mkIdent single) ], single.idRange)
+    | [ single ] -> IdentListNode(IdentifierOrDot.Ident(mkIdent single) |> ImmutableArray.singleton, single.idRange)
     | head :: tail ->
-        let rest =
-            tail
-            |> List.collect (fun ident -> [ IdentifierOrDot.UnknownDot; IdentifierOrDot.Ident(mkIdent ident) ])
+        let content =
+            immarray {
+                yield IdentifierOrDot.Ident(stn head.idText head.idRange)
+
+                for ident in tail do
+                    yield IdentifierOrDot.UnknownDot
+                    yield IdentifierOrDot.Ident(mkIdent ident)
+            }
 
         let range =
             longIdent |> List.map (fun ident -> ident.idRange) |> List.reduce unionRanges
 
-        IdentListNode(IdentifierOrDot.Ident(stn head.idText head.idRange) :: rest, range)
+        IdentListNode(content, range)
 
 let mkSynAccess (vis: SynAccess option) =
     match vis with
@@ -97,11 +104,13 @@ let mkConstString (creationAide: CreationAide) (stringKind: SynStringKind) (valu
 
 let mkParsedHashDirective (creationAide: CreationAide) (ParsedHashDirective(ident, args, range)) =
     let args =
-        args
-        |> List.map (function
-            | ParsedHashDirectiveArgument.String(value, stringKind, range) ->
-                mkConstString creationAide stringKind value range
-            | ParsedHashDirectiveArgument.SourceIdentifier(identifier, _, range) -> stn identifier range)
+        immarray {
+            for arg in args do
+                match arg with
+                | ParsedHashDirectiveArgument.String(value, stringKind, range) ->
+                    mkConstString creationAide stringKind value range
+                | ParsedHashDirectiveArgument.SourceIdentifier(identifier, _, range) -> stn identifier range
+        }
 
     ParsedHashDirectiveNode(ident, args, range)
 
@@ -173,7 +182,14 @@ let mkMeasure (creationAide: CreationAide) (measure: SynMeasure) : Measure =
     | SynMeasure.Paren(measure, StartEndRange 1 (mOpen, m, mClose)) ->
         MeasureParenNode(stn "(" mOpen, mkMeasure creationAide measure, stn ")" mClose, m)
         |> Measure.Paren
-    | SynMeasure.Seq(ms, m) -> MeasureSequenceNode(List.map (mkMeasure creationAide) ms, m) |> Measure.Seq
+    | SynMeasure.Seq(ms, m) ->
+        let measures =
+            fixedImmarray ms.Length {
+                for m in ms do
+                    yield mkMeasure creationAide m
+            }
+
+        MeasureSequenceNode(measures, m) |> Measure.Seq
 
 let mkAttribute (creationAide: CreationAide) (a: SynAttribute) =
     let expr =
@@ -184,7 +200,8 @@ let mkAttribute (creationAide: CreationAide) (a: SynAttribute) =
     AttributeNode(mkSynLongIdent a.TypeName, expr, Option.map mkIdent a.Target, a.Range)
 
 let mkAttributeList (creationAide: CreationAide) (al: SynAttributeList) : AttributeListNode =
-    let attributes = List.map (mkAttribute creationAide) al.Attributes
+    let attributes =
+        al.Attributes |> Seq.map (mkAttribute creationAide) |> ImmutableArray.ofSeq
 
     let opening, closing =
         match al.Range with

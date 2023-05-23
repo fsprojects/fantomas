@@ -8,6 +8,8 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="AssemblyInfo.fs" />
+    <Compile Include="ImmutableArray.fsi" />
+    <Compile Include="ImmutableArray.fs" />
     <Compile Include="ISourceTextExtensions.fsi" />
     <Compile Include="ISourceTextExtensions.fs" />
     <Compile Include="RangeHelpers.fsi" />
@@ -42,6 +44,7 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="FSharp.Core" Version="$(FSharpCoreVersion)" />
+    <PackageReference Include="System.Collections.Immutable" Version="7.0.0" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Fantomas.FCS\Fantomas.FCS.fsproj" />
