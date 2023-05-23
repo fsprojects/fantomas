@@ -23,15 +23,15 @@ open FSharp.Compiler.SyntaxTreeOps
 open FSharp.Compiler.IO
 open FSharp.Compiler.ParseHelpers
 
-let private FSharpSigFileSuffixes = [ ".mli"; ".fsi" ]
+let FSharpSigFileSuffixes = [ ".mli"; ".fsi" ]
 
-let private mlCompatSuffixes = [ ".mli"; ".ml" ]
+let mlCompatSuffixes = [ ".mli"; ".ml" ]
 
-let private FSharpImplFileSuffixes = [ ".ml"; ".fs"; ".fsscript"; ".fsx" ]
+let FSharpImplFileSuffixes = [ ".ml"; ".fs"; ".fsscript"; ".fsx" ]
 
-let private FSharpScriptFileSuffixes = [ ".fsscript"; ".fsx" ]
+let FSharpScriptFileSuffixes = [ ".fsscript"; ".fsx" ]
 
-let private CanonicalizeFilename filename =
+let CanonicalizeFilename filename =
     let basic = FileSystemUtils.fileNameOfPath filename
 
     String.capitalize (
@@ -41,7 +41,7 @@ let private CanonicalizeFilename filename =
             basic
     )
 
-let private ComputeAnonModuleName check defaultNamespace filename (m: range) =
+let ComputeAnonModuleName check defaultNamespace filename (m: range) =
     let modname = CanonicalizeFilename filename
 
     if
@@ -75,11 +75,11 @@ let private ComputeAnonModuleName check defaultNamespace filename (m: range) =
 
     pathToSynLid anonymousModuleNameRange (splitNamespace combined)
 
-let private IsScript filename =
+let IsScript filename =
     let lower = String.lowercase filename
     FSharpScriptFileSuffixes |> List.exists (FileSystemUtils.checkSuffix lower)
 
-let private PostParseModuleImpl (_i, defaultNamespace, _isLastCompiland, filename, impl) =
+let PostParseModuleImpl (_i, defaultNamespace, _isLastCompiland, filename, impl) =
     match impl with
     | ParsedImplFileFragment.NamedModule(SynModuleOrNamespace(lid,
                                                               isRec,
@@ -133,39 +133,39 @@ let private PostParseModuleImpl (_i, defaultNamespace, _isLastCompiland, filenam
 
 // Give a unique name to the different kinds of inputs. Used to correlate signature and implementation files
 //   QualFileNameOfModuleName - files with a single module declaration or an anonymous module
-let private QualFileNameOfModuleName m filename modname =
+let QualFileNameOfModuleName m filename modname =
     QualifiedNameOfFile(mkSynId m (textOfLid modname + (if IsScript filename then "$fsx" else "")))
 
-let private QualFileNameOfFilename m filename =
+let QualFileNameOfFilename m filename =
     QualifiedNameOfFile(mkSynId m (CanonicalizeFilename filename + (if IsScript filename then "$fsx" else "")))
 
-let private QualFileNameOfSpecs filename specs =
+let QualFileNameOfSpecs filename specs =
     match specs with
     | [ SynModuleOrNamespaceSig(longId = modname; kind = kind; range = m) ] when kind.IsModule ->
         QualFileNameOfModuleName m filename modname
     | [ SynModuleOrNamespaceSig(kind = kind; range = m) ] when not kind.IsModule -> QualFileNameOfFilename m filename
     | _ -> QualFileNameOfFilename (mkRange filename pos0 pos0) filename
 
-let private QualFileNameOfImpls filename specs =
+let QualFileNameOfImpls filename specs =
     match specs with
     | [ SynModuleOrNamespace(longId = modname; kind = kind; range = m) ] when kind.IsModule ->
         QualFileNameOfModuleName m filename modname
     | [ SynModuleOrNamespace(kind = kind; range = m) ] when not kind.IsModule -> QualFileNameOfFilename m filename
     | _ -> QualFileNameOfFilename (mkRange filename pos0 pos0) filename
 
-let private GetScopedPragmasForInput input =
+let GetScopedPragmasForInput input =
     match input with
     | ParsedInput.SigFile(ParsedSigFileInput(scopedPragmas = pragmas)) -> pragmas
     | ParsedInput.ImplFile(ParsedImplFileInput(scopedPragmas = pragmas)) -> pragmas
 
-let private collectCodeComments (lexbuf: UnicodeLexing.Lexbuf) (tripleSlashComments: range list) =
+let collectCodeComments (lexbuf: UnicodeLexing.Lexbuf) (tripleSlashComments: range list) =
     [ yield! LexbufCommentStore.GetComments(lexbuf)
       yield! (List.map CommentTrivia.LineComment tripleSlashComments) ]
     |> List.sortBy (function
         | CommentTrivia.LineComment r
         | CommentTrivia.BlockComment r -> r.StartLine, r.StartColumn)
 
-let private PostParseModuleImpls
+let PostParseModuleImpls
     (
         defaultNamespace,
         filename,
@@ -210,7 +210,7 @@ let private PostParseModuleImpls
         )
     )
 
-let private PostParseModuleSpec (_i, defaultNamespace, _isLastCompiland, filename, intf) =
+let PostParseModuleSpec (_i, defaultNamespace, _isLastCompiland, filename, intf) =
     match intf with
     | ParsedSigFileFragment.NamedModule(SynModuleOrNamespaceSig(lid,
                                                                 isRec,
@@ -272,7 +272,7 @@ let private PostParseModuleSpec (_i, defaultNamespace, _isLastCompiland, filenam
 
         SynModuleOrNamespaceSig(lid, isRecursive, kind, decls, xmlDoc, attributes, None, range, trivia)
 
-let private PostParseModuleSpecs
+let PostParseModuleSpecs
     (
         defaultNamespace,
         filename,
@@ -314,7 +314,7 @@ let private PostParseModuleSpecs
         )
     )
 
-let private ParseInput
+let ParseInput
     (
         lexer,
         errorLogger: CapturingDiagnosticsLogger,
@@ -374,7 +374,7 @@ let private ParseInput
         let filteringErrorLogger = errorLogger // TODO: does this matter? //GetErrorLoggerFilteringByScopedPragmas(false, scopedPragmas, diagnosticOptions, errorLogger)
         delayLogger.CommitDelayedDiagnostics filteringErrorLogger
 
-let private EmptyParsedInput (filename, isLastCompiland) =
+let EmptyParsedInput (filename, isLastCompiland) =
     let lower = String.lowercase filename
 
     if FSharpSigFileSuffixes |> List.exists (FileSystemUtils.checkSuffix lower) then
@@ -406,10 +406,10 @@ let private EmptyParsedInput (filename, isLastCompiland) =
             )
         )
 
-let private createLexbuf langVersion sourceText =
+let createLexbuf langVersion sourceText =
     UnicodeLexing.SourceTextAsLexbuf(true, LanguageVersion(langVersion), sourceText)
 
-let private createLexerFunction (defines: string list) lexbuf (errorLogger: CapturingDiagnosticsLogger) =
+let createLexerFunction (defines: string list) lexbuf (errorLogger: CapturingDiagnosticsLogger) =
     let lightStatus = IndentationAwareSyntaxStatus(true, true)
 
     // Note: we don't really attempt to intern strings across a large scope.
@@ -437,132 +437,132 @@ type FSharpParserDiagnostic =
       ErrorNumber: int option
       Message: string }
 
-let private getErrorString key = SR.GetString key
+let getErrorString key = SR.GetString key
 
-let private UnexpectedEndOfInputE () =
+let UnexpectedEndOfInputE () =
     DeclareResourceString("UnexpectedEndOfInput", "")
 
-let private OBlockEndSentenceE () =
+let OBlockEndSentenceE () =
     DeclareResourceString("BlockEndSentence", "")
 
-let private UnexpectedE () =
+let UnexpectedE () =
     DeclareResourceString("Unexpected", "%s")
 
-let private NONTERM_interactionE () =
+let NONTERM_interactionE () =
     DeclareResourceString("NONTERM.interaction", "")
 
-let private NONTERM_hashDirectiveE () =
+let NONTERM_hashDirectiveE () =
     DeclareResourceString("NONTERM.hashDirective", "")
 
-let private NONTERM_fieldDeclE () =
+let NONTERM_fieldDeclE () =
     DeclareResourceString("NONTERM.fieldDecl", "")
 
-let private NONTERM_unionCaseReprE () =
+let NONTERM_unionCaseReprE () =
     DeclareResourceString("NONTERM.unionCaseRepr", "")
 
-let private NONTERM_localBindingE () =
+let NONTERM_localBindingE () =
     DeclareResourceString("NONTERM.localBinding", "")
 
-let private NONTERM_hardwhiteLetBindingsE () =
+let NONTERM_hardwhiteLetBindingsE () =
     DeclareResourceString("NONTERM.hardwhiteLetBindings", "")
 
-let private NONTERM_classDefnMemberE () =
+let NONTERM_classDefnMemberE () =
     DeclareResourceString("NONTERM.classDefnMember", "")
 
-let private NONTERM_defnBindingsE () =
+let NONTERM_defnBindingsE () =
     DeclareResourceString("NONTERM.defnBindings", "")
 
-let private NONTERM_classMemberSpfnE () =
+let NONTERM_classMemberSpfnE () =
     DeclareResourceString("NONTERM.classMemberSpfn", "")
 
-let private NONTERM_valSpfnE () =
+let NONTERM_valSpfnE () =
     DeclareResourceString("NONTERM.valSpfn", "")
 
-let private NONTERM_tyconSpfnE () =
+let NONTERM_tyconSpfnE () =
     DeclareResourceString("NONTERM.tyconSpfn", "")
 
-let private NONTERM_anonLambdaExprE () =
+let NONTERM_anonLambdaExprE () =
     DeclareResourceString("NONTERM.anonLambdaExpr", "")
 
-let private NONTERM_attrUnionCaseDeclE () =
+let NONTERM_attrUnionCaseDeclE () =
     DeclareResourceString("NONTERM.attrUnionCaseDecl", "")
 
-let private NONTERM_cPrototypeE () =
+let NONTERM_cPrototypeE () =
     DeclareResourceString("NONTERM.cPrototype", "")
 
-let private NONTERM_objectImplementationMembersE () =
+let NONTERM_objectImplementationMembersE () =
     DeclareResourceString("NONTERM.objectImplementationMembers", "")
 
-let private NONTERM_ifExprCasesE () =
+let NONTERM_ifExprCasesE () =
     DeclareResourceString("NONTERM.ifExprCases", "")
 
-let private NONTERM_openDeclE () =
+let NONTERM_openDeclE () =
     DeclareResourceString("NONTERM.openDecl", "")
 
-let private NONTERM_fileModuleSpecE () =
+let NONTERM_fileModuleSpecE () =
     DeclareResourceString("NONTERM.fileModuleSpec", "")
 
-let private NONTERM_patternClausesE () =
+let NONTERM_patternClausesE () =
     DeclareResourceString("NONTERM.patternClauses", "")
 
-let private NONTERM_beginEndExprE () =
+let NONTERM_beginEndExprE () =
     DeclareResourceString("NONTERM.beginEndExpr", "")
 
-let private NONTERM_recdExprE () =
+let NONTERM_recdExprE () =
     DeclareResourceString("NONTERM.recdExpr", "")
 
-let private NONTERM_tyconDefnE () =
+let NONTERM_tyconDefnE () =
     DeclareResourceString("NONTERM.tyconDefn", "")
 
-let private NONTERM_exconCoreE () =
+let NONTERM_exconCoreE () =
     DeclareResourceString("NONTERM.exconCore", "")
 
-let private NONTERM_typeNameInfoE () =
+let NONTERM_typeNameInfoE () =
     DeclareResourceString("NONTERM.typeNameInfo", "")
 
-let private NONTERM_attributeListE () =
+let NONTERM_attributeListE () =
     DeclareResourceString("NONTERM.attributeList", "")
 
-let private NONTERM_quoteExprE () =
+let NONTERM_quoteExprE () =
     DeclareResourceString("NONTERM.quoteExpr", "")
 
-let private NONTERM_typeConstraintE () =
+let NONTERM_typeConstraintE () =
     DeclareResourceString("NONTERM.typeConstraint", "")
 
-let private NONTERM_Category_ImplementationFileE () =
+let NONTERM_Category_ImplementationFileE () =
     DeclareResourceString("NONTERM.Category.ImplementationFile", "")
 
-let private NONTERM_Category_DefinitionE () =
+let NONTERM_Category_DefinitionE () =
     DeclareResourceString("NONTERM.Category.Definition", "")
 
-let private NONTERM_Category_SignatureFileE () =
+let NONTERM_Category_SignatureFileE () =
     DeclareResourceString("NONTERM.Category.SignatureFile", "")
 
-let private NONTERM_Category_PatternE () =
+let NONTERM_Category_PatternE () =
     DeclareResourceString("NONTERM.Category.Pattern", "")
 
-let private NONTERM_Category_ExprE () =
+let NONTERM_Category_ExprE () =
     DeclareResourceString("NONTERM.Category.Expr", "")
 
-let private NONTERM_Category_TypeE () =
+let NONTERM_Category_TypeE () =
     DeclareResourceString("NONTERM.Category.Type", "")
 
-let private NONTERM_typeArgsActualE () =
+let NONTERM_typeArgsActualE () =
     DeclareResourceString("NONTERM.typeArgsActual", "")
 
-let private TokenName1E () =
+let TokenName1E () =
     DeclareResourceString("TokenName1", "%s")
 
-let private TokenName1TokenName2E () =
+let TokenName1TokenName2E () =
     DeclareResourceString("TokenName1TokenName2", "%s%s")
 
-let private TokenName1TokenName2TokenName3E () =
+let TokenName1TokenName2TokenName3E () =
     DeclareResourceString("TokenName1TokenName2TokenName3", "%s%s%s")
 
-let private LibraryUseOnlyE () =
+let LibraryUseOnlyE () =
     DeclareResourceString("LibraryUseOnly", "")
 
-let private getSyntaxErrorMessage ctxt =
+let getSyntaxErrorMessage ctxt =
     let ctxt =
         unbox<Internal.Utilities.Text.Parsing.ParseErrorContext<Parser.token>> ctxt
 
@@ -1053,6 +1053,7 @@ let parseFile
                     | :? IndentationProblem as ip -> Some ip.Data1, ip.Data0, Some 58
                     | :? SyntaxError as se -> Some se.range, (getSyntaxErrorMessage se.Data0), Some 10
                     | :? LibraryUseOnly as luo -> Some luo.range, LibraryUseOnlyE().Format, Some 42
+                    | :? DiagnosticWithText as dwt -> Some dwt.range, dwt.message, Some dwt.number
                     | _ -> None, p.Exception.Message, None
 
                 { Severity = severity
