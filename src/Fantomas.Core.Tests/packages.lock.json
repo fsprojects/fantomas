@@ -113,6 +113,11 @@
         "resolved": "5.11.0",
         "contentHash": "eaiXkUjC4NPcquGWzAGMXjuxvLwc6XGKMptSyOGQeT0X70BUZObuybJFZLA0OfTdueLd3US23NBPTBb6iF3V1Q=="
       },
+      "System.Collections.Immutable": {
+        "type": "Transitive",
+        "resolved": "7.0.0",
+        "contentHash": "dQPcs0U1IKnBdRDBkrCTi1FoajSTBzLcVTpjO4MBCMC7f4pDOIPzgBoX8JjG7X6uZRJ8EBxsi8+DR1JuwjnzOQ=="
+      },
       "System.Diagnostics.DiagnosticSource": {
         "type": "Transitive",
         "resolved": "7.0.0",
@@ -146,7 +151,8 @@
         "type": "Project",
         "dependencies": {
           "FSharp.Core": "[6.0.1, )",
-          "Fantomas.FCS": "[1.0.0, )"
+          "Fantomas.FCS": "[1.0.0, )",
+          "System.Collections.Immutable": "[7.0.0, )"
         }
       },
       "fantomas.fcs": {

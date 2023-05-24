@@ -1,5 +1,6 @@
 ﻿module internal rec Fantomas.Core.ASTTransformer
 
+open System.Collections.Immutable
 open System.Collections.Generic
 open System.Text.RegularExpressions
 open FSharp.Compiler.Text
@@ -49,7 +50,7 @@ let mkSynLongIdent (sli: SynLongIdent) =
         assert (tail.Length = sli.Dots.Length)
 
         let content =
-            immarray {
+            immarray (1 + 2 * tail.Length) {
                 yield IdentifierOrDot.Ident(mkSynIdent head)
 
                 for dot, ident in List.zip sli.Dots tail do
@@ -65,7 +66,7 @@ let mkLongIdent (longIdent: LongIdent) : IdentListNode =
     | [ single ] -> IdentListNode(IdentifierOrDot.Ident(mkIdent single) |> ImmutableArray.singleton, single.idRange)
     | head :: tail ->
         let content =
-            immarray {
+            immarray (1 + 2 * tail.Length) {
                 yield IdentifierOrDot.Ident(stn head.idText head.idRange)
 
                 for ident in tail do
@@ -74,7 +75,9 @@ let mkLongIdent (longIdent: LongIdent) : IdentListNode =
             }
 
         let range =
-            longIdent |> List.map (fun ident -> ident.idRange) |> List.reduce unionRanges
+            longIdent
+            |> ImmutableArray.mapList (fun ident -> ident.idRange)
+            |> combineRanges
 
         IdentListNode(content, range)
 
@@ -104,7 +107,7 @@ let mkConstString (creationAide: CreationAide) (stringKind: SynStringKind) (valu
 
 let mkParsedHashDirective (creationAide: CreationAide) (ParsedHashDirective(ident, args, range)) =
     let args =
-        immarray {
+        immarray args.Length {
             for arg in args do
                 match arg with
                 | ParsedHashDirectiveArgument.String(value, stringKind, range) ->
@@ -184,7 +187,7 @@ let mkMeasure (creationAide: CreationAide) (measure: SynMeasure) : Measure =
         |> Measure.Paren
     | SynMeasure.Seq(ms, m) ->
         let measures =
-            fixedImmarray ms.Length {
+            immarray ms.Length {
                 for m in ms do
                     yield mkMeasure creationAide m
             }
@@ -213,8 +216,8 @@ let mkAttributes (creationAide: CreationAide) (al: SynAttributeList list) : Mult
     match al with
     | [] -> None
     | _ ->
-        let attributeLists = List.map (mkAttributeList creationAide) al
-        let range = attributeLists |> List.map (fun al -> al.Range) |> combineRanges
+        let attributeLists = ImmutableArray.mapList (mkAttributeList creationAide) al
+        let range = attributeLists |> Seq.map (fun al -> al.Range) |> combineRanges
         Some(MultipleAttributeListNode(attributeLists, range))
 
 let (|Sequentials|_|) e =
@@ -261,13 +264,18 @@ let mkTuple (creationAide: CreationAide) (exprs: SynExpr list) (commas: range li
     match exprs with
     | [] -> failwith "SynExpr.Tuple with no elements"
     | head :: tail ->
-        let rest =
+        let items =
             assert (tail.Length = commas.Length)
 
-            List.zip commas tail
-            |> List.collect (fun (c, e) -> [ yield Choice2Of2(stn "," c); yield Choice1Of2(mkExpr creationAide e) ])
+            immarray (2 * tail.Length) {
+                yield Choice1Of2(mkExpr creationAide head)
 
-        ExprTupleNode([ yield Choice1Of2(mkExpr creationAide head); yield! rest ], m)
+                for c, e in List.zip commas tail do
+                    yield Choice2Of2(stn "," c)
+                    yield Choice1Of2(mkExpr creationAide e)
+            }
+
+        ExprTupleNode(items, m)
 
 /// Unfold a list of let bindings
 /// Recursive and use properties have to be determined at this point
@@ -275,22 +283,24 @@ let rec (|LetOrUses|_|) =
     function
     | SynExpr.LetOrUse(_, _, xs, LetOrUses(ys, e), _, trivia) ->
         let xs' = List.mapWithLast (fun b -> b, None) (fun b -> b, trivia.InKeyword) xs
+
         Some(xs' @ ys, e)
     | SynExpr.LetOrUse(_, _, xs, e, _, trivia) ->
         let xs' = List.mapWithLast (fun b -> b, None) (fun b -> b, trivia.InKeyword) xs
+
         Some(xs', e)
     | _ -> None
 
 let rec collectComputationExpressionStatements
     (creationAide: CreationAide)
     (e: SynExpr)
-    (finalContinuation: ComputationExpressionStatement list -> ComputationExpressionStatement list)
-    : ComputationExpressionStatement list =
+    (builder: ImmutableArray<ComputationExpressionStatement>.Builder)
+    : unit =
     match e with
     | LetOrUses(bindings, body) ->
         let bindings =
             bindings
-            |> List.map (fun (b, inNode) ->
+            |> ImmutableArray.mapList (fun (b, inNode) ->
                 let b: BindingNode = mkBinding creationAide b
 
                 let inNode, m =
@@ -301,8 +311,8 @@ let rec collectComputationExpressionStatements
                 ExprLetOrUseNode(b, inNode, m)
                 |> ComputationExpressionStatement.LetOrUseStatement)
 
-        collectComputationExpressionStatements creationAide body (fun bodyStatements ->
-            [ yield! bindings; yield! bodyStatements ] |> finalContinuation)
+        builder.AddRange(bindings)
+        collectComputationExpressionStatements creationAide body builder
     | SynExpr.LetOrUseBang(_,
                            isUse,
                            _,
@@ -324,7 +334,7 @@ let rec collectComputationExpressionStatements
 
         let andBangs =
             andBangs
-            |> List.map (fun (SynExprAndBang(_, _, _, ap, ae, StartRange 4 (mAnd, m), trivia)) ->
+            |> ImmutableArray.mapList (fun (SynExprAndBang(_, _, _, ap, ae, StartRange 4 (mAnd, m), trivia)) ->
                 ExprAndBang(
                     stn "and!" mAnd,
                     mkPat creationAide ap,
@@ -334,20 +344,13 @@ let rec collectComputationExpressionStatements
                 )
                 |> ComputationExpressionStatement.AndBangStatement)
 
-        collectComputationExpressionStatements creationAide body (fun bodyStatements ->
-            [ letOrUseBang; yield! andBangs; yield! bodyStatements ] |> finalContinuation)
+        builder.Add(letOrUseBang)
+        builder.AddRange(andBangs)
+        collectComputationExpressionStatements creationAide body builder
     | SynExpr.Sequential(_, _, e1, e2, _) ->
-        let continuations
-            : ((ComputationExpressionStatement list -> ComputationExpressionStatement list)
-                  -> ComputationExpressionStatement list) list =
-            [ collectComputationExpressionStatements creationAide e1
-              collectComputationExpressionStatements creationAide e2 ]
-
-        let finalContinuation (nodes: ComputationExpressionStatement list list) : ComputationExpressionStatement list =
-            List.collect id nodes |> finalContinuation
-
-        Continuation.sequence continuations finalContinuation
-    | expr -> finalContinuation [ ComputationExpressionStatement.OtherStatement(mkExpr creationAide expr) ]
+        collectComputationExpressionStatements creationAide e1 builder
+        collectComputationExpressionStatements creationAide e2 builder
+    | expr -> builder.Add(ComputationExpressionStatement.OtherStatement(mkExpr creationAide expr))
 
 /// Process compiler-generated matches in an appropriate way
 let rec private skipGeneratedLambdas expr =
@@ -369,7 +372,14 @@ let inline private getLambdaBodyExpr expr =
 
 let mkLambda creationAide pats mArrow body (StartRange 3 (mFun, m)) : ExprLambdaNode =
     let body = getLambdaBodyExpr body
-    ExprLambdaNode(stn "fun" mFun, List.map (mkPat creationAide) pats, stn "->" mArrow, mkExpr creationAide body, m)
+
+    ExprLambdaNode(
+        stn "fun" mFun,
+        ImmutableArray.mapList (mkPat creationAide) pats,
+        stn "->" mArrow,
+        mkExpr creationAide body,
+        m
+    )
 
 let mkSynMatchClause creationAide (SynMatchClause(p, eo, e, range, _, trivia)) : MatchClauseNode =
     let fullRange =
@@ -592,7 +602,7 @@ let (|ParenMatchLambda|_|) e =
     | _ -> None
 
 let mkMatchLambda creationAide mFunction cs m =
-    ExprMatchLambdaNode(stn "function" mFunction, List.map (mkSynMatchClause creationAide) cs, m)
+    ExprMatchLambdaNode(stn "function" mFunction, ImmutableArray.mapList (mkSynMatchClause creationAide) cs, m)
 
 [<RequireQualifiedAccess>]
 type LinkExpr =
@@ -608,9 +618,9 @@ type LinkExpr =
 
 let mkLinksFromSynLongIdent (sli: SynLongIdent) : LinkExpr list =
     let idents =
-        List.map (mkLongIdentExprFromSynIdent >> LinkExpr.Identifier) sli.IdentsWithTrivia
+        ImmutableArray.mapList (mkLongIdentExprFromSynIdent >> LinkExpr.Identifier) sli.IdentsWithTrivia
 
-    let dots = List.map LinkExpr.Dot sli.Dots
+    let dots = ImmutableArray.mapList LinkExpr.Dot sli.Dots
 
     [ yield! idents; yield! dots ]
     |> List.sortBy (function
@@ -859,7 +869,7 @@ let (|ChainExpr|_|) (e: SynExpr) : LinkExpr list option =
 
     match e with
     // An identifier only application with a parenthesis lambda expression.
-    // ex: `List.map (fun n -> n)` or `MailboxProcessor<string>.Start (fun n -> n)
+    // ex: `ImmutableArray.mapList (fun n -> n)` or `MailboxProcessor<string>.Start (fun n -> n)
     // Because the identifier is not complex we don't consider it a chain.
     | SynExpr.App(
         isInfix = false
@@ -962,21 +972,23 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
     | SynExpr.ArrayOrList(isArray, xs, range) ->
         let o, c = mkOpenAndCloseForArrayOrList isArray range
 
-        ExprArrayOrListNode(o, List.map (mkExpr creationAide) xs, c, exprRange)
+        ExprArrayOrListNode(o, ImmutableArray.mapList (mkExpr creationAide) xs, c, exprRange)
         |> Expr.ArrayOrList
     | SynExpr.ArrayOrListComputed(isArray, singleExpr, range) ->
         let o, c = mkOpenAndCloseForArrayOrList isArray range
 
-        ExprArrayOrListNode(o, [ mkExpr creationAide singleExpr ], c, exprRange)
+        ExprArrayOrListNode(o, ImmutableArray.singleton (mkExpr creationAide singleExpr), c, exprRange)
         |> Expr.ArrayOrList
     | SynExpr.Record(baseInfo, copyInfo, recordFields, StartEndRange 1 (mOpen, _, mClose)) ->
         let fieldNodes =
-            recordFields
-            |> List.choose (function
-                | SynExprRecordField((fieldName, _), Some mEq, Some expr, _) ->
-                    let m = unionRanges fieldName.Range expr.Range
-                    Some(RecordFieldNode(mkSynLongIdent fieldName, stn "=" mEq, mkExpr creationAide expr, m))
-                | _ -> None)
+            immarray recordFields.Length {
+                for recordField in recordFields do
+                    match recordField with
+                    | SynExprRecordField((fieldName, _), Some mEq, Some expr, _) ->
+                        let m = unionRanges fieldName.Range expr.Range
+                        yield RecordFieldNode(mkSynLongIdent fieldName, stn "=" mEq, mkExpr creationAide expr, m)
+                    | _ -> ()
+            }
 
         match baseInfo, copyInfo with
         | Some _, Some _ -> failwith "Unexpected that both baseInfo and copyInfo are present in SynExpr.Record"
@@ -999,14 +1011,16 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
                        (StartRange 6 (mStruct, _) & EndRange 2 (mClose, _)),
                        { OpeningBraceRange = mOpen }) ->
         let fields =
-            recordFields
-            |> List.choose (function
-                | sli, Some mEq, e ->
-                    let m = unionRanges sli.Range e.Range
-                    let longIdent = mkSynLongIdent sli
+            immarray recordFields.Length {
+                for recordField in recordFields do
+                    match recordField with
+                    | sli, Some mEq, e ->
+                        let m = unionRanges sli.Range e.Range
+                        let longIdent = mkSynLongIdent sli
 
-                    Some(RecordFieldNode(longIdent, stn "=" mEq, mkExpr creationAide e, m))
-                | _ -> None)
+                        yield RecordFieldNode(longIdent, stn "=" mEq, mkExpr creationAide e, m)
+                    | _ -> ()
+            }
 
         ExprAnonStructRecordNode(
             stn "struct" mStruct,
@@ -1019,13 +1033,15 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
         |> Expr.AnonStructRecord
     | SynExpr.AnonRecd(false, copyInfo, recordFields, EndRange 2 (mClose, _), { OpeningBraceRange = mOpen }) ->
         let fields =
-            recordFields
-            |> List.choose (function
-                | sli, Some mEq, e ->
-                    let m = unionRanges sli.Range e.Range
-                    let longIdent = mkSynLongIdent sli
-                    Some(RecordFieldNode(longIdent, stn "=" mEq, mkExpr creationAide e, m))
-                | _ -> None)
+            immarray recordFields.Length {
+                for recordField in recordFields do
+                    match recordField with
+                    | sli, Some mEq, e ->
+                        let m = unionRanges sli.Range e.Range
+                        let longIdent = mkSynLongIdent sli
+                        yield RecordFieldNode(longIdent, stn "=" mEq, mkExpr creationAide e, m)
+                    | _ -> ()
+            }
 
         ExprRecordNode(
             stn "{|" mOpen,
@@ -1038,13 +1054,13 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
     | SynExpr.ObjExpr(t, eio, withKeyword, bd, members, ims, StartRange 3 (mNew, _), StartEndRange 1 (mOpen, _, mClose)) ->
         let interfaceNodes =
             ims
-            |> List.map (fun (SynInterfaceImpl(t, mWith, bs, members, StartRange 9 (mInterface, m))) ->
+            |> ImmutableArray.mapList (fun (SynInterfaceImpl(t, mWith, bs, members, StartRange 9 (mInterface, m))) ->
                 InterfaceImplNode(
                     stn "interface" mInterface,
                     mkType creationAide t,
                     Option.map (stn "with") mWith,
-                    List.map (mkBinding creationAide) bs,
-                    List.map (mkMemberDefn creationAide) members,
+                    ImmutableArray.mapList (mkBinding creationAide) bs,
+                    ImmutableArray.mapList (mkMemberDefn creationAide) members,
                     m
                 ))
 
@@ -1054,8 +1070,8 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
             mkType creationAide t,
             Option.map (fun (e, _) -> mkExpr creationAide e) eio,
             Option.map (stn "with") withKeyword,
-            List.map (mkBinding creationAide) bd,
-            List.map (mkMemberDefn creationAide) members,
+            ImmutableArray.mapList (mkBinding creationAide) bd,
+            ImmutableArray.mapList (mkMemberDefn creationAide) members,
             interfaceNodes,
             stn "}" mClose,
             exprRange
@@ -1123,8 +1139,9 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
     | SynExpr.LetOrUse _
     | SynExpr.LetOrUseBang _
     | SynExpr.Sequential _ ->
-        ExprCompExprBodyNode(collectComputationExpressionStatements creationAide e id, exprRange)
-        |> Expr.CompExprBody
+        let builder = ImmutableArray.CreateBuilder<ComputationExpressionStatement>()
+        collectComputationExpressionStatements creationAide e builder
+        ExprCompExprBodyNode(builder.ToImmutable(), exprRange) |> Expr.CompExprBody
 
     | SynExpr.JoinIn(e1, mIn, e2, _) ->
         ExprJoinInNode(mkExpr creationAide e1, stn "in" mIn, mkExpr creationAide e2, exprRange)
@@ -1147,7 +1164,7 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
             stn "match" trivia.MatchKeyword,
             mkExpr creationAide e,
             stn "with" trivia.WithKeyword,
-            List.map (mkSynMatchClause creationAide) cs,
+            ImmutableArray.mapList (mkSynMatchClause creationAide) cs,
             exprRange
         )
         |> Expr.Match
@@ -1156,7 +1173,7 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
             stn "match!" trivia.MatchBangKeyword,
             mkExpr creationAide e,
             stn "with" trivia.WithKeyword,
-            List.map (mkSynMatchClause creationAide) cs,
+            ImmutableArray.mapList (mkSynMatchClause creationAide) cs,
             exprRange
         )
         |> Expr.Match
@@ -1191,7 +1208,9 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
     | NewlineInfixApps(head, xs)
     | MultipleConsInfixApps(head, xs)
     | SameInfixApps(head, xs) ->
-        let rest = xs |> List.map (fun (operator, e) -> operator, mkExpr creationAide e)
+        let rest =
+            xs
+            |> ImmutableArray.mapList (fun (operator, e) -> operator, mkExpr creationAide e)
 
         ExprSameInfixAppsNode(mkExpr creationAide head, rest, exprRange)
         |> Expr.SameInfixApps
@@ -1207,7 +1226,7 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
     | ChainExpr links ->
         let chainLinks =
             links
-            |> List.map (function
+            |> ImmutableArray.mapList (function
                 | LinkExpr.Identifier identifierExpr -> mkExpr creationAide identifierExpr |> ChainLink.Identifier
                 | LinkExpr.Dot mDot -> stn "." mDot |> ChainLink.Dot
                 | LinkExpr.Expr e -> mkExpr creationAide e |> ChainLink.Expr
@@ -1238,7 +1257,7 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
 
         ExprAppWithLambdaNode(
             mkExpr creationAide fe,
-            List.map (mkExpr creationAide) args,
+            ImmutableArray.mapList (mkExpr creationAide) args,
             stn "(" lpr,
             Choice1Of2 lambdaNode,
             stn ")" rpr,
@@ -1248,7 +1267,14 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
     | SynExpr.App(funcExpr = fe; argExpr = ParenLambda(lpr, pats, mArrow, body, mLambda, rpr)) ->
         let lambdaNode = mkLambda creationAide pats mArrow body mLambda
 
-        ExprAppWithLambdaNode(mkExpr creationAide fe, [], stn "(" lpr, Choice1Of2 lambdaNode, stn ")" rpr, exprRange)
+        ExprAppWithLambdaNode(
+            mkExpr creationAide fe,
+            ImmutableArray.empty,
+            stn "(" lpr,
+            Choice1Of2 lambdaNode,
+            stn ")" rpr,
+            exprRange
+        )
         |> Expr.AppWithLambda
 
     | SynExpr.App(funcExpr = App(fe, args); argExpr = ParenMatchLambda(lpr, mFunction, clauses, mMatchLambda, rpr)) ->
@@ -1256,7 +1282,7 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
 
         ExprAppWithLambdaNode(
             mkExpr creationAide fe,
-            List.map (mkExpr creationAide) args,
+            ImmutableArray.mapList (mkExpr creationAide) args,
             stn "(" lpr,
             Choice2Of2 lambdaNode,
             stn ")" rpr,
@@ -1267,7 +1293,14 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
     | SynExpr.App(funcExpr = fe; argExpr = ParenMatchLambda(lpr, mFunction, clauses, mMatchLambda, rpr)) ->
         let lambdaNode = mkMatchLambda creationAide mFunction clauses mMatchLambda
 
-        ExprAppWithLambdaNode(mkExpr creationAide fe, [], stn "(" lpr, Choice2Of2 lambdaNode, stn ")" rpr, exprRange)
+        ExprAppWithLambdaNode(
+            mkExpr creationAide fe,
+            ImmutableArray.empty,
+            stn "(" lpr,
+            Choice2Of2 lambdaNode,
+            stn ")" rpr,
+            exprRange
+        )
         |> Expr.AppWithLambda
     | SynExpr.App(ExprAtomicFlag.NonAtomic,
                   false,
@@ -1303,14 +1336,14 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
         |> Expr.NestedIndexWithoutDot
 
     | App(fe, args) ->
-        ExprAppNode(mkExpr creationAide fe, List.map (mkExpr creationAide) args, exprRange)
+        ExprAppNode(mkExpr creationAide fe, ImmutableArray.mapList (mkExpr creationAide) args, exprRange)
         |> Expr.App
 
     | SynExpr.TypeApp(identifier, lessRange, ts, _, Some greaterRange, _, _) ->
         ExprTypeAppNode(
             mkExpr creationAide identifier,
             stn "<" lessRange,
-            List.map (mkType creationAide) ts,
+            ImmutableArray.mapList (mkType creationAide) ts,
             stn ">" greaterRange,
             exprRange
         )
@@ -1323,7 +1356,7 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
                 stn "try" trivia.TryKeyword,
                 mkExpr creationAide e,
                 stn "with" trivia.WithKeyword,
-                [ mkSynMatchClause creationAide c ],
+                ImmutableArray.singleton (mkSynMatchClause creationAide c),
                 exprRange
             )
             |> Expr.TryWith
@@ -1341,7 +1374,7 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
             stn "try" trivia.TryKeyword,
             mkExpr creationAide e,
             stn "with" trivia.WithKeyword,
-            List.map (mkSynMatchClause creationAide) clauses,
+            ImmutableArray.mapList (mkSynMatchClause creationAide) clauses,
             exprRange
         )
         |> Expr.TryWith
@@ -1390,7 +1423,7 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
     | ElIf(elifs, elseOpt) ->
         let elifs =
             elifs
-            |> List.map (fun (elifKw, ifExpr, thenNode, thenExpr) ->
+            |> ImmutableArray.mapList (fun (elifKw, ifExpr, thenNode, thenExpr) ->
                 let ifExprNode = mkExpr creationAide ifExpr
 
                 let ifKwNode: IfKeywordNode =
@@ -1464,7 +1497,7 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
     | SynExpr.LibraryOnlyStaticOptimization(constraints, e, optExpr, _) ->
         let constraints =
             constraints
-            |> List.map (function
+            |> ImmutableArray.mapList (function
                 | SynStaticOptimizationConstraint.WhenTyparTyconEqualsTycon(t1, t2, _) ->
                     StaticOptimizationConstraintWhenTyparTyconEqualsTyconNode(
                         mkSynTypar t1,
@@ -1485,7 +1518,7 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
     | SynExpr.InterpolatedString(parts, _, _) ->
         let parts =
             parts
-            |> List.map (function
+            |> ImmutableArray.mapList (function
                 | SynInterpolatedStringPart.String(v, r) ->
                     stn (creationAide.TextFromSource (fun () -> v) r) r |> Choice1Of2
                 | SynInterpolatedStringPart.FillExpr(fillExpr, qualifiers) ->
@@ -1594,13 +1627,18 @@ let mkTuplePat (creationAide: CreationAide) (pats: SynPat list) (commas: range l
     match pats with
     | [] -> failwith "SynPat.Tuple with no elements"
     | head :: tail ->
-        let rest =
-            assert (tail.Length = commas.Length)
+        assert (tail.Length = commas.Length)
 
-            List.zip commas tail
-            |> List.collect (fun (c, e) -> [ yield Choice2Of2(stn "," c); yield Choice1Of2(mkPat creationAide e) ])
+        let items =
+            immarray (1 + 2 * tail.Length) {
+                yield Choice1Of2(mkPat creationAide head)
 
-        PatTupleNode([ yield Choice1Of2(mkPat creationAide head); yield! rest ], m)
+                for c, e in List.zip commas tail do
+                    yield Choice2Of2(stn "," c)
+                    yield Choice1Of2(mkPat creationAide e)
+            }
+
+        PatTupleNode(items, m)
 
 let mkPat (creationAide: CreationAide) (p: SynPat) =
     let patternRange = p.Range
@@ -1623,7 +1661,9 @@ let mkPat (creationAide: CreationAide) (p: SynPat) =
             patternRange
         )
         |> Pattern.Or
-    | SynPat.Ands(ps, _) -> PatAndsNode(List.map (mkPat creationAide) ps, patternRange) |> Pattern.Ands
+    | SynPat.Ands(ps, _) ->
+        PatAndsNode(ImmutableArray.mapList (mkPat creationAide) ps, patternRange)
+        |> Pattern.Ands
     | SynPat.Null _ -> stn "null" patternRange |> Pattern.Null
     | SynPat.Wild _ -> stn "_" patternRange |> Pattern.Wild
     | SynPat.Named(accessibility = ao; ident = SynIdent(ident, Some(ParenStarSynIdent(lpr, op, rpr)))) ->
@@ -1651,16 +1691,19 @@ let mkPat (creationAide: CreationAide) (p: SynPat) =
         let typarDecls = mkSynValTyparDecls creationAide vtdo
 
         let pairs =
-            nps
-            |> List.choose (fun (ident, eq, pat) ->
-                eq
-                |> Option.map (fun eq ->
-                    NamePatPair(
-                        mkIdent ident,
-                        stn "=" eq,
-                        mkPat creationAide pat,
-                        unionRanges ident.idRange pat.Range
-                    )))
+            immarray nps.Length {
+                for ident, eq, pat in nps do
+                    match eq with
+                    | None -> ()
+                    | Some eq ->
+                        yield
+                            NamePatPair(
+                                mkIdent ident,
+                                stn "=" eq,
+                                mkPat creationAide pat,
+                                unionRanges ident.idRange pat.Range
+                            )
+            }
 
         PatNamePatPairsNode(mkSynLongIdent synLongIdent, typarDecls, stn "(" lpr, pairs, stn ")" rpr, patternRange)
         |> Pattern.NamePatPairs
@@ -1671,7 +1714,7 @@ let mkPat (creationAide: CreationAide) (p: SynPat) =
             mkSynAccess ao,
             mkSynLongIdent synLongIdent,
             typarDecls,
-            List.map (mkPat creationAide) pats,
+            ImmutableArray.mapList (mkPat creationAide) pats,
             patternRange
         )
         |> Pattern.LongIdent
@@ -1681,17 +1724,17 @@ let mkPat (creationAide: CreationAide) (p: SynPat) =
         |> Pattern.Paren
     | SynPat.Tuple(false, ps, commas, _) -> mkTuplePat creationAide ps commas patternRange |> Pattern.Tuple
     | SynPat.Tuple(true, ps, _, _) ->
-        PatStructTupleNode(List.map (mkPat creationAide) ps, patternRange)
+        PatStructTupleNode(ImmutableArray.mapList (mkPat creationAide) ps, patternRange)
         |> Pattern.StructTuple
     | SynPat.ArrayOrList(isArray, ps, range) ->
         let openToken, closeToken = mkOpenAndCloseForArrayOrList isArray range
 
-        PatArrayOrListNode(openToken, List.map (mkPat creationAide) ps, closeToken, patternRange)
+        PatArrayOrListNode(openToken, ImmutableArray.mapList (mkPat creationAide) ps, closeToken, patternRange)
         |> Pattern.ArrayOrList
     | SynPat.Record(fields, StartEndRange 1 (o, _, c)) ->
         let fields =
             fields
-            |> List.map (fun ((lid, ident), eq, pat) ->
+            |> ImmutableArray.mapList (fun ((lid, ident), eq, pat) ->
                 let prefix = if lid.IsEmpty then None else Some(mkLongIdent lid)
 
                 let range =
@@ -1733,12 +1776,14 @@ let mkBinding
         match sli.IdentsWithTrivia with
         | [ prefix; OperatorWithStar operatorNode ] ->
             IdentListNode(
-                [ IdentifierOrDot.Ident(mkSynIdent prefix)
-                  IdentifierOrDot.UnknownDot
-                  operatorNode ],
+                immarray 3 {
+                    yield IdentifierOrDot.Ident(mkSynIdent prefix)
+                    yield IdentifierOrDot.UnknownDot
+                    yield operatorNode
+                },
                 sli.Range
             )
-        | [ OperatorWithStar operatorNode ] -> IdentListNode([ operatorNode ], sli.Range)
+        | [ OperatorWithStar operatorNode ] -> IdentListNode(ImmutableArray.singleton operatorNode, sli.Range)
         | _ -> mkSynLongIdent sli
 
     let ao, functionName, genericParameters, parameters =
@@ -1747,7 +1792,7 @@ let mkBinding
             ao,
             Choice1Of2(mkFunctionName lid),
             mkSynValTyparDecls creationAide typarDecls,
-            List.map (mkPat creationAide) ps
+            ImmutableArray.mapList (mkPat creationAide) ps
         | SynPat.Named(accessibility = ao; ident = si) ->
             let name =
                 match si with
@@ -1758,8 +1803,8 @@ let mkBinding
                 let (SynIdent(ident, _)) = si
                 ident.idRange
 
-            ao, Choice1Of2(IdentListNode([ name ], m)), None, []
-        | _ -> None, Choice2Of2(mkPat creationAide pat), None, []
+            ao, Choice1Of2(IdentListNode(ImmutableArray.singleton name, m)), None, ImmutableArray.empty
+        | _ -> None, Choice2Of2(mkPat creationAide pat), None, ImmutableArray.empty
 
     let equals = stn "=" trivia.EqualsRange.Value
 
@@ -1853,7 +1898,7 @@ let mkExternBinding
             typeName = SynType.LongIdent(SynLongIdent([ _ ], [], [ Some(IdentTrivia.OriginalNotation "void*") ]))
             isPostfix = true
             typeArgs = []) ->
-            IdentListNode([ IdentifierOrDot.Ident(stn "void*" t.Range) ], t.Range)
+            IdentListNode(ImmutableArray.singleton (IdentifierOrDot.Ident(stn "void*" t.Range)), t.Range)
             |> Type.LongIdent
         | SynType.App(
             typeName = SynType.LongIdent(SynLongIdent([ _ ], [], [ Some(Ampersand suffix | Star suffix) ]) | SynLongIdent(
@@ -1863,8 +1908,9 @@ let mkExternBinding
             let lid = mkSynLongIdent argLid
 
             let lidPieces =
+                // TODO: this had List.mapWithLast but I'm not sure why
                 lid.Content
-                |> List.mapWithLast id (function
+                |> ImmutableArray.map (function
                     | IdentifierOrDot.KnownDot dot -> IdentifierOrDot.KnownDot dot
                     | IdentifierOrDot.UnknownDot -> IdentifierOrDot.UnknownDot
                     | IdentifierOrDot.Ident ident -> IdentifierOrDot.Ident(stn $"{ident.Text}{suffix}" ident.Range))
@@ -1893,7 +1939,7 @@ let mkExternBinding
         | SynPat.LongIdent(
             longDotId = longDotId
             argPats = SynArgPats.Pats [ SynPat.Tuple(_, ps, _, StartEndRange 1 (mOpen, _, mClose)) ]) ->
-            mkSynLongIdent longDotId, stn "(" mOpen, List.map mkExternPat ps, stn ")" mClose
+            mkSynLongIdent longDotId, stn "(" mOpen, ImmutableArray.mapList mkExternPat ps, stn ")" mClose
         | _ -> failwith "expecting a SynPat.LongIdent for extern binding"
 
     ExternBindingNode(
@@ -1934,7 +1980,7 @@ let mkModuleDecl (creationAide: CreationAide) (decl: SynModuleDecl) =
             mkSynAccess vis,
             mkSynUnionCase creationAide caseName,
             Option.map (stn "with") withKeyword,
-            List.map (mkMemberDefn creationAide) ms,
+            ImmutableArray.mapList (mkMemberDefn creationAide) ms,
             declRange
         )
         |> ModuleDecl.Exception
@@ -1952,6 +1998,11 @@ let mkModuleDecl (creationAide: CreationAide) (decl: SynModuleDecl) =
                                  _,
                                  { ModuleKeyword = Some mModule
                                    EqualsRange = Some mEq }) ->
+        let decls =
+            let builder = ImmutableArray.CreateBuilder<ModuleDecl>()
+            mkModuleDecls creationAide decls builder
+            builder.ToImmutable()
+
         NestedModuleNode(
             mkXmlDoc px,
             mkAttributes creationAide ats,
@@ -1960,7 +2011,7 @@ let mkModuleDecl (creationAide: CreationAide) (decl: SynModuleDecl) =
             isRecursive,
             mkLongIdent lid,
             stn "=" mEq,
-            mkModuleDecls creationAide decls id,
+            decls,
             declRange
         )
         |> ModuleDecl.NestedModule
@@ -1977,13 +2028,15 @@ let mkSynTyparDecl (creationAide: CreationAide) (SynTyparDecl(attrs, typar)) =
 let mkSynTyparDecls (creationAide: CreationAide) (tds: SynTyparDecls) : TyparDecls =
     match tds with
     | SynTyparDecls.PostfixList(decls, constraints, StartEndRange 1 (mOpen, m, mClose)) ->
-        let decls = List.map (mkSynTyparDecl creationAide) decls
-        let constraints = List.map (mkSynTypeConstraint creationAide) constraints
+        let decls = ImmutableArray.mapList (mkSynTyparDecl creationAide) decls
+
+        let constraints =
+            ImmutableArray.mapList (mkSynTypeConstraint creationAide) constraints
 
         TyparDeclsPostfixListNode(stn "<" mOpen, decls, constraints, stn ">" mClose, m)
         |> TyparDecls.PostfixList
     | SynTyparDecls.PrefixList(decls, StartEndRange 1 (mOpen, m, mClose)) ->
-        let decls = List.map (mkSynTyparDecl creationAide) decls
+        let decls = ImmutableArray.mapList (mkSynTyparDecl creationAide) decls
 
         TyparDeclsPrefixListNode(stn "(" mOpen, decls, stn ")" mClose, m)
         |> TyparDecls.PrefixList
@@ -2052,10 +2105,10 @@ let mkSynTypeConstraint (creationAide: CreationAide) (tc: SynTypeConstraint) : T
         TypeConstraintSupportsMemberNode(mkType creationAide tps, mkMemberSig creationAide msg, m)
         |> TypeConstraint.SupportsMember
     | SynTypeConstraint.WhereTyparIsEnum(tp, ts, m) ->
-        TypeConstraintEnumOrDelegateNode(mkSynTypar tp, "enum", List.map (mkType creationAide) ts, m)
+        TypeConstraintEnumOrDelegateNode(mkSynTypar tp, "enum", ImmutableArray.mapList (mkType creationAide) ts, m)
         |> TypeConstraint.EnumOrDelegate
     | SynTypeConstraint.WhereTyparIsDelegate(tp, ts, m) ->
-        TypeConstraintEnumOrDelegateNode(mkSynTypar tp, "delegate", List.map (mkType creationAide) ts, m)
+        TypeConstraintEnumOrDelegateNode(mkSynTypar tp, "delegate", ImmutableArray.mapList (mkType creationAide) ts, m)
         |> TypeConstraint.EnumOrDelegate
     | SynTypeConstraint.WhereSelfConstrained(t, _) -> mkType creationAide t |> TypeConstraint.WhereSelfConstrained
 
@@ -2068,7 +2121,8 @@ let rec (|TFuns|_|) =
 
 let mkTypeList creationAide ts rt m =
     let parameters =
-        ts |> List.map (fun (t, mArrow) -> mkType creationAide t, stn "->" mArrow)
+        ts
+        |> ImmutableArray.mapList (fun (t, mArrow) -> mkType creationAide t, stn "->" mArrow)
 
     TypeFunsNode(parameters, mkType creationAide rt, m)
 
@@ -2080,7 +2134,7 @@ let mkType (creationAide: CreationAide) (t: SynType) : Type =
     | SynType.Tuple(false, ts, _) ->
         let path =
             ts
-            |> List.map (function
+            |> ImmutableArray.mapList (function
                 | SynTupleTypeSegment.Type t -> Choice1Of2(mkType creationAide t)
                 | SynTupleTypeSegment.Slash m -> Choice2Of2(stn "/" m)
                 | SynTupleTypeSegment.Star m -> Choice2Of2(stn "*" m))
@@ -2089,7 +2143,7 @@ let mkType (creationAide: CreationAide) (t: SynType) : Type =
     | SynType.Tuple(true, ts, (StartRange 6 (mStruct, _) & StartEndRange 1 (_, _, closingParen))) ->
         let path =
             ts
-            |> List.map (function
+            |> ImmutableArray.mapList (function
                 | SynTupleTypeSegment.Type t -> Choice1Of2(mkType creationAide t)
                 | SynTupleTypeSegment.Slash m -> Choice2Of2(stn "/" m)
                 | SynTupleTypeSegment.Star m -> Choice2Of2(stn "*" m))
@@ -2123,7 +2177,7 @@ let mkType (creationAide: CreationAide) (t: SynType) : Type =
             mkType creationAide t,
             None,
             stn "<" mLt,
-            List.map (mkType creationAide) args,
+            ImmutableArray.mapList (mkType creationAide) args,
             stn ">" mGt,
             typeRange
         )
@@ -2133,7 +2187,7 @@ let mkType (creationAide: CreationAide) (t: SynType) : Type =
             mkType creationAide t,
             Some(mkSynLongIdent lid),
             stn "<" mLt,
-            List.map (mkType creationAide) args,
+            ImmutableArray.mapList (mkType creationAide) args,
             stn ">" mGt,
             typeRange
         )
@@ -2144,7 +2198,11 @@ let mkType (creationAide: CreationAide) (t: SynType) : Type =
     | SynType.WithGlobalConstraints(SynType.Var _, [ SynTypeConstraint.WhereTyparSubtypeOfType _ as tc ], _) ->
         mkSynTypeConstraint creationAide tc |> Type.WithSubTypeConstraint
     | SynType.WithGlobalConstraints(t, tcs, _) ->
-        TypeWithGlobalConstraintsNode(mkType creationAide t, List.map (mkSynTypeConstraint creationAide) tcs, typeRange)
+        TypeWithGlobalConstraintsNode(
+            mkType creationAide t,
+            ImmutableArray.mapList (mkSynTypeConstraint creationAide) tcs,
+            typeRange
+        )
         |> Type.WithGlobalConstraints
     | SynType.LongIdent lid -> Type.LongIdent(mkSynLongIdent lid)
     | SynType.AnonRecd(isStruct, fields, StartEndRange 2 (_, r, mClosing)) ->
@@ -2156,7 +2214,9 @@ let mkType (creationAide: CreationAide) (t: SynType) : Type =
                 match r with
                 | StartRange 2 (mOpening, _) -> None, Some(stn "{|" mOpening)
 
-        let fields = fields |> List.map (fun (i, t) -> mkIdent i, mkType creationAide t)
+        let fields =
+            fields
+            |> ImmutableArray.mapList (fun (i, t) -> mkIdent i, mkType creationAide t)
 
         TypeAnonRecordNode(structNode, openingNode, fields, stn "|}" mClosing, typeRange)
         |> Type.AnonRecord
@@ -2203,7 +2263,7 @@ let rec (|HashDirectiveL|_|) =
 let mkSynLeadingKeyword (lk: SynLeadingKeyword) =
     let mtn v =
         v
-        |> List.map (fun (t, r) -> stn t r)
+        |> ImmutableArray.mapList (fun (t, r) -> stn t r)
         |> fun nodes -> MultipleTextsNode(nodes, lk.Range)
 
     match lk with
@@ -2273,8 +2333,8 @@ let mkSynUnionCase
 
     let fields =
         match caseType with
-        | SynUnionCaseKind.FullType _ -> []
-        | SynUnionCaseKind.Fields cases -> List.map (mkSynField creationAide) cases
+        | SynUnionCaseKind.FullType _ -> ImmutableArray.empty
+        | SynUnionCaseKind.Fields cases -> ImmutableArray.mapList (mkSynField creationAide) cases
 
     UnionCaseNode(
         mkXmlDoc xmlDoc,
@@ -2324,21 +2384,22 @@ let mkImplicitCtor
         match pats with
         | [] ->
             // Unit pattern
-            []
+            ImmutableArray.empty
         | head :: tail ->
-            let rest =
-                assert (tail.Length = commas.Length)
+            assert (tail.Length = commas.Length)
 
-                List.zip commas tail
-                |> List.collect (fun (c, p) ->
+            immarray (1 + tail.Length) {
+                match mkSynSimplePat creationAide head with
+                | None -> ()
+                | Some simplePat -> yield Choice1Of2 simplePat
+
+                for c, p in List.zip commas tail do
                     match mkSynSimplePat creationAide p with
-                    | None -> []
-                    | Some simplePat -> [ Choice2Of2(stn "," c); Choice1Of2 simplePat ])
-
-            [ match mkSynSimplePat creationAide head with
-              | None -> ()
-              | Some simplePat -> yield Choice1Of2 simplePat
-              yield! rest ]
+                    | None -> ()
+                    | Some simplePat ->
+                        yield Choice2Of2(stn "," c)
+                        yield Choice1Of2 simplePat
+            }
 
     let range =
         let startRange =
@@ -2424,21 +2485,21 @@ let mkTypeDefn
                 mkSynAccess ao,
                 identifierNode,
                 Option.map (mkSynTyparDecls creationAide) tds,
-                List.map (mkSynTypeConstraint creationAide) tcs,
+                ImmutableArray.mapList (mkSynTypeConstraint creationAide) tcs,
                 implicitConstructorNode,
                 Option.map (stn "=") trivia.EqualsRange,
                 Option.map (stn "with") trivia.WithKeyword,
                 m
             )
 
-    let members = List.map (mkMemberDefn creationAide) members
+    let members = ImmutableArray.mapList (mkMemberDefn creationAide) members
     let typeDefnRange = unionRanges typeNameNode.Range range
 
     match typeRepr with
     | SynTypeDefnRepr.Simple(simpleRepr = SynTypeDefnSimpleRepr.Enum(ecs, _)) ->
         let enumCases =
             ecs
-            |> List.map (fun (SynEnumCase(attributes, ident, valueExpr, xmlDoc, range, trivia)) ->
+            |> ImmutableArray.mapList (fun (SynEnumCase(attributes, ident, valueExpr, xmlDoc, range, trivia)) ->
                 EnumCaseNode(
                     mkXmlDoc xmlDoc,
                     Option.map (stn "|") trivia.BarRange,
@@ -2453,14 +2514,14 @@ let mkTypeDefn
         |> TypeDefn.Enum
 
     | SynTypeDefnRepr.Simple(simpleRepr = SynTypeDefnSimpleRepr.Union(ao, cases, _)) ->
-        let unionCases = cases |> List.map (mkSynUnionCase creationAide)
+        let unionCases = cases |> ImmutableArray.mapList (mkSynUnionCase creationAide)
 
         TypeDefnUnionNode(typeNameNode, mkSynAccess ao, unionCases, members, typeDefnRange)
         |> TypeDefn.Union
 
     | SynTypeDefnRepr.Simple(
         simpleRepr = SynTypeDefnSimpleRepr.Record(ao, fs, StartEndRange 1 (openingBrace, _, closingBrace))) ->
-        let fields = List.map (mkSynField creationAide) fs
+        let fields = ImmutableArray.mapList (mkSynField creationAide) fs
 
         TypeDefnRecordNode(
             typeNameNode,
@@ -2494,7 +2555,7 @@ let mkTypeDefn
             |> List.filter (function
                 | SynMemberDefn.ImplicitCtor _ -> false
                 | _ -> true)
-            |> List.map (mkMemberDefn creationAide)
+            |> ImmutableArray.mapList (mkMemberDefn creationAide)
 
         let endNode =
             match range with
@@ -2539,9 +2600,9 @@ let mkTypeDefn
                 |> List.filter (function
                     | SynMemberDefn.ImplicitCtor _ -> false
                     | _ -> true)
-                |> List.map (mkMemberDefn creationAide)
+                |> ImmutableArray.mapList (mkMemberDefn creationAide)
 
-            [ yield! objectMembers; yield! members ]
+            objectMembers.AddRange members
 
         TypeDefnRegularNode(typeNameNode, allMembers, typeDefnRange) |> TypeDefn.Regular
     | _ -> failwithf "Could not create a TypeDefn for %A" typeRepr
@@ -2553,13 +2614,49 @@ let mkWithGetSet (withKeyword: range option) (getSet: GetSetKeywords option) =
         let m = unionRanges mWith gs.Range
 
         match gs with
-        | GetSetKeywords.Get mGet -> Some(MultipleTextsNode([ withNode; stn "get" mGet ], m))
-        | GetSetKeywords.Set mSet -> Some(MultipleTextsNode([ withNode; stn "set" mSet ], m))
+        | GetSetKeywords.Get mGet ->
+            Some(
+                MultipleTextsNode(
+                    immarray 2 {
+                        yield withNode
+                        yield stn "get" mGet
+                    },
+                    m
+                )
+            )
+        | GetSetKeywords.Set mSet ->
+            Some(
+                MultipleTextsNode(
+                    immarray 2 {
+                        yield withNode
+                        yield stn "set" mSet
+                    },
+                    m
+                )
+            )
         | GetSetKeywords.GetSet(mGet, mSet) ->
             if rangeBeforePos mGet mSet.Start then
-                Some(MultipleTextsNode([ withNode; stn "get," mGet; stn "set" mSet ], m))
+                Some(
+                    MultipleTextsNode(
+                        immarray 3 {
+                            yield withNode
+                            yield stn "get," mGet
+                            yield stn "set" mSet
+                        },
+                        m
+                    )
+                )
             else
-                Some(MultipleTextsNode([ withNode; stn "set," mSet; stn "get" mGet ], m))
+                Some(
+                    MultipleTextsNode(
+                        immarray 3 {
+                            yield withNode
+                            yield stn "set," mSet
+                            yield stn "get" mGet
+                        },
+                        m
+                    )
+                )
     | _ -> None
 
 let mkPropertyGetSetBinding
@@ -2582,23 +2679,33 @@ let mkPropertyGetSetBinding
             | [ SynPat.Tuple(false, [ p1; p2; p3 ], [ comma ], _) ] ->
                 let mTuple = unionRanges p1.Range p2.Range
 
-                [ PatParenNode(
-                      stn "(" Range.Zero,
-                      Pattern.Tuple(
-                          PatTupleNode(
-                              [ Choice1Of2(mkPat creationAide p1)
-                                Choice2Of2(stn "," comma)
-                                Choice1Of2(mkPat creationAide p2) ],
-                              mTuple
-                          )
-                      ),
-                      stn ")" Range.Zero,
-                      mTuple
-                  )
-                  |> Pattern.Paren
-                  mkPat creationAide p3 ]
-            | [ SynPat.Tuple(false, [ p1; p2 ], _, _) ] -> [ mkPat creationAide p1; mkPat creationAide p2 ]
-            | ps -> List.map (mkPat creationAide) ps
+                immarray 2 {
+                    yield
+                        PatParenNode(
+                            stn "(" Range.Zero,
+                            Pattern.Tuple(
+                                PatTupleNode(
+                                    immarray 3 {
+                                        yield Choice1Of2(mkPat creationAide p1)
+                                        yield Choice2Of2(stn "," comma)
+                                        yield Choice1Of2(mkPat creationAide p2)
+                                    },
+                                    mTuple
+                                )
+                            ),
+                            stn ")" Range.Zero,
+                            mTuple
+                        )
+                        |> Pattern.Paren
+
+                    yield mkPat creationAide p3
+                }
+            | [ SynPat.Tuple(false, [ p1; p2 ], _, _) ] ->
+                immarray 2 {
+                    yield mkPat creationAide p1
+                    yield mkPat creationAide p2
+                }
+            | ps -> ImmutableArray.mapList (mkPat creationAide) ps
 
         let range = unionRanges extraIdent.idRange e.Range
 
@@ -2693,7 +2800,7 @@ let mkMemberDefn (creationAide: CreationAide) (md: SynMemberDefn) =
         // This is a shortcut to support "static do"
         let leadingKw =
             (mkSynLeadingKeyword trivia.LeadingKeyword).Content
-            |> List.map (fun stn -> stn.Text)
+            |> ImmutableArray.map (fun stn -> stn.Text)
             |> String.concat " "
 
         ExprSingleNode(
@@ -2705,7 +2812,7 @@ let mkMemberDefn (creationAide: CreationAide) (md: SynMemberDefn) =
         )
         |> MemberDefn.DoExpr
     | SynMemberDefn.LetBindings(bindings = bindings) ->
-        BindingListNode(List.map (mkBinding creationAide) bindings, memberDefinitionRange)
+        BindingListNode(ImmutableArray.mapList (mkBinding creationAide) bindings, memberDefinitionRange)
         |> MemberDefn.LetBinding
     | SynMemberDefn.Interface(t, mWith, mdsOpt, _) ->
         let interfaceNode =
@@ -2714,8 +2821,8 @@ let mkMemberDefn (creationAide: CreationAide) (md: SynMemberDefn) =
 
         let members =
             match mdsOpt with
-            | None -> []
-            | Some mds -> List.map (mkMemberDefn creationAide) mds
+            | None -> ImmutableArray.empty
+            | Some mds -> ImmutableArray.mapList (mkMemberDefn creationAide) mds
 
         MemberDefnInterfaceNode(
             interfaceNode,
@@ -2903,7 +3010,13 @@ let mkMemberSig (creationAide: CreationAide) (ms: SynMemberSig) =
         )
         |> MemberDefn.SigMember
     | SynMemberSig.Interface(t, StartRange 9 (mInterface, _)) ->
-        MemberDefnInterfaceNode(stn "interface" mInterface, mkType creationAide t, None, [], memberSigRange)
+        MemberDefnInterfaceNode(
+            stn "interface" mInterface,
+            mkType creationAide t,
+            None,
+            ImmutableArray.empty,
+            memberSigRange
+        )
         |> MemberDefn.Interface
 
     | SynMemberSig.Inherit(t, StartRange 7 (mInherit, _)) ->
@@ -2915,47 +3028,53 @@ let mkMemberSig (creationAide: CreationAide) (ms: SynMemberSig) =
 let rec mkModuleDecls
     (creationAide: CreationAide)
     (decls: SynModuleDecl list)
-    (finalContinuation: ModuleDecl list -> ModuleDecl list)
-    =
+    (builder: ImmutableArray<ModuleDecl>.Builder)
+    : unit =
     match decls with
-    | [] -> finalContinuation []
+    | [] -> ()
     | OpenL(xs, ys) ->
         let openListNode =
-            List.map (mkOpenNodeForImpl creationAide) xs
+            ImmutableArray.mapList (mkOpenNodeForImpl creationAide) xs
             |> OpenListNode
             |> ModuleDecl.OpenList
 
-        mkModuleDecls creationAide ys (fun nodes -> openListNode :: nodes |> finalContinuation)
+        builder.Add openListNode
+        mkModuleDecls creationAide ys builder
 
     | HashDirectiveL(xs, ys) ->
         let listNode =
-            List.map (mkParsedHashDirective creationAide) xs
+            ImmutableArray.mapList (mkParsedHashDirective creationAide) xs
             |> HashDirectiveListNode
             |> ModuleDecl.HashDirectiveList
 
-        mkModuleDecls creationAide ys (fun nodes -> listNode :: nodes |> finalContinuation)
+        builder.Add listNode
+        mkModuleDecls creationAide ys builder
 
     | SynModuleDecl.Types(typeDefns = typeDefns) :: rest ->
         let typeNodes =
-            List.map (fun tdn -> mkTypeDefn creationAide tdn |> ModuleDecl.TypeDefn) typeDefns
+            ImmutableArray.mapList (fun tdn -> mkTypeDefn creationAide tdn |> ModuleDecl.TypeDefn) typeDefns
 
-        mkModuleDecls creationAide rest (fun nodes -> [ yield! typeNodes; yield! nodes ] |> finalContinuation)
+        builder.AddRange typeNodes
+        mkModuleDecls creationAide rest builder
 
     | SynModuleDecl.Attributes(a, _) :: SynModuleDecl.Expr(e, _) :: rest ->
         let attributes = mkAttributes creationAide a
         let expr = mkExpr creationAide e
         let range = unionRanges a.Head.Range (Expr.Node expr).Range
         let node = ModuleDeclAttributesNode(attributes, expr, range)
-        mkModuleDecls creationAide rest (fun nodes -> ModuleDecl.Attributes node :: nodes |> finalContinuation)
+        builder.Add(ModuleDecl.Attributes node)
+        mkModuleDecls creationAide rest builder
 
     | SynModuleDecl.Let(bindings = bindings) :: rest when List.moreThanOne bindings ->
         let bindingNodes =
-            List.map (fun b -> mkBinding creationAide b |> ModuleDecl.TopLevelBinding) bindings
+            ImmutableArray.mapList (fun b -> mkBinding creationAide b |> ModuleDecl.TopLevelBinding) bindings
 
-        mkModuleDecls creationAide rest (fun nodes -> [ yield! bindingNodes; yield! nodes ] |> finalContinuation)
+        builder.AddRange bindingNodes
+        mkModuleDecls creationAide rest builder
 
     | head :: tail ->
-        mkModuleDecls creationAide tail (fun nodes -> mkModuleDecl creationAide head :: nodes |> finalContinuation)
+        builder.Add(mkModuleDecl creationAide head)
+        mkModuleDecls creationAide tail builder
 
 let mkModuleOrNamespace
     (creationAide: CreationAide)
@@ -2972,12 +3091,20 @@ let mkModuleOrNamespace
     let leadingKeyword =
         match trivia.LeadingKeyword with
         | SynModuleOrNamespaceLeadingKeyword.Module mModule ->
-            Some(MultipleTextsNode([ stn "module" mModule ], mModule))
+            Some(MultipleTextsNode(ImmutableArray.singleton (stn "module" mModule), mModule))
         | SynModuleOrNamespaceLeadingKeyword.Namespace mNamespace ->
             match kind with
             | SynModuleOrNamespaceKind.GlobalNamespace ->
-                Some(MultipleTextsNode([ stn "namespace" mNamespace; stn "global" Range.Zero ], mNamespace))
-            | _ -> Some(MultipleTextsNode([ stn "namespace" mNamespace ], mNamespace))
+                Some(
+                    MultipleTextsNode(
+                        immarray 2 {
+                            yield stn "namespace" mNamespace
+                            yield stn "global" Range.Zero
+                        },
+                        mNamespace
+                    )
+                )
+            | _ -> Some(MultipleTextsNode(ImmutableArray.singleton (stn "namespace" mNamespace), mNamespace))
         | SynModuleOrNamespaceLeadingKeyword.None -> None
 
     let name =
@@ -3020,8 +3147,9 @@ let mkModuleOrNamespace
                 )
                 |> Some
 
-    let decls = mkModuleDecls creationAide decls id
-
+    let builder = ImmutableArray.CreateBuilder<ModuleDecl>()
+    mkModuleDecls creationAide decls builder
+    let decls = builder.ToImmutable()
     ModuleOrNamespaceNode(header, decls, range)
 
 let mkImplFile
@@ -3029,8 +3157,10 @@ let mkImplFile
     (ParsedImplFileInput(hashDirectives = hashDirectives; contents = contents))
     (m: range)
     =
-    let phds = List.map (mkParsedHashDirective creationAide) hashDirectives
-    let mds = List.map (mkModuleOrNamespace creationAide) contents
+    let phds =
+        ImmutableArray.mapList (mkParsedHashDirective creationAide) hashDirectives
+
+    let mds = ImmutableArray.mapList (mkModuleOrNamespace creationAide) contents
     Oak(phds, mds, m)
 
 // start sig file
@@ -3061,7 +3191,7 @@ let mkModuleSigDecl (creationAide: CreationAide) (decl: SynModuleSigDecl) =
             mkSynAccess vis,
             mkSynUnionCase creationAide caseName,
             Option.map (stn "with") withKeyword,
-            List.map (mkMemberSig creationAide) ms,
+            ImmutableArray.mapList (mkMemberSig creationAide) ms,
             declRange
         )
         |> ModuleDecl.Exception
@@ -3074,6 +3204,11 @@ let mkModuleSigDecl (creationAide: CreationAide) (decl: SynModuleSigDecl) =
                                     _,
                                     { ModuleKeyword = Some mModule
                                       EqualsRange = Some mEq }) ->
+        let decls =
+            let builder = ImmutableArray.CreateBuilder<ModuleDecl>()
+            mkModuleSigDecls creationAide decls builder
+            builder.ToImmutable()
+
         NestedModuleNode(
             mkXmlDoc px,
             mkAttributes creationAide ats,
@@ -3082,7 +3217,7 @@ let mkModuleSigDecl (creationAide: CreationAide) (decl: SynModuleSigDecl) =
             isRecursive,
             mkLongIdent lid,
             stn "=" mEq,
-            mkModuleSigDecls creationAide decls id,
+            decls,
             declRange
         )
         |> ModuleDecl.NestedModule
@@ -3118,21 +3253,21 @@ let mkTypeDefnSig (creationAide: CreationAide) (SynTypeDefnSig(typeInfo, typeRep
                 mkSynAccess ao,
                 identifierNode,
                 Option.map (mkSynTyparDecls creationAide) tds,
-                List.map (mkSynTypeConstraint creationAide) tcs,
+                ImmutableArray.mapList (mkSynTypeConstraint creationAide) tcs,
                 None,
                 Option.map (stn "=") trivia.EqualsRange,
                 Option.map (stn "with") trivia.WithKeyword,
                 m
             )
 
-    let members = List.map (mkMemberSig creationAide) members
+    let members = ImmutableArray.mapList (mkMemberSig creationAide) members
     let typeDefnRange = unionRanges typeNameNode.Range range
 
     match typeRepr with
     | SynTypeDefnSigRepr.Simple(repr = SynTypeDefnSimpleRepr.Enum(ecs, _)) ->
         let enumCases =
             ecs
-            |> List.map (fun (SynEnumCase(attributes, ident, valueExpr, xmlDoc, range, trivia)) ->
+            |> ImmutableArray.mapList (fun (SynEnumCase(attributes, ident, valueExpr, xmlDoc, range, trivia)) ->
                 EnumCaseNode(
                     mkXmlDoc xmlDoc,
                     Option.map (stn "|") trivia.BarRange,
@@ -3147,14 +3282,14 @@ let mkTypeDefnSig (creationAide: CreationAide) (SynTypeDefnSig(typeInfo, typeRep
         |> TypeDefn.Enum
 
     | SynTypeDefnSigRepr.Simple(repr = SynTypeDefnSimpleRepr.Union(ao, cases, _)) ->
-        let unionCases = cases |> List.map (mkSynUnionCase creationAide)
+        let unionCases = cases |> ImmutableArray.mapList (mkSynUnionCase creationAide)
 
         TypeDefnUnionNode(typeNameNode, mkSynAccess ao, unionCases, members, typeDefnRange)
         |> TypeDefn.Union
 
     | SynTypeDefnSigRepr.Simple(
         repr = SynTypeDefnSimpleRepr.Record(ao, fs, StartEndRange 1 (openingBrace, _, closingBrace))) ->
-        let fields = List.map (mkSynField creationAide) fs
+        let fields = ImmutableArray.mapList (mkSynField creationAide) fs
 
         TypeDefnRecordNode(
             typeNameNode,
@@ -3170,7 +3305,7 @@ let mkTypeDefnSig (creationAide: CreationAide) (SynTypeDefnSig(typeInfo, typeRep
     | SynTypeDefnSigRepr.Simple(repr = SynTypeDefnSimpleRepr.TypeAbbrev(rhsType = t)) ->
         TypeDefn.Abbrev(TypeDefnAbbrevNode(typeNameNode, mkType creationAide t, members, range))
 
-    | SynTypeDefnSigRepr.Simple(repr = SynTypeDefnSimpleRepr.None _) when List.isNotEmpty members ->
+    | SynTypeDefnSigRepr.Simple(repr = SynTypeDefnSimpleRepr.None _) when not members.IsEmpty ->
         let typeNameNode =
             TypeNameNode(
                 typeNameNode.XmlDoc,
@@ -3203,7 +3338,8 @@ let mkTypeDefnSig (creationAide: CreationAide) (SynTypeDefnSig(typeInfo, typeRep
             | SynTypeDefnKind.Struct, StartRange 6 (mStruct, _) -> stn "struct" mStruct
             | _ -> failwith "unexpected kind"
 
-        let objectMembers = objectMembers |> List.map (mkMemberSig creationAide)
+        let objectMembers =
+            objectMembers |> ImmutableArray.mapList (mkMemberSig creationAide)
 
         let endNode =
             match range with
@@ -3242,9 +3378,10 @@ let mkTypeDefnSig (creationAide: CreationAide) (SynTypeDefnSig(typeInfo, typeRep
 
     | SynTypeDefnSigRepr.ObjectModel(memberSigs = objectMembers) ->
         let allMembers =
-            let objectMembers = objectMembers |> List.map (mkMemberSig creationAide)
+            let objectMembers =
+                objectMembers |> ImmutableArray.mapList (mkMemberSig creationAide)
 
-            [ yield! objectMembers; yield! members ]
+            objectMembers.AddRange members
 
         TypeDefnRegularNode(typeNameNode, allMembers, typeDefnRange) |> TypeDefn.Regular
     | _ -> failwithf "Could not create a TypeDefn for %A" typeRepr
@@ -3252,35 +3389,38 @@ let mkTypeDefnSig (creationAide: CreationAide) (SynTypeDefnSig(typeInfo, typeRep
 let rec mkModuleSigDecls
     (creationAide: CreationAide)
     (decls: SynModuleSigDecl list)
-    (finalContinuation: ModuleDecl list -> ModuleDecl list)
-    : ModuleDecl list =
+    (builder: ImmutableArray<ModuleDecl>.Builder)
+    : unit =
     match decls with
-    | [] -> finalContinuation []
+    | [] -> ()
     | OpenSigL(xs, ys) ->
         let openListNode =
-            List.map (mkOpenNodeForImpl creationAide) xs
+            ImmutableArray.mapList (mkOpenNodeForImpl creationAide) xs
             |> OpenListNode
             |> ModuleDecl.OpenList
 
-        mkModuleSigDecls creationAide ys (fun nodes -> openListNode :: nodes |> finalContinuation)
+        builder.Add openListNode
+        mkModuleSigDecls creationAide ys builder
 
     | HashDirectiveSigL(xs, ys) ->
         let listNode =
-            List.map (mkParsedHashDirective creationAide) xs
+            ImmutableArray.mapList (mkParsedHashDirective creationAide) xs
             |> HashDirectiveListNode
             |> ModuleDecl.HashDirectiveList
 
-        mkModuleSigDecls creationAide ys (fun nodes -> listNode :: nodes |> finalContinuation)
+        builder.Add listNode
+        mkModuleSigDecls creationAide ys builder
 
     | SynModuleSigDecl.Types(types = typeDefns) :: rest ->
         let typeNodes =
-            List.map (fun tdn -> mkTypeDefnSig creationAide tdn |> ModuleDecl.TypeDefn) typeDefns
+            ImmutableArray.mapList (fun tdn -> mkTypeDefnSig creationAide tdn |> ModuleDecl.TypeDefn) typeDefns
 
-        mkModuleSigDecls creationAide rest (fun nodes -> [ yield! typeNodes; yield! nodes ] |> finalContinuation)
+        builder.AddRange typeNodes
+        mkModuleSigDecls creationAide rest builder
 
     | head :: tail ->
-        mkModuleSigDecls creationAide tail (fun nodes ->
-            mkModuleSigDecl creationAide head :: nodes |> finalContinuation)
+        builder.Add(mkModuleSigDecl creationAide head)
+        mkModuleSigDecls creationAide tail builder
 
 let mkModuleOrNamespaceSig
     (creationAide: CreationAide)
@@ -3297,12 +3437,20 @@ let mkModuleOrNamespaceSig
     let leadingKeyword =
         match trivia.LeadingKeyword with
         | SynModuleOrNamespaceLeadingKeyword.Module mModule ->
-            Some(MultipleTextsNode([ stn "module" mModule ], mModule))
+            Some(MultipleTextsNode(ImmutableArray.singleton (stn "module" mModule), mModule))
         | SynModuleOrNamespaceLeadingKeyword.Namespace mNamespace ->
             match kind with
             | SynModuleOrNamespaceKind.GlobalNamespace ->
-                Some(MultipleTextsNode([ stn "namespace" mNamespace; stn "global" Range.Zero ], mNamespace))
-            | _ -> Some(MultipleTextsNode([ stn "namespace" mNamespace ], mNamespace))
+                Some(
+                    MultipleTextsNode(
+                        immarray 2 {
+                            yield stn "namespace" mNamespace
+                            yield stn "global" Range.Zero
+                        },
+                        mNamespace
+                    )
+                )
+            | _ -> Some(MultipleTextsNode(ImmutableArray.singleton (stn "namespace" mNamespace), mNamespace))
         | SynModuleOrNamespaceLeadingKeyword.None -> None
 
     let name =
@@ -3311,7 +3459,9 @@ let mkModuleOrNamespaceSig
         | SynModuleOrNamespaceKind.GlobalNamespace -> None
         | _ -> Some(mkLongIdent longId)
 
-    let decls = mkModuleSigDecls creationAide decls id
+    let builder = ImmutableArray.CreateBuilder<ModuleDecl>()
+    mkModuleSigDecls creationAide decls builder
+    let decls = builder.ToImmutable()
     let range: range = mkSynModuleOrNamespaceSigFullRange mn
 
     let header =
@@ -3353,8 +3503,10 @@ let mkSigFile
     (ParsedSigFileInput(hashDirectives = hashDirectives; contents = contents))
     (m: range)
     =
-    let phds = List.map (mkParsedHashDirective creationAide) hashDirectives
-    let mds = List.map (mkModuleOrNamespaceSig creationAide) contents
+    let phds =
+        ImmutableArray.mapList (mkParsedHashDirective creationAide) hashDirectives
+
+    let mds = ImmutableArray.mapList (mkModuleOrNamespaceSig creationAide) contents
     Oak(phds, mds, m)
 
 let includeTrivia
@@ -3364,13 +3516,13 @@ let includeTrivia
     : range =
     let ranges =
         [ yield!
-              List.map
+              ImmutableArray.mapList
                   (function
                   | CommentTrivia.LineComment m
                   | CommentTrivia.BlockComment m -> m)
                   comments
           yield!
-              List.map
+              ImmutableArray.mapList
                   (function
                   | ConditionalDirectiveTrivia.If(range = range)
                   | ConditionalDirectiveTrivia.Else(range = range)

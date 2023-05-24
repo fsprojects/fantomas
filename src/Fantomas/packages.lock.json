@@ -400,8 +400,11 @@
       },
       "System.Collections.Immutable": {
         "type": "Transitive",
-        "resolved": "5.0.0",
-        "contentHash": "FXkLXiK0sVVewcso0imKQoOxjoPAj42R8HtjjbSjVPAzwDfzoyoznWxgA3c38LDbN9SJux1xXoXYAhz98j7r2g=="
+        "resolved": "7.0.0",
+        "contentHash": "dQPcs0U1IKnBdRDBkrCTi1FoajSTBzLcVTpjO4MBCMC7f4pDOIPzgBoX8JjG7X6uZRJ8EBxsi8+DR1JuwjnzOQ==",
+        "dependencies": {
+          "System.Runtime.CompilerServices.Unsafe": "6.0.0"
+        }
       },
       "System.Configuration.ConfigurationManager": {
         "type": "Transitive",
@@ -901,7 +904,8 @@
         "type": "Project",
         "dependencies": {
           "FSharp.Core": "[6.0.1, )",
-          "Fantomas.FCS": "[1.0.0, )"
+          "Fantomas.FCS": "[1.0.0, )",
+          "System.Collections.Immutable": "[7.0.0, )"
         }
       },
       "fantomas.fcs": {

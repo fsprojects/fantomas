@@ -1,6 +1,7 @@
 ﻿module internal Fantomas.Core.Selection
 
 open FSharp.Compiler.Text
+open Fantomas.Core.ImmutableArray
 open Fantomas.Core.SyntaxOak
 open Fantomas.Core.ISourceTextExtensions
 
@@ -83,7 +84,14 @@ type TreeForSelection =
 /// We can construct a tree using only the node which the user selected.
 let mkOakFromModuleDecl (md: ModuleDecl) : TreeForSelection =
     let m = (ModuleDecl.Node md).Range
-    TreeForSelection.Standalone(Oak([], [ ModuleOrNamespaceNode(None, [ md ], m) ], m))
+
+    TreeForSelection.Standalone(
+        Oak(
+            ImmutableArray.empty,
+            ImmutableArray.singleton (ModuleOrNamespaceNode(None, ImmutableArray.singleton md, m)),
+            m
+        )
+    )
 
 /// The selected node by the user cannot be formatted as a standalone expression.
 /// We need to format a tree that is an approximation of the selection.
@@ -93,7 +101,15 @@ let mkOakFromModuleDecl (md: ModuleDecl) : TreeForSelection =
 /// We can fake a binding (or type alias) and later try and select the formatted type.
 let mkExtractableOakFromModule (md: ModuleDecl) (t: System.Type) =
     let m = (ModuleDecl.Node md).Range
-    TreeForSelection.RequiresExtraction(Oak([], [ ModuleOrNamespaceNode(None, [ md ], m) ], m), t)
+
+    TreeForSelection.RequiresExtraction(
+        Oak(
+            ImmutableArray.empty,
+            ImmutableArray.singleton (ModuleOrNamespaceNode(None, ImmutableArray.singleton md, m)),
+            m
+        ),
+        t
+    )
 
 let dummyUnit: Expr =
     UnitNode(SingleTextNode("(", Range.Zero), SingleTextNode(")", Range.Zero), Range.Zero)
@@ -109,20 +125,20 @@ let mkTreeWithSingleNode (node: Node) : TreeForSelection =
     | :? OpenListNode as node -> mkOakFromModuleDecl (ModuleDecl.OpenList node)
     | :? OpenModuleOrNamespaceNode as node ->
         let openMN = Open.ModuleOrNamespace node
-        let openList = OpenListNode([ openMN ])
+        let openList = OpenListNode(ImmutableArray.singleton openMN)
         mkOakFromModuleDecl (ModuleDecl.OpenList openList)
     | :? OpenTargetNode as node ->
         let openT = Open.Target node
-        let openList = OpenListNode([ openT ])
+        let openList = OpenListNode(ImmutableArray.singleton openT)
         mkOakFromModuleDecl (ModuleDecl.OpenList openList)
 
     | :? HashDirectiveListNode as node -> mkOakFromModuleDecl (ModuleDecl.HashDirectiveList node)
     | :? ParsedHashDirectiveNode as node ->
-        let nodeList = HashDirectiveListNode([ node ])
+        let nodeList = HashDirectiveListNode(ImmutableArray.singleton node)
         mkOakFromModuleDecl (ModuleDecl.HashDirectiveList nodeList)
     | :? ModuleDeclAttributesNode as node -> mkOakFromModuleDecl (ModuleDecl.Attributes node)
     | :? AttributeListNode as node ->
-        let attributes = MultipleAttributeListNode([ node ], m)
+        let attributes = MultipleAttributeListNode(ImmutableArray.singleton node, m)
 
         let md =
             ModuleDecl.Attributes(ModuleDeclAttributesNode(Some attributes, dummyUnit, m))
@@ -348,21 +364,26 @@ let mkTreeWithSingleNode (node: Node) : TreeForSelection =
         TreeForSelection.Unsupported
 
 #if DEBUG
-let printTriviaNode (node: Node) : unit =
-    let rec visit (level: int) (node: Node) =
-        let name = node.GetType().Name
-        printfn "%s%s: %A" ("".PadRight(level * 2)) name node.Range
-        Array.iter (visit (level + 1)) node.Children
-
-    visit 0 node
+let printTriviaNode (node: Node) : unit = ignore node
+// TODO
+// let rec visit (level: int) (node: Node) =
+//     let name = node.GetType().Name
+//     printfn "%s%s: %A" ("".PadRight(level * 2)) name node.Range
+//     Array.iter (visit (level + 1)) node.Children
+//
+// visit 0 node
 #endif
 
 // Find the first node that matches the type
 let rec findRangeOf (t: System.Type) (root: Node) : range option =
-    if root.GetType() = t then
-        Some root.Range
-    else
-        Array.choose (findRangeOf t) root.Children |> Array.tryHead
+    ignore t
+    ignore root
+    None
+// TODO
+// if root.GetType() = t then
+//     Some root.Range
+// else
+//     Array.choose (findRangeOf t) root.Children |> Array.tryHead
 
 let formatSelection
     (config: FormatConfig)

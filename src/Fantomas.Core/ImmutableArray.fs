@@ -7,7 +7,7 @@ open System.Collections.Immutable
 type ImmutableArrayBuilderCode<'T> = delegate of byref<ImmutableArray<'T>.Builder> -> unit
 
 type ImmutableArrayViaBuilder<'T>(builder: ImmutableArray<'T>.Builder) =
-    member val Builder: ImmutableArray<'T>.Builder = builder with get
+    member val public Builder: ImmutableArray<'T>.Builder = builder with get
 
     member inline _.Delay([<InlineIfLambda>] f: unit -> ImmutableArrayBuilderCode<'T>) : ImmutableArrayBuilderCode<'T> =
         ImmutableArrayBuilderCode<_>(fun sm -> (f ()).Invoke &sm)
@@ -90,7 +90,7 @@ type ImmutableArrayViaBuilder<'T>(builder: ImmutableArray<'T>.Builder) =
     member inline b.Run([<InlineIfLambda>] code: ImmutableArrayBuilderCode<'T>) : ImmutableArray<'T> =
         let mutable builder = b.Builder
         code.Invoke &builder
-        builder.ToImmutableArray()
+        builder.ToImmutable()
 
 let immarray<'T> capacity =
     ImmutableArrayViaBuilder(ImmutableArray.CreateBuilder<'T>(initialCapacity = capacity))
@@ -113,4 +113,52 @@ module ImmutableArray =
             for i = 0 to arr.Length - 1 do
                 builder.Add(mapper arr.[i])
 
+            builder.MoveToImmutable()
+
+    let mapList (mapper: 'T -> 'U) (list: 'T list) : 'U immarray =
+        let builder: ImmutableArray<'U>.Builder =
+            ImmutableArray.CreateBuilder<'U>(initialCapacity = list.Length)
+
+        let rec visit xs =
+            match xs with
+            | [] -> ()
+            | head :: rest ->
+                builder.Add(mapper head)
+                visit rest
+
+        visit list
+        builder.ToImmutable()
+
+    let tryPick chooser (immutableArray: 'T immarray) =
+        let rec loop i =
+            if i >= immutableArray.Length then
+                None
+            else
+                match chooser immutableArray.[i] with
+                | None -> loop (i + 1)
+                | res -> res
+
+        loop 0
+
+    let last (immutableArray: 'T immarray) : 'T =
+        assert (not immutableArray.IsEmpty)
+        immutableArray.[immutableArray.Length - 1]
+
+    let tryLast (immutableArray: 'T immarray) : 'T option =
+        if immutableArray.IsEmpty then
+            None
+        else
+            Some immutableArray.[immutableArray.Length - 1]
+
+    let filter predicate (immutableArray: 'T immarray) : 'T immarray =
+        if immutableArray.IsEmpty then
+            immutableArray
+        else
+            let builder = ImmutableArray.CreateBuilder(immutableArray.Length)
+
+            for i = 0 to immutableArray.Length - 1 do
+                if predicate immutableArray.[i] then
+                    builder.Add(immutableArray.[i])
+
+            builder.Capacity <- builder.Count
             builder.MoveToImmutable()

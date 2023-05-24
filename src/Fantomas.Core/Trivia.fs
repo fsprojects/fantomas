@@ -1,8 +1,11 @@
 ﻿module internal Fantomas.Core.Trivia
 
+open System.Collections.Generic
+open System.Collections.Immutable
 open FSharp.Compiler.Syntax
 open FSharp.Compiler.SyntaxTrivia
 open FSharp.Compiler.Text
+open Fantomas.Core.ImmutableArray
 open Fantomas.Core.ISourceTextExtensions
 open Fantomas.Core.SyntaxOak
 
@@ -17,10 +20,10 @@ let internal collectTriviaFromCodeComments
     (source: ISourceText)
     (codeComments: CommentTrivia list)
     (codeRange: range)
-    : TriviaNode list =
+    : TriviaNode immarray =
     codeComments
     |> List.filter (fun ct -> RangeHelpers.rangeContainsRange codeRange ct.Range)
-    |> List.map (function
+    |> ImmutableArray.mapList (function
         | CommentTrivia.BlockComment r ->
             let content = source.GetContentAt r
             let startLine = source.GetLineString(r.StartLine - 1)
@@ -61,72 +64,63 @@ let internal collectTriviaFromBlankLines
     (rootNode: Node)
     (codeComments: CommentTrivia list)
     (codeRange: range)
-    : TriviaNode list =
+    : TriviaNode immarray =
     if codeRange.StartLine = 0 && codeRange.EndLine = 0 then
         // weird edge cases where there is no source code but only hash defines
-        []
+        ImmutableArray.empty
     else
         let fileIndex = codeRange.FileIndex
 
+        let ignoreLineBuilder: ImmutableArray<int>.Builder =
+            ImmutableArray.CreateBuilder<int>()
+
         let captureLinesIfMultiline (r: range) =
-            if r.StartLine = r.EndLine then
-                []
+            if r.StartLine <> r.EndLine then
+                ignoreLineBuilder.AddRange([| r.StartLine .. r.EndLine |])
+
+        let rec visit (nodes: Node immarray) =
+            if nodes.IsEmpty then
+                ()
             else
-                [ r.StartLine .. r.EndLine ]
+                let head = nodes.[0]
+                let rest = nodes.Slice(1, nodes.Length - 1)
+                captureLinesIfMultiline head.Range
+                visit rest
 
-        let multilineStringsLines =
-            let rec visit (node: Node) (finalContinuation: int list -> int list) =
-                let continuations: ((int list -> int list) -> int list) list =
-                    Array.toList node.Children |> List.map visit
+        visit (ImmutableArray.singleton rootNode)
 
-                let currentLines =
-                    match node with
-                    | :? StringNode as node -> captureLinesIfMultiline node.Range
-                    | _ -> []
+        for codeComment in codeComments do
+            match codeComment with
+            | CommentTrivia.BlockComment r -> captureLinesIfMultiline r
+            | CommentTrivia.LineComment _ -> ()
 
-                let finalContinuation (lines: int list list) : int list =
-                    List.collect id (currentLines :: lines) |> finalContinuation
-
-                Continuation.sequence continuations finalContinuation
-
-            visit rootNode id
-
-        let blockCommentLines =
-            codeComments
-            |> List.collect (function
-                | CommentTrivia.BlockComment r -> captureLinesIfMultiline r
-                | CommentTrivia.LineComment _ -> [])
-
-        let ignoreLines =
-            Set(
-                seq {
-                    yield! multilineStringsLines
-                    yield! blockCommentLines
-                }
-            )
-
+        let ignoreLines = Set(ignoreLineBuilder.ToImmutable())
         let min = System.Math.Max(0, codeRange.StartLine - 1)
-
         let max = System.Math.Min(source.Length - 1, codeRange.EndLine - 1)
 
-        (min, [ min..max ])
-        ||> List.chooseState (fun count idx ->
+        let triviaBuilder = ImmutableArray.CreateBuilder<TriviaNode>()
+        let mutable count = min
+
+        for idx in [ min..max ] do
             if ignoreLines.Contains(idx + 1) then
-                0, None
+                count <- 0
             else
                 let line = source.GetLineString(idx)
 
                 if String.isNotNullOrWhitespace line then
-                    0, None
+                    count <- 0
                 else
                     let range =
                         let p = Position.mkPos (idx + 1) 0
                         Range.mkFileIndexRange fileIndex p p
 
                     if count < config.KeepMaxNumberOfBlankLines then
-                        (count + 1), Some(TriviaNode(Newline, range))
+                        count <- count + 1
+                        triviaBuilder.Add(TriviaNode(Newline, range))
                     else
-                        count, None)
+                        ()
+
+        triviaBuilder.ToImmutable()
 
 type ConditionalDirectiveTrivia with
 
@@ -140,10 +134,10 @@ let internal collectTriviaFromDirectives
     (source: ISourceText)
     (directives: ConditionalDirectiveTrivia list)
     (codeRange: range)
-    : TriviaNode list =
+    : TriviaNode immarray =
     directives
     |> List.filter (fun cdt -> RangeHelpers.rangeContainsRange codeRange cdt.Range)
-    |> List.map (fun cdt ->
+    |> ImmutableArray.mapList (fun cdt ->
         let m = cdt.Range
         let text = (source.GetContentAt m).TrimEnd()
         let content = Directive text
@@ -158,8 +152,7 @@ let rec findNodeWhereRangeFitsIn (root: Node) (range: range) : Node option =
         // The more specific the node fits the selection, the better
         let betterChildNode =
             root.Children
-            |> Array.choose (fun childNode -> findNodeWhereRangeFitsIn childNode range)
-            |> Array.tryHead
+            |> ImmutableArray.tryPick (fun childNode -> findNodeWhereRangeFitsIn childNode range)
 
         match betterChildNode with
         | Some betterChild -> Some betterChild
@@ -225,13 +218,13 @@ let rec visitLastChildNode (node: Node) : Node =
     | :? ValNode
     | :? BindingReturnInfoNode
     | :? PatLeftMiddleRight
-    | :? MultipleAttributeListNode -> visitLastChildNode (Array.last node.Children)
+    | :? MultipleAttributeListNode -> visitLastChildNode (ImmutableArray.last node.Children)
     | :? PatLongIdentNode
     | :? ModuleOrNamespaceNode ->
-        if Array.isEmpty node.Children then
+        if node.Children.IsEmpty then
             node
         else
-            visitLastChildNode (Seq.last node.Children)
+            visitLastChildNode (ImmutableArray.last node.Children)
     | _ -> node
 
 let lineCommentAfterSourceCodeToTriviaInstruction (containerNode: Node) (trivia: TriviaNode) : unit =
@@ -239,9 +232,9 @@ let lineCommentAfterSourceCodeToTriviaInstruction (containerNode: Node) (trivia:
 
     let result =
         containerNode.Children
-        |> Array.filter (fun node -> node.Range.EndLine = lineNumber)
-        |> Array.sortByDescending (fun node -> node.Range.StartColumn)
-        |> Array.tryHead
+        |> ImmutableArray.filter (fun node -> node.Range.EndLine = lineNumber)
+        |> Seq.sortByDescending (fun node -> node.Range.StartColumn)
+        |> Seq.tryHead
 
     result
     |> Option.iter (fun node ->
@@ -250,9 +243,16 @@ let lineCommentAfterSourceCodeToTriviaInstruction (containerNode: Node) (trivia:
 
 let simpleTriviaToTriviaInstruction (containerNode: Node) (trivia: TriviaNode) : unit =
     containerNode.Children
-    |> Array.tryFind (fun node -> node.Range.StartLine > trivia.Range.StartLine)
-    |> Option.map (fun n -> n.AddBefore)
-    |> Option.orElseWith (fun () -> Array.tryLast containerNode.Children |> Option.map (fun n -> n.AddAfter))
+    |> ImmutableArray.tryPick (fun node ->
+        if not (node.Range.StartLine > trivia.Range.StartLine) then
+            None
+        else
+            Some node.AddBefore
+
+    )
+    |> Option.orElseWith (fun () ->
+        ImmutableArray.tryLast containerNode.Children
+        |> Option.map (fun n -> n.AddAfter))
     |> Option.iter (fun f -> f trivia)
 
 let blockCommentToTriviaInstruction (containerNode: Node) (trivia: TriviaNode) : unit =
@@ -337,8 +337,13 @@ let enrichTree (config: FormatConfig) (sourceText: ISourceText) (ast: ParsedInpu
 
         let directives = collectTriviaFromDirectives sourceText directives fullTreeRange
 
-        [| yield! comments; yield! newlines; yield! directives |]
-        |> Array.sortBy (fun n -> n.Range.Start.Line, n.Range.Start.Column)
+        let comparer =
+            { new IComparer<TriviaNode> with
+                member this.Compare(x, y) =
+                    Comparer<int * int>.Default
+                        .Compare((x.Range.Start.Line, x.Range.Start.Column), (y.Range.Start.Line, y.Range.Start.Column)) }
+
+        comments.AddRange(newlines).AddRange(directives).Sort(comparer)
 
     addToTree tree trivia
     tree
