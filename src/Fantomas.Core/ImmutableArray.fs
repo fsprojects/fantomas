@@ -90,12 +90,16 @@ type ImmutableArrayViaBuilder<'T>(builder: ImmutableArray<'T>.Builder) =
     member inline b.Run([<InlineIfLambda>] code: ImmutableArrayBuilderCode<'T>) : ImmutableArray<'T> =
         let mutable builder = b.Builder
         code.Invoke &builder
-        builder.ToImmutable()
+        builder.MoveToImmutable()
 
 let immarray<'T> capacity =
     ImmutableArrayViaBuilder(ImmutableArray.CreateBuilder<'T>(initialCapacity = capacity))
 
 type immarray<'T> = ImmutableArray<'T>
+
+type ImmutableArray<'T> with
+
+    member this.IsNotEmpty: bool = not this.IsEmpty
 
 [<RequireQualifiedAccess>]
 module ImmutableArray =
@@ -112,6 +116,18 @@ module ImmutableArray =
 
             for i = 0 to arr.Length - 1 do
                 builder.Add(mapper arr.[i])
+
+            builder.MoveToImmutable()
+
+    let mapi (mapper: int -> 'T -> 'U) (arr: 'T immarray) : 'U immarray =
+        match arr.Length with
+        | 0 -> ImmutableArray.Empty
+        | 1 -> ImmutableArray.Create(mapper 0 arr.[0])
+        | _ ->
+            let builder = ImmutableArray.CreateBuilder(arr.Length)
+
+            for i = 0 to arr.Length - 1 do
+                builder.Add(mapper i arr.[i])
 
             builder.MoveToImmutable()
 
@@ -162,3 +178,18 @@ module ImmutableArray =
 
             builder.Capacity <- builder.Count
             builder.MoveToImmutable()
+
+    let collect (collector: 'T -> 'U immarray) (arrays: 'T immarray) : 'U immarray =
+        match arrays.Length with
+        | 0 -> ImmutableArray.Empty
+        | 1 -> collector arrays.[0]
+        | _ ->
+            let builder = ImmutableArray.CreateBuilder<'U>()
+
+            for i = 0 to arrays.Length - 1 do
+                builder.AddRange(collector arrays.[i])
+
+            builder.MoveToImmutable()
+
+    let tryHead (array: 'T immarray) : 'T option =
+        if array.IsEmpty then None else Some array.[0]

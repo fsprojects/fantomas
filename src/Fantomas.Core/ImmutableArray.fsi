@@ -34,15 +34,22 @@ val immarray<'T> : capacity: int -> ImmutableArrayViaBuilder<'T>
 
 type immarray<'T> = ImmutableArray<'T>
 
+type ImmutableArray<'T> with
+
+    member IsNotEmpty: bool
+
 [<RequireQualifiedAccess>]
 module ImmutableArray =
     val empty<'T> : 'T immarray
     val singleton: item: 'T -> 'T immarray
     val ofSeq: xs: 'T seq -> 'T immarray
     val map: mapper: ('T -> 'U) -> 'T immarray -> 'U immarray
+    val mapi: mapper: (int -> 'T -> 'U) -> 'T immarray -> 'U immarray
     /// Special mapping function to map FSC lists to immutable arrays
     val mapList: mapper: ('T -> 'U) -> 'T list -> immarray<'U>
     val tryPick: chooser: ('T -> 'U option) -> immutableArray: 'T immarray -> 'U option
     val last: immarray<'T> -> 'T
     val tryLast: immarray<'T> -> 'T option
     val filter: predicate: ('T -> bool) -> immarray<'T> -> immarray<'T>
+    val collect: collector: ('T -> 'U immarray) -> arrays: 'T immarray -> 'U immarray
+    val tryHead: array: 'T immarray -> 'T option
