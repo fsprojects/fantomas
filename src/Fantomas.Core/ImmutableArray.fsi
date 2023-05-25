@@ -38,6 +38,11 @@ type ImmutableArray<'T> with
 
     member IsNotEmpty: bool
 
+val (|EmptyImmutableArray|SingleItemImmutableArray|HeadAndTailInImmutableArray|):
+    'T immarray -> Choice<unit, 'T, 'T * 'T immarray>
+
+val (|TwoItemsImmutableArray|_|): 'T immarray -> ('T * 'T) option
+
 [<RequireQualifiedAccess>]
 module ImmutableArray =
     val empty<'T> : 'T immarray
@@ -53,3 +58,7 @@ module ImmutableArray =
     val filter: predicate: ('T -> bool) -> immarray<'T> -> immarray<'T>
     val collect: collector: ('T -> 'U immarray) -> arrays: 'T immarray -> 'U immarray
     val tryHead: array: 'T immarray -> 'T option
+    val fold: folder: ('State -> 'T -> 'State) -> 'State -> 'T immarray -> 'State
+    val exists: predicate: ('T -> bool) -> 'T immarray -> bool
+    val forall: ('T -> bool) -> immarray<'T> -> bool
+    val chunkBySize: chunkSize: int -> 'T immarray -> 'T immarray immarray

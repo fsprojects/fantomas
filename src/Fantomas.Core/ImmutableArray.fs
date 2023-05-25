@@ -101,6 +101,21 @@ type ImmutableArray<'T> with
 
     member this.IsNotEmpty: bool = not this.IsEmpty
 
+let (|EmptyImmutableArray|SingleItemImmutableArray|HeadAndTailInImmutableArray|) (array: 'T immarray) =
+    if array.IsEmpty then
+        EmptyImmutableArray
+    elif array.Length = 1 then
+        SingleItemImmutableArray(array.[0])
+    else
+        let rest = array.Slice(1, array.Length - 1)
+        HeadAndTailInImmutableArray(array.[0], rest)
+
+let (|TwoItemsImmutableArray|_|) (array: 'T immarray) =
+    if array.Length <> 2 then
+        None
+    else
+        Some(array.[0], array.[1])
+
 [<RequireQualifiedAccess>]
 module ImmutableArray =
     let empty<'T> = ImmutableArray<'T>.Empty
@@ -189,7 +204,44 @@ module ImmutableArray =
             for i = 0 to arrays.Length - 1 do
                 builder.AddRange(collector arrays.[i])
 
-            builder.MoveToImmutable()
+            builder.ToImmutable()
 
     let tryHead (array: 'T immarray) : 'T option =
         if array.IsEmpty then None else Some array.[0]
+
+    let fold folder state (arr: 'T immarray) =
+        let f = OptimizedClosures.FSharpFunc<_, _, _>.Adapt(folder)
+        let mutable state = state
+
+        for i = 0 to arr.Length - 1 do
+            state <- f.Invoke(state, arr.[i])
+
+        state
+
+    let exists predicate (array: 'T immarray) =
+        let len = array.Length
+
+        let rec loop i =
+            i < len && (predicate array.[i] || loop (i + 1))
+
+        len > 0 && loop 0
+
+    let forall predicate (arr: 'T immarray) =
+        let len = arr.Length
+
+        let rec loop i =
+            i >= len || (predicate arr.[i] && loop (i + 1))
+
+        loop 0
+
+    let chunkBySize (chunkSize: int) (array: 'T immarray) =
+        let startIndexes = [| 0..chunkSize .. array.Length |]
+
+        let builder =
+            ImmutableArray.CreateBuilder<'T immarray>(initialCapacity = startIndexes.Length)
+
+        for startIndex in startIndexes do
+            let sliceSize = Math.Min(array.Length - startIndex, chunkSize)
+            builder.Add(array.Slice(startIndex, sliceSize))
+
+        builder.MoveToImmutable()

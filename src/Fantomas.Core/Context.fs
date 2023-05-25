@@ -3,6 +3,7 @@ module internal Fantomas.Core.Context
 open System
 open FSharp.Compiler.Text
 open Fantomas.Core
+open Fantomas.Core.ImmutableArray
 open Fantomas.Core.SyntaxOak
 
 type WriterEvent =
@@ -501,15 +502,15 @@ let optPre (f2: _ -> Context) (f1: Context -> _) o f (ctx: Context) =
     | Some x -> f1 (f x (f2 ctx))
     | None -> ctx
 
-let getListOrArrayExprSize ctx maxWidth xs =
+let getListOrArrayExprSize ctx maxWidth (xs: 'a immarray) =
     match ctx.Config.ArrayOrListMultilineFormatter with
     | MultilineFormatterType.CharacterWidth -> Size.CharacterWidth maxWidth
-    | MultilineFormatterType.NumberOfItems -> Size.NumberOfItems(List.length xs, ctx.Config.MaxArrayOrListNumberOfItems)
+    | MultilineFormatterType.NumberOfItems -> Size.NumberOfItems(xs.Length, ctx.Config.MaxArrayOrListNumberOfItems)
 
-let getRecordSize ctx fields =
+let getRecordSize ctx (fields: 'a immarray) =
     match ctx.Config.RecordMultilineFormatter with
     | MultilineFormatterType.CharacterWidth -> Size.CharacterWidth ctx.Config.MaxRecordWidth
-    | MultilineFormatterType.NumberOfItems -> Size.NumberOfItems(List.length fields, ctx.Config.MaxRecordNumberOfItems)
+    | MultilineFormatterType.NumberOfItems -> Size.NumberOfItems(fields.Length, ctx.Config.MaxRecordNumberOfItems)
 
 /// b is true, apply f1 otherwise apply f2
 let ifElse b (f1: Context -> Context) f2 (ctx: Context) = if b then f1 ctx else f2 ctx
@@ -1017,11 +1018,16 @@ let isMultilineItem (expr: Context -> Context) (ctx: Context) : bool * Context =
 ///
 /// let c = CCCC
 
-let colWithNlnWhenItemIsMultiline (items: ColMultilineItem list) (ctx: Context) : Context =
-    match items with
-    | [] -> ctx
-    | [ (ColMultilineItem(expr, _)) ] -> expr ctx
-    | ColMultilineItem(initialExpr, _) :: items ->
+let colWithNlnWhenItemIsMultiline (items: ColMultilineItem immarray) (ctx: Context) : Context =
+    if items.IsEmpty then
+        ctx
+    elif items.Length = 1 then
+        let (ColMultilineItem(expr, _)) = items.[0]
+        expr ctx
+    else
+        let (ColMultilineItem(initialExpr, _)) = items.[0]
+        let items = items.Slice(1, items.Length - 1)
+
         let result =
             // The first item can be written as is.
             let initialIsMultiline, initialCtx = isMultilineItem initialExpr ctx
@@ -1030,10 +1036,12 @@ let colWithNlnWhenItemIsMultiline (items: ColMultilineItem list) (ctx: Context) 
                 { Context = initialCtx
                   LastBlockMultiline = initialIsMultiline }
 
-            let rec loop (acc: ColMultilineItemsState) (items: ColMultilineItem list) =
-                match items with
-                | [] -> acc.Context
-                | ColMultilineItem(expr, sepNlnItem) :: rest ->
+            let rec loop (acc: ColMultilineItemsState) (items: ColMultilineItem immarray) =
+                if items.IsEmpty then
+                    acc.Context
+                else
+                    let (ColMultilineItem(expr, sepNlnItem)) = items.[0]
+                    let rest = items.Slice(1, items.Length - 1)
                     // Assume the current item will be multiline or the previous was.
                     // If this is the case, we have already processed the correct stream of event (with additional newline)
                     // It is cheaper to replay the current expression if it (and its predecessor) turned out to be single lines.
@@ -1065,7 +1073,7 @@ let colWithNlnWhenItemIsMultiline (items: ColMultilineItem list) (ctx: Context) 
 
         result
 
-let colWithNlnWhenItemIsMultilineUsingConfig (items: ColMultilineItem list) (ctx: Context) =
+let colWithNlnWhenItemIsMultilineUsingConfig (items: ColMultilineItem immarray) (ctx: Context) =
     if ctx.Config.BlankLinesAroundNestedMultilineExpressions then
         colWithNlnWhenItemIsMultiline items ctx
     else

@@ -84,7 +84,11 @@ let internal collectTriviaFromBlankLines
             else
                 let head = nodes.[0]
                 let rest = nodes.Slice(1, nodes.Length - 1)
-                captureLinesIfMultiline head.Range
+
+                match head with
+                | :? StringNode as node -> captureLinesIfMultiline node.Range
+                | _ -> ()
+
                 visit rest
 
         visit (ImmutableArray.singleton rootNode)

@@ -267,7 +267,7 @@ let mkTuple (creationAide: CreationAide) (exprs: SynExpr list) (commas: range li
         let items =
             assert (tail.Length = commas.Length)
 
-            immarray (2 * tail.Length) {
+            immarray (1 + 2 * tail.Length) {
                 yield Choice1Of2(mkExpr creationAide head)
 
                 for c, e in List.zip commas tail do
@@ -1908,12 +1908,19 @@ let mkExternBinding
             let lid = mkSynLongIdent argLid
 
             let lidPieces =
-                // TODO: this had List.mapWithLast but I'm not sure why
-                lid.Content
-                |> ImmutableArray.map (function
-                    | IdentifierOrDot.KnownDot dot -> IdentifierOrDot.KnownDot dot
-                    | IdentifierOrDot.UnknownDot -> IdentifierOrDot.UnknownDot
-                    | IdentifierOrDot.Ident ident -> IdentifierOrDot.Ident(stn $"{ident.Text}{suffix}" ident.Range))
+                let builder = ImmutableArray.CreateBuilder<IdentifierOrDot>(lid.Content.Length)
+
+                for i = 0 to lid.Content.Length - 1 do
+                    if i <> lid.Content.Length - 1 then
+                        builder.Add lid.Content.[i]
+                    else
+                        match lid.Content.[i] with
+                        | IdentifierOrDot.KnownDot dot -> IdentifierOrDot.KnownDot dot
+                        | IdentifierOrDot.UnknownDot -> IdentifierOrDot.UnknownDot
+                        | IdentifierOrDot.Ident ident -> IdentifierOrDot.Ident(stn $"{ident.Text}{suffix}" ident.Range)
+                        |> builder.Add
+
+                builder.MoveToImmutable()
 
             Type.LongIdent(IdentListNode(lidPieces, t.Range))
         | SynType.App(typeName = typeName; isPostfix = true; typeArgs = [ argType ]) ->
@@ -2388,10 +2395,13 @@ let mkImplicitCtor
         | head :: tail ->
             assert (tail.Length = commas.Length)
 
-            immarray (1 + tail.Length) {
+            let headPat =
                 match mkSynSimplePat creationAide head with
-                | None -> ()
-                | Some simplePat -> yield Choice1Of2 simplePat
+                | None -> ImmutableArray.empty
+                | Some simplePat -> ImmutableArray.singleton (Choice1Of2 simplePat)
+
+            immarray (headPat.Length + 2 * tail.Length) {
+                yield! headPat
 
                 for c, p in List.zip commas tail do
                     match mkSynSimplePat creationAide p with

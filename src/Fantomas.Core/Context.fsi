@@ -1,6 +1,7 @@
 module internal Fantomas.Core.Context
 
 open FSharp.Compiler.Text
+open Fantomas.Core.ImmutableArray
 open Fantomas.Core.SyntaxOak
 
 type WriterEvent =
@@ -148,8 +149,8 @@ val optPre:
     ctx: Context ->
         Context
 
-val getListOrArrayExprSize: ctx: Context -> maxWidth: Num -> xs: 'a list -> Size
-val getRecordSize: ctx: Context -> fields: 'a list -> Size
+val getListOrArrayExprSize: ctx: Context -> maxWidth: Num -> xs: 'a immarray -> Size
+val getRecordSize: ctx: Context -> fields: 'a immarray -> Size
 /// b is true, apply f1 otherwise apply f2
 val ifElse: b: bool -> f1: (Context -> Context) -> f2: (Context -> Context) -> ctx: Context -> Context
 
@@ -289,5 +290,5 @@ type ColMultilineItem = ColMultilineItem of expr: (Context -> Context) * sepNln:
 ///     BBBBB
 ///
 /// let c = CCCC
-val colWithNlnWhenItemIsMultiline: items: ColMultilineItem list -> ctx: Context -> Context
-val colWithNlnWhenItemIsMultilineUsingConfig: items: ColMultilineItem list -> ctx: Context -> Context
+val colWithNlnWhenItemIsMultiline: items: ColMultilineItem immarray -> ctx: Context -> Context
+val colWithNlnWhenItemIsMultilineUsingConfig: items: ColMultilineItem immarray -> ctx: Context -> Context
