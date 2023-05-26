@@ -14,7 +14,7 @@ type ImmutableArrayViaBuilder<'T> =
     member For: items: 'a seq * f: ('a -> unit) -> unit
     member Zero: unit -> unit
 
-val immarray<'T> : capacity: int -> ImmutableArrayViaBuilder<'T>
+val immarray<'T> : ImmutableArrayViaBuilder<'T>
 
 type ImmutableArray<'T> with
 

@@ -50,7 +50,7 @@ let mkSynLongIdent (sli: SynLongIdent) =
         assert (tail.Length = sli.Dots.Length)
 
         let content =
-            immarray (1 + 2 * tail.Length) {
+            immarray {
                 yield IdentifierOrDot.Ident(mkSynIdent head)
 
                 for dot, ident in List.zip sli.Dots tail do
@@ -66,7 +66,7 @@ let mkLongIdent (longIdent: LongIdent) : IdentListNode =
     | [ single ] -> IdentListNode(IdentifierOrDot.Ident(mkIdent single) |> ImmutableArray.singleton, single.idRange)
     | head :: tail ->
         let content =
-            immarray (1 + 2 * tail.Length) {
+            immarray {
                 yield IdentifierOrDot.Ident(stn head.idText head.idRange)
 
                 for ident in tail do
@@ -107,7 +107,7 @@ let mkConstString (creationAide: CreationAide) (stringKind: SynStringKind) (valu
 
 let mkParsedHashDirective (creationAide: CreationAide) (ParsedHashDirective(ident, args, range)) =
     let args =
-        immarray args.Length {
+        immarray {
             for arg in args do
                 match arg with
                 | ParsedHashDirectiveArgument.String(value, stringKind, range) ->
@@ -187,7 +187,7 @@ let mkMeasure (creationAide: CreationAide) (measure: SynMeasure) : Measure =
         |> Measure.Paren
     | SynMeasure.Seq(ms, m) ->
         let measures =
-            immarray ms.Length {
+            immarray {
                 for m in ms do
                     yield mkMeasure creationAide m
             }
@@ -267,7 +267,7 @@ let mkTuple (creationAide: CreationAide) (exprs: SynExpr list) (commas: range li
         let items =
             assert (tail.Length = commas.Length)
 
-            immarray (1 + 2 * tail.Length) {
+            immarray {
                 yield Choice1Of2(mkExpr creationAide head)
 
                 for c, e in List.zip commas tail do
@@ -981,7 +981,7 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
         |> Expr.ArrayOrList
     | SynExpr.Record(baseInfo, copyInfo, recordFields, StartEndRange 1 (mOpen, _, mClose)) ->
         let fieldNodes =
-            immarray recordFields.Length {
+            immarray {
                 for recordField in recordFields do
                     match recordField with
                     | SynExprRecordField((fieldName, _), Some mEq, Some expr, _) ->
@@ -1011,7 +1011,7 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
                        (StartRange 6 (mStruct, _) & EndRange 2 (mClose, _)),
                        { OpeningBraceRange = mOpen }) ->
         let fields =
-            immarray recordFields.Length {
+            immarray {
                 for recordField in recordFields do
                     match recordField with
                     | sli, Some mEq, e ->
@@ -1033,7 +1033,7 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
         |> Expr.AnonStructRecord
     | SynExpr.AnonRecd(false, copyInfo, recordFields, EndRange 2 (mClose, _), { OpeningBraceRange = mOpen }) ->
         let fields =
-            immarray recordFields.Length {
+            immarray {
                 for recordField in recordFields do
                     match recordField with
                     | sli, Some mEq, e ->
@@ -1630,7 +1630,7 @@ let mkTuplePat (creationAide: CreationAide) (pats: SynPat list) (commas: range l
         assert (tail.Length = commas.Length)
 
         let items =
-            immarray (1 + 2 * tail.Length) {
+            immarray {
                 yield Choice1Of2(mkPat creationAide head)
 
                 for c, e in List.zip commas tail do
@@ -1691,7 +1691,7 @@ let mkPat (creationAide: CreationAide) (p: SynPat) =
         let typarDecls = mkSynValTyparDecls creationAide vtdo
 
         let pairs =
-            immarray nps.Length {
+            immarray {
                 for ident, eq, pat in nps do
                     match eq with
                     | None -> ()
@@ -1776,7 +1776,7 @@ let mkBinding
         match sli.IdentsWithTrivia with
         | [ prefix; OperatorWithStar operatorNode ] ->
             IdentListNode(
-                immarray 3 {
+                immarray {
                     yield IdentifierOrDot.Ident(mkSynIdent prefix)
                     yield IdentifierOrDot.UnknownDot
                     yield operatorNode
@@ -2400,7 +2400,7 @@ let mkImplicitCtor
                 | None -> ImmutableArray.empty
                 | Some simplePat -> ImmutableArray.singleton (Choice1Of2 simplePat)
 
-            immarray (headPat.Length + 2 * tail.Length) {
+            immarray {
                 yield! headPat
 
                 for c, p in List.zip commas tail do
@@ -2627,7 +2627,7 @@ let mkWithGetSet (withKeyword: range option) (getSet: GetSetKeywords option) =
         | GetSetKeywords.Get mGet ->
             Some(
                 MultipleTextsNode(
-                    immarray 2 {
+                    immarray {
                         yield withNode
                         yield stn "get" mGet
                     },
@@ -2637,7 +2637,7 @@ let mkWithGetSet (withKeyword: range option) (getSet: GetSetKeywords option) =
         | GetSetKeywords.Set mSet ->
             Some(
                 MultipleTextsNode(
-                    immarray 2 {
+                    immarray {
                         yield withNode
                         yield stn "set" mSet
                     },
@@ -2648,7 +2648,7 @@ let mkWithGetSet (withKeyword: range option) (getSet: GetSetKeywords option) =
             if rangeBeforePos mGet mSet.Start then
                 Some(
                     MultipleTextsNode(
-                        immarray 3 {
+                        immarray {
                             yield withNode
                             yield stn "get," mGet
                             yield stn "set" mSet
@@ -2659,7 +2659,7 @@ let mkWithGetSet (withKeyword: range option) (getSet: GetSetKeywords option) =
             else
                 Some(
                     MultipleTextsNode(
-                        immarray 3 {
+                        immarray {
                             yield withNode
                             yield stn "set," mSet
                             yield stn "get" mGet
@@ -2689,13 +2689,13 @@ let mkPropertyGetSetBinding
             | [ SynPat.Tuple(false, [ p1; p2; p3 ], [ comma ], _) ] ->
                 let mTuple = unionRanges p1.Range p2.Range
 
-                immarray 2 {
+                immarray {
                     yield
                         PatParenNode(
                             stn "(" Range.Zero,
                             Pattern.Tuple(
                                 PatTupleNode(
-                                    immarray 3 {
+                                    immarray {
                                         yield Choice1Of2(mkPat creationAide p1)
                                         yield Choice2Of2(stn "," comma)
                                         yield Choice1Of2(mkPat creationAide p2)
@@ -2711,7 +2711,7 @@ let mkPropertyGetSetBinding
                     yield mkPat creationAide p3
                 }
             | [ SynPat.Tuple(false, [ p1; p2 ], _, _) ] ->
-                immarray 2 {
+                immarray {
                     yield mkPat creationAide p1
                     yield mkPat creationAide p2
                 }
@@ -3107,7 +3107,7 @@ let mkModuleOrNamespace
             | SynModuleOrNamespaceKind.GlobalNamespace ->
                 Some(
                     MultipleTextsNode(
-                        immarray 2 {
+                        immarray {
                             yield stn "namespace" mNamespace
                             yield stn "global" Range.Zero
                         },
@@ -3453,7 +3453,7 @@ let mkModuleOrNamespaceSig
             | SynModuleOrNamespaceKind.GlobalNamespace ->
                 Some(
                     MultipleTextsNode(
-                        immarray 2 {
+                        immarray {
                             yield stn "namespace" mNamespace
                             yield stn "global" Range.Zero
                         },

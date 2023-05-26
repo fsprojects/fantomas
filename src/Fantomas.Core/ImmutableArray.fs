@@ -8,7 +8,9 @@ type immarray<'T> = ImmutableArray<'T>
 
 type ImmutableArrayViaBuilder<'T>(builder: ImmutableArray<'T>.Builder) =
 
-    member this.Run _ = builder.ToImmutable()
+    member this.Run _ =
+        builder.Capacity <- builder.Count
+        builder.MoveToImmutable()
 
     member this.Yield(item: 'T) = builder.Add(item)
 
@@ -24,8 +26,7 @@ type ImmutableArrayViaBuilder<'T>(builder: ImmutableArray<'T>.Builder) =
 
     member this.Zero() = ()
 
-let immarray<'T> capacity =
-    ImmutableArrayViaBuilder(ImmutableArray.CreateBuilder<'T>(initialCapacity = capacity))
+let immarray<'T> = ImmutableArrayViaBuilder(ImmutableArray.CreateBuilder<'T>())
 
 type ImmutableArray<'T> with
 

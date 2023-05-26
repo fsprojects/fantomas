@@ -1358,7 +1358,7 @@ let genExpr (e: Expr) =
                 | Some(elseNode, elseExpr) ->
                     // This may appear a bit odd that we are adding the `else elseExpr` before the `if expr then expr` lines but purely for this check this doesn't matter.
                     // Each lines needs to fit on one line in order for us to format the short way
-                    immarray (1 + node.Branches.Length) {
+                    immarray {
                         yield (genSingleTextNode elseNode +> sepSpace +> genExpr elseExpr)
 
                         for branch in node.Branches do

@@ -13,8 +13,8 @@ open Fantomas.Core.SyntaxOak
 
 /// Transform the WriterEvents in a Context to a string
 let private dump (context: Context) : string = (dump false context).Code
+
 /// Wrap a single item in an immutable array
-let private sim n = immarray 1 { yield n }
 
 [<Test>]
 let ``!- add a single WriterEvent.Write`` () =
@@ -41,7 +41,7 @@ let ``+> will compose two functions`` () =
     let f (context: Context) : Context = !- "f" context
     let g (context: Context) : Context = !- " and g" context
 
-    // (+>) is very similar to `>>` in F#
+    // (+>) is very ImmutableArray.singletonilar to `>>` in F#
     // There is an implementation detail but conceptually it is the same.
     let h (context: Context) : Context =
         // This is the equivalent of `g (f context)`
@@ -219,19 +219,21 @@ let a =
 
         Oak(
             ImmutableArray.empty,
-            sim (
+            ImmutableArray.singleton (
                 ModuleOrNamespaceNode(
                     None,
-                    sim (
+                    ImmutableArray.singleton (
                         ModuleDecl.TopLevelBinding(
                             BindingNode(
                                 None,
                                 None,
-                                MultipleTextsNode(sim (stn "let"), zeroRange),
+                                MultipleTextsNode(ImmutableArray.singleton (stn "let"), zeroRange),
                                 false,
                                 None,
                                 None,
-                                Choice1Of2(IdentListNode(sim (IdentifierOrDot.Ident(stn "a")), zeroRange)),
+                                Choice1Of2(
+                                    IdentListNode(ImmutableArray.singleton (IdentifierOrDot.Ident(stn "a")), zeroRange)
+                                ),
                                 None,
                                 ImmutableArray.empty,
                                 None,
@@ -336,11 +338,11 @@ let b = 2
         BindingNode(
             None,
             None,
-            MultipleTextsNode(sim (stn "let"), zeroRange),
+            MultipleTextsNode(ImmutableArray.singleton (stn "let"), zeroRange),
             false,
             None,
             None,
-            Choice1Of2(IdentListNode(sim (IdentifierOrDot.Ident(stn name)), zeroRange)),
+            Choice1Of2(IdentListNode(ImmutableArray.singleton (IdentifierOrDot.Ident(stn name)), zeroRange)),
             None,
             ImmutableArray.empty,
             None,
@@ -352,10 +354,10 @@ let b = 2
     let tree =
         Oak(
             ImmutableArray.empty,
-            sim (
+            ImmutableArray.singleton (
                 ModuleOrNamespaceNode(
                     None,
-                    immarray 2 {
+                    immarray {
                         yield ModuleDecl.TopLevelBinding(mkBinding "a" "1")
                         yield ModuleDecl.TopLevelBinding(mkBinding "b" "2")
                     },
