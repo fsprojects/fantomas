@@ -42,20 +42,20 @@ open Fantomas.Core.SyntaxOak
 let implementationSyntaxTree =
     Oak(
         ImmutableArray.empty,
-        immarray 1 {
+        immarray {
             ModuleOrNamespaceNode(
                 None,
-                immarray 1 {
+                immarray {
                     BindingNode(
                         None,
                         None,
-                        MultipleTextsNode(immarray 1 { SingleTextNode("let", Range.Zero) }, Range.Zero),
+                        MultipleTextsNode(immarray { SingleTextNode("let", Range.Zero) }, Range.Zero),
                         false,
                         None,
                         None,
                         Choice1Of2(
                             IdentListNode(
-                                immarray 1 { IdentifierOrDot.Ident(SingleTextNode("a", Range.Zero)) },
+                                immarray { IdentifierOrDot.Ident(SingleTextNode("a", Range.Zero)) },
                                 Range.Zero
                             )
                         ),
@@ -149,7 +149,7 @@ let text v = SingleTextNode(v, Range.Zero)
 let mkCodeFromExpression (e: Expr) =
     Oak(
         ImmutableArray.empty,
-        immarray 1 { ModuleOrNamespaceNode(None, immarray 1 { ModuleDecl.DeclExpr e }, Range.Zero) },
+        immarray { ModuleOrNamespaceNode(None, immarray { ModuleDecl.DeclExpr e }, Range.Zero) },
         Range.Zero
     )
     |> CodeFormatter.FormatOakAsync
@@ -199,7 +199,7 @@ let lambdaExpr =
 
     ExprLambdaNode(
         text "fun",
-        immarray 2 {
+        immarray {
             Pattern.Named(PatNamedNode(None, text "a", Range.Zero))
             Pattern.Named(PatNamedNode(None, text "b", Range.Zero))
         },
