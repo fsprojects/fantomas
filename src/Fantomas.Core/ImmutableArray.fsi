@@ -1,38 +1,20 @@
 ﻿module Fantomas.Core.ImmutableArray
 
-open System
-open System.Collections.Generic
 open System.Collections.Immutable
 
-type ImmutableArrayBuilderCode<'T> = delegate of byref<ImmutableArray<'T>.Builder> -> unit
+type immarray<'T> = ImmutableArray<'T>
 
 type ImmutableArrayViaBuilder<'T> =
     new: builder: ImmutableArray<'T>.Builder -> ImmutableArrayViaBuilder<'T>
-    member public Builder: ImmutableArray<'T>.Builder with get
-    member inline Delay: (unit -> ImmutableArrayBuilderCode<'T>) -> ImmutableArrayBuilderCode<'T>
-    member inline Zero: unit -> ImmutableArrayBuilderCode<'T>
-
-    member inline Combine:
-        ImmutableArrayBuilderCode<'T> * ImmutableArrayBuilderCode<'T> -> ImmutableArrayBuilderCode<'T>
-
-    member inline While: (unit -> bool) * ImmutableArrayBuilderCode<'T> -> ImmutableArrayBuilderCode<'T>
-
-    member inline TryWith:
-        ImmutableArrayBuilderCode<'T> * (exn -> ImmutableArrayBuilderCode<'T>) -> ImmutableArrayBuilderCode<'T>
-
-    member inline TryFinally: ImmutableArrayBuilderCode<'T> * (unit -> unit) -> ImmutableArrayBuilderCode<'T>
-
-    member inline Using:
-        'a * ('a -> ImmutableArrayBuilderCode<'T>) -> ImmutableArrayBuilderCode<'T> when 'a :> IDisposable
-
-    member inline For: seq<'TElement> * ('TElement -> ImmutableArrayBuilderCode<'T>) -> ImmutableArrayBuilderCode<'T>
-    member inline Yield: 'T -> ImmutableArrayBuilderCode<'T>
-    member inline YieldFrom: IEnumerable<'T> -> ImmutableArrayBuilderCode<'T>
-    member inline Run: ImmutableArrayBuilderCode<'T> -> ImmutableArray<'T>
+    member Run: 'a -> 'T immarray
+    member Yield: 'T -> unit
+    member YieldFrom: 'T seq -> unit
+    member Combine: 'a * 'b -> 'b
+    member Delay: (unit -> 'a) -> 'a
+    member For: items: 'a seq * f: ('a -> unit) -> unit
+    member Zero: unit -> unit
 
 val immarray<'T> : capacity: int -> ImmutableArrayViaBuilder<'T>
-
-type immarray<'T> = ImmutableArray<'T>
 
 type ImmutableArray<'T> with
 
@@ -62,3 +44,4 @@ module ImmutableArray =
     val exists: predicate: ('T -> bool) -> 'T immarray -> bool
     val forall: ('T -> bool) -> immarray<'T> -> bool
     val chunkBySize: chunkSize: int -> 'T immarray -> 'T immarray immarray
+    val choose: chooser: ('T -> 'U option) -> immarray<'T> -> ImmutableArray<'U>

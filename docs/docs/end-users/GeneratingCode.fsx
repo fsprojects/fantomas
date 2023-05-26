@@ -36,31 +36,41 @@ To illustrate the API, lets generate a simple value binding: `let a = 0`.
 #r "../../../src/Fantomas/bin/Release/net6.0/Fantomas.Core.dll" // In production use #r "nuget: Fantomas.Core, 6.0-alpha-*"
 
 open FSharp.Compiler.Text
+open Fantomas.Core.ImmutableArray
 open Fantomas.Core.SyntaxOak
 
 let implementationSyntaxTree =
     Oak(
-        [],
-        [ ModuleOrNamespaceNode(
-              None,
-              [ BindingNode(
-                    None,
-                    None,
-                    MultipleTextsNode([ SingleTextNode("let", Range.Zero) ], Range.Zero),
-                    false,
-                    None,
-                    None,
-                    Choice1Of2(IdentListNode([ IdentifierOrDot.Ident(SingleTextNode("a", Range.Zero)) ], Range.Zero)),
-                    None,
-                    [],
-                    None,
-                    SingleTextNode("=", Range.Zero),
-                    Expr.Constant(Constant.FromText(SingleTextNode("0", Range.Zero))),
-                    Range.Zero
-                )
-                |> ModuleDecl.TopLevelBinding ],
-              Range.Zero
-          ) ],
+        ImmutableArray.empty,
+        immarray 1 {
+            ModuleOrNamespaceNode(
+                None,
+                immarray 1 {
+                    BindingNode(
+                        None,
+                        None,
+                        MultipleTextsNode(immarray 1 { SingleTextNode("let", Range.Zero) }, Range.Zero),
+                        false,
+                        None,
+                        None,
+                        Choice1Of2(
+                            IdentListNode(
+                                immarray 1 { IdentifierOrDot.Ident(SingleTextNode("a", Range.Zero)) },
+                                Range.Zero
+                            )
+                        ),
+                        None,
+                        ImmutableArray.empty,
+                        None,
+                        SingleTextNode("=", Range.Zero),
+                        Expr.Constant(Constant.FromText(SingleTextNode("0", Range.Zero))),
+                        Range.Zero
+                    )
+                    |> ModuleDecl.TopLevelBinding
+                },
+                Range.Zero
+            )
+        },
         Range.Zero
     )
 
@@ -137,7 +147,11 @@ Please make sure you construct the same Oak as Fantomas would.
 let text v = SingleTextNode(v, Range.Zero)
 
 let mkCodeFromExpression (e: Expr) =
-    Oak([], [ ModuleOrNamespaceNode(None, [ ModuleDecl.DeclExpr e ], Range.Zero) ], Range.Zero)
+    Oak(
+        ImmutableArray.empty,
+        immarray 1 { ModuleOrNamespaceNode(None, immarray 1 { ModuleDecl.DeclExpr e }, Range.Zero) },
+        Range.Zero
+    )
     |> CodeFormatter.FormatOakAsync
     |> Async.RunSynchronously
     |> printfn "%s"
@@ -185,8 +199,10 @@ let lambdaExpr =
 
     ExprLambdaNode(
         text "fun",
-        [ Pattern.Named(PatNamedNode(None, text "a", Range.Zero))
-          Pattern.Named(PatNamedNode(None, text "b", Range.Zero)) ],
+        immarray 2 {
+            Pattern.Named(PatNamedNode(None, text "a", Range.Zero))
+            Pattern.Named(PatNamedNode(None, text "b", Range.Zero))
+        },
         text "->",
         body,
         Range.Zero

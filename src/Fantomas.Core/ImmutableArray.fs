@@ -1,101 +1,31 @@
 ﻿module Fantomas.Core.ImmutableArray
 
 open System
-open System.Collections.Generic
 open System.Collections.Immutable
+open Microsoft.FSharp.Core
 
-type ImmutableArrayBuilderCode<'T> = delegate of byref<ImmutableArray<'T>.Builder> -> unit
+type immarray<'T> = ImmutableArray<'T>
 
 type ImmutableArrayViaBuilder<'T>(builder: ImmutableArray<'T>.Builder) =
-    member val public Builder: ImmutableArray<'T>.Builder = builder with get
 
-    member inline _.Delay([<InlineIfLambda>] f: unit -> ImmutableArrayBuilderCode<'T>) : ImmutableArrayBuilderCode<'T> =
-        ImmutableArrayBuilderCode<_>(fun sm -> (f ()).Invoke &sm)
+    member this.Run _ = builder.ToImmutable()
 
-    member inline _.Zero() : ImmutableArrayBuilderCode<'T> =
-        ImmutableArrayBuilderCode<_>(fun _sm -> ())
+    member this.Yield(item: 'T) = builder.Add(item)
 
-    member inline _.Combine
-        (
-            [<InlineIfLambda>] part1: ImmutableArrayBuilderCode<'T>,
-            [<InlineIfLambda>] part2: ImmutableArrayBuilderCode<'T>
-        ) : ImmutableArrayBuilderCode<'T> =
-        ImmutableArrayBuilderCode<_>(fun sm ->
-            part1.Invoke &sm
-            part2.Invoke &sm)
+    member this.YieldFrom(items: 'T seq) = builder.AddRange(items)
 
-    member inline _.While
-        (
-            [<InlineIfLambda>] condition: unit -> bool,
-            [<InlineIfLambda>] body: ImmutableArrayBuilderCode<'T>
-        ) : ImmutableArrayBuilderCode<'T> =
-        ImmutableArrayBuilderCode<_>(fun sm ->
-            while condition () do
-                body.Invoke &sm)
+    member this.Combine(_, r) = r
 
-    member inline _.TryWith
-        (
-            [<InlineIfLambda>] body: ImmutableArrayBuilderCode<'T>,
-            [<InlineIfLambda>] handler: exn -> ImmutableArrayBuilderCode<'T>
-        ) : ImmutableArrayBuilderCode<'T> =
-        ImmutableArrayBuilderCode<_>(fun sm ->
-            try
-                body.Invoke &sm
-            with exn ->
-                (handler exn).Invoke &sm)
+    member this.Delay f = f ()
 
-    member inline _.TryFinally
-        (
-            [<InlineIfLambda>] body: ImmutableArrayBuilderCode<'T>,
-            compensation: unit -> unit
-        ) : ImmutableArrayBuilderCode<'T> =
-        ImmutableArrayBuilderCode<_>(fun sm ->
-            try
-                body.Invoke &sm
-            with _ ->
-                compensation ()
-                reraise ()
+    member this.For(items, f) =
+        for i in items do
+            f i
 
-            compensation ())
-
-    member inline b.Using
-        (
-            disp: #IDisposable,
-            [<InlineIfLambda>] body: #IDisposable -> ImmutableArrayBuilderCode<'T>
-        ) : ImmutableArrayBuilderCode<'T> =
-        // A using statement is just a try/finally with the finally block disposing if non-null.
-        b.TryFinally(
-            (fun sm -> (body disp).Invoke &sm),
-            (fun () ->
-                if not (isNull (box disp)) then
-                    disp.Dispose())
-        )
-
-    member inline b.For
-        (
-            sequence: seq<'TElement>,
-            [<InlineIfLambda>] body: 'TElement -> ImmutableArrayBuilderCode<'T>
-        ) : ImmutableArrayBuilderCode<'T> =
-        b.Using(
-            sequence.GetEnumerator(),
-            (fun e -> b.While((fun () -> e.MoveNext()), (fun sm -> (body e.Current).Invoke &sm)))
-        )
-
-    member inline _.Yield(v: 'T) : ImmutableArrayBuilderCode<'T> =
-        ImmutableArrayBuilderCode<_>(fun sm -> sm.Add v)
-
-    member inline b.YieldFrom(source: IEnumerable<'T>) : ImmutableArrayBuilderCode<'T> =
-        ImmutableArrayBuilderCode<_>(fun sm -> sm.AddRange source)
-
-    member inline b.Run([<InlineIfLambda>] code: ImmutableArrayBuilderCode<'T>) : ImmutableArray<'T> =
-        let mutable builder = b.Builder
-        code.Invoke &builder
-        builder.MoveToImmutable()
+    member this.Zero() = ()
 
 let immarray<'T> capacity =
     ImmutableArrayViaBuilder(ImmutableArray.CreateBuilder<'T>(initialCapacity = capacity))
-
-type immarray<'T> = ImmutableArray<'T>
 
 type ImmutableArray<'T> with
 
@@ -245,3 +175,17 @@ module ImmutableArray =
             builder.Add(array.Slice(startIndex, sliceSize))
 
         builder.MoveToImmutable()
+
+    let choose (chooser: 'T -> 'U option) (array: 'T immarray) =
+        if array.IsEmpty then
+            empty
+        else
+            let builder = ImmutableArray.CreateBuilder<'U>(initialCapacity = array.Length)
+
+            for item in array do
+                match chooser item with
+                | None -> ()
+                | Some u -> builder.Add u
+
+            builder.Capacity <- builder.Count
+            builder.MoveToImmutable()

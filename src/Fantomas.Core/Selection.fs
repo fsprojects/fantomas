@@ -365,25 +365,23 @@ let mkTreeWithSingleNode (node: Node) : TreeForSelection =
 
 #if DEBUG
 let printTriviaNode (node: Node) : unit = ignore node
-// TODO
-// let rec visit (level: int) (node: Node) =
-//     let name = node.GetType().Name
-//     printfn "%s%s: %A" ("".PadRight(level * 2)) name node.Range
-//     Array.iter (visit (level + 1)) node.Children
-//
-// visit 0 node
+
+let rec visit (level: int) (node: Node) =
+    let name = node.GetType().Name
+    printfn "%s%s: %A" ("".PadRight(level * 2)) name node.Range
+
+    for child in node.Children do
+        visit (level + 1) child
+
+    visit 0 node
 #endif
 
 // Find the first node that matches the type
 let rec findRangeOf (t: System.Type) (root: Node) : range option =
-    ignore t
-    ignore root
-    None
-// TODO
-// if root.GetType() = t then
-//     Some root.Range
-// else
-//     Array.choose (findRangeOf t) root.Children |> Array.tryHead
+    if root.GetType() = t then
+        Some root.Range
+    else
+        ImmutableArray.choose (findRangeOf t) root.Children |> ImmutableArray.tryHead
 
 let formatSelection
     (config: FormatConfig)
