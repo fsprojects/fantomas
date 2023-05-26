@@ -89,7 +89,7 @@ module ImmutableArray =
                 visit rest
 
         visit list
-        builder.ToImmutable()
+        builder.MoveToImmutable()
 
     let tryPick chooser (immutableArray: 'T immarray) =
         let rec loop i =
@@ -135,7 +135,8 @@ module ImmutableArray =
             for i = 0 to arrays.Length - 1 do
                 builder.AddRange(collector arrays.[i])
 
-            builder.ToImmutable()
+            builder.Capacity <- builder.Count
+            builder.MoveToImmutable()
 
     let tryHead (array: 'T immarray) : 'T option =
         if array.IsEmpty then None else Some array.[0]
