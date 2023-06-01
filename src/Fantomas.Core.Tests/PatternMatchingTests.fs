@@ -2321,3 +2321,26 @@ let f () =
       tail -> 1
     | _ -> None
 """
+
+[<Test>]
+let ``multiline trivia for arrow, 2888`` () =
+    formatSourceString
+        false
+        """
+match subcategory with
+| BuildPhaseSubcategory.Internal
+// Getting here means the compiler has ICE-d. Let's not pile on by showing the unknownSubcategory assert below.
+// Just treat as an unknown-to-LanguageService error.
+ -> false
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+match subcategory with
+| BuildPhaseSubcategory.Internal
+// Getting here means the compiler has ICE-d. Let's not pile on by showing the unknownSubcategory assert below.
+// Just treat as an unknown-to-LanguageService error.
+ -> false
+"""

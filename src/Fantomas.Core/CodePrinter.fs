@@ -2013,7 +2013,16 @@ let genClause (isLastItem: bool) (node: MatchClauseNode) =
 
                         expressionFitsOnRestOfLine (sepSpace +> genExpr node.BodyExpr) long
 
-                    (genSingleTextNodeWithSpaceSuffix sepSpace node.Arrow
+                    let sepArrow =
+                        if not node.Arrow.HasContentBefore then
+                            genSingleTextNodeWithSpaceSuffix sepSpace node.Arrow
+                        else
+                            // In the weird case where the arrow has content before it and there is no multiline whenExpr,
+                            // we need to ensure a space was written before the arrow to avoid offset errors.
+                            // See https://github.com/fsprojects/fantomas/issues/2888
+                            !- $" {node.Arrow.Text} " |> genNode node.Arrow
+
+                    (sepArrow
                      +> ifElse
                          (ctx.Config.ExperimentalKeepIndentInBranch && isLastItem)
                          genKeepIndentInBranch
