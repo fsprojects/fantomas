@@ -80,16 +80,14 @@ type CodeFormatter =
 
     static member FormatOakAsync(oak: Oak) : Async<string> =
         async {
-            // At this point the source is, from a certain point of view, encapsulated in the Oak.
-            let context = Context.Context.Create true FormatConfig.Default
+            let context = Context.Context.Create FormatConfig.Default
             let result = context |> CodePrinter.genFile oak |> Context.dump false
             return result.Code
         }
 
     static member FormatOakAsync(oak: Oak, config: FormatConfig) : Async<string> =
         async {
-            // At this point the source is, from a certain point of view, encapsulated in the Oak.
-            let context = Context.Context.Create true config
+            let context = Context.Context.Create config
             let result = context |> CodePrinter.genFile oak |> Context.dump false
             return result.Code
         }
