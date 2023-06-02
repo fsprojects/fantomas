@@ -16,7 +16,7 @@ module Reflection =
           DisplayName: string option
           Description: string option }
 
-    let inline private getCustomAttribute<'t, 'v when 't :> Attribute and 't: null>
+    let inline getCustomAttribute<'t, 'v when 't :> Attribute and 't: null>
         (projection: 't -> 'v)
         (property: PropertyInfo)
         : 'v option =
@@ -52,26 +52,26 @@ let toEditorConfigName value =
         else
             $"fsharp_%s{name}"
 
-let private getFantomasFields (fallbackConfig: FormatConfig) =
+let getFantomasFields (fallbackConfig: FormatConfig) =
     Reflection.getRecordFields fallbackConfig
     |> Array.map (fun (recordField, defaultValue) ->
         let editorConfigName = toEditorConfigName recordField.PropertyName
 
         (editorConfigName, defaultValue))
 
-let private (|Number|_|) (d: string) =
+let (|Number|_|) (d: string) =
     match System.Int32.TryParse(d) with
     | true, d -> Some(box d)
     | _ -> None
 
-let private (|MultilineFormatterType|_|) mft =
+let (|MultilineFormatterType|_|) mft =
     MultilineFormatterType.OfConfigString mft
 
-let private (|BracketStyle|_|) bs = MultilineBracketStyle.OfConfigString bs
+let (|BracketStyle|_|) bs = MultilineBracketStyle.OfConfigString bs
 
-let private (|EndOfLineStyle|_|) eol = EndOfLineStyle.OfConfigString eol
+let (|EndOfLineStyle|_|) eol = EndOfLineStyle.OfConfigString eol
 
-let private (|Boolean|_|) b =
+let (|Boolean|_|) b =
     if b = "true" then Some(box true)
     elif b = "false" then Some(box false)
     else None
@@ -111,8 +111,7 @@ let configToEditorConfig (config: FormatConfig) : string =
         | _ -> None)
     |> String.concat "\n"
 
-let private editorConfigParser =
-    EditorConfigParser(EditorConfigFileCache.GetOrCreate)
+let editorConfigParser = EditorConfigParser(EditorConfigFileCache.GetOrCreate)
 
 let tryReadConfiguration (fsharpFile: string) : FormatConfig option =
     let editorConfigSettings: FileConfiguration =
