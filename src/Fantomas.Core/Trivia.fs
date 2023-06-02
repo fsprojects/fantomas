@@ -1,8 +1,8 @@
 ﻿module internal Fantomas.Core.Trivia
 
-open FSharp.Compiler.Syntax
-open FSharp.Compiler.SyntaxTrivia
-open FSharp.Compiler.Text
+open Fantomas.FCS.Syntax
+open Fantomas.FCS.SyntaxTrivia
+open Fantomas.FCS.Text
 open Fantomas.Core.ISourceTextExtensions
 open Fantomas.Core.SyntaxOak
 

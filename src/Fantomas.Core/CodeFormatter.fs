@@ -1,7 +1,7 @@
 namespace Fantomas.Core
 
-open FSharp.Compiler.Syntax
-open FSharp.Compiler.Text
+open Fantomas.FCS.Syntax
+open Fantomas.FCS.Text
 open Fantomas.Core.SyntaxOak
 
 [<Sealed>]

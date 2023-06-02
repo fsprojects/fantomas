@@ -1,8 +1,8 @@
 ﻿[<RequireQualifiedAccess>]
 module internal Fantomas.Core.CodeFormatterImpl
 
-open FSharp.Compiler.Syntax
-open FSharp.Compiler.Text
+open Fantomas.FCS.Syntax
+open Fantomas.FCS.Text
 
 val getSourceText: source: string -> ISourceText
 

@@ -1,8 +1,9 @@
 module Fantomas.Core.Tests.CodeFormatterTests
 
-open Fantomas.Core.SyntaxOak
 open NUnit.Framework
+open Fantomas.FCS.Text
 open Fantomas.Core
+open Fantomas.Core.SyntaxOak
 open Fantomas.Core.Tests.TestHelpers
 
 [<Test>]
@@ -81,7 +82,7 @@ let b = 0
 """
 
     let ast, _ =
-        Fantomas.FCS.Parse.parseFile false (FSharp.Compiler.Text.SourceText.ofString source) [ "DEBUG" ]
+        Fantomas.FCS.Parse.parseFile false (SourceText.ofString source) [ "DEBUG" ]
 
     let oak = CodeFormatter.TransformAST(ast, source)
 
@@ -101,7 +102,7 @@ let b = 0
 """
 
     let ast, _ =
-        Fantomas.FCS.Parse.parseFile false (FSharp.Compiler.Text.SourceText.ofString source) [ "DEBUG"; "FOO"; "BAR" ]
+        Fantomas.FCS.Parse.parseFile false (SourceText.ofString source) [ "DEBUG"; "FOO"; "BAR" ]
 
     let oak = CodeFormatter.TransformAST ast
 
@@ -119,8 +120,7 @@ module A
 let b = 0
 """
 
-    let ast, _ =
-        Fantomas.FCS.Parse.parseFile false (FSharp.Compiler.Text.SourceText.ofString source) []
+    let ast, _ = Fantomas.FCS.Parse.parseFile false (SourceText.ofString source) []
 
     let oak = CodeFormatter.TransformAST(ast, source)
 

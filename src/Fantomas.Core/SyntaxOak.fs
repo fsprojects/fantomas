@@ -1,7 +1,7 @@
 module rec Fantomas.Core.SyntaxOak
 
 open System.Collections.Generic
-open FSharp.Compiler.Text
+open Fantomas.FCS.Text
 
 type TriviaContent =
     | CommentOnSingleLine of string

@@ -1,6 +1,6 @@
 module internal Fantomas.Core.Context
 
-open FSharp.Compiler.Text
+open Fantomas.FCS.Text
 open Fantomas.Core.SyntaxOak
 
 type WriterEvent =

@@ -1,8 +1,8 @@
 ﻿module internal Fantomas.Core.Validation
 
-open FSharp.Compiler.Diagnostics
-open FSharp.Compiler.Text
-open FSharp.Compiler.Syntax
+open Fantomas.FCS.Diagnostics
+open Fantomas.FCS.Text
+open Fantomas.FCS.Syntax
 open Fantomas.FCS.Parse
 
 let private safeToIgnoreWarnings =
@@ -10,7 +10,7 @@ let private safeToIgnoreWarnings =
         [ "This construct is deprecated: it is only for use in the F# library"
           "Identifiers containing '@' are reserved for use in F# code generation" ]
 
-// Exception of type 'FSharp.Compiler.DiagnosticsLogger+LibraryUseOnly' was thrown.
+// Exception of type 'Fantomas.FCS.DiagnosticsLogger+LibraryUseOnly' was thrown.
 
 let noWarningOrErrorDiagnostics diagnostics =
     let errors =
