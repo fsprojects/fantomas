@@ -2170,11 +2170,13 @@ let x
 let ``cons pattern in let binding, 1996`` () =
     formatSourceString
         false
-        """let x::y = []
+        """
+let x::y = []
 """
-
-    config
+        config
+    |> prepend newline
     |> should
         equal
-        """let x :: y = []
+        """
+let x :: y = []
 """
