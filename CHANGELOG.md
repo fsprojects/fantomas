@@ -5,6 +5,9 @@
 ### Changed
 * Update FCS to 'Prototype signature files for lex files', commit 5b74995780a0e9d24a5db025e68b31e6d910f71f
 
+### Fixed
+* Missing space before arrow. [#2888](https://github.com/fsprojects/fantomas/issues/2888)
+
 ## [6.0.3] - 2023-05-14
 
 ### Fixed
