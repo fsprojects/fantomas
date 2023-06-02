@@ -1,6 +1,6 @@
 # Changelog
 
-## [Unreleased]
+## [6.0.4] - 2023-06-02
 
 ### Changed
 * Update FCS to 'Prototype signature files for lex files', commit 5b74995780a0e9d24a5db025e68b31e6d910f71f
@@ -8,6 +8,7 @@
 ### Fixed
 * Missing space before arrow. [#2888](https://github.com/fsprojects/fantomas/issues/2888)
 * Cons pattern in let bindings is converted to invalid code. [#1996](https://github.com/fsprojects/fantomas/issues/1996)
+* Trivia after infix operator is not restored correctly. [#2887](https://github.com/fsprojects/fantomas/issues/2887)
 
 ## [6.0.3] - 2023-05-14
 
