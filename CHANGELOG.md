@@ -1,5 +1,10 @@
 # Changelog
 
+## 6.1.0-alpha-003 - 2023-06-02
+
+### Changed
+* Rename `namespace FSharp.Compiler` to `namespace Fantomas.FCS` for `Fantomas.FCS`. [#2894](https://github.com/fsprojects/fantomas/pull/2894)
+
 ## 6.1.0-alpha-002 - 2023-05-02
 
 ### Changed
