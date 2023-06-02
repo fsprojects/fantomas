@@ -57,7 +57,7 @@ let formatAST
     (config: FormatConfig)
     (cursor: pos option)
     : FormatResult =
-    let context = Context.Context.Create sourceText.IsSome config
+    let context = Context.Context.Create config
 
     let oak =
         match sourceText with

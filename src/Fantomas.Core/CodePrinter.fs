@@ -1524,8 +1524,7 @@ let genExpr (e: Expr) =
                 |> fun ctx -> { ctx with Config = currentConfig }
             |> atCurrentColumnIndent
 
-        onlyIfCtx (fun ctx -> not ctx.HasSource) (!- "$\"")
-        +> col sepNone node.Parts (fun part ->
+        col sepNone node.Parts (fun part ->
             match part with
             | Choice1Of2 stringNode -> genSingleTextNode stringNode
             | Choice2Of2 fillNode ->
@@ -1534,11 +1533,7 @@ let genExpr (e: Expr) =
                         genInterpolatedFillExpr fillNode.Expr
                         +> optSingle (fun format -> sepColonFixed +> genSingleTextNode format) fillNode.Ident
 
-                    if not ctx.HasSource then
-                        (!- "{" +> genFill +> !- "}") ctx
-                    else
-                        genFill ctx)
-        +> onlyIfCtx (fun ctx -> not ctx.HasSource) (!- "\"")
+                    genFill ctx)
         |> genNode node
     | Expr.IndexRangeWildcard node -> genSingleTextNode node
     | Expr.TripleNumberIndexRange node ->

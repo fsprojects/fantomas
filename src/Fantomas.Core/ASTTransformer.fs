@@ -1466,11 +1466,25 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
         )
         |> Expr.LibraryOnlyStaticOptimization
     | SynExpr.InterpolatedString(parts, _, _) ->
+        let lastIndex = parts.Length - 1
+
         let parts =
             parts
-            |> List.map (function
+            |> List.mapi (fun idx part ->
+                match part with
                 | SynInterpolatedStringPart.String(v, r) ->
-                    stn (creationAide.TextFromSource (fun () -> v) r) r |> Choice1Of2
+                    stn
+                        (creationAide.TextFromSource
+                            (fun () ->
+                                if idx = 0 && not (v.StartsWith("$")) then
+                                    $"$\"%s{v}{{"
+                                elif idx = lastIndex && not (v.EndsWith("\"")) then
+                                    $"}}%s{v}\""
+                                else
+                                    $"}}{v}{{")
+                            r)
+                        r
+                    |> Choice1Of2
                 | SynInterpolatedStringPart.FillExpr(fillExpr, qualifiers) ->
                     let m =
                         match qualifiers with

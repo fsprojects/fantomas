@@ -47,3 +47,23 @@ let ``trivia is parsed for Oak`` () =
         |> fst
 
     Assert.True(oak.ModulesOrNamespaces.[0].HasContentAfter)
+
+[<Test>]
+let ``parsed oak can be formatted back to source`` () =
+    let source = "$\"gc{i}\""
+
+    let oak =
+        CodeFormatter.ParseOakAsync(false, source)
+        |> Async.RunSynchronously
+        |> Array.head
+        |> fst
+
+    let formatted =
+        CodeFormatter.FormatOakAsync(
+            oak,
+            { FormatConfig.Default with
+                InsertFinalNewline = false }
+        )
+        |> Async.RunSynchronously
+
+    Assert.AreEqual(source, formatted)

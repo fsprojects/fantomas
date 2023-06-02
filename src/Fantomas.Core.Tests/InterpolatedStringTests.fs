@@ -79,6 +79,21 @@ let s = $"%s{text} bar"
 """
 
 [<Test>]
+let ``interpolation from AST with multiple fillExprs`` () =
+    formatAST
+        false
+        """
+$"%s{text} %i{bar} %f{meh}"
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+$"%s{text} %i{bar} %f{meh}"
+"""
+
+[<Test>]
 let ``multiline expression in multiline string`` () =
     formatSourceString
         false

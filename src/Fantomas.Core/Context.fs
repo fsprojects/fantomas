@@ -181,7 +181,6 @@ module WriterEvents =
 [<System.Diagnostics.DebuggerDisplay("\"{Dump()}\"")>]
 type Context =
     { Config: FormatConfig
-      HasSource: bool
       WriterModel: WriterModel
       WriterEvents: Queue<WriterEvent>
       FormattedCursor: pos option }
@@ -189,15 +188,12 @@ type Context =
     /// Initialize with a string writer and use space as delimiter
     static member Default =
         { Config = FormatConfig.Default
-          HasSource = false
           WriterModel = WriterModel.init
           WriterEvents = Queue.empty
           FormattedCursor = None }
 
-    static member Create hasSource config : Context =
-        { Context.Default with
-            Config = config
-            HasSource = hasSource }
+    static member Create config : Context =
+        { Context.Default with Config = config }
 
     member x.WithDummy(writerCommands, ?keepPageWidth) =
         let keepPageWidth = keepPageWidth |> Option.defaultValue false

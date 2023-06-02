@@ -404,7 +404,7 @@ let formatSelection
                 MaxLineLength = maxLineLength }
 
         let formattedSelection =
-            let context = Context.Context.Create true selectionConfig
+            let context = Context.Context.Create selectionConfig
 
             match tree with
             | TreeForSelection.Unsupported ->
