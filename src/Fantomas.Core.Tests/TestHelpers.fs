@@ -33,7 +33,7 @@ let formatSourceString isFsiFile (s: string) config =
 let formatAST isFsiFile (source: string) config =
     async {
         let ast, _ =
-            Fantomas.FCS.Parse.parseFile isFsiFile (FSharp.Compiler.Text.SourceText.ofString source) []
+            Fantomas.FCS.Parse.parseFile isFsiFile (Fantomas.FCS.Text.SourceText.ofString source) []
 
         let! formattedCode = CodeFormatter.FormatASTAsync(ast, config = config)
         let! isValid = CodeFormatter.IsValidFSharpCodeAsync(isFsiFile, formattedCode)

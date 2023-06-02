@@ -1,10 +1,10 @@
 module Fantomas.Core.Tests.ASTTransformerTests
 
 open NUnit.Framework
-open FSharp.Compiler.Text
-open FSharp.Compiler.Xml
-open FSharp.Compiler.Syntax
-open FSharp.Compiler.SyntaxTrivia
+open Fantomas.FCS.Text
+open Fantomas.FCS.Xml
+open Fantomas.FCS.Syntax
+open Fantomas.FCS.SyntaxTrivia
 open Fantomas.Core
 
 [<Test>]

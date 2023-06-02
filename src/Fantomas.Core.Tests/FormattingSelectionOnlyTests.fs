@@ -1,6 +1,6 @@
 module Fantomas.Core.Tests.FormattingSelectionOnlyTests
 
-open FSharp.Compiler.Text
+open Fantomas.FCS.Text
 open Fantomas.Core
 open NUnit.Framework
 open FsUnit

@@ -1,6 +1,6 @@
 module Fantomas.Core.ISourceTextExtensions
 
-open FSharp.Compiler.Text
+open Fantomas.FCS.Text
 
 type ISourceText with
 

@@ -3,25 +3,25 @@ module Fantomas.FCS.Parse
 open System
 open System.Text
 open System.Diagnostics
-open FSharp.Compiler.Diagnostics
-open FSharp.Compiler.DiagnosticMessage
+open Fantomas.FCS.Diagnostics
+open Fantomas.FCS.DiagnosticMessage
 open Internal.Utilities
 open Internal.Utilities.Library
-open FSharp.Compiler
-open FSharp.Compiler.AbstractIL.IL
-open FSharp.Compiler.DiagnosticsLogger
-open FSharp.Compiler.Features
-open FSharp.Compiler.Lexhelp
-open FSharp.Compiler.Text
-open FSharp.Compiler.Text.Position
-open FSharp.Compiler.Text.Range
-open FSharp.Compiler.Xml
-open FSharp.Compiler.Syntax
-open FSharp.Compiler.SyntaxTrivia
-open FSharp.Compiler.Syntax.PrettyNaming
-open FSharp.Compiler.SyntaxTreeOps
-open FSharp.Compiler.IO
-open FSharp.Compiler.ParseHelpers
+open Fantomas.FCS
+open Fantomas.FCS.AbstractIL.IL
+open Fantomas.FCS.DiagnosticsLogger
+open Fantomas.FCS.Features
+open Fantomas.FCS.Lexhelp
+open Fantomas.FCS.Text
+open Fantomas.FCS.Text.Position
+open Fantomas.FCS.Text.Range
+open Fantomas.FCS.Xml
+open Fantomas.FCS.Syntax
+open Fantomas.FCS.SyntaxTrivia
+open Fantomas.FCS.Syntax.PrettyNaming
+open Fantomas.FCS.SyntaxTreeOps
+open Fantomas.FCS.IO
+open Fantomas.FCS.ParseHelpers
 
 let FSharpSigFileSuffixes = [ ".mli"; ".fsi" ]
 

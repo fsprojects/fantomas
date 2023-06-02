@@ -102,7 +102,7 @@ let genTrivia (node: Node) (trivia: TriviaNode) (ctx: Context) =
                 let originalColumnOffset = trivia.Range.EndColumn - node.Range.EndColumn
 
                 let formattedCursor =
-                    FSharp.Compiler.Text.Position.mkPos ctx.WriterModel.Lines.Length (ctx.Column + originalColumnOffset)
+                    Fantomas.FCS.Text.Position.mkPos ctx.WriterModel.Lines.Length (ctx.Column + originalColumnOffset)
 
                 { ctx with
                     FormattedCursor = Some formattedCursor }
@@ -122,7 +122,7 @@ let recordCursorNode f (node: Node) (ctx: Context) =
 
         let formattedCursor =
             let columnOffsetInSource = cursor.Column - node.Range.StartColumn
-            FSharp.Compiler.Text.Position.mkPos currentStartLine (currentStartColumn + columnOffsetInSource)
+            Fantomas.FCS.Text.Position.mkPos currentStartLine (currentStartColumn + columnOffsetInSource)
 
         { ctxAfter with
             FormattedCursor = Some formattedCursor }
@@ -766,7 +766,7 @@ let genExpr (e: Expr) =
             | [] -> genExpr node.LeadingExpr
             | (operator, e2) :: es ->
                 let m =
-                    FSharp.Compiler.Text.Range.unionRanges (Expr.Node node.LeadingExpr).Range (Expr.Node e2).Range
+                    Fantomas.FCS.Text.Range.unionRanges (Expr.Node node.LeadingExpr).Range (Expr.Node e2).Range
 
                 genMultilineInfixExpr (ExprInfixAppNode(node.LeadingExpr, operator, e2, m))
                 +> sepNln
@@ -1045,9 +1045,9 @@ let genExpr (e: Expr) =
                 let parenExpr =
                     mkExprParenNode
                         node.OpeningParen
-                        (Expr.Null(SingleTextNode("", FSharp.Compiler.Text.Range.Zero)))
+                        (Expr.Null(SingleTextNode("", Fantomas.FCS.Text.Range.Zero)))
                         node.ClosingParen
-                        FSharp.Compiler.Text.Range.Zero
+                        Fantomas.FCS.Text.Range.Zero
 
                 sepSpaceBeforeParenInFuncInvocation node.FunctionName parenExpr
             | _ -> sepSpace
@@ -1839,16 +1839,16 @@ let genTupleExpr (node: ExprTupleNode) =
             | IsLambdaOrIfThenElse e ->
                 let parenNode =
                     mkExprParenNode
-                        (SingleTextNode("(", FSharp.Compiler.Text.Range.Zero))
+                        (SingleTextNode("(", Fantomas.FCS.Text.Range.Zero))
                         e
-                        (SingleTextNode(")", FSharp.Compiler.Text.Range.Zero))
-                        FSharp.Compiler.Text.Range.Zero
+                        (SingleTextNode(")", Fantomas.FCS.Text.Range.Zero))
+                        Fantomas.FCS.Text.Range.Zero
 
                 ExprInfixAppNode(
                     exprInfixAppNode.LeftHandSide,
                     exprInfixAppNode.Operator,
                     parenNode,
-                    FSharp.Compiler.Text.range.Zero
+                    Fantomas.FCS.Text.range.Zero
                 )
                 |> Expr.InfixApp
             | _ -> expr

@@ -2,11 +2,11 @@
 
 open System.Collections.Generic
 open System.Text.RegularExpressions
-open FSharp.Compiler.Text
-open FSharp.Compiler.Text.Range
-open FSharp.Compiler.Syntax
-open FSharp.Compiler.SyntaxTrivia
-open FSharp.Compiler.Xml
+open Fantomas.FCS.Text
+open Fantomas.FCS.Text.Range
+open Fantomas.FCS.Syntax
+open Fantomas.FCS.SyntaxTrivia
+open Fantomas.FCS.Xml
 open Fantomas.Core.ISourceTextExtensions
 open Fantomas.Core.RangePatterns
 open Fantomas.Core.SyntaxOak
