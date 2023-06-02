@@ -1,8 +1,8 @@
 module Fantomas.FCS.Parse
 
-open FSharp.Compiler.Diagnostics
-open FSharp.Compiler.Syntax
-open FSharp.Compiler.Text
+open Fantomas.FCS.Diagnostics
+open Fantomas.FCS.Syntax
+open Fantomas.FCS.Text
 
 type FSharpParserDiagnostic =
     { Severity: FSharpDiagnosticSeverity

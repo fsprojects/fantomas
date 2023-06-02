@@ -2,7 +2,7 @@ module Fantomas.Core.Tests.TokenParserTests
 
 open NUnit.Framework
 open FsUnit
-open FSharp.Compiler.Syntax
+open Fantomas.FCS.Syntax
 open Fantomas.Core
 open Fantomas.Core.Defines
 open Fantomas.Core.Tests.TestHelpers
