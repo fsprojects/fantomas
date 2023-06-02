@@ -1,6 +1,6 @@
 # Changelog
 
-## [Unreleased]
+## [6.0.4] - 2023-06-02
 
 ### Changed
 * Update FCS to 'Prototype signature files for lex files', commit 5b74995780a0e9d24a5db025e68b31e6d910f71f
