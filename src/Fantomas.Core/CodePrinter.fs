@@ -772,7 +772,7 @@ let genExpr (e: Expr) =
                 +> sepNln
                 +> col sepNln es (fun (operator, e) ->
                     genSingleTextNode operator
-                    +> sepSpace
+                    +> ifElse operator.HasContentAfter sepNln sepSpace
                     +> (fun ctx ->
                         match e with
                         | Expr.Lambda _ when

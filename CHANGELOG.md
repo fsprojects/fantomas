@@ -7,6 +7,7 @@
 
 ### Fixed
 * Missing space before arrow. [#2888](https://github.com/fsprojects/fantomas/issues/2888)
+* Trivia after infix operator is not restored correctly. [#2887](https://github.com/fsprojects/fantomas/issues/2887)
 
 ## [6.0.3] - 2023-05-14
 
