@@ -2165,3 +2165,18 @@ let x
     ) =
     print "hello"
 """
+
+[<Test>]
+let ``cons pattern in let binding, 1996`` () =
+    formatSourceString
+        false
+        """
+let x::y = []
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let x :: y = []
+"""
