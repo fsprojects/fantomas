@@ -2,6 +2,7 @@ module Fantomas.EditorConfig
 
 open System.Collections.Generic
 open System.ComponentModel
+open EditorConfig.Core
 open Fantomas.Core
 
 module Reflection =
@@ -40,7 +41,7 @@ let toEditorConfigName value =
     value
     |> Seq.map (fun c ->
         if System.Char.IsUpper(c) then
-            sprintf "_%s" (c.ToString().ToLower())
+            $"_%s{c.ToString().ToLower()}"
         else
             c.ToString())
     |> String.concat ""
@@ -49,7 +50,7 @@ let toEditorConfigName value =
         if List.contains name supportedProperties then
             name
         else
-            sprintf "fsharp_%s" name
+            $"fsharp_%s{name}"
 
 let private getFantomasFields (fallbackConfig: FormatConfig) =
     Reflection.getRecordFields fallbackConfig
@@ -102,18 +103,19 @@ let configToEditorConfig (config: FormatConfig) : string =
             |> Some
         | :? System.Int32 as i -> $"%s{toEditorConfigName recordField.PropertyName}=%d{i}" |> Some
         | :? MultilineFormatterType as mft ->
-            sprintf "%s=%s" (toEditorConfigName recordField.PropertyName) (MultilineFormatterType.ToConfigString mft)
+            $"%s{toEditorConfigName recordField.PropertyName}=%s{MultilineFormatterType.ToConfigString mft}"
             |> Some
         | :? EndOfLineStyle as eols ->
-            sprintf "%s=%s" (toEditorConfigName recordField.PropertyName) (EndOfLineStyle.ToConfigString eols)
+            $"%s{toEditorConfigName recordField.PropertyName}=%s{EndOfLineStyle.ToConfigString eols}"
             |> Some
         | _ -> None)
     |> String.concat "\n"
 
-let private editorConfigParser = EditorConfig.Core.EditorConfigParser()
+let private editorConfigParser =
+    EditorConfigParser(EditorConfigFileCache.GetOrCreate)
 
 let tryReadConfiguration (fsharpFile: string) : FormatConfig option =
-    let editorConfigSettings: EditorConfig.Core.FileConfiguration =
+    let editorConfigSettings: FileConfiguration =
         editorConfigParser.Parse(fileName = fsharpFile)
 
     if editorConfigSettings.Properties.Count = 0 then
