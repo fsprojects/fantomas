@@ -7,6 +7,7 @@
 
 ### Fixed
 * Missing space before arrow. [#2888](https://github.com/fsprojects/fantomas/issues/2888)
+* Cons pattern in let bindings is converted to invalid code. [#1996](https://github.com/fsprojects/fantomas/issues/1996)
 
 ## [6.0.3] - 2023-05-14
 
