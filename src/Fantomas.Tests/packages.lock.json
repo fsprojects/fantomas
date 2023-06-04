@@ -73,8 +73,8 @@
       },
       "editorconfig": {
         "type": "Transitive",
-        "resolved": "0.13.0",
-        "contentHash": "1IAdbakbxaKyVv/gr3VTHkbFMFgfOSpP4VRSvOg50Ee9qAfXDr4F8FvOtwq7Pi6fcoxxXYfOYceT1U3oODdpFg=="
+        "resolved": "0.14.0",
+        "contentHash": "emt1KlBtTsTSHWeLnlD1grQYN991wlzIh8t0/HF8ambYTLE8v25sPU9q2eu3sNj/Za7Ij6a0MW00lDGTsphEhQ=="
       },
       "Fable.Core": {
         "type": "Transitive",
@@ -922,7 +922,7 @@
           "StreamJsonRpc": "[2.8.28, )",
           "System.IO.Abstractions": "[17.2.3, )",
           "Thoth.Json.Net": "[8.0.0, )",
-          "editorconfig": "[0.13.0, )"
+          "editorconfig": "[0.14.0, )"
         }
       },
       "fantomas.client": {
