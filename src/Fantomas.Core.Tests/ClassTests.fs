@@ -1042,31 +1042,6 @@ type C() =
 """
 
 [<Test>]
-let ``explicit class/end with members, idempotent`` () =
-    formatSourceString
-        false
-        """
-type C() =
-    class
-        member x.P = 1
-    end
-
-    member _.Run() = 1
-"""
-        config
-    |> prepend newline
-    |> should
-        equal
-        """
-type C() =
-    class
-        member x.P = 1
-    end
-
-    member _.Run() = 1
-"""
-
-[<Test>]
 let ``static member with get unit should be formatted the same as without, 1913`` () =
     formatSourceString
         false

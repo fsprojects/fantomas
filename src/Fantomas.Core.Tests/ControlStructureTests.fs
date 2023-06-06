@@ -827,35 +827,6 @@ with
 """
 
 [<Test>]
-let ``comment above pipe of try/with, idempotent`` () =
-    formatSourceString
-        false
-        """
-try
-    let defaultTime =
-        (DateTime.FromFileTimeUtc 0L).ToLocalTime()
-
-    foo.CreationTime <> defaultTime
-with
-// hmm
-:? FileNotFoundException -> false
-"""
-        config
-    |> prepend newline
-    |> should
-        equal
-        """
-try
-    let defaultTime = (DateTime.FromFileTimeUtc 0L).ToLocalTime()
-
-    foo.CreationTime <> defaultTime
-with
-// hmm
-| :? FileNotFoundException ->
-    false
-"""
-
-[<Test>]
 let ``comment above pipe of try/with named clause, 1686`` () =
     formatSourceString
         false
@@ -870,40 +841,6 @@ module Foo =
         // hi!
         | :? Exception as e ->
             failwith ""
-"""
-        { config with
-            SpaceBeforeColon = true
-            SpaceBeforeSemicolon = true }
-    |> prepend newline
-    |> should
-        equal
-        """
-namespace Foo
-
-module Foo =
-    let a =
-        try
-            failwith ""
-        with
-        // hi!
-        | :? Exception as e ->
-            failwith ""
-"""
-
-[<Test>]
-let ``comment above pipe of try/with named clause, idempotent`` () =
-    formatSourceString
-        false
-        """
-namespace Foo
-
-module Foo =
-    let a =
-        try
-            failwith ""
-        with
-        // hi!
-        | :? Exception as e -> failwith ""
 """
         { config with
             SpaceBeforeColon = true

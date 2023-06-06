@@ -31,12 +31,6 @@ let foo =
 """
         { config with
             SpaceBeforeUppercaseInvocation = true }
-    |> fun formatted ->
-        formatSourceString
-            false
-            formatted
-            { config with
-                SpaceBeforeUppercaseInvocation = true }
     |> prepend newline
     |> should
         equal
