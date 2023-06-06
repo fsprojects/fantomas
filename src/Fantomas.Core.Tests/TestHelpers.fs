@@ -19,12 +19,19 @@ let newline = "\n"
 let formatSourceString isFsiFile (s: string) config =
     async {
         let! formatted = CodeFormatter.FormatDocumentAsync(isFsiFile, s, config)
-        let! isValid = CodeFormatter.IsValidFSharpCodeAsync(isFsiFile, formatted.Code)
+        let formattedCode = formatted.Code.Replace("\r\n", "\n")
+        let! isValid = CodeFormatter.IsValidFSharpCodeAsync(isFsiFile, formattedCode)
 
         if not isValid then
-            failwithf $"The formatted result is not valid F# code or contains warnings\n%s{formatted.Code}"
+            failwithf $"The formatted result is not valid F# code or contains warnings\n%s{formattedCode}"
 
-        return formatted.Code.Replace("\r\n", "\n")
+        let! secondFormat = CodeFormatter.FormatDocumentAsync(isFsiFile, formattedCode, config)
+        let secondFormattedCode = secondFormat.Code.Replace("\r\n", "\n")
+
+        if formattedCode <> secondFormattedCode then
+            failwithf $"The formatted result was not idempotent.\n%s{formattedCode}"
+
+        return formattedCode
     }
 
     |> Async.RunSynchronously

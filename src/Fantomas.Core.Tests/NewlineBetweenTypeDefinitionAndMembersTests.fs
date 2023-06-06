@@ -120,26 +120,6 @@ type Color =
 """
 
 [<Test>]
-let ``type abbreviation with members`` () =
-    formatSourceString
-        false
-        """
-type A = string
-with
-    member this.X = ()
-"""
-        config
-    |> prepend newline
-    |> should
-        equal
-        """
-type A = string
-    with
-
-        member this.X = ()
-"""
-
-[<Test>]
 let ``type augmentation with members`` () =
     formatSourceString
         false

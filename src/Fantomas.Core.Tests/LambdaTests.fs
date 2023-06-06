@@ -1262,44 +1262,6 @@ Task.Run<CommandResult>(task)
 """
 
 [<Test>]
-let ``don't add space before linq lambda and idempotent, 2231`` () =
-    formatSourceString
-        false
-        """
-open System.Linq
-
-type Item() =
-    member val ValidFrom = DateTime.MinValue
-    member val Value = 23.42m
-
-let items = [ Item(); Item(); Item() ]
-
-let firstOrDef = items.FirstOrDefault(fun x ->
-    x.ValidFrom <= DateTime.Now || x.ValidFrom > DateTime.Now).Value
-"""
-        { config with
-            MaxInfixOperatorExpression = 50 }
-    |> prepend newline
-    |> should
-        equal
-        """
-open System.Linq
-
-type Item() =
-    member val ValidFrom = DateTime.MinValue
-    member val Value = 23.42m
-
-let items = [ Item(); Item(); Item() ]
-
-let firstOrDef =
-    items
-        .FirstOrDefault(fun x ->
-            x.ValidFrom <= DateTime.Now
-            || x.ValidFrom > DateTime.Now)
-        .Value
-"""
-
-[<Test>]
 let ``lambda with long list of arguments`` () =
     formatSourceString
         false

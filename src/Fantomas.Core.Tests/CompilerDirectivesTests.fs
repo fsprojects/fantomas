@@ -53,33 +53,6 @@ SetupTesting.generateSetupScript __SOURCE_DIRECTORY__
 """
 
 [<Test>]
-let ``should keep compiler directives, idempotent`` () =
-    formatSourceString
-        false
-        """
-#if INTERACTIVE
-#else
-#load "../FSharpx.TypeProviders/SetupTesting.fsx"
-SetupTesting.generateSetupScript __SOURCE_DIRECTORY__
-
-#load "__setup__.fsx"
-#endif
-"""
-        config
-    |> prepend newline
-    |> should
-        equal
-        """
-#if INTERACTIVE
-#else
-#load "../FSharpx.TypeProviders/SetupTesting.fsx"
-SetupTesting.generateSetupScript __SOURCE_DIRECTORY__
-
-#load "__setup__.fsx"
-#endif
-"""
-
-[<Test>]
 let ``line, file and path identifiers`` () =
     formatSourceString
         false
