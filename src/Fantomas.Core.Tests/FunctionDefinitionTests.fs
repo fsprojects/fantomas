@@ -1353,3 +1353,37 @@ let inline repro (a: ^``QuotedWithIllegalChar<'T>``) = ()
         """
 let inline repro (a: ^``QuotedWithIllegalChar<'T>``) = ()
 """
+
+[<Test>]
+let ``should idempotently format large member constraints on type parameters, 2896`` () =
+    let formatted =
+        formatSourceString
+            false
+            """
+let inline func
+    (arg:
+        'a when 'a: (member a: int) and 'a: (member b: int) and 'a: (member c: int) and 'a: (member d: int) and 'a: (member e: int))
+    = 0
+        """
+            config
+        |> prepend newline
+
+    let expected =
+        """
+let inline func
+    (arg:
+        'a
+            when 'a: (member a: int)
+            and 'a: (member b: int)
+            and 'a: (member c: int)
+            and 'a: (member d: int)
+            and 'a: (member e: int))
+    =
+    0
+"""
+
+    formatted |> should equal expected
+
+    let formattedTwice = formatSourceString false formatted config |> prepend newline
+
+    formattedTwice |> should equal expected
