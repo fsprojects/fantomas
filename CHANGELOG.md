@@ -1,5 +1,10 @@
 # Changelog
 
+## [6.0.5] - 2023-06-06
+
+### Fixed
+* Idempotency problem when reformatting type declaration with large when clause. [#2896](https://github.com/fsprojects/fantomas/issues/2896)
+
 ## [6.0.4] - 2023-06-02
 
 ### Changed

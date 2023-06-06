@@ -1353,3 +1353,30 @@ let inline repro (a: ^``QuotedWithIllegalChar<'T>``) = ()
         """
 let inline repro (a: ^``QuotedWithIllegalChar<'T>``) = ()
 """
+
+[<Test>]
+let ``multiline member constraints on type parameters, 2896`` () =
+    formatSourceString
+        false
+        """
+let inline func
+    (arg:
+        'a when 'a: (member a: int) and 'a: (member b: int) and 'a: (member c: int) and 'a: (member d: int) and 'a: (member e: int))
+    = 0
+        """
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let inline func
+    (arg:
+        'a
+            when 'a: (member a: int)
+            and 'a: (member b: int)
+            and 'a: (member c: int)
+            and 'a: (member d: int)
+            and 'a: (member e: int))
+    =
+    0
+"""

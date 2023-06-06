@@ -3062,13 +3062,7 @@ let genType (t: Type) =
         +> genSingleTextNode node.ClosingParen
         |> genNode node
     | Type.WithSubTypeConstraint tc -> genTypeConstraint tc
-    | Type.WithGlobalConstraints node ->
-        leadingExpressionIsMultiline (genType node.Type) (fun isMultiline ->
-            if isMultiline then
-                indentSepNlnUnindent (genTypeConstraints node.TypeConstraints)
-            else
-                sepSpaceOrIndentAndNlnIfExpressionExceedsPageWidth (genTypeConstraints node.TypeConstraints))
-        |> genNode node
+    | Type.WithGlobalConstraints node -> genType node.Type +> genTypeConstraints node.TypeConstraints |> genNode node
     | Type.LongIdent idn -> genIdentListNode idn
     | Type.AnonRecord node ->
         let genStruct =
