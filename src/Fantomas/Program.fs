@@ -1,5 +1,6 @@
 open System
 open System.IO
+open System.IO.Abstractions
 open Fantomas.Core
 open Fantomas
 open Fantomas.Daemon
@@ -7,8 +8,6 @@ open Fantomas.Logging
 open Argu
 open System.Text
 open Spectre.Console
-
-let extensions = set [| ".fs"; ".fsx"; ".fsi"; ".ml"; ".mli" |]
 
 type Arguments =
     | [<Unique>] Force
@@ -34,16 +33,17 @@ type Arguments =
             | Input _ ->
                 sprintf
                     "Input paths: can be multiple folders or files with %s extension."
-                    (Seq.map (fun s -> "*" + s) extensions |> String.concat ",")
+                    (Seq.map (fun s -> "*" + s) InputFiles.acceptedFSharpExtensions
+                     |> String.concat ",")
             | Verbosity _ -> "Set the verbosity level. Allowed values are n[ormal] and d[etailed]."
 
 [<RequireQualifiedAccess>]
 type InputPath =
-    | File of string
-    | Folder of string
-    | Multiple of files: string list * folder: string list
-    | NoFSharpFile of string
-    | NotFound of string
+    | File of IFileInfo
+    | Folder of IDirectoryInfo
+    | Multiple of files: IFileInfo list * folder: IDirectoryInfo list
+    | NoFSharpFile of IFileInfo
+    | NotFound of IFileInfo
     | Unspecified
 
 [<RequireQualifiedAccess>]
@@ -56,21 +56,6 @@ type Table with
     member x.SetBorder(border: TableBorder) =
         x.Border <- border
         x
-
-let isInExcludedDir (fullPath: string) =
-    set [| "obj"; ".fable"; "fable_modules"; "node_modules" |]
-    |> Set.map (fun dir -> sprintf "%c%s%c" Path.DirectorySeparatorChar dir Path.DirectorySeparatorChar)
-    |> Set.exists fullPath.Contains
-
-let isFSharpFile (s: string) =
-    Set.contains (Path.GetExtension s) extensions
-
-/// Get all appropriate files, recursively.
-let findAllFilesRecursively path =
-    let searchOption = SearchOption.AllDirectories
-
-    Directory.GetFiles(path, "*.*", searchOption)
-    |> Seq.filter (fun f -> isFSharpFile f && not (isInExcludedDir f))
 
 /// Fantomas assumes the input files are UTF-8
 /// As is stated in F# language spec: https://fsharp.org/specs/language-spec/4.1/FSharpSpec-4.1-latest.pdf#page=25
@@ -178,7 +163,7 @@ let runCheckCommand (inputPath: InputPath) : int =
 
     match inputPath with
     | InputPath.NoFSharpFile s ->
-        elog $"Input path '%s{s}' is unsupported file type"
+        elog $"Input path '%s{s.FullName}' is unsupported file type"
         1
     | InputPath.NotFound s ->
         elog $"Input path '%s{s}' not found"
@@ -200,8 +185,7 @@ let runCheckCommand (inputPath: InputPath) : int =
 
         allFilesToCheck |> check |> processCheckResult
 
-[<EntryPoint>]
-let main argv =
+let mainAux (fs: IFileSystem) argv =
     let errorHandler =
         ProcessExiter(
             colorizer =
@@ -491,3 +475,6 @@ let main argv =
             exit 1
 
     0
+
+[<EntryPoint>]
+let main argv = mainAux (FileSystem()) argv

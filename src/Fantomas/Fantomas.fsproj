@@ -24,6 +24,8 @@
     <Compile Include="Logging.fs" />
     <Compile Include="IgnoreFile.fsi" />
     <Compile Include="IgnoreFile.fs" />
+    <Compile Include="InputFiles.fsi" />
+    <Compile Include="InputFiles.fs" />
     <Compile Include="EditorConfig.fsi" />
     <Compile Include="EditorConfig.fs" />
     <Compile Include="Format.fsi" />

@@ -41,4 +41,8 @@ module IgnoreFile =
     /// a single `.fantomasignore` file. This is that file.
     val current: Lazy<IgnoreFile option>
 
-    val isIgnoredFile: ignoreFile: IgnoreFile option -> file: string -> bool
+    val isIgnoredFile: ignoreFile: IgnoreFile option -> file: IFileInfo -> bool
+
+    /// Check if the folder is ignored.
+    /// If no ignore file is present, the folder will never be ignored.
+    val isIgnoredFolder: IgnoreFile: IgnoreFile option -> folder: IDirectoryInfo -> bool
