@@ -1,5 +1,4 @@
 open System
-open System.IO
 open System.IO.Abstractions
 open Fantomas.Core
 open Fantomas
@@ -43,7 +42,7 @@ type InputPath =
     | Folder of IDirectoryInfo
     | Multiple of files: IFileInfo list * folder: IDirectoryInfo list
     | NoFSharpFile of IFileInfo
-    | NotFound of IFileInfo
+    | NotFound of string
     | Unspecified
 
 [<RequireQualifiedAccess>]
@@ -59,12 +58,13 @@ type Table with
 
 /// Fantomas assumes the input files are UTF-8
 /// As is stated in F# language spec: https://fsharp.org/specs/language-spec/4.1/FSharpSpec-4.1-latest.pdf#page=25
-let private hasByteOrderMark file =
+let hasByteOrderMark (fs: IFileSystem) file =
     async {
-        if File.Exists(file) then
+        if fs.File.Exists(file) then
             let preamble = Encoding.UTF8.GetPreamble()
 
-            use file = new FileStream(file, FileMode.Open, FileAccess.Read)
+            use file =
+                fs.FileStream.Create(file, System.IO.FileMode.Open, System.IO.FileAccess.Read)
 
             let mutable bom = Array.zeroCreate 3
             do! file.ReadAsync(bom, 0, 3) |> Async.AwaitTask |> Async.Ignore<int>
@@ -73,19 +73,19 @@ let private hasByteOrderMark file =
             return false
     }
 
-let private invalidResultException file =
+let invalidResultException file =
     FormatException($"Formatting {file} leads to invalid F# code")
 
 /// Format a source string using given config and write to a text writer
-let processSourceString (force: bool) (profile: bool) s (fileName: string) config =
+let processSourceString (fs: IFileSystem) (force: bool) (profile: bool) s (fileName: string) config =
     let writeResult (formatted: string) =
         async {
-            let! hasBom = hasByteOrderMark fileName
+            let! hasBom = hasByteOrderMark fs fileName
 
             if hasBom then
-                do! File.WriteAllTextAsync(fileName, formatted, Encoding.UTF8) |> Async.AwaitTask
+                do! fs.File.WriteAllTextAsync(fileName, formatted, Encoding.UTF8) |> Async.AwaitTask
             else
-                do! File.WriteAllTextAsync(fileName, formatted) |> Async.AwaitTask
+                do! fs.File.WriteAllTextAsync(fileName, formatted) |> Async.AwaitTask
 
             logGrEqDetailed $"%s{fileName} has been written."
         }
@@ -105,9 +105,6 @@ let processSourceString (force: bool) (profile: bool) s (fileName: string) confi
         | FormatResult.Unchanged(file, _) as r ->
             logGrEqDetailed $"'%s{file}' was unchanged"
             return r
-        | FormatResult.IgnoredFile file as r ->
-            logGrEqDetailed $"'%s{file}' was ignored"
-            return r
         | FormatResult.Error _ as r -> return r
         | FormatResult.InvalidCode(file, _) ->
             let ex = invalidResultException file
@@ -115,7 +112,7 @@ let processSourceString (force: bool) (profile: bool) s (fileName: string) confi
     }
 
 /// Format inFile and write to text writer
-let processSourceFile (force: bool) (profile: bool) inFile (tw: TextWriter) =
+let processSourceFile (fs: IFileSystem) (force: bool) (profile: bool) inFile (tw: System.IO.TextWriter) =
     async {
         let! formatted = FormatParams.Create(false, profile, inFile) |> Format.formatFileAsync
 
@@ -128,11 +125,8 @@ let processSourceFile (force: bool) (profile: bool) inFile (tw: TextWriter) =
             do! tw.WriteAsync(formattedContent) |> Async.AwaitTask
             return FormatResult.Formatted(inFile, formattedContent, None)
         | FormatResult.Unchanged _ as r ->
-            let! input = inFile |> File.ReadAllTextAsync |> Async.AwaitTask
+            let! input = inFile |> fs.File.ReadAllTextAsync |> Async.AwaitTask
             do! input |> tw.WriteAsync |> Async.AwaitTask
-            return r
-        | FormatResult.IgnoredFile file as r ->
-            logGrEqDetailed $"'%s{file}' was ignored"
             return r
         | FormatResult.Error _ as r -> return r
         | FormatResult.InvalidCode(file, _) ->
@@ -140,7 +134,7 @@ let processSourceFile (force: bool) (profile: bool) inFile (tw: TextWriter) =
             return FormatResult.Error(file, ex)
     }
 
-let private reportCheckResults (checkResult: CheckResult) =
+let reportCheckResults (checkResult: CheckResult) =
     checkResult.Errors
     |> List.map (fun (filename, exn) -> $"error: Failed to format %s{filename}: %s{exn.ToString()}")
     |> Seq.iter elog
@@ -149,7 +143,7 @@ let private reportCheckResults (checkResult: CheckResult) =
     |> List.map (fun filename -> $"%s{filename} needs formatting")
     |> Seq.iter stdlog
 
-let runCheckCommand (inputPath: InputPath) : int =
+let runCheckCommand (ignoreFile: IgnoreFile option) (inputPath: InputPath) : int =
     let check files =
         Async.RunSynchronously(Format.checkCode files)
 
@@ -162,25 +156,25 @@ let runCheckCommand (inputPath: InputPath) : int =
             if checkResult.HasErrors then 1 else 99
 
     match inputPath with
-    | InputPath.NoFSharpFile s ->
-        elog $"Input path '%s{s.FullName}' is unsupported file type"
+    | InputPath.NoFSharpFile file ->
+        elog $"Input path '%s{file.FullName}' is unsupported file type"
         1
-    | InputPath.NotFound s ->
-        elog $"Input path '%s{s}' not found"
+    | InputPath.NotFound file ->
+        elog $"Input path '%s{file}' not found"
         1
     | InputPath.Unspecified _ ->
         elog "No input path provided. Call with --help for usage information."
         1
     | InputPath.File f when (IgnoreFile.isIgnoredFile (IgnoreFile.current.Force()) f) ->
-        logGrEqDetailed $"'%s{f}' was ignored"
+        logGrEqDetailed $"'%s{f.FullName}' was ignored"
         0
     | InputPath.File path -> path |> Seq.singleton |> check |> processCheckResult
-    | InputPath.Folder path -> path |> findAllFilesRecursively |> check |> processCheckResult
+    | InputPath.Folder path -> path |> InputFiles.getFilesForFolder ignoreFile |> check |> processCheckResult
     | InputPath.Multiple(files, folders) ->
         let allFilesToCheck =
             seq {
                 yield! files
-                yield! (Seq.collect findAllFilesRecursively folders)
+                yield! (Seq.collect (InputFiles.getFilesForFolder ignoreFile) folders)
             }
 
         allFilesToCheck |> check |> processCheckResult
@@ -199,6 +193,8 @@ let mainAux (fs: IFileSystem) argv =
 
     let results = parser.ParseCommandLine argv
 
+    let ignoreFile = IgnoreFile.current.Force()
+
     let outputPath =
         match results.TryGetResult <@ Arguments.Out @> with
         | Some output -> OutputPath.IO output
@@ -209,29 +205,33 @@ let mainAux (fs: IFileSystem) argv =
 
         match maybeInput with
         | Some [ input ] ->
-            if Directory.Exists(input) then
-                InputPath.Folder input
-            elif File.Exists input && isFSharpFile input then
-                InputPath.File input
-            elif File.Exists input then
-                InputPath.NoFSharpFile input
-            else
+            if fs.Directory.Exists(input) then
+                InputPath.Folder(fs.DirectoryInfo.FromDirectoryName(input))
+            elif not (fs.File.Exists(input)) then
                 InputPath.NotFound input
+            else
+                let file = fs.FileInfo.FromFileName input
+
+                if not (InputFiles.isFSharpFile file) then
+                    InputPath.NoFSharpFile file
+                else
+                    InputPath.File file
+
         | Some inputs ->
-            let isFolder (path: string) = Path.GetExtension(path) = ""
+            let isFolder (path: string) = fs.Path.GetExtension(path) = ""
 
             let rec loop
                 (files: string list)
-                (finalContinuation: string list * string list -> string list * string list)
+                (finalContinuation: IFileInfo list * IDirectoryInfo list -> IFileInfo list * IDirectoryInfo list)
                 =
                 match files with
                 | [] -> finalContinuation ([], [])
                 | h :: rest ->
                     loop rest (fun (files, folders) ->
                         if isFolder h then
-                            files, (h :: folders)
+                            files, (fs.DirectoryInfo.FromDirectoryName h :: folders)
                         else
-                            (h :: files), folders
+                            (fs.FileInfo.FromFileName h :: files), folders
                         |> finalContinuation)
 
             let filesAndFolders = loop inputs id
@@ -259,76 +259,80 @@ let mainAux (fs: IFileSystem) argv =
 
     AppDomain.CurrentDomain.ProcessExit.Add(fun _ -> closeAndFlushLog ())
 
-    let fileToFile (force: bool) (inFile: string) (outFile: string) =
+    let fileToFile (fs: IFileSystem) (force: bool) (inFile: string) (outFile: string) =
         async {
             logGrEqDetailed $"Processing %s{inFile}"
-            let! hasByteOrderMark = hasByteOrderMark inFile
+            let! hasByteOrderMark = hasByteOrderMark fs inFile
 
             use buffer =
                 if hasByteOrderMark then
-                    new StreamWriter(
-                        new FileStream(outFile, FileMode.OpenOrCreate, FileAccess.ReadWrite),
+                    new System.IO.StreamWriter(
+                        fs.FileStream.Create(outFile, System.IO.FileMode.OpenOrCreate, System.IO.FileAccess.ReadWrite),
                         Encoding.UTF8
                     )
                 else
-                    new StreamWriter(outFile)
+                    new System.IO.StreamWriter(outFile)
 
-            let! processResult = processSourceFile force profile inFile buffer
+            let! processResult = processSourceFile fs force profile inFile buffer
 
             do! buffer.FlushAsync() |> Async.AwaitTask
             logGrEqDetailed $"%s{outFile} has been written."
             return processResult
         }
 
-    let stringToFile (force: bool) (s: string) (outFile: string) config =
-        async { return! processSourceString force profile s outFile config }
+    let stringToFile (fs: IFileSystem) (force: bool) (s: string) (outFile: string) config =
+        async { return! processSourceString fs force profile s outFile config }
 
-    let processFile force inputFile outputFile =
+    let processFile (fs: IFileSystem) force (inputFile: IFileInfo) (outputFile: IFileInfo) =
         async {
             try
                 if inputFile <> outputFile then
-                    return! fileToFile force inputFile outputFile
+                    return! fileToFile fs force inputFile outputFile
                 else
                     logGrEqDetailed $"Processing %s{inputFile}"
-                    let! content = File.ReadAllTextAsync inputFile |> Async.AwaitTask
+                    let! content = fs.File.ReadAllTextAsync inputFile |> Async.AwaitTask
                     let config = EditorConfig.readConfiguration inputFile
-                    return! stringToFile force content inputFile config
+                    return! stringToFile fs force content inputFile config
             with e ->
                 return FormatResult.Error(inputFile, e)
         }
 
-    let processFolder force inputFolder outputFolder =
-        if not <| Directory.Exists(outputFolder) then
-            Directory.CreateDirectory(outputFolder) |> ignore
+    let processFolder
+        (fs: IFileSystem)
+        (ignoreFile: IgnoreFile option)
+        force
+        (inputFolder: IDirectoryInfo)
+        (outputFolder: IDirectoryInfo)
+        =
+        if not outputFolder.Exists then
+            outputFolder.Create()
 
-        findAllFilesRecursively inputFolder
+        InputFiles.getFilesForFolder ignoreFile inputFolder
         |> Seq.toList
-        |> List.map (fun i ->
+        |> List.map (fun (file: IFileInfo) ->
             // s supposes to have form s1/suffix
-            let suffix = i.Substring(inputFolder.Length + 1)
+            let suffix = file.FullName.Substring(inputFolder.FullName.Length + 1)
 
-            let o =
+            let outputFile =
                 if inputFolder <> outputFolder then
-                    Path.Combine(outputFolder, suffix)
+                    fs.Path.Combine(outputFolder.FullName, suffix) |> fs.FileInfo.FromFileName
                 else
-                    i
+                    file
 
-            processFile force i o)
+            processFile fs force file outputFile)
 
-    let filesAndFolders force (files: string list) (folders: string list) =
-        let fileTasks =
-            files
-            |> List.map (fun file ->
-                if (IgnoreFile.isIgnoredFile (IgnoreFile.current.Force()) file) then
-                    logGrEqDetailed $"'%s{file}' was ignored"
-                    async.Return(FormatResult.IgnoredFile(file))
-                else
-                    processFile force file file)
+    let filesAndFolders
+        (fs: IFileSystem)
+        (ignoreFile: IgnoreFile option)
+        force
+        (files: IFileInfo list)
+        (folders: IDirectoryInfo list)
+        =
+        [ for file in files do
+              yield processFile fs force file file
 
-        let folderTasks =
-            folders |> List.collect (fun folder -> processFolder force folder folder)
-
-        (fileTasks @ folderTasks)
+          for folder in folders do
+              yield! processFolder fs ignoreFile force folder folder ]
 
     let check = results.Contains <@ Arguments.Check @>
     let isDaemon = results.Contains <@ Arguments.Daemon @>
@@ -338,7 +342,6 @@ let mainAux (fs: IFileSystem) argv =
         ||> Seq.fold (fun (oks, ignores, unchanged, errors) next ->
             match next with
             | FormatResult.Formatted(file, _, p) -> ((file, p) :: oks, ignores, unchanged, errors)
-            | FormatResult.IgnoredFile i -> (oks, i :: ignores, unchanged, errors)
             | FormatResult.Unchanged(file, p) -> (oks, ignores, (file, p) :: unchanged, errors)
             | FormatResult.Error(file, e) -> (oks, ignores, unchanged, (file, e) :: errors)
             | FormatResult.InvalidCode(file, _) ->
@@ -390,7 +393,6 @@ let mainAux (fs: IFileSystem) argv =
             | FormatResult.Formatted(f, _, p) ->
                 stdlog $"{fileName f} was formatted."
                 reportProfileInfo (f, p)
-            | FormatResult.IgnoredFile f -> stdlog $"{fileName f} was ignored."
             | FormatResult.Unchanged(f, p) ->
                 stdlog $"{fileName f} was unchanged."
                 reportProfileInfo (f, p)

@@ -29,10 +29,6 @@ module IgnoreFile =
     [<Literal>]
     let IgnoreFileName = ".fantomasignore"
 
-    /// Find the `.fantomasignore` file above the given filepath, if one exists.
-    /// Note that this is intended for use only in the daemon; the command-line tool
-    /// does not support `.fantomasignore` files anywhere other than the current
-    /// working directory.
     let find (fs: IFileSystem) (loadIgnoreList: string -> IsPathIgnored) (filePath: string) : IgnoreFile option =
         let rec walkUp (currentDirectory: IDirectoryInfo) : IgnoreFile option =
             if isNull currentDirectory then
@@ -73,22 +69,26 @@ module IgnoreFile =
     let internal current' (fs: IFileSystem) (currentDirectory: string) (loadIgnoreList: string -> IsPathIgnored) =
         lazy find fs loadIgnoreList (fs.Path.Combine(currentDirectory, "_"))
 
-    /// When executed from the command line, Fantomas will not dynamically locate
-    /// the most appropriate `.fantomasignore` for each input file; it only finds
-    /// a single `.fantomasignore` file. This is that file.
     let current: Lazy<IgnoreFile option> =
         let fs = FileSystem()
         current' fs System.Environment.CurrentDirectory (loadIgnoreList fs)
 
-    let isIgnoredFile (ignoreFile: IgnoreFile option) (file: string) : bool =
+    let isIgnoredAux (ignoreFile: IgnoreFile) (fullName: string) =
+        let fs = ignoreFile.Location.FileSystem
+        let fullPath = AbsoluteFilePath.Create fs fullName
+
+        try
+            ignoreFile.IsIgnored fullPath
+        with ex ->
+            elog $"%A{ex}"
+            false
+
+    let isIgnoredFile (ignoreFile: IgnoreFile option) (file: IFileInfo) : bool =
         match ignoreFile with
         | None -> false
-        | Some ignoreFile ->
-            let fs = ignoreFile.Location.FileSystem
-            let fullPath = AbsoluteFilePath.Create fs file
+        | Some ignoreFile -> isIgnoredAux ignoreFile file.FullName
 
-            try
-                ignoreFile.IsIgnored fullPath
-            with ex ->
-                elog $"%A{ex}"
-                false
+    let isIgnoredFolder (ignoreFile: IgnoreFile option) (folder: IDirectoryInfo) : bool =
+        match ignoreFile with
+        | None -> false
+        | Some ignoreFile -> isIgnoredAux ignoreFile folder.FullName

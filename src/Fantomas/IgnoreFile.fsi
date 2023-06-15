@@ -45,4 +45,4 @@ module IgnoreFile =
 
     /// Check if the folder is ignored.
     /// If no ignore file is present, the folder will never be ignored.
-    val isIgnoredFolder: IgnoreFile: IgnoreFile option -> folder: IDirectoryInfo -> bool
+    val isIgnoredFolder: ignoreFile: IgnoreFile option -> folder: IDirectoryInfo -> bool

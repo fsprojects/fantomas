@@ -9,3 +9,6 @@ val acceptedFSharpExtensions: string Set
 /// The files are checked against the accepted extensions, excluded folders and `.fantomasignore`
 /// Meant to be used in the command line tool.
 val getFilesForFolder: fantomasIgnoreFile: IgnoreFile option -> directory: IDirectoryInfo -> seq<IFileInfo>
+
+/// Verify the file extension is part of the `acceptedFSharpExtensions`
+val isFSharpFile: file: IFileInfo -> bool

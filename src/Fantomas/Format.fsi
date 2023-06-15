@@ -1,6 +1,7 @@
 namespace Fantomas
 
 open System
+open System.IO.Abstractions
 open Fantomas.Core
 
 type ProfileInfo = { LineCount: int; TimeTaken: TimeSpan }
@@ -10,7 +11,6 @@ type FormatResult =
     | Unchanged of filename: string * profileInfo: ProfileInfo option
     | InvalidCode of filename: string * formattedContent: string
     | Error of filename: string * formattingError: Exception
-    | IgnoredFile of filename: string
 
 type FormatParams =
     { Config: FormatConfig
@@ -36,12 +36,10 @@ module Format =
 
     val formatFileAsync: (FormatParams -> Async<FormatResult>)
 
-    /// Runs a check on the given files and reports the result to the given output:
-    ///
+    /// <summary>Runs a check on the given files and reports the result to the given output</summary>
+    /// <remarks>
     /// * It shows the paths of the files that need formatting
     /// * It shows the path and the error message of files that failed the format check
-    ///
-    /// Returns:
-    ///
-    /// A record with the file names that were formatted and the files that encounter problems while formatting.
-    val checkCode: filenames: seq<string> -> Async<CheckResult>
+    /// </remarks>
+    /// <returns>A record with the file names that were formatted and the files that encounter problems while formatting.</returns>
+    val checkCode: filenames: seq<IFileInfo> -> Async<CheckResult>
