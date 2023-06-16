@@ -392,22 +392,43 @@ type Foo() =
 type Foo() =
     member x.Get = 1
 
-    member x.Set
-        with private set (v: int) = value <- v
+    member private x.Set
+        with set (v: int) = value <- v
 
-    member x.GetSet
-        with internal get () = value
-        and private set (v: bool) = value <- v
+    member internal x.GetSet
+        with get () = value
+        and set (v: bool) = value <- v
 
-    member x.GetI
-        with internal get (key1, key2) = false
+    member internal x.GetI
+        with get (key1, key2) = false
 
-    member x.SetI
-        with private set (key1, key2) value = ()
+    member private x.SetI
+        with set (key1, key2) value = ()
 
-    member x.GetSetI
-        with internal get (key1, key2) = true
-        and private set (key1, key2) value = ()
+    member internal x.GetSetI
+        with get (key1, key2) = true
+        and set (key1, key2) value = ()
+"""
+
+[<Test>]
+let ``private keyword on set binding should move to member binding`` () =
+    formatSourceString
+        false
+        """
+type T() =
+    let mutable value : bool = false
+    member x.Set with private set (v : bool) = value <- v
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type T() =
+    let mutable value: bool = false
+
+    member private x.Set
+        with set (v: bool) = value <- v
 """
 
 [<Test>]

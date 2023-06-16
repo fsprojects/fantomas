@@ -2566,7 +2566,7 @@ let mkPropertyGetSetBinding
     : PropertyGetSetBindingNode =
     match binding with
     | SynBinding(
-        headPat = SynPat.LongIdent(extraId = Some extraIdent; accessibility = ao; argPats = SynArgPats.Pats ps)
+        headPat = SynPat.LongIdent(extraId = Some extraIdent; argPats = SynArgPats.Pats ps)
         returnInfo = returnInfo
         expr = expr
         trivia = { EqualsRange = Some mEq
@@ -2601,7 +2601,6 @@ let mkPropertyGetSetBinding
 
         PropertyGetSetBindingNode(
             Option.map (stn "inline") inlineKw,
-            mkSynAccess ao,
             leadingKeyword,
             pats,
             returnTypeNode,
@@ -2763,10 +2762,10 @@ let mkMemberDefn (creationAide: CreationAide) (md: SynMemberDefn) =
         )
         |> MemberDefn.AbstractSlot
     | SynMemberDefn.GetSetMember(Some(SynBinding(
-                                     accessibility = ao
                                      attributes = ats
                                      xmlDoc = px
-                                     headPat = SynPat.LongIdent(longDotId = memberName)
+                                     headPat = SynPat.LongIdent(
+                                         longDotId = memberName; accessibility = memberAccessibility)
                                      trivia = { LeadingKeyword = lk
                                                 InlineKeyword = inlineKw }) as getBinding),
                                  Some setBinding,
@@ -2788,7 +2787,7 @@ let mkMemberDefn (creationAide: CreationAide) (md: SynMemberDefn) =
             mkAttributes creationAide ats,
             mkSynLeadingKeyword lk,
             Option.map (stn "inline") inlineKw,
-            mkSynAccess ao,
+            mkSynAccess memberAccessibility,
             mkSynLongIdent memberName,
             stn "with" withKeyword,
             firstBinding,
@@ -2799,10 +2798,9 @@ let mkMemberDefn (creationAide: CreationAide) (md: SynMemberDefn) =
         |> MemberDefn.PropertyGetSet
     | SynMemberDefn.GetSetMember(None,
                                  Some(SynBinding(
-                                     accessibility = ao
                                      attributes = ats
                                      xmlDoc = px
-                                     headPat = SynPat.LongIdent(longDotId = memberName)
+                                     headPat = SynPat.LongIdent(longDotId = memberName; accessibility = ao)
                                      trivia = { LeadingKeyword = lk
                                                 InlineKeyword = inlineKw }) as binding),
                                  _,
@@ -2810,10 +2808,9 @@ let mkMemberDefn (creationAide: CreationAide) (md: SynMemberDefn) =
                                    GetKeyword = getKeyword
                                    SetKeyword = setKeyword })
     | SynMemberDefn.GetSetMember(Some(SynBinding(
-                                     accessibility = ao
                                      attributes = ats
                                      xmlDoc = px
-                                     headPat = SynPat.LongIdent(longDotId = memberName)
+                                     headPat = SynPat.LongIdent(longDotId = memberName; accessibility = ao)
                                      trivia = { LeadingKeyword = lk
                                                 InlineKeyword = inlineKw }) as binding),
                                  None,

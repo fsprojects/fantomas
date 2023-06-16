@@ -189,3 +189,77 @@ struct // 1
     // 5
     |} // 6
 """
+
+[<Test>]
+let ``second binding does not contain accessibility, `` () =
+    formatSourceString
+        false
+        """
+module Telplin
+
+type T =
+    struct
+        member private this.X with get () : int = 1 and set (_:int) = ()
+    end
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+module Telplin
+
+type T =
+    struct
+        member private this.X
+            with get (): int = 1
+            and set (_: int) = ()
+    end
+"""
+
+// A double access modifier, like on the member and on the get or set binding
+// will lead to "Multiple accessibilities given for property getter or setter"
+// When both get and set have accessibility, the getter binding seems to win.
+// See: https://github.com/dotnet/fsharp/issues/15423
+
+[<Test>]
+let ``different accessibility on setter`` () =
+    formatSourceString
+        false
+        """
+module Telplin
+
+type T =
+    struct
+        member this.X with get () : int = 1 and private set (_:int) = ()
+        member this.Y with internal get () : int = 1 and private set (_:int) = ()
+        member private this.Z with get () : int = 1 and set (_:int) = ()
+        member this.S with internal set (_:int) = () and private get () : int = 1
+    end
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+module Telplin
+
+type T =
+    struct
+        member this.X
+            with get (): int = 1
+            and set (_: int) = ()
+
+        member internal this.Y
+            with get (): int = 1
+            and set (_: int) = ()
+
+        member private this.Z
+            with get (): int = 1
+            and set (_: int) = ()
+
+        member private this.S
+            with set (_: int) = ()
+            and get (): int = 1
+    end
+"""
