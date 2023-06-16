@@ -191,7 +191,7 @@ struct // 1
 """
 
 [<Test>]
-let ``second binding does not contain accessibility, `` () =
+let ``second binding does not contain accessibility, 2902`` () =
     formatSourceString
         false
         """
