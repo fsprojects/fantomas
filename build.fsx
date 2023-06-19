@@ -387,7 +387,7 @@ let getReleaseNotes currentRelease (lastRelease: GithubRelease) =
             |> Array.sort
 
         if authors.Length = 1 then
-            $"Special thanks to %s{authors.[0]}!"
+            $"Special thanks to @%s{authors.[0]}!"
         else
             let lastAuthor = Array.last authors
             let otherAuthors =
