@@ -1,5 +1,10 @@
 # Changelog
 
+## [6.0.6] - 2023-06-19
+
+### Fixed
+* Setter is also private. [#2902](https://github.com/fsprojects/fantomas/issues/2902)
+
 ## [6.0.5] - 2023-06-06
 
 ### Fixed

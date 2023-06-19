@@ -2566,13 +2566,23 @@ let mkPropertyGetSetBinding
     : PropertyGetSetBindingNode =
     match binding with
     | SynBinding(
-        headPat = SynPat.LongIdent(extraId = Some extraIdent; accessibility = ao; argPats = SynArgPats.Pats ps)
+        headPat = SynPat.LongIdent(
+            longDotId = lid; extraId = Some extraIdent; accessibility = ao; argPats = SynArgPats.Pats ps)
         returnInfo = returnInfo
         expr = expr
         trivia = { EqualsRange = Some mEq
                    InlineKeyword = inlineKw }) ->
         let e = parseExpressionInSynBinding returnInfo expr
         let returnTypeNode = mkBindingReturnInfo creationAide returnInfo
+
+        // Only use the accessibility of the property binding if the keyword came after the member identifier.
+        let accessibility =
+            ao
+            |> Option.bind (fun vis ->
+                if rangeBeforePos lid.Range vis.Range.Start then
+                    Some vis
+                else
+                    None)
 
         let pats =
             match ps with
@@ -2601,7 +2611,7 @@ let mkPropertyGetSetBinding
 
         PropertyGetSetBindingNode(
             Option.map (stn "inline") inlineKw,
-            mkSynAccess ao,
+            mkSynAccess accessibility,
             leadingKeyword,
             pats,
             returnTypeNode,
@@ -2763,32 +2773,42 @@ let mkMemberDefn (creationAide: CreationAide) (md: SynMemberDefn) =
         )
         |> MemberDefn.AbstractSlot
     | SynMemberDefn.GetSetMember(Some(SynBinding(
-                                     accessibility = ao
                                      attributes = ats
                                      xmlDoc = px
-                                     headPat = SynPat.LongIdent(longDotId = memberName)
+                                     headPat = SynPat.LongIdent(longDotId = memberName; accessibility = visGet)
                                      trivia = { LeadingKeyword = lk
                                                 InlineKeyword = inlineKw }) as getBinding),
-                                 Some setBinding,
+                                 Some(SynBinding(headPat = SynPat.LongIdent(accessibility = visSet)) as setBinding),
                                  _,
                                  { GetKeyword = Some getKeyword
                                    SetKeyword = Some setKeyword
                                    WithKeyword = withKeyword
                                    AndKeyword = andKeyword }) ->
-        let firstBinding, lastBinding =
+        let firstAccessibility, firstBinding, lastBinding =
             if Position.posLt getKeyword.Start setKeyword.Start then
+                visGet,
                 mkPropertyGetSetBinding creationAide (stn "get" getKeyword) getBinding,
                 Some(mkPropertyGetSetBinding creationAide (stn "set" setKeyword) setBinding)
             else
+                visSet,
                 mkPropertyGetSetBinding creationAide (stn "set" setKeyword) setBinding,
                 Some(mkPropertyGetSetBinding creationAide (stn "get" getKeyword) getBinding)
+
+        // Only use the accessibility of the first binding if the keyword came before the member identifier.
+        let accessibility =
+            firstAccessibility
+            |> Option.bind (fun vis ->
+                if rangeBeforePos vis.Range memberName.Range.Start then
+                    Some vis
+                else
+                    None)
 
         MemberDefnPropertyGetSetNode(
             mkXmlDoc px,
             mkAttributes creationAide ats,
             mkSynLeadingKeyword lk,
             Option.map (stn "inline") inlineKw,
-            mkSynAccess ao,
+            mkSynAccess accessibility,
             mkSynLongIdent memberName,
             stn "with" withKeyword,
             firstBinding,

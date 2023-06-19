@@ -189,3 +189,115 @@ struct // 1
     // 5
     |} // 6
 """
+
+[<Test>]
+let ``second binding does not contain accessibility, 2902`` () =
+    formatSourceString
+        false
+        """
+module Telplin
+
+type T =
+    struct
+        member private this.X with get () : int = 1 and set (_:int) = ()
+    end
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+module Telplin
+
+type T =
+    struct
+        member private this.X
+            with get (): int = 1
+            and set (_: int) = ()
+    end
+"""
+
+[<Test>]
+let ``different accessibility on setter`` () =
+    formatSourceString
+        false
+        """
+module Telplin
+
+type T =
+    struct
+        member this.X with get () : int = 1 and private set (_:int) = ()
+        member this.Y with internal get () : int = 1 and private set (_:int) = ()
+        member private this.Z with get () : int = 1 and set (_:int) = ()
+        member this.S with internal set (_:int) = () and private get () : int = 1
+    end
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+module Telplin
+
+type T =
+    struct
+        member this.X
+            with get (): int = 1
+            and private set (_: int) = ()
+
+        member this.Y
+            with internal get (): int = 1
+            and private set (_: int) = ()
+
+        member private this.Z
+            with get (): int = 1
+            and set (_: int) = ()
+
+        member this.S
+            with internal set (_: int) = ()
+            and private get (): int = 1
+    end
+"""
+
+[<Test>]
+let ``private setter on next line`` () =
+    formatSourceString
+        false
+        """
+type Y =
+    member this.X
+        with get (): int = 1
+        and private set (_: int) = ()
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type Y =
+    member this.X
+        with get (): int = 1
+        and private set (_: int) = ()
+"""
+
+[<Test>]
+let ``private property with identifier on next line`` () =
+    formatSourceString
+        false
+        """
+type Y =
+    member                      private
+                    this.X
+                            with get (): int = 1
+                            and  set (_: int) = ()
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type Y =
+    member private this.X
+        with get (): int = 1
+        and set (_: int) = ()
+"""
