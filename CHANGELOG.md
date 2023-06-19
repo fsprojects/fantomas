@@ -1,5 +1,9 @@
 # Changelog
 
+## 6.1.0-alpha-004 - 2023-06-19
+
+Contains fixes of 6.0.6
+
 ## 6.1.0-alpha-003 - 2023-06-02
 
 ### Changed
