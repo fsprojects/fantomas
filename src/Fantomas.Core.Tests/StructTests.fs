@@ -258,3 +258,46 @@ type T =
             and private get (): int = 1
     end
 """
+
+[<Test>]
+let ``private setter on next line`` () =
+    formatSourceString
+        false
+        """
+type Y =
+    member this.X
+        with get (): int = 1
+        and private set (_: int) = ()
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type Y =
+    member this.X
+        with get (): int = 1
+        and private set (_: int) = ()
+"""
+
+[<Test>]
+let ``private property with identifier on next line`` () =
+    formatSourceString
+        false
+        """
+type Y =
+    member                      private
+                    this.X
+                            with get (): int = 1
+                            and  set (_: int) = ()
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type Y =
+    member private this.X
+        with get (): int = 1
+        and set (_: int) = ()
+"""

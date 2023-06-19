@@ -2575,13 +2575,11 @@ let mkPropertyGetSetBinding
         let e = parseExpressionInSynBinding returnInfo expr
         let returnTypeNode = mkBindingReturnInfo creationAide returnInfo
 
+        // Only use the accessibility of the property binding if the keyword came after the member identifier.
         let accessibility =
             ao
             |> Option.bind (fun vis ->
-                if
-                    vis.Range.StartLine >= lid.Range.EndLine
-                    && vis.Range.StartColumn > lid.Range.EndColumn
-                then
+                if rangeBeforePos lid.Range vis.Range.Start then
                     Some vis
                 else
                     None)
@@ -2800,10 +2798,7 @@ let mkMemberDefn (creationAide: CreationAide) (md: SynMemberDefn) =
         let accessibility =
             firstAccessibility
             |> Option.bind (fun vis ->
-                if
-                    vis.Range.EndLine <= memberName.Range.StartLine
-                    && vis.Range.EndColumn < memberName.Range.StartColumn
-                then
+                if rangeBeforePos vis.Range memberName.Range.Start then
                     Some vis
                 else
                     None)
