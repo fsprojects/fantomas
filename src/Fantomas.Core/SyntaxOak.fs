@@ -2481,6 +2481,7 @@ type MemberDefnAbstractSlotNode
 type PropertyGetSetBindingNode
     (
         inlineNode: SingleTextNode option,
+        accessibility: SingleTextNode option,
         leadingKeyword: SingleTextNode,
         parameters: Pattern list,
         returnType: BindingReturnInfoNode option,
@@ -2492,6 +2493,7 @@ type PropertyGetSetBindingNode
 
     override val Children: Node array =
         [| yield! noa inlineNode
+           yield! noa accessibility
            yield leadingKeyword
            yield! List.map Pattern.Node parameters
            yield! noa returnType
@@ -2499,6 +2501,7 @@ type PropertyGetSetBindingNode
            yield Expr.Node expr |]
 
     member val Inline = inlineNode
+    member val Accessibility = accessibility
     member val LeadingKeyword = leadingKeyword
     member val Parameters = parameters
     member val ReturnType = returnType
