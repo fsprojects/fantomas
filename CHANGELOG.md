@@ -1,5 +1,10 @@
 # Changelog
 
+## [6.0.7] - 2023-06-20
+
+### Fixed
+* Private keyword is lost from getter with unit. [#2906](https://github.com/fsprojects/fantomas/issues/2906)
+
 ## [6.0.6] - 2023-06-19
 
 ### Fixed

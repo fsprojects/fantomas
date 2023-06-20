@@ -1293,3 +1293,40 @@ type MyClass(a: int, b: int) =
     [<Obsolete("Do not use")>]
     new(x: int) = MyClass(x, x)
 """
+
+[<Test>]
+let ``access modifier on get unit property gets simplified, 2906`` () =
+    formatSourceString
+        false
+        """
+type X() =
+    member private this.Y with get() = "meh"
+    member this.Z with private get() = "foo"
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type X() =
+    member private this.Y = "meh"
+    member private this.Z = "foo"
+"""
+
+[<Test>]
+let ``access modifier on set property, 2906`` () =
+    formatSourceString
+        false
+        """
+type X() =
+    member private this.Y with set _ = ()
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+type X() =
+    member private this.Y
+        with set _ = ()
+"""

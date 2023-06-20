@@ -2561,28 +2561,19 @@ let mkWithGetSet (withKeyword: range option) (getSet: GetSetKeywords option) =
 
 let mkPropertyGetSetBinding
     (creationAide: CreationAide)
+    (accessibility: SynAccess option)
     (leadingKeyword: SingleTextNode)
     (binding: SynBinding)
     : PropertyGetSetBindingNode =
     match binding with
     | SynBinding(
-        headPat = SynPat.LongIdent(
-            longDotId = lid; extraId = Some extraIdent; accessibility = ao; argPats = SynArgPats.Pats ps)
+        headPat = SynPat.LongIdent(extraId = Some extraIdent; argPats = SynArgPats.Pats ps)
         returnInfo = returnInfo
         expr = expr
         trivia = { EqualsRange = Some mEq
                    InlineKeyword = inlineKw }) ->
         let e = parseExpressionInSynBinding returnInfo expr
         let returnTypeNode = mkBindingReturnInfo creationAide returnInfo
-
-        // Only use the accessibility of the property binding if the keyword came after the member identifier.
-        let accessibility =
-            ao
-            |> Option.bind (fun vis ->
-                if rangeBeforePos lid.Range vis.Range.Start then
-                    Some vis
-                else
-                    None)
 
         let pats =
             match ps with
@@ -2628,7 +2619,9 @@ let mkMemberDefn (creationAide: CreationAide) (md: SynMemberDefn) =
     | SynMemberDefn.ImplicitInherit(t, e, _, StartRange 7 (mInherit, _)) ->
         mkInheritConstructor creationAide t e mInherit memberDefinitionRange
         |> MemberDefn.ImplicitInherit
-    | SynMemberDefn.GetSetMember(Some(SynBinding(ao,
+
+    // Transforms: `member this.Y with get() = "meh"` into `member this.Y = "meh"`
+    | SynMemberDefn.GetSetMember(Some(SynBinding(_,
                                                  kind,
                                                  isInline,
                                                  isMutable,
@@ -2638,10 +2631,10 @@ let mkMemberDefn (creationAide: CreationAide) (md: SynMemberDefn) =
                                                  SynPat.LongIdent(lid,
                                                                   extraId,
                                                                   typarDecls,
-                                                                  SynArgPats.Pats [ SynPat.Paren(SynPat.Const(SynConst.Unit,
-                                                                                                              _),
-                                                                                                 _) ],
-                                                                  None,
+                                                                  SynArgPats.Pats [ SynPat.Paren(
+                                                                                        pat = SynPat.Const(
+                                                                                            constant = SynConst.Unit)) ],
+                                                                  ao,
                                                                   mPat),
                                                  ri,
                                                  e,
@@ -2652,12 +2645,11 @@ let mkMemberDefn (creationAide: CreationAide) (md: SynMemberDefn) =
                                  _,
                                  { GetKeyword = Some _ }) ->
 
-        let pat =
-            SynPat.LongIdent(lid, extraId, typarDecls, SynArgPats.Pats([]), None, mPat)
+        let pat = SynPat.LongIdent(lid, extraId, typarDecls, SynArgPats.Pats([]), ao, mPat)
 
         mkBinding
             creationAide
-            (SynBinding(ao, kind, isInline, isMutable, ats, px, valData, pat, ri, e, bindingRange, dp, trivia))
+            (SynBinding(None, kind, isInline, isMutable, ats, px, valData, pat, ri, e, bindingRange, dp, trivia))
         |> MemberDefn.Member
     | SynMemberDefn.Member(
         memberDefn = SynBinding(
@@ -2784,15 +2776,12 @@ let mkMemberDefn (creationAide: CreationAide) (md: SynMemberDefn) =
                                    SetKeyword = Some setKeyword
                                    WithKeyword = withKeyword
                                    AndKeyword = andKeyword }) ->
-        let firstAccessibility, firstBinding, lastBinding =
+
+        let firstAccessibility, firstBinding, firstKeyword, lastBinding, lastKeyword =
             if Position.posLt getKeyword.Start setKeyword.Start then
-                visGet,
-                mkPropertyGetSetBinding creationAide (stn "get" getKeyword) getBinding,
-                Some(mkPropertyGetSetBinding creationAide (stn "set" setKeyword) setBinding)
+                visGet, getBinding, (stn "get" getKeyword), setBinding, (stn "set" setKeyword)
             else
-                visSet,
-                mkPropertyGetSetBinding creationAide (stn "set" setKeyword) setBinding,
-                Some(mkPropertyGetSetBinding creationAide (stn "get" getKeyword) getBinding)
+                visSet, setBinding, (stn "set" setKeyword), getBinding, (stn "get" getKeyword)
 
         // Only use the accessibility of the first binding if the keyword came before the member identifier.
         let accessibility =
@@ -2802,6 +2791,22 @@ let mkMemberDefn (creationAide: CreationAide) (md: SynMemberDefn) =
                     Some vis
                 else
                     None)
+
+        let firstBinding =
+            match firstBinding with
+            | SynBinding(headPat = SynPat.LongIdent(accessibility = Some vis)) when
+                rangeBeforePos memberName.Range vis.Range.Start
+                ->
+                mkPropertyGetSetBinding creationAide (Some vis) firstKeyword firstBinding
+            | _ -> mkPropertyGetSetBinding creationAide None firstKeyword firstBinding
+
+        let lastBinding =
+            match lastBinding with
+            | SynBinding(headPat = SynPat.LongIdent(accessibility = Some vis)) when
+                rangeBeforePos memberName.Range vis.Range.Start
+                ->
+                mkPropertyGetSetBinding creationAide (Some vis) lastKeyword lastBinding
+            | _ -> mkPropertyGetSetBinding creationAide None lastKeyword lastBinding
 
         MemberDefnPropertyGetSetNode(
             mkXmlDoc px,
@@ -2813,16 +2818,15 @@ let mkMemberDefn (creationAide: CreationAide) (md: SynMemberDefn) =
             stn "with" withKeyword,
             firstBinding,
             Option.map (stn "and") andKeyword,
-            lastBinding,
+            Some lastBinding,
             memberDefinitionRange
         )
         |> MemberDefn.PropertyGetSet
     | SynMemberDefn.GetSetMember(None,
                                  Some(SynBinding(
-                                     accessibility = ao
                                      attributes = ats
                                      xmlDoc = px
-                                     headPat = SynPat.LongIdent(longDotId = memberName)
+                                     headPat = SynPat.LongIdent(longDotId = memberName; accessibility = ao)
                                      trivia = { LeadingKeyword = lk
                                                 InlineKeyword = inlineKw }) as binding),
                                  _,
@@ -2830,10 +2834,9 @@ let mkMemberDefn (creationAide: CreationAide) (md: SynMemberDefn) =
                                    GetKeyword = getKeyword
                                    SetKeyword = setKeyword })
     | SynMemberDefn.GetSetMember(Some(SynBinding(
-                                     accessibility = ao
                                      attributes = ats
                                      xmlDoc = px
-                                     headPat = SynPat.LongIdent(longDotId = memberName)
+                                     headPat = SynPat.LongIdent(longDotId = memberName; accessibility = ao)
                                      trivia = { LeadingKeyword = lk
                                                 InlineKeyword = inlineKw }) as binding),
                                  None,
@@ -2842,17 +2845,26 @@ let mkMemberDefn (creationAide: CreationAide) (md: SynMemberDefn) =
                                    GetKeyword = getKeyword
                                    SetKeyword = setKeyword }) ->
 
+        let visMember, visProperty =
+            match ao with
+            | None -> None, None
+            | Some ao ->
+                if rangeBeforePos ao.Range memberName.Range.Start then
+                    Some ao, None
+                else
+                    None, Some ao
+
         match getKeyword, setKeyword with
         | Some getKeyword, None ->
             let bindingNode =
-                mkPropertyGetSetBinding creationAide (stn "get" getKeyword) binding
+                mkPropertyGetSetBinding creationAide visProperty (stn "get" getKeyword) binding
 
             MemberDefnPropertyGetSetNode(
                 mkXmlDoc px,
                 mkAttributes creationAide ats,
                 mkSynLeadingKeyword lk,
                 Option.map (stn "inline") inlineKw,
-                mkSynAccess ao,
+                mkSynAccess visMember,
                 mkSynLongIdent memberName,
                 stn "with" withKeyword,
                 bindingNode,
@@ -2863,14 +2875,14 @@ let mkMemberDefn (creationAide: CreationAide) (md: SynMemberDefn) =
             |> MemberDefn.PropertyGetSet
         | None, Some setKeyword ->
             let bindingNode =
-                mkPropertyGetSetBinding creationAide (stn "set" setKeyword) binding
+                mkPropertyGetSetBinding creationAide visProperty (stn "set" setKeyword) binding
 
             MemberDefnPropertyGetSetNode(
                 mkXmlDoc px,
                 mkAttributes creationAide ats,
                 mkSynLeadingKeyword lk,
                 Option.map (stn "inline") inlineKw,
-                mkSynAccess ao,
+                mkSynAccess visMember,
                 mkSynLongIdent memberName,
                 stn "with" withKeyword,
                 bindingNode,
