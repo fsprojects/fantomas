@@ -1,5 +1,10 @@
 # Changelog
 
+## [6.0.8] - 2023-06-20
+
+### Fixed
+* Inline keyword is missing in property [#2908](https://github.com/fsprojects/fantomas/issues/2908)
+
 ## [6.0.7] - 2023-06-20
 
 ### Fixed

@@ -2768,11 +2768,11 @@ let mkMemberDefn (creationAide: CreationAide) (md: SynMemberDefn) =
                                      attributes = ats
                                      xmlDoc = px
                                      headPat = SynPat.LongIdent(longDotId = memberName; accessibility = visGet)
-                                     trivia = { LeadingKeyword = lk
-                                                InlineKeyword = inlineKw }) as getBinding),
+                                     trivia = { LeadingKeyword = lk }) as getBinding),
                                  Some(SynBinding(headPat = SynPat.LongIdent(accessibility = visSet)) as setBinding),
                                  _,
-                                 { GetKeyword = Some getKeyword
+                                 { InlineKeyword = inlineKw
+                                   GetKeyword = Some getKeyword
                                    SetKeyword = Some setKeyword
                                    WithKeyword = withKeyword
                                    AndKeyword = andKeyword }) ->
