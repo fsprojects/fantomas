@@ -1330,3 +1330,28 @@ type X() =
     member private this.Y
         with set _ = ()
 """
+
+[<Test>]
+let ``inline keyword on property, 2908`` () =
+    formatSourceString
+        false
+        """
+module Meh
+
+type Foo =
+    member inline this.Item
+        with get (i:int,j: char) : string = ""
+        and set (i:int,j: char) (x:string) = printfn "%i %c" i j
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+module Meh
+
+type Foo =
+    member inline this.Item
+        with get (i: int, j: char): string = ""
+        and set (i: int, j: char) (x: string) = printfn "%i %c" i j
+"""
