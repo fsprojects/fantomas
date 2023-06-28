@@ -651,3 +651,32 @@ let ``interface in obj expression, 2604`` () =
   interface Meh with
       member x.Blur = () }
 """
+
+[<Test>]
+let ``multiple interfaces in obj expression, 2914`` () =
+    formatSourceString
+        false
+        """
+let create () =
+    { new Object() with
+        override _.ToString() = ""
+      interface Interface1 with
+          member _.Foo1 s = s
+
+      interface Interface2 with
+          member _.Foo2 s = s }
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let create () =
+    { new Object() with
+        override _.ToString() = ""
+      interface Interface1 with
+          member _.Foo1 s = s
+
+      interface Interface2 with
+          member _.Foo2 s = s }
+"""

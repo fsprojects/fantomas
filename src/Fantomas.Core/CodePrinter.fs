@@ -497,10 +497,17 @@ let genExpr (e: Expr) =
                     +> sepSpace
                     +> optSingle genSingleTextNode node.With
                     +> indentSepNlnUnindent (genBindings false node.Bindings +> genMemberDefnList node.Members)
+                |> genNode node
 
             let genBody =
+                let sepNlnBeforeInterfaces =
+                    match node.Interfaces with
+                    | [] -> sepNone
+                    | h :: _ -> sepNlnUnlessContentBefore h
+
                 indentSepNlnUnindent (genBindings false node.Bindings +> genMemberDefnList node.Members)
-                +> colPre sepNln sepNln node.Interfaces genInterfaceImpl
+                +> sepNlnBeforeInterfaces
+                +> colEx sepNlnUnlessContentBefore node.Interfaces genInterfaceImpl
 
             let genObjExpr =
                 genSingleTextNode node.OpeningBrace

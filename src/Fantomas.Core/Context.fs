@@ -375,7 +375,7 @@ let newlineBetweenLastWriteEvent ctx =
 let lastWriteEventOnLastLine ctx =
     writeEventsOnLastLine ctx |> Seq.tryHead
 
-// A few utility functions from https://github.com/fsharp/powerpack/blob/master/src/Fantomas.FCS.CodeDom/generator.fs
+// A few utility functions from https://github.com/fsharp/powerpack/blob/master/src/FSharp.Compiler.CodeDom/generator.fs
 
 /// Indent one more level based on configuration
 let indent (ctx: Context) =

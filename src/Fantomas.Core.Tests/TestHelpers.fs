@@ -33,7 +33,6 @@ let formatSourceString isFsiFile (s: string) config =
 
         return formattedCode
     }
-
     |> Async.RunSynchronously
 
 /// The `source` will first be parsed to AST.
