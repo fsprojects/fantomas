@@ -212,7 +212,7 @@ UI might be available depending on the IDE.</p>
 
 <span onmouseout="hideTip(event, 'fs1', 1)" onmouseover="showTip(event, 'fs1', 1)" class="fn">printf</span> <span class="s">$&quot;version: {</span><span onmouseout="hideTip(event, 'fs2', 2)" onmouseover="showTip(event, 'fs2', 2)" class="id">Fantomas</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs3', 3)" onmouseover="showTip(event, 'fs3', 3)" class="id">Core</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs4', 4)" onmouseover="showTip(event, 'fs4', 4)" class="rt">CodeFormatter</span><span class="pn">.</span><span onmouseout="hideTip(event, 'fs5', 5)" onmouseover="showTip(event, 'fs5', 5)" class="id">GetVersion</span><span class="pn">(</span><span class="pn">)</span><span class="s">}&quot;</span>
 </code></pre>
-<table class="pre"><tr><td><pre><code>version: 6.0.8+d1295a0922306295172cc29c4dcc57dd8c9665bc</code></pre></td></tr></table>
+<table class="pre"><tr><td><pre><code>version: 6.1.0+e671f3d7c68a258d80f6440ea82aaada2c48a34d</code></pre></td></tr></table>
 <h2><a name="Usage" class="anchor" href="#Usage">Usage</a></h2>
 <p>Inside .editorconfig you can specify the file extension and code location to be use per config:</p>
 <pre class="fssnip highlighted"><code lang="fsharp"><span class="pn">[</span><span class="pn">*.</span><span class="id">fs</span><span class="pn">]</span>
@@ -1143,14 +1143,15 @@ let singleList =
   static member MakePosition: line: int * column: int -&gt; pos
   static member MakeRange: fileName: string * startLine: int * startCol: int * endLine: int * endCol: int -&gt; range
   static member ParseAsync: isSignature: bool * source: string -&gt; Async&lt;(ParsedInput * string list) array&gt;
-  static member ParseOakAsync: isSignature: bool * source: string -&gt; Async&lt;(Oak * string list) array&gt;</div>
+  static member ParseOakAsync: isSignature: bool * source: string -&gt; Async&lt;(Oak * string list) array&gt;
+  ...</div>
 <div class="fsdocs-tip" id="fs5">static member CodeFormatter.GetVersion: unit -&gt; string</div>
 <div class="fsdocs-tip" id="fs6">val formatCode: input: string -&gt; configIndent: FormatConfig -&gt; unit</div>
 <div class="fsdocs-tip" id="fs7">val input: string</div>
 <div class="fsdocs-tip" id="fs8">val configIndent: FormatConfig</div>
 <div class="fsdocs-tip" id="fs9">val async: AsyncBuilder</div>
 <div class="fsdocs-tip" id="fs10">val result: FormatResult</div>
-<div class="fsdocs-tip" id="fs11">static member CodeFormatter.FormatDocumentAsync: isSignature: bool * source: string -&gt; Async&lt;FormatResult&gt;<br />static member CodeFormatter.FormatDocumentAsync: isSignature: bool * source: string * config: FormatConfig -&gt; Async&lt;FormatResult&gt;<br />static member CodeFormatter.FormatDocumentAsync: isSignature: bool * source: string * config: FormatConfig * cursor: FSharp.Compiler.Text.pos -&gt; Async&lt;FormatResult&gt;</div>
+<div class="fsdocs-tip" id="fs11">static member CodeFormatter.FormatDocumentAsync: isSignature: bool * source: string -&gt; Async&lt;FormatResult&gt;<br />static member CodeFormatter.FormatDocumentAsync: isSignature: bool * source: string * config: FormatConfig -&gt; Async&lt;FormatResult&gt;<br />static member CodeFormatter.FormatDocumentAsync: isSignature: bool * source: string * config: FormatConfig * cursor: Fantomas.FCS.Text.pos -&gt; Async&lt;FormatResult&gt;</div>
 <div class="fsdocs-tip" id="fs12">FormatResult.Code: string<br /><em>&lt;summary&gt;
  Formatted code
 &lt;/summary&gt;</em></div>
