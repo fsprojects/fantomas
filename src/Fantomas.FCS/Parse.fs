@@ -425,7 +425,7 @@ let createLexerFunction (defines: string list) lexbuf (errorLogger: CapturingDia
     let compilingFsLib = false
 
     let tokenizer =
-        LexFilter.LexFilter(lightStatus, compilingFsLib, Lexer.token lexargs true, lexbuf)
+        LexFilter.LexFilter(lightStatus, compilingFsLib, Lexer.token lexargs true, lexbuf, false)
 
     (fun _ -> tokenizer.GetToken())
 

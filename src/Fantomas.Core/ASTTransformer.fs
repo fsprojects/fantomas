@@ -1022,11 +1022,6 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
         let interfaceNodes =
             ims
             |> List.map (fun (SynInterfaceImpl(t, mWith, bs, members, StartRange 9 (mInterface, m))) ->
-                let m =
-                    match List.tryLast members with
-                    | None -> m
-                    | Some ms -> mkRange m.FileName m.Start ms.Range.End
-
                 InterfaceImplNode(
                     stn "interface" mInterface,
                     mkType creationAide t,
@@ -2222,6 +2217,7 @@ let mkSynLeadingKeyword (lk: SynLeadingKeyword) =
     | SynLeadingKeyword.Abstract abstractRange -> mtn [ "abstract", abstractRange ]
     | SynLeadingKeyword.AbstractMember(abstractRange, memberRange) ->
         mtn [ "abstract", abstractRange; "member", memberRange ]
+    | SynLeadingKeyword.Static staticRange -> mtn [ "static", staticRange ]
     | SynLeadingKeyword.StaticMember(staticRange, memberRange) -> mtn [ "static", staticRange; "member", memberRange ]
     | SynLeadingKeyword.StaticMemberVal(staticRange, memberRange, valRange) ->
         mtn [ "static", staticRange; "member", memberRange; "val", valRange ]
