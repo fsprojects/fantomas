@@ -7,15 +7,18 @@
 
 ## 6.1.0-alpha-006 - 2023-06-20
 
-Contains fixes of 6.0.8
+### Fixed
+* Contains fixes of 6.0.8
 
 ## 6.1.0-alpha-005 - 2023-06-20
 
-Contains fixes of 6.0.7
+### Fixed
+* Contains fixes of 6.0.7
 
 ## 6.1.0-alpha-004 - 2023-06-19
 
-Contains fixes of 6.0.6
+### Fixed
+* Contains fixes of 6.0.6
 
 ## 6.1.0-alpha-003 - 2023-06-02
 
