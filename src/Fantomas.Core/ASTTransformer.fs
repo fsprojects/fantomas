@@ -1022,6 +1022,11 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
         let interfaceNodes =
             ims
             |> List.map (fun (SynInterfaceImpl(t, mWith, bs, members, StartRange 9 (mInterface, m))) ->
+                let m =
+                    match List.tryLast members with
+                    | None -> m
+                    | Some ms -> mkRange m.FileName m.Start ms.Range.End
+
                 InterfaceImplNode(
                     stn "interface" mInterface,
                     mkType creationAide t,

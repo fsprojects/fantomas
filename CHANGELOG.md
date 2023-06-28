@@ -1,8 +1,9 @@
 # Changelog
 
-## 6.1.0 - 2023-06-27
+## 6.1.0 - 2023-06-28
 
-Stable release
+### Fixed
+* Additional newline for interface in object expression. [#2914](https://github.com/fsprojects/fantomas/issues/2914)
 
 ## 6.1.0-alpha-006 - 2023-06-20
 
