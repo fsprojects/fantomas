@@ -233,6 +233,7 @@ pipeline "Init" {
     stage "Download FCS files" {
         run (fun _ ->
             [| "src/Compiler/FSComp.txt"
+               "src/Compiler/FSStrings.resx"
                "src/Compiler/Utilities/Activity.fsi"
                "src/Compiler/Utilities/Activity.fs"
                "src/Compiler/Utilities/sformat.fsi"

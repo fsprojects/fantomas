@@ -18,6 +18,10 @@
     <EmbeddedText Include="..\..\.deps\$(FCSCommitHash)\src\Compiler\FSComp.txt">
       <Link>FSComp.txt</Link>
     </EmbeddedText>
+    <EmbeddedResource Include="..\..\.deps\$(FCSCommitHash)\src\Compiler\FSStrings.resx">
+      <Link>FSStrings.resx</Link>
+      <LogicalName>FSStrings.resources</LogicalName>
+    </EmbeddedResource>
     <Compile Include="..\..\.deps\$(FCSCommitHash)\src\Compiler\Utilities\Activity.fsi">
       <Link>Utilities\Activity.fsi</Link>
     </Compile>
