@@ -8,7 +8,7 @@ open System.Threading
 open System.Threading.Tasks
 open StreamJsonRpc
 open Thoth.Json.Net
-open FSharp.Compiler.Text
+open Fantomas.FCS.Text
 open Fantomas.Client.Contracts
 open Fantomas.Client.LSPFantomasServiceTypes
 open Fantomas.Core

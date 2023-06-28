@@ -1,9 +1,9 @@
 [<RequireQualifiedAccess>]
 module internal Fantomas.Core.CodeFormatterImpl
 
-open FSharp.Compiler.Diagnostics
-open FSharp.Compiler.Syntax
-open FSharp.Compiler.Text
+open Fantomas.FCS.Diagnostics
+open Fantomas.FCS.Syntax
+open Fantomas.FCS.Text
 open MultipleDefineCombinations
 
 let getSourceText (source: string) : ISourceText = source.TrimEnd() |> SourceText.ofString

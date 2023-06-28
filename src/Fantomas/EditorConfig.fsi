@@ -12,8 +12,6 @@ module Reflection =
 
     val inline getRecordFields: x: 'a -> (FSharpRecordField * obj)[]
 
-val supportedProperties: string list
-
 val toEditorConfigName: value: seq<char> -> string
 
 val parseOptionsFromEditorConfig:

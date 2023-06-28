@@ -1,7 +1,7 @@
 namespace Fantomas.Core
 
-open FSharp.Compiler.Syntax
-open FSharp.Compiler.Text
+open Fantomas.FCS.Syntax
+open Fantomas.FCS.Text
 open Fantomas.Core.SyntaxOak
 
 [<Sealed>]
@@ -77,6 +77,13 @@ type CodeFormatter =
                     let oak = Trivia.enrichTree FormatConfig.Default sourceText ast oak
                     oak, defines.Value)
         }
+
+    static member TransformAST ast = ASTTransformer.mkOak None ast
+
+    static member TransformAST(ast, source) =
+        let sourceText = SourceText.ofString source
+        let oak = ASTTransformer.mkOak (Some sourceText) ast
+        Trivia.enrichTree FormatConfig.Default sourceText ast oak
 
     static member FormatOakAsync(oak: Oak) : Async<string> =
         async {

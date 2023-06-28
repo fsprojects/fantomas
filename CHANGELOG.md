@@ -1,5 +1,36 @@
 # Changelog
 
+## 6.1.0 - 2023-06-27
+
+Stable release
+
+## 6.1.0-alpha-006 - 2023-06-20
+
+Contains fixes of 6.0.8
+
+## 6.1.0-alpha-005 - 2023-06-20
+
+Contains fixes of 6.0.7
+
+## 6.1.0-alpha-004 - 2023-06-19
+
+Contains fixes of 6.0.6
+
+## 6.1.0-alpha-003 - 2023-06-02
+
+### Changed
+* Rename `namespace FSharp.Compiler` to `namespace Fantomas.FCS` for `Fantomas.FCS`. [#2894](https://github.com/fsprojects/fantomas/pull/2894)
+
+## 6.1.0-alpha-002 - 2023-05-02
+
+### Changed
+* Enrich transformed Oak. [#2869](https://github.com/fsprojects/fantomas/pull/2869)
+
+## 6.1.0-alpha-001 - 2023-05-02
+
+### Added
+* TransformAST in CodeFormatter. [#2868](https://github.com/fsprojects/fantomas/pull/2868)
+
 ## [6.0.8] - 2023-06-20
 
 ### Fixed

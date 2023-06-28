@@ -193,6 +193,17 @@ let fsharpCompilerHash =
     let xDoc = XElement.Load(__SOURCE_DIRECTORY__ </> "Directory.Build.props")
     xDoc.XPathSelectElements("//FCSCommitHash") |> Seq.head |> (fun xe -> xe.Value)
 
+let updateFileRaw (file: FileInfo) =
+    let lines = File.ReadAllLines file.FullName
+    let updatedLines =
+        lines
+        |> Array.map (fun line ->
+            if line.Contains("FSharp.Compiler") then
+                line.Replace("FSharp.Compiler", "Fantomas.FCS")
+            else
+                line)
+    File.WriteAllLines(file.FullName, updatedLines)
+
 let downloadCompilerFile commitHash relativePath =
     async {
         let file = FileInfo(deps </> commitHash </> relativePath)
@@ -213,6 +224,8 @@ let downloadCompilerFile commitHash relativePath =
                 printfn $"Could not download %s{relativePath}"
             do! Async.AwaitTask(response.ResponseStream.CopyToAsync(fs))
             fs.Close()
+
+            updateFileRaw file
     }
 
 pipeline "Init" {

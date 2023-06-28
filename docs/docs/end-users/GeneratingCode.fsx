@@ -33,9 +33,9 @@ To illustrate the API, lets generate a simple value binding: `let a = 0`.
 *)
 
 #r "../../../src/Fantomas/bin/Release/net6.0/Fantomas.FCS.dll"
-#r "../../../src/Fantomas/bin/Release/net6.0/Fantomas.Core.dll" // In production use #r "nuget: Fantomas.Core, 6.0-alpha-*"
+#r "../../../src/Fantomas/bin/Release/net6.0/Fantomas.Core.dll" // In production use #r "nuget: Fantomas.Core, 6.*"
 
-open FSharp.Compiler.Text
+open Fantomas.FCS.Text
 open Fantomas.Core.SyntaxOak
 
 let implementationSyntaxTree =
@@ -88,11 +88,8 @@ The more you interact with AST/Oak, the easier you pick up which node represents
 
 ### Fantomas.FCS
 
-When looking at the example, we notice that we've opened `FSharp.Compiler.Text`.   
-Don't be fooled by this, `Fantomas.Core` and `Fantomas.FCS` **do not reference [FSharp.Compiler.Service](https://www.nuget.org/packages/FSharp.Compiler.Service)**!  
-Instead, `Fantomas.FCS` is a custom version of the F# compiler (built from source) that only exposes the F# parser and the syntax tree.
-
-`Fantomas.FCS` exposes the exact same namespaces because it builds from the exact same F# compiler source code.   
+When looking at the example, we notice that we've opened `Fantomas.FCS.Text`.    
+`Fantomas.FCS` is a custom version of the F# compiler (built from source) that only exposes the F# parser and the syntax tree.  
 The key difference is that `Fantomas.FCS` will most likely contain a more recent version of the F# parser.  
 You can read the [CHANGELOG](https://github.com/fsprojects/fantomas/blob/main/CHANGELOG.md) to see what git commit was used to build `Fantomas.FCS`.
 

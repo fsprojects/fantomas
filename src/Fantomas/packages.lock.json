@@ -26,9 +26,9 @@
       },
       "editorconfig": {
         "type": "Direct",
-        "requested": "[0.13.0, )",
-        "resolved": "0.13.0",
-        "contentHash": "1IAdbakbxaKyVv/gr3VTHkbFMFgfOSpP4VRSvOg50Ee9qAfXDr4F8FvOtwq7Pi6fcoxxXYfOYceT1U3oODdpFg=="
+        "requested": "[0.14.0, )",
+        "resolved": "0.14.0",
+        "contentHash": "emt1KlBtTsTSHWeLnlD1grQYN991wlzIh8t0/HF8ambYTLE8v25sPU9q2eu3sNj/Za7Ij6a0MW00lDGTsphEhQ=="
       },
       "FSharp.Core": {
         "type": "Direct",

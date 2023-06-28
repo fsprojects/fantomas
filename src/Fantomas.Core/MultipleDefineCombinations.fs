@@ -5,7 +5,7 @@ open System.Linq
 open System.Text
 open System.Text.RegularExpressions
 open Microsoft.FSharp.Core.CompilerServices
-open FSharp.Compiler.Text
+open Fantomas.FCS.Text
 
 /// A CodeFragment represents a chunk of code that is either
 ///     a single conditional hash directive line,
