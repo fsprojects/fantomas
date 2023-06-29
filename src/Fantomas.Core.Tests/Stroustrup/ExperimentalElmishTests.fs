@@ -163,11 +163,12 @@ let view =
 let ``div with multiple attributes and children`` () =
     formatSourceString
         false
-        """let d =
-div [ ClassName "container"; OnClick (fun _ -> printfn "meh") ] [
-    span [] [str "foo"]
-    code [] [str "bar"]
-]
+        """
+let d =
+    div [ ClassName "container"; OnClick (fun _ -> printfn "meh") ] [
+        span [] [str "foo"]
+        code [] [str "bar"]
+    ]
 """
         { config with MaxArrayOrListWidth = 40 }
     |> prepend newline

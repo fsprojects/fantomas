@@ -143,9 +143,9 @@ module Foo =
     let foo =
         { new IDisposable with
             member __.Dispose () =
-            do ()
+                do ()
 
-            upcast ()
+                upcast ()
         }
 """
         { config with
@@ -179,9 +179,9 @@ module Foo =
     let foo =
         { new IDisposable with
             member __.Dispose () =
-            do ()
+                do ()
 
-            downcast ()
+                downcast ()
         }
 """
         { config with
