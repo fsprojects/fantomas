@@ -2247,9 +2247,9 @@ let z = {|
 
 let a = {| // test1
     foo with
-    Level = 7
-    Square = 9
-    // test2
+        Level = 7
+        Square = 9
+        // test2
 |}
 """
         config
@@ -2355,12 +2355,12 @@ let ``multiline field body expression where indent_size = 2, update record`` () 
 let handlerFormattedRangeDoc (lines: NamedText, formatted: string, range: FormatSelectionRange) =
     let range =
       { x with 
-        Start =
-          { Line = range.StartLine - 1
-            Character = range.StartColumn }
-        End =
-          { Line = range.EndLine - 1
-            Character = range.EndColumn } }
+            Start =
+              { Line = range.StartLine - 1
+                Character = range.StartColumn }
+            End =
+              { Line = range.EndLine - 1
+                Character = range.EndColumn } }
 
     [| { Range = range; NewText = formatted } |]
 """

@@ -1605,10 +1605,11 @@ type SomeType() =
 let ``split multiple parameters over multiple lines`` () =
     formatSourceString
         false
-        """type SomeType =
+        """
+type SomeType =
     static member SomeMember (looooooooooooooooooooooooooooooooooooooooooooooooooooooooooooong1: string) (looooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooong2: string) : string =
-    printfn "a"
-    "b"
+     printfn "a"
+     "b"
 """
         config
     |> prepend newline
@@ -1628,10 +1629,11 @@ type SomeType =
 let ``split multiple parameters over multiple lines and have correct indentation afterwards`` () =
     formatSourceString
         false
-        """type SomeType =
+        """
+type SomeType =
     static member SomeMember (looooooooooooooooooooooooooooooooooooooooooooooooooooooooooooong1: string) (looooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooong2: string) : string =
-    printfn "a"
-    "b"
+     printfn "a"
+     "b"
 
     static member SomeOtherMember () = printfn "c"
 """
@@ -1656,10 +1658,11 @@ type SomeType =
 let ``member with one long parameter and return type, 850`` () =
     formatSourceString
         false
-        """type SomeType =
+        """
+type SomeType =
     static member SomeMember loooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooong1 : string =
-    printfn "a"
-    "b"
+     printfn "a"
+     "b"
 """
         config
     |> prepend newline
@@ -1678,10 +1681,11 @@ type SomeType =
 let ``member with one long parameter and no return type, 850`` () =
     formatSourceString
         false
-        """type SomeType =
+        """
+type SomeType =
     static member SomeMember loooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooong1 =
-    printfn "a"
-    "b"
+     printfn "a"
+     "b"
 """
         config
     |> prepend newline
@@ -1700,10 +1704,11 @@ type SomeType =
 let ``multiple members with one long parameter`` () =
     formatSourceString
         false
-        """type SomeType =
+        """
+type SomeType =
     static member SomeMember loooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooong1 =
-    printfn "a"
-    "b"
+     printfn "a"
+     "b"
 
     static member Serialize (loooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooong2: SomeType) = Encode.string v.Meh
     static member Deserialize (loooooooooooooooooooooooooooooooooooooooooooooooooooooonnnnnnnnnnnnnnnnnnnnngggggggggggJsonVaaaaalueeeeeeeeeeeeeeee) : SomeType = Decode.SomeType loooooooooooooooooooooooooooooooooooooooooooooooooooooonnnnnnnnnnnnnnnnnnnnngggggggggggJsonVaaaaalueeeeeeeeeeeeeeee

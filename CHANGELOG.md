@@ -1,5 +1,10 @@
 # Changelog
 
+## 6.1.1 - 2023-06-29
+
+### Changed
+* Update FCS to 'Remove unused open in SyntaxTree.fs', commit 9c8b4192966e6554adc5dcc8973f2a23c8fa2722
+
 ## 6.1.0 - 2023-06-28
 
 ### Fixed

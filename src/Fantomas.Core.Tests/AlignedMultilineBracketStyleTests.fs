@@ -1445,9 +1445,9 @@ let z = {|
 
 let a = {| // test1
     foo with
-    Level = 7
-    Square = 9
-    // test2
+        Level = 7
+        Square = 9
+        // test2
 |}
 """
         config

@@ -1355,7 +1355,7 @@ let ``add space around binary operators in units of measure, 2207`` () =
 type Test =
     { WorkHoursPerWeek: uint<hr*(staff weeks)> }
     static member create =
-    { WorkHoursPerWeek = 40u<hr*(staff weeks)> }
+     { WorkHoursPerWeek = 40u<hr*(staff weeks)> }
 """
         { config with
             NewlineBetweenTypeDefinitionAndMembers = false }
