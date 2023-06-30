@@ -2492,6 +2492,14 @@ let genTuplePat (node: PatTupleNode) =
     atCurrentColumn (expressionFitsOnRestOfLine short (atCurrentColumn (genTuplePatLong node)))
     |> genNode node
 
+let (|SingleNamedPatPair|_|) (p: Pattern) =
+    match p with
+    | Pattern.NamePatPairs namePatPairsNode ->
+        match namePatPairsNode.Pairs with
+        | [ _singlePat ] -> Some()
+        | _ -> None
+    | _ -> None
+
 let genPat (p: Pattern) =
     match p with
     | Pattern.OptionalVal n -> genSingleTextNode n
@@ -2586,6 +2594,7 @@ let genPat (p: Pattern) =
                         | Pattern.ArrayOrList arrayOrListNode ->
                             genMultilineArrayOrListPatternInApplication arrayOrListNode
                         | Pattern.Record recordNode -> genMultilineRecordPatternInApplication recordNode
+                        | SingleNamedPatPair _ as pat -> genPat pat
                         | _ -> indentSepNlnUnindent (genPat parenNode.Pattern) +> sepNln
 
                     genSingleTextNode parenNode.OpeningParen

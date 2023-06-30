@@ -3,7 +3,7 @@
 open NUnit.Framework
 open FsUnit
 open Fantomas.Core
-open Fantomas.Core.Tests.TestHelper
+open Fantomas.Core.Tests.TestHelpers
 
 [<Test>]
 let ``long ident tuple pattern`` () =
@@ -311,20 +311,18 @@ match parseResults with
         equal
         """
 match parseResults with
-| ParsedInput.ImplFile(
-    ParsedImplFileInput(contents = [
-        SynModuleOrNamespace.SynModuleOrNamespace(decls = [
-            SynModuleDecl.Types(typeDefns = [
-                SynTypeDefn(typeRepr =
-                    SynTypeDefnRepr.ObjectModel(members = [
-                        _
-                        SynMemberDefn.Member(memberDefn = SynBinding(trivia = { EqualsRange = Some mEquals }))
-                    ])
-                )
-            ])
+| ParsedInput.ImplFile(ParsedImplFileInput(contents = [
+    SynModuleOrNamespace.SynModuleOrNamespace(decls = [
+        SynModuleDecl.Types(typeDefns = [
+            SynTypeDefn(typeRepr =
+                SynTypeDefnRepr.ObjectModel(members = [
+                    _
+                    SynMemberDefn.Member(memberDefn = SynBinding(trivia = { EqualsRange = Some mEquals }))
+                ])
+            )
         ])
     ])
-  ) -> assertRange (3, 18) (3, 19) mEquals
+  ])) -> assertRange (3, 18) (3, 19) mEquals
 | _ -> Assert.Fail "Could not get valid AST"
 """
 
@@ -359,28 +357,23 @@ match parseResults with
         equal
         """
 match parseResults with
-| ParsedInput.ImplFile(
-    ParsedImplFileInput(modules = [
-        SynModuleOrNamespace.SynModuleOrNamespace(decls = [
-            SynModuleDecl.Types(typeDefns = [
-                SynTypeDefn(typeRepr =
-                    SynTypeDefnRepr.ObjectModel(members = [
-                        SynMemberDefn.ImplicitCtor _
-                        SynMemberDefn.GetSetMember(
-                            Some(SynBinding(headPat = SynPat.LongIdent(extraId = Some getIdent))),
-                            Some(SynBinding(headPat = SynPat.LongIdent(extraId = Some setIdent))),
-                            m,
-                            { WithKeyword = mWith
-                              GetKeyword = Some mGet
-                              AndKeyword = Some mAnd
-                              SetKeyword = Some mSet }
-                        )
-                    ])
-                )
-            ])
+| ParsedInput.ImplFile(ParsedImplFileInput(modules = [
+    SynModuleOrNamespace.SynModuleOrNamespace(decls = [
+        SynModuleDecl.Types(typeDefns = [
+            SynTypeDefn(typeRepr =
+                SynTypeDefnRepr.ObjectModel(members = [
+                    SynMemberDefn.ImplicitCtor _
+                    SynMemberDefn.GetSetMember(
+                        Some(SynBinding(headPat = SynPat.LongIdent(extraId = Some getIdent))),
+                        Some(SynBinding(headPat = SynPat.LongIdent(extraId = Some setIdent))),
+                        m,
+                        { WithKeyword = mWith; GetKeyword = Some mGet; AndKeyword = Some mAnd; SetKeyword = Some mSet }
+                    )
+                ])
+            )
         ])
     ])
-  ) -> ()
+  ])) -> ()
 """
 
 [<Test>]
@@ -400,13 +393,11 @@ match x with
         equal
         """
 match x with
-| ABC(
-    Y(itemOne =
-        OhSomeActivePatternThing(
-            a, b
-        ) as foo
-    )
-  ) -> ()
+| ABC(Y(itemOne =
+    OhSomeActivePatternThing(
+        a, b
+    ) as foo
+  )) -> ()
 """
 
 [<Test>]
@@ -423,18 +414,13 @@ match x with
         equal
         """
 match x with
-| ABC(
-    Y(itemOne =
-        OhSomeActivePatternThing(
-            a, b
-        ) | S(
-            one,
-            two,
-            three,
-            four
-        )
+| ABC(Y(itemOne =
+    OhSomeActivePatternThing(
+        a, b
+    ) | S(
+        one, two, three, four
     )
-  ) -> ()
+  )) -> ()
 """
 
 [<Test>]
@@ -451,18 +437,13 @@ match x with
         equal
         """
 match x with
-| ABC(
-    Y(itemOne =
-        OhSomeActivePatternThing(
-            a, b
-        ) :: S(
-            one,
-            two,
-            three,
-            four
-        )
+| ABC(Y(itemOne =
+    OhSomeActivePatternThing(
+        a, b
+    ) :: S(
+        one, two, three, four
     )
-  ) -> ()
+  )) -> ()
 """
 
 [<Test>]
@@ -637,22 +618,20 @@ match ast with
         equal
         """
 match ast with
-| ParsedInput.ImplFile(
-    ParsedImplFileInput(contents = [
-        SynModuleOrNamespace.SynModuleOrNamespace(decls = [
-            SynModuleDecl.Types(
-                [ SynTypeDefn.SynTypeDefn(typeRepr =
-                        SynTypeDefnRepr.Simple(simpleRepr =
-                            SynTypeDefnSimpleRepr.Enum(cases = [
-                                SynEnumCase.SynEnumCase(trivia = { BarRange = None; EqualsRange = mEquals })
-                            ])
-                        )
-                    ) ],
-                _
-            )
-        ])
+| ParsedInput.ImplFile(ParsedImplFileInput(contents = [
+    SynModuleOrNamespace.SynModuleOrNamespace(decls = [
+        SynModuleDecl.Types(
+            [ SynTypeDefn.SynTypeDefn(typeRepr =
+                    SynTypeDefnRepr.Simple(simpleRepr =
+                        SynTypeDefnSimpleRepr.Enum(cases = [
+                            SynEnumCase.SynEnumCase(trivia = { BarRange = None; EqualsRange = mEquals })
+                        ])
+                    )
+                ) ],
+            _
+        )
     ])
-  ) -> assertRange (2, 15) (2, 16) mEquals
+  ])) -> assertRange (2, 15) (2, 16) mEquals
 | _ -> Assert.Fail "Could not get valid AST"
 """
 
@@ -786,4 +765,30 @@ match parseResults with
     assertRange (2, 21) (2, 22) mSlash
     assertRange (2, 21) (2, 29) mTuple
 | _ -> Assert.Fail $"Could not get valid AST, got {parseResults}"
+"""
+
+[<Test>]
+let ``single named pattern pair should start inside parent pat long ident parentheses`` () =
+    formatSourceString
+        false
+        """
+match ast with
+| ParsedInput.ImplFile (ParsedImplFileInput(contents = [ SynModuleOrNamespace.SynModuleOrNamespace(decls =
+    [ SynModuleDecl.Attributes(attributes = [ { Attributes = [ { Range = mAttribute } ] } ]) ; SynModuleDecl.Expr _ ] ) ]))  ->
+    assertRange (2, 2) (2, 25) mAttribute
+| _ -> Assert.Fail $"Could not get valid AST, got {ast}"
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+match ast with
+| ParsedInput.ImplFile(ParsedImplFileInput(contents = [
+    SynModuleOrNamespace.SynModuleOrNamespace(decls = [
+        SynModuleDecl.Attributes(attributes = [ { Attributes = [ { Range = mAttribute } ] } ])
+        SynModuleDecl.Expr _
+    ])
+  ])) -> assertRange (2, 2) (2, 25) mAttribute
+| _ -> Assert.Fail $"Could not get valid AST, got {ast}"
 """
