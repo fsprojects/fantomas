@@ -2735,16 +2735,25 @@ let genPat (p: Pattern) =
 
         let multiline =
             let cramped =
-                if node.OpenToken.Text.Length = 1 then
-                    short
-                else
-                    // pattern is an array, which can lead to some offset problems.
-                    // It is better to play it safe and indent the patterns on the next line.
-                    genSingleTextNode node.OpenToken
-                    +> addSpaceIfSpaceAroundDelimiter
-                    +> indentSepNlnUnindent genPats
-                    +> addSpaceIfSpaceAroundDelimiter
-                    +> genSingleTextNode node.CloseToken
+                genSingleTextNode node.OpenToken
+                +> (fun ctx ->
+                    let column = ctx.WriterModel.Column
+
+                    let rest =
+                        if column <= ctx.Config.IndentSize then
+                            ctx.Config.IndentSize - column
+                        else
+                            ctx.Config.IndentSize - (column % ctx.Config.IndentSize)
+
+                    if rest = 0 then
+                        (indent +> sepNln) ctx
+                    else
+                        // Insert additional spaces so that the first element starts on the next indent.
+                        ((rep rest (!- " ")) +> indent) ctx)
+                +> genPats
+                +> unindent
+                +> addSpaceIfSpaceAroundDelimiter
+                +> genSingleTextNode node.CloseToken
 
             // Note that we deliberately are not take the setting fsharp_multiline_block_brackets_on_same_column into account.
             let multilineAlignBrackets =

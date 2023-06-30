@@ -621,7 +621,7 @@ match ast with
 | ParsedInput.ImplFile(ParsedImplFileInput(contents = [
     SynModuleOrNamespace.SynModuleOrNamespace(decls = [
         SynModuleDecl.Types(
-            [ SynTypeDefn.SynTypeDefn(typeRepr =
+            [   SynTypeDefn.SynTypeDefn(typeRepr =
                     SynTypeDefnRepr.Simple(simpleRepr =
                         SynTypeDefnSimpleRepr.Enum(cases = [
                             SynEnumCase.SynEnumCase(trivia = { BarRange = None; EqualsRange = mEquals })
@@ -791,4 +791,45 @@ match ast with
     ])
   ])) -> assertRange (2, 2) (2, 25) mAttribute
 | _ -> Assert.Fail $"Could not get valid AST, got {ast}"
+"""
+
+[<Test>]
+let ``cramped list in multiline pattern`` () =
+    formatSourceString
+        false
+        """
+match parseResults with
+| 
+                        SynTypeDefnSimpleRepr.TypeAbbrev(rhsType =
+                            SynType.Tuple(
+                                false,
+                                [   SynTupleTypeSegment.Type(TypeName "Y")
+                                    SynTupleTypeSegment.Star mStar
+                                    SynTupleTypeSegment.Type(TypeName "Z") ],
+                                mTuple
+                            )
+                        )
+                        -> ()
+"""
+        { config with MaxLineLength = 20 }
+    |> prepend newline
+    |> should
+        equal
+        """
+match
+    parseResults
+with
+| SynTypeDefnSimpleRepr.TypeAbbrev(rhsType =
+    SynType.Tuple(
+        false,
+        [   SynTupleTypeSegment.Type(
+                TypeName "Y"
+            )
+            SynTupleTypeSegment.Star mStar
+            SynTupleTypeSegment.Type(
+                TypeName "Z"
+            ) ],
+        mTuple
+    )
+  ) -> ()
 """
