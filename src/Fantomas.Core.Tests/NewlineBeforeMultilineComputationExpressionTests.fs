@@ -327,12 +327,10 @@ let v =
         equal
         """
 let v =
-    SomeConstructor(
-        v = task {
-            // some computation here
-            ()
-        }
-    )
+    SomeConstructor(v = task {
+        // some computation here
+        ()
+    })
 """
 
 [<Test>]

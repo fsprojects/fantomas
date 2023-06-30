@@ -29,13 +29,11 @@ let v =
         equal
         """
 let v =
-    SomeConstructor(
-        v = {
-            A = longTypeName
-            B = someOtherVariable
-            C = ziggyBarX
-        }
-    )
+    SomeConstructor(v = {
+        A = longTypeName
+        B = someOtherVariable
+        C = ziggyBarX
+    })
 """
 
 [<Test>]
@@ -58,15 +56,13 @@ let v =
         equal
         """
 let v =
-    SomeConstructor(
-        v = {
-            astContext with
-                IsInsideMatchClausePattern = true
-                A = longTypeName
-                B = someOtherVariable
-                C = ziggyBarX
-        }
-    )
+    SomeConstructor(v = {
+        astContext with
+            IsInsideMatchClausePattern = true
+            A = longTypeName
+            B = someOtherVariable
+            C = ziggyBarX
+    })
 """
 
 [<Test>]
@@ -88,13 +84,11 @@ let v =
         equal
         """
 let v =
-    SomeConstructor(
-        v = {|
-            A = longTypeName
-            B = someOtherVariable
-            C = ziggyBarX
-        |}
-    )
+    SomeConstructor(v = {|
+        A = longTypeName
+        B = someOtherVariable
+        C = ziggyBarX
+    |})
 """
 
 [<Test>]
@@ -116,13 +110,11 @@ let v =
         equal
         """
 let v =
-    SomeConstructor(
-        v = struct {|
-            A = longTypeName
-            B = someOtherVariable
-            C = ziggyBarX
-        |}
-    )
+    SomeConstructor(v = struct {|
+        A = longTypeName
+        B = someOtherVariable
+        C = ziggyBarX
+    |})
 """
 
 [<Test>]
@@ -146,15 +138,13 @@ let v =
         equal
         """
 let v =
-    SomeConstructor(
-        v = [
-            itemOne
-            itemTwo
-            itemThree
-            itemFour
-            itemFive
-        ]
-    )
+    SomeConstructor(v = [
+        itemOne
+        itemTwo
+        itemThree
+        itemFour
+        itemFive
+    ])
 """
 
 [<Test>]
@@ -178,15 +168,13 @@ let v =
         equal
         """
 let v =
-    SomeConstructor(
-        v = [|
-            itemOne
-            itemTwo
-            itemThree
-            itemFour
-            itemFive
-        |]
-    )
+    SomeConstructor(v = [|
+        itemOne
+        itemTwo
+        itemThree
+        itemFour
+        itemFive
+    |])
 """
 
 [<Test>]
