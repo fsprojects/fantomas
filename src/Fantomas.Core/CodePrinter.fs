@@ -1591,6 +1591,11 @@ let genExpr (e: Expr) =
         |> genNode node
     | Expr.IndexFromEnd node -> !- "^" +> genExpr node.Expr |> genNode node
     | Expr.Typar node -> genSingleTextNode node
+    | Expr.DotLambda node ->
+        genSingleTextNode node.Underscore
+        +> genSingleTextNode node.Dot
+        +> genExpr node.Expr
+        |> genNode node
 
 let genQuoteExpr (node: ExprQuoteNode) =
     genSingleTextNode node.OpenToken
@@ -2469,6 +2474,7 @@ let genAppWithLambda sep (node: ExprAppWithLambdaNode) =
 
 let sepSpaceBeforeParenInFuncInvocation (functionExpr: Expr) (argExpr: Expr) ctx =
     match functionExpr, argExpr with
+    | Expr.DotLambda _, _ -> ctx
     | Expr.Constant _, _ -> sepSpace ctx
     | ParenExpr _, _ -> sepSpace ctx
     | UppercaseExpr, ParenExpr _ -> onlyIf ctx.Config.SpaceBeforeUppercaseInvocation sepSpace ctx

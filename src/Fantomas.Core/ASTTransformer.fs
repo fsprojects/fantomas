@@ -1570,6 +1570,12 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
         |> Expr.IndexRange
     | SynExpr.IndexFromEnd(e, _) -> ExprIndexFromEndNode(mkExpr creationAide e, exprRange) |> Expr.IndexFromEnd
     | SynExpr.Typar(typar, _) -> mkSynTypar typar |> Expr.Typar
+    | SynExpr.DotLambda(
+        expr = e
+        trivia = { DotRange = mDot
+                   UnderscoreRange = mUnderscore }) ->
+        ExprDotLambda(stn "_" mUnderscore, stn "." mDot, mkExpr creationAide e, exprRange)
+        |> Expr.DotLambda
     | _ -> failwithf "todo for %A" e
 
 let mkExprQuote creationAide isRaw e range : ExprQuoteNode =
@@ -1976,7 +1982,7 @@ let mkModuleDecl (creationAide: CreationAide) (decl: SynModuleDecl) =
         |> ModuleDecl.NestedModule
     | decl -> failwithf $"Failed to create ModuleDecl for %A{decl}"
 
-let mkSynTyparDecl (creationAide: CreationAide) (SynTyparDecl(attrs, typar)) =
+let mkSynTyparDecl (creationAide: CreationAide) (SynTyparDecl(attributes = attrs; typar = typar)) =
     let m =
         match List.tryHead attrs with
         | None -> typar.Range
