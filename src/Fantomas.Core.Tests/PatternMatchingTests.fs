@@ -2014,7 +2014,7 @@ match v with
 """
 
 [<Test>]
-let ``vanity alignment used when splitting line in match block, 1901`` () =
+let ``whitespace alignment used when splitting line in match block, 1901`` () =
     formatSourceString
         false
         """
@@ -2036,7 +2036,7 @@ with
 """
 
 [<Test>]
-let ``vanity alignment used when splitting line in match block, match bang, 1901`` () =
+let ``whitespace alignment used when splitting line in match block, match bang, 1901`` () =
     formatSourceString
         false
         """

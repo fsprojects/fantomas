@@ -380,7 +380,7 @@
 
 ### Fixed
 * Comments in SynArgPats.NamePatPairs are lost. [#2541](https://github.com/fsprojects/fantomas/issues/2541)
-* Vanity alignment used inside base ctor call. [#2111](https://github.com/fsprojects/fantomas/issues/2111)
+* Whitespace alignment used inside base ctor call. [#2111](https://github.com/fsprojects/fantomas/issues/2111)
 * Add line break before start of argument list. [#2335](https://github.com/fsprojects/fantomas/issues/2335)
 
 ## [5.1.0-alpha-004] - 2022-10-07

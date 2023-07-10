@@ -944,7 +944,7 @@ type MaybeBuilder() =
 """
 
 [<Test>]
-let ``avoid vanity alignment when calling base constructor, 1442`` () =
+let ``avoid whitespace alignment when calling base constructor, 1442`` () =
     formatSourceString
         false
         """
