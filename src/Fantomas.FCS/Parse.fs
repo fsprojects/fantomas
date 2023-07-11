@@ -655,7 +655,7 @@ let getSyntaxErrorMessage ctxt =
         | Parser.TOKEN_BAR_RBRACK -> getErrorString "Parser.TOKEN.BAR.RBRACK"
         | Parser.TOKEN_BAR_RBRACE -> getErrorString "Parser.TOKEN.BAR.RBRACE"
         | Parser.TOKEN_GREATER_RBRACK -> getErrorString "Parser.TOKEN.GREATER.RBRACK"
-        | Parser.TOKEN_RQUOTE_DOT _
+        | Parser.TOKEN_RQUOTE_DOT
         | Parser.TOKEN_RQUOTE -> getErrorString "Parser.TOKEN.RQUOTE"
         | Parser.TOKEN_RBRACK -> getErrorString "Parser.TOKEN.RBRACK"
         | Parser.TOKEN_RBRACE
@@ -682,8 +682,8 @@ let getSyntaxErrorMessage ctxt =
         | Parser.TOKEN_OTHEN -> getErrorString "Parser.TOKEN.OTHEN"
         | Parser.TOKEN_ELSE
         | Parser.TOKEN_OELSE -> getErrorString "Parser.TOKEN.OELSE"
-        | Parser.TOKEN_LET _
-        | Parser.TOKEN_OLET _ -> getErrorString "Parser.TOKEN.OLET"
+        | Parser.TOKEN_LET
+        | Parser.TOKEN_OLET -> getErrorString "Parser.TOKEN.OLET"
         | Parser.TOKEN_OBINDER
         | Parser.TOKEN_BINDER -> getErrorString "Parser.TOKEN.BINDER"
         | Parser.TOKEN_OAND_BANG

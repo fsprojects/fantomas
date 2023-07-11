@@ -159,7 +159,7 @@ let genIdentListNodeAux addLeadingDot (iln: IdentListNode) =
             else
                 genSingleTextNode ident +> sepNlnWhenWriteBeforeNewlineNotEmpty
         | IdentifierOrDot.KnownDot dot -> genSingleTextNode dot
-        | IdentifierOrDot.UnknownDot _ -> sepDot)
+        | IdentifierOrDot.UnknownDot -> sepDot)
     |> genNode iln
 
 let genIdentListNode iln = genIdentListNodeAux false iln
@@ -2220,12 +2220,12 @@ let genFunctionNameWithMultilineLids (trailing: Context -> Context) (longIdent: 
                 (function
                 | IdentifierOrDot.Ident _ -> sepNone
                 | IdentifierOrDot.KnownDot _
-                | IdentifierOrDot.UnknownDot _ -> sepNln)
+                | IdentifierOrDot.UnknownDot -> sepNln)
                 t
                 (function
                  | IdentifierOrDot.Ident identNode -> genSingleTextNode identNode
                  | IdentifierOrDot.KnownDot dot -> genSingleTextNode dot
-                 | IdentifierOrDot.UnknownDot _ -> sepDot)
+                 | IdentifierOrDot.UnknownDot -> sepDot)
             +> trailing
         )
     | _ -> sepNone
