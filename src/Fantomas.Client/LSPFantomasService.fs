@@ -61,9 +61,8 @@ let private createAgent (ct: CancellationToken) =
                                         | Ok newDaemon ->
                                             replyChannel.Reply(Ok newDaemon.RpcClient)
 
-                                            { state with
-                                                FolderToVersion = Map.add folder version state.FolderToVersion
-                                                Daemons = Map.add version newDaemon state.Daemons }
+                                            { FolderToVersion = Map.add folder version state.FolderToVersion
+                                              Daemons = Map.add version newDaemon state.Daemons }
                                         | Error pse ->
                                             replyChannel.Reply(Error(GetDaemonError.FantomasProcessStart pse))
                                             state
@@ -94,9 +93,8 @@ let private createAgent (ct: CancellationToken) =
                                     | Ok daemon ->
                                         replyChannel.Reply(Ok daemon.RpcClient)
 
-                                        { state with
-                                            Daemons = Map.add version daemon state.Daemons
-                                            FolderToVersion = Map.add folder version state.FolderToVersion }
+                                        { Daemons = Map.add version daemon state.Daemons
+                                          FolderToVersion = Map.add folder version state.FolderToVersion }
                                     | Error pse ->
                                         replyChannel.Reply(Error(GetDaemonError.FantomasProcessStart pse))
                                         state

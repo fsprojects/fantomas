@@ -607,7 +607,7 @@ let mkLinksFromSynLongIdent (sli: SynLongIdent) : LinkExpr list =
 
 let (|UnitExpr|_|) e =
     match e with
-    | SynExpr.Const(constant = SynConst.Unit _) -> Some e.Range
+    | SynExpr.Const(constant = SynConst.Unit) -> Some e.Range
     | _ -> None
 
 let (|ParenExpr|_|) e =
@@ -2384,7 +2384,7 @@ let mkTypeDefn
                 | SynTypeDefnLeadingKeyword.Type mType -> stn "type" mType
                 | SynTypeDefnLeadingKeyword.And mAnd -> stn "and" mAnd
                 | SynTypeDefnLeadingKeyword.StaticType _
-                | SynTypeDefnLeadingKeyword.Synthetic _ -> failwithf "unexpected %A" trivia.LeadingKeyword
+                | SynTypeDefnLeadingKeyword.Synthetic -> failwithf "unexpected %A" trivia.LeadingKeyword
 
             let implicitConstructorNode =
                 match implicitConstructor with
@@ -3131,7 +3131,7 @@ let mkTypeDefnSig (creationAide: CreationAide) (SynTypeDefnSig(typeInfo, typeRep
                 | SynTypeDefnLeadingKeyword.Type mType -> stn "type" mType
                 | SynTypeDefnLeadingKeyword.And mAnd -> stn "and" mAnd
                 | SynTypeDefnLeadingKeyword.StaticType _
-                | SynTypeDefnLeadingKeyword.Synthetic _ -> failwithf "unexpected %A" trivia.LeadingKeyword
+                | SynTypeDefnLeadingKeyword.Synthetic -> failwithf "unexpected %A" trivia.LeadingKeyword
 
             let m =
                 if not px.IsEmpty then

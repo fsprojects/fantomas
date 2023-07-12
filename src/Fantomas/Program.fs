@@ -183,7 +183,7 @@ let runCheckCommand (inputPath: InputPath) : int =
     | InputPath.NotFound s ->
         elog $"Input path '%s{s}' not found"
         1
-    | InputPath.Unspecified _ ->
+    | InputPath.Unspecified ->
         elog "No input path provided. Call with --help for usage information."
         1
     | InputPath.File f when (IgnoreFile.isIgnoredFile (IgnoreFile.current.Force()) f) ->
