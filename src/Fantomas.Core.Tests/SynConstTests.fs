@@ -726,3 +726,18 @@ let ``single digit constant`` () =
         { config with
             InsertFinalNewline = false }
     |> should equal "1"
+
+[<Test>]
+let ``left out lhs in SynMeasure.Divide should not be restored as SynMeasure.One`` () =
+    formatSourceString
+        false
+        """
+234</kg>
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+234< / kg>
+"""

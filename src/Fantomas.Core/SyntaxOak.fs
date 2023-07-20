@@ -2754,6 +2754,19 @@ type MeasureOperatorNode(lhs: Measure, operator: SingleTextNode, rhs: Measure, r
     member val Operator = operator
     member val RightHandSide = rhs
 
+type MeasureDivideNode(lhs: Measure option, operator: SingleTextNode, rhs: Measure, range) =
+    inherit NodeBase(range)
+
+    override val Children: Node array =
+        [| if Option.isSome lhs then
+               yield Measure.Node lhs.Value
+           yield operator
+           yield Measure.Node rhs |]
+
+    member val LeftHandSide = lhs
+    member val Operator = operator
+    member val RightHandSide = rhs
+
 type MeasurePowerNode(measure: Measure, exponent: SingleTextNode, range) =
     inherit NodeBase(range)
     override val Children: Node array = [| yield Measure.Node measure; yield exponent |]
@@ -2778,6 +2791,7 @@ type MeasureParenNode(openingParen: SingleTextNode, measure: Measure, closingPar
 type Measure =
     | Single of SingleTextNode
     | Operator of MeasureOperatorNode
+    | Divide of MeasureDivideNode
     | Power of MeasurePowerNode
     | Multiple of IdentListNode
     | Seq of MeasureSequenceNode
@@ -2787,6 +2801,7 @@ type Measure =
         match m with
         | Single n -> n
         | Operator n -> n
+        | Divide n -> n
         | Power n -> n
         | Multiple n -> n
         | Seq n -> n

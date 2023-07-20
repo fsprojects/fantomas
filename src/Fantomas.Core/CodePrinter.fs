@@ -222,6 +222,15 @@ let genMeasure (measure: Measure) =
         +> sepSpace
         +> genMeasure n.RightHandSide
         |> genNode n
+    | Measure.Divide n ->
+        let lhs = n.LeftHandSide |> Option.map genMeasure |> Option.defaultValue id
+
+        lhs
+        +> sepSpace
+        +> genSingleTextNode n.Operator
+        +> sepSpace
+        +> genMeasure n.RightHandSide
+        |> genNode n
     | Measure.Power n -> genMeasure n.Measure +> !- "^" +> genSingleTextNode n.Exponent |> genNode n
     | Measure.Seq n -> col sepSpace n.Measures genMeasure
     | Measure.Multiple n -> genIdentListNode n

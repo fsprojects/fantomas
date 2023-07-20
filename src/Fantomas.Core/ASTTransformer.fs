@@ -150,7 +150,7 @@ let mkConstant (creationAide: CreationAide) c r : Constant =
             $"\"{content}\"B"
 
         stn (creationAide.TextFromSource fallback r) r |> Constant.FromText
-    | SynConst.Measure(c, numberRange, measure) ->
+    | SynConst.Measure(c, numberRange, measure, _) ->
         ConstantMeasureNode(mkConstant creationAide c numberRange, mkMeasure creationAide measure, r)
         |> Constant.Measure
     | SynConst.SourceIdentifier(c, _, r) -> stn c r |> Constant.FromText
@@ -159,13 +159,15 @@ let mkMeasure (creationAide: CreationAide) (measure: SynMeasure) : Measure =
     match measure with
     | SynMeasure.Var(typar, _) -> mkSynTypar typar |> Measure.Single
     | SynMeasure.Anon m -> stn "_" m |> Measure.Single
-    | SynMeasure.One -> stn "1" Range.Zero |> Measure.Single
+    | SynMeasure.One m -> stn "1" m |> Measure.Single
     | SynMeasure.Product(m1, m2, m) ->
         MeasureOperatorNode(mkMeasure creationAide m1, stn "*" Range.Zero, mkMeasure creationAide m2, m)
         |> Measure.Operator
     | SynMeasure.Divide(m1, m2, m) ->
-        MeasureOperatorNode(mkMeasure creationAide m1, stn "/" Range.Zero, mkMeasure creationAide m2, m)
-        |> Measure.Operator
+        let lhs = m1 |> Option.map (mkMeasure creationAide)
+
+        MeasureDivideNode(lhs, stn "/" Range.Zero, mkMeasure creationAide m2, m)
+        |> Measure.Divide
     | SynMeasure.Power(ms, rat, m) ->
         MeasurePowerNode(mkMeasure creationAide ms, stn (mkSynRationalConst rat) Range.Zero, m)
         |> Measure.Power
@@ -1994,9 +1996,10 @@ let mkSynValTyparDecls (creationAide: CreationAide) (vt: SynValTyparDecls option
 let mkSynRationalConst rc =
     let rec visit rc =
         match rc with
-        | SynRationalConst.Integer i -> string i
-        | SynRationalConst.Rational(numerator, denominator, _) -> $"(%i{numerator}/%i{denominator})"
-        | SynRationalConst.Negate innerRc -> $"-{visit innerRc}"
+        | SynRationalConst.Integer(value = i) -> string i
+        | SynRationalConst.Rational(numerator = numerator; denominator = denominator) ->
+            $"(%i{numerator}/%i{denominator})"
+        | SynRationalConst.Negate(rationalConst = innerRc) -> $"-{visit innerRc}"
 
     visit rc
 

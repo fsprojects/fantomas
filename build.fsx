@@ -193,6 +193,10 @@ let fsharpCompilerHash =
     let xDoc = XElement.Load(__SOURCE_DIRECTORY__ </> "Directory.Build.props")
     xDoc.XPathSelectElements("//FCSCommitHash") |> Seq.head |> (fun xe -> xe.Value)
 
+let fcsRepo =
+    let xDoc = XElement.Load(__SOURCE_DIRECTORY__ </> "Directory.Build.props")
+    xDoc.XPathSelectElements("//FCSRepo") |> Seq.head |> (fun xe -> xe.Value)
+
 let updateFileRaw (file: FileInfo) =
     let lines = File.ReadAllLines file.FullName
     let updatedLines =
@@ -213,8 +217,7 @@ let downloadCompilerFile commitHash relativePath =
             file.Directory.Create()
             let fs = file.Create()
             let fileName = Path.GetFileName(relativePath)
-            let url =
-                $"https://raw.githubusercontent.com/dotnet/fsharp/{commitHash}/{relativePath}"
+            let url = $"https://raw.githubusercontent.com/{fcsRepo}/{commitHash}/{relativePath}"
             let! response =
                 Http.AsyncRequestStream(
                     url,
