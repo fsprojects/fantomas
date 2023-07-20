@@ -169,7 +169,7 @@ let mkMeasure (creationAide: CreationAide) (measure: SynMeasure) : Measure =
         MeasureDivideNode(lhs, stn "/" Range.Zero, mkMeasure creationAide m2, m)
         |> Measure.Divide
     | SynMeasure.Power(ms, rat, m) ->
-        MeasurePowerNode(mkMeasure creationAide ms, stn (mkSynRationalConst rat) Range.Zero, m)
+        MeasurePowerNode(mkMeasure creationAide ms, stn (mkSynRationalConst creationAide rat) Range.Zero, m)
         |> Measure.Power
     | SynMeasure.Named(lid, _) -> mkLongIdent lid |> Measure.Multiple
     | SynMeasure.Paren(measure, StartEndRange 1 (mOpen, m, mClose)) ->
@@ -1993,10 +1993,10 @@ let mkSynValTyparDecls (creationAide: CreationAide) (vt: SynValTyparDecls option
     | None -> None
     | Some(SynValTyparDecls(tds, _)) -> Option.map (mkSynTyparDecls creationAide) tds
 
-let mkSynRationalConst rc =
+let mkSynRationalConst (creationAide: CreationAide) rc =
     let rec visit rc =
         match rc with
-        | SynRationalConst.Integer(value = i) -> string i
+        | SynRationalConst.Integer(i, range) -> creationAide.TextFromSource (fun () -> string i) range
         | SynRationalConst.Rational(numerator = numerator; denominator = denominator) ->
             $"(%i{numerator}/%i{denominator})"
         | SynRationalConst.Negate(rationalConst = innerRc) -> $"-{visit innerRc}"
@@ -2100,7 +2100,7 @@ let mkType (creationAide: CreationAide) (t: SynType) : Type =
         TypeHashConstraintNode(stn "#" mHash, mkType creationAide t, typeRange)
         |> Type.HashConstraint
     | SynType.MeasurePower(t, rc, _) ->
-        TypeMeasurePowerNode(mkType creationAide t, mkSynRationalConst rc, typeRange)
+        TypeMeasurePowerNode(mkType creationAide t, mkSynRationalConst creationAide rc, typeRange)
         |> Type.MeasurePower
     | SynType.StaticConstant(SynConst.String(null, kind, mString), r) ->
         mkConstant creationAide (SynConst.String("null", kind, mString)) r
