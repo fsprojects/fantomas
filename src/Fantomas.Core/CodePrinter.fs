@@ -223,9 +223,7 @@ let genMeasure (measure: Measure) =
         +> genMeasure n.RightHandSide
         |> genNode n
     | Measure.Divide n ->
-        let lhs = n.LeftHandSide |> Option.map genMeasure |> Option.defaultValue id
-
-        lhs
+        optSingle genMeasure n.LeftHandSide
         +> sepSpace
         +> genSingleTextNode n.Operator
         +> sepSpace
