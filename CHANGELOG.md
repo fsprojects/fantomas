@@ -1,5 +1,13 @@
 # Changelog
 
+## [Unreleased]
+
+### Changed
+* Update FCS to 'Add trivia information to SynConst.Measure', commit 7b5e12842d673b7daa467e0091378bf4acc95e4f
+
+### Fixed
+* Left out lhs in SynMeasure.Divide should not be restored as SynMeasure.One. [#2926](https://github.com/fsprojects/fantomas/issues/2926)
+
 ## 6.1.1 - 2023-06-29
 
 ### Changed

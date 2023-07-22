@@ -2659,7 +2659,7 @@ let mkMemberDefn (creationAide: CreationAide) (md: SynMemberDefn) =
         memberDefn = SynBinding(
             attributes = ats
             xmlDoc = px
-            valData = SynValData(Some { MemberKind = SynMemberKind.Constructor }, _, ido)
+            valData = SynValData(Some { MemberKind = SynMemberKind.Constructor }, _, ido, _)
             headPat = SynPat.LongIdent(
                 longDotId = SynLongIdent(id = [ newIdent ])
                 argPats = SynArgPats.Pats [ SynPat.Paren _ as pat ]

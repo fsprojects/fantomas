@@ -728,7 +728,7 @@ let ``single digit constant`` () =
     |> should equal "1"
 
 [<Test>]
-let ``left out lhs in SynMeasure.Divide should not be restored as SynMeasure.One`` () =
+let ``left out lhs in SynMeasure.Divide should not be restored as SynMeasure.One, 2926`` () =
     formatSourceString
         false
         """
@@ -740,4 +740,19 @@ let ``left out lhs in SynMeasure.Divide should not be restored as SynMeasure.One
         equal
         """
 234< / kg>
+"""
+
+[<Test>]
+let ``explicit SynMeasure.One in SynMeasure.Divide should be preserved`` () =
+    formatSourceString
+        false
+        """
+234<1/kg>
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+234<1 / kg>
 """
