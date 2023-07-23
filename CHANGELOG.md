@@ -7,6 +7,7 @@
 
 ### Fixed
 * Left out lhs in SynMeasure.Divide should not be restored as SynMeasure.One. [#2926](https://github.com/fsprojects/fantomas/issues/2926)
+* Block comments in measure are lost or restored twice and in wrong place. [#2927](https://github.com/fsprojects/fantomas/issues/2927)
 
 ## 6.1.1 - 2023-06-29
 

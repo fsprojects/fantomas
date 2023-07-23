@@ -150,8 +150,19 @@ let mkConstant (creationAide: CreationAide) c r : Constant =
             $"\"{content}\"B"
 
         stn (creationAide.TextFromSource fallback r) r |> Constant.FromText
-    | SynConst.Measure(c, numberRange, measure, _) ->
-        ConstantMeasureNode(mkConstant creationAide c numberRange, mkMeasure creationAide measure, r)
+    | SynConst.Measure(c, numberRange, measure, trivia) ->
+        let uOfMRange =
+            mkRange trivia.LessRange.FileName trivia.LessRange.Start trivia.GreaterRange.End
+
+        let unitOfMeasure =
+            UnitOfMeasureNode(
+                stn "<" trivia.LessRange,
+                mkMeasure creationAide measure,
+                stn ">" trivia.GreaterRange,
+                uOfMRange
+            )
+
+        ConstantMeasureNode(mkConstant creationAide c numberRange, unitOfMeasure, r)
         |> Constant.Measure
     | SynConst.SourceIdentifier(c, _, r) -> stn c r |> Constant.FromText
 

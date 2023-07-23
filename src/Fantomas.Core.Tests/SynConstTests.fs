@@ -756,3 +756,18 @@ let ``explicit SynMeasure.One in SynMeasure.Divide should be preserved`` () =
         """
 234<1 / kg>
 """
+
+[<Test>]
+let ``block comments in measure are lost or restored twice and in wrong place, 2927`` () =
+    formatSourceString
+        false
+        """
+234<(* foo *)kg(* bar *)>
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+234< (* foo *) kg (* bar *) >
+"""

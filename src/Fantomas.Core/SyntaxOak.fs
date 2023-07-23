@@ -2630,9 +2630,9 @@ type UnitNode(openingParen: SingleTextNode, closingParen: SingleTextNode, range)
     member val OpeningParen = openingParen
     member val ClosingParen = closingParen
 
-type ConstantMeasureNode(constant: Constant, measure: Measure, range) =
+type ConstantMeasureNode(constant: Constant, measure: UnitOfMeasureNode, range) =
     inherit NodeBase(range)
-    override val Children: Node array = [| yield Constant.Node constant; yield Measure.Node measure |]
+    override val Children: Node array = [| yield Constant.Node constant; yield measure |]
     member val Constant = constant
     member val Measure = measure
 
@@ -2744,6 +2744,15 @@ type TypeConstraint =
         | SupportsMember n -> n
         | EnumOrDelegate n -> n
         | WhereSelfConstrained t -> Type.Node t
+
+type UnitOfMeasureNode(lessThan: SingleTextNode, measure: Measure, greaterThan: SingleTextNode, range) =
+    inherit NodeBase(range)
+
+    override val Children: Node array = [| yield lessThan; yield Measure.Node measure; yield greaterThan |]
+
+    member val LessThan = lessThan
+    member val Measure = measure
+    member val GreaterThan = greaterThan
 
 type MeasureOperatorNode(lhs: Measure, operator: SingleTextNode, rhs: Measure, range) =
     inherit NodeBase(range)
