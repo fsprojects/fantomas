@@ -249,19 +249,19 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code onmouseout="hideTip(event, '6702', 6702)" onmouseover="showTip(event, '6702', 6702)">
+              <code onmouseout="hideTip(event, '6727', 6727)" onmouseover="showTip(event, '6727', 6727)">
                 <p>
                   <a id="Integer">
                     <a href="#Integer">
-                      <code><span>Integer&#32;value</span></code>
+                      <code><span>Integer(<span>value,&#32;range</span>)</span></code>
                     </a>
                   </a>
                 </p>
               </code>
-              <div class="fsdocs-tip" id="6702">
+              <div class="fsdocs-tip" id="6727">
                 <div class="member-tooltip">
                   Full Usage: 
-                  <code><span>Integer&#32;value</span></code>
+                  <code><span>Integer(<span>value,&#32;range</span>)</span></code>
                   <br/>
                   <br/>
                   Parameters: 
@@ -272,6 +272,14 @@
                       </b>
                       :
                       <code>int32</code>
+                    </span>
+                    <br/>
+                    <span>
+                      <b>
+                        range
+                      </b>
+                      :
+                      <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-text-range-0.html">range</a></code>
                     </span>
                     <br/>
                   </ul>
@@ -290,35 +298,51 @@
                 <code>int32</code>
               </dt>
               <dd class="fsdocs-param-docs"></dd>
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  range
+                </span>
+                :
+                <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-text-range-0.html">range</a></code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
             </dl>
           </td>
         </tr>
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code onmouseout="hideTip(event, '6703', 6703)" onmouseover="showTip(event, '6703', 6703)">
+              <code onmouseout="hideTip(event, '6728', 6728)" onmouseover="showTip(event, '6728', 6728)">
                 <p>
                   <a id="Negate">
                     <a href="#Negate">
-                      <code><span>Negate&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-syntax-synrationalconst.html">SynRationalConst</a></span></code>
+                      <code><span>Negate(<span>rationalConst,&#32;range</span>)</span></code>
                     </a>
                   </a>
                 </p>
               </code>
-              <div class="fsdocs-tip" id="6703">
+              <div class="fsdocs-tip" id="6728">
                 <div class="member-tooltip">
                   Full Usage: 
-                  <code><span>Negate&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-syntax-synrationalconst.html">SynRationalConst</a></span></code>
+                  <code><span>Negate(<span>rationalConst,&#32;range</span>)</span></code>
                   <br/>
                   <br/>
                   Parameters: 
                   <ul>
                     <span>
                       <b>
-                        Item
+                        rationalConst
                       </b>
                       :
                       <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-syntax-synrationalconst.html">SynRationalConst</a></code>
+                    </span>
+                    <br/>
+                    <span>
+                      <b>
+                        range
+                      </b>
+                      :
+                      <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-text-range-0.html">range</a></code>
                     </span>
                     <br/>
                   </ul>
@@ -331,10 +355,18 @@
             <dl class="fsdocs-params">
               <dt class="fsdocs-param">
                 <span class="fsdocs-param-name">
-                  Item
+                  rationalConst
                 </span>
                 :
                 <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-syntax-synrationalconst.html">SynRationalConst</a></code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  range
+                </span>
+                :
+                <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-text-range-0.html">range</a></code>
               </dt>
               <dd class="fsdocs-param-docs"></dd>
             </dl>
@@ -343,19 +375,19 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code onmouseout="hideTip(event, '6704', 6704)" onmouseover="showTip(event, '6704', 6704)">
+              <code onmouseout="hideTip(event, '6729', 6729)" onmouseover="showTip(event, '6729', 6729)">
                 <p>
                   <a id="Rational">
                     <a href="#Rational">
-                      <code><span>Rational(<span>numerator,&#32;denominator,&#32;range</span>)</span></code>
+                      <code><span>Rational(<span>numerator,&#32;numeratorRange,&#32;denominator,&#32;denominatorRange,&#32;range</span>)</span></code>
                     </a>
                   </a>
                 </p>
               </code>
-              <div class="fsdocs-tip" id="6704">
+              <div class="fsdocs-tip" id="6729">
                 <div class="member-tooltip">
                   Full Usage: 
-                  <code><span>Rational(<span>numerator,&#32;denominator,&#32;range</span>)</span></code>
+                  <code><span>Rational(<span>numerator,&#32;numeratorRange,&#32;denominator,&#32;denominatorRange,&#32;range</span>)</span></code>
                   <br/>
                   <br/>
                   Parameters: 
@@ -370,10 +402,26 @@
                     <br/>
                     <span>
                       <b>
+                        numeratorRange
+                      </b>
+                      :
+                      <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-text-range-0.html">range</a></code>
+                    </span>
+                    <br/>
+                    <span>
+                      <b>
                         denominator
                       </b>
                       :
                       <code>int32</code>
+                    </span>
+                    <br/>
+                    <span>
+                      <b>
+                        denominatorRange
+                      </b>
+                      :
+                      <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-text-range-0.html">range</a></code>
                     </span>
                     <br/>
                     <span>
@@ -402,10 +450,26 @@
               <dd class="fsdocs-param-docs"></dd>
               <dt class="fsdocs-param">
                 <span class="fsdocs-param-name">
+                  numeratorRange
+                </span>
+                :
+                <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-text-range-0.html">range</a></code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
                   denominator
                 </span>
                 :
                 <code>int32</code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  denominatorRange
+                </span>
+                :
+                <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-text-range-0.html">range</a></code>
               </dt>
               <dd class="fsdocs-param-docs"></dd>
               <dt class="fsdocs-param">
