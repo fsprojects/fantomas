@@ -407,7 +407,7 @@ let EmptyParsedInput (filename, isLastCompiland) =
         )
 
 let createLexbuf langVersion sourceText =
-    UnicodeLexing.SourceTextAsLexbuf(true, LanguageVersion(langVersion), sourceText)
+    UnicodeLexing.SourceTextAsLexbuf(true, LanguageVersion(langVersion), None, sourceText)
 
 let createLexerFunction (defines: string list) lexbuf (errorLogger: CapturingDiagnosticsLogger) =
     let lightStatus = IndentationAwareSyntaxStatus(true, true)

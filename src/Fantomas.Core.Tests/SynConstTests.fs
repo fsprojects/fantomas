@@ -726,3 +726,48 @@ let ``single digit constant`` () =
         { config with
             InsertFinalNewline = false }
     |> should equal "1"
+
+[<Test>]
+let ``left out lhs in SynMeasure.Divide should not be restored as SynMeasure.One, 2926`` () =
+    formatSourceString
+        false
+        """
+234</kg>
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+234< / kg>
+"""
+
+[<Test>]
+let ``explicit SynMeasure.One in SynMeasure.Divide should be preserved`` () =
+    formatSourceString
+        false
+        """
+234<1/kg>
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+234<1 / kg>
+"""
+
+[<Test>]
+let ``block comments in measure are lost or restored twice and in wrong place, 2927`` () =
+    formatSourceString
+        false
+        """
+234<(* foo *)kg(* bar *)>
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+234< (* foo *) kg (* bar *) >
+"""

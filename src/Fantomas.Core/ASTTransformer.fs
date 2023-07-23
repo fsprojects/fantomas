@@ -150,8 +150,19 @@ let mkConstant (creationAide: CreationAide) c r : Constant =
             $"\"{content}\"B"
 
         stn (creationAide.TextFromSource fallback r) r |> Constant.FromText
-    | SynConst.Measure(c, numberRange, measure) ->
-        ConstantMeasureNode(mkConstant creationAide c numberRange, mkMeasure creationAide measure, r)
+    | SynConst.Measure(c, numberRange, measure, trivia) ->
+        let uOfMRange =
+            mkRange trivia.LessRange.FileName trivia.LessRange.Start trivia.GreaterRange.End
+
+        let unitOfMeasure =
+            UnitOfMeasureNode(
+                stn "<" trivia.LessRange,
+                mkMeasure creationAide measure,
+                stn ">" trivia.GreaterRange,
+                uOfMRange
+            )
+
+        ConstantMeasureNode(mkConstant creationAide c numberRange, unitOfMeasure, r)
         |> Constant.Measure
     | SynConst.SourceIdentifier(c, _, r) -> stn c r |> Constant.FromText
 
@@ -159,15 +170,17 @@ let mkMeasure (creationAide: CreationAide) (measure: SynMeasure) : Measure =
     match measure with
     | SynMeasure.Var(typar, _) -> mkSynTypar typar |> Measure.Single
     | SynMeasure.Anon m -> stn "_" m |> Measure.Single
-    | SynMeasure.One -> stn "1" Range.Zero |> Measure.Single
+    | SynMeasure.One m -> stn "1" m |> Measure.Single
     | SynMeasure.Product(m1, m2, m) ->
         MeasureOperatorNode(mkMeasure creationAide m1, stn "*" Range.Zero, mkMeasure creationAide m2, m)
         |> Measure.Operator
     | SynMeasure.Divide(m1, m2, m) ->
-        MeasureOperatorNode(mkMeasure creationAide m1, stn "/" Range.Zero, mkMeasure creationAide m2, m)
-        |> Measure.Operator
+        let lhs = m1 |> Option.map (mkMeasure creationAide)
+
+        MeasureDivideNode(lhs, stn "/" Range.Zero, mkMeasure creationAide m2, m)
+        |> Measure.Divide
     | SynMeasure.Power(ms, rat, m) ->
-        MeasurePowerNode(mkMeasure creationAide ms, stn (mkSynRationalConst rat) Range.Zero, m)
+        MeasurePowerNode(mkMeasure creationAide ms, stn (mkSynRationalConst creationAide rat) Range.Zero, m)
         |> Measure.Power
     | SynMeasure.Named(lid, _) -> mkLongIdent lid |> Measure.Multiple
     | SynMeasure.Paren(measure, StartEndRange 1 (mOpen, m, mClose)) ->
@@ -1991,12 +2004,13 @@ let mkSynValTyparDecls (creationAide: CreationAide) (vt: SynValTyparDecls option
     | None -> None
     | Some(SynValTyparDecls(tds, _)) -> Option.map (mkSynTyparDecls creationAide) tds
 
-let mkSynRationalConst rc =
+let mkSynRationalConst (creationAide: CreationAide) rc =
     let rec visit rc =
         match rc with
-        | SynRationalConst.Integer i -> string i
-        | SynRationalConst.Rational(numerator, denominator, _) -> $"(%i{numerator}/%i{denominator})"
-        | SynRationalConst.Negate innerRc -> $"-{visit innerRc}"
+        | SynRationalConst.Integer(i, range) -> creationAide.TextFromSource (fun () -> string i) range
+        | SynRationalConst.Rational(numerator = numerator; denominator = denominator) ->
+            $"(%i{numerator}/%i{denominator})"
+        | SynRationalConst.Negate(rationalConst = innerRc) -> $"-{visit innerRc}"
 
     visit rc
 
@@ -2097,7 +2111,7 @@ let mkType (creationAide: CreationAide) (t: SynType) : Type =
         TypeHashConstraintNode(stn "#" mHash, mkType creationAide t, typeRange)
         |> Type.HashConstraint
     | SynType.MeasurePower(t, rc, _) ->
-        TypeMeasurePowerNode(mkType creationAide t, mkSynRationalConst rc, typeRange)
+        TypeMeasurePowerNode(mkType creationAide t, mkSynRationalConst creationAide rc, typeRange)
         |> Type.MeasurePower
     | SynType.StaticConstant(SynConst.String(null, kind, mString), r) ->
         mkConstant creationAide (SynConst.String("null", kind, mString)) r
@@ -2656,7 +2670,7 @@ let mkMemberDefn (creationAide: CreationAide) (md: SynMemberDefn) =
         memberDefn = SynBinding(
             attributes = ats
             xmlDoc = px
-            valData = SynValData(Some { MemberKind = SynMemberKind.Constructor }, _, ido)
+            valData = SynValData(Some { MemberKind = SynMemberKind.Constructor }, _, ido, _)
             headPat = SynPat.LongIdent(
                 longDotId = SynLongIdent(id = [ newIdent ])
                 argPats = SynArgPats.Pats [ SynPat.Paren _ as pat ]

@@ -207,9 +207,9 @@ let genConstant (c: Constant) =
     | Constant.Unit n -> genUnit n
     | Constant.Measure n ->
         (genConstant n.Constant |> genNode (Constant.Node n.Constant))
-        +> !- "<"
-        +> genMeasure n.Measure
-        +> !- ">"
+        +> genSingleTextNode n.Measure.LessThan
+        +> genMeasure n.Measure.Measure
+        +> genSingleTextNode n.Measure.GreaterThan
         |> genNode n
 
 let genMeasure (measure: Measure) =
@@ -222,8 +222,15 @@ let genMeasure (measure: Measure) =
         +> sepSpace
         +> genMeasure n.RightHandSide
         |> genNode n
+    | Measure.Divide n ->
+        optSingle genMeasure n.LeftHandSide
+        +> sepSpace
+        +> genSingleTextNode n.Operator
+        +> sepSpace
+        +> genMeasure n.RightHandSide
+        |> genNode n
     | Measure.Power n -> genMeasure n.Measure +> !- "^" +> genSingleTextNode n.Exponent |> genNode n
-    | Measure.Seq n -> col sepSpace n.Measures genMeasure
+    | Measure.Seq n -> col sepSpace n.Measures genMeasure |> genNode n
     | Measure.Multiple n -> genIdentListNode n
     | Measure.Paren n ->
         genSingleTextNode n.OpeningParen

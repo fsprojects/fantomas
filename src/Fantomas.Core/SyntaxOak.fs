@@ -2630,9 +2630,9 @@ type UnitNode(openingParen: SingleTextNode, closingParen: SingleTextNode, range)
     member val OpeningParen = openingParen
     member val ClosingParen = closingParen
 
-type ConstantMeasureNode(constant: Constant, measure: Measure, range) =
+type ConstantMeasureNode(constant: Constant, measure: UnitOfMeasureNode, range) =
     inherit NodeBase(range)
-    override val Children: Node array = [| yield Constant.Node constant; yield Measure.Node measure |]
+    override val Children: Node array = [| yield Constant.Node constant; yield measure |]
     member val Constant = constant
     member val Measure = measure
 
@@ -2745,10 +2745,32 @@ type TypeConstraint =
         | EnumOrDelegate n -> n
         | WhereSelfConstrained t -> Type.Node t
 
+type UnitOfMeasureNode(lessThan: SingleTextNode, measure: Measure, greaterThan: SingleTextNode, range) =
+    inherit NodeBase(range)
+
+    override val Children: Node array = [| yield lessThan; yield Measure.Node measure; yield greaterThan |]
+
+    member val LessThan = lessThan
+    member val Measure = measure
+    member val GreaterThan = greaterThan
+
 type MeasureOperatorNode(lhs: Measure, operator: SingleTextNode, rhs: Measure, range) =
     inherit NodeBase(range)
 
     override val Children: Node array = [| yield Measure.Node lhs; yield operator; yield Measure.Node rhs |]
+
+    member val LeftHandSide = lhs
+    member val Operator = operator
+    member val RightHandSide = rhs
+
+type MeasureDivideNode(lhs: Measure option, operator: SingleTextNode, rhs: Measure, range) =
+    inherit NodeBase(range)
+
+    override val Children: Node array =
+        [| if Option.isSome lhs then
+               yield Measure.Node lhs.Value
+           yield operator
+           yield Measure.Node rhs |]
 
     member val LeftHandSide = lhs
     member val Operator = operator
@@ -2778,6 +2800,7 @@ type MeasureParenNode(openingParen: SingleTextNode, measure: Measure, closingPar
 type Measure =
     | Single of SingleTextNode
     | Operator of MeasureOperatorNode
+    | Divide of MeasureDivideNode
     | Power of MeasurePowerNode
     | Multiple of IdentListNode
     | Seq of MeasureSequenceNode
@@ -2787,6 +2810,7 @@ type Measure =
         match m with
         | Single n -> n
         | Operator n -> n
+        | Divide n -> n
         | Power n -> n
         | Multiple n -> n
         | Seq n -> n
