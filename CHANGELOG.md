@@ -1,6 +1,6 @@
 # Changelog
 
-## [Unreleased]
+## 6.1.2 - 2023-07-23
 
 ### Changed
 * Update FCS to 'Add trivia information to SynConst.Measure', commit 7b5e12842d673b7daa467e0091378bf4acc95e4f
