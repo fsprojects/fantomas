@@ -180,7 +180,7 @@ let mkMeasure (creationAide: CreationAide) (measure: SynMeasure) : Measure =
         MeasureDivideNode(lhs, stn "/" Range.Zero, mkMeasure creationAide m2, m)
         |> Measure.Divide
     | SynMeasure.Power(ms, rat, m) ->
-        MeasurePowerNode(mkMeasure creationAide ms, stn (mkSynRationalConst creationAide rat) Range.Zero, m)
+        MeasurePowerNode(mkMeasure creationAide ms, mkSynRationalConst creationAide rat, m)
         |> Measure.Power
     | SynMeasure.Named(lid, _) -> mkLongIdent lid |> Measure.Multiple
     | SynMeasure.Paren(measure, StartEndRange 1 (mOpen, m, mClose)) ->
@@ -2007,10 +2007,18 @@ let mkSynValTyparDecls (creationAide: CreationAide) (vt: SynValTyparDecls option
 let mkSynRationalConst (creationAide: CreationAide) rc =
     let rec visit rc =
         match rc with
-        | SynRationalConst.Integer(i, range) -> creationAide.TextFromSource (fun () -> string i) range
-        | SynRationalConst.Rational(numerator = numerator; denominator = denominator) ->
-            $"(%i{numerator}/%i{denominator})"
-        | SynRationalConst.Negate(rationalConst = innerRc) -> $"-{visit innerRc}"
+        | SynRationalConst.Integer(i, range) ->
+            stn (creationAide.TextFromSource (fun () -> string i) range) range
+            |> RationalConstNode.Integer
+        | SynRationalConst.Rational(numerator, numeratorRange, denominator, denominatorRange, range) ->
+            let n =
+                stn (creationAide.TextFromSource (fun () -> string numerator) numeratorRange) numeratorRange
+
+            let d =
+                stn (creationAide.TextFromSource (fun () -> string denominator) denominatorRange) denominatorRange
+
+            RationalConstNode.Rational(RationalNode(n, d, range))
+        | SynRationalConst.Negate(innerRc, range) -> RationalConstNode.Negate(NegateRationalNode(visit innerRc, range))
 
     visit rc
 
