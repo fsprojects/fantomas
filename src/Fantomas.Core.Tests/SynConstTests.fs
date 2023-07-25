@@ -771,3 +771,33 @@ let ``block comments in measure are lost or restored twice and in wrong place, 2
         """
 234< (* foo *) kg (* bar *) >
 """
+
+[<Test>]
+let ``block comment in Rational between numerator and / is lost, 2931`` () =
+    formatSourceString
+        false
+        """
+234<kg^(2(* foo *)/3)>
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+234<kg^(2 (* foo *) /3)>
+"""
+
+[<Test>]
+let ``block comment between ^- and exponent in SynMeasure.Power is lost, 2937`` () =
+    formatSourceString
+        false
+        """
+234<m^-(* bar *)2>
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+234<m^- (* bar *) 2>
+"""

@@ -1,5 +1,11 @@
 # Changelog
 
+## [Unreleased]
+
+### Fixed
+* Block comment in Rational between numerator and `/` is lost. [#2931](https://github.com/fsprojects/fantomas/issues/2931)
+* Block comment between `^-` and exponent in SynMeasure.Power is lost. [#2937](https://github.com/fsprojects/fantomas/issues/2937)
+
 ## 6.1.2 - 2023-07-23
 
 ### Changed
