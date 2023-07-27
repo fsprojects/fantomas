@@ -801,3 +801,48 @@ let ``block comment between ^- and exponent in SynMeasure.Power is lost, 2937`` 
         """
 234<m^- (* bar *) 2>
 """
+
+[<Test>]
+let ``block comment between measure1 and / is moved between / and measure2 in SynMeasure.Divide, 2934`` () =
+    formatSourceString
+        false
+        """
+234<m (* foo *) / s>
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+234<m (* foo *) / s>
+"""
+
+[<Test>]
+let ``block comment between measure1 and * is moved between * and measure2 in SynMeasure.Product, 2935`` () =
+    formatSourceString
+        false
+        """
+234<m(* foo *)*s>
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+234<m (* foo *) * s>
+"""
+
+[<Test>]
+let ``block comment between ^ and exponent in SynMeasure.Power is lost, 2936`` () =
+    formatSourceString
+        false
+        """
+234<m^(* foo *)2>
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+234<m^ (* foo *) 2>
+"""

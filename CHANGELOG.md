@@ -2,9 +2,15 @@
 
 ## [Unreleased]
 
+### Changed
+* Update FCS to 'Add some more ranges to SynMeasure for tooling support', commit 6ed38fcb360a0015828973b1f32cd2ea6b58c6ad
+
 ### Fixed
 * Block comment in Rational between numerator and `/` is lost. [#2931](https://github.com/fsprojects/fantomas/issues/2931)
 * Block comment between `^-` and exponent in SynMeasure.Power is lost. [#2937](https://github.com/fsprojects/fantomas/issues/2937)
+* Block comment between measure1 and / is moved between / and measure2 in SynMeasure.Divide. [#2934](https://github.com/fsprojects/fantomas/issues/2934)
+* Block comment between measure1 and * is moved between * and measure2 in SynMeasure.Product. [#2935](https://github.com/fsprojects/fantomas/issues/2935)
+* Block comment between ^ and exponent in SynMeasure.Power is lost. [#2936](https://github.com/fsprojects/fantomas/issues/2936)
 
 ## 6.1.2 - 2023-07-23
 

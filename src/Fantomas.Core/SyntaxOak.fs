@@ -2776,10 +2776,16 @@ type MeasureDivideNode(lhs: Measure option, operator: SingleTextNode, rhs: Measu
     member val Operator = operator
     member val RightHandSide = rhs
 
-type MeasurePowerNode(measure: Measure, exponent: RationalConstNode, range) =
+type MeasurePowerNode(measure: Measure, caret: SingleTextNode, exponent: RationalConstNode, range) =
     inherit NodeBase(range)
-    override val Children: Node array = [| yield Measure.Node measure; yield RationalConstNode.Node exponent |]
+
+    override val Children: Node array =
+        [| yield Measure.Node measure
+           yield caret
+           yield RationalConstNode.Node exponent |]
+
     member val Measure = measure
+    member val Caret = caret
     member val Exponent = exponent
 
 type MeasureSequenceNode(measures: Measure list, range) =
@@ -2804,9 +2810,8 @@ type RationalNode(numerator: SingleTextNode, denominator: SingleTextNode, range:
     member val Numerator = numerator
     member val Denominator = denominator
 
-type NegateRationalNode(rationalConst: RationalConstNode, range: range) =
+type NegateRationalNode(minus: SingleTextNode, rationalConst: RationalConstNode, range: range) =
     inherit NodeBase(range)
-    let minus = SingleTextNode("-", range.StartRange)
     override val Children: Node array = [| yield minus; yield RationalConstNode.Node rationalConst |]
 
     member val Minus = minus
