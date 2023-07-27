@@ -171,16 +171,16 @@ let mkMeasure (creationAide: CreationAide) (measure: SynMeasure) : Measure =
     | SynMeasure.Var(typar, _) -> mkSynTypar typar |> Measure.Single
     | SynMeasure.Anon m -> stn "_" m |> Measure.Single
     | SynMeasure.One m -> stn "1" m |> Measure.Single
-    | SynMeasure.Product(m1, m2, m) ->
-        MeasureOperatorNode(mkMeasure creationAide m1, stn "*" Range.Zero, mkMeasure creationAide m2, m)
+    | SynMeasure.Product(m1, mAsterisk, m2, m) ->
+        MeasureOperatorNode(mkMeasure creationAide m1, stn "*" mAsterisk, mkMeasure creationAide m2, m)
         |> Measure.Operator
-    | SynMeasure.Divide(m1, m2, m) ->
+    | SynMeasure.Divide(m1, mSlash, m2, m) ->
         let lhs = m1 |> Option.map (mkMeasure creationAide)
 
-        MeasureDivideNode(lhs, stn "/" Range.Zero, mkMeasure creationAide m2, m)
+        MeasureDivideNode(lhs, stn "/" mSlash, mkMeasure creationAide m2, m)
         |> Measure.Divide
-    | SynMeasure.Power(ms, rat, m) ->
-        MeasurePowerNode(mkMeasure creationAide ms, mkSynRationalConst creationAide rat, m)
+    | SynMeasure.Power(ms, mCaret, rat, m) ->
+        MeasurePowerNode(mkMeasure creationAide ms, stn "^" mCaret, mkSynRationalConst creationAide rat, m)
         |> Measure.Power
     | SynMeasure.Named(lid, _) -> mkLongIdent lid |> Measure.Multiple
     | SynMeasure.Paren(measure, StartEndRange 1 (mOpen, m, mClose)) ->
@@ -2018,7 +2018,8 @@ let mkSynRationalConst (creationAide: CreationAide) rc =
                 stn (creationAide.TextFromSource (fun () -> string denominator) denominatorRange) denominatorRange
 
             RationalConstNode.Rational(RationalNode(n, d, range))
-        | SynRationalConst.Negate(innerRc, range) -> RationalConstNode.Negate(NegateRationalNode(visit innerRc, range))
+        | SynRationalConst.Negate(innerRc, range) ->
+            RationalConstNode.Negate(NegateRationalNode(stn "-" range.StartRange, visit innerRc, range))
 
     visit rc
 

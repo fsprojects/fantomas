@@ -229,7 +229,9 @@ let genMeasure (measure: Measure) =
         +> sepSpace
         +> genMeasure n.RightHandSide
         |> genNode n
-    | Measure.Power n -> genMeasure n.Measure +> !- "^" +> genRational n.Exponent |> genNode n
+    | Measure.Power n ->
+        genMeasure n.Measure +> genSingleTextNode n.Caret +> genRational n.Exponent
+        |> genNode n
     | Measure.Seq n -> col sepSpace n.Measures genMeasure |> genNode n
     | Measure.Multiple n -> genIdentListNode n
     | Measure.Paren n ->
