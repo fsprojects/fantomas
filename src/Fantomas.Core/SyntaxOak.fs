@@ -199,7 +199,7 @@ type TypeHashConstraintNode(hash: SingleTextNode, t: Type, range) =
     member val Hash = hash
     member val Type = t
 
-type TypeMeasurePowerNode(baseMeasure: Type, exponent: string, range) =
+type TypeMeasurePowerNode(baseMeasure: Type, exponent: RationalConstNode, range) =
     inherit NodeBase(range)
     override val Children: Node array = [| yield Type.Node baseMeasure |]
     member val BaseMeasure = baseMeasure
@@ -2776,10 +2776,16 @@ type MeasureDivideNode(lhs: Measure option, operator: SingleTextNode, rhs: Measu
     member val Operator = operator
     member val RightHandSide = rhs
 
-type MeasurePowerNode(measure: Measure, exponent: SingleTextNode, range) =
+type MeasurePowerNode(measure: Measure, caret: SingleTextNode, exponent: RationalConstNode, range) =
     inherit NodeBase(range)
-    override val Children: Node array = [| yield Measure.Node measure; yield exponent |]
+
+    override val Children: Node array =
+        [| yield Measure.Node measure
+           yield caret
+           yield RationalConstNode.Node exponent |]
+
     member val Measure = measure
+    member val Caret = caret
     member val Exponent = exponent
 
 type MeasureSequenceNode(measures: Measure list, range) =
@@ -2795,6 +2801,33 @@ type MeasureParenNode(openingParen: SingleTextNode, measure: Measure, closingPar
     member val OpeningParen = openingParen
     member val Measure = measure
     member val ClosingParen = closingParen
+
+type RationalNode(numerator: SingleTextNode, denominator: SingleTextNode, range: range) =
+    inherit NodeBase(range)
+
+    override val Children: Node array = [| yield numerator; yield denominator |]
+
+    member val Numerator = numerator
+    member val Denominator = denominator
+
+type NegateRationalNode(minus: SingleTextNode, rationalConst: RationalConstNode, range: range) =
+    inherit NodeBase(range)
+    override val Children: Node array = [| yield minus; yield RationalConstNode.Node rationalConst |]
+
+    member val Minus = minus
+    member val Rational = rationalConst
+
+[<RequireQualifiedAccess; NoEquality; NoComparison>]
+type RationalConstNode =
+    | Integer of SingleTextNode
+    | Rational of RationalNode
+    | Negate of NegateRationalNode
+
+    static member Node(r: RationalConstNode) : Node =
+        match r with
+        | Integer n -> n
+        | Rational n -> n
+        | Negate n -> n
 
 [<RequireQualifiedAccess; NoEquality; NoComparison>]
 type Measure =
