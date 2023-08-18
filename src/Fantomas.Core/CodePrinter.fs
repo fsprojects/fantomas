@@ -1209,19 +1209,18 @@ let genExpr (e: Expr) =
                 let longExpression (ctx: Context) =
                     let startColumn = ctx.Column
 
-                    let ensureArgsAreIndent f (ctx: Context) =
-                        if
-                            startColumn < Math.Max(ctx.WriterModel.AtColumn, ctx.WriterModel.Indent)
-                                          + ctx.Config.IndentSize
-                        then
-                            indentSepNlnUnindent f ctx
-                        else
-                            // TODO: this most likely doesn't work when there are even more parentheses involved.
-                            // Just adding one extra indent won't always cut it.
+                    let ensureArgumentsAreNotAlignedWithFunctionName f (ctx: Context) =
+                        let nextColumn =
+                            Math.Max(ctx.WriterModel.AtColumn, ctx.WriterModel.Indent)
+                            + ctx.Config.IndentSize
+
+                        if startColumn = nextColumn then
                             (indent +> indent +> sepNln +> f +> unindent +> unindent) ctx
+                        else
+                            indentSepNlnUnindent f ctx
 
                     (genExpr node.FunctionExpr
-                     +> ensureArgsAreIndent (col sepNln node.Arguments genExpr))
+                     +> ensureArgumentsAreNotAlignedWithFunctionName (col sepNln node.Arguments genExpr))
                         ctx
 
                 expressionFitsOnRestOfLine shortExpression longExpression ctx

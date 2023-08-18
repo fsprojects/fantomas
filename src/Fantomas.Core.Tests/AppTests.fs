@@ -1202,3 +1202,23 @@ foo {
                    c))))
 }
 """
+
+[<Test>]
+let ``don't indent function application arguments when function name is further indented`` () =
+    formatSourceString
+        false
+        """
+((((((((((((((((((((((
+    f a b c
+))))))))))))))))))))))
+"""
+        { config with MaxLineLength = 0 }
+    |> prepend newline
+    |> should
+        equal
+        """
+((((((((((((((((((((((f
+    a
+    b
+    c))))))))))))))))))))))
+"""
