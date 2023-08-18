@@ -1145,3 +1145,60 @@ let ``function invocation wrapped in parentheses, 2382`` () =
     42
 )
 """
+
+[<Test>]
+let ``extra indent in multiline application`` () =
+    formatSourceString
+        false
+        """
+((aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa b c))
+"""
+        { config with
+            IndentSize = 2
+            MaxLineLength = 0 }
+    |> prepend newline
+    |> should
+        equal
+        """
+((aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+    b
+    c))
+"""
+
+[<Test>]
+let ``multiline application wrapped in parentheses that equal the indent_size, 2943`` () =
+    formatSourceString
+        false
+        """
+((Combo { e1 = "Making this long so it goes on a new line new line new line new line making it long so it goes on a new line new line" }))
+"""
+        { config with IndentSize = 2 }
+    |> prepend newline
+    |> should
+        equal
+        """
+((Combo
+    { e1 =
+        "Making this long so it goes on a new line new line new line new line making it long so it goes on a new line new line" }))
+"""
+
+[<Test>]
+let ``atCurrentColumn multiline application does not need addition indent`` () =
+    formatSourceString
+        false
+        """
+foo {
+    bar in ((((aaaaaaaaaaaa b c))))
+}
+"""
+        { config with MaxLineLength = 0 }
+    |> prepend newline
+    |> should
+        equal
+        """
+foo {
+    bar in ((((aaaaaaaaaaaa
+                   b
+                   c))))
+}
+"""

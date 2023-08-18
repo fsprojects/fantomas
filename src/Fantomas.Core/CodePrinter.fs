@@ -1206,9 +1206,23 @@ let genExpr (e: Expr) =
 
                     genExpr node.FunctionExpr +> sep +> col sepSpace node.Arguments genExpr
 
-                let longExpression =
-                    genExpr node.FunctionExpr
-                    +> indentSepNlnUnindent (col sepNln node.Arguments genExpr)
+                let longExpression (ctx: Context) =
+                    let startColumn = ctx.Column
+
+                    let ensureArgsAreIndent f (ctx: Context) =
+                        if
+                            startColumn < Math.Max(ctx.WriterModel.AtColumn, ctx.WriterModel.Indent)
+                                          + ctx.Config.IndentSize
+                        then
+                            indentSepNlnUnindent f ctx
+                        else
+                            // TODO: this most likely doesn't work when there are even more parentheses involved.
+                            // Just adding one extra indent won't always cut it.
+                            (indent +> indent +> sepNln +> f +> unindent +> unindent) ctx
+
+                    (genExpr node.FunctionExpr
+                     +> ensureArgsAreIndent (col sepNln node.Arguments genExpr))
+                        ctx
 
                 expressionFitsOnRestOfLine shortExpression longExpression ctx
 

@@ -1123,12 +1123,12 @@ let ``double pipe with application with two lambdas, 2682`` () =
         """
 (someLongItemOne, someLongItemTwo)
 ||> Prefix.fnName
-    (fun delta echo -> delta, echo)
-    (fun (k: One * Two * Three) ->
-        // multiline
-        ()
-    )
-    lastArgument
+        (fun delta echo -> delta, echo)
+        (fun (k: One * Two * Three) ->
+            // multiline
+            ()
+        )
+        lastArgument
 
 (someLongItemOne, someLongItemTwo)
 |> Prefix.fnName
