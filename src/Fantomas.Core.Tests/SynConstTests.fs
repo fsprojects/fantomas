@@ -726,3 +726,123 @@ let ``single digit constant`` () =
         { config with
             InsertFinalNewline = false }
     |> should equal "1"
+
+[<Test>]
+let ``left out lhs in SynMeasure.Divide should not be restored as SynMeasure.One, 2926`` () =
+    formatSourceString
+        false
+        """
+234</kg>
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+234< / kg>
+"""
+
+[<Test>]
+let ``explicit SynMeasure.One in SynMeasure.Divide should be preserved`` () =
+    formatSourceString
+        false
+        """
+234<1/kg>
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+234<1 / kg>
+"""
+
+[<Test>]
+let ``block comments in measure are lost or restored twice and in wrong place, 2927`` () =
+    formatSourceString
+        false
+        """
+234<(* foo *)kg(* bar *)>
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+234< (* foo *) kg (* bar *) >
+"""
+
+[<Test>]
+let ``block comment in Rational between numerator and / is lost, 2931`` () =
+    formatSourceString
+        false
+        """
+234<kg^(2(* foo *)/3)>
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+234<kg^(2 (* foo *) /3)>
+"""
+
+[<Test>]
+let ``block comment between ^- and exponent in SynMeasure.Power is lost, 2937`` () =
+    formatSourceString
+        false
+        """
+234<m^-(* bar *)2>
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+234<m^- (* bar *) 2>
+"""
+
+[<Test>]
+let ``block comment between measure1 and / is moved between / and measure2 in SynMeasure.Divide, 2934`` () =
+    formatSourceString
+        false
+        """
+234<m (* foo *) / s>
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+234<m (* foo *) / s>
+"""
+
+[<Test>]
+let ``block comment between measure1 and * is moved between * and measure2 in SynMeasure.Product, 2935`` () =
+    formatSourceString
+        false
+        """
+234<m(* foo *)*s>
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+234<m (* foo *) * s>
+"""
+
+[<Test>]
+let ``block comment between ^ and exponent in SynMeasure.Power is lost, 2936`` () =
+    formatSourceString
+        false
+        """
+234<m^(* foo *)2>
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+234<m^ (* foo *) 2>
+"""

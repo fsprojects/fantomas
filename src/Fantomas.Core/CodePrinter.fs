@@ -159,7 +159,7 @@ let genIdentListNodeAux addLeadingDot (iln: IdentListNode) =
             else
                 genSingleTextNode ident +> sepNlnWhenWriteBeforeNewlineNotEmpty
         | IdentifierOrDot.KnownDot dot -> genSingleTextNode dot
-        | IdentifierOrDot.UnknownDot _ -> sepDot)
+        | IdentifierOrDot.UnknownDot -> sepDot)
     |> genNode iln
 
 let genIdentListNode iln = genIdentListNodeAux false iln
@@ -207,9 +207,9 @@ let genConstant (c: Constant) =
     | Constant.Unit n -> genUnit n
     | Constant.Measure n ->
         (genConstant n.Constant |> genNode (Constant.Node n.Constant))
-        +> !- "<"
-        +> genMeasure n.Measure
-        +> !- ">"
+        +> genSingleTextNode n.Measure.LessThan
+        +> genMeasure n.Measure.Measure
+        +> genSingleTextNode n.Measure.GreaterThan
         |> genNode n
 
 let genMeasure (measure: Measure) =
@@ -222,14 +222,35 @@ let genMeasure (measure: Measure) =
         +> sepSpace
         +> genMeasure n.RightHandSide
         |> genNode n
-    | Measure.Power n -> genMeasure n.Measure +> !- "^" +> genSingleTextNode n.Exponent |> genNode n
-    | Measure.Seq n -> col sepSpace n.Measures genMeasure
+    | Measure.Divide n ->
+        optSingle genMeasure n.LeftHandSide
+        +> sepSpace
+        +> genSingleTextNode n.Operator
+        +> sepSpace
+        +> genMeasure n.RightHandSide
+        |> genNode n
+    | Measure.Power n ->
+        genMeasure n.Measure +> genSingleTextNode n.Caret +> genRational n.Exponent
+        |> genNode n
+    | Measure.Seq n -> col sepSpace n.Measures genMeasure |> genNode n
     | Measure.Multiple n -> genIdentListNode n
     | Measure.Paren n ->
         genSingleTextNode n.OpeningParen
         +> genMeasure n.Measure
         +> genSingleTextNode n.ClosingParen
         |> genNode n
+
+let genRational (rat: RationalConstNode) =
+    match rat with
+    | RationalConstNode.Integer i -> genSingleTextNode i
+    | RationalConstNode.Negate negate -> genSingleTextNode negate.Minus +> genRational negate.Rational
+    | RationalConstNode.Rational rationalNode ->
+        genSingleTextNode (SingleTextNode("(", Fantomas.FCS.Text.Range.Zero))
+        +> genSingleTextNode rationalNode.Numerator
+        +> genSingleTextNode (SingleTextNode("/", Fantomas.FCS.Text.Range.Zero))
+        +> genSingleTextNode rationalNode.Denominator
+        +> genSingleTextNode (SingleTextNode(")", Fantomas.FCS.Text.Range.Zero))
+        |> genNode rationalNode
 
 let genAttributesCore (ats: AttributeNode list) =
     let genAttributeExpr (attr: AttributeNode) =
@@ -2220,12 +2241,12 @@ let genFunctionNameWithMultilineLids (trailing: Context -> Context) (longIdent: 
                 (function
                 | IdentifierOrDot.Ident _ -> sepNone
                 | IdentifierOrDot.KnownDot _
-                | IdentifierOrDot.UnknownDot _ -> sepNln)
+                | IdentifierOrDot.UnknownDot -> sepNln)
                 t
                 (function
                  | IdentifierOrDot.Ident identNode -> genSingleTextNode identNode
                  | IdentifierOrDot.KnownDot dot -> genSingleTextNode dot
-                 | IdentifierOrDot.UnknownDot _ -> sepDot)
+                 | IdentifierOrDot.UnknownDot -> sepDot)
             +> trailing
         )
     | _ -> sepNone
@@ -3025,7 +3046,7 @@ let genType (t: Type) =
         expressionFitsOnRestOfLine short long |> genNode node
     | Type.Tuple node -> genSynTupleTypeSegments node.Path |> genNode node
     | Type.HashConstraint node -> genSingleTextNode node.Hash +> genType node.Type |> genNode node
-    | Type.MeasurePower node -> genType node.BaseMeasure +> !- "^" +> !-node.Exponent |> genNode node
+    | Type.MeasurePower node -> genType node.BaseMeasure +> !- "^" +> genRational node.Exponent |> genNode node
     | Type.StaticConstant c -> genConstant c
     | Type.StaticConstantExpr node ->
         let addSpace =

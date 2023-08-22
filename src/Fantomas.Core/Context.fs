@@ -367,7 +367,7 @@ let newlineBetweenLastWriteEvent ctx =
         | RestoreAtColumn _ -> true
         | _ -> false)
     |> Seq.filter (function
-        | WriteLine _ -> true
+        | WriteLine -> true
         | _ -> false)
     |> Seq.length
     |> fun writeLines -> writeLines > 1
@@ -674,7 +674,7 @@ let leadingExpressionIsMultiline leadingExpression continuationExpression (ctx: 
         |> Queue.skipExists
             eventCountBeforeExpression
             (function
-            | WriteLine _ -> true
+            | WriteLine -> true
             | _ -> false)
             (fun e ->
                 match e with
@@ -1052,9 +1052,8 @@ let colWithNlnWhenItemIsMultiline (items: ColMultilineItem list) (ctx: Context) 
                             nextCtx
 
                     loop
-                        { acc with
-                            Context = nextCtx
-                            LastBlockMultiline = isMultiline }
+                        { Context = nextCtx
+                          LastBlockMultiline = isMultiline }
                         rest
 
             loop itemsState items

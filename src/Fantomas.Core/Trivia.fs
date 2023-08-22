@@ -310,7 +310,7 @@ let addToTree (tree: Oak) (trivia: TriviaNode seq) =
             | Newline
             | Directive _ -> simpleTriviaToTriviaInstruction parentNode trivia
             | BlockComment _
-            | Cursor _ -> blockCommentToTriviaInstruction parentNode trivia
+            | Cursor -> blockCommentToTriviaInstruction parentNode trivia
 
 let enrichTree (config: FormatConfig) (sourceText: ISourceText) (ast: ParsedInput) (tree: Oak) : Oak =
     let fullTreeRange = tree.Range

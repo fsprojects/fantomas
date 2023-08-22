@@ -199,7 +199,7 @@ type TypeHashConstraintNode(hash: SingleTextNode, t: Type, range) =
     member val Hash = hash
     member val Type = t
 
-type TypeMeasurePowerNode(baseMeasure: Type, exponent: string, range) =
+type TypeMeasurePowerNode(baseMeasure: Type, exponent: RationalConstNode, range) =
     inherit NodeBase(range)
     override val Children: Node array = [| yield Type.Node baseMeasure |]
     member val BaseMeasure = baseMeasure
@@ -2630,9 +2630,9 @@ type UnitNode(openingParen: SingleTextNode, closingParen: SingleTextNode, range)
     member val OpeningParen = openingParen
     member val ClosingParen = closingParen
 
-type ConstantMeasureNode(constant: Constant, measure: Measure, range) =
+type ConstantMeasureNode(constant: Constant, measure: UnitOfMeasureNode, range) =
     inherit NodeBase(range)
-    override val Children: Node array = [| yield Constant.Node constant; yield Measure.Node measure |]
+    override val Children: Node array = [| yield Constant.Node constant; yield measure |]
     member val Constant = constant
     member val Measure = measure
 
@@ -2745,6 +2745,15 @@ type TypeConstraint =
         | EnumOrDelegate n -> n
         | WhereSelfConstrained t -> Type.Node t
 
+type UnitOfMeasureNode(lessThan: SingleTextNode, measure: Measure, greaterThan: SingleTextNode, range) =
+    inherit NodeBase(range)
+
+    override val Children: Node array = [| yield lessThan; yield Measure.Node measure; yield greaterThan |]
+
+    member val LessThan = lessThan
+    member val Measure = measure
+    member val GreaterThan = greaterThan
+
 type MeasureOperatorNode(lhs: Measure, operator: SingleTextNode, rhs: Measure, range) =
     inherit NodeBase(range)
 
@@ -2754,10 +2763,29 @@ type MeasureOperatorNode(lhs: Measure, operator: SingleTextNode, rhs: Measure, r
     member val Operator = operator
     member val RightHandSide = rhs
 
-type MeasurePowerNode(measure: Measure, exponent: SingleTextNode, range) =
+type MeasureDivideNode(lhs: Measure option, operator: SingleTextNode, rhs: Measure, range) =
     inherit NodeBase(range)
-    override val Children: Node array = [| yield Measure.Node measure; yield exponent |]
+
+    override val Children: Node array =
+        [| if Option.isSome lhs then
+               yield Measure.Node lhs.Value
+           yield operator
+           yield Measure.Node rhs |]
+
+    member val LeftHandSide = lhs
+    member val Operator = operator
+    member val RightHandSide = rhs
+
+type MeasurePowerNode(measure: Measure, caret: SingleTextNode, exponent: RationalConstNode, range) =
+    inherit NodeBase(range)
+
+    override val Children: Node array =
+        [| yield Measure.Node measure
+           yield caret
+           yield RationalConstNode.Node exponent |]
+
     member val Measure = measure
+    member val Caret = caret
     member val Exponent = exponent
 
 type MeasureSequenceNode(measures: Measure list, range) =
@@ -2774,10 +2802,38 @@ type MeasureParenNode(openingParen: SingleTextNode, measure: Measure, closingPar
     member val Measure = measure
     member val ClosingParen = closingParen
 
+type RationalNode(numerator: SingleTextNode, denominator: SingleTextNode, range: range) =
+    inherit NodeBase(range)
+
+    override val Children: Node array = [| yield numerator; yield denominator |]
+
+    member val Numerator = numerator
+    member val Denominator = denominator
+
+type NegateRationalNode(minus: SingleTextNode, rationalConst: RationalConstNode, range: range) =
+    inherit NodeBase(range)
+    override val Children: Node array = [| yield minus; yield RationalConstNode.Node rationalConst |]
+
+    member val Minus = minus
+    member val Rational = rationalConst
+
+[<RequireQualifiedAccess; NoEquality; NoComparison>]
+type RationalConstNode =
+    | Integer of SingleTextNode
+    | Rational of RationalNode
+    | Negate of NegateRationalNode
+
+    static member Node(r: RationalConstNode) : Node =
+        match r with
+        | Integer n -> n
+        | Rational n -> n
+        | Negate n -> n
+
 [<RequireQualifiedAccess; NoEquality; NoComparison>]
 type Measure =
     | Single of SingleTextNode
     | Operator of MeasureOperatorNode
+    | Divide of MeasureDivideNode
     | Power of MeasurePowerNode
     | Multiple of IdentListNode
     | Seq of MeasureSequenceNode
@@ -2787,6 +2843,7 @@ type Measure =
         match m with
         | Single n -> n
         | Operator n -> n
+        | Divide n -> n
         | Power n -> n
         | Multiple n -> n
         | Seq n -> n

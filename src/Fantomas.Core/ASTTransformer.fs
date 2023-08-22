@@ -150,8 +150,19 @@ let mkConstant (creationAide: CreationAide) c r : Constant =
             $"\"{content}\"B"
 
         stn (creationAide.TextFromSource fallback r) r |> Constant.FromText
-    | SynConst.Measure(c, numberRange, measure) ->
-        ConstantMeasureNode(mkConstant creationAide c numberRange, mkMeasure creationAide measure, r)
+    | SynConst.Measure(c, numberRange, measure, trivia) ->
+        let uOfMRange =
+            mkRange trivia.LessRange.FileName trivia.LessRange.Start trivia.GreaterRange.End
+
+        let unitOfMeasure =
+            UnitOfMeasureNode(
+                stn "<" trivia.LessRange,
+                mkMeasure creationAide measure,
+                stn ">" trivia.GreaterRange,
+                uOfMRange
+            )
+
+        ConstantMeasureNode(mkConstant creationAide c numberRange, unitOfMeasure, r)
         |> Constant.Measure
     | SynConst.SourceIdentifier(c, _, r) -> stn c r |> Constant.FromText
 
@@ -159,15 +170,17 @@ let mkMeasure (creationAide: CreationAide) (measure: SynMeasure) : Measure =
     match measure with
     | SynMeasure.Var(typar, _) -> mkSynTypar typar |> Measure.Single
     | SynMeasure.Anon m -> stn "_" m |> Measure.Single
-    | SynMeasure.One -> stn "1" Range.Zero |> Measure.Single
-    | SynMeasure.Product(m1, m2, m) ->
-        MeasureOperatorNode(mkMeasure creationAide m1, stn "*" Range.Zero, mkMeasure creationAide m2, m)
+    | SynMeasure.One m -> stn "1" m |> Measure.Single
+    | SynMeasure.Product(m1, mAsterisk, m2, m) ->
+        MeasureOperatorNode(mkMeasure creationAide m1, stn "*" mAsterisk, mkMeasure creationAide m2, m)
         |> Measure.Operator
-    | SynMeasure.Divide(m1, m2, m) ->
-        MeasureOperatorNode(mkMeasure creationAide m1, stn "/" Range.Zero, mkMeasure creationAide m2, m)
-        |> Measure.Operator
-    | SynMeasure.Power(ms, rat, m) ->
-        MeasurePowerNode(mkMeasure creationAide ms, stn (mkSynRationalConst rat) Range.Zero, m)
+    | SynMeasure.Divide(m1, mSlash, m2, m) ->
+        let lhs = m1 |> Option.map (mkMeasure creationAide)
+
+        MeasureDivideNode(lhs, stn "/" mSlash, mkMeasure creationAide m2, m)
+        |> Measure.Divide
+    | SynMeasure.Power(ms, mCaret, rat, m) ->
+        MeasurePowerNode(mkMeasure creationAide ms, stn "^" mCaret, mkSynRationalConst creationAide rat, m)
         |> Measure.Power
     | SynMeasure.Named(lid, _) -> mkLongIdent lid |> Measure.Multiple
     | SynMeasure.Paren(measure, StartEndRange 1 (mOpen, m, mClose)) ->
@@ -607,7 +620,7 @@ let mkLinksFromSynLongIdent (sli: SynLongIdent) : LinkExpr list =
 
 let (|UnitExpr|_|) e =
     match e with
-    | SynExpr.Const(constant = SynConst.Unit _) -> Some e.Range
+    | SynExpr.Const(constant = SynConst.Unit) -> Some e.Range
     | _ -> None
 
 let (|ParenExpr|_|) e =
@@ -1991,12 +2004,22 @@ let mkSynValTyparDecls (creationAide: CreationAide) (vt: SynValTyparDecls option
     | None -> None
     | Some(SynValTyparDecls(tds, _)) -> Option.map (mkSynTyparDecls creationAide) tds
 
-let mkSynRationalConst rc =
+let mkSynRationalConst (creationAide: CreationAide) rc =
     let rec visit rc =
         match rc with
-        | SynRationalConst.Integer i -> string i
-        | SynRationalConst.Rational(numerator, denominator, _) -> $"(%i{numerator}/%i{denominator})"
-        | SynRationalConst.Negate innerRc -> $"-{visit innerRc}"
+        | SynRationalConst.Integer(i, range) ->
+            stn (creationAide.TextFromSource (fun () -> string i) range) range
+            |> RationalConstNode.Integer
+        | SynRationalConst.Rational(numerator, numeratorRange, denominator, denominatorRange, range) ->
+            let n =
+                stn (creationAide.TextFromSource (fun () -> string numerator) numeratorRange) numeratorRange
+
+            let d =
+                stn (creationAide.TextFromSource (fun () -> string denominator) denominatorRange) denominatorRange
+
+            RationalConstNode.Rational(RationalNode(n, d, range))
+        | SynRationalConst.Negate(innerRc, range) ->
+            RationalConstNode.Negate(NegateRationalNode(stn "-" range.StartRange, visit innerRc, range))
 
     visit rc
 
@@ -2097,7 +2120,7 @@ let mkType (creationAide: CreationAide) (t: SynType) : Type =
         TypeHashConstraintNode(stn "#" mHash, mkType creationAide t, typeRange)
         |> Type.HashConstraint
     | SynType.MeasurePower(t, rc, _) ->
-        TypeMeasurePowerNode(mkType creationAide t, mkSynRationalConst rc, typeRange)
+        TypeMeasurePowerNode(mkType creationAide t, mkSynRationalConst creationAide rc, typeRange)
         |> Type.MeasurePower
     | SynType.StaticConstant(SynConst.String(null, kind, mString), r) ->
         mkConstant creationAide (SynConst.String("null", kind, mString)) r
@@ -2384,7 +2407,7 @@ let mkTypeDefn
                 | SynTypeDefnLeadingKeyword.Type mType -> stn "type" mType
                 | SynTypeDefnLeadingKeyword.And mAnd -> stn "and" mAnd
                 | SynTypeDefnLeadingKeyword.StaticType _
-                | SynTypeDefnLeadingKeyword.Synthetic _ -> failwithf "unexpected %A" trivia.LeadingKeyword
+                | SynTypeDefnLeadingKeyword.Synthetic -> failwithf "unexpected %A" trivia.LeadingKeyword
 
             let implicitConstructorNode =
                 match implicitConstructor with
@@ -2656,7 +2679,7 @@ let mkMemberDefn (creationAide: CreationAide) (md: SynMemberDefn) =
         memberDefn = SynBinding(
             attributes = ats
             xmlDoc = px
-            valData = SynValData(Some { MemberKind = SynMemberKind.Constructor }, _, ido)
+            valData = SynValData(Some { MemberKind = SynMemberKind.Constructor }, _, ido, _)
             headPat = SynPat.LongIdent(
                 longDotId = SynLongIdent(id = [ newIdent ])
                 argPats = SynArgPats.Pats [ SynPat.Paren _ as pat ]
@@ -3131,7 +3154,7 @@ let mkTypeDefnSig (creationAide: CreationAide) (SynTypeDefnSig(typeInfo, typeRep
                 | SynTypeDefnLeadingKeyword.Type mType -> stn "type" mType
                 | SynTypeDefnLeadingKeyword.And mAnd -> stn "and" mAnd
                 | SynTypeDefnLeadingKeyword.StaticType _
-                | SynTypeDefnLeadingKeyword.Synthetic _ -> failwithf "unexpected %A" trivia.LeadingKeyword
+                | SynTypeDefnLeadingKeyword.Synthetic -> failwithf "unexpected %A" trivia.LeadingKeyword
 
             let m =
                 if not px.IsEmpty then
