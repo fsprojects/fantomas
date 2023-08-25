@@ -332,6 +332,17 @@ type TypeLongIdentAppNode(appType: Type, longIdent: IdentListNode, range) =
     member val AppType = appType
     member val LongIdent = longIdent
 
+type TypeIntersectionNode(typesAndSeparators: Choice<Type, SingleTextNode> list, range) =
+    inherit NodeBase(range)
+
+    override val Children: Node array =
+        [| for t in typesAndSeparators do
+               match t with
+               | Choice1Of2 t -> Type.Node t
+               | Choice2Of2 amp -> amp |]
+
+    member val TypesAndSeparators = typesAndSeparators
+
 [<RequireQualifiedAccess; NoEquality; NoComparison>]
 type Type =
     | Funs of TypeFunsNode
@@ -355,6 +366,7 @@ type Type =
     | SignatureParameter of TypeSignatureParameterNode
     | Or of TypeOrNode
     | LongIdentApp of TypeLongIdentAppNode
+    | Intersection of TypeIntersectionNode
 
     static member Node(x: Type) : Node =
         match x with
@@ -379,6 +391,7 @@ type Type =
         | SignatureParameter n -> n
         | Or n -> n
         | LongIdentApp n -> n
+        | Intersection n -> n
 
 /// A pattern composed from a left hand-side pattern, a single text token/operator and a right hand-side pattern.
 type PatLeftMiddleRight(lhs: Pattern, middle: Choice<SingleTextNode, string>, rhs: Pattern, range) =

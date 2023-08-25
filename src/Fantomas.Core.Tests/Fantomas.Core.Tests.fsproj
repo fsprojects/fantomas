@@ -129,6 +129,7 @@
     <Compile Include="MultipleDefineCombinationsTests.fs" />
     <Compile Include="ParenthesesTests.fs" />
     <Compile Include="DotLambdaTests.fs" />
+    <Compile Include="ConstraintIntersectionTests.fs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Fantomas.Core\Fantomas.Core.fsproj" />

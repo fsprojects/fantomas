@@ -2205,6 +2205,26 @@ let mkType (creationAide: CreationAide) (t: SynType) : Type =
     | SynType.Or(lhs, rhs, _, trivia) ->
         TypeOrNode(mkType creationAide lhs, stn "or" trivia.OrKeyword, mkType creationAide rhs, typeRange)
         |> Type.Or
+    | SynType.Intersection(optTypar, ts, m, trivia) ->
+        let typesAndSeparators =
+            let headNode, ts =
+                match optTypar with
+                | Some typar ->
+                    // We model the typar as Type.Var out of convenience
+                    Type.Var(mkSynTypar typar), ts
+                | None ->
+                    match ts with
+                    | [] -> failwith "SynType.Intersection does not contain typar or any intersectionConstraints"
+                    | head :: tail -> mkType creationAide head, tail
+
+            assert (ts.Length = trivia.AmpersandRanges.Length)
+
+            [ yield Choice1Of2 headNode
+              for t, mAmp in List.zip ts trivia.AmpersandRanges do
+                  yield Choice2Of2(stn "&" mAmp)
+                  yield Choice1Of2(mkType creationAide t) ]
+
+        TypeIntersectionNode(typesAndSeparators, m) |> Type.Intersection
     | t -> failwith $"unexpected type: {t}"
 
 let rec (|OpenL|_|) =
