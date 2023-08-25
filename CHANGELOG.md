@@ -1,5 +1,12 @@
 # Changelog
 
+## [Unreleased]
+
+### Fixed
+* Block comment in Rational between lparen and numerator is moved before lparen. [#2930](https://github.com/fsprojects/fantomas/issues/2930)
+* Block comment in Rational between / and denominator is moved before /. [#2932](https://github.com/fsprojects/fantomas/issues/2932)
+* Block comment in Rational between denominator and rparen is moved behind rparen. [#2933](https://github.com/fsprojects/fantomas/issues/2933)
+
 ## 6.1.3 - 2023-08-25
 
 ### Changed

@@ -1976,7 +1976,7 @@ let mkModuleDecl (creationAide: CreationAide) (decl: SynModuleDecl) =
         |> ModuleDecl.NestedModule
     | decl -> failwithf $"Failed to create ModuleDecl for %A{decl}"
 
-let mkSynTyparDecl (creationAide: CreationAide) (SynTyparDecl(attrs, typar)) =
+let mkSynTyparDecl (creationAide: CreationAide) (SynTyparDecl(attributes = attrs; typar = typar)) =
     let m =
         match List.tryHead attrs with
         | None -> typar.Range
@@ -2010,14 +2010,32 @@ let mkSynRationalConst (creationAide: CreationAide) rc =
         | SynRationalConst.Integer(i, range) ->
             stn (creationAide.TextFromSource (fun () -> string i) range) range
             |> RationalConstNode.Integer
-        | SynRationalConst.Rational(numerator, numeratorRange, denominator, denominatorRange, range) ->
+        | SynRationalConst.Rational(lparenRange,
+                                    numerator,
+                                    numeratorRange,
+                                    divRange,
+                                    denominator,
+                                    denominatorRange,
+                                    rparenRange,
+                                    _range) ->
+            let openingParen =
+                stn (creationAide.TextFromSource (fun () -> "(") lparenRange) lparenRange
+
             let n =
                 stn (creationAide.TextFromSource (fun () -> string numerator) numeratorRange) numeratorRange
+
+            let div = stn (creationAide.TextFromSource (fun () -> "/") divRange) divRange
 
             let d =
                 stn (creationAide.TextFromSource (fun () -> string denominator) denominatorRange) denominatorRange
 
-            RationalConstNode.Rational(RationalNode(n, d, range))
+            let closingParen =
+                stn (creationAide.TextFromSource (fun () -> ")") rparenRange) rparenRange
+
+            // Use bigger overall range than AST to include parens and improve block comment handling
+            let range = unionRanges lparenRange rparenRange
+
+            RationalConstNode.Rational(RationalNode(openingParen, n, div, d, closingParen, range))
         | SynRationalConst.Negate(innerRc, range) ->
             RationalConstNode.Negate(NegateRationalNode(stn "-" range.StartRange, visit innerRc, range))
 

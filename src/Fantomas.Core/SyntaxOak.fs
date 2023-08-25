@@ -2802,13 +2802,29 @@ type MeasureParenNode(openingParen: SingleTextNode, measure: Measure, closingPar
     member val Measure = measure
     member val ClosingParen = closingParen
 
-type RationalNode(numerator: SingleTextNode, denominator: SingleTextNode, range: range) =
+type RationalNode
+    (
+        openingParen: SingleTextNode,
+        numerator: SingleTextNode,
+        divOp: SingleTextNode,
+        denominator: SingleTextNode,
+        closingParen: SingleTextNode,
+        range: range
+    ) =
     inherit NodeBase(range)
 
-    override val Children: Node array = [| yield numerator; yield denominator |]
+    override val Children: Node array =
+        [| yield openingParen
+           yield numerator
+           yield divOp
+           yield denominator
+           yield closingParen |]
 
+    member val OpeningParen = openingParen
     member val Numerator = numerator
+    member val DivOp = divOp
     member val Denominator = denominator
+    member val ClosingParen = closingParen
 
 type NegateRationalNode(minus: SingleTextNode, rationalConst: RationalConstNode, range: range) =
     inherit NodeBase(range)
