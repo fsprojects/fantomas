@@ -1206,9 +1206,22 @@ let genExpr (e: Expr) =
 
                     genExpr node.FunctionExpr +> sep +> col sepSpace node.Arguments genExpr
 
-                let longExpression =
-                    genExpr node.FunctionExpr
-                    +> indentSepNlnUnindent (col sepNln node.Arguments genExpr)
+                let longExpression (ctx: Context) =
+                    let startColumn = ctx.Column
+
+                    let ensureArgumentsAreNotAlignedWithFunctionName f (ctx: Context) =
+                        let nextColumn =
+                            Math.Max(ctx.WriterModel.AtColumn, ctx.WriterModel.Indent)
+                            + ctx.Config.IndentSize
+
+                        if startColumn = nextColumn then
+                            (indent +> indent +> sepNln +> f +> unindent +> unindent) ctx
+                        else
+                            indentSepNlnUnindent f ctx
+
+                    (genExpr node.FunctionExpr
+                     +> ensureArgumentsAreNotAlignedWithFunctionName (col sepNln node.Arguments genExpr))
+                        ctx
 
                 expressionFitsOnRestOfLine shortExpression longExpression ctx
 
