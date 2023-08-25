@@ -9,7 +9,7 @@ let ``function call`` () =
     formatSourceString
         false
         """
-let x = "a" |> _.ToString ()
+let x = "a" |> _.ToString()
 """
         config
     |> prepend newline
@@ -35,7 +35,7 @@ let x = "a" |> _.Length
 """
 
 [<Test>]
-let ``property of function invocation`` () =
+let ``property of method invocation`` () =
     formatSourceString
         false
         """
@@ -46,5 +46,20 @@ let c = _.ToString().Length
     |> should
         equal
         """
-let c = _.ToString ().Length
+let c = _.ToString().Length
+"""
+
+[<Test>]
+let ``property of function invocation`` () =
+    formatSourceString
+        false
+        """
+let c = _.foo().Length
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+let c = _.foo().Length
 """
