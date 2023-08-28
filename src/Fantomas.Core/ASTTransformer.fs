@@ -1570,6 +1570,12 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
         |> Expr.IndexRange
     | SynExpr.IndexFromEnd(e, _) -> ExprIndexFromEndNode(mkExpr creationAide e, exprRange) |> Expr.IndexFromEnd
     | SynExpr.Typar(typar, _) -> mkSynTypar typar |> Expr.Typar
+    | SynExpr.DotLambda(
+        expr = e
+        trivia = { DotRange = mDot
+                   UnderscoreRange = mUnderscore }) ->
+        ExprDotLambda(stn "_" mUnderscore, stn "." mDot, mkExpr creationAide e, exprRange)
+        |> Expr.DotLambda
     | _ -> failwithf "todo for %A" e
 
 let mkExprQuote creationAide isRaw e range : ExprQuoteNode =
@@ -1976,7 +1982,7 @@ let mkModuleDecl (creationAide: CreationAide) (decl: SynModuleDecl) =
         |> ModuleDecl.NestedModule
     | decl -> failwithf $"Failed to create ModuleDecl for %A{decl}"
 
-let mkSynTyparDecl (creationAide: CreationAide) (SynTyparDecl(attrs, typar)) =
+let mkSynTyparDecl (creationAide: CreationAide) (SynTyparDecl(attributes = attrs; typar = typar)) =
     let m =
         match List.tryHead attrs with
         | None -> typar.Range
@@ -2199,6 +2205,26 @@ let mkType (creationAide: CreationAide) (t: SynType) : Type =
     | SynType.Or(lhs, rhs, _, trivia) ->
         TypeOrNode(mkType creationAide lhs, stn "or" trivia.OrKeyword, mkType creationAide rhs, typeRange)
         |> Type.Or
+    | SynType.Intersection(optTypar, ts, m, trivia) ->
+        let typesAndSeparators =
+            let headNode, ts =
+                match optTypar with
+                | Some typar ->
+                    // We model the typar as Type.Var out of convenience
+                    Type.Var(mkSynTypar typar), ts
+                | None ->
+                    match ts with
+                    | [] -> failwith "SynType.Intersection does not contain typar or any intersectionConstraints"
+                    | head :: tail -> mkType creationAide head, tail
+
+            assert (ts.Length = trivia.AmpersandRanges.Length)
+
+            [ yield Choice1Of2 headNode
+              for t, mAmp in List.zip ts trivia.AmpersandRanges do
+                  yield Choice2Of2(stn "&" mAmp)
+                  yield Choice1Of2(mkType creationAide t) ]
+
+        TypeIntersectionNode(typesAndSeparators, m) |> Type.Intersection
     | t -> failwith $"unexpected type: {t}"
 
 let rec (|OpenL|_|) =
