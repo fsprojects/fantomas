@@ -1355,3 +1355,29 @@ type Foo =
         with get (i: int, j: char): string = ""
         and set (i: int, j: char) (x: string) = printfn "%i %c" i j
 """
+
+[<Test>]
+let ``trivia above with get/set in autoproperty, 2948`` () =
+    formatSourceString
+        false
+        """
+module A
+
+type X() =
+    member val Y: int = 7 
+            // some comment
+            with get,set
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+module A
+
+type X() =
+    member val Y: int =
+        7
+        // some comment
+        with get, set
+"""

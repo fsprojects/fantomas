@@ -332,6 +332,17 @@ type TypeLongIdentAppNode(appType: Type, longIdent: IdentListNode, range) =
     member val AppType = appType
     member val LongIdent = longIdent
 
+type TypeIntersectionNode(typesAndSeparators: Choice<Type, SingleTextNode> list, range) =
+    inherit NodeBase(range)
+
+    override val Children: Node array =
+        [| for t in typesAndSeparators do
+               match t with
+               | Choice1Of2 t -> Type.Node t
+               | Choice2Of2 amp -> amp |]
+
+    member val TypesAndSeparators = typesAndSeparators
+
 [<RequireQualifiedAccess; NoEquality; NoComparison>]
 type Type =
     | Funs of TypeFunsNode
@@ -355,6 +366,7 @@ type Type =
     | SignatureParameter of TypeSignatureParameterNode
     | Or of TypeOrNode
     | LongIdentApp of TypeLongIdentAppNode
+    | Intersection of TypeIntersectionNode
 
     static member Node(x: Type) : Node =
         match x with
@@ -379,6 +391,7 @@ type Type =
         | SignatureParameter n -> n
         | Or n -> n
         | LongIdentApp n -> n
+        | Intersection n -> n
 
 /// A pattern composed from a left hand-side pattern, a single text token/operator and a right hand-side pattern.
 type PatLeftMiddleRight(lhs: Pattern, middle: Choice<SingleTextNode, string>, rhs: Pattern, range) =
@@ -1604,6 +1617,13 @@ type ExprIndexFromEndNode(expr: Expr, range) =
     override val Children: Node array = [| Expr.Node expr |]
     member val Expr = expr
 
+type ExprDotLambda(underscore: SingleTextNode, dot: SingleTextNode, expr: Expr, range: range) =
+    inherit NodeBase(range)
+    override val Children: Node array = [| underscore; dot; Expr.Node expr |]
+    member val Underscore = underscore
+    member val Dot = dot
+    member val Expr = expr
+
 [<RequireQualifiedAccess; NoEquality; NoComparison>]
 type Expr =
     | Lazy of ExprLazyNode
@@ -1668,6 +1688,7 @@ type Expr =
     | IndexFromEnd of ExprIndexFromEndNode
     | Typar of SingleTextNode
     | Chain of ExprChain
+    | DotLambda of ExprDotLambda
 
     static member Node(x: Expr) : Node =
         match x with
@@ -1733,6 +1754,7 @@ type Expr =
         | IndexFromEnd n -> n
         | Typar n -> n
         | Chain n -> n
+        | DotLambda n -> n
 
     member e.HasParentheses: bool =
         match e with
