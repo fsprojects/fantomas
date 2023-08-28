@@ -2010,16 +2010,19 @@ let mkSynRationalConst (creationAide: CreationAide) rc =
         | SynRationalConst.Integer(i, range) ->
             stn (creationAide.TextFromSource (fun () -> string i) range) range
             |> RationalConstNode.Integer
-        | SynRationalConst.Rational(lparenRange,
-                                    numerator,
-                                    numeratorRange,
-                                    divRange,
-                                    denominator,
-                                    denominatorRange,
-                                    rparenRange,
-                                    _range) ->
+
+        | SynRationalConst.Paren(SynRationalConst.Rational(numerator,
+                                                           numeratorRange,
+                                                           divRange,
+                                                           denominator,
+                                                           denominatorRange,
+                                                           _),
+                                 range) ->
             let openingParen =
-                stn (creationAide.TextFromSource (fun () -> "(") lparenRange) lparenRange
+                let r =
+                    withEnd (Position.mkPos range.Start.Line (range.StartRange.StartColumn + 1)) range.StartRange
+
+                stn (creationAide.TextFromSource (fun () -> "(") r) r
 
             let n =
                 stn (creationAide.TextFromSource (fun () -> string numerator) numeratorRange) numeratorRange
@@ -2030,14 +2033,16 @@ let mkSynRationalConst (creationAide: CreationAide) rc =
                 stn (creationAide.TextFromSource (fun () -> string denominator) denominatorRange) denominatorRange
 
             let closingParen =
-                stn (creationAide.TextFromSource (fun () -> ")") rparenRange) rparenRange
+                let r =
+                    withStart (Position.mkPos range.End.Line (range.End.Column - 1)) range.EndRange
 
-            // Use bigger overall range than AST to include parens and improve block comment handling
-            let range = unionRanges lparenRange rparenRange
+                stn (creationAide.TextFromSource (fun () -> ")") r) r
 
             RationalConstNode.Rational(RationalNode(openingParen, n, div, d, closingParen, range))
+        | SynRationalConst.Paren(innerRc, _) -> visit innerRc
         | SynRationalConst.Negate(innerRc, range) ->
             RationalConstNode.Negate(NegateRationalNode(stn "-" range.StartRange, visit innerRc, range))
+        | SynRationalConst.Rational _ -> failwith "SynRationalConst.Rational not wrapped in SynRationalConst.Paren"
 
     visit rc
 

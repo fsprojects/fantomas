@@ -40,7 +40,7 @@ Some common use cases include:
     <!-- Versions -->
     <PropertyGroup>
         <FCSRepo>dawedawe/fsharp</FCSRepo>
-        <FCSCommitHash>eb0899cccefc1decf503d4a0b3a96a4c6e62189e</FCSCommitHash>
+        <FCSCommitHash>ab8bb0cbc6b5068cd9481b09fd521eac7c7c2421</FCSCommitHash>
         <StreamJsonRpcVersion>2.8.28</StreamJsonRpcVersion>
         <FSharpCoreVersion>6.0.1</FSharpCoreVersion>
     </PropertyGroup>
