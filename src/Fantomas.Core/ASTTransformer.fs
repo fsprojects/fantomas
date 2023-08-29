@@ -2024,16 +2024,39 @@ let mkSynRationalConst (creationAide: CreationAide) rc =
         | SynRationalConst.Integer(i, range) ->
             stn (creationAide.TextFromSource (fun () -> string i) range) range
             |> RationalConstNode.Integer
-        | SynRationalConst.Rational(numerator, numeratorRange, denominator, denominatorRange, range) ->
+
+        | SynRationalConst.Paren(SynRationalConst.Rational(numerator,
+                                                           numeratorRange,
+                                                           divRange,
+                                                           denominator,
+                                                           denominatorRange,
+                                                           _),
+                                 range) ->
+            let openingParen =
+                let r =
+                    withEnd (Position.mkPos range.Start.Line (range.StartRange.StartColumn + 1)) range.StartRange
+
+                stn "(" r
+
             let n =
                 stn (creationAide.TextFromSource (fun () -> string numerator) numeratorRange) numeratorRange
+
+            let div = stn "/" divRange
 
             let d =
                 stn (creationAide.TextFromSource (fun () -> string denominator) denominatorRange) denominatorRange
 
-            RationalConstNode.Rational(RationalNode(n, d, range))
+            let closingParen =
+                let r =
+                    withStart (Position.mkPos range.End.Line (range.End.Column - 1)) range.EndRange
+
+                stn ")" r
+
+            RationalConstNode.Rational(RationalNode(openingParen, n, div, d, closingParen, range))
+        | SynRationalConst.Paren(innerRc, _) -> visit innerRc
         | SynRationalConst.Negate(innerRc, range) ->
             RationalConstNode.Negate(NegateRationalNode(stn "-" range.StartRange, visit innerRc, range))
+        | SynRationalConst.Rational _ -> failwith "SynRationalConst.Rational not wrapped in SynRationalConst.Paren"
 
     visit rc
 

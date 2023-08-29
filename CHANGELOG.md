@@ -4,6 +4,7 @@
 
 ### Changed
 * Update FCS to 'Included get,set in range of AutoProperty', commit d508186f510681d1261291474e3f9f25485999a8
+* Update FCS to 'Add a Paren case to SynRationalConst', commit 97a5b6584b54707e3e8541fe758e1aa22132a8fe
 
 ### Added
 * Initial support for `SynExpr.DotLambda` [#2920](https://github.com/fsprojects/fantomas/pull/2920) (See [dotnet/fsharp#13907](https://github.com/dotnet/fsharp/pull/13907))
@@ -12,6 +13,9 @@
 ### Fixed
 * Comment no longer attached to autoproperty. [#2948](https://github.com/fsprojects/fantomas/issues/2948)
 * `begin`/`end` are replaced with parens. [#2368](https://github.com/fsprojects/fantomas/issues/2368)
+* Block comment in Rational between lparen and numerator is moved before lparen. [#2930](https://github.com/fsprojects/fantomas/issues/2930)
+* Block comment in Rational between / and denominator is moved before /. [#2932](https://github.com/fsprojects/fantomas/issues/2932)
+* Block comment in Rational between denominator and rparen is moved behind rparen. [#2933](https://github.com/fsprojects/fantomas/issues/2933)
 
 ## 6.1.3 - 2023-08-25
 

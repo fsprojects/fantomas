@@ -846,3 +846,48 @@ let ``block comment between ^ and exponent in SynMeasure.Power is lost, 2936`` (
         """
 234<m^ (* foo *) 2>
 """
+
+[<Test>]
+let ``block comment in Rational between lparen and numerator is moved before lparen, 2930`` () =
+    formatSourceString
+        false
+        """
+234<kg^((* foo *)2/3)>
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+234<kg^( (* foo *) 2/3)>
+"""
+
+[<Test>]
+let ``block comment in Rational between / and denominator is moved before /, 2932`` () =
+    formatSourceString
+        false
+        """
+234<kg^(2/(* foo *)3)>
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+234<kg^(2/ (* foo *) 3)>
+"""
+
+[<Test>]
+let ``block comment in Rational between denominator and rparen is moved behind rparen, 2933`` () =
+    formatSourceString
+        false
+        """
+234<kg^(2/3(* foo *))>
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+234<kg^(2/3 (* foo *) )>
+"""

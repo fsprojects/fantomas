@@ -245,11 +245,11 @@ let genRational (rat: RationalConstNode) =
     | RationalConstNode.Integer i -> genSingleTextNode i
     | RationalConstNode.Negate negate -> genSingleTextNode negate.Minus +> genRational negate.Rational
     | RationalConstNode.Rational rationalNode ->
-        genSingleTextNode (SingleTextNode("(", Fantomas.FCS.Text.Range.Zero))
+        genSingleTextNode rationalNode.OpeningParen
         +> genSingleTextNode rationalNode.Numerator
-        +> genSingleTextNode (SingleTextNode("/", Fantomas.FCS.Text.Range.Zero))
+        +> genSingleTextNode rationalNode.DivOp
         +> genSingleTextNode rationalNode.Denominator
-        +> genSingleTextNode (SingleTextNode(")", Fantomas.FCS.Text.Range.Zero))
+        +> genSingleTextNode rationalNode.ClosingParen
         |> genNode rationalNode
 
 let genAttributesCore (ats: AttributeNode list) =
