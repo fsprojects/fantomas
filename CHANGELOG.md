@@ -11,6 +11,7 @@
 
 ### Fixed
 * Comment no longer attached to autoproperty. [#2948](https://github.com/fsprojects/fantomas/issues/2948)
+* `begin`/`end` are replaced with parens. [#2368](https://github.com/fsprojects/fantomas/issues/2368)
 
 ## 6.1.3 - 2023-08-25
 
