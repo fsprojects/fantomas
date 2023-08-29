@@ -189,10 +189,6 @@ pipeline "EnsureRepoConfig" {
 
 let deps = __SOURCE_DIRECTORY__ </> ".deps"
 
-let fsharpCompilerRepo =
-    let xDoc = XElement.Load(__SOURCE_DIRECTORY__ </> "Directory.Build.props")
-    xDoc.XPathSelectElements("//FCSRepo") |> Seq.head |> (fun xe -> xe.Value)
-
 let fsharpCompilerHash =
     let xDoc = XElement.Load(__SOURCE_DIRECTORY__ </> "Directory.Build.props")
     xDoc.XPathSelectElements("//FCSCommitHash") |> Seq.head |> (fun xe -> xe.Value)
@@ -208,7 +204,7 @@ let updateFileRaw (file: FileInfo) =
                 line)
     File.WriteAllLines(file.FullName, updatedLines)
 
-let downloadCompilerFile repo commitHash relativePath =
+let downloadCompilerFile commitHash relativePath =
     async {
         let file = FileInfo(deps </> commitHash </> relativePath)
         if file.Exists && file.Length <> 0 then
@@ -217,7 +213,8 @@ let downloadCompilerFile repo commitHash relativePath =
             file.Directory.Create()
             let fs = file.Create()
             let fileName = Path.GetFileName(relativePath)
-            let url = $"https://raw.githubusercontent.com/{repo}/{commitHash}/{relativePath}"
+            let url =
+                $"https://raw.githubusercontent.com/dotnet/fsharp/{commitHash}/{relativePath}"
             let! response =
                 Http.AsyncRequestStream(
                     url,
@@ -307,7 +304,7 @@ pipeline "Init" {
                "src/Compiler/SyntaxTree/LexHelpers.fs"
                "src/Compiler/SyntaxTree/LexFilter.fsi"
                "src/Compiler/SyntaxTree/LexFilter.fs" |]
-            |> Array.map (downloadCompilerFile fsharpCompilerRepo fsharpCompilerHash)
+            |> Array.map (downloadCompilerFile fsharpCompilerHash)
             |> Async.Parallel
             |> Async.Ignore)
     }
