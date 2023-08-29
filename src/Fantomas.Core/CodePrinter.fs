@@ -1596,6 +1596,21 @@ let genExpr (e: Expr) =
         +> genSingleTextNode node.Dot
         +> genExpr node.Expr
         |> genNode node
+    | Expr.BeginEnd node ->
+        let short =
+            genSingleTextNode node.Begin
+            +> sepSpace
+            +> genExpr node.Expr
+            +> sepSpace
+            +> genSingleTextNode node.End
+
+        let long =
+            genSingleTextNode node.Begin
+            +> indentSepNlnUnindent (genExpr node.Expr)
+            +> sepNln
+            +> genSingleTextNode node.End
+
+        expressionFitsOnRestOfLine short long |> genNode node
 
 let genQuoteExpr (node: ExprQuoteNode) =
     genSingleTextNode node.OpenToken
