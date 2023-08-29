@@ -1,6 +1,6 @@
 # Changelog
 
-## [Unreleased]
+## 6.2.0 - 2023-08-29
 
 ### Changed
 * Update FCS to 'Included get,set in range of AutoProperty', commit d508186f510681d1261291474e3f9f25485999a8
