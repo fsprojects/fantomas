@@ -5,7 +5,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
   <meta name="author" content="Florian Verdonck, Jindřich Ivánek, David Schaefer">
-  <title>SynArgPats (fantomas)</title>
+  <title>Span (fantomas)</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,600;1,400&family=Reem+Kufi:wght@400;500;700&display=swap" rel="stylesheet">
@@ -201,44 +201,35 @@
       <div id="fsdocs-content" class="bg-white m-2 m-sm-5 p-3 p-sm-4">
         <div>
   <h2>
-    SynArgPats Type
+    Span Module
   </h2>
   <dl class="fsdocs-metadata">
     <dt>
       Namespace: 
-      <a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-syntax.html">
-        Fantomas.FCS.Syntax
+      <a href="https://fsprojects.github.io/fantomas/reference/internal-utilities-library.html">
+        Internal.Utilities.Library
       </a>
     </dt>
     <dt>
       Assembly: Fantomas.FCS.dll
-    </dt>
-    <dt>
-      Base Type: 
-      <code>obj</code>
     </dt>
   </dl>
   <div class="fsdocs-xmldoc">
     <div>
       <p class="fsdocs-summary">
         
- Represents a syntax tree for arguments patterns
-
       </p>
     </div>
   </div>
-  <div></div>
-  <div></div>
-  <div></div>
   <div>
     <h3>
-      Union cases
+      Functions and values
     </h3>
     <table class="table outer-list fsdocs-member-list">
       <thead>
         <tr>
           <td class="fsdocs-member-list-header">
-            Union case
+            Function or value
           </td>
           <td class="fsdocs-member-list-header">
             Description
@@ -249,185 +240,80 @@
         <tr>
           <td class="fsdocs-member-usage">
             <div>
-              <code onmouseout="hideTip(event, '6541', 6541)" onmouseover="showTip(event, '6541', 6541)">
+              <code onmouseout="hideTip(event, '1340', 1340)" onmouseover="showTip(event, '1340', 1340)">
                 <p>
-                  <a id="NamePatPairs">
-                    <a href="#NamePatPairs">
-                      <code><span>NamePatPairs(<span>pats,&#32;range,&#32;trivia</span>)</span></code>
+                  <a id="exists">
+                    <a href="#exists">
+                      <code><span>exists&#32;<span>predicate&#32;span</span></span></code>
                     </a>
                   </a>
                 </p>
               </code>
-              <div class="fsdocs-tip" id="6541">
+              <div class="fsdocs-tip" id="1340">
                 <div class="member-tooltip">
                   Full Usage: 
-                  <code><span>NamePatPairs(<span>pats,&#32;range,&#32;trivia</span>)</span></code>
+                  <code><span>exists&#32;<span>predicate&#32;span</span></span></code>
                   <br/>
                   <br/>
                   Parameters: 
                   <ul>
                     <span>
                       <b>
-                        pats
+                        predicate
                       </b>
                       :
-                      <code><span><span>(<span><a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-syntax-ident.html">Ident</a>&#32;*&#32;<span><a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-text-range-0.html">range</a>&#32;option</span>&#32;*&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-syntax-synpat.html">SynPat</a></span>)</span>&#32;list</span></code>
+                      <code><span>'T&#32;->&#32;bool</span></code>
                     </span>
                     <br/>
                     <span>
                       <b>
-                        range
+                        span
                       </b>
                       :
-                      <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-text-range-0.html">range</a></code>
-                    </span>
-                    <br/>
-                    <span>
-                      <b>
-                        trivia
-                      </b>
-                      :
-                      <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-syntaxtrivia-synargpatsnamepatpairstrivia.html">SynArgPatsNamePatPairsTrivia</a></code>
+                      <code><span><a href="https://learn.microsoft.com/dotnet/api/system.span-1">Span</a>&lt;'T&gt;</span></code>
                     </span>
                     <br/>
                   </ul>
-                  <br/>
-                </div>
-              </div>
-            </div>
-          </td>
-          <td class="fsdocs-member-xmldoc">
-            <dl class="fsdocs-params">
-              <dt class="fsdocs-param">
-                <span class="fsdocs-param-name">
-                  pats
-                </span>
-                :
-                <code><span><span>(<span><a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-syntax-ident.html">Ident</a>&#32;*&#32;<span><a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-text-range-0.html">range</a>&#32;option</span>&#32;*&#32;<a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-syntax-synpat.html">SynPat</a></span>)</span>&#32;list</span></code>
-              </dt>
-              <dd class="fsdocs-param-docs"></dd>
-              <dt class="fsdocs-param">
-                <span class="fsdocs-param-name">
-                  range
-                </span>
-                :
-                <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-text-range-0.html">range</a></code>
-              </dt>
-              <dd class="fsdocs-param-docs"></dd>
-              <dt class="fsdocs-param">
-                <span class="fsdocs-param-name">
-                  trivia
-                </span>
-                :
-                <code><a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-syntaxtrivia-synargpatsnamepatpairstrivia.html">SynArgPatsNamePatPairsTrivia</a></code>
-              </dt>
-              <dd class="fsdocs-param-docs"></dd>
-            </dl>
-          </td>
-        </tr>
-        <tr>
-          <td class="fsdocs-member-usage">
-            <div>
-              <code onmouseout="hideTip(event, '6542', 6542)" onmouseover="showTip(event, '6542', 6542)">
-                <p>
-                  <a id="Pats">
-                    <a href="#Pats">
-                      <code><span>Pats&#32;pats</span></code>
-                    </a>
-                  </a>
-                </p>
-              </code>
-              <div class="fsdocs-tip" id="6542">
-                <div class="member-tooltip">
-                  Full Usage: 
-                  <code><span>Pats&#32;pats</span></code>
-                  <br/>
-                  <br/>
-                  Parameters: 
-                  <ul>
-                    <span>
-                      <b>
-                        pats
-                      </b>
-                      :
-                      <code><span><a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-syntax-synpat.html">SynPat</a>&#32;list</span></code>
-                    </span>
-                    <br/>
-                  </ul>
-                  <br/>
-                </div>
-              </div>
-            </div>
-          </td>
-          <td class="fsdocs-member-xmldoc">
-            <dl class="fsdocs-params">
-              <dt class="fsdocs-param">
-                <span class="fsdocs-param-name">
-                  pats
-                </span>
-                :
-                <code><span><a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-syntax-synpat.html">SynPat</a>&#32;list</span></code>
-              </dt>
-              <dd class="fsdocs-param-docs"></dd>
-            </dl>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-  <div></div>
-  <div></div>
-  <div></div>
-  <div>
-    <h3>
-      Instance members
-    </h3>
-    <table class="table outer-list fsdocs-member-list">
-      <thead>
-        <tr>
-          <td class="fsdocs-member-list-header">
-            Instance member
-          </td>
-          <td class="fsdocs-member-list-header">
-            Description
-          </td>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td class="fsdocs-member-usage">
-            <div>
-              <code onmouseout="hideTip(event, '6543', 6543)" onmouseover="showTip(event, '6543', 6543)">
-                <p>
-                  <a id="Patterns">
-                    <a href="#Patterns">
-                      <code><span>this.Patterns</span></code>
-                    </a>
-                  </a>
-                </p>
-              </code>
-              <div class="fsdocs-tip" id="6543">
-                <div class="member-tooltip">
-                  Full Usage: 
-                  <code><span>this.Patterns</span></code>
-                  <br/>
                   <br/>
                   <span>
                     Returns: 
-                    <code><span><a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-syntax-synpat.html">SynPat</a>&#32;list</span></code>
+                    <code>bool</code>
                   </span>
                   <br/>
+                  Modifiers: 
+                  inline
+                  <br/>
+                  Type parameters: 
+                  &#39;T
                 </div>
               </div>
             </div>
           </td>
           <td class="fsdocs-member-xmldoc">
+            <dl class="fsdocs-params">
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  predicate
+                </span>
+                :
+                <code><span>'T&#32;->&#32;bool</span></code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+              <dt class="fsdocs-param">
+                <span class="fsdocs-param-name">
+                  span
+                </span>
+                :
+                <code><span><a href="https://learn.microsoft.com/dotnet/api/system.span-1">Span</a>&lt;'T&gt;</span></code>
+              </dt>
+              <dd class="fsdocs-param-docs"></dd>
+            </dl>
             <dl class="fsdocs-returns">
               <dt>
                 <span class="fsdocs-return-name">
                   Returns: 
                 </span>
-                <code><span><a href="https://fsprojects.github.io/fantomas/reference/fantomas-fcs-syntax-synpat.html">SynPat</a>&#32;list</span></code>
+                <code>bool</code>
               </dt>
               <dd class="fsdocs-return-docs"></dd>
             </dl>
@@ -436,6 +322,13 @@
       </tbody>
     </table>
   </div>
+  <div></div>
+  <div></div>
+  <div></div>
+  <div></div>
+  <div></div>
+  <div></div>
+  <div></div>
   <div></div>
 </div>
         
