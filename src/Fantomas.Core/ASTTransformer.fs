@@ -2028,12 +2028,12 @@ let mkSynRationalConst (creationAide: CreationAide) rc =
                 let r =
                     withEnd (Position.mkPos range.Start.Line (range.StartRange.StartColumn + 1)) range.StartRange
 
-                stn (creationAide.TextFromSource (fun () -> "(") r) r
+                stn "(" r
 
             let n =
                 stn (creationAide.TextFromSource (fun () -> string numerator) numeratorRange) numeratorRange
 
-            let div = stn (creationAide.TextFromSource (fun () -> "/") divRange) divRange
+            let div = stn "/" divRange
 
             let d =
                 stn (creationAide.TextFromSource (fun () -> string denominator) denominatorRange) denominatorRange
@@ -2042,7 +2042,7 @@ let mkSynRationalConst (creationAide: CreationAide) rc =
                 let r =
                     withStart (Position.mkPos range.End.Line (range.End.Column - 1)) range.EndRange
 
-                stn (creationAide.TextFromSource (fun () -> ")") r) r
+                stn ")" r
 
             RationalConstNode.Rational(RationalNode(openingParen, n, div, d, closingParen, range))
         | SynRationalConst.Paren(innerRc, _) -> visit innerRc
