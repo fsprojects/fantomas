@@ -12,6 +12,7 @@
 
 ### Fixed
 * Comment no longer attached to autoproperty. [#2948](https://github.com/fsprojects/fantomas/issues/2948)
+* `begin`/`end` are replaced with parens. [#2368](https://github.com/fsprojects/fantomas/issues/2368)
 * Block comment in Rational between lparen and numerator is moved before lparen. [#2930](https://github.com/fsprojects/fantomas/issues/2930)
 * Block comment in Rational between / and denominator is moved before /. [#2932](https://github.com/fsprojects/fantomas/issues/2932)
 * Block comment in Rational between denominator and rparen is moved behind rparen. [#2933](https://github.com/fsprojects/fantomas/issues/2933)

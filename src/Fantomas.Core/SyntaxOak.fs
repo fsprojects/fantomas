@@ -1624,6 +1624,14 @@ type ExprDotLambda(underscore: SingleTextNode, dot: SingleTextNode, expr: Expr, 
     member val Dot = dot
     member val Expr = expr
 
+type ExprBeginEndNode(beginNode: SingleTextNode, expr: Expr, endNode: SingleTextNode, range) =
+    inherit NodeBase(range)
+    override val Children: Node array = [| yield beginNode; yield Expr.Node expr; yield endNode |]
+
+    member val Begin = beginNode
+    member val Expr = expr
+    member val End = endNode
+
 [<RequireQualifiedAccess; NoEquality; NoComparison>]
 type Expr =
     | Lazy of ExprLazyNode
@@ -1689,6 +1697,7 @@ type Expr =
     | Typar of SingleTextNode
     | Chain of ExprChain
     | DotLambda of ExprDotLambda
+    | BeginEnd of ExprBeginEndNode
 
     static member Node(x: Expr) : Node =
         match x with
@@ -1755,6 +1764,7 @@ type Expr =
         | Typar n -> n
         | Chain n -> n
         | DotLambda n -> n
+        | BeginEnd n -> n
 
     member e.HasParentheses: bool =
         match e with

@@ -1165,7 +1165,15 @@ let mkExpr (creationAide: CreationAide) (e: SynExpr) : Expr =
     | SynExpr.LongIdent(longDotId = SynLongIdent([ ident ], [], [ Some(ParenStarSynIdent(lpr, originalNotation, rpr)) ])) ->
         ExprParenFunctionNameWithStarNode(stn "(" lpr, stn originalNotation ident.idRange, stn ")" rpr, exprRange)
         |> Expr.ParenFunctionNameWithStar
-    | ParenExpr(lpr, e, rpr, pr) -> mkParenExpr creationAide lpr e rpr pr |> Expr.Paren
+    | ParenExpr(lpr, e, rpr, pr) ->
+        let hasBeginKeyword = (lpr.EndColumn - lpr.StartColumn) = 5
+        let hasEndKeyword = (rpr.EndColumn - rpr.StartColumn) = 3
+
+        if hasBeginKeyword && hasEndKeyword then
+            ExprBeginEndNode(stn "begin" lpr, mkExpr creationAide e, stn "end" rpr, pr)
+            |> Expr.BeginEnd
+        else
+            mkParenExpr creationAide lpr e rpr pr |> Expr.Paren
     | SynExpr.Dynamic(funcExpr, _, argExpr, _) ->
         ExprDynamicNode(mkExpr creationAide funcExpr, mkExpr creationAide argExpr, exprRange)
         |> Expr.Dynamic
